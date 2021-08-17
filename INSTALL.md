@@ -1,7 +1,7 @@
 # Compiling BSC from source
 
 Source code for the Bluespec toolchain can currently be built on Linux
-and MacOS. It may compile for other flavors of Unix, but likely will need
+and macOS. It may compile for other flavors of Unix, but likely will need
 additional if/else blocks in source code or Makefiles.
 
 The core of BSC is written in Haskell, with some libraries in C/C++.
@@ -12,7 +12,7 @@ The core of BSC is written in Haskell, with some libraries in C/C++.
 
 The following sections describe the requirements and commands for building
 BSC.  Running the build commands will result in the creation of a directory
-(named 'inst' by default) that contains an _installation_ of BSC.  This
+(named `inst` by default) that contains an _installation_ of BSC.  This
 directory can be moved to anywhere on your system, but it is best for the
 files to remain in their relative positions within the directory.
 
@@ -25,7 +25,7 @@ location.  For example:
     $ cd /opt/tools/bsc
     $ ln -s bsc-4.0.0 latest
 
-The 'inst' directory has a 'bin' subdirectory, where the executables
+The `inst` directory has a `bin` subdirectory, where the executables
 for the tools are found.  To use the tools, just add that directory to
 your `PATH`:
 
@@ -93,8 +93,8 @@ For cabal v3.x:
     $ cabal update
     $ cabal v1-install regex-compat syb old-time split
 
-Bluespec compiler builds are tested with GHC 7.10.1 and greater, and older
-GHC releases are not supported.
+Bluespec compiler builds are tested with GHC 8.0.2 and greater.
+GHC releases older than 7.10.1 are not supported.
 
 Beyond that, any version up to 8.10.1 (the latest at the time of writing) will
 work, since the source code has been written with extensive preprocessor macros
@@ -115,7 +115,7 @@ that pulls in the `make` package as a requirement.
 
 Some Makefiles will attempt to use `pkg-config` to query the installed libraries,
 but will fall-back on default values if it is not available.  For best results
-and to avoid suprious warnings, we recommend installing the `pkg-config`
+and to avoid spurious warnings, we recommend installing the `pkg-config`
 package (or `pkgconfig` on some systems):
 
     $ apt-get install pkg-config
@@ -148,7 +148,7 @@ The `check-smoke` target runs a test using an external Verilog simulator, which 
 [Icarus Verilog]: http://iverilog.icarus.com
 
 The `install-doc` target builds PDF documentation from LaTeX source files
-that rely on a few standard style files.  The following Debian/Unbuntu
+that rely on a few standard style files.  The following Debian/Ubuntu
 packages install sufficient tools to build the documentation:
 
     $ apt-get install \
