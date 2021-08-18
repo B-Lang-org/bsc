@@ -234,13 +234,26 @@ for building a release.
 
 ## Exporting the source code
 
-If you wish to make a snapshot of the source code available, outside of
-Git, there are some steps you will need to take in the `src/comp/` directory.
-The build in that directory uses Git to automatically generate the version
-information for the compiler and place it in the file `BuildVersion.hs`.
-If you are exporting the code, you will want pre-generate this file and then
-adjust the Makefile to not rebuild it.  That can be done by changing the
-assignment of `NOUPDATEBUILDVERSION` to `1`, in the Makefile.
+If you wish to make a snapshot of the source code available, outside
+of Git, you can do so with `git archive`, but be aware of two points.
+
+For one, you will need to also export the files from submodules,
+because Git will not include them.
+
+For two, you may wish to adjust files in the `src/comp/` directory, to
+give a particular version name to installations built from the
+snapshot.  The build in that directory uses Git to automatically
+generate the version information for the compiler and place it in the
+file `BuildVersion.hs`.  The script that generates this,
+`update-build-version.sh`, can only query Git for version info when
+called from inside a Git repository.  The script will still work if
+`git archive` is used to export the snapshot, because we have
+specified (in `.gitattributes`) that patterns in the file should be
+substituted with their values (the commit hash and tag, if any) during
+export.  Therefore, no change in this directory is required.  However,
+if you want to hard-code a different version name, you can pre-generate
+the `BuildVersion.hs` file and adjust the `Makefile` to not rebuild
+it, by changing the assignment of `NOUPDATEBUILDVERSION` to `1`.
 
 ---
 
