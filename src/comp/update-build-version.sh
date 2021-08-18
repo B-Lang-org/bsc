@@ -44,10 +44,23 @@ else
 	GITCOMMIT="0000000"
 	GITDESCR="no-git"
     else
-	# Get the current commit hash
-	GITCOMMIT=`git show -s --format=%h HEAD`
-	if ! GITDESCR=`git describe --tags`; then
-	    GITDESCR="untagged-g${GITCOMMIT}"
+
+	# If the source was exported (via 'git archive')
+	if [[ '$Format:%%$' == "%" ]]; then
+	    GITCOMMIT='$Format:%h$'
+	    if [[ '$Format:%D$' =~ tag:\ ([^ ]+) ]]; then
+		GITDESCR="${BASH_REMATCH[1]}"
+	    else
+		GITDESCR="archive-g${GITCOMMIT}"
+	    fi
+	else
+
+	    # Get the current commit hash
+	    GITCOMMIT=`git show -s --format=%h HEAD`
+	    if ! GITDESCR=`git describe --tags`; then
+		GITDESCR="untagged-g${GITCOMMIT}"
+	    fi
+
 	fi
     fi
     genGITBuildVersion ${GITCOMMIT} ${GITDESCR}
