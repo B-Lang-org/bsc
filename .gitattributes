@@ -3,3 +3,10 @@
 #
 src/Parsec/* linguist-vendored
 src/vendor/stp/src/* linguist-vendored
+
+# Scripts that query git for commit info will not work
+# if the source is not in a git repo, so when exporting
+# (via 'git archive') substitute patterns in these files
+# with the info they need
+#
+src/comp/update-build-version.sh export-subst
