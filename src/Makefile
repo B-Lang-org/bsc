@@ -32,11 +32,22 @@ checkghcpkg=$(if $(shell ghc-pkg list --simple-output $(1)),,$(error GHC package
 $(foreach pkg,$(GHC_PKGS),$(call checkghcpkg,$(pkg)))
 
 # Check all submodules are initialized
+in_git_repo=$(shell git rev-parse --is-inside-work-tree 2> /dev/null )
+ifeq ($(in_git_repo),true)
 define SUBMOD_MSG
 Submodule $(1) missing. Initialize with
     git submodule update --init --recursive
 endef
 checksubmod=$(if $(wildcard $(1)/.git),,$(error $(SUBMOD_MSG)))
+else
+define SUBMOD_MSG
+Submodule $(1) missing.
+    This archive was exported from Git without the source files for
+    submodules. You will need to acquire those files or, preferably,
+    build instead from a clone of the BSC Git repository
+endef
+checksubmod=$(if $(wildcard $(1)/*),,$(error $(SUBMOD_MSG)))
+endif
 $(foreach submod,$(SUBMODS),$(call checksubmod,$(submod)))
 endif # NO_DEPS_CHECKS
 
