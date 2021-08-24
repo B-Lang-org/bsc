@@ -77,7 +77,6 @@ Compiler flags:
 -u                      check and recompile packages that are not up to date
 -unspecified-to val     remaining unspecified values are set to: 'X', '0', '1', 'Z', or 'A'
 -v                      same as -verbose
--v95                    generate strict Verilog 95 code
 -vdir dir               output directory for .v files
 -verbose                be more talkative
 -verilog                compile BSV generating Verilog file

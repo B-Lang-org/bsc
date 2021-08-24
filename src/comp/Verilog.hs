@@ -241,7 +241,7 @@ data VMItem
         | VMInst { vi_module_name :: VId,
                    vi_inst_name :: VId,
                    -- The string is for comments
-                   vi_inst_params :: Either [(Maybe String,VExpr)] [(VId, Maybe VExpr)],
+                   vi_inst_params :: Either [VExpr] [(VId, VExpr)],
                    vi_inst_ports :: [(VId, Maybe VExpr)] }
         | VMAssign VLValue VExpr
         | VMStmt { vi_translate_off :: Bool, vi_body :: VStmt }
@@ -306,11 +306,11 @@ instance PPrint VMItem where
         pPrint d p (VMInst mid iid pvs cs) = pPrint d 0 mid <>
           (case pvs of
            Left ps -> (if null ps then text ""
-                       else text " #" <> pparen True (sepList (map (pv95params d) ps) comma ))
+                       else text " #" <> pparen True (sepList (map (pPrint d 0) ps) comma))
            Right ps -> (if null ps then text ""
                         else text " #" <>
                              pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
-                                            pparen True (case me of Just e -> pPrint d 0 e; Nothing -> text "")) ps) (text ",")))) <>
+                                            pparen True (pPrint d 0 me)) ps) (text ",")))) <>
                 text "" <+> pPrint d 0 iid <>
                 pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
                                            pparen True (case me of
@@ -330,11 +330,6 @@ instance PPrint VMItem where
             pPrint d 0 inst_id $+$
             ppComment cs $+$
             pPrint d p stmt
-
-pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
-pv95params d (Nothing,x)  =  pPrint d 0 x
-pv95params d (Just "", x) =  pPrint d 0 x
-pv95params d (Just s,x)   =  text (" /*" ++ s ++ "*/ ") <> pPrint d 0 x
 
 -- Decide where to place blank spaces between VMItems, by grouping
 -- them into a list of lists between which there should be a space.

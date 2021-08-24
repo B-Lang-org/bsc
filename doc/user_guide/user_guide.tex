@@ -1627,14 +1627,12 @@ The following additional flags are available when using the Verilog
 back end.
 \index{-remove-unused-modules@\te{-remove-unused-modules} (compiler
 flag)}
-\index{-v95@\te{-v95} (compiler flag)}
 \index{-remove-dollar@\te{-remove-dollar} (compiler flag)}
 \index{-unspecified-to@\te{-unspecified-to} (compiler flag)}
 \index{-Xv@\te{-Xv} (compiler flag)}
 \index{-verilog-filter@\te{-verilog-filter} (compiler flag)}
 \begin{centerboxverbatim}
 -remove-unused-modules  remove unconnected modules from the Verilog
--v95                    generate strict Verilog 95 code
 -unspecified-to val     remaining unspecified values are set to:
                          'X', '0', '1', 'Z', or 'A'
 -remove-dollar          remove dollar signs from Verilog identifiers
@@ -1648,14 +1646,6 @@ output.  This has has the effect of removing redundant or unused
 modules, which would also be done by synthesis tools.   This option
 should be used on modules undergoing synthesis, and not be used for
 testbench modules.
-
-The {\bf\tt -v95} flag restricts the Verilog output to pure Verilog-95.
-By default, the Verilog output uses features which are not in the
-Verilog-95 standard.  These features include passing module
-parameters by name and use of the {\tt \$signed} system task for formatting
-{\tt \$display} output.  When the {\tt -v95} flag is turned on, uses
-of these features are removed, but comments are left in the Verilog
-indicating the parameter names or system tasks which were removed.
 
 The {\bf\tt -unspecified-to val} flag defines the value
 which any remaining unspecified values should be tied to.  The valid

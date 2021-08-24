@@ -36,7 +36,7 @@ import Data.Maybe
 
 import FStringCompat(FString, getFString)
 import ErrorUtil
-import Flags(Flags, readableMux, unSpecTo, v95, systemVerilogTasks)
+import Flags(Flags, readableMux, unSpecTo, systemVerilogTasks)
 import PPrint
 import IntLit
 import Id
@@ -56,7 +56,6 @@ import ForeignFunctions(ForeignFunction(..), ForeignFuncMap, isPoly, isMappedAVI
 
 import Util
 import IntegerUtil
-import ListUtil(mapSnd, mapFst)
 
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -70,8 +69,6 @@ import SCC(tsort)
 -- Define a structure which controls Verilog conversions
 data VConvtOpts = VConvtOpts {
                               vco_unspec      :: String,
-                              vco_v95         :: Bool,
-                              vco_v95_tasks   :: [String],
                               vco_readableMux :: Bool,
                               vco_sv_tasks :: Bool
                               }
@@ -80,8 +77,6 @@ data VConvtOpts = VConvtOpts {
 flagsToVco :: Flags -> VConvtOpts
 flagsToVco flags = VConvtOpts {
                                vco_unspec = unSpecTo flags,
-                               vco_v95    = v95 flags,
-                               vco_v95_tasks = ["$signed", "$unsigned"],
                                vco_readableMux = readableMux flags,
                                vco_sv_tasks = systemVerilogTasks flags
                               }
@@ -209,7 +204,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
   if aid==idSVA then fcall es
                   else foldr (Vif . mkNotEqualsReset . vExpr vco) fcall_body resets
   where
-    vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
+    vtaskid = VId taskid aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids
                  in case polyReturnType ffmap f of
                      (Just ty) -> ([], (ASDef ty lv) : es)
@@ -532,7 +527,7 @@ vDefMpd vco (ADef i t
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
                   -- these are size params, so default width of 32 is fine
-                  vi_inst_params = Left (map (\x -> (Nothing,VEConst x)) is),
+                  vi_inst_params = Left (map (\x -> VEConst x) is),
                   vi_inst_ports  = (zip
                                     (map (mkVId . fst) ips')
                                     (map (Just . (vExpr vco)) es')
@@ -573,7 +568,7 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
     , VMStmt { vi_translate_off = True, vi_body = body }
     ]
-  where name = vCommentTaskName vco (vNameToTask (ae_funname fn))
+  where name = vNameToTask (ae_funname fn)
         vtaskid = VId name (ae_objid fn) Nothing
         sensitivityList = nub (concatMap aIds (ae_args fn))
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
@@ -676,7 +671,7 @@ vExpr vco (APrim aid t p es) = VEOp (idToVId aid) (vExpr vco (APrim aid t p (ini
 -- vExpr vco (AMethCall t i m _) = internalError "AVerilog.vExpr: AMethCall with args"
 -- vExpr vco (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult M.Empty)
 vExpr vco (AFunCall _ _ n isC es) =
-  let name = vCommentTaskName vco (if isC then vNameToTask n else n)
+  let name = if isC then vNameToTask n else n
   in VEFctCall (mkVId name) (map (vExpr vco) es)
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
@@ -759,9 +754,7 @@ muxInst vco pri s i es =
                                      ++ "Mux_"
                                      ++ itos (length es `div` 2)),
             vi_inst_name    = i,
-            vi_inst_params  = if ( vco_v95 vco )
-                              then Left [(Just $ getVIdString viWidth ,VEConst s)]
-                              else Right [(viWidth, Just (VEConst s))],
+            vi_inst_params  = Right [(viWidth, VEConst s)],
             vi_inst_ports   = zip muxInputs (map Just es)
            }
 
@@ -977,9 +970,7 @@ vState  flags rewire_map avinst =
         vminst = VMInst {
                          vi_module_name  = vIdV (vName vi),
                          vi_inst_name    = vInstId v_inst_name,
-                         vi_inst_params  = if ( vco_v95 vco )
-                                           then Left (mapFst (Just . getVIdString)  paramExprs)
-                                           else Right (mapSnd Just paramExprs),
+                         vi_inst_params  = Right paramExprs,
                          vi_inst_ports   = map (updateArgPosition ifc_position . tildeHack) args
                         }
 
@@ -1084,14 +1075,8 @@ aIds _                    = internalError("Unexpected pattern in AVerilog::aIds"
 
 -- ==============================
 
--- replace non v95 task with their name enclosed in a comment
-vCommentTaskName :: VConvtOpts -> String -> String
-vCommentTaskName vco s | vco_v95 vco && elem s (vco_v95_tasks vco) = " /*" ++ s ++ "*/ "
-                       | otherwise = s
-
 -- create a Verilog task name from a foreign function name
 vNameToTask :: String -> String
 vNameToTask s = "$imported_" ++ s
-
 
 -- ==============================
