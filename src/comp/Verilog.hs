@@ -62,18 +62,6 @@ import qualified Data.Generics as Generic
 
 --import Debug.Trace
 
-
--- string to start synthesis attributes with
-synthesis_str :: String
-synthesis_str = "synopsys"
--- other possibilities
---synthesis_str = "synthesis"
---synthesis_str = "pragma"
-
-mkSynthPragma :: String -> Doc
-mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
-
-
 -- VProgram
 --    * a list of modules
 --    * a comment for the entire file, not for any one module
@@ -244,7 +232,7 @@ data VMItem
                    vi_inst_params :: Either [VExpr] [(VId, VExpr)],
                    vi_inst_ports :: [(VId, Maybe VExpr)] }
         | VMAssign VLValue VExpr
-        | VMStmt { vi_translate_off :: Bool, vi_body :: VStmt }
+        | VMStmt { vi_simulation_only :: Bool, vi_body :: VStmt }
         | VMComment VComment VMItem
         -- like VMComment but specific to inlined registers,
         -- to carry info for xref generation.
@@ -252,7 +240,7 @@ data VMItem
         | VMRegGroup VId String VComment VMItem
         -- VMGroup: the lists of VMItem will be separated by empty lines;
         --          if no spaces needed, use a list of one list.
-        | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
+        | VMGroup { vg_simulation_only :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
@@ -296,9 +284,9 @@ instance Ord VMItem where
 instance PPrint VMItem where
         pPrint d p (VMDecl dcl) = pPrint d p dcl
         pPrint d p s@(VMStmt {})
-                | vi_translate_off s = mkSynthPragma "translate_off" $$
-                                        pPrint d p (vi_body s) $$
-                                        mkSynthPragma "translate_on"
+                | vi_simulation_only s = text "`ifndef SYNTHESIS" $$
+                                         pPrint d p (vi_body s) $$
+                                         text "`endif // SYNTHESIS"
                 | otherwise = pPrint d p (vi_body s)
         pPrint d p (VMAssign v e) = -- trace("Assignment :" ++ (ppReadable v) ++ " = " ++ (ppReadable e) ++ "\n") $
             sep [text "assign" <+> pPrint d 45 v <+> text "=",
@@ -319,9 +307,9 @@ instance PPrint VMItem where
                  <> text ";"
         pPrint d p (VMComment cs stmt) = ppComment cs $+$ pPrint d p stmt
         pPrint d p g@(VMGroup _ stmtss)
-                | vg_translate_off g = mkSynthPragma "translate_off" $$
-                                       vsepEmptyLine (map (ppLines d) stmtss) $$
-                                       mkSynthPragma "translate_on"
+                | vg_simulation_only g = text "`ifndef SYNTHESIS" $$
+                                         vsepEmptyLine (map (ppLines d) stmtss) $$
+                                         text "`endif // SYNTHESIS"
                 | otherwise = vsepEmptyLine (map (ppLines d) stmtss)
 
         pPrint d p (VMFunction f) = pPrint d p f

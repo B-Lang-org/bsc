@@ -185,13 +185,13 @@ vForeignBlock vco ffmap ds (clks, fcalls) =
           foldr1 VEEOr (map (VEEposedge . (vExpr vco)) clks)
       mkVAssert :: VStmt -> VMItem
       mkVAssert (VTask _ es) =
-          VMStmt { vi_translate_off = True,
+          VMStmt { vi_simulation_only = True,
                    vi_body = VAssert ass_sensitivity_list es }
       mkVAssert x = internalError("mkVAssert: " ++ (show x))
       ass_stmts = map mkVAssert asses
   in -- put it together, with translate_off, since it is for sim only
      Just ((if null fcall_stmts then [] else
-                     [VMStmt { vi_translate_off = True,
+                     [VMStmt { vi_simulation_only = True,
                                vi_body = always_stmt }])++
            (if null asses then [] else ass_stmts),
 
@@ -454,7 +454,7 @@ vDefMpd vco  def@(ADef i t (APrim _ _ PrimPriMux es) _) _ =
           muxInst vco True (aSize t) (vPrimInstId "priorityMux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
     else
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-          VMStmt { vi_translate_off = False,
+          VMStmt { vi_simulation_only = False,
                    vi_body =
                        Valways $ VAt ev $
                        Vcase { vs_case_expr = one,
@@ -481,7 +481,7 @@ vDefMpd vco def@(ADef i t (APrim _ _ PrimMux es) _) _ =
           muxInst vco False (aSize t) (vPrimInstId "mux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
     else
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-          VMStmt { vi_translate_off = False,
+          VMStmt { vi_simulation_only = False,
                    vi_body =
                        Valways $ VAt ev $
                        VSeq [ -- VAssign (VLId vi) (VEConst 0), -- no need to put default assignment
@@ -537,7 +537,7 @@ vDefMpd vco (ADef i t
 
 vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-          VMStmt { vi_translate_off = False,
+          VMStmt { vi_simulation_only = False,
                    vi_body =
                        Valways $ VAt ev $
                        VSeq [Vcase { vs_case_expr = vExpr vco x,
@@ -566,7 +566,7 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) (ATaskValue {}) _) _ =
 vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
   | isImportedPolyReturn ffmap fn =
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
-    , VMStmt { vi_translate_off = True, vi_body = body }
+    , VMStmt { vi_simulation_only = True, vi_body = body }
     ]
   where name = vNameToTask (ae_funname fn)
         vtaskid = VId name (ae_objid fn) Nothing

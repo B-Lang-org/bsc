@@ -3432,14 +3432,14 @@ else
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // no BSV_NO_INITIAL_BLOCKS
-// synopsys translate_off
+`ifndef SYNTHESIS
 initial
 begin
   reg_1 = 51'h2AAAAAAAAAAAA;
   reg_2 = 51'h2AAAAAAAAAAAA;
   reg_3 = 51'h2AAAAAAAAAAAA;
 end
-// synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 \end{centerboxverbatim}
 %    \caption{\label{reg-ver-fig}Generated Verilog for Register
@@ -3662,7 +3662,7 @@ module mkGCD(CLK,
     if (reg_2$EN) reg_2 <= `BSV_ASSIGNMENT_DELAY reg_2$D_IN;
   end
 
-  // synopsys translate_off
+  `ifndef SYNTHESIS
   `ifdef BSV_NO_INITIAL_BLOCKS
   `else // not BSV_NO_INITIAL_BLOCKS
   initial
@@ -3671,7 +3671,7 @@ module mkGCD(CLK,
     reg_2 = 51'h2AAAAAAAAAAAA;
   end
   `endif // BSV_NO_INITIAL_BLOCKS
-  // synopsys translate_on
+  `endif // SYNTHESIS
 endmodule  // mkGCD
 
 \end{libverbatim}

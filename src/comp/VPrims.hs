@@ -36,7 +36,7 @@ vMuxP parallel n = VModule { vm_name = (mkVId ("Mux_" ++ itos n)),
         s n = mkVId ("s_" ++ itos n)
         outassign = VMAssign (VLId viOut) (VEVar viOutReg)
         regdecl = VMDecl (VVDecl VDReg rng [(VVar viOutReg)])
-        body = VMStmt{ vi_translate_off = False,
+        body = VMStmt{ vi_simulation_only = False,
                        vi_body = Valways $ VAt (slist (ins ++ (init sels)))  $
                                  Vcase { vs_case_expr = onetickbone,
                                          vs_case_arms = arms (VLId viOutReg) (zip (map VEVar sels) (map VEVar ins)),
