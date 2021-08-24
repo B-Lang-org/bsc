@@ -88,14 +88,14 @@ module ClockDiv(CLK_IN, RST, PREEDGE,  CLK_OUT);
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-  // synopsys translate_off
+`ifndef SYNTHESIS
   initial
     begin
        #0 ;
        cntr = (upper - offset)  ;
        PREEDGE = 0 ;
     end // initial begin
-  // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 

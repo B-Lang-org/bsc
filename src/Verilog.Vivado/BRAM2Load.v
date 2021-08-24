@@ -47,7 +47,7 @@ module BRAM2Load(CLKA,
    reg [DATA_WIDTH-1:0]           DOA_R2;
    reg [DATA_WIDTH-1:0]           DOB_R2;
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
    begin : init_block
 `ifdef BSV_NO_INITIAL_BLOCKS
@@ -58,7 +58,7 @@ module BRAM2Load(CLKA,
       DOB_R2 = { ((DATA_WIDTH+1)/2) { 2'b10 } };
 `endif // !`ifdef BSV_NO_INITIAL_BLOCKS
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
    initial
    begin : init_rom_block

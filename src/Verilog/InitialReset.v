@@ -28,7 +28,7 @@ module InitialReset (
    input              CLK ;
    output             OUT_RST ;
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
 
    reg [RSTHOLD-1:0]  reset_hold ;
    wire [RSTHOLD:0] next_reset = {reset_hold, ~ `BSV_RESET_VALUE} ;
@@ -47,7 +47,7 @@ module InitialReset (
      end
 
 
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule // InitialReset
 

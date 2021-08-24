@@ -156,16 +156,16 @@ module ProbeTrigger (
       if (TRIGGER) begin
          triggerToggle <= `BSV_ASSIGNMENT_DELAY ! triggerToggle;
       end
-      // synopsys translate_off
+`ifndef SYNTHESIS
       if (enabled && triggered && TRIGGER) begin
          $display ("Error: %m ProbeTrigger has been double triggered!");
       end
-      // synopsys translate_on
+`endif // SYNTHESIS
    end
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       DATAUP         <= { 16 {2'b10}};
       triggerToggle  <= 1'b0;
@@ -176,7 +176,7 @@ module ProbeTrigger (
       enabled        <= 1'b0;
       reportIds      <= {NumWords * 8 {2'b10}} ;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif
 
 endmodule

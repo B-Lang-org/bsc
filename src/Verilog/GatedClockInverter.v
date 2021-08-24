@@ -32,13 +32,13 @@ module GatedClockInverter(CLK_IN, CLK_GATE_IN, PREEDGE, CLK_OUT, CLK_GATE_OUT);
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-  // synopsys translate_off
+`ifndef SYNTHESIS
   initial
     begin
        #0 ;
        new_gate = 1 ;
     end // initial begin   
-  // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
    
 endmodule // GatedClockInverter

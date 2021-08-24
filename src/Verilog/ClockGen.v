@@ -17,7 +17,7 @@ module ClockGen(CLK_OUT);
    output    CLK_OUT ;
    reg       CLK_OUT ;
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
 
    // Clock is set to initValue for initDelay, and
    // then repeats set to value1 for value1Width
@@ -58,7 +58,7 @@ module ClockGen(CLK_OUT);
         if ( ok == 0 ) $finish ;
 
       end // initial begin
-      // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule // ClockGen
 

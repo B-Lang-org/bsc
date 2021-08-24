@@ -49,7 +49,7 @@ module DualPortRam(
    
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : init_block
         integer          i; 		// temporary for generate reset value
@@ -58,7 +58,7 @@ module DualPortRam(
              memArray[i] = {((dataWidth + 1)/2){2'b10}} ;
           end 
      end // initial begin   
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule

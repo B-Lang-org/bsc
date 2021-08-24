@@ -276,7 +276,7 @@ module ProbeCapture (
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       enabled     <= 1'b0 ;
       capstate    <= 2'b0 ;
@@ -292,7 +292,7 @@ module ProbeCapture (
       probeData   <= { ProbeWidth {1'b0 } };
       probeChanged <= 1'b0;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif
 
 endmodule

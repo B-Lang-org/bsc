@@ -106,7 +106,7 @@ module ClockSelect(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin
          #0 ;
@@ -115,7 +115,7 @@ module ClockSelect(
         // initialize out of reset forcing the designer to call reset
          reset_hold = {(RSTDELAY + 1) {~ `BSV_RESET_VALUE}} ;
       end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule

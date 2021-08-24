@@ -35,7 +35,7 @@ module BRAM1BE(CLK,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
    begin : init_block
       integer   i;
@@ -45,7 +45,7 @@ module BRAM1BE(CLK,
       DO_R  = { ((DATA_WIDTH+1)/2) { 2'b10 } };
       DO_R2 = { ((DATA_WIDTH+1)/2) { 2'b10 } };
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // !`ifdef BSV_NO_INITIAL_BLOCKS
 
    generate

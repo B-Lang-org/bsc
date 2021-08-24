@@ -77,7 +77,7 @@ module SyncPulse(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
       begin
          sSyncReg   = 1'b0 ;
@@ -85,7 +85,7 @@ module SyncPulse(
          dSyncReg2  = 1'b0 ;
          dSyncPulse = 1'b0 ;
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule // PulseSync

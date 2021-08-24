@@ -34,7 +34,7 @@ module BRAM1BELoad(CLK,
    reg [DATA_WIDTH-1:0]           DO_R;
    reg [DATA_WIDTH-1:0]           DO_R2;
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
    begin : init_block
 `ifdef BSV_NO_INITIAL_BLOCKS
@@ -43,7 +43,7 @@ module BRAM1BELoad(CLK,
       DO_R2 = { ((DATA_WIDTH+1)/2) { 2'b10 } };
 `endif // !`ifdef BSV_NO_INITIAL_BLOCKS
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
    initial
    begin : init_rom_block

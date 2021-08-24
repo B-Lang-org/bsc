@@ -21,11 +21,11 @@ module RegTwoUN(CLK, ENA, D_INA, ENB, D_INB, Q_OUT);
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       Q_OUT = {((width + 1)/2){2'b10}} ;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
    

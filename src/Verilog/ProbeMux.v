@@ -103,13 +103,13 @@ module ProbeMux (
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       sending <= 1'b0;
       DATAUP  <= { 16 {2'b10} };
       AorB    <= 1'b0;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif
 
 endmodule

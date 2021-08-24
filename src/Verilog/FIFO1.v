@@ -58,13 +58,13 @@ module FIFO1(CLK,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin
         D_OUT   = {((width + 1)/2) {2'b10}} ;
         empty_reg = 1'b0 ;
      end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 
@@ -108,7 +108,7 @@ module FIFO1(CLK,
            end // else: !if(RST == `BSV_RESET_VALUE)
      end // always@ (posedge CLK or `BSV_RESET_EDGE RST)
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    always@(posedge CLK)
      begin: error_checks
         reg deqerror, enqerror ;
@@ -129,7 +129,7 @@ module FIFO1(CLK,
                 end
            end // if (RST == ! `BSV_RESET_VALUE)
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule
 

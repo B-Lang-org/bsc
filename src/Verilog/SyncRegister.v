@@ -89,13 +89,13 @@ module SyncRegister(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
       begin
          sDataSyncIn = {((width + 1)/2){2'b10}} ;
          dD_OUT      = {((width + 1)/2){2'b10}} ;
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 
