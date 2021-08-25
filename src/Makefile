@@ -27,7 +27,7 @@ $(foreach tool,$(TOOLS),$(call checktool,$(tool)))
 
 # Check Haskell package dependencies
 checkghcpkg=$(if $(shell ghc-pkg list --simple-output $(1)),,$(error GHC package $(1) not installed))
-$(foreach pkg,$(GHC_PKGS),$(call checkghcpkg,$(pkg)))
+#$(foreach pkg,$(GHC_PKGS),$(call checkghcpkg,$(pkg)))
 
 # Check all submodules are initialized
 in_git_repo=$(shell git rev-parse --is-inside-work-tree 2> /dev/null )

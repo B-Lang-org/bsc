@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eu
+set -u
 
 usage()
 {
@@ -81,24 +81,25 @@ if [ "$1" = "tclsh" ] ; then
     exit 0
 fi
 
+
 PKG_CONFIG=`which pkg-config`
 if [ -z "${PKG_CONFIG}" ] ; then
 	PKG_CONFIG='false'
 fi
 
+TCL_SUFFIX=$(echo 'catch { puts [info tclversion]; exit 0}; exit 1' | tclsh)
+TCL_ALT_SUFFIX=$(echo ${TCL_SUFFIX} | sed 's/\.//')
 
 if [ "$1" = "tclinc" ] ; then
-    TCL_SUFFIX=$(echo 'catch { puts [info tclversion]; exit 0}; exit 1' | tclsh)
-    TCL_ALT_SUFFIX=$(echo ${TCL_SUFFIX} | sed 's/\.//')
     # Try pkg-config
-    TCL_INC_FLAGS=`${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_SUFFIX}`
+    TCL_INC_FLAGS=$(${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_SUFFIX})
     # If pkg-config didn't work with the first prefix, try the alternative version.
     # For example, on FreeBSD, the tcl87 package installs tclsh8.7, but tcl87.pc
-    if [ -z "${TCL_INC_FLAGS}" ] ; then
-        TCL_INC_FLAGS=`${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_ALT_SUFFIX}`
+    if [ $? -ne 0 ] ; then
+        TCL_INC_FLAGS=$(${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_ALT_SUFFIX})
     fi
     # If pkg-config doesn't work, try some well-known locations
-    if [ -z "${TCL_INC_FLAGS}" ] ; then
+    if [ $? -ne 0 ] ; then
         if [ -f "/usr/local/include/tcl${TCL_SUFFIX}/tcl.h" ] ; then
             TCL_INC_FLAGS="-I/usr/local/include/tcl${TCL_SUFFIX}"
         elif [ -f "/usr/include/tcl${TCL_SUFFIX}/tcl.h" ] ; then
@@ -122,11 +123,11 @@ if [ "$1" = "tcllibs" ] ; then
     TCL_LIB_FLAGS=`${PKG_CONFIG} --silence-errors --libs tcl${TCL_SUFFIX}`
     # If pkg-config didn't work with the first prefix, try the alternative version.
     # For example, on FreeBSD, the tcl87 package installs tclsh8.7, but tcl87.pc
-    if [ -z "${TCL_LIB_FLAGS}" ] ; then
+    if [ $? -ne 0 ] ; then
         TCL_LIB_FLAGS=`${PKG_CONFIG} --silence-errors --libs tcl${TCL_ALT_SUFFIX}`
     fi
 
-    if [ -n "${TCL_LIB_FLAGS}" ] ; then
+    if [ $? -eq 0 ] ; then
         echo ${TCL_LIB_FLAGS}
         exit 0
     fi
