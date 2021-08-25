@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 usage()
 {
     echo "Usage: $0 <option>"
@@ -22,11 +24,8 @@ fi
 ## =========================
 ## OSTYPE
 
-if [ -z "${OSTYPE}" ] ; then
-    OSTYPE=`uname -s`
-fi
 ## Account for values like "linux-gnu" by removing extra fields
-OSTYPE=$(echo ${OSTYPE} | cut -d'-' -f1)
+OSTYPE=$(echo ${OSTYPE:=$(uname -s)} | cut -d'-' -f1)
 ## Account for values like "Darwin10.0" by removing the version number
 OSTYPE=$(echo ${OSTYPE} | egrep -o "^[A-Za-z]+")
 ## Account for lowercase values like "linux" when we want "Linux"
@@ -40,12 +39,9 @@ fi
 ## =========================
 ## MACHTYPE
 
-if [ -z "${MACHTYPE}" ] ; then
-    MACHTYPE=`uname -m`
-fi
 ## Account for values like "x86_64-pc-linux-gnu" when all we want is
 ## "x86_64", "i386", etc
-MACHTYPE=$(echo ${MACHTYPE} | cut -d'-' -f1)
+MACHTYPE=$(echo ${MACHTYPE:=$(uname -m)} | cut -d'-' -f1)
 
 # If we see a BSD-style amd64 instead of x86_64, rewrite it to the more generic
 # version.
@@ -73,23 +69,9 @@ fi
 
 ## =========================
 ## Find the TCL shell command
-TCL_SUFFIX=
 if [ ${OSTYPE} = "Darwin" ] ; then
     # Have Makefile avoid Homebrew's install of tcl on Mac
     TCLSH=/usr/bin/tclsh
-elif [ ${OSTYPE} = Freebsd ] ; then
-    # The FreeBSD tcl packages are versioned.  Find the right one.
-    if [ -n "`which tclsh8.7`" ] ; then
-        TCL_SUFFIX=8.7
-        TCL_ALT_SUFFIX=87
-    elif [ -n "`which tclsh8.6`" ] ; then
-        TCL_SUFFIX=8.6
-        TCL_ALT_SUFFIX=86
-    elif [ -n "`which tclsh8.5`" ] ; then
-        TCL_SUFFIX=8.5
-        TCL_ALT_SUFFIX=85
-    fi
-    TCLSH=`which tclsh${TCL_SUFFIX}`
 else
     TCLSH=`which tclsh`
 fi
@@ -106,6 +88,8 @@ fi
 
 
 if [ "$1" = "tclinc" ] ; then
+    TCL_SUFFIX=$(echo 'catch { puts [info tclversion]; exit 0}; exit 1' | tclsh)
+    TCL_ALT_SUFFIX=$(echo ${TCL_SUFFIX} | sed 's/\.//')
     # Try pkg-config
     TCL_INC_FLAGS=`${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_SUFFIX}`
     # If pkg-config didn't work with the first prefix, try the alternative version.
