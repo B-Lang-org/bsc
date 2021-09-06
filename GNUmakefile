@@ -28,25 +28,25 @@ help:
 
 .PHONY: rem_inst
 rem_inst:
-	rm -fr $(PREFIX)
+	rm -fr "$(PREFIX)"
 
 .PHONY: rem_build
 rem_build:
-	rm -fr $(BUILDDIR)
+	rm -fr "$(BUILDDIR)"
 
 # -------------------------
 
 .PHONY: install-src
 install-src:
-	$(MAKE)  -C src  PREFIX=$(PREFIX)  install
+	$(MAKE)  -C src  PREFIX="$(PREFIX)"  install
 
 .PHONY: install-doc
 install-doc:
-	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
+	$(MAKE)  -C doc  PREFIX="$(PREFIX)"  install
 
 .PHONY: install-release
 install-release:
-	$(MAKE)  -C release  PREFIX=$(PREFIX)  install
+	$(MAKE)  -C release  PREFIX="$(PREFIX)"  install
 
 # -------------------------
 
@@ -60,7 +60,7 @@ release: install-src install-doc install-release
 # in $PATH. it's not enough to just set bsc...
 .PHONY: check-smoke
 check-smoke:
-	@(export PATH=$(PREFIX)/bin:$(PATH); $(MAKE) -C examples/smoke_test smoke_test)
+	@(export PATH="$(PREFIX)/bin:$(PATH)"; $(MAKE) -C examples/smoke_test smoke_test)
 
 .PHONY: check-suite
 check-suite:
