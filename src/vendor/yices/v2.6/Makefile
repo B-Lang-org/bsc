@@ -9,7 +9,7 @@ YICES_SRC=$(REPONAME)
 YICES_INST=$(abspath $(PWD)/$(REPONAME)-inst)
 
 ifeq ($(OSTYPE), Darwin)
-# On macOS we need to work around two yices build issues:
+# On macOS we need to work around three yices build issues:
 # 1. yices explicitly sets the install_name for libyices.2.dylib to be
 #    the absolute install path. For cases where yices knows the correct
 #    install path of the library, this makes sense, but for bsc, we don't want
@@ -20,7 +20,19 @@ ifeq ($(OSTYPE), Darwin)
 #    depend on Homebrew. Instead, statically link libgmp into libyices.
 #    Note that we must statically link by using the archive file as Apple's ld
 #    doesn't understand -Bstatic.
-LIBGMPA=$(shell pkg-config --variable=libdir gmp)/libgmp.a
+# 3. yices searches a hard-coded list of paths, which does not include
+#    /opt/homebrew as used on Arm-based Macs, so we must manually pass the
+#    directories to configure so it doesn't fail. Note that --with-static-gmp
+#    is broken; the initial check succeeds, but it later unconditionally tries
+#    an AC_CHECK_LIB(gmp, ...) and so tries to link with -lgmp, which will fail
+#    if the library search path doesn't include the library, at which point
+#    passing the option serves no purpose.
+INCLUDEDIRGMP=$(shell pkg-config --variable=includedir gmp)
+LIBDIRGMP=$(shell pkg-config --variable=libdir gmp)
+CONFIGURE_ENV= \
+	CPPFLAGS="$${CPPFLAGS:+$$CPPFLAGS }-I$(INCLUDEDIRGMP)" \
+	LDFLAGS="$${LDFLAGS:+$$LDFLAGS }-L$(LIBDIRGMP)"
+LIBGMPA=$(LIBDIRGMP)/libgmp.a
 BUILD_ARGS=libyices_install_name=libyices.2.dylib LIBS=$(LIBGMPA)
 endif
 
@@ -32,7 +44,7 @@ install:
 ifeq ($(YICES_STUB),)
 	(cd $(YICES_SRC) ; \
 		autoconf ; \
-		./configure --prefix=$(YICES_INST) ; \
+		$(CONFIGURE_ENV) ./configure --prefix=$(YICES_INST) ; \
 		$(MAKE) $(BUILD_ARGS); \
 		$(MAKE) install \
 		)
