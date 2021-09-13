@@ -6,76 +6,78 @@ import FIFO ::*;
 import FIFOF ::*;
 import GetPut ::*;
 import StmtFSM ::*;
+import Vector ::*;
+import Randomizable ::*;
 
 export mkDivider;
 export mkSignedDivider;
 export mkNonPipelinedDivider;
 export mkNonPipelinedSignedDivider;
 
+typedef struct {
+   Int#(TAdd#(1,n)) d;
+   Int#(TAdd#(2,TAdd#(n,n))) r;
+   Int#(TAdd#(1,n)) q;
+} DivState#(numeric type n) deriving(Bits, Eq, FShow);
+
+function Int#(TAdd#(n,a)) zeroExtendLSB(Int#(n) d) = unpack({pack(d),0});
+
 // non-restoring divider
 // n+3 cycle latency, 1 divide per cycle throughput
-module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(
-      Mul#(2, n, m),
-      // per request of bsc
-      Add#(b__, n, m),
-      Add#(1, m, TAdd#(n, a__))
-      );
+module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
+   provisos(Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
 
-   FIFO#(Tuple2#(UInt#(m),UInt#(n))) fRequest <- mkLFIFO;
+   FIFO#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(UInt#(n),UInt#(n))) fResponse <- mkLFIFO;
-
-   FIFO#(Tuple3#(Int#(TAdd#(1,n)),Int#(TAdd#(1,n)),Int#(TAdd#(2,m)))) fFirst <- mkLFIFO;
+   FIFO#(DivState#(n)) fFirst <- mkLFIFO;
+   
+   function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
 
    rule start;
-      match {.n_, .d_} <- toGet(fRequest).get;
-      Int#(TAdd#(1,n)) d = cExtend(d_);
-      Int#(TAdd#(2,m)) r = cExtend(n_);
-      Int#(TAdd#(1,n)) q = 0;
-      fFirst.enq(tuple3(d,q,r));
+      match {.n, .d} <- toGet(fRequest).get;
+      fFirst.enq(DivState{d: unpack({1'b0,pack(d)}),
+                          q: 0,
+                          r: unpack({2'b0,pack(n)})
+                         });
    endrule
 
-   FIFO#(Tuple3#(Int#(TAdd#(1,n)),Int#(TAdd#(1,n)),Int#(TAdd#(2,m)))) fThis = fFirst;
-   FIFO#(Tuple3#(Int#(TAdd#(1,n)),Int#(TAdd#(1,n)),Int#(TAdd#(2,m)))) fNext;
+   FIFO#(DivState#(n)) fThis = fFirst;
+   FIFO#(DivState#(n)) fNext;
 
-   for (Integer i = 0; i < (valueOf(n)/s+1); i = i + 1) begin
+   for (countT i = 0; !done(i); i = i + fromInteger(s)) begin
       fNext <- mkLFIFO;
       rule work;
-	 //match {.d, .q, .r} <- toGet(fThis).get;
-	 let x <- toGet(fThis).get;
-	 Int#(TAdd#(1,n)) d = tpl_1(x);
-	 Int#(TAdd#(1,n)) q = tpl_2(x);
-	 Int#(TAdd#(2,m)) r = tpl_3(x);
-	 Int#(TAdd#(2,m)) bigd = cExtendLSB(d);
-
+	 DivState#(n) f <- toGet(fThis).get;
+      	 Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
+	 countT count = i;
 	 for (Integer j = 0; j < s; j = j + 1) begin
-	    if ((i + j) <= valueOf(n)) begin
-	       if (r >= 0) begin
-		  q = (q << 1) | 1;
-		  r = (r << 1) - bigd;
+	    if (!done(count)) begin
+	       if (f.r >= 0) begin
+		  f.q = (f.q << 1) | 1;
+		  f.r = (f.r << 1) - bigd;
 	       end
 	       else begin
-		  q = (q << 1);
-		  r = (r << 1) + bigd;
+		  f.q = (f.q << 1);
+		  f.r = (f.r << 1) + bigd;
 	       end
+	       count = count + 1;
 	    end
 	 end
-
-	 fNext.enq(tuple3(d,q,r));
+	 fNext.enq(f);
       endrule
       fThis = fNext;
    end
 
    rule finish;
-      match {.d, .q, .r} <- toGet(fThis).get;
+      DivState#(n) f <- toGet(fThis).get;
 
-      q = q + (-(~q));
-      if (r < 0) begin
-	 q = q - 1;
-	 r = r + cExtendLSB(d);
+      f.q = f.q + (-(~f.q));
+      if (f.r < 0) begin
+	 f.q = f.q - 1;
+	 f.r = f.r + cExtendLSB(f.d);
       end
-      UInt#(TAdd#(1,n)) qq = unpack(pack(q));
-      UInt#(TAdd#(1,n)) rr = cExtendLSB(r);
+      UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
+      UInt#(TAdd#(1,n)) rr = cExtendLSB(f.r);
       fResponse.enq(tuple2(truncate(qq),truncate(rr)));
    endrule
 
@@ -84,24 +86,18 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
 
 endmodule
 
-module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#(n),Int#(n))))
-   provisos(
-      Mul#(2, n, m),
-      // per request of bsc
-      Add#(a__, n, m),
-      Add#(1, m, TAdd#(n, b__))
-      );
+module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))));
 
-   FIFO#(Tuple2#(Int#(m),Int#(n))) fRequest <- mkLFIFO;
+   FIFO#(Tuple2#(Int#(TAdd#(n,n)),Int#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(Int#(n),Int#(n))) fResponse <- mkLFIFO;
 
-   Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
+   Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
    FIFO#(Tuple2#(Bool,Bool)) fSign <- mkLFIFO;
 
    rule start;
       match {.a, .b} <- toGet(fRequest).get;
 
-      UInt#(m) au = unpack(pack(abs(a)));
+      UInt#(TAdd#(n,n)) au = unpack(pack(abs(a)));
       UInt#(n) bu = unpack(pack(abs(b)));
       Bool asign = (signum(a) != extend(signum(b)));
       Bool bsign = (signum(a) == -1);
@@ -128,214 +124,181 @@ module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#
 
 endmodule
 
-module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(
-      Mul#(2, n, m),
-      // per request of bsc
-      Add#(b__, n, m),
-      Add#(1, m, TAdd#(n, a__))
-      );
+// non-restoring divider
+// n+3 cycle latency
+module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
+   provisos(Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
 
-   Reg#(Int#(TAdd#(1,n))) rg_d <- mkRegU;
-   Reg#(Int#(TAdd#(1,n))) rg_q <- mkRegU;
-   Reg#(Int#(TAdd#(2,m))) rg_r <- mkRegU;
-
-   Array#(Reg#(Bool)) crg_done <- mkCReg(2, False);
+   Reg#(DivState#(n)) fReg <- mkRegU;
    Reg#(Bool) rg_busy <- mkReg(False);
-   //Reg#(UInt#(TLog#(TAdd#(TDiv#(n,s),1)))) rg_index <- mkRegU;
-   Reg#(UInt#(TLog#(TAdd#(n,1)))) rg_index <- mkRegU;
+   Reg#(countT) rg_count <- mkReg(0);
 
-   rule work(rg_busy);
-      Int#(TAdd#(1,n)) d = rg_d;
-      Int#(TAdd#(1,n)) q = rg_q;
-      Int#(TAdd#(2,m)) r = rg_r;
-      Int#(TAdd#(2,m)) bigd = cExtendLSB(d);
+   function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
 
+   rule work (rg_busy && !done(rg_count));
+      DivState#(n) f = fReg;
+      Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
+      countT count = rg_count;
       for (Integer j = 0; j < s; j = j + 1) begin
-	 if ((rg_index + fromInteger(j)) <= fromInteger(valueOf(n))) begin
-	    if (r >= 0) begin
-	       q = (q << 1) | 1;
-	       r = (r << 1) - bigd;
-	    end
-	    else begin
-	       q = (q << 1);
-	       r = (r << 1) + bigd;
-	    end
-	 end
+        if (!done(count)) begin
+           if (f.r >= 0) begin
+               f.q = (f.q << 1) | 1;
+               f.r = (f.r << 1) - bigd;
+            end
+            else begin
+               f.q = (f.q << 1);
+               f.r = (f.r << 1) + bigd;
+            end
+            count = count + 1;
+         end
       end
-
-      if (rg_index == fromInteger(valueOf(n) / s)) begin
-	 rg_busy <= False;
-	 crg_done[1] <= True;
-      end
-
-      rg_index <= rg_index + 1;
-      rg_d <= d;
-      rg_q <= q;
-      rg_r <= r;
+      fReg <= f;
+      rg_count <= count;
    endrule
 
    interface Put request;
-      method Action put(Tuple2#(UInt#(m),UInt#(n)) x) if (!rg_busy);
-	 Int#(TAdd#(1,n)) d = cExtend(tpl_2(x));
-	 Int#(TAdd#(2,m)) r = cExtend(tpl_1(x));
-	 Int#(TAdd#(1,n)) q = 0;
-
-	 rg_busy <= True;
-	 crg_done[1] <= False;
-	 rg_index <= 0;
-	 rg_d <= d;
-	 rg_q <= q;
-	 rg_r <= r;
+      method Action put(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)) x) if (!rg_busy);
+         match {.num, .den} = x;
+         fReg <= DivState{d: unpack({1'b0,pack(den)}),
+                          q: 0,
+                          r: unpack({2'b0,pack(num)})
+                         };
+         rg_busy <= True;
       endmethod
    endinterface
-
    interface Get response;
-      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (crg_done[0]);
-	 let d = rg_d;
-	 let q = rg_q;
-	 let r = rg_r;
-
-	 q = q + (-(~q));
-	 if (r < 0) begin
-	    q = q - 1;
-	    r = r + cExtendLSB(d);
-	 end
-	 UInt#(TAdd#(1,n)) qq = unpack(pack(q));
-	 UInt#(TAdd#(1,n)) rr = cExtendLSB(r);
-
-	 crg_done[0] <= False;
-	 return(tuple2(truncate(qq),truncate(rr)));
+      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (rg_busy && done(rg_count));
+         DivState#(n) f = fReg;
+         f.q = f.q + (-(~f.q));
+         if (f.r < 0) begin
+             f.q = f.q - 1;
+             f.r = f.r + zeroExtendLSB(f.d);
+         end
+         UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
+         UInt#(TAdd#(1,n)) rr = unpack(truncateLSB(pack(f.r)));
+         rg_busy <= False;
+         rg_count <= 0;
+         return(tuple2(truncate(qq),truncate(rr)));
       endmethod
    endinterface
-
 endmodule
 
-module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#(n),Int#(n))))
-   provisos(
-      Mul#(2, n, m),
-      // per request of bsc
-      Add#(a__, n, m),
-      Add#(1, m, TAdd#(n, b__))
-      );
+module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))));
 
-   Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
-
-   Reg#(Bool) rg_asign <- mkRegU;
-   Reg#(Bool) rg_bsign <- mkRegU;
+   Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
+   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkFIFO;
 
    interface Put request;
-      method Action put(Tuple2#(Int#(m),Int#(n)) x);
-	 match {.a, .b} = x;
+      method Action put(Tuple2#(Int#(TAdd#(n,n)),Int#(n)) x);
+         match {.a, .b} = x;
+         UInt#(TAdd#(n,n)) au = unpack(pack(abs(a)));
+         UInt#(n) bu = unpack(pack(abs(b)));
+         div.request.put(tuple2(au,bu));
 
-	 UInt#(m) au = unpack(pack(abs(a)));
-	 UInt#(n) bu = unpack(pack(abs(b)));
-	 Bool asign = (signum(a) != extend(signum(b)));
-	 Bool bsign = (signum(a) == -1);
-
-	 div.request.put(tuple2(au,bu));
-
-	 rg_asign <= asign;
-	 rg_bsign <= bsign;
+         Bool asign = msb(a) != msb(b);
+         Bool bsign = msb(a) == 1;
+         fSign.enq(tuple2(asign,bsign));
       endmethod
    endinterface
 
    interface Get response;
       method ActionValue#(Tuple2#(Int#(n),Int#(n))) get;
-	 match {.au, .bu} <- div.response.get;
+         match {.au, .bu} <- div.response.get;
+         match {.asign, .bsign} <- toGet(fSign).get;
 
-	 Int#(n) a = unpack(pack(au));
-	 Int#(n) b = unpack(pack(bu));
+         Int#(n) a = unpack(pack(au));
+         Int#(n) b = unpack(pack(bu));
 
-	 a = rg_asign ? -a : a;
-	 b = rg_bsign ? -b : b;
+         a = asign ? -a : a;
+         b = bsign ? -b : b;
 
-	 return(tuple2(a,b));
+         return(tuple2(a,b));
       endmethod
    endinterface
-
 endmodule
 
-typedef 11 MBits;
-typedef 22 NBits;
+typedef 7 NBits;
 
+(*synthesize*)
 module mkTb(Empty);
-   //FIFOF#(Tuple4#(UInt#(64),UInt#(32),UInt#(32),UInt#(32))) fCheck <- mkLFIFOF;
-   Server#(Tuple2#(UInt#(NBits),UInt#(MBits)),Tuple2#(UInt#(MBits),UInt#(MBits))) div <- mkDivider(1);
-   FIFOF#(Tuple4#(UInt#(NBits),UInt#(MBits),UInt#(MBits),UInt#(MBits))) fCheck <- mkLFIFOF;
+   Server#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_dut <- mkNonPipelinedDivider(3);
+   Server#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_mod <- mkDivider(1);
+   FIFO#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits))) divs <- mkSizedFIFO(16);
 
-   Server#(Tuple2#(Int#(NBits),Int#(MBits)),Tuple2#(Int#(MBits),Int#(MBits))) sdiv <- mkSignedDivider(1);
-   FIFOF#(Tuple4#(Int#(NBits),Int#(MBits),Int#(MBits),Int#(MBits))) fCheck_sdiv <- mkLFIFOF;
+   Server#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_dut <- mkNonPipelinedSignedDivider(1);
+   Server#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_mod <- mkSignedDivider(2);
+   FIFO#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits))) sdivs <- mkSizedFIFO(16);
 
-   function Action testDividePipe(Integer n, Integer d);
+   function Action testDividePipe(UInt#(TAdd#(NBits,NBits)) ni, UInt#(NBits) di);
       action
-	 UInt#(NBits) ni = fromInteger(n);
-	 UInt#(MBits) di = fromInteger(d);
-	 UInt#(MBits) q = fromInteger(quot(n,d));
-	 UInt#(MBits) p = fromInteger(rem(n,d));
-	 div.request.put(tuple2(ni,di));
-	 fCheck.enq(tuple4(ni,di,q,p));
+         div_dut.request.put(tuple2(ni,di));
+         div_mod.request.put(tuple2(ni,di));
+         divs.enq(tuple2(ni,di));
       endaction
    endfunction
 
-   function Action testSignedDividePipe(Integer n, Integer d);
+   function Action testSignedDividePipe(Int#(TAdd#(NBits,NBits)) ni, Int#(NBits) di);
       action
-	 Int#(NBits) ni = fromInteger(n);
-	 Int#(MBits) di = fromInteger(d);
-	 Int#(MBits) q = fromInteger(quot(n,d));
-	 Int#(MBits) p = fromInteger(rem(n,d));
-	 sdiv.request.put(tuple2(ni,di));
-	 fCheck_sdiv.enq(tuple4(ni,di,q,p));
+         sdiv_dut.request.put(tuple2(ni,di));
+         sdiv_mod.request.put(tuple2(ni,di));
+         sdivs.enq(tuple2(ni,di));
       endaction
    endfunction
 
-   Stmt test =
-   seq
-      testDividePipe(1,2);
-      testDividePipe(100,2);
-      testDividePipe(100,3);
-      testDividePipe(128,5);
-      //testDividePipe(219873982173,123812123);
-      //testDividePipe('hfff_ffff_ffff_ffff,'hfedc_ba98);
-      //testDividePipe(213,'hffff_ffff);
-      testDividePipe(2022400,1578);
+   Vector#(4,Randomize#(Bit#(64))) rando <- replicateM(mkGenericRandomizer());
 
-      testSignedDividePipe(128,5);
-      testSignedDividePipe(128,-5);
-      testSignedDividePipe(-128,5);
-      testSignedDividePipe(-128,-5);
+   Reg#(Bit#(32)) count <- mkReg(0);
 
-      while (fCheck.notEmpty || fCheck_sdiv.notEmpty)
-	 noAction;
-   endseq;
+   rule initialize(count == 0);
+      for (Integer i = 0; i < 4; i = i + 1)
+         rando[i].cntrl.init();
+      count <= count + 1;
+   endrule
+
+   rule issueDivs(count > 0);
+      Vector#(4, Bit#(TAdd#(NBits,NBits))) r = ?;
+      for (Integer i = 0; i < 4; i = i + 1) begin
+         Bit#(64) _ <- rando[i].next();
+         r[i] = truncate(_);
+      end
+      testDividePipe(unpack(r[0]), truncate(unpack(r[1])));
+      testSignedDividePipe(unpack(r[2]), truncate(unpack(r[3])));
+      count <= count + 1;
+      if (count >= 1000) begin
+         $display("Finished %d examples", count);
+         $finish();
+      end
+   endrule
 
    rule check;
-      match {.n, .d, .q, .p} <- toGet(fCheck).get;
-      match {.qq, .pp} <- div.response.get;
+      match {.n, .d} <- toGet(divs).get;
+      match {.qq, .pp} <- div_dut.response.get;
+      match {.q, .p}   <- div_mod.response.get;
 
       if (q != qq) begin
-	 $display("quot(%d,%d) = %d (expected %d)", n, d, qq, q);
+         $display("quot(%x,%x) = %x (expected %x)", n, d, qq, q);
       end
 
       if (p != pp) begin
-	 $display("rem(%d,%d) = %d (expected %d)", n, d, pp, p);
+         $display("rem(%x,%x) = %x (expected %x)", n, d, pp, p);
       end
+
    endrule
 
    rule check_sdiv;
-      match {.n, .d, .q, .p} <- toGet(fCheck_sdiv).get;
-      match {.qq, .pp} <- sdiv.response.get;
+      match {.n, .d} <- toGet(sdivs).get;
+      match {.qq, .pp} <- sdiv_dut.response.get;
+      match {.q, .p}   <- sdiv_mod.response.get;
 
       if (q != qq) begin
-	 $display("quot(%d,%d) = %d (expected %d)", n, d, qq, q);
+         $display("squot(%x,%x) = %x (expected %x)", n, d, qq, q);
       end
 
       if (p != pp) begin
-	 $display("rem(%d,%d) = %d (expected %d)", n, d, pp, p);
+         $display("srem(%x,%x) = %x (expected %x)", n, d, pp, p);
       end
-   endrule
 
-   mkAutoFSM(test);
+   endrule
 
 endmodule
 
