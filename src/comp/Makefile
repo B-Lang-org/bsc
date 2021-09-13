@@ -73,7 +73,10 @@ $(error TCL version check failed)
 endif
 
 # TCL include flags
+# Have Makefile avoid Homebrew's install of tcl on Mac
+ifneq ($(OSTYPE), Darwin)
 TCL_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
+endif
 
 # TCL library flags
 TCL_LIB_FLAGS = -ltcl$(TCL_VER)
