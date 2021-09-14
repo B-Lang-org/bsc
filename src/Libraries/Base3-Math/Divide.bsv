@@ -47,23 +47,23 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#
    for (countT i = 0; !done(i); i = i + fromInteger(s)) begin
       fNext <- mkLFIFO;
       rule work;
-	 DivState#(n) f <- toGet(fThis).get;
-      	 Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
-	 countT count = i;
-	 for (Integer j = 0; j < s; j = j + 1) begin
-	    if (!done(count)) begin
-	       if (f.r >= 0) begin
-		  f.q = (f.q << 1) | 1;
-		  f.r = (f.r << 1) - bigd;
-	       end
-	       else begin
-		  f.q = (f.q << 1);
-		  f.r = (f.r << 1) + bigd;
-	       end
-	       count = count + 1;
-	    end
-	 end
-	 fNext.enq(f);
+         DivState#(n) f <- toGet(fThis).get;
+         Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
+         countT count = i;
+         for (Integer j = 0; j < s; j = j + 1) begin
+            if (!done(count)) begin
+               if (f.r >= 0) begin
+                  f.q = (f.q << 1) | 1;
+                  f.r = (f.r << 1) - bigd;
+               end
+               else begin
+                  f.q = (f.q << 1);
+                  f.r = (f.r << 1) + bigd;
+               end
+               count = count + 1;
+            end
+         end
+         fNext.enq(f);
       endrule
       fThis = fNext;
    end
@@ -73,8 +73,8 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#
 
       f.q = f.q + (-(~f.q));
       if (f.r < 0) begin
-	 f.q = f.q - 1;
-	 f.r = f.r + cExtendLSB(f.d);
+         f.q = f.q - 1;
+         f.r = f.r + cExtendLSB(f.d);
       end
       UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
       UInt#(TAdd#(1,n)) rr = cExtendLSB(f.r);
@@ -140,8 +140,8 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
       Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
       countT count = rg_count;
       for (Integer j = 0; j < s; j = j + 1) begin
-        if (!done(count)) begin
-           if (f.r >= 0) begin
+         if (!done(count)) begin
+            if (f.r >= 0) begin
                f.q = (f.q << 1) | 1;
                f.r = (f.r << 1) - bigd;
             end
@@ -171,8 +171,8 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
          DivState#(n) f = fReg;
          f.q = f.q + (-(~f.q));
          if (f.r < 0) begin
-             f.q = f.q - 1;
-             f.r = f.r + zeroExtendLSB(f.d);
+            f.q = f.q - 1;
+            f.r = f.r + zeroExtendLSB(f.d);
          end
          UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
          UInt#(TAdd#(1,n)) rr = unpack(truncateLSB(pack(f.r)));
@@ -282,7 +282,6 @@ module mkTb(Empty);
       if (p != pp) begin
          $display("rem(%x,%x) = %x (expected %x)", n, d, pp, p);
       end
-
    endrule
 
    rule check_sdiv;
@@ -297,7 +296,6 @@ module mkTb(Empty);
       if (p != pp) begin
          $display("srem(%x,%x) = %x (expected %x)", n, d, pp, p);
       end
-
    endrule
 
 endmodule
