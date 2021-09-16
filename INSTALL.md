@@ -20,10 +20,11 @@ We recommend renaming the `inst` directory to `bsc-<VERSION>` and placing
 it in a subdirectory of `/opt/`, `${HOME}/`, `/usr/share/`, or similar
 location.  For example:
 
+    $ BSC_VERSION=$(echo 'puts [lindex [Bluetcl::version] 0]' | inst/bin/bluetcl)
     $ mkdir -p /opt/tools/bsc
-    $ mv inst /opt/tools/bsc/bsc-4.0.0
+    $ mv inst /opt/tools/bsc/bsc-${BSC_VERSION}
     $ cd /opt/tools/bsc
-    $ ln -s bsc-4.0.0 latest
+    $ ln -s bsc-${BSC_VERSION} latest
 
 The `inst` directory has a `bin` subdirectory, where the executables
 for the tools are found.  To use the tools, just add that directory to
