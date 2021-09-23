@@ -101,7 +101,7 @@ jobs:
   build-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -147,7 +147,11 @@ jobs:
           # binary.
           rm -f /usr/local/include/tcl.h
 
-          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' MACOSX_DEPLOYMENT_TARGET=10.13 install-src
+          if [ "${{ matrix.os }}" = "macos-10.15" ]; then
+            export MACOSX_DEPLOYMENT_TARGET=10.13
+          fi
+
+          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' install-src
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
@@ -174,10 +178,17 @@ jobs:
             echo "GHCi loaded successfully."
             exit 0
           fi
-      - name: Upload artifact
+      - name: Upload artifact (10.13+)
+        if: matrix.os == 'macos-10.15'
         uses: actions/upload-artifact@v1
         with:
           name: macos-10.13+ build
+          path: inst.tar.gz
+      - name: Upload artifact
+        if: matrix.os != 'macos-10.15'
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }} build
           path: inst.tar.gz
 
   build-doc-ubuntu:
@@ -204,7 +215,7 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -327,7 +338,7 @@ jobs:
   test-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Test ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -337,10 +348,16 @@ jobs:
         shell: bash
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
-      - name: Download bsc
+      - name: Download bsc (10.13+)
+        if: matrix.os == 'macos-10.15'
         uses: actions/download-artifact@v2
         with:
           name: macos-10.13+ build
+      - name: Download bsc
+        if: matrix.os != 'macos-10.15'
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
       - name: Install bsc
         run: "tar xzf inst.tar.gz"
 
@@ -473,7 +490,7 @@ jobs:
   test-toooba-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Test Toooba ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -484,10 +501,16 @@ jobs:
         run: |
           brew install ccache libelf
 
-      - name: Download bsc
+      - name: Download bsc (10.13+)
+        if: matrix.os == 'macos-10.15'
         uses: actions/download-artifact@v2
         with:
           name: macos-10.13+ build
+      - name: Download bsc
+        if: matrix.os != 'macos-10.15'
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
       - name: Install bsc
         run: "tar xzf inst.tar.gz"
 
@@ -638,7 +661,7 @@ jobs:
   test-contrib-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Test bsc-contrib ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -648,10 +671,16 @@ jobs:
         shell: bash
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
-      - name: Download bsc
+      - name: Download bsc (10.13+)
+        if: matrix.os == 'macos-10.15'
         uses: actions/download-artifact@v2
         with:
           name: macos-10.13+ build
+      - name: Download bsc
+        if: matrix.os != 'macos-10.15'
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
       - name: Install bsc
         run: "tar xzf inst.tar.gz"
 
@@ -801,17 +830,23 @@ jobs:
   test-bdw-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15 ]
+        os: [ macos-10.15, macos-11 ]
     name: "Test bdw ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download bsc
+      - name: Download bsc (10.13+)
+        if: matrix.os == 'macos-10.15'
         uses: actions/download-artifact@v2
         with:
           name: macos-10.13+ build
+      - name: Download bsc
+        if: matrix.os != 'macos-10.15'
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
       - name: Install bsc
         run: "tar xzf inst.tar.gz"
 
