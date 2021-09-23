@@ -41,6 +41,13 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_ubuntu.sh"
+      # Until BSC uses cabal to build, pre-install these packages
+      - name: Install Haskell dependencies
+        shell: bash
+        run: |
+          export PATH=$HOME/.ghcup/bin:$PATH
+          cabal update
+          cabal v1-install old-time regex-compat split syb
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
@@ -57,6 +64,7 @@ jobs:
         run: |
           ccache --zero-stats --max-size 250M
           export PATH=/usr/lib/ccache:$PATH
+          export PATH=$HOME/.ghcup/bin:$PATH
           make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
           tar czf inst.tar.gz inst
       - name: CCache stats
@@ -107,6 +115,12 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_macos.sh"
+      # Until BSC uses cabal to build, pre-install these packages
+      - name: Install Haskell dependencies
+        shell: bash
+        run: |
+          cabal update
+          cabal v1-install old-time regex-compat split syb
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
