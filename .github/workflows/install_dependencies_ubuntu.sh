@@ -9,12 +9,7 @@ apt-get install -y \
   bison \
   build-essential \
   flex \
-  ghc \
   git \
   gperf \
   iverilog \
-  libghc-old-time-dev \
-  libghc-regex-compat-dev \
-  libghc-syb-dev \
-  libghc-split-dev \
   tcl-dev
