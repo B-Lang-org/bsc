@@ -30,7 +30,7 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#
    FIFO#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(UInt#(n),UInt#(n))) fResponse <- mkLFIFO;
    FIFO#(DivState#(n)) fFirst <- mkLFIFO;
-   
+
    function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
 
    rule start;
