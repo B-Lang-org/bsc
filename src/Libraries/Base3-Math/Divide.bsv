@@ -24,10 +24,10 @@ function Int#(TAdd#(n,a)) zeroExtendLSB(Int#(n) d) = unpack({pack(d),0});
 
 // non-restoring divider
 // n+3 cycle latency, 1 divide per cycle throughput
-module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
+module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
+   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
 
-   FIFO#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n))) fRequest <- mkLFIFO;
+   FIFO#(Tuple2#(UInt#(m),UInt#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(UInt#(n),UInt#(n))) fResponse <- mkLFIFO;
    FIFO#(DivState#(n)) fFirst <- mkLFIFO;
 
@@ -86,18 +86,19 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#
 
 endmodule
 
-module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))));
+module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))))
+   provisos(Add#(n, n, m));
 
-   FIFO#(Tuple2#(Int#(TAdd#(n,n)),Int#(n))) fRequest <- mkLFIFO;
+   FIFO#(Tuple2#(Int#(m),Int#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(Int#(n),Int#(n))) fResponse <- mkLFIFO;
 
-   Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
+   Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
    FIFO#(Tuple2#(Bool,Bool)) fSign <- mkLFIFO;
 
    rule start;
       match {.a, .b} <- toGet(fRequest).get;
 
-      UInt#(TAdd#(n,n)) au = unpack(pack(abs(a)));
+      UInt#(m) au = unpack(pack(abs(a)));
       UInt#(n) bu = unpack(pack(abs(b)));
       Bool asign = (signum(a) != extend(signum(b)));
       Bool bsign = (signum(a) == -1);
@@ -127,7 +128,7 @@ endmodule
 // non-restoring divider
 // n+3 cycle latency
 module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
+   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
 
    Reg#(DivState#(n)) fReg <- mkRegU;
    Reg#(Bool) rg_busy <- mkReg(False);
@@ -157,7 +158,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
    endrule
 
    interface Put request;
-      method Action put(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)) x) if (!rg_busy);
+      method Action put(Tuple2#(UInt#(m),UInt#(n)) x) if (!rg_busy);
          match {.num, .den} = x;
          fReg <= DivState{d: unpack({1'b0,pack(den)}),
                           q: 0,
@@ -183,13 +184,14 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
    endinterface
 endmodule
 
-module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))));
+module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#(n),Int#(n))))
+   provisos(Add#(n, n, m));
 
-   Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
+   Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
    FIFO#(Tuple2#(Bool,Bool)) fSign <- mkFIFO;
 
    interface Put request;
-      method Action put(Tuple2#(Int#(TAdd#(n,n)),Int#(n)) x);
+      method Action put(Tuple2#(Int#(m),Int#(n)) x);
          match {.a, .b} = x;
          UInt#(TAdd#(n,n)) au = unpack(pack(abs(a)));
          UInt#(n) bu = unpack(pack(abs(b)));
@@ -220,16 +222,16 @@ endmodule
 typedef 7 NBits;
 
 (*synthesize*)
-module mkTb(Empty);
-   Server#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_dut <- mkNonPipelinedDivider(3);
-   Server#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_mod <- mkDivider(1);
-   FIFO#(Tuple2#(UInt#(TAdd#(NBits,NBits)),UInt#(NBits))) divs <- mkSizedFIFO(16);
+module mkTb(Empty) provisos (Add#(NBits, NBits, mBits));
+   Server#(Tuple2#(UInt#(mBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_dut <- mkNonPipelinedDivider(3);
+   Server#(Tuple2#(UInt#(mBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_mod <- mkDivider(1);
+   FIFO#(Tuple2#(UInt#(mBits),UInt#(NBits))) divs <- mkSizedFIFO(16);
 
-   Server#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_dut <- mkNonPipelinedSignedDivider(1);
-   Server#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_mod <- mkSignedDivider(2);
-   FIFO#(Tuple2#(Int#(TAdd#(NBits,NBits)),Int#(NBits))) sdivs <- mkSizedFIFO(16);
+   Server#(Tuple2#(Int#(mBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_dut <- mkNonPipelinedSignedDivider(1);
+   Server#(Tuple2#(Int#(mBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_mod <- mkSignedDivider(2);
+   FIFO#(Tuple2#(Int#(mBits),Int#(NBits))) sdivs <- mkSizedFIFO(16);
 
-   function Action testDividePipe(UInt#(TAdd#(NBits,NBits)) ni, UInt#(NBits) di);
+   function Action testDividePipe(UInt#(mBits) ni, UInt#(NBits) di);
       action
          div_dut.request.put(tuple2(ni,di));
          div_mod.request.put(tuple2(ni,di));
@@ -237,7 +239,7 @@ module mkTb(Empty);
       endaction
    endfunction
 
-   function Action testSignedDividePipe(Int#(TAdd#(NBits,NBits)) ni, Int#(NBits) di);
+   function Action testSignedDividePipe(Int#(mBits) ni, Int#(NBits) di);
       action
          sdiv_dut.request.put(tuple2(ni,di));
          sdiv_mod.request.put(tuple2(ni,di));
@@ -256,7 +258,7 @@ module mkTb(Empty);
    endrule
 
    rule issueDivs(count > 0);
-      Vector#(4, Bit#(TAdd#(NBits,NBits))) r = ?;
+      Vector#(4, Bit#(mBits)) r = ?;
       for (Integer i = 0; i < 4; i = i + 1) begin
          Bit#(64) _ <- rando[i].next();
          r[i] = truncate(_);
