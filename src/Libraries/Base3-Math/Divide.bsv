@@ -220,18 +220,19 @@ module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),
 endmodule
 
 typedef 7 NBits;
+typedef TAdd#(NBits, NBits) MBits;
 
 (*synthesize*)
-module mkTb(Empty) provisos (Add#(NBits, NBits, mBits));
-   Server#(Tuple2#(UInt#(mBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_dut <- mkNonPipelinedDivider(3);
-   Server#(Tuple2#(UInt#(mBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_mod <- mkDivider(1);
-   FIFO#(Tuple2#(UInt#(mBits),UInt#(NBits))) divs <- mkSizedFIFO(16);
+module mkTb(Empty);
+   Server#(Tuple2#(UInt#(MBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_dut <- mkNonPipelinedDivider(3);
+   Server#(Tuple2#(UInt#(MBits),UInt#(NBits)),Tuple2#(UInt#(NBits),UInt#(NBits))) div_mod <- mkDivider(1);
+   FIFO#(Tuple2#(UInt#(MBits),UInt#(NBits))) divs <- mkSizedFIFO(16);
 
-   Server#(Tuple2#(Int#(mBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_dut <- mkNonPipelinedSignedDivider(1);
-   Server#(Tuple2#(Int#(mBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_mod <- mkSignedDivider(2);
-   FIFO#(Tuple2#(Int#(mBits),Int#(NBits))) sdivs <- mkSizedFIFO(16);
+   Server#(Tuple2#(Int#(MBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_dut <- mkNonPipelinedSignedDivider(1);
+   Server#(Tuple2#(Int#(MBits),Int#(NBits)),Tuple2#(Int#(NBits),Int#(NBits))) sdiv_mod <- mkSignedDivider(2);
+   FIFO#(Tuple2#(Int#(MBits),Int#(NBits))) sdivs <- mkSizedFIFO(16);
 
-   function Action testDividePipe(UInt#(mBits) ni, UInt#(NBits) di);
+   function Action testDividePipe(UInt#(MBits) ni, UInt#(NBits) di);
       action
          div_dut.request.put(tuple2(ni,di));
          div_mod.request.put(tuple2(ni,di));
@@ -239,7 +240,7 @@ module mkTb(Empty) provisos (Add#(NBits, NBits, mBits));
       endaction
    endfunction
 
-   function Action testSignedDividePipe(Int#(mBits) ni, Int#(NBits) di);
+   function Action testSignedDividePipe(Int#(MBits) ni, Int#(NBits) di);
       action
          sdiv_dut.request.put(tuple2(ni,di));
          sdiv_mod.request.put(tuple2(ni,di));
@@ -258,7 +259,7 @@ module mkTb(Empty) provisos (Add#(NBits, NBits, mBits));
    endrule
 
    rule issueDivs(count > 0);
-      Vector#(4, Bit#(mBits)) r = ?;
+      Vector#(4, Bit#(MBits)) r = ?;
       for (Integer i = 0; i < 4; i = i + 1) begin
          Bit#(64) _ <- rando[i].next();
          r[i] = truncate(_);
