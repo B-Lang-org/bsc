@@ -25,13 +25,13 @@ function Int#(TAdd#(n,a)) zeroExtendLSB(Int#(n) d) = unpack({pack(d),0});
 // non-restoring divider
 // n+3 cycle latency, 1 divide per cycle throughput
 module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
+   provisos(Add#(n, n, m));
 
    FIFO#(Tuple2#(UInt#(m),UInt#(n))) fRequest <- mkLFIFO;
    FIFO#(Tuple2#(UInt#(n),UInt#(n))) fResponse <- mkLFIFO;
    FIFO#(DivState#(n)) fFirst <- mkLFIFO;
 
-   function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
+   function Bool done(Integer cmp) = (cmp > fromInteger(valueOf(n)));
 
    rule start;
       match {.n, .d} <- toGet(fRequest).get;
@@ -44,13 +44,12 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
    FIFO#(DivState#(n)) fThis = fFirst;
    FIFO#(DivState#(n)) fNext;
 
-   for (countT i = 0; !done(i); i = i + fromInteger(s)) begin
+   for (Integer i = 0; !done(i); i = i + fromInteger(s)) begin
       fNext <- mkLFIFO;
       rule work;
          DivState#(n) f <- toGet(fThis).get;
          Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
-         countT count = i;
-         for (Integer j = 0; j < s; j = j + 1) begin
+         for (Integer count = i; count < (i+s); count = count + 1) begin
             if (!done(count)) begin
                if (f.r >= 0) begin
                   f.q = (f.q << 1) | 1;
@@ -60,7 +59,6 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
                   f.q = (f.q << 1);
                   f.r = (f.r << 1) + bigd;
                end
-               count = count + 1;
             end
          end
          fNext.enq(f);
