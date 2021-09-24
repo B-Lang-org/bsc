@@ -148,8 +148,8 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
                f.q = (f.q << 1);
                f.r = (f.r << 1) + bigd;
             end
-            count = count + 1;
          end
+         count = count + 1;
       end
       fReg <= f;
       rg_count <= count;
