@@ -3,11 +3,7 @@ package Divide;
 import BUtils ::*;
 import ClientServer ::*;
 import FIFO ::*;
-import FIFOF ::*;
 import GetPut ::*;
-import StmtFSM ::*;
-import Vector ::*;
-import Randomizable ::*;
 
 export mkDivider;
 export mkSignedDivider;
@@ -127,7 +123,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
    provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
 
    Reg#(DivState#(n)) fReg <- mkRegU;
-   Reg#(Bool) rg_busy <- mkReg(False);
+   Array#(Reg#(Bool)) crg_busy <- mkCReg(2, False);
    Reg#(countT) rg_count <- mkReg(0);
 
    function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
@@ -155,18 +151,18 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
    endrule
 
    interface Put request;
-      method Action put(Tuple2#(UInt#(m),UInt#(n)) x) if (!rg_busy);
+      method Action put(Tuple2#(UInt#(m),UInt#(n)) x) if (!crg_busy[1]);
          match {.num, .den} = x;
          fReg <= DivState{d: unpack({1'b0,pack(den)}),
                           q: 0,
                           r: unpack({2'b0,pack(num)})
                          };
          rg_count <= 0;
-         rg_busy <= True;
+         crg_busy[1] <= True;
       endmethod
    endinterface
    interface Get response;
-      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (rg_busy && div_done);
+      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (crg_busy[0] && div_done);
          DivState#(n) f = fReg;
          f.q = f.q + (-(~f.q));
          if (f.r < 0) begin
@@ -175,7 +171,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
          end
          UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
          UInt#(TAdd#(1,n)) rr = unpack(truncateLSB(pack(f.r)));
-         rg_busy <= False;
+         crg_busy[0] <= False;
          return(tuple2(truncate(qq),truncate(rr)));
       endmethod
    endinterface
@@ -185,7 +181,7 @@ module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),
    provisos(Add#(n, n, m));
 
    Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
-   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkFIFO1;
+   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkLFIFO;
 
    interface Put request;
       method Action put(Tuple2#(Int#(m),Int#(n)) x);
