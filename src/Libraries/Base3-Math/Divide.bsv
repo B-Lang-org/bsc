@@ -133,8 +133,9 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
    Reg#(countT) rg_count <- mkReg(0);
 
    function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
+   Bool div_done = done(rg_count);
 
-   rule work (rg_busy && !done(rg_count));
+   rule work (!div_done);
       DivState#(n) f = fReg;
       Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
       countT count = rg_count;
@@ -162,11 +163,12 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
                           q: 0,
                           r: unpack({2'b0,pack(num)})
                          };
+         rg_count <= 0;
          rg_busy <= True;
       endmethod
    endinterface
    interface Get response;
-      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (rg_busy && done(rg_count));
+      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (rg_busy && div_done);
          DivState#(n) f = fReg;
          f.q = f.q + (-(~f.q));
          if (f.r < 0) begin
@@ -176,7 +178,6 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
          UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
          UInt#(TAdd#(1,n)) rr = unpack(truncateLSB(pack(f.r)));
          rg_busy <= False;
-         rg_count <= 0;
          return(tuple2(truncate(qq),truncate(rr)));
       endmethod
    endinterface
