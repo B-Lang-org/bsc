@@ -185,7 +185,7 @@ module mkNonPipelinedSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),
    provisos(Add#(n, n, m));
 
    Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkNonPipelinedDivider(s);
-   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkFIFO;
+   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkFIFO1;
 
    interface Put request;
       method Action put(Tuple2#(Int#(m),Int#(n)) x);
