@@ -43,8 +43,8 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
       rule work;
          DivState#(n) f <- toGet(fThis).get;
          Int#(TAdd#(2,TAdd#(n,n))) bigd = unpack(zExtendLSB(pack(f.d)));
-         for (Integer count = i; count < (i+s); count = count + 1) begin
-            if (!done(count)) begin
+         for (Integer index = i; index < (i+s); index = index + 1) begin
+            if (!done(index)) begin
                if (f.r >= 0) begin
                   f.q = (f.q << 1) | 1;
                   f.r = (f.r << 1) - bigd;
@@ -120,21 +120,21 @@ endmodule
 // non-restoring divider
 // n+3 cycle latency
 module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), countT));
+   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), indexT));
 
    Reg#(DivState#(n)) fReg <- mkRegU;
    Array#(Reg#(Bool)) crg_busy <- mkCReg(2, False);
-   Reg#(countT) rg_count <- mkReg(0);
+   Reg#(indexT) rg_index <- mkReg(0);
 
-   function Bool done(countT cmp) = (cmp > fromInteger(valueOf(n)));
-   Bool div_done = done(rg_count);
+   function Bool done(indexT cmp) = (cmp > fromInteger(valueOf(n)));
+   Bool div_done = done(rg_index);
 
    rule work (!div_done);
       DivState#(n) f = fReg;
       Int#(TAdd#(2,TAdd#(n,n))) bigd = unpack(zExtendLSB(pack(f.d)));
-      countT count = rg_count;
+      indexT index = rg_index;
       for (Integer j = 0; j < s; j = j + 1) begin
-         if (!done(count)) begin
+         if (!done(index)) begin
             if (f.r >= 0) begin
                f.q = (f.q << 1) | 1;
                f.r = (f.r << 1) - bigd;
@@ -144,10 +144,10 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
                f.r = (f.r << 1) + bigd;
             end
          end
-         count = count + 1;
+         index = index + 1;
       end
       fReg <= f;
-      rg_count <= count;
+      rg_index <= index;
    endrule
 
    interface Put request;
@@ -157,7 +157,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
                           q: 0,
                           r: unpack({2'b0,pack(num)})
                          };
-         rg_count <= 0;
+         rg_index <= 0;
          crg_busy[1] <= True;
       endmethod
    endinterface
