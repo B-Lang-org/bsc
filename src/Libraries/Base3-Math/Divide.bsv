@@ -20,8 +20,6 @@ typedef struct {
    Int#(TAdd#(1,n)) q;
 } DivState#(numeric type n) deriving(Bits, Eq, FShow);
 
-function Int#(TAdd#(n,a)) zeroExtendLSB(Int#(n) d) = unpack({pack(d),0});
-
 // non-restoring divider
 // n+3 cycle latency, 1 divide per cycle throughput
 module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
@@ -48,7 +46,7 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
       fNext <- mkLFIFO;
       rule work;
          DivState#(n) f <- toGet(fThis).get;
-         Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
+         Int#(TAdd#(2,TAdd#(n,n))) bigd = unpack(zExtendLSB(pack(f.d)));
          for (Integer count = i; count < (i+s); count = count + 1) begin
             if (!done(count)) begin
                if (f.r >= 0) begin
@@ -137,7 +135,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
 
    rule work (!div_done);
       DivState#(n) f = fReg;
-      Int#(TAdd#(2,TAdd#(n,n))) bigd = zeroExtendLSB(f.d);
+      Int#(TAdd#(2,TAdd#(n,n))) bigd = unpack(zExtendLSB(pack(f.d)));
       countT count = rg_count;
       for (Integer j = 0; j < s; j = j + 1) begin
          if (!done(count)) begin
@@ -173,7 +171,7 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
          f.q = f.q + (-(~f.q));
          if (f.r < 0) begin
             f.q = f.q - 1;
-            f.r = f.r + zeroExtendLSB(f.d);
+            f.r = f.r + unpack(zExtendLSB(pack(f.d)));
          end
          UInt#(TAdd#(1,n)) qq = unpack(pack(f.q));
          UInt#(TAdd#(1,n)) rr = unpack(truncateLSB(pack(f.r)));
