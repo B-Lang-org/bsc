@@ -2,7 +2,7 @@
 # very gnu-make-specific
 # version2
 
-TEST_OSTYPE ?= $(shell $(CONFDIR)/ostype.sh)
+TEST_OSTYPE ?= $(shell $(CONFDIR)/../platform.sh ostype)
 ifneq ($(TEST_OSTYPE), $(findstring $(TEST_OSTYPE), Linux Darwin))
   $(error TEST_OSTYPE environment not recognized: $(TEST_OSTYPE))
 endif
