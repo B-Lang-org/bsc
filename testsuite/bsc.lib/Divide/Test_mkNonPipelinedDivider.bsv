@@ -26,7 +26,9 @@ interface TesterIfc #(numeric type n);
 endinterface
 
 module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(n))
-  provisos (Add#(n, n, m), Add#(1, m, TAdd#(n, a__)));
+  provisos (Add#(n, n, m),
+            Add#(1, m,
+            TAdd#(n, a__)));
 
   Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) divideLower [maxstages];
   for (Integer i = 0; i < maxstages; i = i + 1)
