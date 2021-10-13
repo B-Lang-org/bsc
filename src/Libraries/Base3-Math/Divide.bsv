@@ -119,22 +119,24 @@ endmodule
 
 // non-restoring divider
 // n+3 cycle latency
-module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
-   provisos(Add#(n, n, m), Alias#(UInt#(TAdd#(TLog#(n),1)), indexT));
+module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))))
+   provisos(Add#(n, n, m),
+            Alias#(UInt#(TAdd#(TLog#(n),1)), indexT));
 
-   Reg#(DivState#(n)) fReg <- mkRegU;
+   Reg#(DivState#(n)) rg_f <- mkRegU;
    Array#(Reg#(Bool)) crg_busy <- mkCReg(2, False);
    Reg#(indexT) rg_index <- mkReg(0);
+   Reg#(Bool) rg_done <- mkReg(False);
 
    function Bool done(indexT cmp) = (cmp > fromInteger(valueOf(n)));
-   Bool div_done = done(rg_index);
 
-   rule work (!div_done);
-      DivState#(n) f = fReg;
+   rule work (!rg_done);
+      DivState#(n) f = rg_f;
       Int#(TAdd#(2,TAdd#(n,n))) bigd = unpack(zExtendLSB(pack(f.d)));
       indexT index = rg_index;
+      Bool d = done(index);
       for (Integer j = 0; j < s; j = j + 1) begin
-         if (!done(index)) begin
+         if (!d) begin
             if (f.r >= 0) begin
                f.q = (f.q << 1) | 1;
                f.r = (f.r << 1) - bigd;
@@ -145,15 +147,17 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
             end
          end
          index = index + 1;
+         d = done(index);
       end
-      fReg <= f;
+      rg_f <= f;
       rg_index <= index;
+      rg_done <= d;
    endrule
 
    interface Put request;
       method Action put(Tuple2#(UInt#(m),UInt#(n)) x) if (!crg_busy[1]);
          match {.num, .den} = x;
-         fReg <= DivState{d: unpack({1'b0,pack(den)}),
+         rg_f <= DivState{d: unpack({1'b0,pack(den)}),
                           q: 0,
                           r: unpack({2'b0,pack(num)})
                          };
@@ -162,8 +166,8 @@ module mkNonPipelinedDivider#(Integer s)(Server#(Tuple2#(UInt#(TAdd#(n,n)),UInt#
       endmethod
    endinterface
    interface Get response;
-      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (crg_busy[0] && div_done);
-         DivState#(n) f = fReg;
+      method ActionValue#(Tuple2#(UInt#(n),UInt#(n))) get if (crg_busy[0] && rg_done);
+         DivState#(n) f = rg_f;
          f.q = f.q + (-(~f.q));
          if (f.r < 0) begin
             f.q = f.q - 1;
