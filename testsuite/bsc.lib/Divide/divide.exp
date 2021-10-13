@@ -6,8 +6,8 @@
 # package, which has different implementations for the two backends.
 
 proc do_test { name } {
-    test_c_only_bsv     $name  sys$name.c.out.expected
-    test_veri_only_bsv  $name  sys$name.v.out.expected
+    test_c_only_bsv     $name  sys$name.out.expected
+    test_veri_only_bsv  $name  sys$name.out.expected
 }
 
 # -----
