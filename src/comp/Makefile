@@ -55,6 +55,14 @@ YICES_HS = ../vendor/yices/include_hs
 YICES_INC_FLAGS = -I../vendor/yices/include
 YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 
+# Set the linker flags so ld.so searches for shared libraries in lib/SAT
+# dir in the install.
+ifeq ($(OSTYPE), Darwin)
+SAT_LINK_FLAGS=-optl '-Wl,-rpath,@executable_path/../../lib/SAT'
+else
+SAT_LINK_FLAGS=-optl '-Wl,-rpath,$$ORIGIN/../../lib/SAT'
+endif
+
 # HTCL
 HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
@@ -287,6 +295,7 @@ POSTBUILDCOMMAND = $(BUILDDONE)
 BSC_BUILDLIBS = \
 	$(STP_LIB_FLAGS) \
 	$(YICES_LIB_FLAGS) \
+	$(SAT_LINK_FLAGS) \
 
 BLUETCL_BUILDLIBS = \
 	$(BSC_BUILDLIBS) \
