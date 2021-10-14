@@ -2569,14 +2569,14 @@ XXX   Detecting function argument collisions TBD
 >     case undoTuple typ of
 >        Nothing -> (cvtErr pos EForbiddenTuple)
 >        Just ts -> do
->        when (length ts /= length vars)
->          (cvtErr pos EForbiddenTuple)
->        let f (Left _)  _ = return ()
->            f (Right v) t = do
->             let (t1,ps) = substMonadType mi t
->             declare pos v (Just t1) (ps++preds)
->        zipWithM_ f vars ts
->        return []
+>         when (length ts /= length vars)
+>           (cvtErr pos EForbiddenTuple)
+>         let f (Left _)  _ = return ()
+>             f (Right v) t = do
+>              let (t1,ps) = substMonadType mi t
+>              declare pos v (Just t1) (ps++preds)
+>         zipWithM_ f vars ts
+>         return []
 
 > checkImperativeStmt mi stmt@(ISPatEq pos pat expr) =
 >     do detectUnassignedUses expr

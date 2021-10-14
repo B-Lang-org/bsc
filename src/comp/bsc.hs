@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, CPP #-}
-module Main_bsc(main, hmain) where
+module Main(main, hmain) where
 
 -- Haskell libs
 import Prelude

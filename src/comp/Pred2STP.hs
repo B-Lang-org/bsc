@@ -173,27 +173,27 @@ solvePredM ps p = do
 
       -- push a new context,
       -- so we can cleanly retract the work when we're done
-      liftIO $ S.ctxPush ctx
+                liftIO $ S.ctxPush ctx
       -- assert the given provisos
-      mapM_ assertPred ps
+                mapM_ assertPred ps
 
       -- XXX for now, we only resolve provisos where no substitution is learned
 
       -- assert the inequality and associated assumptions
-      mapM_ (liftIO . S.assert ctx) (yneq:as)
+                mapM_ (liftIO . S.assert ctx) (yneq:as)
       -- check if there exists a solution
-      sat <- checkSAT
+                sat <- checkSAT
       -- if it is satisfiable, then the equality does not hold
-      let res = case sat of
-                  Just False -> Just p
-                  _ -> Nothing
+                let res = case sat of
+                                Just False -> Just p
+                                _ -> Nothing
       -- retract the assertions
-      liftIO $ S.ctxPop ctx
-      when traceTest $
-          case res of
-            Nothing -> traceM ("solvePred: unresolved: " ++ ppReadable p)
-            Just _  -> traceM ("solvePred: resolved: " ++ ppReadable p)
-      return res
+                liftIO $ S.ctxPop ctx
+                when traceTest $
+                                case res of
+                                Nothing -> traceM ("solvePred: unresolved: " ++ ppReadable p)
+                                Just _  -> traceM ("solvePred: resolved: " ++ ppReadable p)
+                return res
 
 
 genPredInequality :: Pred -> SM (Maybe (S.Expr, [S.Expr]))
