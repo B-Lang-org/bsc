@@ -85,7 +85,7 @@ module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tup
    FIFO#(Tuple2#(Int#(n),Int#(n))) fResponse <- mkLFIFO;
 
    Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
-   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkLFIFO;
+   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkSizedFIFO(valueOf(TAdd#(n,2)));
 
    rule start;
       match {.a, .b} <- toGet(fRequest).get;
