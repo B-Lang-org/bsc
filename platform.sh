@@ -104,6 +104,10 @@ if [ "$1" = "tclinc" ] ; then
     if [ $? -ne 0 ] ; then
         TCL_INC_FLAGS=$(${PKG_CONFIG} --silence-errors --cflags-only-I tcl${TCL_ALT_SUFFIX})
     fi
+    # The tcl package may also not have a suffix at all, e.g. on Arch Linux.
+    if [ $? -ne 0 ] ; then
+        TCL_INC_FLAGS=$(${PKG_CONFIG} --silence-errors --cflags-only-I tcl)
+    fi
     # If pkg-config doesn't work, try some well-known locations
     if [ $? -ne 0 ] ; then
         if [ -f "/usr/local/include/tcl${TCL_SUFFIX}/tcl.h" ] ; then
@@ -139,6 +143,10 @@ if [ "$1" = "tcllibs" ] ; then
     # For example, on FreeBSD, the tcl87 package installs tclsh8.7, but tcl87.pc
     if [ $? -ne 0 ] ; then
         TCL_LIB_FLAGS=`${PKG_CONFIG} --silence-errors --libs tcl${TCL_ALT_SUFFIX}`
+    fi
+    # The tcl package may also not have a suffix at all, e.g. on Arch Linux.
+    if [ $? -ne 0 ] ; then
+        TCL_LIB_FLAGS=`${PKG_CONFIG} --silence-errors --libs tcl`
     fi
 
     if [ $? -eq 0 ] ; then
