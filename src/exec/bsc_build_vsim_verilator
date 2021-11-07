@@ -1,0 +1,220 @@
+#!/bin/sh
+
+# simulator builder script
+#
+# warning: this MUST NOT be called directly by the user
+#
+# bsc invokes
+#   bsc_build_vsim_... detect
+# to detect whether this simulator can be built (exit status 0 = yes)
+#
+# bsc invokes
+#   bsc_build_vsim_... link outexe topmod clibpath clibs linkopts vdirs vdefs vopts vfiles ofiles
+# where
+#   outexe   - the name of the simulator executable to create
+#   topmod   - the toplevel module to simulate
+#   vlibpath - where to find Bluespec Verilog primitives
+#   vdir     - where to find BSC-generated Verilog files
+#   clibpath - where to find external C libraries
+#   clibs    - which external C libraries to link in
+#   linkopts - other options passed to C/C++ linker
+#   vdirs    - -y directories to search for Verilog files
+#   vdefs    - -D macro definitions
+#   vopts    - other options passed to Verilog
+#   vfiles   - the Verilog files to simulate
+#   ofiles   - any VPI object files to link in
+# exits with status 0 if it successfully built the simulator, 1 otherwise
+
+BSC_COMMAND=$1           # "detect" or "link"
+
+if [ "$BSC_COMMAND" = "detect" ]; then
+# detect whether the command "iverilog" is in the path
+  SIM_NAME=verilator
+  hash $SIM_NAME 2> /dev/null
+  if [ "$?" != "0" ]; then
+      echo "$SIM_NAME was not found"
+      exit 1
+  else
+      FOUND_CMD=`which $SIM_NAME`
+      echo "$SIM_NAME was found at $FOUND_CMD"
+      exit 0
+  fi
+fi
+
+# the only remaining command is "link"
+if [ "$BSC_COMMAND" != "link" ]; then
+  echo "ERROR: unknown command: $BSC_COMMAND" >&2
+  exit 1
+fi
+
+BSC_SIM_EXECUTABLE=$2    # output executable filename
+BSC_TOPLEVEL_MODULE=$3   # toplevel module to simulate
+
+shift 3
+BSC_VERILOG_FILES=""     # Verilog files to link
+BSC_VERILOG_DIRS=""      # Verilog directories to link
+BSC_VPI_FILES=""         # VPI object files to link in
+BSC_C_LIB_PATH=""        # where to find C libraries for linking
+BSC_C_LIBS=""            # which C files to link in
+BSC_CLINK_OPTS=""        # C/C++ link options specified with -Xl in bsc
+BSC_VERILOG_DEFS=""      # -D macro and -D macro=val to be passed to Verilog
+BSC_VERILOG_OPTS=""      # Verilog link options specified with -Xv in bsc
+BSC_OTHER_ARGUMENTS=""
+
+# Keep a copy of the Verilog dirs, for searching
+VERDIRS=""
+
+VERBOSE="no"
+
+while [ $# -gt 0 ]; do
+  if [ "${1%%.v}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.V}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.vo}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.sv}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.o}" != "$1" ]; then
+    BSC_VPI_FILES="$BSC_VPI_FILES $1"
+  elif [ "$1" = "-L" ]; then
+    shift 1
+    BSC_C_LIB_PATH="$BSC_C_LIB_PATH -L$1"
+  elif [ "$1" = "-y" ]; then
+    shift 1
+    # Also search for Verilog include files in these directories
+    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1"
+    VERDIRS="$VERDIRS $1"
+  elif [ "$1" = "-l" ]; then
+    shift 1
+    BSC_C_LIBS="$BSC_C_LIBS -l$1"
+  elif [ "$1" = "-Xl" ]; then
+    shift 1
+    BSC_CLINK_OPTS="$BSC_CLINK_OPTS $1"
+  elif [ "$1" = "-D" ]; then
+    shift 1
+    BSC_VERILOG_DEFS="$BSC_VERILOG_DEFS -D$1"
+  elif [ "$1" = "-Xv" ]; then
+    shift 1
+    BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
+  elif [ "$1" = "-verbose" ]; then
+    VERBOSE="yes"
+  else
+    BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
+  fi
+  shift 1
+done
+
+if [ -z "$BSC_SIM_EXECUTABLE" ]; then
+  echo "ERROR: simulator executable filename not specified"
+  exit 1
+fi
+
+if [ -z "$BSC_TOPLEVEL_MODULE" ]; then
+  echo "ERROR: no top-level module specified" >&2
+  exit 1
+fi
+
+if [ -z "$BSC_VERILOG_FILES" ]; then
+  echo "ERROR: no Verilog files to link" >&2
+  exit 1
+fi
+
+if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
+  echo "ERROR: unrecognized arguments '$BSC_OTHER_ARGUMENTS'" >&2
+  exit 1
+fi
+
+# identify the VPI wrapper C files
+BSC_VPI_CFILES=""
+for file in $BSC_VPI_FILES; do
+  case "$file" in \
+    vpi_wrapper_* | */vpi_wrapper_* ) \
+      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
+  esac
+done
+
+# build VPI module if needed
+if [ -n "$BSC_VPI_FILES" ]; then
+  echo "ERROR: Verilator does not support VPI functions/tasks."
+  exit 1
+fi
+
+# path to Verilog files
+VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
+
+# XXX tracing for development
+#echo "VSIM_PATH_FLAGS=$VSIM_PATH_FLAGS"
+#echo "BSC_VSIM_FLAGS=$BSC_VSIM_FLAGS"
+#echo "BSC_VERILOG_DEFS=$BSC_VERILOG_DEFS"
+#echo "BSC_VERILOG_OPTS=$BSC_VERILOG_OPTS"
+#echo "BSC_VERILOG_FILES=$BSC_VERILOG_FILES"
+
+# ignore BSC_VERILOG_FILES, since it's just 'main'
+# XXX We should confirm that the only file is 'main'.
+# XXX And we should support calling without a main
+# XXX (see "verilog_link_no_main" in the testsuite)
+# XXX and in that case use a toplevel cpp file that doesn't
+# XXX provide clock/reset etc
+
+TRACEFLAGS="--trace"
+
+VLTFILE=$BLUESPECDIR/Verilator/verilator_config.vlt
+
+# Uniquify the obj_dir with the name of the sim executable and the PID
+# XXX is the PID overkill?
+OBJDIR="obj_dir_${BSC_SIM_EXECUTABLE}_$$"
+
+# If the directory happens to exit, delete it
+# to avoid accidentally reusing old files
+rm -rf $OBJDIR
+
+# XXX We could also delete the directory on exit?
+#function cleanup {
+#    rm -rf $OBJDIR
+#}
+#trap cleanup EXIT
+
+# Find the top file
+TOP_VERFILE=""
+for d in $VERDIRS ; do
+    if [ -f ${d}/${BSC_TOPLEVEL_MODULE}.v ] ; then
+	TOP_VERFILE=${d}/${BSC_TOPLEVEL_MODULE}.v
+	break
+    fi
+done
+if [ -z "$TOP_VERFILE" ]; then
+    echo "ERROR: Verilog file not found for top module '${BSC_TOPLEVEL_MODULE}'"
+    exit 1
+fi
+
+# compile Verilog files
+if [ "$VERBOSE" = "yes" ]; then
+  # XXX Verilator doesn't have a verbosity flag?
+  IV_VERBOSE=""
+  echo "exec: verilator $IV_VERBOSE --Mdir $OBJDIR -Wall --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE\" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLTFILE"
+else
+  IV_VERBOSE=""
+fi
+
+verilator $IV_VERBOSE --Mdir $OBJDIR -Wall --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLTFILE
+
+status=$?
+if [ "$status" != "0" ]; then
+  echo "ERROR: cannot compile Verilog files" >&2
+  exit $status
+fi
+
+cp -p $BLUESPECDIR/Verilator/sim_main.cpp $OBJDIR/sim_main.cpp
+
+make -C $OBJDIR -j -f V${BSC_TOPLEVEL_MODULE}.mk V${BSC_TOPLEVEL_MODULE}
+
+status=$?
+if [ "$status" != "0" ]; then
+  echo "ERROR: cannot link Verilator files" >&2
+  exit $status
+fi
+
+cp -p $OBJDIR/V${BSC_TOPLEVEL_MODULE} $BSC_SIM_EXECUTABLE
+
+exit 0
