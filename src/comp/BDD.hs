@@ -97,7 +97,7 @@ data S a = S !Unique (M.Map (UniquePair, a) (BDD a))
 newtype M v a = M (S v -> (S v, a))
 
 instance Monad (M v) where
-    return a = M $ \ s -> (s, a)
+    return = pure
     M a >>= f = M $ \ s ->
         case a s of
         (s', b) ->
@@ -108,7 +108,7 @@ instance Functor (M v) where
   fmap = liftM
 
 instance Applicative (M v) where
-  pure = return
+  pure a = M $ \ s -> (s, a)
   (<*>) = ap
 
 run :: M v a -> a

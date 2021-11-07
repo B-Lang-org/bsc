@@ -225,7 +225,7 @@ parsecMap f (Parser p)
 -----------------------------------------------------------
 
 instance App.Applicative (GenParser tok st) where
-  pure = return
+  pure x = parsecReturn x
   (<*>) = ap
 
 -----------------------------------------------------------
@@ -240,7 +240,7 @@ instance App.Alternative (GenParser tok st) where
 -- Monad: return, sequence (>>=) and fail
 -----------------------------------------------------------
 instance Monad (GenParser tok st) where
-  return x   = parsecReturn x
+  return     = pure
   p >>= f    = parsecBind p f
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
   fail msg   = parsecFail msg

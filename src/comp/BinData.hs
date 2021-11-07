@@ -263,14 +263,14 @@ out_data :: Out a -> BinData
 out_data (Out bd _) = bd
 
 instance Monad Out where
-  return x = Out [] x
+  return = pure
   (Out bs x) >>= f = let (Out bs' x') = f x in Out (bs ++ bs') x'
 
 instance Functor Out where
   fmap = liftM
 
 instance Applicative Out where
-  pure = return
+  pure x = Out [] x
   (<*>) = ap
 
 -- Insert some bytes into the byte stream
@@ -311,7 +311,7 @@ data IS = IS BinTable [Byte] !(Maybe Hash) -- Integer
 newtype In a = In (IS -> (a,IS))
 
 instance Monad In where
-  return x = In $ \is -> (x,is)
+  return = pure
   (In v) >>= f = In $ \is -> let !(x,is') = v is
                                  (In fn) = f x
                              in fn is'
@@ -320,7 +320,7 @@ instance Functor In where
   fmap = liftM
 
 instance Applicative In where
-  pure = return
+  pure x = In $ \is -> (x,is)
   (<*>) = ap
 
 getN :: Int -> In [Byte]
