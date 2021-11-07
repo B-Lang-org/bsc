@@ -21,7 +21,7 @@ instance Monad ErrorMonad where
                                EMWarning ws' v' -> EMWarning (ws ++ ws') v'
                                EMResult v'      -> EMWarning ws v'
     (EMResult v) >>= f     = (f v)
-    return v               = EMResult v
+    return                 = pure
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
     fail s                 = EMError [(noPosition, EGeneric s)]
 #endif
@@ -37,7 +37,7 @@ instance Functor ErrorMonad where
     fmap f (EMResult v)     = EMResult (f v)
 
 instance Applicative ErrorMonad where
-  pure = return
+  pure v = EMResult v
   (<*>) = ap
 
 instance MonadError [EMsg] ErrorMonad where

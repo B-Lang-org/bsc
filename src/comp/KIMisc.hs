@@ -123,7 +123,7 @@ data KState = KState KSubst Int
 newtype KI a = M (KState -> Either EMsg (KState, a))
 
 instance Monad KI where
-    return a = M $ \ s -> Right (s, a)
+    return = pure
     M a >>= f = M $ \ s ->
         case a s of
         Left e -> Left e
@@ -135,7 +135,7 @@ instance Functor KI where
   fmap = liftM
 
 instance Applicative KI where
-  pure = return
+  pure a = M $ \ s -> Right (s, a)
   (<*>) = ap
 
 run :: KI a -> Either EMsg a
