@@ -70,7 +70,7 @@ module mkSignedDivider_Core#(
    interface Put request;
       method Action put(Tuple2#(Int#(m),Int#(n)) x);
          match {.a, .b} = x;
-         UInt#(TAdd#(n,n)) au = unpack(pack(abs(a)));
+         UInt#(m) au = unpack(pack(abs(a)));
          UInt#(n) bu = unpack(pack(abs(b)));
          div.request.put(tuple2(au,bu));
 
@@ -132,7 +132,7 @@ module mkDivider#(Integer s)(Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n)
 
 endmodule
 
-module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(TAdd#(n,n)),Int#(n)),Tuple2#(Int#(n),Int#(n))))
+module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#(n),Int#(n))))
    provisos(Add#(n, n, m));
    Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
    function Integer div_ceil(Integer x, Integer y) = ((x/y) + ((mod(x,y)==0)?0:1));
