@@ -10,6 +10,15 @@ INSTALL ?= install -c
 RM = rm -f
 
 # -------------------------
+# Options
+
+# Set this to 1 if the Asciidoctor tool is not available.
+# PDF and HTML versions of the release notes will not be installed,
+# only the raw AsciiDoc file.
+#
+NOASCIIDOCTOR ?= 0
+
+# -------------------------
 
 LICDIR = ../LICENSES
 
@@ -22,6 +31,13 @@ LICFILES = $(addprefix $(LICDIR)/, \
 	LICENSE.yices \
 	LICENSE.yices-painless \
 	)
+
+INSTALLFILES = ReleaseNotes.adoc
+
+ifeq ($(NOASCIIDOCTOR),0)
+INSTALLFILES += ReleaseNotes.html
+INSTALLFILES += ReleaseNotes.pdf
+endif
 
 # -------------------------
 
@@ -41,10 +57,8 @@ install-COPYING: $(PREFIX) $(LICFILES)
 	$(INSTALL) -m 644  $(LICFILES)  $(PREFIX)/LICENSES/
 
 .PHONY: install-NOTES
-install-NOTES: $(PREFIX) ReleaseNotes.adoc ReleaseNotes.html ReleaseNotes.pdf
-	$(INSTALL) -m 644  ReleaseNotes.adoc  $(PREFIX)/
-	$(INSTALL) -m 644  ReleaseNotes.html  $(PREFIX)/
-	$(INSTALL) -m 644  ReleaseNotes.pdf   $(PREFIX)/
+install-NOTES: $(PREFIX) $(INSTALLFILES)
+	$(INSTALL) -m 644  $(INSTALLFILES)  $(PREFIX)/
 
 # -----
 

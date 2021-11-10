@@ -94,6 +94,19 @@ For cabal v3.x:
     $ cabal update
     $ cabal v1-install regex-compat syb old-time split
 
+Cabal's newer `v2-install` has the advantage of not installing the
+libraries into the GHC installation.  This is useful if the GHC
+installation is globally installed and you want to build BSC without
+disturbing the global setup; or if GHC is installed via a package
+manager and you don't want to mix cabal-installed files with package
+manager-installed files.  Using `v2-install` is possible, but requires
+passing an additional flag to GHC, which can be done by defining `GHC`
+in the environment when calling `make` in the later steps.
+For example (cabal v3.x only):
+
+    $ cabal v2-install --package-env=default syb old-time split
+    $ make GHC="ghc -package-env default"
+
 Bluespec compiler builds are tested with GHC 9.0.1.
 GHC releases older than 7.10.1 are not supported.
 
@@ -199,6 +212,13 @@ An unoptimized, debug, or profiling build can be done using one of:
     $ make BSC_BUILD=DEBUG
     $ make BSC_BUILD=PROF
 
+You can provide the `-j` flag to `make` to specify the number of targets
+to execute in parallel, however this does not control the parallelism of
+the core haskell build.  To specify the number of modules that GHC may
+compile in parallel, define `GHCJOBS` in the environment to that number:
+
+    $ make GHCJOBS=4
+
 For more extensive testing, see the [testsuite README](testsuite/README.md)
 in the `testsuite` subdirectory.
 
@@ -228,12 +248,23 @@ Reference Guide.
 
 The Makefile provides a single target, `release`, that will perform the above
 steps (of building the tools and the docs) and will also install a few
-additional files, creating a complete release in the `inst` directory.
+additional files, creating a complete release in the `inst` directory:
+
+    $ make release
+
 The additional files include a README, copyright and licensing info, and
 release notes.  The release notes are written in [AsciiDoc](https://asciidoc.org/)
 format that is published to HTML and PDF format using the
-[AsciiDoctor](https://asciidoctor.org/) tool, which is therefore a requirement
+[Asciidoctor](https://asciidoctor.org/) tool, which is therefore a requirement
 for building a release.
+
+If you do not have Asciidoctor or would prefer not to install it (and all of
+its dependencies), you can set `NOASCIIDOCTOR` in the environment:
+
+    $ make NOASCIIDOCTOR=1 release
+
+This will install the raw AsciiDoc release notes, but will not install
+the HTML and PDF versions.
 
 ## Exporting the source code
 
