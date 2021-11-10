@@ -136,7 +136,7 @@ module mkSignedDivider#(Integer s)(Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#
    provisos(Add#(n, n, m));
    Server#(Tuple2#(UInt#(m),UInt#(n)),Tuple2#(UInt#(n),UInt#(n))) div <- mkDivider(s);
    function Integer div_ceil(Integer x, Integer y) = ((x/y) + ((mod(x,y)==0)?0:1));
-   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkSizedFIFO(div_ceil(valueOf(TAdd#(n,2)),s));
+   FIFO#(Tuple2#(Bool,Bool)) fSign <- mkSizedFIFO(div_ceil(valueOf(n),s) + 2);
    Server#(Tuple2#(Int#(m),Int#(n)),Tuple2#(Int#(n),Int#(n))) sdiv <- mkSignedDivider_Core(div, fSign);
    return sdiv;
 endmodule
