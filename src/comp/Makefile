@@ -74,15 +74,25 @@ GHCMAJOR=$(shell echo $(GHCVERSION) | cut -d. -f1)
 GHCMINOR=$(shell echo $(GHCVERSION) | cut -d. -f2)
 GHCPATCH=$(shell echo $(GHCVERSION) | cut -d. -f3)
 
-# Set version-specific GHC flags
+# Check that the GHC version is supported
+# and set version-specific GHC flags
 #
 #$(info Building with GHC $(GHCMAJOR).$(GHCMINOR))
 ifeq ($(GHCMAJOR),9)
 
-GHC += -Wtabs -fmax-pmcheck-models=800
+# Warn about newer versions that are not yet supported
+GHCMINORGT2 := $(shell expr $(GHCMINOR) \> 2)
+ifeq ($(GHCMINORGT2),1)
+$(warning Unsupported GHC 9 minor version: $(GHCMINOR))
+endif
 
-GHCEXTRAPKGS =-package syb -package integer-gmp
-GHCPROFAUTO = -fprof-auto
+# Work around a bug in GHC 9.2.1 (see GHC issue 20639)
+ifeq ($(GHCVERSION),9.2.1)
+$(warning Building unoptimized to work around a bug in GHC 9.2.1)
+GHCOPTLEVEL ?= -O0
+endif
+
+GHC += -Wtabs -fmax-pmcheck-models=800
 
 # end ifeq ($(GHCMAJOR),9)
 else
@@ -90,36 +100,27 @@ ifeq ($(GHCMAJOR),8)
 
 GHC += -Wtabs
 
-GHCEXTRAPKGS =-package syb -package integer-gmp
-GHCPROFAUTO = -fprof-auto
-
 # end ifeq ($(GHCMAJOR),8)
 else
 ifeq ($(GHCMAJOR),7)
 
-# Make sure that all calls to GHC 7.0.4 use this flag to suppress
-# messages that were accidentally checked in to that revision
-GHC += -dno-debug-output
+# Versions before 7.10 are not supported
+GHCMINORLT10 := $(shell expr $(GHCMINOR) \< 10)
+ifeq ($(GHCMINORLT10),1)
+$(error Unsupported GHC 7 minor version: $(GHCMINOR))
+endif
 
 GHC += -fwarn-tabs
 
-GHCEXTRAPKGS =-package syb -package integer-gmp
-
-# In 7.4, the auto annotations flag changed
-GHCMINORGTE4 := $(shell expr $(GHCMINOR) \>= 4)
-ifeq ($(GHCMINORGTE4),1)
-GHCPROFAUTO = -fprof-auto
-else
-GHCPROFAUTO = -auto-all
-endif
-
 # end ifeq ($(GHCMAJOR),7)
 else
-# Not GHC 8 or 7
-$(error Unrecognized GHC major version: $(GHCMAJOR))
+# Not GHC 7, 8, or 9
+$(error Unsupported GHC major version: $(GHCMAJOR))
 endif
 endif
 endif
+
+GHCPROFAUTO = -fprof-auto
 
 PACKAGES = \
 	-package base \
@@ -136,6 +137,8 @@ PACKAGES = \
 	-package old-time \
 	-package old-locale \
 	-package split \
+	-package syb \
+	-package integer-gmp \
 	$(GHCEXTRAPKGS)
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
@@ -195,25 +198,15 @@ ifeq ($(OSTYPE), Linux)
 GHCFLAGS += -lpthread
 endif
 
-GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
-ifeq ($(GHCMAJORGTE7),1)
 # Get Haskell runtime to parse and filter +RTS ... -RTS args
 # from command line arguments at program start
 RTSFLAGS += -rtsopts
-endif
 
-# Use -O2, except with GHC 7.7 which is very slow with -O2
-# (and ASchedule.hs and bsc.hs don't compile at that level)
-ifeq ($(GHCMAJOR),7)
-GHCMINORGTE7 := $(shell expr $(GHCMINOR) \>= 7)
-ifeq ($(GHCMINORGTE7),1)
-GHCOPTLEVEL ?= -O1
-else
+# Use -O2, except when a particular GHC version has a bug that
+# needs working around, in which case, use the value set earlier
+# for that version
 GHCOPTLEVEL ?= -O2
-endif
-else
-GHCOPTLEVEL ?= -O2
-endif
+
 GHCOPTFLAGS = $(GHCOPTLEVEL) $(GHCFLAGS)
 
 GHCPROF = -prof $(GHCPROFAUTO) '-osuf p_o' '-hisuf p_hi'
