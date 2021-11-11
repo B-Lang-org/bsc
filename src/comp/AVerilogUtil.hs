@@ -36,7 +36,7 @@ import Data.Maybe
 
 import FStringCompat(FString, getFString)
 import ErrorUtil
-import Flags(Flags, readableMux, unSpecTo, v95, systemVerilogTasks)
+import Flags(Flags, readableMux, unSpecTo, v95, systemVerilogTasks, useDPI)
 import PPrint
 import IntLit
 import Id
@@ -73,7 +73,8 @@ data VConvtOpts = VConvtOpts {
                               vco_v95         :: Bool,
                               vco_v95_tasks   :: [String],
                               vco_readableMux :: Bool,
-                              vco_sv_tasks :: Bool
+                              vco_sv_tasks    :: Bool,
+                              vco_use_dpi     :: Bool
                               }
 
 
@@ -83,7 +84,8 @@ flagsToVco flags = VConvtOpts {
                                vco_v95    = v95 flags,
                                vco_v95_tasks = ["$signed", "$unsigned"],
                                vco_readableMux = readableMux flags,
-                               vco_sv_tasks = systemVerilogTasks flags
+                               vco_sv_tasks = systemVerilogTasks flags,
+                               vco_use_dpi = useDPI flags
                               }
 
 -- This has been abolished from the compiler everywhere but the Verilog backend
@@ -573,7 +575,7 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
     , VMStmt { vi_translate_off = True, vi_body = body }
     ]
-  where name = vCommentTaskName vco (vNameToTask (ae_funname fn))
+  where name = vCommentTaskName vco (vNameToTask (vco_use_dpi vco) (ae_funname fn))
         vtaskid = VId name (ae_objid fn) Nothing
         sensitivityList = nub (concatMap aIds (ae_args fn))
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
@@ -676,7 +678,7 @@ vExpr vco (APrim aid t p es) = VEOp (idToVId aid) (vExpr vco (APrim aid t p (ini
 -- vExpr vco (AMethCall t i m _) = internalError "AVerilog.vExpr: AMethCall with args"
 -- vExpr vco (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult M.Empty)
 vExpr vco (AFunCall _ _ n isC es) =
-  let name = vCommentTaskName vco (if isC then vNameToTask n else n)
+  let name = vCommentTaskName vco (if isC then vNameToTask (vco_use_dpi vco) n else n)
   in VEFctCall (mkVId name) (map (vExpr vco) es)
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
@@ -1090,8 +1092,9 @@ vCommentTaskName vco s | vco_v95 vco && elem s (vco_v95_tasks vco) = " /*" ++ s 
                        | otherwise = s
 
 -- create a Verilog task name from a foreign function name
-vNameToTask :: String -> String
-vNameToTask s = "$imported_" ++ s
+vNameToTask :: Bool -> String -> String
+vNameToTask True  s = s
+vNameToTask False s = "$imported_" ++ s
 
 
 -- ==============================

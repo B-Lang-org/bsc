@@ -7,6 +7,7 @@ module ForeignFunctions ( ForeignType(..)
                         , ForeignFuncMap
                         , mkForeignFunction
                         , mkImportDeclarations
+                        , mkDPIDeclarations
                         , mkFFDecl
                         , encodeArgs
                         , argExpr
@@ -517,6 +518,42 @@ mkImportDeclarations :: ForeignFuncMap -> CCFragment
 mkImportDeclarations ff_map =
   let ffs = M.elems ff_map
   in program [externC (map mkFFDecl ffs)]
+
+-- =================================================
+-- Make the SystemVerilog DPI-C declarations for all foreign functions in
+-- the ForeignFuncMap.
+
+mkDPIDeclarations :: [ForeignFunction] -> String
+mkDPIDeclarations ffuncs = concatMap mkDPIDecl ffuncs
+  where
+    mkDPIDecl :: ForeignFunction -> String
+    mkDPIDecl (FF name rt arg_types) =
+      let
+          mkOut :: ForeignType -> String
+          mkOut t = "output " ++ toSVtype t ++ " res"
+
+          mkArg :: ForeignType -> Integer -> String
+          mkArg t n = toSVtype t ++ " arg" ++ show n
+
+          mkArgs :: [ForeignType] -> [String]
+          mkArgs ts = zipWith mkArg ts [0..]
+
+          (ret,ats) = if isWide rt || isPoly rt
+                      then (toSVtype Void, (mkOut rt):(mkArgs arg_types))
+                      else (toSVtype rt, mkArgs arg_types)
+      in
+         "import \"DPI-C\" function " ++ ret ++ " " ++
+         getIdString name ++ "(" ++ intercalate ", " ats ++ ");\n"
+
+    toSVtype :: ForeignType -> String
+    toSVtype Void = "void"
+    toSVtype (Narrow n) | n <= 8    = "byte"
+                        | n <= 32   = "int"
+                        | n <= 64   = "long int"
+                        | otherwise = internalError "Narrow n > 64"
+    toSVtype (Wide n)    = "bit [" ++ itos (n-1) ++ ":0]"
+    toSVtype StringPtr   = "string"
+    toSVtype Polymorphic = "bit []"
 
 -- #############################################################################
 -- # Map to and from real Verilog foreign funcs and the BSV AV version.

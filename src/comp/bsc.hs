@@ -35,6 +35,7 @@ import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName, mkVPIArrayCName,
+                    mkDPIDeclsVName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
                     bscSrcSuffix, bseSrcSuffix, binSuffix,
@@ -127,8 +128,9 @@ import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
 import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import GenABin(genABinFile)
-import ForeignFunctions
-import VPIWrappers
+import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
+                       mkImportDeclarations, mkDPIDeclarations)
+import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
 import SimCCBlock
 import SimExpand(simExpand, simCheckPackage)
 import SimPackage(SimSystem(..))
@@ -457,7 +459,8 @@ compilePackage
     start flags DFgenVPI
     blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
-    vpi_wrappers <- if (backend flags == Just Verilog)
+    vpi_wrappers <- if (backend flags == Just Verilog) &&
+                       not (useDPI flags)
                     then genVPIWrappers errh flags "./" blurb ffuncs
                     else return []
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
@@ -2080,10 +2083,25 @@ vGenFFuncs :: ErrorHandle -> Flags -> TimeInfo -> String ->
               IO (TimeInfo, [String])
 vGenFFuncs errh flags t prefix cfilenames_unique [] = return (t,[])
 vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
-      -- generate the vpi_startup_array file
-      blurb <- mkGenFileHeader flags
-      genVPIRegistrationArray errh flags prefix blurb ffuncs
-      t <- timestampStr flags "generate VPI registration array" t
+      (t, ofiles0) <-
+        if (useDPI flags) then do
+          -- generate the DPI-C declaration file
+          let decls = mkDPIDeclarations ffuncs
+              decls_filename = mkDPIDeclsVName (vdir flags) prefix
+              decls_filename_rel = getRelativeFilePath decls_filename
+          -- write the file contents
+          writeFileCatch errh decls_filename decls
+          -- report the file to the user with relative path
+          unless (quiet flags) $
+            putStrLnF $ "DPI declarations file created: " ++ decls_filename_rel
+          t <- timestampStr flags "generate DPI declarations file" t
+          return (t, [decls_filename_rel])
+       else do
+          -- generate the vpi_startup_array file
+          blurb <- mkGenFileHeader flags
+          genVPIRegistrationArray errh flags prefix blurb ffuncs
+          t <- timestampStr flags "generate VPI registration array" t
+          return (t, [])
 
       -- compile user-supplied C files
       let (cfiles1, ofiles1) = partition (\f -> hasDotSuf cSuffix f   ||
@@ -2104,14 +2122,18 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
                vpi_wrapper_c_h_files
 -}
 
-      -- compile all necessary vpi wrapper files
-      let mkVPIFileName s = mkVPICName (vdir flags) prefix s
-          vpifiles = map (mkVPIFileName . getIdString . ff_name) ffuncs ++
-                     [ mkVPIArrayCName (vdir flags) prefix ]
-      ofiles3 <- mapM (compileVPICFile errh flags) vpifiles
-      t <- timestampStr flags "compile VPI wrapper files" t
+      (t, ofiles3) <-
+        if (useDPI flags) then return (t, [])
+        else do
+          -- compile all necessary vpi wrapper files
+          let mkVPIFileName s = mkVPICName (vdir flags) prefix s
+              vpifiles = map (mkVPIFileName . getIdString . ff_name) ffuncs ++
+                         [ mkVPIArrayCName (vdir flags) prefix ]
+          files <- mapM (compileVPICFile errh flags) vpifiles
+          t <- timestampStr flags "compile VPI wrapper files" t
+          return (t, files)
 
-      return (t, ofiles1 ++ ofiles2 ++ ofiles3)
+      return (t, ofiles0 ++ ofiles1 ++ ofiles2 ++ ofiles3)
 
 -- ===============
 
