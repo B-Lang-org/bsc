@@ -42,7 +42,7 @@ module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(n))
   Reg #(UInt #(32)) rg_in_num <- mkReg(numtests);
   Reg #(UInt #(32)) rg_out_num <- mkReg(0);
   FIFO #(Tuple2#(UInt#(m),UInt#(n))) ff_input <- mkSizedFIFO(valueOf(n)+4);
-  
+
   function Tuple2#(UInt#(m),UInt#(n)) zeroUpperNumerator(Tuple2#(UInt#(m),UInt#(n)) in);
     match {.num, .den} = in;
     num = (num << valueOf(n)) >> valueOf(n); // Zero upper half.
@@ -60,9 +60,9 @@ module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(n))
     inp = noZeroDenominator(inp);
     ff_input.enq(inp);
     for (Integer i = 0; i < maxstages; i = i + 1)
-	divideLower [i] .request.put (zeroUpperNumerator(inp));
+      divideLower [i] .request.put (zeroUpperNumerator(inp));
     for (Integer i = 0; i < maxstages; i = i + 1)
-	divideFull [i] .request.put (inp);
+      divideFull [i] .request.put (inp);
   endrule
   rule finish_div(rg_out_num < numtests);
     rg_out_num <= rg_out_num + 1;
@@ -83,7 +83,7 @@ module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(n))
     Bool passed = (qt == qf && rt == rf);
     if (passed) $display ("PASS");
     else $display ("iterations per cycle (%d) %h / %h = %h (vs. %h), rem %h (vs. %h) = FAIL",
-	            i+1, numB, denB, qt, q, rt, r);
+                    i+1, numB, denB, qt, q, rt, r);
     end
     ff_input.deq();
   endrule
