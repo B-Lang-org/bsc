@@ -125,41 +125,62 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
   exit 1
 fi
 
-# identify the VPI wrapper C files
-BSC_VPI_CFILES=""
-for file in $BSC_VPI_FILES; do
-  case "$file" in \
-    vpi_wrapper_* | */vpi_wrapper_* ) \
-      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
-  esac
+# Ignore 'main' from BSC_VERILOG_FILES, and record if seen.
+# Also record if a DPI declarations file is seen.
+# And remove the top module, if provided, to avoid passing
+# it multiple times to Verilator.
+#
+BSC_VERILOG_FILES_NO_MAIN=""
+HAS_DPI=0
+HAS_MAIN=0
+for f in $BSC_VERILOG_FILES
+do
+    fbase=`basename $f`
+    if [ "$fbase" == "main.v" ] ; then
+	HAS_MAIN=1
+    else
+	if [[ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ]] ; then
+	    BSC_VERILOG_FILES_NO_MAIN+="$f "
+	    if [ "$fbase" == "dpi_declarations.v" ] ; then
+		HAS_DPI=1
+	    fi
+	fi
+    fi
 done
+# XXX We should support calling without a main
+# XXX (see "verilog_link_no_main" in the testsuite)
+# XXX and in that case use a toplevel cpp file that doesn't
+# XXX provide clock/reset etc
 
-# build VPI module if needed
+# If foreign function object files are provided,
+# check that a DPI declarations file was also provided
+VPI_FILES=""
 if [ -n "$BSC_VPI_FILES" ]; then
-  echo "ERROR: Verilator does not support VPI functions/tasks."
-  exit 1
+    if [ "$HAS_DPI" != "1" ] ; then
+	echo "ERROR: Verilator does not support VPI functions/tasks."
+	echo "       Compile and link with the -use-DPI flag."
+	exit 1
+    fi
+    # Verilator's Makefile doesn't adjust relative paths for object files
+    # so pass them with absolute paths
+    for f in $BSC_VPI_FILES
+    do
+	if [[ "$f" =~ ^/ ]] ; then
+	    VPI_FILES+="$f "
+	else
+	    VPI_FILES+="$PWD/$f "
+	fi
+    done
 fi
 
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
-# XXX tracing for development
-#echo "VSIM_PATH_FLAGS=$VSIM_PATH_FLAGS"
-#echo "BSC_VSIM_FLAGS=$BSC_VSIM_FLAGS"
-#echo "BSC_VERILOG_DEFS=$BSC_VERILOG_DEFS"
-#echo "BSC_VERILOG_OPTS=$BSC_VERILOG_OPTS"
-#echo "BSC_VERILOG_FILES=$BSC_VERILOG_FILES"
-
-# ignore BSC_VERILOG_FILES, since it's just 'main'
-# XXX We should confirm that the only file is 'main'.
-# XXX And we should support calling without a main
-# XXX (see "verilog_link_no_main" in the testsuite)
-# XXX and in that case use a toplevel cpp file that doesn't
-# XXX provide clock/reset etc
-
 TRACEFLAGS="--trace"
 
-VLTFILE=$BLUESPECDIR/Verilator/verilator_config.vlt
+VLT_WARN=-Wall
+
+VLT_CONFIG=$BLUESPECDIR/Verilator/verilator_config.vlt
 
 # Uniquify the obj_dir with the name of the sim executable and the PID
 # XXX is the PID overkill?
@@ -191,13 +212,13 @@ fi
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
   # XXX Verilator doesn't have a verbosity flag?
-  IV_VERBOSE=""
-  echo "exec: verilator $IV_VERBOSE --Mdir $OBJDIR -Wall --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE\" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLTFILE"
+  VLT_VERBOSE=""
+  echo "exec: verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE\" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES"
 else
-  IV_VERBOSE=""
+  VLT_VERBOSE=""
 fi
 
-verilator $IV_VERBOSE --Mdir $OBJDIR -Wall --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLTFILE
+verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE" $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES
 
 status=$?
 if [ "$status" != "0" ]; then
