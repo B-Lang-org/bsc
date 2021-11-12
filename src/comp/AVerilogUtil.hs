@@ -52,7 +52,8 @@ import Verilog
 import VPrims(verilogInstancePrefix, viWidth)
 import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateFStringUsingFStringMap)
-import ForeignFunctions(ForeignFunction(..), ForeignFuncMap, isPoly, isMappedAVId)
+import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
+                        isPoly, isWide, isMappedAVId)
 
 import Util
 import IntegerUtil
@@ -113,13 +114,14 @@ expVVDWire defs =
 
 -- Returns a faked return type (always 1 bit) for foreign functions
 -- with polymorphic returns.  Anything else returns Nothing.
-polyReturnType :: ForeignFuncMap -> AForeignCall -> Maybe AType
-polyReturnType ffmap fc@(AForeignCall { afc_writes = [lv] }) =
+isAForeignCallWithRetAsArg :: VConvtOpts -> ForeignFuncMap -> AForeignCall -> Maybe AType
+isAForeignCallWithRetAsArg vco ffmap fc@(AForeignCall { afc_writes = [lv] }) =
   let name = getIdString (afc_name fc)
-  in case M.lookup name ffmap of
-      (Just ff) -> if isPoly (ff_ret ff) then Just aTBool else Nothing
+  in  case M.lookup name ffmap of
+      (Just ff) -> if (isPoly (ff_ret ff)) || ((vco_use_dpi vco) && isWide (ff_ret ff))
+                   then Just aTBool else Nothing
       Nothing -> Nothing
-polyReturnType _ _ = Nothing
+isAForeignCallWithRetAsArg _ _ _ = Nothing
 
 -- If there are any calls in the domain, it returns the Verilog
 -- always-block for it, and a list of IDs which need to be declared
@@ -213,7 +215,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
   where
     vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids
-                 in case polyReturnType ffmap f of
+                 in case isAForeignCallWithRetAsArg vco ffmap f of
                      (Just ty) -> ([], (ASDef ty lv) : es)
                      Nothing   -> (ids,es)
 
@@ -436,12 +438,13 @@ closeOverMap' dmap considered consider_next (i:is) =
 
 -- ==============================
 
-isImportedPolyReturn :: ForeignFuncMap -> AExpr -> Bool
-isImportedPolyReturn ffmap fn@(AFunCall { ae_isC = True }) =
+isAFunCallWithRetAsArg :: VConvtOpts -> ForeignFuncMap -> AExpr -> Bool
+isAFunCallWithRetAsArg vco ffmap fn@(AFunCall { ae_isC = True }) =
   case M.lookup (ae_funname fn) ffmap of
-    (Just ff) -> isPoly (ff_ret ff)
+    (Just ff) -> isPoly (ff_ret ff) || ((vco_use_dpi vco) && isWide (ff_ret ff))
     Nothing   -> False
-isImportedPolyReturn _ _ = False
+isAFunCallWithRetAsArg _ _ _ = False
+
 
 vDefMpd :: VConvtOpts -> ADef -> ForeignFuncMap
               -> [VMItem]
@@ -571,7 +574,7 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) (ATaskValue {}) _) _ =
     [VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]]
 
 vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
-  | isImportedPolyReturn ffmap fn =
+  | isAFunCallWithRetAsArg vco ffmap fn =
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
     , VMStmt { vi_translate_off = True, vi_body = body }
     ]

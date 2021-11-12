@@ -533,7 +533,7 @@ mkDPIDeclarations ffuncs = concatMap mkDPIDecl ffuncs
           mkOut t = "output " ++ toSVtype t ++ " res"
 
           mkArg :: ForeignType -> Integer -> String
-          mkArg t n = toSVtype t ++ " arg" ++ show n
+          mkArg t n = "input " ++ toSVtype t ++ " arg" ++ show n
 
           mkArgs :: [ForeignType] -> [String]
           mkArgs ts = zipWith mkArg ts [0..]
@@ -549,7 +549,7 @@ mkDPIDeclarations ffuncs = concatMap mkDPIDecl ffuncs
     toSVtype Void = "void"
     toSVtype (Narrow n) | n <= 8    = "byte"
                         | n <= 32   = "int"
-                        | n <= 64   = "long int"
+                        | n <= 64   = "longint"
                         | otherwise = internalError "Narrow n > 64"
     toSVtype (Wide n)    = "bit [" ++ itos (n-1) ++ ":0]"
     toSVtype StringPtr   = "string"

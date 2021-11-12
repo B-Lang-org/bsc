@@ -468,7 +468,7 @@ instance PPrint VStmt where
         pPrint d p (Vdumpvars level vars) = text "$dumpvars(" <> sepList dvargs (text ",") <> text ");"
             where dvargs = (pPrint d 0 level):(map (pPrint d 0) vars)
 -- no parens when calling a task if it has no arguments
-        pPrint d p (VTask task []) = pPrint d 0 task <> text ";"
+        pPrint d p (VTask task []) | isTaskVId task = pPrint d 0 task <> text ";"
         pPrint d p (VTask task es) = pPrint d 0 task <> text "(" <> commaList d es <> text ");"
 
         pPrint d p (VAssert ev es) = ppAssert d p ev es
@@ -639,9 +639,14 @@ getVIdString (VId s _ _) = s
 instance PPrint VId where
         pPrint d p (VId s i _) = text s
 
-
 instance HasPosition VId where
   getPosition (VId _ inside_id _) = getPosition inside_id
+
+-- whether a VId is syntactically a task ID
+isTaskVId :: VId -> Bool
+isTaskVId (VId ('$':_) _ _) = True
+isTaskVId _ = False
+
 
 type VRange = (VExpr, VExpr)
 
@@ -724,7 +729,7 @@ instance PPrint VExpr where
 
         pPrint d p (VEIf e1 e2 e3) =
             pparen (p > 0)  $ sep [ pPrint d 100 e1 <+> text "?", nest 2 (pPrint d 1 e2 <+> text ":"), nest 2 (pPrint d 1 e3) ]
-        pPrint d p (VEFctCall f []) = pPrint d 0 f
+        pPrint d p (VEFctCall f []) | isTaskVId f = pPrint d 0 f
         pPrint d p (VEFctCall f es) = pPrint d 0 f <> text "(" <> commaList d es <> text ")"
 
 createVEWConstString :: Integer -> Integer -> Integer -> String
