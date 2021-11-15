@@ -12,4 +12,5 @@ lint_off -rule CMPCONST
 lint_off -rule MULTIDRIVEN
 lint_off -rule UNUSED
 lint_off -rule PINCONNECTEMPTY
+lint_off -rule BLKSEQ
 `verilog

@@ -177,7 +177,9 @@ VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
 TRACEFLAGS="--trace"
 
-VLT_WARN=-Wall
+#VLT_WARN="-Wall"
+#VLT_WANR="-Wall -Wno-fatal"
+VLT_WARN=""
 
 VLT_CONFIG=$BLUESPECDIR/Verilator/verilator_config.vlt
 
