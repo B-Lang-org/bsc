@@ -629,8 +629,8 @@ instance Bin Flags where
 -- ----------
 
 instance Bin VProgram where
-    writeBytes (VProgram ms c) = do toBin ms; toBin c
-    readBytes = do ms <- fromBin; c <- fromBin; return (VProgram ms c)
+    writeBytes (VProgram ms dpis c) = do toBin ms; toBin dpis; toBin c
+    readBytes = do ms <- fromBin; dpis <- fromBin; c <- fromBin; return (VProgram ms dpis c)
 
 instance Bin VModule where
     writeBytes (VModule name c ports body) =

@@ -66,6 +66,8 @@ VERDIRS=""
 
 VERBOSE="no"
 
+USEDPI="no"
+
 while [ $# -gt 0 ]; do
   if [ "${1%%.v}" != "$1" ]; then
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
@@ -99,6 +101,8 @@ while [ $# -gt 0 ]; do
     BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
   elif [ "$1" = "-verbose" ]; then
     VERBOSE="yes"
+  elif [ "$1" = "-dpi" ]; then
+    USEDPI="yes"
   else
     BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
   fi
@@ -126,12 +130,10 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
 fi
 
 # Ignore 'main' from BSC_VERILOG_FILES, and record if seen.
-# Also record if a DPI declarations file is seen.
 # And remove the top module, if provided, to avoid passing
 # it multiple times to Verilator.
 #
 BSC_VERILOG_FILES_NO_MAIN=""
-HAS_DPI=0
 HAS_MAIN=0
 for f in $BSC_VERILOG_FILES
 do
@@ -141,9 +143,6 @@ do
     else
 	if [[ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ]] ; then
 	    BSC_VERILOG_FILES_NO_MAIN+="$f "
-	    if [ "$fbase" == "dpi_declarations.v" ] ; then
-		HAS_DPI=1
-	    fi
 	fi
     fi
 done
@@ -156,9 +155,9 @@ done
 # check that a DPI declarations file was also provided
 VPI_FILES=""
 if [ -n "$BSC_VPI_FILES" ]; then
-    if [ "$HAS_DPI" != "1" ] ; then
+    if [ "$USEDPI" == "no" ] ; then
 	echo "ERROR: Verilator does not support VPI functions/tasks."
-	echo "       Compile and link with the -use-DPI flag."
+	echo "       Compile and link with the -use-dpi flag."
 	exit 1
     fi
     # Verilator's Makefile doesn't adjust relative paths for object files

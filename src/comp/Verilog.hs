@@ -76,18 +76,20 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 
 -- VProgram
 --    * a list of modules
+--    * a list of import-DPI declarations
 --    * a comment for the entire file, not for any one module
-data VProgram = VProgram [VModule] VComment
+data VProgram = VProgram [VModule] [String] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance Hyper VProgram where
     hyper x y = (x==x) `seq` y
 
 instance PPrint VProgram where
-    pPrint d p (VProgram ms cs) =
+    pPrint d p (VProgram ms dpis cs) =
         ppComment cs $+$
         assignment_delay_macro $+$
         reset_level_macro $+$
+        dpi_decls $+$
         vsepEmptyLine (map (pPrint d 0) ms) $+$
         text ""
       where -- define BSV_ASSIGNMENT_DELAY when the user does not override it
@@ -107,6 +109,9 @@ instance PPrint VProgram where
           text "  `define BSV_RESET_EDGE negedge" $+$
           text "`endif" $+$
           text ""
+        dpi_decls =
+          vsep (map text dpis) $+$
+          if (not (null dpis)) then text "" else empty
 
 -- VComment
 --    * a list of single-line comments (already broken into lines)
@@ -882,7 +887,7 @@ keepAssoc :: VOp -> Bool
 keepAssoc op = op `elem` [VSub{-,  VAdd, VAnd, VOr, VXor-}]
 
 vGetMainModName :: VProgram -> String
-vGetMainModName (VProgram program_items _) =
+vGetMainModName (VProgram program_items _ _) =
         let get_mod_name (headmod:_) = getVIdString $ vm_name headmod
             get_mod_name [] = internalError "vGetMainModName: no main module"
         in  get_mod_name program_items
@@ -968,7 +973,7 @@ ppOp d pd vid@(VId string id _) p1 op p2 =
 -------
 
 getVeriInsts :: VProgram -> [String]
-getVeriInsts (VProgram ms _) = nub (concatMap getInstsFromVModule ms)
+getVeriInsts (VProgram ms _ _) = nub (concatMap getInstsFromVModule ms)
   where
       getInstsFromVModule vmod = concatMap getInstsFromVMItem (vm_body vmod)
       -- extract module names from instances in VMItem

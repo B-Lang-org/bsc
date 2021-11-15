@@ -8,6 +8,7 @@ module ForeignFunctions ( ForeignType(..)
                         , mkForeignFunction
                         , mkImportDeclarations
                         , mkDPIDeclarations
+                        , getForeignFunctions
                         , mkFFDecl
                         , encodeArgs
                         , argExpr
@@ -47,7 +48,7 @@ import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
 import Eval(Hyper(..))
 
-import Data.List(intercalate, isPrefixOf)
+import Data.List(intercalate, isPrefixOf, nub)
 import Data.Maybe(mapMaybe, maybeToList)
 import PreIds
 import ListMap as LM
@@ -523,8 +524,8 @@ mkImportDeclarations ff_map =
 -- Make the SystemVerilog DPI-C declarations for all foreign functions in
 -- the ForeignFuncMap.
 
-mkDPIDeclarations :: [ForeignFunction] -> String
-mkDPIDeclarations ffuncs = concatMap mkDPIDecl ffuncs
+mkDPIDeclarations :: [ForeignFunction] -> [String]
+mkDPIDeclarations ffuncs = map mkDPIDecl ffuncs
   where
     mkDPIDecl :: ForeignFunction -> String
     mkDPIDecl (FF name rt arg_types) =
@@ -543,17 +544,33 @@ mkDPIDeclarations ffuncs = concatMap mkDPIDecl ffuncs
                       else (toSVtype rt, mkArgs arg_types)
       in
          "import \"DPI-C\" function " ++ ret ++ " " ++
-         getIdString name ++ "(" ++ intercalate ", " ats ++ ");\n"
+         getIdString name ++ "(" ++ intercalate ", " ats ++ ");"
 
     toSVtype :: ForeignType -> String
     toSVtype Void = "void"
-    toSVtype (Narrow n) | n <= 8    = "byte"
-                        | n <= 32   = "int"
-                        | n <= 64   = "longint"
+    toSVtype (Narrow n) | n <= 8    = "byte unsigned"
+                        | n <= 32   = "int unsigned"
+                        | n <= 64   = "longint unsigned"
                         | otherwise = internalError "Narrow n > 64"
     toSVtype (Wide n)    = "bit [" ++ itos (n-1) ++ ":0]"
     toSVtype StringPtr   = "string"
     toSVtype Polymorphic = "bit []"
+
+getForeignFunctions :: ForeignFuncMap -> ASPackage -> [ForeignFunction]
+getForeignFunctions ffmap aspkg =
+  let
+      expr_ff_uses = findAExprs exprForeignCalls aspkg
+      expr_ff_names =
+        [ i | (AFunCall { ae_funname = i, ae_isC = True }) <- expr_ff_uses ]
+
+      act_ff_uses = concatMap snd (aspkg_foreign_calls aspkg)
+      act_ff_names = map afc_fun act_ff_uses
+
+      ff_names = nub (expr_ff_names ++ act_ff_names)
+
+      findFF name = M.lookup name ffmap
+  in
+      mapMaybe findFF ff_names
 
 -- #############################################################################
 -- # Map to and from real Verilog foreign funcs and the BSV AV version.

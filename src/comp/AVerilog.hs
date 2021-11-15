@@ -34,7 +34,7 @@ import VPrims(vPriEnc,vMux,vPriMux,verilogInstancePrefix)
 import AVerilogUtil
 import InlineReg
 import BackendNamingConventions(isRegInst, isClockCrossingRegInst, isInoutConnect)
-import ForeignFunctions(ForeignFuncMap)
+import ForeignFunctions(ForeignFuncMap, mkDPIDeclarations, getForeignFunctions)
 import qualified GraphWrapper as G
 
 --import Debug.Trace
@@ -58,7 +58,7 @@ import qualified GraphWrapper as G
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
-       return (VProgram mods comments)
+       return (VProgram mods dpi_decls comments)
   where
         vco = flagsToVco flags
         -- look for pass-through comments, taking care of \n
@@ -236,6 +236,11 @@ aVerilog errh flags pps aspack ffmap =
         foreignfunc_block_group =
             vGroupWithComment True foreignfunc_blocks
                               ["handling of system tasks"]
+
+    -- ----------
+    -- create import-DPI statements, if using DPI
+
+        dpi_decls = mkDPIDeclarations $ getForeignFunctions ffmap aspack
 
     -- ----------
     -- define a function (vDef) for mapping an ADef to a Verilog item

@@ -85,9 +85,6 @@ mkVPIHName m pre s = mkPre m pre ++ "vpi_wrapper_" ++ s ++ "." ++ hSuffix
 mkVPIArrayCName :: Maybe String -> String -> String
 mkVPIArrayCName m pre = mkPre m pre ++ "vpi_startup_array" ++ "." ++ cSuffix
 
-mkDPIDeclsVName :: Maybe String -> String -> String
-mkDPIDeclsVName m pre = mkPre m pre ++ "dpi_declarations" ++ "." ++ verSuffix
-
 -- add prefix but no suffix
 mkNameWithoutSuffix :: Maybe String -> String -> String -> String
 mkNameWithoutSuffix m pre s = mkPre m pre ++ s

@@ -35,7 +35,6 @@ import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName, mkVPIArrayCName,
-                    mkDPIDeclsVName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
                     bscSrcSuffix, bseSrcSuffix, binSuffix,
@@ -129,7 +128,7 @@ import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
-                       mkImportDeclarations, mkDPIDeclarations)
+                        mkImportDeclarations)
 import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
 import SimCCBlock
 import SimExpand(simExpand, simCheckPackage)
@@ -1998,10 +1997,12 @@ vSimLink errh flags toplevel prefix vfiles ofiles = do
         veriflags = map ("-Xv "++) (vFlags flags)
         linkerflags = map ("-Xl "++) (linkFlags flags)
         verboseflag = if (verbose flags) then ["-verbose"] else []
+        dpiflag = if (useDPI flags) then ["-dpi"] else []
         args = (["link"
                 , outFile
                 , toplevel ] ++
                 verboseflag ++
+                dpiflag ++
                 libdirflags ++
                 userlibs ++
                 linkerflags ++
@@ -2083,25 +2084,13 @@ vGenFFuncs :: ErrorHandle -> Flags -> TimeInfo -> String ->
               IO (TimeInfo, [String])
 vGenFFuncs errh flags t prefix cfilenames_unique [] = return (t,[])
 vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
-      (t, ofiles0) <-
-        if (useDPI flags) then do
-          -- generate the DPI-C declaration file
-          let decls = mkDPIDeclarations ffuncs
-              decls_filename = mkDPIDeclsVName (vdir flags) prefix
-              decls_filename_rel = getRelativeFilePath decls_filename
-          -- write the file contents
-          writeFileCatch errh decls_filename decls
-          -- report the file to the user with relative path
-          unless (quiet flags) $
-            putStrLnF $ "DPI declarations file created: " ++ decls_filename_rel
-          t <- timestampStr flags "generate DPI declarations file" t
-          return (t, [decls_filename_rel])
-       else do
+      t <-
+        if (useDPI flags) then return t
+        else do
           -- generate the vpi_startup_array file
           blurb <- mkGenFileHeader flags
           genVPIRegistrationArray errh flags prefix blurb ffuncs
-          t <- timestampStr flags "generate VPI registration array" t
-          return (t, [])
+          timestampStr flags "generate VPI registration array" t
 
       -- compile user-supplied C files
       let (cfiles1, ofiles1) = partition (\f -> hasDotSuf cSuffix f   ||
@@ -2133,7 +2122,7 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
           t <- timestampStr flags "compile VPI wrapper files" t
           return (t, files)
 
-      return (t, ofiles0 ++ ofiles1 ++ ofiles2 ++ ofiles3)
+      return (t, ofiles1 ++ ofiles2 ++ ofiles3)
 
 -- ===============
 

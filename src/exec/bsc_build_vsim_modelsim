@@ -73,6 +73,8 @@ BSC_OTHER_ARGUMENTS=""
 
 VERBOSE="no"
 
+USEDPI="no"
+
 while [ $# -gt 0 ]; do
   if [ "${1%%.v}" != "$1" ]; then
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
@@ -110,6 +112,8 @@ while [ $# -gt 0 ]; do
     BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
   elif [ "$1" = "-verbose" ]; then
     VERBOSE="yes"
+  elif [ "$1" = "-dpi" ]; then
+    USEDPI="yes"
   else
     BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
   fi
@@ -158,12 +162,12 @@ VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 ######################################################################
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
-  echo "exec: vlog -work $work_dir +libext+.v+.vqm $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $BSC_VERILOG_FILES"
+  echo "exec: vlog -sv -work $work_dir +libext+.v+.vqm $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $BSC_VERILOG_FILES"
   VLOG_VERBOSE=""
 else
   VLOG_VERBOSE="-quiet"
 fi
-vlog $VLOG_VERBOSE -work $work_dir +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $BSC_VERILOG_FILES
+vlog $VLOG_VERBOSE -sv -work $work_dir +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $BSC_VERILOG_FILES
 status=$?
 if [ "$status" != "0" ]; then
     echo "ERROR: cannot compile Verilog files" >&2
@@ -214,21 +218,27 @@ fi
 
 # include VPI modules if supplied
 if [ -n "$BSC_VPI_FILES" ]; then
+  if [ "$USEDPI" == "yes" ] ; then
+    VPI_LINK="-sv_lib directc_$BSC_TOPLEVEL_MODULE"
+    LINK_FLAGS=$BSC_VPI_FILES
+  else
+    VPI_LINK="-pli ./directc_$BSC_TOPLEVEL_MODULE.so"
+    LINK_FLAGS="-Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi"
+  fi
   ## If CXX is set, use that.  Otherwise just use c++
   if [ "$CXX" = "" ]
   then
     CXX=c++
   fi
-  VPI_LINK="-pli ./directc_$BSC_TOPLEVEL_MODULE.so"
   LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
   SHARED=`$BLUESPECDIR/exec/platform.sh c++_shared_flags`
   if [ "$VERBOSE" = "yes" ]; then
-    echo "exec: $CXX -v $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS"
+    echo "exec: $CXX -v $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so $LINK_FLAGS $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS"
     CXX_VERBOSE="-v"
   else
     CXX_VERBOSE=""
   fi
-  $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
+  $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so $LINK_FLAGS $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
 else
   VPI_LINK=""
 fi

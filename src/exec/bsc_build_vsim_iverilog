@@ -65,6 +65,8 @@ BSC_OTHER_ARGUMENTS=""
 
 VERBOSE="no"
 
+USEDPI="no"
+
 while [ $# -gt 0 ]; do
   if [ "${1%%.v}" != "$1" ]; then
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
@@ -97,6 +99,8 @@ while [ $# -gt 0 ]; do
     BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
   elif [ "$1" = "-verbose" ]; then
     VERBOSE="yes"
+  elif [ "$1" = "-dpi" ]; then
+    USEDPI="yes"
   else
     BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
   fi
@@ -134,6 +138,11 @@ done
 
 # build VPI module if needed
 if [ -n "$BSC_VPI_FILES" ]; then
+  if [ "$USEDPI" == "yes" ] ; then
+    echo "ERROR: IVerilog linking does not yet support DPI."
+    echo "       Compile and link without the -use-dpi flag."
+    exit 1
+  fi
   echo "WARNING: IVerilog support for VPI is incomplete.  BSV designs using foreign"
   echo "         functions are not guaranteed to compile or simulate correctly."
   ## If CXX is set, use that.  Otherwise just use c++
