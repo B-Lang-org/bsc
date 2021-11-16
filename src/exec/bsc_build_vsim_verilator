@@ -185,7 +185,8 @@ VLT_CONFIG=$BLUESPECDIR/Verilator/verilator_config.vlt
 
 # Uniquify the obj_dir with the name of the sim executable and the PID
 # XXX is the PID overkill?
-OBJDIR="obj_dir_${BSC_SIM_EXECUTABLE}_$$"
+EXE_BASENAME=`basename ${BSC_SIM_EXECUTABLE}`
+OBJDIR="obj_dir_${EXE_BASENAME}_$$"
 
 # If the directory happens to exit, delete it
 # to avoid accidentally reusing old files
