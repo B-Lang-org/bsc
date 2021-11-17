@@ -21,14 +21,14 @@ double sc_time_stamp () {    // Called by $time in Verilog
     return main_time;
 }
 
-inline void step (mkV(TOP)* TOP, VerilatedVcdC* tfp)
+inline void step (mkV(TOP)* TOP, VerilatedVcdC* tfp, vluint64_t incr)
 {
 #if VM_TRACE
     if (tfp)
       tfp->dump(main_time);
 #endif
     TOP->eval ();
-    main_time++;
+    main_time += incr;
 }
 
 int main (int argc, char **argv, char **env) {
@@ -54,29 +54,27 @@ int main (int argc, char **argv, char **env) {
     // initial conditions
     TOP->RST_N = 0;
     TOP->CLK = 0;
-    step(TOP, tfp);
+    step(TOP, tfp, 1);
 
     // First CLK edge to time 1
     TOP->CLK = 1;
-    step(TOP, tfp);
+    step(TOP, tfp, 1);
 
     // De-assert RST at time 2
     TOP->RST_N = 1;
-    step (TOP, tfp);
+    step(TOP, tfp, 3);
 
     // now resume normal CLK cycle
     // negedge on 5, posedge on 10
     //
     while (! Verilated::gotFinish ()) {
 
-        if ((main_time % 10) == 5) {
-            TOP->CLK = 0;
-        }
-        else if ((main_time % 10) == 0) {
-            TOP->CLK = 1;
-        }
+	TOP->CLK = 0;
+	step(TOP, tfp, 5);
+	if (Verilated::gotFinish ()) break;
 
-	step(TOP, tfp);
+	TOP->CLK = 1;
+	step(TOP, tfp, 5);
     }
 
     TOP->final ();    // Done simulating
