@@ -21,15 +21,26 @@ double sc_time_stamp () {    // Called by $time in Verilog
     return main_time;
 }
 
+inline void step (mkV(TOP)* TOP, VerilatedVcdC* tfp)
+{
+#if VM_TRACE
+    if (tfp)
+      tfp->dump(main_time);
+#endif
+    TOP->eval ();
+    main_time++;
+}
+
 int main (int argc, char **argv, char **env) {
     Verilated::commandArgs (argc, argv);    // remember args
 
     mkV(TOP)* TOP = new mkV(TOP);    // create instance of model
 
+    VerilatedVcdC* tfp = NULL;    // pointer for tracing
+
 #if VM_TRACE
     // If verilator was invoked with --trace argument,
     // and if at run time passed the +bscvcd argument, turn on tracing
-    VerilatedVcdC* tfp = NULL;
     const char* flag = Verilated::commandArgsPlusMatch("bscvcd");
     if (flag && 0==strcmp(flag, "+bscvcd")) {
         Verilated::traceEverOn(true);  // Verilator must compute traced signals
@@ -40,35 +51,32 @@ int main (int argc, char **argv, char **env) {
     }
 #endif
 
-    // initial conditions in order to generate appropriate edges on
-    // reset
-    TOP->RST_N = 1;
+    // initial conditions
+    TOP->RST_N = 0;
     TOP->CLK = 0;
+    step(TOP, tfp);
 
+    // First CLK edge to time 1
+    TOP->CLK = 1;
+    step(TOP, tfp);
+
+    // De-assert RST at time 2
+    TOP->RST_N = 1;
+    step (TOP, tfp);
+
+    // now resume normal CLK cycle
+    // negedge on 5, posedge on 10
+    //
     while (! Verilated::gotFinish ()) {
 
-        if (main_time == 2) {
-            TOP->RST_N = 0;    // assert reset
-        }
-        else if (main_time == 7) {
-            TOP->RST_N = 1;    // Deassert reset
-        }
-
-        // Toggle clock
         if ((main_time % 10) == 5) {
-            TOP->CLK = 1;
-        }
-        else if ((main_time % 10) == 0) {
             TOP->CLK = 0;
         }
+        else if ((main_time % 10) == 0) {
+            TOP->CLK = 1;
+        }
 
-#if VM_TRACE
-        if (tfp)
-            tfp->dump(main_time);
-#endif
-
-        TOP->eval ();
-        main_time++;
+	step(TOP, tfp);
     }
 
     TOP->final ();    // Done simulating
