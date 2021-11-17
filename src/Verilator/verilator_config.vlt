@@ -13,4 +13,5 @@ lint_off -rule MULTIDRIVEN
 lint_off -rule UNUSED
 lint_off -rule PINCONNECTEMPTY
 lint_off -rule BLKSEQ
+lint_off -rule PINMISSING
 `verilog
