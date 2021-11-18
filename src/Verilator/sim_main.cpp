@@ -34,7 +34,8 @@ inline void step (mkV(TOP)* TOP, VerilatedVcdC* tfp, vluint64_t incr)
 int main (int argc, char **argv, char **env) {
     Verilated::commandArgs (argc, argv);    // remember args
 
-    mkV(TOP)* TOP = new mkV(TOP);    // create instance of model
+    // Use a hierarchical name that matches 'main.v'
+    mkV(TOP)* TOP = new mkV(TOP)("main");    // create instance of model
 
     VerilatedVcdC* tfp = NULL;    // pointer for tracing
 
