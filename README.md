@@ -91,6 +91,7 @@ Feel free to give it a try and see if it can be useful to our community.
 For the following systems, the Bluespec toolchain is available
 as a package that can be installed with the standard package manager:
 
+* ArchLinux AUR: [`bluespec-git`](https://aur.archlinux.org/packages/bluespec-git/) ([among others](https://aur.archlinux.org/packages/?K=bluespec))
 * Nix/NixOS: [`bluespec`](https://search.nixos.org/packages?channel=20.09&from=0&size=50&sort=relevance&query=bluespec)
 
 If a package exists for your system, we recommend installing that.
