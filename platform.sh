@@ -114,6 +114,8 @@ if [ "$1" = "tclinc" ] ; then
 	    TCL_INC_FLAGS="-I/usr/local/include/tcl${TCL_SUFFIX}"
         elif [ -f "/usr/include/tcl${TCL_SUFFIX}/tcl.h" ] ; then
 	    TCL_INC_FLAGS="-I/usr/include/tcl${TCL_SUFFIX}"
+	elif [ -f "/usr/include/tcl.h" ] ; then
+	    TCL_INC_FLAGS=""
         else
 	    exit 1
         fi
@@ -155,7 +157,7 @@ if [ "$1" = "tcllibs" ] ; then
     fi
 
     # If pkg-config doesn't work, try some well-known locations
-    for L in /usr/lib /usr/local/lib ; do
+    for L in /usr/lib /usr/lib64 /usr/local/lib ; do
         for V in ${TCL_VER} ${TCL_SUFFIX} ${TCL_ALT_SUFFIX} ; do
             if [ -f "${L}/libtcl${V}.${LIB_SUFFIX}" ] ; then
                 echo -L${L} -ltcl${V}
