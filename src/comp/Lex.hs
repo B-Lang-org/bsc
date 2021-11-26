@@ -181,12 +181,20 @@ lx lf f l 0 ('#':' ':cs@(c:_)) | isDigit c =
         -- preprocessor output: # <line> "<file>"
         let (li, r) = span (/= '\n') cs
             (ns, spfs) = span isDigit li
+            -- after the filename are optional space-separated flags, but we ignore them
+            -- XXX should we at least check that the rest of the line is valid?
             fs = takeWhile (not . isSpace) (dropWhile isSpace spfs)
-            n = read ns - 1             -- - 1 because the '\n' is still left in r, so it will be counted up.
+            -- the linenum
+            n = read ns
+            -- the filename
+            -- XXX should we error if it is not a non-empty string in quotes?
             fn = if length fs > 2 && head fs == '"' && last fs == '"' then init (tail fs) else "???"
-            -- insert a dummy token to trigger the offside rule if line numbers are not increasing.
-            res = lx lf (mkFString fn) n 0 r
-        in  res
+            -- consume the newline, too, so that we don't add 1 to the linenum
+            r' = case r of
+                   ('\n':cs) -> cs
+                   [] -> []
+                   _ -> internalError "lx: span failure"
+        in  lx lf (mkFString fn) n 0 r'
 
 lx lf f l c ""                        =
     [Token (mkPositionFull f (l+1) (-1) (lf_is_stdlib lf)) L_eof]
