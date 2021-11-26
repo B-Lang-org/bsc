@@ -24,7 +24,8 @@ import Util
 import FileNameUtil(hasSuf)
 import PFPrint
 import Error(internalError, ErrorHandle)
-import Flags(Flags, removeReg, removeCross, removeInoutConnect, removeUnusedMods, verilogDeclareAllFirst)
+import Flags(Flags, removeReg, removeCross, removeInoutConnect, removeUnusedMods,
+             useDPI, verilogDeclareAllFirst)
 import Id
 import Pragma(PProp(..))
 import ASyntax
@@ -240,7 +241,9 @@ aVerilog errh flags pps aspack ffmap =
     -- ----------
     -- create import-DPI statements, if using DPI
 
-        dpi_decls = mkDPIDeclarations $ getForeignFunctions ffmap aspack
+        dpi_decls = if (useDPI flags)
+                    then mkDPIDeclarations $ getForeignFunctions ffmap aspack
+                    else []
 
     -- ----------
     -- define a function (vDef) for mapping an ADef to a Verilog item
