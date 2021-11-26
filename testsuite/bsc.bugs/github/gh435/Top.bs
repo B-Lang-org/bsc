@@ -1,0 +1,17 @@
+# 0 "570720.c"
+# 0 "<built-in>"
+# 0 "<command-line>"
+# 1 "570720.c"
+
+# 1 "Top.bs" 1
+package Top where
+
+mkTop :: Module Empty
+mkTop =
+  module
+    rules
+      "rl_print_answer": when True ==> do
+          $display "\n\n***** Deep Thought says: Hello, World! *****"
+          $display "      And the answer is: %0d (or, in hex: 0x%0h)\n"  42  42
+          $finish
+# 2 "570720.c" 2
