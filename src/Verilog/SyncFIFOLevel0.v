@@ -279,7 +279,7 @@ module SyncFIFOLevel0(
       end // always @ (posedge sCLK  or `BSV_RESET_EDGE sRST)
    ////////////////////////////////////////////////////////////////////////
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    // Run time assertion check
    always @(posedge sCLK)
      begin
@@ -289,11 +289,11 @@ module SyncFIFOLevel0(
      begin
         if ( dDEQ && ! dNotEmptyReg ) $display ("Warning: SyncFIFOLevel: %m -- Dequeuing from empty fifo");
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : initBlock
         integer i ;
@@ -314,9 +314,9 @@ module SyncFIFOLevel0(
         dSyncReg1 = sGEnqPtr ;
         dEnqPtr   = sGEnqPtr ;
      end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : parameter_assertions
         integer ok ;
@@ -341,7 +341,7 @@ module SyncFIFOLevel0(
         if ( ok == 0 ) $finish ;
 
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
    function [indxWidth:0] grayToBinary ;

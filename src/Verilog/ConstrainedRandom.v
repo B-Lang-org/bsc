@@ -47,11 +47,11 @@ module ConstrainedRandom(CLK, RST, OUT, EN);
 
      end
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       OUT = {((width + 1)/2){2'b10}} ;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 
 endmodule // ConstrainedRandom

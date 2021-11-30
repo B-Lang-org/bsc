@@ -711,7 +711,7 @@ groupForeignBlockDefs vDef foreign_block_ids  ds =
     let (foreign_defs, other_defs) = findADefs foreign_block_ids ds
         (foreign_vdecls, foreign_vdefs) = mkVDeclsAndDefs vDef foreign_defs
         comment = ["declarations used by system tasks"]
-        foreign_vgroup = VMGroup { vg_translate_off = True
+        foreign_vgroup = VMGroup { vg_simulation_only = True
                                  , vg_body = [foreign_vdecls]
                                  }
     in case foreign_vdefs of

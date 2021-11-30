@@ -62,18 +62,6 @@ import qualified Data.Generics as Generic
 
 --import Debug.Trace
 
-
--- string to start synthesis attributes with
-synthesis_str :: String
-synthesis_str = "synopsys"
--- other possibilities
---synthesis_str = "synthesis"
---synthesis_str = "pragma"
-
-mkSynthPragma :: String -> Doc
-mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
-
-
 -- VProgram
 --    * a list of modules
 --    * a comment for the entire file, not for any one module
@@ -241,10 +229,10 @@ data VMItem
         | VMInst { vi_module_name :: VId,
                    vi_inst_name :: VId,
                    -- The string is for comments
-                   vi_inst_params :: Either [(Maybe String,VExpr)] [(VId, Maybe VExpr)],
+                   vi_inst_params :: Either [VExpr] [(VId, VExpr)],
                    vi_inst_ports :: [(VId, Maybe VExpr)] }
         | VMAssign VLValue VExpr
-        | VMStmt { vi_translate_off :: Bool, vi_body :: VStmt }
+        | VMStmt { vi_simulation_only :: Bool, vi_body :: VStmt }
         | VMComment VComment VMItem
         -- like VMComment but specific to inlined registers,
         -- to carry info for xref generation.
@@ -252,7 +240,7 @@ data VMItem
         | VMRegGroup VId String VComment VMItem
         -- VMGroup: the lists of VMItem will be separated by empty lines;
         --          if no spaces needed, use a list of one list.
-        | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
+        | VMGroup { vg_simulation_only :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
@@ -296,9 +284,9 @@ instance Ord VMItem where
 instance PPrint VMItem where
         pPrint d p (VMDecl dcl) = pPrint d p dcl
         pPrint d p s@(VMStmt {})
-                | vi_translate_off s = mkSynthPragma "translate_off" $$
-                                        pPrint d p (vi_body s) $$
-                                        mkSynthPragma "translate_on"
+                | vi_simulation_only s = text "`ifndef SYNTHESIS" $$
+                                         pPrint d p (vi_body s) $$
+                                         text "`endif // SYNTHESIS"
                 | otherwise = pPrint d p (vi_body s)
         pPrint d p (VMAssign v e) = -- trace("Assignment :" ++ (ppReadable v) ++ " = " ++ (ppReadable e) ++ "\n") $
             sep [text "assign" <+> pPrint d 45 v <+> text "=",
@@ -306,11 +294,11 @@ instance PPrint VMItem where
         pPrint d p (VMInst mid iid pvs cs) = pPrint d 0 mid <>
           (case pvs of
            Left ps -> (if null ps then text ""
-                       else text " #" <> pparen True (sepList (map (pv95params d) ps) comma ))
+                       else text " #" <> pparen True (sepList (map (pPrint d 0) ps) comma))
            Right ps -> (if null ps then text ""
                         else text " #" <>
                              pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
-                                            pparen True (case me of Just e -> pPrint d 0 e; Nothing -> text "")) ps) (text ",")))) <>
+                                            pparen True (pPrint d 0 me)) ps) (text ",")))) <>
                 text "" <+> pPrint d 0 iid <>
                 pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
                                            pparen True (case me of
@@ -319,9 +307,9 @@ instance PPrint VMItem where
                  <> text ";"
         pPrint d p (VMComment cs stmt) = ppComment cs $+$ pPrint d p stmt
         pPrint d p g@(VMGroup _ stmtss)
-                | vg_translate_off g = mkSynthPragma "translate_off" $$
-                                       vsepEmptyLine (map (ppLines d) stmtss) $$
-                                       mkSynthPragma "translate_on"
+                | vg_simulation_only g = text "`ifndef SYNTHESIS" $$
+                                         vsepEmptyLine (map (ppLines d) stmtss) $$
+                                         text "`endif // SYNTHESIS"
                 | otherwise = vsepEmptyLine (map (ppLines d) stmtss)
 
         pPrint d p (VMFunction f) = pPrint d p f
@@ -330,11 +318,6 @@ instance PPrint VMItem where
             pPrint d 0 inst_id $+$
             ppComment cs $+$
             pPrint d p stmt
-
-pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
-pv95params d (Nothing,x)  =  pPrint d 0 x
-pv95params d (Just "", x) =  pPrint d 0 x
-pv95params d (Just s,x)   =  text (" /*" ++ s ++ "*/ ") <> pPrint d 0 x
 
 -- Decide where to place blank spaces between VMItems, by grouping
 -- them into a list of lists between which there should be a space.
@@ -435,13 +418,13 @@ instance PPrint VStmt where
              text "`endif // BSV_NO_INITIAL_BLOCKS"
         pPrint d p (VSeq ss) = text "begin" $+$ (text "  " <> ppLines d ss) $+$ text "end"
         pPrint d p s@(Vcasex {}) =
-            (text "casex" <+> pparen True (pPrint d 0 (vs_case_expr s))) <+>
-                pprintCaseAttributes (vs_parallel s) (vs_full s) $+$
+            pprintCaseAttributes (vs_parallel s) (vs_full s) <+>
+                (text "casex" <+> pparen True (pPrint d 0 (vs_case_expr s))) $+$
             (text "  " <> ppLines d (vs_case_arms s)) $+$
             (text "endcase")
         pPrint d p s@(Vcase {}) =
-            (text "case" <+> pparen True (pPrint d 0 (vs_case_expr s))) <+>
-                pprintCaseAttributes (vs_parallel s) (vs_full s) $+$
+            pprintCaseAttributes (vs_parallel s) (vs_full s) <+>
+                (text "case" <+> pparen True (pPrint d 0 (vs_case_expr s))) $+$
             (text "  " <> ppLines d (vs_case_arms s)) $+$
             (text "endcase")
         pPrint d p (VAssign v e) =
@@ -500,10 +483,9 @@ ppAs1 d i cs xs = text c1 <> ppAs1 d i c2 xs where
 
 pprintCaseAttributes :: Bool -> Bool -> Doc
 pprintCaseAttributes False False = empty
-pprintCaseAttributes True  False = mkSynthPragma "parallel_case"
-pprintCaseAttributes False True  = mkSynthPragma "full_case"
-pprintCaseAttributes True  True  = mkSynthPragma "parallel_case full_case"
-
+pprintCaseAttributes True  False = text "(* parallel_case *)"
+pprintCaseAttributes False True  = text "(* full_case *)"
+pprintCaseAttributes True  True  = text "(* parallel_case, full_case *)"
 
 -- hack to check if expressions are known to be true or false
 isOne :: VExpr -> Bool

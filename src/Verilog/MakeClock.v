@@ -108,7 +108,7 @@ module MakeClock ( CLK, RST,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       #0 ;
       current_clk  = 1'b0 ;
@@ -116,7 +116,7 @@ module MakeClock ( CLK, RST,
       new_gate     = 1'b1 ;
       CLK_VAL_OUT  = 1'b0;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule

@@ -48,7 +48,7 @@ module BRAM2BE(CLKA,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else
-   // synopsys translate_off
+`ifndef SYNTHESIS
    integer                        i;
    initial
    begin : init_block
@@ -60,7 +60,7 @@ module BRAM2BE(CLKA,
       DOB_R  = { ((DATA_WIDTH+1)/2) { 2'b10 } };
       DOB_R2 = { ((DATA_WIDTH+1)/2) { 2'b10 } };
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // !`ifdef BSV_NO_INITIAL_BLOCKS
 
    // PORT A

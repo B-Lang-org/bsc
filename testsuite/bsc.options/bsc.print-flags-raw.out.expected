@@ -119,7 +119,6 @@ Flags {
 	useNegate = True,
 	usePrelude = True,
 	useProvisoSAT = True,
-	v95 = False,
 	vFlags = [],
 	vPath = [".","BLUESPECDIR/Libraries","BLUESPECDIR/Verilog"],
 	vPathRaw = ["$DEFAULT_PATH"],

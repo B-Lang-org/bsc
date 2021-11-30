@@ -210,7 +210,7 @@ module SyncFIFO(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : initBlock
         integer i ;
@@ -238,11 +238,11 @@ module SyncFIFO(
         dSyncReg1 = sGEnqPtr ;
         dEnqPtr   = sGEnqPtr ;
      end // block: initBlock
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : parameter_assertions
         integer ok ;
@@ -268,7 +268,7 @@ module SyncFIFO(
         if ( ok == 0 ) $finish ;
 
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
    function [indxWidth+1:0] incrGrayP ;

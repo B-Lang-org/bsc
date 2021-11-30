@@ -122,7 +122,7 @@ vInlineN errh vco (clk, avis) =
         -- begin/end, even when there is only one item inside it
         stmt = Valways $ VAt ev $ VSeq body_items
     in
-        VMStmt { vi_translate_off = False, vi_body = stmt }
+        VMStmt { vi_simulation_only = False, vi_body = stmt }
 
 
 -- generate an always block for all RegA on the same clock and reset
@@ -147,7 +147,7 @@ vInlineA vco ((clk, rstn), avis) =
         -- this body has no begin/end because it is an if-stmt;
         stmt =         Valways $ VAt ev $ body_item
     in
-        VMStmt { vi_translate_off = False, vi_body = stmt }
+        VMStmt { vi_simulation_only = False, vi_body = stmt }
 
 
 -- Assign an initial (debug) value to all RegUN
@@ -176,7 +176,7 @@ mkInitialAssignments flags avis =
         -- begin/end, even when there is only one item inside it
         stmt = Vinitial $ VSeq $ map mkInit avis
     in
-        [VMStmt { vi_translate_off = True, vi_body = stmt }]
+        [VMStmt { vi_simulation_only = True, vi_body = stmt }]
 
 
 -- make the conditional enable assignment to a register

@@ -627,7 +627,6 @@ defaultFlags bluespecdir = Flags {
         usePrelude = True,
         useProvisoSAT = True,
         stdlibNames = False,
-        v95 = False,
         vFlags = [],
         vdir = Nothing,
         -- The vPath value will be produced from the raw value,
@@ -1637,10 +1636,6 @@ externalFlags = [
          (Toggle (\f x -> f {stdlibNames=x}) (showIfTrue stdlibNames),
           "the source file is from the standard library", Hidden)),
 
-        ("v95",
-         (Toggle (\f x -> f {v95=x}) (showIfTrue v95),
-          "generate strict Verilog 95 code", Visible)),
-
         ("vdir",
          (Arg "dir" (\f s -> Left (f {vdir = Just s})) (Just (FRTMaybeString vdir)),
           "output directory for .v files", Visible)),
@@ -1922,7 +1917,6 @@ showFlagsRaw flags =
           ("useNegate", show (useNegate flags)),
           ("usePrelude", show (usePrelude flags)),
           ("useProvisoSAT", show (useProvisoSAT flags)),
-          ("v95", show (v95 flags)),
           ("vFlags", show (vFlags flags)),
           ("vPath", show (vPath flags)),
           ("vPathRaw", show (vPathRaw flags)),

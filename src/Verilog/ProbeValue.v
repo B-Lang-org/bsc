@@ -130,17 +130,17 @@ module ProbeValue (
          probeData    <= `BSV_ASSIGNMENT_DELAY PROBEIN;
          probeChanged <= `BSV_ASSIGNMENT_DELAY ! probeChanged;
       end
-      // synopsys translate_off
+`ifndef SYNTHESIS
       if (enabled && newProbeData && newData) begin
          $display ("Error: %m Probevalue has been overrun with data!");
       end
-      // synopsys translate_on
+`endif // SYNTHESIS
 
    end
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       probeData   <= { ProbeWidth {1'b0 } };
       probeChanged <= 1'b0;
@@ -153,7 +153,7 @@ module ProbeValue (
       captureChanged <= 1'b0;
       DATAUP      <= {16 {2'b10}};
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif
 
 endmodule

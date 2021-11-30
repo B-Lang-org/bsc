@@ -70,7 +70,7 @@ module RegFileLoad(CLK,
    assign D_OUT_4 = arr[ADDR_4];
    assign D_OUT_5 = arr[ADDR_5];
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    always@(posedge CLK)
      begin : runtime_check
         reg enable_check;
@@ -91,6 +91,6 @@ module RegFileLoad(CLK,
                 $display( "Warning: RegFile: %m -- Write Address port is out of bounds: %h", ADDR_IN ) ;
            end
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule

@@ -48,14 +48,14 @@ module SyncResetA (
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin
         #0 ;
         // initialize out of reset forcing the designer to do one
         reset_hold = {(RSTDELAY + 1) {~ `BSV_RESET_VALUE}} ;
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule // SyncResetA

@@ -51,7 +51,7 @@ module RegFile(CLK,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : init_block
         integer                     i;          // temporary for generate reset value
@@ -59,7 +59,7 @@ module RegFile(CLK,
            arr[i] = {((data_width + 1)/2){2'b10}} ;
         end
      end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 
@@ -75,7 +75,7 @@ module RegFile(CLK,
    assign D_OUT_4 = arr[ADDR_4];
    assign D_OUT_5 = arr[ADDR_5];
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    always@(posedge CLK)
      begin : runtime_check
         reg enable_check;
@@ -96,6 +96,6 @@ module RegFile(CLK,
                 $display( "Warning: RegFile: %m -- Write Address port is out of bounds: %h", ADDR_IN ) ;
            end
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule

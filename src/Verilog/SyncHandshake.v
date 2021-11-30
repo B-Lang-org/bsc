@@ -90,7 +90,7 @@ module SyncHandshake(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
       begin
          dSyncReg1 = init ;
@@ -102,7 +102,7 @@ module SyncHandshake(
          sSyncReg2 = ! init ;
 
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule // HandshakeSync

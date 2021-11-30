@@ -53,11 +53,11 @@ module McpRegUN(CLK, RST, SET, val, get);
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin
       get = {((width + 1)/2){2'b10}} ;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule

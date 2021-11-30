@@ -98,7 +98,7 @@ module SyncFIFO1(
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial begin : initBlock
       syncFIFO1Data = {((dataWidth + 1)/2){2'b10}} ;
       sEnqToggle = 1'b0;
@@ -109,10 +109,10 @@ module SyncFIFO1(
       dDeqToggle = 1'b0;
       dSyncReg1 = 1'b0;
    end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // !`ifdef BSV_NO_INITIAL_BLOCKS
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    always@(posedge sCLK)
      begin: error_checks1
         reg enqerror ;
@@ -138,6 +138,6 @@ module SyncFIFO1(
              end
           end
      end // block: error_checks
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule

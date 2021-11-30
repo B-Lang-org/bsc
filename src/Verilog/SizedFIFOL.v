@@ -84,7 +84,7 @@ module SizedFIFOL(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
      begin : initial_block
         integer   i;
@@ -101,7 +101,7 @@ module SizedFIFOL(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
              arr[i]   = D_OUT ;
           end
      end
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 
@@ -209,7 +209,7 @@ module SizedFIFOL(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
          end // else: !if(RST == `BSV_RESET_VALUE)
      end // always @ (posedge CLK)
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    always@(posedge CLK)
      begin: error_checks
         reg deqerror, enqerror ;
@@ -230,9 +230,9 @@ module SizedFIFOL(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
                 end
            end
      end // block: error_checks
-   // synopsys translate_on
+`endif // SYNTHESIS
 
-   // synopsys translate_off
+`ifndef SYNTHESIS
    // Some assertions about parameter values
    initial
      begin : parameter_assertions
@@ -254,6 +254,6 @@ module SizedFIFOL(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
         if ( ok == 0 ) $finish ;
 
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 
 endmodule

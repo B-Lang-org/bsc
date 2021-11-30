@@ -73,14 +73,14 @@ module SyncBit (
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-   // synopsys translate_off
+`ifndef SYNTHESIS
    initial
       begin
          sSyncReg  = init ;
          dSyncReg1 = init ;
          dSyncReg2 = init ;
       end // initial begin
-   // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule // BitSync

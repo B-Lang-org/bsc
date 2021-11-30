@@ -104,7 +104,7 @@ module GatedClockDiv(CLK_IN,
 
 `ifdef BSV_NO_INITIAL_BLOCKS
 `else // not BSV_NO_INITIAL_BLOCKS
-  // synopsys translate_off
+`ifndef SYNTHESIS
   initial
     begin
        #0 ;
@@ -112,7 +112,7 @@ module GatedClockDiv(CLK_IN,
        PREEDGE = 0 ;
        new_gate = 0 ;
     end // initial begin
-  // synopsys translate_on
+`endif // SYNTHESIS
 `endif // BSV_NO_INITIAL_BLOCKS
 
 
