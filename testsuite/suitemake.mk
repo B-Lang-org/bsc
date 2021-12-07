@@ -114,30 +114,20 @@ LOCALCHKCMD ?= $(RUNTESTENV) $(RUNTEST) $(RUNTESTFLAGS) *.exp
 localcheck: $(LOCALCHECKPREREQUISITES)
 	$(LOCALCHKCMD)
 
-# Force all_tests.mk to be built exactly once at the top level invocation of make
-# rather than running perl/find once per test subdir. This means the list is always
-# up to date if we add new tests, but also isn't re-calculated unnecessarily.
-ifeq (0,${MAKELEVEL})
-DUMMY := $(shell perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) | awk '{t=t " " $$0} END{print "ALL_TESTS :=" t}' > $(CONFDIR)/all_tests.mk)
-endif
+# This creates the file 'all_tests.mk', that is used by the 'run-tests'
+# target in the 'parallel.mk' file.  It also checks for duplicates
+# which can cause problems.
+run-tests-setup:
+	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) \
+		| awk '{t=t " " $$0} END{print "ALL_TESTS :=" t}' \
+		> $(CONFDIR)/all_tests.mk
+	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) \
+		| perl $(CONFDIR)/scripts/double-directory.pl
 
-include $(CONFDIR)/all_tests.mk
-
-.PHONY: double-directory-check
-double-directory-check:
-	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) | perl $(CONFDIR)/scripts/double-directory.pl
 
 INIT ?= FORCE_INITIALIZE=$(tool)
 PARALLEL_FLAGS ?= $(INIT) LOCAL_TIME_WALK=1
 
-
-.PHONY: $(ALL_TESTS)
-$(ALL_TESTS):
-	cd $(dir $@) && $(RUNTESTENV) $(RUNTEST) $(RUNTESTFLAGS) $(PARALLEL_FLAGS) $(notdir $@)
-
-
-.PHONY: run-tests
-run-tests: double-directory-check $(ALL_TESTS)
 
 #the reason this is a rule rather than a separate script is so we do not need to hunt down
 #CONFDIR again inside the script.
@@ -158,15 +148,15 @@ generate-stats:
 
 #example usage: make -j9 INIT=bsc checkparallel
 .PHONY: checkparallel
-checkparallel: checkparallel-setup
-	if $(MAKE) -k INIT=FORCE_INITIALIZE=$(INIT) run-tests ; \
+checkparallel: checkparallel-setup run-tests-setup
+	if $(MAKE) -f $(CONFDIR)/parallel.mk CONFDIR=$(CONFDIR) -k INIT=FORCE_INITIALIZE=$(INIT) run-tests ; \
 	then $(MAKE) generate-stats ;\
 	else $(MAKE) generate-stats ; false ;\
 	fi
 
 .PHONY: fullparallel
-fullparallel: fullparallel-setup
-	if $(MAKE) -k tool=bsc run-tests ; \
+fullparallel: fullparallel-setup run-tests-setup
+	if $(MAKE) -f $(CONFDIR)/parallel.mk CONFDIR=$(CONFDIR) -k tool=bsc run-tests ; \
 	then $(MAKE) generate-stats ;\
 	else $(MAKE) generate-stats ; false ;\
 	fi
