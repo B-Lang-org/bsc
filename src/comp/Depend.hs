@@ -240,7 +240,9 @@ getGenFs flags pi =
             in  foreign_abin_files ++ mod_abin_files
          Just Verilog ->
             let mod_ver_files = map mkVerFileName (gens pi)
-                foreign_vpi_files = concatMap mkVPIFileNames (foreigns pi)
+                foreign_vpi_files = if (useDPI flags)
+                                    then []
+                                    else concatMap mkVPIFileNames (foreigns pi)
                 mod_abin_files =
                     if (genABin flags)
                     then map mkABinFileName (gens pi)
