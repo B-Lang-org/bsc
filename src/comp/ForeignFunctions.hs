@@ -43,6 +43,7 @@ import CType
 import ASyntax
 import ASyntaxUtil
 import CCSyntax
+import Verilog(VDPI(..), VDPIType(..), mkVId, idToVId)
 import ErrorUtil(internalError)
 import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
@@ -524,37 +525,35 @@ mkImportDeclarations ff_map =
 -- Make the SystemVerilog DPI-C declarations for all foreign functions in
 -- the ForeignFuncMap.
 
-mkDPIDeclarations :: [ForeignFunction] -> [String]
+mkDPIDeclarations :: [ForeignFunction] -> [VDPI]
 mkDPIDeclarations ffuncs = map mkDPIDecl ffuncs
   where
-    mkDPIDecl :: ForeignFunction -> String
+    mkDPIDecl :: ForeignFunction -> VDPI
     mkDPIDecl (FF name rt arg_types) =
       let
-          mkOut :: ForeignType -> String
-          mkOut t = "output " ++ toSVtype t ++ " res"
+          mkResName = mkVId "res"
+          mkArgName n = mkVId ("arg" ++ show (n :: Integer))
 
-          mkArg :: ForeignType -> Integer -> String
-          mkArg t n = "input " ++ toSVtype t ++ " arg" ++ show n
+          mkOut t = (mkResName, False, toVDPIType t)
+          mkIn n t = (mkArgName n, True, toVDPIType t)
+          mkIns ts = zipWith mkIn [0..] ts
 
-          mkArgs :: [ForeignType] -> [String]
-          mkArgs ts = zipWith mkArg ts [0..]
-
-          (ret,ats) = if isWide rt || isPoly rt
-                      then (toSVtype Void, (mkOut rt):(mkArgs arg_types))
-                      else (toSVtype rt, mkArgs arg_types)
+          (vdpi_ret, vdpi_args) =
+            if isWide rt || isPoly rt
+            then (VDT_void, (mkOut rt : mkIns arg_types))
+            else (toVDPIType rt, mkIns arg_types)
       in
-         "import \"DPI-C\" function " ++ ret ++ " " ++
-         getIdString name ++ "(" ++ intercalate ", " ats ++ ");"
+         VDPI (idToVId name) vdpi_ret vdpi_args
 
-    toSVtype :: ForeignType -> String
-    toSVtype Void = "void"
-    toSVtype (Narrow n) | n <= 8    = "byte unsigned"
-                        | n <= 32   = "int unsigned"
-                        | n <= 64   = "longint unsigned"
-                        | otherwise = internalError "Narrow n > 64"
-    toSVtype (Wide n)    = "bit [" ++ itos (n-1) ++ ":0]"
-    toSVtype StringPtr   = "string"
-    toSVtype Polymorphic = "bit []"
+    toVDPIType :: ForeignType -> VDPIType
+    toVDPIType Void = VDT_void
+    toVDPIType (Narrow n) | n <= 8    = VDT_byte
+                          | n <= 32   = VDT_int
+                          | n <= 64   = VDT_longint
+                          | otherwise = internalError "Narrow n > 64"
+    toVDPIType (Wide n)    = VDT_wide n
+    toVDPIType StringPtr   = VDT_string
+    toVDPIType Polymorphic = VDT_poly
 
 getForeignFunctions :: ForeignFuncMap -> ASPackage -> [ForeignFunction]
 getForeignFunctions ffmap aspkg =

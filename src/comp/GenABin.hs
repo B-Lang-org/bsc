@@ -31,7 +31,7 @@ import qualified Data.Map as M
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = "bsc-20211110-1"
+header = "bsc-20211213-1"
 
 genABinFile :: ErrorHandle -> String -> ABin -> IO ()
 genABinFile errh fn abin =
@@ -637,6 +637,32 @@ instance Bin VModule where
         do toBin name; toBin c; toBin ports; toBin body
     readBytes = do name <- fromBin; c <- fromBin; ports <- fromBin;
                    body <-fromBin; return (VModule name c ports body)
+
+instance Bin VDPI where
+    writeBytes (VDPI name ret args) =
+        do toBin name; toBin ret; toBin args
+    readBytes = do name <- fromBin; ret <- fromBin; args <- fromBin;
+                   return (VDPI name ret args)
+
+instance Bin VDPIType where
+    writeBytes (VDT_void)    = do putI 0
+    writeBytes (VDT_byte)    = do putI 1
+    writeBytes (VDT_int)     = do putI 2
+    writeBytes (VDT_longint) = do putI 3
+    writeBytes (VDT_wide n)  = do putI 4; toBin n
+    writeBytes (VDT_string)  = do putI 5
+    writeBytes (VDT_poly)    = do putI 6
+    readBytes = do
+      i <- getI
+      case i of
+        0 -> return VDT_void
+        1 -> return VDT_byte
+        2 -> return VDT_int
+        3 -> return VDT_longint
+        4 -> do n <- fromBin; return (VDT_wide n)
+        5 -> return VDT_string
+        6 -> return VDT_poly
+        n -> internalError $ "GenABin(VArg).readBytes: " ++ show n
 
 instance Bin VId where
     writeBytes (VId s i m) = do toBin s; toBin i; toBin m

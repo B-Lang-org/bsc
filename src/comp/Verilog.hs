@@ -3,6 +3,8 @@
 module Verilog(
                VArg(..),
                VCaseArm(..),
+               VDPI(..),
+               VDPIType(..),
                VDType(..),
                VEventExpr(..),
                VExpr(..),
@@ -78,7 +80,7 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 --    * a list of modules
 --    * a list of import-DPI declarations
 --    * a comment for the entire file, not for any one module
-data VProgram = VProgram [VModule] [String] VComment
+data VProgram = VProgram [VModule] [VDPI] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance Hyper VProgram where
@@ -110,7 +112,7 @@ instance PPrint VProgram where
           text "`endif" $+$
           text ""
         dpi_decls =
-          vsep (map text dpis) $+$
+          vsep (map (pPrint d 0) dpis) $+$
           if (not (null dpis)) then text "" else empty
 
 -- VComment
@@ -125,6 +127,44 @@ ppComment :: [String] -> Doc
 ppComment cs =
     let ppline str = text ("// " ++ str)
     in  foldr ($+$) empty (map ppline cs)
+
+
+-- VDPI
+--    * The function name
+--    * The return type
+--    * The arguments (name, whether it's an input, type)
+data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance PPrint VDPI where
+  pPrint d p (VDPI name ret args) =
+    let
+        mkDir False = text "output"
+        mkDir True  = text "input"
+        ppArg (i, dir, t) = mkDir dir <+> pPrint d 0 t <+> pPrint d 0 i
+    in
+        text "import \"DPI-C\" function" <+>
+        pPrint d 0 ret <+> pPrint d 0 name <+> text "(" <>
+        sepList (map ppArg args) (text ",") <>
+        text ");"
+
+data VDPIType = VDT_void
+              | VDT_byte
+              | VDT_int
+              | VDT_longint
+              | VDT_wide Integer
+              | VDT_string
+              | VDT_poly
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance PPrint VDPIType where
+  pPrint _ _ VDT_void    = text "void"
+  pPrint _ _ VDT_byte    = text "byte unsigned"
+  pPrint _ _ VDT_int     = text "int unsigned"
+  pPrint _ _ VDT_longint = text "longint unsigned"
+  pPrint _ _ (VDT_wide n) = text $ "bit [" ++ itos (n-1) ++ ":0]"
+  pPrint _ _ VDT_string  = text "string"
+  pPrint _ _ VDT_poly    = text "bit []"
 
 
 -- VModule:
