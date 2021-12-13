@@ -130,6 +130,7 @@ import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
                         mkImportDeclarations)
 import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
+import DPIWrappers(genDPIWrappers)
 import SimCCBlock
 import SimExpand(simExpand, simCheckPackage)
 import SimPackage(SimSystem(..))
@@ -458,10 +459,11 @@ compilePackage
     start flags DFgenVPI
     blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
-    vpi_wrappers <- if (backend flags == Just Verilog) &&
-                       not (useDPI flags)
-                    then genVPIWrappers errh flags "./" blurb ffuncs
-                    else return []
+    vpi_wrappers <- if (backend flags /= Just Verilog)
+                    then return []
+                    else if (useDPI flags)
+                         then genDPIWrappers errh flags "./" blurb ffuncs
+                         else genVPIWrappers errh flags "./" blurb ffuncs
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
 
     -- Simplify a little
