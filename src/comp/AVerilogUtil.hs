@@ -112,8 +112,10 @@ expVVDWire defs =
 -- ==============================
 -- convert foreign functions
 
--- Returns a faked return type (always 1 bit) for foreign functions
--- with polymorphic returns.  Anything else returns Nothing.
+-- Returns a faked return type (always 1 bit) for foreign functions with
+-- output types that have be provided as an argument instead of returned
+-- (e.g. polymorphic or, if using DPI, also wide).  For anything else,
+-- returns Nothing.
 isAForeignCallWithRetAsArg :: VConvtOpts -> ForeignFuncMap -> AForeignCall -> Maybe AType
 isAForeignCallWithRetAsArg vco ffmap fc@(AForeignCall { afc_writes = [lv] }) =
   let name = getIdString (afc_name fc)
@@ -1094,7 +1096,8 @@ vCommentTaskName :: VConvtOpts -> String -> String
 vCommentTaskName vco s | vco_v95 vco && elem s (vco_v95_tasks vco) = " /*" ++ s ++ "*/ "
                        | otherwise = s
 
--- create a Verilog task name from a foreign function name
+-- create a Verilog DPI/VPI task name from a foreign function name
+-- XXX When using DPI, if any types are poly, use the wrapper name
 vNameToTask :: Bool -> String -> String
 vNameToTask True  s = s
 vNameToTask False s = "$imported_" ++ s
