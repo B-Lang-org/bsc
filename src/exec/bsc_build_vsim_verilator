@@ -138,7 +138,7 @@ HAS_MAIN=0
 for f in $BSC_VERILOG_FILES
 do
     fbase=`basename $f`
-    if [ "$fbase" == "main.v" ] ; then
+    if [ "$fbase" = "main.v" ] ; then
 	HAS_MAIN=1
     else
 	if [[ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ]] ; then
@@ -155,7 +155,7 @@ done
 # check that a DPI declarations file was also provided
 VPI_FILES=""
 if [ -n "$BSC_VPI_FILES" ]; then
-    if [ "$USEDPI" == "no" ] ; then
+    if [ "$USEDPI" = "no" ] ; then
 	echo "ERROR: Verilator does not support VPI functions/tasks."
 	echo "       Compile and link with the -use-dpi flag."
 	exit 1

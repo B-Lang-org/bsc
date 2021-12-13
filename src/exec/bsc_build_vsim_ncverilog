@@ -138,7 +138,7 @@ fi
 
 # include VPI modules if supplied
 if [ -n "$BSC_VPI_FILES" ]; then
-  if [ "$USEDPI" == "yes" ] ; then
+  if [ "$USEDPI" = "yes" ] ; then
     echo "ERROR: NCVerilog linking does not yet support DPI."
     echo "       Compile and link without the -use-dpi flag."
     exit 1

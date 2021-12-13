@@ -218,7 +218,7 @@ fi
 
 # include VPI modules if supplied
 if [ -n "$BSC_VPI_FILES" ]; then
-  if [ "$USEDPI" == "yes" ] ; then
+  if [ "$USEDPI" = "yes" ] ; then
     VPI_LINK="-sv_lib directc_$BSC_TOPLEVEL_MODULE"
     LINK_FLAGS=$BSC_VPI_FILES
   else
