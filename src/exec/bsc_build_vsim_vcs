@@ -63,6 +63,8 @@ BSC_OTHER_ARGUMENTS=""
 
 VERBOSE="no"
 
+USEDPI="no"
+
 while [ $# -gt 0 ]; do
   if [ "${1%%.v}" != "$1" ]; then
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
@@ -98,6 +100,8 @@ while [ $# -gt 0 ]; do
     fi
   elif [ "$1" = "-verbose" ]; then
     VERBOSE="yes"
+  elif [ "$1" = "-dpi" ]; then
+    USEDPI="yes"
   else
     BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
   fi
@@ -135,6 +139,11 @@ done
 
 # include VPI modules if supplied
 if [ -n "$BSC_VPI_FILES" ]; then
+  if [ "$USEDPI" = "yes" ] ; then
+    echo "ERROR: VCS linking does not yet support DPI."
+    echo "       Compile and link without the -use-dpi flag."
+    exit 1
+  fi
   ## If CXX is set, use that.  Otherwise just use c++
   if [ "$CXX" = "" ]
   then

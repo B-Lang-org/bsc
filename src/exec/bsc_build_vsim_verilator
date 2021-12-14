@@ -25,13 +25,11 @@
 #   ofiles   - any VPI object files to link in
 # exits with status 0 if it successfully built the simulator, 1 otherwise
 
-# tested on Icarus Verilog 0.8
-
 BSC_COMMAND=$1           # "detect" or "link"
 
 if [ "$BSC_COMMAND" = "detect" ]; then
 # detect whether the command "iverilog" is in the path
-  SIM_NAME=iverilog
+  SIM_NAME=verilator
   hash $SIM_NAME 2> /dev/null
   if [ "$?" != "0" ]; then
       echo "$SIM_NAME was not found"
@@ -63,6 +61,9 @@ BSC_VERILOG_DEFS=""      # -D macro and -D macro=val to be passed to Verilog
 BSC_VERILOG_OPTS=""      # Verilog link options specified with -Xv in bsc
 BSC_OTHER_ARGUMENTS=""
 
+# Keep a copy of the Verilog dirs, for searching
+VERDIRS=""
+
 VERBOSE="no"
 
 USEDPI="no"
@@ -84,7 +85,8 @@ while [ $# -gt 0 ]; do
   elif [ "$1" = "-y" ]; then
     shift 1
     # Also search for Verilog include files in these directories
-    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1 -I $1"
+    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1"
+    VERDIRS="$VERDIRS $1"
   elif [ "$1" = "-l" ]; then
     shift 1
     BSC_C_LIBS="$BSC_C_LIBS -l$1"
@@ -127,61 +129,126 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
   exit 1
 fi
 
-# identify the VPI wrapper C files
-BSC_VPI_CFILES=""
-for file in $BSC_VPI_FILES; do
-  case "$file" in \
-    vpi_wrapper_* | */vpi_wrapper_* ) \
-      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
-  esac
+# Ignore 'main' from BSC_VERILOG_FILES, and record if seen.
+# And remove the top module, if provided, to avoid passing
+# it multiple times to Verilator.
+#
+BSC_VERILOG_FILES_NO_MAIN=""
+HAS_MAIN=0
+for f in $BSC_VERILOG_FILES
+do
+    fbase=`basename $f`
+    if [ "$fbase" = "main.v" ] ; then
+	HAS_MAIN=1
+    else
+	if [[ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ]] ; then
+	    BSC_VERILOG_FILES_NO_MAIN+="$f "
+	fi
+    fi
 done
+# XXX We should support calling without a main
+# XXX (see "verilog_link_no_main" in the testsuite)
+# XXX and in that case use a toplevel cpp file that doesn't
+# XXX provide clock/reset etc
 
-# build VPI module if needed
+# If foreign function object files are provided,
+# check that a DPI declarations file was also provided
+VPI_FILES=""
 if [ -n "$BSC_VPI_FILES" ]; then
-  if [ "$USEDPI" = "yes" ] ; then
-    echo "ERROR: IVerilog linking does not yet support DPI."
-    echo "       Compile and link without the -use-dpi flag."
-    exit 1
-  fi
-  echo "WARNING: IVerilog support for VPI is incomplete.  BSV designs using foreign"
-  echo "         functions are not guaranteed to compile or simulate correctly."
-  ## If CXX is set, use that.  Otherwise just use c++
-  if [ "$CXX" = "" ]
-  then
-    CXX=c++
-  fi
-  VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so directc_$BSC_TOPLEVEL_MODULE.sft"
-  LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
-  SHARED=`$BLUESPECDIR/exec/platform.sh c++_shared_flags`
-  if [ "$VERBOSE" = "yes" ]; then
-      echo "exec: $CXX -v $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS"
-      CXX_VERBOSE="-v"
-  else
-      CXX_VERBOSE=""
-  fi
-  $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
-  if [ -n "$BSC_VPI_CFILES" ]; then
-      grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
-  else
-      touch directc_$BSC_TOPLEVEL_MODULE.sft
-  fi
-else
-  VPI_LINK=""
+    if [ "$USEDPI" = "no" ] ; then
+	echo "ERROR: Verilator does not support VPI functions/tasks."
+	echo "       Compile and link with the -use-dpi flag."
+	exit 1
+    fi
+    # Verilator's Makefile doesn't adjust relative paths for object files
+    # so pass them with absolute paths
+    for f in $BSC_VPI_FILES
+    do
+	if [[ "$f" =~ ^/ ]] ; then
+	    VPI_FILES+="$f "
+	else
+	    VPI_FILES+="$PWD/$f "
+	fi
+    done
 fi
 
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
+TRACEFLAGS="--trace"
+
+# Don't rely on the top module file being the first on the command-line
+TOPMOD=${BSC_TOPLEVEL_MODULE}
+VLT_TOP="--top-module ${TOPMOD}"
+TOPINST="top"
+VLT_TOPINST="-l2-name ${TOPINST}"
+TOPCLASS=V${TOPMOD}
+VLT_PREFIX="--prefix ${TOPCLASS}"
+
+#VLT_WARN="-Wall"
+#VLT_WANR="-Wall -Wno-fatal"
+VLT_WARN=""
+
+VLT_CONFIG=$BLUESPECDIR/Verilator/verilator_config.vlt
+
+# Uniquify the obj_dir with the name of the sim executable and the PID
+# XXX is the PID overkill?
+EXE_BASENAME=`basename ${BSC_SIM_EXECUTABLE}`
+OBJDIR="obj_dir_${EXE_BASENAME}_$$"
+
+# If the directory happens to exit, delete it
+# to avoid accidentally reusing old files
+rm -rf $OBJDIR
+
+# XXX We could also delete the directory on exit?
+#function cleanup {
+#    rm -rf $OBJDIR
+#}
+#trap cleanup EXIT
+
+# Find the top file
+# For instantiated submodules, Verilator can search in a path to find
+# the file; but Verilator doesn't do this for the top module.  We have
+# to specify that file on the command-line.
+TOP_VERFILE=""
+for d in $VERDIRS ; do
+    if [ -f ${d}/${BSC_TOPLEVEL_MODULE}.v ] ; then
+	TOP_VERFILE=${d}/${BSC_TOPLEVEL_MODULE}.v
+	break
+    fi
+done
+if [ -z "$TOP_VERFILE" ]; then
+    echo "ERROR: Verilog file not found for top module '${BSC_TOPLEVEL_MODULE}'"
+    exit 1
+fi
+
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
-  IV_VERBOSE="-v"
-  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+  # XXX Verilator doesn't have a verbosity flag?
+  VLT_VERBOSE=""
+  echo "exec: verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE\" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES"
 else
-  IV_VERBOSE=""
+  VLT_VERBOSE=""
 fi
-iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+
+verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES
+
 status=$?
 if [ "$status" != "0" ]; then
   echo "ERROR: cannot compile Verilog files" >&2
   exit $status
 fi
+
+cp -p $BLUESPECDIR/Verilator/sim_main.cpp $OBJDIR/sim_main.cpp
+
+make -C $OBJDIR -j -f ${TOPCLASS}.mk ${TOPCLASS}
+
+status=$?
+if [ "$status" != "0" ]; then
+  echo "ERROR: cannot link Verilator files" >&2
+  exit $status
+fi
+
+cp -p $OBJDIR/${TOPCLASS} $BSC_SIM_EXECUTABLE
+
+exit 0

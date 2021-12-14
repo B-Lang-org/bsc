@@ -623,6 +623,7 @@ defaultFlags bluespecdir = Flags {
         unsafeAlwaysRdy = False,
         unSpecTo = "A",
         updCheck = False,
+        useDPI = False,
         useNegate = True,
         usePrelude = True,
         useProvisoSAT = True,
@@ -1621,6 +1622,10 @@ externalFlags = [
          (NoArg Left Nothing,
           "use layout rule", Hidden)),
 
+        ("use-dpi",
+         (Toggle (\f x -> f {useDPI=x}) (showIfTrue useDPI),
+          "use DPI instead of VPI in generated Verilog", Hidden)),
+
         ("use-negate",
          (Toggle (\f x -> f {useNegate=x}) (showIfTrue useNegate),
           "use negate in Verilog code", Hidden)),
@@ -1919,6 +1924,7 @@ showFlagsRaw flags =
           ("unsafeAlwaysRdy", show (unsafeAlwaysRdy flags)),
           ("unSpecTo", show (unSpecTo flags)),
           ("updCheck", show (updCheck flags)),
+          ("useDPI", show (useDPI flags)),
           ("useNegate", show (useNegate flags)),
           ("usePrelude", show (usePrelude flags)),
           ("useProvisoSAT", show (useProvisoSAT flags)),

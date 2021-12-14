@@ -71,5 +71,8 @@ module_*.cxx
 transcript
 work_*
 
+# Verilator output
+obj_dir*/
+
 # Editor backup files
 *~

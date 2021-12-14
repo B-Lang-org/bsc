@@ -36,7 +36,7 @@ import Data.Maybe
 
 import FStringCompat(FString, getFString)
 import ErrorUtil
-import Flags(Flags, readableMux, unSpecTo, v95, systemVerilogTasks)
+import Flags(Flags, readableMux, unSpecTo, v95, systemVerilogTasks, useDPI)
 import PPrint
 import IntLit
 import Id
@@ -52,7 +52,8 @@ import Verilog
 import VPrims(verilogInstancePrefix, viWidth)
 import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateFStringUsingFStringMap)
-import ForeignFunctions(ForeignFunction(..), ForeignFuncMap, isPoly, isMappedAVId)
+import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
+                        isPoly, isWide, isMappedAVId)
 
 import Util
 import IntegerUtil
@@ -73,7 +74,8 @@ data VConvtOpts = VConvtOpts {
                               vco_v95         :: Bool,
                               vco_v95_tasks   :: [String],
                               vco_readableMux :: Bool,
-                              vco_sv_tasks :: Bool
+                              vco_sv_tasks    :: Bool,
+                              vco_use_dpi     :: Bool
                               }
 
 
@@ -83,7 +85,8 @@ flagsToVco flags = VConvtOpts {
                                vco_v95    = v95 flags,
                                vco_v95_tasks = ["$signed", "$unsigned"],
                                vco_readableMux = readableMux flags,
-                               vco_sv_tasks = systemVerilogTasks flags
+                               vco_sv_tasks = systemVerilogTasks flags,
+                               vco_use_dpi = useDPI flags
                               }
 
 -- This has been abolished from the compiler everywhere but the Verilog backend
@@ -109,15 +112,18 @@ expVVDWire defs =
 -- ==============================
 -- convert foreign functions
 
--- Returns a faked return type (always 1 bit) for foreign functions
--- with polymorphic returns.  Anything else returns Nothing.
-polyReturnType :: ForeignFuncMap -> AForeignCall -> Maybe AType
-polyReturnType ffmap fc@(AForeignCall { afc_writes = [lv] }) =
+-- Returns a faked return type (always 1 bit) for foreign functions with
+-- output types that have be provided as an argument instead of returned
+-- (e.g. polymorphic or, if using DPI, also wide).  For anything else,
+-- returns Nothing.
+isAForeignCallWithRetAsArg :: VConvtOpts -> ForeignFuncMap -> AForeignCall -> Maybe AType
+isAForeignCallWithRetAsArg vco ffmap fc@(AForeignCall { afc_writes = [lv] }) =
   let name = getIdString (afc_name fc)
-  in case M.lookup name ffmap of
-      (Just ff) -> if isPoly (ff_ret ff) then Just aTBool else Nothing
+  in  case M.lookup name ffmap of
+      (Just ff) -> if (isPoly (ff_ret ff)) || ((vco_use_dpi vco) && isWide (ff_ret ff))
+                   then Just aTBool else Nothing
       Nothing -> Nothing
-polyReturnType _ _ = Nothing
+isAForeignCallWithRetAsArg _ _ _ = Nothing
 
 -- If there are any calls in the domain, it returns the Verilog
 -- always-block for it, and a list of IDs which need to be declared
@@ -211,7 +217,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
   where
     vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids
-                 in case polyReturnType ffmap f of
+                 in case isAForeignCallWithRetAsArg vco ffmap f of
                      (Just ty) -> ([], (ASDef ty lv) : es)
                      Nothing   -> (ids,es)
 
@@ -434,12 +440,13 @@ closeOverMap' dmap considered consider_next (i:is) =
 
 -- ==============================
 
-isImportedPolyReturn :: ForeignFuncMap -> AExpr -> Bool
-isImportedPolyReturn ffmap fn@(AFunCall { ae_isC = True }) =
+isAFunCallWithRetAsArg :: VConvtOpts -> ForeignFuncMap -> AExpr -> Bool
+isAFunCallWithRetAsArg vco ffmap fn@(AFunCall { ae_isC = True }) =
   case M.lookup (ae_funname fn) ffmap of
-    (Just ff) -> isPoly (ff_ret ff)
+    (Just ff) -> isPoly (ff_ret ff) || ((vco_use_dpi vco) && isWide (ff_ret ff))
     Nothing   -> False
-isImportedPolyReturn _ _ = False
+isAFunCallWithRetAsArg _ _ _ = False
+
 
 vDefMpd :: VConvtOpts -> ADef -> ForeignFuncMap
               -> [VMItem]
@@ -569,11 +576,11 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) (ATaskValue {}) _) _ =
     [VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]]
 
 vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
-  | isImportedPolyReturn ffmap fn =
+  | isAFunCallWithRetAsArg vco ffmap fn =
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
     , VMStmt { vi_translate_off = True, vi_body = body }
     ]
-  where name = vCommentTaskName vco (vNameToTask (ae_funname fn))
+  where name = vCommentTaskName vco (vNameToTask (vco_use_dpi vco) (ae_funname fn))
         vtaskid = VId name (ae_objid fn) Nothing
         sensitivityList = nub (concatMap aIds (ae_args fn))
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
@@ -676,7 +683,7 @@ vExpr vco (APrim aid t p es) = VEOp (idToVId aid) (vExpr vco (APrim aid t p (ini
 -- vExpr vco (AMethCall t i m _) = internalError "AVerilog.vExpr: AMethCall with args"
 -- vExpr vco (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult M.Empty)
 vExpr vco (AFunCall _ _ n isC es) =
-  let name = vCommentTaskName vco (if isC then vNameToTask n else n)
+  let name = vCommentTaskName vco (if isC then vNameToTask (vco_use_dpi vco) n else n)
   in VEFctCall (mkVId name) (map (vExpr vco) es)
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
@@ -1089,9 +1096,11 @@ vCommentTaskName :: VConvtOpts -> String -> String
 vCommentTaskName vco s | vco_v95 vco && elem s (vco_v95_tasks vco) = " /*" ++ s ++ "*/ "
                        | otherwise = s
 
--- create a Verilog task name from a foreign function name
-vNameToTask :: String -> String
-vNameToTask s = "$imported_" ++ s
+-- create a Verilog DPI/VPI task name from a foreign function name
+-- XXX When using DPI, if any types are poly, use the wrapper name
+vNameToTask :: Bool -> String -> String
+vNameToTask True  s = s
+vNameToTask False s = "$imported_" ++ s
 
 
 -- ==============================

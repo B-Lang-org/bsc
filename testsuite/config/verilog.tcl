@@ -213,6 +213,8 @@ proc sim_verilog_int { sim {options ""} {vcd 0} } {
 	clean_iverilog_output $rawfile $output
     } elseif { [string match $verilog_compiler "cvc"] } then {
 	clean_cvc_output $rawfile $output
+    } elseif { [string match $verilog_compiler "verilator"] } then {
+	clean_verilator_output $rawfile $output
     }
 
     # Remove the raw output
@@ -279,6 +281,17 @@ proc clean_cvc_output { infile outfile } {
     set inform_script {-e {/inform\(s\)\./d}}
 
     sed $infile $outfile $hdr_script "$finish_script $inform_script"
+}
+
+## Cleans the simulation output
+proc clean_verilator_output { infile outfile } {
+
+    # Don't include the finish message, but also don't include
+    # any lines after that, since Verilator will execute actions
+    # after the finish (such as $display in the same block)
+    set finish_script {-e {/\$finish/,$d}}
+
+    sed $infile $outfile {} $finish_script
 }
 
 # -------------------------

@@ -116,6 +116,7 @@ Flags {
 	unsafeAlwaysRdy = False,
 	unSpecTo = "A",
 	updCheck = False,
+	useDPI = False,
 	useNegate = True,
 	usePrelude = True,
 	useProvisoSAT = True,

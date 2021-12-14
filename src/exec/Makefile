@@ -31,9 +31,10 @@ install:
 	$(INSTALL) -m 755 bsc_build_vsim_veriwell $(INSTALLDIR)/bsc_build_vsim_veriwell
 	$(INSTALL) -m 755 bsc_build_vsim_cver $(INSTALLDIR)/bsc_build_vsim_cver
 	$(INSTALL) -m 755 bsc_build_vsim_cvc $(INSTALLDIR)/bsc_build_vsim_cvc
-	$(INSTALL) -m 755 bsc_build_vsim_cvc64 $(INSTALLDIR)/bsc_build_vsim_cvc64
+	$(INSTALL) -m 755 bsc_build_vsim_cvc $(INSTALLDIR)/bsc_build_vsim_cvc64
 	$(INSTALL) -m 755 bsc_build_vsim_isim $(INSTALLDIR)/bsc_build_vsim_isim
 	$(INSTALL) -m 755 bsc_build_vsim_xsim $(INSTALLDIR)/bsc_build_vsim_xsim
+	$(INSTALL) -m 755 bsc_build_vsim_verilator $(INSTALLDIR)/bsc_build_vsim_verilator
 
 .PHONY: clean full_clean
 clean full_clean:

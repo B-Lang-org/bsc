@@ -49,7 +49,7 @@ writeWrapper errh flags prefix blurb ff =
 
          stores_handles = not (null (ff_args ff) && (isAbsent (ff_ret ff)))
 
-         tab_line = (vNameToTask function_name) ++
+         tab_line = (vNameToTask False function_name) ++
                     " call=" ++ function_name ++ "_calltf" ++
                     " size=" ++ (show return_size) ++
                     " acc=rw:%TASK"
@@ -59,7 +59,7 @@ writeWrapper errh flags prefix blurb ff =
            , tab_line
            ]
 
-         sft_line = (vNameToTask function_name) ++
+         sft_line = (vNameToTask False function_name) ++
                     " vpiSysFuncSized " ++ (show return_size) ++
                     " unsigned"
          sft_hint =
@@ -285,7 +285,7 @@ mkVPIRegisterBody name has_return stores_handles =
                    ]
               else [ assignField "type" (var "vpiSysTask") ])
                ++
-             [ assignField "tfname"    (mkStr (vNameToTask name))
+             [ assignField "tfname"    (mkStr (vNameToTask False name))
              , assignField "calltf"    (var (name ++ "_calltf"))
              , assignField "compiletf" (mkUInt32 0)
              ] ++
@@ -293,7 +293,7 @@ mkVPIRegisterBody name has_return stores_handles =
               then [ assignField "sizetf" (var (name ++ "_sizetf")) ]
               else [ assignField "sizetf" (mkUInt32 0) ])
                ++
-             [ assignField "user_data" (mkStr (vNameToTask name))
+             [ assignField "user_data" (mkStr (vNameToTask False name))
              , comment "Register the function with VPI" (blankLines 0)
              , stmt $ (var "vpi_register_systf") `cCall` [cAddr (var "tf_data")]
              ]

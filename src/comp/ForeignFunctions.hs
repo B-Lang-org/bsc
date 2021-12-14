@@ -7,6 +7,8 @@ module ForeignFunctions ( ForeignType(..)
                         , ForeignFuncMap
                         , mkForeignFunction
                         , mkImportDeclarations
+                        , mkDPIDeclarations
+                        , getForeignFunctions
                         , mkFFDecl
                         , encodeArgs
                         , argExpr
@@ -41,12 +43,13 @@ import CType
 import ASyntax
 import ASyntaxUtil
 import CCSyntax
+import Verilog(VDPI(..), VDPIType(..), mkVId, idToVId)
 import ErrorUtil(internalError)
 import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
 import Eval(Hyper(..))
 
-import Data.List(intercalate, isPrefixOf)
+import Data.List(intercalate, isPrefixOf, nub)
 import Data.Maybe(mapMaybe, maybeToList)
 import PreIds
 import ListMap as LM
@@ -517,6 +520,56 @@ mkImportDeclarations :: ForeignFuncMap -> CCFragment
 mkImportDeclarations ff_map =
   let ffs = M.elems ff_map
   in program [externC (map mkFFDecl ffs)]
+
+-- =================================================
+-- Make the SystemVerilog DPI-C declarations for all foreign functions in
+-- the ForeignFuncMap.
+
+mkDPIDeclarations :: [ForeignFunction] -> [VDPI]
+mkDPIDeclarations ffuncs = map mkDPIDecl ffuncs
+  where
+    mkDPIDecl :: ForeignFunction -> VDPI
+    mkDPIDecl (FF name rt arg_types) =
+      let
+          mkResName = mkVId "res"
+          mkArgName n = mkVId ("arg" ++ show (n :: Integer))
+
+          mkOut t = (mkResName, False, toVDPIType t)
+          mkIn n t = (mkArgName n, True, toVDPIType t)
+          mkIns ts = zipWith mkIn [0..] ts
+
+          (vdpi_ret, vdpi_args) =
+            if isWide rt || isPoly rt
+            then (VDT_void, (mkOut rt : mkIns arg_types))
+            else (toVDPIType rt, mkIns arg_types)
+      in
+         VDPI (idToVId name) vdpi_ret vdpi_args
+
+    toVDPIType :: ForeignType -> VDPIType
+    toVDPIType Void = VDT_void
+    toVDPIType (Narrow n) | n <= 8    = VDT_byte
+                          | n <= 32   = VDT_int
+                          | n <= 64   = VDT_longint
+                          | otherwise = internalError "Narrow n > 64"
+    toVDPIType (Wide n)    = VDT_wide n
+    toVDPIType StringPtr   = VDT_string
+    toVDPIType Polymorphic = VDT_poly
+
+getForeignFunctions :: ForeignFuncMap -> ASPackage -> [ForeignFunction]
+getForeignFunctions ffmap aspkg =
+  let
+      expr_ff_uses = findAExprs exprForeignCalls aspkg
+      expr_ff_names =
+        [ i | (AFunCall { ae_funname = i, ae_isC = True }) <- expr_ff_uses ]
+
+      act_ff_uses = concatMap snd (aspkg_foreign_calls aspkg)
+      act_ff_names = map afc_fun act_ff_uses
+
+      ff_names = nub (expr_ff_names ++ act_ff_names)
+
+      findFF name = M.lookup name ffmap
+  in
+      mapMaybe findFF ff_names
 
 -- #############################################################################
 -- # Map to and from real Verilog foreign funcs and the BSV AV version.

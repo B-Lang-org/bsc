@@ -61,6 +61,7 @@ TRYDELFILES = $(wildcard \
 	*.dSYM \
 	work_*/ \
 	transcript \
+	obj_dir*/ \
 )
 
 DELFILES = $(filter-out \

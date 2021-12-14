@@ -3,6 +3,8 @@
 module Verilog(
                VArg(..),
                VCaseArm(..),
+               VDPI(..),
+               VDPIType(..),
                VDType(..),
                VEventExpr(..),
                VExpr(..),
@@ -76,18 +78,20 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 
 -- VProgram
 --    * a list of modules
+--    * a list of import-DPI declarations
 --    * a comment for the entire file, not for any one module
-data VProgram = VProgram [VModule] VComment
+data VProgram = VProgram [VModule] [VDPI] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance Hyper VProgram where
     hyper x y = (x==x) `seq` y
 
 instance PPrint VProgram where
-    pPrint d p (VProgram ms cs) =
+    pPrint d p (VProgram ms dpis cs) =
         ppComment cs $+$
         assignment_delay_macro $+$
         reset_level_macro $+$
+        dpi_decls $+$
         vsepEmptyLine (map (pPrint d 0) ms) $+$
         text ""
       where -- define BSV_ASSIGNMENT_DELAY when the user does not override it
@@ -107,6 +111,9 @@ instance PPrint VProgram where
           text "  `define BSV_RESET_EDGE negedge" $+$
           text "`endif" $+$
           text ""
+        dpi_decls =
+          vsep (map (pPrint d 0) dpis) $+$
+          if (not (null dpis)) then text "" else empty
 
 -- VComment
 --    * a list of single-line comments (already broken into lines)
@@ -120,6 +127,44 @@ ppComment :: [String] -> Doc
 ppComment cs =
     let ppline str = text ("// " ++ str)
     in  foldr ($+$) empty (map ppline cs)
+
+
+-- VDPI
+--    * The function name
+--    * The return type
+--    * The arguments (name, whether it's an input, type)
+data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance PPrint VDPI where
+  pPrint d p (VDPI name ret args) =
+    let
+        mkDir False = text "output"
+        mkDir True  = text "input"
+        ppArg (i, dir, t) = mkDir dir <+> pPrint d 0 t <+> pPrint d 0 i
+    in
+        text "import \"DPI-C\" function" <+>
+        pPrint d 0 ret <+> pPrint d 0 name <+> text "(" <>
+        sepList (map ppArg args) (text ",") <>
+        text ");"
+
+data VDPIType = VDT_void
+              | VDT_byte
+              | VDT_int
+              | VDT_longint
+              | VDT_wide Integer
+              | VDT_string
+              | VDT_poly
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance PPrint VDPIType where
+  pPrint _ _ VDT_void    = text "void"
+  pPrint _ _ VDT_byte    = text "byte unsigned"
+  pPrint _ _ VDT_int     = text "int unsigned"
+  pPrint _ _ VDT_longint = text "longint unsigned"
+  pPrint _ _ (VDT_wide n) = text $ "bit [" ++ itos (n-1) ++ ":0]"
+  pPrint _ _ VDT_string  = text "string"
+  pPrint _ _ VDT_poly    = text "bit []"
 
 
 -- VModule:
@@ -468,7 +513,7 @@ instance PPrint VStmt where
         pPrint d p (Vdumpvars level vars) = text "$dumpvars(" <> sepList dvargs (text ",") <> text ");"
             where dvargs = (pPrint d 0 level):(map (pPrint d 0) vars)
 -- no parens when calling a task if it has no arguments
-        pPrint d p (VTask task []) = pPrint d 0 task <> text ";"
+        pPrint d p (VTask task []) | isTaskVId task = pPrint d 0 task <> text ";"
         pPrint d p (VTask task es) = pPrint d 0 task <> text "(" <> commaList d es <> text ");"
 
         pPrint d p (VAssert ev es) = ppAssert d p ev es
@@ -639,9 +684,14 @@ getVIdString (VId s _ _) = s
 instance PPrint VId where
         pPrint d p (VId s i _) = text s
 
-
 instance HasPosition VId where
   getPosition (VId _ inside_id _) = getPosition inside_id
+
+-- whether a VId is syntactically a task ID
+isTaskVId :: VId -> Bool
+isTaskVId (VId ('$':_) _ _) = True
+isTaskVId _ = False
+
 
 type VRange = (VExpr, VExpr)
 
@@ -724,7 +774,7 @@ instance PPrint VExpr where
 
         pPrint d p (VEIf e1 e2 e3) =
             pparen (p > 0)  $ sep [ pPrint d 100 e1 <+> text "?", nest 2 (pPrint d 1 e2 <+> text ":"), nest 2 (pPrint d 1 e3) ]
-        pPrint d p (VEFctCall f []) = pPrint d 0 f
+        pPrint d p (VEFctCall f []) | isTaskVId f = pPrint d 0 f
         pPrint d p (VEFctCall f es) = pPrint d 0 f <> text "(" <> commaList d es <> text ")"
 
 createVEWConstString :: Integer -> Integer -> Integer -> String
@@ -877,7 +927,7 @@ keepAssoc :: VOp -> Bool
 keepAssoc op = op `elem` [VSub{-,  VAdd, VAnd, VOr, VXor-}]
 
 vGetMainModName :: VProgram -> String
-vGetMainModName (VProgram program_items _) =
+vGetMainModName (VProgram program_items _ _) =
         let get_mod_name (headmod:_) = getVIdString $ vm_name headmod
             get_mod_name [] = internalError "vGetMainModName: no main module"
         in  get_mod_name program_items
@@ -963,7 +1013,7 @@ ppOp d pd vid@(VId string id _) p1 op p2 =
 -------
 
 getVeriInsts :: VProgram -> [String]
-getVeriInsts (VProgram ms _) = nub (concatMap getInstsFromVModule ms)
+getVeriInsts (VProgram ms _ _) = nub (concatMap getInstsFromVModule ms)
   where
       getInstsFromVModule vmod = concatMap getInstsFromVMItem (vm_body vmod)
       -- extract module names from instances in VMItem

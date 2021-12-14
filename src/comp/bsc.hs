@@ -127,8 +127,10 @@ import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
 import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import GenABin(genABinFile)
-import ForeignFunctions
-import VPIWrappers
+import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
+                        mkImportDeclarations)
+import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
+import DPIWrappers(genDPIWrappers)
 import SimCCBlock
 import SimExpand(simExpand, simCheckPackage)
 import SimPackage(SimSystem(..))
@@ -457,9 +459,11 @@ compilePackage
     start flags DFgenVPI
     blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
-    vpi_wrappers <- if (backend flags == Just Verilog)
-                    then genVPIWrappers errh flags "./" blurb ffuncs
-                    else return []
+    vpi_wrappers <- if (backend flags /= Just Verilog)
+                    then return []
+                    else if (useDPI flags)
+                         then genDPIWrappers errh flags "./" blurb ffuncs
+                         else genVPIWrappers errh flags "./" blurb ffuncs
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
 
     -- Simplify a little
@@ -1995,10 +1999,12 @@ vSimLink errh flags toplevel prefix vfiles ofiles = do
         veriflags = map ("-Xv "++) (vFlags flags)
         linkerflags = map ("-Xl "++) (linkFlags flags)
         verboseflag = if (verbose flags) then ["-verbose"] else []
+        dpiflag = if (useDPI flags) then ["-dpi"] else []
         args = (["link"
                 , outFile
                 , toplevel ] ++
                 verboseflag ++
+                dpiflag ++
                 libdirflags ++
                 userlibs ++
                 linkerflags ++
@@ -2080,10 +2086,13 @@ vGenFFuncs :: ErrorHandle -> Flags -> TimeInfo -> String ->
               IO (TimeInfo, [String])
 vGenFFuncs errh flags t prefix cfilenames_unique [] = return (t,[])
 vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
-      -- generate the vpi_startup_array file
-      blurb <- mkGenFileHeader flags
-      genVPIRegistrationArray errh flags prefix blurb ffuncs
-      t <- timestampStr flags "generate VPI registration array" t
+      t <-
+        if (useDPI flags) then return t
+        else do
+          -- generate the vpi_startup_array file
+          blurb <- mkGenFileHeader flags
+          genVPIRegistrationArray errh flags prefix blurb ffuncs
+          timestampStr flags "generate VPI registration array" t
 
       -- compile user-supplied C files
       let (cfiles1, ofiles1) = partition (\f -> hasDotSuf cSuffix f   ||
@@ -2104,12 +2113,16 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
                vpi_wrapper_c_h_files
 -}
 
-      -- compile all necessary vpi wrapper files
-      let mkVPIFileName s = mkVPICName (vdir flags) prefix s
-          vpifiles = map (mkVPIFileName . getIdString . ff_name) ffuncs ++
-                     [ mkVPIArrayCName (vdir flags) prefix ]
-      ofiles3 <- mapM (compileVPICFile errh flags) vpifiles
-      t <- timestampStr flags "compile VPI wrapper files" t
+      (t, ofiles3) <-
+        if (useDPI flags) then return (t, [])
+        else do
+          -- compile all necessary vpi wrapper files
+          let mkVPIFileName s = mkVPICName (vdir flags) prefix s
+              vpifiles = map (mkVPIFileName . getIdString . ff_name) ffuncs ++
+                         [ mkVPIArrayCName (vdir flags) prefix ]
+          files <- mapM (compileVPICFile errh flags) vpifiles
+          t <- timestampStr flags "compile VPI wrapper files" t
+          return (t, files)
 
       return (t, ofiles1 ++ ofiles2 ++ ofiles3)
 

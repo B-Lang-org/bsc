@@ -73,6 +73,8 @@ BSC_OTHER_ARGUMENTS=""
 
 VERBOSE="no"
 
+USEDPI="no"
+
 while [ $# -gt 0 ]; do
   if [ "${1%%.v}" != "$1" ]; then
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
@@ -106,6 +108,8 @@ while [ $# -gt 0 ]; do
     BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
   elif [ "$1" = "-verbose" ]; then
     VERBOSE="yes"
+  elif [ "$1" = "-dpi" ]; then
+    USEDPI="yes"
   else
     BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
   fi
@@ -137,8 +141,8 @@ fi
 
 # XSIM doesn't support VPI
 if [ -n "$BSC_VPI_FILES" ]; then
-  echo "ERROR: XSim does not support VPI.  BSV designs using foreign functions"
-  echo "       cannot use xsim."
+  echo "ERROR: XSim linking does not yet support VPI/DPI."
+  echo "       Designs using foreign functions cannot use XSim linking."
   exit 1
 fi
 

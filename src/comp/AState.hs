@@ -19,7 +19,7 @@ import IntLit
 
 import Error(internalError, ErrMsg(..), ErrorHandle)
 import ErrorMonad(ErrorMonad(..), convErrorMonadToIO)
-import Flags(Flags)
+import Flags(Flags, useDPI)
 import Position(noPosition)
 
 import PreStrings( fsUnderUnder,
@@ -357,7 +357,7 @@ aState' flags pps schedule_info apkg = do
         -- when "isC", translate from the call name to the
         -- system task wrapper name
         cvtName False f = f
-        cvtName True  f= vNameToTask f
+        cvtName True  f = vNameToTask (useDPI flags) f
 
         addWF rid (c:es) =
             let wf = aBoolVar (mkIdWillFire rid)
