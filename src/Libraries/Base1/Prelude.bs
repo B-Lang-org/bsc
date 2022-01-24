@@ -2285,11 +2285,11 @@ hexDigitToInteger c =
     then (primCharOrd c) - (primCharOrd '0')
     else if (c >= 'A' && c <= 'F')
     then (primCharOrd c) - (primCharOrd 'A') + 10
-    else if (c >= 'a' && c <= 'a')
+    else if (c >= 'a' && c <= 'f')
     then (primCharOrd c) - (primCharOrd 'a') + 10
     else let pos = primGetEvalPosition c
          in  primError pos $
-                 "digitToInteger: not a digit: " +++ quote (charToString c)
+                 "hexDigitToInteger: not a hex digit: " +++ quote (charToString c)
 
 hexDigitToBits :: Char -> Bit n
 hexDigitToBits c = fromInteger (hexDigitToInteger c)
