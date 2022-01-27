@@ -2,6 +2,16 @@
 
 #include <verilated.h>
 
+#ifdef BSV_POSITIVE_RESET
+#define BSV_RESET_VALUE 1
+#else
+#define BSV_RESET_VALUE 0
+#endif
+
+#ifndef BSV_RESET_NAME
+#define BSV_RESET_NAME RST_N
+#endif
+
 #define Q(x) #x
 #define QUOTE(x) Q(x)
 #define APPEND(x,y) x ## y
@@ -53,7 +63,7 @@ int main (int argc, char **argv, char **env) {
 #endif
 
     // initial conditions
-    TOP->RST_N = 0;
+    TOP->BSV_RESET_NAME = BSV_RESET_VALUE;
     TOP->CLK = 0;
     step(TOP, tfp, 1);
 
@@ -62,7 +72,7 @@ int main (int argc, char **argv, char **env) {
     step(TOP, tfp, 1);
 
     // De-assert RST at time 2
-    TOP->RST_N = 1;
+    TOP->BSV_RESET_NAME = 1 - BSV_RESET_VALUE;
     step(TOP, tfp, 3);
 
     // now resume normal CLK cycle
