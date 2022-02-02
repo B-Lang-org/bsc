@@ -310,7 +310,7 @@ module mkSizedBypassFIFOF#(Integer n)(FIFOF#(a))
       ff.clear;
    endmethod
 
-   method notEmpty = ff.notEmpty;
+   method notEmpty = ff.notEmpty || enqueueing ;
    method notFull  = ff.notFull;
 endmodule
 
