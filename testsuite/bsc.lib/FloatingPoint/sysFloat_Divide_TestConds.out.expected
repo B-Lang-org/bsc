@@ -1,0 +1,5 @@
+INFO: dividing 1 by 1
+result:<<Float +7f.000000>,<Exception: >>
+INFO: dividing 0 by 1
+result:<<Float +00.000000>,<Exception: >>
+Finished

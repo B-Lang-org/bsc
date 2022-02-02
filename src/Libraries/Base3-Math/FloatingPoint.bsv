@@ -2278,7 +2278,6 @@ endmodule: mkFloatingPointMultiplier
 ////////////////////////////////////////////////////////////////////////////////
 /// Floating point divider
 ////////////////////////////////////////////////////////////////////////////////
-(* options = "-aggressive-conditions" *)
 module mkFloatingPointDivider#(Server#(Tuple2#(UInt#(nbits),UInt#(dbits)),Tuple2#(UInt#(dbits),UInt#(dbits))) div)(Server#(Tuple3#(FloatingPoint#(e,m), FloatingPoint#(e,m), RoundMode), Tuple2#(FloatingPoint#(e,m),Exception)))
    provisos(
       Add#(e,1,ebits),
@@ -2421,12 +2420,11 @@ module mkFloatingPointDivider#(Server#(Tuple2#(UInt#(nbits),UInt#(dbits)),Tuple2
 		 FloatingPoint#(e,m),
 		 Bit#(dbits1))) fState_S3 <- mkLFIFO;
 
-   rule s3_stage;
-      match {.out,.exc,.rmode,.result,.shift} <- toGet(fState_S2).get;
+   rule s3_stage_div (fState_S2.first matches {tagged Invalid,.exc,.rmode,.result,.shift});
+      fState_S2.deq;
 
-      Bit#(dbits1) rsfd = ?;
+      Bit#(dbits1) rsfd;
 
-      if (out matches tagged Invalid) begin
 	 match {.q,.p} <- div.response.get;
 
 	 if (shift < fromInteger(valueOf(dbits1))) begin
@@ -2446,9 +2444,13 @@ module mkFloatingPointDivider#(Server#(Tuple2#(UInt#(nbits),UInt#(dbits)),Tuple2
 	 end
 
 	 //$display(" = %d, %d", q, p);
-      end
 
-      fState_S3.enq(tuple5(out,exc,rmode,result,rsfd));
+      fState_S3.enq(tuple5(tagged Invalid,exc,rmode,result,rsfd));
+   endrule
+
+   rule s3_stage_no_div (fState_S2.first matches {tagged Valid .res,.exc,.rmode,.result,.shift});
+      fState_S2.deq;
+      fState_S3.enq(tuple5(tagged Valid res,exc,rmode,result,?));
    endrule
 
    FIFO#(Tuple5#(Maybe#(FloatingPoint#(e,m)),
@@ -2521,7 +2523,6 @@ endmodule
 ////////////////////////////////////////////////////////////////////////////////
 /// Floating point square root
 ////////////////////////////////////////////////////////////////////////////////
-(* options = "-aggressive-conditions" *)
 module mkFloatingPointSquareRooter#(Server#(UInt#(TMul#(2,nsfd)),Tuple2#(UInt#(TMul#(2,nsfd)),Bool)) sqrt)(Server#(Tuple2#(FloatingPoint#(e,m),RoundMode),Tuple2#(FloatingPoint#(e,m),Exception)))
    provisos(
       Div#(m,2,mh),
@@ -2607,17 +2608,20 @@ module mkFloatingPointSquareRooter#(Server#(UInt#(TMul#(2,nsfd)),Tuple2#(UInt#(T
 		FloatingPoint#(e,m),
 		Bit#(TAdd#(nsfd,1)))) fState_S3 <- mkLFIFO;
 
-   rule s3_stage;
-      match {.result, .exc, .rmode, .out} <- toGet(fState_S2).get;
-      Bit#(TAdd#(nsfd,1)) sfd = ?;
-      if (result matches tagged Invalid) begin
+   rule s3_stage_sqrt (fState_S2.first matches {tagged Invalid, .exc, .rmode, .out});
+      fState_S2.deq;
+      Bit#(TAdd#(nsfd,1)) sfd;
 	 match {.s, .inexact} <- sqrt.response.get;
 	 sfd = truncate(pack(s));
 	 if (inexact) begin
 	    sfd[0] = 1;
 	 end
-      end
-      fState_S3.enq(tuple5(result,exc,rmode,out,sfd));
+      fState_S3.enq(tuple5(tagged Invalid,exc,rmode,out,sfd));
+   endrule
+
+   rule s3_stage_no_sqrt (fState_S2.first matches {tagged Valid .res, .exc, .rmode, .out});
+      fState_S2.deq;
+      fState_S3.enq(tuple5(tagged Valid res,exc,rmode,out,?));
    endrule
 
    FIFO#(Tuple5#(Maybe#(FloatingPoint#(e,m)),
@@ -2660,7 +2664,7 @@ module mkFloatingPointSquareRooter#(Server#(UInt#(TMul#(2,nsfd)),Tuple2#(UInt#(T
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Floating point fused multiple accumulate
+/// Floating point fused multiply accumulate
 ////////////////////////////////////////////////////////////////////////////////
 module mkFloatingPointFusedMultiplyAccumulate(Server#(Tuple4#(Maybe#(FloatingPoint#(e,m)), FloatingPoint#(e,m), FloatingPoint#(e,m), RoundMode), Tuple2#(FloatingPoint#(e,m),Exception)))
    provisos(

@@ -1,0 +1,5 @@
+INFO: square root of 1
+result:<<Float +7f.000000>,<Exception: >>
+INFO: square root of -1
+result:<<Float +ff.400000>,<Exception: Invalid_Op >>
+Finished
