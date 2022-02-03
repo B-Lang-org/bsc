@@ -1624,7 +1624,7 @@ externalFlags = [
 
         ("use-dpi",
          (Toggle (\f x -> f {useDPI=x}) (showIfTrue useDPI),
-          "use DPI instead of VPI in generated Verilog", Hidden)),
+          "use DPI instead of VPI in generated Verilog", Visible)),
 
         ("use-negate",
          (Toggle (\f x -> f {useNegate=x}) (showIfTrue useNegate),
