@@ -1141,22 +1141,32 @@ output  in more
 detail.  The Verilog simulator is specified by  using the {\bf\tt
 -vsim} flag.
 
-\index{Verilog simulator!vcsi}
-\index{Verilog simulator!vcs}
-\index{Verilog simulator!ncverilog}
-\index{Verilog simulator!modelsim}
+\index{Verilog simulator!cvc}
 \index{Verilog simulator!cver}
-\index{Verilog simulator!veriwell}
-\index{Verilog simulator!iverilog}
 \index{Verilog simulator!isim}
-\index{vcsi (Verilog simulator)}
-\index{vcs (Verilog simulator)}
-\index{ncverilog (Verilog simulator)}
-\index{modelsim (Verilog simulator)}
+\index{Verilog simulator!iverilog}
+\index{Verilog simulator!modelsim}
+\index{Verilog simulator!ncverilog}
+\index{Verilog simulator!questa}
+\index{Verilog simulator!vcs}
+\index{Verilog simulator!vcsi}
+\index{Verilog simulator!verilator}
+\index{Verilog simulator!veriwell}
+\index{Verilog simulator!xsim}
+
+\index{cvc (Verilog simulator)}
 \index{cver (Verilog simulator)}
-\index{veriwell (Verilog simulator)}
-\index{iverilog (Verilog simulator)}
 \index{isim (Verilog simulator)}
+\index{iverilog (Verilog simulator)}
+\index{modelsim (Verilog simulator)}
+\index{ncverilog (Verilog simulator)}
+\index{questa (Verilog simulator)}
+\index{vcs (Verilog simulator)}
+\index{vcsi (Verilog simulator)}
+\index{verilator (Verilog simulator)}
+\index{veriwell (Verilog simulator)}
+\index{xsim (Verilog simulator)}
+
 \index{-vsim@\te{-vsim} (compiler flag)}
 
 \label{sec:using-verilog}
@@ -1164,9 +1174,20 @@ The \textbf{\texttt{-vsim}} flag
 (along with the equivalent
 \textbf{\texttt{BSC\_VERILOG\_SIM}} environment variable) governs which Verilog
 simulator is employed; at present, natively supported choices for
-\textbf{\texttt{-vsim}} are \texttt{vcs}, \texttt{vcsi}, \texttt{ncverilog},
-\texttt{modelsim}, \texttt{cver(cvc)},  \texttt{iverilog},
-\texttt{veriwell}, and \texttt{isim}.  If the simulator is not specified \texttt{bsc} will attempt to detect one
+\textbf{\texttt{-vsim}} are
+\texttt{cvc},
+\texttt{cver},
+\texttt{isim}.
+\texttt{iverilog},
+\texttt{modelsim},
+\texttt{ncverilog},
+\texttt{questa},
+\texttt{vcs},
+\texttt{vcsi},
+\texttt{verilator},
+\texttt{veriwell},
+and \texttt{xsim}.
+If the simulator is not specified \texttt{bsc} will attempt to detect one
 of the above simulators and use it.
 
 When the argument to \textbf{\texttt{-vsim}} contains the slash character
@@ -1555,9 +1576,20 @@ The \te{-vsim} flag
 (along with the equivalent
 \textbf{\texttt{BSC\_VERILOG\_SIM}} environment variable) governs which Verilog
 simulator is employed.  The natively supported  choices for
-\te{-vsim} are \te{vcs}, \te{vcsi}, \te{ncverilog},
-\te{modelsim}, \te{cver},  \te{iverilog},  \te{veriwell}, and \te{isim}.  If a
-simulator  is not specified \te{bsc} will attempt to detect one
+\te{-vsim} are
+\te{cvc},
+\te{cver},
+\te{isim}.
+\te{iverilog},
+\te{modelsim},
+\te{ncverilog},
+\te{questa},
+\te{vcs},
+\te{vcsi},
+\te{verilator},
+\te{veriwell},
+and \te{xsim}.
+If a simulator is not specified \te{bsc} will attempt to detect one
 of the above simulators and use it.
 
 
