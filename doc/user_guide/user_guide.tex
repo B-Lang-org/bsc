@@ -778,7 +778,9 @@ Using the importBDPI syntax, the user can specify that the
 implementation of a BSV function is provided as a C function.
 The same implementation can be used when simulating with Bluesim or
 with Verilog.  In Bluesim, the imported functions are called directly.
-In Verilog, the functions are accessed via the Verilog VPI. \index{Verilog Procedural Interface (VPI)}
+In Verilog, the functions are accessed via the
+Verilog VPI \index{Verilog Procedural Interface (VPI)}
+or the SystemVerilog DPI \index{Direct Programming Interface (DPI)}.
 The compilation and linking procedures for these backends are
 described in Sections~ \ref{importC-bluesim} for Bluesim simulations, and
 \ref{importC-verilog} for Verilog simulations.
@@ -921,7 +923,7 @@ to Bluesim).
 
 \subsubsubsection{Imported C functions in Bluesim}
 \label{importC-bluesim}
-\index{importBDPI}
+\index{import BDPI}
 \index{importing C}
 \index{Bluesim back end}
 \index{Bluesim!importing C functions}
@@ -1339,26 +1341,40 @@ constraint file to be used when synthesizing with Xilinx.
 \index{Verilog back end}
 \index{importing C}
 \index{Verilog Procedural Interface (VPI)}
+\index{Direct Programming Interface (DPI)}
 
 In a BSV design compiled to Verilog, foreign functions are simulated
-using the Verilog Procedural Interface (VPI).  The generated Verilog
+using either the Verilog Procedural Interface (VPI) or the SystemVerilog
+Direct Programming Interface (DPI).  The default is to use VPI, unless
+the \te{-use-dpi} flag is provided (see Section \ref{sec-verilogflags}).
+
+For VPI, the generated Verilog
 calls a user-defined system task anywhere the imported function is
 needed.  The system task is implemented as a C function which is a
 wrapper around the user's imported C function, to handle the VPI
 protocols.
 
+For DPI, the generated Verilog calls a function anywhere the imported
+function is needed.  That function is declared as an import-DPI function
+at the top of the file.  In most cases, the declaration imports the user's
+C function directly, without a wrapper, because SystemVerilog's DPI types
+closely match BSV's BDPI types.  As a result, using DPI is likely more
+efficient than using VPI, though some simulators may only support one.
+For polymorphic BDPI functions, the DPI and BDPI types differ and so a
+wrapper is needed.  BSC does not yet support generating the DPI wrapper.
+
 The usual Verilog flow is that BSV modules are generated to Verilog
 files, which are linked together into a simulation binary.  The user
-has the option of doing the linking manually or by calling bsc.
+has the option of doing the linking manually or by calling BSC.
 Imported functions can be linked in either case.
 
-\index{importBDPI}
+\index{import BDPI}
 As with the Bluesim flow, when compiling a BSV file containing an
 import-BDPI statement, an elaboration file is generated for the import,
 containing information about the imported function.  However, with Verilog
-generation, the VPI wrapper function is also generated.  For example,
+generation, a wrapper function may also be generated.  For example,
 using the scenario from the previous section but compiling to Verilog,
-the user would see the following:
+and using VPI, the user would see the following:
 
 \begin{centerboxverbatim}
 # bsc -u -verilog DUT.bsv
@@ -1372,7 +1388,7 @@ Verlog file created: mkTB.v
 \end{centerboxverbatim}
 
 The compilation of the import-BDPI statement has not only generated
-an elaboration file for the imput but has also generated the file
+an elaboration file for the input but has also generated the file
 {\bf\tt vpi\_wrapper\_compute\_vector.c} (and associated header file).
 This file contains
 both the wrapper function {\bf\tt compute\_vector\_calltf()} as
@@ -1401,7 +1417,7 @@ in the file with the tag ``{\bf\tt tab:}'' or ``{\bf\tt sft:}''
 prepended.  A search for the appropriate tag (with a tool like {\bf\tt grep})
 will extract the necessary lines to create the table file.
 
-Linking via bsc does all of this automatically:
+Linking via BSC does all of this automatically:
 
 \begin{centerboxverbatim}
 # bsc -verilog -e mkTB -o vsim mkTB.v mkDUT.v compute_vector.ba vectors.c
@@ -1412,7 +1428,7 @@ VPI object created: vpi_startup_array.o
 Verilog binary file created: vsim
 \end{centerboxverbatim}
 
-To perform linking via bsc, the user provides on the command-line not
+To perform linking via BSC, the user provides on the command-line not
 only the Verilog files for the design but also the foreign import files
 ({\bf\tt .ba}) for each imported function and the C source or object files
 implementing the foreign functions.  As shown in the above example,
@@ -1423,9 +1439,20 @@ Verilog simulation build script (see Section~\ref{sec:using-verilog})
 which will create any necessary table files and invoke the Verilog
 simulator with the proper command-line syntax for using VPI.
 
+Using DPI is a simpler process.  No separate registration files are
+needed because the imported function is declared by a
+SystemVerilog import-DPI statement in the generated Verilog itself.
+And for most import-BDPI functions, no wrappers are generated either.
+This makes manual linking particularly easier, although linking via
+BSC is also possible using DPI.  The Verilog simulation build script
+will consult the BSC flags to determine whether imported functions are
+to be provided to the simulator as DPI or VPI.
+It is therefore necessary to use the same flags for choosing DPI/VPI
+during linking as were used during compilation.
+
 If the foreign function uses any system libraries, or is itself a
 system function, then the Verilog linking will need to include those
-libraries.  As with the Bluesim flow, the user can specify to bsc
+libraries.  As with the Bluesim flow, the user can specify to BSC
 the libraries to include with the {\bf\tt -l} flag and can specify
 non-default paths to the libraries with the {\bf\tt -L} flag
 (see Section~\ref{pathflags}).\index{-L@\te{-L} (compiler flag)}
@@ -1653,6 +1680,7 @@ which is a prepending of the \te{-p} command line value to the value set by the
 % -------------------------
 
 \subsection{Verilog back-end}
+\label{sec-verilogflags}
 \index{Verilog flags}
 \index{Verilog back end}
 The following additional flags are available when using the Verilog
@@ -1664,6 +1692,7 @@ flag)}
 \index{-unspecified-to@\te{-unspecified-to} (compiler flag)}
 \index{-Xv@\te{-Xv} (compiler flag)}
 \index{-verilog-filter@\te{-verilog-filter} (compiler flag)}
+\index{-use-dpi@\te{-use-dpi}}
 \begin{centerboxverbatim}
 -remove-unused-modules  remove unconnected modules from the Verilog
 -v95                    generate strict Verilog 95 code
@@ -1672,9 +1701,10 @@ flag)}
 -remove-dollar          remove dollar signs from Verilog identifiers
 -Xv arg                 pass argument to the Verilog link process
 -verilog-filter cmd     invoke a command to post-process the generated Verilog
+-use-dpi                use DPI instead of VPI in generated Verilog
 \end{centerboxverbatim}
 
-The {\bf\tt -remove-unused-modules} will remove from the generated
+The {\bf\tt -remove-unused-modules} flag will remove from the generated
 Verilog any modules which are not connected to an
 output.  This has has the effect of removing redundant or unused
 modules, which would also be done by synthesis tools.   This option
@@ -1717,6 +1747,20 @@ The {\bf\tt -verilog-filter} flag invokes a command to process the
 it must take a single argument, the name of the Verilog file.    The
  flag can be used multiple times; the filters are applied in the order
  they are given on the command line.
+
+The {\bf\tt -use-dpi} flag controls whether imported C functions in
+source designs are implemented in Verilog using
+the Verilog Procedural Interface (VPI)
+\index{Verilog Procedural Interface (VPI)}
+or the SystemVerilog Direct Programming Interface (DPI)
+\index{Direct Programming Interface (DPI)}.
+The flag must be consistently used during both the compilation and
+linking steps.
+During compilation, the flag controls how imported C calls appear
+in the generated Verilog;
+during linking, the flag controls how the C functions are provided
+to the simulator.
+By default, this flag is \emph{off} and VPI is used.
 
 
 % -------------------------
