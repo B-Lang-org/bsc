@@ -4,6 +4,81 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2022.01 Release
+---------------
+
+This release supports building and running on more systems, such as
+CentOS 7.9, FreeBSD, Arm-based Macs, systems with Tcl 8.5, and macOS
+when Tcl-Tk is installed via Homebrew.
+
+This release also includes initial support for DPI instead of VPI (for
+imported C functions) and support for automatic linking with Verilator
+(using `-vsim verilator`).  Feedback on both of these features is
+welcome!
+
+Highlights since release 2021.07:
+
+General
+~~~~~~~
+
+* Updates to the install instructions
+  ** Show how Bluetcl can be used to programmatically retrieve the BSC
+     version
+  ** Show how to use Cabal `v2-install`
+  ** How to build a release without Asciidoctor
+
+* Support for building and running on more systems
+
+Documentation
+~~~~~~~~~~~~~
+
+* Typos fixed in the `MIMO` library documentation
+
+* Document new `-use-dpi` flag
+
+* Document Verilator as a new option for `-vsim`
+
+Compiler
+~~~~~~~~
+
+* Optional use of DPI instead of VPI, for imported C functions (BDPI)
+  ** This is draft support; feedback welcome!
+  ** Size-polymorphic import-BDPI functions are not yet supported
+  ** A new flag, `-use-dpi`, must be provided when compiling and linking
+
+* The Yices submodule is now checked out at an official tagged version,
+  2.6.4
+
+* Source updated to compile with GHC 9.2
+  ** Note that BSC triggers a bug in GHC 9.2.1 (#20639),
+     which has been fixed in 9.2.2
+
+Libraries
+~~~~~~~~~
+
+* Fixes to modules in the `Divide` library
+  ** for issues when the iterations-per-cycle is greater than one
+  ** for scheduling issues at the interface
+  ** to improve the provisos
+
+* Fix to `FloatingPoint` divide and square root modules, to not
+  require `-aggressive-conditions` flags for correct behavior
+
+* Bug fix in `Prelude` function `hexDigitToInteger`
+
+Verilog
+~~~~~~~
+
+* Support automatic linking with Verilog, using `-vsim verilator`
+  ** This is draft support; feedback welcome!
+  ** The `-use-dpi` flag is needed for designs with imported C,
+     since Verilator does not support our VPI implementation
+  ** Designs with generated clocks may not link; ultimately, BSC may
+     need a Verilator backend (separate from Verilog and Bluesim) to
+     support arbitrary designs
+
+'''
+
 2021.07 Release
 ---------------
 
