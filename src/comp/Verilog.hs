@@ -513,6 +513,7 @@ instance PPrint VStmt where
         pPrint d p (Vdumpvars level vars) = text "$dumpvars(" <> sepList dvargs (text ",") <> text ");"
             where dvargs = (pPrint d 0 level):(map (pPrint d 0) vars)
 -- no parens when calling a task if it has no arguments
+        pPrint d p (VTask task []) | (getVIdString task) == "$fflush" = pPrint d 0 task <> text "();"
         pPrint d p (VTask task []) | isTaskVId task = pPrint d 0 task <> text ";"
         pPrint d p (VTask task es) = pPrint d 0 task <> text "(" <> commaList d es <> text ");"
 
