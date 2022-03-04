@@ -342,7 +342,7 @@ showrules: $(SOURCES)
 bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) $(BUILDFLAGS) -c
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) \
+	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) $(RTSFLAGS) \
 		-o $@ \
 		-no-hs-main \
 		-x c bluetcl_Main.hsc
