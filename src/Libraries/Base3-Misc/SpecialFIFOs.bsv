@@ -276,8 +276,13 @@ module mkSizedBypassFIFOF#(Integer n)(FIFOF#(a))
 
    FIFOF#(a) ff <- mkUGSizedFIFOF(n);
 
+   // We are using an unguarded FIFO,
+   // so we need to enforce our own ordering
+   //
+   Reg#(Bool) beforeEnq <- mkRevertingVirtualReg(True);
+   Reg#(Bool) beforeDeq <- mkRevertingVirtualReg(True);
+
    RWire#(a) enqw <- mkRWire;
-   Reg#(Bool) firstValid <- mkRevertingVirtualReg(True);
    PulseWire dequeueing <- mkPulseWire;
 
    let empty = !ff.notEmpty;
@@ -295,23 +300,24 @@ module mkSizedBypassFIFOF#(Integer n)(FIFOF#(a))
 
    method Action deq if (!empty || enqueueing);
       dequeueing.send;
-      firstValid <= False;
+      beforeDeq <= False;
    endmethod
 
-   method first if (firstValid && (!empty || enqueueing));
+   method first if (beforeDeq && (!empty || enqueueing));
       return (empty ? validValue(enqw.wget) : ff.first);
    endmethod
 
    method Action enq(x) if (!full);
       enqw.wset(x);
+      beforeEnq <= False;
    endmethod
 
    method Action clear;
       ff.clear;
    endmethod
 
-   method notEmpty = ff.notEmpty || enqueueing ;
-   method notFull  = ff.notFull;
+   method notEmpty = beforeDeq && (ff.notEmpty || enqueueing) ;
+   method notFull  = beforeEnq && beforeDeq && ff.notFull;
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////

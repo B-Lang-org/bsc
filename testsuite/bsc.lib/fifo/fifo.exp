@@ -45,6 +45,8 @@ compile_verilog_schedule_pass TestBypassFIFO.bsv
 if { $vtest == 1 } {
 compare_file mkBypassFIFOF_Bit32.sched
 compare_file mkBypassFIFO_Bit32.sched
+compare_file mkSizedBypassFIFOF_Bit32_8.sched
+compare_file mkBypassFIFOLevel_Bit32_8.sched
 }
 
 # Test the scheduling relationships for Pipeline FIFOs

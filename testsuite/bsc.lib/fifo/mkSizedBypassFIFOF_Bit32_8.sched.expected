@@ -1,0 +1,61 @@
+=== Generated schedule for mkSizedBypassFIFOF_Bit32_8 ===
+
+Method schedule
+---------------
+Method: enq
+Ready signal: ff.i_notFull
+Sequenced before (restricted): deq, first, notEmpty, clear
+Sequenced after: notFull
+Conflicts: enq
+ 
+Method: deq
+Ready signal: ff.i_notEmpty || enqw.whas
+Sequenced before (restricted): clear
+Sequenced after: first, notFull, notEmpty
+Sequenced after (restricted): enq
+Conflicts: deq
+ 
+Method: first
+Ready signal: beforeDeq.read && (ff.i_notEmpty || enqw.whas)
+Conflict-free: first, notFull, notEmpty
+Sequenced before: deq
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq
+ 
+Method: notFull
+Ready signal: True
+Conflict-free: first, notFull, notEmpty, clear
+Sequenced before: enq, deq
+ 
+Method: notEmpty
+Ready signal: True
+Conflict-free: first, notFull, notEmpty, clear
+Sequenced before: deq
+Sequenced after (restricted): enq
+ 
+Method: clear
+Ready signal: True
+Conflict-free: notFull, notEmpty
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, deq, first
+ 
+Rule schedule
+-------------
+Rule: enqueue
+Predicate: enqw.whas && ((! dequeueing.whas) || ff.i_notEmpty)
+Blocking rules: (none)
+ 
+Rule: dequeue
+Predicate: dequeueing.whas && ff.i_notEmpty
+Blocking rules: (none)
+ 
+Logical execution order: notFull,
+			 enq,
+			 first,
+			 notEmpty,
+			 deq,
+			 enqueue,
+			 dequeue,
+			 clear
+
+==========================================================
