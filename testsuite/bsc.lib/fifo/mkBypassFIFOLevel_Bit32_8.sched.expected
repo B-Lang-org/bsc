@@ -1,0 +1,92 @@
+=== Generated schedule for mkBypassFIFOLevel_Bit32_8 ===
+
+Method schedule
+---------------
+Method: enq
+Ready signal: fifof_ff.i_notFull
+Sequenced before (restricted): deq, first, clear, notEmpty
+Sequenced after: notFull, isLessThan4, isGreaterThan4
+Conflicts: enq
+ 
+Method: deq
+Ready signal: fifof_ff.i_notEmpty || fifof_enqw.whas
+Sequenced before (restricted): clear
+Sequenced after: first, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced after (restricted): enq
+Conflicts: deq
+ 
+Method: first
+Ready signal: fifof_beforeDeq.read && (fifof_ff.i_notEmpty || fifof_enqw.whas)
+Conflict-free: first, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced before: deq
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq
+ 
+Method: clear
+Ready signal: True
+Conflict-free: notFull, notEmpty
+Sequenced after: isLessThan4, isGreaterThan4
+Sequenced after (restricted): enq, deq, first
+Conflicts: clear
+ 
+Method: notFull
+Ready signal: True
+Conflict-free: first, clear, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced before: enq, deq
+ 
+Method: notEmpty
+Ready signal: True
+Conflict-free: first, clear, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced before: deq
+Sequenced after (restricted): enq
+ 
+Method: isLessThan4
+Ready signal: levelsValidEnq.read && levelsValidDeq.read &&
+	      levelsValidClr.read
+Conflict-free: first, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced before: enq, deq, clear
+ 
+Method: isGreaterThan4
+Ready signal: levelsValidEnq.read && levelsValidDeq.read &&
+	      levelsValidClr.read
+Conflict-free: first, notFull, notEmpty, isLessThan4, isGreaterThan4
+Sequenced before: enq, deq, clear
+ 
+Rule schedule
+-------------
+Rule: fifof_enqueue
+Predicate: fifof_enqw.whas &&
+	   ((! fifof_dequeueing.whas) || fifof_ff.i_notEmpty)
+Blocking rules: (none)
+ 
+Rule: fifof_dequeue
+Predicate: fifof_dequeueing.whas && fifof_ff.i_notEmpty
+Blocking rules: (none)
+ 
+Rule: do_incr
+Predicate: do_enq.whas && (! do_deq.whas) && (! do_clr.whas)
+Blocking rules: (none)
+ 
+Rule: do_decr
+Predicate: (! do_enq.whas) && do_deq.whas && (! do_clr.whas)
+Blocking rules: (none)
+ 
+Rule: do_clear
+Predicate: do_clr.whas
+Blocking rules: (none)
+ 
+Logical execution order: notFull,
+			 isLessThan4,
+			 isGreaterThan4,
+			 enq,
+			 first,
+			 notEmpty,
+			 deq,
+			 fifof_enqueue,
+			 fifof_dequeue,
+			 clear,
+			 do_incr,
+			 do_decr,
+			 do_clear
+
+=========================================================
