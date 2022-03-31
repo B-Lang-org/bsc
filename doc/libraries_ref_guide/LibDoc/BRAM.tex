@@ -20,10 +20,11 @@ latency.    Specific
 tools may determine whether modules are mapped to appropriate BRAM
 cells during synthesis.
 
-The \te{BRAM} package is open-sourced and can be modified by the user.
-The low-level wrappers to the BRAM Verilog and Bluesim modules, which
-are not open-sourced and cannot be modified,  are
-provided in the \te{BRAMCore} package, Section \ref{sec-BRAMCore}.
+The low-level modules that implement BRAM without implicit conditions
+are available in the \te{BRAMCore} package,
+Section \ref{sec-BRAMCore}. Most designs should use the \te{BRAM}
+package, \te{BRAMCore} should only be used if you need access to
+low-level core BRAM modules without implicit conditions.
 
 {\bf Types and type classes}
 \index{BRAM\_Configure@\te{BRAM\_Configure} (type)}
