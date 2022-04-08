@@ -6,6 +6,7 @@ import ClientServer ::*;
 import FIFOF :: *;
 import DReg :: *;
 import GetPut :: *;
+import SpecialFIFOs :: *;
 
 //  Export  section
 
@@ -466,8 +467,7 @@ module mkBRAMAdapter #(
            );
 
    // Output fifo and adapter to to creating a bypass fifo.
-   FIFOF#(bramresp_t) outDataCore <- mkSizedFIFOF( cfg.outFIFODepth ) ;
-   FIFOF#(bramresp_t) outData <- mkBypassFIFOAdapter( outDataCore );
+   FIFOF#(bramresp_t) outData <- mkSizedBypassFIFOF( cfg.outFIFODepth );
 
    // a counter is needed to track the conditions for safe requests
    SizedReg cnt <- mkSizedReg( cfg.outFIFODepth, 0 );
@@ -805,71 +805,6 @@ module checkSizes (BRAM_Configure cfg, addr_t addr, String modName, Empty ifc)
    end
 
 endmodule
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////
-// A bypass FIFO adapter.  This module takes FIFO interface, the core fifo
-// and return a new module which is a bypass fifo.
-// The properties of a bypass fifo are:
-// enq and deq of the same data are allowed in the same cycle
-// TODO  move module to another package ??  Special FIFOs?
-// Not exported
-module mkBypassFIFOAdapter (FIFOF#(a) coreFIFO, FIFOF#(a) ifc )
-   provisos (Bits#(a,sa) );
-
-   RWire#(a) enqData    <- mkRWire ;
-   RWire#(a) outData    <- mkRWire ;
-   PulseWire deqCalled  <- mkPulseWire ;
-
-   Bool okDeq = coreFIFO.notEmpty || isValid (enqData.wget);
-
-   // Rule to set the output first data
-   rule setFirstCore (coreFIFO.notEmpty) ;
-      outData.wset (coreFIFO.first) ;
-   endrule
-   rule setFirstEnq (!coreFIFO.notEmpty &&& enqData.wget matches tagged Valid .d);
-      outData.wset (d);
-   endrule
-
-   // Rules for enq or deq
-   rule enqOnly (! deqCalled &&&
-                 enqData.wget matches tagged Valid .d );
-      coreFIFO.enq (d);
-   endrule
-   rule deqOnly (deqCalled && !isValid(enqData.wget) );
-      coreFIFO.deq ;
-   endrule
-   rule enqAndDeq ( deqCalled &&&
-                   enqData.wget matches tagged Valid .d );
-      coreFIFO.enq (d);
-      coreFIFO.deq ;
-   endrule
-
-   method Action enq (a din) if (coreFIFO.notFull);
-      enqData.wset (din);
-   endmethod
-   method Action deq if (okDeq) ;
-      deqCalled.send ;
-   endmethod
-   method a first if (outData.wget matches tagged Valid .d) ;
-      return d ;
-   endmethod
-
-   method Action clear ;
-      coreFIFO.clear ;
-   endmethod
-
-   method Bool notFull ;
-      return coreFIFO.notFull;
-   endmethod
-   method Bool notEmpty ;
-      return okDeq ;
-   endmethod
-
-endmodule
-
 
 //////////////////////////////////////////////////////////////////////////////////
 // SizedReg allow an elaboration time argument to determine the register width.
