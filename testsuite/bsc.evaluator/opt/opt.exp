@@ -48,3 +48,18 @@ if { $vtest == 1 } {
 	{if (rg == 3'd3) $display("E3")} 1
 }
 
+# test PrimEQ, PrimLT, PrimLTE of an expr with itself
+# (GitHub Issue #460)
+compile_verilog_pass CompareSameExpr.bsv {} {-dexpanded}
+if { $vtest == 1 } {
+    # The conditions should be reduced during elaboration
+    find_n_strings [make_bsc_vcomp_output_name CompareSameExpr.bsv] {PrimIf} 0
+    # Also check that they reduced to T/F correctly
+    find_n_strings sysCompareSameExpr.v {display} 6
+    find_n_strings sysCompareSameExpr.v {rUEQ} 1
+    find_n_strings sysCompareSameExpr.v {rULE} 1
+    find_n_strings sysCompareSameExpr.v {rUGE} 1
+    find_n_strings sysCompareSameExpr.v {rSEQ} 1
+    find_n_strings sysCompareSameExpr.v {rSLE} 1
+    find_n_strings sysCompareSameExpr.v {rSGE} 1
+}
