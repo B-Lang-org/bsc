@@ -21,7 +21,7 @@
 </div>
 
 Compiler, simulator, and tools for the **Bluespec Hardware Description
-Language**. Bluespec is a single language for hardware designs that comes in
+Language**. Bluespec is a single language for digital electronic hardware designs that comes in
 two syntactic flavors, which are interchangeable:
 
   - Bluespec **SystemVerilog** (BSV)
