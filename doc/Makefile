@@ -6,6 +6,7 @@ PREFIX?=$(TOP)/inst
 SUBDIRS=\
 	user_guide \
 	libraries_ref_guide \
+	BSV_ref_guide \
 
 .PHONY: all
 all: install

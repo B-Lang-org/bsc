@@ -17,19 +17,15 @@ PDFLATEX = pdflatex '\scrollmode\input'
 INSTALLDIR=$(PREFIX)/doc
 
 # Name in the release
-INSTALLNAME=bsc_user_guide
+INSTALLNAME=BSV_lang_ref_guide
 
 # Local file names
-DOC=user_guide
-
-# Generated index files beyond the standard 'idx' and 'ind'
-# should be named '?dx' and '?nd' (using a new unique letter)
-IDX_LIST= c
+DOC=BSV_lang
 
 ## Included .tex Files
 INCLUDES = \
 	version.tex \
-	bluetcl.tex \
+	keywords.tex \
 
 # -------------------------
 
@@ -38,10 +34,29 @@ INCLUDES = \
 doc:	$(DOC).pdf
 
 clean:
-	${RM} -f *.dvi *.ps *.pdf figures/*.pdf
+	${RM} -f *.dvi *.ps *.pdf extractGrammar \
+		temp.tex  non_terminals.txt  keywords.tex rawbnf.tex
 
 full_clean: clean
 	${RM} -f *.log *.aux *.blg *.bbl *.toc *.out *.?dx *.?nd *.ilg
+
+# ----------------------------------------------------------------
+# Program to automatically extract grammar productions and keywords
+# from LaTeX source
+
+extractGrammar: extractGrammar.c
+	cc -Wall extractGrammar.c -o extractGrammar
+
+# Automatically extract grammar productions and keyword-list
+#i.e. rawbnf.tex non_terminals.tex and keywords.tex
+
+keywords.tex: $(DOC).tex  extractGrammar
+	./extractGrammar  $(DOC).tex 
+	cp -f keywords.tex temp.tex
+	sed -es/\\\\_/_/g temp.tex > keywords.tex 
+
+# ----------------------------------------------------------------
+# Warning: .pdf rule does not have dependencies on Figures/*
 
 $(DOC).pdf: $(DOC).tex $(INCLUDES)
 	$(RM) -f *.log *.aux *.blg *.bbl *.out *.toc *.?dx *.?nd *.ilg
@@ -49,9 +64,6 @@ $(DOC).pdf: $(DOC).tex $(INCLUDES)
 	-bibtex $(DOC)
 	-pdflatex $(DOC).tex
 	makeindex $(DOC)
-	for i in $(IDX_LIST) ; do \
-		makeindex $(DOC).$${i}dx -o $(DOC).$${i}nd ; \
-		done
 	-pdflatex $(DOC).tex
 	pdflatex $(DOC).tex
 
@@ -61,4 +73,3 @@ install: $(DOC).pdf
 	$(INSTALL) -m 644 $(DOC).pdf $(INSTALLDIR)/$(INSTALLNAME).pdf
 
 # -------------------------
-
