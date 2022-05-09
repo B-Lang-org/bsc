@@ -1,7 +1,7 @@
 # Makefile for LaTeX-based documentation
 
 PWD := $(shell pwd)
-TOP := $(PWD)/..
+TOP := $(PWD)/../..
 
 PREFIX?=$(TOP)/inst
 
@@ -17,7 +17,7 @@ PDFLATEX = pdflatex '\scrollmode\input'
 INSTALLDIR=$(PREFIX)/doc
 
 # Name in the release
-INSTALLNAME=bsc_libraries_ref_guide
+INSTALLNAME=BSV_lang_ref_guide
 
 # Local file names
 DOC=BSV_lang

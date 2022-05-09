@@ -1,7 +1,7 @@
 # Makefile for LaTeX-based documentation
 
 PWD := $(shell pwd)
-TOP := $(PWD)/..
+TOP := $(PWD)/../..
 
 PREFIX?=$(TOP)/inst
 
