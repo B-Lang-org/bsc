@@ -28,7 +28,7 @@
 BSC_COMMAND=$1           # "detect" or "link"
 
 if [ "$BSC_COMMAND" = "detect" ]; then
-# detect whether the command "iverilog" is in the path
+# detect whether the command "verilator" is in the path
   SIM_NAME=verilator
   hash $SIM_NAME 2> /dev/null
   if [ "$?" != "0" ]; then
