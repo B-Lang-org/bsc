@@ -488,6 +488,13 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimBNot)) _ [c]
 -- e == e --> True
 iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) _ [e, e'] | e == e' = (iTrue, True)
 
+-- e <= e --> True
+-- e < e --> False
+iTrAp ctx (ICon _ (ICPrim _ p)) _ [e, e'] | isLE p, e == e' = (iTrue, True)
+  where isLE = (`elem` [PrimULE, PrimSLE])
+iTrAp ctx (ICon _ (ICPrim _ p)) _ [e, e'] | isLT p, e == e' = (iFalse, True)
+  where isLT = (`elem` [PrimULT, PrimSLT])
+
 -- XXX: preserve the _ "kind"? Or treat different _ differently?
 -- _ == e --> _
 iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) _ [e1@(ICon _ (ICUndet {iuKind = u, imVal = Nothing})), e2] = (icUndet itBit1 u, True)
