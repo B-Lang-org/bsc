@@ -103,7 +103,7 @@ jobs:
   build-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -210,7 +210,7 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -333,7 +333,7 @@ jobs:
   test-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -485,7 +485,7 @@ jobs:
   test-toooba-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test Toooba ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -650,7 +650,7 @@ jobs:
   test-contrib-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test bsc-contrib ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -813,7 +813,7 @@ jobs:
   test-bdw-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test bdw ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
