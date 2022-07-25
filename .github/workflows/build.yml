@@ -6,7 +6,7 @@ on: [ push, pull_request ]
 jobs:
   build-check-src:
     name: "Check: code cleanliness"
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Check tabs and whitespace
@@ -15,7 +15,7 @@ jobs:
 
   build-check-testsuite:
     name: "Check: testsuite lint"
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Check CONFDIR
@@ -27,7 +27,7 @@ jobs:
   build-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -103,7 +103,7 @@ jobs:
   build-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -189,7 +189,7 @@ jobs:
   build-doc-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -210,7 +210,7 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -234,7 +234,7 @@ jobs:
   test-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
       fail-fast: false
     name: "Test ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -333,7 +333,7 @@ jobs:
   test-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -398,7 +398,7 @@ jobs:
   test-toooba-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
       fail-fast: false
     name: "Test Toooba ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -460,7 +460,13 @@ jobs:
 
           cd ../Toooba/Tests/elf_to_hex
 
-          make
+          # Workaround a build failure on Ubuntu 22.04
+          REL=$(lsb_release -rs | tr -d .)
+          if [ $REL -lt 2204 ]; then
+              make
+          else
+              gcc -g  -o elf_to_hex  elf_to_hex.c  -lelf -mcmodel=medium
+          fi
 
           cd ../../builds/RV64ACDFIMSU_Toooba_bluesim/
 
@@ -479,7 +485,7 @@ jobs:
   test-toooba-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test Toooba ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -559,7 +565,7 @@ jobs:
   test-contrib-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
       fail-fast: false
     name: "Test bsc-contrib ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -644,7 +650,7 @@ jobs:
   test-contrib-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test bsc-contrib ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
@@ -722,7 +728,7 @@ jobs:
   test-bdw-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
       fail-fast: false
     name: "Test bdw ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -807,7 +813,7 @@ jobs:
   test-bdw-macOS:
     strategy:
       matrix:
-        os: [ macos-10.15, macos-11 ]
+        os: [ macos-10.15, macos-11, macos-12 ]
     name: "Test bdw ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: build-macos
