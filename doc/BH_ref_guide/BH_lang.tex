@@ -1,0 +1,4073 @@
+% $Id$
+%
+
+\documentclass[twoside,letterpaper]{article}
+% \usepackage{a4}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{latexsym}
+\usepackage{makeidx}
+\usepackage{verbatim}
+\usepackage{moreverb}
+\usepackage{index}
+\usepackage{dingbat}
+\usepackage{fancyhdr}
+
+\usepackage{ifpdf}
+
+% \newif\ifpdf
+% \ifx\pdfoutput\undefined
+% \else
+%   \ifx\pdfoutput\relax
+%   \else
+%     \ifcase\pdfoutput
+%     \else
+%       \pdftrue
+%     \fi
+%   \fi
+% \fi
+
+\ifpdf
+  \usepackage[pdftex,colorlinks=true,bookmarksopen, pdfstartview=FitH,
+              linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+  \pdfcompresslevel=9
+  \usepackage[pdftex]{graphicx}
+\else
+  \usepackage[dvips]{graphicx}
+\fi
+
+\usepackage{ae}
+\usepackage{aecompl}
+
+\usepackage{hyperref}
+
+% HORIZONTAL MARGINS
+% Left margin, odd pages: 1.25 inch (0.25 + 1)
+\setlength{\oddsidemargin}{0.25in}
+% Left margin, even pages: 1.25 inch (0 + 1)
+\setlength{\evensidemargin}{0.25in}
+% Text width 6 inch (so other margin is 1.25 inch).
+\setlength{\textwidth}{6in}
+% ----------------
+% VERTICAL MARGINS
+% Top margin 0.5 inch (-0.5 + 1)
+\setlength{\topmargin}{-0.5in}
+% Head height 0.25 inch (where page headers go)
+\setlength{\headheight}{0.25in}
+% Head separation 0.25 inch (between header and top line of text)
+\setlength{\headsep}{0.25in}
+% Text height 9 inch (so bottom margin 1 in)
+\setlength{\textheight}{9in}
+% ----------------
+% PARAGRAPH INDENTATION
+\setlength{\parindent}{0in}
+% SPACE BETWEEN PARAGRAPHS
+\setlength{\parskip}{\medskipamount}
+% ----------------
+% STRUTS
+% HORIZONTAL STRUT.  One argument (width).
+\newcommand{\hstrut}[1]{\hspace*{#1}}
+% VERTICAL STRUT. Two arguments (offset from baseline, height).
+\newcommand{\vstrut}[2]{\rule[#1]{0in}{#2}}
+% ----------------
+% HORIZONTAL LINE ACROSS PAGE:
+\newcommand{\hdivider}{\noindent\mbox{}\hrulefill\mbox{}}
+% ----------------
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+\newcommand{\hm}{\hspace*{1em}}
+\newcommand{\hmm}{\hspace*{2em}}
+\newcommand{\hmmm}{\hspace*{3em}}
+\newcommand{\hmmmm}{\hspace*{4em}}
+% ----------------
+% ``TIGHTLIST'' ENVIRONMENT (no para space betwee items, small indent)
+\newenvironment{tightlist}%
+{\begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1.5em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+}
+}%
+{\end{list}
+}
+
+% ----------------
+
+\newcommand{\ie}{\emph{i.e.,}}
+
+%----------------
+% Added to get special characters in index
+
+\newcommand{\Caret}{\char94}
+\newcommand{\Tilde}{\char126}
+
+% ----------------
+% BSV names
+
+\newcommand{\LibRefGuide}{\emph{Libraries Reference Guide}}
+\newcommand{\LibRefGuideFullName}{\emph{Bluespec Compiler (BSC) Libraries Reference Guide}}
+
+\newcommand{\BS}{Bluespec}
+\newcommand{\BSInc}{Bluespec, Inc.}
+
+\newcommand{\BH}{BH}
+\newcommand\BHfull{Bluespec Haskell/Classic}
+
+\newcommand{\blue}{Bluespec SystemVerilog}
+\newcommand{\BSVFull}{Bluespec SystemVerilog}
+\newcommand{\BSV}{BSV}
+\newcommand{\BSVVersion}{3.8}
+\newcommand{\BSVvN}{BSV 3.8}
+
+\newcommand{\bsc}{\emph{bsc}}
+
+\newcommand{\SV}{SystemVerilog}
+\newcommand{\SVThreeOneA}{SystemVerilog 3.1a}
+\newcommand{\SC}{SystemC}
+
+\newcommand{\V}{Verilog}
+\newcommand{\veri}{Verilog}
+\newcommand{\VOrig}{Verilog 1995}
+\newcommand{\VTwoK}{Verilog 2001}
+
+% ----------------------------------------------------------------
+% CODE DISPLAYS.
+% Bluespec code displays are enclosed between \BBS and \EBS
+% Most characters are taken verbatim, in typewriter font,
+% Except:
+%  Commands are still available (beginning with \)
+%    but use ` and ' instead of { and }
+%  Math mode is still available (beginning with $)
+%    but use ~ and ! for ^ and _
+
+\outer\def\BBS{%
+  \begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+  }\item[]
+%  \catcode`\{=12
+%  \catcode`\}=12
+  \catcode`\&=12
+  \catcode`\#=12
+  \catcode`\%=12
+  \catcode`\~=12
+%  \catcode`\_=12
+  \catcode`\^=12
+%  \catcode`\~=7
+%  \catcode`\!=7      % superscript
+%  \catcode`\'=2
+%  \catcode`\`=1
+  \obeyspaces
+  \obeylines \tt}
+
+\outer\def\EBS{%
+  \end{list}
+  }
+
+{\obeyspaces\gdef {\ }}
+
+% ----------------------------------------------------------------
+% Editorial notes are enclosed between \begin{NOTE} and \end{NOTE}
+
+\newenvironment{NOTE}{%
+  \hm{\bf{Note}}
+  \begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{2em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+  }\item[]
+  \sf
+ }
+ {\end{list}\hm{\bf{End of Note}}}
+
+% ----------------------------------------------------------------
+% The following hack is from Mark Tuttle
+\newcommand{\ttsymbol}[1]{%
+  % print character at position #1 in the tt font family in current font size
+  \begingroup\fontfamily{cmtt}\selectfont\symbol{#1}\endgroup
+}
+% ----------------
+% BANG (tt font exclamation mark), can be used inside \fbox environment
+\newcommand{\BANG}{\ttsymbol{33}}
+% ----------------
+% HASH (tt font hash), can be used inside \fbox environment
+\newcommand{\HASH}{\ttsymbol{35}}
+% ----------------
+% BSL (tt font backslash), can be used inside \fbox environment
+\newcommand{\BSL}{\ttsymbol{92}}
+% ----------------
+% HAT (tt font hat), can be used inside \fbox environment
+\newcommand{\HAT}{\ttsymbol{94}}
+% ----------------
+% UNDERSCORE of standard char width (normal tt font \_ is narrower)
+\newcommand{\US}{\ttsymbol{95}}
+% ----------------
+% TILDE (tt font tilde), can be used inside \fbox environment
+\newcommand{\TILDE}{\ttsymbol{126}}
+% ----------------
+% LBRACE (tt font left brace), can be used inside \fbox environment
+\newcommand{\LBRACE}{\ttsymbol{123}}
+% ----------------
+% BAR (tt font vertical bar), can be used inside \fbox environment
+\newcommand{\BAR}{\ttsymbol{124}}
+% ----------------
+% RBRACE (tt font right brace), can be used inside \fbox environment
+\newcommand{\RBRACE}{\ttsymbol{125}}
+% ----------------------------------------------------------------
+
+% Library environment.  Used by generated code.
+\newenvironment{libverbatim}
+  {\vspace*{-1.0em}
+   \verbatim}
+  {\endverbatim
+  }
+
+\newenvironment{smcenterboxverbatim}
+  {\center
+   \small
+   \boxedverbatim}
+  {\endboxedverbatim 
+  {\endcenter} }
+
+\newenvironment{centerboxverbatim}
+  {\center
+   \boxedverbatim}
+  {\endboxedverbatim 
+  {\endcenter }}
+
+
+% ----------------------------------------------------------------
+
+\newcommand\lineup{\vspace*{-0.6em}}
+
+\newcommand\com[1]{}
+\newcommand{\te}[1]{\texttt{#1}}
+\newcommand{\nterm}[1]{\emph{#1}}
+\newcommand{\term}[1]{{\tt{#1}}}
+\newcommand{\many}[1]{\{ #1 \}}
+\newcommand{\opt}[1]{[ #1 ]}
+\newcommand{\alt}{{$\mid$}}
+\newcommand{\gram}[2]{    \hm\makebox[10em][l]{\it #1}\makebox[1.5em][l]{::=}    #2}
+\newcommand{\grammore}[1]{\hm\makebox[10em][l]{      }\makebox[1.5em][l]{}       #1}
+\newcommand{\gramalt}[1]{ \hm\makebox[10em][l]{      }\makebox[1.5em][l]{\alt}   #1}
+
+\newcommand{\tbd}[1]{{\sf TBD: #1}}
+\newcommand{\note}[1]{\vspace*{2mm}{\sf {\large \bf Note\\} #1}\vspace{2mm}}
+
+\newcommand{\begindescrlist}[1]{
+\begin{list}{\arabic{enumi}}{
+                \settowidth{\labelwidth}{#1}
+                \setlength{\leftmargin}{\labelwidth} % {#1}
+                \addtolength{\leftmargin}{\labelsep}
+                \setlength{\parsep}{0ex}
+                \setlength{\itemsep}{0ex}
+                \usecounter{enumi}
+        }
+}
+\newcommand{\litem}[1]{\item[#1\hfill]}
+
+% ``Quoted'' inline bluespec
+\newcommand{\qbs}[1]{``\mbox{\te{#1}}''}
+
+\newcommand{\obsolete}[1]{}
+
+\makeindex
+
+\title{
+\resizebox{2in}{!}{\includegraphics[width=\textwidth]{../common/B-Lang}} \\
+\vspace{0.3in}
+{\BH}$^{\rm{TM}}$ ({\BS} Haskell/Classic) \\
+\mbox{} \\
+Language Reference Guide \\
+\vspace*{2in}
+\mbox{}
+}
+
+% Revision id, major copyrights
+\input{version}
+
+\ifpdf
+\hypersetup{
+pdfauthor = {Bluespec, Inc.},
+pdftitle = {Bluespec Haskell (BH) (TM) Reference Guide},
+pdfsubject = {Bluespec},
+pdfkeywords = {Bluespec},
+pdfcreator = {Bluespec}}
+\else
+\fi
+
+\begin{document}
+
+% ----------------
+
+\maketitle
+
+% ================================================================
+
+\pagestyle{fancy}
+
+\lhead[Reference Guide]{BH}
+\rhead[BH]{Reference Guide}
+
+
+%\lfoot[\thepage]{}
+\cfoot{\thepage}
+%\rfoot[]{\thepage}
+
+% ----------------
+
+\newpage
+
+{\large\bf Trademarks and copyrights}
+
+Verilog is a trademark of IEEE (the Institute of Electrical and
+Electronics Engineers).  The Verilog standard is copyrighted, owned
+and maintained by IEEE.
+
+VHDL is a trademark of IEEE (the Institute of Electrical and
+Electronics Engineers).  The VHDL standard is copyrighted, owned and
+maintained by IEEE.
+
+SystemVerilog is a trademark of IEEE.  The SystemVerilog standard is
+owned and maintained by IEEE.
+
+SystemC is a trademark of IEEE.  The SystemC standard is owned and
+maintained by IEEE.
+
+Bluespec is a trademark of Bluespec, Inc.
+
+% ================================================================
+
+\newpage
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Table of Contents}
+
+\tableofcontents
+
+% The following two commands are a work-around for some bug
+% seemingly introduced by the fancyhdr package.  Without this,
+% the entries on the last page of the table of are spread
+% vertically across the page, i.e., the linespacing is
+% screwed up.  This work-around seems to fix it.
+
+\vfill
+
+\hm
+
+\newpage
+
+% ================================================================
+
+\section{Introduction}
+
+{\BH} ({\BHfull}) is a language for hardware design.  The language borrows its
+notation, type and package system from an existing general-purpose
+functional programming language called Haskell
+{\cite{haskell12}}{\index{Haskell}} where those constructs have been
+well tested for over a decade.  Unlike Haskell, {\BH} is meant
+solely for hardware design--- a {\BH} program represents a circuit.
+The abstract model for these circuits is a Term Rewriting System
+(TRS); details about using TRSs for describing circuits, and compiling
+these descriptions to real hardware, may be found in James Hoe's
+thesis {\cite{jhoe}}.  {\BH} has several restrictions and extensions
+relative to Haskell, arising out of this hardware focus.
+
+This document is not meant as a tutorial on {\BH} (separate
+documents exist for that purpose).  Nevertheless, this document has
+numerous small examples to explicate {\BH} notation.
+
+% ----------------------------------------------------------------
+
+\subsection*{Meta notation}
+
+The grammar
+\index{grammar}
+\index{meta notation|see{grammar}}
+rules in the
+presentation below mostly follow the usual EBNF (Extended BNF)
+structure.  Grammar alternatives are separated by ``{\alt}''.  Items
+enclosed in \opt{} are optional.  Items enclosed in {\many{}} can be
+repeated zero or more times.  The last piece of notation is used
+sloppily; sometimes there must be at least one item, and also, the
+last terminal inside the {\many{}} is sometimes a separator rather
+than terminator.
+
+% ----------------------------------------------------------------
+
+\subsection*{Identifiers and the r\^ole of upper and lower case}
+
+An identifier {\index{identifiers|textbf}}in {\BH} consists of a letter
+followed by zero or more letters, digits, underscores
+\index{underscore|see{\qbs{\US}}}\index{_@\te{\US}!in identifiers}and single quotes.
+\index{=squote@\te{'} (character, in identifiers)}
+Identifiers are case sensitive: {\tt{glurph}},
+{\tt{gluRph}} and {\tt{Glurph}} are three distinct identifiers.
+
+The case of the first letter in an identifier
+\index{identifiers!case of first letter}
+is very important.  If the first letter is lower
+case, the identifier is a ``variable identifier'', referred to in the
+grammar rules as a {\nterm{varId}}.
+\index{varId@\te{varId} (grammar terminal)|textbf}
+If the first letter is upper case,
+the identifier is a ``constructor
+identifier'',
+\index{identifiers!constructor}
+referred to in the
+grammar rules as a
+{\nterm{conId}}.
+\index{conId@\nterm{conId} (grammar non-terminal)|textbf}
+
+In {\BH}, package names (\nterm{packageId}),
+\index{packageId@{\nterm{packageId}} (grammar non-terminal)}
+type names (\nterm{tycon})
+\index{tycon@\nterm{tycon} (grammar non-terminal)}
+and value constructor names
+\index{value constructor names}
+are all constructor identifiers.  (Ordinary)
+variables,
+\index{variables}
+field names
+\index{field names}
+and type variables
+\index{type variables}
+are all variable identifiers.
+\index{identifiers!variable}
+
+A lone underscore, {\qbs{\US}},
+\index{=underscore@\te{\US}!``don't care'' pattern}
+\index{=underscore@\te{\US}!``don't care'' expression}
+is treated as a
+special identifier--- it is used as a ``don't care''
+pattern
+\index{don't care (patterns and expressions)|see{\qbs{\US}}}
+or expression (more details in Sections \ref{sec-exprs-wildcard} and
+\ref{sec-patterns-var}).
+
+% ----------------------------------------------------------------
+
+\subsection*{The Standard Prelude}
+
+{\index{Prelude@{\te{Prelude}}}}
+The Standard Prelude is a predefined package that is imported
+implicitly into every {\BH} package.  It contains a number of useful
+predefined entities (types, values/functions, classes, instances,
+etc.).  It is somewhat analogous to the combination of various ``.h''
+files and standard libraries in C, except that in {\BH} no special
+action is needed to import the prelude or to link it in.  We will
+refer to the prelude periodically in the following sections, and there
+are more details in appendix {\ref{sec-prelude}}.
+
+% ----------------------------------------------------------------
+
+\subsection*{Lexical syntax/layout}
+
+\index{layout}
+\index{indentation|see{layout}}
+In {\BH}, there are various syntactic constructs that involve zero
+or more items enclosed in braces and separated by semicolons:
+\BBS
+    \{  {\rm\emph{item}} ; {\rm\emph{item}} ; $\cdots$ ; {\rm\emph{item}} \}
+\EBS
+These braces and semicolons
+\index{braces and semicolons|see{layout}}
+can be omitted entirely if the components are laid out with proper
+indentation.
+
+Suppose the parser discovers a missing open brace (e.g., after the
+keywords {\te{where}}, {\te{let}}, {\te{do}} and {\te{of}}).  Then,
+the indentation of the next lexical element is remembered (and the
+missing open brace is implicitly inserted before it).  For each
+subsequent line, if it contains only whitespace or is indented more,
+then it is treated as a continuation of the current item.  If it is
+indented the same amount, it is treated as the beginning of the next
+item ({\ie} a semicolon is inserted implicitly before the item).  If
+it is indented less, then the list of items is considered to be
+complete ({\ie} a closing brace is implicitly inserted).  An explicit
+brace is never matched against an implicit one.  Thus, while using the
+layout rule, if the parser encounters an explicit open brace, then it
+does not resume using the layout rule for this list of items until it
+has ``emerged'' past the explicit corresponding closing brace (a
+construct nested inside this list of items may still use the layout
+rule).
+
+% ----------------------------------------------------------------
+
+\subsection*{Comments in {\BH} programs}
+
+In a {\BH} program, a {\emph{comment}} is legal as whitespace, and
+may be introduced in two ways.  An {\emph{ordinary
+comment}}{\index{comment!ordinary}}{\index{=minusminus@{\te{{-}{-}}} (ordinary
+comment)}} is introduced by a lexical token consisting of two or more
+consecutive dashes followed by a non-symbol, and extends up to and
+including the end of the line.  (See Section
+{\ref{sec-infix-applications}} for the list of symbols.)  Note: the
+lexical token {\te{--->}} is a legal token in {\BH}, and since it
+contains three consecutive dashes followed by a symbol, it does not
+begin a comment.
+
+A {\emph{nested comment}}{\index{comment!nested}} is introduced by the
+lexeme {\qbs{\{-}}
+{\index{=lbraceminus@\texttt{\LBRACE{}-} (open nested comment)}}
+and extends until the next matching
+{\qbs{-\}}},
+{\index{=minusrbrace@\texttt{-\RBRACE{}} (close nested comment)}}
+possibly spanning multiple lines.  A nested comment can itself contain
+another nested comment; this nesting can be repeated to any depth.
+
+In an ordinary comment, the character sequences {\qbs{\{-}} and
+{\qbs{-\}}} have no special significance, and, in a nested comment, a
+sequence of dashes has no special significance.
+
+% ----------------------------------------------------------------
+
+\subsection*{General organization of this document}
+
+A concept that is pervasive in {\BH} is the notion of a
+{\emph{type}}.  Every value expression in {\BH}, even a basic value
+identifier, has a type, and the compiler does extensive static type
+checking to rule out absurd use of values (such as taking the square
+root of an IP address).  Types are discussed in section
+{\ref{sec-type}}.
+
+A {\BH} program consists of one or more packages.  These outermost
+constructs are described in section {\ref{sec-packages}}.  As
+explained later, a {\BH} package is a linguistic
+namespace-management mechanism and does not have any direct
+correlation with any hardware module being described by the program.
+Hardware modules correspond to {\emph{modules}}, a particular type of
+value in {\BH}.
+
+Within each package is a collection of top-level definitions.  These
+are described in section {\ref{sec-top-level-defs}}.
+
+Amongst the top-level definitions are {\emph{value definitions}}
+(section {\ref{sec-val-defs}}), which constitute the actual meat of
+the code.  Value definitions are built around {\emph{expressions}},
+which are described in section {\ref{sec-exprs}}.
+
+% ================================================================
+
+\section{Types}
+
+\label{sec-type}
+
+\index{types|textbf}
+Every value expression and, in particular, every value identifier in
+{\BH} has a {\emph{type}}.  In some cases the programmer must supply
+a {\emph{type signature}}{\index{type signature}} specifying this and in many cases the
+compiler infers it automatically.  The {\BH} programmer should be
+aware of types at all times.
+
+\gram{type}{\nterm{btype} \opt{ \term{->} \nterm{type} } } \\
+\gram{btype}{\opt{\nterm{btype}} \nterm{atype}} \\
+\gram{atype}{\nterm{tycon} {\alt} \nterm{tyvar} {\alt} \term{(} \many{\nterm{type} \term{,}} \term{)}} \\
+\gram{tycon}{\nterm{conId}}
+\index{tycon@\nterm{tycon} (grammar non-terminal)|textbf}
+
+Most type expressions have the form:
+\index{type constructor}
+\BBS
+{\rm\emph{TypeConstructor}}  $t_1$ $\cdots$ $t_n$
+\EBS
+where $t_1$ $\cdots$ $t_n$ are themselves type expressions, and $n
+{\geq} 0$.  The $t_1$ $\cdots$ $t_n$ are referred to as the
+{\emph{type arguments}} to the type constructor.  $n$ is also called
+the {\emph{arity}}
+\index{arity, of type constructor}
+of the type constructor.
+
+Familiar basic types have zero-arity type constructors (no type
+arguments, $n = 0$).  Examples:
+\begin{verbatim}
+ Integer
+ Bool
+ String
+ Action
+\end{verbatim}
+Other type constructors have arity $n > 0$; these are also known as
+{\emph{parameterized types}}.
+\index{types!parameterized}
+Examples:
+\BBS
+List   Bool
+List  (List Bool)
+Array  Integer  String
+Maybe  Integer
+\EBS
+These represent the types of lists of Booleans, lists of lists of
+Booleans, arrays indexed by integers and containing strings, and
+an optional result possibly containing an integer.
+
+A type can be {\emph{polymorphic}},
+\index{types!polymorphic}
+indicated using type variables.
+\index{type variables}
+Examples:
+\begin{verbatim}
+ List   a
+ List  (List b)
+ Array  i  (List  String)
+\end{verbatim}
+These represent lists of things of some unknown type {\qbs{a}}, lists
+of lists of things of some unknown type {\qbs{b}}, and arrays indexed
+by some unknown type {\qbs{i}} and containing lists of strings.
+
+One type constructor is given special status in the syntax.  The type
+of functions from arguments of type $t_1$ to results of type $t_2$
+could have been written as:
+\BBS
+Function  $t_1$  $t_2$
+\EBS
+but in {\BH} we write the constructor as an infix arrow:
+\index{function types|textbf}
+\index{arrow types|see{function types}}
+\index{=minusgt@{\te{->}} (infix function type constructor)|textbf}
+\BBS
+$t_1$ -> $t_2$
+\EBS
+These associate to the right, {\ie}
+\BBS
+$t_1$ -> $\cdots$ -> $t_{n-1}$ -> $t_n$  \hmm  $\equiv$  \hmm  $t_1$ -> ($\cdots$ -> ($t_{n-1}$ -> $t_n$))
+\EBS
+
+There is one particular set of niladic type constructors that look
+like numbers.
+\index{size types}
+These are used to represent certain ``sizes''.  For
+example, the type:
+\begin{verbatim}
+ Bit 16
+\end{verbatim}
+consists of the unary type constructor {\te{Bit}} applied to type
+represented by the niladic type constructor {\qbs{16}}.  The type as a
+whole represents bit vectors of length 16 bits.  Similarly the type
+\begin{verbatim}
+ UInt 32
+\end{verbatim}
+represents the type of unsigned integers that can be represented in 32
+bits.
+
+% ----------------------------------------------------------------
+
+\subsection{Type classes and overloading}
+
+\label{sec-overloading}
+
+\index{overloading, of type}
+{\BH}'s {\te{class}} and {\te{instance}} mechanisms form a
+systematic way to do {\emph{overloading}} (the approach has been well
+tested in Haskell).
+
+Overloading is a way to use a common name to refer to a set of
+operations at different types.  For example, we may want to use the
+{\qbs{<}} operator name for the integer comparison operation, the
+floating-point comparison operation, the vector comparison operation
+and the matrix comparison operation.  Note that this is not the same
+as polymorphism: a polymorphic function is a {\emph{single}} function
+that is meaningful at an infinity of types ({\ie} at every possible
+instantiation of the type variables in its type).  An overloaded
+identifier, on the other hand, usually uses a common name to refer to
+a (usually) small set of distinct operations.
+
+Further, it may make sense to have {\qbs{<=}}, {\qbs{>}} and
+{\qbs{>=}} operations wherever there is a {\qbs{<}} operation, on
+integers, floating points numbers, vectors and matrices.  Rather than
+handle these separately, we say:
+\begin{tightlist}
+\item
+there is class of types which we will call {\te{Ord}} (for ``ordered
+types''),
+\index{type class|textbf}
+\index{class|see{type class}}
+
+\item
+that the integer, floating point, vector and matrix types are members
+(or ``instances'') of this class, and
+\index{instance (of type class)|textbf}
+
+\item
+that all types that are members of this class have appropriate
+definitions for the {\qbs{<}}, {\qbs{<=}}, {\qbs{>}} and {\qbs{>=}}
+operations.  We also say that these operations are {\emph{overloaded}}
+across these instance types, and we refer to these operations as the
+{\emph{methods}} of this class.
+\index{methods!of a type class|textbf}
+
+\end{tightlist}
+Another example: we could use a class {\te{Hashable}} with an
+operation called {\te{hash}} to represent those types $T$ for which we
+can and do define a hashing function.  Each such type $T$ has to
+specify how to compute the {\te{hash}} function at that type.
+
+Classes, and the membership of a type in a class, do not come into
+existence by magic.  Every class is created explicitly using a class
+declaration, described in section {\ref{sec-classes}}.  A type must
+explicitly be made an instance of a class and the corresponding class
+methods have to be provided explicitly; this is described in
+{\ref{sec-instances}}.
+
+% ----------------
+
+\subsubsection{Context-qualified types}
+
+\index{context-qualified types|textbf}
+\index{types!context-qualified|see{context-qualified types}}
+Consider the following type declaration:
+\begin{verbatim}
+ sort  ::  (Ord a) => List a -> List a
+\end{verbatim}
+It expresses the idea that a sorting function takes an (unsorted)
+input list of items and produces a (sorted) output list of items, but
+it is only meaningful for those types of items (\qbs{a}) for which the
+ordering functions (such as {\qbs{<}}) are defined.  Thus, it is ok to
+apply {\te{sort}} to lists of {\te{Integer}}'s or lists of
+{\te{Bool}}'s, because those types are instances of {\te{Ord}}, but it
+is not ok to apply {\te{sort}} to a list of, say, {\te{Counter}}'s
+(assuming {\te{Counter}} is not an instance of the {\te{Ord}} class).
+
+In the type of {\te{sort}} above, the part before {\qbs{=>}} is called
+a {\emph{context}}.
+\index{contexts|see{context-qualified types}}
+A context expresses constraints on one or more
+type variables--- in the above example, the constraint is that any
+actual type {\qbs{a}} must be an instance of the {\te{Ord}} class.
+
+A context-qualified type has the following grammar:
+
+\gram{ctxType}{\opt{\nterm{context} \term{=>}} \nterm{type}}
+\index{=eqgt@\te{=>} (in context-qualified types)|textbf}
+
+\gram{context}{\term{(} \many{\nterm{classId} \many{ \nterm{varId} } \term{,} } \term{)}}
+
+\gram{classId}{\nterm{conId}}
+
+In the above example, the class {\te{Ord}} had only one type parameter
+({\ie} it constrains a single type) but, in general, a type class can
+have multiple type parameters.  For example, in {\BH} we frequently
+use the class {\mbox{\qbs{Bits a n}}} which constrains the type
+represented by {\te{a}} to be representable in bit strings of length
+represented by the type {\te{n}}.
+
+\begin{NOTE}
+When using an overloaded identifier {\te{x}} there is always a
+question of whether or not there is enough type information available
+to the compiler to determine which of the overloaded {\te{x}}'s you
+mean.  For example, if {\te{read}} is an overloaded function that
+takes strings to integers or Booleans, and {\te{show}} is an
+overloaded function that takes integers or Booleans to strings, then
+the expression {\mbox{\te{show (read s)}}} is ambiguous--- is the
+thing to be read an integer or a Boolean?
+
+In such ambiguous situations, the compiler will so notify you, and you
+may need to give it a little help by inserting an explicit type
+signature, e.g.,
+\begin{verbatim}
+ show ((read s) :: Bool)
+\end{verbatim}
+\end{NOTE}
+
+% ================================================================
+
+\section{Packages}
+
+\label{sec-packages}
+
+\index{package|textbf}
+Packages are the outermost constructs in {\BH}--- all {\BH} code
+must be inside packages.  There should be one package per file.  A
+{\BH} package is a linguistic device for namespace control, and is
+particularly useful for programming-in-the-large.  A package does not
+directly correspond to hardware modules.  (Hardware modules correspond
+to {\BH} modules, described in section {\ref{sec-modules}}.)
+
+A {\BH} package consists of the package header, import declarations,
+and top level definitions.  The package header indicates which names
+defined in this package are exported, {\ie} available for import into
+other packages.
+
+\gram{packageDefn}{ \term{package} \nterm{packageId} \term{(} \nterm{exportDecl} \term{)} \term{where} \term{\{} }
+\index{package@\te{package} (keyword)}
+\index{where@\te{where} (keyword)}
+\\
+\grammore{\many{ \nterm{importDecl} \term{;} }} \\
+\grammore{\many{ \nterm{fixityDecl} \term{;} }} \\
+\grammore{\many{ \nterm{topDefn} \term{;} }} \\
+\grammore{\term{\}}}
+
+\gram{exportDecl}{ \nterm{varId} {\alt} \nterm{typeId} \opt{\nterm{conList}} }
+
+\gram{conList}{ \term{(..)} }
+
+\gram{importDecl}{ \term{import} \opt{\term{qualified}} \nterm{packageId} }
+\index{import@\te{import} (keyword)}
+
+\gram{fixityDecl}{ \nterm{fixity} \nterm{integer} \nterm{varId} }
+
+\gram{fixity} { \term{infix} {\alt} \term{infixl} {\alt} \term{infixr} }
+\index{infix@\te{infix} (keyword)}
+\index{infixl@\te{infixl} (keyword)}
+\index{infixr@\te{infixr} (keyword)}
+
+\gram{packageId}{\nterm{conId}}
+
+Example:
+\BBS
+package Foo (x, y) where
+\null
+import Bar
+import Glurph
+\null
+{\rm\emph{... top level definition ...}}
+{\rm\emph{... top level definition ...}}
+{\rm\emph{... top level definition ...}}
+\EBS
+Here, {\te{Foo}} is the name of this package, {\te{x}} and {\te{y}} are
+names exported from this package (they will be defined amongst the top
+level definitions in this package), and {\te{Bar}} and {\te{Glurph}}
+are the names of package being imported (for use in this package).
+
+\index{export, identifiers from a package|textbf}
+\index{identifiers!export from a package}
+\index{=lparendotdotrparen@\te{(..)} (exporting constructors and field names)}
+The export list is a list of identifiers, each optionally followed by
+\te{(..)}.  Each identifier in the list will be visible outside the
+package.  If the exported identifier is the name of \te{data},
+\te{struct}, or \te{interface}, then the constructors or fields of the
+type will be visible only if \te{(..)}  is used.  Otherwise, if you
+export only the name of a type without the \te{(..)} suffix, the type
+is an abstract (opaque) data type outside the package.  The list of
+identifiers may include identifiers defined in the package as well as
+identifiers imported from other packages.
+
+If the keyword \te{qualified} is present in the import declaration
+all the imported entities from that package must be referred to
+by a qualified name.
+
+The fixity declaration can be used to give a precedence level to
+a user-defined infix operator.  The \te{infixl} specifies a left
+associative operator, \te{infixr} a right associative operator, and
+\te{infix} a non-associative operator.
+
+% ----------------------------------------------------------------
+
+\subsection{Name clashes and qualified names}
+
+\index{identifiers!qualified|textbf}
+When used in any scope, a name must have an unambiguous meaning.  If
+there is name clash for a name $x$ because it is defined in the
+current package and/or it is available from one or more imported
+packages, then the ambiguity can be resolved by using a qualified name
+of the form $M.x$ to refer to the version of $x$ contained in package
+$M$.
+
+% ================================================================
+
+\section{Top level definitions}
+
+\label{sec-top-level-defs}
+
+Top level definitions can be used only on the top level within a package.
+
+% ----------------------------------------------------------------
+
+\subsection{\te{data}}
+
+\label{sec-data}
+
+A {\te{data}} definition defines a brand new type, which is different
+from every primitive type and every other type defined using a
+{\te{data}} definition, even if they look structurally similar.  The
+new type defined by a {\te{data}} definition is a ``sum of products'',
+or a ``union of products''.
+
+\gram{topDefn}{ \term{data} \nterm{typeId} \many{\nterm{tyVarId}} \term{=} \many{\nterm{summand} \term{|}} \opt{\nterm{derive}}}
+
+\gram{summand}{\nterm{conId} \many{\nterm{type}}}
+
+\gram{summand}{\nterm{conId} \term{\{} \many{ \nterm{fieldDef} \term{;} } \term{\}} }
+
+\index{deriving@\te{deriving} (keyword)|textbf}
+\gram{derive}{\term{deriving} \term{(} \many{ \nterm{classId} \term{,} } \term{)} }
+
+\gram{fieldDef}{ \nterm{fieldId} \term{::} \nterm{type} }
+
+The {\nterm{typeId}} is the name of this new type.  If the
+{\nterm{tyVarId}}'s exist, they are type parameters, thereby making
+this new type polymorphic.  In each {\nterm{summand}}, the
+{\nterm{conId}} is called a ``constructor''.  You can think of them as
+unique {\emph{tag}}'s that identify each summand.  Each
+{\nterm{conId}} is followed by a specification for the fields involved
+in that summand ({\ie} the fields are the ``product'' within the
+summand).  In the first way of specifying a summand, the fields are
+just identified by position, hence we only specify the types of the
+fields.  In the second way of specifying a summand, the fields are
+named, hence we specify the field names ({\nterm{fieldId}}'s) and
+their types.
+
+The same constructor name may occur in more than one type.  The same
+field name can occur in more than one type.  The same field name can
+occur in more than one summand within the same type, but the type of
+the field must be the same in each summand.
+
+The optional {\nterm{derive}} clause is used as a shorthand to make
+this new type an instance of the {\nterm{classId}}'s, instead of using
+a separate, full-blown {\te{instance}} declaration.  This can only be
+done for certain predefined {\nterm{classId}}'s: {\te{Bits}},
+{\te{Eq}}, and {\te{Bounded}}.  The compiler automatically derives the
+operations corresponding to those classes (such as {\te{pack}} and
+{\te{unpack}} for the {\te{Bits}} class).  Type classes, instances,
+and {\te{deriving}} are described in more detail in sections
+{\ref{sec-overloading}}, {\ref{sec-classes}} and
+{\ref{sec-instances}}.
+
+To construct a value corresponding to some {\te{data}} definition $T$,
+one simply applies the constructor to the appropriate number of
+arguments (see section {\ref{sec-exprs-constrs}}); the values of those
+arguments become the components/fields of the data structure.
+
+To extract a component/field from such a value, one uses pattern
+matching (see section {\ref{sec-patterns}}).
+
+Example:
+\begin{verbatim}
+ data Bool = False | True
+\end{verbatim}
+This is a ``trivial'' case of a {\te{data}} definition.  The type is
+not polymorphic (no type parameters); there are two summands with
+constructors {\te{False}} and {\te{True}}, and neither constructor has
+any fields.  It is a 2-way sum of empty products.  A value of type
+{\te{Bool}} is either the value {\te{False}} or the value {\te{True}}
+Definitions like these correspond to an ``enum'' definition in C.
+
+Example:
+\begin{verbatim}
+ data Operand = Register (Bit 5)
+              | Literal  (Bit 22)
+              | Indexed  (Bit 5) (Bit 5)
+\end{verbatim}
+Here, the first two summands have one field each; the third has two
+fields.  The fields are positional (no field names).  The field of a
+{\te{Register}} value must have type {\mbox{Bit 5}}.  A value of type
+{\te{Operand}} is either a {\te{Register}} containing a 5-bit value,
+or a {\te{Literal}} containing a 22-bit value, or an {\te{Indexed}}
+containing two 5-bit values.
+
+Example:
+\begin{verbatim}
+ data Maybe a = Nothing | Just a
+              deriving (Eq, Bits)
+\end{verbatim}
+\index{Maybe@\te{Maybe} (type)|textbf}
+\index{Nothing@\te{Nothing}|see{\te{Maybe}}}
+\index{Just@\te{Just}|see{\te{Maybe}}}
+This is a very useful and commonly used type.  Consider a function
+that, given a key, looks up a table and returns some value associated
+with that key.  Such a function can return either {\te{Nothing}}, if
+the table does not contain an entry for the given key, of {\te{Just
+$v$}}, if the table contains $v$ associated with the key.  The type is
+polymorphic (type parameter {\qbs{a}}) because it may be used with
+lookup functions for integer tables, string tables, IP address tables,
+etc., {\ie} we do not want here to over-specify the type of the value
+$v$ at which it may be used.
+
+Example:
+\begin{verbatim}
+ data Instruction = Immediate { op::Op; rs::Reg; rt::CPUReg; imm::UInt16; }
+                  | Jump      { op::Op; target::UInt26; }
+\end{verbatim}
+
+An {\te{Instruction}} is either an {\te{Immediate}} or a {\te{Jump}}.
+In the former case, it contains
+a field called {\te{op}} containing a value of type {\te{Op}},
+a field called {\te{rs}} containing a value of type {\te{Reg}},
+a field called {\te{rt}} containing a value of type {\te{CPUReg}}, and
+a field called {\te{imm}} containing a value of type {\te{UInt16}}.
+In the latter case, it contains
+a field called {\te{op}} containing a value of type {\te{Op}}, and
+a field called {\te{target}} containing a value of type {\te{UInt26}}.
+
+\begin{NOTE}
+Error messages involving data type definitions sometimes show traces
+of how they are handled internally.  Data type definitions are
+translated into a data type where each constructor has exactly one
+argument.  Each argument is a struct type.  The types above translate
+to:
+\begin{verbatim}
+ data Bool = False PrimUnit | True PrimUnit
+
+ data Operand = Register Operand.Register
+              | Operand.Literal
+              | Operand.Indexed
+ struct Operand°Register = { _1 :: Bit 5 }
+ struct Operand°Literal = { _1 :: Bit 22 }
+ struct Operand°Indexed = { _1 :: Reg 5; _2 :: Reg 5 }
+
+ data Maybe a = Nothing PrimUnit | Maybe.Just a
+ struct Maybe.Just a = { _1 :: a }
+
+ data Instruction = Immediate Instruction°Immediate |
+                    Register Instruction°Register
+ struct Instruction°Immediate = { op::Op; rs::Reg; rt::CPUReg; imm::UInt16; }
+ struct Instruction°Register = { op::Op; target::UInt26; }
+\end{verbatim}
+\end{NOTE}
+
+% ----------------------------------------------------------------
+
+\subsection{\te{struct}}
+
+\label{sec-struct-type}
+
+\index{structs!type definition|textbf}
+Defines a record type (a ``pure product'').
+\index{records|see{structs}}
+\index{product types|see{structs}}
+This is a
+specialized form of a {\te{data}} definition. The same field name may
+occur in more than one type.
+
+\gram{topDefn}{ \term{struct} \nterm{typeId} \many{\nterm{tyVarId}} \term{=} \term{\{} \many{ \nterm{fieldDef} \term{;} } \term{\}}  \opt{\nterm{derive}}}
+\index{struct@\te{struct} (keyword)}
+
+\gram{fieldDef}{ \nterm{fieldId} \term{::} \nterm{type} }
+
+Example:
+\begin{verbatim}
+ struct Proc = { pc :: Addr; rf :: RegFile; mem :: Memory }
+ struct Coord = { x :: Int; y :: Int }
+\end{verbatim}
+
+Section {\ref{sec-struct-val}} describes how to construct values of a
+{\te{struct}} type.  A field of a {\te{struct}} type can be extracted
+either directly using ``dot'' notation (section
+{\ref{sec-struct-select}}) or using pattern matching (section
+{\ref{sec-patterns-struct}}).
+
+% ----------------
+
+\subsubsection{Tuples}
+
+\label{sec-tuple-type}
+
+\index{tuples!type definition|textbf}
+One way to group multiple values together is to use a {\te{data}}
+definition in which a constructor has multiple fields.
+
+However, there is a built-in notation for a common form of grouping,
+called ``tuples''.  To group two (or more) values together the Prelude
+contains a type,
+\te{PrimPair}, for which there is syntactic sugar for type expressions,
+value expressions, and patterns.
+
+The type has the following definition
+\begin{verbatim}
+ struct PrimPair a b = { fst :: a; snd :: b } deriving (Eq, Bits, Bounded)
+\end{verbatim}
+For type expressions the following shorthand can be used:
+\BBS
+(a, b)  \hmm  $\equiv$  \hmm  PrimPair a b
+\EBS
+Or, more generally,
+\BBS
+($t_1$, $t_2$, $\cdots$, $t_n$)  \hmm  $\equiv$  \hmm  PrimPair $t_1$ (PrimPair $t_2$ ($\cdots$ $t_n$))
+\EBS
+
+There is a corresponding shorthand for value expressions and patterns:
+\index{tuples!values}
+\index{tuples!patterns}
+\BBS
+(a, b)  \hmm  $\equiv$  \hmm  PrimPair \{ fst = a; snd = b \}
+\EBS
+
+There is also special syntax for the empty tuple.  It is written \qbs{()} for
+types, expressions, and patterns.  The real type has the following definition
+\begin{verbatim}
+ struct PrimUnit = { } deriving (Eq, Bits, Bounded)
+\end{verbatim}
+
+% ----------------------------------------------------------------
+
+\subsection{\te{type}}
+
+Defines a type synonym.  These are used purely for readability, {\ie}
+a type synonym can always be ``expanded out'' to its definition at any
+time.
+
+\gram{topDefn}{ \term{type} \nterm{typeId} \many{\nterm{tyVarId}} \term{=} \nterm{type} }
+
+Examples:
+\begin{verbatim}
+ type Byte     = Bit  8
+ type Word     = Bit 16
+ type LongWord = Bit 32
+\end{verbatim}
+These provide commonly used names for certain bit lengths.  In a
+specification of a processor:
+\begin{verbatim}
+ data RegName = R0 | R1 | ... | R31
+ type Rdest = RegName
+ type Rsrc  = RegName
+ data ArithInstr = Add Rdest Rsrc Rsrc
+                 | Sub Rdest Rsrc Rsrc
+\end{verbatim}
+the last two lines suggest the roles of the registers in the
+instructions, and is more readable than:
+\begin{verbatim}
+ data ArithInstr = Add RegName RegName RegName
+                 | Sub RegName RegName RegName
+\end{verbatim}
+
+% ----------------------------------------------------------------
+
+\subsection{\te{interface}}
+
+\index{interfaces|textbf}
+Defines an interface for a hardware module (see section
+\ref{sec-modules}).  An interface is essentially a {\te{struct}},
+but its components are restricted to those things that have a physical
+interpretation as wires in and out of a circuit.  The types of fields
+in an interface are more likely to involve {\te{Action}}'s (see
+section {\ref{sec-actions}}), which are typically interpreted as
+``enable signals'' into a circuit.  The fields of an interface are
+also known as {\emph{methods}}
+\index{methods!of an interface|textbf}
+(not to be confused with methods of a class, described in Sections
+{\ref{sec-overloading}} and {\ref{sec-classes}}).
+
+\gram{topDefn}{ \term{interface} \nterm{typeId} \many{\nterm{tyVarId}} \term{=} \term{\{} \many{ \nterm{fieldDef} \term{;} } \term{\}} }
+\index{interface@\te{interface} (keyword)!in interface definitions|textbf}
+
+Example:
+\begin{verbatim}
+ interface Stack a =
+     push :: a -> Action
+     pop :: Action
+     top :: Maybe a
+\end{verbatim}
+This describes a circuit that implements a stack (a LIFO) of items.
+This polymorphic definition does not specify the type of the contents
+of the stack, just that they have some type {\qbs{a}}.  Corresponding
+to the {\te{push}} method, the circuit will have input wires to carry
+a value of type {\qbs{a}}, and a ``push-enable'' input wire that
+specifies when the value present on the input wires should be pushed
+on the stack.  Corresponding to the {\te{pop}} component, the circuit
+will have a ``pop-enable'' input wire that specifies when a value
+should be popped off the stack.  Corresponding to the {\te{top}}
+component, the circuit will have a set of output wires: if the stack
+is empty, the wires will represent the value {\te{Nothing}}, and if
+the stack is non-empty and $v$ is the value at the top of the stack,
+the wires will represent {\te{Maybe $v$}}.
+
+% ----------------------------------------------------------------
+
+\subsection{{\te{class}} declarations}
+
+\label{sec-classes}
+
+The general concepts behind classes, instances, overloading etc.
+were introduced in section {\ref{sec-overloading}}.  A new class is
+declared using the following:
+
+\gram{topDefn}{\term{class} \opt{\nterm{context} \term{=>}} \nterm{classId} \many{\nterm{tyVarId}} \opt{\term{|} \nterm{funDep}}
+        \term{where} \term{\{}} \\
+\grammore{ \many{\nterm{varId} \term{::} \nterm{ctxType} \term{;}} } \\
+\grammore{ \term{\}} }
+
+{\nterm{classId}} is the newly declared class.  It can be polymorphic,
+if {\nterm{tyVarId}}'s exist; these are called the {\emph{parameters}}
+of the type class.  The {\nterm{tyVarId}}'s may themselves be
+constrained by {\nterm{context}}, in which case the classes named in
+{\nterm{context}} are called the ``super-classes'' of this class.  The
+``{\nterm{varId}\term{::}\nterm{ctxType}}'' list declares the class
+method names and their types.
+
+Example (from the Prelude):
+\begin{verbatim}
+ class Literal a where
+     fromInteger :: Integer -> a
+\end{verbatim}
+This defines the class {\te{Literal}}.  It says that any type {\te{a}}
+in this class must have a method (a function) called
+{\te{fromInteger}} that converts an {\te{Integer}} value into the type
+{\te{a}}.  In fact, this is the mechanism the {\BH} uses to
+interpret literal constants, e.g., to resolve whether a literal like
+{\te 6847} is to be interpreted as a signed integer, an unsigned
+integer, a floating point number, a bit value of 10 bits, a bit value
+of 8 bits, etc.  (This is described in more detail in Section
+\ref{sec-exprs-constrs}.)
+
+Example (from the Prelude):
+\begin{verbatim}
+ class (Literal a) => Arith a where
+     (+) :: a -> a -> a
+     (-) :: a -> a -> a
+     negate :: a -> a
+     (*) :: a -> a -> a
+\end{verbatim}
+This defines the class {\te{Arith}} with super-class {\te{Literal}}.
+It says that for any type {\te{a}} that is a member of the class
+{\te{Arith}}, it must also be a member of the class {\te{Literal}},
+and it must have four methods with the given names and types.  Said
+another way, an {\te{Arith}} type must have a way to convert integer
+literals into that type, and it must have addition, subtraction,
+negation and multiplication defined on it.
+
+The optional {\nterm{funDep}} section specifies {\emph{functional
+dependencies}} between the parameters of the type class:
+
+\gram{funDep}{\many{ \many{\nterm{tyVarId}} \term{->} \many{\nterm{tyVarId}} \term{,} }}
+
+These declarations specify that a type parameter may be determined
+uniquely by certain other type parameters.  For example:
+\begin{verbatim}
+ class Add x y z | x y -> z, y z -> x, z x -> y
+\end{verbatim}
+Here, the class declaration says that for any triple of types
+{\te{x}}, {\te{y}} and {\te{z}} that are in the class {\te{Add}}, any
+two of the types uniquely determines the remaining type, {\ie}
+\begin{tightlist}
+\item
+{\te{x}} and {\te{y}} uniquely determine {\te{z}},
+
+\item
+{\te{y}} and {\te{z}} uniquely determine {\te{x}}, and
+
+\item
+{\te{z}} and {\te{z}} uniquely determine {\te{y}}.
+\end{tightlist}
+
+See section {\ref{sec-primitives-size-types}} for more detailed
+insights into the use of functional dependencies.
+
+\begin{NOTE}
+Functional dependencies are not currently checked by the compiler.
+\end{NOTE}
+
+% ----------------------------------------------------------------
+
+\subsection{{\te{instance}} declarations}
+
+\label{sec-instances}
+
+A type can be declared as an instance of a class in two ways.  The
+general mechanism is the {\te{instance}} declaration; a convenient
+shortcut that can sometimes be used is the {\te{deriving}} mechanism.
+
+The general {\te{instance}} declaration grammar is the following:
+
+\gram{topDefn}{\term{instance} \nterm{context} \term{=>} \nterm{classId} \many{\nterm{type}}
+        \term{where}} \\
+\grammore{\term{\{} \many{\nterm{localDefn} \term{;}} \term{\}} }
+
+This can be read as saying that the type {\nterm{type}} is an instance
+of class {\nterm{classId}}, provided the constraints of
+{\nterm{context}} hold, and where the {\nterm{localDefn}}'s specify
+the implementation of the methods of the class.
+
+Sometimes, when a new type is defined using a {\te{data}} declaration,
+it can simultaneously be made a member of certain useful, predefined
+classes, allowing the compiler to choose the ``obvious''
+implementation of the class methods.  This is done using the
+{\te{deriving}} qualification to a {\te{data}} declaration (described
+in section {\ref{sec-data}}) or to a {\te{struct}} declaration
+(described in section {\ref{sec-struct-type}}).  The only classes for
+which {\te{deriving}} can be used for general types are {\te{Bits}}, {\te{Eq}} and
+{\te{Bounded}}.  Furthermore, {\te{deriving}} can be used for any class
+if the type is a data type that is isomorphic to a type that has an
+instance for the derived class.
+
+% ----------------
+
+\subsubsection{Deriving \te{Bits}}
+
+\label{sec-deriving-Bits}
+
+\index{Bits@\te{Bits} (type class)!\te{deriving}}
+\index{Bits@\te{Bits} (type class)!representation of data types}
+The instances derived for the \te{Bits} class can be described as follows:
+\begin{tightlist}
+
+\item
+For a \te{struct} type it is simply the the concatenation of the bits for
+all the fields.  The first field is in the leftmost (most significant) bits, and so on.
+
+\item
+For a \te{data} type, all values of the type occupy the same number of
+bits, regardless of which disjunct (constructor) it belongs to.  This
+size is determined by the largest disjunct.  The leftmost (most
+significant) bits are a code (a tag) for the constructor.  As few bits
+as possible are used for this.  The first constructor in the
+definition is coded 0, the next constructor is coded 1, and so on.
+The size of the rest of the bits is determined by the largest numbers
+of bits needed to encode the fields for the constructors.  For each
+constructor, the fields are laid out left to right, and the
+concatenated bits are stored right justified ({\ie} at the least
+significant bits).  For disjuncts that are smaller than the largest
+one, the bits between the constructor code and the field bits, if any,
+are ``don't care'' bits.
+
+\end{tightlist}
+
+Examples: The type
+\BBS
+data Bool = False | True
+\EBS
+uses one bit.  \te{False} is represented by 0 and \te{True} by 1.
+\BBS
+struct Två = \{ första :: Bit 8; andra :: Bit 16 \}
+\EBS
+uses 24 bits with \te{första} in the upper 8 bits and \te{andra} in the lower 16.
+\BBS
+data Maybe a = Nothing | Just a
+\EBS
+will use $1+n$ bits, where $n$ bits are needed to represent values of
+type \te{a}.  The extra bit will be the most significant bit and it
+will be 0 (followed by $n$ unspecified bits) for \te{Nothing} and 1
+(followed by the $n$ bits for \te{a}) for \te{Just}.
+
+% ----------------
+
+\subsubsection{Deriving \te{Eq}}
+
+The instances derived for the \te{Eq} class is the natural equality for
+the type.  For a struct all fields have to be equal, for a data type the constructors
+have to be equal and then all their parts.
+
+% ----------------
+
+\subsubsection{Deriving \te{Bounded}}
+
+An instance for \te{Bounded} can be derived for an enumeration type,
+{\ie} a data type where all constructors are niladic.  The \te{minBound} will
+be the first constructor and the \te{maxBound} will be the last.
+
+\te{Bounded} can also be derived for a \te{struct} type if all the field types of
+the struct are \te{Bounded}.  The \te{minBound} will be the struct with all
+fields having their respective \te{minBound}, and correspondingly for \te{maxBound}.
+
+\subsubsection{Deriving for isomorphic types}
+
+A data type with one constructor and one argument is isomorphic to its type
+argument.  For such a type any one-parameter class can be used, in a {\te{deriving}},
+for which there is an instance for the underlying type.
+
+Example:
+\BBS
+data Apples = Apple (UInt 32) deriving (Literal, Arith)
+
+five :: Apples
+five = 5
+
+eatApple :: Apples -> Apples
+eatApple n = n - 1
+\EBS
+
+% ----------------------------------------------------------------
+
+\subsection{Value definitions}
+
+\label{sec-val-defs}
+
+\index{value definitions|textbf}
+A value definition defines the value of an identifier (which could be
+a function).  Value definitions are the meat of a {\BH} program.
+
+Value definitions consist of a type signature followed immediately by
+one or more defining clauses:
+
+\gram{topDefn}
+     {\nterm{valueDefn}}
+
+\gram{valueDefn}
+     { \nterm{varId} \term{::} \nterm{ctxType} \term{;} } \\
+\grammore{ \many{\nterm{clause} \term{;}} }
+
+\gram{clause}
+     {\nterm{varId} \many{\nterm{apat}} \opt{\term{when} \nterm{guard}} \term{=} \nterm{exp}}
+\index{when@\te{when} (keyword)!in clauses of top-level definitions}
+\index{guards!with clauses of top-level definitions}
+
+The first line of a value definition is the type signature--- it
+simply specifies that the identifier {\nterm{varId}} has the type
+{\nterm{ctxType}}.  Subsequent lines define the value, one clause at a
+time.  The {\nterm{varId}}'s on the left-hand side of the type
+signature and on the left-hand side of each clause must all be the
+same, {\ie} they collectively define a single {\nterm{varId}}.
+
+Each clause defines part of the value, using pattern matching and
+guards.  If there are patterns ({\nterm{apat}}'s) present, then the
+{\nterm{varId}} being defined is a function, and the patterns
+represent arguments to the function.  The {\nterm{guard}} is a list of
+arbitrary predicates that may use identifiers bound in the patterns
+(see Section {\ref{sec-guards}}). The clause should be read as
+follows: if the function {\nterm{varId}} is applied to arguments that
+match the corresponding {\nterm{apat}}'s (in which case, identifiers
+in the {\nterm{apat}}'s are bound to the corresponding components of
+the arguments), and if the predicates in the {\nterm{guard}} are true,
+then the function returns the value of the expression {\nterm{exp}}.
+
+
+Example:
+\begin{verbatim}
+ wordSize :: Integer
+ wordSize = 16
+\end{verbatim}
+This simply defines the identifier {\te{wordSize}} to have type
+{\te{Integer}} and value 16.
+
+Example:
+\begin{verbatim}
+ not :: Bool -> Bool
+ not True  = False
+ not False = True
+\end{verbatim}
+This defines the classical Boolean negation function.  The type
+signature specifies that {\te{not}} is a function with argument type
+{\te{Bool}} and result type {\te{Bool}}.  After that, the first clause
+specifies that if the argument matches the value {\te{True}} ({\ie} it
+{\emph{is}} the value {\te{True}}), then it returns {\te{False}}.  The
+final clause specifies that if the argument is {\te{False}} it returns
+{\te{True}}.
+
+Example:
+\begin{verbatim}
+ f :: Maybe Int -> Int -> Int
+ f (Just x) y when x > 10, Just y' <- g y  = x + y'
+ f _        _                              = 0
+\end{verbatim}
+(If necessary, please first remember the definition of the
+{\te{Maybe}} type, introduced in section {\ref{sec-data}}).  The first
+line specifies that {\te{f}} is a function of two arguments, of type
+{\mbox{\te{Maybe Int}}} and {\te{Int}}, respectively, and that its
+result has type {\te{Int}}.  The second line specifies that if the
+first argument has the form {\te{Just x}} (in which case let us call
+its component {\te{x}}), if the second argument is anything (let us
+call it {\te{y}}), if {\te{x}}'s value is greater than 10, if the
+result of applying {\te{g}} to {\te{y}} has the form {\mbox{\te{Just
+y'}}} (in which case let us call the component {\te{y'}}), then the
+result is the value of {\mbox{\te{x + y'}}}.  In all other cases, the
+result is the value 0.  The bare underscores
+{\index{=underscore@\te{\US}!``don't care'' pattern}}
+{\index{=underscore@\te{\US}!``don't care'' expression}}
+in the second line are
+{\emph{wild-card}} patterns that match anything (described in section
+{\ref{sec-patterns-var}}).
+
+Clauses are attempted in order, from top to bottom, proceeding to the
+next clause only if the pattern matching and guard evaluation fail.
+Within each clause, pattern matching and guard evaluation are
+attempted from left to right.  If no clause succeeds, then the system
+will raise a ``pattern matching error''.
+\index{pattern matching!error}
+
+% ----------------------------------------------------------------
+
+\subsection{Calling foreign functions}
+
+\index{foreign functions, calling}
+A function can be declared to be foreign which means that its
+implementation is not in {\BH}.
+
+\index{foreign@\te{foreign} (keyword)|textbf}
+\gram{topDefn}{\term{foreign} \nterm{varId} \term{::} \nterm{type} \opt{ \term{=} \nterm{string} }
+	\opt{ \term{,} \term{(} \many{\nterm{string}} \term{)} }
+    }
+
+The optional string gives the name of the external ``function'' to
+use.  If no string is given the same name as the {\BH} name is used.
+The optional strings in parentheses are the port names of the {\veri} module
+that implements the function.  Without port names positional arguments
+will be used.
+
+Example:
+\begin{verbatim}
+ foreign countOnes :: Bit n -> Bit 32 = "pop_count"
+\end{verbatim}
+
+A call to \te{countOnes} will instantiate the {\veri} \te{pop{\US}count}
+module.  It should have the same number of arguments (with the same
+type) as the {\BH} function, {\em and} an additional trailing
+argument which is the result.  If the function is (size) polymorphic
+the instantiated types will be used as {\veri} parameters.
+
+Example: using the declaration above an action, with the type of \te{x} being \te{Bit 5},
+\begin{verbatim}
+  y := countOnes x
+\end{verbatim}
+will translate to something like
+\begin{verbatim}
+  pop_count #(5) ires1(R_x, I_y);
+\end{verbatim}
+
+%\begin{NOTE}
+%This feature may go away, requiring that {\veri} modules be imported
+%as modules.
+%\end{NOTE}
+
+% ================================================================
+
+\section{Expressions}
+
+\label{sec-exprs}
+
+As described in {\ref{sec-val-defs}}, expressions appear in the
+right-hand sides of value definitions.
+
+\index{exp@{\nterm{exp}} (grammar non-terminal)|textbf}
+In the following {\nterm{exp}} stands for an arbitrary expression and
+{\nterm{aexp}} for an atomic expression, {\ie} one that is
+syntactically delimited.
+
+% ----------------------------------------------------------------
+
+\subsection{Applications}
+
+Function application (a.k.a. a function call) is expressed just by the
+juxtaposition of two expressions.  The first expression should
+evaluate to a function value, and that function is applied to the
+value of the second expression.
+
+\index{application!of functions to arguments|textbf}
+\gram{exp}{\nterm{exp} \nterm{aexp}}
+
+Parentheses can be used freely for grouping.  By default, if
+parentheses are omitted, function application associates to the left:
+\index{application!associativity}
+\BBS
+f  x  y  z  \hmm  $\equiv$  \hmm  ((f  x)  y)  z
+\EBS
+{\ie} {\te{f}} is applied to {\te{x}}, producing a function which is
+applied to {\te{y}} which produces a function which, in turn, is
+applied to {\te{z}}.
+
+% ----------------
+
+\subsubsection*{Infix applications}
+
+\label{sec-infix-applications}
+
+\index{application!infix|textbf}
+Infix operators (binary functions written between their arguments)
+can be used for convenience.
+
+\gram{exp}{\nterm{$exp_1$} \nterm{binop} \nterm{$exp_2$}} \\
+\gram{binop}{\nterm{symbol} \many{\nterm{symbol}}} \\
+\gram{symbol}{
+                     \term{\BANG}
+              {\alt} \term{\HASH}
+              {\alt} \term{\$}
+              {\alt} \term{\%}
+              {\alt} \term{\&}
+              {\alt} \term{*}
+              {\alt} \term{+}
+              {\alt} \term{.}
+              {\alt} \term{/}
+              {\alt} \term{<}
+              {\alt} \term{=}
+              {\alt} \term{>}
+              {\alt} \term{?}
+              {\alt} \term{\@}
+              {\alt} \term{\BSL}
+              {\alt} \term{\HAT}
+              {\alt} \term{\BAR}
+              {\alt} \term{-}
+              {\alt} \term{\TILDE}
+	      {\alt}
+	}\\
+\grammore{
+% ISO 8859-1 symbols
+	             \term{¡}
+%T1	      {\alt} \term{¢}
+	      {\alt} \term{£}
+%T1	      {\alt} \term{¤}
+%T1	      {\alt} \term{¥}
+%T1	      {\alt} \term{¦}
+	      {\alt} \term{§}
+	      {\alt} \term{¨}
+	      {\alt} \term{©}
+	      {\alt} \term{ª}
+	      {\alt} \term{«}
+	      {\alt} $\term{¬}$
+%T1	      {\alt} \term{­}
+	      {\alt} \term{®}
+	      {\alt} \term{¯}
+	      {\alt} \term{°}
+	      {\alt} $\term{±}$
+	      {\alt}
+	} \\
+\grammore{
+	             $\term{²}$
+	      {\alt} $\term{³}$
+	      {\alt} \term{´}
+	      {\alt} $\term{µ}$
+	      {\alt} \term{¶}
+	      {\alt} \term{·}
+	      {\alt} \term{¸}
+	      {\alt} $\term{¹}$
+	      {\alt} \term{º}
+	      {\alt} \term{»}
+	      {\alt} \term{¼}
+	      {\alt} \term{½}
+	      {\alt} \term{¾}
+	      {\alt} \term{¿}
+	      {\alt} $\term{×}$
+	      {\alt} $\term{÷}$
+        }
+
+\index{infix operators!predefined}
+\index{infix operators!precedence}
+\index{infix operators!associativity}
+The following table lists the predefined operators with their
+precedence and associativity (see the Standard Prelude in section
+{\ref{sec-prelude}} for an explanation of what these operators do):
+\begin{center}
+  \begin{tabular}[t]{|c|c|c|}
+    \hline
+    operator     & precedence & associativity \\
+    \hline
+    \term{\$}    & 0  & Right \\
+    \verb":="    & 1  & Right \\
+    \verb"||"    & 2  & Right \\
+    \verb"&&"    & 3  & Right \\
+    \verb"|"     & 4  & Right \\
+    \verb"&"     & 5  & Right \\
+    \verb"=="    & 6  & n/a   \\
+    \verb"/="    & 6  & n/a   \\
+    \verb"<="    & 6  & n/a   \\
+    \verb">="    & 6  & n/a   \\
+    \verb"<"     & 6  & n/a   \\
+    \verb">"     & 6  & n/a   \\
+    \verb"<<"    & 7  & n/a   \\
+    \verb">>"    & 7  & n/a   \\
+    \verb"++"    & 8  & Right \\
+    \verb":>"    & 8  & Right \\
+    \verb"+"     & 10  & Left  \\
+    \verb"-"     & 10  & Left  \\
+    \verb"*"     & 11  & Left  \\
+    \verb"/"     & 11  & Left  \\
+    \verb"·"     & 13  & Right \\
+    user-defined & 15  & Left \\
+    \hline
+  \end{tabular}
+\end{center}
+The last line indicates that any user-defined infix operator has
+higher precedence than any predefined operator, and it always
+associates to the left.  Function application by juxtaposition always
+has higher precedence than all operators, and associates to the left.
+Constructs that do not have any closing lexeme (such as
+{\te{if-then-else}} or {\te{let-in}}) have lowest precedence so that,
+for example,
+\begin{verbatim}
+    if ... then ... else e1 + e2
+\end{verbatim}
+parenthesizes as follows:
+\begin{verbatim}
+    if ... then ... else (e1 + e2)
+\end{verbatim}
+and not as follows:
+\begin{verbatim}
+    (if ... then ... else e1) + e2
+\end{verbatim}
+
+\index{infix operators!defining new}
+The user can define new infix operators by following the above syntax.
+For example, here is a new infix operator {\te{|-|}} that ``clips'' a
+value to a $[-{\rm{limit}}, +{\rm{limit}}]$ range:
+\begin{verbatim}
+ |-| :: Int -> Int ->Int
+
+ x  |-|  lim when x < 0-lim = 0-lim
+ x  |-|  lim when x >   lim =   lim
+ x  |-|  _                  =   x
+\end{verbatim}
+
+\index{infix operators!converting to ordinary identifiers}
+\index{infix operators!converting from ordinary identifiers}
+\index{identifiers!converting to infix operators}
+An infix operator can be converted into an ordinary identifier
+(eliminating its special syntactic role) by enclosing it in
+parentheses.  Conversely, an ordinary identifier representing a binary
+function can be used in infix position by enclosing it in back-quotes.
+\index{=backtick@\te{`}|see{infix operators, converting from ordinary identifiers}}
+
+Examples:
+\begin{verbatim}
+ f x y
+ x + y
+ f x `max` g y
+ (+) 1 2
+\end{verbatim}
+
+% ----------------------------------------------------------------
+
+\subsection{Variables}
+
+A variable in an expression simply represents its value.
+
+\gram{aexp}{\nterm{varId}}
+\index{variables}
+
+Remember that variable names start with a lower case letter.
+
+% ----------------------------------------------------------------
+
+\subsection{Constructors and literal constants}
+
+\label{sec-exprs-constrs}
+
+\index{value constructor names}
+\index{constants}
+Each value constructor, introduced in some {\te{data}} declaration (section
+{\ref{sec-data}}), is a constant.
+
+\gram{aexp}{\nterm{conId}}
+
+Suppose a constructor {\te{C}} is declared as follows:
+\begin{verbatim}
+ data T a b = ... | C t0 t1 t2 | ...
+\end{verbatim}
+Then, the constructor identifier {\te{C}} is a constant whose value is
+a function of type:
+\begin{verbatim}
+ C :: t0 -> t1 -> t2 -> T a b
+\end{verbatim}
+If {\te{C}} had no parameters, then it represents a traditional
+(non-functional) constant value.
+
+Remember that constructor names start with an upper case letter.
+
+\index{Literals}
+Literal constants are constants supported with special syntax and with
+overloading support.  {\BH} has support for integer and string
+literals.
+
+% ----------------
+
+\subsubsection{Integer literals}
+
+\label{sec-integer-literals}
+
+\index{Literals!Integer}
+\index{Integer literals}
+Integer literals are written in the usual way as a sequence of decimal
+digits (0-9), or \te{0x} followed by a sequence of hexadecimal digits
+(0-9, a-f, A-F), or \te{0b} followed by a sequence of binary digits
+(0,1).
+
+There is no direct notation for negative integer literals--- use the
+expression {\te{(negate {\rm <literal>})}} instead.
+
+\begin{NOTE}
+Constants with base 2 must have a type of the form $t\;n$ where $t$ is
+a type like \te{Bit} or \te{UInt} and $n$ is the number of digits in
+the literal.
+\end{NOTE}
+
+\gram{aexp}{\nterm{int}}
+
+Example:
+\begin{verbatim}
+ 125
+ 0x48454a
+ 0b101010
+\end{verbatim}
+
+Since {\BH} has several integer-like numeric types (of various bit
+widths), a numeric literal $i$ is really shorthand for
+{\te{fromInteger($i$)}}, where $i$ is treated as belonging to
+{\te{Integer}}, the type of (arbitrary precision) integers.  The
+{\te{fromInteger}} method belongs to the class {\te{Literal}}:
+\index{fromInteger@\te{fromInteger} (\te{Literal} class method)|textbf}
+\begin{verbatim}
+ class Literal a where
+     fromInteger :: Integer -> a
+\end{verbatim}
+The normal overloading-resolution mechanism (see section
+{\ref{sec-overloading}}) is used by the compiler to figure out what
+type the literal should be converted into.  As usual, if necessary you
+can insert a type signature to help the compiler resolve this.
+
+% ----------------
+
+\subsubsection{String literals}
+
+\label{sec-string-literals}
+
+\index{Literals!String}
+\index{String literals}
+
+String literals are written enclosed in double quotes \te{"}.
+Special characters may be inserted in string literals with the
+the following backslash notations:
+\begin{tabbing}
+ \te{{\BSL}n}    \hmmmm \= newline \\
+ \te{{\BSL}t}           \> tab \\
+ \te{{\BSL}{\BSL}}      \> backslash \\
+ \te{{\BSL}"}           \> double quote \\
+ \te{{\BSL}x$HH$}       \> any hexadecimal character code $HH$
+\end{tabbing}
+
+% ----------------------------------------------------------------
+
+\subsection{\te{case} and {\te{if}}}
+
+\label{sec-case}
+
+Case expressions can be used to scrutinize values of a data type--- to
+discover which disjunct it conforms to, and to bind names to the
+components of that disjunct.
+
+\gram{exp}{\term{case} \nterm{exp} \term{of} \term{\{} }
+\index{case expression}
+\index{case@\te{case} (keyword)}
+\index{of@\te{of} (keyword)} \\
+\grammore{ \many{\nterm{caseArm}} } \\
+\grammore{ \term{\}} }
+
+\gram{caseArm}{\nterm{pat} \opt{\term{when} \nterm{guard}} \term{->} \nterm{exp} \term{;}}
+
+The value of the expression (first {\nterm{exp}}) is tested against
+the patterns and guards of each case arm in succession, top to bottom.
+At each case arm, the value is matched against the pattern; if it
+succeeds, the pattern identifiers are bound to the respective
+components, and the guard expressions are evaluated, left to right.
+If they are all true, then the case arm is successful, and the value
+of the right-hand side expression is returned as the value of the
+entire {\te{case}} expression.  If none of the case arms succeed, the
+result is unspecified.
+\index{pattern matching!error}
+
+Example (uses the {\te{Maybe}} type definition of section
+{\ref{sec-data}}):
+\begin{verbatim}
+ case f a of {
+     Just x when x  < 0 -> negate x;
+     Just x when x >= 0 -> x;
+     Nothing            -> 0;
+ }
+\end{verbatim}
+First, the value of {\mbox{\te{f a}}} is obtained.  In the first arm,
+the value is checked to see if it has the form {\mbox{\te{Just x}}},
+in which case we let {\te{x}} refer to the component.  Then, we check
+if this {\te{x}} is less than zero.  If so, then the case arm succeeds
+and we return {\mbox{\te{negate x}}} as the value.  Otherwise, we fall
+through to the second case arm, and so on.
+
+Booleans can be tested with an \te{if} expression (also known as
+conditional expressions):
+
+\gram{exp}{\term{if} \nterm{exp$_1$} \term{then} \nterm{exp$_2$} \term{else} \nterm{exp$_3$}}
+\index{conditional expressions|see{if-then-else expressions}}
+\index{if-then-else expressions|textbf}
+\index{if@\te{if} (keyword)}
+\index{then@\te{then} (keyword)}
+\index{else@\te{else} (keyword)}
+
+This is just a convenient and familiar shorthand for:
+\BBS
+case \nterm{exp$_1$} of \{
+    True  -> \nterm{exp$_2$};
+    False -> \nterm{exp$_3$};
+\}
+\EBS
+
+% ----------------------------------------------------------------
+
+\subsection{\te{let}}
+
+Local definitions are introduced by the \te{let} expression.  The
+definitions look like function definitions on the top level, but the
+type signature is optional.
+
+\gram{exp}{\term{let} \many{\nterm{letDefn}} \term{in} \nterm{exp}}
+\index{let expressions|textbf}
+\index{pattern binding|textbf}
+\index{let@\te{let} (keyword)}
+\index{in@\te{in} (keyword)}
+
+\gram{letDefn}{ \nterm{localDefn} {\alt} \nterm{patternBind} } {\alt} \nterm{shortDefn}
+
+\gram{localDefn}{ \opt{\nterm{varId} \term{::} \nterm{ctxType} \term{;}} \many{\nterm{clause}} }
+
+\gram{patternBind}{ \nterm{pat} \term{=} \nterm{exp} }
+
+\gram{shortDefn}{ \nterm{varId} \term{::} \nterm{ctxType} \term{=} \nterm{exp} }
+
+Example:
+\begin{verbatim}
+ let   x2 = x * x
+       y2 = y * y
+ in
+       x2 + x2 - y2
+\end{verbatim}
+
+A \te{let} definition can bind a single identifier, but it can also
+bind one or more identifier through a pattern binding.  Pattern
+bindings are only allowed for patterns that cannot fail.
+
+Example:
+\begin{verbatim}
+ let (x, y) = foo z
+ in  x + y
+\end{verbatim}
+which is equivalent to saying
+\begin{verbatim}
+ let x = (foo z).fst
+     y = (foo z).snd
+ in  x + y
+\end{verbatim}
+
+\begin{NOTE}
+Currently only \te{struct} patterns are allowed in pattern bindings.
+\end{NOTE}
+
+% ----------------------------------------------------------------
+
+\subsection{Structs and Tuples}
+
+\label{sec-struct-val}
+
+Section {\ref{sec-struct-type}} describes how to define a
+{\te{struct}} type.  To produce a value of such a type, we write the
+type name followed by values for the fields.
+
+\gram{aexp}{\nterm{typeId} \term{\{} \many{\nterm{field}} \term{\}}}
+\index{structs!construction|textbf}
+
+\gram{field}{\nterm{fieldId} \term{=} \nterm{exp} \term{;}}
+
+Example:
+\begin{verbatim}
+ Proc { pc = 0; cc = EQ }
+\end{verbatim}
+
+Section {\ref{sec-tuple-type}} describes the {\te{PrimPair}} struct
+type.  This ``tuple type'' may be expressed using the special
+syntactic shorthand involving parentheses and commas.  Similarly, this
+notation can be used for value expressions as well, {\ie} the
+expression on the left is a shorthand for for the expression on the
+right:
+\index{tuples!values|textbf}
+\BBS
+(a, b)  \hmm  $\equiv$  \hmm  PrimPair \{ fst = a; snd = b \}
+\EBS
+
+% ----------------------------------------------------------------
+
+\subsection{Struct field selection}
+
+\label{sec-struct-select}
+
+A field of a struct value can be selected with dot notation.
+
+\gram{exp}{\nterm{exp} \term{.} \nterm{fieldId}}
+\index{structs!field selection|textbf}
+\index{=dot@\te{.}|see{structs, field selection}}
+
+Example
+\begin{verbatim}
+ r.pc
+\end{verbatim}
+
+\begin{NOTE}
+Since the same field-name can occur in multiple types, the compiler
+uses type information to resolve which field-name you mean when you do
+a field selection.  Occasionally, you may need to add a type signature
+to help the compiler resolve this.
+\end{NOTE}
+
+There is a shorthand for making a field selection into a function:
+
+\gram{aexp}{\term{(} \term{.} \nterm{fieldId} \term{)}}
+
+The expression \qbs{(.name)} is equivalent to \qbs{\BSL x -> x.name}.
+
+% ----------------------------------------------------------------
+
+\subsection{Struct ``update''}
+
+\label{sec-struct-update}
+
+A struct value can be constructed from another struct value by changing
+some of the fields.
+
+\gram{exp}{\nterm{aexp} \term{\{} \many{\nterm{field}} \term{\}}}
+\index{structs!update|textbf}
+
+Example
+\begin{verbatim}
+ s { x = 77; y = 88 }
+\end{verbatim}
+
+Here \qbs{s} is an expression of \te{struct} type.  The entire expression
+has the same type as \qbs{s} and all fields expect \qbs{x} and \qbs{y}
+also have the same values.
+
+% ----------------------------------------------------------------
+
+\subsection{\te{interface} expressions}
+
+\label{sec-interface-expressions}
+
+An interface expression defines a value of interface type.
+
+\gram{exp} { \term{interface} \nterm{typeId} \term{\{} \many{\nterm{ifcDefn} \term{;}} \term{\}} }
+\index{interface@\te{interface} (keyword)!in interface expressions}
+
+\gram{ifcDefn}{ \nterm{localDefn} \opt{ \term{when} \nterm{guard} } }
+\index{when@\te{when} (keyword)!in interface expression}
+
+Example:
+\begin{verbatim}
+ interface Stack
+     push x = r := Just x    when r == Nothing
+     pop    = r := Nothing   when r /= Nothing
+     top    = r._read
+\end{verbatim}
+
+The {\te{when}} clause in a method specifies the condition,
+\index{implicit conditions|textbf}
+\index{implicit conditions!on interface methods}
+called the {\em implicit condition}, which must hold when this method
+is called.  The compiler will make a scheduler that fulfills the
+condition.  Using implicit conditions, it is possible to write client
+code that is not cluttered with conditionals that test whether the
+method is applicable.  For example, a client of a FIFO module can just
+call the ``enqueue'' or the ``dequeue'' method without having
+explicitly to test whether the FIFO is full or empty, respectively;
+those predicates are usually specified in implicit conditions inside
+the FIFO module interface definition itself.
+
+The {\term{when}} clause can refer to any variables from the
+surrounding scope.  In particular, note that the interface method
+arguments are {\emph{not}} available in the {\term{when}} clause.
+
+\begin{NOTE}
+There are good implementation (hardware) reasons for not allowing the interface
+arguments to be used in the implicit condition.
+\end{NOTE}
+
+% ----------------------------------------------------------------
+
+\subsection{``Don't care'' expressions}
+
+\label{sec-exprs-wildcard}
+
+\index{=underscore@\te{\US}!``don't care'' expression|textbf}
+When the value of an expression does not matter a ``don't care''
+expression can be used.  It is written as an underscore and has any
+type.  The compiler will pick some suitable value.
+
+If a ``don't care'' value is part of any computation (such as an
+argument to an addition function) the result will be a new ``don't
+care'' value.
+
+\gram{aexp}{\term{\US}}
+
+Note that this is a distinct (but related) use of the underscore from
+its use as a ``don't care'' pattern (section
+{\ref{sec-patterns-var}}).
+
+The programmer is encouraged to use ``don't care'' values where
+possible, both because it is useful documentation and because the
+compiler can often exploit this to produce better circuits.
+
+% ----------------------------------------------------------------
+
+\subsection{Actions}
+
+\label{sec-actions}
+
+Any expression which is intended to act on state is called an
+{\emph{action}} and has type \te{Action}.
+\index{actions!\te{Action} (type)|textbf}
+Primitive actions are provided as fields of the interfaces to objects
+provided by the compiler (such as registers or arrays).  The
+programmer can create new actions only by building on these
+primitives, or by using {\veri} modules.
+
+Example:
+
+\begin{verbatim}
+ interface Reg a =
+     _write :: a -> Action
+     _read  :: a
+\end{verbatim}
+
+Actions are combined by the keyword \te{action} followed by a sequence of
+actions.
+\index{actions!combining}
+\index{actions!\te{action} (keyword)|textbf}
+
+\gram{exp}{\term{action} \term{\{} \many{\nterm{stmt} \term{;}} \term{\}}}
+
+Example:
+\begin{verbatim}
+ action { x := x+1; y := z }
+\end{verbatim}
+
+The Standard Prelude defines the ``empty'' action:
+\index{noAction@\te{noAction} (empty action)}
+\begin{verbatim}
+ noAction :: Action
+\end{verbatim}
+which is equivalent to the expression: \te{action \LBRACE\RBRACE}.
+
+The \te{Action} type is actually a special case of the more general
+type \te{ActionValue}, described in the next section:
+\begin{verbatim}
+ type Action = ActionValue ()
+\end{verbatim}
+
+% ----------------
+
+\subsubsection{\te{ActionValue}}
+
+\label{sec-actionValue}
+
+The \te{ActionValue} is an abstract type:\index{ActionValue@\te{ActionValue} (type)}
+\begin{verbatim}
+ interface ActionValue a
+ instance Monad ActionValue
+\end{verbatim}
+Values of \te{ActionValue} type should be thought of as performing an
+action as well as returning a value.
+
+The \te{ActionValue} type is a monad and the \te{action} syntax allows
+variable bindings for the value as well as performing actions with no
+return value.
+
+Example:
+\begin{verbatim}
+ interface IntStack =
+     push :: Int -> Action
+     pop  :: ActionValue Int
+
+
+
+ ...
+     s1 :: IntStack
+ ...
+     s2 :: IntStack
+ ...
+     action
+         x <- s1.pop        -- A
+         s2.push (x+1)      -- B
+\end{verbatim}
+
+In line A, we perform a {\te{pop}} action on stack {\te{s1}}, and the
+returned value is bound to {\te{x}}.  If we were not interested in the
+returned value, we could have omitted the ``{\te{x <-}}'' part.  In
+line B, we perform a {\te{push}} action on {\te{s2}}, and the returned
+value {\te{()}} is discarded (not bound to anything).
+
+% ----------------------------------------------------------------
+
+\subsection{\te{rules}}
+
+\label{sec-rule}
+
+\index{rules!expression|textbf}
+The {\te{rules}} expression introduces rewrite rules for the Term
+Rewriting System.  It appears inside a module and specifies part of
+the behavior of the module.  A {\te{rules}} expression has type
+{\te{Rules}}\index{rules@\te{Rules} (type)|textbf} and consists of a
+list of rewrite rules.
+
+Each rewrite rule has a left hand side and a right hand side.  The
+left hand side is a guard; the rule only applies if the guard is
+valid.  The right hand side of a rule is an {\emph{action}}.
+Commonly, it is a composite of many actions to be performed when the
+rule is applied.  An entire rule may optionally be prefixed with a
+{\emph{rule label}} which is useful primarily in debugging, {\ie} when
+simulating/executing the hardware description produced by the {\BH}
+compiler, the execution engine may be able to inform you about when a
+particular rule fires using these rule labels.  A rule label is a
+string valued expression.
+
+% TODO: we should have some default rule identifier that identifies the
+% source file and line of the rule's WHEN keyword
+
+\gram{exp}{\term{rules} \term{\{} \many{\nterm{rule} \term{;}} \term{\}}}
+\index{rules@\te{rules} (keyword)}
+
+\gram{rule}{\opt{\nterm{ruleLabel} \term{:}} \term{when} \nterm{guard} \term{==>} \nterm{exp}}
+\index{when@\te{when} (keyword)!in rules expressions}
+
+\gram{ruleLabel}{\nterm{aexp}}
+
+Example:
+\begin{verbatim}
+ let
+   instr :: Word
+   instr = mem[pc]
+ in
+   rules
+     when Add r1 r2 r3 <- instr
+     ==> action {
+           pc := pc+1;
+           rf[r1] := rf[r2] + rf[r3]
+         }
+
+     when Jz r1 r2 <- instr, rf[r1] == 0
+     ==> action { pc := r2 }
+\end{verbatim}
+
+% ----------------
+
+\subsubsection{Nested rule guards}
+
+\index{rules!nested rule guards}
+Sometimes in a series of rules, each rule may have a conjunction of
+conditions, and all the rules share one of those conditions.  In such
+a situation, it is useful to be able to factor out the common
+condition, and this can be done by nesting {\te{when}} clauses.
+
+\gram{rule}{\opt{\nterm{ruleLabel} \term{:}} \term{when} \nterm{guard} \term{rules} \term{\{} \many{\nterm{rule} \term{;}} \term{\}}}
+
+Example,
+\begin{verbatim}
+ rules
+     when c, c1 ==> action1
+     when c, c2 ==> action2
+     when c, c3 ==> action3
+     when d     ==> action4
+\end{verbatim}
+can be written more clearly as:
+\begin{verbatim}
+ rules
+     when c
+     rules
+         when  c1 ==> action1
+         when  c2 ==> action2
+         when  c3 ==> action3
+
+     when d  ==> action4
+\end{verbatim}
+
+% ----------------
+
+\subsubsection{Aggregating and prioritizing rules}
+
+\index{rules!aggregating|textbf}
+\index{rules!prioritizing}
+Rules are first class objects.  The following operators allow rule
+sets to be combined:
+
+\begin{verbatim}
+ (<+>) :: Rules -> Rules -> Rules
+ (<+)  :: Rules -> Rules -> Rules
+ (+>)  :: Rules -> Rules -> Rules
+\end{verbatim}
+\index{=ltplusgt@\te{<+>} (\te{Rules} aggregation operator)|textbf}
+\index{=ltplus@\te{<+} (\te{Rules} aggregation operator)|textbf}
+\index{=plusgt@\te{+>} (\te{Rules} aggregation operator)|textbf}
+
+The {\qbs{<+>}} operator makes a symmetric union of two rule sets.  The
+{\qbs{<+}} operator makes a directed union, {\ie} the rules on the
+right may fire only when none of the rules on the left are enabled.
+The {\qbs{+>}} operator makes a directed union in which rules on the
+left may fire only when none of the rules on the right are enabled.
+
+% ----------------------------------------------------------------
+
+\subsection{Modules}
+
+\label{sec-modules}
+
+Modules are the heart of {\BH}.  Modules turn into actual hardware,
+and correspond roughly to {\veri} modules.  State can exist only
+inside a module.  Modules also incorporate the rules which act on
+their state.
+
+A module consists of three things: state, rules on that state, and an
+interface to the outside world.  This information is given in a
+{\te{module}} expression which has type \qbs{Module a},\footnote{
+Actually, the type is more general, see \ref{sec-ismodule}.}  where
+{\te{a}} is the type of the interface.
+\index{modules!module@\te{module} (keyword)|textbf}
+\index{modules!Module@\te{Module} (type)|textbf}
+
+There is a strong analogy between {\BH} modules and \emph{objects}
+\index{modules!analogy with objects in object-oriented programming languages}
+in object-oriented programming languages, particularly objects that
+represent processes.  A {\te{module}} expression of type {\qbs{Module
+a}} defines an object constructor, {\ie} something that allocates and
+initializes an object.  The constructor returns an object reference of
+type {\qbs{a}}, {\ie} a handle on which you can call the interface
+methods.  Each invocation of the constructor produces a new object,
+and returns the handle to that new object, so it is easy to make
+multiple copies of an object.  The state elements of the object
+correspond to private variables inside the object.  They cannot
+directly be manipulated or accessed by any other object; this can only
+be done \emph{via} interface methods of the object.  The rules in an
+object specify the internal, free-running behavior of the object,
+{\ie} the ``process'' that the object represents.
+
+Here is the grammar for {\te{module}} expressions:
+
+\gram{exp}{ \term{module} \term{\{} \many{\nterm{mstmt} \term{;}} \term{\}} }
+
+\gram{mstmt}{ \nterm{stmt} {\alt} \nterm{mrules} {\alt} \nterm{minterface} }
+
+\gram{stmt}{ \nterm{varId} \term{::} \nterm{ctxType} \term{;} \nterm{varId} \term{<-} \nterm{exp}} \\
+\gramalt{ \nterm{pat} \term{::} \nterm{ctxType} \term{<-} \nterm{exp}} \index{=ltminus@\te{<-} (in statements)}\\
+\gramalt{ \term{let} \many{\nterm{letDefn}}}
+\index{let@\te{let} (keyword)}
+
+\gram{mrules}{\term{rules} \term{\{} \many{\nterm{rule} \term{;}} \term{\}}}
+
+\gram{minterface}{\term{interface} \term{\{} \many{ \nterm{fieldDef} \term{;} } \term{\}} }\\
+\gramalt{\term{interface} \term{(} \many{\nterm{exp} \term{,}} \term{)}}
+
+
+The state-creation statements look like this:
+\mbox{\nterm{x} \te{::} {\nterm{t}} \te{;}}
+\mbox{\nterm{x} \te{<-} {\nterm{e}}}.
+An equivalent way of writing this is
+\mbox{\nterm{x} \te{::} {\nterm{t}} \te{<-} {\nterm{e}}}.
+The first part is a type signature, as usual.  The second part is
+called a {\emph{monadic}} binding.
+The right hand side expression
+{\nterm{e}} allocates some state, which is just another module,
+either a module defined elsewhere or a primitive module like a
+register, array, or FIFO.  The right-hand side {\nterm{e}} also
+returns a value, which is bound to the left-hand side identifier
+{\nterm{x}}.  Thus, the right-hand side {\nterm{e}} must have type
+{\mbox{\te{Module $t$}}}, and {\nterm{x}} will be bound to a value
+of type $t$, {\ie} to the interface of the module.
+
+If you do not want to use the value returned by {\nterm{exp}}, you can
+use {\nterm{exp}} as a statement by itself (no need for the
+{\qbs{\nterm{varId} <-}} part).
+
+Statements can also be \te{let} statements, which are used for
+ordinary value bindings (the left-hand side identifier and the
+right-hand side expression can be of any type).
+
+\begin{NOTE}
+The advanced user will recognize that module statements are similar
+to the body of a \te{do}-statement (see section {\ref{sec-do}}).
+Modules are monads.  Thus, an expression which is bound to a
+variable of type {\te{a}} by means of the \te{<-} syntax must have
+type \te{(Module a)}.  The module constructed by the expression
+will have its own internal state and rules, which will be incorporated
+into the rules and state of the containing module, although they
+will be hidden behind an abstraction barrier.  Only the interface of
+the module is accessible and it is that which is bound to the
+variable.
+
+While the body of a \te{do}-statement has a final expression which
+provides the value for the whole expression, the \te{rules} and
+{\te{interface}} section of a module form an implicit final
+expression which adds the rules to the monad and returns the
+interface.
+\end{NOTE}
+
+Example: A register is primitive module whose interfaces
+is defined as follows:
+\begin{verbatim}
+ interface Reg a =
+     set :: a -> Action
+     get :: a
+\end{verbatim}
+and with the following module constructor function:
+\begin{verbatim}
+ -- takes an initial value for the register
+ mkReg :: (Bits a sa) => a -> Module (Reg a)
+\end{verbatim}
+
+A module built on these primitives would look like:
+\begin{verbatim}
+ interface ArithIO a =
+     input :: a -> a -> Action
+     output :: a
+
+ mkGCD :: Module (ArithIO (Bit 32))
+ mkGCD = module
+              x :: Reg (Bit 32)
+              x <- mkReg _
+
+              y :: Reg (Bit 32)
+              y <- mkReg _
+
+              done :: Reg Bool
+              done <- mkReg True
+              interface
+                  input a b = action { x._write a; y._write b; done._write False }
+                       when done._read
+                  output = x._read
+                       when done._read
+              rules
+                  when not done._read, x._read > y._read, y._read /= 0
+                    ==> action { x._write y; y._write x }
+
+                  when not done._read, y._read == 0
+                    ==> action { done._write True }
+
+                  when not done._read, x._read <= y._read, y._read /= 0
+                    ==> action { y._write (y._read - x._read) }
+\end{verbatim}
+
+Note how the two methods in the interface can only be applied when
+the computation is done, ensuring that the result is not read too early
+and that new arguments do not overwrite an ongoing computation.
+
+Because registers are the most common state elements, a special
+notation is available to relieve the programmer from having to type
+{\te{.\_write}} and {\te{.\_read}} everywhere.  This is described in Section
+{\ref{sec-registers}}.
+
+%\subsubsection{Desugaring}
+%The module syntax is only shorthand for a \te{do} expression.
+%The following translation is used to expand it.
+%
+%\BBS
+%module $s$ rules $r$ interface $i$  \hmm  $\equiv$  \hmm do $s$; addModuleRules $r$ $i$
+%\EBS
+%The \te{addModuleRules} function (defined in the \te{Prelude}) is the operation in the
+%\te{Module} monad that adds rules to the system.
+
+%\subsubsection{Dumping variables}
+%It is possible to dump arbitrary expressions in the VCD dump from
+%the C simulation by inserting dump pragmas in the module definition.
+%
+%\gram{statement}{\term{\{-\#} \term{dump} \many{\nterm{exp} \term{,}} \term{\#-\}}}
+%
+%Example:
+%\begin{verbatim}
+% module
+%     x :: Reg (Int 32) <-mkRegU
+%     let y = x+2
+%         z = x+y
+%     {-# dump y, z, x>10 #-}
+% interface
+%     ...
+%\end{verbatim}
+
+
+% ================================================================
+
+\section{Patterns}
+
+\label{sec-patterns}
+
+\index{patterns|textbf}
+Patterns are used in value definitions (section {\ref{sec-val-defs}}),
+in {\te{case}} expressions (section {\ref{sec-case}}), in
+$\lambda$-expressions (section {\ref{sec-lambda}}) and in guards
+(section {\ref{sec-guards}}).  A pattern is always {\emph{matched}}
+against an actual value and, in the process, it plays two roles:
+\begin{tightlist}
+\item
+First, a pattern acts as a Boolean filter--- it succeeds only if the
+actual value against which it is matched has the same form as the
+pattern, {\ie} (a) the value is built out of the same constructor, and
+(b), the corresponding components of the constructor in the pattern and
+actual value also match.
+\index{pattern matching|textbf}
+
+\item
+Second, assuming the pattern does match, then the variables in the
+pattern are bound to the corresponding components in the actual value.
+\end{tightlist}
+Thus, a pattern is used both as a predicate (``does it match?'') and as
+a binding mechanism to name components of an actual value.
+
+The variables used in a pattern may not be repeated, {\ie} any given
+variable can occur at most once in a pattern.
+
+% ----------------------------------------------------------------
+
+\subsection{Variable and wild-card patterns}
+
+\label{sec-patterns-var}
+
+\gram{pat}{\nterm{varId} {\alt} \term{\US}}
+
+\index{patterns!variable|textbf}
+\index{patterns!_@\te{\US} (underscore, don't care)|textbf}
+\index{=underscore@\te{\US}!``don't care'' pattern|textbf}
+A variable or a wild-card (bare underscore) is a trivial pattern that
+matches any actual value.  If it is a variable, it also binds the
+variable name to that value.
+
+(Of course, when we say {\emph{any actual value}} here, we mean any
+value that could possibly be supplied for matching here.  Static type
+checking will ensure that the only actual values supplied here will
+have the correct type.)
+
+Note that this use of an underscore is distinct (but related to) its
+use as a ``don't care'' expression (section
+{\ref{sec-exprs-wildcard}}).
+
+% ----------------------------------------------------------------
+
+\subsection{Constructor and constant patterns}
+
+\label{sec-patterns-constrs}
+
+\index{patterns!constructor|textbf}
+
+\gram{pat}{\nterm{conId} \many{\nterm{apat}}}
+
+In a constructor pattern, there must always be as many {\nterm{apat}}
+arguments as the number of arguments in the constructor
+{\nterm{conId}}'s original declaration.
+
+Such a pattern matches an actual value that is constructed out of the
+same constructor, and where (recursively) each {\nterm{apat}} argument
+matches its corresponding component in the actual value.  The variable
+bindings produced by the match is the union of the variable bindings
+of the individual {\nterm{apat}} matches.
+
+% ----------------------------------------------------------------
+
+\subsection{Struct and Tuple patterns}
+
+\label{sec-patterns-struct}
+
+\index{patterns!struct|textbf}
+
+Struct patterns are used to match struct values.  A struct pattern has
+a number of field patterns.  Not all fields in a struct need be
+present in the field patterns (if a field patterns is missing, the
+corresponding component in the actual value is is ignored).  A field
+pattern can be abbreviated, or {\emph{punned}}, if the bound variable
+has the same name as the field.
+
+\gram{apat}{\nterm{typeId} \term{\{} \many{\nterm{fieldPat} \term{;}} \term{\}}} \\
+\gram{fieldPat}{ \nterm{fieldId} \term{=} \nterm{pat} {\alt} \nterm{fieldId} }
+
+Example (see section {\ref{sec-struct-type}} for corresponding type definition):
+\begin{verbatim}
+ Proc { pc = pc; rf = regfile }
+\end{verbatim}
+This matches any value constructed using the {\te{Proc}} constructor,
+and binds the identifiers {\te{pc}} and {\te{regfile}} to the {\te{pc}}
+and {\te{rf}} field values, respectively.  The {\te{mem}} field is
+ignored.
+
+Note that in the phrase {\mbox{\te{pc = pc}}}, the left-hand
+occurrence of {\te{pc}} is the fieldname, whereas the right-hand
+occurrence is a variable that happens to be spelt the same.  Using the
+``punning'' abbreviation described above, we could also write this as:
+\begin{verbatim}
+ Proc { pc; rf = regfile }
+\end{verbatim}
+
+Section {\ref{sec-tuple-type}} describes the {\te{PrimPair}} struct
+type, and section {\ref{sec-struct-val}} describes corresponding value
+expressions.  In both cases, these ``tuple'' types and objects may be
+expressed using the special syntactic shorthand involving parentheses
+and commas.  Similarly, this notation can be used in pattern matching
+as well, {\ie}
+\index{tuples!patterns|textbf}
+the pattern on the left is a syntactic shorthand for the pattern on
+the right:
+\BBS
+(a, b)  \hmm  $\equiv$  \hmm  PrimPair \{ fst = a; snd = b \}
+\EBS
+
+
+% ================================================================
+
+\section{Guards}
+
+\label{sec-guards}
+
+\index{guards!with pattern matching|textbf}
+Guards are used as extra conditions in a pattern match to limit when a
+certain case should be used.  They are used in value definitions
+(section {\ref{sec-val-defs}}), in {\te{case}} expressions (section
+{\ref{sec-case}}), and in rules (section {\ref{sec-rule}}).
+
+A pattern together with a guard is considered to match only if both
+the pattern and the guard match.  A guard consists of a list of zero
+or more parts.  A guard matches if all its parts match.  The parts are
+tested from left to right.  Identifiers bound in one part may be used
+in subsequent parts to its right.
+
+\gram{guard}{\many{\nterm{qual} \term{,}}} \\
+\gram{qual}{\nterm{exp} {\alt} {\nterm{pat} \term{<-} \nterm{exp}}}
+\index{=ltminus@\te{<-} (in guards)}
+
+A Boolean guard {\nterm{exp}} is an arbitrary expression.  It is
+considered to match if the expression evaluates to \te{True}.
+
+A pattern guard {\mbox{\nterm{pat} \term{<-} \nterm{exp}}} has a
+pattern and an expression.  It is considered to match if the pattern
+matches the value of the expression.  The variables in the pattern get
+bound to the corresponding components.
+
+% ================================================================
+
+\section{Important Primitives}
+
+\label{sec-important-prims}
+
+These primitives are available \emph{via} the standard prelude and other
+standard libraries.  See also Appendix {\ref{sec-additional-libs}} for
+more useful libraries.
+
+% ----------------------------------------------------------------
+
+\subsection{The ``size'' types}
+
+\label{sec-primitives-size-types}
+
+\index{size types|textbf}
+As described in section {\ref{sec-type}}, there is a collection of
+types representing ``sizes'' that are written as numbers.  Typically,
+the only place these types are/can be used are as arguments to other
+parameterized types.  For example, the type:
+\begin{verbatim}
+ Bit 16
+\end{verbatim}
+consists of the unary type constructor {\te{Bit}} applied to the type
+{\qbs{16}}.  The type as a whole represents bit vectors of length 16
+bits.
+
+Collections of size types are also instances of certain predefined
+classes that can be used to express size constraints:
+\index{size types!type classes for constraints}
+\index{Add@\te{Add} (type class, of size types)}
+\index{Max@\te{Max} (type class, of size types)}
+\index{Log@\te{Log} (type class, of size types)}
+\begin{verbatim}
+ class Add x y z | x y -> z, y z -> x, z x -> y
+
+ class Max x y z | x y -> z
+
+ class Log x y | x -> y, y -> x
+\end{verbatim}
+
+The \te{Add} class has instances for all size types $x$, $y$, and $z$
+such that $x+y=z$.  The \te{Max} class has instances for all size
+types $x$, $y$, and $z$ such that $max(x,y)=z$. The \te{Log} class has
+instances for all size types $x$ and $y$ such that $ceil (log_2 x) =
+y$.  These functional dependencies enable the type checker to do some
+limited forms of arithmetic.
+
+Example:
+\begin{verbatim}
+ pad0101 :: (Add n 4 m) => Bit n -> Bit m
+ pad0101 x = x ++ 0b0101
+\end{verbatim}
+The second line defines the function {\te{pad0101}} as taking a bit
+vector and padding it to the right with the bits ``0101'' using the
+bit-concatenation operator {\qbs{++}}.  The type signature on the
+first line expresses the idea that the function takes a bit vector of
+length $n$ and returns a bit vector of length $m$, where $n+4=m$.
+
+To get the value that corresponds to a size there is a special
+``function'', {\te{valueOf}},
+{\index{valueOf@\te{valueOf} (``function'' of ``size'' types)}}
+that takes a size type and gives the
+corresponding {\te{Integer}} value.
+
+\begin{verbatim}
+ type Five = 5
+ x :: Integer
+ x = valueOf Five  -- x will have the value 5
+\end{verbatim}
+In the first line, the symbol ``5'' represents the size type ``5'',
+not the integer value 5.  The type synonym is there just for
+readability.  In the last line, {\te{x}} gets the corresponding
+integer value of 5.
+
+In a pinch, this mechanism can be used to do arithmetic for you!
+
+\begin{verbatim}
+ type WordSize = 32
+
+ logW :: (Log WordSize k) => Integer
+ logW = valueOf k
+\end{verbatim}
+The type synonym is there just for readability.  The type signature
+says that {\te{logW}} has an integer value, provided that
+{\te{WordSize}} and {\te{k}} are instances of the {\te{Log}} class,
+{\ie} provided the values corresponding to {\te{WordSize}} and
+{\te{k}} are in the logarithm relation.  Then, the last line binds
+{\te{logW}} to the integer value corresponding to {\te{k}}
+
+\begin{verbatim}
+ logWPlusOne :: (Log WordSize m, Add m 1 n) => Integer
+ logWPlusOne = valueOf n
+\end{verbatim}
+The type signature establishes that (the integers corresponding to)
+{\te{WordSize}} and {\te{m}} are in the log relation; that (the
+integers corresponding to) {\te{m}} and {\te{1}} and {\te{n}} are in
+the addition relation, and that {\te{logWPlusOne}} has Integer type.
+The second line binds {\te{logWPlusOne}} to the integer value
+corresponding to {\te{n}}.
+
+% ----------------------------------------------------------------
+
+\subsection{The type \te{Bit}}
+
+\index{Bit@\te{Bit} (type)|textbf}
+A very important built-in unary type constructor is {\qbs{Bit}}.  It
+represents bit vectors of a certain size.
+
+Example:
+\begin{verbatim}
+ zero :: Bit 16
+ zero = 0
+
+ type BurroughsWord = Bit 51
+\end{verbatim}
+
+To extract a sub-vector from a bit-vector there is a special notation
+taken from {\veri}.
+
+\gram{exp}{\nterm{exp}\term{[}\nterm{exp}\term{:}\nterm{exp}\term{]}}
+
+The expression \te{e[h:l]} extracts bits from \te{l} (low index) to \te{h}
+(high index) inclusively.
+
+\begin{NOTE}
+The type system is not powerful enough to express the exact type of
+bit extraction, so the extracted bit field can be used as a bit vector
+of any width.  To adjust it to the right size, it is either truncated
+from the left or extended with zeros to the left, as necessary (most
+significant bit side).
+\end{NOTE}
+
+To concatenate bit vectors the \te{++} operator can be used.  The type
+of this operator expresses its type exactly.
+
+\index{=plusplus@\te{++} (\te{Bit} concatenation operator)|textbf}
+\begin{verbatim}
+ (++) :: (Add m n mn) => Bit m -> Bit n -> Bit mn
+\end{verbatim}
+
+\index{split@\te{split} (\te{Bit} function)|textbf}
+There is also a function to split bit fields
+\begin{verbatim}
+ split :: (Add m n mn) => Bit mn -> (Bit m, Bit n)
+\end{verbatim}
+
+
+% ----------------------------------------------------------------
+
+\subsection{The \te{Bits} class}
+
+\index{Bits@\te{Bits} (type class)|textbf}
+The type class \te{Bits} contains the types that are convertible to
+bit strings of a certain size.  For a type to be an instance of this
+class is a prerequisite for a number of things, such as putting it in
+a register, array, or fifo.
+
+\begin{verbatim}
+ class Bits a n | a -> n where
+     pack   :: a -> Bit n
+     unpack :: Bit n -> a
+\end{verbatim}
+
+Here, ``\te{a}'' represents the type that can be converted to/from
+bits, and ``\te{n}'' is always instantiated by a size type
+representing the number of bits needed.
+
+The most trivial instance declaration is that a bit vector can be
+converted to a bit vector:
+\index{pack@\te{pack} (\te{Bits} class method)|textbf}
+\index{unpack@\te{unpack} (\te{Bits} class method)|textbf}
+\begin{verbatim}
+ instance Bits (Bit k) k where
+     pack x = x
+     unpack x = x
+\end{verbatim}
+
+Another example:
+\begin{verbatim}
+ data Color = Red | Green | Blue
+ instance Bits Color 2 where
+     pack Red    = 0b00
+     pack Green  = 0b01
+     pack Blue   = 0b10
+     unpack 0b00 = Red
+     unpack 0b01 = Green
+     unpack 0b10 = Blue
+\end{verbatim}
+
+Instances of the {\te{Bits}} class can be derived by the compiler by
+using the {\te{deriving}} directive.  Example:
+\begin{verbatim}
+ struct Coord = { x :: Int; y :: Int } deriving(Bits)
+\end{verbatim}
+This defines a new struct type {\te{Coord}} with two {\te{Int}}
+fields.  The {\te{deriving}} clause registers {\te{Coord}} as an
+instance of the {\te{Bits}} class and automatically produces the
+required class methods {\te{pack}} and {\te{unpack}} to convert from
+{\te{Coord}}'s to bit vectors and vice versa (the mapping algorithm
+is described in more detail in Section~\ref{sec-deriving-Bits}).
+
+There is a type ``function,'' {\te{SizeOf}}, that can be applied to a
+type to get its corresponding bit size.
+\index{SizeOf@\te{SizeOf} (pseudo-function on types)|textbf}
+
+% ----------------------------------------------------------------
+
+\subsection{UInt, Int}
+
+\index{Int@\te{Int} (type)|textbf}
+\index{UInt@\te{UInt} (type)|textbf}
+{\mbox{\te{UInt $n$}}} and {\mbox{\te{Int $n$}}} define an unsigned
+and a signed integer data type, respectively, of $n$ bits.
+
+These types are instances of the classes {\te{Bits}}, {\te{Literal}},
+{\te{Eq}}, {\te{Arith}}, {\te{Ord}}, {\te{Bounded}}, and
+{\te{Bitwise}} (see Appendix {\ref{sec-prelude}} for the operations
+that come with these classes).
+
+\note{The \te{UInt} and \te{Int} types are not really primitive;
+they are defined completely in {\BH}.}
+
+% ----------------------------------------------------------------
+
+\subsection{Registers}
+
+\label{sec-registers}
+
+\index{Reg@\te{Reg} (type)|textbf}
+The most elementary form of state available in {\BH} is the register.
+Registers can be created with the {\veri} function \te{mkReg} which
+is a module with interface \te{Reg}.  The argument to
+\te{mkReg} is the initial value of the register.  A function \te{mkRegU}
+exists which creates a register whose initial value we don't care about.
+
+\index{set@\te{set} (\te{Reg} interface method)|textbf}
+\index{get@\te{get} (\te{Reg} interface method)|textbf}
+\index{mkReg@\te{mkReg} (\te{Reg} function)|textbf}
+\index{mkRegU@\te{mkRegU} (\te{Reg} function)|textbf}
+\begin{verbatim}
+ interface Reg a =
+     _write :: a -> Action
+     _read  :: a
+
+ mkReg :: (Bits a sa) => a -> Module (Reg a)
+
+ mkRegU :: (Bits a sa) => Module (Reg a)
+\end{verbatim}
+
+With this interface, it is necessary to use the functions {\te{\_read}}
+and {\te{\_write}} to retrieve and set values in a register.  To save the
+programmer some keystrokes and to improve readability of programs,
+mechanisms have been introduced to allow the functions to be dropped.
+First, the {\te{.\_read}} can be dropped from most variable names and the
+compiler will add it implicitly if it is needed.  The compiler will
+not be able to add {\te{.\_read}} to expressions, only to identifiers.
+In some cases, the compiler might accidentally insert {\te{.\_read}}
+where the programmer really intended to refer to the register and not
+its contents.  If this happens, simply apply the function {\te{asReg}}
+to the variable name, thereby turning it into an expression, and the
+compiler will not insert the {\te{.\_read}}.
+
+\index{asReg@\te{asReg} (dummy \te{Reg} function)|textbf}
+\begin{verbatim}
+ asReg :: Reg a -> Reg a
+ asReg r = r
+\end{verbatim}
+
+The symbol \te{:=} can be used as syntactic shorthand for setting a
+register:
+
+\gram{exp}{ \nterm{exp} \term{:=} \nterm{exp} }
+\index{=coloneq@\te{:=} (\te{Reg} assignment)|textbf}
+
+Example:
+\BBS
+pc := pc + 1  \hmm  {\rm\emph{is shorthand for}}  \hmm pc.\_write (pc.\_read + 1)
+\EBS
+
+% ----------------------------------------------------------------
+
+\subsection{FIFOs}
+
+Package {\te{FIFO}} defines several useful interfaces and modules for
+FIFOs.
+
+\index{FIFO@\te{FIFO} (interface type)|textbf}
+\index{enq@\te{enq} (\te{FIFO} interface method)|textbf}
+\index{deq@\te{deq} (\te{FIFO} interface method)|textbf}
+\index{first@\te{first} (\te{FIFO} interface method)|textbf}
+\index{clear@\te{clear} (\te{FIFO} interface method)|textbf}
+\index{mkFIFO@\te{mkFIFO} (\te{FIFO} function)|textbf}
+\index{mkSizedFIFO@\te{mkSizedFIFO} (\te{FIFO} function)|textbf}
+
+
+\begin{verbatim}
+ interface FIFO a =
+     enq      :: a -> Action
+     deq      :: Action
+     first    :: a
+     clear    :: Action
+
+ -- Make a FIFO
+ mkFIFO :: (Bits a as) => Module (FIFO a)
+ mkSizedFIFO :: (Bits a as) => Integer -> Module (FIFO a)
+\end{verbatim}
+
+The constructor {\te{mkFIFO}} leaves the capacity of the FIFO
+unspecified (the number of entries in the FIFO before it becomes
+full).  The constructor {\te{mkSizedFIFO}} takes the desired capacity
+of the FIFO as an argument.
+
+% ----------------------------------------------------------------
+
+\subsection{FIFOFs}
+
+Package {\te{FIFOF}} defines several useful interfaces and modules for
+FIFOs.  The \te{FIFOF} interface is like a \te{FIFO}, but it also has methods
+to test if the FIFO is full or empty.
+
+\index{FIFOF@\te{FIFOF} (interface type)|textbf}
+\index{enq@\te{enq} (\te{FIFOF} interface method)|textbf}
+\index{deq@\te{deq} (\te{FIFOF} interface method)|textbf}
+\index{first@\te{first} (\te{FIFOF} interface method)|textbf}
+\index{clear@\te{clear} (\te{FIFOF} interface method)|textbf}
+\index{mkFIFOF@\te{mkFIFOF} (\te{FIFOF} function)|textbf}
+\index{mkSizedFIFOF@\te{mkSizedFIFOF} (\te{FIFOF} function)|textbf}
+
+
+\begin{verbatim}
+ interface FIFOF a =
+     enq      :: a -> Action
+     deq      :: Action
+     first    :: a
+     clear    :: Action
+     notFull  :: Bool
+     notEmpty :: Bool
+
+ -- Make a FIFOF
+ mkFIFOF :: (Bits a as) => Module (FIFOF a)
+ mkSizedFIFOF :: (Bits a as) => Integer -> Module (FIFOF a)
+\end{verbatim}
+
+The constructor {\te{mkFIFOF}} leaves the capacity of the FIFO
+unspecified (the number of entries in the FIFO before it becomes
+full).  The constructor {\te{mkSizedFIFOF}} takes the desired capacity
+of the FIFO as an argument.
+
+% ================================================================
+
+\section{Interfacing to {\veri}}
+{\BH} programs can include components that are written in {\veri},
+and {\BH} also generates {\veri}, so there are two (related)
+mechanisms to consider.
+
+% ----------------------------------------------------------------
+
+\subsection{{\veri} modules}
+
+Modules written in {\veri} are an important part of {\BH} since this
+is where state elements are defined.  A {\veri} module definition
+specifies the naming of all the signals that are needed to implement
+the interface methods as well as some standard signals that all
+modules have.  {\veri} modules have the following syntax.
+
+\gram{exp}{\term{module} \term{verilog} \nterm{vModName} \opt{\nterm{vParams}} \nterm{clkNames} \nterm{rstNames} \opt{\nterm{vArgs}}} \\
+\grammore{\term{\{} \many{\nterm{fieldId} \opt{\nterm{mult}} \term{=} \nterm{portSpec} \many{\nterm{portSpec}} \term{;} } \term{\}}} \\
+\grammore{\opt{\nterm{schInfo}}}
+
+\gram{vModName}{\nterm{aexp}} \\
+\gram{clkNames}{\many{\nterm{portName} \term{,}}} \\
+\gram{rstNames}{\many{\nterm{portName} \term{,}}} \\
+\gram{portSpec}{\nterm{portName}\opt{\many{\nterm{portProp} \term{,}}}} \\
+\gram{portName}{\nterm{string}} \\
+\gram{portProp}{\term{reg} \alt \term{const} \alt \term{unused} \alt \term{inhigh}} \\
+\gram{vParams}{\term{(} \many{\nterm{exp} \term{,}} \term{)} \term{,}} \\
+\gram{vArgs}{\term{(} \many{\term{(} \nterm{portName} \term{,} \nterm{exp} \term{)}} \term{)}} \\
+\gram{mult}{\term{[} \nterm{int} \term{]}} \\
+
+\gram{schInfo}{\term{[} \many{ \nterm{schMeths} \nterm{schOp} \nterm{schMeths} \term{,}} \term{]}} \\
+\gram{schMeths}{\nterm{fieldId}} \\
+\gramalt{\term{[} \many{\nterm{fieldId} \term{,}} \term{]}} \\
+\gram{schOp}{\term{<>} \alt \term{<} \alt \term{<{}<}}
+
+A {\veri} module has many parts because a lot of information needs to
+be conveyed to the {\BH} compiler.  Many of the parts are optional,
+so most definitions look less formidable than the grammar suggests.
+
+A basic {\veri} module definition gives the name of the {\veri} module
+({\nterm{vModName}}), the name of the clock signal ({\nterm{clkName}})
+and then a number of definitions of the methods of the interface.
+
+Example:
+\begin{verbatim}
+ interface Counter =
+     up     :: PrimAction
+     preset :: Bit 4 -> PrimAction
+     value  :: Bit 4
+
+ vCount :: Module Counter
+ vCount = module verilog "count4" "clk" {
+     up     = "enable";
+     preset = "inp" "set";
+     value  = "outp";
+ }
+\end{verbatim}
+The name of the {\veri} module is \te{count4} and it is clocked by the
+port \te{clk}.  It has three input ports: \te{enable}, \te{inp}, and \te{set},
+and one output port: \te{outp}.
+
+{\bf Beware}, the compiler has no way of checking that the definition of
+a {\veri} module really corresponds to what the {\veri} code actually does
+so it will just believe you.
+
+The names of the {\veri} ports (the quoted names) do not have to be unique
+in a {\veri} module description.  If the same port name is used more than
+once the compiler will assume that the methods in which the names occur
+share a port and it will insert a multiplexer accordingly.
+
+Following a port name there can be port a property,
+whic is one of the following:
+\begindescrlist{xxxxxxx}
+\litem{\te{reg}}
+specifies that the port is directly connected
+to the input or output of a register.  This property is informational only
+and propagated by the compiler to the generated top level module.
+\litem{\te{const}}
+{\em not used at the moment}
+\litem{\te{ununsed}}
+{\em not used at the moment}
+\litem{\te{inhigh}}
+specifies that this enable signal (which is the only place where it is allowed) is always
+high, i.e., the method executes on every clock cycle.  There will be no {\veri} port corresponding
+to this enable signal.
+\end{list}
+
+%\begin{NOTE}
+%This does not schedule correctly at the moment!
+%\end{NOTE}
+
+Example:
+\begin{verbatim}
+ interface VSyncSRAM adrs dtas =
+     exec  :: Bit adrs -> Bit dtas -> Bit 1 -> Bit 1 -> PrimAction
+     rdata :: Bit dtas
+
+ mkSPSRAM_V :: Integer -> Module (VSyncSRAM adrs dtas)
+ mkSPSRAM_V nwords = do
+     module verilog name "CLK" {
+         exec  = "ADR" "DI" "WE" "EN" "?"{inhigh};
+         rdata = "DO";
+     } [ [exec,rdata] <> [exec,rdata] ]
+\end{verbatim}
+Since there will be no wire for the \term{exec} enable signal the name
+does not matter.
+
+% ----------------
+
+\subsubsection{Method definitions}
+
+\label{sec-veri-templ}
+
+Each method definition consists of a number of port names.  There must be one name
+for each part of the type of the interface.  A type of a method defined in a {\veri}
+interface must be of the form
+\BBS
+$t_1$ -> $t_2$ $\cdots$ -> $t_n$
+\EBS
+where each of the $t_i$ must be of type \te{Bit $n$}, except for the final
+type, $t_n$, which can also be of type \te{PrimAction}.
+If the last type is \te{PrimAction} all the ports will be input ports and the last
+port is the enable signal for the action.
+If the last type is not \te{PrimAction} the last port will be an output port and the
+others will be inputs.
+
+% ----------------
+
+\subsubsection{Parameters and arguments}
+
+\label{sec-param-and-args}
+
+A {\veri} module may require parameters to be instantiated.  Parameters must
+be compile time constants and to ensure this they must be of type \te{Integer}
+in {\BH}.  The parameters are given right after module name.
+\BBS
+module verilog "foo" (2,16) { $\cdots$ }
+\EBS
+
+Additional arguments (ports) can be given values by the argument part of the definition.
+The arguments are given by specifying a {\veri} port name and the value that should
+be on this port.  A typical use for this feature is to provide an initial value
+for a state element that is to be used when the reset signal is asserted.
+A expression used as an argument to a {\veri} module cannot have an implicit
+\index{implicit conditions!disallowed in arguments to {\veri} modules}
+condition (the compiler checks this).
+
+Example, (part of) the definition of the \te{mkReg} module:
+\begin{verbatim}
+ interface VReg n =
+     set :: Bit n -> PrimAction
+     get :: Bit n
+
+ vMkReg :: Bit n -> Module (VReg n)
+ vMkReg v =
+     module verilog "RegN" (valueOf n) "CLK" "RST" (("init", v)) {
+         get = "get"{reg};
+         set = "val"{reg} "SET";
+     } [ get <> get, get < set, set < set ]
+\end{verbatim}
+The {\veri} module is named \te{RegN} and is given one parameter, namely
+the size of the register to create.  In addition it is passed an additional
+value \te{v} on the \te{init} port which is used to set the initial value
+when the reset signal (\te{RST}) is asserted.
+
+The definition of \te{mkReg} is completed by wrapping the \te{vMkReg}
+module in some packing and unpacking.
+\begin{verbatim}
+ mkReg :: (Bits a sa) => a -> Module (Reg a)
+ mkReg v =
+     module
+         r :: VReg sa
+         r <- vMkReg (pack v)
+         interface
+             _read    = unpack r.get
+             _write x = fromPrimAction (r.set (pack x))
+\end{verbatim}
+
+The following {\veri} code is one possible implementation of \te{RegN}:
+\begin{verbatim}
+ module RegN(CLK, RSTN, init, get, val, SET);
+   parameter width = 1;
+   input CLK;
+   input RSTN;
+   input [width - 1 : 0] init;
+   input SET;
+   input [width - 1 : 0] val;
+   output [width - 1 : 0] get;
+   reg [width - 1 : 0] get;
+   always@(posedge CLK or negedge RSTN) begin
+     if (!RSTN)
+       get <= init;
+     else if (SET)
+       get <= val;
+   end
+ endmodule
+\end{verbatim}
+
+\subsubsection{Scheduling information}
+The scheduling information is used to describe what operations can
+be performed at the same time.  Currently, three relations can be described:
+Conflict Free (\te{<>}), Sequentially Composable (\te{<}), and
+Restricted Sequentially Composable (\verb'<<') (which means sequentially
+composable, but not parallelly composable).
+These relations are simply given by enumerating the elements of the
+set (of method name pairs) that make up the relation.
+A shorthand is provided for generating sets where the left or right
+component is the same.
+
+In the absence of scheduling information both relations are considered to be empty,
+which is always a safe approximation.
+
+% ----------------
+
+\subsubsection{Multiple methods}
+
+\label{sec-multiple}
+
+For some {\veri} modules several ports with identical operation may
+be available.  An example is a multiported memory where there are
+several read ports available that can be used simultaneously.
+This can, of course, be described by an interface that has several
+similar methods and the use of these can then be determined by the
+{\BH} code.  But the {\veri} module definitions also offers a
+more convenient alternative; a port multiplicity can be specified.
+This is done by a \qbs{[n]} following the field name.  This informs
+the compiler how many similar ports are available and the compiler
+will make sure to use them appropriately.
+
+Example:
+\begin{verbatim}
+ interface SRAM =
+     rd :: Addr -> Data
+     wr :: Addr -> Data -> PrimAction
+
+ mkSRAM :: Module SRAM
+ mkSRAM = module verilog "SRAM" "CLK" {
+     rd[3] = "raddr" "rdata";
+     wr    = "waddr" "wdata" "we";
+ }
+\end{verbatim}
+This specifies that there are 3 read ports.  The names of the port
+wires are \te{raddr\_1/rdata\_1}, \te{raddr\_2/rdata\_2}, and \te{raddr\_3/rdata\_3}.
+
+\tbd{The naming of the multiple ports may not be the best.}
+
+% ----------------
+\com{
+\subsubsection{Example: FIFO}
+
+This example shows most of the features described above.  It is taken from
+the definition of FIFOs as available in {\BH}.
+
+Note how the \te{mkFIFO} function invokes two different implementations
+of FIFOs depending on the size of the stored items (stored items
+of size zero need no storage).
+
+\begin{verbatim}
+ interface FIFO a =
+     enq      :: a -> Action
+     deq      :: Action
+     first    :: a
+     clear    :: Action
+
+ interface FIFO_ n =
+     enq_      :: Bit n -> PrimAction
+     deq_      :: Action
+     first_    :: Bit n
+     notFull_  :: Bit 1
+     notEmpty_ :: Bit 1
+     clear_    :: Action
+
+
+ -- Note, n>0 must hold.
+ vMkFIFO :: Module (FIFO_ n)
+ vMkFIFO =
+   module verilog "FIFON" (valueOf n) "CLK" {
+     enq_      = "idata" "ENQ";
+     deq_      = "DEQ";
+     first_    = "odata";
+     notFull_  = "CANENQ";
+     notEmpty_ = "CANDEQ";
+     clear_    = "CLR";
+   }   [ enq_ <> [deq_, first_, notFull_, notEmpty_],
+         deq_ <> [enq_, first_, notFull_, notEmpty_]
+       ]
+
+ mkFIFO :: (Bits a as) => Module (FIFO a)
+ mkFIFO =
+   -- Use a counter if the enqueued item has size 0
+   if valueOf as == 0 then
+     module
+       _n :: Reg (Bit 1)
+       _n <- mkReg 0
+       interface
+         enq _ = _n := _n + 1                  when _n < maxBound
+         deq   = _n := _n - 1                  when _n > 0
+         first = unpack 0                      when _n > 0
+         clear = _n := 0
+   else
+     -- Use a Verilog FIFO for ordinary items
+     module
+       _f :: FIFO_ as
+       _f <- vMkFIFO
+       interface
+         enq x    = _f.enq_ (pack x)           when (unpack _f.notFull_)
+         deq      = _f.deq_                    when (unpack _f.notEmpty_)
+         first    = unpack _f.first_           when (unpack _f.notEmpty_)
+         clear    = _f.clear_
+\end{verbatim}
+
+Here is some {\veri} code that is one possible implementation of the definition:
+\begin{verbatim}
+ module FIFON(CLK, idata, ENQ, CANENQ, odata, DEQ, CANDEQ, CLR);
+   parameter width = 1;
+   input CLK;
+   input [width - 1 : 0] idata;
+   input ENQ;
+   output CANENQ;
+   output [width - 1 : 0] odata;
+   reg [width - 1 : 0] odata;
+   input DEQ;
+   output CANDEQ;
+   reg CANDEQ;
+   input CLR;
+   assign CANENQ = !CANDEQ;
+   always@(posedge CLK)
+   if (CLR)
+     CANDEQ <= 0;
+   else
+     if (ENQ)
+       begin
+         CANDEQ <= 1;
+         odata <= idata;
+       end
+     else
+       if (DEQ)
+         CANDEQ <= 0;
+ endmodule
+\end{verbatim}
+}
+
+% ----------------------------------------------------------------
+
+\subsection{Generated {\veri}}
+
+The {\BH} compiler can generate {\veri} code (a module) for a
+{\BH} module definition.  The type of the interface for the module
+has to obey certain restrictions so that it can be converted to wires.
+
+\tbd{Accurately describe restrictions.}
+
+The interface type (of the designated module) will be ``mangled'' by
+the {\BH} compiler to generate an interface that obeys the
+restriction that {\veri} modules have, see section
+{\ref{sec-veri-templ}}.  The definition of this interface type is
+available in the generated signature (\qbs{.bi}) file for
+informational purposes.  The ``mangled'' interface will contain one
+extra method for each of the original methods (beginning in \te{RDY\_})
+which is a handshake signal indicating that the method is ready to be
+used.
+
+%If the module for which {\veri} is being generated is named $name$ there
+%will be an additional exported definition from the module named \te{v\_$name$}.
+%When this definition is used it will use the {\veri} code for the given
+%module instead of the {\BH} code.
+
+Example:
+\begin{verbatim}
+ package Cube(mkCube, mkCube16, Cube) where
+ import UInt
+ import Mult
+
+ interface Cube n =
+     start  :: UInt n -> Action    -- An input causing an action
+     result :: UInt n              -- The output
+
+ data State = Idle | Working deriving (Eq, Bits)
+
+ mkCube :: Module (Cube n)
+ mkCube =
+     module
+         state :: Reg State
+         state <- mkReg Idle
+         x :: Reg (UInt n)
+         x <- mkRegU
+         r :: Reg (UInt n)
+         r <- mkRegU
+         m :: Mult n
+         m <- mkMult
+         let (*) = m.mul
+         rules
+             when state == Working
+              ==> action { r := r * x; state := Idle }
+         interface
+             start n = action { x := n; r := x*x; state := Working }
+                 when state == Idle
+             result  = r
+                 when state == Idle
+
+ mkCube16 :: Module (Cube 16)
+ mkCube16 = mkCube
+\end{verbatim}
+
+If code generation for \te{mkCube16} is requested the generated signature file
+will contain this:
+\begin{verbatim}
+ signature Cube where {
+ type (Cube.Cube :: # -> *) n;
+
+ Cube.mkCube :: Prelude.Module (Cube.Cube n);
+
+ Cube.mkCube16 :: Prelude.Module (Cube.Cube 16);
+
+ interface (Cube.Cube_16_ :: *) = {
+     Cube.start :: Prelude.Bit 16 -> Prelude.Action;
+     Cube.RDY_start :: Prelude.Bit 1;
+     Cube.result :: Prelude.Bit 16;
+     Cube.RDY_result :: Prelude.Bit 1
+ };
+
+ Cube.mkCube16_ :: Prelude.Module Cube.Cube_16_
+ }
+\end{verbatim}
+
+The generated {\veri} module header:
+\begin{verbatim}
+ module mkCube16_(CLK,
+                  RST,
+                  RDY_start,   // output, asserted when start can accept
+                  result,
+                  RDY_result,  // output, asserted when result signal is valid
+                  start_1,     // corresponds to first argument of start interface method
+                  EN_start);   // input, assert when start method has valid data
+   input CLK, RST;
+   output RDY_start;
+   output [15 : 0] result;
+   output RDY_result;
+   input [15 : 0] start_1;
+   input EN_start;
+   ...
+\end{verbatim}
+
+The naming conventions for the ports is to take the method name
+(of the mangled interface) and suffix it with \te{\_$n$} for the
+$n$th argument.  The output of a method will have the method name.
+The enable signal (for actions) will have \te{EN\_} prefixed to the
+method name.
+
+\begin{NOTE}
+The mangled interface is only there for informational purposes; it cannot be
+used.  Perhaps there would be a better way to convey this information?
+\end{NOTE}
+
+\subsubsection{{\veri} code generation properties}
+A number of properties can be specified for a module which affects
+{\veri} code generation.
+
+\gram{pragma}{\term{\{-\#} \term{properties} \nterm{varId} \term{=} \term{\{} \many{\nterm{cgprop} \term{,}} \term{\}} \term{\#-\}}}
+
+\gram{cgprop}{\term{verilog}} \\
+\gramalt{\term{alwaysReady}}\\
+\gramalt{\term{alwaysEnabled}}\\
+\gramalt{\term{scanInsert} \term{=} \nterm{int}}\\
+\gramalt{\term{bitBlast}}\\
+\gramalt{\term{CLK} \term{=} \nterm{varName}}\\
+\gramalt{\term{RSTN} \term{=} \nterm{varName}}\\
+\gramalt{\term{options} \term{=} \term{\LBRACE} \many{\nterm{string} \term{,}} \term{\RBRACE}}
+
+\gram{varName}{\nterm{varId} \alt \nterm{conId} \alt \nterm{string}}
+
+The \te{properties} pragma is given for a specific module and the listed
+properties affect code generation.
+\begindescrlist{alwaysEnabledxx}
+\litem{\te{verilog}}
+generate {\veri} for this module.  Without this, or the command line option,
+no code is generated for this module, instead it will be inlined where used.
+\litem{\te{alwaysReady}}
+all methods in the module interface should be continuously ready, i.e., there
+is no need to us the {\BH} ready signalling protocol so those wires are left
+out.  The compiler verifies that the methods are indeed always ready.
+\litem{\te{alwaysEnabled}}
+all methods that are actions (i.e., where the type ends with \te{PrimAction})
+are assumed to be continuously enabled, i.e., they execute in every cycle.
+There is thus no need for the enable signal for the method and it is omitted.
+The compiler generates code as if the enable wire was always high and verifies
+that the method will fire in every clock cycle.
+\litem{\te{scanInsert}}
+put extra ports used for scan insertion into the generated {\veri} code.
+The number specifices the number of scan chains to insert.
+\litem{\te{bitBlast}}
+do ``bit blasting'' of the generated ports, i.e., split ports that consist of
+multiple bits into the individual bits, and also make all port names upper case.
+\litem{\te{CLK}}
+specify the name of the clock, the default is \te{CLK}.
+\litem{\te{RSTN}}
+specify the name of the reset, the default is \te{RST{\US}N}.
+\litem{\te{options}}
+specify additional compiler flags that override the current compiler flags
+(as given on the command line).
+\end{list}
+
+The \te{alwaysReady} and \te{alwaysEnabled} properties are useful when the generated
+code will be connected to other {\veri} modules that are not written in {\BH},
+and where these modules assume a synchronous signalling protocol.
+
+% This example used to demonstrate the ``name'' pragma, but that no longer
+% exists, so this example is overly complicated now.
+Example: A module which connects to an external synchronous SRAM
+\begin{verbatim}
+  {-# properties useSRAM = {
+         alwaysReady,
+         alwaysEnabled,
+  } #-}
+  useSRAM :: Module (SyncSRAMC 1 (Bit 20) (Bit 32))
+  useSRAM =
+     module
+         (extram, ram) <- wrapSRAM
+         ...
+         interface (extram)
+\end{verbatim}
+
+Example: Do not perform ATS optimization for the module \te{slow}
+\begin{verbatim}
+  {-# properties slow = { options = { "-no-opt-ATS" } } #-}
+  slow :: Module ...
+\end{verbatim}
+
+% ================================================================
+
+\section{Interfacing to C}
+
+The C code generated and used by the {\BH} compiler is structured
+similarly to the {\veri} modules generated and used by the compiler.
+Each {\veri} module corresponds to a ``class'' and its instances to
+``objects''.  Since C is not object oriented the notion of an object
+has to be simulated.{\footnote{Generating C++ would have been slightly
+easier since it has objects.}}
+
+Each ``class'' definition is a struct.  It first always contains
+certain fields, a \qbs{struct obj}, which are explained below.
+Following these are function pointers that implement all the methods
+in the interface.  Each of these functions takes a pointer to the
+``object'' itself as the first argument (the \qbs{self} pointer, which
+is the standard way of implementing object oriented languages).  If
+the interface method is an action ({\ie} its type ends in \te{Action})
+the function will have one argument for each of the methods arguments.
+If the method returns a value it will have an additional argument, the
+second, where this value will be stored.  All arguments are passed by
+reference; the type \qbs{varp} is used for updatable values and
+{\qbs{varcp}} for constant value.  Each of these arguments represents
+something which in {\BH} has type \qbs{Bit $n$} and in {\veri} is a
+bunch of wires.
+
+The initial part of each ``class'' ({\ie} its base class) has the
+following definition:
+\begin{verbatim}
+ typedef struct obj *obj;
+ struct obj {
+     obj parent;
+     const struct varinfo *vinfo;
+     updfun update;
+     dumpfun dump;
+     uInt nrules;
+     varp *preds;
+     ruleinfo *rules;
+     uInt nobjs;
+     obj *objs;
+ };
+\end{verbatim}
+None of these fields are needed for a user of an ``object'', but we will
+explain them for completeness.
+\begin{tightlist}
+\item \te{parent} points to the object which this state element is a part of.
+\item \te{vinfo} contains name etc. for this state variable.
+\item \te{update} is the function that must be called when any action has been performed on the object.         It will recompute all the private fields in the object, and of all sub-objects.
+\item \te{dump} will, if called, print the state of the object.
+\item \te{nrules} the number of rules in this object.
+\item \te{preds} pointers (\te{nrules} of them) point to the predicates for all the rules.
+        Use the \te{GETBOOL()} macro to get the value of one of these.
+\item \te{rules} points to an array of information for each rule.
+        The rule information contains the name of the rule and the function to call to execute the rule.
+\item \te{nobjs} the number of sub-objects contained in this object.
+\item \te{objs} pointers to all the sub-objects.
+\end{tightlist}
+
+% ----------------------------------------------------------------
+
+\subsection{C modules}
+
+Wherever a {\veri} module is used when generating {\veri} a
+corresponding C module is needed for generating C.  If the {\veri}
+module, with interface type \qbs{{\rm\emph{ifc}}}, is named
+\qbs{$mod$} the compiler will assume that there is a corresponding C
+header file named {\qbs{$mod$.h}}.  This header file should contain a
+type definition (a {\te{typedef}}) for the type \qbs{B{\rm\emph{ifc}}}
+and a function called {\qbs{new\_$mod$}} returning a
+{\qbs{B{\rm\emph{ifc}}}} object.
+
+Example: The {\veri} register module, see section
+{\ref{sec-param-and-args}}, has a corresponding C header file, named
+{\qbs{RegN.h}}, with these contents:
+\begin{verbatim}
+ #if !defined(REG)
+ #define REG
+ typedef struct BReg *BReg;
+ struct BReg {
+     struct obj hdr;
+     void (*Bget)(BReg, varp);
+     void (*Bset)(BReg, varcp);
+ };
+ #endif
+
+ BReg new_RegN(obj, const struct varinfo *, uInt, varcp);
+\end{verbatim}
+
+% ----------------------------------------------------------------
+
+\subsection{Generated C}
+
+The generated C code follows the conventions described in the
+preceding sections.  If C code is generated for a module named
+{\qbs{\rm\emph{templ}}}, the compiler will generate a header file
+{\qbs{\rm\emph{templ}.h}} and a code file {\qbs{\rm\emph{templ}.c}}.
+
+% ================================================================
+
+\section{Guiding the compiler}
+
+\subsection{Pragmas}
+\index{pragma@\te{pragma} (keyword)}
+To guide the compiler to do the right thing there are a number of
+pragmas.  Pragmas can be used where top level definitions are valid.
+Pragmas have the following general form:
+
+\gram{topDefn}{\nterm{pragma}}
+
+\gram{pragma}{\term{\{-\#} \nterm{pragmaId} $\cdots$ \term{\#-\}}}
+
+\gram{pragmaId}{\nterm{varId}}
+
+Syntactically, pragmas are comments because they are enclosed in
+{\verb|{-|} and {\verb|-}|} brackets.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Pragma \te{verilog}}
+
+\index{verilog@\te{verilog} (pragma)}
+When the compiler generates code for a module it normally tries to
+integrate all definitions into one big {\veri} module.  If this is not
+desirable for some reason you can use the \te{verilog} pragma to
+instruct the compiler to generate {\veri} modules for parts of the
+design.
+
+The syntax is:
+
+\gram{pragma}{\term{\{-\#} \term{verilog} \nterm{varId} \opt{\many{\nterm{veriProp} \term{,}}} \term{\#-\}}}
+
+\gram{veriProp}{\term{noReady} ~ \alt ~ \term{alwaysEnabled}}
+
+This will tell the compiler to generate {\veri} modules for the named
+module when it is doing code generation.
+
+Some properties of the generated code can be specified as well:
+\begindescrlist{xxxxxxx}
+\litem{\te{noReady}}
+specifies that no ready signals should be generated.  The compiler verifies that
+all the methods in the interface are permanently ready.
+\litem{\te{alwaysEnabled}}
+specifies that there should be no enable signal for action methods.
+The method will be executed on every clock cycle, and the compiler
+verifies that the caller does this.
+\end{list}
+
+\note{It is currently not possible to give these properties for individual
+method, just for the whole interface.}
+% ----------------------------------------------------------------
+
+\subsubsection{Pragma \te{noinline}}
+
+\index{noinline@\te{noinline} (pragma)}
+The \te{noinline} pragma can be given for functions, it tells the
+compiler not to inline the function, but to generate code for
+it directly.  The function has same type restrictions as for interface methods
+that are involved in code generation.
+
+The syntax is:
+
+\gram{pragma}{\term{\{-\#} \term{noinline} \many{\nterm{varId}} \term{\#-\}}}
+
+Example:
+\begin{verbatim}
+{-# noinline cswap #-}
+cswap :: Bool -> (Int 32, Int 32) -> (Int 32, Int 32)
+cswap True (x, y) = (y, x)
+cswap False xy = xy
+\end{verbatim}
+
+% ----------------------------------------------------------------
+
+%% \subsubsection{Pragma \te{multiplicity}}
+
+%% \index{multiplicity@\te{multiplicity} (pragma)}
+%% The \te{multiplicity} pragma can be used to tell the compiler to
+%% generate multiple ports of the same kind for a {\veri} module.  This
+%% corresponds to what was described in \ref{sec-multiple} about
+%% interfacing to {\veri}.
+
+%% The syntax is:
+
+%% \gram{pragma}{\term{\{-\#} \term{multiplicity} \nterm{varId} \term{\{} \many{\nterm{fieldId} \nterm{mult} \term{;}} \term{\}} \term{\#-\}}}
+
+%% This tells the compiler how many ports to generate for different
+%% fields of module \nterm{varId}.  The default is one port.
+
+%% \note{This pragma is not fully implemented yet.}
+
+% ----------------
+
+\subsection{Rule assertions}
+
+\index{rule assertions|textbf}
+Rule assertions instruct the compiler to abort compilation unless it
+can verify that a rule satisfies a particular condition.  Each
+assertion affects the rule that immediately follows it and all rules
+nested within.
+
+\gram{rule} \nterm{ruleAssert} \opt{\term{;}} \nterm{rule}
+
+Rule assertions are not triggered until the generation of \veri{} or C
+code for the module that includes them.
+
+% ----------------
+
+\subsubsection{Assertion \te{fire when enabled}}
+
+\index{fire when enabled@\te{fire when enabled} (rule assertion)}
+\index{rule assertions!\te{fire when enabled}}
+This asserts that a rule is scheduled to fire whenever its predicate
+and its implicit conditions are true, {\ie} when they are true, there
+are no scheduling conflicts that will prevent it from firing.
+
+\gram{ruleAssert}{\term{\{-\#} \term{ASSERT}
+	\term{fire} \term{when} \term{enabled} \term{\#-\}}}
+
+% ----------------
+
+\subsubsection{Assertion \te{no implicit conditions}}
+
+\index{no implicit conditions@\te{no implicit conditions} (rule assertion)}
+\index{rule assertions!\te{no implicit conditions}}
+\index{implicit conditions!asserting that a rule has none}
+This asserts that interface methods called within the rule do not have
+implicit conditions that contribute to its enabling, {\ie} only the
+explicit rule predicate controls whether it is enabled or not.
+
+\gram{ruleAssert}{\term{\{-\#} \term{ASSERT}
+	\term{no} \term{implicit} \term{conditions} \term{\#-\}}}
+
+
+% ================================================================
+
+\bibliography{BH_lang}
+\bibliographystyle{alpha}
+
+% ================================================================
+
+\appendix
+
+% ================================================================
+
+\newpage
+
+\section{Advanced topics}
+
+This section contains topics that are not necessary for the beginning
+{\BH} programmer.
+
+% ----------------------------------------------------------------
+
+\subsection{Lambda expressions}
+
+\label{sec-lambda}
+
+\index{lambda expressions|textbf}
+Value definitions (section {\ref{sec-val-defs}}) enable definition of
+functions, but it is bundled with also binding the function value to a
+name.  It is possible to define a function value independently of
+giving it a name, {\ie} to define a function value ``anonymously''
+using so-called ``$\lambda$-expressions'':
+
+\gram{exp}{\term{\BSL} \many{\nterm{varId}} \term{->} \nterm{exp}}
+\index{=minusgt@\te{->} (in lambda expressions)}
+
+Example:
+\begin{verbatim}
+ \x -> x * x
+\end{verbatim}
+This defines the ``squaring function'', {\ie} a function of one
+argument that returns the product of that argument with itself.
+
+\tbd{Allow irrefutable patterns instead of variables for $\lambda$.}
+
+% ----------------------------------------------------------------
+
+\subsection{\te{do}}
+
+\label{sec-do}
+
+\gram{exp}{ \term{do} \term{\{} \many{\nterm{stmt} \term{;}} \nterm{exp} \term{\}} }
+\index{do expressions}
+\index{do@\te{do} (keyword)}
+
+The {\te{do}} expression in {\BH} provides a convenient syntax for
+programming with {\em monads} {\cite{monads,monads2}}.  A translation
+of the {\te{do}} expression into simpler expressions is given in the
+Haskell report {\cite{haskell12}}.
+
+The value of a {\te{do}} statement is the value of the very last
+expression.  This last expression is commonly a call to the method
+{\te{return}} which is defined for any monad.  {\te{return}} takes a
+value and returns a monad type with that value.
+
+% ----------------
+
+\subsubsection{Creating modules with \te{do}}
+
+To further illustrate how the \te{module} syntax is nearly just a
+{\te{do}} expression and the interface nearly a \te{struct}, consider
+the following example which creates a module without the special
+syntax:
+
+\begin{verbatim}
+ struct Two =
+     a :: Reg (Bit 5)
+     b :: Reg (Bit 10)
+
+ mkTwo :: Module Two
+ mkTwo = do
+     a <- mkReg 0
+     b <- mkReg 0
+     return (Two { a = a; b = b })
+\end{verbatim}
+
+%In the current unstable state of the compiler, this works.  It is
+%likely that, as the compiler settles, the type parameter of modules
+%will be required to be an interface---at least for any top-level
+%compiled modules.
+
+\subsubsection{Recursive bindings in module}
+Normally (i.e., in Haskell) the bindings in a \te{do} expression come into scope in order,
+but {\BH} also allows forward references to variables bound in a do expression.
+
+Example: The following is legal
+\begin{verbatim}
+ do
+     x <- foo y
+     y <- bar x
+     return (x, y)
+\end{verbatim}
+
+Such recursive bindings does not make sense in all monads so there is a type
+restriction to capture this.  Normally a \te{do} expression has type \te{(Monad m) => m \it{t}},
+but a \te{do} expression with as forward reference has type \te{(MonadFix m) => m \it{t}}.
+The class \te{MonadFix} is defined as
+\begin{verbatim}
+ class (Monad m) => MonadFix m where
+     mfix :: (a -> m a) -> m a
+\end{verbatim}
+
+A \te{do} with forward references is transformed into an ordinary \te{do} as follows:
+Let \te{x1} $\cdots$ \te{xk} be the identifiers that are referenced forwardly.
+\begin{verbatim}
+ do
+     s1
+     ...
+     sn
+     e
+\end{verbatim}
+transforms to (where \te{n}, \te{t}, and \te{r} are fresh identifiers)
+\begin{verbatim}
+ do
+     n <- mfix (\ t -> let (r, x1, ... xk) = t
+                       in  do
+                               s1
+                               ...
+                               sn
+                               r <- e
+                               return (r, x1, ... xk)
+               )
+     return n.fst
+\end{verbatim}
+
+Both the \te{Module} and \te{ActionValue} monads belong to the class \te{MonadFix}.
+
+
+% ----------------------------------------------------------------
+
+\subsection{\te{IsModule}}
+
+\label{sec-ismodule}
+
+\index{IsModule@\te{IsModule} (typeclass)}
+\index{liftModule@\te{liftModule} (\te{IsModule} method)}
+The type constructor \te{Module} is a primitive type that the compiler
+knows about.  It is possible to build variations of this type
+within {\BH}.  To express that a type is related to \te{Module}
+we use the class \te{IsModule}.
+The special \te{module} syntax is available for all types that belong
+to \te{IsModule}.
+
+\begin{verbatim}
+ class (Monad m) => IsModule m where
+     liftModule :: Module a -> m a
+\end{verbatim}
+
+The \te{liftModule} function is the conversion from a standard
+module into the augmented module type.
+
+Naturally, the \te{Module} type trivially belongs to the \te{IsModule} class.
+
+\begin{verbatim}
+ instance IsModule Module where
+     liftModule  m  = m
+\end{verbatim}
+
+All the primitive state generators, e.g., \te{mkReg}, have a type that is
+general enough that they can be used in any module variation.
+
+\begin{verbatim}
+ mkReg :: (IsModule m, Bits a sa) => a -> m (Reg a)
+\end{verbatim}
+
+It is very easy to make a value with such a type; just apply
+\te{liftModule} to an ordinary \te{Module} value.
+
+% ================================================================
+
+\newpage
+
+\section{Syntax}
+
+\label{sec-syntax}
+
+\subsection{Reserved words}
+
+The following words are reserved in {\BH}:
+\begin{quote}
+\te{action as} \\
+\te{case class} \\
+\te{data default data deriving do} \\
+\te{else} \\
+\te{foreign} \\
+\te{hiding} \\
+\te{if import in infix infixl infixr instance interface} \\
+\te{let} \\
+\te{module} \\
+\te{newtype} \\
+\te{of} \\
+\te{package prefix primitive} \\
+\te{qualified} \\
+\te{return rules} \\
+\te{signature struct} \\
+\te{then type} \\
+\te{valueOf verilog} \\
+\te{when where}
+\end{quote}
+
+% ================================================================
+
+\newpage
+
+\section{Semantics of primitive operations}
+
+\label{sec-primitives}
+
+The {\BH} compiler internally translates a {\BH} program until
+it is entirely defined in terms of primitive operations and
+external modules.  This section describes the semantics of the
+primitive operations.
+
+All primitive operations are defined for all sizes (including 0)
+given the type constraints.
+All numbers are interpreted in two's complement representation
+where applicable.
+
+\begindescrlist{xxxxxxxxxxx}
+\litem{\te{primitive primAdd :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Adds two $n$ bit numbers and returns the lower $n$ bits of the result.\\
+	Generates a {\veri} \qbs{+}.
+\litem{\te{primitive primSub :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Subtracts two $n$ bit numbers and returns the lower $n$ bits of the result.\\
+	Generates a {\veri} \qbs{-}.
+\litem{\te{primitive primMul :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Multiplies two $n$ bit numbers and returns the lower $n$ bits of the result.\\
+	Generates a {\veri} \qbs{*}.
+\litem{\te{primitive primNeg :: Bit n -> Bit n}}
+	\mbox{}\\
+	Negation of an $n$ bit number.\\
+	Generates a {\veri} \qbs{-}.
+\litem{\te{primitive primAnd :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Bitwise AND of two $n$ bit numbers.\\
+	Generates a {\veri} \qbs{\&}.
+\litem{\te{primitive primOr  :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Bitwise OR of two $n$ bit numbers.\\
+	Generates a {\veri} \qbs{|}.
+\litem{\te{primitive primXor :: Bit n -> Bit n -> Bit n}}
+	\mbox{}\\
+	Bitwise XOR of two $n$ bit numbers.\\
+	Generates a {\veri} ``\HAT''.
+\litem{\te{primitive primSL  :: Bit n -> Nat -> Bit n}}
+	\mbox{}\\
+	Shift the first argument left by the number of bits given by the second argument.
+	Vacated positions are filled with 0.  The behaviour is undefined if the shift
+	count is equal or larger than the width of the shifted word. \\
+	Generates a {\veri} \qbs{<{}<} if the shift count is non-constant, otherwise just bit selection.
+\litem{\te{primitive primSRL :: Bit n -> Nat -> Bit n}}
+	\mbox{}\\
+	Shift the first argument right by the number of bits given by the second argument.
+	Vacated positions are filled with 0.  The behaviour is undefined if the shift
+	count is equal or larger than the width of the shifted word. \\
+	Generates a {\veri} \qbs{>{}>} if the shift count is non-constant, otherwise just bit selection.
+\litem{\te{primitive primSRA :: Bit n -> Nat -> Bit n}}
+	\mbox{}\\
+	Shift the first argument right by the number of bits given by the second argument.
+	Vacated positions are filled with the most significant bit.  The behaviour is undefined if the shift
+	count is equal or larger than the width of the shifted word. \\
+	Generates a {\veri} \qbs{>{}>} and replication of the sign if the shift count is non-constant, otherwise just bit selection.
+\litem{\te{primitive primInv :: Bit n -> Bit n}}
+	\mbox{}\\
+	Bitwise inverting of an $n$ bit number.\\
+	Generates a {\veri} ``\TILDE''.
+\litem{\te{primitive primEQ  :: Bit n -> Bit n -> Bit 1}}
+	\mbox{}\\
+	Comparison of two $n$ bit numbers, returns 1 if they are equal otherwise 0. \\
+	Generates a {\veri} \qbs{==}.
+\litem{\te{primitive primULE :: Bit n -> Bit n -> Bit 1}}
+	\mbox{}\\
+	Unsigned comparison of two $n$ bit numbers, returns 1 if the first one is less than or equal to the second, otherwise 0. \\
+	Generates a {\veri} \qbs{<=}.
+\litem{\te{primitive primULT :: Bit n -> Bit n -> Bit 1}}
+	\mbox{}\\
+	Unsigned comparison of two $n$ bit numbers, returns 1 if the first one is less than the second, otherwise 0. \\
+	Generates a {\veri} \qbs{<}.
+\litem{\te{primitive primSLE :: Bit n -> Bit n -> Bit 1}}
+	\mbox{}\\
+	Signed comparison of two $n$ bit numbers, returns 1 if the first one is less than or equal to the second, otherwise 0. \\
+	Generates a {\veri} \qbs{<=} with the sign bits inverted.
+\litem{\te{primitive primSLT :: Bit n -> Bit n -> Bit 1}}
+	\mbox{}\\
+	Signed comparison of two $n$ bit numbers, returns 1 if the first one is less than the second, otherwise 0. \\
+	Generates a {\veri} \qbs{<} with the sign bits inverted.
+\litem{\te{primitive primZeroExt :: (Add n k m) => Bit n -> Bit m}}
+	\mbox{}\\
+	Extend the argument with 0 on the left to make it the right size. \\
+	Generates a {\veri} bit concatenation.
+\litem{\te{primitive primSignExt :: (Add n k m) => Bit n -> Bit m}}
+	\mbox{}\\
+	Extend the argument with the sign bit replicated on the left to make it the right size.
+	An argument of size 0 is assumed to have a 0 sign bit. \\
+	Generates a {\veri} bit concatenation.
+\litem{\te{primitive primTrunc :: (Add k m n) => Bit n -> Bit m}}
+	\mbox{}\\
+	Truncate bits on the left.
+	Generates a {\veri} bit extraction.
+\litem{\te{primitive primBNot :: Bit 1-> Bit 1}}
+	\mbox{}\\
+	Boolean NOT.\\
+	Generates a {\veri} \qbs{!}.
+\litem{\te{primitive primBAnd :: Bit 1 -> Bit 1 -> Bit 1}}
+	\mbox{}\\
+	Boolean AND.  During compile time this is a ``short circuit'' operator that avoids evaluating the second operand if possible.\\
+	Generates a {\veri} \qbs{\&\&}.
+\litem{\te{primitive primBOr :: Bit 1 -> Bit 1 -> Bit 1}}
+	\mbox{}\\
+	Boolean OR.  During compile time this is a ``short circuit'' operator that avoids evaluating the second operand if possible.\\
+	Generates a {\veri} \qbs{||}.
+\end{list}
+
+% ================================================================
+
+\newpage
+
+\section{The Standard Prelude and Additional Libraries}
+
+\label{sec-prelude}
+\label{sec-additional-libs}
+
+Please see the separate document {\LibRefGuide} for the Standard
+Prelude and Additional Libraries.
+
+% ================================================================
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Index}
+\printindex
+
+\end{document}
