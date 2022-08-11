@@ -39,13 +39,6 @@ PREFIX?=$(TOP)/inst
 INSTALLDIR=$(PREFIX)/doc
 INSTALLNAME=BH_lang_ref_guide
 
-.SUFFIXES: .tex .bs .bsv
-.bs.tex:	lib.awk
-	$(AWK) -f lib.awk $< > $@
-
-.bsv.tex:	lib.awk
-	$(AWK) -f lib.awk $< > $@
-
 VPATH=${PREL} ${LIBR} ${OBSEL}
 
 .PATH:	${VPATH}
