@@ -202,10 +202,20 @@ jobs:
           make -j3 install-doc
           tar czf inst.tar.gz inst
       - name: Upload artifact
+        # This artifact, PDFs inside inst.tar.gz inside artifact.zip, is used for release packaging.
         uses: actions/upload-artifact@v1
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
+      - name: Upload doc not tar
+        # This artifact, PDFs inside artifact.zip, is useful for online viewing of built documents.
+        # Unfortunately, it is not possible to upload single files not packaged in a zip.
+        # https://github.com/actions/upload-artifact/issues/3
+        # https://github.com/actions/upload-artifact/issues/14
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
 
   build-doc-macOS:
     strategy:
@@ -230,6 +240,11 @@ jobs:
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
+      - name: Upload doc not tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
 
   test-ubuntu:
     strategy:
