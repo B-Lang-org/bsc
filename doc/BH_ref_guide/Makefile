@@ -55,7 +55,7 @@ all:	$(DOC).pdf
 clean:
 	${RM} -f ${LIBS} *.pdf  *.blg *.bbl *.aux *.log *.toc *.idx *.ind *.ilg *.out
 
-realclean: clean
+full_clean: clean
 	${RM} -f *.log *.aux *.blg *.bbl *.out *.toc *.idx *.ind *.ilg
 	${RM} -f ${LIBS}
 
