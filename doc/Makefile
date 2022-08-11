@@ -7,6 +7,7 @@ SUBDIRS=\
 	user_guide \
 	libraries_ref_guide \
 	BSV_ref_guide \
+	BH_ref_guide \
 
 .PHONY: all
 all: install

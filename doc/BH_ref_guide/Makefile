@@ -1,5 +1,7 @@
 AWK=awk
 RM=rm
+INSTALL?=install -c
+
 PAPERSIZE=letter
 
 DOC=BH_lang
@@ -29,6 +31,13 @@ PWD:=$(shell pwd)
 PREL=lib/Prelude
 LIBR=lib/Libraries
 OBSEL=lib/Obsolete
+
+PWD := $(shell pwd)
+TOP := $(PWD)/../..
+
+PREFIX?=$(TOP)/inst
+INSTALLDIR=$(PREFIX)/doc
+INSTALLNAME=BH_lang_ref_guide
 
 .SUFFIXES: .tex .bs .bsv
 .bs.tex:	lib.awk
@@ -62,3 +71,8 @@ $(DOC).pdf: $(DOC).tex  version.tex
 
 print:	$(DOC).ps
 	lpr $(DOC).ps
+
+.PHONY: install
+install: $(DOC).pdf
+	$(INSTALL) -m 755 -d         $(INSTALLDIR)
+	$(INSTALL) -m 644 $(DOC).pdf $(INSTALLDIR)/$(INSTALLNAME).pdf
