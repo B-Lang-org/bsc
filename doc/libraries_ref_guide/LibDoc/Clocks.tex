@@ -389,7 +389,7 @@ The \te{mkUngatedClock} module is an ungated version of the
 \te{mkClock} module.  It takes only an oscillator argument (no gate
 argument) and returns the same \te{new\_clock}  interface.  Since
 there is no gate, an error is returned if the design calls the
-\te{setGetCond} method.  The \te{getGateCond} method always returns True.
+\te{setGateCond} method.  The \te{getGateCond} method always returns True.
 
 
 \begin{figure}[ht]
