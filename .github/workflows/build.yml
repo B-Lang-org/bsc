@@ -246,6 +246,31 @@ jobs:
           name: ${{matrix.os}}-doc-not-tar
           path: inst/doc
 
+  build-releasenotes-ubuntu:
+    # Release Notes only need to be built once, so we build on recent
+    # Ubuntu, not Mac OS.  Later, the release script will copy the
+    # generated release notes to all release tarballs.
+    strategy:
+      matrix:
+        # asciidoctor-pdf does not exist on ubuntu 18.04
+        os: [ ubuntu-20.04, ubuntu-22.04 ]
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_releasenotes_ubuntu.sh"
+      - name: Build
+        run: |
+          make install-release
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} releasenotes
+          path: inst.tar.gz
+
   test-ubuntu:
     strategy:
       matrix:
