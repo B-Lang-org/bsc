@@ -4,6 +4,36 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2022.07 Release
+---------------
+
+Changes since release 2022.01:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Updates to BSV Language Reference Guide
+* Adds back the BH (Bluespec Haskell/Classic) Reference Guide with updates, in `doc/`.
+
+Compiler
+~~~~~~~~
+
+* Miscellaneous small optimizations
+
+Libraries
+~~~~~~~~~
+
+* Miscellaneous small bugfixes and improvements (`BRAM_PORT`, bypass FIFO adapter, bypass FIFOs)
+
+Internal
+~~~~~~~~
+
+* Improvements to CI (continuous integration)
+
+
+
+'''
+
 2022.01 Release
 ---------------
 
