@@ -141,8 +141,8 @@ do
     if [ "$fbase" = "main.v" ] ; then
 	HAS_MAIN=1
     else
-	if [[ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ]] ; then
-	    BSC_VERILOG_FILES_NO_MAIN+="$f "
+	if [ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ] ; then
+	    BSC_VERILOG_FILES_NO_MAIN="$BSC_VERILOG_FILES_NO_MAIN $f"
 	fi
     fi
 done
@@ -164,11 +164,10 @@ if [ -n "$BSC_VPI_FILES" ]; then
     # so pass them with absolute paths
     for f in $BSC_VPI_FILES
     do
-	if [[ "$f" =~ ^/ ]] ; then
-	    VPI_FILES+="$f "
-	else
-	    VPI_FILES+="$PWD/$f "
-	fi
+	case $f in
+	    /*) VPI_FILES="$VPI_FILES $f" ;;
+	    *)  VPI_FILES="$VPI_FILES $PWD/$f" ;;
+	esac
     done
 fi
 
