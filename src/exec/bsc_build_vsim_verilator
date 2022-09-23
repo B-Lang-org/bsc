@@ -142,7 +142,7 @@ do
 	HAS_MAIN=1
     else
 	if [ "$fbase" != "${BSC_TOPLEVEL_MODULE}.v" ] ; then
-	    BSC_VERILOG_FILES_NO_MAIN="BSC_VERILOG_FILES_NO_MAIN $f"
+	    BSC_VERILOG_FILES_NO_MAIN="$BSC_VERILOG_FILES_NO_MAIN $f"
 	fi
     fi
 done
