@@ -29,8 +29,7 @@ Internal
 ~~~~~~~~
 
 * Improvements to CI (continuous integration)
-
-
+* Releases now built with GHC 9.0.2 (previously 9.0.1)
 
 '''
 
