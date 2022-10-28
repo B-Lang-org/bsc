@@ -75,6 +75,16 @@ jobs:
         run: ccache --show-stats
       - name: Smoketest
         run: "make check-smoke"
+      # if this step fails, it may mean you need to update
+      # util/haskell-language-server/gen_hie.py to
+      # reflect the locations of any new haskell sources
+      - name: Test Haskell Language Server
+        run: |
+          ghcup install hls
+          python3 util/haskell-language-server/gen_hie.py
+          pushd src/comp
+          haskell-language-server-9.0.2 bsc.hs
+          popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
       # NB stp, yices and htcl must be built first, so do this after Build.
@@ -161,6 +171,16 @@ jobs:
         run: ccache --show-stats
       - name: Smoketest
         run: "make check-smoke"
+      # if this step fails, it may mean you need to update
+      # util/haskell-language-server/gen_hie.py to
+      # reflect the locations of any new haskell sources
+      - name: Test Haskell Language Server
+        run: |
+          ghcup install hls
+          python3 util/haskell-language-server/gen_hie.py
+          pushd src/comp
+          haskell-language-server-9.0.2 bsc.hs
+          popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
       # NB stp, yices and htcl must be built first, so do this after Build.

@@ -319,3 +319,6 @@ More details on using BSC, Bluesim, and Bluetcl can be found in the User Guide
 (built in this repository).
 Language documentation, training, and tutorials can be found in the
 [BSVlang repository](https://github.com/BSVLang/Main).
+
+## Editors
+Support for various editors for bs/bsv sources as well as language server support for the haskell sources for the bluespec compiler can be found in [./util](./util)
