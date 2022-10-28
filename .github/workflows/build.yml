@@ -81,6 +81,7 @@ jobs:
       - name: Test Haskell Language Server
         run: |
           ghcup install hls
+          pip3 install pyyaml
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
           haskell-language-server-9.0.2 bsc.hs
@@ -177,6 +178,7 @@ jobs:
       - name: Test Haskell Language Server
         run: |
           ghcup install hls
+          pip3 install pyyaml
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
           haskell-language-server-9.0.2 bsc.hs
