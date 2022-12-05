@@ -41,6 +41,9 @@ comparison operations.
 
 {\bf Interfaces and Methods}
 
+\index{Count@\te{Count} (interface)}
+\index{UCount@\te{UCount} (interface)}
+
 The Cntrs package provides two interfaces; \te{Count} which is a typed
 interface and \te{UCount} which is an untyped interface.  
 
@@ -127,14 +130,12 @@ endinterface
 {\bf Modules}
 
 \index{mkCount@\te{mkCount} (module)}
-\index[function]{Counter!mkCount}
-
-
+\index[function]{Cntrs!mkCount}
 
 \begin{tabular}{|p{1.4 in}|p{4.6 in}|}
 \hline
 & \\
-\te{mkCount} &Instantiates a Counter where read precedes update
+\te{mkCount} &Instantiates a counter where read precedes update
 precedes an increment or decrement precedes a write. The \te{ModArith}
 provisos limits its use to module 2 arithmetic types: \te{UInt}, \te{Int},
 and \te{Bit}.   Widths of size 0 are supported.\\
@@ -148,6 +149,9 @@ module mkCount #(t resetVal) (Count#(t))
 \\
 \hline
 \end{tabular}
+
+\index{mkUCount@\te{mkUCount} (module)}
+\index[function]{Cntrs!mkUCount}
 
 \begin{tabular}{|p{1.4 in}|p{4.6 in}|}
 \hline
