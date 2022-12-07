@@ -53,7 +53,7 @@ package Prelude(
         StringProxy,
         _when_,
         primExtract,
-        Position__, getStringPosition, setStringPosition, printPosition, noPosition,
+        Position__, getStringPosition, setStringPosition, printPosition, noPosition, getEvalPosition,
         Type, typeOf, printType, isInterfaceType,
         forceIsModule,
         Name__, primGetName, primMakeName, primJoinNames, primExtendNameIndex,
@@ -2441,6 +2441,9 @@ primitive primGetNamePosition :: Name__ -> Position__
 primitive primGetNameString :: Name__ -> String
 
 primitive primGetEvalPosition :: a -> Position__
+
+getEvalPosition :: a -> Position__
+getEvalPosition = primGetEvalPosition
 
 -- type primitives
 
