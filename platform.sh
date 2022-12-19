@@ -60,7 +60,14 @@ fi
 if [ "$1" = "c++_shared_flags" ] ; then
     if [ "${OSTYPE}" = "Darwin" ]
     then
-	echo "-dynamiclib -Wl,-undefined,dynamic_lookup"
+	# macOS 12 (or XCode 14) requires an additional flag
+	SWVER=`sw_vers -productVersion`
+	SWVERMAJOR=$(echo ${SWVER} | cut -d'.' -f1)
+	if [ "$SWVERMAJOR" -ge 12 ] ; then
+	    echo "-dynamiclib -Wl,-undefined,dynamic_lookup -Wl,-no_fixup_chains"
+	else
+	    echo "-dynamiclib -Wl,-undefined,dynamic_lookup"
+	fi
     else
 	echo "-shared"
     fi
