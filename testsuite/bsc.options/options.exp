@@ -279,17 +279,13 @@ if { $vtest == 1 } {
 }
 
 if { $ctest == 1 } {
-    # filter out cc warnings
-    sed [make_bsc_ccomp_output_name sysGCD] \
-	[make_bsc_ccomp_output_name sysGCD].filtered \
-	{-e /fpermissive/d} {}
-    compare_file [make_bsc_ccomp_output_name sysGCD].filtered empty.expected
+    compare_file [make_bsc_ccomp_output_name sysGCD] empty.expected
 }
 if { $vtest == 1 } {
-    # filter out cc/iverilog warnings
+    # filter out iverilog warnings
     set rawfile [make_bsc_vcomp_output_name sysGCD]
     set filtfile "$rawfile.filtered"
-    set ere {-e /fpermissive/d -e /WARNING:\ IVerilog/d -e /not\ guaranteed/d}
+    set ere {-e /WARNING:\ IVerilog/d -e /not\ guaranteed/d}
     # iverilog 10.1 has spurious warnings
     if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "10.1" } {
         append ere { -e {/inherits dimensions from var/d}}
@@ -310,7 +306,7 @@ if { $ctest == 1 } {
     # so we have to filter out the make entering/leaving messages
     sed [make_bsc_ccomp_output_name sysGCD] \
 	[make_bsc_ccomp_output_name sysGCD].parallel.filtered \
-	{-e /fpermissive/d -e /make.*:\ Entering\ directory/d -e /make.*:\ Leaving\ directory/d} {}
+	{-e /make.*:\ Entering\ directory/d -e /make.*:\ Leaving\ directory/d} {}
     compare_file [make_bsc_ccomp_output_name sysGCD].parallel.filtered empty.expected
 }
 
