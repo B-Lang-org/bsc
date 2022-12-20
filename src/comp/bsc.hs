@@ -1515,7 +1515,6 @@ cmdCompileBluesimCFile flags cName = do
         -- is known to be safe.
         switches = incflags ++
                    [ "-Wno-uninitialized"
-                   , "-fpermissive"
                    , "-fPIC"
                    , "-c"
                    , "-o"
@@ -1539,8 +1538,7 @@ compileVPICFile errh flags cName = do
     let incflags = map (("-I"++) . show) (cIncPath flags) ++
                    ["-I" ++ show (bluespecDir flags) ++ "/VPI"]
         switches = incflags ++
-                   [ "-fpermissive"
-                   , "-fPIC"
+                   [ "-fPIC"
                    , "-c"
                    , "-o"
                    , show (mangleFileName oName)
@@ -1578,8 +1576,7 @@ cmdCompileUserCFile flags forVerilog cName = do
     -- show is used for quoting
     let incflags = map (("-I"++) . show) (cIncPath flags)
         switches = incflags ++
-                   [ "-fpermissive"
-                   , "-fPIC"
+                   [ "-fPIC"
                    , "-c"
                    , "-o"
                    , show (mangleFileName oName)
