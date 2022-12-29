@@ -8,7 +8,7 @@ jobs:
     name: "Check: code cleanliness"
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check tabs and whitespace
         shell: bash
         run: ".github/workflows/check_whitespace.sh"
@@ -17,7 +17,7 @@ jobs:
     name: "Check: testsuite lint"
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check CONFDIR
         run: |
           cd testsuite
@@ -31,7 +31,7 @@ jobs:
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Checkout submodules
         shell: bash
         run: |
@@ -55,7 +55,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: build-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -106,7 +106,7 @@ jobs:
             exit 0
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }} build
           path: inst.tar.gz
@@ -118,7 +118,7 @@ jobs:
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Checkout submodules
         shell: bash
         run: |
@@ -142,7 +142,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: build-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -203,7 +203,7 @@ jobs:
             exit 0
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }} build
           path: inst.tar.gz
@@ -215,7 +215,7 @@ jobs:
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_doc_ubuntu.sh"
@@ -223,17 +223,22 @@ jobs:
         run: |
           make -j3 install-doc
           tar czf inst.tar.gz inst
+      # The next two actions upload the PDFs as an artifact that can be downloaded.
+      # We provide two versions: one for release packaging and one for users.
+      # This is because the GitHub download will provide the artifact as a zip-file,
+      # even if the artifact itself is just one file:
+      #   https://github.com/actions/upload-artifact/issues/3
+      #   https://github.com/actions/upload-artifact/issues/14
+      # It is inconvenient for users to access PDFs inside a tarfile inside a zipfile,
+      # therefore we provide an option without the tarfile layer.
       - name: Upload artifact
-        # This artifact, PDFs inside inst.tar.gz inside artifact.zip, is used for release packaging.
-        uses: actions/upload-artifact@v1
+        # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
       - name: Upload doc not tar
-        # This artifact, PDFs inside artifact.zip, is useful for online viewing of built documents.
-        # Unfortunately, it is not possible to upload single files not packaged in a zip.
-        # https://github.com/actions/upload-artifact/issues/3
-        # https://github.com/actions/upload-artifact/issues/14
+        # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
         uses: actions/upload-artifact@v3
         with:
           name: ${{matrix.os}}-doc-not-tar
@@ -246,7 +251,7 @@ jobs:
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_doc_macos.sh"
@@ -257,12 +262,22 @@ jobs:
 
           make -j3 install-doc
           tar czf inst.tar.gz inst
+      # The next two actions upload the PDFs as an artifact that can be downloaded.
+      # We provide two versions: one for release packaging and one for users.
+      # This is because the GitHub download will provide the artifact as a zip-file,
+      # even if the artifact itself is just one file:
+      #   https://github.com/actions/upload-artifact/issues/3
+      #   https://github.com/actions/upload-artifact/issues/14
+      # It is inconvenient for users to access PDFs inside a tarfile inside a zipfile,
+      # therefore we provide an option without the tarfile layer.
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
       - name: Upload doc not tar
+        # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
         uses: actions/upload-artifact@v3
         with:
           name: ${{matrix.os}}-doc-not-tar
@@ -279,7 +294,7 @@ jobs:
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_releasenotes_ubuntu.sh"
@@ -302,13 +317,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -318,7 +333,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -331,7 +346,7 @@ jobs:
       - name: Cache SystemC build
         id: systemc-cache
         if: matrix.os == 'ubuntu-18.04'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: systemc-build
         with:
@@ -387,7 +402,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: test-logs-${{ matrix.os }}
           path: logs.tar.gz
@@ -400,13 +415,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -416,7 +431,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -452,7 +467,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-logs-${{ matrix.os }}
           path: logs.tar.gz
@@ -466,14 +481,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           sudo apt-get install -y ccache libelf-dev
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -487,7 +502,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-toooba-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -552,14 +567,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           brew install ccache libelf
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -573,7 +588,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-toooba-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -633,14 +648,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -659,7 +674,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-contrib-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -704,7 +719,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: test-contrib-logs-${{ matrix.os }}
           path: logs.tar.gz
@@ -717,13 +732,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -742,7 +757,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-contrib-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -782,7 +797,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-contrib-logs-${{ matrix.os }}
           path: logs.tar.gz
@@ -796,10 +811,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -822,7 +837,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-bdw-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -867,7 +882,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: test-bdw-logs-${{ matrix.os }}
           path: logs.tar.gz
@@ -880,10 +895,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download bsc
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.os }} build
       - name: Install bsc
@@ -906,7 +921,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-bdw-${{ matrix.os }}-ccache-${{ github.sha }}
@@ -946,7 +961,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-bdw-logs-${{ matrix.os }}
           path: logs.tar.gz
