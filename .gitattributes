@@ -12,3 +12,4 @@ doc/**  linguist-documentation
 # with the info they need
 #
 src/comp/update-build-version.sh export-subst
+*.bs linguist-language=haskell
