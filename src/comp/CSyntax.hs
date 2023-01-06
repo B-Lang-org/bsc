@@ -1044,12 +1044,12 @@ instance PPrint CExpr where
     pPrint d p (Cletseq [] e) = pparen (p > 0) $
         (t"letseq in" <+> pp d e)
     pPrint d p (Cletseq ds e) = pparen (p > 0) $
-        (t"letseq" <+> foldr1 ($+$) (map (pp d) ds)) $+$
+        (t"letseq" <+> text "{" <+> foldr1 ($+$) (map (pp d) ds)) <+> text "}" $+$
         (t"in  " <> pp d e)
     pPrint d p (Cletrec [] e) = pparen (p > 0) $
         (t"let in" <+> pp d e)
     pPrint d p (Cletrec ds e) = pparen (p > 0) $
-        (t"let" <+> foldr1 ($+$) (map (pp d) ds)) $+$
+        (t"let" <+> text "{" <+> foldr1 ($+$) (map (pp d) ds)) <+> text "}" $+$
         (t"in  " <> pp d e)
     pPrint d p (CSelect e i) = pparen (p > (maxPrec+2)) $ pPrint d (maxPrec+2) e <> t"." <> ppVarId d i
     pPrint d p (CCon i []) = ppConId d i
@@ -1151,9 +1151,9 @@ instance PPrint CStmt where
             (map (ppPProp d . snd) pprops) ++
             [pp d pat <+> t "<-" <+> pp d e]
     pPrint d p (CSletseq []) = internalError "CSyntax.PPrint(CStmt): CSletseq []"
-    pPrint d p (CSletseq ds) = text "letseq" <+> foldr1 ($+$) (map (pp d) ds)
+    pPrint d p (CSletseq ds) = text "letseq" <+> text "{" <+> foldr1 ($+$) (map (pp d) ds) <+> text "}"
     pPrint d p (CSletrec []) = internalError "CSyntax.PPrint(CStmt): CSletrec []"
-    pPrint d p (CSletrec ds) = text "let" <+> foldr1 ($+$) (map (pp d) ds)
+    pPrint d p (CSletrec ds) = text "let" <+> text "{" <+> foldr1 ($+$) (map (pp d) ds) <+> text "}"
     pPrint d p (CSExpr _ e) = pPrint d p e
 
 instance PPrint CMStmt where
