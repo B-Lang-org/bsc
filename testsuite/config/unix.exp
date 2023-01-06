@@ -1077,7 +1077,7 @@ proc bsc2bsv {source} {
     set output [make_bsc2bsv_output_name $source]
     set cmd "$bsc2bsv $source >& $output"
     verbose "Executing: $cmd" 4
-    set status [exec_with_log "bsc2bsv"$cmd 2]
+    set status [exec_with_log "bsc2bsv" $cmd 2]
 
     cd $here
     return [expr $status == 0]
