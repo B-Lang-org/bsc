@@ -1,0 +1,23 @@
+package Let where
+
+sysLet :: Module Empty
+sysLet =
+  module
+    rules
+      "hello_world": when True ==> do
+        -- let(rec) and letseq expressions
+        let hello1 :: String
+            hello1 = let hello = "Hello, "
+                     in hello
+
+            world1 :: String
+            world1 = letseq world = "World!"
+                     in world
+        $display (hello1 +++ world1)
+
+        -- let(rec) and letseq statements
+        let hello2 = "Hello, "
+        letseq world2 = "World!"
+        $display (hello2 +++ world2)
+
+        $finish
