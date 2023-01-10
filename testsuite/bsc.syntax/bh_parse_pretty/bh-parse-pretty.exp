@@ -25,5 +25,5 @@ proc compile_ppp_pass_bug { source {bug ""} {options ""}} {
     compile_ppp_pass $source $options
 }
 
-# let bindings
-compile_ppp_pass Bug529.bs
+# let bindings (GitHub Issue #529)
+compile_ppp_pass Let.bs
