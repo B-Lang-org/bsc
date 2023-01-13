@@ -1,0 +1,7 @@
+# Ignore generated files
+#
+extractGrammar
+keywords.tex
+non_terminals.txt
+rawbnf.tex
+temp.tex
