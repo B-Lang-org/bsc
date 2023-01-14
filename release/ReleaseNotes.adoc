@@ -12,24 +12,58 @@ Changes since release 2022.01:
 Documentation
 ~~~~~~~~~~~~~
 
-* Updates to BSV Language Reference Guide
-* Adds back the BH (Bluespec Haskell/Classic) Reference Guide with updates, in `doc/`.
+* Addition of the BSV Language Reference Guide with updates
+
+* Addition of the BH (Bluespec Haskell/Classic) Reference Guide with
+  updates
+
+* Fixes in the Libraries Reference Guide, for the `Cntrs`, `Clocks`,
+  and `BRAMCore` libraries
 
 Compiler
 ~~~~~~~~
+
+* Fix to the pretty-printing of BH syntax for `letrec` and `letseq`
+
+* Removed use of `-fpermissive` when compiling C/C++ files, which
+  eliminates warnings when compiling with foreign imports
+
+* For macOS 12 (XCode 14) and later, disabled chained fixups in the
+  C++ compiler when generating shared objects, which resolves a
+  warning about chained fixups not working with dynamic lookup
 
 * Miscellaneous small optimizations
 
 Libraries
 ~~~~~~~~~
 
-* Miscellaneous small bugfixes and improvements (`BRAM_PORT`, bypass FIFO adapter, bypass FIFOs)
+* Fixes to the interface schedule for `mkSizedBypassFIFOF`
+  (in `SpecialFIFOs`)
+
+* Cleanup to `mkBRAMAdapter` (in `BRAM`)
+
+* Addition of `getEvalPosition` to `Prelude`, which can be used
+  similarly to `getStringPosition` to add position information to
+  function error messages when a `String` argument is not available
+
+Verilog
+~~~~~~~
+
+* Improved portability of Verilator linking by removing `bash`-isms
+  from the shell script
 
 Internal
 ~~~~~~~~
 
 * Improvements to CI (continuous integration)
+
 * Releases now built with GHC 9.0.2 (previously 9.0.1)
+
+For Developers
+~~~~~~~~~~~~~~
+
+* Added support for using Haskell Language Server (HLS) on the BSC
+  source code, via files provided in the `util` directory
 
 '''
 
