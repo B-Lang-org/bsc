@@ -4,7 +4,7 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
-2022.07 Release
+2023.01 Release
 ---------------
 
 Changes since release 2022.01:
