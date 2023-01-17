@@ -212,7 +212,7 @@ void read_mem_file(const char* filename,
           }
           else
           {
-            sprintf(err_buf,
+            snprintf(err_buf, 256,
                     "Encountered '%c' when expecting '/', hex digit, end-of-line or whitespace",
                     c);
             err = err_buf;
@@ -252,7 +252,7 @@ void read_mem_file(const char* filename,
           }
           else
           {
-            sprintf(err_buf,
+            snprintf(err_buf, 256,
                     "Encountered '%c' when expecting '/', digit, end-of-line or whitespace",
                     c);
             err = err_buf;

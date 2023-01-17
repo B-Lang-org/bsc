@@ -41,8 +41,8 @@ class MOD_Probe : public Module
   }
   unsigned int dump_VCD_defs(unsigned int /* num */)
   {
-    char* buf = (char*) malloc(strlen(inst_name) + 7);
-    sprintf(buf,"%s$PROBE", inst_name);
+    char* buf = NULL;
+    asprintf(&buf, "%s$PROBE", inst_name);
     vcd_num = vcd_reserve_ids(sim_hdl, 1);
     vcd_set_clock(sim_hdl, vcd_num, __clk_handle_0);
     vcd_write_def(sim_hdl, vcd_num, buf, bits);
