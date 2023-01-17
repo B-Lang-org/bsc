@@ -1004,15 +1004,15 @@ class MOD_CReg : public Module
     vcd_write_scope_start(sim_hdl, inst_name);
     for (unsigned int i = 0; i < ports; i++) {
       // start with Q_OUT, so that the alias' number is reused
-      sprintf(buf, "Q_OUT_%u", i);
+      snprintf(buf, 8, "Q_OUT_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, bits);
 
-      sprintf(buf, "EN_%u", i);
+      snprintf(buf, 8, "EN_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, 1);
 
-      sprintf(buf, "D_IN_%u", i);
+      snprintf(buf, 8, "D_IN_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, bits);
     }

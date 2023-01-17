@@ -285,7 +285,7 @@ class MOD_Fifo : public Module
       vcd_write_def(sim_hdl, n,"D_OUT", bits);  // alias of arr_0
     for (unsigned int i = 0; i < size; ++i)
     {
-      sprintf(buf, "arr_%d", i);
+      snprintf(buf, 16, "arr_%d", i);
       vcd_write_def(sim_hdl, n++, buf, bits);
     }
     vcd_write_scope_end(sim_hdl);

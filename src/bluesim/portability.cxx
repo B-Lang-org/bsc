@@ -88,7 +88,7 @@ tSemaphore* create_semaphore()
 
   // choose a unique name
   static int seq_number = 0;
-  sprintf(semaphore->name, "/bsim%05d%03d", getpid(), seq_number++);
+  snprintf(semaphore->name, 14, "/bsim%05d%03d", getpid(), seq_number++);
 
   // create the semaphore
   semaphore->sem = sem_open( semaphore->name

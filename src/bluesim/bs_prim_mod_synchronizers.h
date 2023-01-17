@@ -1179,7 +1179,7 @@ class MOD_SyncFIFO : public Module
     vcd_write_def(sim_hdl, n++, "dDoutReg", width);
     for (unsigned int i = 0; i < depth; ++i)
     {
-      sprintf(buf, "arr_%d", i);
+      snprintf(buf, 16, "arr_%d", i);
       vcd_write_def(sim_hdl, n++, buf, width);
     }
     unsigned int n2 = sClrSync.dump_VCD_defs(n);
