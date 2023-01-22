@@ -108,17 +108,17 @@ you will need to [compile BSC from source](INSTALL.md).
 
 More details on using BSC, Bluesim, and Bluetcl can be found in the
 [_BSC User
-Guide_](https://github.com/B-Lang-org/bsc/releases/download/latest/bsc_user_guide.pdf).
+Guide_](https://github.com/B-Lang-org/bsc/releases/download/2023.01/bsc_user_guide.pdf).
 
 The standard libraries that come with BSC are documented in the [_BSC
 Libraries Reference
-Guide_](https://github.com/B-Lang-org/bsc/releases/download/latest/bsc_libraries_ref_guide.pdf).
+Guide_](https://github.com/B-Lang-org/bsc/releases/download/2023.01/bsc_libraries_ref_guide.pdf).
 
 For details about the Bluespec language, see the [_BSV Language
 Reference
-Guide_](https://github.com/B-Lang-org/bsc/releases/download/latest/BSV_lang_ref_guide.pdf)
+Guide_](https://github.com/B-Lang-org/bsc/releases/download/2023.01/BSV_lang_ref_guide.pdf)
 and the [_BH (Bluespec Haskell/Classic) Language Reference
-Guide_](https://github.com/B-Lang-org/bsc/releases/download/latest/BH_lang_ref_guide.pdf).
+Guide_](https://github.com/B-Lang-org/bsc/releases/download/2023.01/BH_lang_ref_guide.pdf).
 
 The sources for these documents are found in the `doc`
 directory of this repo.  Pre-built PDF files can also be downloaded
