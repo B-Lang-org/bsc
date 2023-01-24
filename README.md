@@ -124,8 +124,8 @@ The sources for these documents are found in the `doc`
 directory of this repo.  Pre-built PDF files can also be downloaded
 from the [Releases](https://github.com/B-Lang-org/bsc/releases) page.
 
-Language documentation, training, and tutorials can be found in the
-[BSVlang repository](https://github.com/BSVLang/Main).
+Training and tutorials can be found in the [BSVLang
+repository](https://github.com/BSVLang/Main).
 
 ---
 
