@@ -1,6 +1,7 @@
 ( -2 + 7i)
 foo is: ( 0x2 + 0x9i)
 swapfoo is: ( -7 + 2i)
+conjfoo is: ( -7 + -2i)
 fpfoo is: ( -7.0000 + 2.0000i)
 fpfoo is: ( -0.4375 + 0.1250i)
 Values at cnt =           0

@@ -179,6 +179,14 @@ function Complex#(a_type) cmplxSwap( Complex#(a_type) cin ) ;
    return Complex{ rel: cin.img, img: cin.rel } ;
 endfunction
 
+//@ \index{cmplxConj@\te{cmplxConj} (complex function)|textbf}
+//@ The {\tt cmplxConj} function conjugates (negates) the imaginary part.
+//@ # 1
+function Complex#(a_type) cmplxConj( Complex#(a_type) cin )
+   provisos( Arith#(a_type) ) ;
+   return Complex{ rel: cin.rel, img: - cin.img } ;
+endfunction
+
 // An instance of FShow is available provided t is a member of FShow as well.
 instance FShow#(Complex#(t))
    provisos (FShow#(t));
