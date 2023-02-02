@@ -48,12 +48,15 @@ module sysCmplxTest ();
       Complex#(Int#(6)) c = cmplx(-2,7) ;
       cmplxWrite( "( ", " + ", "i)", writeInt, c ); $display("") ;
 
-      // Some tests for swap and map
+      // Some tests for swap, conj and map
       Complex#(Int#(4)) foo = cmplx( 2, -7 ) ;
       cmplxWrite( "foo is: ( ", " + ", "i)", writeh, foo ) ; $display("" ) ;
 
       foo = cmplxSwap( foo ) ;
       cmplxWrite( "swapfoo is: ( ", " + ", "i)", writeInt, foo ) ; $display("" ) ;
+
+      Complex#(Int#(4)) conjfoo = cmplxConj( foo ) ;
+      cmplxWrite( "conjfoo is: ( ", " + ", "i)", writeInt, conjfoo ) ; $display("" ) ;
 
       Complex#(FixedPoint#(4,8)) fpfoo = cmplxMap( fromInt, foo ) ;
       cmplxWrite( "fpfoo is: ( ", " + ", "i)", fxptWrite(4), fpfoo ) ; $display("" ) ;
