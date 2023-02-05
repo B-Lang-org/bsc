@@ -5,12 +5,12 @@ module sysLogicBetweenTasks ();
    Reg#(Bit#(32)) rg <- mkReg('1);
    RWire#(Bit#(32)) rw <- mkRWire;
 
-/*
-   // this function could be used to make the calls to $stime
-   // match in Verilog and Bluesim
+   // Make the timestamps (and thus the output) match in Bluesim and Verilog
+   // by accouting for the negedge execution of tasks in Verilog
+   //
    function ActionValue#(Bit#(32)) my_time ();
       actionvalue
-	 let r <- $stime();
+	 let r <- $stime;
 	 // correct for Verilog's negedge
 	 if (genVerilog)
 	    return (r + 5);
@@ -18,17 +18,16 @@ module sysLogicBetweenTasks ();
 	    return (r);
       endactionvalue
    endfunction
-*/
 
    rule r1 (state == 0);
-      let v1 <- $stime();
+      let v1 <- my_time;
       $display("v1 = %b", v1);
       let x1 = ~v1 & rg;
       $display("x1 = %b", x1);
       $display();
 
       // test logic that needs an always block (here, case statement)
-      let v2 <- $stime();
+      let v2 <- my_time;
       $display("v2 = %b", v2);
       Bit#(32) x2;
       case (rg)
@@ -54,21 +53,21 @@ module sysLogicBetweenTasks ();
    endrule
 
    rule r3 (state == 1);
-      let v <- $stime();
+      let v <- my_time;
       let x = (v + 1) << 2;
       rw.wset(x);
       state <= state + 1;
    endrule
 
    rule r4 (state == 2);
-      let v <- $stime();
+      let v <- my_time;
       let x = (v + 2) << 3;
       rw.wset(x);
       state <= state + 1;
    endrule
 
    rule r5 (state == 3);
-      let v <- $stime();
+      let v <- my_time;
       let x = (v + 3) << 4;
       rw.wset(x);
       state <= state + 1;

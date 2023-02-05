@@ -100,9 +100,76 @@ compile_pass EmptyTasksWorkaround.bsv
 # test that intermediate logic from a system function result to
 # the input of another system task is properly handled
 # (the assigns are inlined into the always block)
-# two expected files because $stime differs between Bluesim and Verilog
-test_c_only_bsv LogicBetweenTasks sysLogicBetweenTasks.c.out.expected
-test_veri_only_bsv LogicBetweenTasks sysLogicBetweenTasks.v.out.expected
+#
+# The test is able to use a common expected output for Bluesim and
+# Verilog by adjusting the timestamps for Verilog.  As a result,
+# the elaborated code is different between the two backends, so
+# .ba files cannot be re-used, and separate test procedure calls
+# are needed (because "test_c_veri_bsv" reuses the .ba files).
+#
+test_c_veri_bsv_separately LogicBetweenTasks sysLogicBetweenTasks.out.expected
+
+# Before BSC inlined the assignments between tasks, the proper
+# execution of assignments between tasks was guaranteed by the use use
+# of zero-delay statements (#0).  After a statement in the always
+# block that assigned a signal (such as executing a task with a return
+# value), a zero-delay is inserted that suspends further execution of
+# the always block until continuous assignments (that depend on the
+# newly assigned signal) have updated.  Now that BSC inlines those
+# continuous assignments, there is no need for the zero-delay (though
+# BSC still generates them).  Thus, the above test would pass even if
+# there where assignments that aren't inlines.
+#
+# The following example tests a situation where inlining is not
+# possible: the logic between tasks exits and re-enters the
+# synthesized module (through output and input ports).  In this
+# situation, zero-delay statements are still needed.
+#
+# We make a separate example to test this, so that the above test can
+# still be performed, even if this feature fails (such as on
+# simulators that may not support zero-delay).
+#
+# However, there is still a bug in where BSC places the zero-delay
+# statement, now that some assignments are inlined.  BSC places the
+# statement after the system task with the return value; but BSC ought
+# to place the statement after any assignments that follow it.  When
+# there are no inlined assignments in the current module (or at least,
+# none between the task result and the module output), then BSC's
+# output works (as seen in the following example).  But if there are
+# inlined assignments, the lack of zero-delay after the assignments
+# results in the outside logic not updating (as seen in the next
+# example).
+#
+# For some reason, this example fails on Icarus Verilog 10.3.1
+# (the version on Ubuntu 20.04), so we only test with iverilog 11+.
+#
+set verilog_bug {}
+if { $verilog_compiler == "iverilog" &&
+     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] &&
+     $majmin < 11
+ } {
+    # add 'iverilog' to the list of simulators to exempt
+    set verilog_bug $verilog_compiler
+}
+# This test doesn't make the expected outputs match, because that adds
+# inlined logic, so separate calls are needed
+#
+test_c_only_bsv LogicBetweenTasks2 sysLogicBetweenTasks2.c.out.expected
+test_veri_only_bsv LogicBetweenTasks2 sysLogicBetweenTasks2.v.out.expected $verilog_bug
+
+# This example is similar to the above, but it adds correction logic
+# around $stime call, so that Verilog and Bluesim match -- which adds
+# inlinable logic, that reveals a bug in where BSC inserts zero-delay
+# statements (GitHub issue #559).
+#
+set verilog_bug {559}
+test_c_veri_bsv_separately LogicBetweenTasks3 sysLogicBetweenTasks3.out.expected {} $verilog_bug
+#
+# Check that the Verilog output fails in the way that we expected,
+# so that we can be alerted if it changes (but still fails the above test).
+#
+copy sysLogicBetweenTasks3.v.out sysLogicBetweenTasks3.v-bug.out 
+compare_file sysLogicBetweenTasks3.v-bug.out
 
 # ---
 
