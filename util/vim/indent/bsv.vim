@@ -82,16 +82,6 @@ function GetBSVIndent()
       echo vverb_str "De-indent after a multiple-line comment."
     endif
 
-  " Indent after if/else/for/case/always/initial/specify/fork blocks
-  elseif last_line =~ '`\@<!\<\(if\|else\)\>' ||
-    \ last_line =~ '^\s*\<\(for\|case\%[[zx]]\|do\|foreach\|randcase\)\>' ||
-    \ last_line =~ '^\s*\<\(always\|always_comb\|always_ff\|always_latch\)\>' ||
-    \ last_line =~ '^\s*\<\(initial\|specify\|fork\|final\)\>'
-    if last_line !~ '\(;\|\<end\>\)\s*' . vlog_comment . '*$' ||
-      \ last_line =~ '\(//\|/\*\).*\(;\|\<end\>\)\s*' . vlog_comment . '*$'
-      let ind = ind + offset
-      if vverb | echo vverb_str "Indent after a block statement." | endif
-    endif
   " Indent after function/task/class/package/sequence/clocking/
   " rule/method/interface/covergroup/property/program blocks
   elseif last_line =~ '^\s*\<\(function\|task\|class\|package\)\>' ||
@@ -100,10 +90,46 @@ function GetBSVIndent()
     \ last_line =~ '^\s*\<\(property\|program\)\>'
     if last_line !~ '\<end\>\s*' . vlog_comment . '*$' ||
       \ last_line =~ '\(//\|/\*\).*\(;\|\<end\>\)\s*' . vlog_comment . '*$'
-      let ind = ind + offset
-      if vverb
-	echo vverb_str "Indent after function/task/class block statement."
+
+      let is_method = last_line =~ '^\s*\<method\>'
+      let is_interface = last_line =~ '^\s*\<interface\>'
+      let scopenum = lnum - 1
+      let in_module = 0
+      let interface_depth = 0
+      let found_end_interface = 0
+      let found_interface = 0
+      while scopenum >= 0 && (is_method || is_interface)
+        let scopeline = getline(scopenum)
+        if scopeline =~ '^\s*interface\>' && !found_end_interface
+          let found_interface = 1
+        elseif scopeline =~ '^\s*endinterface\>'
+          let found_end_interface = 1
+        elseif scopeline =~ '^\s*module\>'
+          let in_module = 1
+          break
+        elseif scopeline =~ '^\s*endmodule\>'
+          break
+        endif
+        let scopenum = scopenum - 1
+      endwhile
+
+      if (is_method && in_module) || (is_interface && !found_interface) || (!is_method && !is_interface)
+        let ind = ind + offset
+        if vverb
+          echo vverb_str "Indent after function/task/class block statement."
+        endif
       endif
+    endif
+
+    " Indent after if/else/for/case/always/initial/specify/fork blocks
+  elseif last_line =~ '`\@<!\<\(if\|else\)\>' ||
+    \ last_line =~ '^\s*\<\(for\|case\%[[zx]]\|do\|foreach\|randcase\)\>' ||
+    \ last_line =~ '^\s*\<\(always\|always_comb\|always_ff\|always_latch\)\>' ||
+    \ last_line =~ '^\s*\<\(initial\|specify\|fork\|final\)\>'
+    if last_line !~ '\(;\|\<end\>\)\s*' . vlog_comment . '*$' ||
+      \ last_line =~ '\(//\|/\*\).*\(;\|\<end\>\)\s*' . vlog_comment . '*$'
+      let ind = ind + offset
+      if vverb | echo vverb_str "Indent after a block statement." | endif
     endif
 
   " Indent after module/function/task/specify/fork blocks
@@ -139,11 +165,9 @@ function GetBSVIndent()
   " De-indent for the end of one-line block
   elseif ( last_line !~ '\<begin\>' ||
     \ last_line =~ '\(//\|/\*\).*\<begin\>' ) &&
-    \ last_line2 =~ '\<\(`\@<!if\|`\@<!else\|for\|always\|initial\|do\|foreach\|final\)\>.*' .
-      \ vlog_comment . '*$' &&
-    \ last_line2 !~
-      \
-    '\(//\|/\*\).*\<\(`\@<!if\|`\@<!else\|for\|always\|initial\|do\|foreach\|final\)\>' &&
+    \ last_line2 =~ '\<\(`\@<!if\|`\@<!else\|for\|always\|initial\|do\|foreach\|final\)\>[^;]*' .
+    \ vlog_comment . '*$' &&
+    \ last_line2 !~ '\(//\|/\*\).*\<\(`\@<!if\|`\@<!else\|for\|always\|initial\|do\|foreach\|final\)\>' &&
     \ last_line2 !~ vlog_openstat . '\s*' . vlog_comment . '*$' &&
     \ ( last_line2 !~ '\<begin\>' ||
     \ last_line2 =~ '\(//\|/\*\).*\<begin\>' )
