@@ -27,7 +27,7 @@ fi
 ## Account for values like "linux-gnu" by removing extra fields
 OSTYPE=$(echo ${OSTYPE:=$(uname -s)} | cut -d'-' -f1)
 ## Account for values like "Darwin10.0" by removing the version number
-OSTYPE=$(echo ${OSTYPE} | egrep -o "^[A-Za-z]+")
+OSTYPE=$(echo ${OSTYPE} | grep -Eo "^[A-Za-z]+")
 ## Account for lowercase values like "linux" when we want "Linux"
 OSTYPE=$(echo ${OSTYPE} | cut -c1 | tr a-z A-Z)$(echo $OSTYPE | cut -c2- | tr A-Z a-z)
 

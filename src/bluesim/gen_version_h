@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version=`egrep "^buildVersionName = " $1`
+version=`grep -E "^buildVersionName = " $1`
 
 if [ $? -ne 0 ]
 then

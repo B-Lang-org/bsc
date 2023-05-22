@@ -130,7 +130,7 @@ submakefiles:
 	if [ ! -f "$$dir/Makefile" ] ; then \
 	echo 'doing cp for '$$dir ; \
 	cp config/mkclean.Makefile $$dir/Makefile ;\
-	elif ! egrep '^clean:|clean\.mk' $$dir/Makefile > /dev/null ; \
+	elif ! grep -E '^clean:|clean\.mk' $$dir/Makefile > /dev/null ; \
 	then echo 'doing cat for '$$dir ; \
 	cat config/mkclean.Makefile >> $$dir/Makefile ; \
 	fi ; done

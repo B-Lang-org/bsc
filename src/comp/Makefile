@@ -66,7 +66,7 @@ HTCL_LIB_FLAGS = -lhtcl
 GHC ?= ghc
 GHCJOBS ?= 1
 
-GHCVERSION=$(shell $(GHC) --version | head -1 | egrep -o "[0-9]+\.[0-9]+\.[0-9]" )
+GHCVERSION=$(shell $(GHC) --version | head -1 | grep -Eo "[0-9]+\.[0-9]+\.[0-9]" )
 $(info Building with GHC $(GHCVERSION))
 
 ## Extract the major, minor and patch version numbers
