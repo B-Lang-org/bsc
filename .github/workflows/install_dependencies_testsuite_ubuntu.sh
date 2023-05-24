@@ -8,9 +8,5 @@ apt-get install -y \
     lld \
     tcsh \
     dejagnu \
-    iverilog
-
-REL=$(lsb_release -rs | tr -d .)
-if [ $REL -ge 1910 ]; then
-    apt-get install -y libsystemc-dev
-fi
+    iverilog \
+    libsystemc-dev
