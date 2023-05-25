@@ -1285,7 +1285,12 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
         if [info exists env(CXX)] then {
             set cxx $env(CXX)
         } else {
-            set cxx "g++"
+            set cxx "c++"
+        }
+        if [info exists env(CXXFLAGS)] then {
+            set cxxflags $env(CXXFLAGS)
+        } else {
+            set cxxflags ""
         }
         set systemc_paths "-I$systemc_inc -L$systemc_lib"
         set bluesim_paths "-I$bsdir/Bluesim -L$bsdir/Bluesim"
@@ -1317,7 +1322,7 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
             lappend objs model_${mod}.o
         }
 
-        set cmd "$cxx $options $systemc_paths $bluesim_paths -o $scexe $objs -x c++ $sysc_srcs $systemc_libs $bluesim_libs $thread_libs $rpath >& $output"
+        set cmd "$cxx $cxxflags $options $systemc_paths $bluesim_paths -o $scexe $objs -x c++ $sysc_srcs $systemc_libs $bluesim_libs $thread_libs $rpath >& $output"
         verbose "Executing : $cmd" 4
         set status [exec_with_log "build_systemc_executable" $cmd 2]
         cd $here
