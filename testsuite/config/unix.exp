@@ -1731,6 +1731,23 @@ proc create_systemc_objects_pass { objects toplevel {options ""}} {
     }
 }
 
+# create a SystemC object using the C backend, but expect it to fail with an error
+proc create_systemc_objects_fail_error { objects toplevel tag {expcount 1} {options ""}} {
+    global systemctest
+
+    if {$systemctest == 1} {
+      incr_stat "create_systemc_objects_fail"
+
+      if [bsc_create_systemc_objects $objects $toplevel $options] then {
+          fail "`$objects' shouldn't link to SystemC model `$toplevel'"
+      } else {
+          set output [make_bsc_ccomp_output_name $toplevel]
+          verbose -log "`$objects' don't link to SystemC model `$toplevel'"
+          find_n_error $output $tag $expcount
+      }
+    }
+}
+
 # Compile a SystemC model incorporating a wrapped Bluesim object
 proc build_systemc_executable_pass { exe sysc_srcs bsim_top_mods { bsim_other_mods "" } {options ""}} {
     global systemctest
