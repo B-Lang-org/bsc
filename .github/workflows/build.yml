@@ -426,7 +426,8 @@ jobs:
 
           make -C testsuite \
                TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
-               TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib
+               TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib \
+               TEST_SYSTEMC_CXXFLAGS=-std=c++11
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats

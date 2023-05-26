@@ -200,37 +200,6 @@ proc which_os {} {
     return $env(OSTYPE)
 }
 
-proc which_systemc_inc {} {
-    global env
-
-    if [info exists SYSTEMC_INC] then {
-        set systemc_inc [absolute_filename $SYSTEMC_INC]
-    } elseif [info exists env(SYSTEMC_INC)] then {
-        set systemc_inc [absolute_filename $env(SYSTEMC_INC)]
-    }
-    if {$systemc_inc == 0} then {
-        perror "can't find systemc_inc -- set SYSTEMC_INC to path"
-        exit 1
-    }
-    return $systemc_inc
-}
-
-
-proc which_systemc_lib {} {
-    global env
-
-    if [info exists SYSTEMC_LIB] then {
-        set systemc_lib [absolute_filename $SYSTEMC_LIB]
-    } elseif [info exists env(SYSTEMC_LIB)] then {
-        set systemc_lib [absolute_filename $env(SYSTEMC_LIB)]
-    }
-    if {$systemc_lib == 0} then {
-        perror "can't find systemc_lib -- set SYSTEMC_LIB to path"
-        exit 1
-    }
-    return $systemc_lib
-}
-
 # return true if the given Bluetcl packahe is available
 proc bluetcl_package_available { pkg } {
     global bluetcl
@@ -354,6 +323,35 @@ proc get_test_options {} {
     } else {
 	# XXX We could enable it if the tools are found?
 	set DO_INTERNAL_CHECKS 0
+    }
+}
+
+proc get_systemc_options {} {
+    global env
+    global systemc_inc
+    global systemc_lib
+    global systemc_cxxflags
+
+    if [info exists env(SYSTEMC_INC)] then {
+        set systemc_inc [absolute_filename $env(SYSTEMC_INC)]
+    }
+    if {$systemc_inc == 0} then {
+        perror "can't find systemc_inc -- set SYSTEMC_INC to path"
+        exit 1
+    }
+
+    if [info exists env(SYSTEMC_LIB)] then {
+        set systemc_lib [absolute_filename $env(SYSTEMC_LIB)]
+    }
+    if {$systemc_lib == 0} then {
+        perror "can't find systemc_lib -- set SYSTEMC_LIB to path"
+        exit 1
+    }
+
+    if [info exists env(SYSTEMC_CXXFLAGS)] then {
+        set systemc_cxxflags $env(SYSTEMC_CXXFLAGS)
+    } else {
+        set systemc_cxxflags {}
     }
 }
 
@@ -1234,6 +1232,7 @@ proc bsc_create_systemc_objects { objects toplevel { options "" } } {
     global srcdir
     global subdir
     global systemc_inc
+    global systemc_cxxflags
 
     if { $systemctest == 1 } {
         bsc_initialize
@@ -1243,16 +1242,14 @@ proc bsc_create_systemc_objects { objects toplevel { options "" } } {
         cd [file join $here $subdir]
         set output [make_bsc_ccomp_output_name $toplevel]
 
-	# Alternatively, if SYSTEMC is set in the environment,
-	# then BSC implicitly adds "-I $SYSTEMC/include"
-        if { $systemc_inc == "" } {
-            set inc_options ""
-        } else {
-            set inc_options "-Xc++ \"-I$systemc_inc\""
+        set cxx_options "-Xc++ \"-I$systemc_inc\""
+        foreach cxxflag $systemc_cxxflags {
+            append cxx_options " -Xc++ \"$cxxflag\""
         }
+
         set link_options "-no-show-timestamps -no-show-version -systemc -e $toplevel"
 
-        set cmd "$bsc $inc_options $options $link_options $objects >& $output"
+        set cmd "$bsc $cxx_options $options $link_options $objects >& $output"
         verbose "Executing: $cmd" 4
         set status [exec_with_log "bsc_create_systemc_objects" $cmd 2]
         cd $here
@@ -1272,6 +1269,7 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
     global subdir
     global systemc_inc
     global systemc_lib
+    global systemc_cxxflags
 
     if { $systemctest == 1 } {
         bsc_initialize
@@ -1292,6 +1290,7 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
         } else {
             set cxxflags ""
         }
+        append cxxflags " $systemc_cxxflags"
         set systemc_paths "-I$systemc_inc -L$systemc_lib"
         set bluesim_paths "-I$bsdir/Bluesim -L$bsdir/Bluesim"
         set systemc_libs "-lsystemc"
@@ -3216,11 +3215,11 @@ verbose -log "Verilog VCD run options: $vrun_vcd_flags" 1
 # SystemC
 
 if { $systemctest == 1 } {
-    set systemc_inc [which_systemc_inc]
-    set systemc_lib [which_systemc_lib]
+    get_systemc_options
 
     verbose -log "SystemC include location is $systemc_inc" 1
     verbose -log "SystemC library location is $systemc_lib" 1
+    verbose -log "SystemC cxxflags is $systemc_cxxflags" 1
 }
 
 ################################################################################

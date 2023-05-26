@@ -49,6 +49,7 @@ TEST_BSC_VERILOG_SIM ?= iverilog
 
 TEST_SYSTEMC_INC ?= $(pkg-config --variable includedir systemc --silence-errors)
 TEST_SYSTEMC_LIB ?= $(pkg-config --variable libarchdir systemc --silence-errors)
+TEST_SYSTEMC_CXXFLAGS ?=
 
 STATS_FILE ?= $(CONFDIR)/time.out
 
@@ -66,6 +67,7 @@ RUNTESTENV = MAKEFLAGS= BSCTEST=1 \
 	OSTYPE=$(TEST_OSTYPE) LC_ALL=$(LC_ALL) \
 	SYSTEMC_INC=$(TEST_SYSTEMC_INC) \
 	SYSTEMC_LIB=$(TEST_SYSTEMC_LIB) \
+	SYSTEMC_CXXFLAGS=$(TEST_SYSTEMC_CXXFLAGS) \
 	PATH="$(BLUESPECDIR)/../bin:$(PATH)"
 
 
