@@ -69,7 +69,7 @@ There are many ways to run tests in the suite, but the simplest is:
 This will run the suite on the BSC installation pointed to by `TEST_RELEASE`.
 
 Actually, an even simpler command is possible.  If an `inst` subdirectory
-exists in the `bsc` repository containing this testsuite (that is, `../inst`),
+exists in the `bsc` repository containing this test suite (that is, `../inst`),
 the Makefile can detect that and
 implicitly assign `TEST_RELEASE` if you have omitted it:
 
@@ -208,6 +208,35 @@ environment variable:
     $ make TEST_BSC_VERILOG_SIM=cvc64 check
 
 The default value is `iverilog`.
+
+### Providing additonal options to BSC
+
+If you want to provide additional options on the command line for all
+invocations of BSC in the test suite, that can be specified with the
+`TEST_BSC_OPTIONS` environment variable.  For example:
+
+    $ make TEST_BSC_OPTIONS="-use-dpi" check
+
+### Specifying C++ options for SystemC tests
+
+SystemC tests involve compiling SystemC C++ files and linking with the
+SystemC library.  The test suite expects that it will need to extend
+the include and library paths of the C++ compiler with the directories
+where SystemC header and library files can be found.  The Makefile
+will attempt to determine the appropriate directories using
+`pkg-config`.  If this does not work or if you wish to override the
+values, the directories can be specified with the `TEST_SYSTEMC_INC`
+and `TEST_SYSTEMC_LIB` environment variables.  For example:
+
+    $ make check \
+        TEST_SYSTEMC_INC=/opt/systemc/include \
+        TEST_SYSTEMC_LIB=/opt/systemc/lib
+
+If compiling or linking with SystemC on your system requires
+additional flags to the C++ compiler, that can be provided with the
+`TEST_SYSTEMC_CXXFLAGS` environment variable.  For example:
+
+    $ make TEST_SYSTEMC_CXXFLAGS=-std=c++11 check
 
 ---
 
