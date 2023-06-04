@@ -171,6 +171,27 @@ test_c_veri_bsv_separately LogicBetweenTasks3 sysLogicBetweenTasks3.out.expected
 copy sysLogicBetweenTasks3.v.out sysLogicBetweenTasks3.v-bug.out 
 compare_file sysLogicBetweenTasks3.v-bug.out
 
+# The above examples are about logic between tasks in the same module.
+# That situation can be made to work, with proper inserting of zero-delay.
+# The following example shows logic between tasks in separate modules.
+# The code-generation for that is currently broken, because nothing
+# guarantees the execution order of tasks between modules (so the task
+# that consumes the value may execute before the task that produces the
+# value).  BSC warns about possibly incorrect order in Verilog sim
+# when tasks are called in methods; but this example has the method
+# place its value in a wire, so that it can be consumed by a task in a
+# rule.  BSC should look for this situation and warn about it -- if
+# that's possible?  This example guarantees a failure by having a rule
+# in the top mod consume from the sub, and a rule in the sub consume
+# from the top; since all tasks for a module will be in the same block,
+# whichever block is picked first will execute a consumer task before
+# its associated producer.
+#
+set verilog_bug {559}
+test_c_veri_bsv_separately LogicBetweenTasks4 sysLogicBetweenTasks4.out.expected {} $verilog_bug
+#
+# We don't check the failed output, because it may vary between simulators
+
 # ---
 
 # test that repeated use of the same ActionValue (particularly an
