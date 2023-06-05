@@ -127,14 +127,18 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
   exit 1
 fi
 
-# identify the VPI wrapper C files
-BSC_VPI_CFILES=""
-for file in $BSC_VPI_FILES; do
-  case "$file" in \
-    vpi_wrapper_* | */vpi_wrapper_* ) \
-      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
-  esac
-done
+CREATESFT="yes"
+
+if [ "$CREATESFT" = "yes" ]; then
+  # identify the VPI wrapper C files
+  BSC_VPI_CFILES=""
+  for file in $BSC_VPI_FILES; do
+    case "$file" in \
+      vpi_wrapper_* | */vpi_wrapper_* ) \
+        BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
+    esac
+  done
+fi
 
 # build VPI module if needed
 if [ -n "$BSC_VPI_FILES" ]; then
