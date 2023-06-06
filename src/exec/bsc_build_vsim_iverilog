@@ -129,7 +129,7 @@ fi
 
 # create SFT for iverilog older than v11 (only v10 supported)
 # v11 and later use the vpi files directly
-if [[ "$(iverilog -V 2>&1 | head -n 1)" =~ "v10_" ]]; then
+if echo "$(iverilog -V 2>&1 | head -n 1)" | grep -q "v10_"; then
     CREATESFT="yes"
 else
     CREATESFT="no"
