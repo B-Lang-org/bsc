@@ -155,7 +155,7 @@ if [ -n "$BSC_VPI_FILES" ]; then
     CXX=c++
   fi
   VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so"
-  if [ "$CREATESFT" = "yes" ]; then
+  if [ "$CREATESFT" = "yes" ]; then
     VPI_LINK="$VPI_LINK directc_$BSC_TOPLEVEL_MODULE.sft"
   fi
   LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
@@ -167,7 +167,7 @@ if [ -n "$BSC_VPI_FILES" ]; then
       CXX_VERBOSE=""
   fi
   $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
-  if [ "$CREATESFT" = "yes" ]; then
+  if [ "$CREATESFT" = "yes" ]; then
     if [ -n "$BSC_VPI_CFILES" ]; then
         grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
     else
@@ -178,17 +178,22 @@ else
   VPI_LINK=""
 fi
 
+if [ "$CREATESFT" = "yes" ]; then
+  VPI_LIBPATH=""
+fi
+
+
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
   IV_VERBOSE="-v"
-  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
 else
   IV_VERBOSE=""
 fi
-iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
 status=$?
 if [ "$status" != "0" ]; then
   echo "ERROR: cannot compile Verilog files" >&2
