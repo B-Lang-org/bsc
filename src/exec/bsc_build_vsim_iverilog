@@ -154,7 +154,10 @@ if [ -n "$BSC_VPI_FILES" ]; then
   then
     CXX=c++
   fi
-  VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so directc_$BSC_TOPLEVEL_MODULE.sft"
+  VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so"
+  if [ "$CREATESFT" = "yes" ]; then
+    VPI_LINK="$VPI_LINK directc_$BSC_TOPLEVEL_MODULE.sft"
+  fi
   LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
   SHARED=`$BLUESPECDIR/exec/platform.sh c++_shared_flags`
   if [ "$VERBOSE" = "yes" ]; then
@@ -164,10 +167,12 @@ if [ -n "$BSC_VPI_FILES" ]; then
       CXX_VERBOSE=""
   fi
   $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
-  if [ -n "$BSC_VPI_CFILES" ]; then
-      grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
-  else
-      touch directc_$BSC_TOPLEVEL_MODULE.sft
+  if [ "$CREATESFT" = "yes" ]; then
+    if [ -n "$BSC_VPI_CFILES" ]; then
+        grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
+    else
+        touch directc_$BSC_TOPLEVEL_MODULE.sft
+    fi
   fi
 else
   VPI_LINK=""
