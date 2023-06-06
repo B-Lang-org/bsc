@@ -127,7 +127,13 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
   exit 1
 fi
 
-CREATESFT="yes"
+# create SFT for iverilog older than v11 (only v10 supported)
+# v11 and later use the vpi files directly
+if [[ "$(iverilog -V 2>&1 | head -n 1)" =~ "v10_" ]]; then
+    CREATESFT="yes"
+else
+    CREATESFT="no"
+fi
 
 if [ "$CREATESFT" = "yes" ]; then
   # identify the VPI wrapper C files
@@ -180,6 +186,8 @@ fi
 
 if [ "$CREATESFT" = "yes" ]; then
   VPI_LIBPATH=""
+else
+  VPI_LIBPATH="-L$BLUESPECDIR/VPI"
 fi
 
 
