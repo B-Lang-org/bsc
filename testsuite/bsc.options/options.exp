@@ -289,7 +289,7 @@ if { $vtest == 1 } {
     # iverilog 10.1 has spurious warnings
     if { $verilog_compiler == "iverilog" &&
          [regexp {^\d+\.\d+} $verilog_compiler_version majmin] &&
-         10.0 < $majmin && $majmin < 10.2
+         $majmin == "10.1"
     } {
         append ere { -e {/inherits dimensions from var/d}}
     }
