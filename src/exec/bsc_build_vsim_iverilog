@@ -127,14 +127,24 @@ if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
   exit 1
 fi
 
-# identify the VPI wrapper C files
-BSC_VPI_CFILES=""
-for file in $BSC_VPI_FILES; do
-  case "$file" in \
-    vpi_wrapper_* | */vpi_wrapper_* ) \
-      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
-  esac
-done
+# create SFT for iverilog older than v11 (only v10 supported)
+# v11 and later use the vpi files directly
+if echo "$(iverilog -V 2>/dev/null | head -n 1)" | grep -q "Icarus Verilog version 10."; then
+    CREATESFT="yes"
+else
+    CREATESFT="no"
+fi
+
+if [ "$CREATESFT" = "yes" ]; then
+  # identify the VPI wrapper C files
+  BSC_VPI_CFILES=""
+  for file in $BSC_VPI_FILES; do
+    case "$file" in \
+      vpi_wrapper_* | */vpi_wrapper_* ) \
+        BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
+    esac
+  done
+fi
 
 # build VPI module if needed
 if [ -n "$BSC_VPI_FILES" ]; then
@@ -150,7 +160,10 @@ if [ -n "$BSC_VPI_FILES" ]; then
   then
     CXX=c++
   fi
-  VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so directc_$BSC_TOPLEVEL_MODULE.sft"
+  VPI_LINK="-m./directc_$BSC_TOPLEVEL_MODULE.so"
+  if [ "$CREATESFT" = "yes" ]; then
+    VPI_LINK="$VPI_LINK directc_$BSC_TOPLEVEL_MODULE.sft"
+  fi
   LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
   SHARED=`$BLUESPECDIR/exec/platform.sh c++_shared_flags`
   if [ "$VERBOSE" = "yes" ]; then
@@ -160,14 +173,23 @@ if [ -n "$BSC_VPI_FILES" ]; then
       CXX_VERBOSE=""
   fi
   $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
-  if [ -n "$BSC_VPI_CFILES" ]; then
-      grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
-  else
-      touch directc_$BSC_TOPLEVEL_MODULE.sft
+  if [ "$CREATESFT" = "yes" ]; then
+    if [ -n "$BSC_VPI_CFILES" ]; then
+        grep "/* sft:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.sft
+    else
+        touch directc_$BSC_TOPLEVEL_MODULE.sft
+    fi
   fi
 else
   VPI_LINK=""
 fi
+
+if [ "$CREATESFT" = "yes" ]; then
+  VPI_LIBPATH=""
+else
+  VPI_LIBPATH="-L$BLUESPECDIR/VPI"
+fi
+
 
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
@@ -175,11 +197,11 @@ VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
   IV_VERBOSE="-v"
-  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
 else
   IV_VERBOSE=""
 fi
-iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
 status=$?
 if [ "$status" != "0" ]; then
   echo "ERROR: cannot compile Verilog files" >&2
