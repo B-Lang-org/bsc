@@ -47,8 +47,8 @@ PARSEC_HS = ../Parsec
 
 # STP
 STP_HS = ../vendor/stp/include_hs
-STP_INC_FLAGS = -I../vendor/stp/include
-STP_LIB_FLAGS = -L../vendor/stp/lib -lstp
+STP_INC_FLAGS = -I/usr/include/stp
+STP_LIB_FLAGS = -L/usr/lib -lstp
 
 # Yices
 YICES_HS = ../vendor/yices/include_hs

@@ -31,7 +31,7 @@
 :set -L../vendor/htcl
 :set -lhtcl
 
-:set -L../vendor/stp/lib
+:set -L/usr/lib
 :set -lstp
 
 :set -L../vendor/yices/lib
