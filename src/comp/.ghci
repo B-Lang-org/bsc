@@ -23,7 +23,7 @@
 :set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
 
 -- Shared libraries and FFI bindings
-:set -i../vendor/stp/include_hs
+:set -i../vendor/stp/HaskellIfc
 :set -i../vendor/yices/include_hs
 :set -i../vendor/htcl
 

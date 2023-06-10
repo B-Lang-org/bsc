@@ -46,7 +46,7 @@ BUILDDIR=$(TOP)/build/comp
 PARSEC_HS = ../Parsec
 
 # STP
-STP_HS = ../vendor/stp/include_hs
+STP_HS = ../vendor/stp/HaskellIfc
 STP_INC_FLAGS = -I/usr/include/stp
 STP_LIB_FLAGS = -L/usr/lib -lstp
 
