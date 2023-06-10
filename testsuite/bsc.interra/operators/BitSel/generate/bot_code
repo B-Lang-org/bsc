@@ -84,7 +84,7 @@
 
  always @(posedge CLK)
  begin
-   if(vectors>=12) $finish;
+   if (vectors < 12) begin
    a <= {$random,$random,$random,$random};
    vectors <= vectors + 1;
    $display("128\'b%b  6\'b%b 6\'b%b 6\'b%b 36\'b%b 36\'b%b 66\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 32\'b%b 32\'b%b 32\'b%b 64\'b%b 64\'b%b 96\'b%b 36\'b%b 68\'b%b 100\'b%b 32\'b%b 64\'b%b 96\'b%b 128\'b%b",
@@ -114,7 +114,9 @@
  con_tch_1_2,
  con_tch_1_3,
  con_tch_1_4);
-
- end
+ end // if (vectors < 12)
+ else
+    $finish(0);
+ end // always @(posedge CLK)
  
  endmodule
