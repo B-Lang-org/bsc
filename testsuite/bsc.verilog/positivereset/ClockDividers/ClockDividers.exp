@@ -6,7 +6,7 @@ set ::env(BSC_OPTIONS) "$::env(BSC_OPTIONS) -reset-prefix RESET_P -D BSV_POSITIV
 proc test_veri { top } {
     # test without inlining
     test_veri_only_bsv_modules_options \
-	"$top" "$top" {-no-inline-reg} "sys$top.v.out.expected"
+	"$top" "" {-no-inline-reg} "sys$top.v.out.expected"
     copy "$top.bi" "$top.bi.no-inline-reg"
     copy "$top.bo" "$top.bo.no-inline-reg"
     copy "$top.bsv.bsc-vcomp-out" "$top.bsv.bsc-vcomp-out.no-inline-reg"
@@ -20,7 +20,7 @@ proc test_veri { top } {
 
     # test with inlining
     test_veri_only_bsv_modules_options \
-	"$top" "$top" {-inline-reg} "sys$top.v.out.expected"
+	"$top" "" {-inline-reg} "sys$top.v.out.expected"
     copy "$top.bi" "$top.bi.inline-reg"
     copy "$top.bo" "$top.bo.inline-reg"
     copy "$top.bsv.bsc-vcomp-out" "$top.bsv.bsc-vcomp-out.inline-reg"

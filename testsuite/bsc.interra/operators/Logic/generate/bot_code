@@ -180,7 +180,7 @@
 
  always @(posedge CLK)
  begin
-     if(vectors==12) $finish;
+     if (vectors < 12) begin
      a <= {cnt[0],$random,$random,$random,$random};
      b <= {cnt[1],$random,$random,$random,$random};
      cnt <= cnt + 1;
@@ -258,9 +258,10 @@ Xnor_30,
 Xnor_1,
 Xnor_0);
 
-	 
-	 
- end
+ end // if (vectors < 12)
+ else
+    $finish(0);
+ end // always @(posedge CLK)
 
  endmodule
 
