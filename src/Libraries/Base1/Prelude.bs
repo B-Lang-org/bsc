@@ -257,7 +257,7 @@ package Prelude(
         ) where
 
 infixr  0 $
-infixr  1 :=
+infixr  0 :=
 infixr  2 ||
 infixr  3 &&
 infixr  4 |
