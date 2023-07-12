@@ -190,6 +190,15 @@ VLT_WARN=""
 
 VLT_CONFIG=$BLUESPECDIR/Verilator/verilator_config.vlt
 
+# Starting with version 5, zero-delay statements (like #0) require
+# a flag to specify how they should be handled (--timing or --no-timing)
+MAJVER=`verilator --version 2>/dev/null | head -n 1 | grep -o -E "^Verilator [0-9]+\." | grep -o -E "[0-9]+"`
+if [ "$MAJVER" -ge "5" ]; then
+    VLT_TIMING="--no-timing"
+else
+    VLT_TIMING=""
+fi
+
 # Uniquify the obj_dir with the name of the sim executable and the PID
 # XXX is the PID overkill?
 EXE_BASENAME=`basename ${BSC_SIM_EXECUTABLE}`
@@ -221,16 +230,17 @@ if [ -z "$TOP_VERFILE" ]; then
     exit 1
 fi
 
+
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
   # XXX Verilator doesn't have a verbosity flag?
   VLT_VERBOSE=""
-  echo "exec: verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS\" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES"
+  echo "exec: verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS \"-DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS\" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $VLT_TIMING $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES"
 else
   VLT_VERBOSE=""
 fi
 
-verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES
+verilator $VLT_VERBOSE --Mdir $OBJDIR $VLT_WARN --cc --exe sim_main.cpp -CFLAGS "-DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS" $VLT_TOP $VLT_TOPINST $VLT_PREFIX $TRACEFLAGS $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $VLT_TIMING $BSC_VERILOG_OPTS $TOP_VERFILE $VLT_CONFIG $BSC_VERILOG_FILES_NO_MAIN $VPI_FILES
 
 status=$?
 if [ "$status" != "0" ]; then
@@ -249,5 +259,8 @@ if [ "$status" != "0" ]; then
 fi
 
 cp -p $OBJDIR/${TOPCLASS} $BSC_SIM_EXECUTABLE
+
+# Remove the work directory
+rm -rf $OBJDIR
 
 exit 0
