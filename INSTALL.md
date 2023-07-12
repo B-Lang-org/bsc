@@ -139,7 +139,9 @@ package (or `pkgconfig` on some systems):
 The repository for [the Yices SMT Solver](https://github.com/SRI-CSL/yices2) is
 cloned as a submodule of this repository. Building the BSC tools will recurse
 into this directory and build the Yices library for linking into BSC and
-Bluetcl. Yices currently requires `autoconf` and the `gperf` perfect hashing
+Bluetcl.
+Building the Yices library is optional (see below), but recommended.
+Yices currently requires `autoconf` and the `gperf` perfect hashing
 library to compile:
 
     $ apt-get install \
@@ -151,7 +153,9 @@ solver. This is currently an old snapshot of the STP source code, including the
 code for various libraries that it uses. In the future, this may be replaced
 with a submodule instantiation of the repository for [the STP SMT
 solver](https://github.com/stp/stp). When that happens, additional requirements
-from that repository will be added. The current snapshot requires Perl, to
+from that repository will be added.
+Building the STP library is optional (see below).
+The current snapshot requires Perl, to
 generate two source files. It also needs flex and bison:
 
     $ apt-get install flex bison
@@ -162,6 +166,12 @@ The `check-smoke` target runs a test using an external Verilog simulator, which 
     $ apt-get install iverilog
 
 [Icarus Verilog]: http://iverilog.icarus.com
+
+More extensive testing is available in the `testsuite` subdirectory.
+Additional requirements for running those tests are listed in the
+[testsuite README].
+
+[testsuite README]: testsuite/README.md
 
 The `install-doc` target builds PDF documentation from LaTeX source files
 that rely on a few standard style files.  The following Debian/Ubuntu
@@ -187,16 +197,14 @@ the submodules later with a separate command:
     $ git clone https://github.com/B-Lang-org/bsc
     $ git submodule update --init --recursive
 
-## Build and test the toolchain
+## Build the BSC toolchain
 
 At the root of the repository:
 
     $ make install-src
-    $ make check-smoke
 
 This will create a directory called `inst` containing an installation of the
-compiler toolchain. It will then run a smoke test to ensure the compiler and
-simulator work properly. This `inst` directory can later be moved to another
+compiler toolchain. This `inst` directory can later be moved to another
 location; the tools do not hard-code the install location.
 
 If you wish, you can install into another location by assigning the variable
@@ -219,18 +227,45 @@ compile in parallel, define `GHCJOBS` in the environment to that number:
 
     $ make GHCJOBS=4
 
-For more extensive testing, see the [testsuite README](testsuite/README.md)
+### Optionally avoiding the compile of STP or Yices
+
+The BSC tools expect to dynamically link with specific versions of STP and Yices,
+found in `inst/lib/SAT/`.  By default, the build process will compile both
+libraries and install them in that directory.  However, the BSC tools only need
+one SMT solver; Yices is used by default, and STP can be selected via a flag.
+Most users will never need to switch solvers, or even be aware of the option.
+Thus, the build process offers the option of not compiling the STP library,
+and instead installing a stub file, that the BSC tools will recognize and will
+not allow the user to select that solver.  This option is chosen by assigning
+a non-empty value to `STP_STUB`:
+
+    $ make STP_STUB=1
+
+This can be used if STP does not build on your system or if you want to avoid
+the work of building the library.  A similar `YICES_STUB` option exists, for
+skipping the build of the Yices library:
+
+    $ make YICES_STUB=1
+
+The BSC tools do need at least one SMT solver, so only one of these options
+should be used.
+
+## Test the BSC toolchain
+
+The following command will run a smoke test to ensure the compiler and
+simulator work properly:
+
+    $ make check-smoke
+
+For more extensive testing, see the [testsuite README]
 in the `testsuite` subdirectory.
 
 ### Choosing a Verilog simulator
 
+By default, the smoke test uses [Icarus Verilog] to test the Verilog code generation.
 The Makefile in `examples/smoke_test` shows how you can point the default
-`check-smoke` target at other Verilog simulators such as VCS and VCSI (Synopys),
-NC-Verilog & NCsim (Cadence), ModelSim (Mentor), and CVC.
-
-Many people also use [Verilator][] to compile and simulate `bsc`-generated
-Verilog -- but you must write your own C++ harness for your design in order to
-use it.
+`check-smoke` target at other Verilog simulators such as [Verilator],
+VCS and VCSI (Synopys), NC-Verilog & NCsim (Cadence), ModelSim (Mentor), and CVC.
 
 [Verilator]: https://www.veripool.org/wiki/verilator
 
