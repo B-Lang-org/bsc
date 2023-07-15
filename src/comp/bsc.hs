@@ -462,8 +462,8 @@ compilePackage
     vpi_wrappers <- if (backend flags /= Just Verilog)
                     then return []
                     else if (useDPI flags)
-                         then genDPIWrappers errh flags "./" blurb ffuncs
-                         else genVPIWrappers errh flags "./" blurb ffuncs
+                         then genDPIWrappers errh flags prefix blurb ffuncs
+                         else genVPIWrappers errh flags prefix blurb ffuncs
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
 
     -- Simplify a little
