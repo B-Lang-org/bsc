@@ -127,6 +127,35 @@ files_exist { simfiles/mkDummyModule.cxx \
 
 ###########
 #
+# Test that vpi_wrapper_* files are written to vdir
+# or (if no vdir) to the same directory where the source file sits
+#
+# The directory of the source file is not the current directory
+# (where BSC was invoked from) when -u is used to compile files
+# found in multiple directories.  However, it can also occur if
+# the source file given on the command line include a directory
+# (which is what we will test here).
+
+# Set up the source file in a directory
+mkdir srcfiles
+copy GCD.bsv srcfiles
+
+# Remove vpi_wrapper files, so we can test they are generated
+erase_many {vfiles/vpi_wrapper*}
+
+# Test with vdir
+compile_verilog_pass srcfiles/GCD.bsv {} {-vdir vfiles -p srcfiles:+}
+files_exist {vfiles/vpi_wrapper_my_time.h vfiles/vpi_wrapper_my_time.c}
+
+# Remove vpi_wrapper files, so we can test they are generated
+erase_many {vpi_wrapper*}
+
+# Test without vdir
+compile_verilog_pass srcfiles/GCD.bsv {} {-p srcfiles:+}
+files_exist {srcfiles/vpi_wrapper_my_time.h srcfiles/vpi_wrapper_my_time.c}
+
+###########
+#
 # Test that preprocessor gets `include from the -p import path
 
 mkdir incfiles

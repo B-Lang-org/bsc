@@ -3,7 +3,7 @@
 CONFDIR = $(realpath ..)
 
 DONTKEEPFILES = *.post-m4 *.post-m4-stage1 \
-		simfiles bfiles vfiles incfiles \
+		simfiles bfiles vfiles incfiles srcfiles \
 		SplitIfNested.bs.expandif.atsexpand.expected \
 		NoSplitIfNested.bs.expandif.atsexpand.expected \
 		NoSplitIfNested.bs.noexpandif.atsexpand.expected \
