@@ -127,8 +127,12 @@ files_exist { simfiles/mkDummyModule.cxx \
 
 ###########
 #
-# Test that vpi_wrapper_* files are written to vdir
-# or (if no vdir) to the same directory where the source file sits
+# Test that the compile stage writes 'vpi_wrapper_*' files to vdir
+# or (if no vdir) to the same directory where the source file sits.
+#
+# And test that the linking step can find VPI wrapper files
+# by looking through the Verilog search path, to successfully
+# compile the wrappers and to compile the registration array.
 #
 # The directory of the source file is not the current directory
 # (where BSC was invoked from) when -u is used to compile files
@@ -136,23 +140,56 @@ files_exist { simfiles/mkDummyModule.cxx \
 # the source file given on the command line include a directory
 # (which is what we will test here).
 
+# ---
+# Test compile without vdir
+
+nukedir srcfiles
+erase_many {vpi_*.{c,h,o}}
+
 # Set up the source file in a directory
 mkdir srcfiles
 copy GCD.bsv srcfiles
 
-# Remove vpi_wrapper files, so we can test they are generated
-erase_many {vfiles/vpi_wrapper*}
+compile_verilog_pass srcfiles/GCD.bsv {} {-p srcfiles:+}
+files_exist {srcfiles/vpi_wrapper_my_time.h srcfiles/vpi_wrapper_my_time.c}
 
-# Test with vdir
+# ---
+# Test compile with vdir
+
+nukedir srcfiles
+nukedir vfiles
+erase_many {vpi_*.{c,h,o}}
+
+# Set up the source file in a directory
+mkdir srcfiles
+copy GCD.bsv srcfiles
+
+# Create the vdir
+mkdir vfiles
+
 compile_verilog_pass srcfiles/GCD.bsv {} {-vdir vfiles -p srcfiles:+}
 files_exist {vfiles/vpi_wrapper_my_time.h vfiles/vpi_wrapper_my_time.c}
 
-# Remove vpi_wrapper files, so we can test they are generated
-erase_many {vpi_wrapper*}
+# The above will have placed vpi wrappers in 'vfiles/'
+# so now we test that linking can find it,
+# both with or without its own other vdir
 
-# Test without vdir
-compile_verilog_pass srcfiles/GCD.bsv {} {-p srcfiles:+}
-files_exist {srcfiles/vpi_wrapper_my_time.h srcfiles/vpi_wrapper_my_time.c}
+# ---
+# Test link with vdir
+
+nukedir vfiles_link
+mkdir vfiles_link
+
+link_verilog_pass {srcfiles/my_time.ba} {sysGCD} {-vsearch vfiles:+ -vdir vfiles_link}
+files_exist {vfiles/vpi_wrapper_my_time.o vfiles_link/vpi_startup_array.o}
+
+# ---
+# Test link without vdir
+
+erase_many {vfiles/vpi_*.o vpi_*.{c,h,o}}
+
+link_verilog_pass {srcfiles/my_time.ba} {sysGCD} {-vsearch vfiles:+}
+files_exist {vfiles/vpi_wrapper_my_time.o vpi_startup_array.o}
 
 ###########
 #
