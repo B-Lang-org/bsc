@@ -300,8 +300,8 @@ mkVPIRegisterBody name has_return stores_handles =
 
 genVPIRegistrationArray :: ErrorHandle ->
                            Flags -> String -> [String] -> [ForeignFunction] ->
-                           IO ()
-genVPIRegistrationArray _ _ _ _ [] = return ()
+                           IO [String]
+genVPIRegistrationArray _ _ _ _ [] = return []
 genVPIRegistrationArray errh flags prefix blurb ffs =
   do let -- generate the registration array file name
          c_filename = mkVPIArrayCName (vdir flags) prefix
@@ -316,6 +316,8 @@ genVPIRegistrationArray errh flags prefix blurb ffs =
      writeFileCatch errh c_filename c_contents
      -- report the file to the user with relative path
      unless (quiet flags) $ putStrLnF $ "VPI registration array file created: " ++ c_filename_rel
+     -- return the file name
+     return [c_filename]
 
 mkVPIRegistrationArray :: Flags -> String -> [ForeignFunction] -> Bool -> CCFragment
 mkVPIRegistrationArray flags prefix ffs with_fn =

@@ -7,6 +7,7 @@ import System.Environment(getArgs, getProgName)
 import System.Process(runInteractiveProcess, waitForProcess)
 import System.Process(system)
 import System.Exit(ExitCode(ExitFailure, ExitSuccess))
+import System.FilePath(takeDirectory)
 import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuffering, BufferMode(LineBuffering))
 import System.IO(hSetEncoding, latin1)
 import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
@@ -16,7 +17,7 @@ import Data.Char(isSpace, toLower, ord)
 import Data.List(intersect, nub, partition, intersperse, sort,
             isPrefixOf, isSuffixOf, unzip5, intercalate)
 import Data.Time.Clock.POSIX(getPOSIXTime)
-import Data.Maybe(isJust, isNothing {-, fromMaybe-})
+import Data.Maybe(isJust, isNothing)
 import Numeric(showOct)
 
 import Control.Monad(when, unless, filterM, liftM, foldM)
@@ -25,6 +26,7 @@ import Control.Concurrent(forkIO)
 import Control.Concurrent.MVar(newEmptyMVar, putMVar, takeMVar)
 import qualified Control.Exception as CE
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 import ListMap(lookupWithDefault)
 import SCC(scc)
@@ -34,7 +36,7 @@ import ParseOp
 import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
-                    mkAName, mkVName, mkVPICName, mkVPIArrayCName,
+                    mkAName, mkVName, mkVPICName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
                     bscSrcSuffix, bseSrcSuffix, binSuffix,
@@ -42,7 +44,8 @@ import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     objSuffix, useSuffix,
                     genFileName, createEncodedFullFilePath,
                     getFullFilePath, getRelativeFilePath)
-import FileIOUtil(writeFileCatch, readFileMaybe, removeFileCatch)
+import FileIOUtil(writeFileCatch, readFileMaybe, removeFileCatch,
+                  readFilePath)
 import TopUtils
 import SystemCheck(doSystemCheck)
 import BuildSystem
@@ -1531,12 +1534,13 @@ cmdCompileBluesimCFile flags cName = do
     return (cmd, oName, msg)
 
 -- returns the name of the object file created
-compileVPICFile :: ErrorHandle -> Flags -> String -> IO String
-compileVPICFile errh flags cName = do
+compileVPICFile :: ErrorHandle -> Flags -> [String] -> String -> IO String
+compileVPICFile errh flags incdirs cName = do
     let oName = mkObjName Nothing "" (dropSuf cName)
     -- show is used for quoting
     let incflags = map (("-I"++) . show) (cIncPath flags) ++
-                   ["-I" ++ show (bluespecDir flags) ++ "/VPI"]
+                   ["-I" ++ show (bluespecDir flags) ++ "/VPI"] ++
+                   map (\d -> "-I" ++ d) incdirs
         switches = incflags ++
                    [ "-fPIC"
                    , "-c"
@@ -2083,13 +2087,14 @@ vGenFFuncs :: ErrorHandle -> Flags -> TimeInfo -> String ->
               IO (TimeInfo, [String])
 vGenFFuncs errh flags t prefix cfilenames_unique [] = return (t,[])
 vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
-      t <-
-        if (useDPI flags) then return t
+      (t, vpiarray_filenames) <-
+        if (useDPI flags) then return (t, [])
         else do
           -- generate the vpi_startup_array file
           blurb <- mkGenFileHeader flags
-          genVPIRegistrationArray errh flags prefix blurb ffuncs
-          timestampStr flags "generate VPI registration array" t
+          filenames <- genVPIRegistrationArray errh flags prefix blurb ffuncs
+          t <- timestampStr flags "generate VPI registration array" t
+          return (t, filenames)
 
       -- compile user-supplied C files
       let (cfiles1, ofiles1) = partition (\f -> hasDotSuf cSuffix f   ||
@@ -2101,23 +2106,30 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
       ofiles2 <- mapM (compileUserCFile errh flags True) cfiles1
       t <- timestampStr flags "compile user-provided C files" t
 
-{-
-      -- XXX If any of BSC's pre-compiled .ba libraries has a VPI wrapper
-      -- XXX that goes along with it, they would need to included here?
-      do let to = fromMaybe "." (vdir flags)
-         mapM_ (\src -> do let dst = to ++ "/" ++ (baseName src)
-                           copyFileCatch errh src dst)
-               vpi_wrapper_c_h_files
--}
-
       (t, ofiles3) <-
         if (useDPI flags) then return (t, [])
         else do
           -- compile all necessary vpi wrapper files
-          let mkVPIFileName s = mkVPICName (vdir flags) prefix s
-              vpifiles = map (mkVPIFileName . getIdString . ff_name) ffuncs ++
-                         [ mkVPIArrayCName (vdir flags) prefix ]
-          files <- mapM (compileVPICFile errh flags) vpifiles
+
+          -- first, find the VPI wrapper files in the vsearch path
+          let findVPIWrapperFile ffunc = do
+                let ffunc_name = getIdString (ff_name ffunc)
+                    vpiwrapper_filename = mkVPICName Nothing "" ffunc_name
+                mfile <- readFilePath errh noPosition False vpiwrapper_filename (vPath flags)
+                case mfile of
+                  Nothing -> bsError errh [(noPosition, EMissingVPIWrapperFile vpiwrapper_filename False)]
+                  Just (_, filename) -> return filename
+          vpiwrapper_filenames <- mapM findVPIWrapperFile ffuncs
+
+          -- collect the directories of the VPI wrapper files
+          -- to use as a search path for header files when compiling
+          -- the VPI registration array file
+          let vpidirs = S.toList (S.fromList (map takeDirectory vpiwrapper_filenames))
+
+          -- include the vpi registration array file
+          wrapper_files <- mapM (compileVPICFile errh flags []) vpiwrapper_filenames
+          array_files <- mapM (compileVPICFile errh flags vpidirs) vpiarray_filenames
+          let files = wrapper_files ++ array_files
           t <- timestampStr flags "compile VPI wrapper files" t
           return (t, files)
 

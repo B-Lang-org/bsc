@@ -1118,6 +1118,7 @@ data ErrMsg =
         | EMissingUserFile String [String]
         | EUnrecognizedCmdLineText String
         | EUnknownVerilogSim String [String] Bool
+        | EMissingVPIWrapperFile String Bool
 
         -- ABin (.ba) file issues
         | WExtraABinFiles [String]
@@ -4415,6 +4416,12 @@ getErrorText (WNonDemotableErrors tags) =
      let s = if (length tags == 1) then "" else "s"
      in  s2par ("Cannot demote the following error" ++ s ++ ":") $$
          nest 2 (sepList (map text tags) comma))
+
+getErrorText (EMissingVPIWrapperFile fname is_dpi) =
+    (System 95, empty,
+     let ifctype = if is_dpi then "DPI" else "VPI"
+     in  s2par ("Cannot find the " ++ ifctype ++ " file " ++ ishow fname ++
+                " in the Verilog search path."))
 
 -- Runtime errors
 getErrorText (EMutuallyExclusiveRulesFire r1 r2) =
