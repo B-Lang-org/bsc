@@ -32,5 +32,5 @@ compile_ppp_pass Let.bs
 # see also github discussion #587 for context
 compile_ppp_pass_bug DollarColonEqualsPrecedencePretty1.bs "github#568"
 compile_ppp_pass DollarColonEqualsPrecedencePretty2.bs
-compile_ppp_pass_bug DollarColonEqualsPrecedencePretty3.bs "github#568"
+compile_ppp_pass DollarColonEqualsPrecedencePretty3.bs
 
