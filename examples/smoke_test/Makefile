@@ -7,6 +7,10 @@ BSC=bsc -no-show-timestamps -no-show-version
 ## Default simulator is iverilog
 VSIM = -vsim iverilog
 
+ifdef verilator
+    VSIM = -vsim verilator
+endif
+
 ifdef cvc
      VSIM = -vsim cvc
 endif
@@ -40,7 +44,7 @@ help:
 	@echo
 	@echo "  The default Verilog simulator is iverilog. To specity an alternate"
 	@echo "  simulator, add one of the following to the comannad line:"
-	@echo "    cvc=1, vcs=1, vcsi=1, ncverilog=1, ncsim=1, modelsim=1"
+	@echo "    verilator=1, cvc=1, vcs=1, vcsi=1, ncverilog=1, ncsim=1, modelsim=1"
 	@echo
 	@echo "Useful targets:"
 	@echo "  smoke_test         -- Run both 'smoke_test_vlog' and 'smoke_test_bsim'"

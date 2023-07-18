@@ -120,3 +120,9 @@ compare_file [make_bsc_output_name NiceType.bs]
 compile_fail_error DanglingDecimal.bs P0005
 compile_fail_error FieldSelectionWithDigit.bs P0005
 compile_fail_error FieldSelectionFromDigit.bs T0031
+
+# Tests for relative precedence of $ and := (see github discussion #587)
+compile_fail_error DollarColonEqualsPrecedence1.bs T0080
+compile_pass DollarColonEqualsPrecedence2.bs
+compile_fail_error DollarColonEqualsPrecedence3.bs T0083
+

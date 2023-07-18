@@ -1,0 +1,8 @@
+package DollarColonEqualsPrecedencePretty1 where
+
+foo :: Reg Bool -> Reg Bool
+foo = id
+
+bar :: Reg Bool -> Action
+bar r = (foo $ r) := False
+
