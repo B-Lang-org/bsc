@@ -1,0 +1,7 @@
+package EmptyDo_Braces where
+
+a :: (Monad m) => m t
+a = do {}
+
+x :: Integer
+x = 17
