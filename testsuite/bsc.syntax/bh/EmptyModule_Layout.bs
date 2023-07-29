@@ -1,4 +1,4 @@
-package EmptyModuleBreaks where
+package EmptyModule_Layout where
 
 m :: Module Empty
 m = module

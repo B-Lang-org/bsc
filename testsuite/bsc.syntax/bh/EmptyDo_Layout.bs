@@ -1,0 +1,7 @@
+package EmptyDo_Layout where
+
+a :: Maybe Unit
+a = do
+
+x :: Integer
+x = 17

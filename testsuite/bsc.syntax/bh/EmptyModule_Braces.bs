@@ -1,0 +1,7 @@
+package EmptyModule_Braces where
+
+m :: Module Empty
+m = module {}
+
+x :: Integer
+x = 17

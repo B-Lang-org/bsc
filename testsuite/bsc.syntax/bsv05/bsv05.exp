@@ -37,6 +37,9 @@ compile_fail_error RuleEmptyConditionParens.bsv P0136
 # bad expression in rule parens (should be different from empty parens)
 compile_fail_error RuleBadCondition.bsv P0005
 
+# empty begin..end block
+compile_fail_error EmptyExprBlock.bsv P0070
+
 # export all identifiers
 compile_pass ExportAllExport.bsv
 if { [do_internal_checks] } {

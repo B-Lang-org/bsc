@@ -1,0 +1,7 @@
+package EmptyAction_Braces where
+
+a :: Action
+a = action {}
+
+x :: Integer
+x = 17

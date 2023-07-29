@@ -1,4 +1,4 @@
-package EmptyActionBreaks where
+package EmptyAction_Layout where
 
 a :: Action
 a = action

@@ -77,10 +77,44 @@ compile_pass DoAndIfThenElse.bs
 
 # More flexible rules for module and action layout
 # (fixes Google issue #78254411)
-compile_fail_error EmptyActionBreaks.bs P0005
-compile_fail_error EmptyModuleBreaks.bs P0005
+#
+# In 2018 the parsing of 'module' and 'action' blocks was changed
+# to support putting the keyword on the same line as an assignment
+# and then indenting underneath (as seen in FlexibleModuleLayout.bs)
+# instead of being forced to put the keyword on the next line (as in
+# RestrictiveModuleLayout.bs) (or possibly having to indent further?)
+#
+# A result of this change is that empty 'module' and 'action' blocks
+# (using indentation rather than braces) would no longer parse,
+# as in EmptyAction_Layout.bs and EmptyModule_Layout.bs.
+# These fail to compile because the parser interprets a later def
+# as being part of the block.  The later defs have no indentation,
+# though, so maybe those can be parsed as ending the block?
+# For now, they fail.
+#
+compile_fail_error EmptyAction_Layout.bs P0005
+compile_fail_error EmptyModule_Layout.bs P0005
 compile_pass FlexibleModuleLayout.bs
 compile_pass RestrictiveModuleLayout.bs
+
+# In addition to the above, also test parsing of empty do-blocks
+compile_fail_error EmptyDo_Layout.bs P0005
+
+# And test the parsing of empty blocks, using braces instead of layout
+#
+# For action and module keywords, an empty block is allowed and the
+# typechecker handles it by inserting a return statement (of Unit).
+# For do blocks, regardless of whether they typecheck to Action/Module,
+# the parser accepts it, but the typechecker fails to handle it and
+# an internal error results (see GitHub issue #485).  The parser or
+# the typechecker could handle this.
+#
+compile_pass EmptyAction_Braces.bs
+compile_pass EmptyModule_Braces.bs
+# This parses, but results in an internal error
+compile_pass_bug EmptyDo_Braces.bs
+# Confirm that the failure was due to an internal error
+find_regexp [make_bsc_output_name EmptyDo_Braces.bs] {Internal.*Error}
 
 # Fix position after numeric literals with prefixes
 # (fixes Google issue #77395569)
