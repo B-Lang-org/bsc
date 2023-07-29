@@ -1537,7 +1537,7 @@ proc compile_verilog_fail_no_internal_error {name} {
 
         if [compile_verilog_fail $name] then {
         } else {
-            find_n_strings "$name.bsc-vcomp-out" {Internal.*Error} 0
+            find_regexp_fail [make_bsc_vcomp_output_name $name] {Internal.*Error}
         }
     }
 }
