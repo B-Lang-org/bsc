@@ -48,4 +48,9 @@ compile_pass DupInclude.bsv {-p libdir1:+:libdir2}
 compare_file DupInclude.bsv.bsc-out
 
 # ----------
+# Tests for GitHub issue #584
 
+# This should fail with a user error, not a GHC/internal error
+compile_fail IncludeVendor_MissingCloseDelim.bsv
+
+# ----------

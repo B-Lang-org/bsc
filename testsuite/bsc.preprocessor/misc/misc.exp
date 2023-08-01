@@ -55,4 +55,45 @@ compile_pass FuncMacro_ArgReduces.bsv {-dvpp=FuncMacro_ArgReduces.vpp-out}
 compare_file_filtered FuncMacro_ArgReduces.vpp-out {} {} $ere_options
 
 # ----------
+# Tests for parentheses/argument errors and corner cases
+# (GitHub issue #584)
 
+# This should fail with an error in pre-processing; instead, it succeeds
+# and generates junk BSV that fails to parse
+compile_fail_error FuncMacro_MissingParen.bsv P0005
+
+# This should fail with a user error, not a GHC/internal error
+compile_fail FuncMacro_MissingParen_EOF.bsv
+
+# Should this pass? Should newlines be allowed in the argument?
+compile_pass FuncMacro_MissingParen_NextLine.bsv
+
+
+# This should fail with a user error, not a GHC/internal error
+compile_fail Line_BadArg_NonNumeric.bsv
+
+# A numeric argument with extra characters after it should fail
+# with a user error, not be silently ignored
+compile_fail_bug Line_BadArg_NumericWithSpace.bsv 584
+
+# These should fail with a user error, not a GHC/internal error
+compile_fail Line_MissingArg.bsv
+compile_fail Line_MissingArg_EOF.bsv
+compile_fail Line_MissingParen.bsv
+compile_fail Line_MissingParen_EOF.bsv
+
+# This doesn't even trigger a GHC/internal error, because the bad
+# position info isn't used (so it is never evaluated)
+compile_fail_bug Line_MissingArg_NoNext.bsv 584
+
+# Should this pass? Should newlines be allowed in the argument?
+compile_pass Line_MissingArg_NextLine.bsv
+compile_pass Line_MissingParen_NextLine.bsv
+
+# ----------
+# Additional tests for GitHub issue #584
+
+# Should this pass? Should EOF be allowed after final backslash?
+compile_pass_bug Define_NonTermComment_EOF.bsv 584
+
+# ----------
