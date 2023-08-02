@@ -21,7 +21,7 @@ import PreIds(id_write)
 import qualified Data.Map as M
 
 import Data.List(intersect)
-import Data.Maybe(isJust, fromJust, fromMaybe, maybeToList, mapMaybe)
+import Data.Maybe(fromJust, fromMaybe, maybeToList, mapMaybe)
 
 -- import Debug.Trace
 
@@ -110,10 +110,10 @@ aAddScheduleDefs flags pps pkg aschedinfo =
                        , isRdyId (aIfaceName m)
                        ]
          pre_en_map  = M.fromList $
-                       map (\(n,Just e) -> (n,e))
-                           (filter (isJust . snd)
-                                   [ (aIfaceName m, getMethodEnExpr m)
-                                   | m <- ifc0 ])
+                       [ (aIfaceName m, e)
+                       | m <- ifc0
+                       , (Just e) <- [getMethodEnExpr m]
+                       ]
          (rdy_map, rdy_proof_obs) =
              handleAlwaysReady (unsafeAlwaysRdy flags) pkgpos pps pre_rdy_map
          (en_map, enrdy_proof_obs) =

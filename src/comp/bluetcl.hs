@@ -2086,7 +2086,8 @@ getBInstChildren b@(BNode {binst_sub = sub}) =
               --
               mkChildIN :: (String, ABinEitherModInfo) -> Bool -> InstNode -> IO [BInst]
               mkChildIN _ _ inodep | isSynthP hide inodep =
-                do let (Just unique) = getSynthName hide inodep
+                do let unique = fromJustOrErr "bluetcl.mkChildIN: unique" $
+                                  getSynthName hide inodep
                    mminfo <- findModuleByInstance (reverse $ (getIdBaseString $ unique) : binst_synth b)
                    let b_add = addInst b (Just  (getIdBaseString $ unique))
                                  (getIdBaseString $ node_name inodep)

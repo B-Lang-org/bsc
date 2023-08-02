@@ -310,13 +310,21 @@ line Pos directive. Emitted by the preprocessor
 
 One day the gods will smite me for this.
 
+> -- XXX Errors should be better handled (GitHub issue #584)
 > scanLinePosDirective ::Position -> Scanner
 > scanLinePosDirective ipos state@(ScannerState (pos,input)) =
->     let (directive, _:restOfInput) = span (/= ')') input
+>     let (directive, mParenAndRestOfInput) = span (/= ')') input
+>         restOfInput = case mParenAndRestOfInput of
+>                         (')':rest) -> rest
+>                         _ -> internalError "scanLinePosDirective: missing close paren"
 >         list = Data.List.groupBy (\x -> \y -> (x /= ',') && (y /= ',')) directive
 >         param_list = map (filter (\x -> (not (isWhitespace x))))
 >                          (filter ( /= ",") list)
->         (f:l:c:_ {-level-}:_) = param_list
+>         -- Expect four arguments (file, line, column, and level)
+>         -- but only use the first three
+>         (f, l, c) = case param_list of
+>                       (a1:a2:a3:_:_) -> (a1, a2, a3)
+>                       _ -> internalError "scanLinePosDirective: too few arguments"
 >      in
 >        scanMain (ScannerState (updatePosFileLineCol pos (mkFString f)
 >                                (read l) (read c), restOfInput))

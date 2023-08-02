@@ -141,7 +141,9 @@ iConvD _ _ _ _ _ _ _ = []
 -- only qualify non-instance names
 qualId' :: Id -> Id -> Id
 qualId' pi i = if tilde `elem` getIdString i then i else qualId pi i
-  where [tilde] = getFString fsTilde
+  where tilde = case getFString fsTilde of
+                  [c] -> c
+                  _ -> internalError "IConv.qualId': unexpected tilde string"
 
 iConvVS :: ErrorHandle
            -> Flags
@@ -203,8 +205,12 @@ iConvPs' flags r env cond bs n ((v, _, CPConTs ti i ots [pat]) : ps) =
         iConvPs' flags r env (cond . isTest) bs n ((out, argType ty, pat) : ps)
   where ts = map (iConvT flags r) ots
         (conty, cti) = lookupConType flags ti i r
-        outty = underForAll conty (length ts) (\ (ITAp (ITAp arr a) r) -> ITAp (ITAp arr r) a)
-        isty  = underForAll conty (length ts) (\ (ITAp (ITAp arr a) r) -> ITAp (ITAp arr r) itBit1)
+        mkOutTy (ITAp (ITAp arr a) r) = ITAp (ITAp arr r) a
+        mkOutTy _ = internalError "IConv.iConvPs' mkOutTy"
+        mkIsTy (ITAp (ITAp arr a) r) = ITAp (ITAp arr r) itBit1
+        mkIsTy _ = internalError "IConv.iConvPs' mkIsTy"
+        outty = underForAll conty (length ts) mkOutTy
+        isty  = underForAll conty (length ts) mkIsTy
         out = IAps (ICon i (ICOut outty cti)) ts [v]
         is  = IAps (ICon i (ICIs  isty  cti)) ts [v]
         isTest = if numCon cti == 1 then id else (is `ieAnd`)
@@ -218,7 +224,10 @@ iConvPs' flags r env cond bs n ((v, t, CPstruct _ _ fs) : ps) =
     iConvPs' flags r env cond bs (n+length fs) (foldr addP ps fs)
   where (ti, ts) = splitITApCon t
         addP (f, p) ps =
-                let sel@(ICon _ (ICSel selty _ _)) = iConvField flags r ti f
+                let sel = iConvField flags r ti f
+                    selty = case sel of
+                              (ICon _ (ICSel t _ _)) -> t
+                              _ -> internalError "IConv.iConvPs' CPstruct: selty"
                     ty = iInst selty ts
                 in  --trace ("iConvPs' " ++ ppReadable (sel, selty, ts, ty)) $
                     (IAps sel ts [v], resType ty, p) : ps
@@ -357,9 +366,11 @@ iConvLet errh flags r env pvs ds = answer
                      where
                        ite env pvs = iConvVS errh flags r env pvs i vs qt cs
                  f _ = internalError "iConvLet.ites.f"
-        env' = foldr (\ (CLValueSign (CDefT i _ _ _) _) -> addVar i (IVar i)) env ds
+        d_ids = [ i | (CLValueSign (CDefT i _ _ _) _) <- ds ]
+        env' = let addFn i e = addVar i (IVar i) e
+               in  foldr addFn env d_ids
         is :: S.Set Id
-        is = S.fromList (map ( \ d@(CLValueSign (CDefT i _ _ _) _) -> i) ds)
+        is = S.fromList d_ids
         graph :: SCC.Graph Id -- [(Id,[Id])]
         graph = [(i, local_is) |
                    d@(CLValueSign (CDefT i _ _ _) _) <- ds,
@@ -463,10 +474,8 @@ iConvE errh flags r env pvs eee@(CStructT ct fs@((f,_):_)) =
         st = argType (iInst fty tvs)
 -- Get rid of dictionary argument to primConcat & co
 iConvE errh flags r env pvs (CApply (CTApply (CVar i) ts) (_: es))
-    | mf /= Nothing =
+    | (Just f) <- lookup i dropDicts =
         IAps f (map (iConvT flags r) ts) (map (iConvE errh flags r env pvs) es)
-  where mf = lookup i dropDicts
-        Just f = mf
 -- XXX should get rid of primSplitFst & primSplitSnd
 iConvE errh flags r env pvs (CApply (CTApply (CVar sfst) [t1,t2,t3]) [_, e])
     | sfst == idPrimSplitFst =
@@ -550,7 +559,9 @@ iConvE errh flags r env pvs e@(CmoduleVerilogT ty name ui clks rst args meths sc
             getMethodName (Inout { vf_name = i }) = i
             tss = map (tail . itSplit . getMethodType flags r ti ts . getMethodName) meths
             ty' = iConvT flags r ty
-            ITAp _ ty'' = dropA es' ty'
+            ty'' = case dropA es' ty' of
+                     ITAp _ t -> t
+                     _ -> internalError "IConv.iConvE CmoduleVerilogT: dropA result"
                 where dropA [] t = t
                       dropA (_:es) (ITAp _ t) = dropA es t
                       dropA _ _ = internalError "IConv.iConvE.dropA"
@@ -574,7 +585,10 @@ iConvE errh flags r env pvs e = internalError ("IConv.iConvE:" ++ ppReadable e)
 
 getMethodType :: Flags -> SymTab -> Id -> [IType] -> Id -> IType
 getMethodType flags r ti ts m = iInst selty ts
-  where ICon _ (ICSel selty _ _) = iConvField flags r ti m
+  where sel = iConvField flags r ti m
+        selty = case sel of
+                  (ICon _ (ICSel t _ _)) -> t
+                  _ -> internalError "IConv.getMethodType: selty"
 
 iConvR :: ErrorHandle -> Flags -> SymTab -> Env a ->
           IPVars a -> CRule -> IExpr a

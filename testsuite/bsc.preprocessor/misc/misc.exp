@@ -94,6 +94,6 @@ compile_pass Line_MissingParen_NextLine.bsv
 # Additional tests for GitHub issue #584
 
 # Should this pass? Should EOF be allowed after final backslash?
-compile_pass_bug Define_NonTermComment_EOF.bsv 584
+compile_pass Define_NonTermComment_EOF.bsv
 
 # ----------

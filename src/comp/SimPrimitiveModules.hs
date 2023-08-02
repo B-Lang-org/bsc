@@ -172,67 +172,58 @@ bit_count 0 = 0
 bit_count x = 1 + (bit_count (x `div` 2))
 
 fifoType :: String -> String -> NamingFn
-fifoType "FIFO1" prim args@((ASInt _ _ sz):_) =
+fifoType "FIFO1" prim [width@(ASInt _ _ sz), guarded] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width, guarded] = args
   in (render doc, [width, aNat 1, guarded, aNat 0])
 fifoType "FIFO10" prim args = fifoType "FIFO1" prim ((aNat 0):args)
-fifoType "FIFO2" prim args@((ASInt _ _ sz):_) =
+fifoType "FIFO2" prim [width@(ASInt _ _ sz), guarded] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width, guarded] = args
   in (render doc, [width, aNat 2, guarded, aNat 0])
 fifoType "FIFO20" prim args = fifoType "FIFO2" prim ((aNat 0):args)
-fifoType "SizedFIFO" prim args@((ASInt _ _ sz):_) =
+fifoType "SizedFIFO" prim [width@(ASInt _ _ sz), depth, _, guarded] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width, depth, _, guarded] = args
   in (render doc, [width, depth, guarded, aNat 0])
 fifoType "SizedFIFO0" prim args = fifoType "SizedFIFO" prim ((aNat 0):args)
-fifoType "FIFOL1" prim args@((ASInt _ _ sz):_) =
+fifoType "FIFOL1" prim [width@(ASInt _ _ sz)] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width] = args
   in (render doc, [width, aNat 1, aNat 0, aNat 1])
 fifoType "FIFOL10" prim args = fifoType "FIFOL1" prim ((aNat 0):args)
-fifoType "FIFOL2" prim args@((ASInt _ _ sz):_) =
+fifoType "FIFOL2" prim [width@(ASInt _ _ sz)] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width] = args
   in (render doc, [width, aNat 2, aNat 0, aNat 1])
 fifoType "FIFOL20" prim args = fifoType "FIFOL2" prim ((aNat 0):args)
-fifoType "SizedFIFOL" prim args@((ASInt _ _ sz):_) =
+fifoType "SizedFIFOL" prim [width@(ASInt _ _ sz), depth, _] =
   let ty_doc = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       doc    = (text prim) <> (text "<") <> ty_doc <> (text ">")
-      [width, depth, _] = args
   in (render doc, [width, depth, aNat 0, aNat 1])
 fifoType "SizedFIFOL0" prim args = fifoType "SizedFIFOL" prim ((aNat 0):args)
-fifoType "SyncFIFO" prim args@((ASInt _ _ sz):_) =
+fifoType "SyncFIFO" prim [width@(ASInt _ _ sz), depth, _] =
   let ty_doc   = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       idx_bits = bit_count (ilValue sz)
       idx_doc  = pPrint PDReadable 0 (bitsType idx_bits CTunsigned)
       doc      = (text prim) <> (text "<") <> ty_doc <> comma <>
                                               idx_doc <> (text ">")
-      [width, depth, _] = args
   in (render doc, [width, depth, aNat 0])
 fifoType "SyncFIFO0" prim args = fifoType "SyncFIFO" prim ((aNat 0):args)
-fifoType "SyncFIFO1" prim args@((ASInt _ _ sz):_) =
+fifoType "SyncFIFO1" prim [width@(ASInt _ _ sz)] =
   let ty_doc   = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       idx_bits = bit_count (ilValue sz)
       idx_doc  = pPrint PDReadable 0 (bitsType idx_bits CTunsigned)
       doc      = (text prim) <> (text "<") <> ty_doc <> comma <>
                                               idx_doc <> (text ">")
-      [width] = args
   in (render doc, [width, aNat 1, aNat 0])
 fifoType "SyncFIFO10" prim args = fifoType "SyncFIFO1" prim ((aNat 0):args)
-fifoType "SyncFIFOLevel" prim args@((ASInt _ _ sz):_) =
+fifoType "SyncFIFOLevel" prim [width@(ASInt _ _ sz), depth, _] =
   let ty_doc   = pPrint PDReadable 0 (bitsType (ilValue sz) CTunsigned)
       idx_bits = bit_count (ilValue sz)
       idx_doc  = pPrint PDReadable 0 (bitsType idx_bits CTunsigned)
       doc      = (text prim) <> (text "<") <> ty_doc <> comma <>
                                               idx_doc <> (text ">")
-      [width, depth, _] = args
   in (render doc, [width, depth, aNat 1])
 fifoType "SyncFIFOLevel0" prim args = fifoType "SyncFIFOLevel" prim ((aNat 0):args)
 fifoType mod prim args = internalError $ mkErr mod prim "FIFO width and depth arguments" args

@@ -636,7 +636,9 @@ genWrapInfo genifcs (d@(CDef modName oqt@(CQType _ t) cls), cqt, _, pps) =
    ifcNameFromMod :: [PProp] -> Type -> GWMonad Id
    ifcNameFromMod localpps localt = flatTypeIdQual localpps tr
      where
-       (_, TAp _ tr) = getArrows localt
+       tr = case getArrows localt of
+              (_, TAp _ r) -> r
+              _ -> internalError "GenWrap.genWrapInfo ifcNameFromMod: tr"
 genWrapInfo _ (def,_,_,_) =
     internalError( "genWrapInfo: unexpected def: " ++ ppReadable def )
 
@@ -886,7 +888,8 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                 return ((concat fields), (concat props))
            _ ->               -- leaf function
              do
-              let v:vs = map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
+              let (v, vs) = unconsOrErr "GenWrap.genIfcField: v:vs" $
+                              map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
               let bitsCtx a s = CPred (CTypeclass idBits) [a, s]
               let ctx = zipWith bitsCtx argtypes vs
               let ss = map (TAp tBit) vs
@@ -985,7 +988,8 @@ genIfcFieldFN trec rootId  prefixes (FInf fieldIdQ argtypes r _) =
      Nothing ->            -- leaf function
       do
         symt <- getSymTab
-        let v:vs = map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
+        let (v, vs) = unconsOrErr "GenWrap.genIfcFieldFN: v:vs" $
+                        map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
             isTClock t = t == tClock
             isTReset t = t == tReset
             isTInout t = (leftCon t == Just idInout)
@@ -1353,7 +1357,9 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
  do
    -- XXX This could have been stored in the moduledef info
    -- XXX (note that the first half is the "ts" in "vtis")
-   let (_, TAp _ tr) = getArrows t
+   let tr = case getArrows t of
+              (_, TAp _ r) -> r
+              _ -> internalError "GenWrap.mkNewModDef: tr"
    tyId <- flatTypeId vps tr    -- id of the Ifc_
    let ty = tmod (cTCon tyId)   -- type of new module
 
@@ -1362,7 +1368,9 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
                   Just res -> res
                   Nothing -> internalError ("mkNewModDef: can't find ifc: " ++
                                             ppReadable tyId)
-       (Cstruct _ _ _ _ cfields _) = genifc_cdefn genifc
+       cfields = case genifc_cdefn genifc of
+                   (Cstruct _ _ _ _ cs _) -> cs
+                   _ -> internalError "GenWrap.mkNewModDef: cfields"
    -- XXX reverse the fields just to match the behvaior of the previous
    -- XXX compiler, which accumulated with fold rather than map
    ftps <- mapM collectIfcInfo (reverse cfields)
@@ -1488,7 +1496,9 @@ mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
  st0 <- get
  return (\fmod wire_info sch pathinfo ips symt fields true_ifc_ids -> do
   let
-      (ts, TAp _ tr) = getArrows qt
+      (ts, tr) = case getArrows qt of
+                   (ats, TAp _ r) -> (ats, r)
+                   _ -> internalError "GenWrap.mkDef: ts, tr"
       st1 = st0 { symtable = symt }
   -- do not use ifc prags here
   (st2, ti_) <- runGWMonadGetNoFail (flatTypeId pps tr) st1
@@ -1753,7 +1763,9 @@ chkInterface t = do
       --traceM("getFInf: before: " ++ ppReadable(ft))
       ft_ext <- expandSynSym ft
       --traceM("getFInf: after: " ++ show(ft_ext))
-      let (_:as, r) = getArrows ft_ext
+      let (as, r) = case getArrows ft_ext of
+                      (_:ats, rt) -> (ats, rt)
+                      _ -> internalError "GenWrap.chkInterface: as, r"
       -- get any user-declared names for the arguments
       symt <- getSymTab
       let aIds = getMethodArgNames symt ti f
@@ -2154,7 +2166,9 @@ chkUserPragmas pps ifc = do
     when (null pp_ids) $ return ()
 
     -- find the fields of the flattened ifc
-    let (Cstruct _ _ _ _ fields _) = genifc_cdefn ifc
+    let fields = case genifc_cdefn ifc of
+                   (Cstruct _ _ _ _ cs _) -> cs
+                   _ -> internalError "GenWrap.chkUserPragmas: fields"
 
     -- identify which fields are methods
     let dropQ (CQType _ t) = t

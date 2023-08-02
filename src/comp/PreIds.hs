@@ -1,9 +1,10 @@
 module PreIds where
+
+import Util(headOrErr, take2OrErr, take3OrErr)
 import Position
 import PreStrings
 import Id
 import FStringCompat(FString)
-
 
 -- | Identifier without a position
 mk_no :: FString -> Id
@@ -474,6 +475,16 @@ tmpVarSIds = map (enumId "s" noPosition) [3000000..]
 tmpTyNumIds, tmpTyVarIds :: [Id]
 tmpTyNumIds = map (enumId "tnum" noPosition) [4000000..]
 tmpTyVarIds = map (enumId "v" noPosition) [100..]
+
+-- For avoiding warnings about nonexhaustive pattern matching
+take1tmpVarIds :: Id
+take1tmpVarIds = headOrErr "take1tmpVarIds" tmpVarIds
+
+take2tmpVarIds :: (Id, Id)
+take2tmpVarIds = take2OrErr "take2tmpVarIds" tmpVarIds
+
+take3tmpVarIds :: (Id, Id, Id)
+take3tmpVarIds = take3OrErr "take3tmpVarIds" tmpVarIds
 
 -- | Used by iExpand
 idPrimEQ, idPrimULE, idPrimULT, idPrimSLE, idPrimSLT :: Id

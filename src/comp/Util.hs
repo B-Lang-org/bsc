@@ -162,6 +162,17 @@ lastOrErr _   [x]    = x
 lastOrErr err (_:xs) = lastOrErr err xs
 lastOrErr err []     = internalError err
 
+unconsOrErr :: String -> [elem] -> (elem, [elem])
+unconsOrErr _   (elt:rest) = (elt, rest)
+unconsOrErr err []         = internalError err
+
+take2OrErr :: String -> [elem] -> (elem, elem)
+take2OrErr _ (x1:x2:_) = (x1, x2)
+take2OrErr err _ = internalError err
+
+take3OrErr :: String -> [elem] -> (elem, elem, elem)
+take3OrErr _ (x1:x2:x3:_) = (x1, x2, x3)
+take3OrErr err _ = internalError err
 
 rTake, rDrop :: Int -> [a] -> [a]
 rTake n = reverse . take n . reverse
@@ -300,7 +311,10 @@ mapThd f xyzs = [(x, y, f z) | (x, y, z) <- xyzs]
 
 joinByFst :: (Ord a) => [(a, b)] -> [(a, [b])]
 joinByFst =
-    map (\ xys@((x,_):_) -> (x, map snd xys)) .
+  let joinSameFirst xys@((x,_):_) = (x, map snd xys)
+      joinSameFirst _ = internalError "joinByFst"
+  in
+    map joinSameFirst .
     groupBy (\ (x,_) (y,_) -> x==y) .
     sortBy (\ (x,_) (y,_) -> x `compare` y)
 
@@ -346,6 +360,9 @@ appFstM f (a, b) = do c <- f a
 nubByFst :: (Eq a) => [(a, b)] -> [(a, b)]
 nubByFst xs = nubBy f xs
   where f a b = (fst a == fst b)
+
+sortPair :: (Ord a) => (a, a) -> (a, a)
+sortPair (x, y) = if (y < x) then (y, x) else (x, y)
 
 -- =====
 -- List/Either utilities

@@ -519,7 +519,7 @@ aExpr e@(IAps (ICon m (ICSel { })) _
                 Nothing -> internalError
                                ("aExpr: avValue_ on ICForeign without fcallNo")
                 Just val -> val
-        t@(ATBit _) = aTypeConvE e (iGetType e)
+        t = aTypeConvE e (iGetType e)
     in
         return (ATaskValue t i name isC n)
 
@@ -534,7 +534,7 @@ aExpr e@(IAps (ICon m (ICSel { })) _
                 Nothing -> internalError
                                ("aExpr: avValue_ on ICForeign without fcallNo")
                 Just val -> val
-        t@(ATBit _) = aTypeConvE e (iGetType e)
+        t = aTypeConvE e (iGetType e)
     in
         -- the value side carries no arguments
         -- the cookie "n" will connect it back up to the action side
@@ -966,4 +966,6 @@ eTrunc errh n e =
     then let e' = IAps (icSelect noPosition) [ITNum n, ITNum 0, ITNum k] [e]
          in  fst (iTransExpr errh e')
     else e
-  where ATBit k = aTypeConvE e (iGetType e)
+  where k = case aTypeConvE e (iGetType e) of
+              ATBit sz -> sz
+              _ -> internalError "AConv.eTrunc: unexpected type"

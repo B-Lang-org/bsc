@@ -214,11 +214,14 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                        segs = filter (/=".") $ split (condense (oneOf ".")) q
                        name = intercalate "_" $ (map ("INST_"++) segs) ++ ["DEF_" ++ b]
                    in setIdBaseString (unQualId aid) name
+      btype_lookup i = case M.lookup i btype_map of
+                         Just ty -> ty
+                         _ -> internalError "SimCOpt.moveDefsOntoStack btype_lookup"
       moveDefs (Just sbid) fn =  -- move within block
           let fname = sf_name fn
               new_defs = [ SFSDef isPort (ty,aid) Nothing
                          | (_,aid) <- M.findWithDefault [] ((Just sbid),fname) move_map
-                         , let (Just ty) = M.lookup (sbid,aid) btype_map
+                         , let ty = btype_lookup (sbid,aid)
                          , let isPort = S.member (sbid,aid) port_set
                          ]
               body = new_defs ++ (sf_body fn)
@@ -229,7 +232,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                            | qual_id <- S.toList qids
                            ]
                          | (sbid,aid) <- M.findWithDefault [] (Nothing,fname) move_map
-                         , let (Just ty) = M.lookup (sbid,aid) btype_map
+                         , let ty = btype_lookup (sbid,aid)
                          , let isPort = S.member (sbid,aid) port_set
                          , let qids = M.findWithDefault S.empty (sbid, aid) sched_qids
                          ]

@@ -835,8 +835,9 @@ userType name v = v `ofType` (CTuserType name)
 function :: (CCFragment -> CCFragment) -> CCFragment -> [CCFragment]
          -> CCFragment
 function retC v args =
-  let (CTyped retT _) = (retC CAbstract)
-  in v `ofType` (CTfunction retT args)
+  case (retC CAbstract) of
+    (CTyped retT _) -> v `ofType` (CTfunction retT args)
+    _ -> internalError "CCSyntax function"
 
 ctor :: CCFragment -> [CCFragment] -> CCFragment
 ctor v args = v `ofType` (CTconstructor args)

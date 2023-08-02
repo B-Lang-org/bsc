@@ -368,8 +368,7 @@ pIfcPragmas =
     ||! literal (mkFString "always_enabled") .> [PIAlwaysEnabled ]
     where
         varString = varcon >>- getIdString
-        varcon = var ||! con ||! string >>-
-            \ (CLit (CLiteral p (LString s))) -> mkId p (mkFString s)
+        varcon = var ||! con ||! pStringAsId
 
 
 pQStructField :: CParser CField
@@ -597,7 +596,10 @@ pAPat =     pVarIdOrU `into` (\ mi ->
                                                                                Left pos -> CPAny pos ))
         ||! pConId                                                        >>- (\i -> CPCon i [])
         ||! lp +.+ sepBy pPat (l L_comma) +.. rp                        >>> pMkTuple
-        ||! numericLit                                                        >>- (\ (CLit l) -> CPLit l)
+        ||! numericLit                                                        >>- litToPLit
+  where
+    litToPLit (CLit l) = CPLit l
+    litToPLit _ = internalError "CParser.pAPat: litToPLit"
 
 pPField :: CParser (Id, CPat)
 pPField = pFieldId `into` \ i ->
@@ -629,8 +631,7 @@ pPragma = l L_lpragma ..+ pPragma'  +.. l L_rpragma
             ||! literal (mkFString "deprecate") ..+ eq ..+ varString >>- PPdeprecate
         properties = literal (mkFString "properties")
         varString = varcon >>- getIdString
-        varcon = var ||! con ||! string >>-
-            \ (CLit (CLiteral p (LString s))) -> mkId p (mkFString s)
+        varcon = var ||! con ||! pStringAsId
 
 pRulePragma :: CParser RulePragma
 pRulePragma = l L_lpragma ..+ pRulePragma' +.. l L_rpragma
@@ -976,6 +977,9 @@ string  = lcp "<string>"  (\p x->case x of L_string  s     -> Just (CLit (CLiter
 
 pString :: CParser String
 pString  = lcp "<string>"  (\p x->case x of L_string  s     -> Just s;  _ -> Nothing)
+
+pStringAsId :: CParser Id
+pStringAsId = lcp "<string>"  (\p x->case x of L_string  s     -> Just (mkId p (mkFString s));  _ -> Nothing)
 
 char :: CParser CExpr
 char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar c))); _ -> Nothing)

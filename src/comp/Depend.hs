@@ -86,7 +86,10 @@ chkDeps errh flags name = do
                                ECircularImports (map ppReadable cycle))]
             Right ns -> do
                 let -- the pkginfo of all depended modules
-                    pis' = [ pi | n <- ns, let Just pi = findInfo n pis ]
+                    pis' = let getInfo n = case findInfo n pis of
+                                             Just pi -> pi
+                                             _ -> internalError "Depend.chkDeps: pis'"
+                           in  map getInfo ns
                     -- names of files resulting from codegen, if we want
                     -- to return them, for a linking stage to use
                     --genfs = concatMap (getGenFs flags) pis'

@@ -82,14 +82,14 @@ icPair i = ICon i (ICTuple ct [idPrimFst, idPrimSnd])
               (ITForAll i2 IKStar
                ((ITVar i1) `itFun` (ITVar i2) `itFun` pair_t))
         pair_t = itPair (ITVar i1) (ITVar i2)
-        i1:i2:_ = tmpVarIds
+        (i1, i2) = take2tmpVarIds
 
 itPosition, itPrimGetPosition :: IType
 itPosition = ITCon idPosition IKStar tiPosition
 -- type for position extraction primitives
 -- PrimGetEvalPosition is only the first example of this
 itPrimGetPosition = ITForAll i IKStar (ITVar i `itFun` itPosition)
- where i = head tmpVarIds
+ where i = take1tmpVarIds
 
 itName :: IType
 itName = ITCon idName IKStar tiName
@@ -309,7 +309,7 @@ iMkInvalid t = IAps icPrimChr [mkNumConT 1, itMaybe t] [iMkLitSize 1 0]
 
 iMkValid :: IType -> IExpr a -> IExpr a
 iMkValid t e =
-  let a:_ = tmpVarIds
+  let a = take1tmpVarIds
       ic_ty = ITForAll a IKStar $ (ITVar a) `itFun` (itMaybe (ITVar a))
       cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
       ic = ICon idValid (ICCon { iConType = ic_ty, conTagInfo = cti })
@@ -320,7 +320,7 @@ iMkNil t = IAps icPrimChr [mkNumConT 1, itList t] [iMkLitSize 1 0]
 
 iMkCons :: IType -> IExpr a -> IExpr a -> IExpr a
 iMkCons t e_hd e_tl =
-  let a:_ = tmpVarIds
+  let a = take1tmpVarIds
       ic_ty = ITForAll a IKStar $
               (ITVar a) `itFun` (itList (ITVar a)) `itFun` (itList (ITVar a))
       cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
@@ -493,7 +493,7 @@ icNoActions = ICon idPrimNoActions (ICPrim itAction PrimNoActions)
 
 icIf :: IExpr a
 icIf = ICon idPrimIf (ICPrim (ITForAll i IKStar (itBit1 `itFun` ty `itFun` ty `itFun` ty)) PrimIf)
-  where i = head tmpVarIds
+  where i = take1tmpVarIds
         ty = ITVar i
 
 icPrimArrayDynSelect :: IExpr a
@@ -504,14 +504,14 @@ icPrimArrayDynSelect = ICon idPrimArrayDynSelect (ICPrim t PrimArrayDynSelect)
         t = ITForAll a IKStar $
               ITForAll n IKNum $
                 arr_ty `itFun` idx_ty `itFun` elem_ty
-        a:n:_ = tmpVarIds
+        (a, n) = take2tmpVarIds
 
 icPrimBuildArray ::  (Num a, Enum a) => a -> IExpr b
 icPrimBuildArray sz = ICon idPrimBuildArray (ICPrim t PrimBuildArray)
   where elem_ty = ITVar i
         arr_ty = ITAp itPrimArray elem_ty
         t = ITForAll i IKStar $ foldr (\ e f -> elem_ty `itFun` f) arr_ty [1..sz]
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 -- n is the number of explicit arms, not counting the default arm
 icPrimCase :: (Num a, Enum a) => a -> IExpr b
@@ -523,84 +523,84 @@ icPrimCase sz = ICon idPrimCase (ICPrim t PrimCase)
                 idx_ty `itFun` elem_ty `itFun`
                   (foldr (\ e f -> idx_ty `itFun` elem_ty `itFun` f)
                          elem_ty [1..sz])
-        n:a:_ = tmpVarIds
+        (n, a) = take2tmpVarIds
 
 icPrimOrd :: IExpr a
 icPrimOrd = ICon idPrimOrd (ICPrim t PrimOrd)
   where t = ITForAll a IKStar (ITForAll n IKNum (ITVar a `itFun` aitBit (ITVar n)))
-        a:n:_ = tmpVarIds
+        (a, n) = take2tmpVarIds
 
 icPrimChr :: IExpr a
 icPrimChr = ICon idPrimChr (ICPrim t PrimChr)
   where t = ITForAll n IKNum (ITForAll a IKStar (aitBit (ITVar n) `itFun` ITVar a))
-        n:a:_ = tmpVarIds
+        (n, a) = take2tmpVarIds
 
 icSelect :: Position -> IExpr a
 icSelect pos = ICon (idPrimSelectAt pos) (ICPrim t PrimSelect)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar n) `itFun` aitBit (ITVar k)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimConcat :: IExpr a
 icPrimConcat = ICon idPrimConcat (ICPrim t PrimConcat)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimMul :: IExpr a
 icPrimMul = ICon idPrimMul (ICPrim t PrimMul)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimQuot :: IExpr a
 icPrimQuot = ICon idPrimQuot (ICPrim t PrimQuot)
   where t = ITForAll k IKNum (ITForAll n IKNum rt)
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar k)
-        k:n:_ = tmpVarIds
+        (k, n) = take2tmpVarIds
 
 icPrimRem :: IExpr a
 icPrimRem = ICon idPrimRem (ICPrim t PrimRem)
   where t = ITForAll k IKNum (ITForAll n IKNum rt)
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar n)
-        k:n:_ = tmpVarIds
+        (k, n) = take2tmpVarIds
 
 icPrimZeroExt :: IExpr a
 icPrimZeroExt = ICon idPrimZeroExt (ICPrim t PrimZeroExt)
   where t = ITForAll m IKNum (ITForAll k IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimSignExt :: IExpr a
 icPrimSignExt = ICon idPrimSignExt (ICPrim t PrimSignExt)
   where t = ITForAll m IKNum (ITForAll k IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimTrunc :: IExpr a
 icPrimTrunc = ICon idPrimTrunc (ICPrim t PrimTrunc)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
         rt = aitBit (ITVar n) `itFun` aitBit (ITVar m)
-        k:m:n:_ = tmpVarIds
+        (k, m, n) = take3tmpVarIds
 
 icPrimRel :: Id -> PrimOp -> IExpr a
 icPrimRel id p = ICon id (ICPrim (ITForAll i IKNum (ty `itFun` ty `itFun` itBit1)) p)
-  where i = head tmpVarIds
+  where i = take1tmpVarIds
         ty = itBit `ITAp` ITVar i
 
 icPrimWhen :: IExpr a
 icPrimWhen = ICon idPrimWhen (ICPrim t PrimWhen)
   where t = ITForAll i IKStar (itBit1 `itFun` ITVar i `itFun` ITVar i)
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 icPrimWhenPred :: IExpr a
 icPrimWhenPred = ICon idPrimWhen (ICPrim t PrimWhenPred)
   where t = ITForAll i IKStar (itPred `itFun` ITVar i `itFun` ITVar i)
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 itUninitialized :: IType
 itUninitialized = ITForAll i IKStar (itPosition `itFun` itString `itFun` ITVar i)
-  where i = head tmpVarIds
+  where i = take1tmpVarIds
 
 icPrimRawUninitialized, icPrimUninitialized :: IExpr a
 icPrimRawUninitialized = ICon idPrimRawUninitialized (ICPrim itUninitialized PrimRawUninitialized)
@@ -609,19 +609,19 @@ icPrimUninitialized = ICon idPrimUninitialized (ICPrim itUninitialized PrimUnini
 icPrimSetSelPosition :: IExpr a
 icPrimSetSelPosition = ICon idPrimSetSelPosition (ICPrim t PrimSetSelPosition)
   where t = ITForAll i IKStar (itPosition `itFun` ITVar i `itFun` ITVar i)
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 icPrimSL :: IExpr a
 icPrimSL = ICon idPrimSL (ICPrim t PrimSL)
   where t = ITForAll i IKNum (ty `itFun` itNat `itFun` ty)
         ty = itBit `ITAp` ITVar i
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 icPrimSRL :: IExpr a
 icPrimSRL = ICon idPrimSRL (ICPrim t PrimSRL)
   where t = ITForAll i IKNum (ty `itFun` itNat `itFun` ty)
         ty = itBit `ITAp` ITVar i
-        i = head tmpVarIds
+        i = take1tmpVarIds
 
 icPrimEQ, icPrimULE, icPrimULT, icPrimSLE, icPrimSLT :: IExpr a
 icPrimEQ = icPrimRel idPrimEQ PrimEQ
@@ -634,7 +634,7 @@ icPrimSLT = icPrimRel idPrimSLT PrimSLT
 icPrimBinVecOp :: Id -> PrimOp -> IExpr a
 icPrimBinVecOp id p = ICon id (ICPrim t p)
   where t = ITForAll i IKNum (ty `itFun` ty `itFun` ty)
-        i = head tmpVarIds
+        i = take1tmpVarIds
         ty = itBit `ITAp` ITVar i
 
 icPrimAdd, icPrimSub :: IExpr a
@@ -644,14 +644,14 @@ icPrimSub = icPrimBinVecOp idPrimSub PrimSub
 icPrimInv :: IExpr a
 icPrimInv = ICon idPrimSL (ICPrim t PrimInv)
   where t = ITForAll i IKNum (ty `itFun` ty)
-        i = head tmpVarIds
+        i = take1tmpVarIds
         ty = itBit `ITAp` ITVar i
 
 icPrimIntegerToBit :: IExpr a
 icPrimIntegerToBit = ICon (idFromInteger noPosition) (ICPrim t PrimIntegerToBit)
   where t  = ITForAll i IKNum (itInteger `itFun` (aitBit ty))
         ty = ITVar i
-        i  = head tmpVarIds
+        i  = take1tmpVarIds
 
 icClock :: Id -> IClock a -> IExpr a
 icClock i c = ICon i (ICClock {iConType = itClock, iClock = c})

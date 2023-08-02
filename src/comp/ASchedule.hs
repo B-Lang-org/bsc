@@ -43,7 +43,7 @@ import Error(internalError, EMsg, WMsg, EMsgs(..), ErrMsg(..),
              showErrorList, showWarningList, getErrMsgTag)
 import ErrorMonad(ErrorMonad(..))
 import PFPrint
-import PPrint(vsep)
+import PPrint(vsep, commaSep)
 import SCC(scc,tsort)
 import Id(Id, emptyId, getIdString, getIdBaseString, getIdPosition,
           isRdyId, addToBase, mk_homeless_id, mkIdWillFire, addSuffix)
@@ -3141,8 +3141,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                             pairs =
                               [ (m1, m2)
                                   | let m_methods2 = M.lookup inst r2_usemap,
-                                    isJust m_methods2,
-                                    let (Just methods2) = m_methods2,
+                                    (Just methods2) <- [m_methods2],
                                     (methId1, _) <- methods1,
                                     (methId2, _) <- methods2,
                                     methId1 /= methId2,
@@ -4276,11 +4275,8 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
               | otherwise = (True, Just $ text "...")
           mkArgs es
               | null es   = (False, empty)
-              | show_all  = (False, ppeCommaSep es)
+              | show_all  = (False, commaSep (map ppe es))
               | otherwise = (True, text "...")
-          ppeCommaSep xs = let (y:ys) = reverse (map ppe xs)
-                               ys' = map (<> text ",") ys
-                           in  sep $ reverse (y:ys')
           -- (method, hasCond, args, moreInfo)
           getUseInfo :: UniqueUse -> (String, Maybe Doc, Doc, Bool)
           getUseInfo u@(UUExpr (AMethCall _ i m es) _) =
@@ -4419,7 +4415,7 @@ verifyStaticScheduleOneRule errh flags gen_backend
                                 let m2 = MethodId inst methId2,
                                 -- either direction is an error
                                 let m_rs = findBetween m1 m2,
-                                isJust m_rs, let Just rs = m_rs ]
+                                (Just rs) <- [m_rs] ]
            in  if (null badPairs)
                then Nothing
                else Just (rule, badPairs)
@@ -4526,8 +4522,7 @@ verifyStaticScheduleTwoRules errh flags gen_backend moduleId
                             pairs =
                               [ (m1, m2)
                                   | let m_methods2 = M.lookup inst r2_usemap,
-                                    isJust m_methods2,
-                                    let (Just methods2) = m_methods2,
+                                    (Just methods2) <- [m_methods2],
                                     (methId1, _) <- methods1,
                                     (methId2, _) <- methods2,
                                     methId1 /= methId2,
@@ -5200,8 +5195,7 @@ addAllMEAssumps pragmas rules =
 addMEAssumps :: [ASchedulePragma] -> ARule -> ARuleId -> [(ARule,(ARuleId,[ARuleId]))]
 addMEAssumps pragmas r@(ARule { arule_id = rid }) new_id = rs
   where me_pairs = extractMEPairsSP pragmas
-        getRule ids = l
-          where (l:_) = ids
+        getRule ids = headOrErr "addMEAssumps getRule" ids
         check_pairs :: [(ARuleId, [([ARuleId],[ARuleId])])]
         check_pairs = [ ((getRule (as ++ bs)), [(as, bs)]) | (as, bs) <- me_pairs ]
         check_map = M.fromListWith (++) check_pairs

@@ -1,6 +1,8 @@
 module ISimplify(iSimplify) where
+
 import Data.List((\\))
 import qualified Data.Map as M
+import Util(fromJustOrErr)
 import PPrint
 import IntLit
 import ErrorUtil
@@ -52,11 +54,11 @@ iSimpAp n (ILam i _ e) [] (a:as)
         in iSimpAp n e' [] as
 iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
   where m = doPrim prim ts es
-        Just r = m
+        r = fromJustOrErr "iSimpAp ICPrim Nothing" m
 iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
         es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
   where m = getTuple def
-        Just ms = m
+        ms = fromJustOrErr "iSimpAp ICSel Nothing" m
         e' = iSimpAp n (iSimp n (ms !! fromInteger k)) [] as
 iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es

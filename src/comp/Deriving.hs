@@ -1,7 +1,7 @@
 module Deriving(derive) where
 
 import Data.List(intercalate)
-import Util(log2, checkEither, headOrErr, lastOrErr)
+import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import Position
@@ -86,7 +86,9 @@ doDer :: Flags -> SymTab -> Id -> [(Id, CDefn)] -> CDefn ->
 doDer flags r packageid xs data_decl@(Cdata {}) =
     let unqual_name = iKName (cd_name data_decl)
         qual_name = qualId packageid unqual_name
-        Just (TypeInfo _ kind _ _) = findType r qual_name
+        kind = case findType r qual_name of
+                 Just (TypeInfo _ k _ _) -> k
+                 _ -> internalError "Deriving.doDer Cdata: findType"
         ty_var_names = cd_type_vars data_decl
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
@@ -98,7 +100,9 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
-        Just (TypeInfo _ kind _ _) = findType r qual_name
+        kind = case findType r qual_name of
+                 Just (TypeInfo _ k _ _) -> k
+                 _ -> internalError "Deriving.doDer Cstruct: findType"
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         derivs' = addAutoDerivs flags r qual_name ty_vars derivs
@@ -166,19 +170,17 @@ doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
 doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
-    | fieldSet `S.isSubsetOf` tvset,
-      Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
-  where tvset  = S.fromList (concatMap tv vs)
-        fieldType = cos_arg_types cos
-        fieldSet = S.fromList (tv fieldType)
-        Just (Cclass _ _ _ [v] _ fs) = lookup (typeclassId di) xs
+  | fieldSet `S.isSubsetOf` tvset
+  , Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs
+  = let
         ity = foldl TAp (cTCon i) vs
         inst = Cinstance (CQType [CPred di [ty]] (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
         conv (CField { cf_name = f, cf_type = CQType _ t }) =
             CLValue (unQualId f)
                         [CClause [] []
                          (mkConv con coCon tmpVarXIds tv t (CVar f))] []
-          where (Just kind) = getTypeKind t
+          where kind = fromJustOrErr "Deriving.doDataDer isomorphic: getTypeKind" $
+                         getTypeKind t
                 tv = cTVarKind v kind
         cn = getCOSName cos
         con e = CCon cn [e]
@@ -187,6 +189,11 @@ doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] 
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
+    in
+        Right [inst]
+  where tvset = S.fromList (concatMap tv vs)
+        fieldType = cos_arg_types cos
+        fieldSet = S.fromList (tv fieldType)
 doDataDer _ _ _ i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
@@ -209,22 +216,25 @@ doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
 -- If the struct is isomorphic to another type (that is, it as only one
 -- field, of that other type), then inherit the instance from that type.
 doStructDer _ _ xs i vs [field] di
-    | fieldSet `S.isSubsetOf` tvset,
-      Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
-  where tvset  = S.fromList (concatMap tv vs)
-        fieldType = cf_type field
-        fieldSet = S.fromList (tv fieldType)
-        Just (Cclass _ _ _ [v] _ fs) = lookup (typeclassId di) xs
+  | fieldSet `S.isSubsetOf` tvset
+  , Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs
+  = let
         ity = foldl TAp (cTCon i) vs
         CQType _ type_no_qual = fieldType
         inst = Cinstance (CQType [CPred di [type_no_qual]]
                           (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
         conv (CField { cf_name = f, cf_type = CQType _ t }) =
                 CLValue (unQualId f) [CClause [] [] (mkConv con coCon tmpVarXIds tv t (CVar f))] []
-          where (Just kind) = getTypeKind t
+          where kind = fromJustOrErr "Deriving.doStructDer isomorphic: getTypeKind" $
+                         getTypeKind t
                 tv = cTVarKind v kind
         con e = CStruct (Just True) i [(cf_name field, e)]
         coCon e = CSelectTT i e (cf_name field)
+    in
+        Right [inst]
+  where tvset = S.fromList (concatMap tv vs)
+        fieldType = cf_type field
+        fieldSet = S.fromList (tv fieldType)
 doStructDer _ _ _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
   Right []
@@ -319,7 +329,8 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
                                  [cTVarKind s KNum, cTVarKind a KNum,
                                   cTVarKind n KNum] : f n ss nn
                    f _ _ _ = internalError "Deriving.doSBits.f: _ (_:_) []"
-                   b:bs = reverse bvs
+                   (b, bs) = unconsOrErr "Deriving.doSBits: null bvs" $
+                               reverse bvs
                 in if null fields then [] else f b bs avs
         avs = take (n-1) (everyThird tmpTyVarIds)
         bvs = take n (everyThird (tail tmpTyVarIds))
@@ -455,9 +466,11 @@ doDBits dpos type_name type_vars original_tags tags =
                      f a (s:ss) (n:nn) =
                          CPred (CTypeclass idMax) [s, a, n] : f n ss nn
                      f _ _ _ = internalError "Deriving.doDBits.f: _ (_:_) []"
-                     b:bs = reverse field_bit_sizes
+                     (b, bs) = unconsOrErr "Deriving.doDBits: null field_bit_sizes" $
+                                 reverse field_bit_sizes
                  in  f b bs max_field_size_sofar_vars
-        num_rep_bits_var:max_field_size_sofar_vars =
+        (num_rep_bits_var, max_field_size_sofar_vars) =
+          unconsOrErr "Deriving.doDBits: tmpTyVarIds" $
             make_num_vars num_tags (everyThird tmpTyVarIds)
         -- max_num_field_bits: # bits required to represent all fields w/o tags
         max_num_field_bits = last max_field_size_sofar_vars
@@ -945,9 +958,11 @@ addAutoDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
     | Right True <- fst (runTI flags False r check) = derivs
   where check = do
-          let Just (TypeInfo _ kind _ sort) =
+          let (kind, sort) =
                   -- trace ("check undef: " ++ show clsId) $
-                  findType r i
+                  case findType r i of
+                    Just (TypeInfo _ k _ s) -> (k, s)
+                    _ -> internalError "Deriving.addAutoDeriv: findType"
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)
           -- Look for an instance where the first parameter is the specified type

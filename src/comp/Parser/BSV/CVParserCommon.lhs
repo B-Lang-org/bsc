@@ -33,7 +33,7 @@
 > import CVPrint
 > import qualified SEMonad
 > import Pragma
-> import Util (headOrErr, set_insertMany, toMaybe, apRight)
+> import Util (headOrErr, unconsOrErr, set_insertMany, toMaybe, apRight)
 
 type of the BSV parser
 
@@ -1277,11 +1277,12 @@ saying whether or not the declaration is local
 > declare pos var typ preds = do
 >  state <- get
 >  let decls = issDeclared state
+>      decls' = case decls of
+>                 (d:ds) -> let declInfo = (pos, getIdProps var, typ, preds)
+>                           in  (M.insert var declInfo d):ds
+>                 _ -> internalError "CVParserCommon.declare: missing decl frame"
 >      nextState warns =
->          state { issDeclared =
->                    (let d:ds = decls
->                         declInfo = (pos, getIdProps var, typ, preds)
->                     in  (M.insert var declInfo d):ds),
+>          state { issDeclared = decls',
 >                  issWarnings = reverse warns ++ issWarnings state }
 >   in case findDecl var decls of
 >         (Nothing,_) -> put $ nextState []
@@ -1331,7 +1332,8 @@ saying whether or not the declaration is local
 
 > assign :: Position -> Id -> AssignmentType -> ISConvMonad ()
 > assign pos var atype = modify
->     $ \state -> let a:as = issAssigned state
+>     $ \state -> let (a, as) = unconsOrErr "CVParserCommon.assign: missing decl frame" $
+>                                 (issAssigned state)
 >                 in state { issAssigned = (M.insert var (pos, atype) a):as}
 
 > isAssigned :: Id -> ISConvMonad Bool
