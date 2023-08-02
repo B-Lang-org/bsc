@@ -18,7 +18,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Util(allSame, flattenPairs, makePairs, remOrdDup, integerToBits,
             itos, eqSnd, cmpSnd, nubByFst, map_insertManyWith,
-            headOrErr, initOrErr, lastOrErr)
+            headOrErr, initOrErr, lastOrErr, unconsOrErr)
 import IntegerUtil(integerSelect)
 import PPrint
 import IntLit
@@ -1003,10 +1003,9 @@ collIf findf v ces d =
 collIfPrim :: (AId -> AExpr) -> AExpr -> [(AExpr, AExpr)] -> AExpr -> Maybe ([(AExpr, AExpr)], AExpr)
 collIfPrim findf v ces (APrim _ _ PrimIf [_, t, e]) | t == e =
         Just $ collIf findf v ces t
-collIfPrim findf v ces (APrim _ _ PrimIf [cond, t, e]) | me /= Nothing =
+collIfPrim findf v ces (APrim _ _ PrimIf [cond, t, e])
+  | (Just cs) <- getConsts findf (== v) cond =
         Just $ collIf findf v (zip (map snd cs) (repeat t) ++ ces) e
-  where me = getConsts findf (== v) cond
-        Just cs = me
 collIfPrim findf v ces (APrim _ _ PrimCase (v':d:ces')) | v == v' =
         Just (reverse ces ++ makePairs ces', d)
 collIfPrim _ _ ces d = Nothing
@@ -1593,7 +1592,7 @@ optAndOrExpr :: AExpr -> SIO AExpr
 optAndOrExpr (APrim i t@(ATBit 1) op es)
     | (op == PrimBAnd) || (op == PrimAnd) = do
   es1 <- mapM optAndOrExpr es
-  let (e1:er1) = reverse es1
+  let (e1, er1) = unconsOrErr "AOpt.optAndOrExpr And" (reverse es1)
   es2 <- foldM testBuildAnd [e1] er1
   checkIfConst  $ case es2 of
                     [e] -> e
@@ -1603,7 +1602,7 @@ optAndOrExpr (APrim i t@(ATBit 1) op es)
 optAndOrExpr (APrim i t@(ATBit 1) op es)
     | (op == PrimBOr) || (op == PrimOr) = do
   es1 <- mapM optAndOrExpr es
-  let (e1:er1) = reverse es1
+  let (e1,er1) = unconsOrErr "AOpt.optAndOrExpr Or" (reverse es1)
   es2 <- foldM testBuildOr [e1] er1
   checkIfConst $ case es2 of
                    [e] -> e

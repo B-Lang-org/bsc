@@ -1289,7 +1289,10 @@ combineDomainInfoMap inst avinst
                         ds ->
                             -- substitute each (child,parent) clock pair
                             -- to create the new domain info
-                            let (_, Just (parent_dom_id,_)) = head ds
+                            let parent_dom_id =
+                                  case ds of
+                                     ((_, Just (i,_)):_) -> i
+                                     _ -> internalError "combineDomainInfoMap substDomain"
                                 ps = [ (c,p) | (c, Just(_,p)) <- ds ]
                                 sub dom_info (child_clk,parent_clk) =
                                     substInputClockInDomainInfo child_clk

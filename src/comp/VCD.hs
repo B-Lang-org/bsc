@@ -290,8 +290,10 @@ readChanges (w:ws) =
      then case (readChanges ws) of
             (Left err) -> Left err
             (Right xs) -> Right ((scalar_p w):xs)
-     else let (w':ws') = ws
-              mx = if (c == 'b' || c == 'B')
+     else
+       case ws of
+         (w':ws') ->
+          let mx = if (c == 'b' || c == 'B')
                    then Just (vector_p rest w')
                    else if (c == 'r' || c == 'R')
                         then Just (real_p rest w')
@@ -300,6 +302,7 @@ readChanges (w:ws) =
                (Nothing, _)       -> Left (w:ws)
                (_,Left err)       -> Left err
                (Just x, Right xs) -> Right (x:xs)
+         _ -> Left (w:ws)
 
 -- create an Err command
 error_p :: String -> [C.ByteString] -> VCDCmd

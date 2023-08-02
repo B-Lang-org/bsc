@@ -131,7 +131,7 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
                               Left sccs -> sccs
 
         errMultipleDef (i:i':_) =
-            let [pos1, pos2] = sort [getIdPosition i, getIdPosition i']
+            let (pos1, pos2) = sortPair (getIdPosition i, getIdPosition i')
             in  (pos2, EMultipleDecl (pfpString i) pos1)
         errMultipleDef is =
             internalError ("MakeSymTab.mkSymTab.errMultipleDef: " ++ show is)
@@ -395,7 +395,7 @@ cConvInst errh r (CPackage mi exps imps fixs ds includes) =
 
 convInst :: ErrorHandle -> Id -> SymTab -> CDefn -> CDefn
 convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
-    let Just c = leftCon t
+    let c = fromJustOrErr "convInst: leftCon" (leftCon t)
         cls = mustFindClass r (CTypeclass c)
         instanceArgs = tyConArgs t
         clsMethType i = case schemes of
@@ -450,7 +450,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                     let s = mkSubst (zip vs ats)
                     in  apSub s (predToType p)
                 bnd (pos, t) =
-                        let Just tc = leftCon t
+                        let tc = fromJustOrErr "convInst bnd: leftCon" (leftCon t)
                             ts = tyConArgs t
                             cqt = CQType [CPred (CTypeclass tc) ts] noType
                         in  (setIdPosition pos (unQualId tc),

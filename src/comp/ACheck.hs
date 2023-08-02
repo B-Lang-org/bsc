@@ -109,7 +109,7 @@ chkAIface aa@(AIInout { aif_inout = r }) =
     tracePP "chkAIface AIInout" aa $ chkAInout r
 
 chkCond :: AType -> Bool
-chkCond t = isBit t && (let (ATBit sz) = t in (sz == 1))
+chkCond = isBit1
 
 chkAAction :: AAction -> Bool
 chkAAction aa@(ACall i m (c:es)) =
@@ -319,7 +319,8 @@ isBit (ATBit _) = True
 isBit _ = False
 
 isBit1 :: AType -> Bool
-isBit1 t = isBit t && (aSize t == 1)
+isBit1 (ATBit sz) = (sz == 1)
+isBit1 _ = False
 
 isString :: AType -> Bool
 isString (ATString _) = True

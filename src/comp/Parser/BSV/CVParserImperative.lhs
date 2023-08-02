@@ -1229,7 +1229,6 @@ endfunction
 >            isUnsync (ISBVI _ (BVI_unsync _)) = True
 >            isUnsync _ = False
 
-
 >            mkVMethodConflictInfo :: [([Id], MethodConflictOp, [Id])] -> VMethodConflictInfo
 >            mkVMethodConflictInfo scheds =
 >             let f b = [(i1,i2)
@@ -1491,44 +1490,44 @@ some of these restrictions could be lifted if we made the compiler more clever
 
 Extract each type of statement, making sure to preserve the order
 
->        let (in_clocks, bvis2) =
->               apFst (map (\ (ISBVI _ (BVI_input_clock c)) -> c)) $
->                   partition isInputClock bvis1
->            (out_clocks, bvis3) =
->               apFst (map (\ (ISBVI _ (BVI_output_clock c)) -> c)) $
->                   partition isOutputClock bvis2
->            (ancestors, bvis4) =
->               apFst (map (\ (ISBVI _ (BVI_ancestor a)) -> a)) $
->                   partition isAncestor bvis3
->            (familys, bvis5) =
->               apFst (map (\ (ISBVI _ (BVI_family a)) -> a)) $
->                   partition isFamily bvis4
->            (in_resets, bvis6) =
->               apFst (map (\ (ISBVI _ (BVI_input_reset a)) -> a)) $
->                   partition isInputReset bvis5
->            (out_resets, bvis7) =
->               apFst (map (\ (ISBVI _ (BVI_output_reset a)) -> a)) $
->                   partition isOutputReset bvis6
->            (args, bvis8) =
->               -- parameters in particular need to remain in order,
->               -- because instantiaion in v95 syntax uses positional args
->               apFst (map (\ (ISBVI _ (BVI_arg a)) -> a)) $
->                   partition isArg bvis7
->            (methods, bvis9) =
->               apFst (map (\ (ISBVI _ (BVI_method a)) -> a)) $
->                   partition isMethod bvis8
->            (ifcs, bvis10) =
->               apFst (map (\ (ISBVI _ (BVI_interface a)) -> a)) $
->                   partition isInterface bvis9
->            (schedules, bvis11) =
->               apFst (map (\ (ISBVI p (BVI_schedule a)) -> (p,a))) $
->                   partition isSchedule bvis10
->            (paths, bvis12) =
->               apFst (map (\ (ISBVI _ (BVI_path a)) -> a)) $
->                   partition isPath bvis11
->            (unsyncs, bvis13) =
->               apFst (map (\ (ISBVI _ (BVI_unsync a)) -> a)) $
->                   partition isUnsync bvis12
+>        let (bvi_in_clocks, bvis2) = partition isInputClock bvis1
+>            in_clocks = [ c | (ISBVI _ (BVI_input_clock c)) <- bvi_in_clocks ]
+>
+>            (bvi_out_clocks, bvis3) = partition isOutputClock bvis2
+>            out_clocks = [ c | (ISBVI _ (BVI_output_clock c)) <- bvi_out_clocks ]
+>
+>            (bvi_ancestors, bvis4) = partition isAncestor bvis3
+>            ancestors = [ a | (ISBVI _ (BVI_ancestor a)) <- bvi_ancestors ]
+>
+>            (bvi_familys, bvis5) = partition isFamily bvis4
+>            familys = [ f | (ISBVI _ (BVI_family f)) <- bvi_familys ]
+>
+>            (bvi_in_resets, bvis6) =partition isInputReset bvis5
+>            in_resets = [ r | (ISBVI _ (BVI_input_reset r)) <- bvi_in_resets ]
+>
+>            (bvi_out_resets, bvis7) = partition isOutputReset bvis6
+>            out_resets = [ r | (ISBVI _ (BVI_output_reset r)) <- bvi_out_resets ]
+>
+>            -- parameters in particular need to remain in order,
+>            -- because instantiaion in v95 syntax uses positional args
+>            (bvi_args, bvis8) = partition isArg bvis7
+>            args = [ a | (ISBVI _ (BVI_arg a)) <- bvi_args ]
+>
+>            (bvi_methods, bvis9) = partition isMethod bvis8
+>            methods = [ m | (ISBVI _ (BVI_method m)) <- bvi_methods ]
+>
+>            (bvi_ifcs, bvis10) = partition isInterface bvis9
+>            ifcs = [ i | (ISBVI _ (BVI_interface i)) <- bvi_ifcs ]
+>
+>            (bvi_schedules, bvis11) = partition isSchedule bvis10
+>            schedules = [ (p, s) | (ISBVI p (BVI_schedule s)) <- bvi_schedules ]
+>
+>            (bvi_paths, bvis12) = partition isPath bvis11
+>            paths = [ p | (ISBVI _ (BVI_path p)) <- bvi_paths ]
+>
+>            (bvi_unsyncs, bvis13) = partition isUnsync bvis12
+>            unsyncs = [ u | (ISBVI _ (BVI_unsync u)) <- bvi_unsyncs ]
+>
 >        when (not (null bvis13))
 >            (internalError "convImperativeStmtsToCStmts:ISBVI(2)")
 
@@ -1715,8 +1714,8 @@ Extract each type of statement, making sure to preserve the order
 >               mkBasicDef (\ e -> cVApply idFromActionValue_ [e]) n sn is b
 
 >            mkBSVIfc (name,constr,ss) =
->               let ms = map (\ (ISBVI _ (BVI_method a)) -> a) (filter isMethod ss)
->                   is = map (\ (ISBVI _ (BVI_interface a)) -> a) (filter isInterface ss)
+>               let ms = [ m | (ISBVI _ (BVI_method m)) <- ss ]
+>                   is = [ i | (ISBVI _ (BVI_interface i)) <-ss ]
 >                   mcs = methodClauses ms
 >                   ics = map mkBSVIfc is
 >                   clss = mcs++ics
@@ -2321,7 +2320,7 @@ to uniquify them.
 >     cvtErr pos EForbiddenLetFn
 > convImperativeStmtsToCDefns (ISEqual pos (Right var) value : rest) =
 >     do di <- getDeclInfo var
->        let (Just (mdeclType, ps)) = di
+>        let (mdeclType, ps) = fromJustOrErr "convImperativeStmtsToCDefns" di
 >            qualType = CQType ps (fromJust mdeclType)
 >            cls = [CClause [] [] value]
 >            def = if isNothing mdeclType

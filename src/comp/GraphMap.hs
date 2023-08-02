@@ -109,7 +109,7 @@ instance (PPrint v, PPrint w) => PPrint (GraphMap v w) where
 
 -- non-connected components
 ncc :: Ord v => GraphMap v w -> [[v]]
-ncc g | null g = [[]]
-      | otherwise = ncvs:(ncc $ deleteVertices g ncvs)
-      where (v:vs) = vertices g
-            ncvs = v:[v' | v' <- vs, (v,v') `member` g]
+ncc g = case (vertices g) of
+          [] -> [[]]
+          (v:vs) -> let ncvs = v:[v' | v' <- vs, (v,v') `member` g]
+                    in  ncvs:(ncc $ deleteVertices g ncvs)

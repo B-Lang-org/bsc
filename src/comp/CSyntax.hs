@@ -87,7 +87,7 @@ import CType
 import VModInfo
 import Type(tClock, tReset)
 import Pragma
-import Util(itos, log2)
+import Util(itos, log2, fromJustOrErr)
 import Data.Maybe(listToMaybe)
 import Data.List(genericLength)
 import FStringCompat
@@ -1127,7 +1127,7 @@ instance PPrint CExpr where
     ----
     pPrint d p (CConT _ i es) = pPrint d p (CCon i es)
     pPrint d p (CStructT ty ies) = pPrint d p (CStruct (Just True) tyc ies)
-        where (Just tyc) = leftCon ty
+        where tyc = fromJustOrErr "pPrint CStructT" (leftCon ty)
     pPrint d p (CSelectT _ i) = text "." <> ppVarId d i
     pPrint d p (CLitT _ l) = pPrint d p l
     pPrint d p (CAnyT pos uk t) = text "_"

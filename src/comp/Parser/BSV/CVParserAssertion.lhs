@@ -33,7 +33,7 @@ Look at transAssertStmt for a template.
 > import SEMonad
 > import PreIds
 > import PreStrings
-> import Util(itos)
+> import Util(itos, unconsOrErr)
 
 These functions unroll the sequences and properties
 and inline all parameters and sequences
@@ -333,13 +333,17 @@ for recursive properties may be allowed.
 >        if isSEQ
 >         then do
 >           mISSeq <- findSeqM nm
->           let (Just (ISSequence _ (_,_,_,_,seq))) = mISSeq
+>           let seq = case mISSeq of
+>                 (Just (ISSequence _ (_,_,_,_,s))) -> s
+>                 _ -> internalError "CVParserAssertion.checkRecursionExpr: ISSeq"
 >           checkRecursionSP (nm:calls) seq
 >           return ()
 >         else if (isPROP)
 >           then do
 >             mISProp <- findPropM nm
->             let (Just (ISProperty _ (_,_,_,_,seq))) = mISProp
+>             let seq = case mISProp of
+>                   (Just (ISProperty _ (_,_,_,_,s))) -> s
+>                   _ -> internalError "CVParserAssertion.checkRecursionExpr: ISProp"
 >             checkRecursionSP (nm:calls) seq
 >             return ()
 >           else return ()
@@ -1678,7 +1682,8 @@ Add a sequence to the environment
 > addSequence :: Id -> ImperativeStatement -> ISConvMonad ()
 > addSequence nm body@(ISSequence pos _) = do
 >  state <- get
->  let seqs@(s:ss) = issSequences state
+>  let seqs = issSequences state
+>      (s, ss) = unconsOrErr "CVParserAssertion.addSequence: missing frame" seqs
 >  case findSeq nm seqs of
 >    Nothing -> put $ state {issSequences = (M.insert nm body s):ss}
 >    Just (ISSequence prevPos decl) ->
@@ -1710,7 +1715,8 @@ Add a property to the environment
 > addProperty :: Id -> ImperativeStatement -> ISConvMonad ()
 > addProperty nm body@(ISProperty pos _) = do
 >  state <- get
->  let props@(p:ps) = issProperties state
+>  let props = issProperties state
+>      (p, ps) = unconsOrErr "CVParserAssertion.addProperty: missing frame" props
 >  case findProp nm props of
 >    Nothing -> put $ state {issProperties = (M.insert nm body p):ps}
 >    Just (ISProperty prevPos _) -> throwError $ [(pos, EMultipleDecl (pvpString nm) prevPos)]

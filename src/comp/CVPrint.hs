@@ -70,7 +70,7 @@ import CSyntax
 import CSyntaxUtil
 import IntLit
 import IntegerUtil(integerFormat)
-import Util(itos, quote, log2)
+import Util(itos, quote, log2, fromJustOrErr, unconsOrErr)
 
 --------
 
@@ -642,7 +642,7 @@ instance PVPrint CExpr where
     ----
     pvPrint d p (CConT _ i es) = pvPrint d p (CCon i es)
     pvPrint d p (CStructT ty ies) = pvPrint d p (CStruct (Just True) tyc ies)
-        where (Just tyc) = leftCon ty
+        where tyc = fromJustOrErr "pvPrint CStructT" (leftCon ty)
     pvPrint d p (CSelectT _ i) = text "." <> pvpId d i
     pvPrint d p (CLitT _ l) = pvPrint d p l
     pvPrint d p (CAnyT pos uk t) = text "?"
@@ -1093,7 +1093,7 @@ ppClause d xs (CClause [] mqs e) =
         <> t";"
 ppClause d xs (CClause ps [] e) =
     let ids' = xs ++ map (ppCP d) ps
-        (i:ids) = if null ids' then internalError "CVPrint.ppClause" else ids'
+        (i, ids) = unconsOrErr "CVPrint.ppClause" ids'
         line1 = ppUntypedId d i ids
     in ppValueSignRest d i [] True False line1 e "function"
 

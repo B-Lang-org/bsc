@@ -585,11 +585,10 @@ setIdDisplayName :: Id -> FString -> Id
 setIdDisplayName idx name = addIdProp idx (IdPDisplayName name)
 
 addIdDisplayName :: Id -> Id
-addIdDisplayName i | isNothing name' = i
-  where name' = getIdDisplayName i
-addIdDisplayName i = i'
-  where (Just name') = getIdDisplayName i
-        i' = setIdBase i name'
+addIdDisplayName i =
+    case (getIdDisplayName i) of
+      Nothing   -> i
+      Just name -> setIdBase i name
 
 getFromReady :: Id -> String
 getFromReady idx =

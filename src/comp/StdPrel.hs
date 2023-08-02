@@ -16,7 +16,7 @@ module StdPrel(
 import qualified Bag as B
 import qualified Data.Set as S
 
-import Util(log2, ordPair, integerSqrt)
+import Util(log2, ordPair, integerSqrt, take3OrErr)
 import Position
 import ErrorUtil(internalError)
 import Id
@@ -35,7 +35,7 @@ import Unify(mgu)
 -- -------------------------
 
 v1, v2, v3 :: Id
-v1 : v2 : v3 : _ = tmpTyVarIds
+(v1, v2, v3) = take3OrErr "StdPrel tmpTyVarIds" tmpTyVarIds
 
 tvarh1, tvarh2, tvarh3 :: TyVar
 tvarh1 = tVarKind v1 KNum

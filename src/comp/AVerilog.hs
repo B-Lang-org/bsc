@@ -1719,7 +1719,8 @@ notProbe (_, VMInst (VId string _ _) _ _ _, _) = (string /= "Probe")
 notProbe item = True
 
 count :: (Ord a) => [a] -> [(Int, a)]
-count = sort . map (\ xs@(x:_) -> (length xs, x)) . group . sort
+count = let getInfo xs = (length xs, headOrErr "count" xs)
+        in  sort . map getInfo . group . sort
 
 dropIds :: [VId] -> (AId, VMItem, InstInfo) -> (AId, VMItem, InstInfo)
 dropIds is (i, vmi, info) =

@@ -112,15 +112,8 @@ instance (PPrint a, PPrint b, PPrint c, PPrint d, PPrint e, PPrint f, PPrint g) 
     pPrint d _ (x, y, z, w, v, u, t) = text "(" <> sep [pPrint d 0 x <> text ",", pPrint d 0 y <> text ",", pPrint d 0 z <> text ",", pPrint d 0 w <> text ",", pPrint d 0 v <> text ",", pPrint d 0 u <> text ",", pPrint d 0 t] <> text ")"
 
 instance (PPrint a) => PPrint [a] where
-    pPrint d _ [] = text "[]"
-    pPrint d _ xs =
-        case reverse (map (pPrint d 0) xs) of
-        (y:ys) ->
-                    let ys' = map (<> text ",") ys
-                        xs' = reverse (y:ys')
---                    in  text "[" <> csep xs' <> text "]"
-                    in  text "[" <> sep xs' <> text "]"
-        [] -> trace "This cannot happen" (text "[]")
+    pPrint d _ xs = let xs' = map (pPrint d 0) xs
+                    in  text "[" <> commaSep xs' <> text "]"
 
 instance (PPrint a, PPrint b) => PPrint (Either a b) where
     pPrint d p (Left x) = pparen (p>9) (text"(Left" <+> pPrint d 10 x <> text")")

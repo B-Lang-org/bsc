@@ -2204,7 +2204,10 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     t <- dump errh flags t DFtypecheck dumpnames cpkg_chk
 
     start flags DFsimplified
-    let cpkg_simp@(CPackage _ _ _ _ [def'] _) = simplify flags cpkg_chk
+    let cpkg_simp = simplify flags cpkg_chk
+        def' = case cpkg_simp of
+                 (CPackage _ _ _ _ [d] _) -> d
+                 _ -> internalError "compileCDefToIDef: unexpected number of defs"
     t <- dump errh flags t DFsimplified dumpnames cpkg_simp
 
     start flags DFinternal

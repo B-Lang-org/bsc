@@ -14,7 +14,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
              ErrorHandle, initErrorHandle,
              exitOK, exitFail, bsErrorNoExit, bsWarning,
              convErrorTToIO)
-import Util(separate)
+import Util(separate, headOrErr, fromJustOrErr, unconsOrErr)
 import IOUtil(getEnvDef)
 import TopUtils(dfltBluespecDir)
 import ASyntax
@@ -414,7 +414,8 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
        let user_modules = [ (inst,abmi)
                           | (inst,mod) <- M.toList instmap
                           , not (isPrimitiveModule mod)
-                          , let (Just abmi) = M.lookup mod abmimap
+                          , let abmi = fromJustOrErr "mkMorphState: user_modules" $
+                                         M.lookup mod abmimap
                           ]
            all_rules = [ (inst,rule)
                        | (inst,abmi) <- user_modules
@@ -456,7 +457,7 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
        let getRuleActs i r = If (i,(arule_pred r)) (getActs i (arule_actions r))
            getActs i [] = []
            getActs i ((ACall o m args):acts) =
-               let (cond:_) = args
+               let cond     = headOrErr "mkMorphState: getActs" args
                    sub_inst = joinName i o
                    m'       = setIdQualString m ""
                    sub_acts = case (M.lookup (sub_inst,m') methmap) of
@@ -1182,7 +1183,8 @@ formatNovas st =
       rmap = rule_map st
       full_names = [ (n, x, xs)
                    | (s,n) <- M.toList rmap
-                   , let (x:xs) = reverse (wordsBy (=='.') s)
+                   , let (x, xs) = unconsOrErr "formalNovas: full_names" $
+                                     reverse (wordsBy (=='.') s)
                    ]
       lengthen n name [] = internalError "duplicate keys in map!?!?"
       lengthen n name (x:xs) = (n, x ++ "." ++ name, xs)

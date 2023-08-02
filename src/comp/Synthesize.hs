@@ -159,14 +159,20 @@ toED (ADef i t e props) = do
 toE :: AExpr -> S AExpr
 -- XXX bad code
 toE (APrim aid t p [x,y]) | p == PrimSLE || p == PrimSLT =
-        let ty@(ATBit n) = aType x
+        let ty = aType x
+            n = case ty of
+                  (ATBit sz) -> sz
+                  _ -> internalError "Synthesize.toE PrimSLx: n"
             c = ASInt defaultAId ty (ilHex (2^(n-1)))
             x' = APrim aid ty PrimXor [x, c]
             y' = APrim aid ty PrimXor [y, c]
         in  toE (APrim aid t (if p == PrimSLE then PrimULE else PrimULT) [x',y'])
 -- XXX bad code
 toE (APrim aid t@(ATBit n) PrimExtract [e, h, l]) | h /= l && not (isConst h && isConst l) =
-        let te@(ATBit m) = aType e
+        let te = aType e
+            m = case te of
+                  (ATBit sz) -> sz
+                  _ -> internalError "Synthesize.toE PrimExtract: m"
             e1 | m > n     = APrim aid t PrimExtract
                                 [e1f,
                                  ASInt defaultAId aTNat (ilDec (n-1)),
