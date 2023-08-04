@@ -12,7 +12,9 @@ module AExpr2Yices(
        checkNotEq
 ) where
 
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(StateT, runStateT, liftIO,
+                           gets, get, put, modify)
 import qualified Data.Map as M
 import qualified Yices as Y
 import Data.Word(Word32)

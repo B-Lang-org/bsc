@@ -8,7 +8,8 @@ module ABinUtil (
 
 import Data.List(nub, partition)
 import Data.Maybe(isJust, fromJust)
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(StateT, runStateT, lift, get, put)
 import ErrorTCompat
 
 import Version(bscVersionStr)

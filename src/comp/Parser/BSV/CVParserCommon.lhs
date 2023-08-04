@@ -7,8 +7,9 @@
 
 #endif
 
-> import Control.Monad.State
-> import Control.Monad.Except
+> import Control.Monad(when)
+> import Control.Monad.State(modify, gets, get, put)
+> import Control.Monad.Except(throwError)
 > import SystemVerilogTokens
 > import Flags(Flags, passThroughAssertions)
 

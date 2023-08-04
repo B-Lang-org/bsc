@@ -22,8 +22,10 @@ import Data.Maybe
 import Data.Foldable(foldrM)
 import Numeric(showIntAtBase)
 import Data.Char(intToDigit, ord, chr)
+import Control.Monad(when, foldM, zipWithM, mapAndUnzipM)
+import Control.Monad.Fix(mfix)
 --import Control.Monad.Fix
-import Control.Monad.State
+import Control.Monad.State(State, evalState, liftIO, get, put)
 import Data.Graph
 import qualified Data.Generics as Generic
 import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,

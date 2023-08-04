@@ -11,7 +11,8 @@ import Prelude hiding ((<>))
 
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Control.Monad.State
+import Control.Monad(foldM)
+import Control.Monad.State(State, runState, gets, get, put)
 import Data.Maybe(mapMaybe)
 import Data.Char(toLower)
 

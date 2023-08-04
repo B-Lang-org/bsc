@@ -78,7 +78,8 @@ import PVPrint
 import ErrorUtil(internalError)
 import Prim
 import IntLit
-import Control.Monad.State.Strict
+import Control.Monad(liftM, mapAndUnzipM)
+import Control.Monad.State.Strict(State, runState, get, put)
 -- import Debug.Trace
 
 

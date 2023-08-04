@@ -4,7 +4,8 @@ import FStringCompat
 import PreStrings (fsDollar)
 import Verilog
 import Data.Generics
-import Control.Monad.State
+import Control.Monad(guard)
+import Control.Monad.State(State, gets, put, execState)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import ErrorUtil (internalError)

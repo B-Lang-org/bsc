@@ -6,7 +6,8 @@ import DisjointTest(DisjointTestState, initDisjointTestState,
                     addADefToDisjointTestState, checkDisjointExprWithCtx)
 import Data.Maybe
 import Flags(Flags)
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(StateT, evalStateT, liftIO, get, put)
 import FStringCompat(mkFString)
 import Position(noPosition)
 import Id

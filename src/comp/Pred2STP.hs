@@ -4,7 +4,8 @@ module Pred2STP(
        solvePred
 ) where
 
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(StateT, liftIO, gets, get, put, runStateT)
 import qualified Data.Map as M
 import qualified STP as S
 
