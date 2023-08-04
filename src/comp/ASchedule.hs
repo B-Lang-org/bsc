@@ -19,8 +19,8 @@ import Prelude hiding ((<>))
 
 import Data.List
 import Data.Maybe
-import ErrorTCompat
 import Control.Monad(when, foldM)
+import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, get, put)
 import System.IO.Unsafe
 import Debug.Trace(traceM)
@@ -355,7 +355,7 @@ csGraphToSchedGraph edges =
 -- In order to record the warnings during scheduling, we operate on a
 -- state monad which stores the EMsgs.
 
-type SM = ErrorT EMsgs (StateT SState IO)
+type SM = ExceptT EMsgs (StateT SState IO)
 
 data SState = SState {
                 sm_warnings             :: [EMsg],
@@ -426,7 +426,7 @@ aSchedule :: ErrorHandle -> Flags ->
              IO (Either AScheduleErrInfo (AScheduleInfo, APackage))
 aSchedule errh flags prefix urgency_pairs pps amod = do
     let f = aSchedule' errh flags prefix urgency_pairs pps amod
-    (result, s) <- runStateT (runErrorT f) initSState
+    (result, s) <- runStateT (runExceptT f) initSState
     let
         processWarning e@(pos,msg) =
             (pos, getErrMsgTag msg, showWarningList [e])

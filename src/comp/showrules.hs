@@ -13,7 +13,7 @@ import Id( Id, getIdString, getIdBaseString, getIdQualString
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
              ErrorHandle, initErrorHandle,
              exitOK, exitFail, bsErrorNoExit, bsWarning,
-             convErrorTToIO)
+             convExceptTToIO)
 import Util(separate, headOrErr, fromJustOrErr, unconsOrErr)
 import IOUtil(getEnvDef)
 import TopUtils(dfltBluespecDir)
@@ -300,9 +300,9 @@ hmain argv = do
           let prim_names = map sb_name primBlocks
           when (verbose) $ putStrLn "Reading design data from .ba files..."
           (_, hier_map, inst_map, _, _, _, abemis_by_name)
-              <- convErrorTToIO errh $
+              <- convExceptTToIO errh $
                  getABIHierarchy errh verbose ba_path Nothing prim_names top_mod []
-          abmis_by_name <- convErrorTToIO errh $ assertNoSchedErr abemis_by_name
+          abmis_by_name <- convExceptTToIO errh $ assertNoSchedErr abemis_by_name
 
           -- analyze design in preparation for VCD interpretation
           when (verbose) $ putStrLn "Analyzing design structure..."

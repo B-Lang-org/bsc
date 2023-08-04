@@ -12,8 +12,8 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List
-import ErrorTCompat
 import Control.Monad(when)
+import Control.Monad.Except(throwError)
 import qualified Data.Set as S
 import qualified Data.Map as M
 

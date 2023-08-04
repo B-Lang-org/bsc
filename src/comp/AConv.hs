@@ -2,8 +2,8 @@ module AConv (aConv, aTypeConv, isLocalAId) where
 
 import Util(itos, headOrErr, initOrErr, lastOrErr, log2, concatMapM, makePairs)
 import qualified Data.Map as M
-import ErrorTCompat
 import Control.Monad(when, liftM, forM, zipWithM)
+import Control.Monad.Except(throwError)
 import Control.Monad.State(StateT, runStateT, gets, get, put)
 import Control.Monad.Reader(ReaderT, runReaderT, withReaderT, ask)
 import PPrint(ppReadable, ppString)

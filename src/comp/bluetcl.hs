@@ -47,7 +47,7 @@ import Flags(Flags(..), verbose)
 import FlagsDecode(defaultFlags, decodeFlags, adjustFinalFlags, updateFlags,
                    showFlagsLst, showFlagsAllLst, getFlagValueString)
 import Error(internalError, EMsg, ErrMsg(..), showErrorList,
-             ErrorHandle, initErrorHandle, convErrorTToIO)
+             ErrorHandle, initErrorHandle, convExceptTToIO)
 import Id
 import PPrint
 import PVPrint
@@ -975,7 +975,7 @@ tclModule ["load",topname] = do
                             ": it is a primitive module")
   -- getABIHierarchy calls GenABin.readABinFile to read a .ba file
   (topmodId, hierMap, instModMap, ffuncMap, _, foreign_mods, abmis_by_name)
-      <- convErrorTToIO globalErrHandle $
+      <- convExceptTToIO globalErrHandle $
          getABIHierarchy globalErrHandle
                          (verbose flags) (ifcPath flags) (Just gen_backend)
                          prim_names topname []
@@ -3285,13 +3285,13 @@ data IfcField =
 
 getIfcHierarchy :: Maybe Id -> [(Id, RawIfcField)] -> Type -> IO [IfcField]
 getIfcHierarchy instId raw_fields tifc = do
-    mres <- runErrorT (mgetIfcHierarchy instId raw_fields tifc)
+    mres <- runExceptT (mgetIfcHierarchy instId raw_fields tifc)
     case mres of
       Right res -> return res
       Left msg  -> internalError msg
 
 mgetIfcHierarchy :: Maybe Id -> [(Id, RawIfcField)] -> Type ->
-                    ErrorT String IO [IfcField]
+                    ExceptT String IO [IfcField]
 mgetIfcHierarchy instId raw_fields tifc = do
     -- use "expandSyn" to avoid getting back "Alias" as the type analysis
     maifc <- lift $ getTypeAnalysis' (expandSyn tifc) True
@@ -3301,7 +3301,7 @@ mgetIfcHierarchy instId raw_fields tifc = do
             ifc_map = M.fromList raw_fields
 
             -- get the AIF for a flattened name
-            lookupAIF :: Id -> ErrorT String IO RawIfcField
+            lookupAIF :: Id -> ExceptT String IO RawIfcField
             lookupAIF i =
                 case (M.lookup i ifc_map) of
                   Just aif -> return aif
@@ -3322,10 +3322,10 @@ mgetIfcHierarchy instId raw_fields tifc = do
 
             -- get the IfcField for one field
             getField :: Id -> (Bool, Id, Qual Type, [IfcPragma]) ->
-                        ErrorT String IO IfcField
+                        ExceptT String IO IfcField
             getField prefix (_, fId, (_ :=> t), _) = getField' prefix fId t
 
-            getField' :: Id -> Id -> Type -> ErrorT String IO IfcField
+            getField' :: Id -> Id -> Type -> ExceptT String IO IfcField
             getField' prefix fId t = do
                 -- Function for expanding Vectors of subinterfaces
                 -- (or pseudo-interfaces like Clock, Reset, Inout)
@@ -3530,7 +3530,7 @@ getSubmodPortInfo mtifc avi = do
       let defl_ifc_hier = [ (Field fId inf Nothing) | (fId, inf) <- ifc_map ]
       in case mtifc of
            Just tifc -> do
-              mres <- runErrorT $
+              mres <- runExceptT $
                       mgetIfcHierarchy (Just (avi_vname avi)) ifc_map tifc
               case mres of
                 Right res -> return res

@@ -9,8 +9,8 @@ module ABinUtil (
 import Data.List(nub, partition)
 import Data.Maybe(isJust, fromJust)
 import Control.Monad(when)
+import Control.Monad.Except(ExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, get, put)
-import ErrorTCompat
 
 import Version(bscVersionStr)
 import Backend
@@ -19,7 +19,7 @@ import FileIOUtil(readBinaryFileCatch, readBinFilePath)
 import Util(fromMaybeM)
 
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..),
-             ErrorHandle, bsError, bsWarning, convErrorTToIO)
+             ErrorHandle, bsError, bsWarning, convExceptTToIO)
 import Id(Id, getIdString)
 import Position(cmdPosition, noPosition, getPosition)
 import PPrint
@@ -63,11 +63,11 @@ type ABinMap = M.Map String FilePath
 --
 -- When linking Verilog, we want to try reading in a .ba hierarchy,
 -- but fall back to using .v files if it fails.
--- Therefore, ErrorT is used to catch errors.  Serious failures can
+-- Therefore, ExceptT is used to catch errors.  Serious failures can
 -- still be reported immediately, via IO -- such as file version mismatch,
 -- or read errors, etc.
 --
-type M = StateT MState (ErrorT EMsgs IO)
+type M = StateT MState (ExceptT EMsgs IO)
 
 -- monad state
 data MState = MState {
@@ -126,7 +126,7 @@ putHierMap m = get >>= \s -> put (s { m_foundmod_map = m })
 getABIHierarchy ::
     ErrorHandle -> Bool -> [String] -> (Maybe Backend) ->
     [String] -> String -> [(String, ABin)] ->
-    ErrorT EMsgs IO
+    ExceptT EMsgs IO
         (Id, HierMap, InstModMap, ForeignFuncMap, ABinMap, [String],
          [(String, (ABinEitherModInfo, String))])
 getABIHierarchy errh be_verbose ifc_path backend prim_names topname fabis = do
@@ -202,11 +202,11 @@ getABIHierarchy errh be_verbose ifc_path backend prim_names topname fabis = do
 -- back the abmis with just the success data types
 
 assertNoSchedErr :: [(String, (ABinEitherModInfo, String))] ->
-                    ErrorT EMsgs IO
+                    ExceptT EMsgs IO
                         [(String, (ABinModInfo, String))]
 assertNoSchedErr modinfos_by_name =
     let assertOne :: (String, (ABinEitherModInfo, String)) ->
-                     ErrorT EMsgs IO
+                     ExceptT EMsgs IO
                          (String, (ABinModInfo, String))
         assertOne (name, (eabmi, ver)) =
             case eabmi of
@@ -472,7 +472,7 @@ readAndCheckABin errh backend filename = do
 -- returns the filename and the contents
 readAndCheckABinPath :: ErrorHandle ->
                         Bool -> [String] -> (Maybe Backend) -> String ->
-                        (ErrorT EMsgs IO) (Maybe (String, ABin))
+                        (ExceptT EMsgs IO) (Maybe (String, ABin))
 readAndCheckABinPath errh be_verbose path backend mod_name = do
     let binname = mod_name ++ "." ++ abinSuffix
     mread <- lift $ readBinFilePath errh noPosition be_verbose binname path
@@ -494,7 +494,7 @@ readAndCheckABinPathCatch ::
     ErrorHandle -> Bool -> [String] -> (Maybe Backend) -> String -> EMsg ->
     IO (String, ABin)
 readAndCheckABinPathCatch errh be_verbose path backend mod_name errmsg = do
-    mabi <- convErrorTToIO errh $
+    mabi <- convExceptTToIO errh $
             readAndCheckABinPath errh be_verbose path backend mod_name
     case mabi of
       Nothing -> bsError errh [errmsg]
