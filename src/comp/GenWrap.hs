@@ -10,8 +10,8 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(nub, (\\), find)
-import ErrorTCompat
 import Control.Monad(when, foldM, filterM, zipWithM, mapAndUnzipM)
+import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, gets, get, put)
 import PFPrint
 import Position(Position, noPosition, getPositionLine, cmdPosition)
@@ -50,7 +50,7 @@ import GenWrapUtils
 
 -- ====================
 
-type GWMonad = StateT GenState (ErrorT EMsgs IO)
+type GWMonad = StateT GenState (ExceptT EMsgs IO)
 
 data GenState = GenState
  {
@@ -62,7 +62,7 @@ data GenState = GenState
 runGWMonad :: GWMonad a -> GenState -> IO a
 runGWMonad f s = do
   let errh = errHandle s
-  result <- runErrorT ((runStateT f) s)
+  result <- runExceptT ((runStateT f) s)
   case result of
     Right (res, _) -> return res
     Left msgs -> bsError errh (errmsgs msgs)
@@ -77,7 +77,7 @@ runGWMonadNoFail f s =
 -- and we don't expect it to fail
 runGWMonadGetNoFail :: GWMonad a -> GenState -> IO (GenState, a)
 runGWMonadGetNoFail f s =
-    do result <- runErrorT ((runStateT f) s)
+    do result <- runExceptT ((runStateT f) s)
        case result of
          Right (res, s2) -> return (s2, res)
          Left msgs -> internalError ("runGWMonadGetNoFail: " ++

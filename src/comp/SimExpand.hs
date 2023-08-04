@@ -10,7 +10,7 @@ import qualified Data.Set as S
 
 import IOUtil(progArgs)
 import Error (internalError, EMsg, ErrMsg(..), ErrorHandle, bsError,
-              convErrorTToIO)
+              convExceptTToIO)
 import Position (noPosition, getPosition)
 import PPrint
 import Flags
@@ -66,11 +66,11 @@ simExpand errh flags topname fabis = do
     let prim_names = map sb_name primBlocks
 
     (topmodId, hiermap, instmap, ffuncmap, filemap, _, emodinfos_used_by_name)
-        <- convErrorTToIO errh $
+        <- convExceptTToIO errh $
            getABIHierarchy errh (verbose flags) (ifcPath flags) (Just Bluesim)
                            prim_names topname fabis
 
-    modinfos_used_by_name <- convErrorTToIO errh $
+    modinfos_used_by_name <- convExceptTToIO errh $
                              assertNoSchedErr emodinfos_used_by_name
 
     -- reject top-level modules with always_enabled ifc, if generating

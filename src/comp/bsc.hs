@@ -20,7 +20,7 @@ import Data.Maybe(isJust, isNothing {-, fromMaybe-})
 import Numeric(showOct)
 
 import Control.Monad(when, unless, filterM, liftM, foldM)
-import ErrorTCompat(runErrorT)
+import Control.Monad.Except(runExceptT)
 import Control.Concurrent(forkIO)
 import Control.Concurrent.MVar(newEmptyMVar, putMVar, takeMVar)
 import qualified Control.Exception as CE
@@ -1873,7 +1873,7 @@ vLink errh flags topmod_name vfilenames0 afilenames cfilenames = do
 
     -- see if .ba files exist for the top-level of this design
     let prim_names = map sb_name primBlocks
-    mhier0 <- runErrorT $
+    mhier0 <- runExceptT $
               getABIHierarchy errh
                   (verbose flags) (ifcPath flags) (Just Verilog)
                   prim_names topmod_name user_abis
@@ -1881,7 +1881,7 @@ vLink errh flags topmod_name vfilenames0 afilenames cfilenames = do
     mhier <- case mhier0 of
                   Left msgs -> return (Left msgs)
                   Right (a, b, c, d, e, f, emodinfos) -> do
-                      mres <- runErrorT (assertNoSchedErr emodinfos)
+                      mres <- runExceptT (assertNoSchedErr emodinfos)
                       case mres of
                         Left msgs -> return (Left msgs)
                         Right modinfos -> return $

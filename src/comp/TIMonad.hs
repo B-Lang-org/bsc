@@ -43,8 +43,8 @@ import Assump
 import SymTab
 import PreIds(idBits, idLiteral, idRealLiteral, idSizedLiteral,
               idStringLiteral, idNumEq)
-import ErrorTCompat
 import Control.Monad(when)
+import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
 import Data.List(partition)
@@ -128,7 +128,7 @@ sizedStackModify (SizedStack size (x:rest)) f =
 sizedStackModify _ _ = internalError "sizedStackModify: stack underflow"
 
 -- state/error monad with bsc error messages and hidden TState
-type TI = StateT TStateRecover (ErrorT EMsgs (State TStatePersistent))
+type TI = StateT TStateRecover (ExceptT EMsgs (State TStatePersistent))
 
 -- apply the current substitution to something
 apSubTI :: (Types a) => a -> TI a
@@ -158,7 +158,7 @@ runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg])
 runTI flags ai s m = (final_result, tsWarns pState)
   where (result, pState) = runState error_run
                                     (initPersistentState flags ai s)
-        error_run = (runErrorT (runStateT m initRecoverState))
+        error_run = (runExceptT (runStateT m initRecoverState))
         rec_errors = tsRecoveredErrors pState
         final_result =
             case result of

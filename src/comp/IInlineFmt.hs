@@ -8,7 +8,7 @@ import Id
 import Prim
 import PreIds(idActionValue_, idArrow, tmpVarIds, idAVValue_, idAVAction_, idPrimFmtConcat)
 import ForeignFunctions
-import ErrorTCompat
+import Control.Monad.Except(ExceptT, runExceptT)
 import Control.Monad.State
 import Error(EMsg, ErrorHandle, bsError)
 import Position(noPosition)
@@ -16,7 +16,7 @@ import CType(TISort(..), StructSubType(..))
 import qualified Data.Map as M
 -- import Debug.Trace(trace)
 
-type F a = StateT (Int, [IDef a]) (ErrorT EMsg (IO))
+type F a = StateT (Int, [IDef a]) (ExceptT EMsg (IO))
 
 newFFCallNo :: (F a) Integer
 newFFCallNo = do (n, ds) <- get
@@ -37,7 +37,7 @@ iInlineFmt errh imod =
     do let imod_fmt = iInlineFmts imod
        let ffcallNo = (imod_ffcallNo imod_fmt)
        let ds       = (imod_local_defs imod_fmt)
-       result <- runErrorT (runStateT (splitFmtsF imod_fmt) (ffcallNo, []))
+       result <- runExceptT (runStateT (splitFmtsF imod_fmt) (ffcallNo, []))
        case result of
             Right x@(imod', (ffcallNo', ds')) ->
                 return (imod' {imod_local_defs = ds ++ ds',
