@@ -1,0 +1,35 @@
+# Test the parsing of the Stmt sublanguage
+
+# ---------------
+# Tests for <= assignment in for-loops
+# (GitHub issue #586)
+
+# -----
+# Simple register assignment
+
+test_c_veri_bsv StmtFor
+
+# -----
+# Array update syntax
+
+# The element is a register to update (as normal)
+test_c_veri_bsv StmtFor_ArrayUpd_Reg
+# The entire array is in a register, and just update an element
+test_c_veri_bsv StmtFor_ArrayUpd_Elem
+
+# -----
+# Range update syntax
+
+test_c_veri_bsv StmtFor_RangeUpd
+
+# -----
+# Field update syntax
+
+# The entire struct is in a register, and just update a field
+test_c_veri_bsv StmtFor_FieldUpd_Field
+
+# The field is a register to update
+test_c_veri_bsv StmtFor_FieldUpd_Reg
+
+# ---------------
+
