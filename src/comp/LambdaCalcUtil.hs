@@ -24,7 +24,8 @@ module LambdaCalcUtil(
 
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(State, runState, gets, get, put)
 import Data.Maybe(isJust, catMaybes)
 import Data.List(intercalate, partition, union, nub)
 

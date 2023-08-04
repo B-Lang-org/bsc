@@ -11,7 +11,8 @@ import Prelude hiding ((<>))
 
 import Data.List(nub, (\\), find)
 import ErrorTCompat
-import Control.Monad.State
+import Control.Monad(when, foldM, filterM, zipWithM, mapAndUnzipM)
+import Control.Monad.State(StateT, runStateT, lift, gets, get, put)
 import PFPrint
 import Position(Position, noPosition, getPositionLine, cmdPosition)
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..), ErrorHandle, bsError)

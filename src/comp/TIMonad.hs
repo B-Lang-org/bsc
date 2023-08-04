@@ -44,7 +44,9 @@ import SymTab
 import PreIds(idBits, idLiteral, idRealLiteral, idSizedLiteral,
               idStringLiteral, idNumEq)
 import ErrorTCompat
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(State, StateT, runState, runStateT,
+                           lift, gets, get, put, modify)
 import Data.List(partition)
 import Util(headOrErr)
 

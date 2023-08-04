@@ -2,9 +2,10 @@ module AConv (aConv, aTypeConv, isLocalAId) where
 
 import Util(itos, headOrErr, initOrErr, lastOrErr, log2, concatMapM, makePairs)
 import qualified Data.Map as M
-import Control.Monad.State hiding (forM)
 import ErrorTCompat
-import Control.Monad.Reader hiding (forM)
+import Control.Monad(when, liftM, forM, zipWithM)
+import Control.Monad.State(StateT, runStateT, gets, get, put)
+import Control.Monad.Reader(ReaderT, runReaderT, withReaderT, ask)
 import PPrint(ppReadable, ppString)
 import PFPrint(pfpString)
 import Position
@@ -32,8 +33,6 @@ import VModInfo(lookupOutputClockWires, lookupOutputResetWire,
                 lookupIfcInoutWire, vArgs, VArgInfo(..))
 import SignalNaming
 import InstNodes(mkInstTree)
-
-import Data.Traversable(forM)
 
 -- import Wires
 

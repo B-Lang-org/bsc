@@ -69,7 +69,8 @@ import Data.Maybe
 import Data.List(partition, intersperse, intercalate, nub, sortBy)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
-import Control.Monad.State(State, gets, modify, when)
+import Control.Monad(when)
+import Control.Monad.State(State, gets, modify)
 import Data.Char(toLower)
 import qualified Data.Map as Map
 

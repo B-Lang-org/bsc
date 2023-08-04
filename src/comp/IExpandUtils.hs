@@ -62,7 +62,9 @@ module IExpandUtils(
         showTopProgress, showModProgress, showRuleProgress
 ) where
 
-import Control.Monad.State
+import Control.Monad(when, liftM)
+import Control.Monad.State(StateT, runStateT, evalStateT, lift, liftIO,
+                           gets, get, put, modify)
 import Data.IORef
 import System.IO.Unsafe
 import Data.List

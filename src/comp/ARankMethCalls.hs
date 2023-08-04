@@ -2,7 +2,7 @@ module ARankMethCalls(aRankMethCalls) where
 
 import Data.List
 import Data.Maybe
-import Control.Monad.State
+import Control.Monad(when)
 
 import ASyntax
 import FStringCompat

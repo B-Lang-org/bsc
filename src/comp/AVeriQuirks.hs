@@ -12,7 +12,8 @@ import Flags(Flags, keepAddSize, removePrimModules, useNegate, readableMux)
 import Id
 import PreIds(idUnsigned)
 import FStringCompat(mkFString)
-import Control.Monad.State
+import Control.Monad(when)
+import Control.Monad.State(State, evalState, gets, get, put)
 import qualified Data.Map as M
 import Prim
 import Pragma(defPropsHasNoCSE)

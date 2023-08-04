@@ -17,8 +17,8 @@ module ITransform(
 import Prelude hiding ((<>))
 #endif
 
-import Data.Traversable (forM)
-import Control.Monad.State hiding (forM)
+import Control.Monad(foldM, forM)
+import Control.Monad.State(State, runState, gets, get, put)
 import Data.List((\\))
 import qualified Data.Map as M
 

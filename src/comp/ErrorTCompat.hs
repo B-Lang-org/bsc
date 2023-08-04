@@ -1,9 +1,7 @@
-{-# LANGUAGE CPP #-}
 module ErrorTCompat (
        ErrorT,
        runErrorT,
-       MonadError(..),
-       lift
+       MonadError(..)
 ) where
 
 import Control.Monad.Except

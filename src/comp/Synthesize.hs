@@ -1,7 +1,8 @@
 module Synthesize(aSynthesize) where
 
 import Data.List(transpose, sort, genericLength, nub)
-import Control.Monad.State
+import Control.Monad(when, zipWithM, zipWithM_)
+import Control.Monad.State(State, runState, gets, get, put)
 import Debug.Trace
 import qualified Data.Map as M
 

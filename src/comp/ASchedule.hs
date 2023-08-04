@@ -20,7 +20,8 @@ import Prelude hiding ((<>))
 import Data.List
 import Data.Maybe
 import ErrorTCompat
-import Control.Monad.State
+import Control.Monad(when, foldM)
+import Control.Monad.State(StateT, runStateT, lift, get, put)
 import System.IO.Unsafe
 import Debug.Trace(traceM)
 import qualified Data.Map as M

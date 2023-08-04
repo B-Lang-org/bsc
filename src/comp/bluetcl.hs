@@ -13,7 +13,8 @@ module BlueTcl where
 import HTcl
 
 import Control.Monad(foldM, when, mzero)
-import ErrorTCompat
+import Control.Monad.Trans(lift)
+import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Concurrent
 import qualified Control.Exception as CE
 import System.IO.Error(ioeGetErrorString)
