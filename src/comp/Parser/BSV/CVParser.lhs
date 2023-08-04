@@ -2520,7 +2520,9 @@ which calls us.
 >     do let ctxt = stmtContext flags
 >            forInitFlags =
 >                nullImperativeFlags { allowEq = (ctxt /= ISCSequence),
->                                      allowRegWrite = (ctxt == ISCSequence) }
+>                                      allowRegWrite = (ctxt == ISCSequence),
+>                                      allowSubscriptAssign = (ctxt == ISCSequence),
+>                                      allowFieldAssign = (ctxt == ISCSequence) }
 >        initStmtss <-
 >            pCommaSep1 (pImperativeDeclOrAssign [] forInitFlags False)
 >                           <?> "for-statement initialization"
