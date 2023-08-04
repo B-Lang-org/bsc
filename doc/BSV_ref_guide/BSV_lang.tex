@@ -7312,7 +7312,7 @@ conditional expressions, rule conditions, and method conditions.
 
 \gram{taggedUnionPattern}{ \term{tagged} \nterm{Identifier} \opt{ \nterm{pattern} } }
 
-\gram{structPattern}{ \term{tagged} \nterm{Identifier}
+\gram{structPattern}{ \nterm{Identifier}
                           \term{\{} 
                             \nterm{identifier} \term{:} \nterm{pattern}
                             \many{ \term{,}
@@ -7343,9 +7343,9 @@ by an identifier which is a union member name.  If that union member
 is not a \texttt{void} member, it must be followed by a pattern for that
 member.
 
-In a struct pattern, the \nterm{Identifier} following the
-{\term{tagged}} keyword is the type name of the struct as given in its
-typedef declaration.  Within the braces are listed, recursively, the
+A struct pattern consists of an identifier followed by braces, where
+the identifier is the type name of the struct as given in its typedef
+declaration.  Within the braces are listed, recursively, the
 member name and a pattern for each member of the struct.  The members
 can be listed in any order, and members can be omitted.
 
