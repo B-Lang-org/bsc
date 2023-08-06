@@ -4,6 +4,111 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2023.07 Release
+---------------
+
+Changes since release 2023.01:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Fix the syntax for struct patterns in the BSV Reference Guide
+
+* Update the build instructions
+  ** Document the `STP_STUB` and `YICES_STUB` options
+  ** Clarify the options for testing
+
+* Update the test suite README
+  ** Add sections explaining the testing infrastructure and how to
+     diagnose failures
+  ** Document how to provide additional options to BSC
+  ** Document how to specify the location and C++ options for SystemC
+
+Compiler
+~~~~~~~~
+
+* Improvements to VPI wrapper locations for designs with imported C
+  functions (import-BVI) that are compiled and linked for Verilog
+  (GitHub discussion #575, PR #576)
+  ** VPI wrappers are written to the same directory as the Verilog
+     files in all cases; previously, they would be written to the
+     current directory when the `-vdir` flag is not specified
+  ** BSC linking will look for VPI wrappers in the `-vsearch` path;
+     previously, BSC would look only in the `-vdir` directory if
+     specified or the current directory if not
+
+* Fix the parsing of `for` loop control in the `Stmt` sublanguage,
+  to allow register assignment with array and field selection
+  (GitHub issue #586)
+
+* Source code cleanups
+  ** Update to compile with GHC 9.6
+  ** Resolve most incomplete pattern warnings, enabled in GHC 9.2
+     (GitHub issue 469)
+
+Libraries
+~~~~~~~~~
+
+* Lower the precedence of the `:=` operator in BH to match the
+  precedence of `$` (GitHub discussion #567)
+
+* Add a complex conjugate function (`cmplxConj`) to the `Complex`
+  package
+
+Verilog
+~~~~~~~
+
+* Update the Verilator link script
+  ** Support version 5, which requires the `--no-timing` flag
+  ** Remove the work directory when done, since it is not reused
+
+* Update the Icarus Verilog link script to not generate `sft` files
+  for newer versions (11+) as it is deprecated
+
+Bluesim
+~~~~~~~
+
+* Remove uses of `sprintf` and replace with the safer `snprintf` or
+  `asprintf`, to resolve warnings when building with some compilers
+  (such as on macOS 13)
+
+Utilities
+~~~~~~~~~
+
+* Improve indentation in the BSV mode for `vim`
+
+General
+~~~~~~~
+
+* Replace deprecated `egrep` with `grep -E` as recommended by the
+  POSIX standard, for greater portability
+
+Test Suite
+~~~~~~~~~~
+
+* Update to pass with Icarus Verilog versions 12 and 13
+
+* Add an option for specifying C++ flags to use with SystemC
+  (`TEST_SYSTEMC_CXXFLAGS`)
+
+* Update to invoke the C++ compiler in the same way that BSC does
+    ** Use `c++` and not `g++`
+    ** Use `CXXFLAGS` from the environment
+       (but not yet `BSC_CXXFLAGS` as BSC does)
+
+* Additional testing and small cleanups
+
+Internal
+~~~~~~~~
+
+* Releases now built with GHC 9.2.8 (previously 9.0.2)
+
+* Updates to GitHub CI (continuous integration)
+  ** Retire the CI for Ubuntu 18.04 and macOS 10.15
+  ** Add CI for macOS 13
+
+'''
+
 2023.01 Release
 ---------------
 
