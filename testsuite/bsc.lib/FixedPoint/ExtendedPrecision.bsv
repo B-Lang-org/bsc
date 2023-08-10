@@ -12,7 +12,8 @@ function Action printFixedPoint( String msg, Integer fwidth, FixedPoint#(i,f) a 
              Add#(1, xxxA, i )
              ) ;
    action
-      $write( "%s(%b.%b) ", msg, fxptGetInt(a), fxptGetFrac(a) );
+      if (msg != "") $write("%s", msg);
+      $write( "(%b.%b) ", fxptGetInt(a), fxptGetFrac(a) );
       fxptWrite( fwidth, a ) ;
    endaction
 endfunction
