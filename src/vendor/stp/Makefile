@@ -5,10 +5,24 @@ PREFIX?=$(TOP)/inst
 
 .PHONY: all install clean full_clean
 
-ifeq ($(STP_STUB),)
-SRC = src
-else
+ifneq ($(STP_STUB),) # If STP_STUB exists, disable STP. Otherwise check STP_USE_LIB
 SRC = src_stub
+else ifeq ($(STP_USE_LIB),)         # default (compile from provided source)
+SRC = src
+else ifeq ($(STP_USE_LIB),included) # compile from provided source
+SRC = src
+else ifeq ($(STP_USE_LIB),disable)  # disable STP at runtime
+SRC = src_stub
+else ifeq ($(STP_USE_LIB),system)   # use system STP
+SRC = src_sys
+STP_LIBPATH = /usr/lib/
+export STP_LIBPATH
+else ifneq ($(shell echo "$(STP_USE_LIB)" | grep -E "^/*"),) # use STP at the absolute path provided by STP_USE_LIB
+SRC = src_sys
+STP_LIBPATH = $(STP_USE_LIB)
+export STP_LIBPATH
+else # unknown option for STP_USE_LIB
+$(error Unknown option for STP_USE_LIB: $(STP_USE_LIB))
 endif
 
 ifeq ($(OSTYPE), Darwin)
