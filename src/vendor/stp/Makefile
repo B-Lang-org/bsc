@@ -39,12 +39,15 @@ SNAME=libstp_sys.dylib
 STP_LIBPATH = /usr/local/opt/stp@
 else
 SNAME=libstp_sys.so
-STP_LIBPATH = /usr/lib/libstp.so
+STP_LIBPATH=$(shell find /usr/lib/ -name "libstp.so*" -type f -print0 | grep "/[a-z0-9.]*$$" | head -n 1)
+ifeq ($(STP_LIBPATH),)
+$(error invalid library name: $(STP_USE_LIB))
+endif
 endif
 export STP_LIBPATH
 else ifneq ($(call ispath,"$(STP_USE_LIB)"),) # use STP at the absolute path provided by STP_USE_LIB
 SRC = src_sys
-SNAME=$(shell echo $(STP_USE_LIB) | grep -o "[a-z0-9.]*$$")
+SNAME=$(shell echo $(STP_USE_LIB) | grep -o "/[a-z0-9.]*$$" | cut -f2- -d/)
 ifeq ($(SNAME),)
 $(error invalid library name: $(STP_USE_LIB))
 endif
