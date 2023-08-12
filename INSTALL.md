@@ -108,13 +108,12 @@ For example (cabal v3.x only):
     $ make GHC="ghc -package-env default"
 
 Bluespec compiler builds are tested with GHC 9.2.8.
-GHC releases older than 8.0.1 are not supported.
+GHC releases older than 7.10.3 are not supported.
 
 The source code has been written with extensive preprocessor macros to
-support every minor release of GHC since 8.0, through 9.2. The source
-has been updated for 9.6 to compile. Any releases in that
-range should be fine. The stable releases of 9.0.2 and 9.2.8 (at the
-time of writing) are known to work.
+support every minor release of GHC since 7.10, through 9.6. Any releases
+in that range should be fine.
+The recommended version of GHC is 9.2 in its latest point release.
 
 ## Additional requirements
 
