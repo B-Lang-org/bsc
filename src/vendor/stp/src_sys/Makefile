@@ -9,28 +9,16 @@ CP ?= cp
 LIB_DIR=../lib
 INC_DIR=../include
 
-ifeq ($(OSTYPE), Darwin)
-LDFLAGS = -dynamiclib -Wl,-install_name,libstp_sys.so
-else
-LDFLAGS = -shared -Wl,-soname,libstp_sys.so
-endif
-
 .PHONY: all
 all: install
 
 
-libstp_sys.so:
-	$(CP) "$(STP_LIBPATH)/libstp.so" ./libstp_sys.so
+$(SNAME):
+	$(CP) "$(STP_LIBPATH)" ./$(SNAME)
 
-libstp.so: libstp_sys.so
-	$(RM) $@
-	ln -s $< $@
-
-install: libstp_sys.so
+install: $(SNAME)
 	mkdir -p $(LIB_DIR)
-	$(CP) libstp_sys.so $(LIB_DIR)/
-	ln -fsn libstp.so.1 $(LIB_DIR)/libstp.so
-	ln -fsn libstp_sys.so $(LIB_DIR)/libstp.so.1
+	$(CP) $(SNAME) $(LIB_DIR)/
 	mkdir -p $(INC_DIR)
 	$(CP) stp_c_interface.h $(INC_DIR)/
 

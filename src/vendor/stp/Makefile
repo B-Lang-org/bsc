@@ -19,25 +19,41 @@ endef
 
 ifeq ($(STP_USE_LIB),included)      # compile from provided source
 SRC = src
-else ifeq ($(STP_USE_LIB),disable)  # disable STP at runtime
-SRC = src_stub
-else ifeq ($(STP_USE_LIB),system)   # use system STP
-SRC = src_sys
-STP_LIBPATH = /usr/lib/
-export STP_LIBPATH
-else ifneq ($(call ispath,"$(STP_USE_LIB)"),) # use STP at the absolute path provided by STP_USE_LIB
-SRC = src_sys
-STP_LIBPATH = $(STP_USE_LIB)
-export STP_LIBPATH
-else # unknown option for STP_USE_LIB
-$(error Unknown option for STP_USE_LIB: $(STP_USE_LIB))
-endif
-
 ifeq ($(OSTYPE), Darwin)
 SNAME=libstp.dylib
 else
 SNAME=libstp.so.1
 endif
+else ifeq ($(STP_USE_LIB),disable)  # disable STP at runtime
+SRC = src_stub
+ifeq ($(OSTYPE), Darwin)
+SNAME=libstp_disabled.dylib
+else
+SNAME=libstp_disabled.so
+endif
+else ifeq ($(STP_USE_LIB),system)   # use system STP
+SRC = src_sys
+ifeq ($(OSTYPE), Darwin)
+# untested
+SNAME=libstp_sys.dylib
+STP_LIBPATH = /usr/local/opt/stp@
+else
+SNAME=libstp_sys.so
+STP_LIBPATH = /usr/lib/libstp.so
+endif
+export STP_LIBPATH
+else ifneq ($(call ispath,"$(STP_USE_LIB)"),) # use STP at the absolute path provided by STP_USE_LIB
+SRC = src_sys
+SNAME=$(shell echo $(STP_USE_LIB) | grep -o "[a-z0-9.]*$$")
+ifeq ($(SNAME),)
+$(error invalid library name: $(STP_USE_LIB))
+endif
+STP_LIBPATH = $(STP_USE_LIB)
+export STP_LIBPATH
+else # unknown option for STP_USE_LIB
+$(error Unknown option for STP_USE_LIB: $(STP_USE_LIB))
+endif
+export SNAME
 
 all: install
 
@@ -45,7 +61,7 @@ install:
 	$(MAKE) -C $(SRC) install
 	ln -fsn HaskellIfc include_hs
 	install -m 755 -d $(PREFIX)/lib/SAT
-	install -m 644 lib/$(SNAME) $(PREFIX)/lib/SAT
+	install -m 644 "lib/$(SNAME)" $(PREFIX)/lib/SAT
 
 clean:
 	$(MAKE) -C $(SRC) clean
