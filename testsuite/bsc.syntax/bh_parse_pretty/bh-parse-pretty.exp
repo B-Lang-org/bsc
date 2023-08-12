@@ -29,7 +29,7 @@ proc compile_ppp_pass_bug { source {bug ""} {options ""}} {
 compile_ppp_pass Let.bs
 
 # tests for pretty-printing relative precedence of $ and := (github issue #568)
-# see also github discussion #587 for context
+# see also github discussion #567 for context
 compile_ppp_pass_bug DollarColonEqualsPrecedencePretty1.bs "github#568"
 compile_ppp_pass DollarColonEqualsPrecedencePretty2.bs
 compile_ppp_pass DollarColonEqualsPrecedencePretty3.bs

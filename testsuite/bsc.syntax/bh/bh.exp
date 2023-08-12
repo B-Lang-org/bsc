@@ -155,7 +155,7 @@ compile_fail_error DanglingDecimal.bs P0005
 compile_fail_error FieldSelectionWithDigit.bs P0005
 compile_fail_error FieldSelectionFromDigit.bs T0031
 
-# Tests for relative precedence of $ and := (see github discussion #587)
+# Tests for relative precedence of $ and := (see github discussion #567)
 compile_fail_error DollarColonEqualsPrecedence1.bs T0080
 compile_pass DollarColonEqualsPrecedence2.bs
 compile_pass DollarColonEqualsPrecedence3.bs
