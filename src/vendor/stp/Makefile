@@ -30,7 +30,7 @@ ifeq ($(STP_USE_LIB),included)      # compile from provided source
     else
         SNAME=libstp_incl.so.1
     endif
-else ifeq ($(STP_USE_LIB),disable)  # disable STP at runtime
+else ifeq ($(STP_USE_LIB),disable)  # disable STP
     SRC = src_stub
     SNAME=libstp_disabled.$(SO)
 else ifeq ($(STP_USE_LIB),system)   # use system STP
@@ -63,8 +63,11 @@ install:
 	ln -fsn HaskellIfc include_hs
 	@# necessary for bsc linker (src/comp/Makefile:51)
 	ln -s "$(SNAME)" lib/libstp.$(SO)
+# put self-compiled library in path where it can be found at runtime
+ifeq ($(SRC), $(findstring $(SRC), src src_stub))
 	install -m 755 -d $(PREFIX)/lib/SAT
 	install -m 644 "lib/$(SNAME)" $(PREFIX)/lib/SAT
+endif
 
 clean:
 	$(MAKE) -C $(SRC) clean
