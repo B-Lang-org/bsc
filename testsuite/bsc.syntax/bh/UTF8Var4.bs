@@ -1,0 +1,7 @@
+package UTF8Var4(ǉiǉan) where
+
+-- the lj digraph is not uppercase so acceptable for variables
+
+ǉiǉan :: a -> a
+ǉiǉan = id
+

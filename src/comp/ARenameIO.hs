@@ -4,7 +4,7 @@ module ARenameIO(
 
 import qualified Data.Map as M
 
-import ListUtil(mapFst)
+import Util(mapFst)
 import FStringCompat(FString)
 
 import Flags(Flags)

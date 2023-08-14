@@ -116,7 +116,6 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(nub, intersect, (\\), partition)
--- import ListUtil(mapFst)
 -- import IntegerUtil(integerFormatPref)
 import Eval
 import PPrint

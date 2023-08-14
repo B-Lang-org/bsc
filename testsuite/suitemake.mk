@@ -10,7 +10,7 @@ endif
 MAKEFLAGS += --no-print-directory
 
 # Make sure that the environments are consistent
-LC_ALL = C
+LC_ALL = en_US.UTF-8
 export LC_ALL
 
 # Immediate subdirs with Makefiles, so we can recurse into them

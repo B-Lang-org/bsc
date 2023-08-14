@@ -277,8 +277,8 @@ main :: IO ()
 main = do
           hSetBuffering stdout LineBuffering
           hSetBuffering stderr LineBuffering
-          hSetEncoding stdout latin1
-          hSetEncoding stderr latin1
+          hSetEncoding stdout utf8
+          hSetEncoding stderr utf8
           argv <- getArgs
           -- catch errors, print them nicely, and exit
           bsCatch (hmain argv)

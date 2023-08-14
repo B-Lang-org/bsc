@@ -11,13 +11,13 @@ ContextOnClassSubset.ContextOnClassSubset.Foo~Prelude.Bit~32~Prelude.Bit~16~Prel
   ContextOnClassSubset.Foo (Prelude.Bit 32) (Prelude.Bit 16) (Prelude.Bit 8)
 ContextOnClassSubset.ContextOnClassSubset.Foo~Prelude.Bit~32~Prelude.Bit~16~Prelude.Bit~8 =
   let _bar :: Prelude.Bit 32 -> Prelude.Bit 16 -> Prelude.Bit 8
-      _bar = PrimBuildUndefined ·(Prelude.Bit 32 -> Prelude.Bit 16 -> Prelude.Bit 8) _ 1
+      _bar = PrimBuildUndefined Â·(Prelude.Bit 32 -> Prelude.Bit 16 -> Prelude.Bit 8) _ 1
   in  ContextOnClassSubset.Foo
-	·(Prelude.Bit 32)
-	·(Prelude.Bit 16)
-	·(Prelude.Bit 8)
+	Â·(Prelude.Bit 32)
+	Â·(Prelude.Bit 16)
+	Â·(Prelude.Bit 8)
 	_bar
-	(Prelude.Prelude.Literal~Prelude.Bit~n= ·16)
+	(Prelude.Prelude.Literal~Prelude.Bit~n= Â·16)
 next def..........................................................
 
 

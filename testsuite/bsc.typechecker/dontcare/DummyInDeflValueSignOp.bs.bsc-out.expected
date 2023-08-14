@@ -12,7 +12,7 @@ IPackage DummyInDeflValueSignOp
 DummyInDeflValueSignOp.y :: Prelude.Bit 12
 DummyInDeflValueSignOp.y =
   let + :: Prelude.Bool -> Prelude.Bool -> Prelude.Bit 12
-      + = \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+      + = \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined Â·(Prelude.Bit 12) _ 1
   in  (+) (Prelude.True Prelude.PrimUnit) (Prelude.True Prelude.PrimUnit)
 next def..........................................................
 

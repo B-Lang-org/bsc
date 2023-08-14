@@ -1,6 +1,6 @@
 module Simplify(simplify) where
 import Data.List(partition)
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import ListMap(lookupWithDefault)
 import qualified Data.Set as S
 import qualified Data.Map as M

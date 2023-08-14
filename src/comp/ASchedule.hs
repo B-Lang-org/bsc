@@ -36,7 +36,6 @@ import ASyntaxUtil
 import Backend
 import Pragma
 import Util
-import ListUtil(mapFst)
 import Eval
 import Version(bscVersionStr)
 import Error(internalError, EMsg, WMsg, EMsgs(..), ErrMsg(..),

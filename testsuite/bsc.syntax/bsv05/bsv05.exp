@@ -401,3 +401,24 @@ compile_pass ImperativeVariableEq_NewLetType.bsv
 compile_pass ImperativeVariableBind_NewLetType.bsv
 
 # -----
+
+
+# Tests for decoding UTF8 and erroring out on non-UTF8 files
+compile_pass UTF8Code.bsv
+compile_pass UTF8LineComment.bsv
+compile_pass UTF8MultilineComment.bsv
+compile_fail_error Latin1Code.bsv P0224
+compile_fail_error Latin1LineComment.bsv P0224
+compile_fail_error Latin1MultilineComment.bsv P0224
+
+# Tests for UTF8 content
+compile_pass UTF8Cons1.bsv
+compile_pass UTF8Cons2.bsv
+compile_pass UTF8Var1.bsv
+compile_pass UTF8Var2.bsv
+compile_pass UTF8Var3.bsv
+compile_pass UTF8Var4.bsv
+compile_fail_error UTF8BadCons1.bsv P0005
+compile_fail_error UTF8BadCons2.bsv P0005
+compile_pass 風呂敷.bsv
+

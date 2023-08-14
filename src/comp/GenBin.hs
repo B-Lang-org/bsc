@@ -3,6 +3,10 @@
 module GenBin(genBinFile, readBinFile) where
 
 import Control.Monad(when)
+import Data.Word
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString as B
 import Position
 import Pragma
 import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
@@ -23,14 +27,14 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = "bsc-20210430-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20230831-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
 genBinFile errh fn bi_sig bo_sig ipkg =
     writeBinaryFileCatch errh fn (header ++ encode (bi_sig, bo_sig, ipkg))
 
-readBinFile :: ErrorHandle -> String -> String ->
+readBinFile :: ErrorHandle -> String -> [Word8] ->
                IO (CSignature, CSignature, IPackage a, String)
 readBinFile errh nm s =
     if take (length header) s == header
@@ -264,6 +268,13 @@ instance Bin COp where
 instance Bin CLiteral where
     writeBytes (CLiteral pos l) = do toBin pos; toBin l
     readBytes = do pos <- fromBin; l <- fromBin; return (CLiteral pos l)
+
+instance Bin Char where
+    writeBytes c = writeBytes [c]
+    readBytes = do s <- readBytes
+                   case s of
+                       [c] -> return c
+                       _ -> internalError $ "GenBin.Bin(Char).readBytes: bad char: " ++ s
 
 instance Bin Literal where
     writeBytes (LString s) = do putI 0; toBin s

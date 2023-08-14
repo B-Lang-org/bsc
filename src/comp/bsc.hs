@@ -9,7 +9,7 @@ import System.Process(system)
 import System.Exit(ExitCode(ExitFailure, ExitSuccess))
 import System.FilePath(takeDirectory)
 import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuffering, BufferMode(LineBuffering))
-import System.IO(hSetEncoding, latin1)
+import System.IO(hSetEncoding, utf8)
 import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
 import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory)
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
@@ -172,8 +172,8 @@ main :: IO ()
 main = do
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
-    hSetEncoding stdout latin1
-    hSetEncoding stderr latin1
+    hSetEncoding stdout utf8
+    hSetEncoding stderr utf8
     args <- getArgs
     -- bsc can raise exception,  catch them here  print the message and exit out.
     bsCatch (hmain args)

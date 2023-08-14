@@ -3,7 +3,7 @@ module CSyntaxTypes(
                     ) where
 
 import Data.List(union, (\\), nub)
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import PPrint(ppReadable)
 import ErrorUtil(internalError)
 import Subst

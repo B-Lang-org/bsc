@@ -37,7 +37,7 @@ import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr,
             thd, readOrErr)
 import IOUtil(getEnvDef)
 
-import ListUtil(mapFst, mapSnd)
+import Util(mapFst, mapSnd)
 import TclUtils
 import GHCPretty()
 

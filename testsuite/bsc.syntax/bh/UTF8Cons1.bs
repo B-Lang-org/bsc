@@ -1,0 +1,4 @@
+package UTF8Cons1(Ptak(..)) where
+
+data Ptak = Żuraw | Gżegżółka | Gołąb
+

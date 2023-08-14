@@ -14,11 +14,11 @@ DummyInDo.x =
   let _tcdict1009 :: Prelude.Monad Prelude.ActionValue
       _tcdict1009 = Prelude.Prelude.Monad~Prelude.ActionValue=
       -- IdProp: _tcdict1009[IdP_bad_name,IdPDict]
-  in  .Prelude.return ·Prelude.ActionValue _tcdict1009
-	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
+  in  .Prelude.return Â·Prelude.ActionValue _tcdict1009
+	Â·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
 	(Prelude.PrimPair
-	   ·Prelude.Bool
-	   ·Prelude.Bool
+	   Â·Prelude.Bool
+	   Â·Prelude.Bool
 	   (Prelude.True Prelude.PrimUnit)
 	   (Prelude.True Prelude.PrimUnit))
 next def..........................................................
@@ -27,16 +27,16 @@ DummyInDo.dummyInDo =
   let _tcdict1024 :: Prelude.Monad Prelude.ActionValue
       _tcdict1024 = Prelude.Prelude.Monad~Prelude.ActionValue=
       -- IdProp: _tcdict1024[IdP_bad_name,IdPDict]
-  in  .Prelude.bind ·Prelude.ActionValue _tcdict1024
-	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
-	·(Prelude.Bit 12)
+  in  .Prelude.bind Â·Prelude.ActionValue _tcdict1024
+	Â·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
+	Â·(Prelude.Bit 12)
 	DummyInDo.x=
 	(\ (_tctemp1004 :: Prelude.PrimPair Prelude.Bool Prelude.Bool) .
 	 let a :: Prelude.Bool
-	     a = .Prelude.snd ·Prelude.Bool ·Prelude.Bool _tctemp1004
-	 in  .Prelude.return ·Prelude.ActionValue _tcdict1024
-	       ·(Prelude.Bit 12)
-	       (PrimBuildUndefined ·(Prelude.Bit 12) _ 1))
+	     a = .Prelude.snd Â·Prelude.Bool Â·Prelude.Bool _tctemp1004
+	 in  .Prelude.return Â·Prelude.ActionValue _tcdict1024
+	       Â·(Prelude.Bit 12)
+	       (PrimBuildUndefined Â·(Prelude.Bit 12) _ 1))
 next def..........................................................
 
 

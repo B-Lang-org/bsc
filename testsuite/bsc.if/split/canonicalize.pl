@@ -1,7 +1,6 @@
 #! perl -w
 
-use bytes;  #for the b7 hex character in the regular expression
-            #not necessary if you have LANG=C in your environment
+use utf8;  #for · (centerdot) in the regular expression
 
 $seen_rules = 0;
 while(<>){
@@ -25,7 +24,7 @@ while(<>) {
   s/PrimBNot\s*/NOT/g;
   s/PrimBAnd/ /g;
   s/[()]/ /g;
-  s/\xb7Prelude\.PrimAction/ /g;
+  s/·Prelude\.PrimAction/ /g;
   s/Prelude.\$display#\d+/ /g;
   s/^\s*RL_unnamed.*//;
   s/^\s*\"[_TF]+\":$//;

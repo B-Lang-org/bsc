@@ -68,7 +68,7 @@ arg info  [clockarg default_clock;, resetarg default_reset;]
 -- APackage resets
 [(0, { wire:  RST_N })]
 -- AP state elements
-i :: ABSTRACT:  MethodActionValue.Ifc­ = mkMethodActionValue_Sub
+i :: ABSTRACT:  MethodActionValue.IfcÂ­ = mkMethodActionValue_Sub
 					 (VModInfo
 					  mkMethodActionValue_Sub
 					  clock default_clock(CLK, {-unused-});

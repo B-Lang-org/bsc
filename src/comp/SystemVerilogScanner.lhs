@@ -404,19 +404,18 @@ Is a character whitespace? (SV 3.1a LRM A.9.4)
 > isHorizontalWhitespace ' ' = True; isHorizontalWhitespace '\t' = True
 > isHorizontalWhitespace _ = False
 
-Does a character start a valid identifier? (SV 3.1a LRM A.9.3)
+Does a character start a valid identifier?
 
 > isIdStart :: Char -> Bool
 > isIdStart '_' = True -- might be faster as a full table
-> isIdStart c   = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+> isIdStart c   = isLetter c
 
-Does a character continue a valid identifier? (SV 3.1a LRM A.9.3)
+Does a character continue a valid identifier?
 
 > isIdChar :: Char -> Bool
 > isIdChar '_' = True -- might be faster as a full table
 > isIdChar '$' = True
-> isIdChar c   = ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
->                 || (c >= '0' && c <= '9'))
+> isIdChar c   = isLetter c || isDigit c
 
 Is a character part of a valid operator?
 

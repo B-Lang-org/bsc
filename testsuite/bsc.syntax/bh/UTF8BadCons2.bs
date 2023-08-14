@@ -1,0 +1,5 @@
+package UTF8BadCons2(とり(..)) where
+
+-- hiragana are not unicode uppercase letters
+
+data とり = つる | ふくろう

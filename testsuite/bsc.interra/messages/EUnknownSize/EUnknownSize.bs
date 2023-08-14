@@ -27,16 +27,16 @@ mkShifter64 :: Module (Shifter 64)
 mkShifter64 =
     module (getResult, putResult) :: (Get (UInt 64), Put (UInt 64)) <- mkGPFIFO
            shifter :: Push (UInt 64, UInt 6)
-                   <- (passed shift1 »
-                       passed shift1 »
-                       qbuffer »
-                       passed shift1 »
-                       passed shift1 »
-                       qbuffer »
-                       passed shift1 »
-                       passed shift1 »
-                       passed strip »
-                       pass · tee (putResult.put) »
+                   <- (passed shift1 Â»
+                       passed shift1 Â»
+                       qbuffer Â»
+                       passed shift1 Â»
+                       passed shift1 Â»
+                       qbuffer Â»
+                       passed shift1 Â»
+                       passed shift1 Â»
+                       passed strip Â»
+                       pass Â· tee (putResult.put) Â»
                        sink)
            interface
              request = interface Put { put (val,by) = shifter.push (val,by) }

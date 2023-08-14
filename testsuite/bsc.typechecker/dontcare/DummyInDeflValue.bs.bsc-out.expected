@@ -12,8 +12,8 @@ DummyInDeflValue.dummyInDeflValue =
   let f :: \/(_tctyvar1004 :: *) . \/(_tctyvar1005 :: *) . _tctyvar1004 -> _tctyvar1005
       f =
 	/\ (_tctyvar1004 :: *) .
-	/\ (_tctyvar1005 :: *) . \ (_a1000 :: _tctyvar1004) . PrimBuildUndefined ·_tctyvar1005 _ 1
-  in  f ·Prelude.Bool ·(Prelude.Bit 12) (Prelude.True Prelude.PrimUnit)
+	/\ (_tctyvar1005 :: *) . \ (_a1000 :: _tctyvar1004) . PrimBuildUndefined Â·_tctyvar1005 _ 1
+  in  f Â·Prelude.Bool Â·(Prelude.Bit 12) (Prelude.True Prelude.PrimUnit)
 next def..........................................................
 
 

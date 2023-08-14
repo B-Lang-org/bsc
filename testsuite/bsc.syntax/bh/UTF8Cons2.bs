@@ -1,0 +1,6 @@
+package UTF8Cons2(Cvijet(..)) where
+
+-- non-ASCII uppercase and titlecase
+
+data Cvijet = ǇIǇAN | ǈiǉan
+

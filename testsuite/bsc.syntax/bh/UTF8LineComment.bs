@@ -1,0 +1,11 @@
+package UTF8LineComment(foo) where
+
+-- comments should allow any valid Unicode
+
+-- comment · with · a · non-ASCII · symbol
+-- zażółć gęsią jaźń
+-- ここには何でも書いていい
+
+foo :: (Bits a sza) => a -> a
+foo = unpack `compose` pack
+

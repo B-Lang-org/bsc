@@ -11,7 +11,7 @@ IPackage DummyInDefOp
   --idefs 
 DummyInDefOp.+ :: Prelude.Bool -> Prelude.Bool -> Prelude.Bit 12
 DummyInDefOp.+ =
-  \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+  \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined Â·(Prelude.Bit 12) _ 1
 next def..........................................................
 
 

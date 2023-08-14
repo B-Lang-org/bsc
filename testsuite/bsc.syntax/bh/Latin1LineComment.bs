@@ -1,0 +1,7 @@
+package Latin1LineComment(foo) where
+
+-- comment · with · a · non-ASCII · symbol
+
+foo :: (Bits a sza) => a -> a
+foo = unpack `compose` pack
+

@@ -51,20 +51,22 @@ import Prim hiding(PrimArg(..))
 
 import Util(Hash, hashInit, nextHash, showHash)
 
-import Data.Char(chr, ord)
 import Data.List(sort, intercalate)
 import Control.Monad(replicateM, liftM, ap)
 import Data.Array.IArray()
 import Data.Array.Unboxed
 import Data.Bits
 import Data.Word
+import qualified Data.ByteString.Lazy as B
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Numeric(showHex)
 
 import Debug.Trace
 
-type Byte = Char
+type Byte = Word8
 
 {- To reduce the size of the binary stream and preserve shared
    structures, we want to avoid repeatedly emitting identical
@@ -125,7 +127,7 @@ data BinElem = B [Byte]
 
 instance Show BinElem where
   show (B bs)    = "[" ++
-                   (intercalate "," [showHex (ord b) "" | b <- bs]) ++
+                   (intercalate "," [showHex b "" | b <- bs]) ++
                    "]"
   show (S s)     = getFString s
   show (I i)     = show i
@@ -284,7 +286,7 @@ putB b = putBs [b]
 -- Insert an Int value (between 0 and 255) into the byte stream
 putI :: Int -> Out ()
 putI n = if (n >= 0) && (n < 256)
-         then putB (chr n)
+         then putB $ toEnum n
          else internalError $ "BinData.putI value out of range: " ++ (show n)
 
 -- Insert accounting marks into the byte stream
@@ -340,7 +342,7 @@ getB = In $ \is -> consume_byte is
 
 -- get an Int value (between 0 and 255)
 getI :: In Int
-getI = do { b <- getB; return (ord b) }
+getI = do { b <- getB; return (fromEnum b) }
 
 {-
 getBytesRead :: In Integer
@@ -496,7 +498,7 @@ class Bin a where
   fromBin = readBytes
 
 
-instance Bin Char where
+instance Bin Word8 where
   writeBytes c = putB c
   readBytes    = getB
 
@@ -524,18 +526,18 @@ instance Bin Integer where
                  then putBs (emit (-i) [endNeg])
                  else putBs (emit   i  [endPos])
     where emit 0 bs = bs
-          emit n bs = emit (n `div` baseI) (chr (fromInteger (n `mod` baseI)) : bs)
+          emit n bs = emit (n `div` baseI) (fromInteger (n `mod` baseI) : bs)
   readBytes = loop 0
     where loop n = do b <- getB
                       if b == endNeg
                        then return (-n)
                        else if b == endPos
                              then return n
-                             else loop (n * baseI + toInteger (ord b))
+                             else loop (n * baseI + toInteger b)
 
-endNeg, endPos :: Char
-endNeg = chr 255
-endPos = chr 254
+endNeg, endPos :: Word8
+endNeg = 255
+endPos = 254
 baseI :: Integer
 baseI = 254
 
@@ -630,16 +632,19 @@ instance (Ord a, Bin a) => Bin (S.Set a) where
 -- Bin Ids, Positions, etc.
 
 instance Bin FString where
-  writeBytes fs = do let s = getFString fs
-                     toBin (length s)
-                     putBs s
-  readBytes     = do len <- fromBin
-                     s <- getN len
-                     return (mkFString s)
-
+  writeBytes = writeBytes . getFString
+  readBytes = mkFString <$> readBytes
   -- FStrings are shared
   toBin s = Out [S s] ()
   fromBin = readShared
+
+instance {-# OVERLAPPABLE #-} Bin String where
+    writeBytes fs = do let bs = TE.encodeUtf8 $ T.pack fs
+                       toBin $ toInteger $ B.length bs
+                       putBs $ B.unpack bs
+    readBytes     = do len <- fromBin
+                       bs <- getN len
+                       return (T.unpack $ TE.decodeUtf8 $ B.pack bs)
 
 instance Bin Position where
     writeBytes (Position fs l c is_stdlib) = section "Position" $ do
@@ -1489,7 +1494,7 @@ runOut (Out xs _) = let bd    = compress xs
                        else bytes
 
 -- Convenience function for encoding structures in the Bin typeclass
-encode :: (Bin a) => a -> String
+encode :: (Bin a) => a -> [Byte]
 encode x = runOut (toBin x)
 
 runIn :: In a -> [Byte] -> Bool -> (a, [Byte], String)
@@ -1499,13 +1504,13 @@ runIn (In f) bs do_hash =
       hstr = maybe "" showHash h
   in (x, bs', hstr)
 
-decode :: (Bin a) => String -> a
+decode :: (Bin a) => [Byte] -> a
 decode s = let (x, bs, _) = runIn fromBin s False
            in if (null bs)
               then x
               else internalError "BinData.decode: unused trailing bytes"
 
-decodeWithHash :: (Bin a) => String -> (a,String)
+decodeWithHash :: (Bin a) => [Byte] -> (a,String)
 decodeWithHash s = let (x, bs, hstr) = runIn fromBin s True
                    in if (null bs)
                       then (x, hstr)

@@ -25,19 +25,22 @@ import FileIOUtil(writeBinaryFileCatch)
 
 import qualified Data.Set as S
 import qualified Data.Map as M
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString as B
 
 -- import Debug.Trace
 
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = "bsc-20211213-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20230831-1"
 
 genABinFile :: ErrorHandle -> String -> ABin -> IO ()
 genABinFile errh fn abin =
     writeBinaryFileCatch errh fn (header ++ encode abin)
 
-readABinFile :: ErrorHandle -> String -> String -> (ABin, String)
+readABinFile :: ErrorHandle -> String -> [Byte] -> (ABin, String)
 readABinFile errh nm s =
     if take (length header) s == header
     then (decode (drop (length header) s), "")

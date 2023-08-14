@@ -11,7 +11,7 @@ DummyInCase.dummyInCase :: Prelude.Bit 1 -> Prelude.Bool
 DummyInCase.dummyInCase =
   \ (x :: Prelude.Bit 1) .
   let _case :: Prelude.Bit 1 -> Prelude.Bool
-      _case = \ (_a1001 :: Prelude.Bit 1) . PrimBuildUndefined ·Prelude.Bool _ 1
+      _case = \ (_a1001 :: Prelude.Bit 1) . PrimBuildUndefined Â·Prelude.Bool _ 1
   in  _case x
 next def..........................................................
 

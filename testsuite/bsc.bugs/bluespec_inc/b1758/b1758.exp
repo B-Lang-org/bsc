@@ -25,7 +25,7 @@ compile_verilog_pass ZeroBitActionValueMethod.bsv {} {-dexpanded -dATS}
 if { $vtest == 1 } {
     # XXX This still need to be fixed
     find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
-	{\= \.Prelude\.avValue_ .0 \(\.ZeroBitActionValueMethod\.get g\)}
+	{\= \.Prelude\.avValue_ ·0 \(\.ZeroBitActionValueMethod\.get g\)}
     # At least AConv replaces it
     find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
 	{g\.get\; p\.put 0\'d0\;}

@@ -24,12 +24,11 @@ import CCSyntax
 import Wires(ClockDomain)
 import VModInfo(vName_to_id)
 import PPrint(ppReadable) -- hiding (int, char)
-import ListUtil(mapFst, mapSnd)
+import Util(concatMapM, mapFst, mapSnd)
 import SimFileUtils(codeGenOptionDescr)
 import TopUtils(TimeInfo(..))
 import Version(versionname)
 import BuildVersion(buildVersion)
-import Util(concatMapM)
 
 -- import Debug.Trace
 

@@ -1,0 +1,8 @@
+package UTF8Var1(żuraw, gżegżółka) where
+
+żuraw :: a -> a
+żuraw = id
+
+gżegżółka :: a -> a
+gżegżółka = id
+

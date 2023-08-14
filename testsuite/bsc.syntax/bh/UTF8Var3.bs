@@ -1,0 +1,7 @@
+package UTF8Var3(はと) where
+
+-- hiragana are not uppercase letters so acceptable for variables
+
+はと :: a -> a
+はと = id
+
