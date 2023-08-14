@@ -2,9 +2,10 @@
 module Util where
 
 import Data.Char(intToDigit)
-import Data.Word(Word32,Word64)
+import Data.Word(Word8,Word32,Word64)
 import Data.Bits
 import Data.List(sort, sortBy, group, groupBy, nubBy, union, foldl')
+import Data.Bifunctor(first,second)
 import Control.Monad(foldM)
 import Debug.Trace(trace)
 import qualified Data.Set as S
@@ -302,9 +303,11 @@ concatUnzip3 xyzs =
     let (xss, yss, zss) = unzip3 xyzs
     in  (concat xss, concat yss, concat zss)
 
---mapFst f xys = [(f x, y) | (x,y)<-xys]
+mapFst :: Functor f => (a -> b) -> f (a, c) -> f (b, c)
+mapFst = fmap . first
 
---mapSnd f xys = [(x, f y) | (x,y)<-xys]
+mapSnd :: Functor f => (a -> b) -> f (c, a) -> f (c, b)
+mapSnd = fmap . second
 
 mapThd :: (t -> c) -> [(a, b, t)] -> [(a, b, c)]
 mapThd f xyzs = [(x, y, f z) | (x, y, z) <- xyzs]
@@ -603,9 +606,9 @@ hashInit = Hash 0 4000000063
 
 -- showpair (x,y) = "(" ++ (showHex x ("," ++ (showHex y ")")))
 
-nextHash :: Hash -> String -> Hash
+nextHash :: Hash -> [Word8] -> Hash
 nextHash h s = foldl' f h s
-    where f :: Hash -> Char -> Hash
+    where f :: Hash -> Word8 -> Hash
           f (Hash x y) c =
               let y' = (rotate x 5) + (toEnum (fromEnum c))
                   x' = y + y' + 1442968193

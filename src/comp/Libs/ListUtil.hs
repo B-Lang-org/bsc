@@ -3,11 +3,6 @@
 --
 module ListUtil where
 
-mapFst :: (a -> c) -> [(a, b)] -> [(c, b)]
-mapFst f xys = [(f x, y) | (x, y) <- xys]
-mapSnd :: (b -> c) -> [(a, b)] -> [(a, c)]
-mapSnd f xys = [(x, f y) | (x, y) <- xys]
-
 -- Drop repeated (adjacent) elements according to a predicate
 dropRepeatsBy :: (a -> a -> Bool) -> [a] -> [a]
 dropRepeatsBy _ []  = []

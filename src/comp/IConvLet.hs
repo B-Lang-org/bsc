@@ -5,7 +5,7 @@ module IConvLet(
 
 import qualified Data.List as List
 
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import FStringCompat(concatFString)
 import PPrint(ppReadable)
 --import PPring(ppString)

@@ -680,6 +680,7 @@ data ErrMsg =
         | ESVPNoImportDelimiter
         | ESVPNoClosingParen String
         | ESVPNoId String
+        | ENotUTF8
 
         -- Type checker and static elaboration errors
 
@@ -1871,6 +1872,8 @@ getErrorText (ESVPNoId kw) =
 getErrorText (WUnusedDef i) =
     (Parse 223, empty,
      s2par ("Definition of " ++ quote i ++ " is not used."))
+getErrorText ENotUTF8 =
+    (Parse 224, empty, s2par "File encoding is not UTF-8")
 
 -- Type check and elaboration errors
 

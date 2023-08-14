@@ -160,3 +160,22 @@ compile_fail_error DollarColonEqualsPrecedence1.bs T0080
 compile_pass DollarColonEqualsPrecedence2.bs
 compile_pass DollarColonEqualsPrecedence3.bs
 
+# Tests for decoding UTF8 and erroring out on non-UTF8 files
+compile_pass UTF8Code.bs
+compile_pass UTF8LineComment.bs
+compile_pass UTF8MultilineComment.bs
+compile_fail_error Latin1Code.bs P0224
+compile_fail_error Latin1LineComment.bs P0224
+compile_fail_error Latin1MultilineComment.bs P0224
+
+# Tests for UTF8 content
+compile_pass UTF8Cons1.bs
+compile_pass UTF8Cons2.bs
+compile_pass UTF8Var1.bs
+compile_pass UTF8Var2.bs
+compile_pass UTF8Var3.bs
+compile_pass UTF8Var4.bs
+compile_fail_error UTF8BadCons1.bs P0005
+compile_fail_error UTF8BadCons2.bs P0005
+compile_pass 風呂敷.bs
+

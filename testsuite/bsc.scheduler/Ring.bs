@@ -1,6 +1,6 @@
 package Ring (sysRing) where
 
--- A three-register ring.  Naïvely one might expect to fire all in parallel,
+-- A three-register ring.  NaÃ¯vely one might expect to fire all in parallel,
 -- but this does not correspond to any sequence of firing the rules one
 -- after another as ATS semantics demand.
 -- Expect a prienc between two rules in parallel with the third.

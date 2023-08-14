@@ -12,7 +12,6 @@ import Data.List(transpose, sortBy, partition,
             unzip4, groupBy, intersect,
             genericLength)
 
-import ListUtil(mapFst)
 import Util
 import FStringCompat
 import IntLit

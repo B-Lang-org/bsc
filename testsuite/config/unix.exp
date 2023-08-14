@@ -90,13 +90,13 @@ proc time_walk {} {
     global LOCAL_TIME_WALK
     if {[info exists LOCAL_TIME_WALK] && $LOCAL_TIME_WALK} {
         if [file exists [time_file] ] {
-            verbose -log [exec perl $collator [time_file] ] 0
+            verbose -log [exec perl -C $collator [time_file] ] 0
         }
     } else {
         #depending on exactly how --outdir is used, this may or may not do the right thing.
         #  it does do the right thing if outdir is not set, or if it "."
         verbose -log " running (find . -name [file tail [time_file]] ) out of this directory: [pwd]"
-        verbose -log [exec find . -name [file tail [time_file]] -exec cat \{\} \; | perl $collator ] 0
+        verbose -log [exec find . -name [file tail [time_file]] -exec cat \{\} \; | perl -C $collator ] 0
     }
 }
 
@@ -633,7 +633,7 @@ proc perl { program file out_file  } {
     global subdir
     set here [absolute $srcdir]
     cd [file join $here $subdir]
-    set status [catch "exec perl $program $file > $out_file"]
+    set status [catch "exec perl -C $program $file > $out_file"]
     cd $here
     return $status
 }

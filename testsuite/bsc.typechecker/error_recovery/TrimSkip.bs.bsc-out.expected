@@ -8,7 +8,7 @@ IPackage TrimSkip
 
   --idefs 
 TrimSkip.x :: Prelude.Bool -> Prelude.Bit 12
-TrimSkip.x = \ (_a1000 :: Prelude.Bool) . PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+TrimSkip.x = \ (_a1000 :: Prelude.Bool) . PrimBuildUndefined Â·(Prelude.Bit 12) _ 1
 next def..........................................................
 TrimSkip.dummyInDef :: Prelude.Bit 12
 TrimSkip.dummyInDef = TrimSkip.x= (Prelude.True Prelude.PrimUnit)

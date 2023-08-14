@@ -31,7 +31,6 @@
 > import Flags(Flags, DumpFlag(..),
 >              stdlibNames, disableAssertions, preprocessOnly, genName)
 > import Util
-> import ListUtil(mapFst)
 > import Parser.BSV.CVParserCommon
 > import Parser.BSV.CVParserImperative
 > import Pragma

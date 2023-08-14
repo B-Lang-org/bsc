@@ -46,7 +46,6 @@ import Unify
 import IOUtil(progArgs)
 import Util
 import SCC(tsort)
-import ListUtil(mapFst, mapSnd)
 import Debug.Trace(traceM)
 
 doTraceKI :: Bool

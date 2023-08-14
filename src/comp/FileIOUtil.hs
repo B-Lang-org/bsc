@@ -46,10 +46,16 @@ import System.Directory
 import qualified Control.Exception as CE
 import System.IO.Error(ioeGetErrorString)
 import Control.Monad(when)
+import Control.Exception(handle)
+import Data.Word
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Encoding.Error as TEE
+import qualified Data.ByteString.Lazy as B
 
-import Util(concatMapM)
-import BinaryIO
+import Util(concatMapM, mapFst)
 import FileNameUtil(dirName, getRelativeFilePath)
+import FStringCompat
 
 import Position
 import Error(ErrMsg(..), ErrorHandle, MsgContext, emptyContext,
@@ -74,12 +80,12 @@ catchIO = CE.catch
 readFilePath :: ErrorHandle -> Position ->
                 Bool -> String -> [String] -> IO (Maybe (String, String))
 readFilePath errh pos verb name path =
-    readFilesPath' errh pos False verb [name] path
+    readFilesPath' errh pos verb [name] path >>= mapM (decodeUtf8orError errh name)
 
 readBinFilePath :: ErrorHandle -> Position ->
-                   Bool -> String -> [String] -> IO (Maybe (String, String))
+                   Bool -> String -> [String] -> IO (Maybe ([Word8], String))
 readBinFilePath errh pos verb name path =
-    readFilesPath' errh pos True verb [name] path
+    readFilesPath' errh pos verb [name] path >>= return . mapFst B.unpack
 
 -- for this variant, the file name can have an absolute path
 readFilePathOrAbs :: ErrorHandle -> Position ->
@@ -89,33 +95,39 @@ readFilePathOrAbs errh pos verb name@('/':_) _ = do
     exists <- doesFileExist name
     if (not exists)
       then return Nothing
-      else readFilePath_tryFile errh pos False verb name
+      else readFilePath_tryFile errh pos verb name >>= mapM (decodeUtf8orError errh name)
 readFilePathOrAbs errh pos verb name path =
     -- relative file name, so search each directory in the path
-    readFilesPath' errh pos False verb [name] path
+    readFilesPath' errh pos verb [name] path >>= mapM (decodeUtf8orError errh name)
 
 -- look for multiple file names
 -- (the first name is searched first in all paths, then the second name, etc)
 readFilesPath :: ErrorHandle -> Position ->
                  Bool -> [String] -> [String] -> IO (Maybe (String, String))
 readFilesPath errh pos verb names path =
-    readFilesPath' errh pos False verb names path
+    readFilesPath' errh pos verb names path >>= mapM decode
+  where decode (bs, name) = decodeUtf8orError errh name (bs, name)
+
+decodeUtf8orError :: ErrorHandle -> FilePath -> (B.ByteString, String) -> IO (String, String)
+decodeUtf8orError errh fn (bs, name) = handle handleErr $ pure (T.unpack $ TE.decodeUtf8With TEE.strictDecode bs, name)
+    where handleErr :: TEE.UnicodeException  -> IO a
+          handleErr _ = bsError errh [(filePosition $ mkFString fn, ENotUTF8)]
 
 -- Use one of the above entry points.  This is the internal function.
 readFilesPath' :: ErrorHandle -> Position ->
-                  Bool -> Bool -> [String] -> [String] ->
-                  IO (Maybe (String, String))
-readFilesPath' errh pos binary verb names [] = return Nothing
-readFilesPath' errh pos binary verb names path = do
+                  Bool -> [String] -> [String] ->
+                  IO (Maybe (B.ByteString, String))
+readFilesPath' errh pos verb names [] = return Nothing
+readFilesPath' errh pos verb names path = do
     found_files <- concatMapM (flip existsFilePath path) names
     case found_files of
       [] -> return Nothing
-      [file] -> readFilePath_tryFile errh pos binary verb file
+      [file] -> readFilePath_tryFile errh pos verb file
       _ -> do
           -- find the first file that can be read
           let findFn [] = return Nothing
               findFn (f:fs) = do
-                  mfile <- readFilePath_tryFile errh pos binary verb f
+                  mfile <- readFilePath_tryFile errh pos verb f
                   if (isJust mfile) then return mfile else findFn fs
           res <- findFn found_files
           case (res) of
@@ -128,16 +140,15 @@ readFilesPath' errh pos binary verb names path = do
 
 -- this is used by readFilePath' to try reading one filename
 readFilePath_tryFile :: ErrorHandle -> Position ->
-                        Bool -> Bool -> String -> IO (Maybe (String, String))
-readFilePath_tryFile errh pos binary verb name =
+                        Bool -> String -> IO (Maybe (B.ByteString, String))
+readFilePath_tryFile errh pos verb name =
     let
-        handler :: CE.IOException -> IO (Maybe (String, String))
+        handler :: CE.IOException -> IO (Maybe (B.ByteString, String))
         handler ioe = do let io_msg = ioeGetErrorString ioe
                          existsButUnreadableWarning errh pos name io_msg
                          return Nothing
 
-        rdFn = if binary then readBinaryFile else readFile
-        rdFile = do file <- rdFn name
+        rdFile = do file <- B.readFile name
                     when (verb) $ putStr ("read "++name++"\n")
                     return $ Just (file, name)
     in
@@ -170,17 +181,17 @@ existsButUnreadableWarning errh pos file io_msg =
 
 readFileCompat :: FilePath -> IO String
 readFileCompat fname = do hdl <- openFile fname ReadMode
-                          hSetEncoding hdl latin1
+                          hSetEncoding hdl utf8
                           hGetContents hdl
 
 writeFileCompat :: FilePath -> String -> IO ()
 writeFileCompat fname txt =
-    withFile fname WriteMode (\hdl -> do hSetEncoding hdl latin1
+    withFile fname WriteMode (\hdl -> do hSetEncoding hdl utf8
                                          hPutStr hdl txt)
 
 appendFileCompat :: FilePath -> String -> IO ()
 appendFileCompat fname txt =
-    withFile fname AppendMode (\hdl -> do hSetEncoding hdl latin1
+    withFile fname AppendMode (\hdl -> do hSetEncoding hdl utf8
                                           hPutStr hdl txt)
 
 -- This returns whether the read was successful,
@@ -204,22 +215,22 @@ readFileCatch errh pos fname = do
 
 -- This returns whether the read was successful,
 -- for callers who will move on if the file is not available
-readBinaryFileMaybe :: FilePath -> IO (Maybe String)
+readBinaryFileMaybe :: FilePath -> IO (Maybe [Word8])
 readBinaryFileMaybe fname =
     let
-        handler :: CE.IOException -> IO (Maybe String)
+        handler :: CE.IOException -> IO (Maybe [Word8])
         handler ioe = return Nothing
 
-        rdFile = do  file <- readBinaryFile fname
+        rdFile = do  file <- B.unpack <$> B.readFile fname
                      return (Just file)
     in
         catchIO rdFile handler
 
 -- This produces an error if the read is unsuccessful,
 -- for callers which expect the file to be there
-readBinaryFileCatch :: ErrorHandle -> Position -> FilePath -> IO String
+readBinaryFileCatch :: ErrorHandle -> Position -> FilePath -> IO [Word8]
 readBinaryFileCatch errh pos fname =
-    catchIO (readBinaryFile fname) (fileReadError errh emptyContext pos fname)
+    catchIO (B.unpack <$> B.readFile fname) (fileReadError errh emptyContext pos fname)
 
 -- If the file writing fails, a BSC error message is reported
 writeFileCatch :: ErrorHandle -> FilePath -> String -> IO ()
@@ -230,12 +241,12 @@ writeFileCatch errh fname content = do
     catchIO (writeFileCompat fname content)
             (fileWriteError errh emptyContext noPosition fname)
 
-writeBinaryFileCatch :: ErrorHandle -> FilePath -> String -> IO ()
+writeBinaryFileCatch :: ErrorHandle -> FilePath -> [Word8] -> IO ()
 writeBinaryFileCatch errh fname content = do
     -- check if the directory exists, and report an error if not
     checkDirectory fname (fileWriteError errh emptyContext noPosition fname)
     -- try to write the file
-    catchIO (writeBinaryFile fname content)
+    catchIO (B.writeFile fname $ B.pack content)
             (fileWriteError errh emptyContext noPosition fname)
 
 appendFileCatch :: ErrorHandle -> FilePath -> String -> IO ()

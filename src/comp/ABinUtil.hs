@@ -8,6 +8,7 @@ module ABinUtil (
 
 import Data.List(nub, partition)
 import Data.Maybe(isJust, fromJust)
+import Data.Word
 import Control.Monad(when)
 import Control.Monad.Except(ExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, get, put)
@@ -500,7 +501,7 @@ readAndCheckABinPathCatch errh be_verbose path backend mod_name errmsg = do
       Nothing -> bsError errh [errmsg]
       Just abi -> return abi
 
-decodeABin :: ErrorHandle -> Maybe Backend -> String -> String ->
+decodeABin :: ErrorHandle -> Maybe Backend -> String -> [Word8] ->
               Either [EMsg] ABin
 decodeABin errh backend filename contents =
     let (abi, _) = readABinFile errh filename contents

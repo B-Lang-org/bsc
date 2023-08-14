@@ -18,7 +18,6 @@ import System.IO.Unsafe
 import qualified Data.Set as S
 import qualified Data.Map as M
 
-import ListUtil(mapSnd)
 import ListMap(lookupWithDefault)
 import Util
 import FileNameUtil(hasSuf)

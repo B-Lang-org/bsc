@@ -9,7 +9,7 @@ import Id( Id, getIdBaseString, setIdBaseString
          , unQualId, isFire )
 import ABinUtil(InstModMap)
 import ErrorUtil(internalError)
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)

@@ -57,7 +57,6 @@ import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
 
 import Util
 import IntegerUtil
-import ListUtil(mapSnd, mapFst)
 
 import qualified Data.Map as M
 import qualified Data.Set as S

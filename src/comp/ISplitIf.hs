@@ -16,7 +16,7 @@ import PreStrings(fs_T, fs_F)
 import FStringCompat(FString, concatFString, getFString, mkFString)
 import Control.Monad(msum)
 import Util(makePairs, flattenPairs)
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import Data.List(genericLength)
 -- import Debug.Trace(trace)
 

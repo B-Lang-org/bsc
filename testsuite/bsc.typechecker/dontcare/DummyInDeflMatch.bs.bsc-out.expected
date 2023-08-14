@@ -12,8 +12,8 @@ IPackage DummyInDeflMatch
 DummyInDeflMatch.x :: Prelude.PrimPair Prelude.Bool Prelude.Bool
 DummyInDeflMatch.x =
   Prelude.PrimPair
-    ·Prelude.Bool
-    ·Prelude.Bool
+    Â·Prelude.Bool
+    Â·Prelude.Bool
     (Prelude.True Prelude.PrimUnit)
     (Prelude.True Prelude.PrimUnit)
 next def..........................................................
@@ -23,8 +23,8 @@ DummyInDeflMatch.dummyInDefl =
       _tctemp1003 = DummyInDeflMatch.x=
       -- IdProp: _tctemp1003[IdP_bad_name]
   in  let a :: Prelude.Bool
-	  a = .Prelude.snd ·Prelude.Bool ·Prelude.Bool _tctemp1003
-      in  PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+	  a = .Prelude.snd Â·Prelude.Bool Â·Prelude.Bool _tctemp1003
+      in  PrimBuildUndefined Â·(Prelude.Bit 12) _ 1
 next def..........................................................
 
 

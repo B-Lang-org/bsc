@@ -1,0 +1,7 @@
+package UTF8Var2(鳩) where
+
+-- kanji are not uppercase so accepted for variables
+
+鳩 :: a -> a
+鳩 = id
+

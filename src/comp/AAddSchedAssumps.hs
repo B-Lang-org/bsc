@@ -31,7 +31,7 @@ import Error(internalError, ErrMsg(..), showErrorList, ErrorHandle)
 import Id
 import Position(noPosition)
 import Util(unzipWith, ordPairBy)
-import ListUtil(mapSnd)
+import Util(mapSnd)
 
 -- | Method name mapped to condition of usage
 type MethodCondMap = M.Map AMethodId AExpr

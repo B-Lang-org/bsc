@@ -38,11 +38,10 @@ import SchedInfo (methodConflictInfo, sSB)
 import ABin (ABin(..), ABinModInfo(..))
 import ABinUtil(HierMap, getABIHierarchy, assertNoSchedErr)
 import SimDomainInfo
-import ListUtil (mapFst, mapSnd)
 
 import SCC (tsort)
 
-import Util (headOrErr, map_insertManyWith, allPairs, stableOrdNub)
+import Util (headOrErr, map_insertManyWith, allPairs, stableOrdNub, mapFst, mapSnd)
 import GraphUtil(extractOneCycle_map, reverseMap)
 
 -- ===============

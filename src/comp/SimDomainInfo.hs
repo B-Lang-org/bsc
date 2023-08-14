@@ -1,6 +1,6 @@
 module SimDomainInfo where
 
-import ListUtil(mapFst)
+import Util(mapFst)
 
 import ASyntax(AId, AExpr, AClock(..), ARuleId)
 import Wires(ClockDomain)

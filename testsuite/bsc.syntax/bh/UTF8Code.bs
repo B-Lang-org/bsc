@@ -1,0 +1,5 @@
+package UTF8Code(foo) where
+
+foo :: (Bits a sza) => a -> a
+foo = unpack · pack
+

@@ -6,7 +6,7 @@ module CSubst (
               ) where
 
 import CSyntax
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import Id(Id)
 import CFreeVars (getPV, getLDefs)
 import qualified Data.Map as M

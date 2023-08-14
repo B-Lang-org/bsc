@@ -6,10 +6,10 @@ import System.Exit(exitWith, ExitCode(..))
 
 import PPrint
 import GenBin
-import BinaryIO
 import ISyntax
 import Error(initErrorHandle)
 import System.IO
+import qualified Data.ByteString.Lazy as B
 
 main :: IO ()
 main = do
@@ -20,9 +20,9 @@ main = do
                        [mi@(c:_)] | (c /= '-') -> return (False, mi)
                        _ -> do putStr ("Usage: dumpbo [-bi] mod-id\n")
                                exitWith (ExitFailure 1)
-    file <- readBinaryFile fname
+    file <- B.unpack <$> B.readFile fname
     (bi_sig, bo_sig, ipkg, hash) <- readBinFile errh fname file
-    hSetEncoding stdout latin1
+    hSetEncoding stdout utf8
     if (isBI)
        then do putStr (ppReadable bi_sig)
        else do putStrLn ("Internal Symbols (export): ")

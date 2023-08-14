@@ -16,7 +16,7 @@ import qualified Data.Map as M
 import Data.Ord(comparing)
 import Control.Monad.State
 
-import ListUtil(mapSnd)
+import Util(mapSnd)
 import Util(toMaybe)
 import ErrorUtil(internalError)
 import PreStrings(fsBody)

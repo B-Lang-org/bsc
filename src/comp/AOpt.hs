@@ -15,7 +15,7 @@ import Control.Monad(when, foldM, zipWithM)
 import Control.Monad.State(State, StateT, evalState, evalStateT, liftIO,
                            gets, get, put)
 import Data.List(sortBy, genericLength, sort, transpose, partition, groupBy, nub)
-import ListUtil(mapFst)
+import Util(mapFst)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util(allSame, flattenPairs, makePairs, remOrdDup, integerToBits,

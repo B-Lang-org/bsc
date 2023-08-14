@@ -518,7 +518,7 @@ takeWhile p (Cons x xs) =
 --@ function List#(a) takeWhileRev (function Bool p(a x), List#(a) xs);
 --@ \end{libverbatim}
 takeWhileRev :: (a -> Bool) -> List a -> List a
-takeWhileRev p = reverse · takeWhile p · reverse
+takeWhileRev p = reverse Â· takeWhile p Â· reverse
 
 --@ Remove the initial segment that fulfills a predicate.
 --@ \index{dropWhile@\te{dropWhile} (\te{List} function)}
@@ -539,7 +539,7 @@ dropWhile p xxs@(Cons x xs) =
 --@ function List#(a) dropWhileRev (function Bool p(a x), List#(a) xs);
 --@ \end{libverbatim}
 dropWhileRev :: (a -> Bool) -> List a -> List a
-dropWhileRev p = reverse · dropWhile p · reverse
+dropWhileRev p = reverse Â· dropWhile p Â· reverse
 
 --@ Check if an element is in a list.
 --@ \index{elem@\te{elem} (\te{List} function)}

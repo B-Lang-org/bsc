@@ -26,7 +26,7 @@ if { $vtest == 1 } {
 # (should select the first element)
 #
 compile_verilog_pass SizeZeroIndex.bsv {} {-dexpanded}
-find_regexp SizeZeroIndex.bsv.bsc-vcomp-out {\.Prelude\.write .8 rg2 17}
+find_regexp SizeZeroIndex.bsv.bsc-vcomp-out {\.Prelude\.write ·8 rg2 17}
 
 # Test elaboration when the elements of the array are Bit#(0)
 # (all values should be 0, so the selection reduces away to constant 0)

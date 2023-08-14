@@ -139,6 +139,7 @@ PACKAGES = \
 	-package split \
 	-package syb \
 	-package integer-gmp \
+	-package text \
 	$(GHCEXTRAPKGS)
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
@@ -161,7 +162,7 @@ GHCRTSFLAGS ?= +RTS -M4G -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
-	-iGHC -iGHC/posix -iLibs \
+	-iGHC/posix -iLibs \
 	-i$(PARSEC_HS) \
 	-i$(STP_HS) \
 	-i$(YICES_HS) \
@@ -223,7 +224,7 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	*.hs *.lhs \
 	Parser/*.hs Parser/BSV/*.lhs Parser/Classic/*.hs \
 	Libs/*.hs \
-	GHC/*.hs GHC/posix/*.hs \
+	GHC/posix/*.hs \
 	$(PARSEC_HS)/*.hs \
 	$(STP_HS)/*.hs \
 	$(YICES_HS)/*.hs \

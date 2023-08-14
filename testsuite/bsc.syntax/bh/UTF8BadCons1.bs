@@ -1,0 +1,6 @@
+package UTF8BadCons1(鳥(..)) where
+
+-- kanji are not unicode uppercase letters
+
+data 鳥 = 鶴 | 梟
+
