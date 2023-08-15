@@ -94,7 +94,7 @@ package Prelude(
         primCharToString,
         primUIntBitsToInteger, primIntBitsToInteger,
 
-        ($), (·), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
+        ($), (∘), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
         liftM, liftM2, bindM,
 
         (<+>), rJoin,
@@ -279,7 +279,7 @@ infixl 10 -
 infixl 11 *
 infixl 11 /
 infixl 11 %
-infixr 13 ·
+infixr 13 ∘
 
 -- ================================================================
 
@@ -2564,8 +2564,8 @@ messageM s = do
 --@   return (h);
 --@ endfunction
 --@ \end{libverbatim}
-(·) :: (b -> c) -> (a -> b) -> (a -> c)
-(·) f g = \ x -> f (g x)
+(∘) :: (b -> c) -> (a -> b) -> (a -> c)
+(∘) f g = \ x -> f (g x)
 
 --@ Identity function
 --@ \index{id@\te{id}, the identity function}
@@ -3097,7 +3097,7 @@ primFix f = f (primFix f)
 primitive primImpCondOf:: a -> Bit 1
 
 impCondOf :: a -> Bool
-impCondOf = unpack · primImpCondOf
+impCondOf = unpack ∘ primImpCondOf
 
 -----------------------------------------------------------------------
 -- System tasks

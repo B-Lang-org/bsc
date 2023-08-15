@@ -29,7 +29,7 @@ class Boolify a where
 
 instance (Boolify ((a, b) -> c)) => Boolify (a -> b -> c)
   where
-    boolify = curry · boolify · uncurry
+    boolify = curry ∘ boolify ∘ uncurry
 
 --@
 --@ A function where the argument and result can be turned into

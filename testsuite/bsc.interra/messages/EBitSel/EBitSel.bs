@@ -35,7 +35,7 @@ mkShifter64 =
                        passed shift1 »
                        passed shift1 »
                        passed strip »
-                       pass · tee (putResult.put) »
+                       pass ∘ tee (putResult.put) »
                        sink)
            interface
              request = interface Put { put (val,by) = shifter.push (val,by) }

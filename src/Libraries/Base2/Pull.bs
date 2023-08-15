@@ -26,7 +26,7 @@ interface Pull a =
 --@ function Pull#(b) apply(function b f(a x1), Pull#(a) src);
 --@ \end{libverbatim}
 apply :: (a -> b) -> Pull a -> Pull b
-apply f src = interface Pull { pull = src.pull `bind` (return · f)  }
+apply f src = interface Pull { pull = src.pull `bind` (return ∘ f)  }
 
 --@ Allow an action to peek at the stream.
 --@ \begin{libverbatim}
@@ -56,7 +56,7 @@ pass p =
 --@ module passed#(function b f(a x1))(Pull#(b));
 --@ \end{libverbatim}
 passed :: (IsModule m c) => (a -> b) -> Pull a -> m (Pull b)
-passed f = pass · apply f
+passed f = pass ∘ apply f
 
 --@ Wrap a stream in a module
 --@ (with a buffer initialized to the first argument).
@@ -83,7 +83,7 @@ buffer init src =
 --@   provisos (Bits#(b, sb));
 --@ \end{libverbatim}
 buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
-buffered f = buffer _ · apply f
+buffered f = buffer _ ∘ apply f
 
 --@ A consumer that always pulls data from the given stream
 --@ and throws it away.

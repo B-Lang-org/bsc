@@ -20,7 +20,7 @@ import Tabulate
 --@   provisos (Add#(a, 1, m));
 --@ \end{libverbatim}
 popCountNaive :: (Add a 1 m) => Bit n -> Bit m
-popCountNaive = foldr (+) 0 · map zExt1 · unpack
+popCountNaive = foldr (+) 0 ∘ map zExt1 ∘ unpack
 
 zExt1 :: (Add m1 1 m) => Bit 1 -> Bit m
 zExt1 = zeroExtend
@@ -41,7 +41,7 @@ popCountTable = tabulate popCountNaive
 --@   provisos (Add#(1, b, n), Add#(a, 1, m));
 --@ \end{libverbatim}
 popCountTree :: (Add 1 b n, Add a 1 m) => Bit n -> Bit m
-popCountTree = fold (+) · map zExt1 · unpack
+popCountTree = fold (+) ∘ map zExt1 ∘ unpack
 
 --@ The function \te{popCountWallace} uses a Wallace tree
 --@ to add the input bits.
@@ -50,7 +50,7 @@ popCountTree = fold (+) · map zExt1 · unpack
 --@   provisos (Add#(1, a, m));
 --@ \end{libverbatim}
 popCountWallace :: (Add 1 a m) => Bit n -> Bit m
-popCountWallace = wallaceAddBags · start · toList · unpack
+popCountWallace = wallaceAddBags ∘ start ∘ toList ∘ unpack
 
 start :: (Add 1 m n) => List (Bit 1) -> Vector n (List (Bit 1))
 start bs = bs :> map (const Nil) genList
@@ -67,7 +67,7 @@ type LogK = 4
 --@   provisos (Add#(LogK, k, m));
 --@ \end{libverbatim}
 popCountTableWallace :: (Add LogK k m) =>  Bit n -> Bit m
-popCountTableWallace = wallaceAdd · List.map popCK · splitInKs 0
+popCountTableWallace = wallaceAdd ∘ List.map popCK ∘ splitInKs 0
 
 --@ Use a table of a small width, add the results with a balanced tree.
 --@ \begin{libverbatim}
@@ -75,7 +75,7 @@ popCountTableWallace = wallaceAdd · List.map popCK · splitInKs 0
 --@   provisos (Add#(a, LogK, m));
 --@ \end{libverbatim}
 popCountTableTree :: (Add a LogK m) => Bit n -> Bit m
-popCountTableTree = List.fold (+) · List.map (zeroExtend · popCK) · splitInKs 0
+popCountTableTree = List.fold (+) ∘ List.map (zeroExtend ∘ popCK) ∘ splitInKs 0
 
 {-# noinline popCK #-}
 popCK :: Bit K -> Bit LogK

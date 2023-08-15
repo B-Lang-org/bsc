@@ -20,7 +20,7 @@ foreign vfork :: Bit n -> Bit m = "Fork",("i","o")
 --@   provisos (Bits#(a, sa));
 --@ \end{libverbatim}
 fork :: (Bits a sa) => a -> (a, a)
-fork = unpack · vfork · pack
+fork = unpack ∘ vfork ∘ pack
 
 --@ Copy a value into a list with the specified number of elements.
 --@ \begin{libverbatim}
