@@ -302,7 +302,7 @@ splitServer lat serv =
                             out.deq
                             cnt.up
                             return out.first
-    Vector.mapM (mkServ · fromInteger) Vector.genList
+    Vector.mapM (mkServ ∘ fromInteger) Vector.genList
 
 --@ fifosToServer
 

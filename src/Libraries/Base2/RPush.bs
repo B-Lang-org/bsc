@@ -62,7 +62,7 @@ pass dst =
 --@ module passed#(function b f(a x1))(RPush#(a));
 --@ \end{libverbatim}
 passed :: (IsModule m c) => (a -> b) -> RPush b -> m (RPush a)
-passed f = pass · apply f
+passed f = pass ∘ apply f
 
 --@ Wrap a stream in a module
 --@ (with a FIFO buffer).
@@ -88,7 +88,7 @@ buffer dst =
 --@   provisos (Bits#(a, sa));
 --@ \end{libverbatim}
 buffered :: (IsModule m c, Bits a sa) => (a -> b) -> RPush b -> m (RPush a)
-buffered f = buffer · apply f
+buffered f = buffer ∘ apply f
 
 --@ A consumer that drops all data.
 --@ \begin{libverbatim}

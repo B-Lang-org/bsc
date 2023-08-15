@@ -27,33 +27,33 @@ unhalve :: (List a, List a) -> List a
 unhalve = uncurry append
 
 riffle :: List a -> List a
-riffle = unpairs · uncurry zip · halve
+riffle = unpairs ∘ uncurry zip ∘ halve
 
 unriffle :: List a -> List a
-unriffle = unhalve · unzip · pairs
+unriffle = unhalve ∘ unzip ∘ pairs
 
 papply :: (a->b, c->d) -> (a, c) -> (b, d)
 papply (f, g) (x,y) = (f x, g y)
 
 two :: (List a -> List b) -> List a -> List b
-two r = unhalve · papply (r,r) · halve
+two r = unhalve ∘ papply (r,r) ∘ halve
 
 ilv :: (List a -> List b) -> List a -> List b
-ilv r = riffle · two r · unriffle
+ilv r = riffle ∘ two r ∘ unriffle
 
 evens :: ((a, a) -> (b,b)) -> List a -> List b
-evens r = unpairs · map r · pairs
+evens r = unpairs ∘ map r ∘ pairs
 
 bfly :: ((a, a) -> (a, a)) -> Integer -> List a -> List a
 bfly _ 0 = id
-bfly r n = evens r · ilv (bfly r (n-1))
+bfly r n = evens r ∘ ilv (bfly r (n-1))
 
 sndList :: (List a -> List a) -> List a -> List a
-sndList f = unhalve · papply (id, f) · halve
+sndList f = unhalve ∘ papply (id, f) ∘ halve
 
 sorter :: ((a, a) -> (a, a)) -> Integer -> List a -> List a
 sorter _ 0 = id
-sorter cmp n = bfly cmp n · sndList reverse · two (sorter cmp (n-1))
+sorter cmp n = bfly cmp n ∘ sndList reverse ∘ two (sorter cmp (n-1))
 
 cmpSwap :: (a -> a -> Bool) -> (a, a) -> (a, a)
 cmpSwap (<=) (x, y) = if x <= y then (x, y) else (y, x)
@@ -69,7 +69,7 @@ cmpSwap (<=) (x, y) = if x <= y then (x, y) else (y, x)
 sortLe :: (Log n k) => (a -> a -> Bool) -> Vector.Vector n a -> Vector.Vector n a
 sortLe (<=) =
   if ( (2 ** (valueOf k)) /= valueOf n) then error "sortLe: length of list not power of 2"
-  else (Vector.toVector · sorter (cmpSwap (<=)) (valueOf k) · Vector.toList)
+  else (Vector.toVector ∘ sorter (cmpSwap (<=)) (valueOf k) ∘ Vector.toList)
 
 
 
@@ -86,7 +86,7 @@ mkSort :: Module Sort
 mkSort =
     module
       interface
-        sort = Vector.take · sortLe (<=)
+        sort = Vector.take ∘ sortLe (<=)
 
 
 {-# verilog testSort #-}

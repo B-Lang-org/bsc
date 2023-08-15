@@ -30,7 +30,7 @@ type BitBag = List Bit1
 --@ function Bit#(n) wallaceAddBags();
 --@ \end{libverbatim}
 wallaceAddBags :: Vector n (List (Bit 1)) -> Bit n
-wallaceAddBags = pack · map head0 · while (any ((<) 1 · length)) wallaceStep
+wallaceAddBags = pack ∘ map head0 ∘ while (any ((<) 1 ∘ length)) wallaceStep
 
 --@ The \te{wallaceAdd} function takes a list of $m$ bit numbers and adds them
 --@ forming an $n$ bit result.
@@ -39,10 +39,10 @@ wallaceAddBags = pack · map head0 · while (any ((<) 1 · length)) wallaceStep
 --@   provisos (Add#(m, k, n));
 --@ \end{libverbatim}
 wallaceAdd :: (Add m k n) => List (Bit m) -> Bit n
-wallaceAdd = wallaceAddBags · padWith Nil · transposeLN · List.map unpack
+wallaceAdd = wallaceAddBags ∘ padWith Nil ∘ transposeLN ∘ List.map unpack
 
 wallaceStep :: Vector n BitBag -> Vector n BitBag
-wallaceStep = combine · map (step Nil Nil)
+wallaceStep = combine ∘ map (step Nil Nil)
 
 combine :: Vector n (BitBag, BitBag) -> Vector n BitBag
 combine xys = zipWith List.append (map (.snd) xys) (init (Nil :> map (.fst) xys))

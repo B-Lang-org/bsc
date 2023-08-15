@@ -53,7 +53,7 @@ mcp2_buffer init src =
                when mcp_en_src
 
 mcp2_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
-mcp2_buffered f = mcp2_buffer _ · apply f -- · buffer
+mcp2_buffered f = mcp2_buffer _ ∘ apply f -- ∘ buffer
 
 -- -------------
 
@@ -80,7 +80,7 @@ mcp3_buffer init src =
                when mcp_en_src
 
 mcp3_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
-mcp3_buffered f = mcp3_buffer _ · apply f -- · buffer
+mcp3_buffered f = mcp3_buffer _ ∘ apply f -- ∘ buffer
 
 -- -------------
 mcp4_buffer :: (IsModule m c, Bits a sa) => a -> Pull a -> m (Pull a)
@@ -106,7 +106,7 @@ mcp4_buffer init src =
                when mcp_en_src
 
 mcp4_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
-mcp4_buffered f = mcp4_buffer _ · apply f -- · buffer
+mcp4_buffered f = mcp4_buffer _ ∘ apply f -- ∘ buffer
 
 -- ====================
 
