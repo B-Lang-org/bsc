@@ -107,13 +107,13 @@ For example (cabal v3.x only):
     $ cabal v2-install --package-env=default syb old-time split
     $ make GHC="ghc -package-env default"
 
-Bluespec compiler builds are tested with GHC 9.2.8.
+Bluespec compiler builds are tested with GHC 9.4.7.
 GHC releases older than 7.10.3 are not supported.
 
 The source code has been written with extensive preprocessor macros to
 support every minor release of GHC since 7.10, through 9.6. Any releases
 in that range should be fine.
-The recommended version of GHC is 9.2 in its latest point release.
+The recommended version of GHC is 9.4 in its latest point release.
 
 ## Additional requirements
 
