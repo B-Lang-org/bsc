@@ -33,6 +33,9 @@ ifeq ($(STP_USE_LIB),included)      # compile from provided source
 else ifeq ($(STP_USE_LIB),disable)  # disable STP
     SRC = src_stub
     SNAME=libstp_disabled.$(SO)
+else ifeq ($(STP_USE_LIB),placeholder)  # use stub to be replaced by real library later
+    SRC = src_stub
+    SNAME=libstp.$(SO)
 else ifeq ($(STP_USE_LIB),system)   # use system STP
     SRC = src_sys
     ifeq ($(OSTYPE), Darwin)
@@ -62,11 +65,16 @@ install:
 	$(MAKE) -C $(SRC) install
 	ln -fsn HaskellIfc include_hs
 	@# necessary for bsc linker (src/comp/Makefile:51)
-	ln -s "$(SNAME)" lib/libstp.$(SO)
+	ln -s "$(SNAME)" lib/libstp.$(SO) || true
 # put self-compiled library in path where it can be found at runtime
-ifeq ($(SRC), $(findstring $(SRC), src src_stub))
+ifeq ($(STP_USE_LIB), $(findstring $(STP_USE_LIB), included disable placeholder))
 	install -m 755 -d $(PREFIX)/lib/SAT
 	install -m 644 "lib/$(SNAME)" $(PREFIX)/lib/SAT
+endif
+# make it obvious that the library is a placeholder
+ifeq ($(STP_USE_LIB), $(findstring $(STP_USE_LIB), placeholder))
+	mv "$(PREFIX)/lib/SAT/$(SNAME)" libstp_placeholder.$(SO)
+	ln -s libstp_placeholder.$(SO) "$(PREFIX)/lib/SAT/$(SNAME)"
 endif
 
 clean:
