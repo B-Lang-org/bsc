@@ -275,8 +275,11 @@ To build and install the PDF documentation, you can add the following:
     $ make install-doc
 
 This will install into the same `inst` or `PREFIX` directory.
-The installed documents include the BSC User Guide and the BSC Libraries
-Reference Guide.
+The installed documents include the [BSC User Guide]
+and the [BSC Libraries Reference Guide].
+
+[BSC User Guide]: https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_user_guide.pdf
+[BSC Libraries Reference Guide]: https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_libraries_ref_guide.pdf
 
 ## Building a release
 
@@ -349,10 +352,10 @@ following command:
 
     $ bsc -help-hidden
 
-More details on using BSC, Bluesim, and Bluetcl can be found in the User Guide
-(built in this repository).
-Language documentation, training, and tutorials can be found in the
-[BSVlang repository](https://github.com/BSVLang/Main).
+More details on using BSC, Bluesim, and Bluetcl can be found in the
+[BSC User Guide] (built in this repository).
+For language documentation and learning materials, see the
+[Documentation section of the README](./README.md#documentation).
 
 ## Editors
 Support for various editors for bs/bsv sources as well as language server support for the haskell sources for the bluespec compiler can be found in [./util](./util)
