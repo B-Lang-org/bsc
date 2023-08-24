@@ -127,6 +127,10 @@ from the [Releases](https://github.com/B-Lang-org/bsc/releases) page.
 Training and tutorials can be found in the [BSVLang
 repository](https://github.com/BSVLang/Main).
 
+New users may also find this
+[Intro Guide and Quick Reference](https://github.com/kcamenzind/BluespecIntroGuide)
+useful.
+
 ---
 
 ## License
