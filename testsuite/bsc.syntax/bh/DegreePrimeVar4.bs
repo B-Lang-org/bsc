@@ -1,0 +1,4 @@
+package DegreePrimeVar4(a´) where
+
+a´ :: a -> a
+a´ = id

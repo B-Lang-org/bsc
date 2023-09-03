@@ -179,3 +179,9 @@ compile_fail_error UTF8BadCons1.bs P0005
 compile_fail_error UTF8BadCons2.bs P0005
 compile_pass 風呂敷.bs
 
+# Tests that ° and ´ are symbol characters
+compile_pass DegreePrimeSymbol.bs
+compile_fail_error DegreePrimeVar1.bs P0005
+compile_fail_error DegreePrimeVar2.bs P0005
+compile_fail_error DegreePrimeVar3.bs P0005
+compile_fail_error DegreePrimeVar4.bs P0005

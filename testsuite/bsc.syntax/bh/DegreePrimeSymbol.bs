@@ -1,0 +1,13 @@
+package DegreePrimeSymbol((°´), (´°), (+´), (+°)) where
+
+(°´) :: a -> b -> (a, b)
+x °´ y = (x,y)
+
+(´°) :: a -> b -> (a, b)
+x ´° y = (x,y)
+
+(+´) :: a -> b -> (a, b)
+x +´ y = (x,y)
+
+(+°) :: a -> b -> (a, b)
+x +° y = (x,y)

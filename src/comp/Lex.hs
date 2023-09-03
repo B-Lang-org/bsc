@@ -420,11 +420,6 @@ isSym _ = False
 isIdChar :: Char -> Bool
 isIdChar '\'' = True
 isIdChar '_' = True
-
--- \176 (hexB0) (octal 0260) is the degree symbol
-isIdChar '\176' = True
--- \180 (hexB4) (octal 0264) is the prime (acute accent) symbol
-isIdChar '\180' = True
 isIdChar c = isAlphaNum c
 
 isBinDigit :: Char -> Bool
