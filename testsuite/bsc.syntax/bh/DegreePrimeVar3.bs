@@ -1,0 +1,4 @@
+package DegreePrimeVar3(a°) where
+
+a° :: a -> a
+a° = id
