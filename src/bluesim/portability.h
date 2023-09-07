@@ -40,15 +40,7 @@ unsigned long long powll(unsigned int base, unsigned int exp);
 #define USE_NAMED_SEMAPHORES 0
 #endif
 
-#if USE_NAMED_SEMAPHORES
-typedef struct
-{
-  char*  name;
-  sem_t* sem;
-} tSemaphore;
-#else
 typedef sem_t tSemaphore;
-#endif
 
 tSemaphore* create_semaphore();
 void post_semaphore(tSemaphore* semaphore);

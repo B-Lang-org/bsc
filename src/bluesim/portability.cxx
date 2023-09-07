@@ -69,70 +69,35 @@ int new_asprintf(char **strp, const char* fmt, ...) throw()
 
 tSemaphore* create_semaphore()
 {
-  // allocate semaphore struct
-  tSemaphore* semaphore = (tSemaphore*) malloc(sizeof(tSemaphore));
-  if (semaphore == NULL)
-  {
-    perror("malloc");
-    return NULL;
-  }
-
-  // allocate space for the name
-  semaphore->name = (char*) malloc(14);
-  if (semaphore->name == NULL)
-  {
-    perror("malloc");
-    free(semaphore);
-    return NULL;
-  }
-
-  // choose a unique name
-  static int seq_number = 0;
-  snprintf(semaphore->name, 14, "/bsim%05d%03d", getpid(), seq_number++);
-
+  // Since multiple bluesim processes may be running at the same time, we need
+  // to use a name that is unique to this process.
+  char* name;
+  asprintf(&name, "/bsim_arbitrary_sem_name_%05d", getpid());
+  // Remove the semaphore if it already exists.  It should not exist, but just
+  // in case it does, we want to remove it so that we can create it.
+  sem_unlink(name);
   // create the semaphore
-  semaphore->sem = sem_open( semaphore->name
-                           , O_CREAT | O_EXCL
-                           , S_IRUSR | S_IWUSR
-                           , 0 );
-  if (semaphore->sem == SEM_FAILED)
+  tSemaphore* semaphore = sem_open( name
+                                  , O_CREAT | O_EXCL
+                                  , S_IRUSR | S_IWUSR
+                                  , 0 );
+  if (semaphore == SEM_FAILED)
   {
     perror("sem_open");
-    free(semaphore->name);
-    free(semaphore);
-    return NULL;
+    semaphore = NULL;
   }
-
+  // Unlink the semaphore to get rid of the name.  The underlying semaphore will
+  // continue to exist as long as there are open handles to it, but we don't
+  // wan't to keep the name around.
+  sem_unlink(name);
+  free(name);
   return semaphore;
-}
-
-void post_semaphore(tSemaphore* semaphore)
-{
-  if (semaphore != NULL)
-    sem_post(semaphore->sem);
-}
-
-void trywait_on_semaphore(tSemaphore* semaphore)
-{
-  if (semaphore == NULL) return;
-
-  while ((sem_trywait(semaphore->sem) != 0) && (errno == EINTR));
-}
-
-void wait_on_semaphore(tSemaphore* semaphore)
-{
-  if (semaphore == NULL) return;
-
-  while ((sem_wait(semaphore->sem) != 0) && (errno == EINTR));
 }
 
 void release_semaphore(tSemaphore* semaphore)
 {
   if (semaphore == NULL) return;
-  sem_close(semaphore->sem);
-  sem_unlink(semaphore->name);
-  free(semaphore->name);
-  free(semaphore);
+  sem_close(semaphore);
 }
 
 #else /* USE_NAMED_SEMAPHORES */
@@ -162,6 +127,19 @@ tSemaphore* create_semaphore()
   return semaphore;
 }
 
+void release_semaphore(tSemaphore* semaphore)
+{
+  if (semaphore == NULL) return;
+  sem_destroy(semaphore);
+  free(semaphore);
+}
+
+#endif /* USE_NAMED_SEMAPHORES */
+
+/*
+ * Common implementation for both named and unnamed semaphores.
+ */
+
 void post_semaphore(tSemaphore* semaphore)
 {
   if (semaphore != NULL)
@@ -182,11 +160,3 @@ void wait_on_semaphore(tSemaphore* semaphore)
   while ((sem_wait(semaphore) != 0) && (errno == EINTR)) {};
 }
 
-void release_semaphore(tSemaphore* semaphore)
-{
-  if (semaphore == NULL) return;
-  sem_destroy(semaphore);
-  free(semaphore);
-}
-
-#endif
