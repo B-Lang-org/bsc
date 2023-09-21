@@ -10171,7 +10171,7 @@ should have a gate supplied by the parent module.
 If an input clock is part of a vector of clocks, the gate port will be
 added to all clocks in the vector.  Example:
 \begin{verbatim}
-(* gate_input_clock = "clks, c2" *)
+(* gate_input_clocks = "clks, c2" *)
 module mkM(Vector#(2, Clock) clks, Clock c2);
 \end{verbatim}
 In this example, a gate port will be added to both the clocks in the
