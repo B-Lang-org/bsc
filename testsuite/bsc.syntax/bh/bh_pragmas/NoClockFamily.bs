@@ -1,0 +1,19 @@
+package NoClockFamily where
+
+clockedBy :: (IsModule m mType) => Clock -> m a -> m a
+clockedBy c = changeSpecialWires (Just c) Nothing Nothing
+
+interface Ticked =
+  ticked :: Bool
+
+{-# synthesize mkNoClockFamily { gate_input_clocks = { default_clock } } #-}
+mkNoClockFamily :: (IsModule m mType) => Clock -> m Ticked
+mkNoClockFamily ungated = module
+  toggle :: Reg Bool <- mkReg False
+  toggle_delay :: Reg Bool <- clockedBy ungated $ mkRegU
+
+  rules
+    "toggle": when True ==> toggle := not toggle
+    "watch": when True ==> toggle_delay := toggle
+  interface Ticked
+    ticked = toggle_delay /= toggle
