@@ -111,7 +111,7 @@ Bluespec compiler builds are tested with GHC 9.4.7.
 GHC releases older than 7.10.3 are not supported.
 
 The source code has been written with extensive preprocessor macros to
-support every minor release of GHC since 7.10, through 9.6. Any releases
+support every minor release of GHC since 7.10, through 9.8. Any releases
 in that range should be fine.
 The recommended version of GHC is 9.4 in its latest point release.
 

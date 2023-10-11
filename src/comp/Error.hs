@@ -2536,10 +2536,13 @@ getErrorText (EMethodArgNameMismatch meth mismatches) =
 
 getErrorText (EActionSelfSB methods) =
     (Type 94, empty,
-     if (length methods == 1)
-        then s2par ("An Action or ActionValue method cannot be SB with itself (it must be SBR, CF or C).  The SB annotation for " ++ quote (head methods) ++ " is not allowed.")
-        else s2par ("An Action or ActionValue method cannot be SB with itself (it must be SBR, CF or C).  The SB annotation is illegal for these methods:") $$
-             nest 2 (vcat (map text methods)))
+     let intro = "An Action or ActionValue method cannot be SB with itself " ++
+                 "(it must be SBR, CF or C)."
+     in case methods of
+          [m] -> s2par (intro ++ "  The SB annotation for " ++ quote m ++ " is not allowed.")
+          _   -> s2par (intro ++ "  The SB annotation is illegal for these methods:") $$
+                 nest 2 (vcat (map text methods))
+    )
 
 getErrorText (ECtxRedNotUpdateable t positions) =
     (Type 95, empty,

@@ -660,9 +660,9 @@ htclMatchGrammar interp objs cmd_grammar = worker ([], objs, cmd_grammar)
                          | (matched', ws', g') <- choices
                          , ws /= ws'
                          ]
-              if (null good)
-               then return x            -- no options matched
-               else return $ head good  -- choose the first match
+              case good of
+               []     -> return x   -- no options matched
+               (hd:_) -> return hd  -- choose the first match
           worker (matched, ws, (ZeroOrMore g)) = do
               (matched', ws', g') <- worker (matched, ws, g)
               if ((ws == ws') || (g' /= None))
@@ -709,12 +709,16 @@ htclCheckCmd grm fn interp args = do
          do
            argStrs <- mapM (htclObjToMString interp)  args
            putStrLn $ "TCL: " ++ (unwords $ map (maybe "" id) argStrs)
+    let call_fn matched =
+          case map fst (reverse matched) of
+            (_:tl) -> fn tl
+            _ -> ioError $ userError "Internal Error: htclCheckCmd: missing command name"
     case res of
-      (matched, [], None) -> fn (tail (map fst (reverse matched)))
+      (matched, [], None) -> call_fn matched
       (_, extra, None) -> do strs <- mapM (htclObjToString interp) extra
                              cmdExtraArgs strs
       (matched, [], g) -> if (htclCanMatchNull g)
-                          then fn (tail (map fst (reverse matched)))
+                          then call_fn matched
                           else cmdTooShort g
       (_, ws, g) -> do strs <- mapM (htclObjToString interp) ws
                        cmdBadSyntax strs g
