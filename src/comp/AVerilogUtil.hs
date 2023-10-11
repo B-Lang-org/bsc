@@ -31,7 +31,8 @@ module AVerilogUtil (
                      VConvtOpts(..)
                     ) where
 
-import Data.List(nub, partition, genericLength, union, intersect, (\\))
+import Data.List(nub, partition, genericLength, union, intersect, (\\),
+                 uncons)
 import Data.Maybe
 
 import FStringCompat(FString, getFString)
@@ -329,11 +330,13 @@ tsortForeignCallsAndDefs ds fcalls =
 
         -- (are these still needed now that we use Ord to bias tsort?)
         fcall_edges =
-            if (length fcalls > 1)
-            then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
-                 in  zipWith mkEdge
-                         (init numbered_fcalls) (tail numbered_fcalls)
-            else []
+          case (uncons numbered_fcalls) of
+            Nothing -> []
+            Just (_, tail_numbered_fcalls) ->
+              let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
+              in  zipWith mkEdge
+                      numbered_fcalls -- last element will be unused
+                      tail_numbered_fcalls
 
         -- ----------
         -- ForeignCall to Def edges
@@ -523,7 +526,7 @@ vDefMpd vco (ADef i t
             oname = VEVar (vId i) -- a concat of the outputs
             oports = case ops' of
                      [(o, _)] -> [(mkVId o, Just oname)]
-                     ons -> let ns = tail (scanr (+) 0 (map snd ons))
+                     ons -> let ns = tailOrErr "vDefMpd.oports" (scanr (+) 0 (map snd ons))
                             in  zipWith (\ (o, s) l ->
                                         (mkVId o,
                                          Just (veSelect
