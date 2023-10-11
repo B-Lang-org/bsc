@@ -17,4 +17,9 @@ compare_verilog mkClockFamily.v
 
 compile_verilog_fail_error UnknownClockFamily.bs P0182
 
+compile_verilog_pass Prefixes.bs
+compare_verilog sysPrefixes.v
 
+compile_fail_error DoubleClockPrefix.bs P0156
+compile_fail_error DoubleGatePrefix.bs P0156
+compile_fail_error DoubleResetPrefix.bs P0156

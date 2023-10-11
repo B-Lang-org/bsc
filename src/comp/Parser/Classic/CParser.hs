@@ -620,6 +620,9 @@ pPragma = l L_lpragma ..+ pPragma'  +.. l L_rpragma
                     ||! literal (mkFString "no_default_reset") .> PPreset_port [(idDefaultReset,"")]
                     ||! literal (mkFString "gate_input_clocks") ..+ eq ..+ l L_lcurl ..+ sepBy varcon cm +.. l L_rcurl >>- PPgate_input_clocks
                     ||! literal (mkFString "clock_family") ..+ eq ..+ l L_lcurl ..+ sepBy varcon cm +.. l L_rcurl >>- PPclock_family
+                    ||! literal (mkFString "clock_prefix") ..+ eq ..+ varString >>- PPCLK
+                    ||! literal (mkFString "gate_prefix") ..+ eq ..+ varString >>- PPGATE
+                    ||! literal (mkFString "reset_prefix") ..+ eq ..+ varString >>- PPRSTN
         pProps = eq ..+ l L_lcurl ..+ sepBy1 pProp cm +.. l L_rcurl
         pProp = literal (mkFString "alwaysReady") .> PPalwaysReady []
             ||! literal (mkFString "noReady") .> PPalwaysReady []                -- deprecated
