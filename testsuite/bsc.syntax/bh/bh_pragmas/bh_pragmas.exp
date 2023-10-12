@@ -34,3 +34,6 @@ find_n_strings DoubleGatePrefix.bs.bsc-out gate_prefix 1
 
 compile_fail_error DoubleResetPrefix.bs P0156
 find_n_strings DoubleResetPrefix.bs.bsc-out reset_prefix 1
+
+compile_verilog_pass Synthesize.bs
+compare_verilog mkSynthesize.v

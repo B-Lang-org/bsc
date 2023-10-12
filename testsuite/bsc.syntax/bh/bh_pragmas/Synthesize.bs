@@ -1,0 +1,8 @@
+package Synthesize where
+{-# properties mkSynthesize = { synthesize } #-}
+mkSynthesize :: (IsModule m c) => m (Reg (Bit 32))
+mkSynthesize = module
+  r <- mkRegU
+  return r
+
+
