@@ -21,5 +21,10 @@ compile_verilog_pass Prefixes.bs
 compare_verilog sysPrefixes.v
 
 compile_fail_error DoubleClockPrefix.bs P0156
+find_n_strings DoubleClockPrefix.bs.bsc-out clock_prefix 1
+
 compile_fail_error DoubleGatePrefix.bs P0156
+find_n_strings DoubleGatePrefix.bs.bsc-out gate_prefix 1
+
 compile_fail_error DoubleResetPrefix.bs P0156
+find_n_strings DoubleResetPrefix.bs.bsc-out reset_prefix 1

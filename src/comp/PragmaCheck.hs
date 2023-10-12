@@ -279,8 +279,8 @@ checkModuleArgPragmas pos pps_orig pps vtis =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultClock xs | PPclock_osc xs <- ps ]
             in  case (clk_prefixes, clk_prefix, default_clock_osc) of
-                    (_:_: _, _, _) ->
-                        Just (pos, EMultipleAttribute "clock_prefix")
+                    (s:_: _, _, _) ->
+                        Just (pos, EMultipleAttribute $ getModulePragmaName $ PPCLK s)
                     (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
@@ -294,8 +294,8 @@ checkModuleArgPragmas pos pps_orig pps vtis =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultClock xs | PPclock_gate xs <- ps ]
             in  case (gate_prefixes, gate_prefix, default_clock_gate) of
-                    (_:_:_, _, _) ->
-                        Just (pos, EMultipleAttribute "gate_prefix")
+                    (s:_:_, _, _) ->
+                        Just (pos, EMultipleAttribute $ getModulePragmaName $ PPGATE s)
                     (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
@@ -309,7 +309,7 @@ checkModuleArgPragmas pos pps_orig pps vtis =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultReset xs | PPreset_port xs <- ps ]
             in  case (rst_prefixes, rst_prefix, default_reset_port) of
-                    (_:_:_, _, _) -> Just (pos, EMultipleAttribute "reset_prefix")
+                    (s:_:_, _, _) -> Just (pos, EMultipleAttribute $ getModulePragmaName $ PPRSTN s)
                     (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultReset))
