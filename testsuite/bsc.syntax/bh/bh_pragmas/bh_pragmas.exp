@@ -9,6 +9,7 @@ compile_verilog_pass GateExplicitClock.bs
 compare_verilog sysGateExplicitClock.v
 
 compile_verilog_fail_error GateUnknownClock.bs P0182
+find_n_strings GateUnknownClock.bs.bsc-vcomp-out gated 1
 
 compile_verilog_fail_error NoClockFamily.bs G0007 2
 
@@ -16,6 +17,7 @@ compile_verilog_pass ClockFamily.bs
 compare_verilog mkClockFamily.v
 
 compile_verilog_fail_error UnknownClockFamily.bs P0182
+find_n_strings UnknownClockFamily.bs.bsc-vcomp-out ungated 1
 
 compile_verilog_pass Prefixes.bs
 compare_verilog sysPrefixes.v
