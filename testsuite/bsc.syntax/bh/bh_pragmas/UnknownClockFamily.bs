@@ -12,7 +12,7 @@ interface Ticked =
 mkUnknownClockFamily :: (IsModule m mType) => Clock -> m Ticked
 mkUnknownClockFamily c = module
   toggle :: Reg Bool <- mkReg False
-  toggle_delay :: Reg Bool <- clockedBy ungated $ mkRegU
+  toggle_delay :: Reg Bool <- clockedBy c $ mkRegU
 
   rules
     "toggle": when True ==> toggle := not toggle
