@@ -634,6 +634,7 @@ pPragma = l L_lpragma ..+ pPragma'  +.. l L_rpragma
             ||! literal (mkFString "options") ..+ eq ..+ l L_lcurl ..+ sepBy varString cm +.. l L_rcurl >>- PPoptions
             ||! l L_verilog .> PPverilog
             ||! literal (mkFString "deprecate") ..+ eq ..+ varString >>- PPdeprecate
+            ||! pVeriGenProps
         properties = literal (mkFString "properties")
         varString = varcon >>- getIdString
         varcon = var ||! con ||! pStringAsId

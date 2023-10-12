@@ -1,6 +1,10 @@
 # Support for parameter, no_default_clock, and no_default_reset pragmas
 # (fixes Google issue #78233370)
 test_c_veri_bs_modules Pragmas {}
+compare_verilog mkPragmas.v
+
+test_c_veri_bs_modules_options Properties {} {-g mkProperties}
+compare_verilog mkProperties.v
 
 compile_verilog_pass GateDefaultClock.bs
 compare_verilog sysGateDefaultClock.v
