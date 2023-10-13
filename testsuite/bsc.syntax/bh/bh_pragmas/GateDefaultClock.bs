@@ -1,0 +1,9 @@
+package GateDefaultClock where
+
+{-# synthesize sysGateDefaultClock { gate_input_clocks = { default_clock } } #-}
+sysGateDefaultClock :: (IsModule m mType) => m Empty
+sysGateDefaultClock = module
+  r :: Reg (UInt 16) <- mkReg 0
+  rules
+    "test": when True ==>
+      r := r + 1

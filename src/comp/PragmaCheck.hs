@@ -272,37 +272,45 @@ checkModuleArgPragmas pos pps_orig pps vtis =
     -- given for a default clock/reset
 
         emsg0 =
-            let clk_prefix = listToMaybe [ s | PPCLK s <- pps ]
+            let clk_prefixes = [s | PPCLK s <- pps ]
+                clk_prefix = listToMaybe clk_prefixes
                 ps = filter (modifies idDefaultClock) pps
                 default_clock_osc =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultClock xs | PPclock_osc xs <- ps ]
-            in  case (clk_prefix, default_clock_osc) of
-                    (Just "", Nothing) ->
+            in  case (clk_prefixes, clk_prefix, default_clock_osc) of
+                    (s:_: _, _, _) ->
+                        Just (pos, EMultipleAttribute $ getModulePragmaName $ PPCLK s)
+                    (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
                     _ -> Nothing
 
         emsg1 =
-            let gate_prefix = listToMaybe [ s | PPGATE s <- pps ]
+            let gate_prefixes = [ s | PPGATE s <- pps ]
+                gate_prefix = listToMaybe gate_prefixes
                 ps = filter (modifies idDefaultClock) pps
                 default_clock_gate =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultClock xs | PPclock_gate xs <- ps ]
-            in  case (gate_prefix, default_clock_gate) of
-                    (Just "", Nothing) ->
+            in  case (gate_prefixes, gate_prefix, default_clock_gate) of
+                    (s:_:_, _, _) ->
+                        Just (pos, EMultipleAttribute $ getModulePragmaName $ PPGATE s)
+                    (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
                     _ -> Nothing
 
         emsg2 =
-            let rst_prefix = listToMaybe [ s | PPRSTN s <- pps ]
+            let rst_prefixes = [ s | PPRSTN s <- pps ]
+                rst_prefix = listToMaybe rst_prefixes
                 ps = filter (modifies idDefaultReset) pps
                 default_reset_port =
                     listToMaybe $ catMaybes $
                       [ lookup idDefaultReset xs | PPreset_port xs <- ps ]
-            in  case (rst_prefix, default_reset_port) of
-                    (Just "", Nothing) ->
+            in  case (rst_prefixes, rst_prefix, default_reset_port) of
+                    (s:_:_, _, _) -> Just (pos, EMultipleAttribute $ getModulePragmaName $ PPRSTN s)
+                    (_, Just "", Nothing) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultReset))
                     _ -> Nothing

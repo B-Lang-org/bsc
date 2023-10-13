@@ -1,0 +1,14 @@
+package DoubleGatePrefix where
+
+{-# synthesize sysDoubleGatePrefix {
+  gate_input_clocks = { default_clock },
+  clock_prefix = "clk",
+  gate_prefix = "gate",
+  gate_prefix = "g",
+  reset_prefix = "rst" } #-}
+sysDoubleGatePrefix :: (IsModule m mType) => m Empty
+sysDoubleGatePrefix = module
+  r :: Reg (UInt 16) <- mkReg 0
+  rules
+    "test": when True ==>
+      r := r + 1

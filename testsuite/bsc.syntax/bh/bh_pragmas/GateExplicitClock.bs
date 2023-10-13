@@ -1,0 +1,19 @@
+package GateExplicitClock where
+
+clockedBy :: (IsModule m mType) => Clock -> m a -> m a
+clockedBy c = changeSpecialWires (Just c) Nothing Nothing
+
+resetBy :: (IsModule m mType) => Reset -> m a -> m a
+resetBy r = changeSpecialWires Nothing (Just r) Nothing
+
+{-# synthesize sysGateExplicitClock {
+     no_default_clock,
+     no_default_reset,
+     gate_input_clocks = { clk } } #-}
+
+sysGateExplicitClock :: (IsModule m mType) => Clock -> Reset -> m Empty
+sysGateExplicitClock clk rst = module
+  r :: Reg (UInt 16) <- clockedBy clk $ resetBy rst $ mkReg 0
+  rules
+    "test": when True ==>
+      r := r + 1

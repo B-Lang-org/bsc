@@ -1,0 +1,32 @@
+# Support for parameter, no_default_clock, and no_default_reset pragmas
+# (fixes Google issue #78233370)
+test_c_veri_bs_modules Pragmas {}
+
+compile_verilog_pass GateDefaultClock.bs
+compare_verilog sysGateDefaultClock.v
+
+compile_verilog_pass GateExplicitClock.bs
+compare_verilog sysGateExplicitClock.v
+
+compile_verilog_fail_error GateUnknownClock.bs P0182
+find_n_strings GateUnknownClock.bs.bsc-vcomp-out gated 1
+
+compile_verilog_fail_error NoClockFamily.bs G0007 2
+
+compile_verilog_pass ClockFamily.bs
+compare_verilog mkClockFamily.v
+
+compile_verilog_fail_error UnknownClockFamily.bs P0182
+find_n_strings UnknownClockFamily.bs.bsc-vcomp-out ungated 1
+
+compile_verilog_pass Prefixes.bs
+compare_verilog sysPrefixes.v
+
+compile_fail_error DoubleClockPrefix.bs P0156
+find_n_strings DoubleClockPrefix.bs.bsc-out clock_prefix 1
+
+compile_fail_error DoubleGatePrefix.bs P0156
+find_n_strings DoubleGatePrefix.bs.bsc-out gate_prefix 1
+
+compile_fail_error DoubleResetPrefix.bs P0156
+find_n_strings DoubleResetPrefix.bs.bsc-out reset_prefix 1

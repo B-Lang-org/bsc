@@ -63,10 +63,6 @@ compile_pass ParseDisplay.bsv
 
 compile_pass StringLit.bs 
 
-# Support for parameter, no_default_clock, and no_default_reset pragmas
-# (fixes Google issue #78233370)
-test_c_veri_bs_modules Pragmas {}
-
 # Top-level defs must have signatures
 # (fixes Google issue #73087150)
 compile_fail_error NoSign.bs T0141

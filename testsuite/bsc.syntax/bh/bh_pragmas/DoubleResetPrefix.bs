@@ -1,0 +1,14 @@
+package DoubleResetPrefix where
+
+{-# synthesize sysDoubleResetPrefix {
+  gate_input_clocks = { default_clock },
+  clock_prefix = "clk",
+  gate_prefix = "gate",
+  reset_prefix = "rst",
+  reset_prefix = "r" } #-}
+sysDoubleResetPrefix :: (IsModule m mType) => m Empty
+sysDoubleResetPrefix = module
+  r :: Reg (UInt 16) <- mkReg 0
+  rules
+    "test": when True ==>
+      r := r + 1
