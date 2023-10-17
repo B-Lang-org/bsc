@@ -1,0 +1,39 @@
+package Properties where
+
+import Vector
+import RegFile
+import Clocks
+
+{-# properties mkProperties = {
+  parameter s,
+  no_default_clock,
+  no_default_reset,
+  gate_input_clocks = { foo } } #-}
+mkProperties :: (IsModule m mType) => Clock -> Reset -> String -> m (ReadOnly (Bit 8))
+mkProperties foo bar s =
+  module
+    changeSpecialWires (Just foo) (Just bar) Nothing $ do
+      rf :: RegFile (Bit 4) (Bit 8) <- mkRegFileFullLoad (s + "_file.txt")
+      addr :: Reg (Bit 4) <- mkReg 0
+      return $ interface ReadOnly
+                 _read = rf.sub(addr)
+
+sysProperties :: (IsModule m c) => m Empty
+sysProperties =
+  module
+    c <- exposeCurrentClock
+    r <- exposeCurrentReset
+    let n_to_fname n = "mkPragmas_" + integerToString n
+    theAs :: Vector 4 (ReadOnly (Bit 8)) <- mapM (mkProperties c r) (genWith n_to_fname)
+
+    let displayA :: ReadOnly (Bit 8) -> UInt 4 -> Action
+        displayA theA i =
+          -- $display "time %t mkPragmas_%0d: %h" $time i theA._read
+          $display "mkPragmas_%0d: %h" i theA._read
+
+    rules
+      "test": when True ==>
+         action
+           zipWithM_ displayA theAs (genWith fromInteger)
+           $finish 0
+
