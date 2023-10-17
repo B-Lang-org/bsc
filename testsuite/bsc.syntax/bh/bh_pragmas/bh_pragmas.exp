@@ -36,4 +36,5 @@ compile_fail_error DoubleResetPrefix.bs P0156
 find_n_strings DoubleResetPrefix.bs.bsc-out reset_prefix 1
 
 compile_verilog_pass Synthesize.bs
+# We compare the Verilog output to make sure it is generated.
 compare_verilog mkSynthesize.v
