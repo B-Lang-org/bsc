@@ -263,6 +263,9 @@ tiExpr as td exp@(CStruct mb c ies) = do
                         case (M.lookup f dflts_map) of
                           Just e -> (f,e)
                           Nothing -> (setIdPosition pos f, und)
+            -- Check for errors, such as duplicate fields or invalid fields
+            -- (see similar code in tiExpr of CStructUpd and tiPat of CPstruct)
+            --
             -- We will want to perform "is \\ qfs" to find fields
             -- mentioned by the user which are not in the type.
             -- Since "is" can be qualified (by GenWrap, at least),
@@ -312,15 +315,29 @@ tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
         --posCheck "C" e
         x <- newVar (getPosition e) "tiExprCStructUpd"
         let v = CVar x
-            fs = map unQualId qfs
-            new = CStruct (Just True) ti (map mk fs)
-            mk i = case lookup i ies of
-                   Just e -> (i, e)
-                   Nothing -> (i, CSelectTT ti v i)
-            updids = map (unQualId . fst) ies
-        case findDup updids of
+            -- Desugar the struct-update into a struct-creation, where
+            -- any field not mentioned by the user is populated with
+            -- the value of that field in the original struct.
+            -- For fields mentioned by the user, use that Id (for its position).
+            -- For other fields, use the qualified field name, in case the
+            -- unqualified name isn't in scope.
+            new = CStruct (Just True) ti (map mk qfs)
+            mk qf = case find (qualEq qf . fst) ies of
+                      Just (i, e) -> (i, e)
+                      Nothing -> (qf, CSelectTT ti v qf)
+        -- Check for errors, such as duplicate fields or invalid fields
+        -- (see similar code in tiExpr of CStruct and tiPat of CPstruct)
+        -- A field name that appears both qualified and unqualified counts as a
+        -- duplicate.  Fields with the right base name but wrong qualifier
+        -- should be reported as invalid.
+        let updids = map fst ies
+        -- We could use something like "findDupBy qualEq updids" but that wouldn't
+        -- handle the case of "GoodQual.f" and "BadQual.f", which we want to report
+        -- early, particularly until we fix the disambiguation of the type to
+        -- consult more of the fields than just the first
+        case findDup (map unQualId updids) of
             i : _ -> err (getPosition i, EDupField (pfpString i))
-            [] -> case updids \\ fs of
+            [] -> case deleteFirstsBy qualEq updids qfs of
                    i : _ -> err (getPosition i, ENotField (pfpString ti) (pfpString i))
                    [] -> do
                             (qs, new') <- tiExpr ((x :>: toScheme td) : as) td new

@@ -82,6 +82,76 @@ compile_pass FieldAmb_Pattern_Unqualified.bsv
 compile_pass FieldAmb_Pattern_Qualified.bsv
 
 # ----------
+# See bsc.bugs/github/gh353 for more tests on disambiguating data types
+# in construction and pattern matching
+
+# ----------
+# Qualified field names (BH only)
+# (GitHub issue #628)
+
+# Desugaring of struct update, when imported qualified
+# (the original example on GitHub issue #628)
+test_c_veri_bs_modules StructUpd_QualImp_QualField {}
+
+# Confirm that struct creation with qualified fields works,
+# when imported qualified
+compile_pass StructLit_QualImp_QualField.bs
+
+# And for struct patterns
+compile_pass StructPat_QualImp_QualField.bs
+
+# --
+
+# Test the error when the type is imported qualified
+# but unqualified field names are used
+#
+# Check for the current error, although it is misleading
+# and should be fixed (see GitHub issue #629)
+#
+compile_fail_error StructUpd_QualImp_UnqualField.bs T0140
+compile_fail_error StructLit_QualImp_UnqualField.bs T0140
+compile_fail_error StructPat_QualImp_UnqualField.bs T0140
+
+# --
+
+# Test struct update with qualified fields, but the wrong qualifier
+compile_fail_error StructUpd_BadQualField.bs T0016
+find_n_strings [make_bsc_output_name StructUpd_BadQualField.bs] {Foo.exp} 1
+
+# Same but for struct creation
+compile_fail_error StructLit_BadQualField.bs T0016
+find_n_strings [make_bsc_output_name StructLit_BadQualField.bs] {Foo.exp} 1
+
+# And for struct patterns
+compile_fail_error StructPat_BadQualField.bs T0016
+find_n_strings [make_bsc_output_name StructPat_BadQualField.bs] {Foo.exp} 1
+
+# --
+
+# This example could report either a duplicate (T0017) or a field not
+# in the type (T0016) (or both).  We currently choose to report the
+# duplicate, because it is a sign that the disambiguation of the struct
+# type (used for reporting T0016) probably wasn't correct anyway.
+#
+compile_fail_error StructUpd_DupField_BothQual.bs T0017
+
+# The same test but for struct creation, instead of update.
+# Here, the disambiguation is better, but is still reported as a duplicate.
+#
+compile_fail_error StructLit_DupField_BothQual.bs T0017
+
+# And for struct patterns
+compile_fail_error StructPat_DupField_BothQual.bs T0017
+
+# --
+
+# Test that a field name occuring qualified and unqualified is
+# considered a duplicate
+compile_fail_error StructUpd_DupField_QualAndUnqual.bs T0017
+compile_fail_error StructLit_DupField_QualAndUnqual.bs T0017
+compile_fail_error StructPat_DupField_QualAndUnqual.bs T0017
+
+# ----------
 
 # Support for record updates on interfaces
 # (Google issue #112205334)

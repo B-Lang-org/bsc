@@ -1,0 +1,6 @@
+package StructLit_DupField_QualAndUnqual where
+
+import FloatingPoint
+
+fn :: FloatingPoint.Half
+fn = FloatingPoint.Half { sign = True; FloatingPoint.sign = 0 }

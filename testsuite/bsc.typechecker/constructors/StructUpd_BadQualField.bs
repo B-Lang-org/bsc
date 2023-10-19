@@ -1,0 +1,6 @@
+package StructUpd_BadQualField where
+
+import FloatingPoint
+
+fn :: FloatingPoint.Half -> FloatingPoint.Half
+fn x = x { sign = True; Foo.exp = 0 }
