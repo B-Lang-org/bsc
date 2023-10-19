@@ -1,0 +1,7 @@
+package StructPat_DupField_QualAndUnqual where
+
+import FloatingPoint
+
+fn :: FloatingPoint.Half -> Bool
+fn (FloatingPoint.Half { sign = True; FloatingPoint.sign = b }) = b
+fn _ = False

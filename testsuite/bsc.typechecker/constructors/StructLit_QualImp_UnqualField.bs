@@ -1,0 +1,10 @@
+package StructLit_QualImp_UnqualField where
+
+import qualified FloatingPoint
+
+h :: FloatingPoint.Half
+h = FloatingPoint.Half {
+  sign = True;
+  exp = 0;
+  sfd = 0
+}

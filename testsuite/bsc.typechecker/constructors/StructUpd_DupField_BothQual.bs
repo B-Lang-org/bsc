@@ -1,0 +1,11 @@
+package StructUpd_DupField_BothQual where
+
+import FloatingPoint
+
+-- The bad qualifier is on the second field to test that,
+-- even though type disambiguation was done using the first field,
+-- the qualifiers on later fields are still considered
+-- (and reported as an error when they don't match)
+
+fn :: FloatingPoint.Half -> FloatingPoint.Half
+fn x = x { FloatingPoint.sign = True; Foo.sign = 0 }

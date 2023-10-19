@@ -1,0 +1,6 @@
+package StructLit_BadQualField where
+
+import FloatingPoint
+
+fn :: FloatingPoint.Half
+fn = Half { sign = True; Foo.exp = 0 }

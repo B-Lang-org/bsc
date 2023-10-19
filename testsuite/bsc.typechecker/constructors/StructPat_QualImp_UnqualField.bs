@@ -1,0 +1,6 @@
+package StructPat_QualImp_UnqualField where
+
+import qualified FloatingPoint
+
+getSign :: FloatingPoint.Half -> Bool
+getSign (FloatingPoint.Half { sign = b }) = b

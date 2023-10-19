@@ -1,0 +1,8 @@
+package StructUpd_QualImp_UnqualField where
+
+import qualified FloatingPoint
+
+makeNegative :: FloatingPoint.Half -> FloatingPoint.Half
+makeNegative x = x {
+  sign = True
+}

@@ -1,0 +1,24 @@
+package StructUpd_QualImp_QualField where
+
+import qualified FloatingPoint
+
+makeNegative :: FloatingPoint.Half -> FloatingPoint.Half
+makeNegative x = x {
+  FloatingPoint.sign = True
+}
+
+sysStructUpd_QualImp_QualField :: (IsModule m c) => m Empty
+sysStructUpd_QualImp_QualField =
+  module
+    rules
+      "test": when True ==>
+         action
+           let x :: FloatingPoint.Half
+               x = FloatingPoint.Half {
+                     FloatingPoint.sign = False;
+                     FloatingPoint.exp = 1;
+                     FloatingPoint.sfd = 1
+                   }
+           $display(fshow x)
+           $display(fshow (makeNegative x))
+           $finish 0

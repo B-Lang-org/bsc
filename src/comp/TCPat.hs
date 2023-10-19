@@ -2,9 +2,10 @@ module TCPat(tiPat, tiPats) where
 
 import Control.Monad
 import qualified Data.Map as M
+import Data.List(deleteFirstsBy)
 --import Debug.Trace
 
-import Util(elemBy, concatMapM)
+import Util(concatMapM, findDup)
 import Id
 import Position
 import Error(internalError, ErrMsg(..))
@@ -47,7 +48,16 @@ tiPat' td pat@(CPstruct mb c ips) = do
       Right ti  -> handleCons ti
  where
    handleCons ti = tiPCon td c (Right [CPstruct (Just True) ti ips])
-   handleStruct tyc@(TyCon qc (Just k) (TIstruct _ fs)) = do
+   handleStruct tyc@(TyCon qc (Just k) (TIstruct _ qfs)) = do
+       -- Check for errors, such as duplicate fields or invalid fields
+       -- (see similar code in tiExpr of CStruct and CStructUpd)
+       let updids = map fst ips
+       case findDup (map unQualId updids) of
+         i : _ -> err (getPosition i, EDupField (pfpString i))
+         [] -> case deleteFirstsBy qualEq updids qfs of
+               i : _ -> -- report the qualified type name (qc)
+                        err (getPosition i, ENotField (pfpString qc) (pfpString i))
+               [] -> do
                  let mkTS t KStar = return t
                      mkTS t (Kfun ka k) = do v <- newTVar "tiPat CPstruct" ka c; mkTS (TAp t v) k
                      mkTS _ (KVar v) = internalError ("TCPat.tiPat': KVar " ++ show v)
@@ -55,7 +65,7 @@ tiPat' td pat@(CPstruct mb c ips) = do
                      mkTS _ KStr = internalError ("TCPat.tiPat': KStr")
                  st <- mkTS (TCon tyc) k
                  _ <- unify pat st td
-                 psasips <- mapM (tiPField qc fs td) ips
+                 psasips <- mapM (tiPField qc td) ips
                  let (pss, ass, ips') = unzip3 psasips
                  return (concat pss, concat ass, CPstruct (Just True) c ips')
    handleStruct _ = internalError ("tiPat': struct disambig didn't return expected TyCon")
@@ -116,11 +126,10 @@ tiPCon td c args = do
     qs'            <- concatMapM (mkVPred (getPosition c)) qs
     return (eq_ps ++ qs' ++ ps, as, CPConTs ti c' ts [pat'])
 
-tiPField :: Id -> [Id] -> Type -> (Id, CPat) -> TI ([VPred], [Assump], (Id, CPat))
-tiPField si fs rt (i, p) =
-    if not (elemBy qualEq i fs) then
-        err (getPosition i, ENotField (pfpString si) (pfpString i))
-    else do
+-- The caller should already have checked that the field Id is valid
+tiPField :: Id -> Type -> (Id, CPat) -> TI ([VPred], [Assump], (Id, CPat))
+tiPField si rt (i, p) =
+     do
         (i' :>: sc, _, _) <- findFields rt i
         (qs :=> t', _)   <- freshInst "B" i sc
         (t,eq_ps) <- unifyFnTo i p t' rt
