@@ -49,7 +49,9 @@ endfunction
 function Complex#(FixedPoint#(ri,rf)) c_fxptMult (SaturationMode smode
                                                   ,Complex# (FixedPoint#(ai,af)) x
                                                   ,Complex# (FixedPoint#(bi,bf)) y )
-   provisos ( Add#(ai,bi,ri)   // ri = ai + bi
+   provisos ( Min#(ai, 1, 1)
+             ,Min#(bi, 1, 1)
+             ,Add#(ai,bi,ri)   // ri = ai + bi
              ,Add#(af,bf,rf)   // rf = af + bf
              ,Add#(ai,af,ab)
              ,Add#(bi,bf,bb)

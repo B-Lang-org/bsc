@@ -32,6 +32,7 @@ endinterface
 
 module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(isize, fsize))
   provisos (
+      Min#(isize, 1, 1),
       Add#(isize,fsize,m),
       Mul#(TDiv#(m, 2), 2, m),
       // per request of bsc
