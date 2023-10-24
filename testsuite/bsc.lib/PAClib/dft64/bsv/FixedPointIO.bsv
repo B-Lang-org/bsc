@@ -66,7 +66,8 @@ endfunction
 // Read the next data set from the file
 // return invalid if there is a read error
 function ActionValue# (Maybe# (Vector#(n, Complex# (FixedPoint# (i,f))))) readPoints ()
-provisos ( Add#(TAdd#(i,f),_xxx,31)
+provisos ( Min#(i, 1, 1)
+          ,Add#(TAdd#(i,f),_xxx,31)
           ,Alias#(fp, FixedPoint#(i,f))
           ,Alias#(mfp, Maybe#(fp))
           ,Alias#(cfp, Complex#(fp))

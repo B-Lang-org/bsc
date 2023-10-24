@@ -46,6 +46,11 @@ module mkDivide( Divide#(int_n, fra_n, int_d, fra_d, int_q, fra_q))
             // The Arith class provisos required this
             // XXX it should be solvable based on the above provisos
             ,Add#(6, TAdd#(fra_d, fra_d), TAdd#(int_ex, int_ex))
+
+            // FixedPoint integer component must have non-zero width
+            ,Min#(int_n, 1, 1)
+            ,Min#(int_d, 1, 1)
+            ,Min#(int_q, 1, 1)
             );
 
    Reg#(Maybe#(Tuple2#(FixedPoint#(int_ex, fra_n),

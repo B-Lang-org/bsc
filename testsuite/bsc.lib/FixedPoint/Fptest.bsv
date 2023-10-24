@@ -16,16 +16,9 @@ function FixedPoint#(ri,rf)  fxptMult2 (
             ,Add#(ai,af,ab)
             ,Add#(bi,bf,bb)
             ,Add#(ab,bb,pb)
-//              Add#(xxA,ai,ri),    // ri >= ai
-//              Add#(xxB,af,rf),    // rf >= af
-//              Add#(xxC,bi,ri),    // ri >= bi
-//              Add#(xxD,bf,rf),    // rf >= bf
-//              Add#(ai,bi,pi),
-//              Add#(af,bf,pf),
-//              Add#(xxG,ri,pi),
-//              Add#(xxH,rf,pf)
-//             ,Add#(TAdd#(ai,af),TAdd#(bi,bf),TAdd#(pi,pf))
-//             ,Add#(xxI,TAdd#(ri,rf),TAdd#(pi,pf))
+            ,Min#(ai, 1, 1)
+            ,Min#(bi, 1, 1)
+            ,Min#(ri, 1, 1)
             ) ;
 
    FixedPoint#(pi,pf) prod = fxptMult( a, b ) ;

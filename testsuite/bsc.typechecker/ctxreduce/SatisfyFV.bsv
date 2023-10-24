@@ -1,4 +1,4 @@
-package Test;
+package SatisfyFV;
 
 import Vector::*;
 import FixedPoint::*;
@@ -17,7 +17,8 @@ function FixedPoint#(ri,rf) linear_interp(Vector#(n,FixedPoint#(vi,f)) lut_even,
 				 	  Vector#(n,FixedPoint#(vi,f)) lut_odd,
 					  FixedPoint#(ri,f) last,
 					  t x)
-   provisos(Log#(n,idx_bits), Bits#(t,t_sz),
+   provisos(Min#(vi, 1, 1),
+            Log#(n,idx_bits), Bits#(t,t_sz),
             Add#(1, idx_bits, idx_bits2), Add#(idx_bits2,frac_bits,t_sz),
 	    Add#(1,vi,ri), Add#(1,rf,rf_plus_1),
 	    Arith#(FixedPoint#(ri,rf_plus_1)),
@@ -48,4 +49,4 @@ function FixedPoint#(ri,rf) linear_interp(Vector#(n,FixedPoint#(vi,f)) lut_even,
    return roundLSBs(res);
 endfunction: linear_interp
 
-endpackage: Test
+endpackage: SatisfyFV

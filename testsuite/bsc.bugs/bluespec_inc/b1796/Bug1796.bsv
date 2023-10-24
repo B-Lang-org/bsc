@@ -108,7 +108,12 @@ module [m] mkDePipelinedMultiplier(m#(PipelinedMultiplier#(stages, tnum)) mkmul,
 endmodule
 
 module [m] mkPipelinedMultiplierFixedPoint(m#(Multiplier#(Bit#(BitLen))) mkmul, Multiplier#(FixedPoint#(is, fs)) ifc)
-    provisos(IsModule#(m, m__), Add#(a__, TAdd#(is, fs), BitLen));
+    provisos(
+      IsModule#(m, m__),
+      Add#(a__, TAdd#(is, fs), BitLen),
+      Min#(is, 1, 1),
+      Min#(TAdd#(is, fs), 2, 2)
+    );
 
     Multiplier#(Bit#(BitLen)) mul <- mkmul;
 

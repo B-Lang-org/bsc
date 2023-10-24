@@ -76,7 +76,9 @@ endmodule
 // A pipelined complex multiplier
 function Vector#(4,FixedPoint#(ri,rf)) complex_partialProducts (Tuple2#(Complex# (FixedPoint#(ai,af)),
                                                                         Complex# (FixedPoint#(bi,bf)) ) x )
-    provisos (Add#(ai,bi,ri)   // ri = ai + bi
+    provisos (Min#(ai, 1, 1)
+             ,Min#(bi, 1, 1)
+             ,Add#(ai,bi,ri)   // ri = ai + bi
              ,Add#(af,bf,rf)   // rf = af + bf
              ,Add#(ai,af,ab)
              ,Add#(bi,bf,bb)
