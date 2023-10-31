@@ -164,7 +164,7 @@ The `check-smoke` target runs a test using an external Verilog simulator, which 
 
     $ apt-get install iverilog
 
-[Icarus Verilog]: http://iverilog.icarus.com
+[Icarus Verilog]: https://steveicarus.github.io/iverilog/
 
 More extensive testing is available in the `testsuite` subdirectory.
 Additional requirements for running those tests are listed in the
