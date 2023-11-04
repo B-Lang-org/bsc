@@ -92,7 +92,11 @@ For the following systems, the Bluespec toolchain is available
 as a package that can be installed with the standard package manager:
 
 * ArchLinux AUR: [`bluespec-git`](https://aur.archlinux.org/packages/bluespec-git/) ([among others](https://aur.archlinux.org/packages/?K=bluespec))
+* Gentoo GURU and LiGurOS: [`sci-electronics/bluespec`](https://gitweb.gentoo.org/repo/proj/guru.git/tree/sci-electronics/bluespec)
 * Nix/NixOS: [`bluespec`](https://search.nixos.org/packages?channel=20.09&from=0&size=50&sort=relevance&query=bluespec)
+
+You can also use the [Repology search engine](https://repology.org/project/bluespec/versions)
+to check for Bluespec packages for your system.
 
 If a package exists for your system, we recommend installing that.
 Otherwise, a tar-archive may be available for download from our
