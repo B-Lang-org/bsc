@@ -129,6 +129,9 @@ jobs:
         shell: bash
         run: |
           .github/workflows/install_dependencies_macos.sh
+          # Workaround for any packages that installed ghc
+          (brew list ghc > /dev/null 2>&1) && brew unlink ghc
+          (brew list cabal-install > /dev/null 2>&1) && brew unlink cabal-install
           # Don't rely on the VM to pick the GHC version
           ghcup install ghc 9.4.7
           ghcup set ghc 9.4.7
