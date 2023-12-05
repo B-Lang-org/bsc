@@ -153,8 +153,8 @@ if [ -n "$BSC_VPI_FILES" ]; then
     echo "       Compile and link without the -use-dpi flag."
     exit 1
   fi
-  echo "WARNING: IVerilog support for VPI is incomplete.  BSV designs using foreign"
-  echo "         functions are not guaranteed to compile or simulate correctly."
+  # echo "WARNING: IVerilog support for VPI is incomplete.  BSV designs using foreign"
+  # echo "         functions are not guaranteed to compile or simulate correctly."
   ## If CXX is set, use that.  Otherwise just use c++
   if [ "$CXX" = "" ]
   then
