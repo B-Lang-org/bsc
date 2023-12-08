@@ -999,26 +999,25 @@ class MOD_CReg : public Module
 
     // buffer for auto-generating the signal names
     // (longest name is Q_OUT_# plus room for null terminator)
-    char* buf = (char*) malloc(8);
+    char buf[17];
 
     vcd_write_scope_start(sim_hdl, inst_name);
     for (unsigned int i = 0; i < ports; i++) {
       // start with Q_OUT, so that the alias' number is reused
-      snprintf(buf, 8, "Q_OUT_%u", i);
+      snprintf(buf, sizeof(buf), "Q_OUT_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, bits);
 
-      snprintf(buf, 8, "EN_%u", i);
+      snprintf(buf, sizeof(buf), "EN_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, 1);
 
-      snprintf(buf, 8, "D_IN_%u", i);
+      snprintf(buf, sizeof(buf), "D_IN_%u", i);
       vcd_set_clock(sim_hdl, num, __clk_handle_0);
       vcd_write_def(sim_hdl, num++, buf, bits);
     }
     vcd_write_scope_end(sim_hdl);
 
-    free(buf);
     return num;
   }
   void dump_VCD(tVCDDumpType dt, MOD_CReg<T>& backing)
