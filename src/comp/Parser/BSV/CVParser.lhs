@@ -2261,7 +2261,12 @@ if both fail, the error messages will come from the more likely alternative.
 >                       pImperativeLet decl_atts bind_atts flags pos)
 >                 <|> (pKeyword SV_KW_match >> noAttrs_ >>
 >                       pImperativePatternDecl flags)
->                 <|> try pVarTypeCases
+>                 <|> try (do
+>                      -- require a match of the whole statement, to avoid parsing just
+>                      -- the start of a naked expression that begins with a variable
+>                      s <- pVarTypeCases
+>                      lookAhead pSemi
+>                      return s)
 >                 <|> try (do
 >                      when (not $ allowNakedExpr flags) (fail "naked expression")
 >                      e <- pExpression
@@ -3391,6 +3396,8 @@ The same, but reads an output port name instead of a type
 >        ((pImperativeWithCallRegWrite flags pos primy >>= noBindAttrs)
 >         <|> (pImperativeWithCallEq flags primy >>= noBindAttrs)
 >         <|> pImperativeWithCallBind bind_atts flags primy
+>         -- Naked expressions are accepted here, so that a helpful error
+>         -- for that situation can be given (EForbiddenNakedExprInExprBlock).
 >         <|> (pImperativeWithExprNakedExpr flags pos primy >>= noBindAttrs))
 > pImperativeWithVarCall bind_attrs flags vars =
 >     failWithErr (getIdOrTuplePosition vars, EForbiddenTuple)
