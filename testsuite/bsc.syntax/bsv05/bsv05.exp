@@ -402,7 +402,6 @@ compile_pass ImperativeVariableBind_NewLetType.bsv
 
 # -----
 
-
 # Tests for decoding UTF8 and erroring out on non-UTF8 files
 compile_pass UTF8Code.bsv
 compile_pass UTF8LineComment.bsv
@@ -422,3 +421,21 @@ compile_fail_error UTF8BadCons1.bsv P0005
 compile_fail_error UTF8BadCons2.bsv P0005
 compile_pass 風呂敷.bsv
 
+# -----
+
+# GitHub Issue #646
+#
+# In a statement context that allows naked expressions,
+# the parser should accept the full expression and not
+# stop early on a prefix that also happens to be an
+# expression.  For example, "x == y ? e1 : e2" should
+# parse and not stop early on "x" or "x == y".
+
+compile_pass NakedExpr_Stmt.bsv
+
+# The arms of case expressions are parsed as statements
+# allowing naked expression, so test there, too
+#
+compile_pass NakedExpr_CaseExpr.bsv
+
+# ---------------
