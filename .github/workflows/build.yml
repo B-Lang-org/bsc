@@ -131,6 +131,12 @@ jobs:
         shell: bash
         run: |
           .github/workflows/install_dependencies_macos.sh
+          # If the runner doesn't have 'ghcup', install it
+          if ! [ -x "$(command -v ghcup)" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+            echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
+            export PATH=$HOME/.ghcup/bin:$PATH
+          fi
           # Don't rely on the VM to pick the GHC version
           ghcup install ghc 9.4.7
           ghcup set ghc 9.4.7
