@@ -721,6 +721,54 @@ aSchedule_step1 errh flags prefix pps amod = do
   when trace_sched_steps $ traceM "disjoint2"
 
   -- ====================
+  -- CF conflict graph
+
+      -- Build an initial conflict graph for methods and rules
+      -- (containing edges just from conflicting method uses)
+
+      -- The test for method-use conflicts is based on the ncSetCF set,
+      -- rule disjoint info, and rule method use map.
+
+  (cfConflictMap0, setToTestForStaticSchedule_cf, disjointState3) <-
+      mkConflictMap flags disjointState2
+                    ruleMethodUseMap ncSetCF cf_or_disjoint
+
+  -- ====================
+  -- PC conflict graph
+
+  let
+      -- Produce the PC conflict test in a similar way. The conflict
+      -- test passes everything that is passed by cfConflictMap, and
+      -- also passes the combinations that are in ncSetPC
+
+      -- convert the cf map into a test
+      cf_map_test r1 r2 = isNothing $ G.lookup (r1, r2) cfConflictMap0
+
+  (pcConflictMap0, setToTestForStaticSchedule_pc, disjointState4) <-
+      mkConflictMap flags disjointState3
+                    ruleMethodUseMap ncSetPC cf_map_test
+
+  -- ====================
+  -- SC conflict graph
+
+  let
+      -- Produce an SC conflict test based on the ncSetSC,
+      -- the CF conflict graph, and rule method use map.
+      -- A conflict test is a function from two rule ids to a list
+      -- of method pairs between the rules which have the conflict.
+
+      -- (r1,r2) in scConflictMap  <==>  r1 affects something that r2 reads
+
+      -- convert the pc map into a test (XXX why pc?! why not cf?)
+      pc_map_test r1 r2 = isNothing $ G.lookup (r1, r2) pcConflictMap0
+
+      -- Using the conflict test, build an initial conflict graph
+      -- for methods and rules (just the method conflict edges)
+  (scConflictMap0, setToTestForStaticSchedule_sc, disjointState5) <-
+      mkConflictMap flags disjointState4
+                    ruleMethodUseMap ncSetSC pc_map_test
+
+  -- ====================
 
   -- ActionValue methods with arguments should be considered to
   -- conflict with themselves if the return value uses an argument
@@ -765,6 +813,17 @@ aSchedule_step1 errh flags prefix pps amod = do
           -- these are the same edges
           cfConflictEdgesAVArg
 
+  -- Now add the edges to the maps
+  let
+      cfConflictMap1 = tr "let cfConflictMap1" $
+          foldl addConflictEdge cfConflictMap0 cfConflictEdgesAVArg
+
+      pcConflictMap1 = tr "let pcConflictMap1" $
+          foldl addConflictEdge pcConflictMap0 pcConflictEdgesAVArg
+
+      scConflictMap1 = tr "let scConflictMap1" $
+          foldl addConflictEdge scConflictMap0 scConflictEdgesAVArg
+
   -- ====================
 
   -- conflicts introduced by schedPragmas (preempt and any user overrides)
@@ -780,95 +839,27 @@ aSchedule_step1 errh flags prefix pps amod = do
       scConflictEdgesSP = tr "let scConflictEdgesSP" $
           extractSCConflictEdgesSP schedPragmas
 
-  -- ====================
-  -- CF conflict graph
-
-      -- Build an initial conflict graph for methods and rules
-      -- (containing edges just from conflicting method uses)
-
-      -- The test for method-use conflicts is based on the ncSetCF set,
-      -- rule disjoint info, and rule method use map.
-
-  (cfConflictMap0, setToTestForStaticSchedule_cf, disjointState3) <-
-      mkConflictMap flags disjointState2
-                    ruleMethodUseMap ncSetCF cf_or_disjoint
-
+  -- Now add the edges to the maps
   let
-      -- Add conflicts for ActionValue method argument uses
-      -- XXX should this be part of cfConflictMap0?
-      cfConflictMap1 = tr "let cfConflictMap1" $
-          foldl addConflictEdge cfConflictMap0 cfConflictEdgesAVArg
-
-      -- Now add conflicts implied by the sched pragmas
-      -- XXX this also includes the unsupported user override pragma
       cfConflictMap = tr "let cfConflictMap" $
           foldl addConflictEdge cfConflictMap1 cfConflictEdgesSP
 
-  -- for better memory performance, force the computation
-  hyper (G.toList cfConflictMap) $
-      when trace_sched_steps $ traceM ("forcing cfConflictMap")
-
-  -- ====================
-  -- PC conflict graph
-
-  let
-      -- Produce the PC conflict test in a similar way. The conflict
-      -- test passes everything that is passed by cfConflictMap, and
-      -- also passes the combinations that are in ncSetPC
-
-      -- convert the cf map into a test
-      cf_map_test r1 r2 = isNothing $ G.lookup (r1, r2) cfConflictMap0
-
-  (pcConflictMap0, setToTestForStaticSchedule_pc, disjointState4) <-
-      mkConflictMap flags disjointState3
-                    ruleMethodUseMap ncSetPC cf_map_test
-
-  let
-      -- Add conflicts for ActionValue method argument uses
-      -- XXX should this be part of scConflictMap0?
-      pcConflictMap1 = tr "let pcConflictMap1" $
-          foldl addConflictEdge pcConflictMap0 pcConflictEdgesAVArg
-
-      -- Now add conflicts implied by the sched pragmas
-      -- XXX this also includes the unsupported user override pragma
       pcConflictMap = tr "let pcConflictMap" $
           foldl addConflictEdge pcConflictMap1 pcConflictEdgesSP
 
-  -- for better memory performance, force the computation
-  hyper (G.toList pcConflictMap) $
-      when trace_sched_steps $ traceM ("forcing pcConflictMap")
-
-  -- ====================
-  -- SC conflict graph
-
-  let
-      -- Produce an SC conflict test based on the ncSetSC,
-      -- the CF conflict graph, and rule method use map.
-      -- A conflict test is a function from two rule ids to a list
-      -- of method pairs between the rules which have the conflict.
-
-      -- convert the pc map into a test (XXX why pc?! why not cf?)
-      pc_map_test r1 r2 = isNothing $ G.lookup (r1, r2) pcConflictMap0
-
-      -- Using the conflict test, build an initial conflict graph
-      -- for methods and rules (just the method conflict edges)
-  (scConflictMap0, setToTestForStaticSchedule_sc, disjointState5) <-
-      mkConflictMap flags disjointState4
-                    ruleMethodUseMap ncSetSC pc_map_test
-
-  let
-      -- Add conflicts for ActionValue method argument uses
-      -- XXX should this be part of scConflictMap0?
-      scConflictMap1 = tr "let scConflictMap1" $
-          foldl addConflictEdge scConflictMap0 scConflictEdgesAVArg
-
-      -- Now add conflicts implied by the sched pragmas
-      -- XXX this also includes the unsupported user override feature
       -- (r1,r2) in scConflictMap  <==>  r1 affects something that r2 reads
       scConflictMap = tr "let scConflictMap" $
           foldl addConflictEdge scConflictMap1 scConflictEdgesSP
 
+  -- ====================
   -- for better memory performance, force the computation
+
+  hyper (G.toList cfConflictMap) $
+      when trace_sched_steps $ traceM ("forcing cfConflictMap")
+
+  hyper (G.toList pcConflictMap) $
+      when trace_sched_steps $ traceM ("forcing pcConflictMap")
+
   hyper (G.toList scConflictMap) $
       when trace_sched_steps $ traceM ("forcing scConflictMap")
 
