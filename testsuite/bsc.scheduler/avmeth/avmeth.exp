@@ -31,5 +31,14 @@ compile_verilog_pass TestAVMethSBR.bsv
 compare_file [make_bsc_vcomp_output_name TestAVMethSBR.bsv]
 
 # --------------------------------------------------
+# Test for GitHub Issue 641: When an argument to an action method
+# is used in the condition of an action, the method should be
+# considered to be C with itself, not SBR.
+
+compile_verilog_schedule_pass ArgCondUse.bsv
+# Test for the expected schedule annotations for the module
+compare_file_filter_ids [make_bsc_sched_output_name ArgCondUse.bsv]
+
+# --------------------------------------------------
 
 }

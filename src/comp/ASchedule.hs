@@ -733,6 +733,10 @@ aSchedule_step1 errh flags prefix pps amod = do
       mkConflictMap flags disjointState2
                     ruleMethodUseMap ncSetCF cf_or_disjoint
 
+  -- for better memory performance, force the computation
+  hyper (G.toList cfConflictMap0) $
+      when trace_sched_steps $ traceM ("forcing cfConflictMap0")
+
   -- ====================
   -- PC conflict graph
 
@@ -747,6 +751,10 @@ aSchedule_step1 errh flags prefix pps amod = do
   (pcConflictMap0, setToTestForStaticSchedule_pc, disjointState4) <-
       mkConflictMap flags disjointState3
                     ruleMethodUseMap ncSetPC cf_map_test
+
+  -- for better memory performance, force the computation
+  hyper (G.toList pcConflictMap0) $
+      when trace_sched_steps $ traceM ("forcing pcConflictMap0")
 
   -- ====================
   -- SC conflict graph
@@ -768,61 +776,41 @@ aSchedule_step1 errh flags prefix pps amod = do
       mkConflictMap flags disjointState4
                     ruleMethodUseMap ncSetSC pc_map_test
 
+  -- for better memory performance, force the computation
+  hyper (G.toList scConflictMap0) $
+      when trace_sched_steps $ traceM ("forcing scConflictMap0")
+
   -- ====================
 
-  -- ActionValue methods with arguments should be considered to
-  -- conflict with themselves if the return value uses an argument
-
-  let avmeth_arg_usemap =
-          let -- define this map recursively
-              port_usemap = M.fromList (map findUses ds)
-              ds = apkg_local_defs amod
-              findUses (ADef di _ de _) =
-                  let accumFn (ASPort _ i) pmap = S.insert i pmap
-                      accumFn (ASDef _ i) pmap =
-                          -- recursive construction
-                          case (M.lookup i port_usemap) of
-                            Nothing -> internalError ("port_usemap: "
-                                                      ++ ppReadable i)
-                            Just m -> S.union m pmap
-                      accumFn _ pmap = pmap
-                  in  (di, exprFold accumFn S.empty de)
-          in
-              -- now use it find the uses just for avmethod args
-              [ (di, S.intersection argset portset)
-                    | (AIActionValue { aif_value = d,
-                                       aif_inputs = as }) <- ifs,
-                      let argset = S.fromList (map fst as),
-                      let (di, portset) = findUses d ]
+  -- An Action or ActionValue method should be considered to conflict
+  -- with itself if it has an argument that is used in the return value
+  -- or in the condition of any of the actions.
 
   let
       -- XXX create new conflict types for these?
-      cfConflictEdgesAVArg =
-          tr "let cfConflictEdgesAVArg" $
-          [ (mid, mid, [CUse uses])
-                | (mid, arg_uses) <- avmeth_arg_usemap,
-                  not (S.null arg_uses),
-                  let mkUse a = (MethodId emptyId a, MethodId emptyId a),
-                  let uses = map mkUse (S.toList arg_uses) ]
-      scConflictEdgesAVArg =
-          tr "let scConflictEdgesAVArg" $
+      cfConflictEdgesMethodArg =
+          tr "let cfConflictEdgesMethodArg" $
+          let ds = apkg_local_defs amod
+          in  extractMethodArgEdges scConflictMap0 ds ifs
+      scConflictEdgesMethodArg =
+          tr "let scConflictEdgesMethodArg" $
           -- these are the same edges
-          cfConflictEdgesAVArg
-      pcConflictEdgesAVArg =
-          tr "let pcConflictEdgesAVArg" $
+          cfConflictEdgesMethodArg
+      pcConflictEdgesMethodArg =
+          tr "let pcConflictEdgesMethodArg" $
           -- these are the same edges
-          cfConflictEdgesAVArg
+          cfConflictEdgesMethodArg
 
   -- Now add the edges to the maps
   let
       cfConflictMap1 = tr "let cfConflictMap1" $
-          foldl addConflictEdge cfConflictMap0 cfConflictEdgesAVArg
+          foldl addConflictEdge cfConflictMap0 cfConflictEdgesMethodArg
 
       pcConflictMap1 = tr "let pcConflictMap1" $
-          foldl addConflictEdge pcConflictMap0 pcConflictEdgesAVArg
+          foldl addConflictEdge pcConflictMap0 pcConflictEdgesMethodArg
 
       scConflictMap1 = tr "let scConflictMap1" $
-          foldl addConflictEdge scConflictMap0 scConflictEdgesAVArg
+          foldl addConflictEdge scConflictMap0 scConflictEdgesMethodArg
 
   -- ====================
 
@@ -852,8 +840,10 @@ aSchedule_step1 errh flags prefix pps amod = do
           foldl addConflictEdge scConflictMap1 scConflictEdgesSP
 
   -- ====================
-  -- for better memory performance, force the computation
+  -- For better memory performance, force the computation
 
+  -- XXX Do we need this again, if we already forced the initial maps?
+{-
   hyper (G.toList cfConflictMap) $
       when trace_sched_steps $ traceM ("forcing cfConflictMap")
 
@@ -862,6 +852,7 @@ aSchedule_step1 errh flags prefix pps amod = do
 
   hyper (G.toList scConflictMap) $
       when trace_sched_steps $ traceM ("forcing scConflictMap")
+-}
 
   -- ====================
   -- Rule Relation DB (1 of 4)
@@ -2687,6 +2678,83 @@ errReflexiveUserUrgency es =
                             EReflexiveUserUrgency (pfpString i1)
                                 (getPosition i1) (getPosition i2))
     in  EMError (map mkEMsg es)
+
+
+-- ========================================================================
+-- Compute conflict edges for action methods with themselves
+-- when use of an argument (in conditions or return values)
+-- limits the method to conflict with itself (not be SC)
+
+extractMethodArgEdges :: ConflictMap -> [ADef] -> [AIFace] ->
+                         [(ARuleId,ARuleId,[Conflicts])]
+extractMethodArgEdges scConflictMap0 ds ifs =
+  let
+      -- Construct (lazily and recursively) a map from each def to the
+      -- set of module ports that it uses.
+      port_usemap = M.fromList (map findDefPortUses ds)
+
+      findExprPortUses e =
+          let accumFn (ASPort _ i) pmap = S.insert i pmap
+              accumFn (ASDef _ i) pmap =
+                  -- recursive construction
+                  case (M.lookup i port_usemap) of
+                    Nothing -> internalError ("port_usemap: " ++ ppReadable i)
+                    Just m -> S.union m pmap
+              accumFn _ pmap = pmap
+          in  exprFold accumFn S.empty e
+
+      findDefPortUses (ADef di _ de _) = (di, findExprPortUses de)
+
+      -- ActionValue methods with arguments should be considered to
+      -- conflict with themselves if the return value uses an argument
+      --
+      findAVValueUses :: ADef -> S.Set AId
+      findAVValueUses = snd . findDefPortUses
+
+      -- Action/ActionValue methods with arguments should be considered
+      -- to conflict with themselves if any action call condition uses
+      -- an argument
+      --
+      findACondUses :: [ARule] -> S.Set AId
+      findACondUses rs =
+          let getCond = headOrErr "findACondUses: getCond"
+              findActionPortUses :: AAction -> S.Set AId
+              findActionPortUses = findExprPortUses . getCond . aact_args
+              findRulePortUses :: ARule -> S.Set AId
+              findRulePortUses = S.unions . map findActionPortUses . arule_actions
+          in  S.unions $ map findRulePortUses rs
+
+      -- Given an interface field, determine if a conflict edge is needed
+      findAIFaceUses (AIActionValue { aif_name = mid,
+                                      aif_value = d,
+                                      aif_body = rs,
+                                      aif_inputs = as }) =
+          -- If the edge already exists, don't bother
+          if G.member (mid, mid) scConflictMap0
+          then S.empty
+          else let argset = S.fromList (map fst as)
+                   condset = findACondUses rs
+                   valset = findAVValueUses d
+               in  S.intersection argset (S.union condset valset)
+      findAIFaceUses (AIAction { aif_name = mid,
+                                 aif_body = rs,
+                                 aif_inputs = as }) =
+          -- If the edge already exists, don't bother
+          if G.member (mid, mid) scConflictMap0
+          then S.empty
+          else let argset = S.fromList (map fst as)
+                   condset = findACondUses rs
+               in  S.intersection argset condset
+      findAIFaceUses _ = S.empty
+
+  in
+     [ (mid, mid, [CUse uses])
+     | ifc <- ifs,
+       let mid = aif_name ifc,
+       let arg_uses = findAIFaceUses ifc,
+       not (S.null arg_uses),
+       let mkUse a = (MethodId emptyId a, MethodId emptyId a),
+       let uses = map mkUse (S.toList arg_uses) ]
 
 
 -- ========================================================================
