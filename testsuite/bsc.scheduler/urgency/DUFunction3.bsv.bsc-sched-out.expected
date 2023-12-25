@@ -43,12 +43,12 @@ order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4
  (gos_5.write, [(if setGo_index_EQ_5___d31 then gos_5.write 1'd1, 1)]),
  (outf.deq, [(outf.deq, 1)]),
  (outf.enq,
-  [(outf.enq b__h1824, 1),
-   (outf.enq b__h1941, 1),
-   (outf.enq b__h2056, 1),
-   (outf.enq b__h2171, 1),
-   (outf.enq b__h2286, 1),
-   (outf.enq b__h2399, 1)]),
+  [(outf.enq b__h1705, 1),
+   (outf.enq b__h1810, 1),
+   (outf.enq b__h1912, 1),
+   (outf.enq b__h2014, 1),
+   (outf.enq b__h2116, 1),
+   (outf.enq b__h2216, 1)]),
  (outf.first, [(outf.first, 1)]),
  (outf.i_notEmpty, [(outf.i_notEmpty, 1)]),
  (outf.i_notFull, [(outf.i_notFull, 1)])]
@@ -64,8 +64,8 @@ SchedInfo
  [clearGo, setGo] CF [clearGo, deq, first],
  first CF first,
  first SB deq,
- setGo SBR setGo,
- deq C deq]
+ deq C deq,
+ setGo C setGo]
 []
 [(setGo,
   [(Left RL_doit),
@@ -86,7 +86,7 @@ Method schedule
 Method: setGo
 Ready signal: True
 Conflict-free: clearGo, deq, first
-Sequenced before (restricted): setGo
+Conflicts: setGo
  
 Method: clearGo
 Ready signal: True
