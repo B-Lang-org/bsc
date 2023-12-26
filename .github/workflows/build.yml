@@ -44,8 +44,8 @@ jobs:
         run: |
           sudo .github/workflows/install_dependencies_ubuntu.sh
           # Don't rely on the VM to pick the GHC version
-          ghcup install ghc 9.4.7
-          ghcup set ghc 9.4.7
+          ghcup install ghc 9.4.8
+          ghcup set ghc 9.4.8
       # Until BSC uses cabal to build, pre-install these packages
       - name: Install Haskell dependencies
         shell: bash
@@ -81,11 +81,11 @@ jobs:
       # reflect the locations of any new haskell sources
       - name: Test Haskell Language Server
         run: |
-          ghcup install hls
+          ghcup install hls 2.5.0.0
           pip3 install pyyaml
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
-          haskell-language-server-9.4.7 bsc.hs
+          haskell-language-server-9.4.8 bsc.hs
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
@@ -138,8 +138,8 @@ jobs:
             export PATH=$HOME/.ghcup/bin:$PATH
           fi
           # Don't rely on the VM to pick the GHC version
-          ghcup install ghc 9.4.7
-          ghcup set ghc 9.4.7
+          ghcup install ghc 9.4.8
+          ghcup set ghc 9.4.8
       # Until BSC uses cabal to build, pre-install these packages
       - name: Install Haskell dependencies
         shell: bash
@@ -185,11 +185,11 @@ jobs:
       # reflect the locations of any new haskell sources
       - name: Test Haskell Language Server
         run: |
-          ghcup install hls
+          ghcup install hls 2.5.0.0
           pip3 install pyyaml
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
-          haskell-language-server-9.4.7 bsc.hs
+          haskell-language-server-9.4.8 bsc.hs
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
