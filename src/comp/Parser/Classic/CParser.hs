@@ -349,7 +349,7 @@ prefix = literal (mkFString "prefixs") ||| literal (mkFString "prefix")
 pIfcPragmas :: CParser [IfcPragma]
 pIfcPragmas =
     -- arg_name = [id,id]
-    literal (mkFString "arg_names") ..+ eq ..+ lb ..+  pFieldId `sepBy` cm +.. rb `into`
+    literal (mkFString "arg_names") ..+ eq ..+ lb ..+  varcon `sepBy` cm +.. rb `into`
                 (\a -> succeed $  [(PIArgNames a)])
     -- prefix = "str"
     ||!  prefix ..+ eq ..+ varString
