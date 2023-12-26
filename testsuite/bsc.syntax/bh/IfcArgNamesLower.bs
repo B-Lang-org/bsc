@@ -1,0 +1,8 @@
+package IfcArgNamesLower where
+
+interface Foo =
+    foo :: Bool -> Action {-# arg_names = [foobar] #-}
+
+{-# synthesize mkFoo #-}
+mkFoo :: Module Foo
+mkFoo = return _

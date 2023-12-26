@@ -181,3 +181,9 @@ compile_fail_error DegreePrimeVar1.bs P0005
 compile_fail_error DegreePrimeVar2.bs P0005
 compile_fail_error DegreePrimeVar3.bs P0005
 compile_fail_error DegreePrimeVar4.bs P0005
+
+# Test for the arg_names interface method property
+compile_pass IfcArgNamesLower.bs
+compile_pass IfcArgNamesUpper.bs
+compile_fail_error IfcArgNamesQual.bs P0005
+
