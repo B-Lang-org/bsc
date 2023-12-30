@@ -1,0 +1,171 @@
+name: CI
+
+# Trigger the workflow on push or pull request
+on: [ push, pull_request ]
+
+jobs:
+  build-check-src:
+    name: "Check: code cleanliness"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check tabs and whitespace
+        shell: bash
+        run: ".github/workflows/check_whitespace.sh"
+
+  build-check-testsuite:
+    name: "Check: testsuite lint"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check CONFDIR
+        run: |
+          cd testsuite
+          ../.github/workflows/check_confdir.py
+          ../.github/workflows/check_symlinks.py
+
+  build-and-test-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-22.04 ]
+      fail-fast: false
+    name: "Build/Test: ${{ matrix.os }}"
+    uses: ./.github/workflows/build-and-test-ubuntu.yml
+    with:
+      os: ${{ matrix.os }}
+      ghc_version: 9.4.8
+      hls_version: 2.5.0.0
+    secrets: inherit
+
+  build-and-test-macos:
+    strategy:
+      matrix:
+        os: [ macos-11, macos-12, macos-13 ]
+      fail-fast: false
+    name: "Build/Test: ${{ matrix.os }}"
+    uses: ./.github/workflows/build-and-test-macos.yml
+    with:
+      os: ${{ matrix.os }}
+      ghc_version: 9.4.8
+      hls_version: 2.5.0.0
+    secrets: inherit
+
+  build-and-test-ghc-latest-ubuntu:
+    name: "Build/Test: GHC latest Ubuntu"
+    uses: ./.github/workflows/build-and-test-ubuntu.yml
+    with:
+      os: ubuntu-22.04
+      ghc_version: 9.8.1
+      hls_version: 2.5.0.0
+    secrets: inherit
+
+  build-and-test-ghc-latest-macos:
+    name: "Build/Test: GHC latest macOS"
+    uses: ./.github/workflows/build-and-test-macos.yml
+    with:
+      os: macos-12
+      ghc_version: 9.8.1
+      hls_version: 2.5.0.0
+    secrets: inherit
+
+  build-doc-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-22.04 ]
+      fail-fast: false
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_doc_ubuntu.sh"
+      - name: Build
+        run: |
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      # The next two actions upload the PDFs as an artifact that can be downloaded.
+      # We provide two versions: one for release packaging and one for users.
+      # This is because the GitHub download will provide the artifact as a zip-file,
+      # even if the artifact itself is just one file:
+      #   https://github.com/actions/upload-artifact/issues/3
+      #   https://github.com/actions/upload-artifact/issues/14
+      # It is inconvenient for users to access PDFs inside a tarfile inside a zipfile,
+      # therefore we provide an option without the tarfile layer.
+      - name: Upload artifact
+        # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz
+      - name: Upload doc not tar
+        # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
+
+  build-doc-macOS:
+    strategy:
+      matrix:
+        os: [ macos-11, macos-12, macos-13 ]
+      fail-fast: false
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_doc_macos.sh"
+      - name: Build
+        run: |
+          # Brew install of mactex doesn't update the path until a new shell is opened
+          export PATH=/Library/TeX/texbin/:$PATH
+
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      # The next two actions upload the PDFs as an artifact that can be downloaded.
+      # We provide two versions: one for release packaging and one for users.
+      # This is because the GitHub download will provide the artifact as a zip-file,
+      # even if the artifact itself is just one file:
+      #   https://github.com/actions/upload-artifact/issues/3
+      #   https://github.com/actions/upload-artifact/issues/14
+      # It is inconvenient for users to access PDFs inside a tarfile inside a zipfile,
+      # therefore we provide an option without the tarfile layer.
+      - name: Upload artifact
+        # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz
+      - name: Upload doc not tar
+        # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
+
+  build-releasenotes-ubuntu:
+    # Release Notes only need to be built once, so we build on recent
+    # Ubuntu, not Mac OS.  Later, the release script will copy the
+    # generated release notes to all release tarballs.
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04 ]
+      fail-fast: false
+    name: "Build releasenotes: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_releasenotes_ubuntu.sh"
+      - name: Build
+        run: |
+          make install-release
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} releasenotes
+          path: inst.tar.gz

@@ -1,0 +1,411 @@
+name: Build and Test macOS
+
+# This file defines a workflow parameterized by OS and GHC version,
+# that is called from the top-level CI workflow
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      ghc_version:
+        required: true
+        type: string
+      hls_version:
+        required: true
+        type: string
+
+jobs:
+  build-macOS:
+    name: "Build: ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Install dependencies
+        shell: bash
+        run: |
+          .github/workflows/install_dependencies_macos.sh
+          # If the runner doesn't have 'ghcup', install it
+          if ! [ -x "$(command -v ghcup)" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+            echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
+            export PATH=$HOME/.ghcup/bin:$PATH
+          fi
+          # Don't rely on the VM to pick the GHC version
+          ghcup install ghc ${{ inputs.ghc_version }}
+          ghcup set ghc ${{ inputs.ghc_version }}
+      # Until BSC uses cabal to build, pre-install these packages
+      - name: Install Haskell dependencies
+        shell: bash
+        run: |
+          cabal update
+          cabal v1-install old-time regex-compat split syb
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every build,
+      # and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v3
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: build-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            build-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+      - name: Build
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          ccache --zero-stats --max-size 250M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          # Hack: Remove incompatible TCL header that something has installed
+          # in /usr/local/include in the GitHub CI image. This dir is at the
+          # start of the compiler's default search path, and overrides the
+          # system tcl.h, and causes a linker failure (because of a macro that
+          # renames Tcl_Main to Tcl_MainEx). We want to build against the
+          # system TCL so we don't introduce any extra deps for the bluetcl
+          # binary.
+          rm -f /usr/local/include/tcl.h
+
+          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' install-src
+          tar czf inst.tar.gz inst
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+      - name: Smoketest
+        run: "make check-smoke"
+      # if this step fails, it may mean you need to update
+      # util/haskell-language-server/gen_hie.py to
+      # reflect the locations of any new haskell sources
+      - name: Test Haskell Language Server
+        run: |
+          ghcup install hls ${{ inputs.hls_version }}
+          pip3 install pyyaml
+          python3 util/haskell-language-server/gen_hie.py
+          pushd src/comp
+          haskell-language-server-${{ inputs.ghc_version }} bsc.hs
+          popd
+      # Check that .ghci has all the right flags to load the source.
+      # This is important for text editor integration & tools like ghcid
+      # NB stp, yices and htcl must be built first, so do this after Build.
+      - name: Check GHCI :load
+        run: |
+          cd src/comp
+          export NOGIT=0
+          export NOUPDATEBUILDVERSION=0
+          ./update-build-version.sh
+          ./update-build-system.sh
+          echo ':load bsc.hs' | ghci 2>&1 | tee ghci.log
+          if grep '\(Failed\|error:\)' ghci.log
+          then
+            echo "GHCi reported errors."
+            exit 1
+          else
+            echo "GHCi loaded successfully."
+            exit 0
+          fi
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+          path: inst.tar.gz
+
+  test-macOS:
+    name: "Test ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_testsuite_macos.sh"
+
+      - name: Download bsc
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v3
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+
+      - name: Run testsuite
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations)
+          export CXXFLAGS="-O0"
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          make -C testsuite \
+               TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
+               TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib \
+               TEST_SYSTEMC_CXXFLAGS=-std=c++11
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
+          path: logs.tar.gz
+
+  test-toooba-macOS:
+    name: "Test Toooba ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install ccache libelf
+
+      - name: Download bsc
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      - name: Download Toooba
+        run: |
+          git clone --recursive https://github.com/bluespec/Toooba ../Toooba
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v3
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-toooba-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-toooba-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+
+      - name: Compile and link Toooba
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+
+          cd ../Toooba/builds/RV64ACDFIMSU_Toooba_bluesim/
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations)
+          export CXXFLAGS="-O0"
+
+          # Workaround hardcoded parallelism
+          sed -i -e 's/-parallel-sim-link 8/-parallel-sim-link 2/' ../Resources/Include_bluesim.mk
+
+          # For ccache to be effective, the output needs to be reproducible
+          make BSC_C_FLAGS="-no-show-version -no-show-timestamps" all
+
+      - name: Test Toooba
+        run: |
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+
+          cd ../Toooba/Tests/elf_to_hex
+
+          make CPATH=/usr/local/include/libelf
+
+          cd ../../builds/RV64ACDFIMSU_Toooba_bluesim/
+
+          # Workaround bugs in the regression script
+          #make isa_tests | tee isa_tests.log
+          #grep -q 'FAIL:        0 tests' isa_tests.log
+          make test | tee test.log
+          grep -q 'PASS' test.log
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+  test-contrib-macOS:
+    name: "Test bsc-contrib ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_testsuite_macos.sh"
+
+      - name: Download bsc
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      - name: Download bsc-contrib
+        run: |
+          git clone --recursive https://github.com/B-Lang-org/bsc-contrib ../bsc-contrib
+
+      - name: Build and install bsc-contrib
+        run: |
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+          make -C ../bsc-contrib/
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v3
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-contrib-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-contrib-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+
+      - name: Run bsc-contrib tests
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations)
+          export CXXFLAGS="-O0"
+
+          # Copy the bsc-contrib tests into place
+          cp -r ../bsc-contrib/testing/bsc.contrib testsuite/
+
+          # Inform the tests of the path to the bsc-contrib libraries
+          export BSCCONTRIBDIR=$PWD/../bsc-contrib/inst
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          make -C testsuite/bsc.contrib check
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-contrib-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
+          path: logs.tar.gz
+
+  test-bdw-macOS:
+    name: "Test bdw ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download bsc
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      - name: Download bdw
+        run: |
+          git clone --recursive https://github.com/B-Lang-org/bdw ../bdw
+
+      - name: Build and install bdw
+        run: |
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+          make -C ../bdw/
+
+      - name: Install dependencies
+        shell: bash
+        run: "../bdw/.github/workflows/install_dependencies_testsuite_macos.sh"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v3
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-bdw-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-bdw-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+
+      - name: Run bdw tests
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations)
+          export CXXFLAGS="-O0"
+
+          # Copy the bdw tests into place
+          cp -r ../bdw/testing/bsc.bdw testsuite/
+
+          # Inform the tests of the path to bdw
+          export BDW=$PWD/../bdw/inst/bin/bdw
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          make -C testsuite/bsc.bdw check
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-bdw-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
+          path: logs.tar.gz
