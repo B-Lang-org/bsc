@@ -349,6 +349,8 @@ helpCmd interp [_,cmd] = do
                    isArg _                     = False
                    isKW (Just (Keyword _ _ _)) = True
                    isKW _                      = False
+                   isKWorNone Nothing          = True
+                   isKWorNone e                = isKW e
                    matched' = dropWhile isArg matched
                    cmd_words = map fst (reverse matched')
                let cmd_objs = take (length cmd_words) os
@@ -373,7 +375,7 @@ helpCmd interp [_,cmd] = do
                           else [ "", ld ]
                    subtopics = case g' of
                                  (ChooseFrom gs) ->
-                                     if (all isKW (map htclFirstCmdElem gs))
+                                     if (all isKWorNone (map htclFirstCmdElem gs))
                                      then [ "", "Subcommands: " ] ++
                                           [ "  " ++ name ++ descr
                                           | gr <- gs
@@ -400,11 +402,20 @@ helpCmd interp objs = htclCheckCmd helpGrammar fn interp objs
 --------------------------------------------------------------------------------
 
 versionGrammar :: HTclCmdGrammar
-versionGrammar = tclcmd "version" namespace helpStr ""
+versionGrammar = (tclcmd "version" namespace helpStr longHelpStr) .+.
+                 (optional $ oneOf [ kw "bsc" bscHelpStr ""
+                                   , kw "ghc" ghcHelpStr ""
+                                   ])
     where helpStr = "Returns version information for Bluespec software"
+          longHelpStr = init $ unlines
+                        [ "If no argument is provided, the subcommand 'bsc' is assumed." ]
+          bscHelpStr = "Show BSC version information"
+          ghcHelpStr = "Show the GHC version used to compile BSC"
 
-versionNum :: [String] -> IO [String]
-versionNum [] = return $ [versionname, buildVersion]
+versionNum :: [String] -> IO HTclObj
+versionNum [] = versionNum ["bsc"]
+versionNum ["bsc"] = return $ TLst [TStr versionname, TStr buildVersion]
+versionNum ["ghc"] = return $ TStr __GLASGOW_HASKELL_FULL_VERSION__
 versionNum xs = internalError $ "versionNum: grammar mismatch: " ++ (show xs)
 
 --------------------------------------------------------------------------------
