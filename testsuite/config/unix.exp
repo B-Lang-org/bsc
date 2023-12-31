@@ -446,18 +446,33 @@ proc get_default_bsdir {} {
 }
 
 proc get_bsc_version {} {
-    global bsc
+    global bluetcl
 
-    if {$bsc != 0} then {
-        set helloworld [exec $bsc -v]
-        regexp "version .*" $helloworld version
-        if {![info exists version]} then {
-            #warning "Couldn't determine version of $bsc from `$helloworld'"
-            set version "unknown version"
-        }
-    } else { # this should have been detected
-        warning "Can't find bsc to determine version"
-        set version "unknown version"
+    bluetcl_initialize
+
+    if { [catch "exec echo \"puts \\\[::Bluetcl::version bsc\\\]\" | $bluetcl" version] } {
+        perror "failed to execute bluetcl to get BSC version: $version"
+        exit 1
+    }
+    if { $version == "" } {
+        perror "BSC version is empty"
+        exit 1
+    }
+    return $version
+}
+
+proc get_ghc_version {} {
+    global bluetcl
+
+    bluetcl_initialize
+
+    if { [catch "exec echo \"puts \\\[::Bluetcl::version ghc\\\]\" | $bluetcl" version] } {
+        perror "failed to execute bluetcl to get GHC version: $version"
+        exit 1
+    }
+    if { $version == "" } {
+        perror "GHC version is empty"
+        exit 1
     }
     return $version
 }
@@ -3177,6 +3192,12 @@ set_warning_threshold 0
 set bsdir [get_bsdir]
 verbose -log "Bluespec dir: $bsdir" 1
 
+set bsc_version [get_bsc_version]
+verbose -log "Bluespec version: $bsc_version" 1
+
+set ghc_version [get_ghc_version]
+verbose -log "Bluespec tools compiled with GHC version: $ghc_version" 1
+
 get_test_options
 verbose -log "Do verilog backend tests is $vtest" 1
 verbose -log "Do c backend tests is $ctest" 1
@@ -3235,6 +3256,8 @@ proc bsc_initialize {} {
     global bsc_initialized
     global env
     global bsc
+    global bsc_version
+    global ghc_version
     global bsdir
     global showrules
 
@@ -3251,7 +3274,6 @@ proc bsc_initialize {} {
 
         # find bsc and version and bs prelude
         set bsc [which_bsc]
-        set bsc_version [get_bsc_version]
 
         # These functions insist that the binaries be available.
         # Since they are only used for internal tests, we should only insist on
@@ -3275,6 +3297,7 @@ proc bsc_initialize {} {
         }
 
         verbose -log "Using $bsc ($bsc_version) for tests." 1
+        verbose -log "BSC was compiled with GHC version $ghc_version." 1
         verbose -log "Compiler options: $::env(BSC_OPTIONS)" 1
         if [do_internal_checks] {
             verbose -log "Path to dumpbo: $dumpbo" 1
