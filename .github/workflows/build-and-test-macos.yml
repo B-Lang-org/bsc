@@ -162,10 +162,13 @@ jobs:
           # because it's invoked with :set -eo pipefile)
           trap ./testsuite/archive_logs.sh EXIT
 
+          # Identify the C++ standard for linking with the SystemC library
+          SYSTEMC_CXXSTD=`nm --demangle $(brew --prefix systemc)/lib/libsystemc.dylib | grep sc_api_version_ | sed -E 's/.*_cxx20([0-9][0-9]).*/\1/' | head -1`
+
           make -C testsuite \
                TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
                TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib \
-               TEST_SYSTEMC_CXXFLAGS=-std=c++11
+               TEST_SYSTEMC_CXXFLAGS=-std=c++${SYSTEMC_CXXSTD}
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
