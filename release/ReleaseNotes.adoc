@@ -4,6 +4,137 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2024.01 Release
+---------------
+
+Changes since release 2023.07:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Updates to the READMEs
+  ** Add Gentoo to the list of OSes with BSC packages
+  ** Update the URL for Icarus Verilog
+  ** Additional links to documentation
+  ** Link to Repology search for Bluespec packages
+
+* Document string types in the BH and BSV Reference Guides
+
+* Document the Generics feature and associated types and type class in
+  the Libraries Reference Guide
+
+* Minor cleanups and typo fixes in the BH and BSV Reference Guides and
+  Libraries Reference Guide
+
+Compiler
+~~~~~~~~
+
+* Fix a bug in scheduling inference for action methods with arguments,
+  when an argument is used to conditionally execute an SBR action and
+  inference doesn't otherwise determine the method to conflict with
+  itself (GitHub issue #641)
+
+* Change the derived `Generic` instance for enums and tagged unions
+  to use a balanced binary tree
+  ** This significantly improves the speed and memory use of the
+     compiler on designs with large enums
+     (GitHub issue #334, discussion #414)
+
+* Remove the warning on uses of `Generic` that the feature is
+  experimental, now that the implementation has settled
+
+* Use UTF-8 instead of ISO-8859-1 for all text-like I/O (GitHub PR #601)
+  ** Source files can now include non-Latin characters!
+
+* In BH, disallow `°` and `´` in identifiers and instead parse them as symbols
+  (GitHub PR #610)
+
+* In BH, support more clock and reset pragmas available to BSV
+  (GitHub issues #616, #224)
+  ** Specifically: `gate_input_clocks`, `clock_family`, `clock_prefix`,
+     `gate_prefix`, `reset_prefix`
+
+* In BH, add missing features to the `properties` pragma (GitHub PR #626)
+
+* In BH. fix the parsing of `arg_names` interface pragma to allow uppercase
+  identifiers and disallow qualified names (GitHub issue #654)
+
+* Fix the typecheck of struct update/literal/pattern (GitHub issue #628)
+  ** This mostly fixes issues with qualified field names in BH,
+     but may improve position information in error messages for BSV
+
+* Fix the BSV parsing of naked expressions in statement and
+  case-expression contexts (GitHub issue #646)
+
+* Fix a failure to satisfy provisos during typecheck (GitHub issue #678)
+
+* Update source code to compile with GHC 9.8
+
+Libraries
+~~~~~~~~~
+
+* In BH, use the unicode ring operator (`∘`) for function composition
+  (GitHub PR #601)
+
+* Improve provisos in the `FixedPoint` package (GitHub PR #249)
+  ** `FixedPoint` does not support an integer compoment with bit width
+     less than one and this is now enforced with provisos
+  ** The `epsilon` function also requires at least two bits in the
+     representation
+  ** Polymorphic uses of the `FixedPoint` type may need to add `Min`
+     provisos (see GitHub PR #634 for example updates in the testsuite)
+
+* Add a CShow generic instance for higher-rank fields
+
+Bluetcl
+~~~~~~~
+
+* New `version ghc` subcommand for querying the version of GHC that
+  the BSC tools were compiled with
+
+Bluesim
+~~~~~~~
+
+* Fix the use of named sephamores, so that if Bluesim crashes before
+  unlinking a semaphore, it won't cause a failure the next time Bluesim
+  runs with the same process ID and attempts to link the same name
+  (GitHub issue #611)
+
+* Resolve `-Wformat-truncation` warning from GCC (GitHub PR #649)
+
+Test Suite
+~~~~~~~~~~
+
+* When creating an archive of log files (`archive_logs.sh`),
+  include the C++ compiler output for SystemC tests
+  ** The GitHub CI uses this script to upload an artifact
+     when there is a failure
+
+* The GHC version used to build the BSC tools is available in the test
+  infrastructure (as `$ghc_version`), for use when the expected
+  behavior of a test differs depending on the GHC version
+
+* Fix the value of `$bsc_version`
+
+Internal
+~~~~~~~~
+
+* Releases now built with GHC 9.4.8 (previously 9.2.8)
+
+* Updates to GitHub CI (continuous integration)
+  ** Reorganization to support building and testing with a variety
+     of GHC versions; for now, test with the version for release
+     and with the latest version (9.8.1)
+  ** Explicitly specify the Haskell Language Server (HLS) version to
+     use, that is known to support the specified GHC version
+  ** Turn off fast-fail, so that a failure for one OS version won't
+     kill the processes testing other versions
+  ** Support macOS VMs that don't have ghcup installed
+  ** Support macOS VMs where the SystemC library is compiled with
+     an unpredictable C++ standard
+
+'''
+
 2023.07 Release
 ---------------
 
