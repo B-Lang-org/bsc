@@ -67,7 +67,7 @@ ReleaseNotes.html: ReleaseNotes.adoc
 	asciidoctor ReleaseNotes.adoc
 
 ReleaseNotes.pdf: ReleaseNotes.adoc
-	asciidoctor-pdf ReleaseNotes.adoc
+	asciidoctor-pdf --theme=default-with-font-fallbacks ReleaseNotes.adoc
 
 # -----
 
