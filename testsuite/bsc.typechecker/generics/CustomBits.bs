@@ -18,53 +18,20 @@ instance (Generic a r, MyBits' r n) => MyBits a n where
   mypack   x  = mypack' $ from x
   myunpack bs = to $ myunpack' bs
 
-class incoherent MyBits' r n | r -> n where
+class MyBits' r n | r -> n where
   mypack'   :: r -> Bit n
   myunpack' :: Bit n -> r
 
--- Compute the number of tag bits required for the number of
--- constructors at the top-level MetaData instance
-instance (Log ncons ntag, ConBits 0 r ndata, Add ntag ndata n) =>
-         MyBits' (Meta (MetaData name pkg ta ncons) r) n where
-  mypack' (Meta x) =
-    let (tagNum, dat) = packCon x
-        tag = pack ((fromInteger tagNum) :: UInt ntag)
-    in tag ++ dat
+-- Instance for sum types
+instance (MyBits' r1 n1, MyBits' r2 n2, Max n1 n2 c, Add 1 c n, Add p1 n1 c, Add p2 n2 c) =>
+    MyBits' (Either r1 r2) n where
+  mypack' (Left x) = 1'b0 ++ extend (mypack' x)
+  mypack' (Right x) = 1'b1 ++ extend (mypack' x)
   myunpack' bs =
-    let (tag, dat) = split bs
-    in Meta $ unpackCon (unpack (tag :: Bit ntag)) dat
-
--- ConBits type class is used for sum types and has extra parameters:
--- i is the index of the first constructor, computed bottom-up from the metadata.
--- Note that we can't compute i top down (moving i to the other side of the
--- fundep arrow), as this would require an Add context on the Either instance
--- that could not be used in determining what instance matches in the next level
--- of recursion.
-class ConBits i r n | r -> i n where
-  packCon   :: r -> (Integer, Bit n)
-  unpackCon :: UInt m -> Bit n -> r
-
--- Instance for sum types determines the constructor requiring the largest number
--- of bits and adds padding as needed.
-instance (ConBits i1 a1 n1, ConBits i2 a2 n2, Max n1 n2 n, Add p1 n1 n, Add p2 n2 n) =>
-         ConBits i1 (Either a1 a2) n where
-  packCon (Left x) =
-    let (tag, bs) = packCon x
-    in (tag, extend bs)
-  packCon (Right x) =
-    let (tag, bs) = packCon x
-    in (tag, extend bs)
-  unpackCon i bs when i == fromInteger (valueOf i1) =
-    Left  $ unpackCon i (truncate bs)
-  unpackCon i bs = Right $ unpackCon i (truncate bs)
-
-instance (MyBits' r n) => ConBits idx (Meta (MetaConsNamed name idx nfields) r) n where
-  packCon (Meta x) = (valueOf idx, mypack' x)
-  unpackCon _ bs = Meta $ myunpack' bs
-
-instance (MyBits' r n) => ConBits idx (Meta (MetaConsAnon name idx nfields) r) n where
-  packCon (Meta x) = (valueOf idx, mypack' x)
-  unpackCon _ bs = Meta $ myunpack' bs
+    let (tag, content) = (split bs) :: (Bit 1, Bit c)
+    in case tag of
+        0 -> Left $ myunpack' $ truncate content
+        1 -> Right $ myunpack' $ truncate content
 
 -- Instance for product types
 instance (MyBits' r1 n1, MyBits' r2 n2, Add n1 n2 n) => MyBits' (r1, r2) n where
@@ -76,10 +43,9 @@ instance  MyBits' () 0 where
   mypack' () = 0'b0
   myunpack' _ = ()
 
-instance (MyBits' a m, Bits (Vector n (Bit m)) l) =>
-         MyBits' (Meta (MetaData name pkg ta 1) (Vector n a)) l where
-  mypack' (Meta v) = pack $ map mypack' v
-  myunpack' = Meta `compose` map myunpack' `compose` unpack
+instance (MyBits' a m, Bits (Vector n (Bit m)) l) => MyBits' (Vector n a) l where
+  mypack' v = pack $ map mypack' v
+  myunpack' = map myunpack' `compose` unpack
 
 -- Ignore other types of metadata
 instance (MyBits' r n) => MyBits' (Meta m r) n where

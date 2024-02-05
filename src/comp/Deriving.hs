@@ -769,7 +769,7 @@ mkGenericInstance r packageid dpos i vs isData summands =
                 _ -> cTCon idConArg
              | v <- vs],
             cTNum (toInteger $ length summands) dpos],
-           tMkEitherChain dpos
+           tMkEitherTree dpos
             [cTApplys (cTCon idMeta)
               [cTApplys (cTCon $ case mfns of
                             Just _ -> idMetaConsNamed
@@ -792,7 +792,7 @@ mkGenericInstance r packageid dpos i vs isData summands =
                     then CPCon1 i cn (CPVar id_x)
                     else CPVar id_x] [] $
            CCon idMeta
-            [mkEitherChain dpos k (length summands) $
+            [mkEitherTree dpos k (length summands) $
              CCon idMeta
               [mkTuple dpos
                [CCon idMeta
@@ -809,7 +809,7 @@ mkGenericInstance r packageid dpos i vs isData summands =
         to = CLValue idToNQ
           [CClause
            [CPCon idMeta
-            [pMkEitherChain dpos k (length summands) $
+            [pMkEitherTree dpos k (length summands) $
              CPCon idMeta
               [pMkTuple dpos
                [CPCon idMeta

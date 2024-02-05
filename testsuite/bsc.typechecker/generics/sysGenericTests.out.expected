@@ -5,7 +5,7 @@ Representation for Bar { foo: tagged C , x:  42 }
 tagged Meta tagged Meta <tagged Meta tagged Conc tagged C ,tagged Meta tagged Conc  42>
 from matches
 Representation for tagged A Foo_$A { _1:  12, _2: True, _3: Bar { foo: tagged D Foo_$D { a:  34, b: tagged C  }, x:  42 } }
-tagged Meta tagged Left tagged Meta <tagged Meta tagged Conc  12,tagged Meta tagged Conc True,tagged Meta tagged Conc Bar { foo: tagged D Foo_$D { a:  34, b: tagged C  }, x:  42 }>
+tagged Meta tagged Left tagged Left tagged Meta <tagged Meta tagged Conc  12,tagged Meta tagged Conc True,tagged Meta tagged Conc Bar { foo: tagged D Foo_$D { a:  34, b: tagged C  }, x:  42 }>
 from matches
 Representation for tagged Baz Baz_$Baz { _1: tagged C , _2: tagged A Foo_$A { _1:  12, _2: True, _3: Bar { foo: tagged D Foo_$D { a:  34, b: tagged C  }, x:  42 } } }
 tagged Meta tagged Meta <tagged Meta tagged Conc tagged C ,tagged Meta tagged Conc tagged A Foo_$A { _1:  12, _2: True, _3: Bar { foo: tagged D Foo_$D { a:  34, b: tagged C  }, x:  42 } }>
@@ -13,13 +13,13 @@ from matches
 from matches
 from matches
 Representation for tagged C1 FooBSV_$C1 { x:   5, y: False, z:     3223434 }
-tagged Meta tagged Left tagged Meta <tagged Meta tagged Conc   5,tagged Meta tagged Conc False,tagged Meta tagged Conc     3223434>
+tagged Meta tagged Left tagged Left tagged Meta <tagged Meta tagged Conc   5,tagged Meta tagged Conc False,tagged Meta tagged Conc     3223434>
 from matches
 Representation for tagged C2    42
-tagged Meta tagged Right tagged Left tagged Meta tagged Meta tagged Conc    42
+tagged Meta tagged Left tagged Right tagged Meta tagged Meta tagged Conc    42
 from matches
 Representation for tagged C3 
-tagged Meta tagged Right tagged Right tagged Meta 
+tagged Meta tagged Right tagged Meta 
 from matches
 Representation for <V Bar { foo: tagged C , x:  42 } Bar { foo: tagged B  2323, x:   3 }  >
 tagged Meta <V tagged Conc Bar { foo: tagged C , x:  42 } tagged Conc Bar { foo: tagged B  2323, x:   3 }  >

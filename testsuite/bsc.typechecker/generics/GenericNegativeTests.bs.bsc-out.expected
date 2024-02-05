@@ -12,13 +12,13 @@ Error: "GenericNegativeTests.bs", line 26, column 10: (T0020)
     GenericNegativeTests.TypeEq
 (Prelude.Meta (Prelude.MetaData "Foo" "GenericNegativeTests" () 3)
  (Prelude.Either
-  (Prelude.Meta (Prelude.MetaConsAnon "A" 0 2)
-   (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 8)),
-    Prelude.Meta (Prelude.MetaField "_2" 1) (Prelude.Conc Prelude.Bool)))
   (Prelude.Either
+   (Prelude.Meta (Prelude.MetaConsAnon "A" 0 2)
+    (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 8)),
+     Prelude.Meta (Prelude.MetaField "_2" 1) (Prelude.Conc Prelude.Bool)))
    (Prelude.Meta (Prelude.MetaConsAnon "B" 1 1)
-    (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 16))))
-   (Prelude.Meta (Prelude.MetaConsAnon "C" 2 0) ()))))
+    (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 16)))))
+  (Prelude.Meta (Prelude.MetaConsAnon "C" 2 0) ())))
 (Prelude.Meta (Prelude.MetaData "Foo" "GenericTests" () 4)
  (Prelude.Either
   (Prelude.Meta (Prelude.MetaConsAnon "A" 0 3)

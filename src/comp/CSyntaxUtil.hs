@@ -22,6 +22,13 @@ tMkEitherChain pos [] = error "Either with no options"
 tMkEitherChain pos [t] = t
 tMkEitherChain pos (t:ts) = tMkEither pos t (tMkEitherChain pos ts)
 
+tMkEitherTree :: Position -> [CType] -> Type
+tMkEitherTree pos [] = error "Either with no options"
+tMkEitherTree pos [t] = t
+tMkEitherTree pos ts =
+    tMkEither pos (tMkEitherTree pos $ take index ts) (tMkEitherTree pos $ drop index ts)
+    where index = (length ts + 1) `div` 2
+
 tMkEither :: Position -> Type -> Type -> Type
 tMkEither pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idEither)) t1) t2
 
@@ -52,6 +59,24 @@ pMkEitherChain pos 0 _ e = CPCon idLeft [e]
 pMkEitherChain pos i n e
   | i < n = CPCon idRight [pMkEitherChain pos (i - 1) (n - 1) e]
   | otherwise = error $ "Index " ++ show i ++ " out of range for Either chain of size " ++ show n
+
+mkEitherTree :: Position -> Int -> Int -> CExpr -> CExpr
+mkEitherTree pos 0 1 e = e
+mkEitherTree pos i n e
+  | i < leftSize = CCon idLeft  [mkEitherTree pos i leftSize e]
+  | i < n        = CCon idRight [mkEitherTree pos (i - leftSize) rightSize e]
+  | otherwise    = error $ "Index " ++ show i ++ " out of range for Either tree of size " ++ show n
+  where leftSize = (n + 1) `div` 2
+        rightSize = n `div` 2
+
+pMkEitherTree :: Position -> Int -> Int -> CPat -> CPat
+pMkEitherTree pos 0 1 e = e
+pMkEitherTree pos i n e
+  | i < leftSize = CPCon idLeft  [pMkEitherTree pos i leftSize e]
+  | i < n        = CPCon idRight [pMkEitherTree pos (i - leftSize) rightSize e]
+  | otherwise    = error $ "Index " ++ show i ++ " out of range for Either tree of size " ++ show n
+  where leftSize = (n + 1) `div` 2
+        rightSize = n `div` 2
 
 mkMaybe :: (Maybe CExpr) -> CExpr
 mkMaybe Nothing = CCon idInvalid []
