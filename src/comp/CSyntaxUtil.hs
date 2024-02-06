@@ -17,11 +17,6 @@ tMkTuple pos (t:ts) = tMkPair pos t (tMkTuple pos ts)
 tMkPair :: Position -> Type -> Type -> Type
 tMkPair pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idPrimPair)) t1) t2
 
-tMkEitherChain :: Position -> [CType] -> Type
-tMkEitherChain pos [] = error "Either with no options"
-tMkEitherChain pos [t] = t
-tMkEitherChain pos (t:ts) = tMkEither pos t (tMkEitherChain pos ts)
-
 tMkEitherTree :: Position -> [CType] -> Type
 tMkEitherTree pos [] = error "Either with no options"
 tMkEitherTree pos [t] = t
@@ -45,20 +40,6 @@ pMkTuple :: Position -> [CPat] -> CPat
 pMkTuple pos [] = CPstruct (Just True) (setIdPosition pos idPrimUnit) []
 pMkTuple pos [p] = p
 pMkTuple pos (p:ps) = CPCon (setIdPosition pos idComma) [p, pMkTuple pos ps]
-
-mkEitherChain :: Position -> Int -> Int -> CExpr -> CExpr
-mkEitherChain pos 0 1 e = e
-mkEitherChain pos 0 _ e = CCon idLeft [e]
-mkEitherChain pos i n e
-  | i < n = CCon idRight [mkEitherChain pos (i - 1) (n - 1) e]
-  | otherwise = error $ "Index " ++ show i ++ " out of range for Either chain of size " ++ show n
-
-pMkEitherChain :: Position -> Int -> Int -> CPat -> CPat
-pMkEitherChain pos 0 1 e = e
-pMkEitherChain pos 0 _ e = CPCon idLeft [e]
-pMkEitherChain pos i n e
-  | i < n = CPCon idRight [pMkEitherChain pos (i - 1) (n - 1) e]
-  | otherwise = error $ "Index " ++ show i ++ " out of range for Either chain of size " ++ show n
 
 mkEitherTree :: Position -> Int -> Int -> CExpr -> CExpr
 mkEitherTree pos 0 1 e = e
