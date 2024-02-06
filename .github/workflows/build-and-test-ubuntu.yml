@@ -21,7 +21,7 @@ jobs:
     name: "Build: ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Checkout submodules
         shell: bash
         run: |
@@ -45,7 +45,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: build-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -96,7 +96,7 @@ jobs:
             exit 0
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
           path: inst.tar.gz
@@ -106,14 +106,14 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -123,7 +123,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -162,7 +162,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -172,14 +172,14 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt-get install -y ccache libelf-dev
 
       - name: Download bsc
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -193,7 +193,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-toooba-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -255,14 +255,14 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -281,7 +281,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-contrib-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -326,7 +326,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-contrib-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -336,10 +336,10 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download bsc
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -362,7 +362,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-bdw-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -407,7 +407,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-bdw-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz

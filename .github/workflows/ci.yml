@@ -8,7 +8,7 @@ jobs:
     name: "Check: code cleanliness"
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check tabs and whitespace
         shell: bash
         run: ".github/workflows/check_whitespace.sh"
@@ -17,7 +17,7 @@ jobs:
     name: "Check: testsuite lint"
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check CONFDIR
         run: |
           cd testsuite
@@ -76,7 +76,7 @@ jobs:
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_doc_ubuntu.sh"
@@ -94,13 +94,13 @@ jobs:
       # therefore we provide an option without the tarfile layer.
       - name: Upload artifact
         # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
       - name: Upload doc not tar
         # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.os}}-doc-not-tar
           path: inst/doc
@@ -113,7 +113,7 @@ jobs:
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_doc_macos.sh"
@@ -134,13 +134,13 @@ jobs:
       # therefore we provide an option without the tarfile layer.
       - name: Upload artifact
         # This artifact (PDFs inside inst.tar.gz inside artifact.zip) is for release packaging.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
       - name: Upload doc not tar
         # This artifact (PDFs inside artifact.zip) is for viewing the built documents.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.os}}-doc-not-tar
           path: inst/doc
@@ -156,7 +156,7 @@ jobs:
     name: "Build releasenotes: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_releasenotes_ubuntu.sh"
@@ -165,7 +165,7 @@ jobs:
           make install-release
           tar czf inst.tar.gz inst
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }} releasenotes
           path: inst.tar.gz
