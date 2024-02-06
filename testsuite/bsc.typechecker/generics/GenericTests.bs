@@ -58,17 +58,18 @@ instance FShow Kax where
 fooRepr :: (Generic Foo r) => TypeEq r
   (Meta (MetaData "Foo" "GenericTests" () 4)
    (Either
-    (Meta (MetaConsAnon "A" 0 3)
-     (Meta (MetaField "_1" 0) (Conc (UInt 8)),
-      Meta (MetaField "_2" 1) (Conc Bool),
-      Meta (MetaField "_3" 2) (Conc Bar)))
     (Either
+     (Meta (MetaConsAnon "A" 0 3)
+      (Meta (MetaField "_1" 0) (Conc (UInt 8)),
+        Meta (MetaField "_2" 1) (Conc Bool),
+        Meta (MetaField "_3" 2) (Conc Bar)))
      (Meta (MetaConsAnon "B" 1 1)
-      (Meta (MetaField "_1" 0) (Conc (UInt 16))))
-     (Either (Meta (MetaConsAnon "C" 2 0) ())
-      (Meta (MetaConsNamed "D" 3 2)
-       (Meta (MetaField "a" 0) (Conc (UInt 8)),
-        Meta (MetaField "b" 1) (Conc Foo)))))))
+      (Meta (MetaField "_1" 0) (Conc (UInt 16)))))
+    (Either
+     (Meta (MetaConsAnon "C" 2 0) ())
+     (Meta (MetaConsNamed "D" 3 2)
+      (Meta (MetaField "a" 0) (Conc (UInt 8)),
+       Meta (MetaField "b" 1) (Conc Foo))))))
 fooRepr = refl
 
 barRepr :: (Generic Bar r) => TypeEq r
@@ -100,14 +101,14 @@ tizRepr = refl
 fooBSVRepr :: (Generic FooBSV r) => TypeEq r
   (Meta (MetaData "FooBSV" "GenericTestsBSV" () 3)
    (Either
-    (Meta (MetaConsNamed "C1" 0 3)
-     (Meta (MetaField "x" 0) (Conc (UInt 8)),
-      Meta (MetaField "y" 1) (Conc Bool),
-      Meta (MetaField "z" 2) (Conc (Int 32))))
     (Either
+     (Meta (MetaConsNamed "C1" 0 3)
+      (Meta (MetaField "x" 0) (Conc (UInt 8)),
+       Meta (MetaField "y" 1) (Conc Bool),
+       Meta (MetaField "z" 2) (Conc (Int 32))))
      (Meta (MetaConsAnon "C2" 1 1)
-      (Meta (MetaField "_1" 0) (Conc (UInt 16))))
-     (Meta (MetaConsAnon "C3" 2 0) ()))))
+      (Meta (MetaField "_1" 0) (Conc (UInt 16)))))
+     (Meta (MetaConsAnon "C3" 2 0) ())))
 fooBSVRepr = refl
 
 {- Can't actually test this, due to the presence of a generated struct Qux_x
