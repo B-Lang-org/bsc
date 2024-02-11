@@ -13,3 +13,6 @@
 *.out
 *.pdf
 *.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz

@@ -664,6 +664,18 @@ whole represents bit vectors of length 16 bits.  Similarly the type
 \end{verbatim}
 represents the type of unsigned integers that can be represented in 32
 bits.
+These numeric types are said to have kind \texttt{\#},
+rather than kind \texttt{*} for value types.
+
+\index{string types}
+Strings can also be used as type, having kind \texttt{\$}.
+This is less common, but string types are quite useful in the generics library,
+described in the \LibRefGuide.
+Examples:
+\begin{verbatim}
+ MetaData#("Prelude","Maybe",PrimUnit,2)
+ MetaConsNamed#("Valid",1,1)
+\end{verbatim}
 
 % ----------------------------------------------------------------
 
@@ -2719,6 +2731,15 @@ integers corresponding to) {\te{m}} and {\te{1}} and {\te{n}} are in
 the addition relation, and that {\te{logWPlusOne}} has Integer type.
 The second line binds {\te{logWPlusOne}} to the integer value
 corresponding to {\te{n}}.
+
+{\index{stringOf@\te{stringOf} (``function'' of string types)}}
+A ``function'' {\te{stringOf}} is also available to get the string value
+of a type-level string.
+\begin{verbatim}
+ type MyString = "Hello, world!"
+ x :: String
+ x = stringOf MyString  -- x will have the value "Hello, world!"
+\end{verbatim}
 
 % ----------------------------------------------------------------
 

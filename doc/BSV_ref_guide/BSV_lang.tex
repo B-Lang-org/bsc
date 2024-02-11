@@ -1528,6 +1528,16 @@ The type \texttt{bit[$m$:0]} represents the type of bit vectors, with
 bits indexed from $m$ (msb/left) down through 0 (lsb/right), for $m
 \ge 0$.
 
+\index{string types}
+Type parameters can also be strings (known as \emph{string} types).
+These are not common, but are quite useful in the generics library,
+described in the \LibRefGuide.
+Examples:
+\begin{verbatim}
+ MetaData#("Prelude","Maybe",PrimUnit,2)
+ MetaConsNamed#("Valid",1,1)
+\end{verbatim}
+
 % ----------------------------------------------------------------
 
 \subsection{Polymorphism}
@@ -1718,6 +1728,22 @@ The pseudo-function \texttt{valueof}, which converts a numeric type to a
 value, should not be confused with the pseudo-function \texttt{SizeOf},
 described in Section {\ref{sec-sizeof}}, which converts a type to a
 numeric type.
+
+\subsubsection{The pseudo-function \te{stringof} (or \te{stringOf})}
+
+A function \texttt{stringof} (or \texttt{stringOf})
+\index{stringOf@\texttt{stringOf} (pseudo-function of string types)}
+similar to \te{valueof}
+exists to convert a string type to a string value.
+Example:
+\begin{verbatim}
+ instance CShow'#(Meta#(MetaConsNamed#(name, idx, nfields), a))
+  provisos (CShowSummand#(a));
+    function cshow'(tagged Meta {x});
+      return $format(stringOf(name), " {", cshowSummandNamed(x), "}");
+    endfunction
+ endinstance
+\end{verbatim}
 
 % ----------------------------------------------------------------
 
@@ -1919,7 +1945,7 @@ definition (Section \ref{sec-interface-definition}).
 
 \gram{typeFormals}{\term{\#} \term{(} \nterm{typeFormal} \many{ \term{,} \nterm{typeFormal}}\term{)} }}
 
-\gram{typeFormal}{\opt{\term{numeric}}  \term{type} \nterm{typeIde}}  
+\gram{typeFormal}{\opt{\term{numeric} {\alt} \term{string}} \term{type} \nterm{typeIde}}
 
 \gram{interfaceMemberDecl}{ \nterm{methodProto} {\alt} \nterm{subinterfaceDecl} }
 
@@ -3903,7 +3929,7 @@ new type and the original type can be used interchangeably anywhere.
 
 \gram{typeFormals}{\term{\#} \term{(} \nterm{typeFormal} \many{ \term{,} \nterm{typeFormal}}\term{)} }}
 
-\gram{typeFormal}{\opt{\term{numeric}}  \term{type} \nterm{typeIde}}  
+\gram{typeFormal}{\opt{\term{numeric} {\alt} \term{string}} \term{type} \nterm{typeIde}}
 
 
 % \gram{typeDefType}{\nterm{typeIde} \opt{\term{\#} \term{(}
@@ -4138,7 +4164,7 @@ union.''
 
 \gram{typeFormals}{\term{\#} \term{(} \nterm{typeFormal} \many{ \term{,} \nterm{typeFormal}}\term{)} }}
 
-\gram{typeFormal}{\opt{\term{numeric}}  \term{type} \nterm{typeIde}}  
+\gram{typeFormal}{\opt{\term{numeric} {\alt} \term{string}} \term{type} \nterm{typeIde}}
 
 
 
@@ -4458,7 +4484,7 @@ A new class is declared using the following syntax:
 
 \gram{typeFormals}{\term{\#} \term{(} \nterm{typeFormal} \many{ \term{,} \nterm{typeFormal}}\term{)} }
 
-\gram{typeFormal}{\opt{\term{numeric}}  \term{type} \nterm{typeIde}}  
+\gram{typeFormal}{\opt{\term{numeric} {\alt} \term{string}} \term{type} \nterm{typeIde}}
 
 \gram{typedepends}          {\term{dependencies} \term{(}
                                              \nterm{typedepend} \many
