@@ -73,6 +73,9 @@ instance (CShow a) => CShow' (Conc a) where
   cshow' (Conc x) = cshow x
   cshowP' (Conc x) = cshowP x
 
+instance CShow' (ConcPoly a) where
+  cshow' (ConcPoly _) = $format "<polymorphic value>"
+
 -- Note that below there are more specific instances for
 -- CShow' (Meta (MetaConsNamed ...)) and CShow' (Meta (MetaConsAnon ...))
 instance (CShow' a) => CShow' (Meta m a) where
