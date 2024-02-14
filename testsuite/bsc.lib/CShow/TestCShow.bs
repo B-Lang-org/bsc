@@ -19,6 +19,10 @@ struct Bar =
 data Baz a = Baz a a
   deriving (FShow)
 
+struct Qux =
+  x :: a -> a -- Higher rank
+  y :: Int 8
+
 sysTestCShow :: Module Empty
 sysTestCShow = module
   rules
@@ -35,4 +39,5 @@ sysTestCShow = module
       $display (cshow ((vec (Bar {x=42; foo=C}) (Bar {x=3; foo=B 2323})) :: Vector 2 Bar))
       $display (cshow ((Bar {x=42; foo=C}) :> (Bar {x=3; foo=B 2323}) :> ListN.nil))
       $display (cshow ("x", ((Left 123) :: Either (UInt 8) Bar, False)))
+      $display (cshow $ Qux {x = id; y = 42;})
       $finish
