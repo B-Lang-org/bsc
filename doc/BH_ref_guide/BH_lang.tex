@@ -1017,25 +1017,22 @@ a field called {\te{target}} containing a value of type {\te{UInt26}}.
 Error messages involving data type definitions sometimes show traces
 of how they are handled internally.  Data type definitions are
 translated into a data type where each constructor has exactly one
-argument.  Each argument is a struct type.  The types above translate
+argument.  The types above translate
 to:
 \begin{verbatim}
  data Bool = False PrimUnit | True PrimUnit
 
- data Operand = Register Operand.Register
-              | Operand.Literal
-              | Operand.Indexed
- struct Operand°Register = { _1 :: Bit 5 }
- struct Operand°Literal = { _1 :: Bit 22 }
- struct Operand°Indexed = { _1 :: Reg 5; _2 :: Reg 5 }
+ data Operand = Register (Bit 5)
+              | Literal (Bit 22)
+              | Indexed Operand_$Indexed
+ struct Operand_$Indexed = { _1 :: Reg 5; _2 :: Reg 5 }
 
- data Maybe a = Nothing PrimUnit | Maybe.Just a
- struct Maybe.Just a = { _1 :: a }
+ data Maybe a = Nothing PrimUnit | Just a
 
- data Instruction = Immediate Instruction°Immediate |
-                    Register Instruction°Register
- struct Instruction°Immediate = { op::Op; rs::Reg; rt::CPUReg; imm::UInt16; }
- struct Instruction°Register = { op::Op; target::UInt26; }
+ data Instruction = Immediate Instruction_$Immediate
+                  | Register Instruction_$Register
+ struct Instruction_$Immediate = { op::Op; rs::Reg; rt::CPUReg; imm::UInt16; }
+ struct Instruction_$Register = { op::Op; target::UInt26; }
 \end{verbatim}
 \end{NOTE}
 
