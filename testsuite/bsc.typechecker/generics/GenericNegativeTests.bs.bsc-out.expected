@@ -1,9 +1,5 @@
 checking package dependencies
 compiling GenericNegativeTests.bs
-Warning: "GenericNegativeTests.bs", line 16, column 12: (S0028)
-  Support for generics in this release is not complete or has not been tested
-Warning: "GenericNegativeTests.bs", line 36, column 10: (S0028)
-  Support for generics in this release is not complete or has not been tested
 Error: "GenericNegativeTests.bs", line 26, column 10: (T0020)
   Type error at:
     refl

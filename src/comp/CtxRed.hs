@@ -4,8 +4,8 @@ import Data.List(partition, (\\))
 import Control.Monad(when)
 import PFPrint
 import Id
-import PreIds(tmpTyVarIds, idGeneric)
-import Error(internalError, EMsg, ErrorHandle, bsWarning, bsError, ErrMsg(WExperimental))
+import PreIds(tmpTyVarIds)
+import Error(internalError, EMsg, ErrorHandle, bsWarning, bsError)
 import Flags(Flags)
 import CSyntax
 import Type
@@ -366,13 +366,6 @@ ctxRedCQType = ctxRedCQType' False
 
 ctxRedCQType' :: Bool -> CQType -> TI (Subst, CQType)
 ctxRedCQType' isInstHead cqt = do
-
-    -- raise an experimental warning about uses of generics
-    let CQType cqs _ = cqt
-    case [p | p@(CPred {cpred_tc = CTypeclass i}) <- cqs,
-          qualEq i idGeneric] of
-      p : _ -> twarn (getPosition p, WExperimental "generics")
-      [] -> return ()
 
     -- find out what variables were bound prior to here
     prev_bound_tvs <- getBoundTVs
