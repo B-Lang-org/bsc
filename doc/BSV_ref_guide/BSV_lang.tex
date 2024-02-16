@@ -110,16 +110,16 @@
 \newcommand{\LibRefGuide}{\emph{Libraries Reference Guide}}
 \newcommand{\LibRefGuideFullName}{\emph{Bluespec Compiler (BSC) Libraries Reference Guide}}
 
+\newcommand{\BSCUserGuide}{\emph{BSC User Guide}}
+\newcommand{\BSCUserGuideFullName}{\emph{Bluespec Compiler (BSC) User Guide}}
+
 \newcommand{\BS}{Bluespec}
 \newcommand{\BSInc}{Bluespec, Inc.}
 
 \newcommand{\BH}{BH}
 
-\newcommand{\blue}{Bluespec SystemVerilog}
 \newcommand{\BSVFull}{Bluespec SystemVerilog}
 \newcommand{\BSV}{BSV}
-\newcommand{\BSVVersion}{3.8}
-\newcommand{\BSVvN}{BSV 3.8}
 
 \newcommand{\bsc}{\emph{bsc}}
 
@@ -264,7 +264,6 @@
 \resizebox{2in}{!}{\includegraphics[width=\textwidth]{../common/B-Lang}} \\
 \vspace{0.3in}
 {\BS}$^{\rm{TM}}$ {\SV} \\
-%Version {\BSVVersion} \\
 Language Reference Guide \\
 \vspace*{1in}
 \vspace*{1in}
@@ -10034,7 +10033,7 @@ endmodule
 \end{verbatim}
 
 To enable rule splitting for an entire design, use the compiler
-flag \te{-split-if} at compile time.  See the user guide for
+flag \te{-split-if} at compile time.  See the {\BSCUserGuideFullName} for
 more information on compiler flags.  You can enable rule splitting for
 an entire design with the \te{-split-if} flag and then disable the
 effect for specific rules, by specifying the \te{nosplit} attribute
@@ -11001,7 +11000,7 @@ header.  Example:
 \end{verbatim}
 The designer can ensure that the signals will exist in the Verilog
 by using an appropriate compiler flag, the \te{-keep-fires} flag which
-is documented in the {\blue} User Guide.
+is documented in the {\BSCUserGuideFullName}.
 
 The \te{doc} attribute can be attached to any \te{rule..endrule} expression,
 such as inside a function or inside a for-loop.

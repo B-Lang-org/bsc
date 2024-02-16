@@ -18,4 +18,4 @@ instance (Bits a sa, Bounded a, Eq b) => Eq (a -> b)
     (/=) f g  =  not (f == g)
 
 --@ The ability to compare functions for equality can be useful
---@ for compile time verification of properties of the {\blue} code.
+--@ for compile time verification of properties of the {\Blue} code.
