@@ -106,7 +106,7 @@ grabN i n bs =
 --X \begin{itemize}
 --X \item{\bf Creating and Generating ListNs}
 --X
---X There are no {\blue} constructors available for this abstract type
+--X There are no constructors available for this abstract type
 --X (and hence no pattern-matching is available for this type)
 --X but the following ordinary functions may be used to construct values of
 --X the \te{ListN} type.

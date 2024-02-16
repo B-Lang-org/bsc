@@ -11,7 +11,7 @@ import Vector
 --@ rectified, and this workaround is no longer necessary.)
 --@
 --@ The \te{IVec} package contains some definitions to work around a deficiency
---@ in the {\blue} compiler.  The compiler does not allow the type \te{Vector} in
+--@ in the {\Blue} compiler.  The compiler does not allow the type \te{Vector} in
 --@ interfaces for which code is generated.  To make this almost possible this
 --@ package contains types that are isomorphic to \te{Vector} of some small number
 --@ of length (0-16).  There are also conversion functions to and from \te{Vector}.

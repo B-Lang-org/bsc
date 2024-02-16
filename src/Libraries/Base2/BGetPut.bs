@@ -15,7 +15,7 @@ import ClientServer
 --@ \te{Get} and \te{Put}, but the interconnection of them
 --@ (via \te{Connectable} or in {\veri}) is implemented with a simple protocol
 --@ that allows all inputs and outputs to be directly connected.
---@ Furthermore, all wires go to registers and have no {\blue} handshaking.
+--@ All the ports are directly registered, without the logic of ready/enable handshaking.
 --@ The protocol makes no assumptions about setup time and hold time for the
 --@ registers at each end; so these interfaces may be used when the two ends
 --@ have different clocks.  In all other circumstances, however, the

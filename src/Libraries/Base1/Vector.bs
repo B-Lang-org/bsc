@@ -134,7 +134,7 @@ instance (Bounded a, Bits a sa) => Bounded (Vector n a)
 --@ \begin{itemize}
 --@ \item{\bf Creating and Generating Vectors}
 --@
---@ There are no {\blue} constructors available for this abstract type
+--@ There are no constructors available for this abstract type
 --@ (and hence no pattern-matching is available for this type)
 --@ but the following ordinary functions may be used to construct values of
 --@ the \te{Vector} type.
