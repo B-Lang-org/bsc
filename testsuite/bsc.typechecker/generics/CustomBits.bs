@@ -47,7 +47,7 @@ instance (MyBits' a m, Bits (Vector n (Bit m)) l) => MyBits' (Vector n a) l wher
   mypack' v = pack $ map mypack' v
   myunpack' = map myunpack' `compose` unpack
 
--- Ignore other types of metadata
+-- Ignore all types of metadata
 instance (MyBits' r n) => MyBits' (Meta m r) n where
   mypack' (Meta x) = mypack' x
   myunpack' bs = Meta $ myunpack' bs

@@ -6909,3 +6909,332 @@ the line \te{"Hello World"}.
          hClose(hdl);
       endmodule
 \end{verbatim}
+
+
+\subsection{Generics}
+
+\index{Generic@\te{Generic}}
+\index[function]{Prelude!to}
+\index[function]{Prelude!from}
+
+Generics is a mechanism permitting users to derive instances of their own custom type classes.
+The design of generics in \BS{} is based on the
+\href{https://hackage.haskell.org/package/base-4.19.0.0/docs/GHC-Generics.html}{GHC.Generics}
+library in Haskell.
+Generics provides a way of converting arbitrary struct and tagged union/data types
+to and from a generic representation. In this representation product types are represented as tuples/\te{PrimPair},
+and sum types as \te{Either}. The representation types are also tagged with various metadata
+about the types, fields and constructors, such as their name, arity and index.
+Users can implement a default instance for their type class, using a helper type class over the generic representation.
+
+Due to the complexity of the types involved, writing generic instances in \BSVFull{} can be rather tedious.
+Thus the documentation here is instead given using the \BHFull{} syntax.
+
+\subsubsection{The \te{Generic} type class}
+
+The \te{Generic} type class defines a means of converting
+values of a datatype \te{a} into a generic representation \te{r}.
+The type \te{r} is determined by the type \te{a} as a functional dependency.
+The function \te{from} converts a value into its generic representation,
+and \te{to} converts a generic representation back into a value.
+
+\begin{verbatim}
+   class Generic a r | a -> r where
+      from :: a -> r
+      to :: r -> a
+\end{verbatim}
+
+BSC automatically derives an instance of \te{Generic} for all types that
+don't have an explicit instance.  For libraries that export a type
+abstractly (without exporting its internals), an explicit instance is
+needed, to avoid exposing the internal implementation; see the source of the \te{Vector}
+library for an example of this.
+
+\subsubsection{Representation types}
+
+The following types are used in generic representations:
+
+\begin{center}
+   \begin{tabular}{|p{2 in}|p{3 in}|}
+   \hline
+   \begin{libverbatim}
+data Either a b
+  = Left a | Right b
+   \end{libverbatim}
+   &
+   The standard \te{Either} type is used to represent sum types,
+   {\it i.e.} tagged unions/data with multiple constructors. \\
+   \hline
+   \begin{libverbatim}
+interface PrimPair a b =
+  fst :: a
+  snd :: b
+   \end{libverbatim}
+   &
+   The standard \te{PrimPair} type is used to represent product types,
+   {\it i.e.} structs/interfaces/data constructors with multiple fields.
+   Since this is also the same underlying representation as tuples,
+   tuple syntax (as described in the \BH ref guide) may be used for products in generic instances.\\
+   \hline
+   \begin{libverbatim}
+interface PrimUnit = { }
+   \end{libverbatim}
+   &
+   The standard \te{PrimUnit} type is used to represent types containing no data,
+   {\it i.e.} empty structs/interfaces/data constructors.\\
+   \hline
+   \begin{libverbatim}
+data (Vector :: # -> * -> *)
+  n a
+   \end{libverbatim}
+   &
+   The standard \te{Vector} type is used to represent fixed-size collection types -- \te{ListN} and \te{Vector}.\\
+   \hline
+   \begin{libverbatim}
+data Conc a = Conc a
+   \end{libverbatim}
+   &
+   The \te{Conc} type is used to wrap the (non-generic) types of fields in the sum of products. \\
+   \hline
+   \begin{libverbatim}
+data ConcPrim a = ConcPrim a
+   \end{libverbatim}
+   &
+   The \te{ConcPrim} type is used in \te{Generic} instances for primitive types, {\it e.g.} \te{Bit}.
+   This type is used instead of \te{Conc} to avoid infinite recursion through a \te{Conc} instance
+   of the generic version of a type class that defaults back to the non-generic one.
+   Users of generics typically do not need to define instances for \te{ConcPrim}; this exists to help supply
+   generic instances for several type classes that are used internally by BSC.\\
+   \hline
+   \begin{libverbatim}
+data ConcPoly a = ConcPoly a
+   \end{libverbatim}
+   &
+   The \te{ConcPoly} type exists as a workaround for a limitation of generics in dealing with higher-rank data types;
+   see below for more details.  Users typically should not need to define instances for \te{ConcPoly}. \\
+   \hline
+   \begin{libverbatim}
+data Meta m r = Meta r
+   \end{libverbatim}
+   &
+   \te{Meta} is used to tag a representation type with additional type-level metadata.
+   The \te{m} type parameter must be one of the below metadata types \\
+   \hline
+   \end{tabular}
+\end{center}
+
+{\bf Examples}
+
+Ignoring metadata, the derived \te{Generic} instance for the \te{PrimPair} type is
+
+\begin{libverbatim}
+   instance Generic (PrimPair a b) (Conc a, Conc b) where
+      from x = (Conc x.fst, Conc x.snd)
+      to (Conc x, Conc y) = PrimPair { fst=x; snd=y; }
+\end{libverbatim}
+
+The derived \te{Generic} instance for the \te{List} type is
+
+\begin{libverbatim}
+   instance Generic (List a) (Either () (Conc a, Conc (List a))) where
+      from Nil = Left ()
+      from (Cons x y) = Right (Conc x, Conc y)
+      to (Left ()) = Nil
+      to (Right (Conc x, Conc y)) = Cons x y
+\end{libverbatim}
+
+In the generic representation for data/tagged unions with more than two constructors,
+the \te{Either} types are aranged to form a left-biased, balanced binary tree.
+This makes it possible to directly convert between nested left/right constructors,
+and a binary tag value corresponding to the constructor index.
+An example of this, in implementing a \te{CustomBits} type class, is given below.
+
+{\bf Higher-rank data}
+
+Generics is not able to fully handle {\it higher-rank} data, {\it i.e.} structs/interfaces/data constructors
+containing type variables that are not bound as type parameters.  For example, the following type is higher-rank:
+
+\begin{libverbatim}
+   struct Foo =
+      x :: a -> a -- Higher rank
+      y :: Int 8
+\end{libverbatim}
+
+If a \te{Generic} instance were derived for this type in the usual fasion,
+then the representation would contain \te{Conc (a -> a)}.
+The presence of a type variable in the representation means that it is not uniquely determined by the type \te{Foo},
+as required by the functional dependency.
+
+Instead, when deriving an instance for a higher-rank struct or data, a ``wrapper'' struct is generated
+for each higher-rank field.  This is wrapped in the \te{ConcPoly} constructor, to indicate that this
+is not the real type of the field:
+
+\begin{libverbatim}
+   struct Foo_x =
+     val :: a -> a
+
+   instance Generic Foo (ConcPoly Foo_x, Conc (Int 8))) where
+     from a = (ConcPoly (Foo_x { val = a.x; }), Conc a.y)
+     to (ConcPoly x, Conc y) = Foo { x = x.val; y = y; }
+\end{libverbatim}
+
+Users can omit an instance for \te{ConcPoly} to not support higher-rank data,
+or define some useful default behavior.
+For example, the \te{CShow} library defines an instance for ConcPoly
+to return a placeholder string for higher-rank fields.
+
+\subsubsection{Metadata types}
+
+The following types are used to represent metadata in generic representations.
+Note that these only appear at the type level tagging a \te{Meta} type;
+values of these types are not constructed.
+
+\begin{center}
+   \begin{tabular}{|p{2.9 in}|p{2.7 in}|}
+   \hline
+   \begin{libverbatim}
+data (MetaData :: $ -> $ -> * -> # -> *)
+    name pkg tyargs ncons
+   \end{libverbatim}
+   &
+   Indicates that a representation is for a type (e.g. struct/data) with a name,
+   package, tuple of type arguments and number of constructors.
+   Types of kind \te{*}, \te{\#} or \te{\$} appearing in the type arguments are wrapped
+   in one of the following type constructors:
+   \vspace{0.1in}
+   \begin{libverbatim}
+   data (StarArg :: * -> *) i
+   data (NumArg :: # -> *) i
+   data (StrArg :: $ -> *) i
+   data ConArg
+   \end{libverbatim}
+   \vspace{-0.15in}
+   Constructor-kinded types arguments cannot be handled in general and
+   are omitted from the \te{ConArg} representation type.
+   \\
+   \hline
+   \begin{libverbatim}
+data (MetaConsNamed :: $ -> # -> # -> *)
+    name idx nfields
+   \end{libverbatim}
+   &
+   Indicates that a representation is for a constructor with named fields,
+   with a name, index in the data's constructors, and number of fields. \\
+   \hline
+   \begin{libverbatim}
+data (MetaConsAnon :: $ -> # -> # -> *)
+    name idx nfields
+   \end{libverbatim}
+   &
+   Indicates that a representation is for a data constructor with anonymous fields,
+   with a name, index in the data's constructors, and number of fields. \\
+   \hline
+   \begin{libverbatim}
+data (MetaField :: $ -> # -> *) name idx
+   \end{libverbatim}
+   &
+   Indicates that a representation is for a field, with a field name (either the
+   given name for a named field or the generated field name for an anonymous
+   field) and index in the constructor's fields. \\
+   \hline
+   \end{tabular}
+\end{center}
+
+{\bf Examples}
+
+Including metadata, the derived \te{Generic} instance for the \te{PrimPair} type is
+
+\begin{libverbatim}
+   instance Generic (PrimPair a b)
+      (Meta (MetaData "PrimPair" "Prelude" (StarArg a, StarArg b) 1)
+      (Meta (MetaConsNamed "PrimPair" 0 2)
+      (Meta (MetaField "fst" 0) (Conc a),
+         Meta (MetaField "snd" 1) (Conc b)))) where
+   from x = Meta (Meta (Meta (Conc x.fst), Meta (Conc x.snd)))
+   to (Meta (Meta (PrimPair (Meta (Conc a1)) (Meta (Conc a2))))) = 
+      PrimPair { fst = a1; snd = a2; }
+\end{libverbatim}
+
+The derived \te{Generic} instance for the \te{List} type is
+
+\begin{libverbatim}
+   instance Generic (List a)
+      (Meta (MetaData "List" "Prelude" (StarArg a) 2)
+      (Either (Meta (MetaConsAnon "Nil" 0 0) ())
+      (Meta (MetaConsAnon "Cons" 1 2)
+         (Meta (MetaField "_1" 0) (Conc a),
+         Meta (MetaField "_2" 1) (Conc (List a)))))) where
+   from Nil = Meta (Left (Meta ()))
+   from (Cons x y) =
+      Meta (Right (Meta (Meta (Conc x), Meta (Conc y))))
+   to (Meta (Left (Meta ()))) = Nil
+   to (Meta (Right (Meta ((Meta (Conc x)), (Meta (Conc y)))))) = Cons x y
+\end{libverbatim}
+
+\subsubsection{Defining generic instances}
+
+The typical way for users to define a generic implementation for their type class is to define a helper type class
+that works over the generic representation, and then define a default instance for the original type class
+using \te{Generic} to convert to and from the generic representation.  
+For example, one can use generics to implement a custom version of the \te{Bits} type class:
+
+\begin{libverbatim}
+   class MyBits a n | a -> n where
+     mypack   :: a -> Bit n
+     myunpack :: Bit n -> a
+
+   -- Explicit instances for primitive types
+   instance MyBits (Bit n) n where
+     mypack = id
+     myunpack = id
+
+   -- Generic default instance
+   instance (Generic a r, MyBits' r n) => MyBits a n where
+     mypack   x  = mypack' $ from x
+     myunpack bs = to $ myunpack' bs
+
+   class MyBits' r n | r -> n where
+     mypack'   :: r -> Bit n
+     myunpack' :: Bit n -> r
+
+   -- Instance for sum types
+   instance (MyBits' r1 n1, MyBits' r2 n2, Max n1 n2 c, Add 1 c n,
+             Add p1 n1 c, Add p2 n2 c) =>
+      MyBits' (Either r1 r2) n where
+     mypack' (Left x) = 1'b0 ++ extend (mypack' x)
+     mypack' (Right x) = 1'b1 ++ extend (mypack' x)
+     myunpack' bs =
+        let (tag, content) = (split bs) :: (Bit 1, Bit c)
+        in case tag of
+           0 -> Left $ myunpack' $ truncate content
+           1 -> Right $ myunpack' $ truncate content
+
+   -- Instance for product types
+   instance (MyBits' r1 n1, MyBits' r2 n2, Add n1 n2 n) =>
+      MyBits' (r1, r2) n where
+     mypack' (x, y) = mypack' x ++ mypack' y
+     myunpack' bs = let (bs1, bs2) = split bs
+                  in (myunpack' bs1, myunpack' bs2)
+
+   instance  MyBits' () 0 where
+     mypack' () = 0'b0
+     myunpack' _ = ()
+
+   instance (MyBits' a m, Bits (Vector n (Bit m)) l) =>
+      MyBits' (Vector n a) l where
+     mypack' v = pack $ map mypack' v
+     myunpack' = map myunpack' `compose` unpack
+
+   -- Ignore all types of metadata
+   instance (MyBits' r n) => MyBits' (Meta m r) n where
+     mypack' (Meta x) = mypack' x
+     myunpack' bs = Meta $ myunpack' bs
+
+   -- Conc instance calls back to the non-generic MyBits class
+   instance (MyBits a n) => MyBits' (Conc a) n where
+     mypack' (Conc x) = mypack x
+     myunpack' bs = Conc $ myunpack bs
+\end{libverbatim}
+
+A more sophisticated use of generics, making use of metadata,
+can be found in the implementation of the \te{CShow} library.
