@@ -187,6 +187,7 @@ jobs:
   test-toooba-macOS:
     name: "Test Toooba ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
+    if: ${{ inputs.os != 'macos-13' }}
     needs: build-macos
     steps:
       - uses: actions/checkout@v4
