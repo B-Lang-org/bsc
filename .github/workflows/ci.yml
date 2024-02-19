@@ -7,6 +7,7 @@ jobs:
   build-check-src:
     name: "Check: code cleanliness"
     runs-on: ubuntu-20.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Check tabs and whitespace
@@ -16,6 +17,7 @@ jobs:
   build-check-testsuite:
     name: "Check: testsuite lint"
     runs-on: ubuntu-20.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Check CONFDIR
@@ -75,6 +77,7 @@ jobs:
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -112,6 +115,7 @@ jobs:
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -155,6 +159,7 @@ jobs:
       fail-fast: false
     name: "Build releasenotes: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
