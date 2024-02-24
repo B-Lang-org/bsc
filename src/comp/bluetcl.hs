@@ -415,8 +415,23 @@ versionGrammar = (tclcmd "version" namespace helpStr longHelpStr) .+.
 versionNum :: [String] -> IO HTclObj
 versionNum [] = versionNum ["bsc"]
 versionNum ["bsc"] = return $ TLst [TStr versionname, TStr buildVersion]
-versionNum ["ghc"] = return $ TStr __GLASGOW_HASKELL_FULL_VERSION__
+versionNum ["ghc"] = return $ TStr ghcVersionStr
 versionNum xs = internalError $ "versionNum: grammar mismatch: " ++ (show xs)
+
+ghcVersionStr :: String
+#if defined(__GLASGOW_HASKELL_FULL_VERSION__)
+ghcVersionStr = __GLASGOW_HASKELL_FULL_VERSION__
+#else
+ghcVersionStr =
+  let version_raw :: Int = __GLASGOW_HASKELL__
+      (major, minor) :: (Int, Int) = version_raw `divMod` 100
+#if defined(__GLASGOW_HASKELL_PATCHLEVEL1__)
+      patch1 :: Int = __GLASGOW_HASKELL_PATCHLEVEL1__
+  in  show major ++ "." ++ show minor ++ "." ++ show patch1
+#else
+  in  show major ++ "." ++ show minor
+#endif
+#endif
 
 --------------------------------------------------------------------------------
 -- flags
