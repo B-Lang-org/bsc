@@ -229,17 +229,7 @@ jobs:
         run: |
           export PATH=$PWD/../bsc/inst/bin:$PATH
 
-          cd ../Toooba/Tests/elf_to_hex
-
-          # Workaround a build failure on Ubuntu 22.04
-          REL=$(lsb_release -rs | tr -d .)
-          if [ $REL -lt 2204 ]; then
-              make
-          else
-              gcc -g  -o elf_to_hex  elf_to_hex.c  -lelf -mcmodel=medium
-          fi
-
-          cd ../../builds/RV64ACDFIMSU_Toooba_bluesim/
+          cd ../Toooba/builds/RV64ACDFIMSU_Toooba_bluesim/
 
           # Workaround bugs in the regression script
           #make isa_tests | tee isa_tests.log

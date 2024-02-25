@@ -246,11 +246,10 @@ jobs:
         run: |
           export PATH=$PWD/../bsc/inst/bin:$PATH
 
-          cd ../Toooba/Tests/elf_to_hex
+          # Workaround limitation in the Makefile for Homebrew on older macOS
+          export CPATH=/usr/local/include/libelf
 
-          make CPATH=/usr/local/include/libelf
-
-          cd ../../builds/RV64ACDFIMSU_Toooba_bluesim/
+          cd ../Toooba/builds/RV64ACDFIMSU_Toooba_bluesim/
 
           # Workaround bugs in the regression script
           #make isa_tests | tee isa_tests.log
