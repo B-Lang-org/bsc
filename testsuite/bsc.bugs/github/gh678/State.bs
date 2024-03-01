@@ -1,0 +1,22 @@
+package State where
+
+-- State monad helper
+-- TODO: should this be a bsc library?
+data State s a = State (s -> (a, s))
+
+instance Monad (State s) where
+  return x = State $ \ s -> (x, s)
+  bind (State f) g = State $ \ s1 ->
+    case f s1 of
+      (x, s2) ->
+        case g x of
+          State h -> h s2
+
+runState :: State s a -> s -> (a, s)
+runState (State f) = f
+
+get :: State s s
+get = State $ \ s -> (s, s)
+
+put :: s -> State s ()
+put s = State $ \ _ -> ((), s)

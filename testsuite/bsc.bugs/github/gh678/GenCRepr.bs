@@ -1,0 +1,757 @@
+package GenCRepr where
+
+import Vector
+import SizedVector
+import qualified List
+import State
+
+-- TODO: Move this to the Vector library.
+--@ Inverse of toChunks - convert a vector of chunks to a value,
+--@ dropping any padding on the final chunk.
+--@ \index{fromChunks@\te{fromChunks} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function t fromChunks(Vector#(n,ch) x)
+--@    provisos( Bits#(ch,ch_sz)
+--@            , Bits#(t,out_sz)
+--@            , Div#(out_sz,ch_sz,n) );
+--@ \end{libverbatim}
+fromChunks :: (Bits ch ch_sz, Bits t out_sz, Div out_sz ch_sz n) => Vector n ch -> t
+fromChunks x = Prelude.unpack $ (Prelude.pack x)[valueOf out_sz - 1:0]
+
+-- Class of types that can be represented and automatically packed/unpacked in C.
+-- n is the maximum number of bytes needed to pack a type.
+-- genC* methods in this class are parameterized by a proxy value to specify the type.
+class (UnpackBytes a n n) => GenCRepr a n | a -> n where
+  -- Compute a unique name for the type that is also a valid C identifier.
+  typeName :: a -> String
+
+  -- Get the left and right C type expressions for a type's C representation; e.g.
+  -- genCType (_ :: Int 16) = ("int16_t", "")
+  -- genCType (_ :: UInt 1024) = ("uint8_t", "[128]")
+  genCType :: a -> (String, String)
+
+  -- Compute Just the C declaration for a struct/data type,
+  -- or Nothing for primitive types.
+  genCTypeDecl :: a -> Maybe String
+  genCTypeDecl _ = Nothing
+
+  -- Pack a value of type a into a ByteList of at most n bytes.
+  packBytes :: a -> SizedVector n (Bit 8)
+
+  -- Compute the C statement to pack a value of type a,
+  -- given C expressions for the value and the result buffer.
+  genCPack :: a -> String -> String -> String
+
+  -- Compute Just the C prototype and implementation of the pack function for a
+  -- struct/data type, or Nothing for primitive types.
+  genCPackDecl :: a -> Maybe (String, String)
+  genCPackDecl _ = Nothing
+
+  -- Compute the C statement to unpack a value of type a,
+  -- given C expressions for the value and the result buffer.
+  genCUnpack :: a -> String -> String -> String
+
+  -- Compute Just the C prototype and implementation of the unpack function for a
+  -- struct/data type,  or Nothing for primitive types.
+  genCUnpackDecl :: a -> Maybe (String, String)
+  genCUnpackDecl _ = Nothing
+
+class UnpackBytes a n m | a m -> n where
+  -- Monadic implementation of unpackBytes.
+  unpackBytesM :: (Add n k m) => ByteDecoder m a
+
+-- Unpack bytes into a value of type a.
+unpackBytes :: (GenCRepr a n) => Vector n (Bit 8) -> a
+unpackBytes x = (unpackBytesM.run x 0).fst
+
+-- Pack a value into a Bit representation that is guaranteed to fit the type.
+pack :: (GenCRepr a n, Mul n 8 m) => a -> Bit m
+pack x = Prelude.pack (packBytes x).items
+
+-- Unpack a value from a Bit representation that is guaranteed to fit the type.
+unpack :: (GenCRepr a n, Mul n 8 m) => Bit m -> a
+unpack x = unpackBytes $ Prelude.unpack x
+
+struct ByteDecoder n a =
+  run :: Vector n (Bit 8) -> UInt (TLog (TAdd 1 n)) -> (a, UInt (TLog (TAdd 1 n)))
+
+instance Monad (ByteDecoder n) where
+  bind a f = ByteDecoder {
+    run = \ bytes index ->
+      let (x, index') = a.run bytes index
+      in (f x).run bytes index'
+  }
+  return x = ByteDecoder { run = \ _ index -> (x, index) }
+
+consumeBytes :: (Add n k m) => ByteDecoder m (Vector n (Bit 8))
+consumeBytes = ByteDecoder {
+  run = \ bytes index ->
+    (genWith $ \ i -> select bytes (index + fromInteger i), index + fromInteger (valueOf n))
+}
+
+peekBytes :: (Add n k m) => ByteDecoder m (Vector n (Bit 8))
+peekBytes = ByteDecoder {
+  run = \ bytes index -> (genWith $ \ i -> select bytes (index + fromInteger i), index)
+}
+
+-- Helpers to determine the C types and packing/unpacking code for various
+-- integer types.
+numCBytes :: Integer -> Maybe Integer
+numCBytes numBytes =
+  if numBytes <= 1 then Just 1
+  else if numBytes <= 2 then Just 2
+  else if numBytes <= 4 then Just 4
+  else if numBytes <= 8 then Just 8
+  else Nothing
+
+genCIntType :: Bool -> Integer -> (String, String)
+genCIntType signed numBytes =
+  let prefix = if signed then "int" else "uint"
+  in case numCBytes numBytes of
+    Just b -> (prefix +++ integerToString (b * 8) +++ "_t", "")
+    Nothing -> (prefix +++ "8_t", "[" +++ integerToString numBytes +++ "]")
+
+genCIntPack :: Integer -> String -> String -> String
+genCIntPack numBytes val buf =
+  let shiftPack :: Integer -> String
+      shiftPack n = if n >= numBytes then "" else
+           "**" +++ buf +++ " = 0xFF & (" +++ val +++ " >> " +++ integerToString (8 * (numBytes - n - 1)) +++ "); (*" +++ buf +++ ")++;" +++
+           (if n < numBytes - 1 then " " else "") +++ shiftPack (n + 1)
+  in case numCBytes numBytes of
+    Just _ -> shiftPack 0
+    Nothing ->
+      "memcpy(*" +++ buf +++ ", &" +++ val +++ ", " +++ integerToString numBytes +++ "); " +++
+      "*" +++ buf +++ " += " +++ integerToString numBytes +++ ";"
+
+genCIntUnpack :: Integer -> String -> String -> String
+genCIntUnpack numBytes val buf =
+  let shiftUnpack :: Integer -> String
+      shiftUnpack n =
+        "((uint" +++ integerToString (numBytes * 8) +++ "_t)(*" +++ buf +++ ")[" +++ integerToString n +++ "] << " +++ integerToString (8 * (numBytes - n - 1)) +++ ")" +++
+        if n >= numBytes - 1 then "" else " | " +++ shiftUnpack (n + 1)
+  in (case numCBytes numBytes of
+        Just _ -> val +++ " = " +++ shiftUnpack 0 +++ ";"
+        Nothing -> "memcpy(&" +++ val +++ ", *" +++ buf +++ ", " +++ integerToString numBytes +++ "); "
+     ) +++ " *" +++ buf +++ " += " +++ integerToString numBytes +++ ";"
+
+-- Explcit instances for specific primitive types
+instance (Div b 8 n) => GenCRepr (UInt b) n where
+  typeName _ = "uint" +++ integerToString (valueOf b)
+
+  genCType _ = genCIntType False (valueOf n)
+
+  packBytes x = fromFullVector $ toChunks x
+  genCPack _ = genCIntPack (valueOf n)
+
+  genCUnpack _ = genCIntUnpack (valueOf n)
+
+instance (Div b 8 n) => UnpackBytes (UInt b) n m where
+  unpackBytesM = fmap fromChunks consumeBytes
+
+instance (Div b 8 n) => GenCRepr (Int b) n where
+  typeName _ = "int" +++ integerToString (valueOf b)
+
+  genCType _ = genCIntType True (valueOf n)
+
+  packBytes x = fromFullVector $ toChunks x
+  genCPack _ = genCIntPack (valueOf n)
+
+  genCUnpack _ val buf =
+    genCIntUnpack (valueOf n) val buf +++
+    case numCBytes (valueOf n) of
+      Nothing -> ""
+      Just nc ->
+        if nc * 8 == valueOf b then ""
+        else "\n" +++
+          "\t// Signed type does not exactly fit a C integer type, pad with the sign bit\n" +++
+          "\t" +++ val +++ " |= " +++ val +++ " >> " +++ integerToString (valueOf b - 1) +++ " == 0? 0 : -1 << " +++ integerToString (valueOf b) +++ ";"
+
+instance (Div b 8 n) => UnpackBytes (Int b) n m where
+  unpackBytesM = fmap fromChunks consumeBytes
+
+instance GenCRepr Bool 1 where
+  typeName _ = "bool"
+
+  genCType _ = ("_Bool", "")
+
+  packBytes x = fromFullVector $ zeroExtend (Prelude.pack x) :> Vector.nil
+  genCPack _ = genCIntPack 1
+
+  genCUnpack _ = genCIntUnpack 1
+
+instance UnpackBytes Bool 1 m where
+  unpackBytesM = fmap fromChunks consumeBytes
+
+-- Default instance uses generics for arbitrary data types
+instance (Generic a r, GenCRepr' r n, UnpackBytes a n n) => GenCRepr a n where
+  typeName _ = typeName' (_ :: r)
+
+  genCType _ = genCType' (_ :: r)
+  genCTypeDecl _ = genCTypeDecl' (_ :: r)
+
+  packBytes x = packBytes' $ from x
+  genCPack _ = genCPack' (_ :: r)
+  genCPackDecl _ = genCPackDecl' (_ :: r)
+
+  genCUnpack _ = genCUnpack' (_ :: r)
+  genCUnpackDecl _ = genCUnpackDecl' (_ :: r)
+
+instance (Generic a r, UnpackBytes' r n m) => UnpackBytes a n m where
+  unpackBytesM = liftM to unpackBytesM'
+
+-- Generic version of GenCRepr has instances for Generic representation types
+class GenCRepr' a n | a -> n where
+  typeName' :: a -> String
+
+  genCType' :: a -> (String, String)
+  genCTypeDecl' :: a -> Maybe String
+
+  packBytes' :: a -> SizedVector n (Bit 8)
+  genCPack' :: a -> String -> String -> String
+  genCPackDecl' :: a -> Maybe (String, String)
+
+  genCUnpack' :: a -> String -> String -> String
+  genCUnpackDecl' :: a -> Maybe (String, String)
+
+class UnpackBytes' a n m | a m -> n where
+  unpackBytesM' :: (Add n k m) => ByteDecoder m a
+
+-- Primitive types with Bits instances are represented like unsigned integers
+instance (Bits a numBits, Div numBits 8 n, Mul n 8 numBitsPadded,
+          Add numBits numPad numBitsPadded) =>
+         GenCRepr' (ConcPrim a) n where
+  -- Same name for all primitive types, but these also have the same C representation
+  typeName' _ = "prim" +++ integerToString (valueOf numBits)
+
+  genCType' _ = genCIntType False (valueOf n)
+  genCTypeDecl' _ = Nothing
+
+  packBytes' (ConcPrim x) = fromFullVector $ toChunks x
+  genCPack' _ = genCIntPack (valueOf n)
+  genCPackDecl' _ = Nothing
+
+  genCUnpack' _ = genCIntUnpack (valueOf n)
+  genCUnpackDecl' _ = Nothing
+
+instance (Bits a numBits, Div numBits 8 n, Mul n 8 numBitsPadded,
+          Add numBits numPad numBitsPadded) =>
+         UnpackBytes' (ConcPrim a) n m where
+  unpackBytesM' = fmap (ConcPrim ∘ fromChunks) consumeBytes
+
+-- Single constructor corresponds to flat struct
+instance (GenCStructBody bodyRepr n, TypeNames ta) =>
+         GenCRepr' (Meta (MetaData name pkg ta 1) (Meta (MetaConsNamed cName cIdx numFields) bodyRepr)) n where
+  typeName' _ = stringOf name +++ typeNames (_ :: ta)
+
+  genCType' p = (typeName' p, "")
+  genCTypeDecl' p = Just $ "typedef struct " +++ typeName' p +++ " {\n" +++
+    genCStructBody (_ :: bodyRepr) False +++
+    "} " +++ typeName' p +++ ";\n" +++
+    "enum { size_" +++ typeName' p +++ " = " +++ integerToString (valueOf n) +++ " };"
+
+  packBytes' (Meta (Meta y)) = packStructBody y
+
+  genCPack' p val buf = "pack_" +++ typeName' p +++ "(" +++ val +++ ", " +++ buf +++ ");"
+
+  genCPackDecl' p = Just (
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf);",
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf) {\n" +++
+    genCPackStructBody (_ :: bodyRepr) False "" +++ "\n" +++
+    "}")
+
+  genCUnpack' p val buf = val +++ " = unpack_" +++ typeName' p +++ "(" +++ buf +++ ");"
+
+  genCUnpackDecl' p = Just (
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf);",
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf) {\n" +++
+    "\t" +++ typeName' p +++ " val;\n" +++
+    genCUnpackStructBody (_ :: bodyRepr) False "" +++ "\n" +++
+    "\treturn val;\n" +++
+    "}")
+
+instance (UnpackStructBody bodyRepr n m) =>
+         UnpackBytes' (Meta (MetaData name pkg ta 1) (Meta (MetaConsNamed cName cIdx numFields) bodyRepr)) n m where
+  unpackBytesM' = liftM Meta $ liftM Meta unpackStructBody
+
+-- Single-constructor data case, same as above
+instance (GenCStructBody bodyRepr n, TypeNames ta) =>
+         GenCRepr' (Meta (MetaData name pkg ta 1) (Meta (MetaConsAnon cName cIdx numFields) bodyRepr)) n where
+  typeName' _ = stringOf name +++ typeNames (_ :: ta)
+
+  genCType' p = (typeName' p, "")
+  genCTypeDecl' p = Just $ "typedef struct " +++ typeName' p +++ " {\n" +++
+    genCStructBody (_ :: bodyRepr) False +++
+    "} " +++ typeName' p +++ ";\n" +++
+    "enum { size_" +++ typeName' p +++ " = " +++ integerToString (valueOf n) +++ " };"
+
+  packBytes' (Meta (Meta y)) = packStructBody y
+
+  genCPack' p val buf = "pack_" +++ typeName' p +++ "(" +++ val +++ ", " +++ buf +++ ");"
+
+  genCPackDecl' p = Just (
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf);",
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf) {\n" +++
+    genCPackStructBody (_ :: bodyRepr) False "" +++ "\n" +++
+    "}")
+
+  genCUnpack' p val buf = val +++ " = unpack_" +++ typeName' p +++ "(" +++ buf +++ ");"
+
+  genCUnpackDecl' p = Just (
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf);",
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf) {\n" +++
+    "\t" +++ typeName' p +++ " val;\n" +++
+    genCUnpackStructBody (_ :: bodyRepr) False "" +++ "\n" +++
+    "\treturn val;\n" +++
+    "}")
+
+instance (UnpackStructBody bodyRepr n m) =>
+         UnpackBytes' (Meta (MetaData name pkg ta 1) (Meta (MetaConsAnon cName cIdx numFields) bodyRepr)) n m where
+  unpackBytesM' = liftM Meta $ liftM Meta unpackStructBody
+
+-- Multi-constructor case, generate a tagged union
+instance (GenCUnionBody tagBytes bodyRepr maxCIdx n, TypeNames ta,
+          GenCRepr' (Meta (MetaData name pkg ta numCtors) bodyRepr) n1, -- TODO: Why is this context needed?
+          Log numCtors tagBits, Div tagBits 8 tagBytes) =>
+         GenCRepr' (Meta (MetaData name pkg ta numCtors) bodyRepr) n where
+  typeName' _ = stringOf name +++ typeNames (_ :: ta)
+
+  genCType' p = (typeName' p, "")
+  genCTypeDecl' p = Just $ "typedef struct " +++ typeName' p +++ " {\n" +++
+    "\tenum " +++ typeName' p +++ "_tag { " +++
+    genCEnumBody (_ :: Bit tagBytes) (_ :: bodyRepr) (typeName' p) +++
+    " } tag;\n" +++
+    (if hasUnionMembers (_ :: Bit tagBytes) (_ :: bodyRepr)
+      then "\tunion " +++ typeName' p +++ "_contents {\n" +++
+           genCUnionBody (_ :: Bit tagBytes) (_ :: bodyRepr) (typeName' p) +++
+           "\t} contents;\n"
+      else "") +++
+    "} " +++ typeName' p +++ ";\n" +++
+    "enum { size_" +++ typeName' p +++ " = " +++ integerToString (valueOf n) +++ " };"
+
+  packBytes' (Meta y) = packUnionBody (_ :: Bit tagBytes) y
+
+  genCPack' p val buf = "pack_" +++ typeName' p +++ "(" +++ val +++ ", " +++ buf +++ ");"
+
+  genCPackDecl' p = Just (
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf);",
+    "void pack_" +++ typeName' p +++ "(" +++ typeName' p +++ " val, uint8_t **buf) {\n" +++
+    "\t" +++ genCIntPack (valueOf tagBytes) "val.tag" "buf" +++ "\n" +++
+    "\t" +++ genCPackUnionBody (_ :: Bit tagBytes) (_ :: bodyRepr) (typeName' p) +++ "; // Invalid tag, do nothing\n" +++
+    "}")
+
+  genCUnpack' p val buf = val +++ " = unpack_" +++ typeName' p +++ "(" +++ buf +++ ");"
+
+  genCUnpackDecl' p = Just (
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf);",
+    typeName' p +++ " unpack_" +++ typeName' p +++ "(uint8_t **buf) {\n" +++
+    "\t" +++ typeName' p +++ " val;\n" +++
+    "\t" +++ genCIntUnpack (valueOf tagBytes) "val.tag" "buf" +++ "\n" +++
+    "\t" +++ genCUnpackUnionBody (_ :: Bit tagBytes) (_ :: bodyRepr) (typeName' p) +++ "; // Invalid tag, do nothing\n" +++
+    "\treturn val;\n" +++
+    "}")
+
+instance (UnpackUnionBody tagBytes bodyRepr maxCIdx n m, Log numCtors tagBits, Div tagBits 8 tagBytes) =>
+         UnpackBytes' (Meta (MetaData name pkg ta numCtors) bodyRepr) n m where
+  unpackBytesM' = liftM Meta $ unpackUnionBody (_ :: Bit tagBytes)
+
+-- Collections (ListN and Vector) are represented as arrays
+instance (GenCRepr a elemBytes, ConcatSizedVector numElems elemBytes n) =>
+         GenCRepr' (Meta (MetaData name pkg ta 1) (Vector numElems (Conc a))) n where
+  typeName' _ = integerToString (valueOf numElems) +++ "_" +++ typeName (_ :: a) +++ "s"
+
+  genCType' _ =
+    let (lType, rType) = genCType (_ :: a)
+    in (lType, "[" +++ integerToString (valueOf numElems) +++ "]" +++ rType)
+  genCTypeDecl' _ = Nothing
+
+  packBytes' (Meta x) = concat $ map (\ (Conc a) -> packBytes a) x
+
+  genCPack' _ val buf = foldr (\ p1 p2 -> p1 +++ " " +++ p2) "" $ map
+    (\ i -> genCPack (_ :: a) (val +++ "[" +++ integerToString i +++ "]") buf)
+    (genList :: Vector numElems Integer)
+  genCPackDecl' _ = Nothing
+
+  genCUnpack' _ val buf = foldr (\ p1 p2 -> p1 +++ " " +++ p2) "" $ map
+    (\ i -> genCUnpack (_ :: a) (val +++ "[" +++ integerToString i +++ "]") buf)
+    (genList :: Vector numElems Integer)
+  genCUnpackDecl' _ = Nothing
+
+instance (UnpackBytes a elemBytes m, Mul numElems elemBytes n, Add elemBytes k m) =>
+         UnpackBytes' (Meta (MetaData name pkg ta 1) (Vector numElems (Conc a))) n m where
+  unpackBytesM' = liftM (Meta ∘ map Conc) $ replicateM unpackBytesM
+
+-- Helper to compute the portion of a type name from a tuple of type arguments.
+class TypeNames a where
+  typeNames :: a -> String
+
+instance (GenCRepr a n, TypeNames b) => TypeNames (StarArg a, b) where
+  typeNames _ = "_" +++ typeName (_ :: a) +++ typeNames (_ :: b)
+
+instance (GenCRepr a n) => TypeNames (StarArg a) where
+  typeNames _ = "_" +++ typeName (_ :: a)
+
+instance (TypeNames b) => TypeNames (NumArg n, b) where
+  typeNames _ = "_" +++ integerToString (valueOf n) +++ typeNames (_ :: b)
+
+instance TypeNames (NumArg n) where
+  typeNames _ = "_" +++ integerToString (valueOf n)
+
+-- TODO: Should normalize strings to be valid identifiers.
+instance (TypeNames b) => TypeNames (StrArg s, b) where
+  typeNames _ = "_" +++ stringOf s +++ typeNames (_ :: b)
+
+instance TypeNames (StrArg s) where
+  typeNames _ = "_" +++ stringOf s
+
+instance TypeNames () where
+  typeNames _ = ""
+
+-- Helper type class to handle sum types.
+-- nt = number of tag bytes
+-- a = representation type of contents
+-- i = max constructor index
+-- n = max number of bytes needed to pack any summand (including the tag)
+-- Code generation methods require proxy values for nt and a.
+class GenCUnionBody nt a i n | nt a -> i n where
+  genCEnumBody :: Bit nt -> a -> String -> String
+  genCUnionBody :: Bit nt -> a -> String -> String
+  hasUnionMembers :: Bit nt -> a -> Bool
+
+  packUnionBody :: Bit nt -> a -> SizedVector n (Bit 8)
+  genCPackUnionBody :: Bit nt -> a -> String -> String
+
+  genCUnpackUnionBody :: Bit nt -> a -> String -> String
+
+class UnpackUnionBody nt a i n m | nt a m -> i n where
+  unpackUnionBody :: (Add n k m) => Bit nt -> ByteDecoder m a
+
+-- "sum" case, need to compare the tag with the index in unpacking
+instance (GenCUnionBody tagBytes a i1 n1, GenCUnionBody tagBytes b i2 n2,
+          Max n1 n2 n,
+          AppendSizedVector n1 p1 n,
+          AppendSizedVector n2 p2 n,
+          Mul tagBytes 8 tagBits) =>
+         GenCUnionBody tagBytes (Either a b) i2 n where
+  genCEnumBody _ _ typeName =
+    genCEnumBody (_ :: Bit tagBytes) (_ :: a) typeName +++ ", " +++
+    genCEnumBody (_ :: Bit tagBytes) (_ :: b) typeName
+  genCUnionBody _ _ typeName =
+    genCUnionBody (_ :: Bit tagBytes) (_ :: a) typeName +++
+    genCUnionBody (_ :: Bit tagBytes) (_ :: b) typeName
+  hasUnionMembers _ _ =
+    hasUnionMembers (_ :: Bit tagBytes) (_ :: a) ||
+    hasUnionMembers (_ :: Bit tagBytes) (_ :: b)
+
+  packUnionBody _ (Left x) = extend $ packUnionBody (_ :: Bit tagBytes) x
+  packUnionBody _ (Right x) = extend $ packUnionBody (_ :: Bit tagBytes) x
+  genCPackUnionBody _ _ typeName =
+    genCPackUnionBody (_ :: Bit tagBytes) (_ :: a) typeName +++
+    genCPackUnionBody (_ :: Bit tagBytes) (_ :: b) typeName
+
+  genCUnpackUnionBody _ _ typeName =
+    genCUnpackUnionBody (_ :: Bit tagBytes) (_ :: a) typeName +++
+    genCUnpackUnionBody (_ :: Bit tagBytes) (_ :: b) typeName
+
+instance (UnpackUnionBody tagBytes a i1 n1 m, UnpackUnionBody tagBytes b i2 n2 m,
+          Max n1 n2 n,
+          Add tagBytes k m, Add n1 k1 m, Add n2 k2 m) =>
+         UnpackUnionBody tagBytes (Either a b) i2 n m where
+  unpackUnionBody _ = do
+    x :: Vector tagBytes (Bit 8) <- peekBytes
+    if Prelude.pack x <= fromInteger (valueOf i1)
+    then liftM Left $ unpackUnionBody (_ :: Bit tagBytes)
+    else liftM Right $ unpackUnionBody (_ :: Bit tagBytes)
+
+-- Special case for a constructor with no members, don't create a struct
+instance (Mul tagBytes 8 tagBits) =>
+         GenCUnionBody tagBytes (Meta (MetaConsAnon ctorName ctorIdx 0) ()) ctorIdx tagBytes where
+  genCEnumBody _ _ typeName = typeName +++ "_" +++ stringOf ctorName
+  genCUnionBody _ _ _ = ""
+  hasUnionMembers _ _ = False
+
+  packUnionBody _ (Meta ()) =
+    let tag :: (UInt tagBits) = fromInteger $ valueOf ctorIdx
+    in fromFullVector $ Prelude.unpack $ Prelude.pack tag
+  genCPackUnionBody _ _ _ = ""
+
+  genCUnpackUnionBody _ _ _ = ""
+
+instance UnpackUnionBody tagBytes (Meta (MetaConsAnon ctorName ctorIdx 0) ()) ctorIdx tagBytes m where
+  unpackUnionBody _ = do
+    consumeBytes :: ByteDecoder m (Vector tagBytes (Bit 8))
+    return $ Meta ()
+
+-- Special case for a constructor with a single anonymous field, don't create an inner struct
+instance (GenCRepr a n', Mul tagBytes 8 tagBits, AppendSizedVector tagBytes n' n) =>
+         GenCUnionBody
+           tagBytes (Meta (MetaConsAnon ctorName ctorIdx 1) (Meta (MetaField fieldName fieldIdx) (Conc a)))
+           ctorIdx n where
+  genCEnumBody _ _ typeName = typeName +++ "_" +++ stringOf ctorName
+  genCUnionBody _ _ _ =
+    let (lType, rType) = genCType (_ :: a)
+    in "\t\t" +++ lType +++ " " +++ stringOf ctorName +++ rType +++ ";\n"
+  hasUnionMembers _ _ = True
+
+  packUnionBody _ (Meta (Meta (Conc x))) =
+    let tag :: (UInt tagBits) = fromInteger $ valueOf ctorIdx
+    in append (fromFullVector $ Prelude.unpack $ Prelude.pack tag) $ packBytes x
+  genCPackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    "\t\t" +++ genCPack (_ :: a) ("val.contents." +++ stringOf ctorName) "buf" +++ "\n" +++
+    "\t} else "
+
+  genCUnpackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    "\t\t" +++ genCUnpack (_ :: a) ("val.contents." +++ stringOf ctorName) "buf" +++ "\n" +++
+    "\t} else "
+
+instance (UnpackBytes a n' m, Add tagBytes n' n, Add tagBytes k1 m, Add n' k2 m) =>
+         UnpackUnionBody
+           tagBytes (Meta (MetaConsAnon ctorName ctorIdx 1) (Meta (MetaField fieldName fieldIdx) (Conc a)))
+           ctorIdx n m where
+  unpackUnionBody _ = do
+    consumeBytes :: ByteDecoder m (Vector tagBytes (Bit 8))
+    liftM Meta $ liftM Meta $ liftM Conc unpackBytesM
+
+-- Instance for multiple named fields, represented by an inner struct
+instance (GenCStructBody bodyRepr n', Mul tagBytes 8 tagBits, AppendSizedVector tagBytes n' n) =>
+         GenCUnionBody tagBytes (Meta (MetaConsNamed ctorName ctorIdx numFields) bodyRepr) ctorIdx n where
+  genCEnumBody _ _ typeName = typeName +++ "_" +++ stringOf ctorName
+  genCUnionBody _ _ typeName =
+    "\t\tstruct " +++ typeName +++ "_" +++ stringOf ctorName +++ " {\n" +++
+    genCStructBody (_ :: bodyRepr) True +++
+    "\t\t} " +++ stringOf ctorName +++ ";\n"
+  hasUnionMembers _ _ = True
+
+  packUnionBody _ (Meta x) =
+    let tag :: (UInt tagBits) = fromInteger $ valueOf ctorIdx
+    in append (fromFullVector $ Prelude.unpack $ Prelude.pack tag) $ packStructBody x
+  genCPackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    genCPackStructBody (_ :: bodyRepr) True (".contents." +++ stringOf ctorName) +++ "\n" +++
+    "\t} else "
+
+  genCUnpackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    genCUnpackStructBody (_ :: bodyRepr) True (".contents." +++ stringOf ctorName) +++ "\n" +++
+    "\t} else "
+
+instance (UnpackStructBody bodyRepr n' m, Add tagBytes n' n, Add tagBytes k1 m, Add n' k2 m) =>
+         UnpackUnionBody tagBytes (Meta (MetaConsNamed ctorName ctorIdx numFields) bodyRepr) ctorIdx n m where
+  unpackUnionBody _ = do
+    consumeBytes :: ByteDecoder m (Vector tagBytes (Bit 8))
+    liftM Meta unpackStructBody
+
+-- Instance for multiple anonymous fields, same as above
+instance (GenCStructBody bodyRepr n', Mul tagBytes 8 tagBits, AppendSizedVector tagBytes n' n) =>
+         GenCUnionBody tagBytes (Meta (MetaConsAnon ctorName ctorIdx numFields) bodyRepr) ctorIdx n where
+  genCEnumBody _ _ typeName = typeName +++ "_" +++ stringOf ctorName
+  genCUnionBody _ _ typeName =
+    "\t\tstruct " +++ typeName +++ "_" +++ stringOf ctorName +++ " {\n" +++
+    genCStructBody (_ :: bodyRepr) True +++
+    "\t\t} " +++ stringOf ctorName +++ ";\n"
+  hasUnionMembers _ _ = True
+
+  packUnionBody _ (Meta x) =
+    let tag :: (UInt tagBits) = fromInteger $ valueOf ctorIdx
+    in append (fromFullVector $ Prelude.unpack $ Prelude.pack tag) $ packStructBody x
+  genCPackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    genCPackStructBody (_ :: bodyRepr) True (".contents." +++ stringOf ctorName) +++ "\n" +++
+    "\t} else "
+
+  genCUnpackUnionBody _ _ typeName =
+    "if (val.tag == " +++ typeName +++ "_" +++ stringOf ctorName +++ ") {\n" +++
+    genCUnpackStructBody (_ :: bodyRepr) True (".contents." +++ stringOf ctorName) +++ "\n" +++
+    "\t} else "
+
+instance (UnpackStructBody bodyRepr n' m, Add tagBytes n' n, Add tagBytes k1 m, Add n' k2 m) =>
+         UnpackUnionBody tagBytes (Meta (MetaConsAnon ctorName ctorIdx numFields) bodyRepr) ctorIdx n m where
+  unpackUnionBody _ = do
+    consumeBytes :: ByteDecoder m (Vector tagBytes (Bit 8))
+    liftM Meta unpackStructBody
+
+-- Helper type class to handle product types.
+-- a = representation type of contents
+-- n = total max number of bytes needed to pack all fields
+-- Code generation methods require proxy values for nt and a.
+class GenCStructBody a n | a -> n where
+  genCStructBody :: a -> Bool -> String
+  packStructBody :: a -> SizedVector n (Bit 8)
+  genCPackStructBody :: a -> Bool -> String -> String
+  genCUnpackStructBody :: a -> Bool -> String -> String
+
+class UnpackStructBody a n m | a m -> n where
+  unpackStructBody :: (Add n k m) => ByteDecoder m a
+
+-- "product" case
+instance (GenCStructBody a n1, GenCStructBody b n2, AppendSizedVector n1 n2 n) =>
+         GenCStructBody (a, b) n where
+  genCStructBody _ nested =
+    genCStructBody (_ :: a) nested +++ genCStructBody (_ :: b) nested
+
+  packStructBody (x, y) = packStructBody x `append` packStructBody y
+  genCPackStructBody _ nested sel =
+    genCPackStructBody (_ :: a) nested sel +++ "\n" +++ genCPackStructBody (_ :: b) nested sel
+
+  genCUnpackStructBody _ nested sel =
+    genCUnpackStructBody (_ :: a) nested sel +++ "\n" +++ genCUnpackStructBody (_ :: b) nested sel
+
+instance (UnpackStructBody a n1 m, UnpackStructBody b n2 m, Add n1 n2 n, Add n1 k1 m, Add n2 k2 m) =>
+         UnpackStructBody (a, b) n m where
+  unpackStructBody = liftM2 tuple2 unpackStructBody unpackStructBody
+
+-- empty case
+instance GenCStructBody () 0 where
+  genCStructBody _ _ = ""
+  packStructBody () = nil
+  genCPackStructBody _ _ _ = ""
+  genCUnpackStructBody _ _ _ = ""
+
+instance UnpackStructBody () 0 m where
+  unpackStructBody = return ()
+
+-- Instance for a single concrete field, calls back to non-generic GenCRepr methods
+instance (GenCRepr a n) => GenCStructBody (Meta (MetaField name idx) (Conc a)) n where
+  genCStructBody _ nested =
+    let (lType, rType) = genCType (_ :: a)
+    in (if nested then "\t\t" else "") +++ "\t" +++ lType +++ " " +++ stringOf name +++ rType +++ ";\n"
+
+  packStructBody (Meta (Conc x)) = packBytes x
+  genCPackStructBody _ nested sel =
+    (if nested then "\t" else "") +++
+    "\t" +++ genCPack (_ :: a) ("val" +++ sel +++ "." +++ stringOf name) "buf"
+
+  genCUnpackStructBody _ nested sel =
+    (if nested then "\t" else "") +++
+    "\t" +++ genCUnpack (_ :: a) ("val" +++ sel +++ "." +++ stringOf name) "buf"
+
+instance (UnpackBytes a n m, Add n k m) => UnpackStructBody (Meta (MetaField name idx) (Conc a)) n m where
+  unpackStructBody = liftM Meta $ liftM Conc unpackBytesM
+
+
+-- Extract all component declarations for a type using generics
+class GenCDecls a where
+  componentTypeNames :: a -> List String
+  genCHeaderDecls :: a -> State (List String) String
+  genCImplDecls :: a -> State (List String) String
+
+instance (GenCRepr a n, Generic a r, GenCDecls' r) => GenCDecls a where
+  componentTypeNames _ = typeName (_ :: a) `List.cons` componentTypeNames' (_ :: r)
+
+  genCHeaderDecls p = do
+    done <- get
+    if isJust $ List.find (\ t -> t == typeName (_ :: a)) done
+      then return ""
+      else do
+      put $ typeName (_ :: a) `List.cons` done
+      deps <- genCHeaderDecls' (_ :: r)
+      return $ deps +++
+        (case genCTypeDecl p of
+           Just d -> d +++ "\n"
+           Nothing -> ""
+        ) +++
+        (case genCPackDecl p of
+           Just (d, _) -> d +++ "\n"
+           Nothing -> ""
+        ) +++
+        (case genCUnpackDecl p of
+           Just (d, _) -> d +++ "\n\n"
+           Nothing -> ""
+        )
+
+  genCImplDecls p = do
+    done <- get
+    if isJust $ List.find (\ t -> t == typeName (_ :: a)) done
+      then return ""
+      else do
+      put $ typeName (_ :: a) `List.cons` done
+      deps <- genCImplDecls' (_ :: r)
+      return $ deps +++
+        (case genCPackDecl p of
+           Just (_, d) -> d +++ "\n\n"
+           Nothing -> ""
+        ) +++
+        (case genCUnpackDecl p of
+           Just (_, d) -> d +++ "\n\n"
+           Nothing -> ""
+        )
+
+class GenCDecls' a where
+  componentTypeNames' :: a -> List String
+  genCHeaderDecls' :: a -> State (List String) String
+  genCImplDecls' :: a -> State (List String) String
+
+instance (GenCDecls' a) => GenCDecls' (Meta m a) where
+  componentTypeNames' _ = componentTypeNames' (_ :: a)
+  genCHeaderDecls' _ = genCHeaderDecls' (_ :: a)
+  genCImplDecls' _ = genCImplDecls' (_ :: a)
+
+instance (GenCDecls' a, GenCDecls' b) => GenCDecls' (Either a b) where
+  componentTypeNames' _ = componentTypeNames' (_ :: a) `List.append` componentTypeNames' (_ :: b)
+  genCHeaderDecls' _ = liftM2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
+  genCImplDecls' _ = liftM2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
+
+instance (GenCDecls' a, GenCDecls' b) => GenCDecls' (a, b) where
+  componentTypeNames' _ = componentTypeNames' (_ :: a) `List.append` componentTypeNames' (_ :: b)
+  genCHeaderDecls' _ = liftM2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
+  genCImplDecls' _ = liftM2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
+
+instance GenCDecls' () where
+  componentTypeNames' _ = List.nil
+  genCHeaderDecls' _ = return ""
+  genCImplDecls' _ = return ""
+
+instance (GenCDecls' a) => GenCDecls' (Vector n a) where
+  componentTypeNames' _ = componentTypeNames' (_ :: a)
+  genCHeaderDecls' _ = genCHeaderDecls' (_ :: a)
+  genCImplDecls' _ = genCImplDecls' (_ :: a)
+
+instance GenCDecls' (ConcPrim a) where
+  componentTypeNames' _ = List.nil
+  genCHeaderDecls' _ = return ""
+  genCImplDecls' _ = return ""
+
+instance (GenCDecls a) => GenCDecls' (Conc a) where
+  componentTypeNames' _ = componentTypeNames (_ :: a)
+  genCHeaderDecls' _ = genCHeaderDecls (_ :: a)
+  genCImplDecls' _ = genCImplDecls (_ :: a)
+
+-- Helper to allow a tuple of types to be all easily translated together
+class GenAllCDecls a where
+  genAllCHeaderDecls :: a -> State (List String) String
+  genAllCImplDecls :: a -> State (List String) String
+
+instance (GenCDecls a, GenAllCDecls b) => GenAllCDecls (a, b) where
+  genAllCHeaderDecls _ = liftM2 strConcat (genCHeaderDecls (_ :: a)) (genAllCHeaderDecls (_ :: b))
+  genAllCImplDecls _ = liftM2 strConcat (genCImplDecls (_ :: a)) (genAllCImplDecls (_ :: b))
+
+instance (GenCDecls a) => GenAllCDecls a where
+  genAllCHeaderDecls _ = genCHeaderDecls (_ :: a)
+  genAllCImplDecls _ = genCImplDecls (_ :: a)
+
+instance GenAllCDecls () where
+  genAllCHeaderDecls _ = return ""
+  genAllCImplDecls _ = return ""
+
+-- Driver to all write C declarations for some types
+writeCDecls :: (GenAllCDecls tys) => String -> tys -> Module Empty
+writeCDecls baseName proxy = do
+  let headerName = (baseName +++ ".h")
+  let implName = (baseName +++ ".c")
+  let headerContents =
+        "#include <stdint.h>\n\n\n" +++
+        (runState (genAllCHeaderDecls proxy) List.nil).fst
+  let implContents =
+        "#include <stdlib.h>\n#include <string.h>\n\n#include \"" +++ headerName +++ "\"\n\n\n" +++
+        (runState (genAllCImplDecls proxy) List.nil).fst
+  stdout <- openFile "/dev/stdout" WriteMode
+  h <- openFile headerName WriteMode
+  hPutStr h headerContents
+  hClose h
+  hPutStrLn stdout ("Header file created: " +++ headerName)
+  c <- openFile implName WriteMode
+  hPutStr c implContents
+  hClose c
+  hPutStrLn stdout ("C implementation file created: " +++ implName)
+  hClose stdout

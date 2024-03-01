@@ -1,0 +1,43 @@
+package SizedVector where
+
+import Vector
+
+-- Represents a variable-sized vector of max length n
+struct SizedVector n a =
+  size :: UInt (TLog (TAdd 1 n))
+  items :: Vector n a
+ deriving (Eq, Bits)
+
+nil :: SizedVector n a
+nil = SizedVector { size=0; items=replicate _; }
+
+fromFullVector :: Vector n a -> SizedVector n a
+fromFullVector v = SizedVector { size=fromInteger $ valueOf n; items=v; }
+
+class AppendSizedVector n1 n2 n | n1 n2 -> n where
+  append :: SizedVector n1 a -> SizedVector n2 a -> SizedVector n a
+
+instance (Add n1 n2 n,
+          Add p1 (TLog (TAdd 1 n1)) (TLog (TAdd 1 n)),
+          Add p2 (TLog (TAdd 1 n2)) (TLog (TAdd 1 n))) =>
+         AppendSizedVector n1 n2 n where
+    append v1 v2 = SizedVector {
+    size = zeroExtend v1.size + zeroExtend v2.size;
+    items = genWith $ \ i ->
+        if fromInteger i < v1.size
+        then v1.items !! i
+        else select v2.items $ fromInteger i - v1.size;
+    }
+
+class ConcatSizedVector n1 n2 n | n1 n2 -> n where
+  concat :: Vector n1 (SizedVector n2 a) -> SizedVector n a
+
+instance ConcatSizedVector 0 n 0 where
+  concat _ = nil
+
+instance (ConcatSizedVector n1' n2 n', Add n1' 1 n1, AppendSizedVector n' n2 n) =>
+         ConcatSizedVector n1 n2 n where
+  concat v = append (head v) (concat $ tail v)
+
+extend :: (AppendSizedVector n k m) => SizedVector n a -> SizedVector m a
+extend v = append v $ fromFullVector $ replicate _

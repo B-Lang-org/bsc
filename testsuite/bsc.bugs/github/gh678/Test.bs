@@ -1,0 +1,8 @@
+package Test where
+
+import GenCRepr
+
+data Enum = E1 | E2 | E3
+
+sysTest :: String
+sysTest = typeName (_ :: Enum)
