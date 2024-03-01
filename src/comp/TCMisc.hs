@@ -423,8 +423,14 @@ satMany dvs es rs_accum bs s (p:ps) = do
             -- We also accum the bindings to get from "p" to "needed".
             -- we keep growing the substitution because anything we
             -- have learned we can commit to
+            --
+            -- We apply the substitution to the "needed" preds because we
+            -- encounted an example where they were unsubstituted and that
+            -- prevented satisfying -- is this apSub just covering for an
+            -- issue elsewhere (that should not have returned unsubst'd preds)?
+            --
             rtrace ("satMany Right: " ++ ppReadable needed) $
-            satMany dvs es (needed ++ rs_accum) (bs'++bs) (s' @@ s) ps
+            satMany dvs es ((apSub s' needed) ++ rs_accum) (bs'++bs) (s' @@ s) ps
         ([], bs', s') ->
             -- If p is satisfied, we "drop" it, but add its binding and
             -- substitution.
