@@ -1,27 +1,16 @@
 
 set rtsflags {+RTS -M256M -Sstderr -RTS}
 
-# GHC 9.8.1 has regressions
-set is_ghc_9_8 [ expr [regexp {^\d+\.\d+} $ghc_version majmin] && \
-		     $majmin == "9.8" ]
-set rtsflags_9_8 {+RTS -M265M -Sstderr -RTS}
-
-proc compile_verilog_pass_except { filename except rtsflags rtsflags_except} {
-    if { $except } {
-	compile_verilog_fail $filename {} $rtsflags
-	copy [make_bsc_vcomp_output_name $filename] \
-	    [make_bsc_vcomp_output_name $filename.try1]
-	compile_verilog_pass $filename {} $rtsflags_except
-    } else {
-	compile_verilog_pass $filename {} $rtsflags
-    }
+# For tests that need more than the default
+proc rts_flags { heapsize } {
+    return "+RTS -M${heapsize}M -Sstderr -RTS"
 }
 
 # -----
 
 compile_verilog_pass Bug1490Bool.bsv {} $rtsflags
 compile_verilog_pass Bug1490MyBool.bsv {} $rtsflags
-compile_verilog_pass_except Bug1490MyUnion.bsv $is_ghc_9_8 $rtsflags $rtsflags_9_8
+compile_verilog_pass Bug1490MyUnion.bsv {} [rts_flags 272]
 compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 
 # -----
@@ -31,6 +20,6 @@ compile_verilog_fail VsortOriginal.bsv {} $rtsflags
 # Confirm that the test failed in the way we expect
 find_n_strings [make_bsc_vcomp_output_name VsortOriginal.bsv] "Heap exhausted" 1
 
-compile_verilog_pass_except VsortWorkaround.bsv $is_ghc_9_8 $rtsflags $rtsflags_9_8
+compile_verilog_pass VsortWorkaround.bsv {} [rts_flags 272]
 
 # -----
