@@ -1,0 +1,52 @@
+name: Rocky 8 build
+
+# Trigger the workflow on push or pull request
+on: [ push, pull_request, workflow_dispatch ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    container: rockylinux:8.9.20231119
+    name: 'Rocky8'
+    steps:
+      - name: Install dependencies
+        shell: bash
+        # make smoke-test needs iverilog yet iverilog is not available on Rocky
+        run: |
+          dnf install 'dnf-command(config-manager)' -y
+          dnf config-manager --enable powertools -y
+          dnf install epel-release -y
+          dnf install -y autoconf flex bison gperf git
+          dnf install -y gcc-c++
+          dnf install -y make
+          dnf install -y tcl{,-devel}
+          dnf install -y ghc
+          dnf install -y ghc-syb{,-devel} ghc-old-time{,-devel} ghc-split{,-devel} ghc-regex-compat{,-devel} ghc-text{,-devel}
+          dnf install -y pkg-config
+          dnf install -y zlib{,-devel}
+          dnf install -y which
+          dnf install -y diffutils
+          (cd /tmp && git clone --branch v12-branch https://github.com/matx-inc/iverilog && \
+           cd ./iverilog/ && autoconf && ./configure && make check -j && make install)
+      - uses: actions/checkout@v4
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git config --global --add safe.directory $PWD
+          git submodule update --init --recursive
+      - name: Build
+        # Includes an older version of the libffi by adding it to the
+        # search path (LD_LIBRARY_PATH). This ensures the program
+        # works on many different versions of Linux that we use.
+        run: |
+          export PATH=/usr/lib/ccache:$PATH
+          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
+          cp /usr/lib64/libffi.so.6 ./inst/lib/SAT/
+          tar czf inst.tar.gz inst
+      - name: Smoketest
+        run: "make check-smoke"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rocky build
+          path: inst.tar.gz
