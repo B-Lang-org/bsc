@@ -48,7 +48,7 @@ nullModule =
 --@ Continuous run-time assertion (expected to be True on each clock).
 --@ Can be used anywhere a module instantiation is valid.
 --@ \begin{libverbatim}
---@ function Action continuousAssert(Bool b);
+--@ module continuousAssert#(Bool b, String s)(Empty);
 --@ \end{libverbatim}
 continuousAssert :: (IsModule m c) => Bool -> String -> m Empty
 continuousAssert = if not testAssert then (\_ _ -> nullModule)
