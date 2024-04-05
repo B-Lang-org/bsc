@@ -42,7 +42,7 @@ jobs:
   build-and-test-macos:
     strategy:
       matrix:
-        os: [ macos-11, macos-12, macos-13 ]
+        os: [ macos-11, macos-12, macos-13, macos-14 ]
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-macos.yml
@@ -65,7 +65,7 @@ jobs:
     name: "Build/Test: GHC latest macOS"
     uses: ./.github/workflows/build-and-test-macos.yml
     with:
-      os: macos-12
+      os: macos-14
       ghc_version: 9.8.2
       hls_version: 2.7.0.0
     secrets: inherit
@@ -111,7 +111,7 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-11, macos-12, macos-13 ]
+        os: [ macos-11, macos-12, macos-13, macos-14 ]
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
