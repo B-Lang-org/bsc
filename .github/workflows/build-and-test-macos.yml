@@ -20,7 +20,7 @@ jobs:
   build-macOS:
     name: "Build: ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Checkout submodules
@@ -121,7 +121,7 @@ jobs:
   test-macOS:
     name: "Test ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 240
+    timeout-minutes: 300
     needs: build-macos
     steps:
       - uses: actions/checkout@v4
@@ -189,7 +189,7 @@ jobs:
   test-toooba-macOS:
     name: "Test Toooba ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs: build-macos
     steps:
       - uses: actions/checkout@v4
@@ -267,7 +267,7 @@ jobs:
   test-contrib-macOS:
     name: "Test bsc-contrib ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 30
+    timeout-minutes: 90
     needs: build-macos
     steps:
       - uses: actions/checkout@v4
@@ -344,7 +344,7 @@ jobs:
   test-bdw-macOS:
     name: "Test bdw ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 30
+    timeout-minutes: 90
     needs: build-macos
     steps:
       - uses: actions/checkout@v4
