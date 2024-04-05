@@ -196,6 +196,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          brew update
           brew install ccache libelf
 
       - name: Download bsc

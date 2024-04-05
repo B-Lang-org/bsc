@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 apt-get update
 
 # ccache is not required to buid bsc, but we use it in build.yml to improve
