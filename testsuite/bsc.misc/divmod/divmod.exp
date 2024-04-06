@@ -7,13 +7,17 @@ test_c_veri_bsv_modules_options DivMod {} "-no-use-negate"
 
 test_c_veri_bsv_modules_options DivModWide {} "-no-use-negate" sysDivModWide.out.expected
 
-# expected status for darwin rh3 and rh4
 set fpe [list SIGFPE 8 136]
 
 # Test that divide-by-zero produces some failure in Bluesim
 compile_object_pass DivideByZero.bsv sysDivideByZero
 link_objects_pass sysDivideByZero sysDivideByZero
-sim_output_status sysDivideByZero $fpe
+if [string equal [which_mach] "arm64"] {
+    # This is an expected bug (GitHub #688)
+    sim_output_status sysDivideByZero 0
+} else {
+    sim_output_status sysDivideByZero $fpe
+}
 
 # In Verilog it silently produces x's
 test_veri_only_bsv DivideByZero sysDivideByZero.v.out.expected

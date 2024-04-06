@@ -200,6 +200,15 @@ proc which_os {} {
     return $env(OSTYPE)
 }
 
+proc which_mach {} {
+    global env
+    if {! [info exists env(MACHTYPE)]} {
+        perror "can't find architecture -- set MACHTYPE to the name"
+        exit 1
+    }
+    return $env(MACHTYPE)
+}
+
 # return true if the given Bluetcl packahe is available
 proc bluetcl_package_available { pkg } {
     global bluetcl
@@ -3209,6 +3218,7 @@ verbose -log "Do internal checks is [do_internal_checks]" 1
 # System settings
 
 verbose -log "Operating system is [which_os]" 1
+verbose -log "Architecture is [which_mach]" 1
 
 # Assume 64-bit
 set ::is64 "64"
