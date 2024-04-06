@@ -6,26 +6,9 @@
 
 if { $vtest == 1 } {
 
-proc test_iverilog_version_and_machine_type {} {
-    global verilog_compiler
-    set code [catch "exec $verilog_compiler -V 2>/dev/null | head -1" x2]
-    set mach [exec uname -m]
-    set x86_64 [string first "x86_64" $mach]
-    set icarus [string first "Icarus Verilog" $x2]
-    set version [string first "0.8.3" $x2]
-    return [expr {$x86_64 == -1 || $icarus == -1 || $version == -1}] 
-}
-
 compile_object_pass Small1.bsv
 compile_verilog_pass Small1.bsv
-if [ test_iverilog_version_and_machine_type ] {
-    # this test is known to fail for x86_64 for iverilog 0.8.3
-    # due to a bug (assertion failure) in iverilog
-    link_verilog_no_main_pass {Tb1.v mkSmallTest1.v} Tb1 
-} else {
-    verbose -log "Skipping Tb1 verilog link test"
-}
-
+link_verilog_no_main_pass {Tb1.v mkSmallTest1.v} Tb1
 
 compile_object_pass Small2.bsv
 compile_verilog_pass Small2.bsv
