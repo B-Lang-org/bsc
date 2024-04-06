@@ -88,7 +88,12 @@ jobs:
       - name: Test Haskell Language Server
         run: |
           ghcup install hls ${{ inputs.hls_version }}
-          pip3 install pyyaml
+          macos_ver=$(sw_vers -productVersion | cut -d '.' -f 1)
+          if [ "$macos_ver" -ge "14" ]; then
+              brew install pyyaml
+            else
+              pip3 install pyyaml
+            fi
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
           haskell-language-server-${{ inputs.ghc_version }} bsc.hs
