@@ -90,3 +90,13 @@ compile_object_pass AVMethBDPIWithReset.bsv
 copy c_func.c.keep c_func.c
 link_objects_pass {} sysAVMethBDPIWithReset {c_func.c}
 }
+
+# GitHub #442: Nested if-else needs braces when possible ambiguity
+# This tests "if (!RST) if (cond) e1 else e2" in the code for
+# executing system tasks.
+if {$ctest == 1} {
+    compile_object_pass NestedIfBraces.bsv
+    link_objects_pass {} sysNestedIfBraces
+    # Test that there were no warnings during C++ compilation
+    compare_file [make_bsc_ccomp_output_name sysNestedIfBraces]
+}
