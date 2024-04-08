@@ -675,10 +675,24 @@ instance PPrint CCFragment where
   pPrint d p (CPPInclude file True)  = text ("#include <" ++ file ++ ">")
   pPrint d p (CPPInclude file False) = text ("#include \"" ++ file ++ "\"")
   pPrint d p (CIf c th Nothing)      =
-    (text "if (") <> (pp c) <> (text ")") $+$ (printClauseOrBlock th)
+    -- If the true-arm is a nested if-stmt with an else-clause,
+    -- possibly under layers of for-stmts with single elements,
+    -- then braces are needed to avoid an ambiguous-else warning
+    let needsBraces (CIf _ _ (Just _)) = True
+        needsBraces (CFor _ _ _ b) = needsBraces b
+        needsBraces _ = False
+        th' = if (needsBraces th) then CBlock [th] else th
+    in  (text "if (") <> (pp c) <> (text ")") $+$ (printClauseOrBlock th')
   pPrint d p (CIf c th (Just el))    =
-    (text "if (") <> (pp c) <> (text ")") $+$
-    (printClauseOrBlock th) $+$ (text "else") $+$ (printClauseOrBlock el)
+    -- If the true-arm is a nested if-stmt without an else-clause,
+    -- possibly under layers of for-stmts with single elements,
+    -- then braces are needed for correct parsing
+    let needsBraces (CIf _ _ Nothing) = True
+        needsBraces (CFor _ _ _ b) = needsBraces b
+        needsBraces _ = False
+        th' = if (needsBraces th) then CBlock [th] else th
+    in  (text "if (") <> (pp c) <> (text ")") $+$
+        (printClauseOrBlock th') $+$ (text "else") $+$ (printClauseOrBlock el)
   pPrint d p (CSwitch idx arms deflt) =
     let ppArm (n, blk) = (text "case") <+> (pp n) <> (text ":") $+$
                          nest 2 (vsep (map printStmt blk))
