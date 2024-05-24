@@ -86,6 +86,7 @@ jobs:
       # util/haskell-language-server/gen_hie.py to
       # reflect the locations of any new haskell sources
       - name: Test Haskell Language Server
+        if: ${{ inputs.hls_version != '' }}
         run: |
           ghcup install hls ${{ inputs.hls_version }}
           macos_ver=$(sw_vers -productVersion | cut -d '.' -f 1)
