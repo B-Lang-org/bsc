@@ -72,7 +72,13 @@ jobs:
       - name: Test Haskell Language Server
         run: |
           ghcup install hls ${{ inputs.hls_version }}
-          pip3 install pyyaml
+          ubuntu_ver=$(lsb_release -rs | cut -d '.' -f 1)
+          if [ "$ubuntu_ver" -ge "24" ]; then
+              sudo apt-get update
+              sudo apt-get install -y python3-yaml
+            else
+              pip3 install pyyaml
+            fi
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
           haskell-language-server-${{ inputs.ghc_version }} bsc.hs
