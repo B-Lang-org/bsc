@@ -138,11 +138,9 @@ else
 fi
 
 if [ "$1" = "tcllibs" ] ; then
-    TCL_VER=`echo 'catch { puts [info tclversion]; exit 0}; exit 1' | ${TCLSH}`
-
     # Avoid Homebrew's install of Tcl on Mac
     if [ ${OSTYPE} = "Darwin" ] ; then
-	echo -ltcl$(TCL_VER)
+	echo -ltcl${TCL_SUFFIX}
 	exit 0
     fi
 
@@ -165,7 +163,7 @@ if [ "$1" = "tcllibs" ] ; then
 
     # If pkg-config doesn't work, try some well-known locations
     for L in /usr/lib /usr/lib64 /usr/local/lib ; do
-        for V in ${TCL_VER} ${TCL_SUFFIX} ${TCL_ALT_SUFFIX} ; do
+        for V in ${TCL_SUFFIX} ${TCL_ALT_SUFFIX} ; do
             if [ -f "${L}/libtcl${V}.${LIB_SUFFIX}" ] ; then
                 echo -L${L} -ltcl${V}
                 exit 0
@@ -174,7 +172,7 @@ if [ "$1" = "tcllibs" ] ; then
     done
     # If we're Linux, look for multiarch things
     if [ "${OSTYPE}" = "Linux" ] ; then
-        for V in ${TCL_VER} ${TCL_SUFFIX} ${TCL_ALT_SUFFIX} ; do
+        for V in ${TCL_SUFFIX} ${TCL_ALT_SUFFIX} ; do
             if [ -f "/usr/lib/${MACHTYPE}-linux-gnu/libtcl${V}.${LIB_SUFFIX}" ] ; then
                 echo -ltcl${V}
                 exit 0
