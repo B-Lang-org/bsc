@@ -102,8 +102,7 @@ char userStartFile[] = "~/.bluetclrc";
  */
 
 int
-bluetcl_AppInit(interp)
-    Tcl_Interp *interp;                /* Interpreter for application. */
+bluetcl_AppInit(Tcl_Interp *interp)
 {
 
   // TCL library must be loaded from $BLUESPECDIR, so setup the right tcllibrary path here
