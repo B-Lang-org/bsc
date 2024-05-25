@@ -11,8 +11,8 @@ template<typename T>
 class MOD_Probe : public Module
 {
  public:
-  MOD_Probe<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-               unsigned int width)
+  MOD_Probe(tSimStateHdl simHdl, const char* name, Module* parent,
+	    unsigned int width)
     : Module(simHdl, name, parent), __clk_handle_0(BAD_CLOCK_HANDLE),
       bits(width), proxy(NULL)
   {
@@ -101,8 +101,8 @@ template<typename T>
 class MOD_ProbeWire : public Module
 {
  public:
-  MOD_ProbeWire<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-                   unsigned int width)
+  MOD_ProbeWire(tSimStateHdl simHdl, const char* name, Module* parent,
+		unsigned int width)
     : Module(simHdl, name, parent)
   {
     symbol_count = 0;

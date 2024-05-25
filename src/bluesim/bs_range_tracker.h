@@ -27,8 +27,8 @@ template<typename AT>
 class RangeTracker
 {
  public:
-  RangeTracker<AT>() {}
-  ~RangeTracker<AT>() {}
+  RangeTracker() {}
+  ~RangeTracker() {}
 
  public:
   void setAddr (const AT& addr)

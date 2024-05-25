@@ -33,9 +33,9 @@ template<typename T>
 class MOD_Fifo : public Module
 {
  public:
-  MOD_Fifo<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-              unsigned int width, unsigned int depth,
-              unsigned int guarded, unsigned int fifo_type)
+  MOD_Fifo(tSimStateHdl simHdl, const char* name, Module* parent,
+	   unsigned int width, unsigned int depth,
+	   unsigned int guarded, unsigned int fifo_type)
     : Module(simHdl, name, parent), bits(width), size(depth),
       guard(guarded != 0), type((tFifoType) fifo_type),
       enq_at(~bk_now(sim_hdl)), deq_at(~bk_now(sim_hdl)),
@@ -75,7 +75,7 @@ class MOD_Fifo : public Module
     symbols[2].info = SYM_DEF | (8*sizeof(unsigned int)) << 4;
     symbols[2].value = (void*)(&size);
   }
-  ~MOD_Fifo<T>() { delete[] data; delete proxy; }
+  ~MOD_Fifo() { delete[] data; delete proxy; }
  public:
   // Note: first < (deq, clear) so we do *not* need to preserve
   // the first element to achieve registered behavior.  first CF enq,
