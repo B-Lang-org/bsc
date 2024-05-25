@@ -42,7 +42,7 @@ jobs:
   build-and-test-macos:
     strategy:
       matrix:
-        os: [ macos-11, macos-12, macos-13, macos-14 ]
+        os: [ macos-12, macos-13, macos-14 ]
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-macos.yml
@@ -111,11 +111,11 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-11, macos-12, macos-13, macos-14 ]
+        os: [ macos-12, macos-13, macos-14 ]
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
