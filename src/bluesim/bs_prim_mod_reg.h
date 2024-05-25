@@ -19,8 +19,8 @@ class MOD_Reg : public Module
 {
  public:
   // RegN, RegA, CrossingRegN, CrossingRegA
-  MOD_Reg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-	     unsigned int width, const T& v, unsigned int async)
+  MOD_Reg(tSimStateHdl simHdl, const char* name, Module* parent,
+	  unsigned int width, const T& v, unsigned int async)
     : Module(simHdl, name, parent), bits(width), reset_value(v),
       reset_type(async ? ASYNC_RESET_REG : SYNC_RESET_REG),
       proxy(NULL)
@@ -42,8 +42,8 @@ class MOD_Reg : public Module
     symbols[0].value = (void*)(&value);
   }
   // RevertReg
-  MOD_Reg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-	     unsigned int width, const T& v)
+  MOD_Reg(tSimStateHdl simHdl, const char* name, Module* parent,
+	  unsigned int width, const T& v)
     : Module(simHdl, name, parent), value(v), bits(width),
       reset_type(NO_RESET_REG), proxy(NULL)
   {
@@ -58,8 +58,8 @@ class MOD_Reg : public Module
     symbols[0].value = (void*)(&value);
   }
   // RegUN, CrossingRegUN
-  MOD_Reg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-	     unsigned int width)
+  MOD_Reg(tSimStateHdl simHdl, const char* name, Module* parent,
+	  unsigned int width)
     : Module(simHdl, name, parent), bits(width), reset_type(NO_RESET_REG),
       proxy(NULL)
   {
@@ -81,7 +81,7 @@ class MOD_Reg : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  ~MOD_Reg<T>() { delete proxy; }
+  ~MOD_Reg() { delete proxy; }
  public:
   // read method for single-domain register
   const T& METH_read()    const { return value; }
@@ -234,8 +234,8 @@ template<typename T>
 class MOD_RegAligned : public Module
 {
  public:
-  MOD_RegAligned<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-                unsigned int width, const T& v, unsigned int async)
+  MOD_RegAligned(tSimStateHdl simHdl, const char* name, Module* parent,
+		 unsigned int width, const T& v, unsigned int async)
     : Module(simHdl, name, parent), bits(width), reset_value(v),
       reset_type(async ? ASYNC_RESET_REG : SYNC_RESET_REG),
       __clk_handle_0(BAD_CLOCK_HANDLE), __clk_handle_1(BAD_CLOCK_HANDLE),
@@ -256,8 +256,8 @@ class MOD_RegAligned : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  MOD_RegAligned<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-		    unsigned int width)
+  MOD_RegAligned(tSimStateHdl simHdl, const char* name, Module* parent,
+		 unsigned int width)
     : Module(simHdl, name, parent), bits(width), tick_at(~bk_now(sim_hdl)),
       reset_type(NO_RESET_REG), __clk_handle_0(BAD_CLOCK_HANDLE),
       __clk_handle_1(BAD_CLOCK_HANDLE), written_at(~bk_now(sim_hdl)),
@@ -278,7 +278,7 @@ class MOD_RegAligned : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  ~MOD_RegAligned<T>() { delete proxy; }
+  ~MOD_RegAligned() { delete proxy; }
  public:
   const T& METH__read() const  { return value; }
   void METH__write(const T& x)
@@ -476,8 +476,8 @@ template<typename T>
 class MOD_ConfigReg : public Module
 {
  public:
-  MOD_ConfigReg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-		   unsigned int width, const T& v, unsigned int async)
+  MOD_ConfigReg(tSimStateHdl simHdl, const char* name, Module* parent,
+		unsigned int width, const T& v, unsigned int async)
     : Module(simHdl, name, parent), bits(width), written(~bk_now(sim_hdl)),
       reset_value(v),
       reset_type(async ? ASYNC_RESET_REG : SYNC_RESET_REG),
@@ -497,8 +497,8 @@ class MOD_ConfigReg : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  MOD_ConfigReg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-		   unsigned int width)
+  MOD_ConfigReg(tSimStateHdl simHdl, const char* name, Module* parent,
+		unsigned int width)
     : Module(simHdl, name, parent), bits(width), written(~bk_now(sim_hdl)),
       reset_type(NO_RESET_REG), proxy(NULL)
   {
@@ -518,7 +518,7 @@ class MOD_ConfigReg : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  ~MOD_ConfigReg<T>() { delete proxy; }
+  ~MOD_ConfigReg() { delete proxy; }
  public:
   const T& METH_read() const
   {
@@ -648,8 +648,8 @@ template<typename T>
 class MOD_RegTwo : public Module
 {
  public:
-  MOD_RegTwo<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-		unsigned int width, const T& v, unsigned int async)
+  MOD_RegTwo(tSimStateHdl simHdl, const char* name, Module* parent,
+	     unsigned int width, const T& v, unsigned int async)
     : Module(simHdl, name, parent), bits(width), written(~bk_now(sim_hdl)),
       a_at(~bk_now(sim_hdl)), reset_value(v),
       reset_type(async ? ASYNC_RESET_REG : SYNC_RESET_REG),
@@ -663,8 +663,8 @@ class MOD_RegTwo : public Module
     in_reset = false;
     suppress_write = false;
   }
-  MOD_RegTwo<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-		unsigned int width)
+  MOD_RegTwo(tSimStateHdl simHdl, const char* name, Module* parent,
+	     unsigned int width)
     : Module(simHdl, name, parent), bits(width), written(~bk_now(sim_hdl)),
       a_at(~bk_now(sim_hdl)), reset_type(NO_RESET_REG), proxy(NULL)
   {
@@ -678,7 +678,7 @@ class MOD_RegTwo : public Module
     in_reset = false;
     suppress_write = false;
   }
-  ~MOD_RegTwo<T>() { delete proxy; }
+  ~MOD_RegTwo() { delete proxy; }
  public:
   const T& METH_get() const
   {
@@ -818,8 +818,8 @@ class MOD_CReg : public Module
 {
  public:
   // CRegN, CRegA
-  MOD_CReg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-	      unsigned int width, const T& v, unsigned int async)
+  MOD_CReg(tSimStateHdl simHdl, const char* name, Module* parent,
+	   unsigned int width, const T& v, unsigned int async)
     : Module(simHdl, name, parent),
       ports(max_ports), // this should eventually be a parameter
       __clk_handle_0(BAD_CLOCK_HANDLE),
@@ -853,8 +853,8 @@ class MOD_CReg : public Module
     symbols[0].value = (void*)(&value);
   }
   // CRegUN
-  MOD_CReg<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-	      unsigned int width)
+  MOD_CReg(tSimStateHdl simHdl, const char* name, Module* parent,
+	   unsigned int width)
     : Module(simHdl, name, parent),
       ports(max_ports), // this should eventually be a parameter
       __clk_handle_0(BAD_CLOCK_HANDLE),
@@ -888,7 +888,7 @@ class MOD_CReg : public Module
     symbols[0].info = SYM_DEF | bits << 4;
     symbols[0].value = (void*)(&value);
   }
-  ~MOD_CReg<T>() { delete proxy; }
+  ~MOD_CReg() { delete proxy; }
  public:
   const T& METH_port0__read()    const { return value; }
   const T& METH_port1__read()    const { return value; }

@@ -11,8 +11,8 @@ template<typename T>
 class MOD_Counter : public Module
 {
  public:
-  MOD_Counter<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-                 unsigned int width, const T& init)
+  MOD_Counter(tSimStateHdl simHdl, const char* name, Module* parent,
+	      unsigned int width, const T& init)
     : Module(simHdl, name, parent),
       saved_at(~bk_now(sim_hdl)),
       a_at(~bk_now(sim_hdl)), b_at(~bk_now(sim_hdl)),

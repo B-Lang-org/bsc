@@ -172,10 +172,10 @@ template<typename AT, typename DT, typename ET>
 class MOD_BRAM : public Module
 {
  public:
- MOD_BRAM<AT,DT,ET>(tSimStateHdl simHdl, const char* name, Module* parent,
-                    tUInt8 is_pipelined,
-                    unsigned int addr_width, unsigned int data_width,
-                    unsigned long long mem_size, unsigned int num_ports)
+ MOD_BRAM(tSimStateHdl simHdl, const char* name, Module* parent,
+	  tUInt8 is_pipelined,
+	  unsigned int addr_width, unsigned int data_width,
+	  unsigned long long mem_size, unsigned int num_ports)
     : Module(simHdl, name, parent), pipelined(is_pipelined),
       addr_bits(addr_width), data_bits(data_width),
       lo_addr(0), hi_addr(mem_size-1),
@@ -188,11 +188,11 @@ class MOD_BRAM : public Module
 
     init_symbols();
   }
- MOD_BRAM<AT,DT,ET>(tSimStateHdl simHdl, const char* name, Module* parent,
-                    tUInt8 is_pipelined,
-                    unsigned int addr_width, unsigned int data_width,
-                    unsigned int chunk_size, unsigned int num_wens,
-                    unsigned long long mem_size, unsigned int num_ports)
+ MOD_BRAM(tSimStateHdl simHdl, const char* name, Module* parent,
+	  tUInt8 is_pipelined,
+	  unsigned int addr_width, unsigned int data_width,
+	  unsigned int chunk_size, unsigned int num_wens,
+	  unsigned long long mem_size, unsigned int num_ports)
     : Module(simHdl, name, parent), pipelined(is_pipelined),
       addr_bits(addr_width), data_bits(data_width),
       lo_addr(0), hi_addr(mem_size-1),
@@ -205,12 +205,12 @@ class MOD_BRAM : public Module
 
     init_symbols();
   }
- MOD_BRAM<AT,DT,ET>(tSimStateHdl simHdl, const char* name, Module* parent,
-                    const std::string& memfile,
-                    tUInt8 is_pipelined,
-                    unsigned int addr_width, unsigned int data_width,
-                    unsigned long long mem_size,
-                    bool bin_format, unsigned int num_ports)
+ MOD_BRAM(tSimStateHdl simHdl, const char* name, Module* parent,
+	  const std::string& memfile,
+	  tUInt8 is_pipelined,
+	  unsigned int addr_width, unsigned int data_width,
+	  unsigned long long mem_size,
+	  bool bin_format, unsigned int num_ports)
     : Module(simHdl, name, parent), pipelined(is_pipelined),
       addr_bits(addr_width), data_bits(data_width),
       lo_addr(0), hi_addr(mem_size-1),
@@ -225,13 +225,13 @@ class MOD_BRAM : public Module
 
     init_symbols();
   }
- MOD_BRAM<AT,DT,ET>(tSimStateHdl simHdl, const char* name, Module* parent,
-                    const std::string& memfile,
-                    tUInt8 is_pipelined,
-                    unsigned int addr_width, unsigned int data_width,
-                    unsigned int chunk_size, unsigned int num_wens,
-                    unsigned long long mem_size,
-                    bool bin_format, unsigned int num_ports)
+ MOD_BRAM(tSimStateHdl simHdl, const char* name, Module* parent,
+	  const std::string& memfile,
+	  tUInt8 is_pipelined,
+	  unsigned int addr_width, unsigned int data_width,
+	  unsigned int chunk_size, unsigned int num_wens,
+	  unsigned long long mem_size,
+	  bool bin_format, unsigned int num_ports)
     : Module(simHdl, name, parent), pipelined(is_pipelined),
       addr_bits(addr_width), data_bits(data_width),
       lo_addr(0), hi_addr(mem_size-1),
@@ -246,7 +246,7 @@ class MOD_BRAM : public Module
 
     init_symbols();
   }
- ~MOD_BRAM<AT,DT,ET>() { delete_blocks(top_level,0); delete proxy; }
+ ~MOD_BRAM() { delete_blocks(top_level,0); delete proxy; }
 
  // shared initialization routines
  private:

@@ -172,9 +172,9 @@ template<typename AT, typename DT>
 class MOD_RegFile : public Module
 {
  public:
-  MOD_RegFile<AT,DT>(tSimStateHdl simHdl, const char* name, Module* parent,
-		     unsigned int addr_width, unsigned int data_width,
-		     const AT& lo, const AT& hi)
+  MOD_RegFile(tSimStateHdl simHdl, const char* name, Module* parent,
+	      unsigned int addr_width, unsigned int data_width,
+	      const AT& lo, const AT& hi)
     : Module(simHdl, name, parent), addr_bits(addr_width),
       data_bits(data_width), lo_addr(lo), hi_addr(hi),
       upd_at(~bk_now(sim_hdl)), proxy(NULL)
@@ -186,10 +186,10 @@ class MOD_RegFile : public Module
 
     init_symbols();
   }
-  MOD_RegFile<AT,DT>(tSimStateHdl simHdl, const char* name, Module* parent,
-		     const std::string& memfile,
-		     unsigned int addr_width, unsigned int data_width,
-		     const AT& lo, const AT& hi, bool bin_format)
+  MOD_RegFile(tSimStateHdl simHdl, const char* name, Module* parent,
+	      const std::string& memfile,
+	      unsigned int addr_width, unsigned int data_width,
+	      const AT& lo, const AT& hi, bool bin_format)
     : Module(simHdl, name, parent), addr_bits(addr_width),
       data_bits(data_width), lo_addr(lo), hi_addr(hi),
       upd_at(~bk_now(sim_hdl)), proxy(NULL)
@@ -203,7 +203,7 @@ class MOD_RegFile : public Module
 
     init_symbols();
   }
-  ~MOD_RegFile<AT,DT>() { delete_blocks(top_level,0); delete proxy; }
+  ~MOD_RegFile() { delete_blocks(top_level,0); delete proxy; }
 
  // shared initialization routines
  private:

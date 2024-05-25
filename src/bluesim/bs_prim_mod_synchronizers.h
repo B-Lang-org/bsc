@@ -845,8 +845,8 @@ template<typename T, typename I>
 class MOD_SyncFIFO : public Module
 {
  public:
-  MOD_SyncFIFO<T,I>(tSimStateHdl simHdl, const char* name, Module* parent,
-		    unsigned int width, unsigned int depth, unsigned int hasClr)
+  MOD_SyncFIFO(tSimStateHdl simHdl, const char* name, Module* parent,
+	       unsigned int width, unsigned int depth, unsigned int hasClr)
     : Module(simHdl, name, parent), width(width), depth(depth),
       src_hi(simHdl, index_size(depth)+1), dst_lo(simHdl, index_size(depth)+1),
       hasClear(hasClr),
@@ -902,7 +902,7 @@ class MOD_SyncFIFO : public Module
     symbols[2].info = SYM_DEF | idx_bits << 4;
     symbols[2].value = (void*)(&dCountReg);
   }
-  ~MOD_SyncFIFO<T,I>() { delete[] data; }
+  ~MOD_SyncFIFO() { delete[] data; }
  public:
   bool METH_notEmpty()
   {
@@ -1385,8 +1385,8 @@ template<typename AT, typename DT>
 class MOD_DualPortRam : public Module
 {
  public:
-  MOD_DualPortRam<AT,DT>(tSimStateHdl simHdl, const char* name, Module* parent,
-			 unsigned int addr_width, unsigned int data_width)
+  MOD_DualPortRam(tSimStateHdl simHdl, const char* name, Module* parent,
+		  unsigned int addr_width, unsigned int data_width)
     : Module(simHdl, name, parent), addr_bits(addr_width),
       data_bits(data_width), written_at(~bk_now(sim_hdl))
   {
@@ -1402,7 +1402,7 @@ class MOD_DualPortRam : public Module
     init_val(write_addr, addr_bits);
     init_val(prev_value, data_bits);
   }
-  ~MOD_DualPortRam<AT,DT>() { delete[] data; }
+  ~MOD_DualPortRam() { delete[] data; }
  public:
   // Note: the read and write methods of a DualPortRam are
   // conflict free.  When the edges coincide and a simultaneous

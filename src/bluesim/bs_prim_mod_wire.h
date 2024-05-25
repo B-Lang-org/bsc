@@ -12,8 +12,8 @@ template<typename T>
 class MOD_Wire : public Module
 {
  public:
-  MOD_Wire<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-              unsigned int width, const T& v, bool is_sync_wire)
+  MOD_Wire(tSimStateHdl simHdl, const char* name, Module* parent,
+           unsigned int width, const T& v, bool is_sync_wire)
     : Module(simHdl, name, parent), __clk_handle_0(BAD_CLOCK_HANDLE),
       bits(width), value(v), isValid(false), written(false),
       shift_vcd(!is_sync_wire)
@@ -33,8 +33,8 @@ class MOD_Wire : public Module
     symbols[2].info = SYM_DEF | bits << 4;
     symbols[2].value = (void*)(&value);
   }
-  MOD_Wire<T>(tSimStateHdl simHdl, const char* name, Module* parent,
-              unsigned int width, bool is_sync_wire=false)
+  MOD_Wire(tSimStateHdl simHdl, const char* name, Module* parent,
+           unsigned int width, bool is_sync_wire=false)
     : Module(simHdl, name, parent), __clk_handle_0(BAD_CLOCK_HANDLE),
       bits(width), isValid(false), written(false), shift_vcd(!is_sync_wire)
   {
