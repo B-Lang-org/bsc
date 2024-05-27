@@ -5,7 +5,7 @@
 
 /* we need these for the debugging routines only */
 #include "priority.h"
-extern "C" const char* bk_clock_name(tClock handle);
+extern "C" const char* bk_clock_name(tSimStateHdl simHdl, tClock handle);
 
 
 /* Fundamental heap operations */
@@ -222,7 +222,7 @@ void EventQueue::clear()
 }
 
 /* Print the event queue contents (for debugging) */
-void EventQueue::print() const
+void EventQueue::print(tSimStateHdl simHdl) const
 {
   printf("Event queue:\n");
   for (unsigned int i = 0; i < count; ++i)
@@ -231,6 +231,6 @@ void EventQueue::print() const
 	   events[i].fn, events[i].data.ptr, events[i].at,
 	   priority_group_name(priority_group(events[i].priority)),
 	   priority_slot_name(priority_slot(events[i].priority)),
-	   bk_clock_name(priority_clock(events[i].priority)));
+	   bk_clock_name(simHdl, priority_clock(events[i].priority)));
   }
 }
