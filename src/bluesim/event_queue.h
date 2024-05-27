@@ -81,7 +81,7 @@ class EventQueue
   void clear();
 
   // debugging utility function
-  void print() const;
+  void print(tSimStateHdl simHdl) const;
 
  private: // heap maintenance functions
   bool isValid();
