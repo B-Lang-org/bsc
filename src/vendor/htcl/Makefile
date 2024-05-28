@@ -7,7 +7,9 @@ include $(TOP)/platform.mk
 
 TCLVER=$(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH))
 ifeq ($(TCLVER),8.5)
-GHCFLAGS += -DTCL85
+# Use -optc-D instead of -D, since not all versions of GHC pass -D to the C compiler
+# (see GHC issue 24885)
+GHCFLAGS += -optc-DTCL85
 else
 ifeq ($(TCLVER),8.6)
 # No flags needed

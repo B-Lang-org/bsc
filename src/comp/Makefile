@@ -81,8 +81,8 @@ GHCPATCH=$(shell echo $(GHCVERSION) | cut -d. -f3)
 ifeq ($(GHCMAJOR),9)
 
 # Warn about newer versions that are not yet supported
-GHCMINORGT8 := $(shell expr $(GHCMINOR) \> 8)
-ifeq ($(GHCMINORGT8),1)
+GHCMINORGT10 := $(shell expr $(GHCMINOR) \> 10)
+ifeq ($(GHCMINORGT10),1)
 $(warning Unsupported GHC 9 minor version: $(GHCMINOR))
 endif
 
