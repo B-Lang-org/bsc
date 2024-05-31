@@ -1338,9 +1338,9 @@ data Bool = False | True
 \EBS
 uses one bit.  \te{False} is represented by 0 and \te{True} by 1.
 \BBS
-struct Två = \{ första :: Bit 8; andra :: Bit 16 \}
+struct Tvï¿½ = \{ fï¿½rsta :: Bit 8; andra :: Bit 16 \}
 \EBS
-uses 24 bits with \te{första} in the upper 8 bits and \te{andra} in the lower 16.
+uses 24 bits with \te{fï¿½rsta} in the upper 8 bits and \te{andra} in the lower 16.
 \BBS
 data Maybe a = Nothing | Just a
 \EBS
@@ -1600,42 +1600,42 @@ can be used for convenience.
 	}\\
 \grammore{
 % ISO 8859-1 symbols
-	             \term{¡}
-%T1	      {\alt} \term{¢}
-	      {\alt} \term{£}
-%T1	      {\alt} \term{¤}
-%T1	      {\alt} \term{¥}
-%T1	      {\alt} \term{¦}
-	      {\alt} \term{§}
-	      {\alt} \term{¨}
-	      {\alt} \term{©}
-	      {\alt} \term{ª}
-	      {\alt} \term{«}
-	      {\alt} $\term{¬}$
-%T1	      {\alt} \term{­}
-	      {\alt} \term{®}
-	      {\alt} \term{¯}
-	      {\alt} \term{°}
-	      {\alt} $\term{±}$
+	             \term{ï¿½}
+%T1	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+%T1	      {\alt} \term{ï¿½}
+%T1	      {\alt} \term{ï¿½}
+%T1	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} $\term{ï¿½}$
+%T1	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} $\term{ï¿½}$
 	      {\alt}
 	} \\
 \grammore{
-	             $\term{²}$
-	      {\alt} $\term{³}$
-	      {\alt} \term{´}
-	      {\alt} $\term{µ}$
-	      {\alt} \term{¶}
-	      {\alt} \term{·}
-	      {\alt} \term{¸}
-	      {\alt} $\term{¹}$
-	      {\alt} \term{º}
-	      {\alt} \term{»}
-	      {\alt} \term{¼}
-	      {\alt} \term{½}
-	      {\alt} \term{¾}
-	      {\alt} \term{¿}
-	      {\alt} $\term{×}$
-	      {\alt} $\term{÷}$
+	             $\term{ï¿½}$
+	      {\alt} $\term{ï¿½}$
+	      {\alt} \term{ï¿½}
+	      {\alt} $\term{ï¿½}$
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} $\term{ï¿½}$
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} \term{ï¿½}
+	      {\alt} $\term{ï¿½}$
+	      {\alt} $\term{ï¿½}$
         }
 
 \index{infix operators!predefined}
@@ -1669,7 +1669,7 @@ precedence and associativity (see the Standard Prelude in section
     \verb"-"     & 10  & Left  \\
     \verb"*"     & 11  & Left  \\
     \verb"/"     & 11  & Left  \\
-    \verb"·"     & 13  & Right \\
+    \verb"ï¿½"     & 13  & Right \\
     user-defined & 15  & Left \\
     \hline
   \end{tabular}
@@ -3055,7 +3055,7 @@ once the compiler will assume that the methods in which the names occur
 share a port and it will insert a multiplexer accordingly.
 
 Following a port name there can be port a property,
-whic is one of the following:
+which is one of the following:
 \begindescrlist{xxxxxxx}
 \litem{\te{reg}}
 specifies that the port is directly connected
