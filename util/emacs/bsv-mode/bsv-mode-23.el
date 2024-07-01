@@ -3677,8 +3677,9 @@ Key bindings specific to `bsv-mode-map' are:
   (set (make-local-variable 'imenu-generic-expression)
        bsv-imenu-generic-expression)
   ;; Tell which-func-modes that imenu knows about bsv
-  (when (boundp 'which-func-modes)
-    (add-to-list 'which-func-modes 'bsv-mode))
+  (when (boundp 'which-func-modes) 
+        (when (eq (type-of which-func-modes) 'cons)
+             (add-to-list 'which-func-modes 'bsv-mode)))
   ;; hideshow support
   (when (boundp 'hs-special-modes-alist)
     (unless (assq 'bsv-mode hs-special-modes-alist)
@@ -12609,7 +12610,7 @@ See also `bsv-header' for an alternative format."
 (define-skeleton bsv-sk-task
   "Insert a task definition."
   ()
-  > "task " '(bsv-sk-prompt-name) & ?; \n
+  > "task " '(bsv-sk-prompt-name) & ?\; \n
   > _ \n
   > "begin" \n
   > \n
@@ -12619,7 +12620,7 @@ See also `bsv-header' for an alternative format."
 (define-skeleton bsv-sk-function
   "Insert a function definition."
   ()
-  > "function [" '(bsv-sk-prompt-width) | -1 '(bsv-sk-prompt-name) ?; \n
+  > "function [" '(bsv-sk-prompt-width) | -1 '(bsv-sk-prompt-name) ?\; \n
   > _ \n
   > "begin" \n
   > \n
@@ -12815,13 +12816,13 @@ and the case items."
   '(setq input "state")
   > "// State registers for " str | -23 \n
   '(setq bsv-sk-state str)
-  > "reg [" '(bsv-sk-prompt-width) | -1 bsv-sk-state ", next_" bsv-sk-state ?; \n
+  > "reg [" '(bsv-sk-prompt-width) | -1 bsv-sk-state ", next_" bsv-sk-state ?\; \n
   '(setq input nil)
   > \n
   > "// State FF for " bsv-sk-state \n
   > "always @ ( " (read-string "clock:" "posedge clk") " or " (bsv-sk-prompt-reset) " ) begin" \n
   > "if ( " bsv-sk-reset " ) " bsv-sk-state " = 0; else" \n
-  > bsv-sk-state " = next_" bsv-sk-state ?; \n
+  > bsv-sk-state " = next_" bsv-sk-state ?\; \n
   > (- bsv-indent-level-behavioral) "end" (progn (electric-bsv-terminate-line) nil)
   > \n
   > "// Next State Logic for " bsv-sk-state \n
