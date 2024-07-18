@@ -147,18 +147,6 @@ library to compile:
         autoconf \
         gperf
 
-Building the BSC tools will also recurse into a directory for the STP SMT
-solver. This is currently an old snapshot of the STP source code, including the
-code for various libraries that it uses. In the future, this may be replaced
-with a submodule instantiation of the repository for [the STP SMT
-solver](https://github.com/stp/stp). When that happens, additional requirements
-from that repository will be added.
-Building the STP library is optional (see below).
-The current snapshot requires Perl, to
-generate two source files. It also needs flex and bison:
-
-    $ apt-get install flex bison
-
 The `check-smoke` target runs a test using an external Verilog simulator, which is
 [Icarus Verilog] by default. You can install Icarus on Debian/Ubuntu with:
 
@@ -225,29 +213,6 @@ the core haskell build.  To specify the number of modules that GHC may
 compile in parallel, define `GHCJOBS` in the environment to that number:
 
     $ make GHCJOBS=4
-
-### Optionally avoiding the compile of STP or Yices
-
-The BSC tools expect to dynamically link with specific versions of STP and Yices,
-found in `inst/lib/SAT/`.  By default, the build process will compile both
-libraries and install them in that directory.  However, the BSC tools only need
-one SMT solver; Yices is used by default, and STP can be selected via a flag.
-Most users will never need to switch solvers, or even be aware of the option.
-Thus, the build process offers the option of not compiling the STP library,
-and instead installing a stub file, that the BSC tools will recognize and will
-not allow the user to select that solver.  This option is chosen by assigning
-a non-empty value to `STP_STUB`:
-
-    $ make STP_STUB=1
-
-This can be used if STP does not build on your system or if you want to avoid
-the work of building the library.  A similar `YICES_STUB` option exists, for
-skipping the build of the Yices library:
-
-    $ make YICES_STUB=1
-
-The BSC tools do need at least one SMT solver, so only one of these options
-should be used.
 
 ## Test the BSC toolchain
 

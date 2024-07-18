@@ -9,12 +9,10 @@ ifndef NO_DEPS_CHECKS
 CC_TOOLS=$(CC) $(CXX) $(LD)
 BSC_TOOLS=ghc ghc-pkg
 YICES_TOOLS=gperf autoconf
-STP_TOOLS=flex bison
 
 TOOLS=$(CC_TOOLS) \
       $(BSC_TOOLS) \
-      $(YICES_TOOLS) \
-      $(STP_TOOLS) \
+      $(YICES_TOOLS)
 
 GHC_PKGS=regex-compat syb old-time split
 
@@ -54,7 +52,6 @@ all: install
 
 .PHONY: install clean full_clean
 install clean full_clean:
-	$(MAKE)  -C vendor/stp   PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C vendor/yices PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C vendor/htcl  PREFIX=$(PREFIX)  $@
 	# we need to build targets from here sequentially, as they operate in the same workspace
@@ -68,4 +65,3 @@ install clean full_clean:
 	$(MAKE)  -C bluetcl    PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C bluesim    PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C Verilator  PREFIX=$(PREFIX)  $@
-
