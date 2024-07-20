@@ -25,10 +25,10 @@
 -- Shared libraries and FFI bindings
 :set -i../vendor/stp/include_hs
 :set -i../vendor/yices/include_hs
-:set -i../vendor/htcl
+:set -iHTcl
 
 :set -I/usr/include/tcl
-:set -L../vendor/htcl
+:set -LHTcl
 :set -lhtcl
 
 :set -L../vendor/stp/lib
