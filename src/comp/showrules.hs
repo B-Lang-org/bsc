@@ -39,7 +39,7 @@ import System.Environment(getArgs)
 import System.Console.GetOpt
 import System.IO
 import System.IO.Unsafe(unsafePerformIO)
-import System.Time
+import System.Time()
 import Control.Monad(when, msum, foldM)
 import Control.Exception(bracket)
 import Data.List( partition, intercalate, genericLength
@@ -528,8 +528,7 @@ setupProgress :: Bool -> Handle -> ConvState -> IO ConvState
 setupProgress False hIn st = return st
 setupProgress True  hIn st =
     do -- record the start time
-       (TOD s ps) <- getClockTime
-       let now = (fromInteger s) + (fromInteger ps / (10.0^(12 :: Int)))
+       now <- (floor . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds) <$> getCurrentTime
 
        -- record the total input file size
        file_sz <- hFileSize hIn
@@ -780,8 +779,8 @@ doProgress st bytes =
                   Just tgt -> new_bytes >= tgt
                   Nothing  -> False
   in if (show_it)
-     then do (TOD s ps) <- getClockTime
-             let now = (fromInteger s) + (fromInteger ps / (10.0^(12 :: Int)))
+     then do now <- (floor . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds) <$> getCurrentTime
+             let
                  bytes_per_sec = (fromInteger (new_bytes - (prev_bytes st))) / (now - (prev_time st))
                  percentage = ((100 * new_bytes) + ((total_bytes st) `div` 4)) `div` (total_bytes st)
                  next_progress = ((percentage + 1) * (total_bytes st)) `div` 100

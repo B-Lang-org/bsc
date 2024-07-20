@@ -5,12 +5,12 @@ module TopUtils where
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
 #endif
+import Data.Time
 import Text.Printf(printf)
 import System.IO(hFlush, stdout)
 import System.CPUTime(getCPUTime)
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
-import System.Time -- XXX: from old-time package
 -- hbc libs
 import PFPrint
 -- utility libs
@@ -189,24 +189,18 @@ commentC ls = unlines (["/*"] ++ map (" * " ++) ls ++ [" */"])
 commentV ls = unlines (["//"] ++ map ("// " ++) ls ++ ["//"])
 
 -----
-
-getCPUTimeDoublePortable :: IO Double
-getCPUTimeDoublePortable = do
-        t <- getCPUTime
-        return (fromInteger t * 1.0e-12)
-
-data TimeInfo = TimeInfo Double ClockTime
+data TimeInfo = TimeInfo Double UTCTime
         deriving (Show)
 
 getNow :: IO TimeInfo
 getNow = do
-        t <- getCPUTimeDoublePortable
-        ct <- getClockTime
+        -- get portable cpu time
+        t <- fmap (\t -> fromInteger t * 1.0e-12) getCPUTime
+        ct <- getCurrentTime
         return (TimeInfo t ct)
 
 diffTimeInfo :: TimeInfo -> TimeInfo -> (Double, Double)
-diffTimeInfo (TimeInfo t ct) (TimeInfo t' ct') = (t'-t, tdToDouble (diffClockTimes ct' ct))
-  where tdToDouble d = fromIntegral ((tdHour d * 60 + tdMin d) * 60 + tdSec d) + fromInteger (tdPicosec d) * 1.0e-12
+diffTimeInfo (TimeInfo t ct) (TimeInfo t' ct') = (t' - t, realToFrac (diffUTCTime ct' ct))
 
 putStrLnF :: String -> IO ()
 putStrLnF s = do putStrLn s; hFlush stdout
@@ -294,7 +288,7 @@ showCnt cnt s = text $ itos cnt ++ " " ++ s
 -- | Makes a timestamp string for generated code, respecting the timeStamps flag
 mkTimestampComment :: Flags -> IO String
 mkTimestampComment flags
-  | timeStamps flags = getClockTime >>= return . ("On " ++) . show
+  | timeStamps flags = getCurrentTime >>= return . ("On " ++) . show
   | otherwise        = return ""
 
 mkGenFileHeader :: Flags -> IO [String]

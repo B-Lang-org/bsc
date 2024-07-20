@@ -7,10 +7,9 @@ import Control.Monad(when)
 import System.Process(system)
 import System.Exit(ExitCode(..))
 import System.Directory(getModificationTime)
-import System.Time -- XXX: in old-time package
 import System.IO.Error(ioeGetErrorType)
 import GHC.IO.Exception(IOErrorType(..))
-import Data.Time.Clock.POSIX(utcTimeToPOSIXSeconds)
+import Data.Time
 import qualified Control.Exception as CE
 import qualified Data.Map as DM
 
@@ -49,13 +48,11 @@ type PkgName = Id
 type ModName = Id
 type ForeignName = Id
 
-type MClockTime = Maybe ClockTime
-
 data PkgInfo = PkgInfo {
         pkgName :: PkgName,
         fileName :: FileName,
-        srcMod :: MClockTime,
-        lastMod :: MClockTime,
+        srcMod :: Maybe UTCTime,
+        lastMod :: Maybe UTCTime,
         imports :: [PkgName],
         includes :: [FileName],
         gens :: [ModName],
@@ -64,12 +61,6 @@ data PkgInfo = PkgInfo {
         isbin :: Bool
         }
     deriving (Show)
-
-getModificationTime' :: FilePath -> IO ClockTime
-getModificationTime' file =
-  do utcTime <- getModificationTime file
-     let s = (floor . utcTimeToPOSIXSeconds) utcTime
-     return (TOD s 0)
 
 -- returns a list of Bluespec source files which need recompiling.
 -- (This used to also return a list of all generated files which would
@@ -294,15 +285,15 @@ isPreludePkg flags n =
 -- Check if out-of-date with respect to an imported module.
 -- Recompilation is needed if the imported file will be
 -- recompiled or if it has a later date stamp.
-needsUpd :: MClockTime -> [PkgInfo] -> PkgName -> Bool
+needsUpd :: Maybe UTCTime -> [PkgInfo] -> PkgName -> Bool
 needsUpd myMod pis n =
     case findInfo n pis of
     Nothing -> internalError ("needsUpd " ++ pfpString n)
     Just pi -> recompile pi || lastMod pi > myMod
 
-getModTime :: String -> IO MClockTime
-getModTime f = CE.catch (getModificationTime' f >>= return . Just) handler
-  where handler :: CE.SomeException -> IO MClockTime
+getModTime :: String -> IO (Maybe UTCTime)
+getModTime f = CE.catch (getModificationTime f >>= return . Just) handler
+  where handler :: CE.SomeException -> IO (Maybe UTCTime)
         handler _ = return Nothing
 
 -----
