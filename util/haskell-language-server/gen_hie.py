@@ -14,7 +14,7 @@ dirs = [
     "./Parser",
     "./Parser/BSV",
     "./Parser/Classic",
-    "../Parsec",
+    "./Parsec",
     "../vendor/stp/include_hs",
     "../vendor/yices/include_hs",
     "../vendor/htcl"

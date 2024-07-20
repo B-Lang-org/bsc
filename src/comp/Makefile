@@ -43,7 +43,7 @@ BINDIR=$(PREFIX)/bin
 BUILDDIR=$(TOP)/build/comp
 
 # Parsec
-PARSEC_HS = ../Parsec
+PARSEC_HS = Parsec
 
 # STP
 STP_HS = ../vendor/stp/include_hs

@@ -20,7 +20,7 @@
 :set -package syb
 
 -- Haskell source
-:set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
+:set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../comp/Parsec
 
 -- Shared libraries and FFI bindings
 :set -i../vendor/stp/include_hs
