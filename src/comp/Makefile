@@ -134,7 +134,6 @@ PACKAGES = \
 	-package process \
 	-package filepath \
 	-package time \
-	-package old-locale \
 	-package split \
 	-package syb \
 	-package integer-gmp \
