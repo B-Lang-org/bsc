@@ -55,10 +55,10 @@ module CType(
 import Prelude hiding ((<>))
 #endif
 
+import Data.Data (Data, Typeable)
 import Data.Char(isDigit, chr)
 import Data.List(union)
 import Data.Maybe
-import qualified Data.Generics as Generic
 
 import Eval
 import PPrint
@@ -83,14 +83,14 @@ data Type = TVar TyVar         -- ^ type variable
           | TAp Type Type      -- ^ type-level application
           | TGen Position Int  -- ^ quantified type variable used in type schemes
           | TDefMonad Position -- ^ not used after CVParserImperative
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show, Data, Typeable)
 
 -- | Representation of a type variable
 data TyVar = TyVar { tv_name :: Id    -- ^ name of the type variable
                    , tv_num  :: Int   -- ^ number for a generated type variable
                    , tv_kind :: Kind  -- ^ kind of the type variable
                    }
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show, Data, Typeable)
 
 
 -- | Representation of a type constructor
@@ -107,7 +107,7 @@ data TyCon = -- | A constructor for a type of value kind
            | TyStr { tystr_value :: FString  -- ^ type-level string value
                    , tystr_pos   :: Position -- ^ position of introduction
                    }
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show, Data, Typeable)
 
 data TISort
         = -- type synonym
@@ -119,7 +119,7 @@ data TISort
           -- primitive abstract type
           -- e.g. Integer, Bit, Module, etc.
         | TIabstract
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 
 data StructSubType
@@ -133,7 +133,7 @@ data StructSubType
                     , spolywrap_ctor :: Maybe Id -- ^ name of the data constructor
                     , spolywrap_field :: Id      -- ^ name of the wrapped field
                     }
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 type CType = Type
 
@@ -143,7 +143,7 @@ data Kind = KStar           -- ^ kind of a simple value type
           | KStr            -- ^ kind of a simple string type
           | Kfun Kind Kind  -- ^ kind of type constructors (type-level function)
           | KVar Int        -- ^ generated kind variable (used only during kind inference)
-    deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+    deriving (Eq, Ord, Show, Data, Typeable)
 
 -- Used for providing partial Kind information
 data PartialKind

@@ -3,16 +3,16 @@ module SpeedyString(SString, toString, fromString, (++), concat, filter) where
 
 import Prelude hiding((++), concat, filter)
 import qualified Prelude((++), filter)
-import IOMutVar(MutableVar, newVar, readVar, writeVar)
+import Data.Data
 import System.IO.Unsafe(unsafePerformIO)
-import qualified Data.IntMap as M
--- import qualified NotSoSpeedyString
-import ErrorUtil (internalError)
-import qualified Data.Generics as Generic
 
+import qualified Data.IntMap as M
+
+import IOMutVar(MutableVar, newVar, readVar, writeVar)
+import ErrorUtil (internalError)
 
 data SString = SString !Int -- unique id
-   deriving (Generic.Data, Generic.Typeable)
+   deriving (Data, Typeable)
 
 instance Eq SString where
     (SString i) == (SString i') = i == i'

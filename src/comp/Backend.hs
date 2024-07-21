@@ -4,14 +4,16 @@ module Backend (
                 backendMatches
                 ) where
 
-import qualified Data.Generics as Generic
+import Data.Data
+import Data.Typeable
+
 import PPrint
 import Eval
 
 -- ===============
 
 data Backend = Bluesim | Verilog
-             deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+             deriving (Eq, Ord, Show, Data, Typeable)
 
 instance PPrint Backend where
     pPrint _ _ Bluesim = text "Bluesim"
@@ -29,4 +31,3 @@ backendMatches Nothing _ = True
 backendMatches (Just expected) (Just actual) = (expected == actual)
 
 -- ===============
-

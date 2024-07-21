@@ -10,7 +10,7 @@ module Undefined (
                   undefKindToInteger
                  ) where
 
-import qualified Data.Generics as Generic
+import Data.Data
 
 import Eval
 
@@ -30,7 +30,7 @@ import Eval
 --   any other dont-care value that doesn't fit the above kinds.
 
 data UndefKind = UNotUsed | UDontCare | UNoMatch
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 instance Hyper UndefKind where
     hyper x y = seq x y
