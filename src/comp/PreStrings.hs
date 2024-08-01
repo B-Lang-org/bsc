@@ -346,6 +346,9 @@ fsMetaConsNamed    = mkFString "MetaConsNamed"
 fsMetaConsAnon     = mkFString "MetaConsAnon"
 fsMetaField        = mkFString "MetaField"
 fsPolyWrapField    = mkFString "val"
+fsWrapMethod       = mkFString "WrapMethod"
+fsFromWrapMethod   = mkFString "fromWrapMethod"
+fsToWrapMethod     = mkFString "toWrapMethod"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"
