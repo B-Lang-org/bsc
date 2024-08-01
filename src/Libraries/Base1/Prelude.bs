@@ -254,7 +254,10 @@ package Prelude(
         -- Generics
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
         Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..), ConArg(..),
-        MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
+        MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
+
+        Curry(..), AppendTuple(..), AppendTuple'(..),
+        WrapPorts(..), WrapMethod(..)
         ) where
 
 infixr  0 $
@@ -4374,3 +4377,110 @@ data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
 -- field) and index in the constructor's fields
 data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
+
+
+class Curry f g | f -> g where
+  curryN :: f -> g
+  uncurryN :: g -> f
+
+instance (Curry (b -> c) d) => Curry ((a, b) -> c) (a -> d) where
+  curryN f x = curryN $ \y -> f (x, y)
+  uncurryN f (x, y) = uncurryN (f x) y
+
+instance Curry (() -> a) a where
+  curryN f = f ()
+  uncurryN f _ = f
+
+instance Curry (a -> b) (a -> b) where
+  curryN = id
+  uncurryN = id
+
+class AppendTuple a b c | a b -> c where
+  appendTuple :: a -> b -> c
+
+instance AppendTuple a () a where
+  appendTuple x _ = x
+
+-- The above instance should take precedence over the other cases that assume
+-- b is non-unit. To avoid overlapping instances, the below are factored out as
+-- a seperate type class:
+instance (AppendTuple' a b c) => AppendTuple a b c where
+  appendTuple = appendTuple'
+
+class AppendTuple' a b c | a b -> c where
+  appendTuple' :: a -> b -> c
+
+instance AppendTuple' () a a where
+  appendTuple' _ = id
+
+instance AppendTuple' a b (a, b) where
+  appendTuple' a b = (a, b)
+
+instance (AppendTuple' a b c) => AppendTuple' (h, a) b (h, c) where
+  appendTuple' (x, y) z = (x, appendTuple' y z)
+
+
+data (WrapPort :: $ -> # -> *) name n = WrapPort (Bit n)
+
+class WrapPorts a p | a -> p where
+  toPorts :: a -> p
+  fromPorts :: p -> a
+
+{-
+instance (Bits a n) => WrapPorts a (WrapPort "foo" n) where
+  toPorts = WrapPort ∘ pack
+  fromPorts (WrapPort x) = unpack x
+-}
+
+instance (Bits a n) => WrapPorts a (Bit n) where
+  toPorts = pack
+  fromPorts = unpack
+
+{-
+instance WrapPorts (Vector 0 a) () where
+  toPorts _ = ()
+  fromPorts _ = nil
+
+instance (Add n1 1 n, WrapPorts a p1, WrapPorts (Vector n1 a) p2, AppendTuple p1 p2 p) =>
+    WrapPorts (Vector n a) p where
+  toPorts v = appendTuple (toPorts $ head v) (toPorts $ tail v)
+-}
+
+-- TODO: If there is only one instance for WrapPorts, the first WrapMethod instance below fails to typecheck.
+instance WrapPorts () () where
+  toPorts = id
+  fromPorts = id
+
+class WrapMethod m w | m -> w where
+  toWrapMethod :: m -> w
+  fromWrapMethod :: w -> m
+
+instance (WrapPorts a p, WrapMethod b v, Curry (p -> v) w) => WrapMethod (a -> b) w where
+  toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ fromPorts
+  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ toPorts
+
+instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
+  toWrapMethod = toActionValue_
+  fromWrapMethod = fromActionValue_
+
+instance (Bits a n) => WrapMethod a (Bit n) where
+  toWrapMethod = pack
+  fromWrapMethod = unpack
+
+-- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
+-- but this case was being handled in GenWrap.
+instance WrapMethod PrimAction PrimAction where
+  toWrapMethod = id
+  fromWrapMethod = id
+
+instance WrapMethod Clock Clock where
+  toWrapMethod = id
+  fromWrapMethod = id
+
+instance WrapMethod Reset Reset where
+  toWrapMethod = id
+  fromWrapMethod = id
+
+instance (Bits a n) => WrapMethod (Inout a) (Inout_ n) where
+  toWrapMethod = primInoutCast0
+  fromWrapMethod = primInoutUncast0
