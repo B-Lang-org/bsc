@@ -1,9 +1,10 @@
-module NumType(opNumT, numOpNames) where
--- common routines for handling numeric types
+module TypeOps(opNumT, numOpNames, opStrT, strOpNames) where
+-- common routines for handling numeric and string types
 
 import Id
-import PreIds(idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin)
+import PreIds(idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin, idTApp)
 import Util(divC, log2)
+import FStringCompat(FString, concatFString)
 
 -- do a numeric type operation on a list of arguments
 -- note that we have to validate that the result is going to
@@ -21,3 +22,10 @@ opNumT _ _      = Nothing
 
 numOpNames :: [Id]
 numOpNames = [idTAdd, idTSub, idTMul, idTDiv, idTExp, idTLog, idTMax, idTMin]
+
+opStrT :: Id -> [FString] -> Maybe FString
+opStrT i xs | i == idTApp = Just $ concatFString xs
+opStrT _ _ = Nothing
+
+strOpNames :: [Id]
+strOpNames = [idTApp]

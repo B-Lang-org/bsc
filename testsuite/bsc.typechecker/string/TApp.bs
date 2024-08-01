@@ -1,0 +1,31 @@
+package TApp where
+
+data (WrapStr :: $ -> *) s = WrapStr
+
+printWrapStr :: WrapStr s -> Action
+printWrapStr _ = $display (stringOf s)
+
+a :: WrapStr (TApp "aaa" "bbb")
+a = WrapStr
+
+class FlatWrapStr a s | a -> s where {}
+
+instance (FlatWrapStr a s2) => FlatWrapStr (WrapStr s1, a) (TApp s1 (TApp "_" s2)) where {}
+instance FlatWrapStr (WrapStr s) s where {}
+instance FlatWrapStr () "" where {}
+
+b :: (FlatWrapStr (WrapStr "aaa", WrapStr "bbb", WrapStr "ccc") s) => WrapStr s
+b = WrapStr
+
+c :: (FlatWrapStr () s) => WrapStr s
+c = WrapStr
+
+sysTApp :: Module Empty
+sysTApp = module
+
+  rules
+    when True ==> do
+      printWrapStr a
+      printWrapStr b
+      printWrapStr c
+      $finish
