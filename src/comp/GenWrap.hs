@@ -825,17 +825,11 @@ genTDef trec@(IfcTRec newId rootId _ sty _ k fts args _) =
    (ifc',newprops) <- genIfc trec args k
    --traceM( "genTDef: ifc " ++ ppReadable ifc' )
    --traceM( "genTDef:: new prop are: " ++ ppReadable newprops )
-   flgs <- getFlags
-   symt <- getSymTab
-   let res = cCtxReduceDef flgs symt ifc'
-   --traceM( "genTDef: res " ++ ppReadable res  )
-   case res of -- type checking for the interface
-     Left msgs -> bads msgs
-     Right ifc'' -> return GeneratedIfc {
-                                         genifc_id = newId,
-                                         genifc_kind = k,
-                                         genifc_cdefn = ifc'',
-                                         genifc_pprops = newprops }
+   return GeneratedIfc {
+      genifc_id = newId,
+      genifc_kind = k,
+      genifc_cdefn = ifc',
+      genifc_pprops = newprops }
 
 -- Generate a new interface definition for the CPackage
 -- Basically, this consists of a Cstruct of sub-type Sintrface.
@@ -889,18 +883,11 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                 return ((concat fields), (concat props))
            _ ->               -- leaf function
              do
-              let (v, vs) = unconsOrErr "GenWrap.genIfcField: v:vs" $
-                              map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
-              let bitsCtx a s = CPred (CTypeclass idBits) [a, s]
-              let ctx = zipWith bitsCtx argtypes vs
-              let ss = map (TAp tBit) vs
-
               isClock <- isClockType rettype
               isReset <- isResetType rettype
               isInout <- isInoutType rettype
               let isIot = isInout/=Nothing
               isPA <- isPrimAction rettype
-              isAV <- isActionValue rettype
               isVec <- isVectorInterfaces rettype
               case (isVec, argtypes) of
                 (Just (n, tVec, isListN), []) ->
@@ -913,37 +900,30 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                        let (fields,props) = unzip fieldsprops
                        return (concat fields, concat props)
                 _ -> do  -- ELSE NOT a Vec
-                       (r', ctx') <-
-                           if isAV then do
-                             av_t <- getAVType "genIfcField" rettype
-                             return (TAp tActionValue_ v, bitsCtx av_t v : ctx)
-                            else return $
-                             case isInout of
-                              Just t -> (TAp tInout_ v,
-                                         bitsCtx t v : ctx)
-                              _ -> if (isPA || isClock || isReset) then (rettype, ctx)
-                                   else (TAp tBit v, bitsCtx rettype v : ctx)
-                       let fi = binId prefixes fieldId
-                       --
-                       let (mprops, ifcPragmas) = gen prefixes ciPrags fieldId fi
-                           gen | isClock   = genNewClockIfcPragmas
-                               | isReset   = genNewResetIfcPragmas
-                               | isIot     = genNewInoutIfcPragmas
-                               | otherwise = genNewMethodIfcPragmas
+                      let v = cTVar $ head tmpTyVarIds
+                      let ctx = CPred (CTypeclass idWrapMethod) [foldr arrow rettype argtypes, v]
 
-                       let ifc_field = CField { cf_name = fi,
-                                                cf_pragmas = Just ifcPragmas,
-                                                cf_type = CQType ctx' (foldr arrow r' ss),
-                                                cf_orig_type = Just (foldr arrow rettype argtypes),
-                                                cf_default = []
-                                              }
-                       --
-                       -- the ready field
-                       let rdy_field = if (isClock || isReset || isIot) then []
-                                       else mkReadyField trec ifcPragmas ifcIdIn fieldId fi
-                       --
-                       --traceM( "ifc_fields is: " ++ ppReadable ifc_field)
-                       return ((ifc_field : rdy_field), mprops )
+                      let fi = binId prefixes fieldId
+                      --
+                      let (mprops, ifcPragmas) = gen prefixes ciPrags fieldId fi
+                          gen | isClock   = genNewClockIfcPragmas
+                              | isReset   = genNewResetIfcPragmas
+                              | isIot     = genNewInoutIfcPragmas
+                              | otherwise = genNewMethodIfcPragmas
+
+                      let ifc_field = CField { cf_name = fi,
+                                              cf_pragmas = Just ifcPragmas,
+                                              cf_type = CQType [ctx] v,
+                                              cf_orig_type = Just (foldr arrow rettype argtypes),
+                                              cf_default = []
+                                            }
+                      --
+                      -- the ready field
+                      let rdy_field = if (isClock || isReset || isIot) then []
+                                      else mkReadyField trec ifcPragmas ifcIdIn fieldId fi
+                      --
+                      --traceM( "ifc_fields is: " ++ ppReadable ifc_field)
+                      return ((ifc_field : rdy_field), mprops )
 
 
 -- create a RDY field, if requested
@@ -1120,25 +1100,10 @@ genTo pps ty mk =
                fields <- mapM recurse nums
                return (concat fields)
              _ -> do
-               isClock <- isClockType r
-               isReset <- isResetType r
-               isInout <- isInoutType r
-               isPA <- isPrimAction r
-               isAV <- isActionValue r
-               let vs = take (length as) (aIds ++ tmpVarXIds)
                -- XXX idEmpty is a horrible way to know no more selection is required
-               let ec = if f == idEmpty then sel else
-                        cApply 11 (CSelect sel (setInternal f))
-                                               (map (\ v -> CApply eUnpack [CVar v]) vs)
-               let e =
-                    case isInout of
-                     Just _ -> CApply ePrimInoutCast0 [ec]
-                     _ -> if isClock || isReset || isPA
-                           then ec
-                           else if isAV
-                                 then cVApply idToActionValue_ [ec]
-                                 else CApply ePack [ec]
-               return [CLValue (binId prefixes f) [CClause (map CPVar vs) [] e] []]
+               let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
+               let e = CApply (CVar id_toWrapMethod) [ec]
+               return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
 -- genWrapE toplevel: mkFrom_
@@ -1153,15 +1118,15 @@ mkFrom_ trec@(IfcTRec { rec_numargs = [], rec_typemap = [] }) =
    tyId <- flatTypeId pps t
    let arg = id_t (getPosition t)
    let ty = cTCon tyId `fn` t
-   (expr, ctxs) <- genFrom pps t (CVar arg)
+   expr <- genFrom pps t (CVar arg)
    let cls = CClause [CPVar arg] [] expr
-   return (CValueSign (CDef (from_Id tyId) (CQType ctxs ty) [cls]))
+   return (CValueSign (CDef (from_Id tyId) (CQType [] ty) [cls]))
 mkFrom_ x = internalError "GenWrap::mkFrom_ "
 
 from_Id :: Id -> Id
 from_Id i = addInternalProp (mkIdPre fsFrom i)
 
-genFrom :: [PProp] -> CType -> CExpr -> GWMonad (CExpr, [CPred])
+genFrom :: [PProp] -> CType -> CExpr -> GWMonad CExpr
 genFrom pps ty var =
  do
    --traceM ("genFrom type: " ++ (pfpAll ty))
@@ -1176,27 +1141,19 @@ genFrom pps ty var =
        ifcPrags <- getInterfacePrags ti
        let prefixes = noPrefixes { ifcp_pragmas = ifcPrags }
        fieldBlobs <- mapM (meth prefixes ti) fts
-       let expr = blobsToIfc ti fts fieldBlobs
-       let bits_types = unions (map fifth fieldBlobs)
-           ctxs = [ CPred (CTypeclass idBits) [t, cTVarNum v]
-                        | (t, v) <- zip bits_types tmpTyVarIds ]
-       return (expr, ctxs)
+       return $ blobsToIfc ti fts fieldBlobs
  where
    blobsToIfc ti fts fieldBlobs =
-       let meths = [ CLValue (setInternal f) [CClause (map CPVar vs) [] e] gs
-                         | (f, vs, e, gs, _) <- fieldBlobs ]
+       let meths = [ CLValue (setInternal f) [CClause [] [] e] gs
+                         | (f, e, gs) <- fieldBlobs ]
        in  Cinterface (getPosition fts) (Just ti) meths
 
-   fifth (_, _, _, _, x) = x
-
-   -- This returns a 5-tuple of a field Id (method or subifc),
-   -- its argument Ids, its result expression, and its implicit
-   -- condition (only for methods), and a list of types which need
-   -- Bits provisos.
+   -- This returns a 3-tuple of a field Id (method or subifc),
+   -- its defining expression, and its implicit condition (only for methods).
    -- Note: The Id is qualified, because it could be something not
    -- imported by the user (and this not available unqualified).
    meth :: IfcPrefixes -> Id -> FInf ->
-           GWMonad (Id, [Id], CExpr, [CQual], [CType])
+           GWMonad (Id, CExpr, [CQual])
    meth prefixes ifcId (FInf f as r aIds) =
     do
       ciPrags <- getInterfaceFieldPrags ifcId f {- f should be qualifed -}
@@ -1207,8 +1164,7 @@ genFrom pps ty var =
           newprefixes <- extendPrefixes prefixes ciPrags r f
           fieldBlobs <- mapM (meth newprefixes ti) fts
           let expr = blobsToIfc ti fts fieldBlobs
-              ctxs = unions (map fifth fieldBlobs)
-          return (f, [], expr, [], ctxs)
+          return (f, expr, [])
         _ -> do
           isVec <- isVectorInterfaces r
           case (isVec, as) of
@@ -1219,14 +1175,9 @@ genFrom pps ty var =
                        do newprefixes <- extendPrefixes prefixes ciPrags r f
                           meth newprefixes idVector (FInf (mkNumId num) [] tVec [])
                fieldBlobs <- mapM recurse nums
-               let (es, gs) = unzip [(e, g) | (_, _, e, g, _) <- fieldBlobs]
+               let (es, gs) = unzip [(e, g) | (_, e, g) <- fieldBlobs]
                let vec = cToVector isListN es
-               let ctxs = case fieldBlobs of
-                            -- each element will have the same ctxs
-                            -- so just take from the first one
-                            (blob:_) -> fifth blob
-                            _ -> []
-               return (f, [], vec, concat gs, ctxs)
+               return (f, vec, concat gs)
             _ -> do
               isPA <- isPrimAction r
               isClock <- isClockType r
@@ -1240,26 +1191,10 @@ genFrom pps ty var =
               let hasNoRdy = isAlwaysRdy pps wbinf ||
                              isAlwaysReadyIfc (ifcp_pragmas prefixes ++ ciPrags)
               let meth_guard = CApply eUnpack [sel wbinf]
-              let vs = take (length as) (aIds ++ tmpVarXIds)
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let ec = cApply 13 (sel binf)
-                           (map (\ v -> CApply ePack [CVar v]) vs)
-              (e, res_ctxs) <-
-                   case isInout of
-                    Just iot -> return (CApply ePrimInoutUncast0 [ec], [iot])
-                    _ -> if (isPA || isClock || isReset)
-                          then return (ec, [])
-                          else
-                           if isAV
-                              then do
-                                retType <- getAVType "genFrom" r
-                                return
-                                   (cApply 12 (CVar idFromActionValue_) [ec],
-                                    [retType])
-                              else return (CApply eUnpack [ec], [r])
-              let ctxs = nub (res_ctxs ++ as)
-              return (f, vs, e, qs, ctxs)
+              let e = CApply (CVar id_fromWrapMethod) [sel binf]
+              return (f, e, qs)
 
 
 -- --------------------
@@ -1377,7 +1312,8 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
    ftps <- mapM collectIfcInfo (reverse cfields)
    -- get back the arg port to type mapping, for recording
    flgs <- getFlags
-   arg_pts <- convEM $ checkModulePortNames flgs (getPosition i) vps vtis ftps
+   --  arg_pts <- convEM $ checkModulePortNames flgs (getPosition i) vps vtis ftps
+   let arg_pts = []
 
    let arg_infos = thd $ unzip3 vtis
        (vs, ts) = unzip $ concatMap extractVTPairs arg_infos
