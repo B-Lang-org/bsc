@@ -9,7 +9,7 @@ module GenWrap(
 import Prelude hiding ((<>))
 #endif
 
-import Data.List(nub, (\\), find)
+import Data.List(nub, (\\), find, genericLength)
 import Control.Monad(when, foldM, filterM, zipWithM, mapAndUnzipM)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, gets, get, put)
@@ -1196,7 +1196,10 @@ genFrom pps ty var =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let e = CApply (CVar id_fromWrapMethod) [sel binf]
+              let arg_names = mkList
+                    [stringLiteralAt (getPosition i) (getIdString i)
+                    | i <- aIds ++ map mkNumId [genericLength aIds + 1..genericLength as]]
+              let e = CApply (CVar id_fromWrapMethod) [arg_names, sel binf]
               return (f, e, qs)
 
 

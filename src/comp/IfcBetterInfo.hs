@@ -32,7 +32,6 @@ data BetterInfo = BetterMethodInfo
                     mi_ready  :: VPort, -- for ready signal
                     mi_enable :: VPort, -- for enable signal
                     mi_prefix :: Id,    -- default prefix for arguments (which are not found in classic)
-                    mi_args   :: [Id],          -- for arguments
                     mi_orig_type :: Maybe IType -- original (unwrapped) field type
                   }
                 -- XXX Note that the following are unused
@@ -58,7 +57,6 @@ noMethodInfo fieldId = BetterMethodInfo {mi_id = fieldId,
                                      mi_ready  = id_to_vPort $ mkRdyId fieldId,
                                      mi_enable = id_to_vPort $ mkEnableId fieldId,
                                      mi_prefix = fieldId,
-                                     mi_args = [],
                                      mi_orig_type = Nothing
                                   }
 
@@ -69,7 +67,6 @@ instance PPrint BetterInfo  where
                           printMaybe d i "Ready:" (mi_ready info) <>
                           printMaybe d i "Enable:" (mi_enable info) <>
                           text "Prefix:" <> pPrint d i (mi_prefix info) <>
-                          text "Args:" <>  pPrint d i (mi_args info) <>
                           printMaybe d i "Original type:" (mi_orig_type info)
                         )
 
@@ -106,21 +103,7 @@ fieldInfoToBetterInfo flags symTab (fieldId, Just fi) =
                       mi_ready  = maybe (id_to_vPort $ mkRdyId fieldId) str_to_vPort mrdy,
                       mi_enable = maybe (id_to_vPort $ mkEnableId fieldId) str_to_vPort  men,
                       mi_prefix = maybe fieldId (setIdBaseString fieldId) mprefix,
-                      mi_args = args,
                       mi_orig_type = fmap (iConvT flags symTab) (fi_orig_type fi)
                }
     where prags   = fi_pragmas fi
-          (mprefix,mres,mrdy,men,rawargs,_,_) = getMethodPragmaInfo prags
-          args    = genArgNames mprefix fieldId rawargs
-
-
--- Create a list of Ids for method argument names
--- Used by IExpand  thru IfcbetterNames   maybe move it here
--- Note that this only uses IPrefixStr and iArgNames, which must be
--- kept on the FieldInfo in the SymTab
-genArgNames :: Maybe String -> Id -> [Id] -> [Id]
-genArgNames mprefix fieldId ids = map (addPrefix mprefix fieldId)  ids
-    where addPrefix :: Maybe String -> Id -> Id -> Id
-          addPrefix Nothing fid aid   = mkUSId fid aid
-          addPrefix (Just "") _ aid   = aid
-          addPrefix (Just pstr) _ aid = mkIdPre (mkFString $ pstr ++ "_" ) aid
+          (mprefix,mres,mrdy,men,_,_,_) = getMethodPragmaInfo prags
