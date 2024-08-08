@@ -21,7 +21,7 @@ import Data.List
 import Data.Maybe
 import Data.Foldable(foldrM)
 import Numeric(showIntAtBase)
-import Data.Char(intToDigit, ord, chr)
+import Data.Char(intToDigit, ord, chr, isDigit)
 import Control.Monad(when, foldM, zipWithM, mapAndUnzipM)
 import Control.Monad.Fix(mfix)
 --import Control.Monad.Fix
@@ -1058,15 +1058,19 @@ iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                  Id -> IType -> Pred HeapData ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p = do
-        -- substitute argument with a modvar and replace with body
-        let i_n :: Id
-            i_n = mkIdPost (BetterInfo.mi_prefix bi) (concatFString [fsUnderscore, mkNumFString n])
+iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p =
+    case eb of
+      IAps (ICon _ (ICPrim _ PrimPortName)) _ [ename, ebody] -> do
+        (name, _) <- evalString ename
+        let pfx :: Id
+            pfx = BetterInfo.mi_prefix bi
             i' :: Id
-            i'  = if null (BetterInfo.mi_args bi) then i_n else (BetterInfo.mi_args bi) !! fromInteger (n-1)
+            i' = if isEmptyId pfx && not (isDigit $ head name)
+                 then mkIdPost pfx $ mkFString name
+                 else mkIdPost pfx (concatFString [fsUnderscore, mkFString name])
+            -- substitute argument with a modvar and replace with body
             eb' :: HExpr
-            eb' = eSubst li (ICon i' (ICMethArg ty)) eb
-            -- bi' = if null bi then [] else tail bi
+            eb' = eSubst li (ICon i' (ICMethArg ty)) ebody
         let m_orig_type :: Maybe IType
             m_orig_type = fmap ((flip (!!) (fromInteger (n-1))) . fst . itGetArrows)
                           (BetterInfo.mi_orig_type bi)
@@ -1077,9 +1081,11 @@ iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p = do
             inps = vf_inputs wf1
         let wf1' :: VFieldInfo
             wf1' = case wf1 of
-                     (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
-                     _ -> internalError "iExpandMethodLam: unexpected wf1"
+                      (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
+                      _ -> internalError "iExpandMethodLam: unexpected wf1"
         return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
+      -- XXX should be a user error, since someone can write their own WrapPorts instance
+      _ -> internalError $ "iExpandMethodLam: expected PrimPortName, got " ++ ppReadable eb
 
 iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
                   Pred HeapData ->
@@ -2531,6 +2537,10 @@ walkNF e =
                    _ <- internalError ("PrimWhenPred" ++ ppReadable e)
                    (P p' e', ws) <- walkNF e
                    upd (pConjs [p0, p, p']) e' ws
+                
+                IAps f@(ICon i (ICPrim _ PrimPortName)) _ [n, e] -> do
+                    (P p e', ws) <- walkNF e
+                    upd (pConj p0 p) (IAps f [] [n, e']) ws
 
                 -- Any other application is not in NF (which is unexpected?)
                 IAps f ts es -> do

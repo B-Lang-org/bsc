@@ -257,7 +257,8 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         Curry(..), AppendTuple(..), AppendTuple'(..),
-        WrapPorts(..), WrapMethod(..)
+        WrapPorts(..), WrapMethod(..),
+        primPortName
         ) where
 
 infixr  0 $
@@ -4420,20 +4421,17 @@ instance (AppendTuple' a b c) => AppendTuple' (h, a) b (h, c) where
   appendTuple' (x, y) z = (x, appendTuple' y z)
 
 
-data (WrapPort :: $ -> # -> *) name n = WrapPort (Bit n)
+primitive primPortName :: String -> Bit n -> Bit n
 
 class WrapPorts a p | a -> p where
-  toPorts :: a -> p
+  -- Takes a port name and a value to wrap, returns a (tuple of) bits
+  -- cooresponding to port(s), each tagged with primPortName.
+  toPorts :: String -> a -> p
+  -- Takes a (tuple of) bits cooresponding to ports, returns the unwrapped value.
   fromPorts :: p -> a
 
-{-
-instance (Bits a n) => WrapPorts a (WrapPort "foo" n) where
-  toPorts = WrapPort ∘ pack
-  fromPorts (WrapPort x) = unpack x
--}
-
 instance (Bits a n) => WrapPorts a (Bit n) where
-  toPorts = pack
+  toPorts name = primPortName name ∘ pack
   fromPorts = unpack
 
 {-
@@ -4448,39 +4446,40 @@ instance (Add n1 1 n, WrapPorts a p1, WrapPorts (Vector n1 a) p2, AppendTuple p1
 
 -- TODO: If there is only one instance for WrapPorts, the first WrapMethod instance below fails to typecheck.
 instance WrapPorts () () where
-  toPorts = id
+  toPorts _ = id
   fromPorts = id
 
 class WrapMethod m w | m -> w where
   toWrapMethod :: m -> w
-  fromWrapMethod :: w -> m
+  fromWrapMethod :: List String -> w -> m
 
 instance (WrapPorts a p, WrapMethod b v, Curry (p -> v) w) => WrapMethod (a -> b) w where
   toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ fromPorts
-  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ toPorts
+  fromWrapMethod (Cons h t) f = fromWrapMethod t ∘ uncurryN f ∘ toPorts h
+  fromWrapMethod Nil _ = error "toWrapMethod: empty arg names list"
 
 instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
   toWrapMethod = toActionValue_
-  fromWrapMethod = fromActionValue_
+  fromWrapMethod _ = fromActionValue_
 
 instance (Bits a n) => WrapMethod a (Bit n) where
   toWrapMethod = pack
-  fromWrapMethod = unpack
+  fromWrapMethod _ = unpack
 
 -- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
 -- but this case was being handled in GenWrap.
 instance WrapMethod PrimAction PrimAction where
   toWrapMethod = id
-  fromWrapMethod = id
+  fromWrapMethod _ = id
 
 instance WrapMethod Clock Clock where
   toWrapMethod = id
-  fromWrapMethod = id
+  fromWrapMethod _ = id
 
 instance WrapMethod Reset Reset where
   toWrapMethod = id
-  fromWrapMethod = id
+  fromWrapMethod _ = id
 
 instance (Bits a n) => WrapMethod (Inout a) (Inout_ n) where
   toWrapMethod = primInoutCast0
-  fromWrapMethod = primInoutUncast0
+  fromWrapMethod _ = primInoutUncast0
