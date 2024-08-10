@@ -642,6 +642,8 @@ instance Bin (IConInfo a) where
         internalError "GenBin.Bin(IConInfo).writeBytes: ICPred"
     writeBytes (ICHandle { }) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICHandle"
+    writeBytes (ICMethod { }) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICMethod"
     readBytes = do tag <- getI
                    t <- fromBin
                    case tag of
