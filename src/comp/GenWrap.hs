@@ -1104,8 +1104,11 @@ genTo pps ty mk =
                return (concat fields)
              _ -> do
                -- XXX idEmpty is a horrible way to know no more selection is required
+               let arg_names = mkList
+                    [stringLiteralAt (getPosition i) (getIdString i)
+                    | i <- aIds ++ map mkNumId [genericLength aIds + 1..genericLength as]]
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar id_toWrapMethod) [ec]
+               let e = CApply (CVar id_toWrapMethod) [arg_names, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1196,10 +1199,7 @@ genFrom pps ty var =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let arg_names = mkList
-                    [stringLiteralAt (getPosition i) (getIdString i)
-                    | i <- aIds ++ map mkNumId [genericLength aIds + 1..genericLength as]]
-              let e = CApply (CVar id_fromWrapMethod) [arg_names, sel binf]
+              let e = CApply (CVar id_fromWrapMethod) [sel binf]
               return (f, e, qs)
 
 
