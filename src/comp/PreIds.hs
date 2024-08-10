@@ -234,10 +234,10 @@ idPolyWrapField = mk_no fsPolyWrapField
 idLiftModule :: Id
 idLiftModule = prelude_id_no fsLiftModule
 
-idWrapMethod, id_fromWrapMethod, id_toWrapMethod :: Id
-idWrapMethod = prelude_id_no fsWrapMethod
-id_fromWrapMethod = prelude_id_no fsFromWrapMethod
-id_toWrapMethod = prelude_id_no fsToWrapMethod
+idWrapField, id_fromWrapField, id_toWrapField :: Id
+idWrapField = prelude_id_no fsWrapField
+id_fromWrapField = prelude_id_no fsFromWrapField
+id_toWrapField = prelude_id_no fsToWrapField
 
 -- Used by desugaring
 id_lam, id_if, id_read, id_write :: Position -> Id

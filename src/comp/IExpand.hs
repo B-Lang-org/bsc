@@ -3100,7 +3100,7 @@ conAp' i (ICPrim _ PrimIsRawUndefined) _ (T t : E e : as) = do
     _ -> -- do traceM ("IsRawUndefined: False")
             return (P p iFalse)
 
-conAp' i (ICPrim _ PrimPortNames) _ [T t, E eInNames, E meth] = do
+conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E meth] = do
   (inNames, _) <- evalStringList eInNames
   P p meth' <- eval1 meth
   return $ P p $ ICon (dummyId noPosition) $ ICMethod {iConType = t, iInputNames = inNames, iMethod = meth'}

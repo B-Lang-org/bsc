@@ -901,7 +901,7 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                        return (concat fields, concat props)
                 _ -> do  -- ELSE NOT a Vec
                       let v = cTVar $ head tmpTyVarIds
-                      let ctx = CPred (CTypeclass idWrapMethod) [foldr arrow rettype argtypes, v]
+                      let ctx = CPred (CTypeclass idWrapField) [foldr arrow rettype argtypes, v]
 
                       let fi = binId prefixes fieldId
                       --
@@ -1105,7 +1105,7 @@ genTo pps ty mk =
                     [stringLiteralAt (getPosition i) (getIdString i)
                     | i <- aIds ++ map mkNumId [genericLength aIds + 1..genericLength as]]
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar id_toWrapMethod) [arg_names, ec]
+               let e = CApply (CVar id_toWrapField) [arg_names, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1196,7 +1196,7 @@ genFrom pps ty var =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let e = CApply (CVar id_fromWrapMethod) [sel binf]
+              let e = CApply (CVar id_fromWrapField) [sel binf]
               return (f, e, qs)
 
 
