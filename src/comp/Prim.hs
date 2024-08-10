@@ -64,7 +64,7 @@ data PrimOp =
         | PrimInoutCast
         | PrimInoutUncast
 
-        | PrimPortNames
+        | PrimMethod
 
         | PrimIf
         | PrimMux
@@ -356,7 +356,7 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primBOr" = PrimBOr
         tp "primInoutCast" = PrimInoutCast
         tp "primInoutUncast" = PrimInoutUncast
-        tp "primPortNames" = PrimPortNames
+        tp "primMethod" = PrimMethod
         tp "primIntegerToBit" = PrimIntegerToBit
         tp "primIntegerToUIntBits" = PrimIntegerToUIntBits
         tp "primIntegerToIntBits"  = PrimIntegerToIntBits
