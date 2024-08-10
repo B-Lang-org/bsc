@@ -53,7 +53,8 @@ Test Suite
 Internal
 ~~~~~~~~
 
-* Releases now built with GHC 9.6.5 (previously 9.4.8) (GitHub PR#705)
+* Releases now built with GHC 9.6.6 (previously 9.4.8)
+  (GitHub PR#705, PR#728)
   ** The GHC Developer Blog
      https://www.haskell.org/ghc/blog/20240521-ghc-release-priorities.html[posted]
      that the 9.6 branch is relatively stable and has a relatively
