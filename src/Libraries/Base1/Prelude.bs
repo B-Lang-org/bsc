@@ -258,8 +258,8 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         Curry(..), AppendTuple(..), AppendTuple'(..), TupleSize(..),
-        WrapPorts(..), WrapMethod(..), toWrapMethod,
-        primPortNames
+        WrapPorts(..), WrapMethod(..), WrapField(..),
+        primMethod
         ) where
 
 infixr  0 $
@@ -4437,8 +4437,63 @@ instance TupleSize () 0 where {}
 instance TupleSize a 1 where {}
 instance (TupleSize b n) => TupleSize (a, b) (TAdd n 1) where {}
 
--- Tag a method with a list of port names.
-primitive primPortNames :: List String -> a -> a
+-- Tag a method with metadata.
+-- Currently just the list of input port names.
+primitive primMethod :: List String -> a -> a
+
+class WrapField f w | f -> w where
+  -- Takes a list of argument names, converts a synthesized interface field value to
+  -- its wrapper interface field.
+  toWrapField :: List String -> f -> w
+  -- Converts a wrapper interface field value to its synthesized interface field.
+  fromWrapField :: w -> f
+
+instance (WrapMethod m w) => (WrapField m w) where
+  toWrapField names = primMethod (inputPortNames ((error "proxy value") :: m) names) ∘ toWrapMethod
+  fromWrapField = fromWrapMethod
+
+-- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
+-- but this case was being handled in GenWrap.
+instance WrapField PrimAction PrimAction where
+  toWrapField _ = id
+  fromWrapField = id
+
+instance WrapField Clock Clock where
+  toWrapField _ = id
+  fromWrapField = id
+
+instance WrapField Reset Reset where
+  toWrapField _ = id
+  fromWrapField = id
+
+instance (Bits a n) => WrapField (Inout a) (Inout_ n) where
+  toWrapField _ = primInoutCast0
+  fromWrapField = primInoutUncast0
+
+class WrapMethod m w | m -> w where
+  -- Convert a synthesized interface method to its wrapper interface method.
+  toWrapMethod :: m -> w
+  -- Convert a wrapper interface method to its synthesized interface method.
+  fromWrapMethod :: w -> m
+  -- Comput the list of input port names for a method.
+  inputPortNames :: m -> List String -> List String
+  inputPortNames _ _ = Nil
+
+instance (WrapPorts a p, TupleSize p n, WrapMethod b v, Curry (p -> v) w) => WrapMethod (a -> b) w where
+  toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ fromPorts
+  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ toPorts
+  inputPortNames _ (Cons h t) =
+    checkPortNames ((error "proxy value") :: a) h `listPrimAppend`
+    inputPortNames ((error "proxy value") :: b) t
+  inputPortNames _ Nil = error "toWrapMethod: empty arg names list"
+
+instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
+  toWrapMethod = toActionValue_
+  fromWrapMethod = fromActionValue_
+
+instance (Bits a n) => WrapMethod a (Bit n) where
+  toWrapMethod = pack
+  fromWrapMethod = unpack
 
 class WrapPorts a p | a -> p where
   -- Takes an unwrapped value and returns a (tuple of) bits cooresponding to port(s).
@@ -4477,53 +4532,3 @@ checkPortNames _ base =
     then error $  "WrapPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
     else pn
-
-class WrapMethod m w | m -> w where
-  toWrapMethod :: List String -> m -> w
-
-  toWrapMethod' :: m -> w
-  fromWrapMethod :: w -> m
-
-  inputPortNames :: m -> List String -> List String
-  inputPortNames _ _ = Nil
-
-instance (WrapPorts a p, TupleSize p n, WrapMethod b v, Curry (p -> v) w) => WrapMethod (a -> b) w where
-  toWrapMethod names = primPortNames (inputPortNames ((error "proxy value") :: (a -> b)) names) ∘ toWrapMethod'
-  toWrapMethod' f = curryN $ toWrapMethod' ∘ f ∘ fromPorts
-  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ toPorts
-  inputPortNames _ (Cons h t) =
-    checkPortNames ((error "proxy value") :: a) h `listPrimAppend`
-    inputPortNames ((error "proxy value") :: b) t
-  inputPortNames _ Nil = error "toWrapMethod: empty arg names list"
-
-instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
-  toWrapMethod _ = primPortNames Nil ∘ toActionValue_
-  toWrapMethod' = toActionValue_
-  fromWrapMethod = fromActionValue_
-
-instance (Bits a n) => WrapMethod a (Bit n) where
-  toWrapMethod _ = primPortNames Nil ∘ pack
-  toWrapMethod' = pack
-  fromWrapMethod = unpack
-
--- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
--- but this case was being handled in GenWrap.
-instance WrapMethod PrimAction PrimAction where
-  toWrapMethod _ = id
-  toWrapMethod' = id
-  fromWrapMethod = id
-
-instance WrapMethod Clock Clock where
-  toWrapMethod _ = id
-  toWrapMethod' = id
-  fromWrapMethod = id
-
-instance WrapMethod Reset Reset where
-  toWrapMethod _ = id
-  toWrapMethod' = id
-  fromWrapMethod = id
-
-instance (Bits a n) => WrapMethod (Inout a) (Inout_ n) where
-  toWrapMethod _ = primInoutCast0
-  toWrapMethod' = primInoutCast0
-  fromWrapMethod = primInoutUncast0
