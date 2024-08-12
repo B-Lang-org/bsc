@@ -49,6 +49,14 @@ Utilities
 * Update BSV mode for `emacs` to work with newer versions
   (GitHub PR#697)
 
+General
+~~~~~~~
+
+* Clean up how the `tcllibs` flags are computed in `platform.sh`
+  (GitHub PR#703)
+  ** This adds the version number to the flag for macOS
+     (from `-ltcl` to `-ltcl8.5`)
+
 Test Suite
 ~~~~~~~~~~
 
@@ -79,11 +87,6 @@ Internal
          that don't yet have HLS support in GHCUP
   ** Ensure that `brew` and `apt-get` are updated before installing,
      to avoid failures due to old GitHub runner images (GitHub PR#687)
-
-* Clean up how the `tcllibs` flags are computed in `platform.sh`
-  (GitHub PR#703)
-  ** This adds the version number to the flag for macOS
-     (from `-ltcl` to `-ltcl8.5`)
 
 '''
 
