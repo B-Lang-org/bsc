@@ -43,6 +43,12 @@ Bluesim
   source code to not use a feature that is deprecated since the C++20
   standard (GitHub Issue#698, PR#701)
 
+Utilities
+~~~~~~~~~
+
+* Update BSV mode for `emacs` to work with newer versions
+  (GitHub PR#697)
+
 Test Suite
 ~~~~~~~~~~
 
