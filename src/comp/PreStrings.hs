@@ -347,6 +347,7 @@ fsPolyWrapField    = mkFString "val"
 fsWrapField       = mkFString "WrapField"
 fsFromWrapField   = mkFString "fromWrapField"
 fsToWrapField     = mkFString "toWrapField"
+fsSaveFieldPortTypes = mkFString "saveFieldPortTypes"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"
