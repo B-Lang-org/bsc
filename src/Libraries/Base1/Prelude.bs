@@ -4439,43 +4439,49 @@ instance (TupleSize b n) => TupleSize (a, b) (TAdd n 1) where {}
 
 -- Tag a method with metadata.
 -- Currently just the list of input port names.
+-- Should eventually include the output port names, when we support multiple output ports.
 primitive primMethod :: List String -> a -> a
 
 class WrapField f w | f -> w where
-  -- Takes a list of argument names, converts a synthesized interface field value to
+  -- Given the prefix and arg_names pragmas, converts a synthesized interface field value to
   -- its wrapper interface field.
-  toWrapField :: List String -> f -> w
+  toWrapField :: String -> List String -> f -> w
 
   -- Converts a wrapper interface field value to its synthesized interface field.
   fromWrapField :: w -> f
 
-  -- Save the port types for a field in the wrapped interface.
-  saveFieldPortTypes :: f -> Maybe Name__ -> List String -> String -> Module ()
-  saveFieldPortTypes _ _ _ _ = return ()
+  -- Save the port types for a field in the wrapped interface, given the module name
+  -- and the prefix, arg_names and result pragmas.
+  saveFieldPortTypes :: f -> Maybe Name__ -> String -> List String -> String -> Module ()
+  saveFieldPortTypes _ _ _ _ _ = return ()
 
 instance (WrapMethod m w) => (WrapField m w) where
-  toWrapField names = primMethod (inputPortNames (_:: m) names) ∘ toWrapMethod
+  toWrapField prefix names =
+    let baseNames = methodArgBaseNames (_ :: m) prefix names 1
+    in primMethod (inputPortNames (_ :: m) baseNames) ∘ toWrapMethod
   fromWrapField = fromWrapMethod
-  saveFieldPortTypes = saveMethodPortTypes
+  saveFieldPortTypes _ modName prefix names = 
+    let baseNames = methodArgBaseNames (_ :: m) prefix names 1
+    in saveMethodPortTypes (_ :: m) modName baseNames
 
 -- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
 -- but this case was being handled in GenWrap.
 instance WrapField PrimAction PrimAction where
-  toWrapField _ = id
+  toWrapField _ _ = id
   fromWrapField = id
 
 instance WrapField Clock Clock where
-  toWrapField _ = id
+  toWrapField _ _ = id
   fromWrapField = id
 
 instance WrapField Reset Reset where
-  toWrapField _ = id
+  toWrapField _ _ = id
   fromWrapField = id
 
 instance (Bits a n) => WrapField (Inout a) (Inout_ n) where
-  toWrapField _ = primInoutCast0
+  toWrapField _ _ = primInoutCast0
   fromWrapField = primInoutUncast0
-  saveFieldPortTypes _ name _ result = primSavePortType name result $ typeOf (_ :: a)
+  saveFieldPortTypes _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.
@@ -4484,35 +4490,46 @@ class WrapMethod m w | m -> w where
   -- Convert a wrapper interface method to its synthesized interface method.
   fromWrapMethod :: w -> m
 
-  -- Compute the list of input port names for a method, from its argument names.
+  -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
+  methodArgBaseNames :: m -> String -> List String -> Integer -> List String
+  methodArgBaseNames _ _ _ _ = Nil
+
+  -- Compute the list of input port names for a method, from the argument base names.
   inputPortNames :: m -> List String -> List String
   inputPortNames _ _ = Nil
 
-  -- Save the port types for a method.
+  -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
 instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (pb -> v) w) =>
     WrapMethod (a -> b) w where
   toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
   fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
-  inputPortNames _ (Cons h t) =
-    checkPortNames (_ :: a) h `listPrimAppend`
-    inputPortNames (_ :: b) t
+
+  methodArgBaseNames _ prefix (Cons h t) i = Cons
+    (if prefix == "" && not (isDigit $ stringHead h) then h else prefix +++ "_" +++ h)
+    (methodArgBaseNames (_ :: b) prefix t $ i + 1)
+  methodArgBaseNames _ prefix Nil i = Cons
+    (prefix +++ "_" +++ integerToString i)
+    (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
+
+  inputPortNames _ (Cons h t) = checkPortNames (_ :: a) h `listPrimAppend` inputPortNames (_ :: b) t
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
-  saveMethodPortTypes _ name (Cons h t) result = do
-    savePortTypes (_ :: p) name $ checkPortNames (_ :: a) h
-    saveMethodPortTypes (_ :: b) name t result
+
+  saveMethodPortTypes _ modName (Cons h t) result = do
+    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) h
+    saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
 instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
   toWrapMethod = toActionValue_
   fromWrapMethod = fromActionValue_
-  saveMethodPortTypes _ name _ result = primSavePortType name result $ typeOf (_ :: a)
+  saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 instance (Bits a n) => WrapMethod a (Bit n) where
   toWrapMethod = pack
   fromWrapMethod = unpack
-  saveMethodPortTypes _ name _ result = primSavePortType name result $ typeOf (_ :: a)
+  saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 {-
 Eventually, we should support splitting multiple output ports.
@@ -4520,15 +4537,15 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) => WrapMethod (ActionVa
   toWrapMethod = fmap packPorts
   fromWrapMethod = fmap unpackPorts
   outputPortNames _ base = checkPortNames (_ :: a) base
-  saveMethodPortTypes _ name _ result =
-    savePortTypes (_ :: p) name $ checkPortNames (_ :: a) result
+  saveMethodPortTypes _ modName _ result =
+    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 
 instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) => WrapMethod a pb where
   toWrapMethod a = packPorts a
   fromWrapMethod a = unpackPorts a
   outputPortNames _ base = checkPortNames (_ :: a) base
-  saveMethodPortTypes _ name _ result =
-    savePortTypes (_ :: p) name $ checkPortNames (_ :: a) result
+  saveMethodPortTypes _ modName _ result =
+    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 -}
 
 class WrapPorts p pb | p -> pb where
@@ -4542,15 +4559,15 @@ class WrapPorts p pb | p -> pb where
 instance (Bits a n, WrapPorts b bb) => WrapPorts (a, b) (Bit n, bb) where
   packPorts (a, b) = (pack a, packPorts b)
   unpackPorts (a, b) = (unpack a, unpackPorts b)
-  savePortTypes _ name (Cons h t) = do
-    primSavePortType name h $ typeOf (_ :: a)
-    savePortTypes (_ :: b) name t
+  savePortTypes _ modName (Cons h t) = do
+    primSavePortType modName h $ typeOf (_ :: a)
+    savePortTypes (_ :: b) modName t
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
 
 instance (Bits a n) => WrapPorts a (Bit n) where
   packPorts = pack
   unpackPorts = unpack
-  savePortTypes _ name (Cons h _) = primSavePortType name h $ typeOf (_ :: a)
+  savePortTypes _ modName (Cons h _) = primSavePortType modName h $ typeOf (_ :: a)
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
 
 instance WrapPorts () () where
@@ -4558,6 +4575,9 @@ instance WrapPorts () () where
   unpackPorts _ = ()
   savePortTypes _ _ _ = return ()
 
+-- Compute the list port names for type 'a' given a base name.
+-- Check that the number of port names matches the number of ports.
+-- This error should only occur if there is an error in a WrapPorts instance.
 checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
 checkPortNames proxy base =
   let pn = portNames proxy base
@@ -4568,8 +4588,14 @@ checkPortNames proxy base =
     else pn
 
 class SplitPorts a p | a -> p where
+  -- Convert a value to a tuple of values corresponding to ports.
   splitPorts :: a -> p
+  -- Combine a tuple of values corresponding to ports into a value.
   unsplitPorts :: p -> a
+  -- Compute the list of port names for a type, given a base name.
+  -- This must be the same length as the tuple of values.
+  -- XXX it would be nice to use ListN here to enforce this, but it's not
+  -- available in the Prelude.
   portNames :: a -> String -> List String
 
 -- XXX if the default instance is the only one, then it gets inlined in CtxReduce
