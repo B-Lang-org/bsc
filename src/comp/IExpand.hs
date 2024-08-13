@@ -1061,14 +1061,8 @@ iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
     traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
-    let pfx :: Id
-        pfx = BetterInfo.mi_prefix bi
-        name :: String
-        name = head ins
-        i' :: Id
-        i' = if isEmptyId pfx && not (isDigit $ head name)
-             then mkIdPost pfx $ mkFString name
-             else mkIdPost pfx (concatFString [fsUnderscore, mkFString name])
+    let i' :: Id
+        i' = mkId (getPosition i) $ mkFString $ head ins
         -- substitute argument with a modvar and replace with body
         eb' :: HExpr
         eb' = eSubst li (ICon i' (ICMethArg ty)) eb
