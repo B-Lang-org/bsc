@@ -16,7 +16,7 @@ module IExpandUtils(
         pushIfcSchedNameScope, popIfcSchedNameScope,
         setIfcSchedNameScopeProgress, IfcElabProgress(..),
         addSubmodComments, {-getSubmodComments,-}
-        addPort, getPortWires, savePortType, saveTopModPortType,
+        addPort, getPortWires, savePortType,
         saveRules, getSavedRules, clearSavedRules, replaceSavedRules,
         setBackendSpecific, cacheDef,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
@@ -1233,9 +1233,6 @@ savePortType minst port t = do
                          minst (M.singleton port t)
                          old_map
   put s { portTypeMap = new_map }
-
-saveTopModPortType :: VName -> IType -> G ()
-saveTopModPortType port t = savePortType Nothing port t
 
 -- ---------------
 
