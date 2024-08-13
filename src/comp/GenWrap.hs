@@ -9,7 +9,7 @@ module GenWrap(
 import Prelude hiding ((<>))
 #endif
 
-import Data.List(nub, (\\), find, genericLength)
+import Data.List(nub, (\\), find)
 import Control.Monad(when, foldM, filterM, zipWithM, mapAndUnzipM)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, gets, get, put)
@@ -1064,14 +1064,14 @@ genTo pps ty mk =
    cint <- chkInterface ty
    case cint of
      Nothing -> internalError ("genTo: " ++ pfpReadable (ty, mk))
-     Just (_, _, fts) -> do
-       meths <- mapM (meth mk noPrefixes) fts
+     Just (ifcId, _, fts) -> do
+       meths <- mapM (meth mk noPrefixes ifcId) fts
        fty <- flatTypeId pps ty
        let tmpl = Cinterface (getPosition fts) (Just fty) (concat meths)
        return tmpl
  where
-   meth :: CExpr -> IfcPrefixes -> FInf -> GWMonad [CDefl]
-   meth sel prefixes (FInf f as r aIds) =
+   meth :: CExpr -> IfcPrefixes -> Id -> FInf -> GWMonad [CDefl]
+   meth sel prefixes ifcId (FInf f as r aIds) =
     do
        mi <- chkInterface r
        case (mi, as) of
@@ -1082,7 +1082,7 @@ genTo pps ty mk =
              else do
                --traceM ("selector: " ++ show sel)
                newPrefixes <- extendPrefixes prefixes [] r f
-               meths <- mapM (meth (extSel sel f) newPrefixes) fts
+               meths <- mapM (meth (extSel sel f) newPrefixes ifcId) fts
                return (concat meths)
          _ ->  do  -- Generate the Verilog template for X
            isVec <- isVectorInterfaces r
@@ -1096,16 +1096,19 @@ genTo pps ty mk =
                elemPrefix <- extendPrefixes prefixes [] r f
                let recurse num = do
                                     numPrefix <- extendPrefixes elemPrefix [] r (mkNumId num)
-                                    meth (selector num) numPrefix (FInf idEmpty [] tVec [])
+                                    meth (selector num) numPrefix ifcId (FInf idEmpty [] tVec [])
                fields <- mapM recurse nums
                return (concat fields)
              _ -> do
+               ciPrags <- getInterfaceFieldPrags ifcId f
+               let currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
+                   localPrefix1 = fromMaybe (getIdString f) (lookupPrefixIfcPragma ciPrags)
+                   localPrefix = joinStrings_  currentPre localPrefix1
+                   prefix = stringLiteralAt noPosition localPrefix
+                   arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                -- XXX idEmpty is a horrible way to know no more selection is required
-               let arg_names = mkList
-                    [stringLiteralAt (getPosition i) (getIdString i)
-                    | i <- aIds ++ map mkNumId [genericLength aIds + 1..genericLength as]]
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar id_toWrapField) [arg_names, ec]
+               let e = CApply (CVar id_toWrapField) [prefix, arg_names, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -2148,9 +2151,6 @@ saveNameStmt svName resultVar = CMStmt (CSletseq [(CLValue resultVar [CClause []
 extSel :: CExpr -> Id -> CExpr
 extSel sel xid | xid == idEmpty = sel
 extSel sel xid = CSelect sel xid
-
-cLams :: [Id] -> CExpr -> CExpr
-cLams is e = foldr (CLam . Right) e is
 
 unLams :: CExpr -> ([CPat], CExpr)
 unLams (CLam (Right i) e) = ((CPVar i):is, e') where (is, e') = unLams e
