@@ -1106,7 +1106,7 @@ genTo pps ty mk =
              _ -> do
                ciPrags <- getInterfaceFieldPrags ifcId f
                let currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
-                   localPrefix1 = fromMaybe (getIdString f) (lookupPrefixIfcPragma ciPrags)
+                   localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
@@ -2121,7 +2121,6 @@ chkUserPragmas pps ifc = do
 
 -- ====================
 -- Saving name/type information
--- XXX is liftModule really needed for these?
 
 -- liftModule $ primSavePortType (Valid v) s t
 savePortTypeStmt :: CExpr -> (VName, b) -> CType -> CMStmt
@@ -2169,9 +2168,9 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes
                concatMapM recurse nums
             _ -> do
               ciPrags <- getInterfaceFieldPrags ifcId f
-              let methodStr = getIdString f
+              let methodStr = getIdBaseString f
                   currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
-                  localPrefix1 = fromMaybe (getIdString f) (lookupPrefixIfcPragma ciPrags)
+                  localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                   localPrefix = joinStrings_  currentPre localPrefix1
                   mResName = lookupResultIfcPragma ciPrags
                   resultName =  case mResName of
@@ -2184,8 +2183,9 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes
                   result = stringLiteralAt noPosition resultName
               return [
                 CSExpr Nothing $
-                  cVApply id_saveFieldPortTypes
-                    [proxy, mkMaybe v, prefix, arg_names, result]]
+                  cVApply idLiftModule $
+                    [cVApply id_saveFieldPortTypes
+                      [proxy, mkMaybe v, prefix, arg_names, result]]]
 
 
 saveNameStmt :: Id -> Id -> CMStmt
