@@ -7,21 +7,21 @@ import BuildList
 
 -- Wrong element type, Literal
 fn1 :: Bool
-fn1 = 
+fn1 =
     let v :: List Bool
         v =  lst 0 1 2
     in  v == v
 
 -- Wrong element type, concrete
 fn2 :: Bool
-fn2 = 
+fn2 =
     let v :: List Integer
         v =  lst True False True
     in  v == v
 
 -- Wrong return type
 fn3 :: Bool
-fn3 = 
+fn3 =
     let v :: Bit 3
         v =  lst True False True
     in  v == v

@@ -6,7 +6,7 @@ import BuildList
 {-# properties sysTestBuildList = { synthesize } #-}
 
 sysTestBuildList :: Module Empty
-sysTestBuildList = 
+sysTestBuildList =
   module
     let
         v1 :: List Bool
