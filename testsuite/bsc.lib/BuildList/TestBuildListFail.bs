@@ -16,12 +16,12 @@ fn1 =
 fn2 :: Bool
 fn2 = 
     let v :: List Integer
-	v =  lst True False True
+        v =  lst True False True
     in  v == v
 
 -- Wrong return type
 fn3 :: Bool
 fn3 = 
     let v :: Bit 3
-	v =  lst True False True
+        v =  lst True False True
     in  v == v
