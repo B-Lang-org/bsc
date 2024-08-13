@@ -1015,9 +1015,6 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) | isitInout_ t = do
   (iinout, e') <- evalInout e
   let modPos = getPosition modId
   (ws, fi) <- makeIfcInout modPos i (BetterInfo.mi_prefix bi) iinout
-  let mType = fmap (snd . itGetArrows) (BetterInfo.mi_orig_type bi)
-      vname = vf_inout fi
-  maybe (return ()) (saveTopModPortType vname) mType
   setIfcSchedNameScopeProgress Nothing
   return [(IEFace i [] (Just (e',t)) Nothing ws fi)]
 
@@ -1032,7 +1029,7 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
         ICon _ (ICMethod _ ins eb) -> (ins, eb)
         _ -> internalError ("iExpandField: expected ICMethod: " ++ ppReadable e')
    (its, ((IDef i1 t1 e1 _), ws1, fi1), ((IDef wi wt we _), ws2, fi2))
-       <- iExpandMethod modId 1 [] implicitCond clkRst (i, bi, ins, eb)
+       <- iExpandMethod modId 1 [] (pConj implicitCond p) clkRst (i, bi, ins, eb)
    let wp1 = wsToProps ws1 -- default clock domain forced in by iExpandField
    let wp2 = wsToProps ws2
    setIfcSchedNameScopeProgress Nothing
@@ -1075,11 +1072,6 @@ iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
         -- substitute argument with a modvar and replace with body
         eb' :: HExpr
         eb' = eSubst li (ICon i' (ICMethArg ty)) eb
-    -- XXX we aren't indexing this list properly here!
-    -- let m_orig_type :: Maybe IType
-    --     m_orig_type = fmap ((flip (!!) (fromInteger (n-1))) . fst . itGetArrows)
-    --                   (BetterInfo.mi_orig_type bi)
-    --maybe (return ()) (saveTopModPortType (id_to_vName i')) m_orig_type
     (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
         iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, eb')
     let inps :: [VPort]
@@ -1157,14 +1149,6 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
             outputPort = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
-
-        let mType :: Maybe IType
-            mType = fmap (snd . itGetArrows) (BetterInfo.mi_orig_type bi)
-        maybe (return ()) (\t -> do
-          maybe (return ()) (\(n,_) -> do
-            if (isActionType methType) then
-              maybe (return ()) (saveTopModPortType n) (getAVType t)
-             else saveTopModPortType n t) outputPort) mType
 
         -- split wire sets for more accurate tracking
         return ([],
@@ -4102,7 +4086,7 @@ getBuriedPreds (IAps a@(ICon _ (ICPrim _ PrimBOr)) b [e1, e2]) = do
 -- the following are followed because they are strict,
 -- and we want to unheap the references in their arguments
 getBuriedPreds (IAps a@(ICon _ p@(ICPrim _ _)) b es) = do
-  --traceM("getBuriedPreds: prim")
+  -- traceM("getBuriedPreds: prim")
   ps <- mapM getBuriedPreds es
   return (foldr1 pConj ps)
 getBuriedPreds (IAps a@(ICon _ (ICForeign { })) b es) = do
@@ -4123,6 +4107,10 @@ getBuriedPreds (IAps ic@(ICon i_sel (ICSel { })) ts1 [e])
     | (i_sel == idAVValue_ || i_sel == idAVAction_) = do
   --traceM("getBuriedPreds: AV sel")
   getBuriedPreds e
+getBuriedPreds (ICon _ (ICMethod _ _ eb)) = do
+  -- traceM("getBuriedPreds: method")
+  p <- getBuriedPreds eb
+  return p
 getBuriedPreds e@(ICon _ _) = do
   --traceM("getBuriedPreds: con: e = " ++ ppReadable e ++ show e)
   return pTrue

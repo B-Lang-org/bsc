@@ -1187,7 +1187,6 @@ genFrom pps ty var =
               isReset <- isResetType r
               isInout <- isInoutType r
               let isIot = isInout /= Nothing
-              isAV <- isActionValue r
               let binf = binId prefixes f
               let wbinf = mkRdyId binf
               let sel = CSelect var
@@ -1315,6 +1314,8 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
    ftps <- mapM collectIfcInfo (reverse cfields)
    -- get back the arg port to type mapping, for recording
    flgs <- getFlags
+   -- XXX Need to handle module arguments here.
+   -- XXX Need to sanity check port names after elaboration.
    --  arg_pts <- convEM $ checkModulePortNames flgs (getPosition i) vps vtis ftps
    let arg_pts = []
 
@@ -1539,7 +1540,9 @@ genFromBody arg_pts vfield_map mk true_ifc_ids si fts =
    let pos = getIdPosition si
    let mkMethod = mkFromBind vfield_map true_ifc_ids (CVar (id_t pos))
    (meths, ifc_ptss) <- mapAndUnzipM mkMethod fts
+   -- TODO: Save "port types" for clocks, resets, inouts here.
    let -- interface save-port-type statements
+       -- XXX need to use the type class here
        ifc_sptStmts =
            map (uncurry (savePortTypeStmt (CVar id_x))) (concat ifc_ptss)
        -- argument save-port-type statements
@@ -1557,6 +1560,8 @@ genFromBody arg_pts vfield_map mk true_ifc_ids si fts =
 -- Creates a method for the module body
 -- also returns the raw port-type information for correlation
 -- XXX some of this can be replaced with a call to "mkFrom_"
+-- Currently there is an optimization preventing this - we avoid adding guards for
+-- ready signals that are known to be constant True, which isn't known when mkFrom_ is generated.
 mkFromBind :: M.Map Id VFieldInfo -> [Id] -> CExpr -> FInf -> GWMonad (CDefl, [(VPort, CType)])
 mkFromBind vfield_map true_ifc_ids var ft =
  do
@@ -1597,39 +1602,14 @@ mkFromBind vfield_map true_ifc_ids var ft =
               isReset <- isResetType r
               isInout <- isInoutType r
               let isIot = isInout/=Nothing
-              isAV <- isActionValue r
               let binf = binId prefixes f
               let wbinf = mkRdyId binf
               let sel = CSelect var
               let meth_guard = CApply eUnpack [sel wbinf]
-              let vs = take (length as) (aIds ++ tmpVarXIds)
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let ec = cApply 13 (sel binf) (map (\ v -> CApply ePack [CVar v]) vs)
-              let e =
-                   case isInout of
-                    Just _ -> (CApply ePrimInoutUncast0 [ec])
-                    _ -> if (isPA || isClock || isReset)
-                          then ec
-                          else
-                           if isAV
-                              then cApply 12 (CVar idFromActionValue_) [ec]
-                              else CApply eUnpack [ec]
-              pts <- case (M.lookup binf vfield_map) of
-                       Just (Method { vf_inputs = inps,
-                                      vf_output = mo }) -> do
-                         output_type <- if isAV then
-                                          getAVType "mkFromBind" r
-                                         else return r
-                         return ((maybeToList (fmap (\p -> (p, output_type)) mo)) ++
-                                 zip inps as)
-                       Just (Inout { vf_inout = vn }) -> do
-                         let ty = r
-                             vp = (vn, [])
-                         return [(vp,ty)]
-                       _ -> do --traceM ("no field info: " ++ ppReadable (f, binf, vfield_map))
-                               return []
-              return (f, cLams vs e, qs, pts)
+              let e = CApply (CVar id_fromWrapField) [sel binf]
+              return (f, e, qs, [])
 
 
 
@@ -2131,6 +2111,7 @@ chkUserPragmas pps ifc = do
 
 -- ====================
 -- Saving name/type information
+-- XXX is liftModule really needed for these?
 
 -- liftModule $ primSavePortType (Valid v) s t
 savePortTypeStmt :: CExpr -> (VName, b) -> CType -> CMStmt
