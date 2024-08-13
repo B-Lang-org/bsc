@@ -22,6 +22,11 @@ Compiler
 
 * Update source code to compile with GHC 9.10.1 (GitHub PR#705)
 
+Libraries
+~~~~~~~~~
+
+* Add BuildList library, analogous to BuildVector (GitHub PR#723)
+
 Bluetcl
 ~~~~~~~
 
