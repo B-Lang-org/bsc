@@ -257,7 +257,8 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         Curry(..), AppendTuple(..), AppendTuple'(..), TupleSize(..),
-        WrapField(..), WrapMethod(..), WrapPorts(..), SplitPorts(..),
+        WrapField(..), WrapMethod(..), WrapPorts(..),
+        Port(..), SplitPorts(..),
         primMethod
         ) where
 
@@ -4544,17 +4545,17 @@ class WrapPorts p pb | p -> pb where
   -- Save the port types, given their names.
   savePortTypes :: p -> Maybe Name__ -> List String -> Module ()
 
-instance (Bits a n, WrapPorts b bb) => WrapPorts (a, b) (Bit n, bb) where
-  packPorts (a, b) = (pack a, packPorts b)
-  unpackPorts (a, b) = (unpack a, unpackPorts b)
+instance (Bits a n, WrapPorts b bb) => WrapPorts (Port a, b) (Bit n, bb) where
+  packPorts (Port a, b) = (pack a, packPorts b)
+  unpackPorts (a, b) = (Port $ unpack a, unpackPorts b)
   savePortTypes _ modName (Cons h t) = do
     primSavePortType modName h $ typeOf (_ :: a)
     savePortTypes (_ :: b) modName t
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
 
-instance (Bits a n) => WrapPorts a (Bit n) where
-  packPorts = pack
-  unpackPorts = unpack
+instance (Bits a n) => WrapPorts (Port a) (Bit n) where
+  packPorts (Port a) = pack a
+  unpackPorts = Port ∘ unpack
   savePortTypes _ modName (Cons h _) = primSavePortType modName h $ typeOf (_ :: a)
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
 
@@ -4586,6 +4587,9 @@ class SplitPorts a p | a -> p where
   -- available in the Prelude.
   portNames :: a -> String -> List String
 
+data Port a = Port a
+  deriving (FShow)
+
 -- XXX if the default instance is the only one, then it gets inlined in CtxReduce
 -- and other instances for this class are ignored.
 instance SplitPorts () () where
@@ -4593,9 +4597,9 @@ instance SplitPorts () () where
   unsplitPorts = id
   portNames _ _ = Nil
 
-instance SplitPorts a a where
-  splitPorts = id
-  unsplitPorts = id
+instance SplitPorts a (Port a) where
+  splitPorts = Port
+  unsplitPorts (Port a) = a
   portNames _  base = Cons base Nil
 
 {-
