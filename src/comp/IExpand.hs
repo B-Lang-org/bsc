@@ -21,7 +21,7 @@ import Data.List
 import Data.Maybe
 import Data.Foldable(foldrM)
 import Numeric(showIntAtBase)
-import Data.Char(intToDigit, ord, chr, isDigit)
+import Data.Char(intToDigit, ord, chr)
 import Control.Monad(when, foldM, zipWithM, mapAndUnzipM)
 import Control.Monad.Fix(mfix)
 --import Control.Monad.Fix
@@ -1060,7 +1060,7 @@ iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
-    traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
+    -- traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
     let i' :: Id
         i' = mkId (getPosition i) $ mkFString $ head ins
         -- substitute argument with a modvar and replace with body

@@ -10,7 +10,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(nub, (\\), find)
-import Control.Monad(when, foldM, filterM, zipWithM, mapAndUnzipM)
+import Control.Monad(when, foldM, filterM, zipWithM)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Monad.State(StateT, runStateT, lift, gets, get, put)
 import PFPrint
@@ -25,6 +25,7 @@ import IdPrint
 import PreIds
 import CSyntax
 import CSyntaxUtil
+import Undefined (UndefKind(..))
 import SymTab(SymTab, TypeInfo(..), FieldInfo(..), findType, addTypesUQ,
               findField, findFieldInfo, getMethodArgNames)
 import MakeSymTab(convCQType)
@@ -1296,11 +1297,17 @@ mkCtxs ty =
 mkNewModDef :: M.Map Id GeneratedIfc -> ModDefInfo -> GWMonad CDefn
 mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
  do
+   --traceM ("mkNewModDef: " ++ ppReadable def)
    -- XXX This could have been stored in the moduledef info
    -- XXX (note that the first half is the "ts" in "vtis")
    let tr = case getArrows t of
               (_, TAp _ r) -> r
               _ -> internalError "GenWrap.mkNewModDef: tr"
+   cint <- chkInterface tr
+   (ifcId, _, fts) <- case cint of
+                        Just res -> return res
+                        Nothing -> internalError "GenWrap.mkNewModDef: cint"
+
    tyId <- flatTypeId vps tr    -- id of the Ifc_
    let ty = tmod (cTCon tyId)   -- type of new module
 
@@ -1337,10 +1344,15 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
        -- statements to record the port-types of module arguments
        -- (for the current module)
        arg_sptStmts = map (uncurry saveTopModPortTypeStmt) arg_pts
+
+   -- interface save-port-type statements
+   ifc_sptStmts <- mkFieldSavePortTypeStmts Nothing ifcId fts
+
+   let sptStmts = arg_sptStmts ++ ifc_sptStmts
        -- a do-block around the module body, so that we can include the
        -- save-port-type statements
-       lexp = if not (null arg_sptStmts)
-              then Cdo False (arg_sptStmts ++ [CSExpr Nothing mexp])
+       lexp = if not (null sptStmts)
+              then Cdo False (sptStmts ++ [CSExpr Nothing mexp])
               else mexp
        -- liftM of the do-block
        to  = cVApply idLiftM [CVar (to_Id tyId), lexp]
@@ -1433,7 +1445,7 @@ mkNewModDef _ (def,_,_,_) =
 -- This is the part of "genWrapInfo" which makes the DefFun,
 -- a continuation function which does the final wrapper computation.
 
--- type DefFun = VWireInfo -> VSchedInfo -> VPathInfo -> [VPort] -> SymTab -> [VFieldInfo] -> [Id] -> [Id] -> IO CDefn
+-- type DefFun = Bool -> VWireInfo -> VSchedInfo -> VPathInfo -> [VPort] -> SymTab -> [VFieldInfo] -> [Id] -> IO CDefn
 -- XXX: alwaysEnabled is dropped and broken (not propagated to {inhigh})
 mkDef :: [PProp] -> [PProp] -> CDef -> CQType -> GWMonad DefFun
 mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
@@ -1447,7 +1459,7 @@ mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
   -- do not use ifc prags here
   (st2, ti_) <- runGWMonadGetNoFail (flatTypeId pps tr) st1
   let vs =  take (length ts) tmpVarIds
-  (st3, Just (_, _, finfs)) <- runGWMonadGetNoFail (chkInterface tr) st2
+  (st3, Just (ifcId, _, finfs)) <- runGWMonadGetNoFail (chkInterface tr) st2
   let
       -- return an expression for creating the arg (from the wrapper's args)
       -- and the type of the internal module's arg (for port-type saving)
@@ -1492,10 +1504,6 @@ mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
       -- make the arg port-types, for saving in the module
       arg_pts = mkArgPortTypes wire_info arg_ts
   let
-      -- don't use the "fixed up" veriFields below because we don't need
-      -- port property information (makes the flow a little simpler, I think)
-      vfield_map = M.fromList [(vf_name vf, vf) | vf <- fields]
-
       fields' = filter (not . (isRdyToRemoveField (iprags ++ pps))) fields
       veriFields = (map (fixupVeriField (iprags ++ pps) ips) fields')
       vexp = xWrapperModuleVerilog
@@ -1509,7 +1517,7 @@ mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
              pathinfo
       vlift = (cVApply idLiftModule [vexp])
   body <- runGWMonadNoFail
-              (genFromBody arg_pts vfield_map vlift true_ifc_ids ti_ finfs)
+              (genFromBody arg_pts vlift true_ifc_ids ti_ ifcId finfs)
               st4
   let cls = CClause (map CPVar vs) [] body
   return $ CValueSign (CDef i cqt [cls]))
@@ -1534,24 +1542,21 @@ mkArgPortTypes wire_info arg_ts =
 
 -- used in wrapper generate to wrap the module given by mk
 -- to the result.
-genFromBody :: [(VPort, CType)] -> M.Map Id VFieldInfo ->
-               CExpr -> [Id] -> Id -> [FInf] -> GWMonad CExpr
-genFromBody arg_pts vfield_map mk true_ifc_ids si fts =
+genFromBody :: [(VPort, CType)] ->
+               CExpr -> [Id] -> Id -> Id -> [FInf] -> GWMonad CExpr
+genFromBody arg_pts mk true_ifc_ids si ifcId fts =
  do
    -- traceM( "genFromBody: " ++ ppReadable fts )
    let sty = cTCon si
    let pos = getIdPosition si
-   let mkMethod = mkFromBind vfield_map true_ifc_ids (CVar (id_t pos))
-   (meths, ifc_ptss) <- mapAndUnzipM mkMethod fts
-   -- TODO: Save "port types" for clocks, resets, inouts here.
-   let -- interface save-port-type statements
-       -- XXX need to use the type class here
-       ifc_sptStmts =
-           map (uncurry (savePortTypeStmt (CVar id_x))) (concat ifc_ptss)
-       -- argument save-port-type statements
-       arg_sptStmts =
+   let mkMethod = mkFromBind true_ifc_ids (CVar (id_t pos))
+   meths <- mapM mkMethod fts
+   -- interface save-port-type statements
+   ifc_sptStmts <- mkFieldSavePortTypeStmts (Just $ CVar id_x) ifcId fts
+   -- argument save-port-type statements
+   let arg_sptStmts =
            map (uncurry (savePortTypeStmt (CVar id_x))) arg_pts
-       sptStmts = arg_sptStmts ++ ifc_sptStmts
+       sptStmts = arg_sptStmts ++ map CMStmt ifc_sptStmts
    let tmpl = Cmodule pos $
                  [CMStmt $ CSBindT (CPVar (id_t pos)) Nothing [] (CQType [] sty) mk] ++
                  ((saveNameStmt (id_t pos) id_x):sptStmts) ++
@@ -1560,25 +1565,24 @@ genFromBody arg_pts vfield_map mk true_ifc_ids si fts =
    return tmpl
 
 
--- Creates a method for the module body
--- also returns the raw port-type information for correlation
+-- Creates a method for the module body.
 -- XXX some of this can be replaced with a call to "mkFrom_"
 -- Currently there is an optimization preventing this - we avoid adding guards for
 -- ready signals that are known to be constant True, which isn't known when mkFrom_ is generated.
-mkFromBind :: M.Map Id VFieldInfo -> [Id] -> CExpr -> FInf -> GWMonad (CDefl, [(VPort, CType)])
-mkFromBind vfield_map true_ifc_ids var ft =
+mkFromBind :: [Id] -> CExpr -> FInf -> GWMonad CDefl
+mkFromBind true_ifc_ids var ft =
  do
    ms <- meth noPrefixes ft
-   return (mkv ms, fth4 ms)
+   return $ mkv ms
  where
-   mkv (f, e, g, _) = CLValue (setInternal f) [CClause vps [] e'] g
+   mkv (f, e, g) = CLValue (setInternal f) [CClause vps [] e'] g
      where
        (vps, e') = unLams e
    -- This returns a triple of a field Id (method or subifc),
    -- its definition, and its implicit condition (only for methods).
    -- Note: The Id is qualified, because it could be something not
    -- imported by the user (and this not available unqualified).
-   meth :: IfcPrefixes -> FInf -> GWMonad (Id, CExpr, [CQual], [(VPort, CType)])
+   meth :: IfcPrefixes -> FInf -> GWMonad (Id, CExpr, [CQual])
    meth prefixes (FInf f as r aIds) =
     do
       mi <- chkInterface r
@@ -1586,7 +1590,7 @@ mkFromBind vfield_map true_ifc_ids var ft =
         (Just (ti, _, fts), []) -> do
           newprefixes <- extendPrefixes prefixes [] r f
           fieldBlobs <- mapM (meth newprefixes) fts
-          return (f, cInterface ti (map fst3of4 fieldBlobs), [], concatMap fth4 fieldBlobs)
+          return (f, cInterface ti fieldBlobs, [])
         _ -> do
           isVec <- isVectorInterfaces r
           case (isVec, as) of
@@ -1596,9 +1600,9 @@ mkFromBind vfield_map true_ifc_ids var ft =
                let recurse num = do newprefixes <- extendPrefixes prefixes [] r f
                                     meth newprefixes (FInf (mkNumId num) [] tVec [])
                fieldBlobs <- mapM recurse nums
-               let (es, gs) = unzip [(e,g) | (_, e, g, _) <- fieldBlobs]
+               let (es, gs) = unzip [(e,g) | (_, e, g) <- fieldBlobs]
                let vec = cToVector isListN es
-               return (f, vec, concat gs, concatMap fth4 fieldBlobs)
+               return (f, vec, concat gs)
             _ -> do
               isPA <- isPrimAction r
               isClock <- isClockType r
@@ -1612,7 +1616,7 @@ mkFromBind vfield_map true_ifc_ids var ft =
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
               let e = CApply (CVar id_fromWrapField) [sel binf]
-              return (f, e, qs, [])
+              return (f, e, qs)
 
 
 
@@ -2140,6 +2144,47 @@ saveTopModPortTypeStmt i t =
         cVApply idSavePortType
           [mkMaybe Nothing, stringLiteralAt noPosition s, typeLiteral t]
 
+-- saveFieldPortTypes v "prefix" ["arg1", "arg2"] "result"
+mkFieldSavePortTypeStmts :: Maybe CExpr -> Id -> [FInf] -> GWMonad [CStmt]
+mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes
+ where 
+   meth :: IfcPrefixes -> FInf -> GWMonad [CStmt]
+   meth prefixes (FInf f as r aIds) =
+    do
+      mi <- chkInterface r
+      case (mi, as) of
+        (Just (ti, _, fts), []) -> do
+          newprefixes <- extendPrefixes prefixes [] r f
+          concatMapM (meth newprefixes) fts
+        _ -> do
+          isVec <- isVectorInterfaces r
+          case (isVec, as) of
+            (Just (n, tVec, isListN), []) -> do
+               let nums = [0..(n-1)] :: [Integer]
+               let recurse num = do newprefixes <- extendPrefixes prefixes [] r f
+                                    meth newprefixes (FInf (mkNumId num) [] tVec [])
+               concatMapM recurse nums
+            _ -> do
+              ciPrags <- getInterfaceFieldPrags ifcId f
+              let methodStr = getIdString f
+                  currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
+                  localPrefix1 = fromMaybe (getIdString f) (lookupPrefixIfcPragma ciPrags)
+                  localPrefix = joinStrings_  currentPre localPrefix1
+                  mResName = lookupResultIfcPragma ciPrags
+                  resultName =  case mResName of
+                        Just str -> joinStrings_ currentPre str
+                        Nothing  -> joinStrings_ currentPre methodStr
+
+                  proxy = mkProxy $ foldr arrow r as
+                  prefix = stringLiteralAt noPosition localPrefix
+                  arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
+                  result = stringLiteralAt noPosition resultName
+              return [
+                CSExpr Nothing $
+                  cVApply id_saveFieldPortTypes
+                    [proxy, mkMaybe v, prefix, arg_names, result]]
+
+
 saveNameStmt :: Id -> Id -> CMStmt
 saveNameStmt svName resultVar = CMStmt (CSletseq [(CLValue resultVar [CClause [] [] nameExpr]) []])
   where nameExpr = cVApply idGetModuleName [cVApply idAsIfc [CVar svName]]
@@ -2179,6 +2224,8 @@ tmod t = TAp (cTCon idModule) t
 id_t :: Position -> Id
 id_t pos = mkId pos fs_t
 
+mkProxy :: CType -> CExpr
+mkProxy ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
 
 -- ====================
 -- Ready method utilities
