@@ -1,0 +1,24 @@
+checking package dependencies
+compiling TestBuildListFail.bs
+Error: "TestBuildListFail.bs", line 12, column 13: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Literal Prelude.Bool
+  The context was implied by expressions at the following positions:
+    "TestBuildListFail.bs", line 12, column 17
+Error: "TestBuildListFail.bs", line 18, column 8: (T0032)
+  This expression requires the following context which could not be resolved:
+    BuildList.BuildList Prelude.Bool (Prelude.Bool -> Prelude.Bool -> Prelude.List Prelude.Integer)
+  The context was implied by expressions at the following positions:
+    "TestBuildListFail.bs", line 19, column 13
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    BuildList.BuildList Prelude.Bool (Prelude.List Prelude.Integer)
+Error: "TestBuildListFail.bs", line 25, column 8: (T0032)
+  This expression requires the following context which could not be resolved:
+    BuildList.BuildList Prelude.Bool (Prelude.Bool -> Prelude.Bool -> Prelude.Bit 3)
+  The context was implied by expressions at the following positions:
+    "TestBuildListFail.bs", line 26, column 13
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    BuildList.BuildList Prelude.Bool (Prelude.Bit 3)

@@ -1,0 +1,8 @@
+
+# Test functionality
+test_veri_only TestBuildList
+
+# Test type check error messages
+compile_fail TestBuildListFail.bs
+compare_file TestBuildListFail.bs.bsc-out
+
