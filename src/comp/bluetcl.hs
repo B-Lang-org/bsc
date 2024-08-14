@@ -788,7 +788,7 @@ tclDefs xs = internalError $ "tclDefs: grammar mismatch: " ++ (show xs)
 -- XXX the argument names and we could display them.
 displayCDefn :: CDefn -> [HTclObj]
 displayCDefn (CIValueSign i cqt)  = [displayTypeSignature i cqt]
-displayCDefn (Cforeign i cqt _ _) = [displayTypeSignature i cqt]
+displayCDefn (Cforeign i cqt _ _ _) = [displayTypeSignature i cqt]
 displayCDefn (Cprimitive i cqt)   = [displayTypeSignature i cqt]
 displayCDefn (CValue i _) =
     internalError ("displayCDefn: unexpected CValue: " ++ ppReadable i)

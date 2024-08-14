@@ -9,14 +9,13 @@ import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import PPrint
 import Id
-import PreIds(idBits, idUnpack, idPack, tmpVarIds,
-              idActionValue, idFromActionValue_)
+import PreIds(id_fromWrapField, idActionValue)
 import CSyntax
 import SymTab
 import Scheme
 import Assump
 import Type(tModule, fn)
-import CType(getArrows, cTVarNum)
+import CType(getArrows, getRes)
 import Pred(expandSyn)
 import TypeCheck(cCtxReduceDef)
 import Subst(tv)
@@ -241,48 +240,20 @@ addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
 --   n  = the number of arguments to the foreign function
 --   t  = the base type of the foreign function
 funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> CQType -> IO CDefn
-funcDef errh symt i oqt@(CQType octxs ot) i_ n (CQType _ t) =
-    let
-        -- unfortunately, we have to duplicate the work that genwrap did
-        -- in creating the interface interface type and interface
-        -- conversion functions
-
-        pos = getPosition i
-        (as, r) = getArrows ot
-
-        -- the arguments are always bitifiable
-        bitsCtx a s = CPred (CTypeclass idBits) [a, s]
-        size_vars =  map (cTVarNum . enumId "sn" pos) [0..]
-        as_ctxs = zipWith bitsCtx as size_vars
-
-        vs = map (setIdPosition pos) $ take n tmpVarIds
-        epack e = cVApply idPack [e]
-        es = map (epack . CVar) vs
-
-        f_expr = cVApply i_ es
-
+funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
+    let pos = getPosition i
+        r = getRes ot
         -- the result is either an actionvalue or a value
         isAV = isActionValue symt r
 
-        r_size_var = cTVarNum $ enumId "sn" pos n
-        r_ctxs = case (isAV) of
-                     Just av_t -> [bitsCtx av_t r_size_var]
-                     Nothing   -> [bitsCtx r    r_size_var]
-
-        expr = if (isJust isAV)
-               then cVApply idFromActionValue_ [f_expr]
-               else cVApply idUnpack           [f_expr]
-
-        -- put the ctxs together
-        ctxs' = as_ctxs ++ r_ctxs ++ octxs
-        qt'   = CQType ctxs' ot
+        expr = cVApply id_fromWrapField [CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet
         if (isJust isAV)
-        then bsError errh [(getPosition i, ENoInlineAction (getIdBaseString i))]
+        then bsError errh [(pos, ENoInlineAction (getIdBaseString i))]
         else return $
-             CValueSign (CDef i qt' [CClause (map CPVar vs) [] expr])
+             CValueSign (CDef i oqt [CClause [] [] expr])
 
 -- ---------------
 
@@ -304,7 +275,7 @@ funcDef_ mi i i_ qt_ args =
         -- output port: <methId>
         oport = getIdString i
     in
-        Cforeign i_ qt_ (Just mstr) (Just (iports, [oport]))
+        Cforeign i_ qt_ (Just mstr) (Just (iports, [oport])) True
 
 -- ---------------
 

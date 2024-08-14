@@ -1,11 +1,20 @@
 checking package dependencies
 compiling NoInline_ResNotInBits.bsv
-code generation for module_fnNoInline_ResNotInBits starts
-Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
-  Cannot synthesize `module_fnNoInline_ResNotInBits': The interface method
-  `fnNoInline_ResNotInBits' uses type `NoInline_ResNotInBits::L' which is not
-  in the Bits class.
-  During elaboration of the interface method `fnNoInline_ResNotInBits' at
-  "NoInline_ResNotInBits.bsv", line 4, column 12.
-  During elaboration of `module_fnNoInline_ResNotInBits' at
-  "NoInline_ResNotInBits.bsv", line 4, column 12.
+Error: Unknown position: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Bits#(NoInline_ResNotInBits::L, a__)
+  The proviso was implied by expressions at the following positions:
+    "NoInline_ResNotInBits.bsv", line 4, column 12
+Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    WrapField#(function NoInline_ResNotInBits::L f(Bool x1), a__)
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Bits#(NoInline_ResNotInBits::L, b__)
+Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
+  Signature mismatch (given too general):
+  given:
+  function b__ f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, a__))
+  deduced:
+  function Bit#(c__) f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, c__))
