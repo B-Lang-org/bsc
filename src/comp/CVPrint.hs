@@ -287,7 +287,7 @@ instance PVPrint CDefn where
     pvPrint d p (CprimType (IdKind i k)) =
         t"primitive type" <+> pp d i <+> t "::" <+> pp d k
 
-    pvPrint d p (Cforeign i ty oname opnames) =
+    pvPrint d p (Cforeign i ty oname opnames _) =
         text "foreign" <+> pvpId d i <+> t "::"
                 <+> pp d ty
                 <> (case oname of Nothing -> empty; Just s -> text (" = " ++ show s))
