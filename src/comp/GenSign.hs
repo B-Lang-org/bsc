@@ -407,11 +407,11 @@ genDefSign s look currentPkg (CValueSign (CDef i qt _)) =
   in  case look qi of
         Nothing -> []
         Just _ -> [(CIValueSign qi (qualCQType s qt), [])]
-genDefSign s look currentPkg (Cforeign i qt ms mps) =
+genDefSign s look currentPkg (Cforeign i qt ms mps ni) =
   let qi = qualId currentPkg i
   in  case look qi of
         Nothing -> []
-        Just _ -> [(Cforeign qi (qualCQType s qt) ms mps, [])]
+        Just _ -> [(Cforeign qi (qualCQType s qt) ms mps ni, [])]
 genDefSign s look currentPkg (Cprimitive i qt) =
   let qi = qualId currentPkg i
   in  case look qi of

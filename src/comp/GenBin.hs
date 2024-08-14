@@ -27,7 +27,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20230831-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20240814-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -84,8 +84,8 @@ instance Bin CDefn where
         do putI 2; toBin vis; toBin st; toBin ik; toBin is; toBin fs
     writeBytes (Cclass incoh ps ik is deps fs) =
         do putI 3; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin fs
-    writeBytes (Cforeign n cqt fn ports) =
-        do putI 4; toBin n; toBin cqt; toBin fn; toBin ports
+    writeBytes (Cforeign n cqt fn ports ni) =
+        do putI 4; toBin n; toBin cqt; toBin fn; toBin ports; toBin ni
     writeBytes (Cprimitive i cqt) = do putI 5; toBin i; toBin cqt
     writeBytes (CprimType ik) = do putI 6; toBin ik
     writeBytes (CIinstance i cqt) = do putI 7; toBin i; toBin cqt
@@ -128,7 +128,8 @@ instance Bin CDefn where
                               cqt <- fromBin
                               fn <- fromBin
                               ports <- fromBin
-                              return (Cforeign n cqt fn ports)
+                              ni <- fromBin
+                              return (Cforeign n cqt fn ports ni)
                      5  -> do when doTrace $ traceM ("Cprimitive")
                               i <- fromBin; cqt <- fromBin
                               return (Cprimitive i cqt)
