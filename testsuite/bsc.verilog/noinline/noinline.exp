@@ -44,8 +44,7 @@ test_c_veri_bsv_modules \
 # The typedef fails because BSC doesn't expand the synonym before checking
 # to see if the result type is in Bits, so the user gets a proviso error
 # (bug 1466)
-compile_verilog_pass_bug_error \
-  NoInline_LessPatternsThanArgs_BSV_TypeDef.bsv T0031
+compile_verilog_pass NoInline_LessPatternsThanArgs_BSV_TypeDef.bsv
 
 # -----
 
@@ -60,11 +59,11 @@ test_c_veri_bsv_modules NoInlineInSched {module_inv}
 
 if { $vtest == 1 } {
 
-compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0043
+compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0031
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ArgNotInBits.bsv.bsc-vcomp-out
 
-compile_verilog_fail_error NoInline_ResNotInBits.bsv T0043
+compile_verilog_fail_error NoInline_ResNotInBits.bsv T0031
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ResNotInBits.bsv.bsc-vcomp-out
 
