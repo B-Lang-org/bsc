@@ -1,9 +1,9 @@
 checking package dependencies
 compiling TestCReg_TooBig.bsv
 code generation for sysTestCReg_TooBig starts
-Error: "PreludeBSV.bsv", line 1002, column 37: (S0015)
+Error: "PreludeBSV.bsv", line 1003, column 37: (S0015)
   Bluespec evaluation-time error: `mkCReg' cannot have more than five ports
-  During elaboration of `error' at "PreludeBSV.bsv", line 1002, column 13.
+  During elaboration of `error' at "PreludeBSV.bsv", line 1003, column 13.
   During elaboration of `rg' at "TestCReg_TooBig.bsv", line 5, column 19.
   During elaboration of `sysTestCReg_TooBig' at "TestCReg_TooBig.bsv", line 3,
   column 8.
