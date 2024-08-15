@@ -8,7 +8,8 @@ order: [bar, baz]
 -----
 
 === resources:
-[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h69, 1), (the_r.write x__h85, 1)])]
+[(the_r.read, [(the_r.read, 1)]),
+ (the_r.write, [(the_r.write x__h108, 1), (the_r.write x__h134, 1)])]
 
 -----
 
