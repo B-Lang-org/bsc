@@ -4479,7 +4479,7 @@ instance WrapField Reset Reset where
 instance (Bits a n) => WrapField (Inout a) (Inout_ n) where
   toWrapField _ _ = primInoutCast0
   fromWrapField = primInoutUncast0
-  saveFieldPortTypes _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: a)
+  saveFieldPortTypes _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: (Inout a))
 
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.
