@@ -86,8 +86,8 @@ module mkDesign(clk,
   wire i_multiplicand$EN;
 
   // remaining internal signals
-  wire [7 : 0] x__h508, x__h592, x__h741;
-  wire [3 : 0] x__h704, x__h778;
+  wire [7 : 0] x__h686, x__h780, x__h966;
+  wire [3 : 0] x__h1001, x__h930;
 
   // value method done
   assign done = i_done_reg ;
@@ -99,7 +99,7 @@ module mkDesign(clk,
   assign i_acc$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       8'd0 :
-	       (i_mult[0] ? x__h508 : i_acc) ;
+	       (i_mult[0] ? x__h686 : i_acc) ;
   assign i_acc$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
@@ -108,7 +108,7 @@ module mkDesign(clk,
   assign i_count$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       4'd0 :
-	       ((i_enable && i_count != 4'd4) ? x__h778 : 4'd0) ;
+	       ((i_enable && i_count != 4'd4) ? x__h1001 : 4'd0) ;
   assign i_count$EN = 1'd1 ;
 
   // register i_done_reg
@@ -127,24 +127,24 @@ module mkDesign(clk,
   assign i_mult$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       shift_and_add_b :
-	       x__h704 ;
+	       x__h930 ;
   assign i_mult$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
 
   // register i_multiplicand
   assign i_multiplicand$D_IN =
-	     (shift_and_add_load && i_count == 4'd0) ? x__h592 : x__h741 ;
+	     (shift_and_add_load && i_count == 4'd0) ? x__h780 : x__h966 ;
   assign i_multiplicand$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
 
   // remaining internal signals
-  assign x__h508 = i_acc + i_multiplicand ;
-  assign x__h592 = { 4'b0, shift_and_add_a } ;
-  assign x__h704 = { 1'd0, i_mult[3:1] } ;
-  assign x__h741 = { i_multiplicand[6:0], 1'd0 } ;
-  assign x__h778 = i_count + 4'd1 ;
+  assign x__h1001 = i_count + 4'd1 ;
+  assign x__h686 = i_acc + i_multiplicand ;
+  assign x__h780 = { 4'b0, shift_and_add_a } ;
+  assign x__h930 = { 1'd0, i_mult[3:1] } ;
+  assign x__h966 = { i_multiplicand[6:0], 1'd0 } ;
 
   // handling of inlined registers
 
