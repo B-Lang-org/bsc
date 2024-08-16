@@ -406,7 +406,7 @@ pVarDefn  =  (pVarId +.+ dc ..+ pQType +.. dsm `into` \(var, typ) -> pClauses1 v
 
 pTyDefn :: Bool -> CParser CDefn
 pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.+ opt (cm ..+ lp ..+ many pString +.+ pForeignRes +.. rp)
-                                                                     >>>>> (\ i qt on ops -> Cforeign i qt on ops True)
+                                                                     >>>>> (\ i qt on ops -> Cforeign i qt on ops False)
         ||! l L_primitive ..+ pVarId +.+ dc ..+ pQType                                >>>   Cprimitive
 --        ||! l L_primitive ..+ l L_class ..+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps        >>>>>  CprimClass
         ||! l L_primitive ..+ l L_type ..+ pTyConId +.+ dc ..+ pKind                >>-  (\ (i, k) -> CprimType (IdKind i k))
