@@ -1072,17 +1072,18 @@ genTo pps ty mk =
        return tmpl
  where
    meth :: CExpr -> IfcPrefixes -> Id -> FInf -> GWMonad [CDefl]
-   meth sel prefixes ifcId (FInf f as r aIds) =
+   meth sel prefixes ifcIdIn (FInf f as r aIds) =
     do
+       ciPrags <- getInterfaceFieldPrags ifcIdIn f {- f should be qualifed -}
        mi <- chkInterface r
        case (mi, as) of
-         (Just (_, _, fts), []) -> do
+         (Just (ifcId, _, fts), []) -> do
            isAV <- isActionValue r
            if isAV
              then internalError "genTo 2: unexpected AV"
              else do
                --traceM ("selector: " ++ show sel)
-               newPrefixes <- extendPrefixes prefixes [] r f
+               newPrefixes <- extendPrefixes prefixes ciPrags r f
                meths <- mapM (meth (extSel sel f) newPrefixes ifcId) fts
                return (concat meths)
          _ ->  do  -- Generate the Verilog template for X
@@ -1094,14 +1095,13 @@ genTo pps ty mk =
                let primselect = idPrimSelectFn noPosition
                let lit k = CLit $ num_to_cliteral_at noPosition k
                let selector n = cVApply primselect [posLiteral noPosition, extSel sel f, lit n]
-               elemPrefix <- extendPrefixes prefixes [] r f
+               elemPrefix <- extendPrefixes prefixes ciPrags r f
                let recurse num = do
-                                    numPrefix <- extendPrefixes elemPrefix [] r (mkNumId num)
-                                    meth (selector num) numPrefix ifcId (FInf idEmpty [] tVec [])
+                                    numPrefix <- extendPrefixes elemPrefix ciPrags r (mkNumId num)
+                                    meth (selector num) numPrefix ifcIdIn (FInf idEmpty [] tVec [])
                fields <- mapM recurse nums
                return (concat fields)
              _ -> do
-               ciPrags <- getInterfaceFieldPrags ifcId f
                let currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
                    localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                    localPrefix = joinStrings_  currentPre localPrefix1
@@ -2145,26 +2145,26 @@ saveTopModPortTypeStmt i t =
 
 -- saveFieldPortTypes v "prefix" ["arg1", "arg2"] "result"
 mkFieldSavePortTypeStmts :: Maybe CExpr -> Id -> [FInf] -> GWMonad [CStmt]
-mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes
+mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
  where 
-   meth :: IfcPrefixes -> FInf -> GWMonad [CStmt]
-   meth prefixes (FInf f as r aIds) =
+   meth :: IfcPrefixes -> Id -> FInf -> GWMonad [CStmt]
+   meth prefixes ifcIdIn (FInf f as r aIds) =
     do
+      ciPrags <- getInterfaceFieldPrags ifcIdIn f
       mi <- chkInterface r
       case (mi, as) of
         (Just (ti, _, fts), []) -> do
-          newprefixes <- extendPrefixes prefixes [] r f
-          concatMapM (meth newprefixes) fts
+          newprefixes <- extendPrefixes prefixes ciPrags r f
+          concatMapM (meth newprefixes ti) fts
         _ -> do
           isVec <- isVectorInterfaces r
           case (isVec, as) of
             (Just (n, tVec, isListN), []) -> do
                let nums = [0..(n-1)] :: [Integer]
-               let recurse num = do newprefixes <- extendPrefixes prefixes [] r f
-                                    meth newprefixes (FInf (mkNumId num) [] tVec [])
+               let recurse num = do newprefixes <- extendPrefixes prefixes ciPrags r f
+                                    meth newprefixes ifcIdIn (FInf (mkNumId num) [] tVec [])
                concatMapM recurse nums
             _ -> do
-              ciPrags <- getInterfaceFieldPrags ifcId f
               let methodStr = getIdBaseString f
                   currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
                   localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
@@ -2174,7 +2174,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes
                         Just str -> joinStrings_ currentPre str
                         Nothing  -> joinStrings_ currentPre methodStr
 
-                  proxy = mkProxy $ foldr arrow r as
+              let proxy = mkProxy $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                   result = stringLiteralAt noPosition resultName
