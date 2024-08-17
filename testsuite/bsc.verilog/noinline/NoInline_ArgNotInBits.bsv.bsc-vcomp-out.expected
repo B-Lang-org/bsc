@@ -6,10 +6,6 @@ Error: Unknown position: (T0031)
     Bits#(NoInline_ArgNotInBits::L, a__)
   The proviso was implied by expressions at the following positions:
     "NoInline_ArgNotInBits.bsv", line 4, column 15
-Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0032)
-  This expression requires the following proviso which could not be resolved:
-    WrapField#(function Bool f(NoInline_ArgNotInBits::L x1), a__)
-  An instance for this proviso exists, but it depends on the following
-  provisos for which there are no instances:
-    Curry#(function Bit#(1) f(Bit#(b__) x1), a__),
-    Bits#(NoInline_ArgNotInBits::L, b__)
+Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
+  Cannot synthesize `function Bool f(NoInline_ArgNotInBits::L x1)': This
+  method uses types that are not in the Bits or SplitPorts typeclass.
