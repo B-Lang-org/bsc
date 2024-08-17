@@ -2142,7 +2142,7 @@ saveTopModPortTypeStmt i t =
 -- saveFieldPortTypes v "prefix" ["arg1", "arg2"] "result"
 mkFieldSavePortTypeStmts :: Maybe CExpr -> Id -> [FInf] -> GWMonad [CStmt]
 mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
- where 
+ where
    meth :: IfcPrefixes -> Id -> FInf -> GWMonad [CStmt]
    meth prefixes ifcIdIn (FInf f as r aIds) =
     do
