@@ -1100,7 +1100,7 @@ genTo pps ty mk =
                let selector n = cVApply primselect [posLiteral noPosition, extSel sel f, lit n]
                elemPrefix <- extendPrefixes prefixes ciPrags r f
                let recurse num = do
-                                    numPrefix <- extendPrefixes elemPrefix ciPrags r (mkNumId num)
+                                    numPrefix <- extendPrefixes elemPrefix [] r (mkNumId num)
                                     meth (selector num) numPrefix ifcIdIn (FInf idEmpty [] tVec [])
                fields <- mapM recurse nums
                return (concat fields)
