@@ -17,9 +17,6 @@ import Pragma
 import PPrint
 import IdPrint
 import VModInfo
-import FStringCompat(mkFString)
-import ISyntax
-import IConv(iConvT)
 -- import Util(traces)
 
 

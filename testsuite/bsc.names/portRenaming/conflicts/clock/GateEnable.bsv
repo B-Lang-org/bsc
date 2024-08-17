@@ -6,4 +6,6 @@ endinterface
 
 (* synthesize *)
 module mkGateEnable(Ifc);
+    method m = noAction;
+    method c = noClock;
 endmodule
