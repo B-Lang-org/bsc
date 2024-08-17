@@ -6,12 +6,9 @@ Error: Unknown position: (T0031)
     Bits#(NoInline_ResNotInBits::L, a__)
   The proviso was implied by expressions at the following positions:
     "NoInline_ResNotInBits.bsv", line 4, column 12
-Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0032)
-  This expression requires the following proviso which could not be resolved:
-    WrapField#(function NoInline_ResNotInBits::L f(Bool x1), a__)
-  An instance for this proviso exists, but it depends on the following proviso
-  for which there is no instance:
-    Bits#(NoInline_ResNotInBits::L, b__)
+Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
+  Cannot synthesize `function NoInline_ResNotInBits::L f(Bool x1)': This
+  method uses types that are not in the Bits or SplitPorts typeclass.
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
   Signature mismatch (given too general):
   given:
