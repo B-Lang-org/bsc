@@ -253,6 +253,10 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
   let (iks, args, varginfo, ifc) = goutput go
   let rules = go_rules go
   let insts = go_state_vars go
+  let vclockinfo = go_vclockinfo go
+  let vresetinfo = go_vresetinfo go
+
+  chkIfcPortNames errh args ifc vclockinfo vresetinfo
 
   -- turn heap into IDef definitions
   let

@@ -67,7 +67,7 @@ getVNameString (VName string) = string
 
 -- convert Bluespec identifier to Verilog names
 id_to_vName :: Id -> VName
-id_to_vName i = VName (getIdString i)
+id_to_vName i = VName (getIdBaseString i)
 
 vName_to_id :: VName -> Id
 vName_to_id (VName s) = mk_homeless_id s
