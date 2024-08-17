@@ -2038,7 +2038,13 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
     arg_inout_names = [ (getIdBaseString i, i) | IAI_Inout i _ <- args ]
     arg_clock_names = [ (n, i) | IAI_Clock i _ <- args, n <- input_clock_ports i ]
     arg_reset_names = [ (n, i) | IAI_Reset i <- args, n <- input_reset_ports i ]
-    arg_names = sort $ arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names
+
+    default_clock_names = [ (n, idDefaultClock) | n <- input_clock_ports idDefaultClock ]
+    default_reset_names = [ (n, idDefaultReset) | n <- input_reset_ports idDefaultReset ]
+    
+    arg_names = sort $
+      arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names ++
+      default_clock_names ++ default_reset_names
 
     ifc_port_names =
       [ (n, i)
