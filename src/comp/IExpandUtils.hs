@@ -35,7 +35,7 @@ module IExpandUtils(
         addGateUsesToInhigh, addGateInhighAttributes,
         chkClkArgGateWires, chkClkAncestry, chkClkSiblings,
         getInputResetClockDomain, setInputResetClockDomain,
-        chkInputClockPragmas,
+        chkInputClockPragmas, chkIfcPortNames,
         getBoundaryClock, getBoundaryClocks, boundaryClockToName,
         getBoundaryReset, getBoundaryResets, boundaryResetToName, getInputResets,
         makeInputClk, makeInputRstn, makeOutputClk, makeOutputRstn,
@@ -102,6 +102,7 @@ import IWireSet
 import Pragma(PProp(..), SPIdMap, substSchedPragmaIds,
               extractSchedPragmaIds, removeSchedPragmaIds)
 import Util
+import Verilog(vKeywords, vIsValidIdent)
 
 import IOUtil(progArgs)
 import ISyntaxXRef(mapIExprPosition, mapIExprPosition2)
@@ -2009,6 +2010,89 @@ chkClkAncestry modName instName pos ancestors clockargnum_map =
        -- generate errors if any incorrect relationships were found
        when (not (null err_pairs)) $
            errG (pos, EClockArgAncestors modName instName err_pairs)
+
+chkIfcPortNames :: ErrorHandle -> [IAbstractInput] -> [HEFace] -> VClockInfo -> VResetInfo -> IO ()
+chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
+    when (not (null emsgs)) $ bsError errh emsgs
+  where
+    input_clock_ports i =
+      case lookup i ci of 
+        Just (Just (VName o, Right (VName g))) -> [o, g]
+        Just (Just (VName o, Left _)) -> [o]
+        _ -> []
+    output_clock_ports i =
+      case lookup i co of
+        Just (Just (VName o, Just (VName g, _))) -> [o, g]
+        Just (Just (VName o, Nothing)) -> [o]
+        _ -> []
+    input_reset_ports i =
+      case lookup i ri of
+        Just (Just (VName r), _) -> [r]
+        _ -> []
+    output_reset_ports i =
+      case lookup i ro of
+        Just (Just (VName r), _) -> [r]
+        _ -> []
+
+    arg_port_names = [ (getIdBaseString i, i) | IAI_Port (i, _) <- args ]
+    arg_inout_names = [ (getIdBaseString i, i) | IAI_Inout i _ <- args ]
+    arg_clock_names = [ (n, i) | IAI_Clock i _ <- args, n <- input_clock_ports i ]
+    arg_reset_names = [ (n, i) | IAI_Reset i <- args, n <- input_reset_ports i ]
+    arg_names = sort $ arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names
+
+    ifc_port_names =
+      [ (n, i)
+      | IEFace {ief_fieldinfo = Method i _ _ _ ins out en} <- ifcs,
+        (VName n, _) <- ins ++ maybeToList out ++ maybeToList en ]
+    ifc_inout_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Inout i (VName n) _ _} <- ifcs ]
+    ifc_clock_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Clock i} <- ifcs, n <- output_clock_ports i ]
+    ifc_reset_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Reset i} <- ifcs, n <- output_reset_ports i ]
+    ifc_names = sort $ ifc_port_names ++ ifc_inout_names ++ ifc_clock_names ++ ifc_reset_names
+
+    -- ---------------
+    -- check that no ifc port name clashes with another port name and
+    -- check that no ifc port name clashes with a Verilog keyword and
+    -- check that each ifc port name is a valid Verilog identifier
+    ifc_same_name = filter (\xs -> (length xs) > 1) $
+                        groupBy (\(n1,_) (n2,_) -> n1 == n2) ifc_names
+    ifc_kw_clash  = filter (\(n,_) -> n `elem` vKeywords) ifc_names
+    ifc_bad_ident = filter (\(n,_) -> not (vIsValidIdent n)) ifc_names
+    emsgs0 = let mkErr xs =
+                      let ns = [(n, getPosition i, getIdBaseString i)
+                                    | (n,i) <- xs ]
+                      in  case ns of
+                            ((v,p1,m1):(_,p2,m2):_) ->
+                                (p1, EPortNamesClashFromMethod m1 m2 v p2)
+                            _ -> internalError ("emsg0: impossible")
+              in  map mkErr ifc_same_name
+    emsgs1 = let mkErr (n,i) = (getPosition i,
+                                EPortKeywordClashFromMethod
+                                    (getIdBaseString i) n)
+              in  map mkErr ifc_kw_clash
+    emsgs2 = let mkErr (n,i) = (getPosition i,
+                                EPortNotValidIdentFromMethod
+                                    (getIdBaseString i) n)
+              in  map mkErr ifc_bad_ident
+
+    -- ---------------
+    -- check that no arg port clashes with an ifc port
+    ifc_ports_map = M.fromList ifc_names
+
+    findIfcPortName (p, a) =
+        case M.lookup p ifc_ports_map of
+            Nothing -> Nothing
+            Just m -> Just (p, m, a)
+
+    arg_ifc_dups = catMaybes $ map findIfcPortName arg_names
+    emsgs3 = let mkErr (p,m,a) = (getPosition a,
+                                  EPortNamesClashArgAndIfc
+                                      p (getIdBaseString a) (getIdBaseString m) (getPosition m))
+              in map mkErr arg_ifc_dups
+
+    emsgs = emsgs0 ++ emsgs1 ++ emsgs2 ++ emsgs3
 
 -- ---------------
 

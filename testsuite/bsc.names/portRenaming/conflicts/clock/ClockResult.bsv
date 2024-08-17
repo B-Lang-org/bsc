@@ -6,4 +6,6 @@ endinterface
 
 (* synthesize *)
 module mkClockResult(Ifc);
+    method m = False;
+    method c = noClock;
 endmodule
