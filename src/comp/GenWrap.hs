@@ -1327,11 +1327,7 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
    ftps <- mapM collectIfcInfo (reverse cfields)
    -- get back the arg port to type mapping, for recording
    flgs <- getFlags
-   -- XXX Need to sanity check port names after elaboration.
-   --  arg_pts <- convEM $ checkModulePortNames flgs (getPosition i) vps vtis ftps
-   let arg_pts =
-        [ (pid,pt) | (pid,pt,Simple {}) <- vtis, not $ isParamModArg vps pid || pt == tClock && pt == tReset ] ++
-        [ (pid,pt) | (_,_,Vector _ _ _ ais) <- vtis, (pid,pt) <- concatMap extractVTPairs ais ]
+   arg_pts <- convEM $ checkModulePortNames flgs (getPosition i) vps vtis ftps
    let arg_infos = thd $ unzip3 vtis
        (vs, ts) = unzip $ concatMap extractVTPairs arg_infos
 
