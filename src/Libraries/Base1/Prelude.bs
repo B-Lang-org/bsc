@@ -258,8 +258,7 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         primMethod, WrapField(..), WrapMethod(..), WrapPorts(..),
-        Port(..), SplitPorts(..),
-        DeepSplit(..), DeepSplitPorts(..), DeepSplitPorts'(..), DeepSplitPorts''(..)
+        Port(..), SplitPorts(..)
         ) where
 
 infixr  0 $
@@ -4639,74 +4638,3 @@ instance (SplitPorts a p) => SplitTuplePorts a p where
   unsplitTuplePorts x = unsplitPorts x
   splitTuplePortNames i _ base = portNames (_ :: a) $ base +++ "_" +++ integerToString i
 -}
-
--- Newtype tag to indicate that a type should be recursively split into ports
-data DeepSplit a = DeepSplit a
-
-instance (DeepSplitPorts a p) => SplitPorts (DeepSplit a) p where
-  splitPorts (DeepSplit x) = deepSplitPorts x
-  unsplitPorts = DeepSplit ∘ deepUnsplitPorts
-  portNames _ = deepSplitPortNames (_ :: a)
-
-
--- Helper class using generics, to recursively split structs and vectors into a tuple of ports.
-class DeepSplitPorts a p | a -> p where
-  deepSplitPorts :: a -> p
-  deepUnsplitPorts :: p -> a
-  deepSplitPortNames :: a -> String -> List String
-
-instance (Generic a r, DeepSplitPorts' r a p) =>
-    DeepSplitPorts a p where
-  deepSplitPorts = deepSplitPorts' (_ :: r)
-  deepUnsplitPorts = deepUnsplitPorts' (_ :: r)
-  deepSplitPortNames = deepSplitPortNames' (_ :: r)
-
-class DeepSplitPorts' r a p | r a -> p where
-  deepSplitPorts' :: r -> a -> p
-  deepUnsplitPorts' :: r -> p -> a
-  deepSplitPortNames' :: r -> a -> String -> List String
-
-instance (SplitPorts a p) => DeepSplitPorts' r a p where
-  deepSplitPorts' _ = splitPorts
-  deepUnsplitPorts' _ = unsplitPorts
-  deepSplitPortNames' _ = portNames
-
-instance (Generic a r, DeepSplitPorts'' r p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
-  deepSplitPorts' _ = deepSplitPorts'' ∘ from
-  deepUnsplitPorts' _ = to ∘ deepUnsplitPorts''
-  deepSplitPortNames' _ _ = deepSplitPortNames'' (_ :: r)
-
-class DeepSplitPorts'' r p | r -> p where
-  deepSplitPorts'' :: r -> p
-  deepUnsplitPorts'' :: p -> r
-  deepSplitPortNames'' :: r -> String -> List String
-
-instance (DeepSplitPorts'' a p, DeepSplitPorts'' b q, AppendTuple p q r) => DeepSplitPorts'' (a, b) r where
-  deepSplitPorts'' (a, b) = deepSplitPorts'' a `appendTuple` deepSplitPorts'' b
-  deepUnsplitPorts'' x = case splitTuple x of
-    (a, b) -> (deepUnsplitPorts'' a, deepUnsplitPorts'' b)
-  deepSplitPortNames'' _ base =
-    deepSplitPortNames'' (_ :: a) base `listPrimAppend` deepSplitPortNames'' (_ :: b) base
-
-instance DeepSplitPorts'' () () where
-  deepSplitPorts'' _ = ()
-  deepUnsplitPorts'' _ = ()
-  deepSplitPortNames'' _ _ = Nil
-
-instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta (MetaField name idx) r) p where
-  deepSplitPorts'' (Meta x) = deepSplitPorts'' x
-  deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
-  deepSplitPortNames'' _ base = deepSplitPortNames'' (_ :: r) $
-    if stringHead (stringOf name) == '_'
-    then base +++ stringOf name
-    else base +++ "_" +++ stringOf name
-
-instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta m r) p where
-  deepSplitPorts'' (Meta x) = deepSplitPorts'' x
-  deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
-  deepSplitPortNames'' _ = deepSplitPortNames'' (_ :: r)
-
-instance (DeepSplitPorts a p) => DeepSplitPorts'' (Conc a) p where
-  deepSplitPorts'' (Conc x) = deepSplitPorts x
-  deepUnsplitPorts'' = Conc ∘ deepUnsplitPorts
-  deepSplitPortNames'' _ = deepSplitPortNames (_ :: a)
