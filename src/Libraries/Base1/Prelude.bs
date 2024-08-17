@@ -4618,10 +4618,39 @@ instance SplitPorts () () where
   unsplitPorts = id
   portNames _ _ = Nil
 
+-- Default instance: don't split anything we don't know how to split.
 instance SplitPorts a (Port a) where
   splitPorts = Port
   unsplitPorts (Port a) = a
   portNames _  base = Cons base Nil
+
+{-
+XXX Consider if we want to split tuples by default. This would change the current behavior,
+but might be a sensible one, especially if we support methods with multiple output ports.
+
+instance (SplitTuplePorts (a, b) r) => SplitPorts (a, b) r where
+  splitPorts = splitTuplePorts
+  unsplitPorts = unsplitTuplePorts
+  portNames = splitTuplePortNames 1
+
+class SplitTuplePorts a p | a -> p where
+  splitTuplePorts :: a -> p
+  unsplitTuplePorts :: p -> a
+  splitTuplePortNames :: Integer -> a -> String -> List String
+
+instance (SplitPorts a p, SplitTuplePorts b q, AppendTuple p q r) => SplitTuplePorts (a, b) r where
+  splitTuplePorts (a, b) = splitPorts a `appendTuple` splitTuplePorts b
+  unsplitTuplePorts x = case splitTuple x of
+    (a, b) -> (unsplitPorts a, unsplitTuplePorts b)
+  splitTuplePortNames i _ base =
+    portNames (_ :: a) (base +++ "_" +++ integerToString i) `listPrimAppend`
+    splitTuplePortNames (i + 1) (_ :: b) base
+
+instance (SplitPorts a p) => SplitTuplePorts a p where
+  splitTuplePorts = splitPorts
+  unsplitTuplePorts x = unsplitPorts x
+  splitTuplePortNames i _ base = portNames (_ :: a) $ base +++ "_" +++ integerToString i
+-}
 
 -- Newtype tag to indicate that a type should be recursively split into ports
 data DeepSplit a = DeepSplit a
