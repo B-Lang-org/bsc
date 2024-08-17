@@ -1362,17 +1362,3 @@ instance (PrimMakeUninitialized'' r) => PrimMakeUninitialized'' (Vector n r) whe
 
 instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Vector n r) where
   primDeepSeqCond' = flip $ foldr primDeepSeqCond'
-
-instance DeepSplitPorts'' (Vector 0 r) () where
-  deepSplitPorts'' _ = ()
-  deepUnsplitPorts'' _ = nil
-  deepSplitPortNames'' _ _ = Nil
-
-instance (DeepSplitPorts'' r p1, Add n1 1 n, DeepSplitPorts'' (Vector n1 r) p2, AppendTuple p1 p2 p) =>
-    DeepSplitPorts'' (Vector n r) p where
-  deepSplitPorts'' v = deepSplitPorts'' (head v) `appendTuple` deepSplitPorts'' (tail v)
-  deepUnsplitPorts'' x = case splitTuple x of
-    (y, z) -> deepUnsplitPorts'' y :> deepUnsplitPorts'' z
-  deepSplitPortNames'' _ base =
-    let genElem i = deepSplitPortNames'' (_ :: r) (base +++ "_" +++ integerToString i)
-    in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
