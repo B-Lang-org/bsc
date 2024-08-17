@@ -165,6 +165,11 @@ handleContextReduction' pos
                         _ -> return $ defaultContextReductionErr pos p
           _ -> internalError("handleContextReduction': " ++
                              "SizedLiteral instance contains wrong number of types")
+    | cid == idWrapField =
+        case ts of
+          [t, _] -> return $ handleCtxRedWrapField pos p t
+          _ -> internalError("handleContextReduction': " ++
+                             "WrapField instance contains wrong number of types")
 
 --  | cid == idLiteral =
 --  | cid == idRealLiteral =
@@ -453,6 +458,13 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
                          (map (pfpString . toPred) reduced_ps)
     in
         (pos, ECtxErrPrimPort (pfpString userty) poss hasVar)
+
+-- --------------------
+
+handleCtxRedWrapField:: Position -> (VPred, [VPred]) -> Type -> EMsg
+handleCtxRedWrapField pos (vp, reduced_ps) userty =
+    (pos, EBadIfcType (pfpString userty)  -- XXX reporting the type, no easy way to get the method name here.
+     "This method uses types that are not in the Bits or SplitPorts typeclass.")
 
 
 -- ========================================================================
