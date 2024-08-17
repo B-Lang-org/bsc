@@ -4470,7 +4470,7 @@ instance (WrapMethod m w) => (WrapField m w) where
     let baseNames = methodArgBaseNames (_ :: m) prefix names 1
     in primMethod (inputPortNames (_ :: m) baseNames) ∘ toWrapMethod
   fromWrapField = fromWrapMethod
-  saveFieldPortTypes _ modName prefix names = 
+  saveFieldPortTypes _ modName prefix names =
     let baseNames = methodArgBaseNames (_ :: m) prefix names 1
     in saveMethodPortTypes (_ :: m) modName baseNames
 
@@ -4591,7 +4591,7 @@ instance WrapPorts () () where
 checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
 checkPortNames proxy base =
   let pn = portNames proxy base
-  in 
+  in
     if listLength pn /= valueOf n
     then error $ "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
@@ -4685,7 +4685,7 @@ instance (SplitPorts a p) => DeepSplitPorts' r a p where
 
 instance (Generic a r, DeepSplitPorts'' r p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
   deepSplitPorts' _ = deepSplitPorts'' ∘ from
-  deepUnsplitPorts' _ = to ∘ deepUnsplitPorts'' 
+  deepUnsplitPorts' _ = to ∘ deepUnsplitPorts''
   deepSplitPortNames' _ _ = deepSplitPortNames'' (_ :: r)
 
 class DeepSplitPorts'' r p | r -> p where
