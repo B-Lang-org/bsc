@@ -11,17 +11,15 @@ import Control.Monad(msum)
 import Data.List(groupBy, sort, partition, nub, intersect)
 import Data.Maybe(listToMaybe, mapMaybe, catMaybes, fromMaybe)
 
-import Util(thd, fst3, headOrErr, fromJustOrErr)
+import Util(thd, fst3, headOrErr)
 
 import Verilog(vKeywords, vIsValidIdent)
 
-import Error(internalError, EMsg, ErrMsg(..))
+import Error(EMsg, ErrMsg(..))
 import ErrorMonad(ErrorMonad(..))
-import PFPrint
 import Position
 import Id
-import PreIds(idDefaultClock, idDefaultReset, idCLK, idCLK_GATE,
-              idPrimAction, idActionValue_, mk_no)
+import PreIds(idDefaultClock, idDefaultReset, idCLK, idCLK_GATE, mk_no)
 
 import FStringCompat
 import PreStrings(fsUnderscore)
@@ -29,7 +27,7 @@ import Flags(Flags(..))
 
 import Pragma
 import CType
-import Type(tClock, tReset, tInout_)
+import Type(tClock, tReset)
 
 
 -- ==============================
@@ -559,85 +557,9 @@ checkModulePortNames flgs pos pps vtis ftps =
 
         isClkField (_,t,_) = t == tClock
         isRstField (_,t,_) = t == tReset
-        isInoutField (_,t,_) = case t of
-                                 (TAp tt _) | (tt == tInout_) -> True
-                                 _ -> False
-
-        getMString :: Maybe String -> String
-        getMString (Just str) = str
-        getMString Nothing = internalError ("getMString: empty field")
-
+    
         (clk_fs, other_fs) = partition isClkField ftps
-        (rst_fs, other_fs') = partition isRstField other_fs
-        (iot_fs, method_fs) = partition isInoutField other_fs'
-
-        ifc_clock_ports =
-            let mkClockPorts (i,_,ps) =
-                    let mpref = getClockPragmaInfo ps
-                        -- convert to Id and back, to reuse "mkPortName"
-                        pref_id = mk_homeless_id $ getMString $ mpref
-                        osc = mkPortName idCLK osc_prefix Nothing pref_id
-                        gate = mkPortName idCLK_GATE gate_prefix Nothing pref_id
-                    in  [(getIdBaseString osc, i),
-                         (getIdBaseString gate, i)]
-            in  concatMap mkClockPorts clk_fs
-
-        ifc_reset_ports =
-            let mkResetPort (i,_,ps) =
-                    let mpref = getResetPragmaInfo ps
-                        -- convert to Id and back, to reuse "mkPortName"
-                        pref_id = mk_homeless_id $ getMString $ mpref
-                        p = mkPortName idrstn rst_prefix Nothing pref_id
-                    in  (getIdBaseString p, i)
-            in  map mkResetPort rst_fs
-
-        ifc_inout_ports =
-            let mkInoutPort (i,t,ps) =
-                    let pref = getMString $ getInoutPragmaInfo ps
-                    in  (pref, i)
-            in  map mkInoutPort iot_fs
-
-        ifc_method_ports =
-            let mkMethodPorts (i,t,ps) =
-                  let resType = getRes t
-                      resTypeId = fromJustOrErr
-                                   ("ifc_method_ports: " ++ ppReadable t)
-                                   (leftCon resType)
-                      -- XXX can PrimAction ever occur?
-                      -- XXX (Maybe if explicitly written?)
-                      -- The types Action and ActionValue (which should be the
-                      -- only types written by the user) become ActionValue_
-                      -- in the flattened interface (with Action being size 0).
-                      -- So ActionValue_ should be only type seen.
-                      isPA   = (qualEq resTypeId idPrimAction)
-                      isAV   = (qualEq resTypeId idActionValue_)
-                      -- If the user wrote "Action" the flattened ifc is
-                      -- ActionValue_#(0).  If the user wrote ActionValue#(t)
-                      -- then the flattened ifc is ActionValue#(sz), where
-                      -- "sz" is a variable reference in context Bits#(t,sz).
-                      -- If GenWrap did ctxReduce, then these variables would
-                      -- go away (if not, then we'd error, as iExpand does
-                      -- now).  In the meantime, just look for explicit 0.
-                      isAV0 = case resType of
-                                (TAp (TCon (TyCon av _ _)) (TCon (TyNum n _)))
-                                    | qualEq av idActionValue_ -> (n == 0)
-                                _ -> False
-                      (mpref, mres, mrdy, men, argids, ar, ae) =
-                          getMethodPragmaInfo ps
-                      res = if (isPA || isAV0) then [] else [getMString mres]
-                      rdy = if (ar) then [] else [getMString mrdy]
-                      en  = if (not ae) && (isAV || isPA)
-                            then [getMString men] else []
-                      argToName :: String -> Id -> String
-                      argToName pstr aid = joinStrings_  pstr (getIdString aid)
-                      args = map (argToName (getMString mpref)) argids
-                   in
-                      if (isRdyId i) then []
-                      else  zip (res ++ rdy ++ en ++ args) (repeat i)
-            in  concatMap mkMethodPorts method_fs
-
-        all_ifc_info = ifc_clock_ports ++ ifc_reset_ports ++
-                       ifc_inout_ports ++ ifc_method_ports
+        (rst_fs, _) = partition isRstField other_fs
 
     -- ---------------
     -- check that no arg port name clashes with another port name and
@@ -662,52 +584,6 @@ checkModulePortNames flgs pos pps vtis ftps =
                  in  map mkErr arg_kw_clash
         emsgs2 = let mkErr (n,i) = (getPosition i, EPortNotValidIdent n)
                  in  map mkErr arg_bad_ident
-
-    -- ---------------
-    -- check that no ifc port name clashes with another port name and
-    -- check that no ifc port name clashes with a Verilog keyword and
-    -- check that each ifc port name is a valid Verilog identifier
-
-        ifc_names = sort all_ifc_info
-        ifc_same_name = filter (\xs -> (length xs) > 1) $
-                           groupBy (\(n1,_) (n2,_) -> n1 == n2) ifc_names
-        ifc_kw_clash  = filter (\(n,_) -> n `elem` vKeywords) ifc_names
-        ifc_bad_ident = filter (\(n,_) -> not (vIsValidIdent n)) ifc_names
-        emsgs3 = let mkErr xs =
-                         let ns = [(n, getPosition i, getIdBaseString i)
-                                       | (n,i) <- xs ]
-                         in  case ns of
-                               ((v,p1,m1):(_,p2,m2):_) ->
-                                   (p1, EPortNamesClashFromMethod m1 m2 v p2)
-                               _ -> internalError ("emsg3: impossible")
-                 in  map mkErr ifc_same_name
-        emsgs4 = let mkErr (n,i) = (getPosition i,
-                                    EPortKeywordClashFromMethod
-                                        (getIdBaseString i) n)
-                 in  map mkErr ifc_kw_clash
-        emsgs5 = let mkErr (n,i) = (getPosition i,
-                                    EPortNotValidIdentFromMethod
-                                        (getIdBaseString i) n)
-                 in  map mkErr ifc_bad_ident
-
-    -- ---------------
-    -- check that no arg port clashes with an ifc port
-
-
-        ifc_ports_map = M.fromList ifc_names
-
-        findIfcPortName api@(API { api_port = Just p }) =
-            case (M.lookup (getIdBaseString p) ifc_ports_map) of
-                Nothing -> Nothing
-                Just m -> Just (p, m, getAPIArgName api)
-        findIfcPortName (API { api_port = Nothing }) = Nothing
-
-        arg_ifc_dups = catMaybes $ map findIfcPortName all_arg_info
-        emsgs6 = let mkErr (p,m,a) = (pos,
-                                      EPortNamesClashArgAndIfc
-                                          (pfpString p) (pfpString a)
-                                          (pfpString m) (getPosition m))
-                 in map mkErr arg_ifc_dups
 
     -- ---------------
     -- warn if a prefix is supplied but never used
@@ -755,8 +631,7 @@ checkModulePortNames flgs pos pps vtis ftps =
     -- report any errors or warnings
 
         -- report all errors, since none trump any others
-        emsgs = emsgs0 ++ emsgs1 ++ emsgs2 ++ emsgs3 ++
-                emsgs4 ++ emsgs5 ++ emsgs6
+        emsgs = emsgs0 ++ emsgs1 ++ emsgs2
 
         wmsgs = wmsgs0 ++ wmsgs1
 
@@ -766,14 +641,5 @@ checkModulePortNames flgs pos pps vtis ftps =
              else EMWarning wmsgs result
         else EMError emsgs
 
-
--- ==============================
-
--- XXX copied from GenWrap
--- Join string together with an underscore if either is not empty.
-joinStrings_ :: String -> String -> String
-joinStrings_  "" s2 = s2
-joinStrings_  s1 "" = s1
-joinStrings_  s1 s2 = s1 ++ "_" ++ s2
 
 -- ==============================
