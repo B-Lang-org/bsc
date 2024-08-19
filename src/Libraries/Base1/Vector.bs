@@ -19,7 +19,8 @@ package Vector(
         find, findElem, findIndex, countLeadingZeros,
         countElem, countIf, countOnes, countOnesAlt,
         rotateBy, rotateBitsBy,
-        readVReg, writeVReg, toChunks, drop, Ascii
+        readVReg, writeVReg, toChunks, drop, Ascii,
+        ConcatTuple(..), ConcatTuple'(..)
         ) where
 
 import List
@@ -1253,6 +1254,59 @@ toChunks x = let padding = (0 :: Bit ch_sz)
                  v_sz = (valueOf ch_sz) * (valueOf n)
                  tmp = padding ++ (pack x)
              in unpack(tmp[v_sz-1:0])
+
+
+
+class ConcatTuple n a b | n a -> b where
+  concatTuple :: Vector n a -> b
+  unconcatTuple :: b -> Vector n a
+
+instance ConcatTuple 0 a () where
+  concatTuple _ = ()
+  unconcatTuple _ = nil
+
+instance ConcatTuple 1 a a where
+  concatTuple v = head v
+  unconcatTuple x = cons x nil
+
+-- Linear recursive implementation: O(n^2)
+-- instance (Add n1 1 n, ConcatTuple n1 a b, AppendTuple a b c) => ConcatTuple n a c where
+--   concatTuple v = appendTuple (head v) $ concatTuple (tail v)
+--   unconcatTuple x = case splitTuple x of
+--     (y, z) -> cons y $ unconcatTuple z
+
+-- O(n lg n) optimization: split into chunks that are powers of 2
+instance (Add lgn 1 (TLog (TAdd n 1)), Add (TExp lgn) n1 n, ConcatTuple n1 a b, ConcatTuple' lgn a c, AppendTuple b c d) =>
+    ConcatTuple n a d where
+  concatTuple v =
+    let v1 :: Vector n1 a = take v
+        v2 :: Vector (TExp lgn) a = drop v
+    in concatTuple v1 `appendTuple` concatTuple' v2
+  unconcatTuple x =
+    let res :: (b, c) = splitTuple x
+        v1 :: Vector n1 a = unconcatTuple res.fst
+        v2 :: Vector (TExp lgn) a = unconcatTuple' res.snd
+    in append v1 v2
+
+-- Concatenate a vector of 2^n tuples
+class ConcatTuple' n a b | n a -> b where
+  concatTuple' :: Vector (TExp n) a -> b
+  unconcatTuple' :: b -> Vector (TExp n) a
+
+instance ConcatTuple' 0 a a where
+  concatTuple' v = head v
+  unconcatTuple' x = cons x nil
+
+instance (Add n1 1 n, ConcatTuple' n1 a b, AppendTuple b b c) => ConcatTuple' n a c where
+  concatTuple' v =
+    let v1 :: Vector (TExp n1) a = take v
+        v2 :: Vector (TExp n1) a = drop v
+    in concatTuple' v1 `appendTuple` concatTuple' v2
+  unconcatTuple' x = 
+    let res :: (b, b) = splitTuple x
+        v1 :: Vector (TExp n1) a = unconcatTuple' res.fst
+        v2 :: Vector (TExp n1) a = unconcatTuple' res.snd
+    in append v1 v2
 
 
 --@ \item{\bf Examples Using the Vector Type}
