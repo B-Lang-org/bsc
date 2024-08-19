@@ -83,12 +83,22 @@ class DeepSplitPorts a p | a -> p where
   deepUnsplitPorts :: p -> a
   deepSplitPortNames :: a -> String -> List String
 
+instance DeepSplitPorts (UInt n) (Port (UInt n)) where
+  deepSplitPorts = Port
+  deepUnsplitPorts (Port x) = x
+  deepSplitPortNames _ base = Cons base Nil
+
+instance DeepSplitPorts (Int n) (Port (Int n)) where
+  deepSplitPorts = Port
+  deepUnsplitPorts (Port x) = x
+  deepSplitPortNames _ base = Cons base Nil
+
 instance DeepSplitPorts () () where
   deepSplitPorts _ = ()
   deepUnsplitPorts _ = ()
   deepSplitPortNames _ _ = Nil
 
-instance (DeepSplitTuplePorts (a, b) r) => DeepSplitPorts (a, b) r where
+instance (DeepSplitTuplePorts (a, b) p) => DeepSplitPorts (a, b) p where
   deepSplitPorts = deepSplitTuplePorts
   deepUnsplitPorts = deepUndeepSplitTuplePorts
   deepSplitPortNames = deepSplitTuplePortNames 1
@@ -112,8 +122,7 @@ instance (DeepSplitPorts a p) => DeepSplitTuplePorts a p where
   deepSplitTuplePortNames i _ base = deepSplitPortNames (_ :: a) $ base +++ "_" +++ integerToString i
 
 
-instance (Generic a r, DeepSplitPorts' r a p) =>
-    DeepSplitPorts a p where
+instance (Generic a r, DeepSplitPorts' r a p) => DeepSplitPorts a p where
   deepSplitPorts = deepSplitPorts' (_ :: r)
   deepUnsplitPorts = deepUnsplitPorts' (_ :: r)
   deepSplitPortNames = deepSplitPortNames' (_ :: r)
