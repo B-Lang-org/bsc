@@ -1,0 +1,39 @@
+
+test_c_veri ShallowSplit
+if { $vtest == 1 } {
+    find_regexp mkShallowSplitTest.v {input  \[7 : 0\] putFoo_1_x;}
+    find_regexp mkShallowSplitTest.v {input  \[15 : 0\] PUT_BAR_1_z;}
+    find_regexp mkShallowSplitTest.v {input  \[7 : 0\] putFooBar_fooIn_y;}
+    find_regexp mkShallowSplitTest.v {input  \[16 : 0\] putFooBar_barIn_w;}
+    find_regexp mkShallowSplitTest.v {input  \[15 : 0\] putFoos_1_0;}
+    find_regexp mkShallowSplitTest.v {input  \[15 : 0\] putFoos_1_49;}
+    find_regexp mkShallowSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
+    find_regexp mkShallowSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
+}
+
+test_c_veri DeepSplit
+if { $vtest == 1 } {
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putFoo_1_x;}
+    find_regexp mkDeepSplitTest.v {input  PUT_BAR_1_v_2;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] PUT_BAR_1_z_y;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putFooBar_fooIn_y;}
+    find_regexp mkDeepSplitTest.v {input  putFooBar_barIn_v_2;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putFoos_1_0_x;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putFoos_1_49_y;}
+    find_regexp mkDeepSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putBaz_1_c_2_1_7_y;}
+    find_regexp mkDeepSplitTest.v {input  \[15 : 0\] putBaz_1_c_2_2_w_2;}
+}
+
+test_c_veri InstanceSplit
+if { $vtest == 1 } {
+    find_regexp mkInstanceSplitTest.v {input  \[7 : 0\] putFoo_1_x;}
+    find_regexp mkInstanceSplitTest.v {input  putFoo_1_ysign;}
+    find_regexp mkInstanceSplitTest.v {input  \[6 : 0\] putFoo_1_yvalue;}
+    find_regexp mkInstanceSplitTest.v {input  \[7 : 0\] PUT_BAR_1_z_x;}
+    find_regexp mkInstanceSplitTest.v {input  \[6 : 0\] putFooBar_fooIn_yvalue;}
+    find_regexp mkInstanceSplitTest.v {input  \[16 : 0\] putFooBar_barIn_w;}
+    find_regexp mkInstanceSplitTest.v {input  \[799 : 0\] putFoos_1;}
+    find_regexp mkInstanceSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
+    find_regexp mkInstanceSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
+}
