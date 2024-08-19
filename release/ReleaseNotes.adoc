@@ -30,8 +30,8 @@ Libraries
 Bluetcl
 ~~~~~~~
 
-* Resolve a potential compilation warning by removing the use of an
-  ancient C syntax that is deprecated in newer C standard
+* Resolve a potential compilation warning by removing the use of
+  K&R C syntax that is deprecated in newer C standards
   (GitHub PR#703)
 
 Bluesim
