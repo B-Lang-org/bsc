@@ -51,16 +51,9 @@ instance ShallowSplitPorts' () () where
   shallowUnsplitPorts' _ = ()
   shallowSplitPortNames' _ _ = Nil
 
-instance ShallowSplitPorts' (Vector 0 r) () where
-  shallowSplitPorts' _ = ()
-  shallowUnsplitPorts' _ = nil
-  shallowSplitPortNames' _ _ = Nil
-
-instance (ShallowSplitPorts' r p1, Add n1 1 n, ShallowSplitPorts' (Vector n1 r) p2, AppendTuple p1 p2 p) =>
-    ShallowSplitPorts' (Vector n r) p where
-  shallowSplitPorts' v = shallowSplitPorts' (head v) `appendTuple` shallowSplitPorts' (tail v)
-  shallowUnsplitPorts' x = case splitTuple x of
-    (y, z) -> shallowUnsplitPorts' y :> shallowUnsplitPorts' z
+instance (ShallowSplitPorts' r p1, ConcatTuple n p1 p) => ShallowSplitPorts' (Vector n r) p where
+  shallowSplitPorts' = concatTuple ∘ map shallowSplitPorts'
+  shallowUnsplitPorts' = map shallowUnsplitPorts' ∘ unconcatTuple
   shallowSplitPortNames' _ base =
     let genElem i = shallowSplitPortNames' (_ :: r) (base +++ "_" +++ integerToString i)
     in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
@@ -130,11 +123,13 @@ class DeepSplitPorts' r a p | r a -> p where
   deepUnsplitPorts' :: r -> p -> a
   deepSplitPortNames' :: r -> a -> String -> List String
 
+-- Terminate recursion for n /= 1 constructors
 instance (SplitPorts a p) => DeepSplitPorts' r a p where
   deepSplitPorts' _ = splitPorts
   deepUnsplitPorts' _ = unsplitPorts
   deepSplitPortNames' _ = portNames
 
+-- Recurse into the fields of a struct
 instance (Generic a r, DeepSplitPorts'' r p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
   deepSplitPorts' _ = deepSplitPorts'' ∘ from
   deepUnsplitPorts' _ = to ∘ deepUnsplitPorts''
@@ -157,16 +152,9 @@ instance DeepSplitPorts'' () () where
   deepUnsplitPorts'' _ = ()
   deepSplitPortNames'' _ _ = Nil
 
-instance DeepSplitPorts'' (Vector 0 r) () where
-  deepSplitPorts'' _ = ()
-  deepUnsplitPorts'' _ = nil
-  deepSplitPortNames'' _ _ = Nil
-
-instance (DeepSplitPorts'' r p1, Add n1 1 n, DeepSplitPorts'' (Vector n1 r) p2, AppendTuple p1 p2 p) =>
-    DeepSplitPorts'' (Vector n r) p where
-  deepSplitPorts'' v = deepSplitPorts'' (head v) `appendTuple` deepSplitPorts'' (tail v)
-  deepUnsplitPorts'' x = case splitTuple x of
-    (y, z) -> deepUnsplitPorts'' y :> deepUnsplitPorts'' z
+instance (DeepSplitPorts'' r p1, ConcatTuple n p1 p) => DeepSplitPorts'' (Vector n r) p where
+  deepSplitPorts'' = concatTuple ∘ map deepSplitPorts''
+  deepUnsplitPorts'' = map deepUnsplitPorts'' ∘ unconcatTuple
   deepSplitPortNames'' _ base =
     let genElem i = deepSplitPortNames'' (_ :: r) (base +++ "_" +++ integerToString i)
     in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
