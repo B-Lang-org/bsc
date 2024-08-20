@@ -51,7 +51,7 @@ interface SplitTest =
 
 {-# synthesize mkInstanceSplitTest #-}
 mkInstanceSplitTest :: Module SplitTest
-mkInstanceSplitTest = 
+mkInstanceSplitTest =
   module
     interface
       putFoo x = $display "putFoo: " (cshow x)
