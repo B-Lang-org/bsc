@@ -7,5 +7,5 @@ Error: Unknown position: (T0031)
   The proviso was implied by expressions at the following positions:
     "NoInline_ArgNotInBits.bsv", line 4, column 15
 Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
-  Cannot synthesize `function Bool f(NoInline_ArgNotInBits::L x1)': This
-  method uses types that are not in the Bits or SplitPorts typeclass.
+  Cannot synthesize `fnNoInline_ArgNotInBits': This method uses types that are
+  not in the Bits or SplitPorts typeclass.

@@ -20,7 +20,7 @@ import TIMonad
 import TCMisc
 import Unify
 
-import FStringCompat (mkFString)
+import FStringCompat (FString, mkFString, getFString)
 import Id(mkId)
 import PreIds
 import CSyntax
@@ -167,7 +167,7 @@ handleContextReduction' pos
                              "SizedLiteral instance contains wrong number of types")
     | cid == idWrapField =
         case ts of
-          [t, _] -> return $ handleCtxRedWrapField pos p t
+          [TCon (TyStr name _), t, _] -> return $ handleCtxRedWrapField pos p name t
           _ -> internalError("handleContextReduction': " ++
                              "WrapField instance contains wrong number of types")
 
@@ -461,9 +461,9 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
 
 -- --------------------
 
-handleCtxRedWrapField:: Position -> (VPred, [VPred]) -> Type -> EMsg
-handleCtxRedWrapField pos (vp, reduced_ps) userty =
-    (pos, EBadIfcType (pfpString userty)  -- XXX reporting the type, no easy way to get the method name here.
+handleCtxRedWrapField:: Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
+handleCtxRedWrapField pos (vp, reduced_ps) name userty =
+    (pos, EBadIfcType (getFString name)
      "This method uses types that are not in the Bits or SplitPorts typeclass.")
 
 
