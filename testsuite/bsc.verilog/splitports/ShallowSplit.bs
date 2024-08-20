@@ -34,7 +34,7 @@ interface SplitTest =
 
 {-# synthesize mkShallowSplitTest #-}
 mkShallowSplitTest :: Module SplitTest
-mkShallowSplitTest = 
+mkShallowSplitTest =
   module
     interface
       putFoo (ShallowSplit x) = $display "putFoo: " (cshow x)
