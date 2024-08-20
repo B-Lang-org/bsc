@@ -557,7 +557,7 @@ checkModulePortNames flgs pos pps vtis ftps =
 
         isClkField (_,t,_) = t == tClock
         isRstField (_,t,_) = t == tReset
-    
+
         (clk_fs, other_fs) = partition isClkField ftps
         (rst_fs, _) = partition isRstField other_fs
 

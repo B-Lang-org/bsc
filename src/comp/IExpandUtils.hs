@@ -2026,7 +2026,7 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
     when (not (null emsgs)) $ bsError errh emsgs
   where
     input_clock_ports i =
-      case lookup i ci of 
+      case lookup i ci of
         Just (Just (VName o, Right (VName g))) -> [o, g]
         Just (Just (VName o, Left _)) -> [o]
         _ -> []
@@ -2051,7 +2051,7 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
 
     default_clock_names = [ (n, idDefaultClock) | n <- input_clock_ports idDefaultClock ]
     default_reset_names = [ (n, idDefaultReset) | n <- input_reset_ports idDefaultReset ]
-    
+
     arg_names = sort $
       arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names ++
       default_clock_names ++ default_reset_names
