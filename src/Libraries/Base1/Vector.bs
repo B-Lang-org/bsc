@@ -1269,6 +1269,7 @@ fromChunks :: (Bits ch ch_sz, Bits t out_sz, Div out_sz ch_sz n) => Vector n ch 
 fromChunks x = Prelude.unpack $ (Prelude.pack x)[valueOf out_sz - 1:0]
 
 
+-- Convert between a vector of n tuples a and a flattened tuple b.
 class ConcatTuple n a b | n a -> b where
   concatTuple :: Vector n a -> b
   unconcatTuple :: b -> Vector n a
