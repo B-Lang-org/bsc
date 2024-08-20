@@ -9,13 +9,13 @@ import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import PPrint
 import Id
-import PreIds(id_fromWrapField, idActionValue)
+import PreIds(id_fromWrapField, idActionValue, idStrArg)
 import CSyntax
 import SymTab
 import Scheme
 import Assump
 import Type(tModule, fn)
-import CType(getArrows, getRes)
+import CType(getArrows, getRes, cTStr)
 import Pred(expandSyn)
 import TypeCheck(cCtxReduceDef)
 import Subst(tv)
@@ -246,7 +246,8 @@ funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
         -- the result is either an actionvalue or a value
         isAV = isActionValue symt r
 
-        expr = cVApply id_fromWrapField [CVar i_]
+        fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString i) (getIdPosition i)
+        expr = cVApply id_fromWrapField [fnp, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet
