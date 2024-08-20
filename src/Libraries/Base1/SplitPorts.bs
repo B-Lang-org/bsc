@@ -68,6 +68,7 @@ instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta (MetaField name id
   shallowSplitPorts' (Meta x) = shallowSplitPorts' x
   shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
   shallowSplitPortNames' _ base = shallowSplitPortNames' (_ :: r) $
+    -- Avoid an extra underscore, since data fields names are _[0-9]+
     if stringHead (stringOf name) == '_'
     then base +++ stringOf name
     else base +++ "_" +++ stringOf name
@@ -106,25 +107,25 @@ instance DeepSplitPorts () () where
 
 instance (DeepSplitTuplePorts (a, b) p) => DeepSplitPorts (a, b) p where
   deepSplitPorts = deepSplitTuplePorts
-  deepUnsplitPorts = deepUndeepSplitTuplePorts
+  deepUnsplitPorts = deepUnsplitTuplePorts
   deepSplitPortNames = deepSplitTuplePortNames 1
 
 class DeepSplitTuplePorts a p | a -> p where
   deepSplitTuplePorts :: a -> p
-  deepUndeepSplitTuplePorts :: p -> a
+  deepUnsplitTuplePorts :: p -> a
   deepSplitTuplePortNames :: Integer -> a -> String -> List String
 
 instance (DeepSplitPorts a p, DeepSplitTuplePorts b q, AppendTuple p q r) => DeepSplitTuplePorts (a, b) r where
   deepSplitTuplePorts (a, b) = deepSplitPorts a `appendTuple` deepSplitTuplePorts b
-  deepUndeepSplitTuplePorts x = case splitTuple x of
-    (a, b) -> (deepUnsplitPorts a, deepUndeepSplitTuplePorts b)
+  deepUnsplitTuplePorts x = case splitTuple x of
+    (a, b) -> (deepUnsplitPorts a, deepUnsplitTuplePorts b)
   deepSplitTuplePortNames i _ base =
     deepSplitPortNames (_ :: a) (base +++ "_" +++ integerToString i) `List.append`
     deepSplitTuplePortNames (i + 1) (_ :: b) base
 
 instance (DeepSplitPorts a p) => DeepSplitTuplePorts a p where
   deepSplitTuplePorts = deepSplitPorts
-  deepUndeepSplitTuplePorts x = deepUnsplitPorts x
+  deepUnsplitTuplePorts x = deepUnsplitPorts x
   deepSplitTuplePortNames i _ base = deepSplitPortNames (_ :: a) $ base +++ "_" +++ integerToString i
 
 
@@ -178,6 +179,7 @@ instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta (MetaField name idx) r
   deepSplitPorts'' (Meta x) = deepSplitPorts'' x
   deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
   deepSplitPortNames'' _ base = deepSplitPortNames'' (_ :: r) $
+    -- Avoid an extra underscore, since data fields names are _[0-9]+
     if stringHead (stringOf name) == '_'
     then base +++ stringOf name
     else base +++ "_" +++ stringOf name
