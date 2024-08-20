@@ -1302,7 +1302,7 @@ instance (Add n1 1 n, ConcatTuple' n1 a b, AppendTuple b b c) => ConcatTuple' n 
     let v1 :: Vector (TExp n1) a = take v
         v2 :: Vector (TExp n1) a = drop v
     in concatTuple' v1 `appendTuple` concatTuple' v2
-  unconcatTuple' x = 
+  unconcatTuple' x =
     let res :: (b, b) = splitTuple x
         v1 :: Vector (TExp n1) a = unconcatTuple' res.fst
         v2 :: Vector (TExp n1) a = unconcatTuple' res.snd
