@@ -23,6 +23,7 @@ if { $vtest == 1 } {
     find_regexp mkDeepSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
     find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putBaz_1_c_2_1_7_y;}
     find_regexp mkDeepSplitTest.v {input  \[15 : 0\] putBaz_1_c_2_2_w_2;}
+    find_regexp mkDeepSplitTest.v {input  \[3 : 0\] putZug_1_qs_1;}
 }
 
 test_c_veri InstanceSplit
