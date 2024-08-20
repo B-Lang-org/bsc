@@ -5,11 +5,12 @@ package SplitPorts where
 import qualified List
 import Vector
 
-
-
 -- Newtype tags to indicate that a types should be split (recursively or not) into ports
 data ShallowSplit a = ShallowSplit a
 data DeepSplit a = DeepSplit a
+
+-- Tag to indicate that the DeepSplitPorts recursion should terminate
+data NoSplit a = NoSplit a
 
 instance (ShallowSplitPorts a p) => SplitPorts (ShallowSplit a) p where
   splitPorts (ShallowSplit x) = shallowSplitPorts x
@@ -20,6 +21,11 @@ instance (DeepSplitPorts a p) => SplitPorts (DeepSplit a) p where
   splitPorts (DeepSplit x) = deepSplitPorts x
   unsplitPorts = DeepSplit ∘ deepUnsplitPorts
   portNames _ = deepSplitPortNames (_ :: a)
+
+instance DeepSplitPorts (NoSplit a) (Port a) where
+  splitPorts (NoSplit x) = Port x
+  unsplitPorts (Port x) = NoSplit x
+  portNames _ base = List.Cons base List.Nil
 
 
 -- Helper class using generics, to split a struct or vector into a tuple of ports.
