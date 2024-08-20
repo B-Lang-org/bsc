@@ -4466,7 +4466,6 @@ class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
   -- Save the port types for a field in the wrapped interface, given the module name
   -- and the prefix, arg_names and result pragmas.
   saveFieldPortTypes :: StrArg name -> f -> Maybe Name__ -> String -> List String -> String -> Module ()
-  saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance (WrapMethod m w) => (WrapField name m w) where
   toWrapField _ prefix names =
@@ -4482,14 +4481,17 @@ instance (WrapMethod m w) => (WrapField name m w) where
 instance WrapField name PrimAction PrimAction where
   toWrapField _ _ _ = id
   fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance WrapField name Clock Clock where
   toWrapField _ _ _ = id
   fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance WrapField name Reset Reset where
   toWrapField _ _ _ = id
   fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
   toWrapField _ _ _ = primInoutCast0
@@ -4505,11 +4507,9 @@ class WrapMethod m w | m -> w where
 
   -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
   methodArgBaseNames :: m -> String -> List String -> Integer -> List String
-  methodArgBaseNames _ _ _ _ = Nil
 
   -- Compute the list of input port names for a method, from the argument base names.
   inputPortNames :: m -> List String -> List String
-  inputPortNames _ _ = Nil
 
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
@@ -4520,6 +4520,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
   fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
 
   methodArgBaseNames _ prefix (Cons h t) i = Cons
+    -- arg_names can start with a digit
     (if prefix == "" && not (isDigit $ stringHead h) then h else prefix +++ "_" +++ h)
     (methodArgBaseNames (_ :: b) prefix t $ i + 1)
   methodArgBaseNames _ prefix Nil i = Cons
@@ -4537,11 +4538,15 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
 instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
   toWrapMethod = toActionValue_
   fromWrapMethod = fromActionValue_
+  methodArgBaseNames _ _ _ _ = Nil
+  inputPortNames _ _ = Nil
   saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 instance (Bits a n) => WrapMethod a (Bit n) where
   toWrapMethod = pack
   fromWrapMethod = unpack
+  methodArgBaseNames _ _ _ _ = Nil
+  inputPortNames _ _ = Nil
   saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 {-
