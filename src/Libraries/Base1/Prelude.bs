@@ -4439,46 +4439,50 @@ data (MetaField :: $ -> # -> *) name idx = MetaField
 -- Should eventually include the output port names, when we support multiple output ports.
 primitive primMethod :: List String -> a -> a
 
-class WrapField f w | f -> w where
-  -- Given the prefix and arg_names pragmas, converts a synthesized interface field value to
-  -- its wrapper interface field.
-  toWrapField :: String -> List String -> f -> w
+-- Convert bewtween a field in an interface that is being synthesized,
+-- and a field in the corresponding field in the generated wrapper interface.
+-- Also takes the name of the field for error reporting purposes.
+class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
+  -- Given a proxy value for the field name, and the values of the prefix and arg_names pragmas,
+  -- converts a synthesized interface field value to its wrapper interface field.
+  toWrapField :: StrArg name -> String -> List String -> f -> w
 
-  -- Converts a wrapper interface field value to its synthesized interface field.
-  fromWrapField :: w -> f
+  -- Given a proxy value for the field name, converts a wrapper interface field value
+  -- to its synthesized interface field.
+  fromWrapField :: StrArg name -> w -> f
 
   -- Save the port types for a field in the wrapped interface, given the module name
   -- and the prefix, arg_names and result pragmas.
-  saveFieldPortTypes :: f -> Maybe Name__ -> String -> List String -> String -> Module ()
-  saveFieldPortTypes _ _ _ _ _ = return ()
+  saveFieldPortTypes :: StrArg name -> f -> Maybe Name__ -> String -> List String -> String -> Module ()
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
 
-instance (WrapMethod m w) => (WrapField m w) where
-  toWrapField prefix names =
+instance (WrapMethod m w) => (WrapField name m w) where
+  toWrapField _ prefix names =
     let baseNames = methodArgBaseNames (_ :: m) prefix names 1
     in primMethod (inputPortNames (_ :: m) baseNames) ∘ toWrapMethod
-  fromWrapField = fromWrapMethod
-  saveFieldPortTypes _ modName prefix names =
+  fromWrapField _ = fromWrapMethod
+  saveFieldPortTypes _ _ modName prefix names =
     let baseNames = methodArgBaseNames (_ :: m) prefix names 1
     in saveMethodPortTypes (_ :: m) modName baseNames
 
 -- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
 -- but this case was being handled in GenWrap.
-instance WrapField PrimAction PrimAction where
-  toWrapField _ _ = id
-  fromWrapField = id
+instance WrapField name PrimAction PrimAction where
+  toWrapField _ _ _ = id
+  fromWrapField _ = id
 
-instance WrapField Clock Clock where
-  toWrapField _ _ = id
-  fromWrapField = id
+instance WrapField name Clock Clock where
+  toWrapField _ _ _ = id
+  fromWrapField _ = id
 
-instance WrapField Reset Reset where
-  toWrapField _ _ = id
-  fromWrapField = id
+instance WrapField name Reset Reset where
+  toWrapField _ _ _ = id
+  fromWrapField _ = id
 
-instance (Bits a n) => WrapField (Inout a) (Inout_ n) where
-  toWrapField _ _ = primInoutCast0
-  fromWrapField = primInoutUncast0
-  saveFieldPortTypes _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: (Inout a))
+instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
+  toWrapField _ _ _ = primInoutCast0
+  fromWrapField _ = primInoutUncast0
+  saveFieldPortTypes _ _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: (Inout a))
 
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.

@@ -9,6 +9,7 @@ import Pragma
 import PreIds
 import CSyntax
 import CType
+import Undefined (UndefKind(..))
 
 -- ====================
 
@@ -86,5 +87,8 @@ getDefArgs dcls t =
        else zip vs' ts
 
 -- ====================
+
+mkProxy :: CType -> CExpr
+mkProxy ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
 
 
