@@ -25,7 +25,6 @@ import IdPrint
 import PreIds
 import CSyntax
 import CSyntaxUtil
-import Undefined (UndefKind(..))
 import SymTab(SymTab, TypeInfo(..), FieldInfo(..), findType, addTypesUQ,
               findField, findFieldInfo, getMethodArgNames)
 import MakeSymTab(convCQType)
@@ -901,8 +900,9 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                        let (fields,props) = unzip fieldsprops
                        return (concat fields, concat props)
                 _ -> do  -- ELSE NOT a Vec
+                      let fnt = cTStr (getIdFString fieldIdQ) (getIdPosition fieldIdQ)
                       let v = cTVar $ head tmpTyVarIds
-                      let ctx = CPred (CTypeclass idWrapField) [foldr arrow rettype argtypes, v]
+                      let ctx = CPred (CTypeclass idWrapField) [fnt, foldr arrow rettype argtypes, v]
 
                       let fi = binId prefixes fieldId
                       --
@@ -1107,9 +1107,10 @@ genTo pps ty mk =
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
+                   fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar id_toWrapField) [prefix, arg_names, ec]
+               let e = CApply (CVar id_toWrapField) [fnp, prefix, arg_names, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1199,7 +1200,9 @@ genFrom pps ty var =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let e = CApply (CVar id_fromWrapField) [sel binf]
+
+              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+              let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -1611,7 +1614,8 @@ mkFromBind true_ifc_ids var ft =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let e = CApply (CVar id_fromWrapField) [sel binf]
+              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+              let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -2170,7 +2174,8 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                         Just str -> joinStrings_ currentPre str
                         Nothing  -> joinStrings_ currentPre methodStr
 
-              let proxy = mkProxy $ foldr arrow r as
+              let fproxy = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+                  proxy = mkProxy $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                   result = stringLiteralAt noPosition resultName
@@ -2178,7 +2183,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                 CSExpr Nothing $
                   cVApply idLiftModule $
                     [cVApply id_saveFieldPortTypes
-                      [proxy, mkMaybe v, prefix, arg_names, result]]]
+                      [fproxy, proxy, mkMaybe v, prefix, arg_names, result]]]
 
 
 saveNameStmt :: Id -> Id -> CMStmt
@@ -2219,9 +2224,6 @@ tmod t = TAp (cTCon idModule) t
 
 id_t :: Position -> Id
 id_t pos = mkId pos fs_t
-
-mkProxy :: CType -> CExpr
-mkProxy ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
 
 -- ====================
 -- Ready method utilities
