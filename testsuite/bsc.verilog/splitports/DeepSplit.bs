@@ -24,12 +24,28 @@ struct Baz =
   e :: Vector 0 Foo
  -- No Bits instance needed
 
+struct Quix =
+  q :: Int 3
+  v :: Bool
+ deriving (Bits)
+
+-- Don't recurse into Quix with DeepSplitPorts
+instance DeepSplitPorts Quix (Port Quix) where
+  deepSplitPorts x = Port x
+  deepUnsplitPorts (Port x) = x
+  deepSplitPortNames _ base = Cons (base) Nil
+
+struct Zug =
+  qs :: Vector 2 Quix
+  blob :: Bool
+
 interface SplitTest =
   putFoo :: DeepSplit Foo -> Action
   putBar :: DeepSplit Bar -> Action {-# prefix = "PUT_BAR" #-}
   putFooBar :: DeepSplit Foo -> DeepSplit Bar -> Action {-# arg_names = ["fooIn", "barIn"] #-}
   putFoos :: DeepSplit (Vector 50 Foo) -> Action
   putBaz :: DeepSplit Baz -> Action
+  putZug :: DeepSplit Zug -> Action
 
 
 {-# synthesize mkDeepSplitTest #-}
@@ -42,6 +58,7 @@ mkDeepSplitTest =
       putFooBar (DeepSplit x) (DeepSplit y) = $display "putFooBar: " (cshow x) " " (cshow y)
       putFoos (DeepSplit x) = $display "putFoos: " (cshow x)
       putBaz (DeepSplit x) = $display "putBaz: " (cshow x)
+      putZug (DeepSplit x) = $display "putZug: " (cshow x)
 
 {-# synthesize sysDeepSplit #-}
 sysDeepSplit :: Module Empty
@@ -56,4 +73,5 @@ sysDeepSplit =
       when i == 2 ==> s.putFooBar (DeepSplit $ Foo { x = 5; y = 6; }) (DeepSplit $ Bar { v = vec False True False; w = (False, 0x5678); z = Foo { x = 7; y = 8; } })
       when i == 3 ==> s.putFoos $ DeepSplit $ genWith $ \ j -> Foo { x = fromInteger $ 9 + j / 2; y = fromInteger $ 10 - 2*j / 3; }
       when i == 4 ==> s.putBaz $ DeepSplit $ Baz { a = Just $ Foo { x = 9; y = 10; }; b = Bar { v = vec True False False; w = (True, 0x1234); z = Foo { x = 3; y = 4; }; }; c = vec (vec (Foo { x = 11; y = 12; }) (Foo { x = 13; y = 14; }) (Foo { x = 15; y = 16; }) (Foo { x = 17; y = 18; }) (Foo { x = 19; y = 20; }) (Foo { x = 21; y = 22; }) (Foo { x = 23; y = 24; }) (Foo { x = 25; y = 26; }), Bar { v = vec True False True; w = (True, 0xBEEF); z = Foo { x = 3; y = 4; } }) (vec (Foo { x = 27; y = 28; }) (Foo { x = 29; y = 30; }) (Foo { x = 31; y = 32; }) (Foo { x = 33; y = 34; }) (Foo { x = 35; y = 36; }) (Foo { x = 37; y = 38; }) (Foo { x = 39; y = 40; }) (Foo { x = 41; y = 42; }), Bar { v = vec True False True; w = (True, 0x4321); z = Foo { x = 123; y = 42; } }) (vec (Foo { x = 43; y = 44; }) (Foo { x = 45; y = 46; }) (Foo { x = 47; y = 48; }) (Foo { x = 49; y = 50; }) (Foo { x = 51; y = 52; }) (Foo { x = 53; y = 54; }) (Foo { x = 55; y = 56; }) (Foo { x = 57; y = 58; }), Bar { v = vec True True True; w = (True, 0xAABB); z = Foo { x = 3; y = 4; } }); d = (); e = nil; }
-      when i == 5 ==> $finish
+      when i == 5 ==> s.putZug $ DeepSplit $ Zug { qs = vec (Quix { q = 1; v = True }) (Quix { q = 2; v = False }); blob = False; }
+      when i == 6 ==> $finish
