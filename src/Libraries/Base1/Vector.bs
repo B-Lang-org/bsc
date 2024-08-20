@@ -1256,7 +1256,7 @@ toChunks x = let padding = (0 :: Bit ch_sz)
              in unpack(tmp[v_sz-1:0])
 
 
-
+-- Convert between a vector of n tuples a and a flattened tuple b.
 class ConcatTuple n a b | n a -> b where
   concatTuple :: Vector n a -> b
   unconcatTuple :: b -> Vector n a
