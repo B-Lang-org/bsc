@@ -464,7 +464,7 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
 handleCtxRedWrapField:: Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
 handleCtxRedWrapField pos (vp, reduced_ps) name userty =
     (pos, EBadIfcType (getFString name)
-     "This method uses types that are not in the Bits or SplitPorts typeclass.")
+     "This method uses types that are not in the Bits or SplitPorts typeclasses.")
 
 
 -- ========================================================================
