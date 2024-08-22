@@ -8,7 +8,7 @@ Error: Unknown position: (T0031)
     "NoInline_ResNotInBits.bsv", line 4, column 12
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
   Cannot synthesize `fnNoInline_ResNotInBits': This method uses types that are
-  not in the Bits or SplitPorts typeclass.
+  not in the Bits or SplitPorts typeclasses.
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
   Signature mismatch (given too general):
   given:
