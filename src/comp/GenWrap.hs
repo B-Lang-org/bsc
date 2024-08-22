@@ -19,7 +19,7 @@ import Error(internalError, EMsg, EMsgs(..), ErrMsg(..), ErrorHandle, bsError)
 import ErrorMonad(ErrorMonad, convErrorMonadToIO)
 import Flags(Flags)
 import FStringCompat
-import PreStrings(fsUnderscore, fs_t, fsTo, fsFrom, fsEmpty, fsEnable, fs_rdy)
+import PreStrings(fsUnderscore, fs_t, fsTo, fsFrom, fsEmpty, fsEnable, fs_rdy, fsDot)
 import Id
 import IdPrint
 import PreIds
@@ -900,7 +900,7 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                        let (fields,props) = unzip fieldsprops
                        return (concat fields, concat props)
                 _ -> do  -- ELSE NOT a Vec
-                      let fnt = cTStr (getIdFString fieldIdQ) (getIdPosition fieldIdQ)
+                      let fnt = cTStr (fieldPathName prefixes fieldId) (getIdPosition fieldIdQ)
                       let v = cTVar $ head tmpTyVarIds
                       let ctx = CPred (CTypeclass idWrapField) [fnt, foldr arrow rettype argtypes, v]
 
@@ -1107,7 +1107,7 @@ genTo pps ty mk =
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
-                   fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+                   fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f)(getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
                let e = CApply (CVar id_toWrapField) [fnp, prefix, arg_names, ec]
@@ -1201,7 +1201,7 @@ genFrom pps ty var =
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
 
-              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
@@ -1614,7 +1614,7 @@ mkFromBind true_ifc_ids var ft =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
@@ -1930,6 +1930,14 @@ binId :: IfcPrefixes -> Id -> Id
 binId ifcp i | i == idEmpty =  mkId noPosition (concatFString (init (ifcp_pathIdString ifcp)))
 binId ifcp i = (mkIdPre (concatFString (ifcp_pathIdString ifcp)) (unQualId i))
 
+fieldPathName :: IfcPrefixes -> Id -> FString
+-- XXX horrible hack when there isn't selection required at the end
+fieldPathName ifcp i | i == idEmpty = concatFString $ init $ map underscoreToDot $ ifcp_pathIdString ifcp
+fieldPathName ifcp i = concatFString $ map underscoreToDot (ifcp_pathIdString ifcp) ++ [getIdBase i]
+
+underscoreToDot :: FString -> FString
+underscoreToDot fs = if fs == fsUnderscore then fsDot else fs
+
 -- Extend the prefixes
 -- Take the current set of prefix information, add to that information
 -- from the the pragma of the current field Id, and add it to the current set of
@@ -2174,7 +2182,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                         Just str -> joinStrings_ currentPre str
                         Nothing  -> joinStrings_ currentPre methodStr
 
-              let fproxy = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString f) (getIdPosition f)
+              let fproxy = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                   proxy = mkProxy $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
