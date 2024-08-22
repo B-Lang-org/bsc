@@ -4105,10 +4105,6 @@ getBuriedPreds (IAps ic@(ICon i_sel (ICSel { })) ts1 [e])
     | (i_sel == idAVValue_ || i_sel == idAVAction_) = do
   --traceM("getBuriedPreds: AV sel")
   getBuriedPreds e
-getBuriedPreds (ICon _ (ICMethod _ _ eb)) = do
-  -- traceM("getBuriedPreds: method")
-  p <- getBuriedPreds eb
-  return p
 getBuriedPreds e@(ICon _ _) = do
   --traceM("getBuriedPreds: con: e = " ++ ppReadable e ++ show e)
   return pTrue
