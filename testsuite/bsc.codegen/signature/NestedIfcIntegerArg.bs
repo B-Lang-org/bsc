@@ -1,0 +1,14 @@
+package NestedIfcIntegerArg where
+
+interface Foo = 
+  put :: Integer -> Action
+
+interface Bar = 
+  f :: Foo
+
+{-# synthesize mkBar #-}
+mkBar :: Module Bar
+mkBar = module
+  interface
+    f = interface Foo
+            put _ = noAction
