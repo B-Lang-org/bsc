@@ -10,6 +10,7 @@ compile_verilog_fail_error ProvisoMethod.bsv T0043
 compile_verilog_fail_error NonBitsModuleArg.bsv T0043
 compile_verilog_fail_error NonIfc.bsv T0043
 compile_verilog_fail_error NonModule.bsv T0043 1 sysNonModule
+compile_verilog_fail_error NestedIfcIntegerArg.bs T0043
 
 # Test that types which are not simple constructors (but have arguments)
 # are also handled
