@@ -1,0 +1,46 @@
+package SomeArgNames where
+
+import SplitPorts
+import CShow
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+instance (ShallowSplitPorts Foo p) => SplitPorts Foo p where
+  splitPorts = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames = shallowSplitPortNames
+
+struct Bar =
+  f :: Foo
+  b :: Bool
+ deriving (Bits)
+
+instance (ShallowSplitPorts Bar p) => SplitPorts Bar p where
+  splitPorts = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames = shallowSplitPortNames
+
+interface SplitTest =
+  putFooBar :: Foo -> Bar -> Action {-# arg_names = ["fooIn"] #-}
+
+{-# synthesize mkSomeArgNamesSplitTest #-}
+mkSomeArgNamesSplitTest :: Module SplitTest
+mkSomeArgNamesSplitTest =
+  module
+    interface
+      putFooBar x y = $display "putFooBar: " (cshow x) "  " (cshow y)
+
+{-# synthesize sysSomeArgNames #-}
+sysSomeArgNames :: Module Empty
+sysSomeArgNames =
+  module
+    s <- mkSomeArgNamesSplitTest
+    i :: Reg (UInt 8) <- mkReg 0
+    rules
+      when True ==> i := i + 1
+      when i == 0 ==> s.putFooBar (Foo { x = 5; y = 6; }) (Bar { f = Foo { x = 7; y = 8; }; b = True; })
+      when i == 1 ==> $finish
+

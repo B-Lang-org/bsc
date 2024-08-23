@@ -1,0 +1,1 @@
+putFooBar: Foo {x=   5; y=   6}  Bar {f=Foo {x=   7; y=   8}; b=True}

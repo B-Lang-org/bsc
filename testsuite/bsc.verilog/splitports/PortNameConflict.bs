@@ -1,0 +1,34 @@
+package PortNameConflict where
+
+import SplitPorts
+import CShow
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+instance (ShallowSplitPorts Foo p) => SplitPorts Foo p where
+  splitPorts = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames = shallowSplitPortNames
+
+struct Bar =
+  f :: Foo
+  f_x :: Int 16
+ deriving (Bits)
+
+instance (ShallowSplitPorts Bar p) => SplitPorts Bar p where
+  splitPorts = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames = shallowSplitPortNames
+
+interface SplitTest =
+  putBar :: Bar -> Action {-# prefix = "barIn" #-}
+
+{-# synthesize sysPortNameConflict #-}
+sysPortNameConflict :: Module SplitTest
+sysPortNameConflict =
+  module
+    interface
+      putBar x = $display "putBar: " (cshow x)
