@@ -38,3 +38,24 @@ if { $vtest == 1 } {
     find_regexp mkInstanceSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
     find_regexp mkInstanceSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
 }
+
+test_c_veri SomeArgNames
+if { $vtest == 1 } {
+    find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_fooIn_x;}
+    find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_fooIn_y;}
+    find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_2_f_x;}
+    find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_2_f_y;}
+    find_regexp mkSomeArgNamesSplitTest.v {input  putFooBar_2_b;}
+}
+
+compile_verilog_fail_error PortNameConflict.bs G0055
+compare_file PortNameConflict.bs.bsc-vcomp-out
+
+compile_verilog_fail_error ArgNamesPragma_PortNameConflict.bs G0055
+compare_file ArgNamesPragma_PortNameConflict.bs.bsc-vcomp-out
+
+compile_verilog_fail_error BadSplitInst_PortNameConflict.bs G0055
+compare_file BadSplitInst_PortNameConflict.bs.bsc-vcomp-out
+
+compile_verilog_fail_error BadSplitInst_TooManyPortNames.bs S0015
+compare_file BadSplitInst_TooManyPortNames.bs.bsc-vcomp-out
