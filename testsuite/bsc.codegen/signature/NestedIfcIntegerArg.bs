@@ -1,9 +1,9 @@
 package NestedIfcIntegerArg where
 
-interface Foo = 
+interface Foo =
   put :: Integer -> Action
 
-interface Bar = 
+interface Bar =
   f :: Foo
 
 {-# synthesize mkBar #-}
