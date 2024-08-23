@@ -2117,17 +2117,18 @@ evalStringList :: HExpr -> G ([String], Position)
 evalStringList e = do
   e' <- evaleUH e
   case e' of
-    IAps (ICon _ c) _ [a] -> do
-      a' <- evaleUH a
-      -- XXX this is a horrible way of pulling apart a list, but I don't think there is a better way:
-      case a' of
-        IAps (ICon i' (ICTuple {})) _ [e_h, e_t] | getIdBaseString i' == "List_$Cons" -> do
-          (h, _) <- evalString e_h
-          (t, _) <- evalStringList e_t
-          return (h:t, getIExprPosition e')
-        ICon _ (ICInt _ (IntLit { ilValue = 0 })) ->
-          return ([], getIExprPosition e')
-        _ -> internalError ("evalStringList con: " ++ showTypeless a')
+    IAps (ICon i _) _ [a] ->
+      if i == idPreludeCons then do
+        a' <- evaleUH a
+        case a' of
+          IAps (ICon _ (ICTuple {})) _ [e_h, e_t] -> do
+            (h, _) <- evalString e_h
+            (t, _) <- evalStringList e_t
+            return (h:t, getIExprPosition e')
+          _ -> internalError ("evalStringList Cons: " ++ showTypeless a')
+      -- We get primChr for Nil, since it's a no-argument constructor
+      else if i == idPrimChr then return ([], getIExprPosition e')
+      else internalError ("evalStringList con: " ++ show i)
     _ -> do e'' <- unheapAll e'
             errG (getIExprPosition e', EStringListNF (ppString e'))
 
