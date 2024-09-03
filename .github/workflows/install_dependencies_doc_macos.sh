@@ -2,4 +2,4 @@
 
 brew update
 
-brew install mactex-no-gui
+brew install texlive
