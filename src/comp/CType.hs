@@ -71,7 +71,7 @@ import PreIds(idArrow, idPrimPair, idPrimUnit, idBit, idString,
 import Util(itos)
 import ErrorUtil
 import Pragma(IfcPragma)
-import NumType
+import TypeOps
 import PVPrint(PVPrint(..))
 import FStringCompat
 
@@ -506,6 +506,10 @@ normTAp (TAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))) (TCon (TyNum y ypos))
 normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
         | isJust (res) = cTNum (fromJust res) (getPosition op)
   where res = opNumT op [x]
+
+normTAp (TAp (TCon (TyCon op _ _)) (TCon (TyStr x xpos))) (TCon (TyStr y ypos))
+        | isJust (res) = cTStr (fromJust res) (getPosition op)
+  where res = opStrT op [x, y]
 
 normTAp f a = TAp f a
 
