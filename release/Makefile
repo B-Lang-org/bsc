@@ -26,8 +26,6 @@ LICFILES = $(addprefix $(LICDIR)/, \
 	LICENSE.ghc \
 	LICENSE.hbc \
 	LICENSE.parsec \
-	LICENSE.stp \
-	LICENSE.stp_components \
 	LICENSE.yices \
 	LICENSE.yices-painless \
 	)
