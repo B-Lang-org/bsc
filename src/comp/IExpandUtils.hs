@@ -66,16 +66,16 @@ import Control.Monad(when, liftM)
 import Control.Monad.State(StateT, runStateT, evalStateT, lift, liftIO,
                            gets, get, put, modify)
 import Data.IORef
-import System.IO.Unsafe
+import Data.Time
 import Data.List
 import Data.Maybe
 import Data.Char(isAlphaNum)
-import System.Time -- XXX: from old-time package
-import Debug.Trace(traceM)
 import qualified Data.Array as Array
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.Generics as Generic
+import Debug.Trace(traceM)
+import System.IO.Unsafe
 
 import Eval
 import PPrint
@@ -2072,9 +2072,9 @@ newIStateLocForRule id hide [] = internalError "newIStateLocForRule: Empty loc"
 
 traceProgress :: String -> G ()
 traceProgress str = liftIO $ do
-  ct <- getClockTime
-  now <- toCalendarTime ct
-  traceM ("[" ++ calendarTimeToString now ++ "] elab progress: " ++ str)
+  ct <- getCurrentTime
+  tz <- getCurrentTimeZone
+  traceM ("[" ++ show (utcToLocalTime tz ct) ++ "] elab progress: " ++ str)
 
 showTopProgress :: String -> G ()
 showTopProgress str = do
