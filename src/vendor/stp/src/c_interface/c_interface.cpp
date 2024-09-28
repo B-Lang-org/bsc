@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <thread>
 #include "fdstream.h"
 #include "../printer/printers.h"
 #include "../cpp_interface/cpp_interface.h"
@@ -445,6 +446,7 @@ int vc_query(VC vc, Expr e)
   return vc_query_with_timeout(vc,e,-1);
 }
 
+static std::thread timeout_thread;
 int vc_query_with_timeout(VC vc, Expr e, int timeout_ms) {
   nodestar a = (nodestar)e;
   stpstar stp = ((stpstar)vc);
@@ -453,13 +455,10 @@ int vc_query_with_timeout(VC vc, Expr e, int timeout_ms) {
   assert(!BEEV::ParserBM->soft_timeout_expired);
   if (timeout_ms != -1)
     {
-      itimerval timeout;
-      signal(SIGVTALRM, soft_time_out);
-      timeout.it_interval.tv_usec = 0;
-      timeout.it_interval.tv_sec  = 0;
-      timeout.it_value.tv_usec    = 1000 * (timeout_ms % 1000);
-      timeout.it_value.tv_sec     = timeout_ms / 1000;
-      setitimer(ITIMER_VIRTUAL, &timeout, NULL);
+      timeout_thread = std::thread([timeout_ms] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
+        soft_time_out(0);
+      });
     }
 
   if(!BEEV::is_Form_kind(a->GetKind())) 
@@ -493,7 +492,7 @@ int vc_query_with_timeout(VC vc, Expr e, int timeout_ms) {
   if (timeout_ms !=-1)
     {
       // Reset the timer.
-      setitimer(ITIMER_VIRTUAL, NULL, NULL);
+      timeout_thread = {};
       BEEV::ParserBM->soft_timeout_expired = false;
     }
 

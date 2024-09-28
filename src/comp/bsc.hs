@@ -10,7 +10,7 @@ import System.Exit(ExitCode(ExitFailure, ExitSuccess))
 import System.FilePath(takeDirectory)
 import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuffering, BufferMode(LineBuffering))
 import System.IO(hSetEncoding, utf8)
-import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
+import System.PosixCompat.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
 import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory)
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
 import Data.Char(isSpace, toLower, ord)

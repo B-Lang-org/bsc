@@ -21,6 +21,7 @@
 #ifndef __AIG_H__
 #define __AIG_H__
 
+#include <sys/stat.h>
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -176,10 +177,12 @@ static inline int          Aig_WordCountOnes( unsigned uWord )
     return  (uWord & 0x0000FFFF) + (uWord>>16);
 }
 
-static inline Aig_Obj_t *  Aig_Regular( Aig_Obj_t * p )           { return (Aig_Obj_t *)((unsigned long)(p) & ~01); }
-static inline Aig_Obj_t *  Aig_Not( Aig_Obj_t * p )               { return (Aig_Obj_t *)((unsigned long)(p) ^  01); }
-static inline Aig_Obj_t *  Aig_NotCond( Aig_Obj_t * p, int c )    { return (Aig_Obj_t *)((unsigned long)(p) ^ (c)); }
-static inline int          Aig_IsComplement( Aig_Obj_t * p )      { return (int )(((unsigned long)p) & 01);         }
+static inline unsigned long bitcast_long(void* f) {unsigned long t; memcpy(&t, &f, sizeof(unsigned long)); return t; }
+
+static inline Aig_Obj_t *  Aig_Regular( Aig_Obj_t * p )           { return (Aig_Obj_t *)(bitcast_long(p) & ~01); }
+static inline Aig_Obj_t *  Aig_Not( Aig_Obj_t * p )               { return (Aig_Obj_t *)(bitcast_long(p) ^  01); }
+static inline Aig_Obj_t *  Aig_NotCond( Aig_Obj_t * p, int c )    { return (Aig_Obj_t *)(bitcast_long(p) ^ (c)); }
+static inline int          Aig_IsComplement( Aig_Obj_t * p )      { return (int )((bitcast_long(p)) & 01);         }
 
 static inline int          Aig_ManPiNum( Aig_Man_t * p )          { return p->nObjs[AIG_OBJ_PI];                    }
 static inline int          Aig_ManPoNum( Aig_Man_t * p )          { return p->nObjs[AIG_OBJ_PO];                    }

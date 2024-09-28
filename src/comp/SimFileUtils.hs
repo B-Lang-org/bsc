@@ -13,8 +13,11 @@ import Version(bscVersionStr)
 import FileNameUtil
 import ErrorUtil(internalError)
 
-import System.Posix.Files
-import System.Posix.Types(EpochTime)
+import System.Directory (doesFileExist, getModificationTime)
+import System.FilePath (FilePath)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import Data.Time.Clock (UTCTime)
+
 import System.IO(openFile, hGetContents, hClose, IOMode(..))
 import Control.Monad(filterM)
 import Control.Exception(bracketOnError)
@@ -23,13 +26,14 @@ import qualified Data.Map as M
 
 -- import Debug.Trace(traceM)
 
-getModTime :: FilePath -> IO (Maybe EpochTime)
-getModTime f =
-    do ok <- fileExist f
-       if ok
-        then do s <- getFileStatus f
-                return $ Just (modificationTime s)
-        else return Nothing
+getModTime :: FilePath -> IO (Maybe POSIXTime)
+getModTime f = do
+    ok <- doesFileExist f
+    if ok
+    then do
+        modTime <- getModificationTime f
+        return $ Just (utcTimeToPOSIXSeconds modTime)
+    else return Nothing
 
 codeGenOptionDescr :: Flags -> Bool -> String
 codeGenOptionDescr flags is_top =
@@ -39,7 +43,7 @@ codeGenOptionDescr flags is_top =
 
 readCodeGenOptionDescr :: FilePath -> IO (Maybe String)
 readCodeGenOptionDescr f =
-    do ok <- fileExist f
+    do ok <- doesFileExist f
        if ok
         then do bracketOnError (openFile f ReadMode)
                                (\hdl -> do hClose hdl
