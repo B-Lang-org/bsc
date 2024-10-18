@@ -4,6 +4,97 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2024.07 Release
+---------------
+
+Changes since release 2024.01:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Fix the type of `continuousAssert` in the Libraries Reference Guide
+  (GitHub PR#686)
+
+* Minor typo fix in the BH Reference Guide (GitHub PR#708)
+
+Compiler
+~~~~~~~~
+
+* Update source code to compile with GHC 9.10.1 (GitHub PR#705)
+
+Libraries
+~~~~~~~~~
+
+* Add BuildList library, analogous to BuildVector (GitHub PR#723)
+
+Bluetcl
+~~~~~~~
+
+* Resolve a potential compilation warning by removing the use of
+  K&R C syntax that is deprecated in newer C standards
+  (GitHub PR#703)
+
+Bluesim
+~~~~~~~
+
+* Add braces to some if-statements in generated {cpp} modules to avoid
+  dangling-else warnings (GitHub Issue#442, PR#691)
+
+* Resolve a warning during compilation of the Bluesim kernel by fixing
+  a call to `bk_clock_name` in code that is unused except by
+  developers for debugging (GitHub Issue#698, PR#702)
+
+* Resolve a compilation error with newer {cpp} compilers by updating the
+  source code to not use a feature that is deprecated since the C++20
+  standard (GitHub Issue#698, PR#701)
+
+Utilities
+~~~~~~~~~
+
+* Update BSV mode for `emacs` to work with newer versions
+  (GitHub PR#697)
+
+General
+~~~~~~~
+
+* Clean up how the `tcllibs` flags are computed in `platform.sh`
+  (GitHub PR#703)
+  ** This adds the version number to the flag for macOS
+     (from `-ltcl` to `-ltcl8.5`)
+
+Test Suite
+~~~~~~~~~~
+
+* Add support for querying the `MACHTYPE` so that tests can support
+  different behavior on, say, `arm64` vs `x86_64`
+  (GitHub Issue#688, PR#690)
+
+Internal
+~~~~~~~~
+
+* Releases now built with GHC 9.6.6 (previously 9.4.8)
+  (GitHub PR#705, PR#728)
+
+* Updates to GitHub CI (continuous integration)
+  ** Retire the CI for macOS 11 (GitHub PR#700)
+  ** Add CI for macOS 14 (GitHub PR#690)
+  ** Add CI for Ubuntu 24.04 (beta) (GitHub PR#700)
+  ** Expand the number of GHC versions that are tested besides
+     the version for releases -- previously only a single "latest"
+     version was being tested (GitHub PR#705)
+     *** Continue testing with older GHC 9.4.8,
+         which GHCUP still labels as recommended
+     *** Continue testing with GHC 9.8 (updated to the latest 9.8.2)
+     *** Add testing with the new GHC 9.10.1
+  ** Support leaving the `hls_version` field blank to indicate that
+     the HLS testing step should be skipped (PR#703)
+     *** This allows for testing newer GHC installations
+         that don't yet have HLS support in GHCUP
+  ** Ensure that `brew` and `apt-get` are updated before installing,
+     to avoid failures due to old GitHub runner images (GitHub PR#687)
+
+'''
+
 2024.01 Release
 ---------------
 

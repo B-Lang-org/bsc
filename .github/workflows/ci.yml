@@ -42,8 +42,8 @@ jobs:
     uses: ./.github/workflows/build-and-test-ubuntu.yml
     with:
       os: ${{ matrix.os }}
-      ghc_version: 9.6.5
-      hls_version: 2.8.0.0
+      ghc_version: 9.6.6
+      hls_version: 2.9.0.1
     secrets: inherit
 
   build-and-test-macos:
@@ -55,8 +55,8 @@ jobs:
     uses: ./.github/workflows/build-and-test-macos.yml
     with:
       os: ${{ matrix.os }}
-      ghc_version: 9.6.5
-      hls_version: 2.8.0.0
+      ghc_version: 9.6.6
+      hls_version: 2.9.0.1
     secrets: inherit
 
   # ------------------------------

@@ -1,0 +1,25 @@
+package BuildList where
+
+import List
+
+-- A typeclass used to implement a vector construction function which can take
+-- any number of arguments (>0).
+-- The type parameter `a` is the type of the elements in the list.
+-- The type parameter `r` is the return type of the function, which can be a
+-- list (base case) or a function (recursive case) that takes another element
+-- and returns a new function.
+-- The list here is built in reverse for efficiency, and then reversed.
+class BuildList a r | r -> a where
+  lst' :: List a -> a -> r
+
+instance BuildList a (List a) where
+  lst' l x = reverse $ x :> l
+
+instance (BuildList a r) => BuildList a (a -> r) where
+  lst' l x y = lst' (x :> l) y
+
+-- Example usage:
+-- lst 1 2 3 4 5 => 1 :> 2 :> 3 :> 4 :> 5 :> nil
+-- lst False     => False :> nil
+lst :: (BuildList a r) => a -> r
+lst x = lst' nil x
