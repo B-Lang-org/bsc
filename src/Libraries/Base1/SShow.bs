@@ -28,6 +28,9 @@ instance SShow (UInt a) where
 instance SShow (Int a) where
   sshow = compose integerToString toStaticIndex
 
+instance SShow Integer where
+  sshow = integerToString
+
 instance SShow Real where
   sshow = realToString
 
@@ -37,13 +40,20 @@ instance SShow Char where
 instance SShow String where
   sshow = doubleQuote  -- XXX should escape special chars
 
--- SShow for lists uses [] mirroring Haskell, even though we don't
+-- SShow for lists and arrays uses [] mirroring Haskell, even though we don't
 -- actually support that syntax for constructing values.
 instance (SShow a) => SShow (List a) where
   sshow l =
     let contents =
           if List.null l then ""
           else List.foldr1 (\ a b -> a +++ ", " +++ b) $ List.map sshow l
+    in "[" +++ contents +++ "]"
+
+instance (SShow a) => SShow (Array a) where
+  sshow l =
+    let contents =
+          if arrayLength l == 0 then ""
+          else Array.foldr1 (\ a b -> a +++ ", " +++ b) $ Array.map sshow l
     in "[" +++ contents +++ "]"
 
 -- Show tuple types with tuple syntax rather than PrimPair {...}
