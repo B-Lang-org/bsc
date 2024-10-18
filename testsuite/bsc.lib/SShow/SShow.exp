@@ -1,0 +1,6 @@
+
+# tests for elaboration-time classic-syntax show library
+
+compile_verilog_pass TestSShow.bs sysTestSShow
+
+compare_file sysTestSShow.out
