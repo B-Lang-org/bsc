@@ -91,7 +91,9 @@ jobs:
           ghcup install hls ${{ inputs.hls_version }}
           macos_ver=$(sw_vers -productVersion | cut -d '.' -f 1)
           if [ "$macos_ver" -ge "14" ]; then
-              brew install pyyaml
+              python3 -m venv ./venv
+              source ./venv/bin/activate
+              python3 -m pip install pyyaml
             else
               pip3 install pyyaml
             fi
