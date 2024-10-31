@@ -49,32 +49,36 @@ The following is a running list of those writings.
 
 * See the test suite's own [README file](./testsuite/README.md)
 
-### Parsing
+### BSC stage: Parsing
 
 * [Keyword parsing in BH/Classic](https://github.com/B-Lang-org/language-bh/issues/5#issuecomment-1856814271)
 
-### Elaboration
+### BSC stage: Type checking
+
+* See the link on the use fo SMT solvers, below
+
+### BSC stage: Elaboration
 
 * [How to add a new evaluator primitive to BSC](https://groups.io/g/b-lang-discuss/message/526)
   * specifically how to add a function to get the current module name
 * See the link on the use of SMT solvers, below
 
-### Scheduling
+### BSC stage: Scheduling
 
 * [Understanding scheduling](https://github.com/B-Lang-org/bsc/discussions/622#discussioncomment-7203579)
 * See the link on the use of SMT solvers, below
 
-### Backends / Naming
+### BSC backends / naming
 
 * [Naming conventions in the generated Verilog](https://groups.io/g/b-lang-discuss/topic/106903347)
 * [Verilog/Bluesim "main" and the naming of clock and reset ports](https://groups.io/g/b-lang-discuss/message/606)
 
-### Verilog
+### BSC backend: Verilog
 
 * [BSC's deduction of portprops](https://groups.io/g/b-lang-discuss/topic/106516831)
 * [How to use the different Verilog directories (for different synth tools)](https://groups.io/g/b-lang-discuss/topic/106402322)
 
-### Bluesim
+### BSC backend: Bluesim
 
 * See the link on Bluesim stages, above, under Basics
 * [How Bluesim works (mostly the VCD dumping)](https://github.com/B-Lang-org/bsc/issues/519#issuecomment-1873853532)
@@ -94,7 +98,7 @@ The following is a running list of those writings.
 * [SAT solver usage and dumping](https://github.com/B-Lang-org/bsc/discussions/693#discussioncomment-9148985)
 * TBD: Status of the SMT solver source codes and how they are incorporated into BSC
 
-### Clock and Reset
+### Clock and Reset methodology
 
 * [Clock/reset inference](https://github.com/B-Lang-org/bsc/discussions/661)
 * BSC implements certain design decisions for clocks and resets --
