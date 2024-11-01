@@ -209,6 +209,18 @@ proc which_mach {} {
     return $env(MACHTYPE)
 }
 
+proc which_macos {} {
+    if { [catch "exec sw_vers -productVersion | cut -d '.' -f 1" version] } {
+	perror "failed to execute sw_vers to get macOS version: $version"
+	exit 1
+    }
+    if { $version == "" } {
+	perror "macOS version is empty"
+	exit 1
+    }
+    return $version
+}
+
 # return true if the given Bluetcl packahe is available
 proc bluetcl_package_available { pkg } {
     global bluetcl
