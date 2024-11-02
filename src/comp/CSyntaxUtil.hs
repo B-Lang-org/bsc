@@ -63,6 +63,10 @@ mkMaybe :: (Maybe CExpr) -> CExpr
 mkMaybe Nothing = CCon idInvalid []
 mkMaybe (Just e) = CCon idValid [e]
 
+mkList :: [CExpr] -> CExpr
+mkList [] = CCon (idNil noPosition) []
+mkList (e:es) = CCon (idCons $ getPosition e) [e, mkList es]
+
 num_to_cliteral_at :: Integral n => Position -> n -> CLiteral
 num_to_cliteral_at pos num = CLiteral pos $ LInt $ ilDec (toInteger num)
 

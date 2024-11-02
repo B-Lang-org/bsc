@@ -602,7 +602,7 @@ chkTopDef r mi isDep (Cprimitive i ct) = do
 chkTopDef r mi isDep (CIValueSign i ct) = do
     sc <- mkSchemeWithSymTab r ct
     return [(i, VarInfo VarDefn (i :>: sc) (isDep i))]
-chkTopDef r mi isDep (Cforeign i qt on ops) = do
+chkTopDef r mi isDep (Cforeign i qt on ops ni) = do
     sc@(Forall _ (_ :=> t)) <- mkSchemeWithSymTab r qt
     let name = case on of
                 Just s -> s
@@ -622,7 +622,9 @@ chkTopDef r mi isDep (Cforeign i qt on ops) = do
                        in  (all isGoodArg args) && (isGoodResult res)
 
     let i' = qual mi i
-    if isGoodType (expandSyn t) then
+    -- This check is skipped for noinline-created foreign functions, since their type is
+    -- determined by the WrapField type class, and a bad foreign type will raise an error in typecheck.
+    if ni || isGoodType (expandSyn t) then
         return [(i', VarInfo (VarForg name ops) (i' :>: sc) (isDep i))]
      else
         throwError (getPosition i, EForeignNotBit (pfpString i))

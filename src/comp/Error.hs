@@ -993,6 +993,7 @@ data ErrMsg =
         | EModuleUndet
         | EModuleUndetNoMatch
         | EStringNF String
+        | EStringListNF String
         | ENoNF String String
         | EHasImplicit String
         | EModPortHasImplicit String String
@@ -3927,6 +3928,9 @@ getErrorText (WRuleUndetPred is_meth rule poss) =
               s2par ("Don't-care values were introduced at the following positions:") $$
               nest 4 (vcat (map (text . prPosition) poss))
     )
+
+getErrorText (EStringListNF s) =
+    (Generate 129, empty, s2par ("Not a compile time string list: " ++ s))
 
 
 ---------------------------------------------------------------------------
