@@ -11,24 +11,28 @@ VERSION = v$(VER_MAJ).$(VER_MIN)
 
 all: install
 
+$(info OSTYPE: $(OSTYPE))
 ifeq ($(OSTYPE), Darwin)
-SNAME=libyices.$(VER_MAJ).dylib
+SNAME=lib/libyices.$(VER_MAJ).dylib
+else ifeq ($(OSTYPE), Mingw)
+SNAME=$(VERSION)/yices2-inst/bin/libyices.dll
 else
-SNAME=libyices.so.$(VER_MAJ).$(VER_MIN)
+SNAME=lib/libyices.so.$(VER_MAJ).$(VER_MIN)
 endif
 
 install:
 	$(MAKE) -C $(VERSION) install
+	rm -rf include lib include_hs
 	ln -fsn $(VERSION)/include
 	ln -fsn $(VERSION)/lib
 	ln -fsn $(VERSION)/include_hs
 	install -m 755 -d $(PREFIX)/lib/SAT
-	install -m 644 lib/$(SNAME) $(PREFIX)/lib/SAT
+	install -m 644 $(SNAME) $(PREFIX)/lib/SAT
 
 clean:
 	$(MAKE) -C $(VERSION) clean
 
 full_clean:
 	$(MAKE) -C $(VERSION) full_clean
-	rm -f include lib include_hs
+	rm -rf include lib include_hs
 
