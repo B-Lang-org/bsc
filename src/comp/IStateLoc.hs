@@ -18,20 +18,21 @@ module IStateLoc (
   ,newIStateLocTop
   ) where
 
+import Data.Char(isAlphaNum)
+import Data.Data
+import Data.List(isPrefixOf,tails)
+
+import qualified Data.Map as M
+
 import IType
 import Id
-import qualified Data.Generics as Generic
 import Eval(Hyper(..))
-import Data.Char(isAlphaNum)
-
 import Position
 import PreStrings(fsUnderscore,fsElements, fsvElements)
 import FStringCompat
 import PPrint
 import PFPrint(pfpString)
 import PreStrings(fs_unnamed, fsAddRules, fsLoop, fsBody, fsC)
-import qualified Data.Map as M
-import Data.List(isPrefixOf,tails)
 import Error(internalError)
 import IOUtil(progArgs)
 import Util(traces)
@@ -71,7 +72,7 @@ data IStateLocPathComponent = IStateLocPathComponent {
   -- Name generation
   isl_prefix                 :: NameGenerate, -- currently computed hierarchical prefix
   isl_loop_suffix         :: NameGenerate  -- loop indexes to add once a "real" name is found.
-  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
+  } deriving (Eq, Show, Data, Typeable)
 
 
 -- ---------------------------------------
@@ -124,7 +125,7 @@ mkISLPC inst_id ifc_id ifc_type = islpc
 data NameGenerate = NameEmpty             -- No name so far
                     | NameIndex [Integer] -- loop indexes
                     | Name Id             -- a real name
-                    deriving (Eq, Show, Generic.Data, Generic.Typeable)
+                    deriving (Eq, Show, Data, Typeable)
 
 --
 instance Hyper NameGenerate where
