@@ -63,3 +63,13 @@ if { $vtest == 1 } {
     find_n_strings sysCompareSameExpr.v {rSLE} 1
     find_n_strings sysCompareSameExpr.v {rSGE} 1
 }
+
+# Test that the evaluator has an 'improveIf' optimization for
+# ICCon/ICUndet when the type has only one constructor
+# (GitHub Issue #742)
+#
+# Without the optimization, there is excessive unfolding steps
+# and stack usage
+#
+compile_verilog_pass ImproveIf_ConUndet_OneCon.bsv {} \
+    {-steps-max-intervals 10 -steps-warn-interval 100000 +RTS -K10m -RTS}

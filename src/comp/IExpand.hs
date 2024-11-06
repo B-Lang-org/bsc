@@ -4398,6 +4398,42 @@ improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
   let chrArgType = iGetType chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
+
+-- Push if improvement inside constructors when one arm is undefined
+-- and the type has only one constructor
+--
+-- Further down, a general improveIf rule optimizes 'if c e _' to just 'e'.
+-- But that can cause poor code generation for if-else chains returning
+-- the constructors of a union type, so an earlier improveIf rule catches
+-- that situation (before the general rule can apply).
+-- However, if there is only one constructor, we do want an optimization to apply,
+-- so we put that here, prior to the blocking rule.
+--
+improveIf f t cnd thn@(IAps (ICon i1 c1@(ICCon {})) ts1 es1)
+                  els@(ICon i2 (ICUndet { iuKind = u }))
+  | numCon (conTagInfo c1) == 1
+  = do
+      when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
+      let realConType = itInst (iConType c1) ts1
+          (argTypes, _) = itGetArrows realConType
+      when (length argTypes /= length es1) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es1))
+      let mkUndet t = icUndetAt (getIdPosition i2) t u
+      (es', bs) <- mapAndUnzipM (\(t, e1) -> improveIf f t cnd e1 (mkUndet t)) (zip argTypes es1)
+      -- unambiguous improvement because the ICCon has propagated out
+      return ((IAps (ICon i1 c1) ts1 es'), True)
+improveIf f t cnd thn@(ICon i1 (ICUndet { iuKind = u }))
+                  els@(IAps (ICon i2 c2@(ICCon {})) ts2 es2)
+  | numCon (conTagInfo c2) == 1
+  = do
+      when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
+      let realConType = itInst (iConType c2) ts2
+          (argTypes, _) = itGetArrows realConType
+      when (length argTypes /= length es2) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es2))
+      let mkUndet t = icUndetAt (getIdPosition i1) t u
+      (es', bs) <- mapAndUnzipM (\(t, e2) -> improveIf f t cnd (mkUndet t) e2) (zip argTypes es2)
+      -- unambiguous improvement because the ICCon has propagated out
+      return ((IAps (ICon i2 c2) ts2 es'), True)
+
 -- Do not "optimize" constructors against undefined values because this can remove
 -- the conditions required to optimize chains of ifs like these:
 -- if (x == 0) 0 else if (x == 1) 1 else ... back to just x
