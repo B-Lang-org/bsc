@@ -1,0 +1,145 @@
+package SShow where
+
+import ListN
+import Vector
+
+{-
+ - Show values at elaboration time as strings, using generics.
+ - Uses classic (Haskell) syntax, like CShow.
+ -}
+
+--@ XXX THIS PACKAGE IS NOT YET DOCUMENTED
+
+class SShow a where
+  -- Show a top-level value with classic syntax
+  sshow :: a -> String
+
+  -- Unambigously show a value with parentheses, if required
+  sshowP :: a -> String
+  sshowP = sshow
+
+-- Explicit instances for various primitive types
+instance SShow (Bit n) where
+  sshow = bitToString
+
+instance SShow (UInt a) where
+  sshow = compose integerToString toStaticIndex
+
+instance SShow (Int a) where
+  sshow = compose integerToString toStaticIndex
+
+instance SShow Integer where
+  sshow = integerToString
+
+instance SShow Real where
+  sshow = realToString
+
+instance SShow Char where
+  sshow x = "'" +++ charToString x +++ "'"
+
+instance SShow String where
+  sshow = doubleQuote  -- XXX should escape special chars
+
+-- SShow for lists and arrays uses [] mirroring Haskell, even though we don't
+-- actually support that syntax for constructing values.
+instance (SShow a) => SShow (List a) where
+  sshow l =
+    let contents =
+          if List.null l then ""
+          else List.foldr1 (\ a b -> a +++ ", " +++ b) $ List.map sshow l
+    in "[" +++ contents +++ "]"
+
+instance (SShow a) => SShow (Array a) where
+  sshow l =
+    let contents =
+          if arrayLength l == 0 then ""
+          else Array.foldr1 (\ a b -> a +++ ", " +++ b) $ Array.map sshow l
+    in "[" +++ contents +++ "]"
+
+-- Show tuple types with tuple syntax rather than PrimPair {...}
+instance SShow () where
+  sshow () = "()"
+
+instance (SShowTuple (a, b)) => SShow (a, b) where
+  sshow x = "("  +++ sshowTuple x +++ ")"
+
+class SShowTuple a where
+  sshowTuple :: a -> String
+
+instance (SShow a, SShowTuple b) => SShowTuple (a, b) where
+  sshowTuple (x, y) = sshow x +++ ", " +++ sshowTuple y
+
+instance (SShow a) => SShowTuple a where
+  sshowTuple = sshow
+
+-- Default generic instance uses the SShow' type class over generic representations
+instance (Generic a r, SShow' r) => SShow a where
+  sshow x = sshow' $ from x
+  sshowP x = sshowP' $ from x
+
+class SShow' a where
+  sshow' :: a -> String
+  sshowP' :: a -> String
+  sshowP' = sshow'
+
+-- Note that there is no instance for SShow' ConcPrim - all showable primitive
+-- types should eventually have SShow instances.  This is because there is no
+-- generic way to show any primitive type.
+
+instance (SShow a) => SShow' (Conc a) where
+  sshow' (Conc x) = sshow x
+  sshowP' (Conc x) = sshowP x
+
+instance SShow' (ConcPoly a) where
+  sshow' (ConcPoly _) = "<polymorphic value>"
+
+-- Note that below there are more specific instances for
+-- SShow' (Meta (MetaConsNamed ...)) and SShow' (Meta (MetaConsAnon ...))
+instance (SShow' a) => SShow' (Meta m a) where
+  sshow' (Meta x) = sshow' x
+  sshowP' (Meta x) = sshowP' x
+
+instance (SShow' a, SShow' b) => SShow' (Either a b) where
+  sshow' (Left x) = sshow' x
+  sshow' (Right x) = sshow' x
+  sshowP' (Left x) = sshowP' x
+  sshowP' (Right x) = sshowP' x
+
+instance (SShowSummand a) => SShow' (Meta (MetaConsNamed name idx nfields) a) where
+  sshow' (Meta x) = stringOf name +++ " {" +++ sshowSummandNamed x +++ "}"
+  sshowP' x = "(" +++ sshow' x +++ ")"
+
+instance (SShowSummand a) => SShow' (Meta (MetaConsAnon name idx nfields) a) where
+  sshow' (Meta x) = stringOf name +++ sshowSummandAnon x
+  sshowP' x = if (valueOf nfields) > 0 then "(" +++ sshow' x +++ ")" else sshow' x
+
+-- Defines the classic-syntax show operation for the representation type of a
+-- single summand's constructor.
+-- We only know whether a constructor is named or anonymous at the top of the
+-- constructor's representation type, so we propagate that information by calling
+-- the appropriate function of this type class.
+class SShowSummand a where
+  sshowSummandNamed :: a -> String
+  sshowSummandAnon  :: a -> String
+
+instance (SShowSummand a, SShowSummand b) => SShowSummand (a, b) where
+  sshowSummandNamed (x, y) = sshowSummandNamed x +++ sshowSummandNamed y
+  sshowSummandAnon  (x, y) = sshowSummandAnon x +++ sshowSummandAnon y
+
+instance SShowSummand () where
+  sshowSummandNamed () = ""
+  sshowSummandAnon  () = ""
+
+instance (SShow' a) => SShowSummand (Meta (MetaField name idx) a) where
+  sshowSummandNamed (Meta x) = (if valueOf idx > 0 then "; " else "") +++ stringOf name +++ "=" +++ sshow' x
+  sshowSummandAnon  (Meta x) = " " +++ sshowP' x
+
+-- SShow for fixed-size collection types uses [] mirroring Haskell, even though we don't
+-- actually support that syntax for constructing values.
+instance (SShow' a) => SShow' (Vector n a) where
+  sshow' v =
+    let contents =
+          if valueOf n > 0
+          then List.foldr1 (\ a b -> a +++ ", " +++ b) $ List.map sshow' $ Vector.toList v
+          else ""
+    in "[" +++ contents +++ "]"

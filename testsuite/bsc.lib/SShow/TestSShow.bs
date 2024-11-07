@@ -1,0 +1,47 @@
+package TestSShow where
+
+import SShow
+import ListN
+import Vector
+import BuildVector
+import BuildList
+
+data Foo = A (UInt 8) Bool Bar
+         | B (Int 16)
+         | C
+         | D {a :: (Bit 8); b :: Foo}
+  deriving (FShow)
+
+struct Bar =
+  foo :: Foo
+  x :: (UInt 8)
+ deriving (FShow)
+
+data Baz a = Baz a a
+  deriving (FShow)
+
+struct Qux =
+  x :: a -> a -- Higher rank
+  y :: Int 8
+
+sysTestSShow :: Module Empty
+sysTestSShow = module
+  out <- openFile "sysTestSShow.out" WriteMode
+
+  hPutStrLn out (sshow (42 :: UInt 8))
+  hPutStrLn out (sshow (321 :: Integer))
+  hPutStrLn out (sshow (3.14 :: Real))
+  hPutStrLn out (sshow '*')
+  hPutStrLn out (sshow "Hello")
+  hPutStrLn out (sshow ())
+  hPutStrLn out (sshow (Bar {x=42; foo=C}))
+  hPutStrLn out (sshow (A 12 True (Bar {foo=D {a=34; b=C}; x=42})))
+  hPutStrLn out (sshow (Baz C (A 12 True (Bar {foo=D {a=34; b=C}; x=42}))))
+  hPutStrLn out (sshow ((vec (Bar {x=42; foo=C}) (Bar {x=3; foo=B 2323})) :: Vector 2 Bar))
+  hPutStrLn out (sshow $ vectorToArray ((vec (Bar {x=42; foo=C}) (Bar {x=3; foo=B 2323})) :: Vector 2 Bar))
+  hPutStrLn out (sshow ((lst (Bar {x=42; foo=C}) (Bar {x=3; foo=B 2323})) :: List Bar))
+  hPutStrLn out (sshow ((Bar {x=42; foo=C}) :> (Bar {x=3; foo=B 2323}) :> ListN.nil))
+  hPutStrLn out (sshow ("x", ((Left 123) :: Either (UInt 8) Bar, False)))
+  hPutStrLn out (sshow $ Qux {x = id; y = 42;})
+
+  hClose out
