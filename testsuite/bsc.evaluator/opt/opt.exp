@@ -63,3 +63,8 @@ if { $vtest == 1 } {
     find_n_strings sysCompareSameExpr.v {rSLE} 1
     find_n_strings sysCompareSameExpr.v {rSGE} 1
 }
+
+# Test that 'improveIf' of ICCon and ICUndet is allowed
+# for types with only one constructor
+# (GitHub Issue #742)
+compile_verilog_pass ImproveIf_ConUndet_OneCon.bsv
