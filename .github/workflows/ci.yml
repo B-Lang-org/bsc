@@ -68,11 +68,11 @@ jobs:
       matrix:
         ghc:
           - version: 9.4.8
-            hls: 2.7.0.0
-          - version: 9.8.2
-            hls: 2.7.0.0
-          - version: 9.10.1
+            hls: 2.9.0.1
+          - version: 9.8.4
             hls:
+          - version: 9.10.1
+            hls: 2.9.0.1
     name: "Build/Test: GHC Ubuntu"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
     with:
@@ -86,11 +86,11 @@ jobs:
       matrix:
         ghc:
           - version: 9.4.8
-            hls: 2.7.0.0
-          - version: 9.8.2
-            hls: 2.7.0.0
-          - version: 9.10.1
+            hls: 2.9.0.1
+          - version: 9.8.4
             hls:
+          - version: 9.10.1
+            hls: 2.9.0.1
     name: "Build/Test: GHC macOS"
     uses: ./.github/workflows/build-and-test-macos.yml
     with:
