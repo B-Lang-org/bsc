@@ -55,7 +55,7 @@ The following is a running list of those writings.
 
 ### BSC stage: Type checking
 
-* See the link on the use fo SMT solvers, below
+* See the link on the use of SMT solvers, below
 
 ### BSC stage: Elaboration
 
