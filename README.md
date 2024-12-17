@@ -10,13 +10,14 @@
 [Version]:        https://img.shields.io/badge/release-2024.07-red.svg?logo=v
 [Build Status]:   https://github.com/b-lang-org/bsc/workflows/CI/badge.svg?branch=main&event=push
 
-**[Community] &bull; [Download] &bull; [Documentation] &bull; [Build] &bull; [Test]**
+**[Community] &bull; [Download] &bull; [Documentation] &bull; [Build] &bull; [Test] &bull; [Develop]**
 
 [Community]: #community
 [Download]: #download
 [Documentation]: #documentation
 [Build]: ./INSTALL.md
 [TEST]: ./testsuite/README.md
+[Develop]: ./DEVELOP.md
 
 ---
 
