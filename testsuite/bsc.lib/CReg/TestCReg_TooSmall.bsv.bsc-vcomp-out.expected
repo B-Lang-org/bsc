@@ -1,10 +1,10 @@
 checking package dependencies
 compiling TestCReg_TooSmall.bsv
 code generation for sysTestCReg_TooSmall starts
-Error: "PreludeBSV.bsv", line 1004, column 37: (S0015)
+Error: "PreludeBSV.bsv", line 1005, column 37: (S0015)
   Bluespec evaluation-time error: `mkCReg' cannot have a negative number of
   ports
-  During elaboration of `error' at "PreludeBSV.bsv", line 1004, column 13.
+  During elaboration of `error' at "PreludeBSV.bsv", line 1005, column 13.
   During elaboration of `rg' at "TestCReg_TooSmall.bsv", line 5, column 19.
   During elaboration of `sysTestCReg_TooSmall' at "TestCReg_TooSmall.bsv",
   line 3, column 8.
