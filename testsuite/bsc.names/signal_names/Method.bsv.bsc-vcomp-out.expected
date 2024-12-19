@@ -17,7 +17,7 @@ arg info  [clockarg default_clock;, resetarg default_reset;]
 -- APackage resets
 [(0, { wire:  RST_N })]
 -- AP state elements
-rg :: ABSTRACT:  PreludeBSV._PreludeBSV.VRWire111 = RWire
+rg :: ABSTRACT:  PreludeBSV._PreludeBSV.VRWire112 = RWire
 						    (VModInfo
 						     RWire
 						     clock clk();
