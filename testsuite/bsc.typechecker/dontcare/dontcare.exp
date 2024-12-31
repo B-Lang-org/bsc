@@ -45,8 +45,12 @@ compare_file DummyInDef.bs.bsc-out
 compile_pass DummyInDefOp.bs "-dinternal"
 compare_file DummyInDefOp.bs.bsc-out
 
+# The order of _tcdict<n> defs changed in GHC 9.12.1
+# Test that the output matches one of the possible outputs
 compile_pass DummyInDeflQual.bs "-dinternal"
-compare_file DummyInDeflQual.bs.bsc-out
+compare_file_list DummyInDeflQual.bs.bsc-out \
+    {DummyInDeflQual.bs.bsc-out.0.expected \
+     DummyInDeflQual.bs.bsc-out.1.expected}
 
 if {$vtest == 1} {
 compile_verilog_pass DummyInRuleQual.bs sysDummyInRuleQual "-dATS"

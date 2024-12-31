@@ -930,8 +930,12 @@ proc make_bsc_sched_output_name { source } {
     return $filename
 }
 
-proc make_diff_output_name { source } {
-    set filename "$source.diff-out"
+proc make_diff_output_name { source {tag ""} } {
+    if {[string compare $tag ""] == 0} {
+        set filename "$source.diff-out"
+    } else {
+        set filename "$source.$tag.diff-out"
+    }
     return $filename
 }
 
@@ -2124,14 +2128,7 @@ proc compare_file { filename {expected ""} {stat "compare_file"}} {
     }
     set output [make_diff_output_name $filename]
 
-    set diff_flags "-u"
-
-    set ignore_pattern [format "-I \"SystemC\" -I \"dumpfile parameter\"" ]
-
-    set cmd "diff $diff_flags -b $ignore_pattern $expected $filename >& $output"
-    verbose "Diffing: $cmd" 2
-
-    set diff_status [catch "exec $cmd"]
+    set diff_status [compare_file_core $filename $expected $output]
 
     if { $diff_status == 0 } {
         set status 0
@@ -2144,6 +2141,55 @@ proc compare_file { filename {expected ""} {stat "compare_file"}} {
     }
     cd $here
     return $status
+}
+
+proc compare_file_list { filename expected_list {stat "compare_file_list"}} {
+    global srcdir
+    global subdir
+
+    incr_stat $stat
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set status 1
+    set n 0
+    foreach expected $expected_list {
+
+        set output [make_diff_output_name $filename "option$n"]
+
+        set diff_status [compare_file_core $filename $expected $output]
+
+        if { $diff_status == 0 } {
+            set status 0
+            pass "`$filename' identical to `$expected'"
+            file delete -force $output
+            # Exit the foreach loop
+            break
+        }
+
+        incr n
+    }
+
+    if { $status == 1 } {
+        fail "`$filename' differs from list of possible expected files"
+        set output_pat [make_diff_output_name $filename {*}]
+        verbose -log "(Differences written to `[file join $subdir $output_pat]')" 1
+    }
+
+    cd $here
+    return $status
+}
+
+proc compare_file_core { filename expected output } {
+
+    set diff_flags "-u"
+    set ignore_pattern [format "-I \"SystemC\" -I \"dumpfile parameter\"" ]
+
+    set cmd "diff $diff_flags -b $ignore_pattern $expected $filename >& $output"
+    verbose "Diffing: $cmd" 2
+
+    return [catch "exec $cmd"]
 }
 
 # compare 2 files, first filtering through a sed script
