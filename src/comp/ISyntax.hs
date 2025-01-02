@@ -96,7 +96,7 @@ import IdPrint
 import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger)
 import Backend
 import Prim(PrimOp(..))
-import NumType
+import TypeOps
 import ConTagInfo
 import VModInfo(VModInfo, vArgs, vName, VName(..), {- VeriPortProp(..), -}
                 VArgInfo(..), VFieldInfo(..), isParam, VWireInfo)
@@ -425,6 +425,9 @@ normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
 normITAp (ITCon op _ _) (ITNum x) | isJust (res) =
     mkNumConT (fromJust res)
   where res = opNumT op [x]
+normITAp (ITAp (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
+    ITStr (fromJust res)
+  where res = opStrT op [x, y]
 
 normITAp f@(ITCon op _ _) a | op == idSizeOf && notVar a =
         -- trace ("normITAp: " ++ ppReadable (ITAp f a)) $
