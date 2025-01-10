@@ -3972,14 +3972,15 @@ Since an Interface is a type, we can have nested types:
 
 \index{Alias}
 \index{NumAlias}
+\index{StrAlias}
 
 The \te{typedef} statement must always be at the top level of a
 package, not within a module.  To introduce a local name within a
-module, use \te{Alias} or \te{NumAlias} (see \LibRefGuide).  Since
+module, use \te{Alias}, \te{NumAlias} or \te{StrAlias} (see \LibRefGuide).  Since
 these introduce new names which are type variables as opposed to
 types, the new names must begin with lower case letters.
-\te{NumAlias} is used to give new names to numeric types, while
-\te{Alias} is used for types which can be the types of variables.
+\te{Alias} is used for types which can be the types of variables,
+while \te{NumAlias} and \te{StrAlias} are used to give new names to numeric and string types.
 Example:
 
 \begin{verbatim}

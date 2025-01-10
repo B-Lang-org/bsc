@@ -48,6 +48,8 @@ and underflow should be handled.\\
 \hline
 \te{NumAlias} & Types which give a new name to a numeric type.\\
 \hline
+\te{StrAlias} & Types which give a new name to a string type.\\
+\hline
 \te{FShow} & Types which can convert a value to a \te{Fmt}
 representation for use with \te{\$display} system tasks.\\
 \hline
@@ -1457,8 +1459,10 @@ function t boundedMinus (t x, t y) = satMinus(Sat_Bound, x, y);
 \label{sec-alias}
 \index{Alias}
 \index{NumAlias}
-\index[typeclass]{NumAlias}
+\index{StrAlias}
 \index[typeclass]{Alias}
+\index[typeclass]{NumAlias}
+\index[typeclass]{StrAlias}
 
 \te{Alias} specifies that two types can be used interchangeably,
 providing a way to introduce local names for types within a module.
@@ -1475,6 +1479,15 @@ endtypeclass
 
 \begin{verbatim}
 typeclass NumAlias#(numeric type a, numeric type b)
+   dependencies (a determines b,
+                 b determines a);
+endtypeclass
+\end{verbatim}
+
+\te{StrAlias} is used to give a new name to a string type.
+
+\begin{verbatim}
+typeclass StrAlias#(string type a, string type b)
    dependencies (a determines b,
                  b determines a);
 endtypeclass
@@ -4154,7 +4167,7 @@ function Rules rJoinConflictFree(Rules x, Rules y);
 
 
 %================================================================
-\subsection{Operations on Numeric Types}
+\subsection{Operations on Numeric and String Types}
 
 \subsubsection{Size Relationship/Provisos}
 
@@ -4338,6 +4351,46 @@ function t SizeOf#(any_type)
    Bit#(SizeOf#(any_type)) = pack(structIn);
 \end{libverbatim}
 
+% ================================================================
+\subsubsection{String type pseudo-functions}
+\index{stringOf@\texttt{valueOf} (pseudo-function of types)}
+\index{TStrCat@\texttt{TStrCat} (pseudo-function on types)}
+\index{TNumToStr@\texttt{TNumToStr} (pseudo-function on types)}
+\index[function]{Prelude!stringOf}
+\index[function]{Prelude!TStrCat}
+\index[function]{Prelude!TNumToStr}
+
+Prelude also provides similar pseudo-functions for string types.
+The pseudo-function \te{stringOf} is used to convert a string type into a \te{String} value.
+The type-level pseudo-function \te{TStrCat} is used to concatenate two string types,
+and \te{TNumToStr} is used to convert a numeric type into a string type.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.6 in}|}
+\hline
+& \\
+\te{stringOf}&Converts a string type into its String value.\\
+\cline{2-2}
+&\begin{libverbatim}
+function String valueOf (t) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1.5 in}| p{2.0 in}|}
+\hline
+Type Function& Type Relationship& Description\\
+\hline
+\hline
+\te{TStrCat}&\verb'TStrCat#(s1,s2)'&Concatenate $s1$ and $s2$\\
+\hline
+\te{TNumToStr}&\verb'TNumToStr#(n1)'&Convert numeric type $n$ to a string type\\
+\hline
+\end{tabular}
+\end{center}
 
 % ================================================================
 \subsection{Registers and Wires}
