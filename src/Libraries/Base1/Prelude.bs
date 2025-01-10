@@ -43,6 +43,7 @@ package Prelude(
         sameFamily, isAncestor,
         chkClockDomain,
 
+        isStaticValue,
         impCondOf,
 
         primZeroExt, primSignExt, primTrunc,
@@ -1258,9 +1259,6 @@ replaceBit pos w i b =
 --@ \end{libverbatim}
 data Bool = False | True
         deriving (Eq, Bits, Bounded, FShow, DefaultValue)
-
-isStaticBool :: Bool -> Bool
-isStaticBool = compose areStaticBits pack
 
 --@ \begin{libverbatim}
 --@ function Bool not(Bool x);
@@ -2853,6 +2851,9 @@ primitive primAreStaticBits :: Bit n -> Bit 1
 areStaticBits :: Bit n -> Bool
 areStaticBits = compose primChr primAreStaticBits
 
+isStaticValue :: (Bits a n) => a -> Bool
+isStaticValue = areStaticBits ∘ pack
+
 -- these are elaboration-time-only conversions
 -- primAreStaticBits should be called first
 primitive primUIntBitsToInteger :: Bit n -> Integer
@@ -3485,7 +3486,7 @@ listStaticSelect pos xs n =
         listPrimSelect' Nil _ n0 =
            let b = n0 < 0 || listNullOrUndef (listDrop n0 xs)
               -- don't raise an error unless we can prove we are out-of-bounds
-           in if (isStaticBool b) && b then
+           in if (isStaticValue b) && b then
                 primError pos $ listMessage n0 "list selection"
               else primBuildUndefined pos iuDontCare -- should add runtime error here
         listPrimSelect' (Cons x _) 0 _  = x
@@ -3521,7 +3522,7 @@ listPrimUpdate pos l k x =
         primGenerateError 78 pos "Attempt to update an undetermined list"
       else if (isRawUndefined k) then
         primGenerateError 79 pos "Attempt to update a list at an undetermined position"
-      else if ((isStaticIndex k) && (k' < 0 || (isStaticBool b && b)))
+      else if ((isStaticIndex k) && (k' < 0 || (isStaticValue b && b)))
           then primError pos $ listMessage k' "list updating"
       else listPrimMap (\ p -> if (rangeTest p.snd) && (k == fromInteger p.snd) then x else p.fst)
                        (listPrimNum l)
@@ -3600,7 +3601,7 @@ instance PrimSelectable (Array a) a
      if (isStaticIndex x) then
         letseq i = toStaticIndex x
                b  = i >= primArrayLength v
-        in if (isStaticBool b && b) || (i < 0) then
+        in if (isStaticValue b && b) || (i < 0) then
               primError pos (listMessage i "array selection" )
            else primArraySelect v i
      else primArrayDynSelect v (toDynamicIndex x)
@@ -3621,7 +3622,7 @@ instance PrimUpdateable (Array a) a
      else if (isStaticIndex x) then
         letseq i = toStaticIndex x
                b  = i >= primArrayLength v
-        in if (isStaticBool b && b) || (i < 0) then
+        in if (isStaticValue b && b) || (i < 0) then
               primError pos (listMessage i "array update")
            else primArrayUpdate v i n
      else primArrayDynUpdate v (toDynamicIndex x) n

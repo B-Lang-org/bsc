@@ -1,0 +1,42 @@
+package TestBuildList where
+
+import List
+import BuildList
+
+{-# properties sysTestBuildList = { synthesize } #-}
+
+sysTestBuildList :: Module Empty
+sysTestBuildList =
+  module
+    let
+        v1 :: List Bool
+        v1 =  lst True False True True
+
+        v2 :: List (UInt 8);
+        v2 =  lst 7 32
+
+        v3 :: List Bool
+        v3 =  lst False True True
+
+        v4 :: List (UInt 4)
+        v4 =  lst 3
+
+    done :: Reg Bool <- mkReg False
+
+    rules
+      "r":  when not done
+              ==> action
+                    $display "v1[0] -> %b" (v1!!0)
+                    $display "v1[1] -> %b" (v1!!1)
+                    $display "v1[2] -> %b" (v1!!2)
+                    $display "v1[3] -> %b" (v1!!3)
+                    $display "v2[0] -> %d" (v2!!0)
+                    $display "v2[1] -> %d" (v2!!1)
+                    $display "v3[0] -> %b" (v3!!0)
+                    $display "v3[1] -> %b" (v3!!1)
+                    $display "v3[2] -> %b" (v3!!2)
+                    $display "v4[0] -> %d" (v4!!0)
+                    done := True
+
+      "r2":  when done
+               ==> $finish 0

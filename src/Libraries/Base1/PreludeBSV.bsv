@@ -27,6 +27,7 @@ export mkPulseWireOR;
 export mkUnsafeRWire;
 export mkUnsafeRWireSBR;
 export mkUnsafeWire;
+export mkUnsafeBypassWire;
 export mkUnsafeDWire;
 export mkUnsafePulseWire;
 export mkUnsafePulseWireOR;

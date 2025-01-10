@@ -3,6 +3,7 @@ package Misc;
 import Arbiter::*;
 import BRAM::*;
 import BRAMFIFO::*;
+import BuildList::*;
 import BuildVector::*;
 import BUtils::*;
 import BypassReg::*;

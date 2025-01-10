@@ -2,19 +2,22 @@
 
 # Bluespec Compiler
 
-[![Version]](https://github.com/B-Lang-org/bsc/releases/tag/2024.01) [![License]](./COPYING) [![Build Status]](https://github.com/b-lang-org/bsc/actions?query=workflow%3ACI+event%3Apush)
+[![Version]](https://github.com/B-Lang-org/bsc/releases/tag/2024.07)
+[![License]](./COPYING)
+[![Build Status]](https://github.com/b-lang-org/bsc/actions?query=workflow%3ACI+event%3Apush)
 
 [License]:        https://img.shields.io/badge/license-BSD%203-blueviolet.svg
-[Version]:        https://img.shields.io/badge/release-2024.01-red.svg?logo=v
+[Version]:        https://img.shields.io/badge/release-2024.07-red.svg?logo=v
 [Build Status]:   https://github.com/b-lang-org/bsc/workflows/CI/badge.svg?branch=main&event=push
 
-**[Community] &bull; [Download] &bull; [Documentation] &bull; [Build] &bull; [Test]**
+**[Community] &bull; [Download] &bull; [Documentation] &bull; [Build] &bull; [Test] &bull; [Develop]**
 
 [Community]: #community
 [Download]: #download
 [Documentation]: #documentation
 [Build]: ./INSTALL.md
 [TEST]: ./testsuite/README.md
+[Develop]: ./DEVELOP.md
 
 ---
 
