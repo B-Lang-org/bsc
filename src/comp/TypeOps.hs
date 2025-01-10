@@ -2,7 +2,7 @@ module TypeOps(opNumT, numOpNames, opStrT, strOpNames) where
 -- common routines for handling numeric and string types
 
 import Id
-import PreIds(idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin, idTApp)
+import PreIds(idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin, idTStrCat, idTNumToStr)
 import Util(divC, log2)
 import FStringCompat(FString, concatFString)
 
@@ -21,11 +21,11 @@ opNumT i [x, y] | i == idTMin = Just (min x y)
 opNumT _ _      = Nothing
 
 numOpNames :: [Id]
-numOpNames = [idTAdd, idTSub, idTMul, idTDiv, idTExp, idTLog, idTMax, idTMin]
+numOpNames = [idTAdd, idTSub, idTMul, idTDiv, idTExp, idTLog, idTMax, idTMin, idTNumToStr]
 
 opStrT :: Id -> [FString] -> Maybe FString
-opStrT i xs | i == idTApp = Just $ concatFString xs
+opStrT i xs | i == idTStrCat = Just $ concatFString xs
 opStrT _ _ = Nothing
 
 strOpNames :: [Id]
-strOpNames = [idTApp]
+strOpNames = [idTStrCat]

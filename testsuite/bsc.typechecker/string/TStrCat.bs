@@ -1,16 +1,16 @@
-package TApp where
+package TStrCat where
 
 data (WrapStr :: $ -> *) s = WrapStr
 
 printWrapStr :: WrapStr s -> Action
 printWrapStr _ = $display (stringOf s)
 
-a :: WrapStr (TApp "aaa" "bbb")
+a :: WrapStr (TStrCat "aaa" "bbb")
 a = WrapStr
 
 class FlatWrapStr a s | a -> s where {}
 
-instance (FlatWrapStr a s2) => FlatWrapStr (WrapStr s1, a) (TApp s1 (TApp "_" s2)) where {}
+instance (FlatWrapStr a s2) => FlatWrapStr (WrapStr s1, a) (TStrCat s1 (TStrCat "_" s2)) where {}
 instance FlatWrapStr (WrapStr s) s where {}
 instance FlatWrapStr () "" where {}
 
@@ -20,8 +20,8 @@ b = WrapStr
 c :: (FlatWrapStr () s) => WrapStr s
 c = WrapStr
 
-sysTApp :: Module Empty
-sysTApp = module
+sysTStrCat :: Module Empty
+sysTStrCat = module
 
   rules
     when True ==> do

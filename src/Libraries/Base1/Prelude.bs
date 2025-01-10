@@ -7,7 +7,7 @@ package Prelude(
         PrimParam(..), PrimPort(..),
         Bit, Rules, Module, Integer, Real, String, Char, SizeOf, Id__,
         PrimAction, ActionValue, Action, ActionValue_, ActionWorld, AVStruct,
-        TAdd, TSub, TMul, TDiv, TLog, TExp, TMax, TMin, TApp,
+        TAdd, TSub, TMul, TDiv, TLog, TExp, TMax, TMin, TStrCat, TNumToStr,
         Nat(..),
         IsModule(..), addModuleRules, addRules,
 
@@ -2772,7 +2772,8 @@ primitive type TExp :: # -> #
 primitive type TMax :: # -> # -> #
 primitive type TMin :: # -> # -> #
 
-primitive type TApp :: $ -> $ -> $
+primitive type TStrCat :: $ -> $ -> $
+primitive type TNumToStr :: # -> $
 
 ------------------
 

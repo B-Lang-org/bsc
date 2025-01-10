@@ -1,0 +1,32 @@
+package TNumToStr where
+
+data (WrapStr :: $ -> *) s = WrapStr
+data (WrapNum :: # -> *) s = WrapNum
+
+printWrapStr :: WrapStr s -> Action
+printWrapStr _ = $display (stringOf s)
+
+a :: WrapStr (TNumToStr 42)
+a = WrapStr
+
+class FoldNumsStr a s | a -> s where {}
+
+instance (FoldNumsStr a s) => FoldNumsStr (WrapNum i, a) (TStrCat (TNumToStr i) (TStrCat "_" s)) where {}
+instance FoldNumsStr (WrapNum i) (TNumToStr i) where {}
+instance FoldNumsStr () "" where {}
+
+b :: (FoldNumsStr (WrapNum 1, WrapNum 22, WrapNum 333) s) => WrapStr s
+b = WrapStr
+
+c :: (FoldNumsStr () s) => WrapStr s
+c = WrapStr
+
+sysTNumToStr :: Module Empty
+sysTNumToStr = module
+
+  rules
+    when True ==> do
+      printWrapStr a
+      printWrapStr b
+      printWrapStr c
+      $finish
