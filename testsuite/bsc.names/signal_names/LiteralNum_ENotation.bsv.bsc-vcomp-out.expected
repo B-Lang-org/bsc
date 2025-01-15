@@ -1,0 +1,85 @@
+checking package dependencies
+compiling LiteralNum_ENotation.bsv
+code generation for sysLiteralNum_ENotation starts
+=== ATS:
+APackage sysLiteralNum_ENotation
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-inhigh-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+rg_start :: ABSTRACT:  Prelude.VReg = RegN
+				      (VModInfo
+				       RegN
+				       clock _clk__1(CLK, {-unused-});
+				       reset _rst__1(RST) clocked_by(_clk__1);
+				       [clockarg _clk__1;, resetarg _rst__1;, param width;, param init;]
+				       [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (_rst__1);,
+					method write((D_IN, [reg])) enable ((EN,
+									     [])) clocked_by (_clk__1) reset_by (_rst__1);]
+				       SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				       [])
+				      [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd1, 1'd1]
+				      []
+				      meth types=[([], Nothing, Just (Bit 1)), ([Bit 1], Just (Bit 1), Nothing)]
+				      port types=D_IN -> Prelude.Bool
+						 Q_OUT -> Prelude.Bool
+-- AP local definitions
+rg_start___d1 :: Bit 1;
+rg_start___d1  = rg_start.read;
+-- IdProp rg_start___d1[IdP_from_rhs]
+signed_0___d2 :: Bit 32;
+signed_0___d2  = Prelude.$signed 32'd0;
+-- IdProp signed_0___d2[IdP_from_rhs,IdP_signed]
+signed_1___d4 :: Bit 32;
+signed_1___d4  = Prelude.$signed 32'd1;
+-- IdProp signed_1___d4[IdP_from_rhs,IdP_signed]
+signed_2___d6 :: Bit 32;
+signed_2___d6  = Prelude.$signed 32'd2;
+-- IdProp signed_2___d6[IdP_from_rhs,IdP_signed]
+signed_3___d8 :: Bit 32;
+signed_3___d8  = Prelude.$signed 32'd3;
+-- IdProp signed_3___d8[IdP_from_rhs,IdP_signed]
+_3d0679615757712823eneg3___d3 :: Real ;
+_3d0679615757712823eneg3___d3  = 3.0679615757712823e-3;
+-- IdProp _3d0679615757712823eneg3___d3[IdP_from_rhs]
+_6d135923151542565eneg3___d5 :: Real ;
+_6d135923151542565eneg3___d5  = 6.135923151542565e-3;
+-- IdProp _6d135923151542565eneg3___d5[IdP_from_rhs]
+_1d227184630308513eneg2___d7 :: Real ;
+_1d227184630308513eneg2___d7  = 1.227184630308513e-2;
+-- IdProp _1d227184630308513eneg2___d7[IdP_from_rhs]
+_2d454369260617026eneg2___d9 :: Real ;
+_2d454369260617026eneg2___d9  = 2.454369260617026e-2;
+-- IdProp _2d454369260617026eneg2___d9[IdP_from_rhs]
+-- AP rules
+rule RL_do_disp "do_disp":
+ when rg_start___d1
+  ==> { rg_start.write 1'd0;
+	Prelude.$display "%d: %f" signed_0___d2 _3d0679615757712823eneg3___d3;
+	Prelude.$display "%d: %f" signed_1___d4 _6d135923151542565eneg3___d5;
+	Prelude.$display "%d: %f" signed_2___d6 _1d227184630308513eneg2___d7;
+	Prelude.$display "%d: %f" signed_3___d8 _2d454369260617026eneg2___d9;
+	Prelude._finish_ 32'd0; }
+[]
+clock domain = Just (0), resets = [0]
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysLiteralNum_ENotation.v
+All packages are up to date.

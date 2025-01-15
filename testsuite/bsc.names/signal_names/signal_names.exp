@@ -25,3 +25,7 @@ check_ats TaskValue
 # XXX ASStr
 # XXX ASAny
 # XXX AMGate
+
+# Check that numeric literals that are small enough to need scientific
+# notiation don't introduce a negative sign into signal names
+check_ats LiteralNum_ENotation

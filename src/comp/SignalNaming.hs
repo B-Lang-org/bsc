@@ -87,7 +87,13 @@ signalNameFromAExpr' (expr@ASDef { }) =
 signalNameFromAExpr' (expr@ASInt { }) =
     dropGeneratedSuffixes (ppString (ae_ival expr))
 signalNameFromAExpr' (expr@ASReal { }) =
-    dropGeneratedSuffixes (ppString (ae_rval expr))
+    -- replace decimal point with 'd'
+    -- replace negative sign with 'neg' (for example in "1e-2")
+    dropGeneratedSuffixes (sanitize (ppString (ae_rval expr)))
+    where sanitize "" = ""
+          sanitize ('.':cs) = 'd' : sanitize cs
+          sanitize ('-':cs) = 'n' : 'e' : 'g' : sanitize cs
+          sanitize (c:cs) = c : sanitize cs
 signalNameFromAExpr' (expr@ASStr { }) =
     dropGeneratedSuffixes ("STR_" ++ sanitize (ae_strval expr))
     where sanitize "" = ""
