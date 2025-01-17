@@ -75,6 +75,7 @@ jobs:
             hls: 2.9.0.1
           - version: 9.12.1
             hls:
+      fail-fast: false
     name: "Build/Test: GHC Ubuntu"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
     with:
@@ -95,6 +96,7 @@ jobs:
             hls: 2.9.0.1
           - version: 9.12.1
             hls:
+      fail-fast: false
     name: "Build/Test: GHC macOS"
     uses: ./.github/workflows/build-and-test-macos.yml
     with:
