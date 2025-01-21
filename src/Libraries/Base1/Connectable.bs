@@ -152,3 +152,14 @@ instance Connectable Action Action
              ==> action
                     a1
                     a2
+
+instance Connectable (ReadOnly a) (WriteOnly a) where
+    mkConnection :: (IsModule m c) => (ReadOnly a) -> (WriteOnly a) -> (m Empty)
+    mkConnection ro wo =
+      module
+        rules
+          {-# ASSERT fire when enabled #-}
+          {-# ASSERT no implicit conditions #-}
+          "write":
+            when True
+             ==> wo._write(ro._read)
