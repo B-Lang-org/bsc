@@ -172,7 +172,7 @@ package Prelude(
         Tuple6, tuple6, Has_tpl_6(..),
         Tuple7, tuple7, Has_tpl_7(..),
         Tuple8, tuple8, Has_tpl_8(..),
-        AppendTuple(..), AppendTuple'(..), TupleSize(..),
+        AppendTuple(..), AppendTuple', TupleSize,
 
         -- lists required for desugaring
         List(..),
@@ -258,7 +258,8 @@ package Prelude(
         NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
-        primMethod, WrapField(..), WrapMethod(..), WrapPorts(..),
+        primMethod, -- TODO: Needed only in PreludeBSV for vMkRWire1, should be removed.
+        WrapField(..), WrapMethod(..), WrapPorts(..),
         Port(..), SplitPorts(..)
         ) where
 
