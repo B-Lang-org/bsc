@@ -27,9 +27,6 @@ import VModInfo(VModInfo)
 import AExpr2Util(getMethodOutputPort)
 --import Debug.Trace(trace)
 
-import qualified AExpr2STP as STP
-         (SState, initSState, addADefToSState,
-          checkDisjointRulePair, checkDisjointExpr)
 import qualified AExpr2Yices as Yices
          (YState, initYState, addADefToYState,
           checkDisjointRulePair, checkDisjointExpr)
@@ -40,7 +37,6 @@ type RuleDisjointTest = ARuleId -> ARuleId -> Bool
 
 -- A single data type for either of the disjoint-testing state
 data DisjointTestState = DTS_Yices DSupportMap Yices.YState
-                       | DTS_STP   DSupportMap STP.SState
 
 -- -------------------------
 
@@ -54,9 +50,6 @@ initDisjointTestState str errh flags ds avis rs = do
       SAT_Yices -> do
           yices_state <- Yices.initYState str flags True ds avis rs
           return (DTS_Yices supportMap yices_state)
-      SAT_STP -> do
-          stp_state <- STP.initSState str flags True ds avis rs
-          return (DTS_STP supportMap stp_state)
 
 
 addADefToDisjointTestState :: DisjointTestState -> [ADef] ->
@@ -64,9 +57,6 @@ addADefToDisjointTestState :: DisjointTestState -> [ADef] ->
 addADefToDisjointTestState (DTS_Yices m yices_state) ds = do
     yices_state' <- Yices.addADefToYState yices_state ds
     return (DTS_Yices m yices_state')
-addADefToDisjointTestState (DTS_STP m stp_state) ds = do
-    stp_state' <- STP.addADefToSState stp_state ds
-    return (DTS_STP m stp_state')
 
 -- -------------------------
 
@@ -75,9 +65,6 @@ checkDisjointExpr :: DisjointTestState -> AExpr -> AExpr ->
 checkDisjointExpr (DTS_Yices m yices_state) e1 e2 = do
     (res, yices_state') <- Yices.checkDisjointExpr yices_state e1 e2
     return (res, DTS_Yices m yices_state')
-checkDisjointExpr (DTS_STP m stp_state) e1 e2 = do
-    (res, stp_state') <- STP.checkDisjointExpr stp_state e1 e2
-    return (res, DTS_STP m stp_state')
 
 -- When testing conditions on methods inside one rule (or two rules),
 -- we also want to consider the predicates of the rules; the conditions
@@ -157,9 +144,6 @@ checkDisjointRulePair :: DisjointTestState -> (ARuleId, ARuleId) ->
 checkDisjointRulePair s@(DTS_Yices m yices_state) p = do
     (res, yices_state') <- Yices.checkDisjointRulePair yices_state p
     return (res, DTS_Yices m yices_state')
-checkDisjointRulePair s@(DTS_STP m stp_state) p = do
-    (res, stp_state') <- STP.checkDisjointRulePair stp_state p
-    return (res, DTS_STP m stp_state')
 
 -- -------------------------
 
@@ -285,7 +269,6 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
 -- -------------------------
 getSupportMap :: DisjointTestState -> DSupportMap
 getSupportMap (DTS_Yices m _) = m
-getSupportMap (DTS_STP m _)   = m
 
 
 instance PPrint ASupport where
