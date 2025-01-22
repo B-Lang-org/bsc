@@ -1,10 +1,10 @@
 # Tell Linguist not to include the following code
 # in statistics about this repo
 #
-src/Parsec/**  linguist-vendored
+src/comp/Parsec/**     linguist-vendored
 src/vendor/stp/src/**  linguist-vendored
-testsuite/**  linguist-vendored
-doc/**  linguist-documentation
+testsuite/**           linguist-vendored
+doc/**                 linguist-documentation
 
 # Scripts that query git for commit info will not work
 # if the source is not in a git repo, so when exporting
