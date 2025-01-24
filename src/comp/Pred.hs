@@ -20,7 +20,7 @@ import Position
 import Id
 import IdPrint
 import Type
-import NumType
+import TypeOps
 import PFPrint
 import CSyntax(CExpr)
 import CType
@@ -261,12 +261,14 @@ expandSyn t0 = exp [] t0 []
         truncType k n t = internalError ("expandSyn,truncType\n" ++ ppReadable (k, n, t0, t))
 
 isTFun :: Id -> Bool
-isTFun i = i `elem` numOpNames
+isTFun i = i `elem` numOpNames ++ strOpNames
 
 apTFun :: Type -> Id -> [Type] -> Type
 apTFun _ i [TCon (TyNum x px), TCon (TyNum y py)] | Just n <- opNumT i [x, y] = TCon (TyNum n p')
   where p' = bestPosition px py
 apTFun _ i [TCon (TyNum x px)] | Just n <- opNumT i [x] = TCon (TyNum n px)
+apTFun _ i [TCon (TyStr x px), TCon (TyStr y py)] | Just s <- opStrT i [x, y] = TCon (TyStr s p')
+  where p' = bestPosition px py
 apTFun t _ as = foldl TAp t as
 
 -----------------------------------------------------------------------------

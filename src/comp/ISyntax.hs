@@ -93,10 +93,10 @@ import Eval
 import Id
 import Wires(ResetId, ClockDomain, ClockId, noClockId, noResetId, noDefaultClockId, noDefaultResetId, WireProps)
 import IdPrint
-import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger)
+import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
 import Backend
 import Prim(PrimOp(..))
-import NumType
+import TypeOps
 import ConTagInfo
 import VModInfo(VModInfo, vArgs, vName, VName(..), {- VeriPortProp(..), -}
                 VArgInfo(..), VFieldInfo(..), isParam, VWireInfo)
@@ -105,6 +105,7 @@ import Pragma(Pragma, PProp, RulePragma, ISchedulePragma,
               extractSchedPragmaIds, removeSchedPragmaIds, mapSPIds)
 import Position
 import Data.Maybe
+import FStringCompat(mkNumFString)
 
 import qualified Data.Set as S
 import Flags
@@ -425,6 +426,11 @@ normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
 normITAp (ITCon op _ _) (ITNum x) | isJust (res) =
     mkNumConT (fromJust res)
   where res = opNumT op [x]
+normITAp (ITAp (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
+    ITStr (fromJust res)
+  where res = opStrT op [x, y]
+normITAp (ITCon op _ _) (ITNum x) | op == idTNumToStr =
+    ITStr (mkNumFString x)
 
 normITAp f@(ITCon op _ _) a | op == idSizeOf && notVar a =
         -- trace ("normITAp: " ++ ppReadable (ITAp f a)) $

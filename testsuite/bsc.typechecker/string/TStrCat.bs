@@ -1,0 +1,31 @@
+package TStrCat where
+
+data (WrapStr :: $ -> *) s = WrapStr
+
+printWrapStr :: WrapStr s -> Action
+printWrapStr _ = $display (stringOf s)
+
+a :: WrapStr (TStrCat "aaa" "bbb")
+a = WrapStr
+
+class FlatWrapStr a s | a -> s where {}
+
+instance (FlatWrapStr a s2) => FlatWrapStr (WrapStr s1, a) (TStrCat s1 (TStrCat "_" s2)) where {}
+instance FlatWrapStr (WrapStr s) s where {}
+instance FlatWrapStr () "" where {}
+
+b :: (FlatWrapStr (WrapStr "aaa", WrapStr "bbb", WrapStr "ccc") s) => WrapStr s
+b = WrapStr
+
+c :: (FlatWrapStr () s) => WrapStr s
+c = WrapStr
+
+sysTStrCat :: Module Empty
+sysTStrCat = module
+
+  rules
+    when True ==> do
+      printWrapStr a
+      printWrapStr b
+      printWrapStr c
+      $finish

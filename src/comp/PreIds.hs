@@ -91,6 +91,9 @@ idTLog = prelude_id_no fsTLog
 idTExp = prelude_id_no fsTExp
 idTMax = prelude_id_no fsTMax
 idTMin = prelude_id_no fsTMin
+idTStrCat, idTNumToStr :: Id
+idTStrCat = prelude_id_no fsTStrCat
+idTNumToStr = prelude_id_no fsTNumToStr
 idAction, idPrimAction, idToPrimAction, idFromPrimAction :: Id
 idAction = prelude_id_no fsAction
 idPrimAction = prelude_id_no fsPrimAction

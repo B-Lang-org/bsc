@@ -1113,7 +1113,7 @@ endfunction: lcm
 
 // =========================
 
-// Alias and NumAlias
+// Alias, NumAlias and StrAlias
 
 typeclass Alias#(type a, type b)
    dependencies (a determines b,
@@ -1129,6 +1129,14 @@ typeclass NumAlias#(numeric type a, numeric type b)
 endtypeclass
 
 instance NumAlias#(a,a);
+endinstance
+
+typeclass StrAlias#(string type a, string type b)
+   dependencies (a determines b,
+                 b determines a);
+endtypeclass
+
+instance StrAlias#(a,a);
 endinstance
 
 // =========================

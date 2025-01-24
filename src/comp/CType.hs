@@ -66,12 +66,13 @@ import Position
 import Id
 import IdPrint
 import PreIds(idArrow, idPrimPair, idPrimUnit, idBit, idString,
-              idPrimAction, idAction, idActionValue_, idActionValue
+              idPrimAction, idAction, idActionValue_, idActionValue,
+              idTNumToStr
               {-, idSizeOf -})
 import Util(itos)
 import ErrorUtil
 import Pragma(IfcPragma)
-import NumType
+import TypeOps
 import PVPrint(PVPrint(..))
 import FStringCompat
 
@@ -506,6 +507,13 @@ normTAp (TAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))) (TCon (TyNum y ypos))
 normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
         | isJust (res) = cTNum (fromJust res) (getPosition op)
   where res = opNumT op [x]
+
+normTAp (TAp (TCon (TyCon op _ _)) (TCon (TyStr x xpos))) (TCon (TyStr y ypos))
+        | isJust (res) = cTStr (fromJust res) (getPosition op)
+  where res = opStrT op [x, y]
+
+normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
+        | op == idTNumToStr = cTStr (mkNumFString x) (getPosition op)
 
 normTAp f a = TAp f a
 
