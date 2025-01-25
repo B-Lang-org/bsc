@@ -1455,7 +1455,7 @@ function t boundedMinus (t x, t y) = satMinus(Sat_Bound, x, y);
 
 \end{verbatim}
 
-\subsubsection{Alias and NumAlias}
+\subsubsection{Alias, NumAlias, and StrAlias}
 \label{sec-alias}
 \index{Alias}
 \index{NumAlias}
@@ -4169,15 +4169,14 @@ function Rules rJoinConflictFree(Rules x, Rules y);
 %================================================================
 \subsection{Operations on Numeric and String Types}
 
-\subsubsection{Size Relationship/Provisos}
+\subsubsection{Size Relationship Provisos}
 
-\index{provisos}
-\index{Add@\te{Add} (type provisos)}
-\index{Max@\te{Max} (type provisos)}
-\index{Min@\te{Min} (type provisos)}
-\index{Log@\te{Log} (type provisos)}
-\index{Mul@\te{Mul} (type provisos)}
-\index{Div@\te{Div} (type provisos)}
+\index{Add@\te{Add} (type class)}
+\index{Mul@\te{Mul} (type class)}
+\index{Div@\te{Div} (type class)}
+\index{Max@\te{Max} (type class)}
+\index{Min@\te{Min} (type class)}
+\index{Log@\te{Log} (type class)}
 
 
 
@@ -4223,22 +4222,22 @@ Examples of Provisos using size relationships:
 
 \subsubsection{Size Relationship Type Functions}
 
-\index{TAdd@\te{TAdd} (type functions)}
-\index{TSub@\te{TSub} (type functions)}
-\index{TLog@\te{TLog} (type functions)}
-\index{TExp@\te{TExp} (type functions)}
-\index{TMul@\te{TMul} (type functions)}
-\index{TDiv@\te{TDiv} (type functions)}
-\index{TMax@\te{TMax} (type functions)}
-\index{TMin@\te{TMin} (type functions)}
+\index{TAdd@\te{TAdd} (type function)}
+\index{TSub@\te{TSub} (type function)}
+\index{TMul@\te{TMul} (type function)}
+\index{TDiv@\te{TDiv} (type function)}
+\index{TLog@\te{TLog} (type function)}
+\index{TExp@\te{TExp} (type function)}
+\index{TMax@\te{TMax} (type function)}
+\index{TMin@\te{TMin} (type function)}
 \index[function]{Prelude!TAdd}
 \index[function]{Prelude!TSub}
+\index[function]{Prelude!TMul}
+\index[function]{Prelude!TDiv}
 \index[function]{Prelude!TLog}
 \index[function]{Prelude!TExp}
-\index[function]{Prelude!TMul}
 \index[function]{Prelude!TMax}
 \index[function]{Prelude!TMin}
-\index[function]{Prelude!TDiv}
 
 These type functions are used when ``defining'' size relationships between data
 types, where the defined value need not (or cannot) be named in a proviso.  They may be used in datatype definition statements when the
@@ -4247,7 +4246,7 @@ size of the datatype may be calculated from other parameters.
 \begin{center}
 \begin{tabular}{|p {1 in}|p{1.5 in}| p{2.0 in}|}
 \hline
-Type Function& Size Relationship& Description\\
+Type Function& Application& Description\\
 \hline
 \hline
 \te{TAdd}&\verb'TAdd#(n1,n2)'&Calculate $n1 + n2$\\
@@ -4289,19 +4288,50 @@ Examples using other arithmetic functions:
 
 
 % ================================================================
-\subsubsection{valueOf and SizeOf pseudo-functions}
-\index{valueof@\texttt{valueof} (pseudo-function of size types)}
-\index{valueOf@\texttt{valueOf} (pseudo-function of size types)}
-\index{SizeOf@\texttt{SizeOf} (pseudo-function on types)}
-\index[function]{Prelude!valueOf}
+\subsubsection{SizeOf Type Function}
+\index{SizeOf@\te{SizeOf} (type function)}
 \index[function]{Prelude!SizeOf}
 
-Prelude provides these pseudo-functions to convert between 
-types and numeric values.  The pseudo-function \te{valueof} (or
-\te{valueOf}) is used to convert a numeric type into the corresponding
-Integer  value.
-The pseudo-function \te{SizeOf} is used to convert a type {t} into
-the numeric type representing its bit size.  
+The \te{Bits} type class expresses the relationship between a type
+and the size of its bit-vector representation.
+The \te{SizeOf} type function is used to access that size, where
+the value need not (or cannot) be named in a \te{Bits} proviso.
+It may be used in datatype definition statements to compute a size
+from another parameter or from an explicit type.
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1.5 in}| p{2.0 in}|}
+\hline
+Type Function& Application& Description\\
+\hline
+\hline
+\te{SizeOf}&\verb'SizeOf#(t)'&The \te{Bits} size of \te{t} as a numeric type\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{libverbatim}
+   any_type x = ... ;
+   Bit#(SizeOf#(any_type)) b = pack(x);
+\end{libverbatim}
+
+
+\subsubsection{valueOf, sizeOf, and stringOf Pseudo-functions}
+\index{valueof@\texttt{valueof} (pseudo-function of size types)}
+\index{valueOf@\texttt{valueOf} (pseudo-function of size types)}
+\index{sizeOf@\texttt{sizeOf} (pseudo-function of value types)}
+\index{stringOf@\texttt{stringOf} (pseudo-function of string types)}
+\index[function]{Prelude!valueOf}
+\index[function]{Prelude!sizeOf}
+\index[function]{Prelude!stringOf}
+
+Prelude provides three pseudo-functions to convert from types to values.
+Unlike ordinary functions from values to values, the arguments of these
+pseudo-functions are parsed as types.
+
+The pseudo-function \te{valueOf} (or \te{valueof}) is used to convert
+a numeric type into the corresponding Integer value.
 
 \begin{center}
 \begin{tabular}{|p{1 in}|p{4.6 in}|}
@@ -4311,7 +4341,7 @@ the numeric type representing its bit size.
 \te{valueOf}&  \\
 \cline{2-2}
 &\begin{libverbatim}
-function Integer valueOf (t) ;
+function Integer valueOf (numeric type t) ;
 \end{libverbatim}
 \\
 \hline
@@ -4321,24 +4351,28 @@ function Integer valueOf (t) ;
 {\bf Examples}
 \begin{libverbatim}
    module mkFoo (Foo#(n));
-     UInt#(n) x;
      Integer y = valueOf(n);
    endmodule
 \end{libverbatim}
 
-
+The pseudo-function \te{sizeOf} is used to convert a type \te{t} into
+the numeric type representing its bit size.  It is equivalent to
+applying \te{valueOf} to the \te{SizeOf} type constructor, but
+is provided for convenience.  This pseudo-function carries a
+\te{Bits} proviso and can therefore only be used for types that
+are members of the \te{Bits} type class.
 
 \begin{center}
 \begin{tabular}{|p{1 in}|p{4.6 in}|}
 \hline
 & \\
-\te{SizeOf} & Converts a type into a numeric type representing its
+\te{sizeOf} & Converts a type into a numeric type representing its
 bit size.\\
 &  \\
 \cline{2-2}
 &\begin{libverbatim}
-function t SizeOf#(any_type)
-   provisos (Bits#(any_type, sa)) ;
+function Integer sizeOf (type t)
+   provisos (Bits#(t, tsz)) ;
 \end{libverbatim}
 \\
 \hline
@@ -4347,23 +4381,16 @@ function t SizeOf#(any_type)
 
 {\bf Examples}
 \begin{libverbatim}
-   any_type x = structIn;
-   Bit#(SizeOf#(any_type)) = pack(structIn);
+   module mkFoo (Ifc#(t)) provisos (Bits#(t,szt));
+     Integer num_bits_of_t = sizeOf(t);
+     // The above is equivalent to each of the following
+     //Integer num_bits_of_t = valueOf(SizeOf#(t));
+     //Integer num_bits_of_t = valueOf(szt);
+   endmodule
 \end{libverbatim}
 
-% ================================================================
-\subsubsection{String type pseudo-functions}
-\index{stringOf@\texttt{valueOf} (pseudo-function of types)}
-\index{TStrCat@\texttt{TStrCat} (pseudo-function on types)}
-\index{TNumToStr@\texttt{TNumToStr} (pseudo-function on types)}
-\index[function]{Prelude!stringOf}
-\index[function]{Prelude!TStrCat}
-\index[function]{Prelude!TNumToStr}
-
-Prelude also provides similar pseudo-functions for string types.
-The pseudo-function \te{stringOf} is used to convert a string type into a \te{String} value.
-The type-level pseudo-function \te{TStrCat} is used to concatenate two string types,
-and \te{TNumToStr} is used to convert a numeric type into a string type.
+The pseudo-function \te{stringOf} is used to convert a string type
+into a \te{String} value.
 
 \begin{center}
 \begin{tabular}{|p{1 in}|p{4.6 in}|}
@@ -4372,17 +4399,35 @@ and \te{TNumToStr} is used to convert a numeric type into a string type.
 \te{stringOf}&Converts a string type into its String value.\\
 \cline{2-2}
 &\begin{libverbatim}
-function String stringOf (t) ;
+function String stringOf (string type t) ;
 \end{libverbatim}
 \\
 \hline
 \end{tabular}
 \end{center}
 
+{\bf Examples}
+\begin{libverbatim}
+   module mkFoo (IfcWithStr#(s_type));
+     String s_value = stringOf(s_type);
+   endmodule
+\end{libverbatim}
+
+% ================================================================
+\subsubsection{String Type Functions}
+\index{TStrCat@\texttt{TStrCat} (type function)}
+\index{TNumToStr@\texttt{TNumToStr} (type function)}
+\index[function]{Prelude!TStrCat}
+\index[function]{Prelude!TNumToStr}
+
+Prelude defines two type functions for creating or manipulating string types.
+The type function \te{TStrCat} is used to concatenate two string types,
+and \te{TNumToStr} is used to convert a numeric type into a string type.
+
 \begin{center}
 \begin{tabular}{|p {1 in}|p{1.5 in}| p{2.0 in}|}
 \hline
-Type Function& Type Relationship& Description\\
+Type Function& Application& Description\\
 \hline
 \hline
 \te{TStrCat}&\verb'TStrCat#(s1,s2)'&Concatenate $s1$ and $s2$\\
