@@ -26,9 +26,11 @@ DOC=libraries_ref_guide
 # should be named '?dx' and '?nd' (using a new unique letter)
 IDX_LIST= f t
 
-## Included .tex Files
+## Included files
 INCLUDES = \
 	version.tex \
+	LibDoc/*.tex \
+	LibFig/*.png \
 
 # -------------------------
 
