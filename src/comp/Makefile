@@ -92,7 +92,7 @@ $(warning Building unoptimized to work around a bug in GHC 9.2.1)
 GHCOPTLEVEL ?= -O0
 endif
 
-GHC += -Wtabs -fmax-pmcheck-models=800
+GHC += -Wtabs -fmax-pmcheck-models=800 -freverse-errors
 
 # end ifeq ($(GHCMAJOR),9)
 else
@@ -134,8 +134,6 @@ PACKAGES = \
 	-package process \
 	-package filepath \
 	-package time \
-	-package old-time \
-	-package old-locale \
 	-package split \
 	-package syb \
 	-package integer-gmp \
