@@ -4,6 +4,105 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2025.01 Release
+---------------
+
+This release fixes a four-year-old regression that, in rare cases,
+would prevent a design from compiling.  The release also includes
+the beginnings of new documentation for developers, with links to
+information on the internals of BSC.
+
+Changes since release 2024.07:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Fix the type of `truncate` in the Libraries Reference Guide
+  (GitHub Issue#733, PR#734)
+
+* Fix typo in the grammar rule for shorthands in ActionValue method
+  definitions (GitHub PR#758)
+
+* Fix issues with the documentation of numeric type operators in the
+  BSC Libraries Guide (GitHub PR#759)
+
+* Fix the Makefile dependencies for building the BSC Libraries Guide
+  (GitHub PR#759)
+
+Compiler
+~~~~~~~~
+
+* Fix a regression where designs would compile fine using BSC prior to
+  October 2020, but would exceed unfolding steps using newer BSC, due
+  to conditional expressions returning don't-care values for types
+  with one constructor (GitHub Issue#742, PR#748)
+
+* Fix the generation of signal names from real number constants,
+  which could lead to illegal names containing decimal points or
+  negative signs (GitHub PR#757)
+
+Libraries
+~~~~~~~~~
+
+* Add `SShow` library, defining a typeclass analogous to `CShow`
+  but for displaying values at compile time instead of run time
+  (GitHub PR#724)
+
+* Add `TStrCat` and `TNumToStr` operators for string types
+  and `StrAlias` type class (GitHub PR#726)
+
+* Export `mkUnsafeBypassWire` from `PreludeBSV` (GitHub PR#745)
+
+* Add `isStaticValue` to `Prelude` (GitHub PR#747)
+
+* Add `Connectable` instance for `ReadOnly` to `WriteOnly`
+  (GitHub PR#756)
+
+Test Suite
+~~~~~~~~~~
+
+* Support non-deterministic tests with multiple legal outputs, by
+  adding a new `compare_file_list` procedure that takes a list of
+  expected output files (GitHub PR#754)
+
+* Support querying the macOS version in test scripts (GitHub PR#744)
+
+* Support macOS 15, which has a slightly different CPP output for file
+  paths (GitHub PR#744)
+
+* Remove tests for the CUDD SAT solver which is no longer an option
+  (GitHub PR#718)
+
+Internal
+~~~~~~~~
+
+* Updates to GitHub CI (continuous integration)
+  ** Retire the CI for macOS 12 (GitHub Issue#740, PR#744)
+  ** Add CI for macOS 15 (GitHub PR#744)
+  ** Add testing with the new GHC 9.12 (GitHub PR#754)
+  ** Update the testing for GHC 9.8 to the latest 9.8.4 (GitHub PR#751)
+  ** Update the GHC HLS version to the latest 2.9.0.1 (GitHub PR#751)
+  ** Turn off `fail-fast` for matrix jobs that were missing this
+     property (GitHub PR#757)
+  ** Workaround an issue with GitHub's macOS runners where a conflict
+     can occur if Homebrew attempts to install a new python package
+     (GitHub PR#744)
+  ** Workaround an issue with GitHub's macOS 14 runner, where the
+     Homebrew `pyyaml` package is disabled, by installing in a python
+     virual environment (GitHub PR#744)
+  ** On macOS, install `texlive` instead of `mactex-no-gui` (PR#734)
+     *** This saves disk space, runs faster, and works around an issue
+         with GitHub's macOS 14 runner image
+
+For Developers
+~~~~~~~~~~~~~~
+
+* Add an introductory document (`DEVELOP.md`) with information on the
+  internal architecture of BSC and other helpful information for people
+  who want to contribute to the source code (GitHub PR#752)
+
+'''
+
 2024.07 Release
 ---------------
 
