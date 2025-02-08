@@ -1523,11 +1523,6 @@ externalFlags = [
          (Arg "dir" (\f s -> Left (f {cdir = Just s})) (Just (FRTMaybeString cdir)),
           "output directory for Bluesim intermediate files", Visible)),
 
-        ("sat-stp",
-         (NoArg (\f -> Left $ f { satBackend = SAT_STP })
-                (showIfEq satBackend SAT_STP),
-          "use STP SMT for disjoint testing and SAT", Visible)),
-
         ("sat-yices",
          (NoArg (\f -> Left $ f { satBackend = SAT_Yices })
                 (showIfEq satBackend SAT_Yices),
