@@ -12,7 +12,6 @@ apt-get install -y \
     git \
     gperf \
     iverilog \
-    libghc-old-time-dev \
     libghc-regex-compat-dev \
     libghc-syb-dev \
     libghc-split-dev \
