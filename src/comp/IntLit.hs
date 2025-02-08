@@ -4,17 +4,18 @@ module IntLit (IntLit(..),
                showVeriIntLit, showSizedVeriIntLit
               ) where
 
+import Data.Data
+
 import IntegerUtil(integerFormatPref, integerToString)
 import PPrint
 import PVPrint
 import Eval
 import ErrorUtil(internalError)
-import qualified Data.Generics as Generic
 
 data IntLit = IntLit { ilWidth :: Maybe Integer,
                        ilBase  :: Integer,
                        ilValue :: Integer }
-              deriving (Generic.Data, Generic.Typeable)
+              deriving (Data, Typeable)
 
 
 
