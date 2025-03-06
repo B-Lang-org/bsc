@@ -56,11 +56,10 @@ Debian and Ubuntu systems, you can say:
     $ apt-get install \
         libghc-regex-compat-dev \
         libghc-syb-dev \
-        libghc-old-time-dev \
         libghc-split-dev
 
 The second command will install the Haskell libraries `regex-compat`, `syb`,
-`old-time`, and `split`, as well as some libraries that they depend on.
+and `split`, as well as some libraries that they depend on.
 
 If you wish to do profiling builds of the compiler itself, you will also need
 to install versions of the Haskell libraries built using the profiling flags.
@@ -70,7 +69,6 @@ On Debian and Ubuntu, this can be done with:
         ghc-prof \
         libghc-regex-compat-prof \
         libghc-syb-prof \
-        libghc-old-time-prof \
         libghc-split-prof
 
 You can do the analogous package-install on other Linux distributions using
@@ -87,12 +85,12 @@ commands to install Haskell libraries.
 For cabal v2.x:
 
     $ cabal update
-    $ cabal install regex-compat syb old-time split
+    $ cabal install regex-compat syb split
 
 For cabal v3.x:
 
     $ cabal update
-    $ cabal v1-install regex-compat syb old-time split
+    $ cabal v1-install regex-compat syb split
 
 Cabal's newer `v2-install` has the advantage of not installing the
 libraries into the GHC installation.  This is useful if the GHC
@@ -104,7 +102,7 @@ passing an additional flag to GHC, which can be done by defining `GHC`
 in the environment when calling `make` in the later steps.
 For example (cabal v3.x only):
 
-    $ cabal v2-install --package-env=default syb old-time split
+    $ cabal v2-install --package-env=default syb split
     $ make GHC="ghc -package-env default"
 
 Bluespec compiler builds are tested with GHC 9.4.8.
