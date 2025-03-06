@@ -4,6 +4,12 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2025.01.1 Release
+-----------------
+
+This release adds a comment about the new `Connectable` instance for
+`ReadOnly` to `WriteOnly`.
+
 2025.01 Release
 ---------------
 
