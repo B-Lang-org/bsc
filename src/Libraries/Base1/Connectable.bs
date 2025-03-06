@@ -153,6 +153,17 @@ instance Connectable Action Action
                     a1
                     a2
 
+-- Note: This instance has rule assertions that require the ReadOnly
+-- and WriteOnly interfaces to be always-ready and will satisfy an
+-- always-enabled attribute if the WriteOnly interface has one.  An
+-- instance without rule assertions would have also been valid, for
+-- use in situations where the interfaces have ready conditions and/or
+-- where it is OK for the rule not to execute in a clock cycle when
+-- one side is ready.  The Connectable typeclass only allows one
+-- definition; it is difficult to decide which to use, so we have
+-- arbitrarily chosen the version with attributes. The attributes may
+-- be removed in the future, loosening the restrictions on its use.
+
 instance Connectable (ReadOnly a) (WriteOnly a) where
     mkConnection :: (IsModule m c) => (ReadOnly a) -> (WriteOnly a) -> (m Empty)
     mkConnection ro wo =
