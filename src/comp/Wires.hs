@@ -14,19 +14,20 @@ module Wires(ClockId, ClockDomain(..), ResetId,
 import Prelude hiding ((<>))
 #endif
 
+import Data.Data
+
 import Eval
 import PPrint
-import qualified Data.Generics as Generic
 -- Primitives for describing special wires (e.g. clock and reset)
 
 data ClockId = ClockId !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+  deriving (Show, Eq, Ord, Data, Typeable)
 
 instance Hyper ClockId where
   hyper (ClockId a) y = hyper a y
 
 data ClockDomain = ClockDomain !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+  deriving (Show, Eq, Ord, Data, Typeable)
 
 instance PPrint ClockDomain where
   pPrint d p (ClockDomain i) = pPrint d p i
@@ -35,7 +36,7 @@ instance Hyper ClockDomain where
   hyper (ClockDomain a) y = hyper a y
 
 data ResetId = ResetId !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+  deriving (Show, Eq, Ord, Data, Typeable)
 
 instance Hyper ResetId where
   hyper (ResetId a) y = hyper a y
@@ -88,7 +89,7 @@ data WireProps = WireProps { -- clock domain of object, Nothing if object crosse
                              -- more than one implies "unsafe reset crossing"
                              wpResets :: [ResetId]
                            }
-   deriving(Eq, Ord, Show, Generic.Data, Generic.Typeable)
+   deriving(Eq, Ord, Show, Data, Typeable)
 
 emptyWireProps :: WireProps
 emptyWireProps = WireProps { wpClockDomain = Nothing, wpResets = [] }
