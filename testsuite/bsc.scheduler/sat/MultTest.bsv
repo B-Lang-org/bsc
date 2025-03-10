@@ -1,4 +1,3 @@
-// XXX STP slows down when this is 16 or higher
 typedef 12 Width;
 
 typedef  Int#(Width) Data_t;
