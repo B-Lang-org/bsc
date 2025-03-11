@@ -2278,6 +2278,7 @@ find the errors."
 		"endinterface"
 		"endmethod"
 		"endrule"
+		"endaction"
 		"endactionvalue")))
 	  "\\)"))
 
