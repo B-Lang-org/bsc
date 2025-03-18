@@ -1,0 +1,336 @@
+cabal-version:      3.0
+name:               bsc
+version:            2024.3
+synopsis:          Bluespec Compiler
+description:       The Bluespec Compiler (BSC) is a compiler and simulator for the Bluespec Hardware Description Language.
+homepage:          https://github.com/B-Lang-org/bsc
+bug-reports:       https://github.com/B-Lang-org/bsc/issues
+license:           BSD-3-Clause
+license-file:      LICENSE.txt
+author:            Bluespec Inc.
+maintainer:        B-Lang Maintainers
+category:          Hardware
+build-type:        Simple
+extra-doc-files:   README.md
+                   INSTALL.md
+                   DEVELOP.md
+tested-with:       GHC == 9.4.7
+
+common common-options
+    default-language: Haskell2010
+    ghc-options:      -Wall
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-uni-patterns
+                      -Wincomplete-record-updates
+                      -fno-warn-orphans
+                      -fno-warn-name-shadowing
+                      -fno-warn-unused-matches
+    if impl(ghc >= 8.0)
+        ghc-options:    -Wredundant-constraints
+    if impl(ghc >= 8.2)
+        ghc-options:    -fhide-source-paths
+    if impl(ghc >= 8.4)
+        ghc-options:    -Wmissing-export-lists
+                        -Wpartial-fields
+    if impl(ghc >= 8.10)
+        ghc-options:    -Wunused-packages
+
+library
+    import:           common-options
+    hs-source-dirs:   src/comp
+                      src/Parsec
+                      src/Libraries
+                      src/comp/Libs
+                      src/vendor/yices/v2.6/HaskellIfc
+                      src/vendor/stp/HaskellIfc
+                      src/vendor/htcl
+                      src/comp/GHC/posix
+    exposed-modules:  Util
+                   , BSC
+                   , VCD
+                   , VFileName
+                   , VFinalCleanup
+                   , VIOProps
+                   , VModInfo
+                   , VPIWrappers
+                   , VPrims
+                   , VVerilogDollar
+                   , Verilog
+                   , Version
+                   , Wires
+                   , TCMisc
+                   , TCPat
+                   , TCheck
+                   , TIMonad
+                   , TclUtils
+                   , TopUtils
+                   , Type
+                   , TypeAnalysis
+                   , TypeAnalysisTclUtil
+                   , TypeCheck
+                   , TypeOps
+                   , Undefined
+                   , SimPrimitiveModules
+                   , Simplify
+                   , SpeedyString
+                   , StdPrel
+                   , Subst
+                   , SymTab
+                   , Synthesize
+                   , SystemCWrapper
+                   , SystemCheck
+                   , SimCCBlock
+                   , SimCOpt
+                   , SimDomainInfo
+                   , SimExpand
+                   , SimFileUtils
+                   , SimMakeCBlocks
+                   , SimPackage
+                   , SimPackageOpt
+                   , Pretty
+                   , Prim
+                   , ProofObligation
+                   , RSchedule
+                   , RealUtil
+                   , SAL
+                   , SAT
+                   , SATPred
+                   , SCC
+                   , SEMonad
+                   , SchedInfo
+                   , Scheme
+                   , SignalNaming
+                   , SimBlocksToC
+                   , PoisonUtils
+                   , Position
+                   , Pragma
+                   , PragmaCheck
+                   , PreIds
+                   , PreStrings
+                   , Pred
+                   , Pred2STP
+                   , Pred2Yices
+                   , PVPrint
+                   , Params
+                   , ParseOp
+                   , Lex
+                   , Literal
+                   , Log2
+                   , MakeSymTab
+                   , PFPrint
+                   , PPrint
+                   , IWireSet
+                   , Id
+                   , IdPrint
+                   , IfcBetterInfo
+                   , InferKind
+                   , InlineCReg
+                   , InlineReg
+                   , ABin
+                   , ABinUtil
+                   , AConv
+                   , ADumpScheduleInfo
+                   , AExpand
+                   , AExpr2STP
+                   , AExpr2Util
+                   , AExpr2Yices
+                   , AOpt
+                   , AScheduleInfo
+                   , ASyntax
+                   , ASyntaxUtil
+                   , AUses
+                   , AVerilogUtil
+                   , Assump
+                   , BDD
+                   , BExpr
+                   , Backend
+                   , BackendNamingConventions
+                   , Bag
+                   , Balanced
+                   , BinData
+                   , BoolExp
+                   , BoolOpt
+                   , BuildVersion
+                   , CCSyntax
+                   , CFreeVars
+                   , CSubst
+                   , CSyntax
+                   , CSyntaxTypes
+                   , CSyntaxUtil
+                   , CType
+                   , CVPrint
+                   , Classic
+                   , ConTagInfo
+                   , ContextErrors
+                   , CtxRed
+                   , Error
+                   , ErrorMonad
+                   , ErrorUtil
+                   , Eval
+                   , FStringCompat
+                   , FileIOUtil
+                   , FileNameUtil
+                   , Fixity
+                   , Flags
+                   , ForeignFunctions
+                   , GHCPretty
+                   , GenABin
+                   , GenWrapUtils
+                   , GraphMap
+                   , GraphUtil
+                   , GraphWrapper
+                   , IConv
+                   , IConvLet
+                   , IInline
+                   , IInlineUtil
+                   , IOMutVar
+                   , IPrims
+                   , IStateLoc
+                   , ISyntax
+                   , ISyntaxUtil
+                   , ITransform
+                   , IType
+                   , InstNodes
+                   , IntLit
+                   , IntegerUtil
+                   , Intervals
+                   , KIMisc
+                   , LambdaCalcUtil
+                   , SystemVerilogKeywords
+                   , SystemVerilogTokens
+                   , Unify
+                   , IOUtil
+                   , ListMap
+                   , Sort
+                   , Yices
+                   , YicesFFI
+                   , STP
+                   , STPFFI
+                   , HTcl
+                   , BlueTcl
+    other-modules:    ADumpSchedule
+                   , BinParse
+                   , BinUtil
+                   , BluesimLoader
+                   , CPPLineDirectives
+                   , Depend
+                   , FlagsDecode
+                   , GenBin
+                   , GenFuncWrap
+                   , GlobPattern
+                   , MVarStrict
+                   , Parse
+                   , Parsec
+                   , ParsecChar
+                   , ParsecCombinator
+                   , ParsecExpr
+                   , ParsecPrim
+                   , Parser.BSV
+                   , Parser.BSV.CVParser
+                   , Parser.BSV.CVParserAssertion
+                   , Parser.BSV.CVParserCommon
+                   , Parser.BSV.CVParserImperative
+                   , Parser.BSV.CVParserUtil
+                   , Parser.Classic
+                   , Parser.Classic.CParser
+                   , Parser.Classic.Warnings
+                   , SystemVerilogPreprocess
+                   , SystemVerilogScanner
+                   , TmpNam
+    default-language: Haskell2010
+    ghc-options:      -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+                      -Wincomplete-record-updates -fno-warn-orphans
+                      -fno-warn-name-shadowing -fno-warn-unused-matches
+                      -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists
+                      -Wpartial-fields
+    build-depends:
+        array,
+        base >= 4.7 && < 5,
+        bytestring,
+        containers,
+        directory,
+        filepath,
+        ghc-prim,
+        integer-gmp,
+        mtl,
+        old-time,
+        parsec,
+        process,
+        regex-compat,
+        sort,
+        split,
+        syb,
+        text,
+        time,
+        transformers,
+        unix
+
+executable bsc
+    import:           common-options
+    hs-source-dirs:   src/exec
+    main-is:          Main.hs
+    build-depends:    base >= 4.7 && < 5
+                    , bsc
+                    , containers
+                    , mtl
+                    , process
+                    , directory
+                    , filepath
+
+executable bluetcl
+    import:           common-options
+    hs-source-dirs:   src/bluetcl src/comp
+    c-sources:        src/comp/bluetcl_Main.c
+    main-is:          Main.hs
+    build-depends:    base >= 4.7 && < 5
+                    , bsc
+                    , containers
+                    , mtl
+                    , process
+    extra-libraries:  tcl
+    build-tool-depends: hsc2hs:hsc2hs -any
+    other-modules:    BlueTcl
+    default-language: Haskell2010
+    ghc-options:      -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+                      -Wincomplete-record-updates -fno-warn-orphans
+                      -fno-warn-name-shadowing -fno-warn-unused-matches
+                      -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists
+                      -Wpartial-fields
+
+test-suite bsc-test
+    import:           common-options
+    type:            exitcode-stdio-1.0
+    hs-source-dirs:  testsuite
+    main-is:         Main.hs
+    build-depends:   base >= 4.7 && < 5
+                   , bsc
+                   , containers
+                   , mtl
+                   , process
+                   , directory
+                   , filepath
+                   , tasty
+                   , tasty-hunit
+                   , tasty-quickcheck
+
+test-suite dejagnu-tests
+    import:           common-options
+    type:            detailed-0.9
+    test-module:     DejaGNUDriver
+    hs-source-dirs:  testsuite/dejagnu-driver
+    other-modules:   DejaGNUTest
+    build-depends:   base >= 4.7 && < 5
+                   , Cabal >= 3.0
+                   , process
+                   , directory
+                   , filepath
+                   , text
+    
+    -- Test data files that need to be available during testing
+    extra-source-files: testsuite/config/*.tcl
+                     , testsuite/lib/*.exp
+                     , testsuite/scripts/*.exp
+                     , testsuite/bsc.*/*.exp
+                     , testsuite/bsc.*/*/*.exp
+                     , testsuite/site.exp 
