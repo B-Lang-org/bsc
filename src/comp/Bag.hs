@@ -43,9 +43,9 @@ toList (Bag m) = concatMap (\(k,c) -> replicate c k)
 
 null :: Bag k -> Bool
 null (Bag m) = M.null m
-               -- other functions remove the node when it becomes 0
-               -- so we don't need this check:
-               -- || (all (== 0) (M.elems m))
+               {- other functions remove the node when it becomes 0
+                  so we don't need this check:
+                  || (all (== 0) (M.elems m)) -}
 
 difference :: Ord k => Bag k -> Bag k -> Bag k
 difference (Bag big) (Bag small) =

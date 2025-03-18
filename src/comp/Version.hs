@@ -14,8 +14,14 @@ bluespec = "Bluespec"
 versionname :: String
 versionname = buildVersionName
 
+buildname :: String
+buildname = buildVersionName
+
 buildnum :: Integer
-buildnum = buildVersionNum
+buildnum = read buildVersionNum
+
+buildstr :: String
+buildstr = buildVersion
 
 -- Generate the version string (for a given tool)
 versionStr :: Bool -> String -> String
