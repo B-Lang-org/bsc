@@ -961,7 +961,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
 (defconst bsv-named-block-re  "begin[ \t]*:")
 (defconst bsv-beg-block-re
   ;; "begin" "case" "casex" "fork" "casez" "table" "specify" "function" "task"
-  "\\(\\<\\(begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|generate\\|interface\\|method\\|rule\\|action\\|actionvalue\\|f\\(ork\\>\\|unction\\>\\)\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)")
+  "\\(\\<\\(begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|generate\\|interface\\|method\\|rule\\|action\\(\\|value\\)\\|f\\(ork\\>\\|unction\\>\\)\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)")
 
 (defconst bsv-beg-block-re-1
   "\\<\\(begin\\)\\|\\(case[xz]?\\)\\|\\(fork\\)\\|\\(table\\)\\|\\(specify\\)\\|\\(function\\)\\|\\(interface\\)\\|\\(method\\)\\|\\(rule\\)\\|\\(action\\)\\|\\(actionvalue\\)\\|\\(task\\)\\|\\(generate\\)\\>")
@@ -1471,7 +1471,7 @@ Use filename, if current buffer being edited shorten to just buffer name."
        ((match-end 11) ; endactionvalue
 	;; Search forward for matching action
 	(setq reg "\\(\\<actionvalue\\>\\)\\|\\(\\<endactionvalue\\>\\)" ))
-       ((match-end 12) ; endspecify
+       ((match-end 12) ; endtask
 	;; Search forward for matching task
 	(setq reg "\\(\\<task\\>\\)\\|\\(\\<endtask\\>\\)" ))
        ((match-end 13) ; endgenerate
@@ -3072,7 +3072,7 @@ type.  Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				   ;; Search back for matching action
 				   (setq reg "\\(\\<action\\>\\)\\|\\(\\<endaction\\>\\)" ))
 				  ((match-end 13) ; endactionvalue
-				   ;; Search back for matching action
+				   ;; Search back for matching actionvalue
 				   (setq reg "\\(\\<actionvalue\\>\\)\\|\\(\\<endactionvalue\\>\\)" ))
 				  ((match-end 14) ; endtask
 				   ;; Search back for matching task
