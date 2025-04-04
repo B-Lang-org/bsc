@@ -1,0 +1,30 @@
+# Makefile.cabal - Cabal build configuration for BSC
+
+# Default target
+all: build
+
+# Build target
+build:
+	@echo "Building BSC..."
+	ghc -O2 -Wall -Werror Setup.hs
+	./Setup configure
+	./Setup build
+
+# Test target
+test:
+	@echo "Running tests..."
+	./Setup test
+
+# Install target
+install:
+	@echo "Installing BSC..."
+	./Setup install
+
+# Clean target
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -f Setup Setup.hi Setup.o
+	rm -rf dist-newstyle
+
+# Phony targets
+.PHONY: all build test install clean

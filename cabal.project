@@ -1,0 +1,7 @@
+packages: .
+tests: True
+with-compiler: ghc-9.2.8
+
+package bsc
+  flags: +stp-stub
+  ghc-options: -O2 -Wall -Werror 

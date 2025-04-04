@@ -1,0 +1,73 @@
+#!/bin/sh
+# Simple configure script for BSC
+# This script is needed for the Distribution.Make build type
+
+# Exit on error
+set -e
+
+# Print version information
+echo "Configuring BSC build..."
+
+# Create a Makefile.cabal with the targets that Distribution.Make expects
+cat > Makefile.cabal << EOF
+# Makefile for Distribution.Make build type
+
+# Default target
+all: build
+
+# Configure - Distribution.Make expects this
+configure:
+	@echo "Configuration already done"
+
+# Build - Distribution.Make expects this
+build:
+	@echo "Building BSC..."
+	make install-src
+
+# Install - Distribution.Make expects this
+install:
+	@echo "Installing BSC..."
+	# Install is already done by build
+	@echo "BSC has been installed to the inst directory"
+
+# Copy - Distribution.Make expects this
+copy:
+	@echo "Copying BSC..."
+	# Copy is already done by build
+	@echo "BSC has been copied to the inst directory"
+
+# Clean - Distribution.Make expects this
+clean:
+	@echo "Cleaning BSC..."
+	make clean
+
+# Documentation - Distribution.Make expects this
+haddock:
+	@echo "Building documentation..."
+	make install-doc
+
+# Distribution - Distribution.Make expects this
+sdist:
+	@echo "Creating source distribution..."
+	make release
+
+# Test - Distribution.Make expects this
+test:
+	@echo "Testing BSC..."
+	make check-smoke
+
+# Register - Distribution.Make expects this
+register:
+	@echo "Registering BSC..."
+	# Nothing to do
+
+# Unregister - Distribution.Make expects this
+unregister:
+	@echo "Unregistering BSC..."
+	# Nothing to do
+
+.PHONY: all configure build install copy clean haddock sdist test register unregister
+EOF
+
+echo "Created Makefile.cabal for Distribution.Make"
+exit 0 

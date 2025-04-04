@@ -13,3 +13,15 @@ build
 
 .vagrant/
 vagrant-out/
+
+dist-newstyle
+*.hi
+*.o
+*.tix
+*.cache
+*.lock
+*.plan.json
+*.source-hashes
+*.up-to-date
+
+.vscode
