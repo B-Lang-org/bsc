@@ -68,7 +68,8 @@ jobs:
           # binary.
           rm -f /usr/local/include/tcl.h
 
-          make -j2 install
+          cabal v2-build --ghc-options="+RTS -M4500M -A128m -RTS" -j2
+          cabal v2-install --installdir=inst/bin
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
