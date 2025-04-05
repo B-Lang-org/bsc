@@ -471,6 +471,7 @@ fsSVAisunknown = mkFString "$isunknown"
 fsSVAcountones = mkFString "$countones"
 
 fsRandom    = mkFString "$random"
+fsURandom_Range = mkFString "$urandom_range"
 
 fsDumpon    = mkFString "$dumpon"
 fsDumpoff   = mkFString "$dumpoff"

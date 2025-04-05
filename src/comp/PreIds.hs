@@ -660,6 +660,9 @@ idSVAcountones = prelude_id_no fsSVAcountones
 idRandom :: Id
 idRandom     = prelude_id_no fsRandom
 
+idURandom_Range :: Id
+idURandom_Range  = prelude_id_no fsURandom_Range
+
 idDumpon, idDumpoff, idDumpvars, idDumpall, idDumplimit, idDumpflush :: Id
 idDumpon    = prelude_id_no fsDumpon
 idDumpoff   = prelude_id_no fsDumpoff
@@ -691,7 +694,7 @@ taskIds = [ idFinish, idStop,
             --
             idErrorTask, idWarnTask, idInfoTask, idFatalTask,
             --
-            idRandom,
+            idRandom, idURandom_Range,
             --
             idFDisplay, idFDisplayh, idFDisplayb, idFDisplayo,
             idFWrite, idFWriteb, idFWriteh, idFWriteo,

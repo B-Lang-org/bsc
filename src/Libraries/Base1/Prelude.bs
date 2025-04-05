@@ -147,8 +147,6 @@ package Prelude(
 
         $SVA, SvaParam(..),
 
-        $random,
-
         $stop,$finish,
         $dumpon,$dumpoff,$dumpvars,$dumpall,
         $dumpfile,$dumpflush,$dumplimit,
@@ -159,6 +157,9 @@ package Prelude(
         stdout_mcd,
         $time, $stime,
         $test$plusargs,
+
+        $random,
+        $urandom_range,
 
         --- XXX for internal use only - these will not work in user code
         $signed, $unsigned,
@@ -3269,6 +3270,15 @@ foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
 foreign $random :: ActionValue_ 32 = "$random"
 
+-- $urandom_range :: Bit 32 -> Maybe (Bit 32) -> ActionValue (Bit 32)
+-- $urandom_range x my =
+--   let y = case my of
+--             Just v -> v
+--             Nothing -> 0
+--   in fromActionValue_ (__urandom_range__ x y)
+-- foreign __urandom_range__ :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
+foreign $urandom_range :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
+
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))
 foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
@@ -3296,8 +3306,7 @@ stdout_mcd = MCD 1
 $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
 foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
-
-------------------
+-----------------
 
 -- TUPLES
 
