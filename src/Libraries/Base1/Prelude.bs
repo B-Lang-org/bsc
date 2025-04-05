@@ -159,6 +159,7 @@ package Prelude(
         stdout_mcd,
         $time, $stime,
         $test$plusargs,
+        $value$plusargs,
 
         --- XXX for internal use only - these will not work in user code
         $signed, $unsigned,
@@ -3297,6 +3298,9 @@ $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
 foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
 
+$value$plusargs :: String -> ActionValue (UInt 64)
+$value$plusargs x = fromActionValue_ (__valueplusargs__ x)
+foreign __valueplusargs__ :: String -> ActionValue_ 64 = "$value$plusargs"
 ------------------
 
 -- TUPLES

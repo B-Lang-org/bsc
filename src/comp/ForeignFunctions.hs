@@ -364,7 +364,7 @@ fnNeedsSimHdl name = any (`isPrefixOf` name ) tasks
 
                   , "$stop", "$finish"
 
-                  , "$test$plusargs"
+                  , "$test$plusargs", "$value$plusargs"
 
                   , "$dumpfile" , "$dumpvars"
                   , "$dumpon"   , "$dumpoff"  , "$dumpall"

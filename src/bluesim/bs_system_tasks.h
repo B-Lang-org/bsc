@@ -109,6 +109,9 @@ extern bool dollar_test_dollar_plusargs(tSimStateHdl simHdl,
 					const char* size_str,
 					const std::string* name);
 
+extern tUInt64 dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					 const char* size_str,
+					 const std::string* format);
 // VCD-related tasks
 extern void dollar_dumpfile(tSimStateHdl simHdl);
 extern void dollar_dumpfile(tSimStateHdl simHdl,
