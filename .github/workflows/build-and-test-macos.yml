@@ -42,6 +42,8 @@ jobs:
           # Don't rely on the VM to pick the GHC version
           ghcup install ghc ${{ inputs.ghc_version }}
           ghcup set ghc ${{ inputs.ghc_version }}
+          cabal update
+          cabal v2-install old-time regex-compat split syb
       # Until BSC uses cabal to build, pre-install these packages
       # cabal update
       # cabal v1-install old-time regex-compat split syb
