@@ -1,3 +1,3 @@
 import Distribution.Simple
 
-main = defaultMain 
+main = defaultMain

@@ -15,6 +15,7 @@ build
 vagrant-out/
 
 dist-newstyle
+Setup
 *.hi
 *.o
 *.tix
