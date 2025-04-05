@@ -71,7 +71,8 @@ jobs:
           # binary.
           rm -f /usr/local/include/tcl.h
 
-          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' install-src
+          cabal v2-build --ghc-options="+RTS -M4500M -A128m -RTS" -j2
+          cabal v2-install --installdir=inst/bin
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
@@ -127,7 +128,7 @@ jobs:
     name: "Test ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
     timeout-minutes: 240
-    needs: build-macos
+    needs: build-macOS
     steps:
       - uses: actions/checkout@v4
 
@@ -195,7 +196,7 @@ jobs:
     name: "Test Toooba ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
     timeout-minutes: 60
-    needs: build-macos
+    needs: build-macOS
     steps:
       - uses: actions/checkout@v4
 
@@ -273,7 +274,7 @@ jobs:
     name: "Test bsc-contrib ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
     timeout-minutes: 30
-    needs: build-macos
+    needs: build-macOS
     steps:
       - uses: actions/checkout@v4
 
@@ -350,7 +351,7 @@ jobs:
     name: "Test bdw ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
     timeout-minutes: 30
-    needs: build-macos
+    needs: build-macOS
     steps:
       - uses: actions/checkout@v4
 
