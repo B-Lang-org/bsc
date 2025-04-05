@@ -43,11 +43,8 @@ jobs:
           ghcup install ghc ${{ inputs.ghc_version }}
           ghcup set ghc ${{ inputs.ghc_version }}
       # Until BSC uses cabal to build, pre-install these packages
-      - name: Install Haskell dependencies
-        shell: bash
-        run: |
-          cabal update
-          cabal v1-install old-time regex-compat split syb
+      # cabal update
+      # cabal v1-install old-time regex-compat split syb
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
