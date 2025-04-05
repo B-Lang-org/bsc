@@ -36,11 +36,6 @@ jobs:
           # Don't rely on the VM to pick the GHC version
           ghcup install ghc ${{ inputs.ghc_version }}
           ghcup set ghc ${{ inputs.ghc_version }}
-          cabal update
-          cabal v2-install old-time regex-compat split syb
-      # Until BSC uses cabal to build, pre-install these packages
-      # cabal update
-      # cabal v1-install old-time regex-compat split syb
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
@@ -57,15 +52,14 @@ jobs:
         run: |
           ccache --zero-stats --max-size 250M
           export PATH=/usr/lib/ccache:$PATH
-          cabal v2-build --ghc-options="+RTS -M5G -A128m -RTS" -j2
-          cabal v2-install --installdir=inst/bin
+          make -j2 install
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
           CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: ccache --show-stats
       - name: Smoketest
-        run: "make check-smoke"
+        run: "cabal v2-run bsc -- check-smoke"
       # if this step fails, it may mean you need to update
       # util/haskell-language-server/gen_hie.py to
       # reflect the locations of any new haskell sources
