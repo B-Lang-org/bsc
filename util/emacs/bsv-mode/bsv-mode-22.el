@@ -922,6 +922,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
    "\\(\\<endmethod\\>\\)\\|"
    "\\(\\<endrule\\>\\)\\|"
    "\\(\\<endaction\\>\\)\\|"
+   "\\(\\<endactionvalue\\>\\)\\|"
    "\\(\\<endtask\\>\\)\\|"
    "\\(\\<endgenerate\\>\\)"))
 
@@ -932,6 +933,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
 	  "\\(\\<endmethod\\>\\)\\|"
 	  "\\(\\<endrule\\>\\)\\|"
 	  "\\(\\<endaction\\>\\)\\|"
+	  "\\(\\<endactionvalue\\>\\)\\|"
 	  "\\(\\<endinterface\\>\\)\\|"
 	  "\\(\\<end\\(\\(function\\)\\|\\(task\\)\\|\\(module\\)\\|\\(primitive\\)\\)\\>\\)"))
 (defconst bsv-endcomment-reason-re
@@ -947,6 +949,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
    "\\(\\<method\\>\\)\\|"
    "\\(\\<rule\\>\\)\\|"
    "\\(\\<action\\>\\)\\|"
+   "\\(\\<actionvalue\\>\\)\\|"
    "\\(\\<initial\\>\\)\\|"
    "\\(\\<always\\>\\(\[ \t\]*@\\)?\\)\\|"
    "\\(@\\)\\|"
@@ -958,13 +961,13 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
 (defconst bsv-named-block-re  "begin[ \t]*:")
 (defconst bsv-beg-block-re
   ;; "begin" "case" "casex" "fork" "casez" "table" "specify" "function" "task"
-  "\\(\\<\\(begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|generate\\|interface\\|method\\|rule\\|action\\|f\\(ork\\>\\|unction\\>\\)\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)")
+  "\\(\\<\\(begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|generate\\|interface\\|method\\|rule\\|action\\(\\|value\\)\\|f\\(ork\\>\\|unction\\>\\)\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)")
 
 (defconst bsv-beg-block-re-1
-  "\\<\\(begin\\)\\|\\(case[xz]?\\)\\|\\(fork\\)\\|\\(table\\)\\|\\(specify\\)\\|\\(function\\)\\|\\(interface\\)\\|\\(method\\)\\|\\(rule\\)\\|\\(action\\)\\|\\(task\\)\\|\\(generate\\)\\>")
+  "\\<\\(begin\\)\\|\\(case[xz]?\\)\\|\\(fork\\)\\|\\(table\\)\\|\\(specify\\)\\|\\(function\\)\\|\\(interface\\)\\|\\(method\\)\\|\\(rule\\)\\|\\(action\\)\\|\\(actionvalue\\)\\|\\(task\\)\\|\\(generate\\)\\>")
 (defconst bsv-end-block-re
   ;; "end" "join" "endcase" "endtable" "endspecify" "endtask" "endfunction" "endgenerate"
-  "\\<\\(end\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|generate\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\|join\\>\\)")
+  "\\<\\(end\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|actionvalue\\>\\|generate\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\|join\\>\\)")
 
 (defconst bsv-end-block-re-1 "\\(\\<end\\>\\)\\|\\(\\<endcase\\>\\)\\|\\(\\<join\\>\\)\\|\\(\\<endtable\\>\\)\\|\\(\\<endspecify\\>\\)\\|\\(\\<endfunction\\>\\)\\|\\(\\<endinterface\\>\\)\\|\\(\\<endgenerate\\>\\)\\|\\(\\<endtask\\>\\)")
 (defconst bsv-declaration-re
@@ -1025,10 +1028,10 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
   ;; "begin" "else" "`else" "`ifdef" "`endif" "`define" "`undef" "`include"
   (concat "\\("
 	  bsv-directive-re
-	  "\\|\\(\\<begin\\>\\|e\\(lse\\>\\|nd\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|module\\>\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)\\|join\\>\\|m\\(acromodule\\>\\|odule\\>\\)\\|primitive\\>\\)\\)" ))
+	  "\\|\\(\\<begin\\>\\|e\\(lse\\>\\|nd\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|actionvalue\\>\\|module\\>\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\)\\|join\\>\\|m\\(acromodule\\>\\|odule\\>\\)\\|primitive\\>\\)\\)" ))
 
 (defconst bsv-behavioral-block-beg-re
-  "\\(\\<initial\\>\\|\\<always\\>\\|\\<function\\>\\|\\<interface\\>\\|\\<method\\>\\|\\<rule\\>\\|\\<action\\>\\|\\<task\\>\\)")
+  "\\(\\<initial\\>\\|\\<always\\>\\|\\<function\\>\\|\\<interface\\>\\|\\<method\\>\\|\\<rule\\>\\|\\<action\\>\\|\\<actionvalue\\>\\|\\<task\\>\\)")
 (defconst bsv-indent-reg
   (concat
    "\\(\\<begin\\>\\|\\<case[xz]?\\>\\|\\<specify\\>\\|\\<fork\\>\\|\\<table\\>\\)\\|"
@@ -1041,12 +1044,13 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
    "\\(\\<method\\>\\|\\<endmethod\\>\\)\\|"
    "\\(\\<rule\\>\\|\\<endrule\\>\\)\\|"
    "\\(\\<action\\>\\|\\<endaction\\>\\)\\|"
+   "\\(\\<actionvalue\\>\\|\\<endactionvalue\\>\\)\\|"
    "\\(\\<task\\>\\|\\<endtask\\>\\)"
    ;;	  "\\|\\(\\<if\\>\\|\\<else\\>\\)"
    ))
 (defconst bsv-indent-re
   (concat
-   "\\(\\<\\(always\\>\\|begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|end\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|generate\\>\\|module\\>\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\|f\\(ork\\>\\|unction\\>\\)\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|generate\\>\\|initial\\>\\|join\\>\\|m\\(acromodule\\>\\|odule\\>\\)\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)"
+   "\\(\\<\\(always\\>\\|begin\\>\\|case\\(\\>\\|x\\>\\|z\\>\\)\\|end\\(\\>\\|case\\>\\|function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|actionvalue\\>\\|generate\\>\\|module\\>\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)\\|f\\(ork\\>\\|unction\\>\\)\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|generate\\>\\|initial\\>\\|join\\>\\|m\\(acromodule\\>\\|odule\\>\\)\\|primitive\\>\\|specify\\>\\|ta\\(ble\\>\\|sk\\>\\)\\)"
    "\\|" bsv-directive-re "\\)"))
 
 (defconst bsv-defun-level-re
@@ -1057,7 +1061,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
   "\\(\\<end\\(module\\>\\|primitive\\>\\)\\)")
 (defconst bsv-behavioral-level-re
   ;; "function" "task"
-  "\\(\\<\\(function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|task\\>\\)\\)")
+  "\\(\\<\\(function\\>\\|interface\\>\\|method\\>\\|rule\\>\\|action\\>\\|actionvalue\\>\\|task\\>\\)\\)")
 (defconst bsv-complete-reg
   ;; "always" "initial" "repeat" "case" "casex" "casez" "while" "if" "for" "forever" "else" "parameter"
   "\\<\\(always\\|case\\(\\|[xz]\\)\\|begin\\|else\\|generate\\|for\\(\\|ever\\)\\|i\\(f\\|nitial\\)\\|parameter\\|repeat\\|while\\)\\>")
@@ -1088,7 +1092,7 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
    "tranif0" "tranif1" "tri" "tri0" "tri1" "triand" "trior" "trireg"
    "vectored" "wait" "wand" "while" "wire" "wor" "xnor" "xor" 
    "interface" "endinterface" "method" "endmethod" 
-   "rule" "endrule" "action" "endaction"
+   "rule" "endrule" "action" "endaction" "actionvalue" "endactionvalue"
    "package" "endpackage" "provisos" "return" "parameter" "deriving"
    )
  "List of BSV keywords.")
@@ -1432,7 +1436,7 @@ Use filename, if current buffer being edited shorten to just buffer name."
      ((bsv-skip-forward-comment-or-string)
       (bsv-forward-syntactic-ws)
       )
-     ((looking-at bsv-beg-block-re-1);; begin|case|fork|table|specify|function|interface|method|rule|action|task|generate
+     ((looking-at bsv-beg-block-re-1);; begin|case|fork|table|specify|function|interface|method|rule|action|actionvalue|task|generate
       (cond
        ((match-end 1) ; end
 	;; Search forward for matching begin
@@ -1464,10 +1468,13 @@ Use filename, if current buffer being edited shorten to just buffer name."
        ((match-end 10) ; endaction
 	;; Search forward for matching action
 	(setq reg "\\(\\<action\\>\\)\\|\\(\\<endaction\\>\\)" ))
-       ((match-end 11) ; endspecify
+       ((match-end 11) ; endactionvalue
+	;; Search forward for matching action
+	(setq reg "\\(\\<actionvalue\\>\\)\\|\\(\\<endactionvalue\\>\\)" ))
+       ((match-end 12) ; endtask
 	;; Search forward for matching task
 	(setq reg "\\(\\<task\\>\\)\\|\\(\\<endtask\\>\\)" ))
-       ((match-end 12) ; endgenerate
+       ((match-end 13) ; endgenerate
 	;; Search forward for matching generate
 	(setq reg "\\(\\<generate\\>\\)\\|\\(\\<endgenerate\\>\\)" ))
        )
@@ -2137,6 +2144,7 @@ With ARG, first kill any existing labels."
 	      "\\<end\\(\\(function\\)\\|\\(interface\\)\\|\\(method\\)"
 	      "\\|\\(rule\\)"
 	      "\\|\\(action\\)"
+	      "\\|\\(actionvalue\\)"
 	      "\\|\\(task\\)\\|\\(module\\)\\|"
 	      "\\(primitive\\)\\|\\(case\\)\\)?\\>"
 	      "\\|\\(`endif\\)\\|\\(`else\\)")
@@ -3037,7 +3045,7 @@ type.  Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				; indent level changing tokens then immediately
 				; previous line governs indentation.
 			       (let ((reg)(nest 1))
-;;				 bsv-ends =>  else|if|end|join|endcase|endtable|endspecify|endfunction|endinterface|endmethod|endrule|endaction|endtask|endgenerate
+;;				 bsv-ends =>  else|if|end|join|endcase|endtable|endspecify|endfunction|endinterface|endmethod|endrule|endaction|endactionvalue|endtask|endgenerate
 				 (cond
 				  ((match-end 3) ; end
 				   ;; Search back for matching begin
@@ -3063,10 +3071,13 @@ type.  Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				  ((match-end 12) ; endaction
 				   ;; Search back for matching action
 				   (setq reg "\\(\\<action\\>\\)\\|\\(\\<endaction\\>\\)" ))
-				  ((match-end 13) ; endtask
+				  ((match-end 13) ; endactionvalue
+				   ;; Search back for matching actionvalue
+				   (setq reg "\\(\\<actionvalue\\>\\)\\|\\(\\<endactionvalue\\>\\)" ))
+				  ((match-end 14) ; endtask
 				   ;; Search back for matching task
 				   (setq reg "\\(\\<task\\>\\)\\|\\(\\<endtask\\>\\)" ))
-				  ((match-end 14) ; endgenerate
+				  ((match-end 15) ; endgenerate
 				   ;; Search back for matching generate
 				   (setq reg "\\(\\<generate\\>\\)\\|\\(\\<endgenerate\\>\\)" ))
 				  ((match-end 4) ; join
@@ -3221,6 +3232,9 @@ from endcase to matching case, and so on."
      ((looking-at "\\<endaction\\>")
       ;; Search back for matching action
       (setq reg "\\(\\<action\\>\\)\\|\\(\\<endaction\\>\\)" ))
+     ((looking-at "\\<endactionvalue\\>")
+      ;; Search back for matching action
+      (setq reg "\\(\\<action\\>\\)\\|\\(\\<endactionvalue\\>\\)" ))
      ((looking-at "\\<endgenerate\\>")
       ;; Search back for matching generate
       (setq reg "\\(\\<generate\\>\\)\\|\\(\\<endgenerate\\>\\)" ))
