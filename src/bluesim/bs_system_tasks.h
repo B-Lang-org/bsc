@@ -109,9 +109,11 @@ extern bool dollar_test_dollar_plusargs(tSimStateHdl simHdl,
 					const char* size_str,
 					const std::string* name);
 
-extern WideData dollar_value_dollar_plusargs(tSimStateHdl simHdl,
-					 const char* size_str,
-					 const std::string* format);
+extern bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					const char* size_str,
+					const std::string* format,
+					WideData* result);
+
 // VCD-related tasks
 extern void dollar_dumpfile(tSimStateHdl simHdl);
 extern void dollar_dumpfile(tSimStateHdl simHdl,

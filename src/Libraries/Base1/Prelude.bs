@@ -3298,20 +3298,9 @@ $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
 foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
 
-$value$plusargs :: String -> ActionValue (Maybe (Bit 64))
-$value$plusargs x = decodeValuePlusargs (fromActionValue_ (__valueplusargs__ x))
-foreign __valueplusargs__ :: String -> ActionValue_ 128 = "$value$plusargs"
-
-decodeValuePlusargs :: ActionValue (Bit 128) -> ActionValue (Maybe (Bit 64))
-decodeValuePlusargs (ActionValue bits) = ActionValue (\aw ->
-  letseq bits' = bits aw
-         valid = bits'.avValue[127:64]
-         value = bits'.avValue[63:0]
-         act = bits'.avAction
-         aw' = bits'.avWorld
-  in AVStruct { avValue = if valid == 1 then Just value else Nothing;
-                avAction = primSplitDeep act;
-                avWorld = aw' })
+$value$plusargs :: String -> Bit 128 -> ActionValue Bool
+$value$plusargs x y = fromActionValue_ (__valueplusargs__ x y)
+foreign __valueplusargs__ :: String -> Bit 128 -> ActionValue_ 1 = "$value$plusargs"
 ------------------
 
 -- TUPLES

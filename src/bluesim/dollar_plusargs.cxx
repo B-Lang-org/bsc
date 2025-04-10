@@ -10,22 +10,19 @@ bool dollar_test_dollar_plusargs(tSimStateHdl simHdl,
   return (bk_match_argument(simHdl, name->c_str()) != NULL);
 }
 
-WideData dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
           const char* /* size_str */,
-          const std::string* format)
+          const std::string* format,
+          WideData* result)
 {
-
-  WideData result(128, NUM_WORDS(128));
-  result.clear();
-
   const char* fmt = format->c_str();
   const char* percent = strchr(fmt, '%');
-  if (!percent) return result; // No format found → Invalid
+  if (!percent) return false; // No format found → Invalid
 
   std::string key(fmt, percent - fmt);
 
   const char* val_str = bk_match_argument(simHdl, key.c_str());
-  if (!val_str) return result; // Not found → Invalid
+  if (!val_str) return false; // Not found → Invalid
 
   tUInt64 value = 0;
 
@@ -41,16 +38,14 @@ WideData dollar_value_dollar_plusargs(tSimStateHdl simHdl,
       break;
     }
     default:
-    return result; // Unsupported format → Invalid
+    return false; // Unsupported format → Invalid
   }
-
-  // LSB 64 = value
-  result.set_whole_word(static_cast<unsigned int>(value & 0xFFFFFFFF), 0); // [31:0]
-  result.set_whole_word(static_cast<unsigned int>(value >> 32), 1);        // [63:32]
-
-  // MSB 64  = valid == 1
-  result.set_whole_word(1, 2); // [95:64]
-  result.set_whole_word(0, 3); // [127:96] — MSB 32 = 0
-
-  return result;
+  result->clear();
+  result->set_whole_word(static_cast<unsigned int>(value & 0xFFFFFFFFULL), 0);       // bits  31:0
+  result->set_whole_word(static_cast<unsigned int>((value >> 32) & 0xFFFFFFFFULL), 1); // bits 63:32
+  // result->set_whole_word(0xDEADBEEF, 0);
+  // result->set_whole_word(0x12345678, 1);
+  // result->set_whole_word(0, 2); // valid
+  // result->set_whole_word(0, 3); // padding
+  return true;
 }
