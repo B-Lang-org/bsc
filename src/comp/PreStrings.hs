@@ -491,6 +491,7 @@ fsUngetc    = mkFString "$ungetc"
 fsFClose    = mkFString "$fclose"
 fsFFlush    = mkFString "$fflush"
 fsTestPlusargs = mkFString "$test$plusargs"
+fsValuePlusargs = mkFString "$value$plusargs"
 fsRealToBits   = mkFString "$realtobits"
 fsBitsToReal   = mkFString "$bitstoreal"
 

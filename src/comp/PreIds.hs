@@ -677,9 +677,10 @@ idFGetc     = prelude_id_no fsFGetc
 idUngetc    = prelude_id_no fsUngetc
 idFClose    = prelude_id_no fsFClose
 
-idFFlush, idTestPlusargs, idRealToBits, idBitsToReal :: Id
+idFFlush, idTestPlusargs, idValuePlusargs, idRealToBits, idBitsToReal :: Id
 idFFlush    = prelude_id_no fsFFlush
 idTestPlusargs = prelude_id_no fsTestPlusargs
+idValuePlusargs = prelude_id_no fsValuePlusargs
 idRealToBits = prelude_id_no fsRealToBits
 idBitsToReal = prelude_id_no fsBitsToReal
 
@@ -710,7 +711,7 @@ taskIds = [ idFinish, idStop,
             --
             idFOpen, idFGetc, idUngetc, idFClose, idFFlush,
             --
-            idTestPlusargs
+            idTestPlusargs, idValuePlusargs
           ]
 
 -- these are explicitly NOT supported in user code

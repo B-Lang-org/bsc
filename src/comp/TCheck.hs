@@ -1708,6 +1708,7 @@ taskCheckMap = [(idTime,      taskCheckNormal),
                 (idUngetc,    taskCheckNormal),
                 (idFClose,    taskCheckNormal),
                 (idTestPlusargs, taskCheckNormal),
+                (idValuePlusargs, taskCheckNormal),
                 --
                 (idRealToBits, taskCheckNormal),
                 (idBitsToReal, taskCheckNormal)]
