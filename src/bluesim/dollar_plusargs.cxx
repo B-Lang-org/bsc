@@ -43,9 +43,7 @@ bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
   result->clear();
   result->set_whole_word(static_cast<unsigned int>(value & 0xFFFFFFFFULL), 0);       // bits  31:0
   result->set_whole_word(static_cast<unsigned int>((value >> 32) & 0xFFFFFFFFULL), 1); // bits 63:32
-  // result->set_whole_word(0xDEADBEEF, 0);
-  // result->set_whole_word(0x12345678, 1);
-  // result->set_whole_word(0, 2); // valid
-  // result->set_whole_word(0, 3); // padding
+  result->set_whole_word(0, 2);
+  result->set_whole_word(0, 3);
   return true;
 }

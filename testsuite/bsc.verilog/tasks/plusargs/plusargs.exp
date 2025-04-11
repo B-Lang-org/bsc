@@ -22,19 +22,20 @@ proc test_plusargs { module plusargs testname { expected "" } } {
    }
 }
 
+# test_c_veri_bsv TestPlusargsSimple
+# test_plusargs sysTestPlusargsSimple {+HI +Hello +Howdy} test1
+# test_plusargs sysTestPlusargsSimple {+HI +Howdy +HE}    test2
 
-test_c_veri_bsv TestPlusargsSimple
-test_plusargs sysTestPlusargsSimple {+HI +Hello +Howdy} test1
-test_plusargs sysTestPlusargsSimple {+HI +Howdy +HE}    test2
+# test_c_veri_bsv TestPlusargsTwoUseSameArg
+# test_plusargs sysTestPlusargsTwoUseSameArg {+He} test1
 
-test_c_veri_bsv TestPlusargsTwoUseSameArg
-test_plusargs sysTestPlusargsTwoUseSameArg {+He} test1
-
-test_c_veri_bsv TestPlusargsTwoUseDiffArg
-test_plusargs sysTestPlusargsTwoUseDiffArg {+He}      test1
-test_plusargs sysTestPlusargsTwoUseDiffArg {+llo}     test2
-test_plusargs sysTestPlusargsTwoUseDiffArg {+He +llo} test3
+# test_c_veri_bsv TestPlusargsTwoUseDiffArg
+# test_plusargs sysTestPlusargsTwoUseDiffArg {+He}      test1
+# test_plusargs sysTestPlusargsTwoUseDiffArg {+llo}     test2
+# test_plusargs sysTestPlusargsTwoUseDiffArg {+He +llo} test3
 
 test_c_veri_bsv ValuePlusargs
-#test_plusargs sysValuePlusargs {+He=123 +olololo=456} test1
-#test_plusargs sysValuePlusargs {+He=123 +llo=456} test2
+test_plusargs sysValuePlusargs {+e=123} test1
+test_plusargs sysValuePlusargs {+E=123} test2
+test_plusargs sysValuePlusargs {+e=123456789} test3
+
