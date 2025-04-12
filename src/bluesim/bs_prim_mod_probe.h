@@ -1,6 +1,8 @@
 #ifndef __BS_PRIM_MOD_PROBE_H__
 #define __BS_PRIM_MOD_PROBE_H__
 
+#include <cassert>
+
 #include "bluesim_kernel_api.h"
 #include "bluesim_probes.h"
 #include "bs_module.h"
@@ -42,7 +44,8 @@ class MOD_Probe : public Module
   unsigned int dump_VCD_defs(unsigned int /* num */)
   {
     char* buf = NULL;
-    asprintf(&buf, "%s$PROBE", inst_name);
+    int sz = asprintf(&buf, "%s$PROBE", inst_name);
+    assert(sz != -1);
     vcd_num = vcd_reserve_ids(sim_hdl, 1);
     vcd_set_clock(sim_hdl, vcd_num, __clk_handle_0);
     vcd_write_def(sim_hdl, vcd_num, buf, bits);
