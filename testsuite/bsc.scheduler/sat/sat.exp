@@ -15,15 +15,13 @@ set sources [list \
 		 Word64Test
                 ]
 
-set solvers [list yices stp]
+set solvers [list yices]
 
 
 set failures [list]
 
 ## Note that these tests give incorrect schedules due to limitations in the
 ## solver abaility
-## For STP:    Shift*
-
 
 if {$vtest == 1} {
 
@@ -58,4 +56,3 @@ if {$vtest == 1} {
         }
     }
 }
-

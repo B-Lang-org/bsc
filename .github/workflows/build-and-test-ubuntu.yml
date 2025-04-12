@@ -86,7 +86,7 @@ jobs:
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
-      # NB stp, yices and htcl must be built first, so do this after Build.
+      # NB yices and htcl must be built first, so do this after Build.
       - name: Check GHCI :load
         run: |
           cd src/comp
