@@ -7,8 +7,9 @@ import Data.List(nub, (\\), find, genericLength, sortBy, groupBy)
 import Data.List.Split(wordsBy)
 import Data.Maybe(catMaybes, isJust, fromJust)
 import Data.Function(on)
+import Data.Time
+import Data.Time.Clock.POSIX
 import Control.Monad.State(runState)
-import System.Time -- XXX: in old-time package
 import qualified Data.Map as M
 
 import ErrorUtil(internalError)
@@ -26,7 +27,6 @@ import VModInfo(vName_to_id)
 import PPrint(ppReadable) -- hiding (int, char)
 import Util(concatMapM, mapFst, mapSnd)
 import SimFileUtils(codeGenOptionDescr)
-import TopUtils(TimeInfo(..))
 import Version(versionname)
 import BuildVersion(buildVersion)
 
@@ -35,13 +35,13 @@ import BuildVersion(buildVersion)
 -- Create many .cxx and .h files from the entire list of SimCCBlocks
 -- and SimCCScheds.  The blocks are grouped by module, the schedules
 -- cut across all modules.
-simBlocksToC :: Flags -> TimeInfo -> SBId ->
+simBlocksToC :: Flags -> Maybe UTCTime -> SBId ->
                 (Maybe String) -> (Maybe String) ->
                 SBMap -> ForeignFuncMap ->
                 [String] -> [SimCCBlock] -> [SimCCSched] ->
                 [SimCCClockGroup] -> SimCCGateInfo ->
                 (String -> String -> IO String) -> IO [String]
-simBlocksToC flags time top_block def_clk def_rst
+simBlocksToC flags mcreation_time top_block def_clk def_rst
              sb_map ff_map reused mod_blocks scheds
              clk_groups gate_info writeFileC = do
     let sub_ids = [ i | sb <- M.elems sb_map, (i, _, _) <- sb_state sb ]
@@ -95,7 +95,7 @@ simBlocksToC flags time top_block def_clk def_rst
 
     let cvtModBlock = convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_block
     module_names <- concatMapM (cvtModBlock writeFileC) mod_blocks
-    schedule_names <- convertSchedules flags time top_block def_clk def_rst sb_map ff_map
+    schedule_names <- convertSchedules flags mcreation_time top_block def_clk def_rst sb_map ff_map
                                        wdef_inst_map scheds clk_groups gate_info writeFileC
     return $ module_names ++ schedule_names
 
@@ -207,12 +207,12 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
                    writeFileC
 
 -- Convert the schedule and reset functions into .cxx and .h files
-convertSchedules :: Flags -> TimeInfo -> SBId ->
+convertSchedules :: Flags -> Maybe UTCTime -> SBId ->
                     (Maybe String) -> (Maybe String) ->
                     SBMap -> ForeignFuncMap -> M.Map String [AId] ->
                     [SimCCSched] -> [SimCCClockGroup] -> SimCCGateInfo ->
                     (String -> String -> IO String) -> IO [String]
-convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
+convertSchedules flags mcreation_time top_id def_clk def_rst sb_map ff_map
                  wdef_map scheds clk_groups gate_info writeFileC = do
     let ids      = []
         top_blk  = lookupSB sb_map top_id
@@ -489,12 +489,15 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         get_creation_time = function (userType "time_t")
                                      (mkScopedVar "get_creation_time")
                                      []
-        (TimeInfo _ clock_time@(TOD t _)) = if (timeStamps flags)
-                                            then creation_time
-                                            else TimeInfo 0 (TOD 0 0)
-        time_str = calendarTimeToString (toUTCTime clock_time)
+
+        ( time_str, time_secs ) = case mcreation_time of
+          Nothing -> ( "1970-01-01 00:00:00 UTC", 0 )
+          Just clock_time -> ( show clock_time
+                             , floor $ nominalDiffTimeToSeconds (utcTimeToPOSIXSeconds clock_time)
+                             )
+
         gct_def = define get_creation_time
-                         (comment time_str (ret (Just (mkUInt64 t))))
+                         (comment time_str (ret (Just (mkUInt64 time_secs))))
         version_methods = [ comment "Fill in version numbers" gv_def
                           , comment "Get the model creation time" gct_def
                           ]
