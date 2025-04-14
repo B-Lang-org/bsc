@@ -419,7 +419,6 @@ mkSystemTaskArgs add_sim add_this mtaskname ret_arg args =
     conv i e
       | is_valueplusargs && i == 1 = Ptr e
       | is_str e                   = Ptr e
-      | is_real e                  = Arg e
       | aSize e > 64               = Ptr e
       | otherwise                  = Arg e
 
