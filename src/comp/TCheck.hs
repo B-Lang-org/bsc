@@ -1676,6 +1676,7 @@ taskCheckMap = [(idTime,      taskCheckNormal),
                 (idSVAcountones, taskCheckNormal),
                 --
                 (idRandom,    taskCheckRandom),
+                (idURandom_Range, taskCheckNormal),
                 --
                 (idFDisplay,  taskCheckFDisplay),
                 (idFDisplayo, taskCheckFDisplay),

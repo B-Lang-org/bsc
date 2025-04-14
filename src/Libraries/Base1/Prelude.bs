@@ -147,8 +147,6 @@ package Prelude(
 
         $SVA, SvaParam(..),
 
-        $random,
-
         $stop,$finish,
         $dumpon,$dumpoff,$dumpvars,$dumpall,
         $dumpfile,$dumpflush,$dumplimit,
@@ -160,6 +158,8 @@ package Prelude(
         $time, $stime,
         $test$plusargs,
         $value$plusargs,
+
+        $random,$urandom_range,
 
         --- XXX for internal use only - these will not work in user code
         $signed, $unsigned,
@@ -3270,6 +3270,16 @@ foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
 foreign $random :: ActionValue_ 32 = "$random"
 
+$urandom_range ::  Bit 32 -> Bit 32 -> ActionValue (Bit 32)
+$urandom_range x y = fromActionValue_ (__urandom_range__ x y)
+-- $urandom_range ::  Bit 32 -> ActionValue_ 32
+-- $urandom_range x = fromActionValue_ (__urandom_range__ x 0)
+foreign __urandom_range__ :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
+
+-- $value$plusargs :: (Add 0 n n) => String -> Bit n -> ActionValue Bool
+-- $value$plusargs x y = fromActionValue_ (__valueplusargs__ x y)
+-- foreign __valueplusargs__ :: (Add 0 n n) => String -> Bit n -> ActionValue_ 1 = "$value$plusargs"
+
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))
 foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
@@ -3301,7 +3311,6 @@ foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
 $value$plusargs :: (Add 0 n n) => String -> Bit n -> ActionValue Bool
 $value$plusargs x y = fromActionValue_ (__valueplusargs__ x y)
 foreign __valueplusargs__ :: (Add 0 n n) => String -> Bit n -> ActionValue_ 1 = "$value$plusargs"
--- $urandom_range :: String -> Uint32  -> Bit 32 ->  ActionValue Bit 32
 -----------------
 
 -- TUPLES
