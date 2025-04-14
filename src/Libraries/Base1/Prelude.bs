@@ -3298,10 +3298,11 @@ $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
 foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
 
-$value$plusargs :: String -> Bit 128 -> ActionValue Bool
+$value$plusargs :: (Add 0 n n) => String -> Bit n -> ActionValue Bool
 $value$plusargs x y = fromActionValue_ (__valueplusargs__ x y)
-foreign __valueplusargs__ :: String -> Bit 128 -> ActionValue_ 1 = "$value$plusargs"
-------------------
+foreign __valueplusargs__ :: (Add 0 n n) => String -> Bit n -> ActionValue_ 1 = "$value$plusargs"
+-- $urandom_range :: String -> Uint32  -> Bit 32 ->  ActionValue Bit 32
+-----------------
 
 -- TUPLES
 

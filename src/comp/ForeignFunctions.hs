@@ -365,6 +365,7 @@ fnNeedsSimHdl name = any (`isPrefixOf` name ) tasks
                   , "$stop", "$finish"
 
                   , "$test$plusargs", "$value$plusargs"
+                  , "$random", "$urandom_range"
 
                   , "$dumpfile" , "$dumpvars"
                   , "$dumpon"   , "$dumpoff"  , "$dumpall"
@@ -406,19 +407,27 @@ mkSystemTaskReturn _ = internalError "mkSystemTaskReturn: not a task action"
 -- Convert arguments for a ForeignCall into a list of Arguments suitable
 -- for calling a system task.  This may require adding a "this" pointer,
 -- adding an argument descriptor string, and passing some values by pointer.
-mkSystemTaskArgs :: Bool -> Bool -> Maybe Argument -> [AExpr] -> [Argument]
-mkSystemTaskArgs add_sim add_this ret_arg args =
-  let rest   = map convAExprToArgument args
+mkSystemTaskArgs :: Bool -> Bool -> Maybe String -> Maybe Argument -> [AExpr] -> [Argument]
+mkSystemTaskArgs add_sim add_this mtaskname ret_arg args =
+  let rest   = zipWith conv [0..] args
       sim    = if add_sim then [SimHdl] else []
       this   = if add_this then [Module] else []
-      argstr = if (null args) then [] else [ArgStr]
-  in sim ++ this ++ argstr ++ (maybeToList ret_arg) ++ rest
+      argstr = if null args then [] else [ArgStr]
+  in sim ++ this ++ argstr ++ maybeToList ret_arg ++ rest
+  where
+    conv :: Int -> AExpr -> Argument
+    conv i e
+      | is_valueplusargs && i == 1 = Ptr e
+      | is_str e                   = Ptr e
+      | is_real e                  = Arg e
+      | aSize e > 64               = Ptr e
+      | otherwise                  = Arg e
 
-convAExprToArgument :: AExpr -> Argument
-convAExprToArgument e | (is_str e)     = Ptr e
-                      | (is_real e)    = Arg e
-                      | (aSize e) > 64 = Ptr e
-                      | otherwise      = Arg e
+    is_valueplusargs :: Bool
+    is_valueplusargs =
+      case mtaskname of
+        Just name -> name == "$value$plusargs" || name == "__valueplusargs__"
+        Nothing    -> False
 
 
 -- Generate a (do_writeback, fn name, arg list) tuple for a system task
@@ -428,7 +437,7 @@ mkSystemTaskCallExpr e@(AFunCall {}) =
   let name = ae_funname e
       add_sim = fnNeedsSimHdl name
       add_this = fnNeedsLocation name
-      args = mkSystemTaskArgs add_sim add_this Nothing (ae_args e)
+      args = mkSystemTaskArgs add_sim add_this (Just name) Nothing (ae_args e)
   in (Direct, mapFnName name, args)
 mkSystemTaskCallExpr e =
   internalError $ "mkSystemTaskCallExpr: non-call expr -- " ++ (show e)
@@ -440,6 +449,7 @@ mkSystemTaskCallAction act@(AFCall {}) =
       add_sim = fnNeedsSimHdl name
       add_this = fnNeedsLocation name
       args = mkSystemTaskArgs add_sim add_this
+                              (Just name)
                               Nothing
                               (tailOrErr "action has no condition"
                                          (aact_args act))
@@ -450,6 +460,7 @@ mkSystemTaskCallAction act@(ATaskAction {}) =
       add_sim = fnNeedsSimHdl name
       add_this = fnNeedsLocation name
       args = mkSystemTaskArgs add_sim add_this
+                              (Just name)
                               ret_arg
                               (tailOrErr "action has no condition"
                                          (aact_args act))
