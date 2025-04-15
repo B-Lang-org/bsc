@@ -10,7 +10,7 @@ jobs:
 
   build-check-src:
     name: "Check: code cleanliness"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
 
   build-check-testsuite:
     name: "Check: testsuite lint"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
   build-and-test-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-20.04, ubuntu-22.04, ubuntu-24.04 ]
+        os: [ ubuntu-22.04, ubuntu-24.04 ]
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
@@ -111,7 +111,7 @@ jobs:
   build-doc-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-20.04, ubuntu-22.04, ubuntu-24.04 ]
+        os: [ ubuntu-22.04, ubuntu-24.04 ]
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
