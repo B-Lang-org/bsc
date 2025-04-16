@@ -25,10 +25,6 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
     const char* val_str = bk_match_argument(simHdl, key.c_str());
     if (!val_str) return false; // not found
 
-    int bitwidth = 0;
-    const char* comma = strchr(size_str, ',');
-    if (comma) bitwidth = atoi(comma + 1);
-
     tUInt64 value = 0;
     switch (*(percent + 1)) {
       case 'd':
@@ -45,8 +41,13 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
         return false;
     }
 
+    unsigned int bitwidth = 0;
+    const char* comma = strchr(size_str, ',');
+    if (comma) bitwidth = atoi(comma + 1);
+
     tUInt64 mask = bitwidth == 0 ? 0 : (1ULL << bitwidth) - 1;
-    value &= mask;
+    if (bitwidth <= 64)
+      value &= mask;
 
     if (bitwidth <= 8) {
         *reinterpret_cast<tUInt8*>(result) = static_cast<tUInt8>(value);
@@ -57,8 +58,8 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
     } else {
         WideData* wd = reinterpret_cast<WideData*>(result);
         wd->clear();
-        wd->set_whole_word(static_cast<unsigned int>(value & 0xFFFFFFFFULL), 0);
-        wd->set_whole_word(static_cast<unsigned int>(value >> 32), 1);
+        wd->set_whole_word(value & 0xFFFFFFFFULL, 0);
+        wd->set_whole_word(value >> 32, 1);
     }
     return true;
 }
