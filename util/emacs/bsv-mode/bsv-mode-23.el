@@ -2773,7 +2773,7 @@ find the errors."
      "wire" "with" "within" "wor" "xnor" "xor"
      ;; 1800-2009
      "accept_on" "checker" "endchecker" "eventually" "global" "implies"
-     "let" "nexttime" "reject_on" "restrict" "s_always" "s_eventually"
+     "let" "match" "nexttime" "reject_on" "restrict" "s_always" "s_eventually"
      "s_nexttime" "s_until" "s_until_with" "strong" "sync_accept_on"
      "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak"
  )
@@ -2947,7 +2947,7 @@ See also `bsv-font-lock-extra-types'.")
 	(eval-when-compile
 	  (bsv-regexp-opt
 	   '("accept_on" "checker" "endchecker" "eventually" "global"
-	     "implies" "let" "nexttime" "reject_on" "restrict" "s_always"
+	     "implies" "let" "match" "nexttime" "reject_on" "restrict" "s_always"
 	     "s_eventually" "s_nexttime" "s_until" "s_until_with" "strong"
 	     "sync_accept_on" "sync_reject_on" "unique0" "until"
 	     "until_with" "untyped" "weak" ) nil )))
@@ -2983,7 +2983,7 @@ See also `bsv-font-lock-extra-types'.")
 	     "class" "program" "endclass" "endprogram"
 	     "seq" "endseq" "par" "endpar" "rules" "endrules" 
 	     "method" "endmethod" "rule" "endrule" "action" "endaction" "actionvalue" "endactionvalue"
-	     "let" "begin" "end" "import" "type" "matches" "tagged" "union"
+	     "let" "match" "begin" "end" "import" "type" "matches" "tagged" "union"
 ;;	     "Eq" "Bits" "Bounded" "FShow" 
 	     "typedef" "enum" "struct"
 	     "provisos" "return" "parameterx" "deriving"
