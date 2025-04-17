@@ -1,1 +1,8 @@
-$value$plusargs = 0000000000000000000000000000007b
+result4 = 5
+result8 = 09
+result16 = 8000
+result20 = dbeaf
+result64 = 18446744073709551606
+result128 = 18446744073709551606
+resultS = BlueSpecTestPlusArgs
+resultNG is not given

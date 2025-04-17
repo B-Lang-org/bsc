@@ -4,7 +4,6 @@ proc test_plusargs { module plusargs testname { expected "" } } {
    global lasterr
 
    set fname "$module.$testname"
-
    if {[string compare $expected ""] == 0} {
       set expected "$fname.out.expected"
    }
@@ -35,7 +34,4 @@ test_plusargs sysTestPlusargsTwoUseDiffArg {+llo}     test2
 test_plusargs sysTestPlusargsTwoUseDiffArg {+He +llo} test3
 
 test_c_veri_bsv ValuePlusargs
-test_plusargs sysValuePlusargs {+e=123} test1
-test_plusargs sysValuePlusargs {+E=123} test2
-test_plusargs sysValuePlusargs {+e=123456789} test3
-
+test_plusargs sysValuePlusargs {+r4=101 +r8=011 +r16=32768 +r20=0xdeadBEAF +r64=18446744073709551606 +r128=18446744073709551606 +r256=BlueSpecTestPlusArgs} test1

@@ -30,21 +30,21 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
 
     switch (*(percent + 1)) {
       case 'b': // binary
-        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 2));
+        value = strtoull(val_str, nullptr, 2);
         break;
 
       case 'o': // octal
-        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 8));
+        value = strtoull(val_str, nullptr, 8);
         break;
 
       case 'd': // decimal
       case 'i':
-        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 10));
+        value = strtoull(val_str, nullptr, 10);
         break;
 
       case 'h': // hex
       case 'x':
-        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 16));
+        value = strtoull(val_str, nullptr, 16);
         break;
 
       case 'f': // float decimal
@@ -85,19 +85,27 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
           wd->set_whole_word(static_cast<unsigned int>(value >> 32), 1);
       }
     } else {
-        size_t str_len = strlen(val_str);
-        if (bitwidth <= 8) {
-            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt8)));
-        } else if (bitwidth <= 32) {
-            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt32)));
-        } else if (bitwidth <= 64) {
-            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt64)));
-        } else {
-            WideData* wd = reinterpret_cast<WideData*>(result);
-            unsigned int available_bytes = wd->numWords() * sizeof(unsigned int);
-            size_t copy_len = std::min(str_len, static_cast<size_t>(available_bytes));
-            std::memcpy(reinterpret_cast<void*>(wd->data), val_str, copy_len);
-        }
+      size_t str_len = strlen(val_str);
+      std::string reversed(val_str, str_len);
+      std::reverse(reversed.begin(), reversed.end());
+      const char* reversed_str = reversed.c_str();
+
+      if (bitwidth <= 8) {
+          std::memset(result, 0, sizeof(tUInt8));
+          std::memcpy(result, reversed_str, std::min<size_t>(str_len, sizeof(tUInt8)));
+      } else if (bitwidth <= 32) {
+          std::memset(result, 0, sizeof(tUInt32));
+          std::memcpy(result, reversed_str, std::min<size_t>(str_len, sizeof(tUInt32)));
+      } else if (bitwidth <= 64) {
+          std::memset(result, 0, sizeof(tUInt64));
+          std::memcpy(result, reversed_str, std::min<size_t>(str_len, sizeof(tUInt64)));
+      } else {
+          WideData* wd = reinterpret_cast<WideData*>(result);
+          wd->clear();
+          unsigned int available_bytes = wd->numWords() * sizeof(unsigned int);
+          size_t copy_len = std::min(str_len, static_cast<size_t>(available_bytes));
+          std::memcpy(reinterpret_cast<void*>(wd->data), reversed_str, copy_len);
+      }
     }
     return true;
 }
