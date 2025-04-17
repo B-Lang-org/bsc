@@ -409,17 +409,18 @@ mkSystemTaskReturn _ = internalError "mkSystemTaskReturn: not a task action"
 -- adding an argument descriptor string, and passing some values by pointer.
 mkSystemTaskArgs :: Bool -> Bool -> Maybe String -> Maybe Argument -> [AExpr] -> [Argument]
 mkSystemTaskArgs add_sim add_this mtaskname ret_arg args =
-  let rest   = zipWith conv [0..] args
+  let rest   = zipWith convrArg [0..] args
       sim    = if add_sim then [SimHdl] else []
       this   = if add_this then [Module] else []
-      argstr = if null args then [] else [ArgStr]
+      argstr = if (null args) then [] else [ArgStr]
   in sim ++ this ++ argstr ++ maybeToList ret_arg ++ rest
   where
-    conv :: Int -> AExpr -> Argument
-    conv i e
+    convrArg :: Int -> AExpr -> Argument
+    convrArg i e
       | is_valueplusargs && i == 1 = Ptr e
       | is_str e                   = Ptr e
       | aSize e > 64               = Ptr e
+      | is_real e                  = Arg e
       | otherwise                  = Arg e
 
     is_valueplusargs :: Bool

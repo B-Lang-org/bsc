@@ -25,41 +25,79 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
     const char* val_str = bk_match_argument(simHdl, key.c_str());
     if (!val_str) return false; // not found
 
-    tUInt64 value = 0;
+    tUInt64 value;
+    bool is_string = false;
+
     switch (*(percent + 1)) {
-      case 'd':
+      case 'b': // binary
+        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 2));
+        break;
+
+      case 'o': // octal
+        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 8));
+        break;
+
+      case 'd': // decimal
       case 'i':
         value = static_cast<tUInt64>(strtoll(val_str, nullptr, 10));
         break;
-      case 'f':
-      case 'F': {
+
+      case 'h': // hex
+      case 'x':
+        value = static_cast<tUInt64>(strtoll(val_str, nullptr, 16));
+        break;
+
+      case 'f': // float decimal
+      case 'F':
+      case 'e': // exponential
+      case 'g': // general float
+      case 'G': {
         double d = strtod(val_str, nullptr);
         std::memcpy(&value, &d, sizeof(double));
         break;
       }
+
+      case 's': // string
+        is_string = true;
+        break;
+
       default:
         return false;
     }
 
-    unsigned int bitwidth = 0;
+    int bitwidth = 0;
     const char* comma = strchr(size_str, ',');
     if (comma) bitwidth = atoi(comma + 1);
 
-    tUInt64 mask = bitwidth == 0 ? 0 : (1ULL << bitwidth) - 1;
-    if (bitwidth <= 64)
-      value &= mask;
+    if (!is_string) {
+      if(bitwidth<64)
+        value &= ((1ULL << bitwidth) - 1);
 
-    if (bitwidth <= 8) {
-        *reinterpret_cast<tUInt8*>(result) = static_cast<tUInt8>(value);
-    } else if (bitwidth <= 32) {
-        *reinterpret_cast<tUInt32*>(result) = static_cast<tUInt32>(value);
-    } else if (bitwidth <= 64) {
-        *reinterpret_cast<tUInt64*>(result) = value;
+      if (bitwidth <= 8) {
+          *reinterpret_cast<tUInt8*>(result) = static_cast<tUInt8>(value);
+      } else if (bitwidth <= 32) {
+          *reinterpret_cast<tUInt32*>(result) = static_cast<tUInt32>(value);
+      } else if (bitwidth <= 64) {
+          *reinterpret_cast<tUInt64*>(result) = value;
+      } else {
+          WideData* wd = reinterpret_cast<WideData*>(result);
+          wd->set_whole_word(static_cast<unsigned int>(value & 0xFFFFFFFFULL), 0);
+          wd->set_whole_word(static_cast<unsigned int>(value >> 32), 1);
+      }
     } else {
-        WideData* wd = reinterpret_cast<WideData*>(result);
-        wd->clear();
-        wd->set_whole_word(value & 0xFFFFFFFFULL, 0);
-        wd->set_whole_word(value >> 32, 1);
+        size_t str_len = strlen(val_str);
+        if (bitwidth <= 8) {
+            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt8)));
+        } else if (bitwidth <= 32) {
+            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt32)));
+        } else if (bitwidth <= 64) {
+            std::memcpy(result, val_str, std::min<size_t>(str_len, sizeof(tUInt64)));
+        } else {
+            WideData* wd = reinterpret_cast<WideData*>(result);
+            unsigned int available_bytes = wd->numWords() * sizeof(unsigned int);
+            size_t copy_len = std::min(str_len, static_cast<size_t>(available_bytes));
+            std::memcpy(reinterpret_cast<void*>(wd->data), val_str, copy_len);
+        }
     }
     return true;
 }
