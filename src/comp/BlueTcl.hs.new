@@ -2130,8 +2130,8 @@ getBInstChildren b@(BNode {binst_sub = sub}) =
                                 Right minfo@(m,ba)
                                             -> let eminfo = (m, Right ba)
                                                    bsub = BMod { bin_module = minfo
-                                                               , bin_type   = node_type inode
-                                                               , bin_name   = node_name inode
+                                                               , bin_type   = node_type inodep
+                                                               , bin_name   = node_name inodep
                                                                , bin_uname  = unique
                                                                }
                                                in b' { binst_sub = bsub, binst_mod = eminfo }
@@ -2154,8 +2154,8 @@ getBInstChildren b@(BNode {binst_sub = sub}) =
                                 Right minfo@(m,ba)
                                             -> let eminfo = (m, Right ba)
                                                    bsub = BMod { bin_module = minfo
-                                                               , bin_type   = node_type inode
-                                                               , bin_name   = node_name inode
+                                                               , bin_type   = node_type inodep
+                                                               , bin_name   = node_name inodep
                                                                , bin_uname  = unique
                                                                }
                                                in b' { binst_sub = bsub, binst_mod = eminfo }
