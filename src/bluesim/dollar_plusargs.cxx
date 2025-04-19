@@ -25,6 +25,10 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
     const char* val_str = bk_match_argument(simHdl, key.c_str());
     if (!val_str) return false; // not found
 
+    int bitwidth = 0;
+    const char* comma = strchr(size_str, ',');
+    if (comma) bitwidth = atoi(comma + 1);
+
     tUInt64 value;
     bool is_string = false;
 
@@ -65,9 +69,7 @@ bool local_dollar_value_dollar_plusargs(tSimStateHdl simHdl,
         return false;
     }
 
-    int bitwidth = 0;
-    const char* comma = strchr(size_str, ',');
-    if (comma) bitwidth = atoi(comma + 1);
+
 
     if (!is_string) {
       if(bitwidth<64)

@@ -82,7 +82,7 @@ endif
 COPT ?= -O3
 CDEBUG ?= -UUSE_ENTER
 CFLAGS += $(PROF) $(COPT) $(CDEBUG)
-CXXFLAGS += $(PROF) $(COPT) $(CDEBUG) 
+CXXFLAGS += $(PROF) $(COPT) $(CDEBUG)
 
 # Description of library of Bluesim primitives
 LIB_PRIM = libbsprim.a
@@ -95,7 +95,7 @@ PRIM_OBJS = prim_ops.o wide_data.o mem_alloc.o target.o \
             prim_mod_gatedclock.o \
             prim_mod_resets.o \
             dollar_display.o dollar_dumpvars.o dollar_plusargs.o \
-            dollar_stop_finish.o dollar_time.o \
+            dollar_stop_finish.o dollar_time.o dollar_random.o \
             mem_file.o module.o portability.o \
             rand32.o
 
