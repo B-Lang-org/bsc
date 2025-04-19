@@ -471,6 +471,7 @@ fsSVAisunknown = mkFString "$isunknown"
 fsSVAcountones = mkFString "$countones"
 
 fsRandom    = mkFString "$random"
+fsURandom_Range = mkFString "$urandom_range"
 
 fsDumpon    = mkFString "$dumpon"
 fsDumpoff   = mkFString "$dumpoff"
@@ -491,6 +492,7 @@ fsUngetc    = mkFString "$ungetc"
 fsFClose    = mkFString "$fclose"
 fsFFlush    = mkFString "$fflush"
 fsTestPlusargs = mkFString "$test$plusargs"
+fsValuePlusargs = mkFString "$value$plusargs"
 fsRealToBits   = mkFString "$realtobits"
 fsBitsToReal   = mkFString "$bitstoreal"
 
