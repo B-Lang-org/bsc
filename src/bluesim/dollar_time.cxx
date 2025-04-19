@@ -1,5 +1,5 @@
 /* Implementations of $time and $stime */
-#include <cstdlib>
+
 #include "bluesim_kernel_api.h"
 
 tUInt64 dollar_time(tSimStateHdl simHdl)
