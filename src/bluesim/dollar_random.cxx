@@ -41,7 +41,7 @@ tUInt32 dollar_random(tSimStateHdl simHdl) {
 tUInt32 dollar_urandom_range(tSimStateHdl simHdl,
                              const char*,
                              tUInt32 maxval,
-                             tUInt32 minval = 0) {
+                             tUInt32 minval) {
     if (maxval < minval) return minval;
     tUInt32 range = maxval - minval + 1;
     tUInt32 seed = 1;
@@ -54,4 +54,8 @@ tUInt32 dollar_urandom_range(tSimStateHdl simHdl,
         seed = it->second;
     }
     return (local_dollar_random(simHdl, seed) % range) + minval;
+}
+
+tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval) {
+  return dollar_urandom_range(simHdl, nullptr, maxval,0);
 }

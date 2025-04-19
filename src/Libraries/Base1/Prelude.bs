@@ -3271,13 +3271,14 @@ foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
 foreign $random :: ActionValue_ 32 = "$random"
 
-$urandom_range :: Bit 32 -> Maybe (Bit 32) -> ActionValue (Bit 32)
-$urandom_range x my =
-  let y = case my of
-            Just v -> v
-            Nothing -> 0
-  in fromActionValue_ (__urandom_range__ x y)
-foreign __urandom_range__ :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
+-- $urandom_range :: Bit 32 -> Maybe (Bit 32) -> ActionValue (Bit 32)
+-- $urandom_range x my =
+--   let y = case my of
+--             Just v -> v
+--             Nothing -> 0
+--   in fromActionValue_ (__urandom_range__ x y)
+-- foreign __urandom_range__ :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
+foreign $urandom_range :: Bit 32 -> Bit 32 -> ActionValue_ 32 = "$urandom_range"
 
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))

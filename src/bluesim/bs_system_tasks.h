@@ -106,7 +106,8 @@ extern tUInt32 dollar_stime(tSimStateHdl simHdl);
 
 extern tUInt32 dollar_random(tSimStateHdl simHdl);
 extern tUInt32 dollar_random(tSimStateHdl simHdl, const char*, tUInt32 rand_seed);
-extern tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval,tUInt32 minval = 0);
+extern tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval);
+extern tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval,tUInt32 minval);
 
 // plusargs tasks
 extern bool dollar_test_dollar_plusargs(tSimStateHdl simHdl,

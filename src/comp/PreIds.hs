@@ -695,7 +695,7 @@ taskIds = [ idFinish, idStop,
             --
             idErrorTask, idWarnTask, idInfoTask, idFatalTask,
             --
-            idRandom,
+            idRandom, idURandom_Range,
             --
             idFDisplay, idFDisplayh, idFDisplayb, idFDisplayo,
             idFWrite, idFWriteb, idFWriteh, idFWriteo,

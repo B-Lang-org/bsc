@@ -1119,37 +1119,62 @@ taskCheckNormal as td f es =
 litOne :: Position -> CExpr
 litOne pos = CLit (CLiteral pos (LInt (ilDec 1)))
 
+checkArg :: [Assump] -> CExpr -> String -> TI (([VPred], CExpr), Type, CStmts)
+checkArg as e name =
+    do
+        let pos = (getPosition e)
+        v <- newTVar name KNum e
+        let targ = TAp tInt v
+        _ <- tiExpr as targ e
+        let e' = cVApply (setIdPosition pos idPack) [e]
+        let targ' = TAp tBit v
+        (ps, res) <- tiExpr as targ' e'
+        t <- expandFullType targ'
+        return ((ps, res), t, [])
+
 taskCheckRandom :: [Assump] -> Type -> CExpr -> [CExpr] -> TI ([VPred],CExpr)
 taskCheckRandom as td f [] =
-      do
+    do
         let pos = (getPosition f)
         let tav = TAp (tActionValueAt pos) (TAp tInt t32)
         eq_ps <- unify f tav td
-
         finishSWriteAV as td t32 f [] [] eq_ps
 
 taskCheckRandom as td f es@[e] =
-      do
+    do
         let pos = (getPosition f)
         let tav = TAp (tActionValueAt pos) (TAp tInt t32)
         eq_ps <- unify f tav td
-
-        let pos' = getPosition e
-
-        v <- newTVar "taskCheckRandom" KNum e
-        let targ = TAp tInt v
-        res <- tiExpr as targ e
-
-        let e' = cVApply (setIdPosition pos' idPack) [e]
-        let targ' = TAp tBit v
-        res' <- tiExpr as targ' e'
-        t' <- expandFullType targ'
-        let pr =(res', t', [])
-
-        finishSWriteAV as td t32 f es [pr] eq_ps
+        pr <- checkArg as e "taskCheckRandom"
+        finishSWriteAV as td t32 f [e] [pr] eq_ps
 
 taskCheckRandom as td f es =
     do x <- err (getPosition f, (ETaskMismatchNumArgs "$random" "0 or 1" (toInteger (length es))))
+       return x
+
+taskCheckURandomRange :: [Assump] -> Type -> CExpr -> [CExpr] -> TI ([VPred], CExpr)
+taskCheckURandomRange as td f [] =
+    err (getPosition f, ETaskMismatchNumArgs "$urandom_range" "1 or 2" 0)
+
+taskCheckURandomRange as td f es@[e]=
+    do
+        let pos = (getPosition f)
+        let tav = TAp (tActionValueAt pos) (TAp tInt t32)
+        eq_ps <- unify f tav td
+        pr <- checkArg as e "taskCheckURandomRange"
+        finishSWriteAV as td t32 f [e] [pr] eq_ps
+
+taskCheckURandomRange as td f es@[e1, e2] =
+    do
+        let pos = (getPosition f)
+        let tav = TAp (tActionValueAt pos) (TAp tInt t32)
+        eq_ps <- unify f tav td
+        pr1 <- checkArg as e1 "taskCheckURandomRange_max"
+        pr2 <- checkArg as e2 "taskCheckURandomRange_min"
+        finishSWriteAV as td t32 f [e1, e2] [pr1, pr2] eq_ps
+
+taskCheckURandomRange as td f es =
+    do x <- err (getPosition f, ETaskMismatchNumArgs "$urandom_range" "1 or 2" (toInteger (length es)))
        return x
 
 taskCheckFinish :: [Assump] -> Type -> CExpr -> [CExpr] -> TI ([VPred],CExpr)
@@ -1676,7 +1701,7 @@ taskCheckMap = [(idTime,      taskCheckNormal),
                 (idSVAcountones, taskCheckNormal),
                 --
                 (idRandom,    taskCheckRandom),
-                (idURandom_Range, taskCheckNormal),
+                (idURandom_Range, taskCheckURandomRange),
                 --
                 (idFDisplay,  taskCheckFDisplay),
                 (idFDisplayo, taskCheckFDisplay),
