@@ -2,7 +2,6 @@
 # in statistics about this repo
 #
 src/Parsec/**  linguist-vendored
-src/vendor/stp/src/**  linguist-vendored
 testsuite/**  linguist-vendored
 doc/**  linguist-documentation
 

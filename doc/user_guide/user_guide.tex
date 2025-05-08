@@ -2171,7 +2171,6 @@ with {\bf\tt -split-if}, since it may improve the generated schedule.
 \label{flag-optundeterminedvals}
 \begin{centerboxverbatim}
 -opt-undetermined-vals      aggressive optimization of undetermined values
--sat-stp                    use STP SMT for disjoint testing and SAT 
 -sat-yices                  use Yices SMT for disjoint testing and SAT
 \end{centerboxverbatim}
 
@@ -2191,7 +2190,6 @@ about don't-care values.  This flag is \emph{off} by default.  Turning this
 flag on may produce better hardware in Verilog, but can result in the
 Bluesim and Verilog simulations producing different intermediate values.
 
-\index{-sat-stp@\te{-sat-stp} (compiler flag)}
 \index{-sat-yices@\te{-sat-yices} (compiler flag)}
 It is possible to change the underlying proof engine used by the
 compiler.  You should not use these flags 
