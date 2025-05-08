@@ -4,6 +4,7 @@ EmptyRule.bsv-pretty-out.bsv
 Map.bsv-pretty-out.bsv
 MethodCalledMethodI.bsv-pretty-out.bsv
 MethodCalledMethodII.bsv-pretty-out.bsv
+ModuleArgument.bsv-pretty-out.bsv
 MethodReturn.bsv-pretty-out.bsv
 PopCount0.bsv-pretty-out.bsv
 TypedefStruct.bsv-pretty-out.bsv
