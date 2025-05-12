@@ -45,44 +45,117 @@ symlinks in `/usr/bin/` that point to the executables in
 
 ---
 
-## Install the Haskell compiler (GHC)
+## Requirements
 
-You will need the standard Haskell compiler `ghc` which is available for Linux,
-macOS and Windows, along with some additional Haskell libraries. These are
-available as standard packages in most Linux distributions. For example, on
-Debian and Ubuntu systems, you can say:
+To build a complete release of BSC, you will need:
+ - The standard Haskell compiler `ghc`. The recommended version is the
+   latest 9.4 point release, but the Bluespec compiler should work
+   with any release from 7.10.3 through 9.8.
+ - A few additional Haskell libraries: `regex-compat`, `syb`,
+   `old-time`, and `split`.
+ - `pkg-config` is strongly recommended to query installed
+   libraries. The build will fall back to default values if necessary,
+   but this should be avoided if possible.
+ - Standard unix shell and development tools, notably GNU Make.
 
-    $ apt-get install ghc
-    $ apt-get install \
-        libghc-regex-compat-dev \
-        libghc-syb-dev \
-        libghc-old-time-dev \
-        libghc-split-dev
+The following dependencies are optional, though recommended:
+ - To build the Yices SMT solver: a C/C++ toolchain, `autoconf` and
+   the `gperf` perfect hashing library.
+ - To build the STP SMT solver: a C/C++ toolchain, Perl, and the
+   `flex` and `bison` parser generator tools.
+ - To build the Bluespec Tcl shell (`bluetcl`): Tcl 8 development
+   libraries.
+ - To run smoke tests: the [Icarus Verilog] simulator.
+ - To run the full test suite: the Icarus Verilog simulator, Perl,
+   csh, and SystemC libraries. See the [testsuite
+   README](testsuite/README.md) for details.
+ - To build PDF documentation: a LaTeX installation, with extras and
+   additional fonts.
+ - To format release notes for publication, the [Asciidoctor] tool.
 
-The second command will install the Haskell libraries `regex-compat`, `syb`,
-`old-time`, and `split`, as well as some libraries that they depend on.
+[Icarus Verilog]: https://steveicarus.github.io/iverilog/
+[Asciidoctor]: https://asciidoctor.org
 
-If you wish to do profiling builds of the compiler itself, you will also need
-to install versions of the Haskell libraries built using the profiling flags.
-On Debian and Ubuntu, this can be done with:
+### Debian and Ubuntu systems
 
-    $ apt-get install \
+The following command installs all required and optional dependencies:
+
+```bash
+sudo apt-get install \
+   build-essential \
+   ghc \
+   libghc-regex-compat-dev \
+   libghc-syb-dev \
+   libghc-old-time-dev \
+   libghc-split-dev \
+   tcl-dev \
+   pkg-config \
+   autoconf \
+   gperf \
+   flex \
+   bison \
+   iverilog \
+   texlive-latex-base \
+   texlive-latex-recommended \
+   texlive-latex-extra \
+   texlive-font-utils \
+   texlive-fonts-extra
+```
+
+If you wish to do profiling builds of the Bluespec compiler, you will
+also need to install the profiling-enabled versions of the Haskell
+libraries:
+
+```bash
+sudo apt-get install \
+   ghc-prof \
+   libghc-regex-compat-prof \
+   libghc-syb-prof \
+   libghc-old-time-prof \
+   libghc-split-prof
+```
+
+## Fedora systems
+
+The following command install all required and optional dependencies:
+
+    $ sudo dnf install \
+        @development-tools \
+        @c-development \
+        ghc \
+        ghc-regex-compat-devel \
+        ghc-syb-devel \
+        ghc-old-time-devel \
+        ghc-split-devel \
+        iverilog \
+        dejagnu \
+        tcl8-dev \
+        gperf \
+        latex \
+        texlive-scheme-basic \
+        texlive-moreverb \
+        texlive-dingbat \
+        texlive-subfigure
+
+If you wish to do profiling builds of the Bluespec compiler, you will
+also need to install the profiling-enabled versions of the Haskell
+libraries:
+
+    $ sudo dnf install \
         ghc-prof \
-        libghc-regex-compat-prof \
-        libghc-syb-prof \
-        libghc-old-time-prof \
-        libghc-split-prof
+        ghc-regex-compat-prof \
+        ghc-syb-prof \
+        ghc-old-time-prof \
+        ghc-split-prof
 
-You can do the analogous package-install on other Linux distributions using
-their native package mechanisms, and on macOS using Homebrew or Macports. Full details
-can be found at <https://www.haskell.org/>, and in particular `ghcup` is a popular
-installer for recent Haskell releases <https://www.haskell.org/ghcup/>.
+### GHC setup with Cabal
 
-On some systems, you may need to use the `cabal` command to install Haskell
-libraries.  This tool is installed by `ghcup` but is also available as a package
-for many distributions.
-If you are using cabal 3.0 or later, you will need to use the legacy `v1-`
-commands to install Haskell libraries.
+On some systems, you may need to use the `cabal` command to install
+Haskell libraries.  This tool is installed by `ghcup` but is also
+available as a package for many distributions.
+
+If you are using cabal 3.0 or later, you will need to use the legacy
+`v1-` commands to install Haskell libraries.
 
 For cabal v2.x:
 
@@ -101,8 +174,8 @@ disturbing the global setup; or if GHC is installed via a package
 manager and you don't want to mix cabal-installed files with package
 manager-installed files.  Using `v2-install` is possible, but requires
 passing an additional flag to GHC, which can be done by defining `GHC`
-in the environment when calling `make` in the later steps.
-For example (cabal v3.x only):
+in the environment when calling `make` in the later steps.  For
+example (cabal v3.x only):
 
     $ cabal v2-install --package-env=default syb old-time split
     $ make GHC="ghc -package-env default"
@@ -111,77 +184,32 @@ Bluespec compiler builds are tested with GHC 9.4.8.
 GHC releases older than 7.10.3 are not supported.
 
 The source code has been written with extensive preprocessor macros to
-support every minor release of GHC since 7.10, through 9.8. Any releases
-in that range should be fine.
+support every minor release of GHC since 7.10, through 9.8. Any
+releases in that range should be fine.
+
 The recommended version of GHC is 9.4 in its latest point release.
 
-## Additional requirements
+### SMT solvers
 
-For building and using the Bluespec Tcl shell (`bluetcl`),
-you will need the `tcl` library:
-
-    $ apt-get install tcl-dev
-
-Building BSC also requires standard Unix shell and Makefile utilities.
-For example, in our testing on Ubuntu, we install the `build-essential` package
-that pulls in the `make` package as a requirement.
-
-    $ apt-get install build-essential
-
-Some Makefiles will attempt to use `pkg-config` to query the installed libraries,
-but will fall-back on default values if it is not available.  For best results
-and to avoid spurious warnings, we recommend installing the `pkg-config`
-package (or `pkgconfig` on some systems):
-
-    $ apt-get install pkg-config
-
-The repository for [the Yices SMT Solver](https://github.com/SRI-CSL/yices2) is
-cloned as a submodule of this repository. Building the BSC tools will recurse
-into this directory and build the Yices library for linking into BSC and
+The repository for the [Yices SMT Solver] is cloned as a submodule of
+this repository. Building the BSC tools will recurse into this
+directory and build the Yices library for linking into BSC and
 Bluetcl.
-Building the Yices library is optional (see below), but recommended.
-Yices currently requires `autoconf` and the `gperf` perfect hashing
-library to compile:
 
-    $ apt-get install \
-        autoconf \
-        gperf
+[Yices SMT Solver]: https://github.com/SRI-CSL/yices2
 
-Building the BSC tools will also recurse into a directory for the STP SMT
-solver. This is currently an old snapshot of the STP source code, including the
-code for various libraries that it uses. In the future, this may be replaced
-with a submodule instantiation of the repository for [the STP SMT
-solver](https://github.com/stp/stp). When that happens, additional requirements
+Building the BSC tools will also recurse into a directory for the STP
+SMT solver. This is currently an old snapshot of the STP source code,
+including the code for various libraries that it uses. In the future,
+this may be replaced with a submodule instantiation of the repository
+for the [STP SMT solver]. When that happens, additional requirements
 from that repository will be added.
-Building the STP library is optional (see below).
-The current snapshot requires Perl, to
-generate two source files. It also needs flex and bison:
 
-    $ apt-get install flex bison
+[STP SMT solver]: https://github.com/stp/stp
 
-The `check-smoke` target runs a test using an external Verilog simulator, which is
-[Icarus Verilog] by default. You can install Icarus on Debian/Ubuntu with:
-
-    $ apt-get install iverilog
-
-[Icarus Verilog]: https://steveicarus.github.io/iverilog/
-
-More extensive testing is available in the `testsuite` subdirectory.
-Additional requirements for running those tests are listed in the
-[testsuite README].
-
-[testsuite README]: testsuite/README.md
-
-The `install-doc` target builds PDF documentation from LaTeX source files
-that rely on a few standard style files.  The following Debian/Ubuntu
-packages install sufficient tools to build the documentation:
-
-    $ apt-get install \
-        texlive-latex-base \
-        texlive-latex-recommended \
-        texlive-latex-extra \
-        texlive-font-utils \
-        texlive-fonts-extra
+Both the Yices and STP solvers are optional to build, although
+recommended. To skip these builds, see "Optionally avoiding the
+compile of STP or Yices" below.
 
 ## Clone the repository
 
@@ -228,26 +256,26 @@ compile in parallel, define `GHCJOBS` in the environment to that number:
 
 ### Optionally avoiding the compile of STP or Yices
 
-The BSC tools expect to dynamically link with specific versions of STP and Yices,
-found in `inst/lib/SAT/`.  By default, the build process will compile both
-libraries and install them in that directory.  However, the BSC tools only need
-one SMT solver; Yices is used by default, and STP can be selected via a flag.
-Most users will never need to switch solvers, or even be aware of the option.
-Thus, the build process offers the option of not compiling the STP library,
-and instead installing a stub file, that the BSC tools will recognize and will
-not allow the user to select that solver.  This option is chosen by assigning
-a non-empty value to `STP_STUB`:
+The BSC tools need an SMT solver. By default, the build process
+compiles both the Yices and STP solvers, and allows the end user to
+select which one to use at runtime, with Yices being the default.
+
+Most users will never need to switch solvers, or even be aware of the
+option. Thus, the build process offers the option of not compiling one
+of the two solvers. The omitted solver is replaced with a stub file,
+and the BSC tools will not let users select that solver.
+
+To skip building the STP solver, assign a non-empty value to
+`STP_STUB`:
 
     $ make STP_STUB=1
 
-This can be used if STP does not build on your system or if you want to avoid
-the work of building the library.  A similar `YICES_STUB` option exists, for
-skipping the build of the Yices library:
+Similarly, use `YICES_STUB` to skip building the Yices solver:
 
     $ make YICES_STUB=1
 
-The BSC tools do need at least one SMT solver, so only one of these options
-should be used.
+The BSC tools do need at least one SMT solver, so only one of these
+options should be used.
 
 ## Test the BSC toolchain
 
@@ -289,11 +317,11 @@ additional files, creating a complete release in the `inst` directory:
 
     $ make release
 
-The additional files include a README, copyright and licensing info, and
-release notes.  The release notes are written in [AsciiDoc](https://asciidoc.org/)
-format that is published to HTML and PDF format using the
-[Asciidoctor](https://asciidoctor.org/) tool, which is therefore a requirement
-for building a release.
+The additional files include a README, copyright and licensing info,
+and release notes.  The release notes are written in
+[AsciiDoc](https://asciidoc.org/) format that is published to HTML and
+PDF format using the [Asciidoctor] tool, which is therefore a
+requirement for building a release.
 
 If you do not have Asciidoctor or would prefer not to install it (and all of
 its dependencies), you can set `NOASCIIDOCTOR` in the environment:
