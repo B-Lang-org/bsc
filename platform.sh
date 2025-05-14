@@ -81,7 +81,15 @@ if [ ${OSTYPE} = "Darwin" ] ; then
     # Have Makefile avoid Homebrew's install of tcl on Mac
     TCLSH=/usr/bin/tclsh
 else
-    TCLSH=`which tclsh`
+    # With the release of tcl 9, some linux distros (e.g. Fedora)
+    # install tcl 8 tools with a suffix: 'tclsh8' instead of 'tclsh'.
+    #
+    # Since 'tclsh8' more precisely identifies a compatible tcl
+    # version, try that first, then fall back to the generic 'tclsh'.
+    TCLSH=`which tclsh8`
+    if [ $? -eq 1 ]; then
+        TCLSH=`which tclsh`
+    fi
 fi
 
 if [ "$1" = "tclsh" ] ; then
