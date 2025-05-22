@@ -10,6 +10,8 @@
 #include "AST.h"
 #include "../STPManager/STPManager.h"
 #include "../STPManager/NodeIterator.h"
+#include <thread>
+#include <chrono>
 
 namespace BEEV
 {
@@ -582,22 +584,18 @@ namespace BEEV
   }
 
 
-  itimerval timeout;
-  void setHardTimeout(int sec)
-  {
-  signal(SIGVTALRM, handle_time_out);
-  timeout.it_interval.tv_usec = 0;
-  timeout.it_interval.tv_sec  = 0;
-  timeout.it_value.tv_usec    = 0;
-  timeout.it_value.tv_sec     = sec;
-  setitimer(ITIMER_VIRTUAL, &timeout, NULL);
-  }
+std::thread timeout_thread;
+void setHardTimeout(int sec) {
+  timeout_thread = std::thread([sec]() {
+    std::this_thread::sleep_for(std::chrono::seconds(sec));
+    handle_time_out(0);
+  });
+}
 
   long getCurrentTime()
   {
-    timeval t;
-    gettimeofday(&t, NULL);
-    return (1000 * t.tv_sec) + (t.tv_usec / 1000);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return ms.count();
   }
 
 };//end of namespace

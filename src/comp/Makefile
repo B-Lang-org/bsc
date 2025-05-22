@@ -3,7 +3,7 @@ WANT_TCL=yes
 
 include $(TOP)/platform.mk
 
-TMPDIR=/tmp
+TMPDIR=./tmp
 
 # -----
 # System tools
@@ -127,7 +127,6 @@ PACKAGES = \
 	-package containers \
 	-package array \
 	-package mtl \
-	-package unix \
 	-package regex-compat \
 	-package bytestring \
 	-package directory \
@@ -140,8 +139,13 @@ PACKAGES = \
 	-package syb \
 	-package integer-gmp \
 	-package text \
+	-package signal \
 	$(GHCEXTRAPKGS)
 
+ifeq ($(OSTYPE), Mingw)
+PACKAGES += -package Win32 \
+			-package unix-compat
+endif
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
 # in make mode where it follows dependencies (use GHCMAKEFLAGS).
 #
@@ -291,6 +295,7 @@ endif
 
 .PHONY: bsc
 bsc: $(SOURCES)
+	mkdir -p $(TMPDIR)
 	$(PREBUILDCOMMAND)
         # to force updating of BuildVersion/BuildSystem when necessary
 	./update-build-version.sh
@@ -405,5 +410,6 @@ clean:
 full_clean: clean
 	$(RM) -f BuildSystem.hs BuildVersion.hs
 	$(RM) tags TAGS
+	$(RM) -rf $(TMPDIR)
 
 # -----
