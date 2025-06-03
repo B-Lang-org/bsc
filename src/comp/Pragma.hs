@@ -54,10 +54,10 @@ module Pragma(
 import Prelude hiding ((<>))
 #endif
 
+import Data.Data
+import Data.List(sort)
 import qualified Data.Map as M
 import Data.Maybe(listToMaybe)
-import Data.List(sort)
-import qualified Data.Generics as Generic
 
 import Eval
 import PPrint
@@ -78,7 +78,7 @@ import IdPrint
 data Pragma
         = Pproperties Id [PProp]-- module Id and properties associate with
         | Pnoinline [Id]        -- [Id] is a list of functions which should not be inlined
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 
 instance PPrint Pragma where
@@ -144,7 +144,7 @@ data PProp
         | PPinst_hide
         | PPinst_hide_all
         | PPdeprecate String
-      deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+      deriving (Show, Eq, Ord, Data, Typeable)
 
 data PPnm
         = PPnmOne Id
@@ -381,7 +381,7 @@ data RulePragma
     | RPclockCrossingRule
     | RPdoc String  -- comment to carry through to Verilog
     | RPhide
-      deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+      deriving (Show, Eq, Ord, Data, Typeable)
 
 -- used for classic printing of CSyntax
 -- and by various internal dumps of ISyntax/ASyntax
@@ -438,7 +438,7 @@ data SchedulePragma id_t
     | SPConflictFree [[id_t]]
     | SPPreempt [id_t] [id_t]
     | SPSchedule (MethodConflictInfo id_t)
-      deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+      deriving (Show, Eq, Ord, Data, Typeable)
 
 type CSchedulePragma = SchedulePragma Longname
 type ISchedulePragma = SchedulePragma Id
@@ -709,7 +709,7 @@ data IfcPragma
     | PIEnSignalName  String    -- name for the enable signal
     | PIAlwaysRdy               -- ifc or methods tagged as always ready
     | PIAlwaysEnabled           -- ifc or methods tagged as always enabled
-      deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+      deriving (Show, Ord, Eq, Data, Typeable)
 
 -- type PragmaPair = (Id,String)
 
@@ -893,7 +893,7 @@ data DefProp
   | DefP_Method Id -- for method predicates
   | DefP_Instance Id  -- for method predicates
   | DefP_NoCSE -- indicate this def should never be used for CSE
-  deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+  deriving (Eq, Ord, Show, Data, Typeable)
 
 instance PPrint DefProp where
   pPrint _d _i = text . show

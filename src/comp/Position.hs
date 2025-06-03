@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable #-}
 module Position where
 
+import Data.Data
 import Data.List(partition)
-import qualified Data.Generics as Generic
 
 import Eval
 import PPrint
@@ -16,7 +16,7 @@ data Position = Position {
     pos_line :: !Int,
     pos_column :: !Int,
     pos_is_stdlib :: !Bool
-} deriving (Generic.Data, Generic.Typeable)
+} deriving (Data, Typeable)
 
 mkPosition :: FString -> Int -> Int -> Position
 mkPosition f l c = Position f l c False
