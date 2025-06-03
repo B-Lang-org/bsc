@@ -43,7 +43,7 @@ BINDIR=$(PREFIX)/bin
 BUILDDIR=$(TOP)/build/comp
 
 # Parsec
-PARSEC_HS = ../Parsec
+PARSEC_HS = Parsec
 
 # STP
 STP_HS = ../vendor/stp/include_hs
@@ -56,7 +56,7 @@ YICES_INC_FLAGS = -I../vendor/yices/include
 YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 
 # HTCL
-HTCL_HS = ../vendor/htcl
+HTCL_HS = HTcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
 HTCL_LIB_FLAGS = -lhtcl
 
@@ -170,7 +170,7 @@ GHCINCLUDES =  \
 GHCTMP = '-tmpdir $(TMPDIR)'
 # Default RTS flags for programs built with a Haskell main
 # 256MB heap, 10MB stack, 1 second interval between heap profiles
-# If you modify this, also update rts_opts in ../vendor/htcl/haskell.c
+# If you modify this, also update rts_opts in HTcl/haskell.c
 RTSFLAGS = "-with-rtsopts=-H256m -K10m -i1"
 FVIA ?= -fasm
 GHCFLAGS = \
