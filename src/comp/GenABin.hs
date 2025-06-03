@@ -6,7 +6,6 @@ module GenABin(genABinFile, readABinFile) where
 import Error(internalError, ErrMsg(..), ErrorHandle, bsErrorUnsafe)
 import Position
 
---import Time(ClockTime)
 import Backend
 import Wires
 import ASyntax
