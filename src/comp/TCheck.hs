@@ -3228,9 +3228,21 @@ expCLMatch (CLMatch p e) =
   where bind i e = CLValue i [CClause [] [] e] []
         expand ds v (CPstruct mb ti fs)
           | mb /= (Just False) = do
+                -- The check of 'mb' just confirms that the struct syntax was used.
+                -- We also need to check that the name exists and is a struct type.
+                checkTyConId ti
+                -- Now it's safe to construct selection exprs using that name
                 dss <- mapM (\ (f, p) -> expCLMatch (CLMatch p (CSelectTT ti v f))) fs
                 return (concat (ds:dss))
         expand _ _ p = err (getPosition p, EBadMatch (pfpString p))
+        -- Note, this is duplicating some of what 'disambiguateStruct' does
+        checkTyConId i = do
+          -- First check that the name is defined
+          tc <- findTyCon i
+          -- Then confirm that it is a struct
+          case tc of
+            (TyCon _ (Just {}) (TIstruct {})) -> return ()
+            _ -> err (getPosition i, ENotStructId (pfpString i))
         expComma (CPCon comma [p1, p2]) | comma == idComma =
                 CPstruct (Just True) (setIdPosition (getIdPosition comma) idPrimPair)
                     [(setIdPosition (getPosition p1) idPrimFst, p1),
