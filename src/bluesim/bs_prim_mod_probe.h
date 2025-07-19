@@ -42,7 +42,9 @@ class MOD_Probe : public Module
   unsigned int dump_VCD_defs(unsigned int /* num */)
   {
     char* buf = NULL;
-    asprintf(&buf, "%s$PROBE", inst_name);
+    int sz = asprintf(&buf, "%s$PROBE", inst_name);
+    if (sz < 0)
+      perror("dump_VCD_defs: asprintf");
     vcd_num = vcd_reserve_ids(sim_hdl, 1);
     vcd_set_clock(sim_hdl, vcd_num, __clk_handle_0);
     vcd_write_def(sim_hdl, vcd_num, buf, bits);

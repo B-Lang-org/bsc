@@ -165,3 +165,14 @@ compile_pass PartialApp.bs
 
 compile_fail_error PartialAppTooManyArgs.bs T0144
 compare_file [make_bsc_output_name PartialAppTooManyArgs.bs]
+
+# ----------
+
+# Test that unbound type names are reported as user errors
+
+# Struct name in match statement (GitHub issue #785)
+compile_fail_error Unbound_Pattern.bsv T0007
+
+# XXX Test for other situations?
+
+# ----------

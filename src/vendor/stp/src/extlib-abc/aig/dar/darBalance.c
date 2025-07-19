@@ -245,7 +245,7 @@ Aig_Obj_t * Dar_BalanceBuildSuper( Aig_Man_t * p, Vec_Ptr_t * vSuper, Aig_Type_t
     int LeftBound;
     assert( vSuper->nSize > 1 );
     // sort the new nodes by level in the decreasing order
-    Vec_PtrSort( vSuper, Aig_NodeCompareLevelsDecrease );
+    Vec_PtrSort( vSuper, (int (*)())Aig_NodeCompareLevelsDecrease );
     // balance the nodes
     while ( vSuper->nSize > 1 )
     {
