@@ -1338,9 +1338,9 @@ data Bool = False | True
 \EBS
 uses one bit.  \te{False} is represented by 0 and \te{True} by 1.
 \BBS
-struct Två = \{ första :: Bit 8; andra :: Bit 16 \}
+struct TvÃ¥ = \{ fÃ¶rsta :: Bit 8; andra :: Bit 16 \}
 \EBS
-uses 24 bits with \te{första} in the upper 8 bits and \te{andra} in the lower 16.
+uses 24 bits with \te{fÃ¶rsta} in the upper 8 bits and \te{andra} in the lower 16.
 \BBS
 data Maybe a = Nothing | Just a
 \EBS
@@ -1600,42 +1600,42 @@ can be used for convenience.
 	}\\
 \grammore{
 % ISO 8859-1 symbols
-	             \term{¡}
-%T1	      {\alt} \term{¢}
-	      {\alt} \term{£}
-%T1	      {\alt} \term{¤}
-%T1	      {\alt} \term{¥}
-%T1	      {\alt} \term{¦}
-	      {\alt} \term{§}
-	      {\alt} \term{¨}
-	      {\alt} \term{©}
-	      {\alt} \term{ª}
-	      {\alt} \term{«}
-	      {\alt} $\term{¬}$
-%T1	      {\alt} \term{­}
-	      {\alt} \term{®}
-	      {\alt} \term{¯}
-	      {\alt} \term{°}
-	      {\alt} $\term{±}$
+	             \term{Â¡}
+%T1	      {\alt} \term{Â¢}
+	      {\alt} \term{Â£}
+%T1	      {\alt} \term{Â¤}
+%T1	      {\alt} \term{Â¥}
+%T1	      {\alt} \term{Â¦}
+	      {\alt} \term{Â§}
+	      {\alt} \term{Â¨}
+	      {\alt} \term{Â©}
+	      {\alt} \term{Âª}
+	      {\alt} \term{Â«}
+	      {\alt} $\term{Â¬}$
+%T1	      {\alt} \term{Â­}
+	      {\alt} \term{Â®}
+	      {\alt} \term{Â¯}
+	      {\alt} \term{Â°}
+	      {\alt} $\term{Â±}$
 	      {\alt}
 	} \\
 \grammore{
-	             $\term{²}$
-	      {\alt} $\term{³}$
-	      {\alt} \term{´}
-	      {\alt} $\term{µ}$
-	      {\alt} \term{¶}
-	      {\alt} \term{·}
-	      {\alt} \term{¸}
-	      {\alt} $\term{¹}$
-	      {\alt} \term{º}
-	      {\alt} \term{»}
-	      {\alt} \term{¼}
-	      {\alt} \term{½}
-	      {\alt} \term{¾}
-	      {\alt} \term{¿}
-	      {\alt} $\term{×}$
-	      {\alt} $\term{÷}$
+	             $\term{Â²}$
+	      {\alt} $\term{Â³}$
+	      {\alt} \term{Â´}
+	      {\alt} $\term{Âµ}$
+	      {\alt} \term{Â¶}
+	      {\alt} \term{Â·}
+	      {\alt} \term{Â¸}
+	      {\alt} $\term{Â¹}$
+	      {\alt} \term{Âº}
+	      {\alt} \term{Â»}
+	      {\alt} \term{Â¼}
+	      {\alt} \term{Â½}
+	      {\alt} \term{Â¾}
+	      {\alt} \term{Â¿}
+	      {\alt} $\term{Ã—}$
+	      {\alt} $\term{Ã·}$
         }
 
 \index{infix operators!predefined}
@@ -1669,7 +1669,7 @@ precedence and associativity (see the Standard Prelude in section
     \verb"-"     & 10  & Left  \\
     \verb"*"     & 11  & Left  \\
     \verb"/"     & 11  & Left  \\
-    \verb"·"     & 13  & Right \\
+    \verb"Â·"     & 13  & Right \\
     user-defined & 15  & Left \\
     \hline
   \end{tabular}
@@ -3089,7 +3089,8 @@ Example:
      } [ [exec,rdata] <> [exec,rdata] ]
 \end{verbatim}
 Since there will be no wire for the \term{exec} enable signal the name
-does not matter.
+does not matter, as long as it does not conflict with any other port names.
+All port names must be unique including the inhigh placeholder names.
 
 % ----------------
 
