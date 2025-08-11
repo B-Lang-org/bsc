@@ -15,5 +15,5 @@ all: install
 .PHONY: install clean full_clean
 install clean full_clean:
 	for d in $(SUBDIRS) ; do \
-		$(MAKE)  -C $$d  PREFIX=$(PREFIX)  $@ ; \
+		$(MAKE)  -C $$d  PREFIX=$(PREFIX)  $@ || exit 1 ; \
 		done
