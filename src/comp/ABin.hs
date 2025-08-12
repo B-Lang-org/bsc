@@ -49,7 +49,6 @@ data ABinModInfo =
         -- the name of the BSV package which defined this module
         abmi_src_name :: String,
         -- time when BSC was called to compile the .ba
-        --abmi_time :: ClockTime,
         abmi_apkg :: APackage,
         abmi_aschedinfo :: AScheduleInfo,
         -- if this can be used prior to generating abin,
