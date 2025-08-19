@@ -42,7 +42,7 @@ license.  The following are known to have other authors and licenses:
   * See LICENSES/LICENSE.hbc
 
 * Parsec
-  * Files in src/Parsec/ are adapted from Daan Leijen's Parsec
+  * Files in src/comp/Parsec/ are adapted from Daan Leijen's Parsec
     Haskell library
   * See LICENSES/LICENSE.parsec
   * Source and license obtained on 2004-01-28 from
