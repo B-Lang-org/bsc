@@ -20,17 +20,21 @@ We recommend renaming the `inst` directory to `bsc-<VERSION>` and placing
 it in a subdirectory of `/opt/`, `${HOME}/`, `/usr/share/`, or similar
 location.  For example:
 
-    $ BSC_VERSION=$(echo 'puts [lindex [Bluetcl::version] 0]' | inst/bin/bluetcl)
-    $ mkdir -p /opt/tools/bsc
-    $ mv inst /opt/tools/bsc/bsc-${BSC_VERSION}
-    $ cd /opt/tools/bsc
-    $ ln -s bsc-${BSC_VERSION} latest
+```bash
+BSC_VERSION=$(echo 'puts [lindex [Bluetcl::version] 0]' | inst/bin/bluetcl)
+mkdir -p /opt/tools/bsc
+mv inst /opt/tools/bsc/bsc-${BSC_VERSION}
+cd /opt/tools/bsc
+ln -s bsc-${BSC_VERSION} latest
+```
 
 The `inst` directory has a `bin` subdirectory, where the executables
 for the tools are found.  To use the tools, just add that directory to
 your `PATH`:
 
-    $ export PATH=/opt/tools/bsc/latest/bin:$PATH
+```bash
+export PATH=/opt/tools/bsc/latest/bin:$PATH
+```
 
 These executables will make use of other files found within the `inst`
 directory, locating them relatively from the `bin` directory.  That is
@@ -48,9 +52,10 @@ symlinks in `/usr/bin/` that point to the executables in
 ## Requirements
 
 To build a complete release of BSC, you will need:
- - The standard Haskell compiler `ghc`. The recommended version is the
-   latest 9.4 point release, but the Bluespec compiler should work
-   with any release from 7.10.3 through 9.8.
+ - The standard Haskell compiler [GHC]. The recommended version is the
+   latest 9.6 point release, but the Bluespec compiler should work
+   with any release from 7.10.3 through 9.12.  We recommend installing
+   GHC via the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, and `split`.
  - `pkg-config` is strongly recommended to query installed
@@ -63,8 +68,9 @@ The following dependencies are optional, though recommended:
    the `gperf` perfect hashing library.
  - To build the STP SMT solver: a C/C++ toolchain, Perl, and the
    `flex` and `bison` parser generator tools.
- - To build the Bluespec Tcl shell (`bluetcl`): Tcl 8 development
-   libraries.
+ - To build the Bluespec Tcl shell (`bluetcl`): Tcl development
+   libraries. Version 8 may be required, as we have not yet tested
+   with version 9.
  - To run smoke tests: the [Icarus Verilog] simulator.
  - To run the full test suite: the Icarus Verilog simulator, Perl,
    csh, and SystemC libraries. See the [testsuite
@@ -73,21 +79,18 @@ The following dependencies are optional, though recommended:
    additional fonts.
  - To format release notes for publication, the [Asciidoctor] tool.
 
+[GHC]: https://www.haskell.org/ghc/
+[GHCUp]: https://www.haskell.org/ghcup/
 [Icarus Verilog]: https://steveicarus.github.io/iverilog/
 [Asciidoctor]: https://asciidoctor.org
 
 ### Debian and Ubuntu systems
 
-The following command installs all required and optional dependencies:
+The following commands install all required and optional dependencies:
 
 ```bash
 sudo apt-get install \
    build-essential \
-   ghc \
-   libghc-regex-compat-dev \
-   libghc-syb-dev \
-   libghc-old-time-dev \
-   libghc-split-dev \
    tcl-dev \
    pkg-config \
    autoconf \
@@ -100,11 +103,30 @@ sudo apt-get install \
    texlive-latex-extra \
    texlive-font-utils \
    texlive-fonts-extra
+
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+ghcup install ghc 9.6.7
+cabal update
+cabal v1-install regex-compat syb old-time split
 ```
 
-If you wish to do profiling builds of the Bluespec compiler, you will
-also need to install the profiling-enabled versions of the Haskell
-libraries:
+Those final four commands install the recommended GHC compiler version
+and libraries. If you would prefer to install GHC via the system's
+package manager, which may install an older version, you can
+substitute the following command:
+
+```bash
+sudo apt-get install \
+   ghc \
+   libghc-regex-compat-dev \
+   libghc-syb-dev \
+   libghc-old-time-dev \
+   libghc-split-dev
+```
+
+However, if you use the package manager and want to profile the
+Bluespec compiler (unlikely for most users), you will also need to the
+profiling-enabled versions of the Haskell libraries:
 
 ```bash
 sudo apt-get install \
@@ -115,57 +137,98 @@ sudo apt-get install \
    libghc-split-prof
 ```
 
-## Fedora systems
+### Fedora systems
 
-The following command install all required and optional dependencies:
+The following commands install all required and optional dependencies:
 
-    $ sudo dnf install \
-        @development-tools \
-        @c-development \
-        ghc \
-        ghc-regex-compat-devel \
-        ghc-syb-devel \
-        ghc-old-time-devel \
-        ghc-split-devel \
-        iverilog \
-        dejagnu \
-        tcl8-dev \
-        gperf \
-        latex \
-        texlive-scheme-basic \
-        texlive-moreverb \
-        texlive-dingbat \
-        texlive-subfigure
+```bash
+sudo dnf install \
+   @development-tools \
+   @c-development \
+   iverilog \
+   dejagnu \
+   tcl-dev \
+   gperf \
+   latex \
+   texlive-scheme-basic \
+   texlive-moreverb \
+   texlive-dingbat \
+   texlive-subfigure
 
-If you wish to do profiling builds of the Bluespec compiler, you will
-also need to install the profiling-enabled versions of the Haskell
-libraries:
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+ghcup install ghc 9.6.7
+cabal update
+cabal v1-install regex-compat syb old-time split
+```
 
-    $ sudo dnf install \
-        ghc-prof \
-        ghc-regex-compat-prof \
-        ghc-syb-prof \
-        ghc-old-time-prof \
-        ghc-split-prof
+Note that `tcl8-dev` may be needed in place of `tcl-dev`, until we have
+tested with Tcl v9.
 
-### GHC setup with Cabal
+Those final four commands install the recommended GHC compiler version
+and libraries. If you would prefer to install GHC via the system's
+package manager, which may install an older version, you can
+substitute the following command:
 
-On some systems, you may need to use the `cabal` command to install
-Haskell libraries.  This tool is installed by `ghcup` but is also
-available as a package for many distributions.
+```bash
+sudo dnf install \
+   ghc \
+   ghc-regex-compat-devel \
+   ghc-syb-devel \
+   ghc-old-time-devel \
+   ghc-split-devel
+```
 
-If you are using cabal 3.0 or later, you will need to use the legacy
-`v1-` commands to install Haskell libraries.
+However, if you use the package manager and want to profile the
+Bluespec compiler (unlikely for most users), you will also need to the
+profiling-enabled versions of the Haskell libraries:
 
-For cabal v2.x:
+```bash
+sudo dnf install \
+   ghc-prof \
+   ghc-regex-compat-prof \
+   ghc-syb-prof \
+   ghc-old-time-prof \
+   ghc-split-prof
+```
 
-    $ cabal update
-    $ cabal install regex-compat syb old-time split
+### GHC Haskell compiler
 
-For cabal v3.x:
+As shown in the above summaries, we recommend installing GHC via the
+popular installer [GHCup], which is available for Linux, FreeBSD,
+macOS, and WSL2 on Windows.  This allows easily installing the
+recommended version of GHC. The package manager for your OS may
+provide a package for GHC, however it may be for an older version of
+GHC.  This is fine, as the BSC source code has been written with
+extensive preprocessor macros to support every minor release of GHC
+since 7.10, through 9.12. Any releases in that range should be fine;
+however, newer versions may be more efficient.
+GHC releases older than 7.10.3 are not supported.
 
-    $ cabal update
-    $ cabal v1-install regex-compat syb old-time split
+BSC releases are tested and built with the recommended stable version
+of GHC, currently 9.6.7.  The source is also tested with a range of
+newer GHC versions (currently 9.8, 9.10, and 9.12) any of which are
+also fine.
+
+### Haskell libraries via Cabal
+
+Building BSC requires some additional Haskell libraries beyond the standard
+GHC libraries.  We recommend using the `cabal` command to install
+those libraries, as shown in the above summaries.
+As with GHC, we recommend installing `cabal` via `ghcup`.
+
+If you have installed GHC through the package manager of your OS,
+then you may need to install libraries through the package manager as
+well (as shown in the above summaries) or you may need to install `cabal`
+through the package manager.
+
+The BSC build currently assumes that libraries have been installed
+globally with GHC.  This is why we have shown the `cabal` command
+using the legacy `v1-install` subcommand, which install globally:
+
+```bash
+cabal update
+cabal v1-install regex-compat syb old-time split
+```
 
 Cabal's newer `v2-install` has the advantage of not installing the
 libraries into the GHC installation.  This is useful if the GHC
@@ -175,19 +238,15 @@ manager and you don't want to mix cabal-installed files with package
 manager-installed files.  Using `v2-install` is possible, but requires
 passing an additional flag to GHC, which can be done by defining `GHC`
 in the environment when calling `make` in the later steps.  For
-example (cabal v3.x only):
+example (cabal 3.x only):
 
-    $ cabal v2-install --package-env=default syb old-time split
-    $ make GHC="ghc -package-env default"
+```bash
+cabal v2-install --package-env=default syb old-time split
+make GHC="ghc -package-env default"
+```
 
-Bluespec compiler builds are tested with GHC 9.4.8.
-GHC releases older than 7.10.3 are not supported.
-
-The source code has been written with extensive preprocessor macros to
-support every minor release of GHC since 7.10, through 9.8. Any
-releases in that range should be fine.
-
-The recommended version of GHC is 9.4 in its latest point release.
+To build a version of BSC that supports profiling, be aware that
+profiling versions of the libraries need to be installed.
 
 ### SMT solvers
 
@@ -215,20 +274,26 @@ compile of STP or Yices" below.
 
 Clone this repository by running:
 
-    $ git clone --recursive https://github.com/B-Lang-org/bsc
+```bash
+git clone --recursive https://github.com/B-Lang-org/bsc
+```
 
 That will clone this repository and all of the submodules that it depends on.
 If you have cloned the repository without the `--recursive` flag, you can setup
 the submodules later with a separate command:
 
-    $ git clone https://github.com/B-Lang-org/bsc
-    $ git submodule update --init --recursive
+```bash
+git clone https://github.com/B-Lang-org/bsc
+git submodule update --init --recursive
+```
 
 ## Build the BSC toolchain
 
 At the root of the repository:
 
-    $ make install-src
+```bash
+make install-src
+```
 
 This will create a directory called `inst` containing an installation of the
 compiler toolchain. This `inst` directory can later be moved to another
@@ -237,22 +302,28 @@ location; the tools do not hard-code the install location.
 If you wish, you can install into another location by assigning the variable
 `PREFIX` in the environment:
 
-    $ make PREFIX=/opt/tools/bsc/bsc-<VERSION>
+```bash
+make PREFIX=/opt/tools/bsc/bsc-<VERSION>
+```
 
 However, note that the `clean` target will delete the `PREFIX` directory!
 
 An unoptimized, debug, or profiling build can be done using one of:
 
-    $ make BSC_BUILD=NOOPT
-    $ make BSC_BUILD=DEBUG
-    $ make BSC_BUILD=PROF
+```bash
+make BSC_BUILD=NOOPT
+make BSC_BUILD=DEBUG
+make BSC_BUILD=PROF
+```
 
 You can provide the `-j` flag to `make` to specify the number of targets
 to execute in parallel, however this does not control the parallelism of
 the core haskell build.  To specify the number of modules that GHC may
 compile in parallel, define `GHCJOBS` in the environment to that number:
 
-    $ make GHCJOBS=4
+```bash
+make GHCJOBS=4
+```
 
 ### Optionally avoiding the compile of STP or Yices
 
@@ -262,17 +333,29 @@ select which one to use at runtime, with Yices being the default.
 
 Most users will never need to switch solvers, or even be aware of the
 option. Thus, the build process offers the option of not compiling one
-of the two solvers. The omitted solver is replaced with a stub file,
-and the BSC tools will not let users select that solver.
+of the two solvers.
+
+Currently, the BSC executable expects to dynamically link with
+object files for Yices and STP found in the directory `inst/lib/SAT/`.
+BSC calls a function in the library to query its version; if the version
+does not match what BSC expects, BSC will not let users select that solvers.
+Thus, the current way to omit a solver is to replace the object file
+with a stub that returns a null version.  In the future, we may replace
+this with static linking and the processing for removing a solver 
+would then simply omit the code for that solver.
 
 To skip building the STP solver, assign a non-empty value to
 `STP_STUB`:
 
-    $ make STP_STUB=1
+```bash
+make STP_STUB=1
+```
 
 Similarly, use `YICES_STUB` to skip building the Yices solver:
 
-    $ make YICES_STUB=1
+```bash
+make YICES_STUB=1
+```
 
 The BSC tools do need at least one SMT solver, so only one of these
 options should be used.
@@ -282,7 +365,9 @@ options should be used.
 The following command will run a smoke test to ensure the compiler and
 simulator work properly:
 
-    $ make check-smoke
+```bash
+make check-smoke
+```
 
 For more extensive testing, see the [testsuite README]
 in the `testsuite` subdirectory.
@@ -300,7 +385,9 @@ VCS and VCSI (Synopys), NC-Verilog & NCsim (Cadence), ModelSim (Mentor), and CVC
 
 To build and install the PDF documentation, you can add the following:
 
-    $ make install-doc
+```bash
+make install-doc
+```
 
 This will install into the same `inst` or `PREFIX` directory.
 The installed documents include the [BSC User Guide]
@@ -315,7 +402,9 @@ The Makefile provides a single target, `release`, that will perform the above
 steps (of building the tools and the docs) and will also install a few
 additional files, creating a complete release in the `inst` directory:
 
-    $ make release
+```bash
+make release
+```
 
 The additional files include a README, copyright and licensing info,
 and release notes.  The release notes are written in
@@ -326,7 +415,9 @@ requirement for building a release.
 If you do not have Asciidoctor or would prefer not to install it (and all of
 its dependencies), you can set `NOASCIIDOCTOR` in the environment:
 
-    $ make NOASCIIDOCTOR=1 release
+```bash
+make NOASCIIDOCTOR=1 release
+```
 
 This will install the raw AsciiDoc release notes, but will not install
 the HTML and PDF versions.
@@ -364,7 +455,9 @@ command line). The executables in that directory will expect to find other
 files in sibling directories within that same parent installation directory. If
 you just built the compiler, you can quickly test it like so:
 
-    $ export PATH=$(pwd)/inst/bin:$PATH
+```bash
+export PATH=$(pwd)/inst/bin:$PATH
+```
 
 > **NOTE**: Earlier versions of BSC required that the environment variable
 > `BLUESPECDIR` be set to point into the installation directory; this is no
@@ -373,12 +466,16 @@ you just built the compiler, you can quickly test it like so:
 
 Run the following to see command-line options on the executable:
 
-    $ bsc -help
+```bash
+bsc -help
+```
 
 Additional flags of use to developers can be displayed with the
 following command:
 
-    $ bsc -help-hidden
+```bash
+bsc -help-hidden
+```
 
 More details on using BSC, Bluesim, and Bluetcl can be found in the
 [BSC User Guide] (built in this repository).
@@ -386,4 +483,7 @@ For language documentation and learning materials, see the
 [Documentation section of the README](./README.md#documentation).
 
 ## Editors
-Support for various editors for bs/bsv sources as well as language server support for the haskell sources for the bluespec compiler can be found in [./util](./util)
+
+Support for various editors for BH/BSV sources as well as language
+server support for the haskell sources for the bluespec compiler can
+be found in the [./util](./util) directory.
