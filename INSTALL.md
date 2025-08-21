@@ -16,7 +16,7 @@ BSC.  Running the build commands will result in the creation of a directory
 directory can be moved to anywhere on your system, but it is best for the
 files to remain in their relative positions within the directory.
 
-We recommend renaming the `inst` directory to `bsc-<VERSION>` and placing
+We recommend renaming the `inst` directory to `bsc-${BSC_VERSION}` and placing
 it in a subdirectory of `/opt/`, `${HOME}/`, `/usr/share/`, or similar
 location.  For example:
 
@@ -43,9 +43,9 @@ why the directory must be kept together.
 If you are packaging BSC for an OS (for example, into a `.deb` or `.rpm`
 file), your package can't simply move the `bin` files to `/usr/bin/`
 and the `lib` files to `/usr/lib/` and so on.  We recommend placing the
-`inst` directory at `/usr/share/bsc/bsc-<VERSION>` and then creating
+`inst` directory at `/usr/share/bsc/bsc-${BSC_VERSION}` and then creating
 symlinks in `/usr/bin/` that point to the executables in
-`/usr/share/bsc/bsc-<VERSION>/bin/`.
+`/usr/share/bsc/bsc-${BSC_VERSION}/bin/`.
 
 ---
 
@@ -303,7 +303,7 @@ If you wish, you can install into another location by assigning the variable
 `PREFIX` in the environment:
 
 ```bash
-make PREFIX=/opt/tools/bsc/bsc-<VERSION>
+make PREFIX=/opt/tools/bsc/bsc-${BSC_VERSION}
 ```
 
 However, note that the `clean` target will delete the `PREFIX` directory!
