@@ -1,0 +1,193 @@
+package GridTest where
+
+import RegFile
+import Vector
+
+import Grid
+import Linkable
+import RegExtra
+import Rules
+import Test
+import VectorExtra
+
+-- A small grid
+type SW = 2
+type SH = 2
+
+-- Nice big grid
+type W = 8
+type H = 14
+
+type Val = UInt 10
+
+interface TestGlobal =
+  frob    :: Action {-# always_ready #-}
+
+instance Globalizable TestGlobal where
+  globalize grid = module
+    interface TestGlobal  -- frob one, frob all
+      frob    = forM_ grid $ \row -> forM_ row $ \e -> e.frob
+
+-- We'll use the per interface to tell each element what its coordinates are,
+-- and to read how many times it has been frobbed.
+interface TestPer =
+  setX      :: Val -> Action {-# always_ready, always_enabled #-}
+  setY      :: Val -> Action {-# always_ready, always_enabled #-}
+  frobCount :: Val           {-# always_ready #-}
+  rfVal     :: Val           {-# always_ready #-}
+
+-- Each edge sends its coordinates, and gets the coordinates of its neighbor.
+interface TestEdge =
+  inX  :: Val -> Action {-# always_ready, always_enabled #-}
+  inY  :: Val -> Action {-# always_ready, always_enabled #-}
+  outX :: Val           {-# always_ready #-}
+  outY :: Val           {-# always_ready #-}
+
+-- Bidirectional connections between edges
+instance Linkable TestEdge TestEdge where
+  mkLink a b = do
+    b.outX <=> a.inX
+    b.outY <=> a.inY
+    a.outX <=> b.inX
+    a.outY <=> b.inY
+
+-- Helper to send the coordinates out and check the coordinates coming in.
+mkTestEdge :: (IsModule m c) => Val -> Val -> Val -> Val -> m TestEdge
+mkTestEdge expectX expectY x y = module
+  interface TestEdge
+    inX ix = failIfNotEqual "inX" ix expectX  -- Generates G0020 warnings
+    inY iy = failIfNotEqual "inY" iy expectY  -- See BUILD for details
+    outX = x
+    outY = y
+
+type TestGridElem = GridElem TestGlobal TestPer
+                             TestEdge TestEdge TestEdge TestEdge
+
+-- NOTE: If this module is not reified, then all of the failIfNotEqual calls can
+-- be optimized away since the compiler can see that they are always equal. This
+-- is a good thing, but it means that the test is not actually testing anything
+-- at runtime. Although, arguably, the compiler is proving that the test is
+-- correct, so we could allow it to optimize away if we wanted to. I choose not
+-- to, because it can generate warnings about rules with no actions.
+{-# properties mkGridTest_Elem = { parameter memName }  #-}
+mkGridTest_Elem :: (IsModule m c) => String -> m TestGridElem
+mkGridTest_Elem memName = module
+  x :: Wire Val <- mkBypassWire
+  y :: Wire Val <- mkBypassWire
+  frobCount :: Reg Val <- mkRegA 0
+  -- The regFile tests that the memName is set up correctly when building the
+  -- subgrid and grid-of-grids, and that each element has the right name.
+  -- Note: Cannot use Bit 0 for the index type here, because the RegFile library
+  -- will implement the regfile as a single register, and the "Load" portion
+  -- will not work: https://github.com/B-Lang-org/bsc/issues/643
+  -- So the regFile is 2 elements deep, even though we only use one of them.
+  regFile   :: RegFile (Bit 1) Val <- mkRegFileFullLoad (memName + ".regFile")
+
+  top :: TestEdge <- mkTestEdge x (y-1) x y
+  bot :: TestEdge <- mkTestEdge x (y+1) x y
+  lft :: TestEdge <- mkTestEdge (x-1) y x y
+  rgt :: TestEdge <- mkTestEdge (x+1) y x y
+
+  interface TestGridElem
+    glb =
+      interface TestGlobal
+        frob = frobCount := frobCount + 1
+    per =
+      interface TestPer
+        setX      = x._write
+        setY      = y._write
+        frobCount = frobCount
+        rfVal     = regFile.sub 0
+    top = top
+    bot = bot
+    lft = lft
+    rgt = rgt
+
+-- The grid of elements we're testing. Built by making a smaller SWxSH, and then
+-- using that to build the full size WxH one.
+{-# properties mkGridTest_Small = { parameter memName }  #-}
+mkGridTest_Small :: (IsModule m c) =>
+  String -> m (Grid SW SH TestGlobal TestPer
+                          TestEdge TestEdge TestEdge TestEdge)
+mkGridTest_Small memName = mkGrid memName $ mkGrid1x1 mkGridTest_Elem
+
+{-# properties mkGridTest_Big = { parameter memName }  #-}
+mkGridTest_Big :: (IsModule m c) =>
+  String -> m (Grid W H TestGlobal TestPer TestEdge TestEdge TestEdge TestEdge)
+mkGridTest_Big memName = mkGrid memName mkGridTest_Small
+
+mkGridTest :: (IsModule m c) => m Empty
+mkGridTest = module
+  cycle :: UInt 8 <- mkCycleCounter
+  lfsr :: Reg (Bit 4) <- mkReg 0
+
+  -- The number of times we've frobbed the elements in the grid.
+  frobCount :: Reg Val <- mkRegA 0
+
+  dut <- mkGridTest_Big "GridTest"
+
+  -- Tell each element its coordinates.
+  always "Set X Y" do
+    for2M_ dut.per genVector $ \row y -> for2M_ row genVector $ \e x -> do
+      e.setX $ fromInteger x
+      e.setY $ fromInteger y
+
+  -- Make sure each element has been frobbed the right number of times.
+  always "Check frobCount" do
+    for2M_ dut.per genVector $ \row y -> for2M_ row genVector $ \e x -> do
+      failIfNotEqual ("frobCount " +
+                      (integerToString x) + " " +
+                      (integerToString y)) e.frobCount frobCount
+
+  let neg1 :: Val = fromInteger 0 - 1
+      w    :: Val = fromInteger $ valueOf W
+      h    :: Val = fromInteger $ valueOf H
+      wm1  :: Val = fromInteger (valueOf W) - 1
+      hm1  :: Val = fromInteger (valueOf H) - 1
+
+  -- All the interior edges take care of themselves, so we only need to provide
+  -- input to the edges on the perimeter.
+  always "Pass In Perimeter" do
+    for2M_ dut.top genVector $ \e i -> do
+      e.inX $ fromInteger i
+      e.inY neg1
+    for2M_ dut.bot genVector $ \e i -> do
+      e.inX $ fromInteger i
+      e.inY h
+    for2M_ dut.lft genVector $ \e i -> do
+      e.inY $ fromInteger i
+      e.inX neg1
+    for2M_ dut.rgt genVector $ \e i -> do
+      e.inY $ fromInteger i
+      e.inX w
+
+  -- Check that the perimeter edges are sending the right coordinates out of the
+  -- grid.
+  always "Check Perimeter" do
+    for2M_ dut.top genVector $ \e i -> do
+      failIfNotEqual ("top outX " + (integerToString i)) e.outX $ fromInteger i
+      failIfNotEqual ("top outY " + (integerToString i)) e.outY 0
+    for2M_ dut.bot genVector $ \e i -> do
+      failIfNotEqual ("bot outX " + (integerToString i)) e.outX $ fromInteger i
+      failIfNotEqual ("bot outY " + (integerToString i)) e.outY hm1
+    for2M_ dut.lft genVector $ \e i -> do
+      failIfNotEqual ("lft outX " + (integerToString i)) e.outX 0
+      failIfNotEqual ("lft outY " + (integerToString i)) e.outY $ fromInteger i
+    for2M_ dut.rgt genVector $ \e i -> do
+      failIfNotEqual ("rgt outX " + (integerToString i)) e.outX wm1
+      failIfNotEqual ("rgt outY " + (integerToString i)) e.outY $ fromInteger i
+
+  -- Sometimes, frob the grid.
+  let sometimes = (unpack (lsb lfsr))
+  alwaysIf "Sometimes frob" sometimes do
+    dut.glb.frob
+    frobCount := frobCount + 1
+
+  alwaysIf "Check rfVal" (not sometimes ) do
+    matFor2M_ dut.per genMatrix $ \e (x, y) ->
+      failIfNotEqual ("rfVal " + (integerToString x) + " " +
+                                  (integerToString y))
+                     e.rfVal $ ((fromInteger y) << 3) | fromInteger x
+
+  -- If we haven't failed yet, we're good.
+  alwaysPassAtMaxCycleCount cycle

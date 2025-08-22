@@ -1,0 +1,97 @@
+package Grid where
+
+import Vector
+
+import Empty
+import Linkable
+import PreludeExtra
+import Rules
+import VectorExtra
+
+interface Grid x y g p t b l r =
+  glb :: g
+  per :: Matrix y x p
+  top :: Vector x t
+  bot :: Vector x b
+  lft :: Vector y l
+  rgt :: Vector y r
+
+type Grid1x1 g p t b l r = Grid 1 1 g p t b l r
+
+class Globalizable t where
+  globalize :: (IsModule m c) => Matrix y x t -> m t
+
+instance Globalizable Empty where
+  globalize _ = empty
+
+mkGridXY :: (IsModule m c, Globalizable g, Linkable b t, Linkable r l,
+             Add 1 x__ nx, Add 1 y__ ny, Mul sx nx x, Mul sy ny y) =>
+  String -> (Integer -> Integer -> String -> m (Grid sx sy g p t b l r)) ->
+  m (Grid x y g p t b l r)
+mkGridXY memName mkSubGrid = module
+  _subGrid :: Matrix ny nx (Grid sx sy g p t b l r) <- genMatrixWithM $ \x y ->
+    let named :: (IsModule m c) => Integer -> Integer -> m a -> m a
+        named iy ix =
+          if valueOf nx == 1 && valueOf ny == 1 then id
+          else if valueOf nx == 1 then withString ("r" + (integerToString iy))
+          else if valueOf ny == 1 then withString ("c" + (integerToString ix))
+          else withString ("r" + (integerToString iy) +
+                           "c" + (integerToString ix))
+    in named y x $ mkSubGrid y x $
+      memName + "_" + integerToString x + "x" + integerToString y
+
+  let rows = matRows _subGrid
+  for3M (init rows) (tail rows) genVector $ \a b i ->
+    always ("mkGridXY connections between rows " + (integerToString i) +
+            " and " + (integerToString $ i + 1)) $ do
+      (for a (.bot)) <=> (for b (.top))
+
+  let cols = matCols _subGrid
+  for3M (init cols) (tail cols) genVector $ \a b i ->
+    always ("mkGridXY connections between cols " + (integerToString i) +
+            " and " + (integerToString $ i + 1)) $ do
+      (for a (.rgt)) <=> (for b (.lft))
+
+  glb :: g
+  glb <- globalize $ matFor _subGrid (.glb)
+
+  interface Grid
+    glb = glb
+    per = matConcat $ matFor _subGrid (.per)
+    top = concat $ for (matTop _subGrid) (.top)
+    bot = concat $ for (matBot _subGrid) (.bot)
+    lft = concat $ for (matLft _subGrid) (.lft)
+    rgt = concat $ for (matRgt _subGrid) (.rgt)
+
+mkGrid :: (IsModule m c, Globalizable g, Linkable b t, Linkable r l,
+           Add 1 x__ nx, Add 1 y__ ny, Mul sx nx x, Mul sy ny y) =>
+  String -> (String -> m (Grid sx sy g p t b l r)) -> m (Grid x y g p t b l r)
+mkGrid memName mkSubGrid = mkGridXY memName $ \_ _ -> mkSubGrid
+
+-- A slightly simpler interface for a 1x1 grid, and a helper to convert it to a
+-- "real" Grid.
+
+interface GridElem g p t b l r =
+  glb :: g
+  per :: p
+  top :: t
+  bot :: b
+  lft :: l
+  rgt :: r
+
+mkGrid1x1 :: (IsModule m c, Globalizable g, Linkable b t, Linkable r l) =>
+  (String -> m (GridElem g p t b l r)) -> String -> m (Grid1x1 g p t b l r)
+mkGrid1x1 mkElem memName = module
+  _e :: GridElem g p t b l r <- mkElem memName
+  interface Grid1x1
+    glb = _e.glb
+    per = mat _e.per
+    top = vec _e.top
+    bot = vec _e.bot
+    lft = vec _e.lft
+    rgt = vec _e.rgt
+
+mkElemGrid :: (IsModule m c, Add 1 x__ x, Add 1 y__ y,
+               Globalizable g, Linkable b t, Linkable r l) =>
+  String -> (String -> m (GridElem g p t b l r)) -> m (Grid x y g p t b l r)
+mkElemGrid memName mkElem = mkGrid memName $ mkGrid1x1 mkElem

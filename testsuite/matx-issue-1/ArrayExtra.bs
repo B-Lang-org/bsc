@@ -1,0 +1,74 @@
+package ArrayExtra where
+
+import qualified Array
+import Assert
+
+-- Defined in the language somewhere, but not accessible without this:
+primitive primArraySelect :: Array a -> Integer -> a
+
+(!!) :: Array a -> Integer -> a
+(!!) = primArraySelect
+
+newU :: Integer -> Array a
+newU = primArrayNewU
+
+update :: (PrimIndex ix dx) => Array a -> ix -> a -> Array a
+update = primUpdateFn (getStringPosition "")
+
+_fill :: Array t -> Integer -> Integer -> (Integer -> t) -> Array t
+_fill arr len idx fn = if idx >= len then arr else
+  _fill (update arr idx $ fn idx) len (idx + 1) fn
+
+_fillNew :: Integer -> (Integer -> t) -> Array t
+_fillNew len fn = _fill (newU len) len 0 fn
+
+-- The opposite of concat: split an array into an array of arrays.
+splitN :: Integer -> Array a -> Array (Array a)
+splitN n arr =
+  let len = arrayLength arr
+      k   = len / n
+  in if (n * k) /= len then error "Array.split: len is not a multiple of n" else
+    _fillNew k $ \i -> Array.takeAt arr (((i + 1) * n) - 1) (i * n)
+
+assertArraySplitN :: (IsModule m c) => m Empty
+assertArraySplitN = module
+  -- Check that split and concat are inverses of each other.
+  let b1 :: Array Integer = Array.genWith 12 id
+  let b2 :: Array (Array Integer) = splitN 3 b1
+  let b3 :: Array Integer = Array.concat b2
+  staticAssert (b1 == b3) "split/concat"
+
+zipWith :: (a -> b -> c) -> Array a -> Array b -> Array c
+zipWith fn a b = _fillNew (arrayLength a) $ \i -> fn (a !! i) (b !! i)
+
+zipWith3 :: (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
+zipWith3 fn a b c = _fillNew (arrayLength a) $ \i ->
+  fn (a !! i) (b !! i) (c !! i)
+
+-- Verify that zipWith and zipWith3 are equivalent to the "real" ones.
+assertArrayZipWith :: (IsModule m c) => m Empty
+assertArrayZipWith = module
+  let a1 :: Array Integer = Array.genWith 10 (\i -> i)
+  let a2 :: Array Integer = Array.genWith 10 (\i -> 100 + (i * 2))
+  let a3 :: Array Integer = Array.reverse $ Array.genWith 10 (\i -> i * 3)
+  let add3 :: Integer -> Integer -> Integer -> Integer = \a b c -> a + b + c
+  staticAssert ((Array.zipWith (*) a1 a3) ==
+                (      zipWith (*) a1 a3)) "zipWith"
+  staticAssert ((Array.zipWith3 add3 a1 a2 a3) ==
+                (      zipWith3 add3 a1 a2 a3)) "zipWith3"
+
+-- Define the rest of the zipWith* functions in the same style:
+zipWith4 :: (a -> b -> c -> d -> e) ->
+  Array a -> Array b -> Array c -> Array d -> Array e
+zipWith4 fn a b c d = _fillNew (arrayLength a) $ \i ->
+  fn (a !! i) (b !! i) (c !! i) (d !! i)
+
+zipWith5 :: (a -> b -> c -> d -> e -> f) ->
+  Array a -> Array b -> Array c -> Array d -> Array e -> Array f
+zipWith5 fn a b c d e = _fillNew (arrayLength a) $ \i ->
+  fn (a !! i) (b !! i) (c !! i) (d !! i) (e !! i)
+
+zipWith6 :: (a -> b -> c -> d -> e -> f -> g) ->
+  Array a -> Array b -> Array c -> Array d -> Array e -> Array f -> Array g
+zipWith6 fn a b c d e f = _fillNew (arrayLength a) $ \i ->
+  fn (a !! i) (b !! i) (c !! i) (d !! i) (e !! i) (f !! i)

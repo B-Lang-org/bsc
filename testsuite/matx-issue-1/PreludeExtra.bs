@@ -1,0 +1,16 @@
+package PreludeExtra where
+
+infixr  3 ^^  -- Same precedence as &&. (& and ^ are both infixr 5)
+
+-- Can I just say that I love the way this operator looks? It's so happy.
+(^^) :: Bool -> Bool -> Bool
+(^^) x y = unpack $ (pack x) ^ (pack y)
+
+withString :: (IsModule m c) => String -> m a -> m a
+withString name = setStateName $ primMakeName name $ getStringPosition name
+
+withStringIf :: (IsModule m c) => Bool -> String -> m a -> m a
+withStringIf cond name = if cond then withString name else id
+
+staticToString :: (PrimIndex t t_sz) => t -> String
+staticToString = integerToString ∘ toStaticIndex

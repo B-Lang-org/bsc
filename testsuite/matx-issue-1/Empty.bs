@@ -1,0 +1,19 @@
+package Empty where
+
+emptyIfc :: Empty
+emptyIfc = interface Empty
+
+class Emptyable e where
+  empty :: e
+
+instance Emptyable () where
+  empty = ()
+
+instance Emptyable Empty where
+  empty = emptyIfc
+
+instance Emptyable Action where
+  empty = noAction
+
+instance (IsModule m c, Emptyable x) => Emptyable (m x) where
+  empty = return empty
