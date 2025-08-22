@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-unsigned int my_time()
+unsigned int my_time(unsigned int x)
 {
   return (unsigned int) 10;
 }
