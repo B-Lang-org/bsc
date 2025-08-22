@@ -8,7 +8,9 @@ module Prim(
             PrimResult(..), PrimArg(..)
             ) where
 
+import Data.Data
 import Numeric(floatToDigits)
+
 import Eval
 import PPrint
 import Id
@@ -19,7 +21,6 @@ import RealUtil hiding (log2, log10)
 import qualified RealUtil as R (log2,log10)
 import ErrorUtil(internalError)
 import Error(ErrMsg(..))
-import qualified Data.Generics as Generic
 
 data PrimOp =
           PrimAdd
@@ -316,7 +317,7 @@ data PrimOp =
         | PrimGetParamName -- get the parameter name associated with the function value
 
         | PrimEQ3 -- === / Verilog case equality
-        deriving (Eq, Ord, Show, Enum, Bounded, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Enum, Bounded, Data, Typeable)
 
 -- Just some size, have to be coordinated with Prelude.bs
 stringSize :: String -> Integer
