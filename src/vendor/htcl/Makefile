@@ -14,7 +14,11 @@ else
 ifeq ($(TCLVER),8.6)
 # No flags needed
 else
+ifeq ($(TCLVER),9.0)
+# No flags needed
+else
 $(error Unsupported Tcl version: $(TCLVER))
+endif
 endif
 endif
 
