@@ -23,7 +23,6 @@ import EdgeDetect::*;
 import CRC::*;
 import CommitIfc::*;
 import NullCrossingFIFOF::*;
-import Randomizable::*;
 import MIMO::*;
 import Memory::*;
 import Arbitrate::*;
