@@ -21,34 +21,54 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef TIME_MEM_H
 #define TIME_MEM_H
 
-#ifdef _MSC_VER
-  #include <ctime>
-  #include <msvc/stdint.h>
+#ifdef _WIN32
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #include <windows.h>
+  // Include windows.h first
+  #include <psapi.h>
 #else
   #include <sys/time.h>
   #include <sys/resource.h>
   #include <unistd.h>
-  #include <stdint.h>
 #endif
+#include <cstdint>
+#include <realtimeapiset.h>
 
 namespace MINISAT
 {
 using namespace MINISAT;
 
 /*************************************************************************************/
-#ifdef _MSC_VER
-
+#ifdef _WIN32
 static inline double cpuTime(void) {
-    return (double)clock() / CLOCKS_PER_SEC; }
+    constexpr uint64_t FILETIME_to_s = 1e7; // 100 ns / FILETIME
+    FILETIME creationTime, undefined, kernelTime, userTime;
+    if (GetProcessTimes(GetCurrentProcess(), &creationTime, &undefined
+                                                     , &kernelTime, &userTime) == 0) { 
+        return 0;
+    }
+    return (double)(userTime.dwLowDateTime | ((uint64_t)userTime.dwHighDateTime << 32)) / FILETIME_to_s; }
 #else
-
 static inline double cpuTime(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
     return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000; }
 #endif
 
-#if defined(__linux__)
+
+#ifdef _WIN32
+
+static inline uint64_t memUsed() {
+    PROCESS_MEMORY_COUNTERS pmc;
+    auto err = GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+    if (err == 0) return 0;
+    return pmc.WorkingSetSize;
+}
+
+#elif defined(__linux__)
+
 static inline int memReadStat(int field)
 {
     char    name[256];
@@ -62,18 +82,21 @@ static inline int memReadStat(int field)
     fclose(in);
     return value;
 }
+
 static inline uint64_t memUsed() { return (uint64_t)memReadStat(0) * (uint64_t)getpagesize(); }
 
-
 #elif defined(__FreeBSD__)
+
 static inline uint64_t memUsed(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
-    return ru.ru_maxrss*1024; }
-
+    return ru.ru_maxrss*1024; 
+}
 
 #else
+
 static inline uint64_t memUsed() { return 0; }
+
 #endif
 
 #if defined(__linux__)

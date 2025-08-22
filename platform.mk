@@ -29,7 +29,7 @@ endif
 OSTYPE = $(shell $(TOP)/platform.sh ostype)
 export OSTYPE
 
-ifneq ($(OSTYPE), $(findstring $(OSTYPE), Linux Darwin Freebsd))
+ifneq ($(OSTYPE), $(findstring $(OSTYPE), Linux Darwin Freebsd MSYS Mingw))
 $(error OSTYPE environment not recognized: $(OSTYPE))
 endif
 
