@@ -66,6 +66,27 @@ $(error Unable to find tclsh)
 endif
 $(info Using tclsh: $(TCLSH))
 
+# Check that the Tcl version is supported
+# and produce a list of defines
+# (that can be preceded with -D or -optc-D when passed to CC or GHC)
+#
+TCL_VERSION = $(shell $(TOP)/platform.sh tclversion)
+ifeq ($(TCL_VERSION),8.5)
+TCL_DEFS=TCL85
+else
+ifeq ($(TCL_VERSION),8.6)
+TCL_DEFS=
+else
+ifeq ($(TCL_VERSION),9.0)
+TCL_DEFS=TCL9
+else
+$(error Unsupported Tcl version: $(TCL_VERSION)
+endif
+endif
+endif
+$(info Tcl version: $(TCL_VERSION))
+$(info Using Tcl defines: $(TCL_DEFS))
+
 TCL_INC_FLAGS = $(shell $(TOP)/platform.sh tclinc 2> /dev/null || echo fail)
 ifeq ($(TCL_INC_FLAGS), fail)
 $(error Unable to find tcl include directory)
