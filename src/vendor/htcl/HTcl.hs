@@ -109,6 +109,10 @@ import Foreign.C.String
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 
+#if MIN_VERSION_base (4,18,0)
+import Foreign.C.ConstPtr
+#endif
+
 import Foreign.ForeignPtr
 import Foreign.ForeignPtr.Unsafe(unsafeForeignPtrToPtr)
 
@@ -123,6 +127,10 @@ import qualified Control.Exception as CE
 traceCalls :: Bool
 traceCalls = False
 
+#if MIN_VERSION_base (4,18,0)
+#else
+type ConstPtr = Ptr
+#endif
 
 -- cast function
 castE :: (Enum a, Enum b) => a -> b
@@ -133,6 +141,15 @@ castI = fromIntegral
 
 castD :: (RealFloat a, RealFloat b) => a -> b
 castD = (uncurry encodeFloat) . decodeFloat
+
+--------------------------------------------------------------------------------
+-- Tcl_Size has changed from Tcl 8 to Tcl 9
+
+#ifdef TCL9
+type CTclSize = CPtrdiff
+#else
+type CTclSize = CInt
+#endif
 
 --------------------------------------------------------------------------------
 -- Common TCL function status
@@ -192,19 +209,19 @@ type PTclObjArray = Ptr PTclObj
 
 
 -- Foreign import functions --     Objects
-foreign import ccall "Tcl_NewIntObj"
+foreign import capi "tcl.h Tcl_NewIntObj"
  tcl_NewIntObj :: CInt -> IO (PTclObj)
 
-foreign import ccall "Tcl_NewWideIntObj"
+foreign import capi "tcl.h Tcl_NewWideIntObj"
  tcl_NewWideIntObj :: CLLong -> IO (PTclObj) -- tcl uses long long
 
-foreign import ccall "Tcl_NewDoubleObj"
+foreign import capi "tcl.h Tcl_NewDoubleObj"
  tcl_NewDoubleObj :: CDouble -> IO PTclObj -- tcl double
 
-foreign import ccall "Tcl_NewStringObj"
+foreign import capi "tcl.h Tcl_NewStringObj"
  tcl_NewStringObj :: Ptr CChar -> CInt -> IO PTclObj
 
-foreign import ccall "Tcl_NewListObj"
+foreign import capi "tcl.h Tcl_NewListObj"
  tcl_NewListObj :: CInt -> Ptr PTclObj ->  IO PTclObj
 
 
@@ -216,6 +233,7 @@ foreign import capi "tcl.h Tcl_DecrRefCount"
 foreign import capi "tcl.h Tcl_IncrRefCount"
  tcl_IncrRefCount :: PTclObj -> IO ()
 
+-- We do not need "capi" for wrappers that we have written
 foreign import ccall "&htcl_finalizeTclObj"
   tcl_finalizeTclObj :: FunPtr (PTclObj -> IO ())
 
@@ -356,27 +374,27 @@ instance TclObjCvt WordPtr where
 
 ---------------------------------------------------------------
 -- Conversion from Objects to Native types
-foreign import ccall "Tcl_GetIntFromObj"
+foreign import capi "tcl.h Tcl_GetIntFromObj"
   tcl_GetIntFromObj :: TclInterp -> PTclObj -> Ptr CInt -> IO CInt
 
-foreign import ccall "Tcl_GetLongFromObj"
+foreign import capi "tcl.h Tcl_GetLongFromObj"
   tcl_GetLongFromObj :: TclInterp -> PTclObj -> Ptr CLong -> IO CLong
 
-foreign import ccall "Tcl_GetBooleanFromObj"
+foreign import capi "tcl.h Tcl_GetBooleanFromObj"
   tcl_GetBooleanFromObj :: TclInterp -> PTclObj -> Ptr CInt -> IO CInt
 
-foreign import ccall "Tcl_GetDoubleFromObj"
+foreign import capi "tcl.h Tcl_GetDoubleFromObj"
   tcl_GetDoubleFromObj :: TclInterp -> PTclObj -> Ptr CDouble -> IO CInt
 
-foreign import ccall "Tcl_GetStringFromObj"
-  tcl_GetStringFromObj :: PTclObj -> Ptr CInt -> IO (Ptr CChar)  -- TCL
+foreign import capi "tcl.h Tcl_GetStringFromObj"
+  tcl_GetStringFromObj :: PTclObj -> Ptr CTclSize -> IO (Ptr CChar)
 
-foreign import ccall "Tcl_ListObjGetElements"
- tcl_ListObjGetElements :: TclInterp -> PTclObj -> Ptr CInt -> Ptr PTclObjArray -> IO CInt
+foreign import capi "tcl.h Tcl_ListObjGetElements"
+  tcl_ListObjGetElements :: TclInterp -> PTclObj -> Ptr CTclSize -> Ptr PTclObjArray -> IO CInt
 
 --------------------------------------------------------------------------------
 -- TODO Never got this to work quite right
-foreign import ccall "Tcl_AppendAllObjTypes"
+foreign import capi "tcl.h Tcl_AppendAllObjTypes"
  tcl_AppendAllObjTypes :: TclInterp -> PTclObj -> IO ()
 
 
@@ -395,7 +413,7 @@ type TclCmdDeleteProc  = TclClientData -> IO ()
 type PTclCmdDeleteProc = FunPtr TclCmdDeleteProc
 
 -- Foreign import function --     Command objects
-foreign import ccall "Tcl_CreateObjCommand"
+foreign import capi "tcl.h Tcl_CreateObjCommand"
  tcl_CreateObjCommand :: TclInterp -> CString -> PTclObjCmdProc -> TclClientData -> PTclCmdDeleteProc -> IO TclCommand
 
 --  wrappers to convert Haskell commands to pointer to C functions
@@ -779,10 +797,10 @@ htclRegCommands interp cmds = do
 
 --------------------------------------------------------------------------------
 -- Returning values and errors via the interp
-foreign import ccall "Tcl_SetObjResult"
+foreign import capi "tcl.h Tcl_SetObjResult"
   tcl_SetObjResult :: TclInterp -> PTclObj -> IO ()
 
-foreign import ccall "Tcl_AddObjErrorInfo"
+foreign import capi "tcl.h Tcl_AddObjErrorInfo"
  tcl_AddObjErrorInfo :: TclInterp -> Ptr CChar -> CInt -> IO ()
 
 -- Adds String to the global tcl variable errorInfo
@@ -797,8 +815,8 @@ htcl_AddObjErrorInfo interp s = do
   return htcl_Error
 
 -- Not used
-foreign import ccall "Tcl_WrongNumArgs"
-        htcl_WrongNumArgs :: TclInterp -> CInt -> PTclObjArray -> CChar -> IO ()
+foreign import capi "tcl.h Tcl_WrongNumArgs"
+        htcl_WrongNumArgs :: TclInterp -> CInt -> PTclObjArray -> ConstPtr CChar -> IO ()
 
 htclSetReturnVal :: ( TclObjCvt a) => TclInterp -> a -> IO ()
 htclSetReturnVal interp hobj = do
