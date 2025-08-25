@@ -5,18 +5,7 @@ include $(TOP)/platform.mk
 # -----
 # Tcl 8.5 requires a workaround
 
-TCLVER=$(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH))
-ifeq ($(TCLVER),8.5)
-# Use -optc-D instead of -D, since not all versions of GHC pass -D to the C compiler
-# (see GHC issue 24885)
-GHCFLAGS += -optc-DTCL85
-else
-ifeq ($(TCLVER),8.6)
-# No flags needed
-else
-$(error Unsupported Tcl version: $(TCLVER))
-endif
-endif
+GHCFLAGS += $(addprefix -optc-D,$(TCL_DEFS))
 
 # -----
 
