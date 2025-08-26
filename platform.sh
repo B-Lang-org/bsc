@@ -8,11 +8,12 @@ usage()
     echo ""
     echo "Display canonical platform information"
     echo "Valid options are:"
-    echo "   ostype   "
-    echo "   machtype "
-    echo "   tclsh "
-    echo "   tclinc "
-    echo "   tcllibs "
+    echo "   ostype"
+    echo "   machtype"
+    echo "   tclsh"
+    echo "   tclversion"
+    echo "   tclinc"
+    echo "   tcllibs"
     echo "   c++_shared_flags"
 }
 
@@ -89,12 +90,18 @@ if [ "$1" = "tclsh" ] ; then
     exit 0
 fi
 
+TCL_VERSION=$(echo 'catch { puts [info tclversion]; exit 0}; exit 1' | ${TCLSH})
+if [ "$1" = "tclversion" ] ; then
+    echo ${TCL_VERSION}
+    exit 0
+fi
+
 PKG_CONFIG=`which pkg-config`
 if [ -z "${PKG_CONFIG}" ] ; then
 	PKG_CONFIG='false'
 fi
 
-TCL_SUFFIX=$(echo 'catch { puts [info tclversion]; exit 0}; exit 1' | ${TCLSH})
+TCL_SUFFIX=${TCL_VERSION}
 TCL_ALT_SUFFIX=$(echo ${TCL_SUFFIX} | sed 's/\.//')
 
 if [ "$1" = "tclinc" ] ; then

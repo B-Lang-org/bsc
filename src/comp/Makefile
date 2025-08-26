@@ -59,6 +59,8 @@ YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
 HTCL_LIB_FLAGS = -lhtcl
+# HTcl.hs needs macro definitions
+HTCL_INC_FLAGS += $(addprefix -D,$(TCL_DEFS))
 
 # -----
 # GHC
