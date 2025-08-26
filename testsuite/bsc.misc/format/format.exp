@@ -4,24 +4,14 @@
 
 test_c_veri_bsv Format1
 test_c_veri_bsv Format2
+test_c_veri_bsv Format3
+# uses $time so 2 different expected files needed
+test_c_only_bsv Format4  sysFormat4.c.out.expected
+test_veri_only_bsv Format4 sysFormat4.v.out.expected
 
-# These tests use $swrite which is is not supported by iverilog
-if { [string match $verilog_compiler "iverilog"] } then {
-  # Skip Verilog simulation due to iverilog bugs
-  test_c_only_bsv Format3
-  test_c_only_bsv Format4 sysFormat4.c.out.expected
-  test_c_only_bsv Format5 sysFormat5.c.out.expected
-} else {
-  test_c_veri_bsv Format3
-  # uses $time so 2 different expected files needed
-  test_c_only_bsv Format4  sysFormat4.c.out.expected
-  test_veri_only_bsv Format4 sysFormat4.v.out.expected
-
-  # uses $time so 2 different expected files needed
-  test_c_only_bsv Format5  sysFormat5.c.out.expected
-  test_veri_only_bsv Format5 sysFormat5.v.out.expected
-
-}
+# uses $time so 2 different expected files needed
+test_c_only_bsv Format5  sysFormat5.c.out.expected
+test_veri_only_bsv Format5 sysFormat5.v.out.expected
 
 # -------------------------
 
