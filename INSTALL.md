@@ -187,6 +187,54 @@ sudo dnf install \
    ghc-split-prof
 ```
 
+### MacOS systems
+
+BSC builds on MacOS running on newer Apple (arm64) chips and older
+Intel (x86_64) chips.  We test on MacOS 13 (x86_64), MacOS 14 (arm64),
+and MacOS 15 (arm64).  To build on MacOS, you need the Command Line
+Tools from Apple's [Xcode] app.  With Xcode installed, the following
+command will install the Command Line Tools:
+
+```bash
+xcode-select --install
+```
+
+[XCode]: https://apps.apple.com/us/app/xcode/id497799835
+
+We use the [Homebrew] package manager to install dependencies.  After
+the [Xcode] Command Line Tools are installed, [Homebrew] can be
+installed with the following command from their website:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+[Homebrew]: https://brew.sh
+
+After [Homebrew] is installed, the following commands install all
+required and optional dependencies:
+
+```bash
+brew update
+brew install \
+   autoconf \
+   gperf \
+   icarus-verilog \
+   pkg-config \
+   deja-gnu \
+   systemc \
+   asciidoctor \
+   texlive
+
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+ghcup install ghc 9.6.7
+cabal update
+cabal v1-install regex-compat syb old-time split
+```
+
+Those final four commands install the recommended GHC compiler version
+and libraries.
+
 ### GHC Haskell compiler
 
 As shown in the above summaries, we recommend installing GHC via the
