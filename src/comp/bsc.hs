@@ -12,7 +12,6 @@ import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuff
 import System.IO(hSetEncoding, utf8)
 import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
 import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory)
-import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
 import Data.Char(isSpace, toLower, ord)
 import Data.List(intersect, nub, partition, intersperse, sort,
             isPrefixOf, isSuffixOf, unzip5, intercalate)
@@ -20,6 +19,7 @@ import Data.Time.Clock.POSIX(getPOSIXTime)
 import Data.Maybe(isJust, isNothing)
 import Numeric(showOct)
 
+import Data.Time
 import Control.Monad(when, unless, filterM, liftM, foldM)
 import Control.Monad.Except(runExceptT)
 import Control.Concurrent(forkIO)
@@ -354,7 +354,7 @@ compilePackage
     name -- String --
     min@(CPackage pkgId _ _ _ _ _) = do
 
-    clkTime <- getClockTime
+    clkTime <- getCurrentTime
     epochTime <- getPOSIXTime
 
     -- Values needed for the Environment module
@@ -1279,7 +1279,7 @@ genModuleC :: ErrorHandle
            -> TimeInfo
            -> String
            -> [(String, ABin)]
-           -> IO (TimeInfo, [String], [String], TimeInfo)
+           -> IO (TimeInfo, [String], [String], Maybe UTCTime)
 genModuleC errh flags dumpnames time0 toplevel abis =
     do
        pwd <- getCurrentDirectory
@@ -1339,10 +1339,14 @@ genModuleC errh flags dumpnames time0 toplevel abis =
        start flags DFsimBlocksToC
        let sb_map = M.fromList $ map (\sb -> (sb_id sb,sb))
                                      (simblocks_opt ++ primBlocks)
-           creation_time = time
+
+       time' <- getCurrentTime
+       let mcreation_time
+             | timeStamps flags = Just time'
+             | otherwise = Nothing
 
        block_names <- simBlocksToC flags
-                                   creation_time
+                                   mcreation_time
                                    top_id
                                    (ssys_default_clk sim_system_opt)
                                    (ssys_default_rst sim_system_opt)
@@ -1389,7 +1393,7 @@ genModuleC errh flags dumpnames time0 toplevel abis =
 
        -- XXX return the headers separate from the files which need to be
        -- XXX compiled
-       return (time, names, reused_names, creation_time)
+       return (time, names, reused_names, mcreation_time)
 
 -- ===============
 -- SimLink
@@ -1423,7 +1427,7 @@ simLink errh flags toplevel afilenames cfilenames = do
 
     -- generate the files, get back a list of files to be compiled
     -- and a list of files which have already been compiled
-    (t, to_compile, to_reuse, creation_time)
+    (t, to_compile, to_reuse, mcreation_time)
         <- genModuleC errh flags dumpnames t toplevel abis
     let t_before_compilations = t
 
@@ -1465,7 +1469,7 @@ simLink errh flags toplevel afilenames cfilenames = do
     -- if not generating a SystemC model, link to a Bluesim executable
     start flags DFbluesimlink
     when (not (genSysC flags)) $
-      cxxLink errh flags toplevel ofiles creation_time
+      cxxLink errh flags toplevel ofiles mcreation_time
     t <- dump errh flags t DFbluesimlink dumpnames toplevel
 
     -- final verbose message
@@ -1760,8 +1764,8 @@ execCmd errh flags cmd = do
 
 
 -- link object files into a shared library
-cxxLink :: ErrorHandle -> Flags -> String -> [String] -> TimeInfo -> IO ()
-cxxLink errh flags toplevel names creation_time = do
+cxxLink :: ErrorHandle -> Flags -> String -> [String] -> Maybe UTCTime -> IO ()
+cxxLink errh flags toplevel names mcreation_time = do
     -- Construct the Bluesim object names
     let bsimLibDir = (bluespecDir flags) ++ "/Bluesim/"
         bsim_names = [ bsimLibDir ++ "lib" ++ name ++ ".a"
@@ -1806,10 +1810,8 @@ cxxLink errh flags toplevel names creation_time = do
     unless (quiet flags) $ putStrLnF ("Simulation shared library created: " ++ soFile)
     -- Write a script to execute bluesim.tcl with the .so file argument
     let bluesim_cmd = "$BLUESPECDIR/tcllib/bluespec/bluesim.tcl"
-        (TimeInfo _ (TOD t _)) = creation_time
-        time_flags = if (timeStamps flags)
-                     then [ "--creation_time", show t]
-                     else []
+        time_flags = maybe [] (\t -> ["--creation_time", show t]) mcreation_time
+
     writeFileCatch errh outFile $
                    unlines [ "#!/bin/sh"
                            , ""
