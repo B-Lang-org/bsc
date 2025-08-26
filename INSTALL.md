@@ -147,7 +147,7 @@ sudo dnf install \
    @c-development \
    iverilog \
    dejagnu \
-   tcl-dev \
+   tcl-devel \
    gperf \
    latex \
    texlive-scheme-basic \
@@ -161,7 +161,7 @@ cabal update
 cabal v1-install regex-compat syb old-time split
 ```
 
-Note that `tcl8-dev` may be needed in place of `tcl-dev`, until we have
+Note that `tcl8-devel` may be needed in place of `tcl-devel`, until we have
 tested with Tcl v9.
 
 Those final four commands install the recommended GHC compiler version
