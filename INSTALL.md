@@ -69,8 +69,7 @@ The following dependencies are optional, though recommended:
  - To build the STP SMT solver: a C/C++ toolchain, Perl, and the
    `flex` and `bison` parser generator tools.
  - To build the Bluespec Tcl shell (`bluetcl`): Tcl development
-   libraries. Version 8 may be required, as we have not yet tested
-   with version 9.
+   libraries (version 9.0, 8.6, or 8.5).
  - To run smoke tests: the [Icarus Verilog] simulator.
  - To run the full test suite: the Icarus Verilog simulator, Perl,
    csh, and SystemC libraries. See the [testsuite
@@ -160,9 +159,6 @@ ghcup install ghc 9.6.7
 cabal update
 cabal v1-install regex-compat syb old-time split
 ```
-
-Note that `tcl8-devel` may be needed in place of `tcl-devel`, until we have
-tested with Tcl v9.
 
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
