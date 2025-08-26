@@ -149,7 +149,7 @@ castD = (uncurry encodeFloat) . decodeFloat
 -- which may not work for architectures that have only long
 
 #ifdef TCL9
-type CTclSize = CLLong
+type CTclSize = CPtrdiff
 #else
 type CTclSize = CInt
 #endif
