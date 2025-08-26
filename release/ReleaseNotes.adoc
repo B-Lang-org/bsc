@@ -4,6 +4,109 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2025.07 Release
+---------------
+
+This release includes support for Tcl 9.0, enabling BSC to build on
+Fedora Linux 42.  The release also improves the build instructions and
+fixes a long-standing VPI issue with imported functions of no
+arguments.
+
+Changes since release 2024.07:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Clarify the `INSTALL.md` build instructions for BSC (GitHub PR#784)
+  ** Adds instructions for building on Fedora Linux
+
+* In the BH Reference Guide, clarify that the names for placeholder
+  `inhigh` enable signals must be unique (GitHub PR#797)
+
+* Fix the build status badge links in README.md
+  (GitHub Issue#771, PR#773)
+
+* Fix the build to fail if any of the documents fail to build
+  (GitHub PR#799)
+
+Compiler
+~~~~~~~~
+
+* Fix internal error on unknown type constructors in `match`
+  assignment statements (GitHub Issue#785, PR#794)
+
+* Fix the vendored STP library to build with GCC 15
+  (GitHub Issue#786, PR#787)
+
+Libraries
+~~~~~~~~~
+
+* In the `FloatingPoint` library, fix a bug in the
+  `Rnd_Nearest_Away_Zero` rounding mode (round to nearest, ties away
+  from zero) (GitHub PR#808)
+
+Bluetcl
+~~~~~~~
+
+* Improve the foreign import of Tcl into Haskell (GitHub PR#801)
+  ** Adds support for Tcl 9.0
+  ** Helps with future support for Windows
+
+Bluesim
+~~~~~~~
+
+* Silence an "unused result" warning when compiling designs
+  containing the `Probe` module (GitHub PR#779)
+
+* Silence variable-length array (VLA) warnings when compiling
+  with Clang 17 and above, that would prevent compilation
+  (GitHub Issue#812, PR#814)
+
+Verilog
+~~~~~~~
+
+* Fix a bug in VPI code generation that would cause a runtime error
+  for imported functions with no arguments, when using simulators such
+  as Icarus Verilog (GitHub Issue#803, PR#804)
+  ** Workarounds to add an unused argument are no longer needed
+
+Utilities
+~~~~~~~~~
+
+* Updates to BSV mode for `emacs`
+  ** Support `actionvalue`/`endactionvalue` blocks (GitHub PR#765)
+  ** Highlight the `match` keyword (GitHub PR#766)
+
+Test Suite
+~~~~~~~~~~
+
+* Add `check-suite-parallel` target to the top-level `GNUmakefile`
+  (GitHub PR#805)
+
+* Fix failing test due to warnings with newer GCC
+  (GitHub Issue#800, PR#804)
+
+Internal
+~~~~~~~~
+
+* Releases are now built with GHC 9.6.7 (previously 9.6.6)
+  (GitHub PR#781)
+
+* Updates to GitHub CI (continuous integration)
+  ** Retire the CI for Ubuntu 20.04 (GitHub PR#781)
+  ** Update the testing for GHC 9.6 to 9.6.7
+     and for GHC 9.12 to 9.12.2 (GitHub PR#781)
+  ** Update the GHC HLS version to the recommended 2.10.0.0
+     (GitHub PR#781)
+  ** Add an input to the build-and-test workflows to specify
+     disabling timeouts, and use it to disable timeouts for
+     macOS 13 (GitHub PR#815)
+  ** Add an input to the macOS build-and-test workflow to
+     specify disabling Homebrew updates, and use it to disable
+     updates for macOS 13 (GitHub PR#815)
+
+'''
+
 2025.01.1 Release
 -----------------
 
