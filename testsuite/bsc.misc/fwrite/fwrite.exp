@@ -93,7 +93,7 @@ compile_fail_error GetC_err2.bsv T0020
 compile_fail_error GetC_err3.bsv T0031
 
 
-if { $vtest && $verilog_compiler != "iverilog" } {
+if { $vtest } {
     test_veri_only_bsv FWrites
     compare_file FWrites.dat.out
 

@@ -11,14 +11,6 @@
 # a bug in BSC, regardless of simulator) or a list of verilog simulators
 # to exempt.
 
-# iverilog has some bugs in VPI
-set iverilog_bug {}
-if { $verilog_compiler == "iverilog" &&
-     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] } {
-    # add 'iverilog' to the list of simulators to exempt
-    set iverilog_bug $verilog_compiler
-}
-
 # ---------------
 # Value functions
 
@@ -57,7 +49,7 @@ test_c_veri_bsv_multi BDPIAction mkBDPIAction $actionmods
 test_c_veri_bsv_multi BDPIPrimAction mkBDPIPrimAction $actionmods
 test_c_veri_bsv_multi BDPIActionValue mkBDPIActionValue $actionvaluemods1
 test_c_veri_bsv_multi BDPIActionValueIgnoreReturn mkBDPIActionValueIgnoreReturn $actionvaluemods1
-test_c_veri_bsv_multi BDPIActionValueIgnoreWideReturn mkBDPIActionValueIgnoreWideReturn $actionvaluemods2 {} {} $iverilog_bug
+test_c_veri_bsv_multi BDPIActionValueIgnoreWideReturn mkBDPIActionValueIgnoreWideReturn $actionvaluemods2
 test_c_veri_bsv_multi BDPIActionValueIgnorePolyReturn mkBDPIActionValueIgnorePolyReturn $actionvaluemods3
 # Fails due to evaluator bug
 test_c_veri_bsv_multi BDPIActionValue_ mkBDPIActionValue_ $actionvaluemods1

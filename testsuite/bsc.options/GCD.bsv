@@ -1,5 +1,5 @@
 
-import "BDPI" function ActionValue#(Bit#(32)) my_time (Bit#(32) x);
+import "BDPI" function ActionValue#(Bit#(32)) my_time ();
 
 typedef UInt#(51) NumTyp;
 
@@ -53,7 +53,7 @@ module sysGCD(Empty);
   rule rule2GetResult (True);
       let res = gcd.result;
       tbresult <= res;
-      $display("[%x] Received result: %h", my_time(0), res);
+      $display("[%x] Received result: %h", my_time(), res);
   endrule
 
   rule exit(count1 > 100);
