@@ -104,10 +104,35 @@ extern void dollar_fatal(tSimStateHdl simHdl, Module* location,
 extern tUInt64 dollar_time(tSimStateHdl simHdl);
 extern tUInt32 dollar_stime(tSimStateHdl simHdl);
 
+extern tUInt32 dollar_random(tSimStateHdl simHdl);
+extern tUInt32 dollar_random(tSimStateHdl simHdl, const char*, tUInt32 rand_seed);
+extern tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval);
+extern tUInt32 dollar_urandom_range(tSimStateHdl simHdl, const char*, tUInt32 maxval,tUInt32 minval);
+
 // plusargs tasks
 extern bool dollar_test_dollar_plusargs(tSimStateHdl simHdl,
 					const char* size_str,
 					const std::string* name);
+
+extern bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					const char* size_str,
+					const std::string* format,
+					tUInt8* result);
+
+extern bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					const char* size_str,
+					const std::string* format,
+					tUInt32* result);
+
+extern bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					const char* size_str,
+					const std::string* format,
+					tUInt64* result);
+
+extern bool dollar_value_dollar_plusargs(tSimStateHdl simHdl,
+					const char* size_str,
+					const std::string* format,
+					WideData* result);
 
 // VCD-related tasks
 extern void dollar_dumpfile(tSimStateHdl simHdl);
