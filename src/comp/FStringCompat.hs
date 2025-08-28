@@ -8,13 +8,13 @@ module FStringCompat(FString, getFString,
 -- wrapper to make SStrings look like FStrings
 
 import Prelude hiding((++))
+import Data.Data
+
 import qualified SpeedyString as S
 import PPrint(PPrint(..), text)
 import Util(itos)
-import qualified Data.Generics as Generic
 
-
-newtype FString = FString S.SString deriving (Eq,Ord,Generic.Data, Generic.Typeable)
+newtype FString = FString S.SString deriving (Eq, Ord, Data, Typeable)
 
 fromString :: String -> FString
 fromString = FString . S.fromString
