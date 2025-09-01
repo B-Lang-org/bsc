@@ -15,7 +15,7 @@ type SW = 2
 type SH = 2
 
 -- Nice big grid
-type W = 8
+type W = 10
 type H = 14
 
 type Val = UInt 10
