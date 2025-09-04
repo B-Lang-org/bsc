@@ -21,7 +21,7 @@ module IStateLoc (
 import IType
 import Id
 import qualified Data.Generics as Generic
-import Eval(Hyper(..))
+import Eval
 import Data.Char(isAlphaNum)
 
 import Position
@@ -75,8 +75,9 @@ data IStateLocPathComponent = IStateLocPathComponent {
 
 
 -- ---------------------------------------
-instance Hyper IStateLocPathComponent where
-  hyper (IStateLocPathComponent a b c d e f g h i j) y = hyper ((a, b, c, d, e), (f ,g, h, i, j)) y
+instance NFData IStateLocPathComponent where
+  rnf (IStateLocPathComponent a b c d e f g h i j) =
+    rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f `seq` rnf g `seq` rnf h `seq` rnf i `seq` rnf j `seq` ()
 
 -- ---------------------------------------
 instance HasPosition IStateLocPathComponent where
@@ -127,10 +128,10 @@ data NameGenerate = NameEmpty             -- No name so far
                     deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 --
-instance Hyper NameGenerate where
-  hyper (NameEmpty) y    = hyper () y
-  hyper (NameIndex xs) y = hyper xs y
-  hyper (Name i) y       = hyper i y
+instance NFData NameGenerate where
+  rnf NameEmpty = ()
+  rnf (NameIndex xs) = rnf xs `seq` ()
+  rnf (Name i) = rnf i `seq` ()
 
 --
 instance HasPosition NameGenerate where

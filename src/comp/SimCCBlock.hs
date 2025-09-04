@@ -62,7 +62,7 @@ import IntegerUtil(aaaa)
 import PPrint hiding (char, int)
 import Util(itos, headOrErr, initOrErr, lastOrErr, unconsOrErr,
             snd3, makePairs, concatMapM)
-import Eval(Hyper(..))
+import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
@@ -129,6 +129,13 @@ data SimCCBlock =
              , sb_gateMap :: [AExpr]  -- numbering is [0..]
              }
 
+instance NFData SimCCBlock where
+  rnf (SimCCBlock x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19) =
+    rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6
+          `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` rnf x11
+          `seq` rnf x12 `seq` rnf x13 `seq` rnf x14 `seq` rnf x15 `seq` rnf x16
+           `seq` rnf x17 `seq` rnf x18 `seq` rnf x19 `seq` ()
+
 instance Eq SimCCBlock where
   a == b = and [ (sb_id a) == (sb_id b)
                , (sb_name a) == (sb_name b)
@@ -189,6 +196,9 @@ data SimCCFn = SimCCFn { sf_name    :: String         -- function name
                        }
   deriving (Eq, Show)
 
+instance NFData SimCCFn where
+  rnf (SimCCFn name args ty body) = rnf name `seq` rnf args `seq` rnf ty `seq` rnf body `seq` ()
+
 data SimCCFnStmt = -- Bool is whether the var is a port (else a def)
                    SFSDef Bool (AType,AId) (Maybe AExpr) -- declare local var
                  -- Bool is whether the var is a port (else a def)
@@ -211,6 +221,19 @@ data SimCCFnStmt = -- Bool is whether the var is a port (else a def)
                        -- with the expr as the reset value
   deriving (Eq, Ord, Show)
 
+-- NFData instances are needed by the phase dumping routines
+instance NFData SimCCFnStmt where
+    rnf (SFSDef x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SFSAssign x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SFSAction x) = rnf x `seq` ()
+    rnf (SFSAssignAction x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (SFSRuleExec x) = rnf x `seq` ()
+    rnf (SFSCond x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SFSMethodCall x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SFSFunctionCall x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SFSResets x) = rnf x `seq` ()
+    rnf (SFSReturn x) = rnf x `seq` ()
+    rnf (SFSOutputReset x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 isReturn :: SimCCFnStmt -> Bool
 isReturn (SFSReturn _) = True
@@ -286,6 +309,8 @@ data SimCCSched =
              }
   deriving (Eq, Show)
 
+instance NFData SimCCSched where
+  rnf (SimCCSched clock posedge fn after_fn) = rnf clock `seq` rnf posedge `seq` rnf fn `seq` rnf after_fn `seq` ()
 
 -- A SimCCClockGroup represents a group of per-instance clocks
 -- that all refer to a single clock by a canonical name
@@ -295,6 +320,9 @@ data SimCCClockGroup =
                   }
   deriving (Eq, Show)
 
+instance NFData SimCCClockGroup where
+  rnf (SimCCClockGroup canonical instances) = rnf canonical `seq` rnf instances `seq` ()
+
 -- A SimCCReset represents a reset function along with the information
 -- needed to register the reset function at run-time.
 data SimCCReset =
@@ -303,6 +331,9 @@ data SimCCReset =
              , rst_function  :: SimCCFn
              }
   deriving (Eq, Show)
+
+instance NFData SimCCReset where
+  rnf (SimCCReset number port fn) = rnf number `seq` rnf port `seq` rnf fn `seq` ()
 
 -- SimCCGateInfo is a list of the gate sources for each numbered gate
 -- of an instance.  A gate source is either a constant boolean value
@@ -2255,24 +2286,3 @@ instance PPrint SimCCReset where
                   Nothing    -> text "primary reset"
         func  = pPrint d 0 fn
     in label <+> name <> (text ":") $+$ (nest 2 func)
-
--- ==================================================
--- Hyper instances (needed by phase dumping routines)
-
-instance Hyper SimCCBlock where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCFn where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCFnStmt where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCSched where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCClockGroup where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCReset where
-  hyper x y = (x==x) `seq` y

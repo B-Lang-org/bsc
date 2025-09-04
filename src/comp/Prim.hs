@@ -641,8 +641,8 @@ toWString PrimError = "_error"
 toWString PrimCurrentClock = "primCurrentClock"
 toWString p = show p
 
-instance Hyper PrimOp where
-    hyper x y = seq x y
+instance NFData PrimOp where
+    rnf x = x `seq` () -- Should suffice cause it's an enum
 
 -----
 

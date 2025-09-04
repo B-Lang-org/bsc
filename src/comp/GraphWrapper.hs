@@ -59,8 +59,9 @@ instance (PPrint a) => PPrint (Graph a) where
                     pPrint d p es) $+$
             text "}"
 
-instance (Hyper a) => Hyper (Graph a) where
-    hyper g y = hyper2 (graphNodes g) (graphEdges g) y
+-- TODO: This instance makes little sense to keep, I think, especially given the IOArray.
+instance NFData a => NFData (Graph a) where
+    rnf (Graph _x1 x2 x3 x4) = rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` () -- Can't force the IOArray in a pure manner
 
 -- ===============
 -- Graph construction

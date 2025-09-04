@@ -147,6 +147,9 @@ convAPackageToLambdaCalc errh flags apkg0 =
 data SPackage = SPackage SComment [SDefn]
     deriving (Eq, Show)
 
+instance NFData SPackage where
+    rnf (SPackage x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 type SComment = [String]
 
 -- Top level definition
@@ -155,14 +158,28 @@ data SDefn = SDStruct Id [(Id, SType)]
            | SDComment SComment [SDefn]
            deriving (Eq, Show)
 
+instance NFData SDefn where
+    rnf (SDStruct x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SDValue x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SDComment x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 data SType = STVar Id
-           | STCon (STyCon)
+           | STCon STyCon
            | STAp SType SType
            deriving (Eq, Show)
+
+instance NFData SType where
+    rnf (STVar x) = rnf x `seq` ()
+    rnf (STCon x) = rnf x `seq` ()
+    rnf (STAp x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 data STyCon = STyCon Id
             | STyNum Integer
             deriving (Eq, Show)
+
+instance NFData STyCon where
+    rnf (STyCon x) = rnf x `seq` ()
+    rnf (STyNum x) = rnf x `seq` ()
 
 data SExpr = SLam Id SType SExpr
            | SLet [(Id, SType, SExpr)] SExpr
@@ -180,10 +197,21 @@ data SExpr = SLam Id SType SExpr
            | SHasType SType SExpr  -- type signature
            deriving (Eq, Show)
 
--- -----
-
-instance Hyper SPackage where
-  hyper x y = (x==x) `seq` y
+instance NFData SExpr where
+    rnf (SLam x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SLet x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SVar x) = rnf x `seq` ()
+    rnf (SCon x) = rnf x `seq` ()
+    rnf (SBVLit x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SStringLit x) = rnf x `seq` ()
+    rnf (SRealLit x) = rnf x `seq` ()
+    rnf (SApply x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SApplyInfix x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SStruct x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SStructUpd x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SSelect x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SIf x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SHasType x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- -----
 

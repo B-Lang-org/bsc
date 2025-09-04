@@ -47,7 +47,7 @@ import Verilog(VDPI(..), VDPIType(..), mkVId, idToVId)
 import ErrorUtil(internalError)
 import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
-import Eval(Hyper(..))
+import Eval
 
 import Data.List(intercalate, isPrefixOf, nub)
 import Data.Maybe(mapMaybe, maybeToList)
@@ -65,7 +65,7 @@ data ForeignType = Void
                  | Wide Integer
                  | Polymorphic
                  | StringPtr
-  deriving (Eq,Show);
+  deriving (Eq,Show)
 
 instance PPrint ForeignType where
   pPrint _ _ Void        = text "void"
@@ -74,8 +74,12 @@ instance PPrint ForeignType where
   pPrint _ _ Polymorphic = text "Bits#(?)"
   pPrint _ _ StringPtr   = text "String"
 
-instance Hyper ForeignType where
-  hyper x y = (x==x) `seq` y
+instance NFData ForeignType where
+  rnf Void = ()
+  rnf (Narrow i) = rnf i `seq` ()
+  rnf (Wide i) = rnf i `seq` ()
+  rnf Polymorphic = ()
+  rnf StringPtr = ()
 
 isAbsent :: ForeignType -> Bool
 isAbsent Void = True
@@ -103,7 +107,7 @@ data ForeignFunction = FF { ff_name :: Id
                           , ff_ret  :: ForeignType
                           , ff_args :: [ForeignType]
                           }
-  deriving (Eq,Show);
+  deriving (Eq,Show)
 
 instance PPrint ForeignFunction where
   pPrint d p (FF nm rt args) =
@@ -112,8 +116,8 @@ instance PPrint ForeignFunction where
         arg_types = pparen True (sepList (map (pPrint d p) args) comma)
     in ret_type <+> name <> arg_types
 
-instance Hyper ForeignFunction where
-  hyper x y = (x==x) `seq` y
+instance NFData ForeignFunction where
+  rnf (FF name ret args) = rnf name `seq` rnf ret `seq` rnf args `seq` ()
 
 mkForeignFunction :: Id -> CType -> ForeignFunction
 mkForeignFunction name ty =
@@ -145,7 +149,7 @@ data ForeignCall = FFCall   { fc_func :: ForeignFunction
                  | FFAction { fc_func :: ForeignFunction
                             , fc_action :: AAction
                             }
-  deriving (Eq,Show);
+  deriving (Eq,Show)
 
 fc_args :: ForeignCall -> [AExpr]
 fc_args (FFCall _ expr)  = ae_args expr
@@ -181,13 +185,13 @@ data Argument = Arg     AExpr          -- expression
               | ArgStr                 -- descr. of arg types and sizes
               | Alloc   Integer Bool   -- newly allocated memory
               | Null                   -- NULL pointer
-  deriving (Eq, Show);
+  deriving (Eq, Show)
 
 data ReturnStyle = None      -- there is no return value
                  | Direct    -- the value is returned from the call
                  | Pointer   -- the value is passed in and overwritten
                  | Buffered  -- storage is allocated and passed in
-  deriving (Eq, Show);
+  deriving (Eq, Show)
 
 instance PPrint ReturnStyle where
     pPrint d p x = text (show x)

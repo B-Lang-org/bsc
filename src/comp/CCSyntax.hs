@@ -85,7 +85,7 @@ import PPrint hiding ( int
 import ErrorUtil(internalError)
 import Util
 import Numeric(showInt)
-import Eval(Hyper(..))
+import Eval
 
 -- import Debug.Trace
 
@@ -127,6 +127,9 @@ pp x = pPrint PDReadable 0 x
 data CQualifier = CTnone | CTconst | CTvolatile
   deriving (Eq, Show)
 
+instance NFData CQualifier where
+  rnf x = x `seq` () -- Suffices for enums
+
 instance PPrint CQualifier where
   pPrint d p CTnone     = empty
   pPrint d p CTconst    = text "const"
@@ -135,6 +138,9 @@ instance PPrint CQualifier where
 -- Sign annotations
 data CSign = CTsigned | CTunsigned
   deriving (Eq, Show)
+
+instance NFData CSign where
+  rnf x = x `seq` () -- Suffices for enums
 
 instance PPrint CSign where
   pPrint d p CTsigned   = text "signed"
@@ -161,6 +167,27 @@ data CCType = CTbool
             | CTnumeric Integer
             | CTtemplate CCType [CCType]
   deriving (Eq, Show)
+
+instance NFData CCType where
+    rnf CTbool = ()
+    rnf CTchar = ()
+    rnf (CTshort x) = rnf x `seq` ()
+    rnf (CTint x) = rnf x `seq` ()
+    rnf (CTlong x) = rnf x `seq` ()
+    rnf CTfloat = ()
+    rnf CTdouble = ()
+    rnf CTvoid = ()
+    rnf (CTstruct x) = rnf x `seq` ()
+    rnf (CTuserType x) = rnf x `seq` ()
+    rnf (CTqualified x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CTpointer x) = rnf x `seq` ()
+    rnf (CTreference x) = rnf x `seq` ()
+    rnf (CTarray x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CTfunction x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CTconstructor x) = rnf x `seq` ()
+    rnf CTdestructor = ()
+    rnf (CTnumeric x) = rnf x `seq` ()
+    rnf (CTtemplate x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- Functions for creating types
 
@@ -269,6 +296,9 @@ data CStorageClass  = CSnone
                     | CSvirtual
   deriving (Eq, Show)
 
+instance NFData CStorageClass where
+  rnf x = x `seq` () -- Sufficient for enums
+
 instance PPrint CStorageClass where
   pPrint d p CSnone     = empty
   pPrint d p CSstatic   = text "static"
@@ -308,6 +338,35 @@ data CCExpr = CVar String
             | CDelete CCExpr Bool
             | CTemplate CCExpr [CCType]
   deriving (Eq, Show)
+
+instance NFData CCExpr where
+    rnf (CVar x) = rnf x `seq` ()
+    rnf CLiteralNULL = ()
+    rnf (CLiteralString x) = rnf x `seq` ()
+    rnf (CLiteralChar x) = rnf x `seq` ()
+    rnf (CLiteralBool x) = rnf x `seq` ()
+    rnf (CLiteralBits1 x) = rnf x `seq` ()
+    rnf (CLiteralBits8 x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CLiteralBits32 x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CLiteralBits64 x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CLiteralFloat x) = rnf x `seq` ()
+    rnf (CLiteralDouble x) = rnf x `seq` ()
+    rnf (CInitBraces x) = rnf x `seq` ()
+    rnf (CPreOp x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CPostOp x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CBinOp x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CGroup x) = rnf x `seq` ()
+    rnf (CFunCall x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CArrow x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CDot x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CIndex x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CCast x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CDereference x) = rnf x `seq` ()
+    rnf (CAddressOf x) = rnf x `seq` ()
+    rnf (CTernary x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CNew x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CDelete x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CTemplate x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- These precedence values are used for proper grouping of non-standard
 -- operators.  Other operators have their precedence encoded within COp
@@ -422,6 +481,9 @@ instance PPrint CCExpr where
 data COp = COp Int Int Int String
   deriving (Eq, Show)
 
+instance NFData COp where
+  rnf (COp x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+
 instance PPrint COp where
   pPrint d p (COp _ _ _ s) = text s
 
@@ -509,6 +571,9 @@ oComma   = infixlOp  1 ","
 data CAccess = CApublic | CAprotected | CAprivate
   deriving (Eq, Show)
 
+instance NFData CAccess where
+  rnf x = x `seq` () -- Suffices for enums
+
 instance PPrint CAccess where
   pPrint d p CApublic    = text "public"
   pPrint d p CAprotected = text "protected"
@@ -547,6 +612,41 @@ data CCFragment = CAbstract
                 | CNameSpace String [CCFragment]
                 | CUsing String
   deriving (Eq, Show)
+
+-- NFData instance needed for dumping CCFragments
+instance NFData CCFragment where
+    rnf CAbstract = ()
+    rnf CNop = ()
+    rnf (CExpr x) = rnf x `seq` ()
+    rnf (CTyped x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CConstruct x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CDecl x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CAssign x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CAssignOp x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CJoin x) = rnf x `seq` ()
+    rnf (CBlock x) = rnf x `seq` ()
+    rnf (CExternBlock x) = rnf x `seq` ()
+    rnf (CFunctionDef x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CLiteralComment x) = rnf x `seq` ()
+    rnf (CCommented x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CBlankLines x) = rnf x `seq` ()
+    rnf (CProgram x) = rnf x `seq` ()
+    rnf (CPPIf x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CPPIfdef x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CPPIfndef x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CPPDefine x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CPPUndef x) = rnf x `seq` ()
+    rnf (CPPInclude x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CIf x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CSwitch x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CFor x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf CContinue = ()
+    rnf CBreak = ()
+    rnf (CReturn x) = rnf x `seq` ()
+    rnf (CSection x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CClass x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CNameSpace x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CUsing x) = rnf x `seq` ()
 
 -- Print a fragment as a statement (adds a semicolon where appropriate)
 printStmt :: CCFragment -> Doc
@@ -1208,9 +1308,3 @@ blankLines n = CBlankLines n
 
 templated :: CCExpr -> [CCType] -> CCExpr
 templated e args = CTemplate e args
-
--- ----------
--- Hyper instance needed for dumping CCFragments
-
-instance Hyper CCFragment where
-  hyper x y = (x==x) `seq` y

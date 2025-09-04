@@ -208,11 +208,8 @@ instance PPrint SimSchedule where
 
 -- -----
 
-instance Hyper SimSystem where
-    hyper ssim y = hyper3 (ssys_packages ssim)
-                          (ssys_schedules ssim)
-                          (ssys_top ssim)
-                          y
+instance NFData SimSystem where
+    rnf (SimSystem x1 x2 x3 x4 x5 x6 x7 x8) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
 
 instance Eq SimPackage where
     sp1 == sp2 =
@@ -240,21 +237,17 @@ instance Eq SimPackage where
          (sp_schedule_pragmas sp1 == sp_schedule_pragmas sp2)
         )
 
-instance Hyper SimPackage where
-    hyper spkg y = (spkg == spkg) `seq` y
+instance NFData SimPackage where
+  rnf (SimPackage x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19) =
+    rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6
+           `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` rnf x11
+           `seq` rnf x12 `seq` rnf x13 `seq` rnf x14 `seq` rnf x15 `seq` rnf x16
+           `seq` rnf x17 `seq` rnf x18 `seq` rnf x19 `seq` ()
 
-instance Hyper SimSchedule where
-    hyper ssched y =
-        --- we only care about certain fields
-        (
-            (ss_clock ssched    == ss_clock ssched)
-         && (ss_posedge ssched  == ss_posedge ssched)
-         && (ss_schedule ssched == ss_schedule ssched)
-         && (ss_sched_graph ssched == ss_sched_graph ssched)
-         && (ss_sched_order ssched == ss_sched_order ssched)
-         && (ss_domain_info_map ssched == ss_domain_info_map ssched)
-         && (ss_early_rules ssched == ss_early_rules ssched)
-        ) `seq` y
+-- TODO: This was partially forcing before.
+instance NFData SimSchedule where
+    rnf (SimSchedule x1 x2 x3 x4 x5 x6 x7 x8) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
 
 -- -----
 

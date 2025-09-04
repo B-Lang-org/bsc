@@ -32,7 +32,7 @@ import CondTree
 import ListUtil(dropRepeatsBy)
 import APrims
 import PPrint
-import Eval(Hyper(..))
+import Eval
 import qualified DynamicMap as DM
 
 import System.Environment(getArgs)
@@ -237,6 +237,11 @@ data Signal = ClockSignal { clk_domain     :: Int
             | CFSignal
             | WFSignal
   deriving (Eq,Show)
+
+instance NFData Signal where
+  rnf (ClockSignal x1 x2 x3 x4 x5 x6 x7 x8) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
+  rnf CFSignal = ()
+  rnf WFSignal = ()
 
 -- The conversion is a lazy left-fold over a list of VCD commands, which
 -- tracks the state of the fold using the ConvState structure.
@@ -1576,11 +1581,3 @@ dbg_trace (Just hdl) s x = unsafePerformIO $ do hPutStr hdl s
                                                 hFlush hdl
                                                 return x
 
--- ---------------
--- Hyper instances
-
-instance Hyper SchedNode where
-  hyper n x = (n == n) `seq` x
-
-instance Hyper Signal where
-  hyper s x = (s == s) `seq` x

@@ -163,16 +163,50 @@ data IdProp = IdPCanFire
               | IdPParserGenerated
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
+instance NFData IdProp where
+    rnf IdPCanFire = ()
+    rnf IdPWillFire = ()
+    rnf IdPProbe = ()
+    rnf IdPInternal = ()
+    rnf IdPReady = ()
+    rnf IdPGeneratedIfc = ()
+    rnf IdPMeth = ()
+    rnf IdPCommutativeTCon = ()
+    rnf IdP_enable = ()
+    rnf IdP_keep = ()
+    rnf IdP_keepEvenUnused = ()
+    rnf IdPRule = ()
+    rnf IdPSplitRule = ()
+    rnf IdPDict = ()
+    rnf IdPRenaming = ()
+    rnf IdP_suffixed = ()
+    rnf (IdP_SuffixCount x) = rnf x `seq` ()
+    rnf IdP_bad_name = ()
+    rnf IdP_from_rhs = ()
+    rnf IdP_signed = ()
+    rnf IdP_NakedInst = ()
+    rnf (IdPDisplayName x) = rnf x `seq` ()
+    rnf IdP_hide = ()
+    rnf IdP_hide_all = ()
+    rnf (IdP_TypeJoin x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf IdPMethodPredicate = ()
+    rnf (IdPInlinedPositions x) = rnf x `seq` ()
+    rnf IdPParserGenerated = ()
+
 -- #############################################################################
 -- #
 -- #############################################################################
 
+-- GEORGE: Make id_props strict too?
 data Id = Id { id_pos :: !Position,
                id_mfs :: !FString,
                id_fs :: !FString,
                id_props :: [IdProp] {- , id_stab :: Int -}
              }
      deriving (Generic.Data,Generic.Typeable)
+
+instance NFData Id where
+    rnf (Id pos mfs fs props) = rnf pos `seq` rnf mfs `seq` rnf fs `seq` rnf props `seq` ()
 
 show_raw_id :: Bool
 show_raw_id = "-show-raw-id" `elem` progArgs
@@ -662,9 +696,6 @@ removeIdInlinedPositions i =
         isIdPInlinedPositions _ = False
         other_ps = filter (not . isIdPInlinedPositions) (getIdProps i)
     in  setIdProps i other_ps
-
-instance Hyper Id where
-    hyper a@(Id {}) y = y       -- XXX
 
 -- #############################################################################
 -- # Methods for adding properties to Id's, checking for them etc.

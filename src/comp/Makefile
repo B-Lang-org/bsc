@@ -126,6 +126,7 @@ GHCPROFAUTO = -fprof-auto
 
 PACKAGES = \
 	-package base \
+	-package deepseq \
 	-package containers \
 	-package array \
 	-package mtl \

@@ -94,9 +94,9 @@ instance PVPrint Pragma where
     pvPrint d p (Pnoinline is) =
         text "(* noinline" <+> sep (map (pvpId d) is) <+> text " *)"
 
-instance Hyper Pragma where
-    hyper (Pproperties i pps) y = hyper2 i pps y
-    hyper (Pnoinline is) y = hyper is y
+instance NFData Pragma where
+    rnf (Pproperties i pps) = rnf i `seq` rnf pps `seq` ()
+    rnf (Pnoinline is) = rnf is `seq` ()
 
 instance HasPosition Pragma where
     getPosition (Pproperties i _) = getPosition i
@@ -293,28 +293,43 @@ pvpPProp d pprop = text "(*" <+> pvPrint d 0 pprop <+> text "*)"
 ppPProp :: PDetail -> PProp -> Doc
 ppPProp d pprop = text "{-#" <+> pPrint d 0 pprop <+> text "#-};"
 
-instance Hyper PProp where
-    hyper (PPscanInsert i) y = seq i y
-    hyper (PPCLK i) y = seq i y
-    hyper (PPGATE i) y = seq i y
-    hyper (PPRSTN i) y = seq i y
-    hyper (PPclock_osc xs) y = hyper xs y
-    hyper (PPclock_gate xs) y = hyper xs y
-    hyper (PPgate_inhigh is) y = hyper is y
-    hyper (PPgate_unused is) y = hyper is y
-    hyper (PPreset_port xs) y = hyper xs y
-    hyper (PParg_param xs) y = hyper xs y
-    hyper (PParg_port xs) y = hyper xs y
-    hyper (PParg_clocked_by xs) y = hyper xs y
-    hyper (PParg_reset_by xs) y = hyper xs y
-    hyper (PPoptions os) y = hyper os y
-    hyper (PPclock_family is) y = hyper is y
-    hyper (PPclock_ancestors ils) y = hyper ils y
-    hyper x y = seq x y
+-- TODO: This was very bogus, forcing parts of the spines only.
+instance NFData PProp where
+    rnf PPverilog = ()
+    rnf (PPforeignImport x) = rnf x `seq` ()
+    rnf (PPalwaysReady x) = rnf x `seq` ()
+    rnf (PPalwaysEnabled x) = rnf x `seq` ()
+    rnf (PPenabledWhenReady x) = rnf x `seq` ()
+    rnf (PPscanInsert x) = rnf x `seq` ()
+    rnf PPbitBlast = ()
+    rnf (PPCLK x) = rnf x `seq` ()
+    rnf (PPGATE x) = rnf x `seq` ()
+    rnf (PPRSTN x) = rnf x `seq` ()
+    rnf (PPclock_osc x) = rnf x `seq` ()
+    rnf (PPclock_gate x) = rnf x `seq` ()
+    rnf (PPgate_inhigh x) = rnf x `seq` ()
+    rnf (PPgate_unused x) = rnf x `seq` ()
+    rnf (PPreset_port x) = rnf x `seq` ()
+    rnf (PParg_param x) = rnf x `seq` ()
+    rnf (PParg_port x) = rnf x `seq` ()
+    rnf (PParg_clocked_by x) = rnf x `seq` ()
+    rnf (PParg_reset_by x) = rnf x `seq` ()
+    rnf (PPoptions x) = rnf x `seq` ()
+    rnf (PPgate_input_clocks x) = rnf x `seq` ()
+    rnf (PPmethod_scheduling x) = rnf x `seq` ()
+    rnf (PPdoc x) = rnf x `seq` ()
+    rnf (PPperf_spec x) = rnf x `seq` ()
+    rnf (PPclock_family x) = rnf x `seq` ()
+    rnf (PPclock_ancestors x) = rnf x `seq` ()
+    rnf (PPparam x) = rnf x `seq` ()
+    rnf (PPinst_name x) = rnf x `seq` ()
+    rnf PPinst_hide = ()
+    rnf PPinst_hide_all = ()
+    rnf (PPdeprecate x) = rnf x `seq` ()
 
-instance Hyper PPnm where
-    hyper (PPnmOne i) y = hyper i y
-    hyper (PPnmArray i h l) y = hyper3 i h l y
+instance NFData PPnm where
+    rnf (PPnmOne i) = rnf i `seq` ()
+    rnf (PPnmArray i h l) = rnf i `seq` rnf h `seq` rnf l `seq` ()
 
 getPragmaArgNames :: PProp -> [String]
 getPragmaArgNames (PPclock_osc ps)   = [ getIdBaseString i | (i,_) <- ps ]
@@ -423,9 +438,17 @@ getRulePragmaName RPclockCrossingRule = "clock_crossing_rule"
 getRulePragmaName (RPdoc {}) = "doc"
 getRulePragmaName RPhide     = "hide"
 
-instance Hyper RulePragma where
-    hyper x y = seq x y
-
+instance NFData RulePragma where
+  rnf RPfireWhenEnabled = ()
+  rnf RPnoImplicitConditions = ()
+  rnf RPaggressiveImplicitConditions = ()
+  rnf RPconservativeImplicitConditions = ()
+  rnf RPnoWarn = ()
+  rnf RPwarnAllConflicts = ()
+  rnf RPcanScheduleFirst = ()
+  rnf RPclockCrossingRule = ()
+  rnf (RPdoc s) = rnf s `seq` ()
+  rnf RPhide = ()
 
 -- ========================================================================
 -- SchedulePragma
@@ -468,13 +491,13 @@ instance (PPrint t, Ord t) => PPrint (SchedulePragma t) where
 
 -- instance PVPrint ?
 
-instance (Hyper t) => Hyper (SchedulePragma t) where
-    hyper (SPUrgency ids)       y = hyper ids y
-    hyper (SPExecutionOrder ids) y = hyper ids y
-    hyper (SPMutuallyExclusive idss) y = hyper idss y
-    hyper (SPConflictFree idss) y = hyper idss y
-    hyper (SPPreempt ids1 ids2) y = hyper2 ids1 ids2 y
-    hyper (SPSchedule s)        y = hyper s y
+instance (NFData t) => NFData (SchedulePragma t) where
+    rnf (SPUrgency ids)       = rnf ids `seq` ()
+    rnf (SPExecutionOrder ids) = rnf ids `seq` ()
+    rnf (SPMutuallyExclusive idss) = rnf idss `seq` ()
+    rnf (SPConflictFree idss) = rnf idss `seq` ()
+    rnf (SPPreempt ids1 ids2) = rnf ids1 `seq` rnf ids2 `seq` ()
+    rnf (SPSchedule s)        = rnf s `seq` ()
 
 -- --------------------
 
@@ -733,15 +756,14 @@ instance PVPrint  IfcPragma where
     pvPrint d _ (PIAlwaysRdy )         = text "always_ready "
     pvPrint d _ (PIAlwaysEnabled )     = text "always_enabled "
 
-
-instance Hyper IfcPragma where
-    hyper  (PIArgNames ids)  y      = hyper ids y
-    hyper  (PIPrefixStr flds) y     = hyper flds y
-    hyper  (PIRdySignalName flds) y = hyper flds y
-    hyper  (PIEnSignalName flds) y  = hyper flds y
-    hyper  (PIResultName flds) y    = hyper flds y
-    hyper  (PIAlwaysRdy ) y         =   y
-    hyper  (PIAlwaysEnabled ) y     =   y
+instance NFData IfcPragma where
+    rnf (PIArgNames ids)       = rnf ids `seq` ()
+    rnf (PIPrefixStr flds)     = rnf flds `seq` ()
+    rnf (PIRdySignalName flds) = rnf flds `seq` ()
+    rnf (PIEnSignalName flds)  = rnf flds `seq` ()
+    rnf (PIResultName flds)    = rnf flds `seq` ()
+    rnf PIAlwaysRdy            = ()
+    rnf PIAlwaysEnabled        = ()
 
 -- a means to get a print string from attribute
 getIfcPName :: IfcPragma -> String
@@ -898,11 +920,11 @@ data DefProp
 instance PPrint DefProp where
   pPrint _d _i = text . show
 
-instance Hyper DefProp where
-  hyper (DefP_Rule x) y = hyper x y
-  hyper (DefP_Instance x) y = hyper x y
-  hyper (DefP_Method x) y = hyper x y
-  hyper DefP_NoCSE y = y
+instance NFData DefProp where
+  rnf (DefP_Rule x) = rnf x `seq` ()
+  rnf (DefP_Instance x) = rnf x `seq` ()
+  rnf (DefP_Method x) = rnf x `seq` ()
+  rnf DefP_NoCSE = ()
 
 -- --------------------
 

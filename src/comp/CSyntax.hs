@@ -106,6 +106,9 @@ data CPackage = CPackage
                 [CInclude]        -- any `include files
         deriving (Eq, Ord, Show)
 
+instance NFData CPackage where
+    rnf (CPackage x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+
 data CExport
         = CExpVar Id    -- export a variable identifier
         | CExpCon Id    -- export a constructor
@@ -114,21 +117,39 @@ data CExport
         | CExpPkg Id    -- export an entire package
         deriving (Eq, Ord, Show)
 
+instance NFData CExport where
+        rnf (CExpVar x) = rnf x `seq` ()
+        rnf (CExpCon x) = rnf x `seq` ()
+        rnf (CExpConAll x) = rnf x `seq` ()
+        rnf (CExpPkg x) = rnf x `seq` ()
+
 data CImport
         = CImpId Bool Id                                -- Bool indicates qualified
         | CImpSign String Bool CSignature
         deriving (Eq, Ord, Show)
+
+instance NFData CImport where
+        rnf (CImpId x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CImpSign x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 -- Package signature from import
 data CSignature
         = CSignature Id [Id] [CFixity] [CDefn]        -- package name, imported packages, definitions
         deriving (Eq, Ord, Show)
 
+instance NFData CSignature where
+        rnf (CSignature x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+
 data CFixity
         = CInfix  Integer Id
         | CInfixl Integer Id
         | CInfixr Integer Id
         deriving (Eq, Ord, Show)
+
+instance NFData CFixity where
+        rnf (CInfix x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CInfixl x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CInfixr x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- Top level definition
 data CDefn
@@ -164,6 +185,23 @@ data CDefn
         | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 
+instance NFData CDefn where
+    rnf (Ctype x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (Cdata x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+    rnf (Cstruct x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+    rnf (Cclass x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+    rnf (Cinstance x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CValue x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CValueSign x) = rnf x `seq` ()
+    rnf (Cforeign x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
+    rnf (Cprimitive x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CprimType x) = rnf x `seq` ()
+    rnf (CPragma x) = rnf x `seq` ()
+    rnf (CIinstance x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (CItype x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (CIclass x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+    rnf (CIValueSign x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 -- Since IdPKind is only expected in some disjuncts of CDefn, we could
 -- create a separate IdPK for those cases, but that seems like overkill.
 -- IdPKind in other locations will just be treated like IdK (no kind info).
@@ -173,6 +211,11 @@ data IdK
         -- this should not exist after typecheck
         | IdPKind Id PartialKind
         deriving (Eq, Ord, Show)
+
+instance NFData IdK where
+        rnf (IdK x) = rnf x `seq` ()
+        rnf (IdKind x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (IdPKind x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 type CFunDeps = [([Id],[Id])]
 
@@ -255,8 +298,9 @@ data CExpr
         | Cattributes [(Position,PProp)]
         deriving (Ord, Show)
 
-instance Hyper CExpr where
-    hyper x y = (x==x) `seq` y                -- XXX
+-- TODO: Fix. Was broken before anyway.
+instance NFData CExpr where
+    rnf x = x `seq` ()
 
 -- ignore positions when testing equality
 instance Eq CExpr where
@@ -484,8 +528,13 @@ xCmoduleVerilog m is_user_import wireinfo args fields schedinfo pathinfo =
 -- ===============
 
 data CLiteral = CLiteral Position Literal deriving (Show)
+
+instance NFData CLiteral where
+        rnf (CLiteral x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 instance Eq CLiteral where
         CLiteral _ l == CLiteral _ l'  =  l == l'
+
 instance Ord CLiteral where
         CLiteral _ l `compare` CLiteral _ l'  =  l `compare` l'
 
@@ -506,6 +555,9 @@ data CInternalSummand =
                        cis_arg_type :: CType,
                        cis_tag_encoding :: Integer }
     deriving (Eq, Ord, Show)
+
+instance NFData CInternalSummand where
+    rnf (CInternalSummand x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 -- return only the primary name
 getCISName :: CInternalSummand -> Id
@@ -528,6 +580,9 @@ data COriginalSummand =
                        cos_tag_encoding :: Maybe Integer }
     deriving (Eq, Ord, Show)
 
+instance NFData COriginalSummand where
+    rnf (COriginalSummand x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+
 -- return only the primary name
 getCOSName :: COriginalSummand -> Id
 getCOSName cos = case (cos_names cos) of
@@ -543,6 +598,9 @@ data CField = CField { cf_name :: Id,
                        cf_orig_type :: Maybe CType
                      }
               deriving (Eq, Ord, Show)
+
+instance NFData CField where
+    rnf (CField x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
 
 type CFields = [CField] -- just a list of CField
 
@@ -592,11 +650,20 @@ data CDefl                -- [CQual] part is the when clause used in an interfac
         | CLMatch CPat CExpr           -- let [z] = e3
         deriving (Eq, Ord, Show)
 
+instance NFData CDefl where
+        rnf (CLValueSign x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CLValue x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CLMatch x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 -- Definition, local or global
 data CDef
         = CDef Id CQType [CClause]                        -- before type checking
         | CDefT Id [TyVar] CQType [CClause]                -- after type checking, with type variables from the CQType
         deriving (Eq, Ord, Show)
+
+instance NFData CDef where
+        rnf (CDef x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CDefT x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 -- Definition clause
 -- each interface's definitions (within the module) correspond to one of these
@@ -606,11 +673,18 @@ data CClause
                   CExpr                 -- the body
         deriving (Eq, Ord, Show)
 
+instance NFData CClause where
+    rnf (CClause pats quals exprs) = rnf pats `seq` rnf quals `seq` rnf exprs `seq` ()
+
 -- Pattern matching
 data CQual
         = CQGen CType CPat CExpr
         | CQFilter CExpr
         deriving (Eq, Ord, Show)
+
+instance NFData CQual where
+        rnf (CQGen x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CQFilter x) = rnf x `seq` ()
 
 isCQFilter :: CQual -> Bool
 isCQFilter (CQFilter _) = True
@@ -638,14 +712,37 @@ data CPat
         | CPConTs Id Id [CType] [CPat]
         deriving (Eq, Ord, Show)
 
+instance NFData CPat where
+        rnf (CPCon x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CPstruct x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CPVar x) = rnf x `seq` ()
+        rnf (CPAs x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (CPAny x) = rnf x `seq` ()
+        rnf (CPLit x) = rnf x `seq` ()
+        rnf (CPMixedLit x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CPOper x) = rnf x `seq` ()
+        rnf (CPCon1 x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (CPConTs x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+
 data CPOp
         = CPRand CPat
         | CPRator Int Id
         deriving (Eq, Ord, Show)
 
+instance NFData CPOp where
+        rnf (CPRand x) = rnf x `seq` ()
+        rnf (CPRator x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 newtype CInclude
        = CInclude String
     deriving (Eq, Ord, Show)
+
+instance NFData CInclude where
+  rnf (CInclude s) = rnf s `seq` ()
+
+instance PPrint CInclude where
+    pPrint d p (CInclude s) = pPrint d p s
+
 --------
 -- Utilities
 
@@ -1320,15 +1417,3 @@ ppInfix d i =
               (case getFString b of
                s@(c:_) | isIdChar c -> t s
                s -> t "(" <> t s <> t")") <> t"`")
-
-instance PPrint CInclude where
-    pPrint d p (CInclude s) = pPrint d p s
-
-instance Hyper CPackage where
-    hyper x y = (x == x) `seq` y
-
-instance Hyper CDefn where
-    hyper x y = (x == x) `seq` y
-
-instance Hyper CClause where
-    hyper x y = (x == x) `seq` y

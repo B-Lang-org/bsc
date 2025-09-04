@@ -83,8 +83,8 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 data VProgram = VProgram [VModule] [VDPI] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
-instance Hyper VProgram where
-    hyper x y = (x==x) `seq` y
+instance NFData VProgram where
+    rnf (VProgram x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 instance PPrint VProgram where
     pPrint d p (VProgram ms dpis cs) =
@@ -136,6 +136,9 @@ ppComment cs =
 data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+instance NFData VDPI where
+  rnf (VDPI x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+
 instance PPrint VDPI where
   pPrint d p (VDPI name ret args) =
     let
@@ -156,6 +159,15 @@ data VDPIType = VDT_void
               | VDT_string
               | VDT_poly
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VDPIType where
+    rnf VDT_void = ()
+    rnf VDT_byte = ()
+    rnf VDT_int = ()
+    rnf VDT_longint = ()
+    rnf (VDT_wide x) = rnf x `seq` ()
+    rnf VDT_string = ()
+    rnf VDT_poly = ()
 
 instance PPrint VDPIType where
   pPrint _ _ VDT_void    = text "void"
@@ -180,6 +192,9 @@ data VModule =
              vm_body       :: [VMItem]
             }
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VModule where
+    rnf (VModule x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 instance PPrint VModule where
     pPrint d p vmodule =
@@ -236,6 +251,12 @@ data VArg
         | VAOutput VId (Maybe VRange)
         | VAParameter VId (Maybe VRange) VExpr
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VArg where
+    rnf (VAInput x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VAInout x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (VAOutput x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VAParameter x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 -- only use this for debugging
 instance PPrint VArg where
@@ -300,6 +321,16 @@ data VMItem
         | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VMItem where
+    rnf (VMDecl x) = rnf x `seq` ()
+    rnf (VMInst x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (VMAssign x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VMStmt x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VMComment x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VMRegGroup x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (VMGroup x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VMFunction x) = rnf x `seq` ()
 
 instance Ord VMItem where
          -- comments are just attached to other statements,
@@ -434,6 +465,9 @@ vGroupWithComment True  vmis comment =
 data VFunction = VFunction VId (Maybe VRange) [VFDecl] VStmt
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+instance NFData VFunction where
+        rnf (VFunction x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+
 type VFDecl = VVDecl -- not quite right
 
 instance PPrint VFunction where
@@ -468,6 +502,21 @@ data VStmt
         | VZeroDelay -- injecting an explicit (0-tick) delay for synchronization purposes
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+instance NFData VStmt where
+        rnf (VAt x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (Valways x) = rnf x `seq` ()
+        rnf (Vinitial x) = rnf x `seq` ()
+        rnf (VSeq x) = rnf x `seq` ()
+        rnf (Vcasex x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+        rnf (Vcase x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+        rnf (VAssign x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (VAssignA x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (Vif x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (Vifelse x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+        rnf (Vdumpvars x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (VTask x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (VAssert x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf VZeroDelay = ()
 
 instance PPrint VStmt where
         pPrint d p (VAt e s) = sep [text "@" <> pparen True (pPrint d 0 e), pPrint d 0 s]
@@ -567,6 +616,11 @@ data VLValue
         | VLSub VLValue VExpr
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+instance NFData VLValue where
+         rnf (VLId x) = rnf x `seq` ()
+         rnf (VLConcat x) = rnf x `seq` ()
+         rnf (VLSub x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 instance Ord VLValue where
          compare (VLId lid) (VLId rid)               = compare lid rid
          compare (VLSub vvl _) (VLSub vvr _)         = compare vvl vvr
@@ -581,6 +635,10 @@ data VCaseArm
         = VCaseArm [VExpr] VStmt
         | VDefault VStmt
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VCaseArm where
+        rnf (VCaseArm x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (VDefault x) = rnf x `seq` ()
 
 instance PPrint VCaseArm where
         pPrint d p (VCaseArm es s) =
@@ -599,6 +657,10 @@ data VVDecl
         = VVDecl VDType (Maybe VRange) [VVar]
         | VVDWire (Maybe VRange) VVar VExpr
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VVDecl where
+    rnf (VVDecl x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (VVDWire x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 instance Ord VVDecl where
          compare (VVDecl _ _ _)  (VVDWire _ _ _)       = LT
@@ -629,6 +691,9 @@ data VDType = VDReg | VDWire
         | VDInput | VDInout | VDOutput                -- only for decls
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
 
+instance NFData VDType where
+        rnf x = x `seq` () -- Suffices for enums
+
 instance PPrint VDType where
         pPrint d p VDReg    = text "reg"
         pPrint d p VDWire   = text "wire"
@@ -640,6 +705,10 @@ data VVar
         = VVar VId
         | VArray VRange VId
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VVar where
+        rnf (VVar x) = rnf x `seq` ()
+        rnf (VArray x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 instance Ord VVar where
          compare (VVar lid) (VArray _ rid)           = compare lid rid
@@ -659,6 +728,9 @@ vvName (VArray _ i) = i
 -- the VMItem is used for inlined registers
 data VId = VId String Id (Maybe VMItem)
         deriving (Show, Generic.Data, Generic.Typeable)
+
+instance NFData VId where
+    rnf (VId x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 instance Ord VId where
     compare (VId s1 _ _) (VId s2 _ _) = compare s1 s2
@@ -703,6 +775,13 @@ data VEventExpr
         | VEEMacro String VExpr
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+instance NFData VEventExpr where
+        rnf (VEEOr x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (VEEposedge x) = rnf x `seq` ()
+        rnf (VEEnegedge x) = rnf x `seq` ()
+        rnf (VEE x) = rnf x `seq` ()
+        rnf (VEEMacro x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 instance PPrint VEventExpr where
         pPrint d p (VEEOr e1 e2) =
             -- if the second expr doesn't fit on the same line,
@@ -734,6 +813,25 @@ data VExpr
         | VEFctCall VId [VExpr]
         | VEMacro String
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VExpr where
+    rnf (VEConst x) = rnf x `seq` ()
+    rnf (VEReal x) = rnf x `seq` ()
+    rnf (VEWConst x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (VEUnknown x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VEString x) = rnf x `seq` ()
+    rnf (VETriConst x) = rnf x `seq` ()
+    rnf (VEUnOp x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (VEOp x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (VEVar x) = rnf x `seq` ()
+    rnf (VEConcat x) = rnf x `seq` ()
+    rnf (VEIndex x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VESelect x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (VESelect1 x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VERepeat x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VEIf x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (VEFctCall x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (VEMacro x) = rnf x `seq` ()
 
 -- vVar :: String -> VExpr
 -- vVar = VEVar . VId
@@ -812,12 +910,14 @@ createVEWConstString width base value =
 data VTri = V0 | V1 | Vx | Vz
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
 
+instance NFData VTri where
+        rnf x = x `seq` () -- Suffices for enums
+
 instance PPrint VTri where
         pPrint d p V0 = text "0"
         pPrint d p V1 = text "1"
         pPrint d p Vx = text "x"
         pPrint d p Vz = text "z"
-
 
 data VOp
         = VNot                          -- logical not !
@@ -836,6 +936,8 @@ data VOp
         | VLOr
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
 
+instance NFData VOp where
+        rnf x = x `seq` () -- Suffices for enums
 
 instance PPrint VOp where
         pPrint d p op = text (getOpString op)

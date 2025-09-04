@@ -36,8 +36,9 @@ class HasPosition a where
 instance Show Position where
     show p = prPosition p
 
-instance Hyper Position where
-    hyper p y = p `seq` y
+instance NFData Position where
+    -- I know that all fields are strict but I have to double check that FString is not composite.
+    rnf (Position file line column flag) = rnf file `seq` rnf line `seq` rnf column `seq` rnf flag `seq` ()
 
 prPosition :: Position -> String
 prPosition (Position fs l c pred) =
