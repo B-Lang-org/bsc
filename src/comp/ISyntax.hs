@@ -1332,7 +1332,6 @@ instance NFData (IConInfo a) where
     rnf (ICIFace x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
     rnf (ICRuleAssert x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (ICSchedPragmas x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
-    rnf (ICMethod x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
     rnf (ICClock x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (ICReset x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (ICInout x1 x2) = rnf x1 `seq` rnf x2 `seq` ()

@@ -193,7 +193,7 @@ instance NFData CDefn where
     rnf (Cinstance x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (CValue x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (CValueSign x) = rnf x `seq` ()
-    rnf (Cforeign x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
+    rnf (Cforeign x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
     rnf (Cprimitive x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
     rnf (CprimType x) = rnf x `seq` ()
     rnf (CPragma x) = rnf x `seq` ()
