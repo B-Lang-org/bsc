@@ -1,0 +1,269 @@
+package Rules where
+
+import Empty
+import MaybeExtra
+
+doIf :: (Emptyable m) => Bool -> m -> m
+doIf True  a = a
+doIf False _ = empty
+
+doIfValid :: (Emptyable m) => Maybe t -> (t -> m) -> m
+doIfValid (Valid x) f = f x
+doIfValid Invalid   _ = empty
+
+doIfAndValid :: (Emptyable m) => Bool -> Maybe t -> (t -> m) -> m
+doIfAndValid b (Valid x) f = doIf b $ f x
+doIfAndValid _ Invalid   _ = empty
+
+doIfValidAnd :: (Emptyable m) => Maybe t -> (t -> Bool) -> (t -> m) -> m
+doIfValidAnd (Valid x) bf f = doIf (bf x) $ f x
+doIfValidAnd Invalid   _  _ = empty
+
+doIfValid_ :: (Emptyable m) => Maybe t -> m -> m
+doIfValid_ mt a = doIfValid mt (const a)
+
+doIfAndValid_ :: (Emptyable m) => Bool -> Maybe t -> m -> m
+doIfAndValid_ b mt a = doIfAndValid b mt (const a)
+
+doIfValidAnd_ :: (Emptyable m) => Maybe t -> (t -> Bool) -> m -> m
+doIfValidAnd_ mt bf a = doIfValidAnd mt bf (const a)
+
+doIfSValid :: (Emptyable m) => SMaybe t -> (t -> m) -> m
+doIfSValid mt f = doIf mt.valid (f mt.dat)
+
+doIfAndSValid :: (Emptyable m) => Bool -> SMaybe t -> (t -> m) -> m
+doIfAndSValid b mt f = doIf (mt.valid && b) (f mt.dat)
+
+doIfSValidAnd :: (Emptyable m) => SMaybe t -> (t -> Bool) -> (t -> m) -> m
+doIfSValidAnd mt bf f = doIf (mt.valid && bf mt.dat) (f mt.dat)
+
+doIfSValid_ :: (Emptyable m) => SMaybe t -> m -> m
+doIfSValid_ mt a = doIfSValid mt (const a)
+
+doIfAndSValid_ :: (Emptyable m) => Bool -> SMaybe t -> m -> m
+doIfAndSValid_ b mt a = doIfAndSValid b mt (const a)
+
+doIfSValidAnd_ :: (Emptyable m) => SMaybe t -> (t -> Bool) -> m -> m
+doIfSValidAnd_ mt bf a = doIfSValidAnd mt bf (const a)
+
+ruleIf :: String -> Bool -> Action -> Rules
+ruleIf s b a =
+  rules
+    {-# ASSERT no implicit conditions #-}
+    {-# ASSERT fire when enabled #-}
+    s: when b ==> a
+
+ruleIf_NoFWE :: String -> Bool -> Action -> Rules
+ruleIf_NoFWE s b a =
+  rules
+    {-# ASSERT no implicit conditions #-}
+    s: when b ==> a
+
+ruleIf_Implicit :: String -> Bool -> Action -> Rules
+ruleIf_Implicit s b a =
+  rules
+    {-# ASSERT fire when enabled #-}
+    s: when b ==> a
+
+alwaysIf :: (IsModule m c) => String -> Bool -> Action -> m Empty
+alwaysIf s b a = addRules $ ruleIf s b a
+
+alwaysIf_NoFWE :: (IsModule m c) => String -> Bool -> Action -> m Empty
+alwaysIf_NoFWE s b a = addRules $ ruleIf_NoFWE s b a
+
+alwaysIf_Implicit :: (IsModule m c) => String -> Bool -> Action -> m Empty
+alwaysIf_Implicit s b a = addRules $ ruleIf_Implicit s b a
+
+-- The name 'rule' is unavailable, since it is a keyword.
+rule_ :: String -> Action -> Rules
+rule_ s a = ruleIf s True a
+
+rule_NoFWE :: String -> Action -> Rules
+rule_NoFWE s a = ruleIf_NoFWE s True a
+
+rule_Implicit :: String -> Action -> Rules
+rule_Implicit s a = ruleIf_Implicit s True a
+
+always :: (IsModule m c) => String -> Action -> m Empty
+always s a = addRules $ rule_ s a
+
+always_NoFWE :: (IsModule m c) => String -> Action -> m Empty
+always_NoFWE s a = addRules $ rule_NoFWE s a
+
+always_Implicit :: (IsModule m c) => String -> Action -> m Empty
+always_Implicit s a = addRules $ rule_Implicit s a
+-- TODO: Add all the other *_Implicit functions as needed
+
+ruleIfValid :: String -> Maybe t -> (t -> Action) -> Rules
+ruleIfValid s mt f = ruleIf s (isValid mt) (f (validValue mt))
+
+ruleIfValid_NoFWE :: String -> Maybe t -> (t -> Action) -> Rules
+ruleIfValid_NoFWE s mt f = ruleIf_NoFWE s (isValid mt) (f (validValue mt))
+
+ruleIfValid_ :: String -> Maybe t -> Action -> Rules
+ruleIfValid_ s mt a = ruleIfValid s mt (const a)
+
+ruleIfValid_NoFWE_ :: String -> Maybe t -> Action -> Rules
+ruleIfValid_NoFWE_ s mt a = ruleIfValid_NoFWE s mt (const a)
+
+alwaysIfValid :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Action) -> m Empty
+alwaysIfValid s mt f = addRules $ ruleIfValid s mt f
+
+alwaysIfValid_NoFWE :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Action) -> m Empty
+alwaysIfValid_NoFWE s mt f = addRules $ ruleIfValid_NoFWE s mt f
+
+alwaysIfValid_ :: (IsModule m c) =>
+  String -> Maybe t -> Action -> m Empty
+alwaysIfValid_ s mt a = addRules $ ruleIfValid s mt (const a)
+
+alwaysIfValid_NoFWE_ :: (IsModule m c) =>
+  String -> Maybe t -> Action -> m Empty
+alwaysIfValid_NoFWE_ s mt a = addRules $ ruleIfValid_NoFWE_ s mt a
+
+ruleIfAndValid :: String -> Bool -> Maybe t -> (t -> Action) -> Rules
+ruleIfAndValid s b mt f = ruleIf s (isValid mt && b) (f (validValue mt))
+
+ruleIfAndValid_NoFWE :: String -> Bool -> Maybe t -> (t -> Action) -> Rules
+ruleIfAndValid_NoFWE s b mt f = ruleIf_NoFWE s (isValid mt && b)
+                                               (f (validValue mt))
+
+ruleIfValidAnd :: String -> Maybe t -> (t -> Bool) -> (t -> Action) -> Rules
+ruleIfValidAnd s mt bf f = let vv = validValue mt
+                           in ruleIf s (isValid mt && bf vv) (f vv)
+
+ruleIfValidAnd_NoFWE :: String -> Maybe t -> (t -> Bool) -> (t -> Action) ->
+                        Rules
+ruleIfValidAnd_NoFWE s mt bf f = let vv = validValue mt
+                                 in ruleIf_NoFWE s (isValid mt && bf vv) (f vv)
+
+ruleIfAndValid_ :: String -> Bool -> Maybe t -> Action -> Rules
+ruleIfAndValid_ s b mt a = ruleIfAndValid s b mt (const a)
+
+ruleIfAndValid_NoFWE_ :: String -> Bool -> Maybe t -> Action -> Rules
+ruleIfAndValid_NoFWE_ s b mt a = ruleIfAndValid_NoFWE s b mt (const a)
+
+ruleIfValidAnd_ :: String -> Maybe t -> (t -> Bool) -> Action -> Rules
+ruleIfValidAnd_ s mt bf a = ruleIfValidAnd s mt bf (const a)
+
+ruleIfValidAnd_NoFWE_ :: String -> Maybe t -> (t -> Bool) -> Action -> Rules
+ruleIfValidAnd_NoFWE_ s mt bf a = ruleIfValidAnd_NoFWE s mt bf (const a)
+
+alwaysIfAndValid :: (IsModule m c) =>
+  String -> Bool -> Maybe t -> (t -> Action) -> m Empty
+alwaysIfAndValid s b mt f = addRules $ ruleIfAndValid s b mt f
+
+alwaysIfAndValid_NoFWE :: (IsModule m c) =>
+  String -> Bool -> Maybe t -> (t -> Action) -> m Empty
+alwaysIfAndValid_NoFWE s b mt f = addRules $ ruleIfAndValid_NoFWE s b mt f
+
+alwaysIfValidAnd :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Bool) -> (t -> Action) -> m Empty
+alwaysIfValidAnd s mt bf f = addRules $ ruleIfValidAnd s mt bf f
+
+alwaysIfValidAnd_NoFWE :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Bool) -> (t -> Action) -> m Empty
+alwaysIfValidAnd_NoFWE s mt bf f = addRules $ ruleIfValidAnd_NoFWE s mt bf f
+
+alwaysIfAndValid_ :: (IsModule m c) =>
+  String -> Bool -> Maybe t -> Action -> m Empty
+alwaysIfAndValid_ s b mt a = addRules $ ruleIfAndValid_ s b mt a
+
+alwaysIfAndValid_NoFWE_ :: (IsModule m c) =>
+  String -> Bool -> Maybe t -> Action -> m Empty
+alwaysIfAndValid_NoFWE_ s b mt a = addRules $ ruleIfAndValid_NoFWE_ s b mt a
+
+alwaysIfValidAnd_ :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Bool) -> Action -> m Empty
+alwaysIfValidAnd_ s mt bf a = addRules $ ruleIfValidAnd_ s mt bf a
+
+alwaysIfValidAnd_NoFWE_ :: (IsModule m c) =>
+  String -> Maybe t -> (t -> Bool) -> Action -> m Empty
+alwaysIfValidAnd_NoFWE_ s mt bf a = addRules $ ruleIfValidAnd_NoFWE_ s mt bf a
+
+ruleIfSValid :: String -> SMaybe t -> (t -> Action) -> Rules
+ruleIfSValid s mt f = ruleIf s mt.valid (f mt.dat)
+
+ruleIfSValid_NoFWE :: String -> SMaybe t -> (t -> Action) -> Rules
+ruleIfSValid_NoFWE s mt f = ruleIf_NoFWE s mt.valid (f mt.dat)
+
+ruleIfSValid_ :: String -> SMaybe t -> Action -> Rules
+ruleIfSValid_ s mt a = ruleIfSValid s mt (const a)
+
+ruleIfSValid_NoFWE_ :: String -> SMaybe t -> Action -> Rules
+ruleIfSValid_NoFWE_ s mt a = ruleIfSValid_NoFWE s mt (const a)
+
+alwaysIfSValid :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Action) -> m Empty
+alwaysIfSValid s mt f = addRules $ ruleIfSValid s mt f
+
+alwaysIfSValid_NoFWE :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Action) -> m Empty
+alwaysIfSValid_NoFWE s mt f = addRules $ ruleIfSValid_NoFWE s mt f
+
+alwaysIfSValid_ :: (IsModule m c) =>
+  String -> SMaybe t -> Action -> m Empty
+alwaysIfSValid_ s mt a = addRules $ ruleIfSValid_ s mt a
+
+alwaysIfSValid_NoFWE_ :: (IsModule m c) =>
+  String -> SMaybe t -> Action -> m Empty
+alwaysIfSValid_NoFWE_ s mt a = addRules $ ruleIfSValid_NoFWE_ s mt a
+
+ruleIfAndSValid :: String -> Bool -> SMaybe t -> (t -> Action) -> Rules
+ruleIfAndSValid s b mt f = ruleIf s (mt.valid && b) (f mt.dat)
+
+ruleIfAndSValid_NoFWE :: String -> Bool -> SMaybe t -> (t -> Action) -> Rules
+ruleIfAndSValid_NoFWE s b mt f = ruleIf_NoFWE s (mt.valid && b) (f mt.dat)
+
+ruleIfSValidAnd :: String -> SMaybe t -> (t -> Bool) -> (t -> Action) -> Rules
+ruleIfSValidAnd s mt bf f = ruleIf s (mt.valid && bf mt.dat) (f mt.dat)
+
+ruleIfSValidAnd_NoFWE :: String -> SMaybe t -> (t -> Bool) -> (t -> Action) ->
+                         Rules
+ruleIfSValidAnd_NoFWE s mt bf f = ruleIf_NoFWE s (mt.valid && bf mt.dat)
+                                                 (f mt.dat)
+
+ruleIfAndSValid_ :: String -> Bool -> SMaybe t -> Action -> Rules
+ruleIfAndSValid_ s b mt a = ruleIfAndSValid s b mt (const a)
+
+ruleIfAndSValid_NoFWE_ :: String -> Bool -> SMaybe t -> Action -> Rules
+ruleIfAndSValid_NoFWE_ s b mt a = ruleIfAndSValid_NoFWE s b mt (const a)
+
+ruleIfSValidAnd_ :: String -> SMaybe t -> (t -> Bool) -> Action -> Rules
+ruleIfSValidAnd_ s mt bf a = ruleIfSValidAnd s mt bf (const a)
+
+ruleIfSValidAnd_NoFWE_ :: String -> SMaybe t -> (t -> Bool) -> Action -> Rules
+ruleIfSValidAnd_NoFWE_ s mt bf a = ruleIfSValidAnd_NoFWE s mt bf (const a)
+
+alwaysIfAndSValid :: (IsModule m c) =>
+  String -> Bool -> SMaybe t -> (t -> Action) -> m Empty
+alwaysIfAndSValid s b mt f = addRules $ ruleIfAndSValid s b mt f
+
+alwaysIfAndSValid_NoFWE :: (IsModule m c) =>
+  String -> Bool -> SMaybe t -> (t -> Action) -> m Empty
+alwaysIfAndSValid_NoFWE s b mt f = addRules $ ruleIfAndSValid_NoFWE s b mt f
+
+alwaysIfSValidAnd :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Bool) -> (t -> Action) -> m Empty
+alwaysIfSValidAnd s mt bf f = addRules $ ruleIfSValidAnd s mt bf f
+
+alwaysIfSValidAnd_NoFWE :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Bool) -> (t -> Action) -> m Empty
+alwaysIfSValidAnd_NoFWE s mt bf f = addRules $ ruleIfSValidAnd_NoFWE s mt bf f
+
+alwaysIfAndSValid_ :: (IsModule m c) =>
+  String -> Bool -> SMaybe t -> Action -> m Empty
+alwaysIfAndSValid_ s b mt a = addRules $ ruleIfAndSValid_ s b mt a
+
+alwaysIfAndSValid_NoFWE_ :: (IsModule m c) =>
+  String -> Bool -> SMaybe t -> Action -> m Empty
+alwaysIfAndSValid_NoFWE_ s b mt a = addRules $ ruleIfAndSValid_NoFWE_ s b mt a
+
+alwaysIfSValidAnd_ :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Bool) -> Action -> m Empty
+alwaysIfSValidAnd_ s mt bf a = addRules $ ruleIfSValidAnd_ s mt bf a
+
+alwaysIfSValidAnd_NoFWE_ :: (IsModule m c) =>
+  String -> SMaybe t -> (t -> Bool) -> Action -> m Empty
+alwaysIfSValidAnd_NoFWE_ s mt bf a = addRules $ ruleIfSValidAnd_NoFWE_ s mt bf a

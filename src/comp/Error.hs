@@ -58,6 +58,7 @@ import ErrorUtil(internalError)
 import Data.List(sortBy, intercalate, nub, delete, partition)
 import Data.Char(toUpper)
 
+import Control.DeepSeq (NFData (..))
 import Util(quote, unwordsOr, unwordsAnd, itos, doubleQuote, fst3, fth4)
 import IntegerUtil(integerFormat)
 import Position
@@ -1192,6 +1193,10 @@ data ErrMsg =
         | EConMismatchNumArgs  String{-String-}      Integer Integer
         | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
         deriving (Eq,Show)
+
+-- TODO: This is massive. Implement properly.
+instance NFData ErrMsg where
+    rnf x = x `seq` ()
 
 instance PPrint ErrMsg where
     pPrint _ _ e = text (show e)

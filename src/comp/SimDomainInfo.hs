@@ -8,7 +8,7 @@ import ErrorUtil(internalError)
 import PPrint
 
 import qualified Data.Map as M
-
+import Control.DeepSeq (NFData (..))
 
 -- ---------------
 
@@ -68,6 +68,10 @@ data DomainInfo = DomainInfo
       di_clock_substs :: ClockSubst
     }
   deriving (Eq, Show)
+
+instance NFData DomainInfo where
+    rnf (DomainInfo x1 x2 x3 x4 x5 x6 x7 x8) =
+       rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
 
 instance PPrint DomainInfo where
     pPrint d _ di =

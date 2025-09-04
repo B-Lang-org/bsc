@@ -1,0 +1,189 @@
+package MaybeExtra where
+
+import Vector
+
+import VerilogRepr
+
+valid :: a -> Maybe a
+valid x = Valid x
+
+invalid :: Maybe a
+invalid = Invalid
+
+toMaybe :: Bool -> a -> Maybe a
+toMaybe True x = Valid x
+toMaybe False _ = Invalid
+
+leftToMaybe :: Either a b -> Maybe a
+leftToMaybe (Left x)  = Valid x
+leftToMaybe (Right _) = Invalid
+
+rightToMaybe :: Either a b -> Maybe b
+rightToMaybe (Left _)  = Invalid
+rightToMaybe (Right x) = Valid x
+
+-- A type like Maybe, but the valid bit and the contained value are explicit.
+-- Useful for a situation like the output register of a memory which stores the
+-- most-recently read value, and should not update on cycles when a read is not
+-- occurring.
+interface SMaybe t =
+  valid :: Bool
+  dat   :: t
+ deriving (Bits, DefaultValue)
+
+instance (Eq t) => Eq (SMaybe t) where
+  (==) a b = (a.valid == b.valid) && ((not a.valid) || (a.dat == b.dat))
+
+instance (TypeId a) => TypeId (SMaybe a) where
+  bsType _ = "SMaybe " +++ bsTypeP (prx :: a)
+  verilogTypeId _ = "option_" +++ verilogTypeId (prx :: a)
+
+instance (VerilogRepr a, Bits a n, TypeId a) => VerilogRepr (SMaybe a) where
+  -- We are pretending this is just a Maybe for Verilog translation purposes,
+  -- thus we need to set the package name to "Prelude" to avoid reporting a
+  -- name conflict.
+  verilogType = mkStructType "Prelude" "value"
+  verilogFields _ base = liftM2 List.append
+    (mkField (prx :: Bool) ("has_" +++ base))
+    (mkField (prx :: a) base)
+
+instance Monad SMaybe where
+  return x = SMaybe {valid = True; dat = x}
+  bind x f = if x.valid then f x.dat else sInvalid_
+
+sMaybeValid :: (SMaybe t) -> Bool
+sMaybeValid a = a.valid
+
+sMaybeData :: (SMaybe t) -> t
+sMaybeData a = a.dat
+
+-- An SMaybe where the valid bit arrives d cycles before the data. To safely
+-- access the data fields, first convert to a normal SMaybe using mkAlignDSMaybe
+-- from the RegExtra package (which will create a d-long 1-bit register chain to
+-- delay the valid bit). To directly (and unsafely) access the early valid bit
+-- and data, use dSMaybeValid and dSMaybeData respectively. These do not incur
+-- any hardware costs. NOTE: It is deliberate that these types cannot be used
+-- with mkSMaybeReg. It would not have the expected behavior. The valid and
+-- data fields must always be flopped, even when valid is low.
+data (DSMaybe :: # -> * -> *) d t = DSMaybe (SMaybe t)
+  deriving (Bits, Eq, DefaultValue)
+
+dSMaybeValid :: (DSMaybe d t) -> Bool
+dSMaybeValid (DSMaybe sm) = sm.valid
+
+dSMaybeData :: (DSMaybe d t) -> t
+dSMaybeData (DSMaybe sm) = sm.dat
+
+sValid :: a -> SMaybe a
+sValid x = SMaybe {valid = True; dat = x}
+
+sInvalid :: a -> SMaybe a
+sInvalid x = SMaybe {valid = False; dat = x}
+
+sInvalid_ :: SMaybe a
+sInvalid_ = sInvalid _
+
+sInvalidDefault :: (DefaultValue a) => SMaybe a
+sInvalidDefault = sInvalid defaultValue
+
+invalidateUnless :: Bool -> SMaybe a -> SMaybe a
+invalidateUnless b a = a{valid = b && a.valid}  -- dat is unchanged
+
+invalidateIf :: Bool -> SMaybe a -> SMaybe a
+invalidateIf b a = invalidateUnless (not b) a
+
+-- An sMaybe mux that selects a if it is valid, and b otherwise.
+sMerge :: SMaybe a -> SMaybe a -> SMaybe a
+sMerge a b = SMaybe {
+  valid = a.valid || b.valid;
+  dat = if a.valid then a.dat else b.dat;
+  }
+
+toSMaybe :: Bool -> a -> SMaybe a
+toSMaybe b a = SMaybe {valid = b; dat = a}
+
+leftToSMaybe :: Either a b -> SMaybe a
+leftToSMaybe (Left x) = sValid x
+leftToSMaybe (Right _) = sInvalid_
+
+rightToSMaybe :: Either a b -> SMaybe b
+rightToSMaybe (Left _) = sInvalid_
+rightToSMaybe (Right x) = sValid x
+
+maybeToSMaybe :: Maybe a -> SMaybe a
+maybeToSMaybe Invalid = sInvalid_
+maybeToSMaybe (Valid a) = sValid a
+
+sMaybeToMaybe :: SMaybe t -> Maybe t
+sMaybeToMaybe a = toMaybe a.valid a.dat
+
+sMaybeInvalidToZero :: (Bits a a_sz) => SMaybe a -> SMaybe a
+sMaybeInvalidToZero a = SMaybe {
+  valid = a.valid;
+  dat = if a.valid then a.dat else unpack 0
+}
+
+zeroUnless :: (Bits a a_sz) => Bool -> a -> a
+zeroUnless v x = (sMaybeInvalidToZero $ toSMaybe v x).dat
+
+sMaybeDataOrZero :: (Bits t t_sz) => (SMaybe t) -> t
+sMaybeDataOrZero a = (sMaybeInvalidToZero a).dat
+
+-- These "And" versions explicitly create a_sz AND gates, which can sometimes
+-- be nicer than a mux. However for large a_sz (~5120 bits) this implementation
+-- explodes the bsc compiler. So, only use for small a_sz.
+sMaybeInvalidToZeroAnd :: (Bits a a_sz) => SMaybe a -> SMaybe a
+sMaybeInvalidToZeroAnd a = SMaybe {
+  valid = a.valid;
+  dat = unpack $ pack a.dat & (pack $ replicate a.valid)
+}
+
+zeroUnlessAnd :: (Bits a a_sz) => Bool -> a -> a
+zeroUnlessAnd v x = (sMaybeInvalidToZeroAnd $ toSMaybe v x).dat
+
+sMaybeDataOrZeroAnd :: (Bits a a_sz) => (SMaybe a) -> a
+sMaybeDataOrZeroAnd a = (sMaybeInvalidToZeroAnd a).dat
+
+-- It is up to the user to make ensure the dat field behaves sensibly.
+instance (Bitwise t) => Bitwise (SMaybe t) where
+  -- & and | binary operators work on both valid and dat fields.
+  (|)    x y = SMaybe {valid = x.valid || y.valid; dat = x.dat | y.dat}
+  (&)    x y = SMaybe {valid = x.valid && y.valid; dat = x.dat & y.dat}
+  (^)    _ _ = error "^ is not defined for SMaybe"
+  -- These would validate invalid data in a potentially unsafe way.
+  (^~)   _ _ = error "^~ is not defined for SMaybe"
+  (~^)   _ _ = error "~^ is not defined for SMaybe"
+  -- Unary operators just apply to the dat field. (Do we need/want these?)
+  invert x   = SMaybe {valid = x.valid; dat = invert x.dat}
+  (<<)   x y = SMaybe {valid = x.valid; dat = x.dat << y}
+  (>>)   x y = SMaybe {valid = x.valid; dat = x.dat >> y}
+  -- Not immediately obvious what the correct behavior is for these.
+  msb    _   = error "msb is not defined for SMaybe"
+  lsb    _   = error "lsb is not defined for SMaybe"
+
+smMap2 :: (a -> b -> c) -> SMaybe a -> SMaybe b -> SMaybe c
+smMap2 f a b = SMaybe {valid = a.valid && b.valid; dat = f a.dat b.dat}
+
+smFor :: SMaybe a -> (a -> b) -> SMaybe b
+smFor a f = fmap f a
+
+smFor2 :: SMaybe a -> SMaybe b -> (a -> b -> c) -> SMaybe c
+smFor2 a b f = smMap2 f a b
+
+pullMaybe :: Vector n (Maybe a) -> Maybe (Vector n a)
+pullMaybe v = toMaybe (and $ map isValid v) $ map validValue v
+
+pullMaybeFst :: Vector n (Maybe a) -> Maybe (Vector n a)
+pullMaybeFst v = toMaybe (isValid (v !! 0)) $ map validValue v
+
+pushMaybe :: Maybe (Vector n a) -> Vector n (Maybe a)
+pushMaybe a = map (toMaybe $ isValid a) $ validValue a
+
+pullSMaybe :: Vector n (SMaybe a) -> SMaybe (Vector n a)
+pullSMaybe v = toSMaybe (and $ map (.valid) v) $ map (.dat) v
+
+pullSMaybeFst :: Vector n (SMaybe a) -> SMaybe (Vector n a)
+pullSMaybeFst v = toSMaybe ((v !! 0).valid) $ map (.dat) v
+
+pushSMaybe :: SMaybe (Vector n a) -> Vector n (SMaybe a)
+pushSMaybe a = map (toSMaybe $ a.valid) $ a.dat

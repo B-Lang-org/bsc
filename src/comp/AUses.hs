@@ -115,12 +115,15 @@ rulePred (Rule _ _ rPred _ _) = rPred
 
 -- METHOD IDs: identifies the object and the method --
 data MethodId = MethodId AId AMethodId deriving (Eq,Ord,Show) -- object.method
+
 instance PPrint MethodId where
     pPrint d p mid = pPrint d p (methodIdToId mid)
+
 instance PVPrint MethodId where
     pvPrint d p mid = pvPrint d p (methodIdToId mid)
-instance Hyper MethodId where
-     hyper (MethodId a m) y = hyper2 a m y
+
+instance NFData MethodId where
+     rnf (MethodId a m) = rnf a `seq` rnf m `seq` ()
 
 methodIdToId :: MethodId -> Id
 methodIdToId (MethodId id mid) = mkStId id mid
@@ -152,9 +155,9 @@ instance PPrintExpand UniqueUse where
     pPrintExpand ds d i (UUAction a) = pPrintExpand ds d i a
     pPrintExpand ds d i (UUExpr a _)   = pPrintExpand ds d i a
 
-instance Hyper UniqueUse where
-    hyper (UUAction a) y = hyper a y
-    hyper (UUExpr e c) y = hyper2 e c y
+instance NFData UniqueUse where
+    rnf (UUAction a) = rnf a `seq` ()
+    rnf (UUExpr e c) = rnf e `seq` rnf c `seq` ()
 
 -- XXX why does this return True for actions?
 -- XXX consider merging this and "hasSideEffects"
@@ -382,6 +385,9 @@ minusUses (mus1, fus1) (mus2, fus2) = (mus', fus')
 -- the action read and write uses, but we will filter out the read uses
 data RuleUses = RuleUses ExprUses ExprUses ActionUses
 
+instance NFData RuleUses where
+    rnf (RuleUses x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+
 instance PPrint RuleUses where
     pPrint d i (RuleUses pus rus wus) =
        let pmus = toListMethodExprUses $ getMethodExprUses pus
@@ -598,8 +604,8 @@ data UseCond = UseCond { true_exprs :: S.Set AExpr,
                        }
   deriving (Show, Eq, Ord)
 
-instance Hyper UseCond where
-  hyper (UseCond a b c d) y = hyper4 a b c d y
+instance NFData UseCond where
+  rnf (UseCond a b c d) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` ()
 
 ucTrue, ucFalse :: UseCond
 ucTrue  = UseCond S.empty S.empty M.empty M.empty

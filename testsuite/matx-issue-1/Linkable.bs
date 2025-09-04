@@ -1,0 +1,71 @@
+package Linkable where
+
+import ListN
+import Vector
+
+import MaybeExtra
+import Rules
+
+-- A Class like Connectable but using Actions instead of Modules.
+-- This allows multiple "links" to be created in a single rule.
+-- Just by convention: for unidirectional links, the first argument should be
+-- source and the second should be sink. For bidirectional links, choose one
+-- uniformly based on the context.
+
+class Linkable a b where
+    mkLink :: a -> b -> Action
+
+-- Like the <-> operator for Connectable, but thicker.
+(<=>) :: (Linkable a b) => a -> b -> Action
+(<=>) a b = mkLink a b
+
+-- Linkable tuples
+instance (Linkable a b, Linkable c d) => Linkable (a, c) (b, d) where
+  mkLink (a, b) (c, d) = do
+    mkLink a c
+    mkLink b d
+
+-- Linkable Vectors
+instance (Linkable a b) => Linkable (Vector n a) (Vector n b) where
+  mkLink xs ys = Vector.zipWithM_ mkLink xs ys
+
+-- Missing instance for ListN.zipWithM_
+-- TODO: Make a ListNExtra package.
+listNzipWithM_ :: (Monad m) => (a -> b -> m c) -> ListN n a -> ListN n b -> m ()
+listNzipWithM_ fn a b = do
+  _ <- ListN.zipWithM fn a b
+  return ()
+
+-- Linkable ListNs
+instance (Linkable a b) => Linkable (ListN n a) (ListN n b) where
+  mkLink xs ys = listNzipWithM_ mkLink xs ys
+
+-- Value to Action function
+instance Linkable a (a -> Action) where
+  mkLink x p = p x
+
+-- ActionValue to Action function
+instance Linkable (ActionValue a) (a -> Action) where
+  mkLink av f = do
+    x <- av
+    mkLink x f
+
+-- Bool to Action
+instance Linkable Bool Action where
+  mkLink = doIf
+
+-- Maybe to Action function
+instance Linkable (Maybe x) (x -> Action) where
+  mkLink = doIfValid
+
+-- SMaybe to Action function
+instance Linkable (SMaybe x) (x -> Action) where
+  mkLink = doIfSValid
+
+-- Empty is a sink
+instance Linkable x Empty where
+  mkLink _ _ = noAction
+
+-- Allow linking to the write port of a register.
+instance (Linkable v (t -> Action)) => Linkable v (Reg t) where
+  mkLink x r = mkLink x (r._write)

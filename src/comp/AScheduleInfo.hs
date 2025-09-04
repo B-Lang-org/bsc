@@ -74,6 +74,9 @@ data AScheduleInfo = AScheduleInfo
       asi_v_sched_info         :: VSchedInfo
     } deriving (Show)
 
+instance NFData AScheduleInfo where
+    rnf (AScheduleInfo x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` ()
 
 instance PPrint AScheduleInfo where
     pPrint d p asi =
@@ -174,6 +177,9 @@ instance PPrint AScheduleErrInfo where
 newtype ExclusiveRulesDB =
     ExclusiveRulesDB (M.Map ARuleId (S.Set ARuleId, S.Set ARuleId))
 
+instance NFData ExclusiveRulesDB where
+    rnf (ExclusiveRulesDB x) = rnf x `seq` ()
+
 -- Are the WILL_FIRE signals of the rules exclusive?
 -- (Used in Verilog backend for determining if a priority mux is needed.)
 -- Note: we check both the disjoint set and the exclusive set, since we
@@ -210,6 +216,10 @@ instance Show ExclusiveRulesDB where
 
 data SchedNode = Sched AId | Exec AId
   deriving (Eq, Show)
+
+instance NFData SchedNode where
+  rnf (Sched i) = rnf i `seq` ()
+  rnf (Exec i) = rnf i `seq` ()
 
 -- comparing by name instead of the default ORD instance for Id
 -- makes the schedule order from the flattened graph stable.
@@ -255,6 +265,9 @@ data RuleRelationDB =
     RuleRelationDB (S.Set (ARuleId,ARuleId))                  -- disjointness
                    (M.Map (ARuleId,ARuleId) RuleRelationInfo) -- conflicts
 
+instance NFData RuleRelationDB where
+    rnf (RuleRelationDB x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+
 data RuleRelationInfo = RuleRelationInfo { mCF :: Maybe Conflicts
                                          , mSC :: Maybe Conflicts
                                          , mRes :: Maybe Conflicts
@@ -263,6 +276,9 @@ data RuleRelationInfo = RuleRelationInfo { mCF :: Maybe Conflicts
                                          , mArb :: Maybe Conflicts
                                          -- XXX path and urgency info?
                                          } deriving (Eq,Show)
+
+instance NFData RuleRelationInfo where
+    rnf (RuleRelationInfo x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
 
 defaultRuleRelationship :: RuleRelationInfo
 defaultRuleRelationship = RuleRelationInfo { mCF     = Nothing
@@ -346,16 +362,16 @@ instance PPrint Conflicts where
 instance PVPrint Conflicts where
     pvPrint d p = printConflicts True d
 
-instance Hyper Conflicts where
-    hyper (CUse uses) y = hyper uses y
-    hyper (CCycle cycle_rules) y = hyper cycle_rules y
-    hyper (CMethodsBeforeRules) y = y
-    hyper (CUserEarliness pos) y = hyper pos y
-    hyper (CUserAttribute pos) y = hyper pos y
-    hyper (CUserPreempt pos) y = hyper pos y
-    hyper (CResource m) y = hyper m y
-    hyper (CArbitraryChoice) y = y
-    hyper (CFFuncArbitraryChoice) y = y
+instance NFData Conflicts where
+    rnf (CUse uses) = rnf uses `seq` ()
+    rnf (CCycle cycle_rules) = rnf cycle_rules `seq` ()
+    rnf CMethodsBeforeRules = ()
+    rnf (CUserEarliness pos) = rnf pos `seq` ()
+    rnf (CUserAttribute pos) = rnf pos `seq` ()
+    rnf (CUserPreempt pos) = rnf pos `seq` ()
+    rnf (CResource m) = rnf m `seq` ()
+    rnf CArbitraryChoice = ()
+    rnf CFFuncArbitraryChoice = ()
 
 -- -----
 

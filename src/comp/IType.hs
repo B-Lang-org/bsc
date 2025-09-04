@@ -20,7 +20,7 @@ import PreIds(idArrow)
 import CType(Type(..), CType, TyCon(..), Kind(..),
              TISort, cTApplys, cTVar, cTCon, cTNum, cTStr)
 import StdPrel(tiArrow)
-import Eval(Hyper(..),hyper3, hyper2, hyper)
+import Eval
 import PPrint
 import PFPrint
 import Position(noPosition)
@@ -48,23 +48,25 @@ data IType
         deriving (Show, Generic.Data, Generic.Typeable)
 
 -- --------------------------------
--- Hyper Instances
-instance Hyper IType where
-    hyper (ITForAll i k t) y = hyper3 i k t y
-    hyper (ITAp a b) y = hyper2 a b y
-    hyper (ITVar i) y = hyper i y
-    hyper (ITCon i k s) y = hyper3 i k s y
-    hyper (ITNum i) y = hyper i y
-    hyper (ITStr s) y = hyper s y
+-- NFData Instances
 
-instance Hyper IKind where
-    hyper IKStar y = y
-    hyper IKNum y = y
-    hyper IKStr y = y
-    hyper (IKFun a b) y = hyper2 a b y
+instance NFData IType where
+    rnf (ITForAll i k t) = rnf i `seq` rnf k `seq` rnf t `seq` ()
+    rnf (ITAp a b) = rnf a `seq` rnf b `seq` ()
+    rnf (ITVar i) = rnf i `seq` ()
+    rnf (ITCon i k s) = rnf i `seq` rnf k `seq` rnf s `seq` ()
+    rnf (ITNum i) = rnf i `seq` ()
+    rnf (ITStr s) = rnf s `seq` ()
+
+instance NFData IKind where
+    rnf IKStar = ()
+    rnf IKNum = ()
+    rnf IKStr = ()
+    rnf (IKFun a b) = rnf a `seq` rnf b `seq` ()
 
 -- --------------------------------
 -- Eq Instances
+
 instance Eq IType where
     x == y  =  cmpT x y == EQ
     x /= y  =  cmpT x y /= EQ

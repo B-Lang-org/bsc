@@ -1,0 +1,484 @@
+package RegExtra where
+
+import DReg
+import Vector
+
+import MaybeExtra
+import PreludeExtra
+import Rules
+
+-- Utility function for making "Reg-like things".
+regIfc :: a -> (a -> Action) -> Reg a
+regIfc rdVal wrFn = interface Reg
+                      _read  = rdVal
+                      _write = wrFn
+
+woIfc :: (a -> Action) -> WriteOnly a
+woIfc wrFn = interface WriteOnly
+               _write = wrFn
+
+constReg :: a -> Reg a
+constReg x = regIfc x $ const noAction
+
+mkConstReg :: (IsModule m c) => a -> m (Reg a)
+mkConstReg = return ∘ constReg
+
+withConstRegs :: Vector nc a -> Vector nr (Reg a) -> Vector (TAdd nc nr) (Reg a)
+withConstRegs c r = append (map constReg c) r
+
+-- OverrideReg is a register that can be written to in two different ways. The
+-- regular write is in the Reg interface (reg), and the override write is on a
+-- WriteOnly interface (ovr). The override write will set the register
+-- contents, and ignore any reg writes occurring in the same cycle.
+interface OverrideReg a =
+  reg :: Reg a
+  ovr :: WriteOnly a
+
+mkOverrideReg :: (IsModule m c, Bits a a_sz) => m (Reg a) -> m (OverrideReg a)
+mkOverrideReg mk = module
+  _r  :: Reg a   <- mk
+  ovr :: RWire a <- mkRWire
+  wr  :: RWire a <- mkRWire
+
+  -- Overwrite takes precedence over a regular write.
+  always "Override or write" $ case (ovr.wget, wr.wget) of
+    (Valid x, _)       -> _r := x
+    (Invalid, Valid x) -> _r := x
+    _                  -> noAction
+
+  interface OverrideReg
+    reg = regIfc _r wr.wset
+    ovr = woIfc ovr.wset
+
+mkAutoWriteReg :: (IsModule m c, Bits a a_sz) => m (Reg a) -> a -> m a
+mkAutoWriteReg mkR x = module
+  _r :: Reg a <- mkR
+  always "Auto write reg" $ do
+    _r := x
+  return _r
+
+mkBypass :: (IsModule m c, Bits a a_sz) => a -> m a
+mkBypass = mkAutoWriteReg mkBypassWire
+
+mkRegDefault :: (IsModule m c, Bits a a_sz, DefaultValue a) => m (Reg a)
+mkRegDefault = mkRegA defaultValue
+
+mkDRegDefault :: (IsModule m c, Bits a a_sz, DefaultValue a) => m (Reg a)
+mkDRegDefault = mkDRegA defaultValue
+
+type PulseReg = PulseWire
+
+mkPulseReg :: (IsModule m c) => Bool -> m PulseReg
+mkPulseReg i = module
+  p :: PulseWire <- mkPulseWire
+  _r :: Bool <- mkAutoWriteReg (mkRegA i) p
+  interface PulseWire
+    _read = _r
+    send = p.send
+
+readVPulseReg :: Vector n PulseReg -> Vector n Bool
+readVPulseReg = map (._read)
+
+readVPulseWire :: Vector n PulseWire -> Vector n Bool
+readVPulseWire = map (._read)
+
+mkMkMaybeReg :: (IsModule m c) =>
+  (m (Reg Bool)) -> (m (Reg a)) -> m (Reg (Maybe a))
+mkMkMaybeReg mkV mkD = module
+  valid :: Reg Bool <- mkV
+  dat   :: Reg a    <- mkD
+
+  interface Reg
+    _read = toMaybe valid dat
+    _write (Valid x) = do
+      valid := True
+      dat   := x
+    _write Invalid = do
+      valid := False
+
+mkMaybeReg :: (IsModule m c, Bits a a_sz) => Maybe a -> m (Reg (Maybe a))
+mkMaybeReg Invalid   = mkMkMaybeReg (mkRegA False) (mkRegU)
+mkMaybeReg (Valid x) = mkMkMaybeReg (mkRegA True)  (mkRegA x)
+
+mkMaybeDReg :: (IsModule m c, Bits a a_sz) => Maybe a -> m (Reg (Maybe a))
+mkMaybeDReg Invalid   = mkMkMaybeReg (mkDRegA False) (mkRegU)
+mkMaybeDReg (Valid x) = mkMkMaybeReg (mkDRegA True)  (mkDRegA x)
+
+mkMaybeRegI :: (IsModule m c, Bits a a_sz) => m (Reg (Maybe a))
+mkMaybeRegI = mkMaybeReg Invalid
+
+mkMaybeDRegI :: (IsModule m c, Bits a a_sz) => m (Reg (Maybe a))
+mkMaybeDRegI = mkMaybeDReg Invalid
+
+-- Used for the non-first stage of a pipeline. Does not do a conditional write
+-- to the payload. It relies on the the 1st stage to minimize toggling, and
+-- simply copies unconditionally.
+mkDumbMaybeRegI :: (IsModule m c, Bits a a_sz) => m (Reg (Maybe a))
+mkDumbMaybeRegI = module
+  valid :: Reg Bool <- mkRegA False
+  dat   :: Reg a    <- mkRegU
+  interface Reg
+    _read = toMaybe valid dat
+    _write x = do
+      valid := isValid x
+      dat   := validValue x
+
+-- The .dat field of the registers made with these functions will always contain
+-- the most recently written valid value, even if an invalid value has been
+-- written since then. This could *probably* be done with a regular Maybe, but
+-- it relies on undefined behavior.
+mkMkSMaybeReg :: (IsModule m c) =>
+  (m (Reg Bool)) -> (m (Reg a)) -> m (Reg (SMaybe a))
+mkMkSMaybeReg mkV mkD = module
+  valid :: Reg Bool <- mkV
+  dat   :: Reg a    <- mkD
+
+  interface Reg
+    _read = toSMaybe valid dat
+    _write x = do
+      valid := x.valid
+      doIf x.valid $ dat := x.dat  -- Do not assign invalid values.
+
+mkSMaybeReg :: (IsModule m c, Bits a a_sz) => SMaybe a -> m (Reg (SMaybe a))
+mkSMaybeReg a = mkMkSMaybeReg (mkRegA a.valid) (mkRegA a.dat)
+
+mkSMaybeRegI :: (IsModule m c, Bits a a_sz) => a -> m (Reg (SMaybe a))
+mkSMaybeRegI = mkSMaybeReg ∘ sInvalid
+
+mkSMaybeRegI_ :: (IsModule m c, Bits a a_sz) => m (Reg (SMaybe a))
+mkSMaybeRegI_ = mkMkSMaybeReg (mkRegA False) mkRegU
+
+mkSMaybeRegIDefault :: (IsModule m c, DefaultValue a, Bits a a_sz) =>
+  m (Reg (SMaybe a))
+mkSMaybeRegIDefault = mkSMaybeReg sInvalidDefault
+
+-- Used for the non-first stage of a pipeline. Does not do a conditional write
+-- to the payload. It relies on the the 1st stage to minimize toggling, and
+-- simply copies unconditionally.
+mkDumbSMaybeRegI_ :: (IsModule m c, Bits a a_sz) => m (Reg (SMaybe a))
+mkDumbSMaybeRegI_ = module
+  valid :: Reg Bool <- mkRegA False
+  dat   :: Reg a    <- mkRegU
+  interface Reg
+    _read = toSMaybe valid dat
+    _write x = do
+      valid := x.valid
+      dat   := x.dat
+
+-- This one is a bit subtle. If the .valid field of the argument is True, then
+-- it behaves in a pretty expected way. But if it is False, then the .dat field
+-- is only used to initialize the register on reset, since writing an invalid
+-- value does not update .dat, even if it is the default value.
+mkMkSMaybeDReg :: (IsModule m c, Bits a a_sz) =>
+  (m (Reg Bool)) -> (m (Reg a)) -> SMaybe a -> m (Reg (SMaybe a))
+mkMkSMaybeDReg mkV mkD a = module
+  -- Note: It is on the caller to ensure that mkV and mkD match the value of a.
+  -- (Unless they want a register whose reset value does not match the default
+  -- value that it reverts to when not written)
+  valid :: Reg Bool <- mkV
+  dat   :: Reg a    <- mkD
+
+  wrVal :: Wire (SMaybe a) <- mkDWire a
+
+  always "Write Default" do
+    valid := wrVal.valid
+    doIf wrVal.valid do
+      dat := wrVal.dat  -- Do not assign invalid values.
+
+  interface Reg
+    _read  = SMaybe {valid = valid; dat = dat}
+    _write = wrVal._write
+
+mkSMaybeDReg :: (IsModule m c, Bits a a_sz) => SMaybe a -> m (Reg (SMaybe a))
+mkSMaybeDReg a = mkMkSMaybeDReg (mkRegA a.valid) (mkRegA a.dat) a
+
+mkSMaybeDRegI :: (IsModule m c, Bits a a_sz) => a -> m (Reg (SMaybe a))
+mkSMaybeDRegI = mkSMaybeDReg ∘ sInvalid
+
+mkSMaybeDRegI_ :: (IsModule m c, Bits a a_sz) => m (Reg (SMaybe a))
+mkSMaybeDRegI_ = mkMkSMaybeDReg (mkRegA False) mkRegU sInvalid_
+
+mkSMaybeDRegIDefault :: (IsModule m c, DefaultValue a, Bits a a_sz) =>
+  m (Reg (SMaybe a))
+mkSMaybeDRegIDefault = mkSMaybeDReg sInvalidDefault
+
+-- These *RegChain modules create a chain of registers. Writes go to the first
+-- register, and reads come from the last register. The registers in the middle
+-- are all connected to each other, and not exposed to the outside world.
+
+-- This chain only shifts when the trigger is true. If a value is written when
+-- the trigger is false, it is ignored. If no new value is written when trigger
+-- is true, the most recently written value is repeated.
+mkTrigRegChainSmartDumb :: (IsModule m c, Bits a a_sz) =>
+  Bool -> m (Reg a) -> m (Reg a) -> Integer -> m (Reg a)
+mkTrigRegChainSmartDumb _ _       _      0 = mkBypassWire
+mkTrigRegChainSmartDumb t mkSmart _ 1 = module
+  _r :: Reg a <- mkSmart
+  -- This bypass is needed to preserve the ability for the input of the regChain
+  -- to be dependent on the output of the regChain. (Or for the read and write
+  -- to be combined into the same rule, which is equivalent.)
+  bp :: a     <- mkBypass _r
+  interface Reg
+    _read  = bp
+    _write = doIf t ∘ _r._write
+mkTrigRegChainSmartDumb t mkSmart mkDumb n = if n < 0 then
+  error ("mkTrigRegChainSmartDumb needs positive length not " +
+         integerToString n)
+else module
+  _r :: Reg a <- mkSmart
+  d  :: Reg a <- mkTrigRegChainSmartDumb t mkDumb mkDumb (n-1)
+  -- No bypass needed here, because every chain ends with the length-1 version
+  -- above, which includes a bypass wire.
+  alwaysIf "TrigRegChain" t do
+    d := _r
+  interface Reg
+    _read  = d
+    _write = doIf t ∘ _r._write
+
+-- This chain always shifts automatically, so that the output is the value
+-- written n cycles ago. If no new value is written, the most recently written
+-- value is repeated.
+mkAutoRegChainSmartDumb :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> m (Reg a) -> Integer -> m (Reg a)
+mkAutoRegChainSmartDumb = mkTrigRegChainSmartDumb True
+
+-- This chain only shifts when a new value is written, which "pushes" each
+-- existing value forward one cell.
+mkPushRegChainSmartDumb :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> m (Reg a) -> Integer -> m (Reg a)
+mkPushRegChainSmartDumb _       _      0 = mkBypassWire
+mkPushRegChainSmartDumb mkSmart _      1 = mkSmart
+mkPushRegChainSmartDumb mkSmart mkDumb n = if n < 0 then
+  error ("mkPushRegChainSmartDumb needs positive length not " +
+         integerToString n)
+else module
+  _r :: Reg a <- mkSmart
+  d  :: Reg a <- mkPushRegChainSmartDumb mkDumb mkDumb (n-1)
+
+  interface Reg
+    _read    = d
+    _write x = do
+      _r := x
+      d  := _r
+
+mkAutoWriteRegChainSmartDumb :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> m (Reg a) -> Integer -> a -> m a
+mkAutoWriteRegChainSmartDumb mkSmart mkDumb n =
+  mkAutoWriteReg (mkAutoRegChainSmartDumb mkSmart mkDumb n)
+
+mkTrigRegChain :: (IsModule m c, Bits a a_sz) =>
+  Bool -> m (Reg a) -> Integer -> m (Reg a)
+mkTrigRegChain t mkR = mkTrigRegChainSmartDumb t mkR mkR
+
+mkAutoRegChain :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> Integer -> m (Reg a)
+mkAutoRegChain mkR = mkAutoRegChainSmartDumb mkR mkR
+
+mkPushRegChain :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> Integer -> m (Reg a)
+mkPushRegChain mkR = mkPushRegChainSmartDumb mkR mkR
+
+mkAutoWriteRegChain :: (IsModule m c, Bits a a_sz) =>
+  m (Reg a) -> Integer -> a -> m a
+mkAutoWriteRegChain mkR n = mkAutoWriteReg (mkAutoRegChain mkR n)
+
+-- The ShiftRegs are similar to the RegChains, but all of the registers are
+-- exposed to the outside world.
+
+interface ShiftReg n a =
+  _read  :: Vector n a
+  _write :: a -> Action
+
+asShiftReg :: ShiftReg n a -> ShiftReg n a
+asShiftReg sr = sr
+
+mkAutoWriteShiftReg :: (IsModule m c, Bits a a_sz) =>
+  m (ShiftReg n a) -> a -> m (Vector n a)
+mkAutoWriteShiftReg mkSR x = module
+  _sr :: ShiftReg n a <- mkSR
+  always "Auto write shift reg" $ do
+    _sr._write x
+  return _sr
+
+-- This shift register only shifts when the trigger is true. If a value is
+-- written when the trigger is false, it is ignored. If no new value is written
+-- when trigger is true, the most recently written value is repeated.
+mkTrigShiftReg :: (IsModule m c, Bits a a_sz) =>
+  Bool -> m (Reg a) -> m (ShiftReg n a)
+mkTrigShiftReg t mkR = module
+  _sh :: Vector n (Reg a) <- replicateM mkR
+  wrVal :: RWire a <- mkRWire
+
+  always "TrigShift" $ case (t, wrVal.wget) of
+    (True,  Valid x) -> writeVReg _sh $ shiftInAt0 (readVReg _sh) x
+    (True,  Invalid) -> writeVReg _sh $ shiftInAt0 (readVReg _sh)
+                                                   (readReg $ _sh !! 0)
+    (False, _) -> noAction
+
+  interface ShiftReg
+    _read  = readVReg _sh
+    _write = wrVal.wset
+
+-- This shift register always shifts automatically, so that the output is the
+-- value written n cycles ago. If no new value is written, the most recently
+-- written value is repeated.
+mkAutoShiftReg :: (IsModule m c, Bits a a_sz) => m (Reg a) -> m (ShiftReg n a)
+mkAutoShiftReg mkR = mkTrigShiftReg True mkR
+
+-- This shift register only shifts when a new value is written, which "pushes"
+-- each existing value forward one cell.
+mkPushShiftReg :: (IsModule m c, Bits a a_sz) => m (Reg a) -> m (ShiftReg n a)
+mkPushShiftReg mkR = module
+  _sh :: Vector n (Reg a) <- replicateM mkR
+
+  interface ShiftReg
+    _read  = readVReg _sh
+    _write = writeVReg _sh ∘ shiftInAt0 (readVReg _sh)
+
+-- The BypassRegs are similar to Regs, except that if a write is occurring in
+-- the current cycle, the read will return that value being written. If you
+-- need it, the reg field is directly connected to the underlying reg without
+-- the bypass logic. Note: you will still have problems if you try to read and
+-- write in the same rule.
+interface BypassReg a =
+  reg    :: a
+  _read  :: a
+  _write :: a -> Action
+
+mkBypassReg :: (IsModule m c, Bits a a_sz) => m (Reg a) -> m (BypassReg a)
+mkBypassReg mkR = module
+  _r    :: Reg a   <- mkR
+  wrReg :: RWire a <- mkRWire
+  let wr = wrReg.wget
+
+  alwaysIfValid "wrReg" wr _r._write
+
+  interface BypassReg
+    reg    = _r
+    _read  = fromMaybe _r wr
+    _write = wrReg.wset
+
+readBypassReg :: BypassReg a -> a
+readBypassReg = (._read)
+
+readVBypassReg :: Vector n (BypassReg a) -> Vector n a
+readVBypassReg = map readBypassReg
+
+-- Takes a DSMaybe and returns a DSMaybeReg with its valid and data fields
+-- temporally aligned.
+mkAlignDSMaybe :: (IsModule m c) => DSMaybe d t -> m (SMaybe t)
+mkAlignDSMaybe (DSMaybe sm) = if (valueOf d) == 0 then return sm else module
+  validDly <- mkAutoWriteRegChain mkRegDefault (valueOf d) sm.valid
+  return $ toSMaybe validDly sm.dat
+
+-- Delays the data field of an SMaybe to create a DSMaybe. The valid bit is not
+-- delayed. This should not be needed except in testing.
+mkDSMaybe :: (IsModule m c, DefaultValue t, Bits t t_sz) =>
+             SMaybe t -> m (DSMaybe d t)
+mkDSMaybe sm = module
+  datDly <- mkAutoWriteRegChain mkRegDefault (valueOf d) sm.dat
+  return $ DSMaybe $ sm {dat = datDly}
+
+mkCycleCounter :: (IsModule m c, DefaultValue t, Bits t t_size, Arith t) => m t
+mkCycleCounter = module
+  cycle :: Reg t <- mkRegDefault
+  always "StepCycleCounter" $ cycle := cycle + 1
+  return cycle
+
+withRetimeNameIf :: (IsModule m c) => Bool -> m (Reg a) -> m (Reg a)
+withRetimeNameIf retime = withStringIf retime "retiming"
+
+withRetimeName :: (IsModule m c) => m (Reg a) -> m (Reg a)
+withRetimeName = withRetimeNameIf True
+
+withAnchorNameIf :: (IsModule m c) => Bool -> m (Reg a) -> m (Reg a)
+withAnchorNameIf retime = withStringIf retime "anchor"
+
+withAnchorName :: (IsModule m c) => m (Reg a) -> m (Reg a)
+withAnchorName = withAnchorNameIf True
+
+-- 0 is a wire, 1 is only a smart anchor register, 2 is a smart retiming
+-- register followed by a dumb anchor register. Anything longer inserts
+-- additional dumb retiming registers in the middle. The idea here is that the
+-- PD will identify the registers with the "retiming" in their name for register
+-- retiming optimizations, but the "anchor" register at the end will not be
+-- retimed, and may have special handling of its own. The first register in the
+-- chain is smart, to minimize toggling of the data, but the rest are dumb and
+-- just pass the data through, since the first register already minimizes
+-- toggling for the remainder of the chain.
+mkPipeline_ :: (IsModule m c, Bits x xSz) =>
+  Bool -> m (Reg x) -> m (Reg x) -> Integer -> x -> m x
+mkPipeline_ _      _       _      0 d = mkBypass d
+mkPipeline_ retime mkSmart _      1 d =
+  mkAutoWriteReg (withAnchorNameIf retime mkSmart) d
+mkPipeline_ retime mkSmart mkDumb 2 d = module
+  head <- mkAutoWriteReg (withRetimeNameIf retime mkSmart) d
+  _a   <- mkAutoWriteReg (withAnchorNameIf retime mkDumb)  head
+  return _a
+mkPipeline_ retime mkSmart mkDumb p d = if p < 0 then
+  error ("mkPipeline_ needs positive length not " + integerToString p)
+else module
+  head <- mkAutoWriteReg      (withRetimeNameIf retime mkSmart)      d
+  _m   <- mkAutoWriteRegChain (withRetimeNameIf retime mkDumb) (p-2) head
+  _a   <- mkAutoWriteReg      (withAnchorNameIf retime mkDumb)       _m
+  return _a
+
+mkPipeline :: (IsModule m c, Bits x xSz, DefaultValue x) => Integer -> x -> m x
+mkPipeline = mkPipeline_ True mkRegDefault mkRegDefault
+
+mkPipelineU :: (IsModule m c, Bits x xSz) => Integer -> x -> m x
+mkPipelineU = mkPipeline_ True mkRegU mkRegU
+
+mkSPipeline :: (IsModule m c, Bits x xSz) => Integer -> SMaybe x -> m (SMaybe x)
+mkSPipeline = mkPipeline_ True mkSMaybeRegI_ mkDumbSMaybeRegI_
+
+mkDumbSPipeline :: (IsModule m c, Bits x xSz) =>
+  Integer -> SMaybe x -> m (SMaybe x)
+mkDumbSPipeline = mkPipeline_ True mkDumbSMaybeRegI_ mkDumbSMaybeRegI_
+
+mkMPipeline :: (IsModule m c, Bits x xSz) => Integer -> Maybe x -> m (Maybe x)
+mkMPipeline = mkPipeline_ True mkMaybeRegI mkDumbMaybeRegI
+
+mkDumbMPipeline :: (IsModule m c, Bits x xSz) =>
+  Integer -> Maybe x -> m (Maybe x)
+mkDumbMPipeline = mkPipeline_ True mkDumbMaybeRegI mkDumbMaybeRegI
+
+mkVDPipeline :: (IsModule m c, Bits x xSz) =>
+  Integer -> Bool -> x -> m (SMaybe x)
+mkVDPipeline p v x = mkSPipeline p $ toSMaybe v x
+
+mkDumbVDPipeline :: (IsModule m c, Bits x xSz) =>
+  Integer -> Bool -> x -> m (SMaybe x)
+mkDumbVDPipeline p v x = mkDumbSPipeline p $ toSMaybe v x
+
+mkPipelineUnnamed :: (IsModule m c, Bits x xSz, DefaultValue x) =>
+  Integer -> x -> m x
+mkPipelineUnnamed = mkPipeline_ False mkRegDefault mkRegDefault
+
+mkPipelineUUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> x -> m x
+mkPipelineUUnnamed = mkPipeline_ False mkRegU mkRegU
+
+mkSPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> SMaybe x -> m (SMaybe x)
+mkSPipelineUnnamed = mkPipeline_ False mkSMaybeRegI_ mkDumbSMaybeRegI_
+
+mkDumbSPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> SMaybe x -> m (SMaybe x)
+mkDumbSPipelineUnnamed = mkPipeline_ False mkDumbSMaybeRegI_ mkDumbSMaybeRegI_
+
+mkMPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> Maybe x -> m (Maybe x)
+mkMPipelineUnnamed = mkPipeline_ False mkMaybeRegI mkDumbMaybeRegI
+
+mkDumbMPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> Maybe x -> m (Maybe x)
+mkDumbMPipelineUnnamed = mkPipeline_ False mkDumbMaybeRegI mkDumbMaybeRegI
+
+mkVDPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> Bool -> x -> m (SMaybe x)
+mkVDPipelineUnnamed p v x = mkSPipelineUnnamed p $ toSMaybe v x
+
+mkDumbVDPipelineUnnamed :: (IsModule m c, Bits x xSz) =>
+  Integer -> Bool -> x -> m (SMaybe x)
+mkDumbVDPipelineUnnamed p v x = mkDumbSPipelineUnnamed p $ toSMaybe v x

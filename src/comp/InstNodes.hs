@@ -15,6 +15,7 @@ import Data.List(sortBy,groupBy,isPrefixOf)
 import qualified Data.Map as M
 import Data.Ord(comparing)
 import Control.Monad.State
+import Control.DeepSeq (NFData (..))
 
 import Util(mapSnd)
 import Util(toMaybe)
@@ -48,6 +49,11 @@ data InstNode = StateVar { node_name :: Id } |
                          uniquified :: Bool,
                          node_children :: InstTree }
   deriving(Eq, Show)
+
+instance NFData InstNode where
+  rnf (StateVar x) = rnf x `seq` ()
+  rnf (Rule x) = rnf x `seq` ()
+  rnf (Loc x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
 
 instance Ord InstNode where
   compare n1 n2 = cmpIdByName (node_name n1) (node_name n2)

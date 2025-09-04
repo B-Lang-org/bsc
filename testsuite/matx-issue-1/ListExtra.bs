@@ -1,0 +1,87 @@
+package ListExtra where
+
+import Assert
+import List
+
+class BuildList a r | r -> a where
+  lst' :: List a -> a -> r
+
+instance BuildList a (List a) where
+  lst' l x = reverse $ x :> l
+
+instance (BuildList a r) => BuildList a (a -> r) where
+  lst' l x y = lst' (x :> l) y
+
+lst :: (BuildList a r) => a -> r
+lst x = lst' nil x
+
+assertLst :: (IsModule m c) => m Empty
+assertLst = module
+  staticAssert ((lst 1 2 3 4 5) == (upto 1 5)) "lst"
+
+for :: List a -> (a -> b) -> List b
+for l f = map f l
+
+enumerate :: List a -> (Integer -> a -> b) -> List b
+enumerate = enumerateFrom 0
+
+enumerateFrom :: Integer -> List a -> (Integer -> a -> b) -> List b
+enumerateFrom _ Nil _ = Nil
+enumerateFrom i (Cons x xs) fn = Cons (fn i x) (enumerateFrom (i + 1) xs fn)
+
+-- zipWith and zipWithM are defined in List, but zipWithM_ is not.
+zipWithM_ :: (Monad m) => (a -> b -> m c) -> List a -> List b -> m ()
+zipWithM_ fn a b = do
+  _ <- zipWithM fn a b
+  return ()
+
+-- zipWith3 and zipWith3M are defined in List, but zipWith3M_ is not.
+zipWith3M_ :: (Monad m) => (a -> b -> c -> m d) ->
+  List a -> List b -> List c -> m ()
+zipWith3M_ fn a b c = do
+  _ <- zipWith3M fn a b c
+  return ()
+
+-- zipWith4 is defined in List, but zipWith4M and zipWith4M_ are not.
+zipWith4M :: (Monad m) => (a -> b -> c -> d -> m e) ->
+  List a -> List b -> List c -> List d -> m (List e)
+zipWith4M fn a b c d = sequence $ zipWith4 fn a b c d
+
+zipWith4M_ :: (Monad m) => (a -> b -> c -> d -> m e) ->
+  List a -> List b -> List c -> List d -> m ()
+zipWith4M_ fn a b c d = do
+  _ <- zipWith4M fn a b c d
+  return ()
+
+-- From here on, nothing is defined in List, so we will define everything.
+zipWith5 :: (a -> b -> c -> d -> e -> f) ->
+  List a -> List b -> List c -> List d -> List e -> List f
+zipWith5 fn (Cons a as) (Cons b bs) (Cons c cs) (Cons d ds) (Cons e es) =
+  Cons (fn a b c d e) (zipWith5 fn as bs cs ds es)
+zipWith5 _ _ _ _ _ _ = Nil
+
+zipWith5M :: (Monad m) => (a -> b -> c -> d -> e -> m f) ->
+  List a -> List b -> List c -> List d -> List e -> m (List f)
+zipWith5M fn a b c d e = sequence $ zipWith5 fn a b c d e
+
+zipWith5M_ :: (Monad m) => (a -> b -> c -> d -> e -> m f) ->
+  List a -> List b -> List c -> List d -> List e -> m ()
+zipWith5M_ fn a b c d e = do
+  _ <- zipWith5M fn a b c d e
+  return ()
+
+zipWith6 :: (a -> b -> c -> d -> e -> f -> g) ->
+  List a -> List b -> List c -> List d -> List e -> List f -> List g
+zipWith6 fn (Cons a as) (Cons b bs) (Cons c cs) (Cons d ds) (Cons e es)
+  (Cons f fs) = Cons (fn a b c d e f) (zipWith6 fn as bs cs ds es fs)
+zipWith6 _ _ _ _ _ _ _ = Nil
+
+zipWith6M :: (Monad m) => (a -> b -> c -> d -> e -> f -> m g) ->
+  List a -> List b -> List c -> List d -> List e -> List f -> m (List g)
+zipWith6M fn a b c d e f = sequence $ zipWith6 fn a b c d e f
+
+zipWith6M_ :: (Monad m) => (a -> b -> c -> d -> e -> f -> m g) ->
+  List a -> List b -> List c -> List d -> List e -> List f -> m ()
+zipWith6M_ fn a b c d e f = do
+  _ <- zipWith6M fn a b c d e f
+  return ()

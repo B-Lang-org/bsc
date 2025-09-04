@@ -152,11 +152,20 @@ convAPackageToSAL errh flags apkg0 =
 data SContext = SContext SId SComment [SDefn]
     deriving (Eq, Show)
 
+instance NFData SContext where
+    rnf (SContext sid scomment defns) = rnf sid `seq` rnf scomment `seq` rnf defns `seq` ()
+
 data SId = SId String
     deriving (Eq, Show)
 
+instance NFData SId where
+    rnf (SId s) = rnf s `seq` ()
+
 data SQId = SQId (Maybe (SId, [SType], [SExpr])) SId
     deriving (Eq, Show)
+
+instance NFData SQId where
+    rnf (SQId x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 type SComment = [String]
 
@@ -170,6 +179,11 @@ data SDefn = SDComment SComment [SDefn]
            -- SDModule
            deriving (Eq, Show)
 
+instance NFData SDefn where
+    rnf (SDComment x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SDType x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SDValue x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+
 data SType = STVar SQId
            -- for us, arrays are always indexed by subtype starting at zero
            -- so the number here is the size
@@ -180,6 +194,13 @@ data SType = STVar SQId
            | STRecord [(SId, SType)]
            -- | STState
            deriving (Eq, Show)
+
+instance NFData SType where
+    rnf (STVar x) = rnf x `seq` ()
+    rnf (STArray x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (STTuple x) = rnf x `seq` ()
+    rnf (STFunc x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (STRecord x) = rnf x `seq` ()
 
 data SExpr = SLam [(SId, SType)] SExpr
            | SLet [(SId, SType, SExpr)] SExpr
@@ -202,10 +223,24 @@ data SExpr = SLam [(SId, SType)] SExpr
            | SIf SExpr SExpr SExpr
            deriving (Eq, Show)
 
--- -----
-
-instance Hyper SContext where
-  hyper x y = (x==x) `seq` y
+instance NFData SExpr where
+    rnf (SLam x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SLet x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SVar x) = rnf x `seq` ()
+    rnf (SIntLit x) = rnf x `seq` ()
+    rnf (SRealLit x) = rnf x `seq` ()
+    rnf (SApply x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SApplyInfix x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SArray x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SArrayUpd x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SArraySel x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SStruct x) = rnf x `seq` ()
+    rnf (SStructUpd x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (SStructSel x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (STuple x) = rnf x `seq` ()
+    rnf (STupleUpd x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (STupleSel x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (SIf x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 -- -----
 

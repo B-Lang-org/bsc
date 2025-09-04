@@ -15,6 +15,7 @@ CAVEAT: you should run checkSystemVerilogKeywords after changing this file.
 > import Control.Monad(when)
 > import System.IO(hPutStrLn, stderr)
 > import System.Exit(exitWith, ExitCode(..))
+> import Control.DeepSeq (NFData (..))
 
 A datatype for SystemVerilog keywords, complete with printed
 representation, and language version introduced.
@@ -287,7 +288,9 @@ Data type declaration for the keywords:
 >     | SV_KW_Action
 >     | SV_KW_ActionValue
 >       deriving (Show, Eq, Ord, Enum, Bounded)
-
+>
+> instance NFData SV_Keyword where
+>     rnf x = x `seq` () -- Sufficient for enums
 
 Symbols
 
@@ -371,6 +374,9 @@ Symbols
 >     | SV_SYM_dot_dot
 >     | SV_SYM_et_et_et -- temporary for patterns
 >       deriving (Show, Eq, Ord, Enum, Bounded)
+>
+> instance NFData SV_Symbol where
+>     rnf x = x `seq` () -- Sufficient for enums
 
 Keyword table, in machine readable form.  Used to generate a keyword
 scanner and to prettyprint keywords.

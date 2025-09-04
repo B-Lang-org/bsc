@@ -1,0 +1,261 @@
+package Test where
+
+import CShow
+import List
+import qualified Vector  -- Needed for Vector.Vector in EQFailMsg instance.
+
+import MaybeExtra
+import RegExtra
+import Rules
+import VectorExtra
+
+infixr 8 `andThen`
+
+pass :: Action
+pass = do
+  $display "PASS"  -- The script generated in the bs_test rule looks for this.
+  $finish 0
+
+fail :: Action
+fail = do
+  $display "FAIL"  -- The script generated in the bs_test rule looks for this.
+  $fatal
+
+failMsg :: String -> Action
+failMsg s = do
+  $display s
+  fail
+
+failIf :: Bool -> Action
+failIf cond = doIf cond fail
+
+failIfMsg :: Bool -> String -> Action
+failIfMsg cond s = doIf cond $ failMsg s
+
+stringToSpaces :: String -> String
+stringToSpaces s = charListToString $ replicate (stringLength s) ' '
+
+stringOrSpaces :: String -> Bool -> String
+stringOrSpaces s True = s
+stringOrSpaces s False = stringToSpaces s
+
+-- Equality operator that is strict about 'X' and 'Z' values.
+-- Values containing 'X' or 'Z' are only equal when the 'X's and 'Z's match on
+-- both sides (in addition to the non-'X'/'Z' values matching).
+class StrictEq a where
+  strictEq :: a -> a -> Bool
+
+instance (Generic a r, StrictEq' r) => StrictEq a where
+  strictEq x y = strictEq' (from x) (from y)
+
+-- The StrictEq' typeclass is used to traverse the generic representation of
+-- types being compared. The implementation deliberately recurses using
+-- StrictEq' when traversing the representation and only crosses back to
+-- StrictEq when a concrete type is reached. This is so users can write
+-- specialized StrictEq instances to handle types with non-default equality
+-- semantics (like SMaybe). It is important to only recurse over the
+-- representation using StrictEq' (instead of StrictEq) to avoid blowing up
+-- the comparison code with extra traversals of the generic representation.
+class StrictEq' a where
+  strictEq' :: a -> a -> Bool
+
+instance (StrictEq' a, StrictEq' b) => StrictEq' (a, b) where
+  strictEq' (x1, y1) (x2, y2) = strictEq' x1 x2 && strictEq' y1 y2
+
+instance (StrictEq a) => StrictEq' (Conc a) where
+  strictEq' (Conc x) (Conc y) = strictEq x y
+
+instance (StrictEq' a, StrictEq' b) => StrictEq' (Either a b) where
+  strictEq' (Left x) (Left y) = strictEq' x y
+  strictEq' (Right x) (Right y) = strictEq' x y
+  strictEq' _ _ = False
+
+instance (StrictEq' a) => StrictEq' (Vector.Vector n a) where
+  strictEq' x y = Vector.and $ Vector.zipWith strictEq' x y
+
+instance (StrictEq' r) => StrictEq' (Meta m r) where
+  strictEq' (Meta x) (Meta y) = strictEq' x y
+
+instance (Eq a, Bits a sz) => StrictEq' (ConcPrim a) where
+  strictEq' (ConcPrim x) (ConcPrim y) = pack x === pack y
+
+instance StrictEq' () where
+  strictEq' () () = True
+
+instance StrictEq () where
+  strictEq () () = True
+
+instance (StrictEq a) => StrictEq (SMaybe a) where
+  strictEq x y = strictEq x.valid y.valid &&
+                 if x.valid then strictEq x.dat y.dat else True
+
+instance StrictEq (Bit 0) where
+  strictEq _ _ = True
+
+strictNE :: (StrictEq t) => t -> t -> Bool
+strictNE a b = not $ strictEq a b
+
+-- Class to generate a failure message when two values are not equal, but
+-- without making the user play "where's waldo" to find out which subfields are
+-- not matching. It will print explicitly all the mismatched subfields.
+class EQFailMsg t where
+  neqFailMsg :: String -> t -> t -> Action
+
+class EQFailMsg' t where
+  neqFailMsg' :: String -> t -> t -> Action
+
+instance (Generic a r, EQFailMsg' r) => EQFailMsg a where
+  neqFailMsg s a b = neqFailMsg' s (from a) (from b)
+
+instance (EQFailMsg a) => EQFailMsg' (Conc a) where
+  neqFailMsg' s (Conc a) (Conc b) = neqFailMsg s a b
+
+instance (StrictEq a, CShow a) => EQFailMsg' (ConcPrim a) where
+  neqFailMsg' s (ConcPrim a) (ConcPrim b) =
+    doIf (a `strictNE` b) $
+      $display "Got %s = " s (cshow a) " but expected\n"
+               "    %s   " (stringToSpaces s) (cshow b)
+
+-- Adding field information will be done by the MetaField instance
+-- called inside of this one.
+instance (EQFailMsg' a, EQFailMsg' b) => EQFailMsg' (a, b) where
+  neqFailMsg' s (a1, a2) (b1, b2) = do
+    neqFailMsg' s a1 b1
+    neqFailMsg' s a2 b2
+
+instance (EQFailMsg' a) => EQFailMsg' (Meta (MetaField name idx) a) where
+  neqFailMsg' s (Meta a) (Meta b) = neqFailMsg' (s + "." + (stringOf name)) a b
+
+-- Print constructor names for sum types.
+instance (EQFailMsg' a) =>
+ EQFailMsg' (Meta (MetaConsAnon name index nfields) a) where
+  neqFailMsg' s (Meta a) (Meta b) = neqFailMsg' (s + "." + (stringOf name)) a b
+
+instance (EQFailMsg' a) =>
+ EQFailMsg' (Meta (MetaConsNamed name index nfields) a) where
+  neqFailMsg' s (Meta a) (Meta b) = neqFailMsg' (s + "." + (stringOf name)) a b
+
+-- Special case to avoid printing the single constructor name for structs
+instance (EQFailMsg' a) =>
+ EQFailMsg' (Meta (MetaData name pkg tyargs 1)
+                  (Meta (MetaConsNamed name index nfields) a)) where
+  neqFailMsg' s (Meta (Meta a)) (Meta (Meta b)) = neqFailMsg' s a b
+
+instance (EQFailMsg' r) => EQFailMsg' (Meta m r) where
+  neqFailMsg' s (Meta a) (Meta b) = neqFailMsg' s a b
+
+-- Instance to handle vectors.
+instance (EQFailMsg' t) => EQFailMsg' (Vector.Vector n t) where
+  neqFailMsg' s actual expected =
+    for3M_ (genStrVecPre (s + ".")) actual expected $ \s_ a e ->
+      neqFailMsg' s_ a e
+
+instance (EQFailMsg' a, EQFailMsg' b, CShow' a, CShow' b) =>
+ EQFailMsg' (Either a b) where
+  neqFailMsg' s (Left a) (Left b) = neqFailMsg' s a b
+  neqFailMsg' s (Right a) (Right b) = neqFailMsg' s a b
+  neqFailMsg' s actual expected =
+    $display "Expected %s = " s (cshow' actual) "\n"
+             "  to be  %s   " (stringToSpaces s) (cshow' expected)
+
+instance EQFailMsg' () where
+  neqFailMsg' _ () () = noAction
+
+instance EQFailMsg (UInt n) where
+  neqFailMsg s a b = doIf (a /= b) $
+    $display "Expected %s = " s (cshow a) "\n"
+             "  to be  %s   " (stringToSpaces s) (cshow b)
+
+instance EQFailMsg (Int n) where
+  neqFailMsg s a b = doIf (a /= b) $
+    $display "Expected %s = " s (cshow a) "\n"
+             "  to be %s    " (stringToSpaces s) (cshow b)
+
+instance (EQFailMsg a) => EQFailMsg (SMaybe a) where
+  neqFailMsg s a b = do
+    neqFailMsg (s + ".valid") a.valid b.valid
+    doIf (a.valid && a.valid `strictEq` b.valid) $
+         neqFailMsg (s + ".dat") a.dat b.dat
+
+-- The Three variants of the _notEqualFail function are for different levels of
+-- detail regarding the mismatched fields. The first one is the most detailed,
+-- the second prints the full values, but does not identify the mismatched
+-- fields, and the third just prints a generic message with no details.
+-- With large complex types, the compilation times can vary quite a bit between
+-- these three, so it's useful to have all three available.
+_notEqualFail :: (EQFailMsg t) => String -> t -> t -> Action
+_notEqualFail s actual expected = do
+  neqFailMsg s actual expected
+  fail
+
+_notEqualFailFast :: String -> t -> t -> Action
+_notEqualFailFast s _ _ = do
+  $display "Expectation failed for %s." s
+  fail
+
+_equalFail :: (CShow t) => String -> t -> Action
+_equalFail s actual = do
+  $display "Expected %s = " s (cshow actual) "\n"
+           "  to not be that."
+  fail
+
+failIfNotEqual :: (StrictEq t, EQFailMsg t) => String -> t -> t -> Action
+failIfNotEqual s actual expected = doIf (actual `strictNE` expected) $
+  _notEqualFail s actual expected
+
+failIfNotEqualFast :: (StrictEq t) => String -> t -> t -> Action
+failIfNotEqualFast s actual expected = doIf (actual `strictNE` expected) $
+  _notEqualFailFast s actual expected
+
+failIfEqual :: (StrictEq t, CShow t) => String -> t -> t -> Action
+failIfEqual s actual unexpected = doIf (actual `strictEq` unexpected) $
+  _equalFail s actual
+
+-- Useful for random stimulus tests, which terminate after "enough" cycles.
+alwaysPassAtMaxCycleCount :: (IsModule m c) => UInt n -> m Empty
+alwaysPassAtMaxCycleCount cycle =
+  alwaysIf "alwaysPassAtMaxCycleCount" (cycle == (unpack (0 - 1))) do
+    $display "Max cycle count reached: %d. Passing." cycle
+    pass
+
+-- Useful for scripted SequenceRules based tests, which should call pass at the
+-- end of their script. Detects if the script is missing a pass call, or hangs.
+alwaysFailAtMaxCycleCount :: (IsModule m c) => UInt n -> m Empty
+alwaysFailAtMaxCycleCount cycle =
+  alwaysIf "alwaysFailAtMaxCycleCount" (cycle == (unpack (0 - 1)))do
+    $display "Max cycle count reached: %d. Failing." cycle
+    fail
+
+-- alwaysFailIf* functions take a string because there could conceivably be
+-- multiple calls to these functions in the same testbench.
+alwaysFailIf :: (IsModule m c) => String -> Bool -> m Empty
+alwaysFailIf s cond =
+  alwaysIf ("alwaysFailIf " + s) cond $ failMsg ("alwaysFailIf " + s)
+
+alwaysFailIfNotEqual :: (IsModule m c, StrictEq t, EQFailMsg t) =>
+  String -> t -> t -> m Empty
+alwaysFailIfNotEqual s actual expected =
+  alwaysIf ("alwaysFailIfNotEqual " + s) (actual `strictNE` expected) $
+    _notEqualFail s actual expected
+
+alwaysFailIfNotEqualFast :: (IsModule m c, StrictEq t) =>
+  String -> t -> t -> m Empty
+alwaysFailIfNotEqualFast s actual expected =
+  alwaysIf ("alwaysFailIfNotEqualFast " + s) (actual `strictNE` expected) $
+    _notEqualFailFast s actual expected
+
+alwaysFailIfNotEqualValid :: (IsModule m c, StrictEq t, EQFailMsg t) =>
+  String -> t -> Maybe t -> m Empty
+alwaysFailIfNotEqualValid s actual expected =
+  alwaysIfValid ("alwaysFailIfNotEqualValid " + s) expected $ \e ->
+    failIfNotEqual s actual e
+
+mkAutoOpenFile :: (IsModule m c) => String -> String -> m File
+mkAutoOpenFile name mode = module
+  f :: BypassReg File <- mkBypassReg $ mkRegA InvalidFile
+
+  alwaysIf "open file" (f.reg == InvalidFile) $ do
+    file <- $fopen name mode
+    f := file
+
+  return f

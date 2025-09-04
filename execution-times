@@ -1,0 +1,44 @@
+
+`Hyper` (107744d76f3f756b1517093784eb31d778c1df37)
+---
+
+$ bash repro.sh # 1
+
+real	8m47,161s
+user	8m44,068s
+sys	0m5,173s
+
+$ bash repro.sh # 2
+
+real	8m47,520s
+user	8m51,421s
+sys	0m5,012s
+
+$ bash repro.sh # 3
+
+real	8m47,409s
+user	8m51,654s
+sys	0m5,111s
+
+`NFData` (WIP) (91a297527b1072fe8de5279723fe91870e4d9627)
+---
+
+$ bash repro.sh # 1
+
+real	8m3,381s
+user	8m0,860s
+sys	0m5,874s
+
+$ bash repro.sh # 2
+
+real	8m5,033s
+user	8m7,079s
+sys	0m6,462s
+
+$ bash repro.sh # 3
+
+real	8m5,179s
+user	6m2,511s
+sys	2m11,860s
+
+

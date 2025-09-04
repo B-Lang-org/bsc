@@ -56,8 +56,8 @@ instance Show IntLit where
 instance PPrint IntLit where
      pPrint d p i = text (show i)
 
-instance Hyper IntLit where
-     hyper (IntLit x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData IntLit where
+     rnf (IntLit x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 -- --------------------
 

@@ -45,6 +45,9 @@ data VarInfo
         = VarInfo !VarKind !Assump !(Maybe String)
         deriving (Show)
 
+instance NFData VarInfo where
+    rnf (VarInfo x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+
 instance PPrint VarInfo where
     pPrint d p (VarInfo k a m) =
         pparen (p>0) $
@@ -59,6 +62,12 @@ data VarKind
         -- (as "noinline" compiles to)
         | VarForg String (Maybe ([String], [String]))
         deriving (Show)
+
+instance NFData VarKind where
+    rnf VarPrim = ()
+    rnf VarDefn = ()
+    rnf VarMeth = ()
+    rnf (VarForg x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 instance PPrint VarKind where
     pPrint _ _ k = text (show k)
@@ -85,8 +94,8 @@ conInfoMerge new_cis old_cis = foldr mergeFn old_cis new_cis
               then if (ci_visible h) then (h:rest) else (ci:rest)
               else (h : mergeFn ci rest)
 
-instance Hyper ConInfo where
-    hyper x y = seq x y
+instance NFData ConInfo where
+    rnf (ConInfo x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 instance PPrint ConInfo where
     pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
@@ -100,6 +109,9 @@ data TypeInfo
               ti_type_vars :: [Id],
               ti_sort      :: TISort
           } deriving (Show)
+
+instance NFData TypeInfo where
+    rnf (TypeInfo x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 instance PPrint TypeInfo where
     pPrint d p (TypeInfo _ k _ ti) = pparen (p>0) $ text "TypeInfo" <+> pPrint d 10 k <+> pPrint d 1 ti
@@ -151,9 +163,8 @@ instance PPrint FieldInfo where
                Nothing -> empty
                Just t -> text ("Original type: ") <> pPrint d 0 t)
 
-instance Hyper FieldInfo where
-    hyper (FieldInfo a b c d e f g) y = hyper7 a b c d e f g y
-
+instance NFData FieldInfo where
+    rnf (FieldInfo a b c d e f g) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f `seq` rnf g `seq` ()
 
 -- The symbol table is composed of several other tables
 data SymTab =
@@ -163,6 +174,8 @@ data SymTab =
           -- The FieldInfo is indexed by field id (e.g., "_write" returns the fields of Reg)
           --   or by superclass (e.g. Literal returns the superclasses of "Arith")
 
+-- TODO: What?!
+-- TODO: Remove.
 instance Eq SymTab where -- just because we need one for forcing evaluation
     _ == _ = False
 
@@ -193,8 +206,8 @@ instance PPrint SymTab where
         (text "Fields:" <+> pPrint d 0 (M.toList f) ) $+$
         (text "Classes:" <+> pPrint d 0 (M.toList cl) )
 
-instance Hyper SymTab where
-    hyper x y = y                -- XXX
+instance NFData SymTab where
+    rnf (S x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
 
 emptySymtab :: SymTab
 emptySymtab = S M.empty M.empty M.empty M.empty M.empty

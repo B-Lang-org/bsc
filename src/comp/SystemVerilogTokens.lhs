@@ -60,14 +60,26 @@ Tokens output by the lexical scanner
 > instance PPrint SV_Token where
 >   pPrint d p = text . show
 
-> instance Hyper SV_Token where
->   hyper svt b = hyper (show svt) b
+> -- TODO: This instance did way too much work.
+> instance NFData SV_Token where
+>   rnf (SV_Token_Keyword x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_Id x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_System_Id x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_Symbol x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_Directive x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_Number x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
+>   rnf (SV_Token_String x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+>   rnf (SV_Token_Comment x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+>   rnf (SV_Token_Error x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 Bit representation for number parsing
 
 > data SV_Bit = SV_BIT_0 | SV_BIT_1 |
 >               SV_BIT_X | SV_BIT_Z | SV_BIT_DontCare
 >       deriving (Show)
+>
+> instance NFData SV_Bit where
+>   rnf x = x `seq` () -- Suffices for enums
 
 Possible bases used in number parsing
 
@@ -77,6 +89,9 @@ Possible bases used in number parsing
 >     | SV_NUM_BASE_Dec
 >     | SV_NUM_BASE_Hex
 >       deriving (Show)
+>
+> instance NFData SV_Numeric_Base where
+>   rnf x = x `seq` () -- Suffices for enums
 
 > {-# SPECIALIZE svNumericBaseValue :: SV_Numeric_Base -> Integer #-}
 > {-# SPECIALIZE svNumericBaseValue :: SV_Numeric_Base -> Int #-}
@@ -100,6 +115,12 @@ Various forms of values that can be specified as literals:
 >     -- with the most significant bit
 >     | SV_NUM_Mixed [(Integer, Either Integer SV_Bit)]
 >       deriving (Show)
+>
+> instance NFData SV_Number where
+>     rnf (SV_NUM_Integer x) = rnf x `seq` ()
+>     rnf (SV_NUM_Real x) = rnf x `seq` ()
+>     rnf (SV_NUM_Repeated x) = rnf x `seq` ()
+>     rnf (SV_NUM_Mixed x) = rnf x `seq` ()
 
 Pretty print SV tokens, e.g., keyword "end", symbol "&"
 

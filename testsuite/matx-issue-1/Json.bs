@@ -1,0 +1,111 @@
+package Json where
+
+import List
+
+import ListExtra  -- TODO: Move to built-in BuildList when we upgrade bsc
+
+-- This is a generic library for encoding elaboration-time information as JSON.
+-- The schema is defined as types; values of these types can be converted to
+-- Json values as interpreted by the `JsonSchema` typeclass.
+-- See VerilogRepr.bs for an example of how this is used.
+
+-- Abstract syntax representation of JSON values
+data Json
+  = JsonObject (List (String, Json))
+  | JsonArray (List Json)
+  | JsonString String
+  | JsonNumber Integer
+  | JsonBool Bool
+  | JsonNull
+
+showJson :: Json -> String
+showJson =
+  let showJson' :: Integer -> Json -> String
+      showJson' nest (JsonObject fields) = "{" +++
+        -- TODO: escape keys
+        showItems nest
+          (map (\ (key, value) ->
+                  "\"" +++ key +++ "\": " +++ showJson' (nest + 1) value)
+            fields) +++
+        "}"
+      showJson' nest (JsonArray elems) = "[" +++
+        showItems nest (map (showJson' (nest + 1)) elems) +++
+        "]"
+      showJson' _ (JsonString str) = "\"" +++ str +++ "\""  -- TODO: escape
+      showJson' _ (JsonNumber n) = integerToString n
+      showJson' _ (JsonBool b) = if b then "true" else "false"
+      showJson' _ JsonNull = "null"
+
+      showItems :: Integer -> List String -> String
+      showItems _ Nil = ""
+      showItems nest lines =
+        "\n" +++ makeIndent (nest + 1) +++
+        foldr1 (\ line res -> line +++ ",\n" +++ makeIndent (nest + 1) +++ res)
+          lines +++
+        "\n" +++ makeIndent nest
+
+      makeIndent :: Integer -> String
+      makeIndent nest = foldr strConcat "" $ replicate nest "  "
+  in showJson' 0
+
+-- Convert a value of some schema type to a JSON value
+class JsonSchema a where
+  toJson :: a -> Json
+
+instance JsonSchema Integer where
+  toJson n = JsonNumber n
+
+instance JsonSchema String where
+  toJson str = JsonString str
+
+instance JsonSchema Bool where
+  toJson b = JsonBool b
+
+instance (JsonSchema a) => JsonSchema (List (String, a)) where
+  toJson pairs = JsonObject $ map (\ (key, value) -> (key, toJson value)) pairs
+
+instance (JsonSchema a) => JsonSchema (List a) where
+  toJson lst = JsonArray $ map toJson lst
+
+instance (Generic a r, JsonSchema' r) => JsonSchema a where
+  toJson = toJson' ∘ from
+
+class JsonSchema' r where
+  toJson' :: r -> Json
+
+instance (ToJsonObject r) =>
+    JsonSchema' (Meta (MetaData name pkg args 1) r) where
+  toJson' (Meta x) = JsonObject $ toJsonObject x
+
+instance (ToJsonTag r) => JsonSchema' (Meta (MetaData name pkg args n) r) where
+  toJson' (Meta x) = JsonString $ toJsonTag x
+
+class ToJsonObject r where
+  toJsonObject :: r -> List (String, Json)
+
+instance ToJsonObject () where
+  toJsonObject () = nil
+
+instance (ToJsonObject a, ToJsonObject b) => ToJsonObject (a, b) where
+  toJsonObject (a, b) = toJsonObject a `append` toJsonObject b
+
+instance (ToJsonObject a) => ToJsonObject (Meta m a) where
+  toJsonObject (Meta x) = toJsonObject x
+
+instance (JsonSchema a) => ToJsonObject (Meta (MetaField n i) (Conc a)) where
+  toJsonObject (Meta (Conc x)) = lst (stringOf n, toJson x)
+
+instance (JsonSchema a) =>
+    ToJsonObject (Meta (MetaField n i) (Conc (Maybe a))) where
+  toJsonObject (Meta (Conc (Just x))) = lst (stringOf n, toJson x)
+  toJsonObject (Meta (Conc Nothing)) = nil
+
+class ToJsonTag r where
+  toJsonTag :: r -> String
+
+instance (ToJsonTag a, ToJsonTag b) => ToJsonTag (Either a b) where
+  toJsonTag (Left x) = toJsonTag x
+  toJsonTag (Right x) = toJsonTag x
+
+instance ToJsonTag (Meta (MetaConsAnon name i nf) ()) where
+  toJsonTag _ = stringOf name

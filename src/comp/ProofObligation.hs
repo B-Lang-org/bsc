@@ -12,7 +12,7 @@ import PPrint
 import Control.Monad(when)
 import Control.Monad.Trans(MonadIO, liftIO)
 import Data.List(sortBy, groupBy)
-
+import Control.DeepSeq (NFData (..))
 -- import Debug.Trace
 
 -- A proof attempt to can yield one of 3 results
@@ -29,6 +29,10 @@ class HasProve a m where
 -- to avoid recursive module dependencies.
 data ProofObligation a = ProveEq a a
                        | ProveNotEq a a
+
+instance NFData a => NFData (ProofObligation a) where
+  rnf (ProveEq x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+  rnf (ProveNotEq x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 instance Eq a => Eq (ProofObligation a) where
   (ProveEq x1 y1)    == (ProveEq x2 y2)    = (x1 == x2) && (y1 == y2)
@@ -49,6 +53,9 @@ data MsgFn =
   MsgFn { mf_ident :: String
         , mf_fn    :: ProofResult -> MsgTuple -> MsgTuple
         }
+
+instance NFData MsgFn where
+  rnf (MsgFn x1 x2) = rnf x1 `seq` rnf x2 `seq` () -- Functions are always in WHNF
 
 -- (warnings, demotable errors, errors)
 type MsgTuple = ([EMsg], [EMsg], [EMsg])

@@ -59,8 +59,8 @@ newtype VName = VName String
 instance PPrint VName where
     pPrint _ _ (VName s) = text s
 
-instance Hyper VName where
-    hyper (VName s) y = hyper s y
+instance NFData VName where
+    rnf (VName s) = rnf s `seq` ()
 
 getVNameString :: VName -> String
 getVNameString (VName string) = string
@@ -90,8 +90,16 @@ data VeriPortProp = VPreg
                   | VPunused
         deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance Hyper VeriPortProp where
-    hyper x y = x `seq` y
+instance NFData VeriPortProp where
+    rnf VPreg = ()
+    rnf VPconst = ()
+    rnf VPinhigh = ()
+    rnf VPouthigh = ()
+    rnf VPclock = ()
+    rnf VPclockgate = ()
+    rnf VPreset = ()
+    rnf VPinout = ()
+    rnf VPunused = ()
 
 instance PPrint VeriPortProp where
     pPrint _ _ VPreg = text "reg"
@@ -157,9 +165,8 @@ instance PPrint VPathInfo where
 pShowVPathInfo :: PDetail -> Int -> VPathInfo -> Doc
 pShowVPathInfo d p (VPathInfo nns) = pPrint d p nns
 
-instance Hyper VPathInfo where
-    hyper (VPathInfo nns) = hyper nns
-
+instance NFData VPathInfo where
+    rnf (VPathInfo nns) = rnf nns `seq` ()
 
 -- ===============
 -- VArgInfo
@@ -220,12 +227,12 @@ getVArgInoutReset :: VArgInfo -> Maybe Id
 getVArgInoutReset (InoutArg _ _ mrst) = mrst
 getVArgInoutReset _ = internalError ("getVArgInoutReset: not an inout")
 
-instance Hyper VArgInfo where
-    hyper (Param x) y = hyper x y
-    hyper (Port x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ClockArg x) y = hyper x y
-    hyper (ResetArg x) y = hyper x y
-    hyper (InoutArg x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData VArgInfo where
+    rnf (Param x) = rnf x `seq` ()
+    rnf (Port x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (ClockArg x) = rnf x `seq` ()
+    rnf (ResetArg x) = rnf x `seq` ()
+    rnf (InoutArg x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 instance PPrint VArgInfo where
     pPrint d p (Param x) = text "param " <> pPrint d 0 x <> text ";"
@@ -284,11 +291,11 @@ instance HasPosition VFieldInfo where
   getPosition (Reset i)                 = getPosition i -- or noPosition?
   getPosition (Inout { vf_name = n })  = getPosition n
 
-instance Hyper VFieldInfo where
-    hyper (Method x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
-    hyper (Clock x) y = hyper x y
-    hyper (Reset x) y = hyper x y
-    hyper (Inout x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+instance NFData VFieldInfo where
+    rnf (Method x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
+    rnf (Clock x) = rnf x `seq` ()
+    rnf (Reset x) = rnf x `seq` ()
+    rnf (Inout x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 instance PPrint VFieldInfo where
     pPrint d p (Method n c r m i o e) =
@@ -419,8 +426,8 @@ getInputClockPorts (ClockInfo { input_clocks = clocks }) =
         osc_vnames = map fst connected_clocks
         gate_vnames = snd $ separate (map snd connected_clocks)
 
-instance Hyper VClockInfo where
-    hyper (ClockInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+instance NFData VClockInfo where
+    rnf (ClockInfo x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 instance HasPosition VClockInfo where
   getPosition (ClockInfo { output_clocks = ((id,_):_)}) = getPosition id
@@ -528,8 +535,8 @@ getInputResetPorts :: VResetInfo -> [VName]
 getInputResetPorts (ResetInfo { input_resets = in_resets }) =
     catMaybes (map (fst . snd) in_resets)
 
-instance Hyper VResetInfo where
-  hyper (ResetInfo x1 x2) y = hyper2 x1 x2 y
+instance NFData VResetInfo where
+  rnf (ResetInfo x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- ===============
 -- Inout
@@ -633,9 +640,8 @@ instance PPrint VModInfo where
             pPrint d 10 (vSched v),
             pShowVPathInfo d 10 (vPath v)])
 
-instance Hyper VModInfo where
-    hyper x@(VModInfo x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
-
+instance NFData VModInfo where
+    rnf (VModInfo x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
 
 -- ===============
 -- VWireInfo
@@ -648,8 +654,8 @@ data VWireInfo = WireInfo {
                  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 
-instance Hyper VWireInfo where
-  hyper (WireInfo clk rst args) y = hyper3 clk rst args y
+instance NFData VWireInfo where
+  rnf (WireInfo clk rst args) = rnf clk `seq` rnf rst `seq` rnf args `seq` ()
 
 instance PPrint VWireInfo where
   pPrint d p (WireInfo clk rst args) =

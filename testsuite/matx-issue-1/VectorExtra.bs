@@ -1,0 +1,675 @@
+package VectorExtra where
+
+import Assert
+import qualified List
+import Vector
+
+import qualified ArrayExtra
+import Empty
+
+infixr  8 <>
+infixr  8 <:
+
+(<>) :: (Add m n mn) => Vector m a -> Vector n a -> Vector mn a
+(<>) = append
+
+-- :> is already defined in Vector
+(<:) :: (Add 1 n n1) => Vector n a -> a -> Vector n1 a
+(<:) v x = v <> (x :> nil)
+
+type Matrix y x t = Vector y (Vector x t)
+
+-- Ensures that the index has exactly the correct number of bits to index all
+-- elements of the vector without wasted index bits.
+safeSelect :: (Bits i (TLog n)) => Vector n a -> i -> a
+safeSelect v = select v ∘ pack
+
+-- Further ensures that vector is exactly 2**i_size elements long.
+strictSelect :: (Bits i i_size) => Vector (TExp i_size) a -> i -> a
+strictSelect = safeSelect
+
+staticSelect :: (Bits i (TLog n)) => Vector n a -> i -> a
+staticSelect v = select v ∘ toStaticIndex ∘ pack
+
+unVec :: Vector 1 a -> a
+unVec v = v !! 0
+
+unVec2 :: Vector 2 a -> (a, a)
+unVec2 v = (v !! 0, v !! 1)
+
+replicate2 :: t -> Matrix a b t
+replicate2 = replicate ∘ replicate
+
+-- Split a vector into many vectors of the same length.
+splitN :: (Div len k n, Mul k n len) => Vector len a -> Vector k (Vector n a)
+splitN v = let a = ArrayExtra.splitN (valueOf n) $ vectorToArray v
+           in arrayToVector $ Array.map arrayToVector a
+
+-- Assert that split and concat are inverses of each other.
+assertVectorSplitN :: (IsModule m c) => m Empty
+assertVectorSplitN = module
+  let a1 :: Vector 12 Integer
+      a1 = genVector
+      a2 :: Vector 3 (Vector 4 Integer)
+      a2 = splitN a1
+      a3 :: Vector 12 Integer
+      a3 = concat a2
+  staticAssert (a1 == a3) "split/concat"
+
+-- Split a vector in two.
+vecSplit :: (Add n1 n2 n) => Vector n a -> (Vector n1 a, Vector n2 a)
+vecSplit v = (take v, drop v)
+
+vecUnSplit :: (Add n1 n2 n) => Vector n1 a -> Vector n2 a -> Vector n a
+vecUnSplit = append
+
+-- Split a vector into two vectors of the same length.
+vecHalve :: (Div n 2 k, Add k k n) => Vector n a -> (Vector k a, Vector k a)
+vecHalve = vecSplit
+
+vecUnHalve :: (Div n 2 k, Add k k n) => Vector k a -> Vector k a -> Vector n a
+vecUnHalve = vecUnSplit
+
+matConcatX :: (Mul x1 x2 x) => Vector x1 (Matrix y x2 t) -> Matrix y x t
+matConcatX vm = map concat (transpose vm)
+
+matConcatY :: (Mul y1 y2 y) => Vector y1 (Matrix y2 x t) -> Matrix y x t
+matConcatY = concat
+
+matConcat :: (Mul x1 x2 x, Mul y1 y2 y) =>
+  Matrix y1 x1 (Matrix y2 x2 t) -> Matrix y x t
+matConcat mm = matConcatY $ map matConcatX mm
+
+matTop :: (Add 1 ym1 y) => Matrix y x t -> Vector x t
+matTop = head
+
+matBot :: (Add 1 ym1 y) => Matrix y x t -> Vector x t
+matBot = last
+
+matLft :: (Add 1 xm1 x) => Matrix y x t -> Vector y t
+matLft = map head
+
+matRgt :: (Add 1 xm1 x) => Matrix y x t -> Vector y t
+matRgt = map last
+
+-- Split a Matrix (Vector of Vectors) into four parts.
+matSplit :: (Add x1 x2 x, Add y1 y2 y) => Matrix y x a ->
+  (Matrix y1 x1 a, Matrix y1 x2 a,
+   Matrix y2 x1 a, Matrix y2 x2 a)
+matSplit x = let (t, b) = vecSplit x
+                 (tl, tr) = unzip $ map vecSplit t
+                 (bl, br) = unzip $ map vecSplit b
+             in (tl, tr, bl, br)
+
+matSplitX :: (Add x1 x2 x) => Matrix y x a -> (Matrix y x1 a, Matrix y x2 a)
+matSplitX = unzip ∘ map vecSplit
+
+matSplitY :: (Add y1 y2 y) => Matrix y x a -> (Matrix y1 x a, Matrix y2 x a)
+matSplitY = vecSplit
+
+-- Matrix version of splitN
+matSplitNY :: (Div y y1 y2, Mul y1 y2 y) =>
+  Matrix y x a -> Vector y1 (Matrix y2 x a)
+matSplitNY = splitN
+
+matSplitNX :: (Div x x1 x2, Mul x1 x2 x) =>
+  Matrix y x a -> Vector x1 (Matrix y x2 a)
+matSplitNX = transpose ∘ map splitN
+
+matSplitN :: (Div x x1 x2, Mul x1 x2 x, Div y y1 y2, Mul y1 y2 y) =>
+  Matrix y x a -> Matrix y1 x1 (Matrix y2 x2 a)
+matSplitN = map matSplitNX ∘ matSplitNY
+
+matUnSplit :: (Add x1 x2 x, Add y1 y2 y) =>
+  Matrix y1 x1 a -> Matrix y1 x2 a ->
+  Matrix y2 x1 a -> Matrix y2 x2 a -> Matrix y x a
+matUnSplit tl tr bl br = append (zipWith append tl tr) (zipWith append bl br)
+
+matUnSplitX :: (Add x1 x2 x) => Matrix y x1 a -> Matrix y x2 a -> Matrix y x a
+matUnSplitX = zipWith append
+
+matUnSplitY :: (Add y1 y2 y) => Matrix y1 x a -> Matrix y2 x a -> Matrix y x a
+matUnSplitY = append
+
+-- Split a Matrix (Vector of Vectors) into four equal parts.
+matQuarter :: (Div x 2 x2, Div y 2 y2, Add x2 x2 x, Add y2 y2 y) =>
+  Matrix y x a ->
+  (Matrix y2 x2 a, Matrix y2 x2 a,
+   Matrix y2 x2 a, Matrix y2 x2 a)
+matQuarter = matSplit
+
+matHalveX :: (Div x 2 x2, Add x2 x2 x) =>
+  Matrix y x a -> (Matrix y x2 a, Matrix y x2 a)
+matHalveX = matSplitX
+
+matHalveY :: (Div y 2 y2, Add y2 y2 y) =>
+  Matrix y x a -> (Matrix y2 x a, Matrix y2 x a)
+matHalveY = matSplitY
+
+matUnQuarter :: (Div x 2 x2, Div y 2 y2, Add x2 x2 x, Add y2 y2 y) =>
+  Matrix y2 x2 a -> Matrix y2 x2 a ->
+  Matrix y2 x2 a -> Matrix y2 x2 a -> Matrix y x a
+matUnQuarter = matUnSplit
+
+matUnHalveX :: (Div x 2 x2, Add x2 x2 x) =>
+  Matrix y x2 a -> Matrix y x2 a -> Matrix y x a
+matUnHalveX = matUnSplitX
+
+matUnHalveY :: (Div y 2 y2, Add y2 y2 y) =>
+  Matrix y2 x a -> Matrix y2 x a -> Matrix y x a
+matUnHalveY = matUnSplitY
+
+unMatrixY :: Matrix 1 n a -> Vector n a
+unMatrixY = unVec
+
+unMatrixX :: Matrix n 1 a -> Vector n a
+unMatrixX = map unVec
+
+unMatrix :: Matrix 1 1 a -> a
+unMatrix = unVec ∘ unMatrixY
+
+matRows :: Matrix y x a -> Vector y (Vector x a)
+matRows = id
+
+matCols :: Matrix y x a -> Vector x (Vector y a)
+matCols = transpose
+
+genMatrix :: Matrix x y (Integer, Integer)
+genMatrix = genWith $ \y -> genWith $ \x -> (x, y)
+
+genMatrixWith :: (Integer -> Integer -> a) -> Matrix x y a
+genMatrixWith fn = matFor genMatrix $ uncurry fn
+
+genMatrixWithM :: (Monad m) => (Integer -> Integer -> m a) -> m (Matrix x y a)
+genMatrixWithM = matSequence ∘ genMatrixWith
+
+genVectorFrom :: Integer -> Vector n Integer
+genVectorFrom n = genWith ((+) n)
+
+enumerateFrom :: Integer -> Vector n a -> (Integer -> a -> b) -> Vector n b
+enumerateFrom i v f = zipWith f (genVectorFrom i) v
+
+enumerate :: Vector n a -> (Integer -> a -> b) -> Vector n b
+enumerate = enumerateFrom 0
+
+enumerateM :: (Monad m) => Vector n a -> (Integer -> a -> m b) -> m (Vector n b)
+enumerateM v f = sequence $ enumerate v f
+
+enumerateM_ :: (Monad m, Emptyable t) =>
+  Vector n a -> (Integer -> a -> m t) -> m t
+enumerateM_ v f = sequence_ $ enumerate v f
+
+enumerate2From :: Integer -> Vector n a -> Vector n b ->
+  (Integer -> a -> b -> c) -> Vector n c
+enumerate2From i v w f = zipWith3 f (genVectorFrom i) v w
+
+enumerate2 :: Vector n a -> Vector n b -> (Integer -> a -> b -> c) -> Vector n c
+enumerate2 = enumerate2From 0
+
+enumerate2M :: (Monad m) => Vector n a -> Vector n b ->
+  (Integer -> a -> b -> m c) -> m (Vector n c)
+enumerate2M v w f = sequence $ enumerate2 v w f
+
+enumerate2M_ :: (Monad m, Emptyable t) => Vector n a -> Vector n b ->
+  (Integer -> a -> b -> m t) -> m t
+enumerate2M_ v w f = sequence_ $ enumerate2 v w f
+
+-- Like genVector, but generates values other than Integers.
+genVec :: (Literal t) => Vector n t
+genVec = genWith fromInteger
+
+genMat :: (Literal xt, Literal yt) => Matrix y x (xt, yt)
+genMat = genMatrixWith $ \x y -> (fromInteger x, fromInteger y)
+
+-- Like genVectorFrom, but generates values other than Integers.
+genVecFrom :: (Literal t) => Integer -> Vector n t
+genVecFrom = map fromInteger ∘ genVectorFrom
+
+-- Like genVector, but generates Strings.
+genStrVec :: Vector n String
+genStrVec = genWith integerToString
+
+-- Like genVector, but generates Strings based on the given prefix.
+genStrVecPre :: String -> Vector n String
+genStrVecPre p = map ((+) p) genStrVec
+
+genStrMat :: Matrix y x String
+genStrMat = for genStrVec $ \sy -> genStrVecPre (sy + "_")
+
+genStrMatPre :: String -> Matrix y x String
+genStrMatPre p = matFor genStrMat $ \s -> p + s
+
+assertGenStrMatPre :: (IsModule m c) => m Empty
+assertGenStrMatPre = module
+  let ms :: Matrix 3 2 String
+      ms = genStrMatPre "TestyMcTestFace_"
+  staticAssert (ms == (vec (vec "TestyMcTestFace_0_0" "TestyMcTestFace_0_1")
+                           (vec "TestyMcTestFace_1_0" "TestyMcTestFace_1_1")
+                           (vec "TestyMcTestFace_2_0" "TestyMcTestFace_2_1")))
+               "genStrMatPre"
+
+-- Vector contains several rotate* functions including rotateBy. It also
+-- contains rotateBitsBy, but not the other rotateBits* functions.
+
+rotateBits :: Bit n -> Bit n  -- Rotate lsb to msb
+rotateBits x =
+  let v :: Vector n (Bit 1) = unpack x
+      r :: Vector n (Bit 1) = rotate v
+  in pack r
+
+rotateBitsR :: Bit n -> Bit n  -- Rotate msb to lsb
+rotateBitsR x =
+  let v :: Vector n (Bit 1) = unpack x
+      r :: Vector n (Bit 1) = rotateR v
+  in pack r
+
+-- Vector endianness, and how it relates to Bit endianness is not intuitive. So,
+-- to make it clear, and test it:
+assertVectorRotateBits :: (IsModule m c) => m Empty
+assertVectorRotateBits = module
+  staticAssert ((rotateBits 8'b01110010 ) == 8'b00111001) "rotateBits"
+  staticAssert ((rotateBitsR 8'b01110010) == 8'b11100100) "rotateBitsR"
+
+instance (Bitwise t) => Bitwise (Vector n t) where
+  (|)      = zipWith (|)
+  (&)      = zipWith (&)
+  (^)      = zipWith (^)
+  (^~)     = zipWith (^~)
+  (~^)     = zipWith (~^)
+  invert   = map invert
+  -- Not immediately obvious what the correct behavior is for these.
+  (<<) _ _ = error "<< is not defined for Vector"
+  (>>) _ _ = error ">> is not defined for Vector"
+  msb    _ = error "msb is not defined for Vector"
+  lsb    _ = error "lsb is not defined for Vector"
+
+-- BuildVector is based on https://okmij.org/ftp/Haskell/vararg-fn.lhs
+
+class BuildVector' n a r | r -> n a where
+  vec' :: Vector n a -> a -> r
+
+instance (Add n 1 n1) => BuildVector' n a (Vector n1 a) where
+  vec' l x = reverse $ x :> l
+
+instance (Add n 1 n1, BuildVector' n1 a r) => BuildVector' n a (a -> r) where
+  vec' l x = vec' $ x :> l
+
+-- This class is only needed to allow `vec` with no arguments to be a synonym
+-- for `nil`. It is not needed for the `vec` function to work with arguments.
+class BuildVector t where
+  vec :: t
+
+instance BuildVector (Vector 0 a) where
+  vec = nil
+
+instance (BuildVector' 0 a r) => BuildVector (a -> r) where
+  vec = vec' nil
+
+mat :: a -> Matrix 1 1 a
+mat = vec ∘ vec
+
+assertVectorVec :: (IsModule m c) => m Empty
+assertVectorVec = module
+  staticAssert ((genVector :: Vector 5 Integer) == (vec 0 1 2 3 4)) "vec5"
+  staticAssert ((genVector :: Vector 1 Integer) == (vec 0)) "vec1"
+  staticAssert ((genVector :: Vector 0 Integer) == vec) "vec0"
+
+assertVectorPacking :: (IsModule m c) => m Empty
+assertVectorPacking = module
+  let v :: Vector 3 (Bit 8) = vec 0xaa 0xbb 0xcc
+      p :: Bit 24 = 0xccbbaa
+  staticAssert ((v !! 0) == 0xaa) "v !! 0"
+  staticAssert ((v !! 1) == 0xbb) "v !! 1"
+  staticAssert ((v !! 2) == 0xcc) "v !! 2"
+  staticAssert ((pack v) == p) "pack"
+  staticAssert (v == (unpack p)) "unpack"
+
+sequence_ :: (Monad m, Emptyable t) => Vector n (m a) -> m t
+sequence_ v = do
+  _ <- sequence v
+  return empty
+
+matSequence :: (Monad m) => Matrix y x (m a) -> m (Matrix y x a)
+matSequence =  sequence ∘ map sequence
+
+assertForAssert :: (IsModule m c) => m Empty
+assertForAssert = module
+  -- Shows that the forM_ family of functions can be used for staticAsserts by
+  -- leveraging the Emptyable instance for ().
+  let a :: Vector 3 Integer
+      a = vec 1 2 3
+      b :: Vector 3 Integer
+      b = vec 4 5 6
+      assertLess x y = staticAssert (x < y) $ "assertLess " +
+                       (integerToString x) + " < " + (integerToString y)
+  for2M_ a b assertLess
+
+------ The vector functions.
+
+---- The regular vector functions: map, zipWith, etc.
+-- Many already exist, and the rest are based on the ones in ArrayExtra. Note,
+-- that since Vector is just a thin wrapper around Array, the vectorToArray and
+-- arrayToVector functions are very cheap.
+
+-- map, zipWith, and zipWith3 are already defined
+
+zipWith4 :: (a -> b -> c -> d -> e) -> Vector n a -> Vector n b -> Vector n c ->
+   Vector n d -> Vector n e
+zipWith4 fn a b c d = arrayToVector $ (ArrayExtra.zipWith4 fn
+  (vectorToArray a) (vectorToArray b) (vectorToArray c) (vectorToArray d))
+
+zipWith5 :: (a -> b -> c -> d -> e -> f) -> Vector n a -> Vector n b ->
+  Vector n c -> Vector n d -> Vector n e -> Vector n f
+zipWith5 fn a b c d e = arrayToVector $ (ArrayExtra.zipWith5 fn
+  (vectorToArray a) (vectorToArray b) (vectorToArray c) (vectorToArray d)
+  (vectorToArray e))
+
+zipWith6 :: (a -> b -> c -> d -> e -> f -> g) -> Vector n a -> Vector n b ->
+  Vector n c -> Vector n d -> Vector n e -> Vector n f -> Vector n g
+zipWith6 fn a b c d e f = arrayToVector $ (ArrayExtra.zipWith6 fn
+  (vectorToArray a) (vectorToArray b) (vectorToArray c) (vectorToArray d)
+  (vectorToArray e) (vectorToArray f))
+
+---- The monadic vector functions: mapM, zipWithM, etc.
+-- Many already exist, and the rest just use sequence with the non-monadic
+-- versions.
+
+-- mapM, zipWithM, and zipWith3M are already defined
+
+zipWith4M :: (Monad m) => (a -> b -> c -> d -> m e) -> Vector n a ->
+  Vector n b -> Vector n c -> Vector n d -> m (Vector n e)
+zipWith4M fn a b c d = sequence $ zipWith4 fn a b c d
+
+zipWith5M :: (Monad m) => (a -> b -> c -> d -> e -> m f) -> Vector n a ->
+  Vector n b -> Vector n c -> Vector n d -> Vector n e -> m (Vector n f)
+zipWith5M fn a b c d e = sequence $ zipWith5 fn a b c d e
+
+zipWith6M :: (Monad m) => (a -> b -> c -> d -> e -> f -> m g) -> Vector n a ->
+  Vector n b -> Vector n c -> Vector n d -> Vector n e -> Vector n f ->
+  m (Vector n g)
+zipWith6M fn a b c d e f = sequence $ zipWith6 fn a b c d e f
+
+---- The monadic vector functions returning (): mapM_, zipWithM_, etc.
+-- Many already exist, and the rest just use sequence_ with the non-monadic
+-- versions.
+
+-- mapM_ and zipWithM_ are already defined, but do not use Emptyable.
+
+mapM__ :: (Monad m, Emptyable t) => (a -> m t) -> Vector n a -> m t
+mapM__ fn a = sequence_ $ map fn a
+
+zipWithM__ :: (Monad m, Emptyable t) =>
+  (a -> b -> m t) -> Vector n a -> Vector n b -> m t
+zipWithM__ fn a b = sequence_ $ zipWith fn a b
+
+zipWith3M_ :: (Monad m, Emptyable t) =>
+  (a -> b -> c -> m t) -> Vector n a -> Vector n b -> Vector n c -> m t
+zipWith3M_ fn a b c = sequence_ $ zipWith3 fn a b c
+
+zipWith4M_ :: (Monad m, Emptyable t) =>
+  (a -> b -> c -> d -> m t) ->
+  Vector n a -> Vector n b -> Vector n c -> Vector n d -> m t
+zipWith4M_ fn a b c d = sequence_ $ zipWith4 fn a b c d
+
+zipWith5M_ :: (Monad m, Emptyable t) =>
+  (a -> b -> c -> d -> e -> m t) ->
+  Vector n a -> Vector n b -> Vector n c -> Vector n d -> Vector n e -> m t
+zipWith5M_ fn a b c d e = sequence_ $ zipWith5 fn a b c d e
+
+zipWith6M_ :: (Monad m, Emptyable t) =>
+  (a -> b -> c -> d -> e -> f -> m t) ->
+  Vector n a -> Vector n b -> Vector n c ->
+  Vector n d -> Vector n e -> Vector n f -> m t
+zipWith6M_ fn a b c d e f = sequence_ $ zipWith6 fn a b c d e f
+
+------ The "for" vector functions.
+-- Just a reordering of the arguments to the functions above.
+
+---- The regular "for" vector functions: for, for2, etc.
+
+for :: Vector n a -> (a -> b) -> Vector n b
+for a fn = map fn a
+
+for2 :: Vector n a -> Vector n b -> (a -> b -> c) -> Vector n c
+for2 a b fn = zipWith fn a b
+
+for3 :: Vector n a -> Vector n b -> Vector n c -> (a -> b -> c -> d) ->
+  Vector n d
+for3 a b c fn = zipWith3 fn a b c
+
+for4 :: Vector n a -> Vector n b -> Vector n c -> Vector n d ->
+  (a -> b -> c -> d -> e) -> Vector n e
+for4 a b c d fn = zipWith4 fn a b c d
+
+for5 :: Vector n a -> Vector n b -> Vector n c -> Vector n d -> Vector n e ->
+  (a -> b -> c -> d -> e -> f) -> Vector n f
+for5 a b c d e fn = zipWith5 fn a b c d e
+
+for6 :: Vector n a -> Vector n b -> Vector n c -> Vector n d -> Vector n e ->
+  Vector n f -> (a -> b -> c -> d -> e -> f -> g) -> Vector n g
+for6 a b c d e f fn = zipWith6 fn a b c d e f
+
+---- The monadic "for" vector functions: forM, for2M, etc.
+
+forM :: (Monad m) => Vector n a -> (a -> m b) -> m (Vector n b)
+forM a fn = mapM fn a
+
+for2M :: (Monad m) => Vector n a -> Vector n b -> (a -> b -> m c) ->
+  m (Vector n c)
+for2M a b fn = zipWithM fn a b
+
+for3M :: (Monad m) => Vector n a -> Vector n b -> Vector n c ->
+  (a -> b -> c -> m d) -> m (Vector n d)
+for3M a b c fn = zipWith3M fn a b c
+
+for4M :: (Monad m) => Vector n a -> Vector n b -> Vector n c -> Vector n d ->
+  (a -> b -> c -> d -> m e) -> m (Vector n e)
+for4M a b c d fn = zipWith4M fn a b c d
+
+for5M :: (Monad m) => Vector n a -> Vector n b -> Vector n c -> Vector n d ->
+  Vector n e -> (a -> b -> c -> d -> e -> m f) -> m (Vector n f)
+for5M a b c d e fn = zipWith5M fn a b c d e
+
+for6M :: (Monad m) => Vector n a -> Vector n b -> Vector n c -> Vector n d ->
+  Vector n e -> Vector n f -> (a -> b -> c -> d -> e -> f -> m g) ->
+  m (Vector n g)
+for6M a b c d e f fn = zipWith6M fn a b c d e f
+
+---- The monadic "for" vector functions returning (): forM_, for2M_, etc.
+
+forM_ :: (Monad m, Emptyable t) => Vector n a -> (a -> m t) -> m t
+forM_ a fn = mapM__ fn a
+
+for2M_ :: (Monad m, Emptyable t) =>
+  Vector n a -> Vector n b -> (a -> b -> m t) -> m t
+for2M_ a b fn = zipWithM__ fn a b
+
+for3M_ :: (Monad m, Emptyable t) => Vector n a -> Vector n b -> Vector n c ->
+  (a -> b -> c -> m t) -> m t
+for3M_ a b c fn = zipWith3M_ fn a b c
+
+for4M_ :: (Monad m, Emptyable t) =>
+  Vector n a -> Vector n b -> Vector n c -> Vector n d ->
+  (a -> b -> c -> d -> m t) -> m t
+for4M_ a b c d fn = zipWith4M_ fn a b c d
+
+for5M_ :: (Monad m, Emptyable t) =>
+  Vector n a -> Vector n b -> Vector n c -> Vector n d -> Vector n e ->
+  (a -> b -> c -> d -> e -> m t) -> m t
+for5M_ a b c d e fn = zipWith5M_ fn a b c d e
+
+for6M_ :: (Monad m, Emptyable t) =>
+  Vector n a -> Vector n b -> Vector n c ->
+  Vector n d -> Vector n e -> Vector n f ->
+  (a -> b -> c -> d -> e -> f -> m t) -> m t
+for6M_ a b c d e f fn = zipWith6M_ fn a b c d e f
+
+------ The matrix functions.
+-- Just a composition of the vector functions above.
+
+---- The regular matrix functions: matMap, matZipWith, etc.
+
+matMap :: (a -> b) -> Matrix y x a -> Matrix y x b
+matMap = map ∘ map
+
+matZipWith :: (a -> b -> c) -> Matrix y x a -> Matrix y x b -> Matrix y x c
+matZipWith = zipWith ∘ zipWith
+
+matZipWith3 :: (a -> b -> c -> d) -> Matrix y x a -> Matrix y x b ->
+  Matrix y x c -> Matrix y x d
+matZipWith3 = zipWith3 ∘ zipWith3
+
+matZipWith4 :: (a -> b -> c -> d -> e) -> Matrix y x a -> Matrix y x b ->
+  Matrix y x c -> Matrix y x d -> Matrix y x e
+matZipWith4 = zipWith4 ∘ zipWith4
+
+matZipWith5 :: (a -> b -> c -> d -> e -> f) -> Matrix y x a -> Matrix y x b ->
+  Matrix y x c -> Matrix y x d -> Matrix y x e -> Matrix y x f
+matZipWith5 = zipWith5 ∘ zipWith5
+
+matZipWith6 :: (a -> b -> c -> d -> e -> f -> g) -> Matrix y x a ->
+  Matrix y x b -> Matrix y x c -> Matrix y x d -> Matrix y x e ->
+  Matrix y x f -> Matrix y x g
+matZipWith6 = zipWith6 ∘ zipWith6
+
+---- The monadic matrix functions: matMapM, matZipWithM, etc.
+
+matMapM :: (Monad m) => (a -> m b) -> Matrix y x a -> m (Matrix y x b)
+matMapM = mapM ∘ mapM
+
+matZipWithM :: (Monad m) => (a -> b -> m c) -> Matrix y x a -> Matrix y x b ->
+  m (Matrix y x c)
+matZipWithM = zipWithM ∘ zipWithM
+
+matZipWith3M :: (Monad m) => (a -> b -> c -> m d) -> Matrix y x a ->
+  Matrix y x b -> Matrix y x c -> m (Matrix y x d)
+matZipWith3M = zipWith3M ∘ zipWith3M
+
+matZipWith4M :: (Monad m) => (a -> b -> c -> d -> m e) -> Matrix y x a ->
+  Matrix y x b -> Matrix y x c -> Matrix y x d -> m (Matrix y x e)
+matZipWith4M = zipWith4M ∘ zipWith4M
+
+matZipWith5M :: (Monad m) => (a -> b -> c -> d -> e -> m f) -> Matrix y x a ->
+  Matrix y x b -> Matrix y x c -> Matrix y x d -> Matrix y x e ->
+  m (Matrix y x f)
+matZipWith5M = zipWith5M ∘ zipWith5M
+
+matZipWith6M :: (Monad m) => (a -> b -> c -> d -> e -> f -> m g) ->
+  Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d ->
+  Matrix y x e -> Matrix y x f -> m (Matrix y x g)
+matZipWith6M = zipWith6M ∘ zipWith6M
+
+---- The monadic matrix functions returning (): matMapM_, matZipWithM_, etc.
+
+matMapM_ :: (Monad m, Emptyable t) => (a -> m t) -> Matrix y x a -> m t
+matMapM_ = mapM__ ∘ mapM__
+
+matZipWithM_ :: (Monad m, Emptyable t) => (a -> b -> m t) ->
+  Matrix y x a -> Matrix y x b -> m t
+matZipWithM_ = zipWithM__ ∘ zipWithM__
+
+matZipWith3M_ :: (Monad m, Emptyable t) => (a -> b -> c -> m t) ->
+  Matrix y x a -> Matrix y x b -> Matrix y x c -> m t
+matZipWith3M_ = zipWith3M_ ∘ zipWith3M_
+
+matZipWith4M_ :: (Monad m, Emptyable t) => (a -> b -> c -> d -> m t) ->
+  Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d -> m t
+matZipWith4M_ = zipWith4M_ ∘ zipWith4M_
+
+matZipWith5M_ :: (Monad m, Emptyable t) => (a -> b -> c -> d -> e -> m t) ->
+  Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> m t
+matZipWith5M_ = zipWith5M_ ∘ zipWith5M_
+
+matZipWith6M_ :: (Monad m, Emptyable t) =>
+  (a -> b -> c -> d -> e -> f -> m t) ->
+  Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> Matrix y x f -> m t
+matZipWith6M_ = zipWith6M_ ∘ zipWith6M_
+
+------ The "for" matrix functions.
+-- Just a reordering of the arguments to the functions above.
+
+---- The regular matrix "for" functions: matFor, matFor2, etc.
+
+matFor :: Matrix y x a -> (a -> b) -> Matrix y x b
+matFor a fn = matMap fn a
+
+matFor2 :: Matrix y x a -> Matrix y x b -> (a -> b -> c) -> Matrix y x c
+matFor2 a b fn = matZipWith fn a b
+
+matFor3 :: Matrix y x a -> Matrix y x b -> Matrix y x c -> (a -> b -> c -> d) ->
+  Matrix y x d
+matFor3 a b c fn = matZipWith3 fn a b c
+
+matFor4 :: Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d ->
+  (a -> b -> c -> d -> e) -> Matrix y x e
+matFor4 a b c d fn = matZipWith4 fn a b c d
+
+matFor5 :: Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d ->
+  Matrix y x e -> (a -> b -> c -> d -> e -> f) -> Matrix y x f
+matFor5 a b c d e fn = matZipWith5 fn a b c d e
+
+matFor6 :: Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d ->
+  Matrix y x e -> Matrix y x f -> (a -> b -> c -> d -> e -> f -> g) ->
+  Matrix y x g
+matFor6 a b c d e f fn = matZipWith6 fn a b c d e f
+
+---- The monadic matrix "for" functions: matForM, matFor2M, etc.
+
+matForM :: (Monad m) => Matrix y x a -> (a -> m b) -> m (Matrix y x b)
+matForM a fn = matMapM fn a
+
+matFor2M :: (Monad m) => Matrix y x a -> Matrix y x b -> (a -> b -> m c) ->
+  m (Matrix y x c)
+matFor2M a b fn = matZipWithM fn a b
+
+matFor3M :: (Monad m) => Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  (a -> b -> c -> m d) -> m (Matrix y x d)
+matFor3M a b c fn = matZipWith3M fn a b c
+
+matFor4M :: (Monad m) => Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> (a -> b -> c -> d -> m e) -> m (Matrix y x e)
+matFor4M a b c d fn = matZipWith4M fn a b c d
+
+matFor5M :: (Monad m) => Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> (a -> b -> c -> d -> e -> m f) ->
+  m (Matrix y x f)
+matFor5M a b c d e fn = matZipWith5M fn a b c d e
+
+matFor6M :: (Monad m) => Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> Matrix y x f ->
+  (a -> b -> c -> d -> e -> f -> m g) -> m (Matrix y x g)
+matFor6M a b c d e f fn = matZipWith6M fn a b c d e f
+
+---- The monadic matrix "for" functions returning (): matForM_, matFor2M_, etc.
+
+matForM_ :: (Monad m, Emptyable t) => Matrix y x a -> (a -> m t) -> m t
+matForM_ a fn = matMapM_ fn a
+
+matFor2M_ :: (Monad m, Emptyable t) =>
+  Matrix y x a -> Matrix y x b -> (a -> b -> m t) -> m t
+matFor2M_ a b fn = matZipWithM_ fn a b
+
+matFor3M_ :: (Monad m, Emptyable t) =>
+  Matrix y x a -> Matrix y x b -> Matrix y x c -> (a -> b -> c -> m t) -> m t
+matFor3M_ a b c fn = matZipWith3M_ fn a b c
+
+matFor4M_ :: (Monad m, Emptyable t) =>
+  Matrix y x a -> Matrix y x b -> Matrix y x c -> Matrix y x d ->
+  (a -> b -> c -> d -> m t) -> m t
+matFor4M_ a b c d fn = matZipWith4M_ fn a b c d
+
+matFor5M_ :: (Monad m, Emptyable t) =>
+  Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> (a -> b -> c -> d -> e -> m t) -> m t
+matFor5M_ a b c d e fn = matZipWith5M_ fn a b c d e
+
+matFor6M_ :: (Monad m, Emptyable t) =>
+  Matrix y x a -> Matrix y x b -> Matrix y x c ->
+  Matrix y x d -> Matrix y x e -> Matrix y x f ->
+  (a -> b -> c -> d -> e -> f -> m t) -> m t
+matFor6M_ a b c d e f fn = matZipWith6M_ fn a b c d e f
+
+oneHotSelect :: (Bits a sa) => Vector n Bool -> Vector n a -> a
+oneHotSelect bs xs = List.oneHotSelect (toList bs) (toList xs)

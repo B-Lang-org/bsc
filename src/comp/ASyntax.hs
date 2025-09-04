@@ -182,8 +182,12 @@ data APackage = APackage {
     apkg_proof_obligations :: [(ProofObligation AExpr, MsgFn)]
     } deriving (Eq, Show)
 
-instance Hyper APackage where
-    hyper x y = (x==x) `seq` y
+instance NFData APackage where
+    rnf (APackage x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6
+               `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` rnf x11
+               `seq` rnf x12 `seq` rnf x13 `seq` rnf x14 `seq` rnf x15 `seq` rnf x16
+               `seq` rnf x17 `seq` ()
 
 getAPackageFieldInfos :: APackage -> [VFieldInfo]
 getAPackageFieldInfos = map aif_fieldinfo . apkg_interface
@@ -246,7 +250,7 @@ apkgExposesClkOrRst apkg =
 -- rules and interface methods have turned into logic connected to state instances
 data ASPackage = ASPackage {
         -- package name
-         aspkg_name :: AId,
+        aspkg_name :: AId,
         -- module wrapped around a pure function with pragma no-inline
         aspkg_is_wrapped :: Bool,
         -- parameters (names in Verilog)
@@ -281,8 +285,11 @@ data ASPackage = ASPackage {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPackage where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPackage where
+    rnf (ASPackage x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6
+               `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` rnf x11
+               `seq` rnf x12 `seq` rnf x13 `seq` rnf x14 `seq` ()
 
 data ASPSignalInfo = ASPSignalInfo {
         -- input params, ports, clocks, and resets are all in one list
@@ -344,6 +351,9 @@ data ASPMethodInfo = ASPMethodInfo {
                                                        }
                    deriving (Eq, Show)
 
+instance NFData ASPMethodInfo where
+    rnf (ASPMethodInfo x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
+
 instance PPrint ASPMethodInfo where
     pPrint d p aspmi = text "method:" <+> pPrint d p( aspm_name aspmi)
                        <+> text (aspm_type aspmi) <> equals <>
@@ -353,10 +363,9 @@ instance PPrint ASPMethodInfo where
                                 pPrint d 0 (aspm_inputs aspmi) $+$
                                 pPrint d 0 (aspm_assocrules aspmi) )
 
-
-
-instance Hyper ASPSignalInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPSignalInfo where
+        rnf (ASPSignalInfo x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) =
+                rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` rnf x9 `seq` rnf x10 `seq` ()
 
 data ASPCommentInfo = ASPCommentInfo {
         -- comments on submodule instantiations
@@ -368,8 +377,8 @@ data ASPCommentInfo = ASPCommentInfo {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPCommentInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPCommentInfo where
+    rnf (ASPCommentInfo is rules) = rnf is `seq` rnf rules `seq` ()
 
 -- parallel rule groups; total order on state
 -- (first rule in the list writes, present only if there are state conflicts)
@@ -380,8 +389,8 @@ data ASchedule = ASchedule {
     }
         deriving (Eq, Show)
 
-instance Hyper ASchedule where
-    hyper x y = (x==x) `seq` y
+instance NFData ASchedule where
+    rnf (ASchedule x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 newtype AScheduler =
           -- esposito: (r,f) s.t.
@@ -395,6 +404,9 @@ newtype AScheduler =
           --      So [[a,b],[c],[d,e,f]] = !(ab) && !c && !(def)
     ASchedEsposito [(ARuleId, [ARuleId])]
         deriving (Eq, Show)
+
+instance NFData AScheduler where
+    rnf (ASchedEsposito x) = rnf x `seq` ()
 
 getSchedulerIds :: AScheduler -> [ARuleId]
 getSchedulerIds (ASchedEsposito fs) = map fst fs
@@ -447,13 +459,16 @@ data AType =
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AType where
-    hyper x y = (x==x) `seq` y
+instance NFData AType where
+    rnf (ATBit x) = rnf x `seq` ()
+    rnf (ATString x) = rnf x `seq` ()
+    rnf ATReal = ()
+    rnf (ATArray x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ATAbstract x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 instance HasPosition AType where
     getPosition (ATAbstract {ata_id = id}) = getPosition id
     getPosition _                          = noPosition
-
 
 aTZero, aTBool, aTNat :: AType
 aTZero = ATBit 0
@@ -530,6 +545,12 @@ data AAbstractInput =
         --   AAI_Struct [(AId, AType)]
         --   ...
     deriving (Eq, Show)
+
+instance NFData AAbstractInput where
+        rnf (AAI_Port x) = rnf x `seq` ()
+        rnf (AAI_Clock x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+        rnf (AAI_Reset x) = rnf x `seq` ()
+        rnf (AAI_Inout x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 absInputToPorts :: AAbstractInput -> [AInput]
 absInputToPorts (AAI_Port p) = [p]
@@ -707,8 +728,8 @@ data ADef = ADef {
 instance HasPosition ADef where
     getPosition adef = getPosition (adef_objid adef )
 
-instance Hyper ADef where
-    hyper x y = (x==x) `seq` y
+instance NFData ADef where
+    rnf (ADef x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 -- last id has original rule if this one comes from a split; Nothing otherwise
 -- it's only used as an optimization; it's safe to put Nothing there
@@ -726,6 +747,10 @@ data ARule =
                                          --   Just parent rule name
     }
         deriving (Eq, Show)
+
+instance NFData ARule where
+    rnf (ARule x1 x2 x3 x4 x5 x6 x7 x8) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
 
 type ARuleDescr = String
 
@@ -746,6 +771,9 @@ data AAssumption =
                                     -- cannot include method calls
     }
   deriving (Eq, Show)
+
+instance NFData AAssumption where
+    rnf (AAssumption x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
@@ -781,6 +809,14 @@ data AIFace =   AIDef { aif_name      :: AId,
                           aif_inout     :: AInout,
                           aif_fieldinfo :: VFieldInfo }
    deriving (Eq, Show)
+
+instance NFData AIFace where
+  rnf (AIDef x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
+  rnf (AIAction x1 x2 x3 x4 x5 x6) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` ()
+  rnf (AIActionValue x1 x2 x3 x4 x5 x6 x7) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` ()
+  rnf (AIClock x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+  rnf (AIReset x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+  rnf (AIInout x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 aIfaceName :: AIFace -> AId
 aIfaceName (AIDef { aif_value = (ADef i _ _ _)}) = i  -- XXX use aif_name
@@ -929,8 +965,11 @@ data AAction
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AAction where
-    hyper x y = (x==x) `seq` y
+instance NFData AAction where
+    rnf (ACall x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (AFCall x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
+    rnf (ATaskAction x1 x2 x3 x4 x5 x6 x7 x8) =
+        rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x7 `seq` rnf x8 `seq` ()
 
 data AClock = AClock {
                        aclock_osc  :: AExpr, -- must be of type ATBit 1
@@ -941,6 +980,9 @@ data AClock = AClock {
   -- the Eq instance should be accurate
   --    (same oscillator and gate ==> same clock)
   -- though it may not catch aliasing
+
+instance NFData AClock where
+  rnf (AClock x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 instance PPrint AClock where
   pPrint d p (AClock osc gate) =
@@ -971,10 +1013,16 @@ newtype AReset = AReset {
                         }
   deriving (Eq, Ord, Show)
 
+instance NFData AReset where
+  rnf (AReset x) = rnf x `seq` ()
+
 newtype AInout = AInout {
                           ainout_wire :: AExpr
                         }
   deriving (Eq, Ord, Show)
+
+instance NFData AInout where
+  rnf (AInout x) = rnf x `seq` ()
 
 instance PPrint AReset where
   pPrint d p (AReset { areset_wire = wire }) = (text "{ wire: ") <+> (pPrint d p wire) <+> (text "}")
@@ -1101,8 +1149,24 @@ data AExpr
         }
         deriving (Ord, Show)
 
-instance Hyper AExpr where
-    hyper x y = (x==x) `seq` y
+instance NFData AExpr where
+    rnf (APrim x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (AMethCall x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (AMethValue x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (ANoInlineFunCall x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
+    rnf (AFunCall x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
+    rnf (ATaskValue x1 x2 x3 x4 x5) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` ()
+    rnf (ASPort x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASParam x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASDef x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASInt x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (ASReal x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (ASStr x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
+    rnf (ASAny x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASClock x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASReset x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (ASInout x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
+    rnf (AMGate x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
@@ -1189,6 +1253,8 @@ data ANoInlineFun =
          (Maybe String)
     deriving (Eq, Ord, Show)
 
+instance NFData ANoInlineFun where
+    rnf (ANoInlineFun x1 x2 x3 x4) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` ()
 
 -- first element are the oscillators whose edges trigger evaluation
 -- second element is the block of function calls
@@ -1309,8 +1375,9 @@ instance PPrint AVInst where
         text "meth types=" <> pPrint d 0 mts $+$
         text "port types=" <> pPrint d 0 pts)
 
-instance Hyper AVInst where
-    hyper x y = (x==x) `seq` y
+instance NFData AVInst where
+    rnf (AVInst vname ty user_import meth_types port_types vmi iargs iarray) =
+      rnf vname `seq` rnf ty `seq` rnf user_import `seq` rnf meth_types `seq` rnf port_types `seq` rnf vmi `seq` rnf iargs `seq` rnf iarray `seq` ()
 
 ppVTI :: PDetail -> (VModInfo, [AExpr], [(AId, Integer)]) -> Doc
 ppVTI d (vi, es, ns) = sep [pPrint d 0 (vName vi), pPrint d 0 vi, pPrint d 0 es, pPrint d 0 ns]
@@ -1460,8 +1527,9 @@ instance PPrint AForeignCall where
 
    pPrint _ _ x = internalError ("pPrint AForeignCall: " ++ show x)
 
-instance Hyper AForeignCall where
-    hyper x y = (x==x) `seq` y
+instance NFData AForeignCall where
+    rnf (AForeignCall name fun args writes resets) =
+        rnf name `seq` rnf fun `seq` rnf args `seq` rnf writes `seq` rnf resets `seq` ()
 
 isOne :: AExpr -> Bool
 isOne (ASInt _ _ (IntLit _ _ 1)) = True

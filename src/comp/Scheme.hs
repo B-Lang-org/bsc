@@ -32,8 +32,8 @@ instance Types Scheme where
     apSub s (Forall ks qt) = Forall ks (apSub s qt)
     tv      (Forall ks qt) = tv qt
 
-instance Hyper Scheme where
-    hyper (Forall ks qt) y = hyper2 ks qt y
+instance NFData Scheme where
+    rnf (Forall x1 x2) = rnf x1 `seq` rnf x2 `seq` ()
 
 -- turn a qualified type (qt) into a scheme over some type variables (vs)
 -- the reverse of quantify is inst (q.v.)

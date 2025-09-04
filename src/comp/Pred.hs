@@ -54,8 +54,8 @@ instance Types t => Types (Qual t) where
     apSub s (ps :=> t) = apSub s ps :=> apSub s t
     tv      (ps :=> t) = tv ps `union` tv t
 
-instance (Hyper a) => Hyper (Qual a) where
-    hyper (ps :=> t) y = hyper2 ps t y
+instance (NFData a) => NFData (Qual a) where
+    rnf (ps :=> t) = rnf ps `seq` rnf t `seq` ()
 
 qualTypeToCQType :: Qual Type -> CQType
 qualTypeToCQType (pwps :=> t) = CQType ps t
@@ -105,8 +105,8 @@ instance Types PredWithPositions where
     apSub s (PredWithPositions p poss) = PredWithPositions (apSub s p) poss
     tv      (PredWithPositions p poss) = tv p
 
-instance Hyper PredWithPositions where
-    hyper (PredWithPositions p poss) y = hyper2 p poss y
+instance NFData PredWithPositions where
+    rnf (PredWithPositions p poss) = rnf p `seq` rnf poss `seq` ()
 
 -----
 
@@ -124,8 +124,8 @@ instance Types Pred where
     apSub s (IsIn c ts) = IsIn c $ expandSyn <$> apSub s ts
     tv      (IsIn c ts) = tv ts
 
-instance Hyper Pred where
-    hyper (IsIn c ts) y = hyper2 c ts y
+instance NFData Pred where
+    rnf (IsIn c ts) = rnf c `seq` rnf ts `seq` ()
 
 predToCPred :: Pred -> CPred
 predToCPred (IsIn c ts) = CPred (name c) ts
@@ -194,8 +194,9 @@ instance PVPrint Class where
                 pvPrint d 0 (funDeps c) <>
                 text ")"
 
-instance Hyper Class where
-    hyper (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) y = hyper7 x1 x2 x3 x4 x5 x8 x9 y
+instance NFData Class where
+    -- TODO: Was wrong: didn't force x6 either. Still doesn't force x7, since it's a function.
+    rnf (Class x1 x2 x3 x4 x5 x6 _x7 x8 x9) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x6 `seq` rnf x8 `seq` rnf x9 `seq` ()
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -208,8 +209,8 @@ instance Ord Class where
 -- things are that go into an Inst.
 data Inst = Inst CExpr [TyVar] (Qual Pred)
 
-instance Hyper Inst where
-    hyper (Inst x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData Inst where
+    rnf (Inst x1 x2 x3) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` ()
 
 mkInst :: CExpr -> Qual Pred -> Inst
 mkInst e i = Inst e (tv i) i

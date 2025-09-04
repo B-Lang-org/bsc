@@ -1,0 +1,1053 @@
+package VerilogRepr where
+
+import List
+import qualified Vector
+
+import ListExtra  -- TODO: Move to built-in BuildList when we upgrade bsc
+
+import Json
+
+-- Proxy value used to supply type parameters to type class methods that don't
+-- otherwise use the type parameter. Should never actually be evaluated.
+prx :: a
+prx = error "Proxy value, should not be evaluated"
+
+toUpperSnakeCase :: String -> String
+toUpperSnakeCase =
+  charListToString ∘
+  dropInitialUnderscore ∘
+  foldr (\ c s -> if isUpper c then '_' :> c :> s else toUpper c :> s) nil ∘
+  stringToCharList
+
+toLowerSnakeCase :: String -> String
+toLowerSnakeCase =
+  charListToString ∘
+  dropInitialUnderscore ∘
+  foldr (\ c s -> if isUpper c then '_' :> toLower c :> s else c :> s) nil ∘
+  stringToCharList
+
+dropInitialUnderscore :: List Char -> List Char
+dropInitialUnderscore (Cons c cs) when c == '_' = cs
+dropInitialUnderscore cs = cs
+
+-- Convert a type to its Bluespec type expression, or a unique identifier for
+-- use in Verilog.
+class TypeId a where
+  bsType :: a -> String
+  bsTypeP :: a -> String
+  bsTypeP proxy = "(" +++ bsType proxy +++ ")"
+  verilogTypeId :: a -> String
+
+instance TypeId Bool where
+  bsType _ = "Bool"
+  bsTypeP _ = "Bool"
+  verilogTypeId _ = "bool"
+
+instance TypeId (Bit n) where
+  bsType _ = "Bit " +++ integerToString (valueOf n)
+  verilogTypeId _ = "bit" +++ integerToString (valueOf n)
+
+instance TypeId (UInt n) where
+  bsType _ = "UInt " +++ integerToString (valueOf n)
+  verilogTypeId _ = "uint" +++ integerToString (valueOf n)
+
+instance TypeId (Int n) where
+  bsType _ = "Int " +++ integerToString (valueOf n)
+  verilogTypeId _ = "int" +++ integerToString (valueOf n)
+
+instance (TypeId a) => TypeId (Maybe a) where
+  bsType _ = "Maybe " +++ bsTypeP (prx :: a)
+  verilogTypeId _ = "option_" +++ verilogTypeId (prx :: a)
+
+instance (TypeId a) => TypeId (Vector.Vector n a) where
+  bsType _ = "Vector " +++ integerToString (valueOf n) +++ " " +++
+    bsTypeP (prx :: a)
+  verilogTypeId _ = "array_" +++
+    integerToString (valueOf n) +++ "_" +++
+    verilogTypeId (prx :: a)
+
+instance TypeId () where
+  bsType _ = "()"
+  bsTypeP _ = "()"
+  verilogTypeId _ = "unit"
+
+instance (TupleTypeId (a, b)) => TypeId (a, b) where
+  bsType proxy = "(" +++ bsTupleType proxy +++ ")"
+  bsTypeP proxy = "(" +++ bsTupleType proxy +++ ")"
+  verilogTypeId proxy = "tuple_" +++ verilogTupleTypeId proxy
+
+class TupleTypeId a where
+  bsTupleType :: a -> String
+  verilogTupleTypeId :: a -> String
+
+instance (TypeId a, TupleTypeId b) => TupleTypeId (a, b) where
+  bsTupleType _ = bsType (prx :: a) +++ ", " +++ bsTupleType (prx :: b)
+  verilogTupleTypeId _ =
+    verilogTypeId (prx :: a) +++ "_" +++ verilogTupleTypeId (prx :: b)
+
+instance (TypeId a) => TupleTypeId a where
+  bsTupleType = bsType
+  verilogTupleTypeId = verilogTypeId
+
+instance (Generic a r, TypeId' r) => TypeId a where
+  bsType _ = bsType' (prx :: r)
+  bsTypeP _ = bsTypeP' (prx :: r)
+  verilogTypeId _ = verilogTypeId' (prx :: r)
+
+-- Compute the unique type identifier using a type's generic representation.
+class TypeId' a where
+  bsType' :: a -> String
+  bsTypeP' :: a -> String
+  bsTypeP' proxy = "(" +++ bsType' proxy +++ ")"
+  verilogTypeId' :: a -> String
+
+instance TypeId' (Meta (MetaData name pkg () ncons) a) where
+  bsType' _ = stringOf name
+  bsTypeP' _ = stringOf name
+  verilogTypeId' _ = toLowerSnakeCase $ stringOf name
+
+instance (TypeId' tyargs) =>
+    TypeId' (Meta (MetaData name pkg tyargs ncons) a) where
+  bsType' _ = stringOf name +++ " " +++ bsType' (prx :: tyargs)
+  bsTypeP' _ = "(" +++ stringOf name +++ " " +++ bsType' (prx :: tyargs) +++ ")"
+  verilogTypeId' _ =
+    toLowerSnakeCase (stringOf name) +++ "_" +++ verilogTypeId' (prx :: tyargs)
+
+instance (TypeId' a, TypeId' b) => TypeId' (a, b) where
+  bsType' _ =
+    bsType' (prx :: a) +++ " " +++ bsType' (prx :: b)
+  verilogTypeId' _ =
+    verilogTypeId' (prx :: a) +++ "_" +++ verilogTypeId' (prx :: b)
+
+instance (TypeId a) => TypeId' (StarArg a) where
+  bsType' _ = bsTypeP (prx :: a)
+  verilogTypeId' _ = verilogTypeId (prx :: a)
+
+instance TypeId' (NumArg i) where
+  bsType' _ = integerToString $ valueOf i
+  verilogTypeId' _ = integerToString $ valueOf i
+
+instance TypeId' ConArg where
+  bsType' _ =
+    error "Demanded Bluespec type of a higher-kinded type argument"
+  verilogTypeId' _ =
+    error "Demanded Verilog type ID of a higher-kinded type argument"
+
+-- AST representation of Verilog declarations.
+data VDecl
+  = VStruct String (List VField)
+  | VUnion String (List VField)
+  | VEnum String Integer (List String)
+  | VTypedef String VType
+  | VLocalParam String Integer Integer
+  | VComment String
+  -- No AST for now, just construct the whole function as text
+  | VFunction String
+
+data VField
+  = VField VType String
+
+data VType
+  = VLogic
+  | VLogicSigned
+  | VTypeName String
+  | VPackedArray Integer VType
+
+-- Write a Verilog AST to a file
+writeVDecl :: Handle -> VDecl -> Module Empty
+writeVDecl file (VStruct name fields) = do
+  hPutStrLn file $ "typedef struct packed {"
+  mapM_ (writeVField file) fields
+  hPutStrLn file $ "} " +++ name +++ ";\n"
+writeVDecl file (VUnion name fields) = do
+  hPutStrLn file $ "typedef union packed {"
+  mapM_ (writeVField file) fields
+  hPutStrLn file $ "} " +++ name +++ ";\n"
+-- just the tag type
+writeVDecl file (VEnum name width tags) = do
+  hPutStrLn file $
+    "typedef enum logic [" +++ integerToString (width - 1) +++ ":0] {"
+  hPutStrLn file $
+    foldr1 (\ a b -> a +++ ",\n" +++ b) $
+    map (\ (tag, i) ->
+      "  " +++ tag +++ " = " +++
+      integerToString width +++ "'d" +++ integerToString i) $
+    zip tags $ upto 0 $ length tags
+  hPutStrLn file $ "} " +++ name +++ ";\n"
+writeVDecl file (VTypedef name ty) = do
+  hPutStrLn file $ "typedef " +++ ppVType ty +++ " " +++ name +++ ";\n"
+writeVDecl file (VLocalParam name size value) = do
+  if value > 2**size - 1
+    then errorM $ "Value " +++ integerToString value +++
+      " does not fit in " +++ integerToString size +++
+      " bits"
+    else return ()
+  hPutStrLn file $ "localparam " +++ name +++ " = " +++
+    integerToString size +++ "'d" +++
+    integerToString value +++ ";"
+writeVDecl file (VComment comment) = hPutStrLn file $ "// " +++ comment
+writeVDecl file (VFunction decl) = hPutStrLn file decl
+
+writeVField :: Handle -> VField -> Module Empty
+writeVField file (VField ty name) =
+  hPutStrLn file $ "  " +++ ppVType ty +++ " " +++ name +++ ";"
+
+ppVType :: VType -> String
+ppVType ty = lppVType ty +++ (if rpp == "" then "" else " " +++ rpp)
+  where rpp = rppVType ty
+
+lppVType :: VType -> String
+lppVType VLogic = "logic"
+lppVType VLogicSigned = "logic signed"
+lppVType (VTypeName name) = name
+lppVType (VPackedArray _ ty) = lppVType ty
+
+rppVType :: VType -> String
+rppVType (VPackedArray size ty) =
+  "[" +++ integerToString (size - 1) +++ ":0]" +++ rppVType ty
+rppVType _ = ""
+
+vTypeArraySizes :: VType -> List Integer
+vTypeArraySizes (VPackedArray size ty) = size :> vTypeArraySizes ty
+vTypeArraySizes _ = nil
+
+-- Get the list of names defined by a Verilog declaration.
+vDeclNames :: VDecl -> List String
+vDeclNames (VStruct name _) = lst name
+vDeclNames (VUnion name _) = lst name
+vDeclNames (VEnum name _ tags) = name :> tags
+vDeclNames (VTypedef name _) = lst name
+vDeclNames (VLocalParam name _ _) = lst name
+vDeclNames (VComment _) = nil
+
+-- TODO data Signedness instead of bool
+makeLogicArray :: Integer -> Bool -> VType
+makeLogicArray 0 _ =
+  error "makeLogicArray: demanded Verilog representation of zero-width type"
+makeLogicArray 1 signed = if signed then VLogicSigned else VLogic
+makeLogicArray n signed = VPackedArray n $
+  if signed then VLogicSigned else VLogic
+
+-- Schema for JSON representation of Verilog types generated from Bluespec.
+-- The JSON file we generate consists of an array of encoded TypeInfo objects.
+struct TypeInfo =
+  -- The Bluespec type expression
+  bsType :: String
+  -- The package in which the Bluespec type was defined
+  bsPackage :: String
+  -- The size of the type in bits
+  size :: Integer
+  -- The SystemVerilog base type (e.g. "logic" or "some_struct_t")
+  baseType :: String
+  -- The array sizes of the type, if any (e.g. "logic [1:0][7:0]" would be
+  -- `lst 2 8`)
+  arraySize :: List Integer
+  -- What sort of type this is - primitive, struct, enum, etc.
+  sort :: TypeSort
+  -- Whether this type is signed, if the type is a primitive
+  signed :: Maybe Bool
+  -- The Bluespec type of the elements, if the type is a vector
+  bsElemType :: Maybe String
+  -- The type's fields, if it's a struct
+  fields :: Maybe (List FieldInfo)
+  -- The values of the type's enum tags, if the type is an enum or tagged union
+  enumValues :: Maybe (List (String, Integer))
+  -- The size of the type's tag enum, if the type is a tagged union
+  tagSize :: Maybe Integer
+  -- The size of the type's union, if the type is a tagged union
+  contentSize :: Maybe Integer
+  -- The name of the type's tag enum, if the type is a tagged union
+  tagEnumName :: Maybe String
+  -- The name of the type's union, if the type is a tagged union
+  unionName :: Maybe String
+  -- The type's alternatives that contain data, if the type is a tagged union
+  alts :: Maybe (List TagInfo)
+
+data TypeSort = Primitive | Vector | Struct | Enum | TaggedUnion
+
+struct TagInfo =
+  -- The name of the enum tag
+  tagName :: String
+  -- The name of the union field that this tag corresponds to
+  fieldName :: String
+  -- The name of the SystemVerilog struct containing the content for this tag
+  structName :: String
+  -- The amount of padding in the struct before the content data
+  padSize :: Integer
+  -- The size of the content data in the struct
+  contentSize :: Integer
+  -- The content fields of the struct
+  fields :: List FieldInfo
+
+struct FieldInfo =
+  -- The name of the field
+  name :: String
+  -- The size of the field in bits
+  size :: Integer
+  -- The Bluespec type of the field
+  bsType :: String
+  -- The SystemVerilog type (e.g. "logic" or "some_struct_t")
+  baseType :: String
+  -- The array sizes of the type, if any (e.g. "logic [0:1][0:7]" would be
+  -- `lst 2 8`)
+  arraySize :: List Integer
+
+bsTypeEquals :: String -> TypeInfo -> Bool
+bsTypeEquals bsType info = bsType == info.bsType
+
+-- Monad for rendering types into Verilog declarations.
+-- This is essentially a State monad that tracks:
+--   * A map of instantiated names to the Bluespec package of their definition
+--   * A list of Verilog declarations created so far
+--   * A list of type information structures created so far
+data RenderVerilog a
+  = RenderVerilog
+      (List (String, String) -> List VDecl -> List TypeInfo ->
+       (a, List (String, String), List VDecl, List TypeInfo))
+
+instance Monad RenderVerilog where
+  return x = RenderVerilog $ \ names decls infos -> (x, names, decls, infos)
+  bind (RenderVerilog f) g = RenderVerilog $ \ names decls infos ->
+    case f names decls infos of
+      (x, names', decls', infos') ->
+        case g x of
+          RenderVerilog g' -> g' names' decls' infos'
+
+struct RenderVerilogResult =
+  decls :: List VDecl
+  infos :: List TypeInfo
+
+-- Run a RenderVerilog computation, returning the list of Verilog declarations
+-- and list of TypeInfos.
+runRenderVerilog :: RenderVerilog () -> RenderVerilogResult
+runRenderVerilog (RenderVerilog f) =
+  let (_, _, decls, infos) = f nil nil nil
+  in RenderVerilogResult { decls = decls; infos = infos; }
+
+-- Add a Verilog declaration (from a given a Bluespec package) to the result.
+-- Errors on duplicate declarations.
+emitDecl :: String -> VDecl -> RenderVerilog ()
+emitDecl pkg newDecl = RenderVerilog $ \ names decls infos ->
+  let checkName newName =
+        case lookup newName names of
+          Just pkg' ->
+            error $ "Error: duplicate definitions created for " +++ newName +++
+            " (from package " +++ pkg +++ " and " +++ pkg' +++ ")"
+          Nothing -> (newName, pkg)
+  in ((), map checkName (vDeclNames newDecl) `append` names,
+      decls <: newDecl, infos)
+
+-- Add a list of Verilog declarations to the result.
+emitDecls :: String -> List VDecl -> RenderVerilog ()
+emitDecls pkg = mapM_ (emitDecl pkg)
+
+-- Add a TypeInfo to the result.
+emitTypeInfo :: TypeInfo -> RenderVerilog ()
+emitTypeInfo info = RenderVerilog $ \ names decls infos ->
+  ((), names, decls, info :> infos)
+
+-- Control flow combinator - emit some declarations only if a type has not
+-- already been instantiated.
+whenNoTypeInfo :: String -> RenderVerilog () -> RenderVerilog ()
+whenNoTypeInfo bsType (RenderVerilog f) = RenderVerilog $ \ names decls infos ->
+  if any (bsTypeEquals bsType) infos
+  then ((), names, decls, infos)
+  else f names decls infos
+
+-- Control flow combinator - emit some declarations only if a Verilog name has
+-- not yet been defined. Errors if the name conflicts with a name instantiated
+-- from a type in a different package.
+whenNoDecl :: String -> String -> RenderVerilog () -> RenderVerilog ()
+whenNoDecl name pkg (RenderVerilog f) = RenderVerilog $ \ names decls infos ->
+  case lookup name names of
+    Just pkg' ->
+      if pkg == pkg'
+      then ((), names, decls, infos)
+      else error $ "Name conflict! " +++ name +++ " from package " +++ pkg +++
+        " already instantiated from package " +++ pkg'
+    Nothing -> f names decls infos
+
+-- Helper function for defining verilogType for a type that maps to a logic
+-- (or logic array) type in Verilog.
+-- The argument is a proxy for the type.
+mkPrimType :: (VerilogRepr a, TypeId a, Bits a n) => a -> RenderVerilog VType
+mkPrimType proxy = do
+  let bsTypeStr = bsType proxy
+  whenNoTypeInfo bsTypeStr $ emitTypeInfo $ TypeInfo {
+    bsType = bsTypeStr;
+    bsPackage = "Prelude";
+    size = valueOf n;
+    baseType = "logic";
+    arraySize = if valueOf n == 1 then nil else lst $ valueOf n;
+    sort = Primitive;
+    signed = Just False;
+    bsElemType = Nothing;
+    fields = Nothing;
+    enumValues = Nothing;
+    tagSize = Nothing;
+    contentSize = Nothing;
+    tagEnumName = Nothing;
+    unionName = Nothing;
+    alts = Nothing;
+  }
+  return $ makeLogicArray (valueOf n) False
+
+type Size = UInt 16
+
+struct Variant =
+  { name :: String;
+    fields :: List VField;
+    tag :: Size;
+    tagLen :: Size;
+    paddingLen :: Size;
+  }
+
+-- A sum type whose tags are not all of the same width.
+struct VarWidthSumSpec =
+  { name :: String;
+    variants :: List Variant;
+    size :: Size;
+  }
+
+-- Helper function for defining verilogType for a type that maps to a custom
+-- enum type in Verilog.
+-- The arguments are the package name, a list of enum constants, and a proxy
+-- for the type.
+mkEnumType :: (TypeId a) => String -> List String -> a -> RenderVerilog VType
+mkEnumType pkg tags proxy = do
+  let bsTypeStr = bsType proxy
+  let baseName = verilogTypeId proxy
+  let enumName = baseName +++ "_t"
+  let width = log2 $ length tags
+  whenNoTypeInfo bsTypeStr $ do
+    emitDecls pkg $ lst
+      (VComment bsTypeStr)
+      (VLocalParam (toUpperSnakeCase baseName +++ "_WIDTH")
+        (log2 $ width + 1) width)
+      (VLocalParam ("NUM_" +++ toUpperSnakeCase baseName)
+        (log2 $ length tags + 1) $ length tags)
+      (VEnum enumName width tags)
+    emitTypeInfo $ TypeInfo {
+      bsType = bsTypeStr;
+      bsPackage = pkg;
+      size = width;
+      baseType = enumName;
+      arraySize = nil;
+      sort = Enum;
+      signed = Nothing;
+      bsElemType = Nothing;
+      fields = Nothing;
+      enumValues = Just $ zip tags $ upto 0 $ length tags;
+      tagSize = Nothing;
+      contentSize = Nothing;
+      tagEnumName = Nothing;
+      unionName = Nothing;
+      alts = Nothing;
+    }
+  return $ VTypeName enumName
+
+-- "Sum" to disambiguate, since an "enum" could mean both the Rust (sum type)
+-- kind or the Verilog/C/Java (just a bunch of tags) kind.
+mkVarWidthSumType :: String -> VarWidthSumSpec -> RenderVerilog VType
+mkVarWidthSumType _pkg spec when length spec.variants < 2 =
+  error "mkVarWidthSumType: not a sum type"
+mkVarWidthSumType pkg spec = do
+  let baseName = toLowerSnakeCase spec.name
+  -- Used to aid with "pattern matching"
+  let enumName = baseName +++ "_tag_t"
+  let unionName = baseName +++ "_t"
+  let width = toStaticIndex spec.size
+  let
+    variantNameLower :: Variant -> String
+    variantNameLower v = toLowerSnakeCase (spec.name +++ v.name)
+    variantNameUpper :: Variant -> String
+    variantNameUpper v = toUpperSnakeCase (spec.name +++ v.name)
+  let tagNames = fmap variantNameUpper spec.variants
+  let enumWidth = log2 $ length spec.variants
+  let
+    emitVariant :: Variant -> RenderVerilog VField
+    emitVariant v = do
+      let structName = variantNameLower v +++ "_t"
+      let consIf cond x xs = if cond then Cons x xs else xs
+      -- The tag will never have width zero, since this is a nondegenerate sum
+      -- type.
+      let tagField =
+            VField (makeLogicArray (toStaticIndex v.tagLen) False) "tag"
+      -- The padding might, and Verilog doesn't like that, so we'll have to omit
+      -- it entirely in that case.
+      let paddingField =
+            VField (makeLogicArray (toStaticIndex v.paddingLen) False) "padding"
+      let structFields = Cons tagField
+                       $ consIf (v.paddingLen > 0) paddingField
+                       $ v.fields
+      emitDecls pkg $ lst
+        (VLocalParam (variantNameUpper v +++ "_TAG")
+            (toStaticIndex v.tagLen) $ toStaticIndex v.tag)
+        (VStruct structName structFields)
+      return (VField (VTypeName structName) v.name)
+  let getTag =
+        let header = "function " +++ enumName +++ " "
+              +++ baseName +++ "_get_tag(" +++ unionName +++ " v);"
+            matchForVariant :: Variant -> String
+            matchForVariant v
+              = "if (v." +++ v.name +++ ".tag == "
+              +++ variantNameUpper v +++ "_TAG"
+              +++ ") begin\n    return "
+              +++ variantNameUpper v +++ ";\n  end\n"
+            ifChain
+              = foldr (\h rest -> h +++ "  else " +++ rest) ""
+                (fmap matchForVariant spec.variants)
+              +++ "begin\n"
+              +++ "    $error(\"Unknown tag value for sum type "
+              +++ unionName +++ "\");\n"
+              +++ "    return " +++ variantNameUpper (head spec.variants)
+              +++ ";\n"
+              +++ "  end"
+            footer = "endfunction"
+        in header +++ "\n  " +++ ifChain +++ "\n" +++ footer
+  emitDecls pkg $ lst
+    (VLocalParam (toUpperSnakeCase baseName +++ "_WIDTH")
+      (log2 $ width + 1) width)
+    (VLocalParam ("NUM_" +++ toUpperSnakeCase baseName)
+      (log2 $ length spec.variants + 1) $ length spec.variants)
+    (VEnum enumName enumWidth tagNames)
+  unionFields <- mapM emitVariant spec.variants
+  emitDecls pkg $ lst
+    (VComment spec.name)
+    (VUnion unionName unionFields)
+    (VFunction getTag)
+  -- TODO(swann): emitTypeInfo
+  return $ VTypeName unionName
+
+-- Helper function for defining verilogType for a type that maps to a struct
+-- type in Verilog, that simply wraps the flattened fields determined by
+-- verilogFields.
+-- The arguments are the package name, the base name of the fields, and a proxy
+-- for the type.
+mkStructType :: (VerilogRepr a, TypeId a, Bits a n) =>
+  String -> String -> a -> RenderVerilog VType
+mkStructType pkg base proxy = do
+  let bsTypeStr = bsType proxy
+  let structName = verilogTypeId proxy +++ "_t"
+  whenNoTypeInfo bsTypeStr $ do
+    fieldsAndInfos <- verilogFields (prx :: a) base
+    let (fields, infos) = unzip fieldsAndInfos
+    -- It's safe to put generating the struct declaration here under the
+    -- whenNoTypeDecl, because the same fully-instantiated Bluespec type will
+    -- never produce more than one different Verilog type.
+    whenNoDecl structName pkg $ emitDecls pkg $ lst
+      (VComment bsTypeStr)
+      (VStruct structName fields)
+    emitTypeInfo $ TypeInfo {
+      bsType = bsTypeStr;
+      bsPackage = pkg;
+      size = valueOf n;
+      baseType = structName;
+      arraySize = nil;
+      sort = Struct;
+      signed = Nothing;
+      bsElemType = Nothing;
+      fields = Just infos;
+      enumValues = Nothing;
+      tagSize = Nothing;
+      contentSize = Nothing;
+      tagEnumName = Nothing;
+      unionName = Nothing;
+      alts = Nothing;
+    }
+  return $ VTypeName structName
+
+-- Helper function for defining verilogFields for a type that maps to a single
+-- field.
+mkField :: (VerilogRepr a, TypeId a, Bits a n) =>
+  a -> String -> RenderVerilog (List (VField, FieldInfo))
+mkField proxy name = if valueOf n == 0 then return Nil else do
+  ty <- verilogType proxy
+  let disambName =
+        if elem name verilogReservedWords
+        then name +++ "_"
+        else name
+  return $ lst $ (VField ty disambName, FieldInfo {
+    name = disambName;
+    size = valueOf n;
+    bsType = bsType proxy;
+    baseType = lppVType ty;
+    arraySize = vTypeArraySizes ty;
+  })
+
+verilogReservedWords :: List String
+verilogReservedWords = lst
+  -- Possibly incomplete, generated by an LLM:
+  "reg" "struct" "union" "enum" "localparam" "typedef" "packed" "logic" "signed"
+  "enum" "case" "default" "endcase" "if" "else" "begin" "end" "always" "posedge"
+  "negedge" "module" "endmodule" "input" "output" "inout" "wire" "assign" "for"
+  "while" "repeat" "forever" "initial" "function" "endfunction" "task" "endtask"
+  "fork" "join" "disable" "wait" "casez" "casex" "endcase" "default"
+
+class VerilogRepr a where
+  -- Get the Verilog type representation of a Bluespec type.
+  verilogType :: a -> RenderVerilog VType
+
+  -- Get the flattened Verilog struct fields for this type, when it appears
+  -- directly as the type of a field in a Bluespec struct. The second argument
+  -- is the base name of the field.
+  verilogFields :: a -> String -> RenderVerilog (List (VField, FieldInfo))
+
+instance VerilogRepr Bool where
+  verilogType = mkPrimType
+  verilogFields = mkField
+
+instance VerilogRepr (Bit n) where
+  verilogType = mkPrimType
+  verilogFields = mkField
+
+instance VerilogRepr (UInt n) where
+  verilogType proxy = do
+    let bsTypeStr = bsType proxy
+    let typedefName = "uint" +++ integerToString (valueOf n) +++ "_t"
+    whenNoTypeInfo bsTypeStr do
+      emitDecls "Prelude" $ lst
+        (VComment $ "UInt " +++ integerToString (valueOf n))
+        (VTypedef typedefName $ makeLogicArray (valueOf n) False)
+      emitTypeInfo $ TypeInfo {
+        bsType = bsTypeStr;
+        bsPackage = "Prelude";
+        size = valueOf n;
+        baseType = typedefName;
+        arraySize = nil;
+        sort = Primitive;
+        signed = Just False;
+        bsElemType = Nothing;
+        fields = Nothing;
+        enumValues = Nothing;
+        tagSize = Nothing;
+        contentSize = Nothing;
+        tagEnumName = Nothing;
+        unionName = Nothing;
+        alts = Nothing;
+      }
+    return $ VTypeName typedefName
+  verilogFields = mkField
+
+instance VerilogRepr (Int n) where
+  verilogType proxy = do
+    let bsTypeStr = bsType proxy
+    let typedefName = "int" +++ integerToString (valueOf n) +++ "_t"
+    whenNoTypeInfo bsTypeStr do
+      emitDecls "Prelude" $ lst
+        (VComment $ "Int " +++ integerToString (valueOf n))
+        (VTypedef typedefName $ makeLogicArray (valueOf n) True)
+      emitTypeInfo $ TypeInfo {
+        bsType = bsTypeStr;
+        bsPackage = "Prelude";
+        size = valueOf n;
+        baseType = typedefName;
+        arraySize = nil;
+        sort = Primitive;
+        signed = Just True;
+        bsElemType = Nothing;
+        fields = Nothing;
+        enumValues = Nothing;
+        tagSize = Nothing;
+        contentSize = Nothing;
+        tagEnumName = Nothing;
+        unionName = Nothing;
+        alts = Nothing;
+      }
+    return $ VTypeName typedefName
+  verilogFields = mkField
+
+instance (VerilogRepr a, Bits a n, TypeId a) => VerilogRepr (Maybe a) where
+  verilogType = mkStructType "Prelude" "value"
+  verilogFields _ base = liftM2 append
+    (mkField (prx :: Bool) ("has_" +++ base))
+    (mkField (prx :: a) base)
+
+instance (TypeId a, VerilogRepr a, Bits a nb) =>
+    VerilogRepr (Vector.Vector n a) where
+  verilogType proxy = do
+    itemType <- verilogType (prx :: a)
+    let bsTypeStr = bsType proxy
+    whenNoTypeInfo bsTypeStr $ emitTypeInfo $ TypeInfo {
+      bsType = bsTypeStr;
+      bsPackage = "Vector";
+      size = valueOf n * valueOf nb;
+      baseType = lppVType itemType;
+      arraySize = valueOf n :> vTypeArraySizes itemType;
+      sort = Vector;
+      signed = Nothing;
+      bsElemType = Just $ bsType (prx :: a);
+      fields = Nothing;
+      enumValues = Nothing;
+      tagSize = Nothing;
+      contentSize = Nothing;
+      tagEnumName = Nothing;
+      unionName = Nothing;
+      alts = Nothing;
+    }
+    return $ VPackedArray (valueOf n) itemType
+  verilogFields = mkField
+
+instance VerilogRepr () where
+  verilogType _ = error "Demanded Verilog representation of zero-width type"
+  verilogFields _ _ = return nil
+
+instance (VerilogTupleRepr (a, b), Bits (a, b) n, TupleTypeId (a, b)) =>
+    VerilogRepr (a, b) where
+  verilogType = mkStructType "Prelude" "f"
+  verilogFields proxy = verilogTupleFields proxy 0
+
+class VerilogTupleRepr a where
+  verilogTupleFields :: a -> Integer -> String ->
+    RenderVerilog (List (VField, FieldInfo))
+
+instance (VerilogRepr a, VerilogTupleRepr b) => VerilogTupleRepr (a, b) where
+  verilogTupleFields _ i name = liftM2 append
+    (verilogFields (prx :: a) $ name +++ integerToString i)
+    (verilogTupleFields (prx :: b) (i + 1) name)
+
+instance (VerilogRepr a) => VerilogTupleRepr a where
+  verilogTupleFields proxy i name =
+    verilogFields proxy $ name +++ integerToString i
+
+instance (Bits a n, Generic a r, ContentBits r c,
+          VerilogImpl r c, TypeId a, VerilogRepr a) =>
+    VerilogRepr a where
+  verilogType proxy = do
+    let baseName = verilogTypeId proxy
+    let structName = baseName +++ "_t"
+    verilogImpl (prx :: r) (prx :: NumArg c) (bsType (prx :: a)) baseName
+    return $ VTypeName structName
+  verilogFields = mkField
+
+-- Compute the maximum size of a summand's contents from a generic
+-- representation.
+class ContentBits a n | a -> n where {}
+instance (Bits a n) => ContentBits (Conc a) n where {}
+instance (Bits a n) => ContentBits (ConcPrim a) n where {}
+instance (ContentBits a n) => ContentBits (Meta m a) n where {}
+instance (ContentBits a n1, ContentBits b n2, Max n1 n2 n) =>
+  ContentBits (Either a b) n where {}
+instance ContentBits () 0 where {}
+instance (ContentBits a n1, ContentBits b n2, Add n1 n2 n) =>
+  ContentBits (a, b) n where {}
+
+-- Generate the Verilog enum, struct and union definitions for a generic
+-- representation.
+-- a is the generic representation type, c is the max payload content size for
+-- any constructor.
+class VerilogImpl a c where
+  verilogImpl :: a -> NumArg c -> String -> String -> RenderVerilog ()
+
+-- Pure enum case
+instance (TagNames a) => VerilogImpl (Meta (MetaData name pkg ta nc) a) 0 where
+  verilogImpl _ _ bsType baseName =
+    if valueOf nc <= 1 then return ()
+    else whenNoTypeInfo bsType do
+      -- Generate the same "tag" enum as the tagged-union case and typedef it,
+      -- since there might be other instantiations that are not a pure enum,
+      -- and want to use the same tag names.
+      let enumName = toLowerSnakeCase (stringOf name) +++ "_tag_t"
+      let typedefName = baseName +++ "_t"
+      let enumTagNames = tagNames (prx :: a) $ stringOf name
+      whenNoDecl enumName (stringOf pkg) $ emitDecls (stringOf pkg) $ lst
+        (VLocalParam (toUpperSnakeCase (stringOf name) +++ "_TAG_WIDTH")
+          (log2 $ log2 (valueOf nc) + 1) (log2 $ valueOf nc))
+        (VLocalParam ("NUM_" +++ toUpperSnakeCase (stringOf name))
+          (log2 $ valueOf nc + 1) $ valueOf nc)
+        (VEnum enumName (log2 $ valueOf nc) enumTagNames)
+      emitDecls (stringOf pkg) $ lst
+        (VComment bsType)
+        (VTypedef typedefName $ VTypeName enumName)
+      emitTypeInfo $ TypeInfo {
+        bsType = bsType;
+        bsPackage = stringOf pkg;
+        size = log2 $ valueOf nc;
+        baseType = typedefName;
+        arraySize = nil;
+        sort = Enum;
+        signed = Nothing;
+        bsElemType = Nothing;
+        fields = Nothing;
+        enumValues = Just $ zip enumTagNames $ 0 `upto` (valueOf nc - 1);
+        tagSize = Nothing;
+        contentSize = Nothing;
+        tagEnumName = Nothing;
+        unionName = Nothing;
+        alts = Nothing;
+      }
+
+instance (VerilogImpl' a c) => VerilogImpl a c where
+  verilogImpl = verilogImpl'
+
+-- This needs to be a seperate type class to avoid overlapping instances for
+-- pure enum/pure struct cases.
+-- In theory, a type with one constructor and no fields could match either case
+-- (since there is no way to make the non-pure-enum cases only match nonzero
+-- payload sizes.) Instead, we match the pure enum case first with VerilogImpl,
+-- and when that fails we fall through to VerilogImpl' and attempt to match the
+-- pure struct cases.
+class VerilogImpl' a c where
+  verilogImpl' :: a -> NumArg c -> String -> String -> RenderVerilog ()
+
+-- Pure struct cases
+instance (VerilogFields a) =>
+    VerilogImpl'
+      (Meta (MetaData name pkg ta 1)
+        (Meta (MetaConsNamed cname 0 nfields) a)) c where
+  verilogImpl' _ _ bsType baseName = whenNoTypeInfo bsType do
+    let structName = baseName +++ "_t"
+    fieldsAndInfos <- verilogFields' (prx :: a) True
+    let (fields, infos) = unzip fieldsAndInfos
+    emitDecls (stringOf pkg) $ lst
+      (VComment bsType)
+      (VStruct structName fields)
+    emitTypeInfo $ TypeInfo {
+      bsType = bsType;
+      bsPackage = stringOf pkg;
+      size = valueOf c;
+      baseType = structName;
+      arraySize = nil;
+      sort = Struct;
+      signed = Nothing;
+      bsElemType = Nothing;
+      fields = Just infos;
+      enumValues = Nothing;
+      tagSize = Nothing;
+      contentSize = Nothing;
+      tagEnumName = Nothing;
+      unionName = Nothing;
+      alts = Nothing;
+    }
+
+instance (VerilogFields a) =>
+    VerilogImpl'
+      (Meta (MetaData name pkg ta 1)
+        (Meta (MetaConsAnon cname 0 nfields) a)) c where
+  verilogImpl' _ _ bsType baseName = whenNoTypeInfo bsType do
+    let structName = baseName +++ "_t"
+    fieldsAndInfos <- verilogFields' (prx :: a) False
+    let (fields, infos) = unzip fieldsAndInfos
+    emitDecls (stringOf pkg) $ lst
+      (VComment bsType)
+      (VStruct structName fields)
+    emitTypeInfo $ TypeInfo {
+      bsType = bsType;
+      bsPackage = stringOf pkg;
+      size = valueOf c;
+      baseType = structName;
+      arraySize = nil;
+      sort = Struct;
+      signed = Nothing;
+      bsElemType = Nothing;
+      fields = Just infos;
+      enumValues = Nothing;
+      tagSize = Nothing;
+      contentSize = Nothing;
+      tagEnumName = Nothing;
+      unionName = Nothing;
+      alts = Nothing;
+    }
+
+-- Tagged union case
+instance (TagNames a, VerilogSummands a) =>
+    VerilogImpl' (Meta (MetaData name pkg ta nc) a) c where
+  verilogImpl' _ _ bsType baseName = whenNoTypeInfo bsType do
+    let enumName = toLowerSnakeCase (stringOf name) +++ "_tag_t"
+    let enumTagNames = tagNames (prx :: a) $ stringOf name
+    let unionName = baseName +++ "_content_t"
+    let structName = baseName +++ "_t"
+    whenNoDecl enumName (stringOf pkg) $ emitDecls (stringOf pkg) $ lst
+      (VLocalParam (toUpperSnakeCase (stringOf name) +++ "_TAG_WIDTH")
+        (log2 $ log2 (valueOf nc) + 1) (log2 $ valueOf nc))
+      (VLocalParam ("NUM_" +++ toUpperSnakeCase (stringOf name))
+        (log2 $ valueOf nc + 1) $ valueOf nc)
+      (VEnum enumName (log2 $ valueOf nc) enumTagNames)
+    fieldsAndInfos <- verilogSummands
+      (prx :: a) (stringOf name) baseName (stringOf pkg) $ valueOf c
+    let (fields, infos) = unzip fieldsAndInfos
+    emitDecls (stringOf pkg) $ lst
+      (VUnion unionName fields)
+      (VComment bsType)
+      (VStruct structName $ lst
+        (VField (VTypeName enumName) "tag")
+        (VField (VTypeName unionName) "content"))
+    emitTypeInfo $ TypeInfo {
+      bsType = bsType;
+      bsPackage = stringOf pkg;
+      size = log2 (valueOf nc) + valueOf c;
+      baseType = structName;
+      arraySize = nil;
+      sort = TaggedUnion;
+      signed = Nothing;
+      bsElemType = Nothing;
+      fields = Nothing;
+      enumValues = Just $ zip enumTagNames $ 0 `upto` (valueOf nc - 1);
+      tagSize = Just $ log2 $ valueOf nc;
+      contentSize = Just $ valueOf c;
+      tagEnumName = Just enumName;
+      unionName = Just unionName;
+      alts = Just infos;
+    }
+
+-- Generate the union fields for summands in a tagged union.
+class VerilogSummands a where
+  -- Takes a proxy value, the name derived from the (possibly polymorphic)
+  -- type, the name derived from the type after monomorphization, the package
+  -- name, and the maximum content size of any summand.
+  verilogSummands :: a -> String -> String -> String -> Integer ->
+      RenderVerilog (List (VField, TagInfo))
+
+instance (VerilogSummands a, VerilogSummands b) =>
+    VerilogSummands (Either a b) where
+  verilogSummands _ polyBaseName baseName pkg maxWidth = liftM2 append
+    (verilogSummands (prx :: a) polyBaseName baseName pkg maxWidth)
+    (verilogSummands (prx :: b) polyBaseName baseName pkg maxWidth)
+
+instance (VerilogFields a, ContentBits a n) =>
+    VerilogSummands (Meta (MetaConsNamed name i nfields) a) where
+  verilogSummands _ polyBaseName baseName pkg maxWidth = do
+    let structName = baseName +++ "_" +++
+          toLowerSnakeCase (stringOf name) +++ "_t"
+    fieldsAndInfos <- verilogFields' (prx :: a) True
+    let (fields, infos) = unzip fieldsAndInfos
+    if length fields == 0
+      then return nil
+      else do
+        emitDecl pkg $ VStruct structName $
+          if valueOf n < maxWidth
+          then VField (makeLogicArray (maxWidth - valueOf n) False) "pad" :>
+            fields
+          else fields
+        return $ lst (
+          VField (VTypeName structName) $ toLowerSnakeCase $ stringOf name,
+          TagInfo {
+            tagName = toUpperSnakeCase $ polyBaseName +++ stringOf name;
+            fieldName = toLowerSnakeCase $ stringOf name;
+            structName = structName;
+            padSize = maxWidth - valueOf n;
+            contentSize = valueOf n;
+            fields = infos;
+          })
+
+instance (VerilogFields a, ContentBits a n) =>
+    VerilogSummands (Meta (MetaConsAnon name i nfields) a) where
+  verilogSummands _ polyBaseName baseName pkg maxWidth = do
+    let structName = baseName +++ "_" +++
+          toLowerSnakeCase (stringOf name) +++ "_t"
+    fieldsAndInfos <- verilogFields' (prx :: a) False
+    let (fields, infos) = unzip fieldsAndInfos
+    if length fields == 0
+      then return nil
+      else do
+        emitDecl pkg $ VStruct structName $
+          if valueOf n < maxWidth
+          then VField (makeLogicArray (maxWidth - valueOf n) False) "pad" :>
+            fields
+          else fields
+        return $ lst (
+          VField (VTypeName structName) $ toLowerSnakeCase $ stringOf name,
+          TagInfo {
+            tagName = toUpperSnakeCase $ polyBaseName +++ stringOf name;
+            fieldName = toLowerSnakeCase $ stringOf name;
+            structName = structName;
+            padSize = maxWidth - valueOf n;
+            contentSize = valueOf n;
+            fields = infos;
+          })
+
+-- Compute the Verilog fields for a single summand.
+class VerilogFields a where
+  -- Takes a proxy value and a Boolean indicating whether the constructor's
+  -- fields are named or anonymous.
+  verilogFields' :: a -> Bool -> RenderVerilog (List (VField, FieldInfo))
+
+instance VerilogFields () where
+  verilogFields' _ _ = return nil
+
+instance (VerilogFields a, VerilogFields b) => VerilogFields (a, b) where
+  verilogFields' _  named = liftM2 append
+    (verilogFields' (prx :: a) named)
+    (verilogFields' (prx :: b) named)
+
+instance (VerilogRepr a) =>
+    VerilogFields (Meta (MetaField name i) (Conc a)) where
+  verilogFields' _ named = verilogFields (prx :: a) $
+    if not named
+    then "f" +++ integerToString (valueOf i)
+    else toLowerSnakeCase $ stringOf name
+
+-- Compute the enum field names corresponding to a sum type.
+class TagNames a where
+  tagNames :: a -> String -> List String
+
+instance TagNames (Meta (MetaConsNamed name i n) a) where
+  tagNames _ baseName = lst $ toUpperSnakeCase $ baseName +++ stringOf name
+
+instance TagNames (Meta (MetaConsAnon name i n) a) where
+  tagNames _ baseName = lst $ toUpperSnakeCase $ baseName +++ stringOf name
+
+instance (TagNames a, TagNames b) => TagNames (Either a b) where
+  tagNames _ baseName =
+    tagNames (prx :: a) baseName `append` tagNames (prx :: b) baseName
+
+-- Utility to generate the Verilog representations for every type in a tuple.
+class AllVerilogImpls a where
+  verilogImpls :: a -> RenderVerilog ()
+
+instance (VerilogRepr a) => AllVerilogImpls a where
+  verilogImpls _ = do
+    verilogType (prx :: a)
+    return ()
+
+instance (VerilogRepr a, AllVerilogImpls b) => AllVerilogImpls (a, b) where
+  verilogImpls _ = do
+    verilogType (prx :: a)
+    verilogImpls (prx :: b)
+
+instance (AllVerilogImpls a, AllVerilogImpls b)
+  => AllVerilogImpls (Meta m a, b) where
+  verilogImpls _ = do
+    verilogImpls (prx :: a)
+    verilogImpls (prx :: b)
+
+instance (AllVerilogImpls a) => AllVerilogImpls (Meta m a) where
+  verilogImpls _ = verilogImpls (prx :: a)
+
+instance (AllVerilogImpls a) => AllVerilogImpls (Conc a) where
+  verilogImpls _ = verilogImpls (prx :: a)
+
+instance (AllVerilogImpls a) => AllVerilogImpls (ConcPrim a) where
+  verilogImpls _ = verilogImpls (prx :: a)
+
+writeVerilogFile ::
+  String -> String -> String -> RenderVerilog () -> Module Empty
+writeVerilogFile svFileName prefix suffix rv = module
+  let result = runRenderVerilog rv
+  svFile <- openFile svFileName WriteMode
+  hPutStrLn svFile prefix
+  mapM_ (writeVDecl svFile) result.decls
+  hPutStrLn svFile suffix
+  hClose svFile
+  -- messageM $ "Verilog type representation file created: " +++ svFileName
+  interface Empty
+
+writeVerilogAndJsonFile ::
+  (String -> String -> String -> String -> String -> String ->
+    RenderVerilog () -> Module Empty)
+writeVerilogAndJsonFile svFileName jsonFileName guardOpen prefix
+    suffix guardClose rv = module
+  let result = runRenderVerilog rv
+  svFile <- openFile svFileName WriteMode
+  hPutStrLn svFile guardOpen
+  hPutStrLn svFile prefix
+  mapM_ (writeVDecl svFile) result.decls
+  hPutStrLn svFile suffix
+  hPutStrLn svFile guardClose
+  hClose svFile
+  -- messageM $ "Verilog type representation file created: " +++ svFileName
+  jsonFile <- openFile jsonFileName WriteMode
+  hPutStrLn jsonFile $ showJson $ toJson result.infos
+  hClose jsonFile
+  -- messageM $ "Json dump file created: " +++ jsonFileName
+  interface Empty
