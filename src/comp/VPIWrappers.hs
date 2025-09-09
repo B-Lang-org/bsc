@@ -160,7 +160,9 @@ mkVPIWrapperBody name ff =
                                else []) ++
                               (concatMap (initArgHdl num_rets) numbered_args) ++
                               [ stmt $ (var "vpi_put_userdata") `cCall` [ var "hCall", var "handle_array" ]
-                              , stmt $ (var "vpi_free_object") `cCall` [ var "hArgList" ]
+                              , if_cond ((var "hArgList") `cNe` mkNULL)
+                                  (stmt $ (var "vpi_free_object") `cCall` [ var "hArgList" ])
+                                  Nothing
                               ]
       handles = if (num_hdls > 0)
                 then [ comment "retrieve handle array" (blankLines 0)
