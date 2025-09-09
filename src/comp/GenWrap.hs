@@ -9,6 +9,7 @@ module GenWrap(
 import Prelude hiding ((<>))
 #endif
 
+import Data.Char(isDigit)
 import Data.List(nub, (\\), find)
 import Control.Monad(when, foldM, filterM, zipWithM)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
@@ -1935,11 +1936,29 @@ binId ifcp i = (mkIdPre (concatFString (ifcp_pathIdString ifcp)) (unQualId i))
 
 fieldPathName :: IfcPrefixes -> Id -> FString
 -- XXX horrible hack when there isn't selection required at the end
-fieldPathName ifcp i | i == idEmpty = concatFString $ init $ map underscoreToDot $ ifcp_pathIdString ifcp
-fieldPathName ifcp i = concatFString $ map underscoreToDot (ifcp_pathIdString ifcp) ++ [getIdBase i]
+fieldPathName ifcp i | i == idEmpty = concatFString $ init $ map fixupPathElement $ ifcp_pathIdString ifcp
+fieldPathName ifcp i = concatFString $ map fixupPathElement (ifcp_pathIdString ifcp) ++ [getIdBase i]
 
-underscoreToDot :: FString -> FString
-underscoreToDot fs = if fs == fsUnderscore then fsDot else fs
+fsIndexPlaceholder :: FString
+fsIndexPlaceholder = mkFString "[_]"
+
+-- This has two transformations we want to do on path elements when constructing
+-- the String type passed to WrapField for the field-wrapping error message:
+-- 1. Replace the "_" separators in the path with "." to match the field selection that
+-- would appear in the source.
+-- 2. Replace the concrete index numbers in the path with "[_]". This is so that we do
+-- not create multiple independent WrapField contexts when wrapping each element of a
+-- vector-blasted field. If we use concrete field numbers each WrapField context needs to
+-- be resolved individually, leading to repeated construction of the field-wrapping
+-- dictionaries. If we use the placeholder all of the WrapField contexts for each
+-- vector-blasted field will match so they will be joined into a single context
+-- (see joinNeededCtxs in TCMisc.hs) before being resolved, so the field-wrapping
+-- dictionaries will be constructed only once.
+fixupPathElement :: FString -> FString
+fixupPathElement fs
+  | fs == fsUnderscore = fsDot
+  | all isDigit (getFString fs) = fsIndexPlaceholder
+  | otherwise = fs
 
 -- Extend the prefixes
 -- Take the current set of prefix information, add to that information
