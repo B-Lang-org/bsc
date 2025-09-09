@@ -6,3 +6,7 @@ compare_verilog mkClockVectorPassThrough.v
 
 compile_verilog_pass SizeZero.bsv
 
+# This relies on the -dtypecheck dump from wrapper compilation
+# overwriting the original -dtypecheck dump.
+compile_object_pass WrapFieldRepeat.bs {} "-dtypecheck=tcwrapper.out"
+find_n_strings tcwrapper.out "Prelude.Bits Prelude.Bool 1" 2

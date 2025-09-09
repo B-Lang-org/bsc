@@ -1,0 +1,14 @@
+package WrapFieldRepeat where
+
+import Vector
+
+interface WrapFieldRepeat =
+  regs :: Vector 16 (Reg Bool)
+
+{-# verilog mkWrapFieldRepeat #-}
+mkWrapFieldRepeat :: (IsModule m c) => m WrapFieldRepeat
+mkWrapFieldRepeat = module
+  regs :: Vector 16 (Reg Bool) <- replicateM (mkReg True)
+  interface
+    regs = regs
+
