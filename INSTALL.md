@@ -58,6 +58,9 @@ To build a complete release of BSC, you will need:
    GHC via the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, and `split`.
+ - The GNU Multiple Precision Arithmetic Library (GMP). `libgmp` is
+   used to implement integers in Haskell and may already be a
+   dependency of installing GHC.
  - `pkg-config` is strongly recommended to query installed
    libraries. The build will fall back to default values if necessary,
    but this should be avoided if possible.
@@ -91,6 +94,7 @@ The following commands install all required and optional dependencies:
 sudo apt-get install \
    build-essential \
    tcl-dev \
+   libgmp-dev \
    pkg-config \
    autoconf \
    gperf \
@@ -147,11 +151,14 @@ sudo dnf install \
    iverilog \
    dejagnu \
    tcl-devel \
+   gmp-devel \
    gperf \
    latex \
-   texlive-scheme-basic \
-   texlive-moreverb \
+   texlive-boxedminipage \
    texlive-dingbat \
+   texlive-fancybox \
+   texlive-moreverb \
+   texlive-scheme-basic \
    texlive-subfigure
 
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
@@ -218,6 +225,7 @@ required and optional dependencies:
 brew update
 brew install \
    autoconf \
+   gmp \
    gperf \
    icarus-verilog \
    pkg-config \
