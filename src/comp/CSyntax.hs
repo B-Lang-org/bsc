@@ -106,6 +106,9 @@ data CPackage = CPackage
                 [CInclude]        -- any `include files
         deriving (Eq, Ord, Show)
 
+instance NFData CPackage where
+    rnf (CPackage x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
+
 data CExport
         = CExpVar Id    -- export a variable identifier
         | CExpCon Id    -- export a constructor
@@ -114,21 +117,39 @@ data CExport
         | CExpPkg Id    -- export an entire package
         deriving (Eq, Ord, Show)
 
+instance NFData CExport where
+    rnf (CExpVar x) = rnf x
+    rnf (CExpCon x) = rnf x
+    rnf (CExpConAll x) = rnf x
+    rnf (CExpPkg x) = rnf x
+
 data CImport
         = CImpId Bool Id                                -- Bool indicates qualified
         | CImpSign String Bool CSignature
         deriving (Eq, Ord, Show)
+
+instance NFData CImport where
+    rnf (CImpId x1 x2) = rnf2 x1 x2
+    rnf (CImpSign x1 x2 x3) = rnf3 x1 x2 x3
 
 -- Package signature from import
 data CSignature
         = CSignature Id [Id] [CFixity] [CDefn]        -- package name, imported packages, definitions
         deriving (Eq, Ord, Show)
 
+instance NFData CSignature where
+    rnf (CSignature x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+
 data CFixity
         = CInfix  Integer Id
         | CInfixl Integer Id
         | CInfixr Integer Id
         deriving (Eq, Ord, Show)
+
+instance NFData CFixity where
+    rnf (CInfix x1 x2) = rnf2 x1 x2
+    rnf (CInfixl x1 x2) = rnf2 x1 x2
+    rnf (CInfixr x1 x2) = rnf2 x1 x2
 
 -- Top level definition
 data CDefn
@@ -164,6 +185,23 @@ data CDefn
         | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 
+instance NFData CDefn where
+    rnf (Ctype x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (Cdata x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
+    rnf (Cstruct x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
+    rnf (Cclass x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
+    rnf (Cinstance x1 x2) = rnf2 x1 x2
+    rnf (CValue x1 x2) = rnf2 x1 x2
+    rnf (CValueSign x) = rnf x
+    rnf (Cforeign x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+    rnf (Cprimitive x1 x2) = rnf2 x1 x2
+    rnf (CprimType x) = rnf x
+    rnf (CPragma x) = rnf x
+    rnf (CIinstance x1 x2) = rnf2 x1 x2
+    rnf (CItype x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CIclass x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
+    rnf (CIValueSign x1 x2) = rnf2 x1 x2
+
 -- Since IdPKind is only expected in some disjuncts of CDefn, we could
 -- create a separate IdPK for those cases, but that seems like overkill.
 -- IdPKind in other locations will just be treated like IdK (no kind info).
@@ -173,6 +211,11 @@ data IdK
         -- this should not exist after typecheck
         | IdPKind Id PartialKind
         deriving (Eq, Ord, Show)
+
+instance NFData IdK where
+    rnf (IdK x) = rnf x
+    rnf (IdKind x1 x2) = rnf2 x1 x2
+    rnf (IdPKind x1 x2) = rnf2 x1 x2
 
 type CFunDeps = [([Id],[Id])]
 
@@ -255,8 +298,8 @@ data CExpr
         | Cattributes [(Position,PProp)]
         deriving (Ord, Show)
 
-instance Hyper CExpr where
-    hyper x y = (x==x) `seq` y                -- XXX
+instance NFData CExpr where
+    rnf x = rnf (x==x) `seq` ()                -- XXX
 
 -- ignore positions when testing equality
 instance Eq CExpr where
@@ -483,9 +526,15 @@ xCmoduleVerilog m is_user_import wireinfo args fields schedinfo pathinfo =
 
 -- ===============
 
-data CLiteral = CLiteral Position Literal deriving (Show)
+data CLiteral = CLiteral Position Literal
+        deriving (Show)
+
+instance NFData CLiteral where
+    rnf (CLiteral x1 x2) = rnf2 x1 x2
+
 instance Eq CLiteral where
         CLiteral _ l == CLiteral _ l'  =  l == l'
+
 instance Ord CLiteral where
         CLiteral _ l `compare` CLiteral _ l'  =  l `compare` l'
 
@@ -493,6 +542,10 @@ data COp
         = CRand CExpr    -- operand
         | CRator Int Id  -- infix operator Id, Int is the number of arguments?
         deriving (Eq, Ord, Show)
+
+instance NFData COp where
+    rnf (CRand x) = rnf x
+    rnf (CRator x1 x2) = rnf2 x1 x2
 
 type CSummands = [CInternalSummand]
 
@@ -506,6 +559,9 @@ data CInternalSummand =
                        cis_arg_type :: CType,
                        cis_tag_encoding :: Integer }
     deriving (Eq, Ord, Show)
+
+instance NFData CInternalSummand where
+    rnf (CInternalSummand x1 x2 x3) = rnf3 x1 x2 x3
 
 -- return only the primary name
 getCISName :: CInternalSummand -> Id
@@ -528,6 +584,9 @@ data COriginalSummand =
                        cos_tag_encoding :: Maybe Integer }
     deriving (Eq, Ord, Show)
 
+instance NFData COriginalSummand where
+    rnf (COriginalSummand x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+
 -- return only the primary name
 getCOSName :: COriginalSummand -> Id
 getCOSName cos = case (cos_names cos) of
@@ -544,6 +603,9 @@ data CField = CField { cf_name :: Id,
                      }
               deriving (Eq, Ord, Show)
 
+instance NFData CField where
+    rnf (CField x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
+
 type CFields = [CField] -- just a list of CField
 
 -- redundant
@@ -552,6 +614,9 @@ data CCaseArm = CCaseArm { cca_pattern :: CPat,
                            cca_filters :: [CQual],
                            cca_consequent :: CExpr }
               deriving (Eq, Ord, Show)
+
+instance NFData CCaseArm where
+    rnf (CCaseArm x1 x2 x3) = rnf3 x1 x2 x3
 
 type CCaseArms = [CCaseArm] -- [(CPat, [CQual], CExpr)]
 
@@ -566,6 +631,13 @@ data CStmt
         | CSExpr (Maybe CExpr) CExpr
         deriving (Eq, Ord, Show)
 
+instance NFData CStmt where
+    rnf (CSBindT x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
+    rnf (CSBind x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+    rnf (CSletseq x) = rnf x
+    rnf (CSletrec x) = rnf x
+    rnf (CSExpr x1 x2) = rnf2 x1 x2
+
 bindVarT :: Id -> CType -> CExpr -> CStmt
 bindVarT i t e = CSBindT (CPVar i) Nothing [] (CQType [] t) e
 
@@ -578,10 +650,20 @@ data CMStmt
         | CMTupleInterface Position [CExpr]
         deriving (Eq, Ord, Show)
 
+instance NFData CMStmt where
+    rnf (CMStmt x) = rnf x
+    rnf (CMrules x) = rnf x
+    rnf (CMinterface x) = rnf x
+    rnf (CMTupleInterface x1 x2) = rnf2 x1 x2
+
 data CRule
         = CRule [RulePragma] (Maybe CExpr) [CQual] CExpr
         | CRuleNest [RulePragma] (Maybe CExpr) [CQual] [CRule]
         deriving (Eq, Ord, Show)
+
+instance NFData CRule where
+    rnf (CRule x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+    rnf (CRuleNest x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 -- | A definition with a binding. Can occur as a let expression, let statement
 -- in a do block, a typeclass instance defn, or bindings in an interface.
@@ -592,11 +674,20 @@ data CDefl                -- [CQual] part is the when clause used in an interfac
         | CLMatch CPat CExpr           -- let [z] = e3
         deriving (Eq, Ord, Show)
 
+instance NFData CDefl where
+    rnf (CLValueSign x1 x2) = rnf2 x1 x2
+    rnf (CLValue x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CLMatch x1 x2) = rnf2 x1 x2
+
 -- Definition, local or global
 data CDef
         = CDef Id CQType [CClause]                        -- before type checking
         | CDefT Id [TyVar] CQType [CClause]                -- after type checking, with type variables from the CQType
         deriving (Eq, Ord, Show)
+
+instance NFData CDef where
+    rnf (CDef x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CDefT x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 -- Definition clause
 -- each interface's definitions (within the module) correspond to one of these
@@ -606,11 +697,18 @@ data CClause
                   CExpr                 -- the body
         deriving (Eq, Ord, Show)
 
+instance NFData CClause where
+    rnf (CClause x1 x2 x3) = rnf3 x1 x2 x3
+
 -- Pattern matching
 data CQual
         = CQGen CType CPat CExpr
         | CQFilter CExpr
         deriving (Eq, Ord, Show)
+
+instance NFData CQual where
+    rnf (CQGen x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CQFilter x) = rnf x
 
 isCQFilter :: CQual -> Bool
 isCQFilter (CQFilter _) = True
@@ -638,14 +736,34 @@ data CPat
         | CPConTs Id Id [CType] [CPat]
         deriving (Eq, Ord, Show)
 
+instance NFData CPat where
+    rnf (CPCon x1 x2) = rnf2 x1 x2
+    rnf (CPstruct x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CPVar x) = rnf x
+    rnf (CPAs x1 x2) = rnf2 x1 x2
+    rnf (CPAny x) = rnf x
+    rnf (CPLit x) = rnf x
+    rnf (CPMixedLit x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CPOper x) = rnf x
+    rnf (CPCon1 x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (CPConTs x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+
 data CPOp
         = CPRand CPat
         | CPRator Int Id
         deriving (Eq, Ord, Show)
 
+instance NFData CPOp where
+    rnf (CPRand x) = rnf x
+    rnf (CPRator x1 x2) = rnf2 x1 x2
+
 newtype CInclude
        = CInclude String
     deriving (Eq, Ord, Show)
+
+instance NFData CInclude where
+    rnf (CInclude s) = rnf s
+
 --------
 -- Utilities
 
@@ -1323,12 +1441,3 @@ ppInfix d i =
 
 instance PPrint CInclude where
     pPrint d p (CInclude s) = pPrint d p s
-
-instance Hyper CPackage where
-    hyper x y = (x == x) `seq` y
-
-instance Hyper CDefn where
-    hyper x y = (x == x) `seq` y
-
-instance Hyper CClause where
-    hyper x y = (x == x) `seq` y

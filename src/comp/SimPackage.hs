@@ -208,11 +208,10 @@ instance PPrint SimSchedule where
 
 -- -----
 
-instance Hyper SimSystem where
-    hyper ssim y = hyper3 (ssys_packages ssim)
-                          (ssys_schedules ssim)
-                          (ssys_top ssim)
-                          y
+instance NFData SimSystem where
+    -- Only forces certain fields
+    rnf (SimSystem packages schedules top instmap ffuncmap filemap default_clk default_rst) =
+        rnf3 packages schedules top
 
 instance Eq SimPackage where
     sp1 == sp2 =
@@ -240,21 +239,33 @@ instance Eq SimPackage where
          (sp_schedule_pragmas sp1 == sp_schedule_pragmas sp2)
         )
 
-instance Hyper SimPackage where
-    hyper spkg y = (spkg == spkg) `seq` y
+instance NFData SimPackage where
+    -- XXX Only forces specific fields
+    rnf sp =
+        rnf18
+            (asi_schedule (sp_schedule sp))
+            (sp_name sp)
+            (sp_is_wrapped sp)
+            (sp_version sp)
+            (sp_size_params sp)
+            (sp_inputs sp)
+            (sp_clock_domains sp)
+            (sp_external_wires sp)
+            (sp_reset_list sp)
+            (sp_state_instances sp)
+            (sp_noinline_instances sp)
+            (sp_method_order_map sp)
+            (sp_local_defs sp)
+            (sp_rules sp)
+            (sp_interface sp)
+            (sp_pathinfo sp)
+            (sp_gate_map sp)
+            (sp_schedule_pragmas sp)
 
-instance Hyper SimSchedule where
-    hyper ssched y =
-        --- we only care about certain fields
-        (
-            (ss_clock ssched    == ss_clock ssched)
-         && (ss_posedge ssched  == ss_posedge ssched)
-         && (ss_schedule ssched == ss_schedule ssched)
-         && (ss_sched_graph ssched == ss_sched_graph ssched)
-         && (ss_sched_order ssched == ss_sched_order ssched)
-         && (ss_domain_info_map ssched == ss_domain_info_map ssched)
-         && (ss_early_rules ssched == ss_early_rules ssched)
-        ) `seq` y
+instance NFData SimSchedule where
+    -- We only care about certain fields (doesn't force disjoint_rules_db).
+    rnf (SimSchedule clock posedge schedule disjoint_rules_db sched_graph sched_order domain_info_map early_rules) =
+        rnf7 clock posedge schedule sched_graph sched_order domain_info_map early_rules
 
 -- -----
 

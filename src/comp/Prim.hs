@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable, DeriveAnyClass #-}
 module Prim(
             PrimOp(..),
             toPrim,
@@ -641,8 +641,8 @@ toWString PrimError = "_error"
 toWString PrimCurrentClock = "primCurrentClock"
 toWString p = show p
 
-instance Hyper PrimOp where
-    hyper x y = seq x y
+instance NFData PrimOp where
+    rnf = rwhnf
 
 -----
 

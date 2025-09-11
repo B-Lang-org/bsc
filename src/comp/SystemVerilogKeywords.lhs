@@ -1,4 +1,5 @@
 > {-# OPTIONS_GHC -Wall -fno-warn-unused-matches -fno-warn-name-shadowing #-}
+> {-# LANGUAGE DeriveAnyClass #-}
 
 System Verilog keywords
 
@@ -15,6 +16,8 @@ CAVEAT: you should run checkSystemVerilogKeywords after changing this file.
 > import Control.Monad(when)
 > import System.IO(hPutStrLn, stderr)
 > import System.Exit(exitWith, ExitCode(..))
+> import GHC.Generics (Generic)
+> import Eval
 
 A datatype for SystemVerilog keywords, complete with printed
 representation, and language version introduced.
@@ -23,7 +26,7 @@ Keyword sources (should we wish to parse a subset):
 
 > data SV_Version = Verilog2001 | SystemVerilog30 | SystemVerilog31
 >                 | SystemVerilog31a | Bluespec38
->                   deriving (Show)
+>                   deriving (Show, Generic, NFData)
 
 Data type declaration for the keywords:
 
@@ -286,7 +289,7 @@ Data type declaration for the keywords:
 >     | SV_KW_powered_by
 >     | SV_KW_Action
 >     | SV_KW_ActionValue
->       deriving (Show, Eq, Ord, Enum, Bounded)
+>       deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData)
 
 
 Symbols
@@ -370,7 +373,7 @@ Symbols
 >     | SV_SYM_lt_gt
 >     | SV_SYM_dot_dot
 >     | SV_SYM_et_et_et -- temporary for patterns
->       deriving (Show, Eq, Ord, Enum, Bounded)
+>       deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData)
 
 Keyword table, in machine readable form.  Used to generate a keyword
 scanner and to prettyprint keywords.

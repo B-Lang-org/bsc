@@ -1,9 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module ConTagInfo(ConTagInfo(..)) where
 
 import Eval
 import PPrint
 import Data.Generics
+import qualified GHC.Generics
 
 -- Collects constructor and tag metadata for use in the symbol table and ISyntax.
 --  e.g., data T = A T1 | B T2
@@ -16,10 +18,7 @@ data ConTagInfo = ConTagInfo { conNo :: Integer,  -- position of constructor
                                conTag :: Integer, -- tag value when packed
                                tagSize :: Integer -- bits required to represent tag
                              }
-  deriving (Eq, Show, Data, Typeable)
-
-instance Hyper ConTagInfo where
-    hyper (ConTagInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+  deriving (Eq, Show, Data, Typeable, GHC.Generics.Generic, NFData)
 
 instance PPrint ConTagInfo where
     pPrint d p cti = pparen True $ commaSep [text conStr, text tagStr]

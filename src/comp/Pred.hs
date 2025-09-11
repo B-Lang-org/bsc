@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Pred(
             Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
             getInsts,
@@ -14,6 +15,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
+import GHC.Generics (Generic, Generic1)
 import Eval
 import ErrorUtil(internalError)
 import Position
@@ -38,7 +40,7 @@ import CSyntaxTypes
 --
 data Qual t
         = [(PredWithPositions)] :=> t
-        deriving (Eq, Ord, Show)
+        deriving (Eq, Ord, Show, Generic, Generic1, NFData, NFData1)
 
 instance PPrint t => PPrint (Qual t) where
     pPrint d p ([] :=> t) = pparen (p>0) $ pPrint d p t
@@ -54,9 +56,6 @@ instance Types t => Types (Qual t) where
     apSub s (ps :=> t) = apSub s ps :=> apSub s t
     tv      (ps :=> t) = tv ps `union` tv t
 
-instance (Hyper a) => Hyper (Qual a) where
-    hyper (ps :=> t) y = hyper2 ps t y
-
 qualTypeToCQType :: Qual Type -> CQType
 qualTypeToCQType (pwps :=> t) = CQType ps t
   where ps = map (predToCPred . removePredPositions) pwps
@@ -67,7 +66,7 @@ qualTypeToCQType (pwps :=> t) = CQType ps t
 -- Allow some Preds to be tagged with position information
 --
 data PredWithPositions = PredWithPositions Pred [Position]
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 mkPredWithPositions :: [Position] -> Pred -> PredWithPositions
 mkPredWithPositions poss p = PredWithPositions p poss
@@ -105,14 +104,11 @@ instance Types PredWithPositions where
     apSub s (PredWithPositions p poss) = PredWithPositions (apSub s p) poss
     tv      (PredWithPositions p poss) = tv p
 
-instance Hyper PredWithPositions where
-    hyper (PredWithPositions p poss) y = hyper2 p poss y
-
 -----
 
 data Pred
         = IsIn Class [Type]
-        deriving (Eq, Ord, Show)
+        deriving (Eq, Ord, Show, Generic, NFData)
 
 instance PPrint Pred where
     pPrint d p (IsIn c ts) = pparen (p>0) $ ppId d (typeclassId $ name c) <+> sep (map (pPrint d 10) ts)
@@ -123,9 +119,6 @@ instance PVPrint Pred where
 instance Types Pred where
     apSub s (IsIn c ts) = IsIn c $ expandSyn <$> apSub s ts
     tv      (IsIn c ts) = tv ts
-
-instance Hyper Pred where
-    hyper (IsIn c ts) y = hyper2 c ts y
 
 predToCPred :: Pred -> CPred
 predToCPred (IsIn c ts) = CPred (name c) ts
@@ -194,8 +187,8 @@ instance PVPrint Class where
                 pvPrint d 0 (funDeps c) <>
                 text ")"
 
-instance Hyper Class where
-    hyper (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) y = hyper7 x1 x2 x3 x4 x5 x8 x9 y
+instance NFData Class where
+    rnf (Class x1 x2 x3 x4 x5 _x6 _x7 x8 x9) = rnf x1 `seq` rnf x2 `seq` rnf x3 `seq` rnf x4 `seq` rnf x5 `seq` rnf x8 `seq` rnf x9
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -207,9 +200,7 @@ instance Ord Class where
 -- someone should comment what all these
 -- things are that go into an Inst.
 data Inst = Inst CExpr [TyVar] (Qual Pred)
-
-instance Hyper Inst where
-    hyper (Inst x1 x2 x3) y = hyper3 x1 x2 x3 y
+    deriving (Generic, NFData)
 
 mkInst :: CExpr -> Qual Pred -> Inst
 mkInst e i = Inst e (tv i) i

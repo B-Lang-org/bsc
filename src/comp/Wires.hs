@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Wires(ClockId, ClockDomain(..), ResetId,
              nextClockId, nextClockDomain, nextResetId,
              initClockId, initClockDomain, initResetId,
@@ -17,28 +18,20 @@ import Prelude hiding ((<>))
 import Eval
 import PPrint
 import qualified Data.Generics as Generic
+import GHC.Generics (Generic)
 -- Primitives for describing special wires (e.g. clock and reset)
 
 data ClockId = ClockId !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
-
-instance Hyper ClockId where
-  hyper (ClockId a) y = hyper a y
+  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable, Generic, NFData)
 
 data ClockDomain = ClockDomain !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable, Generic, NFData)
 
 instance PPrint ClockDomain where
   pPrint d p (ClockDomain i) = pPrint d p i
 
-instance Hyper ClockDomain where
-  hyper (ClockDomain a) y = hyper a y
-
 data ResetId = ResetId !Int
-  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
-
-instance Hyper ResetId where
-  hyper (ResetId a) y = hyper a y
+  deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable, Generic, NFData)
 
 instance PPrint ResetId where
   pPrint d p (ResetId i) = pPrint d p i
@@ -88,13 +81,10 @@ data WireProps = WireProps { -- clock domain of object, Nothing if object crosse
                              -- more than one implies "unsafe reset crossing"
                              wpResets :: [ResetId]
                            }
-   deriving(Eq, Ord, Show, Generic.Data, Generic.Typeable)
+   deriving(Eq, Ord, Show, Generic.Data, Generic.Typeable, Generic, NFData)
 
 emptyWireProps :: WireProps
 emptyWireProps = WireProps { wpClockDomain = Nothing, wpResets = [] }
-
-instance Hyper WireProps where
-  hyper (WireProps a b) y = hyper2 a b y
 
 instance PPrint WireProps where
   pPrint d p wp = text ("clock domain = ") <> (pPrint d 0 (wpClockDomain wp)) <> text (",") <+>

@@ -36,8 +36,8 @@ class HasPosition a where
 instance Show Position where
     show p = prPosition p
 
-instance Hyper Position where
-    hyper p y = p `seq` y
+instance NFData Position where
+    rnf = rwhnf -- all fields are strict so this should suffice
 
 prPosition :: Position -> String
 prPosition (Position fs l c pred) =

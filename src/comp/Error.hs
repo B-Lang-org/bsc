@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveAnyClass #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
 -- This is used to guarantee that getErrorText covers all the cases
 -- Note that the OPTIONS line must be first !!!!
@@ -53,6 +53,9 @@ import Prelude hiding ((<>))
 #endif
 
 import ErrorUtil(internalError)
+
+import GHC.Generics (Generic)
+import Eval
 
 -- displaying messages
 import Data.List(sortBy, intercalate, nub, delete, partition)
@@ -1191,7 +1194,12 @@ data ErrMsg =
         -- XXX these should contain the type of the constructor
         | EConMismatchNumArgs  String{-String-}      Integer Integer
         | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
-        deriving (Eq,Show)
+        deriving (Eq, Show)
+
+instance NFData ErrMsg where
+    -- XXX preserves original semantics but it's not pretty.
+    -- Doc does not have an NFData instance though so it's hard to derive it.
+    rnf x = (x == x) `seq` ()
 
 instance PPrint ErrMsg where
     pPrint _ _ e = text (show e)
@@ -1209,7 +1217,7 @@ data ErrMsgTag =
     | Generate Integer
     -- | Errors detected during simulation (runtime)
     | Runtime  Integer
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 errMsgTagWidth :: Integer
 errMsgTagWidth = 4

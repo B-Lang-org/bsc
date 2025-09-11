@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module IntLit (IntLit(..),
                ilDec, ilSizedDec, ilHex, ilSizedHex, ilBin, ilSizedBin,
                showVeriIntLit, showSizedVeriIntLit
@@ -9,12 +10,13 @@ import PPrint
 import PVPrint
 import Eval
 import ErrorUtil(internalError)
+import GHC.Generics (Generic)
 import qualified Data.Generics as Generic
 
 data IntLit = IntLit { ilWidth :: Maybe Integer,
                        ilBase  :: Integer,
                        ilValue :: Integer }
-              deriving (Generic.Data, Generic.Typeable)
+              deriving (Generic.Data, Generic.Typeable, Generic, NFData)
 
 
 
@@ -55,9 +57,6 @@ instance Show IntLit where
 
 instance PPrint IntLit where
      pPrint d p i = text (show i)
-
-instance Hyper IntLit where
-     hyper (IntLit x1 x2 x3) y = hyper3 x1 x2 x3 y
 
 -- --------------------
 

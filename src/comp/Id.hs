@@ -663,8 +663,8 @@ removeIdInlinedPositions i =
         other_ps = filter (not . isIdPInlinedPositions) (getIdProps i)
     in  setIdProps i other_ps
 
-instance Hyper Id where
-    hyper a@(Id {}) y = y       -- XXX
+instance NFData Id where
+    rnf (Id {}) = ()      -- XXX this doesn't force the (lazy) fields
 
 -- #############################################################################
 -- # Methods for adding properties to Id's, checking for them etc.

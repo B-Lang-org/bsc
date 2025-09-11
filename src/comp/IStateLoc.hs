@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module IStateLoc (
   IStateLoc
   ,IStateLocPathComponent(..)
@@ -20,8 +21,9 @@ module IStateLoc (
 
 import IType
 import Id
+import GHC.Generics (Generic)
 import qualified Data.Generics as Generic
-import Eval(Hyper(..))
+import Eval
 import Data.Char(isAlphaNum)
 
 import Position
@@ -71,12 +73,7 @@ data IStateLocPathComponent = IStateLocPathComponent {
   -- Name generation
   isl_prefix                 :: NameGenerate, -- currently computed hierarchical prefix
   isl_loop_suffix         :: NameGenerate  -- loop indexes to add once a "real" name is found.
-  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
-
-
--- ---------------------------------------
-instance Hyper IStateLocPathComponent where
-  hyper (IStateLocPathComponent a b c d e f g h i j) y = hyper ((a, b, c, d, e), (f ,g, h, i, j)) y
+  } deriving (Eq, Show, Generic.Data, Generic.Typeable, Generic, NFData)
 
 -- ---------------------------------------
 instance HasPosition IStateLocPathComponent where
@@ -124,13 +121,7 @@ mkISLPC inst_id ifc_id ifc_type = islpc
 data NameGenerate = NameEmpty             -- No name so far
                     | NameIndex [Integer] -- loop indexes
                     | Name Id             -- a real name
-                    deriving (Eq, Show, Generic.Data, Generic.Typeable)
-
---
-instance Hyper NameGenerate where
-  hyper (NameEmpty) y    = hyper () y
-  hyper (NameIndex xs) y = hyper xs y
-  hyper (Name i) y       = hyper i y
+                    deriving (Eq, Show, Generic.Data, Generic.Typeable, Generic, NFData)
 
 --
 instance HasPosition NameGenerate where

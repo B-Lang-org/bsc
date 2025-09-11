@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module SimDomainInfo where
 
 import Util(mapFst)
@@ -6,9 +8,10 @@ import ASyntax(AId, AExpr, AClock(..), ARuleId)
 import Wires(ClockDomain)
 import ErrorUtil(internalError)
 import PPrint
+import Eval
 
 import qualified Data.Map as M
-
+import GHC.Generics (Generic)
 
 -- ---------------
 
@@ -67,7 +70,7 @@ data DomainInfo = DomainInfo
       -- (for replacing gate references in the rule conditions)
       di_clock_substs :: ClockSubst
     }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint DomainInfo where
     pPrint d _ di =

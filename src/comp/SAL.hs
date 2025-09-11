@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module SAL(
     SContext,
     convAPackageToSAL
@@ -16,6 +17,7 @@ import Control.Monad.State(State, runState, gets, get, put)
 import Data.Maybe(mapMaybe)
 import Data.Char(toLower)
 import Data.List(intersperse, groupBy)
+import GHC.Generics (Generic)
 
 import Util(snd3, fst2of3, eqSnd, itos, concatMapM, map_deleteMany, makePairs)
 
@@ -150,13 +152,13 @@ convAPackageToSAL errh flags apkg0 =
 -- which is why the data types are prepended with "S".
 
 data SContext = SContext SId SComment [SDefn]
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 data SId = SId String
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 data SQId = SQId (Maybe (SId, [SType], [SExpr])) SId
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 type SComment = [String]
 
@@ -168,7 +170,7 @@ data SDefn = SDComment SComment [SDefn]
            | SDValue SId SType SExpr
            -- SDContext
            -- SDModule
-           deriving (Eq, Show)
+           deriving (Eq, Show, Generic, NFData)
 
 data SType = STVar SQId
            -- for us, arrays are always indexed by subtype starting at zero
@@ -179,7 +181,7 @@ data SType = STVar SQId
            | STFunc SType SType
            | STRecord [(SId, SType)]
            -- | STState
-           deriving (Eq, Show)
+           deriving (Eq, Show, Generic, NFData)
 
 data SExpr = SLam [(SId, SType)] SExpr
            | SLet [(SId, SType, SExpr)] SExpr
@@ -200,12 +202,7 @@ data SExpr = SLam [(SId, SType)] SExpr
            | STupleUpd SExpr Integer SExpr
            | STupleSel SExpr Integer
            | SIf SExpr SExpr SExpr
-           deriving (Eq, Show)
-
--- -----
-
-instance Hyper SContext where
-  hyper x y = (x==x) `seq` y
+           deriving (Eq, Show, Generic, NFData)
 
 -- -----
 

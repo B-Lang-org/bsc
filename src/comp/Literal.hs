@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Literal(Literal(..)) where
+
+import GHC.Generics (Generic)
+import Eval
 import IntLit
 import PPrint
 import PVPrint
@@ -9,8 +14,7 @@ data Literal
         | LInt IntLit
         | LReal Double
         | LPosition -- a position literal is a placeholder for the position in CLiteral
-        deriving (Eq, Ord, Show)
-
+        deriving (Eq, Ord, Show, Generic, NFData)
 
 instance PPrint Literal where
     pPrint _ _ (LString s) = text (show s)

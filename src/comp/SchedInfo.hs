@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE UndecidableInstances #-}
 module SchedInfo (
                   SchedInfo(..),
 
@@ -63,12 +64,8 @@ instance (PVPrint idtype, Ord idtype) => PVPrint (SchedInfo idtype) where
              pvPrint d 0 (rulesBeforeMethods si),
              pvPrint d 0 (clockCrossingMethods si)]
 
-instance (Hyper idtype) => Hyper (SchedInfo idtype) where
-    hyper si y = hyper4 (methodConflictInfo si)
-                        (rulesBetweenMethods si)
-                        (rulesBeforeMethods si)
-                        (clockCrossingMethods si)
-                        y
+instance (NFData idtype) => NFData (SchedInfo idtype) where
+    rnf (SchedInfo x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 -- ========================================================================
 -- MethodConflictOp
@@ -137,6 +134,8 @@ instance (PVPrint idtype, Ord idtype) => PVPrint (MethodConflictInfo idtype) whe
         let ds = makeMethodConflictDocs (pvPrint d p) pvpReadable "[" "]" mci
         in  text "[" <> sepList ds (text ",") <> text "]"
 
+instance (NFData idtype) => NFData (MethodConflictInfo idtype) where
+    rnf (MethodConflictInfo x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
 
 -- Given:
 --   * a printing function for ids (pPrint or pvPrint)
@@ -267,12 +266,3 @@ extractFromMethodConflictInfo x =
         setC  = foldl' f S.empty (sC x)
         setEXT= S.fromList (sEXT x)
     in S.toList (S.unions [setCF, setSB, setME, setP, setSBR, setC, setEXT])
-
--- --------------------
-
-instance (Hyper idtype) => Hyper (MethodConflictInfo idtype) where
-    hyper (MethodConflictInfo { sCF=cf, sSB=sb, sME=me, sP=p,
-                                sSBR=sbr, sC=c, sEXT=ext }) y =
-        hyper7 cf sb me p sbr c ext y
-
--- ========================================================================
