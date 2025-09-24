@@ -37,6 +37,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-22.04, ubuntu-24.04 ]
+        timeout_override: [ false ]
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
@@ -44,12 +45,18 @@ jobs:
       os: ${{ matrix.os }}
       ghc_version: 9.6.7
       hls_version: 2.10.0.0
+      timeout_override: ${{ matrix.timeout_override }}
     secrets: inherit
 
   build-and-test-macos:
     strategy:
       matrix:
-        os: [ macos-13, macos-14, macos-15 ]
+        os: [ macos-14, macos-15 ]
+        timeout_override: [ false ]
+        include:
+          # Homebrew no longer supports macOS 13, so installs are slow
+          - os: macos-13
+            timeout_override: true
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-macos.yml
@@ -57,6 +64,7 @@ jobs:
       os: ${{ matrix.os }}
       ghc_version: 9.6.7
       hls_version: 2.10.0.0
+      timeout_override: ${{ matrix.timeout_override }}
     secrets: inherit
 
   # ------------------------------
