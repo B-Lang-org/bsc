@@ -65,6 +65,13 @@ CXXFLAGS += -Wall -Wextra -Werror \
         -fno-rtti \
 	-fPIC
 
+CLANG_MAJVER=$(shell echo | $(CXX) -dM -E - | grep __clang_major__ | awk '{print $$3}')
+ifneq ($(CLANG_MAJVER),)
+ifeq ($(shell test $(CLANG_MAJVER) -ge 17; echo $$?),0)
+CXXFLAGS += -Wno-vla-cxx-extension
+endif
+endif
+
 # Compares two dotted numeric strings (e.g 2.3.16.1) for $1 >= $2
 define version_ge
 $(findstring TRUE,$(shell bash -c 'sort -cu -t. -k1,1nr -k2,2nr -k3,3nr -k4,4nr <(echo -e "$2\n$1") 2>&1 || echo TRUE'))
