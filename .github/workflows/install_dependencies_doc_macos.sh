@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-brew update
+if [ "${BREW_UPDATE}" != "false" ]; then
+    brew update
+fi
 
 # The install of 'texlive' may cause the install of a newer version of
 # 'python', which could fail because it cannot overwrite links for
