@@ -53,10 +53,12 @@ jobs:
       matrix:
         os: [ macos-14, macos-15 ]
         timeout_override: [ false ]
+        brew_update: [ true ]
         include:
           # Homebrew no longer supports macOS 13, so installs are slow
           - os: macos-13
             timeout_override: true
+            brew_update: false
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-macos.yml
@@ -65,6 +67,7 @@ jobs:
       ghc_version: 9.6.7
       hls_version: 2.10.0.0
       timeout_override: ${{ matrix.timeout_override }}
+      brew_update: ${{ matrix.brew_update }}
     secrets: inherit
 
   # ------------------------------
@@ -157,7 +160,12 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-13, macos-14, macos-15 ]
+        os: [ macos-14, macos-15 ]
+        brew_update: [ true ]
+        include:
+          # Homebrew no longer supports macOS 13, so installs are slow
+          - os: macos-13
+            brew_update: false
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -166,6 +174,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
+        env:
+          BREW_UPDATE: ${{ matrix.brew_update }}
         run: ".github/workflows/install_dependencies_doc_macos.sh"
       - name: Build
         run: |

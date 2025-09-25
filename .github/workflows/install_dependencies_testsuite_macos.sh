@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-brew update
+if [ "${BREW_UPDATE}" != "false" ]; then
+    brew update
+fi
 
 brew install \
   ccache \
