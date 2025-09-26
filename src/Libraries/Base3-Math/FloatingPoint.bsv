@@ -609,7 +609,7 @@ function Tuple2#(FloatingPoint#(e,m),Exception) round( RoundMode rmode, Floating
 	 begin
 	    case (guard)
 	       'b00: out = din;
-	       'b01: out = din_inc;
+	       'b01: out = din;
 	       'b10: out = din_inc;
 	       'b11: out = din_inc;
 	    endcase
