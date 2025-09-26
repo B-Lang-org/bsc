@@ -102,7 +102,7 @@ import qualified Foreign.Concurrent as F
 import MVarStrict
 
 import ErrorUtil(internalError)
-import System.Posix.Env(getEnvDefault)
+import System.Environment (lookupEnv)
 --import Util(traceM)
 
 
@@ -169,6 +169,12 @@ checkVersion = do
   -- so all we can do is check for a stub
   ptr <- vc_createValidityChecker
   return (ptr /= nullPtr)
+
+-- | Cross-platform replacement for 'getEnvDefault'
+getEnvDefault :: String -> String -> IO String
+getEnvDefault var def = do
+    value <- lookupEnv var
+    return $ maybe def id value  
 
 ------------------------------------------------------------------------
 -- Context manipulation
