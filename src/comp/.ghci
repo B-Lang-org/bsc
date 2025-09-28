@@ -7,7 +7,6 @@
 :set -package containers
 :set -package array
 :set -package mtl
-:set -package unix
 :set -package regex-compat
 :set -package bytestring
 :set -package directory
