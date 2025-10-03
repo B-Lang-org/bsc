@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module APaths(
               PathGraphInfo,
               PathUrgencyPairs, PathNode,
@@ -118,6 +120,7 @@ import Control.Monad(when)
 import Data.Maybe(isJust, isNothing, fromJust)
 import Data.List(partition)
 import Id(unQualId, getIdBaseString)
+import GHC.Generics (Generic)
 import Eval
 import Position(getPosition)
 import qualified Data.Map as M
@@ -148,6 +151,7 @@ data PathGraphInfo = PathGraphInfo
                          { pgi_graph :: Graph PathNode,
                            pgi_inputs :: [PathNode],
                            pgi_outputs :: [PathNode] }
+    deriving (Generic, NFData)
 
 instance PPrint PathGraphInfo where
     pPrint d p pgi =
@@ -159,9 +163,6 @@ instance PPrint PathGraphInfo where
                 text "outputs" <+> text "=" <+>
                 pPrint d p (pgi_outputs pgi)) $+$
         text "}"
-
-instance Hyper PathGraphInfo where
-    hyper x y = hyper3 (pgi_graph x) (pgi_inputs x) (pgi_outputs x) y
 
 type PathUrgencyPairs = [(ARuleId, ARuleId, [PathNode])]
 
@@ -212,7 +213,7 @@ data PathNode =
     PNTopClkGate AId |
     -- clock-gating signal (state element output)
     PNStateClkGate AId AId
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 -- The Bool indicates whether to use pPrint or pvPrint
 printPathNode :: Bool -> PDetail -> Int -> PathNode -> Doc
@@ -286,9 +287,6 @@ instance PPrint PathNode where
 
 instance PVPrint PathNode where
     pvPrint d p = printPathNode True d p
-
-instance Hyper PathNode where
-    hyper x y = (x==x) `seq` y
 
 -- When reporting errors, all of the above are in the user's source
 -- except the defs, so don't report them.  This function filters them out.

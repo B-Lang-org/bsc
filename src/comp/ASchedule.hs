@@ -734,7 +734,7 @@ aSchedule_step1 errh flags prefix pps amod = do
                     ruleMethodUseMap ncSetCF cf_or_disjoint
 
   -- for better memory performance, force the computation
-  hyper (G.toList cfConflictMap0) $
+  deepseq (G.toList cfConflictMap0) $
       when trace_sched_steps $ traceM ("forcing cfConflictMap0")
 
   -- ====================
@@ -753,7 +753,7 @@ aSchedule_step1 errh flags prefix pps amod = do
                     ruleMethodUseMap ncSetPC cf_map_test
 
   -- for better memory performance, force the computation
-  hyper (G.toList pcConflictMap0) $
+  deepseq (G.toList pcConflictMap0) $
       when trace_sched_steps $ traceM ("forcing pcConflictMap0")
 
   -- ====================
@@ -777,7 +777,7 @@ aSchedule_step1 errh flags prefix pps amod = do
                     ruleMethodUseMap ncSetSC pc_map_test
 
   -- for better memory performance, force the computation
-  hyper (G.toList scConflictMap0) $
+  deepseq (G.toList scConflictMap0) $
       when trace_sched_steps $ traceM ("forcing scConflictMap0")
 
   -- ====================
@@ -844,13 +844,13 @@ aSchedule_step1 errh flags prefix pps amod = do
 
   -- XXX Do we need this again, if we already forced the initial maps?
 {-
-  hyper (G.toList cfConflictMap) $
+  deepseq (G.toList cfConflictMap) $
       when trace_sched_steps $ traceM ("forcing cfConflictMap")
 
-  hyper (G.toList pcConflictMap) $
+  deepseq (G.toList pcConflictMap) $
       when trace_sched_steps $ traceM ("forcing pcConflictMap")
 
-  hyper (G.toList scConflictMap) $
+  deepseq (G.toList scConflictMap) $
       when trace_sched_steps $ traceM ("forcing scConflictMap")
 -}
 

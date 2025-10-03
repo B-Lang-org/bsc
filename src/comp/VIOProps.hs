@@ -28,14 +28,15 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
 
 data IOIO = INPUT | OUTPUT | INOUT deriving (Eq)
 
-instance Hyper IOIO where hyper x y = seq x y
+instance NFData IOIO where
+    rnf = rwhnf
 
 --   (name, input(T)/output(F), width, properties)
 newtype VIOProps = VIOProps [(AId, IOIO, Integer, [VeriPortProp])]
         deriving (Eq)
 
-instance Hyper VIOProps where
-    hyper (VIOProps xs) y = hyper xs y
+instance NFData VIOProps where
+    rnf (VIOProps x) = rnf x
 
 instance PPrint VIOProps where
     pPrint d p (VIOProps ps) =

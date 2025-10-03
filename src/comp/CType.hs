@@ -93,6 +93,8 @@ data TyVar = TyVar { tv_name :: Id    -- ^ name of the type variable
                    }
     deriving (Show, Generic.Data, Generic.Typeable)
 
+instance NFData TyVar where
+    rnf (TyVar x1 x2 x3) = rnf3 x1 x2 x3
 
 -- | Representation of a type constructor
 data TyCon = -- | A constructor for a type of value kind
@@ -110,6 +112,11 @@ data TyCon = -- | A constructor for a type of value kind
                    }
     deriving (Show, Generic.Data, Generic.Typeable)
 
+instance NFData TyCon where
+    rnf (TyCon x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (TyNum x1 x2) = rnf2 x1 x2
+    rnf (TyStr x1 x2) = rnf2 x1 x2
+
 data TISort
         = -- type synonym
           TItype Integer Type
@@ -122,6 +129,11 @@ data TISort
         | TIabstract
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
+instance NFData TISort where
+    rnf (TItype x1 x2) = rnf2 x1 x2
+    rnf (TIdata x1 x2) = rnf2 x1 x2
+    rnf (TIstruct x1 x2) = rnf2 x1 x2
+    rnf TIabstract = ()
 
 data StructSubType
         = SStruct
@@ -155,15 +167,29 @@ data PartialKind
         | PKfun PartialKind PartialKind
         deriving (Eq, Ord, Show)
 
+instance NFData PartialKind where
+    rnf PKNoInfo = ()
+    rnf PKStar = ()
+    rnf PKNum = ()
+    rnf PKStr = ()
+    rnf (PKfun k1 k2) = rnf2 k1 k2
+
+
 -- | A named typeclass
 newtype CTypeclass = CTypeclass Id
-    deriving (Eq, Ord, Show, PPrint, HasPosition, Hyper)
+    deriving (Eq, Ord, Show, PPrint, HasPosition)
+
+instance NFData CTypeclass where
+    rnf (CTypeclass x) = rnf x
 
 -- | Representation of the provisos and other class constraints
 data CPred = CPred { cpred_tc   :: CTypeclass  -- ^ constraint class, e.g., "Eq"
                    , cpred_args :: [CType]     -- ^ argument types
                    }
         deriving (Eq, Ord, Show)
+
+instance NFData CPred where
+    rnf (CPred x1 x2) = rnf2 x1 x2
 
 -- Eq instances
 
@@ -239,12 +265,12 @@ instance PPrint Type where
     pPrint d p (TDefMonad _) = text ("TDefMonad")
     pPrint d p (TGen _ n) = pparen True (text "TGen" <+> pPrint d p n)
 
-instance Hyper Type where
-    hyper (TVar v) y = hyper v y
-    hyper (TCon c) y = hyper c y
-    hyper (TAp t1 t2) y = hyper2 t1 t2 y
-    hyper (TGen p i) y = hyper2 p i y
-    hyper (TDefMonad _) y = y
+instance NFData Type where
+    rnf (TVar v) = rnf v
+    rnf (TCon c) = rnf c
+    rnf (TAp t1 t2) = rnf2 t1 t2
+    rnf (TGen p i) = rnf2 p i
+    rnf (TDefMonad _) = ()  -- XXX
 
 instance HasPosition Type where
     getPosition (TVar var) = getPosition var
@@ -252,9 +278,6 @@ instance HasPosition Type where
     getPosition (TAp f a) = getPosition f `bestPosition` getPosition a
     getPosition (TGen pos _) = pos
     getPosition (TDefMonad pos) = pos
-
-instance Hyper TyVar where
-    hyper (TyVar i n k) y = hyper3 i n k y
 
 instance HasPosition TyVar where
     getPosition (TyVar name _ _) = getPosition name
@@ -269,11 +292,6 @@ instance PPrint TyCon where
     pPrint d _ (TyCon i _ _) = ppConId d i
     pPrint d _ (TyNum i _) = text (itos i)
     pPrint d _ (TyStr s _) = text (show s)
-
-instance Hyper TyCon where
-    hyper (TyCon i k s) y = hyper3 i k s y
-    hyper (TyNum i p) y = hyper2 i p y
-    hyper (TyStr s p) y = hyper2 s p y
 
 instance HasPosition TyCon where
     getPosition (TyCon name k _) = getPosition name
@@ -290,9 +308,8 @@ instance HasPosition CPred where
 data CQType = CQType [CPred] CType
     deriving (Eq, Ord, Show)
 
-instance Hyper CQType where
-    hyper (CQType i ts) y = hyper2 i ts y
-
+instance NFData CQType where
+    rnf (CQType x1 x2) = rnf2 x1 x2
 
 {-
 -- should typeclass ids be equal if they are qualEq?
@@ -311,9 +328,6 @@ typeclassId (CTypeclass i) = i
 
 instance PVPrint CTypeclass where
    pvPrint d p (CTypeclass i) = pvPrint d p i
-
-instance Hyper CPred where
-    hyper (CPred i ts) y = hyper2 i ts y
 
 instance PPrint CQType where
     pPrint d p (CQType [] ct) = pPrint d p ct
@@ -567,9 +581,12 @@ instance PPrint Kind where
     pPrint d p (Kfun l r) = pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
     pPrint _ _ (KVar i) = text (showKVar i)
 
-instance Hyper Kind where
-    hyper (Kfun k1 k2) y = hyper2 k1 k2 y
-    hyper k y = k `seq` y
+instance NFData Kind where
+    rnf KStar = ()
+    rnf KNum = ()
+    rnf KStr = ()
+    rnf (Kfun k1 k2) = rnf2 k1 k2
+    rnf (KVar _) = ()  -- XXX
 
 ----
 
@@ -581,10 +598,6 @@ instance PPrint PartialKind where
     pPrint d p (PKfun l r) =
         pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
 
-instance Hyper PartialKind where
-    hyper (PKfun k1 k2) y = hyper2 k1 k2 y
-    hyper k y = k `seq` y
-
 ----
 
 instance PPrint TISort where
@@ -593,18 +606,15 @@ instance PPrint TISort where
     pPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pPrint d 1 ss <+> pPrint d 1 is
     pPrint d p (TIabstract) = text "TIabstract"
 
-instance Hyper TISort where
-    hyper (TItype i t) y = hyper2 i t y
-    hyper (TIdata is enum) y = hyper2 is enum y
-    hyper (TIstruct ss is) y = hyper2 ss is y
-    hyper (TIabstract) y = y
-
 instance PPrint StructSubType where
     pPrint _ _ ss = text (show ss)
 
-instance Hyper StructSubType where
-    hyper (SDataCon i nm) y = hyper2 i nm y
-    hyper x y = x `seq` y
+instance NFData StructSubType where
+    rnf SStruct = ()
+    rnf SClass = ()
+    rnf (SDataCon i nm) = rnf2 i nm
+    rnf (SInterface _) = () -- XXX
+    rnf (SPolyWrap _ _ _) = () -- XXX
 
 -- Force evaluation of a Ctype
 seqCType :: CType -> CType

@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module CCSyntax( CCFragment , CCType , CCExpr, CSign(..)
 -- Functions for creating types
                , bitsType , classType , ptrType, doubleType
@@ -78,6 +79,7 @@ import Prelude hiding ((<>))
 
 import Data.Maybe
 import Data.List(intersperse)
+import GHC.Generics (Generic)
 import PPrint hiding ( int
                      , char
                      , float
@@ -85,7 +87,7 @@ import PPrint hiding ( int
 import ErrorUtil(internalError)
 import Util
 import Numeric(showInt)
-import Eval(Hyper(..))
+import Eval
 
 -- import Debug.Trace
 
@@ -125,7 +127,7 @@ pp x = pPrint PDReadable 0 x
 
 -- Type qualifiers
 data CQualifier = CTnone | CTconst | CTvolatile
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint CQualifier where
   pPrint d p CTnone     = empty
@@ -134,7 +136,7 @@ instance PPrint CQualifier where
 
 -- Sign annotations
 data CSign = CTsigned | CTunsigned
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint CSign where
   pPrint d p CTsigned   = text "signed"
@@ -160,7 +162,7 @@ data CCType = CTbool
             | CTdestructor
             | CTnumeric Integer
             | CTtemplate CCType [CCType]
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- Functions for creating types
 
@@ -267,7 +269,7 @@ data CStorageClass  = CSnone
                     | CSregister
                     | CSmutable
                     | CSvirtual
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint CStorageClass where
   pPrint d p CSnone     = empty
@@ -307,7 +309,7 @@ data CCExpr = CVar String
             | CNew CCType (Maybe [CCExpr]) (Maybe CCExpr)
             | CDelete CCExpr Bool
             | CTemplate CCExpr [CCType]
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- These precedence values are used for proper grouping of non-standard
 -- operators.  Other operators have their precedence encoded within COp
@@ -420,7 +422,7 @@ instance PPrint CCExpr where
 -- directional precedence bias.
 
 data COp = COp Int Int Int String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint COp where
   pPrint d p (COp _ _ _ s) = text s
@@ -507,7 +509,7 @@ oComma   = infixlOp  1 ","
 -- programs.
 
 data CAccess = CApublic | CAprotected | CAprivate
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 instance PPrint CAccess where
   pPrint d p CApublic    = text "public"
@@ -546,7 +548,7 @@ data CCFragment = CAbstract
                 | CClass String (Maybe String) [CCFragment]
                 | CNameSpace String [CCFragment]
                 | CUsing String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- Print a fragment as a statement (adds a semicolon where appropriate)
 printStmt :: CCFragment -> Doc
@@ -1208,9 +1210,3 @@ blankLines n = CBlankLines n
 
 templated :: CCExpr -> [CCType] -> CCExpr
 templated e args = CTemplate e args
-
--- ----------
--- Hyper instance needed for dumping CCFragments
-
-instance Hyper CCFragment where
-  hyper x y = (x==x) `seq` y
