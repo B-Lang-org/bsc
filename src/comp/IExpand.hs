@@ -17,25 +17,25 @@ module IExpand(iExpand) where
 import Prelude hiding ((<>))
 #endif
 
-import Data.List
-import Data.Maybe
-import Data.Foldable(foldrM)
-import Numeric(showIntAtBase)
-import Data.Char(intToDigit, ord, chr)
-import Control.Monad(when, foldM, zipWithM, mapAndUnzipM)
-import Control.Monad.Fix(mfix)
---import Control.Monad.Fix
-import Control.Monad.State(State, evalState, liftIO, get, put)
-import Data.Graph
-import qualified Data.Generics as Generic
-import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,
-                 hSetBuffering, hIsOpen, hIsClosed)
-import System.FilePath(isRelative)
 import qualified Data.Array as Array
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Data.Char(intToDigit, ord, chr)
+import Data.List
+import Data.Maybe
+import Data.Foldable(foldrM)
 import Debug.Trace(traceM)
+import Numeric(showIntAtBase)
+import Control.Monad(when, foldM, zipWithM, mapAndUnzipM)
+import Control.Monad.Fix(mfix)
+import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,
+                 hSetBuffering, hIsOpen, hIsClosed)
+import System.FilePath(isRelative)
+
+import qualified Data.Generics as Generic
+import Data.Graph
+import Control.Monad.State(State, evalState, liftIO, get, put)
 
 import FileIOUtil(openFileCatch, hCloseCatch, hFlushCatch, hGetBufferingCatch,
                   hSetBufferingCatch, hPutStrCatch, hGetLineCatch,

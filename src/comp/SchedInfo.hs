@@ -19,13 +19,14 @@ module SchedInfo (
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
 #endif
-
+import Data.Data
 import Data.List(foldl',sortBy)
-import PFPrint
-import Eval
+
 import qualified Data.Map as M
 import qualified Data.Set as S
-import qualified Data.Generics as Generic
+
+import PFPrint
+import Eval
 
 -- ========================================================================
 -- SchedInfo
@@ -45,7 +46,7 @@ data SchedInfo idtype = SchedInfo {
         -- methods which allow an unsynchronized clock domain crossing
         clockCrossingMethods :: [idtype]
         }
-        deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+        deriving (Show, Ord, Eq, Data, Typeable)
 
 instance (PPrint idtype, Ord idtype) => PPrint (SchedInfo idtype) where
     pPrint d p si =
@@ -123,7 +124,7 @@ data MethodConflictInfo idtype =
         sC   :: [(idtype, idtype)],
         sEXT :: [idtype]
     }
-    deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+    deriving (Show, Ord, Eq, Data, Typeable)
 
 -- --------------------
 

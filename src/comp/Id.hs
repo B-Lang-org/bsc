@@ -106,9 +106,9 @@ module Id(
          ) where
 
 import Data.Char(isDigit, digitToInt)
+import Data.Data (Data, Typeable)
 import Data.List
 import Data.Maybe
-import qualified Data.Generics as Generic
 import qualified Data.Map as Map
 
 import Util(headOrErr, lastOrErr, ToString(..))
@@ -161,7 +161,7 @@ data IdProp = IdPCanFire
               -- used by the BSV parser to keep track of which array types
               -- were introduced from bracket syntax
               | IdPParserGenerated
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 -- #############################################################################
 -- #
@@ -172,7 +172,7 @@ data Id = Id { id_pos :: !Position,
                id_fs :: !FString,
                id_props :: [IdProp] {- , id_stab :: Int -}
              }
-     deriving (Generic.Data,Generic.Typeable)
+     deriving (Data,Typeable)
 
 show_raw_id :: Bool
 show_raw_id = "-show-raw-id" `elem` progArgs
