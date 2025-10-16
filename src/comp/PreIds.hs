@@ -218,11 +218,13 @@ idConc = prelude_id_no fsConc
 idConcPrim = prelude_id_no fsConcPrim
 idConcPoly = prelude_id_no fsConcPoly
 idMeta = prelude_id_no fsMeta
-idMetaData, idStarArg, idNumArg, idStrArg, idConArg, idMetaConsNamed, idMetaConsAnon, idMetaField :: Id
+idMetaData, idStarArg, idNumArg, idStrArg, idStarConArg, idNumConArg, idConArg, idMetaConsNamed, idMetaConsAnon, idMetaField :: Id
 idMetaData = prelude_id_no fsMetaData
 idStarArg = prelude_id_no fsStarArg
 idNumArg = prelude_id_no fsNumArg
 idStrArg = prelude_id_no fsStrArg
+idStarConArg = prelude_id_no fsStarConArg
+idNumConArg = prelude_id_no fsNumConArg
 idConArg = prelude_id_no fsConArg
 idMetaConsNamed = prelude_id_no fsMetaConsNamed
 idMetaConsAnon = prelude_id_no fsMetaConsAnon

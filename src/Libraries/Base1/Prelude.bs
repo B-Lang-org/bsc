@@ -253,7 +253,8 @@ package Prelude(
 
         -- Generics
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
-        Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..), ConArg(..),
+        Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..),
+        NumConArg(..), StarConArg(..), ConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
         ) where
 
@@ -4362,6 +4363,10 @@ data (StarArg :: * -> *) i = StarArg
 data (NumArg :: # -> *) i = NumArg
   deriving (FShow)
 data (StrArg :: $ -> *) i = StrArg
+  deriving (FShow)
+data (StarConArg :: (* -> *) -> *) i = StarConArg
+  deriving (FShow)
+data (NumConArg :: (# -> *) -> *) i = NumConArg
   deriving (FShow)
 data ConArg = ConArg
   deriving (FShow)
