@@ -68,7 +68,7 @@ parse_cmd_line_args (int argc, char *argv [],
 	    char *p_src = optarg;
 	    if (optarg == NULL)
 		p_src = & ( vcdfile_default [0] );
-	    int len = strlen (p_src);
+	    int len = strlen (p_src) + 1;
 	    char *p = (char *) malloc (len);
 	    if (p == NULL) {
 		fprintf (stderr,
