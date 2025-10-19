@@ -26,7 +26,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260427-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260427-2"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
