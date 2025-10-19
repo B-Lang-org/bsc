@@ -34,7 +34,7 @@ import qualified Data.ByteString as B
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260418-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260420-4"
 
 genABinFile :: ErrorHandle -> String -> ABin -> IO ()
 genABinFile errh fn abin =
