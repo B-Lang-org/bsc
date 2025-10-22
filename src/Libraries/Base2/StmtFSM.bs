@@ -1258,7 +1258,7 @@ mkRFSMNR0 pred in_par always ifc (Cons (SSeq _ (Cons x Nil)) Nil) =
     mkRFSMNR0 pred in_par always ifc (Cons x Nil)
 
 
-mkRFSMNR0 pred _in_par _always _ifc (Cons (SAction p a Nothing) Nil) =
+mkRFSMNR0 pred _in_par always _ifc (Cons (SAction p a Nothing) Nil) =
      module
 
        let l = getPIString p
@@ -1274,7 +1274,9 @@ mkRFSMNR0 pred _in_par _always _ifc (Cons (SAction p a Nothing) Nil) =
        fired :: Wire(Bool)
        fired <- mkDReg False
 
-       let r = rules {{-# aggressive_implicit_conditions #-} (ruleName "action" 1 l): when (start_wire && pred)
+       let start = if (always) then True else start_wire
+
+       let r = rules {{-# aggressive_implicit_conditions #-} (ruleName "action" 1 l): when (start && pred)
                    ==> action {fired := True; a}}
 
        let do_start = action { start_wire := True; start_reg := True}
