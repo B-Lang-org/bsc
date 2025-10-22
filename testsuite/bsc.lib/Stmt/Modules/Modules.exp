@@ -1,0 +1,38 @@
+# Tests for modules in the StmtFSM library
+
+# -------------------------
+# mkFSM
+
+# ...
+
+# -------------------------
+# mkFSMWithPred
+
+# ...
+
+# -------------------------
+# mkAutoFSM
+
+# ...
+
+# -------------------------
+# mkFSMServer
+
+# Note: This is also tested in the 'Server' sibling directory
+
+# ...
+
+# -------------------------
+# mkAlwaysFSM
+
+# When the Stmt is only one action
+test_c_veri_bsv AlwaysFSM_OneAction
+
+# ...
+
+# -------------------------
+# mkAlwaysFSMWithPred
+
+# ...
+
+# -------------------------
