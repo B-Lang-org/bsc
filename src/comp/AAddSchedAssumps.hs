@@ -16,7 +16,7 @@ import IExpandUtils(HExpr, HeapData)
 import IExpand(iExpand)
 import ISplitIf(iSplitIf)
 import AConv(aConv)
-import ASchedule(extractCFPairsSP, errAction)
+import ASchedule(extractCFPairsSP, errAction, RAT)
 import AUses(MethodId(..), MethodUsers, UniqueUse(..), MethodUsesList, ucTrue,
              mergeUseMapData, extractCondition, ruleMethodUsesToUUs)
 import AScheduleInfo(AScheduleInfo(..))
@@ -59,6 +59,14 @@ uqWGet, uqWSet :: Id
 uqWGet = unQualId idWGet
 uqWSet = unQualId idWSet
 
+-- We check for overlaps when updating the RAT in case we made a mistake while injecting the new wires.
+newRatErr :: RAT -> RAT -> MethodId -> M.Map UniqueUse Integer -> M.Map UniqueUse Integer -> M.Map UniqueUse Integer
+newRatErr oldRat newRatEntries m _ _ =
+  internalError $ "Conflict between original RAT and newRatEntries on methodId " ++ ppReadable m ++ "\n" ++
+                  "Should be impossible because newRatEntries is all about newly instantiated wires.\n" ++
+                  "RAT:           " ++ ppReadable oldRat ++ "\n" ++
+                  "newRatEntries: " ++ ppReadable newRatEntries
+
 aAddSchedAssumps :: APackage -> ASchedule -> AScheduleInfo -> (APackage, AScheduleInfo)
 aAddSchedAssumps apkg schedule schedinfo = (apkg'', schedinfo')
   where ruleMap :: M.Map ARuleId Integer
@@ -83,9 +91,10 @@ aAddSchedAssumps apkg schedule schedinfo = (apkg'', schedinfo')
         (rs', newUseInfos) = unzip (map doCFAssumps (apkg_rules apkg'))
         newUseInfo = concat newUseInfos
         apkg'' = apkg' { apkg_rules = rs' }
-        newRatEntries = map useInfoToRatEntry newUseInfo
+        newRatEntries = M.fromList $ map useInfoToRatEntry newUseInfo
         newUseMapEntries = map useInfoToUseMapEntry newUseInfo
-        newRat = asi_resource_alloc_table schedinfo ++ newRatEntries
+        oldRat = asi_resource_alloc_table schedinfo
+        newRat = M.unionWithKey (newRatErr oldRat newRatEntries) oldRat newRatEntries
         newUseMap = M.unionWith (mergeUseMapData)
                       (asi_method_uses_map schedinfo)
                       (M.fromListWith (mergeUseMapData) newUseMapEntries)
@@ -189,16 +198,17 @@ aAddCFConditionWires errh r alldefs flags apkg schedinfo =
         oldState = apkg_state_instances apkg
         (rules', newUseInfos) = unzipWith (addCFCondWires cfRules ruleMethodMap) (apkg_rules apkg)
         newUseInfo = concat newUseInfos
-        newRatEntries = map useInfoToRatEntry newUseInfo
+        newRatEntries = M.fromList $ map useInfoToRatEntry newUseInfo
         newUseMapEntries = map useInfoToUseMapEntry newUseInfo
-        newRat = asi_resource_alloc_table schedinfo ++ newRatEntries
+        oldRat = asi_resource_alloc_table schedinfo
+        newRat = M.unionWithKey (newRatErr oldRat newRatEntries) oldRat newRatEntries
         newUseMap = M.unionWith (mergeUseMapData)
                       (asi_method_uses_map schedinfo)
                       (M.fromListWith (mergeUseMapData) newUseMapEntries)
 
 useInfoToRatEntry :: (ARuleId, MethodId, UniqueUse)
-                  -> (MethodId, [(UniqueUse, Integer)])
-useInfoToRatEntry (_,mid,u) = (mid, [(u, 1)])
+                  -> (MethodId, M.Map UniqueUse Integer)
+useInfoToRatEntry (_,mid,u) = (mid, M.singleton u 1)
 
 useInfoToUseMapEntry :: (ARuleId, MethodId, UniqueUse)
                      -> (MethodId, [(UniqueUse, MethodUsers)])
