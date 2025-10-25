@@ -436,6 +436,7 @@ traceflags = [
           "trace-conAp",
           "trace-ctxreduce",
           "trace-debug",
+          "trace-eq-witnesses",
           "trace-eval-steps",
           "trace-eval-types",
           "trace-eval-if",
