@@ -15,7 +15,7 @@ import Prelude hiding ((<>))
 
 import Data.List(union, genericSplitAt, genericLength)
 import Eval
-import ErrorUtil(internalError)
+import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
 import Id
 import IdPrint
@@ -233,32 +233,31 @@ instance PVPrint Inst where
 -----------------------------------------------------------------------------
 
 expandSyn :: Type -> Type
-expandSyn t0 = exp [] t0 []
-  where exp syns (TAp f a) as = exp syns f (exp syns a [] : as)
-        exp syns tt@(TCon (TyCon i _ (TItype n t))) as | i `elem` syns =
-          internalError ("recursive type synonyms: " ++ ppReadable syns)
-        exp syns tt@(TCon (TyCon i _ (TItype n t))) as =
-            case genericSplitAt n as of
-            (as1, as2) -> if genericLength as1 < n then
-                              -- We have expanded a synonym that was not fully applied.
-                              -- It is all right if `type S v1 ... vn = t vn' and vn doesn't
-                              -- occur in t.
-                              exp syns' (inst as1 (truncType (n - genericLength as1) (fromInteger n-1) t')) as2
-                          else
-                              exp syns' (inst as1 t') as2
-          where syns' = i:syns
-                t' = setTypePosition (getIdPosition i) t
-        exp syns tt@(TCon (TyCon i _ _)) as | isTFun i = apTFun tt i as
-        exp syns t as = foldl TAp t as
-
-        truncType 0 _ t = t
-        truncType k n (TAp t (TGen _ n')) | n == n' && notIn n t = truncType (k-1) (n-1) t
-          where notIn _ (TVar _) = True
-                notIn _ (TCon _) = True
-                notIn v (TAp t1 t2) = notIn v t1 && notIn v t2
-                notIn v (TGen _ n) = v /= n
-                notIn v (TDefMonad _) = internalError "expandSyn,truncType (TDefMonad)"
-        truncType k n t = internalError ("expandSyn,truncType\n" ++ ppReadable (k, n, t0, t))
+expandSyn t0 = exp [] f as
+  where (f, as) = splitTAp t0
+        -- All type applications should be split before entering exp
+        exp _ f@(TAp _ _) as = internalError $ "expandSyn.exp Unexpected TAp: " ++ ppReadable (f, as)
+        exp syns (TCon (TyCon i _ (TItype n t))) as
+          -- This probably never happens because recursive type synonyms are caught
+          -- when making the symbol table, but it is better to produce a proper error
+          -- if something sneaks through.
+          | i `elem` syns = bsErrorReallyUnsafe [(getPosition syns, ETypeSynRecursive (map pfpString syns))]
+          -- We are implementing LiberalTypeSynonyms, which means expanding type synonyms
+          -- like macros as far as possible before doing any consistency checks.
+          -- However, expandSyn is only called in contexts (user source code, arguments
+          -- to non-synonym type applications) where a concrete type is expected
+          -- post-expansion. If we have a partially applied type synonym in such a
+          -- context (which includes the eventual return from exp), it is an error.
+          | genericLength as < n = bsErrorReallyUnsafe [(getPosition i, EPartialTypeApp (pfpString i))]
+          -- We have a synonym we can expand, so do so.
+          | otherwise = let (as1, as2) = genericSplitAt n as
+                            t' = setTypePosition (getIdPosition i) t
+                            (f', as') = splitTAp $ inst as1 t'
+                        in exp (i:syns) f' (as' ++ as2)
+        exp _ f@(TCon (TyCon i _ _)) as
+          | isTFun i = apTFun f i $ map expandSyn as
+        -- f does not contain a TAp or a synonym TCon, so it cannot have synonyms to expand
+        exp _ f as = foldl TAp f $ map expandSyn as
 
 isTFun :: Id -> Bool
 isTFun i = i `elem` numOpNames ++ strOpNames
