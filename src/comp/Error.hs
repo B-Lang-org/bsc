@@ -25,6 +25,8 @@ module Error(
              bsMessage,
              -- version when not in the IO monad
              bsErrorUnsafe,
+             -- version only for expandSyn (which doesn't have an ErrorHandle)
+             bsErrorReallyUnsafe,
              -- versions that display a context following the message
              MsgContext, emptyContext,
              bsWarningsAndErrorsWithContext,
@@ -324,6 +326,15 @@ bsMessage ref ms = do
 bsErrorUnsafe :: ErrorHandle -> [EMsg] -> a
 bsErrorUnsafe ref es = unsafePerformIO (bsError ref es)
 
+-- This is very bad because it ignores everything in the real error state.
+-- It only exists to generate proper errors from expandSyn since propagating
+-- the error handle through things like typeclass signatures is unreasonable.
+-- As an alternative, the compiler could use a global error handle (like
+-- bluetcl does), but that is a more invasive change.
+bsErrorReallyUnsafe :: [EMsg] -> a
+bsErrorReallyUnsafe es = unsafePerformIO $ do
+  ref <- initErrorHandle
+  bsError ref es
 
 suppressWarnings :: ErrorState -> [WMsg] -> (ErrorState, [WMsg])
 suppressWarnings state ws =
