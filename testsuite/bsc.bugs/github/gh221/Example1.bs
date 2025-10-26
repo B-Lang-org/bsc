@@ -1,0 +1,39 @@
+package Example1 where
+
+import Vector
+
+interface (Base :: ((*) -> *) -> ((*) -> *) -> (*) -> (*) -> ((#) -> *) -> (*) -> (*) -> ((#) -> *) -> *) a b c d e f g h = {
+  inner :: ()
+ }
+ deriving (DefaultValue)
+
+interface (Wrapper :: (*) -> *) t = {
+  inner :: t
+ }
+ deriving (DefaultValue)
+
+type Wrapped a b c d e f g h = Wrapper (Base a b c d e f g h)
+
+interface (AB :: (*) -> *) t = {
+  inner :: t
+ }
+ deriving (DefaultValue)
+
+interface (EH :: (#) -> *) n = {
+  inner :: Bit n
+ }
+ deriving (DefaultValue)
+
+type Specify0 t = t Bool Bool EH Bool Bool EH
+type Specify1 t = Specify0 (t AB AB)
+
+type Specified = Specify1 Wrapped
+
+prx :: a
+prx = error "proxy value, should not be evaluated"
+
+foo :: a -> String
+foo _ = "i am a string"
+
+bar :: String
+bar = foo (prx :: Specified)

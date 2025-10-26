@@ -1,4 +1,5 @@
 checking package dependencies
 compiling EPartialTypeApp1.bs
 Error: "EPartialTypeApp1.bs", line 21, column 5: (T0013)
-  Partially applied type synonym `EPartialTypeApp1.Foo'
+  Partially applied type synonym: `EPartialTypeApp1.Foo'
+  The synonym expects 2 arguments but was used with 1 arguments.
