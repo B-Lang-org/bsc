@@ -625,7 +625,7 @@ chkTopDef r mi isDep (Cforeign i qt on ops) = do
     if isGoodType (expandSyn t) then
         return [(i', VarInfo (VarForg name ops) (i' :>: sc) (isDep i))]
      else
-        throwError (getPosition i, EForeignNotBit (pfpString i))
+        throwError (getPosition i, EForeignNotBit (pfpString i) (pfpString t))
 chkTopDef r mi isDep (CValueSign (CDef v t _)) = do
             sc <- mkSchemeWithSymTab r t
             let v' = qual mi v
