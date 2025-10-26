@@ -709,7 +709,7 @@ data ErrMsg =
             String -- ^ var name
             Position -- ^ previous decl position
 
-        | EForeignNotBit String
+        | EForeignNotBit String String
         | EPartialTypeApp String
         | ENotStructId String
         | ENotStructUpd String
@@ -1921,8 +1921,9 @@ getErrorText (EMultipleDecl name prevPos) =
     (Type 11, empty, s2par ("Declaration of " ++ ishow name ++
                             " conflicts with previous declaration at " ++
                             prPosition prevPos))
-getErrorText (EForeignNotBit i) =
-    (Type 12, empty, s2par ("Foreign function has non-Bit argument/result: " ++ ishow i))
+getErrorText (EForeignNotBit i t) =
+  (Type 12, empty, hdr $$ text "Type:" <+> nest 2 (text t))
+  where hdr = s2par ("Foreign function " ++ ishow i ++ " has a non-Bit argument or result.")
 getErrorText (EPartialTypeApp i) =
     (Type 13, empty, s2par ("Partially applied type synonym " ++ ishow i))
 getErrorText (ENotStructId c) =
