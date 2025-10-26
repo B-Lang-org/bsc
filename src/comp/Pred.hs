@@ -248,7 +248,8 @@ expandSyn t0 = exp [] f as
           -- to non-synonym type applications) where a concrete type is expected
           -- post-expansion. If we have a partially applied type synonym in such a
           -- context (which includes the eventual return from exp), it is an error.
-          | genericLength as < n = bsErrorReallyUnsafe [(getPosition i, EPartialTypeApp (pfpString i))]
+          | let numArgs = genericLength as,
+            numArgs < n = bsErrorReallyUnsafe [(getPosition i, EPartialTypeApp (pfpString i) n numArgs)]
           -- We have a synonym we can expand, so do so.
           | otherwise = let (as1, as2) = genericSplitAt n as
                             t' = setTypePosition (getIdPosition i) t

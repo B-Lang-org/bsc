@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Example2.bs
+Error: "Example2.bs", line 37, column 0: (T0032)
+  This expression requires the following context which could not be resolved:
+    Prelude.Bits (Example2.Wrapper (Example2.Base Example2.AB Example2.AB Prelude.Bool Prelude.Bool Example2.EH Prelude.Bool Prelude.Bool Example2.EH)) a__
+  The context was implied by expressions at the following positions:
+    "Example2.bs", line 40, column 12
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    Prelude.Bits (Example2.Base Example2.AB Example2.AB Prelude.Bool Prelude.Bool Example2.EH Prelude.Bool Prelude.Bool Example2.EH) a__

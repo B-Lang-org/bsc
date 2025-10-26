@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Example4.bs
+Error: "Example4.bs", line 40, column 12: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits (Example4.Wrapper (Example4.Base Example4.AB Example4.AB Prelude.Bool Prelude.Bool Example4.EH Prelude.Bool Prelude.Bool Example4.EH)) a__

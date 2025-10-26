@@ -721,7 +721,7 @@ data ErrMsg =
             Position -- ^ previous decl position
 
         | EForeignNotBit String String
-        | EPartialTypeApp String
+        | EPartialTypeApp String Integer Integer -- synonym (# expected) (# given)
         | ENotStructId String
         | ENotStructUpd String
         | ENotStruct String String
@@ -1935,8 +1935,11 @@ getErrorText (EMultipleDecl name prevPos) =
 getErrorText (EForeignNotBit i t) =
   (Type 12, empty, hdr $$ text "Type:" <+> nest 2 (text t))
   where hdr = s2par ("Foreign function " ++ ishow i ++ " has a non-Bit argument or result.")
-getErrorText (EPartialTypeApp i) =
-    (Type 13, empty, s2par ("Partially applied type synonym " ++ ishow i))
+getErrorText (EPartialTypeApp i expected given) =
+    (Type 13, empty,
+     s2par ("Partially applied type synonym: " ++ ishow i) $$
+     s2par ("The synonym expects " ++ show expected ++
+            " arguments but was used with " ++ show given ++ " arguments."))
 getErrorText (ENotStructId c) =
     (Type 14, empty, s2par ("Identifier is not a struct name " ++ ishow c))
 getErrorText (ENotStructUpd e) =

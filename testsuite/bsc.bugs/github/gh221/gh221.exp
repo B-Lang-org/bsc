@@ -1,0 +1,19 @@
+# GitHub Issue #221
+compile_fail_error Test.bs T0013
+compare_file Test.bs.bsc-out
+
+compile_fail_error ZipCrash.bs T0013
+compare_file ZipCrash.bs.bsc-out
+
+compile_pass Example1.bs
+
+# The type synonyms are fine, but there is another error
+compile_fail_error Example2.bs T0032
+compare_file Example2.bs.bsc-out
+
+compile_pass Example3.bs
+
+# The type synonyms are fine, but there is another error
+compile_fail_error Example4.bs T0031
+compare_file Example4.bs.bsc-out
+

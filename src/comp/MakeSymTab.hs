@@ -836,7 +836,7 @@ trCTypeN _ _ _ t@(TDefMonad _) = internalError "trCTypeN: TDefMonad"
 
 chkTAp :: Integer -> Type -> Type -> K.KI Type
 chkTAp n (TCon (TyCon i _ (TItype n' _))) _ | n < n' =
-    K.err (getPosition i, EPartialTypeApp (pfpString i))
+    K.err (getPosition i, EPartialTypeApp (pfpString i) n' n)
 chkTAp _ f a = return $ TAp f a
 
 -- -----
