@@ -375,9 +375,8 @@ aState' flags pps schedule_info apkg = do
             internalError("AState.cvtForeign - not foreign:" ++ ppReadable a)
 
         -- (domain, rule foreign actions)
-        -- singleton list for the convenience of fblocks below
         domain_rfas =
-            [ (domain, [cvtForeign rid resets a]) |
+            [ (domain, cvtForeign rid resets a) |
               ARule rid _ _ wp _ as _ _ <- rs',
               let domain = fromJustOrErr "AState.domain_rfas no clock domain"
                                (wpClockDomain wp),
@@ -385,8 +384,12 @@ aState' flags pps schedule_info apkg = do
               a <- as, isForeign a ]
 
         -- foreign function actions by clock domain
-        -- (use "flip" to preserve the order)
-        fdomain_map = M.toList (M.fromListWith (flip (++)) domain_rfas)
+        -- We cons one action at a time onto the result list to avoid an O(n^2) blowup.
+        -- foldr combined with cons preserves the original order, which is required.
+        fdomain_map = M.toList $ foldr (\(d,a) m -> case M.lookup d m of
+                                                      Just as -> M.insert d (a:as) m
+                                                      Nothing -> M.insert d [a] m)
+                                       M.empty domain_rfas
 
         -- the foreign blocks
         fblocks = mapFst domain_osc_lookup fdomain_map
