@@ -1,0 +1,25 @@
+package ZipCrash where
+
+import List
+
+class Functor f where
+  map :: (a -> b) -> f a -> f b
+
+class Zip f where
+  toListX   :: f a -> List a
+  fromListX :: List a -> f a
+
+  zipXWith :: (a -> b -> c) -> f a -> f b -> f c
+  zipXWith f xs ys = fromListX (List.zipWith f (toListX xs) (toListX ys))
+
+interface Bar at bt =
+  a :: at
+  b :: bt
+
+type Foo t = Bar t t
+
+instance Functor Foo where
+  map f x = Foo (f x.a) (f x.b)
+
+instance Zip Foo where
+  zipXWith f x y = Foo (f x.a y.a) (f x.b y.b)
