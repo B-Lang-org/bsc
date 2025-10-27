@@ -28,7 +28,7 @@ jobs:
   build-macOS:
     name: "Build: ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
-    timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
+    timeout-minutes: ${{ inputs.timeout_override && 360 || 45 }}
     steps:
       - uses: actions/checkout@v4
       - name: Checkout submodules
