@@ -1,0 +1,9 @@
+-- LiberalTypeSynonyms test case (adapted from GHC testsuite)
+package ShouldCompile where
+
+type Thing m = m ()
+
+type Const a b = a
+
+test :: Thing (Const (Int 32)) -> Thing (Const (Int 32))
+test = test

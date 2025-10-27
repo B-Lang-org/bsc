@@ -2,4 +2,4 @@
 # where we used to internalError
 compile_fail_error Bug1263.bsv T0107
 # make sure this complains about the partially applied type synonym
-compile_fail_error Bug1263_2.bsv T0025
+compile_fail_error Bug1263_2.bsv T0013

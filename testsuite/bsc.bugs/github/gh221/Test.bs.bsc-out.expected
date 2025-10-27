@@ -1,5 +1,5 @@
 checking package dependencies
 compiling Test.bs
-Error: "Test.bs", line 10, column 27: (T0013)
+Error: "Test.bs", line 6, column 11: (T0013)
   Partially applied type synonym: `Test.Identity'
   The synonym expects 1 arguments but was used with 0 arguments.
