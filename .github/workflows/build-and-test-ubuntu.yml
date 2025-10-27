@@ -26,7 +26,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Checkout submodules
         shell: bash
         run: |
@@ -119,14 +119,14 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 120 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -186,7 +186,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
@@ -194,7 +194,7 @@ jobs:
           sudo apt-get install -y ccache libelf-dev
 
       - name: Download bsc
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -261,14 +261,14 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -343,10 +343,10 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download bsc
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
