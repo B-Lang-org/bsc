@@ -798,9 +798,11 @@ getCls errh mi iks r incoh ps ik vs fds ifs qts =
 -- ---------------
 
 trCType :: SymTab -> [(Id, Kind)] -> CType -> K.KI (Type, Kind)
-trCType r as ct =
+trCType r as ct = do
         --trace ("trCType " ++ ppReadable ct) $
-        trCTypeN r as 0 ct
+        (t', k) <- trCType' r as ct
+        chkTAp t'
+        return (t', k)
 
 {- Unused:
 isTypish :: TISort -> Bool
@@ -808,16 +810,16 @@ isTypish (TIstruct SClass _) = False
 isTypish _ = True
 -}
 
-trCTypeN :: SymTab -> [(Id, Kind)] -> Integer -> CType -> K.KI (Type, Kind)
-trCTypeN r as _ (TVar (TyVar i n _)) =
+trCType' :: SymTab -> [(Id, Kind)] -> CType -> K.KI (Type, Kind)
+trCType' r as (TVar (TyVar i n _)) =
     case lookup i as of
     Just k -> return $ (TVar (TyVar i n k), k)
     Nothing -> --trace ("trCTypeN "++ ppReadable(i,as)) $
         K.err (getPosition i, EUnboundTyVar (pfpString i))
 
-trCTypeN r as _ t@(TCon (TyNum _ _)) = return (t, KNum)
-trCTypeN r as _ t@(TCon (TyStr _ _)) = return (t, KStr)
-trCTypeN r as _ (TCon (TyCon i _ _)) =
+trCType' r as t@(TCon (TyNum _ _)) = return (t, KNum)
+trCType' r as t@(TCon (TyStr _ _)) = return (t, KStr)
+trCType' r as (TCon (TyCon i _ _)) =
     let pos = getPosition i in
     case findType r i of
     -- Disable check if it really is a type for now (was | isTypish ti).
@@ -825,19 +827,35 @@ trCTypeN r as _ (TCon (TyCon i _ _)) =
     Just (TypeInfo Nothing k _ ti) ->
         internalError("trCTypeN: unexpected numeric type: " ++ ppReadable i)
     _ -> K.err (pos, EUnboundTyCon (pfpString i))
-trCTypeN r as n ct@(TAp f a) = do
-    (f', fk) <- trCTypeN r as (n+1) f
-    (a', ak) <- trCTypeN r as 0 a
+trCType' r as ct@(TAp f a) = do
+    (f', fk) <- trCType' r as f
+    (a', ak) <- trCType' r as a
     v <- K.unifyFunc f fk a ak
-    t' <- chkTAp (n+1) f' a'
+    let t' = TAp f' a'
     return $ (t', v)
-trCTypeN _ _ _ t@(TGen _ _) = return (t, KStar)
-trCTypeN _ _ _ t@(TDefMonad _) = internalError "trCTypeN: TDefMonad"
+trCType' _ _ t@(TGen _ _) = return (t, KStar)
+trCType' _ _ t@(TDefMonad _) = internalError "trCTypeN: TDefMonad"
 
-chkTAp :: Integer -> Type -> Type -> K.KI Type
-chkTAp n (TCon (TyCon i _ (TItype n' _))) _ | n < n' =
-    K.err (getPosition i, EPartialTypeApp (pfpString i) n' n)
-chkTAp _ f a = return $ TAp f a
+-- Check type synonym applications in the input type.
+-- The tricky thing is that we have to expand synonyms before checking
+-- to implement LiberalTypeSynonyms correctly.
+chkTAp :: Type -> K.KI ()
+chkTAp = uncurry (chkTAp' [])  . splitTAp
+  where -- f and as should be the outputs of splitTAp, so there should be no remaining TAps
+        chkTAp' _ f@(TAp _ _) as = internalError $ "chkTAp' unexpected TAp: " ++ ppReadable (f, as)
+        chkTAp' syns (TCon (TyCon i _ (TItype n t))) as
+          | i `elem` syns = K.err (getPosition syns, ETypeSynRecursive (map pfpString syns))
+          | let numArgs = genericLength as,
+            numArgs < n = K.err (getPosition i, EPartialTypeApp (pfpString i) n numArgs)
+          | otherwise = let (as1, as2) = genericSplitAt n as
+                            t' = setTypePosition (getIdPosition i) t
+                            (f', as') = splitTAp $ inst as1 t'
+                        in chkTAp' (i:syns) f' (as' ++ as2)
+        chkTAp' _ f as = do
+          -- f does not contain a TAp or a synonym TCon, so there is nothing to check there,
+          -- but the arguments are unchecked.
+          _ <- mapM chkTAp as
+          return ()
 
 -- -----
 
