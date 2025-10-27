@@ -17,3 +17,5 @@ compile_pass Example3.bs
 compile_fail_error Example4.bs T0031
 compare_file Example4.bs.bsc-out
 
+# A LiberalTypeSynonyms example from GHC
+compile_pass ShouldCompile.bs
