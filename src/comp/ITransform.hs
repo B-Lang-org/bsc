@@ -493,9 +493,10 @@ iTrAp ctx (ICon _ (ICPrim _ p)) _ [e, e'] | isLT p, e == e' = (iFalse, True)
 
 -- XXX: preserve the _ "kind"? Or treat different _ differently?
 -- _ == e --> _
-iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) _ [e1@(ICon _ (ICUndet {iuKind = u, imVal = Nothing})), e2] = (icUndet itBit1 u, True)
+-- Note that this transformation is wrong for values of size 0. All values of size 0 (even undetermined or undefined ones) are 0.
+iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) [ITNum n] [e1@(ICon _ (ICUndet {iuKind = u, imVal = Nothing})), e2] | n > 0 = (icUndet itBit1 u, True)
 -- e == _ --> _
-iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) _ [e1, e2@(ICon _ (ICUndet {iuKind = u, imVal = Nothing}))] = (icUndet itBit1 u, True)
+iTrAp ctx (ICon _ (ICPrim _ PrimEQ)) [ITNum n] [e1, e2@(ICon _ (ICUndet {iuKind = u, imVal = Nothing}))] | n > 0 = (icUndet itBit1 u, True)
 
 
 -- e + c1 == c2  -->  e == c2 - c1
