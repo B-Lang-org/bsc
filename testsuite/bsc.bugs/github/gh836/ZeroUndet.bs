@@ -1,0 +1,19 @@
+package ZeroUndet where
+
+undet0 :: Bit 0
+undet0 = _
+
+{-# verilog sysZeroUndet #-}
+sysZeroUndet :: Module Empty
+sysZeroUndet = module
+  rules
+    when True ==> do
+      if undet0 == 0
+      then $display "This should print"
+      else $display "This should not print"
+
+      if undet0 /= 0
+      then $display "This should not print (take 2)"
+      else $display "This should print (take 2)"
+
+      $finish 0
