@@ -1,0 +1,44 @@
+package ZeroSizeWires where
+
+import ConfigReg
+
+{-# verilog sysZeroSizeWires #-}
+sysZeroSizeWires :: Module Empty
+sysZeroSizeWires = module
+
+  rw            :: RWire (Bit 0) <- mkRWire
+  rw_sbr        :: RWire (Bit 0) <- mkRWireSBR
+  unsafe_rw     :: RWire (Bit 0) <- mkUnsafeRWire
+  unsafe_rw_sbr :: RWire (Bit 0) <- mkUnsafeRWireSBR
+  bw            :: Wire  (Bit 0) <- mkBypassWire
+  unsafe_bw     :: Wire  (Bit 0) <- mkUnsafeBypassWire
+  r             :: Reg   (Bit 0) <- mkRegU
+  done          :: Reg Bool      <- mkConfigReg False
+
+  rules
+    when True ==> do
+      rw.wset 0
+      rw_sbr.wset 0
+      unsafe_rw.wset 0
+      unsafe_rw_sbr.wset 0
+      bw := 0
+      unsafe_bw := 0
+      done := True
+    when done ==> $finish 0
+
+    -- Guard these with not done so everything only prints once.
+    when (r == 0 && not done) ==>
+      $display "Reg (Bit 0): This does print"
+    when (rw.wget == Valid 0 && not done) ==>
+      $display "RWire (Bit 0): This should print"
+    when (rw_sbr.wget == Valid 0 && not done) ==>
+      $display "RWireSBR (Bit 0): This should print"
+    when (unsafe_rw.wget == Valid 0 && not done) ==>
+      $display "UnsafeRWire (Bit 0): This should print"
+    when (unsafe_rw_sbr.wget == Valid 0 && not done) ==>
+      $display "UnsafeRWireSBR (Bit 0): This should print"
+    when (bw == 0 && not done) ==>
+      $display "BypassWire (Bit 0): This should print"
+    when (unsafe_bw == 0 && not done) ==>
+      $display "UnsafeBypassWire (Bit 0): This should print"
+

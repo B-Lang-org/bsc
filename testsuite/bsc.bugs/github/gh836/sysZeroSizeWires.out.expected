@@ -1,0 +1,7 @@
+Reg (Bit 0): This does print
+RWire (Bit 0): This should print
+RWireSBR (Bit 0): This should print
+UnsafeRWire (Bit 0): This should print
+UnsafeRWireSBR (Bit 0): This should print
+BypassWire (Bit 0): This should print
+UnsafeBypassWire (Bit 0): This should print
