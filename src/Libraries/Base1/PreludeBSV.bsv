@@ -186,7 +186,7 @@ module mkRWire (RWire#(a))
 
          ifc = (interface RWire;
                    method wget() ;
-                      return (_r.whas ? (tagged Valid (?)) : tagged Invalid);
+                      return (_r.whas ? (tagged Valid (unpack(0))) : tagged Invalid);
                    endmethod: wget
 
                    method Action wset(x);
@@ -222,7 +222,7 @@ module mkRWireSBR (RWire#(a))
 
          ifc = (interface RWire;
                    method wget() ;
-                      return (_r.whas ? (tagged Valid (?)) : tagged Invalid);
+                      return (_r.whas ? (tagged Valid (unpack(0))) : tagged Invalid);
                    endmethod: wget
 
                    method Action wset(x);
@@ -343,7 +343,7 @@ module mkBypassWire(Wire#(data_t)) provisos (Bits#(data_t, data_t_size));
                    method Action wset(x);
                      _r.wset;
                    endmethod
-                   method wget = ?;
+                   method wget = unpack(0);
                 endinterface);
       end
    else
@@ -507,7 +507,7 @@ module mkUnsafeRWire (RWire#(a))
 
          ifc = (interface RWire;
                    method wget() ;
-                      return (_r.whas ? (tagged Valid (?)) : tagged Invalid);
+                      return (_r.whas ? (tagged Valid (unpack(0))) : tagged Invalid);
                    endmethod: wget
 
                    method Action wset(x);
@@ -543,7 +543,7 @@ module mkUnsafeRWireSBR (RWire#(a))
 
          ifc = (interface RWire;
                    method wget() ;
-                      return (_r.whas ? (tagged Valid (?)) : tagged Invalid);
+                      return (_r.whas ? (tagged Valid (unpack(0))) : tagged Invalid);
                    endmethod: wget
 
                    method Action wset(x);
@@ -642,7 +642,7 @@ module mkUnsafeBypassWire(Wire#(data_t)) provisos (Bits#(data_t, data_t_size));
                    method Action wset(x);
                      _r.wset;
                    endmethod
-                   method wget = ?;
+                   method wget = unpack(0);
                 endinterface);
       end
    else
