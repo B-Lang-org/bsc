@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ZipCrash2.bs
+Error: "ZipCrash2.bs", line 20, column 17: (T0013)
+  Partially applied type synonym: `ZipCrash2.Foo'
+  The synonym expects 1 arguments but was used with 0 arguments.

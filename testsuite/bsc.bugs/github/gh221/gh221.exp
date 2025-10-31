@@ -1,4 +1,9 @@
 # GitHub Issue #221
+
+# All of these examples used to fail with an internal error, when
+# bsc had buggier and more limited handling of type synonyms.
+# Now they either compile or fail with proper errors.
+
 compile_fail_error Test.bs T0013
 compare_file Test.bs.bsc-out
 
@@ -8,14 +13,25 @@ compare_file ZipCrash.bs.bsc-out
 compile_pass Example1.bs
 
 # The type synonyms are fine, but there is another error
+# (a missing Bits instance)
 compile_fail_error Example2.bs T0032
 compare_file Example2.bs.bsc-out
 
+# Add the Bits instance and the example compiles
 compile_pass Example3.bs
 
-# The type synonyms are fine, but there is another error
+# The type synonyms are still fine, but there is a different
+# missing Bits instance
 compile_fail_error Example4.bs T0031
 compare_file Example4.bs.bsc-out
 
 # A LiberalTypeSynonyms example from GHC
+# Previously failed with a partially applied type synonym error
+# With LiberalTypeSynonyms implemented, it compiles.
 compile_pass ShouldCompile.bs
+
+# Previously failed with an unbound constructor error, which isn't
+# really accurate. Foo is bound, but it isn't a constructor.
+# Now it fails with an accurate partially-applied type synonym error.
+compile_fail_error ZipCrash2.bs T0013
+compare_file ZipCrash2.bs.bsc-out
