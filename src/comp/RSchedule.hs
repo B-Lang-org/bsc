@@ -94,7 +94,7 @@ rSchedule :: Id -> ResourceFlag -> M.Map MethodId Integer -> MethodUsesMap ->
              (RuleId -> RuleId -> Bool) -> ErrorMonad (RAT,[RRM])
 rSchedule moduleId rFlag rMaxs rMap areSimult =
     -- We don't need to worry about keys conflicting when combining xxs
-    -- because those keys came from the keyd of rMap.
+    -- because those keys came from the keys of rMap.
     let concatTuple (xxs,yys) = (M.unions xxs, concat yys)
         f = rSchedule' moduleId rFlag rMaxs areSimult
     in
@@ -134,9 +134,10 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
              (traceM $ "rSchedule: uugraph:\n" ++ ppReadable g)
          -- when (rMax <= 0) (verifySC g)
          if length uses > 16 && fromInteger rMax >= length uses
-           then return (M.fromList [(mId, M.fromList (zip (map fst uses) [1..]))], [])
+           then return (M.singleton mId (M.fromList (zip (map fst uses) [1..])), [])
            else do (colors, drops) <- color rMax dropEdges g
                    return (M.singleton mId colors, drops)
+
 
 -- ==============================
 -- Function: uuGraph
