@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module AScheduleInfo (
     AScheduleErrInfo(..),
     AScheduleInfo(..),
@@ -30,6 +31,7 @@ import qualified Data.Set as S
 import Data.List(intersperse)
 import Util(thd)
 import Eval
+import GHC.Generics (Generic)
 
 import ErrorUtil
 import PFPrint
@@ -209,7 +211,7 @@ instance Show ExclusiveRulesDB where
 -- ---------------
 
 data SchedNode = Sched AId | Exec AId
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- comparing by name instead of the default ORD instance for Id
 -- makes the schedule order from the flattened graph stable.
@@ -308,7 +310,7 @@ data Conflicts =
     | CResource MethodId
     | CArbitraryChoice
     | CFFuncArbitraryChoice
-  deriving (Eq,Show)
+  deriving (Eq, Show, Generic, NFData)
 
 printConflicts :: Bool -> PDetail -> Conflicts -> Doc
 printConflicts use_pvprint d edge =
@@ -345,17 +347,6 @@ instance PPrint Conflicts where
 
 instance PVPrint Conflicts where
     pvPrint d p = printConflicts True d
-
-instance Hyper Conflicts where
-    hyper (CUse uses) y = hyper uses y
-    hyper (CCycle cycle_rules) y = hyper cycle_rules y
-    hyper (CMethodsBeforeRules) y = y
-    hyper (CUserEarliness pos) y = hyper pos y
-    hyper (CUserAttribute pos) y = hyper pos y
-    hyper (CUserPreempt pos) y = hyper pos y
-    hyper (CResource m) y = hyper m y
-    hyper (CArbitraryChoice) y = y
-    hyper (CFFuncArbitraryChoice) y = y
 
 -- -----
 

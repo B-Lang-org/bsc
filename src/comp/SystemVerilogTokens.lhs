@@ -1,4 +1,5 @@
 > {-# OPTIONS_GHC -Wall -fno-warn-unused-matches -fno-warn-name-shadowing #-}
+> {-# LANGUAGE DeriveAnyClass #-}
 
 Token types: representation passed from the scanner to the parser
 
@@ -6,6 +7,7 @@ Token types: representation passed from the scanner to the parser
 >                            SV_Numeric_Base(..), svNumericBaseValue,
 >                            svTokenToString) where
 
+> import GHC.Generics (Generic)
 > import Position
 > import Error(internalError, ErrMsg)
 > import SystemVerilogKeywords
@@ -55,19 +57,16 @@ Tokens output by the lexical scanner
 >     | SV_Token_Error        { start_position :: Position,
 >                               end_position :: Position,
 >                               errMessage :: ErrMsg }
->       deriving (Show)
+>       deriving (Show, Generic, NFData)
 
 > instance PPrint SV_Token where
 >   pPrint d p = text . show
-
-> instance Hyper SV_Token where
->   hyper svt b = hyper (show svt) b
 
 Bit representation for number parsing
 
 > data SV_Bit = SV_BIT_0 | SV_BIT_1 |
 >               SV_BIT_X | SV_BIT_Z | SV_BIT_DontCare
->       deriving (Show)
+>       deriving (Show, Generic, NFData)
 
 Possible bases used in number parsing
 
@@ -76,7 +75,7 @@ Possible bases used in number parsing
 >     | SV_NUM_BASE_Oct
 >     | SV_NUM_BASE_Dec
 >     | SV_NUM_BASE_Hex
->       deriving (Show)
+>       deriving (Show, Generic, NFData)
 
 > {-# SPECIALIZE svNumericBaseValue :: SV_Numeric_Base -> Integer #-}
 > {-# SPECIALIZE svNumericBaseValue :: SV_Numeric_Base -> Int #-}
@@ -99,7 +98,7 @@ Various forms of values that can be specified as literals:
 >     -- grouped into values along with the number of digits, starting
 >     -- with the most significant bit
 >     | SV_NUM_Mixed [(Integer, Either Integer SV_Bit)]
->       deriving (Show)
+>       deriving (Show, Generic, NFData)
 
 Pretty print SV tokens, e.g., keyword "end", symbol "&"
 

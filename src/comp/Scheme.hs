@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Scheme(Scheme(..), quantify, toScheme) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -11,12 +12,13 @@ import Subst
 import Pred
 import PFPrint
 import Position(noPosition, HasPosition(..))
+import GHC.Generics (Generic)
 import Eval
 
 -- a scheme is a (possibly qualified) type polymorphic over some type variables
 -- referred to as TGen n (where n is the index in the [Kind] list)
 data Scheme = Forall [Kind] (Qual Type)
-              deriving (Eq, Show)
+              deriving (Eq, Show, Generic, NFData)
 
 instance PPrint Scheme where
   pPrint d p (Forall ks qt) = pparen (p>0) $
@@ -31,9 +33,6 @@ instance PVPrint Scheme where
 instance Types Scheme where
     apSub s (Forall ks qt) = Forall ks (apSub s qt)
     tv      (Forall ks qt) = tv qt
-
-instance Hyper Scheme where
-    hyper (Forall ks qt) y = hyper2 ks qt y
 
 -- turn a qualified type (qt) into a scheme over some type variables (vs)
 -- the reverse of quantify is inst (q.v.)

@@ -24,14 +24,14 @@ import Eval
 --   * PrimConcat 0 n n _ x  -->  x
 --   * let d = Literal-Bits n in ... .fromInteger d NNN  -->   NNN
 
-iSimplify :: (Hyper a) => IPackage a -> IPackage a
+iSimplify :: (NFData a) => IPackage a -> IPackage a
 iSimplify (IPackage pi lps ps ds) =
     IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))        -- XXX
 
-iSimpDefs :: Hyper a => [IDef a] -> [IDef a]
+iSimpDefs :: NFData a => [IDef a] -> [IDef a]
 iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds
 
-iSimp :: (Hyper a) => Bool -> IExpr a -> IExpr a
+iSimp :: (NFData a) => Bool -> IExpr a -> IExpr a
 iSimp n (ILam i t e) = ILam i t (iSimp n e)
 iSimp n (IAps e ts as) = iSimpAp' n (iSimp n (expDef e)) ts (map (iSimp n) as)
 iSimp _ e@(IVar _) = e
@@ -43,10 +43,10 @@ expDef :: IExpr a -> IExpr a
 expDef (ICon _ (ICDef _ e)) | isHarmless e = e
 expDef e = e
 
-iSimpAp' :: Hyper a => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
+iSimpAp' :: NFData a => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
 iSimpAp' b f ts es = mapIExprPosition True (f, iSimpAp b f ts es)
 
-iSimpAp :: (Hyper a) => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
+iSimpAp :: (NFData a) => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
 iSimpAp n (ILAM i _ e) (t:ts) as = iSimpAp n (etSubst i t e) ts as
 iSimpAp n (ILam i _ e) [] (a:as)
     | not (isKeepId i) && (isTriv a || countOcc i e <= 1) =
@@ -63,7 +63,7 @@ iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
 iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es
 
-getTuple :: (Hyper a) => IExpr a -> Maybe [IExpr a]
+getTuple :: (NFData a) => IExpr a -> Maybe [IExpr a]
 getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
         -- trace ("unfold " ++ ppReadable di) $
         Just ms

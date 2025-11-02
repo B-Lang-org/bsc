@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module SimCCBlock( SBId
                  , SBMap
                  , SimCCBlock(..)
@@ -62,7 +64,7 @@ import IntegerUtil(aaaa)
 import PPrint hiding (char, int)
 import Util(itos, headOrErr, initOrErr, lastOrErr, unconsOrErr,
             snd3, makePairs, concatMapM)
-import Eval(Hyper(..))
+import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
@@ -73,6 +75,7 @@ import Control.Monad(when)
 import Control.Monad.State(State, gets, modify)
 import Data.Char(toLower)
 import qualified Data.Map as Map
+import GHC.Generics (Generic)
 
 -- import Debug.Trace
 
@@ -128,6 +131,7 @@ data SimCCBlock =
              -- clock gate numbering
              , sb_gateMap :: [AExpr]  -- numbering is [0..]
              }
+    deriving (Generic, NFData) -- Previously sb_naming_fn wasn't forced but I believe it's safe to do so.
 
 instance Eq SimCCBlock where
   a == b = and [ (sb_id a) == (sb_id b)
@@ -187,7 +191,7 @@ data SimCCFn = SimCCFn { sf_name    :: String         -- function name
                        , sf_retType :: Maybe AType    -- return type
                        , sf_body    :: [SimCCFnStmt]  -- function body
                        }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 data SimCCFnStmt = -- Bool is whether the var is a port (else a def)
                    SFSDef Bool (AType,AId) (Maybe AExpr) -- declare local var
@@ -209,8 +213,7 @@ data SimCCFnStmt = -- Bool is whether the var is a port (else a def)
                  | SFSOutputReset AId AExpr
                        -- calls the resetFn of the parent for the output reset
                        -- with the expr as the reset value
-  deriving (Eq, Ord, Show)
-
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 isReturn :: SimCCFnStmt -> Bool
 isReturn (SFSReturn _) = True
@@ -284,7 +287,7 @@ data SimCCSched =
              , sched_fn :: SimCCFn     -- the schedule function definition
              , sched_after_fn :: Maybe SimCCFn   -- sched fn after edge
              }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 
 -- A SimCCClockGroup represents a group of per-instance clocks
@@ -293,7 +296,7 @@ data SimCCClockGroup =
   SimCCClockGroup { grp_canonical :: AClock
                   , grp_instances :: [DomainId]
                   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- A SimCCReset represents a reset function along with the information
 -- needed to register the reset function at run-time.
@@ -302,7 +305,7 @@ data SimCCReset =
              , rst_port      :: Maybe (String, String)
              , rst_function  :: SimCCFn
              }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- SimCCGateInfo is a list of the gate sources for each numbered gate
 -- of an instance.  A gate source is either a constant boolean value
@@ -2255,24 +2258,3 @@ instance PPrint SimCCReset where
                   Nothing    -> text "primary reset"
         func  = pPrint d 0 fn
     in label <+> name <> (text ":") $+$ (nest 2 func)
-
--- ==================================================
--- Hyper instances (needed by phase dumping routines)
-
-instance Hyper SimCCBlock where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCFn where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCFnStmt where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCSched where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCClockGroup where
-  hyper x y = (x==x) `seq` y
-
-instance Hyper SimCCReset where
-  hyper x y = (x==x) `seq` y
