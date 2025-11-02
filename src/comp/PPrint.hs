@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE IncoherentInstances #-}
 module PPrint(PPrint(..), PDetail(..), module Pretty,
         ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
         pparen, sepList, catList, vcatList, ppr, ppDoc,

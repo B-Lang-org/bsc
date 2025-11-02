@@ -912,7 +912,7 @@ aSchedule_step1 errh flags prefix pps amod = do
       -- table, such a method is given the value 0.
       -- Also consider conflicting methods available infinitely many times
       -- because the schedule resolves that resource conflict
-  let resMax' = tr "let resMax'" $
+  let resMax' = tr "let resMax'" $ M.fromList
           [(r,n') | let (NoConflictSet pc) = ncSetPC,
                     let (NoConflictSet cf) = ncSetCF,
                     (r,n) <- resMax,
@@ -934,7 +934,7 @@ aSchedule_step1 errh flags prefix pps amod = do
 
   -- record the RAT in the state
   s <- get
-  put (s { sm_resource_alloc_table = Just (sortRat resAllocTable) })
+  put (s { sm_resource_alloc_table = Just resAllocTable })
 
   -- Converts the triplets in resDrops to conflict edges (in both directions)
   let resDrops' = tr "let resDrops'" $
@@ -5212,12 +5212,6 @@ combinedGraphFullToDOT flags timeStr modName ifcRuleNames userRuleNames seq_map 
 -- ========================================================================
 -- Utility functions
 --
-
--- hack to avoid sorting order differences between ghc and hbc
--- when using SpeedyString
-sortRat :: RAT -> RAT
-sortRat = sortBy cmp
-    where cmp x y = compare (ppString x) (ppString y)
 
 -- --------------------
 

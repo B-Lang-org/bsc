@@ -32,9 +32,10 @@ import VModInfo
 import ASyntax
 import ASyntaxUtil
 import ASchedule(AScheduleInfo(..), ExclusiveRulesDB(..), areRulesExclusive,
-                 RAT, MethodUsesMap, MethodUsers, MethodId(..), UniqueUse(..))
+                 MethodUsesMap, MethodUsers, MethodId(..), UniqueUse(..))
 import AUses(useDropCond)
 import AVerilogUtil(vNameToTask)
+import RSchedule(RAT, ratToNestedLists)
 import Wires(WireProps(..))
 
 --import Debug.Trace
@@ -833,7 +834,7 @@ ratToBlobs mMap omMultMap rat =
       nonTrivial _ = False
 
       -- Create the MethBlobs and partition into expr and action
-      (es, as) = partition fst $ map (mkBlob mMap omMultMap) rat
+      (es, as) = partition fst $ map (mkBlob mMap omMultMap) $ ratToNestedLists rat
   in
       -- filter out the expr uses which don't need muxing
       (filter nonTrivial (map snd es), map snd as)
