@@ -25,6 +25,8 @@ module Error(
              bsMessage,
              -- version when not in the IO monad
              bsErrorUnsafe,
+             -- version only for expandSyn (which doesn't have an ErrorHandle)
+             bsErrorReallyUnsafe,
              -- versions that display a context following the message
              MsgContext, emptyContext,
              bsWarningsAndErrorsWithContext,
@@ -324,6 +326,15 @@ bsMessage ref ms = do
 bsErrorUnsafe :: ErrorHandle -> [EMsg] -> a
 bsErrorUnsafe ref es = unsafePerformIO (bsError ref es)
 
+-- This is very bad because it ignores everything in the real error state.
+-- It only exists to generate proper errors from expandSyn since propagating
+-- the error handle through things like typeclass signatures is unreasonable.
+-- As an alternative, the compiler could use a global error handle (like
+-- bluetcl does), but that is a more invasive change.
+bsErrorReallyUnsafe :: [EMsg] -> a
+bsErrorReallyUnsafe es = unsafePerformIO $ do
+  ref <- initErrorHandle
+  bsError ref es
 
 suppressWarnings :: ErrorState -> [WMsg] -> (ErrorState, [WMsg])
 suppressWarnings state ws =
@@ -709,8 +720,8 @@ data ErrMsg =
             String -- ^ var name
             Position -- ^ previous decl position
 
-        | EForeignNotBit String
-        | EPartialTypeApp String
+        | EForeignNotBit String String
+        | EPartialTypeApp String Integer Integer -- synonym (# expected) (# given)
         | ENotStructId String
         | ENotStructUpd String
         | ENotStruct String String
@@ -1921,10 +1932,14 @@ getErrorText (EMultipleDecl name prevPos) =
     (Type 11, empty, s2par ("Declaration of " ++ ishow name ++
                             " conflicts with previous declaration at " ++
                             prPosition prevPos))
-getErrorText (EForeignNotBit i) =
-    (Type 12, empty, s2par ("Foreign function has non-Bit argument/result: " ++ ishow i))
-getErrorText (EPartialTypeApp i) =
-    (Type 13, empty, s2par ("Partially applied type synonym " ++ ishow i))
+getErrorText (EForeignNotBit i t) =
+  (Type 12, empty, hdr $$ text "Type:" <+> nest 2 (text t))
+  where hdr = s2par ("Foreign function " ++ ishow i ++ " has a non-Bit argument or result.")
+getErrorText (EPartialTypeApp i expected given) =
+    (Type 13, empty,
+     s2par ("Partially applied type synonym: " ++ ishow i) $$
+     s2par ("The synonym expects " ++ show expected ++
+            " arguments but was used with " ++ show given ++ " arguments."))
 getErrorText (ENotStructId c) =
     (Type 14, empty, s2par ("Identifier is not a struct name " ++ ishow c))
 getErrorText (ENotStructUpd e) =

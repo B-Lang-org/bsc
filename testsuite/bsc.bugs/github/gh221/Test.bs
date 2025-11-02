@@ -1,0 +1,11 @@
+package Test where
+
+import Assert
+type Identity a = a
+struct W a = { unW :: a Bool } deriving (Bits)
+type X = W Identity
+
+assertSize :: (IsModule m c) => m Empty
+assertSize = do
+  let x = valueOf (SizeOf (X))
+  staticAssert (x == 1) "SizeOf X"

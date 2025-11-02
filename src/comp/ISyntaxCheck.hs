@@ -36,7 +36,7 @@ trace_witness = tracep doTraceEqWitnesses
 eqType :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 eqType flags symt r (ITForAll i k t) (ITForAll i' k' t') =
     k == k' &&
-    eqType flags symt r t (tSubst i' (ITVar i) t')
+    eqType flags symt (addK i k r) t (tSubst i' (ITVar i) t')
 eqType flags symt r t t' = eqType0 flags symt r t t'
 
 eqType0 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
