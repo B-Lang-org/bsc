@@ -3,9 +3,9 @@
 -- This module exports the data type RAT (resource allocation table) and
 -- the function "rSchedule" which is used by ASchedule to create the RAT.
 --
-module RSchedule(rSchedule, RAT) where
+module RSchedule(rSchedule, RAT, ratToNestedLists) where
 
-import Data.List((\\),partition)
+import Data.List((\\),partition,sortBy)
 import Data.Maybe(maybeToList)
 import Control.Monad(when)
 import qualified Data.Map as M
@@ -38,7 +38,18 @@ trace_uugraph = "-trace-uugraph" `elem` progArgs
 -- ==============================
 -- Data types
 
-type RAT = [(MethodId, [(UniqueUse, Integer)])] -- resource allocation table
+type RAT = M.Map MethodId (M.Map UniqueUse Integer) -- resource allocation table
+
+-- hack to avoid sorting order differences after switching from a list to a map
+sortRatList :: [(MethodId, [(UniqueUse, Integer)])] -> [(MethodId, [(UniqueUse, Integer)])]
+sortRatList = sortBy cmp
+    where cmp x y = compare (ppString x) (ppString y)
+
+ratToNestedLists :: RAT -> [(MethodId, [(UniqueUse, Integer)])]
+ratToNestedLists = sortRatList . M.toList . M.map M.toList
+
+instance PPrint RAT where
+  pPrint d p = pPrint d p . ratToNestedLists
 
 -- ---------------
 
@@ -79,17 +90,18 @@ data StackItem v r = Vertex (v,[v]) | Edge r
 --  * RAT
 --  * [RRM]
 
-rSchedule :: Id -> ResourceFlag -> [(MethodId,Integer)] -> MethodUsesMap ->
+rSchedule :: Id -> ResourceFlag -> M.Map MethodId Integer -> MethodUsesMap ->
              (RuleId -> RuleId -> Bool) -> ErrorMonad (RAT,[RRM])
 rSchedule moduleId rFlag rMaxs rMap areSimult =
-    let
-        concatTuple (xxs,yys) = (concat xxs, concat yys)
+    -- We don't need to worry about keys conflicting when combining xxs
+    -- because those keys came from the keys of rMap.
+    let concatTuple (xxs,yys) = (M.unions xxs, concat yys)
         f = rSchedule' moduleId rFlag rMaxs areSimult
     in
         mapM f (M.toList rMap) >>= return . concatTuple . unzip
 
 
-rSchedule' :: Id -> ResourceFlag -> [(MethodId,Integer)] ->
+rSchedule' :: Id -> ResourceFlag -> M.Map MethodId Integer ->
               (RuleId -> RuleId -> Bool) ->
               (MethodId, [(UniqueUse, MethodUsers)]) ->
               ErrorMonad (RAT, [RRM])
@@ -122,9 +134,9 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
              (traceM $ "rSchedule: uugraph:\n" ++ ppReadable g)
          -- when (rMax <= 0) (verifySC g)
          if length uses > 16 && fromInteger rMax >= length uses
-           then return ([(mId, zip (map fst uses) [1..])], [])
+           then return (M.singleton mId (M.fromList (zip (map fst uses) [1..])), [])
            else do (colors, drops) <- color rMax dropEdges g
-                   return ([(mId,colors)], drops)
+                   return (M.singleton mId colors, drops)
 
 
 -- ==============================
@@ -247,10 +259,10 @@ simpleDropEdges moduleId areSimult (mId,uses) rMax st g =
 -- Function: color
 
 color :: Integer -> (StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)) ->
-         UUGraph -> ErrorMonad ([(UniqueUse,Integer)],[RRM])
+         UUGraph -> ErrorMonad (M.Map UniqueUse Integer, [RRM])
 color rMax dropEdges g
-    | rMax > 0 = colorFw rMax dropEdges [] g >>= colorBk [1..rMax] [] []
-    | otherwise = return ([(v,1) | v <- G.vertices g], [])
+    | rMax > 0 = colorFw rMax dropEdges [] g >>= colorBk [1..rMax] M.empty []
+    | otherwise = return (M.fromList [(v,1) | v <- G.vertices g], [])
 
 
 -- forward pass: generate stack of colorable vertices and dropped edges
@@ -267,11 +279,13 @@ colorFw rMax dropEdges st g
 
 
 -- backward pass: pick up vertices and color them
-colorBk :: [Integer] -> [(UniqueUse,Integer)] -> [RRM] -> StkL ->
-           ErrorMonad ([(UniqueUse, Integer)], [RRM])
+colorBk :: [Integer] -> M.Map UniqueUse Integer -> [RRM] -> StkL ->
+           ErrorMonad (M.Map UniqueUse Integer, [RRM])
 colorBk _  cs es [] = return (cs,es)
 colorBk rMaxL cs es (Vertex vns@(v,_) : vs) =
-    colorBk rMaxL ((v, pickColor rMaxL cs vns):cs) es vs
+    -- We don't need to worry about keys conflicting as we build the
+    -- map because the keys are the distinct vertices of the GraphMap.
+    colorBk rMaxL (M.insert v (pickColor rMaxL cs vns) cs) es vs
 -- XXX try to reintroduce edges
 colorBk rMaxL cs es (Edge e : vs) = colorBk rMaxL cs (e:es) vs
 
@@ -282,7 +296,7 @@ colorable rMax g v =
         G.filterVertices g (`elem` v:G.neighbors g v)) <= rMax
 
 
-pickColor :: [Integer] -> [(UniqueUse, Integer)] -> (a, [UniqueUse]) -> Integer
+pickColor :: [Integer] -> M.Map UniqueUse Integer -> (a, [UniqueUse]) -> Integer
 pickColor rMaxL cs (_,ns) =
     case rMaxL \\ [lookupRes n cs | n <- ns] of
         (r:_) -> r
@@ -293,9 +307,9 @@ pickColor rMaxL cs (_,ns) =
 -- ==============================
 -- Utility functions
 
-lookupRes :: (Eq a, PPrint a, PPrint b) => a -> [(a,b)] -> b
+lookupRes :: (Ord a, PPrint a, PPrint b) => a -> M.Map a b -> b
 -- return y s.t. (r,y) `elem` rs  or  die
-lookupRes r rs = case lookup r rs of
+lookupRes r rs = case M.lookup r rs of
                  (Just x) -> x
                  Nothing  -> internalError $ "RSchedule: phantom resources" ++ ppReadable r ++ ppReadable rs
 
