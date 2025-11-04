@@ -48,6 +48,7 @@ module Verilog(
 import Prelude hiding ((<>))
 #endif
 
+import Data.Data (Data, Typeable)
 import Data.List(nub)
 import Data.Maybe(fromMaybe)
 import Eval
@@ -60,7 +61,6 @@ import Id
 import Position
 import FStringCompat
 import Data.Char(isDigit, isAlpha)
-import qualified Data.Generics as Generic
 
 --import Debug.Trace
 
@@ -81,7 +81,7 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 --    * a list of import-DPI declarations
 --    * a comment for the entire file, not for any one module
 data VProgram = VProgram [VModule] [VDPI] VComment
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance Hyper VProgram where
     hyper x y = (x==x) `seq` y
@@ -134,7 +134,7 @@ ppComment cs =
 --    * The return type
 --    * The arguments (name, whether it's an input, type)
 data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance PPrint VDPI where
   pPrint d p (VDPI name ret args) =
@@ -155,7 +155,7 @@ data VDPIType = VDT_void
               | VDT_wide Integer
               | VDT_string
               | VDT_poly
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance PPrint VDPIType where
   pPrint _ _ VDT_void    = text "void"
@@ -179,7 +179,7 @@ data VModule =
              vm_ports      ::  [([VArg],VComment)] ,
              vm_body       :: [VMItem]
             }
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance PPrint VModule where
     pPrint d p vmodule =
@@ -235,7 +235,7 @@ data VArg
         | VAInout VId (Maybe VId) (Maybe (Maybe VRange))
         | VAOutput VId (Maybe VRange)
         | VAParameter VId (Maybe VRange) VExpr
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 -- only use this for debugging
 instance PPrint VArg where
@@ -299,7 +299,7 @@ data VMItem
         --          if no spaces needed, use a list of one list.
         | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance Ord VMItem where
          -- comments are just attached to other statements,
@@ -432,7 +432,7 @@ vGroupWithComment True  vmis comment =
 
 
 data VFunction = VFunction VId (Maybe VRange) [VFDecl] VStmt
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 type VFDecl = VVDecl -- not quite right
 
@@ -466,7 +466,7 @@ data VStmt
         | VTask VId [VExpr] -- calling a verilog system task as a Bluespec foreign function of type Action
         | VAssert VEventExpr [VExpr]
         | VZeroDelay -- injecting an explicit (0-tick) delay for synchronization purposes
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 
 instance PPrint VStmt where
@@ -565,7 +565,7 @@ data VLValue
         = VLId VId
         | VLConcat [VLValue]
         | VLSub VLValue VExpr
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance Ord VLValue where
          compare (VLId lid) (VLId rid)               = compare lid rid
@@ -580,7 +580,7 @@ instance PPrint VLValue where
 data VCaseArm
         = VCaseArm [VExpr] VStmt
         | VDefault VStmt
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance PPrint VCaseArm where
         pPrint d p (VCaseArm es s) =
@@ -598,7 +598,7 @@ vSeq ss = VSeq ss
 data VVDecl
         = VVDecl VDType (Maybe VRange) [VVar]
         | VVDWire (Maybe VRange) VVar VExpr
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance Ord VVDecl where
          compare (VVDecl _ _ _)  (VVDWire _ _ _)       = LT
@@ -627,7 +627,7 @@ vVDecl t r v = VVDecl t r [v]
 
 data VDType = VDReg | VDWire
         | VDInput | VDInout | VDOutput                -- only for decls
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
+        deriving (Eq, Ord, Show, Data, Typeable, Enum)
 
 instance PPrint VDType where
         pPrint d p VDReg    = text "reg"
@@ -639,7 +639,7 @@ instance PPrint VDType where
 data VVar
         = VVar VId
         | VArray VRange VId
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance Ord VVar where
          compare (VVar lid) (VArray _ rid)           = compare lid rid
@@ -658,7 +658,7 @@ vvName (VArray _ i) = i
 
 -- the VMItem is used for inlined registers
 data VId = VId String Id (Maybe VMItem)
-        deriving (Show, Generic.Data, Generic.Typeable)
+        deriving (Show, Data, Typeable)
 
 instance Ord VId where
     compare (VId s1 _ _) (VId s2 _ _) = compare s1 s2
@@ -701,7 +701,7 @@ data VEventExpr
         | VEEnegedge VExpr
         | VEE VExpr
         | VEEMacro String VExpr
-        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Show, Data, Typeable)
 
 instance PPrint VEventExpr where
         pPrint d p (VEEOr e1 e2) =
@@ -733,7 +733,7 @@ data VExpr
         | VEIf VExpr VExpr VExpr
         | VEFctCall VId [VExpr]
         | VEMacro String
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 -- vVar :: String -> VExpr
 -- vVar = VEVar . VId
@@ -810,7 +810,7 @@ createVEWConstString width base value =
               width' = whichWidth base' width
 
 data VTri = V0 | V1 | Vx | Vz
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
+        deriving (Eq, Ord, Show, Data, Typeable, Enum)
 
 instance PPrint VTri where
         pPrint d p V0 = text "0"
@@ -834,7 +834,7 @@ data VOp
         | VOr
         | VLAnd                         -- logical AND and OR
         | VLOr
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Enum)
+        deriving (Eq, Ord, Show, Data, Typeable, Enum)
 
 
 instance PPrint VOp where

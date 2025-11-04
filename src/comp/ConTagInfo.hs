@@ -1,9 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module ConTagInfo(ConTagInfo(..)) where
 
+import Data.Data
+
 import Eval
 import PPrint
-import Data.Generics
 
 -- Collects constructor and tag metadata for use in the symbol table and ISyntax.
 --  e.g., data T = A T1 | B T2

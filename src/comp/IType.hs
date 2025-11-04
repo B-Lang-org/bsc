@@ -13,6 +13,7 @@ module IType(
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
 #endif
+import Data.Data
 
 import ErrorUtil(internalError)
 import Id(Id)
@@ -26,7 +27,6 @@ import PFPrint
 import Position(noPosition)
 import Util(itos)
 import FStringCompat(FString)
-import qualified Data.Generics as Generic
 
 -- ==============================
 -- IKind, IType
@@ -36,7 +36,7 @@ data IKind
         | IKNum
         | IKStr
         | IKFun IKind IKind
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Data, Typeable)
 
 data IType
         = ITForAll Id IKind IType
@@ -45,7 +45,7 @@ data IType
         | ITCon Id IKind TISort
         | ITNum Integer
         | ITStr FString
-        deriving (Show, Generic.Data, Generic.Typeable)
+        deriving (Show, Data, Typeable)
 
 -- --------------------------------
 -- Hyper Instances

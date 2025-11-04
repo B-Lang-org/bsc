@@ -33,11 +33,11 @@ module VModInfo(VModInfo, mkVModInfo,
 import Prelude hiding ((<>))
 #endif
 
+import Data.Data
 import Data.List(partition, nub)
 import Data.Maybe(catMaybes)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import qualified Data.Generics as Generic
 
 import ErrorUtil
 import Id
@@ -54,7 +54,7 @@ import PPrint
 -- VName
 
 newtype VName = VName String
-        deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+        deriving (Show, Ord, Eq, Data, Typeable)
 
 instance PPrint VName where
     pPrint _ _ (VName s) = text s
@@ -88,7 +88,7 @@ data VeriPortProp = VPreg
                   | VPreset
                   | VPinout
                   | VPunused
-        deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+        deriving (Show, Eq, Ord, Data, Typeable)
 
 instance Hyper VeriPortProp where
     hyper x y = x `seq` y
@@ -131,7 +131,7 @@ type VMethodConflictInfo = MethodConflictInfo Id
 -- VPathInfo
 
 newtype VPathInfo = VPathInfo [(VName, VName)]
-                  deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+                  deriving (Show, Ord, Eq, Data, Typeable)
 
 instance PPrint VPathInfo where
     pPrint d p (VPathInfo []) =
@@ -174,7 +174,7 @@ data VArgInfo = Param VName    -- named module parameter
               | ResetArg Id    -- named reset
               -- named module inout, with associated clock and reset
               | InoutArg VName (Maybe Id) (Maybe Id)
-              deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+              deriving (Show, Ord, Eq, Data, Typeable)
 
 isParam :: VArgInfo -> Bool
 isParam (Param {}) = True
@@ -276,7 +276,7 @@ data VFieldInfo = Method { vf_name   :: Id, -- method name
                           vf_inout :: VName,
                           vf_clock :: (Maybe Id), -- optional clock
                           vf_reset :: (Maybe Id) } -- optional reset
-                deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+                deriving (Show, Ord, Eq, Data, Typeable)
 
 instance HasPosition VFieldInfo where
   getPosition (Method { vf_name = n }) = getPosition n
@@ -347,7 +347,7 @@ data VClockInfo = ClockInfo {
                  -- method calls are permitted across sibling relationships
                  -- but *both* gate conditions must be enforced
                  siblingClocks :: [(Id, Id)] }
-                deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+                deriving (Show, Ord, Eq, Data, Typeable)
 
 -- Gets information needed to construct the signals from an output clock clock.
 -- If there is no gate port or if the port is outhigh, Nothing is returned.
@@ -471,7 +471,7 @@ data VResetInfo = ResetInfo {
                    input_resets  :: [ResetInf],
                    output_resets :: [ResetInf]
                   }
-  deriving(Show, Ord, Eq, Generic.Data, Generic.Typeable)
+  deriving(Show, Ord, Eq, Data, Typeable)
 
 -- Gets info needed to construct the signals from an output reset.
 -- (Currently the same as getting the port name.)
@@ -560,7 +560,7 @@ data VModInfo = VModInfo {
         vSched :: VSchedInfo,
         vPath  :: VPathInfo
         }
-        deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+        deriving (Show, Ord, Eq, Data, Typeable)
 
 mkVModInfo :: VName -> VClockInfo -> VResetInfo ->
               [VArgInfo] -> [VFieldInfo] ->
@@ -645,7 +645,7 @@ data VWireInfo = WireInfo {
                   wClk  :: VClockInfo,
                   wRst  :: VResetInfo,
                   wArgs :: [VArgInfo]
-                 } deriving (Eq, Show, Generic.Data, Generic.Typeable)
+                 } deriving (Eq, Show, Data, Typeable)
 
 
 instance Hyper VWireInfo where
