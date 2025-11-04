@@ -1,0 +1,29 @@
+-verilog
+----------
+mkS
+{wset {}} {wget {}} {RL_c1 {}} {RL_c2 RL_c1}
+wset wget RL_c1 RL_c2
+{wset {{wset C} {wget <R}}} {wget {{wset >R} {wget CF}}}
+{{wset_datain EN_wset} wget}
+{{Test.bsv 156 8} G0010 {Warning: "Test.bsv", line 156, column 8: (G0010)
+  Rule "c1" was treated as more urgent than "c2". Conflicts:
+    "c1" cannot fire before "c2": calls to rg1.write vs. rg1.read
+    "c2" cannot fire before "c1": calls to rg1.write vs. rg1.read
+}} {{Test.bsv 166 9} G0021 {Warning: "Test.bsv", line 166, column 9: (G0021)
+  According to the generated schedule, rule `c2' can never fire.
+}}
+
+----------
+mkM
+{_write {}} {_read {}} {RL_rHello {}} {RL_rWorld {}}
+_read RL_rHello RL_rWorld _write
+{_write {{_write <R} {_read >R}}} {_read {{_write <R} {_read CF}}}
+
+{{Test.bsv 102 8} G0117 {Warning: "Test.bsv", line 102, column 8: (G0117)
+  Rule `_write' shadows the effects of `rWorld' when they execute in the same
+  clock cycle. Affected method calls:
+    r2.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+}}
+
+----------

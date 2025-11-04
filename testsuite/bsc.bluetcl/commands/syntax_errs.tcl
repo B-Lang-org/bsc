@@ -46,7 +46,8 @@ expect_err {type full Maybe Bool}
 
 puts {----------}
 
-expect_err {type full {Maybe Bool}}
+# Works now because of permissive Classic/BSV parsing
+puts [type full {Maybe Bool}]
 
 puts {----------}
 

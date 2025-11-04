@@ -15,12 +15,14 @@ import Data.Char(isUpper)
 import Util(doRight, itos)
 import Error(internalError, EMsg, ErrMsg(..))
 import Flags
+import Classic
 import PFPrint
 import Position(getPosition,noPosition)
 import Id
 import PreIds
 import Pragma
 import CType
+import CSyntax(IdK(..))
 import Type
 import Assump
 import Pred
@@ -67,6 +69,9 @@ getWidth _                          = Nothing
 showType :: Bool -> Id -> Kind -> [Id] -> String
 showType showKinds t k user_vs =
     let
+        showT
+         | isClassic() && showKinds = pfStr $ IdKind t k
+         | otherwise = pfStr t
         arg_ks = getArgKinds k
         arg_names =
             let user_arg_names = map getIdString user_vs
@@ -78,13 +83,13 @@ showType showKinds t k user_vs =
                KStr -> "string "
                _ -> "") ++ "type " ++ name
         showArg False arg_k name = name
-        showArgs =
+        showArgs
+          | isClassic() = unwords ("" : take (length arg_ks) arg_names)
+          | otherwise =
             "#" ++ inParens
                      (commaSep
                          (zipWith (showArg showKinds) arg_ks arg_names))
-    in
-        pvStr t ++
-               (if null arg_ks then [] else showArgs)
+    in showT ++ (if null arg_ks then [] else showArgs)
 
 
 -- make [a,...,z,aa,ab,...,zy,zz,aaa,...]
@@ -454,8 +459,8 @@ reorderUnionTypeArgs unionT as =
 
 -- String utilities
 
-pvStr :: (PVPrint a) => a -> String
-pvStr = pvpString
+pfStr :: (PPrint a, PVPrint a) => a -> String
+pfStr = pfpString
 
 inParens :: String -> String
 inParens s = "(" ++ s ++ ")"

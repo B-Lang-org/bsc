@@ -43,6 +43,7 @@ import GHCPretty()
 
 import Version
 import BuildVersion
+import Classic
 import Flags(Flags(..), verbose)
 import FlagsDecode(defaultFlags, decodeFlags, adjustFinalFlags, updateFlags,
                    showFlagsLst, showFlagsAllLst, getFlagValueString)
@@ -50,7 +51,7 @@ import Error(internalError, EMsg, ErrMsg(..), showErrorList,
              ErrorHandle, initErrorHandle, convExceptTToIO)
 import Id
 import PPrint
-import PVPrint
+import PFPrint
 import FileNameUtil
 
 import PreIds(idIsModule, idInout_, idClock, idReset, idInout,
@@ -73,7 +74,7 @@ import VModInfo
 import ADumpSchedule
 import BackendNamingConventions
 
-import Parser.BSV(pStringWrapper, pTypeExpr, pQualConstructor)
+import TclParseUtils
 
 import SymTab
 import MakeSymTab
@@ -115,6 +116,8 @@ blueshell_Init interp =
              _ <- forkIO (handleCtrlC mv)
              _ <- installHandler sigINT (Catch $ recordCtrlC mv) Nothing
              --
+             -- syntax defaults to CLASSIC otherwise
+             setSyntax BSV
              return 0)          -- TCL_OK
          handler
 
@@ -140,6 +143,7 @@ tclCommands =
     [ htclMakeCmdDesc showArgGrammar  showArgCmd
     , HTclCmdDesc helpGrammar (htclRawFnToTclCmd helpCmd)
     , htclMakeCmdDesc versionGrammar  versionNum
+    , htclMakeCmdDesc syntaxGrammar   syntaxCmd
     , htclMakeCmdDesc flagsGrammar    tclFlags
     , htclMakeCmdDesc packageGrammar  tclPackage
     , htclMakeCmdDesc defsGrammar     tclDefs
@@ -401,6 +405,34 @@ helpCmd interp objs = htclCheckCmd helpGrammar fn interp objs
 
 --------------------------------------------------------------------------------
 
+syntaxGrammar :: HTclCmdGrammar
+syntaxGrammar = (tclcmd "syntax" namespace helpStr "") .+.
+                (oneOf [ (kw "set" setHelpStr setLongHelpStr) .+.
+                         (oneOf [ kw "bh" bhHelpStr ""
+                                , kw "bsv" bsvHelpStr ""
+                                ])
+                       , (kw "get" getHelpStr "")
+                       ])
+  where helpStr = "Get or set the syntax for Bluetcl"
+        setHelpStr = "Set the syntax for Bluetcl"
+        getHelpStr = "Get the current syntax for Bluetcl"
+        setLongHelpStr = "The argument 'bsv' or 'bh' is required"
+        bhHelpStr = "Set Bluespec Haskell syntax"
+        bsvHelpStr = "Set Bluespec SystemVerilog syntax"
+
+syntaxCmd :: [String] -> IO HTclObj
+syntaxCmd ["set", "bh" ] = do setSyntax CLASSIC
+                              return $ TStr "Bluespec Haskell"
+syntaxCmd ["set", "bsv"] = do setSyntax BSV
+                              return $ TStr "Bluespec SystemVerilog"
+syntaxCmd ["get"]
+  | isClassic() = return $ TStr "Bluespec Haskell"
+  | isBSV()     = return $ TStr "Bluespec SystemVerilog"
+  | otherwise   = internalError $ "Bluetcl: unknown syntax"
+syntaxCmd xs    = internalError $ "syntaxCmd: grammar mismatch: " ++ show xs
+
+--------------------------------------------------------------------------------
+
 versionGrammar :: HTclCmdGrammar
 versionGrammar = (tclcmd "version" namespace helpStr longHelpStr) .+.
                  (optional $ oneOf [ kw "bsc" bscHelpStr ""
@@ -636,7 +668,7 @@ tclPackage ["depend"] = do
           let ipkg = ip_ipkg imp
               pId = ipkg_name ipkg
               dIds = map fst (ipkg_depends ipkg)
-          in  tagManyStr (pvpString pId) (map pvpString dIds)
+          in  tagManyStr (pfpString pId) (map pfpString dIds)
   -- XXX should the "bpackage" commands filter out Prelude, PreludeBSV,
   -- XXX and any internal packages like PrimArray ?
   return $ TLst (map mkDep imps)
@@ -659,7 +691,7 @@ tclPackage ["types",pkg] = do
       theseTypes = filter isFromPackage (getAllTypes symtab)
   let (is,tis) = unzip $ theseTypes
       is' = filter (not . hideId) is
-  return $ TLst (map (TStr . pvpString . unQualId) is')
+  return $ TLst (map (TStr . pfpString . unQualId) is')
 ----------
 tclPackage ["search",rex] = do
   g <- readIORef globalVar
@@ -739,7 +771,7 @@ tclDefs ("type":args) =
         return [ i | (Right i) <- map getName (filter isTDef ds) ]
   in do tss <- mapM getOneTypes args
         let ts = filter (not . hideId) (concat tss)
-        return $ TLst $ map (TStr . pvpString) ts
+        return $ TLst $ map (TStr . pfpString) ts
 ------
 tclDefs ("module":args) =
   let getOneMods :: String -> IO [Id]
@@ -753,7 +785,7 @@ tclDefs ("module":args) =
         return $ concatMap getMods pragmas
   in do mss <- mapM getOneMods args
         let ms = concat mss
-        return $ TLst $ map (TStr . pvpString) ms
+        return $ TLst $ map (TStr . pfpString) ms
 ------
 tclDefs ("func":args) =
   let getOneDefs :: String -> IO [HTclObj]
@@ -777,7 +809,7 @@ tclDefs ("all":args) =
         return [ i | (Right i) <- map getName ds, not (hideId i) ]
   in do dss <- mapM getOneDefs args
         let ds = concat dss
-        return $ TLst $ map (TStr . pvpString) ds
+        return $ TLst $ map (TStr . pfpString) ds
 ------
 tclDefs xs = internalError $ "tclDefs: grammar mismatch: " ++ (show xs)
 
@@ -817,27 +849,27 @@ displayTypeSignature i qt@(CQType ps ty) =
 displayModuleSignature :: Id -> [CPred] -> [CType] -> CType -> HTclObj
 displayModuleSignature i ps args ifc =
     tag "module" $
-        [TStr (pvpString i),
-         tagLst "interface" [TStr $ pvpString ifc]] ++
+        [TStr (pfpString i),
+         tagLst "interface" [TStr $ pfpString ifc]] ++
         (if (null args)
          then []
-         else [tagManyStr "arguments" (map pvpString args)]) ++
+         else [tagManyStr "arguments" (map pfpString args)]) ++
         (if (null ps)
          then []
-         else [tagManyStr "provisos" (map pvpString ps)]) ++
+         else [tagManyStr "provisos" (map pfpString ps)]) ++
         showTaggedPosition i
 
 displayFunctionSignature :: Id -> [CPred] -> [CType] -> CType -> HTclObj
 displayFunctionSignature i ps args res =
     tag "function" $
-        [TStr (pvpString i),
-         tagLst "result" [TStr $ pvpString res]] ++
+        [TStr (pfpString i),
+         tagLst "result" [TStr $ pfpString res]] ++
         (if (null args)
          then []
-         else [tagManyStr "arguments" (map pvpString args)]) ++
+         else [tagManyStr "arguments" (map pfpString args)]) ++
         (if (null ps)
          then []
-         else [tagManyStr "provisos" (map pvpString ps)]) ++
+         else [tagManyStr "provisos" (map pfpString ps)]) ++
         showTaggedPosition i
 
 
@@ -852,9 +884,9 @@ parseGrammar = (tclcmd "parse" namespace helpStr "") .+.
 tclParse :: [String] -> IO [String]
 tclParse ["type",s] = do
   flags <- getGFlags
-  res <- pStringWrapper globalErrHandle flags pTypeExpr [s]
+  res <- parseTypeExpr globalErrHandle flags s
   case res of
-    Right x -> return $ [(show x),show (pvPrint PDReadable  0 x)]
+    Right x -> return $ [(show x),show (pfPrint PDReadable  0 x)]
     Left x  -> return $ ["Error: " ++ (show x)]
 ------
 tclParse xs = internalError $ "tclParse: grammar mismatch: " ++ (show xs)
@@ -886,7 +918,7 @@ tclType ["full",ty] = do
   let st    = tp_symtab g
       flags = tp_flags g
   -- read in the type
-  et <- pStringWrapper globalErrHandle flags pTypeExpr [ty]
+  et <- parseTypeExpr globalErrHandle flags ty
   -- do the analysis
   case et of
     Left err -> do reportErrorsToTcl [] err
@@ -902,7 +934,7 @@ tclType ["constr",con] = do
   let symtab = tp_symtab g
       flags  = tp_flags g
   --
-  typeid <- pStringWrapper globalErrHandle flags pQualConstructor [con]
+  typeid <- parseQualConstructor globalErrHandle flags con
   let econs = either Left (lookupAndShowTypeInfo symtab) typeid
   case econs of
     Left err -> do reportErrorsToTcl [] err
@@ -915,7 +947,7 @@ tclType ["bitify",con] = do
   let st    = tp_symtab g
       flags = tp_flags g
   -- read in the type
-  et <- pStringWrapper globalErrHandle flags pTypeExpr [con]
+  et <- parseTypeExpr globalErrHandle flags con
   -- do the analysis
   case et of
     Left err -> do reportErrorsToTcl [] err
@@ -930,7 +962,7 @@ tclType xs = internalError $ "tclType: grammar mismatch: " ++ (show xs)
 lookupAndShowTypeInfo :: SymTab -> Id -> Either [EMsg] String
 lookupAndShowTypeInfo symtab tid =
           case (findType symtab tid) of
-            Nothing -> Left [(cmdPosition,EUnboundTyCon (pvpString tid))]
+            Nothing -> Left [(cmdPosition,EUnboundTyCon (pfpString tid))]
             Just (TypeInfo _ kind vs tis) -> Right (showType False tid kind vs)
 
 
@@ -1055,7 +1087,7 @@ tclModule ["rules",modname] = do
        Nothing -> return $ TLst []
        Just abmi -> do
            let apkg = abemi_apkg abmi
-               rule_names = map (pvpString . arule_id) (apkg_rules apkg)
+               rule_names = map (pfpString . arule_id) (apkg_rules apkg)
            return $ TLst (map TStr rule_names)
 ------
 tclModule ["ifc",modname] = do
@@ -1066,7 +1098,7 @@ tclModule ["ifc",modname] = do
      case minfo of
        Nothing -> return $ TLst []
        Just abmi -> do
-           let ifcname = pvpString (getModuleIfc abmi)
+           let ifcname = pfpString (getModuleIfc abmi)
            return $ TStr ifcname
 ------
 tclModule ["methods",modname] = do
@@ -1185,7 +1217,7 @@ tclModule ("flags":modname:ss) = do
 
 
 ------
-tclModule xs = internalError $ "tclModule: grmap (TStr . pvpString) grammar mismatch: " ++ (show xs)
+tclModule xs = internalError $ "tclModule: grmap (TStr . pfpString) grammar mismatch: " ++ (show xs)
 
 
 findModule :: String -> IO (Maybe ABinEitherModInfo)
@@ -1279,7 +1311,7 @@ tclSchedule ["urgency",modname] =
                          let extractEsposito (ASchedEsposito xs) = xs
                          in  concatMap extractEsposito (asch_scheduler asched)
                      h_sched =
-                         let mkS (r, rs) = tagManyStr (pvpString r) (map pvpString rs)
+                         let mkS (r, rs) = tagManyStr (pfpString r) (map pfpString rs)
                          in  map mkS sched
                  return $ TLst h_sched
 ------
@@ -1296,12 +1328,12 @@ tclSchedule ["execution",modname] =
                  -- Return just the rules in default order
                  let apkg = abemi_apkg abmi
                      rules = map arule_id (apkg_rules apkg)
-                     h_rules = map (TStr . pvpString) rules
+                     h_rules = map (TStr . pfpString) rules
                  return $ TLst h_rules
              Just asched -> do
                  let -- turn around the order - first rule first.
                      exec_order = reverse $ asch_rev_exec_order asched
-                     h_exec_order = map (TStr . pvpString) exec_order
+                     h_exec_order = map (TStr . pfpString) exec_order
                  return $ TLst h_exec_order
 ------
 tclSchedule ["methodinfo",modname] =
@@ -1319,8 +1351,8 @@ tclSchedule ["methodinfo",modname] =
               vsi = asi_v_sched_info asi
               methmap = genMethodDumpMap vsi ifc
           let h_methmap =
-                  let mkC (r,c) = TLst [TStr (pvpString r), TStr (show c)]
-                      mkP (r,_,cs) = tagLst (pvpString r) (map mkC cs)
+                  let mkC (r,c) = TLst [TStr (pfpString r), TStr (show c)]
+                      mkP (r,_,cs) = tagLst (pfpString r) (map mkC cs)
                   in  map mkP methmap
           return $ TLst h_methmap
 ------
@@ -1343,8 +1375,8 @@ tclSchedule ["pathinfo",modname] =
                              VPathInfo ps -> joinPaths ps
           -- format for tcl
           let h_pathinfo =
-                  let mkP (ins, out) = TLst [TLst (map (TStr . pvpString) ins),
-                                             TStr (pvpString out)]
+                  let mkP (ins, out) = TLst [TLst (map (TStr . pfpString) ins),
+                                             TStr (pfpString out)]
                   in  map mkP joinedinfo
           return $ TLst h_pathinfo
 ------
@@ -1553,7 +1585,7 @@ tclRule ["rel", modname, rule1, rule2] =
                      user_rule_names = map arule_id (apkg_rules apkg)
                      ifc_rule_names = concatMap aIfaceSchedNames
                                           (apkg_interface apkg)
-                     rule_names = map pvpString (user_rule_names ++ ifc_rule_names)
+                     rule_names = map pfpString (user_rule_names ++ ifc_rule_names)
                  let mkRuleErr r =
                          ioError $ userError (quote r ++
                                               " is not a rule in module " ++
@@ -1580,8 +1612,8 @@ tclRule ["full",modname,rule] =
                 pps = abemi_pps abmi
                 mumap = M.toList $ abemi_method_uses_map abmi
             -- find the rule
-            let user_rule_names = map pvpString $ map arule_id user_rules
-                ifc_rule_names = map pvpString $ concatMap aIfaceSchedNames ifcs
+            let user_rule_names = map pfpString $ map arule_id user_rules
+                ifc_rule_names = map pfpString $ concatMap aIfaceSchedNames ifcs
                 isIfcRule = rule `notElem` user_rule_names
             when ((rule `notElem` user_rule_names) &&
                   (rule `notElem` ifc_rule_names)) $
@@ -1767,7 +1799,7 @@ instance ExpandInfoHelper BPackView  where
       g <- readIORef globalVar
       let flags = tp_flags g
           symtab = tp_symtab g
-      et <- pStringWrapper globalErrHandle flags pTypeExpr [s]
+      et <- parseTypeExpr globalErrHandle flags s
       let es :: Either [EMsg] TypeAnalysis
           es = either Left (analyzeType flags symtab) et
       return $ case es of
@@ -1918,13 +1950,13 @@ instance ExpandInfoHelper BModView  where
          Just abmi -> do
           let apkg = abemi_apkg abmi
           -- interface type
-          let ifcname = pvpString (getModuleIfc abmi)
+          let ifcname = pfpString (getModuleIfc abmi)
           -- flattened ifc names
-          let ifc_names = map pvpString $
+          let ifc_names = map pfpString $
                             filter (not . isRdyId) $
                               map (aIfaceName) (apkg_interface apkg)
           -- rules
-          let rule_names = map (pvpString . arule_id) (apkg_rules apkg)
+          let rule_names = map (pfpString . arule_id) (apkg_rules apkg)
           -- schedule
           let sched = case (abemi_schedule abmi) of
                         Just s -> ppString s
@@ -2013,10 +2045,10 @@ data BInstSub = BTop   -- Top file -- no type information :-(
 
 instance PPrint BInstSub where
     pPrint d p bin@(BTop) = text "BTop"
-    pPrint d p bin@(BMod {}) = text "BMod" <+> pvPrint d p (bin_name bin) <+> pvPrint d p (bin_type bin)
-    pPrint d p bin@(BINode {}) = text "BINode" <+> pvPrint d p (bin_name bin) <+> pvPrint d p (bin_type bin)
-    pPrint d p bin@(BRule {}) = text "BRule" <+> pvPrint d p (bin_name bin) <+> parens (pvPrint d p (bin_uname bin))
-    pPrint d p bin@(BLeaf {}) = text "BLeaf" <+> pvPrint d p (bin_name bin) <+> text (bin_prim bin) <+> pvPrint d p (bin_type bin)
+    pPrint d p bin@(BMod {}) = text "BMod" <+> pfPrint d p (bin_name bin) <+> pfPrint d p (bin_type bin)
+    pPrint d p bin@(BINode {}) = text "BINode" <+> pfPrint d p (bin_name bin) <+> pfPrint d p (bin_type bin)
+    pPrint d p bin@(BRule {}) = text "BRule" <+> pfPrint d p (bin_name bin) <+> parens (pfPrint d p (bin_uname bin))
+    pPrint d p bin@(BLeaf {}) = text "BLeaf" <+> pfPrint d p (bin_name bin) <+> text (bin_prim bin) <+> pfPrint d p (bin_type bin)
 
 comparebis ::   BInstSub -> BInstSub -> Ordering
 comparebis BTop BTop = EQ
@@ -2191,7 +2223,7 @@ instance ExpandInfoHelper BInst where
     getTextf (BNode {binst_sub = st, binst_name = nm}) = return $ nm ++ subinfo st
         where ignores = []
               ptype :: Type -> String
-              ptype t = let x = toPrintable $ docToOneLine (pvPrint PDNoqual 0 t)
+              ptype t = let x = toPrintable $ docToOneLine (pfPrint PDNoqual 0 t)
                         in if (x `elem` ignores) then "" else "  " ++ x
               --
               subinfo :: BInstSub -> String
@@ -2406,14 +2438,14 @@ instance ExpandInfoHelper BTypeView  where
     -- Get the display text in the tree
     -- getTextf :: BTypeView -> IO String
     getTextf (BTypeViewRoot) = return "root"
-    getTextf (BType t ta) = return $ (pvpStringNQ t) ++ parenStr (typeAnalysisShort ta) ++ pwidth ta
-    getTextf (StructField i t ta) = return $ pvpStringNQ i ++ " " ++ (pvpStringNQ t) ++ pwidth ta
-    getTextf (UnionTag i t ta) = return $ "tagged " ++ pvpStringNQ  i ++ " " ++
-                                           pvpStringNQ t ++ parenStr (typeAnalysisShort ta)++ pwidth ta
+    getTextf (BType t ta) = return $ (pfpStringNQ t) ++ parenStr (typeAnalysisShort ta) ++ pwidth ta
+    getTextf (StructField i t ta) = return $ pfpStringNQ i ++ " " ++ (pfpStringNQ t) ++ pwidth ta
+    getTextf (UnionTag i t ta) = return $ "tagged " ++ pfpStringNQ  i ++ " " ++
+                                           pfpStringNQ t ++ parenStr (typeAnalysisShort ta)++ pwidth ta
     getTextf (InterfaceField is_subifc i qt _ _) =
         if (is_subifc)
-        then return $ "interface " ++ pvpStringNQ qt ++ " " ++ pvpStringNQ i
-        else return $ "method " ++ pvpStringNQ i
+        then return $ "interface " ++ pfpStringNQ qt ++ " " ++ pfpStringNQ i
+        else return $ "method " ++ pfpStringNQ i
     getTextf (BTVUnknown) = return "Unknown"
 
     getTagsf _            = return []
@@ -2423,12 +2455,12 @@ instance ExpandInfoHelper BTypeView  where
     getInfof (BTypeViewRoot) = return $ TLst []
     getInfof (BType t a) = return $ typeAnalysisToDetail a
     getInfof (StructField i qt ta) =
-        return $ tag "field" ( [TStr $ pvpString i,
-                                tagLst "Type" [TStr $ pvpString qt]] ++
+        return $ tag "field" ( [TStr $ pfpString i,
+                                tagLst "Type" [TStr $ pfpString qt]] ++
                                (showWidth $ getWidth ta))
     getInfof (UnionTag i t ta) =
-        return $ tag "union" ([tagLst "tag" [TStr $ pvpString i],
-                               tagLst "Type" [TStr $ pvpString t]] ++
+        return $ tag "union" ([tagLst "tag" [TStr $ pfpString i],
+                               tagLst "Type" [TStr $ pfpString t]] ++
                               (showWidth $ getWidth ta))
     getInfof (InterfaceField is_subifc fid qt ps ta) =
         if (is_subifc) then return $ typeAnalysisToDetail ta
@@ -2520,7 +2552,7 @@ tclBType ["add",s] = do
       flags = tp_flags g
       symtab = tp_symtab g
   -- parse the type
-  et <- pStringWrapper globalErrHandle flags pTypeExpr [s]
+  et <- parseTypeExpr globalErrHandle flags s
   let eta :: Either [EMsg] (CType, TypeAnalysis)
       eta = case (et) of
               Left errs -> Left errs
@@ -3428,11 +3460,11 @@ dispIfcHierarchyNames ifc_fs = TLst (map dispField ifc_fs)
  where
    dispField (Field fId inf mrdy_inf) =
        TLst $ [TStr (getIdBaseString fId),
-               TStr (pvpString (rawIfcFieldName inf))] ++
+               TStr (pfpString (rawIfcFieldName inf))] ++
               case (mrdy_inf) of
                 Nothing -> []
                 Just rdy_inf ->
-                    [tagStr "ready" (pvpString (rawIfcFieldName rdy_inf))]
+                    [tagStr "ready" (pfpString (rawIfcFieldName rdy_inf))]
    dispField (SubIfc fId fs) =
        tagLst (getIdBaseString fId) (map dispField fs)
 
@@ -3961,12 +3993,12 @@ getPortsIfcInout ptmap fId i t vn mclk mrst =
 -- display clock
 dispClockedBy :: Maybe Id -> HTclObj
 dispClockedBy Nothing  = tagStr "clock" "no_clock"
-dispClockedBy (Just c) = tagStr "clock" (pvpString c)
+dispClockedBy (Just c) = tagStr "clock" (pfpString c)
 
 -- display reset
 dispResetBy :: Maybe Id -> HTclObj
 dispResetBy Nothing  = tagStr "reset" "no_reset"
-dispResetBy (Just r) = tagStr "reset" (pvpString r)
+dispResetBy (Just r) = tagStr "reset" (pfpString r)
 
 -- display maybe a port name
 -- (The first argument is the tag, like "port", "gate", etc)
@@ -4002,26 +4034,26 @@ dispNSize sz = tagInt "size" (fromInteger sz)
 -- display module arguments
 dispModArg :: PortArgInfo -> HTclObj
 dispModArg (PAParam i _ name) =
-    TLst $ [TStr "parameter", TStr (pvpString i)] ++
+    TLst $ [TStr "parameter", TStr (pfpString i)] ++
            [tagStr "param" name]
 dispModArg (PAPort i bit_type (port, _) mclk mrst) =
-    TLst $ [TStr "port", TStr (pvpString i)] ++
+    TLst $ [TStr "port", TStr (pfpString i)] ++
            [tagStr "port" port] ++
            [dispClockedBy mclk] ++
            [dispResetBy mrst] ++
            dispSize bit_type
 dispModArg (PAClock i Nothing) =
-    TLst [TStr "clock", TStr (pvpString i)]
+    TLst [TStr "clock", TStr (pfpString i)]
 dispModArg (PAClock i (Just ((osc, _), mgate))) =
-    TLst $ [TStr "clock", TStr (pvpString i),
+    TLst $ [TStr "clock", TStr (pfpString i),
             tagStr "osc" osc] ++
            dispMPortWithType "gate" mgate
 dispModArg (PAReset i mport mclk) =
-    TLst $ [TStr "reset", TStr (pvpString i)] ++
+    TLst $ [TStr "reset", TStr (pfpString i)] ++
            (dispMPortWithType "port" mport) ++
            [dispClockedBy mclk]
 dispModArg (PAInout i sz (port,_) mclk mrst) =
-    TLst $ [TStr "inout", TStr (pvpString i)] ++
+    TLst $ [TStr "inout", TStr (pfpString i)] ++
            [tagStr "port" port] ++
            [dispClockedBy mclk] ++
            [dispResetBy mrst] ++
@@ -4031,7 +4063,7 @@ dispModArg (PAInout i sz (port,_) mclk mrst) =
 dispMethodArgs :: [(Maybe Id, AType, (String, IType))] -> HTclObj
 dispMethodArgs as =
     let dispMName Nothing = []
-        dispMName (Just i) = [tagStr "name" (pvpString i)]
+        dispMName (Just i) = [tagStr "name" (pfpString i)]
         dispArg (mi, bit_type, (port, _)) =
             TLst $ (dispMName mi) ++
                    [tagStr "port" port] ++
@@ -4043,7 +4075,7 @@ dispIfc :: PortIfcInfo -> HTclObj
 dispIfc (PIMethod fId i mClk mRst ins mOut mEn mRdy) =
     TLst $ [TStr "method",
             TStr (getIdBaseString fId),
-            TStr (pvpString i),
+            TStr (pfpString i),
             dispClockedBy mClk,
             dispResetBy mRst,
             tag "args" [dispMethodArgs ins]] ++
@@ -4051,17 +4083,17 @@ dispIfc (PIMethod fId i mClk mRst ins mOut mEn mRdy) =
            dispMPortWithType "enable" mEn ++
            dispMPortWithType "ready" mRdy
 dispIfc (PIClock fId i Nothing) =
-    TLst [TStr "clock", TStr (getIdBaseString fId), TStr (pvpString i)]
+    TLst [TStr "clock", TStr (getIdBaseString fId), TStr (pfpString i)]
 dispIfc (PIClock fId i (Just ((osc, _), mgate))) =
-    TLst $ [TStr "clock", TStr (getIdBaseString fId), TStr (pvpString i),
+    TLst $ [TStr "clock", TStr (getIdBaseString fId), TStr (pfpString i),
             tagStr "osc" osc] ++
            dispMPortWithType "gate" mgate
 dispIfc (PIReset fId i mport mclk) =
-    TLst $ [TStr "reset", TStr (getIdBaseString fId), TStr (pvpString i)] ++
+    TLst $ [TStr "reset", TStr (getIdBaseString fId), TStr (pfpString i)] ++
            (dispMPortWithType "port" mport) ++
            [dispClockedBy mclk]
 dispIfc (PIInout fId i bit_type (port,_)  mclk mrst) =
-    TLst $ [TStr "inout", TStr (getIdBaseString fId), TStr (pvpString i)] ++
+    TLst $ [TStr "inout", TStr (getIdBaseString fId), TStr (pfpString i)] ++
            [tagStr "port" port] ++
            [dispClockedBy mclk] ++
            [dispResetBy mrst] ++
@@ -4075,7 +4107,7 @@ dispIfc (PISubIfc fId fs) =
 -- Display just the ports and their types
 
 dispPortType :: (String, IType) -> HTclObj
-dispPortType (p,t) = TLst [TStr p, TStr (pvpString t)]
+dispPortType (p,t) = TLst [TStr p, TStr (pfpString t)]
 
 dispMPortType :: Maybe (String, IType) -> [HTclObj]
 dispMPortType Nothing = []

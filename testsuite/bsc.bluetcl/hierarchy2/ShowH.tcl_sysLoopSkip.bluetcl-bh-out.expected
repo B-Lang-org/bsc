@@ -1,0 +1,19 @@
+    sysLoopSkip    	 --  	 
+        Loop           	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Reg (Prelude.UInt 14), Prelude.Integer)	 
+            Body_0         	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Reg (Prelude.UInt 14))	 
+                aaa            	 -- RegUN Prelude.Reg (Prelude.UInt 14)	aaa_0 
+                foo            	 -- Rule 	RL_foo 
+            Body_1         	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Reg (Prelude.UInt 14))	 
+                bbb            	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_1 
+                foo            	 -- Rule 	RL_foo_1 
+            Body_2         	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Reg (Prelude.UInt 14))	 
+                aaa            	 -- RegUN Prelude.Reg (Prelude.UInt 14)	aaa_2 
+                foo            	 -- Rule 	RL_foo_2 
+            Body_3         	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Reg (Prelude.UInt 14))	 
+                bbb            	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_3 
+                foo            	 -- Rule 	RL_foo_3 
+        Loop           	 --  (Prelude.Reg (Prelude.UInt 14), Prelude.Integer)	 
+            bbb_0          	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_0 
+            bbb_1          	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_1_1 
+            bbb_2          	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_2 
+            bbb_3          	 -- RegUN Prelude.Reg (Prelude.UInt 14)	bbb_3_1 

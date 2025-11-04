@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE IncoherentInstances #-}
 module PPrint(PPrint(..), PDetail(..), module Pretty,
-        ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
+        ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, ppStringNQ, pp80,
         pparen, sepList, catList, vcatList, ppr, ppDoc,
         maxPrec, vsep, wrap, commaSep, encloseSep,
         tracePPS,
@@ -56,6 +56,9 @@ linePref = 100
 
 ppString :: PPrint a => a -> String
 ppString = init . pretty 100000 100000 . pPrint PDReadable 0
+
+ppStringNQ :: (PPrint a) => a -> String
+ppStringNQ = init . pretty 100000 100000 . pPrint PDNoqual 0
 
 ppr :: PPrint a => PDetail -> a -> String
 ppr d = pretty lineWidth linePref . pPrint d 0

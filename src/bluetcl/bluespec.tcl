@@ -84,12 +84,16 @@ proc Bluetcl::initBluespec {} {
 
     if { ! [info exists argv] } { return }
 
-    set rest [::utils::scanOptions {-quiet} {-exec} false OPT $argv]
+    set rest [::utils::scanOptions {-quiet -bh} {-exec} false OPT $argv]
     set argv $rest
     set argc [llength $rest]
 
     # unload Bluesim model on exit
     AtExit::atExit [list ::Bluetcl::sim unload]
+
+    if { [info exists OPT(-bh)] } {
+	::Bluetcl::syntax set bh
+    }
 
     if { [info exists OPT(-exec)] } {
         # look for a script to execute
@@ -151,6 +155,7 @@ namespace eval ::Bluetcl {
     namespace export sim
     namespace export submodule
     namespace export type
+    namespace export syntax
     namespace export version
 
 }

@@ -1,0 +1,53 @@
+    sysExample     	 --  	 
+        zow            	 -- RWire Prelude.Reg Prelude.Bool	zow 
+        mkZow          	 --  Prelude.Empty	 
+            zow2           	 -- RegN Prelude.Reg Prelude.Bool	zow2 
+        xx             	 --  Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5))	 
+            _element_0     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_0 
+            _element_1     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_1 
+            _element_2     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_2 
+        ww             	 --  Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5))	 
+            _element_0     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_0 
+            _element_1     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_1 
+            _element_2     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_2 
+        Loop           	 --  Prelude.Integer	 
+            z_0            	 -- RegN Prelude.Reg Prelude.Bool	z_0 
+            z_1            	 -- RegN Prelude.Reg Prelude.Bool	z_1 
+            z_2            	 -- RegN Prelude.Reg Prelude.Bool	z_2 
+        Loop           	 --  Prelude.Integer	 
+            Body_0         	 --  ()	 
+                x              	 -- RegN Prelude.Reg Prelude.Bool	x_0 
+                Loop           	 --  Prelude.Integer	 
+                    Body_0         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_0_0 
+                        update         	 -- Rule 	RL_update 
+                    Body_1         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_0_1 
+                        update         	 -- Rule 	RL_update_1 
+                    Body_2         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_0_2 
+                        update         	 -- Rule 	RL_update_2 
+            Body_1         	 --  ()	 
+                x              	 -- RegN Prelude.Reg Prelude.Bool	x_1 
+                Loop           	 --  Prelude.Integer	 
+                    Body_0         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_1_0 
+                        update         	 -- Rule 	RL_update_3 
+                    Body_1         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_1_1 
+                        update         	 -- Rule 	RL_update_4 
+                    Body_2         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_1_2 
+                        update         	 -- Rule 	RL_update_5 
+            Body_2         	 --  ()	 
+                x              	 -- RegN Prelude.Reg Prelude.Bool	x_2 
+                Loop           	 --  Prelude.Integer	 
+                    Body_0         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_2_0 
+                        update         	 -- Rule 	RL_update_6 
+                    Body_1         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_2_1 
+                        update         	 -- Rule 	RL_update_7 
+                    Body_2         	 --  ()	 
+                        y              	 -- RegN Prelude.Reg Prelude.Bool	y_2_2 
+                        update         	 -- Rule 	RL_update_8 

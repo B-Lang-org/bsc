@@ -2,7 +2,7 @@
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ > 800)
 {-# OPTIONS_GHC -O0 #-}
 #endif
-module Parser.Classic.CParser(pPackage, pDefnsAndEOF, errSyntax) where
+module Parser.Classic.CParser(pPackage, pDefnsAndEOF, errSyntax, CParser, pType, qcon, eof) where
 
 import Data.List(nub)
 
