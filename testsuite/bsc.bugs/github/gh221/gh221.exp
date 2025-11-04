@@ -35,3 +35,6 @@ compile_pass ShouldCompile.bs
 # Now it fails with an accurate partially-applied type synonym error.
 compile_fail_error ZipCrash2.bs T0013
 compare_file ZipCrash2.bs.bsc-out
+
+# If the type synonym is not partially applied, the example compiles.
+compile_pass ZipNoCrash3.bs
