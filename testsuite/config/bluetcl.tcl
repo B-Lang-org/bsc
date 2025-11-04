@@ -3,9 +3,9 @@
 #
 # proc bluetcl_pass { script }
 #
-# proc bluetcl_run_compare_pass { source {expected ""} {sedfilter ""}  }
+# proc bluetcl_run_compare_pass { source {expected ""} {expected_bh ""} {sedfilter ""}  }
 #
-# proc bluetcl_run_compare_pass_bug { source {expected ""} {sedfilter ""} {bug ""} }
+# proc bluetcl_run_compare_pass_bug { source {expected ""} {expected_bh ""} {sedfilter ""} {bug ""} }
 #
 # proc bluetcl_compare { source {expected ""} {sedfilter ""} }
 #
@@ -74,6 +74,14 @@ proc make_bluetcl_output_name { source } {
 }
 
 # worker bee
+proc make_bluetcl_bh_output_name { source } {
+    set src [file tail $source]
+    set src [regsub -all { } $src "_"]
+    set filename "$src.bluetcl-bh-out"
+    return $filename
+}
+
+# worker bee
 proc run_bluetcl { source } {
     global bluetcl
     global srcdir
@@ -91,6 +99,25 @@ proc run_bluetcl { source } {
     return [expr $status == 0]
 }
 
+proc run_bluetcl_bh { source } {
+    global bluetcl
+    global srcdir
+    global subdir
+
+    bluetcl_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set output [make_bluetcl_bh_output_name $source]
+    # The source file has to be the first argument for the
+    # Tcl interpreter to pick it up.
+    set cmd "$bluetcl $source -bh >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "run_bluetcl_bh" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
 # Do a bluetcl run, and report status
 proc bluetcl_pass { source } {
     global xfail_flag
@@ -104,20 +131,31 @@ proc bluetcl_pass { source } {
     } else {
 	fail "`$source' should execute"
     }
+
+    if [run_bluetcl_bh $source] then {
+	pass "`$source' executes with Bluespec Haskell syntax"
+    } else {
+	fail "`$source' should execute with Bluespec Haskell syntax"
+    }
+
 }
 
 # DO run and compare output
-proc bluetcl_run_compare_pass { source {expected ""} {sedfilter ""} } {
+proc bluetcl_run_compare_pass { source {expected ""} {expected_bh ""} {sedfilter ""} } {
 
     bluetcl_pass $source
 
     set output [make_bluetcl_output_name $source]
 
     bluetcl_compare $output $expected $sedfilter
+
+    set output_bh [make_bluetcl_bh_output_name $source]
+
+    bluetcl_compare $output_bh $expected_bh $sedfilter
 }
 
 # DO run and compare output (does not match because of known bug)
-proc bluetcl_run_compare_pass_bug { source {expected ""} {sedfilter ""} {bug ""} } {
+proc bluetcl_run_compare_pass_bug { source {expected ""} {expected_bh "" } {sedfilter ""} {bug ""} } {
 
     global env
     global target_triplet
@@ -128,6 +166,11 @@ proc bluetcl_run_compare_pass_bug { source {expected ""} {sedfilter ""} {bug ""}
 
     setup_xfail $target_triplet $bug
     bluetcl_compare $output $expected $sedfilter
+
+    set output_bh [make_bluetcl_bh_output_name $source]
+
+    setup_xfail $target_triplet $bug
+    bluetcl_compare $output_bh $expected_bh $sedfilter
 }
 
 # RUN bluetcl with options specifying outfile (can be a module rather than tclfile

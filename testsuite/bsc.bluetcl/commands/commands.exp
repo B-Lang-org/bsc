@@ -33,7 +33,13 @@ bluetcl_run_compare_pass bpackage.tcl
 # XXX
 
 # Test "type"
-bluetcl_run_compare_pass type.tcl "" $sedPosition
+bluetcl_run_compare_pass type.tcl "" "" $sedPosition
+
+# Test permissive parsing with type_bh.tcl
+# type_bh.tcl uses Bluespec Haskell syntax for its types,
+# which bluetcl should be able to handle regardless of the
+# syntax it is set to for output.
+bluetcl_run_compare_pass type_bh.tcl "" "" $sedPosition
 
 # Test "module"
 bluetcl_run_compare_pass module.tcl
@@ -54,7 +60,7 @@ bluetcl_run_compare_pass submodule.tcl
 # XXX No need to test, just for internal use?
 
 # Test "browsepackage"
-bluetcl_run_compare_pass browsepackage.tcl "" $sedPosition
+bluetcl_run_compare_pass browsepackage.tcl "" "" $sedPosition
 
 # Test "browsemodule"
 bluetcl_run_compare_pass browsemodule.tcl
@@ -71,12 +77,12 @@ mkdir BOUTDIR
 bluetcl_run_compare_pass depend.tcl
 
 # Test "browseinst"
-bluetcl_run_compare_pass browseinst.tcl "" $sedPosition
-bluetcl_run_compare_pass browseinst2.tcl "" $sedPosition
+bluetcl_run_compare_pass browseinst.tcl "" "" $sedPosition
+bluetcl_run_compare_pass browseinst2.tcl "" "" $sedPosition
 
 # -------------------------
 
 # Test reporting of command syntax errors
-bluetcl_run_compare_pass syntax_errs.tcl "" { -e s/Prelude.*Library/IGNORED/}
+bluetcl_run_compare_pass syntax_errs.tcl "" "" { -e s/Prelude.*Library/IGNORED/}
 
 # -------------------------

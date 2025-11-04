@@ -1,0 +1,22 @@
+PolyField PreludeBSV Prelude
+----------
+PolyField.I1 PolyField.I2 PolyField.I3 PolyField.I4 PolyField.S1 PolyField.S2
+----------
+Interface {(PolyField.I1 :: *)} {members {{method {{Prelude.ActionValue ()} set {a {Prelude.Reg a}} {{{-# arg_names = [value, rg] #-}}}}}}} {position {PolyField.bsv 1 11}}
+----------
+Interface {(PolyField.I2 :: *)} {members {{method {a id a {{{-# arg_names = [x] #-}}}}}}} {position {PolyField.bsv 5 11}}
+----------
+Interface {(PolyField.I3 :: * -> *) a} polymorphic {members {{method {{Prelude.ActionValue ()} set {a b {Prelude.Reg b}} {{{-# arg_names = [dummy, value, rg] #-}}}}}}} {position {PolyField.bsv 9 11}}
+Interface {(PolyField.I3 :: * -> *) a} polymorphic {members {{method {{Prelude.ActionValue ()} set {b a {Prelude.Reg a}} {{{-# arg_names = [dummy, value, rg] #-}}}}}}} {position {PolyField.bsv 9 11}}
+Interface {(PolyField.I3 :: * -> *) a} polymorphic {members {{method {{Prelude.ActionValue ()} set {foobar a {Prelude.Reg a}} {{{-# arg_names = [dummy, value, rg] #-}}}}}}} {position {PolyField.bsv 9 11}}
+----------
+Interface {(PolyField.I4 :: * -> *) a} polymorphic {members {{method {b id {b a} {{{-# arg_names = [x, dummy] #-}}}}}}} {position {PolyField.bsv 13 11}}
+Interface {(PolyField.I4 :: * -> *) a} polymorphic {members {{method {a id {a b} {{{-# arg_names = [x, dummy] #-}}}}}}} {position {PolyField.bsv 13 11}}
+Interface {(PolyField.I4 :: * -> *) a} polymorphic {members {{method {a id {a foobar} {{{-# arg_names = [x, dummy] #-}}}}}}} {position {PolyField.bsv 13 11}}
+----------
+Struct {(PolyField.S1 :: *)} {members {{{a -> a} id}}} {position {PolyField.bsv 20 3}}
+----------
+Struct {(PolyField.S2 :: * -> *) b} polymorphic {members {{{b -> a -> b} id}}} {position {PolyField.bsv 24 3}}
+Struct {(PolyField.S2 :: * -> *) b} polymorphic {members {{{a -> b -> a} id}}} {position {PolyField.bsv 24 3}}
+Struct {(PolyField.S2 :: * -> *) b} polymorphic {members {{{a -> foobar -> a} id}}} {position {PolyField.bsv 24 3}}
+----------

@@ -1,0 +1,292 @@
+Test Vector Array List PreludeBSV Prelude
+
+Sz
+Alias {(Test.Sz :: #)} 9 {position {Test.bsv 7 11}}
+
+T a b
+Alias {(Test.T :: * -> * -> *) a b} {(t2, t1)} {position {Test.bsv 9 22}}
+Alias {(Test.T :: * -> * -> *) a b} {(Prelude.Int 32, Prelude.Bit 1)} {position {Test.bsv 9 22}}
+
+Bar
+Enum {(Test.Bar :: *)} {members {Red Yellow Blue}} {width 2} {position {Test.bsv 11 36}}
+
+Baz t n
+Struct {(Test.Baz :: * -> # -> *) t n} polymorphic {members {{Prelude.Bool f1 {width 1}} {{Prelude.Bit sz} f2} {{Vector.Vector sz x} v}}} {position {Test.bsv 17 18}}
+Struct {(Test.Baz :: * -> # -> *) t n} {members {{Prelude.Bool f1 {width 1}} {{Prelude.Bit 2} f2 {width 2}} {{Vector.Vector 2 Prelude.Bool} v {width 2}}}} {width 5} {position {Test.bsv 17 18}}
+
+TopIFC a
+Interface {(Test.TopIFC :: * -> *) a} polymorphic {members {{method {Prelude.Bool f {ty ty} {{{-# arg_names = [x, y] #-}}}}} {interface Prelude.Clock clk_out {}} {interface Prelude.Reset rst_out {}} {method {Prelude.Bool g ty {{{-# arg_names = [z] #-}}}}} {interface {Test.SubIFC ty} s {}}}} {position {Test.bsv 19 11}}
+Interface {(Test.TopIFC :: * -> *) a} {members {{method {Prelude.Bool f {{Prelude.Bit 8} {Prelude.Bit 8}} {{{-# arg_names = [x, y] #-}}}}} {interface Prelude.Clock clk_out {}} {interface Prelude.Reset rst_out {}} {method {Prelude.Bool g {{Prelude.Bit 8}} {{{-# arg_names = [z] #-}}}}} {interface {Test.SubIFC (Prelude.Bit 8)} s {}}}} {position {Test.bsv 19 11}}
+
+SubIFC a
+Interface {(Test.SubIFC :: * -> *) a} polymorphic {members {{interface {Prelude.Reg ty} r {}}}} {position {Test.bsv 27 11}}
+Interface {(Test.SubIFC :: * -> *) a} {members {{interface {Prelude.Reg (Prelude.Bit 8)} r {}}}} {position {Test.bsv 27 11}}
+
+IfcWithVec
+Interface {(Test.IfcWithVec :: *)} {members {{interface {Vector.Vector 2 (Prelude.Reg Prelude.Bool)} vec1 {}} {interface {Vector.Vector 2 (Vector.Vector 2 (Prelude.Reg Prelude.Bool))} vec2 {}} {interface {Vector.Vector 2 (Vector.Vector 2 (Vector.Vector 2 (Prelude.Reg Prelude.Bool)))} vec3 {}} {method {{Vector.Vector 2 Prelude.Bool} data1 {} {{{-# arg_names = [] #-}}}}} {method {{Vector.Vector 2 (Vector.Vector 2 Prelude.Bool)} data2 {} {{{-# arg_names = [] #-}}}}} {method {{Vector.Vector 2 (Vector.Vector 2 (Vector.Vector 2 Prelude.Bool))} data3 {} {{{-# arg_names = [] #-}}}}} {interface {Vector.Vector 2 Prelude.Clock} clks1 {}} {interface {Vector.Vector 2 Prelude.Reset} rsts1 {}} {interface {Vector.Vector 2 (Prelude.Inout Test.Bar)} ios1 {}}}} {position {Test.bsv 65 11}}
+
+U a
+TaggedUnion {(Test.U :: * -> *) a} polymorphic {members {{() F1 {width 0}} {t F2} {{Prelude.List t} F3} {{Prelude.Bool -> Prelude.Bool} F4}}} {position {Test.bsv 45 3}}
+TaggedUnion {(Test.U :: * -> *) a} {members {{() F1 {width 0}} {Prelude.Bool F2 {width 1}} {{Prelude.List Prelude.Bool} F3} {{Prelude.Bool -> Prelude.Bool} F4}}} {position {Test.bsv 45 3}}
+
+U2 a
+TaggedUnion {(Test.U :: * -> *) a} polymorphic {members {{() F1 {width 0}} {t F2} {{Prelude.List t} F3} {{Prelude.Bool -> Prelude.Bool} F4}}} {position {Test.bsv 45 3}}
+TaggedUnion {(Test.U :: * -> *) a} {members {{() F1 {width 0}} {{Prelude.Bit 1} F2 {width 1}} {{Prelude.List (Prelude.Bit 1)} F3} {{Prelude.Bool -> Prelude.Bool} F4}}} {position {Test.bsv 45 3}}
+
+Foo a
+Interface {(Test.Foo :: * -> *) a} polymorphic {members {{method {{Prelude.ActionValue ()} wset x {{{-# arg_names = [x1] #-}}}}} {method {x wget {} {{{-# arg_names = [] #-}}}}} {method {Prelude.Bool whas {} {{{-# arg_names = [] #-}}}}} {interface {Prelude.Inout Prelude.Bool} io_out {}}}} {position {Test.bsv 53 11}}
+Interface {(Test.Foo :: * -> *) a} {members {{method {{Prelude.ActionValue ()} wset {{Prelude.Int 32}} {{{-# arg_names = [x1] #-}}}}} {method {{Prelude.Int 32} wget {} {{{-# arg_names = [] #-}}}}} {method {Prelude.Bool whas {} {{{-# arg_names = [] #-}}}}} {interface {Prelude.Inout Prelude.Bool} io_out {}}}} {position {Test.bsv 53 11}}
+
+Add _v100 _v101 _v102
+Typeclass
+    (Prelude.Add :: # -> # -> # -> *) _v100 _v101 _v102
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    (Prelude.Add :: # -> # -> # -> *) _v100 _v101 _v102
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    (Prelude.Add :: # -> # -> # -> *) _v100 _v101 _v102
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    (Prelude.Add :: # -> # -> # -> *) _v100 _v101 _v102
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+
+Arith a
+Typeclass
+    (Prelude.Arith :: * -> *) a
+    superclasses
+        Prelude.Literal a
+    members
+        {a -> a -> a} +
+        {a -> a -> a} -
+        {a -> a} negate
+        {a -> a -> a} *
+        {a -> a -> a} /
+        {a -> a -> a} %
+        {a -> a} abs
+        {a -> a} signum
+        {a -> a -> a} **
+        {a -> a} exp_e
+        {a -> a} log
+        {a -> a -> a} logb
+        {a -> a} log2
+        {a -> a} log10
+    instances
+        Prelude.Arith (Prelude.Bit n)
+        Prelude.Arith (Prelude.Int n)
+        Prelude.Arith (Prelude.UInt n)
+        Prelude.Arith Prelude.Fmt
+        Prelude.Arith Prelude.Integer
+        Prelude.Arith Prelude.Real
+        Prelude.Arith Prelude.String
+    position {%/Libraries/Prelude.bs 529 21 {Library Prelude}}
+
+Bits a n
+Typeclass
+    (Prelude.Bits :: * -> # -> *) a n
+    dependencies
+        a determines n
+    coherent
+    members
+        {a -> Prelude.Bit n} pack
+        {Prelude.Bit n -> a} unpack
+    instances
+        (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
+        (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
+        (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
+        Prelude.Bits () 0
+        Prelude.Bits (Prelude.Bit k) k
+        Prelude.Bits (Prelude.Int n) n
+        Prelude.Bits (Prelude.UInt n) n
+        Prelude.Bits Prelude.Bool 1
+        Prelude.Bits Prelude.File 32
+        Prelude.Bits Prelude.Ordering 2
+        Prelude.Bits Prelude.SvaParam 33
+        Prelude.Bits PreludeBSV.SaturationMode 2
+        Prelude.Bits Test.Bar 2
+        Prelude.Bits Test.BarSet 2
+    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+Typeclass
+    (Prelude.Bits :: * -> # -> *) a n
+    dependencies
+        a determines n
+    coherent
+    members
+        {a -> Prelude.Bit n} pack
+        {Prelude.Bit n -> a} unpack
+    instances
+        (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
+        (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
+        (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
+        Prelude.Bits () 0
+        Prelude.Bits (Prelude.Bit k) k
+        Prelude.Bits (Prelude.Int n) n
+        Prelude.Bits (Prelude.UInt n) n
+        Prelude.Bits Prelude.Bool 1
+        Prelude.Bits Prelude.File 32
+        Prelude.Bits Prelude.Ordering 2
+        Prelude.Bits Prelude.SvaParam 33
+        Prelude.Bits PreludeBSV.SaturationMode 2
+        Prelude.Bits Test.Bar 2
+        Prelude.Bits Test.BarSet 2
+    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+Typeclass
+    (Prelude.Bits :: * -> # -> *) a n
+    dependencies
+        a determines n
+    coherent
+    members
+        {a -> Prelude.Bit n} pack
+        {Prelude.Bit n -> a} unpack
+    instances
+        (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
+        (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
+        (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
+        Prelude.Bits () 0
+        Prelude.Bits (Prelude.Bit k) k
+        Prelude.Bits (Prelude.Int n) n
+        Prelude.Bits (Prelude.UInt n) n
+        Prelude.Bits Prelude.Bool 1
+        Prelude.Bits Prelude.File 32
+        Prelude.Bits Prelude.Ordering 2
+        Prelude.Bits Prelude.SvaParam 33
+        Prelude.Bits PreludeBSV.SaturationMode 2
+        Prelude.Bits Test.Bar 2
+        Prelude.Bits Test.BarSet 2
+    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+Typeclass
+    (Prelude.Bits :: * -> # -> *) a n
+    dependencies
+        a determines n
+    coherent
+    members
+        {a -> Prelude.Bit n} pack
+        {Prelude.Bit n -> a} unpack
+    instances
+        (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
+        (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
+        (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
+        (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
+        Prelude.Bits () 0
+        Prelude.Bits (Prelude.Bit k) k
+        Prelude.Bits (Prelude.Int n) n
+        Prelude.Bits (Prelude.UInt n) n
+        Prelude.Bits Prelude.Bool 1
+        Prelude.Bits Prelude.File 32
+        Prelude.Bits Prelude.Ordering 2
+        Prelude.Bits Prelude.SvaParam 33
+        Prelude.Bits PreludeBSV.SaturationMode 2
+        Prelude.Bits Test.Bar 2
+        Prelude.Bits Test.BarSet 2
+    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+
+Has_tpl_1 t a
+Typeclass
+    (Prelude.Has_tpl_1 :: * -> * -> *) t a
+    dependencies
+        t determines a
+    incoherent
+    members
+        {t -> a} tpl_1
+    instances
+        Prelude.Has_tpl_1 (Prelude.Tuple2 a b) a
+        Prelude.Has_tpl_1 (Prelude.Tuple3 a b c) a
+        Prelude.Has_tpl_1 (Prelude.Tuple4 a b c d) a
+        Prelude.Has_tpl_1 (Prelude.Tuple5 a b c d e) a
+        Prelude.Has_tpl_1 (Prelude.Tuple6 a b c d e f) a
+        Prelude.Has_tpl_1 (Prelude.Tuple7 a b c d e f g) a
+        Prelude.Has_tpl_1 (Prelude.Tuple8 a b c d e f g h) a
+    position {%/Libraries/Prelude.bs 3313 17 {Library Prelude}}
+
+Bitify Baz (int, n):
+UNKNOWN
+
+0
+
+
+Bitify Baz (int, 5):
+STRUCT
+Test.Baz t n
+166
+
+{f1 Prelude.Bool 1 165} {f2 {Prelude.Bit 5} 5 160} {v {Vector.Vector 5 (Prelude.Int 32)} 160 0}
+Bitify Baz (Bool, 42):
+STRUCT
+Test.Baz t n
+85
+
+{f1 Prelude.Bool 1 84} {f2 {Prelude.Bit 42} 42 42} {v {Vector.Vector 42 Prelude.Bool} 42 0}
+Bitify Baz (BarSet, 12):
+STRUCT
+Test.Baz t n
+37
+
+{f1 Prelude.Bool 1 36} {f2 {Prelude.Bit 12} 12 24} {v {Vector.Vector 12 Test.BarSet} 24 0}
+Bitify Vector of Baz (BarSet, 12):
+STRUCT
+Vector 5 a
+185
+
+{{_[4]} {Test.Baz Test.BarSet 12} 37 148} {{_[3]} {Test.Baz Test.BarSet 12} 37 111} {{_[2]} {Test.Baz Test.BarSet 12} 37 74} {{_[1]} {Test.Baz Test.BarSet 12} 37 37} {{_[0]} {Test.Baz Test.BarSet 12} 37 0}
+Bitify FOO:
+UNKNOWN
+
+0
+
+
+Bitify U2:
+TAGGEDUNION
+Test.U2 a
+33
+Test.F1 Test.F2
+{F1 () 0 0} {F2 {Prelude.Int 32} 32 0}
+Bitify Tuple:
+ALIAS
+(Prelude.Int 32, Prelude.Int 32)
+0
+
+
+STRUCT
+Prelude.Tuple2 a b
+64
+
+{tpl_1 {Prelude.Int 32} 32 32} {tpl_2 {Prelude.Int 32} 32 0}
+
+Test Vector TaggedUnionPoly Array List PreludeBSV Prelude
+TaggedUnion {(TaggedUnionPoly.NSRK :: * -> * -> * -> # -> *) n s r k} polymorphic {members {{{TaggedUnionPoly.Fin n k} N} {{TaggedUnionPoly.Fin s k} S} {{TaggedUnionPoly.Fin r k} R}}} {position {TaggedUnionPoly.bsv 9 3}}
+

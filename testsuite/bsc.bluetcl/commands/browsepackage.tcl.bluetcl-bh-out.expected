@@ -1,0 +1,296 @@
+Test Vector Array List PreludeBSV Prelude
+----------
+Command: browsepackage list 0
+1 . {}
+2 %/Libraries {}
+---------
+Command: browsepackage list 1
+3 Test {}
+---------
+Command: browsepackage list 2
+4 Array {}
+5 List {}
+6 Prelude {}
+7 PreludeBSV {}
+8 Vector {}
+---------
+----------
+Command: browsepackage list 1
+3 Test {}
+---------
+Command: browsepackage detail 1
+.
+---------
+Command: browsepackage list 3
+9 {Functions and Modules} {}
+10 {Types and Interfaces} {}
+---------
+Command: browsepackage detail 3
+Test
+position {Test.bsv 1 1}
+---------
+Command: browsepackage list 9
+11 f {}
+12 mkBVI {}
+13 mkI {}
+14 mkIfcWithVec {}
+15 mkM {}
+16 mkS {}
+17 mkT {}
+18 x {}
+---------
+Command: browsepackage detail 9
+Functions
+---------
+Command: browsepackage list 11
+---------
+Command: browsepackage detail 11
+function
+Test.f
+result Prelude.Bool
+arguments {Prelude.Bool Prelude.Bool}
+position {Test.bsv 83 15}
+---------
+Command: browsepackage list 12
+---------
+Command: browsepackage detail 12
+module
+Test.mkBVI
+interface {{Test.Foo a}}
+arguments {{Prelude.Int 32} {Prelude.Inout Test.Bar}}
+provisos {{Prelude.Bits a sa}}
+position {Test.bsv 134 11}
+---------
+Command: browsepackage list 13
+---------
+Command: browsepackage detail 13
+module
+Test.mkI
+interface Test.InoutIFC
+arguments {{Prelude.Inout Test.Bar}}
+position {Test.bsv 129 8}
+---------
+Command: browsepackage list 14
+---------
+Command: browsepackage detail 14
+module
+Test.mkIfcWithVec
+interface Test.IfcWithVec
+arguments {{Prelude.Inout Test.Bar}}
+position {Test.bsv 176 8}
+---------
+Command: browsepackage list 15
+---------
+Command: browsepackage detail 15
+module
+Test.mkM
+interface {{Prelude.Reg Prelude.Bool}}
+position {Test.bsv 102 8}
+---------
+Command: browsepackage list 16
+---------
+Command: browsepackage detail 16
+module
+Test.mkS
+interface {{PreludeBSV.RWire Prelude.Bool}}
+position {Test.bsv 156 8}
+---------
+Command: browsepackage list 17
+---------
+Command: browsepackage detail 17
+module
+Test.mkT
+interface {{Test.InoutRegIFC Prelude.Bool}}
+arguments {{Prelude.Inout Test.Bar}}
+position {Test.bsv 88 8}
+---------
+Command: browsepackage list 18
+---------
+Command: browsepackage detail 18
+function
+Test.x
+result Prelude.Bool
+position {Test.bsv 81 6}
+---------
+Command: browsepackage list 10
+19 Bar {}
+20 BarSet {}
+21 Baz {}
+22 Foo {}
+23 IfcWithVec {}
+24 InoutIFC {}
+25 InoutRegIFC {}
+26 SubIFC {}
+27 Sz {}
+28 T {}
+29 TopIFC {}
+30 U {}
+31 U2 {}
+32 V2 {}
+---------
+Command: browsepackage detail 10
+Types
+---------
+Command: browsepackage list 19
+---------
+Command: browsepackage detail 19
+Enum
+{(Test.Bar :: *)}
+members {Red Yellow Blue}
+width 2
+position {Test.bsv 11 36}
+---------
+Command: browsepackage list 20
+---------
+Command: browsepackage detail 20
+Enum
+{(Test.BarSet :: *)}
+members {Red2 Yellow2 Blue2}
+width 2
+position {Test.bsv 12 43}
+---------
+Command: browsepackage list 21
+---------
+Command: browsepackage detail 21
+Struct
+{(Test.Baz :: * -> # -> *) t n}
+polymorphic
+members {{Prelude.Bool  f1  -- width 1} {Prelude.Bit n  f2  } {Vector.Vector n t  v  }}
+position {Test.bsv 17 18}
+---------
+Command: browsepackage list 22
+---------
+Command: browsepackage detail 22
+Interface
+{(Test.Foo :: * -> *) a}
+polymorphic
+members {{method  Prelude.ActionValue ()  Test.wset  (a)} {method  a  Test.wget  ()} {method  Prelude.Bool  Test.whas  ()} {interface  Prelude.Inout Prelude.Bool  Test.io_out}}
+position {Test.bsv 53 11}
+---------
+Command: browsepackage list 23
+---------
+Command: browsepackage detail 23
+Interface
+{(Test.IfcWithVec :: *)}
+members {{interface  Vector.Vector 2 (Prelude.Reg Prelude.Bool)  Test.vec1} {interface  Vector.Vector 2 (Vector.Vector 2 (Prelude.Reg Prelude.Bool))  Test.vec2} {interface  Vector.Vector 2 (Vector.Vector 2 (Vector.Vector 2 (Prelude.Reg Prelude.Bool)))  Test.vec3} {method  Vector.Vector 2 Prelude.Bool  Test.data1  ()} {method  Vector.Vector 2 (Vector.Vector 2 Prelude.Bool)  Test.data2  ()} {method  Vector.Vector 2 (Vector.Vector 2 (Vector.Vector 2 Prelude.Bool))  Test.data3  ()} {interface  Vector.Vector 2 Prelude.Clock  Test.clks1} {interface  Vector.Vector 2 Prelude.Reset  Test.rsts1} {interface  Vector.Vector 2 (Prelude.Inout Test.Bar)  Test.ios1}}
+position {Test.bsv 65 11}
+---------
+Command: browsepackage list 24
+---------
+Command: browsepackage detail 24
+Interface
+{(Test.InoutIFC :: *)}
+members {{interface  Prelude.Inout Test.Bar  Test.b}}
+position {Test.bsv 31 11}
+---------
+Command: browsepackage list 25
+---------
+Command: browsepackage detail 25
+Interface
+{(Test.InoutRegIFC :: * -> *) a}
+polymorphic
+members {{interface  Prelude.Reg a  Test.r} {interface  Prelude.Inout Test.Bar  Test.b}}
+position {Test.bsv 35 11}
+---------
+Command: browsepackage list 26
+---------
+Command: browsepackage detail 26
+Interface
+{(Test.SubIFC :: * -> *) a}
+polymorphic
+members {{interface  Prelude.Reg a  Test.r}}
+position {Test.bsv 27 11}
+---------
+Command: browsepackage list 27
+---------
+Command: browsepackage detail 27
+Alias
+{(Test.Sz :: #)}
+Definition 9
+position {Test.bsv 7 11}
+---------
+Command: browsepackage list 28
+---------
+Command: browsepackage detail 28
+Alias
+{(Test.T :: * -> * -> *) a b}
+Definition {{(b, a)}}
+position {Test.bsv 9 22}
+---------
+Command: browsepackage list 29
+---------
+Command: browsepackage detail 29
+Interface
+{(Test.TopIFC :: * -> *) a}
+polymorphic
+members {{method  Prelude.Bool  Test.f  (a,  a)} {interface  Prelude.Clock  Test.clk_out} {interface  Prelude.Reset  Test.rst_out} {method  Prelude.Bool  Test.g  (a)} {interface  Test.SubIFC a  Test.s}}
+position {Test.bsv 19 11}
+---------
+Command: browsepackage list 30
+---------
+Command: browsepackage detail 30
+TaggedUnion
+{(Test.U :: * -> *) a}
+polymorphic
+members {{()  F1  -- width 0} {a  F2  } {Prelude.List a  F3  } {Prelude.Bool -> Prelude.Bool  F4  }}
+position {Test.bsv 45 3}
+---------
+Command: browsepackage list 31
+---------
+Command: browsepackage detail 31
+TaggedUnion
+{(Test.U2 :: * -> *) a}
+polymorphic
+members {{()  F1  -- width 0} {a  F2  }}
+position {Test.bsv 50 3}
+---------
+Command: browsepackage list 32
+---------
+Command: browsepackage detail 32
+Alias
+{(Test.V2 :: * -> *) t}
+Definition {{Vector.Vector 2 t}}
+position {Test.bsv 62 23}
+---------
+
+----------
+Test Vector RegFile Array List ConfigReg PreludeBSV Prelude
+
+Command: browsepackage list 0
+1 . {}
+2 %/Libraries {}
+---------
+----------
+Command: browsepackage search mkReg
+{NNN %/Libraries {}} {NNN Prelude {}} {NNN {Functions and Modules} {}} {NNN mkReg {}}
+{NNN %/Libraries {}} {NNN Prelude {}} {NNN {Functions and Modules} {}} {NNN mkRegA {}}
+{NNN %/Libraries {}} {NNN Prelude {}} {NNN {Functions and Modules} {}} {NNN mkRegU {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFile {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFull {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoadHex {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoadHex {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCF {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoadHex {}}
+---------
+Command: browsepackage search mkRegU
+{NNN %/Libraries {}} {NNN Prelude {}} {NNN {Functions and Modules} {}} {NNN mkRegU {}}
+---------
+Command: browsepackage search Reg.*Load.*
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileFullLoadHex {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileLoadHex {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoadBin {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN mkRegFileWCFLoadHex {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN vMkRegFileLoad {}}
+{NNN %/Libraries {}} {NNN RegFile {}} {NNN {Functions and Modules} {}} {NNN vMkRegFileWCFLoad {}}
+---------

@@ -34,7 +34,7 @@ import qualified Data.Map as Map
 import HTcl
 import Error(internalError, EMsg, WMsg, showErrorList, showWarningList)
 import PPrint
-import PVPrint
+import PFPrint
 import Id
 import CSyntax
 import ISyntax
@@ -98,7 +98,7 @@ instance TclObjCvt Doc where
     toTclObj = toTclObj . toPrintable . docToOneLine
 
 instance TclObjCvt Id where
-    toTclObj i = toTclObj (pvpString i)
+    toTclObj i = toTclObj (pfpString i)
 
 instance TclObjCvt (IDef a) where
     toTclObj (IDef i it _ie ps) = do --- why is expr dropped? XXX
@@ -114,10 +114,10 @@ instance TclObjCvt DefProp where
   toTclObj DefP_NoCSE = toTclObj "DefP_NoCSE"
 
 instance TclObjCvt Type where
-    toTclObj x = toTclObj (pvPrint PDReadable 0 x)
+    toTclObj x = toTclObj (pfPrint PDReadable 0 x)
 
 instance TclObjCvt Kind where
-    toTclObj x = toTclObj (pvPrint PDReadable 0 x)
+    toTclObj x = toTclObj (pfPrint PDReadable 0 x)
 
 -- XXX
 instance TclObjCvt IType where
@@ -145,11 +145,11 @@ instance TclObjCvt IKind where
     toTclObj k = toTclObj (pPrint PDReadable 0 k)
 
 instance TclObjCvt IdK where
-    toTclObj k = toTclObj (pvPrint PDReadable 0 k)
+    toTclObj k = toTclObj (pfPrint PDReadable 0 k)
 
 -- XXX incomplete
 instance TclObjCvt CDefn where
-    toTclObj k@(Cdata {} ) = toTclObj (pvPrint PDReadable 0 k)
+    toTclObj k@(Cdata {} ) = toTclObj (pfPrint PDReadable 0 k)
     toTclObj k = case getName k of
                    Right i -> toTclObj i
                    Left p  -> toTclObj (dummyId p)
@@ -161,7 +161,7 @@ instance TclObjCvt Assump where
     toTclObj (i :>: s) = toTclObj s
 
 instance TclObjCvt Scheme where
-    toTclObj x = toTclObj (pvPrint PDReadable 0 x)
+    toTclObj x = toTclObj (pfPrint PDReadable 0 x)
 
 -- Conversion for SymTab Types
 instance TclObjCvt VarInfo where
@@ -388,10 +388,10 @@ instance HTclObjCvt Doc where
     toHTObj = TStr . toPrintable . docToOneLine
 
 instance HTclObjCvt Id  where
-    toHTObj i = toHTObj $  pvPrint PDReadable 0 i
+    toHTObj i = toHTObj $  pfPrint PDReadable 0 i
 
 instance HTclObjCvt CType where
-    toHTObj i = toHTObj $ pvPrint PDReadable 0 i
+    toHTObj i = toHTObj $ pfPrint PDReadable 0 i
 
 instance HTclObjCvt Position  where
     toHTObj p = toHTObj $ tclPosition p

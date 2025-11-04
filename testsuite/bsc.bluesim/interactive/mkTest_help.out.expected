@@ -15,6 +15,7 @@ Available commands:
   showArg        Describes the arguments of the command
   sim            Control Bluesim simulation
   submodule      Query submodules
+  syntax         Get or set the syntax for Bluetcl
   type           Display information about a type
   version        Returns version information for Bluespec software
 

@@ -18,6 +18,7 @@ import HTcl
 import TclUtils
 import TypeAnalysis
 
+import Classic
 import PFPrint
 import Id
 import PreIds
@@ -45,18 +46,18 @@ typeAnalysisToHTclObj (Vector isC len el mwidth) =
     tag "Vector" $
         [TStr $ showType True idVector kVector vsVector] ++
         showPolymorphic isC ++
-        [tagStr "length" (pvStr len)] ++
-        [tagStr "elem" (pvStr el)] ++
+        [tagStr "length" (pfStr len)] ++
+        [tagStr "elem" (pfStr el)] ++
         showWidth mwidth
 typeAnalysisToHTclObj (List isC el) =
     tag "List" $
         [TStr $ showType True idList kList vsList] ++
         showPolymorphic isC ++
-        [tagStr "elem" (pvStr el)]
+        [tagStr "elem" (pfStr el)]
 typeAnalysisToHTclObj (Alias t k vs atype) =
     tag "Alias" $
         [TStr $ showType True t k vs,
-         TStr (pvStr atype)] ++
+         TStr (pfStr atype)] ++
         showTaggedPosition t
 typeAnalysisToHTclObj (Struct t k vs isC fs mwidth) =
     tag "Struct" $
@@ -69,7 +70,7 @@ typeAnalysisToHTclObj (Enum t fs mwidth) =
     tag "Enum" $
         [TStr $ showType True t KStar []] ++
         -- remove the package qualifier from the enum fields
-        [tagManyStr "members" (map (pvStr . unQualId) fs)] ++
+        [tagManyStr "members" (map (pfStr . unQualId) fs)] ++
         showWidth mwidth ++
         showTaggedPosition t
 typeAnalysisToHTclObj (TaggedUnion t k vs isC fs mwidth) =
@@ -106,22 +107,24 @@ typeAnalysisToHTclObj (Typeclass t k vs ps fdeps allow insts fs) =
 typeAnalysisToBitify :: TypeAnalysis -> HTclObj
 --
 typeAnalysisToBitify (Primary t k vs isC (Just n)) =
-    tag "BASIC" [TStr $ pvStr t,
+    tag "BASIC" [TStr $ pfStr t,
                  TStr $ show n,
                  TLst [],
                  TLst [] ]
 --
 typeAnalysisToBitify (Vector isC len el (Just n)) =
-    tag "STRUCT" [TStr $ "Vector#(" ++ show vlen ++ ",a)",
+    tag "STRUCT" [if isClassic()
+                  then TStr $ "Vector " ++ show vlen ++ " a"
+                  else TStr $ "Vector#(" ++ show vlen ++ ",a)",
                   TStr $ show n,
                   TLst [],
                   TLst $ map genElem [vlen-1, vlen-2..0 ] ]
-    where vlen :: Int = read (pvStr len)
+    where vlen :: Int = read (pfStr len)
           elsize = fromInteger(n) `div` vlen
           genElem :: Int -> HTclObj
           genElem i = let lsb = (i) * elsize
                       in TLst [TStr ("_[" ++ show i ++ "]"),
-                               TStr (pvStr el),
+                               TStr (pfStr el),
                                TInt elsize,
                                TInt lsb]
 -- Structs
@@ -135,8 +138,8 @@ typeAnalysisToBitify (Struct t k vs isC fs (Just n)) =
                   let err = error ("Bitify no size" ++ show f ++ ": " ++ show t)
                       size :: Int = maybe err fromInteger fw
                   in (lsb+size,
-                         TLst [TStr $ pvStr (unQualId f),
-                               TStr $ pvStr t,
+                         TLst [TStr $ pfStr (unQualId f),
+                               TStr $ pfStr t,
                                TInt size,
                                TInt lsb]:prev)
               fields :: (Int,[HTclObj])  = foldr genField (0,[]) fs
@@ -148,18 +151,18 @@ typeAnalysisToBitify (TaggedUnion  t k vs isC fs (Just n)) =
                         TLst $ map genMember fs,
                         TLst $ map genField fs]
         where genMember :: (Id, Type, Maybe Integer) -> HTclObj
-              genMember (i, t, mi) = TStr $ pvStr i
+              genMember (i, t, mi) = TStr $ pfStr i
               --
               genField  :: (Id, Type, Maybe Integer) -> HTclObj
               genField  (i, t, mi) =
                   let err = error ("Bitify tagged union no size" ++ show i ++ ": " ++ show t)
-                  in TLst [TStr $ pvStr (unQualId i),
-                                TStr $ pvStr t,
+                  in TLst [TStr $ pfStr (unQualId i),
+                                TStr $ pfStr t,
                                 TInt $ maybe err fromInteger mi,
                                 TInt 0]
 -- Aliases
 typeAnalysisToBitify (Alias t k vs atype) =
-    tag "ALIAS" [TStr (pvStr atype),
+    tag "ALIAS" [TStr (pfStr atype),
                  TInt 0,
                  TLst [],
                  TLst []
@@ -167,7 +170,7 @@ typeAnalysisToBitify (Alias t k vs atype) =
 typeAnalysisToBitify (Enum t fs (Just n)) =
     tag "ENUM" [TStr $ showType True t KStar [],
                 TStr $ show n,
-                TLst $ map (TStr . pvStr . unQualId) fs,
+                TLst $ map (TStr . pfStr . unQualId) fs,
                 TLst [] ]
 -- Otherwise unknown
 typeAnalysisToBitify _ =
@@ -212,19 +215,19 @@ typeAnalysisToDetail (Vector isC len el mwidth) =
     tag "Vector" $
         [TLst [TStr $ showType True idVector kVector vsVector]] ++
         showPolymorphic isC ++
-        [tagStr "length" (pvStr len)] ++
-        [tagStr "element type" (pvStr el)] ++
+        [tagStr "length" (pfStr len)] ++
+        [tagStr "element type" (pfStr el)] ++
         showWidth mwidth
 typeAnalysisToDetail (List isC el) =
     tag "List" $
         [TLst [TStr $ showType True idList kList vsList]] ++
         showPolymorphic isC ++
-        [tagStr "element type" (pvStr el)]
+        [tagStr "element type" (pfStr el)]
 
 typeAnalysisToDetail (Alias t k vs atype) =
     tag "Alias" $
          [TLst [TStr $ showType True t k vs],
-          tagLst "Definition" [TStr (pvStr atype)]] ++
+          tagLst "Definition" [TStr (pfStr atype)]] ++
         showTaggedPosition t
 
 typeAnalysisToDetail (Struct t k vs isC fs mwidth) =
@@ -239,7 +242,7 @@ typeAnalysisToDetail (Enum t fs mwidth) =
     tag "Enum" $
         [TLst [TStr $ showType True t KStar []]] ++
         -- remove the package qualifier from the enum fields
-        [tagManyStr "members" (map (pvStr . unQualId) fs)] ++
+        [tagManyStr "members" (map (pfStr . unQualId) fs)] ++
         showWidth mwidth ++
         showTaggedPosition t
 
@@ -274,64 +277,67 @@ typeAnalysisToDetail (Typeclass t k vs ps fdeps allow insts fs) =
 
 -- ---------------
 ifcPragmaToHTclObj :: IfcPragma -> HTclObj
-ifcPragmaToHTclObj p = TStr $ "(* " ++ pvStr p ++ " *)"
+ifcPragmaToHTclObj p
+  | isClassic() = TStr $ "{-# " ++ pfStr p ++ " #-}"
+  | otherwise = TStr $ "(* " ++ pfStr p ++ " *)"
 
-commentMaybe :: PVPrint a =>  String -> Maybe a -> String
+commentMaybe :: (PPrint a, PVPrint a) =>  String -> Maybe a -> String
 commentMaybe  _    Nothing  = ""
-commentMaybe  cmt (Just i)  = intercalate " " ["//",cmt,pvStr i]
+commentMaybe  cmt (Just i)  = intercalate " " [lineComment,cmt,pfStr i]
+  where lineComment = if isClassic() then "--" else "//"
 
 structFieldToDetail ::  (Id, Qual Type, Maybe Integer) -> HTclObj
 structFieldToDetail (f, t, mi) =
-    TStr $ intercalate "  " [pvStr t,
-                              pvStr (unQualId f),
+    TStr $ intercalate "  " [pfStr t,
+                              pfStr (unQualId f),
                               commentMaybe "width" mi]
 
 unionTagToDetail :: (Id, Type, Maybe Integer) -> HTclObj
 unionTagToDetail (f,t, mi) =
-    TStr $ intercalate "  " [pvStr t,
-                             pvStr (unQualId f),
+    TStr $ intercalate "  " [pfStr t,
+                             pfStr (unQualId f),
                              commentMaybe "width" mi]
 
 typeclassFieldToDetail ::  (Id, Qual Type) -> HTclObj
 typeclassFieldToDetail (f, t) =
-    TStr $ intercalate "  " [pvStr t,
-                              pvStr (unQualId f)]
+    TStr $ intercalate "  " [pfStr t,
+                              pfStr (unQualId f)]
 
 structFieldToHTclObj :: (Id, Qual Type, Maybe Integer) -> HTclObj
 structFieldToHTclObj (f,t,n) =
     -- XXX what about the provisos?
     -- XXX what if the type is a function/module ?
-    TLst $ [(TStr $ pvStr t),  (TStr $ pvStr (unQualId f))] ++ showWidth n
+    TLst $ [(TStr $ pfStr t),  (TStr $ pfStr (unQualId f))] ++ showWidth n
 
 unionTagToHTclObj :: (Id, Type, Maybe Integer) -> HTclObj
 unionTagToHTclObj (f,t, mi) =
-    TLst $ [TStr (pvStr t), TStr ( pvStr (unQualId f))] ++ showWidth mi
+    TLst $ [TStr (pfStr t), TStr ( pfStr (unQualId f))] ++ showWidth mi
 
 typeclassFieldToHTclObj :: (Id, Qual Type) -> HTclObj
 typeclassFieldToHTclObj (f,t) =
     -- XXX what about the provisos?
     -- XXX what if the type is a function/module ?
-    TLst $ [(TStr $ pvStr t),  (TStr $ pvStr (unQualId f))]
+    TLst $ [(TStr $ pfStr t),  (TStr $ pfStr (unQualId f))]
 
 interfaceFieldToHTclObj :: (Bool, Id, Qual Type, [IfcPragma]) -> HTclObj
 interfaceFieldToHTclObj (is_subifc, fid, (ps :=> t), fpragmas) =
     if (is_subifc)
     then -- 'ps' is known to be empty
-         tag "interface" [TStr (pvStr t),
-                          TStr (pvStr (unQualId fid)),
+         tag "interface" [TStr (pfStr t),
+                          TStr (pfStr (unQualId fid)),
                           TLst (map ifcPragmaToHTclObj fpragmas)
                          ]
     else
         let (arg_ts, res_t) = getArrows t
-        in  tagLst "method" [TStr (pvStr res_t),
-                             TStr (pvStr (unQualId fid)),
-                             TLst (map (TStr . pvStr) arg_ts),
+        in  tagLst "method" [TStr (pfStr res_t),
+                             TStr (pfStr (unQualId fid)),
+                             TLst (map (TStr . pfStr) arg_ts),
                              TLst (map ifcPragmaToHTclObj fpragmas)
                             ]
             {- (if (null ps)
                 then ""
                 else "provisos " ++
-                     inParens (commaSep (map pvStr ps))) -}
+                     inParens (commaSep (map pfStr ps))) -}
 
 
 interfaceFieldToDetail :: (Bool, Id, Qual Type, [IfcPragma]) -> HTclObj
@@ -341,15 +347,15 @@ interfaceFieldToDetail (is_subifc, fid, (ps :=> t), fpragmas) =
     if (is_subifc)
     then -- 'ps' is known to be empty
          TStr $ intercalate "  " ["interface",
-                                  pvStr t,
-                                  pvpStringNQ fid]
+                                  pfStr t,
+                                  pfpStringNQ fid]
     else
         let (arg_ts, res_t) = getArrows t
-            args' = intercalate ",  " (map pvStr arg_ts)
+            args' = intercalate ",  " (map pfStr arg_ts)
             args = "(" ++ args' ++ ")"
         in TStr $ intercalate "  " ["method",
-                                     pvStr res_t,
-                                     pvpStringNQ fid,
+                                     pfStr res_t,
+                                     pfpStringNQ fid,
                                      args]
 
 showPolymorphic :: Bool -> [HTclObj]
@@ -359,7 +365,7 @@ showSuperclasses :: [Type] -> [HTclObj]
 showSuperclasses ps =
     if (null ps)
     then []
-    else [tagLst "superclasses" (map (TStr . pvStr) ps)]
+    else [tagLst "superclasses" (map (TStr . pfStr) ps)]
 
 showDependencies :: [Id] -> [[Bool]] -> [HTclObj]
 showDependencies _ [bs] | not (or bs) = [] -- no dependencies
@@ -368,8 +374,8 @@ showDependencies vs fdeps =
         sepVars (lefts, rights) ((False, v):vs) = sepVars (v:lefts, rights) vs
         sepVars (lefts, rights) ((True, v):vs) = sepVars (lefts, v:rights) vs
 
-        showVars [v] = pvStr v
-        showVars vs = "(" ++ (intercalate ", " (map pvStr vs)) ++ ")"
+        showVars [v] = pfStr v
+        showVars vs = "(" ++ (intercalate ", " (map pfStr vs)) ++ ")"
 
         showDep bs =
             let (lefts, rights) = sepVars ([], []) (zip bs vs)
@@ -389,7 +395,7 @@ showInstances insts =
     if (null insts)
     then []
     else -- for now, alphabetize the list
-         let inst_strs = sort (map pvStr insts)
+         let inst_strs = sort (map pfStr insts)
          in  -- XXX include position for each instance?
              [tagLst "instances" (map TStr inst_strs)]
 
@@ -403,8 +409,8 @@ showWidth Nothing  = []
 
 -- String utilities
 
-pvStr :: (PVPrint a) => a -> String
-pvStr = pvpString
+pfStr :: (PPrint a, PVPrint a) => a -> String
+pfStr = pfpString
 
 -- ---------------
 

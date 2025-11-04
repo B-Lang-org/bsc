@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
-module Depend(chkDeps, parseSrc, chkParse, doCPP, genDepend, genFileDepend) where
+module Depend(chkDeps, parseSrc, chkParse, doCPP, genDepend, genFileDepend,
+              outlaw_sv_kws_as_classic_ids) where
 
 import Data.Maybe(isJust)
 import Data.List(nub)

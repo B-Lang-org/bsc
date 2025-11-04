@@ -1,0 +1,19 @@
+-verilog
+----------
+Error: Unknown position: (S0003)
+  Cannot find the binary file `TestSchedErr.bo' for package `TestSchedErr'
+
+----------
+
+RL_r1
+
+
+
+{{TestSchedErr.bsv 12 9} G0004 {Error: "TestSchedErr.bsv", line 12, column 9: (G0004)
+  Rule `RL_r1' uses methods that conflict in parallel:
+    rg.write(...)
+  and
+    rg.write(...)
+  For the complete expressions use the flag `-show-range-conflict'.
+}}
+----------
