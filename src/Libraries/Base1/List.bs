@@ -433,7 +433,8 @@ oneHotSelect bs xs =
            widen b =
                letseq wb :: Bit sa1
                       wb = signExtend b
-               in     wb[(valueOf sa - 1) : 0]
+                      ix = valueOf sa - 1
+               in if ix >= 0 then wb[ix : 0] else 0
     in  unpack (fold (|) (zipWith (\ b x -> widen (pack b) & pack x) bs xs))
 
 --@ Update an element in a list.

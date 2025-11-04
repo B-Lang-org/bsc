@@ -1,0 +1,26 @@
+package OneHotSelectZero where
+
+import qualified List
+import Vector
+
+type Fin n = UInt (TLog n)
+
+type NUM_TAGS = 8
+
+{-# verilog mkOneHotSelectZero #-}
+mkOneHotSelectZero :: Module Empty
+mkOneHotSelectZero = module
+
+ tags :: Vector NUM_TAGS (Reg (Fin 1)) <- replicateM mkRegU
+
+ tag_index :: Reg (Fin NUM_TAGS) <- mkReg 0
+
+ let selectors :: Vector NUM_TAGS Bool
+     selectors = genWith (\i -> fromInteger i == tag_index)
+
+ let selected = List.oneHotSelect (toList selectors) (toList $ readVReg tags)
+
+ rules
+   when True ==> do
+     $display "tag at %0d is %d" tag_index selected
+     $finish 0
