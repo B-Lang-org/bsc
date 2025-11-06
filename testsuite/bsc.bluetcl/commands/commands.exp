@@ -86,3 +86,5 @@ bluetcl_run_compare_pass browseinst2.tcl "" "" $sedPosition
 bluetcl_run_compare_pass syntax_errs.tcl "" "" { -e s/Prelude.*Library/IGNORED/}
 
 # -------------------------
+
+bluetcl_run_compare_pass syntax.tcl
