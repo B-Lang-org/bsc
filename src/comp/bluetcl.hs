@@ -421,10 +421,16 @@ syntaxGrammar = (tclcmd "syntax" namespace helpStr "") .+.
         bsvHelpStr = "Set Bluespec SystemVerilog syntax"
 
 syntaxCmd :: [String] -> IO HTclObj
-syntaxCmd ["set", "bh" ] = do setSyntax CLASSIC
-                              return $ TStr "Bluespec Haskell"
-syntaxCmd ["set", "bsv"] = do setSyntax BSV
-                              return $ TStr "Bluespec SystemVerilog"
+syntaxCmd ["set", "bh" ] = do frozen <- isSyntaxFrozen
+                              if not frozen then do
+                                setSyntax CLASSIC
+                                return $ TStr "Bluespec Haskell"
+                              else ioError $ userError "Bluetcl::syntax set: syntax frozen"
+syntaxCmd ["set", "bsv"] = do frozen <- isSyntaxFrozen
+                              if not frozen then do
+                                setSyntax BSV
+                                return $ TStr "Bluespec SystemVerilog"
+                              else ioError $ userError "Bluetcl::syntax set: syntax frozen"
 syntaxCmd ["get"]
   | isClassic() = return $ TStr "Bluespec Haskell"
   | isBSV()     = return $ TStr "Bluespec SystemVerilog"
