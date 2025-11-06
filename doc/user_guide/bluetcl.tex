@@ -437,6 +437,35 @@ of the submodule. \\
 
 % -----
 
+\subsubsubsection{Bluetcl::syntax}
+\index{syntax@\te{syntax} (bluetcl command)}
+\index[commands]{Bluetcl!syntax}
+
+Bluetcl supports output in both ``Bluespec SystemVerilog'' and
+``Bluespec Haskell'' syntax. The syntax command can set the
+output syntax or read its current value. Note that Bluetcl's
+output syntax cannot be changed after the first time it is read
+or used. Users should set the desired output syntax at the
+beginning of their scripts and not change it after that.
+
+\begin{tabular}{|p {1.8 in}| p {3.8 in}|}
+\hline
+\hline
+{\bf syntax} {\bf get }& Returns the Bluetcl output syntax.
+This will either be ``Bluespec SystemVerilog'' or
+``Bluespec Haskell''. \\
+\hline
+{\bf syntax} {\bf set} {\bf bh}& Sets the output syntax
+to ``Bluespec Haskell'', if possible. \\
+\hline
+{\bf syntax} {\bf set} {\bf bsv}& Sets the output syntax
+to ``Bluespec SystemVerilog'', if possible. \\
+\hline
+\hline
+\end{tabular}
+
+% -----
+
 \subsubsubsection{Bluetcl::type}
 \index{type@\te{type} (bluetcl command)}
 \index[commands]{Bluetcl!type}
