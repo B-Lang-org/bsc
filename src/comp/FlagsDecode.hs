@@ -33,7 +33,7 @@ import Data.List.Split(splitWhen)
 import Version(bluespec)
 import Backend
 import FileNameUtil(hasDotSuf, takeSuf,
-                    bscSrcSuffix, bsvSrcSuffix, bseSrcSuffix,
+                    bscSrcSuffix, bsvSrcSuffix,
                     cSuffix, cxxSuffix, cppSuffix, ccSuffix,
                     objSuffix, arSuffix,
                     verSuffix, verSuffix2, verSuffix3, verSuffix4, verSuffix5,
@@ -67,7 +67,6 @@ isSrcFile s = isBlueSrcFile s
 isBlueSrcFile :: String -> Bool
 isBlueSrcFile s = hasDotSuf bscSrcSuffix s
                || hasDotSuf bsvSrcSuffix s
-               || hasDotSuf bseSrcSuffix s
 
 isABinFile :: String -> Bool
 isABinFile s = hasDotSuf abinSuffix s

@@ -39,7 +39,7 @@ import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
-                    bscSrcSuffix, bseSrcSuffix, binSuffix,
+                    bscSrcSuffix, binSuffix,
                     hSuffix, cSuffix, cxxSuffix, cppSuffix, ccSuffix,
                     objSuffix, useSuffix,
                     genFileName, createEncodedFullFilePath,
@@ -302,9 +302,7 @@ compileFile errh flags binmap hashmap name_orig = do
     let name = (createEncodedFullFilePath name_orig pwd)
         name_rel = (getRelativeFilePath name)
 
-    let syntax = (if      hasDotSuf bscSrcSuffix name then CLASSIC
-                  else if hasDotSuf bseSrcSuffix name then ESE
-                  else BSV)
+    let syntax = if hasDotSuf bscSrcSuffix name then CLASSIC else BSV
     setSyntax syntax
 
     t <- getNow

@@ -73,20 +73,13 @@ getBSVIdString a = (getBSVIdStringz a)
 getBSVIdStringz :: Id -> String
 getBSVIdStringz a
     | getIdBase a == fsEmpty = internalError "CVPrint.getIdStr: empty identifier"
-    | getIdQual a == fsEmpty = getIdBaseStringz a
-    | not (isIdChar (head (getIdBaseStringz a))) = getIdBaseStringz a -- operators
+    | getIdQual a == fsEmpty = getIdBaseString a
+    | not (isIdChar (head (getIdBaseString a))) = getIdBaseString a -- operators
     | (not show_qual) && (getIdQual a == fsPrelude) =
-          getIdBaseStringz a  -- suppress "Prelude::" unless flag is on
+          getIdBaseString a  -- suppress "Prelude::" unless flag is on
     | (not show_qual) && (getIdQual a == fsPreludeBSV) =
-          getIdBaseStringz a  -- suppress "Prelude::" unless flag is on
-    | otherwise = getIdQualString a ++ "::" ++ getIdBaseStringz a
-
-getIdBaseStringz :: Id -> String
-getIdBaseStringz a =
-    let s = getIdBaseString a
-    in if (not (isEse()) || length s < 7) then s
-       else if (take 7 s == "ese_id_" || take 7 s == "Ese_id_") then drop 7 s
-       else s
+          getIdBaseString a  -- suppress "Prelude::" unless flag is on
+    | otherwise = getIdQualString a ++ "::" ++ getIdBaseString a
 
 -- --------------------
 
