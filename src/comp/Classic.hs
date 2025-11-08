@@ -1,12 +1,12 @@
 module Classic (SyntaxMode(..),
                 setSyntax, isSyntaxFrozen,
-                isBSV, isClassic, isEse,
+                isBSV, isClassic,
                ) where
 
 import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)
 
-data SyntaxMode = BSV | CLASSIC | ESE
+data SyntaxMode = BSV | CLASSIC
                    deriving Eq
 
 syntax :: MutableVar SyntaxMode
@@ -33,6 +33,3 @@ isBSV() = (unsafePerformIO readSyntax) == BSV
 {-# NOINLINE isClassic #-}
 isClassic :: () -> Bool
 isClassic() = (unsafePerformIO readSyntax) == CLASSIC
-
-isEse :: () -> Bool
-isEse() = (unsafePerformIO readSyntax) == ESE
