@@ -1,0 +1,36 @@
+package GH841 where
+
+interface SMaybe t =
+  valid :: Bool
+  dat   :: t
+ deriving (Bits, DefaultValue)
+
+sInvalid :: a -> SMaybe a
+sInvalid x = SMaybe {valid = False; dat = x}
+
+sInvalid_ :: SMaybe a
+sInvalid_ = sInvalid _
+
+instance Monad SMaybe where
+  return x = SMaybe {valid = True; dat = x}
+  bind x f = if x.valid then f x.dat else sInvalid_
+
+data Raw t = Raw (Bit (SizeOf t))
+  deriving(Bits)
+
+cook :: (Bits t tsz) => Raw t -> t
+cook (Raw x) = unpack x
+
+uncook :: (Bits t tsz) => t -> Raw t
+uncook x = Raw $ pack x
+
+{-# verilog mkImpl #-}
+mkImpl :: Module (SMaybe Bool)
+mkImpl = return defaultValue
+
+{-# verilog mkIfc #-}
+mkIfc :: Module (SMaybe (Raw Bool))
+mkIfc = module
+  impl <- mkImpl
+  return $ fmap uncook impl
+
