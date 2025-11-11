@@ -43,6 +43,7 @@ module ISyntax(
         tSubst,
         eSubst,
         etSubst,
+        etSubstWithNorm,
         iAp,
         iAP,
         fVars,
@@ -999,35 +1000,54 @@ eSubst v x e = hyper e' e'
 
 -- --------------------
 
-etSubst :: Id -> IType -> IExpr a -> IExpr a
-etSubst v x e = sub e
-  where sub (ILam i t e) = ILam i (tSubst v x t) (etSubst v x e)
+etSubstWithNorm :: (IType -> IType) -> Id -> IType -> IExpr a -> IExpr a
+etSubstWithNorm norm v x e = sub e
+  where tSubNorm = norm . tSubst v x
+        sub (ILam i t e) = ILam i (tSubNorm t) (etSubstWithNorm norm v x e)
         sub ee@(IVar i) = ee
         sub ee@(ILAM i k e)
             | v == i = ee
             | i `S.member` fvx =
                 let i' = cloneId (S.toList vs) i
+                    -- Swapping one variable for another does not need normalization
                     e' = etSubst i (ITVar i') e
                 in  ILAM i' k (sub e')
             | otherwise = ILAM i k (sub e)
-        sub (IAps f ts es) = IAps (sub f) (map (tSubst v x) ts) (map sub es)
-        sub (ICon i ii@(ICUndet { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICVerilog { })) = ICon i (ICVerilog { iConType = tSubst v x (iConType ii),
+        sub (IAps f ts es) = IAps (sub f) (map tSubNorm ts) (map sub es)
+        sub (ICon i ii@(ICVerilog { })) = ICon i (ICVerilog { iConType = tSubNorm (iConType ii),
                                                               isUserImport = isUserImport ii,
-                                                              vMethTs = map (map (tSubst v x)) (vMethTs ii),
+                                                              vMethTs = map (map tSubNorm) (vMethTs ii),
                                                               vInfo = vInfo ii
                                                             })
-        sub (ICon i ii@(ICInt { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICStateVar { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICMethArg { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICModPort { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICModParam { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICForeign { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
-        sub (ICon i ii@(ICType { })) = ICon i (ii { iType = tSubst v x (iType ii) })
-        sub ee@(ICon _ _) = ee
+        sub (ICon i (ICUndet ict kind me)) = ICon i (ICUndet (tSubNorm ict) kind (fmap sub me))
+        -- We do not have special handling for ICStateVar because we do not enter the
+        -- IStateVar it contains. This is because we don't want the IStateVars in ICStateVars
+        -- and the IStateVars store in the evaluator's monad to become inconsistent.
+        sub (ICon i (ICClock ict clk)) = ICon i $ ICClock (tSubNorm ict) (subClk clk)
+        sub (ICon i (ICReset ict rst)) = ICon i $ ICReset (tSubNorm ict) (subRst rst)
+        sub (ICon i (ICInout ict io))  = ICon i $ ICInout (tSubNorm ict) (subIo io)
+        -- We can't do anything with the elements of the array because they are just pointers
+        -- (not the full IRefT with a type). Inferring the element type when selecting from
+        -- an array is an easy way to get a non-normalized type, so we have to be careful there.
+        sub (ICon i (ICLazyArray ict arr uninit)) = ICon i $ ICLazyArray (tSubNorm ict) arr uninit'
+          where uninit' = fmap (\(e1, e2) -> (sub e1, sub e2)) uninit
+        sub (ICon i (ICType ict ty)) = ICon i (ICType (tSubNorm ict) (tSubNorm ty))
+        -- ICDef is a top-level def that should have no free variables.oo
+        -- We want to be careful here because ICDefs reference each other recursively.
+        sub def@(ICon _ (ICDef { })) = def
+        -- If we have to normalize the definitions the evaluator creates, it is too late
+        sub def@(ICon _ (ICValue { })) = def
+        -- Be thorough by substituting into every remaining iConType
+        sub ee@(ICon i ci) = ICon i $ ci { iConType = tSubNorm (iConType ci) }
         sub ee@(IRefT _ _ _) = ee        -- no free tyvar inside IRef
+        subClk (IClock cid cd wires) = IClock cid cd (sub wires)
+        subRst (IReset rid clk wire) = IReset rid (subClk clk) (sub wire)
+        subIo (IInout clk rst wire) = IInout (subClk clk) (subRst rst) (sub wire)
         fvx = fTVars' x
         vs = fvx `S.union` aVars' e
+
+etSubst :: Id -> IType -> IExpr a -> IExpr a
+etSubst = etSubstWithNorm id
 
 -- --------------------
 
