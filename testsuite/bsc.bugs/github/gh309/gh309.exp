@@ -1,0 +1,6 @@
+# GitHub Issue #309
+
+# This triggered an internal error during ISyntaxCheck
+# because kind information was being lost
+#
+compile_pass ICE.bs
