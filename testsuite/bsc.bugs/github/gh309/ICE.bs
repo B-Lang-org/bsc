@@ -1,0 +1,18 @@
+package ICE where
+
+import Vector
+
+type BitVector n = Vector n (UInt 1)
+
+struct Compress n = {
+  x :: BitVector n;
+} deriving (Bits)
+
+foo :: BitVector n -> Compress (TAdd n 1)
+foo = _
+
+bar :: Vector 8 (BitVector n) -> Compress (TAdd n 2)
+bar xs =
+  let a :: Compress (TAdd n 1)
+      a = _
+  in foo a.x
