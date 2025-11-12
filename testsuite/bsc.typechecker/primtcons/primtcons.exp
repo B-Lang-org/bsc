@@ -28,7 +28,7 @@ compile_pass_bug ExpSizeOf_InstancesBaseSyn.bsv 1729
 compile_verilog_pass ExpSizeOf_Field.bsv
 
 # Test that SizeOf is detected even when it's buried in type synonyms
-compile_verilog_pass_bug ExpSizeOf_FieldSyn.bsv {} 1720
+compile_verilog_pass ExpSizeOf_FieldSyn.bsv
 
 # ---------------
 
