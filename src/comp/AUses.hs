@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveAnyClass #-}
 -- AUses
 --
 -- This module is used by ASchedule to create a MethodUsesMap, which
@@ -80,6 +81,7 @@ import Prim
 import IntLit
 import Control.Monad(liftM, mapAndUnzipM)
 import Control.Monad.State.Strict(State, runState, get, put)
+import GHC.Generics (Generic)
 -- import Debug.Trace
 
 
@@ -114,13 +116,14 @@ rulePred (Rule _ _ rPred _ _) = rPred
 -- Data Types: MethodId
 
 -- METHOD IDs: identifies the object and the method --
-data MethodId = MethodId AId AMethodId deriving (Eq,Ord,Show) -- object.method
+data MethodId = MethodId AId AMethodId
+    deriving (Eq, Ord, Show, Generic, NFData) -- object.method
+
 instance PPrint MethodId where
     pPrint d p mid = pPrint d p (methodIdToId mid)
+
 instance PVPrint MethodId where
     pvPrint d p mid = pvPrint d p (methodIdToId mid)
-instance Hyper MethodId where
-     hyper (MethodId a m) y = hyper2 a m y
 
 methodIdToId :: MethodId -> Id
 methodIdToId (MethodId id mid) = mkStId id mid
@@ -138,7 +141,7 @@ getMIdObject (MethodId i _) = i
 
 data UniqueUse = UUAction AAction
                | UUExpr AExpr UseCond
-     deriving (Eq, Ord, Show)
+     deriving (Eq, Ord, Show, Generic, NFData)
 
 instance PPrint UniqueUse where
     pPrint PDDebug _ u = text "<UniqueUse>" <+> pPrint PDReadable 0 u
@@ -151,10 +154,6 @@ instance PPrint UniqueUse where
 instance PPrintExpand UniqueUse where
     pPrintExpand ds d i (UUAction a) = pPrintExpand ds d i a
     pPrintExpand ds d i (UUExpr a _)   = pPrintExpand ds d i a
-
-instance Hyper UniqueUse where
-    hyper (UUAction a) y = hyper a y
-    hyper (UUExpr e c) y = hyper2 e c y
 
 -- XXX why does this return True for actions?
 -- XXX consider merging this and "hasSideEffects"
@@ -596,10 +595,7 @@ data UseCond = UseCond { true_exprs :: S.Set AExpr,
                          eq_map :: M.Map AExpr IntLit,
                          neq_map :: M.Map AExpr (S.Set IntLit)
                        }
-  deriving (Show, Eq, Ord)
-
-instance Hyper UseCond where
-  hyper (UseCond a b c d) y = hyper4 a b c d y
+  deriving (Show, Eq, Ord, Generic, NFData)
 
 ucTrue, ucFalse :: UseCond
 ucTrue  = UseCond S.empty S.empty M.empty M.empty

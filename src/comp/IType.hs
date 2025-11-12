@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module IType(
   IType(..)
@@ -20,13 +21,14 @@ import PreIds(idArrow)
 import CType(Type(..), CType, TyCon(..), Kind(..),
              TISort, cTApplys, cTVar, cTCon, cTNum, cTStr)
 import StdPrel(tiArrow)
-import Eval(Hyper(..),hyper3, hyper2, hyper)
+import Eval
 import PPrint
 import PFPrint
 import Position(noPosition)
 import Util(itos)
 import FStringCompat(FString)
 import qualified Data.Generics as Generic
+import GHC.Generics (Generic)
 
 -- ==============================
 -- IKind, IType
@@ -36,7 +38,7 @@ data IKind
         | IKNum
         | IKStr
         | IKFun IKind IKind
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable, Generic, NFData)
 
 data IType
         = ITForAll Id IKind IType
@@ -45,23 +47,7 @@ data IType
         | ITCon Id IKind TISort
         | ITNum Integer
         | ITStr FString
-        deriving (Show, Generic.Data, Generic.Typeable)
-
--- --------------------------------
--- Hyper Instances
-instance Hyper IType where
-    hyper (ITForAll i k t) y = hyper3 i k t y
-    hyper (ITAp a b) y = hyper2 a b y
-    hyper (ITVar i) y = hyper i y
-    hyper (ITCon i k s) y = hyper3 i k s y
-    hyper (ITNum i) y = hyper i y
-    hyper (ITStr s) y = hyper s y
-
-instance Hyper IKind where
-    hyper IKStar y = y
-    hyper IKNum y = y
-    hyper IKStr y = y
-    hyper (IKFun a b) y = hyper2 a b y
+        deriving (Show, Generic.Data, Generic.Typeable, Generic, NFData)
 
 -- --------------------------------
 -- Eq Instances

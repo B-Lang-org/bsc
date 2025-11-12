@@ -32,6 +32,7 @@ import ListMap(lookupWithDefault)
 import SCC(scc)
 
 -- utility libs
+import Eval
 import ParseOp
 import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote)
@@ -2185,7 +2186,8 @@ missingUserFiles flags cSrcFiles = filterM cantFind cSrcFiles
 
 -- ===============
 
-compileCDefToIDef :: ErrorHandle -> Flags -> DumpNames -> SymTab ->
+compileCDefToIDef :: NFData a =>
+                     ErrorHandle -> Flags -> DumpNames -> SymTab ->
                      IPackage a -> CDefn -> IO (IDef a, Bool)
 compileCDefToIDef errh flags dumpnames symt ipkg def =
  do

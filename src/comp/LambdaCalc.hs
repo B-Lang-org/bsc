@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module LambdaCalc(
     SPackage,
     convAPackageToLambdaCalc
@@ -15,6 +16,7 @@ import Control.Monad(foldM)
 import Control.Monad.State(State, runState, gets, get, put)
 import Data.Maybe(mapMaybe)
 import Data.Char(toLower)
+import GHC.Generics (Generic)
 
 import Util(snd3, fst2of3, itos, concatMapM, map_deleteMany, makePairs)
 
@@ -145,7 +147,7 @@ convAPackageToLambdaCalc errh flags apkg0 =
 -- which is why the data types are prepended with "S".
 
 data SPackage = SPackage SComment [SDefn]
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 type SComment = [String]
 
@@ -153,16 +155,16 @@ type SComment = [String]
 data SDefn = SDStruct Id [(Id, SType)]
            | SDValue Id SType SExpr
            | SDComment SComment [SDefn]
-           deriving (Eq, Show)
+           deriving (Eq, Show, Generic, NFData)
 
 data SType = STVar Id
            | STCon (STyCon)
            | STAp SType SType
-           deriving (Eq, Show)
+           deriving (Eq, Show, Generic, NFData)
 
 data STyCon = STyCon Id
             | STyNum Integer
-            deriving (Eq, Show)
+            deriving (Eq, Show, Generic, NFData)
 
 data SExpr = SLam Id SType SExpr
            | SLet [(Id, SType, SExpr)] SExpr
@@ -178,12 +180,7 @@ data SExpr = SLam Id SType SExpr
            | SSelect SExpr Id
            | SIf SExpr SExpr SExpr
            | SHasType SType SExpr  -- type signature
-           deriving (Eq, Show)
-
--- -----
-
-instance Hyper SPackage where
-  hyper x y = (x==x) `seq` y
+           deriving (Eq, Show, Generic, NFData)
 
 -- -----
 

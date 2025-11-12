@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Main_showrules(main) where
 
 import Exceptions(bsCatch)
@@ -32,7 +33,7 @@ import CondTree
 import ListUtil(dropRepeatsBy)
 import APrims
 import PPrint
-import Eval(Hyper(..))
+import Eval
 import qualified DynamicMap as DM
 
 import System.Environment(getArgs)
@@ -51,6 +52,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.ByteString.Lazy.Char8 as C
 import Text.Regex
+import GHC.Generics (Generic)
 
 -- import Debug.Trace
 
@@ -236,7 +238,7 @@ data Signal = ClockSignal { clk_domain     :: Int
                           }
             | CFSignal
             | WFSignal
-  deriving (Eq,Show)
+  deriving (Eq, Show, Generic, NFData)
 
 -- The conversion is a lazy left-fold over a list of VCD commands, which
 -- tracks the state of the fold using the ConvState structure.
@@ -495,34 +497,34 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
            moddefmap = M.map mkDefMap abmimap
 
        -- construct and return the initial conversion state
-       return $ hyper (rulemap, invrulemap, clkmap, instmap, actionmap, moddefmap)
-                      ConvState { be_verbose     = optVerbose opts
-                                , debug_to       = dbg_target
-                                , root           = optRoot opts
-                                , root_find      = Just root_scope
-                                , time_factor    = ilog1000 rule_count
-                                , current_time   = 0
-                                , scope          = []
-                                , rule_map       = rulemap
-                                , inv_rule_map   = invrulemap
-                                , signal_map     = M.empty
-                                , inv_signal_map = M.empty
-                                , clock_map      = clkmap
-                                , code_map       = M.empty
-                                , clk_edge_map   = M.empty
-                                , value_map      = DM.empty
-                                , inst_map       = instmap
-                                , action_map     = actionmap
-                                , edges          = []
-                                , modified_set   = S.empty
-                                , mod_def_map    = moddefmap
-                                -- these get initialized in setupProgress
-                                , prev_time      = 0
-                                , prev_bytes     = 0
-                                , curr_bytes     = 0
-                                , total_bytes    = 0
-                                , progress_at    = Nothing
-                                }
+       return $ deepseq (rulemap, invrulemap, clkmap, instmap, actionmap, moddefmap)
+                        ConvState { be_verbose     = optVerbose opts
+                                  , debug_to       = dbg_target
+                                  , root           = optRoot opts
+                                  , root_find      = Just root_scope
+                                  , time_factor    = ilog1000 rule_count
+                                  , current_time   = 0
+                                  , scope          = []
+                                  , rule_map       = rulemap
+                                  , inv_rule_map   = invrulemap
+                                  , signal_map     = M.empty
+                                  , inv_signal_map = M.empty
+                                  , clock_map      = clkmap
+                                  , code_map       = M.empty
+                                  , clk_edge_map   = M.empty
+                                  , value_map      = DM.empty
+                                  , inst_map       = instmap
+                                  , action_map     = actionmap
+                                  , edges          = []
+                                  , modified_set   = S.empty
+                                  , mod_def_map    = moddefmap
+                                  -- these get initialized in setupProgress
+                                  , prev_time      = 0
+                                  , prev_bytes     = 0
+                                  , curr_bytes     = 0
+                                  , total_bytes    = 0
+                                  , progress_at    = Nothing
+                                  }
 
 setupProgress :: Bool -> Handle -> ConvState -> IO ConvState
 setupProgress False hIn st = return st
@@ -702,12 +704,12 @@ morphVCD' errh hOut st EndDefs =
      handleMsgs errh (results ++ clks_not_found ++ info ++
                       ci_status ++ cross_rule_aliases)
      writeVCD hOut (virtual_vars ++ [EndDefs])
-     let st' = hyper (invsigmap,clock_code_map,modified')
-                     st { inv_signal_map = invsigmap
-                        , code_map       = clock_code_map
-                        , action_map     = M.empty   -- not needed after EndDefs
-                        , modified_set   = modified'
-                        }
+     let st' = deepseq (invsigmap,clock_code_map,modified')
+                       st { inv_signal_map = invsigmap
+                          , code_map       = clock_code_map
+                          , action_map     = M.empty   -- not needed after EndDefs
+                          , modified_set   = modified'
+                          }
      return st'
 
 -- These are all VCD commands in the value change section
@@ -1086,7 +1088,7 @@ handleClkEdge (cmds,status,st) (code,clk) =
       new_mod_set = (modified_set st) `S.union` mods
       -- possibly flush VCD data prior to previous edge of this clock
       (new_cmds,new_status,new_st) =
-          hyper new_mod_set $
+          deepseq new_mod_set $
           flushChanges $ st { clk_edge_map = new_edge_map
                             , value_map    = valmap3
                             , edges        = []
@@ -1575,12 +1577,3 @@ dbg_trace Nothing    _ x = x
 dbg_trace (Just hdl) s x = unsafePerformIO $ do hPutStr hdl s
                                                 hFlush hdl
                                                 return x
-
--- ---------------
--- Hyper instances
-
-instance Hyper SchedNode where
-  hyper n x = (n == n) `seq` x
-
-instance Hyper Signal where
-  hyper s x = (s == s) `seq` x

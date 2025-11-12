@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module InstNodes(
     InstNode(..), InstTree,
     mkInstTree, getIStateLocs, flattenInstTree,
@@ -15,6 +16,9 @@ import Data.List(sortBy,groupBy,isPrefixOf)
 import qualified Data.Map as M
 import Data.Ord(comparing)
 import Control.Monad.State
+
+import GHC.Generics (Generic)
+import Eval
 
 import Util(mapSnd)
 import Util(toMaybe)
@@ -47,7 +51,7 @@ data InstNode = StateVar { node_name :: Id } |
                          node_ignore_name :: Bool,
                          uniquified :: Bool,
                          node_children :: InstTree }
-  deriving(Eq, Show)
+  deriving(Eq, Show, Generic, NFData)
 
 instance Ord InstNode where
   compare n1 n2 = cmpIdByName (node_name n1) (node_name n2)
