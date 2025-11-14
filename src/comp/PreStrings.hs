@@ -344,6 +344,10 @@ fsMetaConsNamed    = mkFString "MetaConsNamed"
 fsMetaConsAnon     = mkFString "MetaConsAnon"
 fsMetaField        = mkFString "MetaField"
 fsPolyWrapField    = mkFString "val"
+fsWrapField       = mkFString "WrapField"
+fsFromWrapField   = mkFString "fromWrapField"
+fsToWrapField     = mkFString "toWrapField"
+fsSaveFieldPortTypes = mkFString "saveFieldPortTypes"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"

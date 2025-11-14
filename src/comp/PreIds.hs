@@ -121,10 +121,11 @@ idInvalid = prelude_id_no fsInvalid
 idValid = prelude_id_no fsValid
 idEmpty = prelude_id_no fsEmptyIfc
 idFile = prelude_id_no fsFile
-idEither, idLeft, idRight :: Id
+idEither, idLeft, idRight, idPreludeCons :: Id
 idEither = prelude_id_no fsEither
 idLeft = prelude_id_no fsLeft
 idRight = prelude_id_no fsRight
+idPreludeCons = prelude_id_no fsCons  -- idCons isn't qualified
 
 idActionValue :: Id
 idActionValue = prelude_id_no fsActionValue
@@ -233,6 +234,12 @@ idPolyWrapField = mk_no fsPolyWrapField
 -- | Used by GenWrap for "polymorphic" modules
 idLiftModule :: Id
 idLiftModule = prelude_id_no fsLiftModule
+
+idWrapField, id_fromWrapField, id_toWrapField, id_saveFieldPortTypes :: Id
+idWrapField = prelude_id_no fsWrapField
+id_fromWrapField = prelude_id_no fsFromWrapField
+id_toWrapField = prelude_id_no fsToWrapField
+id_saveFieldPortTypes = prelude_id_no fsSaveFieldPortTypes
 
 -- Used by desugaring
 id_lam, id_if, id_read, id_write :: Position -> Id
