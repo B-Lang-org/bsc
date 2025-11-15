@@ -119,6 +119,19 @@ lookup k xs = case (find (\x -> x.fst == k) xs) of
                 Nothing    -> Nothing
                 Just (_,v) -> Just v
 
+--@ Lookup all values for a key in an association list.
+--@ \index{lookup@\te{lookup} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(b) lookup (a k, List#(Tuple2#(a,b)) xs)
+--@   provisos(Eq#(a));
+--@ \end{libverbatim}
+lookupAll :: (Eq a) => a -> List (a, b) -> List b
+lookupAll k (Cons x xs) =
+  if x.fst == k
+  then x.snd :> lookupAll k xs
+  else lookupAll k xs
+lookupAll _ Nil = Nil
+
 --@ Append two lists, return appended list.
 --@ \index{append@\te{append} (\te{List} function)}
 --@ \begin{libverbatim}
