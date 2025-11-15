@@ -62,7 +62,11 @@ jobs:
         run: |
           ccache --zero-stats --max-size 250M
           export PATH=/usr/lib/ccache:$PATH
-          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
+
+          CORES=$(nproc)
+          echo "Cores: ${CORES}"
+
+          make -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
@@ -164,7 +168,10 @@ jobs:
           # because it's invoked with :set -eo pipefile)
           trap ./testsuite/archive_logs.sh EXIT
 
-          make -C testsuite
+          CORES=$(nproc)
+          echo "Cores: ${CORES}"
+
+          make -j ${CORES} -C testsuite checkparallel
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
