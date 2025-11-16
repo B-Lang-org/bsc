@@ -64,8 +64,8 @@ import qualified Data.Set as S
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
 derive :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
-derive errh flags r (CPackage i exps imps fixs ds includes) =
-    let all_ds = ds ++ concat [ cs | (CImpSign _ _ (CSignature _ _ _ cs)) <- imps ]
+derive errh flags r (CPackage i exps imps impsigs fixs ds includes) =
+    let all_ds = ds ++ concat [ cs | (CImpSign _ _ (CSignature _ _ _ cs)) <- impsigs ]
         -- Create an environment, that maps IDs to definitions for *all*
         -- top-level definitions (eg value defns, type decls, tyepeclass decls,
         -- instance defns etc). NB we only need the typeclass decls
@@ -73,7 +73,7 @@ derive errh flags r (CPackage i exps imps fixs ds includes) =
     in  case checkEither (concatMap (doDer flags r i env) ds) of
           -- If deriving succeeded, return the updated CPackage with the extra
           -- declarations.
-          Right dss'  -> return (CPackage i exps imps fixs (concat dss') includes)
+          Right dss'  -> return (CPackage i exps imps impsigs fixs (concat dss') includes)
           Left msgs@(msg:rest) -> bsError errh msgs
           Left [] -> internalError "Deriving.derive: doDer failed with empty error list!]"
 
@@ -87,7 +87,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
     let unqual_name = iKName (cd_name data_decl)
         qual_name = qualId packageid unqual_name
         kind = case findType r qual_name of
-                 Just (TypeInfo _ k _ _) -> k
+                 Just (TypeInfo _ k _ _ _) -> k
                  _ -> internalError "Deriving.doDer Cdata: findType"
         ty_var_names = cd_type_vars data_decl
         ty_var_kinds = getArgKinds kind
@@ -101,7 +101,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
         kind = case findType r qual_name of
-                 Just (TypeInfo _ k _ _) -> k
+                 Just (TypeInfo _ k _ _ _) -> k
                  _ -> internalError "Deriving.doDer Cstruct: findType"
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
@@ -961,7 +961,7 @@ addAutoDeriv flags r i tvs clsId derivs
           let (kind, sort) =
                   -- trace ("check undef: " ++ show clsId) $
                   case findType r i of
-                    Just (TypeInfo _ k _ s) -> (k, s)
+                    Just (TypeInfo _ k _ s _) -> (k, s)
                     _ -> internalError "Deriving.addAutoDeriv: findType"
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)

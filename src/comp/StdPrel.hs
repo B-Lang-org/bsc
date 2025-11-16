@@ -47,7 +47,7 @@ tvarh3 = tVarKind v3 KNum
 -- that will introduce unnecessary (and sometimes harmful)
 -- fresh type variables
 mkImpliedInst :: Pred -> Pred -> Inst
-mkImpliedInst p' p = Inst r [] ([pp'] :=> p)
+mkImpliedInst p' p = Inst r [] ([pp'] :=> p) (Just idPrelude)
   where pp' = mkPredWithPositions [] p'
         r   = anyTExpr (predToType p' `fn` predToType p)
 
@@ -75,54 +75,55 @@ clsAdd symT = Class {
                     [Just False, Just True, Just False],
                     [Just True, Just False, Just False]],
         allowIncoherent = Just False,
-        isComm = True
+        isComm = True,
+        pkg_src = Just idPrelude
         }
 
 genAddInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
 -- (C1, C2, ?) : (C1, C2, C1+C2)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1+n2) p1)
 
 -- (C1, ?, C3) : (C1, C3-C1, C3)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _, t3@(TCon (TyNum i3 _))])
-        | i3 >= i1 = [ mkInst r ([] :=> p) ]
+        | i3 >= i1 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum (i3 - i1) p1)
 
 -- (?, C2, C3) : (C3-C2, C2, C3)
 genAddInsts _ _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2)), t3@(TCon (TyNum i3 _))])
-        | i3 >= i2 = [ mkInst r ([] :=> p) ]
+        | i3 >= i2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum (i3 - i2) p2)
 
 -- (0, T, ?) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (T, 0, ?) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (?, T, T) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [_, t2, t3])
-        | t2 == t3 = [ mkInst r ([] :=> p) ]
+        | t2 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum 0 (getPosition t2))
 
 -- (T, ?, T) : (T, 0, T)
 genAddInsts _ _ _ (IsIn c [t1, _, t3])
-        | t1 == t3 = [ mkInst r ([] :=> p) ]
+        | t1 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum 0 (getPosition t1))
@@ -139,7 +140,7 @@ genAddInsts symT _ _ p@(IsIn c [t1, t2, TCon (TyNum n npos)])
 -- (T1, T2, TAdd#(T2,T1)) : itself
 genAddInsts _ _ _ p@(IsIn c [t1, t2, t3])
     | t3 == cTApplys tAdd [t1, t2] ||
-      t3 == cTApplys tAdd [t2, t1] = [ mkInst r ([] :=> p) ]
+      t3 == cTApplys tAdd [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where r = anyTExpr (predToType p)
 
 -- (T1, T2, TAdd#(T1, T3)) : NumEq(T2,T3) => itself
@@ -171,7 +172,7 @@ genAddInsts symT _ _ p@(IsIn c [t1, t2, t3])
         -- We can pre-simplify the NumEq, if it is more efficient:
         if (nullAddTerms b1_rem && nullAddTerms b2_rem)
         then let r = anyTExpr (predToType p)
-             in  [mkInst r ([] :=> p)]
+             in  [mkInst r ([] :=> p) (Just idPrelude)]
         else case (fromAddTerms b1_rem) of
                (TAp (TAp tc t1') t2') | tc == tAdd
                  -> [mkImpliedInst (IsIn c [t1',t2',t3']) p]
@@ -196,7 +197,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [t1,t2, tv@(TVar v)])
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
         --trace ("TAdd " ++ ppReadable (r, p)) $
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tAdd t1) t2
@@ -222,7 +223,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [t1, tv@(TVar v), t3])
       checkDVS dvs (t1, t3),
       mgu bvs tv t2 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = cTApplys tSub [t3, t1]
@@ -232,7 +233,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [tv@(TVar v), t2, t3])
       checkDVS dvs (t2, t3),
       mgu bvs tv t1 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = cTApplys tSub [t3, t2]
@@ -335,27 +336,28 @@ clsMax = Class {
         funDeps = [[False, False, True]],
         funDeps2 = [[Just False, Just False, Just True]],
         allowIncoherent = Just False,
-        isComm = True
+        isComm = True,
+        pkg_src = Just idPrelude
         }
 
 genMaxInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
 -- (C1, C2, ?) : (C1, C2, max(C1,C2))
 genMaxInsts _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 `max` n2) p1)
 
 -- (0, T, ?) : (0, T, T)
 genMaxInsts _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (T, 0, ?) : (T, 0, T)
 genMaxInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
@@ -363,7 +365,7 @@ genMaxInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
 -- (T1, T2, TMax#(T2,T1)) : itself
 genMaxInsts _ _ (IsIn c [t1, t2, t3])
     | t3 == cTApplys tMax [t1, t2] ||
-      t3 == cTApplys tMax [t2, t1] = [ mkInst r ([] :=> p) ]
+      t3 == cTApplys tMax [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where r = anyTExpr (predToType p)
        p = IsIn c [t1, t2, t3]
 
@@ -371,7 +373,7 @@ genMaxInsts _ _ (IsIn c [t1, t2, t3])
 -- Note that this rule only matches if the terms on either side are equal
 -- (this rule does not try to reduce the terms to a smaller set)
 genMaxInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMaxTerms s1 s2 =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where s1 = toMaxTerms (TAp (TAp tMax t1) t2)
         s2 = toMaxTerms t3
         r = anyTExpr (predToType p)
@@ -384,7 +386,7 @@ genMaxInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMax t1) t2
@@ -425,27 +427,28 @@ clsMin = Class {
         funDeps = [[False, False, True]],
         funDeps2 = [[Just False, Just False, Just True]],
         allowIncoherent = Just False,
-        isComm = True
+        isComm = True,
+        pkg_src = Just idPrelude
         }
 
 genMinInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
 -- (C1, C2, ?) : (C1, C2, min(C1,C2))
 genMinInsts _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 `min` n2) p1)
 
 -- (0, T, ?) : (0, T, 0)
 genMinInsts _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 0, ?) : (T, 0, 0)
 genMinInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t2]
 
@@ -453,7 +456,7 @@ genMinInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
 -- (T1, T2, TMin#(T2,T1)) : itself
 genMinInsts _ _ (IsIn c [t1, t2, t3])
     | t3 == cTApplys tMin [t1, t2] ||
-      t3 == cTApplys tMin [t2, t1] = [ mkInst r ([] :=> p) ]
+      t3 == cTApplys tMin [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where r = anyTExpr (predToType p)
        p = IsIn c [t1, t2, t3]
 
@@ -461,7 +464,7 @@ genMinInsts _ _ (IsIn c [t1, t2, t3])
 -- Note that this rule only matches if the terms on either side are equal
 -- (this rule does not try to reduce the terms to a smaller set)
 genMinInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMinTerms s1 s2 =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where s1 = toMinTerms (TAp (TAp tMin t1) t2)
         s2 = toMinTerms t3
         r = anyTExpr (predToType p)
@@ -474,7 +477,7 @@ genMinInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMin t1) t2
@@ -519,7 +522,8 @@ clsLog = Class {
         funDeps = [[False, True]],
         funDeps2 = [[Just False, Just True]],
         allowIncoherent = Just False,
-        isComm = False
+        isComm = False,
+        pkg_src = Just idPrelude
         }
 
 genLogInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
@@ -530,7 +534,7 @@ genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
 
 -- (C, ?) : (C, log(C))
 genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
-        | i1 > 0 = [ mkInst r ([] :=> p) ]
+        | i1 > 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
         t2 = TCon (TyNum (log2 i1) p1)
@@ -542,7 +546,7 @@ genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
 {-
 -- (?, C) : (2^C, C)
 genLogInsts _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2))])
-        | i2 >= 0 = [ mkInst r ([] :=> p) ]
+        | i2 >= 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
         t1 = TCon (TyNum (2 ^ i2) p2)
@@ -552,9 +556,9 @@ genLogInsts _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2))])
 -- (TExp#(T), T) : itself
 genLogInsts _ _ p@(IsIn c [t1, t2])
     | (tcon, [arg]) <- splitTAp t2,
-      tcon == tLog, arg == t1 = [ mkInst r ([] :=> p) ]
+      tcon == tLog, arg == t1 = [ mkInst r ([] :=> p) (Just idPrelude) ]
     | (tcon, [arg]) <- splitTAp t1,
-      tcon == tExp, arg == t2 = [ mkInst r ([] :=> p) ]
+      tcon == tExp, arg == t2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
 
 -- XXX Add this?
@@ -575,7 +579,7 @@ genLogInsts bvs (Just dvs) (IsIn c [tv@(TVar v),t2])
     | v `notElem` dvs,
       checkDVS dvs t2,
       mgu bvs tv t1 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
         t1 = TAp tExp t2
@@ -590,7 +594,7 @@ genLogInsts bvs (Just dvs) (IsIn c [t1,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs t1,
       mgu bvs tv t2 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
         t2 = TAp tLog t1
@@ -612,66 +616,67 @@ clsMul symT = Class {
                     [Just False, Just True, Just False],
                     [Just True, Just False, Just False]],
         allowIncoherent = Just False,
-        isComm = True
+        isComm = True,
+        pkg_src = Just idPrelude
         }
 
 genMulInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
 -- (C1, C2, ?) : (C1, C2, C1*C2)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 * n2) p1)
 
 -- (C1, ?, C3) : (C1, C3/C1, C3) when C3/C1 has no remainder (and C1 is not 0)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _, t3@(TCon (TyNum i3 _))])
-        | i1 /= 0 && i3 `mod` i1 == 0 = [ mkInst r ([] :=> p) ]
+        | i1 /= 0 && i3 `mod` i1 == 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum (i3 `div` i1) p1)
 
 -- (?, C2, C3) : (C3/C2, C2, C3) when C3/C2 has no remainder (and C2 is not 0)
 genMulInsts _ _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2)), t3@(TCon (TyNum i3 _))])
-        | i2 /= 0 && i3 `mod` i2 == 0 = [ mkInst r ([] :=> p) ]
+        | i2 /= 0 && i3 `mod` i2 == 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum (i3 `div` i2) p2)
 
 -- (1, T, ?) : (1, T, T)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum 1 _)), t2, _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (0, T, ?) : (0, T, 0)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 1, ?) : (T, 1, T)
 genMulInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 0, ?) : (T, 0, 0)
 genMulInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (?, T, T) : (1, T, T)
 genMulInsts _ _ _ (IsIn c [_, t2, t3])
-        | t2 == t3 = [ mkInst r ([] :=> p) ]
+        | t2 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum 1 (getPosition t2))
 
 -- (T, ?, T) : (T, 1, T)
 genMulInsts _ _ _ (IsIn c [t1, _, t3])
-        | t1 == t3 = [ mkInst r ([] :=> p) ]
+        | t1 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum 1 (getPosition t1))
@@ -688,12 +693,12 @@ genMulInsts symT _ _ p@(IsIn c [t1, t2, TCon (TyNum n npos)])
 -- (T1, T2, TMul#(T2,T1)) : itself
 genMulInsts _ _ _ p@(IsIn c [t1, t2, t3])
     | t3 == cTApplys tMul [t1, t2] ||
-      t3 == cTApplys tMul [t2, t1] = [ mkInst r ([] :=> p) ]
+      t3 == cTApplys tMul [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where r = anyTExpr (predToType p)
 
 -- XXX The above rules are simple cases of this:
 genMulInsts symT _ _ p@(IsIn c [t1, t2, t3])
-    | (equalMulTerms b1 b2) = [ mkInst r ([] :=> p) ]
+    | (equalMulTerms b1 b2) = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where b1 = toMulTerms (TAp (TAp tMul t1) t2)
        b2 = toMulTerms t3
        r = anyTExpr (predToType p)
@@ -793,20 +798,20 @@ genMulInsts _ bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMul t1) t2
 
 {-
 genMulInsts (Just dvs) (IsIn c [t1,TVar v,t3]) | v `notElem` dvs =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TAp (TAp tDiv t3) t1
 
 genMulInsts (Just dvs) (IsIn c [TVar v,t2,t3]) | v `notElem` dvs =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TAp (TAp tDiv t3) t2
@@ -881,21 +886,22 @@ clsDiv = Class {
         funDeps = [[False, False, True]],
         funDeps2 = [[Just False, Just False, Just True]],
         allowIncoherent = Just False,
-        isComm = False
+        isComm = False,
+        pkg_src = Just idPrelude
         }
 
 genDivInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
 -- (C1, C2, ?) : (C1, C2, C1/C2)
 genDivInsts _ _ (IsIn c [t1@(TCon (TyNum i1 pos)), t2@(TCon (TyNum i2 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum ((i1+i2-1) `div` i2) pos)
 
 -- (T, 1, ?) : (T, 1, T)
 genDivInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
-        = [ mkInst r ([] :=> p) ]
+        = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t1]
 
@@ -904,7 +910,7 @@ genDivInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
 
 -- (T1, T2, TDiv#(T1,T2)) : itself
 genDivInsts _ _ (IsIn c [t1, t2, t3])
-    | t3 == cTApplys tDiv [t1, t2] = [ mkInst r ([] :=> p) ]
+    | t3 == cTApplys tDiv [t1, t2] = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where r = anyTExpr (predToType p)
        p = IsIn c [t1, t2, t3]
 
@@ -917,7 +923,7 @@ genDivInsts bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tDiv t1) t2
@@ -938,13 +944,14 @@ clsNumEq symT =
             funDeps  = [[False, True], [True, False]],
             funDeps2 = [[Just False, Just True], [Just True, Just False]],
             allowIncoherent = Just False,
-            isComm = True
+            isComm = True,
+            pkg_src = Just idPrelude
             }
 
 genNumEqInsts :: SymTab ->  [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- safe base-case if t1 and t2 are syntactically equal
 genNumEqInsts symT _ _ p@(IsIn c [t1, t2])
-    | t1 == t2 = [ mkInst r ([] :=> p) ]
+    | t1 == t2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t1, t1]
         r = anyTExpr (predToType p)
 
@@ -973,11 +980,11 @@ genNumEqInsts symT _ _ p@(IsIn c [t, t'])
 
 -- If one is a variable and the other has no tyvars, it's safe to unify them
 genNumEqInsts _ _ _ (IsIn c [TVar {}, t2]) | null (tv t2)
-    = [ mkInst r ([] :=> p) ]
+    = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t2, t2]
         r = anyTExpr (predToType p)
 genNumEqInsts symT _ _ (IsIn c [t1, TVar {}]) | null (tv t1)
-    = [ mkInst r ([] :=> p) ]
+    = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t1, t1]
         r = anyTExpr (predToType p)
 
@@ -986,7 +993,7 @@ genNumEqInsts symT bvs (Just dvs) (IsIn c [t1, t2])
     | TVar v <- tB, checkDVS dvs tA, mgu bvs tB tA /= Nothing,
       let p = IsIn c [tA, tA], let r = anyTExpr (predToType p) =
         --trace ("NumEq " ++ ppReadable (r, p)) $
-        [ mkInst r ([] :=> p) ]
+        [ mkInst r ([] :=> p) (Just idPrelude) ]
   where (tA, tB) = ordPair (t1, t2)
 
 genNumEqInsts _ _ _ _ = []
@@ -1030,10 +1037,10 @@ tiPred = TIabstract
 tiSchedPragma = TIabstract
 
 tyiArrow :: TypeInfo
-tyiArrow   = TypeInfo (Just (idArrow noPosition)) (Kfun KStar (Kfun KStar KStar)) [] tiArrow
+tyiArrow   = TypeInfo (Just (idArrow noPosition)) (Kfun KStar (Kfun KStar KStar)) [] tiArrow (Just idPrelude)
 {-
-tyiBit     = TypeInfo (Just idBit) (Kfun KNum KStar) [] tiBit
-tyiInteger = TypeInfo (Just idInteger) KStar [] tiInteger
+tyiBit     = TypeInfo (Just idBit) (Kfun KNum KStar) [] tiBit (Just idPrelude)
+tyiInteger = TypeInfo (Just idInteger) KStar [] tiInteger (Just idPrelude)
 -}
 
 -- -------------------------
@@ -1045,16 +1052,16 @@ preTypes = [
 {-
         tyiBit,
         tyiInteger,
-        TypeInfo  idString KStar              [] TIabstract,
-        TypeInfo  idSizeOf (Kfun KStar KNum)  [] TIabstract,
+        TypeInfo  idString KStar              [] TIabstract (Just idPrelude),
+        TypeInfo  idSizeOf (Kfun KStar KNum)  [] TIabstract (Just idPrelude),
 -}
-        TypeInfo (Just idAdd) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
-        TypeInfo (Just idMax) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
-        TypeInfo (Just idMin) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
-        TypeInfo (Just idMul) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
-        TypeInfo (Just idDiv) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
-        TypeInfo (Just idLog) (Kfun KNum (Kfun KNum KStar)) [v1, v2] (TIstruct SClass []),
-        TypeInfo (Just idNumEq) (Kfun KNum (Kfun KNum KStar)) [v1, v2] (TIstruct SClass [])
+        TypeInfo (Just idAdd) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idMax) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idMin) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idMul) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idDiv) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idLog) (Kfun KNum (Kfun KNum KStar)) [v1, v2] (TIstruct SClass []) (Just idPrelude),
+        TypeInfo (Just idNumEq) (Kfun KNum (Kfun KNum KStar)) [v1, v2] (TIstruct SClass []) (Just idPrelude)
         ]
 
 preClasses :: SymTab -> [Class]

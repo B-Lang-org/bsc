@@ -217,7 +217,7 @@ class Stats a where
     pStats :: Bool -> a -> Doc
 
 instance Stats CPackage where
-    pStats _ (CPackage _ _ _ _ ds _) =
+    pStats _ (CPackage _ _ _ _ _ ds _) =
         showLen ds "definitions:" $+$
         (text "  " <> showLen [ () | CValueSign _ <- ds ] "values")
 

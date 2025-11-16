@@ -478,8 +478,8 @@ findCons ct i = do
     errSuggest :: SymTab -> Id -> TI (Assump, Id)
     errSuggest r i =
       let mSuggest = case findType r i of
-            Just (TypeInfo _ KNum _ _) -> Just "valueOf"
-            Just (TypeInfo _ KStr _ _) -> Just "stringOf"
+            Just (TypeInfo _ KNum _ _ _) -> Just "valueOf"
+            Just (TypeInfo _ KStr _ _ _) -> Just "stringOf"
             _ -> Nothing
       in err (getIdPosition i, EUnboundCon (pfpString i) mSuggest)
 
@@ -487,15 +487,16 @@ findTyCon :: Id -> TI TyCon
 findTyCon i = do
     r <- getSymTab
     case findType r i of
-     Just (TypeInfo (Just i') k _ ts@(TItype _ t)) ->
+     Just (TypeInfo (Just i') k _ ts@(TItype _ t) _) ->
         -- It's a type alias.  If the left element of the alias is a
         -- constructor, find the type of that constructor; otherwise,
         -- give up and return the info that's available.
         case (leftCon t) of
             Just aliased_i -> findTyCon aliased_i
             Nothing -> return (TyCon i' (Just k) ts)
-     Just (TypeInfo (Just i') k _ ts) -> return (TyCon i' (Just k) ts)
-     Just (TypeInfo Nothing _ _ _) ->
+     Just (TypeInfo (Just i') k _ ts _) ->
+        return (TyCon i' (Just k) ts)
+     Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("findTyCon: unexpected numeric or string type: " ++ ppReadable i)
      Nothing -> errorAtId EUnboundTyCon i
 
@@ -566,7 +567,7 @@ findFields struct_ty0 field_id = do
               Just (TyStr s _) -> Just (mkStrId s, True, True, Nothing)
               Just (TyCon tc _ _) ->
                   case (findType symt tc) of
-                    Just (TypeInfo (Just qtc) _ _ tcsort)
+                    Just (TypeInfo (Just qtc) _ _ tcsort _)
                       -> let -- XXX would it be better to compute "isImp"
                              -- XXX by extracting the qualifier and looking
                              -- XXX in the import list?
@@ -638,7 +639,7 @@ findFields struct_ty0 field_id = do
                 case [ (i, a, n) | (FieldInfo { fi_id = i,
                                                 fi_arity = n,
                                                 fi_assump = a }) <- fs,
-                                    i == qtc ] of
+                                   i == qtc ] of
                   [(_, a, n)] -> return (updAssumpPos field_id a, qtc, n)
                   [] -> errorAtId (ENotField (pfpString qtc)) field_id
                   xs -> internalError ("findFields ambig: " ++

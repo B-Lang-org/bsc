@@ -170,9 +170,9 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
        -- look up the type
        case (findType symtab i) of
          Nothing -> Right Unknown
-         Just (TypeInfo Nothing k vs ti) ->
+         Just (TypeInfo Nothing k vs ti _) ->
             internalError "analyzeType': value type without Id"
-         Just (TypeInfo (Just qi) k vs tisort) ->
+         Just (TypeInfo (Just qi) k vs tisort _) ->
             let isConcrete = null (tv as)
             in  analyzeNonNumTCon t qi k vs as isConcrete tisort
 
@@ -185,7 +185,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
         then Right $ Primary qi k vs isC (w t)
         else
           let fieldInfos = map (getFieldInfo symtab qi) fields
-              mkTuple (FieldInfo _ _ _ (fid :>: (Forall ks qt)) fpragmas _ morigtype) =
+              mkTuple (FieldInfo _ _ _ (fid :>: (Forall ks qt)) fpragmas _ morigtype _) =
                   let as' = addGenVars as ks
                       fqtype@(ps :=> ft) =
                           apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
@@ -286,14 +286,14 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
                           isField _                  = True
                       in  filter (isField . getIdBaseString) fields
             fieldInfos = map (getFieldInfo symtab qi) fields'
-            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
+            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _ _) =
                 let as' = addGenVars orig_as ks
                     qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
                 in  (i, qt')
 
             ps = map (predToType . snd) (super cls)
             fdeps = funDeps cls
-            insts = let mkInst (Inst _ _ (qs :=> p)) = (qs :=> predToType p)
+            insts = let mkInst (Inst _ _ (qs :=> p) _) = (qs :=> predToType p)
                     in  map mkInst (getInsts cls)
             allow = allowIncoherent cls
         in  Right $ Typeclass qi k vs ps fdeps allow insts (map mkPair fieldInfos)
@@ -303,7 +303,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
                         Either [EMsg] TypeAnalysis
     analyzeStructCon t qi k vs as isC fields =
         let fieldInfos = map (getFieldInfo symtab qi) fields
-            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
+            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _ _) =
                   let as' = addGenVars as ks
                       qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
                       t = qualToType qt'

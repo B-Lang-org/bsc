@@ -63,7 +63,7 @@ genEverythingSign errh symtab cpkg =
 genSign :: ErrorHandle -> Bool -> SymTab -> CPackage ->
            Either [EMsg] (CSignature, [WMsg])
 genSign errh exportAll symt
-        pkg@(CPackage currentPkg exportList imps fixs ds0 includes) =
+        pkg@(CPackage currentPkg exportList imps impsigs fixs ds0 includes) =
     let
         -- in the absence of typeclass defaults that are typechecked,
         -- at least record the scope by qualifying identifiers
@@ -98,7 +98,7 @@ genSign errh exportAll symt
                               then mergeExports all_exps_this_file qual_exports
                               else qual_exports
                       in  (final_exports, errs)
-        (exps, packageErrors) = expandPkgExports symt imps exps0
+        (exps, packageErrors) = expandPkgExports symt impsigs exps0
 
         hasEmptyQual i = (getIdQual i == fsEmpty)
 
@@ -127,7 +127,7 @@ genSign errh exportAll symt
         -- ss: the signature file entry for exported defs in this package and
         --     all exported defs from imported packages
         (ss, warnss) = unzip $ concatMap (genDefSign symt look currentPkg) ds ++
-                                 [ dw | CImpSign _ _ (CSignature ii _ _ ds) <- imps,
+                                 [ dw | CImpSign _ _ (CSignature ii _ _ ds) <- impsigs,
                                         d <- ds, dw <- genDefSign symt look ii d ]
 
         -- list of warnings produced while generating signatures
@@ -188,7 +188,7 @@ genSign errh exportAll symt
         -- given a used type constructor, find the type that it belongs to
         -- and return it in signature-file form (CItype or CIclass)
         tdef i = case findType symt i of
-                 Just x@(TypeInfo _ k vs (TIstruct SClass _)) ->
+                 Just x@(TypeInfo _ k vs (TIstruct SClass _) _) ->
                      case (findSClass symt (CTypeclass i)) of
                        Nothing -> internalError ("GenSign.genSign: " ++
                                                  "couldn't find class " ++
@@ -197,12 +197,12 @@ genSign errh exportAll symt
                            -- classToIClass doesn't need "vs" since the Class
                            -- stores the tyvars as well
                            [classToIClass i k cl (findPoss i)]
-                 Just ti@(TypeInfo _ k vs (TItype _ _)) ->
+                 Just ti@(TypeInfo _ k vs (TItype _ _) _) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
                      --       ppString ti ++ "\n" ++
                      --       ppString (M.lookup i useLoci))
                      [CItype (IdKind i k) (varsk (mkTyVarIds vs) k) (findPoss i)]
-                 Just ti@(TypeInfo _ k vs _) ->
+                 Just ti@(TypeInfo _ k vs _ _) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
                      --       ppString ti ++ "\n" ++
                      --       ppString (M.lookup i useLoci))
@@ -458,9 +458,9 @@ qualIdK currentPkg s (IdKind i k) = IdKind (qualId currentPkg i) k
 qualIdK currentPkg s idk =
     let i = iKName idk
     in  case findType s i of
-          Just (TypeInfo (Just i') k _ _) -> IdKind i' k
+          Just (TypeInfo (Just i') k _ _ _) -> IdKind i' k
           Nothing -> IdK (qualId currentPkg i)
-          Just (TypeInfo Nothing k _ _) ->
+          Just (TypeInfo Nothing k _ _ _) ->
             internalError ("qualIdK: unexpected numeric type: " ++
                            ppReadable i)
 
@@ -487,8 +487,8 @@ qualType s t@(TDefMonad _) = internalError "qualType: TDefMonad"
 qualTId :: SymTab -> Id -> Id
 qualTId s i =
     case findType s i of
-    Just (TypeInfo (Just i') _ _ _) -> i'
-    Just (TypeInfo Nothing _ _ _) ->
+    Just (TypeInfo (Just i') _ _ _ _) -> i'
+    Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("qualTId: unexpected numeric type: " ++ ppReadable i)
     Nothing -> i
 
@@ -539,7 +539,7 @@ qualifyExports exclude symt exps =
         qualifyType c i =
             case (findType symt i) of
               -- if the name was unqualified, now it will be qualified
-              Just (TypeInfo (Just i') _ _ _) -> Left (c i')
+              Just (TypeInfo (Just i') _ _ _ _) -> Left (c i')
               Nothing -> Right (mkUnboundExport i)
               Just _ -> internalError ("qualifyPkgExports: " ++
                                        "unexpected numeric type: " ++
@@ -548,7 +548,7 @@ qualifyExports exclude symt exps =
         qualifyVar c i =
             case (findVar symt i) of
               -- if the name was unqualified, now it will be qualified
-              Just (VarInfo _ (i' :>: _) _) -> Left (c i')
+              Just (VarInfo _ (i' :>: _) _ _) -> Left (c i')
               Nothing -> Right (mkUnboundExport i)
 
         addId i (Left exp) = Left (i, exp)
@@ -602,22 +602,22 @@ qualifyExports exclude symt exps =
 -- (we choose to not export those Ids which are shadowed by other defs,
 -- so this function takes the symbol table, as a way to check whether
 -- the unqualified name refers to the qualified name that we are exporting)
-expandPkgExports :: SymTab -> [CImport] -> [CExport] -> ([CExport], [EMsg])
-expandPkgExports symt imps exps =
+expandPkgExports :: SymTab -> [CImportedSignature] -> [CExport] -> ([CExport], [EMsg])
+expandPkgExports symt impsigs exps =
     let
         unqualTypeIsThisOne i =
             case (findType symt (unQualId i)) of
-              Just (TypeInfo (Just i') _ _ _) -> getIdQual i' == getIdQual i
+              Just (TypeInfo (Just i') _ _ _ _) -> getIdQual i' == getIdQual i
               _ -> False
 
         unqualVarIsThisOne i =
             case (findVar symt (unQualId i)) of
-              Just (VarInfo _ (i' :>: _) _) -> getIdQual i' == getIdQual i
+              Just (VarInfo _ (i' :>: _) _ _) -> getIdQual i' == getIdQual i
               _ -> False
 
         expandOne :: CExport -> Either [CExport] EMsg
         expandOne (CExpPkg pkg) =
-            let dss = [ ds | (CImpSign _ _ (CSignature i _ _ ds)) <- imps,
+            let dss = [ ds | (CImpSign _ _ (CSignature i _ _ ds)) <- impsigs,
                              i == pkg ]
             in  case (dss) of
                     [] -> let pos = getPosition pkg

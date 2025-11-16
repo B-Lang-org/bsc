@@ -31,10 +31,10 @@ import CFreeVars(getFVC, getFTCC)
 import Util(separate, apFst, quote)
 
 cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, Bool)
-cTypeCheck errh flags symtab (CPackage name exports imports fixs defns includes) = do
+cTypeCheck errh flags symtab (CPackage name exports imports impsigs fixs defns includes) = do
     (typecheckedDefns, typeWarns, haveErrors) <- tiDefns errh symtab flags defns
     when (not (null typeWarns)) $ bsWarning errh typeWarns
-    return (CPackage name exports imports fixs typecheckedDefns includes,
+    return (CPackage name exports imports impsigs fixs typecheckedDefns includes,
             haveErrors)
 
 -- type check top-level definitions in parallel (since they are independent)
@@ -42,8 +42,9 @@ tiDefns :: ErrorHandle -> SymTab -> Flags -> [CDefn] -> IO ([CDefn], [WMsg], Boo
 tiDefns errh s flags ds = do
   let ai = allowIncoherentMatches flags
   let checkDef d = (defErr, snd defTI)
-        where defTI  = runTI flags ai s $ tiOneDef d
-              defErr = case (fst defTI) of
+        where (result, warns) = runTI flags ai s $ tiOneDef d
+              defTI  = (result, warns)
+              defErr = case result of
                           (Left emsgs)  -> Left emsgs
                           (Right cdefn) -> rmFreeTypeVars cdefn
   let (checks, wss) = unzip (map checkDef ds)
@@ -150,21 +151,21 @@ qualifyClassDefaults errh symt ds =
               Nothing ->
                   -- it could be a struct/interface (or an alias of one?)
                   case (findType symt c) of
-                    Just (TypeInfo (Just qc) _ _ _) -> (c, qc)
+                    Just (TypeInfo (Just qc) _ _ _ _) -> (c, qc)
                     _ -> internalError ("qualifyClassDefaults: " ++
                                         "constructor not found: " ++
                                         ppReadable c)
         mkTQual t =
             case (findType symt t) of
-              Just (TypeInfo (Just qt) _ _ _) -> (t, qt)
-              Just (TypeInfo Nothing _ _ _) ->
+              Just (TypeInfo (Just qt) _ _ _ _) -> (t, qt)
+              Just (TypeInfo Nothing _ _ _ _) ->
                   internalError ("qualifyClassDefaults: " ++
                                  "unexpected numeric or string type: " ++ ppReadable t)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "type not found: " ++ ppReadable t)
         mkVQual v =
             case (findVar symt v) of
-              Just (VarInfo _ (qv :>: _) _) -> (v, CVar qv)
+              Just (VarInfo _ (qv :>: _) _ _) -> (v, CVar qv)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "var not found: " ++ ppReadable v)
         qualDef (Cclass incoh cps ik is deps fs) =

@@ -36,7 +36,7 @@ inferKinds mi s ds = run $ do
     -- XXX this relies on the order of M.fromList, to bias earlier pairs
     let as' = -- place these first, so that they are shadowed by
               -- any assumps of the same name in "as"
-              [(i, k) | (i, TypeInfo _ k _ _) <- getAllTypes s ] ++
+              [(i, k) | (i, TypeInfo _ k _ _ _) <- getAllTypes s ] ++
               as ++
               map (\ (n,v) -> (qualId mi n, v)) as
     let as_map = M.fromList as'

@@ -311,7 +311,7 @@ tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
     (_, ti, _) <- findFields td i
     sy <- getSymTab
     case findType sy ti of
-     Just (TypeInfo _ _ _ (TIstruct sst qfs)) | isUpdateable sst -> do
+     Just (TypeInfo _ _ _ (TIstruct sst qfs) _) | isUpdateable sst -> do
         --posCheck "C" e
         x <- newVar (getPosition e) "tiExprCStructUpd"
         let v = CVar x
@@ -3138,7 +3138,7 @@ ifcFieldIdToTConId i r t =
     Just ti ->
         case findType r ti of
         -- this pattern requires that the type be an interface
-        Just (TypeInfo _ _ _ (TIstruct (SInterface {}) is)) ->
+        Just (TypeInfo _ _ _ (TIstruct (SInterface {}) is) _) ->
             if (unQualId i) `elem` map unQualId is
                 then Just ti
                 else Nothing
@@ -3168,7 +3168,7 @@ writeableIfc flags r t
 getIfcFields :: Id -> SymTab -> Maybe [Id]
 getIfcFields ti sy =
     case findType sy ti of
-    Just (TypeInfo _ _ _ (TIstruct SInterface{} fs)) -> Just fs
+    Just (TypeInfo _ _ _ (TIstruct SInterface{} fs) _) -> Just fs
     _ -> Nothing
 
 chkSchedInfo :: [Id] -> VSchedInfo -> TI ()
