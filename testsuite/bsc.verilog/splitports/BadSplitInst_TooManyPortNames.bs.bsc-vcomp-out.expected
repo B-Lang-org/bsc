@@ -1,7 +1,7 @@
 checking package dependencies
 compiling BadSplitInst_TooManyPortNames.bs
 code generation for sysBadSplitInst_TooManyPortNames starts
-Error: "Prelude.bs", line 4593, column 61: (S0015)
+Error: "BadSplitInst_TooManyPortNames.bs", line 17, column 12: (S0015)
   Bluespec evaluation-time error: SplitPorts: fooIn_1 has 2 ports, but 3 port
   names were given
   During elaboration of `sysBadSplitInst_TooManyPortNames' at
