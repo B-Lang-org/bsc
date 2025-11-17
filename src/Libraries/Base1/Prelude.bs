@@ -4602,7 +4602,8 @@ checkPortNames proxy base =
   let pn = portNames proxy base
   in
     if listLength pn /= valueOf n
-    then error $ "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
+    then primError (getEvalPosition proxy) $
+      "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
     else pn
 
