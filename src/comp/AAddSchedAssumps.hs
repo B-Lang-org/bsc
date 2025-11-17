@@ -30,7 +30,7 @@ import Pragma(ASchedulePragma)
 import Error(internalError, ErrMsg(..), showErrorList, ErrorHandle)
 import Id
 import Position(noPosition)
-import Util(unzipWith, ordPairBy)
+import Util(unzipWith, ordPairBy, fst3)
 import Util(mapSnd)
 
 -- | Method name mapped to condition of usage
@@ -224,7 +224,7 @@ getRWireInstFn :: ErrorHandle -> Flags -> SymTab ->
                   M.Map AId HExpr -> IO (Id -> AVInst)
 getRWireInstFn errh flags r alldefs = do
   let blobT = TAp tModule (TAp tVRWireN (cTNum 1 noPosition))
-  case fst $ (TIM.runTI flags False r (topExpr blobT (CVar idVmkRWire1))) of
+  case fst3 $ (TIM.runTI flags False r (topExpr blobT (CVar idVmkRWire1))) of
     Left errs -> internalError (ppReadable errs)
     Right (_,e') -> do
       let iexpr = iConvExpr errh flags r alldefs e'

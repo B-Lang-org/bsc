@@ -15,7 +15,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
 import Id
 import FStringCompat(FString, getFString)
 import PreStrings(fsEmpty)
-import PreIds(tmpTyVarIds, idPrelude, idPreludeBSV)
+import PreIds(tmpTyVarIds, idPrelude, idPreludeBSV, mk_no)
 import Position(noPosition)
 import Pragma
 import CSyntax
@@ -35,14 +35,15 @@ import TypeCheck(qualifyClassDefaults)
 
 -- only exports what the user asked to export
 -- (auto-exports everything if the user said nothing)
-genUserSign :: ErrorHandle -> SymTab -> CPackage -> IO CSignature
-genUserSign errh symtab cpkg =
+genUserSign :: ErrorHandle -> SymTab -> CPackage -> IO (CSignature, S.Set Id)
+genUserSign errh symtab cpkg@(CPackage pkgName _ _ _ _ _ _) =
     -- XXX should we internal error on any errors or warnings?
     case (genSign errh False symtab cpkg) of
         Left msgs -> bsError errh msgs
         Right (sign, warns) -> do
             when (not $ null warns) $ bsWarning errh warns
-            return sign
+            let usedPkgs = getPackagesUsedByExports pkgName sign
+            return (sign, usedPkgs)
 
 -- export everything as visible (for internal use in the evaluator)
 -- XXX eventually combine this with the above and just have one CSignature
@@ -680,4 +681,40 @@ classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
     in
         CIclass incoh ps' (IdKind i k) tvis fds poss
 
+-- ---------------
+-- Package usage tracking for unused import warnings
+
+-- Extract packages used by exports (for Phase 3 of unused import detection).
+-- Only tracks re-exported items (from other packages). Local exports are already
+-- tracked during type checking (Phase 2). For re-exports, only record the package
+-- of the item itself, not types within its definition.
+getPackagesUsedByExports :: Id -> CSignature -> S.Set Id
+getPackagesUsedByExports currentPkg (CSignature _ _ _ defns) =
+    let allPkgs = mapMaybe getPackageFromDefn defns
+        externalPkgs = filter (/= currentPkg) allPkgs
+    in  S.fromList externalPkgs
+  where
+    -- Get the package qualifier from a qualified Id
+    getIdPackage :: Id -> Maybe Id
+    getIdPackage i =
+        let qual = getIdQual i
+        in  if qual == fsEmpty
+            then Nothing
+            else Just (mk_no qual)
+
+    -- Get the package of the item being exported (not types within its definition)
+    getPackageFromDefn :: CDefn -> Maybe Id
+    getPackageFromDefn (Ctype (IdKind i _) _ _) = getIdPackage i
+    getPackageFromDefn (CItype (IdKind i _) _ _) = getIdPackage i
+    getPackageFromDefn (Cdata { cd_name = IdKind i _ }) = getIdPackage i
+    getPackageFromDefn (Cstruct _ _ (IdKind i _) _ _ _) = getIdPackage i
+    getPackageFromDefn (Cclass _ _ (IdKind i _) _ _ _) = getIdPackage i
+    getPackageFromDefn (CIclass _ _ (IdKind i _) _ _ _) = getIdPackage i
+    getPackageFromDefn (CIValueSign i _) = getIdPackage i
+    getPackageFromDefn (Cforeign i _ _ _) = getIdPackage i
+    getPackageFromDefn (Cprimitive i _) = getIdPackage i
+    getPackageFromDefn (CprimType (IdKind i _)) = getIdPackage i
+    getPackageFromDefn (CIinstance _ _) = Nothing  -- Instances don't have a name
+    getPackageFromDefn (CPragma _) = Nothing
+    getPackageFromDefn d = internalError $ "GenSign.getPackageFromDefn unexpected defn in signature: " ++ ppReadable d
 -- ---------------

@@ -615,6 +615,7 @@ data ErrMsg =
         | WShadowDecl String Position -- ^ var name, previous declaration pos
         | WNeverAssigned String -- ^ variable was declared but not assigned
         | WDeprecated String String String -- ^ what, it's name, optional text
+        | WUnusedImport String -- ^ package name that was imported but not used
         | EObsolete String String String -- ^ what, it's name, optional text
         | MRestrictions String String  -- ^ please refer to the section on ____ in the Bluespec User Guide for restrictions on using ___
         | WExperimental String  -- ^ support for ___ is experimental
@@ -2958,6 +2959,10 @@ getErrorText (EConstrFieldsNotNamed c t) =
     (Type 151, empty,
      s2par ("Constructor " ++ quote c ++ " for type " ++ quote t ++
             " does not have named fields."))
+
+getErrorText (WUnusedImport pkg) =
+    (Type 152, empty,
+     s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
 
 -- Generation Errors
 

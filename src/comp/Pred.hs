@@ -206,8 +206,7 @@ instance Ord Class where
     c <= c'  = (name c, csig c) <= (name c', csig c')
     c `compare` c'  = (name c, csig c) `compare` (name c', csig c')
 
--- someone should comment what all these
--- things are that go into an Inst.
+-- instance body, type variables (to quantify), instance head (i.e. qs => p), source package
 data Inst = Inst CExpr [TyVar] (Qual Pred) (Maybe Id)
 
 instance Hyper Inst where

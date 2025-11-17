@@ -3157,7 +3157,7 @@ writeableIfc :: Flags -> SymTab -> CType -> Bool
 writeableIfc flags r t
     | Just _ <- isWriteType r t = True
     -- incoherent matches are resolved *after* reducePred
-    | Right (Just _) <- fst $ runTI flags False r checkWriteable = True
+    | Right (Just _) <- fst3 $ runTI flags False r checkWriteable = True
     | otherwise = False
   where checkWriteable = do
           wCls <- findCls (CTypeclass idPrimWriteable)

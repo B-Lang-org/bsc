@@ -560,7 +560,7 @@ dvsSub s dvs =
 -}
 
 byInst :: VPred -> Inst -> TI (Maybe ([VPred], Bind, (Subst, Subst)))
-byInst (VPred i p) (Inst e _ (ps :=> h) _) = do
+byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
@@ -570,6 +570,8 @@ byInst (VPred i p) (Inst e _ (ps :=> h) _) = do
     case m of
      Nothing -> return Nothing
      Just (inst_subst, (fd_subst, num_eqs)) -> do
+        -- Record that this instance's package was used
+        recordPackageUse pkg
         let s = fd_subst @@ inst_subst
         vs <- mapM (const newDict) ps
         -- if the instance is recursive (has a proviso for itself and expects
@@ -701,7 +703,8 @@ findAssump i as =
         s <- getSymTab
         case findVar s i of
          Nothing -> errorAtId EUnboundVar i
-         Just (VarInfo _ a d _) -> do
+         Just (VarInfo _ a d pkg) -> do
+            recordPackageUse pkg
             case d of
                 Nothing -> return ()
                 Just str -> twarn (getPosition i,
@@ -791,7 +794,7 @@ expandSynN :: Flags -> SymTab -> Type -> Type
 expandSynN flags s t =
    -- should only need to match instances for coherent typeclasses
    -- XXX user code corner-case?
-   case fst $ runTI flags False s $
+   case fst3 $ runTI flags False s $
                 do addBoundTVs (tv t) -- to prevent generated variable capture
                    normT t
    of  Left msg -> internalError ("expandSynN " ++ ppReadable msg)

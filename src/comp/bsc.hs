@@ -80,7 +80,7 @@ import Pragma
 import VModInfo(VPathInfo, VPort)
 import Deriving(derive)
 import SymTab
-import MakeSymTab(mkSymTab, cConvInst)
+import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
 import TypeCheck(cCtxReduceIO, cTypeCheck)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
@@ -393,6 +393,10 @@ compilePackage
     symt00 <- mkSymTab errh mop
     t <- dump errh flags t DFsyminitial dumpnames symt00
 
+    -- Extract packages used in type constructors from the parsed package
+    -- (before any transformations that might expand synonyms or change types)
+    let pkgsUsedInTypes = getPackagesUsedInTypes symt00 mop
+
     -- whether we are doing code generation for modules
     let generating = backend flags /= Nothing
 
@@ -443,7 +447,7 @@ compilePackage
 
     -- Type check and insert dictionaries
     start flags DFtypecheck
-    (mod, tcErrors) <- cTypeCheck errh flags symt minst
+    (mod, tcErrors, pkgsUsedInCode) <- cTypeCheck errh flags symt minst
     --putStr (ppReadable mod)
     t <- dump errh flags t DFtypecheck dumpnames mod
 
@@ -640,9 +644,23 @@ compilePackage
     start flags DFwriteBin
 
     -- Generate the user-visible type signature
-    bi_sig <- genUserSign errh symt mctx
+    (bi_sig, pkgsUsedInExports) <- genUserSign errh symt mctx
     -- Generate a type signature where everything is visible
     bo_sig <- genEverythingSign errh symt mctx
+
+    -- We gather information about used imports in three phases:
+    -- Phase 1: Type constructor analysis and synonym expansion
+    --          (after opparse and generating the initial symbol table) 
+    -- Phase 2: Type checking (constructors, functions, fields, instances) (in typecheck)
+    -- Phase 3: Export analysis and re-exports (in genUserSign)
+    -- Check for unused imports by combining packages from all three sources
+    -- and seeing which explicit imports are unused.
+    let (CPackage _ _ imports _ _ _ _) = mctx
+        allUsedPkgs = S.unions [pkgsUsedInTypes, pkgsUsedInCode, pkgsUsedInExports]
+        importedPkgs = [i | (CImpId _ i) <- imports]
+        unusedPkgs = filter (\pkg -> not (S.member pkg allUsedPkgs)) importedPkgs
+        unusedWarns = [(getPosition pkg, WUnusedImport (pfpString pkg)) | pkg <- unusedPkgs]
+    when (not (null unusedWarns)) $ bsWarning errh unusedWarns
 
     -- Generate binary version of the internal tree .bo file
     let bin_filename = putInDir (bdir flags) name binSuffix
@@ -2198,7 +2216,7 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     t <- dump errh flags t DFctxreduce dumpnames cpkg_ctx
 
     start flags DFtypecheck
-    (cpkg_chk, tcErrors) <- cTypeCheck errh flags symt cpkg_ctx
+    (cpkg_chk, tcErrors, _usedPkgs) <- cTypeCheck errh flags symt cpkg_ctx
     t <- dump errh flags t DFtypecheck dumpnames cpkg_chk
 
     start flags DFsimplified

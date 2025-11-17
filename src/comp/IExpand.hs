@@ -4828,7 +4828,7 @@ evalCExpr tag ce ct as = do
   -- built-in typeclass reflection only uses coherent typeclasses
   -- XXX there may be a corner case if we depend on user code that requires
   -- XXX incoherent matching
-  case (fst $ TM.runTI flags False r (topExpr ct ce)) of
+  case (fst3 $ TM.runTI flags False r (topExpr ct ce)) of
     Left errs -> internalError (err_tag ++ " errors: " ++ ppReadable errs)
     Right (ps, ce') -> do
       when (not (null ps)) $ internalError (err_tag ++ " unreduced: " ++ ppReadable ps)

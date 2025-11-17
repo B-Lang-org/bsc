@@ -2,6 +2,7 @@
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
                   mkSymTab,
+                  getPackagesUsedInTypes,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
                   convCType,
@@ -150,8 +151,13 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
 
         mkQuals = mkDefaultQuals -- always unqualify
 
+        -- when tracking source packages in the symbol table, Nothing indicates that
+        -- the source is the current package being compiled
+        current_pkg :: Maybe Id
+        current_pkg = Nothing
+
         -- previous symbol table with types and classes added
-        (symT, clsErrs) = mkTypeSyms errh mkQuals mmi Nothing iks ds insts simp
+        (symT, clsErrs) = mkTypeSyms errh mkQuals mmi current_pkg iks ds insts simp
 
         allClsErrs = impClsErrs ++ clsErrs
 
@@ -159,15 +165,15 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
         -- XXX and something about top vars?
         -- XXX and something about instances?
         final_symT =
-            let s1 = symAddCons mkQuals mmi Nothing symT ds
-                s2 = symAddFields mkQuals mmi Nothing s1 ds
-                s3 = symAddVars mkQuals mmi Nothing s2 ds
-            in  case (getTopVars s3 mmi Nothing ds) of
+            let s1 = symAddCons mkQuals mmi current_pkg symT ds
+                s2 = symAddFields mkQuals mmi current_pkg s1 ds
+                s3 = symAddVars mkQuals mmi current_pkg s2 ds
+            in  case (getTopVars s3 mmi current_pkg ds) of
                     Left msgs -> bsError errh (errmsgs msgs)
                     Right vs  ->
                         let ivs = [ let i = mkInstId mi (updTypes s3 t)
                                         a = i :>: mustConvCQType s3 [] qt
-                                    in  (i, VarInfo VarDefn a Nothing Nothing)
+                                    in  (i, VarInfo VarDefn a Nothing current_pkg)
                                   | (mi, qt@(CQType _ t)) <- iinstqs ]
                         in  return $ s3 `addVarsUQ` vs `addVarsUQ` ivs
 
@@ -202,6 +208,36 @@ updTypes r (TCon (TyCon i _ _)) =
 updTypes r (TAp f a) = TAp (updTypes r f) (updTypes r a)
 updTypes r t = t
 
+
+-- ---------------
+-- Package usage tracking for unused import warnings
+
+-- Extract packages referenced by type constructors in package definitions.
+-- This runs after mkSymTab but before type checking, capturing type synonym
+-- uses before they are expanded away. Type synonyms are expanded recursively
+-- to find all transitively referenced packages.
+getPackagesUsedInTypes :: SymTab -> CPackage -> S.Set Id
+getPackagesUsedInTypes symtab (CPackage _ _ _ _ _ ds _) =
+    let directTyCons = S.unions (map getFTCDn ds)
+    in  S.unions (map (getPackagesForType symtab) (S.toList directTyCons))
+
+-- For a type constructor, get its source package and recursively expand
+-- if it's a type synonym. Non-synonym types (data, struct, abstract) are
+-- not recursed into. Returns empty set for local types (ti_pkg = Nothing).
+getPackagesForType :: SymTab -> Id -> S.Set Id
+getPackagesForType symtab tycon =
+    case findType symtab tycon of
+        Just (TypeInfo { ti_pkg = Just pkg, ti_sort = TItype _ rhs }) ->
+            -- Type synonym from imported package: record package and recurse
+            let rhsTyCons = getFTyCons rhs
+                recursivePkgs = S.unions (map (getPackagesForType symtab) (S.toList rhsTyCons))
+            in  S.insert pkg recursivePkgs
+        Just (TypeInfo { ti_pkg = Just pkg }) ->
+            -- Non-synonym from imported package: record package only
+            S.singleton pkg
+        _ -> S.empty  -- Not found or local type (ti_pkg = Nothing)
+
+-- ---------------
 
 data QInst = QInst Id (Qual CType)
 

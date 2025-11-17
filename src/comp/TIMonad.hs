@@ -17,6 +17,7 @@ module TIMonad(
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
         numEqCls,
         updAssumpPos,
+        recordPackageUse,
         incrementSatStack, decrementSatStack, getSatStack, mkTSSatElement, TSSatElement,
               pushSatStackContext, popSatStackContext
         , tiRecoveringFromError
@@ -48,6 +49,7 @@ import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
 import Data.List(partition)
+import qualified Data.Set as S
 import Util(headOrErr)
 
 -------
@@ -72,7 +74,8 @@ data TStatePersistent = TStatePersistent {
    -- whether TI monad allows general incoherent instance matches
    -- or only for marked typeclasses
    tsAllowIncoherent :: Bool,
-   tsWarns :: [WMsg] -- accumulated warning messages
+   tsWarns :: [WMsg], -- accumulated warning messages
+   tsUsedPackages :: S.Set Id -- packages from which symbols were used
 }
 
 -- typechecking state that is restored in case of error
@@ -143,7 +146,8 @@ initPersistentState flags ai s = TStatePersistent {
     tsNextTyVar = 1000,
     tsWarns = [],
     tsAllowIncoherent = ai,
-    tsRecoveredErrors = []
+    tsRecoveredErrors = [],
+    tsUsedPackages = S.empty
   }
 
 initRecoverState :: TStateRecover
@@ -154,8 +158,8 @@ initRecoverState = TStateRecover {
     tsSatStack = mkSizedStack [mkSizedStack []]
   }
 
-runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg])
-runTI flags ai s m = (final_result, tsWarns pState)
+runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg], S.Set Id)
+runTI flags ai s m = (final_result, tsWarns pState, tsUsedPackages pState)
   where (result, pState) = runState error_run
                                     (initPersistentState flags ai s)
         error_run = (runExceptT (runStateT m initRecoverState))
@@ -239,6 +243,12 @@ tiRecoveringFromErrorxx do_something _ = do_something
 twarn :: WMsg -> TI ()
 twarn w = lift (modify (addWarning w))
   where addWarning w s = s { tsWarns = w:(tsWarns s) }
+
+-- Record that a symbol from a package was used
+recordPackageUse :: Maybe Id -> TI ()
+recordPackageUse Nothing = return ()  -- no package to record
+recordPackageUse (Just pkg) = lift (modify (addPackage pkg))
+  where addPackage pkg s = s { tsUsedPackages = S.insert pkg (tsUsedPackages s) }
 
 -- XXX maybe someday get rid of this function and replace with catchError
 handle :: TI a -> (EMsgs -> TI a) -> TI a
@@ -463,14 +473,18 @@ findCons ct i = do
     -- traceM ("findCons: " ++ show (ct,i))
     r <- getSymTab
     case findConVis r i of
-     Just [ConInfo { ci_id = ti, ci_assump = a }] -> return (updAssumpPos i a, ti)
+     Just [ConInfo { ci_id = ti, ci_assump = a, ci_pkg = pkg }] -> do
+        recordPackageUse pkg
+        return (updAssumpPos i a, ti)
      Just cs -> do
         s <- getSubst
         let ct' = apSub s ct
         case leftCon (expandSyn ct') of
          Nothing -> errorAtId (EConstrAmb (pfpString ct')) i
-         Just di -> case [ a | ConInfo {ci_id = i', ci_assump = a} <- cs, qualEq di i'] of
-                   [a] -> return (updAssumpPos i a, di)
+         Just di -> case [ (a, pkg) | ConInfo {ci_id = i', ci_assump = a, ci_pkg = pkg} <- cs, qualEq di i'] of
+                   [(a, pkg)] -> do
+                       recordPackageUse pkg
+                       return (updAssumpPos i a, di)
                    []  -> errSuggest r i
                    _   -> internalError "findCons ambig"
      Nothing -> errSuggest r i
@@ -487,14 +501,16 @@ findTyCon :: Id -> TI TyCon
 findTyCon i = do
     r <- getSymTab
     case findType r i of
-     Just (TypeInfo (Just i') k _ ts@(TItype _ t) _) ->
+     Just (TypeInfo (Just i') k _ ts@(TItype _ t) pkg) -> do
+        recordPackageUse pkg
         -- It's a type alias.  If the left element of the alias is a
         -- constructor, find the type of that constructor; otherwise,
         -- give up and return the info that's available.
         case (leftCon t) of
             Just aliased_i -> findTyCon aliased_i
             Nothing -> return (TyCon i' (Just k) ts)
-     Just (TypeInfo (Just i') k _ ts _) ->
+     Just (TypeInfo (Just i') k _ ts pkg) -> do
+        recordPackageUse pkg
         return (TyCon i' (Just k) ts)
      Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("findTyCon: unexpected numeric or string type: " ++ ppReadable i)
@@ -504,7 +520,9 @@ findCls :: CTypeclass -> TI Class
 findCls i = do
     r <- getSymTab
     case findSClass r i of
-     Just cl -> return cl
+     Just cl -> do
+        recordPackageUse (pkg_src cl)
+        return cl
      Nothing -> errorAtId EUnboundTyCon (typeclassId i)
 
 bitCls :: TI Class
@@ -636,11 +654,14 @@ findFields struct_ty0 field_id = do
           case (findField symt field_id) of
             Nothing -> errorAtId (ENotField (pfpString qtc)) field_id
             Just fs ->
-                case [ (i, a, n) | (FieldInfo { fi_id = i,
-                                                fi_arity = n,
-                                                fi_assump = a }) <- fs,
-                                   i == qtc ] of
-                  [(_, a, n)] -> return (updAssumpPos field_id a, qtc, n)
+                case [ (i, a, n, pkg) | (FieldInfo { fi_id = i,
+                                                      fi_arity = n,
+                                                      fi_assump = a,
+                                                      fi_pkg = pkg }) <- fs,
+                                        i == qtc ] of
+                  [(_, a, n, pkg)] -> do
+                      recordPackageUse pkg
+                      return (updAssumpPos field_id a, qtc, n)
                   [] -> errorAtId (ENotField (pfpString qtc)) field_id
                   xs -> internalError ("findFields ambig: " ++
                                        ppReadable (struct_ty, field_id, xs))
@@ -650,10 +671,11 @@ findFields struct_ty0 field_id = do
             Nothing ->
                 -- there are no structs with this field
                 errorAtId EUnboundField field_id
-            Just [FieldInfo {fi_id = qtc, fi_arity = n, fi_assump = a }] ->
+            Just [FieldInfo {fi_id = qtc, fi_arity = n, fi_assump = a, fi_pkg = pkg }] -> do
                 -- there is only one struct with this field
                 -- if the expression is not that type, the user will get a
                 -- mismatch error later
+                recordPackageUse pkg
                 return (updAssumpPos field_id a, qtc, n)
             Just fs ->
                 let tis = map (pfpString . fi_id) fs
