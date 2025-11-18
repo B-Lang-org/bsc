@@ -121,11 +121,10 @@ idInvalid = prelude_id_no fsInvalid
 idValid = prelude_id_no fsValid
 idEmpty = prelude_id_no fsEmptyIfc
 idFile = prelude_id_no fsFile
-idEither, idLeft, idRight, idPreludeCons :: Id
+idEither, idLeft, idRight :: Id
 idEither = prelude_id_no fsEither
 idLeft = prelude_id_no fsLeft
 idRight = prelude_id_no fsRight
-idPreludeCons = prelude_id_no fsCons  -- idCons isn't qualified
 
 idActionValue :: Id
 idActionValue = prelude_id_no fsActionValue
@@ -310,14 +309,13 @@ idSJump pos   = mkId pos fsSJump
 idSNamed pos  = mkId pos fsSNamed
 idS    pos    = mkId pos fsS
 idStmt pos    = mkId pos fsStmt
-idSBreak, idSContinue, idSReturn, idCons, idConcat :: Position -> Id
+idSBreak, idSContinue, idSReturn, idCons :: Position -> Id
 idSBreak pos  = mkId pos fsSBreak
 idSContinue pos = mkId pos fsSContinue
 idSReturn   pos = mkId pos fsSReturn
-idCons pos    = mkId pos fsCons
-idConcat pos  = mkId pos fsConcat
+idCons pos    = prelude_id pos fsCons
 idNil, idNothing, idSprime :: Position -> Id
-idNil     pos = mkId pos fsNil
+idNil     pos = prelude_id pos fsNil
 idNothing pos = mkId pos fsNothing
 idSprime  pos = mkId pos fsSprime
 
