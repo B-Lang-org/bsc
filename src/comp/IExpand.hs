@@ -2118,7 +2118,7 @@ evalStringList e = do
   e' <- evaleUH e
   case e' of
     IAps (ICon i _) _ [a] ->
-      if i == idPreludeCons then do
+      if i == idCons noPosition then do
         a' <- evaleUH a
         case a' of
           IAps (ICon _ (ICTuple {})) _ [e_h, e_t] -> do
