@@ -1110,7 +1110,7 @@ genTo pps ty mk =
                    localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
-                   arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
+                   arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                    fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f)(getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
@@ -2207,7 +2207,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
               let fproxy = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                   proxy = mkProxy $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
-                  arg_names = mkList [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
+                  arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                   result = stringLiteralAt noPosition resultName
               return [
                 CSExpr Nothing $
