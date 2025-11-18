@@ -95,7 +95,8 @@ package Prelude(
         primCharToString,
         primUIntBitsToInteger, primIntBitsToInteger,
 
-        ($), (∘), id, const, constFn, flip, while, curry, uncurry, Curry(..), asTypeOf,
+        ($), (∘), id, const, constFn, flip, while,
+        curry, uncurry, Curry(..), Curry', asTypeOf,
         liftM, liftM2, bindM,
 
         (<+>), rJoin,
@@ -172,7 +173,7 @@ package Prelude(
         Tuple6, tuple6, Has_tpl_6(..),
         Tuple7, tuple7, Has_tpl_7(..),
         Tuple8, tuple8, Has_tpl_8(..),
-        AppendTuple(..), AppendTuple', TupleSize,
+        AppendTuple(..), AppendTuple', AppendTuple'', TupleSize, TupleSize',
 
         -- lists required for desugaring
         List(..),
@@ -2605,17 +2606,25 @@ class Curry f g | f -> g where
   curryN :: f -> g
   uncurryN :: g -> f
 
-instance (Curry (b -> c) d) => Curry ((a, b) -> c) (a -> d) where
-  curryN f x = curryN $ \y -> f (x, y)
-  uncurryN f (x, y) = uncurryN (f x) y
-
 instance Curry (() -> a) a where
   curryN f = f ()
   uncurryN f _ = f
 
-instance Curry (a -> b) (a -> b) where
-  curryN = id
-  uncurryN = id
+instance (Curry' f g) => Curry f g where
+  curryN = curryN'
+  uncurryN = uncurryN'
+
+class Curry' f g | f -> g where
+  curryN' :: f -> g
+  uncurryN' :: g -> f
+
+instance (Curry' (b -> c) d) => Curry' ((a, b) -> c) (a -> d) where
+  curryN' f x = curryN' $ \y -> f (x, y)
+  uncurryN' f (x, y) = uncurryN' (f x) y
+
+instance Curry' (a -> b) (a -> b) where
+  curryN' = id
+  uncurryN' = id
 
 --@ Constant function
 --@ \index{const@\te{const} (Prelude function)}
@@ -3429,19 +3438,30 @@ instance AppendTuple' () a a where
   appendTuple' _ = id
   splitTuple' x = ((), x)
 
-instance AppendTuple' a b (a, b) where
-  appendTuple' a b = (a, b)
-  splitTuple' = id
+instance (AppendTuple'' a b c) => AppendTuple' a b c where
+  appendTuple' = appendTuple''
+  splitTuple' = splitTuple''
 
-instance (AppendTuple' a b c) => AppendTuple' (h, a) b (h, c) where
-  appendTuple' (x, y) z = (x, appendTuple' y z)
-  splitTuple' (x, y) = case splitTuple' y of
+class AppendTuple'' a b c | a b -> c where
+  appendTuple'' :: a -> b -> c
+  splitTuple'' :: c -> (a, b)
+
+instance AppendTuple'' a b (a, b) where
+  appendTuple'' a b = (a, b)
+  splitTuple'' = id
+
+instance (AppendTuple'' a b c) => AppendTuple'' (h, a) b (h, c) where
+  appendTuple'' (x, y) z = (x, appendTuple'' y z)
+  splitTuple'' (x, y) = case splitTuple'' y of
     (w, z) -> ((x, w), z)
 
 class TupleSize a n | a -> n where {}
 instance TupleSize () 0 where {}
-instance TupleSize a 1 where {}
-instance (TupleSize b n) => TupleSize (a, b) (TAdd n 1) where {}
+instance (TupleSize' a n) => TupleSize a n where {}
+
+class TupleSize' a n | a -> n where {}
+instance TupleSize' a 1 where {}
+instance (TupleSize' b n) => TupleSize' (a, b) (TAdd n 1) where {}
 
 -- FUNCTIONS TO REPLACE UNAVAILABLE INFIXES
 
