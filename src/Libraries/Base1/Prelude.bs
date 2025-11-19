@@ -261,7 +261,7 @@ package Prelude(
 
         primMethod, -- TODO: Needed only in PreludeBSV for vMkRWire1, should be removed.
         WrapField(..), WrapMethod(..), WrapPorts(..),
-        Port(..), SplitPorts(..)
+        Port(..), unPort, SplitPorts(..)
         ) where
 
 infixr  0 $
@@ -4641,6 +4641,9 @@ class SplitPorts a p | a -> p where
 data Port a = Port a
   deriving (FShow)
 
+unPort :: Port a -> a
+unPort (Port a) = a
+
 -- XXX if the default instance is the only one, then it gets inlined in CtxReduce
 -- and other instances for this class are ignored.
 instance SplitPorts () () where
@@ -4651,7 +4654,7 @@ instance SplitPorts () () where
 -- Default instance: don't split anything we don't know how to split.
 instance SplitPorts a (Port a) where
   splitPorts = Port
-  unsplitPorts (Port a) = a
+  unsplitPorts = unPort
   portNames _  base = Cons base Nil
 
 {-
