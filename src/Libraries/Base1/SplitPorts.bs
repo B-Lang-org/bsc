@@ -92,12 +92,12 @@ class DeepSplitPorts a p | a -> p where
 
 instance DeepSplitPorts (UInt n) (Port (UInt n)) where
   deepSplitPorts = Port
-  deepUnsplitPorts (Port x) = x
+  deepUnsplitPorts = unPort
   deepSplitPortNames _ base = Cons base Nil
 
 instance DeepSplitPorts (Int n) (Port (Int n)) where
   deepSplitPorts = Port
-  deepUnsplitPorts (Port x) = x
+  deepUnsplitPorts = unPort
   deepSplitPortNames _ base = Cons base Nil
 
 instance DeepSplitPorts () () where
