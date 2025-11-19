@@ -41,9 +41,6 @@ test_c_veri_bsv_modules \
   module_testLessPatternsBSVFunction \
   sysNoInline_LessPatternsThanArgs.out.expected
 
-# The typedef fails because BSC doesn't expand the synonym before checking
-# to see if the result type is in Bits, so the user gets a proviso error
-# (bug 1466)
 compile_verilog_pass NoInline_LessPatternsThanArgs_BSV_TypeDef.bsv
 
 # -----
