@@ -4542,7 +4542,9 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
 
   methodArgBaseNames _ prefix (Cons h t) i = Cons
     -- arg_names can start with a digit
-    (if prefix == "" && not (isDigit $ stringHead h) then h else prefix +++ "_" +++ h)
+    (if prefix == "" && (h == "" || not (isDigit $ stringHead h))
+     then h
+     else prefix +++ "_" +++ h)
     (methodArgBaseNames (_ :: b) prefix t $ i + 1)
   methodArgBaseNames _ prefix Nil i = Cons
     (prefix +++ "_" +++ integerToString i)
