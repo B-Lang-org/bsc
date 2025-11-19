@@ -88,7 +88,7 @@ getDefArgs dcls t =
 
 -- ====================
 
-mkProxy :: CType -> CExpr
-mkProxy ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
+mkTypeProxyExpr :: CType -> CExpr
+mkTypeProxyExpr ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
 
 
