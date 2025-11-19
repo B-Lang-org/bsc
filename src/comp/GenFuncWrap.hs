@@ -246,7 +246,7 @@ funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
         -- the result is either an actionvalue or a value
         isAV = isActionValue symt r
 
-        fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (getIdFString i) (getIdPosition i)
+        fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (getIdFString i) (getIdPosition i)
         expr = cVApply id_fromWrapField [fnp, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
