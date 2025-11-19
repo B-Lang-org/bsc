@@ -69,7 +69,7 @@ instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta (MetaField name id
   shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
   shallowSplitPortNames' _ base = shallowSplitPortNames' (_ :: r) $
     -- Avoid an extra underscore, since data fields names are _[0-9]+
-    if stringHead (stringOf name) == '_'
+    if stringOf name == "" || stringHead (stringOf name) == '_'
     then base +++ stringOf name
     else base +++ "_" +++ stringOf name
 
@@ -180,7 +180,7 @@ instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta (MetaField name idx) r
   deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
   deepSplitPortNames'' _ base = deepSplitPortNames'' (_ :: r) $
     -- Avoid an extra underscore, since data fields names are _[0-9]+
-    if stringHead (stringOf name) == '_'
+    if stringOf name == "" || stringHead (stringOf name) == '_'
     then base +++ stringOf name
     else base +++ "_" +++ stringOf name
 
