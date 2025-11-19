@@ -1111,7 +1111,7 @@ genTo pps ty mk =
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
-                   fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f)(getIdPosition f)
+                   fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f)(getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
                let e = CApply (CVar id_toWrapField) [fnp, prefix, arg_names, ec]
@@ -1205,7 +1205,7 @@ genFrom pps ty var =
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
 
-              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+              let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
@@ -1618,7 +1618,7 @@ mkFromBind true_ifc_ids var ft =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
-              let fnp = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+              let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
@@ -2204,8 +2204,8 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                         Just str -> joinStrings_ currentPre str
                         Nothing  -> joinStrings_ currentPre methodStr
 
-              let fproxy = mkProxy $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-                  proxy = mkProxy $ foldr arrow r as
+              let fproxy = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+                  proxy = mkTypeProxyExpr $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                   result = stringLiteralAt noPosition resultName
