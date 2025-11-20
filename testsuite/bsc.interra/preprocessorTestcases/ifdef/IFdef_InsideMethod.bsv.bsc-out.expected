@@ -2,4 +2,6 @@ checking package dependencies
 compiling IFdef_InsideMethod.bsv
 Warning: Unknown position: (S0001)
   File name `IFdef_InsideMethod.bsv' does not match package name `Design'
+Warning: "IFdef_InsideMethod.bsv", line 3, column 8: (T0152)
+  Package `Vector' is imported but not used
 All packages are up to date.

@@ -1,4 +1,4 @@
-import Vector::*;
+
 import RegFile::*;
 
 (* synthesize *)

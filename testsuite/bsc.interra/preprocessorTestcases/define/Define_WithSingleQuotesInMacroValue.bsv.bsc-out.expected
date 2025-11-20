@@ -3,4 +3,6 @@ compiling Define_WithSingleQuotesInMacroValue.bsv
 Warning: Unknown position: (S0001)
   File name `Define_WithSingleQuotesInMacroValue.bsv' does not match package
   name `Design'
+Warning: "Define_WithSingleQuotesInMacroValue.bsv", line 3, column 8: (T0152)
+  Package `Vector' is imported but not used
 All packages are up to date.

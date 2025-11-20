@@ -2,4 +2,6 @@ checking package dependencies
 compiling Undef_MacroUndef.bsv
 Warning: Unknown position: (S0001)
   File name `Undef_MacroUndef.bsv' does not match package name `Design'
+Warning: "Undef_MacroUndef.bsv", line 7, column 8: (T0152)
+  Package `Vector' is imported but not used
 All packages are up to date.
