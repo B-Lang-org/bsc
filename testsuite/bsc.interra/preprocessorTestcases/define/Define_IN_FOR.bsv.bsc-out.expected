@@ -5,4 +5,6 @@ compiling Define_IN_FOR.bsv
 Warning: "Define_IN_FOR.bsv", line 15, column 9: (P0102)
   Declaration of `i' shadows previous declaration at "Define_IN_FOR.bsv", line
   14, column 5
+Warning: "Define_IN_FOR.bsv", line 3, column 8: (T0129)
+  Package `Vector' is imported but not used
 All packages are up to date.

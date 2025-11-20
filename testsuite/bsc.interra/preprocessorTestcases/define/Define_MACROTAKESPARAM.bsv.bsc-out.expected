@@ -2,4 +2,6 @@ checking package dependencies
 Warning: "Define_MACROTAKESPARAM.bsv", line 5, column 9: (S0001)
   File name `Define_MACROTAKESPARAM.bsv' does not match package name `Design'
 compiling Define_MACROTAKESPARAM.bsv
+Warning: "Define_MACROTAKESPARAM.bsv", line 7, column 8: (T0129)
+  Package `Vector' is imported but not used
 All packages are up to date.

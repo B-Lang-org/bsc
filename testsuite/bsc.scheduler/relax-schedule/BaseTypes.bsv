@@ -3,7 +3,7 @@ package BaseTypes;
 /**************************************/
 /*              Imports               */
 /**************************************/
-import Vector::*;
+
 
 import X86_Datatypes::*;
 // no need for extensive ISA information, functional model will translate a lot of them

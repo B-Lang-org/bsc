@@ -3,4 +3,6 @@ Warning: "Define_IN_BITVECTOR_DECL.bsv", line 1, column 9: (S0001)
   File name `Define_IN_BITVECTOR_DECL.bsv' does not match package name
   `Design'
 compiling Define_IN_BITVECTOR_DECL.bsv
+Warning: "Define_IN_BITVECTOR_DECL.bsv", line 3, column 8: (T0129)
+  Package `Vector' is imported but not used
 All packages are up to date.

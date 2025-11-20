@@ -9,8 +9,6 @@ package FPAdd;
 
 import FPLibrary::* ;
 import FIFO::* ;
-import ListN::*;
-import List::*;
 
 
 

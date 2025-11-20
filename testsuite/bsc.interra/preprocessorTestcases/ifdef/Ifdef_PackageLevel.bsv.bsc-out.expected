@@ -2,4 +2,6 @@ checking package dependencies
 Warning: "Ifdef_PackageLevel.bsv", line 5, column 9: (S0001)
   File name `Ifdef_PackageLevel.bsv' does not match package name `Design'
 compiling Ifdef_PackageLevel.bsv
+Warning: "Ifdef_PackageLevel.bsv", line 7, column 8: (T0129)
+  Package `Vector' is imported but not used
 All packages are up to date.
