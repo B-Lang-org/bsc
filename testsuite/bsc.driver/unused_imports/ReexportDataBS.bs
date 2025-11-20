@@ -1,0 +1,6 @@
+-- Test: Re-export data type with constructors (Classic syntax - Phase 3)
+-- Expected: NO warning - Helper is used because we re-export Color
+
+package ReexportDataBS(Color(..)) where
+
+import Helper

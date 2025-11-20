@@ -1,0 +1,9 @@
+checking package dependencies
+compiling OrphanInstance.bsv
+Warning: "OrphanInstance.bsv", line 9, column 10: (T0127)
+  Exporting orphan typeclass instance Helper::Describable#(Bool). The
+  instance's typeclass as well as all of the instance's source type parameters
+  are defined in other packages. This can lead to confusing and inconsistent
+  instance resolution if the orphan instance is not imported everywhere it
+  could be used.
+All packages are up to date.

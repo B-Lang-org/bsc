@@ -1,0 +1,73 @@
+# Tests for unused import warnings
+
+# Compile helper packages first
+compile_pass Helper.bsv
+compile_pass Helper2.bsv
+compile_pass Helper3.bsv
+compile_pass HelperAlias.bsv
+compile_pass_warning OrphanInstance.bsv T0127 1
+compare_file OrphanInstance.bsv.bsc-out
+
+# Test 1: Basic unused import - should warn about Helper
+compile_pass_warning UnusedImport.bsv T0152 1
+compare_file UnusedImport.bsv.bsc-out
+compile_pass_warning UnusedImportBS.bs T0152 1
+compare_file UnusedImportBS.bs.bsc-out
+
+# Test 2: Constructor use - should NOT warn
+compile_pass_no_warning ConstructorUse.bsv
+compile_pass_no_warning ConstructorUseBS.bs
+
+# Test 3: Type synonym expansion - should NOT warn
+compile_pass_no_warning TypeSynonymExpansion.bsv
+compile_pass_no_warning TypeSynonymExpansionBS.bs
+
+# Test 4: Function reference - should NOT warn
+compile_pass_no_warning FunctionReference.bsv
+compile_pass_no_warning FunctionReferenceBS.bs
+
+# Test 5: Field access - should NOT warn
+compile_pass_no_warning FieldAccess.bsv
+compile_pass_no_warning FieldAccessBS.bs
+
+# Test 6: Instance use - should NOT warn
+compile_pass_no_warning InstanceUse.bsv
+compile_pass_no_warning InstanceUseBS.bs
+
+# Test 6b: Orphan instance use - should NOT warn about OrphanInstance
+compile_pass_no_warning OrphanInstanceUse.bsv
+compile_pass_warning OrphanInstanceBS.bs T0127 1
+compare_file OrphanInstanceBS.bs.bsc-out
+compile_pass_no_warning OrphanInstanceUseBS.bs
+
+# Test 7: Re-export package - should NOT warn
+compile_pass_no_warning Reexport.bsv
+compile_pass_no_warning ReexportBS.bs
+
+# Test 8: Re-export specific type - should NOT warn
+compile_pass_no_warning ReexportType.bsv
+compile_pass_no_warning ReexportTypeBS.bs
+
+# Test 9: Re-export data type - should NOT warn
+compile_pass_no_warning ReexportData.bsv
+compile_pass_no_warning ReexportDataBS.bs
+
+# Test 10: Re-export function - should NOT warn
+compile_pass_no_warning ReexportFunction.bsv
+compile_pass_no_warning ReexportFunctionBS.bs
+
+# Test 11: Local export with imported type - should NOT warn
+compile_pass_no_warning LocalExportWithImportedType.bsv
+compile_pass_no_warning LocalExportWithImportedTypeBS.bs
+
+# Test 12: Transitive synonym expansion - should NOT warn
+compile_pass_no_warning TransitiveSynonym.bsv
+compile_pass_no_warning TransitiveSynonymBS.bs
+
+# Test 13: Typeclass constraint - should NOT warn
+compile_pass_no_warning TypeclassConstraint.bsv
+compile_pass_no_warning TypeclassConstraintBS.bs
+
+# Test 14: Ambiguous constructor - should warn about Helper2
+compile_pass_warning AmbiguousConstructor.bsv T0152 1
+compare_file AmbiguousConstructor.bsv.bsc-out

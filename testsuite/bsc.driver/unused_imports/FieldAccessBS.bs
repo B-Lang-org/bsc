@@ -1,0 +1,9 @@
+-- Test: Field access (Classic syntax - Phase 2)
+-- Expected: NO warning - Helper is used via field access
+
+package FieldAccessBS where
+
+import Helper
+
+getX :: Point -> Byte
+getX p = p.x  -- Accesses field from Helper's Point struct

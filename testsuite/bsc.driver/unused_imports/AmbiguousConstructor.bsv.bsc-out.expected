@@ -1,0 +1,5 @@
+checking package dependencies
+compiling AmbiguousConstructor.bsv
+Warning: "AmbiguousConstructor.bsv", line 8, column 8: (T0152)
+  Package `Helper2' is imported but not used
+All packages are up to date.

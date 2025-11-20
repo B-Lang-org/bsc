@@ -1,0 +1,6 @@
+-- Test: Re-export function (Classic syntax - Phase 3)
+-- Expected: NO warning - Helper is used because we re-export addOne
+
+package ReexportFunctionBS(addOne) where
+
+import Helper

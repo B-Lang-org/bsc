@@ -1,0 +1,5 @@
+checking package dependencies
+compiling UnusedImportBS.bs
+Warning: "UnusedImportBS.bs", line 6, column 7: (T0152)
+  Package `Helper' is imported but not used
+All packages are up to date.

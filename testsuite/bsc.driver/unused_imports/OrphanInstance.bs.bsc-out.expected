@@ -1,0 +1,3 @@
+Warning: "OrphanInstance.bs", line 9, column 10: (T0127)
+  The orphan instance `Describable#(Bool)' may cause unexpected instance
+  resolution if the orphan instance is not imported everywhere it could be used.
