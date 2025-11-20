@@ -1,0 +1,6 @@
+-- Test: Re-export (Classic syntax - Phase 3)
+-- Expected: NO warning - Helper is re-exported
+
+package ReexportBS(package Helper) where
+
+import Helper

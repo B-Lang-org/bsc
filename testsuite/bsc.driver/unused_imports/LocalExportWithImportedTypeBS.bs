@@ -1,0 +1,10 @@
+-- Test: Local export using imported type (Classic syntax - Phase 2)
+-- Expected: NO warning - Helper's Byte type is used in exported function signature
+
+package LocalExportWithImportedTypeBS(double) where
+
+import Helper
+
+-- Local function using imported type
+double :: Byte -> Byte
+double x = x + x

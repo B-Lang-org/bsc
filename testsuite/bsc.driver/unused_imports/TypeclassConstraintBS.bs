@@ -1,0 +1,10 @@
+-- Test: Typeclass in constraint (Classic syntax - Phase 1)
+-- Expected: NO warning - Helper is used via Describable constraint
+
+package TypeclassConstraintBS where
+
+import Helper
+
+-- Function with typeclass constraint from Helper
+describeIt :: (Describable a) => a -> String
+describeIt x = describe x

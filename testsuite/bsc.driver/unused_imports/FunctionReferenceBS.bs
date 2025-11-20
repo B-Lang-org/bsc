@@ -1,0 +1,9 @@
+-- Test: Function/variable reference (Classic syntax - Phase 2)
+-- Expected: NO warning - Helper is used via function call
+
+package FunctionReferenceBS where
+
+import Helper
+
+test :: Byte
+test = addOne 5  -- Calls function from Helper
