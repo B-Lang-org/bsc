@@ -1,6 +1,5 @@
 
 import Real :: *;
-import FShow :: *;
 
 //@ \subsubsection{FixedPoint}
 //@ \index{FixedPoint@\te{FixedPoint} (package)|textbf}
