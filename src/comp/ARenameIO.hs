@@ -96,7 +96,7 @@ trI mp avi@(AVInst { avi_iargs = es }) = avi { avi_iargs = map (trE mp) es }
 -- translate an expression
 trE :: FSMap -> AExpr -> AExpr
 trE mp (APrim aid t o es)   = APrim aid t o (map (trE mp) es)
-trE mp (AMethCall t i m es) = AMethCall t i m (map (trE mp) es)
+trE mp (AMethCall t i m oi es) = AMethCall t i m oi (map (trE mp) es)
 trE mp (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (map (trE mp) es)
 trE mp (AFunCall t i f isC es) = AFunCall t i f isC (map (trE mp) es)
 trE mp (ASPort t i)         = ASPort t (tr mp i)
@@ -134,11 +134,11 @@ trSI mp si =
         trM (Nothing) = Nothing
         trM (Just x)  = Just (tr mp x)
 
-        trMeth ami@(ASPMethodInfo i ty mr me mv args rs) =
+        trMeth ami@(ASPMethodInfo i ty mr me vs args rs) =
             ami { aspm_name      = tr mp i,
                   aspm_mrdyid    = trM mr,
                   aspm_menableid = trM me,
-                  aspm_mresultid = trM mv,
+                  aspm_resultids = map (tr mp) vs,
                   aspm_inputs    = map (tr mp) args }
 
     in  ASPSignalInfo {

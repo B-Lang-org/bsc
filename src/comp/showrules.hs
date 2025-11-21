@@ -450,7 +450,7 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
        let methmap = M.fromList [ ((inst,name),rules)
                                 | (inst,abmi) <- user_modules
                                 , aif <- apkg_interface (abmi_apkg abmi)
-                                , let name = aIfaceName aif
+                                , let name = aif_name aif
                                 , let rules = aIfaceRules aif
                                 , not (null rules)
                                 ]

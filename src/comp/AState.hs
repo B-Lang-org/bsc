@@ -37,6 +37,7 @@ import AUses(useDropCond)
 import AVerilogUtil(vNameToTask)
 import RSchedule(RAT, ratToNestedLists)
 import Wires(WireProps(..))
+import Data.Maybe (listToMaybe)
 
 --import Debug.Trace
 --import Util(traces)
@@ -209,12 +210,12 @@ aState' flags pps schedule_info apkg = do
         -- We separate out the RDY defs for always_ready methods from others,
         -- because we want the defs (they feed into enables) but do want the
         -- RDY ports.
-        isAlwaysReadyMethod m = (isRdyId (aIfaceName m)) && (isAlwaysRdy pps (aIfaceName m))
+        isAlwaysReadyMethod m = (isRdyId (aif_name m)) && (isAlwaysRdy pps (aif_name m))
         (always_rdy_ifc,other_ifc) = partition isAlwaysReadyMethod ifc
         outs :: [ADef]
-        outs = concatMap (outputDefToADef fmod pps) other_ifc
+        outs = concatMap (outputDefToADefs fmod pps) other_ifc
         always_ready_defs :: [ADef]
-        always_ready_defs = concatMap (outputDefToADef fmod pps) always_rdy_ifc
+        always_ready_defs = concatMap (outputDefToADefs fmod pps) always_rdy_ifc
 
     --traceM( "ifc are: " ++ ppReadable ifc ) ;
     --traceM( "outs are: " ++ ppReadable outs ) ;
@@ -709,24 +710,24 @@ isForeign (ATaskAction { }) = True
 isForeign _                 = False
 
 
--- Create an output ADef from the Interface method
+-- Create output ADefs from the Interface method
 -- consider only value method returns and outputs of ActionValue methods
 -- note that expressions are named according to the information on
 -- the VFieldInfo
-outputDefToADef :: Bool -> [PProp] -> AIFace -> [ADef]
-outputDefToADef fmod pps ai@(AIDef{}) = if convert then [newdef] else []
-    where def     = aif_value ai
-          resName = mkNamedOutput (aif_fieldinfo ai)
-          newdef  = def{ adef_objid = resName }
+outputDefToADefs :: Bool -> [PProp] -> AIFace -> [ADef]
+outputDefToADefs fmod pps ai@(AIDef{}) = if convert then newdefs else []
+    where defs    = aif_values ai
+          resNames= mkNamedOutputs (aif_fieldinfo ai)
+          newdefs = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames 
           convert = not (fmod && isRdyId (aif_name ai))
-outputDefToADef _ pps ai@(AIActionValue{}) = [newdef]
-    where def     = aif_value ai
-          resName = mkNamedOutput (aif_fieldinfo ai)
-          newdef  = def{ adef_objid = resName }
-outputDefToADef _ _ a@(AIAction{})       = []
-outputDefToADef _ _ a@(AIClock{})        = []
-outputDefToADef _ _ a@(AIReset{})        = []
-outputDefToADef _ _ a@(AIInout{})        = []
+outputDefToADefs _ pps ai@(AIActionValue{}) = [newdef]
+    where defs    = aif_values ai
+          resNames= mkNamedOutputs (aif_fieldinfo ai)
+          newdefs  = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames
+outputDefToADefs _ _ a@(AIAction{})       = []
+outputDefToADefs _ _ a@(AIClock{})        = []
+outputDefToADefs _ _ a@(AIReset{})        = []
+outputDefToADefs _ _ a@(AIInout{})        = []
 
 
 getVInst :: AId -> [AVInst] -> AVInst
@@ -756,7 +757,7 @@ mkSIMethodTuple (AIDef name args _ pred _ vfi _) =
                    aspm_type       = "value",
                    aspm_mrdyid     = Just rdy,
                    aspm_menableid  = Nothing,
-                   aspm_mresultid  = Just res,
+                   aspm_resultids  = res,
                    aspm_inputs     = map fst args,
                    aspm_assocrules = [] }
    ]
@@ -767,7 +768,7 @@ mkSIMethodTuple (AIAction args _ pred name rs vfi) =
                    aspm_type       = "action",
                    aspm_mrdyid     = Just rdy,
                    aspm_menableid  = Just ena,
-                   aspm_mresultid  = Nothing,
+                   aspm_resultids  = [],
                    aspm_inputs     = map fst args,
                    aspm_assocrules = map aRuleName rs }
    ]
@@ -778,7 +779,7 @@ mkSIMethodTuple (AIActionValue args _ pred name rs _ vfi) =
                    aspm_type       = "actionvalue",
                    aspm_mrdyid     = Just rdy,
                    aspm_menableid  = Just ena,
-                   aspm_mresultid  = Just res,
+                   aspm_resultids  = res,
                    aspm_inputs     = map fst args,
                    aspm_assocrules = map aRuleName rs }
    ]
@@ -808,8 +809,8 @@ mkSignalInfoMethod aifaces = merged
           mergePorts [a] = [a]
           mergePorts [a, b] = [res]
               where res = case (isRdyId (aspm_name a), isRdyId (aspm_name b)) of
-                          (True, False) -> b { aspm_mrdyid = (aspm_mresultid a) }
-                          (False, True) -> a { aspm_mrdyid = (aspm_mresultid b) }
+                          (True, False) -> b { aspm_mrdyid = listToMaybe (aspm_resultids a) }
+                          (False, True) -> a { aspm_mrdyid = listToMaybe (aspm_resultids b) }
                           _ -> internalError( "mergePorts" ++ ppReadable (a,b) )
           mergePorts x = internalError( "mergePorts2:" ++ ppReadable x )
 

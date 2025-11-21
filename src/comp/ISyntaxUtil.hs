@@ -186,6 +186,8 @@ isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
 isValueType :: IType -> Bool
 isValueType x | (isitActionValue_ x) && (getAV_Size x > 0) = True
 isValueType (ITAp t n) | t == itBit = True
+isValueType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+    isValueType t1 && isValueType t2
 isValueType _ = False
 
 -- Constructors

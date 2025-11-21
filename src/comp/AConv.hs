@@ -187,7 +187,7 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         flags <- getFlags
 
         -- AVInst keeps the types of method ports
-        let tsConv :: Id -> [IType] -> ([AType], Maybe AType, Maybe AType)
+        let tsConv :: Id -> [IType] -> ([AType], Maybe AType, [AType])
             tsConv i ts =
                 let inputs = initOrErr "tsConv" ts
                     res = lastOrErr "tsConv" ts
@@ -196,7 +196,7 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                       | isitActionValue_ res && getAV_Size res > 0
                           = (Just (ATBit 1), Just (ATBit (getAV_Size res)))
                       | isActionType res
-                          = (Just (ATBit 1), Nothing)
+                          = (Just (ATBit 1), [])
                       | otherwise
                           = (Nothing, Just (aTypeConv i res))
                 in (in_types, en_type, val_type)

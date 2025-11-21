@@ -156,7 +156,7 @@ mkCFAssump ruleMethodMap instSchedMap r1 r2 = concat $ M.elems overlapMap
                                            let obj = mkCFCondWireInstId r2 o m2,
                                            -- extracts m2's condition from the wire
                                            -- include the WILL_FIRE because we don't check the tag bit
-                                           let c2 = AMethCall aTBool obj uqWGet [],
+                                           let c2 = AMethCall aTBool obj uqWGet 0 [],
                                            let c = aAnds [r2_WF, c1, c2],
                                            let m1_s = getIdString m1,
                                            let m2_s = getIdString m2,

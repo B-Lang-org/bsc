@@ -24,7 +24,7 @@ import ASyntaxUtil(AExprs(..), aAnd)
 import Pragma
 
 import VModInfo(VModInfo)
-import AExpr2Util(getMethodOutputPort)
+import AExpr2Util(getMethodOutputPorts)
 --import Debug.Trace(trace)
 
 import qualified AExpr2STP as STP
@@ -270,9 +270,11 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
     findSupport e@(ASDef _ i)                            = [DDef def i]
         where def = M.findWithDefault (err i) i idToDef
     findSupport e@(APrim { ae_args = es})                = findAExprs findSupport es
-    findSupport e@(AMethCall {ae_args = es})             = findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPort portMap (ae_objid e) (ameth_id e)
-    findSupport e@(AMethValue {})                        = [DMethod (ae_objid e) (ameth_id e)]
+    findSupport e@(AMethCall {ae_args = es}) =
+      findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) !! ameth_outidx e
+    findSupport e@(AMethValue {})                        = [DMethod (ae_objid e) vlogport]
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) !! ameth_outidx e
     findSupport e@(ANoInlineFunCall{ ae_args = es})      = findAExprs findSupport es
     findSupport e@(ATaskValue {ae_objid=id})             = [DTask id]
     findSupport e@(ASPort {ae_objid = id})               = [DLeaf id]
