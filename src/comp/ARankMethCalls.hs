@@ -42,7 +42,7 @@ aRankMethCalls errh pprops orig_pkg =
 aRankMethCallsInternal :: ErrorHandle -> [[Id]] -> APackage -> IO APackage
 aRankMethCallsInternal _ [] orig_pkg = return orig_pkg
 aRankMethCallsInternal errh orig_ranks orig_pkg =
-    do let method_map = [(aIfaceName m, m) | m <- apkg_interface orig_pkg]
+    do let method_map = [(aif_name m, m) | m <- apkg_interface orig_pkg]
            rule_map = [(dropRulePrefixId (arule_id r), r) | r <- apkg_rules orig_pkg]
            def_map = [(adef_objid d, d) | d <- apkg_local_defs orig_pkg]
            -- add method ready signals foreach method in (* perf_spec *)
@@ -146,13 +146,13 @@ instance RankMethCalls ADef where
         in  (def { adef_expr = ranked_body }, defs_to_rewrite)
 
 instance RankMethCalls AIFace where
-    rankMethCalls ver meth@(AIDef { aif_value = value, aif_pred = pred,
+    rankMethCalls ver meth@(AIDef { aif_values = values, aif_pred = pred,
                                      aif_inputs = inputs,
                                      aif_fieldinfo = fi }) =
-        let (ranked_value, defs_to_rewrite_1) = rankMethCalls ver value
+        let (ranked_values, defs_to_rewrite_1) = unzip $ map (rankMethCalls ver) values
             (ranked_pred, defs_to_rewrite_2) = rankMethCalls ver pred
-            defs_to_rewrite = defs_to_rewrite_1 `union` defs_to_rewrite_2
-        in  (meth { aif_value = ranked_value, aif_pred = ranked_pred },
+            defs_to_rewrite = foldr union defs_to_rewrite_2 defs_to_rewrite_1
+        in  (meth { aif_values = ranked_values, aif_pred = ranked_pred },
              defs_to_rewrite)
     rankMethCalls ver meth@(AIAction { aif_pred = pred, aif_body = body }) =
         let (ranked_body, defs_to_rewrite_1) = rankMethCalls ver body

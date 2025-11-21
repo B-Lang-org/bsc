@@ -211,7 +211,7 @@ getAExprDefs :: DefMap -> M.Map AId (AType, AExpr) -> [AExpr] ->
 getAExprDefs _ known [] = known
 getAExprDefs def_map known ((APrim _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
-getAExprDefs def_map known ((AMethCall _ _ _ args):es) =
+getAExprDefs def_map known ((AMethCall _ _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
 getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)

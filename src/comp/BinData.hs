@@ -995,10 +995,10 @@ instance Bin AType where
 instance Bin AExpr where
     writeBytes (APrim i t op args) = section "AExpr" $
         do putI 0; toBin i; toBin t; toBin op; toBin args
-    writeBytes (AMethCall t obj meth args) = section "AExpr" $
-        do putI 1; toBin t; toBin obj; toBin meth; toBin args
-    writeBytes (AMethValue t obj meth) = section "AExpr" $
-        do putI 2; toBin t; toBin obj; toBin meth
+    writeBytes (AMethCall t obj meth moi args) = section "AExpr" $
+        do putI 1; toBin t; toBin obj; toBin meth; toBin moi; toBin args
+    writeBytes (AMethValue t obj meth moi) = section "AExpr" $
+        do putI 2; toBin t; toBin obj; toBin meth; toBin moi
     writeBytes (ANoInlineFunCall t obj fun args) = section "AExpr" $
         do putI 3; toBin t; toBin obj; toBin fun; toBin args
     writeBytes (AFunCall t obj fun isC args) = section "AExpr" $
@@ -1021,10 +1021,10 @@ instance Bin AExpr where
         case i of
           0  -> do { i <- fromBin; t <- fromBin; op <- fromBin;
                      args <- fromBin; return (APrim i t op args); }
-          1  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin;
-                     args <- fromBin; return (AMethCall t obj meth args); }
-          2  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin;
-                     return (AMethValue t obj meth); }
+          1  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin; moi <- fromBin;
+                     args <- fromBin; return (AMethCall t obj meth moi args); }
+          2  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin; moi <- fromBin;
+                     return (AMethValue t obj meth moi); }
           3  -> do { t <- fromBin; obj <- fromBin; fun <- fromBin;
                      args <- fromBin;
                      return (ANoInlineFunCall t obj fun args); }

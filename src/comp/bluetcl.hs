@@ -1118,7 +1118,7 @@ tclModule ["methods",modname] = do
            let apkg = abemi_apkg abmi
                pps = abemi_pps abmi
                ifc = apkg_interface apkg
-               ifc_map = [ (aIfaceName aif, rawIfcFieldFromAIFace pps aif)
+               ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                            | aif <- ifc ]
            let tifc = getModuleIfc abmi
            fs <- getIfcHierarchy Nothing ifc_map tifc
@@ -1960,7 +1960,7 @@ instance ExpandInfoHelper BModView  where
           -- flattened ifc names
           let ifc_names = map pfpString $
                             filter (not . isRdyId) $
-                              map (aIfaceName) (apkg_interface apkg)
+                              map (aif_name) (apkg_interface apkg)
           -- rules
           let rule_names = map (pfpString . arule_id) (apkg_rules apkg)
           -- schedule
@@ -3519,7 +3519,7 @@ getModPortInfo apkg pps tifc = do
 
     -- interface hierarchy
     let -- map from flattened ifc name to its raw info
-        ifc_map = [ (aIfaceName aif, rawIfcFieldFromAIFace pps aif)
+        ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                     | aif <- ifc ]
     ifc_hier <- getIfcHierarchy Nothing ifc_map tifc
 

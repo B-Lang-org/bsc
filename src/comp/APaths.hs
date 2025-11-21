@@ -170,8 +170,8 @@ data PathNode =
     PNDef AId  |
     -- arguments to methods of submodules (Ids: instance, method, arg #)
     PNStateMethodArg AId AId Integer  |
-    -- return values of methods of submodules (Ids: instance, method)
-    PNStateMethodRes AId AId  |
+    -- return values of methods of submodules (Ids: instance, method, result #)
+    PNStateMethodRes AId AId Integer |
     -- enable signal of action methods of submodules (Ids: instance, method)
     PNStateMethodEnable AId AId  |
     -- imported state has no ready signal
@@ -190,8 +190,8 @@ data PathNode =
     PNWillFire AId  |
     -- arguments to methods of current module (Ids: method, argument)
     PNTopMethodArg AId AId  |
-    -- return values of methods of current module (Id: method)
-    PNTopMethodRes AId  |
+    -- return values of methods of current module (Ids: method, result)
+    PNTopMethodRes AId AId  |
     -- this is an internal graph node for the method's ready signal,
     -- the real output port is handled by a separate read method
     -- (Id: method)
@@ -228,8 +228,8 @@ printPathNode use_pvprint d p node =
                 fsep [text "Argument", pp port_id,
                       s2par "of method", quotes (pp meth_id),
                       s2par "of submodule", quotes (pp inst_id)]
-            (PNStateMethodRes inst_id meth_id) ->
-                fsep [s2par "Return value",
+            (PNStateMethodRes inst_id meth_id port_id) ->
+                fsep [s2par "Return value", pp port_id,
                       s2par "of method", quotes (pp meth_id),
                       s2par "of submodule", quotes (pp inst_id)]
             (PNStateMethodEnable inst_id meth_id) ->
@@ -255,8 +255,8 @@ printPathNode use_pvprint d p node =
             (PNTopMethodArg meth_id arg_id) ->
                 fsep [text "Argument", pp arg_id,
                       s2par "of top-level method", quotes (pp meth_id)]
-            (PNTopMethodRes meth_id) ->
-                fsep [text "Output",
+            (PNTopMethodRes meth_id res_num) ->
+                fsep [text "Output", pp res_num,
                       s2par "of top-level method", quotes (pp meth_id)]
             (PNTopMethodReady meth_id) ->
                 fsep [s2par "Ready condition",
@@ -314,7 +314,7 @@ filterPNDefs pns = filter (not . isPNDef) pns
           isPNDef _ = False
 
 alwaysRdyNode :: [PProp] -> PathNode -> Bool
-alwaysRdyNode pps (PNTopMethodRes m) = isAlwaysRdy pps m
+alwaysRdyNode pps (PNTopMethodRes m _) = isAlwaysRdy pps m
 alwaysRdyNode pps _ = False
 
 enWhenRdyNode :: [PProp] -> PathNode -> Bool
@@ -475,13 +475,13 @@ aPathsPreSched errh flags apkg = do
       --     1) method name
       --     2) input argument list zipped with [1..]
       --     3) (Maybe VName) if method has an enable signal (action method)
-      --     4) (Maybe VName) if method has a result (now only value methods)
+      --     4) result list zipped with [1..] (value methods only)
       --     5) (Maybe Id)    if method has an associated clock
       -- Note: the VPort's are stripped of VeriPortProp to be just VName
       -- XXX is the VeriPortProp info worth keeping?
       state_instances ::
           [ ( AId, [(VName, VName)], [(VName, Integer, AExpr)],
-              [(AId, [(VName,Integer)], Maybe VName, Maybe VName, Maybe AId)] ) ]
+              [(AId, [(VName,Integer)], Maybe VName, [(VName, Integer)], Maybe AId)] ) ]
       state_instances =
           [(inst_id, nns, args, meth_info) |
              avi <- vs,
@@ -498,12 +498,13 @@ aPathsPreSched errh flags apkg = do
 
              -- method info
              let meth_info =
-                   [(meth_id, numbered_args, maybe_EN, maybe_res, maybe_clk) |
+                   [(meth_id, numbered_args, maybe_EN, numbered_res, maybe_clk) |
                       vfieldinfo@(Method { vf_name = meth_id }) <- vFields vmi,
                       let args = map fst (vf_inputs vfieldinfo),
                       let numbered_args = zip args [1..],
                       let maybe_EN = (vf_enable vfieldinfo) >>= return . fst,
-                      let maybe_res = (vf_output vfieldinfo) >>= return . fst,
+                      let res = (vf_outputs vfieldinfo) >>= return . fst,
+                      let numbered_res = zip res [1..],
                       let maybe_clk = vf_clock vfieldinfo
                    ]
           ]
@@ -511,13 +512,14 @@ aPathsPreSched errh flags apkg = do
       state_input_nodes =
           [ PNStateMethodArg inst_id meth_id arg_num |
                 (inst_id, _, _, methods) <- state_instances,
-                (meth_id, numbered_args, maybe_EN, maybe_res, _) <- methods,
+                (meth_id, numbered_args, maybe_EN, _, _) <- methods,
                 arg_num <- map snd numbered_args
           ]
       state_output_nodes =
-          [ PNStateMethodRes inst_id meth_id |
+          [ PNStateMethodRes inst_id meth_id res_num |
                 (inst_id, _, _, methods) <- state_instances,
-                (meth_id, _, _, Just res_name, _) <- methods
+                (meth_id, _, _, numbered_res, _) <- methods,
+                res_num <- map snd numbered_res
           ]
       state_enable_nodes =
           [ PNStateMethodEnable inst_id meth_id |
@@ -558,7 +560,7 @@ aPathsPreSched errh flags apkg = do
 
   let method_inputs =
           [(arg, PNTopMethodArg m arg) | (AIDef { aif_inputs = args,
-                                                  aif_value = (ADef m _ _ _) }) <- ifc,
+                                                  aif_name = m }) <- ifc,
                                          (arg,_) <- args] ++
           [(arg, PNTopMethodArg m arg) | (AIAction { aif_inputs = args,
                                                      aif_name = m }) <- ifc,
@@ -568,8 +570,10 @@ aPathsPreSched errh flags apkg = do
                                          (arg,_) <- args]
 
       method_outputs =
-          [(m, PNTopMethodRes m) | (AIDef { aif_value = (ADef m _ _ _) }) <- ifc] ++
-          [(m, PNTopMethodRes m) | (AIActionValue { aif_name = m, aif_value = (ADef m' _ _ _) }) <- ifc]
+          [(m, PNTopMethodRes m p) | (AIDef { aif_name = m, aif_values = v }) <- ifc,
+                                     ADef p _ _ _ <- v ] ++
+          [(m, PNTopMethodRes m p) | (AIActionValue { aif_name = m, aif_values = v }) <- ifc,
+                                     ADef p _ _ _ <- v  ]
 
       method_enables =
           -- Name creation is safe, since it is based on VFieldInfo
@@ -620,7 +624,7 @@ aPathsPreSched errh flags apkg = do
 
       -- These are internal graph nodes, not part of the interface.
       -- There are separate read methods which become the Verilog ports.
-      method_ready_nodes = map (PNTopMethodReady . aIfaceName) ifc
+      method_ready_nodes = map (PNTopMethodReady . aif_name) ifc
 
   -- ----------
 
@@ -683,17 +687,17 @@ aPathsPreSched errh flags apkg = do
   -- methods (ifc)
 
   let mkMethodEdges :: AIFace -> [(PathNode,PathNode)]
-      mkMethodEdges (AIDef mid inputs wp rdy (ADef m _ e _) _ _) =
+      mkMethodEdges (AIDef mid inputs wp rdy v _ _) =
           -- connect the rdy expression (likely just an ASDef reference)
           -- to the internal graph node for the method ready
-          (mkEdges (PNTopMethodReady m) rdy env) ++
+          (mkEdges (PNTopMethodReady mid) rdy env) ++
           -- make faux connections from the rdy to the arguments, so that
           -- dependencies in the other direction are caught as loops
-          [(PNTopMethodReady m, PNTopMethodArg m arg) | (arg,_) <- inputs] ++
+          [(PNTopMethodReady mid, PNTopMethodArg mid arg) | (arg,_) <- inputs] ++
           -- connect the definition to the method result
           -- (this method has no enable, so it cannot contribute to any
           -- methcall argument muxes, so just use "mkEdges")
-          (mkEdges (PNTopMethodRes m) e env)
+          [edge | ADef p _ e _ <- v, edge <- mkEdges (PNTopMethodRes mid p) e env]
       mkMethodEdges (AIAction inputs wp rdy m rs fi) =
           let rdy_node = PNTopMethodReady m
               en_node  = PNTopMethodEnable m
@@ -726,7 +730,7 @@ aPathsPreSched errh flags apkg = do
               -- connect the rules
               concatMap mkMRuleEdges rs
 
-      mkMethodEdges (AIActionValue inputs wp rdy m rs (ADef m' _ e _) fi) =
+      mkMethodEdges (AIActionValue inputs wp rdy m rs vs fi) =
           let rdy_node = PNTopMethodReady m
               en_node  = PNTopMethodEnable m
               mkMRuleEdges (ARule ri _ _ _ rpred actions _ _) =
@@ -755,10 +759,11 @@ aPathsPreSched errh flags apkg = do
               [(rdy_node, en_node)] ++
               [(rdy_node, PNTopMethodArg m arg)
                    | (arg,_) <- inputs] ++
-              -- connect the definition to the method result
+              -- connect the definitions to the method results
               -- (this method's Enable could contribute to methcall argument
               -- muxes, so use "mkEdgesWithMux")
-              (mkEdgesWithMux en_node (PNTopMethodRes m) e env) ++
+              [edge | ADef p _ e _ <- vs,
+                edge <- (mkEdgesWithMux en_node (PNTopMethodRes m p) e env)] ++
                -- connect the rules
               concatMap mkMRuleEdges rs
 
@@ -788,9 +793,10 @@ aPathsPreSched errh flags apkg = do
   --    (but there are paths for instantiation arguments which become ports)
 
   let findOutputPathNodes inst_id vname methods =
-          [ (clk, PNStateMethodRes inst_id meth_id) |
-                (meth_id, _, _, Just res, clk) <- methods,
-                res == vname
+          [ (clk, PNStateMethodRes inst_id meth_id res_num) |
+                (meth_id, _, _, numbered_res, clk) <- methods,
+                (res_name, res_num) <- numbered_res,
+                res_name == vname
           ]
       findInputPathNodes inst_id vname methods argpairs =
           [ (Nothing, PNStateArgument inst_id arg_id arg_num) |
@@ -905,10 +911,10 @@ aPathsPreSched errh flags apkg = do
 
   -- For urgency to be computed by paths, we must assume a path from
   -- a method's ready signal to its enable signal.
-  let rdy_to_en_edges = [(PNTopMethodRes rdy_id, PNTopMethodEnable m_id) |
+  let rdy_to_en_edges = [(PNTopMethodRes m_id rdy_id, PNTopMethodEnable m_id) |
                              (AIAction { aif_pred = (ASDef _ rdy_id),
                                          aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ] ++
-                        [(PNTopMethodRes rdy_id, PNTopMethodEnable m_id) |
+                        [(PNTopMethodRes m_id rdy_id, PNTopMethodEnable m_id) |
                              (AIActionValue { aif_pred = (ASDef _ rdy_id),
                                               aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ]
 
@@ -928,7 +934,7 @@ aPathsPreSched errh flags apkg = do
           -- edges from WF to RDY of value method
           [ (wf_rule_id, meth_id, filtered_path) |
                 (PNWillFire wf_rule_id, rs) <- zip will_fire_nodes reachables,
-                (AIDef { aif_value = (ADef meth_id _ _ _) }) <- ifc,
+                (AIDef { aif_name = meth_id }) <- ifc,
                 let meth_node = (PNTopMethodReady meth_id),
                 let mpath = lookup meth_node rs,
                 isJust mpath,
@@ -1066,14 +1072,14 @@ aPathsPostSched flags pps apkg pathGraphInfo (ASchedule scheds _) = do
   -- We don't currently need the argument conversion info, because
   -- the node already contains the converted name (and not the number)
   let meth_info_map = M.fromList $
-          [ (meth_id, ({-numbered_args,-} maybe_EN, maybe_res)) |
+          [ (meth_id, ({-numbered_args,-} maybe_EN, res)) |
               meth <- apkg_interface apkg,
               let vfieldinfo = aif_fieldinfo meth,
               let meth_id = vf_name vfieldinfo,
               --let args = map fst (vf_inputs vfieldinfo),
               --let numbered_args = zip args [1..],
               let maybe_EN = (vf_enable vfieldinfo) >>= return . fst,
-              let maybe_res = (vf_output vfieldinfo) >>= return . fst
+              let res = (vf_outputs vfieldinfo) >>= return . fst
           ]
 
   let findMethod m =
@@ -1081,22 +1087,14 @@ aPathsPostSched flags pps apkg pathGraphInfo (ASchedule scheds _) = do
               Just info -> info
               Nothing -> internalError ("APaths findMethod: " ++ ppReadable m)
 
-  -- the "arg" is already the VName and not a number
-  let convertArg m arg = aidToVName arg
-
-  let convertRes m =
-          case (findMethod m) of
-              (_, Just res) -> res
-              _ -> internalError ("APaths convertRes: " ++ ppReadable m)
-
   let convertEnable m =
           case (findMethod m) of
               (Just enable, _) -> enable
               _ -> internalError ("APaths convertEnable: " ++ ppReadable m)
 
   -- convert PathNode back to VName
-  let pnToVName (PNTopMethodArg m arg)     = convertArg m arg
-      pnToVName (PNTopMethodRes m)         = convertRes m
+  let pnToVName (PNTopMethodArg m arg)     = aidToVName arg
+      pnToVName (PNTopMethodRes m res)     = aidToVName res
       pnToVName (PNTopMethodEnable m)      = convertEnable m
       pnToVName (PNTopArgument a _)        = aidToVName a
       pnToVName (PNTopClkGate a)           = aidToVName a
@@ -1207,7 +1205,7 @@ findEdges :: PathEnv -> AExpr ->
 findEdges env (APrim i t op es) =
     -- make edge between inputs and output
     concatUnzip3 (map (findEdges env) es)
-findEdges env (AMethCall t i qmi exprs) =
+findEdges env (AMethCall t i qmi oi exprs) =
     -- make edges between exprs and meth input
     -- return the output connection
     let mi = unQualId qmi
@@ -1219,9 +1217,9 @@ findEdges env (AMethCall t i qmi exprs) =
         (edges, ms) = concatUnzip (map f (zip [1..] exprs))
         meth_arg_mux = PNStateMethodArgMux i mi
         muxes = if null exprs then ms else meth_arg_mux:ms
-    in  ([PNStateMethodRes i mi], edges, muxes)
-findEdges env (AMethValue t i qmi) =
-    ([PNStateMethodRes i (unQualId qmi)], [], [])
+    in  ([PNStateMethodRes i mi oi], edges, muxes)
+findEdges env (AMethValue t i qmi oi) =
+    ([PNStateMethodRes i (unQualId qmi) oi], [], [])
 findEdges env (ANoInlineFunCall { ae_args = es }) =
     -- return the function call inputs
     -- and return any connections found in the argument expressions

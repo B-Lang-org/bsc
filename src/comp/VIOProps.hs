@@ -151,9 +151,12 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          -- create the method name map
                          let nmap = M.fromList $
                                     createVerilogNameMapForAVInst flags v,
-                         -- for each method that has an output port
-                         vfi@(Method { vf_output = Just (vname,pprops) })
-                             <- vFields (avi_vmi v),
+                         -- for each method (not clocks or resets)
+                         vfi@(Method {}) <- vFields (avi_vmi v),
+                         -- for each method output port
+                         (methpart, (vname, pprops))
+                             <- zip (map MethodArg [1..]) (vf_outputs vfi),
+
                          -- for each port copy
                          ino <- if (vf_mult vfi > 1) then
                                   map Just [0 .. vf_mult vfi]
@@ -162,7 +165,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          let meth_id = mkMethId (avi_vname v)
                                                 (vf_name vfi)
                                                 ino
-                                                MethodResult,
+                                                methpart,
                          -- convert to Verilog signal name
                          let veri_id = xLateIdUsingFStringMap nmap meth_id
                     ]
@@ -389,7 +392,7 @@ noUse :: AId -> AExpr -> Bool
 noUse i (APrim _ _ _ es)     = and (map (noUse i) es)
 noUse i (ANoInlineFunCall _ _ _ es) = and (map (noUse i) es)
 noUse i (AFunCall _ _ _ _ es) = and (map (noUse i) es)
-noUse i (AMethCall _ _ _ es) = and (map (noUse i) es)
+noUse i (AMethCall _ _ _ _ es) = and (map (noUse i) es)
 noUse i (ASPort _ i')        = i /= i'
 noUse i (ASParam _ i')       = i /= i'
 noUse i (ASDef _ i')         = i /= i'

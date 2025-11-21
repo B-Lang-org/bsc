@@ -2048,8 +2048,8 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
 
     ifc_port_names =
       [ (n, i)
-      | IEFace {ief_fieldinfo = Method i _ _ _ ins out en} <- ifcs,
-        (VName n, _) <- ins ++ maybeToList out ++ maybeToList en ]
+      | IEFace {ief_fieldinfo = Method i _ _ _ ins outs en} <- ifcs,
+        (VName n, _) <- ins ++ outs ++ maybeToList en ]
     ifc_inout_names =
       [ (n, i) | IEFace {ief_fieldinfo = Inout i (VName n) _ _} <- ifcs ]
     ifc_clock_names =

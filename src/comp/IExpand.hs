@@ -80,6 +80,7 @@ import ITransform(iTransExpr)
 import IOUtil(progArgs)
 import ISyntaxXRef(mapIExprPosition, mapIExprPositionConservative)
 import IStateLoc
+import Data.String (String)
 
 -----------------------------------------------------------------------------
 -- Trace Flags
@@ -1029,8 +1030,8 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
    showTopProgress ("Elaborating method " ++ quote (pfpString i))
    setIfcSchedNameScopeProgress (Just (IEP_Method i False))
    (_, P p e') <- evalUH e
-   let (ins, eb) = case e' of
-        ICon _ (ICMethod _ ins eb) -> (ins, eb)
+   let (ins, outs, eb) = case e' of
+        ICon _ (ICMethod _ ins outs eb) -> (ins, outs, eb)
         _ -> internalError ("iExpandField: expected ICMethod: " ++ ppReadable e')
    (its, ((IDef i1 t1 e1 _), ws1, fi1), ((IDef wi wt we _), ws2, fi2))
        <- iExpandMethod modId 1 [] (pConj implicitCond p) clkRst (i, bi, ins, eb)
@@ -1042,10 +1043,10 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
 
 -- expand a method
 iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, e) = do
+iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
     (_, P p e') <- evalUH e
     case e' of
@@ -1055,15 +1056,15 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, e) = do
         -- a GenWrap-added context that wasn't satisfied, and GenWrap
         -- should only be adding Bits)
         errG (reportNonSynthTypeInMethod modId i e')
-     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p
-     _ -> iExpandMethod' implicitCond curClk (i, bi, e') p
+     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p
+     _ -> iExpandMethod' implicitCond curClk (i, bi, outs, e') p
 
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
                  Id -> IType -> Pred HeapData ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
+iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
     -- traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
     let i' :: Id
         i' = mkId (getPosition i) $ mkFString $ head ins
@@ -1071,7 +1072,7 @@ iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
         eb' :: HExpr
         eb' = eSubst li (ICon i' (ICMethArg ty)) eb
     (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
-        iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, eb')
+        iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, outs, eb')
     let inps :: [VPort]
         inps = vf_inputs wf1
     let wf1' :: VFieldInfo
@@ -1080,11 +1081,11 @@ iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
                   _ -> internalError "iExpandMethodLam: unexpected wf1"
     return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
 
-iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
+iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
                   Pred HeapData ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
+iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         -- want the result type, not a type including arguments
         let methType :: IType
             methType = iGetType e0
@@ -1143,8 +1144,8 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
             rdyId      = mkRdyId i
         let enablePort :: Maybe VPort
             enablePort = toMaybe (isActionType methType) (BetterInfo.mi_enable bi)
-        let outputPort :: Maybe VPort
-            outputPort = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
+        let outputPorts :: [VPort]
+            outputPorts = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
 
@@ -3083,10 +3084,16 @@ conAp' i (ICPrim _ PrimIsRawUndefined) _ (T t : E e : as) = do
     _ -> -- do traceM ("IsRawUndefined: False")
             return (P p iFalse)
 
-conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E meth] = do
+conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
   (inNames, _) <- evalStringList eInNames
+  (outNames, _) <- evalStringList eOutNames
   P p meth' <- eval1 meth
-  return $ P p $ ICon (dummyId noPosition) $ ICMethod {iConType = t, iInputNames = inNames, iMethod = meth'}
+  return $ P p $ ICon (dummyId noPosition) $ ICMethod {
+    iConType = t,
+    iInputNames = inNames,
+    iOutputNames = outNames,
+    iMethod = meth'
+  }
 
 -- XXX is this still needed?
 conAp' i (ICUndet { iConType = t })  e as | t == itClock =

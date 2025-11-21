@@ -456,8 +456,8 @@ isSimple c (APrim i t PrimInv [e])                                = isSimple c e
 isSimple _ (APrim i t PrimEQ  [_, (ASInt _ (ATBit sz) _)])        = True
 isSimple c (APrim i t PrimConcat es)                              = c && all (isSimple c) es
 isSimple c e@(APrim _ _ p es)                                     = c && isSmall e && cheap p es -- && all (isSimple c) es
-isSimple c (AMethCall _ _ _ es)                                   = null es
-isSimple c (AMethValue _ _ _)                                     = True
+isSimple c (AMethCall _ _ _ _ es)                                 = null es
+isSimple c (AMethValue _ _ _ _)                                   = True
 -- foreign function calls cannot be inlined
 -- (except for $signed and $unsigned - handled by mustInline)
 isSimple c e@(AFunCall { })                                       = False
@@ -535,8 +535,8 @@ getExprSize (APrim i t PrimIf es) = (nub $ concat vars, sum terms, 2 + maximum d
 getExprSize (APrim _ _ _ es) = (nub $ concat vars, sum terms, 1 + maximum depths)
     where (vars,terms,depths) = unzip3 $ map getExprSize es
 
-getExprSize (AMethCall t i mid args) = ([mid],1,1)
-getExprSize (AMethValue t i mid)     = ([mid],1,1)
+getExprSize (AMethCall t i mid moi args) = ([mid],1,1)
+getExprSize (AMethValue t i mid moi)     = ([mid],1,1)
 getExprSize (ATaskValue { })         = ([],   1,1)
 getExprSize (ASPort t i)             = ([i],  1,1)
 getExprSize (ASParam t i)            = ([i],  1,1)
@@ -767,6 +767,6 @@ isSeriInline (APrim i t PrimChr es)                                 = True
 -- current assumptions).  Simplest thing is to not inline method calls;
 -- although this is conservative.  We could allow inlining here, but filter
 -- out defs containing method calls when we apply aSubst to the actions.
---isSeriInline (AMethCall _ _ _ es)                                   = null es
--- isSeriInline (AMethValue _ _ _)                                     = True
+--isSeriInline (AMethCall _ _ _ _ es)                                   = null es
+-- isSeriInline (AMethValue _ _ _ _)                                     = True
 isSeriInline _ = False

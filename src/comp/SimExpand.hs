@@ -1040,7 +1040,7 @@ combineCombSchedInfo use_map domain_id_map parent_abi parent_csi
         -- schedule graph and conflicts (even the methods not used by
         -- any parent rules), so we need to know which are the method Ids
         child_apkg = abmi_apkg child_abi
-        child_meth_set = S.fromList $ map aIfaceName (apkg_interface child_apkg)
+        child_meth_set = S.fromList $ map aif_name (apkg_interface child_apkg)
 
         -- combine each part of the CSI
         comb_sched_map = combineSchedMap inst parent_uses
@@ -1669,7 +1669,7 @@ mkRdyMap abi =
         mkPair (AIClock {}) = []
         mkPair (AIReset {}) = []
         mkPair ifc =
-            let name = aIfaceName ifc
+            let name = aif_name ifc
                 pred_e = aIfacePred ifc
             in  if (isRdyId name)
                 then [] -- Rdy methods don't have Rdy methods

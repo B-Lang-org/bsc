@@ -63,12 +63,8 @@ module ASyntax(
         unifyStringTypes,
         getArrayElemType,
         getArraySize,
-        aIfaceName,
-        aIfaceNameString,
         aIfaceProps,
-        aIfaceResSize,
-        aIfaceResType,
-        aIfaceResId,
+        aIfaceResTypes,
         aIfaceArgs,
         aIfaceArgSize,
         aIfaceRules,
@@ -127,12 +123,12 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_arg, fs_res)
 import FStringCompat
 -- import Position(noPosition)
 import Position
 import Data.Maybe
-import Util(itos, fromJustOrErr)
+import Util(itos)
 import VModInfo
 import Wires
 import ProofObligation(ProofObligation, MsgFn)
@@ -340,7 +336,7 @@ data ASPMethodInfo = ASPMethodInfo {
                                     aspm_type :: String,
                                     aspm_mrdyid :: Maybe AId,
                                     aspm_menableid :: Maybe AId,
-                                    aspm_mresultid :: Maybe AId,
+                                    aspm_resultids :: [AId],
                                     aspm_inputs :: [AId],
                                     aspm_assocrules :: [AId]
                                                        }
@@ -351,7 +347,7 @@ instance PPrint ASPMethodInfo where
                        <+> text (aspm_type aspmi) <> equals <>
                        braces ( pPrint d 0 (aspm_mrdyid aspmi) <+>
                                 pPrint d 0 (aspm_menableid aspmi) <+>
-                                pPrint d 0 (aspm_mresultid aspmi) <+>
+                                pPrint d 0 (aspm_resultids aspmi) $+$
                                 pPrint d 0 (aspm_inputs aspmi) $+$
                                 pPrint d 0 (aspm_assocrules aspmi) )
 
@@ -561,10 +557,10 @@ data AVInst = AVInst {
     -- XXX This list corresponds to vFields in the VModInfo, but cannot be
     -- XXX stored there, because VModInfo is created before types are known.
     -- There is a triple for each method in vFields of VModInfo.
-    -- The triple contains the types of each argument (in order) and maybe
-    -- the types of the EN and return value.
+    -- The triple contains the types of each argument (in order), maybe
+    -- the type of the EN, and the return values.
     -- NOTE: These are the output language types (i.e. ATBit n)
-    avi_meth_types :: [([AType], Maybe AType, Maybe AType)],
+    avi_meth_types :: [([AType], Maybe AType, [AType])],
     -- This field maps source-language types to their corresponding ports
     avi_port_types :: M.Map VName IType,
     avi_vmi :: VModInfo,     -- Verilog names, conflict info, etc.
@@ -662,11 +658,12 @@ getIfcInoutPorts :: AVInst -> [(AId, (AId, AType, VPort))]
 getIfcInoutPorts avi =
   let
       vmi = avi_vmi avi
-      res_types = map (\ (_,_,mr) -> mr) (avi_meth_types avi)
+      res_types = map (\ (_,_,rs) -> rs) (avi_meth_types avi)
       ifc_inouts = [(id,vn,ty)
-                     | (Inout id vn _ _, mr) <- zip (vFields vmi) res_types,
-                       let ty = fromJustOrErr ("ASyntax.unknown inout " ++
-                                               ppReadable id) mr]
+                     | (Inout id vn _ _, rs) <- zip (vFields vmi) res_types,
+                       let ty = case rs of
+                                  [r] -> r
+                                  _ -> error ("ASyntax.unknown inout " ++ ppReadable id)]
 
 
       mkInoutPort ty vname = (mkOutputWireId (avi_vname avi) vname,
@@ -759,7 +756,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                         aif_inputs    :: [AInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
-                        aif_value     :: ADef,
+                        aif_values    :: [ADef],
                         aif_fieldinfo :: VFieldInfo,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
@@ -775,7 +772,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
                                 aif_body      :: [ARule],
-                                aif_value     :: ADef,
+                                aif_values    :: [ADef],
                                 aif_fieldinfo :: VFieldInfo }
                 -- trivial aif_inputs, props, pred?
               | AIClock { aif_name      :: AId,
@@ -789,17 +786,6 @@ data AIFace =   AIDef { aif_name      :: AId,
                           aif_fieldinfo :: VFieldInfo }
    deriving (Eq, Show)
 
-aIfaceName :: AIFace -> AId
-aIfaceName (AIDef { aif_value = (ADef i _ _ _)}) = i  -- XXX use aif_name
-aIfaceName (AIAction { aif_name = i}) = i
-aIfaceName (AIActionValue { aif_name = i}) = i
-aIfaceName (AIClock { aif_name = i}) = i
-aIfaceName (AIReset { aif_name = i}) = i
-aIfaceName (AIInout { aif_name = i}) = i
-
-aIfaceNameString :: AIFace -> String
-aIfaceNameString i = getIdString (aIfaceName i)
-
 aiface_vname :: AIFace -> String
 aiface_vname i = getIdString (vf_name (aif_fieldinfo i))
 
@@ -810,25 +796,13 @@ aIfaceProps (AIAction      { aif_props = p }) = p
 aIfaceProps (AIActionValue { aif_props = p }) = p
 aIfaceProps _ = emptyWireProps
 
--- result size
-aIfaceResSize :: AIFace -> Integer
-aIfaceResSize (AIAction { }) = 0
-aIfaceResSize (AIDef {aif_value = (ADef _ (ATBit n) _ _) }) = n
-aIfaceResSize (AIActionValue {aif_value = (ADef _ (ATBit n) _ _) }) = n
-aIfaceResSize x = internalError ("aIfaceResSize: " ++ show x)
-
-aIfaceResType :: AIFace -> AType
+aIfaceResTypes :: AIFace -> [AType]
 -- XXX should be ATAction?
-aIfaceResType (AIAction { }) = ATBit 0
-aIfaceResType (AIDef { aif_value = (ADef _ t _ _)}) = t
-aIfaceResType (AIActionValue { aif_value = (ADef _ t _ _)}) = t
+aIfaceResTypes (AIAction { }) = [ATBit 0]
+aIfaceResTypes (AIDef { aif_values = v }) = [t | ADef _ t _ _ <- v]
+aIfaceResTypes (AIActionValue { aif_values = v }) = [t | ADef _ t _ _ <- v]
 -- should not need type of clock or reset
-aIfaceResType x = internalError ("aIfaceResType: " ++ show x)
-
-aIfaceResId :: AIFace -> [AId]
-aIfaceResId (AIDef {aif_value = (ADef i _ _ _) }) = [i]
-aIfaceResId (AIActionValue {aif_value = (ADef i _ _ _) }) = [i]
-aIfaceResId _ = []
+aIfaceResTypes x = internalError ("aIfaceResTypes: " ++ show x)
 
 aIfaceArgs :: AIFace -> [AInput]
 aIfaceArgs (AIClock {}) = []
@@ -876,7 +850,7 @@ addRdyToARule rdyId r0@(ARule { arule_id = ri, arule_pred = e }) = (d, r)
 aIfaceSchedNames :: AIFace -> [ARuleId]
 aIfaceSchedNames (AIAction { aif_body = rs}) = map arule_id rs
 aIfaceSchedNames (AIActionValue { aif_body = rs}) = map arule_id rs
-aIfaceSchedNames (AIDef { aif_value = d }) = [adef_objid d]
+aIfaceSchedNames (AIDef { aif_name = i }) = [i]
 aIfaceSchedNames _ = []
 
 aIfacePred :: AIFace -> APred
@@ -1006,6 +980,7 @@ data AExpr
             ae_type :: AType,
             ae_objid :: AId,
             ameth_id :: AMethodId,
+            ameth_out_idx :: Integer, -- which output (for multi-output methods)
             ae_args :: [AExpr]        -- external state method call
         }
         -- like AMethCall, but for the return value of actionvalue methods,
@@ -1015,7 +990,8 @@ data AExpr
         | AMethValue {
             ae_type :: AType,
             ae_objid :: AId,
-            ameth_id :: AMethodId
+            ameth_id :: AMethodId,
+            ameth_out_idx :: Integer -- which output (for multi-output methods)
         }
         -- calls a combinatorial function expressed via module instantiation
         -- XXX this can be created not only via "noinline" in BSV,
@@ -1134,11 +1110,11 @@ instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
         (t == t') && (op == op') && (aexprs == aexprs')
 
-    AMethCall t aid mid aexprs == AMethCall t' aid' mid' aexprs' =
-        (t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid')
+    AMethCall t aid mid moi aexprs == AMethCall t' aid' mid' moi' aexprs' =
+        (t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid') && (moi == moi')
 
-    AMethValue t aid mid == AMethValue t' aid' mid' =
-        (t == t') && (mid == mid') && (aid == aid')
+    AMethValue t aid mid moi == AMethValue t' aid' mid' moi' =
+        (t == t') && (mid == mid') && (aid == aid') && (moi == moi')
 
     ANoInlineFunCall t aid af aexprs == ANoInlineFunCall t' aid' af' aexprs' =
         (t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
@@ -1395,7 +1371,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        pPrint d 0 (aif_value ai) $+$
+        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
         pPrint d 0 (aif_fieldinfo ai) $+$
@@ -1411,7 +1387,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        pPrint d p (aif_value ai) $+$
+        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1561,11 +1537,13 @@ instance PPrint AExpr where
     pPrint d p (ANoInlineFunCall _ i _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (AFunCall _ i _ _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrint d p (AMethCall _ i m es) =
+    pPrint d p (AMethCall _ i m moi es) =
         pparen (p>0 && not (null es)) $
-        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
-    pPrint d p (AMethValue _ i m) =
-        pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
+        pPrint d 1 i <>
+        sep (text "." <> ppMethId d m <> text ("$" ++ itos(moi)) : map (pPrint d 1) es)
+    pPrint d p (AMethValue _ i m moi) =
+        pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m <>
+        text ("$" ++ itos(moi))
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
     pPrint d p (ASDef _ i) = pPrint d p i
@@ -1850,14 +1828,16 @@ instance PPrintExpand AExpr where
     pPrintExpand m d ec (AFunCall _ i _ _ es)  = pPrint d 1 i <>
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrintExpand m d ec (AMethCall _ i meth []) | qualEq meth idPreludeRead = pPrint d 1 i
-    pPrintExpand m d ec (AMethCall _ i meth es) =
+    pPrintExpand m d ec (AMethCall _ i meth _ []) | qualEq meth idPreludeRead = pPrint d 1 i
+    pPrintExpand m d ec (AMethCall _ i meth oi es) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
+               <> text ("$" ++ itos(oi))
                <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
                    docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (AMethValue _ i meth oi) =
+        pPrint d 1 i <> text "." <> ppMethId d meth <> text ("$" ++ itos(oi))
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||
@@ -1888,9 +1868,9 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    MethodArg Integer | -- argument 1, 2, ... input
-    MethodResult      | -- return value output
-    MethodEnable        -- enable signal input
+    MethodArg Integer    | -- argument 1, 2, ... input
+    MethodResult Integer | -- return value 1, 2, ... output
+    MethodEnable           -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
@@ -1930,8 +1910,15 @@ mkMethStr obj m m_port mp =
                        then internalError "mkMethStr"
                        else concatFString [meth_port,
                                            fsUnderscore,
+                                           fs_arg,
                                            mkNumFString n]
-                   MethodResult -> meth_port
+                   MethodResult n ->
+                       if (n == 0)
+                       then internalError "mkMethStr"
+                       else concatFString [meth_port,
+                                           fsUnderscore,
+                                           fs_res,
+                                           mkNumFString n]
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]

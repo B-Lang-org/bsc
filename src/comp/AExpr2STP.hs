@@ -32,10 +32,11 @@ import PFPrint
 import Util(itos, map_insertMany, makePairs)
 import TopUtils(withElapsed)
 
-import AExpr2Util(getMethodOutputPort)
+import AExpr2Util(getMethodOutputPorts)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
+import Data.List (genericIndex)
 
 traceTest :: Bool
 traceTest = "-trace-smt-test" `elem` progArgs
@@ -579,20 +580,20 @@ convAExpr2SExpr mty (APrim i (ATBit width) p args) = do
 -- Method calls create independent variables, with given width
 -- XXX Passing the current context is just a heuristic
 -- XXX TODO: some methods calls may be mutex, such as FIFO.full and FIFO.empty
-convAExpr2SExpr mty (AMethCall ty@(ATBit width) modId methId args) = do
+convAExpr2SExpr mty (AMethCall ty@(ATBit width) modId methId methOutIdx args) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPort smap modId methId
-        e = (AMethCall ty modId portId args)
+    let portId = getMethodOutputPorts smap modId methId `genericIndex` methOutIdx
+        e = (AMethCall ty modId portId methOutIdx args)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
-convAExpr2SExpr mty (AMethValue ty@(ATBit width) modId methId) = do
+convAExpr2SExpr mty (AMethValue ty@(ATBit width) modId methId methOutIdx) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPort smap modId methId
-        e = (AMethValue ty modId portId)
+    let portId = getMethodOutputPorts smap modId methId `genericIndex` methOutIdx
+        e = (AMethValue ty modId portId methOutIdx)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
 

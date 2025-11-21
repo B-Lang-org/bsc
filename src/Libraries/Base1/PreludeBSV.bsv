@@ -97,9 +97,9 @@ module vMkRWire1(VRWireN#(1));
    function rw_wset(v);
       return toPrimAction(_rw.wset(v));
    endfunction
-   method wset = primMethod(Cons("v", Nil), rw_wset);
-   method wget = primMethod(Nil, _rw.wget);
-   method whas = primMethod(Nil, pack(_rw.whas));
+   method wset = primMethod(Cons("v", Nil), Nil, rw_wset);
+   method wget = primMethod(Nil, Cons("wget", Nil), _rw.wget);
+   method whas = primMethod(Nil, Cons("whas", Nil), pack(_rw.whas));
 
 endmodule
 

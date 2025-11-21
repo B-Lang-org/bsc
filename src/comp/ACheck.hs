@@ -262,7 +262,7 @@ chkAExpr e@(APrim _ t op es) =
                 then t
                 else internalError ("chkAExpr: other " ++ ppReadable (e, t, map chkAExpr es))
 
-chkAExpr e@(AMethCall t _ _ es) =
+chkAExpr e@(AMethCall t _ _ _ es) =
         if all (isBit . chkAExpr) es
                 then t
                 else internalError ("chkAExpr: methcall " ++ ppReadable e)
@@ -420,8 +420,8 @@ checkUses ds is ps es = concatMap (checkUse ds is ps) es
 
 checkUse :: S.Set AId -> S.Set AId -> S.Set AId -> AExpr -> [AId]
 checkUse ds is ps (APrim _ _ _ es)     = checkUses ds is ps es
-checkUse ds is ps (AMethCall _ i m es) = checkUses ds is ps es  -- XXX check i and m ?
-checkUse ds is ps (AMethValue _ i m)   = [] -- XXX check i and m ?
+checkUse ds is ps (AMethCall _ i m moi es) = checkUses ds is ps es  -- XXX check i and m ?
+checkUse ds is ps (AMethValue _ i m moi)   = [] -- XXX check i and m ?
 checkUse ds is ps (ANoInlineFunCall _ _ _ es) = checkUses ds is ps es
 checkUse ds is ps (AFunCall { ae_args = es }) = checkUses ds is ps es
 -- because all of the expressions used are used by the ATaskAction
