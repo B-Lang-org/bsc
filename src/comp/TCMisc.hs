@@ -559,6 +559,10 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                 case x of
                    Nothing -> do
                      let chk = predUnify bound_tyvars pr' h
+                     -- If chk is true, we have found a more-specific instance that could
+                     -- have matched if more type information were known, but didn't because
+                     -- the instance being requested is more general. Any instance matches
+                     -- from this point on are incoherent matches.
                      f (chk || incoherent) is
                    Just (qs, sb, (inst_subst, fd_subst)) -> do
                      -- when ((not $ null qs) && (not $ isNullSubst inst_subst)) $
@@ -571,7 +575,9 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
                      let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
-                     return $ Just (qs, sb, fd_subst, minst)
+                         -- Mark the binding incoherent for LiftDicts.
+                         sb'   = if incoherent then markIncoherent sb else sb
+                     return $ Just (qs, sb', fd_subst, minst)
 
     let is' = genInsts c bound_tyvars dvs pr'
     r <- f False is'
