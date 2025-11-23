@@ -59,6 +59,10 @@ pMkEitherTree pos i n e
   where leftSize = (n + 1) `div` 2
         rightSize = n `div` 2
 
+isCPVar :: CPat -> Bool
+isCPVar (CPVar _) = True
+isCPVar _ = False
+
 mkMaybe :: (Maybe CExpr) -> CExpr
 mkMaybe Nothing = CCon idInvalid []
 mkMaybe (Just e) = CCon idValid [e]
