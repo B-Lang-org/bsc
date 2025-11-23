@@ -9,7 +9,7 @@ module CType(
   getTyVarId, getTypeKind,
   isTNum, getTNum,
   isTStr, getTStr,
-  isTVar, isTCon, isIfc, isInterface, isUpdateable,
+  isTVar, isTCon, isIfc, isInterface, isDictType, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
   isATFAp,
@@ -398,6 +398,10 @@ isIfc _ = False
 isInterface :: CType -> Bool
 isInterface t | Just (TyCon _ _ (TIstruct s _)) <- leftTyCon t = isIfc s
 isInterface _ = False
+
+isDictType :: CType -> Bool
+isDictType t | Just (TyCon _ _ (TIstruct SClass _)) <- leftTyCon t = True
+isDictType _ = False
 
 isUpdateable :: StructSubType -> Bool
 isUpdateable SStruct = True
