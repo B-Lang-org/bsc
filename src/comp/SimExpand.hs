@@ -1903,8 +1903,8 @@ mkParentUseMap parent_abi =
         rs = apkg_rules apkg
 
         -- definitions of the value methods in the interface
-        ifc_defs = [d | (AIDef { aif_value = d }) <- ifcs] ++
-                   [d | (AIActionValue { aif_value = d }) <- ifcs]
+        ifc_defs = [d | (AIDef { aif_values = ds }) <- ifcs, d <- ds] ++
+                   [d | (AIActionValue { aif_values = ds }) <- ifcs, d <- ds]
         defs = ifc_defs ++ local_defs
         defUseMap = M.fromList [(d, eDomain defUseMap e) | ADef d _ e _<- defs]
 
@@ -2210,13 +2210,17 @@ makeMethodTemps apkg =
                                   (AIDef {})         -> (True,False)
                                   (AIActionValue {}) -> (False,True)
                                   otherwise          -> (False,False)
+              v = case aif_values aif of
+                    [val] -> val
+                    -- TODO: handle multiple return values
+                    _     -> internalError ("makeMethodTemps: unexpected multiple values in " ++ ppReadable aif)
           in if is_def || is_av
-             then case process is_av (aif_value aif) (aif_name aif) seqNo of
+             then case process is_av v (aif_name aif) seqNo of
                     (Just t@(ADef tid ty e props)) ->
-                       let aid = adef_objid (aif_value aif)
+                       let aid = adef_objid v
                            -- unclear if propagating the props is correct
                            new_def = (ADef aid ty (ASDef ty tid) props)
-                           aif' = aif { aif_value = new_def }
+                           aif' = aif { aif_values = [new_def] }
                            in cvt (seqNo + 1) (t:defs) (aif':iface) aifs
                     Nothing -> cvt seqNo defs (aif:iface) aifs
              else cvt seqNo defs (aif:iface) aifs

@@ -131,7 +131,7 @@ wrapSystemC flags sim_system = do
         mk_port_map_entry (mid, (en, ins, ri, act, _)) =
             let en_list  = maybe [] (\vn -> [(1,vName_to_id vn,True,False)]) en
                 in_list  = [ (aSize t,i,True,False) | (t,i,_) <- ins ]
-                ret_list = maybe [] (\(t,vn) -> [(aSize t,vName_to_id vn,False,act)]) ri
+                ret_list = map (\(t,vn) -> (aSize t,vName_to_id vn,False,act)) ri
                 ports = filter (\(n,_,_,_) -> n>0)
                                (en_list ++ in_list ++ ret_list)
                 always_rdy = (isRdyId mid) && (isAlwaysRdy pps mid)

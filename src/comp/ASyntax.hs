@@ -65,6 +65,7 @@ module ASyntax(
         getArraySize,
         aIfaceProps,
         aIfaceResTypes,
+        aIfaceResIds,
         aIfaceArgs,
         aIfaceArgSize,
         aIfaceRules,
@@ -803,6 +804,11 @@ aIfaceResTypes (AIDef { aif_values = v }) = [t | ADef _ t _ _ <- v]
 aIfaceResTypes (AIActionValue { aif_values = v }) = [t | ADef _ t _ _ <- v]
 -- should not need type of clock or reset
 aIfaceResTypes x = internalError ("aIfaceResTypes: " ++ show x)
+
+aIfaceResIds :: AIFace -> [AId]
+aIfaceResIds (AIDef {aif_values = ds }) = map adef_objid ds
+aIfaceResIds (AIActionValue {aif_values = ds}) = map adef_objid ds
+aIfaceResIds _ = []
 
 aIfaceArgs :: AIFace -> [AInput]
 aIfaceArgs (AIClock {}) = []
