@@ -40,7 +40,7 @@ type ModDefMap = M.Map String DefMap
 -- map from method names to method port info
 type MethMap = M.Map AId ( Maybe VName            -- enable
                          , [(AType, AId, VName)]  -- args
-                         , Maybe (AType, VName)   -- return
+                         , [(AType, VName)]       -- return
                          , Bool                   -- is action
                          , [AId]                  -- rule Ids
                          )
@@ -119,7 +119,7 @@ simMakeCBlocks flags sim_system =
       -- methods on the top-level module
       top_methods   = sp_interface top_pkg
       (top_ameths, top_vmeths) = partition aIfaceHasAction top_methods
-      top_vmeth_set = S.fromList $ concatMap aIfaceResId top_vmeths
+      top_vmeth_set = S.fromList $ concatMap aIfaceResIds top_vmeths
       top_ameth_set = S.fromList $ map aRuleName $ concatMap aIfaceRules top_ameths
 
       -- input clocks to the top-level module
@@ -132,7 +132,7 @@ simMakeCBlocks flags sim_system =
                    , let p_name = getModuleName p
                    , let ms = sp_interface p
                    , m <- ms
-                   , let m_name = aIfaceName m
+                   , let m_name = aif_name m
                    , let m_rules = aIfaceRules m
                    , let sub_actions = concatMap arule_actions m_rules
                    , let sub_names = [ (o,m) | (ACall o m _) <- sub_actions ]
@@ -206,7 +206,7 @@ getExprIds :: Bool -> DefMap -> IdSet -> [AExpr] -> IdSet
 getExprIds _ _ known [] = known
 getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
-getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
+getExprIds in_sched def_map known ((AMethCall _ _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
@@ -290,7 +290,8 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                   ]
       meth_args = concat [ ins | (_,ins,_,_,_) <- M.elems meth_map ]
       meth_rets = [ (rt, n, vn)
-                  | (n, (_,_,(Just (rt,vn)),_,_)) <- M.toList meth_map
+                  | (n, (_,_,rts,_,_)) <- M.toList meth_map
+                  , (rt,vn) <- rts
                   ]
       ports = meth_ens ++ meth_args ++ meth_rets
 
@@ -323,7 +324,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
 
       dms = [ M.singleton clk [(aid, fromJust m')]
             | m <- iface
-            , let aid = aIfaceName m
+            , let aid = aif_name m
             , let m' = cvtIFace modId (sp_pps pkg)
                            def_map meth_map method_order_map reset_list m
             , isJust m'
@@ -517,7 +518,7 @@ cvtIFace :: Id -> [PProp] ->
             DefMap -> MethMap -> MethodOrderMap -> [(ResetId, AReset)] ->
             AIFace -> Maybe SimCCFn
 cvtIFace modId pps def_map meth_map method_order_map reset_list m =
-  do let name    = aIfaceName m
+  do let name    = aif_name m
          inputs  = aIfaceArgs m
          args    = [ (t,i) | (i,t) <- inputs ]
          -- always_enabled methods need to forcibly check their ready signal
@@ -527,8 +528,8 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
              if ((isAlwaysEn pps name) && (aIfaceHasAction m))
              then -- we have to find the name of the port associated
                   -- with the RDY method
-                  let rdy_id = mkRdyId (aIfaceName m)
-                      mport = do (_,_,Just (_,vn),_,_) <- M.lookup rdy_id meth_map
+                  let rdy_id = mkRdyId (aif_name m)
+                      mport = do (_,_,[(_,vn)],_,_) <- M.lookup rdy_id meth_map
                                  return $ ASPort aTBool (vName_to_id vn)
                  in case mport of
                       (Just prt) -> [SFSCond prt ss []]
@@ -543,18 +544,24 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
          wp      = aIfaceProps m
          rst_ids = map (ae_objid . areset_wire)
                        (mapMaybe (\n -> lookup n reset_list) (wpResets wp))
-     (men, ins, mr, _, ifcrules) <- M.lookup name meth_map
+     (men, ins, rs, _, ifcrules) <- M.lookup name meth_map
      let prt vn     = vName_to_id vn
-         rt         = do { (t,_) <- mr; return t }
+         rt         =
+              case rs of
+                 [(t,_)] -> Just t
+                 []      -> Nothing
+                 _      -> internalError ("cvtIFace: multiple return values "
+                                      ++ "not supported in method "
+                                      ++ ppReadable name)
          en_stmts   = maybe [] (\vn -> [SFSAssign True (prt vn) aTrue]) men
          wf_stmts   = map (\i -> SFSAssign False (mkIdWillFire i) aTrue) ifcrules
          in_stmts   = map (\(t,i,vn) -> SFSAssign True (prt vn) (ASPort t i)) ins
          body_stmts =
-           case mr of
-             Just (t,vn) ->
+           case rs of
+             [(t,vn)] ->
                -- account for the possible return of an actionvalue result
                let -- the return def
-                   ret_def  = aif_value m
+                   ret_def  = head $ aif_values m
                    ret_id   = adef_objid ret_def
                    ret_type = adef_type ret_def
                    -- the port name
@@ -584,9 +591,13 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                    -- ready is off (the user lied about it being always_en'd),
                    -- but, at that point, all bets are off anyway
                    check_rdy ss' ++ ret_stmts
-             Nothing -> check_rdy $
+             [] -> check_rdy $
                         cvtActions modId name
                             def_map method_order_map S.empty body rst_ids
+             -- TODO: Support methods with multiple return values
+             _ -> internalError ("cvtIFace: multiple return values "
+                                  ++ "not supported in method "
+                                  ++ ppReadable name)
          all_stmts  = concat [en_stmts, wf_stmts, in_stmts, body_stmts]
      return $ SimCCFn (getIdBaseString name) args rt all_stmts
 
@@ -1078,7 +1089,7 @@ mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
       -- if they are always_ready, so we need to call the RDY method for
       -- any methods which might be called but are not in the WF expr.
       wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
-                | (inst,rm) <-
+                | (inst,rm,_) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
                 ]
@@ -1171,7 +1182,7 @@ mkRuleSchedStmts inst_map full_dmap method_calls
       -- their RDY ports, so we need to call the RDY method for any methods
       -- which might be called but are not in the WF expr.
       wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
-                | (inst,rm) <-
+                | (inst,rm,_) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
                 ]
@@ -1391,7 +1402,8 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         mdef_edges =
             [ edge | ADef i _ e _ <- ds,
                      -- "aMethCalls" can return duplicates, but that's OK
-                     (obj,meth) <- aMethCalls e,
+                     -- TODO: Select the output port for multi-output methods
+                     (obj,meth,out_index) <- aMethCalls e,
                      edge <-
                            -- def SB act
                            [ (Right n, [Left i])
@@ -1442,9 +1454,10 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                        Nothing -> internalError "tsortActionsAndDefs: getDef"
 
         -- function to substitute ASDef for AMethValue
-        substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
+        -- TOOD: Handle multi-output methods
+        substAV (AMethValue ty obj meth oi) = ASDef ty (mkAVMethTmpId obj meth)
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
-        substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
+        substAV (AMethCall t o m oi es) = (AMethCall t o m oi (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
         substAV e = e
 
@@ -1553,20 +1566,23 @@ mkAVMethEdges ds method_calls =
         --   have to execute before "i" is computed.
         av_meth_edges = [ (Left i, map Right ns)
                             | (i, refs) <- av_meth_refs,
-                              (obj,meth,_) <- refs,
+                              -- TODO: Select the output port for multi-output methods
+                              (obj,meth,out_index,_) <- refs,
                               let ns = map fst $
                                        filter ((isMethValueOf obj meth) . snd)
                                            method_calls,
                               not (null ns) ]
 
-        mkAVMethDecl (obj,meth,ty) =
+        -- TODO: Handle multi-output methods
+        mkAVMethDecl (obj,meth,out_index,ty) =
             let id = mkAVMethTmpId obj meth
             in  SFSDef False (ty, id) Nothing
 
         av_meths = unions (map snd av_meth_refs)
         av_meth_local_vars = map mkAVMethDecl av_meths
 
-        av_meth_set = M.fromList (map (\ (o,m,t) -> ((o,m),t)) av_meths)
+        -- TODO: Handle multi-output methods
+        av_meth_set = M.fromList (map (\ (o,m,oi,t) -> ((o,m),t)) av_meths)
 
     in
         (av_meth_edges, av_meth_set, av_meth_local_vars)

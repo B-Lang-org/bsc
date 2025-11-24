@@ -523,8 +523,8 @@ aSchedule_step1 errh flags prefix pps amod = do
 
       -- definitions of the value methods in the interface
       ifcValueMethods = tr "let ifcValueMethods" $
-          [d | (AIDef { aif_value = d }) <- ifs] ++
-          [d | (AIActionValue { aif_value = d }) <- ifs]
+          [d | (AIDef { aif_values = ds }) <- ifs, d <- ds] ++
+          [d | (AIActionValue { aif_values = ds }) <- ifs, d <- ds]
 
       -- convert (some) value and (all) action methods into rules
       interfaceRules = tr "let interfaceRules" $ concatMap cvtIfc ifs
@@ -2726,7 +2726,7 @@ extractMethodArgEdges scConflictMap0 ds ifs =
 
       -- Given an interface field, determine if a conflict edge is needed
       findAIFaceUses (AIActionValue { aif_name = mid,
-                                      aif_value = d,
+                                      aif_values = ds,
                                       aif_body = rs,
                                       aif_inputs = as }) =
           -- If the edge already exists, don't bother
@@ -2734,7 +2734,7 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           then S.empty
           else let argset = S.fromList (map fst as)
                    condset = findACondUses rs
-                   valset = findAVValueUses d
+                   valset = concatMap findAVValueUses ds
                in  S.intersection argset (S.union condset valset)
       findAIFaceUses (AIAction { aif_name = mid,
                                  aif_body = rs,

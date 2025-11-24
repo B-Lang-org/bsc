@@ -385,7 +385,7 @@ getPortInfo pps aif =
         ps   = map fst (vf_inputs vfi)
         ins  = [ (t,i,vn) | ((i,t),vn) <- zip args ps ]
         rts  = aIfaceResTypes aif
-        rets  = zip rts (vf_output vfi)
+        rets  = zip rts $ map fst $ vf_outputs vfi
         isAction = case aif of
                      (AIAction {})      -> True
                      (AIActionValue {}) -> True
