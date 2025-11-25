@@ -1,0 +1,17 @@
+package TestTAdd_NestedRaws where
+
+import TestCommon
+
+-- Nested SizeOf - Raw (RawMaybe a)
+-- Creates: SizeOf (Bit (TAdd 1 (SizeOf a)))
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Module (ReadOnly (Raw (RawMaybe a)))
+mkTestPoly = module
+  r :: Reg (Maybe a) <- mkRegU
+  interface
+    _read = uncook (uncookMaybe r)
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTAdd_NestedRaws #-}
+mkTest_TestTAdd_NestedRaws :: Module (ReadOnly (Raw (RawMaybe (UInt 5))))
+mkTest_TestTAdd_NestedRaws = mkTestPoly
