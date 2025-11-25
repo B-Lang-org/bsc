@@ -159,11 +159,11 @@ lookupDef defmap i =
 -- Digested AVInst info for each submodule instance
 -- * The module name
 -- * The numeric type arguments for polymorphic modules
--- * A map from AV method names to their return value
+-- * A map from AV method names to their return values
 --
-type InstMap = M.Map Id (String, [Integer], M.Map Id AType)
+type InstMap = M.Map Id (String, [Integer], M.Map Id [AType])
 
-lookupMod :: InstMap -> Id -> (String, [Integer], M.Map Id AType)
+lookupMod :: InstMap -> Id -> (String, [Integer], M.Map Id [AType])
 lookupMod instmap obj =
     case (M.lookup obj instmap) of
       Nothing -> internalError ("lookupMod: " ++ ppReadable obj)
@@ -383,7 +383,8 @@ tsortActionsAndDefs mmap defmap uses acts =
         mdef_edges =
             [ edge | ADef i _ e _ <- used_defs,
                      -- "aMethCalls" can return duplicates, but that's OK
-                     (obj,meth) <- aMethCalls e,
+                     -- TODO: Handle multiple outputs
+                     (obj,meth,out_index) <- aMethCalls e,
                      edge <-
                            -- def SB act
                            [ (Right n, [Left i])
@@ -476,7 +477,7 @@ mkAVMethEdges ds method_calls =
         -- find the AMethValue references
         -- (assume that they are lifted to their own def)
         av_meth_refs = [ (i, obj, meth, ty)
-                         | ADef i _ (AMethValue ty obj meth) _ <- ds ]
+                         | ADef i _ (AMethValue ty obj meth _) _ <- ds ]
 
         -- the value reference from an ActionValue needs to come after
         -- the action method call.
@@ -510,15 +511,16 @@ makeMethodTemps apkg =
     cvt :: Integer -> [ADef] -> [AIFace] -> [AIFace] -> ([ADef], [AIFace])
     cvt _     defs iface [] = (defs, reverse iface)
     cvt seqNo defs iface (aif@(AIActionValue {}):aifs) =
-        case (aif_value aif) of
+        -- TODO: handle multiple outputs
+        case head (aif_values aif) of
           (ADef i ty e@(AMethCall {}) props) ->
               let (d, new_def) = makeTmp seqNo (aif_name aif) i ty e props
-                  aif' = aif { aif_value = new_def }
+                  aif' = aif { aif_values = [new_def] }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           -- This is lifted for LC, which expects an id to bind to
           (ADef i ty e@(AMethValue {}) props) ->
               let (d, new_def) = makeTmp seqNo (aif_name aif) i ty e props
-                  aif' = aif { aif_value = new_def }
+                  aif' = aif { aif_values = [new_def] }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           -- This is lifted for LC, which expects an id to bind to
           (ADef i ty e@(ATaskValue {}) props) ->
@@ -527,7 +529,7 @@ makeMethodTemps apkg =
                   -- If task splicing has already occurred, then we need to
                   -- update the tmp ids in the task actions
                   new_body = map (updateRuleTaskTmp i new_i) (aif_body aif)
-                  aif' = aif { aif_value = new_def, aif_body = new_body }
+                  aif' = aif { aif_values = [new_def], aif_body = new_body }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           _ -> cvt seqNo defs (aif:iface) aifs
     cvt seqNo defs iface (aif:aifs) = cvt seqNo defs (aif:iface) aifs
@@ -939,30 +941,33 @@ updateARuleTypes r = do
 -- except RDY methods which return Bool (to avoid unnecessary casting
 -- backing and forth)
 updateAIFaceTypes :: AIFace -> UTM AIFace
-updateAIFaceTypes (AIDef mId args ws p (ADef i t e props) vfi assumps)
+updateAIFaceTypes (AIDef mId args ws p [ADef i t e props] vfi assumps)
     | isRdyId i = do
   -- predicate should be constant True
   e' <- updateAExprTypes_Bool e
-  return (AIDef mId args ws p (ADef i mkATBool e' props) vfi assumps)
-updateAIFaceTypes (AIDef mId args ws p (ADef i t e props) vfi assumps) = do
+  return (AIDef mId args ws p [ADef i mkATBool e' props] vfi assumps)
+-- TODO: handle multiple outputs
+updateAIFaceTypes (AIDef mId args ws p [ADef i t e props] vfi assumps) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   e' <- updateAExprTypes_Bits e
-  return (AIDef mId args ws p (ADef i t e' props) vfi assumps)
+  return (AIDef mId args ws p [ADef i t e' props] vfi assumps)
 updateAIFaceTypes (AIAction args ws p mId rs vfi) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   rs' <- mapM updateARuleTypes rs
   return (AIAction args ws p mId rs' vfi)
-updateAIFaceTypes (AIActionValue args ws p mId rs (ADef i t e props) vfi) = do
+-- TODO: handle multiple outputs
+updateAIFaceTypes (AIActionValue args ws p mId rs [ADef i t e props] vfi) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   e' <- updateAExprTypes_Bits e
   rs' <- mapM updateARuleTypes rs
-  return (AIActionValue args ws p mId rs' (ADef i t e' props) vfi)
+  return (AIActionValue args ws p mId rs' [ADef i t e' props] vfi)
 updateAIFaceTypes e@(AIClock {}) = return e
 updateAIFaceTypes e@(AIReset {}) = return e
 updateAIFaceTypes e@(AIInout {}) = return e
+updateAIFaceTypes e = internalError ("updateAIFaceTypes: " ++ ppReadable e)
 
 updateAVInstTypes :: AVInst -> UTM AVInst
 updateAVInstTypes avi = do
@@ -1029,13 +1034,13 @@ updateAExprTypes mty (APrim i t p args) = updateAPrimTypes mty p i t args
 
 -- method arguments and return values are Bit type,
 -- except RDY methods which return Bool
-updateAExprTypes _ (AMethCall t obj meth as) = do
+updateAExprTypes _ (AMethCall t obj meth oi as) = do
   as' <- mapM updateAExprTypes_Bits as
   let t' = if (isRdyId meth) then mkATBool else t
-  return (AMethCall t' obj meth as')
+  return (AMethCall t' obj meth oi as')
 
 -- method return values are Bit type
-updateAExprTypes _ e@(AMethValue t obj meth) = return e
+updateAExprTypes _ e@(AMethValue t obj meth oi) = return e
 
 -- noinline function arguments and return values are Bit type
 updateAExprTypes _ (ANoInlineFunCall t i f as) = do
@@ -1224,13 +1229,13 @@ inlineUndet = mapAExprs g
 
 -- -------------------------
 
-getSubModAVMethReturnTypes :: AVInst -> M.Map Id AType
+getSubModAVMethReturnTypes :: AVInst -> M.Map Id [AType]
 getSubModAVMethReturnTypes avi =
     let
         meth_types = avi_meth_types avi
         vfis = vFields (avi_vmi avi)
 
-        mkPair vfi (_, Just _, Just ret_ty) = Just (vf_name vfi, ret_ty)
+        mkPair vfi (_, Just _, ret_tys) = Just (vf_name vfi, ret_tys)
         mkPair _ _ = Nothing
 
         pairs = catMaybes $ zipWith mkPair vfis meth_types

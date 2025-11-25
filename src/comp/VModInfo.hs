@@ -696,7 +696,6 @@ mkNamedOutputs vfi = map (setIdBaseString baseid) newStrs
 mkNamedReady :: VFieldInfo -> Id
 mkNamedReady vfi = baseid -- if (newStr == "") then baseid else setIdBaseString baseid newStr
     where  baseid = mkRdyId (vf_name vfi)
-           -- newStr = maybe ""  getVPortString (vf_output vfi)
 
 mkNamedInout :: VFieldInfo -> Id
 mkNamedInout vfi = setIdBaseString baseid newStr

@@ -59,8 +59,8 @@ convAPackageToSAL errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
-             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
+            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
+             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -891,8 +891,9 @@ convARule defmap instmap mmap r@(ARule rId _ _ _ p as _ _) =
 
 convAIFace :: DefMap -> InstMap -> MethodOrderMap -> AIFace -> [SDefn]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIDef methId args _ p (ADef _ ret_t ret_e _) _ _) =
+           (AIDef methId args _ p [ADef _ ret_t ret_e _] _ _) =
   let
       rt = convAType ret_t
 
@@ -927,8 +928,9 @@ convAIFace defmap instmap mmap
          sLam (arg_infos ++ [(stateId, modType)]) $
            body]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIActionValue args _ p methId rs (ADef _ def_t def_e _) _) =
+           (AIActionValue args _ p methId rs [ADef _ def_t def_e _] _) =
   let
       -- return value is Bit type
       ret_ty = convAType def_t
@@ -1156,7 +1158,10 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         Just _ -> error ("convStmt: multiple return values for method "
+                                         ++ ppReadable meth ++ " on instance "
+                                         ++ ppReadable obj)
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#" and "state#" with a unique number
@@ -1279,7 +1284,10 @@ convAExpr (ASAny t Nothing) = return $ anyVar t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth as) = do
+convAExpr (AMethCall _ obj meth oi as) = do
+  -- TODO: support multiple output ports
+  if oi == 0 then return ()
+    else internalError ("convAExpr: AMethCall not output 0: " ++ ppReadable oi)
   state_expr <- gets curState
   instmap <- gets instMap
   let (submod, submod_tys, _) = lookupMod instmap obj
@@ -1288,7 +1296,7 @@ convAExpr (AMethCall _ obj meth as) = do
   a_exprs <- mapM convAExpr as
   return $ sApply fnvar (a_exprs ++ [modState])
 
-convAExpr e@(AMethValue t obj meth) =
+convAExpr e@(AMethValue t obj meth oi) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
 

@@ -1970,10 +1970,10 @@ aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
 -- A use is a method Id on a particular instance (instId, methId)
 eDomain :: M.Map AId [(AId,AId)] -> AExpr -> [(AId,AId)]
 eDomain m (APrim _ _ _ es) = mergeUses $ map (eDomain m) es
-eDomain m e@(AMethCall _ i mi es) =
+eDomain m e@(AMethCall _ i mi _ es) =
     mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
 -- don't count the return value uses of actionvalue, only the action part
-eDomain m (AMethValue _ _ _) = []
+eDomain m (AMethValue _ _ _ _) = []
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []
@@ -2021,7 +2021,7 @@ cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
     -- have been able to distinguish pred reads from non-pred reads
     [(UseInfo rId [ifPred, rPred] [] rActs)
         | (ARule rId _ _ _ rPred rActs _ _) <- ifRs]
-cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
+cvtIfc (AIActionValue _ _ ifPred ifId ifRs [(ADef dId t _ _)] _) =
     -- similar to converting an action, but include the return value
     -- in the body value uses of each split rule
     -- (note that, if the method body is not split into multiple
@@ -2029,13 +2029,16 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     [(UseInfo rId [ifPred, rPred] [dExpr] rActs)
         | (ARule rId _ _ _ rPred rActs _ _) <- ifRs]
         where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
+cvtIfc (AIDef _ _ _ ifPred [(ADef dId t _ _)] _ _)
     | isRdyId dId = []
     | otherwise   = [(UseInfo dId [ifPred] [dExpr] [])]
         where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []
+
+-- TODO: handle multiple method outputs
+cvtIfc _ = error ("SimExpand.cvtIfc: unexpected ifc")
 
 
 -- ===============
@@ -2264,7 +2267,7 @@ getNoInlineInfo defs =
                 --methId = fi
                 methId = mkId pos (mkFString (getOutPortName ports))
                 instId = mkId pos (mkFString inst_name)
-                new_def = ADef di dt (AMethCall ft instId methId es) props
+                new_def = ADef di dt (AMethCall ft instId methId 0 es) props
             in
                 (new_def, Just (inst_name, mod_name))
         cvtDef def = (def, Nothing)

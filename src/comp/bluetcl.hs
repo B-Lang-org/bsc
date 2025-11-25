@@ -1659,7 +1659,7 @@ tclRule ["full",modname,rule] =
             -- expand the predicate
             let methodRdys :: [ADef]
                 methodRdys = [ v
-                             | (AIDef { aif_name = mn, aif_value = v }) <- ifcs
+                             | (AIDef { aif_name = mn, aif_values = [v] }) <- ifcs
                              , isRdyId mn ]
             let pred_expanded = ppeString (methodRdys ++ ds) bContext predicate
             -- method calls
@@ -4208,7 +4208,7 @@ get_method_to_signal_map vmod = do
   case f of
        Method {} -> return ()
        _ -> mzero -- failure, as in the guard function
-  port <- (vf_inputs f) ++ (maybeToList $ vf_output f) ++ (maybeToList $ vf_enable f)
+  port <- (vf_inputs f) ++ (vf_outputs f) ++ (maybeToList $ vf_enable f)
   count <- case (vf_mult f) of
     1 -> return Nothing
     k -> map Just [1..k]

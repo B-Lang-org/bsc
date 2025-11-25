@@ -525,7 +525,7 @@ type OptFunction = BFlags -> AId -> AType -> PrimOp -> [AExpr] ->  O AExpr
 -- A general function to optimize down a tree.
 aOptTree :: BFlags -> (OptFunction) -> AExpr -> O AExpr
 aOptTree bflgs ofunc (APrim aid t p es)   = mapM (aOptTree bflgs ofunc) es >>= ofunc bflgs aid t p
-aOptTree bflgs ofunc (AMethCall t i m es) = mapM (aOptTree bflgs ofunc) es >>= return . AMethCall t i m
+aOptTree bflgs ofunc (AMethCall t i m oi es) = mapM (aOptTree bflgs ofunc) es >>= return . AMethCall t i m oi
 aOptTree bflgs ofunc (ANoInlineFunCall t i f es)  = mapM (aOptTree bflgs ofunc) es >>= return . ANoInlineFunCall t i f
 aOptTree bflgs ofunc (AFunCall t i f isC es)  = mapM (aOptTree bflgs ofunc) es >>= return . AFunCall t i f isC
 aOptTree _ _ e  = return e
@@ -630,9 +630,9 @@ aInsertCase :: Bool -> (AId -> AExpr) -> AExpr -> AExpr
 aInsertCase stringOK findFn (APrim i t p es) =
     let es' = map (aInsertCase stringOK findFn) es
     in  aPrimInsertCase stringOK findFn i t p es'
-aInsertCase stringOK findFn (AMethCall t i m es) =
+aInsertCase stringOK findFn (AMethCall t i m oi es) =
     let es' = map (aInsertCase stringOK findFn) es
-    in  AMethCall t i m es'
+    in  AMethCall t i m oi es'
 aInsertCase stringOK findFn (AFunCall t i f isC es) =
     let es' = map (aInsertCase stringOK findFn) es
     in  AFunCall t i f isC es'
@@ -675,7 +675,7 @@ aExp :: BFlags -> AExpr -> O AExpr
 --
 --
 aExp bflags (APrim aid t p es)   = mapM (aExp bflags) es >>= aPrim bflags aid t p
-aExp bflags (AMethCall t i m es) = mapM (aExp bflags) es >>= return . AMethCall t i m
+aExp bflags (AMethCall t i m oi es) = mapM (aExp bflags) es >>= return . AMethCall t i m oi
 aExp bflags (AFunCall t i f isC es)  = mapM (aExp bflags) es >>= return . AFunCall t i f isC
 --
 -- One might consider not passing up constants and simple definitions through
@@ -937,7 +937,7 @@ boolOp _ = internalError( "AOpt::boolOp" )
 -- to the monad (thus the use of the monad -- to avoid plumbing new
 -- defs around).
 mkDefS :: AExpr -> O AExpr
-mkDefS e@(AMethCall _ o m []) = return e
+mkDefS e@(AMethCall _ o m _ []) = return e
 -- concatenation and selection don't need CSE since they don't compute
 mkDefS (APrim aid t PrimConcat es) = do
     es' <- mapM mkDefS es

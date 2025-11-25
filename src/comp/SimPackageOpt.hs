@@ -229,7 +229,7 @@ optimizeConcats pkg =
                        _   -> APrim pid pty PrimConcat args''
        -- recurse for other
        optConcat (APrim i t o as) = APrim i t o (map optConcat as)
-       optConcat (AMethCall t o m as) = AMethCall t o m (map optConcat as)
+       optConcat (AMethCall t o m oi as) = AMethCall t o m oi (map optConcat as)
        optConcat (AFunCall t i f isC as) = AFunCall t i f isC (map optConcat as)
        optConcat e = e
    in mapAExprs optConcat pkg
@@ -278,10 +278,10 @@ insertCase pkg =
 
       -- because method return values are not lifted to local defs,
       -- we need to infer case expressions there, too
-      aInsertCaseIfc ai@(AIDef { aif_value = d }) =
-          ai { aif_value = aInsertCaseDef True findFn d }
-      aInsertCaseIfc ai@(AIActionValue { aif_value = d }) =
-          ai { aif_value = aInsertCaseDef True findFn d }
+      aInsertCaseIfc ai@(AIDef { aif_values = ds }) =
+          ai { aif_values = map (aInsertCaseDef True findFn) ds }
+      aInsertCaseIfc ai@(AIActionValue { aif_values = ds }) =
+          ai { aif_values = map (aInsertCaseDef True findFn) ds }
       aInsertCaseIfc ai = ai
 
       ifc0 = sp_interface pkg
@@ -316,9 +316,9 @@ convertASAny errh flags apkg = do
       cvtASAnyExpr (APrim aid ty op args) =
         do args' <- mapM cvtASAnyExpr args
            return $ APrim aid ty op args'
-      cvtASAnyExpr (AMethCall ty aid  mid args) =
+      cvtASAnyExpr (AMethCall ty aid mid oi args) =
         do args' <- mapM cvtASAnyExpr args
-           return $ AMethCall ty aid mid args'
+           return $ AMethCall ty aid mid oi args'
       cvtASAnyExpr (ANoInlineFunCall ty aid fun args) =
         do args' <- mapM cvtASAnyExpr args
            return $ ANoInlineFunCall ty aid fun args'
