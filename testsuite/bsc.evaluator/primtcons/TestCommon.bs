@@ -1,0 +1,121 @@
+package TestCommon where
+
+import Vector
+
+--------------------------------------------------------------------------------
+-- Raw: Basic wrapper - just SizeOf
+--------------------------------------------------------------------------------
+data Raw a = Raw (Bit (SizeOf a))
+  deriving (Bits, Eq)
+
+cook :: (Bits a sz) => Raw a -> a
+cook (Raw x) = unpack x
+
+uncook :: (Bits a sz) => a -> Raw a
+uncook x = Raw (pack x)
+
+--------------------------------------------------------------------------------
+-- RawMatrix: 2D matrix using TMul - TMul n (TMul m (SizeOf a))
+--------------------------------------------------------------------------------
+data RawMatrix n m a = RawMatrix (Bit (TMul n (TMul m (SizeOf a))))
+  deriving (Bits, Eq)
+
+cookMatrix :: (Bits a asz) => RawMatrix n m a -> Vector n (Vector m a)
+cookMatrix (RawMatrix bits) = unpack bits
+
+uncookMatrix :: (Bits a asz) => Vector n (Vector m a) -> RawMatrix n m a
+uncookMatrix mat = RawMatrix (pack mat)
+
+--------------------------------------------------------------------------------
+-- RawPair: Combines two types - TAdd (SizeOf a) (SizeOf b)
+--------------------------------------------------------------------------------
+data RawPair a b = RawPair (Bit (TAdd (SizeOf a) (SizeOf b)))
+  deriving (Bits, Eq)
+
+cookPair :: (Bits a asz, Bits b bsz) => RawPair a b -> (a, b)
+cookPair (RawPair bits) =
+  let a_bits = truncateLSB bits
+      b_bits = truncate bits
+  in (unpack a_bits, unpack b_bits)
+
+uncookPair :: (Bits a asz, Bits b bsz) => (a, b) -> RawPair a b
+uncookPair (x, y) = RawPair ((pack x) ++ (pack y))
+
+--------------------------------------------------------------------------------
+-- RawMaybe: Bit encoding with TAdd and SizeOf, tag at LSB
+--------------------------------------------------------------------------------
+data RawMaybe a = RawMaybe (Bit (TAdd 1 (SizeOf a)))
+  deriving (Bits, Eq)
+
+cookMaybe :: (Bits a sz) => RawMaybe a -> Maybe a
+cookMaybe (RawMaybe bits) =
+  if bits[0:0] == 1
+  then Valid (unpack (truncateLSB bits))
+  else Invalid
+
+uncookMaybe :: (Bits a sz) => Maybe a -> RawMaybe a
+uncookMaybe (Valid x) = RawMaybe ((pack x) ++ 1'b1)
+uncookMaybe Invalid   = RawMaybe (_ ++ 1'b0)
+
+--------------------------------------------------------------------------------
+-- RawSMaybe: Same pattern for SMaybe interface
+--------------------------------------------------------------------------------
+interface SMaybe t =
+  valid :: Bool
+  dat   :: t
+ deriving (Bits, Eq)
+
+data RawSMaybe a = RawSMaybe (Bit (TAdd 1 (SizeOf a)))
+  deriving (Bits, Eq)
+
+cookSMaybe :: (Bits a sz) => RawSMaybe a -> SMaybe a
+cookSMaybe (RawSMaybe bits) =
+  SMaybe {
+    valid = bits[0:0] == 1;
+    dat = unpack (truncateLSB bits)
+  }
+
+uncookSMaybe :: (Bits a sz) => SMaybe a -> RawSMaybe a
+uncookSMaybe sm = if sm.valid
+                  then RawSMaybe ((pack sm.dat) ++ 1'b1)
+                  else RawSMaybe (_ ++ 1'b0)
+
+-- SMaybe Monad instance with lazy conditional
+instance Monad SMaybe where
+  return x = SMaybe { valid = True; dat = x }
+  bind x f = if x.valid then f x.dat else SMaybe { valid = False; dat = _ }
+
+--------------------------------------------------------------------------------
+-- RawEither: Encodes Either with nested operators - TAdd 1 (TMax (SizeOf a) (SizeOf b))
+--------------------------------------------------------------------------------
+data RawEither a b = RawEither (Bit (TAdd 1 (TMax (SizeOf a) (SizeOf b))))
+  deriving (Bits, Eq)
+
+cookEither :: (Bits a asz, Bits b bsz,
+               Add _apad asz (TAdd 1 (TMax asz bsz)),
+               Add _bpad bsz (TAdd 1 (TMax asz bsz))) => RawEither a b -> Either a b
+cookEither (RawEither bits) =
+  if msb bits == 0
+  then Left (unpack (truncate bits))
+  else Right (unpack (truncate bits))
+
+uncookEither :: (Bits a asz, Bits b bsz) => Either a b -> RawEither a b
+uncookEither (Left x)  = RawEither (1'b0 ++ (zeroExtend (pack x)))
+uncookEither (Right y) = RawEither (1'b1 ++ (zeroExtend (pack y)))
+
+--------------------------------------------------------------------------------
+-- Fin: Index type using TLog
+--------------------------------------------------------------------------------
+type Fin n = UInt (TLog n)
+
+--------------------------------------------------------------------------------
+-- RawFinUInt: Tests TLog (SizeOf (UInt n))
+--------------------------------------------------------------------------------
+data RawFinUInt n = RawFinUInt (Bit (TLog (SizeOf (UInt n))))
+  deriving (Bits, Eq)
+
+--------------------------------------------------------------------------------
+-- RawTLogSize: Tests TLog (SizeOf a)
+--------------------------------------------------------------------------------
+data RawTLogSize a = RawTLogSize (Bit (TLog (SizeOf a)))
+  deriving (Bits, Eq)

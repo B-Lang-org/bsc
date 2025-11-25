@@ -1,0 +1,41 @@
+# Test primitive type constructors (SizeOf, TAdd, TMax, TMul, TLog) normalization
+
+# Custom proc to compile with dumps and check for normalization
+proc test_primtcon_normalization { bsfile module expected_unnorm } {
+    global bsc
+    global subdir
+
+    # Compile with expanded and normtypes dumps
+    set dump_options "-dexpanded=expanded_%m.out -dnormtypes=normtypes_%m.out"
+    compile_verilog_pass $bsfile {} $dump_options
+
+    # Check for expected unnormalized patterns in expanded
+    set expanded_file "expanded_$module.out"
+    find_n_strings $expanded_file "SizeOf" $expected_unnorm
+
+    # Check that SizeOf is gone in normtypes (normalized)
+    set normtypes_file "normtypes_$module.out"
+    find_n_strings $normtypes_file "SizeOf" 0
+}
+
+# TAdd tests - should show unnormalized SizeOf in expanded
+test_primtcon_normalization "TestTAdd_Simple.bs" "mkTest_TestTAdd_Simple" 8
+test_primtcon_normalization "TestTAdd_LazyBind.bs" "mkTest_TestTAdd_LazyBind" 2
+test_primtcon_normalization "TestTAdd_Nested.bs" "mkTest_TestTAdd_Nested" 2
+test_primtcon_normalization "TestTAdd_DoubleNested.bs" "mkTest_TestTAdd_DoubleNested" 4
+test_primtcon_normalization "TestTAdd_Pair.bs" "mkTest_TestTAdd_Pair" 2
+test_primtcon_normalization "TestTAdd_NestedRaws.bs" "mkTest_TestTAdd_NestedRaws" 8
+
+# TMax tests - should show unnormalized SizeOf in expanded
+test_primtcon_normalization "TestTMax_DualMethods.bs" "mkTest_TestTMax_DualMethods" 4
+test_primtcon_normalization "TestTMax_Either.bs" "mkTest_TestTMax_Either" 8
+
+# TMul tests - some normalize early, but not all
+test_primtcon_normalization "TestTMul_FixedSizeMatrix.bs" "mkTest_TestTMul_FixedSizeMatrix" 0
+test_primtcon_normalization "TestTMul_PolyMatrix.bs" "mkTest_TestTMul_PolyMatrix" 0
+test_primtcon_normalization "TestTMul_VectorReg.bs" "mkTest_TestTMul_VectorReg" 3
+test_primtcon_normalization "TestTMul_StatefulIndex.bs" "mkTest_TestTMul_StatefulIndex" 3
+
+# TLog tests - these normalize early (0 expected in expanded)
+test_primtcon_normalization "TestTLog_UIntParam.bs" "mkTest_TestTLog_UIntParam" 0
+test_primtcon_normalization "TestTLog_TypeVar.bs" "mkTest_TestTLog_TypeVar" 0

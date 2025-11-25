@@ -1,0 +1,17 @@
+package TestTAdd_DoubleNested where
+
+import TestCommon
+
+-- RawSMaybe wrapping RawMaybe - double entanglement
+-- Tests: TAdd 1 (SizeOf (RawMaybe a))
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => a -> Module (SMaybe (RawSMaybe (RawMaybe a)))
+mkTestPoly x =
+  let inner :: SMaybe (RawMaybe a)
+      inner = SMaybe { valid = True; dat = uncookMaybe (Valid x) }
+  in return $ fmap uncookSMaybe (SMaybe { valid = True; dat = inner })
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTAdd_DoubleNested #-}
+mkTest_TestTAdd_DoubleNested :: UInt 5 -> Module (SMaybe (RawSMaybe (RawMaybe (UInt 5))))
+mkTest_TestTAdd_DoubleNested = mkTestPoly

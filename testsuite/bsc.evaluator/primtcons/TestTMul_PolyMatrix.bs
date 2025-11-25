@@ -1,0 +1,18 @@
+package TestTMul_PolyMatrix where
+
+import TestCommon
+import Vector
+
+-- RawMatrix with polymorphic dimensions - TMul n (TMul m (SizeOf a))
+-- All parameters (n, m, a) are polymorphic
+-- Polymorphic version
+mkTestPoly :: (Bits a asz) => Module (ReadOnly (RawMatrix n m a))
+mkTestPoly = module
+  r :: Reg (Vector m (Vector n a)) <- mkRegU
+  interface
+    _read = uncookMatrix $ unpack $ pack r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMul_PolyMatrix #-}
+mkTest_TestTMul_PolyMatrix :: Module (ReadOnly (RawMatrix 3 4 (UInt 5)))
+mkTest_TestTMul_PolyMatrix = mkTestPoly
