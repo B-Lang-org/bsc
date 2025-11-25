@@ -684,11 +684,11 @@ fixCModuleVerilog n (ss,ts,ps)
          in  [mStmtSPTO vp e]
        saveArgTypes _ = []
    let saveFieldTypes finf (Method { vf_inputs = inps,
-                                     vf_output = mo }) = do
+                                     vf_outputs = outs }) = do
          let rt = ret_type finf
          isAV <- isActionValue rt
          output_type <- if isAV then getAVType "fixCModVer" rt else return rt
-         let output_stmt = maybeToList (fmap ((flip mStmtSPT) rt) mo)
+         let output_stmt = map ((flip mStmtSPT) rt) outs
          -- we let the type-checker error on mismatches
          return (output_stmt ++ (zipWith mStmtSPT inps (arg_types finf)))
        saveFieldTypes finf (Inout { vf_inout = vn }) = do
@@ -1631,10 +1631,10 @@ fixupVeriField _ _ f@(Reset { }) = f
 fixupVeriField _ _ f@(Inout { }) = f
 fixupVeriField pps vportprops m@(Method { }) =
         m { vf_inputs = inputs',
-            vf_output = output',
+            vf_outputs = outputs',
             vf_enable = enable'' }
   where inputs'  =  map fixup (vf_inputs m)
-        output'  = fmap fixup (vf_output m)
+        outputs' = map fixup (vf_outputs m)
         enable'  = fmap fixup (vf_enable m)
         fixup    = fixupPort vportprops
         alwaysEnabled = isAlwaysEn pps (vf_name m)

@@ -11,6 +11,7 @@ module DisjointTest(
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Control.Monad(foldM {- , when -})
+import Data.List (genericIndex)
 
 import Util(ordPair,uniquePairs)
 
@@ -272,9 +273,9 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
     findSupport e@(APrim { ae_args = es})                = findAExprs findSupport es
     findSupport e@(AMethCall {ae_args = es}) =
       findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) !! ameth_outidx e
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) `genericIndex` ameth_out_idx e
     findSupport e@(AMethValue {})                        = [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) !! ameth_outidx e
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) `genericIndex` ameth_out_idx e
     findSupport e@(ANoInlineFunCall{ ae_args = es})      = findAExprs findSupport es
     findSupport e@(ATaskValue {ae_objid=id})             = [DTask id]
     findSupport e@(ASPort {ae_objid = id})               = [DLeaf id]

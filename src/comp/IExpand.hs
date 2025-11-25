@@ -80,7 +80,6 @@ import ITransform(iTransExpr)
 import IOUtil(progArgs)
 import ISyntaxXRef(mapIExprPosition, mapIExprPositionConservative)
 import IStateLoc
-import Data.String (String)
 
 -----------------------------------------------------------------------------
 -- Trace Flags
@@ -1145,7 +1144,7 @@ iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         let enablePort :: Maybe VPort
             enablePort = toMaybe (isActionType methType) (BetterInfo.mi_enable bi)
         let outputPorts :: [VPort]
-            outputPorts = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
+            outputPorts = map (id_to_vPort . mkId (getPosition i) . mkFString) outs
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
 
@@ -1155,12 +1154,12 @@ iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
                  Method { vf_name = i,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = outputPort, vf_enable = enablePort }),
+                          vf_outputs = outputPorts, vf_enable = enablePort }),
                 ((IDef rdyId itBit1 readySignal []), final_ws,
                  Method { vf_name = rdyId,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = Just rdyPort, vf_enable = Nothing }))
+                          vf_outputs = [rdyPort], vf_enable = Nothing }))
 
 -- deduce clock name for VFieldInfo
 -- type required to control ancestry-checking with action methods

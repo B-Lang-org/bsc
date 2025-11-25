@@ -19,6 +19,7 @@ import qualified Data.Map as M
 import qualified STP as S
 
 import Data.Maybe(fromMaybe)
+import Data.List (genericIndex)
 
 import ErrorUtil(internalError)
 import Flags
@@ -36,7 +37,6 @@ import AExpr2Util(getMethodOutputPorts)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
-import Data.List (genericIndex)
 
 traceTest :: Bool
 traceTest = "-trace-smt-test" `elem` progArgs

@@ -704,32 +704,33 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 -- Check that the return type is either bitable,
                 -- an Action, or an ActionValue, and that the port info
                 -- matches the types.
+                -- TODO: This should be replaced by type class resolution errors?
                 let
                     -- XXX These errors should give more info
-                    chkResType :: [VPort] -> Maybe VPort -> Maybe VPort -> Type ->
-                                  TI ([VPort], Maybe VPort, Maybe VPort)
-                    chkResType ps me@(Just _) mo@Nothing t =
-                        if (isActionWithoutValue t) then return (ps, me, mo)
+                    chkResType :: [VPort] -> Maybe VPort -> [VPort] -> Type ->
+                                  TI ([VPort], Maybe VPort, [VPort])
+                    chkResType ps me@(Just _) [] t =
+                        if (isActionWithoutValue t) then return (ps, me, [])
                         else if (isActionWithValue t)
                         then errMissingValue "ActionValue" t
                         else if (isBit t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps me@Nothing mo@(Just _) t =
-                        if (isBit t) then return (ps, me, mo)
+                    chkResType ps me@Nothing outs@(_:_) t =
+                        if (isBit t) then return (ps, me, outs)
                         else if (isActionWithValue t)
                         then errMissingEnable "ActionValue" t
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
                         else errBadResType t
-                    chkResType ps me@(Just _) mo@(Just _) t =
-                        if (isActionWithValue t) then return (ps, me, mo)
+                    chkResType ps me@(Just _) outs@(_:_) t =
+                        if (isActionWithValue t) then return (ps, me, outs)
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
                         else if (isBit t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps Nothing Nothing t = do
+                    chkResType ps Nothing [] t = do
                         -- must have more than 0 ports
                         when (null ps) $
                           err (getPosition f,
@@ -739,9 +740,9 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         let final_port = lastOrErr "chkResType" ps
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
-                         then return (inputs, Just final_port, Nothing)
+                         then return (inputs, Just final_port, [])
                          else if (isBit t)
-                               then return (inputs, Nothing, Just final_port)
+                               then return (inputs, Nothing, [final_port])
                                else errBadResType t
 
                     errBadResType t =
@@ -804,9 +805,9 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                 else if (null argTypes)
                                 then return vfi
                                 else errInoutHasArgs
-                    Method { vf_inputs = inputs, vf_enable = me, vf_output = mo } ->
+                    Method { vf_inputs = inputs, vf_enable = me, vf_outputs = outputs } ->
                             do -- updates inputs, me and mo when processing Classic format
-                               (inputs', me', mo') <- chkResType inputs me mo resType
+                               (inputs', me', outputs') <- chkResType inputs me outputs resType
                                -- check if any actions are SB with themselves
                                when (((isActionWithValue resType) ||
                                       (isActionWithoutValue resType) ||
@@ -814,7 +815,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                       (f `elem` self_sbs))
                                     (errActionSelfSB f)
                                chkArgs inputs' argTypes
-                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_output = mo' })
+                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_outputs = outputs' })
     -- paramResults <- mapM tiParam es
     qsses <- mapM tiArg args
 --  let   (pses, tys) = unzip paramResults

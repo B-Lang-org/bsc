@@ -2734,7 +2734,7 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           then S.empty
           else let argset = S.fromList (map fst as)
                    condset = findACondUses rs
-                   valset = concatMap findAVValueUses ds
+                   valset = foldMap findAVValueUses ds
                in  S.intersection argset (S.union condset valset)
       findAIFaceUses (AIAction { aif_name = mid,
                                  aif_body = rs,
@@ -4139,23 +4139,24 @@ cvtIfc :: AIFace -> [Rule]
 cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
     [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred] rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
+cvtIfc (AIActionValue _ _ ifPred ifId ifRs ds _) =
     -- similar to converting an action, but include the return value
     -- in the body value uses of each split rule
     -- (in this way, also, any value parts of an actionvalue method
     -- call will be in the same Rule structure as the action part)
     -- (note that, if the method body is not split into multiple
     -- rule, dId and rId will be the same)
-    [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred, dExpr] rActs)
+    [(Rule rId rOrig [ifPred, rPred] ([ifPred, rPred] ++ map dExpr ds) rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-        where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
-    | isRdyId dId = []
-    | otherwise   = [(Rule dId Nothing [ifPred] [ifPred,dExpr] [])]
-        where dExpr = ASDef t dId
+cvtIfc (AIDef _ _ _ ifPred [ADef dId t _ _] _ _) | isRdyId dId = []
+cvtIfc (AIDef mId _ _ ifPred ds _ _) =
+    [(Rule mId Nothing [ifPred] (ifPred : map dExpr ds) [])]
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []
+
+dExpr :: ADef -> AExpr
+dExpr (ADef dId t _ _) = ASDef t dId
 
 
 -- ========================================================================
@@ -4338,8 +4339,8 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
               | otherwise = (True, text "...")
           -- (method, hasCond, args, moreInfo)
           getUseInfo :: UniqueUse -> (String, Maybe Doc, Doc, Bool)
-          getUseInfo u@(UUExpr (AMethCall _ i m es) _) =
-              let meth = getIdBaseString i ++ "." ++ getIdBaseString m
+          getUseInfo u@(UUExpr (AMethCall _ i m oi es) _) =
+              let meth = getIdBaseString i ++ "." ++ getIdBaseString m ++ "$" ++ show oi
                   (moreCondInfo, cond) = mkCondInfo (extractCondition u)
                   (moreArgInfo, args) = mkArgs es
               in  (meth, cond, args, moreCondInfo || moreArgInfo)

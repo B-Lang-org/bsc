@@ -56,8 +56,8 @@ convAPackageToLambdaCalc errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
-             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
+            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
+             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -746,8 +746,9 @@ convARule defmap instmap mmap modId r@(ARule rId _ _ _ p as _ _) =
 convAIFace :: DefMap -> InstMap -> MethodOrderMap ->
               Id -> AIFace -> [SDefn]
 
+-- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIDef mId args _ p (ADef _ ret_t ret_e _) _ _) =
+           (AIDef mId args _ p [ADef _ ret_t ret_e _] _ _) =
   let
       mod_ty = modType modId []
       rt = convAType ret_t
@@ -787,8 +788,9 @@ convAIFace defmap instmap mmap modId
          sLam (arg_infos ++ [(stateId, mod_ty)]) $
            body]
 
+-- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIActionValue args _ p mId rs (ADef _ def_t def_e _) _) =
+           (AIActionValue args _ p mId rs [ADef _ def_t def_e _] _) =
   let
       mod_ty = modType modId []
       -- return value is Bit type
@@ -1026,7 +1028,10 @@ convStmt modId avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         -- TODO: support multiple return values
+                         Just _ -> error ("convStmt: multiple return values for method " ++
+                                         ppReadable (obj, meth))
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#", "guard#", and "state#" with a unique number
@@ -1173,7 +1178,10 @@ convAExpr (ASAny t Nothing) = let st = convAType t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth moi as) = do
+convAExpr (AMethCall _ obj meth oi as) = do
+  -- TODO: support multiple outputs
+  if oi == 0 then return ()
+    else internalError ("convAExpr: AMethCall with oi != 0: " ++ ppReadable oi)
   modId <- gets curModId
   state_expr <- gets curState
   instmap <- gets instMap
@@ -1183,7 +1191,7 @@ convAExpr (AMethCall _ obj meth moi as) = do
   a_exprs <- mapM convAExpr as
   return $ SApply (SVar mname) (a_exprs ++ [modState])
 
-convAExpr e@(AMethValue t obj meth) =
+convAExpr e@(AMethValue t obj meth oi) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
 
