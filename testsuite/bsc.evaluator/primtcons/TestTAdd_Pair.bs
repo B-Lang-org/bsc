@@ -1,0 +1,16 @@
+package TestTAdd_Pair where
+
+import TestCommon
+
+-- RawPair from register - TAdd (SizeOf a) (SizeOf b)
+-- Polymorphic version
+mkTestPoly :: (Bits a asz, Bits b bsz) => Module (ReadOnly (RawPair a b))
+mkTestPoly = module
+  r :: Reg (a, b) <- mkRegU
+  interface
+    _read = uncookPair r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTAdd_Pair #-}
+mkTest_TestTAdd_Pair :: Module (ReadOnly (RawPair (UInt 5) (UInt 3)))
+mkTest_TestTAdd_Pair = mkTestPoly

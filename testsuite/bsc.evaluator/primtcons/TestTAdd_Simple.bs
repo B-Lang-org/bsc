@@ -1,0 +1,15 @@
+package TestTAdd_Simple where
+
+import TestCommon
+
+-- fmap with RawMaybe - tests TAdd 1 (SizeOf a)
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Maybe a -> Module (ReadOnly (Maybe (RawMaybe a)))
+mkTestPoly x = module
+  interface
+    _read = fmap uncookMaybe (Valid x)
+
+-- Synthesized specialization with UInt 5
+{-# verilog mkTest_TestTAdd_Simple #-}
+mkTest_TestTAdd_Simple :: Maybe (UInt 5) -> Module (ReadOnly (Maybe (RawMaybe (UInt 5))))
+mkTest_TestTAdd_Simple = mkTestPoly

@@ -1,0 +1,18 @@
+package TestTMul_FixedSizeMatrix where
+
+import TestCommon
+import Vector
+
+-- RawMatrix with fixed dimensions - TMul 3 (TMul 4 (SizeOf a))
+-- Only element type is polymorphic
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Module (ReadOnly (RawMatrix 3 4 a))
+mkTestPoly = module
+  r :: Reg (Vector 3 (Vector 4 a)) <- mkRegU
+  interface
+    _read = uncookMatrix r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMul_FixedSizeMatrix #-}
+mkTest_TestTMul_FixedSizeMatrix :: Module (ReadOnly (RawMatrix 3 4 (UInt 5)))
+mkTest_TestTMul_FixedSizeMatrix = mkTestPoly

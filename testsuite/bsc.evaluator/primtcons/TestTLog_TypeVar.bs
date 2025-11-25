@@ -1,0 +1,17 @@
+package TestTLog_TypeVar where
+
+import TestCommon
+
+-- TLog (SizeOf a) - TLog of SizeOf with type variable
+-- Tests if TLog escapes when argument is SizeOf (not simple numeric)
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Module (ReadOnly (RawTLogSize a))
+mkTestPoly = module
+  r :: Reg (Bit (TLog (SizeOf a))) <- mkRegU
+  interface
+    _read = RawTLogSize r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTLog_TypeVar #-}
+mkTest_TestTLog_TypeVar :: Module (ReadOnly (RawTLogSize (Bit 32)))
+mkTest_TestTLog_TypeVar = mkTestPoly

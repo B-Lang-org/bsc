@@ -1,0 +1,16 @@
+package TestTMax_Either where
+
+import TestCommon
+
+-- RawEither tests nested operators: TAdd 1 (TMax (SizeOf a) (SizeOf b))
+-- Polymorphic version
+mkTestPoly :: (Bits a asz, Bits b bsz) => Module (ReadOnly (RawEither a b))
+mkTestPoly = module
+  r :: Reg (Either a b) <- mkRegU
+  interface
+    _read = uncookEither r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMax_Either #-}
+mkTest_TestTMax_Either :: Module (ReadOnly (RawEither (UInt 5) (UInt 3)))
+mkTest_TestTMax_Either = mkTestPoly
