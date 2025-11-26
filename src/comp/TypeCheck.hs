@@ -30,6 +30,7 @@ import Assump
 import CSubst(cSubstN)
 import CFreeVars(getFVC, getFTCC)
 import Util(separate, apFst, quote, fst3)
+--import Debug.Trace(trace, traceM)
 
 cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, Bool, S.Set Id)
 cTypeCheck errh flags symtab (CPackage name exports imports impsigs fixs defns includes) = do

@@ -617,6 +617,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                          sb'   = if incoherent then markIncoherent sb else sb
                          -- Record the class so warnTransitiveIncoherent can check allowIncoherent.
                          sb''  = sb' { solvedClass = Just c }
+                     -- when incoherent $ traceM $ "Incoherent binding: " ++ ppReadable sb''
                      return $ Just (qs, sb'', fd_subst, minst)
 
     let is' = genInsts c bound_tyvars dvs pr'
