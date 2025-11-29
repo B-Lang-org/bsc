@@ -85,6 +85,7 @@ import TypeCheck(cCtxReduceIO, cTypeCheck)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
 import Simplify(simplify)
+import LiftDicts(liftDictsPkg)
 import ISyntax(IPackage(..), IModule(..),
                IEFace(..), IDef(..), IExpr(..), fdVars)
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
@@ -455,11 +456,16 @@ compilePackage
     t <- dump errh flags t DFsimplified dumpnames mod'
     stats flags DFsimplified mod'
 
+    start flags DFliftdicts
+    let mod_lifted = liftDictsPkg symt mod'
+    t <- dump errh flags t DFliftdicts dumpnames mod_lifted
+    stats flags DFliftdicts mod_lifted
+
     --------------------------------------------
     -- Convert to internal abstract syntax
     --------------------------------------------
     start flags DFinternal
-    imod <- iConvPackage errh flags symt mod'
+    imod <- iConvPackage errh flags symt mod_lifted
     t <- dump errh flags t DFinternal dumpnames imod
     when (showISyntax flags) (putStrLnF (show imod))
     iPCheck flags symt imod "internal"
