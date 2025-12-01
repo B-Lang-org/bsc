@@ -111,10 +111,15 @@ handleCoherentDict p t e = do
       (e', liftable) <- handleDictExpr p t e
       if not liftable then return $ Left e'
       else do
-        i <- newDictId (getPosition e)
-        when trace_lift_dicts $ traceM $ "adding lifted dict (coherent): " ++ ppReadable (i, e')
-        modify (\s -> s { liftedDictMap = M.insert i (t, e') $ liftedDictMap s,
-                          typeDictMap = M.insert t i $ typeDictMap s })
+        i <- case e' of
+               CVar i' -> return i'
+               CApply (CVar i') [] -> return i'
+               _ -> do lift_i <- newDictId (getPosition e)
+                       when trace_lift_dicts $ traceM $ "adding lifted dict (coherent): " ++ ppReadable (lift_i, e') ++ "\n" ++ show e'
+                       modify (\s -> s { liftedDictMap = M.insert lift_i (t, e') $ liftedDictMap s } )
+                       return lift_i
+        when trace_lift_dicts $ traceM $ "adding to typeDictMap: " ++ ppReadable (t, i)
+        modify (\s -> s { typeDictMap = M.insert t i $ typeDictMap s })
         return $ Right i
 
 handleIncoherentDict :: BoundDicts -> CType -> CExpr -> L (Either CExpr Id)
