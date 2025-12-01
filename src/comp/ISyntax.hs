@@ -492,6 +492,8 @@ instance Show (IExpr a) where
   show (IAps f ts es) = "(IAps " ++ show f ++ " " ++ show ts ++ " " ++ show es ++ ")"
   show (IVar i)       = "(IVar " ++ show i ++ ")"
   show (ILAM i k e)   = "(ILAM " ++ show i ++ " " ++ show k ++ " " ++ show e ++ ")"
+  show (ICon i (ICDef {})) = "(ICDef " ++ show i ++ ")"
+  show (ICon i (ICValue {})) = "(ICValue " ++ show i ++ ")"
   show (ICon i ic)    = "(ICon " ++ show i ++ " " ++ show ic ++ ")"
   show (IRefT t p _)  = "(IRefT " ++ show t ++ " " ++ "_" ++ show p ++ ")"
 
