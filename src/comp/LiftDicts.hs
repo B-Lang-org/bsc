@@ -168,6 +168,9 @@ handleDictExpr p t e@(CApply f args) = do
   (args', liftables) <- fmap unzip $ zipWithM (handleDictExpr p) argTys args
   let e' = CApply f args'
   return (e', and liftables)
+handleDictExpr p t e@(CTApply f []) = do
+  when trace_lift_dicts $ traceM $ "Normalizing CTApply f []: " ++ ppReadable e
+  handleDictExpr p t f
 handleDictExpr p t e@(CTApply f ts)
   | not $ null $ tv ts = return (e, False)
   | otherwise          = do
@@ -274,6 +277,7 @@ isSimple (CLitT _ _) = True
 isSimple (CConT _ _ []) = True
 isSimple (CStructT _ []) = True
 isSimple (CApply f []) = isSimple f
+isSimple (CTApply f []) = isSimple f
 -- CVar is not simple because we have to do capture analysis for non-dictionaries
 -- CTApply is not simple because type applications are work
 isSimple _ = False
