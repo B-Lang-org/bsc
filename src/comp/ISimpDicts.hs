@@ -2,18 +2,18 @@
 module ISimpDicts(iSimpDicts) where
 
 import qualified Data.Map as M
-import qualified Data.Set as S
-import Debug.Trace(trace)
 
 import CType
 import ISyntax
 import ISyntaxSubst
 import ISyntaxUtil
 import Id
-import Prim
-import Pragma(PProp(..))
-import Error(internalError)
+import IOUtil(progArgs)
 import PPrint(ppReadable)
+import Util(tracep)
+
+trace_simp_dicts :: Bool
+trace_simp_dicts = "-trace-simp-dicts" `elem` progArgs
 
 -- Expand lifted dictionary CAFs to manifest ICTuple form
 -- This enables ISimplify to inline them efficiently
@@ -39,8 +39,8 @@ simpDict (IDef i t e ps)
                         IAps (ICon _ (ICTuple { })) _ _ -> True
                         _ -> False
             e'' = if isTuple
-                  then trace (ppReadable i ++ " reduced to a ICTuple") $ e'
-                  else trace (ppReadable i ++ " did not reduce to a ICTuple: " ++ ppReadable e' ++ "\n" ++ show e') e'
+                  then tracep trace_simp_dicts (ppReadable i ++ " reduced to a ICTuple") $ e'
+                  else tracep trace_simp_dicts (ppReadable i ++ " did not reduce to a ICTuple: " ++ ppReadable e' ++ "\n" ++ show e') e'
 simpDict def = def
 
 isLiftedDict :: Id -> Bool
