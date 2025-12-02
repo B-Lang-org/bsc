@@ -3,15 +3,26 @@ module FixupDefs(fixupDefs, updDef) where
 import Data.List(nub)
 import qualified Data.Map as M
 import PFPrint
+import CType
+import ISyntaxUtil
 import ErrorUtil(internalError)
+import IOUtil(progArgs)
 import Id
 import ISyntax
 import ISyntaxXRef(updateIExprPosition)
-import ISyntaxUtil(iDefsMap)
---import Debug.Trace
+import Util(tracep)
 
+trace_drop_dicts :: Bool
+trace_drop_dicts = "-trace-drop-dicts" `elem` progArgs
 
 -- ===============
+
+
+itIsDictType :: IType -> Bool
+itIsDictType t
+  | null $ fst $ itGetArrows t,
+    ITCon _ _ (TIstruct SClass _) <- leftmost t = True
+itIsDictType _ = False
 
 -- This does two things:
 -- (1) Insert imported packages into the current package (including their
@@ -30,20 +41,29 @@ fixupDefs (IPackage mi _ ps ds) ipkgs =
         -- XXX pragmas multiple times.
         ps' = nub $ concat $ ps : [ ps | IPackage _ _ ps _ <- ms ]
 
+        -- Get all the defs from the imported packages
+        ams = concatMap ipkg_defs ms
+
+        coherent_dicts = [ d | d@(IDef i t _ _) <- ams, itIsDictType t, isDictId i, not $ isIncoherentDict i ]
+        coherent_dict_map = M.fromList [ (t,i) | IDef i t _ _ <- coherent_dicts ]
+
         -- Get all the defs from this package and the imported packages
         ads = concat (ds : map (\ (IPackage _ _ _ ds) -> ds) ms)
 
         -- Create a recursive data structure by populating the map "m"
         -- with defs created using the map itself
         m = M.fromList [ (i, e) | (IDef i _ e _) <- ads' ]
-        ads' = iDefsMap (fixUp m) ads
+        ads' = iDefsMap (fixUp coherent_dict_map m) ads
 
         -- The new package contents
         ipkg_sigs = [ (mi, s) | (m@(IPackage mi _ _ _), s) <- ipkgs ]
-        ds' = iDefsMap (fixUp m) ds
+        ds' = iDefsMap (fixUp coherent_dict_map m) ds
+        dropDict i t = tracep (trace_drop_dicts && result) ("dropDict: " ++ ppReadable (i,t)) result
+          where result = itIsDictType t && isDictId i && t `M.member` coherent_dict_map && not (isIncoherentDict i)
+        ds'' = [ d' | d'@(IDef i t _ _) <- ds', not (dropDict i t) ]
     in
         --trace ("fixup " ++ ppReadable (map fst (M.toList m))) $
-        (IPackage mi ipkg_sigs ps' ds', ads')
+        (IPackage mi ipkg_sigs ps' ds'', ads')
 
 
 -- ===============
@@ -75,12 +95,15 @@ updDef d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
 
 -- ===============
 
-fixUp :: M.Map Id (IExpr a) -> IExpr a -> IExpr a
-fixUp m (ILam i t e) = ILam i t (fixUp m e)
-fixUp m (ILAM i k e) = ILAM i k (fixUp m e)
-fixUp m (IAps f ts es) = IAps (fixUp m f) ts (map (fixUp m) es)
-fixUp m (ICon i (ICDef t _)) = ICon i (ICDef t (get m i))
-fixUp m e = e
+fixUp :: M.Map IType Id -> M.Map Id (IExpr a) -> IExpr a -> IExpr a
+fixUp cm m (ILam i t e) = ILam i t (fixUp cm m e)
+fixUp cm m (ILAM i k e) = ILAM i k (fixUp cm m e)
+fixUp cm m (IAps f ts es) = IAps (fixUp cm m f) ts (map (fixUp cm m) es)
+fixUp cm m (ICon i (ICDef t _))
+  | isDictId i && itIsDictType t && not (isIncoherentDict i),
+    Just i' <- M.lookup t cm = ICon i' (ICDef t (get m i'))
+fixUp cm m (ICon i (ICDef t _)) = ICon i (ICDef t (get m i))
+fixUp _ _ e = e
 
 get :: M.Map Id (IExpr a) -> Id -> IExpr a
 get m i = let value = get2 m i
