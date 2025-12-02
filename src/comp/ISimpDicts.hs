@@ -39,8 +39,8 @@ simpDict (IDef i t e ps)
                         IAps (ICon _ (ICTuple { })) _ _ -> True
                         _ -> False
             e'' = if isTuple
-                  then tracep trace_simp_dicts (ppReadable i ++ " reduced to a ICTuple") $ e'
-                  else tracep trace_simp_dicts (ppReadable i ++ " did not reduce to a ICTuple: " ++ ppReadable e' ++ "\n" ++ show e') e'
+                  then tracep trace_simp_dicts ("Reduced to an ICTuple: " ++ ppReadable i) $ e'
+                  else tracep trace_simp_dicts ("Did not reduce to an ICTuple: " ++ ppReadable i ++ "\n" ++ ppReadable e' ++ "\n" ++ show e') e'
 simpDict def = def
 
 isLiftedDict :: Id -> Bool
