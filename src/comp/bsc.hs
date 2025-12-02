@@ -93,6 +93,7 @@ import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
 import FixupDefs(fixupDefs, updDef)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
+import ISimpDicts(iSimpDicts)
 import ISimplify(iSimplify)
 import BinUtil(BinMap, HashMap, readImports, replaceImportedSignatures)
 import GenBin(genBinFile)
@@ -521,9 +522,14 @@ compilePackage
     iPCheck flags symt imodf "fixup"
     t <- dump errh flags t DFfixup dumpnames imodf
 
+    start flags DFisimpdicts
+    let imodsd = iSimpDicts imodf
+    iPCheck flags symt imodsd "isimpdicts"
+    t <- dump errh flags t DFisimpdicts dumpnames imodsd
+
     start flags DFisimplify
     let imods :: IPackage HeapData
-        imods = iSimplify imodf
+        imods = iSimplify imodsd
     iPCheck flags symt imods "isimplify"
     t <- dump errh flags t DFisimplify dumpnames imods
     stats flags DFisimplify imods

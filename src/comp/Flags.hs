@@ -216,6 +216,7 @@ data DumpFlag
         | DFinternal
         | DFbinary
         | DFfixup
+        | DFisimpdicts
         | DFisimplify
         | DFwriteBin
 
