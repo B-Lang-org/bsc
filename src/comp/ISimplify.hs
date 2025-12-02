@@ -59,22 +59,21 @@ iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
         r = fromJustOrErr "iSimpAp ICPrim Nothing" m
 iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
         es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
-  where m = getTuple def
-        ms = fromJustOrErr "iSimpAp ICSel Nothing" m
-        e' = iSimpAp n (iSimp n (ms !! fromInteger k)) [] as
+  where m = selectTuple (fromInteger k) def
+        e = fromJustOrErr "iSimpAp ICSel Nothing" m
+        e' = iSimpAp n e [] as
 iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es
 
-getTuple :: (NFData a) => IExpr a -> Maybe [IExpr a]
-getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
-        -- trace ("unfold " ++ ppReadable di) $
-        Just ms
-getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
+selectTuple :: (NFData a) => Int -> IExpr a -> Maybe (IExpr a)
+selectTuple k (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars e = Just e
+  where e = ms !! k
+selectTuple k (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
         -- trace ("getTuple " ++ ppReadable (iii,body)) $
         case iSimpAp False body ts [] of
-        IAps (ICon _ (ICTuple { })) _ ms -> Just ms
+        IAps (ICon _ (ICTuple { })) _ ms -> Just $ ms !! k
         _ -> Nothing
-getTuple _ = Nothing
+selectTuple _ _ = Nothing
 
 -- XXX should we do more PrimOps here?
 doPrim :: PrimOp -> [IType] -> [IExpr a] -> Maybe (IExpr a)
