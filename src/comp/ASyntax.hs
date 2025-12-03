@@ -94,6 +94,8 @@ module ASyntax(
         ppeAPackage,
         mkMethId,
         mkMethStr,
+        mkMethArgStr,
+        mkMethResStr,
         isMethId,
         MethodPart(..),
         getParams,
@@ -1880,13 +1882,15 @@ data MethodPart =
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_<argnum> starting from 1
---     (e.g. the_fifo$enq_1)
---   Return values are <inst>$<meth> (e.g. the_fifo$first)
+--   Arguments are <inst>$<meth>_ARG_<argnum> starting from 1
+--     (e.g. the_fifo$enq_ARG_1)
+--   Return values are <inst>$<meth>_RES_<resnum> (e.g. the_fifo$first_RES_1)
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Multi-ported methods are <inst>$<meth>_<portnum>_<argnum>
+-- Multi-ported methods are <inst>$<meth>_<portnum>_ARG_<argnum>
+-- or <inst>$<meth>_<portnum>_RES_<resnum>
 -- The portnum is only omitted if the method has one or
 -- and infinite number of ports (like a register)
+-- XXX these should probably just be a data type rather than Ids
 mkMethId :: Id -> Id -> Maybe Integer -> MethodPart -> Id
 mkMethId o m ino mp =
         -- trace ("POS O: " ++ (show (getIdPosition o)) ++ " " ++
@@ -1911,20 +1915,8 @@ mkMethStr obj m m_port mp =
                                        fsUnderscore,
                                        mkNumFString port]
         base = case mp of
-                   MethodArg n ->
-                       if (n == 0)
-                       then internalError "mkMethStr"
-                       else concatFString [meth_port,
-                                           fsUnderscore,
-                                           fs_arg,
-                                           mkNumFString n]
-                   MethodResult n ->
-                       if (n == 0)
-                       then internalError "mkMethStr"
-                       else concatFString [meth_port,
-                                           fsUnderscore,
-                                           fs_res,
-                                           mkNumFString n]
+                   MethodArg n -> mkMethArgStr meth_port n
+                   MethodResult n -> mkMethResStr meth_port n
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]
@@ -1932,6 +1924,18 @@ mkMethStr obj m m_port mp =
     in  concatFString [inst,
                        fsDollar,
                        base]
+
+mkMethArgStr :: FString -> Integer -> FString
+mkMethArgStr meth_port n =
+    if (n == 0)
+    then internalError "mkMethArgStr"
+    else concatFString [meth_port, fsUnderscore, fs_arg, mkNumFString n]
+
+mkMethResStr :: FString -> Integer -> FString
+mkMethResStr meth_port n =
+    if (n == 0)
+    then internalError "mkMethResStr"
+    else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
 
 -- #############################################################################
 -- #
