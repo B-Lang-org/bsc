@@ -2267,7 +2267,7 @@ getNoInlineInfo defs =
                 --methId = fi
                 methId = mkId pos (mkFString (getOutPortName ports))
                 instId = mkId pos (mkFString inst_name)
-                new_def = ADef di dt (AMethCall ft instId methId 0 es) props
+                new_def = ADef di dt (AMethCall ft instId methId 1 es) props
             in
                 (new_def, Just (inst_name, mod_name))
         cvtDef def = (def, Nothing)

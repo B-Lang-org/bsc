@@ -1286,8 +1286,8 @@ convAExpr (APrim _ t p args) = convAPrim p t args
 
 convAExpr (AMethCall _ obj meth oi as) = do
   -- TODO: support multiple output ports
-  if oi == 0 then return ()
-    else internalError ("convAExpr: AMethCall not output 0: " ++ ppReadable oi)
+  if oi == 1 then return ()
+    else internalError ("convAExpr: AMethCall not output 1: " ++ ppReadable oi)
   state_expr <- gets curState
   instmap <- gets instMap
   let (submod, submod_tys, _) = lookupMod instmap obj
