@@ -575,19 +575,16 @@ createMapForOneMeth meth_id mult ins outs me = if check then
                   else [ concatFString [meth_fstr, fsUnderscore, mkNumFString n] |
                          n <- [0 .. mult-1] ]
 
-      -- for method "x", make the names "x_1, x_2, .." for the ports
-      -- make the names x_<port>_n for multi-ported methods
-      method_input_names = [ addNum meth_n arg_n |
+      -- for method "x", make the names "x_ARG_1, x_ARG_2, .." for the ports
+      -- make the names x_<port>_ARG_n for multi-ported methods
+      method_input_names = [ mkMethArgStr meth_n (toInteger arg_n) |
                              meth_n <- meth_mult, arg_n  <- [1 .. length ins]]
-      addNum fs n =
-          concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
-
       -- the Verilog port names for the above
       verilog_input_names = map getFStringForVerilogPair ins
 
       -- names for the output ports
-      method_output_names = [ addNum meth_n arg_n |
-                              meth_n <- meth_mult, arg_n  <- [1 .. length outs]]
+      method_output_names = [ mkMethResStr meth_n (toInteger out_n) |
+                              meth_n <- meth_mult, out_n  <- [1 .. length outs]]
       
       -- the Verilog port names for the above
       verilog_output_names = map getFStringForVerilogPair outs
@@ -616,7 +613,7 @@ createMapForOneMeth meth_id mult ins outs me = if check then
       -- as the method side does
       verilog_names = if (mult <= 1)
                       then verilog_names_pre_mult
-                      else [addNum fs n | -- PORT_N
+                      else [concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))] | -- PORT_N
                             fs <- verilog_names_pre_mult,
                             n <- [1..mult]]
 

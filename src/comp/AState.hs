@@ -414,7 +414,7 @@ aState' flags pps schedule_info apkg = do
 
         -- mkEmuxxs needs to know which are the value methods, because
         -- selectors for muxes are RDY for value methods (instead of WILLFIRE)
-        value_method_ids = [ i | (AIDef { aif_value = (ADef i _ _ _) }) <- ifc ]
+        value_method_ids = [ i | (AIDef { aif_name = i }) <- ifc ]
 
         -- muxes for values (definitions)
         (emux_selss, emux_valss, emux_outss, esss) =
@@ -444,19 +444,19 @@ aState' flags pps schedule_info apkg = do
 
         -- actionvalue method value references can be unconditionally converted
         subst :: AExpr -> Maybe AExpr
-        subst (AMethValue vt modId methId) =
-            Just (ASPort vt (mkMethId modId methId Nothing MethodResult))
+        subst (AMethValue vt modId methId methOutIdx) =
+            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult methOutIdx)))
         -- substitute AMOsc, AMGate, AMReset references with their port
         subst (AMGate gt modId clkId) =
             Just (mkOutputGatePort vmi_map modId clkId)
         -- substitute any value method calls, according to the substitution
-        subst e@(AMethCall vt modId methId es) =
+        subst e@(AMethCall vt modId methId methOutIdx es) =
             case (M.lookup e substs) of
               Nothing ->
                   let ino = do mult <- M.lookup (modId, methId) omMultMap
                                -- send unused calls of multi-ported methods to port 0
                                toMaybe (mult > 1) 0
-                  in Just (ASPort vt (mkMethId modId methId ino MethodResult))
+                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult methOutIdx)))
               me' -> me'
         -- AMethValue, AMGate and AMethCall should cover it
         subst e = Nothing
@@ -659,7 +659,7 @@ genModVars vs omMultMap = allmvars
                 -- and whether it's an action method)
                 --
                 ( m@(Method { vf_name = methId, vf_inputs = argIds, vf_mult = mult }),
-                  (argTypes, en_type, val_type) )
+                  (argTypes, en_type, val_types) )
                     <- zip (vFields vmodinfo) methType,
                 --
                 -- for each part of the method, produce a triple of
@@ -675,9 +675,8 @@ genModVars vs omMultMap = allmvars
                          Nothing -> []
                          (Just t) -> [(MethodEnable, t, True)]) ++
                     -- value triple
-                    (case (val_type) of
-                         Nothing -> []
-                         (Just t) -> [(MethodResult, t, False)]),
+                    [(MethodResult n, t, False)
+                        | (n, t) <- zip [1..] val_types ],
                 -- uniquifiers for multiple ports
                 -- (if only one copy, then the list just contains 0)
                 ino <- map (toMaybe (mult > 1)) [ 0 .. (getMultUse (modId, methId) - 1) `max` 0 ],
@@ -720,7 +719,7 @@ outputDefToADefs fmod pps ai@(AIDef{}) = if convert then newdefs else []
           resNames= mkNamedOutputs (aif_fieldinfo ai)
           newdefs = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames 
           convert = not (fmod && isRdyId (aif_name ai))
-outputDefToADefs _ pps ai@(AIActionValue{}) = [newdef]
+outputDefToADefs _ pps ai@(AIActionValue{}) = newdefs
     where defs    = aif_values ai
           resNames= mkNamedOutputs (aif_fieldinfo ai)
           newdefs  = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames
@@ -831,7 +830,8 @@ ratToBlobs mMap omMultMap rat =
   let
       -- True if there are 2 or more uses of the method,
       -- which means we need to do some sort of muxing
-      nonTrivial (_, (((AMethCall _ _ _ _, _) : _) : _)) = True
+      nonTrivial :: MethBlob -> Bool
+      nonTrivial (_, (((AMethCall _ _ _ _ _, _) : _) : _)) = True
       nonTrivial _ = False
 
       -- Create the MethBlobs and partition into expr and action
@@ -910,7 +910,7 @@ mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
       -- (For actions, the first argument is the condition, so remove it)
       exp :: UniqueUse -> AExpr
       exp (UUExpr e _) = e
-      exp (UUAction (ACall o m es)) = AMethCall aTAction o m es
+      exp (UUAction (ACall o m es)) = AMethCall aTAction o m 0 es
       exp (UUAction (AFCall i f isC es isA)) = AFunCall aTAction i f isC es
       -- XXX think this is just used for expression muxing
       exp (UUAction (ATaskAction i f isC n es tid tty isA)) =
@@ -1015,14 +1015,13 @@ mkEmuxs :: ([AExpr] -> [AExpr]) -> ([AExpr] -> AExpr) ->
            AId -> AId -> Maybe Integer -> MethPortBlob ->
            ([ADef], [ADef], [ADef], AExprSubst)
 mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
-    let meth_id = mkMethId o m ino MethodResult
-
+    let
         -- Break each MethPortBlob into a list of the expressions for
         -- each argument, and then transpose the entire structure to
         -- make a list of, for each argument, a list of the different
         -- expressions used by the different uses for that argument
         arg_blobs = transpose [ [ (e, (cnd es), rs) | e <- tl es ] |
-                                    (AMethCall _ _ _ es, rs) <- emrs]
+                                    (AMethCall _ _ _ _ es, rs) <- emrs]
 
         -- Call mkEmux once for each argument of the method, giving it
         -- the list of different expressions for that argument, to
@@ -1033,7 +1032,8 @@ mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
         (sel_defs, val_defs, out_defs) = concatUnzip3 def_tuples
 
         -- Replace the method call with the output port of the method
-        subst = [(e, ASPort (aType e) meth_id) | (e, _) <- emrs]
+        subst = [(e, ASPort (aType e) $ mkMethId o m ino $ MethodResult $ ameth_out_idx e )
+                | (e, _) <- emrs]
     in
         -- traces ("mkEmuxs " ++ ppReadable emrs ++ ppReadable xs) $
         (sel_defs, val_defs, out_defs, subst)
@@ -1256,9 +1256,9 @@ mkEnables o m ino emrs =
         let mi = mkMethId o m ino MethodEnable
             (dss, ess) = unzip (zipWith mkE emrs [1..])
             mkE :: (AExpr, Maybe [ARuleId]) -> Integer -> ([ADef], [AExpr])
-            mkE (AMethCall _ _ _ (ASInt _ _ (IntLit _ _ 1) : _), Just is) _ =
+            mkE (AMethCall _ _ _ _ (ASInt _ _ (IntLit _ _ 1) : _), Just is) _ =
                 ([], [ aWillFireId i | i <- is ])
-            mkE (AMethCall _ _ _ (c : _), Just is) k =
+            mkE (AMethCall _ _ _ _ (c : _), Just is) k =
               let ior  = mkIdPre (concatFString [mkFString astOrPref,
                                                  mkNumFString k]) mi
                   iand = mkIdPre (concatFString [mkFString astAndPref,
