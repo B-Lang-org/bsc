@@ -676,7 +676,7 @@ decodeTupleSels sels =
         case dropWhile (== idPrimSnd) sels of
           (i : is) | i == idPrimFst -> is
           is -> is
-  in (toInteger $ length sels - length restSels, restSels)
+  in (toInteger $ length sels - length restSels + 1, restSels)
 
 aEDef :: Id -> IExpr a -> [DefProp] -> M AExpr
 aEDef i e ps = do

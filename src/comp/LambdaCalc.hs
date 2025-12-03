@@ -1180,8 +1180,8 @@ convAExpr (APrim _ t p args) = convAPrim p t args
 
 convAExpr (AMethCall _ obj meth oi as) = do
   -- TODO: support multiple outputs
-  if oi == 0 then return ()
-    else internalError ("convAExpr: AMethCall with oi != 0: " ++ ppReadable oi)
+  if oi == 1 then return ()
+    else internalError ("convAExpr: AMethCall with oi != 1: " ++ ppReadable oi)
   modId <- gets curModId
   state_expr <- gets curState
   instmap <- gets instMap

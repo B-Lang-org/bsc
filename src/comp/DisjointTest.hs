@@ -273,9 +273,11 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
     findSupport e@(APrim { ae_args = es})                = findAExprs findSupport es
     findSupport e@(AMethCall {ae_args = es}) =
       findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) `genericIndex` ameth_out_idx e
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
+                `genericIndex` (ameth_out_idx e - 1)
     findSupport e@(AMethValue {})                        = [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e) `genericIndex` ameth_out_idx e
+      where vlogport = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
+                `genericIndex` (ameth_out_idx e - 1)
     findSupport e@(ANoInlineFunCall{ ae_args = es})      = findAExprs findSupport es
     findSupport e@(ATaskValue {ae_objid=id})             = [DTask id]
     findSupport e@(ASPort {ae_objid = id})               = [DLeaf id]

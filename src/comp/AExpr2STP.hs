@@ -584,7 +584,7 @@ convAExpr2SExpr mty (AMethCall ty@(ATBit width) modId methId methOutIdx args) = 
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPorts smap modId methId `genericIndex` methOutIdx
+    let portId = getMethodOutputPorts smap modId methId `genericIndex` (methOutIdx - 1)
         e = (AMethCall ty modId portId methOutIdx args)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
@@ -592,7 +592,7 @@ convAExpr2SExpr mty (AMethValue ty@(ATBit width) modId methId methOutIdx) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPorts smap modId methId `genericIndex` methOutIdx
+    let portId = getMethodOutputPorts smap modId methId `genericIndex` (methOutIdx - 1)
         e = (AMethValue ty modId portId methOutIdx)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width

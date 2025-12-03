@@ -891,7 +891,7 @@ aPathsPreSched errh flags apkg = do
                 n <- filter (\x -> not (S.member x pathnodeset)) [n1,n2] ]
   when (not (null unknown_nodes)) $
       internalError ("APath.aPaths': nodes not in graph: " ++
-                      show unknown_nodes)
+                      ppReadable unknown_nodes ++ "\npathnodes = " ++ ppReadable pathnodes)
 
   -- ====================
   -- Construct the graph
