@@ -4148,7 +4148,7 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs ds _) =
     -- rule, dId and rId will be the same)
     [(Rule rId rOrig [ifPred, rPred] ([ifPred, rPred] ++ map dExpr ds) rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-cvtIfc (AIDef _ _ _ ifPred [ADef dId t _ _] _ _) | isRdyId dId = []
+cvtIfc (AIDef mId _ _ _ _ _ _) | isRdyId mId = []
 cvtIfc (AIDef mId _ _ ifPred ds _ _) =
     [(Rule mId Nothing [ifPred] (ifPred : map dExpr ds) [])]
 cvtIfc (AIClock {}) = []
