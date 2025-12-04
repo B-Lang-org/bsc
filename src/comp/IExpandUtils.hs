@@ -2867,6 +2867,8 @@ cacheDef i t e@(IAps _ _ _) = do
   let m = defCache s
   case (M.lookup i m) of
     Just e' -> do when doTraceDefCache $
+                    -- e' should be a constant or heap reference,
+                    -- so it should be cheap to print
                     traceM ("cache hit: " ++ ppReadable (i, t, e'))
                   return e'
     Nothing -> do e' <- toHeap "cache-def" e (Just i)

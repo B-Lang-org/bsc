@@ -28,7 +28,8 @@ trace_lift_dicts :: Bool
 trace_lift_dicts = "-trace-lift-dicts" `elem` progArgs
 
 liftDictsPkg :: SymTab -> CPackage -> CPackage
-liftDictsPkg symt pkg@(CPackage mi exps imps fixs ds includes) = CPackage mi exps imps fixs ds'' includes
+liftDictsPkg symt pkg@(CPackage mi exps imps impsigs fixs ds includes)
+  = CPackage mi exps imps impsigs fixs ds'' includes
   where s = initLState symt pkg
         (ds', s') = runState (liftDicts S.empty M.empty ds) s
         lifted_ds = [ CValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) |
@@ -67,7 +68,7 @@ data LState = LState {
 type L a = State LState a
 
 initLState :: SymTab -> CPackage -> LState
-initLState symt (CPackage mi exps imps fixs ds includes) = LState {
+initLState symt (CPackage mi exps imps impsigs fixs ds includes) = LState {
   dictNo = 0,
   typeDictMap = M.empty,
   exprDictMap = M.empty,
@@ -86,8 +87,9 @@ getTopNameInfo i = do
   where lookupLifted = fmap (\(t,_) -> ([], t)) . M.lookup i
         lookupLocal  = M.lookup i
         lookupSymTab = fmap handleVarInfo . flip findVar i
-        handleVarInfo (VarInfo _ (_ :>: Forall ks qt) _) = (tyVars, t')
-          where tyVars = zipWith tVarKind tmpTyVarIds ks
+        handleVarInfo vi@(VarInfo {}) = (tyVars, t')
+          where (_ :>: Forall ks qt) = vi_assump vi
+                tyVars = zipWith tVarKind tmpTyVarIds ks
                 t'     = inst (map TVar tyVars) (qualToType qt)
 
 newDictId :: Position -> L Id
@@ -151,7 +153,8 @@ handleDictExpr _ t e
 handleDictExpr _ _ e
   | tvFree = return (e, False)
   where tvFree = not $ null $ tv e
-handleDictExpr _ _ e@(CAnyT {}) = return (e, True)
+handleDictExpr p t e@(CAnyT {}) = internalError $ "Undefined dictionary value: " ++ ppReadable (p, t, e)
+handleDictExpr _ _ e@(CStructT _ _) = return (e, True)
 handleDictExpr p t e@(CApply f []) = do
   when trace_lift_dicts $ traceM $ "Normalizing CApply f []: " ++ ppReadable e
   handleDictExpr p t f
@@ -208,8 +211,7 @@ handleDictFun ts e@(CSelectT ti i) = do
           return $ qualToType $ inst ts qualTy
         scs -> internalError $ "handleDictFun CSelectT could not find unique FieldInfo: " ++ ppReadable (ti, i, fis)
     Nothing -> internalError$ "handleDictFun CSelectT field info not found: " ++ ppReadable (ti, i)
-handleDictFun [] (CAnyT _ _ t) = return t
-handleDictFun ts (CAnyT _ _ _) = internalError $ "handleDictFun polymorphic CAnyT: " ++ ppReadable ts
+handleDictFun ts e@(CAnyT _ _ t) = internalError $ "handleDictFun undefined (CAnyT): " ++ ppReadable (ts, t, e)
 handleDictFun ts0 (CTApply f ts)
   | null ts0 = handleDictFun ts f
   | otherwise = internalError $ "handleDictFunc stacked CTApply: " ++ ppReadable (ts0, f, ts)
