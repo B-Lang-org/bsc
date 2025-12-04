@@ -2853,19 +2853,16 @@ inferName expr@(ICon inst_name (ICStateVar {})) = return (Just inst_name)
 inferName _ = return Nothing
 
 unCacheableType :: IType -> Bool
-unCacheableType (ITForAll _ _ _) = True
 -- top-level pure values of Clock and Reset involve no work
 -- and sometimes we want to play games (e.g. disabled clocks)
 unCacheableType (ITCon i _ _) = i == idClock ||
                                 i == idReset
-unCacheableType t = isFunType t ||
-                    isitActionValue t
+unCacheableType t = isitActionValue t
 
 --- caching of previously evaluated definitions
 cacheDef :: Id -> IType -> HExpr -> G HExpr
 cacheDef i t e | unCacheableType t = return e
-cacheDef i t e@(ICon {}) = return e
-cacheDef i t e = do
+cacheDef i t e@(IAps _ _ _) = do
   s <- get
   let m = defCache s
   case (M.lookup i m) of
@@ -2879,6 +2876,7 @@ cacheDef i t e = do
                   when doTraceDefCache $
                     traceM ("cache miss: " ++ ppReadable (i, t))
                   return e'
+cacheDef i t e = return e -- no application, not worth caching
 
 -- caching of dynamically evaluated CSyntax expressions
 lookupCExprCache :: CExpr -> IType -> G (Maybe HExpr)
