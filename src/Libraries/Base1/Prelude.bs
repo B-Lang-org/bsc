@@ -4554,6 +4554,14 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
+instance WrapMethod (ActionValue ()) (ActionValue_ 0) where
+  toWrapMethod = toActionValue_
+  fromWrapMethod = fromActionValue_
+  methodArgBaseNames _ _ _ _ = Nil
+  inputPortNames _ _ = Nil
+  outputPortNames _ base = Nil
+  saveMethodPortTypes _ modName _ result = return ()
+
 instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
   toWrapMethod = toActionValue_
   fromWrapMethod = fromActionValue_
