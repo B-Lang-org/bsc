@@ -155,7 +155,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          vfi@(Method {}) <- vFields (avi_vmi v),
                          -- for each method output port
                          (methpart, (vname, pprops))
-                             <- zip (map MethodArg [1..]) (vf_outputs vfi),
+                             <- zip (map MethodResult [1..]) (vf_outputs vfi),
 
                          -- for each port copy
                          ino <- if (vf_mult vfi > 1) then
@@ -197,7 +197,8 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                     -- return empty-list here; but the internal check
                     -- is nice to have (if it's not too expensive).
                     internalError ("getOVProp: could not find method " ++
-                                   ppString i)
+                                   ppString i ++ " in wireMap_out:\n" ++
+                                   ppReadable wireMap_out)
 
         -- ----------
         -- construct the VeriPortProp list for an input
