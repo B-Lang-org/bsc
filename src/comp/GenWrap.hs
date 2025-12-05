@@ -1112,8 +1112,8 @@ genTo pps ty mk =
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
                    meth_name = fieldPathName prefixes f
-                   result = stringLiteralAt noPosition $ fromMaybe (getFString meth_name) (lookupResultIfcPragma ciPrags)
-                   fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr meth_name (getIdPosition f)
+                   result = stringLiteralAt noPosition $ fromMaybe localPrefix (lookupResultIfcPragma ciPrags)
+                   fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
                let e = CApply (CVar id_toWrapField) [fnp, prefix, arg_names, result, ec]
