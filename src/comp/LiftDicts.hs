@@ -111,13 +111,15 @@ handleCoherentDict p t e = do
     Nothing -> do
       when trace_lift_dicts $ traceM $ "typeDictMap miss: " ++ ppReadable t
       (e', liftable) <- handleDictExpr p t e
-      if not liftable then return $ Left e'
+      if not liftable then do
+        when trace_lift_dicts $ traceM $ "Not lifting (coherent): " ++ ppReadable t
+        return $ Left e'
       else do
         i <- case e' of
                CVar i' -> return i'
                CApply (CVar i') [] -> return i'
                _ -> do lift_i <- newDictId (getPosition e)
-                       when trace_lift_dicts $ traceM $ "adding lifted dict (coherent): " ++ ppReadable (lift_i, e') ++ "\n" ++ show e'
+                       when trace_lift_dicts $ traceM $ "adding lifted dict (coherent): " ++ ppReadable (lift_i, e')
                        modify (\s -> s { liftedDictMap = M.insert lift_i (t, e') $ liftedDictMap s } )
                        return lift_i
         when trace_lift_dicts $ traceM $ "adding to typeDictMap: " ++ ppReadable (t, i)
@@ -127,7 +129,9 @@ handleCoherentDict p t e = do
 handleIncoherentDict :: BoundDicts -> CType -> CExpr -> L (Either CExpr Id)
 handleIncoherentDict p t e = do
   (e', liftable) <- handleDictExpr p t e
-  if not liftable then return $ Left e'
+  if not liftable then do
+    when trace_lift_dicts $ traceM $ "Not lifting (incoherent): " ++ ppReadable t
+    return $ Left e'
   else do
     edm <- gets exprDictMap
     case M.lookup e' edm of
