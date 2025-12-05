@@ -577,7 +577,7 @@ groupMethodDefs vDef si ds =
         mkForMethod (ASPMethodInfo i ty mr _ vs _ rs) (odecls, idecls, gs, defs) =
             let
                 -- get the output defs
-                output_ids = maybeToList mr ++ vs
+                output_ids = vs ++ maybeToList mr
                 (output_defs, other_defs) = findADefs output_ids defs
                 -- get the rule defs
                 rule_sched_ids = concatMap getRuleSignals rs
