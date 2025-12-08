@@ -23,7 +23,7 @@ BSCFLAGS_EXT += -vsearch $(BUILDDIR)
 # Increase the RTS stack
 #BSCFLAGS_EXT += +RTS -K32M -RTS
 
-BSCFLAGS ?= $(BSCFLAGS_EXT)
+override BSCFLAGS += $(BSCFLAGS_EXT)
 
 BSC ?= $(BINDIR)/bsc
 
