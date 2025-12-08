@@ -57,7 +57,7 @@ To build a complete release of BSC, you will need:
    with any release from 7.10.3 through 9.12.  We recommend installing
    GHC via the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
-   `old-time`, and `split`.
+   `old-time`, `split`, and `strict-concurrency`.
  - The GNU Multiple Precision Arithmetic Library (GMP). `libgmp` is
    used to implement integers in Haskell and may already be a
    dependency of installing GHC.
@@ -110,7 +110,7 @@ sudo apt-get install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -140,6 +140,11 @@ sudo apt-get install \
    libghc-split-prof
 ```
 
+Note that there are currently no `libghc-strict-concurrency-dev` or
+`libghc-strict-concurrency-prof` packages.  Until such packages are
+created, that library would need to be installed using `cabal`, which
+is available via the `cabal-install` package.
+
 ### Fedora systems
 
 The following commands install all required and optional dependencies:
@@ -164,7 +169,7 @@ sudo dnf install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -193,6 +198,11 @@ sudo dnf install \
    ghc-old-time-prof \
    ghc-split-prof
 ```
+
+Note that there are currently no `ghc-strict-concurrency-devel` or
+`ghc-strict-concurrency-prof` packages.  Until such packages are
+created, that library would need to be installed using `cabal`, which
+is available via the `cabal-install` package.
 
 ### MacOS systems
 
@@ -237,7 +247,7 @@ brew install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -279,7 +289,7 @@ using the legacy `v1-install` subcommand, which install globally:
 
 ```bash
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Cabal's newer `v2-install` has the advantage of not installing the
@@ -293,7 +303,7 @@ in the environment when calling `make` in the later steps.  For
 example (cabal 3.x only):
 
 ```bash
-cabal v2-install --package-env=default syb old-time split
+cabal v2-install --package-env=default regex-compat syb old-time split strict-concurrency
 make GHC="ghc -package-env default"
 ```
 

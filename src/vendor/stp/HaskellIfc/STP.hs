@@ -98,8 +98,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import qualified Foreign.Concurrent as F
 
---import Control.Concurrent.MVar.Strict
-import MVarStrict
+import Control.Concurrent.MVar.Strict
 
 import ErrorUtil(internalError)
 import System.Posix.Env(getEnvDefault)
