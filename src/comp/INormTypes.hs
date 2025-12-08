@@ -9,27 +9,32 @@ import Flags(Flags)
 
 import PreIds(idSizeOf)
 import ISyntax
+import Changed
 import IConv(iConvT)
 import SymTab
 
 iNormTypes :: Flags -> SymTab -> IModule a -> IModule a
 iNormTypes flags symt = iNorm fullNorm
-  where fullNorm c@(ITCon _ _ _)    = c
-        fullNorm n@(ITNum _)        = n
-        fullNorm s@(ITStr _)        = s
-        fullNorm v@(ITVar i)        = v
-        fullNorm (ITForAll i k t)   = ITForAll i k $ fullNorm t
-        fullNorm (ITAp f@(ITCon op _ _) a)
-          | op == idSizeOf && canNorm a' = normalizeSizeOf $ ITAp f a'
-          where a' = fullNorm a
+  where fullNorm :: IType -> IType
+        fullNorm t = changedOr t $ fullNorm' t
+
+        fullNorm' :: IType -> Changed IType
+        fullNorm' tf@(ITForAll i k t)   = changed1 (ITForAll i k) (fullNorm' t)
+        fullNorm' (ITAp f@(ITCon op _ _) a)
+          | op == idSizeOf && canNorm a' = Changed $ normalizeSizeOf $ ITAp f a'
+          where -- Could use changedOr directly, but fullNorm does the right thing
+                -- because we will normalize this type whether or not a changes
+                a' = fullNorm a
                 -- iToCT which we use below cannot handle ITVar and ITForAll
                 canNorm (ITVar _)        = False
                 canNorm (ITForAll _ _ _) = False
                 canNorm (ITAp f a)       = canNorm f && canNorm a
                 canNorm _                = True
-        fullNorm t@(ITAp f a) = normITAp f' a'
-          where f' = fullNorm f
-                a' = fullNorm a
+        fullNorm' t@(ITAp f a) = changed2 normITAp f a f' a'
+          where f' = fullNorm' f
+                a' = fullNorm' a
+        fullNorm' _ = Unchanged
+
         normalizeSizeOf t =
           let t' = iConvT flags symt $ iToCT t
           in case t' of
