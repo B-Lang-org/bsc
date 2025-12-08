@@ -182,8 +182,38 @@ data SExpr = SLam Id SType SExpr
 
 -- -----
 
-instance Hyper SPackage where
-  hyper x y = (x==x) `seq` y
+instance NFData SPackage where
+  rnf (SPackage cmt defns) = rnf2 cmt defns
+
+instance NFData SDefn where
+  rnf (SDStruct id flds) = rnf2 id flds
+  rnf (SDValue id typ expr) = rnf3 id typ expr
+  rnf (SDComment cmt defns) = rnf2 cmt defns
+
+instance NFData STyCon where
+  rnf (STyCon id) = rnf id
+  rnf (STyNum n) = rnf n
+
+instance NFData SType where
+  rnf (STVar id) = rnf id
+  rnf (STCon con) = rnf con
+  rnf (STAp t1 t2) = rnf2 t1 t2
+
+instance NFData SExpr where
+  rnf (SLam id t e) = rnf3 id t e
+  rnf (SLet defs body) = rnf2 defs body
+  rnf (SVar id) = rnf id
+  rnf (SCon id) = rnf id
+  rnf (SBVLit w v) = rnf2 w v
+  rnf (SStringLit s) = rnf s
+  rnf (SRealLit v) = rnf v
+  rnf (SApply f args) = rnf2 f args
+  rnf (SApplyInfix op args) = rnf2 op args
+  rnf (SStruct id fs) = rnf2 id fs
+  rnf (SStructUpd e fs) = rnf2 e fs
+  rnf (SSelect e id) = rnf2 e id
+  rnf (SIf c t f) = rnf3 c t f
+  rnf (SHasType t e) = rnf2 t e
 
 -- -----
 

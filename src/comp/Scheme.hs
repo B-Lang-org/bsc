@@ -11,7 +11,7 @@ import Subst
 import Pred
 import PFPrint
 import Position(noPosition, HasPosition(..))
-import Eval
+import Eval(NFData(..), rnf2)
 
 -- a scheme is a (possibly qualified) type polymorphic over some type variables
 -- referred to as TGen n (where n is the index in the [Kind] list)
@@ -32,8 +32,8 @@ instance Types Scheme where
     apSub s (Forall ks qt) = Forall ks (apSub s qt)
     tv      (Forall ks qt) = tv qt
 
-instance Hyper Scheme where
-    hyper (Forall ks qt) y = hyper2 ks qt y
+instance NFData Scheme where
+    rnf (Forall ks qt) = rnf2 ks qt
 
 -- turn a qualified type (qt) into a scheme over some type variables (vs)
 -- the reverse of quantify is inst (q.v.)
