@@ -1,5 +1,7 @@
 package CPrintType where
 
+import List
+
 class CPrintType a where
   cPrintType :: a -> String
   cPrintTypeP :: a -> String
@@ -63,13 +65,43 @@ instance CPrintTypeArg (NumArg n) where
 instance CPrintTypeArg (StrArg s) where
   cPrintTypeArg _ = "\"" +++ stringOf s +++ "\""
 
+instance (CPrintConType (c ())) => CPrintTypeArg (StarConArg c) where
+  cPrintTypeArg _ = cPrintConType (_ :: c ())
+
+instance (CPrintConType (c 0)) => CPrintTypeArg (NumConArg c) where
+  cPrintTypeArg _ = cPrintConType (_ :: c 0)
+
 instance CPrintTypeArg OtherConArg where
   cPrintTypeArg _ = "?"
 
+class CPrintConType c where
+  cPrintConType :: c -> String
+
+instance (Generic c r, CPrintConType' r) => CPrintConType c where
+  cPrintConType _ = cPrintConType' (_ :: r)
+
+class CPrintConType' r where
+  cPrintConType' :: r -> String
+
+instance CPrintConType' (Meta (MetaData n p ta nc) r) where
+  cPrintConType' _ = stringOf p +++ "." +++ stringOf n
+
+instance (InitTuple (a, b) ta, CPrintTypeArgs ta) =>
+    CPrintConType' (Meta (MetaData n p (a, b) nc) r) where
+  cPrintConType' _ = "(" +++ stringOf p +++ "." +++ stringOf n +++
+    " " +++ cPrintTypeArgs (_ :: ta) +++ ")"
+
+class InitTuple a b | a -> b where {}
+instance (InitTuple (b, c) d) => InitTuple (a, b, c) (a, d) where {}
+instance InitTuple (a, b) a where {}
 
 data Foo a b = A (UInt a)
              | B b Bool (Bit a)
              | C
+
+data (Bar :: (* -> *) -> *) a = Bar (a Bool)
+data (Baz :: (# -> *) -> (* -> * -> *) -> *) a b = Baz (a 42) (b Bool Integer)
+data MyBit n = MyBit (Bit n)
 
 sysCPrintType :: Module Empty
 sysCPrintType = module
@@ -81,4 +113,7 @@ sysCPrintType = module
       $display (cPrintType (_ :: Foo 16 Real))
       $display (cPrintType $ from (_ :: Foo 16 Real))
       $display (cPrintType (_ :: Maybe (String, Integer)))
+      $display (cPrintType (_ :: Bar Maybe))
+      $display (cPrintType (_ :: Bar (Either Integer)))
+      $display (cPrintType (_ :: Baz MyBit Either))
       $finish

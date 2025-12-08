@@ -4,3 +4,6 @@ Prelude.Either (Prelude.Maybe Bool) Prelude.String
 CPrintType.Foo 16 Prelude.Real
 Prelude.Meta (Prelude.MetaData "Foo" "CPrintType" (Prelude.NumArg 16, Prelude.StarArg Prelude.Real) 3) (Prelude.Either (Prelude.Either (Prelude.Meta (Prelude.MetaConsAnon "A" 0 1) (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 16)))) (Prelude.Meta (Prelude.MetaConsAnon "B" 1 3) (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc Prelude.Real), Prelude.Meta (Prelude.MetaField "_2" 1) (Prelude.Conc Bool), Prelude.Meta (Prelude.MetaField "_3" 2) (Prelude.Conc Prelude.Bit 16)))) (Prelude.Meta (Prelude.MetaConsAnon "C" 2 0) ()))
 Prelude.Maybe (Prelude.String, Prelude.Integer)
+CPrintType.Bar Prelude.Maybe
+CPrintType.Bar (Prelude.Either Prelude.Integer)
+CPrintType.Baz CPrintType.MyBit ?
