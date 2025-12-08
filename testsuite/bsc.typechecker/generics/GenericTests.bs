@@ -94,7 +94,7 @@ bazFooRepr :: (Generic (Baz Foo) r) => TypeEq r
 bazFooRepr = refl
 
 tizRepr :: (Generic (Tiz i s c) r) => TypeEq r
-  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s, ConArg) 1)
+  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s, OtherConArg) 1)
    (Meta (MetaConsAnon "Tiz" 0 0) ()))
 tizRepr = refl
 

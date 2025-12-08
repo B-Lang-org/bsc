@@ -63,7 +63,7 @@ instance CPrintTypeArg (NumArg n) where
 instance CPrintTypeArg (StrArg s) where
   cPrintTypeArg _ = "\"" +++ stringOf s +++ "\""
 
-instance CPrintTypeArg ConArg where
+instance CPrintTypeArg OtherConArg where
   cPrintTypeArg _ = "?"
 
 

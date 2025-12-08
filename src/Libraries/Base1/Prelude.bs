@@ -254,7 +254,7 @@ package Prelude(
         -- Generics
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
         Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..),
-        NumConArg(..), StarConArg(..), ConArg(..),
+        NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
         ) where
 
@@ -4357,7 +4357,7 @@ data (MetaData :: $ -> $ -> * -> # -> *) name pkg tyargs ncons = MetaData
   deriving (FShow)
 -- Wrappers for types appearing in the MetaData type arguments;
 -- only kinds *, # and $ are made available, constructor-kinded type arguments
--- cannot be handled in general and are omitted from the ConArg representation type.
+-- cannot be handled in general and are omitted from the OtherConArg representation type.
 data (StarArg :: * -> *) i = StarArg
   deriving (FShow)
 data (NumArg :: # -> *) i = NumArg
@@ -4368,7 +4368,7 @@ data (StarConArg :: (* -> *) -> *) i = StarConArg
   deriving (FShow)
 data (NumConArg :: (# -> *) -> *) i = NumConArg
   deriving (FShow)
-data ConArg = ConArg
+data OtherConArg = OtherConArg
   deriving (FShow)
 
 -- Indicates that a representation is for a constructor with named fields,
