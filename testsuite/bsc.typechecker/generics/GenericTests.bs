@@ -28,7 +28,7 @@ struct Bar =
 data Baz a = Baz a a
   deriving (Eq, FShow)
 
-data (Tiz :: # -> $ -> (* -> *) -> *) i s c = Tiz
+data (Tiz :: # -> $ -> (* -> *) -> (# -> *) -> (* -> * -> *) -> *) i s c nc oc = Tiz
   deriving (Eq, FShow)
 
 struct Qux =
@@ -93,8 +93,9 @@ bazFooRepr :: (Generic (Baz Foo) r) => TypeEq r
      Meta (MetaField "_2" 1) (Conc Foo))))
 bazFooRepr = refl
 
-tizRepr :: (Generic (Tiz i s c) r) => TypeEq r
-  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s, OtherConArg) 1)
+tizRepr :: (Generic (Tiz i s c nc oc) r) => TypeEq r
+  (Meta (MetaData "Tiz" "GenericTests"
+                  (NumArg i, StrArg s, StarConArg c, NumConArg nc, OtherConArg) 1)
    (Meta (MetaConsAnon "Tiz" 0 0) ()))
 tizRepr = refl
 
