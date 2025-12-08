@@ -7197,13 +7197,16 @@ data (MetaData :: $ -> $ -> * -> # -> *)
    &
    Indicates that a representation is for a type (e.g. struct/data) with a name,
    package, tuple of type arguments and number of constructors.
-   Types of kind \te{*}, \te{\#} or \te{\$} appearing in the type arguments are wrapped
+   Types of kind \te{*}, \te{\#}, \te{\$}, \te{* -> *} or \te{\# -> *}
+   appearing in the type arguments are wrapped
    in one of the following type constructors:
    \vspace{0.1in}
    \begin{libverbatim}
    data (StarArg :: * -> *) i
    data (NumArg :: # -> *) i
    data (StrArg :: $ -> *) i
+   data (StarConArg :: (* -> *) -> *) i
+   data (NumConArg :: (# -> *) -> *) i
    data OtherConArg
    \end{libverbatim}
    \vspace{-0.15in}
