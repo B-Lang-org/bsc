@@ -2,6 +2,7 @@ module ISimplify(iSimplify) where
 
 import Data.List((\\))
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Util(fromJustOrErr)
 import PPrint
 import IntLit
@@ -156,20 +157,23 @@ gVars (IRefT _ _ _) = []
 -- dVars (ICon _ _) = []
 -- dVars (IRefT _ _ _) = []
 
-dVars :: IExpr a -> [Id]
-dVars e = dVars' [] e
+dVars :: IExpr a -> S.Set Id
+dVars e = dVars' S.empty e
 
 -- auxiliary function to guard against circular traversals
-dVars' :: [Id] -> IExpr a -> [Id]
+-- and to accumulate definitions that have been processed
+dVars' :: S.Set Id -> IExpr a -> S.Set Id
 dVars' ids (ILam _ _ e) = dVars' ids e
-dVars' ids (IVar _) = []
+dVars' ids (IVar _) = ids
 dVars' ids (ILAM _ _ e) = dVars' ids e
-dVars' ids (IAps f _ es) = dVars' ids f ++ concatMap (dVars' ids) es
+-- accumulate vars with a fold so we do not waste work processing the
+-- same definitions over and over again across f and es.
+dVars' ids (IAps f _ es) = foldl dVars' (dVars' ids f) es
 -- guarding against circular traversal
-dVars' ids (ICon i (ICDef { })) | i `elem` ids = ids
-dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (i:ids) e
-dVars' ids (ICon _ _) = []
-dVars' ids (IRefT _ _ _) = []
+dVars' ids (ICon i (ICDef { })) | i `S.member` ids = ids
+dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (S.insert i ids) e
+dVars' ids (ICon _ _) = ids
+dVars' ids (IRefT _ _ _) = ids
 
 onlySimple :: IExpr a -> Bool
 onlySimple (ILam _ _ e) = onlySimple e
