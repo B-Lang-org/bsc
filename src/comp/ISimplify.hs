@@ -118,6 +118,8 @@ isTriv (ICon _ ci) | isitActionValue_ t || isitActionValue t = False
   where t = iConType ci
 isTriv (ICon _ (ICInt { })) = True
 isTriv (ICon _ (ICReal { })) = True
+isTriv (ICon _ (ICChar { })) = True
+isTriv (ICon _ (ICString { })) = True
 isTriv (ICon _ (ICUndet { })) = True
 isTriv (ICon _ (ICTuple { fieldIds = [] })) = True
 isTriv (ICon _ (ICDef { })) = True
@@ -177,8 +179,9 @@ onlySimple (IVar _) = True
 onlySimple (ICon _ (ICPrim { })) = True
 onlySimple (ICon _ (ICInt { })) = True
 onlySimple (ICon _ (ICReal { })) = True
-onlySimple (ICon _ (ICUndet { })) = True
 onlySimple (ICon _ (ICChar { })) = True
+onlySimple (ICon _ (ICString { })) = True
+onlySimple (ICon _ (ICUndet { })) = True
 onlySimple (ICon _ (ICTuple { fieldIds = [] })) = True
 -- note that foreign function calls are not simple
 onlySimple e = False
