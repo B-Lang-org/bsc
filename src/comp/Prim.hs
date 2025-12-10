@@ -674,6 +674,7 @@ instance NFData PrimOp where
     rnf PrimBOr = ()
     rnf PrimInoutCast = ()
     rnf PrimInoutUncast = ()
+    rnf PrimMethod = ()
     rnf PrimIf = ()
     rnf PrimMux = ()
     rnf PrimPriMux = ()

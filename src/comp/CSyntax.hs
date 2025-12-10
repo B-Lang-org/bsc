@@ -196,7 +196,7 @@ instance NFData CDefn where
     rnf (Cinstance qt defls) = rnf2 qt defls
     rnf (CValue i cs) = rnf2 i cs
     rnf (CValueSign def) = rnf def
-    rnf (Cforeign name ty fname ports) = rnf4 name ty fname ports
+    rnf (Cforeign name ty fname ports ni) = rnf5 name ty fname ports ni
     rnf (Cprimitive i qt) = rnf2 i qt
     rnf (CprimType ik) = rnf ik
     rnf (CPragma pr) = rnf pr
