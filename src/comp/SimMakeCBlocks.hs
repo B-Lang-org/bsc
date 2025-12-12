@@ -206,7 +206,7 @@ getExprIds :: Bool -> DefMap -> IdSet -> [AExpr] -> IdSet
 getExprIds _ _ known [] = known
 getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
-getExprIds in_sched def_map known ((AMethCall _ _ _ _ args):es) =
+getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
@@ -1089,7 +1089,7 @@ mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
       -- if they are always_ready, so we need to call the RDY method for
       -- any methods which might be called but are not in the WF expr.
       wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
-                | (inst,rm,_) <-
+                | (inst,rm) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
                 ]
@@ -1182,7 +1182,7 @@ mkRuleSchedStmts inst_map full_dmap method_calls
       -- their RDY ports, so we need to call the RDY method for any methods
       -- which might be called but are not in the WF expr.
       wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
-                | (inst,rm,_) <-
+                | (inst,rm) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
                 ]
@@ -1402,8 +1402,7 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         mdef_edges =
             [ edge | ADef i _ e _ <- ds,
                      -- "aMethCalls" can return duplicates, but that's OK
-                     -- TODO: Select the output port for multi-output methods
-                     (obj,meth,out_index) <- aMethCalls e,
+                     (obj,meth) <- aMethCalls e,
                      edge <-
                            -- def SB act
                            [ (Right n, [Left i])
@@ -1455,9 +1454,9 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 
         -- function to substitute ASDef for AMethValue
         -- TOOD: Handle multi-output methods
-        substAV (AMethValue ty obj meth oi) = ASDef ty (mkAVMethTmpId obj meth)
+        substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
-        substAV (AMethCall t o m oi es) = (AMethCall t o m oi (map substAV es))
+        substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
         substAV e = e
 
@@ -1566,23 +1565,20 @@ mkAVMethEdges ds method_calls =
         --   have to execute before "i" is computed.
         av_meth_edges = [ (Left i, map Right ns)
                             | (i, refs) <- av_meth_refs,
-                              -- TODO: Select the output port for multi-output methods
-                              (obj,meth,out_index,_) <- refs,
+                              (obj,meth,_) <- refs,
                               let ns = map fst $
                                        filter ((isMethValueOf obj meth) . snd)
                                            method_calls,
                               not (null ns) ]
 
-        -- TODO: Handle multi-output methods
-        mkAVMethDecl (obj,meth,out_index,ty) =
+        mkAVMethDecl (obj,meth,ty) =
             let id = mkAVMethTmpId obj meth
             in  SFSDef False (ty, id) Nothing
 
         av_meths = unions (map snd av_meth_refs)
         av_meth_local_vars = map mkAVMethDecl av_meths
 
-        -- TODO: Handle multi-output methods
-        av_meth_set = M.fromList (map (\ (o,m,oi,t) -> ((o,m),t)) av_meths)
+        av_meth_set = M.fromList (map (\ (o,m,t) -> ((o,m),t)) av_meths)
 
     in
         (av_meth_edges, av_meth_set, av_meth_local_vars)

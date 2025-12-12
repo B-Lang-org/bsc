@@ -121,7 +121,7 @@ import PPrint
 import IntLit
 import Id
 import IdPrint
-import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idPreludeRead, idNoReset)
+import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idNoReset)
 import Prim
 import ErrorUtil(internalError)
 import Backend
@@ -441,6 +441,10 @@ data AType =
             atr_length :: ASize,
             atr_elem_type :: AType
         }
+       -- Tuple type, for methods with multiple return values
+       | ATTuple {
+            att_elem_types :: [AType]
+        }
         -- abstract type, PrimAction, Interface, Clock, ..
         -- (can take size parameters as arguments)
        | ATAbstract {
@@ -454,6 +458,7 @@ instance NFData AType where
     rnf (ATString msz) = rnf msz
     rnf ATReal = ()
     rnf (ATArray len typ) = rnf2 len typ
+    rnf (ATTuple typs) = rnf typs
     rnf (ATAbstract aid args) = rnf2 aid args
 
 instance HasPosition AType where
@@ -988,7 +993,6 @@ data AExpr
             ae_type :: AType,
             ae_objid :: AId,
             ameth_id :: AMethodId,
-            ameth_out_idx :: Integer, -- which output (for multi-output methods)
             ae_args :: [AExpr]        -- external state method call
         }
         -- like AMethCall, but for the return value of actionvalue methods,
@@ -998,8 +1002,14 @@ data AExpr
         | AMethValue {
             ae_type :: AType,
             ae_objid :: AId,
-            ameth_id :: AMethodId,
-            ameth_out_idx :: Integer -- which output (for multi-output methods)
+            ameth_id :: AMethodId
+        }
+        -- selection from an ATTuple
+        | ATupleSel {
+            ae_type :: AType,
+            ae_objid :: AId,
+            ae_exp :: AExpr,
+            ae_index :: Integer
         }
         -- calls a combinatorial function expressed via module instantiation
         -- XXX this can be created not only via "noinline" in BSV,
@@ -1099,6 +1109,7 @@ instance NFData AExpr where
     rnf (APrim oid typ prim args) = rnf4 oid typ prim args
     rnf (AMethCall typ oid mid args) = rnf4 typ oid mid args
     rnf (AMethValue typ oid mid) = rnf3 typ oid mid
+    rnf (ATupleSel typ oid expr index) = rnf4 typ oid expr index
     rnf (ANoInlineFunCall typ oid fun args) = rnf4 typ oid fun args
     rnf (AFunCall typ oid fname isC args) = rnf5 typ oid fname isC args
     rnf (ATaskValue typ oid fname isC cookie) = rnf5 typ oid fname isC cookie
@@ -1118,11 +1129,14 @@ instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
         (t == t') && (op == op') && (aexprs == aexprs')
 
-    AMethCall t aid mid moi aexprs == AMethCall t' aid' mid' moi' aexprs' =
-        (t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid') && (moi == moi')
+    AMethCall t aid mid aexprs == AMethCall t' aid' mid' aexprs' =
+        (t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid')
 
-    AMethValue t aid mid moi == AMethValue t' aid' mid' moi' =
-        (t == t') && (mid == mid') && (aid == aid') && (moi == moi')
+    AMethValue t aid mid == AMethValue t' aid' mid' =
+        (t == t') && (mid == mid') && (aid == aid')
+    
+    ATupleSel t aid aexpr index == ATupleSel t' aid' aexpr' index' =
+        (t == t') && (index == index') && (aexpr == aexpr') && (aid == aid')
 
     ANoInlineFunCall t aid af aexprs == ANoInlineFunCall t' aid' af' aexprs' =
         (t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
@@ -1169,6 +1183,7 @@ instance HasPosition AExpr where
     getPosition APrim{ ae_objid = p }       = getPosition p
     getPosition AMethCall{ ae_objid = p }   = getPosition p
     getPosition AMethValue{ ae_objid = p }  = getPosition p
+    getPosition ATupleSel{ ae_objid = p }     = getPosition p
     getPosition ANoInlineFunCall{ ae_objid = p } = getPosition p
     getPosition AFunCall{ ae_objid = p }    = getPosition p
     getPosition ATaskValue{ ae_objid = p }  = getPosition p
@@ -1545,13 +1560,14 @@ instance PPrint AExpr where
     pPrint d p (ANoInlineFunCall _ i _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (AFunCall _ i _ _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrint d p (AMethCall _ i m moi es) =
+    pPrint d p (AMethCall _ i m es) =
         pparen (p>0 && not (null es)) $
         pPrint d 1 i <>
-        sep (text "." <> ppMethId d m <> text ("$" ++ itos(moi)) : map (pPrint d 1) es)
-    pPrint d p (AMethValue _ i m moi) =
-        pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m <>
-        text ("$" ++ itos(moi))
+        sep (text "." <> ppMethId d m : map (pPrint d 1) es)
+    pPrint d p (AMethValue _ i m) =
+        pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
+    pPrint d p (ATupleSel _ _ e idx) =
+        pparen (p>0) $ pPrint d 0 e <> text "[" <> pPrint d 0 idx <> text "]"
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
     pPrint d p (ASDef _ i) = pPrint d p i
@@ -1581,6 +1597,8 @@ instance PPrint AType where
     pPrint d p (ATString (Just n)) = text ("String (" ++ (itos n) ++ " chars)")
     pPrint d p (ATArray sz ty) =
         text "Array" <+> text (itos sz) <+> pPrint d 0 ty
+    pPrint d p (ATTuple ts) =
+        text "Tuple" <+> parens (commaSep (map (pPrint d 0) ts))
     pPrint d p (ATAbstract i ns) = sep (text "ABSTRACT: " : pPrint d 0 i : map (pPrint d 0) ns)
 
 binOp :: PrimOp -> Bool
@@ -1836,16 +1854,16 @@ instance PPrintExpand AExpr where
     pPrintExpand m d ec (AFunCall _ i _ _ es)  = pPrint d 1 i <>
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrintExpand m d ec (AMethCall _ i meth _ []) | qualEq meth idPreludeRead = pPrint d 1 i
-    pPrintExpand m d ec (AMethCall _ i meth oi es) =
+    pPrintExpand m d ec (AMethCall _ i meth es) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
-               <> text ("$" ++ itos(oi))
                <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
                    docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth oi) =
-        pPrint d 1 i <> text "." <> ppMethId d meth <> text ("$" ++ itos(oi))
+    pPrintExpand m d ec (AMethValue _ i meth) =
+        pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATupleSel _ _ e idx) =
+        pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||

@@ -36,8 +36,7 @@ evalAExprToInteger valfn exprfn methfn e@(APrim _ _ op args) =
     in if (null errs)
        then evalPrim op (getOpSizes op e) vs
        else Left $ unlines errs
--- XXX should do something with ameth_out_index?
-evalAExprToInteger valfn exprfn methfn e@(AMethCall t oid mid oi []) =
+evalAExprToInteger valfn exprfn methfn e@(AMethCall t oid mid []) =
     let alts = [ ASDef t i | i <- methfn (oid,mid) ]
     in case (separate $ map (evalAExprToInteger valfn exprfn methfn) alts) of
          ([],(ok:_)) -> Right ok

@@ -979,6 +979,7 @@ instance Bin AType where
     writeBytes (ATReal)           = do putI 2;
     writeBytes (ATArray sz t)     = do putI 3; toBin sz; toBin t
     writeBytes (ATAbstract i szs) = do putI 4; toBin i; toBin szs
+    writeBytes (ATTuple ts)       = do putI 5; toBin ts
     readBytes = do
         i <- getI
         case i of
@@ -987,6 +988,7 @@ instance Bin AType where
           2 -> do return ATReal
           3 -> do sz <- fromBin; t <- fromBin; return (ATArray sz t)
           4 -> do i <- fromBin; szs <- fromBin; return (ATAbstract i szs)
+          5 -> do ts <- fromBin; return (ATTuple ts)
           n -> internalError $ "GenABin.Bin(AType).readBytes: " ++ show n
 
 -- ----------
@@ -995,10 +997,10 @@ instance Bin AType where
 instance Bin AExpr where
     writeBytes (APrim i t op args) = section "AExpr" $
         do putI 0; toBin i; toBin t; toBin op; toBin args
-    writeBytes (AMethCall t obj meth moi args) = section "AExpr" $
-        do putI 1; toBin t; toBin obj; toBin meth; toBin moi; toBin args
-    writeBytes (AMethValue t obj meth moi) = section "AExpr" $
-        do putI 2; toBin t; toBin obj; toBin meth; toBin moi
+    writeBytes (AMethCall t obj meth args) = section "AExpr" $
+        do putI 1; toBin t; toBin obj; toBin meth; toBin args
+    writeBytes (AMethValue t obj meth) = section "AExpr" $
+        do putI 2; toBin t; toBin obj; toBin meth
     writeBytes (ANoInlineFunCall t obj fun args) = section "AExpr" $
         do putI 3; toBin t; toBin obj; toBin fun; toBin args
     writeBytes (AFunCall t obj fun isC args) = section "AExpr" $
@@ -1016,15 +1018,16 @@ instance Bin AExpr where
     writeBytes (AMGate t obj clk) = section "AExpr" $ do putI 14; toBin t; toBin obj; toBin clk
     writeBytes (ASInout t iot) = section "AExpr" $ do putI 15; toBin t; toBin iot
     writeBytes (ASReal i t val) = section "AExpr" $ do putI 16; toBin i; toBin t; toBin val
+    writeBytes (ATupleSel t i e idx) = section "AExpr" $ do putI 17; toBin t; toBin i; toBin e; toBin idx
     readBytes = do
         i <- getI
         case i of
           0  -> do { i <- fromBin; t <- fromBin; op <- fromBin;
                      args <- fromBin; return (APrim i t op args); }
-          1  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin; moi <- fromBin;
-                     args <- fromBin; return (AMethCall t obj meth moi args); }
-          2  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin; moi <- fromBin;
-                     return (AMethValue t obj meth moi); }
+          1  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin;
+                     args <- fromBin; return (AMethCall t obj meth args); }
+          2  -> do { t <- fromBin; obj <- fromBin; meth <- fromBin;
+                     return (AMethValue t obj meth); }
           3  -> do { t <- fromBin; obj <- fromBin; fun <- fromBin;
                      args <- fromBin;
                      return (ANoInlineFunCall t obj fun args); }
@@ -1049,6 +1052,8 @@ instance Bin AExpr where
           15 -> do t <- fromBin; iot <- fromBin; return (ASInout t iot)
           16 -> do { i <- fromBin; t <- fromBin; val <- fromBin;
                      return (ASReal i t val) }
+          17 -> do { t <- fromBin; i <- fromBin; e <- fromBin; idx <- fromBin;
+                     return (ATupleSel t i e idx) }
           n  -> internalError $ "GenABin.Bin(IExpr).readBytes: " ++ show n
     -- toBin e = Out [AExp e] ()
     -- fromBin = readShared

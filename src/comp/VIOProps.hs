@@ -393,7 +393,7 @@ noUse :: AId -> AExpr -> Bool
 noUse i (APrim _ _ _ es)     = and (map (noUse i) es)
 noUse i (ANoInlineFunCall _ _ _ es) = and (map (noUse i) es)
 noUse i (AFunCall _ _ _ _ es) = and (map (noUse i) es)
-noUse i (AMethCall _ _ _ _ es) = and (map (noUse i) es)
+noUse i (AMethCall _ _ _ es) = and (map (noUse i) es)
 noUse i (ASPort _ i')        = i /= i'
 noUse i (ASParam _ i')       = i /= i'
 noUse i (ASDef _ i')         = i /= i'

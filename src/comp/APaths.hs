@@ -290,14 +290,14 @@ instance PVPrint PathNode where
 instance NFData PathNode where
     rnf (PNDef aid) = rnf aid
     rnf (PNStateMethodArg a1 a2 n) = rnf3 a1 a2 n
-    rnf (PNStateMethodRes a1 a2) = rnf2 a1 a2
+    rnf (PNStateMethodRes a1 a2 n) = rnf3 a1 a2 n
     rnf (PNStateMethodEnable a1 a2) = rnf2 a1 a2
     rnf (PNStateArgument aid vn n) = rnf3 aid vn n
     rnf (PNStateMethodArgMux a1 a2) = rnf2 a1 a2
     rnf (PNCanFire aid) = rnf aid
     rnf (PNWillFire aid) = rnf aid
     rnf (PNTopMethodArg a1 a2) = rnf2 a1 a2
-    rnf (PNTopMethodRes aid) = rnf aid
+    rnf (PNTopMethodRes aid n) = rnf2 aid n
     rnf (PNTopMethodReady aid) = rnf aid
     rnf (PNTopMethodEnable aid) = rnf aid
     rnf (PNTopArgument aid n) = rnf2 aid n
@@ -1205,7 +1205,22 @@ findEdges :: PathEnv -> AExpr ->
 findEdges env (APrim i t op es) =
     -- make edge between inputs and output
     concatUnzip3 (map (findEdges env) es)
-findEdges env (AMethCall t i qmi oi exprs) =
+findEdges env (AMethCall t i qmi exprs) =
+    -- make edges between exprs and meth input
+    -- return the output connection
+    let mi = unQualId qmi
+        -- like mkEdgesWithMux, but want to return the muxes, not connect them
+        f (n,exp) = let (is, edges, muxes) = findEdges env exp
+                        pn = PNStateMethodArg i mi n
+                        es = edges ++ (connectEdge pn is)
+                    in  (es, muxes)
+        (edges, ms) = concatUnzip (map f (zip [1..] exprs))
+        meth_arg_mux = PNStateMethodArgMux i mi
+        muxes = if null exprs then ms else meth_arg_mux:ms
+    in  ([PNStateMethodRes i mi 1], edges, muxes)
+findEdges env (AMethValue t i qmi) =
+    ([PNStateMethodRes i (unQualId qmi) 1], [], [])
+findEdges env (ATupleSel _ _ (AMethCall t i qmi exprs) oi) =
     -- make edges between exprs and meth input
     -- return the output connection
     let mi = unQualId qmi
@@ -1218,8 +1233,12 @@ findEdges env (AMethCall t i qmi oi exprs) =
         meth_arg_mux = PNStateMethodArgMux i mi
         muxes = if null exprs then ms else meth_arg_mux:ms
     in  ([PNStateMethodRes i mi oi], edges, muxes)
-findEdges env (AMethValue t i qmi oi) =
+findEdges env (ATupleSel _ _ (AMethValue t i qmi) oi) =
     ([PNStateMethodRes i (unQualId qmi) oi], [], [])
+findEdges env (ATupleSel _ _ e _) =
+    internalError
+        ("APaths.findEdges: unexpected ATupleSel expression: " ++ ppReadable e)
+
 findEdges env (ANoInlineFunCall { ae_args = es }) =
     -- return the function call inputs
     -- and return any connections found in the argument expressions

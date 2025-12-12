@@ -211,7 +211,7 @@ getAExprDefs :: DefMap -> M.Map AId (AType, AExpr) -> [AExpr] ->
 getAExprDefs _ known [] = known
 getAExprDefs def_map known ((APrim _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
-getAExprDefs def_map known ((AMethCall _ _ _ _ args):es) =
+getAExprDefs def_map known ((AMethCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
 getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
@@ -383,8 +383,7 @@ tsortActionsAndDefs mmap defmap uses acts =
         mdef_edges =
             [ edge | ADef i _ e _ <- used_defs,
                      -- "aMethCalls" can return duplicates, but that's OK
-                     -- TODO: Handle multiple outputs
-                     (obj,meth,out_index) <- aMethCalls e,
+                     (obj,meth) <- aMethCalls e,
                      edge <-
                            -- def SB act
                            [ (Right n, [Left i])
@@ -477,7 +476,7 @@ mkAVMethEdges ds method_calls =
         -- find the AMethValue references
         -- (assume that they are lifted to their own def)
         av_meth_refs = [ (i, obj, meth, ty)
-                         | ADef i _ (AMethValue ty obj meth _) _ <- ds ]
+                         | ADef i _ (AMethValue ty obj meth) _ <- ds ]
 
         -- the value reference from an ActionValue needs to come after
         -- the action method call.
@@ -1034,13 +1033,15 @@ updateAExprTypes mty (APrim i t p args) = updateAPrimTypes mty p i t args
 
 -- method arguments and return values are Bit type,
 -- except RDY methods which return Bool
-updateAExprTypes _ (AMethCall t obj meth oi as) = do
+updateAExprTypes _ (AMethCall t obj meth as) = do
   as' <- mapM updateAExprTypes_Bits as
   let t' = if (isRdyId meth) then mkATBool else t
-  return (AMethCall t' obj meth oi as')
+  return (AMethCall t' obj meth as')
 
 -- method return values are Bit type
-updateAExprTypes _ e@(AMethValue t obj meth oi) = return e
+updateAExprTypes _ e@(AMethValue t obj meth) = return e
+
+updateAExprTypes _ (ATupleSel _ _ _ _) = error "updateAExprTypes: multi-output methods not yet supported"
 
 -- noinline function arguments and return values are Bit type
 updateAExprTypes _ (ANoInlineFunCall t i f as) = do

@@ -444,19 +444,29 @@ aState' flags pps schedule_info apkg = do
 
         -- actionvalue method value references can be unconditionally converted
         subst :: AExpr -> Maybe AExpr
-        subst (AMethValue vt modId methId methOutIdx) =
-            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult methOutIdx)))
+        subst (AMethValue vt modId methId) =
+            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult 1)))
+        subst (ATupleSel vt _ (AMethValue _ modId methId) idx) =
+            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult idx)))
         -- substitute AMOsc, AMGate, AMReset references with their port
         subst (AMGate gt modId clkId) =
             Just (mkOutputGatePort vmi_map modId clkId)
         -- substitute any value method calls, according to the substitution
-        subst e@(AMethCall vt modId methId methOutIdx es) =
+        subst e@(AMethCall vt modId methId es) =
             case (M.lookup e substs) of
               Nothing ->
                   let ino = do mult <- M.lookup (modId, methId) omMultMap
                                -- send unused calls of multi-ported methods to port 0
                                toMaybe (mult > 1) 0
-                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult methOutIdx)))
+                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult 1)))
+              me' -> me'
+        subst e@(ATupleSel vt _ (AMethCall _ modId methId es) idx) =
+            case (M.lookup e substs) of
+              Nothing ->
+                  let ino = do mult <- M.lookup (modId, methId) omMultMap
+                               -- send unused calls of multi-ported methods to port 0
+                               toMaybe (mult > 1) 0
+                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult idx)))
               me' -> me'
         -- AMethValue, AMGate and AMethCall should cover it
         subst e = Nothing
@@ -831,7 +841,7 @@ ratToBlobs mMap omMultMap rat =
       -- True if there are 2 or more uses of the method,
       -- which means we need to do some sort of muxing
       nonTrivial :: MethBlob -> Bool
-      nonTrivial (_, (((AMethCall _ _ _ _ _, _) : _) : _)) = True
+      nonTrivial (_, (((AMethCall _ _ _ _, _) : _) : _)) = True
       nonTrivial _ = False
 
       -- Create the MethBlobs and partition into expr and action
@@ -910,7 +920,7 @@ mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
       -- (For actions, the first argument is the condition, so remove it)
       exp :: UniqueUse -> AExpr
       exp (UUExpr e _) = e
-      exp (UUAction (ACall o m es)) = AMethCall aTAction o m 0 es
+      exp (UUAction (ACall o m es)) = AMethCall aTAction o m es
       exp (UUAction (AFCall i f isC es isA)) = AFunCall aTAction i f isC es
       -- XXX think this is just used for expression muxing
       exp (UUAction (ATaskAction i f isC n es tid tty isA)) =
@@ -1021,7 +1031,7 @@ mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
         -- make a list of, for each argument, a list of the different
         -- expressions used by the different uses for that argument
         arg_blobs = transpose [ [ (e, (cnd es), rs) | e <- tl es ] |
-                                    (AMethCall _ _ _ _ es, rs) <- emrs]
+                                    (AMethCall _ _ _ es, rs) <- emrs]
 
         -- Call mkEmux once for each argument of the method, giving it
         -- the list of different expressions for that argument, to
