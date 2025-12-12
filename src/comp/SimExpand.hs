@@ -1970,10 +1970,11 @@ aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
 -- A use is a method Id on a particular instance (instId, methId)
 eDomain :: M.Map AId [(AId,AId)] -> AExpr -> [(AId,AId)]
 eDomain m (APrim _ _ _ es) = mergeUses $ map (eDomain m) es
-eDomain m e@(AMethCall _ i mi _ es) =
+eDomain m e@(AMethCall _ i mi es) =
     mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
 -- don't count the return value uses of actionvalue, only the action part
-eDomain m (AMethValue _ _ _ _) = []
+eDomain m (AMethValue _ _ _) = []
+eDomain m (ATupleSel _ _ e _) = eDomain m e
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []
@@ -2267,7 +2268,7 @@ getNoInlineInfo defs =
                 --methId = fi
                 methId = mkId pos (mkFString (getOutPortName ports))
                 instId = mkId pos (mkFString inst_name)
-                new_def = ADef di dt (AMethCall ft instId methId 1 es) props
+                new_def = ADef di dt (AMethCall ft instId methId es) props
             in
                 (new_def, Just (inst_name, mod_name))
         cvtDef def = (def, Nothing)

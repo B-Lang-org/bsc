@@ -917,6 +917,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -1178,10 +1179,7 @@ convAExpr (ASAny t Nothing) = let st = convAType t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth oi as) = do
-  -- TODO: support multiple outputs
-  if oi == 1 then return ()
-    else internalError ("convAExpr: AMethCall with oi != 1: " ++ ppReadable oi)
+convAExpr (AMethCall _ obj meth as) = do
   modId <- gets curModId
   state_expr <- gets curState
   instmap <- gets instMap
@@ -1191,9 +1189,12 @@ convAExpr (AMethCall _ obj meth oi as) = do
   a_exprs <- mapM convAExpr as
   return $ SApply (SVar mname) (a_exprs ++ [modState])
 
-convAExpr e@(AMethValue t obj meth oi) =
+convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _ _) =
+  internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t i (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineId i

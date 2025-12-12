@@ -503,6 +503,7 @@ boolToBitVar = SVar $ primCtx (SId "boolToBit")
 anyVar :: AType -> SExpr
 anyVar (ATBit width)       = SVar $ bitCtx width (SId "undef")
 anyVar t | (t == mkATBool) = SVar $ primCtx (SId "undefBool")
+anyVar (ATTuple ts)        = internalError ("anyVar: multi-output methods are not yet supported")
 anyVar (ATString _)        = SVar $ stringCtx (SId "undef")
 anyVar (ATReal)            = SVar $ primCtx (SId "undefReal")
 anyVar (ATArray sz t)      = arrBuild sz $
@@ -1044,6 +1045,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -1284,10 +1286,7 @@ convAExpr (ASAny t Nothing) = return $ anyVar t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth oi as) = do
-  -- TODO: support multiple output ports
-  if oi == 1 then return ()
-    else internalError ("convAExpr: AMethCall not output 1: " ++ ppReadable oi)
+convAExpr (AMethCall _ obj meth as) = do
   state_expr <- gets curState
   instmap <- gets instMap
   let (submod, submod_tys, _) = lookupMod instmap obj
@@ -1296,9 +1295,11 @@ convAExpr (AMethCall _ obj meth oi as) = do
   a_exprs <- mapM convAExpr as
   return $ sApply fnvar (a_exprs ++ [modState])
 
-convAExpr e@(AMethValue t obj meth oi) =
+convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t _ (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineQId name

@@ -367,6 +367,7 @@ aTypeToCType :: AType -> (CCFragment -> CCFragment)
 aTypeToCType (ATBit size) = (`ofType` (bitsType size CTunsigned))
 aTypeToCType (ATString _) = (`ofType` (classType "std::string"))
 aTypeToCType (ATReal) = (`ofType` doubleType)
+aTypeToCType (ATTuple ts) = internalError "Multi-output methods are not yet supported in Bluesim"
 aTypeToCType (ATArray _ _) = internalError "Unexpected array"
 aTypeToCType (ATAbstract _ _) = internalError "Unexpected abstract type"
 
@@ -1065,9 +1066,8 @@ aExprToCExpr _ p@(APrim _ _ PrimStringConcat args) = argCount (==2) args $
   simplePrim2 noRet (cAdd) (ppString PrimAdd) (args!!0) (args!! 1)
 aExprToCExpr _ p@(APrim _ _ _ _) =
   internalError ("unhandled primitive: " ++ (show p))
-aExprToCExpr _ (AMethCall _ id mid oi args) =
+aExprToCExpr _ (AMethCall _ id mid args) =
   do arg_list <- mapM (aExprToCExpr noRet) args
-     -- TODO: Handle multiple output arguments
      return $ (aInstMethIdToC id mid) `cCall` arg_list
 aExprToCExpr _ e@(AMGate _ id clkid) =
   do gmap <- gets gate_map

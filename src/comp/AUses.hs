@@ -172,7 +172,7 @@ isUUAction _ = False
 
 getUUPos :: UniqueUse -> Position
 getUUPos (UUAction act) = getIdPosition (aact_objid act)
-getUUPos (UUExpr (AMethCall _ i _ _ _) _) = getIdPosition i
+getUUPos (UUExpr (AMethCall _ i _ _) _) = getIdPosition i
 getUUPos (UUExpr _ _) = noPosition -- XXX internal error? get a real position?
 
 extractCondition :: UniqueUse -> AExpr
@@ -842,10 +842,11 @@ eDomain (APrim _ _ PrimArrayDynSelect [arr_e, idx_e]) = do
 eDomain (APrim { ae_args = es }) =
     -- should primitives have resource constraints?
     mapM eDomain es >>= mergeExprUsesM
-eDomain e@(AMethCall _ i mi oi es) = do
+eDomain e@(AMethCall _ i mi es) = do
     let this_use = singleMethodExprUse i (unQualId mi) e ucTrue
     es_uses <- mapM eDomain es
     mergeExprUsesM (this_use : es_uses)
+eDomain (ATupleSel _ _ e _) = eDomain e
 eDomain e@(AFunCall { ae_objid = i, ae_args = es }) = do
     let this_use = singleFFuncExprUse i e ucTrue
     es_uses <- mapM eDomain es

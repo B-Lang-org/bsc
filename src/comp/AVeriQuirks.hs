@@ -305,9 +305,12 @@ aQExp top x@(APrim aid t p es) | p == PrimMux || p == PrimPriMux = do
       (_, _ )       ->  return (APrim aid t p es')
 
 aQExp top (APrim aid t p es)       = mapM (aQExp False) es >>= return . APrim aid t p
-aQExp top (AMethCall t i m oi es)     = mapM (aQExp False) es >>= return . AMethCall t i m oi
+aQExp top (AMethCall t i m es)     = mapM (aQExp False) es >>= return . AMethCall t i m
 aQExp top (ANoInlineFunCall t i f es)      = mapM (aQExp False) es >>= return . ANoInlineFunCall t i f
 aQExp top (AFunCall t i f isC es)  = mapM (aQExp False) es >>= return . AFunCall t i f isC
+aQExp top (ATupleSel t i e n)       = do
+    e' <- aQExp False e
+    return (ATupleSel t i e' n)
 aQExp top e@(AMethValue {})        = return e
 aQExp top e@(ASInt _ _ _)          = return e
 aQExp top e@(ASReal _ _ _)         = return e
@@ -394,8 +397,9 @@ aSInt t i = ASInt defaultAId t (ilHex i)
 -- mkDefS must return a variable/wire reference
 -- even for constants  since Verilog does not allow 7'd8[3:2]
 mkDefS :: AExpr -> QQState AExpr
-mkDefS e@(AMethCall _ o m _ []) = return e  -- XXX shouldn't exist
-mkDefS e@(AMethValue _ o m _) = return e  -- XXX shouldn't exist
+mkDefS e@(AMethCall _ o m []) = return e  -- XXX shouldn't exist
+mkDefS e@(AMethValue _ o m)   = return e  -- XXX shouldn't exist
+mkDefS e@(ATupleSel _ _ _ _)  = return e  -- XXX shouldn't exist
 mkDefS e@(ASDef {})           = return e
 mkDefS e@(ASPort {})          = return e
 mkDefS e@(ASParam {})         = return e

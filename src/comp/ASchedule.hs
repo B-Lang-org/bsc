@@ -4339,8 +4339,8 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
               | otherwise = (True, text "...")
           -- (method, hasCond, args, moreInfo)
           getUseInfo :: UniqueUse -> (String, Maybe Doc, Doc, Bool)
-          getUseInfo u@(UUExpr (AMethCall _ i m oi es) _) =
-              let meth = getIdBaseString i ++ "." ++ getIdBaseString m ++ "$" ++ show oi
+          getUseInfo u@(UUExpr (AMethCall _ i m es) _) =
+              let meth = getIdBaseString i ++ "." ++ getIdBaseString m
                   (moreCondInfo, cond) = mkCondInfo (extractCondition u)
                   (moreArgInfo, args) = mkArgs es
               in  (meth, cond, args, moreCondInfo || moreArgInfo)

@@ -71,7 +71,8 @@ instance AVars AExpr where
     aVars (APrim _ _ _ es) = concatMap aVars es
     aVars (ANoInlineFunCall _ _ _ es) = concatMap aVars es
     aVars (AFunCall _ _ _ _ es) = concatMap aVars es
-    aVars (AMethCall _ _ _ _ es) = concatMap aVars es
+    aVars (AMethCall _ _ _ es) = concatMap aVars es
+    aVars (ATupleSel _ _ e _) = aVars e
 --  aVars (ATaskValue ...) = [] -- because the variables are really "used"
 -- by the action which sets it
 -- same for AMethValue
@@ -113,10 +114,11 @@ instance AVars AVInst where
 -- ---------------
 
 -- find AMethValue uses in an AExpr
-aMethValues :: AExpr -> [(AId, AId, Integer, AType)]
+aMethValues :: AExpr -> [(AId, AId, AType)]
 aMethValues e@(APrim {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AMethCall {}) = concatMap aMethValues (ae_args e)
-aMethValues (AMethValue ty obj meth moi) = [(obj,meth,moi,ty)]
+aMethValues (AMethValue ty obj meth) = [(obj,meth,ty)]
+aMethValues (ATupleSel _ _ e _) = aMethValues e
 aMethValues e@(ANoInlineFunCall {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AFunCall {}) = concatMap aMethValues (ae_args e)
 aMethValues (ATaskValue {}) = []
@@ -133,10 +135,11 @@ aMethValues (ASInout {}) = []
 aMethValues (AMGate {}) = []
 
 -- find AMethCall uses in an AExpr (ignore references to AV values)
-aMethCalls :: AExpr -> [(AId, AId, Integer)]
+aMethCalls :: AExpr -> [(AId, AId)]
 aMethCalls e@(APrim {}) = concatMap aMethCalls (ae_args e)
-aMethCalls (AMethCall _ obj meth moi es) = ((obj,meth,moi) : concatMap aMethCalls es)
-aMethCalls (AMethValue _ obj meth moi) = []
+aMethCalls (AMethCall _ obj meth es) = ((obj,meth) : concatMap aMethCalls es)
+aMethCalls (AMethValue _ obj meth) = []
+aMethCalls (ATupleSel _ _ e _) = aMethCalls e
 aMethCalls e@(ANoInlineFunCall {}) = concatMap aMethCalls (ae_args e)
 aMethCalls e@(AFunCall {}) = concatMap aMethCalls (ae_args e)
 aMethCalls (ATaskValue {}) = []
@@ -157,6 +160,7 @@ aTaskValues :: AExpr -> [(AId, Integer, AType)]
 aTaskValues e@(APrim {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AMethCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues (AMethValue {}) = []
+aTaskValues (ATupleSel _ _ e _) = aTaskValues e
 aTaskValues e@(ANoInlineFunCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AFunCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues (ATaskValue ty f_id fun isC cookie) = [(f_id, cookie, ty)]
@@ -180,6 +184,7 @@ exprForeignCalls e@(AFunCall {})  =
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
 exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
+exprForeignCalls (ATupleSel _ _ e _) = exprForeignCalls e
 exprForeignCalls e@(ANoInlineFunCall {}) =
   concatMap exprForeignCalls (ae_args e)
 exprForeignCalls _                  = []
@@ -454,7 +459,7 @@ aSubst m = mapAExprs xsub
         xsub x@(ASParam _ i) = M.findWithDefault x i m
         xsub x@(ASDef _ i) = M.findWithDefault x i m
         xsub (APrim aid t p es) = APrim aid t p (aSubst m es)
-        xsub (AMethCall t i meth oi es) = AMethCall t i meth oi (aSubst m es)
+        xsub (AMethCall t i meth es) = AMethCall t i meth (aSubst m es)
         xsub (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (aSubst m es)
         xsub (AFunCall t i f isC es) = AFunCall t i f isC (aSubst m es)
         xsub (ASAny t me) = ASAny t (fmap (aSubst m) me)
@@ -471,8 +476,8 @@ exprMap f e@(ASAny t (Just v)) =
 exprMap f e@(APrim i t o args) =
   let e' = APrim i t o (map (exprMap f) args)
   in fromMaybe e' (f e)
-exprMap f e@(AMethCall t i m oi args) =
-  let e' = AMethCall t i m oi (map (exprMap f) args)
+exprMap f e@(AMethCall t i m args) =
+  let e' = AMethCall t i m (map (exprMap f) args)
   in fromMaybe e' (f e)
 exprMap f e@(ANoInlineFunCall t i fun args) =
   let e' = ANoInlineFunCall t i fun (map (exprMap f) args)
@@ -495,12 +500,12 @@ exprMapM f e@(APrim i t o args) = do
     Just e' -> return e'
     Nothing -> do args' <- mapM (exprMapM f) args
                   return $ APrim i t o args'
-exprMapM f e@(AMethCall t i m oi args) = do
+exprMapM f e@(AMethCall t i m args) = do
   me <- f e
   case me of
     Just e' -> return e'
     Nothing -> do args' <- mapM (exprMapM f) args
-                  return $ AMethCall t i m oi args'
+                  return $ AMethCall t i m args'
 exprMapM f e@(ANoInlineFunCall t i fun args) = do
   me <- f e
   case me of
@@ -524,7 +529,7 @@ exprFold :: (AExpr -> a -> a) -> a -> AExpr -> a
 exprFold f v e@(APrim i t o args) =
   let v' = foldr (flip (exprFold f)) v args
   in f e v'
-exprFold f v e@(AMethCall t i m oi args) =
+exprFold f v e@(AMethCall t i m args) =
   let v' = foldr (flip (exprFold f)) v args
   in f e v'
 exprFold f v e@(ANoInlineFunCall t i fun args) =
@@ -608,10 +613,10 @@ instance ARules APackage where
 aIdFnToAExprFn :: (AId -> AId) -> (AExpr -> AExpr)
 aIdFnToAExprFn fn (APrim aid ty op args) =
     APrim (fn aid) ty op (mapAExprs (aIdFnToAExprFn fn) args)
-aIdFnToAExprFn fn (AMethCall ty aid mid oi args) =
-    AMethCall ty (fn aid) mid oi (mapAExprs (aIdFnToAExprFn fn) args)
-aIdFnToAExprFn fn (AMethValue ty aid mid oi) =
-    AMethValue ty (fn aid) mid oi
+aIdFnToAExprFn fn (AMethCall ty aid mid args) =
+    AMethCall ty (fn aid) mid (mapAExprs (aIdFnToAExprFn fn) args)
+aIdFnToAExprFn fn (AMethValue ty aid mid) =
+    AMethValue ty (fn aid) mid
 aIdFnToAExprFn fn (ANoInlineFunCall ty aid fun args) =
     ANoInlineFunCall ty (fn aid) fun (mapAExprs (aIdFnToAExprFn fn) args)
 aIdFnToAExprFn fn (AFunCall ty aid fun isC args) =
