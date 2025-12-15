@@ -1299,7 +1299,7 @@ convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
 
-convAExpr (ATupleSel _ _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
+convAExpr (ATupleSel _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t _ (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineQId name

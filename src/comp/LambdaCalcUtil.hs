@@ -1041,7 +1041,7 @@ updateAExprTypes _ (AMethCall t obj meth as) = do
 -- method return values are Bit type
 updateAExprTypes _ e@(AMethValue t obj meth) = return e
 
-updateAExprTypes _ (ATupleSel _ _ _ _) = error "updateAExprTypes: multi-output methods not yet supported"
+updateAExprTypes _ (ATupleSel _ _ _) = error "updateAExprTypes: multi-output methods not yet supported"
 
 -- noinline function arguments and return values are Bit type
 updateAExprTypes _ (ANoInlineFunCall t i f as) = do

@@ -1974,7 +1974,7 @@ eDomain m e@(AMethCall _ i mi es) =
     mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
 -- don't count the return value uses of actionvalue, only the action part
 eDomain m (AMethValue _ _ _) = []
-eDomain m (ATupleSel _ _ e _) = eDomain m e
+eDomain m (ATupleSel _ e _) = eDomain m e
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []

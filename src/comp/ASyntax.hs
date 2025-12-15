@@ -1007,7 +1007,6 @@ data AExpr
         -- selection from an ATTuple
         | ATupleSel {
             ae_type :: AType,
-            ae_objid :: AId,
             ae_exp :: AExpr,
             ae_index :: Integer
         }
@@ -1109,7 +1108,7 @@ instance NFData AExpr where
     rnf (APrim oid typ prim args) = rnf4 oid typ prim args
     rnf (AMethCall typ oid mid args) = rnf4 typ oid mid args
     rnf (AMethValue typ oid mid) = rnf3 typ oid mid
-    rnf (ATupleSel typ oid expr index) = rnf4 typ oid expr index
+    rnf (ATupleSel typ expr index) = rnf3 typ expr index
     rnf (ANoInlineFunCall typ oid fun args) = rnf4 typ oid fun args
     rnf (AFunCall typ oid fname isC args) = rnf5 typ oid fname isC args
     rnf (ATaskValue typ oid fname isC cookie) = rnf5 typ oid fname isC cookie
@@ -1135,8 +1134,8 @@ instance Eq AExpr where
     AMethValue t aid mid == AMethValue t' aid' mid' =
         (t == t') && (mid == mid') && (aid == aid')
     
-    ATupleSel t aid aexpr index == ATupleSel t' aid' aexpr' index' =
-        (t == t') && (index == index') && (aexpr == aexpr') && (aid == aid')
+    ATupleSel t aexpr index == ATupleSel t' aexpr' index' =
+        (t == t') && (index == index') && (aexpr == aexpr')
 
     ANoInlineFunCall t aid af aexprs == ANoInlineFunCall t' aid' af' aexprs' =
         (t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
@@ -1183,7 +1182,7 @@ instance HasPosition AExpr where
     getPosition APrim{ ae_objid = p }       = getPosition p
     getPosition AMethCall{ ae_objid = p }   = getPosition p
     getPosition AMethValue{ ae_objid = p }  = getPosition p
-    getPosition ATupleSel{ ae_objid = p }     = getPosition p
+    getPosition ATupleSel{ ae_exp = e }     = getPosition e
     getPosition ANoInlineFunCall{ ae_objid = p } = getPosition p
     getPosition AFunCall{ ae_objid = p }    = getPosition p
     getPosition ATaskValue{ ae_objid = p }  = getPosition p
@@ -1566,7 +1565,7 @@ instance PPrint AExpr where
         sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
-    pPrint d p (ATupleSel _ _ e idx) =
+    pPrint d p (ATupleSel _ e idx) =
         pparen (p>0) $ pPrint d 0 e <> text "[" <> pPrint d 0 idx <> text "]"
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
@@ -1862,7 +1861,7 @@ instance PPrintExpand AExpr where
                    docArgs = map (pPrintExpand m d defContext) es
     pPrintExpand m d ec (AMethValue _ i meth) =
         pPrint d 1 i <> text "." <> ppMethId d meth
-    pPrintExpand m d ec (ATupleSel _ _ e idx) =
+    pPrintExpand m d ec (ATupleSel _ e idx) =
         pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i

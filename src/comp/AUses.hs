@@ -846,7 +846,7 @@ eDomain e@(AMethCall _ i mi es) = do
     let this_use = singleMethodExprUse i (unQualId mi) e ucTrue
     es_uses <- mapM eDomain es
     mergeExprUsesM (this_use : es_uses)
-eDomain (ATupleSel _ _ e _) = eDomain e
+eDomain (ATupleSel _ e _) = eDomain e
 eDomain e@(AFunCall { ae_objid = i, ae_args = es }) = do
     let this_use = singleFFuncExprUse i e ucTrue
     es_uses <- mapM eDomain es

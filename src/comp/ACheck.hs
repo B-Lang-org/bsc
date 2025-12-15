@@ -421,6 +421,7 @@ checkUse :: S.Set AId -> S.Set AId -> S.Set AId -> AExpr -> [AId]
 checkUse ds is ps (APrim _ _ _ es)     = checkUses ds is ps es
 checkUse ds is ps (AMethCall _ i m es) = checkUses ds is ps es  -- XXX check i and m ?
 checkUse ds is ps (AMethValue _ i m)   = [] -- XXX check i and m ?
+checkUse ds is ps (ATupleSel _ e _)    = checkUse ds is ps e
 checkUse ds is ps (ANoInlineFunCall _ _ _ es) = checkUses ds is ps es
 checkUse ds is ps (AFunCall { ae_args = es }) = checkUses ds is ps es
 -- because all of the expressions used are used by the ATaskAction

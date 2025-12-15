@@ -72,7 +72,7 @@ instance AVars AExpr where
     aVars (ANoInlineFunCall _ _ _ es) = concatMap aVars es
     aVars (AFunCall _ _ _ _ es) = concatMap aVars es
     aVars (AMethCall _ _ _ es) = concatMap aVars es
-    aVars (ATupleSel _ _ e _) = aVars e
+    aVars (ATupleSel _ e _) = aVars e
 --  aVars (ATaskValue ...) = [] -- because the variables are really "used"
 -- by the action which sets it
 -- same for AMethValue
@@ -118,7 +118,7 @@ aMethValues :: AExpr -> [(AId, AId, AType)]
 aMethValues e@(APrim {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AMethCall {}) = concatMap aMethValues (ae_args e)
 aMethValues (AMethValue ty obj meth) = [(obj,meth,ty)]
-aMethValues (ATupleSel _ _ e _) = aMethValues e
+aMethValues (ATupleSel _ e _) = aMethValues e
 aMethValues e@(ANoInlineFunCall {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AFunCall {}) = concatMap aMethValues (ae_args e)
 aMethValues (ATaskValue {}) = []
@@ -139,7 +139,7 @@ aMethCalls :: AExpr -> [(AId, AId)]
 aMethCalls e@(APrim {}) = concatMap aMethCalls (ae_args e)
 aMethCalls (AMethCall _ obj meth es) = ((obj,meth) : concatMap aMethCalls es)
 aMethCalls (AMethValue _ obj meth) = []
-aMethCalls (ATupleSel _ _ e _) = aMethCalls e
+aMethCalls (ATupleSel _ e _) = aMethCalls e
 aMethCalls e@(ANoInlineFunCall {}) = concatMap aMethCalls (ae_args e)
 aMethCalls e@(AFunCall {}) = concatMap aMethCalls (ae_args e)
 aMethCalls (ATaskValue {}) = []
@@ -160,7 +160,7 @@ aTaskValues :: AExpr -> [(AId, Integer, AType)]
 aTaskValues e@(APrim {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AMethCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues (AMethValue {}) = []
-aTaskValues (ATupleSel _ _ e _) = aTaskValues e
+aTaskValues (ATupleSel _ e _) = aTaskValues e
 aTaskValues e@(ANoInlineFunCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AFunCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues (ATaskValue ty f_id fun isC cookie) = [(f_id, cookie, ty)]
@@ -184,7 +184,7 @@ exprForeignCalls e@(AFunCall {})  =
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
 exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
-exprForeignCalls (ATupleSel _ _ e _) = exprForeignCalls e
+exprForeignCalls (ATupleSel _ e _) = exprForeignCalls e
 exprForeignCalls e@(ANoInlineFunCall {}) =
   concatMap exprForeignCalls (ae_args e)
 exprForeignCalls _                  = []

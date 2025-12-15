@@ -604,7 +604,7 @@ convAExpr2YExpr mty (AMethValue ty@(ATBit width) modId methId) = do
                                ++ ppReadable (modId, methId, ports))
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
-convAExpr2YExpr mty (ATupleSel ty@(ATBit width) _ (AMethCall _ modId methId args) selIdx) = do
+convAExpr2YExpr mty (ATupleSel ty@(ATBit width) (AMethCall _ modId methId args) selIdx) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
@@ -612,7 +612,7 @@ convAExpr2YExpr mty (ATupleSel ty@(ATBit width) _ (AMethCall _ modId methId args
         e = (AMethCall ty modId portId args)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
-convAExpr2YExpr mty (ATupleSel ty@(ATBit width) _ (AMethValue _ modId methId) selIdx) = do
+convAExpr2YExpr mty (ATupleSel ty@(ATBit width) (AMethValue _ modId methId) selIdx) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent
     smap <- gets stateMap
