@@ -446,7 +446,7 @@ aState' flags pps schedule_info apkg = do
         subst :: AExpr -> Maybe AExpr
         subst (AMethValue vt modId methId) =
             Just (ASPort vt (mkMethId modId methId Nothing (MethodResult 1)))
-        subst (ATupleSel vt _ (AMethValue _ modId methId) idx) =
+        subst (ATupleSel vt (AMethValue _ modId methId) idx) =
             Just (ASPort vt (mkMethId modId methId Nothing (MethodResult idx)))
         -- substitute AMOsc, AMGate, AMReset references with their port
         subst (AMGate gt modId clkId) =
@@ -460,7 +460,7 @@ aState' flags pps schedule_info apkg = do
                                toMaybe (mult > 1) 0
                   in Just (ASPort vt (mkMethId modId methId ino (MethodResult 1)))
               me' -> me'
-        subst e@(ATupleSel vt _ (AMethCall _ modId methId es) idx) =
+        subst e@(ATupleSel vt (AMethCall _ modId methId es) idx) =
             case (M.lookup e substs) of
               Nothing ->
                   let ino = do mult <- M.lookup (modId, methId) omMultMap
@@ -1040,10 +1040,17 @@ mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
         def_tuples = zipWith (mkEmux rdb value_method_ids om ino o m)
                          [1..] arg_blobs
         (sel_defs, val_defs, out_defs) = concatUnzip3 def_tuples
+        
+        mkPortSubsts (e, _) =
+            case aType e of
+                ATTuple ats ->
+                    [ (ATupleSel at e idx,
+                       ASPort at $ mkMethId o m ino $ MethodResult idx)
+                    | (idx, at) <- zip [1..] ats ]
+                at -> [ (e, ASPort at $ mkMethId o m ino $ MethodResult 1) ]
 
         -- Replace the method call with the output port of the method
-        subst = [(e, ASPort (aType e) $ mkMethId o m ino $ MethodResult $ ameth_out_idx e )
-                | (e, _) <- emrs]
+        subst = concatMap mkPortSubsts emrs
     in
         -- traces ("mkEmuxs " ++ ppReadable emrs ++ ppReadable xs) $
         (sel_defs, val_defs, out_defs, subst)
@@ -1266,9 +1273,9 @@ mkEnables o m ino emrs =
         let mi = mkMethId o m ino MethodEnable
             (dss, ess) = unzip (zipWith mkE emrs [1..])
             mkE :: (AExpr, Maybe [ARuleId]) -> Integer -> ([ADef], [AExpr])
-            mkE (AMethCall _ _ _ _ (ASInt _ _ (IntLit _ _ 1) : _), Just is) _ =
+            mkE (AMethCall _ _ _ (ASInt _ _ (IntLit _ _ 1) : _), Just is) _ =
                 ([], [ aWillFireId i | i <- is ])
-            mkE (AMethCall _ _ _ _ (c : _), Just is) k =
+            mkE (AMethCall _ _ _ (c : _), Just is) k =
               let ior  = mkIdPre (concatFString [mkFString astOrPref,
                                                  mkNumFString k]) mi
                   iand = mkIdPre (concatFString [mkFString astAndPref,

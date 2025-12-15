@@ -458,6 +458,7 @@ isSimple c (APrim i t PrimConcat es)                              = c && all (is
 isSimple c e@(APrim _ _ p es)                                     = c && isSmall e && cheap p es -- && all (isSimple c) es
 isSimple c (AMethCall _ _ _ es)                                   = null es
 isSimple c (AMethValue _ _ _)                                     = True
+isSimple c (ATupleSel _ e _)                                      = isSimple c e
 -- foreign function calls cannot be inlined
 -- (except for $signed and $unsigned - handled by mustInline)
 isSimple c e@(AFunCall { })                                       = False
@@ -537,6 +538,8 @@ getExprSize (APrim _ _ _ es) = (nub $ concat vars, sum terms, 1 + maximum depths
 
 getExprSize (AMethCall t i mid args) = ([mid],1,1)
 getExprSize (AMethValue t i mid)     = ([mid],1,1)
+getExprSize (ATupleSel t e i)        = (vars, terms + 1, depth + 1)
+    where (vars,terms,depth) = getExprSize e
 getExprSize (ATaskValue { })         = ([],   1,1)
 getExprSize (ASPort t i)             = ([i],  1,1)
 getExprSize (ASParam t i)            = ([i],  1,1)

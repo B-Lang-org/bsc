@@ -636,8 +636,7 @@ aSelExpr ((ifst, atype) : sels) (ICon i (ICStateVar { }) : es)
     , [(iav, atypeTup), (m, _)] <- dropWhile ((== idPrimSnd) . fst) sels = do
   i' <- transId i
   let idx = toInteger $ length sels - 1
-      idxId = mk_dangling_id ("_" ++ show idx) (getIdPosition ifst)
-  return $ ATupleSel atype idxId (AMethValue atypeTup i' m) idx
+  return $ ATupleSel atype (AMethValue atypeTup i' m) idx
 
 -- port selected from value method
 aSelExpr ((ifst, atype) : sels) (ICon i (ICStateVar { }) : es)
@@ -646,8 +645,7 @@ aSelExpr ((ifst, atype) : sels) (ICon i (ICStateVar { }) : es)
   i' <- transId i
   es' <- mapM aSExpr es
   let idx = toInteger $ length sels - 1
-      idxId = mk_dangling_id ("_" ++ show idx) (getIdPosition ifst)
-  return $ ATupleSel atype idxId (AMethCall atypeTup i' m es') idx
+  return $ ATupleSel atype (AMethCall atypeTup i' m es') idx
 
 -- value part of ActionValue method
 aSelExpr sels@[(iav, atype), (m, _)] base@(ICon i (ICStateVar { }) : es)

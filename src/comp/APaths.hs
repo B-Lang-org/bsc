@@ -1220,7 +1220,7 @@ findEdges env (AMethCall t i qmi exprs) =
     in  ([PNStateMethodRes i mi 1], edges, muxes)
 findEdges env (AMethValue t i qmi) =
     ([PNStateMethodRes i (unQualId qmi) 1], [], [])
-findEdges env (ATupleSel _ _ (AMethCall t i qmi exprs) oi) =
+findEdges env (ATupleSel _ (AMethCall t i qmi exprs) oi) =
     -- make edges between exprs and meth input
     -- return the output connection
     let mi = unQualId qmi
@@ -1233,9 +1233,9 @@ findEdges env (ATupleSel _ _ (AMethCall t i qmi exprs) oi) =
         meth_arg_mux = PNStateMethodArgMux i mi
         muxes = if null exprs then ms else meth_arg_mux:ms
     in  ([PNStateMethodRes i mi oi], edges, muxes)
-findEdges env (ATupleSel _ _ (AMethValue t i qmi) oi) =
+findEdges env (ATupleSel _ (AMethValue t i qmi) oi) =
     ([PNStateMethodRes i (unQualId qmi) oi], [], [])
-findEdges env (ATupleSel _ _ e _) =
+findEdges env (ATupleSel _ e _) =
     internalError
         ("APaths.findEdges: unexpected ATupleSel expression: " ++ ppReadable e)
 
