@@ -305,8 +305,9 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
           in
               -- return the expression that should replace the heap pointer,
               -- and maybe a Def, if the expression is a def reference
-              if simple e || isActionType t then
+              if simple e || isActionType t || isPairType t then
                   -- inline the expression, no def is created for this heap ptr
+                  --trace ("not inlining " ++ show i ++ " " ++ ppReadable t) $
                   (e', Nothing)
               else
                   -- assign the expr to a def, and replace the ptr reference
@@ -2514,20 +2515,16 @@ walkNF e =
                         -- XXX is adding the clock to the wire set redundant?
                         clk@(ICon i (ICClock { iClock = c })) : _  -> upd (pConj p0 p) (IAps f ts es') (wsAddClock c ws)
 
-                        -- if the outer selector is avValue_ or avAction_
-                        -- and the inner is a method call
-                        [(IAps sel@(ICon i_sel2 (ICSel { })) ts_2 es_2)]
-                            | (i_sel == idAVValue_ || i_sel == idAVAction_) -> do
-                            case es_2 of
-                                st@(ICon i (ICStateVar { iVar = v })) : _ ->
-                                    handleMethod i_sel2 v
-                                _ -> internalError ("walkNF: selector should be a method call")
+                        -- We can be selecting the avValue or avAction from an ActionValue method,
+                        -- or a tuple member out of the result of calling a method with multiple outputs,
+                        -- and need to recurse.
+                        [e] | (i_sel == idAVValue_ ||
+                               i_sel == idAVAction_ ||
+                               i_sel == idPrimFst ||
+                               i_sel == idPrimSnd) -> do
+                          do (P p' e', ws) <- walkNF e
+                             upd (pConj p0 p') (IAps f ts [e']) ws
 
-                        -- the inner selector can wind up on the heap
-                        -- because of "move" in evalHeap
-                        [e_ref@(IRefT t ptr ref)] | (isitActionValue_ t) || (isitAction t)
-                            ->  do (P p' e', ws) <- walkNF e_ref
-                                   upd (pConj p0 p') (IAps f ts [e']) ws
                         _ ->    do when doDebug $ traceM "not stvar or foreign\n"
                                    when doDebug $ traceM (show u ++ "\n")
                                    when doDebug $ traceM (show es' ++ "\n")
@@ -2541,6 +2538,11 @@ walkNF e =
                    _ <- internalError ("PrimWhenPred" ++ ppReadable e)
                    (P p' e', ws) <- walkNF e
                    upd (pConjs [p0, p, p']) e' ws
+
+                IAps f@(ICon _ (ICTuple {})) ts [e1, e2] -> do
+                    (P pe1 e1', ws1) <- walkNF e1
+                    (P pe2 e2', ws2) <- walkNF e2
+                    upd (pConj pe1 pe2) (IAps f ts [e1', e2']) (wsJoin ws1 ws2)
 
                 -- Any other application is not in NF (which is unexpected?)
                 IAps f ts es -> do

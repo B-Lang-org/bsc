@@ -249,8 +249,8 @@ runCSE e@(IAps _ _ _) = do
   -- because "runCSE" is called from iTrExpr, which already recurses on the
   -- arguments, so runCSE will already have been called on the arguments.
   let t = iGetType e
-  -- Only CSE applications that are not actions
-  if not (isActionType t) then
+  -- Only CSE applications that are not actions or tuple method values
+  if not (isActionType t || isPairType t) then
       newExprT t e
    else
       return e

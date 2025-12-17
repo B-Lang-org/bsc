@@ -704,7 +704,6 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 -- Check that the return type is either bitable,
                 -- an Action, or an ActionValue, and that the port info
                 -- matches the types.
-                -- TODO: This should be replaced by type class resolution errors?
                 let
                     -- XXX These errors should give more info
                     chkResType :: [VPort] -> Maybe VPort -> [VPort] -> Type ->
@@ -713,11 +712,11 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         if (isActionWithoutValue t) then return (ps, me, [])
                         else if (isActionWithValue t)
                         then errMissingValue "ActionValue" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
                     chkResType ps me@Nothing outs@(_:_) t =
-                        if (isBit t) then return (ps, me, outs)
+                        if (isBitTuple t) then return (ps, me, outs)
                         else if (isActionWithValue t)
                         then errMissingEnable "ActionValue" t
                         else if (isActionWithoutValue t)
@@ -727,7 +726,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         if (isActionWithValue t) then return (ps, me, outs)
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
                     chkResType ps Nothing [] t = do
@@ -741,7 +740,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
                          then return (inputs, Just final_port, [])
-                         else if (isBit t)
+                         else if (isBitTuple t)
                                then return (inputs, Nothing, [final_port])
                                else errBadResType t
 

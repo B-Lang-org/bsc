@@ -199,4 +199,9 @@ isChar t = t == tChar
 isReal t = t == tReal
 isFmt t = t == tFmt
 
+isBitTuple :: Type -> Bool
+isBitTuple (TAp (TAp (TCon (TyCon i _ _)) t1) t2) | i == idPrimPair =
+    isBit t1 && isBitTuple t2
+isBitTuple t = isBit t
+
 -- -------------------------

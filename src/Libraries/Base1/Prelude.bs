@@ -260,7 +260,7 @@ package Prelude(
 
         primMethod, -- TODO: Needed only in PreludeBSV for vMkRWire1, should be removed.
         WrapField(..), WrapMethod(..), WrapPorts(..),
-        Port(..), unPort, SplitPorts(..)
+        Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
 infixr  0 $
@@ -4581,9 +4581,9 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) =>
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 -}
 
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) =>
+instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod a pb where
-  toWrapMethod = packPorts ∘ splitPorts
+  toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
   fromWrapMethod = unsplitPorts ∘ unpackPorts
   methodArgBaseNames _ _ _ _ = Nil
   inputPortNames _ _ = Nil
@@ -4617,6 +4617,22 @@ instance WrapPorts () () where
   packPorts _ = ()
   unpackPorts _ = ()
   savePortTypes _ _ _ = return ()
+
+-- Force a tuple of bit values to be fully expanded by the evaluator.
+primDeepSeqTupleBits :: (PrimSeqTupleBits a) => a -> a
+primDeepSeqTupleBits a = primSeqTupleBits a a
+
+class PrimSeqTupleBits a where
+  primSeqTupleBits :: a -> b -> b
+
+instance (PrimSeqTupleBits b) => PrimSeqTupleBits (Bit n, b) where
+  primSeqTupleBits (a, b) c = primSeq a (primSeqTupleBits b c)
+
+instance PrimSeqTupleBits (Bit n) where
+  primSeqTupleBits = primSeq
+
+instance PrimSeqTupleBits () where
+  primSeqTupleBits () = id
 
 -- Compute the list port names for type 'a' given a base name.
 -- Check that the number of port names matches the number of ports.
