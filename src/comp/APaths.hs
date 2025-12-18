@@ -570,9 +570,9 @@ aPathsPreSched errh flags apkg = do
                                          (arg,_) <- args]
 
       method_outputs =
-          [(m, PNTopMethodRes m p) | (AIDef { aif_name = m, aif_values = v }) <- ifc,
+          [(p, PNTopMethodRes m p) | (AIDef { aif_name = m, aif_values = v }) <- ifc,
                                      ADef p _ _ _ <- v ] ++
-          [(m, PNTopMethodRes m p) | (AIActionValue { aif_name = m, aif_values = v }) <- ifc,
+          [(p, PNTopMethodRes m p) | (AIActionValue { aif_name = m, aif_values = v }) <- ifc,
                                      ADef p _ _ _ <- v  ]
 
       method_enables =

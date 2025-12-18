@@ -3814,7 +3814,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
               when doTrans $ traceM ("conAp: iTransform fallthrough: " ++ ppReadable (op, mkAp fe as'))
               errh <- getErrHandle
               case (iTransExpr errh (mkAp fe as')) of
-                  (e', True) -> do
+                  (e', True) | isBitType (iGetType e') -> do
                     -- we used to evaluate further here, but that shouldn't
                     -- be necessary (and probably indicates a bug elsewhere)
                     when (doDebug || doTrans) $ traceM ("conAp: iTransform result: " ++ ppReadable e')
@@ -4794,6 +4794,11 @@ doSel sel s tys ty n as ee (p, e) =
         -- canonical applications are strict (e.g. method call applications)
         _ | isCanon e -> bldApUH' "Sel" sel (map T tys ++ (E ee : as))
 
+        -- tuple section from a multi-output method result
+        _ | s == idPrimFst || s == idPrimSnd -> do
+          (_, P p e') <- evalUH e
+          addPredG p $ bldApUH' "Sel PrimFst/Snd" sel (map T tys ++ (E e' : as))
+
         -- otherwise fail
         _ -> internalError ("doSel: " ++ ppReadable (sel, e, as))
 
@@ -4807,7 +4812,7 @@ isCanon (ICon _ (ICModParam { })) = True
 isCanon (ICon _ (ICClock { })) = True
 --isCanon (IAps (ICon _ (ICPrim _ PrimBlock)) _ _) = True                -- XXX is this the best way?
 isCanon (IAps (ICon _ (ICSel { })) _ [_]) = True
-isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
+--isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
 -- AV of foreign function application is canon
 --isCanon (IAps (ICon _ (ICForeign { })) _ _) = True
 isCanon (IRefT _ _ _) = True

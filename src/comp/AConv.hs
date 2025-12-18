@@ -631,21 +631,25 @@ aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
         return (ATaskValue t i name isC n)
 
 -- port selected from value part of ActionValue method
-aSelExpr ((ifst, atype) : sels) (ICon i (ICStateVar { }) : es)
-    | (ifst == idPrimFst)
+aSelExpr ((sel, atype) : sels) base@(ICon i (ICStateVar { }) : es)
+    | (sel == idPrimFst || sel == idPrimSnd)
     , [(iav, atypeTup), (m, _)] <- dropWhile ((== idPrimSnd) . fst) sels = do
   i' <- transId i
-  let idx = toInteger $ length sels - 1
-  return $ ATupleSel atype (AMethValue atypeTup i' m) idx
+  -- arguments should have been dropped in IExpand
+  when (not (null es)) $
+      internalError ("AConv.aExpr actionvalue value with args " ++
+                     ppReadable sels ++ "\n" ++ ppReadable base)
+  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - 2
+  return $ ATupleSel atype (AMethValue atypeTup i' m) $ idx + 1
 
 -- port selected from value method
-aSelExpr ((ifst, atype) : sels) (ICon i (ICStateVar { }) : es)
-    | (ifst == idPrimFst)
+aSelExpr ((sel, atype) : sels) (ICon i (ICStateVar { }) : es)
+    | (sel == idPrimFst || sel == idPrimSnd)
     , [(m, atypeTup)] <- dropWhile ((== idPrimSnd) . fst) sels = do
   i' <- transId i
   es' <- mapM aSExpr es
-  let idx = toInteger $ length sels - 1
-  return $ ATupleSel atype (AMethCall atypeTup i' m es') idx
+  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - 1
+  return $ ATupleSel atype (AMethCall atypeTup i' m es') $ idx + 1
 
 -- value part of ActionValue method
 aSelExpr sels@[(iav, atype), (m, _)] base@(ICon i (ICStateVar { }) : es)
