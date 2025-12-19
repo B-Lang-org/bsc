@@ -114,7 +114,7 @@ tiExpr as td exp@(CLam ei e) = do
           def_ty = (CQType [] (v' `fn` rt'))
           def = CDefT def_id [] def_ty [CClause [ipat] [] e']
       -- trace ("CLam " ++ ppReadable (ei, def_id)) $ return ()
-      return (eq_ps ++ ps, Cletrec [CLValueSign def []] (CVar def_id))
+      return (eq_ps ++ ps, Cletseq [CLValueSign def []] (CVar def_id))
 
 {- XXX not quite right
 tiExpr as td exp@(CLamT i qt e) = do
@@ -140,7 +140,7 @@ tiExpr as td exp@(CLamT ei (CQType [] ty) e) = do
     let ipat = either CPAny CPVar ei
         def = CDefT def_id [] (CQType [] td) [CClause [ipat] [] e']
     -- trace ("CLamT " ++ ppReadable (ei, def_id)) $ return ()
-    return (eq_ps ++ ps, Cletrec [CLValueSign def []] (CVar def_id))
+    return (eq_ps ++ ps, Cletseq [CLValueSign def []] (CVar def_id))
 
 tiExpr as td exp@(CLamT ei (CQType _ ty) e) = do
     x <- (err (getPosition ei, (internalError "TCheck.tiExpr: CLamT with context")))
@@ -157,7 +157,7 @@ tiExpr type_env expected_type (CApply (CLam ei b) [e]) = do
                   Left _ -> tiExpr type_env expected_type b -- don't bind
     let res_e = case ei of
                   Right i -> let def = CDefT i [] (CQType [] type_var) [CClause [] [] e']
-                             in  Cletrec [CLValueSign def []] b'
+                             in  Cletseq [CLValueSign def []] b'
                   Left _ -> b'
     return (ps ++ qs, res_e)
 
@@ -368,7 +368,7 @@ tiExpr as td exp@(Ccase pos e arms) =
     let ic = id_case pos
     -- desugar into *type-checked* CLValueSign of a function applied to the scrutinee
     -- NOTE: none of the variables in the cqt are to be generalized over (hence the [] in CDefT)
-    let ccase = (Cletrec [CLValueSign (CDefT ic [] cqt_clause_type clauses') []]
+    let ccase = (Cletseq [CLValueSign (CDefT ic [] cqt_clause_type clauses') []]
                       (cApply 3 (CVar ic) [e']))
     -- traceM("desugared case: " ++ ppReadable ccase)
     -- (ps ++ ps', exp') <- tiExpr as td ccase
@@ -515,7 +515,7 @@ tiExpr as td exp@(CHasType e ct) = do
     --posCheck "D" e
     x <- newVar (getPosition e) "tiExprCHasType"
 --    trace ("CHasType " ++ ppReadable (x, e, ct)) $ return ()
-    (ps, e') <- tiExpr as td (Cletrec [CLValueSign (CDef x ct [CClause [] [] e]) []] (CVar x))
+    (ps, e') <- tiExpr as td (Cletseq [CLValueSign (CDef x ct [CClause [] [] e]) []] (CVar x))
     return (ps, optTrivLet e')
 
 tiExpr as td (Cif pos e e1 e2) = tiExpr as td (cVApply (id_if pos) [e, e1, e2])
@@ -1924,13 +1924,13 @@ tiStmts' chke mon mt as td (CSBindT (CPVar i) maybeName pprops (CQType [] ty) e 
         tiStmtBind chke mon mt as td i maybeName pprops e ss ty
 tiStmts' chke mon mt as td (CSBindT p name pprops qt e : ss) = do
         nid <- newVar (getPosition p) "tiStmts1"
-        tiStmts' chke mon mt as td (CSBindT (CPVar nid) name pprops qt e : CSletrec [CLMatch p (CVar nid)] : ss)
+        tiStmts' chke mon mt as td (CSBindT (CPVar nid) name pprops qt e : CSletseq [CLMatch p (CVar nid)] : ss)
 tiStmts' chke mon mt as td (CSBind (CPVar i) maybeName pprops e : ss) = do
         ty <- newTVar "tiStmts' CSBind" KStar e                -- XXX
         tiStmtBind chke mon mt as td i maybeName pprops e ss ty
 tiStmts' chke mon mt as td (CSBind p name pprops e : ss) = do
         nid <- newVar (getPosition p) "tiStmts2"
-        tiStmts' chke mon mt as td (CSBind (CPVar nid) name pprops e : CSletrec [CLMatch p (CVar nid)] : ss)
+        tiStmts' chke mon mt as td (CSBind (CPVar nid) name pprops e : CSletseq [CLMatch p (CVar nid)] : ss)
 tiStmts' chke mon mt as td (CSletrec ds : ss) = do
         (ps, as', ds') <- tiDefls as ds
         (qs, ss')      <- tiStmts' chke mon mt (as' ++ as) td ss
@@ -3229,7 +3229,7 @@ chkUnsyncMeths field_set ms =
 -----------------------------------------------------------------------------
 
 cLet :: [(Id, CType, CExpr)] -> CExpr -> CExpr
-cLet ites e = Cletrec [ CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) [] | (i, t, e) <- ites ] e
+cLet ites e = Cletseq [ CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) [] | (i, t, e) <- ites ] e
 
 -- convert a CLMatch binding to non-pattern-matching let-bindings
 expCLMatch :: CDefl -> TI [CDefl]
