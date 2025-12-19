@@ -30,6 +30,7 @@ import Subst
 import Pred hiding (name)
 import qualified Pred(name)
 import Scheme
+import SolvedBinds
 import Assump
 import TIMonad
 import TCPat
@@ -2652,8 +2653,8 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
            -- XXX More comments and review needed beyond this point
            let
                 -- Convert SolvedBinds to CDefls, preserving categorization
-                rec_defls = map mkDefl (recursiveBinds asbs)
-                nonrec_defls = map mkDefl (nonRecursiveBinds asbs)
+                rec_defls = getRecursiveDefls asbs
+                nonrec_defls = getNonRecursiveDefls asbs
 
                 -- Inline simple bindings in both categories
                 (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
@@ -2991,8 +2992,8 @@ tiImpls recursive as ibs = do
 
               let
                   -- Convert SolvedBinds to CDefls, preserving categorization
-                  rec_defls = map mkDefl (recursiveBinds sbs_final)
-                  nonrec_defls = map mkDefl (nonRecursiveBinds sbs_final)
+                  rec_defls = getRecursiveDefls sbs_final
+                  nonrec_defls = getNonRecursiveDefls sbs_final
 
                   -- Inline simple dictionary bindings in both categories
                   (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
