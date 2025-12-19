@@ -281,9 +281,10 @@ eSubstWith ectx tctx allIds e
           else -- No conflict: continue with same contexts
             ILAM i k (sub ectx tctx allIds e)
     sub ectx _    _      ee@(IVar i)    = fromMaybe ee (lookupVar i ectx)
-    sub ectx tctx allIds (IAps f ts es) = IAps (sub ectx tctx allIds f)
-                                               (map (tSubstWith tctx allIds) ts)
-                                               (map (sub ectx tctx allIds) es)
+    sub ectx tctx allIds (IAps f ts es) =
+        IAps (sub ectx tctx allIds f)
+             (if ctxIsEmpty tctx then ts else map (tSubstWith tctx allIds) ts)
+             (map (sub ectx tctx allIds) es)
     -- Use helper for IConInfo
     sub _    tctx allIds (ICon i ii)    = ICon i (tSubstIConInfo tsubFn ii)
       where tsubFn = tSubstWith tctx allIds
