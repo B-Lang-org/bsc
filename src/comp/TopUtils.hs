@@ -23,7 +23,7 @@ import IOMutVar
 
 -- compiler libs
 import Flags( Flags(..), verbose, quiet,
-             DumpFlag(..), dumpInfo)
+             DumpFlag(..), dumpInfo, hasDumpStrict)
 -- import CSyntax
 import CVPrint
 import IdPrint
@@ -114,8 +114,17 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
             let dumpPath = substNames names' file
             currentDumped <- readVar dumpedFiles
             let hasBeenDumped = dumpPath `S.member` currentDumped
-            let writeFileFn = if hasBeenDumped then appendFileCatch else writeFileCatch
-            writeFileFn errh dumpPath (header ++ a ++ footer)
+            let isSpecificDump = hasDumpStrict flags d
+            -- Don't allow explicit parsed dumps to accumulate to avoid a double dump
+            -- from the double parse (first for dependencies and then for code).
+            let doubleParsedPasses = [DFvpp, DFbsvlex, DFparsed]
+            let isDoubleParseDump = isSpecificDump && d `elem` doubleParsedPasses
+            let writeFileFn = if hasBeenDumped && not isDoubleParseDump
+                              then appendFileCatch
+                              else writeFileCatch
+            -- Add a header and footer to -dall dumps in case they end up in the same file.
+            let a' = if hasDumpStrict flags d then a else header ++ a ++ footer
+            writeFileFn errh dumpPath a'
             writeVar dumpedFiles (S.insert dumpPath currentDumped)
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
