@@ -248,6 +248,13 @@ data DumpFlag
         | DFwrappergen
         | DFwrappercomp
 
+        -- Wrapper compilation phases
+        | DFwrapper_ctxreduce
+        | DFwrapper_typecheck
+        | DFwrapper_simplified
+        | DFwrapper_internal
+        | DFwrapper_fixup
+
         -- Generate Verilog
         | DFforeignMap
         | DFastate
