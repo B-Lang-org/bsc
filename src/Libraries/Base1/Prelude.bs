@@ -866,7 +866,15 @@ instance Monad ActionValue
                a   = x1.avAction
                v   = x1.avValue
                aw1 = x1.avWorld
-               y   = primSeq v $ primSeq a $ primSeq aw1 $ __avFunc (f v) $ aw1
+               -- Evaluating the contents of the bound AVStruct before calling the
+               -- next action helps prevent memory leaks with ActionValue loops
+               -- by ensuring that previous loop iterations have been evaluated
+               -- before future ones start executing. This is not necessarily a
+               -- complete solution because we do not deepSeq v (primSeq is enough
+               -- for PrimAction and ActionWorld, but not for arbitrary types), but
+               -- this should still be an improvement over the previous behavior.
+               y   = primSeq v $ primSeq a $ primSeq aw1 $
+                     __avFunc (f v) $ aw1
         in  AVStruct {
                 avValue = y.avValue;
                 avAction = primJoinActions a y.avAction;
