@@ -32,7 +32,7 @@ import CondTree
 import ListUtil(dropRepeatsBy)
 import APrims
 import PPrint
-import Eval(NFData(..), deepseq)
+import Eval
 import qualified DynamicMap as DM
 
 import System.Environment(getArgs)
@@ -495,7 +495,7 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
            moddefmap = M.map mkDefMap abmimap
 
        -- construct and return the initial conversion state
-       return $ hyper (rulemap, invrulemap, clkmap, instmap, actionmap, moddefmap)
+       return $ deepseq (rulemap, invrulemap, clkmap, instmap, actionmap, moddefmap)
                       ConvState { be_verbose     = optVerbose opts
                                 , debug_to       = dbg_target
                                 , root           = optRoot opts
@@ -702,7 +702,7 @@ morphVCD' errh hOut st EndDefs =
      handleMsgs errh (results ++ clks_not_found ++ info ++
                       ci_status ++ cross_rule_aliases)
      writeVCD hOut (virtual_vars ++ [EndDefs])
-     let st' = hyper (invsigmap,clock_code_map,modified')
+     let st' = deepseq (invsigmap,clock_code_map,modified')
                      st { inv_signal_map = invsigmap
                         , code_map       = clock_code_map
                         , action_map     = M.empty   -- not needed after EndDefs
@@ -1086,7 +1086,7 @@ handleClkEdge (cmds,status,st) (code,clk) =
       new_mod_set = (modified_set st) `S.union` mods
       -- possibly flush VCD data prior to previous edge of this clock
       (new_cmds,new_status,new_st) =
-          hyper new_mod_set $
+          deepseq new_mod_set $
           flushChanges $ st { clk_edge_map = new_edge_map
                             , value_map    = valmap3
                             , edges        = []
@@ -1578,10 +1578,6 @@ dbg_trace (Just hdl) s x = unsafePerformIO $ do hPutStr hdl s
 
 -- ---------------
 -- NFData instances
-
-instance NFData SchedNode where
-  rnf (Sched aid) = rnf aid
-  rnf (Exec aid) = rnf aid
 
 instance NFData Signal where
   rnf (ClockSignal d n fc bc vw fs r rw) = rnf8 d n fc bc vw fs r rw
