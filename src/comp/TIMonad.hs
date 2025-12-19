@@ -8,7 +8,7 @@ module TIMonad(
         getSubst, clearSubst, extSubst, updSubst,
         newTVar, newTVarId, isNewTVar, newDict, newVar,
         freshInst,
-        VPred(..), getVPredPositions, nubVPred, expandSynVPred,
+        VPred(..), getVPredPositions, expandSynVPred,
         EPred(..), Infer2, CheckT, TaskCheckT,
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
@@ -47,7 +47,6 @@ import Control.Monad(when)
 import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
-import Data.List(partition)
 import Util(headOrErr)
 
 -------
@@ -410,25 +409,6 @@ type Bind = (Id, Type, CExpr)
 
 mkDefl :: Bind -> CDefl
 mkDefl (i, t, e) = CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) []
-
-nubVPred :: [VPred] -> CExpr -> ([VPred], CExpr)
-nubVPred ps e =
-  let (ps', bs) = nubVPred' ps
-      defls = map mkDefl bs
-  in
-      (ps', Cletrec defls e)
-
-nubVPred' :: [VPred] -> ([VPred], [Bind])
-nubVPred' [] = ([], [])
-nubVPred' (x@(VPred i p):xs) =
-    let eq (VPred _ a) (VPred _ b) = (a == b)
-        (ps, notps) = partition (eq x) xs
-        poss = concatMap getVPredPositions ps
-        x' = VPred i (addPredPositions p poss)
-        t  = predToType (removePredPositions p)
-        bs = [(i', t, CVar i) | (VPred i' _) <- ps]
-        (xs', bs') = nubVPred' notps
-    in  (x':xs', bs ++ bs')
 
 expandSynVPred :: VPred -> VPred
 expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss)) = VPred i pwp'
