@@ -53,6 +53,8 @@ module CSyntax(
         anyTExpr,
         noType,
         cTApply,
+        cLetSeq,
+        cLetRec,
         iKName,
         impName,
         cVar,
@@ -840,6 +842,14 @@ isTaskName _ = False
 cTApply :: CExpr -> [CType] -> CExpr
 cTApply f [] = f
 cTApply f ts = CTApply f ts
+
+cLetSeq :: [CDefl] -> CExpr -> CExpr
+cLetSeq [] e = e
+cLetSeq ds e = Cletseq ds e
+
+cLetRec :: [CDefl] -> CExpr -> CExpr
+cLetRec [] e = e
+cLetRec ds e = Cletrec ds e
 
 getName :: CDefn -> Either Position Id
 getName (CValue i _) = Right i
