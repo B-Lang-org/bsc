@@ -140,8 +140,8 @@ module mkDesign(clk,
 	     i_enable && i_count != 4'd4 ;
 
   // remaining internal signals
-  assign x__h508 = i_acc + i_multiplicand ;
   assign x__h592 = { 4'b0, shift_and_add_a } ;
+  assign x__h508 = i_acc + i_multiplicand ;
   assign x__h704 = { 1'd0, i_mult[3:1] } ;
   assign x__h741 = { i_multiplicand[6:0], 1'd0 } ;
   assign x__h778 = i_count + 4'd1 ;
