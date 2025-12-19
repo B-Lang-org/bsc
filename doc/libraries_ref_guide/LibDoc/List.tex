@@ -385,6 +385,21 @@ function Maybe#(b_type)
 \hline
 \end{tabular}
 
+\index[function]{List!lookupAll}
+\index{lookupAll@\te{lookupAll} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{lookupAll}&Returns all values matching a key in an association list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(b_type)
+      lookupAll (a_type key, List#(Tuple2#(a_type, b_type)) alist)
+   provisos(Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
 \index[function]{List!takeWhile}
 \index{takeWhile@\te{takeWhile} (\te{List} function)}
 \begin{tabular}{|p{.7 in}|p{4.9 in}|}
