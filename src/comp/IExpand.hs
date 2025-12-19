@@ -2862,6 +2862,7 @@ mkApUH f es = do es' <- mapM evalArgUH es
 evalApAccum :: String -> M.Map Id HExpr -> M.Map Id IType -> HExpr -> [Arg] -> G PExpr
 evalApAccum tag exprCtx typeCtx (ILam i t body) (E a : as) = do
   a' <- toHeap "apply-accum" a (Just i)
+  -- position information is clobbered by this point
   when doDebug $ traceM ("accum apply arg=" ++ ppReadable (a', a))
   evalApAccum "ILam-accum" (M.insert i a' exprCtx) typeCtx body as
 
