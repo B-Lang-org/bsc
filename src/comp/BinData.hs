@@ -1452,7 +1452,7 @@ showHist hist = let buckets = sort [ (n1,n2,n3,s)
                 in unlines (ls ++ total)
 
 buildHistogram :: [BinElem] -> Histogram
-buildHistogram be = snd (foldl build (["<UNCLAIMED>"], M.empty) be)
+buildHistogram bes = snd (foldl build (["<UNCLAIMED>"], M.empty) bes)
   where build ([], _) _ = internalError "unbalanced accounting marks"
         build (sec, hist) (B b) =
           (sec, updateBytes sec (toInteger (length b)) hist)
@@ -1488,14 +1488,14 @@ share' k x bc =
 
 
 compress :: [BinElem] -> [BinElem]
-compress bd = compress' (bd, unknownCache)
+compress bes = compress' (bes, unknownCache)
   where compress' ((x@(B _):xs), cache) = x:(compress' (xs, cache))
         compress' ((x@(Start _):xs), cache) = x:(compress' (xs, cache))
         compress' ((x@(End):xs), cache) = x:(compress' (xs, cache))
         compress' ((x:xs), cache) =
-          let (bd, cache') = share x cache
-          in -- trace ((show x) ++ " -> " ++ (show bd)) $
-             compress' (bd ++ xs, cache')
+          let (bes, cache') = share x cache
+          in -- trace ((show x) ++ " -> " ++ (show bes)) $
+             compress' (bes ++ xs, cache')
         compress' ([], _) = []
 
 -- Run the Out monad and extract a byte stream.  The resulting
@@ -1503,12 +1503,12 @@ compress bd = compress' (bd, unknownCache)
 -- sharing.
 
 runOut :: Out () -> [Byte]
-runOut (Out xs _) = let be    = compress $ toList xs
-                        bytes = concat [ bs | B bs <- be ]
+runOut (Out xs _) = let bes   = compress $ toList xs
+                        bytes = concat [ bs | B bs <- bes ]
                     in -- trace ("xs = " ++ (show xs)) $
                        -- trace ("bytes = " ++ (show bytes)) $
                        if trace_bindata
-                       then trace (showHist (buildHistogram be)) $ bytes
+                       then trace (showHist (buildHistogram bes)) $ bytes
                        else bytes
 
 -- Convenience function for encoding structures in the Bin typeclass
