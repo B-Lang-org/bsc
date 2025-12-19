@@ -67,7 +67,7 @@ import TypeCheck(topExpr)
 import VModInfo
 import Pragma
 import ISyntax
-import ISyntaxSubst(eSubst, etSubst)
+import ISyntaxSubst(eSubst, eSubstBatch)
 import IConv(iConvT, iConvExpr)
 import ISyntaxUtil
 import ISyntaxCheck(iGetKind)
@@ -188,6 +188,10 @@ doTraceLoc = elem "-trace-state-loc" progArgs
 doDebugFreeVars :: Bool
 doDebugFreeVars = elem "-debug-eval-free-vars" progArgs
 
+-- Trace batched substitutions in IExpand
+doTraceExpandBatchSubst :: Bool
+doTraceExpandBatchSubst = elem "-trace-expand-batch-subst" progArgs
+
 -- We need to set the buffering of stdout and stderr
 -- if any trace is on (including a trace only used in IExpandUtils)
 -- so make sure that all trace flags are included in this list
@@ -208,6 +212,7 @@ doAnyTrace = doProfile ||
              doTraceIf ||
              doTraceTypes ||
              doTraceLoc ||
+             doTraceExpandBatchSubst ||
              doDebugFreeVars
 
 -- Before we had attributes for controlling whether input clocks have gates,
@@ -2850,6 +2855,32 @@ mkApUH :: HExpr -> [Arg] -> G HExpr
 mkApUH f es = do es' <- mapM evalArgUH es
                  return (mkAp f es')
 
+-- Accumulate substitutions when applying to a chain of ILam/ILAM
+-- This batches substitutions to avoid repeated hyper calls
+
+-- Continue accumulating for ILam with expression argument
+evalApAccum :: String -> M.Map Id HExpr -> M.Map Id IType -> HExpr -> [Arg] -> G PExpr
+evalApAccum tag exprCtx typeCtx (ILam i t body) (E a : as) = do
+  a' <- toHeap "apply-accum" a (Just i)
+  when doDebug $ traceM ("accum apply arg=" ++ ppReadable (a', a))
+  evalApAccum "ILam-accum" (M.insert i a' exprCtx) typeCtx body as
+
+-- Continue accumulating for ILAM with type argument
+evalApAccum tag exprCtx typeCtx (ILAM i k body) (T t : as) =
+  evalApAccum "ILAM-accum" exprCtx (M.insert i t typeCtx) body as
+
+-- Hit something else: apply accumulated substitutions if any, then continue
+evalApAccum tag exprCtx typeCtx e args = do
+  when (doDebug || doTraceExpandBatchSubst) $
+    traceM ("applying batched subst: " ++
+             show (M.size exprCtx) ++ " exprs, " ++
+             show (M.size typeCtx) ++ " types")
+  -- eSubstBatch will do no work if exprCtx and typeCtx are empty
+  -- (but in evalAppAccum, at least one of them won't be)
+  let e' = eSubstBatch exprCtx typeCtx e
+  -- evalAp will handle if substitution revealed more ILam/ILAM
+  evalAp tag e' args
+
 -- Evaluate a function applied to some number (possibly 0) of arguments
 -- (types and expressions)
 -- calls evalAp' to do the actual work, and corrects the cross-ref info
@@ -2906,14 +2937,13 @@ evalAp'   (ILam i t e)   (E a:as) = do
         a' <- toHeap "apply" a (Just i)
         -- position information is clobbered by this point
         when doDebug $ traceM ("apply arg=" ++ ppReadable (a', a))
-        let e' = eSubst i a' e
-        evalAp "ILam" e' as
+        evalApAccum "ILam" (M.singleton i a') M.empty e as
 evalAp'   f@(ILam _ _ _) (T t:as) = internalError("evalAp' ILam: " ++ ppReadable (f,t))
 
 -- it's WHNF
 evalAp' e@(ILAM _ _ _)         [] = return (pExpr e)
 -- substitute type
-evalAp'   (ILAM i k e)   (T t:as) = evalAp "ILAM" (etSubst i t e) as
+evalAp'   (ILAM i k e)   (T t:as) = evalApAccum "ILAM" M.empty (M.singleton i t) e as
 evalAp'   f@(ILAM _ _ _) (E e:as) = internalError ("evalAp' ILAM:" ++ ppReadable (f,e))
 -- place applications args on the stack and evaluate function
 evalAp' e@(IAps f tys es)      as =
