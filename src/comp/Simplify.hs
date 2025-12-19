@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import PPrint(PPrint, ppReadable, ppString)
 import ErrorUtil(internalError)
 import Id(Id, isKeepId, isDictId)
-import CSyntax
+import CSyntax hiding(cLetRec)
 import CSyntaxTypes()
 import CFreeVars(getFVE, getPV, getFVD)
 import Subst
