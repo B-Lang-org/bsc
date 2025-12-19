@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables, BangPatterns #-}
+{-# LANGUAGE PatternSynonyms, OverloadedLists, TypeFamilies #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
 module BinData ( Byte
                , putBs, putB, putI
@@ -57,6 +58,7 @@ import Data.Array.IArray()
 import Data.Array.Unboxed
 import Data.Bits
 import Data.Word
+import GHC.IsList(IsList(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as TE
@@ -139,7 +141,23 @@ instance Show BinElem where
   show (Start s) = "<BEGIN " ++ s ++ ">"
   show End       = "<END>"
 
-type BinData = [BinElem]
+-- Simple difference list implementation for O(1) append.
+newtype DList a = DL ([a] -> [a])
+
+instance IsList (DList a) where
+  type Item (DList a) = a
+
+  {-# INLINE toList #-}
+  toList (DL f) = f []
+
+  {-# INLINE fromList #-}
+  fromList = DL . (++)
+
+instance Semigroup (DList a) where
+  {-# INLINE (<>) #-}
+  (DL a) <> (DL b) = DL (a . b)
+
+type BinData = DList BinElem
 
 -- -------------------------------------------------------------
 -- Structures used to track shared values during writing and reading
@@ -261,12 +279,12 @@ itype_key (ITStr s)        = ITKS s
 
 data Out a = Out BinData a
 
-out_data :: Out a -> BinData
-out_data (Out bd _) = bd
+out_data :: Out a -> [BinElem]
+out_data (Out bd _) = toList bd
 
 instance Monad Out where
   return = pure
-  (Out bs x) >>= f = let (Out bs' x') = f x in Out (bs ++ bs') x'
+  (Out bs x) >>= f = let (Out bs' x') = f x in Out (bs <> bs') x'
 
 instance Functor Out where
   fmap = liftM
@@ -1433,8 +1451,8 @@ showHist hist = let buckets = sort [ (n1,n2,n3,s)
                             ]
                 in unlines (ls ++ total)
 
-buildHistogram :: BinData -> Histogram
-buildHistogram bd = snd (foldl build (["<UNCLAIMED>"], M.empty) bd)
+buildHistogram :: [BinElem] -> Histogram
+buildHistogram be = snd (foldl build (["<UNCLAIMED>"], M.empty) be)
   where build ([], _) _ = internalError "unbalanced accounting marks"
         build (sec, hist) (B b) =
           (sec, updateBytes sec (toInteger (length b)) hist)
@@ -1452,7 +1470,7 @@ buildHistogram bd = snd (foldl build (["<UNCLAIMED>"], M.empty) bd)
 -- matching (Left value) the first time it is encountered
 -- and (Right idx) each time afterward, updating the cache
 -- to track known values.
-share :: BinElem -> BinCache -> (BinData, BinCache)
+share :: BinElem -> BinCache -> ([BinElem], BinCache)
 share (S s)   bc = share' s s bc
 share (I i)   bc = share' (id_key i) i bc
 share (P p)   bc = share' p p bc
@@ -1461,7 +1479,7 @@ share (IT t)  bc = share' (itype_key t) t bc
 -- share (ASL l) bc = share' l l bc
 share be      bc = ([be], bc)
 
-share' :: (Bin v, Shared k v) => k -> v -> BinCache -> (BinData, BinCache)
+share' :: (Bin v, Shared k v) => k -> v -> BinCache -> ([BinElem], BinCache)
 share' k x bc =
           case (knownAs k x bc) of
             (Just idx) -> (out_data $ do { putI 1; writeBytes idx }, bc)
@@ -1469,7 +1487,7 @@ share' k x bc =
                            addKey k x bc)
 
 
-compress :: BinData -> BinData
+compress :: [BinElem] -> [BinElem]
 compress bd = compress' (bd, unknownCache)
   where compress' ((x@(B _):xs), cache) = x:(compress' (xs, cache))
         compress' ((x@(Start _):xs), cache) = x:(compress' (xs, cache))
@@ -1485,12 +1503,12 @@ compress bd = compress' (bd, unknownCache)
 -- sharing.
 
 runOut :: Out () -> [Byte]
-runOut (Out xs _) = let bd    = compress xs
-                        bytes = concat [ bs | B bs <- bd ]
+runOut (Out xs _) = let be    = compress $ toList xs
+                        bytes = concat [ bs | B bs <- be ]
                     in -- trace ("xs = " ++ (show xs)) $
                        -- trace ("bytes = " ++ (show bytes)) $
                        if trace_bindata
-                       then trace (showHist (buildHistogram bd)) $ bytes
+                       then trace (showHist (buildHistogram be)) $ bytes
                        else bytes
 
 -- Convenience function for encoding structures in the Bin typeclass
