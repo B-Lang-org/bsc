@@ -10,6 +10,7 @@ module Flags(
              moreTalkative, lessTalkative, setVerbose,
         ) where
 
+import Control.Applicative((<|>))
 import Data.Maybe(isJust)
 
 import Backend
@@ -41,7 +42,7 @@ data Flags = Flags {
         disableAssertions :: Bool,
         passThroughAssertions :: Bool,
         doICheck :: Bool,
-        dumpAll :: Bool,
+        dumpAll :: Maybe (Maybe FilePath), -- maybe dump to file or stdout
         dumps :: [(DumpFlag, Maybe FilePath)], -- dump to file or stdout
         enablePoisonPills :: Bool,
         entry :: Maybe String,
@@ -315,12 +316,12 @@ redSteps flags = (redStepsWarnInterval flags) *
 -----
 
 hasDump :: Flags -> DumpFlag -> Bool
-hasDump f d = (dumpAll f) || (hasDumpStrict f d)
+hasDump f d = (isJust $ dumpAll f) || (hasDumpStrict f d)
 
 hasDumpStrict :: Flags -> DumpFlag -> Bool
 hasDumpStrict f d = isJust $ lookup d (dumps f)
 
 dumpInfo :: Flags -> DumpFlag -> Maybe (Maybe FilePath)
-dumpInfo f d = if dumpAll f then Just Nothing else lookup d (dumps f)
+dumpInfo f d = lookup d (dumps f) <|> dumpAll f
 
 -- -------------------------

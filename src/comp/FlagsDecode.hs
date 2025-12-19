@@ -17,7 +17,7 @@ module FlagsDecode(
              getFlagValueString,
         ) where
 
-import Data.List(nub, sort, intercalate, intersperse, partition)
+import Data.List(nub, sort, intercalate, intersperse, partition, stripPrefix)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Control.Exception as CE
@@ -521,7 +521,7 @@ defaultFlags bluespecdir = Flags {
         disableAssertions = False,
         passThroughAssertions = False,
         doICheck = True,
-        dumpAll = False,
+        dumpAll = Nothing,
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
@@ -663,6 +663,10 @@ decodeFlags :: [String] -> ([String],[WMsg], [EMsg], Flags) -> ([String],[WMsg],
 decodeFlags (('-':'-':s):ss) (sets, warnings, bad, flags) | (length s > 1) && (head s /= '-') =
     -- accept --option as a synonym for -option (for long options)
     decodeFlags (('-':s):ss) (sets, warnings, bad, flags)
+decodeFlags (s@("-dall"):ss) (sets, warnings, bad, flags) =
+    decodeFlags ss (sets, warnings, bad, flags { dumpAll = Just Nothing })
+decodeFlags (s:ss) (sets, warnings, bad, flags) | Just file <- stripPrefix "-dall=" s =
+    decodeFlags ss (sets, warnings, bad, flags { dumpAll = Just (Just file) })
 decodeFlags (s@('-':'d':d):ss) (sets, warnings, bad, flags) | (isDumpName d) =
     case reads ("DF" ++ d) of
     [(df, "")]
@@ -1117,10 +1121,6 @@ externalFlags = [
                        in  addToMsgList f "-demote-errors" s demoteErrors updFn)
               (showMsgList demoteErrors),
           "treat a list of errors as warnings (`:' sep list of tags)", Visible)),
-
-        ("dall",
-         (NoArg (\f -> Left $ f {dumpAll=True}) (Just dumpAll),
-          "dump after all passes", Hidden)),
 
         ("bug-icheck",
          (Toggle (\f x -> f {doICheck=x}) (showIfTrue doICheck),
