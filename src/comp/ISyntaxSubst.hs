@@ -30,7 +30,7 @@ module ISyntaxSubst(
 import ISyntax
 import Eval
 import Id
-import Data.Maybe(fromMaybe)
+import Data.Maybe(fromMaybe, isJust)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
@@ -146,17 +146,17 @@ instance SubstContext BatchType IType where
 -- Type substitution
 
 -- Internal type substitution with context
-{-# SPECIALIZE tSubstWith :: EmptyType -> S.Set Id -> IType -> IType #-}
-{-# SPECIALIZE tSubstWith :: SingleType -> S.Set Id -> IType -> IType #-}
-{-# SPECIALIZE tSubstWith :: BatchType -> S.Set Id -> IType -> IType #-}
-tSubstWith :: TypeSubstCtx tctx => tctx -> S.Set Id -> IType -> IType
+{-# SPECIALIZE tSubstWith :: EmptyType -> S.Set Id -> IType -> (IType, Bool) #-}
+{-# SPECIALIZE tSubstWith :: SingleType -> S.Set Id -> IType -> (IType, Bool) #-}
+{-# SPECIALIZE tSubstWith :: BatchType -> S.Set Id -> IType -> (IType, Bool) #-}
+tSubstWith :: TypeSubstCtx tctx => tctx -> S.Set Id -> IType -> (IType, Bool)
 tSubstWith tctx allIds t
-    | ctxIsEmpty tctx = t
+    | ctxIsEmpty tctx = (t, False)
     | otherwise = sub tctx allIds t
   where
     -- sub needs to be polymorphic because the context type can change at
     -- ctxAdd (to batch) or ctxRemove (to single or empty)
-    sub :: TypeSubstCtx tctx' => tctx' -> S.Set Id -> IType -> IType
+    sub :: TypeSubstCtx tctx' => tctx' -> S.Set Id -> IType -> (IType, Bool)
     sub tctx allIds tt@(ITForAll i k t) =
       case lookupVar i tctx of
         Just _ ->
@@ -172,19 +172,28 @@ tSubstWith tctx allIds t
             let i'      = cloneId (S.toList allIds) i
                 tctx'   = ctxAdd i (ITVar i') tctx
                 allIds' = S.insert i' allIds
-            in ITForAll i' k (sub tctx' allIds' t)
+            in (ITForAll i' k (fst $ sub tctx' allIds' t), True)
           else -- No conflict: continue with same context
-            ITForAll i k (sub tctx allIds t)
-    sub tctx allIds (ITAp f a) = normITAp (sub tctx allIds f) (sub tctx allIds a)
-    sub tctx _      tt@(ITVar i) = fromMaybe tt (lookupVar i tctx)
-    sub _    _      tt@(ITCon _ _ _) = tt
-    sub _    _      tt@(ITNum _) = tt
-    sub _    _      tt@(ITStr _) = tt
+            let (t', t_changed) = sub tctx allIds t
+            in if t_changed
+               then (ITForAll i k t', True)
+               else (tt, False)
+    sub tctx allIds tt@(ITAp f a)
+      | changed = (normITAp f' a', True)
+      | otherwise = (tt, False)
+      where (f', f_changed) = sub tctx allIds f
+            (a', a_changed) = sub tctx allIds a
+            changed = f_changed || a_changed
+    sub tctx _      tt@(ITVar i) = (fromMaybe tt mt, isJust mt)
+      where mt = lookupVar i tctx
+    sub _    _      tt@(ITCon _ _ _) = (tt, False)
+    sub _    _      tt@(ITNum _) = (tt, False)
+    sub _    _      tt@(ITStr _) = (tt, False)
 
 -- Public API: single type substitution
 {-# INLINE tSubst #-}
 tSubst :: Id -> IType -> IType -> IType
-tSubst i t ty = tSubstWith (SingleType i t (fTVars t)) (fTVars t `S.union` aTVars ty) ty
+tSubst i t ty = fst $ tSubstWith (SingleType i t (fTVars t)) (fTVars t `S.union` aTVars ty) ty
 
 -- Public API: batch type substitution
 {-# INLINE tSubstBatch #-}
@@ -198,52 +207,45 @@ tSubstBatch typeMap t
       let ftx = S.unions (M.elems (M.map fTVars typeMap))
           tctx = BatchType typeMap ftx
           allIds = ftx `S.union` aTVars t
-      in tSubstWith tctx allIds t
+      in fst $ tSubstWith tctx allIds t
 
 -- ============================================================
 -- Expression and type substitution
 
 -- Helper: apply type substitution function to IConInfo
-tSubstIConInfo :: (IType -> IType) -> IConInfo a -> IConInfo a
-tSubstIConInfo tsubFn ii@(ICUndet { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICVerilog { }) =
-    ii { iConType = tsubFn (iConType ii),
-         vMethTs = map (map tsubFn) (vMethTs ii) }
-tSubstIConInfo tsubFn ii@(ICInt { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICStateVar { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICMethArg { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICModPort { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICModParam { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICForeign { }) =
-    ii { iConType = tsubFn (iConType ii) }
-tSubstIConInfo tsubFn ii@(ICType { }) =
-    ii { iType = tsubFn (iType ii) }
-tSubstIConInfo _ ii = ii  -- No types to substitute in other cases
+tSubstIConInfo :: (IType -> (IType, Bool)) -> IConInfo a -> (IConInfo a, Bool)
+tSubstIConInfo tsubFn ii@(ICVerilog { })
+  | t_changed || vts_changed = (ii { iConType = t', vMethTs = vts' }, True)
+  | otherwise = (ii, False)
+  where (t', t_changed) = tsubFn (iConType ii)
+        (vts', vts_changed) = mapChanged (mapChanged tsubFn) (vMethTs ii)
+tSubstIConInfo tsubFn ii@(ICType { })
+  | changed = (ii { iType = t' }, True)
+  | otherwise = (ii, False)
+  where (t', changed) = tsubFn (iType ii)
+tSubstIConInfo tsubFn ii
+  | changed = (ii { iConType = t' }, True)
+  | otherwise = (ii, False)
+  where (t', changed) = tsubFn (iConType ii)
 
 -- Internal expression substitution with contexts
-{-# SPECIALIZE eSubstWith :: SingleExpr a -> EmptyType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: EmptyExpr a -> SingleType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: SingleExpr a -> SingleType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: BatchExpr a -> EmptyType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: EmptyExpr a -> BatchType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: SingleExpr a -> BatchType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: BatchExpr a -> SingleType -> S.Set Id -> IExpr a -> IExpr a #-}
-{-# SPECIALIZE eSubstWith :: BatchExpr a -> BatchType -> S.Set Id -> IExpr a -> IExpr a #-}
+{-# SPECIALIZE eSubstWith :: SingleExpr a -> EmptyType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: EmptyExpr a -> SingleType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: SingleExpr a -> SingleType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: BatchExpr a -> EmptyType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: EmptyExpr a -> BatchType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: SingleExpr a -> BatchType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: BatchExpr a -> SingleType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
+{-# SPECIALIZE eSubstWith :: BatchExpr a -> BatchType -> S.Set Id -> IExpr a -> (IExpr a, Bool) #-}
 eSubstWith :: (ExprSubstCtx ectx a, TypeSubstCtx tctx)
-           => ectx -> tctx -> S.Set Id -> IExpr a -> IExpr a
+           => ectx -> tctx -> S.Set Id -> IExpr a -> (IExpr a, Bool)
 eSubstWith ectx tctx allIds e
-    | ctxIsEmpty ectx && ctxIsEmpty tctx = e
+    | ctxIsEmpty ectx && ctxIsEmpty tctx = (e, False)
     | otherwise = sub ectx tctx allIds e
   where
     -- sub needs to be polymorphic because the context type can change at
     -- ctxAdd (to batch) or ctxRemove (to single or empty) for both contexts
-    sub :: (ExprSubstCtx ectx' a, TypeSubstCtx tctx') => ectx' -> tctx' -> S.Set Id -> IExpr a -> IExpr a
+    sub :: (ExprSubstCtx ectx' a, TypeSubstCtx tctx') => ectx' -> tctx' -> S.Set Id -> IExpr a -> (IExpr a, Bool)
     sub ectx tctx allIds ee@(ILam i t e) =
       case lookupVar i ectx of
         Just _ ->
@@ -259,9 +261,15 @@ eSubstWith ectx tctx allIds e
             let i'      = cloneId (S.toList allIds) i
                 ectx'   = ctxAdd i (IVar i') ectx
                 allIds' = S.insert i' allIds
-            in ILam i' (tSubstWith tctx allIds' t) (sub ectx' tctx allIds' e)
+                (t', _) = tSubstWith tctx allIds' t
+                (e', _) = sub ectx' tctx allIds' e
+            in (ILam i' t' e', True)
           else -- No conflict: continue with same contexts
-            ILam i (tSubstWith tctx allIds t) (sub ectx tctx allIds e)
+            let (t', t_changed) = tSubstWith tctx allIds t
+                (e', e_changed) = sub ectx tctx allIds e
+            in if t_changed || e_changed
+               then (ILam i t' e', True)
+               else (ee, False)
     sub ectx tctx allIds ee@(ILAM i k e) =
       case lookupVar i tctx of
         Just _ ->
@@ -277,45 +285,58 @@ eSubstWith ectx tctx allIds e
             let i'      = cloneId (S.toList allIds) i
                 tctx'   = ctxAdd i (ITVar i') tctx
                 allIds' = S.insert i' allIds
-            in ILAM i' k (sub ectx tctx' allIds' e)
+                (e', _) = sub ectx tctx' allIds' e
+            in (ILAM i' k e', True)
           else -- No conflict: continue with same contexts
-            ILAM i k (sub ectx tctx allIds e)
-    sub ectx _    _      ee@(IVar i)    = fromMaybe ee (lookupVar i ectx)
-    sub ectx tctx allIds (IAps f ts es) =
-        IAps (sub ectx tctx allIds f)
-             (if ctxIsEmpty tctx then ts else map (tSubstWith tctx allIds) ts)
-             (map (sub ectx tctx allIds) es)
+            let (e', e_changed) = sub ectx tctx allIds e
+            in if e_changed
+               then (ILAM i k e', True)
+               else (ee, False)
+    sub ectx _    _      ee@(IVar i) = case lookupVar i ectx of
+                                         Just e' -> (e', True)
+                                         Nothing -> (ee, False)
+    sub ectx tctx allIds ee@(IAps f ts es) =
+        let (f', f_changed) = sub ectx tctx allIds f
+            (ts', ts_changed) = mapChanged (tSubstWith tctx allIds) ts
+            (es', es_changed) = mapChanged (sub ectx tctx allIds) es
+        in if f_changed || ts_changed || es_changed
+           then (IAps f' ts' es', True)
+           else (ee, False)
     -- Use helper for IConInfo
-    sub _    tctx allIds (ICon i ii)    = ICon i (tSubstIConInfo tsubFn ii)
-      where tsubFn = tSubstWith tctx allIds
-    sub _    _    _      ee@(IRefT _ _ _) = ee        -- no free tyvar inside IRef
+    sub _    tctx allIds ee@(ICon i ii) =
+        let (ii', ii_changed) = tSubstIConInfo tsubFn ii
+            tsubFn = tSubstWith tctx allIds
+        in if ii_changed
+           then (ICon i ii', True)
+           else (ee, False)
+    sub _    _    _      ee@(IRefT _ _ _) = (ee, False)  -- no free tyvar inside IRef
 
 -- Public API: single expression substitution
 {-# INLINE eSubst #-}
 eSubst :: Id -> IExpr a -> IExpr a -> IExpr a
-eSubst i x e = deepseq e' e'
+eSubst i x e = if changed then deepseq e' e' else e
   where fvx = fVars x
         allIds = fvx `S.union` aVars e
-        e' = eSubstWith (SingleExpr i x fvx) EmptyType allIds e
+        (e', changed) = eSubstWith (SingleExpr i x fvx) EmptyType allIds e
 
 -- Public API: type substitution in expression
 {-# INLINE etSubst #-}
 etSubst :: forall a. Id -> IType -> IExpr a -> IExpr a
-etSubst i t e = deepseq e' e'
+etSubst i t e = if changed then deepseq e' e' else e
   where ftx = fTVars t
         allIds = ftx `S.union` aVars e
-        e' = eSubstWith (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) allIds e
+        (e', changed) = eSubstWith (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) allIds e
 
 -- Public API: batch expression and type substitution
 {-# INLINE eSubstBatch #-}
 eSubstBatch :: forall a. M.Map Id (IExpr a) -> M.Map Id IType -> IExpr a -> IExpr a
 eSubstBatch exprMap typeMap e
     | exprSize == 0 && typeSize == 0 = e
-    | otherwise = deepseq e' e'
+    | otherwise = if changed then deepseq e' e' else e
   where
     exprSize = M.size exprMap
     typeSize = M.size typeMap
-    e' = case (exprSize, typeSize) of
+    (e', changed) = case (exprSize, typeSize) of
           (0, 1) -> let (i, t) = M.findMin typeMap
                         ftx = fTVars t
                     in eSubstWith (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) (ftx `S.union` aVars e) e
@@ -343,3 +364,12 @@ eSubstBatch exprMap typeMap e
                         ftx = S.unions (M.elems (M.map fTVars typeMap))
                     in eSubstWith (BatchExpr exprMap fvx) (BatchType typeMap ftx) (fvx `S.union` ftx `S.union` aVars e) e
 
+{-# INLINE mapChanged #-}
+mapChanged :: (a -> (a, Bool)) -> [a] -> ([a], Bool)
+mapChanged _ [] = ([], False)
+mapChanged f xs0@(x:xs)
+  | not changed = (xs0, False)
+  | otherwise   = (x' : xs', True)
+  where (x', x_changed) = f x
+        (xs', xs_changed) = mapChanged f xs
+        changed = x_changed || xs_changed
