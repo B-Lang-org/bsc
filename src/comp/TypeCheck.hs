@@ -20,6 +20,7 @@ import CSyntax
 import PoisonUtils
 import Type
 import Subst
+import SolvedBinds
 import TIMonad
 import TCMisc
 import TCheck
@@ -131,8 +132,8 @@ topExpr td e = do
   (ps, e') <- tiExpr [] td e
   (ps', sbs) <- satisfy [] ps
   s <- getSubst
-  let rec_defls    = map mkDefl $ recursiveBinds sbs
-      nonrec_defls = map mkDefl $ nonRecursiveBinds sbs
+  let rec_defls    = getRecursiveDefls sbs
+      nonrec_defls = getNonRecursiveDefls sbs
   -- Generate code: nonrec outside (letseq), rec inside (letrec)
   return (apSub s (ps', cLetSeq nonrec_defls $ cLetRec rec_defls e'))
 
