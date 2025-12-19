@@ -8,8 +8,8 @@ module Changed where
 -- Not an Applicative/Monad because Unchanged has no value to work with:
 --   - Can't define: Changed f <*> Unchanged (no value to apply f to)
 --   - Can't define: pure/return (unclear if should be Changed or Unchanged)
--- Lazy in 'a' to minimize peak memory residency (deepseq at top level handles forcing)
-data Changed a = Changed a | Unchanged
+-- Strict in 'a' so producing Changed values does not introduce extra thunks.
+data Changed a = Changed !a | Unchanged
 
 -- Rebuild with 1 Changed argument
 {-# INLINE changed1 #-}
