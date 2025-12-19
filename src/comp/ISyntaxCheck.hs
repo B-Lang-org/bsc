@@ -146,7 +146,7 @@ tCheck _ _ _ _ (ICon c ic) = iConType ic
 tCheck flags symt r eqTy (IAps f [] []) =
     -- trace ("tCheck " ++ show f) $
     tCheck flags symt r eqTy f
-tCheck _ _ _ _ (IRefT t _ _) = t
+tCheck _ _ _ _ (IRefT t _ _ _) = t
 --tCheck _ _ _ _ e = internalError ("no match in tCheck: " ++ ppReadable e)
 
 kCheck :: Env -> IType -> Maybe IKind

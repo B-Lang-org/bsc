@@ -144,7 +144,7 @@ gVars (IVar i) = [i]
 gVars (ILAM i _ e) = gVars e
 gVars (IAps f ts es) = gVars f ++ concatMap gVars es
 gVars (ICon _ _) = []
-gVars (IRefT _ _ _) = []
+gVars (IRefT _ _ _ _) = []
 
 -- computes the top-level definitions the expression depends onb
 -- dVars :: IExpr a -> [Id]
@@ -154,7 +154,7 @@ gVars (IRefT _ _ _) = []
 -- dVars (IAps f _ es) = dVars f ++ concatMap dVars es
 -- dVars (ICon i (ICDef { })) = [i]
 -- dVars (ICon _ _) = []
--- dVars (IRefT _ _ _) = []
+-- dVars (IRefT _ _ _ _) = []
 
 dVars :: IExpr a -> S.Set Id
 dVars e = dVars' S.empty e
@@ -172,7 +172,7 @@ dVars' ids (IAps f _ es) = foldl dVars' (dVars' ids f) es
 dVars' ids (ICon i (ICDef { })) | i `S.member` ids = ids
 dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (S.insert i ids) e
 dVars' ids (ICon _ _) = ids
-dVars' ids (IRefT _ _ _) = ids
+dVars' ids (IRefT _ _ _ _) = ids
 
 onlySimple :: IExpr a -> Bool
 onlySimple (ILam _ _ e) = onlySimple e
