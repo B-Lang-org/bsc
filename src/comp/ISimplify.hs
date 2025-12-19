@@ -8,6 +8,7 @@ import IntLit
 import ErrorUtil
 import Id
 import ISyntax
+import ISyntaxSubst(eSubst, etSubst)
 import Prim
 import ISyntaxUtil(aitBit, isTrue, isFalse, isitActionValue_, isitActionValue, iDefsMap)
 import ISyntaxXRef(mapIExprPosition)
