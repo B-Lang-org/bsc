@@ -14,7 +14,7 @@
 > import Parser.BSV.CVParserCommon
 > import Parser.BSV.CVParserAssertion
 > import Parser.BSV.CVParserUtil
-> import CSyntax
+> import CSyntax hiding (cLetSeq, cLetRec)
 > import CSyntaxUtil
 
 > import Id
