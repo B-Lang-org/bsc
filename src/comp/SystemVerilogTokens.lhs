@@ -60,8 +60,8 @@ Tokens output by the lexical scanner
 > instance PPrint SV_Token where
 >   pPrint d p = text . show
 
-> instance Hyper SV_Token where
->   hyper svt b = hyper (show svt) b
+> instance NFData SV_Token where
+>   rnf svt = rnf (show svt)
 
 Bit representation for number parsing
 

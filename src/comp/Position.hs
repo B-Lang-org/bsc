@@ -4,7 +4,7 @@ module Position where
 import Data.List(partition)
 import qualified Data.Generics as Generic
 
-import Eval
+import Eval(NFData(..))
 import PPrint
 import PVPrint
 import FStringCompat
@@ -36,8 +36,8 @@ class HasPosition a where
 instance Show Position where
     show p = prPosition p
 
-instance Hyper Position where
-    hyper p y = p `seq` y
+instance NFData Position where
+    rnf (Position _ _ _ _) = ()
 
 prPosition :: Position -> String
 prPosition (Position fs l c pred) =

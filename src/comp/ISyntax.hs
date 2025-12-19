@@ -269,8 +269,8 @@ data IRule a =
       }
     deriving (Show, Generic.Data, Generic.Typeable)
 
-instance Hyper (IRule a) where
-    hyper (IRule i ps s wp r1 r2 orig isl) y = hyper8 i ps s wp r1 r2 orig isl y
+instance NFData (IRule a) where
+    rnf (IRule i ps s wp r1 r2 orig isl) = rnf8 i ps s wp r1 r2 orig isl
 
 getIRuleId :: IRule a -> Id
 getIRuleId = irule_name
@@ -281,8 +281,8 @@ getIRuleStateLoc = irule_state_loc
 data IRules a = IRules [ISchedulePragma] [IRule a]
     deriving (Show, Generic.Data, Generic.Typeable)
 
-instance Hyper (IRules a) where
-    hyper (IRules sps rs) y = hyper2 sps rs y
+instance NFData (IRules a) where
+    rnf (IRules sps rs) = rnf2 sps rs
 
 
 -- renames the rules according to the Id,Id list
@@ -591,9 +591,9 @@ instance Eq (IClock a) where
 instance Ord (IClock a) where
   IClock {ic_id = x} `compare` IClock {ic_id = y} = x `compare` y
 
-instance Hyper (IClock a) where
-  -- XXX clock wires can be recursive (so just hyper id)
-  hyper c y = (c==c) `seq` y
+instance NFData (IClock a) where
+  -- XXX clock wires can be recursive (so just check equality)
+  rnf c = (c==c) `seq` ()
 
 makeClock :: ClockId -> ClockDomain -> IExpr a -> IClock a
 makeClock clockid domain wires = IClock { ic_id     = clockid,
@@ -651,9 +651,9 @@ instance Eq (IReset a) where
 instance Ord (IReset a) where
   IReset {ir_id = x} `compare` IReset {ir_id = y} = x `compare` y
 
-instance Hyper (IReset a) where
-  -- XXX reset wires can be recursive (so just hyper id)
-  hyper r y = (r==r) `seq` y
+instance NFData (IReset a) where
+  -- XXX reset wires can be recursive (so just check equality)
+  rnf r = (r==r) `seq` ()
 
 makeReset :: ResetId -> IClock a -> IExpr a -> IReset a
 makeReset i c w = IReset { ir_id = i, ir_clock = c, ir_wire = w }
@@ -691,9 +691,9 @@ instance Show (IInout a) where
 instance PPrint (IInout a) where
   pPrint p d r@IInout { io_wire = wire } = pPrint p d wire
 
-instance Hyper (IInout a) where
-  -- XXX wires be recursive, so just check the other parts
-  hyper (IInout c r w) y = (c==c) `seq` (r==r) `seq` y
+instance NFData (IInout a) where
+  -- XXX wires can be recursive, so just check the other parts
+  rnf (IInout c r w) = (c==c) `seq` (r==r) `seq` ()
 
 makeInout :: IClock a -> IReset a -> IExpr a -> IInout a
 makeInout c r w = IInout { io_clock = c, io_reset = r, io_wire = w }
@@ -722,17 +722,12 @@ data ArrayCell a = ArrayCell { ac_ptr :: Int, ac_ref :: a }
 instance Show (ArrayCell a) where
   show (ArrayCell i _) = "_" ++ show i
 
-{-
-instance Hyper (ArrayCell a) where
-  hyper (ArrayCell i _) y = hyper i y
--}
+instance NFData (ArrayCell a) where
+  rnf (ArrayCell i _) = rnf i
 
 type ILazyArray a = Array.Array Integer (ArrayCell a)
 
-instance Hyper (ILazyArray a) where
---  XXX causes cycles somehow
---  hyper arr y = hyper (Array.accum hyper arr []) y
-    hyper arr y = y
+-- NFData instance for Array is provided by Control.DeepSeq
 
 -- ==============================
 -- Pred
@@ -750,11 +745,11 @@ instance PPrint (PTerm a) where
     pPrint d p (PIf c t e) = text "PIf(" <> sepList [pPrint d 0 c, pPrint d 0 t, pPrint d 0 e] (text ",") <> text ")"
     pPrint d p (PSel idx _ es) = text "PSel(" <> sepList (pPrint d 0 idx : map (pPrint d 0) es) (text ",") <> text ")"
 
-instance Hyper (Pred a) where
+instance NFData (Pred a) where
 -- XXX - see if we can get away with not forcing
 --       the internal Pred structure
 --       worried about Array/Reset/Clock-like issues
-   hyper p y = y
+   rnf p = ()
 
 type PSet a = S.Set a
 data PTerm a = PAtom (IExpr a)
@@ -971,7 +966,7 @@ isIConParam _ = False
 -- value/type substitution, free value/type variables
 
 eSubst :: Id -> IExpr a -> IExpr a -> IExpr a
-eSubst v x e = hyper e' e'
+eSubst v x e = rnfId e'
   where e' = sub e
         sub ee@(ILam i t e)
             | v == i = ee
@@ -1278,71 +1273,71 @@ instance PPrint (IExpr a) where
 -- ============================================================
 -- Hyper (for those instances not defined alongside the type, above)
 
-instance Hyper (IPackage a) where
-    hyper (IPackage i lps ps ds) y = hyper4 i ps lps ds y
+instance NFData (IPackage a) where
+    rnf (IPackage i lps ps ds) = rnf4 i ps lps ds
 
-instance Hyper (IModule a) where
-    hyper (IModule x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16) y =
-        hyper16 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 y
+instance NFData (IModule a) where
+    rnf (IModule x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16) =
+        rnf16 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16
 
-instance Hyper (IEFace a) where
-    hyper (IEFace x1 x2 x3 x4 x5 x6) y = hyper6 x1 x2 x3 x4 x5 x6 y
+instance NFData (IEFace a) where
+    rnf (IEFace x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
 
-instance Hyper IAbstractInput where
-    hyper (IAI_Port p) y = hyper p y
-    hyper (IAI_Clock o mg) y = hyper2 o mg y
-    hyper (IAI_Reset r) y = hyper r y
-    hyper (IAI_Inout r n) y = hyper2 r n y
+instance NFData IAbstractInput where
+    rnf (IAI_Port p) = rnf p
+    rnf (IAI_Clock o mg) = rnf2 o mg
+    rnf (IAI_Reset r) = rnf r
+    rnf (IAI_Inout r n) = rnf2 r n
 
-instance Hyper (IDef a) where
-    hyper (IDef i t e p) y = hyper4 i t e p y
+instance NFData (IDef a) where
+    rnf (IDef i t e p) = rnf4 i t e p
 
-instance Hyper (IExpr a) where
-    hyper (ILam i t e) y = hyper3 i t e y
-    hyper (IAps e ts es) y = hyper3 e ts es y
-    hyper (IVar i) y = hyper i y
-    hyper (ILAM i k e) y = hyper3 i k e y
-    hyper (ICon i ic) y = hyper2 i ic y
-    hyper (IRefT t p _) y = hyper t y
+instance NFData (IExpr a) where
+    rnf (ILam i t e) = rnf3 i t e
+    rnf (IAps e ts es) = rnf3 e ts es
+    rnf (IVar i) = rnf i
+    rnf (ILAM i k e) = rnf3 i k e
+    rnf (ICon i ic) = rnf2 i ic
+    rnf (IRefT t p _) = rnf t
 
-instance Hyper (IConInfo a) where
---    hyper (ICDef x1 x2) y = hyper2 x1 x2 y
-    hyper ic@(ICDef x1 x2) y = y                        -- XXX a hack to avoid circular defs
-    hyper (ICPrim x1 x2) y = hyper2 x1 x2 y
-    hyper (ICForeign x1 x2 x3 x4 x5) y = hyper5 x1 x2 x3 x4 x5 y
-    hyper (ICCon x1 x2) y = hyper2 x1 x2 y
-    hyper (ICIs x1 x2) y = hyper2 x1 x2 y
-    hyper (ICOut x1 x2) y = hyper2 x1 x2 y
-    hyper (ICTuple x1 x2) y = hyper2 x1 x2 y
-    hyper (ICSel x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICVerilog x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
-    hyper (ICUndet x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICInt x1 x2) y = hyper2 x1 x2 y
-    hyper (ICReal x1 x2) y = hyper2 x1 x2 y
-    hyper (ICString x1 x2) y = hyper2 x1 x2 y
-    hyper (ICChar x1 x2) y = hyper2 x1 x2 y
-    hyper (ICHandle x1 x2) y = hyper2 x1 x2 y
-    hyper (ICStateVar x1 x2) y = hyper2 x1 x2 y
-    hyper (ICMethArg x1) y = hyper x1 y
-    hyper (ICModPort x1) y = hyper x1 y
-    hyper (ICModParam x1) y = hyper x1 y
---    hyper (ICValue x1 x2 x3) y = hyper3 x1 x2 x3 y        -- XXX causes cycles somehow
-    hyper (ICValue x1 x2) y = y
-    hyper (ICIFace x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICRuleAssert x1 x2) y = hyper2 x1 x2 y
-    hyper (ICSchedPragmas x1 x2) y = hyper2 x1 x2 y
-    hyper (ICClock x1 x2) y = hyper2 x1 x2 y
-    hyper (ICReset x1 x2) y = hyper2 x1 x2 y
-    hyper (ICInout x1 x2) y = hyper2 x1 x2 y
-    hyper (ICName x1 x2) y = hyper2 x1 x2 y
-    hyper (ICAttrib x1 x2) y = hyper2 x1 x2 y
-    hyper (ICLazyArray x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICPosition x1 x2) y = hyper2 x1 x2 y
-    hyper (ICType x1 x2) y = hyper2 x1 x2 y
-    hyper (ICPred x1 x2) y = hyper2 x1 x2 y
+instance NFData (IConInfo a) where
+--    rnf (ICDef x1 x2) = rnf2 x1 x2
+    rnf ic@(ICDef x1 x2) = ()                        -- XXX a hack to avoid circular defs
+    rnf (ICPrim x1 x2) = rnf2 x1 x2
+    rnf (ICForeign x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
+    rnf (ICCon x1 x2) = rnf2 x1 x2
+    rnf (ICIs x1 x2) = rnf2 x1 x2
+    rnf (ICOut x1 x2) = rnf2 x1 x2
+    rnf (ICTuple x1 x2) = rnf2 x1 x2
+    rnf (ICSel x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ICVerilog x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+    rnf (ICUndet x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ICInt x1 x2) = rnf2 x1 x2
+    rnf (ICReal x1 x2) = rnf2 x1 x2
+    rnf (ICString x1 x2) = rnf2 x1 x2
+    rnf (ICChar x1 x2) = rnf2 x1 x2
+    rnf (ICHandle x1 x2) = rnf2 x1 x2
+    rnf (ICStateVar x1 x2) = rnf2 x1 x2
+    rnf (ICMethArg x1) = rnf x1
+    rnf (ICModPort x1) = rnf x1
+    rnf (ICModParam x1) = rnf x1
+--    rnf (ICValue x1 x2 x3) = rnf3 x1 x2 x3        -- XXX causes cycles somehow
+    rnf (ICValue x1 x2) = ()
+    rnf (ICIFace x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ICRuleAssert x1 x2) = rnf2 x1 x2
+    rnf (ICSchedPragmas x1 x2) = rnf2 x1 x2
+    rnf (ICClock x1 x2) = rnf2 x1 x2
+    rnf (ICReset x1 x2) = rnf2 x1 x2
+    rnf (ICInout x1 x2) = rnf2 x1 x2
+    rnf (ICName x1 x2) = rnf2 x1 x2
+    rnf (ICAttrib x1 x2) = rnf2 x1 x2
+    rnf (ICLazyArray x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ICPosition x1 x2) = rnf2 x1 x2
+    rnf (ICType x1 x2) = rnf2 x1 x2
+    rnf (ICPred x1 x2) = rnf2 x1 x2
 
-instance Hyper (IStateVar a) where
-    hyper x y = (x==x) `seq` y                -- XXX (does not evaluate IStateVar components)
+instance NFData (IStateVar a) where
+    rnf x = (x==x) `seq` ()                -- XXX (does not evaluate IStateVar components)
 
 -- ============================================================
 -- XRef (and other utilities?) beyond this point

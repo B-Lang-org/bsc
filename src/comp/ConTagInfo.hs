@@ -18,8 +18,8 @@ data ConTagInfo = ConTagInfo { conNo :: Integer,  -- position of constructor
                              }
   deriving (Eq, Show, Data, Typeable)
 
-instance Hyper ConTagInfo where
-    hyper (ConTagInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+instance NFData ConTagInfo where
+    rnf (ConTagInfo x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 instance PPrint ConTagInfo where
     pPrint d p cti = pparen True $ commaSep [text conStr, text tagStr]

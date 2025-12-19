@@ -63,12 +63,11 @@ instance (PVPrint idtype, Ord idtype) => PVPrint (SchedInfo idtype) where
              pvPrint d 0 (rulesBeforeMethods si),
              pvPrint d 0 (clockCrossingMethods si)]
 
-instance (Hyper idtype) => Hyper (SchedInfo idtype) where
-    hyper si y = hyper4 (methodConflictInfo si)
-                        (rulesBetweenMethods si)
-                        (rulesBeforeMethods si)
-                        (clockCrossingMethods si)
-                        y
+instance (NFData idtype) => NFData (SchedInfo idtype) where
+    rnf si = rnf4 (methodConflictInfo si)
+                  (rulesBetweenMethods si)
+                  (rulesBeforeMethods si)
+                  (clockCrossingMethods si)
 
 -- ========================================================================
 -- MethodConflictOp
@@ -270,9 +269,9 @@ extractFromMethodConflictInfo x =
 
 -- --------------------
 
-instance (Hyper idtype) => Hyper (MethodConflictInfo idtype) where
-    hyper (MethodConflictInfo { sCF=cf, sSB=sb, sME=me, sP=p,
-                                sSBR=sbr, sC=c, sEXT=ext }) y =
-        hyper7 cf sb me p sbr c ext y
+instance (NFData idtype) => NFData (MethodConflictInfo idtype) where
+    rnf (MethodConflictInfo { sCF=cf, sSB=sb, sME=me, sP=p,
+                              sSBR=sbr, sC=c, sEXT=ext }) =
+        rnf7 cf sb me p sbr c ext
 
 -- ========================================================================

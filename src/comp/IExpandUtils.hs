@@ -432,8 +432,8 @@ instance PPrint HeapData where
   pPrint d p hd = text (show hd)
 -}
 
-instance Hyper HeapData where
-  hyper (HeapData r) y = seq r y
+instance NFData HeapData where
+  rnf (HeapData r) = seq r ()
 
 -- Heap expressions are IExprs with the real heap reference type filled in
 type HExpr = IExpr HeapData
@@ -2413,7 +2413,7 @@ updHeap tag (p, HeapData ref) e = do
    let new_name  = hc_name e
    let best_name = maybe old_name Just new_name
    let e' = e { hc_name = best_name }
-   hyper best_name $ liftIO (writeIORef ref e')
+   deepseq best_name $ liftIO (writeIORef ref e')
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]

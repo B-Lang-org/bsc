@@ -32,7 +32,7 @@ import CondTree
 import ListUtil(dropRepeatsBy)
 import APrims
 import PPrint
-import Eval(Hyper(..))
+import Eval(NFData(..), deepseq)
 import qualified DynamicMap as DM
 
 import System.Environment(getArgs)
@@ -1577,10 +1577,13 @@ dbg_trace (Just hdl) s x = unsafePerformIO $ do hPutStr hdl s
                                                 return x
 
 -- ---------------
--- Hyper instances
+-- NFData instances
 
-instance Hyper SchedNode where
-  hyper n x = (n == n) `seq` x
+instance NFData SchedNode where
+  rnf (Sched aid) = rnf aid
+  rnf (Exec aid) = rnf aid
 
-instance Hyper Signal where
-  hyper s x = (s == s) `seq` x
+instance NFData Signal where
+  rnf (ClockSignal d n fc bc vw fs r rw) = rnf8 d n fc bc vw fs r rw
+  rnf CFSignal = ()
+  rnf WFSignal = ()

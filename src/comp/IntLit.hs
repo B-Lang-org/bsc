@@ -7,7 +7,7 @@ module IntLit (IntLit(..),
 import IntegerUtil(integerFormatPref, integerToString)
 import PPrint
 import PVPrint
-import Eval
+import Eval(NFData(..), rnf3)
 import ErrorUtil(internalError)
 import qualified Data.Generics as Generic
 
@@ -56,8 +56,8 @@ instance Show IntLit where
 instance PPrint IntLit where
      pPrint d p i = text (show i)
 
-instance Hyper IntLit where
-     hyper (IntLit x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData IntLit where
+     rnf (IntLit x1 x2 x3) = rnf3 x1 x2 x3
 
 -- --------------------
 
