@@ -129,9 +129,12 @@ checkTopPreds a ps = do
 topExpr :: CType -> CExpr -> TI ([VPred], CExpr)
 topExpr td e = do
   (ps, e') <- tiExpr [] td e
-  (ps', ls) <- satisfy [] ps
+  (ps', sbs) <- satisfy [] ps
   s <- getSubst
-  return (apSub s (ps', Cletrec ls e'))
+  let rec_defls    = map mkDefl $ recursiveBinds sbs
+      nonrec_defls = map mkDefl $ nonRecursiveBinds sbs
+  -- Generate code: nonrec outside (letseq), rec inside (letrec)
+  return (apSub s (ps', cLetSeq nonrec_defls $ cLetRec rec_defls e'))
 
 ------
 
