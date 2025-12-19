@@ -59,8 +59,8 @@ instance (PPrint a) => PPrint (Graph a) where
                     pPrint d p es) $+$
             text "}"
 
-instance (Hyper a) => Hyper (Graph a) where
-    hyper g y = hyper2 (graphNodes g) (graphEdges g) y
+instance (NFData a) => NFData (Graph a) where
+    rnf g = rnf2 (graphNodes g) (graphEdges g)
 
 -- ===============
 -- Graph construction

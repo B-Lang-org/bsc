@@ -65,33 +65,33 @@ start flags d = when (verbose flags) (putStrLnF ("starting " ++ drop 2 (show d))
 
 type DumpNames = (String {- file name (last path component) -}, String {- package name -}, String {- module name or empty -})
 
-dump :: (PPrint a, Hyper a) =>
+dump :: (PPrint a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 dump errh flags t d names a =
-        hyper a $        -- force evaluation
+        deepseq a          -- force evaluation
         dumpStr errh flags t d names (ppReadable a)
 
-ddump :: (PPrint a, Hyper a) =>
+ddump :: (PPrint a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 ddump errh flags t d names a =
-        hyper a $        -- force evaluation
+        deepseq a $        -- force evaluation
         dumpStr errh flags t d names (ppDebug a)
 
-vdump :: (PVPrint a, Hyper a) =>
+vdump :: (PVPrint a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 vdump errh flags t d names a =
-        hyper a $        -- force evaluation
+        deepseq a $        -- force evaluation
         dumpStr errh flags t d names (pvpReadable a)
 
 
-sdump :: (Show a, Hyper a) =>
+sdump :: (Show a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 sdump errh flags t d names a =
-        hyper a $        -- force evaluation
+        deepseq a $        -- force evaluation
         dumpStr errh flags t d names (show a)
 
 
@@ -273,7 +273,7 @@ instance Stats [SV_Token] where
 
 -- verilog preprocessor output
 newtype VPPOut = VPPOut (String, [String])
-  deriving(Hyper)
+  deriving(NFData)
 
 instance PPrint VPPOut where
   pPrint d p (VPPOut (source,includes)) = text source

@@ -9,7 +9,7 @@ module Prim(
             ) where
 
 import Numeric(floatToDigits)
-import Eval
+import Eval(NFData(..))
 import PPrint
 import Id
 import Position
@@ -641,8 +641,8 @@ toWString PrimError = "_error"
 toWString PrimCurrentClock = "primCurrentClock"
 toWString p = show p
 
-instance Hyper PrimOp where
-    hyper x y = seq x y
+instance NFData PrimOp where
+    rnf x = seq x ()
 
 -----
 

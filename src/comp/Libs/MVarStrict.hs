@@ -65,8 +65,8 @@ import Eval
 --     woken up in FIFO order.  This is useful for providing
 --     fairness properties of abstractions built using 'MVar's.
 --
-putMVar  :: Hyper a => MVar a -> a -> IO ()
-putMVar (MVar mvar#) !x = hyper x `seq` IO $ \ s# -> -- strict!
+putMVar  :: NFData a => MVar a -> a -> IO ()
+putMVar (MVar mvar#) !x = rnf x `seq` IO $ \ s# -> -- strict!
     case putMVar# mvar# x s# of
         s2# -> (# s2#, () #)
 
@@ -74,14 +74,14 @@ putMVar (MVar mvar#) !x = hyper x `seq` IO $ \ s# -> -- strict!
 -- attempts to put the value @a@ into the 'MVar', returning 'True' if
 -- it was successful, or 'False' otherwise.
 --
-tryPutMVar  :: Hyper a => MVar a -> a -> IO Bool
+tryPutMVar  :: NFData a => MVar a -> a -> IO Bool
 tryPutMVar (MVar mvar#) !x = IO $ \ s# -> -- strict!
     case tryPutMVar# mvar# x s# of
         (# s, 0# #) -> (# s, False #)
         (# s, _  #) -> (# s, True #)
 
 -- |Create an 'MVar' which contains the supplied value.
-newMVar :: Hyper a => a -> IO (MVar a)
+newMVar :: NFData a => a -> IO (MVar a)
 newMVar value =
     newEmptyMVar        >>= \ mvar ->
     putMVar mvar value  >>
@@ -91,7 +91,7 @@ newMVar value =
   This is a combination of 'takeMVar' and 'putMVar'; ie. it takes the value
   from the 'MVar', puts it back, and also returns it.
 -}
-readMVar :: Hyper a => MVar a -> IO a
+readMVar :: NFData a => MVar a -> IO a
 readMVar m =
   CE.mask_ $ do
     a <- takeMVar m
@@ -104,7 +104,7 @@ readMVar m =
   another process can put something in the 'MVar' after the take
   happens but before the put does.
 -}
-swapMVar :: Hyper a => MVar a -> a -> IO a
+swapMVar :: NFData a => MVar a -> a -> IO a
 swapMVar mvar new =
   CE.mask_ $ do
     old <- takeMVar mvar
@@ -120,7 +120,7 @@ swapMVar mvar new =
 {-# INLINE withMVar #-}
 -- inlining has been reported to have dramatic effects; see
 -- http://www.haskell.org//pipermail/haskell/2006-May/017907.html
-withMVar :: Hyper a => MVar a -> (a -> IO b) -> IO b
+withMVar :: NFData a => MVar a -> (a -> IO b) -> IO b
 withMVar m io =
   CE.mask $ \ restore -> do
     a <- takeMVar m
@@ -138,7 +138,7 @@ withMVar m io =
   exception is raised during the operation.
 -}
 {-# INLINE modifyMVar_ #-}
-modifyMVar_ :: Hyper a => MVar a -> (a -> IO a) -> IO ()
+modifyMVar_ :: NFData a => MVar a -> (a -> IO a) -> IO ()
 modifyMVar_ m io =
   CE.mask $ \ restore -> do
     a  <- takeMVar m
@@ -154,7 +154,7 @@ modifyMVar_ m io =
   returned (@b@) in addition to the modified value of the 'MVar'.
 -}
 {-# INLINE modifyMVar #-}
-modifyMVar :: Hyper a => MVar a -> (a -> IO (a,b)) -> IO b
+modifyMVar :: NFData a => MVar a -> (a -> IO (a,b)) -> IO b
 modifyMVar m io =
   CE.mask $ \ restore -> do
     a      <- takeMVar m

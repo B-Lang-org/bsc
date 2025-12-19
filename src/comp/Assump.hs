@@ -16,5 +16,5 @@ instance Types Assump where
     apSub s (i :>: sc) = i :>: (apSub s sc)
     tv      (i :>: sc) = tv sc
 
-instance Hyper Assump where
-    hyper (i :>: sc) y = hyper2 i sc y
+instance NFData Assump where
+    rnf (i :>: sc) = rnf2 i sc

@@ -8,6 +8,7 @@ module ProofObligation (
 
 import Error(EMsg, ErrorHandle, bsWarningsAndErrors)
 import PPrint
+import Eval
 
 import Control.Monad(when)
 import Control.Monad.Trans(MonadIO, liftIO)
@@ -43,6 +44,10 @@ instance PPrint a => PPrint (ProofObligation a) where
   pPrint d p (ProveEq    x y) = (pPrint d 0 x)<+>(text "==")<+>(pPrint d 0 y)
   pPrint d p (ProveNotEq x y) = (pPrint d 0 x)<+>(text "!=")<+>(pPrint d 0 y)
 
+instance NFData a => NFData (ProofObligation a) where
+  rnf (ProveEq e1 e2) = rnf2 e1 e2
+  rnf (ProveNotEq e1 e2) = rnf2 e1 e2
+
 -- This allows us to group related tests to produce better
 -- error messages
 data MsgFn =
@@ -64,6 +69,9 @@ instance Show MsgFn where
 
 instance PPrint MsgFn where
   pPrint _ _ x = text (show x)
+
+instance NFData MsgFn where
+  rnf (MsgFn s _) = rnf s
 
 errorUnlessProof :: [EMsg] -> ProofResult -> MsgTuple -> MsgTuple
 errorUnlessProof _  Proven (ws, ds, es) = (ws, ds, es)

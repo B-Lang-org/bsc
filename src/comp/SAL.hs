@@ -204,8 +204,45 @@ data SExpr = SLam [(SId, SType)] SExpr
 
 -- -----
 
-instance Hyper SContext where
-  hyper x y = (x==x) `seq` y
+instance NFData SContext where
+  rnf (SContext id cmt defns) = rnf3 id cmt defns
+
+instance NFData SId where
+  rnf (SId s) = rnf s
+
+instance NFData SDefn where
+  rnf (SDComment cmt defns) = rnf2 cmt defns
+  rnf (SDType sid typ) = rnf2 sid typ
+  rnf (SDValue sid typ expr) = rnf3 sid typ expr
+
+instance NFData SQId where
+  rnf (SQId mctx sid) = rnf2 mctx sid
+
+instance NFData SType where
+  rnf (STVar qid) = rnf qid
+  rnf (STArray sz t) = rnf2 sz t
+  rnf (STTuple ts) = rnf ts
+  rnf (STFunc t1 t2) = rnf2 t1 t2
+  rnf (STRecord fs) = rnf fs
+
+instance NFData SExpr where
+  rnf (SLam args body) = rnf2 args body
+  rnf (SLet defs body) = rnf2 defs body
+  rnf (SVar qid) = rnf qid
+  rnf (SIntLit v) = rnf v
+  rnf (SRealLit v) = rnf v
+  rnf (SApply f e) = rnf2 f e
+  rnf (SApplyInfix e1 op e2) = rnf3 e1 op e2
+  rnf (SArray sid sz e) = rnf3 sid sz e
+  rnf (SArrayUpd arr idx val) = rnf3 arr idx val
+  rnf (SArraySel arr idx) = rnf2 arr idx
+  rnf (SStruct fs) = rnf fs
+  rnf (SStructUpd se sid se2) = rnf3 se sid se2
+  rnf (SStructSel se sid) = rnf2 se sid
+  rnf (STuple es) = rnf es
+  rnf (STupleUpd te n te2) = rnf3 te n te2
+  rnf (STupleSel te n) = rnf2 te n
+  rnf (SIf c t f) = rnf3 c t f
 
 -- -----
 

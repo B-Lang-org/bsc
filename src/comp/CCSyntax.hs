@@ -85,7 +85,7 @@ import PPrint hiding ( int
 import ErrorUtil(internalError)
 import Util
 import Numeric(showInt)
-import Eval(Hyper(..))
+import Eval
 
 -- import Debug.Trace
 
@@ -1212,5 +1212,112 @@ templated e args = CTemplate e args
 -- ----------
 -- Hyper instance needed for dumping CCFragments
 
-instance Hyper CCFragment where
-  hyper x y = (x==x) `seq` y
+instance NFData CCFragment where
+  rnf CAbstract = ()
+  rnf CNop = ()
+  rnf (CExpr e) = rnf e
+  rnf (CTyped t f) = rnf2 t f
+  rnf (CConstruct f es) = rnf2 f es
+  rnf (CDecl sc f) = rnf2 sc f
+  rnf (CAssign f e) = rnf2 f e
+  rnf (CAssignOp f op e) = rnf3 f op e
+  rnf (CJoin fs) = rnf fs
+  rnf (CBlock fs) = rnf fs
+  rnf (CExternBlock fs) = rnf fs
+  rnf (CFunctionDef f args body) = rnf3 f args body
+  rnf (CLiteralComment ss) = rnf ss
+  rnf (CCommented f ms) = rnf2 f ms
+  rnf (CBlankLines n) = rnf n
+  rnf (CProgram fs) = rnf fs
+  rnf (CPPIf c ts es) = rnf3 c ts es
+  rnf (CPPIfdef c ts es) = rnf3 c ts es
+  rnf (CPPIfndef c ts es) = rnf3 c ts es
+  rnf (CPPDefine n args b) = rnf3 n args b
+  rnf (CPPUndef s) = rnf s
+  rnf (CPPInclude file b) = rnf2 file b
+  rnf (CIf c thn mels) = rnf3 c thn mels
+  rnf (CSwitch idx arms deflt) = rnf3 idx arms deflt
+  rnf (CFor init test advance body) = rnf4 init test advance body
+  rnf CContinue = ()
+  rnf CBreak = ()
+  rnf (CReturn me) = rnf me
+  rnf (CSection acc fs) = rnf2 acc fs
+  rnf (CClass name superclass sections) = rnf3 name superclass sections
+  rnf (CNameSpace name fs) = rnf2 name fs
+  rnf (CUsing name) = rnf name
+
+instance NFData CCExpr where
+  rnf (CVar s) = rnf s
+  rnf CLiteralNULL = ()
+  rnf (CLiteralString s) = rnf s
+  rnf (CLiteralChar c) = rnf c
+  rnf (CLiteralBool b) = rnf b
+  rnf (CLiteralBits1 b) = rnf b
+  rnf (CLiteralBits8 n s) = rnf2 n s
+  rnf (CLiteralBits32 n s) = rnf2 n s
+  rnf (CLiteralBits64 n s) = rnf2 n s
+  rnf (CLiteralFloat f) = rnf f
+  rnf (CLiteralDouble d) = rnf d
+  rnf (CInitBraces es) = rnf es
+  rnf (CPreOp op e) = rnf2 op e
+  rnf (CPostOp e op) = rnf2 e op
+  rnf (CBinOp e1 op e2) = rnf3 e1 op e2
+  rnf (CGroup e) = rnf e
+  rnf (CFunCall fn args) = rnf2 fn args
+  rnf (CArrow struct field) = rnf2 struct field
+  rnf (CDot struct field) = rnf2 struct field
+  rnf (CIndex arr idx) = rnf2 arr idx
+  rnf (CCast ty e) = rnf2 ty e
+  rnf (CDereference e) = rnf e
+  rnf (CAddressOf e) = rnf e
+  rnf (CTernary c t f) = rnf3 c t f
+  rnf (CNew t margs me) = rnf3 t margs me
+  rnf (CDelete e b) = rnf2 e b
+  rnf (CTemplate e args) = rnf2 e args
+
+instance NFData CCType where
+  rnf CTbool = ()
+  rnf CTchar = ()
+  rnf (CTshort s) = rnf s
+  rnf (CTint s) = rnf s
+  rnf (CTlong s) = rnf s
+  rnf CTfloat = ()
+  rnf CTdouble = ()
+  rnf CTvoid = ()
+  rnf (CTstruct fields) = rnf fields
+  rnf (CTuserType name) = rnf name
+  rnf (CTqualified q t) = rnf2 q t
+  rnf (CTpointer t) = rnf t
+  rnf (CTreference t) = rnf t
+  rnf (CTarray t mn) = rnf2 t mn
+  rnf (CTfunction rt args) = rnf2 rt args
+  rnf (CTconstructor args) = rnf args
+  rnf CTdestructor = ()
+  rnf (CTnumeric n) = rnf n
+  rnf (CTtemplate t args) = rnf2 t args
+
+instance NFData CStorageClass where
+  rnf CSnone = ()
+  rnf CSstatic = ()
+  rnf CSextern = ()
+  rnf CSauto = ()
+  rnf CSregister = ()
+  rnf CSmutable = ()
+  rnf CSvirtual = ()
+
+instance NFData CAccess where
+  rnf CApublic = ()
+  rnf CAprotected = ()
+  rnf CAprivate = ()
+
+instance NFData COp where
+  rnf (COp l p r s) = rnf4 l p r s
+
+instance NFData CSign where
+  rnf CTsigned = ()
+  rnf CTunsigned = ()
+
+instance NFData CQualifier where
+  rnf CTnone = ()
+  rnf CTconst = ()
+  rnf CTvolatile = ()

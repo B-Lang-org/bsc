@@ -346,16 +346,33 @@ instance PPrint Conflicts where
 instance PVPrint Conflicts where
     pvPrint d p = printConflicts True d
 
-instance Hyper Conflicts where
-    hyper (CUse uses) y = hyper uses y
-    hyper (CCycle cycle_rules) y = hyper cycle_rules y
-    hyper (CMethodsBeforeRules) y = y
-    hyper (CUserEarliness pos) y = hyper pos y
-    hyper (CUserAttribute pos) y = hyper pos y
-    hyper (CUserPreempt pos) y = hyper pos y
-    hyper (CResource m) y = hyper m y
-    hyper (CArbitraryChoice) y = y
-    hyper (CFFuncArbitraryChoice) y = y
+instance NFData Conflicts where
+    rnf (CUse uses) = rnf uses
+    rnf (CCycle cycle_rules) = rnf cycle_rules
+    rnf (CMethodsBeforeRules) = ()
+    rnf (CUserEarliness pos) = rnf pos
+    rnf (CUserAttribute pos) = rnf pos
+    rnf (CUserPreempt pos) = rnf pos
+    rnf (CResource m) = rnf m
+    rnf (CArbitraryChoice) = ()
+    rnf (CFFuncArbitraryChoice) = ()
+
+instance NFData AScheduleInfo where
+  rnf (AScheduleInfo w m r rat er so sched graph rrdb vsi) =
+    rnf10 w m r rat er so sched graph rrdb vsi
+
+instance NFData ExclusiveRulesDB where
+  rnf (ExclusiveRulesDB m) = rnf m
+
+instance NFData SchedNode where
+  rnf (Sched aid) = rnf aid
+  rnf (Exec aid) = rnf aid
+
+instance NFData RuleRelationDB where
+  rnf (RuleRelationDB s m) = rnf2 s m
+
+instance NFData RuleRelationInfo where
+  rnf (RuleRelationInfo cf sc res cyc ps arb) = rnf6 cf sc res cyc ps arb
 
 -- -----
 
