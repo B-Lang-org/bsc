@@ -23,7 +23,7 @@ module VModInfo(VModInfo, mkVModInfo,
                 getIfcIdPosition,
                 str_to_vPort,getVPortString,
                 mkNamedEnable,
-                mkNamedOutput,
+                mkNamedOutputs,
                 mkNamedReady,
                 mkNamedInout,
                 extractNames
@@ -45,7 +45,7 @@ import IdPrint()
 import Position
 import SchedInfo
 import Util
-import Eval
+import Eval(NFData(..), rnf, rnf2, rnf3, rnf4, rnf7)
 import PPrint
 
 -- VMODINFO AND SUBSIDIARIES:
@@ -59,15 +59,15 @@ newtype VName = VName String
 instance PPrint VName where
     pPrint _ _ (VName s) = text s
 
-instance Hyper VName where
-    hyper (VName s) y = hyper s y
+instance NFData VName where
+    rnf (VName s) = rnf s
 
 getVNameString :: VName -> String
 getVNameString (VName string) = string
 
 -- convert Bluespec identifier to Verilog names
 id_to_vName :: Id -> VName
-id_to_vName i = VName (getIdString i)
+id_to_vName i = VName (getIdBaseString i)
 
 vName_to_id :: VName -> Id
 vName_to_id (VName s) = mk_homeless_id s
@@ -90,8 +90,16 @@ data VeriPortProp = VPreg
                   | VPunused
         deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance Hyper VeriPortProp where
-    hyper x y = x `seq` y
+instance NFData VeriPortProp where
+    rnf VPreg = ()
+    rnf VPconst = ()
+    rnf VPinhigh = ()
+    rnf VPouthigh = ()
+    rnf VPclock = ()
+    rnf VPclockgate = ()
+    rnf VPreset = ()
+    rnf VPinout = ()
+    rnf VPunused = ()
 
 instance PPrint VeriPortProp where
     pPrint _ _ VPreg = text "reg"
@@ -157,8 +165,8 @@ instance PPrint VPathInfo where
 pShowVPathInfo :: PDetail -> Int -> VPathInfo -> Doc
 pShowVPathInfo d p (VPathInfo nns) = pPrint d p nns
 
-instance Hyper VPathInfo where
-    hyper (VPathInfo nns) = hyper nns
+instance NFData VPathInfo where
+    rnf (VPathInfo nns) = rnf nns
 
 
 -- ===============
@@ -220,12 +228,12 @@ getVArgInoutReset :: VArgInfo -> Maybe Id
 getVArgInoutReset (InoutArg _ _ mrst) = mrst
 getVArgInoutReset _ = internalError ("getVArgInoutReset: not an inout")
 
-instance Hyper VArgInfo where
-    hyper (Param x) y = hyper x y
-    hyper (Port x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ClockArg x) y = hyper x y
-    hyper (ResetArg x) y = hyper x y
-    hyper (InoutArg x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData VArgInfo where
+    rnf (Param x) = rnf x
+    rnf (Port x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ClockArg x) = rnf x
+    rnf (ResetArg x) = rnf x
+    rnf (InoutArg x1 x2 x3) = rnf3 x1 x2 x3
 
 instance PPrint VArgInfo where
     pPrint d p (Param x) = text "param " <> pPrint d 0 x <> text ";"
@@ -266,7 +274,7 @@ data VFieldInfo = Method { vf_name   :: Id, -- method name
                            -- optional because the method may be independent of a reset signal
                            vf_mult   :: Integer, -- multiplicity
                            vf_inputs :: [VPort],
-                           vf_output :: Maybe VPort,
+                           vf_outputs:: [VPort],
                            vf_enable :: Maybe VPort }
                 | Clock { vf_name :: Id } -- output clock name
                                            -- connection information is in the ClockInfo
@@ -284,19 +292,20 @@ instance HasPosition VFieldInfo where
   getPosition (Reset i)                 = getPosition i -- or noPosition?
   getPosition (Inout { vf_name = n })  = getPosition n
 
-instance Hyper VFieldInfo where
-    hyper (Method x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
-    hyper (Clock x) y = hyper x y
-    hyper (Reset x) y = hyper x y
-    hyper (Inout x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+instance NFData VFieldInfo where
+    rnf (Method x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
+    rnf (Clock x) = rnf x
+    rnf (Reset x) = rnf x
+    rnf (Inout x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 instance PPrint VFieldInfo where
     pPrint d p (Method n c r m i o e) =
-      text "method " <> pout o <> pPrint d p n <> pmult m <>
+      text "method " <> pouts o <> pPrint d p n <> pmult m <>
       pins i <> pena e <+> ppMClk d c <+> ppMRst d r <>
       text ";"
-        where pout Nothing = empty
-              pout (Just po) = pPrint d p po
+        where pouts [] = empty
+              pouts [po] = pPrint d p po
+              pouts o  = text "(" <> sepList (map (pPrint d p) o) (text ",") <> text ")"
               pmult 1 = empty
               pmult n = text "[" <> pPrint d p n <> text "]"
               pins [] = empty
@@ -419,8 +428,8 @@ getInputClockPorts (ClockInfo { input_clocks = clocks }) =
         osc_vnames = map fst connected_clocks
         gate_vnames = snd $ separate (map snd connected_clocks)
 
-instance Hyper VClockInfo where
-    hyper (ClockInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+instance NFData VClockInfo where
+    rnf (ClockInfo x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 instance HasPosition VClockInfo where
   getPosition (ClockInfo { output_clocks = ((id,_):_)}) = getPosition id
@@ -528,8 +537,8 @@ getInputResetPorts :: VResetInfo -> [VName]
 getInputResetPorts (ResetInfo { input_resets = in_resets }) =
     catMaybes (map (fst . snd) in_resets)
 
-instance Hyper VResetInfo where
-  hyper (ResetInfo x1 x2) y = hyper2 x1 x2 y
+instance NFData VResetInfo where
+  rnf (ResetInfo x1 x2) = rnf2 x1 x2
 
 -- ===============
 -- Inout
@@ -633,8 +642,8 @@ instance PPrint VModInfo where
             pPrint d 10 (vSched v),
             pShowVPathInfo d 10 (vPath v)])
 
-instance Hyper VModInfo where
-    hyper x@(VModInfo x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
+instance NFData VModInfo where
+    rnf x@(VModInfo x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
 
 
 -- ===============
@@ -648,8 +657,8 @@ data VWireInfo = WireInfo {
                  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 
-instance Hyper VWireInfo where
-  hyper (WireInfo clk rst args) y = hyper3 clk rst args y
+instance NFData VWireInfo where
+  rnf (WireInfo clk rst args) = rnf3 clk rst args
 
 instance PPrint VWireInfo where
   pPrint d p (WireInfo clk rst args) =
@@ -677,17 +686,16 @@ mkNamedEnable vfi = if (newStr == "") then baseid else setIdBaseString baseid ne
     where  baseid = mkEnableId (vf_name vfi)
            newStr = maybe ""  getVPortString (vf_enable vfi)
 
-mkNamedOutput :: VFieldInfo -> Id
-mkNamedOutput vfi = if (newStr == "") then baseid else setIdBaseString baseid newStr
+mkNamedOutputs :: VFieldInfo -> [Id]
+mkNamedOutputs vfi = map (setIdBaseString baseid) newStrs
     where  baseid = (vf_name vfi)
-           newStr = maybe ""  getVPortString (vf_output vfi)
+           newStrs = map getVPortString (vf_outputs vfi)
 
 -- VFieldInfo does not have a ready field, so we just use the default construction for the ready signal.
 -- in aState we merge method and RDY_method to do the right thing.
 mkNamedReady :: VFieldInfo -> Id
 mkNamedReady vfi = baseid -- if (newStr == "") then baseid else setIdBaseString baseid newStr
     where  baseid = mkRdyId (vf_name vfi)
-           -- newStr = maybe ""  getVPortString (vf_output vfi)
 
 mkNamedInout :: VFieldInfo -> Id
 mkNamedInout vfi = setIdBaseString baseid newStr
@@ -697,8 +705,8 @@ mkNamedInout vfi = setIdBaseString baseid newStr
 ---------------------------   Name extraction from VFieldInfo
 -- extract possible port Ids from a VField Info
 -- return value  is result, ready, enable
-extractNames :: VFieldInfo -> (Id, Id, Id )
+extractNames :: VFieldInfo -> ([Id], Id, Id )
 extractNames vfi = (result, ready, enable)
-    where result = mkNamedOutput vfi
+    where result = mkNamedOutputs vfi
           ready  = mkNamedReady vfi
           enable = mkNamedEnable vfi

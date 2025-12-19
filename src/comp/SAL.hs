@@ -59,8 +59,8 @@ convAPackageToSAL errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
-             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
+            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
+             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -204,8 +204,45 @@ data SExpr = SLam [(SId, SType)] SExpr
 
 -- -----
 
-instance Hyper SContext where
-  hyper x y = (x==x) `seq` y
+instance NFData SContext where
+  rnf (SContext id cmt defns) = rnf3 id cmt defns
+
+instance NFData SId where
+  rnf (SId s) = rnf s
+
+instance NFData SDefn where
+  rnf (SDComment cmt defns) = rnf2 cmt defns
+  rnf (SDType sid typ) = rnf2 sid typ
+  rnf (SDValue sid typ expr) = rnf3 sid typ expr
+
+instance NFData SQId where
+  rnf (SQId mctx sid) = rnf2 mctx sid
+
+instance NFData SType where
+  rnf (STVar qid) = rnf qid
+  rnf (STArray sz t) = rnf2 sz t
+  rnf (STTuple ts) = rnf ts
+  rnf (STFunc t1 t2) = rnf2 t1 t2
+  rnf (STRecord fs) = rnf fs
+
+instance NFData SExpr where
+  rnf (SLam args body) = rnf2 args body
+  rnf (SLet defs body) = rnf2 defs body
+  rnf (SVar qid) = rnf qid
+  rnf (SIntLit v) = rnf v
+  rnf (SRealLit v) = rnf v
+  rnf (SApply f e) = rnf2 f e
+  rnf (SApplyInfix e1 op e2) = rnf3 e1 op e2
+  rnf (SArray sid sz e) = rnf3 sid sz e
+  rnf (SArrayUpd arr idx val) = rnf3 arr idx val
+  rnf (SArraySel arr idx) = rnf2 arr idx
+  rnf (SStruct fs) = rnf fs
+  rnf (SStructUpd se sid se2) = rnf3 se sid se2
+  rnf (SStructSel se sid) = rnf2 se sid
+  rnf (STuple es) = rnf es
+  rnf (STupleUpd te n te2) = rnf3 te n te2
+  rnf (STupleSel te n) = rnf2 te n
+  rnf (SIf c t f) = rnf3 c t f
 
 -- -----
 
@@ -466,6 +503,7 @@ boolToBitVar = SVar $ primCtx (SId "boolToBit")
 anyVar :: AType -> SExpr
 anyVar (ATBit width)       = SVar $ bitCtx width (SId "undef")
 anyVar t | (t == mkATBool) = SVar $ primCtx (SId "undefBool")
+anyVar (ATTuple ts)        = internalError ("anyVar: multi-output methods are not yet supported")
 anyVar (ATString _)        = SVar $ stringCtx (SId "undef")
 anyVar (ATReal)            = SVar $ primCtx (SId "undefReal")
 anyVar (ATArray sz t)      = arrBuild sz $
@@ -854,8 +892,9 @@ convARule defmap instmap mmap r@(ARule rId _ _ _ p as _ _) =
 
 convAIFace :: DefMap -> InstMap -> MethodOrderMap -> AIFace -> [SDefn]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIDef methId args _ p (ADef _ ret_t ret_e _) _ _) =
+           (AIDef methId args _ p [ADef _ ret_t ret_e _] _ _) =
   let
       rt = convAType ret_t
 
@@ -890,8 +929,9 @@ convAIFace defmap instmap mmap
          sLam (arg_infos ++ [(stateId, modType)]) $
            body]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIActionValue args _ p methId rs (ADef _ def_t def_e _) _) =
+           (AIActionValue args _ p methId rs [ADef _ def_t def_e _] _) =
   let
       -- return value is Bit type
       ret_ty = convAType def_t
@@ -1005,6 +1045,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -1119,7 +1160,10 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         Just _ -> error ("convStmt: multiple return values for method "
+                                         ++ ppReadable meth ++ " on instance "
+                                         ++ ppReadable obj)
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#" and "state#" with a unique number
@@ -1254,6 +1298,8 @@ convAExpr (AMethCall _ obj meth as) = do
 convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t _ (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineQId name

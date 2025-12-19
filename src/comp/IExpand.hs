@@ -247,6 +247,10 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
   let (iks, args, varginfo, ifc) = goutput go
   let rules = go_rules go
   let insts = go_state_vars go
+  let vclockinfo = go_vclockinfo go
+  let vresetinfo = go_vresetinfo go
+
+  chkIfcPortNames errh args ifc vclockinfo vresetinfo
 
   -- turn heap into IDef definitions
   let
@@ -301,8 +305,9 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
           in
               -- return the expression that should replace the heap pointer,
               -- and maybe a Def, if the expression is a def reference
-              if simple e || isActionType t then
+              if simple e || isActionType t || isPairType t then
                   -- inline the expression, no def is created for this heap ptr
+                  --trace ("not inlining " ++ show i ++ " " ++ ppReadable t) $
                   (e', Nothing)
               else
                   -- assign the expr to a def, and replace the ptr reference
@@ -1015,9 +1020,6 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) | isitInout_ t = do
   (iinout, e') <- evalInout e
   let modPos = getPosition modId
   (ws, fi) <- makeIfcInout modPos i (BetterInfo.mi_prefix bi) iinout
-  let mType = fmap (snd . itGetArrows) (BetterInfo.mi_orig_type bi)
-      vname = vf_inout fi
-  maybe (return ()) (saveTopModPortType vname) mType
   setIfcSchedNameScopeProgress Nothing
   return [(IEFace i [] (Just (e',t)) Nothing ws fi)]
 
@@ -1027,8 +1029,12 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) | isRdyId i =
 iExpandField modId implicitCond clkRst (i, bi, e, t) = do
    showTopProgress ("Elaborating method " ++ quote (pfpString i))
    setIfcSchedNameScopeProgress (Just (IEP_Method i False))
+   (_, P p e') <- evalUH e
+   let (ins, outs, eb) = case e' of
+        ICon _ (ICMethod _ ins outs eb) -> (ins, outs, eb)
+        _ -> internalError ("iExpandField: expected ICMethod: " ++ ppReadable e')
    (its, ((IDef i1 t1 e1 _), ws1, fi1), ((IDef wi wt we _), ws2, fi2))
-       <- iExpandMethod modId 1 [] implicitCond clkRst (i, bi, e)
+       <- iExpandMethod modId 1 [] (pConj implicitCond p) clkRst (i, bi, ins, outs, eb)
    let wp1 = wsToProps ws1 -- default clock domain forced in by iExpandField
    let wp2 = wsToProps ws2
    setIfcSchedNameScopeProgress Nothing
@@ -1037,10 +1043,10 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
 
 -- expand a method
 iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, e) = do
+iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
     (_, P p e') <- evalUH e
     case e' of
@@ -1050,42 +1056,36 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, e) = do
         -- a GenWrap-added context that wasn't satisfied, and GenWrap
         -- should only be adding Bits)
         errG (reportNonSynthTypeInMethod modId i e')
-     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p
-     _ -> iExpandMethod' implicitCond curClk (i, bi, e') p
+     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p
+     _ -> iExpandMethod' implicitCond curClk (i, bi, outs, e') p
 
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
                  Id -> IType -> Pred HeapData ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p = do
+iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
+    -- traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
+    let i' :: Id
+        i' = mkId (getPosition i) $ mkFString $ head ins
         -- substitute argument with a modvar and replace with body
-        let i_n :: Id
-            i_n = mkIdPost (BetterInfo.mi_prefix bi) (concatFString [fsUnderscore, mkNumFString n])
-            i' :: Id
-            i'  = if null (BetterInfo.mi_args bi) then i_n else (BetterInfo.mi_args bi) !! fromInteger (n-1)
-            eb' :: HExpr
-            eb' = eSubst li (ICon i' (ICMethArg ty)) eb
-            -- bi' = if null bi then [] else tail bi
-        let m_orig_type :: Maybe IType
-            m_orig_type = fmap ((flip (!!) (fromInteger (n-1))) . fst . itGetArrows)
-                          (BetterInfo.mi_orig_type bi)
-        maybe (return ()) (saveTopModPortType (id_to_vName i')) m_orig_type
-        (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
-            iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, eb')
-        let inps :: [VPort]
-            inps = vf_inputs wf1
-        let wf1' :: VFieldInfo
-            wf1' = case wf1 of
-                     (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
-                     _ -> internalError "iExpandMethodLam: unexpected wf1"
-        return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
+        eb' :: HExpr
+        eb' = eSubst li (ICon i' (ICMethArg ty)) eb
+    (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
+        iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, outs, eb')
+    let inps :: [VPort]
+        inps = vf_inputs wf1
+    let wf1' :: VFieldInfo
+        wf1' = case wf1 of
+                  (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
+                  _ -> internalError "iExpandMethodLam: unexpected wf1"
+    return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
 
-iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
+iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
                   Pred HeapData ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
+iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         -- want the result type, not a type including arguments
         let methType :: IType
             methType = iGetType e0
@@ -1144,18 +1144,10 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
             rdyId      = mkRdyId i
         let enablePort :: Maybe VPort
             enablePort = toMaybe (isActionType methType) (BetterInfo.mi_enable bi)
-        let outputPort :: Maybe VPort
-            outputPort = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
+        let outputPorts :: [VPort]
+            outputPorts = map (id_to_vPort . mkId (getPosition i) . mkFString) outs
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
-
-        let mType :: Maybe IType
-            mType = fmap (snd . itGetArrows) (BetterInfo.mi_orig_type bi)
-        maybe (return ()) (\t -> do
-          maybe (return ()) (\(n,_) -> do
-            if (isActionType methType) then
-              maybe (return ()) (saveTopModPortType n) (getAVType t)
-             else saveTopModPortType n t) outputPort) mType
 
         -- split wire sets for more accurate tracking
         return ([],
@@ -1163,12 +1155,12 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
                  Method { vf_name = i,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = outputPort, vf_enable = enablePort }),
+                          vf_outputs = outputPorts, vf_enable = enablePort }),
                 ((IDef rdyId itBit1 readySignal []), final_ws,
                  Method { vf_name = rdyId,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = Just rdyPort, vf_enable = Nothing }))
+                          vf_outputs = [rdyPort], vf_enable = Nothing }))
 
 -- deduce clock name for VFieldInfo
 -- type required to control ancestry-checking with action methods
@@ -2122,6 +2114,25 @@ evalString e = do
             _ -> do e'' <- unheapAll e'
                     errG (getIExprPosition e'', EStringNF (ppString e''))
 
+evalStringList :: HExpr -> G ([String], Position)
+evalStringList e = do
+  e' <- evaleUH e
+  case e' of
+    IAps (ICon i _) _ [a] ->
+      if i == idCons noPosition then do
+        a' <- evaleUH a
+        case a' of
+          IAps (ICon _ (ICTuple {})) _ [e_h, e_t] -> do
+            (h, _) <- evalString e_h
+            (t, _) <- evalStringList e_t
+            return (h:t, getIExprPosition e')
+          _ -> internalError ("evalStringList Cons: " ++ showTypeless a')
+      -- We get primChr for Nil, since it's a no-argument constructor
+      else if i == idPrimChr then return ([], getIExprPosition e')
+      else internalError ("evalStringList con: " ++ show i)
+    _ -> do e'' <- unheapAll e'
+            errG (getIExprPosition e', EStringListNF (ppString e'))
+
 -----------------------------------------------------------------------------
 
 evalHandle :: HExpr -> G Handle
@@ -2504,20 +2515,16 @@ walkNF e =
                         -- XXX is adding the clock to the wire set redundant?
                         clk@(ICon i (ICClock { iClock = c })) : _  -> upd (pConj p0 p) (IAps f ts es') (wsAddClock c ws)
 
-                        -- if the outer selector is avValue_ or avAction_
-                        -- and the inner is a method call
-                        [(IAps sel@(ICon i_sel2 (ICSel { })) ts_2 es_2)]
-                            | (i_sel == idAVValue_ || i_sel == idAVAction_) -> do
-                            case es_2 of
-                                st@(ICon i (ICStateVar { iVar = v })) : _ ->
-                                    handleMethod i_sel2 v
-                                _ -> internalError ("walkNF: selector should be a method call")
+                        -- We can be selecting the avValue or avAction from an ActionValue method,
+                        -- or a tuple member out of the result of calling a method with multiple outputs,
+                        -- and need to recurse.
+                        [e] | (i_sel == idAVValue_ ||
+                               i_sel == idAVAction_ ||
+                               i_sel == idPrimFst ||
+                               i_sel == idPrimSnd) -> do
+                          do (P p' e', ws) <- walkNF e
+                             upd (pConj p0 p') (IAps f ts [e']) ws
 
-                        -- the inner selector can wind up on the heap
-                        -- because of "move" in evalHeap
-                        [e_ref@(IRefT t ptr ref)] | (isitActionValue_ t) || (isitAction t)
-                            ->  do (P p' e', ws) <- walkNF e_ref
-                                   upd (pConj p0 p') (IAps f ts [e']) ws
                         _ ->    do when doDebug $ traceM "not stvar or foreign\n"
                                    when doDebug $ traceM (show u ++ "\n")
                                    when doDebug $ traceM (show es' ++ "\n")
@@ -2531,6 +2538,11 @@ walkNF e =
                    _ <- internalError ("PrimWhenPred" ++ ppReadable e)
                    (P p' e', ws) <- walkNF e
                    upd (pConjs [p0, p, p']) e' ws
+
+                IAps f@(ICon _ (ICTuple {})) ts [e1, e2] -> do
+                    (P pe1 e1', ws1) <- walkNF e1
+                    (P pe2 e2', ws2) <- walkNF e2
+                    upd (pConj pe1 pe2) (IAps f ts [e1', e2']) (wsJoin ws1 ws2)
 
                 -- Any other application is not in NF (which is unexpected?)
                 IAps f ts es -> do
@@ -3072,6 +3084,17 @@ conAp' i (ICPrim _ PrimIsRawUndefined) _ (T t : E e : as) = do
                                return (P p iTrue)
     _ -> -- do traceM ("IsRawUndefined: False")
             return (P p iFalse)
+
+conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
+  (inNames, _) <- evalStringList eInNames
+  (outNames, _) <- evalStringList eOutNames
+  P p meth' <- eval1 meth
+  return $ P p $ ICon (dummyId noPosition) $ ICMethod {
+    iConType = t,
+    iInputNames = inNames,
+    iOutputNames = outNames,
+    iMethod = meth'
+  }
 
 -- XXX is this still needed?
 conAp' i (ICUndet { iConType = t })  e as | t == itClock =
@@ -3791,7 +3814,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
               when doTrans $ traceM ("conAp: iTransform fallthrough: " ++ ppReadable (op, mkAp fe as'))
               errh <- getErrHandle
               case (iTransExpr errh (mkAp fe as')) of
-                  (e', True) -> do
+                  (e', True) | isBitType (iGetType e') -> do
                     -- we used to evaluate further here, but that shouldn't
                     -- be necessary (and probably indicates a bug elsewhere)
                     when (doDebug || doTrans) $ traceM ("conAp: iTransform result: " ++ ppReadable e')
@@ -4070,7 +4093,7 @@ getBuriedPreds (IAps a@(ICon _ (ICPrim _ PrimBOr)) b [e1, e2]) = do
 -- the following are followed because they are strict,
 -- and we want to unheap the references in their arguments
 getBuriedPreds (IAps a@(ICon _ p@(ICPrim _ _)) b es) = do
-  --traceM("getBuriedPreds: prim")
+  -- traceM("getBuriedPreds: prim")
   ps <- mapM getBuriedPreds es
   return (foldr1 pConj ps)
 getBuriedPreds (IAps a@(ICon _ (ICForeign { })) b es) = do
@@ -4771,6 +4794,11 @@ doSel sel s tys ty n as ee (p, e) =
         -- canonical applications are strict (e.g. method call applications)
         _ | isCanon e -> bldApUH' "Sel" sel (map T tys ++ (E ee : as))
 
+        -- tuple section from a multi-output method result
+        _ | s == idPrimFst || s == idPrimSnd -> do
+          (_, P p e') <- evalUH e
+          addPredG p $ bldApUH' "Sel PrimFst/Snd" sel (map T tys ++ (E e' : as))
+
         -- otherwise fail
         _ -> internalError ("doSel: " ++ ppReadable (sel, e, as))
 
@@ -4784,7 +4812,7 @@ isCanon (ICon _ (ICModParam { })) = True
 isCanon (ICon _ (ICClock { })) = True
 --isCanon (IAps (ICon _ (ICPrim _ PrimBlock)) _ _) = True                -- XXX is this the best way?
 isCanon (IAps (ICon _ (ICSel { })) _ [_]) = True
-isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
+--isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
 -- AV of foreign function application is canon
 --isCanon (IAps (ICon _ (ICForeign { })) _ _) = True
 isCanon (IRefT _ _ _) = True

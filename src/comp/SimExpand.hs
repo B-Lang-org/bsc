@@ -1040,7 +1040,7 @@ combineCombSchedInfo use_map domain_id_map parent_abi parent_csi
         -- schedule graph and conflicts (even the methods not used by
         -- any parent rules), so we need to know which are the method Ids
         child_apkg = abmi_apkg child_abi
-        child_meth_set = S.fromList $ map aIfaceName (apkg_interface child_apkg)
+        child_meth_set = S.fromList $ map aif_name (apkg_interface child_apkg)
 
         -- combine each part of the CSI
         comb_sched_map = combineSchedMap inst parent_uses
@@ -1669,7 +1669,7 @@ mkRdyMap abi =
         mkPair (AIClock {}) = []
         mkPair (AIReset {}) = []
         mkPair ifc =
-            let name = aIfaceName ifc
+            let name = aif_name ifc
                 pred_e = aIfacePred ifc
             in  if (isRdyId name)
                 then [] -- Rdy methods don't have Rdy methods
@@ -1903,8 +1903,8 @@ mkParentUseMap parent_abi =
         rs = apkg_rules apkg
 
         -- definitions of the value methods in the interface
-        ifc_defs = [d | (AIDef { aif_value = d }) <- ifcs] ++
-                   [d | (AIActionValue { aif_value = d }) <- ifcs]
+        ifc_defs = [d | (AIDef { aif_values = ds }) <- ifcs, d <- ds] ++
+                   [d | (AIActionValue { aif_values = ds }) <- ifcs, d <- ds]
         defs = ifc_defs ++ local_defs
         defUseMap = M.fromList [(d, eDomain defUseMap e) | ADef d _ e _<- defs]
 
@@ -1974,6 +1974,7 @@ eDomain m e@(AMethCall _ i mi es) =
     mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
 -- don't count the return value uses of actionvalue, only the action part
 eDomain m (AMethValue _ _ _) = []
+eDomain m (ATupleSel _ e _) = eDomain m e
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []
@@ -2021,7 +2022,7 @@ cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
     -- have been able to distinguish pred reads from non-pred reads
     [(UseInfo rId [ifPred, rPred] [] rActs)
         | (ARule rId _ _ _ rPred rActs _ _) <- ifRs]
-cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
+cvtIfc (AIActionValue _ _ ifPred ifId ifRs [(ADef dId t _ _)] _) =
     -- similar to converting an action, but include the return value
     -- in the body value uses of each split rule
     -- (note that, if the method body is not split into multiple
@@ -2029,13 +2030,16 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     [(UseInfo rId [ifPred, rPred] [dExpr] rActs)
         | (ARule rId _ _ _ rPred rActs _ _) <- ifRs]
         where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
+cvtIfc (AIDef _ _ _ ifPred [(ADef dId t _ _)] _ _)
     | isRdyId dId = []
     | otherwise   = [(UseInfo dId [ifPred] [dExpr] [])]
         where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []
+
+-- TODO: handle multiple method outputs
+cvtIfc _ = error ("SimExpand.cvtIfc: unexpected ifc")
 
 
 -- ===============
@@ -2210,13 +2214,17 @@ makeMethodTemps apkg =
                                   (AIDef {})         -> (True,False)
                                   (AIActionValue {}) -> (False,True)
                                   otherwise          -> (False,False)
+              v = case aif_values aif of
+                    [val] -> val
+                    -- TODO: handle multiple return values
+                    _     -> internalError ("makeMethodTemps: unexpected multiple values in " ++ ppReadable aif)
           in if is_def || is_av
-             then case process is_av (aif_value aif) (aif_name aif) seqNo of
+             then case process is_av v (aif_name aif) seqNo of
                     (Just t@(ADef tid ty e props)) ->
-                       let aid = adef_objid (aif_value aif)
+                       let aid = adef_objid v
                            -- unclear if propagating the props is correct
                            new_def = (ADef aid ty (ASDef ty tid) props)
-                           aif' = aif { aif_value = new_def }
+                           aif' = aif { aif_values = [new_def] }
                            in cvt (seqNo + 1) (t:defs) (aif':iface) aifs
                     Nothing -> cvt seqNo defs (aif:iface) aifs
              else cvt seqNo defs (aif:iface) aifs

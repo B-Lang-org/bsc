@@ -9,7 +9,7 @@ module Prim(
             ) where
 
 import Numeric(floatToDigits)
-import Eval
+import Eval(NFData(..))
 import PPrint
 import Id
 import Position
@@ -63,6 +63,8 @@ data PrimOp =
 
         | PrimInoutCast
         | PrimInoutUncast
+
+        | PrimMethod
 
         | PrimIf
         | PrimMux
@@ -354,6 +356,7 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primBOr" = PrimBOr
         tp "primInoutCast" = PrimInoutCast
         tp "primInoutUncast" = PrimInoutUncast
+        tp "primMethod" = PrimMethod
         tp "primIntegerToBit" = PrimIntegerToBit
         tp "primIntegerToUIntBits" = PrimIntegerToUIntBits
         tp "primIntegerToIntBits"  = PrimIntegerToIntBits
@@ -641,8 +644,8 @@ toWString PrimError = "_error"
 toWString PrimCurrentClock = "primCurrentClock"
 toWString p = show p
 
-instance Hyper PrimOp where
-    hyper x y = seq x y
+instance NFData PrimOp where
+    rnf x = seq x ()
 
 -----
 

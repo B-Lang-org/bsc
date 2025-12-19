@@ -56,8 +56,8 @@ convAPackageToLambdaCalc errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
-             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
+            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
+             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -182,8 +182,38 @@ data SExpr = SLam Id SType SExpr
 
 -- -----
 
-instance Hyper SPackage where
-  hyper x y = (x==x) `seq` y
+instance NFData SPackage where
+  rnf (SPackage cmt defns) = rnf2 cmt defns
+
+instance NFData SDefn where
+  rnf (SDStruct id flds) = rnf2 id flds
+  rnf (SDValue id typ expr) = rnf3 id typ expr
+  rnf (SDComment cmt defns) = rnf2 cmt defns
+
+instance NFData STyCon where
+  rnf (STyCon id) = rnf id
+  rnf (STyNum n) = rnf n
+
+instance NFData SType where
+  rnf (STVar id) = rnf id
+  rnf (STCon con) = rnf con
+  rnf (STAp t1 t2) = rnf2 t1 t2
+
+instance NFData SExpr where
+  rnf (SLam id t e) = rnf3 id t e
+  rnf (SLet defs body) = rnf2 defs body
+  rnf (SVar id) = rnf id
+  rnf (SCon id) = rnf id
+  rnf (SBVLit w v) = rnf2 w v
+  rnf (SStringLit s) = rnf s
+  rnf (SRealLit v) = rnf v
+  rnf (SApply f args) = rnf2 f args
+  rnf (SApplyInfix op args) = rnf2 op args
+  rnf (SStruct id fs) = rnf2 id fs
+  rnf (SStructUpd e fs) = rnf2 e fs
+  rnf (SSelect e id) = rnf2 e id
+  rnf (SIf c t f) = rnf3 c t f
+  rnf (SHasType t e) = rnf2 t e
 
 -- -----
 
@@ -716,8 +746,9 @@ convARule defmap instmap mmap modId r@(ARule rId _ _ _ p as _ _) =
 convAIFace :: DefMap -> InstMap -> MethodOrderMap ->
               Id -> AIFace -> [SDefn]
 
+-- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIDef mId args _ p (ADef _ ret_t ret_e _) _ _) =
+           (AIDef mId args _ p [ADef _ ret_t ret_e _] _ _) =
   let
       mod_ty = modType modId []
       rt = convAType ret_t
@@ -757,8 +788,9 @@ convAIFace defmap instmap mmap modId
          sLam (arg_infos ++ [(stateId, mod_ty)]) $
            body]
 
+-- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIActionValue args _ p mId rs (ADef _ def_t def_e _) _) =
+           (AIActionValue args _ p mId rs [ADef _ def_t def_e _] _) =
   let
       mod_ty = modType modId []
       -- return value is Bit type
@@ -885,6 +917,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -996,7 +1029,10 @@ convStmt modId avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         -- TODO: support multiple return values
+                         Just _ -> error ("convStmt: multiple return values for method " ++
+                                         ppReadable (obj, meth))
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#", "guard#", and "state#" with a unique number
@@ -1156,6 +1192,9 @@ convAExpr (AMethCall _ obj meth as) = do
 convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _) =
+  internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t i (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineId i

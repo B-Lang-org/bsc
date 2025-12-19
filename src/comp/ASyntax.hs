@@ -63,12 +63,9 @@ module ASyntax(
         unifyStringTypes,
         getArrayElemType,
         getArraySize,
-        aIfaceName,
-        aIfaceNameString,
         aIfaceProps,
-        aIfaceResSize,
-        aIfaceResType,
-        aIfaceResId,
+        aIfaceResTypes,
+        aIfaceResIds,
         aIfaceArgs,
         aIfaceArgSize,
         aIfaceRules,
@@ -97,6 +94,8 @@ module ASyntax(
         ppeAPackage,
         mkMethId,
         mkMethStr,
+        mkMethArgStr,
+        mkMethResStr,
         isMethId,
         MethodPart(..),
         getParams,
@@ -122,17 +121,17 @@ import PPrint
 import IntLit
 import Id
 import IdPrint
-import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idPreludeRead, idNoReset)
+import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idNoReset)
 import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_arg, fs_res)
 import FStringCompat
 -- import Position(noPosition)
 import Position
 import Data.Maybe
-import Util(itos, fromJustOrErr)
+import Util(itos)
 import VModInfo
 import Wires
 import ProofObligation(ProofObligation, MsgFn)
@@ -182,8 +181,9 @@ data APackage = APackage {
     apkg_proof_obligations :: [(ProofObligation AExpr, MsgFn)]
     } deriving (Eq, Show)
 
-instance Hyper APackage where
-    hyper x y = (x==x) `seq` y
+instance NFData APackage where
+    rnf (APackage n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17) =
+        rnf17 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17
 
 getAPackageFieldInfos :: APackage -> [VFieldInfo]
 getAPackageFieldInfos = map aif_fieldinfo . apkg_interface
@@ -281,8 +281,9 @@ data ASPackage = ASPackage {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPackage where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPackage where
+    rnf (ASPackage n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14) =
+        rnf14 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14
 
 data ASPSignalInfo = ASPSignalInfo {
         -- input params, ports, clocks, and resets are all in one list
@@ -338,7 +339,7 @@ data ASPMethodInfo = ASPMethodInfo {
                                     aspm_type :: String,
                                     aspm_mrdyid :: Maybe AId,
                                     aspm_menableid :: Maybe AId,
-                                    aspm_mresultid :: Maybe AId,
+                                    aspm_resultids :: [AId],
                                     aspm_inputs :: [AId],
                                     aspm_assocrules :: [AId]
                                                        }
@@ -349,14 +350,15 @@ instance PPrint ASPMethodInfo where
                        <+> text (aspm_type aspmi) <> equals <>
                        braces ( pPrint d 0 (aspm_mrdyid aspmi) <+>
                                 pPrint d 0 (aspm_menableid aspmi) <+>
-                                pPrint d 0 (aspm_mresultid aspmi) <+>
+                                pPrint d 0 (aspm_resultids aspmi) $+$
                                 pPrint d 0 (aspm_inputs aspmi) $+$
                                 pPrint d 0 (aspm_assocrules aspmi) )
 
 
 
-instance Hyper ASPSignalInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPSignalInfo where
+    rnf (ASPSignalInfo ins oclks orsts iots meths iports rsched muxsels muxvals senables) =
+        rnf10 ins oclks orsts iots meths iports rsched muxsels muxvals senables
 
 data ASPCommentInfo = ASPCommentInfo {
         -- comments on submodule instantiations
@@ -368,8 +370,8 @@ data ASPCommentInfo = ASPCommentInfo {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPCommentInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPCommentInfo where
+    rnf (ASPCommentInfo insts rules) = rnf2 insts rules
 
 -- parallel rule groups; total order on state
 -- (first rule in the list writes, present only if there are state conflicts)
@@ -380,8 +382,8 @@ data ASchedule = ASchedule {
     }
         deriving (Eq, Show)
 
-instance Hyper ASchedule where
-    hyper x y = (x==x) `seq` y
+instance NFData ASchedule where
+    rnf (ASchedule sched order) = rnf2 sched order
 
 newtype AScheduler =
           -- esposito: (r,f) s.t.
@@ -439,6 +441,10 @@ data AType =
             atr_length :: ASize,
             atr_elem_type :: AType
         }
+       -- Tuple type, for methods with multiple return values
+       | ATTuple {
+            att_elem_types :: [AType]
+        }
         -- abstract type, PrimAction, Interface, Clock, ..
         -- (can take size parameters as arguments)
        | ATAbstract {
@@ -447,8 +453,13 @@ data AType =
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AType where
-    hyper x y = (x==x) `seq` y
+instance NFData AType where
+    rnf (ATBit sz) = rnf sz
+    rnf (ATString msz) = rnf msz
+    rnf ATReal = ()
+    rnf (ATArray len typ) = rnf2 len typ
+    rnf (ATTuple typs) = rnf typs
+    rnf (ATAbstract aid args) = rnf2 aid args
 
 instance HasPosition AType where
     getPosition (ATAbstract {ata_id = id}) = getPosition id
@@ -554,10 +565,10 @@ data AVInst = AVInst {
     -- XXX This list corresponds to vFields in the VModInfo, but cannot be
     -- XXX stored there, because VModInfo is created before types are known.
     -- There is a triple for each method in vFields of VModInfo.
-    -- The triple contains the types of each argument (in order) and maybe
-    -- the types of the EN and return value.
+    -- The triple contains the types of each argument (in order), maybe
+    -- the type of the EN, and the return values.
     -- NOTE: These are the output language types (i.e. ATBit n)
-    avi_meth_types :: [([AType], Maybe AType, Maybe AType)],
+    avi_meth_types :: [([AType], Maybe AType, [AType])],
     -- This field maps source-language types to their corresponding ports
     avi_port_types :: M.Map VName IType,
     avi_vmi :: VModInfo,     -- Verilog names, conflict info, etc.
@@ -655,11 +666,12 @@ getIfcInoutPorts :: AVInst -> [(AId, (AId, AType, VPort))]
 getIfcInoutPorts avi =
   let
       vmi = avi_vmi avi
-      res_types = map (\ (_,_,mr) -> mr) (avi_meth_types avi)
+      res_types = map (\ (_,_,rs) -> rs) (avi_meth_types avi)
       ifc_inouts = [(id,vn,ty)
-                     | (Inout id vn _ _, mr) <- zip (vFields vmi) res_types,
-                       let ty = fromJustOrErr ("ASyntax.unknown inout " ++
-                                               ppReadable id) mr]
+                     | (Inout id vn _ _, rs) <- zip (vFields vmi) res_types,
+                       let ty = case rs of
+                                  [r] -> r
+                                  _ -> error ("ASyntax.unknown inout " ++ ppReadable id)]
 
 
       mkInoutPort ty vname = (mkOutputWireId (avi_vname avi) vname,
@@ -707,8 +719,8 @@ data ADef = ADef {
 instance HasPosition ADef where
     getPosition adef = getPosition (adef_objid adef )
 
-instance Hyper ADef where
-    hyper x y = (x==x) `seq` y
+instance NFData ADef where
+    rnf (ADef id typ expr props) = rnf4 id typ expr props
 
 -- last id has original rule if this one comes from a split; Nothing otherwise
 -- it's only used as an optimization; it's safe to put Nothing there
@@ -752,7 +764,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                         aif_inputs    :: [AInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
-                        aif_value     :: ADef,
+                        aif_values    :: [ADef],
                         aif_fieldinfo :: VFieldInfo,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
@@ -768,7 +780,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
                                 aif_body      :: [ARule],
-                                aif_value     :: ADef,
+                                aif_values    :: [ADef],
                                 aif_fieldinfo :: VFieldInfo }
                 -- trivial aif_inputs, props, pred?
               | AIClock { aif_name      :: AId,
@@ -782,17 +794,6 @@ data AIFace =   AIDef { aif_name      :: AId,
                           aif_fieldinfo :: VFieldInfo }
    deriving (Eq, Show)
 
-aIfaceName :: AIFace -> AId
-aIfaceName (AIDef { aif_value = (ADef i _ _ _)}) = i  -- XXX use aif_name
-aIfaceName (AIAction { aif_name = i}) = i
-aIfaceName (AIActionValue { aif_name = i}) = i
-aIfaceName (AIClock { aif_name = i}) = i
-aIfaceName (AIReset { aif_name = i}) = i
-aIfaceName (AIInout { aif_name = i}) = i
-
-aIfaceNameString :: AIFace -> String
-aIfaceNameString i = getIdString (aIfaceName i)
-
 aiface_vname :: AIFace -> String
 aiface_vname i = getIdString (vf_name (aif_fieldinfo i))
 
@@ -803,25 +804,18 @@ aIfaceProps (AIAction      { aif_props = p }) = p
 aIfaceProps (AIActionValue { aif_props = p }) = p
 aIfaceProps _ = emptyWireProps
 
--- result size
-aIfaceResSize :: AIFace -> Integer
-aIfaceResSize (AIAction { }) = 0
-aIfaceResSize (AIDef {aif_value = (ADef _ (ATBit n) _ _) }) = n
-aIfaceResSize (AIActionValue {aif_value = (ADef _ (ATBit n) _ _) }) = n
-aIfaceResSize x = internalError ("aIfaceResSize: " ++ show x)
-
-aIfaceResType :: AIFace -> AType
+aIfaceResTypes :: AIFace -> [AType]
 -- XXX should be ATAction?
-aIfaceResType (AIAction { }) = ATBit 0
-aIfaceResType (AIDef { aif_value = (ADef _ t _ _)}) = t
-aIfaceResType (AIActionValue { aif_value = (ADef _ t _ _)}) = t
+aIfaceResTypes (AIAction { }) = [ATBit 0]
+aIfaceResTypes (AIDef { aif_values = v }) = [t | ADef _ t _ _ <- v]
+aIfaceResTypes (AIActionValue { aif_values = v }) = [t | ADef _ t _ _ <- v]
 -- should not need type of clock or reset
-aIfaceResType x = internalError ("aIfaceResType: " ++ show x)
+aIfaceResTypes x = internalError ("aIfaceResTypes: " ++ show x)
 
-aIfaceResId :: AIFace -> [AId]
-aIfaceResId (AIDef {aif_value = (ADef i _ _ _) }) = [i]
-aIfaceResId (AIActionValue {aif_value = (ADef i _ _ _) }) = [i]
-aIfaceResId _ = []
+aIfaceResIds :: AIFace -> [AId]
+aIfaceResIds (AIDef {aif_values = ds }) = map adef_objid ds
+aIfaceResIds (AIActionValue {aif_values = ds}) = map adef_objid ds
+aIfaceResIds _ = []
 
 aIfaceArgs :: AIFace -> [AInput]
 aIfaceArgs (AIClock {}) = []
@@ -869,7 +863,7 @@ addRdyToARule rdyId r0@(ARule { arule_id = ri, arule_pred = e }) = (d, r)
 aIfaceSchedNames :: AIFace -> [ARuleId]
 aIfaceSchedNames (AIAction { aif_body = rs}) = map arule_id rs
 aIfaceSchedNames (AIActionValue { aif_body = rs}) = map arule_id rs
-aIfaceSchedNames (AIDef { aif_value = d }) = [adef_objid d]
+aIfaceSchedNames (AIDef { aif_name = i }) = [i]
 aIfaceSchedNames _ = []
 
 aIfacePred :: AIFace -> APred
@@ -929,8 +923,11 @@ data AAction
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AAction where
-    hyper x y = (x==x) `seq` y
+instance NFData AAction where
+    rnf (ACall oid mid args) = rnf3 oid mid args
+    rnf (AFCall oid fun isC args assump) = rnf5 oid fun isC args assump
+    rnf (ATaskAction oid fun isC cookie args temp vtyp assump) =
+        rnf8 oid fun isC cookie args temp vtyp assump
 
 data AClock = AClock {
                        aclock_osc  :: AExpr, -- must be of type ATBit 1
@@ -1006,6 +1003,12 @@ data AExpr
             ae_type :: AType,
             ae_objid :: AId,
             ameth_id :: AMethodId
+        }
+        -- selection from an ATTuple
+        | ATupleSel {
+            ae_type :: AType,
+            ae_exp :: AExpr,
+            ae_index :: Integer
         }
         -- calls a combinatorial function expressed via module instantiation
         -- XXX this can be created not only via "noinline" in BSV,
@@ -1101,8 +1104,25 @@ data AExpr
         }
         deriving (Ord, Show)
 
-instance Hyper AExpr where
-    hyper x y = (x==x) `seq` y
+instance NFData AExpr where
+    rnf (APrim oid typ prim args) = rnf4 oid typ prim args
+    rnf (AMethCall typ oid mid args) = rnf4 typ oid mid args
+    rnf (AMethValue typ oid mid) = rnf3 typ oid mid
+    rnf (ATupleSel typ expr index) = rnf3 typ expr index
+    rnf (ANoInlineFunCall typ oid fun args) = rnf4 typ oid fun args
+    rnf (AFunCall typ oid fname isC args) = rnf5 typ oid fname isC args
+    rnf (ATaskValue typ oid fname isC cookie) = rnf5 typ oid fname isC cookie
+    rnf (ASPort typ oid) = rnf2 typ oid
+    rnf (ASParam typ oid) = rnf2 typ oid
+    rnf (ASDef typ oid) = rnf2 typ oid
+    rnf (ASInt oid typ ival) = rnf3 oid typ ival
+    rnf (ASReal oid typ rval) = rnf3 oid typ rval
+    rnf (ASStr oid typ sval) = rnf3 oid typ sval
+    rnf (ASAny typ mval) = rnf2 typ mval
+    rnf (ASClock typ clk) = rnf2 typ clk
+    rnf (ASReset typ rst) = rnf2 typ rst
+    rnf (ASInout typ inout) = rnf2 typ inout
+    rnf (AMGate typ oid clkid) = rnf3 typ oid clkid
 
 instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
@@ -1113,6 +1133,9 @@ instance Eq AExpr where
 
     AMethValue t aid mid == AMethValue t' aid' mid' =
         (t == t') && (mid == mid') && (aid == aid')
+    
+    ATupleSel t aexpr index == ATupleSel t' aexpr' index' =
+        (t == t') && (index == index') && (aexpr == aexpr')
 
     ANoInlineFunCall t aid af aexprs == ANoInlineFunCall t' aid' af' aexprs' =
         (t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
@@ -1159,6 +1182,7 @@ instance HasPosition AExpr where
     getPosition APrim{ ae_objid = p }       = getPosition p
     getPosition AMethCall{ ae_objid = p }   = getPosition p
     getPosition AMethValue{ ae_objid = p }  = getPosition p
+    getPosition ATupleSel{ ae_exp = e }     = getPosition e
     getPosition ANoInlineFunCall{ ae_objid = p } = getPosition p
     getPosition AFunCall{ ae_objid = p }    = getPosition p
     getPosition ATaskValue{ ae_objid = p }  = getPosition p
@@ -1309,8 +1333,9 @@ instance PPrint AVInst where
         text "meth types=" <> pPrint d 0 mts $+$
         text "port types=" <> pPrint d 0 pts)
 
-instance Hyper AVInst where
-    hyper x y = (x==x) `seq` y
+instance NFData AVInst where
+    rnf (AVInst vn typ ui mts pts vmi args arr) =
+        rnf8 vn typ ui mts pts vmi args arr
 
 ppVTI :: PDetail -> (VModInfo, [AExpr], [(AId, Integer)]) -> Doc
 ppVTI d (vi, es, ns) = sep [pPrint d 0 (vName vi), pPrint d 0 vi, pPrint d 0 es, pPrint d 0 ns]
@@ -1368,7 +1393,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        pPrint d 0 (aif_value ai) $+$
+        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
         pPrint d 0 (aif_fieldinfo ai) $+$
@@ -1384,7 +1409,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        pPrint d p (aif_value ai) $+$
+        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1460,8 +1485,50 @@ instance PPrint AForeignCall where
 
    pPrint _ _ x = internalError ("pPrint AForeignCall: " ++ show x)
 
-instance Hyper AForeignCall where
-    hyper x y = (x==x) `seq` y
+instance NFData AForeignCall where
+    rnf (AForeignCall n f a w r) = rnf5 n f a w r
+
+instance NFData ASPMethodInfo where
+    rnf (ASPMethodInfo n t mr me mres ins assoc) = rnf7 n t mr me mres ins assoc
+
+instance NFData AScheduler where
+    rnf (ASchedEsposito fs) = rnf fs
+
+instance NFData AClock where
+    rnf (AClock osc gate) = rnf2 osc gate
+
+instance NFData AReset where
+    rnf (AReset wire) = rnf wire
+
+instance NFData AInout where
+    rnf (AInout wire) = rnf wire
+
+instance NFData ANoInlineFun where
+    rnf (ANoInlineFun name nums ports minst) = rnf4 name nums ports minst
+
+instance NFData AAbstractInput where
+    rnf (AAI_Port p) = rnf p
+    rnf (AAI_Clock osc mgate) = rnf2 osc mgate
+    rnf (AAI_Reset wire) = rnf wire
+    rnf (AAI_Inout wire sz) = rnf2 wire sz
+
+instance NFData ARule where
+    rnf (ARule rid prags descr wprops pred acts assumps mparent) =
+        rnf8 rid prags descr wprops pred acts assumps mparent
+
+instance NFData AAssumption where
+    rnf (AAssumption prop acts) = rnf2 prop acts
+
+instance NFData AIFace where
+    rnf (AIDef name ins props pred val finfo assumps) =
+        rnf7 name ins props pred val finfo assumps
+    rnf (AIAction ins props pred name body finfo) =
+        rnf6 ins props pred name body finfo
+    rnf (AIActionValue ins props pred name body val finfo) =
+        rnf7 ins props pred name body val finfo
+    rnf (AIClock name clk finfo) = rnf3 name clk finfo
+    rnf (AIReset name rst finfo) = rnf3 name rst finfo
+    rnf (AIInout name inout finfo) = rnf3 name inout finfo
 
 isOne :: AExpr -> Bool
 isOne (ASInt _ _ (IntLit _ _ 1)) = True
@@ -1494,9 +1561,12 @@ instance PPrint AExpr where
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
     pPrint d p (AMethCall _ i m es) =
         pparen (p>0 && not (null es)) $
-        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
+        pPrint d 1 i <>
+        sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
+    pPrint d p (ATupleSel _ e idx) =
+        pparen (p>0) $ pPrint d 0 e <> text "[" <> pPrint d 0 idx <> text "]"
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
     pPrint d p (ASDef _ i) = pPrint d p i
@@ -1526,6 +1596,8 @@ instance PPrint AType where
     pPrint d p (ATString (Just n)) = text ("String (" ++ (itos n) ++ " chars)")
     pPrint d p (ATArray sz ty) =
         text "Array" <+> text (itos sz) <+> pPrint d 0 ty
+    pPrint d p (ATTuple ts) =
+        text "Tuple" <+> parens (commaSep (map (pPrint d 0) ts))
     pPrint d p (ATAbstract i ns) = sep (text "ABSTRACT: " : pPrint d 0 i : map (pPrint d 0) ns)
 
 binOp :: PrimOp -> Bool
@@ -1781,14 +1853,16 @@ instance PPrintExpand AExpr where
     pPrintExpand m d ec (AFunCall _ i _ _ es)  = pPrint d 1 i <>
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrintExpand m d ec (AMethCall _ i meth []) | qualEq meth idPreludeRead = pPrint d 1 i
     pPrintExpand m d ec (AMethCall _ i meth es) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
                <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
                    docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (AMethValue _ i meth) =
+        pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATupleSel _ e idx) =
+        pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||
@@ -1819,19 +1893,21 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    MethodArg Integer | -- argument 1, 2, ... input
-    MethodResult      | -- return value output
-    MethodEnable        -- enable signal input
+    MethodArg Integer    | -- argument 1, 2, ... input
+    MethodResult Integer | -- return value 1, 2, ... output
+    MethodEnable           -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_<argnum> starting from 1
---     (e.g. the_fifo$enq_1)
---   Return values are <inst>$<meth> (e.g. the_fifo$first)
+--   Arguments are <inst>$<meth>_ARG_<argnum> starting from 1
+--     (e.g. the_fifo$enq_ARG_1)
+--   Return values are <inst>$<meth>_RES_<resnum> (e.g. the_fifo$first_RES_1)
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Multi-ported methods are <inst>$<meth>_<portnum>_<argnum>
+-- Multi-ported methods are <inst>$<meth>_<portnum>_ARG_<argnum>
+-- or <inst>$<meth>_<portnum>_RES_<resnum>
 -- The portnum is only omitted if the method has one or
 -- and infinite number of ports (like a register)
+-- XXX these should probably just be a data type rather than Ids
 mkMethId :: Id -> Id -> Maybe Integer -> MethodPart -> Id
 mkMethId o m ino mp =
         -- trace ("POS O: " ++ (show (getIdPosition o)) ++ " " ++
@@ -1856,13 +1932,8 @@ mkMethStr obj m m_port mp =
                                        fsUnderscore,
                                        mkNumFString port]
         base = case mp of
-                   MethodArg n ->
-                       if (n == 0)
-                       then internalError "mkMethStr"
-                       else concatFString [meth_port,
-                                           fsUnderscore,
-                                           mkNumFString n]
-                   MethodResult -> meth_port
+                   MethodArg n -> mkMethArgStr meth_port n
+                   MethodResult n -> mkMethResStr meth_port n
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]
@@ -1870,6 +1941,18 @@ mkMethStr obj m m_port mp =
     in  concatFString [inst,
                        fsDollar,
                        base]
+
+mkMethArgStr :: FString -> Integer -> FString
+mkMethArgStr meth_port n =
+    if (n == 0)
+    then internalError "mkMethArgStr"
+    else concatFString [meth_port, fsUnderscore, fs_arg, mkNumFString n]
+
+mkMethResStr :: FString -> Integer -> FString
+mkMethResStr meth_port n =
+    if (n == 0)
+    then internalError "mkMethResStr"
+    else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
 
 -- #############################################################################
 -- #

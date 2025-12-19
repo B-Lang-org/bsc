@@ -174,6 +174,10 @@ itList, itMaybe :: IType -> IType
 itList t = ITAp (ITCon idList (IKFun IKStar IKStar) tiList) t
 itMaybe t = ITAp (ITCon idMaybe (IKFun IKStar IKStar) tiMaybe) t
 
+isPairType :: IType -> Bool
+isPairType (ITAp (ITAp (ITCon i _ _) _) _) = i == idPrimPair
+isPairType _ = False
+
 isBitType :: IType -> Bool
 isBitType (ITAp c n) = c == itBit
 isBitType _ = False
@@ -186,6 +190,8 @@ isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
 isValueType :: IType -> Bool
 isValueType x | (isitActionValue_ x) && (getAV_Size x > 0) = True
 isValueType (ITAp t n) | t == itBit = True
+isValueType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+    isBitType t1 && isValueType t2
 isValueType _ = False
 
 -- Constructors

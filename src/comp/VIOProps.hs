@@ -5,7 +5,7 @@ import Data.Maybe(catMaybes, isNothing)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util
-import Eval
+import Eval(NFData(..), rnf)
 import Flags
 import PPrint
 import ErrorUtil(internalError)
@@ -28,14 +28,14 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
 
 data IOIO = INPUT | OUTPUT | INOUT deriving (Eq)
 
-instance Hyper IOIO where hyper x y = seq x y
+instance NFData IOIO where rnf x = seq x ()
 
 --   (name, input(T)/output(F), width, properties)
 newtype VIOProps = VIOProps [(AId, IOIO, Integer, [VeriPortProp])]
         deriving (Eq)
 
-instance Hyper VIOProps where
-    hyper (VIOProps xs) y = hyper xs y
+instance NFData VIOProps where
+    rnf (VIOProps xs) = rnf xs
 
 instance PPrint VIOProps where
     pPrint d p (VIOProps ps) =
@@ -151,9 +151,12 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          -- create the method name map
                          let nmap = M.fromList $
                                     createVerilogNameMapForAVInst flags v,
-                         -- for each method that has an output port
-                         vfi@(Method { vf_output = Just (vname,pprops) })
-                             <- vFields (avi_vmi v),
+                         -- for each method (not clocks or resets)
+                         vfi@(Method {}) <- vFields (avi_vmi v),
+                         -- for each method output port
+                         (methpart, (vname, pprops))
+                             <- zip (map MethodResult [1..]) (vf_outputs vfi),
+
                          -- for each port copy
                          ino <- if (vf_mult vfi > 1) then
                                   map Just [0 .. vf_mult vfi]
@@ -162,7 +165,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          let meth_id = mkMethId (avi_vname v)
                                                 (vf_name vfi)
                                                 ino
-                                                MethodResult,
+                                                methpart,
                          -- convert to Verilog signal name
                          let veri_id = xLateIdUsingFStringMap nmap meth_id
                     ]
@@ -194,7 +197,8 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                     -- return empty-list here; but the internal check
                     -- is nice to have (if it's not too expensive).
                     internalError ("getOVProp: could not find method " ++
-                                   ppString i)
+                                   ppString i ++ " in wireMap_out:\n" ++
+                                   ppReadable wireMap_out)
 
         -- ----------
         -- construct the VeriPortProp list for an input

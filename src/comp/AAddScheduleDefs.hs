@@ -105,12 +105,12 @@ aAddScheduleDefs flags pps pkg aschedinfo =
      -- The ExprMaps map from a method name (not RDY) to the expression
      -- for that method's ready or enable condition.
      let pre_rdy_map = M.fromList $
-                       [ (dropReadyPrefixId (aIfaceName m), adef_expr (aif_value m))
+                       [ (dropReadyPrefixId (aif_name m), adef_expr $ head $ aif_values m)
                        | m <- ifc0
-                       , isRdyId (aIfaceName m)
+                       , isRdyId (aif_name m)
                        ]
          pre_en_map  = M.fromList $
-                       [ (aIfaceName m, e)
+                       [ (aif_name m, e)
                        | m <- ifc0
                        , (Just e) <- [getMethodEnExpr m]
                        ]
@@ -280,11 +280,11 @@ mkIfcWFs _ _ _ = []  -- ignore RDY methods, clocks, resets, inouts
 -- Get the map from a method to its rule names (or def name, for value method)
 buildRuleMap :: AIFace -> Maybe (Id, [Id])
 buildRuleMap m@(AIAction {}) =
-    Just (aIfaceName m, map aRuleName (aIfaceRules m))
+    Just (aif_name m, map aRuleName (aIfaceRules m))
 buildRuleMap m@(AIActionValue {}) =
-    Just (aIfaceName m, map aRuleName (aIfaceRules m))
+    Just (aif_name m, map aRuleName (aIfaceRules m))
 buildRuleMap m@(AIDef { aif_name = mid }) | not (isRdyId mid) =
-    Just (mid, [aIfaceName m])
+    Just (mid, [aif_name m])
 buildRuleMap _ = Nothing
 
 -- Replace the value in a RDY method
@@ -292,7 +292,7 @@ replaceReadyExpr :: [(Id,[Id])] -> [(Id,[Id])] -> AIFace -> AIFace
 replaceReadyExpr rule_map rule_conflicts m@(AIDef { aif_name = n })
   | isRdyId n =
     let mn = dropReadyPrefixId n
-        v  = aif_value m
+        v  = head $ aif_values m
         v' = case lookup mn rule_map of
               Nothing -> internalError ("replaceReadyExpr: no value for " ++
                                         ppReadable mn)
@@ -307,7 +307,7 @@ replaceReadyExpr rule_map rule_conflicts m@(AIDef { aif_name = n })
                   let e = aOrs [ buildConflictExpr rid (ll rid rule_conflicts)
                                  | rid <- rids ]
                   in v { adef_expr = e }
-    in m { aif_value = v' }
+    in m { aif_values = [v'] }
 replaceReadyExpr _ _ x = x
 
 -- Replace the predicate in a rule with a reference to the

@@ -979,6 +979,7 @@ instance Bin AType where
     writeBytes (ATReal)           = do putI 2;
     writeBytes (ATArray sz t)     = do putI 3; toBin sz; toBin t
     writeBytes (ATAbstract i szs) = do putI 4; toBin i; toBin szs
+    writeBytes (ATTuple ts)       = do putI 5; toBin ts
     readBytes = do
         i <- getI
         case i of
@@ -987,6 +988,7 @@ instance Bin AType where
           2 -> do return ATReal
           3 -> do sz <- fromBin; t <- fromBin; return (ATArray sz t)
           4 -> do i <- fromBin; szs <- fromBin; return (ATAbstract i szs)
+          5 -> do ts <- fromBin; return (ATTuple ts)
           n -> internalError $ "GenABin.Bin(AType).readBytes: " ++ show n
 
 -- ----------
@@ -1016,6 +1018,7 @@ instance Bin AExpr where
     writeBytes (AMGate t obj clk) = section "AExpr" $ do putI 14; toBin t; toBin obj; toBin clk
     writeBytes (ASInout t iot) = section "AExpr" $ do putI 15; toBin t; toBin iot
     writeBytes (ASReal i t val) = section "AExpr" $ do putI 16; toBin i; toBin t; toBin val
+    writeBytes (ATupleSel t e idx) = section "AExpr" $ do putI 17; toBin t; toBin e; toBin idx
     readBytes = do
         i <- getI
         case i of
@@ -1049,6 +1052,8 @@ instance Bin AExpr where
           15 -> do t <- fromBin; iot <- fromBin; return (ASInout t iot)
           16 -> do { i <- fromBin; t <- fromBin; val <- fromBin;
                      return (ASReal i t val) }
+          17 -> do { t <- fromBin; e <- fromBin; idx <- fromBin;
+                     return (ATupleSel t e idx) }
           n  -> internalError $ "GenABin.Bin(IExpr).readBytes: " ++ show n
     -- toBin e = Out [AExp e] ()
     -- fromBin = readShared
