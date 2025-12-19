@@ -2939,6 +2939,7 @@ evalApAccum tag exprCtx typeCtx e args = do
 -- (types and expressions)
 -- calls evalAp' to do the actual work, and corrects the cross-ref info
 evalAp :: String -> HExpr -> [Arg] -> G PExpr
+evalAp str e es | not (doDebug || doTraceTypes) = evalAp' e es
 evalAp str e es = do
   let str' = str ++ " (" ++ show (length es) ++ ")"
   when doDebug $
@@ -2958,16 +2959,21 @@ evalAp str e es = do
       traceM ("evalAp exit  " ++ str' ++ " ]:\n"++ ppReadable (mkAp e es, r))
   return r
 
+{-# INLINE evalDef #-}
+evalDef :: Id -> IType -> HExpr -> [Arg] -> G PExpr
+evalDef i t e as = do
+  -- recurse into evaluating e
+  step i
+  e' <- cacheDef i t e
+  evalAp "ICDef" e' as
+
 -- evaluate a function application
 -- [arg] is a stack of application arguments on the left spine of the expression
 evalAp' :: HExpr -> [Arg] -> G PExpr
-evalAp' f@(ICon i (ICDef t e)) as = do
-        -- recurse into evaluating e
-        step i
-        e' <- cacheDef i t e
-        when doFunExpand $ do
-            traceM ("expand " ++ ppReadable (mkAp f as))
-        r <- evalAp "ICDef" e' as
+evalAp' f@(ICon i (ICDef t e)) as | not doFunExpand = evalDef i t e as
+evalAp' f@(ICon i (ICDef t e)) as = do -- doFunExpand is true
+        traceM ("expand " ++ ppReadable (mkAp f as))
+        r <- evalDef i t e as
         when doFunExpand2 $ do
             let P _ re = r
             traceM ("expand done\n" ++ ppReadable (mkAp f as, re))
@@ -3073,12 +3079,11 @@ evalHeap (ptr, ref) = do
 -- used when IAps expr@(ICon name coninfo) ...
 -- so Id is name, IConInfo is coninfo, IExpr is expr, as are the accumulated arguments
 conAp :: Id -> IConInfo HeapData -> HExpr -> [Arg] -> G PExpr
-conAp i ic e as = do
-  when doConAp $
-      traceM ("conAp enter: " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as))
+conAp i ic e as | not doConAp = conAp' i ic e as
+conAp i ic e as = do -- doConAp is True
+  traceM ("conAp enter: " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as))
   r <- conAp' i ic e as
-  when doConAp $
-      traceM ("conAp exit " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as, r))
+  traceM ("conAp exit " ++ ppReadable i ++ "\n" ++ ppReadable r)
   return r
 
 bldAp' :: String -> HExpr -> [Arg] -> G PExpr
