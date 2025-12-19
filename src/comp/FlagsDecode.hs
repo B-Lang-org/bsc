@@ -584,7 +584,6 @@ defaultFlags bluespecdir = Flags {
         optMuxConst = True,
         optSched = True,
         optUndet = False,
-        crossInfo = False,
         parallelSimLink = 1,
         printFlags = False,
         printFlagsHidden = False,
@@ -1118,10 +1117,6 @@ externalFlags = [
         ("cpp",
          (Toggle (\f x -> f {cpp=x}) (showIfTrue cpp),
           "preprocess the source with the C preprocessor", Visible)),
-
-        ("cross-info",
-         (Toggle (\f x -> f {crossInfo=x}) (showIfTrue crossInfo),
-          "apply heuristics for preserving source code positions", Hidden)),
 
         ("D",
          (Arg "macro" (\f s -> Left (f {defines = defines f ++ [s]})) (Just (FRTListString defines)),
@@ -1838,7 +1833,6 @@ showFlagsRaw flags =
           ("cdir", show (cdir flags)),
           ("cpp", show (cpp flags)),
           ("cppFlags", show (cppFlags flags)),
-          ("crossInfo", show (crossInfo flags)),
           ("cxxFlags", show (cxxFlags flags)),
           ("defines", show (defines flags)),
           ("demoteErrors", show (demoteErrors flags)),

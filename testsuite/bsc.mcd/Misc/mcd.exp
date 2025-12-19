@@ -48,26 +48,23 @@ test_c_veri_bsv_modules LaunderClock {mkLaunderClock}
 
 # these errs should have better position w/o the -cross-info flag (bug 1238)
 if {$vtest == 1} {
-compile_verilog_fail_error ClockCheckRule.bsv G0007 1 "" "-cross-info"
-compare_file ClockCheckRule.bsv.bsc-vcomp-out
+compile_verilog_fail_error ClockCheckRule.bsv G0007 1
+compare_file_bug ClockCheckRule.bsv.bsc-vcomp-out "" 1238
 
-compile_verilog_fail_error ClockCheckRule2.bsv G0007 1 "" "-cross-info"
-compare_file ClockCheckRule2.bsv.bsc-vcomp-out
+compile_verilog_fail_error ClockCheckRule2.bsv G0007 1
+compare_file_bug  ClockCheckRule2.bsv.bsc-vcomp-out "" 1238
 
-compile_verilog_fail_error ClockCheckMethod.bsv G0007 1 "" "-cross-info"
-compare_file ClockCheckMethod.bsv.bsc-vcomp-out
+compile_verilog_fail_error ClockCheckMethod.bsv G0007 1
+compare_file_bug ClockCheckMethod.bsv.bsc-vcomp-out "" 1238
 
-compile_verilog_fail_error ClockCheckCond.bsv G0007 1 ""
-copy ClockCheckCond.bsv.bsc-vcomp-out ClockCheckCond.bsv.nocrossinfo.bsc-vcomp-out
-compare_file ClockCheckCond.bsv.nocrossinfo.bsc-vcomp-out
+compile_verilog_fail_error ClockCheckCond.bsv G0007 1
 
-compile_verilog_fail_error ClockCheckCond.bsv G0007 1 "" "-cross-info"
 # even with the -cross-info flag, the positions here are not perfect
 # (we compare here against the imperfect, but we should fix it) (bug 1238)
-compare_file ClockCheckCond.bsv.bsc-vcomp-out
+compare_file_bug ClockCheckCond.bsv.bsc-vcomp-out "" 1238
 
-compile_verilog_fail_error ClockCheckMethodArg.bsv G0007 1 "" "-cross-info"
-compare_file ClockCheckMethodArg.bsv.bsc-vcomp-out
+compile_verilog_fail_error ClockCheckMethodArg.bsv G0007 1
+compare_file_bug ClockCheckMethodArg.bsv.bsc-vcomp-out "" 1238
 }
 
 compile_verilog_fail_error EResetClock.bsv G0042
