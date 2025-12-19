@@ -352,7 +352,7 @@ aVerilog errh flags pps aspack ffmap =
 
         -- remember to not redeclare any signals that needed to be
         -- declared for submodule instantiations
-        isPreDeclared = isDeclFromList inst_declared_signals
+        isPreDeclared = isDeclFromList $ S.fromList inst_declared_signals
 
         -- make a map to hold the defs, for easy access
         defmap = M.fromList [ (i,d) | d@(ADef i _ _ _) <- ds ]
@@ -813,6 +813,8 @@ genInstances errh flags ff_blocks vDef aspack =
 
         -- converts the adefs to vitems
         defs = concatMap vDef (aspkg_values aspack)
+        -- make a size and type map from the vmitems
+        sztm = mkSizeAndTypeMap defs
 
         -- we'll need the inout defs, too, to know which inout ports
         -- of submodule are used (and which should be left unconnected)
@@ -907,7 +909,7 @@ genInstances errh flags ff_blocks vDef aspack =
 
         -- generate the reg/wire declarations
         reg_decl_groups =
-            map (mkRegGroup sos defs inlined_reg_comments) reg_infos
+            map (mkRegGroup sos sztm inlined_reg_comments) reg_infos
 
         -- the input wire decls (to be later assigned to, but not re-declared)
         reg_inputs :: [(AId, [VId])]
@@ -1003,14 +1005,14 @@ genInstances errh flags ff_blocks vDef aspack =
             in  partition ((`elem` probe_ids) . fst) noninlinedreg_comments
 
         (probe_inputs, probe_decls_group) =
-            mkProbeGroup sos defs probe_comments probe_infos
+            mkProbeGroup sos sztm probe_comments probe_infos
 
     -- ----------
     -- generate a group for inlined rwires whose i/o are still around
 
         -- user comments on rwires are handled with "inlined_submod_comments"
         -- (note that InlineRWire could convert them to PPdoc on the topmod)
-        (rwire_inputs, rwire_decls_group) = mkRWireGroup filtered_defs rws
+        (rwire_inputs, rwire_decls_group) = mkRWireGroup (mkSizeAndTypeMap filtered_defs) rws
 
     -- ----------
     -- signals declared so far
@@ -1036,7 +1038,7 @@ genInstances errh flags ff_blocks vDef aspack =
 
         (submod_inputs, submod_decl_groups, submod_def_groups,
          extra_submod_decls) =
-            mkSubmodGroups flags sos defs submod_comments decls_so_far
+            mkSubmodGroups flags sos sztm submod_comments decls_so_far
                            submod_infos
 
     -- ----------
@@ -1123,15 +1125,15 @@ genInstances errh flags ff_blocks vDef aspack =
 -- (any signals which are pre-declared are returned as the fourth item
 -- of the tuple)
 mkSubmodGroups ::
-    Flags -> [AStateOut] -> [VMItem] -> [(Id,[String])] -> [VId] ->
+    Flags -> [AStateOut] -> SizeAndTypeMap -> [(Id,[String])] -> [VId] ->
     [(AId, VMItem, InstInfo)] ->
     ([(AId, [VId])], [VMItem], [VMItem], [VId])
-mkSubmodGroups flags sos defs submod_comments decls_so_far submod_infos =
+mkSubmodGroups flags sos sztm submod_comments decls_so_far submod_infos =
     let
         (submod_decl_groups, submod_def_groups) =
             apFst catMaybes $ apSnd catMaybes $
             unzip $
-            map (mkInstGroup flags sos defs submod_comments) submod_infos
+            map (mkInstGroup flags sos sztm submod_comments) submod_infos
 
         submod_inputs =
             let getInputs (i, _, (_,_,_,ins,_)) = (i, map snd ins)
@@ -1145,7 +1147,7 @@ mkSubmodGroups flags sos defs submod_comments decls_so_far submod_infos =
         else
             let
                (new_submod_groups, extra_submod_decls) =
-                   fixupSubmodGroups sos defs submod_infos decls_so_far
+                   fixupSubmodGroups sos sztm submod_infos decls_so_far
                        submod_decl_groups
             in
                -- check that the assumption is OK
@@ -1155,9 +1157,9 @@ mkSubmodGroups flags sos defs submod_comments decls_so_far submod_infos =
 
 
 fixupSubmodGroups ::
-    [AStateOut] -> [VMItem] -> [(AId, VMItem, InstInfo)] -> [VId] ->
+    [AStateOut] -> SizeAndTypeMap -> [(AId, VMItem, InstInfo)] -> [VId] ->
     [VMItem] -> ([VMItem], [VId])
-fixupSubmodGroups sos defs submod_infos decls_so_far submod_groups =
+fixupSubmodGroups sos sztm submod_infos decls_so_far submod_groups =
     let
 
     -- ----------
@@ -1209,21 +1211,21 @@ fixupSubmodGroups sos defs submod_infos decls_so_far submod_groups =
 
         (final_submod_groups, extra_submod_decls) =
             apFst reverse $
-            foldl (addInstPortDecls defs decls_so_far) ([],[])
+            foldl (addInstPortDecls sztm decls_so_far) ([],[])
                   sorted_inst_nodes
     in
         (final_submod_groups, extra_submod_decls)
 
 
 -- create a group of Verilog statements for a submodule instantiation
-mkInstGroup :: Flags -> [AStateOut] -> [VMItem] -> [(Id,[String])] ->
+mkInstGroup :: Flags -> [AStateOut] -> SizeAndTypeMap -> [(Id,[String])] ->
                (AId, VMItem, InstInfo) -> (Maybe VMItem, Maybe VMItem)
-mkInstGroup flags sos defs comments_map (instname, vmi, info) =
+mkInstGroup flags sos sztm comments_map (instname, vmi, info) =
     let (_, _, special, ins, outs) = info
         -- nub on the output values because there can be permissible overlap between
         -- "special" clock/reset outputs and method outputs
         wire_decls =
-            map (mkInstInputDecl defs instname . snd) ins ++
+            map (mkInstInputDecl sztm instname . snd) ins ++
             map (mkInstOutputDecl sos instname VDWire . snd) (nub (special ++ outs))
         user_comment = case (lookup instname comments_map) of
                            Nothing -> []
@@ -1251,13 +1253,13 @@ mkInstGroup flags sos defs comments_map (instname, vmi, info) =
 -- (each probe has one input, with obvious name, so no need to add a
 --  comment and empty line for each probe)
 -- (note that there is no instantiation for Probes, just the wire)
-mkProbeGroup :: [AStateOut] -> [VMItem] -> [(Id, [String])] ->
+mkProbeGroup :: [AStateOut] -> SizeAndTypeMap -> [(Id, [String])] ->
                 [(AId, VMItem, InstInfo)] ->
                 ([VId], [VMItem])
-mkProbeGroup sos defs comments_map probe_infos =
+mkProbeGroup sos sztm comments_map probe_infos =
     let
         getProbeInput (instname, vmi, (_, _, _, inps, _)) =
-            map (mkInstInputDecl defs instname . snd) inps
+            map (mkInstInputDecl sztm instname . snd) inps
         -- we drop the vmi and just declare the input port
         -- (there shouldn't be any outputs)
         probe_decls = concatMap getProbeInput probe_infos
@@ -1285,14 +1287,14 @@ mkProbeGroup sos defs comments_map probe_infos =
         else (decl_ids, [group])
 
 -- create a group of Verilog statements for an inlined register "instantiation"
-mkRegGroup :: [AStateOut] -> [VMItem] -> [(Id, [String])] ->
+mkRegGroup :: [AStateOut] -> SizeAndTypeMap -> [(Id, [String])] ->
               RegInstInfo -> VMItem
-mkRegGroup sos defs comments_map (inst_vid, def_name, _, inps, (out, out_size)) =
+mkRegGroup sos sztm comments_map (inst_vid, def_name, _, inps, (out, out_size)) =
     let
         reg_decl = VMDecl (VVDecl VDReg out_size [VVar out])
         -- if the EN is 0, then D_IN might not be defined!
         -- so have a backup in case the signal is not defined
-        inp_decls = map (mkInstInputDeclWithDefault defs) inps
+        inp_decls = map (mkInstInputDeclWithDefault sztm) inps
         all_decls = (reg_decl : mergeCommonDecl inp_decls)
         comments = lookupWithDefault comments_map [] (vidToId inst_vid)
     in  VMRegGroup inst_vid
@@ -1300,9 +1302,9 @@ mkRegGroup sos defs comments_map (inst_vid, def_name, _, inps, (out, out_size)) 
                    comments
                    (VMGroup False [all_decls])
 
-mkRWireGroup :: [VMItem] -> [AId] -> ([VId], [VMItem])
-mkRWireGroup defs rws =
-    let rw_decls = mapMaybe (mkInstInputDeclMaybe defs . vId) rws
+mkRWireGroup :: SizeAndTypeMap -> [AId] -> ([VId], [VMItem])
+mkRWireGroup sztm rws =
+    let rw_decls = mapMaybe (mkInstInputDeclMaybe sztm . vId) rws
         decl_ids = [ i | (VMDecl (VVDecl _ _ [VVar i])) <- rw_decls ]
         comment = ["inlined wires"]
         group = VMComment comment (VMGroup False [(mergeCommonDecl rw_decls)])
@@ -1315,17 +1317,17 @@ mkRWireGroup defs rws =
 -- when folded left along a tsort'ed list of instances, it inserts additional
 -- signal decls for signals used in non-method ports of the instantiations.
 -- the resulting list of VMItem groups is in reverse order (due to foldl).
-addInstPortDecls :: [VMItem] -> [VId] ->
+addInstPortDecls :: SizeAndTypeMap -> [VId] ->
                     ([VMItem], [VId]) ->
                     (AId, VMItem, [(VId,VExpr)]) ->
                     ([VMItem], [VId])
-addInstPortDecls defs decls (gs, new_decls) (i, inst_g, ps) =
+addInstPortDecls sztm decls (gs, new_decls) (i, inst_g, ps) =
     let
         -- variables used in the inst which have not already been declared
         -- (prior to submod instances or by an earlier submod inst)
         vs = [ i | (_, VEVar i) <- ps, i `notElem` (decls ++ new_decls) ]
         -- convert to decl
-        v_decls = map (mkInstInputDecl defs i) vs
+        v_decls = map (mkInstInputDecl sztm i) vs
         -- create a group for it
         decl_g = VMGroup False [mergeCommonDecl v_decls]
     in
@@ -1351,29 +1353,29 @@ mkInstOutputDecl sos inst_id decl_type out_port_id =
 
 -- for a submodule input, lookup the size and create a Verilog decl
 -- of the appropriate size and type (some decls are defined with case-stmt)
-mkInstInputDecl :: [VMItem] -> Id -> VId -> VMItem
-mkInstInputDecl defs inst_id in_port_id =
+mkInstInputDecl :: SizeAndTypeMap -> Id -> VId -> VMItem
+mkInstInputDecl sztm inst_id in_port_id =
     let mkDecl i sz t = VMDecl (VVDecl t sz [VVar i])
-    in  case (getSizeAndTypeM in_port_id defs) of
+    in  case (getSizeAndTypeM in_port_id sztm) of
             Just (sz, t) -> mkDecl in_port_id sz t
             Nothing -> internalError ("mkInstInputDecl: instance `" ++
                                       getIdString inst_id ++
                                       "' input port not found: " ++
                                       getVIdString in_port_id ++
-                                      "\n  defs = " ++
-                                      ppReadable defs)
+                                      "\n  size and type map = " ++
+                                      ppReadable sztm)
 
-mkInstInputDeclWithDefault :: [VMItem] -> (VId, Maybe VRange) -> VMItem
-mkInstInputDeclWithDefault defs (in_port_id, in_port_size) =
+mkInstInputDeclWithDefault :: SizeAndTypeMap -> (VId, Maybe VRange) -> VMItem
+mkInstInputDeclWithDefault sztm (in_port_id, in_port_size) =
     let mkDecl i sz t = VMDecl (VVDecl t sz [VVar i])
-    in  case (getSizeAndTypeM in_port_id defs) of
+    in  case (getSizeAndTypeM in_port_id sztm) of
             Just (sz, t) -> mkDecl in_port_id sz t
             Nothing -> mkDecl in_port_id in_port_size VDWire
 
-mkInstInputDeclMaybe :: [VMItem] -> VId -> Maybe VMItem
-mkInstInputDeclMaybe defs in_port_id =
+mkInstInputDeclMaybe :: SizeAndTypeMap -> VId -> Maybe VMItem
+mkInstInputDeclMaybe sztm in_port_id =
     let mkDecl i sz t = VMDecl (VVDecl t sz [VVar i])
-    in  case (getSizeAndTypeM in_port_id defs) of
+    in  case (getSizeAndTypeM in_port_id sztm) of
             Just (sz, t) -> Just (mkDecl in_port_id sz t)
             Nothing -> Nothing
 
@@ -1639,18 +1641,20 @@ mergeCommonDecl ins =
 
 -- ==============================
 
-getSizeAndTypeM :: VId -> [VMItem] -> Maybe (Maybe VRange, VDType)
-getSizeAndTypeM i [] = Nothing
-getSizeAndTypeM i (VMDecl (VVDWire sz (VVar i') _) : _)
-    | i == i' = Just (sz, VDWire)
-getSizeAndTypeM i (VMDecl (VVDecl t sz vs) : _)
-    | (t == VDWire || t == VDReg) && i `elem` [ i | VVar i <- vs ] = Just (sz, t)
-getSizeAndTypeM i (_ : ms) = getSizeAndTypeM i ms
+type SizeAndTypeMap = M.Map VId (Maybe VRange, VDType)
+
+mkSizeAndTypeMap :: [VMItem] -> SizeAndTypeMap
+mkSizeAndTypeMap defs = M.fromList $
+  [ (i, (sz, VDWire)) | VMDecl (VVDWire sz (VVar i) _) <- defs ] ++
+  [ (i, (sz, t)) | VMDecl (VVDecl t sz vs) <- defs, VVar i <- vs ]
+
+getSizeAndTypeM :: VId -> SizeAndTypeMap -> Maybe (Maybe VRange, VDType)
+getSizeAndTypeM = M.lookup
 
 -- assumes that decls haven't been merged yet
-isDeclFromList :: [VId] -> VMItem -> Bool
-isDeclFromList is (VMDecl (VVDWire _ vv _))  = elem (vvName vv) is
-isDeclFromList is (VMDecl (VVDecl _ _ [vv])) = elem (vvName vv) is
+isDeclFromList :: S.Set VId -> VMItem -> Bool
+isDeclFromList is (VMDecl (VVDWire _ vv _))  = vvName vv `S.member` is
+isDeclFromList is (VMDecl (VVDecl _ _ [vv])) = vvName vv `S.member` is
 isDeclFromList _  _ = False
 
 -- lookup defs, maintaining their order, and returning the remaining defs
