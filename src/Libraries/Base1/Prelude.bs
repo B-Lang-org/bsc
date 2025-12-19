@@ -866,9 +866,8 @@ instance Monad ActionValue
                a   = x1.avAction
                v   = x1.avValue
                aw1 = x1.avWorld
-               y   = __avFunc (f v) $ aw1
-        in  primSeq v $ primSeq a $ primSeq aw1 $
-            AVStruct {
+               y   = primSeq v $ primSeq a $ primSeq aw1 $ __avFunc (f v) $ aw1
+        in  AVStruct {
                 avValue = y.avValue;
                 avAction = primJoinActions a y.avAction;
                 avWorld  = y.avWorld
