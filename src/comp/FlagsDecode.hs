@@ -389,11 +389,16 @@ helpMessage showHidden prog args cd =
                  "  %p    package name",
                  "  %m    module name" ++
                    " (empty for passes not involved in code generation)",
-                 "  %s    compiler stage",
+                 "  %s    compiler pass",
                  "  %%    the % character",
                  "% followed by any other character yields that character",
                  "You may substitute -KILL for -d" ++
                    " to stop compilation after the named pass",
+                  "",
+                  "-dall supports filename arguments including digraphs",
+                  "",
+                  "Note: If a file is dumped to multiple times in a compilation,",
+                  "it is appended to after the first dump.",
                  "",
                  "The following trace flags are also available:",
                  unwords (map ("-"++) (sort traceflags))
