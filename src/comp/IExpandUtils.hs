@@ -150,11 +150,14 @@ doTraceLoc = elem "-trace-state-loc" progArgs
 type HPred = Pred HeapData
 
 pAtom :: IExpr a -> Pred a
-pAtom e = if isTrue e then PConj S.empty else PConj (S.singleton (PAtom e))
+pAtom e = if isTrue e then pTrue else PConj (S.singleton (PAtom e))
 
 -- we're wrapping this in the G monad because pIf' should be in IO
 -- using unsafePeformIO inside of it is a performance hack
 pIf :: HExpr -> HPred -> HPred -> G HPred
+pIf _ t e | t == e = return t
+pIf c t e | isTrue c = return t
+pIf c t e | isFalse c = return e
 pIf c t e = return $ pIf' c t e
 
 -- expand heap references looking for PrimBNot to desugar
@@ -186,10 +189,17 @@ pSel idx idx_sz es =
       else PConj (S.insert (PSel idx idx_sz (map PConj ps')) common_ps)
 
 pConj :: Pred a -> Pred a -> Pred a
-pConj (PConj ts1) (PConj ts2) = PConj (ts1 `S.union` ts2)
+pConj p1@(PConj ts1) p2@(PConj ts2)
+  | S.null ts1 && S.null ts2 = pTrue
+  | S.null ts1 = p2
+  | S.null ts2 = p1
+  | otherwise = PConj (ts1 `S.union` ts2)
 
 pConjs :: [Pred a] -> Pred a
-pConjs ps = PConj (S.unions [ ts | PConj ts <- ps ])
+pConjs ps
+  | S.null pset = pTrue
+  | otherwise = PConj pset
+  where pset = S.unions [ ts | PConj ts <- ps, not (S.null ts) ]
 
 isPAtom :: PTerm a -> Bool
 isPAtom (PAtom _) = True
@@ -253,7 +263,7 @@ pTermToIExpr (PSel idx idx_sz es) =
     ieCase itBit1 idx_sz idx (map predToIExpr es) iTrue
 
 -- An expression with an implicit condition.
-data PExpr = P HPred HExpr
+data PExpr = P !HPred HExpr
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint PExpr where
