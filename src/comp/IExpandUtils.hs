@@ -2616,9 +2616,9 @@ toHeap tag e@(ICon _ _) cell_name = return e
 toHeap tag e@(IRefT _ _ _) cell_name = return e -- XXX name improvement?
 toHeap tag e cell_name = do
         -- these errors have never happened, disable checks for now.
-        when (doDebugFreeVars && not (null (fVars e))) $
+        when (doDebugFreeVars && not (S.null (fVars e))) $
              internalError ("toHeap: fv " ++ ppReadable (fVars e) ++ ppReadable e)
-        when (doDebugFreeVars && not (null (ftVars e))) $
+        when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
         -- do the real work of adding the cell
         addHeapUnev tag (iGetType e) e cell_name

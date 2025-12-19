@@ -37,6 +37,7 @@ module ISyntax(
         normITAp,
         splitITAp,
         aTVars,
+        fTVars,
         itArrow,
         iToCT,
         iToCK,
@@ -47,6 +48,7 @@ module ISyntax(
         iAP,
         fVars,
         ftVars,
+        aVars,
         mkNumConT,
         showTypeless,
         showTypelessRules,
@@ -416,8 +418,8 @@ tSubst v x t = sub t
         sub tt@(ITCon _ _ _) = tt
         sub tt@(ITNum _) = tt
         sub tt@(ITStr _) = tt
-        fvx = fTVars' x
-        vs = fvx `S.union` aTVars' t
+        fvx = fTVars x
+        vs = fvx `S.union` aTVars t
 
 normITAp :: IType -> IType -> IType
 normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
@@ -442,27 +444,21 @@ normITAp f@(ITCon op _ _) a | op == idId = a
 
 normITAp f a = ITAp f a
 
-aTVars :: IType -> [Id]
-aTVars t = S.toList (aTVars' t)
+aTVars :: IType -> S.Set Id
+aTVars (ITForAll i _ t) = S.insert i (aTVars t)
+aTVars (ITAp f a) = (aTVars f) `S.union` (aTVars a)
+aTVars (ITVar i) = S.singleton i
+aTVars (ITCon _ _ _) = S.empty
+aTVars (ITNum _) = S.empty
+aTVars (ITStr _) = S.empty
 
-aTVars' :: IType -> S.Set Id
-aTVars' (ITForAll i _ t) = S.insert i (aTVars' t)
-aTVars' (ITAp f a) = (aTVars' f) `S.union` (aTVars' a)
-aTVars' (ITVar i) = S.singleton i
-aTVars' (ITCon _ _ _) = S.empty
-aTVars' (ITNum _) = S.empty
-aTVars' (ITStr _) = S.empty
-
--- fTVars :: IType -> [Id]
--- fTVars t = S.toList (fTVars' t)
-
-fTVars' :: IType -> S.Set Id
-fTVars' (ITForAll i _ t) = S.delete i (fTVars' t)
-fTVars' (ITAp f a) = fTVars' f `S.union` fTVars' a
-fTVars' (ITVar i) = S.singleton i
-fTVars' (ITCon _ _ _) = S.empty
-fTVars' (ITNum _) = S.empty
-fTVars' (ITStr _) = S.empty
+fTVars :: IType -> S.Set Id
+fTVars (ITForAll i _ t) = S.delete i (fTVars t)
+fTVars (ITAp f a) = fTVars f `S.union` fTVars a
+fTVars (ITVar i) = S.singleton i
+fTVars (ITCon _ _ _) = S.empty
+fTVars (ITNum _) = S.empty
+fTVars (ITStr _) = S.empty
 
 
 splitITAp :: IType -> (IType, [IType])
@@ -983,8 +979,8 @@ eSubst v x e = rnfId e'
         -- populated until after evaluation
         sub ee@(ICon _ _) = ee
         sub ee@(IRefT _ _ _) = ee        -- no free vars inside IRefT
-        fvx = fVars' x
-        vs = fvx `S.union` aVars' e
+        fvx = fVars x
+        vs = fvx `S.union` aVars e
 {-
         setPos p (ICon i ci) = ICon (setIdPosition p i) ci
         setPos p (IVar i) = IVar (setIdPosition p i)
@@ -1021,40 +1017,34 @@ etSubst v x e = sub e
         sub (ICon i ii@(ICType { })) = ICon i (ii { iType = tSubst v x (iType ii) })
         sub ee@(ICon _ _) = ee
         sub ee@(IRefT _ _ _) = ee        -- no free tyvar inside IRef
-        fvx = fTVars' x
-        vs = fvx `S.union` aVars' e
+        fvx = fTVars x
+        vs = fvx `S.union` aVars e
 
 -- --------------------
 
 -- All variables
--- aVars :: IExpr -> [Id]
--- aVars e = S.toList (aVars' e)
-
-aVars' :: IExpr a -> S.Set Id
-aVars' (ILam i t e) = S.insert i (aVars' e `S.union` fTVars' t)
-aVars' (IVar i) = S.singleton i
-aVars' (ILAM i _ e) = S.insert i (aVars' e)
-aVars' (IAps f ts es) = (aVars' f) `S.union`
-                        (S.unions (map fTVars' ts)) `S.union`
-                        (S.unions (map aVars' es))
-aVars' (ICon _ (ICUndet {imVal = Just e})) = aVars' e
-aVars' (ICon _ _) = S.empty  -- XXX
-aVars' (IRefT _ _ _) = S.empty
+aVars :: IExpr a -> S.Set Id
+aVars (ILam i t e) = S.insert i (aVars e `S.union` fTVars t)
+aVars (IVar i) = S.singleton i
+aVars (ILAM i _ e) = S.insert i (aVars e)
+aVars (IAps f ts es) = (aVars f) `S.union`
+                        (S.unions (map fTVars ts)) `S.union`
+                        (S.unions (map aVars es))
+aVars (ICon _ (ICUndet {imVal = Just e})) = aVars e
+aVars (ICon _ _) = S.empty  -- XXX
+aVars (IRefT _ _ _) = S.empty
 
 -- --------------------
 
 -- Free variables
-fVars :: IExpr a -> [Id]
-fVars e = S.toList (fVars' e)
-
-fVars' :: IExpr a -> S.Set Id
-fVars' (ILam i _ e) = S.delete i (fVars' e)
-fVars' (IVar i) = S.singleton i
-fVars' (ILAM _ _ e) = fVars' e
-fVars' (IAps f ts es) = fVars' f `S.union` (S.unions (map fVars' es))
-fVars' (ICon _ (ICUndet {imVal = Just e})) = fVars' e
-fVars' (ICon _ _) = S.empty
-fVars' (IRefT _ _ _) = S.empty
+fVars :: IExpr a -> S.Set Id
+fVars (ILam i _ e) = S.delete i (fVars e)
+fVars (IVar i) = S.singleton i
+fVars (ILAM _ _ e) = fVars e
+fVars (IAps f ts es) = fVars f `S.union` (S.unions (map fVars es))
+fVars (ICon _ (ICUndet {imVal = Just e})) = fVars e
+fVars (ICon _ _) = S.empty
+fVars (IRefT _ _ _) = S.empty
 
 -- --------------------
 
@@ -1076,18 +1066,15 @@ fdVars' (IRefT _ _ _) = S.empty
 -- --------------------
 
 -- Free type variables
-ftVars :: IExpr a -> [Id]
-ftVars e = S.toList (ftVars' e)
-
-ftVars' :: IExpr a -> S.Set Id
-ftVars' (ILam i _ e) = ftVars' e
-ftVars' (IVar i) = S.empty
-ftVars' (ILAM i _ e) = S.delete i (ftVars' e)
-ftVars' (IAps f ts es) = (ftVars' f) `S.union` (S.unions (map fTVars' ts))
-                                     `S.union` (S.unions (map ftVars' es))
-ftVars' (ICon _ (ICUndet {imVal = Just e})) = ftVars' e
-ftVars' (ICon _ _) = S.empty                -- XXX
-ftVars' (IRefT _ _ _) = S.empty
+ftVars :: IExpr a -> S.Set Id
+ftVars (ILam i _ e) = ftVars e
+ftVars (IVar i) = S.empty
+ftVars (ILAM i _ e) = S.delete i (ftVars e)
+ftVars (IAps f ts es) = (ftVars f) `S.union` (S.unions (map fTVars ts))
+                                     `S.union` (S.unions (map ftVars es))
+ftVars (ICon _ (ICUndet {imVal = Just e})) = ftVars e
+ftVars (ICon _ _) = S.empty                -- XXX
+ftVars (IRefT _ _ _) = S.empty
 
 -- ============================================================
 -- PPrint (for those instances not defined alongside the type, above)
