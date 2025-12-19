@@ -1,12 +1,4 @@
-set rts_flags {+RTS -H128M -M256M -Sstderr -RTS}
-
-# There has been a regression and this example now exhausts the heap
-# This procedure can't be used, because BSC fails to even generated Verilog:
-#
-#test_veri_only_bsv_modules_options PureLoop {} $rts_flags out.expected
-
-# Instead, use this:
-compile_verilog_fail PureLoop.bsv {} $rts_flags
-
-# And confirm that the test failed in the way we expect
-find_n_strings [make_bsc_vcomp_output_name PureLoop.bsv] "Heap exhausted" 1
+# This passes with -M16M but I am leaving some breathing room for things like
+# profiling builds.
+set rts_flags {+RTS -H16M -M32M -Sstderr -RTS}
+test_veri_only_bsv_modules_options PureLoop {} $rts_flags out.expected
