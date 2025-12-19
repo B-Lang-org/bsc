@@ -10,5 +10,5 @@ compile_verilog_pass SizeZero.bsv
 # to ensure that theinstance dictionaries can be combined for vector-blasted interfaces.
 # This relies on the -dtypecheck dump from wrapper compilation
 # overwriting the original -dtypecheck dump.
-compile_object_pass WrapFieldRepeat.bs {} "-dtypecheck=tcwrapper.out"
+compile_object_pass WrapFieldRepeat.bs {} "-dwrapper_typecheck=tcwrapper.out"
 find_n_strings tcwrapper.out "Prelude.Bits Prelude.Bool 1" 2

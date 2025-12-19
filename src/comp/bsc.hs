@@ -620,14 +620,14 @@ compilePackage
             (idef, ok2) <- compileCDefToIDef errh flags dumpnames' symt imods def
 
             t <- getNow
-            start flags DFfixup
+            start flags DFwrapper_fixup
             -- Replace the pre-synthesis definition for a module with its
             -- post-synthesis definition, and update the package's cyclic
             -- references
             -- XXX Note that alldefs is not updated here.  This works
             -- XXX because the defs we use from it will not have changed.
             let im' = updDef idef im binmods
-            t <- dump errh flags t DFfixup dumpnames' im'
+            t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef
             -- recurse for each module in [WrapInfo]
@@ -2203,24 +2203,24 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     let cpkg0 = CPackage pkgid (Left []) [] [] [def] []
     t <- getNow
 
-    start flags DFctxreduce
+    start flags DFwrapper_ctxreduce
     cpkg_ctx <- cCtxReduceIO errh flags symt cpkg0
-    t <- dump errh flags t DFctxreduce dumpnames cpkg_ctx
+    t <- dump errh flags t DFwrapper_ctxreduce dumpnames cpkg_ctx
 
-    start flags DFtypecheck
+    start flags DFwrapper_typecheck
     (cpkg_chk, tcErrors) <- cTypeCheck errh flags symt cpkg_ctx
-    t <- dump errh flags t DFtypecheck dumpnames cpkg_chk
+    t <- dump errh flags t DFwrapper_typecheck dumpnames cpkg_chk
 
-    start flags DFsimplified
+    start flags DFwrapper_simplified
     let cpkg_simp = simplify flags cpkg_chk
         def' = case cpkg_simp of
                  (CPackage _ _ _ _ [d] _) -> d
                  _ -> internalError "compileCDefToIDef: unexpected number of defs"
-    t <- dump errh flags t DFsimplified dumpnames cpkg_simp
+    t <- dump errh flags t DFwrapper_simplified dumpnames cpkg_simp
 
-    start flags DFinternal
+    start flags DFwrapper_internal
     let idef = iConvDef errh flags symt ipkg def'
-    t <- dump errh flags t DFinternal dumpnames idef
+    t <- dump errh flags t DFwrapper_internal dumpnames idef
 
     return (idef, not tcErrors)
 
