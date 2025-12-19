@@ -1,1 +1,1 @@
-test_veri_only_bsv_modules_options Log2Test  "" "+RTS -H150M -M300M -Sstderr -RTS" out.expected
+test_veri_only_bsv_modules_options Log2Test  "" "+RTS -K20M -H128M -M256M -Sstderr -RTS" out.expected
