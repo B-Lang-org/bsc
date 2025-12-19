@@ -100,10 +100,11 @@ dumpStr :: ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> String
 dumpStr errh flags t d names@(file, pkg, mod) a = do
     -- the name of this stage
     let sname = drop 2 (show d)
+    let names' = (file,pkg,mod,sname)
     -- first, dump the info appropriately
     case (dumpInfo flags d) of
         Just (Just file) -> do
-            writeFileCatch errh (substNames names file) a
+            writeFileCatch errh (substNames names' file) a
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
             unless (quiet flags) $ putStrLnF ("=== " ++ sname ++ ":\n" ++ a ++ "\n-----\n")
@@ -126,14 +127,15 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
         _ -> -- don't exit here, return the new time
              return t'
 
-substNames :: (String,String, String) -> String -> String
+substNames :: (String, String, String, String) -> String -> String
 substNames _ "" = ""
-substNames names@(file,pkg,mod) ('%':c:cs) = subst ++ substNames names cs
+substNames names@(file,pkg,mod,stage) ('%':c:cs) = subst ++ substNames names cs
     where subst = case c of
                   '%' -> "%"
                   'f' -> file
                   'p' -> pkg
                   'm' -> mod
+                  's' -> stage
                   c'  -> [c']
 substNames names (c:cs) = c : substNames names cs
 
