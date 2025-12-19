@@ -1405,7 +1405,7 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
        -- liftM of the do-block
        to  = cVApply idLiftM [CVar (to_Id tyId), lexp]
        -- let-define the user's module around the expr we just created
-       lte = Cletrec [CLValueSign def []] to
+       lte = Cletseq [CLValueSign def []] to
        -- the clause for the new def we're creating
        cls = CClause (map CPVar vs) [] lte
 
