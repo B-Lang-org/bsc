@@ -383,7 +383,7 @@ eSubstWith ectx tctx allIds e
     sub ectx tctx allIds ee@(ICon i ii) =
         changed1 (ICon i) (etSubstIConInfo (tSubWithNorm tctx allIds)
                                            (sub ectx tctx allIds) ii)
-    sub _    _    _      ee@(IRefT _ _ _) = Unchanged  -- no free tyvar inside IRef
+    sub _    _    _      ee@(IRefT _ _ _ _) = Unchanged  -- no free tyvar inside IRef
 
 -- Public API: single expression substitution
 {-# INLINE eSubst #-}

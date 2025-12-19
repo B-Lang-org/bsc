@@ -166,7 +166,7 @@ pIf c t e = return $ pIf' c t e
 
 -- expand heap references looking for PrimBNot to desugar
 pIf' :: HExpr -> HPred -> HPred -> HPred
-pIf' c@(IRefT _ _ (HeapData r)) t e =
+pIf' c@(IRefT _ _ _ (HeapData r)) t e =
   let (P p e') = heapCellToPExpr (unsafePerformIO (readIORef r))
   in case e' of
       (IAps (ICon _ (ICPrim _ PrimBNot)) [] [c']) ->
@@ -312,7 +312,7 @@ canLiftCond' m (IAps (ICon _ (ICPrim _ PrimArrayDynSelect))
           then (False, m)
           else let cells = Array.elems arr
                    reachable_cells = take (2 ^ idx_sz) cells
-                   cellToExpr (ArrayCell ptr ref) = IRefT elem_ty ptr ref
+                   cellToExpr (ArrayCell ptr ref) = IRefT elem_ty ptr S.empty ref
                    -- check the index and the reachable cells
                    es = (idx_e : map cellToExpr reachable_cells)
                in  canLiftCond'_List m es
@@ -324,7 +324,7 @@ canLiftCond' m (ICon _ (ICMethArg _)) = (False, m)
 canLiftCond' m (ICon _ (ICLazyArray arr_ty arr u)) =
     internalError ("IExpandUtils.canLiftCond: unexpected array")
 canLiftCond' m (ICon _ _) = (True, m)
-canLiftCond' m ref@(IRefT t p r) =
+canLiftCond' m ref@(IRefT t p poss r) =
     -- only follow references for which we haven't yet computed the answer
     case M.lookup p m of
       Nothing ->
@@ -2459,7 +2459,8 @@ addHeapUnev tag t e cell_name = do
  cross <- getCross
  (p, r) <- addHeapCell tag newcell
  -- trace_hcell p e
- let result = IRefT t p r
+ let poss = S.singleton $ getIExprPosition e
+ let result = IRefT t p poss r
  when doTraceHeap $ traceM ("addHeapUnev " ++ ppString cell_name ++ " [" ++
                             prPositionConcise (getPosition cell_name) ++ "] " ++
                             ppReadable (result,t,e))
@@ -2467,10 +2468,11 @@ addHeapUnev tag t e cell_name = do
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
-addHeapWHNF tag t pe cell_name = do
+addHeapWHNF tag t pe@(P _ e) cell_name = do
   let newcell = (HWHNF { hc_pexpr = pe, hc_name = cell_name })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition e
+  let result = IRefT t p poss r
   when doTraceHeap $ traceM ("addHeapWHNF " ++ ppString cell_name ++ " [" ++
                              prPositionConcise (getPosition cell_name) ++ "] " ++
                              ppReadable (result,t,pe))
@@ -2501,7 +2503,8 @@ addHeapPred tag e = do
       ws = wsEmpty     -- no wire set
   let newcell = (HNF { hc_pexpr = pe, hc_wire_set = ws, hc_name = Nothing })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition e
+  let result = IRefT t p poss r
   when doTraceHeap $ traceM ("addHeapPred " ++ ppReadable (result,e))
   return result
 
@@ -2640,17 +2643,17 @@ updNewRuleSuffix suf = do
 
 {-# INLINE unheap #-}
 unheap :: PExpr -> G PExpr
-unheap (P p e_orig@(IRefT _ _ r)) = do
+unheap (P p e_orig@(IRefT _ _ _ r)) = do
         e <- getHeap r
         cross <- getCross
         case e of
             (HUnev {}) -> internalError ("IExpandUtils.unheap: unevaluated")
             (HLoop name) -> internalError("IExpandUtils.unheap: HLoop " ++ ppReadable name)
-            (HWHNF { hc_pexpr = P _ (IRefT _ _ _) }) ->
+            (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: WHNF IRefT")
             (HWHNF { hc_pexpr = P p' e, hc_name = n } ) ->
                 return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
-            (HNF { hc_pexpr = P _ (IRefT _ _ _) }) ->
+            (HNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: NF IRefT")
             (HNF { hc_pexpr = P p' e }) ->
                 return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
@@ -2659,14 +2662,14 @@ unheap pe = return pe
 
 {-# INLINE unheapU #-}
 unheapU :: HExpr -> G HExpr
-unheapU e_orig@(IRefT _ _ r) = do
+unheapU e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
         flgs <- getFlags
         let cross = (crossInfo flgs)
         case e of
             (HUnev { hc_hexpr = e }) -> return e
             (HLoop name) -> internalError ("unheapU: HLoop " ++ ppReadable name)
-            (HWHNF { hc_pexpr = P _ (IRefT _ _ _) } ) ->
+            (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) } ) ->
                 internalError ("unheapU: IRefT")
             (HWHNF { hc_pexpr = e, hc_name = n }) ->
                 return (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
@@ -2687,7 +2690,7 @@ shallowUnheap e= do
 -- unheap dropping (inaccurate) implicit conditions
 -- since implicit conditions are not reduced to NF until evalPred
 unheapNFNoImp :: HExpr -> G HExpr
-unheapNFNoImp e_orig@(IRefT _ _ r) = do
+unheapNFNoImp e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
         flgs <- getFlags
         let cross = (crossInfo flgs)
@@ -2701,7 +2704,7 @@ unheapNFNoImp e = return e
 
 -- XXX use unsafePerformIO to work around an apparent monadic recursion bug
 unheapNFNoImpEvil :: HExpr -> HExpr
-unheapNFNoImpEvil (IRefT _ _ (HeapData c)) =
+unheapNFNoImpEvil (IRefT _ _ _ (HeapData c)) =
    case cell of
      HNF { hc_pexpr = (P _ e) } -> e
      _ -> internalError ("unheapNFNoImp - unexpected: " ++ ppReadable cell)
@@ -2714,7 +2717,7 @@ unheapUH heap p =
         case I.lookup p heap of
             Nothing -> internalError "unheapUH: Nothing"
             Just (HUnev e) -> e
-            Just (HWHNF (P _ (IRefT _ _ _))) -> internalError ("unheapUH: IRefT")
+            Just (HWHNF (P _ (IRefT _ _ _ _))) -> internalError ("unheapUH: IRefT")
             Just (HWHNF e) -> (pExprToHExpr e)
             Just (HNF   e) -> (pExprToHExpr e)
 -}
@@ -2731,7 +2734,7 @@ unheapAll e = do
                             (ITAp c t) | (c == itPrimArray) -> t
                             _ -> internalError ("unheapAll: array type")
                 mapFn (ArrayCell ptr ref) = do
-                    unheapAll (IRefT elem_ty ptr ref)
+                    unheapAll (IRefT elem_ty ptr S.empty ref)
             es <- mapM mapFn (Array.elems arr)
             let ic = case icPrimBuildArray (length es) of
                        (ICon _ ci) -> ICon i ci
@@ -2763,7 +2766,7 @@ toHeap tag (ICon i (ICDef t e)) cell_name = do
   e' <- cacheDef i t e
   toHeap tag e' cell_name
 toHeap tag e@(ICon _ _) cell_name = return e
-toHeap tag e@(IRefT _ _ _) cell_name = return e -- XXX name improvement?
+toHeap tag e@(IRefT _ _ _ _) cell_name = return e -- XXX name improvement?
 toHeap tag e cell_name = do
         -- these errors have never happened, disable checks for now.
         when (doDebugFreeVars && not (S.null (fVars e))) $
@@ -2791,7 +2794,7 @@ toHeapCon tag e cell_name = toHeap tag e cell_name
 {-# INLINE toHeapWHNF #-}
 toHeapWHNF :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNF tag e@(ICon _ _) cell_name = return e
-toHeapWHNF tag e@(IRefT _ _ _) cell_name = return e
+toHeapWHNF tag e@(IRefT _ _ _ _) cell_name = return e
 toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), e])
            cell_name = do let pe = P p e
                           -- IRefT is not WHNF
@@ -2830,7 +2833,7 @@ toHeapWHNFConInferName tag expr = inferName expr >>= toHeapWHNFCon tag expr
 -- inferName: given an expression, try to infer a reasonable name from it
 {-# INLINE inferName #-}
 inferName :: HExpr -> G (Maybe Id)
-inferName (IRefT _ _ heap_ref) =
+inferName (IRefT _ _ _ heap_ref) =
     do heap_cell <- getHeap heap_ref
        return (hc_name heap_cell)
 -- bit selection
@@ -3367,7 +3370,7 @@ instance Wireable HExpr where
     return (?jn (ws:wss))
 
   -- don't walk unnecessary parts of a struct or interface
-  extractWires (IAps f@(ICon i_sel (ICSel { selNo = n })) _ (a@(IRefT _ p r):as)) = do
+  extractWires (IAps f@(ICon i_sel (ICSel { selNo = n })) _ (a@(IRefT _ _ p r):as)) = do
     -- we don't look for "p" in the WireSet cache, because we don't want to
     -- include the wires from the unused fields
     -- (presumably the fields will have their own refs, which can be cached)
@@ -3404,7 +3407,7 @@ instance Wireable HExpr where
 
   extractWires (ILAM _ _ e) = extractWires e
 
-  extractWires ref@(IRefT t p r) = do
+  extractWires ref@(IRefT t p poss r) = do
     let pos = getIExprPosition ref
     cache_res <- ?lk p pos
     case cache_res of

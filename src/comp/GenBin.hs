@@ -569,7 +569,7 @@ instance Bin (IExpr a) where
     writeBytes (IVar i)       = do putI 2; toBin i
     writeBytes (ILAM i k e)   = do putI 3; toBin i; toBin k; toBin e
     writeBytes (ICon i ic)    = do putI 4; toBin i; toBin ic
-    writeBytes (IRefT _ _ _)  = internalError "GenBin.Bin(IExpr).writeBytes: IRefT"
+    writeBytes (IRefT _ _ _ _) = internalError "GenBin.Bin(IExpr).writeBytes: IRefT"
     readBytes = do tag <- getI
                    case tag of
                      0 -> do i <- fromBin

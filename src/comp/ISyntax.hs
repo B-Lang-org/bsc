@@ -458,7 +458,7 @@ data IExpr a
         | ILAM Id IKind (IExpr a)        -- vanishes after IExpand
         | ICon Id (IConInfo a)
         -- IRef is only used during reduction, it refers to a "heap" cell
-        | IRefT IType !Int a                  -- vanishes after IExpand
+        | IRefT IType !Int (S.Set Position) a -- vanishes after IExpand
           deriving (Generic.Data, Generic.Typeable)
 
 instance Show (IExpr a) where
@@ -469,7 +469,7 @@ instance Show (IExpr a) where
   show (ICon i (ICDef {})) = "(ICDef " ++ show i ++ ")"
   show (ICon i (ICValue {})) = "(ICValue " ++ show i ++ ")"
   show (ICon i ic)    = "(ICon " ++ show i ++ " " ++ show ic ++ ")"
-  show (IRefT t p _)  = "(IRefT " ++ show t ++ " " ++ "_" ++ show p ++ ")"
+  show (IRefT t p _ _)  = "(IRefT " ++ show t ++ " " ++ "_" ++ show p ++ ")"
 
 cmpE :: IExpr a -> IExpr a -> Ordering
 cmpE (ILam i1 _ e1)  (ILam i2 _ e2)  =
@@ -505,7 +505,7 @@ cmpE (ILAM i1 _ e1)  (ILAM i2 _ e2)  =
         case compare i1 i2 of
         EQ -> cmpE e1 e2
         o  -> o
-cmpE (ILAM _ _ _)    (IRefT _ _ _)   = GT -- ???????
+cmpE (ILAM _ _ _)    (IRefT _ _ _ _)   = GT -- ???????
 
 cmpE (ILAM _  _ _)   _               = LT
 
@@ -523,13 +523,13 @@ cmpE (ICon i1 ic1) (ICon i2 ic2)     =
         o  -> o
 cmpE (ICon _ _)      _               = LT
 
-cmpE (IRefT _ _ _)   (ILam _ _ _)    = GT
-cmpE (IRefT _ _ _)   (IAps _ _ _)    = GT
-cmpE (IRefT _ _ _)   (IVar _)        = GT
-cmpE (IRefT _ _ _)   (ICon _ _)      = GT
-cmpE (IRefT _ p1 _)  (IRefT _ p2 _)  = compare p1 p2                -- XXX
+cmpE (IRefT _ _ _ _)   (ILam _ _ _)    = GT
+cmpE (IRefT _ _ _ _)   (IAps _ _ _)    = GT
+cmpE (IRefT _ _ _ _)   (IVar _)        = GT
+cmpE (IRefT _ _ _ _)   (ICon _ _)      = GT
+cmpE (IRefT _ p1 _ _)  (IRefT _ p2 _ _)  = compare p1 p2                -- XXX
 
-cmpE (IRefT _ _ _)     (ILAM _ _ _)  = LT -- ??????????
+cmpE (IRefT _ _ _ _)     (ILAM _ _ _)  = LT -- ??????????
 
 {- all cases are covered above, so the compiler complains about this line:
 cmpE e1              e2              = internalError ("not match in cmpE " ++ ppReadable (e1,e2))
@@ -959,7 +959,7 @@ aVars (IAps f ts es) = (aVars f) `S.union`
                         (S.unions (map aVars es))
 aVars (ICon _ (ICUndet {imVal = Just e})) = aVars e
 aVars (ICon _ _) = S.empty  -- XXX
-aVars (IRefT _ _ _) = S.empty
+aVars (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -971,7 +971,7 @@ fVars (ILAM _ _ e) = fVars e
 fVars (IAps f ts es) = fVars f `S.union` (S.unions (map fVars es))
 fVars (ICon _ (ICUndet {imVal = Just e})) = fVars e
 fVars (ICon _ _) = S.empty
-fVars (IRefT _ _ _) = S.empty
+fVars (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -988,7 +988,7 @@ fdVars' (ICon i (ICDef { })) = S.singleton i
 fdVars' (ICon i (ICValue { })) = S.singleton i
 fdVars' (ICon i (ICUndet {imVal = Just e})) = fdVars' e
 fdVars' (ICon _ _) = S.empty
-fdVars' (IRefT _ _ _) = S.empty
+fdVars' (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -1001,7 +1001,7 @@ ftVars (IAps f ts es) = (ftVars f) `S.union` (S.unions (map fTVars ts))
                                      `S.union` (S.unions (map ftVars es))
 ftVars (ICon _ (ICUndet {imVal = Just e})) = ftVars e
 ftVars (ICon _ _) = S.empty                -- XXX
-ftVars (IRefT _ _ _) = S.empty
+ftVars (IRefT _ _ _ _) = S.empty
 
 -- ============================================================
 -- PPrint (for those instances not defined alongside the type, above)
@@ -1182,7 +1182,7 @@ instance PPrint (IExpr a) where
     pPrint d@PDDebug p (ICon i ict) = ppId d i <> text "::" <> pPrint d maxPrec (iConType ict)
     pPrint d p ict@(ICon i (ICForeign {fcallNo = (Just n)})) = ppId d i <> text ("#" ++ show n)
     pPrint d p (ICon i ict) = ppId d i
-    pPrint d p (IRefT _ ptr _) = text ("_") <> pPrint d 0 ptr
+    pPrint d p (IRefT _ ptr _ _) = text ("_") <> pPrint d 0 ptr
 
 -- ============================================================
 -- Hyper (for those instances not defined alongside the type, above)
@@ -1212,7 +1212,7 @@ instance NFData (IExpr a) where
     rnf (IVar i) = rnf i
     rnf (ILAM i k e) = rnf3 i k e
     rnf (ICon i ic) = rnf2 i ic
-    rnf (IRefT t p _) = rnf t
+    rnf (IRefT t p poss _) = rnf2 t poss
 
 instance NFData (IConInfo a) where
 --    rnf (ICDef x1 x2) = rnf2 x1 x2
@@ -1308,7 +1308,7 @@ getIExprPositionCrossInternal _ (ICon i (ICSel _ _ _)) =
 
 
 getIExprPositionCrossInternal _ (ICon i _) = getIdPosition i
-getIExprPositionCrossInternal n (IRefT t _ _) = getITypePositionCrossInternal (n + 1) t
+getIExprPositionCrossInternal n (IRefT t _ _ _) = getITypePositionCrossInternal (n + 1) t
 
 
 getITypePositionCrossInternal :: Int -> IType -> Position
@@ -1374,7 +1374,7 @@ getIExprPosition (IVar i) = getIdPosition i
 getIExprPosition (ILAM i _ e) = firstPos [getIdPosition i, getIExprPosition e]
 -- getIExprPosition (ICon i (ICPrim t op)) = getITypePosition t
 getIExprPosition (ICon i _) = getIdPosition i
-getIExprPosition (IRefT t _ _) = getITypePosition t
+getIExprPosition (IRefT t _ _ _) = getITypePosition t
 
 getITypePosition :: IType -> Position
 getITypePosition (ITForAll i _ t) = firstPos [getIdPosition i, getITypePosition t]
@@ -1420,7 +1420,7 @@ showTypeless (IAps e _ es) = "(IAps " ++ (showTypeless e) ++ " _ " ++ showTypele
 showTypeless (IVar i) = "(IVar " ++ (show i) ++ ")"
 showTypeless (ILAM i k e) = "(ILAM " ++ (show i) ++ " " ++ (show k) ++ " " ++ (showTypeless e) ++ ")"
 showTypeless (ICon i ci) = "(ICon " ++ (show i) ++ " " ++ (showTypelessCI ci) ++ " )"
-showTypeless (IRefT _ i _) = "(IRefT " ++ "_" ++ (show i) ++ ")"
+showTypeless (IRefT _ i _ _) = "(IRefT " ++ "_" ++ (show i) ++ ")"
 
 showTypelessRule :: IRule a -> String
 showTypelessRule (IRule {

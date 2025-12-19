@@ -983,7 +983,7 @@ iGetTypeNorm norm e0 =
         tCheck r (IVar i) = findT i r
         tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
         tCheck r (ICon c ic) = iConType ic
-        tCheck r (IRefT t _ _) = t
+        tCheck r (IRefT t _ _ _) = t
 --        tCheck _ e = internalError ("no match in ISyntaxUtil.tCheck: " ++ ppReadable e)
 
         emptyEnv = M.empty
