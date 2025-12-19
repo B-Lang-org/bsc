@@ -14,6 +14,7 @@ import Position
 import Id
 import PreIds
 import ISyntax
+import ISyntaxSubst(tSubst)
 import ISyntaxUtil
 import SymTab(SymTab, mustFindClass, findSClass)
 
