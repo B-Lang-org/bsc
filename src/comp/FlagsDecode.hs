@@ -389,6 +389,7 @@ helpMessage showHidden prog args cd =
                  "  %p    package name",
                  "  %m    module name" ++
                    " (empty for passes not involved in code generation)",
+                 "  %s    compiler stage",
                  "  %%    the % character",
                  "% followed by any other character yields that character",
                  "You may substitute -KILL for -d" ++
