@@ -1,0 +1,83 @@
+package MutualRecContainer(sysMutualRecContainer) where
+
+import List
+
+-- Test mutually recursive container types with typeclass instances
+-- This should generate mutually recursive dictionary bindings (Cletrec)
+
+-- Mutually recursive container types
+data Box a = Single a | Nested (Container a)
+  deriving (Eq)
+
+data Container a = Container (List (Box a))
+  deriving (Eq)
+
+-- Typeclass for summing containers
+class SumContainer c a | c -> a where
+  sumContainer :: c -> a
+
+-- Mutually recursive instances:
+-- Box instance needs Container's sumContainer
+-- Container instance needs Box's sumContainer
+instance (Arith a, SumContainer (Container a) a) => SumContainer (Box a) a where
+  sumContainer (Single x) = x
+  sumContainer (Nested c) = sumContainer c
+
+instance (Arith a, SumContainer (Box a) a) => SumContainer (Container a) a where
+  sumContainer (Container boxes) = foldr (+) 0 (map sumContainer boxes)
+
+-- Test values
+test1 :: Box (Bit 8)
+test1 = Single 5
+
+test2 :: Box (Bit 8)
+test2 = Nested (Container (Cons (Single 1) (Cons (Single 2) (Cons (Single 3) Nil))))
+
+test3 :: Box (Bit 8)
+test3 = Nested (Container
+          (Cons (Single 10)
+           (Cons (Nested (Container (Cons (Single 20) (Cons (Single 30) Nil))))
+            Nil)))
+
+-- Longer chains
+test4 :: Box (Bit 8)
+test4 = Nested (Container
+          (Cons (Nested (Container (Cons (Nested (Container (Cons (Single 1) (Cons (Single 2) Nil))))
+                                          (Cons (Single 3) Nil))))
+           Nil))
+
+test5 :: Box (Bit 8)
+test5 = Nested (Container
+          (Cons (Single 1)
+           (Cons (Single 2)
+            (Cons (Single 3)
+             (Cons (Single 4)
+              (Cons (Single 5) Nil))))))
+
+test6 :: Box (Bit 8)
+test6 = Nested (Container
+          (Cons (Nested (Container
+                  (Cons (Single 10)
+                   (Cons (Nested (Container
+                           (Cons (Single 20)
+                            (Cons (Single 30) Nil))))
+                    Nil))))
+           (Cons (Nested (Container
+                   (Cons (Single 40)
+                    (Cons (Single 50) Nil))))
+            Nil)))
+
+-- Test module that prints the sums
+sysMutualRecContainer :: Module Empty
+sysMutualRecContainer =
+  module
+    rules
+      when True ==>
+        action
+          $display "test1: %0d" (sumContainer test1)
+          $display "test2: %0d" (sumContainer test2)
+          $display "test3: %0d" (sumContainer test3)
+          $display "test4: %0d" (sumContainer test4)
+          $display "test5: %0d" (sumContainer test5)
+          $display "test6: %0d" (sumContainer test6)
+          $finish 0

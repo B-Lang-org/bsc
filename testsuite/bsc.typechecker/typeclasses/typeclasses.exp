@@ -67,3 +67,8 @@ compile_verilog_pass ClassKind2b.bsv
 compile_verilog_pass ClassKind3.bsv
 
 # --------------------------------------------------
+# Test mutually recursive typeclass instances
+
+test_c_veri MutualRecContainer
+
+# --------------------------------------------------
