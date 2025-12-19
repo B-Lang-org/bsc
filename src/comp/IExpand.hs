@@ -2866,8 +2866,10 @@ evalApAccum tag exprCtx typeCtx (ILam i t body) (E a : as) = do
   evalApAccum "ILam-accum" (M.insert i a' exprCtx) typeCtx body as
 
 -- Continue accumulating for ILAM with type argument
-evalApAccum tag exprCtx typeCtx (ILAM i k body) (T t : as) =
-  evalApAccum "ILAM-accum" exprCtx (M.insert i t typeCtx) body as
+evalApAccum tag exprCtx typeCtx e@(ILAM i k body) (T t : as) = do
+  -- Simplify numeric types involving SizeOf before adding to typeCtx
+  t' <- if isUnSimpNumT t then simpNumT (getIExprPosition e) t else return t
+  evalApAccum "ILAM-accum" exprCtx (M.insert i t' typeCtx) body as
 
 -- Hit something else: apply accumulated substitutions if any, then continue
 evalApAccum tag exprCtx typeCtx e args = do
@@ -2904,19 +2906,26 @@ evalAp str e es = do
       traceM ("evalAp exit  " ++ str' ++ " ]:\n"++ ppReadable (mkAp e es, r))
   return r
 
+isUnSimpNumT :: IType -> Bool
+isUnSimpNumT (ITNum _) = False
+isUnSimpNumT t = iGetKind t == Just IKNum
+
+simpNumT :: Position -> IType -> G IType
+simpNumT pos t = do
+    flags <- getFlags
+    symt <- getSymTab
+    case iConvT flags symt (iToCT t) of
+      t'@(ITNum _) -> return t'
+      _ -> errG (pos, EValueOf (ppString t))
+
 -- evaluate a function application
 -- [arg] is a stack of application arguments on the left spine of the expression
 evalAp' :: HExpr -> [Arg] -> G PExpr
 
 -- simplify numeric types involving SizeOf
-evalAp' e (T t : as) | not $ simpT t = do
-    flags <- getFlags
-    symt <- getSymTab
-    case iConvT flags symt (iToCT t) of
-      t'@(ITNum _) -> evalAp "simpNumT" e (T t' : as)
-      _ -> errG (getIExprPosition e, EValueOf (ppString t))
-  where simpT (ITNum _) = True
-        simpT t = iGetKind t /= Just IKNum
+evalAp' e (T t : as) | isUnSimpNumT t = do
+  t' <- simpNumT (getIExprPosition e) t
+  evalAp "simpNumT" e (T t' : as)
 
 evalAp' f@(ICon i (ICDef t e)) as = do
         -- recurse into evaluating e
@@ -2943,6 +2952,8 @@ evalAp'   f@(ILam _ _ _) (T t:as) = internalError("evalAp' ILam: " ++ ppReadable
 -- it's WHNF
 evalAp' e@(ILAM _ _ _)         [] = return (pExpr e)
 -- substitute type
+-- We can put t directly into typeCtx because the simpNumT case of evalAp' took care of
+-- simplifying any unsimplified numeric types
 evalAp'   (ILAM i k e)   (T t:as) = evalApAccum "ILAM" M.empty (M.singleton i t) e as
 evalAp'   f@(ILAM _ _ _) (E e:as) = internalError ("evalAp' ILAM:" ++ ppReadable (f,e))
 -- place applications args on the stack and evaluate function
