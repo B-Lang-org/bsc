@@ -7,16 +7,19 @@ import Prelude hiding ((<>))
 #endif
 import Text.Printf(printf)
 import System.IO(hFlush, stdout)
+import System.IO.Unsafe(unsafePerformIO)
 import System.CPUTime(getCPUTime)
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
+import qualified Data.Set as S
 import System.Time -- XXX: from old-time package
 -- hbc libs
 import PFPrint
 -- utility libs
 import Util(itos)
 import FileNameUtil(baseName, dropSuf)
-import FileIOUtil(writeFileCatch)
+import FileIOUtil(appendFileCatch, writeFileCatch)
+import IOMutVar
 
 -- compiler libs
 import Flags( Flags(..), verbose, quiet,
@@ -94,6 +97,8 @@ sdump errh flags t d names a =
         deepseq a $        -- force evaluation
         dumpStr errh flags t d names (show a)
 
+dumpedFiles :: MutableVar (S.Set FilePath)
+dumpedFiles = unsafePerformIO $ newVar S.empty
 
 dumpStr :: ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> String
         -> IO TimeInfo
@@ -101,13 +106,20 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
     -- the name of this stage
     let sname = drop 2 (show d)
     let names' = (file,pkg,mod,sname)
+    let header = "=== " ++ sname ++ ":\n"
+    let footer = "\n-----\n"
     -- first, dump the info appropriately
     case (dumpInfo flags d) of
         Just (Just file) -> do
-            writeFileCatch errh (substNames names' file) a
+            let dumpPath = substNames names' file
+            currentDumped <- readVar dumpedFiles
+            let hasBeenDumped = dumpPath `S.member` currentDumped
+            let writeFileFn = if hasBeenDumped then appendFileCatch else writeFileCatch
+            writeFileFn errh dumpPath (header ++ a ++ footer)
+            writeVar dumpedFiles (S.insert dumpPath currentDumped)
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
-            unless (quiet flags) $ putStrLnF ("=== " ++ sname ++ ":\n" ++ a ++ "\n-----\n")
+            unless (quiet flags) $ putStrLnF (header ++ a ++ footer)
         Nothing -> do
             when (verbose flags) $ putStrLnF (sname ++ " done")
     -- second, dump the timestamp (and get the new time)
