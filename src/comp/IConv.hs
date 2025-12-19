@@ -36,6 +36,7 @@ import VModInfo(mkVModInfo, VName(..), VFieldInfo(..))
 import Type(tString, fn, tName, tAttributes)
 import TCMisc(expandSynN)
 import ISyntax
+import ISyntaxSubst
 import ISyntaxUtil
 import Undefined
 import Prim
