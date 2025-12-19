@@ -20,7 +20,7 @@ module IExpandUtils(
         saveRules, getSavedRules, clearSavedRules, replaceSavedRules,
         setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
-        getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
+        getSymTab, getDefEnv, getFlags, getErrHandle, getModuleName,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
         instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
@@ -108,7 +108,7 @@ import Verilog(vKeywords, vIsValidIdent)
 import Changed
 
 import IOUtil(progArgs)
-import ISyntaxXRef(mapIExprPosition, mapIExprPosition2)
+import ISyntaxXRef(mapIExprPosition2)
 import IStateLoc(IStateLoc, IStateLocPathComponent(..), StateLocMap,
                  newIStateLocTop, hasIgnore, isAddRules, isLoop, extendStateLocMap,
                  stateLocToPrefix, createSuffixedId,  hasHide, hasHideAll, stateLocToHierName)
@@ -2457,7 +2457,6 @@ addHeapUnev :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 addHeapUnev tag t e m_cell_name = do
  cell_name <- maybe (inferName e) (return . Just) m_cell_name
  let newcell = (HUnev { hc_hexpr = e, hc_name = cell_name })
- cross <- getCross
  (p, r) <- addHeapCell tag newcell
  -- trace_hcell p e
  let poss = S.singleton $ getIExprPosition e
@@ -2465,7 +2464,7 @@ addHeapUnev tag t e m_cell_name = do
  when doTraceHeap $ traceM ("addHeapUnev " ++ ppString cell_name ++ " [" ++
                             prPositionConcise (getPosition cell_name) ++ "] " ++
                             ppReadable (result,t,e))
- return (mapIExprPosition cross (e, result))
+ return result -- (mapIExprPosition cross (e, result))
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
@@ -2611,11 +2610,6 @@ getFlags :: G Flags
 getFlags = do s <- get
               return (flags (ro s))
 
-{-# INLINE getCross #-}
-getCross :: G Bool
-getCross = do flags <- getFlags
-              return (crossInfo flags)
-
 {-# INLINE getErrHandle #-}
 getErrHandle :: G ErrorHandle
 getErrHandle = do s <- get
@@ -2656,18 +2650,17 @@ updNewRuleSuffix suf = do
 unheap :: PExpr -> G PExpr
 unheap (P p e_orig@(IRefT _ _ _ r)) = do
         e <- getHeap r
-        cross <- getCross
         case e of
             (HUnev {}) -> internalError ("IExpandUtils.unheap: unevaluated")
             (HLoop name) -> internalError("IExpandUtils.unheap: HLoop " ++ ppReadable name)
             (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: WHNF IRefT")
             (HWHNF { hc_pexpr = P p' e, hc_name = n } ) ->
-                return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
+                return (P (pConj p p') e) -- (mapIExprPosition cross (e_orig, e)))
             (HNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: NF IRefT")
             (HNF { hc_pexpr = P p' e }) ->
-                return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
+                return (P (pConj p p') e) -- (mapIExprPosition cross (e_orig, e)))
 
 unheap pe = return pe
 
@@ -2675,17 +2668,15 @@ unheap pe = return pe
 unheapU :: HExpr -> G HExpr
 unheapU e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
-        flgs <- getFlags
-        let cross = (crossInfo flgs)
         case e of
             (HUnev { hc_hexpr = e }) -> return e
             (HLoop name) -> internalError ("unheapU: HLoop " ++ ppReadable name)
             (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) } ) ->
                 internalError ("unheapU: IRefT")
             (HWHNF { hc_pexpr = e, hc_name = n }) ->
-                return (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
+                return $ pExprToHExpr e -- (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
             (HNF { hc_pexpr = e }) ->
-                return (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
+                return $ pExprToHExpr e -- (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
 unheapU e = return e
 
 -- unheap more than the first cell, but not much more than that
@@ -2703,14 +2694,12 @@ shallowUnheap e= do
 unheapNFNoImp :: HExpr -> G HExpr
 unheapNFNoImp e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
-        flgs <- getFlags
-        let cross = (crossInfo flgs)
         case e of
             (HUnev { }) -> internalError ("unheapNFNoImp: HUnev " ++ ppReadable (e_orig, e))
             (HLoop name) -> internalError ("unheapNFNoImp: HLoop " ++ ppReadable name)
             (HWHNF { }) -> internalError ("unheapNFNoImp: HWHNF " ++ ppReadable (e_orig, e))
             (HNF { hc_pexpr = (P _ e) }) ->
-                return (mapIExprPosition cross (e_orig, e))
+                return e -- (mapIExprPosition cross (e_orig, e))
 unheapNFNoImp e = return e
 
 -- XXX use unsafePerformIO to work around an apparent monadic recursion bug
@@ -3302,9 +3291,8 @@ getMethodsWithWires e =
                 return $ if (p, pos) `S.member` visited
                          then Just []
                          else Nothing
-        ?upd = \ e_orig e -> do
-                 flgs <- lift getFlags
-                 return $ mapIExprPosition (crossInfo flgs) (e_orig, e)
+        ?upd = \ e_orig e -> return e
+                 -- return $ mapIExprPosition (crossInfo flgs) (e_orig, e)
     in
         evalStateT (extractWires e) S.empty
 
