@@ -78,7 +78,7 @@ import qualified IfcBetterInfo as BetterInfo
 import ITransform(iTransExpr)
 
 import IOUtil(progArgs)
-import ISyntaxXRef(mapIExprPosition, mapIExprPositionConservative)
+import ISyntaxXRef(mapIExprPosition)
 import IStateLoc
 
 -----------------------------------------------------------------------------
@@ -2433,7 +2433,6 @@ walkNF e =
     when (doDebug || doTraceNF) $ traceM ("not prim type: " ++ ppReadable (e, iGetType e))
     nfError "walkNF" e
   else do
-    cross <- getCross
     when (doDebug || doTraceNF) $ traceM ("walkNF " ++ ppReadable e)
     let upd p e@(IRefT _ _ _ _) ws = do
             P p' e' <- unheap (P p e)
@@ -2444,13 +2443,13 @@ walkNF e =
             o@(IRefT _ ptr _ ref) -> do
               old_cell <- getHeap ref
               let old_name = hc_name old_cell
-                  new_cell = HNF { hc_pexpr = P p (mapIExprPosition cross (o,n)),
+                  new_cell = HNF { hc_pexpr = P p n, -- (mapIExprPosition cross (o,n)),
                                    hc_wire_set = ws,
                                    hc_name = old_name }
               updHeap "walkNF" (ptr, ref) new_cell
               return (if isCon n then
-                          (P p (mapIExprPosition cross (o,n)), ws)
-                      else (P p (mapIExprPositionConservative cross (n,o)), ws))
+                          (P p n, ws) -- (mapIExprPosition cross (o,n)), ws)
+                      else (P p o, ws)) -- (mapIExprPositionConservative cross (n,o)), ws))
             _ -> return (pn, ws)
 
         recurse p0 u =
@@ -2525,8 +2524,7 @@ walkNF e =
 
                 IAps f@(ICon _ (ICPrim _ p)) ts es | realPrimOp p -> do
                     (p, es', ws) <- walkList walkNF es
-                    cross <- getCross
-                    upd (pConj p0 p) (IAps f ts (map (mapIExprPosition cross) (zip es es'))) ws
+                    upd (pConj p0 p) (IAps f ts es') ws -- (map (mapIExprPosition cross) (zip es es'))) ws
 
                 IAps f@(ICon i_sel (ICSel { })) ts es -> do
                     (p, es', ws) <- walkList walkNF es
@@ -2942,14 +2940,13 @@ evalApAccum tag exprCtx typeCtx e args = do
 -- calls evalAp' to do the actual work, and corrects the cross-ref info
 evalAp :: String -> HExpr -> [Arg] -> G PExpr
 evalAp str e es = do
-  cross <- getCross
   let str' = str ++ " (" ++ show (length es) ++ ")"
   when doDebug $
       -- cannot "show (mkAp e es)" or "show e" or else it goes in an infinite loop
       traceM ("evalAp enter " ++ str' ++ " [:\n" ++ ppReadable (mkAp e es))
-  r_orig@(P pred iexpr) <- evalAp' e es
+  r@(P pred iexpr) <- evalAp' e es
   -- when "cross" is False, this just returns "r_orig"
-  r <- mapPExprPosition cross ((P pred e), r_orig)
+  -- r <- mapPExprPosition cross ((P pred e), r_orig)
   when doTraceTypes $ do
       norm <- getTypeNormalizerC
       let unev = mkAp e es
@@ -3018,7 +3015,6 @@ evalAp' e@(IVar i)             as = internalError ("evalAp IVar: " ++ ppReadable
 evalHeap :: (HeapPointer, HeapData) -> G PExpr
 evalHeap (ptr, ref) = do
     hc <- getHeap ref
-    cross <- getCross
     case hc of
      HLoop (Just name) -> errG (getPosition name, EModuleLoop (pfpString name))
      -- XXX should not be possible (we hope)
@@ -3042,9 +3038,10 @@ evalHeap (ptr, ref) = do
                          [Just (prefix (unQualId name)) | name <- field_names]
                 as' <- zipWithM (toHeap "move-tuple") as struct_field_names
                 when doDebug $ traceM ("evalHeap move #1\n" ++ ppReadable (zip as' as))
-                let pe'' = P p (mapIExprPosition cross
+                let pe'' = P p (IAps f ts as')
+                {-           (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
-                                 (IAps f ts (map (mapIExprPosition cross) (zip as as')))))
+                                 (IAps f ts (map (mapIExprPosition cross) (zip as as'))))) -}
                 let new_cell = HWHNF { hc_pexpr = pe'', hc_name = expr_name }
                 updHeap "evalHeap-tuple" (ptr,ref) new_cell
                 return pe''
@@ -3061,9 +3058,10 @@ evalHeap (ptr, ref) = do
                 let th = if (isLazyOp f) then toHeapInferName else toHeapWHNFInferName
                 as' <- mapM (th "move-ap") as
                 when doDebug $ traceM ("evalHeap move #2\n" ++ ppReadable (zip as' as))
-                let pe'' = P p (mapIExprPosition cross
+                let pe'' = P p (IAps f ts as')
+                {-            (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
-                                 (IAps f ts (map (mapIExprPosition cross) (zip as as')))))
+                                 (IAps f ts (map (mapIExprPosition cross) (zip as as'))))) -}
                 let new_cell = HWHNF { hc_pexpr = pe'', hc_name = expr_name }
                 updHeap "evalHeap-IAps" (ptr,ref) new_cell
                 return pe''

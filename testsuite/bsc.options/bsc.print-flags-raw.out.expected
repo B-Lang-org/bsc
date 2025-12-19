@@ -13,7 +13,6 @@ Flags {
 	cdir = Nothing,
 	cpp = False,
 	cppFlags = [],
-	crossInfo = False,
 	cxxFlags = [],
 	defines = [],
 	demoteErrors = SomeMsgs [],
