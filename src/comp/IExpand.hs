@@ -67,6 +67,7 @@ import TypeCheck(topExpr)
 import VModInfo
 import Pragma
 import ISyntax
+import ISyntaxSubst(eSubst, etSubst)
 import IConv(iConvT, iConvExpr)
 import ISyntaxUtil
 import ISyntaxCheck(iGetKind)
