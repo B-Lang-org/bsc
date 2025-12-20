@@ -3,6 +3,13 @@ name: CI
 # Trigger the workflow on push or pull request
 on: [ push, pull_request ]
 
+concurrency:
+  # When changes to a PR trigger a new run, cancel in-progress runs fro that PR;
+  # but pushes should not cancel workflows from previous pushes.
+  #
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
 
   # ------------------------------
