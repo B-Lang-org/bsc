@@ -208,8 +208,7 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download Toooba
-        run: |
-          git clone --recursive https://github.com/bluespec/Toooba ../Toooba
+        run: .github/workflows/checkout_possible_branch.sh bluespec Toooba
 
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every
@@ -282,8 +281,7 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download bsc-contrib
-        run: |
-          git clone --recursive https://github.com/B-Lang-org/bsc-contrib ../bsc-contrib
+        run: .github/workflows/checkout_possible_branch.sh B-Lang-org bsc-contrib
 
       - name: Build and install bsc-contrib
         run: |
@@ -360,8 +358,7 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download bdw
-        run: |
-          git clone --recursive https://github.com/B-Lang-org/bdw ../bdw
+        run: .github/workflows/checkout_possible_branch.sh B-Lang-org bdw
 
       - name: Build and install bdw
         run: |
