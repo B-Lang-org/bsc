@@ -1,0 +1,21 @@
+package TestTMul_VectorReg where
+
+import TestCommon
+import Vector
+
+-- Vector of Reg (Raw a) with Fin index
+-- Tests Vector with Raw elements
+interface VecRegIfc n a =
+  getElem :: Raw (Fin n) -> Raw a
+
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Module (VecRegIfc n a)
+mkTestPoly = module
+  regs :: Vector n (Reg (Raw a)) <- replicateM mkRegU
+  interface VecRegIfc
+    getElem idx_raw = (select regs (cook idx_raw))._read
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMul_VectorReg #-}
+mkTest_TestTMul_VectorReg :: Module (VecRegIfc 8 (UInt 5))
+mkTest_TestTMul_VectorReg = mkTestPoly

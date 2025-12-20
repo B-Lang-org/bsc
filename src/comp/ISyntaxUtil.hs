@@ -15,6 +15,7 @@ import Prim
 import Id
 import PreIds
 import ISyntax
+import ISyntaxSubst(tSubst)
 import Wires
 import VModInfo(vFields, VFieldInfo(..), lookupOutputClockWires)
 import CType(TISort(..), StructSubType(..))

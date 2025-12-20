@@ -14,7 +14,7 @@ module Wires(ClockId, ClockDomain(..), ResetId,
 import Prelude hiding ((<>))
 #endif
 
-import Eval
+import Eval(NFData(..), rnf, rnf2)
 import PPrint
 import qualified Data.Generics as Generic
 -- Primitives for describing special wires (e.g. clock and reset)
@@ -22,8 +22,8 @@ import qualified Data.Generics as Generic
 data ClockId = ClockId !Int
   deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance Hyper ClockId where
-  hyper (ClockId a) y = hyper a y
+instance NFData ClockId where
+  rnf (ClockId a) = rnf a
 
 data ClockDomain = ClockDomain !Int
   deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
@@ -31,14 +31,14 @@ data ClockDomain = ClockDomain !Int
 instance PPrint ClockDomain where
   pPrint d p (ClockDomain i) = pPrint d p i
 
-instance Hyper ClockDomain where
-  hyper (ClockDomain a) y = hyper a y
+instance NFData ClockDomain where
+  rnf (ClockDomain a) = rnf a
 
 data ResetId = ResetId !Int
   deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance Hyper ResetId where
-  hyper (ResetId a) y = hyper a y
+instance NFData ResetId where
+  rnf (ResetId a) = rnf a
 
 instance PPrint ResetId where
   pPrint d p (ResetId i) = pPrint d p i
@@ -93,8 +93,8 @@ data WireProps = WireProps { -- clock domain of object, Nothing if object crosse
 emptyWireProps :: WireProps
 emptyWireProps = WireProps { wpClockDomain = Nothing, wpResets = [] }
 
-instance Hyper WireProps where
-  hyper (WireProps a b) y = hyper2 a b y
+instance NFData WireProps where
+  rnf (WireProps a b) = rnf2 a b
 
 instance PPrint WireProps where
   pPrint d p wp = text ("clock domain = ") <> (pPrint d 0 (wpClockDomain wp)) <> text (",") <+>

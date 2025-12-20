@@ -1,0 +1,21 @@
+package TestTMax_DualMethods where
+
+import TestCommon
+
+-- TMax (SizeOf a) (SizeOf b) with two methods for different types
+interface MaxIfc a b =
+  putA :: a -> Action
+  putB :: b -> Action
+
+-- Polymorphic version
+mkTestPoly :: (Bits a asz, Bits b bsz) => Module (MaxIfc a b)
+mkTestPoly = module
+  r :: Reg (Bit (TMax (SizeOf a) (SizeOf b))) <- mkRegU
+  interface MaxIfc
+    putA x = r := ((pack x) ++ 0)
+    putB y = r := ((pack y) ++ 0)
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMax_DualMethods #-}
+mkTest_TestTMax_DualMethods :: Module (MaxIfc (UInt 5) (UInt 3))
+mkTest_TestTMax_DualMethods = mkTestPoly

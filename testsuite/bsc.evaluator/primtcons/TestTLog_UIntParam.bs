@@ -1,0 +1,17 @@
+package TestTLog_UIntParam where
+
+import TestCommon
+
+-- TLog (SizeOf (UInt n)) - SizeOf of parametric UInt
+-- Tests if TLog normalizes when applied to SizeOf with numeric parameter
+-- Polymorphic version
+mkTestPoly :: Module (ReadOnly (RawFinUInt n))
+mkTestPoly = module
+  r :: Reg (Bit (TLog (SizeOf (UInt n)))) <- mkRegU
+  interface
+    _read = RawFinUInt r
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTLog_UIntParam #-}
+mkTest_TestTLog_UIntParam :: Module (ReadOnly (RawFinUInt 32))
+mkTest_TestTLog_UIntParam = mkTestPoly

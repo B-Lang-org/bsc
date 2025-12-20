@@ -21,7 +21,7 @@ import Prelude hiding ((<>))
 import Data.List(find)
 import Data.Maybe(isNothing, isJust)
 import qualified Data.Map as M
-import Eval
+import Eval(NFData(..), rnf7)
 import PPrint
 import Id
 import Pred(Class(..))
@@ -85,8 +85,8 @@ conInfoMerge new_cis old_cis = foldr mergeFn old_cis new_cis
               then if (ci_visible h) then (h:rest) else (ci:rest)
               else (h : mergeFn ci rest)
 
-instance Hyper ConInfo where
-    hyper x y = seq x y
+instance NFData ConInfo where
+    rnf x = seq x ()
 
 instance PPrint ConInfo where
     pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
@@ -151,8 +151,8 @@ instance PPrint FieldInfo where
                Nothing -> empty
                Just t -> text ("Original type: ") <> pPrint d 0 t)
 
-instance Hyper FieldInfo where
-    hyper (FieldInfo a b c d e f g) y = hyper7 a b c d e f g y
+instance NFData FieldInfo where
+    rnf (FieldInfo a b c d e f g) = rnf7 a b c d e f g
 
 
 -- The symbol table is composed of several other tables
@@ -193,8 +193,8 @@ instance PPrint SymTab where
         (text "Fields:" <+> pPrint d 0 (M.toList f) ) $+$
         (text "Classes:" <+> pPrint d 0 (M.toList cl) )
 
-instance Hyper SymTab where
-    hyper x y = y                -- XXX
+instance NFData SymTab where
+    rnf x = ()                -- XXX
 
 emptySymtab :: SymTab
 emptySymtab = S M.empty M.empty M.empty M.empty M.empty
