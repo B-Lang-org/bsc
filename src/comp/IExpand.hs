@@ -61,7 +61,6 @@ import Backend
 import Prim
 import IPrims(doPrimOp)
 import CSyntax
-import CSyntaxUtil
 import qualified TIMonad as TM
 import TypeCheck(topExpr)
 import VModInfo
@@ -3276,8 +3275,7 @@ conAp' _ (ICPrim _ PrimImpCondOf) fe (T t : E e : as) = do
   eWarning (getIExprPosition fe, WExperimental "primImpCondOf")
   let ce = CLam (Right id_x) (CApply (CVar idPrimDeepSeqCond) [CVar id_x, CVar id_x])
   let it = t `itFun` t
-  let ct = iToCT it
-  P p  f <- evalCExpr "PrimImpCondOf" ce ct as
+  P p  f <- evalCExpr "PrimImpCondOf" ce it as
   -- only UH here because PrimDeepSeqCond should do the rest
   (_, P p' e') <- evalUH (mkAp f (E e : as))
   -- XXX this is duplicate work if primSeqCond was employed?
@@ -3317,9 +3315,8 @@ conAp' i (ICPrim _ PrimWarning) _ (T t : E pos_e : E s : E e : as) = do
 conAp' i (ICPrim _ PrimUninitialized) _ (T t : as) = do
   let it = itPosition `itFun` itString `itFun` t
   -- polymorphism should be resolved
-  let ct = iToCT it
   let ce = CVar idPrimMakeUninitialized
-  evalCExpr "PrimUninitialized" ce ct as
+  evalCExpr "PrimUninitialized" ce it as
 
 conAp' i (ICPrim _ PrimRawUninitialized) _ (T t : E pos_e : E name : as) = do
   -- note that we don't fall back to PrimUninitialized
@@ -4910,8 +4907,8 @@ isIntLit (E (ICon _ (ICInt { }))) = True
 isIntLit (T (ITNum _)) = True
 isIntLit _ = False
 
-evalCExpr :: String -> CExpr -> CType -> [Arg] -> G PExpr
-evalCExpr tag ce ct as = do
+evalCExpr :: String -> CExpr -> IType -> [Arg] -> G PExpr
+evalCExpr tag ce it as = do
   --traceM("evalCExpr " ++ tag ++ "; ce: " ++ show ce ++ "; ct: " ++ show ct ++ "; as: " ++ show as)
   flags <- getFlags
   r <- getSymTab
@@ -4919,6 +4916,7 @@ evalCExpr tag ce ct as = do
   -- built-in typeclass reflection only uses coherent typeclasses
   -- XXX there may be a corner case if we depend on user code that requires
   -- XXX incoherent matching
+  let ct = iToCT it
   case (fst3 $ TM.runTI flags False r (topExpr ct ce)) of
     Left errs -> internalError (err_tag ++ " errors: " ++ ppReadable errs)
     Right (ps, ce') -> do
@@ -4934,10 +4932,10 @@ evalCExpr tag ce ct as = do
 doBuildUndefined :: IType -> Position -> Integer -> [Arg] -> G PExpr
 doBuildUndefined t pos i as = do
   -- safe because all polymorphism is resolved if an actual value is demanded
-  let ct = iToCT t
-  let ce = CApply (CVar idMakeUndef) [posLiteral pos, numLiteralAt pos i]
-  evalCExpr "PrimBuildUndefined" ce ct as
-
+  let as' =  [E (iMkPosition pos), E (iMkLit itInteger i)] ++ as
+  let ce = CVar idMakeUndef
+  let it = itPosition `itFun` itInteger `itFun` t
+  evalCExpr "PrimBuildUndefined" ce it as'
 
 -----------------------------------------------------------------------------
 
