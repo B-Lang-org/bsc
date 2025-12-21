@@ -494,6 +494,7 @@ traceflags = [
           "trace-a-definitions",
           "trace-clock",
           "trace-def-cache",
+          "trace-cexpr-cache",
           "hack-disable-urgency-warnings",
           "hack-gate-clock-inputs",
           "hack-gate-default-clock",

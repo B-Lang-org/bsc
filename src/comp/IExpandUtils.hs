@@ -18,7 +18,7 @@ module IExpandUtils(
         addSubmodComments, {-getSubmodComments,-}
         addPort, getPortWires, savePortType,
         saveRules, getSavedRules, clearSavedRules, replaceSavedRules,
-        setBackendSpecific, cacheDef,
+        setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
@@ -92,6 +92,7 @@ import PreStrings(s_unnamed)
 import FStringCompat
 import Id
 import PreIds
+import CSyntax(CExpr)
 import CType(TISort(..), StructSubType(..))
 import IConv(iConvT)
 import VModInfo
@@ -137,8 +138,8 @@ doTraceHeap2 :: Bool
 doTraceHeap2 = length (filter (== "-trace-heap") progArgs) > 1
 doTraceHeapAlloc :: Bool
 doTraceHeapAlloc = elem "-trace-heap-alloc" progArgs
-doTraceCache :: Bool
-doTraceCache = elem "-trace-def-cache" progArgs
+doTraceDefCache :: Bool
+doTraceDefCache = elem "-trace-def-cache" progArgs
 doTraceClock :: Bool
 doTraceClock = elem "-trace-clock" progArgs
 doDebugFreeVars :: Bool
@@ -574,6 +575,9 @@ data GState = GState {
         -- cache partially-evaluated top-level definitions
         defCache :: !(M.Map Id HExpr),
 
+        -- cache dynamically evaluated CSyntax expressions
+        cexprCache :: !(M.Map (CExpr, IType) HExpr),
+
         -- used for moduleFix
         savedRules :: !RulesBlobs,
 
@@ -635,6 +639,7 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       port_wires = M.empty,
                       backend_specific = False,
                       defCache = M.empty,
+                      cexprCache = M.empty,
                       savedRules = [],
                       badEvaluation = False,
                       aggressive_cond = aggImpConds flags
@@ -2864,16 +2869,29 @@ cacheDef i t e = do
   s <- get
   let m = defCache s
   case (M.lookup i m) of
-    Just e' -> do when doTraceCache $
-                    traceM ("cache hit: " ++ ppReadable (i, e'))
+    Just e' -> do when doTraceDefCache $
+                    traceM ("cache hit: " ++ ppReadable (i, t, e'))
                   return e'
     Nothing -> do e' <- toHeap "cache-def" e (Just i)
                   s <- get
                   let m' = M.insert i e' m
                   put (s { defCache = m' })
-                  when doTraceCache $
-                    traceM ("cache miss: " ++ ppReadable (i, e))
+                  when doTraceDefCache $
+                    traceM ("cache miss: " ++ ppReadable (i, t))
                   return e'
+
+-- caching of dynamically evaluated CSyntax expressions
+lookupCExprCache :: CExpr -> IType -> G (Maybe HExpr)
+lookupCExprCache ce it = do
+  s <- get
+  let m = cexprCache s
+  return $ M.lookup (ce, it) m
+
+insertCExprCache :: CExpr -> IType -> HExpr -> G ()
+insertCExprCache ce it e = do
+  s <- get
+  let m = cexprCache s
+  put $ s { cexprCache = M.insert (ce, it) e m }
 
 -- #############################################################################
 -- #

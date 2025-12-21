@@ -148,10 +148,15 @@ doTraceHeapAlloc = elem "-trace-heap-alloc" progArgs
 doTraceHeapSize :: Bool
 doTraceHeapSize = elem "-trace-heap-size" progArgs
 
--- doTraceCache
+-- doTraceDefCache
 --   In IExpandUtils, trace cache hit/miss for top-level functions.
-doTraceCache :: Bool
-doTraceCache = elem "-trace-def-cache" progArgs
+doTraceDefCache :: Bool
+doTraceDefCache = elem "-trace-def-cache" progArgs
+
+-- doTraceCExprCache
+--   In evalCExpr, trace cache hit/miss for dynamically evaluated CExprs
+doTraceCExprCache :: Bool
+doTraceCExprCache = elem "-trace-cexpr-cache" progArgs
 
 -- doTraceNF
 --   Trace the entrance and exit of "walkNF".
@@ -205,7 +210,8 @@ doAnyTrace = doProfile ||
              doTraceHeap ||
              doTraceHeapAlloc ||
              doTraceHeapSize ||
-             doTraceCache ||
+             doTraceDefCache ||
+             doTraceCExprCache ||
              doTraceNF ||
              doTracePortTypes ||
              doTraceIf ||
@@ -4909,6 +4915,18 @@ isIntLit _ = False
 
 evalCExpr :: String -> CExpr -> IType -> [Arg] -> G PExpr
 evalCExpr tag ce it as = do
+  mexpr <- lookupCExprCache ce it
+  ie <- case mexpr of
+          Just ie -> do
+            when doTraceCExprCache $ traceM $ "evalCExpr cache hit: " ++ ppString (ce, it)
+            return ie
+          Nothing -> do
+            when doTraceCExprCache $ traceM $ "evalCExpr cache miss: " ++ ppString (ce, it)
+            cExprToIExpr tag ce it
+  evalAp tag ie as
+
+cExprToIExpr :: String -> CExpr -> IType -> G HExpr
+cExprToIExpr tag ce it = do
   --traceM("evalCExpr " ++ tag ++ "; ce: " ++ show ce ++ "; ct: " ++ show ct ++ "; as: " ++ show as)
   flags <- getFlags
   r <- getSymTab
@@ -4927,7 +4945,13 @@ evalCExpr tag ce it as = do
       let ie = iConvExpr errh flags r env ce'
       --traceM(err_tag ++ "; ce': " ++ ppReadable ce')
       --traceM(err_tag ++ "; ie: " ++ ppReadable ie)
-      evalAp tag ie as
+      ie' <- case ie of
+               -- Applications are worth putting on the heap
+               IAps _ _ _ -> toHeap "cexpr-cache" ie Nothing
+               -- cache everything else (ICon, ILam, ILAM) directly
+               _          -> return ie
+      insertCExprCache ce it ie'
+      return ie'
 
 doBuildUndefined :: IType -> Position -> Integer -> [Arg] -> G PExpr
 doBuildUndefined t pos i as = do
