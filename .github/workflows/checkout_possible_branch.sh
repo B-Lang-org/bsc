@@ -42,7 +42,7 @@ if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
     fi
     user_branch_checkout "${HEAD_OWNER}" "${GITHUB_HEAD_REF}"
 elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-    user_branch_checkout "${GITHUB_ACTOR}" "${GITHUB_REF_NAME}"
+    user_branch_checkout "${GITHUB_REPOSITORY_OWNER}" "${GITHUB_REF_NAME}"
 else
     echo "GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME}"
     default_checkout
