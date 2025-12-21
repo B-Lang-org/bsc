@@ -56,11 +56,11 @@ import PPrint
 newtype VName = VName String
         deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
 
+instance NFData VName where
+        rnf (VName s) = rnf s
+
 instance PPrint VName where
     pPrint _ _ (VName s) = text s
-
-instance Hyper VName where
-    hyper (VName s) y = hyper s y
 
 getVNameString :: VName -> String
 getVNameString (VName string) = string
@@ -90,8 +90,8 @@ data VeriPortProp = VPreg
                   | VPunused
         deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance Hyper VeriPortProp where
-    hyper x y = x `seq` y
+instance NFData VeriPortProp where
+    rnf = rwhnf
 
 instance PPrint VeriPortProp where
     pPrint _ _ VPreg = text "reg"
@@ -133,6 +133,9 @@ type VMethodConflictInfo = MethodConflictInfo Id
 newtype VPathInfo = VPathInfo [(VName, VName)]
                   deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
 
+instance NFData VPathInfo where
+      rnf (VPathInfo x) = rnf x
+
 instance PPrint VPathInfo where
     pPrint d p (VPathInfo []) =
         s2par "No combinational paths from inputs to outputs"
@@ -157,10 +160,6 @@ instance PPrint VPathInfo where
 pShowVPathInfo :: PDetail -> Int -> VPathInfo -> Doc
 pShowVPathInfo d p (VPathInfo nns) = pPrint d p nns
 
-instance Hyper VPathInfo where
-    hyper (VPathInfo nns) = hyper nns
-
-
 -- ===============
 -- VArgInfo
 
@@ -175,6 +174,13 @@ data VArgInfo = Param VName    -- named module parameter
               -- named module inout, with associated clock and reset
               | InoutArg VName (Maybe Id) (Maybe Id)
               deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+
+instance NFData VArgInfo where
+    rnf (Param x) = rnf x
+    rnf (Port x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ClockArg x) = rnf x
+    rnf (ResetArg x) = rnf x
+    rnf (InoutArg x1 x2 x3) = rnf3 x1 x2 x3
 
 isParam :: VArgInfo -> Bool
 isParam (Param {}) = True
@@ -219,13 +225,6 @@ getVArgInoutClock _ = internalError ("getVArgInoutClock: not an inout")
 getVArgInoutReset :: VArgInfo -> Maybe Id
 getVArgInoutReset (InoutArg _ _ mrst) = mrst
 getVArgInoutReset _ = internalError ("getVArgInoutReset: not an inout")
-
-instance Hyper VArgInfo where
-    hyper (Param x) y = hyper x y
-    hyper (Port x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ClockArg x) y = hyper x y
-    hyper (ResetArg x) y = hyper x y
-    hyper (InoutArg x1 x2 x3) y = hyper3 x1 x2 x3 y
 
 instance PPrint VArgInfo where
     pPrint d p (Param x) = text "param " <> pPrint d 0 x <> text ";"
@@ -278,17 +277,17 @@ data VFieldInfo = Method { vf_name   :: Id, -- method name
                           vf_reset :: (Maybe Id) } -- optional reset
                 deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
 
+instance NFData VFieldInfo where
+  rnf (Method x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
+  rnf (Clock x) = rnf x
+  rnf (Reset x) = rnf x
+  rnf (Inout x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
+
 instance HasPosition VFieldInfo where
   getPosition (Method { vf_name = n }) = getPosition n
   getPosition (Clock i)                 = getPosition i -- or noPosition?
   getPosition (Reset i)                 = getPosition i -- or noPosition?
   getPosition (Inout { vf_name = n })  = getPosition n
-
-instance Hyper VFieldInfo where
-    hyper (Method x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
-    hyper (Clock x) y = hyper x y
-    hyper (Reset x) y = hyper x y
-    hyper (Inout x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
 
 instance PPrint VFieldInfo where
     pPrint d p (Method n c r m i o e) =
@@ -348,6 +347,9 @@ data VClockInfo = ClockInfo {
                  -- but *both* gate conditions must be enforced
                  siblingClocks :: [(Id, Id)] }
                 deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+
+instance NFData VClockInfo where
+    rnf (ClockInfo x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
 -- Gets information needed to construct the signals from an output clock clock.
 -- If there is no gate port or if the port is outhigh, Nothing is returned.
@@ -419,9 +421,6 @@ getInputClockPorts (ClockInfo { input_clocks = clocks }) =
         osc_vnames = map fst connected_clocks
         gate_vnames = snd $ separate (map snd connected_clocks)
 
-instance Hyper VClockInfo where
-    hyper (ClockInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
-
 instance HasPosition VClockInfo where
   getPosition (ClockInfo { output_clocks = ((id,_):_)}) = getPosition id
   getPosition (ClockInfo { input_clocks = ((id,_):_)}) = getPosition id
@@ -472,6 +471,9 @@ data VResetInfo = ResetInfo {
                    output_resets :: [ResetInf]
                   }
   deriving(Show, Ord, Eq, Generic.Data, Generic.Typeable)
+
+instance NFData VResetInfo where
+    rnf (ResetInfo x1 x2) = rnf2 x1 x2
 
 -- Gets info needed to construct the signals from an output reset.
 -- (Currently the same as getting the port name.)
@@ -528,9 +530,6 @@ getInputResetPorts :: VResetInfo -> [VName]
 getInputResetPorts (ResetInfo { input_resets = in_resets }) =
     catMaybes (map (fst . snd) in_resets)
 
-instance Hyper VResetInfo where
-  hyper (ResetInfo x1 x2) y = hyper2 x1 x2 y
-
 -- ===============
 -- Inout
 
@@ -561,6 +560,9 @@ data VModInfo = VModInfo {
         vPath  :: VPathInfo
         }
         deriving (Show, Ord, Eq, Generic.Data, Generic.Typeable)
+
+instance NFData VModInfo where
+    rnf (VModInfo x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
 
 mkVModInfo :: VName -> VClockInfo -> VResetInfo ->
               [VArgInfo] -> [VFieldInfo] ->
@@ -633,10 +635,6 @@ instance PPrint VModInfo where
             pPrint d 10 (vSched v),
             pShowVPathInfo d 10 (vPath v)])
 
-instance Hyper VModInfo where
-    hyper x@(VModInfo x1 x2 x3 x4 x5 x6 x7) y = hyper7 x1 x2 x3 x4 x5 x6 x7 y
-
-
 -- ===============
 -- VWireInfo
 
@@ -647,9 +645,8 @@ data VWireInfo = WireInfo {
                   wArgs :: [VArgInfo]
                  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
-
-instance Hyper VWireInfo where
-  hyper (WireInfo clk rst args) y = hyper3 clk rst args y
+instance NFData VWireInfo where
+  rnf (WireInfo x1 x2 x3) = rnf3 x1 x2 x3
 
 instance PPrint VWireInfo where
   pPrint d p (WireInfo clk rst args) =

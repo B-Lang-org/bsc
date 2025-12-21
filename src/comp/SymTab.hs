@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module SymTab(
               SymTab(..), VarInfo(..), TypeInfo(..),
               ConInfo(..), ConTagInfo(..),
@@ -21,6 +22,7 @@ import Prelude hiding ((<>))
 import Data.List(find)
 import Data.Maybe(isNothing, isJust)
 import qualified Data.Map as M
+import GHC.Generics (Generic)
 import Eval
 import PPrint
 import Id
@@ -85,8 +87,8 @@ conInfoMerge new_cis old_cis = foldr mergeFn old_cis new_cis
               then if (ci_visible h) then (h:rest) else (ci:rest)
               else (h : mergeFn ci rest)
 
-instance Hyper ConInfo where
-    hyper x y = seq x y
+instance NFData ConInfo where
+    rnf = rwhnf     -- XXX this doesn't force any of the fields
 
 instance PPrint ConInfo where
     pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
@@ -114,7 +116,7 @@ data FieldInfo
                      fi_default :: [CClause],
                      fi_orig_type :: Maybe CType -- original field type for wrapped fields
                     }
-        deriving (Show)
+        deriving (Show, Generic, NFData)
 
 -- test whether two FieldInfo are identical except for the visibility
 fieldInfoEq :: FieldInfo -> FieldInfo -> Bool
@@ -151,10 +153,6 @@ instance PPrint FieldInfo where
                Nothing -> empty
                Just t -> text ("Original type: ") <> pPrint d 0 t)
 
-instance Hyper FieldInfo where
-    hyper (FieldInfo a b c d e f g) y = hyper7 a b c d e f g y
-
-
 -- The symbol table is composed of several other tables
 data SymTab =
         S (IdMap VarInfo) (IdMap [ConInfo]) (IdMap TypeInfo) (IdMap [FieldInfo]) (IdMap Class)
@@ -162,9 +160,6 @@ data SymTab =
           --   (indexed generally by both qualified and unqualified name)
           -- The FieldInfo is indexed by field id (e.g., "_write" returns the fields of Reg)
           --   or by superclass (e.g. Literal returns the superclasses of "Arith")
-
-instance Eq SymTab where -- just because we need one for forcing evaluation
-    _ == _ = False
 
 showsPrecList :: Show a => Int -> [a] -> String -> String
 showsPrecList wid (thing@[_]) z =
@@ -193,8 +188,8 @@ instance PPrint SymTab where
         (text "Fields:" <+> pPrint d 0 (M.toList f) ) $+$
         (text "Classes:" <+> pPrint d 0 (M.toList cl) )
 
-instance Hyper SymTab where
-    hyper x y = y                -- XXX
+instance NFData SymTab where
+    rnf x = ()               -- XXX
 
 emptySymtab :: SymTab
 emptySymtab = S M.empty M.empty M.empty M.empty M.empty

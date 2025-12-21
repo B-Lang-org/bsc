@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module ForeignFunctions ( ForeignType(..)
                         , ForeignFunction(..)
                         , ForeignCall(..)
@@ -47,7 +48,8 @@ import Verilog(VDPI(..), VDPIType(..), mkVId, idToVId)
 import ErrorUtil(internalError)
 import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
-import Eval(Hyper(..))
+import Eval
+import GHC.Generics (Generic)
 
 import Data.List(intercalate, isPrefixOf, nub)
 import Data.Maybe(mapMaybe, maybeToList)
@@ -65,7 +67,7 @@ data ForeignType = Void
                  | Wide Integer
                  | Polymorphic
                  | StringPtr
-  deriving (Eq,Show);
+  deriving (Eq, Show, Generic, NFData);
 
 instance PPrint ForeignType where
   pPrint _ _ Void        = text "void"
@@ -73,9 +75,6 @@ instance PPrint ForeignType where
   pPrint _ _ (Wide n)    = (text "Bits#(") <> (text (itos n)) <> (text ")")
   pPrint _ _ Polymorphic = text "Bits#(?)"
   pPrint _ _ StringPtr   = text "String"
-
-instance Hyper ForeignType where
-  hyper x y = (x==x) `seq` y
 
 isAbsent :: ForeignType -> Bool
 isAbsent Void = True
@@ -103,7 +102,7 @@ data ForeignFunction = FF { ff_name :: Id
                           , ff_ret  :: ForeignType
                           , ff_args :: [ForeignType]
                           }
-  deriving (Eq,Show);
+  deriving (Eq, Show, Generic, NFData);
 
 instance PPrint ForeignFunction where
   pPrint d p (FF nm rt args) =
@@ -111,9 +110,6 @@ instance PPrint ForeignFunction where
         ret_type = pPrint d p rt
         arg_types = pparen True (sepList (map (pPrint d p) args) comma)
     in ret_type <+> name <> arg_types
-
-instance Hyper ForeignFunction where
-  hyper x y = (x==x) `seq` y
 
 mkForeignFunction :: Id -> CType -> ForeignFunction
 mkForeignFunction name ty =

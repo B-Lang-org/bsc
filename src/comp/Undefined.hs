@@ -32,8 +32,8 @@ import Eval
 data UndefKind = UNotUsed | UDontCare | UNoMatch
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
-instance Hyper UndefKind where
-    hyper x y = seq x y
+instance NFData UndefKind where
+    rnf = rwhnf
 
 -- =====
 

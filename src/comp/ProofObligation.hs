@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, DeriveAnyClass #-}
 module ProofObligation (
                         ProofObligation(..),
                         HasProve(..), ProofResult(..), MsgFn(..), MsgTuple,
@@ -8,6 +8,9 @@ module ProofObligation (
 
 import Error(EMsg, ErrorHandle, bsWarningsAndErrors)
 import PPrint
+
+import GHC.Generics (Generic)
+import Eval
 
 import Control.Monad(when)
 import Control.Monad.Trans(MonadIO, liftIO)
@@ -29,11 +32,7 @@ class HasProve a m where
 -- to avoid recursive module dependencies.
 data ProofObligation a = ProveEq a a
                        | ProveNotEq a a
-
-instance Eq a => Eq (ProofObligation a) where
-  (ProveEq x1 y1)    == (ProveEq x2 y2)    = (x1 == x2) && (y1 == y2)
-  (ProveNotEq x1 y1) == (ProveNotEq x2 y2) = (x1 == x2) && (y1 == y2)
-  _                  == _                  = False
+  deriving (Eq, Generic, NFData)
 
 instance Show a => Show (ProofObligation a) where
   show (ProveEq    x y) = (show x) ++ " == " ++ (show y)
@@ -49,6 +48,11 @@ data MsgFn =
   MsgFn { mf_ident :: String
         , mf_fn    :: ProofResult -> MsgTuple -> MsgTuple
         }
+
+instance NFData MsgFn where
+  -- The NFData instance of functions is debatable and
+  -- likely to be deprecated, so we give this instance manually.
+  rnf (MsgFn i f) = rnf i `seq` f `seq` ()
 
 -- (warnings, demotable errors, errors)
 type MsgTuple = ([EMsg], [EMsg], [EMsg])
