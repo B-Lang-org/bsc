@@ -17,28 +17,28 @@ default_checkout () {
 
 user_branch_checkout () {
     if [ "$2" = "main" ]; then
-	default_checkout
+        default_checkout
     else
-	CMD="git ls-remote --heads https://github.com/$1/${REPO} refs/heads/$2"
-	echo "Trying: $CMD"
-	SEARCH_RES=`$CMD || echo`
-	echo "Result: ${SEARCH_RES}"
-	if [ -z "${SEARCH_RES}" ]; then
+        CMD="git ls-remote --heads https://github.com/$1/${REPO} refs/heads/$2"
+        echo "Trying: $CMD"
+        SEARCH_RES=`$CMD || echo`
+        echo "Result: ${SEARCH_RES}"
+        if [ -z "${SEARCH_RES}" ]; then
             default_checkout
-	else
+        else
             echo "Checking out user's branch"
             git clone --recursive https://github.com/$1/${REPO} ../${REPO}
             cd ../${REPO}
             git checkout "$2"
-	fi
+        fi
     fi
 }
 
 if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
     if [ -z "${HEAD_OWNER}" ] ; then
-	echo "HEAD_OWNER not defined in environment"
-	echo "use ${{ github.event.pull_request.head.repo.owner.login }}"
-	exit 1
+        echo "HEAD_OWNER not defined in environment"
+        echo "use ${{ github.event.pull_request.head.repo.owner.login }}"
+        exit 1
     fi
     user_branch_checkout "${HEAD_OWNER}" "${GITHUB_HEAD_REF}"
 elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
