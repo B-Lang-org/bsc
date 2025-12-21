@@ -21,7 +21,7 @@ user_branch_checkout () {
     else
 	CMD="git ls-remote --heads https://github.com/$1/${REPO} refs/heads/$2"
 	echo "Trying: $CMD"
-	SEARCH_RES=`$CMD`
+	SEARCH_RES=`$CMD || echo`
 	echo "Result: ${SEARCH_RES}"
 	if [ -z "${SEARCH_RES}" ]; then
             default_checkout
@@ -35,7 +35,12 @@ user_branch_checkout () {
 }
 
 if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-    user_branch_checkout "${GITHUB_ACTOR}" "${GITHUB_HEAD_REF}"
+    if [ -z "${HEAD_OWNER}" ] ; then
+	echo "HEAD_OWNER not defined in environment"
+	echo "use ${{ github.event.pull_request.head.repo.owner.login }}"
+	exit 1
+    fi
+    user_branch_checkout "${HEAD_OWNER}" "${GITHUB_HEAD_REF}"
 elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
     user_branch_checkout "${GITHUB_ACTOR}" "${GITHUB_REF_NAME}"
 else
