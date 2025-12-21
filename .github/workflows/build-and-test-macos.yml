@@ -235,6 +235,8 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download Toooba
+        env:
+          HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
         run: .github/workflows/checkout_possible_branch.sh bluespec Toooba
 
       # Restore previous ccache cache of compiled object files. Use a SHA
@@ -313,6 +315,8 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download bsc-contrib
+        env:
+          HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
         run: .github/workflows/checkout_possible_branch.sh B-Lang-org bsc-contrib
 
       - name: Build and install bsc-contrib
@@ -385,6 +389,8 @@ jobs:
         run: "tar xzf inst.tar.gz"
 
       - name: Download bdw
+        env:
+          HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
         run: .github/workflows/checkout_possible_branch.sh B-Lang-org bdw
 
       - name: Build and install bdw
