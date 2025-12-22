@@ -441,6 +441,7 @@ traceflags = [
           "trace-eval-if",
           "trace-eval-nf",
           "trace-eval-trans",
+          "trace-expand-batch-subst",
           "trace-full",
           "trace-fun-expand",
           "trace-genbin",

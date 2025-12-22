@@ -47,7 +47,7 @@ import Verilog(VDPI(..), VDPIType(..), mkVId, idToVId)
 import ErrorUtil(internalError)
 import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
-import Eval(Hyper(..))
+import Eval
 
 import Data.List(intercalate, isPrefixOf, nub)
 import Data.Maybe(mapMaybe, maybeToList)
@@ -74,8 +74,12 @@ instance PPrint ForeignType where
   pPrint _ _ Polymorphic = text "Bits#(?)"
   pPrint _ _ StringPtr   = text "String"
 
-instance Hyper ForeignType where
-  hyper x y = (x==x) `seq` y
+instance NFData ForeignType where
+  rnf Void = ()
+  rnf (Narrow n) = rnf n
+  rnf (Wide n) = rnf n
+  rnf Polymorphic = ()
+  rnf StringPtr = ()
 
 isAbsent :: ForeignType -> Bool
 isAbsent Void = True
@@ -112,8 +116,8 @@ instance PPrint ForeignFunction where
         arg_types = pparen True (sepList (map (pPrint d p) args) comma)
     in ret_type <+> name <> arg_types
 
-instance Hyper ForeignFunction where
-  hyper x y = (x==x) `seq` y
+instance NFData ForeignFunction where
+  rnf (FF name ret args) = rnf3 name ret args
 
 mkForeignFunction :: Id -> CType -> ForeignFunction
 mkForeignFunction name ty =

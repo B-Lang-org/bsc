@@ -2,6 +2,7 @@ module Literal(Literal(..)) where
 import IntLit
 import PPrint
 import PVPrint
+import Eval(NFData(..))
 
 data Literal
         = LString String
@@ -25,3 +26,10 @@ instance PVPrint Literal where
     pvPrint d p (LInt i) = pvPrint d p i
     pvPrint d p (LReal r) = pvPrint d p r
     pvPrint _ _ LPosition = text ("<Position>")
+
+instance NFData Literal where
+    rnf (LString s) = rnf s
+    rnf (LChar c) = rnf c
+    rnf (LInt i) = rnf i
+    rnf (LReal r) = rnf r
+    rnf LPosition = ()
