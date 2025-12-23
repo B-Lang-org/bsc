@@ -119,8 +119,8 @@ instance PPrint MethodId where
     pPrint d p mid = pPrint d p (methodIdToId mid)
 instance PVPrint MethodId where
     pvPrint d p mid = pvPrint d p (methodIdToId mid)
-instance Hyper MethodId where
-     hyper (MethodId a m) y = hyper2 a m y
+instance NFData MethodId where
+     rnf (MethodId o m) = rnf2 o m
 
 methodIdToId :: MethodId -> Id
 methodIdToId (MethodId id mid) = mkStId id mid
@@ -152,9 +152,9 @@ instance PPrintExpand UniqueUse where
     pPrintExpand ds d i (UUAction a) = pPrintExpand ds d i a
     pPrintExpand ds d i (UUExpr a _)   = pPrintExpand ds d i a
 
-instance Hyper UniqueUse where
-    hyper (UUAction a) y = hyper a y
-    hyper (UUExpr e c) y = hyper2 e c y
+instance NFData UniqueUse where
+    rnf (UUAction a) = rnf a
+    rnf (UUExpr e c) = rnf2 e c
 
 -- XXX why does this return True for actions?
 -- XXX consider merging this and "hasSideEffects"
@@ -598,8 +598,11 @@ data UseCond = UseCond { true_exprs :: S.Set AExpr,
                        }
   deriving (Show, Eq, Ord)
 
-instance Hyper UseCond where
-  hyper (UseCond a b c d) y = hyper4 a b c d y
+instance NFData UseCond where
+  rnf (UseCond t f eq neq) = rnf4 t f eq neq
+
+instance NFData RuleUses where
+    rnf (RuleUses pus rus wus) = rnf3 pus rus wus
 
 ucTrue, ucFalse :: UseCond
 ucTrue  = UseCond S.empty S.empty M.empty M.empty

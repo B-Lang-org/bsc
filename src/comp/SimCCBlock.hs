@@ -62,7 +62,7 @@ import IntegerUtil(aaaa)
 import PPrint hiding (char, int)
 import Util(itos, headOrErr, initOrErr, lastOrErr, unconsOrErr,
             snd3, makePairs, concatMapM)
-import Eval(Hyper(..))
+import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
@@ -2257,22 +2257,33 @@ instance PPrint SimCCReset where
     in label <+> name <> (text ":") $+$ (nest 2 func)
 
 -- ==================================================
--- Hyper instances (needed by phase dumping routines)
+-- NFData instances (needed by phase dumping routines)
 
-instance Hyper SimCCBlock where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCBlock where
+  rnf (SimCCBlock n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17 n18 n19) =
+    rnf19 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17 n18 n19
 
-instance Hyper SimCCFn where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCFn where
+  rnf (SimCCFn n a r b) = rnf4 n a r b
 
-instance Hyper SimCCFnStmt where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCFnStmt where
+  rnf (SFSDef b t me) = rnf3 b t me
+  rnf (SFSAssign b id e) = rnf3 b id e
+  rnf (SFSAction act) = rnf act
+  rnf (SFSAssignAction b id act t) = rnf4 b id act t
+  rnf (SFSRuleExec rid) = rnf rid
+  rnf (SFSCond e ts fs) = rnf3 e ts fs
+  rnf (SFSMethodCall id1 id2 es) = rnf3 id1 id2 es
+  rnf (SFSFunctionCall id fn es) = rnf3 id fn es
+  rnf (SFSResets stmts) = rnf stmts
+  rnf (SFSReturn me) = rnf me
+  rnf (SFSOutputReset id e) = rnf2 id e
 
-instance Hyper SimCCSched where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCSched where
+  rnf (SimCCSched clk pos fn aft) = rnf4 clk pos fn aft
 
-instance Hyper SimCCClockGroup where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCClockGroup where
+  rnf (SimCCClockGroup can insts) = rnf2 can insts
 
-instance Hyper SimCCReset where
-  hyper x y = (x==x) `seq` y
+instance NFData SimCCReset where
+  rnf (SimCCReset num port fn) = rnf3 num port fn
