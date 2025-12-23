@@ -13,7 +13,7 @@ import Id
 import FStringCompat
 import Flags(Flags)
 import PreStrings(sSigned)
-import PreIds(idBit, idAVAction_, idAVValue_, idClockOsc, idClockGate,
+import PreIds(idBit, idActionValue_, idAVAction_, idAVValue_, idClockOsc, idClockGate,
               idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd)
 import Pragma
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
@@ -28,7 +28,6 @@ import GenWrapUtils(isGenId, dropGenSuffixId)
 import Prim
 import Data.List(genericLength, nub)
 import Data.Maybe(fromMaybe)
-import CType(TISort(..), StructSubType(..))
 import VModInfo(lookupOutputClockWires, lookupOutputResetWire,
                 lookupIfcInoutWire, vArgs, VArgInfo(..), vName_to_id, vf_outputs)
 import SignalNaming
@@ -193,8 +192,8 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                     res = lastOrErr "tsConv" ts
                     in_types = map (aTypeConv i) inputs
                     (en_type, val_type)
-                      | isitActionValue_ res && getAV_Size res > 0
-                          = (Just (ATBit 1), [ATBit (getAV_Size res)])  -- TODO: Make ActionValue_ contain a tuple
+                      | isitActionValue_ res
+                          = (Just (ATBit 1), aTypesConv i (getAV_Type res))
                       | isActionType res
                           = (Just (ATBit 1), [])
                       | otherwise
@@ -709,9 +708,8 @@ aTypeConv a t@(ITAp (ITAp (ITCon p _ _) _) _) | p == idPrimPair =
 aTypeConv _ t | t == itReal = ATReal
 aTypeConv _ t | t == itString = ATString Nothing
 -- Deal with AVs
-aTypeConv _ (ITAp (ITCon i t (TIstruct SStruct fs@(val:_))) (ITNum n)) =
-    ATBit n
-    -- internalError ("Yes\n\n" ++ (show a) ++"\n\n" ++ (show n))
+aTypeConv a (ITAp (ITCon i _ _) t) | i == idActionValue_ =
+    aTypeConv a t
 aTypeConv _ t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
         abs (ITAp t _) ns = abs t ns

@@ -913,9 +913,9 @@ fromPrimAction a = ActionValue (\aw -> AVStruct { avValue = _; avAction = a; avW
 type Action = ActionValue ()
 
 --X@ \begin{verbatim}
---X@ typedef ActionValue_#(0) Action_;
+--X@ typedef ActionValue_#(void) Action_;
 --X@ \end{verbatim}
-type Action_ = ActionValue_ 0
+type Action_ = ActionValue_ ()
 
 --@ An empty \te{Action}.
 --@ \index{noAction@\te{noAction} (empty action)}
@@ -932,23 +932,36 @@ noAction = fromPrimAction primNoActions
 (:<-) :: Reg a -> ActionValue a -> Action
 (:<-) r av = av `bind` r._write
 
---X@ A primitive \te{ActionValue} of bits
+--X@ A primitive \te{ActionValue} of bits.
+--X@ The type parameter should be either (), Bit n, or a tuple of Bit n.
 --X@ \begin{verbatim}
---X@ struct ActionValue_ #(type n);
+--X@ struct ActionValue_ #(type a;
 --X@ \end{verbatim}
-struct ActionValue_ n
+struct ActionValue_ a
   =
-    avValue_  :: Bit n
+    avValue_  :: a
     avAction_ :: PrimAction
 
-toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ n
-toActionValue_  (ActionValue av) =
-    letseq av' = av ActionWorld
-    in ActionValue_ { avValue_ = pack av'.avValue; avAction_ = av'.avAction}
+toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ (Bit n)
+toActionValue_ = bitsToActionValue_ ∘ fmap pack
 
-fromActionValue_ :: (Bits a n) => ActionValue_ n -> ActionValue a
-fromActionValue_  av_ = ActionValue (\aw ->
-    AVStruct { avValue = unpack av_.avValue_; avAction = av_.avAction_; avWorld = aw})
+fromActionValue_ :: (Bits a n) => ActionValue_ (Bit n) -> ActionValue a
+fromActionValue_ = fmap unpack ∘ bitsFromActionValue_
+
+toAction_ :: Action -> Action_
+toAction_ = bitsToActionValue_
+
+fromAction_ :: Action_ -> Action
+fromAction_ = bitsFromActionValue_
+
+bitsToActionValue_ :: ActionValue a -> ActionValue_ a
+bitsToActionValue_  (ActionValue av) =
+    letseq av' = av ActionWorld
+    in ActionValue_ { avValue_ = av'.avValue; avAction_ = av'.avAction}
+
+bitsFromActionValue_ :: ActionValue_ a -> ActionValue a
+bitsFromActionValue_ av_ = ActionValue (\ aw ->
+    AVStruct { avValue = av_.avValue_; avAction = av_.avAction_; avWorld = aw})
 
 -- ----------------------------------------------------------------
 
@@ -3216,9 +3229,9 @@ $time = fromActionValue_ (__time__)
 $stime :: ActionValue (Bit 32)
 $stime = fromActionValue_ (__stime__)
 
-foreign __time__ :: ActionValue_ 64 = "$time"
+foreign __time__ :: ActionValue_ (Bit 64) = "$time"
 
-foreign __stime__ :: ActionValue_ 32 = "$stime"
+foreign __stime__ :: ActionValue_ (Bit 32) = "$stime"
 
 --  File type and system tasks which use it
 data File = InvalidFile |
@@ -3272,7 +3285,7 @@ foreign $fflush :: PrimAction = "$fflush"
 -- Type checking is done by bsc
 -- $fopen :: String ->  ActionValue#(File)
 -- $fopen :: String -> String ->  ActionValue#(File)
-foreign $fopen :: ActionValue_ 32 = "$fopen"
+foreign $fopen :: ActionValue_ (Bit 32) = "$fopen"
 
 
 -- The arguments for these are handled internally
@@ -3281,16 +3294,16 @@ foreign $fwriteb ::  PrimAction = "$fwriteb"
 foreign $fwriteo ::  PrimAction = "$fwriteo"
 foreign $fwriteh ::  PrimAction = "$fwriteh"
 
-foreign $swriteAV  ::  ActionValue_  n = "$swriteAV"
+foreign $swriteAV  ::  ActionValue_ (Bit n) = "$swriteAV"
 foreign $swrite    ::  PrimAction = "$swrite"
-foreign $swritebAV ::  ActionValue_  n = "$swritebAV"
+foreign $swritebAV ::  ActionValue_ (Bit n) = "$swritebAV"
 foreign $swriteb   ::  PrimAction = "$swriteb"
-foreign $swriteoAV ::  ActionValue_  n = "$swriteoAV"
+foreign $swriteoAV ::  ActionValue_ (Bit n) = "$swriteoAV"
 foreign $swriteo   ::  PrimAction = "$swriteo"
-foreign $swritehAV ::  ActionValue_  n = "$swritehAV"
+foreign $swritehAV ::  ActionValue_ (Bit n) = "$swritehAV"
 foreign $swriteh   ::  PrimAction = "$swriteh"
 
-foreign $sformatAV ::  ActionValue_  n = "$sformatAV"
+foreign $sformatAV ::  ActionValue_ (Bit n) = "$sformatAV"
 foreign $sformat   ::  PrimAction = "$sformat"
 
 foreign $fdisplay  ::  PrimAction = "$fdisplay"
@@ -3298,20 +3311,19 @@ foreign $fdisplayb ::  PrimAction = "$fdisplayb"
 foreign $fdisplayo ::  PrimAction = "$fdisplayo"
 foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
-foreign $random :: ActionValue_ 32 = "$random"
+foreign $random :: ActionValue_ (Bit 32) = "$random"
 
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))
-foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
+foreign __fgetc__ :: Bit 32 -> ActionValue_ (Bit 32) = "$fgetc"
 
 $fclose :: File -> Action
-$fclose f = fromActionValue_ (__fclose__ (pack f))
+$fclose f = fromAction_ (__fclose__ (pack f))
 foreign __fclose__ :: Bit 32 -> Action_ = "$fclose"
 
 $ungetc :: Bit 8 -> File -> ActionValue (Int 32)
 $ungetc c f = fromActionValue_ ( __fungetc__ c (pack f))
-foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ 32 = "$ungetc"
-
+foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ (Bit 32) = "$ungetc"
 
 -- "standard" file descriptors
 stdin  :: File
@@ -3326,7 +3338,7 @@ stdout_mcd = MCD 1
 
 $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
-foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
+foreign __testplusargs__ :: String -> ActionValue_ (Bit 1) = "$test$plusargs"
 
 ------------------
 
@@ -4554,32 +4566,15 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
-instance WrapMethod (ActionValue ()) (ActionValue_ 0) where
-  toWrapMethod = toActionValue_
-  fromWrapMethod = fromActionValue_
-  methodArgBaseNames _ _ _ _ = Nil
-  inputPortNames _ _ = Nil
-  outputPortNames _ base = Nil
-  saveMethodPortTypes _ modName _ result = return ()
-
-instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
-  toWrapMethod = toActionValue_
-  fromWrapMethod = fromActionValue_
-  methodArgBaseNames _ _ _ _ = Nil
-  inputPortNames _ _ = Nil
-  outputPortNames _ base = Cons base Nil
-  saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
-
-{-
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) =>
+instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
-  toWrapMethod = fmap packPorts
-  fromWrapMethod = fmap unpackPorts
+  toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts) 
+  fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
   methodArgBaseNames _ _ _ _ = Nil
+  inputPortNames _ _ = Nil
   outputPortNames _ base = checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
--}
 
 instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod a pb where

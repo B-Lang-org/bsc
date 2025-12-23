@@ -1128,7 +1128,7 @@ iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
                         IAps f@(ICon _ (ICTuple {})) ts [e1, e2]
                           | isActionType methType
                           -> let pos = getIdPosition i
-                                 vt = actionValue_BitN methType
+                                 vt = getAV_Type methType
                                  v = icUndetAt pos vt UNotUsed
                              in  (IAps f ts [v, icNoActions], ws)
                         _ -> internalError "iExpandMethod: fixupActionWireSet"
