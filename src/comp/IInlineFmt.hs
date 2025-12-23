@@ -358,7 +358,7 @@ createValueExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign 
                 = x
                 where x = (IAps (ICon idAVValue_ (ICSel {iConType = tt , selNo = 0, numSel = 2 })) [ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
+                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKStar IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
                                                    (ITAp itBit (ITVar v0)) )
 createValueExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x
@@ -374,7 +374,7 @@ createActionExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign
                 = x
                 where x = (IAps (ICon idAVAction_ (ICSel {iConType = tt , selNo = 1, numSel = 2 })) [ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
+                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKStar IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
                                                    itAction )
 createActionExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x

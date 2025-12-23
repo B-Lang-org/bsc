@@ -796,7 +796,7 @@ procType (n, ns, as, ts, ctx) ty = do
   if isAV then do
     av_t <- getAVType "procType" ty
     return (n+1, newId:ns, newSVar:as,
-            (ty, (TAp tActionValue_  (cTVarNum newId))):ts,
+            (ty, (TAp tActionValue_ (TAp tBit (cTVarNum newId)))):ts,
             (bitsCtx av_t newSVar):ctx)
    else do
      isInout <- isInoutType ty

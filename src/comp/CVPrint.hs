@@ -853,8 +853,8 @@ ppVeriMethod d mr (Method i mc mreset n pts os me) =
    t"method " <>
    (case os of
       [] -> empty
-      [o] -> f "" "" (Just o)
-      _   -> t"(" <> sepList (map (f "" "" . Just) os) (t",") <> t")") <>
+      [o] -> f "" " " (Just o)
+      _   -> t"(" <> sepList (map (f "" " " . Just) os) (t",") <> t")") <>
    (pvpId d i <>
    (if n == 1 then empty else (t"[" <> (pp d n) <> t"]")) <>
    (t"(" <> sepList (map (f "" "" . Just) pts) (t",") <> t")") <>

@@ -347,21 +347,23 @@ isPrimType (ITCon i _ _) = i == idPrimAction ||
                            -- i == idInteger
                            i == idFmt || -- also not really a primitive
                            i == idClock ||
-                           i == idReset
+                           i == idReset ||
+                           i == idPrimUnit
+-- ActionValue_ must be applied to (a tuple of) Bit
+isPrimType (ITAp (ITCon i _ _) t)
+  | i == idActionValue_ = t == itPrimUnit || isBitTupleType t
 -- Primitive constructor applied to numeric type(s)
 isPrimType (ITAp a t) | iGetKind t == Just IKNum = isPrimTAp a
 -- Primitive arrays
 isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
--- Pair of primitive types
-isPrimType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
-  isPrimType t1 && isPrimType t2
+-- Tuples of bits
+isPrimType t | isBitTupleType t = True
 isPrimType _ = False
 
 -- Primitive type applications
 isPrimTAp :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
-isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
-                          i == idBit ||
+isPrimTAp (ITCon i _ _) = i == idBit ||
                           i == idInout_
 isPrimTAp (ITAp a t) | iGetKind t == Just IKNum = isPrimTAp a
 isPrimTAp _ = False

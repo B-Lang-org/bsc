@@ -898,7 +898,7 @@ tiExpr as td exp@(CForeignFuncC link_id wrap_cqt) = do
                         when (isTypeString av_arg) $
                             err (getPosition pos, EForeignFuncStringRes)
                         (ctxs, prim_sz) <- findBitSize av_arg
-                        let prim_t = TAp tActionValue_ prim_sz
+                        let prim_t = TAp tActionValue_ $ TAp tBit prim_sz
                         return (ctxs, prim_t, cexpr)
                 -- anything else must be bitifiable
                 else do let cexpr = \e -> cVApply idUnpack [e]
@@ -1520,7 +1520,7 @@ finishSWriteAV as td v f es paramResults eq_ps =
         let (pss, es') = unzip pses
 
 --        v <- newTVar "XXX" KNum f
-        let tav = TAp tActionValue_ v
+        let tav = TAp tActionValue_ (TAp tBit v)
         let taskty = foldr fn tav tys
 
         -- XXX: quantifying in IConv instead so free type vars are caught correctly
@@ -1582,7 +1582,7 @@ taskCheckFOpen as td f [filen] =
       (vp,filentc) <- tiExpr as tString filen
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]
@@ -1598,7 +1598,7 @@ taskCheckFOpen as td f [filen,mode] =
       --
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc,modetc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]
