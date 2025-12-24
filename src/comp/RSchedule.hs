@@ -115,7 +115,7 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
         rMax = lookupRes mId rMaxs
 
         g :: UUGraph
-        g = uuGraph areSimult uses
+        g = uuGraph areSimult uses rMax
 
         dropEdges =
             case rFlag of
@@ -146,8 +146,9 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
 -- and edges where two uses are simultaneous
 uuGraph :: (RuleId -> RuleId -> Bool) ->
            [(UniqueUse, MethodUsers)] ->
+           Integer ->
            UUGraph
-uuGraph areSimult uUses =
+uuGraph areSimult uUses rMax =
     let
         gVertices = foldr (flip G.addVertex) G.empty [u | (u,_) <- uUses]
 
@@ -158,7 +159,7 @@ uuGraph areSimult uUses =
         --   (two uses of same action are ok if the action is idempotent,
         --   which is captured in the "simult" check)
         aEdges =
-            [(uUse, uUse', ss) |
+            [(uUse, uUse', ss) | rMax /= 0,
                 ((uUse, (_, rs, _)), (uUse', (_, rs', _))) <- allPairs uUses,
                 differentArgs uUse uUse' || hasSideEffects uUse,
                 let ss = simult rs rs', not $ null ss]
@@ -170,7 +171,7 @@ uuGraph areSimult uUses =
         -- XXX but with urgency we can be smarter (a predicate's use may
         -- XXX be exclusive with the execution of the action of a more
         -- XXX more urgent rule)
-        pEdges = concat [[(uUse, uUse', ss), (uUse', uUse, ss)] |
+        pEdges = concat [[(uUse, uUse', ss), (uUse', uUse, ss)] | rMax /= 0,
                              (uUse, (prs, _, _)) <- uUses, not (null prs),
                              (uUse', (prs', ars', _)) <- uUses,
                              differentArgs uUse uUse',
@@ -179,7 +180,7 @@ uuGraph areSimult uUses =
 
         -- edges for instantiations
         -- (like rule predicates, the must always occur)
-        iEdges = concat [[(uUse, uUse', ss), (uUse', uUse, ss)] |
+        iEdges = concat [[(uUse, uUse', ss), (uUse', uUse, ss)] | rMax /= 0,
                              (uUse, (_, _, irs)) <- uUses, not (null irs),
                              (uUse', (prs', ars', irs')) <- uUses,
                              differentArgs uUse uUse',
@@ -247,7 +248,7 @@ simpleDropEdges moduleId areSimult (mId,uses) rMax st g =
           allDropsSet = S.fromList $ map ordPair allDrops
           areSimult' r r' = (not (ordPair (r,r') `S.member` allDropsSet))
                             && areSimult r r'
-          g'  = uuGraph areSimult' uses'
+          g'  = uuGraph areSimult' uses' rMax
           fromActionOf (ActionOf x) = x
           fromActionOf _ = internalError "fromActionOf"
           isActionOf (ActionOf _) = True
