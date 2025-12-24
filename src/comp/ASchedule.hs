@@ -3107,37 +3107,27 @@ makeRuleMethodReachableMaps flags ifcRuleNames userRuleNames
               lookup_pairs = joinByFst $ mapFst getCSNId filtered_edges
           in  M.fromList lookup_pairs
 
-      -- Convert the remaining edges to a Graph from GraphWrapper,
-      -- and use that to find the reachable nodes
-      -- which will allow us to compute the reachable nodes
-      -- seq_reachables: reachable points from all nodes
-      seq_reachables :: [(CSNode, [(CSNode, [CSNode])])]
-      seq_reachables = unsafePerformIO $ do
-        seq_path_graph <- GW.makeGraph seq_nodes seq_edges_minus_meth_outgoing
-        reachables <- GW.findReachablesIO seq_path_graph seq_nodes
-        return (zip seq_nodes reachables)
-
-      -- keep just the reachable method Ids (with their paths)
-      -- and make a map for easy lookup
+      -- reachable_meth_map is a map from nodes to the methods they can reach
+      -- and the paths they reach them by. To compute it efficiently, we build
+      -- a graph from the remaining edges and transpose it. This lets us start
+      -- with the method nodes (the destinations we want) and trace backwards to
+      -- all the nodes that can reach them. To construct our map, we transpose
+      -- the result again - from (meth_node, [(can_reach_node, path {- reversed -} )]) to
+      -- (can_reach_node, [(methId, reverse path)]).
       -- (Notice that the associated list has not had "nub" applied;
       -- if there are paths to both sched and exec, the first one in the
       -- list will be found and used.  This is ok, because a path to the
       -- sched node will lead to the exec node.)
       reachable_meth_map :: M.Map CSNode [(AId, [CSNode])]
-      reachable_meth_map =
-          let -- only keep the reachable method Ids
-              prune_reachables (n, rs) =
-                  let -- convert the reachable node to Id,
-                      rs_by_id = mapFst getCSNId rs
-                      -- keep only the methods
-                      rs_filtered = filter (isMethodId . fst) rs_by_id
-                  in  (n, rs_filtered)
-              reachable_meths = map prune_reachables seq_reachables
-              -- filtering out empty lists should filter out reachables
-              -- from method nodes, as well as not storing empty lists in
-              -- the map
-              filtered_reachables = filter (not . null . snd) reachable_meths
-          in  M.fromList filtered_reachables
+      reachable_meth_map = unsafePerformIO $ do
+        seq_path_graph <- GW.makeGraph seq_nodes seq_edges_minus_meth_outgoing
+        let meth_nodes = filter (isMethodId . getCSNId) seq_nodes
+        transposed_path_graph <- GW.transposeGraph seq_path_graph
+        can_reach_meths <- GW.findReachablesIO transposed_path_graph meth_nodes
+        let reachable_pairs = [ (node, [(methId, reverse path)]) |
+                                (meth_node, rs) <- zip meth_nodes can_reach_meths,
+                                let methId = getCSNId meth_node, (node, path) <- rs ]
+        return $ M.fromListWith (++) reachable_pairs
 
   in (reachable_meth_map, meth_outgoing_edges_map)
 
