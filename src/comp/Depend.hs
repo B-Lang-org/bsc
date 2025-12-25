@@ -164,7 +164,7 @@ getInfo errh flags gflags fname = do
     file' <- doCPP errh flags fname
     let isClassic = not $ hasDotSuf bsvSrcSuffix fname
     -- setClassic isClassic
-    (CPackage i _ imps _ defs incs, _)
+    (CPackage i _ imps _ _ defs incs, _)
         <- parseSrc isClassic errh flags False fname file'
 
     -- the mod time of the source file

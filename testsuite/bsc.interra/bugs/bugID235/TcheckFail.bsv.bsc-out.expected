@@ -6,4 +6,6 @@ Warning: "TcheckFail.bsv", line 37, column 14: (P0103)
   `y' declared but never assigned
 Warning: Unknown position: (S0001)
   File name `TcheckFail.bsv' does not match package name `Design'
+Warning: "TcheckFail.bsv", line 10, column 8: (T0152)
+  Package `List' is imported but not used
 All packages are up to date.

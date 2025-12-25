@@ -1,6 +1,5 @@
 package CShow where
 
-import ListN
 import Vector
 
 {-

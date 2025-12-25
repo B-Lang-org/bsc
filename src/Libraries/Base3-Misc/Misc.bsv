@@ -8,7 +8,9 @@ import BuildVector::*;
 import BUtils::*;
 import BypassReg::*;
 import Cntrs::*;
-import DefaultValue ::*;
+// imported so that the .bo files are generated
+import DefaultValue::*;
+import FShow::*;
 import Gray::*;
 import GrayCounter::*;
 import HList::*;
@@ -29,5 +31,34 @@ import Memory::*;
 import Arbitrate::*;
 import Printf::*;
 import PAClib::*;
+
+// Re-export all imported packages
+export Arbiter::*;
+export BRAM::*;
+export BRAMFIFO::*;
+export BuildList::*;
+export BuildVector::*;
+export BUtils::*;
+export BypassReg::*;
+export Cntrs::*;
+export Gray::*;
+export GrayCounter::*;
+export HList::*;
+export Randomizable::*;
+export SpecialFIFOs::*;
+export AlignedFIFOs::*;
+export TieOff::*;
+export DummyDriver::*;
+export Gearbox::*;
+export UnitAppendList::*;
+export EdgeDetect::*;
+export CRC::*;
+export CommitIfc::*;
+export NullCrossingFIFOF::*;
+export MIMO::*;
+export Memory::*;
+export Arbitrate::*;
+export Printf::*;
+export PAClib::*;
 
 endpackage

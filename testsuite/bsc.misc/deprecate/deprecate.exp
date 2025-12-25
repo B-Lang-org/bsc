@@ -5,9 +5,11 @@ compile_pass DeprecatedLibrary.bs
 # Test that a use produces a message
 compile_pass_warning TestDeprecateMsg.bsv P0072
 
-# Test that no use (while imported) produces no warning
+# Test that no use (while imported) produces no deprecation warning
+# It does produce an unused import warning.
 compile_pass TestDeprecateNoMsg.bsv
-no_warnings [make_bsc_output_name TestDeprecateNoMsg.bsv]
+find_n_warning [make_bsc_output_name TestDeprecateNoMsg.bsv] P0072 0
+find_n_warning [make_bsc_output_name TestDeprecateNoMsg.bsv] T0152 1
 
 # ----------
 

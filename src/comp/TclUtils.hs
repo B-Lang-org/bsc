@@ -165,20 +165,20 @@ instance TclObjCvt Scheme where
 
 -- Conversion for SymTab Types
 instance TclObjCvt VarInfo where
-    toTclObj (VarInfo vk a d) = do
+    toTclObj (VarInfo vk a d _) = do
         ta <- toTclObj a
         tk <- toTclObj (show vk)
         td <- toTclObj d
         toTclObj $ TLst [TCL tk, TCL ta, TCL td]
 
 instance TclObjCvt ConInfo where
-    toTclObj (ConInfo i v a cti) = do
+    toTclObj (ConInfo i v a cti _) = do
                              ti <- toTclObj i
                              ta <- toTclObj a
                              toTclObj $ TLst [TCL ti, TCL ta]
 
 instance TclObjCvt TypeInfo where
-    toTclObj (TypeInfo mi k vs tis) = do
+    toTclObj (TypeInfo mi k vs tis _) = do
                               i <- toTclObj (maybe "??" getIdString mi)
                               tk <- toTclObj k
                               tvs <- toTclObj vs

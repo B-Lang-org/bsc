@@ -251,7 +251,7 @@ genWrap errh flgs genNames generating cpack symt = do
     ppmap = makePPropMap genNames pragmas
     --
     extractPragmas :: CPackage -> [Pragma]
-    extractPragmas (CPackage _ _ _ _ ds _) = [ p | CPragma p <- ds ]
+    extractPragmas (CPackage _ _ _ _ _ ds _) = [ p | CPragma p <- ds ]
 
 -- ====================
 
@@ -300,7 +300,7 @@ isGenDef pmap i =
 
 genWrapE :: Bool -> M.Map Id [PProp] -> CPackage ->
             GWMonad (CPackage, [WrapInfo])
-genWrapE generating ppmap cpack@(CPackage packageId exps imps fixs ds includes)  =
+genWrapE generating ppmap cpack@(CPackage packageId exps imps impsigs fixs ds includes)  =
     do
        -- information on all modules which are being generated
        -- (this checks the pragmas on all defs which have pragmas, though,
@@ -367,7 +367,7 @@ genWrapE generating ppmap cpack@(CPackage packageId exps imps fixs ds includes) 
        --traceM ( "gen wrap: ds_ : " ++ ppReadable newModule_s )
        --traceM ( "gen wrap: to_s : " ++ ppReadable ifcConversionDefs )
        return (
-           CPackage packageId exps imps fixs finalDefs includes,
+           CPackage packageId exps imps impsigs fixs finalDefs includes,
            gens
           )
     where
@@ -387,7 +387,7 @@ genWrapE generating ppmap cpack@(CPackage packageId exps imps fixs ds includes) 
            -- XXX if we need the field names, get them from genifc_cdefn
            ti    = TIstruct (SInterface noIfcPragmas)
                        (internalError "extSym: tried to access field names")
-           tyinf = TypeInfo (Just qdi) k vs ti
+           tyinf = TypeInfo (Just qdi) k vs ti Nothing
 
        -- removes the [CClause] from the input, and replaces it with singleton list
        fixDef :: CDefn -> CDefn
@@ -476,7 +476,7 @@ getPolyInterface t = do
       let ts = tyConArgs t'
       symt <- getSymTab
       case findType symt i of
-        Just (TypeInfo (Just ti) _ _ (TIstruct ss fs)) | isIfc ss -> do
+        Just (TypeInfo (Just ti) _ _ (TIstruct ss fs) _) | isIfc ss -> do
           res <- filterM (isPolyFieldType ti ts) fs
           return res
         _ -> return []
@@ -1749,7 +1749,7 @@ chkInterface t = do
    Just i -> do
     let ts = tyConArgs t'
     case findType symt i of
-     Just (TypeInfo (Just ti) k vs (TIstruct ss fs)) | isIfc ss -> do
+     Just (TypeInfo (Just ti) k vs (TIstruct ss fs) _) | isIfc ss -> do
        anyPoly <- isAnyPolyFieldType ti ts fs
        if anyPoly
          then return Nothing
@@ -1920,8 +1920,8 @@ expandSynSym xt =
  where
    updTypes r o@(TCon (TyCon i _ TIabstract)) =
      case findType r i of
-       Just (TypeInfo (Just i') k _ ti) -> TCon (TyCon i' (Just k) ti)
-       Just (TypeInfo Nothing _ _ _) ->
+       Just (TypeInfo (Just i') k _ ti _) -> TCon (TyCon i' (Just k) ti)
+       Just (TypeInfo Nothing _ _ _ _) ->
          internalError ("genWrap: expandSynSym: unexpected numeric type:" ++
                         ppReadable i)
        Nothing -> o
@@ -2056,7 +2056,7 @@ getInterfacePrags ifcId =
     do symt <- getSymTab
        let r = case (findType symt ifcId) of
                    Nothing -> []
-                   Just (TypeInfo mi knd vs tis) ->
+                   Just (TypeInfo mi knd vs tis _) ->
                        case tis of
                            TIstruct (SInterface prags) _ -> prags
                            _                             -> []

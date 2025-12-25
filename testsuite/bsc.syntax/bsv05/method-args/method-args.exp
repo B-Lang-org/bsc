@@ -15,5 +15,5 @@ if { $vtest == 1 } {
 
 # check that the lookup of the methods is not interfered when there exists
 # another interface with the same name and methods
-compile_verilog_pass_no_warning IfcMethodArgsQualLookup.bsv {} {-warn-meth-arg-mismatch}
+compile_verilog_pass_no_warning IfcMethodArgsQualLookup.bsv {} {-warn-meth-arg-mismatch -suppress-warnings T0152:S0080}
 

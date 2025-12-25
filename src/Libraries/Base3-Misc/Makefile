@@ -7,7 +7,7 @@ include ../common.mk
 
 .PHONY: build
 build: $(BUILDDIR)
-	$(BSC) -u $(BSCFLAGS) Misc.bsv
+	$(BSC) -u $(BSCFLAGS) -suppress-warnings T0152:S0080 Misc.bsv
 
 $(BUILDDIR):
 	mkdir -p $@

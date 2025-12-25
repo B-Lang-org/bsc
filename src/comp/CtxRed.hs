@@ -17,7 +17,7 @@ import TCMisc
 import SymTab
 import MakeSymTab(convCQTypeWithAssumps)
 import VModInfo(VArgInfo(..))
-import Util(concatMapM)
+import Util(concatMapM, fst3)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
@@ -26,14 +26,14 @@ doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
 cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
-cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) = do
+cCtxReduceIO errh flags s (CPackage mi exps imps impsigs fixs ds includes) = do
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    let (res, wmsgs) = runTI flags False s (mapM ctxRed ds)
+    let (res, wmsgs, _) = runTI flags False s (mapM ctxRed ds)
     when (not (null wmsgs)) $ bsWarning errh wmsgs
     case res of
       Left emsgs -> bsError errh emsgs
-      Right ds' -> return (CPackage mi exps imps fixs ds' includes)
+      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =
@@ -41,7 +41,7 @@ cCtxReduceDef flags s def =
     -- warnings better, return an ErrorMonad.
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    case fst (runTI flags False s (ctxRed def)) of
+    case fst3 (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
     Right t   -> Right t
 

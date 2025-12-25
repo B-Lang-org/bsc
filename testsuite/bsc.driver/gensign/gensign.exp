@@ -163,8 +163,15 @@ compile_pass ImportReExportTestDataConFull.bsv
 
 # ---------------
 # Test that rexport of packages which reexport the same package are OK
+# ReExportSame_Top imports both P and Sub, exports both P::* and Sub::*,
+# where Sub only re-exports from P. Both imports are used via non-empty re-exports,
+# so neither warns, even though either P or Sub could be deleted individually.
 
 compile_pass ReExportSame_Top.bsv
+
+# Test non-empty package re-export (should not warn)
+compile_pass ReExportSame_TopGood.bsv
+no_warnings [make_bsc_output_name ReExportSame_TopGood.bsv]
 
 # ---------------
 # Shadowing tests
@@ -174,9 +181,9 @@ compile_pass ReExportSame_Top.bsv
 compile_pass ReExportSame_TopBad.bsv
 compile_pass ReExportSame_TopBad2.bsv
 
-# XXX We should consider warning in these cases
-no_warnings [make_bsc_output_name ReExportSame_TopBad.bsv]
-no_warnings [make_bsc_output_name ReExportSame_TopBad2.bsv]
+# These should warn because the re-exports are completely shadowed (empty)
+find_n_warning [make_bsc_output_name ReExportSame_TopBad.bsv] T0152 1
+find_n_warning [make_bsc_output_name ReExportSame_TopBad2.bsv] T0152 1
 
 # ---------------
 # Test bad exports

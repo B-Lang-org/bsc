@@ -1,4 +1,4 @@
-import Real::*;
+
 
 (* synthesize *)
 module sysAddSubInf();

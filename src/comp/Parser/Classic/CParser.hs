@@ -51,7 +51,7 @@ pPackage =
         (sepBy pImport dsm +.+ osm ..+
             sepBy pFixity dsm +.+ osm ..+
             pDefns) +..
-                osm >>>>>> (\ a b c d e -> CPackage a b c d e [])) +..
+                osm >>>>>> (\ a b c d e -> CPackage a b c [] d e [])) +..
                     eof
 
 pExports :: CParser (Either [CExport] [CExport])

@@ -1,0 +1,6 @@
+-- Test: Re-export specific type (Classic syntax - Phase 3)
+-- Expected: NO warning - Helper is used because we re-export Byte
+
+package ReexportTypeBS(Byte) where
+
+import Helper

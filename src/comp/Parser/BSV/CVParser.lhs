@@ -4763,7 +4763,7 @@ parameters to the parsers that might take them.
 >        defs <- imperativeToCDefns stmtsNoImportsExports
 >        endpackage
 >        eof svTokenToString
->        return $ CPackage name exports imports [] defs []
+>        return $ CPackage name exports imports [] [] defs []
 
 parse a package and return warnings accumulated by parser
 
@@ -5914,9 +5914,9 @@ tokenize and parse string into CSyntax
 parsing is done after we return
 
 >       start flags DFparsed
->       (CPackage name exports imports fixs defs _)
+>       (CPackage name exports imports impsigs fixs defs _)
 >            <- bsvParseTokens errh flags show_warns filename defaultPkgName tokens
->       let package = (CPackage name exports imports fixs defs (map CInclude includes))
+>       let package = (CPackage name exports imports impsigs fixs defs (map CInclude includes))
 >       t <- vdump errh flags t DFparsed dumpnames package
 >       return (package, t)
 

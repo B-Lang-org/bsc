@@ -41,15 +41,19 @@ import ErrorUtil(internalError)
 type IdMap a = M.Map Id a
 
 data VarInfo
-        -- the Maybe is whether the identifier has been deprecated, and why
-        = VarInfo !VarKind !Assump !(Maybe String)
+        = VarInfo {
+              vi_kind       :: !VarKind,
+              vi_assump     :: !Assump,
+              vi_deprecated :: !(Maybe String), -- whether the identifier has been deprecated, and why
+              vi_pkg        :: Maybe Id -- package from which this identifier came
+          }
         deriving (Show)
 
 instance PPrint VarInfo where
-    pPrint d p (VarInfo k a m) =
+    pPrint d p (VarInfo k a m pkg) =
         pparen (p>0) $
             text "VarInfo" <+> pPrint d 1 k <+> pPrint d 1 a <+>
-            pPrint d 1 (isJust m)
+            pPrint d 1 (isJust m) <+> pPrint d 1 pkg
 
 data VarKind
         = VarPrim
@@ -67,14 +71,15 @@ data ConInfo
         = ConInfo { ci_id :: Id,
                     ci_visible :: Bool,
                     ci_assump :: Assump,    -- type
-                    ci_taginfo :: ConTagInfo -- constructor number and tag metadata
+                    ci_taginfo :: ConTagInfo, -- constructor number and tag metadata
+                    ci_pkg :: Maybe Id -- package from which this constructor came
                   }
         deriving (Show, Eq)
 
 -- test whether two ConInfo are identical except for the visibility
 conInfoEq :: ConInfo -> ConInfo -> Bool
 conInfoEq ci1 ci2 =
-    (ci1 { ci_visible = False }) == (ci2 { ci_visible = False })
+    (ci1 { ci_visible = False, ci_pkg = Nothing }) == (ci2 { ci_visible = False, ci_pkg = Nothing })
 
 -- merge two coninfo lists, overriding hidden entries with visible entries
 conInfoMerge :: [ConInfo] -> [ConInfo] -> [ConInfo]
@@ -89,7 +94,7 @@ instance Hyper ConInfo where
     hyper x y = seq x y
 
 instance PPrint ConInfo where
-    pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
+    pPrint d p (ConInfo i vis a cti pkg) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti <+> pPrint d 1 pkg
         where pVis False = text " (invisible)"
               pVis True = text " (visible)"
 
@@ -98,11 +103,12 @@ data TypeInfo
               ti_qual_id   :: (Maybe Id),  -- Nothing for numeric and string types
               ti_kind      :: Kind,
               ti_type_vars :: [Id],
-              ti_sort      :: TISort
+              ti_sort      :: TISort,
+              ti_pkg       :: Maybe Id -- package from which this type came
           } deriving (Show)
 
 instance PPrint TypeInfo where
-    pPrint d p (TypeInfo _ k _ ti) = pparen (p>0) $ text "TypeInfo" <+> pPrint d 10 k <+> pPrint d 1 ti
+    pPrint d p (TypeInfo _ k _ ti pkg) = pparen (p>0) $ text "TypeInfo" <+> pPrint d 10 k <+> pPrint d 1 ti <+> pPrint d 1 pkg
 
 data FieldInfo
         = FieldInfo {
@@ -112,7 +118,8 @@ data FieldInfo
                      fi_assump  :: Assump,
                      fi_pragmas :: [IfcPragma],
                      fi_default :: [CClause],
-                     fi_orig_type :: Maybe CType -- original field type for wrapped fields
+                     fi_orig_type :: Maybe CType, -- original field type for wrapped fields
+                     fi_pkg :: Maybe Id -- package from which this field came
                     }
         deriving (Show)
 
@@ -126,6 +133,7 @@ fieldInfoEq fi1 fi2 =
     ((fi_pragmas fi1) == (fi_pragmas fi2)) &&
     -- ignore fi_default
     ((fi_orig_type fi1) == (fi_orig_type fi2))
+    -- ignore fi_pkg
 
 -- merge two coninfo lists, overriding hidden entries with visible entries
 fieldInfoMerge :: [FieldInfo] -> [FieldInfo] -> [FieldInfo]
@@ -137,7 +145,7 @@ fieldInfoMerge new_fis old_fis = foldr mergeFn old_fis new_fis
               else (h : mergeFn fi rest)
 
 instance PPrint FieldInfo where
-    pPrint d p (FieldInfo i _ n a ps def_cs mot) =
+    pPrint d p (FieldInfo i _ n a ps def_cs mot pkg) =
         pparen (p>0) $
           text "FieldInfo" <+>
           pPrint d 1 i <+>
@@ -149,10 +157,11 @@ instance PPrint FieldInfo where
                cs -> text ( "Default: ") <> pPrint d 0 cs) <>
           (case (mot) of
                Nothing -> empty
-               Just t -> text ("Original type: ") <> pPrint d 0 t)
+               Just t -> text ("Original type: ") <> pPrint d 0 t) <>
+          text " pkg:" <> pPrint d 0 pkg
 
 instance Hyper FieldInfo where
-    hyper (FieldInfo a b c d e f g) y = hyper7 a b c d e f g y
+    hyper (FieldInfo a b c d e f g h) y = hyper8 a b c d e f g h y
 
 
 -- The symbol table is composed of several other tables
@@ -363,7 +372,7 @@ getIfcFieldNames symbolTable ifcId = fields
     where
     fields = case findType symbolTable ifcId of
              Nothing ->  []
-             Just (TypeInfo (Just ti) _ _ (TIstruct ss fs)) | isIfc ss -> fs
+             Just (TypeInfo (Just ti) _ _ (TIstruct ss fs) _) | isIfc ss -> fs
              Just x -> []
 
 -- generate just the method names, following subinterfaces
@@ -375,7 +384,7 @@ getIfcFlatMethodNames symt topIfcId =
           case findType symt conId of
             Nothing -> internalError ("getIfcFlatMethodNames: findType: " ++
                                       ppReadable conId)
-            Just (TypeInfo (Just ti) _ _ (TIstruct ss fs))
+            Just (TypeInfo (Just ti) _ _ (TIstruct ss fs) _)
                 | isIfc ss -> Just fs
             Just x         -> Nothing
 

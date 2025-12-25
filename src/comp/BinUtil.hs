@@ -2,8 +2,8 @@ module BinUtil (
                 BinMap, BinFile,
                 HashMap,
                 readImports,
-                readBin, sortImports,
-                replaceImports
+                readBin, sortImportedSignatures,
+                replaceImportedSignatures
                ) where
 
 import Control.Monad(when, foldM)
@@ -53,7 +53,7 @@ type BinMap a = M.Map String (BinFile a)
 readImports :: ErrorHandle -> Flags -> BinMap a -> HashMap -> CPackage ->
                IO (CPackage, BinMap a, HashMap)
 readImports errh flags binmap0 hashmap0
-            (CPackage pkgId exps imps fixs ds includes) = do
+            (CPackage pkgId exps imps [] fixs ds includes) = do
   let
       pkgName = getIdString pkgId
 
@@ -75,7 +75,6 @@ readImports errh flags binmap0 hashmap0
              -- add the current package with the user-specified import
              let qualmap'' = M.insertWith qualMergeFn (getIdString i) q qualmap'
              return (binmap', hashmap', qualmap'')
-      fn _ cimp = internalError ("readImports: " ++ ppReadable cimp)
 
   (binmap, hashmap, qualmap)
       <- foldM fn (binmap0, hashmap0, M.empty) (addPrelude flags imps)
@@ -83,13 +82,15 @@ readImports errh flags binmap0 hashmap0
   let mkCImp (s, q) = case (M.lookup s binmap) of
                         Just (fn, bi_sig, _, _, _) -> CImpSign fn q bi_sig
                         Nothing -> internalError ("mkCImp: " ++ ppReadable s)
-  let imps' = map mkCImp (M.toList qualmap)
+  let impsigs' = map mkCImp (M.toList qualmap)
 
-  let sortedImports = sortImports imps'
-  let cpkg' = CPackage pkgId exps sortedImports fixs ds includes
+  let sortedImpsigs = sortImportedSignatures impsigs'
+  let cpkg' = CPackage pkgId exps imps sortedImpsigs fixs ds includes
 
   return (cpkg', binmap, hashmap)
 
+readImports errh flags binmap0 hashmap0 pkg =
+  internalError $ "readImports package already has imported signatures: " ++ ppReadable pkg
 
 -- helper function that reads in a .bo file, and any .bo files that it needs
 readBin :: ErrorHandle -> Flags -> (Maybe String) ->
@@ -129,8 +130,8 @@ readBin errh flags maybePkgName binmap0 hashmap0 p0 = do
 
 -- Sort signatures topologically: output signature list such that,
 -- if signature s1 comes before signature s2, then s1 does not import s2
-sortImports :: [CImport] -> [CImport]
-sortImports signatures =
+sortImportedSignatures :: [CImportedSignature] -> [CImportedSignature]
+sortImportedSignatures signatures =
     let
         -- We map the signatures to strings and sort a graph of strings,
         -- so that sorting is stable (the Ord instance for the tuple includes
@@ -153,7 +154,7 @@ sortImports signatures =
                        <- signatures]
         lookupFn i = case (M.lookup i sMap) of
                        Just s -> s
-                       Nothing -> internalError ("sortImports: " ++ i)
+                       Nothing -> internalError ("sortImportedSignatures: " ++ i)
     in  case tsort sGraph of
         Left cycle -> internalError ("import cycle:\n" ++ ppString cycle)
         Right order -> map lookupFn order
@@ -252,16 +253,13 @@ mergeHashes errh hashmap binId binhash impHashes =
 -- (where all defs are visible, not just the ones visible to the user).
 -- This is used to create the full symbol table used for generating a
 -- module.  (XXX can we get rid of this?)
-replaceImports :: CPackage -> [CSignature] -> CPackage
-replaceImports (CPackage i exps imps fixs defs includes) impsigs =
-    CPackage i exps imps' fixs defs includes
-  where sigMap = M.fromList [(i, sig) | sig@(CSignature i _ _ _) <- impsigs]
-        imps' = map replaceSig imps
+replaceImportedSignatures :: CPackage -> [CSignature] -> CPackage
+replaceImportedSignatures (CPackage i exps imps impsigs fixs defs includes) newsigs =
+    CPackage i exps imps impsigs' fixs defs includes
+  where sigMap = M.fromList [(i, sig) | sig@(CSignature i _ _ _) <- newsigs]
+        impsigs' = map replaceSig impsigs
         replaceSig (CImpSign n q (CSignature i _ _ _)) =
-            let errstr = "replaceImports: missing sig: " ++ ppReadable i
+            let errstr = "replaceImportedSignatures: missing sig: " ++ ppReadable i
             in  CImpSign n q (fromJustOrErr errstr (M.lookup i sigMap))
-        replaceSig (CImpId _ i) =
-            internalError
-                ("replaceImports: CImpId: " ++ ppReadable i)
 
 -- =========================

@@ -1,0 +1,10 @@
+-- Test: Type synonym expansion (Classic syntax - Phase 1)
+-- Expected: NO warning - Helper is used via type synonym Byte
+
+package TypeSynonymExpansionBS where
+
+import Helper
+
+-- Use Helper's Byte type synonym in a signature
+getValue :: Byte
+getValue = 42

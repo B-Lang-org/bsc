@@ -2,4 +2,6 @@ checking package dependencies
 compiling Define_InsideFunction.bsv
 Warning: Unknown position: (S0001)
   File name `Define_InsideFunction.bsv' does not match package name `Design'
+Warning: "Define_InsideFunction.bsv", line 7, column 8: (T0152)
+  Package `Vector' is imported but not used
 All packages are up to date.

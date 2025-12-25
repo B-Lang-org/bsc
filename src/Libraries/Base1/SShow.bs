@@ -1,6 +1,5 @@
 package SShow where
 
-import ListN
 import Vector
 
 {-

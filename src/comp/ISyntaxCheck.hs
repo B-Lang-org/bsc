@@ -23,7 +23,7 @@ import TCMisc
 import TIMonad
 
 import IOUtil(progArgs)
-import Util(tracep, fromJustOrErr)
+import Util(tracep, fromJustOrErr, fst3)
 
 doTraceEqWitnesses :: Bool
 doTraceEqWitnesses = "-trace-eq-witnesses" `elem` progArgs
@@ -91,7 +91,7 @@ eqTypeFinal flags symt e t1 t2
           addExplPreds eqs
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
           satisfy eqs [vp]
-    in  case (fst $ runTI flags False symt satisfyEq) of
+    in  case fst3 (runTI flags False symt satisfyEq) of
           Right ([],_) -> True
           res -> --trace("eqTypeFinal: not satisfied: " ++ ppReadable res) $
                  False

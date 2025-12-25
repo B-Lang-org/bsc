@@ -8,6 +8,7 @@ module CVPrint (
         TyCon(..),
         Kind(..),
         CImport(..),
+        CImportedSignature(..),
         CQual(..),
         CClause(..),
         CPat(..),
@@ -91,9 +92,9 @@ pvpExports d (Right excludes) = [ text "/* Do not export (unsupported)" ] ++ map
 pvpExports d (Left exports) = map (pp d) exports
 
 instance PVPrint CPackage where
-    pvPrint d _ (CPackage i exps imps fixs def includes) =
+    pvPrint d _ (CPackage i exps imps impsigs fixs def includes) =
         (t"package" <+> pp d i <> t";") $+$ empty $+$
-        pBlockNT d 0 True (pvpExports d exps ++ map (pp d) imps ++ map (pp d) fixs ++ pdefs d def ++ map (pp d) includes) (t"\n") $+$
+        pBlockNT d 0 True (pvpExports d exps ++ map (pp d) imps ++ map (pp d) impsigs ++ map (pp d) fixs ++ pdefs d def ++ map (pp d) includes) (t"\n") $+$
         (t"endpackage:" <+> pp d i)
 
 pdefs :: PDetail -> [CDefn] -> [Doc]
@@ -114,6 +115,8 @@ instance PVPrint CExport where
 
 instance PVPrint CImport where
     pvPrint d p (CImpId q i) = t"import" <+> pvpId d i <> t "::*" <> t";" <+> ppQualified q
+
+instance PVPrint CImportedSignature where
     pvPrint d p (CImpSign _ q (CSignature i _ _ _)) = t"import" <+> pvpId d i <> t "::*" <+> t "...;" <+> ppQualified q
 
 instance PVPrint CInclude where

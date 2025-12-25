@@ -15,21 +15,20 @@ import PreIds(idAssign)
 type FixTable = [(Id, Fixity)]
 
 parseOps :: ErrorHandle -> CPackage -> IO CPackage
-parseOps errh (CPackage i exps imps fixs defs includes) =
-    let ft = map getFixes fixs ++ concatMap getImpFixes imps in
+parseOps errh (CPackage i exps imps impsigs fixs defs includes) =
+    let ft = map getFixes fixs ++ concatMap getImpFixes impsigs in
     --trace (show ft) $
     do
        defs' <- convErrorMonadToIO errh (mapM (pDefn ft) defs)
-       return (CPackage i exps imps fixs defs' includes)
+       return (CPackage i exps imps impsigs fixs defs' includes)
 
 getFixes :: CFixity -> (Id, Fixity)
 getFixes (CInfix  p i) = (i, FInfix  (fromInteger p))
 getFixes (CInfixl p i) = (i, FInfixl (fromInteger p))
 getFixes (CInfixr p i) = (i, FInfixr (fromInteger p))
 
-getImpFixes :: CImport -> FixTable
+getImpFixes :: CImportedSignature -> FixTable
 getImpFixes (CImpSign _ _ (CSignature _ _ fixs _)) = map getFixes fixs
-getImpFixes _ = []
 
 pDefn :: FixTable -> CDefn -> ErrorMonad CDefn
 pDefn ft (Cinstance t ds) = do

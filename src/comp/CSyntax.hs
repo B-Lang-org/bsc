@@ -11,6 +11,7 @@ module CSyntax(
         Kind(..),
         PartialKind(..),
         CImport(..),
+        CImportedSignature(..),
         CInclude(..),
         CQual(..),
         CClause(..),
@@ -55,6 +56,7 @@ module CSyntax(
         cTApply,
         iKName,
         impName,
+        impSigName,
         cVar,
         cVApply,
         getName,
@@ -100,7 +102,8 @@ data CPackage = CPackage
                         [CExport]) -- export identifiers
                                   -- Left exps = export only exps
                                   -- Right exps = export everything but exps
-                [CImport]         -- imported identifiers
+                [CImport]         -- explicit imports (what user wrote, unresolved)
+                [CImportedSignature] -- all resolved imports (explicit + transitive)
                 [CFixity]         -- fixity declarations for infix operators
                 [CDefn]                  -- top level definitions
                 [CInclude]        -- any `include files
@@ -116,7 +119,12 @@ data CExport
 
 data CImport
         = CImpId Bool Id                                -- Bool indicates qualified
-        | CImpSign String Bool CSignature
+        deriving (Eq, Ord, Show)
+
+-- Imported signature (resolved import with metadata)
+data CImportedSignature
+        = CImpSign String Bool CSignature
+        -- String = filename, Bool = qualified
         deriving (Eq, Ord, Show)
 
 -- Package signature from import
@@ -651,7 +659,9 @@ newtype CInclude
 
 impName :: CImport -> Id
 impName (CImpId _ i) = i
-impName (CImpSign _ _ (CSignature i _ _ _)) = i
+
+impSigName :: CImportedSignature -> Id
+impSigName (CImpSign _ _ (CSignature i _ _ _)) = i
 
 -- swapped order of (CVar i) es and e [] patterns
 -- to make optional default arguments for $finish and $stop work
@@ -886,9 +896,9 @@ ppExports d (Right noexps) = t " hiding (" <> sepList (map (pp d) noexps) (t",")
 ppExports d (Left exports) = t "(" <> sepList (map (pp d) exports) (t",") <> t")"
 
 instance PPrint CPackage where
-    pPrint d _ (CPackage i exps imps fixs def includes) =
+    pPrint d _ (CPackage i exps imps impsigs fixs def includes) =
         (t"package" <+> ppConId d i <> ppExports d exps <+> t "where {") $+$
-        pBlock d 0 True (map (pp d) imps ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
+        pBlock d 0 True (map (pp d) imps ++ map (pp d) impsigs ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
 
 instance PPrint CExport where
     pPrint d p (CExpVar i) = ppVarId d i
@@ -898,6 +908,8 @@ instance PPrint CExport where
 
 instance PPrint CImport where
     pPrint d p (CImpId q i) = t"import" <+> ppQualified q <+> ppConId d i
+
+instance PPrint CImportedSignature where
     pPrint d p (CImpSign _ q (CSignature i _ _ _)) = t"import" <+> ppQualified q <+> ppConId d i <+> t "..."
 
 ppQualified :: Bool -> Doc

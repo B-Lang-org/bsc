@@ -1,0 +1,8 @@
+package TestWhere where
+
+import Vector
+
+test :: Bit 8
+test = v !! 0
+  where v :: Vector 3 (Bit 8)
+        v = replicate 0

@@ -3,4 +3,6 @@ compiling Define_MacroValueHavingBlockComment.bsv
 Warning: Unknown position: (S0001)
   File name `Define_MacroValueHavingBlockComment.bsv' does not match package
   name `Design'
+Warning: "Define_MacroValueHavingBlockComment.bsv", line 7, column 8: (T0152)
+  Package `Vector' is imported but not used
 All packages are up to date.

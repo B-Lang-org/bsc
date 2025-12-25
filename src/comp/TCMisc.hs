@@ -500,7 +500,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
         f :: Bool -> [Inst] -> TI (Maybe ([VPred], Bind, Subst, Maybe Pred))
         f incoherent [] = return Nothing
         f incoherent (i:is) = do
-                (m_tv, i'@(Inst _ _ (_ :=> h))) <- newInst i (getVPredPositions v')
+                (m_tv, i'@(Inst _ _ (_ :=> h) _)) <- newInst i (getVPredPositions v')
                 x <- byInst v' i'
                 case x of
                    Nothing -> do
@@ -515,7 +515,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                      when (not (isNullSubst bad_inst_subst)) $
                        internalError("reducePred - bad inst subst: " ++
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
-                     let Inst _ _ (_ :=> h) = i
+                     let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
                      return $ Just (qs,b,fd_subst,minst)
 
@@ -560,7 +560,7 @@ dvsSub s dvs =
 -}
 
 byInst :: VPred -> Inst -> TI (Maybe ([VPred], Bind, (Subst, Subst)))
-byInst (VPred i p) (Inst e _ (ps :=> h)) = do
+byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
@@ -570,6 +570,8 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
     case m of
      Nothing -> return Nothing
      Just (inst_subst, (fd_subst, num_eqs)) -> do
+        -- Record that this instance's package was used
+        recordPackageUse pkg
         let s = fd_subst @@ inst_subst
         vs <- mapM (const newDict) ps
         -- if the instance is recursive (has a proviso for itself and expects
@@ -596,7 +598,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
 -- was introduced). XXX unfortunately we can only pass one pos to the var
 -- Also the lowest TVar, for use in trimming
 newInst :: Inst -> [Position] -> TI (Maybe TyVar, Inst)
-newInst ii@(Inst _ vs _) poss = do
+newInst ii@(Inst _ vs _ _) poss = do
     let getpos v = getMostUsefulPosition poss (getPosition v)
     when doVarTrace $ traceM ("newInst " ++ ppReadable ii)
     ts <- mapM (\ v -> newTVar "newInst" (kind v) (getpos v)) vs
@@ -701,7 +703,8 @@ findAssump i as =
         s <- getSymTab
         case findVar s i of
          Nothing -> errorAtId EUnboundVar i
-         Just (VarInfo _ a d) -> do
+         Just (VarInfo _ a d pkg) -> do
+            recordPackageUse pkg
             case d of
                 Nothing -> return ()
                 Just str -> twarn (getPosition i,
@@ -791,7 +794,7 @@ expandSynN :: Flags -> SymTab -> Type -> Type
 expandSynN flags s t =
    -- should only need to match instances for coherent typeclasses
    -- XXX user code corner-case?
-   case fst $ runTI flags False s $
+   case fst3 $ runTI flags False s $
                 do addBoundTVs (tv t) -- to prevent generated variable capture
                    normT t
    of  Left msg -> internalError ("expandSynN " ++ ppReadable msg)
@@ -1546,7 +1549,7 @@ data MatchResult = NoConclusion
 
 byInstIsReducible :: VPred -> Inst -> TI MatchResult
 byInstIsReducible (VPred i p) ii = do
-    (mv, Inst e _ (ps :=> h)) <- newInst ii (getPredPositions p)
+    (mv, Inst e _ (ps :=> h) _) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
     return $
         matchTopIsReducible bound_tyvars h (removePredPositions p)

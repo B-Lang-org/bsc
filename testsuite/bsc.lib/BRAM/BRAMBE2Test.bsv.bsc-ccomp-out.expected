@@ -4,9 +4,17 @@ code generation for sysBRAMBE2Test starts
 Warning: "BRAMCore.bsv", line 333, column 51: (S0015)
   Bluespec evaluation-time warning: XST will not infer a BRAM with fewer than
   1 write enable or more than 4 write enables.
-  During elaboration of `memory' at "BRAM.bsv", line 667, column 35.
+  During elaboration of `memory' at "BRAM.bsv", line 665, column 35.
   During elaboration of `dut0' at "BRAMBE2Test.bsv", line 11, column 39.
   During elaboration of `sysBRAMBE2Test' at "BRAMBE2Test.bsv", line 8, column
   8.
 Elaborated module file created: sysBRAMBE2Test.ba
+Warning: "BRAMBE2Test.bsv", line 2, column 8: (T0152)
+  Package `GetPut' is imported but not used
+Warning: "BRAMBE2Test.bsv", line 3, column 8: (T0152)
+  Package `ClientServer' is imported but not used
+Warning: "BRAMBE2Test.bsv", line 4, column 8: (T0152)
+  Package `StmtFSM' is imported but not used
+Warning: "BRAMBE2Test.bsv", line 5, column 8: (T0152)
+  Package `Clocks' is imported but not used
 All packages are up to date.
