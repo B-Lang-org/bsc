@@ -30,6 +30,7 @@ import Subst
 import Pred hiding (name)
 import qualified Pred(name)
 import Scheme
+import SolvedBinds
 import Assump
 import TIMonad
 import TCPat
@@ -114,7 +115,7 @@ tiExpr as td exp@(CLam ei e) = do
           def_ty = (CQType [] (v' `fn` rt'))
           def = CDefT def_id [] def_ty [CClause [ipat] [] e']
       -- trace ("CLam " ++ ppReadable (ei, def_id)) $ return ()
-      return (eq_ps ++ ps, Cletrec [CLValueSign def []] (CVar def_id))
+      return (eq_ps ++ ps, Cletseq [CLValueSign def []] (CVar def_id))
 
 {- XXX not quite right
 tiExpr as td exp@(CLamT i qt e) = do
@@ -140,7 +141,7 @@ tiExpr as td exp@(CLamT ei (CQType [] ty) e) = do
     let ipat = either CPAny CPVar ei
         def = CDefT def_id [] (CQType [] td) [CClause [ipat] [] e']
     -- trace ("CLamT " ++ ppReadable (ei, def_id)) $ return ()
-    return (eq_ps ++ ps, Cletrec [CLValueSign def []] (CVar def_id))
+    return (eq_ps ++ ps, Cletseq [CLValueSign def []] (CVar def_id))
 
 tiExpr as td exp@(CLamT ei (CQType _ ty) e) = do
     x <- (err (getPosition ei, (internalError "TCheck.tiExpr: CLamT with context")))
@@ -157,7 +158,7 @@ tiExpr type_env expected_type (CApply (CLam ei b) [e]) = do
                   Left _ -> tiExpr type_env expected_type b -- don't bind
     let res_e = case ei of
                   Right i -> let def = CDefT i [] (CQType [] type_var) [CClause [] [] e']
-                             in  Cletrec [CLValueSign def []] b'
+                             in  Cletseq [CLValueSign def []] b'
                   Left _ -> b'
     return (ps ++ qs, res_e)
 
@@ -368,7 +369,7 @@ tiExpr as td exp@(Ccase pos e arms) =
     let ic = id_case pos
     -- desugar into *type-checked* CLValueSign of a function applied to the scrutinee
     -- NOTE: none of the variables in the cqt are to be generalized over (hence the [] in CDefT)
-    let ccase = (Cletrec [CLValueSign (CDefT ic [] cqt_clause_type clauses') []]
+    let ccase = (Cletseq [CLValueSign (CDefT ic [] cqt_clause_type clauses') []]
                       (cApply 3 (CVar ic) [e']))
     -- traceM("desugared case: " ++ ppReadable ccase)
     -- (ps ++ ps', exp') <- tiExpr as td ccase
@@ -515,7 +516,7 @@ tiExpr as td exp@(CHasType e ct) = do
     --posCheck "D" e
     x <- newVar (getPosition e) "tiExprCHasType"
 --    trace ("CHasType " ++ ppReadable (x, e, ct)) $ return ()
-    (ps, e') <- tiExpr as td (Cletrec [CLValueSign (CDef x ct [CClause [] [] e]) []] (CVar x))
+    (ps, e') <- tiExpr as td (Cletseq [CLValueSign (CDef x ct [CClause [] [] e]) []] (CVar x))
     return (ps, optTrivLet e')
 
 tiExpr as td (Cif pos e e1 e2) = tiExpr as td (cVApply (id_if pos) [e, e1, e2])
@@ -1924,13 +1925,13 @@ tiStmts' chke mon mt as td (CSBindT (CPVar i) maybeName pprops (CQType [] ty) e 
         tiStmtBind chke mon mt as td i maybeName pprops e ss ty
 tiStmts' chke mon mt as td (CSBindT p name pprops qt e : ss) = do
         nid <- newVar (getPosition p) "tiStmts1"
-        tiStmts' chke mon mt as td (CSBindT (CPVar nid) name pprops qt e : CSletrec [CLMatch p (CVar nid)] : ss)
+        tiStmts' chke mon mt as td (CSBindT (CPVar nid) name pprops qt e : CSletseq [CLMatch p (CVar nid)] : ss)
 tiStmts' chke mon mt as td (CSBind (CPVar i) maybeName pprops e : ss) = do
         ty <- newTVar "tiStmts' CSBind" KStar e                -- XXX
         tiStmtBind chke mon mt as td i maybeName pprops e ss ty
 tiStmts' chke mon mt as td (CSBind p name pprops e : ss) = do
         nid <- newVar (getPosition p) "tiStmts2"
-        tiStmts' chke mon mt as td (CSBind (CPVar nid) name pprops e : CSletrec [CLMatch p (CVar nid)] : ss)
+        tiStmts' chke mon mt as td (CSBind (CPVar nid) name pprops e : CSletseq [CLMatch p (CVar nid)] : ss)
 tiStmts' chke mon mt as td (CSletrec ds : ss) = do
         (ps, as', ds') <- tiDefls as ds
         (qs, ss')      <- tiStmts' chke mon mt (as' ++ as) td ss
@@ -2414,8 +2415,8 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     -- Try to solve as many of the constraints "ps" as possible,
     -- from the given constraints "eqs"
     -- ps' = the unsolved constraints
-    -- bs2 = new bindings (new dictionaries defined from given dictionaries)
-    (ps', bs2)     <- satisfy eqs (apSub s0 ps)
+    -- sbs2 = new bindings (new dictionaries defined from given dictionaries)
+    (ps', sbs2)     <- satisfy eqs (apSub s0 ps)
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfy): " ++ ppReadable ps')
 
@@ -2455,8 +2456,8 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     -- tyvars bound at this level, and we don't generate TAdd, TLog, etc
     -- for the tyvars "dvs".
     -- ps' = the remaining unsolved constraints
-    -- bs3 = new bindings for the solved constraints
-    (ps', bs3)     <- satisfyFV dvs eqs (apSub s rs1)
+    -- sbs3 = new bindings for the solved constraints
+    (ps', sbs3)     <- satisfyFV dvs eqs (apSub s rs1)
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfyFV) " ++ ppReadable ps')
 
@@ -2488,7 +2489,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     let
         -- Bindings for solved constraints have been generated twice,
         -- consolidate them under one name
-        bs23 = bs2 ++ bs3
+        sbs23 = sbs3 <++ sbs2
 
         -- Constraints with only fixed variables have been removed twice,
         -- consolidate them under one name.  "d" for deferred
@@ -2506,17 +2507,17 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     -- Try to solve some remaining constraints by defaulting.
     -- rs  = remaining unsolved constraints
-    -- bs4 = bindings for any constraints solved by defaulting
-    (rs, bs4, amb_vars)
+    -- sbs4 = bindings for any constraints solved by defaulting
+    (rs, sbs4, amb_vars)
         <- if (null rs2)  -- whether there are any unresolved contexts
-           then return (rs2,[],[])  -- don't do work if not necessary
+           then return (rs2, emptySBs, [])  -- don't do work if not necessary
            else defaultClasses avs eqs rs2
 
     -- defaulting extends the substitution
     s <- getSubst
 
     -- Consolidate the bindings under one final name
-    let bs1 = bs23 ++ bs4
+    let sbs1 = sbs4 <++ sbs23
 
     -- The final remaining constraints are now named "rs"
     --trace ("tiExpl''': rs, rs2: " ++ ppReadable (rs,rs2)) $ return ()
@@ -2540,7 +2541,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     -- Apply the substitution to the code fragments
     let alts''     =  apSub s alts'             -- new alternatives
-        abs        =  apSub s bs1               -- new dict bindings
+        asbs       =  apSub s sbs1              -- new dict bindings
         me''       =  apSub s me'               -- update guards
 
     -- Determine the generic variables and produce the inferred type scheme
@@ -2567,7 +2568,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         (text "eqs =" <+> pPrint d 0 eqs) $+$
         (text "dvs =" <+> pPrint d 0 dvs) $+$
         (text "ps,s.ps,ps' =" <+> pPrint d 0 (ps, apSub s0 ps, ps')) $+$
-        (text "bs1 =" <+> pPrint d 0 bs1) $+$
+        (text "sbs1 =" <+> pPrint d 0 sbs1) $+$
         (text "alts' =" <+> pPrint d 0 alts') $+$
 
         (text "bvs =" <+> pPrint d 0 bvs) $+$
@@ -2587,7 +2588,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
         (text "gs =" <+> pPrint d 0 gs) $+$
 
-        (text "abs =" <+> pPrint d 0 abs) $+$
+        (text "asbs =" <+> pPrint d 0 asbs) $+$
         (text "sc,xsc,sc' =" <+> pPrint d 0 (sc, xsc, sc'))
         )) $ return ()
 
@@ -2651,15 +2652,24 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
            -- XXX More comments and review needed beyond this point
            let
-                -- inline simple bindings
-                (vmap, rem_abs) = simplifyDictBindings abs
+                -- Convert SolvedBinds to CDefls, preserving categorization
+                rec_defls = getRecursiveDefls asbs
+                nonrec_defls = getNonRecursiveDefls asbs
+
+                -- Inline simple bindings in both categories
+                (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
+                (vmap_nonrec, rem_nonrec) = simplifyDictBindings nonrec_defls
+                vmap = M.union vmap_rec vmap_nonrec
+
                 -- we're only substituting variables, not constructors
                 s :: CSEnv
                 s = (M.empty, M.empty, vmap, M.empty)
                 alts''' = cSubstN s alts''
                 me''' = cSubstQualsN s me''
+                rem_rec' = cSubstN s rem_rec
+                rem_nonrec' = cSubstN s rem_nonrec
             in --traces (ppReadable s) $
-               if null nqs && null rem_abs then
+               if null nqs && null rem_rec' && null rem_nonrec' then
                    -- simplify special case (no context, no new bindings)
                    let ldef = CLValueSign
                                  (CDefT i ngs (CQType [] nt) alts''') me'''
@@ -2669,11 +2679,14 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
                   ii <- newVar (getPosition i) "tiExpl"
                   let ldef = CLValueSign
                                  (CDefT ii [] (CQType [] nt) alts''') []
-                      -- produce let in topologically sorted order
-                      -- (since ldef uses bindings, but not vice-versa)
+                      -- Generate code: nonrec outside (letseq), rec inside (letrec)
+                      -- Local binding is separate to maintain the separation of
+                      -- dictionary and non-dictionary binding groups.
                       body = CClause (map CPVar vs) []
-                                 (Cletrec (rem_abs ++ [ldef]) (CVar ii))
-                  --traceM ("tiExpl''' " ++ ppReadable (i, ii, abs))
+                               (cLetSeq rem_nonrec'
+                                 (cLetRec rem_rec'
+                                   (cLetSeq [ldef] (CVar ii))))
+                  --traceM ("tiExpl''' " ++ ppReadable (i, ii, asbs))
                   return (rds, CLValueSign
                                  (CDefT i ngs (CQType [] (qualToType nqt))
                                      [body]) me''')
@@ -2823,7 +2836,7 @@ tiImpls recursive as ibs = do
     -- provisos when we re-type-check with tiExpl
 
     eqsFV <- getExplPreds
-    (ps', bs1) <- satisfyFV bvs eqsFV ps
+    (ps', sbs1) <- satisfyFV bvs eqsFV ps
 
     when (not . null $ ps) $ do
       if (not . null $ ps') then
@@ -2838,7 +2851,7 @@ tiImpls recursive as ibs = do
     -- be resolved).  so we do that reduction here.
 
     let eqs = []
-    (ps'', bs2, s_agg) <- reducePredsAggressive Nothing eqs ps'
+    (ps'', sbs2, s_agg) <- reducePredsAggressive Nothing eqs ps'
 
     when (not . null $ ps') $ do
       if (not . null $ ps'') then
@@ -2872,7 +2885,7 @@ tiImpls recursive as ibs = do
 
     -- Begin: find unresolvable variables
 
-    (rs2, bs3, amb_vars)
+    (rs2, sbs3, amb_vars)
         <- -- this will be a no-op if there are no ambiguous vars
            defaultClasses (fs `union` lvs) [] rs
 
@@ -2882,7 +2895,7 @@ tiImpls recursive as ibs = do
 
     -- update the info we computed above
     s <- getSubst
-    let bs_final = apSub s (bs1 ++ bs2 ++ bs3)
+    let sbs_final = apSub s (sbs3 <++ sbs2 <++ sbs1)
         ts_final = apSub s ts'
         fs_final = tv (apSub s as) `union` bvs
         vss_final = map tv ts_final
@@ -2916,8 +2929,8 @@ tiImpls recursive as ibs = do
         )) $ return ()
 
     -- Are there any local constraints?
-    -- Either any retained (rs) or any predicates satisfied (bs)
-    if (null rs_final) && (null bs_final) then
+    -- Either any retained (rs) or any predicates satisfied (sbs)
+    if (null rs_final) && sbsEmpty sbs_final then
         -- no local constraints, so use bindings as is
         let
             -- Create an explicitly typed definition for a given i
@@ -2978,8 +2991,15 @@ tiImpls recursive as ibs = do
                             in  map getVPredId rs_final
 
               let
-                  -- inline simple dictionary bindings
-                  (vmap, rem_bs_final) = simplifyDictBindings bs_final
+                  -- Convert SolvedBinds to CDefls, preserving categorization
+                  rec_defls = getRecursiveDefls sbs_final
+                  nonrec_defls = getNonRecursiveDefls sbs_final
+
+                  -- Inline simple dictionary bindings in both categories
+                  (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
+                  (vmap_nonrec, rem_nonrec) = simplifyDictBindings nonrec_defls
+                  vmap = M.union vmap_rec vmap_nonrec
+
                   -- substitute for the simple dict bindings (vmap)
                   -- and for the new generic variable names (gs_map)
                   csenv :: CSEnv
@@ -2987,15 +3007,19 @@ tiImpls recursive as ibs = do
                   alts' = cSubstN csenv alts
                   me' = cSubstQualsN csenv me
                   -- the dict bindings can refer to "gs"
-                  rem_bs_final' = cSubstN csenv rem_bs_final
+                  rem_rec' = cSubstN csenv rem_rec
+                  rem_nonrec' = cSubstN csenv rem_nonrec
 
               inner_i <- newVar (getPosition i) "tiImpl"
               let ldef = CLValueSign
                              (CDefT inner_i [] (CQType [] nt) alts') []
-                  -- produce let in topologically sorted order
-                  -- (since ldef uses bindings, but not vice-versa)
+                  -- Generate code: nonrec bindings outside (letseq), rec inside (letrec)
+                  -- Local binding is separate to maintain the separation of
+                  -- dictionary and non-dictionary binding groups.
                   body = CClause (map CPVar dict_vs) []
-                             (Cletrec (rem_bs_final' ++ [ldef]) (CVar inner_i))
+                           (cLetSeq rem_nonrec'
+                             (cLetRec rem_rec'
+                               (cLetSeq [ldef] (CVar inner_i))))
               return (CLValueSign
                           (CDefT i vts_bound_here (CQType [] (qualToType nqt))
                                [body]) me')
@@ -3212,7 +3236,7 @@ chkUnsyncMeths field_set ms =
 -----------------------------------------------------------------------------
 
 cLet :: [(Id, CType, CExpr)] -> CExpr -> CExpr
-cLet ites e = Cletrec [ CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) [] | (i, t, e) <- ites ] e
+cLet ites e = Cletseq [ CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) [] | (i, t, e) <- ites ] e
 
 -- convert a CLMatch binding to non-pattern-matching let-bindings
 expCLMatch :: CDefl -> TI [CDefl]

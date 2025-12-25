@@ -32,14 +32,15 @@ import Type
 import Subst
 import Assump
 import Scheme
+import SolvedBinds
 import Unify
 import Pred
 import SATPred
 import TIMonad
 import PreIds
 import StdPrel(isPreClass)
-import CSyntax(CDefl(..), CExpr(..), CPat(..), CQual(..),
-               CLiteral(..), cTApply, cVApply, anyTExpr)
+import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
+               cTApply, cVApply, anyTExpr)
 import Literal
 import IntLit
 import SymTab
@@ -91,7 +92,7 @@ splitF fs ps = partition (all (`elem` fs) . tv) ps
 -- predicates which were solved.  (The dictionaries are defined in
 -- terms of existing dictionaries, such as the "es".)
 
-satisfy :: [EPred] -> [VPred] -> TI ([VPred], [CDefl])
+satisfy :: [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
 satisfy es ps = satisfyX Nothing es ps
 
 -- This version also takes a list of the variables from the
@@ -100,22 +101,22 @@ satisfy es ps = satisfyX Nothing es ps
 -- classes in the StdPrel.  For example (Add x y (TVar v)) only turns
 -- into (Add x y (TAdd x y)) if the "v" being replaced isn't in the
 -- list of TyVars.
-satisfyFV :: [TyVar] -> [EPred] -> [VPred] -> TI ([VPred], [CDefl])
+satisfyFV :: [TyVar] -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
 satisfyFV vs es ps =
         satTrace ("satisfyFV " ++ ppReadable ps) $
         satisfyX (Just vs) es ps
 
-satisfyX :: DVS -> [EPred] -> [VPred] -> TI ([VPred], [CDefl])
-satisfyX _   es [] = return ([], [])
+satisfyX :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
+satisfyX _   es [] = return ([], emptySBs)
 satisfyX dvs es ps = do
         -- satTraceM ("satisfy enter: " ++ ppString (dvs, ps))
 -- it is not clear if applying the substitution here wins or not
         s0 <- getSubst
-        (rs, bs, s) <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
---      (rs, bs, s) <- satisfy' dvs es ps
-        -- satTraceM ("satisfy exit: " ++ ppString (rs,bs,s) ++ "\n")
+        (rs, sbs, s) <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
+--      (rs, sbs, s) <- satisfy' dvs es ps
+        -- satTraceM ("satisfy exit: " ++ ppString (rs,sbs,s) ++ "\n")
         extSubst "satisfyX" s
-        return $ (rs, apSub s (map mkDefl bs))
+        return $ (rs, apSub s sbs)
 
 -- break up preds into those affected by a substitution and those not
 -- in order to loop more efficiently in satisfy'
@@ -128,13 +129,13 @@ split_rs s' rs  = partition affected_pred rs
           affected_var v = v `elem` changed_tv
           affected_pred r = any affected_var (tv r)
 
-satisfy' :: DVS -> [EPred] -> [VPred] -> TI ([VPred], [Bind], Subst)
+satisfy' :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds, Subst)
 satisfy' dvs es ps = do
-       (ps0, s0, bs0) <- joinNeededCtxs ps
-       -- satTraceM ("satisfy (join)' = " ++ ppString (ps0, bs0, s0))
-       (vp, binds, s) <- sMany dvs es [] bs0 s0 ps0
-       -- satTraceM ("satisfy (result)' = " ++ ppString (vp,binds,s))
-       return (vp, binds, s)
+       (ps0, s0, sbs0) <- joinNeededCtxs ps
+       -- satTraceM ("satisfy (join)' = " ++ ppString (ps0, sbs0, s0))
+       (vp, sbs, s) <- sMany dvs es [] sbs0 s0 ps0
+       -- satTraceM ("satisfy (result)' = " ++ ppString (vp,sbs,s))
+       return (vp, sbs, s)
   where
         -- sMany
         -- Arguments:
@@ -163,18 +164,18 @@ satisfy' dvs es ps = do
         -- (but only when not attempting "last resort" satisfying, though
         -- is that condition even necessary?).
         --
-        sMany :: DVS -> [EPred] -> [VPred] -> [Bind] -> Subst -> [VPred] ->
-                 TI ([VPred], [Bind], Subst)
-        sMany dvs es rs bs s [] =
+        sMany :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
+                 TI ([VPred], SolvedBinds, Subst)
+        sMany dvs es rs sbs s [] =
             {- satTrace ("sMany: rs=" ++ ppReadable rs) $ -} do
-            (rs', s', bs') <- joinNeededCtxs rs
+            (rs', s', sbs') <- joinNeededCtxs rs
             let (changed_rs, unchanged_rs) = split_rs s' rs'
             if null changed_rs then do
                 checkJoinCtxs "satisfy" rs s' rs'
-                return (rs', bs' ++ bs, s' @@ s)
+                return (rs', sbs' <++ sbs, s' @@ s)
              else
-                sMany (dvsSub s' dvs) (apSub s' es) unchanged_rs (bs' ++ bs) (s' @@ s) (apSub s' changed_rs)
-        sMany dvs es rs bs s (p:ps) = do
+                sMany (dvsSub s' dvs) (apSub s' es) unchanged_rs (sbs' <++ sbs) (s' @@ s) (apSub s' changed_rs)
+        sMany dvs es rs sbs s (p:ps) = do
             x <- sat dvs es p
             -- satTrace ("sMany: sat=" ++ ppReadable (p, x)) $ return ()
             case x of
@@ -183,13 +184,13 @@ satisfy' dvs es ps = do
                 -- except when it's a numeric typeclass and we're not doing
                 -- "last resort" satisfying
                 ((_:_), _, _) | not (vpIsPreClass p) || isJust dvs ->
-                    sMany dvs es (p:rs) bs s ps
-                (new_ps, bs', s') ->
+                    sMany dvs es (p:rs) sbs s ps
+                (new_ps, sbs', s') ->
                     if isNullSubst s' then
-                        sMany dvs es (new_ps ++ rs) (bs'++bs) s ps
+                        sMany dvs es (new_ps ++ rs) (sbs' <++ sbs) s ps
                     else do
                         let (changed_rs, unchanged_rs) = split_rs s' rs
-                        sMany (dvsSub s' dvs) (apSub s' es) (new_ps ++ unchanged_rs) (bs' ++ bs) (s' @@ s) (apSub s' (changed_rs ++ ps))
+                        sMany (dvsSub s' dvs) (apSub s' es) (new_ps ++ unchanged_rs) (sbs' <++ sbs) (s' @@ s) (apSub s' (changed_rs ++ ps))
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
@@ -243,7 +244,7 @@ expIdOfT _ t = do -- traceM ("expIdOf: " ++ ppReadable t)
 -- XXX For efficiency, we should "join in parallel",
 -- i.e. attempt to merge possible substitutions
 -- so that we can handle more than one duplicate pred at once
-joinCtxs :: [TyVar] -> [VPred] -> Maybe ([VPred], Subst, Bind)
+joinCtxs :: [TyVar] -> [VPred] -> Maybe ([VPred], Subst, SolvedBind)
 joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
   where blob_list = [((c, n, boolCompress (map not bs) ts), vp) |
                      vp@(VPred _ (PredWithPositions (IsIn c ts) _)) <- vps,
@@ -259,7 +260,12 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
           let p'' = VPred i' (PredWithPositions (IsIn c ts') (pos' ++ pos))
               rs  = p'':[ vp | vp@(VPred j _) <- vps, j /= i && j /= i']
               pr = removePredPositions pp
-          return (rs, s, (i, predToType (apSub s pr), CVar i'))
+              b = (i, predToType (apSub s pr), CVar i')
+              sb = SolvedBind {
+                bind = b,
+                isRecursive = False  -- Joining equivalent predicates, not recursive
+              }
+          return (rs, s, sb)
         -- uniquePairs because we need to try every possible pair of matching VPreds
         matchBlobs ((_,n,_), vps) = listToMaybe $ mapMaybe (uncurry (matchPreds n)) $ uniquePairs vps
 
@@ -273,7 +279,7 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
 --
 -- sat corresponds to section 7.2 "Entailment" in the paper
 -- Typing Haskell in Haskell
-sat :: DVS -> [EPred] -> VPred -> TI ([VPred], [Bind], Subst)
+sat :: DVS -> [EPred] -> VPred -> TI ([VPred], SolvedBinds, Subst)
 {-
 sat dvs ps (VPred w pr@(IsIn bts [t1, TAp szof t2]))
     | name bts == idBits && szof == tSizeOf = do
@@ -286,7 +292,7 @@ sat dvs ps p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
     bound_tyvars <- getBoundTVs
-    let lookfor_result :: Maybe ([Bind], (Subst, [(Type,Type)]))
+    let lookfor_result :: Maybe (Bind, (Subst, [(Type,Type)]))
         -- I'm a little worried that matching against the whole_stack
         -- will have lexical scoping issues where p will match against
         -- something very "old", that it should not be able to "see"
@@ -294,7 +300,7 @@ sat dvs ps p =
         -- the TIMonad is reset for each top-level definition.
         lookfor_result = lookfor bound_tyvars p whole_stack
     case lookfor_result of
-      Just (bs, (s, [])) ->
+      Just (b, (s, [])) ->
          -- tie the recursive knot!
          -- traces ("recursive knot: " ++ (ppString p) ++ " = " ++ (ppString lookfor_result))$
          case p of
@@ -314,45 +320,57 @@ sat dvs ps p =
                                   -}
            -- if we satisfy numeric provisos recursively, we haven't proven it
            (VPred vp (PredWithPositions (IsIn cl _) poss)) | isPreClass cl ->
-                   return ([p], [], nullSubst)
-           _ -> satTrace ("sat recursive: " ++ ppReadable (p, bs, s)) $
-                return ([], bs, s)
+                   return ([p], emptySBs, nullSubst)
+           _ -> satTrace ("sat recursive: " ++ ppReadable (p, b, s)) $
+                let sb = SolvedBind {
+                      bind = b,
+                      isRecursive = True  -- Found on stack, recursive
+                    }
+                in return ([], fromSB sb, s)
       _ -> do
        let this_point :: TSSatElement
            this_point = (mkTSSatElement dvs ps p)
        incrementSatStack this_point
        return_val <- case lookfor bound_tyvars p (concatMap bySuperE ps) of
-         Just (bs, (s, [])) -> do
+         Just (b, (s, [])) -> do
              satTrace ("sat in super: " ++ ppReadable (p, concatMap bySuperE ps)) $ return ()
-             return ([], bs, s)
+             let sb = SolvedBind {
+                   bind = b,
+                   isRecursive = False  -- Satisfied via superclass from source, not recursive
+                 }
+             return ([], fromSB sb, s)
          -- we might introduce a numeric equality here, so try instance reduction first
          m_equals -> do
           -- if instance reduction fails, fall back to introducing an equality
           let fail msg =
                 case m_equals of
-                  Just (bs, (s, num_eqs)) -> do
+                  Just (b, (s, num_eqs)) -> do
                     satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
                     eq_ps <- mapM (eqToVPred (getVPredPositions p)) num_eqs
-                    satMany (dvsSub s dvs) (apSub s ps) [] bs s eq_ps
-                  Nothing -> satTrace msg $ return ([p], [], nullSubst)
+                    let sb = SolvedBind {
+                          bind = b,
+                          isRecursive = False  -- From superclass, not recursive
+                        }
+                    satMany (dvsSub s dvs) (apSub s ps) [] (fromSB sb) s eq_ps
+                  Nothing -> satTrace msg $ return ([p], emptySBs, nullSubst)
           ai <- getAllowIncoherent
           x  <- reducePred ps dvs p
           case x of
             Nothing -> fail "sat unreduced"
-            Just (qs, b, us, Nothing) ->
+            Just (qs, sb, us, Nothing) ->
                 satTrace ("sat calls satMany ") $ do
-                satMany (dvsSub us dvs) (apSub us ps) [] [b] us qs -- qs should have us applied already
-            Just (qs, b, us, Just (h@(IsIn c _))) | fromMaybe ai (allowIncoherent c) ->
+                satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs -- qs should have us applied already
+            Just (qs, sb, us, Just (h@(IsIn c _))) | fromMaybe ai (allowIncoherent c) ->
               satTrace ("sat calls satMany (incoherent) ") $ do
-              result <- satMany (dvsSub us dvs) (apSub us ps) [] [b] us qs
+              result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
               case result of
-                (ps@(_:_), bs, s_final) -> return $ (ps, bs, s_final)
-                ([], bs, s_final) -> do
+                (ps@(_:_), sbs, s_final) -> return $ (ps, sbs, s_final)
+                ([], sbs, s_final) -> do
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
                   when (allowIncoherent c /= Just True) $
                     twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return $ ([], bs, s_final)
+                  return $ ([], sbs, s_final)
             bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
@@ -385,38 +403,38 @@ checkJoinCtxs tag rs s rs' = do
   when (isJust (joinCtxs bound_tyvars rs')) $
     internalError ("incomplete join (" ++ tag ++ "): " ++ ppReadable (rs, rs', s))
 
-joinNeededCtxs :: [VPred] -> TI ([VPred], Subst, [Bind])
-joinNeededCtxs = joinNeededCtxs' nullSubst []
+joinNeededCtxs :: [VPred] -> TI ([VPred], Subst, SolvedBinds)
+joinNeededCtxs = joinNeededCtxs' nullSubst emptySBs
 
-joinNeededCtxs' :: Subst -> [Bind] -> [VPred] -> TI ([VPred], Subst, [Bind])
-joinNeededCtxs' s bs ps = do
+joinNeededCtxs' :: Subst -> SolvedBinds -> [VPred] -> TI ([VPred], Subst, SolvedBinds)
+joinNeededCtxs' s sbs ps = do
   bvs <- getBoundTVs
   case (joinCtxs bvs ps) of
     Nothing ->
-        return (ps, s, bs)
-    Just (ps', s', b) ->
+        return (ps, s, sbs)
+    Just (ps', s', sb) ->
         let (changed_rs, unchanged_rs) = split_rs s' ps'
             rs' = (apSub s' changed_rs) ++ unchanged_rs
-        in joinNeededCtxs' (s' @@ s) (b:bs) rs'
+        in joinNeededCtxs' (s' @@ s) (fromSB sb <++ sbs) rs'
 
 -- as we commit to substitutions, we extend the monad with them
 -- we preserve them this far so we can efficiently decide which
 -- preds to retry satisfying
 --
 -- Return values are similar to "sat" since they recursively call each other.
-satMany :: DVS -> [EPred] -> [VPred] -> [Bind] -> Subst -> [VPred] ->
-           TI ([VPred], [Bind], Subst)
+satMany :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
+           TI ([VPred], SolvedBinds, Subst)
 -- rs_accum is an accumulating parameter of "needed" VPreds
 -- if satisfying fails these are returned (for error messages and ctxReduce)
-satMany dvs es [] bs s [] = return $ ([], bs, s)
-satMany dvs es rs_accum bs s [] = do
-  (final_rs, s', bs') <- joinNeededCtxs rs_accum
-  return $ (final_rs, bs' ++ bs, s' @@ s)
-satMany dvs es rs_accum bs s (p:ps) = do
+satMany dvs es [] sbs s [] = return $ ([], sbs, s)
+satMany dvs es rs_accum sbs s [] = do
+  (final_rs, s', sbs') <- joinNeededCtxs rs_accum
+  return $ (final_rs, sbs' <++ sbs, s' @@ s)
+satMany dvs es rs_accum sbs s (p:ps) = do
     x <- sat dvs es p
     rtrace ("satMany: sat="++ ppReadable (p,x)) $ return ()
     case x of
-        (needed@(_:_), bs', s') ->
+        (needed@(_:_), sbs', s') ->
             -- If we are unable to satisfy "p", we add the "needed"
             -- preds to the "rs_accum" argument, potentially heading toward
             -- the "return Nothing" case above.
@@ -430,20 +448,20 @@ satMany dvs es rs_accum bs s (p:ps) = do
             -- issue elsewhere (that should not have returned unsubst'd preds)?
             --
             rtrace ("satMany Right: " ++ ppReadable needed) $
-            satMany dvs es ((apSub s' needed) ++ rs_accum) (bs'++bs) (s' @@ s) ps
-        ([], bs', s') ->
+            satMany dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) ps
+        ([], sbs', s') ->
             -- If p is satisfied, we "drop" it, but add its binding and
             -- substitution.
             if isNullSubst s' then
                 -- Straight-up drop it
                 rtrace ("satMany Left True") $
-                satMany dvs es rs_accum (bs'++bs) s ps
+                satMany dvs es rs_accum (sbs' <++ sbs) s ps
             else do
               let (changed_rs, unchanged_rs) = split_rs s' rs_accum
               if null changed_rs then
                  -- no impact on accumulated predicates
                  rtrace ("satMany Left False True") $
-                 satMany dvs es rs_accum (bs'++bs) (s' @@ s) (apSub s' ps)
+                 satMany dvs es rs_accum (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
                else
                 -- Drop it, but try from the beginning again to see if any of
                 -- the accumulated rs's can now be
@@ -451,24 +469,24 @@ satMany dvs es rs_accum bs s (p:ps) = do
                 -- horrible running time in the worst case.
                 rtrace ("satMany Left False False") $ do
                 let rs' = (apSub s' changed_rs) ++ unchanged_rs
-                (rs'', s1, bs1) <- joinNeededCtxs rs'
+                (rs'', s1, sbs1) <- joinNeededCtxs rs'
                 let s2 = s1 @@ s'
-                satMany (dvsSub s2 dvs) (apSub s2 es) [] (bs1 ++ bs'++ bs)
+                satMany (dvsSub s2 dvs) (apSub s2 es) [] (sbs1 <++ sbs' <++ sbs)
                         (s2 @@ s) (rs'' ++ apSub s2 ps)
 
 -- try to reduce the supplied VPreds as far as possible
 -- returning the underlying preds required
-reducePredsAggressive :: DVS -> [EPred] -> [VPred] -> TI ([VPred], [CDefl], Subst)
+reducePredsAggressive :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds, Subst)
 reducePredsAggressive dvs es vps0 = do
   -- traceM ("reducePredsAggressive (enter): " ++ ppReadable vps0)
-  (vps1, s1, bs1) <- joinNeededCtxs vps0
+  (vps1, s1, sbs1) <- joinNeededCtxs vps0
   checkJoinCtxs "reducePredsAggressive 1" vps0 s1 vps1
-  reducePredsAggressive' dvs es bs1 s1 vps1
+  reducePredsAggressive' dvs es sbs1 s1 vps1
 
-reducePredsAggressive' :: DVS -> [EPred] -> [Bind] -> Subst -> [VPred] ->
-                          TI ([VPred], [CDefl], Subst)
-reducePredsAggressive' dvs es bs1 s1 vps1 = do
-  (vps2, bs2, s2) <- maskAllowIncoherent $ satMany dvs es [] [] s1 vps1
+reducePredsAggressive' :: DVS -> [EPred] -> SolvedBinds -> Subst -> [VPred] ->
+                          TI ([VPred], SolvedBinds, Subst)
+reducePredsAggressive' dvs es sbs1 s1 vps1 = do
+  (vps2, sbs2, s2) <- maskAllowIncoherent $ satMany dvs es [] emptySBs s1 vps1
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
   let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
@@ -477,19 +495,19 @@ reducePredsAggressive' dvs es bs1 s1 vps1 = do
   if (any badCon allPredTyCons) then do
     -- loop to keep synonyms and SizeOf out of instance heads
     vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
-    reducePredsAggressive' dvs es (bs1 ++ bs2) s2 vps2'
+    reducePredsAggressive' dvs es (sbs2 <++ sbs1) s2 vps2'
    else do
     -- satMany is inside a loop, so it doesn't consistently apply
     -- its accumulated substitution to the reduced predicates.
     -- Apply the substitution here to clean that up before returning
     -- to the external caller.
-    return (apSub s2 vps2, map mkDefl (bs1 ++ bs2), s2)
+    return (apSub s2 vps2, sbs2 <++ sbs1, s2)
 
 -- note that the subst we return is safe to commit to as long as the
 -- instance match isn't incoherent (or if we are ok committing to an
 -- incoherent match)
 reducePred :: [EPred] -> DVS -> VPred ->
-              TI (Maybe ([VPred], Bind, Subst, Maybe Pred))
+              TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
 reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
     pushSatStackContext
     bound_tyvars <- getBoundTVs
@@ -497,7 +515,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
     let pr' = IsIn c ts'
         pp' = PredWithPositions pr' pos
         v' = VPred w pp'
-        f :: Bool -> [Inst] -> TI (Maybe ([VPred], Bind, Subst, Maybe Pred))
+        f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
         f incoherent [] = return Nothing
         f incoherent (i:is) = do
                 (m_tv, i'@(Inst _ _ (_ :=> h))) <- newInst i (getVPredPositions v')
@@ -506,7 +524,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                    Nothing -> do
                      let chk = predUnify bound_tyvars pr' h
                      f (chk || incoherent) is
-                   Just (qs, b, (inst_subst, fd_subst)) -> do
+                   Just (qs, sb, (inst_subst, fd_subst)) -> do
                      -- when ((not $ null qs) && (not $ isNullSubst inst_subst)) $
                      --     traceM("qs, inst_subst, fd_subst: " ++ ppReadable (qs, inst_subst, fd_subst))
                      -- does the inst_subst affect anything *outside* of the instance?
@@ -517,7 +535,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
                      let Inst _ _ (_ :=> h) = i
                      let minst = toMaybe incoherent h
-                     return $ Just (qs,b,fd_subst,minst)
+                     return $ Just (qs, sb, fd_subst, minst)
 
     let is' = genInsts c bound_tyvars dvs pr'
     r <- f False is'
@@ -539,8 +557,12 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     -- XXX for now, no new info is learned, just sat
                     --traceM("   success.")
                     let r = anyTExpr (predToType pr')
-                    let b = (w, predToType pr', r)
-                    return $ Just ([], b, nullSubst, Nothing)
+                        b = (w, predToType pr', r)
+                        sb = SolvedBind {
+                          bind = b,
+                          isRecursive = False
+                        }
+                    return $ Just ([], sb, nullSubst, Nothing)
       else return r
 
 predUnify :: [TyVar] -> Pred -> Pred -> Bool
@@ -559,7 +581,7 @@ dvsSub s dvs =
         traces ("dvsSub " ++ ppReadable (dvs, s)) dvs
 -}
 
-byInst :: VPred -> Inst -> TI (Maybe ([VPred], Bind, (Subst, Subst)))
+byInst :: VPred -> Inst -> TI (Maybe ([VPred], SolvedBind, (Subst, Subst)))
 byInst (VPred i p) (Inst e _ (ps :=> h)) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
@@ -575,7 +597,8 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
         -- if the instance is recursive (has a proviso for itself and expects
         -- a dictionary argument for that), then don't use a new dictionary
         -- for that argument, just pass the instance to itself
-        let vs' = zipWith (\ x y -> if (y == p) then i else x) vs (apSub s ps)
+        let isSelfRec = any (== p) (apSub s ps)
+            vs' = zipWith (\ x y -> if (y == p) then i else x) vs (apSub s ps)
         eq_ps <- mapM eqToPred num_eqs
         let eq_pwps = map (mkPredWithPositions []) eq_ps
         eq_vs <- mapM (const newDict) eq_pwps
@@ -587,7 +610,12 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
             e' = apSub s e
         ps'' <- concatMapM (expTConPred . expandSynVPred) ps'
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
-        return (Just (ps'', (i, t, CApply e' (map CVar vs')), (inst_subst, fd_subst)))
+        let binding = (i, t, CApply e' (map CVar vs'))
+            solvedBind = SolvedBind {
+              bind = binding,
+              isRecursive = isSelfRec
+            }
+        return (Just (ps'', solvedBind, (inst_subst, fd_subst)))
 
 -- Create a new instance by replacing the type variables in the instance
 -- with fresh variables.
@@ -605,7 +633,7 @@ newInst ii@(Inst _ vs _) poss = do
                 _ -> Nothing
     return (v, apSub (mkSubst (zip vs ts)) ii)
 
-lookfor :: [TyVar] -> VPred -> [EPred] -> Maybe ([Bind], (Subst, [(Type, Type)]))
+lookfor :: [TyVar] -> VPred -> [EPred] -> Maybe (Bind, (Subst, [(Type, Type)]))
 lookfor bound_tyvars _ [] = Nothing
 lookfor bound_tyvars v@(VPred i pp) eps@(EPred e pr':ps) =
     let pr = removePredPositions pp
@@ -613,7 +641,7 @@ lookfor bound_tyvars v@(VPred i pp) eps@(EPred e pr':ps) =
     in  -- traces ("lookfor " ++ ppReadable (pr, pr', matchTop bound_tyvars meq pr pr', ps)) $
         case matchTop bound_tyvars meq pr pr' of
         Just (inst_subst, fd_subst_and_eqs) | isNullSubst inst_subst ->
-            Just ([(i, predToType pr, e)], fd_subst_and_eqs)
+            Just ((i, predToType pr, e), fd_subst_and_eqs)
         Just (inst_subst, fd_subst) ->
             internalError ("lookfor bad: " ++
                            ppReadable (bound_tyvars, v, eps, inst_subst, fd_subst))
@@ -1236,7 +1264,7 @@ getForceDefaults fvs (VPred i (PredWithPositions (IsIn (Class {name=(CTypeclass 
 --       defaulting didn't succeed).
 --
 defaultClasses :: [TyVar] -> [EPred] -> [VPred] ->
-                  TI ([VPred], [CDefl], [TyVar])
+                  TI ([VPred], SolvedBinds, [TyVar])
 defaultClasses fixedVars givenPreds unsatisfiedPreds =
    let
        -- all variables which are not ambiguous
@@ -1292,7 +1320,7 @@ defaultClasses fixedVars givenPreds unsatisfiedPreds =
               let s = mkSubst [(i,t)]
                   ps' = apSub s ps
 
-              answer <- satMany (Just fixedVars) givenPreds [] [] s ps'
+              answer <- satMany (Just fixedVars) givenPreds [] emptySBs s ps'
               return $ case answer of
               -- we reject this default if it does not work for some pred
               -- or if it results in a substitution of a bound variable
@@ -1332,7 +1360,7 @@ defaultClasses fixedVars givenPreds unsatisfiedPreds =
    in
        if (S.null ambVarsSet) then
            -- no defaulting to do
-           return (unsatisfiedPreds, [], [])
+           return (unsatisfiedPreds, emptySBs, [])
        else do
             let s0 = nullSubst
             s1 <- foldM tryDefaults s0 vars_with_preds
