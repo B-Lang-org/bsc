@@ -2,7 +2,8 @@
 -- They group recursive and non-recursive dictionary bindings separately, ensure there are
 -- no references to recursive bindings from non-recursive bindings and keep non-recursive
 -- bindings in topologically sorted order.
-module SolvedBinds(SolvedBind(..), SolvedBinds, Bind,
+module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
+                   markIncoherent,
                    sbsEmpty, fromSB, (<++), emptySBs,
                    getRecursiveDefls, getNonRecursiveDefls) where
 
@@ -28,33 +29,43 @@ mkDefl (i, t, e) = CLValueSign (CDefT i [] (CQType [] t) [CClause [] [] e]) []
 
 data SolvedBind = SolvedBind {
   bind :: Bind,
+  freeVars :: S.Set Id,
   isRecursive :: Bool
 } deriving (Show)
 
 instance PPrint SolvedBind where
-  pPrint d p (SolvedBind bind isRec) =
+  pPrint d p (SolvedBind bind fv isRec) =
     text "SolvedBind" <+> braces (
       text "bind:" <+> pPrint d p bind <> semi <+>
+      text "freeVars:" <+> pPrint d p fv <> semi <+>
       text "isRecursive:" <+> pPrint d p isRec
     )
+
+mkSolvedBind :: Bind -> Bool -> SolvedBind
+mkSolvedBind b@(_,_,e) isRec =
+  SolvedBind { bind = b, freeVars = snd (getFVE e), isRecursive = isRec }
+
+markIncoherent :: SolvedBind -> SolvedBind
+markIncoherent sb = sb { bind = mark (bind sb) }
+  where mark (i, t, e) = (addIdProp i IdPIncoherent, t, e)
 
 -- Collection of bindings categorized by recursion
 -- nonRecursiveBinds are maintained in topologically sorted order
 data SolvedBinds = SolvedBinds {
-  recursiveBinds :: [Bind],
-  nonRecursiveBinds :: [Bind],
+  recursiveBinds :: [(Bind, S.Set Id)], -- binding and free variables
+  nonRecursiveBinds :: [(Bind, S.Set Id)],
   recursiveIds :: S.Set Id,
   nonRecursiveIds :: S.Set Id
 } deriving (Show)
 
 instance Types SolvedBinds where
   apSub s sbs = sbs {
-    recursiveBinds = [ (i, apSub s t, apSub s e) | (i, t, e) <- recursiveBinds sbs ],
-    nonRecursiveBinds = [ (i, apSub s t, apSub s e) | (i, t, e) <- nonRecursiveBinds sbs ]
+    recursiveBinds = [ ((i, apSub s t, apSub s e), fv) | ((i, t, e), fv) <- recursiveBinds sbs ],
+    nonRecursiveBinds = [ ((i, apSub s t, apSub s e), fv) | ((i, t, e), fv) <- nonRecursiveBinds sbs ]
   }
   tv sbs = recTVs `union` nonRecTVs
-    where recTVs    = tv [ (t, e) | (_, t, e) <- recursiveBinds sbs ]
-          nonRecTVs = tv [ (t, e) | (_, t, e) <- nonRecursiveBinds sbs ]
+    where recTVs    = tv [ (t, e) | ((_, t, e), _) <- recursiveBinds sbs ]
+          nonRecTVs = tv [ (t, e) | ((_, t, e), _) <- nonRecursiveBinds sbs ]
 
 sbsEmpty :: SolvedBinds -> Bool
 sbsEmpty (SolvedBinds recs nonrecs _ _) = null recs && null nonrecs
@@ -63,17 +74,17 @@ sbsEmpty (SolvedBinds recs nonrecs _ _) = null recs && null nonrecs
 -- Note: Both self-recursive and non-recursive bindings are independent of accum
 -- Self-recursive bindings depend only on themselves, fresh variables, and source EPreds
 fromSB :: SolvedBind -> SolvedBinds
-fromSB (SolvedBind b@(i, _, _) isRec) =
+fromSB (SolvedBind b@(i, _, _) fv isRec) =
   if isRec
     then SolvedBinds {
-      recursiveBinds = [b],
+      recursiveBinds = [(b, fv)],
       nonRecursiveBinds = [],
       recursiveIds = S.singleton i,
       nonRecursiveIds = S.empty
     }
     else SolvedBinds {
       recursiveBinds = [],
-      nonRecursiveBinds = [b],
+      nonRecursiveBinds = [(b, fv)],
       recursiveIds = S.empty,
       nonRecursiveIds = S.singleton i
     }
@@ -93,18 +104,18 @@ new <++ old
     | noBadDeps = result
     | otherwise = internalError $ "nonRecursive depending on recursive in result: " ++
                                   ppReadable (new, old, result)
-    where dependsOn s (_,_,e) = not $ S.disjoint (snd $ getFVE e) s
+    where dependsOn s ((_,_,_), fv) = not $ S.disjoint fv s
           oldAllIds = recursiveIds old `S.union` nonRecursiveIds old
           promoteTransitively [] nonRecs = ([], nonRecs)
           promoteTransitively promoted nonRecs = (promoted ++ transitivePromoted, finalNonRecs)
-            where promotedIds = S.fromList [ i | (i, _, _) <- promoted ]
+            where promotedIds = S.fromList [ i | ((i, _, _), _) <- promoted ]
                   (newlyPromoted, stillNonRecs) = partition (dependsOn promotedIds) nonRecs
                   (transitivePromoted, finalNonRecs) = promoteTransitively newlyPromoted stillNonRecs
           (newlyRec, stillNonRec) = uncurry promoteTransitively $
                                     partition (dependsOn $ recursiveIds new) (nonRecursiveBinds old)
           -- Updates for cached sets
-          newRecIds = S.fromList [i | (i, _, _) <- recursiveBinds new ++ newlyRec]
-          nowNotNonRecIds = S.fromList [ i | (i, _ , _)  <- newlyRec ]
+          newRecIds = S.fromList [i | ((i, _, _), _) <- recursiveBinds new ++ newlyRec]
+          nowNotNonRecIds = S.fromList [ i | ((i, _ , _), _)  <- newlyRec ]
           result = SolvedBinds {
                       recursiveBinds = newlyRec ++ recursiveBinds new ++ recursiveBinds old,
                       nonRecursiveBinds = nonRecursiveBinds new ++ stillNonRec,
@@ -127,8 +138,9 @@ instance PPrint SolvedBinds where
       text "rec:" <+> pPrint d p recs <> semi <+>
       text "nonRec:" <+> pPrint d p nonrecs
     )
+
 getRecursiveDefls :: SolvedBinds -> [CDefl]
-getRecursiveDefls = map mkDefl . recursiveBinds
+getRecursiveDefls = map (mkDefl . fst) . recursiveBinds
 
 getNonRecursiveDefls :: SolvedBinds -> [CDefl]
-getNonRecursiveDefls = map mkDefl . nonRecursiveBinds
+getNonRecursiveDefls = map (mkDefl .fst) . nonRecursiveBinds

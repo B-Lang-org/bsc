@@ -265,10 +265,7 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
               rs  = p'':[ vp | vp@(VPred j _) <- vps, j /= i && j /= i']
               pr = removePredPositions pp
               b = (i, predToType (apSub s pr), CVar i')
-              sb = SolvedBind {
-                bind = b,
-                isRecursive = False  -- Joining equivalent predicates, not recursive
-              }
+              sb = mkSolvedBind b False -- Joining equivalent predicates, not recursive
           return (rs, s, sb)
         -- uniquePairs because we need to try every possible pair of matching VPreds
         matchBlobs ((_,n,_), vps) = listToMaybe $ mapMaybe (uncurry (matchPreds n)) $ uniquePairs vps
@@ -318,10 +315,7 @@ sat dvs ps p =
            (VPred vp (PredWithPositions (IsIn cl _) poss)) | isPreClass cl ->
                    return ([p], emptySBs, nullSubst)
            _ -> satTrace ("sat recursive: " ++ ppReadable (p, b, s)) $
-                let sb = SolvedBind {
-                      bind = b,
-                      isRecursive = True  -- Found on stack, recursive
-                    }
+                let sb = mkSolvedBind b True -- Found on stack, recursive
                 in return ([], fromSB sb, s)
       _ -> do
        let this_point :: TSSatElement
@@ -330,10 +324,7 @@ sat dvs ps p =
        return_val <- case lookfor bound_tyvars p (concatMap bySuperE ps) of
          Just (b, (s, [])) -> do
              satTrace ("sat in super: " ++ ppReadable (p, concatMap bySuperE ps)) $ return ()
-             let sb = SolvedBind {
-                   bind = b,
-                   isRecursive = False  -- Satisfied via superclass from source, not recursive
-                 }
+             let sb = mkSolvedBind b False -- Satisfied via superclass from source, not recursive
              return ([], fromSB sb, s)
          -- we might introduce a numeric equality here, so try instance reduction first
          m_equals -> do
@@ -343,10 +334,7 @@ sat dvs ps p =
                   Just (b, (s, num_eqs)) -> do
                     satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
                     eq_ps <- concatMapM (eqToVPred (getVPredPositions p)) num_eqs
-                    let sb = SolvedBind {
-                          bind = b,
-                          isRecursive = False  -- From superclass, not recursive
-                        }
+                    let sb = mkSolvedBind b False -- From superclass, not recursive
                     satMany (dvsSub s dvs) (apSub s ps) [] (fromSB sb) s eq_ps
                   Nothing -> satTrace msg $ return ([p], emptySBs, nullSubst)
           ai <- getAllowIncoherent
@@ -606,10 +594,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     --traceM("   success.")
                     let r = anyTExpr (predToType pr')
                         b = (w, predToType pr', r)
-                        sb = SolvedBind {
-                          bind = b,
-                          isRecursive = False
-                        }
+                        sb = mkSolvedBind b False
                     return $ Just ([], sb, nullSubst, Nothing)
       else return r
 
@@ -659,10 +644,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
         ps'' <- concatMapM (expTConPred . expandSynVPred) ps'
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
-            solvedBind = SolvedBind {
-              bind = binding,
-              isRecursive = isSelfRec
-            }
+            solvedBind = mkSolvedBind binding isSelfRec
         return (Just (ps'', solvedBind, (inst_subst, fd_subst)))
 
 -- Create a new instance by replacing the type variables in the instance
