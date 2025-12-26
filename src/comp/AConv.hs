@@ -363,6 +363,10 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
             | t == itAction
               -> internalError ("AConv.aIFace actions should have become rules "
                                 ++ ppReadable iface)
+            | isRdyId i
+            -> do
+              ae <- aExpr e
+              return (AIDef i its' wp g [ADef i (aTypeConv i t) ae []] fi [])
             | otherwise
             -> do
               -- internal error if type actionvalue XXX
