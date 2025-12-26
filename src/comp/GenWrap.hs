@@ -1111,7 +1111,9 @@ genTo pps ty mk =
                    localPrefix = joinStrings_  currentPre localPrefix1
                    prefix = stringLiteralAt noPosition localPrefix
                    arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
-                   result = stringLiteralAt noPosition $ fromMaybe localPrefix (lookupResultIfcPragma ciPrags)
+                   localResult1 = fromMaybe (getIdBaseString f) (lookupResultIfcPragma ciPrags)
+                   localResult = joinStrings_ currentPre localResult1
+                   result = stringLiteralAt noPosition localResult
                    fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
@@ -2039,10 +2041,8 @@ genNewMethodIfcPragmas ifcp pragmas fieldId newFieldId  =
           ar = if (isAlwaysReadyIfc joinedPrags)   then [PIAlwaysRdy     ] else []
           ae = if (isAlwaysEnabledIfc joinedPrags) then [PIAlwaysEnabled ] else []
           -- The result names used the prefix plus the given of generated name
-          mResName = lookupResultIfcPragma pragmas
-          resultName =  case mResName of
-                        Just str -> joinStrings_ currentPre str
-                        Nothing  -> joinStrings_ currentPre methodStr
+          localResult1 = fromMaybe (getIdString fieldId) (lookupResultIfcPragma pragmas)
+          resultName = joinStrings_  currentPre localResult1
           --
           resName = (PIResultName resultName)
           -- The ready name
@@ -2196,20 +2196,17 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                                     meth newprefixes ifcIdIn (FInf (mkNumId num) [] tVec [])
                concatMapM recurse nums
             _ -> do
-              let methodStr = getIdBaseString f
-                  currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
+              let currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
                   localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                   localPrefix = joinStrings_  currentPre localPrefix1
-                  mResName = lookupResultIfcPragma ciPrags
-                  resultName =  case mResName of
-                        Just str -> joinStrings_ currentPre str
-                        Nothing  -> joinStrings_ currentPre methodStr
+                  localResult1 = fromMaybe (getIdBaseString f) (lookupResultIfcPragma ciPrags)
+                  localResult = joinStrings_ currentPre localResult1
 
               let fproxy = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                   proxy = mkTypeProxyExpr $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]
-                  result = stringLiteralAt noPosition resultName
+                  result = stringLiteralAt noPosition localResult
               return [
                 CSExpr Nothing $
                   cVApply idLiftModule $
