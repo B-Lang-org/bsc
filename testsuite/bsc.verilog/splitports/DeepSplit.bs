@@ -51,11 +51,15 @@ interface SplitTest =
   getBar :: DeepSplit Foo -> DeepSplit Bar {-# result = "GET_BAR" #-}
   getZug :: DeepSplit Zug
 
+  update :: DeepSplit Foo -> ActionValue (DeepSplit Bar)
+
 
 {-# synthesize mkDeepSplitTest #-}
 mkDeepSplitTest :: Module SplitTest
 mkDeepSplitTest =
   module
+    theCond <- mkReg False
+    theFoo <- mkReg (Foo { x = 0; y = 0; })
     interface
       putFoo (DeepSplit x) = $display "putFoo: " (cshow x)
       putBar (DeepSplit x) = $display "putBar: " (cshow x)
@@ -66,6 +70,10 @@ mkDeepSplitTest =
       getFoo = DeepSplit $ Foo { x = 42; y = 43; }
       getBar (DeepSplit f) = DeepSplit $ Bar { v = vec True False True; w = (False, 0x4321); z = f; }
       getZug = DeepSplit $ Zug { qs = vec (Quix { q = negate 2; v = True }) (Quix { q = 2; v = False }); blob = True; }
+      update (DeepSplit f) = do
+        theCond := not theCond
+        theFoo := f
+        return $ DeepSplit $ Bar { v = vec (f.x == 33) theCond (not theCond); w = (theCond, 0xDEAD); z = theFoo; }
 
 {-# synthesize sysDeepSplit #-}
 sysDeepSplit :: Module Empty
@@ -84,4 +92,10 @@ sysDeepSplit =
       when i == 6 ==> $display "getFoo: " (cshow s.getFoo)
       when i == 7 ==> $display "getBar: " (cshow $ s.getBar s.getFoo)
       when i == 8 ==> $display "getZug: " (cshow s.getZug)
-      when i == 9 ==> $finish
+      when i == 9 ==> do
+        res <- s.update (DeepSplit $ Foo { x = 77; y = 88; })
+        $display "update: " (cshow res)
+      when i == 10 ==> do
+        res <- s.update (DeepSplit $ Foo { x = 33; y = 44; })
+        $display "update: " (cshow res)
+      when i == 11 ==> $finish

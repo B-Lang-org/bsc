@@ -7,3 +7,5 @@ putZug: Zug {qs=[Quix {q= 1; v=True}, Quix {q= 2; v=False}]; blob=False}
 getFoo: DeepSplit (Foo {x=  42; y=  43})
 getBar: DeepSplit (Bar {v=[True, False, True]; w=(False, 17185); z=Foo {x=  42; y=  43}})
 getZug: DeepSplit (Zug {qs=[Quix {q=-2; v=True}, Quix {q= 2; v=False}]; blob=True})
+update: DeepSplit (Bar {v=[False, False, True]; w=(False, 57005); z=Foo {x=   0; y=   0}})
+update: DeepSplit (Bar {v=[True, True, False]; w=(True, 57005); z=Foo {x=  77; y=  88}})
