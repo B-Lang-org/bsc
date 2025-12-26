@@ -886,7 +886,7 @@ vState  flags rewire_map avinst =
         inps =  [ (mkVId (portid s ino),
                    mkArgId m k ino,
                    vSize argType)
-                  | (meth@(Method m _ _ mult ps mo me),
+                  | (meth@(Method m _ _ mult ps outs me),
                      (argTypes,_,_))
                         <- zip (vFields vi) mts,
                         -- (VName s, vps)
@@ -909,7 +909,7 @@ vState  flags rewire_map avinst =
                    mkVId (portid s ino),
                    mkEnId m ino,
                    inhigh )
-                  | (Method m _ _ mult ss mo me@(Just (VName s,vps)))
+                  | (Method m _ _ mult ss outs me@(Just (VName s,vps)))
                         <- vFields vi,
                     let inhigh = VPinhigh `elem` vps,
                     -- let multu = getMethodMultUse m,
