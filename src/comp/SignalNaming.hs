@@ -68,6 +68,9 @@ signalNameFromAExpr' (expr@AMethCall { }) =
     connectWith "_" (map signalNameFromAExpr' (ae_args expr))
 signalNameFromAExpr' (expr@AMethValue { }) =
     ppString (ae_objid expr) ++ "_" ++ ppString (unQualId (ameth_id expr))
+signalNameFromAExpr' (expr@ATuple { }) =
+    "TUPLE_" ++
+    connectWith "_" (map signalNameFromAExpr' (ae_elems expr))
 signalNameFromAExpr' (expr@ATupleSel { }) =
     signalNameFromAExpr' (ae_exp expr) ++
     "_" ++ itos (ae_index expr)

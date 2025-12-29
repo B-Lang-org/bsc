@@ -724,20 +724,31 @@ isForeign _                 = False
 -- note that expressions are named according to the information on
 -- the VFieldInfo
 outputDefToADefs :: Bool -> [PProp] -> AIFace -> [ADef]
-outputDefToADefs fmod pps ai@(AIDef{}) = if convert then newdefs else []
-    where defs    = aif_values ai
-          resNames= mkNamedOutputs (aif_fieldinfo ai)
-          newdefs = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames 
-          convert = not (fmod && isRdyId (aif_name ai))
-outputDefToADefs _ pps ai@(AIActionValue{}) = newdefs
-    where defs    = aif_values ai
-          resNames= mkNamedOutputs (aif_fieldinfo ai)
-          newdefs  = zipWith (\def resName -> def{ adef_objid = resName }) defs resNames
+outputDefToADefs fmod pps (AIDef{aif_name=name, aif_value=def, aif_fieldinfo=fi}) = if convert then newdefs else []
+    where resNames= mkNamedOutputs fi
+          newdefs = outputADefToADefs def resNames
+          convert = not (fmod && isRdyId name)
+outputDefToADefs _ pps (AIActionValue{aif_name=name, aif_value=def, aif_fieldinfo=fi}) = newdefs
+    where resNames= mkNamedOutputs fi
+          newdefs  = outputADefToADefs def resNames
 outputDefToADefs _ _ a@(AIAction{})       = []
 outputDefToADefs _ _ a@(AIClock{})        = []
 outputDefToADefs _ _ a@(AIReset{})        = []
 outputDefToADefs _ _ a@(AIInout{})        = []
 
+outputADefToADefs :: ADef -> [Id] -> [ADef]
+outputADefToADefs (ADef { adef_type = ATTuple ts, adef_expr = ATuple _ es }) resNames =
+    zipWith3 (\t e resName -> ADef { adef_objid = resName,
+                                      adef_type  = t,
+                                      adef_expr  = e,
+                                      adef_props = [] })
+            ts es resNames
+outputADefToADefs (ADef { adef_type = t, adef_expr = e }) [resName] =
+    [ADef { adef_objid = resName,
+            adef_type  = t,
+            adef_expr  = e,
+            adef_props = [] }]
+outputADefToADefs _ _ = internalError "outputADefToADefs: unexpected ADef resNames"
 
 getVInst :: AId -> [AVInst] -> AVInst
 getVInst i as = head ( [ a | a <- as, i == (avi_vname a) ] ++

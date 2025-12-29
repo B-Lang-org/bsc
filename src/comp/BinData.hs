@@ -1019,6 +1019,7 @@ instance Bin AExpr where
     writeBytes (ASInout t iot) = section "AExpr" $ do putI 15; toBin t; toBin iot
     writeBytes (ASReal i t val) = section "AExpr" $ do putI 16; toBin i; toBin t; toBin val
     writeBytes (ATupleSel t e idx) = section "AExpr" $ do putI 17; toBin t; toBin e; toBin idx
+    writeBytes (ATuple t es) = section "AExpr" $ do putI 18; toBin t; toBin es
     readBytes = do
         i <- getI
         case i of
@@ -1054,6 +1055,8 @@ instance Bin AExpr where
                      return (ASReal i t val) }
           17 -> do { t <- fromBin; e <- fromBin; idx <- fromBin;
                      return (ATupleSel t e idx) }
+          18 -> do { t <- fromBin; es <- fromBin;
+                     return (ATuple t es) }
           n  -> internalError $ "GenABin.Bin(IExpr).readBytes: " ++ show n
     -- toBin e = Out [AExp e] ()
     -- fromBin = readShared

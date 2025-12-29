@@ -73,8 +73,8 @@ aCleanup errh flags apkg = do
       userARules = apkg_rules apkg
       ifs = apkg_interface apkg
       -- definitions of the value methods in the interface
-      ifcDefs = [d | (AIDef { aif_values = ds }) <- ifs, d <- ds] ++
-                [d | (AIActionValue { aif_values = ds }) <- ifs, d <- ds]
+      ifcDefs = [d | (AIDef { aif_value = d }) <- ifs] ++
+                [d | (AIActionValue { aif_value = d }) <- ifs]
   let str = "cleanup_" ++ ppString (apkg_name apkg)
   dts <- initDisjointTestState str errh flags (userDefs ++ ifcDefs) state []
   let initstate = initCState dts

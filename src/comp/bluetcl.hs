@@ -1659,7 +1659,7 @@ tclRule ["full",modname,rule] =
             -- expand the predicate
             let methodRdys :: [ADef]
                 methodRdys = [ v
-                             | (AIDef { aif_name = mn, aif_values = [v] }) <- ifcs
+                             | (AIDef { aif_name = mn, aif_value = v }) <- ifcs
                              , isRdyId mn ]
             let pred_expanded = ppeString (methodRdys ++ ds) bContext predicate
             -- method calls
@@ -3291,10 +3291,13 @@ rawIfcFieldName (RawInout i _ _ _ _) = i
 
 rawIfcFieldFromAIFace :: [PProp] -> AIFace -> RawIfcField
 rawIfcFieldFromAIFace _
-    (AIDef i args _ _ defs
+    (AIDef i args _ _ def
      (Method _ clk rst mult ins outs Nothing) _) =
     let -- include the type in the "outs"
-        outs' = zip outs (map adef_type defs)
+        outs' = zip outs $
+          case adef_type def of
+            ATTuple ts -> ts
+            t          -> [t]
     in  RawMethod i mult clk rst (mapFst Just args) ins outs' Nothing
 rawIfcFieldFromAIFace pps
     (AIAction args _ _ i _
@@ -3304,13 +3307,16 @@ rawIfcFieldFromAIFace pps
         me' = if (isAlwaysEn pps i) then Nothing else me
     in  RawMethod i mult clk rst (mapFst Just args) ins [] me'
 rawIfcFieldFromAIFace pps
-    (AIActionValue args _ _ i _ defs
+    (AIActionValue args _ _ i _ def
      (Method _ clk rst mult ins outs me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
         -- include the type in the "outs"
-        outs' = zip outs (map adef_type defs)
+        outs' = zip outs $
+          case adef_type def of
+            ATTuple ts -> ts
+            t          -> [t]
     in  RawMethod i mult clk rst (mapFst Just args) ins outs' me'
 rawIfcFieldFromAIFace _ (AIClock i _ (Clock _)) = RawClock i
 rawIfcFieldFromAIFace _ (AIReset i _ (Reset _)) = RawReset i

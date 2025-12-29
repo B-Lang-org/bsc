@@ -278,10 +278,10 @@ insertCase pkg =
 
       -- because method return values are not lifted to local defs,
       -- we need to infer case expressions there, too
-      aInsertCaseIfc ai@(AIDef { aif_values = ds }) =
-          ai { aif_values = map (aInsertCaseDef True findFn) ds }
-      aInsertCaseIfc ai@(AIActionValue { aif_values = ds }) =
-          ai { aif_values = map (aInsertCaseDef True findFn) ds }
+      aInsertCaseIfc ai@(AIDef { aif_value = d }) =
+          ai { aif_value = aInsertCaseDef True findFn d }
+      aInsertCaseIfc ai@(AIActionValue { aif_value = d }) =
+          ai { aif_value = aInsertCaseDef True findFn d }
       aInsertCaseIfc ai = ai
 
       ifc0 = sp_interface pkg

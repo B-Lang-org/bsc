@@ -147,13 +147,13 @@ instance RankMethCalls ADef where
         in  (def { adef_expr = ranked_body }, defs_to_rewrite)
 
 instance RankMethCalls AIFace where
-    rankMethCalls ver meth@(AIDef { aif_values = values, aif_pred = pred,
+    rankMethCalls ver meth@(AIDef { aif_value = value, aif_pred = pred,
                                      aif_inputs = inputs,
                                      aif_fieldinfo = fi }) =
-        let (ranked_values, defs_to_rewrite_1) = unzip $ map (rankMethCalls ver) values
+        let (ranked_value, defs_to_rewrite_1) = rankMethCalls ver value
             (ranked_pred, defs_to_rewrite_2) = rankMethCalls ver pred
-            defs_to_rewrite = foldr union defs_to_rewrite_2 defs_to_rewrite_1
-        in  (meth { aif_values = ranked_values, aif_pred = ranked_pred },
+            defs_to_rewrite = defs_to_rewrite_1 `union` defs_to_rewrite_2
+        in  (meth { aif_value = ranked_value, aif_pred = ranked_pred },
              defs_to_rewrite)
     rankMethCalls ver meth@(AIAction { aif_pred = pred, aif_body = body }) =
         let (ranked_body, defs_to_rewrite_1) = rankMethCalls ver body

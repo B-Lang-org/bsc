@@ -308,6 +308,9 @@ aQExp top (APrim aid t p es)       = mapM (aQExp False) es >>= return . APrim ai
 aQExp top (AMethCall t i m es)     = mapM (aQExp False) es >>= return . AMethCall t i m
 aQExp top (ANoInlineFunCall t i f es)      = mapM (aQExp False) es >>= return . ANoInlineFunCall t i f
 aQExp top (AFunCall t i f isC es)  = mapM (aQExp False) es >>= return . AFunCall t i f isC
+aQExp top (ATuple t es)            = do
+    es' <- mapM (aQExp False) es
+    return (ATuple t es')
 aQExp top (ATupleSel t e n)       = do
     e' <- aQExp False e
     return (ATupleSel t e' n)

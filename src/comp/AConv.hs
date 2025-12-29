@@ -29,7 +29,7 @@ import Prim
 import Data.List(genericLength, nub)
 import Data.Maybe(fromMaybe)
 import VModInfo(lookupOutputClockWires, lookupOutputResetWire,
-                lookupIfcInoutWire, vArgs, VArgInfo(..), vName_to_id, vf_outputs)
+                lookupIfcInoutWire, vArgs, VArgInfo(..))
 import SignalNaming
 import InstNodes(mkInstTree)
 
@@ -363,16 +363,10 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
             | t == itAction
               -> internalError ("AConv.aIFace actions should have become rules "
                                 ++ ppReadable iface)
-            | isRdyId i
-            -> do
-              ae <- aExpr e
-              return (AIDef i its' wp g [ADef i (aTypeConv i t) ae []] fi [])
             | otherwise
             -> do
-              -- internal error if type actionvalue XXX
-              --trace ("exit v " ++ ppReadable i) $ return ()
-              ds <- aDefs (map (vName_to_id . fst) $ vf_outputs fi) t e
-              return (AIDef i its' wp g ds fi [])
+              ae <- aExpr e
+              return (AIDef i its' wp g (ADef i (aTypeConv i t) ae []) fi [])
 
           (Nothing, Just rs) -> do
                                    arule_list <- mapM aRule (extractRules rs)
@@ -382,20 +376,11 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
 
           (Just (val_, t), Just rs) -> do
                                    arule_list <- mapM aRule (extractRules rs)
-                                   ds <- aDefs (map (vName_to_id . fst) $ vf_outputs fi) t val_
+                                   ae <- aExpr val_
                                    --trace ("exit av " ++ ppReadable i) $ return ()
-                                   return (AIActionValue its' wp g i arule_list ds fi )
+                                   return (AIActionValue its' wp g i arule_list
+                                            (ADef i (aTypeConv i t) ae []) fi )
                                    -- should internalError if size(val_)==0 XXX
-
-aDefs :: [Id] -> IType -> IExpr a -> M [ADef]
-aDefs (o : os) _ (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
-  ae <- aExpr e1
-  ds <- aDefs os t2 e2
-  return (ADef o (aTypeConv o t1) ae [] : ds)
-aDefs [o] t e = do
-  ae <- aExpr e
-  return [ADef o (aTypeConv o t) ae []]
-aDefs _ _ e = internalError $ "aDefs: could not extract output ports from " ++ ppReadable e
 
 aRule :: IRule a -> M ARule
 aRule (IRule i rps s wp p a orig isl) = do
@@ -553,6 +538,11 @@ aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just op
         return $ ANoInlineFunCall t i'
                    (ANoInlineFun name ns ops Nothing) es'
 
+aExpr e@(IAps (ICon i _) _ _) | i == idPrimPair = do
+        let at = aTypeConvE e (iGetType e)
+        aes <- aTupleExpr e
+        return (ATuple at aes)
+
 aExpr e@(ICon v (ICModPort { iConType = t })) = return (ASPort (aTypeConvE e t) v)
 aExpr e@(ICon v (ICModParam { iConType = t })) = return (ASParam (aTypeConvE e t) v)
 aExpr e@(ICon v (ICMethArg { iConType = t })) = return (ASPort (aTypeConvE e t) v)
@@ -602,6 +592,13 @@ aExpr e = internalError
               ("AConv.aExpr at " ++ ppString p ++ ":" ++ ppReadable e ++ "\n" ++
                (show p) ++ ":" ++ (showTypeless e))
     where p = getIExprPosition e
+
+aTupleExpr :: IExpr a -> M [AExpr]
+aTupleExpr (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
+        ae1 <- aSExpr e1
+        ae2 <- aTupleExpr e2
+        return (ae1:ae2)
+aTupleExpr e = fmap (:[]) (aSExpr e)
 
 aSelExpr :: [(Id, AType)] -> [IExpr a] -> M AExpr
 

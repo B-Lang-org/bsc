@@ -116,7 +116,7 @@ import VModInfo(vPath, vFields, vArgs,
 import Pragma
 import Control.Monad(when)
 import Data.Maybe(isJust, isNothing, fromJust)
-import Data.List(partition)
+import Data.List(partition, genericIndex)
 import Id(unQualId, getIdBaseString)
 import Eval
 import Position(getPosition)
@@ -190,8 +190,8 @@ data PathNode =
     PNWillFire AId  |
     -- arguments to methods of current module (Ids: method, argument)
     PNTopMethodArg AId AId  |
-    -- return values of methods of current module (Ids: method, result)
-    PNTopMethodRes AId AId  |
+    -- return values of methods of current module (Ids: method, result #)
+    PNTopMethodRes AId Integer  |
     -- this is an internal graph node for the method's ready signal,
     -- the real output port is handled by a separate read method
     -- (Id: method)
@@ -569,11 +569,14 @@ aPathsPreSched errh flags apkg = do
                                                           aif_name = m }) <- ifc,
                                          (arg,_) <- args]
 
+      num_outputs (ADef {adef_type = ATTuple ts}) = fromIntegral (length ts)
+      num_outputs _ = 1
+
       method_outputs =
-          [(p, PNTopMethodRes m p) | (AIDef { aif_name = m, aif_values = v }) <- ifc,
-                                     ADef p _ _ _ <- v ] ++
-          [(p, PNTopMethodRes m p) | (AIActionValue { aif_name = m, aif_values = v }) <- ifc,
-                                     ADef p _ _ _ <- v  ]
+          [(m, PNTopMethodRes m res) | (AIDef { aif_name = m, aif_value = v }) <- ifc,
+                                       res <- [1..(num_outputs v)] ] ++
+          [(m, PNTopMethodRes m res) | (AIActionValue { aif_name = m, aif_value = v }) <- ifc,
+                                       res <- [1..(num_outputs v)] ]
 
       method_enables =
           -- Name creation is safe, since it is based on VFieldInfo
@@ -687,17 +690,24 @@ aPathsPreSched errh flags apkg = do
   -- methods (ifc)
 
   let mkMethodEdges :: AIFace -> [(PathNode,PathNode)]
-      mkMethodEdges (AIDef mid inputs wp rdy v _ _) =
+      mkMethodEdges (AIDef mid inputs wp rdy def@(ADef _ t e _) _ _) =
           -- connect the rdy expression (likely just an ASDef reference)
           -- to the internal graph node for the method ready
           (mkEdges (PNTopMethodReady mid) rdy env) ++
           -- make faux connections from the rdy to the arguments, so that
           -- dependencies in the other direction are caught as loops
           [(PNTopMethodReady mid, PNTopMethodArg mid arg) | (arg,_) <- inputs] ++
+          if length result_types /= length results
+          then internalError
+                 ("APaths.aPathsPreSched: unexpected method results: " ++ ppReadable def)
           -- connect the definition to the method result
           -- (this method has no enable, so it cannot contribute to any
           -- methcall argument muxes, so just use "mkEdges")
-          [edge | ADef p _ e _ <- v, edge <- mkEdges (PNTopMethodRes mid p) e env]
+          else [edge | (res, e') <- zip [1..] results, edge <- mkEdges (PNTopMethodRes mid res) e' env]
+          where result_types | ATTuple ts <- t = ts
+                             | otherwise = [t]
+                results | ATuple { ae_elems = elems } <- e = elems
+                        | otherwise = [e]
       mkMethodEdges (AIAction inputs wp rdy m rs fi) =
           let rdy_node = PNTopMethodReady m
               en_node  = PNTopMethodEnable m
@@ -730,7 +740,7 @@ aPathsPreSched errh flags apkg = do
               -- connect the rules
               concatMap mkMRuleEdges rs
 
-      mkMethodEdges (AIActionValue inputs wp rdy m rs vs fi) =
+      mkMethodEdges (AIActionValue inputs wp rdy m rs def@(ADef _ t e _) fi) =
           let rdy_node = PNTopMethodReady m
               en_node  = PNTopMethodEnable m
               mkMRuleEdges (ARule ri _ _ _ rpred actions _ _) =
@@ -752,6 +762,10 @@ aPathsPreSched errh flags apkg = do
                     [(en_node, wf_node)] ++
                     -- add edges from rule WillFire to ENs in each action
                     (concatMap (mkActionEdges env wf_node) actions)
+              result_types | ATTuple ts <- t = ts
+                           | otherwise = [t]
+              results | ATuple { ae_elems = elems } <- e = elems
+                      | otherwise = [e]
           in
               -- make faux connections from the rdy to the arguments and the
               -- enable, so that dependencies in the other direction are caught
@@ -759,11 +773,14 @@ aPathsPreSched errh flags apkg = do
               [(rdy_node, en_node)] ++
               [(rdy_node, PNTopMethodArg m arg)
                    | (arg,_) <- inputs] ++
+             (if length result_types /= length results
+              then internalError
+                 ("APaths.aPathsPreSched: unexpected method results: " ++ ppReadable def)
               -- connect the definitions to the method results
               -- (this method's Enable could contribute to methcall argument
               -- muxes, so use "mkEdgesWithMux")
-              [edge | ADef p _ e _ <- vs,
-                edge <- (mkEdgesWithMux en_node (PNTopMethodRes m p) e env)] ++
+              else [edge | (res, e') <- zip [1..] results,
+                    edge <- (mkEdgesWithMux en_node (PNTopMethodRes m res) e' env)]) ++
                -- connect the rules
               concatMap mkMRuleEdges rs
 
@@ -911,10 +928,10 @@ aPathsPreSched errh flags apkg = do
 
   -- For urgency to be computed by paths, we must assume a path from
   -- a method's ready signal to its enable signal.
-  let rdy_to_en_edges = [(PNTopMethodRes m_id rdy_id, PNTopMethodEnable m_id) |
+  let rdy_to_en_edges = [(PNTopMethodRes rdy_id 1, PNTopMethodEnable m_id) |
                              (AIAction { aif_pred = (ASDef _ rdy_id),
                                          aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ] ++
-                        [(PNTopMethodRes m_id rdy_id, PNTopMethodEnable m_id) |
+                        [(PNTopMethodRes rdy_id 1, PNTopMethodEnable m_id) |
                              (AIActionValue { aif_pred = (ASDef _ rdy_id),
                                               aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ]
 
@@ -1087,14 +1104,21 @@ aPathsPostSched flags pps apkg pathGraphInfo (ASchedule scheds _) = do
               Just info -> info
               Nothing -> internalError ("APaths findMethod: " ++ ppReadable m)
 
+  -- the "arg" is already the VName and not a number
+  let convertArg m arg = aidToVName arg
+
+  let convertRes m res_num =
+          case (findMethod m) of
+              (_, res) -> res `genericIndex` (res_num - 1)
+
   let convertEnable m =
           case (findMethod m) of
               (Just enable, _) -> enable
               _ -> internalError ("APaths convertEnable: " ++ ppReadable m)
 
   -- convert PathNode back to VName
-  let pnToVName (PNTopMethodArg m arg)     = aidToVName arg
-      pnToVName (PNTopMethodRes m res)     = aidToVName res
+  let pnToVName (PNTopMethodArg m arg)     = convertArg m arg
+      pnToVName (PNTopMethodRes m res)     = convertRes m res
       pnToVName (PNTopMethodEnable m)      = convertEnable m
       pnToVName (PNTopArgument a _)        = aidToVName a
       pnToVName (PNTopClkGate a)           = aidToVName a
@@ -1239,6 +1263,9 @@ findEdges env (ATupleSel _ e _) =
     internalError
         ("APaths.findEdges: unexpected ATupleSel expression: " ++ ppReadable e)
 
+findEdges env (ATuple _ es) =
+    -- return any connections found in the element expressions
+    concatUnzip3 (map (findEdges env) es)
 findEdges env (ANoInlineFunCall { ae_args = es }) =
     -- return the function call inputs
     -- and return any connections found in the argument expressions

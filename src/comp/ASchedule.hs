@@ -523,8 +523,8 @@ aSchedule_step1 errh flags prefix pps amod = do
 
       -- definitions of the value methods in the interface
       ifcValueMethods = tr "let ifcValueMethods" $
-          [d | (AIDef { aif_values = ds }) <- ifs, d <- ds] ++
-          [d | (AIActionValue { aif_values = ds }) <- ifs, d <- ds]
+          [d | (AIDef { aif_value = d }) <- ifs] ++
+          [d | (AIActionValue { aif_value = d }) <- ifs]
 
       -- convert (some) value and (all) action methods into rules
       interfaceRules = tr "let interfaceRules" $ concatMap cvtIfc ifs
@@ -2726,7 +2726,7 @@ extractMethodArgEdges scConflictMap0 ds ifs =
 
       -- Given an interface field, determine if a conflict edge is needed
       findAIFaceUses (AIActionValue { aif_name = mid,
-                                      aif_values = ds,
+                                      aif_value = d,
                                       aif_body = rs,
                                       aif_inputs = as }) =
           -- If the edge already exists, don't bother
@@ -2734,7 +2734,7 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           then S.empty
           else let argset = S.fromList (map fst as)
                    condset = findACondUses rs
-                   valset = foldMap findAVValueUses ds
+                   valset = findAVValueUses d
                in  S.intersection argset (S.union condset valset)
       findAIFaceUses (AIAction { aif_name = mid,
                                  aif_body = rs,
@@ -4139,24 +4139,23 @@ cvtIfc :: AIFace -> [Rule]
 cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
     [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred] rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-cvtIfc (AIActionValue _ _ ifPred ifId ifRs ds _) =
+cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     -- similar to converting an action, but include the return value
     -- in the body value uses of each split rule
     -- (in this way, also, any value parts of an actionvalue method
     -- call will be in the same Rule structure as the action part)
     -- (note that, if the method body is not split into multiple
     -- rule, dId and rId will be the same)
-    [(Rule rId rOrig [ifPred, rPred] ([ifPred, rPred] ++ map dExpr ds) rActs)
+    [(Rule rId rOrig [ifPred, rPred] ([ifPred, rPred, dExpr]) rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
+    where dExpr = ASDef t dId
 cvtIfc (AIDef mId _ _ _ _ _ _) | isRdyId mId = []
-cvtIfc (AIDef mId _ _ ifPred ds _ _) =
-    [(Rule mId Nothing [ifPred] (ifPred : map dExpr ds) [])]
+cvtIfc (AIDef mId _ _ ifPred (ADef dId t _ _) _ _) =
+    [(Rule mId Nothing [ifPred] [ifPred, dExpr] [])]
+    where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []
-
-dExpr :: ADef -> AExpr
-dExpr (ADef dId t _ _) = ASDef t dId
 
 
 -- ========================================================================

@@ -510,16 +510,15 @@ makeMethodTemps apkg =
     cvt :: Integer -> [ADef] -> [AIFace] -> [AIFace] -> ([ADef], [AIFace])
     cvt _     defs iface [] = (defs, reverse iface)
     cvt seqNo defs iface (aif@(AIActionValue {}):aifs) =
-        -- TODO: handle multiple outputs
-        case head (aif_values aif) of
+        case (aif_value aif) of
           (ADef i ty e@(AMethCall {}) props) ->
               let (d, new_def) = makeTmp seqNo (aif_name aif) i ty e props
-                  aif' = aif { aif_values = [new_def] }
+                  aif' = aif { aif_value = new_def }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           -- This is lifted for LC, which expects an id to bind to
           (ADef i ty e@(AMethValue {}) props) ->
               let (d, new_def) = makeTmp seqNo (aif_name aif) i ty e props
-                  aif' = aif { aif_values = [new_def] }
+                  aif' = aif { aif_value = new_def }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           -- This is lifted for LC, which expects an id to bind to
           (ADef i ty e@(ATaskValue {}) props) ->
@@ -528,7 +527,7 @@ makeMethodTemps apkg =
                   -- If task splicing has already occurred, then we need to
                   -- update the tmp ids in the task actions
                   new_body = map (updateRuleTaskTmp i new_i) (aif_body aif)
-                  aif' = aif { aif_values = [new_def], aif_body = new_body }
+                  aif' = aif { aif_value = new_def, aif_body = new_body }
               in  cvt (seqNo + 1) (d:defs) (aif':iface) aifs
           _ -> cvt seqNo defs (aif:iface) aifs
     cvt seqNo defs iface (aif:aifs) = cvt seqNo defs (aif:iface) aifs
@@ -940,33 +939,30 @@ updateARuleTypes r = do
 -- except RDY methods which return Bool (to avoid unnecessary casting
 -- backing and forth)
 updateAIFaceTypes :: AIFace -> UTM AIFace
-updateAIFaceTypes (AIDef mId args ws p [ADef i t e props] vfi assumps)
+updateAIFaceTypes (AIDef mId args ws p (ADef i t e props) vfi assumps)
     | isRdyId i = do
   -- predicate should be constant True
   e' <- updateAExprTypes_Bool e
-  return (AIDef mId args ws p [ADef i mkATBool e' props] vfi assumps)
--- TODO: handle multiple outputs
-updateAIFaceTypes (AIDef mId args ws p [ADef i t e props] vfi assumps) = do
+  return (AIDef mId args ws p (ADef i mkATBool e' props) vfi assumps)
+updateAIFaceTypes (AIDef mId args ws p (ADef i t e props) vfi assumps) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   e' <- updateAExprTypes_Bits e
-  return (AIDef mId args ws p [ADef i t e' props] vfi assumps)
+  return (AIDef mId args ws p (ADef i t e' props) vfi assumps)
 updateAIFaceTypes (AIAction args ws p mId rs vfi) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   rs' <- mapM updateARuleTypes rs
   return (AIAction args ws p mId rs' vfi)
--- TODO: handle multiple outputs
-updateAIFaceTypes (AIActionValue args ws p mId rs [ADef i t e props] vfi) = do
+updateAIFaceTypes (AIActionValue args ws p mId rs (ADef i t e props) vfi) = do
   -- the predicate is either a RDY name or a constant, so we ignore it
   --p' <- updateAExprTypes_Bool p
   e' <- updateAExprTypes_Bits e
   rs' <- mapM updateARuleTypes rs
-  return (AIActionValue args ws p mId rs' [ADef i t e' props] vfi)
+  return (AIActionValue args ws p mId rs' (ADef i t e' props) vfi)
 updateAIFaceTypes e@(AIClock {}) = return e
 updateAIFaceTypes e@(AIReset {}) = return e
 updateAIFaceTypes e@(AIInout {}) = return e
-updateAIFaceTypes e = internalError ("updateAIFaceTypes: " ++ ppReadable e)
 
 updateAVInstTypes :: AVInst -> UTM AVInst
 updateAVInstTypes avi = do
@@ -1042,6 +1038,7 @@ updateAExprTypes _ (AMethCall t obj meth as) = do
 updateAExprTypes _ e@(AMethValue t obj meth) = return e
 
 updateAExprTypes _ (ATupleSel _ _ _) = error "updateAExprTypes: multi-output methods not yet supported"
+updateAExprTypes _ (ATuple _ _) = error "updateAExprTypes: multi-output methods not yet supported"
 
 -- noinline function arguments and return values are Bit type
 updateAExprTypes _ (ANoInlineFunCall t i f as) = do

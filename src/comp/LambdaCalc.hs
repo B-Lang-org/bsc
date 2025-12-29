@@ -56,8 +56,8 @@ convAPackageToLambdaCalc errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
-             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
+            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
+             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -746,9 +746,8 @@ convARule defmap instmap mmap modId r@(ARule rId _ _ _ p as _ _) =
 convAIFace :: DefMap -> InstMap -> MethodOrderMap ->
               Id -> AIFace -> [SDefn]
 
--- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIDef mId args _ p [ADef _ ret_t ret_e _] _ _) =
+           (AIDef mId args _ p (ADef _ ret_t ret_e _) _ _) =
   let
       mod_ty = modType modId []
       rt = convAType ret_t
@@ -788,9 +787,8 @@ convAIFace defmap instmap mmap modId
          sLam (arg_infos ++ [(stateId, mod_ty)]) $
            body]
 
--- TODO: support multiple output ports
 convAIFace defmap instmap mmap modId
-           (AIActionValue args _ p mId rs [ADef _ def_t def_e _] _) =
+           (AIActionValue args _ p mId rs (ADef _ def_t def_e _) _) =
   let
       mod_ty = modType modId []
       -- return value is Bit type
@@ -1194,6 +1192,8 @@ convAExpr e@(AMethValue t obj meth) =
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
 
 convAExpr (ATupleSel _ _ _) =
+  internalError "convAExpr: multi-output methods are not yet supported"
+convAExpr (ATuple {}) =
   internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t i (ANoInlineFun name _ _ _) as) = do

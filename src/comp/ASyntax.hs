@@ -764,7 +764,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                         aif_inputs    :: [AInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
-                        aif_values    :: [ADef],
+                        aif_value     :: ADef,
                         aif_fieldinfo :: VFieldInfo,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
@@ -780,7 +780,7 @@ data AIFace =   AIDef { aif_name      :: AId,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
                                 aif_body      :: [ARule],
-                                aif_values    :: [ADef],
+                                aif_value     :: ADef,
                                 aif_fieldinfo :: VFieldInfo }
                 -- trivial aif_inputs, props, pred?
               | AIClock { aif_name      :: AId,
@@ -807,14 +807,14 @@ aIfaceProps _ = emptyWireProps
 aIfaceResTypes :: AIFace -> [AType]
 -- XXX should be ATAction?
 aIfaceResTypes (AIAction { }) = [ATBit 0]
-aIfaceResTypes (AIDef { aif_values = v }) = [t | ADef _ t _ _ <- v]
-aIfaceResTypes (AIActionValue { aif_values = v }) = [t | ADef _ t _ _ <- v]
+aIfaceResTypes (AIDef { aif_value = (ADef _ t _ _) }) = [t]
+aIfaceResTypes (AIActionValue { aif_value = (ADef _ t _ _) }) = [t]
 -- should not need type of clock or reset
 aIfaceResTypes x = internalError ("aIfaceResTypes: " ++ show x)
 
 aIfaceResIds :: AIFace -> [AId]
-aIfaceResIds (AIDef {aif_values = ds }) = map adef_objid ds
-aIfaceResIds (AIActionValue {aif_values = ds}) = map adef_objid ds
+aIfaceResIds (AIDef {aif_name=id}) = [id]
+aIfaceResIds (AIActionValue {aif_name=id}) = [id]
 aIfaceResIds _ = []
 
 aIfaceArgs :: AIFace -> [AInput]
@@ -1004,6 +1004,10 @@ data AExpr
             ae_objid :: AId,
             ameth_id :: AMethodId
         }
+        | ATuple {
+            ae_type :: AType,
+            ae_elems :: [AExpr]
+        }
         -- selection from an ATTuple
         | ATupleSel {
             ae_type :: AType,
@@ -1108,6 +1112,7 @@ instance NFData AExpr where
     rnf (APrim oid typ prim args) = rnf4 oid typ prim args
     rnf (AMethCall typ oid mid args) = rnf4 typ oid mid args
     rnf (AMethValue typ oid mid) = rnf3 typ oid mid
+    rnf (ATuple typ elems) = rnf2 typ elems
     rnf (ATupleSel typ expr index) = rnf3 typ expr index
     rnf (ANoInlineFunCall typ oid fun args) = rnf4 typ oid fun args
     rnf (AFunCall typ oid fname isC args) = rnf5 typ oid fname isC args
@@ -1133,6 +1138,9 @@ instance Eq AExpr where
 
     AMethValue t aid mid == AMethValue t' aid' mid' =
         (t == t') && (mid == mid') && (aid == aid')
+
+    ATuple t aexprs == ATuple t' aexprs' =
+        (t == t') && (aexprs == aexprs')
     
     ATupleSel t aexpr index == ATupleSel t' aexpr' index' =
         (t == t') && (index == index') && (aexpr == aexpr')
@@ -1182,6 +1190,8 @@ instance HasPosition AExpr where
     getPosition APrim{ ae_objid = p }       = getPosition p
     getPosition AMethCall{ ae_objid = p }   = getPosition p
     getPosition AMethValue{ ae_objid = p }  = getPosition p
+    getPosition ATuple{ ae_elems = e : _ }  = getPosition e
+    getPosition ATuple{ ae_elems = [] }     = noPosition -- Is there something better?
     getPosition ATupleSel{ ae_exp = e }     = getPosition e
     getPosition ANoInlineFunCall{ ae_objid = p } = getPosition p
     getPosition AFunCall{ ae_objid = p }    = getPosition p
@@ -1393,7 +1403,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
+        pPrint d p (aif_value ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
         pPrint d 0 (aif_fieldinfo ai) $+$
@@ -1409,7 +1419,7 @@ instance PPrint AIFace where
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
         foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
-        foldr (($+$) . pPrint d p) empty (aif_values ai) $+$
+        pPrint d p (aif_value ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1565,6 +1575,8 @@ instance PPrint AExpr where
         sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
+    pPrint d p (ATuple _ es) =
+        pparen (p>0) $ parens (commaSep (map (pPrint d 0) es))
     pPrint d p (ATupleSel _ e idx) =
         pparen (p>0) $ pPrint d 0 e <> text "[" <> pPrint d 0 idx <> text "]"
     pPrint d p (ASPort _ i) = pPrint d p i
@@ -1861,6 +1873,8 @@ instance PPrintExpand AExpr where
                    docArgs = map (pPrintExpand m d defContext) es
     pPrintExpand m d ec (AMethValue _ i meth) =
         pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATuple _ es) =
+        pparen (useParen ec) $ parens (commaSep (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATupleSel _ e idx) =
         pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i

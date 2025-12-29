@@ -14,7 +14,7 @@ aTaskSplice apkg = mapAActions (spliceAction spliceMap) apkg
   where spliceMap = M.fromList [ (n, (id, t)) | ADef id t (ATaskValue { ae_cookie = n }) _ <- defs ]
         defs = (apkg_local_defs apkg) ++
                (concatMap av_ret_def (apkg_interface apkg))
-        av_ret_def act@(AIActionValue {}) = aif_values act
+        av_ret_def act@(AIActionValue {}) = [aif_value act]
         av_ret_def _                      = []
 
 spliceAction :: SpliceMap -> AAction -> AAction

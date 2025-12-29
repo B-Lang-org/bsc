@@ -160,7 +160,7 @@ aDumpSchedule errh flags pps prefix pkg aschedinfo = do
    --
    let warnRdy i = (getPosition i, WMethodNeverReady (getFromReady i))
    let methodRdys = [ (mn, adef_expr v)
-                    | (AIDef { aif_name = mn, aif_values = [v] }) <- ifc
+                    | (AIDef { aif_name = mn, aif_value = v }) <- ifc
                     , isRdyId mn
                     ]
    (falseRdys, sat_state1) <- foldM checkFoldFn ([], sat_state0) methodRdys
@@ -323,7 +323,7 @@ genMethodDumpMap vSchedInfo ifc = methodDumpMap
            -- don't include ready Ids
            methodList = filter (not . isRdyId) $
                         map aif_name (aIfaceMethods ifc)
-           methodRdys = [(mn, p) | (AIDef { aif_name = mn, aif_values = [(ADef _ _ p _)] }) <- ifc, isRdyId mn]
+           methodRdys = [(mn, p) | (AIDef { aif_name = mn, aif_value = (ADef _ _ p _) }) <- ifc, isRdyId mn]
            methodDumpMap =
              [ (mid, p, clist)
              | mid <- methodList

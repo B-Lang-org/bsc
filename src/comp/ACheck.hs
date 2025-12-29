@@ -89,15 +89,15 @@ chkAAssumption aa@(AAssumption p as) =
     tracePP "chkAAssumption" aa $ chkAExpr p == aTBool && all chkAAction as
 
 chkAIface :: AIFace -> Bool
-chkAIface aa@(AIDef { aif_values = ds,
+chkAIface aa@(AIDef { aif_value = d,
                       aif_assumps = asmps  }) =
-    tracePP "chkAIface AIDef" aa $ all chkADef ds && all chkAAssumption asmps
+    tracePP "chkAIface AIDef" aa $ chkADef d && all chkAAssumption asmps
 
 chkAIface aa@(AIAction { aif_body = rs }) =
     tracePP "chkAIface AIAction" aa $ all chkARule rs
 
-chkAIface aa@(AIActionValue { aif_values = ds, aif_body = rs }) =
-    tracePP "chkAIface AIActionValue" aa $ (all chkARule rs) && (all chkADef ds)
+chkAIface aa@(AIActionValue { aif_value = d, aif_body = rs }) =
+    tracePP "chkAIface AIActionValue" aa $ (all chkARule rs) && (chkADef d)
 chkAIface aa@(AIClock { aif_clock = c }) =
     tracePP "chkAIface AIClock" aa $ chkAClock c
 
@@ -421,6 +421,7 @@ checkUse :: S.Set AId -> S.Set AId -> S.Set AId -> AExpr -> [AId]
 checkUse ds is ps (APrim _ _ _ es)     = checkUses ds is ps es
 checkUse ds is ps (AMethCall _ i m es) = checkUses ds is ps es  -- XXX check i and m ?
 checkUse ds is ps (AMethValue _ i m)   = [] -- XXX check i and m ?
+checkUse ds is ps (ATuple _ es)        = checkUses ds is ps es
 checkUse ds is ps (ATupleSel _ e _)    = checkUse ds is ps e
 checkUse ds is ps (ANoInlineFunCall _ _ _ es) = checkUses ds is ps es
 checkUse ds is ps (AFunCall { ae_args = es }) = checkUses ds is ps es

@@ -72,6 +72,7 @@ instance AVars AExpr where
     aVars (ANoInlineFunCall _ _ _ es) = concatMap aVars es
     aVars (AFunCall _ _ _ _ es) = concatMap aVars es
     aVars (AMethCall _ _ _ es) = concatMap aVars es
+    aVars (ATuple _ es) = concatMap aVars es
     aVars (ATupleSel _ e _) = aVars e
 --  aVars (ATaskValue ...) = [] -- because the variables are really "used"
 -- by the action which sets it
@@ -118,6 +119,7 @@ aMethValues :: AExpr -> [(AId, AId, AType)]
 aMethValues e@(APrim {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AMethCall {}) = concatMap aMethValues (ae_args e)
 aMethValues (AMethValue ty obj meth) = [(obj,meth,ty)]
+aMethValues (ATuple _ es) = concatMap aMethValues es
 aMethValues (ATupleSel _ e _) = aMethValues e
 aMethValues e@(ANoInlineFunCall {}) = concatMap aMethValues (ae_args e)
 aMethValues e@(AFunCall {}) = concatMap aMethValues (ae_args e)
@@ -139,6 +141,7 @@ aMethCalls :: AExpr -> [(AId, AId)]
 aMethCalls e@(APrim {}) = concatMap aMethCalls (ae_args e)
 aMethCalls (AMethCall _ obj meth es) = ((obj,meth) : concatMap aMethCalls es)
 aMethCalls (AMethValue _ obj meth) = []
+aMethCalls (ATuple _ es) = concatMap aMethCalls es
 aMethCalls (ATupleSel _ e _) = aMethCalls e
 aMethCalls e@(ANoInlineFunCall {}) = concatMap aMethCalls (ae_args e)
 aMethCalls e@(AFunCall {}) = concatMap aMethCalls (ae_args e)
@@ -160,6 +163,7 @@ aTaskValues :: AExpr -> [(AId, Integer, AType)]
 aTaskValues e@(APrim {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AMethCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues (AMethValue {}) = []
+aTaskValues (ATuple _ es) = concatMap aTaskValues es
 aTaskValues (ATupleSel _ e _) = aTaskValues e
 aTaskValues e@(ANoInlineFunCall {}) = concatMap aTaskValues (ae_args e)
 aTaskValues e@(AFunCall {}) = concatMap aTaskValues (ae_args e)
@@ -184,6 +188,7 @@ exprForeignCalls e@(AFunCall {})  =
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
 exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
+exprForeignCalls (ATuple _ es) = concatMap exprForeignCalls es
 exprForeignCalls (ATupleSel _ e _) = exprForeignCalls e
 exprForeignCalls e@(ANoInlineFunCall {}) =
   concatMap exprForeignCalls (ae_args e)
@@ -460,6 +465,7 @@ aSubst m = mapAExprs xsub
         xsub x@(ASDef _ i) = M.findWithDefault x i m
         xsub (APrim aid t p es) = APrim aid t p (aSubst m es)
         xsub (AMethCall t i meth es) = AMethCall t i meth (aSubst m es)
+        xsub (ATuple t es) = ATuple t (aSubst m es)
         xsub (ATupleSel t e n) = ATupleSel t (aSubst m e) n
         xsub (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (aSubst m es)
         xsub (AFunCall t i f isC es) = AFunCall t i f isC (aSubst m es)
@@ -479,6 +485,9 @@ exprMap f e@(APrim i t o args) =
   in fromMaybe e' (f e)
 exprMap f e@(AMethCall t i m args) =
   let e' = AMethCall t i m (map (exprMap f) args)
+  in fromMaybe e' (f e)
+exprMap f e@(ATuple t args) =
+  let e' = ATuple t (map (exprMap f) args)
   in fromMaybe e' (f e)
 exprMap f e@(ATupleSel t expr n) =
   let e' = ATupleSel t (exprMap f expr) n
@@ -510,6 +519,12 @@ exprMapM f e@(AMethCall t i m args) = do
     Just e' -> return e'
     Nothing -> do args' <- mapM (exprMapM f) args
                   return $ AMethCall t i m args'
+exprMapM f e@(ATuple t elems) = do
+  me <- f e
+  case me of
+    Just e' -> return e'
+    Nothing -> do elems' <- mapM (exprMapM f) elems
+                  return $ ATuple t elems'
 exprMapM f e@(ATupleSel t expr n) = do
   me <- f e
   case me of
@@ -541,6 +556,9 @@ exprFold f v e@(APrim i t o args) =
   in f e v'
 exprFold f v e@(AMethCall t i m args) =
   let v' = foldr (flip (exprFold f)) v args
+  in f e v'
+exprFold f v e@(ATuple t elems) =
+  let v' = foldr (flip (exprFold f)) v elems
   in f e v'
 exprFold f v e@(ATupleSel t expr n) =
   let v' = exprFold f v expr
@@ -630,6 +648,8 @@ aIdFnToAExprFn fn (AMethCall ty aid mid args) =
     AMethCall ty (fn aid) mid (mapAExprs (aIdFnToAExprFn fn) args)
 aIdFnToAExprFn fn (AMethValue ty aid mid) =
     AMethValue ty (fn aid) mid
+aIdFnToAExprFn fn (ATuple ty exprs) =
+    ATuple ty (mapAExprs (aIdFnToAExprFn fn) exprs)
 aIdFnToAExprFn fn (ATupleSel ty expr n) =
     ATupleSel ty (aIdFnToAExprFn fn expr) n
 aIdFnToAExprFn fn (ANoInlineFunCall ty aid fun args) =

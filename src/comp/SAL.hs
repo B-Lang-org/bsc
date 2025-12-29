@@ -59,8 +59,8 @@ convAPackageToSAL errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p [ADef _ ret_t ret_e _] _ _,
-             AIDef rdyId _ _ _ [ADef _ _ rdy_e _] _ _]
+            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
+             AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
@@ -894,7 +894,7 @@ convAIFace :: DefMap -> InstMap -> MethodOrderMap -> AIFace -> [SDefn]
 
 -- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIDef methId args _ p [ADef _ ret_t ret_e _] _ _) =
+           (AIDef methId args _ p (ADef _ ret_t ret_e _) _ _) =
   let
       rt = convAType ret_t
 
@@ -931,7 +931,7 @@ convAIFace defmap instmap mmap
 
 -- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIActionValue args _ p methId rs [ADef _ def_t def_e _] _) =
+           (AIActionValue args _ p methId rs (ADef _ def_t def_e _) _) =
   let
       -- return value is Bit type
       ret_ty = convAType def_t
@@ -1300,6 +1300,7 @@ convAExpr e@(AMethValue t obj meth) =
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
 
 convAExpr (ATupleSel _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
+convAExpr (ATuple {}) = internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t _ (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineQId name

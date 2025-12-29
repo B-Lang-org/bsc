@@ -105,7 +105,7 @@ aAddScheduleDefs flags pps pkg aschedinfo =
      -- The ExprMaps map from a method name (not RDY) to the expression
      -- for that method's ready or enable condition.
      let pre_rdy_map = M.fromList $
-                       [ (dropReadyPrefixId (aif_name m), adef_expr $ head $ aif_values m)
+                       [ (dropReadyPrefixId (aif_name m), adef_expr $ aif_value m)
                        | m <- ifc0
                        , isRdyId (aif_name m)
                        ]
@@ -292,7 +292,7 @@ replaceReadyExpr :: [(Id,[Id])] -> [(Id,[Id])] -> AIFace -> AIFace
 replaceReadyExpr rule_map rule_conflicts m@(AIDef { aif_name = n })
   | isRdyId n =
     let mn = dropReadyPrefixId n
-        v  = head $ aif_values m
+        v  = aif_value m
         v' = case lookup mn rule_map of
               Nothing -> internalError ("replaceReadyExpr: no value for " ++
                                         ppReadable mn)
@@ -307,7 +307,7 @@ replaceReadyExpr rule_map rule_conflicts m@(AIDef { aif_name = n })
                   let e = aOrs [ buildConflictExpr rid (ll rid rule_conflicts)
                                  | rid <- rids ]
                   in v { adef_expr = e }
-    in m { aif_values = [v'] }
+    in m { aif_value = v' }
 replaceReadyExpr _ _ x = x
 
 -- Replace the predicate in a rule with a reference to the

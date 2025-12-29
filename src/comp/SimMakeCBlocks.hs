@@ -561,7 +561,7 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
              [(t,vn)] ->
                -- account for the possible return of an actionvalue result
                let -- the return def
-                   ret_def  = head $ aif_values m
+                   ret_def  = aif_value m
                    ret_id   = adef_objid ret_def
                    ret_type = adef_type ret_def
                    -- the port name
