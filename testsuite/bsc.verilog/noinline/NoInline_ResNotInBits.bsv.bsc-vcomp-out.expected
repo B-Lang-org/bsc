@@ -9,9 +9,3 @@ Error: Unknown position: (T0031)
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
   Cannot synthesize `fnNoInline_ResNotInBits': This method uses types that are
   not in the Bits or SplitPorts typeclasses.
-Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
-  Signature mismatch (given too general):
-  given:
-  function b__ f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, a__))
-  deduced:
-  function Bit#(c__) f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, c__))
