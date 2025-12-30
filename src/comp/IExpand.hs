@@ -1065,7 +1065,8 @@ iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
-    -- traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
+    --traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show (ins, outs))
+    if null ins then internalError "iExpandMethodLam: no inputs" else return ()
     let i' :: Id
         i' = mkId (getPosition i) $ mkFString $ head ins
         -- substitute argument with a modvar and replace with body

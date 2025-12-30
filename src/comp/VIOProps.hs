@@ -10,7 +10,7 @@ import Flags
 import PPrint
 import ErrorUtil(internalError)
 import Id
-import PreIds(idPrimAction, idInout_)
+import PreIds(idPrimAction, idInout_, idPrimUnit)
 import VModInfo(vArgs, vFields, VName(..), VeriPortProp(..),
                 VArgInfo(..), VFieldInfo(..), VPort)
 import Prim
@@ -404,5 +404,6 @@ size :: AType -> Integer
 size (ATBit n) = n
 size (ATAbstract a _) | a == idPrimAction = 1
 size (ATAbstract a [n]) | a == idInout_ = n
+size (ATAbstract a _) | a == idPrimUnit = 0
 size (ATString _ ) = 0
 size t = internalError ("getIOProps.size: " ++ show t)

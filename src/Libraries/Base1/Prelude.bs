@@ -259,7 +259,7 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         primMethod, -- TODO: Needed only in PreludeBSV for vMkRWire1, should be removed.
-        WrapField(..), WrapMethod(..), WrapPorts(..),
+        WrapField(..), WrapMethod(..), WrapPorts(..), NonEmptyBits(..),
         Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
@@ -4556,7 +4556,8 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
     (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
 
   inputPortNames _ (Cons h t) =
-    checkPortNames (_ :: a) h `listPrimAppend` inputPortNames (_ :: b) t
+    filterZeroWidthPorts (_ :: p) (checkPortNames (_ :: a) h)
+    `listPrimAppend` inputPortNames (_ :: b) t
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
 
   outputPortNames _ = outputPortNames (_ :: b)
@@ -4572,7 +4573,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
   methodArgBaseNames _ _ _ _ = Nil
   inputPortNames _ _ = Nil
-  outputPortNames _ base = checkPortNames (_ :: a) base
+  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 
@@ -4582,7 +4583,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
   fromWrapMethod = unsplitPorts ∘ unpackPorts
   methodArgBaseNames _ _ _ _ = Nil
   inputPortNames _ _ = Nil
-  outputPortNames _ base = checkPortNames (_ :: a) base
+  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 
@@ -4593,25 +4594,54 @@ class WrapPorts p pb | p -> pb where
   unpackPorts :: pb -> p
   -- Save the port types, given their names.
   savePortTypes :: p -> Maybe Name__ -> List String -> Module ()
+  -- Filter the port names to only those that have non-zero width.
+  filterZeroWidthPorts :: p -> List String -> List String
 
-instance (Bits a n, WrapPorts b bb) => WrapPorts (Port a, b) (Bit n, bb) where
-  packPorts (Port a, b) = (pack a, packPorts b)
-  unpackPorts (a, b) = (Port $ unpack a, unpackPorts b)
+instance (Bits a n, NonEmptyBits n ab, WrapPorts b bb, AppendTuple ab bb pb) =>
+    WrapPorts (Port a, b) pb where
+  packPorts (Port a, b) = toNonEmptyBits (pack a) `appendTuple` packPorts b
+  unpackPorts p = case splitTuple p of
+    (ab, bb) -> (Port (unpack (fromNonEmptyBits ab)), unpackPorts bb)
   savePortTypes _ modName (Cons h t) = do
-    primSavePortType modName h $ typeOf (_ :: a)
+    if valueOf n > 0
+      then primSavePortType modName h $ typeOf (_ :: a)
+      else return ()
     savePortTypes (_ :: b) modName t
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
+  filterZeroWidthPorts _ (Cons h t) =
+    if valueOf n > 0
+    then Cons h (filterZeroWidthPorts (_ :: b) t)
+    else filterZeroWidthPorts (_ :: b) t
+  filterZeroWidthPorts _ Nil = error "filterZeroWidthPorts: empty port names list"
 
-instance (Bits a n) => WrapPorts (Port a) (Bit n) where
-  packPorts (Port a) = pack a
-  unpackPorts = Port ∘ unpack
-  savePortTypes _ modName (Cons h _) = primSavePortType modName h $ typeOf (_ :: a)
-  savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
+instance (Bits a n, NonEmptyBits n pb) => WrapPorts (Port a) pb where
+  packPorts (Port a) = toNonEmptyBits (pack a)
+  unpackPorts = Port ∘ unpack ∘ fromNonEmptyBits
+  savePortTypes _ modName (Cons h Nil) = primSavePortType modName h $ typeOf (_ :: a)
+  savePortTypes _ _ _ = error "savePortTypes: expected one port name"
+  filterZeroWidthPorts _ (Cons h Nil) =
+    if valueOf n > 0 then Cons h Nil else Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: expected one port name"
 
 instance WrapPorts () () where
   packPorts _ = ()
   unpackPorts _ = ()
-  savePortTypes _ _ _ = return ()
+  savePortTypes _ _ Nil = return ()
+  savePortTypes _ _ _ = error "savePortTypes: non-empty port names list"
+  filterZeroWidthPorts _ Nil = Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: non-empty port names list"
+
+class NonEmptyBits n pb | n -> pb where
+  toNonEmptyBits :: Bit n -> pb
+  fromNonEmptyBits :: pb -> Bit n
+
+instance NonEmptyBits 0 () where
+  toNonEmptyBits _ = ()
+  fromNonEmptyBits _ = 0
+
+instance NonEmptyBits n (Bit n) where
+  toNonEmptyBits = id
+  fromNonEmptyBits = id
 
 -- Force a tuple of bit values to be fully expanded by the evaluator.
 primDeepSeqTupleBits :: (PrimSeqTupleBits a) => a -> a
