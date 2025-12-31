@@ -730,19 +730,18 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         then errUnexpectedEnable "value" t
                         else errBadResType t
                     chkResType ps Nothing [] t = do
-                        -- must have more than 0 ports
-                        when (null ps) $
-                          err (getPosition f,
-                               EForeignModTooFewPorts (pfpString f))
                         -- update the Classic fieldinfo to BSV format
                         let inputs = initOrErr "chkResType" ps
                         let final_port = lastOrErr "chkResType" ps
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
-                         then return (inputs, Just final_port, [])
-                         else if (isBitTuple t)
-                               then return (inputs, Nothing, [final_port])
-                               else errBadResType t
+                        then return (inputs, Just final_port, [])
+                        else if (isBitTuple t)
+                        -- XXX should have multiple output ports for bit tuples here?
+                        then return (inputs, Nothing, [final_port])
+                        else if (t == tPrimUnit)
+                        then return (ps, Nothing, [])
+                        else errBadResType t
 
                     errBadResType t =
                         err (getPosition f,

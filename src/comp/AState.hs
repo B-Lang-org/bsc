@@ -748,7 +748,9 @@ outputADefToADefs (ADef { adef_type = t, adef_expr = e }) [resName] =
             adef_type  = t,
             adef_expr  = e,
             adef_props = [] }]
-outputADefToADefs _ _ = internalError "outputADefToADefs: unexpected ADef resNames"
+outputADefToADefs (ADef { adef_type = ATBit 0}) [] = []
+outputADefToADefs def resNames =
+    internalError $ "outputADefToADefs: unexpected ADef resNames: " ++ ppReadable (def, resNames)
 
 getVInst :: AId -> [AVInst] -> AVInst
 getVInst i as = head ( [ a | a <- as, i == (avi_vname a) ] ++
