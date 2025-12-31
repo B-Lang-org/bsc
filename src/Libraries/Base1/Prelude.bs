@@ -4631,6 +4631,7 @@ instance WrapPorts () () where
   filterZeroWidthPorts _ Nil = Nil
   filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: non-empty port names list"
 
+-- Helper class to conditionally convert Bit 0 to ()
 class NonEmptyBits n pb | n -> pb where
   toNonEmptyBits :: Bit n -> pb
   fromNonEmptyBits :: pb -> Bit n
