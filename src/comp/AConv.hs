@@ -14,7 +14,7 @@ import FStringCompat
 import Flags(Flags)
 import PreStrings(sSigned)
 import PreIds(idBit, idActionValue_, idAVAction_, idAVValue_, idClockOsc, idClockGate,
-              idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd)
+              idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd, idPrimUnit)
 import Pragma
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
              ErrorHandle, bsError, bsWarning)
@@ -588,6 +588,8 @@ aExpr e@(ICon _ (ICInout { iConType = it, iInout = i})) | (isitInout_ it) = do
   ai <- aInout i
   return (ASInout at ai)
 
+aExpr (ICon i _) | i == idPrimUnit = return $ ASInt i (ATBit 0) (ilDec 0)
+
 aExpr e = internalError
               ("AConv.aExpr at " ++ ppString p ++ ":" ++ ppReadable e ++ "\n" ++
                (show p) ++ ":" ++ (showTypeless e))
@@ -711,6 +713,7 @@ aTypeConv _ t | t == itString = ATString Nothing
 -- Deal with AVs
 aTypeConv a (ITAp (ITCon i _ _) t) | i == idActionValue_ =
     aTypeConv a t
+aTypeConv a (ITCon i _ _) | i == idPrimUnit = ATBit 0
 aTypeConv _ t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
         abs (ITAp t _) ns = abs t ns
@@ -734,6 +737,7 @@ aTypeConvE a t | t == itString =
   case a of
     (ICon _ (ICString _ s)) -> ATString (Just (genericLength s))
     otherwise               -> ATString Nothing
+aTypeConvE a (ITCon i _ _) | i == idPrimUnit = ATBit 0
 aTypeConvE a t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
         abs (ITAp t _) ns = abs t ns
