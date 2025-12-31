@@ -449,6 +449,8 @@ getActionValueArg t = internalError ("getActionValueArg: " ++ ppReadable t)
 -- These are used during foreign function processing to determine if arguments
 -- and return values are polymorphic or of a known size.
 isTypePolyBit :: Type -> Bool
+isTypePolyBit (TAp (TCon (TyCon i _ _)) (TAp (TCon (TyCon i' _ _)) arg))
+  | (i == idActionValue) || (i == idActionValue_), (i' == idBit) = isTVar arg
 isTypePolyBit (TAp (TCon (TyCon i _ _)) arg)
   | (i == idBit) || (i == idActionValue) || (i == idActionValue_) = isTVar arg
 isTypePolyBit _ = False
