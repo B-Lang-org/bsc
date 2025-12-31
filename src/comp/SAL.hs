@@ -1161,6 +1161,7 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
                          Just [t] -> (convAType t, Nothing)
+                         Just [] -> (voidType, Nothing)
                          Just _ -> error ("convStmt: multiple return values for method "
                                          ++ ppReadable meth ++ " on instance "
                                          ++ ppReadable obj)

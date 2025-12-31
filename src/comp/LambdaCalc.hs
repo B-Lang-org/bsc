@@ -1028,9 +1028,10 @@ convStmt modId avmap (AStmtAction cset (ACall obj meth as)) = do
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
                          Just [t] -> (convAType t, Nothing)
+                         Just [] -> (voidType, Nothing)
                          -- TODO: support multiple return values
-                         Just _ -> error ("convStmt: multiple return values for method " ++
-                                         ppReadable (obj, meth))
+                         Just ts -> error ("convStmt: multiple return values for method " ++
+                                         ppReadable (obj, meth, ts))
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#", "guard#", and "state#" with a unique number
