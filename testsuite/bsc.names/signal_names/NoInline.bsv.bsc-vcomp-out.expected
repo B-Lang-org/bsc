@@ -19,11 +19,11 @@ arg info  [clockarg default_clock;, resetarg default_reset;]
 -- AP state elements
 -- AP local definitions
 fnNoInline_PLUS_8___d2 :: Bit 8;
-fnNoInline_PLUS_8___d2  = x__h46 + 8'd8;
+fnNoInline_PLUS_8___d2  = fnNoInline___d1 + 8'd8;
 -- IdProp fnNoInline_PLUS_8___d2[IdP_from_rhs]
-x__h46 :: Bit 8;
-x__h46  = NoInline.fnNoInline 8'd0;
--- IdProp x__h46[IdP_keep]
+fnNoInline___d1 :: Bit 8;
+fnNoInline___d1  = NoInline.fnNoInline 8'd0;
+-- IdProp fnNoInline___d1[IdP_from_rhs]
 -- AP rules
 rule RL_r "r":
  when 1'd1

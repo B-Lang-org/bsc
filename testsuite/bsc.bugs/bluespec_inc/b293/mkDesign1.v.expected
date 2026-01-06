@@ -86,8 +86,8 @@ module mkDesign1(clk,
   wire multiplier$EN;
 
   // inputs to muxes for submodule ports
-  wire [7 : 0] MUX_multiplicand$write_1__VAL_1;
-  wire MUX_accumulator$write_1__SEL_1;
+  wire [7 : 0] MUX_multiplicand$write_ARG_1__VAL_1;
+  wire MUX_accumulator$write_ARG_1__SEL_1;
 
   // value method done
   assign done = done_reg ;
@@ -96,13 +96,13 @@ module mkDesign1(clk,
   assign product = accumulator ;
 
   // inputs to muxes for submodule ports
-  assign MUX_accumulator$write_1__SEL_1 =
+  assign MUX_accumulator$write_ARG_1__SEL_1 =
 	     shift_and_add_load && count == 4'd0 ;
-  assign MUX_multiplicand$write_1__VAL_1 = { 4'b0, shift_and_add_a } ;
+  assign MUX_multiplicand$write_ARG_1__VAL_1 = { 4'b0, shift_and_add_a } ;
 
   // register accumulator
   assign accumulator$D_IN = 8'd0 ;
-  assign accumulator$EN = MUX_accumulator$write_1__SEL_1 ;
+  assign accumulator$EN = MUX_accumulator$write_ARG_1__SEL_1 ;
 
   // register count
   assign count$D_IN = 4'd0 ;
@@ -117,12 +117,12 @@ module mkDesign1(clk,
   assign enable$EN = 1'b1 ;
 
   // register multiplicand
-  assign multiplicand$D_IN = MUX_multiplicand$write_1__VAL_1 ;
-  assign multiplicand$EN = MUX_accumulator$write_1__SEL_1 ;
+  assign multiplicand$D_IN = MUX_multiplicand$write_ARG_1__VAL_1 ;
+  assign multiplicand$EN = MUX_accumulator$write_ARG_1__SEL_1 ;
 
   // register multiplier
   assign multiplier$D_IN = shift_and_add_b ;
-  assign multiplier$EN = MUX_accumulator$write_1__SEL_1 ;
+  assign multiplier$EN = MUX_accumulator$write_ARG_1__SEL_1 ;
 
   // handling of inlined registers
 

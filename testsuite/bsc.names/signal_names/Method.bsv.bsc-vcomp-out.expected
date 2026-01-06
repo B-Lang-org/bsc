@@ -35,9 +35,9 @@ rg :: ABSTRACT:  PreludeBSV._PreludeBSV.VRWire112 = RWire
 						     [(WSET, WHAS), (WVAL, WGET)])
 						    [32'd8, clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }]
 						    []
-						    meth types=[([Bit 8], Just (Bit 1), Nothing),
-								([], Nothing, Just (Bit 1)),
-								([], Nothing, Just (Bit 8))]
+						    meth types=[([Bit 8], Just (Bit 1), []),
+								([], Nothing, [Bit 1]),
+								([], Nothing, [Bit 8])]
 						    port types=WGET -> Prelude.Bit 8
 							       WHAS -> Prelude.Bool
 							       WVAL -> Prelude.Bit 8
