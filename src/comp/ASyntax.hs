@@ -121,7 +121,7 @@ import PPrint
 import IntLit
 import Id
 import IdPrint
-import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idNoReset)
+import PreIds(idPrimAction, idClock, idReset, idInout, idInout_, idPreludeRead, idNoReset)
 import Prim
 import ErrorUtil(internalError)
 import Backend
@@ -1865,6 +1865,7 @@ instance PPrintExpand AExpr where
     pPrintExpand m d ec (AFunCall _ i _ _ es)  = pPrint d 1 i <>
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
+    pPrintExpand m d ec (AMethCall _ i meth []) | qualEq meth idPreludeRead = pPrint d 1 i
     pPrintExpand m d ec (AMethCall _ i meth es) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
