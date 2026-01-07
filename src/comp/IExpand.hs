@@ -285,7 +285,10 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
               t = iGetType e
               -- the name for the new IDef being created
               i = case expr_name of
-                    Just name ->
+                    -- Heuristic: treat names starting with _ as bad names,
+                    -- as these may come from the arguments of functions like
+                    -- id _x = _x
+                    Just name | not (isEmptyId name) && head (getIdBaseString name) /= '_' ->
                         setKeepId $
                         mkIdPost name (mkFString (iExpandPref ++ show p))
                     _ ->
