@@ -72,13 +72,15 @@ int main(int argc, char ** argv) {
   extern FILE *smtin;
   extern FILE *smt2in;
 
+// Windows doesn't have sbrk. Closest thing is VirtualAlloc.
+#ifndef _WIN32 
   // Grab some memory from the OS upfront to reduce system time when
   // individual hash tables are being allocated
   if (sbrk(INITIAL_MEMORY_PREALLOCATION_SIZE) == ((void *) -1))
     {
       FatalError("Initial allocation of memory failed.");
     }
-
+#endif
 
   STPMgr * bm       = new STPMgr();
 

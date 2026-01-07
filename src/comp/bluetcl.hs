@@ -27,7 +27,7 @@ import Data.Ord(comparing)
 import System.IO.Unsafe(unsafePerformIO)
 import System.Environment(getEnv)
 import System.Mem(performGC)
-import System.Posix.Signals
+import System.Signal
 import Text.Regex
 import Data.Generics (listify)
 import qualified Data.Map as M
@@ -114,7 +114,7 @@ blueshell_Init interp =
              -- setup a Ctrl-C handler
              mv <- newEmptyMVar
              _ <- forkIO (handleCtrlC mv)
-             _ <- installHandler sigINT (Catch $ recordCtrlC mv) Nothing
+             _ <- installHandler sigINT (\_ -> recordCtrlC mv)
              --
              -- syntax defaults to CLASSIC otherwise
              setSyntax BSV

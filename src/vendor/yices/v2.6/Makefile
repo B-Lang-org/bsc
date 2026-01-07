@@ -51,6 +51,8 @@ ifeq ($(YICES_STUB),)
 else
 	(cd stub ; make install)
 endif
+# ln -fn is implementation-defined, use rm -rf before ln 
+	rm -rf include lib include_hs
 	ln -fsn $(YICES_INST)/include
 	ln -fsn $(YICES_INST)/lib
 	ln -fsn HaskellIfc include_hs
@@ -65,6 +67,6 @@ endif
 
 .PHONY: full_clean
 full_clean: clean
-	rm -f include_hs
+	rm -rf include_hs
 	rm -rf $(YICES_INST)
-	rm -f include lib
+	rm -rf include lib

@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, ScopedTypeVariables, MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE ForeignFunctionInterface, ScopedTypeVariables, MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, CPP #-}
 module BluesimLoader ( BluesimModel(..)
                      , loadBluesimModel
                      , unloadBluesimModel
@@ -23,8 +23,12 @@ import FileNameUtil(dirName,baseName)
 import ErrorUtil(internalError)
 import HTcl
 import SimCCBlock(pfxModel)
-
+#if !defined(windows_HOST_OS) && !defined(mingw32_HOST_OS)
 import System.Posix.DynamicLinker
+#else
+import System.Win32.DLL
+import System.Win32.Types
+#endif
 import Data.Bits
 import Data.List(intercalate, isPrefixOf)
 import Data.Int
@@ -379,8 +383,14 @@ foreign import ccall "dynamic"
 -- normal Haskell types, so that it presents an abstract Haskell view
 -- of the Bluesim model.
 
+#ifdef mingw32_HOST_OS
+type DLType = HINSTANCE
+#else
+type DLType = DL
+#endif
+
 data BluesimModel =
-    BS { model_so               :: DL
+    BS { model_so               :: DLType
        , model_hdl              :: WordPtr
        , sim_hdl                :: WordPtr
        , current_clock          :: BSClock
@@ -435,6 +445,37 @@ data BluesimModel =
        , bk_shutdown            :: IO ()
        }
 
+#if defined(windows_HOST_OS) || defined(mingw32_HOST_OS)
+openSharedObject :: String -> IO DLType
+openSharedObject fname = do
+  loadLibrary fname
+#else
+openSharedObject :: String -> IO DLType
+openSharedObject fname = do
+  dlopen fname [RTLD_NOW]
+#endif
+
+#if defined(windows_HOST_OS) || defined(mingw32_HOST_OS)
+loadSymbol :: DLType -> String -> IO (FunPtr a)
+loadSymbol dl sym = do
+  ptr <- getProcAddress dl sym
+  return (castPtrToFunPtr ptr)
+#else
+loadSymbol :: DLType -> String -> IO (FunPtr a)
+loadSymbol dl sym = do
+  dlsym dl sym
+#endif
+
+#if defined(windows_HOST_OS) || defined(mingw32_HOST_OS)
+closeShared :: DLType -> IO ()
+closeShared dl = do
+  freeLibrary dl
+#else
+closeShared :: DLType -> IO ()
+closeShared dl = do
+  dlclose dl
+#endif
+
 -- Routine which dynamically loads a Bluesim .so file and creates
 -- a BluesimModel value which allows access to the Bluesim object.
 -- Returns Nothing if an error occurs during loading
@@ -443,54 +484,54 @@ loadBluesimModel :: String -> String -> IO (Maybe BluesimModel)
 loadBluesimModel fname top_name = do
   -- load the shared object
   let fname' = (dirName fname) ++ "/" ++ (baseName fname)
-  dl <- dlopen fname' [RTLD_NOW]
+  dl <- openSharedObject fname'
   -- lookup symbols in the shared object
-  c_new_model              <- dlsym dl ("new_" ++ pfxModel ++ top_name)
-  c_bk_init                <- dlsym dl "bk_init"
-  c_bk_now                 <- dlsym dl "bk_now"
-  c_bk_set_timescale       <- dlsym dl "bk_set_timescale"
-  c_bk_version             <- dlsym dl "bk_version"
-  c_bk_append_argument     <- dlsym dl "bk_append_argument"
-  c_bk_define_clock        <- dlsym dl "bk_define_clock"
-  c_bk_num_clocks          <- dlsym dl "bk_num_clocks"
-  c_bk_get_nth_clock       <- dlsym dl "bk_get_nth_clock"
-  c_bk_clock_name          <- dlsym dl "bk_clock_name"
-  c_bk_get_clock_by_name   <- dlsym dl "bk_get_clock_by_name"
-  c_bk_clock_initial_value <- dlsym dl "bk_clock_initial_value"
-  c_bk_clock_first_edge    <- dlsym dl "bk_clock_first_edge"
-  c_bk_clock_duration      <- dlsym dl "bk_clock_duration"
-  c_bk_clock_val           <- dlsym dl "bk_clock_val"
-  c_bk_clock_cycle_count   <- dlsym dl "bk_clock_cycle_count"
-  c_bk_clock_edge_count    <- dlsym dl "bk_clock_edge_count"
-  c_bk_clock_last_edge     <- dlsym dl "bk_clock_last_edge"
-  c_bk_quit_after_edge     <- dlsym dl "bk_quit_after_edge"
-  c_bk_schedule_ui_event   <- dlsym dl "bk_schedule_ui_event"
-  c_bk_remove_ui_event     <- dlsym dl "bk_remove_ui_event"
-  c_bk_set_interactive     <- dlsym dl "bk_set_interactive"
-  c_bk_advance             <- dlsym dl "bk_advance"
-  c_bk_is_running          <- dlsym dl "bk_is_running"
-  c_bk_sync                <- dlsym dl "bk_sync"
-  c_bk_abort_now           <- dlsym dl "bk_abort_now"
-  c_bk_finished            <- dlsym dl "bk_finished"
-  c_bk_exit_status         <- dlsym dl "bk_exit_status"
-  c_bk_top_symbol          <- dlsym dl "bk_top_symbol"
-  c_bk_lookup_symbol       <- dlsym dl "bk_lookup_symbol"
-  c_bk_get_size            <- dlsym dl "bk_get_size"
-  c_bk_get_key             <- dlsym dl "bk_get_key"
-  c_bk_is_module           <- dlsym dl "bk_is_module"
-  c_bk_is_rule             <- dlsym dl "bk_is_rule"
-  c_bk_is_single_value     <- dlsym dl "bk_is_single_value"
-  c_bk_is_value_range      <- dlsym dl "bk_is_value_range"
-  c_bk_peek_symbol_value   <- dlsym dl "bk_peek_symbol_value"
-  c_bk_get_range_min_addr  <- dlsym dl "bk_get_range_min_addr"
-  c_bk_get_range_max_addr  <- dlsym dl "bk_get_range_max_addr"
-  c_bk_peek_range_value    <- dlsym dl "bk_peek_range_value"
-  c_bk_num_symbols         <- dlsym dl "bk_num_symbols"
-  c_bk_get_nth_symbol      <- dlsym dl "bk_get_nth_symbol"
-  c_bk_set_VCD_file        <- dlsym dl "bk_set_VCD_file"
-  c_bk_enable_VCD_dumping  <- dlsym dl "bk_enable_VCD_dumping"
-  c_bk_disable_VCD_dumping <- dlsym dl "bk_disable_VCD_dumping"
-  c_bk_shutdown            <- dlsym dl "bk_shutdown"
+  c_new_model              <- loadSymbol dl ("new_" ++ pfxModel ++ top_name)
+  c_bk_init                <- loadSymbol dl "bk_init"
+  c_bk_now                 <- loadSymbol dl "bk_now"
+  c_bk_set_timescale       <- loadSymbol dl "bk_set_timescale"
+  c_bk_version             <- loadSymbol dl "bk_version"
+  c_bk_append_argument     <- loadSymbol dl "bk_append_argument"
+  c_bk_define_clock        <- loadSymbol dl "bk_define_clock"
+  c_bk_num_clocks          <- loadSymbol dl "bk_num_clocks"
+  c_bk_get_nth_clock       <- loadSymbol dl "bk_get_nth_clock"
+  c_bk_clock_name          <- loadSymbol dl "bk_clock_name"
+  c_bk_get_clock_by_name   <- loadSymbol dl "bk_get_clock_by_name"
+  c_bk_clock_initial_value <- loadSymbol dl "bk_clock_initial_value"
+  c_bk_clock_first_edge    <- loadSymbol dl "bk_clock_first_edge"
+  c_bk_clock_duration      <- loadSymbol dl "bk_clock_duration"
+  c_bk_clock_val           <- loadSymbol dl "bk_clock_val"
+  c_bk_clock_cycle_count   <- loadSymbol dl "bk_clock_cycle_count"
+  c_bk_clock_edge_count    <- loadSymbol dl "bk_clock_edge_count"
+  c_bk_clock_last_edge     <- loadSymbol dl "bk_clock_last_edge"
+  c_bk_quit_after_edge     <- loadSymbol dl "bk_quit_after_edge"
+  c_bk_schedule_ui_event   <- loadSymbol dl "bk_schedule_ui_event"
+  c_bk_remove_ui_event     <- loadSymbol dl "bk_remove_ui_event"
+  c_bk_set_interactive     <- loadSymbol dl "bk_set_interactive"
+  c_bk_advance             <- loadSymbol dl "bk_advance"
+  c_bk_is_running          <- loadSymbol dl "bk_is_running"
+  c_bk_sync                <- loadSymbol dl "bk_sync"
+  c_bk_abort_now           <- loadSymbol dl "bk_abort_now"
+  c_bk_finished            <- loadSymbol dl "bk_finished"
+  c_bk_exit_status         <- loadSymbol dl "bk_exit_status"
+  c_bk_top_symbol          <- loadSymbol dl "bk_top_symbol"
+  c_bk_lookup_symbol       <- loadSymbol dl "bk_lookup_symbol"
+  c_bk_get_size            <- loadSymbol dl "bk_get_size"
+  c_bk_get_key             <- loadSymbol dl "bk_get_key"
+  c_bk_is_module           <- loadSymbol dl "bk_is_module"
+  c_bk_is_rule             <- loadSymbol dl "bk_is_rule"
+  c_bk_is_single_value     <- loadSymbol dl "bk_is_single_value"
+  c_bk_is_value_range      <- loadSymbol dl "bk_is_value_range"
+  c_bk_peek_symbol_value   <- loadSymbol dl "bk_peek_symbol_value"
+  c_bk_get_range_min_addr  <- loadSymbol dl "bk_get_range_min_addr"
+  c_bk_get_range_max_addr  <- loadSymbol dl "bk_get_range_max_addr"
+  c_bk_peek_range_value    <- loadSymbol dl "bk_peek_range_value"
+  c_bk_num_symbols         <- loadSymbol dl "bk_num_symbols"
+  c_bk_get_nth_symbol      <- loadSymbol dl "bk_get_nth_symbol"
+  c_bk_set_VCD_file        <- loadSymbol dl "bk_set_VCD_file"
+  c_bk_enable_VCD_dumping  <- loadSymbol dl "bk_enable_VCD_dumping"
+  c_bk_disable_VCD_dumping <- loadSymbol dl "bk_disable_VCD_dumping"
+  c_bk_shutdown            <- loadSymbol dl "bk_shutdown"
   -- convert functions to Haskell types and build BluesimModel
   let new_model :: IO WordPtr
       new_model = fromC $ dl_ret_ptr c_new_model
@@ -624,7 +665,7 @@ loadBluesimModel fname top_name = do
 
 unloadBluesimModel :: BluesimModel -> IO ()
 unloadBluesimModel bs = do bk_shutdown bs
-                           dlclose (model_so bs)
+                           closeShared (model_so bs)
 
 -- fields are: clock handle, currently active, name, initial value,
 --             first edge, low duration, high_duration, cycles elapsed,

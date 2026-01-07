@@ -40,21 +40,15 @@ libp:	lib$(LIB)_profile.a
 libd:	lib$(LIB)_debug.a
 libr:	lib$(LIB)_release.a
 
-## Compile options
-%.o:			CFLAGS +=$(COPTIMIZE) -g -D DEBUG
-%.op:			CFLAGS +=$(COPTIMIZE) -pg -g -D NDEBUG
-%.od:			CFLAGS +=-O0 -g -D DEBUG
-%.or:			CFLAGS +=$(COPTIMIZE) -g -D NDEBUG
-
 ## Link options
-$(EXEC):		LFLAGS += -g
+$(EXEC):			LFLAGS += -g
 $(EXEC)_profile:	LFLAGS += -g -pg
 $(EXEC)_debug:		LFLAGS += -g
 #$(EXEC)_release:	LFLAGS += ...
 $(EXEC)_static:		LFLAGS += --static
 
 ## Dependencies
-$(EXEC):		$(COBJS)
+$(EXEC):			$(COBJS)
 $(EXEC)_profile:	$(PCOBJS)
 $(EXEC)_debug:		$(DCOBJS)
 $(EXEC)_release:	$(RCOBJS)
@@ -62,11 +56,17 @@ $(EXEC)_static:		$(RCOBJS)
 
 lib$(LIB)_standard.a:	$(filter-out %/Main.o,  $(COBJS))
 lib$(LIB)_profile.a:	$(filter-out %/Main.op, $(PCOBJS))
-lib$(LIB)_debug.a:	$(filter-out %/Main.od, $(DCOBJS))
+lib$(LIB)_debug.a:		$(filter-out %/Main.od, $(DCOBJS))
 lib$(LIB)_release.a:	$(filter-out %/Main.or, $(RCOBJS))
 
 
 ## Build rule
+## Compile options
+%.o:			$(CXX) $(CFLAGS) $(COPTIMIZE) -g -D DEBUG -c -o $@ $< 
+%.op:			$(CXX) $(CFLAGS) $(COPTIMIZE) -pg -g -D NDEBUG -c -o $@ $<
+%.od:			$(CXX) $(CFLAGS) -O0 -g -D DEBUG -c -o $@ $<
+%.or:			$(CXX) $(CFLAGS) $(COPTIMIZE) -g -D NDEBUG -c -o $@ $<
+
 %.o %.op %.od %.or:	%.cc
 	@echo Compiling: $(subst $(MROOT)/,,$@)
 	@$(CXX) $(CFLAGS) -c -o $@ $<
@@ -94,10 +94,10 @@ clean:
 
 ## Make dependencies
 depend.mk: $(CSRCS) $(CHDRS)
-	@echo Making dependencies
-	@$(CXX) $(CFLAGS) -I$(MROOT) \
-	   $(CSRCS) -MM | sed 's|\(.*\):|$(PWD)/\1 $(PWD)/\1r $(PWD)/\1d $(PWD)/\1p:|' > depend.mk
-	@for dir in $(DEPDIR); do \
+	echo Making dependencies
+	$(CXX) $(CFLAGS) -I$(MROOT) \
+	   $(CSRCS) -MM | sed 's|\(.*\): |$(PWD)/\1 $(PWD)/\1r $(PWD)/\1d $(PWD)/\1p:|' > depend.mk
+	for dir in $(DEPDIR); do \
 	      if [ -r $(MROOT)/$${dir}/depend.mk ]; then \
 		  echo Depends on: $${dir}; \
 		  cat $(MROOT)/$${dir}/depend.mk >> depend.mk; \
