@@ -20,11 +20,11 @@ order: [RL_toggle1, RL_toggle2, xfer]
 
 === resources:
 [(r1.read, [(r1.read, 1)]),
- (r1.write, [(if xfer_sel then r1.write r2__h256, 1), (r1.write NOT_r1___d2, 1)]),
+ (r1.write, [(if xfer_sel then r1.write r2__h277, 1), (r1.write NOT_r1___d2, 1)]),
  (r2.read, [(r2.read, 1)]),
- (r2.write, [(if NOT_xfer_sel___d5 then r2.write r1__h225, 1), (r2.write NOT_r2___d4, 1)]),
+ (r2.write, [(if NOT_xfer_sel___d5 then r2.write r1__h237, 1), (r2.write NOT_r2___d4, 1)]),
  (w.whas, [(w.whas, 1)]),
- (w.wset, [(w.wset r2__h256, 1)])]
+ (w.wset, [(w.wset r2__h277, 1)])]
 
 -----
 
@@ -75,7 +75,7 @@ order: [RL_r, RL_toggleDir, RL_done, RL_incr]
  (dir.read, [(dir.read, 1)]),
  (dir.write, [(dir.write NOT_dir___d2, 1)]),
  (test.RDY_xfer, [(test.RDY_xfer, 1)]),
- (test.xfer, [(test.xfer dir__h208, 1)])]
+ (test.xfer, [(test.xfer dir___d1, 1)])]
 
 -----
 

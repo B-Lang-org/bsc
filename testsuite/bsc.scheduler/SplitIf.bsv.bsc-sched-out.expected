@@ -25,7 +25,7 @@ order: [RL_toggle2, xfer_T, xfer_F, RL_toggle1]
  (r2.read, [(r2.read, 1)]),
  (r2.write, [(r2.write xfer_sel, 1), (r2.write NOT_r2___d4, 1)]),
  (w.whas, [(w.whas, 1)]),
- (w.wset, [(w.wset r2__h256, 1)])]
+ (w.wset, [(w.wset r2__h277, 1)])]
 
 -----
 
@@ -70,7 +70,7 @@ order: [RL_r, RL_toggleDir, RL_done, RL_incr]
  (dir.read, [(dir.read, 1)]),
  (dir.write, [(dir.write NOT_dir___d2, 1)]),
  (test.RDY_xfer, [(test.RDY_xfer, 1)]),
- (test.xfer, [(test.xfer dir__h205, 1)])]
+ (test.xfer, [(test.xfer dir___d1, 1)])]
 
 -----
 

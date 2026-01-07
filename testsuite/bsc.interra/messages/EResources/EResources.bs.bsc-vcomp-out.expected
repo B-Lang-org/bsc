@@ -5,5 +5,5 @@ Verilog file created: subtractor.v
 code generation for mkDifference starts
 Error: "EResources.bs", line 43, column 13: (G0002)
   `m.minus' needs more than 1 ports for the following uses:
-      `m.minus x__h582 x__h585' at "EResources.bs", line 43, column 13
-      `m.minus x__h585 x__h582' at "EResources.bs", line 43, column 13
+      `m.minus x___d1 y___d2' at "EResources.bs", line 43, column 13
+      `m.minus y___d2 x___d1' at "EResources.bs", line 43, column 13
