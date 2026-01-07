@@ -3424,8 +3424,8 @@ class AppendTuple a b c | a b -> c where
   splitTuple :: c -> (a, b)
 
 instance AppendTuple a () a where
-  appendTuple x _ = x
-  splitTuple x = (x, ())
+  appendTuple _x _ = _x
+  splitTuple _x = (_x, ())
 
 -- The above instance should take precedence over the other cases that assume
 -- b is non-unit. To avoid overlapping instances, the below are factored out as
@@ -3440,7 +3440,7 @@ class AppendTuple' a b c | a b -> c where
 
 instance AppendTuple' () a a where
   appendTuple' _ = id
-  splitTuple' x = ((), x)
+  splitTuple' _x = ((), _x)
 
 instance (AppendTuple'' a b c) => AppendTuple' a b c where
   appendTuple' = appendTuple''
@@ -3451,13 +3451,13 @@ class AppendTuple'' a b c | a b -> c where
   splitTuple'' :: c -> (a, b)
 
 instance AppendTuple'' a b (a, b) where
-  appendTuple'' a b = (a, b)
+  appendTuple'' _x _y = (_x, _y)
   splitTuple'' = id
 
 instance (AppendTuple'' a b c) => AppendTuple'' (h, a) b (h, c) where
-  appendTuple'' (x, y) z = (x, appendTuple'' y z)
-  splitTuple'' (x, y) = case splitTuple'' y of
-    (w, z) -> ((x, w), z)
+  appendTuple'' (_x, _y) _z = (_x, appendTuple'' _y _z)
+  splitTuple'' (_x, _y) = case splitTuple'' _y of
+    (_w, _z) -> ((_x, _w), _z)
 
 class TupleSize a n | a -> n where {}
 instance TupleSize () 0 where {}
