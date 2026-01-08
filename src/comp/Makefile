@@ -142,6 +142,7 @@ PACKAGES = \
 	-package syb \
 	-package integer-gmp \
 	-package text \
+	-package deepseq \
 	$(GHCEXTRAPKGS)
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or

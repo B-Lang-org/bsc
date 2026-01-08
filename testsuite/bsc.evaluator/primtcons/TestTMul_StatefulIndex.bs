@@ -1,0 +1,24 @@
+package TestTMul_StatefulIndex where
+
+import TestCommon
+import Vector
+
+-- Stateful indexed selection with stored index
+-- Tests complex interaction of Vector, Reg, Raw, and Fin types
+interface VecRegStoreIfc n a =
+  setIndex :: Raw (Fin n) -> Action
+  getElem :: Raw a
+
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Module (VecRegStoreIfc n a)
+mkTestPoly = module
+  regs :: Vector n (Reg (Raw a)) <- replicateM mkRegU
+  idx_reg :: Reg (Raw (Fin n)) <- mkRegU
+  interface VecRegStoreIfc
+    setIndex idx_raw = idx_reg := idx_raw
+    getElem = (select regs (cook idx_reg))._read
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTMul_StatefulIndex #-}
+mkTest_TestTMul_StatefulIndex :: Module (VecRegStoreIfc 8 (UInt 5))
+mkTest_TestTMul_StatefulIndex = mkTestPoly

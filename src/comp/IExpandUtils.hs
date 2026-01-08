@@ -442,8 +442,8 @@ instance PPrint HeapData where
   pPrint d p hd = text (show hd)
 -}
 
-instance Hyper HeapData where
-  hyper (HeapData r) y = seq r y
+instance NFData HeapData where
+  rnf (HeapData r) = seq r ()
 
 -- Heap expressions are IExprs with the real heap reference type filled in
 type HExpr = IExpr HeapData
@@ -2423,7 +2423,7 @@ updHeap tag (p, HeapData ref) e = do
    let new_name  = hc_name e
    let best_name = maybe old_name Just new_name
    let e' = e { hc_name = best_name }
-   hyper best_name $ liftIO (writeIORef ref e')
+   deepseq best_name $ liftIO (writeIORef ref e')
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]
@@ -2626,9 +2626,9 @@ toHeap tag e@(ICon _ _) cell_name = return e
 toHeap tag e@(IRefT _ _ _) cell_name = return e -- XXX name improvement?
 toHeap tag e cell_name = do
         -- these errors have never happened, disable checks for now.
-        when (doDebugFreeVars && not (null (fVars e))) $
+        when (doDebugFreeVars && not (S.null (fVars e))) $
              internalError ("toHeap: fv " ++ ppReadable (fVars e) ++ ppReadable e)
-        when (doDebugFreeVars && not (null (ftVars e))) $
+        when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
         -- do the real work of adding the cell
         addHeapUnev tag (iGetType e) e cell_name

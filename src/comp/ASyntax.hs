@@ -182,8 +182,9 @@ data APackage = APackage {
     apkg_proof_obligations :: [(ProofObligation AExpr, MsgFn)]
     } deriving (Eq, Show)
 
-instance Hyper APackage where
-    hyper x y = (x==x) `seq` y
+instance NFData APackage where
+    rnf (APackage n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17) =
+        rnf17 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17
 
 getAPackageFieldInfos :: APackage -> [VFieldInfo]
 getAPackageFieldInfos = map aif_fieldinfo . apkg_interface
@@ -281,8 +282,9 @@ data ASPackage = ASPackage {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPackage where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPackage where
+    rnf (ASPackage n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14) =
+        rnf14 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14
 
 data ASPSignalInfo = ASPSignalInfo {
         -- input params, ports, clocks, and resets are all in one list
@@ -355,8 +357,9 @@ instance PPrint ASPMethodInfo where
 
 
 
-instance Hyper ASPSignalInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPSignalInfo where
+    rnf (ASPSignalInfo ins oclks orsts iots meths iports rsched muxsels muxvals senables) =
+        rnf10 ins oclks orsts iots meths iports rsched muxsels muxvals senables
 
 data ASPCommentInfo = ASPCommentInfo {
         -- comments on submodule instantiations
@@ -368,8 +371,8 @@ data ASPCommentInfo = ASPCommentInfo {
     }
         deriving (Eq, Show)
 
-instance Hyper ASPCommentInfo where
-    hyper x y = (x==x) `seq` y
+instance NFData ASPCommentInfo where
+    rnf (ASPCommentInfo insts rules) = rnf2 insts rules
 
 -- parallel rule groups; total order on state
 -- (first rule in the list writes, present only if there are state conflicts)
@@ -380,8 +383,8 @@ data ASchedule = ASchedule {
     }
         deriving (Eq, Show)
 
-instance Hyper ASchedule where
-    hyper x y = (x==x) `seq` y
+instance NFData ASchedule where
+    rnf (ASchedule sched order) = rnf2 sched order
 
 newtype AScheduler =
           -- esposito: (r,f) s.t.
@@ -447,8 +450,12 @@ data AType =
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AType where
-    hyper x y = (x==x) `seq` y
+instance NFData AType where
+    rnf (ATBit sz) = rnf sz
+    rnf (ATString msz) = rnf msz
+    rnf ATReal = ()
+    rnf (ATArray len typ) = rnf2 len typ
+    rnf (ATAbstract aid args) = rnf2 aid args
 
 instance HasPosition AType where
     getPosition (ATAbstract {ata_id = id}) = getPosition id
@@ -707,8 +714,8 @@ data ADef = ADef {
 instance HasPosition ADef where
     getPosition adef = getPosition (adef_objid adef )
 
-instance Hyper ADef where
-    hyper x y = (x==x) `seq` y
+instance NFData ADef where
+    rnf (ADef id typ expr props) = rnf4 id typ expr props
 
 -- last id has original rule if this one comes from a split; Nothing otherwise
 -- it's only used as an optimization; it's safe to put Nothing there
@@ -929,8 +936,11 @@ data AAction
         }
         deriving (Eq, Ord, Show)
 
-instance Hyper AAction where
-    hyper x y = (x==x) `seq` y
+instance NFData AAction where
+    rnf (ACall oid mid args) = rnf3 oid mid args
+    rnf (AFCall oid fun isC args assump) = rnf5 oid fun isC args assump
+    rnf (ATaskAction oid fun isC cookie args temp vtyp assump) =
+        rnf8 oid fun isC cookie args temp vtyp assump
 
 data AClock = AClock {
                        aclock_osc  :: AExpr, -- must be of type ATBit 1
@@ -1101,8 +1111,24 @@ data AExpr
         }
         deriving (Ord, Show)
 
-instance Hyper AExpr where
-    hyper x y = (x==x) `seq` y
+instance NFData AExpr where
+    rnf (APrim oid typ prim args) = rnf4 oid typ prim args
+    rnf (AMethCall typ oid mid args) = rnf4 typ oid mid args
+    rnf (AMethValue typ oid mid) = rnf3 typ oid mid
+    rnf (ANoInlineFunCall typ oid fun args) = rnf4 typ oid fun args
+    rnf (AFunCall typ oid fname isC args) = rnf5 typ oid fname isC args
+    rnf (ATaskValue typ oid fname isC cookie) = rnf5 typ oid fname isC cookie
+    rnf (ASPort typ oid) = rnf2 typ oid
+    rnf (ASParam typ oid) = rnf2 typ oid
+    rnf (ASDef typ oid) = rnf2 typ oid
+    rnf (ASInt oid typ ival) = rnf3 oid typ ival
+    rnf (ASReal oid typ rval) = rnf3 oid typ rval
+    rnf (ASStr oid typ sval) = rnf3 oid typ sval
+    rnf (ASAny typ mval) = rnf2 typ mval
+    rnf (ASClock typ clk) = rnf2 typ clk
+    rnf (ASReset typ rst) = rnf2 typ rst
+    rnf (ASInout typ inout) = rnf2 typ inout
+    rnf (AMGate typ oid clkid) = rnf3 typ oid clkid
 
 instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
@@ -1309,8 +1335,9 @@ instance PPrint AVInst where
         text "meth types=" <> pPrint d 0 mts $+$
         text "port types=" <> pPrint d 0 pts)
 
-instance Hyper AVInst where
-    hyper x y = (x==x) `seq` y
+instance NFData AVInst where
+    rnf (AVInst vn typ ui mts pts vmi args arr) =
+        rnf8 vn typ ui mts pts vmi args arr
 
 ppVTI :: PDetail -> (VModInfo, [AExpr], [(AId, Integer)]) -> Doc
 ppVTI d (vi, es, ns) = sep [pPrint d 0 (vName vi), pPrint d 0 vi, pPrint d 0 es, pPrint d 0 ns]
@@ -1460,8 +1487,50 @@ instance PPrint AForeignCall where
 
    pPrint _ _ x = internalError ("pPrint AForeignCall: " ++ show x)
 
-instance Hyper AForeignCall where
-    hyper x y = (x==x) `seq` y
+instance NFData AForeignCall where
+    rnf (AForeignCall n f a w r) = rnf5 n f a w r
+
+instance NFData ASPMethodInfo where
+    rnf (ASPMethodInfo n t mr me mres ins assoc) = rnf7 n t mr me mres ins assoc
+
+instance NFData AScheduler where
+    rnf (ASchedEsposito fs) = rnf fs
+
+instance NFData AClock where
+    rnf (AClock osc gate) = rnf2 osc gate
+
+instance NFData AReset where
+    rnf (AReset wire) = rnf wire
+
+instance NFData AInout where
+    rnf (AInout wire) = rnf wire
+
+instance NFData ANoInlineFun where
+    rnf (ANoInlineFun name nums ports minst) = rnf4 name nums ports minst
+
+instance NFData AAbstractInput where
+    rnf (AAI_Port p) = rnf p
+    rnf (AAI_Clock osc mgate) = rnf2 osc mgate
+    rnf (AAI_Reset wire) = rnf wire
+    rnf (AAI_Inout wire sz) = rnf2 wire sz
+
+instance NFData ARule where
+    rnf (ARule rid prags descr wprops pred acts assumps mparent) =
+        rnf8 rid prags descr wprops pred acts assumps mparent
+
+instance NFData AAssumption where
+    rnf (AAssumption prop acts) = rnf2 prop acts
+
+instance NFData AIFace where
+    rnf (AIDef name ins props pred val finfo assumps) =
+        rnf7 name ins props pred val finfo assumps
+    rnf (AIAction ins props pred name body finfo) =
+        rnf6 ins props pred name body finfo
+    rnf (AIActionValue ins props pred name body val finfo) =
+        rnf7 ins props pred name body val finfo
+    rnf (AIClock name clk finfo) = rnf3 name clk finfo
+    rnf (AIReset name rst finfo) = rnf3 name rst finfo
+    rnf (AIInout name inout finfo) = rnf3 name inout finfo
 
 isOne :: AExpr -> Bool
 isOne (ASInt _ _ (IntLit _ _ 1)) = True

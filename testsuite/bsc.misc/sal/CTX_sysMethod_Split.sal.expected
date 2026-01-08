@@ -14,34 +14,34 @@ BEGIN
      #) ;
   
   meth_m (state0 : STATE) : [ STATE, Bit{8}!T ] =
-    LET def_c__h135 : Bit{1}!T = CTX_RegUN{1}!meth_read(state0.inst_c)
-    IN IF Prim!bitToBool(def_c__h135)
-	 THEN LET def_x__h213 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
-	      IN LET def_x__h218 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-	      IN LET def_y_avValue__h212 : Bit{8}!T = Prim1{8}!primAdd(def_x__h213, Bit{8}!mkConst(1))
-	      IN LET def_y_avValue__h217 : Bit{8}!T = Prim1{8}!primAdd(def_x__h218, Bit{8}!mkConst(2))
-	      IN LET def_x__h155 : Bit{8}!T = Prim1{8}!primAdd(def_x__h213, Bit{8}!mkConst(3))
-	      IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] = CTX_RegUN{8}!meth_write(def_x__h155, state0.inst_rg1)
+    LET def_c__h114 : Bit{1}!T = CTX_RegUN{1}!meth_read(state0.inst_c)
+    IN IF Prim!bitToBool(def_c__h114)
+	 THEN LET def_x__h210 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
+	      IN LET def_y_avValue__h209 : Bit{8}!T = Prim1{8}!primAdd(def_x__h210, Bit{8}!mkConst(1))
+	      IN LET def_x__h134 : Bit{8}!T = Prim1{8}!primAdd(def_x__h210, Bit{8}!mkConst(3))
+	      IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
+	      IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
+	      IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] = CTX_RegUN{8}!meth_write(def_x__h134, state0.inst_rg1)
 	      IN LET state1 : STATE = state0 WITH .inst_rg1 := act1.1
 	      IN ( state1,
-		   IF Prim!bitToBool(def_c__h135) THEN def_y_avValue__h212 ELSE def_y_avValue__h217 ENDIF )
-	 ELSE IF (NOT Prim!bitToBool(def_c__h135))
-		THEN LET def_x__h213 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
-		     IN LET def_x__h218 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-		     IN LET def_y_avValue__h212 : Bit{8}!T = Prim1{8}!primAdd(def_x__h213, Bit{8}!mkConst(1))
-		     IN LET def_y_avValue__h217 : Bit{8}!T = Prim1{8}!primAdd(def_x__h218, Bit{8}!mkConst(2))
-		     IN LET def_x__h193 : Bit{8}!T = Prim1{8}!primAdd(def_x__h218, Bit{8}!mkConst(4))
+		   IF Prim!bitToBool(def_c__h114) THEN def_y_avValue__h209 ELSE def_y_avValue__h214 ENDIF )
+	 ELSE IF (NOT Prim!bitToBool(def_c__h114))
+		THEN LET def_x__h210 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
+		     IN LET def_y_avValue__h209 : Bit{8}!T = Prim1{8}!primAdd(def_x__h210, Bit{8}!mkConst(1))
+		     IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
+		     IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
+		     IN LET def_x__h181 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(4))
 		     IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
-			      CTX_RegUN{8}!meth_write(def_x__h193, state0.inst_rg2)
+			      CTX_RegUN{8}!meth_write(def_x__h181, state0.inst_rg2)
 		     IN LET state1 : STATE = state0 WITH .inst_rg2 := act1.1
 		     IN ( state1,
-			  IF Prim!bitToBool(def_c__h135) THEN def_y_avValue__h212 ELSE def_y_avValue__h217 ENDIF )
-		ELSE LET def_x__h213 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
-		     IN LET def_x__h218 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-		     IN LET def_y_avValue__h212 : Bit{8}!T = Prim1{8}!primAdd(def_x__h213, Bit{8}!mkConst(1))
-		     IN LET def_y_avValue__h217 : Bit{8}!T = Prim1{8}!primAdd(def_x__h218, Bit{8}!mkConst(2))
+			  IF Prim!bitToBool(def_c__h114) THEN def_y_avValue__h209 ELSE def_y_avValue__h214 ENDIF )
+		ELSE LET def_x__h210 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
+		     IN LET def_y_avValue__h209 : Bit{8}!T = Prim1{8}!primAdd(def_x__h210, Bit{8}!mkConst(1))
+		     IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
+		     IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
 		     IN ( state0,
-			  IF Prim!bitToBool(def_c__h135) THEN def_y_avValue__h212 ELSE def_y_avValue__h217 ENDIF )
+			  IF Prim!bitToBool(def_c__h114) THEN def_y_avValue__h209 ELSE def_y_avValue__h214 ENDIF )
 	      ENDIF
        ENDIF ;
   
