@@ -4569,7 +4569,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
 
 instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
-  toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts) 
+  toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
   methodArgBaseNames _ _ _ _ = Nil
   inputPortNames _ _ = Nil

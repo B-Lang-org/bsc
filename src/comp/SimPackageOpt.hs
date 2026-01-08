@@ -231,7 +231,7 @@ optimizeConcats pkg =
        -- recurse for other
        optConcat (APrim i t o as) = APrim i t o (map optConcat as)
        optConcat (AMethCall t o m as) = AMethCall t o m (map optConcat as)
-       -- XXX There is maybe an opportunity to optimize tuple construction here, 
+       -- XXX There is maybe an opportunity to optimize tuple construction here,
        -- since that basically turns into a concat as well.
        optConcat (ATuple t as) = ATuple t (map optConcat as)
        optConcat (ATupleSel t e idx) = ATupleSel t (optConcat e) idx

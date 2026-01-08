@@ -1146,7 +1146,7 @@ instance Eq AExpr where
 
     ATuple t aexprs == ATuple t' aexprs' =
         (t == t') && (aexprs == aexprs')
-    
+
     ATupleSel t aexpr index == ATupleSel t' aexpr' index' =
         (t == t') && (index == index') && (aexpr == aexpr')
 

@@ -585,7 +585,7 @@ createMapForOneMeth meth_id mult ins outs me = if check then
       -- names for the output ports
       method_output_names = [ mkMethResStr meth_n (toInteger out_n) |
                               meth_n <- meth_mult, out_n  <- [1 .. length outs]]
-      
+
       -- the Verilog port names for the above
       verilog_output_names = map getFStringForVerilogPair outs
 

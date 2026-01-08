@@ -1053,7 +1053,7 @@ mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
         def_tuples = zipWith (mkEmux rdb value_method_ids om ino o m)
                          [1..] arg_blobs
         (sel_defs, val_defs, out_defs) = concatUnzip3 def_tuples
-        
+
         mkPortSubsts (e, _) =
             case aType e of
                 ATTuple ats ->
