@@ -61,6 +61,7 @@ module ASyntax(
         isUnsizedString,
         dropSize,
         unifyStringTypes,
+        isTupleType,
         getArrayElemType,
         getArraySize,
         aIfaceProps,
@@ -504,6 +505,10 @@ unifyStringTypes (t:ts) | isUnsizedString t = t
   where helper t []                  = t
         helper t (t1:ts) | t /= t1   = dropSize t
                          | otherwise = helper t ts
+
+isTupleType :: AType -> Bool
+isTupleType (ATTuple _) = True
+isTupleType _           = False
 
 type ASize = Integer
 

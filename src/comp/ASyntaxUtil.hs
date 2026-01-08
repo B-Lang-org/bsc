@@ -237,6 +237,7 @@ instance ATypeC AType where
     aSize e =
         case aType e of
         ATBit s -> s
+        ATTuple ts -> sum (map aSize ts)
         ATString (Just s) -> 8*s   -- 8 bits per character
         ATAbstract i [n] | i==idInout_ -> n
         ATArray sz t -> sz * (aSize t)

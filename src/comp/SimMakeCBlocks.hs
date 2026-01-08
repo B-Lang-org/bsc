@@ -208,6 +208,10 @@ getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
+getExprIds in_sched def_map known ((ATuple _ elems):es) =
+  getExprIds in_sched def_map known (elems ++ es)
+getExprIds in_sched def_map known ((ATupleSel _ e _):es) =
+  getExprIds in_sched def_map known (e:es)
 getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AFunCall _ _ _ _ args):es) =
@@ -1453,8 +1457,9 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                        Nothing -> internalError "tsortActionsAndDefs: getDef"
 
         -- function to substitute ASDef for AMethValue
-        -- TOOD: Handle multi-output methods
         substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
+        substAV (ATuple ts es) = ATuple ts (map substAV es)
+        substAV (ATupleSel t e i) = ATupleSel t (substAV e) i
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
         substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
@@ -1632,6 +1637,10 @@ substGateReferences smap stmts =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AMethCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
+        substInAExpr e@(ATuple { ae_elems = es }) =
+            e { ae_elems = map substInAExpr es }
+        substInAExpr e@(ATupleSel { ae_exp = e1 }) =
+            e { ae_exp = substInAExpr e1 }
         substInAExpr e@(ANoInlineFunCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AFunCall { ae_args = es }) =
