@@ -739,7 +739,7 @@ instance Eq VId where
     VId string _ _ == VId string' _ _ = (string == string')
 
 instance NFData VId where
-    rnf (VId s id mitem) = rnf3 s id mitem
+    rnf (VId s i mitem) = rnf3 s i mitem
 
 mkVId :: String -> VId
 mkVId string = VId string
