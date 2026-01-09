@@ -1323,7 +1323,8 @@ instance NFData (IConInfo a) where
     rnf (ICMethArg x1) = rnf x1
     rnf (ICModPort x1) = rnf x1
     rnf (ICModParam x1) = rnf x1
---    rnf (ICValue x1 x2 x3) = rnf3 x1 x2 x3        -- XXX causes cycles somehow
+    -- rnf (ICValue x1 x2) = rnf2 x1 x2
+    -- XXX the above line causes cycles somehow so, like ICDef, we don't enter ICValue
     rnf (ICValue x1 x2) = ()
     rnf (ICIFace x1 x2 x3) = rnf3 x1 x2 x3
     rnf (ICRuleAssert x1 x2) = rnf2 x1 x2
