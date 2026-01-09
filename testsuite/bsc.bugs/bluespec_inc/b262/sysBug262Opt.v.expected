@@ -39,10 +39,10 @@ module sysBug262Opt(CLK,
   wire r$EN;
 
   // inputs to muxes for submodule ports
-  wire [19 : 0] MUX_r$write_1__VAL_1;
+  wire [19 : 0] MUX_r$write_ARG_1__VAL_1;
 
   // inputs to muxes for submodule ports
-  assign MUX_r$write_1__VAL_1 =
+  assign MUX_r$write_ARG_1__VAL_1 =
 	     { 1'd0, 19'b0101010101010101010 /* unspecified value */  } ;
 
   // register done
@@ -50,7 +50,7 @@ module sysBug262Opt(CLK,
   assign done$EN = !done ;
 
   // register r
-  assign r$D_IN = done ? MUX_r$write_1__VAL_1 : 20'd524293 ;
+  assign r$D_IN = done ? MUX_r$write_ARG_1__VAL_1 : 20'd524293 ;
   assign r$EN = 1'b1 ;
 
   // handling of inlined registers

@@ -11,12 +11,13 @@ module DisjointTest(
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Control.Monad(foldM {- , when -})
+import Data.List (genericIndex)
 
 import Util(ordPair,uniquePairs)
 
-import Error(ErrorHandle)
+import Error(ErrorHandle, internalError)
 import Pretty
-import PPrint(PPrint(..))
+import PPrint(PPrint(..), ppReadable)
 
 import Flags
 import ASyntax
@@ -24,7 +25,7 @@ import ASyntaxUtil(AExprs(..), aAnd)
 import Pragma
 
 import VModInfo(VModInfo)
-import AExpr2Util(getMethodOutputPort)
+import AExpr2Util(getMethodOutputPorts)
 --import Debug.Trace(trace)
 
 import qualified AExpr2STP as STP
@@ -270,9 +271,26 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
     findSupport e@(ASDef _ i)                            = [DDef def i]
         where def = M.findWithDefault (err i) i idToDef
     findSupport e@(APrim { ae_args = es})                = findAExprs findSupport es
-    findSupport e@(AMethCall {ae_args = es})             = findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
-      where vlogport = getMethodOutputPort portMap (ae_objid e) (ameth_id e)
-    findSupport e@(AMethValue {})                        = [DMethod (ae_objid e) (ameth_id e)]
+    findSupport e@(AMethCall {ae_args = es})             =
+      case getMethodOutputPorts portMap (ae_objid e) (ameth_id e) of
+        [vlogport] -> findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
+        ports -> internalError ("buildSupportMap: unexpected output ports: "
+                                ++ ppReadable (ae_objid e, ameth_id e, ports))
+    findSupport e@(AMethValue {})                        =
+      case getMethodOutputPorts portMap (ae_objid e) (ameth_id e) of
+        [vlogport] -> [DMethod (ae_objid e) vlogport]
+        ports -> internalError ("buildSupportMap: unexpected output ports: "
+                                ++ ppReadable (ae_objid e, ameth_id e, ports))
+    findSupport e@(ATupleSel _ (AMethCall {ae_args = es}) idx) =
+        findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
+        where
+          ports = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
+          vlogport = genericIndex ports (idx - 1)
+    findSupport e@(ATupleSel _ (AMethValue {}) idx) =
+        [DMethod (ae_objid e) vlogport]
+        where
+          ports = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
+          vlogport = genericIndex ports (idx - 1)
     findSupport e@(ANoInlineFunCall{ ae_args = es})      = findAExprs findSupport es
     findSupport e@(ATaskValue {ae_objid=id})             = [DTask id]
     findSupport e@(ASPort {ae_objid = id})               = [DLeaf id]

@@ -1473,9 +1473,9 @@ some of these restrictions could be lifted if we made the compiler more clever
 >                  Port (name, _) _ _ -> addInput pos name ioerrs
 >                  _ -> ioerrs
 >            chkBVIPorts (ISBVI pos (BVI_method (_,inf@(Method {}),_))) ioerrs = ioerrs3
->                where ioerrs1 = case (vf_output inf) of
->                                  Just (name, _) -> addOutputPort pos name ioerrs
->                                  _ -> ioerrs
+>                where ioerrs1 = foldr (\(name, _) iers -> addOutputPort pos name iers)
+>                                      ioerrs
+>                                      (vf_outputs inf)
 >                      ioerrs2 = case (vf_enable inf) of
 >                                  Just (name, _) -> addInput pos name ioerrs1
 >                                  _ -> ioerrs1
@@ -1704,13 +1704,13 @@ Extract each type of statement, making sure to preserve the order
 >                     CLValue si [CClause [] []
 >                                   (cVApply idPrimInoutUncast0 [(CSelect (CVar bviMname) i)])] []
 >            -- the following case will generate an error in chkBSVMethod below:
->            mkBSVMethod (sn, Method n _ _ _ is Nothing Nothing, b) = -- ... mo me needsReady
+>            mkBSVMethod (sn, Method n _ _ _ is [] Nothing, b) = -- ... mo me needsReady
 >               mkBasicDef (\ e -> e) n sn is b
->            mkBSVMethod (sn, Method n _ _ _ is (Just _) Nothing, b) = -- ... mo me needsReady
+>            mkBSVMethod (sn, Method n _ _ _ is (_ : _) Nothing, b) = -- ... mo me needsReady
 >               mkBasicDef (\ e -> cVApply idUnpack [e]) n sn is b
->            mkBSVMethod (sn, Method n _ _ _ is Nothing (Just _), b) = -- ... mo me needsReady
+>            mkBSVMethod (sn, Method n _ _ _ is [] (Just _), b) = -- ... mo me needsReady
 >               mkBasicDef (\ e -> cVApply idFromActionValue_ [e]) n sn is b
->            mkBSVMethod (sn, Method n _ _ _ is (Just _) (Just _), b) = -- ... mo me needsReady
+>            mkBSVMethod (sn, Method n _ _ _ is (_ : _) (Just _), b) = -- ... mo me needsReady
 >               mkBasicDef (\ e -> cVApply idFromActionValue_ [e]) n sn is b
 
 >            mkBSVIfc (name,constr,ss) =
@@ -1728,7 +1728,7 @@ Extract each type of statement, making sure to preserve the order
 
 >            lastPos = getPosition (last stmts)
 >            bviMname = idM lastPos
->            chkBSVMethod (Method n _ _ _ _ Nothing Nothing) = -- mo me
+>            chkBSVMethod (Method n _ _ _ _ [] Nothing) = -- os me
 >               cvtErr (getPosition n) (EForeignModOutputOrEnable (pvpReadable n))
 >            chkBSVMethod m = return ()
 >            theFamilies cs as fs = do

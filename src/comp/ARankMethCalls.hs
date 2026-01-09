@@ -42,7 +42,7 @@ aRankMethCalls errh pprops orig_pkg =
 aRankMethCallsInternal :: ErrorHandle -> [[Id]] -> APackage -> IO APackage
 aRankMethCallsInternal _ [] orig_pkg = return orig_pkg
 aRankMethCallsInternal errh orig_ranks orig_pkg =
-    do let method_map = [(aIfaceName m, m) | m <- apkg_interface orig_pkg]
+    do let method_map = [(aif_name m, m) | m <- apkg_interface orig_pkg]
            rule_map = [(dropRulePrefixId (arule_id r), r) | r <- apkg_rules orig_pkg]
            def_map = [(adef_objid d, d) | d <- apkg_local_defs orig_pkg]
            -- add method ready signals foreach method in (* perf_spec *)
@@ -121,6 +121,7 @@ class RankMethCalls ats_t where
     rankMethCalls :: Int -> ats_t -> (ats_t, [Id] {- local defs to rank -})
 
 instance RankMethCalls AExpr where
+    -- TODO handle ATupleSel here?
     rankMethCalls ver expr@(AMethCall { ameth_id = name, ae_args = args }) =
         let (ranked_args, defs_to_rewrite) = rankMethCalls ver args
         in  (expr { ameth_id = rankId ver name, ae_args = ranked_args  },

@@ -159,11 +159,11 @@ lookupDef defmap i =
 -- Digested AVInst info for each submodule instance
 -- * The module name
 -- * The numeric type arguments for polymorphic modules
--- * A map from AV method names to their return value
+-- * A map from AV method names to their return values
 --
-type InstMap = M.Map Id (String, [Integer], M.Map Id AType)
+type InstMap = M.Map Id (String, [Integer], M.Map Id [AType])
 
-lookupMod :: InstMap -> Id -> (String, [Integer], M.Map Id AType)
+lookupMod :: InstMap -> Id -> (String, [Integer], M.Map Id [AType])
 lookupMod instmap obj =
     case (M.lookup obj instmap) of
       Nothing -> internalError ("lookupMod: " ++ ppReadable obj)
@@ -1037,6 +1037,9 @@ updateAExprTypes _ (AMethCall t obj meth as) = do
 -- method return values are Bit type
 updateAExprTypes _ e@(AMethValue t obj meth) = return e
 
+updateAExprTypes _ (ATupleSel _ _ _) = error "updateAExprTypes: multi-output methods not yet supported"
+updateAExprTypes _ (ATuple _ _) = error "updateAExprTypes: multi-output methods not yet supported"
+
 -- noinline function arguments and return values are Bit type
 updateAExprTypes _ (ANoInlineFunCall t i f as) = do
   as' <- mapM updateAExprTypes_Bits as
@@ -1224,13 +1227,13 @@ inlineUndet = mapAExprs g
 
 -- -------------------------
 
-getSubModAVMethReturnTypes :: AVInst -> M.Map Id AType
+getSubModAVMethReturnTypes :: AVInst -> M.Map Id [AType]
 getSubModAVMethReturnTypes avi =
     let
         meth_types = avi_meth_types avi
         vfis = vFields (avi_vmi avi)
 
-        mkPair vfi (_, Just _, Just ret_ty) = Just (vf_name vfi, ret_ty)
+        mkPair vfi (_, Just _, ret_tys) = Just (vf_name vfi, ret_tys)
         mkPair _ _ = Nothing
 
         pairs = catMaybes $ zipWith mkPair vfis meth_types
