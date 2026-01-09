@@ -14,7 +14,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
-import Eval
+import Eval(NFData(..), rnf2, rnf3, rnf7)
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
 import Id
@@ -54,8 +54,8 @@ instance Types t => Types (Qual t) where
     apSub s (ps :=> t) = apSub s ps :=> apSub s t
     tv      (ps :=> t) = tv ps `union` tv t
 
-instance (Hyper a) => Hyper (Qual a) where
-    hyper (ps :=> t) y = hyper2 ps t y
+instance (NFData a) => NFData (Qual a) where
+    rnf (ps :=> t) = rnf2 ps t
 
 qualTypeToCQType :: Qual Type -> CQType
 qualTypeToCQType (pwps :=> t) = CQType ps t
@@ -105,8 +105,8 @@ instance Types PredWithPositions where
     apSub s (PredWithPositions p poss) = PredWithPositions (apSub s p) poss
     tv      (PredWithPositions p poss) = tv p
 
-instance Hyper PredWithPositions where
-    hyper (PredWithPositions p poss) y = hyper2 p poss y
+instance NFData PredWithPositions where
+    rnf (PredWithPositions p poss) = rnf2 p poss
 
 -----
 
@@ -124,8 +124,8 @@ instance Types Pred where
     apSub s (IsIn c ts) = IsIn c $ expandSyn <$> apSub s ts
     tv      (IsIn c ts) = tv ts
 
-instance Hyper Pred where
-    hyper (IsIn c ts) y = hyper2 c ts y
+instance NFData Pred where
+    rnf (IsIn c ts) = rnf2 c ts
 
 predToCPred :: Pred -> CPred
 predToCPred (IsIn c ts) = CPred (name c) ts
@@ -194,8 +194,8 @@ instance PVPrint Class where
                 pvPrint d 0 (funDeps c) <>
                 text ")"
 
-instance Hyper Class where
-    hyper (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) y = hyper7 x1 x2 x3 x4 x5 x8 x9 y
+instance NFData Class where
+    rnf (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) = rnf7 x1 x2 x3 x4 x5 x8 x9
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -208,8 +208,8 @@ instance Ord Class where
 -- things are that go into an Inst.
 data Inst = Inst CExpr [TyVar] (Qual Pred)
 
-instance Hyper Inst where
-    hyper (Inst x1 x2 x3) y = hyper3 x1 x2 x3 y
+instance NFData Inst where
+    rnf (Inst x1 x2 x3) = rnf3 x1 x2 x3
 
 mkInst :: CExpr -> Qual Pred -> Inst
 mkInst e i = Inst e (tv i) i

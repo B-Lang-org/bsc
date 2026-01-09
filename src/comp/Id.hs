@@ -113,7 +113,7 @@ import qualified Data.Map as Map
 
 import Util(headOrErr, lastOrErr, ToString(..))
 import FileNameUtil(dropSuf, takeSuf, getRelativeFilePath)
-import Eval
+import Eval(NFData(..))
 import ErrorUtil(internalError)
 import FStringCompat
 import Position
@@ -663,8 +663,8 @@ removeIdInlinedPositions i =
         other_ps = filter (not . isIdPInlinedPositions) (getIdProps i)
     in  setIdProps i other_ps
 
-instance Hyper Id where
-    hyper a@(Id {}) y = y       -- XXX
+instance NFData Id where
+    rnf a@(Id {}) = ()       -- XXX
 
 -- #############################################################################
 -- # Methods for adding properties to Id's, checking for them etc.
