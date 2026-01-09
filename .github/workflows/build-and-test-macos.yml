@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           cabal update
-          cabal v1-install old-time regex-compat split syb
+          cabal v1-install old-time regex-compat split strict-concurrency syb
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
