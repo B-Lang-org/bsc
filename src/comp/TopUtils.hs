@@ -273,7 +273,6 @@ instance Stats [SV_Token] where
 
 -- verilog preprocessor output
 newtype VPPOut = VPPOut (String, [String])
-  deriving(NFData)
 
 instance PPrint VPPOut where
   pPrint d p (VPPOut (source,includes)) = text source
@@ -282,6 +281,9 @@ instance Stats VPPOut where
     pStats _ (VPPOut (source,includes)) =
       showLen (lines source) "post-preprocessing source lines" $+$
       showLen includes "included files"
+
+instance NFData VPPOut where
+  rnf (VPPOut (source, includes)) = rnf2 source includes
 
 showLen :: [a] -> String -> Doc
 showLen xs s = showCnt (length xs) s
