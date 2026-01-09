@@ -915,6 +915,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -1026,7 +1027,11 @@ convStmt modId avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         Just [] -> (voidType, Nothing)
+                         -- TODO: support multiple return values
+                         Just ts -> error ("convStmt: multiple return values for method " ++
+                                         ppReadable (obj, meth, ts))
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#", "guard#", and "state#" with a unique number
@@ -1186,6 +1191,11 @@ convAExpr (AMethCall _ obj meth as) = do
 convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _) =
+  internalError "convAExpr: multi-output methods are not yet supported"
+convAExpr (ATuple {}) =
+  internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t i (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineId i

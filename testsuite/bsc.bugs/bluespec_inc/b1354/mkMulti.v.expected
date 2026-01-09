@@ -194,22 +194,22 @@ module mkMulti(CLK,
   wire rs_3$WE;
 
   // inputs to muxes for submodule ports
-  wire MUX_vec_0$write_1__SEL_1,
-       MUX_vec_1$write_1__SEL_1,
-       MUX_vec_10$write_1__SEL_1,
-       MUX_vec_11$write_1__SEL_1,
-       MUX_vec_12$write_1__SEL_1,
-       MUX_vec_13$write_1__SEL_1,
-       MUX_vec_14$write_1__SEL_1,
-       MUX_vec_15$write_1__SEL_1,
-       MUX_vec_2$write_1__SEL_1,
-       MUX_vec_3$write_1__SEL_1,
-       MUX_vec_4$write_1__SEL_1,
-       MUX_vec_5$write_1__SEL_1,
-       MUX_vec_6$write_1__SEL_1,
-       MUX_vec_7$write_1__SEL_1,
-       MUX_vec_8$write_1__SEL_1,
-       MUX_vec_9$write_1__SEL_1;
+  wire MUX_vec_0$write_ARG_1__SEL_1,
+       MUX_vec_1$write_ARG_1__SEL_1,
+       MUX_vec_10$write_ARG_1__SEL_1,
+       MUX_vec_11$write_ARG_1__SEL_1,
+       MUX_vec_12$write_ARG_1__SEL_1,
+       MUX_vec_13$write_ARG_1__SEL_1,
+       MUX_vec_14$write_ARG_1__SEL_1,
+       MUX_vec_15$write_ARG_1__SEL_1,
+       MUX_vec_2$write_ARG_1__SEL_1,
+       MUX_vec_3$write_ARG_1__SEL_1,
+       MUX_vec_4$write_ARG_1__SEL_1,
+       MUX_vec_5$write_ARG_1__SEL_1,
+       MUX_vec_6$write_ARG_1__SEL_1,
+       MUX_vec_7$write_ARG_1__SEL_1,
+       MUX_vec_8$write_ARG_1__SEL_1,
+       MUX_vec_9$write_ARG_1__SEL_1;
 
   // remaining internal signals
   reg SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18,
@@ -312,115 +312,115 @@ module mkMulti(CLK,
 			     .D_OUT_5());
 
   // inputs to muxes for submodule ports
-  assign MUX_vec_0$write_1__SEL_1 = EN_write2 && write2_addr == 4'd0 ;
-  assign MUX_vec_1$write_1__SEL_1 = EN_write2 && write2_addr == 4'd1 ;
-  assign MUX_vec_10$write_1__SEL_1 = EN_write2 && write2_addr == 4'd10 ;
-  assign MUX_vec_11$write_1__SEL_1 = EN_write2 && write2_addr == 4'd11 ;
-  assign MUX_vec_12$write_1__SEL_1 = EN_write2 && write2_addr == 4'd12 ;
-  assign MUX_vec_13$write_1__SEL_1 = EN_write2 && write2_addr == 4'd13 ;
-  assign MUX_vec_14$write_1__SEL_1 = EN_write2 && write2_addr == 4'd14 ;
-  assign MUX_vec_15$write_1__SEL_1 = EN_write2 && write2_addr == 4'd15 ;
-  assign MUX_vec_2$write_1__SEL_1 = EN_write2 && write2_addr == 4'd2 ;
-  assign MUX_vec_3$write_1__SEL_1 = EN_write2 && write2_addr == 4'd3 ;
-  assign MUX_vec_4$write_1__SEL_1 = EN_write2 && write2_addr == 4'd4 ;
-  assign MUX_vec_5$write_1__SEL_1 = EN_write2 && write2_addr == 4'd5 ;
-  assign MUX_vec_6$write_1__SEL_1 = EN_write2 && write2_addr == 4'd6 ;
-  assign MUX_vec_7$write_1__SEL_1 = EN_write2 && write2_addr == 4'd7 ;
-  assign MUX_vec_8$write_1__SEL_1 = EN_write2 && write2_addr == 4'd8 ;
-  assign MUX_vec_9$write_1__SEL_1 = EN_write2 && write2_addr == 4'd9 ;
+  assign MUX_vec_0$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd0 ;
+  assign MUX_vec_1$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd1 ;
+  assign MUX_vec_10$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd10 ;
+  assign MUX_vec_11$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd11 ;
+  assign MUX_vec_12$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd12 ;
+  assign MUX_vec_13$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd13 ;
+  assign MUX_vec_14$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd14 ;
+  assign MUX_vec_15$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd15 ;
+  assign MUX_vec_2$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd2 ;
+  assign MUX_vec_3$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd3 ;
+  assign MUX_vec_4$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd4 ;
+  assign MUX_vec_5$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd5 ;
+  assign MUX_vec_6$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd6 ;
+  assign MUX_vec_7$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd7 ;
+  assign MUX_vec_8$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd8 ;
+  assign MUX_vec_9$write_ARG_1__SEL_1 = EN_write2 && write2_addr == 4'd9 ;
 
   // register vec_0
-  assign vec_0$D_IN = MUX_vec_0$write_1__SEL_1 ;
+  assign vec_0$D_IN = MUX_vec_0$write_ARG_1__SEL_1 ;
   assign vec_0$EN =
 	     EN_write1 && write1_addr == 4'd0 ||
 	     EN_write2 && write2_addr == 4'd0 ;
 
   // register vec_1
-  assign vec_1$D_IN = MUX_vec_1$write_1__SEL_1 ;
+  assign vec_1$D_IN = MUX_vec_1$write_ARG_1__SEL_1 ;
   assign vec_1$EN =
 	     EN_write1 && write1_addr == 4'd1 ||
 	     EN_write2 && write2_addr == 4'd1 ;
 
   // register vec_10
-  assign vec_10$D_IN = MUX_vec_10$write_1__SEL_1 ;
+  assign vec_10$D_IN = MUX_vec_10$write_ARG_1__SEL_1 ;
   assign vec_10$EN =
 	     EN_write1 && write1_addr == 4'd10 ||
 	     EN_write2 && write2_addr == 4'd10 ;
 
   // register vec_11
-  assign vec_11$D_IN = MUX_vec_11$write_1__SEL_1 ;
+  assign vec_11$D_IN = MUX_vec_11$write_ARG_1__SEL_1 ;
   assign vec_11$EN =
 	     EN_write1 && write1_addr == 4'd11 ||
 	     EN_write2 && write2_addr == 4'd11 ;
 
   // register vec_12
-  assign vec_12$D_IN = MUX_vec_12$write_1__SEL_1 ;
+  assign vec_12$D_IN = MUX_vec_12$write_ARG_1__SEL_1 ;
   assign vec_12$EN =
 	     EN_write1 && write1_addr == 4'd12 ||
 	     EN_write2 && write2_addr == 4'd12 ;
 
   // register vec_13
-  assign vec_13$D_IN = MUX_vec_13$write_1__SEL_1 ;
+  assign vec_13$D_IN = MUX_vec_13$write_ARG_1__SEL_1 ;
   assign vec_13$EN =
 	     EN_write1 && write1_addr == 4'd13 ||
 	     EN_write2 && write2_addr == 4'd13 ;
 
   // register vec_14
-  assign vec_14$D_IN = MUX_vec_14$write_1__SEL_1 ;
+  assign vec_14$D_IN = MUX_vec_14$write_ARG_1__SEL_1 ;
   assign vec_14$EN =
 	     EN_write1 && write1_addr == 4'd14 ||
 	     EN_write2 && write2_addr == 4'd14 ;
 
   // register vec_15
-  assign vec_15$D_IN = MUX_vec_15$write_1__SEL_1 ;
+  assign vec_15$D_IN = MUX_vec_15$write_ARG_1__SEL_1 ;
   assign vec_15$EN =
 	     EN_write1 && write1_addr == 4'd15 ||
 	     EN_write2 && write2_addr == 4'd15 ;
 
   // register vec_2
-  assign vec_2$D_IN = MUX_vec_2$write_1__SEL_1 ;
+  assign vec_2$D_IN = MUX_vec_2$write_ARG_1__SEL_1 ;
   assign vec_2$EN =
 	     EN_write1 && write1_addr == 4'd2 ||
 	     EN_write2 && write2_addr == 4'd2 ;
 
   // register vec_3
-  assign vec_3$D_IN = MUX_vec_3$write_1__SEL_1 ;
+  assign vec_3$D_IN = MUX_vec_3$write_ARG_1__SEL_1 ;
   assign vec_3$EN =
 	     EN_write1 && write1_addr == 4'd3 ||
 	     EN_write2 && write2_addr == 4'd3 ;
 
   // register vec_4
-  assign vec_4$D_IN = MUX_vec_4$write_1__SEL_1 ;
+  assign vec_4$D_IN = MUX_vec_4$write_ARG_1__SEL_1 ;
   assign vec_4$EN =
 	     EN_write1 && write1_addr == 4'd4 ||
 	     EN_write2 && write2_addr == 4'd4 ;
 
   // register vec_5
-  assign vec_5$D_IN = MUX_vec_5$write_1__SEL_1 ;
+  assign vec_5$D_IN = MUX_vec_5$write_ARG_1__SEL_1 ;
   assign vec_5$EN =
 	     EN_write1 && write1_addr == 4'd5 ||
 	     EN_write2 && write2_addr == 4'd5 ;
 
   // register vec_6
-  assign vec_6$D_IN = MUX_vec_6$write_1__SEL_1 ;
+  assign vec_6$D_IN = MUX_vec_6$write_ARG_1__SEL_1 ;
   assign vec_6$EN =
 	     EN_write1 && write1_addr == 4'd6 ||
 	     EN_write2 && write2_addr == 4'd6 ;
 
   // register vec_7
-  assign vec_7$D_IN = MUX_vec_7$write_1__SEL_1 ;
+  assign vec_7$D_IN = MUX_vec_7$write_ARG_1__SEL_1 ;
   assign vec_7$EN =
 	     EN_write1 && write1_addr == 4'd7 ||
 	     EN_write2 && write2_addr == 4'd7 ;
 
   // register vec_8
-  assign vec_8$D_IN = MUX_vec_8$write_1__SEL_1 ;
+  assign vec_8$D_IN = MUX_vec_8$write_ARG_1__SEL_1 ;
   assign vec_8$EN =
 	     EN_write1 && write1_addr == 4'd8 ||
 	     EN_write2 && write2_addr == 4'd8 ;
 
   // register vec_9
-  assign vec_9$D_IN = MUX_vec_9$write_1__SEL_1 ;
+  assign vec_9$D_IN = MUX_vec_9$write_ARG_1__SEL_1 ;
   assign vec_9$EN =
 	     EN_write1 && write1_addr == 4'd9 ||
 	     EN_write2 && write2_addr == 4'd9 ;

@@ -81,18 +81,18 @@ i :: ABSTRACT:  MethodActionValue.Ifc­ = mkMethodActionValue_Sub
 					  [])
 					 [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }]
 					 []
-					 meth types=[([], Just (Bit 1), Just (Bit 8)), ([], Nothing, Just (Bit 1))]
+					 meth types=[([], Just (Bit 1), [Bit 8]), ([], Nothing, [Bit 1])]
 					 port types=m -> Prelude.Bit 8
 -- AP local definitions
 i_m_PLUS_8___d2 :: Bit 8;
-i_m_PLUS_8___d2  = v__h90 + 8'd8;
+i_m_PLUS_8___d2  = v__h105 + 8'd8;
 -- IdProp i_m_PLUS_8___d2[IdP_from_rhs]
 i_m_MINUS_1___d3 :: Bit 8;
-i_m_MINUS_1___d3  = v__h90 - 8'd1;
+i_m_MINUS_1___d3  = v__h105 - 8'd1;
 -- IdProp i_m_MINUS_1___d3[IdP_from_rhs]
-v__h90 :: Bit 8;
-v__h90  = i.m;
--- IdProp v__h90[IdP_keep]
+v__h105 :: Bit 8;
+v__h105  = i.m;
+-- IdProp v__h105[IdP_keep]
 -- AP rules
 rule RL_r "r":
  when 1'd1

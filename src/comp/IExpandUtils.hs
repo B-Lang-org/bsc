@@ -362,19 +362,24 @@ isPrimType (ITCon i _ _) = i == idPrimAction ||
                            -- i == idInteger
                            i == idFmt || -- also not really a primitive
                            i == idClock ||
-                           i == idReset
+                           i == idReset ||
+                           i == idPrimUnit
+-- ActionValue_ must be applied to (a tuple of) Bit
+isPrimType (ITAp (ITCon i _ _) t)
+  | i == idActionValue_ = t == itPrimUnit || isBitTupleType t
 -- Primitive constructor applied to numeric type(s)
 -- We normalize types so no unresolved numeric types should escape elaboration.
 isPrimType (ITAp a (ITNum _)) = isPrimTAp a
 -- Primitive arrays
 isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
+-- Tuples of bits
+isPrimType t | isBitTupleType t = True
 isPrimType _ = False
 
 -- Primitive type applications
 isPrimTAp :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
-isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
-                          i == idBit ||
+isPrimTAp (ITCon i _ _) = i == idBit ||
                           i == idInout_
 -- Again, no unresolved numeric types should escape elaboration.
 isPrimTAp (ITAp a (ITNum _)) = isPrimTAp a
@@ -2069,8 +2074,8 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
 
     ifc_port_names =
       [ (n, i)
-      | IEFace {ief_fieldinfo = Method i _ _ _ ins out en} <- ifcs,
-        (VName n, _) <- ins ++ maybeToList out ++ maybeToList en ]
+      | IEFace {ief_fieldinfo = Method i _ _ _ ins outs en} <- ifcs,
+        (VName n, _) <- ins ++ outs ++ maybeToList en ]
     ifc_inout_names =
       [ (n, i) | IEFace {ief_fieldinfo = Inout i (VName n) _ _} <- ifcs ]
     ifc_clock_names =

@@ -33,7 +33,7 @@ r :: ABSTRACT:  Prelude.VReg = RegUN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, 32'd12]
 			       []
-			       meth types=[([], Nothing, Just (Bit 12)), ([Bit 12], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 12]), ([Bit 12], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 12
 					  Q_OUT -> Prelude.Bit 12
 -- AP local definitions

@@ -66,7 +66,7 @@ import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
-import Data.List(partition, intersperse, intercalate, nub, sortBy)
+import Data.List(partition, intersperse, intercalate, nub, sortBy, genericDrop)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad(when)
@@ -367,6 +367,7 @@ aTypeToCType :: AType -> (CCFragment -> CCFragment)
 aTypeToCType (ATBit size) = (`ofType` (bitsType size CTunsigned))
 aTypeToCType (ATString _) = (`ofType` (classType "std::string"))
 aTypeToCType (ATReal) = (`ofType` doubleType)
+aTypeToCType (ATTuple ts) = userType "WideData"
 aTypeToCType (ATArray _ _) = internalError "Unexpected array"
 aTypeToCType (ATAbstract _ _) = internalError "Unexpected abstract type"
 
@@ -638,8 +639,7 @@ getWDataTest = do
    return f
 
 isWideDef :: (AType, AId) -> Bool
-isWideDef x@(ATBit sz, aid) | sz > 64 = True
-isWideDef x                           = False
+isWideDef (t, _) = wideDataType t
 
 mkUndetVal :: AType -> State ConvState CCExpr
 mkUndetVal ty = do
@@ -874,6 +874,7 @@ mkPrimCall ret sz name args =
         mkArg expr = if (isConst expr)              ||
                         (isStringType (aType expr)) ||
                         ((aType expr) == ATReal) ||
+                        (isTupleType (aType expr)) ||
                         ((aSize expr) > 64)
                      then aExprToCExpr noRet expr
                      else do cexpr <- aExprToCExpr noRet expr
@@ -1068,6 +1069,11 @@ aExprToCExpr _ p@(APrim _ _ _ _) =
 aExprToCExpr _ (AMethCall _ id mid args) =
   do arg_list <- mapM (aExprToCExpr noRet) args
      return $ (aInstMethIdToC id mid) `cCall` arg_list
+aExprToCExpr ret e@(ATuple _ exprs) =
+  wideConcatPrim ret (aSize e) exprs
+aExprToCExpr ret (ATupleSel t e idx) =
+  wideExtractPrim ret (aSize t) e (aSize t + sizeAfter - 1) sizeAfter
+  where sizeAfter = sum $ map aSize $ genericDrop idx $ att_elem_types $ ae_type e
 aExprToCExpr _ e@(AMGate _ id clkid) =
   do gmap <- gets gate_map
      case (M.lookup e gmap) of
@@ -1145,7 +1151,7 @@ simFnStmtToCStmt (SFSDef isPort (ty,aid) Nothing) =
   let w = aSize ty
       dst = if isPort then aPortIdToCLval aid else aDefIdToCLval aid
       typed_id = (aTypeToCType ty) dst
-  in if w > 64   -- for wide data, use (bits,false) constructor to avoid initialization penalty
+  in if w > 64 || isTupleType ty   -- for wide data, use (bits,false) constructor to avoid initialization penalty
      then return $ construct typed_id [mkUInt32 w, mkBool False]
      else return $ decl typed_id
 simFnStmtToCStmt (SFSDef isPort (ty@(ATString (Just sz)),aid) (Just expr)) =
@@ -1422,6 +1428,11 @@ mkPortInit ((ATBit n),_,vn) | n > 32 =
   [ assign (aPortIdToCLval (vName_to_id vn)) (mkUInt64 0) ]
 mkPortInit ((ATBit n),_,vn) =
   [ assign (aPortIdToCLval (vName_to_id vn)) (mkUInt32 0) ]
+mkPortInit (t@(ATTuple _),_,vn) =
+  let p = aPortIdToC (vName_to_id vn)
+  in [ stmt $ p `cDot` "setSize" `cCall` [ mkUInt32 $ aSize t ]
+     , stmt $ p `cDot` "clear" `cCall` []
+     ]
 mkPortInit p = internalError ("SimCCBlock.mkPortInit: " ++ ppReadable p)
 
 -- Create a call to the "set_reset_fn" for submodules with output resets
@@ -1708,6 +1719,8 @@ mkCtorInit task_id_set (aty@(ATBit sz),aid)
                 = let val = ASInt defaultAId aty (ilHex (aaaa sz))
                   in  Just (aid,[val])
   | otherwise   = Nothing
+mkCtorInit _ (aty@(ATTuple _),aid) =
+  Just (aid, [ aNat (aSize aty) ])
 -- system tasks shouldn't be returning other types (like String),
 -- so no need to consult the task_id_set
 mkCtorInit _ _  = Nothing
@@ -2142,11 +2155,11 @@ wideLocalDef (SFSDef _ (ty, aid) _) = if wideDataType ty
                                       else []
 wideLocalDef _ = []
 
--- return True if this type is wider than 64 bits
+-- return True if this type is represented as wide data
+-- (i.e. it is larger than 64 bits, or it is a tuple)
 wideDataType :: AType -> Bool
-wideDataType (ATBit sz)
-    | sz > 64 = True
-    | otherwise = False
+wideDataType (ATBit sz) = sz > 64
+wideDataType (ATTuple ts) = True
 wideDataType _ = False
 
 
