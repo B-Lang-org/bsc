@@ -23,7 +23,6 @@ NOASCIIDOCTOR ?= 0
 LICDIR = ../LICENSES
 
 LICFILES = $(addprefix $(LICDIR)/, \
-	LICENSE.ghc \
 	LICENSE.hbc \
 	LICENSE.parsec \
 	LICENSE.stp \

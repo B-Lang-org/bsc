@@ -41,10 +41,6 @@ copyright and licensing:
     Don Stewart's yices-painless package
   * See LICENSES/LICENSE.yices-painless
 
-* GHC Haskell Libraries
-  * BSC source includes a file adapted from the GHC MVar library
-  * See LICENSES/LICENSE.ghc
-
 * HBC Libraries
   * BSC source includes files adapted from Haskell libraries
     (from the HBC compiler) written by Lennart Augustsson and
