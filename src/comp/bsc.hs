@@ -2217,7 +2217,7 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
 -- ===============
 
 iPCheck :: Flags -> SymTab -> IPackage a -> String -> IO ()
-iPCheck flags symt ipkg desc = --rnf ipkg $
+iPCheck flags symt ipkg desc = -- deepseq ipkg $
         if doICheck flags && not (tCheckIPackage flags symt ipkg)
             then internalError (
                 "internal typecheck failed (iPCheck after " ++
