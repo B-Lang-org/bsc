@@ -66,7 +66,7 @@ import Eval
 --     fairness properties of abstractions built using 'MVar's.
 --
 putMVar  :: NFData a => MVar a -> a -> IO ()
-putMVar (MVar mvar#) !x = rnf x `seq` IO $ \ s# -> -- strict!
+putMVar (MVar mvar#) !x = deepseq x $ IO $ \ s# -> -- strict!
     case putMVar# mvar# x s# of
         s2# -> (# s2#, () #)
 
