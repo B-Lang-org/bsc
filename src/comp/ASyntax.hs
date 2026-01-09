@@ -355,7 +355,8 @@ instance PPrint ASPMethodInfo where
                                 pPrint d 0 (aspm_inputs aspmi) $+$
                                 pPrint d 0 (aspm_assocrules aspmi) )
 
-
+instance NFData ASPMethodInfo where
+    rnf (ASPMethodInfo n t mr me mres ins assoc) = rnf7 n t mr me mres ins assoc
 
 instance NFData ASPSignalInfo where
     rnf (ASPSignalInfo ins oclks orsts iots meths iports rsched muxsels muxvals senables) =
@@ -398,6 +399,9 @@ newtype AScheduler =
           --      So [[a,b],[c],[d,e,f]] = !(ab) && !c && !(def)
     ASchedEsposito [(ARuleId, [ARuleId])]
         deriving (Eq, Show)
+
+instance NFData AScheduler where
+    rnf (ASchedEsposito fs) = rnf fs
 
 getSchedulerIds :: AScheduler -> [ARuleId]
 getSchedulerIds (ASchedEsposito fs) = map fst fs
@@ -537,6 +541,12 @@ data AAbstractInput =
         --   AAI_Struct [(AId, AType)]
         --   ...
     deriving (Eq, Show)
+
+instance NFData AAbstractInput where
+    rnf (AAI_Port p) = rnf p
+    rnf (AAI_Clock osc mgate) = rnf2 osc mgate
+    rnf (AAI_Reset wire) = rnf wire
+    rnf (AAI_Inout wire sz) = rnf2 wire sz
 
 absInputToPorts :: AAbstractInput -> [AInput]
 absInputToPorts (AAI_Port p) = [p]
@@ -734,6 +744,10 @@ data ARule =
     }
         deriving (Eq, Show)
 
+instance NFData ARule where
+    rnf (ARule rid prags descr wprops pred acts assumps mparent) =
+        rnf8 rid prags descr wprops pred acts assumps mparent
+
 type ARuleDescr = String
 
 type ARuleId = Id
@@ -753,6 +767,9 @@ data AAssumption =
                                     -- cannot include method calls
     }
   deriving (Eq, Show)
+
+instance NFData AAssumption where
+    rnf (AAssumption prop acts) = rnf2 prop acts
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
@@ -788,6 +805,17 @@ data AIFace =   AIDef { aif_name      :: AId,
                           aif_inout     :: AInout,
                           aif_fieldinfo :: VFieldInfo }
    deriving (Eq, Show)
+
+instance NFData AIFace where
+    rnf (AIDef name ins props pred val finfo assumps) =
+        rnf7 name ins props pred val finfo assumps
+    rnf (AIAction ins props pred name body finfo) =
+        rnf6 ins props pred name body finfo
+    rnf (AIActionValue ins props pred name body val finfo) =
+        rnf7 ins props pred name body val finfo
+    rnf (AIClock name clk finfo) = rnf3 name clk finfo
+    rnf (AIReset name rst finfo) = rnf3 name rst finfo
+    rnf (AIInout name inout finfo) = rnf3 name inout finfo
 
 aIfaceName :: AIFace -> AId
 aIfaceName (AIDef { aif_value = (ADef i _ _ _)}) = i  -- XXX use aif_name
@@ -960,6 +988,9 @@ instance PPrint AClock where
         (pPrint d p gate) <+>
         (text "}")
 
+instance NFData AClock where
+    rnf (AClock osc gate) = rnf2 osc gate
+
 mkOutputWireId :: AId -> VName -> AId
 mkOutputWireId var_id (VName wire_str) =
   let var_fstr  = getIdFString (unQualId var_id)
@@ -991,6 +1022,12 @@ instance PPrint AReset where
 
 instance PPrint AInout where
   pPrint d p (AInout { ainout_wire = wire }) = (text "{ wire: ") <+> (pPrint d p wire) <+> (text "}")
+
+instance NFData AReset where
+    rnf (AReset wire) = rnf wire
+
+instance NFData AInout where
+    rnf (AInout wire) = rnf wire
 
 -- Every expression is annotated with its (result) type
         -- all types should be ae_type
@@ -1215,6 +1252,8 @@ data ANoInlineFun =
          (Maybe String)
     deriving (Eq, Ord, Show)
 
+instance NFData ANoInlineFun where
+    rnf (ANoInlineFun name nums ports minst) = rnf4 name nums ports minst
 
 -- first element are the oscillators whose edges trigger evaluation
 -- second element is the block of function calls
@@ -1489,48 +1528,6 @@ instance PPrint AForeignCall where
 
 instance NFData AForeignCall where
     rnf (AForeignCall n f a w r) = rnf5 n f a w r
-
-instance NFData ASPMethodInfo where
-    rnf (ASPMethodInfo n t mr me mres ins assoc) = rnf7 n t mr me mres ins assoc
-
-instance NFData AScheduler where
-    rnf (ASchedEsposito fs) = rnf fs
-
-instance NFData AClock where
-    rnf (AClock osc gate) = rnf2 osc gate
-
-instance NFData AReset where
-    rnf (AReset wire) = rnf wire
-
-instance NFData AInout where
-    rnf (AInout wire) = rnf wire
-
-instance NFData ANoInlineFun where
-    rnf (ANoInlineFun name nums ports minst) = rnf4 name nums ports minst
-
-instance NFData AAbstractInput where
-    rnf (AAI_Port p) = rnf p
-    rnf (AAI_Clock osc mgate) = rnf2 osc mgate
-    rnf (AAI_Reset wire) = rnf wire
-    rnf (AAI_Inout wire sz) = rnf2 wire sz
-
-instance NFData ARule where
-    rnf (ARule rid prags descr wprops pred acts assumps mparent) =
-        rnf8 rid prags descr wprops pred acts assumps mparent
-
-instance NFData AAssumption where
-    rnf (AAssumption prop acts) = rnf2 prop acts
-
-instance NFData AIFace where
-    rnf (AIDef name ins props pred val finfo assumps) =
-        rnf7 name ins props pred val finfo assumps
-    rnf (AIAction ins props pred name body finfo) =
-        rnf6 ins props pred name body finfo
-    rnf (AIActionValue ins props pred name body val finfo) =
-        rnf7 ins props pred name body val finfo
-    rnf (AIClock name clk finfo) = rnf3 name clk finfo
-    rnf (AIReset name rst finfo) = rnf3 name rst finfo
-    rnf (AIInout name inout finfo) = rnf3 name inout finfo
 
 isOne :: AExpr -> Bool
 isOne (ASInt _ _ (IntLit _ _ 1)) = True

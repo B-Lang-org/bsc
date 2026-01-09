@@ -83,145 +83,6 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 data VProgram = VProgram [VModule] [VDPI] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
-instance NFData VProgram where
-    rnf (VProgram mods dpis cmt) = rnf3 mods dpis cmt
-
-instance NFData VModule where
-    rnf (VModule name cmt ports body) = rnf4 name cmt ports body
-
-instance NFData VDPI where
-    rnf (VDPI name ret args) = rnf3 name ret args
-
-instance NFData VDPIType where
-    rnf VDT_void = ()
-    rnf VDT_byte = ()
-    rnf VDT_int = ()
-    rnf VDT_longint = ()
-    rnf (VDT_wide n) = rnf n
-    rnf VDT_string = ()
-    rnf VDT_poly = ()
-
-instance NFData VId where
-    rnf (VId s id mitem) = rnf3 s id mitem
-
-instance NFData VArg where
-    rnf (VAInput vid mr) = rnf2 vid mr
-    rnf (VAInout vid mvid mmr) = rnf3 vid mvid mmr
-    rnf (VAOutput vid mr) = rnf2 vid mr
-    rnf (VAParameter vid mr expr) = rnf3 vid mr expr
-
-instance NFData VMItem where
-    rnf (VMDecl vdecl) = rnf vdecl
-    rnf (VMInst mname iname params ports) = rnf4 mname iname params ports
-    rnf (VMAssign lval expr) = rnf2 lval expr
-    rnf (VMStmt toff body) = rnf2 toff body
-    rnf (VMComment cmt item) = rnf2 cmt item
-    rnf (VMRegGroup vid s cmt item) = rnf4 vid s cmt item
-    rnf (VMGroup toff body) = rnf2 toff body
-    rnf (VMFunction vfun) = rnf vfun
-
-instance NFData VFunction where
-    rnf (VFunction name range decls stmt) = rnf4 name range decls stmt
-
-instance NFData VStmt where
-    rnf (VAt ev stmt) = rnf2 ev stmt
-    rnf (Valways stmt) = rnf stmt
-    rnf (Vinitial stmt) = rnf stmt
-    rnf (VSeq stmts) = rnf stmts
-    rnf (Vcasex expr arms par full) = rnf4 expr arms par full
-    rnf (Vcase expr arms par full) = rnf4 expr arms par full
-    rnf (VAssign lval expr) = rnf2 lval expr
-    rnf (VAssignA lval expr) = rnf2 lval expr
-    rnf (Vif expr stmt) = rnf2 expr stmt
-    rnf (Vifelse expr s1 s2) = rnf3 expr s1 s2
-    rnf (Vdumpvars lvl vars) = rnf2 lvl vars
-    rnf (VTask tid exprs) = rnf2 tid exprs
-    rnf (VAssert ev exprs) = rnf2 ev exprs
-    rnf VZeroDelay = ()
-
-instance NFData VLValue where
-    rnf (VLId vid) = rnf vid
-    rnf (VLConcat lvals) = rnf lvals
-    rnf (VLSub lval expr) = rnf2 lval expr
-
-instance NFData VVDecl where
-    rnf (VVDecl dtype mrange vars) = rnf3 dtype mrange vars
-    rnf (VVDWire mrange var expr) = rnf3 mrange var expr
-
-instance NFData VExpr where
-    rnf (VEConst i) = rnf i
-    rnf (VEReal d) = rnf d
-    rnf (VEWConst vid w b i) = rnf4 vid w b i
-    rnf (VEUnknown w val) = rnf2 w val
-    rnf (VEString s) = rnf s
-    rnf (VETriConst ts) = rnf ts
-    rnf (VEUnOp vid op expr) = rnf3 vid op expr
-    rnf (VEOp vid e1 op e2) = rnf4 vid e1 op e2
-    rnf (VEVar vid) = rnf vid
-    rnf (VEConcat exprs) = rnf exprs
-    rnf (VEIndex vid expr) = rnf2 vid expr
-    rnf (VESelect e1 e2 e3) = rnf3 e1 e2 e3
-    rnf (VESelect1 e1 e2) = rnf2 e1 e2
-    rnf (VERepeat e1 e2) = rnf2 e1 e2
-    rnf (VEIf e1 e2 e3) = rnf3 e1 e2 e3
-    rnf (VEFctCall vid exprs) = rnf2 vid exprs
-    rnf (VEMacro s) = rnf s
-
-instance NFData VEventExpr where
-    rnf (VEEOr e1 e2) = rnf2 e1 e2
-    rnf (VEEposedge expr) = rnf expr
-    rnf (VEEnegedge expr) = rnf expr
-    rnf (VEE expr) = rnf expr
-    rnf (VEEMacro s expr) = rnf2 s expr
-
-instance NFData VCaseArm where
-    rnf (VCaseArm exprs stmt) = rnf2 exprs stmt
-    rnf (VDefault stmt) = rnf stmt
-
-instance NFData VDType where
-    rnf VDReg = ()
-    rnf VDWire = ()
-    rnf VDInput = ()
-    rnf VDInout = ()
-    rnf VDOutput = ()
-
-instance NFData VVar where
-    rnf (VVar vid) = rnf vid
-    rnf (VArray range vid) = rnf2 range vid
-
-instance NFData VTri where
-    rnf V0 = ()
-    rnf V1 = ()
-    rnf Vx = ()
-    rnf Vz = ()
-
-instance NFData VOp where
-    rnf VNot = ()
-    rnf VInv = ()
-    rnf VNeg = ()
-    rnf VMul = ()
-    rnf VQuot = ()
-    rnf VRem = ()
-    rnf VAdd = ()
-    rnf VSub = ()
-    rnf VShL = ()
-    rnf VShR = ()
-    rnf VShLA = ()
-    rnf VShRA = ()
-    rnf VULT = ()
-    rnf VULE = ()
-    rnf VUGT = ()
-    rnf VUGE = ()
-    rnf VEQ = ()
-    rnf VNE = ()
-    rnf VEQ3 = ()
-    rnf VNE3 = ()
-    rnf VAnd = ()
-    rnf VXor = ()
-    rnf VOr = ()
-    rnf VLAnd = ()
-    rnf VLOr = ()
-
 instance PPrint VProgram where
     pPrint d p (VProgram ms dpis cs) =
         ppComment cs $+$
@@ -250,6 +111,9 @@ instance PPrint VProgram where
         dpi_decls =
           vsep (map (pPrint d 0) dpis) $+$
           if (not (null dpis)) then text "" else empty
+
+instance NFData VProgram where
+    rnf (VProgram mods dpis cmt) = rnf3 mods dpis cmt
 
 -- VComment
 --    * a list of single-line comments (already broken into lines)
@@ -284,6 +148,9 @@ instance PPrint VDPI where
         sepList (map ppArg args) (text ",") <>
         text ");"
 
+instance NFData VDPI where
+    rnf (VDPI name ret args) = rnf3 name ret args
+
 data VDPIType = VDT_void
               | VDT_byte
               | VDT_int
@@ -302,6 +169,14 @@ instance PPrint VDPIType where
   pPrint _ _ VDT_string  = text "string"
   pPrint _ _ VDT_poly    = text "bit []"
 
+instance NFData VDPIType where
+    rnf VDT_void = ()
+    rnf VDT_byte = ()
+    rnf VDT_int = ()
+    rnf VDT_longint = ()
+    rnf (VDT_wide n) = rnf n
+    rnf VDT_string = ()
+    rnf VDT_poly = ()
 
 -- VModule:
 --    * the module name
@@ -364,6 +239,8 @@ instance PPrint VModule where
         in
             comments $+$ modheader $+$ modbody $+$ modtail
 
+instance NFData VModule where
+    rnf (VModule name cmt ports body) = rnf4 name cmt ports body
 
 data VArg
         = VAInput VId (Maybe VRange)
@@ -388,6 +265,12 @@ instance PPrint VArg where
         text "VAOutput" <+> pPrint d 0 i <+> ppMRange d mr
     pPrint d p (VAParameter i mr e) =
         text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e
+
+instance NFData VArg where
+    rnf (VAInput vid mr) = rnf2 vid mr
+    rnf (VAInout vid mvid mmr) = rnf3 vid mvid mmr
+    rnf (VAOutput vid mr) = rnf2 vid mr
+    rnf (VAParameter vid mr expr) = rnf3 vid mr expr
 
 ppVArgPort :: PDetail -> VArg -> Doc
 ppVArgPort d (VAInput i _) = pPrint d 0 i
@@ -512,6 +395,16 @@ instance PPrint VMItem where
             ppComment cs $+$
             pPrint d p stmt
 
+instance NFData VMItem where
+    rnf (VMDecl vdecl) = rnf vdecl
+    rnf (VMInst mname iname params ports) = rnf4 mname iname params ports
+    rnf (VMAssign lval expr) = rnf2 lval expr
+    rnf (VMStmt toff body) = rnf2 toff body
+    rnf (VMComment cmt item) = rnf2 cmt item
+    rnf (VMRegGroup vid s cmt item) = rnf4 vid s cmt item
+    rnf (VMGroup toff body) = rnf2 toff body
+    rnf (VMFunction vfun) = rnf vfun
+
 pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
 pv95params d (Nothing,x)  =  pPrint d 0 x
 pv95params d (Just "", x) =  pPrint d 0 x
@@ -569,6 +462,9 @@ vGroupWithComment True  vmis comment =
 
 data VFunction = VFunction VId (Maybe VRange) [VFDecl] VStmt
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VFunction where
+    rnf (VFunction name range decls stmt) = rnf4 name range decls stmt
 
 type VFDecl = VVDecl -- not quite right
 
@@ -657,6 +553,22 @@ instance PPrint VStmt where
 
         pPrint d p  VZeroDelay     = text "#0;"
 
+instance NFData VStmt where
+    rnf (VAt ev stmt) = rnf2 ev stmt
+    rnf (Valways stmt) = rnf stmt
+    rnf (Vinitial stmt) = rnf stmt
+    rnf (VSeq stmts) = rnf stmts
+    rnf (Vcasex expr arms par full) = rnf4 expr arms par full
+    rnf (Vcase expr arms par full) = rnf4 expr arms par full
+    rnf (VAssign lval expr) = rnf2 lval expr
+    rnf (VAssignA lval expr) = rnf2 lval expr
+    rnf (Vif expr stmt) = rnf2 expr stmt
+    rnf (Vifelse expr s1 s2) = rnf3 expr s1 s2
+    rnf (Vdumpvars lvl vars) = rnf2 lvl vars
+    rnf (VTask tid exprs) = rnf2 tid exprs
+    rnf (VAssert ev exprs) = rnf2 ev exprs
+    rnf VZeroDelay = ()
+
 ppAssert :: PDetail -> Int -> VEventExpr -> [VExpr] -> Doc
 --ppAssert d i ev (VEString s : es) = text (pretty 78 78 (ppAs1 d i s es))
 ppAssert d i ev (VEString s1 :
@@ -713,6 +625,11 @@ instance PPrint VLValue where
         pPrint d p (VLConcat vs) = text "{ " <> commaList d vs <> text " }"
         pPrint d p (VLSub i e) = pPrint d 100 i <> text "[" <> pPrint d 0 e <> text "]"
 
+instance NFData VLValue where
+    rnf (VLId vid) = rnf vid
+    rnf (VLConcat lvals) = rnf lvals
+    rnf (VLSub lval expr) = rnf2 lval expr
+
 data VCaseArm
         = VCaseArm [VExpr] VStmt
         | VDefault VStmt
@@ -725,6 +642,10 @@ instance PPrint VCaseArm where
             sep [ sepList (map (pPrint d 0) es) (text ",") <> text ":",
                   nest 4 (pPrint d 0 s) ]
         pPrint d p (VDefault s) = text "default:" <+> pPrint d 0 s
+
+instance NFData VCaseArm where
+    rnf (VCaseArm exprs stmt) = rnf2 exprs stmt
+    rnf (VDefault stmt) = rnf stmt
 
 -- Always add begin end blocks -- more consistent with a "good" Verilog style
 vSeq :: [VStmt] -> VStmt
@@ -755,6 +676,10 @@ instance PPrint VVDecl where
             sep [text "wire" <+> pPrint d 0 i <+> text "=",
                       nest 4 (pPrint d 0 e <> text ";")]
 
+instance NFData VVDecl where
+    rnf (VVDecl dtype mrange vars) = rnf3 dtype mrange vars
+    rnf (VVDWire mrange var expr) = rnf3 mrange var expr
+
 -- A short cut constructor
 vVDecl :: VDType -> Maybe VRange -> VVar -> VVDecl
 vVDecl t r v = VVDecl t r [v]
@@ -772,6 +697,13 @@ instance PPrint VDType where
         pPrint d p VDInout  = text "inout "
         pPrint d p VDOutput = text "output"
 
+instance NFData VDType where
+    rnf VDReg = ()
+    rnf VDWire = ()
+    rnf VDInput = ()
+    rnf VDInout = ()
+    rnf VDOutput = ()
+
 data VVar
         = VVar VId
         | VArray VRange VId
@@ -787,6 +719,10 @@ instance PPrint VVar where
         pPrint d p (VVar i) = pPrint d p i
         pPrint d p (VArray (l, h) i) = pPrint d p i <> ppRange d l h
 
+instance NFData VVar where
+    rnf (VVar vid) = rnf vid
+    rnf (VArray range vid) = rnf2 range vid
+
 vvName :: VVar -> VId
 vvName (VVar i) = i
 vvName (VArray _ i) = i
@@ -801,6 +737,9 @@ instance Ord VId where
 
 instance Eq VId where
     VId string _ _ == VId string' _ _ = (string == string')
+
+instance NFData VId where
+    rnf (VId s id mitem) = rnf3 s id mitem
 
 mkVId :: String -> VId
 mkVId string = VId string
@@ -850,6 +789,12 @@ instance PPrint VEventExpr where
         pPrint d p (VEE e) = pPrint d p e
         pPrint d p (VEEMacro s e) = text ("`" ++ s) <+> pPrint d (p+1) e
 
+instance NFData VEventExpr where
+    rnf (VEEOr e1 e2) = rnf2 e1 e2
+    rnf (VEEposedge expr) = rnf expr
+    rnf (VEEnegedge expr) = rnf expr
+    rnf (VEE expr) = rnf expr
+    rnf (VEEMacro s expr) = rnf2 s expr
 
 data VExpr
         = VEConst Integer
@@ -913,6 +858,25 @@ instance PPrint VExpr where
         pPrint d p (VEFctCall f []) | isTaskVId f = pPrint d 0 f
         pPrint d p (VEFctCall f es) = pPrint d 0 f <> text "(" <> commaList d es <> text ")"
 
+instance NFData VExpr where
+    rnf (VEConst i) = rnf i
+    rnf (VEReal d) = rnf d
+    rnf (VEWConst vid w b i) = rnf4 vid w b i
+    rnf (VEUnknown w val) = rnf2 w val
+    rnf (VEString s) = rnf s
+    rnf (VETriConst ts) = rnf ts
+    rnf (VEUnOp vid op expr) = rnf3 vid op expr
+    rnf (VEOp vid e1 op e2) = rnf4 vid e1 op e2
+    rnf (VEVar vid) = rnf vid
+    rnf (VEConcat exprs) = rnf exprs
+    rnf (VEIndex vid expr) = rnf2 vid expr
+    rnf (VESelect e1 e2 e3) = rnf3 e1 e2 e3
+    rnf (VESelect1 e1 e2) = rnf2 e1 e2
+    rnf (VERepeat e1 e2) = rnf2 e1 e2
+    rnf (VEIf e1 e2 e3) = rnf3 e1 e2 e3
+    rnf (VEFctCall vid exprs) = rnf2 vid exprs
+    rnf (VEMacro s) = rnf s
+
 createVEWConstString :: Integer -> Integer -> Integer -> String
 createVEWConstString width base 0 =
     (itos width ++ "'" ++ baseChar base ++ "0")
@@ -954,6 +918,11 @@ instance PPrint VTri where
         pPrint d p Vx = text "x"
         pPrint d p Vz = text "z"
 
+instance NFData VTri where
+    rnf V0 = ()
+    rnf V1 = ()
+    rnf Vx = ()
+    rnf Vz = ()
 
 data VOp
         = VNot                          -- logical not !
@@ -975,6 +944,33 @@ data VOp
 
 instance PPrint VOp where
         pPrint d p op = text (getOpString op)
+
+instance NFData VOp where
+    rnf VNot = ()
+    rnf VInv = ()
+    rnf VNeg = ()
+    rnf VMul = ()
+    rnf VQuot = ()
+    rnf VRem = ()
+    rnf VAdd = ()
+    rnf VSub = ()
+    rnf VShL = ()
+    rnf VShR = ()
+    rnf VShLA = ()
+    rnf VShRA = ()
+    rnf VULT = ()
+    rnf VULE = ()
+    rnf VUGT = ()
+    rnf VUGE = ()
+    rnf VEQ = ()
+    rnf VNE = ()
+    rnf VEQ3 = ()
+    rnf VNE3 = ()
+    rnf VAnd = ()
+    rnf VXor = ()
+    rnf VOr = ()
+    rnf VLAnd = ()
+    rnf VLOr = ()
 
 getOpString :: VOp -> String
 getOpString VNot = "!"

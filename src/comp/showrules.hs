@@ -238,6 +238,11 @@ data Signal = ClockSignal { clk_domain     :: Int
             | WFSignal
   deriving (Eq,Show)
 
+instance NFData Signal where
+  rnf (ClockSignal d n fc bc vw fs r rw) = rnf8 d n fc bc vw fs r rw
+  rnf CFSignal = ()
+  rnf WFSignal = ()
+
 -- The conversion is a lazy left-fold over a list of VCD commands, which
 -- tracks the state of the fold using the ConvState structure.
 data ConvState = ConvState { be_verbose     :: Bool
@@ -1575,11 +1580,3 @@ dbg_trace Nothing    _ x = x
 dbg_trace (Just hdl) s x = unsafePerformIO $ do hPutStr hdl s
                                                 hFlush hdl
                                                 return x
-
--- ---------------
--- NFData instances
-
-instance NFData Signal where
-  rnf (ClockSignal d n fc bc vw fs r rw) = rnf8 d n fc bc vw fs r rw
-  rnf CFSignal = ()
-  rnf WFSignal = ()

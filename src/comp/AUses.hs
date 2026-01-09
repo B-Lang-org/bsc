@@ -402,6 +402,9 @@ instance PPrint RuleUses where
 instance Show RuleUses where
    show ruses = ppReadable ruses
 
+instance NFData RuleUses where
+    rnf (RuleUses pus rus wus) = rnf3 pus rus wus
+
 -- AAddSchedAssumps uses the RuleUsesMap to generate the code to check
 -- "conflict_free" assumptions.
 -- XXX This function returns the old UniqueUses datatype, so that
@@ -600,9 +603,6 @@ data UseCond = UseCond { true_exprs :: S.Set AExpr,
 
 instance NFData UseCond where
   rnf (UseCond t f eq neq) = rnf4 t f eq neq
-
-instance NFData RuleUses where
-    rnf (RuleUses pus rus wus) = rnf3 pus rus wus
 
 ucTrue, ucFalse :: UseCond
 ucTrue  = UseCond S.empty S.empty M.empty M.empty
