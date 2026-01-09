@@ -33,7 +33,9 @@ data UndefKind = UNotUsed | UDontCare | UNoMatch
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 instance NFData UndefKind where
-    rnf x = seq x ()
+    rnf UNotUsed = ()
+    rnf UDontCare = ()
+    rnf UNoMatch = ()
 
 -- =====
 
