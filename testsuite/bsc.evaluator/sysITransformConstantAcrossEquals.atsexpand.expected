@@ -25,7 +25,7 @@ r :: ABSTRACT:  Prelude.VReg = RegUN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, 32'd3]
 			       []
-			       meth types=[([], Nothing, Just (Bit 3)), ([Bit 3], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 3]), ([Bit 3], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 3
 					  Q_OUT -> Prelude.Bit 3
 x :: ABSTRACT:  Prelude.VReg = RegUN
@@ -40,7 +40,7 @@ x :: ABSTRACT:  Prelude.VReg = RegUN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, 32'd2]
 			       []
-			       meth types=[([], Nothing, Just (Bit 2)), ([Bit 2], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 2]), ([Bit 2], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 2
 					  Q_OUT -> Prelude.Bit 2
 y :: ABSTRACT:  Prelude.VReg = RegUN
@@ -55,7 +55,7 @@ y :: ABSTRACT:  Prelude.VReg = RegUN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, 32'd2]
 			       []
-			       meth types=[([], Nothing, Just (Bit 2)), ([Bit 2], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 2]), ([Bit 2], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 2
 					  Q_OUT -> Prelude.Bit 2
 z :: ABSTRACT:  Prelude.VReg = RegUN
@@ -70,7 +70,7 @@ z :: ABSTRACT:  Prelude.VReg = RegUN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, 32'd2]
 			       []
-			       meth types=[([], Nothing, Just (Bit 2)), ([Bit 2], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 2]), ([Bit 2], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 2
 					  Q_OUT -> Prelude.Bit 2
 -- AP rules

@@ -9,6 +9,17 @@ if { $vtest == 1 } {
     find_regexp mkShallowSplitTest.v {input  \[15 : 0\] putFoos_1_49;}
     find_regexp mkShallowSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
     find_regexp mkShallowSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
+    find_regexp mkShallowSplitTest.v {output \[7 : 0\] getFoo_x;}
+    find_regexp mkShallowSplitTest.v {output \[7 : 0\] getFoo_y;}
+    find_regexp mkShallowSplitTest.v {output \[2 : 0\] GET_BAR_v;}
+    find_regexp mkShallowSplitTest.v {output \[15 : 0\] GET_BAR_z;}
+    find_regexp mkShallowSplitTest.v {input  \[7 : 0\] update_1_x;}
+    find_regexp mkShallowSplitTest.v {input  EN_update;}
+    find_regexp mkShallowSplitTest.v {output \[16 : 0\] update_w;}
+    find_regexp mkShallowSplitTest.v {output RDY_update;}
+
+    find_regexp mkShallowSplitTest.v {\(getBar_1_x, getBar_1_y\) -> GET_BAR_z}
+    find_regexp mkShallowSplitTest.v {update_1_x -> update_v}
 }
 
 test_c_veri DeepSplit
@@ -24,6 +35,23 @@ if { $vtest == 1 } {
     find_regexp mkDeepSplitTest.v {input  \[7 : 0\] putBaz_1_c_2_1_7_y;}
     find_regexp mkDeepSplitTest.v {input  \[15 : 0\] putBaz_1_c_2_2_w_2;}
     find_regexp mkDeepSplitTest.v {input  \[3 : 0\] putZug_1_qs_1;}
+    find_regexp mkDeepSplitTest.v {output \[7 : 0\] getFoo_x;}
+    find_regexp mkDeepSplitTest.v {output \[7 : 0\] getFoo_y;}
+    find_regexp mkDeepSplitTest.v {output GET_BAR_v_0;}
+    find_regexp mkDeepSplitTest.v {output GET_BAR_v_2;}
+    find_regexp mkDeepSplitTest.v {output \[15 : 0\] GET_BAR_w_2;}
+    find_regexp mkDeepSplitTest.v {output \[7 : 0\] GET_BAR_z_y;}
+    find_regexp mkDeepSplitTest.v {output \[3 : 0\] getZug_qs_0;}
+    find_regexp mkDeepSplitTest.v {output \[3 : 0\] getZug_qs_1;}
+    find_regexp mkDeepSplitTest.v {output getZug_blob;}
+    find_regexp mkDeepSplitTest.v {input  \[7 : 0\] update_1_x;}
+    find_regexp mkDeepSplitTest.v {input  EN_update;}
+    find_regexp mkDeepSplitTest.v {output \[15 : 0\] update_w_2;}
+    find_regexp mkDeepSplitTest.v {output RDY_update;}
+
+    find_regexp mkDeepSplitTest.v {getBar_1_x -> GET_BAR_z_x}
+    find_regexp mkDeepSplitTest.v {getBar_1_y -> GET_BAR_z_y}
+    find_regexp mkDeepSplitTest.v {update_1_x -> update_v_0}
 }
 
 test_c_veri InstanceSplit
@@ -37,6 +65,20 @@ if { $vtest == 1 } {
     find_regexp mkInstanceSplitTest.v {input  \[799 : 0\] putFoos_1;}
     find_regexp mkInstanceSplitTest.v {input  \[16 : 0\] putBaz_1_a;}
     find_regexp mkInstanceSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
+    find_regexp mkInstanceSplitTest.v {output \[7 : 0\] getFoo_x;}
+    find_regexp mkInstanceSplitTest.v {output getFoo_ysign;}
+    find_regexp mkInstanceSplitTest.v {output \[6 : 0\] getFoo_yvalue;}
+    find_regexp mkInstanceSplitTest.v {output \[2 : 0\] GET_BAR_v;}
+    find_regexp mkInstanceSplitTest.v {output GET_BAR_z_ysign;}
+    find_regexp mkInstanceSplitTest.v {input  \[7 : 0\] update_1_x;}
+    find_regexp mkInstanceSplitTest.v {input  EN_update;}
+    find_regexp mkInstanceSplitTest.v {output \[6 : 0\] update_z_yvalue;}
+    find_regexp mkInstanceSplitTest.v {output RDY_update;}
+
+    find_regexp mkInstanceSplitTest.v {getBar_1_x -> GET_BAR_z_x}
+    find_regexp mkInstanceSplitTest.v {\(getBar_1_ysign, getBar_1_yvalue\) -> GET_BAR_z_ysign}
+    find_regexp mkInstanceSplitTest.v {\(getBar_1_ysign, getBar_1_yvalue\) -> GET_BAR_z_yvalue}
+    find_regexp mkInstanceSplitTest.v {update_1_x -> update_v}
 }
 
 # Supplying an arg_names pragma that is shorter than the number of arguments

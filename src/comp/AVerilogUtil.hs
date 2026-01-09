@@ -862,7 +862,7 @@ vState  flags rewire_map avinst =
 
         mkEnId m m_port = vMethId v_inst_name m m_port MethodEnable port_rename_table
 
-        mkResId m m_port = vMethId v_inst_name m m_port MethodResult port_rename_table
+        mkResId m k m_port = vMethId v_inst_name m m_port (MethodResult k) port_rename_table
 
         -- add the multiplicity to Verilog port names
         -- (if there are not multiple ports, no uniquifier is added)
@@ -886,9 +886,10 @@ vState  flags rewire_map avinst =
         inps =  [ (mkVId (portid s ino),
                    mkArgId m k ino,
                    vSize argType)
-                  | (meth@(Method m _ _ mult ps mo me),
+                  | (meth@(Method m _ _ mult ps outs me),
                      (argTypes,_,_))
                         <- zip (vFields vi) mts,
+                        -- (VName s, vps)
                     -- let multu = getMethodMultUse m,
                     ino <- if mult > 1 then map Just [0..mult-1] else [Nothing],
                     (VName s, argType, k) <- zip3 (map fst ps) argTypes [1..],
@@ -908,7 +909,7 @@ vState  flags rewire_map avinst =
                    mkVId (portid s ino),
                    mkEnId m ino,
                    inhigh )
-                  | (Method m _ _ mult ss mo me@(Just (VName s,vps)))
+                  | (Method m _ _ mult ss outs me@(Just (VName s,vps)))
                         <- vFields vi,
                     let inhigh = VPinhigh `elem` vps,
                     -- let multu = getMethodMultUse m,
@@ -922,9 +923,10 @@ vState  flags rewire_map avinst =
         meth_return_vals =
             nub
                 [ (mkVId (portid s ino),
-                   mkResId m ino)
-                  | ((Method m _ _ mult ss mo@(Just (VName s, vps)) me), (_,_,Just retType))
+                   mkResId m k ino)
+                  | ((Method m _ _ mult ss outs me), (_,_,retTypes))
                         <- zip (vFields vi) mts,
+                     ((VName s, vps), retType, k) <- zip3 outs retTypes [1..],
                      isNotZeroSized retType,
                      -- let multu = getMethodMultUse m,
                      ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]

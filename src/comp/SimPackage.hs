@@ -373,9 +373,9 @@ getSimPackageInputs spkg =
 -- -----
 
 getPortInfo :: [PProp] -> AIFace
-            -> Maybe (AId, (Maybe VName, [(AType,AId,VName)], Maybe (AType,VName), Bool, [AId]))
+            -> Maybe (AId, (Maybe VName, [(AType,AId,VName)], [(AType,VName)], Bool, [AId]))
 getPortInfo pps aif =
-    let name = aIfaceName aif
+    let name = aif_name aif
         vfi  = aif_fieldinfo aif
         en   = do e <- vf_enable vfi
                   -- always enabled implies enabled when ready
@@ -384,17 +384,15 @@ getPortInfo pps aif =
         args = aIfaceArgs aif
         ps   = map fst (vf_inputs vfi)
         ins  = [ (t,i,vn) | ((i,t),vn) <- zip args ps ]
-        rt   = aIfaceResType aif
-        ret  = case (vf_output vfi) of
-                 (Just (vn,_)) -> Just (rt,vn)
-                 Nothing       -> Nothing
+        rts  = aIfaceResTypes aif
+        rets  = zip rts $ map fst $ vf_outputs vfi
         isAction = case aif of
                      (AIAction {})      -> True
                      (AIActionValue {}) -> True
                      otherwise          -> False
         rules = map aRuleName (aIfaceRules aif)
     in case vfi of
-         (Method {}) -> Just (name, (en, ins, ret, isAction, rules))
+         (Method {}) -> Just (name, (en, ins, rets, isAction, rules))
          otherwise   -> Nothing
 
 -- -----

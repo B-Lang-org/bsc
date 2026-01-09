@@ -27,7 +27,7 @@ import IdPrint
 import ISyntax(IPackage(..), IModule(..),
                IStateVar(..), IRules(..))
 import ASyntax(APackage(..), ASPackage(..), ARule(..),
-               aIfaceName)
+               aif_name)
 import SystemVerilogTokens(SV_Token(..))
 import Version(bluespec, bscVersionStr)
 
@@ -253,7 +253,7 @@ instance Stats APackage where
         (showLen (apkg_rules apkg) "rules" <>
          if v then text "" <+>pPrint PDReadable 0 [ i | ARule { arule_id = i } <- apkg_rules apkg ] else text "") $+$
         (showLen (apkg_interface apkg) "interface methods" <>
-         if v then text "" <+> pPrint PDReadable 0 (map aIfaceName (apkg_interface apkg)) else text "")
+         if v then text "" <+> pPrint PDReadable 0 (map aif_name (apkg_interface apkg)) else text "")
         ))
 
 instance Stats ASPackage where

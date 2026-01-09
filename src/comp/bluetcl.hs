@@ -1118,7 +1118,7 @@ tclModule ["methods",modname] = do
            let apkg = abemi_apkg abmi
                pps = abemi_pps abmi
                ifc = apkg_interface apkg
-               ifc_map = [ (aIfaceName aif, rawIfcFieldFromAIFace pps aif)
+               ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                            | aif <- ifc ]
            let tifc = getModuleIfc abmi
            fs <- getIfcHierarchy Nothing ifc_map tifc
@@ -1639,7 +1639,7 @@ tclRule ["full",modname,rule] =
                                    Nothing -> Nothing
                                    Just (ARule i ps _ _ rPred _ _ _) ->
                                        Just (ps, getPosition i, aAnds [ifPred, rPred])
-                             cvtIfc (AIDef _ _ _ ifPred (ADef dId _ _ _) _ _) =
+                             cvtIfc (AIDef dId _ _ ifPred _ _ _) =
                                  if (dId == rId)
                                  then Just ([], getPosition dId, ifPred)
                                  else Nothing
@@ -1960,7 +1960,7 @@ instance ExpandInfoHelper BModView  where
           -- flattened ifc names
           let ifc_names = map pfpString $
                             filter (not . isRdyId) $
-                              map (aIfaceName) (apkg_interface apkg)
+                              map (aif_name) (apkg_interface apkg)
           -- rules
           let rule_names = map (pfpString . arule_id) (apkg_rules apkg)
           -- schedule
@@ -3274,7 +3274,7 @@ data RawIfcField =
                    (Maybe Id) (Maybe Id)  -- associated clk and rst
                    [(Maybe Id, AType)]    -- arguments
                    [VPort]                -- argument ports
-                   (Maybe (VPort, AType)) -- return value
+                   [(VPort, AType)]       -- return values
                    (Maybe VPort)          -- enable signal
                    -- Note: no ready signal at this stage
        | RawClock Id
@@ -3292,26 +3292,32 @@ rawIfcFieldName (RawInout i _ _ _ _) = i
 rawIfcFieldFromAIFace :: [PProp] -> AIFace -> RawIfcField
 rawIfcFieldFromAIFace _
     (AIDef i args _ _ def
-     (Method _ clk rst mult ins mo@(Just out) Nothing) _) =
-    let -- include the type in the "mo"
-        mo' = Just (out, adef_type def)
-    in  RawMethod i mult clk rst (mapFst Just args) ins mo' Nothing
+     (Method _ clk rst mult ins outs Nothing) _) =
+    let -- include the type in the "outs"
+        outs' = zip outs $
+          case adef_type def of
+            ATTuple ts -> ts
+            t          -> [t]
+    in  RawMethod i mult clk rst (mapFst Just args) ins outs' Nothing
 rawIfcFieldFromAIFace pps
     (AIAction args _ _ i _
-     (Method _ clk rst mult ins Nothing me@(Just _))) =
+     (Method _ clk rst mult ins [] me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
-    in  RawMethod i mult clk rst (mapFst Just args) ins Nothing me'
+    in  RawMethod i mult clk rst (mapFst Just args) ins [] me'
 rawIfcFieldFromAIFace pps
     (AIActionValue args _ _ i _ def
-     (Method _ clk rst mult ins mo@(Just out) me@(Just _))) =
+     (Method _ clk rst mult ins outs me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
-        -- include the type in the "mo"
-        mo' = Just (out, adef_type def)
-    in  RawMethod i mult clk rst (mapFst Just args) ins mo' me'
+        -- include the type in the "outs"
+        outs' = zip outs $
+          case adef_type def of
+            ATTuple ts -> ts
+            t          -> [t]
+    in  RawMethod i mult clk rst (mapFst Just args) ins outs' me'
 rawIfcFieldFromAIFace _ (AIClock i _ (Clock _)) = RawClock i
 rawIfcFieldFromAIFace _ (AIReset i _ (Reset _)) = RawReset i
 rawIfcFieldFromAIFace _ (AIInout i (AInout e) (Inout _ vn mclk mrst)) =
@@ -3320,23 +3326,20 @@ rawIfcFieldFromAIFace _ aif =
     internalError ("rawIfcFieldFromAIFace: unexpected AIFace combo: " ++
                    ppReadable aif)
 
-rawIfcFieldFromAVInst :: ([AType], Maybe AType, Maybe AType) ->
+rawIfcFieldFromAVInst :: ([AType], Maybe AType, [AType]) ->
                          VFieldInfo -> RawIfcField
-rawIfcFieldFromAVInst (arg_tys,_,mo_type) (Method i clk rst mult ins mo me) =
+rawIfcFieldFromAVInst (arg_tys,_,out_tys) (Method i clk rst mult ins outs me) =
     let -- XXX AVInst doesn't record argument names
         args = zip (repeat Nothing) arg_tys
-        -- add the return bit-type to the mo
-        mo' = case (mo, mo_type) of
-                (Just o, Just o_type) -> Just (o, o_type)
-                (Nothing, Nothing) -> Nothing
-                _ -> internalError ("rawIfcFieldFromAVInst: unexpected mo: " ++
-                                    ppReadable (mo, mo_type))
-    in  RawMethod i mult clk rst args ins mo' me
+        -- add the return bit-type to the outs
+        outs' = zip outs out_tys
+    in  RawMethod i mult clk rst args ins outs' me
 rawIfcFieldFromAVInst _ (Clock i) = RawClock i
 rawIfcFieldFromAVInst _ (Reset i) = RawReset i
-rawIfcFieldFromAVInst (_,_,mt) (Inout i vn mclk mrst) =
-    let t = fromJustOrErr ("getIfc: no type for Inout") mt
-    in  RawInout i t vn mclk mrst
+rawIfcFieldFromAVInst (_,_,[t]) (Inout i vn mclk mrst) = RawInout i t vn mclk mrst
+rawIfcFieldFromAVInst _ vfi =
+    internalError ("rawIfcFieldFromAVInst: unexpected VFieldInfo: " ++
+                   ppReadable vfi)
 
 -- ---------------
 
@@ -3486,7 +3489,7 @@ data PortIfcInfo =
     PIMethod Id Id
              (Maybe Id) (Maybe Id)  -- associated clk and rst
              [(Maybe Id, AType, (String, IType))]  -- arguments
-             (Maybe (String, AType, IType))        -- return value
+             [(String, AType, IType)]              -- return values
              (Maybe (String, IType))               -- enable signal
              (Maybe (String, IType))               -- ready signal
   | PIClock Id Id (Maybe ((String, IType), Maybe (String, IType)))
@@ -3519,7 +3522,7 @@ getModPortInfo apkg pps tifc = do
 
     -- interface hierarchy
     let -- map from flattened ifc name to its raw info
-        ifc_map = [ (aIfaceName aif, rawIfcFieldFromAIFace pps aif)
+        ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                     | aif <- ifc ]
     ifc_hier <- getIfcHierarchy Nothing ifc_map tifc
 
@@ -3633,8 +3636,8 @@ getSubmodPortInfo mtifc avi = do
        concatMap getIfcHier ifc_hier)
 
 adjustPrimFields :: Maybe Type -> AVInst ->
-                    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+                    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustPrimFields Nothing _ vfts = vfts
 adjustPrimFields (Just tifc) avi vfts =
     if (leftCon tifc == Just idReg)
@@ -3678,8 +3681,8 @@ adjustPrimFields (Just tifc) avi vfts =
     else vfts
 
 -- This is a no-op but it does add some error checking
-adjustRegAlignedFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                   ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustRegAlignedFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                   ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustRegAlignedFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` id_read noPosition)  = vf
@@ -3689,8 +3692,8 @@ adjustRegAlignedFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 
-adjustRegFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                   ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustRegFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                   ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustRegFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idPreludeRead)  = vf { vf_name = id_read noPosition }
@@ -3699,8 +3702,8 @@ adjustRegFields (vfi, fts) =
                                         ppReadable (vf_name vf))
     in  (map renameField vfi, fts)
 
-adjustFIFOFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustFIFOFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustFIFOFields (vfi, fts) =
     let enq_rdy   = mkRdyId idEnq
         deq_rdy   = mkRdyId idDeq
@@ -3712,8 +3715,8 @@ adjustFIFOFields (vfi, fts) =
         renameField vft = [vft]
     in  unzip $ concatMap renameField $ zip vfi fts
 
-adjustFIFO0Fields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                      ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustFIFO0Fields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                      ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustFIFO0Fields (vfi, fts) =
     let (clk, rst) =
             case vfi of
@@ -3721,12 +3724,12 @@ adjustFIFO0Fields (vfi, fts) =
               (_:d@(Method _ c r _ _ _ _):_) -> (c, r)
               _ -> internalError ("adjustFIFO0Fields: vfi = " ++
                                   ppReadable vfi)
-        first_vfi = Method idFirst clk rst 1 [] Nothing Nothing
-        first_fts = ([], Nothing, Nothing)
+        first_vfi = Method idFirst clk rst 1 [] [] Nothing
+        first_fts = ([], Nothing, [])
     in  (first_vfi:vfi, first_fts:fts)
 
-adjustSyncRegFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                       ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustSyncRegFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                       ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustSyncRegFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             -- XXX these are qualified Clock, not Prelude
@@ -3738,28 +3741,28 @@ adjustSyncRegFields (vfi, fts) =
                                         ppReadable (vf_name vf))
     in  (map renameField vfi, fts)
 
-adjustRWireFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                     ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustRWireFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                     ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustRWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWHas)  = vf { vf_name = unQualId $ mkRdyId idWGet }
         renameField vf = vf
     in  (map renameField vfi, fts)
 
-adjustRWire0Fields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                      ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustRWire0Fields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                      ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustRWire0Fields (vfi, fts) =
     let (clk, rst) =
             case vfi of
               ((Method _ c r _ _ _ _):_) -> (c, r)
               _ -> internalError ("adjustRWire0Fields: vfi = " ++
                                   ppReadable vfi)
-        wget_vfi = Method (unQualId idWGet) clk rst 1 [] Nothing Nothing
-        wget_fts = ([], Nothing, Nothing)
+        wget_vfi = Method (unQualId idWGet) clk rst 1 [] [] Nothing
+        wget_fts = ([], Nothing, [])
     in  (wget_vfi:vfi, wget_fts:fts)
 
-adjustWireFields :: ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+adjustWireFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustWireFields (vfi, fts) =
     let readId  = id_read noPosition
         writeId = id_write noPosition
@@ -3772,8 +3775,8 @@ adjustWireFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 adjustPulseWireFields ::
-    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+    ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustPulseWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWSet) = vf { vf_name = unQualId idSend }
@@ -3784,8 +3787,8 @@ adjustPulseWireFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 adjustBypassWireFields ::
-    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)]) ->
-    ([VFieldInfo], [([AType], Maybe AType, Maybe AType)])
+    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
+    ([VFieldInfo], [([AType], Maybe AType, [AType])])
 adjustBypassWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWGet) = vf { vf_name = id_read noPosition }
@@ -3873,19 +3876,19 @@ getPortsIfc ptmap out_clkinfo out_rstinfo (SubIfc fId fs) =
         then []
         else [PISubIfc fId fs']
 getPortsIfc ptmap _ _
-            (Field fId (RawMethod i mult mclk mrst args ins mo me) mrdy_inf) =
-    getPortsIfcMethod ptmap fId i mult mclk mrst args ins mo me mr
+            (Field fId (RawMethod i mult mclk mrst args ins outs me) mrdy_inf) =
+    getPortsIfcMethod ptmap fId i mult mclk mrst args ins outs me mr
  where mr = case (mrdy_inf) of
               Nothing -> Nothing
-              (Just (RawMethod ri m _ _ [] [] (Just (vp@(vn,_), t)) Nothing))
+              (Just (RawMethod ri m _ _ [] [] [(vp@(vn,_), t)] Nothing))
                | ((m == 0) || (m == 1)) ->
                   if (t == aTBool)
                   then Just vp
                   else internalError ("getPortsIfc: Rdy wrong size: " ++
                                       ppReadable (ri,t))
-              (Just (RawMethod ri m _ _ as is mout men)) ->
+              (Just (RawMethod ri m _ _ as is os men)) ->
                   internalError ("getPortsIfc: not Rdy: " ++
-                                 ppReadable (ri, m, as, is, mout, men))
+                                 ppReadable (ri, m, as, is, os, men))
               (Just d) -> internalError ("getPortsIfc: not Rdy: " ++
                                          ppReadable (rawIfcFieldName d))
 getPortsIfc _ out_clkinfo _ (Field fId (RawClock i) Nothing) =
@@ -3902,10 +3905,10 @@ getPortsIfc _ _ _ (Field fId rf (Just rdy_rf)) =
 getPortsIfcMethod :: M.Map VName IType ->
                   Id -> Id -> Integer ->
                   Maybe Id -> Maybe Id ->
-                  [(Maybe Id, AType)] -> [VPort] -> Maybe (VPort, AType) ->
+                  [(Maybe Id, AType)] -> [VPort] -> [(VPort, AType)] ->
                   Maybe VPort -> Maybe VPort ->
                   [PortIfcInfo]
-getPortsIfcMethod ptmap fId methId mult mClk mRst args ins mOut mEn mRdy =
+getPortsIfcMethod ptmap fId methId mult mClk mRst args ins outs mEn mRdy =
     let
         -- get the port-type pair for an argument
         getPortsArg (mi, bit_type) (vn, _) =
@@ -3913,8 +3916,7 @@ getPortsIfcMethod ptmap fId methId mult mClk mRst args ins mOut mEn mRdy =
             then []
             else [(mi, bit_type, getVNameType ptmap vn)]
         -- get the port-type pair for the output
-        getPortsOut Nothing = Nothing
-        getPortsOut (Just ((vn, _), bit_type)) =
+        getPortsOut ((vn, _), bit_type) =
             if (isSizeZero bit_type)
             then Nothing
             else
@@ -3937,7 +3939,7 @@ getPortsIfcMethod ptmap fId methId mult mClk mRst args ins mOut mEn mRdy =
         -- the default result (multiplicity of 1)
         def_res = PIMethod fId methId mClk mRst
                       (concat (zipWith getPortsArg args ins))
-                      (getPortsOut mOut) (getPortsEn mEn) (getPortsRdy mRdy)
+                      (mapMaybe getPortsOut outs) (getPortsEn mEn) (getPortsRdy mRdy)
 
         -- the result if multiplicity > 1
         mkMulRes n =
@@ -3946,7 +3948,7 @@ getPortsIfcMethod ptmap fId methId mult mClk mRst args ins mOut mEn mRdy =
             in  PIMethod (dupId s fId) -- XXX handle mults differently?
                     (dupId s methId) mClk mRst
                     (concat (zipWith getPortsArg args ins'))
-                    (getPortsOut (dupMVPortType s mOut))
+                    (mapMaybe (getPortsOut . dupMVPortType s) outs)
                     (getPortsEn (dupMVPort s mEn))
                     (getPortsRdy (dupMVPort s mRdy))
 
@@ -3955,9 +3957,8 @@ getPortsIfcMethod ptmap fId methId mult mClk mRst args ins mOut mEn mRdy =
         dupVPort suf (vn, ps) = (dupVName suf vn, ps)
         dupMVPort :: String -> Maybe VPort -> Maybe VPort
         dupMVPort suf mvp = mvp >>= Just . dupVPort suf
-        dupMVPortType :: String -> Maybe (VPort, AType) -> Maybe (VPort, AType)
-        dupMVPortType suf mvpt =
-            mvpt >>= (\ (vp, t) -> Just (dupVPort suf vp, t) )
+        dupMVPortType :: String -> (VPort, AType) -> (VPort, AType)
+        dupMVPortType suf (vp, t) = (dupVPort suf vp, t)
     in
         if (mult == 1) || (mult == 0)
         then [def_res]
@@ -4020,13 +4021,6 @@ dispMPortWithType s mport =
       Nothing -> []
       Just (p, _) -> [tagStr s p]
 
-dispMPortWithTypes :: String -> Maybe (String, AType, IType) -> [HTclObj]
-dispMPortWithTypes s mport =
-    case mport of
-      Nothing -> []
-      Just (p, _, _) -> -- XXX we have the opportunity to display the size
-                        [tagStr s p]
-
 -- display AType
 dispSize :: AType -> [HTclObj]
 dispSize (ATBit sz) = [tagInt "size" (fromInteger sz)]
@@ -4076,16 +4070,23 @@ dispMethodArgs as =
                    dispSize bit_type
     in  TLst (map dispArg as)
 
+dispMethodResults :: [(String, AType, IType)] -> HTclObj
+dispMethodResults outs =
+    let dispOut (port, bit_type, _) =
+            TLst $ [tagStr "port" port] ++
+                   dispSize bit_type
+    in  TLst (map dispOut outs)
+
 
 dispIfc :: PortIfcInfo -> HTclObj
-dispIfc (PIMethod fId i mClk mRst ins mOut mEn mRdy) =
+dispIfc (PIMethod fId i mClk mRst ins outs mEn mRdy) =
     TLst $ [TStr "method",
             TStr (getIdBaseString fId),
             TStr (pfpString i),
             dispClockedBy mClk,
             dispResetBy mRst,
-            tag "args" [dispMethodArgs ins]] ++
-           dispMPortWithTypes "result" mOut ++
+            tag "args" [dispMethodArgs ins],
+            tag "results" [dispMethodResults outs]] ++
            dispMPortWithType "enable" mEn ++
            dispMPortWithType "ready" mRdy
 dispIfc (PIClock fId i Nothing) =
@@ -4115,6 +4116,9 @@ dispIfc (PISubIfc fId fs) =
 dispPortType :: (String, IType) -> HTclObj
 dispPortType (p,t) = TLst [TStr p, TStr (pfpString t)]
 
+dispPortTypes :: (String, AType, IType) -> HTclObj
+dispPortTypes (p,at,t) = dispPortType (p,t)
+
 dispMPortType :: Maybe (String, IType) -> [HTclObj]
 dispMPortType Nothing = []
 dispMPortType (Just pt) = [dispPortType pt]
@@ -4135,9 +4139,10 @@ dispPortsModArg (PAInout _ _ pt _ _) = [dispPortType pt]
 
 
 dispPortsIfc :: PortIfcInfo -> [HTclObj]
-dispPortsIfc (PIMethod _ _ _ _ ins mOut mEn mRdy) =
+dispPortsIfc (PIMethod _ _ _ _ ins outs mEn mRdy) =
     (map (dispPortType . thd) ins) ++
-    dispMPortTypes mOut ++ dispMPortType mEn ++ dispMPortType mRdy
+    (map dispPortTypes outs) ++
+    dispMPortType mEn ++ dispMPortType mRdy
 dispPortsIfc (PIClock _ _ Nothing) = []
 dispPortsIfc (PIClock _ _ (Just (osc, mgate))) =
     [dispPortType osc] ++ dispMPortType mgate
@@ -4208,7 +4213,7 @@ get_method_to_signal_map vmod = do
   case f of
        Method {} -> return ()
        _ -> mzero -- failure, as in the guard function
-  port <- (vf_inputs f) ++ (maybeToList $ vf_output f) ++ (maybeToList $ vf_enable f)
+  port <- (vf_inputs f) ++ (vf_outputs f) ++ (maybeToList $ vf_enable f)
   count <- case (vf_mult f) of
     1 -> return Nothing
     k -> map Just [1..k]

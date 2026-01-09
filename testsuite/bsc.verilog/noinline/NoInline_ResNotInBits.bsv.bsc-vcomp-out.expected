@@ -10,9 +10,3 @@ Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
   Cannot synthesize `module_fnNoInline_ResNotInBits­': The interface method
   `fnNoInline_ResNotInBits' uses type(s) that are not in the Bits or
   SplitPorts typeclasses: NoInline_ResNotInBits::L
-Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
-  Signature mismatch (given too general):
-  given:
-  function b__ f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, a__))
-  deduced:
-  function Bit#(c__) f(Bit#(1) x1)   provisos (Bits#(NoInline_ResNotInBits::L, c__))

@@ -45,7 +45,7 @@ order: [RL_rA, RL_rB]
 -----
 
 === resources:
-[(dut.m, [(dut.m b__h178 32'd1, 1), (dut.m 32'd5 b__h178, 1)]),
+[(dut.m, [(dut.m r1___d1 32'd1, 1), (dut.m 32'd5 r1___d1, 1)]),
  (r1.read, [(r1.read, 1)]),
  (r1.write, [(r1.write r1_PLUS_1___d4, 1)])]
 

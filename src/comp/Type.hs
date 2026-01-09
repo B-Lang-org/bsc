@@ -61,13 +61,13 @@ tSizeOf = TCon (TyCon idSizeOf (Just (Kfun KStar KNum)) TIabstract)
 tAction, tActionValue, tActionValue_, tAction_:: Type
 tAction = TCon (TyCon idAction (Just KStar) (TItype 0 (TAp tActionValue tPrimUnit)))
 tActionValue = TCon (TyCon idActionValue (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value, id__action]))
-tActionValue_ = TCon (TyCon idActionValue_ (Just (Kfun KNum KStar)) (TIstruct SStruct [id__value, id__action]))
-tAction_ = TAp tActionValue_ (tOfSize 0 noPosition)
+tActionValue_ = TCon (TyCon idActionValue_ (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value, id__action]))
+tAction_ = TAp tActionValue_ tPrimUnit
 
 tActionAt, tActionValueAt, tActionValue_At :: Position -> Type
 tActionAt pos = TCon (TyCon (idActionAt pos) (Just KStar) (TItype 0 (TAp (tActionValueAt pos) (tPrimUnitAt pos))))
 tActionValueAt pos = TCon (TyCon (idActionValueAt pos) (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value_at pos, id__action_at pos]))
-tActionValue_At pos = TCon (TyCon (idActionValue_At pos) (Just (Kfun KNum KStar)) (TIstruct SStruct [id__value_at pos, id__action_at pos]))
+tActionValue_At pos = TCon (TyCon (idActionValue_At pos) (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value_at pos, id__action_at pos]))
 
 tPrimAction, tRules :: Type
 tPrimAction = TCon (TyCon idPrimAction (Just KStar) TIabstract)
@@ -163,13 +163,21 @@ getAVType :: Type -> Type
 getAVType (TAp av t) | av == tActionValue = t
 getAVType t = internalError("getAVType not ActionValue: " ++ ppReadable t)
 
+-- Note that we consider ActionValue_ (Bit 0) to be an action without a value,
+-- as this is still created by foreign verilog module imports.
+-- XXX should rework this to just yield ActionValue_ () for empty types.
 isActionWithoutValue :: Type -> Bool
-isActionWithoutValue (TAp av (TCon (TyNum 0 _))) = av == tActionValue_
+isActionWithoutValue (TAp av (TAp (TCon (TyCon i _ _)) (TCon (TyNum 0 _)))) =
+    av == tActionValue_ && i == idBit
+isActionWithoutValue (TAp av (TCon (TyCon i _ _))) =
+    av == tActionValue_ && i == idPrimUnit
 isActionWithoutValue _ = False
 
 isActionWithValue :: Type -> Bool
-isActionWithValue (TAp av (TCon (TyNum n _))) = (av == tActionValue_) && (n > 0)
 isActionWithValue (TAp av (TVar _)) = av == tActionValue_
+isActionWithValue (TAp av (TAp (TCon (TyCon i _ _)) (TCon (TyNum 0 _))))
+    | av == tActionValue_ && i == idBit = False
+isActionWithValue (TAp av t) = (av == tActionValue_) && isBitTuple t
 isActionWithValue _ = False
 
 isClock, isReset, isInout, isInout_ :: Type -> Bool
@@ -198,5 +206,10 @@ isString t = t == tString
 isChar t = t == tChar
 isReal t = t == tReal
 isFmt t = t == tFmt
+
+isBitTuple :: Type -> Bool
+isBitTuple (TAp (TAp (TCon (TyCon i _ _)) t1) t2) | i == idPrimPair =
+    isBit t1 && isBitTuple t2
+isBitTuple t = isBit t
 
 -- -------------------------

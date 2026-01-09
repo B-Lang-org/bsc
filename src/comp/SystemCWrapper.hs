@@ -8,7 +8,7 @@ import Pragma(isAlwaysRdy, isEnWhenRdy)
 import FileNameUtil(mkCxxName, mkHName)
 import ASyntax(AAbstractInput(..), AIFace(..),
                AExpr(..), AClock(..),
-               aIfaceArgs, aIfaceName, aIfaceProps)
+               aIfaceArgs, aif_name, aIfaceProps)
 import ASyntaxUtil
 import VModInfo(vName_to_id, VPathInfo(..))
 import Wires
@@ -38,7 +38,7 @@ checkSystemCIfc errh flags sim_system = do
         isBad m@(AIActionValue {}) = -- we allow ActionValue methods only
                                      -- if they have no arguments and no enable
                                      not ((null (aIfaceArgs m)) &&
-                                          (isEnWhenRdy pps (aIfaceName m)))
+                                          (isEnWhenRdy pps (aif_name m)))
         isBad _                    = False
         bad_methods = [ getIdBaseString (aif_name m)
                       | m <- sp_interface top_pkg
@@ -131,7 +131,7 @@ wrapSystemC flags sim_system = do
         mk_port_map_entry (mid, (en, ins, ri, act, _)) =
             let en_list  = maybe [] (\vn -> [(1,vName_to_id vn,True,False)]) en
                 in_list  = [ (aSize t,i,True,False) | (t,i,_) <- ins ]
-                ret_list = maybe [] (\(t,vn) -> [(aSize t,vName_to_id vn,False,act)]) ri
+                ret_list = map (\(t,vn) -> (aSize t,vName_to_id vn,False,act)) ri
                 ports = filter (\(n,_,_,_) -> n>0)
                                (en_list ++ in_list ++ ret_list)
                 always_rdy = (isRdyId mid) && (isAlwaysRdy pps mid)
@@ -157,7 +157,7 @@ wrapSystemC flags sim_system = do
                              ]
 
         -- utility functions for grouping methods by domain
-        meth_domains = M.fromList [ (aIfaceName aif, dom)
+        meth_domains = M.fromList [ (aif_name aif, dom)
                                   | aif <- (sp_interface top_pkg)
                                   , let wp = aIfaceProps aif
                                   , let dom = wpClockDomain wp

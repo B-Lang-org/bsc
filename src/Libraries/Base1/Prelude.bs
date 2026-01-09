@@ -259,8 +259,8 @@ package Prelude(
         NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
-        WrapField(..), WrapMethod(..), WrapPorts(..),
-        Port(..), unPort, SplitPorts(..)
+        WrapField(..), WrapMethod(..), WrapPorts(..), NonEmptyBits(..),
+        Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
 infixr  0 $
@@ -920,9 +920,9 @@ fromPrimAction a = ActionValue (\aw -> AVStruct { avValue = _; avAction = a; avW
 type Action = ActionValue ()
 
 --X@ \begin{verbatim}
---X@ typedef ActionValue_#(0) Action_;
+--X@ typedef ActionValue_#(void) Action_;
 --X@ \end{verbatim}
-type Action_ = ActionValue_ 0
+type Action_ = ActionValue_ ()
 
 --@ An empty \te{Action}.
 --@ \index{noAction@\te{noAction} (empty action)}
@@ -939,23 +939,36 @@ noAction = fromPrimAction primNoActions
 (:<-) :: Reg a -> ActionValue a -> Action
 (:<-) r av = av `bind` r._write
 
---X@ A primitive \te{ActionValue} of bits
+--X@ A primitive \te{ActionValue} of bits.
+--X@ The type parameter should be either (), Bit n, or a tuple of Bit n.
 --X@ \begin{verbatim}
---X@ struct ActionValue_ #(type n);
+--X@ struct ActionValue_ #(type a;
 --X@ \end{verbatim}
-struct ActionValue_ n
+struct ActionValue_ a
   =
-    avValue_  :: Bit n
+    avValue_  :: a
     avAction_ :: PrimAction
 
-toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ n
-toActionValue_  (ActionValue av) =
-    letseq av' = av ActionWorld
-    in ActionValue_ { avValue_ = pack av'.avValue; avAction_ = av'.avAction}
+toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ (Bit n)
+toActionValue_ = bitsToActionValue_ ∘ fmap pack
 
-fromActionValue_ :: (Bits a n) => ActionValue_ n -> ActionValue a
-fromActionValue_  av_ = ActionValue (\aw ->
-    AVStruct { avValue = unpack av_.avValue_; avAction = av_.avAction_; avWorld = aw})
+fromActionValue_ :: (Bits a n) => ActionValue_ (Bit n) -> ActionValue a
+fromActionValue_ = fmap unpack ∘ bitsFromActionValue_
+
+toAction_ :: Action -> Action_
+toAction_ = bitsToActionValue_
+
+fromAction_ :: Action_ -> Action
+fromAction_ = bitsFromActionValue_
+
+bitsToActionValue_ :: ActionValue a -> ActionValue_ a
+bitsToActionValue_  (ActionValue av) =
+    letseq av' = av ActionWorld
+    in ActionValue_ { avValue_ = av'.avValue; avAction_ = av'.avAction}
+
+bitsFromActionValue_ :: ActionValue_ a -> ActionValue a
+bitsFromActionValue_ av_ = ActionValue (\ aw ->
+    AVStruct { avValue = av_.avValue_; avAction = av_.avAction_; avWorld = aw})
 
 -- ----------------------------------------------------------------
 
@@ -2586,7 +2599,7 @@ messageM s = do
 --@ endfunction: id
 --@ \end{libverbatim}
 id :: a -> a
-id x = x
+id _x = _x
 
 --@ Make a function curried
 --@ \index{curry@\te{curry} (Prelude function)}
@@ -3223,9 +3236,9 @@ $time = fromActionValue_ (__time__)
 $stime :: ActionValue (Bit 32)
 $stime = fromActionValue_ (__stime__)
 
-foreign __time__ :: ActionValue_ 64 = "$time"
+foreign __time__ :: ActionValue_ (Bit 64) = "$time"
 
-foreign __stime__ :: ActionValue_ 32 = "$stime"
+foreign __stime__ :: ActionValue_ (Bit 32) = "$stime"
 
 --  File type and system tasks which use it
 data File = InvalidFile |
@@ -3279,7 +3292,7 @@ foreign $fflush :: PrimAction = "$fflush"
 -- Type checking is done by bsc
 -- $fopen :: String ->  ActionValue#(File)
 -- $fopen :: String -> String ->  ActionValue#(File)
-foreign $fopen :: ActionValue_ 32 = "$fopen"
+foreign $fopen :: ActionValue_ (Bit 32) = "$fopen"
 
 
 -- The arguments for these are handled internally
@@ -3288,16 +3301,16 @@ foreign $fwriteb ::  PrimAction = "$fwriteb"
 foreign $fwriteo ::  PrimAction = "$fwriteo"
 foreign $fwriteh ::  PrimAction = "$fwriteh"
 
-foreign $swriteAV  ::  ActionValue_  n = "$swriteAV"
+foreign $swriteAV  ::  ActionValue_ (Bit n) = "$swriteAV"
 foreign $swrite    ::  PrimAction = "$swrite"
-foreign $swritebAV ::  ActionValue_  n = "$swritebAV"
+foreign $swritebAV ::  ActionValue_ (Bit n) = "$swritebAV"
 foreign $swriteb   ::  PrimAction = "$swriteb"
-foreign $swriteoAV ::  ActionValue_  n = "$swriteoAV"
+foreign $swriteoAV ::  ActionValue_ (Bit n) = "$swriteoAV"
 foreign $swriteo   ::  PrimAction = "$swriteo"
-foreign $swritehAV ::  ActionValue_  n = "$swritehAV"
+foreign $swritehAV ::  ActionValue_ (Bit n) = "$swritehAV"
 foreign $swriteh   ::  PrimAction = "$swriteh"
 
-foreign $sformatAV ::  ActionValue_  n = "$sformatAV"
+foreign $sformatAV ::  ActionValue_ (Bit n) = "$sformatAV"
 foreign $sformat   ::  PrimAction = "$sformat"
 
 foreign $fdisplay  ::  PrimAction = "$fdisplay"
@@ -3305,20 +3318,19 @@ foreign $fdisplayb ::  PrimAction = "$fdisplayb"
 foreign $fdisplayo ::  PrimAction = "$fdisplayo"
 foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
-foreign $random :: ActionValue_ 32 = "$random"
+foreign $random :: ActionValue_ (Bit 32) = "$random"
 
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))
-foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
+foreign __fgetc__ :: Bit 32 -> ActionValue_ (Bit 32) = "$fgetc"
 
 $fclose :: File -> Action
-$fclose f = fromActionValue_ (__fclose__ (pack f))
+$fclose f = fromAction_ (__fclose__ (pack f))
 foreign __fclose__ :: Bit 32 -> Action_ = "$fclose"
 
 $ungetc :: Bit 8 -> File -> ActionValue (Int 32)
 $ungetc c f = fromActionValue_ ( __fungetc__ c (pack f))
-foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ 32 = "$ungetc"
-
+foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ (Bit 32) = "$ungetc"
 
 -- "standard" file descriptors
 stdin  :: File
@@ -3333,7 +3345,7 @@ stdout_mcd = MCD 1
 
 $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
-foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
+foreign __testplusargs__ :: String -> ActionValue_ (Bit 1) = "$test$plusargs"
 
 ------------------
 
@@ -3419,8 +3431,8 @@ class AppendTuple a b c | a b -> c where
   splitTuple :: c -> (a, b)
 
 instance AppendTuple a () a where
-  appendTuple x _ = x
-  splitTuple x = (x, ())
+  appendTuple _x _ = _x
+  splitTuple _x = (_x, ())
 
 -- The above instance should take precedence over the other cases that assume
 -- b is non-unit. To avoid overlapping instances, the below are factored out as
@@ -3435,7 +3447,7 @@ class AppendTuple' a b c | a b -> c where
 
 instance AppendTuple' () a a where
   appendTuple' _ = id
-  splitTuple' x = ((), x)
+  splitTuple' _x = ((), _x)
 
 instance (AppendTuple'' a b c) => AppendTuple' a b c where
   appendTuple' = appendTuple''
@@ -3446,13 +3458,13 @@ class AppendTuple'' a b c | a b -> c where
   splitTuple'' :: c -> (a, b)
 
 instance AppendTuple'' a b (a, b) where
-  appendTuple'' a b = (a, b)
+  appendTuple'' _x _y = (_x, _y)
   splitTuple'' = id
 
 instance (AppendTuple'' a b c) => AppendTuple'' (h, a) b (h, c) where
-  appendTuple'' (x, y) z = (x, appendTuple'' y z)
-  splitTuple'' (x, y) = case splitTuple'' y of
-    (w, z) -> ((x, w), z)
+  appendTuple'' (_x, _y) _z = (_x, appendTuple'' _y _z)
+  splitTuple'' (_x, _y) = case splitTuple'' _y of
+    (_w, _z) -> ((_x, _w), _z)
 
 class TupleSize a n | a -> n where {}
 instance TupleSize () 0 where {}
@@ -4466,18 +4478,16 @@ data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
 
 
--- Tag a method with metadata.
--- Currently just the list of input port names.
--- Should eventually include the output port names, when we support multiple output ports.
-primitive primMethod :: List String -> a -> a
+-- Tag a method with metadata: the input and output port names.
+primitive primMethod :: List String -> List String -> a -> a
 
 -- Convert bewtween a field in an interface that is being synthesized,
 -- and a field in the corresponding field in the generated wrapper interface.
 -- Also takes the name of the field for error reporting purposes.
 class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
-  -- Given a proxy value for the field name, and the values of the prefix and arg_names pragmas,
+  -- Given a proxy value for the field name, and the values of the prefix, arg_names and result pragmas,
   -- converts a synthesized interface field value to its wrapper interface field.
-  toWrapField :: StrArg name -> String -> List String -> f -> w
+  toWrapField :: StrArg name -> String -> List String -> String -> f -> w
 
   -- Given a proxy value for the field name, converts a wrapper interface field value
   -- to its synthesized interface field.
@@ -4488,35 +4498,39 @@ class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
   saveFieldPortTypes :: StrArg name -> f -> Maybe Name__ -> String -> List String -> String -> Module ()
 
 instance (WrapMethod m w) => (WrapField name m w) where
-  toWrapField _ prefix names =
-    let baseNames = methodArgBaseNames (_ :: m) prefix names 1
-    in primMethod (inputPortNames (_ :: m) baseNames) ∘ toWrapMethod
+  toWrapField _ prefix argNames resultName =
+    let argBaseNames = methodArgBaseNames (_ :: m) prefix argNames 1
+    in primMethod
+      (inputPortNames (_ :: m) argBaseNames)
+      (outputPortNames (_ :: m) resultName)
+      ∘ toWrapMethod
   fromWrapField _ = fromWrapMethod
-  saveFieldPortTypes _ _ modName prefix names =
-    let baseNames = methodArgBaseNames (_ :: m) prefix names 1
-    in saveMethodPortTypes (_ :: m) modName baseNames
+  saveFieldPortTypes _ _ modName prefix argNames resultName =
+    let baseNames = methodArgBaseNames (_ :: m) prefix argNames 1
+    in saveMethodPortTypes (_ :: m) modName baseNames resultName
 
 -- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
 -- but this case was being handled in GenWrap.
 instance WrapField name PrimAction PrimAction where
-  toWrapField _ _ _ = id
+  toWrapField _ _ _ _ = id
   fromWrapField _ = id
   saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance WrapField name Clock Clock where
-  toWrapField _ _ _ = id
+  toWrapField _ _ _ _ = id
   fromWrapField _ = id
   saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance WrapField name Reset Reset where
-  toWrapField _ _ _ = id
+  toWrapField _ _ _ _ = id
   fromWrapField _ = id
   saveFieldPortTypes _ _ _ _ _ _ = return ()
 
 instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
-  toWrapField _ _ _ = primInoutCast0
+  toWrapField _ _ _ _ = primInoutCast0
   fromWrapField _ = primInoutUncast0
-  saveFieldPortTypes _ _ modName _ _ result = primSavePortType modName result $ typeOf (_ :: (Inout a))
+  saveFieldPortTypes _ _ modName _ _ result =
+    primSavePortType modName result $ typeOf (_ :: (Inout a))
 
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.
@@ -4530,6 +4544,9 @@ class WrapMethod m w | m -> w where
 
   -- Compute the list of input port names for a method, from the argument base names.
   inputPortNames :: m -> List String -> List String
+
+  -- Compute the list of input port names for a method, from the result base name.
+  outputPortNames :: m -> String -> List String
 
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
@@ -4549,83 +4566,122 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
     (prefix +++ "_" +++ integerToString i)
     (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
 
-  inputPortNames _ (Cons h t) = checkPortNames (_ :: a) h `listPrimAppend` inputPortNames (_ :: b) t
+  inputPortNames _ (Cons h t) =
+    filterZeroWidthPorts (_ :: p) (checkPortNames (_ :: a) h)
+    `listPrimAppend` inputPortNames (_ :: b) t
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
+
+  outputPortNames _ = outputPortNames (_ :: b)
 
   saveMethodPortTypes _ modName (Cons h t) result = do
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) h
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
-instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
-  toWrapMethod = toActionValue_
-  fromWrapMethod = fromActionValue_
+instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
+    WrapMethod (ActionValue a) (ActionValue_ pb) where
+  toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
+  fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
   methodArgBaseNames _ _ Nil _ = Nil
   methodArgBaseNames prx prefix argNames _ =
     primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
     " excess arg_names provided for method " +++ prefix
   inputPortNames _ Nil = Nil
   inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
+  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
+  saveMethodPortTypes _ modName _ result =
+    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 
-instance (Bits a n) => WrapMethod a (Bit n) where
-  toWrapMethod = pack
-  fromWrapMethod = unpack
+instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
+    WrapMethod a pb where
+  toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
+  fromWrapMethod = unsplitPorts ∘ unpackPorts
   methodArgBaseNames _ _ Nil _ = Nil
   methodArgBaseNames prx prefix argNames _ =
     primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
     " excess arg_names provided for method " +++ prefix
   inputPortNames _ Nil = Nil
   inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
-
-{-
-Eventually, we should support splitting multiple output ports.
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) => WrapMethod (ActionValue a) (ActionValue pb) where
-  toWrapMethod = fmap packPorts
-  fromWrapMethod = fmap unpackPorts
-  outputPortNames _ base = checkPortNames (_ :: a) base
+  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
-
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb) => WrapMethod a pb where
-  toWrapMethod a = packPorts a
-  fromWrapMethod a = unpackPorts a
-  outputPortNames _ base = checkPortNames (_ :: a) base
-  saveMethodPortTypes _ modName _ result =
-    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
--}
 
 class WrapPorts p pb | p -> pb where
-  -- Convert from a tuple of values to a tuple of bits.
+  -- Convert from a tuple of Port values to a tuple of bits.
   packPorts :: p -> pb
-  -- Convert from a tuple of bits to a tuple of values.
+  -- Convert from a tuple of bits to a tuple of Port values.
   unpackPorts :: pb -> p
   -- Save the port types, given their names.
   savePortTypes :: p -> Maybe Name__ -> List String -> Module ()
+  -- Filter the port names to only those that have non-zero width.
+  filterZeroWidthPorts :: p -> List String -> List String
 
-instance (Bits a n, WrapPorts b bb) => WrapPorts (Port a, b) (Bit n, bb) where
-  packPorts (Port a, b) = (pack a, packPorts b)
-  unpackPorts (a, b) = (Port $ unpack a, unpackPorts b)
+instance (Bits a n, NonEmptyBits n ab, WrapPorts b bb, AppendTuple ab bb pb) =>
+    WrapPorts (Port a, b) pb where
+  packPorts (Port a, b) = toNonEmptyBits (pack a) `appendTuple` packPorts b
+  unpackPorts p = case splitTuple p of
+    (ab, bb) -> (Port (unpack (fromNonEmptyBits ab)), unpackPorts bb)
   savePortTypes _ modName (Cons h t) = do
-    primSavePortType modName h $ typeOf (_ :: a)
+    if valueOf n > 0
+      then primSavePortType modName h $ typeOf (_ :: a)
+      else return ()
     savePortTypes (_ :: b) modName t
   savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
+  filterZeroWidthPorts _ (Cons h t) =
+    if valueOf n > 0
+    then Cons h (filterZeroWidthPorts (_ :: b) t)
+    else filterZeroWidthPorts (_ :: b) t
+  filterZeroWidthPorts _ Nil = error "filterZeroWidthPorts: empty port names list"
 
-instance (Bits a n) => WrapPorts (Port a) (Bit n) where
-  packPorts (Port a) = pack a
-  unpackPorts = Port ∘ unpack
-  savePortTypes _ modName (Cons h _) = primSavePortType modName h $ typeOf (_ :: a)
-  savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
+instance (Bits a n, NonEmptyBits n pb) => WrapPorts (Port a) pb where
+  packPorts (Port a) = toNonEmptyBits (pack a)
+  unpackPorts = Port ∘ unpack ∘ fromNonEmptyBits
+  savePortTypes _ modName (Cons h Nil) = primSavePortType modName h $ typeOf (_ :: a)
+  savePortTypes _ _ _ = error "savePortTypes: expected one port name"
+  filterZeroWidthPorts _ (Cons h Nil) =
+    if valueOf n > 0 then Cons h Nil else Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: expected one port name"
 
 instance WrapPorts () () where
   packPorts _ = ()
   unpackPorts _ = ()
-  savePortTypes _ _ _ = return ()
+  savePortTypes _ _ Nil = return ()
+  savePortTypes _ _ _ = error "savePortTypes: non-empty port names list"
+  filterZeroWidthPorts _ Nil = Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: non-empty port names list"
+
+-- Helper class to conditionally convert Bit 0 to ()
+class NonEmptyBits n pb | n -> pb where
+  toNonEmptyBits :: Bit n -> pb
+  fromNonEmptyBits :: pb -> Bit n
+
+instance NonEmptyBits 0 () where
+  toNonEmptyBits _ = ()
+  fromNonEmptyBits _ = 0
+
+instance NonEmptyBits n (Bit n) where
+  toNonEmptyBits = id
+  fromNonEmptyBits = id
+
+-- Force a tuple of bit values to be fully expanded by the evaluator.
+primDeepSeqTupleBits :: (PrimSeqTupleBits a) => a -> a
+primDeepSeqTupleBits a = primSeqTupleBits a a
+
+class PrimSeqTupleBits a where
+  primSeqTupleBits :: a -> b -> b
+
+instance (PrimSeqTupleBits b) => PrimSeqTupleBits (Bit n, b) where
+  primSeqTupleBits (a, b) c = primSeq a (primSeqTupleBits b c)
+
+instance PrimSeqTupleBits (Bit n) where
+  primSeqTupleBits = primSeq
+
+instance PrimSeqTupleBits () where
+  primSeqTupleBits () = id
 
 -- Compute the list port names for type 'a' given a base name.
 -- Check that the number of port names matches the number of ports.
--- This error should only occur if there is an error in a WrapPorts instance.
+-- This error should only occur if there is an error in a SplitPorts instance.
 checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
 checkPortNames proxy base =
   let pn = portNames proxy base

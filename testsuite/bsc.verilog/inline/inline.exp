@@ -4,8 +4,8 @@
 # there is only one use.  (Inlining for optimization is OK.)
 if {$vtest == 1} {
     compile_verilog_pass RWireOneUse.bsv "" -keep-inlined-boundaries
-    find_n_strings sysRWireOneUse.v {assign rw$wget = } 1
-    find_n_strings sysRWireOneUse.v {assign rw$whas = } 1
+    find_n_strings sysRWireOneUse.v {assign rw$wget_RES_1 = } 1
+    find_n_strings sysRWireOneUse.v {assign rw$whas_RES_1 = } 1
 }
 
 # Test that inlined registers with no_reset do not generate Verilog

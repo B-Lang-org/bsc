@@ -1,7 +1,7 @@
 -- Common code used by various converters
 
 module AExpr2Util(
-  getMethodOutputPort
+  getMethodOutputPorts
 ) where
 
 import qualified Data.Map as M
@@ -32,8 +32,8 @@ import VModInfo(VModInfo(..), VFieldInfo(..), vName_to_id)
 -- XXX we can replace them with an unevaluated function applied to its arguments!
 -- XXX That way, the SMT solver will handle any equivalence of the arguments.
 
-getMethodOutputPort :: (M.Map AId VModInfo) -> AId -> AId -> AId
-getMethodOutputPort stateMap modId methId =
+getMethodOutputPorts :: (M.Map AId VModInfo) -> AId -> AId -> [AId]
+getMethodOutputPorts stateMap modId methId =
   let mod_err = internalError("canonMethCalls: module not found: " ++
                               ppReadable modId)
       fields = vFields $ M.findWithDefault mod_err modId stateMap
@@ -41,14 +41,12 @@ getMethodOutputPort stateMap modId methId =
                                ppReadable (modId, methId))
       findFn (Method { vf_name = i }) = qualEq i methId
       findFn _ = False
-      mport = case (find findFn fields) of
-                Just (Method { vf_output = mo }) -> mo
+      ports = case (find findFn fields) of
+                Just (Method { vf_outputs = os }) -> os
                 _ -> meth_err
       out_err = internalError("canonMethCalls: method has no output: " ++
                               ppReadable (modId, methId))
-  in  case mport of
-        Just (vn,_) -> vName_to_id vn
-        _ -> out_err
+  in  if null ports then out_err else map (vName_to_id . fst) ports
 
 -- -------------------------
 

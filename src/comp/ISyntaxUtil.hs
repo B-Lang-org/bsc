@@ -120,18 +120,16 @@ isSimpleType t = t == itInteger ||
                  t == itChar
 
 isitAction :: IType -> Bool
-isitAction (ITAp (ITCon i (IKFun IKNum IKStar)
-                     (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | (i == idActionValue_) = (x == 0)
-isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _) t)
-    | (i == idActionValue)  = t == itPrimUnit
+isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _ ) t)
+    | (i == idActionValue_) || (i == idActionValue) = isEmptyType t
 isitAction x = (x == itAction)
 
--- note this returns false for x == - because ActionValue_ 0 is really an Action
+-- note this returns false for x == () because ActionValue_ () is really an Action
+-- Also handle ActionValue_ (Bit 0), which can be introduced by foreign functions.
 isitActionValue_ :: IType -> Bool
-isitActionValue_ (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | x > 0 = (i == idActionValue_)
+isitActionValue_ (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) =
+    (i == idActionValue_) && not (isEmptyType t)
 isitActionValue_ _ = False
 
 isitActionValue :: IType -> Bool
@@ -149,11 +147,11 @@ getInout_Size t =
     internalError ("getInout_Size: type is not Inout_: " ++ ppReadable t)
 
 
-getAV_Size :: IType -> Integer
-getAV_Size (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x)) |
-    (i == idActionValue_) = x
-getAV_Size t = internalError ("getAV_Size: type is not AV_: " ++ ppReadable t)
+getAV_Type :: IType -> IType
+getAV_Type (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) |
+    (i == idActionValue_) = t
+getAV_Type t = internalError ("getAV_Type: type is not AV_: " ++ ppReadable t)
 
 getAVType :: IType -> Maybe IType
 getAVType (ITAp (ITCon i (IKFun IKStar IKStar) _) t) | i == idActionValue = Just t
@@ -175,9 +173,23 @@ itList, itMaybe :: IType -> IType
 itList t = ITAp (ITCon idList (IKFun IKStar IKStar) tiList) t
 itMaybe t = ITAp (ITCon idMaybe (IKFun IKStar IKStar) tiMaybe) t
 
+isPairType :: IType -> Bool
+isPairType (ITAp (ITAp (ITCon i _ _) _) _) = i == idPrimPair
+isPairType _ = False
+
+isEmptyType :: IType -> Bool
+isEmptyType (ITCon i _ _) = i == idPrimUnit
+isEmptyType (ITAp c (ITNum 0)) = c == itBit
+isEmptyType t = False
+
 isBitType :: IType -> Bool
 isBitType (ITAp c n) = c == itBit
 isBitType _ = False
+
+isBitTupleType :: IType -> Bool
+isBitTupleType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+  isBitType t1 && isBitTupleType t2
+isBitTupleType t = isBitType t
 
 -- extension point for ActionValue methods
 isActionType :: IType -> Bool
@@ -185,8 +197,10 @@ isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
 
 -- extension point for ActionValue methods
 isValueType :: IType -> Bool
-isValueType x | (isitActionValue_ x) && (getAV_Size x > 0) = True
+isValueType x | (isitActionValue_ x) = True
 isValueType (ITAp t n) | t == itBit = True
+isValueType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+    isBitType t1 && isValueType t2
 isValueType _ = False
 
 -- Constructors
@@ -1065,10 +1079,6 @@ joinActions :: [IExpr a] -> IExpr a
 joinActions [] = icNoActions
 joinActions as = foldr1 ja as
   where ja a1 a2 = IAps icJoinActions [] [a1, a2]
-
--- perhaps the position information should be transferred over XXX
-actionValue_BitN :: IType -> IType
-actionValue_BitN t = itBitN (getAV_Size t)
 
 iStrToInt :: String -> Position -> IExpr a
 iStrToInt s pos = iMkLitAt pos itInteger i

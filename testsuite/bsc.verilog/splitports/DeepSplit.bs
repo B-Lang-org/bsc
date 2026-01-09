@@ -47,11 +47,19 @@ interface SplitTest =
   putBaz :: DeepSplit Baz -> Action
   putZug :: DeepSplit Zug -> Action
 
+  getFoo :: DeepSplit Foo
+  getBar :: DeepSplit Foo -> DeepSplit Bar {-# result = "GET_BAR" #-}
+  getZug :: DeepSplit Zug
+
+  update :: DeepSplit Foo -> ActionValue (DeepSplit Bar)
+
 
 {-# synthesize mkDeepSplitTest #-}
 mkDeepSplitTest :: Module SplitTest
 mkDeepSplitTest =
   module
+    theCond <- mkReg False
+    theFoo <- mkReg (Foo { x = 0; y = 0; })
     interface
       putFoo (DeepSplit x) = $display "putFoo: " (cshow x)
       putBar (DeepSplit x) = $display "putBar: " (cshow x)
@@ -59,6 +67,13 @@ mkDeepSplitTest =
       putFoos (DeepSplit x) = $display "putFoos: " (cshow x)
       putBaz (DeepSplit x) = $display "putBaz: " (cshow x)
       putZug (DeepSplit x) = $display "putZug: " (cshow x)
+      getFoo = DeepSplit $ Foo { x = 42; y = 43; }
+      getBar (DeepSplit f) = DeepSplit $ Bar { v = vec True False True; w = (False, 0x4321); z = f; }
+      getZug = DeepSplit $ Zug { qs = vec (Quix { q = negate 2; v = True }) (Quix { q = 2; v = False }); blob = True; }
+      update (DeepSplit f) = do
+        theCond := not theCond
+        theFoo := f
+        return $ DeepSplit $ Bar { v = vec (f.x == 33) theCond (not theCond); w = (theCond, 0xDEAD); z = theFoo; }
 
 {-# synthesize sysDeepSplit #-}
 sysDeepSplit :: Module Empty
@@ -74,4 +89,13 @@ sysDeepSplit =
       when i == 3 ==> s.putFoos $ DeepSplit $ genWith $ \ j -> Foo { x = fromInteger $ 9 + j / 2; y = fromInteger $ 10 - 2*j / 3; }
       when i == 4 ==> s.putBaz $ DeepSplit $ Baz { a = Just $ Foo { x = 9; y = 10; }; b = Bar { v = vec True False False; w = (True, 0x1234); z = Foo { x = 3; y = 4; }; }; c = vec (vec (Foo { x = 11; y = 12; }) (Foo { x = 13; y = 14; }) (Foo { x = 15; y = 16; }) (Foo { x = 17; y = 18; }) (Foo { x = 19; y = 20; }) (Foo { x = 21; y = 22; }) (Foo { x = 23; y = 24; }) (Foo { x = 25; y = 26; }), Bar { v = vec True False True; w = (True, 0xBEEF); z = Foo { x = 3; y = 4; } }) (vec (Foo { x = 27; y = 28; }) (Foo { x = 29; y = 30; }) (Foo { x = 31; y = 32; }) (Foo { x = 33; y = 34; }) (Foo { x = 35; y = 36; }) (Foo { x = 37; y = 38; }) (Foo { x = 39; y = 40; }) (Foo { x = 41; y = 42; }), Bar { v = vec True False True; w = (True, 0x4321); z = Foo { x = 123; y = 42; } }) (vec (Foo { x = 43; y = 44; }) (Foo { x = 45; y = 46; }) (Foo { x = 47; y = 48; }) (Foo { x = 49; y = 50; }) (Foo { x = 51; y = 52; }) (Foo { x = 53; y = 54; }) (Foo { x = 55; y = 56; }) (Foo { x = 57; y = 58; }), Bar { v = vec True True True; w = (True, 0xAABB); z = Foo { x = 3; y = 4; } }); d = (); e = nil; }
       when i == 5 ==> s.putZug $ DeepSplit $ Zug { qs = vec (Quix { q = 1; v = True }) (Quix { q = 2; v = False }); blob = False; }
-      when i == 6 ==> $finish
+      when i == 6 ==> $display "getFoo: " (cshow s.getFoo)
+      when i == 7 ==> $display "getBar: " (cshow $ s.getBar s.getFoo)
+      when i == 8 ==> $display "getZug: " (cshow s.getZug)
+      when i == 9 ==> do
+        res <- s.update (DeepSplit $ Foo { x = 77; y = 88; })
+        $display "update: " (cshow res)
+      when i == 10 ==> do
+        res <- s.update (DeepSplit $ Foo { x = 33; y = 44; })
+        $display "update: " (cshow res)
+      when i == 11 ==> $finish

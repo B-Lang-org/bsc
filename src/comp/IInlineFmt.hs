@@ -354,12 +354,13 @@ createValueExprs x                                        = [createValueExpr x]
 -- #############################################################################
 
 createValueExpr :: IExpr a -> IExpr a
-createValueExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign {})) _ _)]) | c == idAVAction_
+createValueExpr (IAps (ICon c (ICSel {})) [ITAp b (ITNum s)] [e@(IAps (ICon _ (ICForeign {})) _ _)])
+                | c == idAVAction_, b == itBit
                 = x
-                where x = (IAps (ICon idAVValue_ (ICSel {iConType = tt , selNo = 0, numSel = 2 })) [ITNum s] [e])
+                where x = (IAps (ICon idAVValue_ (ICSel {iConType = tt , selNo = 0, numSel = 2 })) [ITAp itBit $ ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
-                                                   (ITAp itBit (ITVar v0)) )
+                      tt = ITForAll v0 IKStar (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKStar IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
+                                                   (ITVar v0) )
 createValueExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x
                 where x = (IAps cc [rt] [cond, e0', e1'])
@@ -370,11 +371,12 @@ createValueExpr x = internalError ("createValueExpr: " ++ ppReadable x)
 
 
 createActionExpr :: IExpr a -> IExpr a
-createActionExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign {})) _ _)]) | c == idAVValue_
+createActionExpr (IAps (ICon c (ICSel {})) [ITAp b (ITNum s)] [e@(IAps (ICon _ (ICForeign {})) _ _)])
+                | c == idAVValue_, b == itBit
                 = x
-                where x = (IAps (ICon idAVAction_ (ICSel {iConType = tt , selNo = 1, numSel = 2 })) [ITNum s] [e])
+                where x = (IAps (ICon idAVAction_ (ICSel {iConType = tt , selNo = 1, numSel = 2 })) [ITAp itBit $ ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
+                      tt = ITForAll v0 IKStar (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKStar IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
                                                    itAction )
 createActionExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x
@@ -386,14 +388,16 @@ createActionExpr x = joinActions []
 
 
 allStrings :: IExpr a -> Bool
-allStrings (IAps (ICon c (ICSel {})) [ITNum s] [(IAps (ICon _ (ICForeign {})) _ [e])]) | c == idAVAction_ && iGetType e == itString
+allStrings (IAps (ICon c (ICSel {})) [ITAp b (ITNum s)] [(IAps (ICon _ (ICForeign {})) _ [e])])
+           | c == idAVAction_ && b == itBit && iGetType e == itString
            = True
 allStrings (IAps (ICon i (ICPrim _ PrimIf)) _ [_, e0, e1])
            = allStrings e0 && allStrings e1
 allStrings _ = False
 
 createStringExpr :: IExpr a -> IExpr a
-createStringExpr (IAps (ICon c (ICSel {})) [ITNum s] [(IAps (ICon _ (ICForeign {})) _ [e])]) | c == idAVAction_
+createStringExpr (IAps (ICon c (ICSel {})) [ITAp b (ITNum s)] [(IAps (ICon _ (ICForeign {})) _ [e])])
+                | c == idAVAction_, b == itBit
                 = e
 createStringExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x

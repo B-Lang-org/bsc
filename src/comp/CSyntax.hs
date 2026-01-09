@@ -1272,9 +1272,11 @@ instance PPrint CExpr where
                 f (Inout i (VName p) mc mr) =
                     t "inout_field " <> ppVarId d i <+> t p <+>
                     mfi "clocked_by" mc <+> mfi "reset_by" mr
-                f (Method i mc mr n ps mo me) =
+                f (Method i mc mr n ps os me) =
                     ppVarId d i <> g n <+> t "=" <+> t (unwords (map h ps)) <+>
-                    mfi "clocked_by" mc <+> mfi "reset_by" mr <+> mfp "output" mo <+> mfp "enable" me
+                    mfi "clocked_by" mc <+> mfi "reset_by" mr <+>
+                    (if null os then empty else t"output" <+> t (unwords (map h os))) <+>
+                    mfp "enable" me
                 g 1 = t""
                 g n = t("[" ++ itos n ++ "]")
                 h (s,[]) = show s

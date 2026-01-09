@@ -9,7 +9,7 @@ proc rts_flags { heapsize } {
 # -----
 
 compile_verilog_pass Bug1490Bool.bsv {} $rtsflags
-compile_verilog_pass Bug1490MyBool.bsv {} $rtsflags
+compile_verilog_pass Bug1490MyBool.bsv {} [rts_flags 300]
 compile_verilog_pass Bug1490MyUnion.bsv {} [rts_flags 272]
 compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 

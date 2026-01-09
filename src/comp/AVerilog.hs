@@ -474,8 +474,8 @@ groupPorts si as =
         -- (function to be folded over the method port info)
         findMethod :: ASPMethodInfo ->
                         ([(AId,String,[VArg])],[(Id,VArg)]) -> ([(AId,String,[VArg])],[(Id,VArg)])
-        findMethod (ASPMethodInfo i ty mr me mv args _) (ms, ports) =
-            let is = (catMaybes [mr, me, mv]) ++ args
+        findMethod (ASPMethodInfo i ty mr me vs args _) (ms, ports) =
+            let is = (catMaybes [mr, me]) ++ vs ++ args
                 (ps, remaining) = findIds is ports
             in  ((i,ty,ps):ms, remaining)
 
@@ -574,10 +574,10 @@ groupMethodDefs vDef si ds =
         mkForMethod :: ASPMethodInfo ->
                        ([VMItem], [VMItem], [VMItem], M.Map AId ADef) ->
                        ([VMItem], [VMItem], [VMItem], M.Map AId ADef)
-        mkForMethod (ASPMethodInfo i ty mr _ mv _ rs) (odecls, idecls, gs, defs) =
+        mkForMethod (ASPMethodInfo i ty mr _ vs _ rs) (odecls, idecls, gs, defs) =
             let
                 -- get the output defs
-                output_ids = catMaybes [mv, mr]
+                output_ids = vs ++ maybeToList mr
                 (output_defs, other_defs) = findADefs output_ids defs
                 -- get the rule defs
                 rule_sched_ids = concatMap getRuleSignals rs

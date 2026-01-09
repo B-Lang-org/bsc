@@ -10,6 +10,7 @@ import ErrorUtil(internalError)
 import PPrint
 import Id
 import PreIds
+import Util(itos)
 
 -- remember to allow a few characters for __d3222 etc suffix
 signal_length_limit :: Int
@@ -67,6 +68,12 @@ signalNameFromAExpr' (expr@AMethCall { }) =
     connectWith "_" (map signalNameFromAExpr' (ae_args expr))
 signalNameFromAExpr' (expr@AMethValue { }) =
     ppString (ae_objid expr) ++ "_" ++ ppString (unQualId (ameth_id expr))
+signalNameFromAExpr' (expr@ATuple { }) =
+    "TUPLE_" ++
+    connectWith "_" (map signalNameFromAExpr' (ae_elems expr))
+signalNameFromAExpr' (expr@ATupleSel { }) =
+    signalNameFromAExpr' (ae_exp expr) ++
+    "_" ++ itos (ae_index expr)
 signalNameFromAExpr' (expr@ANoInlineFunCall { }) =
     -- use the identifier name (it is the user-known function name);
     -- the string in ANoInlineFun is the module name

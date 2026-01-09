@@ -707,43 +707,42 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 -- matches the types.
                 let
                     -- XXX These errors should give more info
-                    chkResType :: [VPort] -> Maybe VPort -> Maybe VPort -> Type ->
-                                  TI ([VPort], Maybe VPort, Maybe VPort)
-                    chkResType ps me@(Just _) mo@Nothing t =
-                        if (isActionWithoutValue t) then return (ps, me, mo)
+                    chkResType :: [VPort] -> Maybe VPort -> [VPort] -> Type ->
+                                  TI ([VPort], Maybe VPort, [VPort])
+                    chkResType ps me@(Just _) [] t =
+                        if (isActionWithoutValue t) then return (ps, me, [])
                         else if (isActionWithValue t)
                         then errMissingValue "ActionValue" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps me@Nothing mo@(Just _) t =
-                        if (isBit t) then return (ps, me, mo)
+                    chkResType ps me@Nothing outs@(_:_) t =
+                        if (isBitTuple t) then return (ps, me, outs)
                         else if (isActionWithValue t)
                         then errMissingEnable "ActionValue" t
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
                         else errBadResType t
-                    chkResType ps me@(Just _) mo@(Just _) t =
-                        if (isActionWithValue t) then return (ps, me, mo)
+                    chkResType ps me@(Just _) outs@(_:_) t =
+                        if (isActionWithValue t) then return (ps, me, outs)
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps Nothing Nothing t = do
-                        -- must have more than 0 ports
-                        when (null ps) $
-                          err (getPosition f,
-                               EForeignModTooFewPorts (pfpString f))
+                    chkResType ps Nothing [] t = do
                         -- update the Classic fieldinfo to BSV format
                         let inputs = initOrErr "chkResType" ps
                         let final_port = lastOrErr "chkResType" ps
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
-                         then return (inputs, Just final_port, Nothing)
-                         else if (isBit t)
-                               then return (inputs, Nothing, Just final_port)
-                               else errBadResType t
+                        then return (inputs, Just final_port, [])
+                        else if (isBitTuple t)
+                        -- XXX should have multiple output ports for bit tuples here?
+                        then return (inputs, Nothing, [final_port])
+                        else if (t == tPrimUnit)
+                        then return (ps, Nothing, [])
+                        else errBadResType t
 
                     errBadResType t =
                         err (getPosition f,
@@ -805,9 +804,9 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                 else if (null argTypes)
                                 then return vfi
                                 else errInoutHasArgs
-                    Method { vf_inputs = inputs, vf_enable = me, vf_output = mo } ->
+                    Method { vf_inputs = inputs, vf_enable = me, vf_outputs = outputs } ->
                             do -- updates inputs, me and mo when processing Classic format
-                               (inputs', me', mo') <- chkResType inputs me mo resType
+                               (inputs', me', outputs') <- chkResType inputs me outputs resType
                                -- check if any actions are SB with themselves
                                when (((isActionWithValue resType) ||
                                       (isActionWithoutValue resType) ||
@@ -815,7 +814,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                       (f `elem` self_sbs))
                                     (errActionSelfSB f)
                                chkArgs inputs' argTypes
-                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_output = mo' })
+                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_outputs = outputs' })
     -- paramResults <- mapM tiParam es
     qsses <- mapM tiArg args
 --  let   (pses, tys) = unzip paramResults
@@ -899,7 +898,7 @@ tiExpr as td exp@(CForeignFuncC link_id wrap_cqt) = do
                         when (isTypeString av_arg) $
                             err (getPosition pos, EForeignFuncStringRes)
                         (ctxs, prim_sz) <- findBitSize av_arg
-                        let prim_t = TAp tActionValue_ prim_sz
+                        let prim_t = TAp tActionValue_ $ TAp tBit prim_sz
                         return (ctxs, prim_t, cexpr)
                 -- anything else must be bitifiable
                 else do let cexpr = \e -> cVApply idUnpack [e]
@@ -1521,7 +1520,7 @@ finishSWriteAV as td v f es paramResults eq_ps =
         let (pss, es') = unzip pses
 
 --        v <- newTVar "XXX" KNum f
-        let tav = TAp tActionValue_ v
+        let tav = TAp tActionValue_ (TAp tBit v)
         let taskty = foldr fn tav tys
 
         -- XXX: quantifying in IConv instead so free type vars are caught correctly
@@ -1583,7 +1582,7 @@ taskCheckFOpen as td f [filen] =
       (vp,filentc) <- tiExpr as tString filen
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]
@@ -1599,7 +1598,7 @@ taskCheckFOpen as td f [filen,mode] =
       --
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc,modetc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]

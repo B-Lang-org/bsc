@@ -445,7 +445,7 @@ iSplitIface flags ieface@(IEFace i xargs (Just (e,t)) Nothing wp fi)
             in (smap, IEFace i xargs Nothing (Just irules_opt) wp fi)
       else case e of
             (IAps (ICon av (ICTuple {fieldIds = [_val_id,_act_id]}))
-                      [ITNum _] [val_,act_])
+                      [_] [val_,act_])
                 | (av == idActionValue_)
                 -> let irule = IRule i [] (getIdString i) wp iTrue act_ Nothing []
                        irules = IRules [] [irule] -- no sps
@@ -457,9 +457,9 @@ iSplitIface flags ieface@(IEFace i xargs (Just (e,t)) Nothing wp fi)
 iSplitIface _ _ = internalError ("iSplitIface: no expression or unexpected rule")
 
 mkExpression :: IExpr a -> IType -> Maybe (IExpr a, IType)
-mkExpression val_ ty = if (0==(getAV_Size ty))
+mkExpression val_ ty = if (isEmptyType (getAV_Type ty))
                        then Nothing
-                       else (Just (val_,(actionValue_BitN ty)))
+                       else (Just (val_,(getAV_Type ty)))
 
 
 check_meth_rules :: (PrimOp -> Bool) -> IEFace a -> Maybe (IExpr a)
