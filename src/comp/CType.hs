@@ -609,8 +609,11 @@ instance PPrint StructSubType where
     pPrint _ _ ss = text (show ss)
 
 instance NFData StructSubType where
+    rnf SStruct = ()
+    rnf SClass = ()
     rnf (SDataCon i nm) = rnf2 i nm
-    rnf x = x `seq` ()
+    rnf (SInterface ps) = rnf ps
+    rnf (SPolyWrap i con field) = rnf3 i con field
 
 -- Force evaluation of a Ctype
 seqCType :: CType -> CType
