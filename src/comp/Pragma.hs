@@ -438,8 +438,16 @@ getRulePragmaName (RPdoc {}) = "doc"
 getRulePragmaName RPhide     = "hide"
 
 instance NFData RulePragma where
-    rnf x = seq x ()
-
+    rnf RPfireWhenEnabled = ()
+    rnf RPnoImplicitConditions = ()
+    rnf RPaggressiveImplicitConditions = ()
+    rnf RPconservativeImplicitConditions = ()
+    rnf RPnoWarn = ()
+    rnf RPwarnAllConflicts = ()
+    rnf RPcanScheduleFirst = ()
+    rnf RPclockCrossingRule = ()
+    rnf (RPdoc s) = rnf s
+    rnf RPhide = ()
 
 -- ========================================================================
 -- SchedulePragma
