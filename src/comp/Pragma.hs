@@ -294,10 +294,16 @@ ppPProp :: PDetail -> PProp -> Doc
 ppPProp d pprop = text "{-#" <+> pPrint d 0 pprop <+> text "#-};"
 
 instance NFData PProp where
-    rnf (PPscanInsert i) = seq i ()
-    rnf (PPCLK i) = seq i ()
-    rnf (PPGATE i) = seq i ()
-    rnf (PPRSTN i) = seq i ()
+    rnf PPverilog = ()
+    rnf (PPforeignImport i) = rnf i
+    rnf (PPalwaysReady n) = rnf n
+    rnf (PPalwaysEnabled n) = rnf n
+    rnf (PPenabledWhenReady n) = rnf n
+    rnf (PPscanInsert i) = rnf i
+    rnf PPbitBlast = ()
+    rnf (PPCLK i) = rnf i
+    rnf (PPGATE i) = rnf i
+    rnf (PPRSTN i) = rnf i
     rnf (PPclock_osc xs) = rnf xs
     rnf (PPclock_gate xs) = rnf xs
     rnf (PPgate_inhigh is) = rnf is
@@ -308,9 +314,17 @@ instance NFData PProp where
     rnf (PParg_clocked_by xs) = rnf xs
     rnf (PParg_reset_by xs) = rnf xs
     rnf (PPoptions os) = rnf os
+    rnf (PPgate_input_clocks clks) = rnf clks
+    rnf (PPmethod_scheduling mci) = rnf mci
+    rnf (PPdoc s) = rnf s
+    rnf (PPperf_spec specs) = rnf specs
     rnf (PPclock_family is) = rnf is
     rnf (PPclock_ancestors ils) = rnf ils
-    rnf x = seq x ()
+    rnf (PPparam is) = rnf is
+    rnf (PPinst_name n) = rnf n
+    rnf PPinst_hide = ()
+    rnf PPinst_hide_all = ()
+    rnf (PPdeprecate msg) = rnf msg
 
 instance NFData PPnm where
     rnf (PPnmOne i) = rnf i
