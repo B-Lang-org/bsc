@@ -689,6 +689,7 @@ cTApply f ts = CTApply f ts
 
 cLetSeq :: [CDefl] -> CExpr -> CExpr
 cLetSeq [] e = e
+cLetSeq ds1 (Cletseq ds2 e) = Cletseq (ds1 ++ ds2) e
 cLetSeq ds e = Cletseq ds e
 
 cLetRec :: [CDefl] -> CExpr -> CExpr
