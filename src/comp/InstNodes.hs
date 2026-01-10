@@ -18,6 +18,7 @@ import Control.Monad.State
 
 import Util(mapSnd)
 import Util(toMaybe)
+import Eval
 import ErrorUtil(internalError)
 import PreStrings(fsBody)
 import FStringCompat(getFString)
@@ -51,6 +52,12 @@ data InstNode = StateVar { node_name :: Id } |
 
 instance Ord InstNode where
   compare n1 n2 = cmpIdByName (node_name n1) (node_name n2)
+
+instance NFData InstNode where
+  rnf (StateVar name) = rnf name
+  rnf (Rule name) = rnf name
+  rnf (Loc name typ ign ignname uniq children) =
+    rnf6 name typ ign ignname uniq children
 
 instance PPrint InstNode where
   pPrint d p (StateVar i ) | isHideId i = text "StateVar (H) " <> pPrint d p i

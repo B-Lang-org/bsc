@@ -160,8 +160,8 @@ instance PPrint PathGraphInfo where
                 pPrint d p (pgi_outputs pgi)) $+$
         text "}"
 
-instance Hyper PathGraphInfo where
-    hyper x y = hyper3 (pgi_graph x) (pgi_inputs x) (pgi_outputs x) y
+instance NFData PathGraphInfo where
+    rnf x = rnf3 (pgi_graph x) (pgi_inputs x) (pgi_outputs x)
 
 type PathUrgencyPairs = [(ARuleId, ARuleId, [PathNode])]
 
@@ -287,8 +287,24 @@ instance PPrint PathNode where
 instance PVPrint PathNode where
     pvPrint d p = printPathNode True d p
 
-instance Hyper PathNode where
-    hyper x y = (x==x) `seq` y
+instance NFData PathNode where
+    rnf (PNDef aid) = rnf aid
+    rnf (PNStateMethodArg a1 a2 n) = rnf3 a1 a2 n
+    rnf (PNStateMethodRes a1 a2) = rnf2 a1 a2
+    rnf (PNStateMethodEnable a1 a2) = rnf2 a1 a2
+    rnf (PNStateArgument aid vn n) = rnf3 aid vn n
+    rnf (PNStateMethodArgMux a1 a2) = rnf2 a1 a2
+    rnf (PNCanFire aid) = rnf aid
+    rnf (PNWillFire aid) = rnf aid
+    rnf (PNTopMethodArg a1 a2) = rnf2 a1 a2
+    rnf (PNTopMethodRes aid) = rnf aid
+    rnf (PNTopMethodReady aid) = rnf aid
+    rnf (PNTopMethodEnable aid) = rnf aid
+    rnf (PNTopArgument aid n) = rnf2 aid n
+    rnf (PNClk aid) = rnf aid
+    rnf (PNRstN aid) = rnf aid
+    rnf (PNTopClkGate aid) = rnf aid
+    rnf (PNStateClkGate a1 a2) = rnf2 a1 a2
 
 -- When reporting errors, all of the above are in the user's source
 -- except the defs, so don't report them.  This function filters them out.

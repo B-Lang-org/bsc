@@ -17,8 +17,9 @@ instance PPrint Backend where
     pPrint _ _ Bluesim = text "Bluesim"
     pPrint _ _ Verilog = text "Verilog"
 
-instance Hyper Backend where
-    hyper x y = (x==x) `seq` y
+instance NFData Backend where
+    rnf Bluesim = ()
+    rnf Verilog = ()
 
 -- ===============
 

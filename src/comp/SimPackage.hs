@@ -208,11 +208,10 @@ instance PPrint SimSchedule where
 
 -- -----
 
-instance Hyper SimSystem where
-    hyper ssim y = hyper3 (ssys_packages ssim)
-                          (ssys_schedules ssim)
-                          (ssys_top ssim)
-                          y
+instance NFData SimSystem where
+    rnf ssim = rnf3 (ssys_packages ssim)
+                    (ssys_schedules ssim)
+                    (ssys_top ssim)
 
 instance Eq SimPackage where
     sp1 == sp2 =
@@ -240,11 +239,12 @@ instance Eq SimPackage where
          (sp_schedule_pragmas sp1 == sp_schedule_pragmas sp2)
         )
 
-instance Hyper SimPackage where
-    hyper spkg y = (spkg == spkg) `seq` y
+instance NFData SimPackage where
+    rnf (SimPackage n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17 n18 n19) =
+        rnf19 n1 n2 n3 n4 n5 n6 n7 n8 n9 n10 n11 n12 n13 n14 n15 n16 n17 n18 n19
 
-instance Hyper SimSchedule where
-    hyper ssched y =
+instance NFData SimSchedule where
+    rnf ssched =
         --- we only care about certain fields
         (
             (ss_clock ssched    == ss_clock ssched)
@@ -254,7 +254,7 @@ instance Hyper SimSchedule where
          && (ss_sched_order ssched == ss_sched_order ssched)
          && (ss_domain_info_map ssched == ss_domain_info_map ssched)
          && (ss_early_rules ssched == ss_early_rules ssched)
-        ) `seq` y
+        ) `seq` ()
 
 -- -----
 

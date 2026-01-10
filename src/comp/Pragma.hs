@@ -59,7 +59,7 @@ import Data.Maybe(listToMaybe)
 import Data.List(sort)
 import qualified Data.Generics as Generic
 
-import Eval
+import Eval(NFData(..), rnf, rnf2, rnf3)
 import PPrint
 import PVPrint
 import Id
@@ -94,9 +94,9 @@ instance PVPrint Pragma where
     pvPrint d p (Pnoinline is) =
         text "(* noinline" <+> sep (map (pvpId d) is) <+> text " *)"
 
-instance Hyper Pragma where
-    hyper (Pproperties i pps) y = hyper2 i pps y
-    hyper (Pnoinline is) y = hyper is y
+instance NFData Pragma where
+    rnf (Pproperties i pps) = rnf2 i pps
+    rnf (Pnoinline is) = rnf is
 
 instance HasPosition Pragma where
     getPosition (Pproperties i _) = getPosition i
@@ -293,28 +293,42 @@ pvpPProp d pprop = text "(*" <+> pvPrint d 0 pprop <+> text "*)"
 ppPProp :: PDetail -> PProp -> Doc
 ppPProp d pprop = text "{-#" <+> pPrint d 0 pprop <+> text "#-};"
 
-instance Hyper PProp where
-    hyper (PPscanInsert i) y = seq i y
-    hyper (PPCLK i) y = seq i y
-    hyper (PPGATE i) y = seq i y
-    hyper (PPRSTN i) y = seq i y
-    hyper (PPclock_osc xs) y = hyper xs y
-    hyper (PPclock_gate xs) y = hyper xs y
-    hyper (PPgate_inhigh is) y = hyper is y
-    hyper (PPgate_unused is) y = hyper is y
-    hyper (PPreset_port xs) y = hyper xs y
-    hyper (PParg_param xs) y = hyper xs y
-    hyper (PParg_port xs) y = hyper xs y
-    hyper (PParg_clocked_by xs) y = hyper xs y
-    hyper (PParg_reset_by xs) y = hyper xs y
-    hyper (PPoptions os) y = hyper os y
-    hyper (PPclock_family is) y = hyper is y
-    hyper (PPclock_ancestors ils) y = hyper ils y
-    hyper x y = seq x y
+instance NFData PProp where
+    rnf PPverilog = ()
+    rnf (PPforeignImport i) = rnf i
+    rnf (PPalwaysReady n) = rnf n
+    rnf (PPalwaysEnabled n) = rnf n
+    rnf (PPenabledWhenReady n) = rnf n
+    rnf (PPscanInsert i) = rnf i
+    rnf PPbitBlast = ()
+    rnf (PPCLK i) = rnf i
+    rnf (PPGATE i) = rnf i
+    rnf (PPRSTN i) = rnf i
+    rnf (PPclock_osc xs) = rnf xs
+    rnf (PPclock_gate xs) = rnf xs
+    rnf (PPgate_inhigh is) = rnf is
+    rnf (PPgate_unused is) = rnf is
+    rnf (PPreset_port xs) = rnf xs
+    rnf (PParg_param xs) = rnf xs
+    rnf (PParg_port xs) = rnf xs
+    rnf (PParg_clocked_by xs) = rnf xs
+    rnf (PParg_reset_by xs) = rnf xs
+    rnf (PPoptions os) = rnf os
+    rnf (PPgate_input_clocks clks) = rnf clks
+    rnf (PPmethod_scheduling mci) = rnf mci
+    rnf (PPdoc s) = rnf s
+    rnf (PPperf_spec specs) = rnf specs
+    rnf (PPclock_family is) = rnf is
+    rnf (PPclock_ancestors ils) = rnf ils
+    rnf (PPparam is) = rnf is
+    rnf (PPinst_name n) = rnf n
+    rnf PPinst_hide = ()
+    rnf PPinst_hide_all = ()
+    rnf (PPdeprecate msg) = rnf msg
 
-instance Hyper PPnm where
-    hyper (PPnmOne i) y = hyper i y
-    hyper (PPnmArray i h l) y = hyper3 i h l y
+instance NFData PPnm where
+    rnf (PPnmOne i) = rnf i
+    rnf (PPnmArray i h l) = rnf3 i h l
 
 getPragmaArgNames :: PProp -> [String]
 getPragmaArgNames (PPclock_osc ps)   = [ getIdBaseString i | (i,_) <- ps ]
@@ -423,9 +437,17 @@ getRulePragmaName RPclockCrossingRule = "clock_crossing_rule"
 getRulePragmaName (RPdoc {}) = "doc"
 getRulePragmaName RPhide     = "hide"
 
-instance Hyper RulePragma where
-    hyper x y = seq x y
-
+instance NFData RulePragma where
+    rnf RPfireWhenEnabled = ()
+    rnf RPnoImplicitConditions = ()
+    rnf RPaggressiveImplicitConditions = ()
+    rnf RPconservativeImplicitConditions = ()
+    rnf RPnoWarn = ()
+    rnf RPwarnAllConflicts = ()
+    rnf RPcanScheduleFirst = ()
+    rnf RPclockCrossingRule = ()
+    rnf (RPdoc s) = rnf s
+    rnf RPhide = ()
 
 -- ========================================================================
 -- SchedulePragma
@@ -468,13 +490,13 @@ instance (PPrint t, Ord t) => PPrint (SchedulePragma t) where
 
 -- instance PVPrint ?
 
-instance (Hyper t) => Hyper (SchedulePragma t) where
-    hyper (SPUrgency ids)       y = hyper ids y
-    hyper (SPExecutionOrder ids) y = hyper ids y
-    hyper (SPMutuallyExclusive idss) y = hyper idss y
-    hyper (SPConflictFree idss) y = hyper idss y
-    hyper (SPPreempt ids1 ids2) y = hyper2 ids1 ids2 y
-    hyper (SPSchedule s)        y = hyper s y
+instance (NFData t) => NFData (SchedulePragma t) where
+    rnf (SPUrgency ids)       = rnf ids
+    rnf (SPExecutionOrder ids) = rnf ids
+    rnf (SPMutuallyExclusive idss) = rnf idss
+    rnf (SPConflictFree idss) = rnf idss
+    rnf (SPPreempt ids1 ids2) = rnf2 ids1 ids2
+    rnf (SPSchedule s)        = rnf s
 
 -- --------------------
 
@@ -734,14 +756,14 @@ instance PVPrint  IfcPragma where
     pvPrint d _ (PIAlwaysEnabled )     = text "always_enabled "
 
 
-instance Hyper IfcPragma where
-    hyper  (PIArgNames ids)  y      = hyper ids y
-    hyper  (PIPrefixStr flds) y     = hyper flds y
-    hyper  (PIRdySignalName flds) y = hyper flds y
-    hyper  (PIEnSignalName flds) y  = hyper flds y
-    hyper  (PIResultName flds) y    = hyper flds y
-    hyper  (PIAlwaysRdy ) y         =   y
-    hyper  (PIAlwaysEnabled ) y     =   y
+instance NFData IfcPragma where
+    rnf  (PIArgNames ids)       = rnf ids
+    rnf  (PIPrefixStr flds)     = rnf flds
+    rnf  (PIRdySignalName flds) = rnf flds
+    rnf  (PIEnSignalName flds)  = rnf flds
+    rnf  (PIResultName flds)    = rnf flds
+    rnf  (PIAlwaysRdy )         = ()
+    rnf  (PIAlwaysEnabled )     = ()
 
 -- a means to get a print string from attribute
 getIfcPName :: IfcPragma -> String
@@ -898,11 +920,11 @@ data DefProp
 instance PPrint DefProp where
   pPrint _d _i = text . show
 
-instance Hyper DefProp where
-  hyper (DefP_Rule x) y = hyper x y
-  hyper (DefP_Instance x) y = hyper x y
-  hyper (DefP_Method x) y = hyper x y
-  hyper DefP_NoCSE y = y
+instance NFData DefProp where
+  rnf (DefP_Rule x) = rnf x
+  rnf (DefP_Instance x) = rnf x
+  rnf (DefP_Method x) = rnf x
+  rnf DefP_NoCSE = ()
 
 -- --------------------
 

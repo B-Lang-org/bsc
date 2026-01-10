@@ -741,7 +741,10 @@ fixCModuleVerilog n (ss,ts,ps)
            newLeftId   = setInternal $
                          enumId (getIdString i) pos (getPositionLine(pos))
            newLeftKind = foldr (\ a lk -> Kfun KNum lk) KStar actualArgs
-           newLeftSort = TIstruct (SInterface noIfcPragmas) (internalError "procType: tried to access field names")
+           -- Not actually used, but this is what genIfcFieldFN should produce
+           -- when it processes the IfcTRec.
+           newFieldNames = map name flat_fts
+           newLeftSort = TIstruct (SInterface noIfcPragmas) newFieldNames
            newLeftType = TCon (TyCon newLeftId (Just newLeftKind) newLeftSort)
            newType = cTApplys newLeftType actualArgs
            no_rdys = map (\v -> [vf_name v]) (filter (not . (hasReadyFN fs)) fs)

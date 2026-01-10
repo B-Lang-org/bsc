@@ -95,6 +95,10 @@ instance PPrint AScheduleInfo where
             -- no dump of DBs, sched graph and order
             )
 
+instance NFData AScheduleInfo where
+  rnf (AScheduleInfo w m r rat er so sched graph rrdb vsi) =
+    rnf10 w m r rat er so sched graph rrdb vsi
+
 
 -- ---------------
 
@@ -174,6 +178,9 @@ instance PPrint AScheduleErrInfo where
 newtype ExclusiveRulesDB =
     ExclusiveRulesDB (M.Map ARuleId (S.Set ARuleId, S.Set ARuleId))
 
+instance NFData ExclusiveRulesDB where
+  rnf (ExclusiveRulesDB m) = rnf m
+
 -- Are the WILL_FIRE signals of the rules exclusive?
 -- (Used in Verilog backend for determining if a priority mux is needed.)
 -- Note: we check both the disjoint set and the exclusive set, since we
@@ -223,6 +230,10 @@ instance PPrint SchedNode where
     pPrint d _ (Sched i) = text "Sched" <+> pPrint d 0 i
     pPrint d _ (Exec i) = text "Exec" <+> pPrint d 0 i
 
+instance NFData SchedNode where
+  rnf (Sched aid) = rnf aid
+  rnf (Exec aid) = rnf aid
+
 getSchedNodeId :: SchedNode -> AId
 getSchedNodeId (Sched i) = i
 getSchedNodeId (Exec i) = i
@@ -255,6 +266,9 @@ data RuleRelationDB =
     RuleRelationDB (S.Set (ARuleId,ARuleId))                  -- disjointness
                    (M.Map (ARuleId,ARuleId) RuleRelationInfo) -- conflicts
 
+instance NFData RuleRelationDB where
+  rnf (RuleRelationDB s m) = rnf2 s m
+
 data RuleRelationInfo = RuleRelationInfo { mCF :: Maybe Conflicts
                                          , mSC :: Maybe Conflicts
                                          , mRes :: Maybe Conflicts
@@ -263,6 +277,9 @@ data RuleRelationInfo = RuleRelationInfo { mCF :: Maybe Conflicts
                                          , mArb :: Maybe Conflicts
                                          -- XXX path and urgency info?
                                          } deriving (Eq,Show)
+
+instance NFData RuleRelationInfo where
+  rnf (RuleRelationInfo cf sc res cyc ps arb) = rnf6 cf sc res cyc ps arb
 
 defaultRuleRelationship :: RuleRelationInfo
 defaultRuleRelationship = RuleRelationInfo { mCF     = Nothing
@@ -346,16 +363,16 @@ instance PPrint Conflicts where
 instance PVPrint Conflicts where
     pvPrint d p = printConflicts True d
 
-instance Hyper Conflicts where
-    hyper (CUse uses) y = hyper uses y
-    hyper (CCycle cycle_rules) y = hyper cycle_rules y
-    hyper (CMethodsBeforeRules) y = y
-    hyper (CUserEarliness pos) y = hyper pos y
-    hyper (CUserAttribute pos) y = hyper pos y
-    hyper (CUserPreempt pos) y = hyper pos y
-    hyper (CResource m) y = hyper m y
-    hyper (CArbitraryChoice) y = y
-    hyper (CFFuncArbitraryChoice) y = y
+instance NFData Conflicts where
+    rnf (CUse uses) = rnf uses
+    rnf (CCycle cycle_rules) = rnf cycle_rules
+    rnf (CMethodsBeforeRules) = ()
+    rnf (CUserEarliness pos) = rnf pos
+    rnf (CUserAttribute pos) = rnf pos
+    rnf (CUserPreempt pos) = rnf pos
+    rnf (CResource m) = rnf m
+    rnf (CArbitraryChoice) = ()
+    rnf (CFFuncArbitraryChoice) = ()
 
 -- -----
 
