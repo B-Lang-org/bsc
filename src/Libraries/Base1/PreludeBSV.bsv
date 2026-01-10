@@ -89,15 +89,17 @@ interface VRWireN#(numeric type n);
 endinterface
 
 // for addCFWire desugaring
+// This uses prim types like something coming from genwrap.
 module vMkRWire1(VRWireN#(1));
 
    (* hide *)
    VRWire#(Bit#(1)) _rw <- vMkRWire;
-   method wset(v);
-      return(toPrimAction(_rw.wset(v)));
-   endmethod
-   method wget = _rw.wget;
-   method whas = pack(_rw.whas);
+   function rw_wset(v);
+      return toPrimAction(_rw.wset(v));
+   endfunction
+   method wset = primMethod(Cons("v", Nil), rw_wset);
+   method wget = primMethod(Nil, _rw.wget);
+   method whas = primMethod(Nil, pack(_rw.whas));
 
 endmodule
 

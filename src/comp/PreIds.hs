@@ -236,6 +236,12 @@ idPolyWrapField = mk_no fsPolyWrapField
 idLiftModule :: Id
 idLiftModule = prelude_id_no fsLiftModule
 
+idWrapField, id_fromWrapField, id_toWrapField, id_saveFieldPortTypes :: Id
+idWrapField = prelude_id_no fsWrapField
+id_fromWrapField = prelude_id_no fsFromWrapField
+id_toWrapField = prelude_id_no fsToWrapField
+id_saveFieldPortTypes = prelude_id_no fsSaveFieldPortTypes
+
 -- Used by desugaring
 id_lam, id_if, id_read, id_write :: Position -> Id
 id_lam pos = mkId pos fs_lam
@@ -303,14 +309,13 @@ idSJump pos   = mkId pos fsSJump
 idSNamed pos  = mkId pos fsSNamed
 idS    pos    = mkId pos fsS
 idStmt pos    = mkId pos fsStmt
-idSBreak, idSContinue, idSReturn, idCons, idConcat :: Position -> Id
+idSBreak, idSContinue, idSReturn, idCons :: Position -> Id
 idSBreak pos  = mkId pos fsSBreak
 idSContinue pos = mkId pos fsSContinue
 idSReturn   pos = mkId pos fsSReturn
-idCons pos    = mkId pos fsCons
-idConcat pos  = mkId pos fsConcat
+idCons pos    = prelude_id pos fsCons
 idNil, idNothing, idSprime :: Position -> Id
-idNil     pos = mkId pos fsNil
+idNil     pos = prelude_id pos fsNil
 idNothing pos = mkId pos fsNothing
 idSprime  pos = mkId pos fsSprime
 
