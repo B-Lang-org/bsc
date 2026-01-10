@@ -27,14 +27,6 @@ license.  The following are known to have other authors and licenses:
   * The source and license where obtained on 2012-01-27 from:
     http://hackage.haskell.org/package/yices-painless
 
-* GHC Haskell Libraries
-  * The file src/comp/Libs/MVarStrict.hs is adapted from the GHC MVar
-    library
-  * See LICENSES/LICENSE.ghc
-  * The source was obtained on 2012-02-06 from [1] and the license from [2]
-      [1] http://hackage.haskell.org
-      [2] http://www.haskell.org/ghc/license.html
-
 * HBC Libraries
   * Seven files in src/comp/Libs/ (as indicated in their header comments)
     are adapted from Haskell libraries (from the HBC compiler) written
