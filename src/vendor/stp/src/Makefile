@@ -14,13 +14,7 @@ else
 CP = cp -df
 endif
 
-ifeq ($(OSTYPE), Darwin)
-LIBRARIES=lib/libstp.dylib
-SNAME = libstp.dylib
-else
-LIBRARIES=lib/libstp.so.1 lib/libstp.so
-SNAME = libstp.so.1
-endif
+LIBRARIES=lib/$(SNAME)
 
 .PHONY: all
 all: $(LIBRARIES)
@@ -71,12 +65,6 @@ lib/$(SNAME):  c_interface/c_interface.o \
 	@# $(CXX) $(CFLAGS) $(SHAREDFLAG) -o $@ $^
 	@# We use --whole-archive to ensure that all symbols in to-sat are used
 	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(SNAME) -o $@ $(LIBCCARGS)
-
-ifneq ($(OSTYPE), Darwin)
-lib/libstp.so: lib/libstp.so.1
-	-rm -f $@
-	(cd lib; ln -s libstp.so.1 libstp.so)
-endif
 
 
 # During the build of AST some classes are built that most of the other
