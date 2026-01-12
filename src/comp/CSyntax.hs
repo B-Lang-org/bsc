@@ -1133,8 +1133,7 @@ instance PPrint CDefn where
             (IdKind i k)   -> ppConId d i <+> t "::" <+> pp d k
             (IdPKind i pk) -> ppConId d i <+> t "::" <+> pp d pk
     pPrint d p (Cforeign i ty oname opnames ni) =
-        (if ni then text "{-# noinline" <+> ppVarId d i <+> text "#-}" else text "") <+>
-        text "foreign" <+> ppVarId d i <+> t "::" <+> pp d ty <>
+        text "foreign" <> (if ni then text " noinline" else empty) <+> ppVarId d i <+> t "::" <+> pp d ty <>
         (case oname of Nothing -> text ""; Just s -> text (" = " ++ show s)) <>
         (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
       where po [o] = [text ",", text (show o)]
