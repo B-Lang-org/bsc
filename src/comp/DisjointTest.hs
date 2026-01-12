@@ -281,12 +281,12 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
         [vlogport] -> [DMethod (ae_objid e) vlogport]
         ports -> internalError ("buildSupportMap: unexpected output ports: "
                                 ++ ppReadable (ae_objid e, ameth_id e, ports))
-    findSupport e@(ATupleSel _ (AMethCall {ae_args = es}) idx) =
+    findSupport (ATupleSel _ e@(AMethCall {ae_args = es}) idx) =
         findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
         where
           ports = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
           vlogport = genericIndex ports (idx - 1)
-    findSupport e@(ATupleSel _ (AMethValue {}) idx) =
+    findSupport (ATupleSel _ e@(AMethValue {}) idx) =
         [DMethod (ae_objid e) vlogport]
         where
           ports = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
