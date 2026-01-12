@@ -2136,7 +2136,7 @@ evalStringList e = do
       else if i == idPrimChr then return ([], getIExprPosition e')
       else internalError ("evalStringList con: " ++ show i)
     _ -> do e'' <- unheapAll e'
-            errG (getIExprPosition e', EStringListNF (ppString e'))
+            eNoNF e''
 
 -----------------------------------------------------------------------------
 
