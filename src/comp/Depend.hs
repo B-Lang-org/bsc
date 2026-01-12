@@ -45,7 +45,6 @@ import TopUtils
 outlaw_sv_kws_as_classic_ids :: Bool
 outlaw_sv_kws_as_classic_ids = "-outlaw-sv-kws-as-classic-ids" `elem` progArgs
 
-type FileName = String
 type PkgName = Id
 type ModName = Id
 type ForeignName = Id
@@ -54,11 +53,11 @@ type MClockTime = Maybe ClockTime
 
 data PkgInfo = PkgInfo {
         pkgName :: PkgName,
-        fileName :: FileName,
+        fileName :: FilePath,
         srcMod :: MClockTime,
         lastMod :: MClockTime,
         imports :: [PkgName],
-        includes :: [FileName],
+        includes :: [FilePath],
         gens :: [ModName],
         foreigns :: [ForeignName],
         recompile :: Bool,
@@ -76,7 +75,7 @@ getModificationTime' file =
 -- (This used to also return a list of all generated files which would
 -- result from codegen, so that a later stage could link them.  But this
 -- feature is no longer supported.)
-chkDeps :: ErrorHandle -> Flags -> String -> IO [FileName]
+chkDeps :: ErrorHandle -> Flags -> String -> IO [FilePath]
 chkDeps errh flags name = do
         let gflags = [ mkId noPosition (mkFString s) | s <- genName flags ]
         pi <- getInfo errh flags gflags name
@@ -159,7 +158,7 @@ getPkgInfo errh flags pname =
                  Just pi -> return (Right pi)
 
 -- Get PkgInfo for a string (from a given file name), fail if not parsable.
-getInfo :: ErrorHandle -> Flags -> [ModName] -> FileName -> IO PkgInfo
+getInfo :: ErrorHandle -> Flags -> [ModName] -> FilePath -> IO PkgInfo
 getInfo errh flags gflags fname = do
     file' <- doCPP errh flags fname
     let isClassic = not $ hasDotSuf bsvSrcSuffix fname
@@ -287,7 +286,7 @@ chkUpd flags done (pi:pis) = do
            chkUpd flags (pi : done) pis
 
 -- Is this an installed library?
-isPreludePkg :: Flags -> FileName -> Bool
+isPreludePkg :: Flags -> FilePath -> Bool
 isPreludePkg flags n =
     let sl = bluespecDir flags ++ "/Libraries/"
     in  take (length sl) n == sl
@@ -385,7 +384,7 @@ chkParse p ts =
         Right []        -> internalError "Depend.chkParse: Right []"
 
 ----
-findPackages :: ErrorHandle -> Flags -> FileName -> IO ([EMsg],[PkgInfo])
+findPackages :: ErrorHandle -> Flags -> FilePath -> IO ([EMsg],[PkgInfo])
 findPackages errh flags name = do
   let gflags = [ mkId noPosition (mkFString s) | s <- genName flags ]
   pi <- getInfo errh flags gflags name
@@ -395,8 +394,8 @@ findPackages errh flags name = do
 -- A package depends on its own source file name
 -- plus the imported packages (.bo)
 -- plus the included files
-genDepend :: ErrorHandle -> Flags -> FileName ->
-             IO ([EMsg],[(FileName, [FileName])])
+genDepend :: ErrorHandle -> Flags -> FilePath ->
+             IO ([EMsg],[(FilePath, [FilePath])])
 genDepend errh flags name = do
   (errs,pis) <- findPackages errh flags name
   let pmap :: DM.Map PkgName PkgInfo
@@ -417,15 +416,15 @@ genDepend errh flags name = do
                     | otherwise = boName p
           in map fnp (concatMap lookupP (imports p))
       --
-      extr :: PkgInfo -> [(FileName, [FileName])]
+      extr :: PkgInfo -> [(FilePath, [FilePath])]
       extr pki | isbin pki = []
       extr pki = [(boName pki, getSelf pki ++ getImports pki ++ includes pki)]
   return (errs,concatMap extr pis)
 
-genFileDepend :: ErrorHandle -> Flags -> FileName -> IO ([EMsg],[FileName])
+genFileDepend :: ErrorHandle -> Flags -> FilePath -> IO ([EMsg],[FilePath])
 genFileDepend errh flags name = do
     (errs,pis) <- findPackages errh flags name
-    let extrFiles :: PkgInfo -> [FileName]
+    let extrFiles :: PkgInfo -> [FilePath]
         extrFiles p | isbin p   = []
                     | otherwise = fileName p : includes p
     return (errs, nub $ concatMap extrFiles pis)
