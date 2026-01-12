@@ -121,13 +121,18 @@ class RankMethCalls ats_t where
     rankMethCalls :: Int -> ats_t -> (ats_t, [Id] {- local defs to rank -})
 
 instance RankMethCalls AExpr where
-    -- TODO handle ATupleSel here?
     rankMethCalls ver expr@(AMethCall { ameth_id = name, ae_args = args }) =
         let (ranked_args, defs_to_rewrite) = rankMethCalls ver args
         in  (expr { ameth_id = rankId ver name, ae_args = ranked_args  },
              defs_to_rewrite)
     rankMethCalls ver expr@(AMethValue { ameth_id = name }) =
         (expr { ameth_id = rankId ver name }, [])
+    rankMethCalls ver expr@(ATuple { ae_elems = elems }) =
+        let (ranked_elems, defs_to_rewrite) = rankMethCalls ver elems
+        in  (expr { ae_elems = ranked_elems }, defs_to_rewrite)
+    rankMethCalls ver expr@(ATupleSel { ae_exp = e }) =
+        let (ranked_e, defs_to_rewrite) = rankMethCalls ver e
+        in  (expr { ae_exp = ranked_e }, defs_to_rewrite)
     rankMethCalls ver expr@(ANoInlineFunCall { ae_args = args }) =
         let (ranked_args, defs_to_rewrite) = rankMethCalls ver args
         in  (expr { ae_args = ranked_args }, defs_to_rewrite)
