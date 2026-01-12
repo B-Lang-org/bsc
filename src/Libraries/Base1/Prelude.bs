@@ -3461,7 +3461,7 @@ instance (TupleSize' a n) => TupleSize a n where {}
 
 class TupleSize' a n | a -> n where {}
 instance TupleSize' a 1 where {}
-instance (TupleSize' b n) => TupleSize' (a, b) (TAdd n 1) where {}
+instance (TupleSize' b (TSub n 1)) => TupleSize' (a, b) n where {}
 
 -- FUNCTIONS TO REPLACE UNAVAILABLE INFIXES
 
