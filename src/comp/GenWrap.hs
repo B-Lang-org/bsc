@@ -1114,7 +1114,7 @@ genTo pps ty mk =
                    fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f)(getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar id_toWrapField) [fnp, prefix, arg_names, ec]
+               let e = CApply (CVar idToWrapField) [fnp, prefix, arg_names, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1206,7 +1206,7 @@ genFrom pps ty var =
                        then [] else [CQFilter meth_guard]
 
               let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
+              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -1619,7 +1619,7 @@ mkFromBind true_ifc_ids var ft =
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
               let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar id_fromWrapField) [fnp, sel binf]
+              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -2212,7 +2212,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
               return [
                 CSExpr Nothing $
                   cVApply idLiftModule $
-                    [cVApply id_saveFieldPortTypes
+                    [cVApply idSaveFieldPortTypes
                       [fproxy, proxy, mkMaybe v, prefix, arg_names, result]]]
 
 
