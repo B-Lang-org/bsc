@@ -56,11 +56,11 @@ test_c_veri_bsv_modules NoInlineInSched {module_inv}
 
 if { $vtest == 1 } {
 
-compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0031
+compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0043
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ArgNotInBits.bsv.bsc-vcomp-out
 
-compile_verilog_fail_error NoInline_ResNotInBits.bsv T0031
+compile_verilog_fail_error NoInline_ResNotInBits.bsv T0043
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ResNotInBits.bsv.bsc-vcomp-out
 
