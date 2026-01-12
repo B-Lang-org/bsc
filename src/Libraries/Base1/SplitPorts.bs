@@ -90,6 +90,9 @@ class DeepSplitPorts a p | a -> p where
   deepUnsplitPorts :: p -> a
   deepSplitPortNames :: a -> String -> List String
 
+-- Avoid recursing into Int and UInt.
+-- These are wrappers around Bit, and we want to generate ports like foo_x and
+-- not `foo_x_1` for an Int or UInt field x.
 instance DeepSplitPorts (UInt n) (Port (UInt n)) where
   deepSplitPorts = Port
   deepUnsplitPorts = unPort
