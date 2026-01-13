@@ -1106,6 +1106,7 @@ genTo pps ty mk =
                fields <- mapM recurse nums
                return (concat fields)
              _ -> do
+               -- Compute the prefix and arg_names pragmas for the flattened interface field, extended according to the current prefix.
                let currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
                    localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
                    localPrefix = joinStrings_  currentPre localPrefix1
@@ -1205,6 +1206,8 @@ genFrom pps ty var =
               let qs = if (hasNoRdy || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
 
+              -- Call fromWrapField with a proxy for the field name as a type level string,
+              -- and the field selection from the unwrapped module.
               let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar idFromWrapField) [fnp, sel binf]
               return (f, e, qs)
@@ -1618,6 +1621,9 @@ mkFromBind true_ifc_ids var ft =
               let meth_guard = CApply eUnpack [sel wbinf]
               let qs = if (wbinf `elem` true_ifc_ids || isClock || isReset || isIot)
                        then [] else [CQFilter meth_guard]
+
+              -- Call fromWrapField with a proxy for the field name as a type level string,
+              -- and the field selection from the unwrapped module.
               let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
               let e = CApply (CVar idFromWrapField) [fnp, sel binf]
               return (f, e, qs)
@@ -2195,6 +2201,8 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                                     meth newprefixes ifcIdIn (FInf (mkNumId num) [] tVec [])
                concatMapM recurse nums
             _ -> do
+              -- Compute the local prefix and result name for this field in the flattened interface
+              -- from the current prefixes and pragmas from the field definition.
               let methodStr = getIdBaseString f
                   currentPre  = ifcp_renamePrefixes prefixes -- the current rename prefix
                   localPrefix1 = fromMaybe (getIdBaseString f) (lookupPrefixIfcPragma ciPrags)
@@ -2204,6 +2212,8 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
                         Just str -> joinStrings_ currentPre str
                         Nothing  -> joinStrings_ currentPre methodStr
 
+              -- Arguments to saveFieldPortTypes: proxies for the field name as a type level string and the field type,
+              -- and the values for the prefix, arg_names, and result pragmas.
               let fproxy = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                   proxy = mkTypeProxyExpr $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
