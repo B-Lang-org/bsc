@@ -4561,15 +4561,23 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
 instance (Bits a n) => WrapMethod (ActionValue a) (ActionValue_ n) where
   toWrapMethod = toActionValue_
   fromWrapMethod = fromActionValue_
-  methodArgBaseNames _ _ _ _ = Nil
-  inputPortNames _ _ = Nil
+  methodArgBaseNames _ _ Nil _ = Nil
+  methodArgBaseNames prx prefix argNames _ =
+    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+    " excess arg_names provided for method " +++ prefix
+  inputPortNames _ Nil = Nil
+  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
   saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 instance (Bits a n) => WrapMethod a (Bit n) where
   toWrapMethod = pack
   fromWrapMethod = unpack
-  methodArgBaseNames _ _ _ _ = Nil
-  inputPortNames _ _ = Nil
+  methodArgBaseNames _ _ Nil _ = Nil
+  methodArgBaseNames prx prefix argNames _ =
+    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+    " excess arg_names provided for method " +++ prefix
+  inputPortNames _ Nil = Nil
+  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
   saveMethodPortTypes _ modName _ result = primSavePortType modName result $ typeOf (_ :: a)
 
 {-
