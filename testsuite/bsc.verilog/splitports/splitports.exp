@@ -39,6 +39,8 @@ if { $vtest == 1 } {
     find_regexp mkInstanceSplitTest.v {input  \[491 : 0\] putBaz_1_c;}
 }
 
+# Supplying an arg_names pragma that is shorter than the number of arguments
+# is currently supported:
 test_c_veri SomeArgNames
 if { $vtest == 1 } {
     find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_fooIn_x;}
@@ -47,6 +49,9 @@ if { $vtest == 1 } {
     find_regexp mkSomeArgNamesSplitTest.v {input  \[7 : 0\] putFooBar_2_f_y;}
     find_regexp mkSomeArgNamesSplitTest.v {input  putFooBar_2_b;}
 }
+
+compile_verilog_fail_error TooManyArgNames.bs S0015
+compare_file TooManyArgNames.bs.bsc-vcomp-out
 
 compile_verilog_fail_error PortNameConflict.bs G0055
 compare_file PortNameConflict.bs.bsc-vcomp-out
