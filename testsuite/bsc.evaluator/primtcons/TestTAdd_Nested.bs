@@ -1,0 +1,16 @@
+package TestTAdd_Nested where
+
+import TestCommon
+
+-- Nested - Maybe (RawMaybe (Maybe a))
+-- Tests: TAdd 1 (SizeOf (Maybe a))
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => Maybe a -> Module (ReadOnly (Maybe (RawMaybe (Maybe a))))
+mkTestPoly x = module
+  interface
+    _read = fmap uncookMaybe (Valid (Valid x))
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTAdd_Nested #-}
+mkTest_TestTAdd_Nested :: Maybe (UInt 5) -> Module (ReadOnly (Maybe (RawMaybe (Maybe (UInt 5)))))
+mkTest_TestTAdd_Nested = mkTestPoly

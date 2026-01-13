@@ -1,0 +1,13 @@
+package TestTAdd_LazyBind where
+
+import TestCommon
+
+-- fmap with RawSMaybe - tests TAdd 1 (SizeOf a) with lazy bind
+-- Polymorphic version
+mkTestPoly :: (Bits a sz) => RawSMaybe a -> Module (SMaybe (RawSMaybe a))
+mkTestPoly x = return $ fmap uncookSMaybe (SMaybe { valid = True; dat = cookSMaybe x })
+
+-- Synthesized specialization
+{-# verilog mkTest_TestTAdd_LazyBind #-}
+mkTest_TestTAdd_LazyBind :: RawSMaybe (UInt 5) -> Module (SMaybe (RawSMaybe (UInt 5)))
+mkTest_TestTAdd_LazyBind = mkTestPoly
