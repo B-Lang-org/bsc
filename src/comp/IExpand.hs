@@ -5227,7 +5227,7 @@ reportNonSynthTypeInMethod modId methId methExpr =
             let str = "The interface method " ++ quote (pfpString methId) ++
                       " uses type " ++ quote (pfpString v) ++
                       " which is not in the Bits class."
-            in  (modPos, EBadIfcType modName str)
+            in  (modPos, EBadIfcType (Just modName) str)
     in  case (getNonSynthTypes methExpr) of
             [] -> -- this shouldn't happen
                   (modPos, EPolyField)
@@ -5247,7 +5247,7 @@ reportNonSynthTypeInModuleArg modId modExpr =
             let str = "A parameter of the module uses the type " ++
                       quote (pfpString v) ++
                       " which is not in the Bits class."
-            in  (modPos, EBadIfcType modName str)
+            in  (modPos, EBadIfcType (Just modName) str)
     in  case (getNonSynthTypes modExpr) of
             [] -> internalError
                     ("IExpand: unexplained module with type parameter: " ++
