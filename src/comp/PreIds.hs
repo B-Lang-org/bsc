@@ -510,9 +510,8 @@ idPrimAdd = prelude_id_no fsPrimAdd
 idPrimSub = prelude_id_no fsPrimSub
 
 -- | Used by AddCFWire
-idVRWireN, idVmkRWire1, idWGet, idWSet, idWHas :: Id
-idVRWireN   = prelude_bsv_id_no fsVRWireN
-idVmkRWire1 = prelude_bsv_id_no fsVmkRWire1
+id__mkRWireSubmodule, idWGet, idWSet, idWHas :: Id
+id__mkRWireSubmodule = prelude_bsv_id_no fs__mkRWireSubmodule
 idWGet = prelude_bsv_id_no fsWGet
 idWSet = prelude_bsv_id_no fsWSet
 idWHas = prelude_bsv_id_no fsWHas
