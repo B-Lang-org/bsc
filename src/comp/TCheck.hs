@@ -2639,7 +2639,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
      -- Were any contexts without variables left unsatisfied?
      if not (null uds) then
         -- Report reduction errors
-        handleContextReduction (getPosition i) uds
+        handleContextReduction (Just i) (getPosition i) uds
      else
         -- No ambiguous variables, so...
         -- Produce the return values (deferred preds, CDefl)
