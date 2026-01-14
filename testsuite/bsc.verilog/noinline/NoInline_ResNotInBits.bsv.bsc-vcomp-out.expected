@@ -7,7 +7,7 @@ Error: Unknown position: (T0031)
   The proviso was implied by expressions at the following positions:
     "NoInline_ResNotInBits.bsv", line 4, column 12
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
-  Cannot synthesize this module or function: The interface method
+  Cannot synthesize `module_fnNoInline_ResNotInBits­': The interface method
   `fnNoInline_ResNotInBits' uses type(s) that are not in the Bits or
   SplitPorts typeclasses: NoInline_ResNotInBits::L
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0029)
