@@ -55,9 +55,9 @@ PreludeBSV vMkCRegA5
 PreludeBSV mkCReg
 PreludeBSV mkCRegU
 PreludeBSV mkCRegA
-PreludeBSV _PreludeBSV.CReg5715
-PreludeBSV _PreludeBSV.CReg5811
-PreludeBSV _PreludeBSV.CReg5906
+PreludeBSV _PreludeBSV.CReg5693
+PreludeBSV _PreludeBSV.CReg5789
+PreludeBSV _PreludeBSV.CReg5884
 Prelude Reg
 Prelude VReg
 Prelude vMkReg
