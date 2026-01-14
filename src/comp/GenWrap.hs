@@ -430,12 +430,12 @@ chkType def ty =
      Right ((_:_) :=> _) ->
         let ctx = if isClassic() then "context" else "proviso"
             msg = "It has a " ++ ctx ++ "."
-        in  bad (getPosition def, EBadIfcType (pfpString defId) msg)
+        in  bad (getPosition def, EBadIfcType (Just $ pfpString defId) msg)
      Right ([]    :=> t) ->
       do
         if not (null (tv t))
           then let msg = "Its interface is polymorphic."
-               in  bad (getPosition def, EBadIfcType (pfpString defId) msg)
+               in  bad (getPosition def, EBadIfcType (Just $ pfpString defId) msg)
           else
            do
              --traceM ("chkType: " ++ pfpReadable (t, getArrows t))
@@ -447,7 +447,7 @@ chkType def ty =
                     (f:_) -> let msg = "Its interface has a polymorphic field " ++
                                        quote (pfpString f) ++ "."
                              in  bad (getPosition def,
-                                      EBadIfcType (pfpString defId) msg)
+                                      EBadIfcType (Just $ pfpString defId) msg)
                     [] ->
                      do
                        ----traceM ("chkType 2: " ++ pfpReadable (chkInterface tr))
@@ -461,10 +461,10 @@ chkType def ty =
                                               quote (pfpString t) ++
                                               " is not an interface."
                                     in  bad (getPosition def,
-                                             EBadIfcType (pfpString defId) msg)
+                                             EBadIfcType (Just $ pfpString defId) msg)
                _ -> let msg = "It is not a module."
                     in  bad (getPosition def,
-                             EBadIfcType (pfpString defId) msg)
+                             EBadIfcType (Just $ pfpString defId) msg)
 
 -- Return a list of names of any fields which are polymorphic,
 -- if the given type is an interface; otherwise return an empty list.

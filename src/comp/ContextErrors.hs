@@ -462,9 +462,17 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
 -- --------------------
 
 handleCtxRedWrapField:: Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
-handleCtxRedWrapField pos (vp, reduced_ps) name userty =
-    (pos, EBadIfcType (getFString name)
-     "This method uses types that are not in the Bits or SplitPorts typeclasses.")
+handleCtxRedWrapField pos (vp, reduced_ps) name userty = 
+    (pos, EBadIfcType Nothing $
+     "The interface method `" ++ getFString name ++
+     "' uses type(s) that are not in the Bits or SplitPorts typeclasses: " ++
+     intercalate ", " (concatMap bitsPredType reduced_ps)
+     )
+    where
+      bitsPredType :: VPred -> [String]
+      bitsPredType (VPred _ (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [t, _]) _))
+        | cid == idBits = [pfpString t]
+      bitsPredType _ = []
 
 
 -- ========================================================================
