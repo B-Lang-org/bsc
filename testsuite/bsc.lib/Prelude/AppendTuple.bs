@@ -1,0 +1,134 @@
+package AppendTuple where
+
+-- Test the AppendTuple type class
+
+{-# verilog sysAppendTuple #-}
+sysAppendTuple :: Module Empty
+sysAppendTuple =
+  module
+    counter :: Reg (UInt 5) <- mkReg 0
+
+    rules
+      "test0": when counter == 0 ==> action
+        $display "=== Testing AppendTuple ==="
+        -- Test appendTuple with two empty tuples
+        let u1 :: ()
+            u1 = ()
+        let u2 :: ()
+            u2 = ()
+        let result :: ()
+            result = appendTuple u1 u2
+        $display "appendTuple((), ()) = () [unit type]"
+        counter := counter + 1
+
+      "test1": when counter == 1 ==> action
+        -- Test appendTuple with unit type (left)
+        let t1 :: (Bool, Int 8)
+            t1 = (True, 42)
+        let t2 :: (Bool, Int 8)
+            t2 = appendTuple () t1
+        $display "appendTuple((), (True, 42)) = (%b, %0d)" (tpl_1 t2) (tpl_2 t2)
+        counter := counter + 1
+
+      "test2": when counter == 2 ==> action
+        -- Test appendTuple with unit type (right)
+        let t1 :: (Bool, Int 8)
+            t1 = (False, negate 10)
+        let t2 :: (Bool, Int 8)
+            t2 = appendTuple t1 ()
+        $display "appendTuple((False, -10), ()) = (%b, %0d)" (tpl_1 t2) (tpl_2 t2)
+        counter := counter + 1
+
+      "test3": when counter == 3 ==> action
+        -- Test append two 2-tuples to create 4-tuple
+        let t1 :: (Bool, Int 8)
+            t1 = (True, 5)
+        let t2 :: (UInt 4, Bit 3)
+            t2 = (12, 0b101)
+        let t4 :: (Bool, Int 8, UInt 4, Bit 3)
+            t4 = appendTuple t1 t2
+        $display "appendTuple((True, 5), (12, 0b101)) = (%b, %0d, %0d, %b)" (tpl_1 t4) (tpl_2 t4) (tpl_3 t4) (tpl_4 t4)
+        counter := counter + 1
+
+      "test4": when counter == 4 ==> action
+        -- Test append single element and 2-tuple to create 3-tuple
+        let b :: Bool
+            b = False
+        let t2 :: (Int 8, UInt 4)
+            t2 = (negate 3, 7)
+        let t3 :: (Bool, Int 8, UInt 4)
+            t3 = appendTuple b t2
+        $display "appendTuple(False, (-3, 7)) = (%b, %0d, %0d)" (tpl_1 t3) (tpl_2 t3) (tpl_3 t3)
+        counter := counter + 1
+
+      "test5": when counter == 5 ==> action
+        -- Test append 3-tuple and single element to create 4-tuple
+        let t3 :: (Bool, Int 8, UInt 4)
+            t3 = (True, 20, 8)
+        let b :: Bit 5
+            b = 0b11010
+        let t4 :: (Bool, Int 8, UInt 4, Bit 5)
+            t4 = appendTuple t3 b
+        $display "appendTuple((True, 20, 8), 0b11010) = (%b, %0d, %0d, %b)" (tpl_1 t4) (tpl_2 t4) (tpl_3 t4) (tpl_4 t4)
+        counter := counter + 1
+
+      "test6": when counter == 6 ==> action
+        -- Test append 2-tuple and 3-tuple to create 5-tuple
+        let t2 :: (Bool, Int 8)
+            t2 = (False, 15)
+        let t3 :: (UInt 4, Bit 3, Int 16)
+            t3 = (6, 0b111, negate 100)
+        let t5 :: (Bool, Int 8, UInt 4, Bit 3, Int 16)
+            t5 = appendTuple t2 t3
+        $display "appendTuple((False, 15), (6, 0b111, -100)) = (%b, %0d, %0d, %b, %0d)" (tpl_1 t5) (tpl_2 t5) (tpl_3 t5) (tpl_4 t5) (tpl_5 t5)
+        $display ""
+        $display "=== Testing splitTuple ==="
+        counter := counter + 1
+
+      "test7": when counter == 7 ==> action
+        -- Test splitTuple: 4-tuple into 2-tuple and 2-tuple
+        let t4 :: (Bool, Int 8, UInt 4, Bit 3)
+            t4 = (True, negate 15, 9, 0b110)
+        let split :: ((Bool, Int 8), (UInt 4, Bit 3))
+            split = splitTuple t4
+            (t1, t2) = split
+        $display "splitTuple((True, -15, 9, 0b110)) = ((%b, %0d), (%0d, %b))" (tpl_1 t1) (tpl_2 t1) (tpl_1 t2) (tpl_2 t2)
+        counter := counter + 1
+
+      "test8": when counter == 8 ==> action
+        -- Test splitTuple: 3-tuple into single and 2-tuple
+        let t3 :: (Bool, Int 8, UInt 4)
+            t3 = (False, 33, 15)
+        let split :: (Bool, (Int 8, UInt 4))
+            split = splitTuple t3
+            (b, t2) = split
+        $display "splitTuple((False, 33, 15)) = (%b, (%0d, %0d))" b (tpl_1 t2) (tpl_2 t2)
+        counter := counter + 1
+
+      "test9": when counter == 9 ==> action
+        -- Test splitTuple: 5-tuple into 2-tuple and 3-tuple
+        let t5 :: (Bool, Int 8, UInt 4, Bit 3, Int 16)
+            t5 = (True, 50, 11, 0b001, negate 200)
+        let split :: ((Bool, Int 8), (UInt 4, Bit 3, Int 16))
+            split = splitTuple t5
+            (t2, t3) = split
+        $display "splitTuple((True, 50, 11, 0b001, -200)) = ((%b, %0d), (%0d, %b, %0d))" (tpl_1 t2) (tpl_2 t2) (tpl_1 t3) (tpl_2 t3) (tpl_3 t3)
+        $display ""
+        $display "=== Round-trip test ==="
+        counter := counter + 1
+
+      "test10": when counter == 10 ==> action
+        -- Test appendTuple and splitTuple round-trip
+        let t1 :: (Bool, Int 8)
+            t1 = (True, 42)
+        let t2 :: (UInt 4, Bit 5)
+            t2 = (13, 0b10101)
+        let t4 :: (Bool, Int 8, UInt 4, Bit 5)
+            t4 = appendTuple t1 t2
+        let split :: ((Bool, Int 8), (UInt 4, Bit 5))
+            split = splitTuple t4
+            (r1, r2) = split
+        $display "appendTuple/splitTuple round-trip: ((%b, %0d), (%0d, %b))" (tpl_1 r1) (tpl_2 r1) (tpl_1 r2) (tpl_2 r2)
+        $display ""
+        $display "All AppendTuple tests passed"
+        $finish 0
