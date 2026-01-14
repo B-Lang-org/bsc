@@ -1,0 +1,20 @@
+=== Testing ConcatTuple ===
+concatTuple(empty_vector) = () [unit type]
+concatTuple([(True, 25)]) = (1, 25)
+concatTuple([10, 20, 30]) = (10, 20, 30)
+concatTuple([1, 2, 3, 4]) = (1, 2, 3, 4)
+concatTuple([(True, 5), (False, -12)]) = (1, 5, 0, -12)
+concatTuple([(1, 0b001), (2, 0b010), (3, 0b011)]) = (1, 001, 2, 010, 3, 011)
+concatTuple([(True, 10, 5), (False, -20, 8)]) = (1, 10, 5, 0, -20, 8)
+
+=== Testing unconcatTuple ===
+unconcatTuple((7, 8, 9, 10)) = [7, 8, 9, 10]
+unconcatTuple((False, 100, True, -50)) = [(0, 100), (1, -50)]
+unconcatTuple((5, 0b00, 10, 0b01, 15, 0b10)) = [(5, 00), (10, 01), (15, 10)]
+unconcatTuple((True, 15, 3, False, -25, 7)) = [(1, 15, 3), (0, -25, 7)]
+
+=== Round-trip test ===
+concatTuple/unconcatTuple round-trip (singles): [1, 2, 3, 4, 5]
+concatTuple/unconcatTuple round-trip (pairs): [(1, 11), (0, 22), (1, 33)]
+
+All ConcatTuple tests passed

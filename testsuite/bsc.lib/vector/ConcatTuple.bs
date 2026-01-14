@@ -1,0 +1,140 @@
+package ConcatTuple where
+
+import Vector
+
+-- Test the ConcatTuple type class
+
+{-# verilog sysConcatTuple #-}
+sysConcatTuple :: Module Empty
+sysConcatTuple =
+  module
+    counter :: Reg (UInt 6) <- mkReg 0
+
+    rules
+      "test0": when counter == 0 ==> action
+        $display "=== Testing ConcatTuple ==="
+        -- Test empty vector to unit type
+        let empty :: Vector 0 (Bool, Int 8)
+            empty = nil
+        let unit :: ()
+            unit = concatTuple empty
+        $display "concatTuple(empty_vector) = () [unit type]"
+        counter := counter + 1
+
+      "test1": when counter == 1 ==> action
+        -- Test single element vector
+        let v1 :: Vector 1 (Bool, Int 8)
+            v1 = (True, 25) :> nil
+        let result :: (Bool, Int 8)
+            result = concatTuple v1
+        $display "concatTuple([(True, 25)]) = (%b, %0d)" (tpl_1 result) (tpl_2 result)
+        counter := counter + 1
+
+      "test2": when counter == 2 ==> action
+        -- Test vector of 3 single elements to 3-tuple
+        let v3 :: Vector 3 (Int 8)
+            v3 = 10 :> 20 :> 30 :> nil
+        let t3 :: (Int 8, Int 8, Int 8)
+            t3 = concatTuple v3
+        $display "concatTuple([10, 20, 30]) = (%0d, %0d, %0d)" (tpl_1 t3) (tpl_2 t3) (tpl_3 t3)
+        counter := counter + 1
+
+      "test3": when counter == 3 ==> action
+        -- Test vector of 4 single elements to 4-tuple
+        let v4 :: Vector 4 (UInt 4)
+            v4 = 1 :> 2 :> 3 :> 4 :> nil
+        let t4 :: (UInt 4, UInt 4, UInt 4, UInt 4)
+            t4 = concatTuple v4
+        $display "concatTuple([1, 2, 3, 4]) = (%0d, %0d, %0d, %0d)" (tpl_1 t4) (tpl_2 t4) (tpl_3 t4) (tpl_4 t4)
+        counter := counter + 1
+
+      "test4": when counter == 4 ==> action
+        -- Test vector of 2 pairs to 4-tuple
+        let v2 :: Vector 2 (Bool, Int 8)
+            v2 = (True, 5) :> (False, negate 12) :> nil
+        let t4 :: (Bool, Int 8, Bool, Int 8)
+            t4 = concatTuple v2
+        $display "concatTuple([(True, 5), (False, -12)]) = (%b, %0d, %b, %0d)" (tpl_1 t4) (tpl_2 t4) (tpl_3 t4) (tpl_4 t4)
+        counter := counter + 1
+
+      "test5": when counter == 5 ==> action
+        -- Test vector of 3 pairs to 6-tuple
+        let v3 :: Vector 3 (UInt 4, Bit 3)
+            v3 = (1, 0b001) :> (2, 0b010) :> (3, 0b011) :> nil
+        let t6 :: (UInt 4, Bit 3, UInt 4, Bit 3, UInt 4, Bit 3)
+            t6 = concatTuple v3
+        $display "concatTuple([(1, 0b001), (2, 0b010), (3, 0b011)]) = (%0d, %b, %0d, %b, %0d, %b)" (tpl_1 t6) (tpl_2 t6) (tpl_3 t6) (tpl_4 t6) (tpl_5 t6) (tpl_6 t6)
+        counter := counter + 1
+
+      "test6": when counter == 6 ==> action
+        -- Test vector of 2 triples to 6-tuple
+        let v2 :: Vector 2 (Bool, Int 8, UInt 4)
+            v2 = (True, 10, 5) :> (False, negate 20, 8) :> nil
+        let t6 :: (Bool, Int 8, UInt 4, Bool, Int 8, UInt 4)
+            t6 = concatTuple v2
+        $display "concatTuple([(True, 10, 5), (False, -20, 8)]) = (%b, %0d, %0d, %b, %0d, %0d)" (tpl_1 t6) (tpl_2 t6) (tpl_3 t6) (tpl_4 t6) (tpl_5 t6) (tpl_6 t6)
+        $display ""
+        $display "=== Testing unconcatTuple ==="
+        counter := counter + 1
+
+      "test7": when counter == 7 ==> action
+        -- Test 4-tuple to vector of 4 singles
+        let t4 :: (Int 8, Int 8, Int 8, Int 8)
+            t4 = (7, 8, 9, 10)
+        let v4 :: Vector 4 (Int 8)
+            v4 = unconcatTuple t4
+        $display "unconcatTuple((7, 8, 9, 10)) = [%0d, %0d, %0d, %0d]" (v4 !! 0) (v4 !! 1) (v4 !! 2) (v4 !! 3)
+        counter := counter + 1
+
+      "test8": when counter == 8 ==> action
+        -- Test 4-tuple to vector of 2 pairs
+        let t4 :: (Bool, Int 8, Bool, Int 8)
+            t4 = (False, 100, True, negate 50)
+        let v2 :: Vector 2 (Bool, Int 8)
+            v2 = unconcatTuple t4
+        $display "unconcatTuple((False, 100, True, -50)) = [(%b, %0d), (%b, %0d)]" (tpl_1 (v2 !! 0)) (tpl_2 (v2 !! 0)) (tpl_1 (v2 !! 1)) (tpl_2 (v2 !! 1))
+        counter := counter + 1
+
+      "test9": when counter == 9 ==> action
+        -- Test 6-tuple to vector of 3 pairs
+        let t6 :: (UInt 4, Bit 2, UInt 4, Bit 2, UInt 4, Bit 2)
+            t6 = (5, 0b00, 10, 0b01, 15, 0b10)
+        let v3 :: Vector 3 (UInt 4, Bit 2)
+            v3 = unconcatTuple t6
+        $display "unconcatTuple((5, 0b00, 10, 0b01, 15, 0b10)) = [(%0d, %b), (%0d, %b), (%0d, %b)]" (tpl_1 (v3 !! 0)) (tpl_2 (v3 !! 0)) (tpl_1 (v3 !! 1)) (tpl_2 (v3 !! 1)) (tpl_1 (v3 !! 2)) (tpl_2 (v3 !! 2))
+        counter := counter + 1
+
+      "test10": when counter == 10 ==> action
+        -- Test 6-tuple to vector of 2 triples
+        let t6 :: (Bool, Int 8, UInt 4, Bool, Int 8, UInt 4)
+            t6 = (True, 15, 3, False, negate 25, 7)
+        let v2 :: Vector 2 (Bool, Int 8, UInt 4)
+            v2 = unconcatTuple t6
+        $display "unconcatTuple((True, 15, 3, False, -25, 7)) = [(%b, %0d, %0d), (%b, %0d, %0d)]" (tpl_1 (v2 !! 0)) (tpl_2 (v2 !! 0)) (tpl_3 (v2 !! 0)) (tpl_1 (v2 !! 1)) (tpl_2 (v2 !! 1)) (tpl_3 (v2 !! 1))
+        $display ""
+        $display "=== Round-trip test ==="
+        counter := counter + 1
+
+      "test11": when counter == 11 ==> action
+        -- Test concatTuple and unconcatTuple round-trip with singles
+        let v_orig :: Vector 5 (Int 8)
+            v_orig = 1 :> 2 :> 3 :> 4 :> 5 :> nil
+        let t5 :: (Int 8, Int 8, Int 8, Int 8, Int 8)
+            t5 = concatTuple v_orig
+        let v_restored :: Vector 5 (Int 8)
+            v_restored = unconcatTuple t5
+        $display "concatTuple/unconcatTuple round-trip (singles): [%0d, %0d, %0d, %0d, %0d]" (v_restored !! 0) (v_restored !! 1) (v_restored !! 2) (v_restored !! 3) (v_restored !! 4)
+        counter := counter + 1
+
+      "test12": when counter == 12 ==> action
+        -- Test concatTuple and unconcatTuple round-trip with pairs
+        let v_orig :: Vector 3 (Bool, Int 8)
+            v_orig = (True, 11) :> (False, 22) :> (True, 33) :> nil
+        let t6 :: (Bool, Int 8, Bool, Int 8, Bool, Int 8)
+            t6 = concatTuple v_orig
+        let v_restored :: Vector 3 (Bool, Int 8)
+            v_restored = unconcatTuple t6
+        $display "concatTuple/unconcatTuple round-trip (pairs): [(%b, %0d), (%b, %0d), (%b, %0d)]" (tpl_1 (v_restored !! 0)) (tpl_2 (v_restored !! 0)) (tpl_1 (v_restored !! 1)) (tpl_2 (v_restored !! 1)) (tpl_1 (v_restored !! 2)) (tpl_2 (v_restored !! 2))
+        $display ""
+        $display "All ConcatTuple tests passed"
+        $finish 0
