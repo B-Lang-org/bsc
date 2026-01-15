@@ -2273,8 +2273,6 @@ function Vector#(n_chunk, chunk_type) toChunks(type_x x)
 \hline
 \end{tabular}
 
-\paragraph{ConcatTuple}
-
 The \te{ConcatTuple} type class provides functions to convert between a Vector
 of tuples and a single flattened tuple. When you have a Vector where each
 element is a tuple (or can be viewed as a tuple), \te{concatTuple} flattens
@@ -2291,7 +2289,7 @@ of smaller tuples.
 
 \begin{libverbatim}
    typeclass ConcatTuple #(numeric type n, type a, type b)
-      dependencies (n a determines b);
+      dependencies ((n, a) determines b);
       function b concatTuple(Vector#(n, a) v);
       function Vector#(n, a) unconcatTuple(b x);
    endtypeclass
@@ -2301,7 +2299,7 @@ The type class has instances for various vector sizes:
 \begin{itemize}
 \item A vector of size 0 converts to/from the unit type \te{void}
 \item A vector of size 1 converts to/from a single element
-\item Larger vectors convert by flattening: each element is appended to
+\item Larger vectors convert by appending each element tuple to
 form a larger tuple
 \end{itemize}
 
@@ -2330,7 +2328,15 @@ function Vector#(n, a) unconcatTuple(b x);
 \hline
 \end{tabular}
 
-{\bf Example - ConcatTuple}
+{\bf Examples - Lists}
+
+Convert the vector \te{my\_vector} to a list named \te{my\_list}.
+\begin{libverbatim}
+     Vector#(5,Int#(13)) my_vector;
+     List#(Int#(13)) my_list = toList(my_vector);
+\end{libverbatim}
+
+{\bf Examples - Tuples}
 
 Flatten a vector of 3 pairs (2-tuples) into a single 6-tuple:
 \begin{libverbatim}
@@ -2383,15 +2389,6 @@ Special cases:
        vec(tuple2(True, 42));
    Tuple2#(Bool, Int#(8)) pair = concatTuple(single);
    // Result: (True, 42)
-\end{libverbatim}
-
-
-{\bf Example - Converting to and from Vectors}
-
-Convert the vector \te{my\_vector} to a list named \te{my\_list}.
-\begin{libverbatim}
-     Vector#(5,Int#(13)) my_vector;
-     List#(Int#(13)) my_list = toList(my_vector);
 \end{libverbatim}
 
 
