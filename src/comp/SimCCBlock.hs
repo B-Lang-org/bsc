@@ -523,6 +523,8 @@ adjustInstQuals id =
 -- check if an aexpr is just a var id, or other situation not to deal by wop
 hasWop :: AExpr -> Bool
 hasWop (APrim { aprim_prim = p }) = (p /= PrimIf)
+hasWop (ATuple _ _) = True
+hasWop (ATupleSel _ _ _) = True
 hasWop _ = False
 
 -- ---------------------
