@@ -1,0 +1,129 @@
+-----------------------------------------------------------------------
+-- Test for the Curry type class and curryN/uncurryN functions
+-----------------------------------------------------------------------
+
+package CurryTypeClass where
+
+import Vector
+
+-----------------------------------------------------------------------
+-- Test with Tuple2
+-----------------------------------------------------------------------
+
+add2Tuple :: (Int 32, Int 32) -> Int 32
+add2Tuple t = tpl_1 t + tpl_2 t
+
+add2 :: Int 32 -> Int 32 -> Int 32
+add2 a b = a + b
+
+testCurry2 :: Bool
+testCurry2 =
+   let curried :: Int 32 -> Int 32 -> Int 32
+       curried = curryN add2Tuple
+       result1 :: Int 32
+       result1 = curried 5 10
+       uncurried :: (Int 32, Int 32) -> Int 32
+       uncurried = uncurryN add2
+       result2 :: Int 32
+       result2 = uncurried (5, 10)
+   in result1 == 15 && result2 == 15
+
+
+-----------------------------------------------------------------------
+-- Test with Tuple3
+-----------------------------------------------------------------------
+
+add3Tuple :: (Int 32, Int 32, Int 32) -> Int 32
+add3Tuple t = tpl_1 t + tpl_2 t + tpl_3 t
+
+add3 :: Int 32 -> Int 32 -> Int 32 -> Int 32
+add3 a b c = a + b + c
+
+testCurry3 :: Bool
+testCurry3 =
+   let curried :: Int 32 -> Int 32 -> Int 32 -> Int 32
+       curried = curryN add3Tuple
+       result1 :: Int 32
+       result1 = curried 1 2 3
+       uncurried :: (Int 32, Int 32, Int 32) -> Int 32
+       uncurried = uncurryN add3
+       result2 :: Int 32
+       result2 = uncurried (1, 2, 3)
+   in result1 == 6 && result2 == 6
+
+
+-----------------------------------------------------------------------
+-- Test with Tuple4
+-----------------------------------------------------------------------
+
+add4Tuple :: (Int 32, Int 32, Int 32, Int 32) -> Int 32
+add4Tuple t = tpl_1 t + tpl_2 t + tpl_3 t + tpl_4 t
+
+add4 :: Int 32 -> Int 32 -> Int 32 -> Int 32 -> Int 32
+add4 a b c d = a + b + c + d
+
+testCurry4 :: Bool
+testCurry4 =
+   let curried :: Int 32 -> Int 32 -> Int 32 -> Int 32 -> Int 32
+       curried = curryN add4Tuple
+       result1 :: Int 32
+       result1 = curried 1 2 3 4
+       uncurried :: (Int 32, Int 32, Int 32, Int 32) -> Int 32
+       uncurried = uncurryN add4
+       result2 :: Int 32
+       result2 = uncurried (1, 2, 3, 4)
+   in result1 == 10 && result2 == 10
+
+
+-----------------------------------------------------------------------
+-- Test roundtrip: curryN . uncurryN = id and uncurryN . curryN = id
+-----------------------------------------------------------------------
+
+testRoundtrip :: Bool
+testRoundtrip =
+   -- Test that uncurrying then currying gets back the original behavior
+   let temp :: (Int 32, Int 32, Int 32) -> Int 32
+       temp = uncurryN add3
+       f1 :: Int 32 -> Int 32 -> Int 32 -> Int 32
+       f1 = curryN temp
+       result1 :: Int 32
+       result1 = f1 10 20 30
+       -- Test that currying then uncurrying gets back the original behavior
+       f2 :: (Int 32, Int 32, Int 32) -> Int 32
+       f2 = uncurryN (curryN add3Tuple)
+       result2 :: Int 32
+       result2 = f2 (10, 20, 30)
+   in result1 == 60 && result2 == 60
+
+
+-----------------------------------------------------------------------
+-- Test with unit tuple (special case)
+-----------------------------------------------------------------------
+
+fromUnitTuple :: () -> Int 32
+fromUnitTuple _ = 42
+
+testUnitTuple :: Bool
+testUnitTuple =
+   let curried :: Int 32
+       curried = curryN fromUnitTuple
+   in curried == 42
+
+
+-----------------------------------------------------------------------
+-- Module for testing
+-----------------------------------------------------------------------
+
+{-# verilog sysCurryTypeClass #-}
+sysCurryTypeClass :: Module Empty
+sysCurryTypeClass =
+   module
+      rules
+         "test": when True ==>
+            action
+               $display "Test Curry2: %b" testCurry2
+               $display "Test Curry3: %b" testCurry3
+               $display "Test Curry4: %b" testCurry4
+               $display "Test Roundtrip: %b" testRoundtrip
+               $display "Test Unit Tuple: %b" testUnitTuple
+               $finish 0
