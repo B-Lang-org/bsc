@@ -3531,17 +3531,6 @@ selector functions.
 \end{tabular}
 \end{center}
 
-{\bf Examples}
-
-\begin{verbatim}
-   Tuple2#( Bool, int ) foo = tuple2( True, 25 );
-   Bool field1 = tpl_1( foo ); // this is value 1 in the list
-   int  field2 = tpl_2( foo ); // this is value 2 in the list
-   foo = tuple2( !field1, field2 );
-\end{verbatim}
-
-\paragraph{TupleSize}
-
 \te{TupleSize} provides a way to determine the number of elements in a tuple
 at the type level. The size is represented as a numeric type parameter.
 
@@ -3577,8 +3566,6 @@ the number of elements in the tuple.
 \end{tabular}
 \end{center}
 
-\paragraph{AppendTuple}
-
 \te{AppendTuple} provides a way to join two tuples of arbitrary size into a single larger
 tuple, and to split a tuple back into two parts.
 
@@ -3591,7 +3578,7 @@ tuple, and to split a tuple back into two parts.
 
 \begin{libverbatim}
    typeclass AppendTuple #(type a, type b, type c)
-      dependencies (a b determines c);
+      dependencies ((a, b) determines c);
       function c appendTuple(a x, b y);
       function Tuple2#(a, b) splitTuple(c x);
    endtypeclass
@@ -3627,6 +3614,11 @@ containing the first part of type \te{a} and the second part of type \te{b}.\\
 {\bf Examples}
 
 \begin{verbatim}
+   Tuple2#( Bool, int ) foo = tuple2( True, 25 );
+   Bool field1 = tpl_1( foo ); // this is value 1 in the list
+   int  field2 = tpl_2( foo ); // this is value 2 in the list
+   foo = tuple2( !field1, field2 );
+
    // Appending a 2-tuple and a 3-tuple to create a 5-tuple
    Tuple2#(Bool, Int#(8)) t1 = tuple2(True, 42);
    Tuple3#(String, Bit#(4), UInt#(16)) t2 = tuple3("test", 4'hA, 100);
@@ -3641,7 +3633,7 @@ containing the first part of type \te{a} and the second part of type \te{b}.\\
    Tuple2#(Tuple2#(Bool, Int#(8)), Tuple2#(String, Bit#(4))) parts =
       splitTuple(t4);
 
-   // Appending with unit type
+   // Appending with unit type (void)
    Tuple2#(Bool, Int#(8)) t5 = tuple2(False, 0);
    Tuple2#(Bool, Int#(8)) t6 = appendTuple(t5, ?);  // same as t5
    Tuple2#(Bool, Int#(8)) t7 = appendTuple(?, t5);  // same as t5
