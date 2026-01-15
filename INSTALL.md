@@ -110,7 +110,7 @@ sudo apt-get install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -164,7 +164,7 @@ sudo dnf install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -237,7 +237,7 @@ brew install \
 curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ghcup install ghc 9.6.7
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Those final four commands install the recommended GHC compiler version
@@ -279,7 +279,7 @@ using the legacy `v1-install` subcommand, which install globally:
 
 ```bash
 cabal update
-cabal v1-install regex-compat syb old-time split
+cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
 Cabal's newer `v2-install` has the advantage of not installing the
