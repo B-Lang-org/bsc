@@ -2135,8 +2135,7 @@ evalStringList e = do
       -- We get primChr for Nil, since it's a no-argument constructor
       else if i == idPrimChr then return ([], getIExprPosition e')
       else internalError ("evalStringList con: " ++ show i)
-    _ -> do e'' <- unheapAll e'
-            eNoNF e''
+    _ -> nfError "evalStringList" e'
 
 -----------------------------------------------------------------------------
 
