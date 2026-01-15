@@ -135,6 +135,4 @@ sysConcatTuple =
         let v_restored :: Vector 3 (Bool, Int 8)
             v_restored = unconcatTuple t6
         $display "concatTuple/unconcatTuple round-trip (pairs): [(%b, %0d), (%b, %0d), (%b, %0d)]" (tpl_1 (v_restored !! 0)) (tpl_2 (v_restored !! 0)) (tpl_1 (v_restored !! 1)) (tpl_2 (v_restored !! 1)) (tpl_1 (v_restored !! 2)) (tpl_2 (v_restored !! 2))
-        $display ""
-        $display "All ConcatTuple tests passed"
         $finish 0

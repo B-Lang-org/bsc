@@ -66,6 +66,4 @@ sysTupleSize = module
           t8 = (True, 0, 0, 0, 0, 0, 0, 0)
       let size8 = tupleSize t8
       $display "TupleSize of Tuple8 = %0d (expected 8)" size8
-
-      $display "All TupleSize type class tests passed"
       $finish 0

@@ -1,18 +1,16 @@
 === Testing AppendTuple ===
 appendTuple((), ()) = () [unit type]
-appendTuple((), (True, 42)) = (1, 42)
-appendTuple((False, -10), ()) = (0, -10)
-appendTuple((True, 5), (12, 0b101)) = (1, 5, 12, 101)
-appendTuple(False, (-3, 7)) = (0, -3, 7)
-appendTuple((True, 20, 8), 0b11010) = (1, 20, 8, 11010)
-appendTuple((False, 15), (6, 0b111, -100)) = (0, 15, 6, 111, -100)
+appendTuple((), (True, 42)) = (True,   42)
+appendTuple((False, -10), ()) = (False,  -10)
+appendTuple((True, 5), (12, 0b101)) = (True,    5, 12, 0x5)
+appendTuple(False, (-3, 7)) = (False,   -3,  7)
+appendTuple((True, 20, 8), 0b11010) = (True,   20,  8, 0x1a)
+appendTuple((False, 15), (6, 0b111, -100)) = (False,   15,  6, 0x7,   -100)
 
 === Testing splitTuple ===
-splitTuple((True, -15, 9, 0b110)) = ((1, -15), (9, 110))
-splitTuple((False, 33, 15)) = (0, (33, 15))
-splitTuple((True, 50, 11, 0b001, -200)) = ((1, 50), (11, 001, -200))
+splitTuple((True, -15, 9, 0b110)) = ((True,  -15),  9, 0x6)
+splitTuple((False, 33, 15)) = (False,   33, 15)
+splitTuple((True, 50, 11, 0b001, -200)) = ((True,   50), 11, 0x1,   -200)
 
 === Round-trip test ===
-appendTuple/splitTuple round-trip: ((1, 42), (13, 10101))
-
-All AppendTuple tests passed
+appendTuple/splitTuple round-trip: ((True,   42), 13, 0x15)
