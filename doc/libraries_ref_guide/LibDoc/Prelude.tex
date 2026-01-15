@@ -6311,12 +6311,59 @@ function (function t0 g(Tuple2#(t1, t2) x))
 \end{tabular}
 \end{center}
 
+\index{Curry@\te{Curry} (type class)}
+\index[typeclass]{Curry}
+\index{curryN@\te{curryN} (function)}
+\index[function]{Prelude!curryN}
+\index{uncurryN@\te{uncurryN} (function)}
+\index[function]{Prelude!uncurryN}
+
+The \te{Curry} typeclass generalizes the \te{curry} and \te{uncurry} functions
+to work with tuples of any size (not just Tuple2).
+
+\begin{libverbatim}
+typeclass Curry#(type f, type g)
+   dependencies (f determines g);
+      function g curryN(f x);
+      function f uncurryN(g x);
+endtypeclass
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{curryN}&Converts an uncurried function (taking an N-tuple argument) into a curried
+function (taking N arguments one at a time). For example, \te{curryN} can convert a
+function taking \te{Tuple3\#(a,b,c)} into a function \te{a -> b -> c -> result}.\\
+\hline
+\te{uncurryN}&The inverse of \te{curryN}. Converts a curried function (taking N arguments
+one at a time) into an uncurried function (taking an N-tuple argument).\\
+\hline
+\end{tabular}
+\end{center}
+
 
 {\bf Examples}
 
 \begin{libverbatim}
  //using constFn to set the initial values of the registers in a list
    List#(Reg#(Resource)) items <- mapM( constFn(mkReg(initRes)),upto(1,numAdd) );
+
+ // Using curryN with a 3-tuple
+   function Int#(32) add3Tuple(Tuple3#(Int#(32), Int#(32), Int#(32)) t);
+      return tpl_1(t) + tpl_2(t) + tpl_3(t);
+   endfunction
+
+   let add3Curried = curryN(add3Tuple);
+   Int#(32) result = add3Curried(1)(2)(3);  // result = 6
+
+ // Using uncurryN
+   function Int#(32) add3(Int#(32) a, Int#(32) b, Int#(32) c);
+      return a + b + c;
+   endfunction
+
+   let add3Uncurried = uncurryN(add3);
+   Int#(32) result2 = add3Uncurried(tuple3(1, 2, 3));  // result2 = 6
  
    return(pack(map(compose(head0,toList),state)));
 
