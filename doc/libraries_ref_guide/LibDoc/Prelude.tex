@@ -6346,8 +6346,11 @@ one at a time) into an uncurried function (taking an N-tuple argument).\\
 {\bf Examples}
 
 \begin{libverbatim}
- //using constFn to set the initial values of the registers in a list
+ // Using constFn to set the initial values of the registers in a list
    List#(Reg#(Resource)) items <- mapM( constFn(mkReg(initRes)),upto(1,numAdd) );
+ 
+ // Using compose when mapping over a list
+   return(pack(map(compose(head0,toList),state)));
 
  // Using curryN with a 3-tuple
    function Int#(32) add3Tuple(Tuple3#(Int#(32), Int#(32), Int#(32)) t);
@@ -6364,10 +6367,6 @@ one at a time) into an uncurried function (taking an N-tuple argument).\\
 
    let add3Uncurried = uncurryN(add3);
    Int#(32) result2 = add3Uncurried(tuple3(1, 2, 3));  // result2 = 6
- 
-   return(pack(map(compose(head0,toList),state)));
-
-   xs <- mapM(constFn(mkReg(False)),genList);
 \end{libverbatim}
 
 
