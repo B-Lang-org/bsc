@@ -2273,13 +2273,122 @@ function Vector#(n_chunk, chunk_type) toChunks(type_x x)
 \hline
 \end{tabular}
 
+The \te{ConcatTuple} type class provides functions to convert between a Vector
+of tuples and a single flattened tuple. When you have a Vector where each
+element is a tuple (or can be viewed as a tuple), \te{concatTuple} flattens
+all the elements into one large tuple by concatenating them together. The
+reverse operation, \te{unconcatTuple}, splits a large tuple back into a Vector
+of smaller tuples.
 
-{\bf Example - Converting to and from Vectors}
+\index{ConcatTuple@\te{ConcatTuple} (type class)}
+\index{concatTuple@\texttt{concatTuple} (\texttt{ConcatTuple} type class function)}
+\index{unconcatTuple@\texttt{unconcatTuple} (\texttt{ConcatTuple} type class function)}
+\index[function]{Vector!concatTuple}
+\index[function]{Vector!unconcatTuple}
+\index[typeclass]{ConcatTuple}
+
+\begin{libverbatim}
+   typeclass ConcatTuple #(numeric type n, type a, type b)
+      dependencies ((n, a) determines b);
+      function b concatTuple(Vector#(n, a) v);
+      function Vector#(n, a) unconcatTuple(b x);
+   endtypeclass
+\end{libverbatim}
+
+The type class has instances for various vector sizes:
+\begin{itemize}
+\item A vector of size 0 converts to/from the unit type \te{void}
+\item A vector of size 1 converts to/from a single element
+\item Larger vectors convert by appending each element tuple to
+form a larger tuple
+\end{itemize}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|c|}{\te{ConcatTuple} Functions}\\
+\hline
+\hline
+&\\ \te{concatTuple} & Flattens a Vector of tuples into a single large tuple
+by concatenating all the tuple elements together. Each element of the vector
+is appended sequentially to form the result tuple.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function b concatTuple(Vector#(n, a) v);
+\end{libverbatim}
+\\
+\hline
+&\\ \te{unconcatTuple}&Splits a large tuple into a Vector of smaller tuples.
+This is the inverse of \te{concatTuple}, distributing the tuple elements across
+a Vector of the specified size.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Vector#(n, a) unconcatTuple(b x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Examples - Lists}
 
 Convert the vector \te{my\_vector} to a list named \te{my\_list}.
 \begin{libverbatim}
      Vector#(5,Int#(13)) my_vector;
      List#(Int#(13)) my_list = toList(my_vector);
+\end{libverbatim}
+
+{\bf Examples - Tuples}
+
+Flatten a vector of 3 pairs (2-tuples) into a single 6-tuple:
+\begin{libverbatim}
+   // Create a vector of three 2-tuples
+   Vector#(3, Tuple2#(Bool, Int#(8))) vec_of_pairs = vec(
+       tuple2(True, 1),
+       tuple2(False, 2),
+       tuple2(True, 3)
+   );
+
+   // Flatten into a single 6-tuple
+   Tuple6#(Bool, Int#(8), Bool, Int#(8), Bool, Int#(8)) flat =
+       concatTuple(vec_of_pairs);
+   // Result: (True, 1, False, 2, True, 3)
+
+   // Convert back to vector of pairs
+   Vector#(3, Tuple2#(Bool, Int#(8))) restored = unconcatTuple(flat);
+\end{libverbatim}
+
+Flatten a vector of 4 single elements (which can be viewed as 1-tuples) into a 4-tuple:
+\begin{libverbatim}
+   Vector#(4, Int#(8)) vec_ints = vec(10, 20, 30, 40);
+
+   // Each Int#(8) is treated as a single element
+   Tuple4#(Int#(8), Int#(8), Int#(8), Int#(8)) tuple_ints =
+       concatTuple(vec_ints);
+   // Result: (10, 20, 30, 40)
+\end{libverbatim}
+
+Flatten a vector of 2 triples (3-tuples) into a single 6-tuple:
+\begin{libverbatim}
+   Vector#(2, Tuple3#(Bool, UInt#(4), String)) vec_triples = vec(
+       tuple3(True, 5, "hello"),
+       tuple3(False, 10, "world")
+   );
+
+   Tuple6#(Bool, UInt#(4), String, Bool, UInt#(4), String) result =
+       concatTuple(vec_triples);
+   // Result: (True, 5, "hello", False, 10, "world")
+\end{libverbatim}
+
+Special cases:
+\begin{libverbatim}
+   // Empty vector converts to unit type
+   Vector#(0, Tuple2#(Bool, Int#(8))) empty = nil;
+   void unit = concatTuple(empty);
+
+   // Single element vector returns just that element
+   Vector#(1, Tuple2#(Bool, Int#(8))) single =
+       vec(tuple2(True, 42));
+   Tuple2#(Bool, Int#(8)) pair = concatTuple(single);
+   // Result: (True, 42)
 \end{libverbatim}
 
 

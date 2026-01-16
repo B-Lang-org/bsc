@@ -287,8 +287,8 @@ instance PVPrint CDefn where
     pvPrint d p (CprimType (IdKind i k)) =
         t"primitive type" <+> pp d i <+> t "::" <+> pp d k
 
-    pvPrint d p (Cforeign i ty oname opnames) =
-        text "foreign" <+> pvpId d i <+> t "::"
+    pvPrint d p (Cforeign i ty oname opnames ni) =
+        text "foreign" <> (if ni then text " noinline" else empty) <+> pvpId d i <+> t "::"
                 <+> pp d ty
                 <> (case oname of Nothing -> empty; Just s -> text (" = " ++ show s))
                 <> (case opnames of
@@ -842,7 +842,7 @@ ppVeriMethod d _  (Inout i (VName s) mclk mrst) =
   (case mrst of
      Nothing -> empty
      Just i -> t"reset_by (" <> pvpId d i <> t")")
-ppVeriMethod d mr (Method i mc mreset n pts mo me) =
+ppVeriMethod d mr (Method i mc mreset n pts os me) =
   let f _ _ Nothing = empty
       f before after (Just (VName vn, prs)) =
          (case prs of
@@ -851,7 +851,10 @@ ppVeriMethod d mr (Method i mc mreset n pts mo me) =
          (t (before ++ vn ++ after))
   in
    t"method " <>
-   (f "" " " mo) <>
+   (case os of
+      [] -> empty
+      [o] -> f "" " " (Just o)
+      _   -> t"(" <> sepList (map (f "" " " . Just) os) (t",") <> t")") <>
    (pvpId d i <>
    (if n == 1 then empty else (t"[" <> (pp d n) <> t"]")) <>
    (t"(" <> sepList (map (f "" "" . Just) pts) (t",") <> t")") <>

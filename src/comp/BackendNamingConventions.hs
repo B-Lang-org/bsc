@@ -96,8 +96,8 @@ rwireHasId = mkId noPosition (mkFString rwireHasStr)
 rwireSetEnId, rwireSetArgId, rwireGetResId, rwireHasResId :: Id -> Id
 rwireSetEnId i  = mkMethId i rwireSetId Nothing MethodEnable
 rwireSetArgId i = mkMethId i rwireSetId Nothing (MethodArg 1)
-rwireGetResId i = mkMethId i rwireGetId Nothing MethodResult
-rwireHasResId i = mkMethId i rwireHasId Nothing MethodResult
+rwireGetResId i = mkMethId i rwireGetId Nothing (MethodResult 1)
+rwireHasResId i = mkMethId i rwireHasId Nothing (MethodResult 1)
 
 -- ==============================
 -- Primitive CReg
@@ -134,7 +134,7 @@ cregReadId  n = mkId noPosition (mkFString (cregReadStr n))
 cregWriteId n = mkId noPosition (mkFString (cregWriteStr n))
 
 cregReadResId, cregWriteEnId, cregWriteArgId :: Id -> Int -> Id
-cregReadResId  i n = mkMethId i (cregReadId n)  Nothing MethodResult
+cregReadResId  i n = mkMethId i (cregReadId n)  Nothing (MethodResult 1)
 cregWriteEnId  i n = mkMethId i (cregWriteId n) Nothing MethodEnable
 cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1)
 
@@ -351,7 +351,7 @@ regWriteId pos = mkId pos (mkFString regWriteStr)
 
 -- XXX no position?
 regReadResId, regWriteEnId, regWriteArgId :: Id -> Id
-regReadResId  i = mkMethId i (regReadId noPosition)  Nothing MethodResult
+regReadResId  i = mkMethId i (regReadId noPosition)  Nothing (MethodResult 1)
 regWriteEnId  i = mkMethId i (regWriteId noPosition) Nothing MethodEnable
 regWriteArgId i = mkMethId i (regWriteId noPosition) Nothing (MethodArg 1)
 
@@ -378,17 +378,17 @@ cregToReg old_avi =
         updVPort new_vn (_, ps) = (new_vn, ps)
 
         (new_vFields, new_meth_types) =
-            let convField (Method nm c r m [] (Just res) Nothing, ts)
+            let convField (Method nm c r m [] [res] Nothing, ts)
                     | (nm == cregReadId 0)
                     = let nm' = regReadId (getPosition nm)
                           res' = updVPort qoutPortName res
-                      in  Just (Method nm' c r m [] (Just res') Nothing, ts)
-                convField (Method nm c r m [arg] Nothing (Just en), ts)
+                      in  Just (Method nm' c r m [] [res'] Nothing, ts)
+                convField (Method nm c r m [arg] [] (Just en), ts)
                     | (nm == cregWriteId 0)
                     = let nm' = regWriteId (getPosition nm)
                           arg' = updVPort dinPortName arg
                           en' = updVPort enPortName en
-                      in  Just (Method nm' c r m [arg'] Nothing (Just en'), ts)
+                      in  Just (Method nm' c r m [arg'] [] (Just en'), ts)
                 convField _ = Nothing
             in  unzip $
                   mapMaybe convField $
@@ -530,11 +530,11 @@ createMapForVMod :: AId -> VFieldInfo -> [(FString,FString)]
 createMapForVMod _ (Clock _) = []
 createMapForVMod _ (Reset _) = []
 createMapForVMod _ (Inout {}) = []
-createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReadable result) $
+createMapForVMod inst_id (Method meth_id _ _ mult ins outs me) = -- trace (ppReadable result) $
                                                                result
     where
         result = zip meths_fstr ports_fstr
-        (fmeths,fports) = createMapForOneMeth meth_id mult ins me mo
+        (fmeths,fports) = createMapForOneMeth meth_id mult ins outs me
         inst_fstr  = getIdFString inst_id
         addInstId fs = concatFString [inst_fstr, fsDollar, fs]
         meths_fstr = map addInstId fmeths
@@ -545,8 +545,8 @@ createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReada
 -- For a single method, create two lists:
 --   * The Bluespec names for the arguments and RDY/EN
 --     (for example, ["set_1","set"] or ["get"])
---     The first items in the list are the arguments, and the last is
---     the return value or the enable (depending on the type of method).
+--     The first items in the list are the arguments, followed by
+--     the return value(s) and/or the enable (depending on the type of method).
 --   * The Verilog port names corresponding to the Bluespec names
 --     (for example, ["D_IN","EN"] or ["Q_OUT"])
 -- If the method has multiplicity > 1, then the first list
@@ -559,37 +559,35 @@ createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReada
 -- mkMethId in ASyntax
 -- the two lists should be the same length (this is checked)
 createMapForOneMeth :: Id -> Integer ->
-                       [VPort] -> Maybe VPort -> Maybe VPort ->
+                       [VPort] -> [VPort] -> Maybe VPort ->
                        ([FString],[FString])
-createMapForOneMeth meth_id mult ins me mo = if check then
+createMapForOneMeth meth_id mult ins outs me = if check then
                                              -- trace (ppReadable (method_names, verilog_names)) $
                                              (method_names, verilog_names)
                                              else err
     where
       check = length method_names == length verilog_names
       err = internalError ("createMapForOneMeth " ++
-                           ppReadable (meth_id, mult, ins, me, mo))
+                           ppReadable (meth_id, mult, ins, me, outs))
       meth_fstr = getIdFString meth_id
 
       meth_mult = if mult <= 1 then [meth_fstr]
                   else [ concatFString [meth_fstr, fsUnderscore, mkNumFString n] |
                          n <- [0 .. mult-1] ]
 
-      -- for method "x", make the names "x_1, x_2, .." for the ports
-      -- make the names x_<port>_n for multi-ported methods
-      method_input_names = [ addNum meth_n arg_n |
+      -- for method "x", make the names "x_ARG_1, x_ARG_2, .." for the ports
+      -- make the names x_<port>_ARG_n for multi-ported methods
+      method_input_names = [ mkMethArgStr meth_n (toInteger arg_n) |
                              meth_n <- meth_mult, arg_n  <- [1 .. length ins]]
-      addNum fs n =
-          concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
-
       -- the Verilog port names for the above
       verilog_input_names = map getFStringForVerilogPair ins
 
-      -- names for the output port
-      (method_output_names, verilog_output_name) =
-          case (mo) of
-              Nothing -> ([], [])
-              Just p -> (meth_mult, [getFStringForVerilogPair p])
+      -- names for the output ports
+      method_output_names = [ mkMethResStr meth_n (toInteger out_n) |
+                              meth_n <- meth_mult, out_n  <- [1 .. length outs]]
+
+      -- the Verilog port names for the above
+      verilog_output_names = map getFStringForVerilogPair outs
 
       -- names for the enable
       (method_enable_names, verilog_enable_name) =
@@ -608,14 +606,14 @@ createMapForOneMeth meth_id mult ins me mo = if check then
       verilog_names_pre_mult =
                      verilog_input_names ++
                      verilog_enable_name ++
-                     verilog_output_name
+                     verilog_output_names
 
       -- handle the multiplicity for verilog names here
       -- note how we go from 1..mult instead of 0..mult-1
       -- as the method side does
       verilog_names = if (mult <= 1)
                       then verilog_names_pre_mult
-                      else [addNum fs n | -- PORT_N
+                      else [concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))] | -- PORT_N
                             fs <- verilog_names_pre_mult,
                             n <- [1..mult]]
 

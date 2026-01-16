@@ -8,12 +8,10 @@ compile_verilog_pass ZeroBitValueMethod.bsv {} {-dexpanded -dATS}
 
 # Test that the method reference has been replaced by 0 in the evaluator
 if { $vtest == 1 } {
-    # XXX This still need to be fixed
-    find_regexp ZeroBitValueMethod.bsv.bsc-vcomp-out \
+    find_regexp_fail ZeroBitValueMethod.bsv.bsc-vcomp-out \
 	{\= \.ZeroBitValueMethod\.getVal g}
-    # XXX AConv doesn't replace it either
     find_regexp ZeroBitValueMethod.bsv.bsc-vcomp-out \
-	{\= g\.getVal}
+	{\=\=> Prelude\.\$display#0 "v \= %b" 0}
 }
 
 # -----
@@ -23,12 +21,10 @@ compile_verilog_pass ZeroBitActionValueMethod.bsv {} {-dexpanded -dATS}
 
 # Test that the method reference has been replaced by 0 in the evaluator
 if { $vtest == 1 } {
-    # XXX This still need to be fixed
-    find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
+    find_regexp_fail ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
 	{\= \.Prelude\.avValue_ ·0 \(\.ZeroBitActionValueMethod\.get g\)}
-    # At least AConv replaces it
     find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
-	{g\.get\; p\.put 0\'d0\;}
+	{g\.get\; p\.put\;}
 }
 
 # -----

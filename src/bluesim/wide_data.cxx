@@ -1755,7 +1755,7 @@ void wop_rem(const WideData& v1, const WideData& v2, WideData &result)
 /*** function calls ***/
 
 /* maybe useful */
-void WideData::wop_extractWide(uint hi, uint lo, WideData& result)
+void WideData::wop_extractWide(uint hi, uint lo, WideData& result) const
 {
   copy_bits_to_0(result.data, data, lo, (hi-lo+1));
   clear_bits(result.data, (hi-lo+1), (result.numWords() * WORD_SIZE) - 1);

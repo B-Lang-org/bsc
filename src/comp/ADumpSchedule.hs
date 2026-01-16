@@ -322,7 +322,7 @@ genMethodDumpMap vSchedInfo ifc = methodDumpMap
            -- don't include output clocks and resets
            -- don't include ready Ids
            methodList = filter (not . isRdyId) $
-                        map aIfaceName (aIfaceMethods ifc)
+                        map aif_name (aIfaceMethods ifc)
            methodRdys = [(mn, p) | (AIDef { aif_name = mn, aif_value = (ADef _ _ p _) }) <- ifc, isRdyId mn]
            methodDumpMap =
              [ (mid, p, clist)
