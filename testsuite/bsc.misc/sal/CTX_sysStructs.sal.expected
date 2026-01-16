@@ -28,21 +28,21 @@ BEGIN
      #) ;
   
   rule_RL_add_em (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_x__h549 : Bit{9}!T = CTX_RegN{9}!meth_read(state0.inst_a)
-    IN LET def_x__h557 : Bit{9}!T = CTX_RegN{9}!meth_read(state0.inst_b)
-    IN LET def_x__h541 : Bit{9}!T = Prim1{9}!primAdd(def_x__h549, def_x__h557)
-    IN LET def_x__h529 : Bit{9}!T = Prim1{9}!primAdd(def_x__h541, Bit{9}!mkConst(4))
-    IN LET def_s__h482 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_s)
-    IN LET act1 : [ CTX_RegN{9}!STATE, Unit!T ] = CTX_RegN{9}!meth_write(def_x__h529, state0.inst_a)
+    LET def_x__h542 : Bit{9}!T = CTX_RegN{9}!meth_read(state0.inst_a)
+    IN LET def_x__h550 : Bit{9}!T = CTX_RegN{9}!meth_read(state0.inst_b)
+    IN LET def_x__h534 : Bit{9}!T = Prim1{9}!primAdd(def_x__h542, def_x__h550)
+    IN LET def_x__h522 : Bit{9}!T = Prim1{9}!primAdd(def_x__h534, Bit{9}!mkConst(4))
+    IN LET def_s__h463 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_s)
+    IN LET act1 : [ CTX_RegN{9}!STATE, Unit!T ] = CTX_RegN{9}!meth_write(def_x__h522, state0.inst_a)
     IN LET state1 : STATE = state0 WITH .inst_a := act1.1
     IN LET act2 : [ CTX_RegN{1}!STATE, Unit!T ] =
 	     CTX_RegN{1}!meth_write(Bit{1}!mkConst(0), state1.inst_s)
     IN LET state2 : STATE = state1 WITH .inst_s := act2.1
-    IN ( Prim!bitToBool(def_s__h482), state2 ) ;
+    IN ( Prim!bitToBool(def_s__h463), state2 ) ;
   
   rule_RL_tss (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_t1___d8 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t1)
-    IN LET def_t2___d6 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t2)
+    LET def_t2___d6 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t2)
+    IN LET def_t1___d8 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t1)
     IN LET act1 : [ CTX_RegUN{12}!STATE, Unit!T ] =
 	     CTX_RegUN{12}!meth_write(Prim2{8,4}!primConcat(Prim2{12,8}!primExtract(def_t2___d6),
 							    Prim2{12,4}!primExtract(def_t1___d8)),
