@@ -76,10 +76,10 @@ tRules = TCon (TyCon idRules (Just KStar) TIabstract)
 tRulesAt :: Position -> Type
 tRulesAt pos = TCon (TyCon (idRulesAt pos) (Just KStar) TIabstract)
 
-tSchedPragma, tModule, tVRWireN, tId, t32 :: Type
+tSchedPragma, tModule, tEmpty, tId, t32 :: Type
 tSchedPragma = TCon (TyCon idSchedPragma (Just KStar) TIabstract)
 tModule = TCon (TyCon idModule (Just (Kfun KStar KStar)) TIabstract)
-tVRWireN = TCon (TyCon idVRWireN (Just (Kfun KNum KStar)) (TIstruct SStruct [idWSet, idWGet, idWHas]))
+tEmpty = TCon (TyCon idEmpty (Just KStar) (TIstruct (SInterface []) []))
 tId = TCon (TyCon idId (Just (Kfun KStar KStar)) TIabstract)
 t32 = tOfSize 32 noPosition
 
