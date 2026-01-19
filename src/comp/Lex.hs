@@ -278,7 +278,7 @@ lx lf f l c (ch:cs) | isDigit ch =
   in
     case span isDigit cs of
     (s', cs') -> lxFloat (ch:s') cs'
-lx lf f l c ('$':x:cs) | isIdChar x = spanId [] (c+1) cs
+lx lf f l c ('$':x:cs) | isIdChar x = spanId [] (c+2) cs
     where spanId r cn (y:cs) | (isIdChar y || y == '$') = spanId (y:r) (cn+1) cs
           spanId r cn cs' =
              let fs = mkFString ('$':x:reverse r)
