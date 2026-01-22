@@ -1,4 +1,4 @@
-package LexPos where
+package LexPos_NumLit where
 
 x :: Integer
 x = 5 + 9 + "foo"
