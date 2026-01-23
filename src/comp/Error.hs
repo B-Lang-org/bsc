@@ -805,7 +805,7 @@ data ErrMsg =
         | EPolyField
         | ENotKNum String
         | EBadGenArg String
-        | EBadIfcType String String
+        | EBadIfcType (Maybe String) String
         | EBadForeignIfcType String
         | ENoTypeSign String
         | EStmtContext String
@@ -2120,9 +2120,12 @@ getErrorText (ENotKNum t) =
     (Type 41, empty, s2par ("Only size polymorphism allowed in code generation: " ++ t))
 getErrorText (EBadGenArg i) =
     (Type 42, empty, s2par ("Bad argument in code generation: " ++ ishow i))
-getErrorText (EBadIfcType mod msg) =
+getErrorText (EBadIfcType (Just mod) msg) =
     (Type 43, empty,
      s2par ("Cannot synthesize " ++ quote mod ++ ": " ++ msg))
+getErrorText (EBadIfcType Nothing msg) =
+    (Type 43, empty,
+     s2par ("Cannot synthesize this module or function: " ++ msg))
 getErrorText (ENoTypeSign e) =
     (Type 44, empty, s2par ("Missing or bad type signature for a module: " ++ e))
 getErrorText (EStmtContext c) =

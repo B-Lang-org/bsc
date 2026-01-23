@@ -102,7 +102,7 @@ class WideData
   unsigned int extract32(unsigned int hi, unsigned int lo) const;
   unsigned long long extract64(unsigned int hi, unsigned int lo) const;
   WideData extractWide(unsigned int hi, unsigned int lo) const;
-  void wop_extractWide(unsigned int hi, unsigned int lo, WideData& result);
+  void wop_extractWide(unsigned int hi, unsigned int lo, WideData& result) const;
   void clear(unsigned int from = 0);
   void clear(unsigned int from, unsigned int to);
   void set(unsigned int from = 0);

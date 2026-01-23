@@ -20,8 +20,8 @@ import TIMonad
 import TCMisc
 import Unify
 
-import FStringCompat (mkFString)
-import Id(mkId)
+import FStringCompat (FString, mkFString, getFString)
+import Id(Id, mkId)
 import PreIds
 import CSyntax
 import Util(separate, concatMapM, quote, headOrErr, toMaybe, boolCompress)
@@ -39,8 +39,8 @@ import CType(typeclassId, isTNum, getTNum)
 -- a list of the contexts which failed to reduce, this function
 -- returns the list of error messages which should be reported
 --
-handleContextReduction :: Position -> [VPred] -> TI a
-handleContextReduction pos vps =
+handleContextReduction :: Maybe Id -> Position -> [VPred] -> TI a
+handleContextReduction mid pos vps =
     do
        -- We used to remove duplicates:
        --   let vps' = nubVPred vps
@@ -80,15 +80,15 @@ handleContextReduction pos vps =
                      then vps_reduced_nicenames
                      else is_mod_arrow_vps
 
-       emsgs <- mapM (handleContextReduction' pos) err_vps
+       emsgs <- mapM (handleContextReduction' mid pos) err_vps
 
        errs "handleContextReduction" emsgs
 
 -- --------------------
 
 -- This helper function takes one predicate at a time
-handleContextReduction' :: Position -> (VPred, [VPred]) -> TI EMsg
-handleContextReduction' pos
+handleContextReduction' :: Maybe Id -> Position -> (VPred, [VPred]) -> TI EMsg
+handleContextReduction' mid pos
     p@((VPred vpi (PredWithPositions (IsIn c@(Class { name=(CTypeclass cid) }) ts) _)), _)
     | cid == idBitwise =
         case ts of
@@ -165,12 +165,17 @@ handleContextReduction' pos
                         _ -> return $ defaultContextReductionErr pos p
           _ -> internalError("handleContextReduction': " ++
                              "SizedLiteral instance contains wrong number of types")
+    | cid == idWrapField =
+        case ts of
+          [TCon (TyStr name _), t, _] -> return $ handleCtxRedWrapField mid pos p name t
+          _ -> internalError("handleContextReduction': " ++
+                             "WrapField instance contains wrong number of types")
 
 --  | cid == idLiteral =
 --  | cid == idRealLiteral =
 --  | cid == idStringLiteral =
 
-handleContextReduction' pos p =
+handleContextReduction' mid pos p =
     return (defaultContextReductionErr pos p)
 
 -- --------------------
@@ -453,6 +458,21 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
                          (map (pfpString . toPred) reduced_ps)
     in
         (pos, ECtxErrPrimPort (pfpString userty) poss hasVar)
+
+-- --------------------
+
+handleCtxRedWrapField:: Maybe Id -> Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
+handleCtxRedWrapField mid pos (vp, reduced_ps) name userty =
+    (pos, EBadIfcType (fmap pfpString mid) $
+     "The interface method `" ++ getFString name ++
+     "' uses type(s) that are not in the Bits or SplitPorts typeclasses: " ++
+     intercalate ", " (concatMap bitsPredType reduced_ps)
+     )
+    where
+      bitsPredType :: VPred -> [String]
+      bitsPredType (VPred _ (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [t, _]) _))
+        | cid == idBits = [pfpString t]
+      bitsPredType _ = []
 
 
 -- ========================================================================
@@ -1016,7 +1036,7 @@ earlyContextReduction pos ps =
     rs <- mapM try_pred ps
     let err_preds = map fst (filter (not . snd) rs)
     when (not (null err_preds)) $
-        handleContextReduction pos err_preds
+        handleContextReduction Nothing pos err_preds
 
 -- ========================================================================
 

@@ -30,22 +30,22 @@ dim_sysTb =
 rule_RL_r0_sysTb :: MOD_sysTb -> (Bool, MOD_sysTb, ());
 rule_RL_r0_sysTb =
     (\ (state0 :: MOD_sysTb) ->
-     let { (def_b__h284 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
-	 ; (def_b__h285 :: Bit #51) = meth_read_RegN (inst_c2__sysTb state0)
-	 ; (def_state__h244 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
-	 ; (def_b__h322 :: Bit #51) = noinline_add def_b__h284 (3 :: Bit #51)
-	 ; (def_b__h345 :: Bit #51) = noinline_add def_b__h285 (2 :: Bit #51)
+     let { (def_state__h528 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
+	 ; (def_c2___d6 :: Bit #51) = meth_read_RegN (inst_c2__sysTb state0)
+	 ; (def_b__h871 :: Bit #51) = noinline_add def_c2___d6 (2 :: Bit #51)
+	 ; (def_c1___d5 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
+	 ; (def_b__h747 :: Bit #51) = noinline_add def_c1___d5 (3 :: Bit #51)
 	 ; (def_gcd_RDY_start____d1 :: Bool) = meth_RDY_start_sysMethods (inst_gcd__sysTb state0)
-	 ; (def_state_EQ_0___d3 :: Bool) = primEQ def_state__h244 (0 :: Bit #2)
+	 ; (def_state_EQ_0___d3 :: Bool) = primEQ def_state__h528 (0 :: Bit #2)
 	 ; (def_gcd_RDY_start_AND_state_EQ_0___d4 :: Bool) = def_gcd_RDY_start____d1 && def_state_EQ_0___d3
 	 ; (act1 :: (Bool, MOD_sysMethods, ())) =
-	       meth_start_sysMethods def_b__h284 def_b__h285 (inst_gcd__sysTb state0)
+	       meth_start_sysMethods def_c1___d5 def_c2___d6 (inst_gcd__sysTb state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysTb) = state0 { inst_gcd__sysTb = snd3 act1 }
-	 ; (act2 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h322 (inst_c1__sysTb state1)
+	 ; (act2 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h747 (inst_c1__sysTb state1)
 	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
 	 ; (state2 :: MOD_sysTb) = state1 { inst_c1__sysTb = snd3 act2 }
-	 ; (act3 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h345 (inst_c2__sysTb state2)
+	 ; (act3 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h871 (inst_c2__sysTb state2)
 	 ; (guard3 :: Bool) = guard2 && (fst3 act3)
 	 ; (state3 :: MOD_sysTb) = state2 { inst_c2__sysTb = snd3 act3 }
 	 ; (act4 :: (Bool, MOD_RegN #2, ())) = meth_write_RegN (1 :: Bit #2) (inst_state__sysTb state3)
@@ -57,18 +57,18 @@ rule_RL_r0_sysTb =
 rule_RL_r1_sysTb :: MOD_sysTb -> (Bool, MOD_sysTb, ());
 rule_RL_r1_sysTb =
     (\ (state0 :: MOD_sysTb) ->
-     let { (def_b__h284 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
-	 ; (def_b__h285 :: Bit #51) = meth_read_RegN (inst_c2__sysTb state0)
-	 ; (def_state__h244 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
-	 ; (def_b__h322 :: Bit #51) = noinline_add def_b__h284 (3 :: Bit #51)
-	 ; (def_b__h345 :: Bit #51) = noinline_add def_b__h285 (2 :: Bit #51)
-	 ; (def_state_EQ_1___d9 :: Bool) = primEQ def_state__h244 (1 :: Bit #2)
+     let { (def_state__h528 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
+	 ; (def_c2___d6 :: Bit #51) = meth_read_RegN (inst_c2__sysTb state0)
+	 ; (def_b__h871 :: Bit #51) = noinline_add def_c2___d6 (2 :: Bit #51)
+	 ; (def_c1___d5 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
+	 ; (def_b__h747 :: Bit #51) = noinline_add def_c1___d5 (3 :: Bit #51)
+	 ; (def_state_EQ_1___d9 :: Bool) = primEQ def_state__h528 (1 :: Bit #2)
 	 ; (act1 :: (Bool, MOD_sysMethods, Bit #51)) =
-	       meth_start_and_result_sysMethods def_b__h284 def_b__h285 (inst_gcd__sysTb state0)
+	       meth_start_and_result_sysMethods def_c1___d5 def_c2___d6 (inst_gcd__sysTb state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysTb) = state0 { inst_gcd__sysTb = snd3 act1 }
-	 ; (def_b__h381 :: Bit #51) = thd act1
-	 ; (def_gcd_start_and_result_0_PLUS_1___d11 :: Bit #51) = primAdd def_b__h381 (1 :: Bit #51)
+	 ; (def_b__h1063 :: Bit #51) = thd act1
+	 ; (def_gcd_start_and_result_0_PLUS_1___d11 :: Bit #51) = primAdd def_b__h1063 (1 :: Bit #51)
 	 ; (act2 :: (Bool, MOD_RegN #51, ())) =
 	       meth_write_RegN
 		   (primConcat
@@ -80,10 +80,10 @@ rule_RL_r1_sysTb =
 		   (inst_rg__sysTb state1)
 	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
 	 ; (state2 :: MOD_sysTb) = state1 { inst_rg__sysTb = snd3 act2 }
-	 ; (act3 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h322 (inst_c1__sysTb state2)
+	 ; (act3 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h747 (inst_c1__sysTb state2)
 	 ; (guard3 :: Bool) = guard2 && (fst3 act3)
 	 ; (state3 :: MOD_sysTb) = state2 { inst_c1__sysTb = snd3 act3 }
-	 ; (act4 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h345 (inst_c2__sysTb state3)
+	 ; (act4 :: (Bool, MOD_RegN #51, ())) = meth_write_RegN def_b__h871 (inst_c2__sysTb state3)
 	 ; (guard4 :: Bool) = guard3 && (fst3 act4)
 	 ; (state4 :: MOD_sysTb) = state3 { inst_c2__sysTb = snd3 act4 }
 	 ; (act5 :: (Bool, MOD_RegN #2, ())) = meth_write_RegN (2 :: Bit #2) (inst_state__sysTb state4)
@@ -95,11 +95,11 @@ rule_RL_r1_sysTb =
 rule_RL_r2_sysTb :: MOD_sysTb -> (Bool, MOD_sysTb, ());
 rule_RL_r2_sysTb =
     (\ (state0 :: MOD_sysTb) ->
-     let { (def_state__h244 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
+     let { (def_state__h528 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
 	 ; (def_gcd_RDY_result____d14 :: Bool) = meth_RDY_result_sysMethods (inst_gcd__sysTb state0)
 	 ; (def_gcd_result____d17 :: Bit #51) = meth_result_sysMethods (inst_gcd__sysTb state0)
 	 ; (def_gcd_result__7_PLUS_1___d18 :: Bit #51) = primAdd def_gcd_result____d17 (1 :: Bit #51)
-	 ; (def_state_EQ_2___d15 :: Bool) = primEQ def_state__h244 (2 :: Bit #2)
+	 ; (def_state_EQ_2___d15 :: Bool) = primEQ def_state__h528 (2 :: Bit #2)
 	 ; (def_gcd_RDY_result__4_AND_state_EQ_2_5___d16 :: Bool) =
 	       def_gcd_RDY_result____d14 && def_state_EQ_2___d15
 	 ; (act1 :: (Bool, MOD_RegN #51, ())) =
@@ -119,8 +119,8 @@ rule_RL_r2_sysTb =
 rule_RL_exit_sysTb :: MOD_sysTb -> (Bool, MOD_sysTb, ());
 rule_RL_exit_sysTb =
     (\ (state0 :: MOD_sysTb) ->
-     let { (def_b__h284 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
-	 ; (def_c1_ULE_100___d21 :: Bool) = primULE def_b__h284 (100 :: Bit #51)
-	 ; (def_v__h538 :: Bit #64) = (primAny :: Bit #64)
+     let { (def_c1___d5 :: Bit #51) = meth_read_RegN (inst_c1__sysTb state0)
+	 ; (def_c1_ULE_100___d21 :: Bool) = primULE def_c1___d5 (100 :: Bit #51)
+	 ; (def_v__h1286 :: Bit #64) = (primAny :: Bit #64)
 	 }
      in mktuple (not def_c1_ULE_100___d21) state0 ());

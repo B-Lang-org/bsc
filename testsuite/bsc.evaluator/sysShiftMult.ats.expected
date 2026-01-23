@@ -25,7 +25,7 @@ x :: ABSTRACT:  Prelude.VReg = RegN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd17]
 			       []
-			       meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 32]), ([Bit 32], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 32
 					  Q_OUT -> Prelude.Bit 32
 y :: ABSTRACT:  Prelude.VReg = RegN
@@ -40,29 +40,29 @@ y :: ABSTRACT:  Prelude.VReg = RegN
 				[])
 			       [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd24]
 			       []
-			       meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+			       meth types=[([], Nothing, [Bit 32]), ([Bit 32], Just (Bit 1), [])]
 			       port types=D_IN -> Prelude.Bit 32
 					  Q_OUT -> Prelude.Bit 32
 -- AP local definitions
-x__h177 :: Bit 32;
-x__h177  = x_BITS_28_TO_0___h184 ++ 3'd0;
--- IdProp x__h177[IdP_keep]
-x__h145 :: Bit 32;
-x__h145  = x_BITS_29_TO_0___h174 ++ 2'd0;
--- IdProp x__h145[IdP_keep]
-x_BITS_28_TO_0___h184 :: Bit 29;
-x_BITS_28_TO_0___h184  = extract x___d1 32'd28 32'd0;
--- IdProp x_BITS_28_TO_0___h184[IdP_keep]
-x_BITS_29_TO_0___h174 :: Bit 30;
-x_BITS_29_TO_0___h174  = extract x___d1 32'd29 32'd0;
--- IdProp x_BITS_29_TO_0___h174[IdP_keep]
+x__h146 :: Bit 32;
+x__h146  = x_BITS_28_TO_0___h153 ++ 3'd0;
+-- IdProp x__h146[IdP_keep]
+x__h105 :: Bit 32;
+x__h105  = x_BITS_29_TO_0___h143 ++ 2'd0;
+-- IdProp x__h105[IdP_keep]
+x_BITS_28_TO_0___h153 :: Bit 29;
+x_BITS_28_TO_0___h153  = extract x___d1 32'd28 32'd0;
+-- IdProp x_BITS_28_TO_0___h153[IdP_keep]
+x_BITS_29_TO_0___h143 :: Bit 30;
+x_BITS_29_TO_0___h143  = extract x___d1 32'd29 32'd0;
+-- IdProp x_BITS_29_TO_0___h143[IdP_keep]
 x___d1 :: Bit 32;
 x___d1  = x.read;
 -- IdProp x___d1[IdP_from_rhs]
 -- AP rules
 rule RL_unnamed "":
  when 1'd1
-  ==> { x.write x__h145; y.write x__h177; }
+  ==> { x.write x__h105; y.write x__h146; }
 []
 clock domain = Just (0), resets = [0]
 -- AP scheduling pragmas

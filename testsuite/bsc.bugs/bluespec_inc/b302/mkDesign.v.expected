@@ -46,23 +46,23 @@ module mkDesign(clk,
   wire [10 : 0] result;
 
   // remaining internal signals
-  wire [5 : 0] _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d55,
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d56,
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d57,
-	       _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d58,
-	       _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d59,
-	       x__h144,
-	       x__h146,
-	       x__h240,
-	       x__h242,
-	       x__h336,
-	       x__h338,
-	       x__h432,
-	       x__h434,
-	       x__h528,
-	       x__h530,
-	       y__h147;
-  wire [4 : 0] IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d54,
+  wire [5 : 0] _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45,
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d36,
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d27,
+	       _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d18,
+	       _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d9,
+	       x__h353,
+	       x__h355,
+	       x__h431,
+	       x__h433,
+	       x__h509,
+	       x__h511,
+	       x__h587,
+	       x__h589,
+	       x__h665,
+	       x__h667,
+	       y__h356;
+  wire [4 : 0] IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42,
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC__q4,
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_B_ETC___d53,
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_B_ETC__q3,
@@ -70,15 +70,16 @@ module mkDesign(clk,
 	       IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_P_ETC__q2,
 	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC___d51,
 	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC__q1,
-	       _theResult_____1_snd__h939,
-	       notB__h48,
-	       quotient__h63;
+	       notB__h247,
+	       quotient__h262;
 
   // value method result
   assign result =
 	     { result_a[9:5] >= result_b,
-	       _theResult_____1_snd__h939,
-	       quotient__h63 } ;
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45[5] ?
+		 _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45[4:0] :
+		 IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42,
+	       quotient__h262 } ;
 
   // remaining internal signals
   assign IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d54 =
@@ -109,45 +110,41 @@ module mkDesign(clk,
 	     _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d59[5] ?
 	       _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d59[4:0] :
 	       result_a[8:4] ;
-  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d55 =
-	     x__h144 + 6'd1 ;
-  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d56 =
-	     x__h240 + 6'd1 ;
-  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d57 =
-	     x__h336 + 6'd1 ;
-  assign _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d58 =
-	     x__h432 + 6'd1 ;
-  assign _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d59 =
-	     x__h528 + 6'd1 ;
-  assign _theResult_____1_snd__h939 =
-	     _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d55[5] ?
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d55[4:0] :
-	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d54 ;
-  assign notB__h48 = ~result_b ;
-  assign quotient__h63 =
-	     { _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d59[5],
-	       _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d58[5],
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d57[5],
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d56[5],
-	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d55[5] } ;
-  assign x__h144 = x__h146 + y__h147 ;
-  assign x__h146 =
+  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45 =
+	     x__h353 + 6'd1 ;
+  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d36 =
+	     x__h431 + 6'd1 ;
+  assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d27 =
+	     x__h509 + 6'd1 ;
+  assign _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d18 =
+	     x__h587 + 6'd1 ;
+  assign _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d9 =
+	     x__h665 + 6'd1 ;
+  assign notB__h247 = ~result_b ;
+  assign quotient__h262 =
+	     { _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d9[5],
+	       _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d18[5],
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d27[5],
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d36[5],
+	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45[5] } ;
+  assign x__h353 = x__h355 + y__h356 ;
+  assign x__h355 =
 	     { 1'd0,
-	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d54 } ;
-  assign x__h240 = x__h242 + y__h147 ;
-  assign x__h242 =
+	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42 } ;
+  assign x__h431 = x__h433 + y__h356 ;
+  assign x__h433 =
 	     { 1'd0,
-	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_B_ETC___d53 } ;
-  assign x__h336 = x__h338 + y__h147 ;
-  assign x__h338 =
+	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_B_ETC___d33 } ;
+  assign x__h509 = x__h511 + y__h356 ;
+  assign x__h511 =
 	     { 1'd0,
-	       IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_P_ETC___d52 } ;
-  assign x__h432 = x__h434 + y__h147 ;
-  assign x__h434 =
+	       IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_P_ETC___d24 } ;
+  assign x__h587 = x__h589 + y__h356 ;
+  assign x__h589 =
 	     { 1'd0,
-	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC___d51 } ;
-  assign x__h528 = x__h530 + y__h147 ;
-  assign x__h530 = { 1'd0, result_a[8:4] } ;
-  assign y__h147 = { 1'd0, notB__h48 } ;
+	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC___d15 } ;
+  assign x__h665 = x__h667 + y__h356 ;
+  assign x__h667 = { 1'd0, result_a[8:4] } ;
+  assign y__h356 = { 1'd0, notB__h247 } ;
 endmodule  // mkDesign
 
