@@ -1,0 +1,13 @@
+package LexPos_Task where
+
+-- Both 'f' and 'g' should have a type error at column 14
+-- as the reference to 'x' is at the same column in both
+
+f :: Bool -> Action
+f x = $fwrite x
+
+g :: Bool -> Action
+g x = dfwrite x
+
+dfwrite :: File -> Action
+dfwrite x = $fwrite x

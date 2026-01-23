@@ -112,11 +112,26 @@ compile_pass_bug EmptyDo_Braces.bs
 # Confirm that the failure was due to an internal error
 find_regexp [make_bsc_output_name EmptyDo_Braces.bs] {Internal.*Error}
 
+# -----
+# Test lexer positions
+
+proc check_lex_pos { srcname linepos colpos {errtag T0020} {count 1}} {
+    set str "Error: \"$srcname\", line $linepos, column $colpos: ($errtag)"
+    find_n_strings [make_bsc_output_name $srcname] $str $count
+}
+
 # Fix position after numeric literals with prefixes
 # (fixes Google issue #77395569)
-compile_fail LexPos.bs
-find_n_strings LexPos.bs.bsc-out {Error: "LexPos.bs", line 4, column 12: (T0020)} 1
-find_n_strings LexPos.bs.bsc-out {Error: "LexPos.bs", line 7, column 16: (T0020)} 1
+compile_fail LexPos_NumLit.bs
+check_lex_pos LexPos_NumLit.bs 4 12
+check_lex_pos LexPos_NumLit.bs 7 16
+
+# Fix position after system task names (prefixed with dollarsign)
+compile_fail LexPos_Task.bs
+check_lex_pos LexPos_Task.bs 7 14
+check_lex_pos LexPos_Task.bs 10 14
+
+# -----
 
 # Allow _ in numeric literals
 # (fixes Google issue #67326190)
