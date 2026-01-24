@@ -4,6 +4,164 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2026.01 Release
+---------------
+
+This release brings a number of performance improvements and bug
+fixes, including more principled support for type synonyms.  The
+release also adds BH syntax support to Bluetcl.  A new dependency,
+on the `strict-concurrency` package, is added for building BSC.
+Users of `Generics` may need to update a constructor name.
+
+Changes since release 2025.07:
+
+General
+~~~~~~~
+
+* Add a script to report the external Haskell packages used by GHC to
+  compile the BSC binaries, indicating the version, license, and
+  copyright information for each package (GitHub PR#876)
+
+Compiler
+~~~~~~~~
+
+* Fix the `Makefile` check for submodules to support building from
+  within a Git repo that is not the BSC repo (GitHub PR#874)
+
+* Implement `LiberalTypeSynonyms`: Type synonyms are macros that can
+  be partially applied, but in certain contexts that require a real
+  type, the macro must be expanded and BSC will report a user error if
+  not all arguments are applied at that point (GitHub Issue#221,
+  PR#833)
+
+* Error message improvements
+  ** Include the name of the foreign function in error `T0012` when
+     any of its types are not in `Bits` (GitHub PR#833)
+  ** Report the expected and given number of arguments in error `T0013`
+     when type synonyms are partially applied (GitHub PR#833)
+
+* Performance improvements
+  ** Avoid O(n^2) blowup in the Verilog backend on the number of
+     foreign function calls (GitHub PR#832)
+  ** Improve the performance of resource scheduling when the number of
+     uses is large (GitHub PR#828)
+  ** Improve the performance of writing large `.bi` files in the
+     `writeBin` stage (GitHub PR#856)
+  ** Improve time and memory usage during type check (GitHub PR#857)
+  ** Improve time and memory usage during elaboration (GitHub PR#861,
+     PR#858)
+  ** Improve the performance of expression and type substitution
+     during elaboration (GitHub PR#854)
+  ** Improve typecheck and elaboration by not generating unnecessary
+     bindings for provisos and by using sequential `let` instead of
+     recursive, which also allows for future optimization (GitHub
+     PR#848)
+  ** Improve performance throughout the compiler by replacing the
+     locally defined `Hyper` typeclass with the standard `NFData`
+     Haskell library (GitHub PR#851)
+  ** Replace old snapshot of `MVarStrict` (adjusted to use `Hyper`)
+     with the standard `MVar.Strict` Haskell library (GitHub PR#852)
+     *** This adds a dependency on the `strict-concurrency` package
+
+* Bug fixes
+  ** Eliminate an internal error in examples with numeric type
+     constructors (GitHub Issue#309, PR#833, PR#844)
+  ** Eliminate an internal error in examples where `SizeOf` still
+     exists after elaboration (GitHub Issue#310, Issue#593, Issue#841,
+     PR#842)
+  ** For wire modules with zero-size variants, generate the value as a
+     literal zero rather than don't-care, to avoid triggering
+     eventual optimization bugs (GitHub Issue#836, PR#837)
+  ** Fix a don't-care equality optimization in the evaluator that was
+     incorrectly applying to zero-sized values (GitHub Issue#836,
+     PR#837)
+  ** Fix position-tracking in the BH/Classic parser that was off by
+     one column after system task identifiers prefixed with `$`
+     (GitHub PR#873, PR#875)
+
+Libraries
+~~~~~~~~~
+
+* Add `lookupAll` utility to the `List` library (GitHub PR#845)
+
+* Extend the `Generics` representation to include type constructors
+  that take numeric and ordinary star kind arguments (GitHub PR#855)
+  ** This is a breaking change that renames `ConArg` to `OtherConArg`
+
+* Fix bug in `mkAlwaysFSM` for a sequence of one action
+  (GitHub Issue#825, PR#826)
+
+* Fix `oneHotSelect` in the `List` library to allow zero-width
+  elements (GitHub Issue#839, PR#840)
+
+* Remove unused `StmtFSMUtil` library (GitHub PR#827)
+
+* Update build dependencies in `depends.mk` (GitHub PR#827)
+
+Bluetcl
+~~~~~~~
+
+* Support BH/Classic (GitHub PR#838)
+  ** New `syntax` command controls whether Bluetcl prints using BSV or
+     BH syntax
+  ** When parsing user input, Bluetcl first tries the chosen syntax,
+     but will then try the other syntax if the first parse fails
+
+Verilog
+~~~~~~~
+
+* Fix the Verilator link script to pass C linking information from the
+  BSC command line to Verilator as `LDFLAGS` (GitHub PR#817)
+
+Utilities
+~~~~~~~~~
+
+* In the template for compiling Bluesim as a stand-alone executable,
+  fix a buffer overflow when writing a VCD (GitHub PR#821)
+
+Test Suite
+~~~~~~~~~~
+
+* Update the Bluetcl test procedures to allow testing BSV and BH
+  syntax, separately or together (GitHub PR#838)
+
+Internal
+~~~~~~~~
+
+* Updates to GitHub CI (continuous integration)
+  ** Generate the Haskell package information in BSC builds and
+     include in the uploaded artifact (GitHub PR#876)
+  ** Build and test in parallel using all available VM cores
+     (GitHub PR#846, PR#870)
+  ** Cancel in-progress workflows for a PR when new commits are pushed
+     (GitHub PR#866)
+  ** Support cross-repo development: When testing BSC builds in a
+     branch of a fork (or in a PR), before cloning the `bsc-contrib`,
+     `bdw`, or `Toooba` repos, check if a sibling fork exists with a
+     branch of the same name and, if so, clone that version instead
+     (GitHub PR#865, PR#867, PR#868)
+  ** Retire the CI for MacOS 12 (GitHub PR#830)
+  ** Add CI for Intel-based MacOS 15 (GitHub PR#830)
+  ** Add CI for MacOS 26 (beta) (GitHub PR#830)
+  ** Jobs not testing specific OS versions are bumped to Ubuntu 24.04
+     and MacOS 15 (GitHub PR#830)
+  ** Increase the timeout for building BSC on MacOS to allow for the
+     slower run-time of Intel-based MacOS 15 runners (GitHub PR#835)
+  ** Update GitHub actions to newer versions (GitHub PR#835)
+
+For Developers
+~~~~~~~~~~~~~~
+
+* Support setting `BSCFLAGS` in the environment when building
+  the libraries (GitHub PR#853)
+
+* Add missing `trace-eq-witnesses` to the list of trace flags
+  (GitHub PR#833)
+
+* Improve the tracing of `ISyntax` expressions (GitHub PR#860)
+
+'''
+
 2025.07 Release
 ---------------
 
@@ -12,7 +170,7 @@ Fedora Linux 42.  The release also improves the build instructions and
 fixes a long-standing VPI issue with imported functions of no
 arguments.
 
-Changes since release 2024.07:
+Changes since release 2025.01:
 
 Documentation
 ~~~~~~~~~~~~~
