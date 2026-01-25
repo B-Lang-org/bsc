@@ -1,0 +1,21 @@
+name: Minimal Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ docker-workflow ]
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Print Hello
+        run: echo "Hello from GitHub Actions!"
+        
+      - name: Show Environment
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Architecture: $RUNNER_ARCH"
+          echo "Runner Name: $RUNNER_NAME" 
