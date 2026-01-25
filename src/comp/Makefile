@@ -125,26 +125,25 @@ endif
 GHCPROFAUTO = -fprof-auto
 
 PACKAGES = \
-	-package base \
-	-package containers \
-	-package array \
-	-package mtl \
-	-package unix \
-	-package regex-compat \
-	-package bytestring \
-	-package directory \
-	-package process \
-	-package filepath \
-	-package time \
-	-package old-time \
-	-package old-locale \
-	-package split \
-	-package syb \
-	-package integer-gmp \
-	-package text \
-	-package deepseq \
-	-package strict-concurrency \
-	$(GHCEXTRAPKGS)
+	base \
+	containers \
+	array \
+	mtl \
+	unix \
+	regex-compat \
+	bytestring \
+	directory \
+	process \
+	filepath \
+	time \
+	old-time \
+	old-locale \
+	split \
+	syb \
+	integer-gmp \
+	text \
+	deepseq \
+	strict-concurrency \
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
 # in make mode where it follows dependencies (use GHCMAKEFLAGS).
@@ -184,7 +183,7 @@ GHCFLAGS = \
 	-fno-warn-orphans \
 	-fno-warn-name-shadowing \
 	-fno-warn-unused-matches \
-	$(PACKAGES) \
+	$(addprefix -package ,$(PACKAGES)) \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \
 
@@ -245,6 +244,10 @@ EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
 
 .PHONY: all
 all: $(EXES)
+
+.PHONY: ghc-pkg-info
+ghc-pkg-info:
+	./make-ghc-pkg-info.sh $(PACKAGES) > ghc-pkg-info.txt
 
 BuildVersion.hs:
 	./update-build-version.sh
