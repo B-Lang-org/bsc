@@ -41,10 +41,6 @@ copyright and licensing:
     Don Stewart's yices-painless package
   * See LICENSES/LICENSE.yices-painless
 
-* GHC Haskell Libraries
-  * BSC source includes a file adapted from the GHC MVar library
-  * See LICENSES/LICENSE.ghc
-
 * HBC Libraries
   * BSC source includes files adapted from Haskell libraries
     (from the HBC compiler) written by Lennart Augustsson and
@@ -55,6 +51,11 @@ copyright and licensing:
   * BSC source includes files adapted from Daan Leijen's Parsec
     Haskell library
   * See LICENSES/LICENSE.parsec
+
+* GHC and other Haskell Libraries
+  * BSC binaries are compiled with the Glasgow Haskell Compiler (GHC)
+    and using various libraries available from Hackage
+  * See LICENSES/LICENSE.ghc and LICENSES/LICENSE.ghc_pkgs
 
 We also wish to acknowledge everyone who has contributed to the open
 source project: https://github.com/B-Lang-org/bsc/graphs/contributors

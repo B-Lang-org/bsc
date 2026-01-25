@@ -147,7 +147,7 @@ import qualified Foreign.Concurrent as F
 
 import Control.Monad(when)
 import qualified Control.Exception as CE
-import MVarStrict
+import Control.Concurrent.MVar.Strict
 
 import Data.IORef(IORef, newIORef, readIORef, modifyIORef)
 import Data.List(isPrefixOf)

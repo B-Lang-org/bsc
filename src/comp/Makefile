@@ -143,6 +143,7 @@ PACKAGES = \
 	-package integer-gmp \
 	-package text \
 	-package deepseq \
+	-package strict-concurrency \
 	$(GHCEXTRAPKGS)
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
