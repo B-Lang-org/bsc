@@ -3,11 +3,58 @@ set -euo pipefail
 
 PACKAGES=$@
 
-declare -A arr_id=()
-declare -A arr_ver=()
-declare -A arr_lic=()
-declare -A arr_copyr=()
-declare -A arr_deps=()
+# ===========================================================================
+
+# Implement associative arrays, in case the shell is not bash 4+
+
+## ainit STEM
+## Declare an empty associative array named STEM.
+ainit () {
+  eval "__aa__${1}=' '"
+}
+
+## akeys STEM
+## List the keys in the associatve array named STEM.
+akeys () {
+  eval "echo \"\$__aa__${1}\""
+}
+
+## aget STEM KEY VAR
+## Set VAR to the value of KEY in the associative array named STEM.
+## If KEY is not present, unset VAR.
+aget () {
+  eval "unset $3
+        case \$__aa__${1} in
+          *\" $2 \"*) $3=\$__aa__${1}__$2;;
+        esac"
+}
+
+## aset STEM KEY VALUE
+## Set KEY to VALUE in the associative array named STEM.
+aset () {
+  eval "__aa__${1}__${2}=\$3
+        case \$__aa__${1} in
+          *\" $2 \"*) :;;
+          *) __aa__${1}=\"\${__aa__${1}}$2 \";;
+        esac"
+}
+
+## aunset STEM KEY
+## Remove KEY from the associative array named STEM.
+aunset () {
+  eval "unset __aa__${1}__${2}
+        case \$__aa__${1} in
+          *\" $2 \"*) __aa__${1}=\"\${__aa__${1}%% $2 *} \${__aa__${1}#* $2 }\";;
+        esac"
+}
+
+# ===========================================================================
+
+ainit arr_id
+ainit arr_ver
+ainit arr_lic
+ainit arr_copyr
+ainit arr_deps
 
 # Horizontal delimiter between packages in the output
 #
@@ -39,7 +86,10 @@ add_pkg() {
 	PKG_NAME=${PKG_ID}
     fi
 
-    if [[ ! -v arr_id[${PKG_NAME}] ]] ; then
+    PKG_NAME=`echo "${PKG_NAME}" | tr .- _`
+
+    aget arr_id "${PKG_NAME}" i_id
+    if [ -z ${i_id+x} ] ; then
 	PKG_VER=`ghc-pkg field $1 version --simple-output`
 	PKG_LIC=`ghc-pkg field $1 license --simple-output`
 	PKG_COPYR=`ghc-pkg field $1 copyright --simple-output`
@@ -52,11 +102,11 @@ add_pkg() {
 	    fi
 	fi
 
-	arr_id[${PKG_NAME}]="${PKG_ID}"
-	arr_ver[${PKG_NAME}]="${PKG_VER}"
-	arr_lic[${PKG_NAME}]="${PKG_LIC}"
-	arr_copyr[${PKG_NAME}]="${PKG_COPYR}"
-	arr_deps[${PKG_NAME}]="${PKG_DEPS}"
+	aset arr_id ${PKG_NAME} "${PKG_ID}"
+	aset arr_ver ${PKG_NAME} "${PKG_VER}"
+	aset arr_lic ${PKG_NAME} "${PKG_LIC}"
+	aset arr_copyr ${PKG_NAME} "${PKG_COPYR}"
+	aset arr_deps ${PKG_NAME} "${PKG_DEPS}"
 
 	for dep in ${PKG_DEPS}
 	do
@@ -80,23 +130,38 @@ done
 echo $DELIM
 
 # For each package in the database
-sorted_keys=`echo ${!arr_id[@]} | tr ' ' '\012' | sort | tr '\012' ' '`
+keys=$(akeys arr_id)
+sorted_keys=`echo ${keys} | tr ' ' '\012' | sort | tr '\012' ' '`
 for i in ${sorted_keys}
 do
-    STRIP_VER_REGEX="^([-[:lower:]]+)-${arr_ver[$i]}"
-    if [[ $i =~ ${STRIP_VER_REGEX} ]] ; then
+    aget arr_id $i i_id
+    aget arr_ver $i i_ver
+    aget arr_lic $i i_lic
+    aget arr_copyr $i i_copyr
+
+    # Because the package name was mangled to make the assoc array key
+    # re-construct it from the ID
+
+    if [[ ${i_id} =~ ${STRIP_HASH_REGEX} ]] ; then
 	pkg=${BASH_REMATCH[1]}
     else
-	pkg=$i
+	pkg=${i_id}
+    fi
+
+    # And then strip the version number
+
+    STRIP_VER_REGEX="^([-[:lower:]]+)-${i_ver}"
+    if [[ $pkg =~ ${STRIP_VER_REGEX} ]] ; then
+	pkg=${BASH_REMATCH[1]}
     fi
 
     echo
     echo "package: $pkg"
-    #echo "id: ${arr_id[$i]}"
-    echo "version: ${arr_ver[$i]}"
-    echo "license: ${arr_lic[$i]}"
-    if [[ -n "${arr_copyr[$i]}" ]]; then
-	echo "copyright: ${arr_copyr[$i]}"
+    #echo "id: ${i_id}"
+    echo "version: ${i_ver}"
+    echo "license: ${i_lic}"
+    if [[ -n "${i_copyr}" ]]; then
+	echo "copyright: ${i_copyr}"
     fi
     echo
     echo $DELIM
