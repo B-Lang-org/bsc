@@ -39,6 +39,9 @@ export NOUPDATEBUILDVERSION
 PREFIX?=$(TOP)/inst
 BINDIR=$(PREFIX)/bin
 
+# Where package information is installed
+LICDIR=$(PREFIX)/LICENSES
+
 # Top-level of where intermediate GHC files are stored
 BUILDDIR=$(TOP)/build/comp
 
@@ -245,10 +248,6 @@ EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
 .PHONY: all
 all: $(EXES)
 
-.PHONY: ghc-pkg-info
-ghc-pkg-info:
-	./make-ghc-pkg-info.sh $(PACKAGES) > ghc-pkg-info.txt
-
 BuildVersion.hs:
 	./update-build-version.sh
 
@@ -357,6 +356,23 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
 	$(POSTBUILDCOMMAND)
 
 # -----
+# GHC package info
+
+# If BSC_BUILD_PKGINFO is non-empty,
+# generate and install a LICENCES/LICENSE.ghc_pkgs file
+
+ifeq ($(BSC_BUILD_PKGINFO),)
+PKGINFO=
+else
+PKGINFO=$(LICDIR)/LICENSE.ghc_pkgs
+
+.PHONY: $(PKGINFO)
+$(PKGINFO):
+	mkdir -p -m 755 $(LICDIR)
+	./make-ghc-pkg-info.sh $(PACKAGES) > $(PKGINFO)
+endif
+
+# -----
 # Install targets
 
 .PHONY: install
@@ -378,18 +394,22 @@ $(BINDIR)/%: wrapper.sh $(BINDIR)/core/%
 .PHONY: install-bsc
 install-bsc: $(addprefix $(BINDIR)/,$(BSCEXES))
 install-bsc: $(addprefix $(BINDIR)/core/,$(BSCEXES))
+install-bsc: $(PKGINFO)
 
 .PHONY: install-bluetcl
 install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
 install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
+install-bluetcl: $(PKGINFO)
 
 .PHONY: install-utils
 install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
 install-utils: $(addprefix $(BINDIR)/core/,$(UTILEXES))
+install-utils: $(PKGINFO)
 
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
 install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
+install-showrules: $(PKGINFO)
 
 # ----
 # Other targets
