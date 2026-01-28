@@ -3531,6 +3531,86 @@ selector functions.
 \end{tabular}
 \end{center}
 
+\te{TupleSize} provides a way to determine the number of elements in a tuple
+at the type level. The size is represented as a numeric type parameter.
+
+\index{TupleSize@\te{TupleSize} (type class)}
+\index[typeclass]{TupleSize}
+
+\begin{libverbatim}
+   typeclass TupleSize #(type a, numeric type n)
+      dependencies (a determines n);
+   endtypeclass
+\end{libverbatim}
+
+The type class has instances for unit type \te{void} with size 0, and for all
+tuple types with their respective sizes. The numeric type \te{n} represents
+the number of elements in the tuple.
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{3.8 in}|}
+\hline
+\multicolumn{2}{|c|}{\te{TupleSize} Instances}\\
+\hline
+\hline
+\te{TupleSize \#(void, 0)}&The unit type has size 0.\\
+\hline
+\te{TupleSize \#(a, 1)}&A single element (non-tuple) has size 1.\\
+\hline
+\te{TupleSize \#((a, b), 2)}&A 2-tuple has size 2.\\
+\hline
+\te{TupleSize \#((a,b,c), 3)}&A 3-tuple has size 3.\\
+\hline
+\te{...}&Instances exist for all tuple sizes.\\
+\hline
+\end{tabular}
+\end{center}
+
+\te{AppendTuple} provides a way to join two tuples of arbitrary size into a single larger
+tuple, and to split a tuple back into two parts.
+
+\index{AppendTuple@\te{AppendTuple} (type class)}
+\index{appendTuple@\texttt{appendTuple} (\texttt{AppendTuple} type class function)}
+\index{splitTuple@\texttt{splitTuple} (\texttt{AppendTuple} type class function)}
+\index[function]{Prelude!appendTuple}
+\index[function]{Prelude!splitTuple}
+\index[typeclass]{AppendTuple}
+
+\begin{libverbatim}
+   typeclass AppendTuple #(type a, type b, type c)
+      dependencies ((a, b) determines c);
+      function c appendTuple(a x, b y);
+      function Tuple2#(a, b) splitTuple(c x);
+   endtypeclass
+\end{libverbatim}
+
+The type class has instances for various tuple combinations, including special
+handling for unit type \te{void}.
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{3.8 in}|}
+\hline
+\multicolumn{2}{|c|}{\te{AppendTuple} Functions}\\
+\hline
+\hline
+\te{appendTuple}&Concatenates two tuples \te{x} and \te{y} into a single
+larger tuple. The elements from \te{x} appear first, followed by the elements
+from \te{y}.\\
+\cline{2-2}
+&\\
+& \te{function c appendTuple(a x, b y);}\\
+&\\
+\hline
+\te{splitTuple}&Splits a tuple \te{x} into two parts. Returns a 2-tuple
+containing the first part of type \te{a} and the second part of type \te{b}.\\
+\cline{2-2}
+&\\
+& \te{function Tuple2\#(a, b) splitTuple(c x);}\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+
 {\bf Examples}
 
 \begin{verbatim}
@@ -3538,7 +3618,27 @@ selector functions.
    Bool field1 = tpl_1( foo ); // this is value 1 in the list
    int  field2 = tpl_2( foo ); // this is value 2 in the list
    foo = tuple2( !field1, field2 );
+
+   // Appending a 2-tuple and a 3-tuple to create a 5-tuple
+   Tuple2#(Bool, Int#(8)) t1 = tuple2(True, 42);
+   Tuple3#(String, Bit#(4), UInt#(16)) t2 = tuple3("test", 4'hA, 100);
+
+   Tuple5#(Bool, Int#(8), String, Bit#(4), UInt#(16)) t3 =
+      appendTuple(t1, t2);
+
+   // Splitting a 4-tuple into a 2-tuple and a 2-tuple
+   Tuple4#(Bool, Int#(8), String, Bit#(4)) t4 =
+      tuple4(True, 42, "test", 4'hA);
+
+   Tuple2#(Tuple2#(Bool, Int#(8)), Tuple2#(String, Bit#(4))) parts =
+      splitTuple(t4);
+
+   // Appending with unit type (void)
+   Tuple2#(Bool, Int#(8)) t5 = tuple2(False, 0);
+   Tuple2#(Bool, Int#(8)) t6 = appendTuple(t5, ?);  // same as t5
+   Tuple2#(Bool, Int#(8)) t7 = appendTuple(?, t5);  // same as t5
 \end{verbatim}
+
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \com{Array}
@@ -6211,16 +6311,62 @@ function (function t0 g(Tuple2#(t1, t2) x))
 \end{tabular}
 \end{center}
 
+\index{Curry@\te{Curry} (type class)}
+\index[typeclass]{Curry}
+\index{curryN@\te{curryN} (function)}
+\index[function]{Prelude!curryN}
+\index{uncurryN@\te{uncurryN} (function)}
+\index[function]{Prelude!uncurryN}
+
+The \te{Curry} typeclass generalizes the \te{curry} and \te{uncurry} functions
+to work with tuples of any size (not just Tuple2).
+
+\begin{libverbatim}
+typeclass Curry#(type f, type g)
+   dependencies (f determines g);
+      function g curryN(f x);
+      function f uncurryN(g x);
+endtypeclass
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{curryN}&Converts an uncurried function (taking an N-tuple argument) into a curried
+function (taking N arguments one at a time). For example, \te{curryN} can convert a
+function taking \te{Tuple3\#(a,b,c)} into a function \te{a -> b -> c -> result}.\\
+\hline
+\te{uncurryN}&The inverse of \te{curryN}. Converts a curried function (taking N arguments
+one at a time) into an uncurried function (taking an N-tuple argument).\\
+\hline
+\end{tabular}
+\end{center}
+
 
 {\bf Examples}
 
 \begin{libverbatim}
- //using constFn to set the initial values of the registers in a list
+ // Using constFn to set the initial values of the registers in a list
    List#(Reg#(Resource)) items <- mapM( constFn(mkReg(initRes)),upto(1,numAdd) );
  
+ // Using compose when mapping over a list
    return(pack(map(compose(head0,toList),state)));
 
-   xs <- mapM(constFn(mkReg(False)),genList);
+ // Using curryN with a 3-tuple
+   function Int#(32) add3Tuple(Tuple3#(Int#(32), Int#(32), Int#(32)) t);
+      return tpl_1(t) + tpl_2(t) + tpl_3(t);
+   endfunction
+
+   let add3Curried = curryN(add3Tuple);
+   Int#(32) result = add3Curried(1)(2)(3);  // result = 6
+
+ // Using uncurryN
+   function Int#(32) add3(Int#(32) a, Int#(32) b, Int#(32) c);
+      return a + b + c;
+   endfunction
+
+   let add3Uncurried = uncurryN(add3);
+   Int#(32) result2 = add3Uncurried(tuple3(1, 2, 3));  // result2 = 6
 \end{libverbatim}
 
 

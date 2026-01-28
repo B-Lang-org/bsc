@@ -57,6 +57,10 @@ compare_file ClockCheckRule2.bsv.bsc-vcomp-out
 compile_verilog_fail_error ClockCheckMethod.bsv G0007 1 "" "-cross-info"
 compare_file ClockCheckMethod.bsv.bsc-vcomp-out
 
+compile_verilog_fail_error ClockCheckCond.bsv G0007 1 ""
+copy ClockCheckCond.bsv.bsc-vcomp-out ClockCheckCond.bsv.nocrossinfo.bsc-vcomp-out
+compare_file ClockCheckCond.bsv.nocrossinfo.bsc-vcomp-out
+
 compile_verilog_fail_error ClockCheckCond.bsv G0007 1 "" "-cross-info"
 # even with the -cross-info flag, the positions here are not perfect
 # (we compare here against the imperfect, but we should fix it) (bug 1238)

@@ -1,0 +1,24 @@
+package BadSplitInst_TooManyPortNames where
+
+import SplitPorts
+import CShow
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+instance SplitPorts Foo (Port (Int 8), Port (Int 8)) where
+  splitPorts f = (Port f.x, Port f.y)
+  unsplitPorts (Port x, Port y) = Foo { x=x; y=y; }
+  portNames _ base = Cons (base +++ "_x") $ Cons (base +++ "_y") $ Cons (base +++ "_z") Nil
+
+interface SplitTest =
+  putFoo :: Foo -> Action {-# prefix = "fooIn" #-}
+
+{-# synthesize sysBadSplitInst_TooManyPortNames #-}
+sysBadSplitInst_TooManyPortNames :: Module SplitTest
+sysBadSplitInst_TooManyPortNames =
+  module
+    interface
+      putFoo x = $display "putFoo: " (cshow x)

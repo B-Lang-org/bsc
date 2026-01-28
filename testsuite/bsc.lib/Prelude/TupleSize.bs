@@ -1,0 +1,69 @@
+package TupleSize where
+
+-- Test the TupleSize type class by using it in proviso constraints
+
+-- Helper function that requires TupleSize constraint
+tupleSize :: (TupleSize t n) => t -> Integer
+tupleSize _ = valueOf n
+
+{-# verilog sysTupleSize #-}
+sysTupleSize :: Module Empty
+sysTupleSize = module
+  rules
+    "test": when True ==> action
+      $display "=== Testing TupleSize type class ==="
+
+      -- Test TupleSize for unit type
+      let u :: ()
+          u = ()
+      let size0 = tupleSize u
+      $display "TupleSize of () = %0d (expected 0)" size0
+
+      -- Test TupleSize for single element (non-tuple)
+      let b :: Bool
+          b = True
+      let size1 = tupleSize b
+      $display "TupleSize of Bool = %0d (expected 1)" size1
+
+      -- Test TupleSize for 2-tuple
+      let t2 :: (Bool, Int 8)
+          t2 = (True, 0)
+      let size2 = tupleSize t2
+      $display "TupleSize of Tuple2 = %0d (expected 2)" size2
+
+      -- Test TupleSize for 3-tuple
+      let t3 :: (Bool, Int 8, UInt 4)
+          t3 = (True, 0, 0)
+      let size3 = tupleSize t3
+      $display "TupleSize of Tuple3 = %0d (expected 3)" size3
+
+      -- Test TupleSize for 4-tuple
+      let t4 :: (Bool, Int 8, UInt 4, Bit 5)
+          t4 = (True, 0, 0, 0)
+      let size4 = tupleSize t4
+      $display "TupleSize of Tuple4 = %0d (expected 4)" size4
+
+      -- Test TupleSize for 5-tuple
+      let t5 :: (Bool, Int 8, UInt 4, Bit 5, Int 16)
+          t5 = (True, 0, 0, 0, 0)
+      let size5 = tupleSize t5
+      $display "TupleSize of Tuple5 = %0d (expected 5)" size5
+
+      -- Test TupleSize for 6-tuple
+      let t6 :: (Bool, Int 8, UInt 4, Bit 5, Int 16, UInt 3)
+          t6 = (True, 0, 0, 0, 0, 0)
+      let size6 = tupleSize t6
+      $display "TupleSize of Tuple6 = %0d (expected 6)" size6
+
+      -- Test TupleSize for 7-tuple
+      let t7 :: (Bool, Int 8, UInt 4, Bit 5, Int 16, UInt 3, Bit 2)
+          t7 = (True, 0, 0, 0, 0, 0, 0)
+      let size7 = tupleSize t7
+      $display "TupleSize of Tuple7 = %0d (expected 7)" size7
+
+      -- Test TupleSize for 8-tuple
+      let t8 :: (Bool, Int 8, UInt 4, Bit 5, Int 16, UInt 3, Bit 2, Int 32)
+          t8 = (True, 0, 0, 0, 0, 0, 0, 0)
+      let size8 = tupleSize t8
+      $display "TupleSize of Tuple8 = %0d (expected 8)" size8
+      $finish 0
