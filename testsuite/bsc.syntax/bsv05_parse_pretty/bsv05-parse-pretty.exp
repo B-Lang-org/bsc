@@ -11,7 +11,7 @@ proc bsc_compile_prettyprint_parse { source { options "" } } {
 }
 
 proc compile_ppp_pass { source {options ""} } {
-    incr_stat "compile_ppp_pass" 
+    incr_stat "compile_ppp_pass"
     if [bsc_compile_prettyprint_parse $source $options] {
         pass "`$source' compiles, pretty-prints, and compiles again"
     } else {
@@ -54,3 +54,6 @@ compile_ppp_pass PopCount0.bsv
 
 # Map (function arguments)
 compile_ppp_pass Map.bsv
+
+# a function with a Module as an argument (regression test for #663)
+compile_ppp_pass ModuleArgument.bsv

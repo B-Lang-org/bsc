@@ -50,6 +50,7 @@ module CVPrint (
 import Prelude hiding ((<>))
 #endif
 
+import Control.Applicative((<|>))
 import Data.Char(toLower)
 import Data.List(genericReplicate)
 import Lex(isIdChar)
@@ -152,9 +153,13 @@ p2defs :: PDetail -> CDefn -> CDefn -> Doc
 p2defs d (CPragma (Pproperties _ props))
          (CValueSign df2@(CDef i qt@(CQType ps ty) cs@[CClause cps [] cexp])) | all isVar cps =
       let (ys, x) = getArrows ty
-          ity = case x of (TAp (TCon _) y) -> y;
-                          (TAp (TVar _) y) -> y;
-                          z -> z
+          -- mModTC will be `Just modTC` if the return type is an application of
+          -- a type constructor (e.g., `Module`) to some type, where modTC is
+          -- the type constructor. Otherwise, mModTC will be Nothing.
+          (mModTC, ity) = case x of
+                            TAp (TCon modTC) y -> (Just modTC, y)
+                            TAp (TVar _) y -> (Nothing, y)
+                            z -> (Nothing, z)
           f [] = empty
           f xs = t"#(" <>
                  sepList (zipWith (\ x c -> -- t"parameter" <+>
@@ -162,7 +167,16 @@ p2defs d (CPragma (Pproperties _ props))
                                   xs cps)
                  (t",") <> t")"
           (mId,ps') = findModId ps
-          line1 = t"module" <+> pvpId d i <> f ys <> t"(" <> pvPrint d 0 ity <> t")"
+          -- Check if we need to print `[<module-ty>]` after the `module`
+          -- keyword. This can happen if the return type is an application of a
+          -- type constructor (e.g., `Module`) to some type, or if the return
+          -- type is an application of a type variable with a corresponding
+          -- IsModule constraint. If one of these conditions hold, then mPPMod
+          -- will be `Just <pretty-printed-module>`. Otherwise, mPPMod will be
+          -- Nothing.
+          mPPMod = fmap (pvPrint d 0) mModTC <|> fmap (pvPrint d 0) mId
+          line1 = t"module" <+> maybe empty brackets mPPMod
+                            <+> pvpId d i <> f ys <> t"(" <> pvPrint d 0 ity <> t")"
        in
         if isModule mId x then
          (pProps d props $+$
@@ -976,12 +990,14 @@ ppBody d isMod (Cletrec ds e) =
 ppBody d True e = (pparen True (pp d e) <> t";")
 ppBody d _ e = (t"  return" <+> pparen True (pvPrint d 1 e) <> t";")
 
+-- Search for a CPred of the form IsModule#(m, c) in the list of CPreds `ps`. If
+-- one is found, return (Just m, ps). Otherwise, return (Nothing, []).
 findModId :: [CPred] -> (Maybe Id, [CPred])
 findModId [] = (Nothing,[])
 findModId (p:ps) =
    case p of
      (CPred (CTypeclass isM) [TVar (TyVar iM _ _), _]) | getIdBaseString isM == getIdBaseString idIsModule
-       -> (Just iM,ps)
+       -> (Just iM,p:ps)
      _ -> let (i,ps') = findModId ps in (i,p:ps')
 
 ppValueSignRest :: PDetail -> Doc -> [CPred] -> Bool -> Bool -> Doc -> CExpr -> String -> Doc
