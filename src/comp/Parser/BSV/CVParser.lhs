@@ -25,6 +25,7 @@
 > import PreStrings
 > import PreIds
 > import Type
+> import CType(cTVarKind, Kind(KNum, KStr))
 > import IntLit
 > import Error(internalError, EMsg, WMsg, ErrMsg(..),
 >              ErrorHandle, bsError, bsWarning, exitOK)
@@ -4212,6 +4213,18 @@ argument should become a Verilog parameter.
 >              -- XXX functions can't be params! but compiler won't allow
 >              -- XXX this to synthesize anyway (even to ports)
 >              return ((name, typ), mkPProps name))
+>         <|>
+>          -- Parse "numeric type id" / "string type id" / "type id" (same as pTypedefParam)
+>          (do pkind <- option Nothing $
+>                  fmap Just ((pTheString "numeric" >> return KNum) <|>
+>                            (pKeyword SV_KW_string >> return KStr))
+>              pKeyword SV_KW_type
+>              pid <- pIdentifier <?> "parameter name"
+>              let typ = case pkind of
+>                        Just KNum -> cTVarKind pid KNum
+>                        Just KStr -> cTVarKind pid KStr
+>                        Nothing   -> cTVar pid
+>              return ((pid, typ), mkPProps pid))
 >         <|>
 >          (do t <- pTypeExpr <?> "parameter type"
 >              i <- pIdentifier <?> "parameter name"
