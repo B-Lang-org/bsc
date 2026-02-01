@@ -1745,14 +1745,16 @@ EXPRESSIONS
 >        value <- pExpression
 >        return (name, value)
 
-primary with arguments, e.g. prim(a,b,c)
+primary with arguments, e.g. prim(a,b,c) or prim#(type_params)(value_args)
 
 > pPrimaryWithArgs :: CExpr -> SV_Parser CExpr
 > pPrimaryWithArgs e =
 >--     do args <- many1 (pInParens (pCommaSep pExpression))
 >     do pos <- getPos
+>        -- Optional #(params) for module/function with type or value parameters
+>        params <- option [] pParameters
 >        amcmrmps <- many1 pPortListArgs
->        let ((args, mClock, mReset, mPower),ok) =
+>        let ((portArgs, mClock, mReset, mPower),ok) =
 >              case amcmrmps of
 >                    [x] -> (x,True)
 >                    xs  -> let p(_,Nothing,Nothing,Nothing) = True
@@ -1760,6 +1762,7 @@ primary with arguments, e.g. prim(a,b,c)
 >                               q (x,_,_,_) = x
 >                           in  ((concat (map q xs),Nothing,Nothing,Nothing),
 >                                all p xs)
+>            args = params ++ portArgs
 >            e'' = cApply 17 e args
 >            e'   = (if isNothing mClock && isNothing mReset && isNothing mPower
 >                            then e''
