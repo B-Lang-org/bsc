@@ -359,7 +359,7 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
 # GHC package info
 
 # If BSC_BUILD_PKGINFO is non-empty,
-# generate and install a LICENCES/LICENSE.ghc_pkgs file
+# generate and install a LICENSES/LICENSE.ghc_pkgs file
 
 ifeq ($(BSC_BUILD_PKGINFO),)
 PKGINFO=
