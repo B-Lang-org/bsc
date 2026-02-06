@@ -52,6 +52,7 @@ import Prelude hiding ((<>))
 
 import Data.Char(toLower)
 import Data.List(genericReplicate)
+import qualified Data.Set as Set
 import Lex(isIdChar)
 import PPrint
 import PVPrint
@@ -76,6 +77,31 @@ import Util(itos, quote, log2, fromJustOrErr, unconsOrErr)
 
 pp :: (PVPrint a) => PDetail -> a -> Doc
 pp d x = pvPrint d 0 x
+
+-- BSV built-in infix operators (symbolic, non-identifier)
+-- Other operators must use function call syntax
+bsvBuiltinOps :: Set.Set String
+bsvBuiltinOps = Set.fromList
+  [ "+", "-", "*", "/", "%", "**"           -- arithmetic
+  , "&", "|", "^", "~^", "^~"               -- bitwise
+  , "<<", ">>"                              -- shift
+  , "<", "<=", ">", ">=", "==", "!="        -- comparison
+  , "&&", "||"                              -- logical
+  , "~&", "~|"                              -- reduction (unary, but listed for completeness)
+  , ":="                                    -- assignment
+  , "?"                                     -- ternary condition part
+  ]
+
+isBSVBuiltinOp :: String -> Bool
+isBSVBuiltinOp = (`Set.member` bsvBuiltinOps)
+
+-- Map BH/Classic operators to their BSV function names
+-- BSV doesn't support calling operators like (+++) as functions directly
+opToFuncName :: String -> String
+opToFuncName "+++" = "strConcat"
+opToFuncName ">>>" = "compose"      -- function composition
+opToFuncName "<<<" = "composeR"     -- reverse composition
+opToFuncName s     = s              -- fallback: use operator as-is (may fail)
 
 t :: String -> Doc
 t s = text s
@@ -375,8 +401,9 @@ ppField :: PDetail -> Doc -> Bool -> CField -> Doc
 ppField detail intro isFn field =
   let CQType f_provisos f_type = cf_type field
       field_arg_ids = case (cf_pragmas field) of
-                      Just f_prags -> map (pvpId detail) argids
-                          where argids = filterIArgNames f_prags
+                      Just f_prags ->
+                          let argids = filterIArgNames f_prags
+                          in if null argids then newIds else map (pvpId detail) argids
                       Nothing -> newIds
       pragmas = ppIfcPrags detail (cf_pragmas field)
       types = ppLabelledTypedId detail intro Nothing isFn
@@ -494,9 +521,12 @@ findSpecialOps [] = ([],[],undefined)
 findSpecialOps [x] = ([x],[],undefined)
 findSpecialOps [x,y] = internalError "bad list of operators and operands"
 findSpecialOps ((CRand e1):(CRator _ i):(CRand e2):xs) |
-                            (isIdChar (head (getBSVIdString i)) || (getBSVIdString i =="++")) =
+                            -- Gather identifier-style operators and non-BSV-builtin symbolic operators
+                            -- BSV builtins stay as COper for proper infix printing
+                            (isIdChar (head s) || not (isBSVBuiltinOp s)) =
   let w = CBinOp e1 i e2
   in findSpecialOps ((CRand w):xs)
+  where s = getBSVIdString i
 findSpecialOps (x:(y@(CRator _ i)):xs) | (getBSVIdString i) == "$" =
   ([x], xs, i)
 findSpecialOps (x:y:xs) =
@@ -779,7 +809,11 @@ ppOp d pd i p1 p2 =
 
 
         s@(c:_) | isIdChar c -> ppr(t s <> pparen True (sep [ rand1 <> t",", rand2]))
-        _                    -> ppr(sep [rand1 <> t"" <+> ppInfix d i, rand2])
+        -- BSV only supports a fixed set of built-in infix operators
+        -- Non-builtin symbolic operators must use function call syntax
+        s | isBSVBuiltinOp s -> ppr(sep [rand1 <> t"" <+> ppInfix d i, rand2])
+          -- Non-builtin operators: convert to function call using mapped name
+          | otherwise        -> ppr(t (opToFuncName s) <> pparen True (sep [ rand1 <> t",", rand2]))
       )
 
 ppRQuals :: PDetail -> [CQual] -> Doc
@@ -1000,7 +1034,8 @@ ppValueSign :: PDetail -> Id -> [TyVar] -> CQType -> [CClause] -> Doc
 ppValueSign d i [] (CQType ps ty) [CClause cs [] cexp] | all isVar cs =
   let id = pvpId d i
       (modId,ps') = findModId ps
-      line1 = ppTypedId d modId id ty (map (t . getCPVString) cs)
+      argIds = if null cs then newIds else map (t . getCPVString) cs
+      line1 = ppTypedId d modId id ty argIds
   in ppValueSignRest d id ps' (isFn ty) False line1 cexp "function"
 
 ppValueSign d i [] ty cs =

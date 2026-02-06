@@ -73,13 +73,18 @@ getBSVIdString a = (getBSVIdStringz a)
 getBSVIdStringz :: Id -> String
 getBSVIdStringz a
     | getIdBase a == fsEmpty = internalError "CVPrint.getIdStr: empty identifier"
-    | getIdQual a == fsEmpty = getIdBaseString a
+    | getIdQual a == fsEmpty = bsvSafeId (getIdBaseString a)
     | not (isIdChar (head (getIdBaseString a))) = getIdBaseString a -- operators
     | (not show_qual) && (getIdQual a == fsPrelude) =
-          getIdBaseString a  -- suppress "Prelude::" unless flag is on
+          bsvSafeId (getIdBaseString a)  -- suppress "Prelude::" unless flag is on
     | (not show_qual) && (getIdQual a == fsPreludeBSV) =
-          getIdBaseString a  -- suppress "Prelude::" unless flag is on
-    | otherwise = getIdQualString a ++ "::" ++ getIdBaseString a
+          bsvSafeId (getIdBaseString a)  -- suppress "Prelude::" unless flag is on
+    | otherwise = getIdQualString a ++ "::" ++ bsvSafeId (getIdBaseString a)
+
+-- Transform BH-style identifiers to valid BSV: replace ' with _prime
+-- BSV doesn't support primed identifiers like x', so we transform them
+bsvSafeId :: String -> String
+bsvSafeId = concatMap (\c -> if c == '\'' then "_prime" else [c])
 
 -- --------------------
 

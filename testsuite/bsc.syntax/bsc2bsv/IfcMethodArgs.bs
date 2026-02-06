@@ -1,0 +1,16 @@
+-- Test: Interface method arguments should be preserved through bsc2bsv
+-- Bug: Methods with always_ready pragma but no arg_names lost their arguments
+package IfcMethodArgs where
+
+interface Counter =
+  increment :: UInt 8 -> Action  {-# always_ready #-}
+  decrement :: UInt 8 -> Action  {-# always_ready #-}
+  getValue  :: UInt 8            {-# always_ready #-}
+
+mkCounter :: Module Counter
+mkCounter = module
+  val :: Reg (UInt 8) <- mkReg 0
+  interface
+    increment n = val := val + n
+    decrement n = val := val - n
+    getValue = val

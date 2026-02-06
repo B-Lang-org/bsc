@@ -1,0 +1,12 @@
+-- Test: Non-builtin operators should be converted to function calls
+-- Bug: Operators like +++ were output as infix, but BSV doesn't support them
+package StringConcat where
+
+-- The +++ operator for string concatenation should become strConcat()
+greeting :: String -> String
+greeting name = "Hello, " +++ name +++ "!"
+
+-- Multiple string concatenations
+fullGreeting :: String -> String -> String
+fullGreeting first last =
+  "Dear " +++ first +++ " " +++ last +++ ", welcome!"

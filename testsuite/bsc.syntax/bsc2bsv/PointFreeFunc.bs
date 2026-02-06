@@ -1,0 +1,16 @@
+-- Test: Point-free function definitions should preserve argument types
+-- Bug: Functions defined point-free lost their argument types in bsc2bsv output
+package PointFreeFunc where
+
+-- Wrapper type for testing
+data Wrapped n = Wrapped (Bit n)
+  deriving(Bits)
+
+-- Point-free using compose: (Wrapped n -> Bool) argument type should be preserved
+-- Without the fix, this becomes: function Bool checkWrapped(); (no argument!)
+checkWrapped :: Wrapped n -> Bool
+checkWrapped = compose isStaticIndex pack
+
+-- Non-point-free for comparison (this always worked correctly)
+checkWrappedExplicit :: Wrapped n -> Bool
+checkWrappedExplicit x = isStaticIndex (pack x)

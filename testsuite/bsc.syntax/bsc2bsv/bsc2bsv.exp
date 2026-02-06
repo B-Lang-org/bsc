@@ -1,0 +1,41 @@
+
+# Tests for bsc2bsv output correctness
+# These test that bsc2bsv produces valid, semantically correct BSV
+
+# Helper: run bsc2bsv and compile the output with bsc
+proc bsc2bsv_compile { source } {
+    global srcdir subdir env
+
+    set bsc2bsv "$env(BLUESPECDIR)/../bin/bsc2bsv"
+    set bsv_file "[file rootname $source].bsv"
+
+    # Run bsc2bsv
+    if [catch {exec $bsc2bsv $source > $bsv_file 2>@1} err] {
+        verbose "bsc2bsv failed: $err" 2
+        return 0
+    }
+
+    # Compile the BSV output
+    return [bsc_compile $bsv_file ""]
+}
+
+proc bsc2bsv_pass { source } {
+    incr_stat "bsc2bsv_pass"
+    if [bsc2bsv_compile $source] {
+        pass "`$source' converts to valid BSV"
+    } else {
+        fail "`$source' should convert to valid BSV"
+    }
+}
+
+# Test: Interface method arguments preserved (GitHub issue #XXX)
+bsc2bsv_pass IfcMethodArgs.bs
+
+# Test: Point-free function argument types preserved (GitHub issue #XXX)
+bsc2bsv_pass PointFreeFunc.bs
+
+# Test: Primed identifiers transformed to valid BSV (GitHub issue #XXX)
+bsc2bsv_pass PrimedIdent.bs
+
+# Test: Non-builtin operators converted to function calls (GitHub issue #XXX)
+bsc2bsv_pass StringConcat.bs

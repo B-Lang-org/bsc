@@ -1,0 +1,18 @@
+-- Test: Primed identifiers should be transformed for BSV compatibility
+-- Bug: BSV doesn't support x' syntax, but bsc2bsv output it unchanged
+package PrimedIdent where
+
+-- Function using primed identifiers (common in mathematical notation)
+nextValue :: UInt 32 -> UInt 32 -> UInt 32
+nextValue a x =
+  let x' = a * x + 1
+  in x'
+
+-- Module using primed identifiers in rules
+mkUpdater :: Module Empty
+mkUpdater = module
+  r :: Reg (UInt 32) <- mkReg 0
+  rules
+    "update": when True ==>
+      let r' = r + 1
+      in r := r'
