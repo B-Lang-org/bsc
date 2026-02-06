@@ -2,12 +2,12 @@
 
 # Bluespec Compiler
 
-[![Version]](https://github.com/B-Lang-org/bsc/releases/tag/2025.07)
+[![Version]](https://github.com/B-Lang-org/bsc/releases/tag/2026.01)
 [![License]](./COPYING)
 [![Build Status]](https://github.com/B-Lang-org/bsc/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush)
 
 [License]:        https://img.shields.io/badge/license-BSD%203-blueviolet.svg
-[Version]:        https://img.shields.io/badge/release-2025.07-red.svg?logo=v
+[Version]:        https://img.shields.io/badge/release-2026.01-red.svg?logo=v
 [Build Status]:   https://github.com/B-Lang-org/bsc/actions/workflows/ci.yml/badge.svg?branch=main&event=push
 
 **[Community] &bull; [Download] &bull; [Documentation] &bull; [Build] &bull; [Test] &bull; [Develop]**
