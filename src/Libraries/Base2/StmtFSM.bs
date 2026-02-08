@@ -51,7 +51,8 @@ getPIPosition l = getStringPosition( getPIString l)
 
 addPIPrefix :: String -> PosInfo -> PosInfo
 --addPIPrefix x (l,p) = ((x +++ l), p)
-addPIPrefix x y = (x +++ y)
+-- addPIPrefix x y = (x +++ y)
+addPIPrefix x y = if (x == "") then y else (x +++ "_" +++ y)
 
 data Freedom
         = Early String -- string is comment for warning message
@@ -257,6 +258,9 @@ getStmtTPosInfo (SWhile p _ _ _ _ _) = p
 getStmtTPosInfo (SRepeat p _ _) = p
 getStmtTPosInfo (SDelay p _) = p
 getStmtTPosInfo (SFor p _ _ _ _) = p
+getStmtTPosInfo (SNamed p _ _) = p
+getStmtTPosInfo (SLabel p _ _ _) = p
+getStmtTPosInfo (SJump p _) = p
 getStmtTPosInfo _ = error "unhandled case"
 
 
@@ -958,6 +962,10 @@ getNoActionCondition (SPar _ Nil) = return True
 getNoActionCondition (SPar _ (Cons st Nil)) = getNoActionCondition st
 getNoActionCondition (SPar _ _) = return False
 getNoActionCondition (SFor _ (SAction _p_init _a_init _) _ _ _) = return False
+getNoActionCondition (SNamed _ _ (Cons st Nil)) = getNoActionCondition st
+getNoActionCondition (SNamed _ _ Nil) = return True
+getNoActionCondition (SLabel _ _ _ Nothing) = return True
+getNoActionCondition (SLabel _ _ _ (Just st)) = getNoActionCondition st
 getNoActionCondition st =
     do x <- stmtTToString st
        messageM ("Case: " +++ x)
@@ -2370,8 +2378,11 @@ dummyAction = action {$write ""}
 -- #############################################################################
 
 ruleName :: String -> Integer -> String -> String
--- ruleName text n suffix = (text +++ "_" +++ (integerToString n) +++ suffix)
-ruleName text _ suffix = (text +++ suffix)
+ruleName text n suffix =
+   if (suffix == "")
+   then text
+   else let label = if (suffix == "_np") then ("L" +++ (integerToString n)) else suffix
+        in (label +++ "_" +++ text)
 
 -- #############################################################################
 -- #
