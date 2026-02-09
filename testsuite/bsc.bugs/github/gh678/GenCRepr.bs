@@ -599,7 +599,7 @@ instance (GenCStructBody a n1, GenCStructBody b n2, AppendSizedVector n1 n2 n) =
 
 instance (UnpackStructBody a n1 m, UnpackStructBody b n2 m, Add n1 n2 n, Add n1 k1 m, Add n2 k2 m) =>
          UnpackStructBody (a, b) n m where
-  unpackStructBody = liftM2 tuple2 unpackStructBody unpackStructBody
+  unpackStructBody = liftA2 tuple2 unpackStructBody unpackStructBody
 
 -- empty case
 instance GenCStructBody () 0 where
@@ -689,13 +689,13 @@ instance (GenCDecls' a) => GenCDecls' (Meta m a) where
 
 instance (GenCDecls' a, GenCDecls' b) => GenCDecls' (Either a b) where
   componentTypeNames' _ = componentTypeNames' (_ :: a) `List.append` componentTypeNames' (_ :: b)
-  genCHeaderDecls' _ = liftM2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
-  genCImplDecls' _ = liftM2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
+  genCHeaderDecls' _ = liftA2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
+  genCImplDecls' _ = liftA2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
 
 instance (GenCDecls' a, GenCDecls' b) => GenCDecls' (a, b) where
   componentTypeNames' _ = componentTypeNames' (_ :: a) `List.append` componentTypeNames' (_ :: b)
-  genCHeaderDecls' _ = liftM2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
-  genCImplDecls' _ = liftM2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
+  genCHeaderDecls' _ = liftA2 strConcat (genCHeaderDecls' (_ :: a)) (genCHeaderDecls' (_ :: b))
+  genCImplDecls' _ = liftA2 strConcat (genCImplDecls' (_ :: a)) (genCImplDecls' (_ :: b))
 
 instance GenCDecls' () where
   componentTypeNames' _ = List.nil
@@ -723,8 +723,8 @@ class GenAllCDecls a where
   genAllCImplDecls :: a -> State (List String) String
 
 instance (GenCDecls a, GenAllCDecls b) => GenAllCDecls (a, b) where
-  genAllCHeaderDecls _ = liftM2 strConcat (genCHeaderDecls (_ :: a)) (genAllCHeaderDecls (_ :: b))
-  genAllCImplDecls _ = liftM2 strConcat (genCImplDecls (_ :: a)) (genAllCImplDecls (_ :: b))
+  genAllCHeaderDecls _ = liftA2 strConcat (genCHeaderDecls (_ :: a)) (genAllCHeaderDecls (_ :: b))
+  genAllCImplDecls _ = liftA2 strConcat (genCImplDecls (_ :: a)) (genAllCImplDecls (_ :: b))
 
 instance (GenCDecls a) => GenAllCDecls a where
   genAllCHeaderDecls _ = genCHeaderDecls (_ :: a)

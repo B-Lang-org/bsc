@@ -2711,6 +2711,17 @@ asTypeOf x _ = x
 liftM :: (Monad m) => (a -> b) -> (m a -> m b)
 liftM f x = x `bind` (\ _y -> return (f _y))
 
+--@ Lift a binary function to operate on monadic values.
+--@ \index{liftM2@\te{liftM2} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function m#(c) liftM2(function c f(a x1, b x2), m#(a) x, m#(b) y)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+--@ Generally, liftA2 should be preferred to liftM2, as it can be used with any
+--@ applicative functor (not just monads), and it may have a more efficient
+--@ implementation for some applicative functors.
+--@ However, liftM2 may be useful to define liftA2 for a Monad that does not
+--@ have a more efficient implementation of liftA2.
 liftM2 :: (Monad m) => (a -> b -> c) -> (m a -> m b -> m c)
 liftM2 f ma mb = do
   {-# hide #-}
