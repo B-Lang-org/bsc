@@ -151,9 +151,17 @@ data StmtM a b
 unS :: StmtM a b -> Module (b, (RStmts a))
 unS (S x) = x
 
+instance Functor (StmtM a)
+  where
+    fmap f (S x) = S (fmap (\(xa, xs) -> (f xa, xs)) x)
+
+instance Applicative (StmtM a)
+  where
+    pure x = S (pure (x, Nil))
+    liftA2 f (S x) (S y) = S (liftA2 (\(xa, xs) (ya, ys) -> (f xa ya, xs `append` ys)) x y)
+
 instance Monad (StmtM a)
   where
-    return x = S (return (x, Nil))
     bind (S x) f = S
         do  (xa, xs) <- x
             (fa, fs) <- unS (f xa)
