@@ -2419,11 +2419,14 @@ primitive type Module :: * -> *
 
 instance Functor Module
   where
-    fmap f m = primModuleBind m (primModuleReturn ∘ f)
+    fmap f m = do
+        {-# hide #-}
+        _x <- m
+        return (f _x)
 
 instance Applicative Module
   where
-    pure = primModuleReturn
+    pure x = primModuleReturn x
     liftA2 f mx my = primModuleBind mx (\x -> primModuleBind my (\y -> primModuleReturn (f x y)))
 
 --@ \begin{libverbatim}
