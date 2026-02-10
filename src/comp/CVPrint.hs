@@ -103,6 +103,17 @@ opToFuncName ">>>" = "compose"      -- function composition
 opToFuncName "<<<" = "composeR"     -- reverse composition
 opToFuncName s     = s              -- fallback: use operator as-is (may fail)
 
+-- Check if an expression is a register write statement
+-- In bsc2bsv flow, := stays as COper/CBinOp (ParseOp is not run)
+-- In full compiler flow, it becomes Cwrite
+isRegWrite :: CExpr -> Bool
+isRegWrite (Cwrite _ _ _) = True
+isRegWrite (CBinOp _ i _) = getBSVIdString i == ":="
+isRegWrite (COper ops) = any isAssignOp ops
+  where isAssignOp (CRator _ i) = getBSVIdString i == ":="
+        isAssignOp _ = False
+isRegWrite _ = False
+
 t :: String -> Doc
 t s = text s
 
@@ -468,6 +479,7 @@ ppDer d is = text "deriving (" <> sepList (map (pvPrint d 0) is) (text ",") <> t
 ppMBody :: PDetail -> CExpr -> Doc
 ppMBody d e@(Cdo _ _) = pp d e
 ppMBody d e@(Caction _ _) = pp d e
+ppMBody d e | isRegWrite e = t"  action" $+$ t"    " <> pvPrint d 0 e <> t";" $+$ t"  endaction"
 ppMBody d e = ppBody d False e
 
 ppMClause :: PDetail -> [Doc] -> CClause -> Doc -> Doc
@@ -552,7 +564,9 @@ instance PVPrint CExpr where
         if (p>1) then t"(begin" <+> ppLet <>t";"$+$ t"end)"
                  else if (p==1) then t"begin" <+> ppLet <>t";"$+$ t"end"
                  else ppLet
-          where ppLet = ((foldr1 ($+$) (map (pp d) ds)) $+$ pparen True (pp d e))
+          where ppLet = ((foldr1 ($+$) (map (pp d) ds)) $+$ ppFinal)
+                ppFinal = if isRegWrite e then pvPrint d 0 e
+                          else pparen True (pp d e)
     pvPrint d p (Cletseq [] e) = pparen (p > 0) $
         (t"let in" <+> pp d e)
     --pvPrint d p (Cletrec ds e) = pparen (p > 0) $
@@ -562,7 +576,9 @@ instance PVPrint CExpr where
         if (p>1) then t"(begin" <+> ppLet <>t";"$+$ t"end)"
                  else if (p==1) then t"begin" <+> ppLet <>t";"$+$ t"end"
                  else ppLet
-          where ppLet = ((foldr1 ($+$) (map (pp d) ds)) $+$ pparen True (pp d e))
+          where ppLet = ((foldr1 ($+$) (map (pp d) ds)) $+$ ppFinal)
+                ppFinal = if isRegWrite e then pvPrint d 0 e
+                          else pparen True (pp d e)
     -- undo ._read desugaring
     pvPrint d p (CSelect e i) | i `qualEq` id_read noPosition = pvPrint d p e
     pvPrint d p (CSelect e i) = pparen (p > (maxPrec+2)) $ pvPrint d (maxPrec+2) e <> t"." <> pvpId d i
@@ -1007,6 +1023,7 @@ ppBody d isMod (Cletrec [CLValueSign (CDef i1 t1 c1) q1]
 ppBody d isMod (Cletrec ds e) =
         ppBodyLets d ds $+$
         (ppBody d isMod e)
+ppBody d _ e | isRegWrite e = t"  " <> pvPrint d 0 e <> t";"
 ppBody d True e = (pparen True (pp d e) <> t";")
 ppBody d _ e = (t"  return" <+> pparen True (pvPrint d 1 e) <> t";")
 
@@ -1034,9 +1051,17 @@ ppValueSign :: PDetail -> Id -> [TyVar] -> CQType -> [CClause] -> Doc
 ppValueSign d i [] (CQType ps ty) [CClause cs [] cexp] | all isVar cs =
   let id = pvpId d i
       (modId,ps') = findModId ps
+      (argTypes, _) = getArrows ty
+      numSynthArgs = if null cs then length argTypes else 0
+      synthArgExprs = map (CVar . mk_homeless_id) (take numSynthArgs (newIdsn 1))
       argIds = if null cs then newIds else map (t . getCPVString) cs
+      -- For point-free definitions, apply synthetic args to the body
+      cexp' = if null synthArgExprs then cexp
+              else case cexp of
+                     CApply f args -> CApply f (args ++ synthArgExprs)
+                     _             -> CApply cexp synthArgExprs
       line1 = ppTypedId d modId id ty argIds
-  in ppValueSignRest d id ps' (isFn ty) False line1 cexp "function"
+  in ppValueSignRest d id ps' (isFn ty) False line1 cexp' "function"
 
 ppValueSign d i [] ty cs =
         (pvpId d i <+> t "::" <+> pp d ty <> t";") $+$
