@@ -1654,7 +1654,7 @@ static inline void wop_primExtractWide(unsigned int dst_sz,
 
 static inline void wop_primExtractWide(unsigned int dst_sz,
                                        unsigned int src_sz,
-                                       tUWide & src,
+                                       const tUWide & src,
                                        unsigned int high_sz, unsigned int high,
                                        unsigned int low_sz, unsigned int low,
                                        tUWide &dst)

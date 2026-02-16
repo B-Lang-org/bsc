@@ -40,7 +40,7 @@ type ModDefMap = M.Map String DefMap
 -- map from method names to method port info
 type MethMap = M.Map AId ( Maybe VName            -- enable
                          , [(AType, AId, VName)]  -- args
-                         , Maybe (AType, VName)   -- return
+                         , [(AType, VName)]       -- return
                          , Bool                   -- is action
                          , [AId]                  -- rule Ids
                          )
@@ -119,7 +119,7 @@ simMakeCBlocks flags sim_system =
       -- methods on the top-level module
       top_methods   = sp_interface top_pkg
       (top_ameths, top_vmeths) = partition aIfaceHasAction top_methods
-      top_vmeth_set = S.fromList $ concatMap aIfaceResId top_vmeths
+      top_vmeth_set = S.fromList $ concatMap aIfaceResIds top_vmeths
       top_ameth_set = S.fromList $ map aRuleName $ concatMap aIfaceRules top_ameths
 
       -- input clocks to the top-level module
@@ -132,7 +132,7 @@ simMakeCBlocks flags sim_system =
                    , let p_name = getModuleName p
                    , let ms = sp_interface p
                    , m <- ms
-                   , let m_name = aIfaceName m
+                   , let m_name = aif_name m
                    , let m_rules = aIfaceRules m
                    , let sub_actions = concatMap arule_actions m_rules
                    , let sub_names = [ (o,m) | (ACall o m _) <- sub_actions ]
@@ -208,6 +208,10 @@ getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
+getExprIds in_sched def_map known ((ATuple _ elems):es) =
+  getExprIds in_sched def_map known (elems ++ es)
+getExprIds in_sched def_map known ((ATupleSel _ e _):es) =
+  getExprIds in_sched def_map known (e:es)
 getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AFunCall _ _ _ _ args):es) =
@@ -290,7 +294,8 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                   ]
       meth_args = concat [ ins | (_,ins,_,_,_) <- M.elems meth_map ]
       meth_rets = [ (rt, n, vn)
-                  | (n, (_,_,(Just (rt,vn)),_,_)) <- M.toList meth_map
+                  | (n, (_,_,rts,_,_)) <- M.toList meth_map
+                  , (rt,vn) <- rts
                   ]
       ports = meth_ens ++ meth_args ++ meth_rets
 
@@ -323,7 +328,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
 
       dms = [ M.singleton clk [(aid, fromJust m')]
             | m <- iface
-            , let aid = aIfaceName m
+            , let aid = aif_name m
             , let m' = cvtIFace modId (sp_pps pkg)
                            def_map meth_map method_order_map reset_list m
             , isJust m'
@@ -517,7 +522,7 @@ cvtIFace :: Id -> [PProp] ->
             DefMap -> MethMap -> MethodOrderMap -> [(ResetId, AReset)] ->
             AIFace -> Maybe SimCCFn
 cvtIFace modId pps def_map meth_map method_order_map reset_list m =
-  do let name    = aIfaceName m
+  do let name    = aif_name m
          inputs  = aIfaceArgs m
          args    = [ (t,i) | (i,t) <- inputs ]
          -- always_enabled methods need to forcibly check their ready signal
@@ -527,8 +532,8 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
              if ((isAlwaysEn pps name) && (aIfaceHasAction m))
              then -- we have to find the name of the port associated
                   -- with the RDY method
-                  let rdy_id = mkRdyId (aIfaceName m)
-                      mport = do (_,_,Just (_,vn),_,_) <- M.lookup rdy_id meth_map
+                  let rdy_id = mkRdyId (aif_name m)
+                      mport = do (_,_,[(_,vn)],_,_) <- M.lookup rdy_id meth_map
                                  return $ ASPort aTBool (vName_to_id vn)
                  in case mport of
                       (Just prt) -> [SFSCond prt ss []]
@@ -543,15 +548,21 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
          wp      = aIfaceProps m
          rst_ids = map (ae_objid . areset_wire)
                        (mapMaybe (\n -> lookup n reset_list) (wpResets wp))
-     (men, ins, mr, _, ifcrules) <- M.lookup name meth_map
+     (men, ins, rs, _, ifcrules) <- M.lookup name meth_map
      let prt vn     = vName_to_id vn
-         rt         = do { (t,_) <- mr; return t }
+         rt         =
+              case rs of
+                 [(t,_)] -> Just t
+                 []      -> Nothing
+                 _      -> internalError ("cvtIFace: multiple return values "
+                                      ++ "not supported in method "
+                                      ++ ppReadable name)
          en_stmts   = maybe [] (\vn -> [SFSAssign True (prt vn) aTrue]) men
          wf_stmts   = map (\i -> SFSAssign False (mkIdWillFire i) aTrue) ifcrules
          in_stmts   = map (\(t,i,vn) -> SFSAssign True (prt vn) (ASPort t i)) ins
          body_stmts =
-           case mr of
-             Just (t,vn) ->
+           case rs of
+             [(t,vn)] ->
                -- account for the possible return of an actionvalue result
                let -- the return def
                    ret_def  = aif_value m
@@ -584,9 +595,13 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                    -- ready is off (the user lied about it being always_en'd),
                    -- but, at that point, all bets are off anyway
                    check_rdy ss' ++ ret_stmts
-             Nothing -> check_rdy $
+             [] -> check_rdy $
                         cvtActions modId name
                             def_map method_order_map S.empty body rst_ids
+             -- TODO: Support methods with multiple return values
+             _ -> internalError ("cvtIFace: multiple return values "
+                                  ++ "not supported in method "
+                                  ++ ppReadable name)
          all_stmts  = concat [en_stmts, wf_stmts, in_stmts, body_stmts]
      return $ SimCCFn (getIdBaseString name) args rt all_stmts
 
@@ -1443,6 +1458,8 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 
         -- function to substitute ASDef for AMethValue
         substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
+        substAV (ATuple ts es) = ATuple ts (map substAV es)
+        substAV (ATupleSel t e i) = ATupleSel t (substAV e) i
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
         substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
@@ -1620,6 +1637,10 @@ substGateReferences smap stmts =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AMethCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
+        substInAExpr e@(ATuple { ae_elems = es }) =
+            e { ae_elems = map substInAExpr es }
+        substInAExpr e@(ATupleSel { ae_exp = e1 }) =
+            e { ae_exp = substInAExpr e1 }
         substInAExpr e@(ANoInlineFunCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AFunCall { ae_args = es }) =

@@ -1,7 +1,7 @@
 package Test2 where
 
 interface RegPrimPairBoolMaybeBitSizeOfBit32_ =
-    _write :: Bit 34 -> ActionValue_ 0
+    _write :: Bit 34 -> ActionValue_ (Bit 0)
 
 fromRegPrimPairBoolMaybeBitSizeOfBit32_
    :: (Bits (Bool, Maybe (Bit (SizeOf (Bit 32)))) 34) =>

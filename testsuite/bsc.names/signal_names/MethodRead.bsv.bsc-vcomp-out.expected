@@ -29,19 +29,19 @@ rg :: ABSTRACT:  Prelude.VReg = RegUN
 				 [])
 				[clock { osc:  CLK gate:  1'd1 }, 32'd8]
 				[]
-				meth types=[([], Nothing, Just (Bit 8)), ([Bit 8], Just (Bit 1), Nothing)]
+				meth types=[([], Nothing, [Bit 8]), ([Bit 8], Just (Bit 1), [])]
 				port types=D_IN -> Prelude.Bit 8
 					   Q_OUT -> Prelude.Bit 8
 -- AP local definitions
 rg_PLUS_8___d2 :: Bit 8;
-rg_PLUS_8___d2  = x__h140 + 8'd8;
+rg_PLUS_8___d2  = x__h115 + 8'd8;
 -- IdProp rg_PLUS_8___d2[IdP_from_rhs]
 rg_MINUS_1___d3 :: Bit 8;
-rg_MINUS_1___d3  = x__h140 - 8'd1;
+rg_MINUS_1___d3  = x__h115 - 8'd1;
 -- IdProp rg_MINUS_1___d3[IdP_from_rhs]
-x__h140 :: Bit 8;
-x__h140  = rg.read;
--- IdProp x__h140[IdP_keep]
+x__h115 :: Bit 8;
+x__h115  = rg.read;
+-- IdProp x__h115[IdP_keep]
 -- AP rules
 rule RL_r "r":
  when 1'd1

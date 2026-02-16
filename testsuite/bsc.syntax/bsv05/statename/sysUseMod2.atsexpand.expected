@@ -26,7 +26,7 @@ the_e_the_r :: ABSTRACT:  Prelude.VReg = RegN
 					  [])
 					 [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd0]
 					 []
-					 meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+					 meth types=[([], Nothing, [Bit 32]), ([Bit 32], Just (Bit 1), [])]
 					 port types=D_IN -> Prelude.Bit 32
 						    Q_OUT -> Prelude.Bit 32
 -- AP rules

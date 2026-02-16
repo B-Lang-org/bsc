@@ -4146,13 +4146,13 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     -- call will be in the same Rule structure as the action part)
     -- (note that, if the method body is not split into multiple
     -- rule, dId and rId will be the same)
-    [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred, dExpr] rActs)
+    [(Rule rId rOrig [ifPred, rPred] ([ifPred, rPred, dExpr]) rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-        where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
-    | isRdyId dId = []
-    | otherwise   = [(Rule dId Nothing [ifPred] [ifPred,dExpr] [])]
-        where dExpr = ASDef t dId
+    where dExpr = ASDef t dId
+cvtIfc (AIDef mId _ _ _ _ _ _) | isRdyId mId = []
+cvtIfc (AIDef mId _ _ ifPred (ADef dId t _ _) _ _) =
+    [(Rule mId Nothing [ifPred] [ifPred, dExpr] [])]
+    where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []

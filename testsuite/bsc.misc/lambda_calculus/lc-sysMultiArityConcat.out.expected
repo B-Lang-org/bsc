@@ -27,12 +27,12 @@ dim_sysMultiArityConcat =
 rule_RL_d_sysMultiArityConcat :: MOD_sysMultiArityConcat -> (Bool, MOD_sysMultiArityConcat, ());
 rule_RL_d_sysMultiArityConcat =
     (\ (state0 :: MOD_sysMultiArityConcat) ->
-     let { (def__read__h44 :: Bit #3) = meth_read_RegUN (inst_src1__sysMultiArityConcat state0)
-	 ; (def__read__h76 :: Bit #4) = meth_read_RegUN (inst_src2__sysMultiArityConcat state0)
-	 ; (def__read__h108 :: Bit #5) = meth_read_RegUN (inst_src3__sysMultiArityConcat state0)
+     let { (def_src1___d1 :: Bit #3) = meth_read_RegUN (inst_src1__sysMultiArityConcat state0)
+	 ; (def_src2___d2 :: Bit #4) = meth_read_RegUN (inst_src2__sysMultiArityConcat state0)
+	 ; (def_src3___d3 :: Bit #5) = meth_read_RegUN (inst_src3__sysMultiArityConcat state0)
 	 ; (act1 :: (Bool, MOD_RegUN #12, ())) =
 	       meth_write_RegUN
-		   (primConcat def__read__h44 (primConcat def__read__h76 def__read__h108))
+		   (primConcat def_src1___d1 (primConcat def_src2___d2 def_src3___d3))
 		   (inst_snk__sysMultiArityConcat state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysMultiArityConcat) = state0 { inst_snk__sysMultiArityConcat = snd3 act1 }

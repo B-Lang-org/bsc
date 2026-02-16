@@ -1040,7 +1040,7 @@ combineCombSchedInfo use_map domain_id_map parent_abi parent_csi
         -- schedule graph and conflicts (even the methods not used by
         -- any parent rules), so we need to know which are the method Ids
         child_apkg = abmi_apkg child_abi
-        child_meth_set = S.fromList $ map aIfaceName (apkg_interface child_apkg)
+        child_meth_set = S.fromList $ map aif_name (apkg_interface child_apkg)
 
         -- combine each part of the CSI
         comb_sched_map = combineSchedMap inst parent_uses
@@ -1669,7 +1669,7 @@ mkRdyMap abi =
         mkPair (AIClock {}) = []
         mkPair (AIReset {}) = []
         mkPair ifc =
-            let name = aIfaceName ifc
+            let name = aif_name ifc
                 pred_e = aIfacePred ifc
             in  if (isRdyId name)
                 then [] -- Rdy methods don't have Rdy methods
@@ -1974,6 +1974,8 @@ eDomain m e@(AMethCall _ i mi es) =
     mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
 -- don't count the return value uses of actionvalue, only the action part
 eDomain m (AMethValue _ _ _) = []
+eDomain m (ATupleSel _ e _) = eDomain m e
+eDomain m (ATuple _ es) = mergeUses $ map (eDomain m) es
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []
@@ -2210,10 +2212,11 @@ makeMethodTemps apkg =
                                   (AIDef {})         -> (True,False)
                                   (AIActionValue {}) -> (False,True)
                                   otherwise          -> (False,False)
+              v = aif_value aif
           in if is_def || is_av
-             then case process is_av (aif_value aif) (aif_name aif) seqNo of
+             then case process is_av v (aif_name aif) seqNo of
                     (Just t@(ADef tid ty e props)) ->
-                       let aid = adef_objid (aif_value aif)
+                       let aid = adef_objid v
                            -- unclear if propagating the props is correct
                            new_def = (ADef aid ty (ASDef ty tid) props)
                            aif' = aif { aif_value = new_def }

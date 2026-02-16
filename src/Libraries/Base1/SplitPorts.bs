@@ -1,0 +1,198 @@
+package SplitPorts where
+
+-- Utilities for port splitting
+
+import qualified List
+import Vector
+
+-- Newtype tags to indicate that a types should be split (recursively or not) into ports
+data ShallowSplit a = ShallowSplit a
+data DeepSplit a = DeepSplit a
+
+-- Tag to indicate that the DeepSplitPorts recursion should terminate
+data NoSplit a = NoSplit a
+
+instance (ShallowSplitPorts a p) => SplitPorts (ShallowSplit a) p where
+  splitPorts (ShallowSplit x) = shallowSplitPorts x
+  unsplitPorts = ShallowSplit ∘ shallowUnsplitPorts
+  portNames _ = shallowSplitPortNames (_ :: a)
+
+instance (DeepSplitPorts a p) => SplitPorts (DeepSplit a) p where
+  splitPorts (DeepSplit x) = deepSplitPorts x
+  unsplitPorts = DeepSplit ∘ deepUnsplitPorts
+  portNames _ = deepSplitPortNames (_ :: a)
+
+instance DeepSplitPorts (NoSplit a) (Port a) where
+  deepSplitPorts (NoSplit x) = Port x
+  deepUnsplitPorts (Port x) = NoSplit x
+  deepSplitPortNames _ base = Cons base Nil
+
+
+-- Helper class using generics, to split a struct or vector into a tuple of ports.
+class ShallowSplitPorts a p | a -> p where
+  shallowSplitPorts :: a -> p
+  shallowUnsplitPorts :: p -> a
+  shallowSplitPortNames :: a -> String -> List String
+
+instance (Generic a r, ShallowSplitPorts' r p) =>
+    ShallowSplitPorts a p where
+  shallowSplitPorts = shallowSplitPorts' ∘ from
+  shallowUnsplitPorts = to ∘ shallowUnsplitPorts'
+  shallowSplitPortNames _ = shallowSplitPortNames' (_ :: r)
+
+class ShallowSplitPorts' r p | r -> p where
+  shallowSplitPorts' :: r -> p
+  shallowUnsplitPorts' :: p -> r
+  shallowSplitPortNames' :: r -> String -> List String
+
+instance (ShallowSplitPorts' a p, ShallowSplitPorts' b q, AppendTuple p q r) => ShallowSplitPorts' (a, b) r where
+  shallowSplitPorts' (a, b) = shallowSplitPorts' a `appendTuple` shallowSplitPorts' b
+  shallowUnsplitPorts' x = case splitTuple x of
+    (a, b) -> (shallowUnsplitPorts' a, shallowUnsplitPorts' b)
+  shallowSplitPortNames' _ base =
+    shallowSplitPortNames' (_ :: a) base `List.append` shallowSplitPortNames' (_ :: b) base
+
+instance ShallowSplitPorts' () () where
+  shallowSplitPorts' _ = ()
+  shallowUnsplitPorts' _ = ()
+  shallowSplitPortNames' _ _ = Nil
+
+instance (ShallowSplitPorts' r p1, ConcatTuple n p1 p) => ShallowSplitPorts' (Vector n r) p where
+  shallowSplitPorts' = concatTuple ∘ map shallowSplitPorts'
+  shallowUnsplitPorts' = map shallowUnsplitPorts' ∘ unconcatTuple
+  shallowSplitPortNames' _ base =
+    let genElem i = shallowSplitPortNames' (_ :: r) (base +++ "_" +++ integerToString i)
+    in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
+
+instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta (MetaField name idx) r) p where
+  shallowSplitPorts' (Meta x) = shallowSplitPorts' x
+  shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
+  shallowSplitPortNames' _ base = shallowSplitPortNames' (_ :: r) $
+    -- Avoid an extra underscore, since data fields names are _[0-9]+
+    if base == "" || stringOf name == "" || stringHead (stringOf name) == '_'
+    then base +++ stringOf name
+    else base +++ "_" +++ stringOf name
+
+instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta m r) p where
+  shallowSplitPorts' (Meta x) = shallowSplitPorts' x
+  shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
+  shallowSplitPortNames' _ = shallowSplitPortNames' (_ :: r)
+
+instance (SplitPorts a p) => ShallowSplitPorts' (Conc a) p where
+  shallowSplitPorts' (Conc x) = splitPorts x
+  shallowUnsplitPorts' = Conc ∘ unsplitPorts
+  shallowSplitPortNames' _ = portNames (_ :: a)
+
+
+-- Helper class using generics, to recursively split structs and vectors into a tuple of ports.
+class DeepSplitPorts a p | a -> p where
+  deepSplitPorts :: a -> p
+  deepUnsplitPorts :: p -> a
+  deepSplitPortNames :: a -> String -> List String
+
+-- Avoid recursing into Int and UInt.
+-- These are wrappers around Bit, and we want to generate ports like foo_x and
+-- not `foo_x_1` for an Int or UInt field x.
+instance DeepSplitPorts (UInt n) (Port (UInt n)) where
+  deepSplitPorts = Port
+  deepUnsplitPorts = unPort
+  deepSplitPortNames _ base = Cons base Nil
+
+instance DeepSplitPorts (Int n) (Port (Int n)) where
+  deepSplitPorts = Port
+  deepUnsplitPorts = unPort
+  deepSplitPortNames _ base = Cons base Nil
+
+instance DeepSplitPorts () () where
+  deepSplitPorts _ = ()
+  deepUnsplitPorts _ = ()
+  deepSplitPortNames _ _ = Nil
+
+instance (DeepSplitTuplePorts (a, b) p) => DeepSplitPorts (a, b) p where
+  deepSplitPorts = deepSplitTuplePorts
+  deepUnsplitPorts = deepUnsplitTuplePorts
+  deepSplitPortNames = deepSplitTuplePortNames 1
+
+class DeepSplitTuplePorts a p | a -> p where
+  deepSplitTuplePorts :: a -> p
+  deepUnsplitTuplePorts :: p -> a
+  deepSplitTuplePortNames :: Integer -> a -> String -> List String
+
+instance (DeepSplitPorts a p, DeepSplitTuplePorts b q, AppendTuple p q r) => DeepSplitTuplePorts (a, b) r where
+  deepSplitTuplePorts (a, b) = deepSplitPorts a `appendTuple` deepSplitTuplePorts b
+  deepUnsplitTuplePorts x = case splitTuple x of
+    (a, b) -> (deepUnsplitPorts a, deepUnsplitTuplePorts b)
+  deepSplitTuplePortNames i _ base =
+    deepSplitPortNames (_ :: a) (base +++ "_" +++ integerToString i) `List.append`
+    deepSplitTuplePortNames (i + 1) (_ :: b) base
+
+instance (DeepSplitPorts a p) => DeepSplitTuplePorts a p where
+  deepSplitTuplePorts = deepSplitPorts
+  deepUnsplitTuplePorts x = deepUnsplitPorts x
+  deepSplitTuplePortNames i _ base = deepSplitPortNames (_ :: a) $ base +++ "_" +++ integerToString i
+
+
+instance (Generic a r, DeepSplitPorts' r a p) => DeepSplitPorts a p where
+  deepSplitPorts = deepSplitPorts' (_ :: r)
+  deepUnsplitPorts = deepUnsplitPorts' (_ :: r)
+  deepSplitPortNames = deepSplitPortNames' (_ :: r)
+
+class DeepSplitPorts' r a p | r a -> p where
+  deepSplitPorts' :: r -> a -> p
+  deepUnsplitPorts' :: r -> p -> a
+  deepSplitPortNames' :: r -> a -> String -> List String
+
+-- Terminate recursion for n /= 1 constructors
+instance (SplitPorts a p) => DeepSplitPorts' r a p where
+  deepSplitPorts' _ = splitPorts
+  deepUnsplitPorts' _ = unsplitPorts
+  deepSplitPortNames' _ = portNames
+
+-- Recurse into the fields of a struct
+instance (Generic a r, DeepSplitPorts'' r p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
+  deepSplitPorts' _ = deepSplitPorts'' ∘ from
+  deepUnsplitPorts' _ = to ∘ deepUnsplitPorts''
+  deepSplitPortNames' _ _ = deepSplitPortNames'' (_ :: r)
+
+class DeepSplitPorts'' r p | r -> p where
+  deepSplitPorts'' :: r -> p
+  deepUnsplitPorts'' :: p -> r
+  deepSplitPortNames'' :: r -> String -> List String
+
+instance (DeepSplitPorts'' a p, DeepSplitPorts'' b q, AppendTuple p q r) => DeepSplitPorts'' (a, b) r where
+  deepSplitPorts'' (a, b) = deepSplitPorts'' a `appendTuple` deepSplitPorts'' b
+  deepUnsplitPorts'' x = case splitTuple x of
+    (a, b) -> (deepUnsplitPorts'' a, deepUnsplitPorts'' b)
+  deepSplitPortNames'' _ base =
+    deepSplitPortNames'' (_ :: a) base `List.append` deepSplitPortNames'' (_ :: b) base
+
+instance DeepSplitPorts'' () () where
+  deepSplitPorts'' _ = ()
+  deepUnsplitPorts'' _ = ()
+  deepSplitPortNames'' _ _ = Nil
+
+instance (DeepSplitPorts'' r p1, ConcatTuple n p1 p) => DeepSplitPorts'' (Vector n r) p where
+  deepSplitPorts'' = concatTuple ∘ map deepSplitPorts''
+  deepUnsplitPorts'' = map deepUnsplitPorts'' ∘ unconcatTuple
+  deepSplitPortNames'' _ base =
+    let genElem i = deepSplitPortNames'' (_ :: r) (base +++ "_" +++ integerToString i)
+    in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
+
+instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta (MetaField name idx) r) p where
+  deepSplitPorts'' (Meta x) = deepSplitPorts'' x
+  deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
+  deepSplitPortNames'' _ base = deepSplitPortNames'' (_ :: r) $
+    -- Avoid an extra underscore, since data fields names are _[0-9]+
+    if base == "" || stringOf name == "" || stringHead (stringOf name) == '_'
+    then base +++ stringOf name
+    else base +++ "_" +++ stringOf name
+
+instance (DeepSplitPorts'' r p) => DeepSplitPorts'' (Meta m r) p where
+  deepSplitPorts'' (Meta x) = deepSplitPorts'' x
+  deepUnsplitPorts'' = Meta ∘ deepUnsplitPorts''
+  deepSplitPortNames'' _ = deepSplitPortNames'' (_ :: r)
+
+instance (DeepSplitPorts a p) => DeepSplitPorts'' (Conc a) p where
+  deepSplitPorts'' (Conc x) = deepSplitPorts x
+  deepUnsplitPorts'' = Conc ∘ deepUnsplitPorts
+  deepSplitPortNames'' _ = deepSplitPortNames (_ :: a)
