@@ -1,0 +1,10 @@
+=== Testing TupleSize type class ===
+TupleSize of () = 0 (expected 0)
+TupleSize of Bool = 1 (expected 1)
+TupleSize of Tuple2 = 2 (expected 2)
+TupleSize of Tuple3 = 3 (expected 3)
+TupleSize of Tuple4 = 4 (expected 4)
+TupleSize of Tuple5 = 5 (expected 5)
+TupleSize of Tuple6 = 6 (expected 6)
+TupleSize of Tuple7 = 7 (expected 7)
+TupleSize of Tuple8 = 8 (expected 8)
