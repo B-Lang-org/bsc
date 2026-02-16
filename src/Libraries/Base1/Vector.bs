@@ -19,7 +19,7 @@ package Vector(
         find, findElem, findIndex, countLeadingZeros,
         countElem, countIf, countOnes, countOnesAlt,
         rotateBy, rotateBitsBy,
-        readVReg, writeVReg, toChunks, drop, Ascii
+        readVReg, writeVReg, toChunks, fromChunks, drop, Ascii
         ) where
 
 import List
@@ -1253,6 +1253,19 @@ toChunks x = let padding = (0 :: Bit ch_sz)
                  v_sz = (valueOf ch_sz) * (valueOf n)
                  tmp = padding ++ (pack x)
              in unpack(tmp[v_sz-1:0])
+
+
+--@ Inverse of toChunks - convert a vector of chunks to a value,
+--@ dropping any padding on the final chunk.
+--@ \index{fromChunks@\te{fromChunks} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function t fromChunks(Vector#(n,ch) x)
+--@    provisos( Bits#(ch,ch_sz)
+--@            , Bits#(t,out_sz)
+--@            , Div#(out_sz,ch_sz,n) );
+--@ \end{libverbatim}
+fromChunks :: (Bits ch ch_sz, Bits t out_sz, Div out_sz ch_sz n) => Vector n ch -> t
+fromChunks x = Prelude.unpack $ (Prelude.pack x)[valueOf out_sz - 1:0]
 
 
 --@ \item{\bf Examples Using the Vector Type}

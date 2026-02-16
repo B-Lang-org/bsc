@@ -11,3 +11,4 @@ test_c_veri_bsv FindElem
 test_c_veri_bsv FindIndex
 test_c_veri_bsv RotateBy
 test_c_veri_bsv ZeroVector
+test_c_veri_bsv FromChunksTest
