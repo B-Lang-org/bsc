@@ -10,7 +10,7 @@ Bluespec Compiler (BSC) Release Notes
 This release brings a number of performance improvements and bug
 fixes, including more principled support for type synonyms.  The
 release also adds BH syntax support to Bluetcl.  A new dependency,
-on the `strict-concurrency` package, is added for building BSC.
+on the `strict-concurrency` package, has been added for building BSC.
 Users of `Generics` may need to update a constructor name.
 
 Changes since release 2025.07:
@@ -44,7 +44,7 @@ Compiler
   ** Avoid O(n^2) blowup in the Verilog backend on the number of
      foreign function calls (GitHub PR#832)
   ** Improve the performance of resource scheduling when the number of
-     uses is large (GitHub PR#828)
+     resource uses is large (GitHub PR#828)
   ** Improve the performance of writing large `.bi` files in the
      `writeBin` stage (GitHub PR#856)
   ** Improve time and memory usage during type check (GitHub PR#857)
