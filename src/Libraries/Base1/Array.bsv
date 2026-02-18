@@ -20,6 +20,12 @@ function Array#(res_T) map(function res_T f(any_T x), Array#(any_T) v);
 
 endfunction
 
+instance Functor#(Array);
+  function \fmap (f, x);
+    return map(f, x);
+  endfunction
+endinstance
+
 // A fold function,  starting at the Nth element
 function res_T foldr(function res_T f(any_T x, res_T y), res_T start, Array#(any_T) v);
 
