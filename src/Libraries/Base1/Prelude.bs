@@ -2426,8 +2426,8 @@ instance Functor Module
 
 instance Applicative Module
   where
-    pure x = primModuleReturn x
-    liftA2 f mx my = primModuleBind mx (\x -> primModuleBind my (\y -> primModuleReturn (f x y)))
+    pure = primModuleReturn
+    liftA2 = liftM2
 
 --@ \begin{libverbatim}
 --@ instance Monad #(Module);

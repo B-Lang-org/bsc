@@ -11,10 +11,7 @@ instance Functor (ModuleContext c) where
 
 instance Applicative (ModuleContext c) where
   pure _i = M (\_c -> pure (_c,_i))
-  liftA2 _f (M _x) (M _y) = M (\_c ->
-                                (_x _c) `bind`
-                                  (\_node1 -> fmap (\_node2 -> (_node2.fst, _f _node1.snd _node2.snd))
-                                                   (_y _node1.fst)))
+  liftA2 = liftM2
 
 instance Monad (ModuleContext c) where
   bind (M _x) _f = M (\_c ->
