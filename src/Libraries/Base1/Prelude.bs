@@ -1,6 +1,6 @@
 package Prelude(
         {-Add(..), Max(..), Log(..),-}
-        Functor(..), Applicative(..), Monad(..), MonadFix(..),
+        Functor(..), (<$>), Applicative(..), Monad(..), MonadFix(..),
         Bits(..), Eq(..),
         Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
         Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
@@ -262,6 +262,11 @@ infixr  0 $
 infixr  0 :=
 infixr  2 ||
 infixr  3 &&
+infixl  4 <$>
+infixl  4 <$
+infixl  4 <*>
+infixl  4 <*
+infixl  4 *>
 infixr  4 |
 infixr  5 &
 infixr  5 ^
@@ -319,6 +324,13 @@ class (Min :: # -> # -> # -> *) a b c | a b -> c where { }
 class Functor f where
   fmap :: (a -> b) -> f a -> f b
 
+  (<$) :: a -> f b -> f a
+  (<$) = fmap ∘ const
+
+-- An infix synonym for fmap, for use in applicative style
+(<$>) :: (Functor f) => (a -> b) -> f a -> f b
+(<$>) = fmap
+
 --@ \index{Applicative@\te{Applicative} (type class)}
 --@ \index{pure@\te{pure} (\te{Applicative} class method)}
 --@ \index{liftA2@\te{liftA2} (\te{Applicative} class method)}
@@ -336,7 +348,18 @@ class Functor f where
 --@ The \te{liftA2} function lifts a binary function to operate on two functor values.
 class (Functor f) => Applicative f where
   pure :: a -> f a
+
+  (<*>) :: f (a -> b) -> f a -> f b
+  (<*>) = liftA2 id
+
   liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+  liftA2 f x y = f <$> x <*> y
+
+  (*>) :: f a -> f b -> f b
+  u *> v = (id <$ u) <*> v
+
+  (<*) :: f a -> f b -> f a
+  u <* v = liftA2 const u v
 
 --@ \index{Monad@\te{Monad} (type class)}
 --@ \index{bind@\te{bind} (\te{Monad} class method)}
@@ -1530,6 +1553,9 @@ instance Functor Maybe
 instance Applicative Maybe
     where
         pure = Just
+        (<*>) Nothing _ = Nothing
+        (<*>) (Just _) Nothing = Nothing
+        (<*>) (Just f) (Just x) = Just (f x)
         liftA2 _ Nothing  _        = Nothing
         liftA2 _ _        Nothing  = Nothing
         liftA2 f (Just x) (Just y) = Just (f x y)
