@@ -9,12 +9,13 @@ ifeq ($(STP_STUB),)
 SRC = src
 else
 SRC = src_stub
+SNAME += lib/libstp_stub.so
 endif
 
 ifeq ($(OSTYPE), Darwin)
-SNAME=libstp.dylib
+SNAME = lib/libstp.dylib
 else
-SNAME=libstp.so.1
+SNAME += lib/libstp.so.1
 endif
 
 all: install
@@ -23,7 +24,7 @@ install:
 	$(MAKE) -C $(SRC) install
 	ln -fsn HaskellIfc include_hs
 	install -m 755 -d $(PREFIX)/lib/SAT
-	install -m 644 lib/$(SNAME) $(PREFIX)/lib/SAT
+	install -m 644 $(SNAME) $(PREFIX)/lib/SAT
 
 clean:
 	$(MAKE) -C $(SRC) clean
