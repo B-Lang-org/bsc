@@ -895,14 +895,6 @@ instance PrimDeepSeqCond' (ConcPrim a) where
 instance PrimDeepSeqCond' (ConcPoly a) where
   primDeepSeqCond' _ = id
 
-
---@ \begin{libverbatim}
---@ instance Monad #(ActionValue);
---@ \end{libverbatim}
--- Sequencing and forcing re-evaluation with ActionWorld works because
--- we don't float expressions past lambda-bindings they don't depend on
--- if that changes, this would have to be revisited
--- (possibly making ActionWorld an argument of foreign-function calls)
 instance Functor ActionValue
   where
     fmap f (ActionValue x) = ActionValue (\aw ->
@@ -931,6 +923,13 @@ instance Applicative ActionValue
                 avWorld  = y1.avWorld
             })
 
+--@ \begin{libverbatim}
+--@ instance Monad #(ActionValue);
+--@ \end{libverbatim}
+-- Sequencing and forcing re-evaluation with ActionWorld works because
+-- we don't float expressions past lambda-bindings they don't depend on
+-- if that changes, this would have to be revisited
+-- (possibly making ActionWorld an argument of foreign-function calls)
 instance Monad ActionValue
   where
     bind (ActionValue x) f = ActionValue (\aw ->
