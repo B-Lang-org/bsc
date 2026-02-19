@@ -16,12 +16,12 @@ BEGIN
      #) ;
   
   rule_RL_d (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_x__read__h43 : Bit{3}!T = CTX_RegUN{3}!meth_read(state0.inst_src1)
-    IN LET def_x__read__h70 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_src2)
-    IN LET def_x__read__h97 : Bit{5}!T = CTX_RegUN{5}!meth_read(state0.inst_src3)
+    LET def__read__h41 : Bit{3}!T = CTX_RegUN{3}!meth_read(state0.inst_src1)
+    IN LET def__read__h65 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_src2)
+    IN LET def__read__h89 : Bit{5}!T = CTX_RegUN{5}!meth_read(state0.inst_src3)
     IN LET act1 : [ CTX_RegUN{12}!STATE, Unit!T ] =
-	     CTX_RegUN{12}!meth_write(Prim2{3,9}!primConcat(def_x__read__h43,
-							    Prim2{4,5}!primConcat(def_x__read__h70, def_x__read__h97)),
+	     CTX_RegUN{12}!meth_write(Prim2{3,9}!primConcat(def__read__h41,
+							    Prim2{4,5}!primConcat(def__read__h65, def__read__h89)),
 				      state0.inst_snk)
     IN LET state1 : STATE = state0 WITH .inst_snk := act1.1
     IN ( TRUE, state1 ) ;
