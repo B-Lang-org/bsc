@@ -14,8 +14,10 @@ DummyInDo.x =
   let _tcdict1009 :: Prelude.Monad Prelude.ActionValue
       _tcdict1009 = Prelude.Prelude.Monad~Prelude.ActionValue=
       -- IdProp: _tcdict1009[IdP_bad_name,IdPDict]
-  in  .Prelude.return ·Prelude.ActionValue _tcdict1009
+  in  Prelude.return=
+	·Prelude.ActionValue
 	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
+	_tcdict1009
 	(Prelude.PrimPair
 	   ·Prelude.Bool
 	   ·Prelude.Bool
@@ -34,8 +36,10 @@ DummyInDo.dummyInDo =
 	(\ (_tctemp1004 :: Prelude.PrimPair Prelude.Bool Prelude.Bool) .
 	 let a :: Prelude.Bool
 	     a = .Prelude.snd ·Prelude.Bool ·Prelude.Bool _tctemp1004
-	 in  .Prelude.return ·Prelude.ActionValue _tcdict1024
+	 in  Prelude.return=
+	       ·Prelude.ActionValue
 	       ·(Prelude.Bit 12)
+	       _tcdict1024
 	       (PrimBuildUndefined ·(Prelude.Bit 12) _ 1))
 next def..........................................................
 

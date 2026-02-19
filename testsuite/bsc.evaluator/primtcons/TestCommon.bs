@@ -80,9 +80,19 @@ uncookSMaybe sm = if sm.valid
                   then RawSMaybe ((pack sm.dat) ++ 1'b1)
                   else RawSMaybe (_ ++ 1'b0)
 
+instance Functor SMaybe where
+  fmap f sm = if sm.valid
+              then SMaybe { valid = True; dat = f sm.dat }
+              else SMaybe { valid = False; dat = _ } 
+
+instance Applicative SMaybe where
+  pure x = SMaybe { valid = True; dat = x }
+  liftA2 f sm1 sm2 = if sm1.valid && sm2.valid
+                     then SMaybe { valid = True; dat = f sm1.dat sm2.dat }
+                     else SMaybe { valid = False; dat = _ }
+
 -- SMaybe Monad instance with lazy conditional
 instance Monad SMaybe where
-  return x = SMaybe { valid = True; dat = x }
   bind x f = if x.valid then f x.dat else SMaybe { valid = False; dat = _ }
 
 --------------------------------------------------------------------------------
