@@ -8,8 +8,14 @@ runR (R _x) = _x
 ask :: ReaderModule r r
 ask = R (\_r -> return _r)
 
+instance Functor (ReaderModule r) where
+  fmap f (R _x) = R (\_r -> fmap f (_x _r)) 
+
+instance Applicative (ReaderModule r) where
+  pure _i = R (\_r -> return _i)
+  liftA2 f (R _x) (R _y) = R (\_r -> liftA2 f (_x _r) (_y _r))
+
 instance Monad (ReaderModule r) where
-  return _i = R (const $ return _i)
   bind _x _f = R (\_r -> do let _n = primGetParamName _f
                             -- messageM $ primGetNameString _n
                             _x' <- runR (setStateName _n _x) _r
