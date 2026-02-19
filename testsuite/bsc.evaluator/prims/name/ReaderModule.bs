@@ -9,7 +9,7 @@ ask :: ReaderModule r r
 ask = R (\_r -> return _r)
 
 instance Functor (ReaderModule r) where
-  fmap f (R _x) = R (\_r -> fmap f (_x _r)) 
+  fmap f (R _x) = R (\_r -> fmap f (_x _r))
 
 instance Applicative (ReaderModule r) where
   pure _i = R (\_r -> return _i)

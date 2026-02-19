@@ -83,7 +83,7 @@ uncookSMaybe sm = if sm.valid
 instance Functor SMaybe where
   fmap f sm = if sm.valid
               then SMaybe { valid = True; dat = f sm.dat }
-              else SMaybe { valid = False; dat = _ } 
+              else SMaybe { valid = False; dat = _ }
 
 instance Applicative SMaybe where
   pure x = SMaybe { valid = True; dat = x }
