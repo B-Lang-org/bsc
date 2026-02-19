@@ -11,8 +11,18 @@ sInvalid x = SMaybe {valid = False; dat = x}
 sInvalid_ :: SMaybe a
 sInvalid_ = sInvalid _
 
+instance Functor SMaybe where
+  fmap f sm = if sm.valid
+              then SMaybe { valid = True; dat = f sm.dat }
+              else sInvalid_
+
+instance Applicative SMaybe where
+  pure x = SMaybe {valid = True; dat = x}
+  liftA2 f sm1 sm2 = if sm1.valid && sm2.valid
+                     then SMaybe { valid = True; dat = f sm1.dat sm2.dat }
+                     else sInvalid_
+
 instance Monad SMaybe where
-  return x = SMaybe {valid = True; dat = x}
   bind x f = if x.valid then f x.dat else sInvalid_
 
 data Raw t = Raw (Bit (SizeOf t))

@@ -6,8 +6,14 @@ data ModuleContext c i = M (c -> Module (c,i))
 unM :: ModuleContext c i -> c -> Module (c,i)
 unM (M _x) = _x
 
+instance Functor (ModuleContext c) where
+  fmap _f (M _x) = M (\_c -> fmap (\_node -> (_node.fst, _f _node.snd)) (_x _c))
+
+instance Applicative (ModuleContext c) where
+  pure _i = M (\_c -> pure (_c,_i))
+  liftA2 = liftM2
+
 instance Monad (ModuleContext c) where
-  return _i      = M (\_c -> return (_c,_i))
   bind (M _x) _f = M (\_c ->
                         (_x _c) `bind`
                           (\ _node -> unM (_f _node.snd) _node.fst)

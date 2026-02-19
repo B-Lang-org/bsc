@@ -462,6 +462,9 @@ unzip (V v) = letseq (as, bs) = Array.unzip v
 map :: (a -> b) -> Vector n a -> Vector n b
 map f (V v) = V (Array.map f v)
 
+instance Functor (Vector n) where
+  fmap = map
+
 --@ The ``fold'' family of functions reduces a vector by applying a
 --@ function over all its elements.
 --@ That is, given a
