@@ -2464,7 +2464,7 @@ instance Applicative Module
 --@ \end{libverbatim}
 instance Monad Module
   where
-    bind x f = primModuleBind x f
+    bind = primModuleBind
 
 --@ \begin{libverbatim}
 --@ instance MonadFix #(Module);
