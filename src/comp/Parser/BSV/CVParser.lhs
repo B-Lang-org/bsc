@@ -25,6 +25,7 @@
 > import PreStrings
 > import PreIds
 > import Type
+> import CType(cTVarKind, Kind(KNum, KStr))
 > import IntLit
 > import Error(internalError, EMsg, WMsg, ErrMsg(..),
 >              ErrorHandle, bsError, bsWarning, exitOK)
@@ -1744,14 +1745,16 @@ EXPRESSIONS
 >        value <- pExpression
 >        return (name, value)
 
-primary with arguments, e.g. prim(a,b,c)
+primary with arguments, e.g. prim(a,b,c) or prim#(type_params)(value_args)
 
 > pPrimaryWithArgs :: CExpr -> SV_Parser CExpr
 > pPrimaryWithArgs e =
 >--     do args <- many1 (pInParens (pCommaSep pExpression))
 >     do pos <- getPos
+>        -- Optional #(params) for module/function with type or value parameters
+>        params <- option [] pParameters
 >        amcmrmps <- many1 pPortListArgs
->        let ((args, mClock, mReset, mPower),ok) =
+>        let ((portArgs, mClock, mReset, mPower),ok) =
 >              case amcmrmps of
 >                    [x] -> (x,True)
 >                    xs  -> let p(_,Nothing,Nothing,Nothing) = True
@@ -1759,6 +1762,7 @@ primary with arguments, e.g. prim(a,b,c)
 >                               q (x,_,_,_) = x
 >                           in  ((concat (map q xs),Nothing,Nothing,Nothing),
 >                                all p xs)
+>            args = params ++ portArgs
 >            e'' = cApply 17 e args
 >            e'   = (if isNothing mClock && isNothing mReset && isNothing mPower
 >                            then e''
@@ -4212,6 +4216,18 @@ argument should become a Verilog parameter.
 >              -- XXX functions can't be params! but compiler won't allow
 >              -- XXX this to synthesize anyway (even to ports)
 >              return ((name, typ), mkPProps name))
+>         <|>
+>          -- Parse "numeric type id" / "string type id" / "type id" (same as pTypedefParam)
+>          (do pkind <- option Nothing $
+>                  fmap Just ((pTheString "numeric" >> return KNum) <|>
+>                            (pKeyword SV_KW_string >> return KStr))
+>              pKeyword SV_KW_type
+>              pid <- pIdentifier <?> "parameter name"
+>              let typ = case pkind of
+>                        Just KNum -> cTVarKind pid KNum
+>                        Just KStr -> cTVarKind pid KStr
+>                        Nothing   -> cTVar pid
+>              return ((pid, typ), mkPProps pid))
 >         <|>
 >          (do t <- pTypeExpr <?> "parameter type"
 >              i <- pIdentifier <?> "parameter name"
