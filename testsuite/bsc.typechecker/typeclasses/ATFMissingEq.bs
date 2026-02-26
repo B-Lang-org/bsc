@@ -3,7 +3,7 @@ package ATFMissingEq where
 -- Test that an instance which omits a required ATF equation is an error.
 
 class Container f where
-  type Elem f :: *
+  type Elem f
   wrap :: Elem f -> f
   unwrap :: f -> Elem f
 

@@ -6,7 +6,7 @@ package ATFDecl where
 -- when checking that unwrap returns the correct type.
 
 class Container f where
-  type Elem f :: *
+  type Elem f
   wrap :: Elem f -> f
   unwrap :: f -> Elem f
 

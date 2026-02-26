@@ -4,8 +4,8 @@ package ATFMultiple where
 -- Both First (P a b) = a and Second (P a b) = b must be expanded correctly.
 
 class Pair f where
-  type First  f :: *
-  type Second f :: *
+  type First  f
+  type Second f
   fstOf :: f -> First f
   sndOf :: f -> Second f
 

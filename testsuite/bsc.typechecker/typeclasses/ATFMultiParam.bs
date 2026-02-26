@@ -13,7 +13,7 @@ package ATFMultiParam where
 data Pair a b = Pair a b
 
 class Merge a b where
-  type Out a b :: *
+  type Out a b
   merge :: a -> b -> Out a b
 
 instance Merge Integer Bool where
