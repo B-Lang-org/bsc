@@ -7,10 +7,11 @@ proc count_rules_after_splitIf { name number { mod "sysx" } { opt "" } } {
    global vtest
    global dump_suffix
    global rules_regex
-   set dumpfile "$name.$dump_suffix"
-   compile_verilog_pass $name $mod "$opt -dsplitIf=$dumpfile"
+   set dumpfile_opt "$name.%m.$dump_suffix"
+   set dumpfile_mod "$name.$mod.$dump_suffix"
+   compile_verilog_pass $name $mod "$opt -dsplitIf=$dumpfile_opt"
    if { $vtest == 1 } {
-      find_n_regexp $dumpfile $rules_regex $number
+      find_n_regexp $dumpfile_mod $rules_regex $number
    }
 }
 
@@ -105,10 +106,10 @@ count_rules_after_splitIf reg-update.bsv 64
 compile_verilog_pass_no_warning SplitFalse.bsv
 compile_verilog_pass_no_warning SplitEmpty.bsv
 
-count_rules_after_splitIf ArrayShortIndex.bsv 4 {}
-count_rules_after_splitIf ArrayExactIndex.bsv 4 {}
+count_rules_after_splitIf ArrayShortIndex.bsv 4 sysArrayShortIndex
+count_rules_after_splitIf ArrayExactIndex.bsv 4 sysArrayExactIndex
 # 5 elems and 1 out-of-bounds
-count_rules_after_splitIf ArrayLongIndex.bsv 7 {}
+count_rules_after_splitIf ArrayLongIndex.bsv 7 sysArrayLongIndex
 
 # Test that splitting is not performed when the condition cannot
 # be lifted, because it contains a method argument or AV value

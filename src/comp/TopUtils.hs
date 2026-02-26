@@ -7,20 +7,23 @@ import Prelude hiding ((<>))
 #endif
 import Text.Printf(printf)
 import System.IO(hFlush, stdout)
+import System.IO.Unsafe(unsafePerformIO)
 import System.CPUTime(getCPUTime)
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
+import qualified Data.Set as S
 import System.Time -- XXX: from old-time package
 -- hbc libs
 import PFPrint
 -- utility libs
 import Util(itos)
 import FileNameUtil(baseName, dropSuf)
-import FileIOUtil(writeFileCatch)
+import FileIOUtil(appendFileCatch, writeFileCatch)
+import IOMutVar
 
 -- compiler libs
 import Flags( Flags(..), verbose, quiet,
-             DumpFlag(..), dumpInfo)
+             DumpFlag(..), dumpInfo, hasDumpStrict)
 -- import CSyntax
 import CVPrint
 import IdPrint
@@ -94,19 +97,38 @@ sdump errh flags t d names a =
         deepseq a $        -- force evaluation
         dumpStr errh flags t d names (show a)
 
+dumpedFiles :: MutableVar (S.Set FilePath)
+dumpedFiles = unsafePerformIO $ newVar S.empty
 
 dumpStr :: ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> String
         -> IO TimeInfo
 dumpStr errh flags t d names@(file, pkg, mod) a = do
     -- the name of this stage
     let sname = drop 2 (show d)
+    let names' = (file,pkg,mod,sname)
+    let header = "=== " ++ sname ++ ":\n"
+    let footer = "\n-----\n"
     -- first, dump the info appropriately
     case (dumpInfo flags d) of
         Just (Just file) -> do
-            writeFileCatch errh (substNames names file) a
+            let dumpPath = substNames names' file
+            currentDumped <- readVar dumpedFiles
+            let hasBeenDumped = dumpPath `S.member` currentDumped
+            let isSpecificDump = hasDumpStrict flags d
+            -- Don't allow explicit parsed dumps to accumulate to avoid a double dump
+            -- from the double parse (first for dependencies and then for code).
+            let doubleParsedPasses = [DFvpp, DFbsvlex, DFparsed]
+            let isDoubleParseDump = isSpecificDump && d `elem` doubleParsedPasses
+            let writeFileFn = if hasBeenDumped && not isDoubleParseDump
+                              then appendFileCatch
+                              else writeFileCatch
+            -- Add a header and footer to -dall dumps in case they end up in the same file.
+            let a' = if hasDumpStrict flags d then a else header ++ a ++ footer
+            writeFileFn errh dumpPath a'
+            writeVar dumpedFiles (S.insert dumpPath currentDumped)
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
-            unless (quiet flags) $ putStrLnF ("=== " ++ sname ++ ":\n" ++ a ++ "\n-----\n")
+            unless (quiet flags) $ putStrLnF (header ++ a ++ footer)
         Nothing -> do
             when (verbose flags) $ putStrLnF (sname ++ " done")
     -- second, dump the timestamp (and get the new time)
@@ -126,14 +148,15 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
         _ -> -- don't exit here, return the new time
              return t'
 
-substNames :: (String,String, String) -> String -> String
+substNames :: (String, String, String, String) -> String -> String
 substNames _ "" = ""
-substNames names@(file,pkg,mod) ('%':c:cs) = subst ++ substNames names cs
+substNames names@(file,pkg,mod,stage) ('%':c:cs) = subst ++ substNames names cs
     where subst = case c of
                   '%' -> "%"
                   'f' -> file
                   'p' -> pkg
                   'm' -> mod
+                  's' -> stage
                   c'  -> [c']
 substNames names (c:cs) = c : substNames names cs
 
