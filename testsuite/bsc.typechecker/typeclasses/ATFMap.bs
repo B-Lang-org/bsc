@@ -1,0 +1,35 @@
+package ATFMap where
+
+import Vector
+
+class MapKey k where
+  type Map k v :: *
+  empty :: Map k v
+  update :: Map k v -> k -> v -> Map k v
+  lookup :: Map k v -> k -> v
+
+instance MapKey () where
+  type Map () v = v
+  empty = error "undefined key ()"
+  update _ _ = id
+  lookup x _ = x
+
+instance MapKey (UInt n) where
+  type Map (UInt n) v = Vector (TExp n) v
+  empty = genWith $ \ i -> error ("undefined key " + integerToString i)
+  update = Vector.update
+  lookup = select
+
+data MapOf k v = MapOf (Map k v)
+instance (MapKey a, MapKey b) => MapKey (a, b) where
+  type Map (a, b) v = MapOf a (Map b v)
+  empty = empty
+  update (MapOf m) (x, y) z = MapOf $ update m x (update (lookup m x) y z)
+  lookup (MapOf m) (x, y) = lookup (lookup m x) y
+
+
+stuff :: Map ((UInt 8, UInt 3), (), UInt 2) String
+stuff = update (update empty ((5, 2), (), 3) "hello") ((1, 2), (), 3) "world"
+
+result :: String
+result = lookup stuff ((1, 2), (), 3)

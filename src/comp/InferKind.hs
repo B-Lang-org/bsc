@@ -20,14 +20,19 @@ inferKinds mi s ds = run $ do
     let get (Ctype ik _ _) = getIK ik
         get (Cdata { cd_name = name }) = getIK name
         get (Cstruct _ _ ik _ _ _) = getIK ik
-        get (Cclass _ _ ik _ _ _) = getIK ik
+        get (Cclass _ _ ik _ _ ats _) = do
+            ik_entry <- getIK ik
+            atf_entries <- mapM getATFIK ats
+            return (ik_entry ++ concat atf_entries)
         get (CItype ik _ _) = getIK ik
-        get (CIclass _ _ ik _ _ _) = getIK ik
+        get (CIclass _ _ ik _ _ _ _) = getIK ik
         get (CprimType ik) = getIK ik
         get _ = return []
         getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
         getIK (IdKind i k) = return [(i, k)]
         getIK (IdPKind i pk) = do k <- convertPKindToKind pk; return [(i, k)]
+        getATFIK (CAssocType _ atf_id _ _) = do
+            v <- newKVar (Just atf_id); return [(atf_id, v)]
     ass <- mapM get ds
     -- assumptions about the types defined in this package
     let as = concat ass
@@ -86,7 +91,7 @@ inferKDefn as (Cstruct _ _ ik vs fs _) = do
                 kcCQTypeStar (map_insertMany as''' as'') (cf_type field)
     mapM_ doField fs
     unifyDefStar i con_k as' mk
-inferKDefn as (Cclass _ ps ik vs _ fs) = do
+inferKDefn as (Cclass _ ps ik vs _ ats fs) = do
     let i = iKName ik
         con_k = mustFindK i as
     (v_as, mk) <- unifyDefArgs i con_k vs
@@ -101,6 +106,9 @@ inferKDefn as (Cclass _ ps ik vs _ fs) = do
                 kcCQTypeStar (map_insertMany fv_as as') (cf_type field)
     mapM_ doField fs
     mapM_ (inferCPred as') ps
+    -- Constrain the kind of each associated type family constructor
+    let v_ks = map snd v_as
+    mapM_ (inferKATF as v_ks) ats
     unifyDefStar i con_k v_as mk
 inferKDefn as (Cinstance qt@(CQType ps t) _) = do
     as' <- mapM makeAssump (getFQTyVarsL qt)
@@ -108,6 +116,14 @@ inferKDefn as (Cinstance qt@(CQType ps t) _) = do
     mapM_ (inferCPred as'') ps
     kcCTypeStar as'' t
 inferKDefn _ _ = return ()
+
+inferKATF :: Assumps -> [Kind] -> CAssocType -> KI ()
+inferKATF as v_ks (CAssocType _ atf_id ca_n k) = do
+    let atf_k    = mustFindK atf_id as
+        n_extra  = max 0 (ca_n - length v_ks)
+        extra_ks = replicate n_extra KStar
+        expected_k = mkKFun (v_ks ++ extra_ks) k
+    unifyDef atf_id atf_k expected_k
 
 inferCPred :: Assumps -> CPred -> KI ()
 inferCPred as (CPred (CTypeclass i) ts) = kcCTypeStar as (cTApplys (cTCon i) ts)

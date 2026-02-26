@@ -332,6 +332,7 @@ getLDefs :: CDefl -> [Id]
 getLDefs (CLValueSign d _) = [getDName d]
 getLDefs (CLValue i _ _) = [i]
 getLDefs (CLMatch p _) = S.toList (getPV p)
+getLDefs (CLType _ i _ _) = [i]
 
 {-
 getFVQuals :: [CQual] -> S.Set Id
@@ -424,6 +425,7 @@ getFVDl (CLValue _ cs qs) =
 getFVDl (CLMatch p e) =
         -- here, we do want to remove any vars bound in the pattern
         getFVE e `minusVS` getPV p
+getFVDl (CLType _ _ _ _) = emptyFVS
 
 -- Note that the def names themselves are included in the set.
 -- To remove them, use "getDName".
@@ -453,6 +455,7 @@ getFTCDl (CLValueSign d me) = getFTCD d `S.union` getFTCQuals me
 getFTCDl (CLValue _ cs me) =
     S.unions (map getFTCC cs) `S.union` getFTCQuals me
 getFTCDl (CLMatch p e) = getPT p `S.union` getFTCE e
+getFTCDl (CLType _ _ args rhs) = S.unions (map getFTyCons args) `S.union` getFTyCons rhs
 
 getFTCD :: CDef -> S.Set Id
 getFTCD (CDef _ t cs) = S.unions (map getFTCC cs) `S.union` getFQTyCons t
@@ -564,8 +567,10 @@ getFTCDn (Cdata { cd_internal_summands = summands,
   where f summand = getFTyCons (cis_arg_type summand)
 getFTCDn (Cstruct _ _ _ vs fields ds) =
     S.unions (map (getFQTyCons . cf_type) fields) `S.union` S.fromList (map typeclassId ds)
-getFTCDn (Cclass _ ps _ _ _ fields) =
-    S.unions (map getCPTyCons ps ++ map f fields)
+getFTCDn (Cclass _ ps _ _ _ ats fields) =
+    S.difference
+        (S.unions (map getCPTyCons ps ++ map f fields))
+        (S.fromList (map ca_name ats))
   where f field = getFQTyCons (cf_type field) `S.union`
                   S.unions (map getFTCC (cf_default field))
                   -- XXX nothing with cf_orig_type?
@@ -574,7 +579,7 @@ getFTCDn (Cinstance qt ds) =
 getFTCDn (CIinstance _ qt) = getFQTyCons qt
 getFTCDn (CIValueSign _ t) = getFQTyCons t
 getFTCDn (CItype i vs useposs) = S.empty
-getFTCDn (CIclass incoh ps i vs fds useposs) = S.unions (map getCPTyCons ps)
+getFTCDn (CIclass incoh ps i vs fds _ useposs) = S.unions (map getCPTyCons ps)
 
 getVDefIds :: CDefn -> [Id]
 getVDefIds (CValueSign (CDef i _ _)) = [i]
@@ -587,9 +592,9 @@ getVDefIds (Cforeign { cforg_name = i }) = [i]
 getVDefIds (Ctype i _ _) = [iKName i]
 getVDefIds (Cdata { cd_name = name }) = [iKName name]
 getVDefIds (Cstruct _ _ i _ _ _) = [iKName i]
-getVDefIds (Cclass _ _ i _ _ _) = [iKName i]
+getVDefIds (Cclass _ _ i _ _ ats _) = iKName i : map ca_name ats
 getVDefIds (Cinstance _ _) = []
 getVDefIds (CIinstance _ _) = []
 getVDefIds (CItype i _ useposs) = [iKName i]
-getVDefIds (CIclass _ _ i _ _ useposs) = [iKName i]
+getVDefIds (CIclass _ _ i _ _ _ useposs) = [iKName i]
 getVDefIds (CIValueSign i _) = [i]

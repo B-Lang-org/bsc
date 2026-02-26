@@ -31,7 +31,7 @@ import CSyntax
 import CSyntaxUtil(isEnum)
 import SymTab
 import CType
-import CFreeVars(getFTCDn, getVDefIds, getFTyCons)
+import CFreeVars(getFTCDn, getVDefIds, getFTyCons, getFQTyVars)
 import StdPrel
 import InferKind(inferKinds)
 import Type(fn, tArrow, HasKind(..))
@@ -85,10 +85,10 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
 
         cls_fd = -- classes are exported both concretely and abstractly
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- imps,
-                                          Cclass _ _ ik vs fds _ <- ids ] ++
+                                          Cclass _ _ ik vs fds _ _ <- ids ] ++
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- imps,
-                                          CIclass _ _ ik vs fds _ <- ids ] ++
-                 [ (qualId mi (iKName ik), vs, fds) | Cclass _ _ ik vs fds _ <- ds ]
+                                          CIclass _ _ ik vs fds _ _ <- ids ] ++
+                 [ (qualId mi (iKName ik), vs, fds) | Cclass _ _ ik vs fds _ _ <- ds ]
 
         -- XXX imported fundeps don't need to be checked
         -- but it is simpler to check them while converting to bss
@@ -252,17 +252,17 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 ts1 ts2
-        mu2 = mgu vs2 ts2 ts1
+        mu1 = mgu vs1 M.empty ts1 ts2
+        mu2 = mgu vs2 M.empty ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)
 cmpQInsts bss q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) = do
 
-  let t1' = expandSyn t1
+  let t1' = expandSyn M.empty t1
   let t1_vs = tv t1'
 
-  let t2' = expandSyn t2
+  let t2' = expandSyn M.empty t2
   let t2_vs = tv t2'
 
   let (Forall t1_ks (_ :=> sc1)) = quantify t1_vs ([] :=> t1')
@@ -426,6 +426,9 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                            Nothing -> -- no type has a field by this name,
                                       -- let clsMethType error about it
                                       []
+        -- Filter out associated type equations (CLType) — they are
+        -- handled separately in collectATFEqs and do not produce defs.
+        methDefs = filter (\d -> case d of { CLType {} -> False; _ -> True }) ds
         altId (CLValue i cs me) = CLValueSign (CDef (mkUId i) (clsMethType i) cs) me
         altId (CLValueSign (CDef i qt cs) me) = CLValueSign (CDef (mkUId i) qt cs) me
         altId _ = internalError "MakeSymTab.convInst altId"
@@ -456,14 +459,14 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                              -- XXX Lennart's comment: hacky encoding of dict
                              -- XXX "tiExpr" looks for this construction
                              CHasType (anyExprAt (getPosition di)) cqt)
-        body = Cletrec (map altId ds) (CStruct (Just True) c (map mkf ds ++ sds))
+        body = Cletrec (map altId methDefs) (CStruct (Just True) c (map mkf methDefs ++ sds))
     in  (CValueSign (CDef (mkInstId mi t) qt [CClause [] [] body]))
 convInst _ _ _ d = d
 
 mkInstId :: Id -> CType -> Id
 mkInstId mi t =
 --    trace ("mkInstId " ++ ppReadable (mi,t, expandSyn t)) $
-    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t)))))
+    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn M.empty t)))))
   where flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
@@ -552,7 +555,7 @@ getFields mi s (Cstruct vis _ ik vs ifs fieldNames) =
   in  -- traces ("getFields: " ++ ppReadable fieldNames ++ "\nn2: " ) $
       map generatorf ifs
 
-getFields mi s (Cclass _ ps ik vs _ ifs) =
+getFields mi s (Cclass _ ps ik vs _ _ ifs) =
         let cls = mustFindClass s i
             i = CTypeclass (iKName ik)
             zfunc :: (CTypeclass,Pred) -> CPred -> CField
@@ -575,7 +578,7 @@ getFields _ _ _ = []
 -- first takes in all the type variables (and those of the typeclass
 -- will be first) and then takes in the dictionaries for each context.
 getMethods :: Maybe Id -> SymTab -> CDefn -> [Assump]
-getMethods mi s (Cclass _ _ ik vs _ ifs) =
+getMethods mi s (Cclass _ _ ik vs _ _ ifs) =
         let f (CField { cf_name = fi, cf_type = CQType ps t }) =
                 qual mi fi :>:
                      mustConvCQType s vs (CQType (CPred (CTypeclass i) (map cTVar vs):ps) t)
@@ -622,7 +625,7 @@ chkTopDef r mi isDep (Cforeign i qt on ops) = do
                        in  (all isGoodArg args) && (isGoodResult res)
 
     let i' = qual mi i
-    if isGoodType (expandSyn t) then
+    if isGoodType (expandSyn (getATFEqs r) t) then
         return [(i', VarInfo (VarForg name ops) (i' :>: sc) (isDep i))]
      else
         throwError (getPosition i, EForeignNotBit (pfpString i) (pfpString t))
@@ -651,14 +654,18 @@ mkTypeSyms :: ErrorHandle
            -> (Id -> [Id]) -> Maybe Id -> M.Map Id Kind -> [CDefn] -> QInsts
            -> SymTab -> (SymTab, [EMsg])
 mkTypeSyms errh mkQuals maybePackageName iks defs qts s =
-    let importedTypeInfos = concatMap (getTI errh maybePackageName r iks) defs
+    let importedTypeInfos0 = concatMap (getTI errh maybePackageName r iks) defs
         (cls, errss) =
             unzip $
               [ getCls errh maybePackageName iks r incoh ps ik vs fds ifs qts
-                    | Cclass  incoh ps ik vs fds ifs <- defs ] ++
+                    | Cclass  incoh ps ik vs fds _ ifs <- defs ] ++
               [ getCls errh maybePackageName iks r incoh ps ik vs fds []  qts
-                    | CIclass incoh ps ik vs fds _   <- defs ]
-        r = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
+                    | CIclass incoh ps ik vs fds _ _   <- defs ]
+        r0       = addClasses mkQuals (addTypes mkQuals s importedTypeInfos0) cls
+        -- Collect ATF equations from instance bodies using r0 (type info without
+        -- ATF equations), then store them in the 6th SymTab field.
+        atfEqMap = collectATFEqs errh maybePackageName r0 defs
+        r        = addATFEqs r0 atfEqMap
     in  (r, concat errss)
 
 getTI :: ErrorHandle -> Maybe Id -> SymTab -> M.Map Id Kind -> CDefn -> [(Id, TypeInfo)]
@@ -682,17 +689,26 @@ getTI _ mi _ iks data_decl@(Cdata {}) =
 getTI _ mi _ iks (Cstruct _ ss ik vs fs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs (TIstruct ss (map cf_name fs)))]
   where i = qual mi (iKName ik)
-getTI _ mi _ iks (Cclass _ ps ik vs _ fs) =
-    [(i, TypeInfo (Just i) k vs ti)]
+getTI _ mi _ iks (Cclass _ ps ik vs _ ats fs) =
+    (i, TypeInfo (Just i) k vs ti) : atf_tis
   where i = qual mi (iKName ik)
         k = getK iks ik
+        ks = getNK (genericLength vs) k
         ti = TIstruct SClass
                  (map cf_name fs ++
                   map (\ (CPred (CTypeclass i) _) -> i) ps) -- XXX super
+        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k vs (TIatf n_total))
+                  | CAssocType _ ca_id ca_n ca_k <- ats
+                  , let n_class  = length vs
+                        n_extra  = max 0 (ca_n - n_class)
+                        extra_ks = replicate n_extra KStar
+                        atf_k    = foldr Kfun ca_k (ks ++ extra_ks)
+                        atf_i    = qual mi ca_id
+                        n_total  = n_class + n_extra ]
 getTI _ mi _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
-getTI _ mi _ iks (CIclass _ ps ik vs _ _) =
+getTI _ mi _ iks (CIclass _ ps ik vs _ _ _) =
     [(i, TypeInfo (Just i) k vs ti)]
   where i = qual mi (iKName ik)
         k = getK iks ik
@@ -703,6 +719,51 @@ getTI _ mi _ iks (CprimType ik) =
         -- the CSyntax doesn't provide type var names
         vs = []
 getTI _ _ _ iks _ = []
+
+-- Collect all associated type family equations from instance bodies.
+-- Uses the knot-tied symtab r lazily: the equations are stored as thunks and
+-- are only forced by expandSyn during type-checking, after r is fully built.
+collectATFEqs :: ErrorHandle -> Maybe Id -> SymTab -> [CDefn]
+              -> ATFEqMap
+collectATFEqs errh mi r defs = M.fromListWith (++) $
+    [ (atfId, [convertATFEq errh r atfId fvIds (args, rhs)])
+    | Cinstance _ instDs <- defs
+    , CLType _ name args rhs <- instDs
+    , let atfId = qual mi name
+          fvIds = S.toList (S.unions
+                    (map (getFQTyVars . CQType []) (rhs:args)))
+    ]
+
+-- Convert a parsed ATF equation (with CType args/rhs) to internal Types.
+-- Free type variables in the equation are replaced with TGen placeholders
+-- for pattern matching by expandSyn.
+-- All conversions run in a single K.run so that kind inference propagates
+-- from structural context (e.g. 'n' in 'UInt n' gets kind # because UInt :: # -> *).
+convertATFEq :: ErrorHandle -> SymTab -> Id -> [Id] -> ([CType], CType)
+             -> ([Type], Type)
+convertATFEq errh r atfId fvIds (args, rhs) =
+    let positions = map getPosition fvIds
+        result = K.run $ do
+            -- Allocate a fresh kind variable for each free type variable.
+            -- Kind inference will resolve them from the structural context of
+            -- the argument types and rhs (e.g. 'n' in 'UInt n' -> KNum).
+            as <- mapM (\i -> fmap (i,) (K.newKVar (Just i))) fvIds
+            arg_ts <- mapM (fmap fst . trCType r as) args
+            rhs_t  <- fst <$> trCType r as rhs
+            -- Read back the fully-resolved kind substitution.
+            ksubst <- K.getKSubst
+            -- Build a TGen substitution keyed on TyVar (with resolved kind).
+            let kindOf i = case lookup i as of
+                              Just kv -> K.apKSu ksubst kv
+                              Nothing -> KStar
+                tvars  = [ tVarKind i (kindOf i) | i <- fvIds ]
+                tgens  = zipWith TGen positions [0..]
+                subst  = mkSubst (zip tvars tgens)
+            return (map (apSub subst) arg_ts, apSub subst rhs_t)
+    in case result of
+         Left  msg -> bsErrorUnsafe errh [msg]
+         Right x   -> x
+
 
 qual :: Maybe Id -> Id -> Id
 qual Nothing i = i

@@ -1310,6 +1310,7 @@ instance Bin TISort where
     writeBytes (TIdata is enum) = do putI 1; toBin is; toBin enum
     writeBytes (TIstruct su is) = do putI 2; toBin su; toBin is
     writeBytes (TIabstract)     = do putI 3
+    writeBytes (TIatf n)        = do putI 4; toBin n
     readBytes = do
         i <- getI
         case i of
@@ -1317,6 +1318,7 @@ instance Bin TISort where
           1 -> do is <- fromBin; enum <- fromBin; return (TIdata is enum)
           2 -> do su <- fromBin; is <- fromBin; return (TIstruct su is)
           3 -> return TIabstract
+          4 -> do n <- fromBin; return (TIatf n)
           n -> internalError $ "BinData.Bin(TISort).readBytes: " ++ show n
 
 instance Bin StructSubType where

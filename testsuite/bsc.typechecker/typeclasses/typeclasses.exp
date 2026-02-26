@@ -72,3 +72,15 @@ compile_verilog_pass ClassKind3.bsv
 test_c_veri MutualRecContainer
 
 # --------------------------------------------------
+# Test associated type families (ATF) in Classic syntax
+
+compile_pass ATFDecl.bs
+compile_pass ATFKindNum.bs
+compile_pass ATFMultiple.bs
+compile_pass ATFStruct.bs
+compile_pass ATFStructHK.bs
+compile_pass ATFMultiInst.bs
+compile_pass ATFMultiParam.bs
+compile_pass ATFMap.bs
+
+# --------------------------------------------------

@@ -76,7 +76,7 @@ tiOneDef d@(CValueSign (CDef i t s)) = do
         s <- getSubst'
         clearSubst
         return (CValueSign (apSub s d'))
-tiOneDef d@(Cclass incoh cps ik is fd fs) = do
+tiOneDef d@(Cclass incoh cps ik is fd ats fs) = do
     let -- we can assume that the current class is available, so make it
         -- as a pred
         ts :: [CType]
@@ -171,7 +171,7 @@ qualifyClassDefaults errh symt ds =
               Just (VarInfo _ (qv :>: _) _) -> (v, CVar qv)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "var not found: " ++ ppReadable v)
-        qualDef (Cclass incoh cps ik is deps fs) =
+        qualDef (Cclass incoh cps ik is deps ats fs) =
             let qualField (CField fi fps fqt fdefaults foqt) =
                     let (csets, vsets) = unzip $ map getFVC fdefaults
                         cset = S.unions csets
@@ -184,7 +184,7 @@ qualifyClassDefaults errh symt ds =
                         -- substitute into the clauses
                         fdefaults' = cSubstN (tmap,cmap,vmap,M.empty) fdefaults
                     in  (CField fi fps fqt fdefaults' foqt)
-            in  (Cclass incoh cps ik is deps (map qualField fs))
+            in  (Cclass incoh cps ik is deps ats (map qualField fs))
         qualDef d = d
     in
         map qualDef ds

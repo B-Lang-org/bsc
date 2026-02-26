@@ -1,0 +1,48 @@
+package ATFStructHK where
+
+-- Test that a struct field can have type (F x) a where F x :: * -> * is an ATF.
+-- The ATF 'Slot f' has result kind * -> *, so it maps the class parameter f
+-- to a type constructor.  A struct field 'item :: Slot f elem' applies that
+-- type constructor to a second type variable, yielding a value-kinded type.
+
+class HasSlot f where
+  type Slot f :: * -> *
+  makeSlot :: a -> Slot f a
+
+data BoxTag = BoxTag
+data ListTag = ListTag
+
+-- BoxTag instance: Slot BoxTag = Maybe
+instance HasSlot BoxTag where
+  type Slot BoxTag = Maybe
+  makeSlot x = Valid x
+
+-- ListTag instance: Slot ListTag = List
+-- A second equation for the same ATF, mapping to a different type constructor.
+instance HasSlot ListTag where
+  type Slot ListTag = List
+  makeSlot x = Cons x Nil
+
+-- Struct whose 'item' field is an ATF applied to a second type parameter.
+-- After expansion: Slot BoxTag elem = Maybe elem, Slot ListTag elem = List elem.
+struct Holder f elem =
+  item :: Slot f elem
+
+buildHolder :: Integer -> Holder BoxTag Integer
+buildHolder x = Holder { item = makeSlot x }
+
+buildListHolder :: Integer -> Holder ListTag Integer
+buildListHolder x = Holder { item = makeSlot x }
+
+-- Field access dispatches to the correct ATF equation.
+getItem :: Holder BoxTag Integer -> Maybe Integer
+getItem h = h.item
+
+getListItem :: Holder ListTag Integer -> List Integer
+getListItem h = h.item
+
+test :: Maybe Integer
+test = getItem (buildHolder 42)
+
+test2 :: List Integer
+test2 = getListItem (buildListHolder 99)
