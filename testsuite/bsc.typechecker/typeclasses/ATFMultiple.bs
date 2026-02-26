@@ -1,0 +1,35 @@
+package ATFMultiple where
+
+-- Test a class with two ATFs and an instance providing both equations.
+-- Both First (P a b) = a and Second (P a b) = b must be expanded correctly.
+
+class Pair f where
+  type First  f :: *
+  type Second f :: *
+  fstOf :: f -> First f
+  sndOf :: f -> Second f
+
+data P a b = P a b
+
+instance Pair (P a b) where
+  type First  (P a b) = a
+  type Second (P a b) = b
+  fstOf (P a _) = a
+  sndOf (P _ b) = b
+
+-- Monomorphic helpers that force ATF expansion when the method is bound:
+-- fstOf :: P Integer Bool -> Integer  (First (P Integer Bool) = Integer)
+-- sndOf :: P Integer Bool -> Bool     (Second (P Integer Bool) = Bool)
+fstOfP :: P Integer Bool -> Integer
+fstOfP = fstOf
+
+sndOfP :: P Integer Bool -> Bool
+sndOfP = sndOf
+
+-- fstOfP returns Integer (expanded from First (P Integer Bool))
+testFst :: Integer
+testFst = fstOfP (P 1 True)
+
+-- sndOfP returns Bool (expanded from Second (P Integer Bool))
+testSnd :: Bool
+testSnd = sndOfP (P 1 True)

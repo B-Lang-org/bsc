@@ -14,6 +14,7 @@ module StdPrel(
    ) where
 
 import qualified Bag as B
+import qualified Data.Map as M
 import qualified Data.Set as S
 
 import Util(log2, ordPair, integerSqrt, take3OrErr)
@@ -194,7 +195,7 @@ genAddInsts symT _ _ p@(IsIn c [t1, t2, t3])
 genAddInsts _ bvs (Just dvs) (IsIn c [t1,t2, tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
-      mgu bvs tv t3 /= Nothing =
+      mgu bvs M.empty tv t3 /= Nothing =
         --trace ("TAdd " ++ ppReadable (r, p)) $
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
@@ -220,7 +221,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [t1, tv@(TVar v), t3])
     | t1 `isKnownLTE` t3,
       v `notElem` dvs,
       checkDVS dvs (t1, t3),
-      mgu bvs tv t2 /= Nothing =
+      mgu bvs M.empty tv t2 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
@@ -230,7 +231,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [tv@(TVar v), t2, t3])
     | t2 `isKnownLTE` t3,
       v `notElem` dvs,
       checkDVS dvs (t2, t3),
-      mgu bvs tv t1 /= Nothing =
+      mgu bvs M.empty tv t1 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
@@ -383,7 +384,7 @@ genMaxInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMaxTerms s1 s2 =
 genMaxInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
-      mgu bvs tv t3 /= Nothing =
+      mgu bvs M.empty tv t3 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
@@ -473,7 +474,7 @@ genMinInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMinTerms s1 s2 =
 genMinInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
-      mgu bvs tv t3 /= Nothing =
+      mgu bvs M.empty tv t3 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
@@ -574,7 +575,7 @@ genLogInsts _ _ p@(IsIn c [t1, t2])
 genLogInsts bvs (Just dvs) (IsIn c [tv@(TVar v),t2])
     | v `notElem` dvs,
       checkDVS dvs t2,
-      mgu bvs tv t1 /= Nothing =
+      mgu bvs M.empty tv t1 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
@@ -589,7 +590,7 @@ genLogInsts bvs (Just dvs) (IsIn c [tv@(TVar v),t2])
 genLogInsts bvs (Just dvs) (IsIn c [t1,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs t1,
-      mgu bvs tv t2 /= Nothing =
+      mgu bvs M.empty tv t2 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2]
@@ -792,7 +793,7 @@ genMulInsts symT _ (Just _) p@(IsIn c [t1, t2, t3@(TAp (TAp tc tA) tB)])
 genMulInsts _ bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
-      mgu bvs tv t3 /= Nothing =
+      mgu bvs M.empty tv t3 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
@@ -916,7 +917,7 @@ genDivInsts _ _ (IsIn c [t1, t2, t3])
 genDivInsts bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
     | v `notElem` dvs,
       checkDVS dvs (t1, t2),
-      mgu bvs tv t3 /= Nothing =
+      mgu bvs M.empty tv t3 /= Nothing =
         [ mkInst r ([] :=> p) ]
   where r = anyTExpr (predToType p)
         p = IsIn c [t1, t2, t3]
@@ -983,7 +984,7 @@ genNumEqInsts symT _ _ (IsIn c [t1, TVar {}]) | null (tv t1)
 
 -- reduce away a generated type variable
 genNumEqInsts symT bvs (Just dvs) (IsIn c [t1, t2])
-    | TVar v <- tB, checkDVS dvs tA, mgu bvs tB tA /= Nothing,
+    | TVar v <- tB, checkDVS dvs tA, mgu bvs M.empty tB tA /= Nothing,
       let p = IsIn c [tA, tA], let r = anyTExpr (predToType p) =
         --trace ("NumEq " ++ ppReadable (r, p)) $
         [ mkInst r ([] :=> p) ]

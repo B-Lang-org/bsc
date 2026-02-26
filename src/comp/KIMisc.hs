@@ -3,6 +3,7 @@ module KIMisc(
         KVar, KSubst, apKSu,
         KI, run, err, newKVar, getKSubst,
         unifyType, unifyFunc, unifyDefArgs, unifyDefAlias, unifyDefStar,
+        unifyDef, mkKFun,
         groundK) where
 
 import Data.List(union)

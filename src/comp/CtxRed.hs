@@ -88,7 +88,7 @@ instance CtxRed CDefn where
         popBoundTVs  -- necessary after call to ctxRedCQType
         return (f { cforg_type = cqt' })
 
-    ctxRed d@(Cclass incoh cpreds ik vs fds fs) = do
+    ctxRed d@(Cclass incoh cpreds ik vs fds ats fs) = do
        -- get any kind information we have for the type parameters
        -- XXX is this necessary?
        let i = iKName ik
@@ -112,7 +112,7 @@ instance CtxRed CDefn where
                    Nothing -> ik
                    Just k' -> IdKind i k'
 -}
-       return (Cclass incoh cpreds ik vs fds fs')
+       return (Cclass incoh cpreds ik vs fds ats fs')
 
     ctxRed d = return d
 
@@ -129,6 +129,7 @@ instance CtxRed CDefl where
         p' <- ctxRed p
         e' <- ctxRed e
         return (CLMatch p' e')
+    ctxRed d@(CLType {}) = return d
 
 instance CtxRed CDef where
     ctxRed (CDef i cqt cs) = do

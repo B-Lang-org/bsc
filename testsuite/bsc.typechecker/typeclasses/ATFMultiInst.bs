@@ -1,0 +1,45 @@
+package ATFMultiInst where
+
+-- Test that multiple instances of the same class produce multiple ATF equations
+-- and that the typechecker expands to the correct one based on the argument type.
+
+class Container f where
+  type Elem f :: *
+  extract :: f -> Elem f
+
+data Box a = Box a
+data Tagged t a = Tagged t a
+data Pair a b = Pair a b
+
+-- Three instances, each mapping to a different Elem type.
+instance Container (Box a) where
+  type Elem (Box a) = a
+  extract (Box x) = x
+
+instance Container (Tagged t a) where
+  type Elem (Tagged t a) = a
+  extract (Tagged _ x) = x
+
+-- Elem of a Pair is the first component.
+instance Container (Pair a b) where
+  type Elem (Pair a b) = a
+  extract (Pair x _) = x
+
+-- Each binding forces expansion of a different equation.
+fromBox :: Box Integer -> Integer
+fromBox = extract
+
+fromTagged :: Tagged Bool Integer -> Integer
+fromTagged = extract
+
+fromPair :: Pair Integer Bool -> Integer
+fromPair = extract
+
+test1 :: Integer
+test1 = fromBox (Box 42)
+
+test2 :: Integer
+test2 = fromTagged (Tagged True 99)
+
+test3 :: Integer
+test3 = fromPair (Pair 7 False)

@@ -1,0 +1,35 @@
+package ATFStruct where
+
+-- Test that an ATF can determine the type of a struct field.
+-- The struct Envelope f has a field 'element' whose type is Elem f.
+-- When f = Box Integer, Elem (Box Integer) expands to Integer via the ATF.
+
+class Container f where
+  type Elem f :: *
+  extract :: f -> Elem f
+
+data Box a = Box a
+
+instance Container (Box a) where
+  type Elem (Box a) = a
+  extract (Box x) = x
+
+-- Polymorphic struct where the second field's type is given by the ATF.
+struct Envelope f =
+  box     :: f
+  element :: Elem f
+
+-- Monomorphic specialisation forces Elem (Box Integer) = Integer at binding.
+extractI :: Box Integer -> Integer
+extractI = extract
+
+-- Build an Envelope (Box Integer): element field has type Integer.
+buildEnv :: Box Integer -> Envelope (Box Integer)
+buildEnv b = Envelope { box = b; element = extractI b }
+
+-- Access the element field; its type expands to Integer.
+getElem :: Envelope (Box Integer) -> Integer
+getElem e = e.element
+
+test :: Integer
+test = getElem (buildEnv (Box 42))

@@ -1,0 +1,33 @@
+package ATFMultiParam where
+
+-- Test an ATF whose arity is 2, consuming both class type parameters.
+-- 'Out a b' has kind * -> * -> *, and each instance equation maps a pair
+-- of concrete types to a result type.  The typechecker must dispatch to the
+-- correct equation based on the two concrete type arguments.
+
+data Pair a b = Pair a b
+
+class Merge a b where
+  type Out a b :: *
+  merge :: a -> b -> Out a b
+
+instance Merge Integer Bool where
+  type Out Integer Bool = Pair Integer Bool
+  merge x y = Pair x y
+
+instance Merge Bool Integer where
+  type Out Bool Integer = Maybe Integer
+  merge x y = if x then Just y else Nothing
+
+instance Merge Integer Integer where
+  type Out Integer Integer = Integer
+  merge = (+)
+
+test1 :: Pair Integer Bool
+test1 = merge 42 True
+
+test2 :: Maybe Integer
+test2 = merge False 99
+
+test3 :: Integer
+test3 = merge 1 2

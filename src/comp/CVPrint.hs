@@ -258,7 +258,7 @@ instance PVPrint CDefn where
 
     pvPrint d p (CValueSign def) = pvPrint d p def
 
-    pvPrint d p (Cclass Nothing ps ik is fd ss) =
+    pvPrint d p (Cclass Nothing ps ik is fd _ ss) =
        ((pBlockNT d 0 False
         [t"typeclass" <+> pp d ik <+> pvParameterTypeVars d is,
          pvpFDs d fd,
@@ -1078,6 +1078,8 @@ instance PVPrint CDefl where
     pvPrint d p (CLMatch pat e) =
         t"match"<+> pp d pat <+> t"=" $+$
                   nest 4 (pp d e) <> t";"
+    pvPrint d p (CLType _ name args rhs) =
+        t"type" <+> pp d name <+> sep (map (pvPrint d maxPrec) args) <+> t"=" <+> pp d rhs <> t";"
 
 optWhen :: PDetail -> [CQual] -> Doc -> Doc
 optWhen d [] s = s

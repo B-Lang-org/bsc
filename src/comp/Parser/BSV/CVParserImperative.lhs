@@ -2278,7 +2278,7 @@ to uniquify them.
 >     do restDefns <- convImperativeStmtsToCDefns rest
 >        return (defns ++ restDefns)
 > convImperativeStmtsToCDefns (ISTypeclass pos name provisos dependencies parameters functions : rest) =
->     do let defn = Cclass Nothing provisos name parameters dependencies functions
+>     do let defn = Cclass Nothing provisos name parameters dependencies [] functions
 >        restDefns <- convImperativeStmtsToCDefns rest
 >        return (defn : restDefns)
 > convImperativeStmtsToCDefns (ISTypeclassInstance pos classType functions : rest) =

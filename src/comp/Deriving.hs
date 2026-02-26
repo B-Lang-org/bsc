@@ -171,7 +171,7 @@ doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
 -- then inherit the instance from that type.
 doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
   | fieldSet `S.isSubsetOf` tvset
-  , Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs
+  , Just (Cclass _ _ _ [v] _ _ fs) <- lookup (typeclassId di) xs
   = let
         ity = foldl TAp (cTCon i) vs
         inst = Cinstance (CQType [CPred di [ty]] (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
@@ -217,7 +217,7 @@ doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
 -- field, of that other type), then inherit the instance from that type.
 doStructDer _ _ xs i vs [field] di
   | fieldSet `S.isSubsetOf` tvset
-  , Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs
+  , Just (Cclass _ _ _ [v] _ _ fs) <- lookup (typeclassId di) xs
   = let
         ity = foldl TAp (cTCon i) vs
         CQType _ type_no_qual = fieldType

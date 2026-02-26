@@ -6,6 +6,7 @@ module ContextErrors (
                       ) where
 
 import Data.List
+import qualified Data.Map as M
 import qualified Data.Set as S
 import Control.Monad(when)
 
@@ -641,7 +642,7 @@ isSelectionResultErr pos vp@(VPred vpi _) c arr val = do
       Just (_, _, us, _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            case (mgu bound_tyvars M.empty val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -677,7 +678,7 @@ isUpdateArgErr pos vp@(VPred vpi _) c arr val = do
       Just (_, _, us, _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            case (mgu bound_tyvars M.empty val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -713,7 +714,7 @@ isWriteArgErr pos vp@(VPred vpi _) c arr val = do
       Just (_, _, us, _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            case (mgu bound_tyvars M.empty val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
