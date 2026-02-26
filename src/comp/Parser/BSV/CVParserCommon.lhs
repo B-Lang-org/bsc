@@ -126,8 +126,8 @@ combined declaration/assignment
 >   | ISInterface Position IdK [IfcPragma] [Id] CFields
 > --  interface #(params) name; methods; endinterface
 > --        return [Cstruct True SInterface name params methods []]
->   | ISTypeclass Position IdK [CPred] [([Id],[Id])] [Id] CFields
-> --        return [Cclass False context name params dependencies functions]
+>   | ISTypeclass Position IdK [CPred] [([Id],[Id])] [Id] [CAssocType] CFields
+> --        return [Cclass False context name params dependencies assocTypes functions]
 >   | ISTypeclassInstance Position CQType [CDefl]
 >   | ISImport Position [Id] -- imported packages
 >   | ISExport Position [CExport] -- exported identifiers
@@ -934,7 +934,7 @@ get free variables from statement or right-hand-side of assignment
 > getFVIS (ISImport pos imports) = S.empty
 > getFVIS (ISTypeclassInstance pos classtype defs) =
 >     S.unions [getFVIS (ISFunction pos [] def) | def <- defs]
-> getFVIS (ISTypeclass pos _ _ _ _ methods) = S.empty
+> getFVIS (ISTypeclass pos _ _ _ _ _ methods) = S.empty
 > getFVIS (ISInterface pos _ _ _ methods) = S.empty
 > getFVIS (ISForeignModule pos _ _ clause _) = snd $ getFVC clause
 > getFVIS (ISForeignFunction {}) = internalError "CVParserCommon.getFVIS ISForeignFunction"
@@ -1010,7 +1010,7 @@ get free variables updated by a statement
 > getUFVIS (ISExport _ _) = S.empty
 > getUFVIS (ISImport _ _) = S.empty
 > getUFVIS (ISTypeclassInstance _ _ defs) = S.empty
-> getUFVIS (ISTypeclass _ _ _ _ _ methods) = S.empty
+> getUFVIS (ISTypeclass _ _ _ _ _ _ methods) = S.empty
 > getUFVIS (ISInterface _ _ _ _ methods) = S.empty
 > getUFVIS (ISForeignModule _ _ _ clause _) = S.empty
 > getUFVIS (ISForeignFunction {}) = S.empty
@@ -1078,7 +1078,7 @@ variables declared earlier in the list)
 >   getPosition (ISImport pos _) = pos
 >   getPosition (ISExport pos _) = pos
 >   getPosition (ISTypeclassInstance pos _ _) = pos
->   getPosition (ISTypeclass pos _ _ _ _ _) = pos
+>   getPosition (ISTypeclass pos _ _ _ _ _ _) = pos
 >   getPosition (ISInterface pos _ _ _ _) = pos
 >   getPosition (ISForeignModule pos _ _ _ _) = pos
 >   getPosition (ISForeignFunction pos _ _ _) = pos

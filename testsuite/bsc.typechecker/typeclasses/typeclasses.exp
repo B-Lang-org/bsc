@@ -91,4 +91,9 @@ compile_fail_error ATFDuplicateEq.bs T0154
 compile_fail_error ATFEquationInLet.bs T0155
 compile_fail_error ATFEquationInWhere.bs T0155
 
+# Test ATF in BSV syntax
+
+compile_pass ATFDeclBSV.bsv
+compile_fail_error ATFMissingEqBSV.bsv T0152
+
 # --------------------------------------------------
