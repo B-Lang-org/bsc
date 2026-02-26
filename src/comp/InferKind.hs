@@ -119,9 +119,9 @@ inferKDefn as (Cinstance qt@(CQType ps t) _) = do
 inferKDefn _ _ = return ()
 
 inferKATF :: Assumps -> [Kind] -> CAssocType -> KI ()
-inferKATF as v_ks (CAssocType _ atf_id ca_n mk) = do
+inferKATF as v_ks (CAssocType _ atf_id ca_params mk) = do
     let atf_k    = mustFindK atf_id as
-        n_extra  = max 0 (ca_n - length v_ks)
+        n_extra  = max 0 (length ca_params - length v_ks)
         extra_ks = replicate n_extra KStar
         expected_k = mkKFun (v_ks ++ extra_ks) (fromMaybe KStar mk)
     unifyDef atf_id atf_k expected_k

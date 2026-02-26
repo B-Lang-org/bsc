@@ -156,14 +156,14 @@ instance NFData CFixity where
 
 -- Associated type family declaration within a class body
 data CAssocType = CAssocType
-    { ca_pos        :: Position
-    , ca_name       :: Id
-    , ca_decl_arity :: Int        -- total args listed in the ATF declaration (class params + extras)
-    , ca_kind       :: Maybe Kind -- Nothing means kind *; consistent with TyCon's Maybe Kind
+    { ca_pos    :: Position
+    , ca_name   :: Id
+    , ca_params :: [Id]       -- type variable names listed in the ATF declaration (class params first, then extras)
+    , ca_kind   :: Maybe Kind -- Nothing means kind *; consistent with TyCon's Maybe Kind
     } deriving (Eq, Ord, Show)
 
 instance NFData CAssocType where
-    rnf (CAssocType pos name n k) = rnf4 pos name n k
+    rnf (CAssocType pos name ps k) = rnf4 pos name ps k
 
 instance PPrint CAssocType where
     pPrint d _ (CAssocType _ name _ mk) =

@@ -699,9 +699,9 @@ getTI _ mi _ iks (Cclass _ ps ik vs _ ats fs) =
                  (map cf_name fs ++
                   map (\ (CPred (CTypeclass i) _) -> i) ps) -- XXX super
         atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k vs (TIatf n_total))
-                  | CAssocType _ ca_id ca_n mca_k <- ats
+                  | CAssocType _ ca_id ca_params mca_k <- ats
                   , let n_class  = length vs
-                        n_extra  = max 0 (ca_n - n_class)
+                        n_extra  = max 0 (length ca_params - n_class)
                         extra_ks = replicate n_extra KStar
                         atf_k    = foldr Kfun (fromMaybe KStar mca_k) (ks ++ extra_ks)
                         atf_i    = qual mi ca_id
@@ -768,38 +768,59 @@ convertATFEq errh r atfId fvIds (args, rhs) =
 
 -- Validate ATF equations in instance bodies against class declarations.
 -- Only checks instances of locally-defined classes (Cclass in defs).
--- Returns a list of error messages for missing, extra, and duplicate equations.
+-- Returns a list of error messages for missing, extra, duplicate,
+-- pattern-mismatch, declaration-param-mismatch, and extra-arg-not-var errors.
 validateATFEqs :: Maybe Id -> [CDefn] -> [EMsg]
 validateATFEqs mi defs =
-    let -- Build map: unqualified class name → list of unqualified ATF names
-        classToATFs :: M.Map Id [Id]
+    let -- Build map: unqualified class name →
+        --   (n class params, [(unqualified ATF name, declared arity)])
+        classToATFs :: M.Map Id (Int, [(Id, Int)])
         classToATFs = M.fromList
-            [ (iKName ik, [ca_name | CAssocType _ ca_name _ _ <- ats])
-            | Cclass _ _ ik _ _ ats _ <- defs
+            [ (iKName ik, (length params,
+                           [(ca_name, length ca_params) | CAssocType _ ca_name ca_params _ <- ats]))
+            | Cclass _ _ ik params _ ats _ <- defs
+            ]
+        -- Map from unqualified ATF name to declared arity, per class
+        atfArities :: M.Map Id (M.Map Id Int)
+        atfArities = M.map (\(_, ats) -> M.fromList ats) classToATFs
+        -- T0158: ATF declaration params (in class body) must match class params in order.
+        -- The first min(n_class, len(ca_params)) params are compared pairwise.
+        declParamErrs =
+            [ (ca_pos ca, EATFDeclParamMismatch clsStr (pfpString (qual mi (ca_name ca)))
+                                                        (pfpString expected)
+                                                        (pfpString actual))
+            | Cclass _ _ ik params _ ats _ <- defs
+            , ca <- ats
+            , let clsStr = pfpString (qual mi (iKName ik))
+            , (expected, actual) <- zip params (ca_params ca)
+            , unQualId expected /= unQualId actual
             ]
         validateInst (Cinstance qt@(CQType _ t) instDs) =
             case leftCon t of
               Nothing -> []
               Just c  ->
-                let cUnqual = unQualId c
+                let cUnqual   = unQualId c
                 in case M.lookup cUnqual classToATFs of
-                     Nothing       -> []  -- imported class: skip validation
-                     Just atfList  ->
+                     Nothing                  -> []  -- imported class: skip validation
+                     Just (nCP, atfListPairs)  ->
                        let clsStr       = pfpString (qual mi cUnqual)
-                           instAtfItems = [ (unQualId name, pos)
-                                          | CLType pos name _ _ <- instDs ]
-                           instAtfNames = map fst instAtfItems
+                           classArgs    = snd (splitTAp t)
+                           atfList      = map fst atfListPairs
+                           atfArityMap  = M.findWithDefault M.empty cUnqual atfArities
+                           instAtfItems = [ (unQualId name, pos, args)
+                                          | CLType pos name args _ <- instDs ]
+                           instAtfNames = map (\(n,_,_) -> n) instAtfItems
                            instAtfSet   = S.fromList instAtfNames
                            classAtfSet  = S.fromList (map unQualId atfList)
                            -- Detect duplicates: report all occurrences after the first
-                           goDup (seen, errs) (n, p)
+                           goDup (seen, errs) (n, p, _)
                              | S.member n seen =
                                  (seen, errs ++ [(p, EDuplicateATFEquation clsStr (pfpString n))])
                              | otherwise = (S.insert n seen, errs)
                            dupErrs      = snd $ foldl goDup (S.empty, []) instAtfItems
                            -- ATF equations in instance not declared in class
                            extraErrs    = [ (pos, EExtraATFEquation clsStr (pfpString name))
-                                          | (name, pos) <- instAtfItems
+                                          | (name, pos, _) <- instAtfItems
                                           , not (S.member name classAtfSet)
                                           ]
                            -- ATFs declared in class but absent from instance
@@ -808,9 +829,54 @@ validateATFEqs mi defs =
                                           | atf <- map unQualId atfList
                                           , not (S.member atf instAtfSet)
                                           ]
-                       in dupErrs ++ extraErrs ++ missingErrs
+                           -- ATF equation LHS has wrong number of args
+                           arityErrs    = [ (pos, EATFArityMismatch clsStr (pfpString name) expected actual)
+                                          | (name, pos, eqArgs) <- instAtfItems
+                                          , S.member name classAtfSet
+                                          , let actual   = length eqArgs
+                                                expected = M.findWithDefault actual name atfArityMap
+                                          , actual /= expected
+                                          ]
+                           -- Set of names with arity errors (skip pattern/extra-arg checks for them)
+                           arityErrNames = S.fromList
+                               [ name | (name, _, eqArgs) <- instAtfItems
+                               , S.member name classAtfSet
+                               , let actual   = length eqArgs
+                                     expected = M.findWithDefault actual name atfArityMap
+                               , actual /= expected ]
+                           -- ATF equation LHS pattern doesn't match instance head
+                           patternErrs  = [ (pos, EATFPatternMismatch clsStr (pfpString name))
+                                          | (name, pos, eqArgs) <- instAtfItems
+                                          , S.member name classAtfSet
+                                          , not (S.member name arityErrNames)
+                                          , patternMismatch nCP classArgs eqArgs
+                                          ]
+                           -- T0159: extra args (beyond nCP) in ATF equations must be type variables
+                           extraArgErrs = [ (pos, EATFExtraArgNotVar clsStr (pfpString name) (pfpString badArg))
+                                          | (name, pos, eqArgs) <- instAtfItems
+                                          , S.member name classAtfSet
+                                          , not (S.member name arityErrNames)
+                                          , badArg <- drop nCP eqArgs
+                                          , case badArg of { TVar _ -> False; _ -> True }
+                                          ]
+                       in dupErrs ++ extraErrs ++ missingErrs ++ arityErrs ++ patternErrs ++ extraArgErrs
         validateInst _ = []
-    in concatMap validateInst defs
+    in declParamErrs ++ concatMap validateInst defs
+
+-- Check whether an ATF equation's LHS args conflict with the instance head.
+-- Returns True if there is a mismatch.
+-- Compares only the first min(nCP, len(eqArgs)) args.
+-- A mismatch is detected when both the class arg and the equation arg have
+-- concrete type constructors and those constructors differ.
+patternMismatch :: Int -> [CType] -> [CType] -> Bool
+patternMismatch nCP classArgs eqArgs =
+    let n = min nCP (length eqArgs)
+    in any mismatch1 (take n (zip classArgs eqArgs))
+  where
+    mismatch1 (ca, ea) =
+        case (leftCon ca, leftCon ea) of
+            (Just c1, Just c2) -> unQualId c1 /= unQualId c2
+            _                  -> False
 
 
 qual :: Maybe Id -> Id -> Id

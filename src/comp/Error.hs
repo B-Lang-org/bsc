@@ -700,10 +700,14 @@ data ErrMsg =
         | ETypeSynRecursive [String]
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
-        | EMissingATFEquation String String  -- ^ class name, ATF name
-        | EExtraATFEquation String String    -- ^ class name, ATF name
+        | EMissingATFEquation String String   -- ^ class name, ATF name
+        | EExtraATFEquation String String     -- ^ class name, ATF name
         | EDuplicateATFEquation String String -- ^ class name, ATF name
-        | EATFEquationInLet String           -- ^ ATF name
+        | EATFEquationInLet String            -- ^ ATF name
+        | EATFPatternMismatch String String        -- ^ class name, ATF name
+        | EATFArityMismatch String String Int Int  -- ^ class name, ATF name, expected, actual
+        | EATFDeclParamMismatch String String String String -- ^ class name, ATF name, expected param, actual param
+        | EATFExtraArgNotVar String String String  -- ^ class name, ATF name, non-variable argument
 
         | EUndefinedTask String
         | EUnboundCon String (Maybe String)
@@ -2983,6 +2987,33 @@ getErrorText (EATFEquationInLet atf) =
     (Type 155, empty,
      s2par ("A type family equation for " ++ ishow atf ++
             " may only appear in a class instance declaration"))
+
+getErrorText (EATFPatternMismatch cls atf) =
+    (Type 156, empty,
+     s2par ("Type family equation for " ++ ishow atf ++
+            " in instance of " ++ ishow cls ++
+            " has a left-hand side that does not match the instance head"))
+
+getErrorText (EATFArityMismatch cls atf expected actual) =
+    (Type 157, empty,
+     s2par ("Type family equation for " ++ ishow atf ++
+            " in instance of " ++ ishow cls ++
+            " has " ++ show actual ++ " argument" ++ (if actual == 1 then "" else "s") ++
+            " on the left-hand side but the declaration has " ++ show expected))
+
+getErrorText (EATFDeclParamMismatch cls atf expected actual) =
+    (Type 158, empty,
+     s2par ("Type family declaration for " ++ ishow atf ++
+            " in class " ++ ishow cls ++
+            " expects parameter " ++ ishow expected ++
+            " but found " ++ ishow actual))
+
+getErrorText (EATFExtraArgNotVar cls atf arg) =
+    (Type 159, empty,
+     s2par ("Extra argument " ++ ishow arg ++
+            " in type family equation for " ++ ishow atf ++
+            " in instance of " ++ ishow cls ++
+            " is not a type variable"))
 
 -- Generation Errors
 
