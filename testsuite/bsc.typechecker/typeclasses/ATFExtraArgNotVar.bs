@@ -1,0 +1,15 @@
+package ATFExtraArgNotVar where
+
+-- Test that extra arguments in an ATF equation that are not type variables
+-- are an error (T0159).
+
+class MapKey k where
+  type Map k v
+  empty :: Map k v
+
+data IntMap v = IntMap v
+
+-- Wrong: second arg 'Bool' is not a type variable.
+instance MapKey Integer where
+  type Map Integer Bool = IntMap Bool  -- 'Bool' should be a type variable
+  empty = error "empty"

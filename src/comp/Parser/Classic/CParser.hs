@@ -432,7 +432,7 @@ pClassBodyItem =
        -- getTI subtracts the class param count to get ca_extra_arity.
        l L_type ..+ pTyConId +.+ many pTyVarId +.+ opt (dc ..+ pKind)
            >>- \ (name, (args, mk)) ->
-               Left (CAssocType pos name (length args) mk))
+               Left (CAssocType pos name args mk))
   ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)

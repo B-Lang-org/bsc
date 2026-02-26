@@ -1207,7 +1207,7 @@ TYPE CLASSES AND INSTANCES
 >        pKeyword SV_KW_type
 >        (idk, params) <- pTypedefConParams <?> "associated type family name"
 >        pSemi
->        return (CAssocType pos (iKName idk) (length params) Nothing)
+>        return (CAssocType pos (iKName idk) params Nothing)
 
 > pInstanceAssocTypeEq :: SV_Parser [CDefl]
 > pInstanceAssocTypeEq =

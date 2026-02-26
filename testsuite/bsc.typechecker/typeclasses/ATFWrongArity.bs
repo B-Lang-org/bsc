@@ -1,0 +1,15 @@
+package ATFWrongArity where
+
+-- Test that an ATF equation whose LHS has the wrong number of arguments
+-- compared to the class ATF declaration is an error.
+
+class Container f where
+  type Elem f
+  unwrap :: f -> Elem f
+
+data Wrapper a = Wrapper a
+
+-- Wrong: Elem is declared with 1 arg, but the equation gives 2.
+instance Container (Wrapper a) where
+  type Elem (Wrapper a) Integer = a  -- too many args; should be Elem (Wrapper a) = a
+  unwrap (Wrapper x) = x

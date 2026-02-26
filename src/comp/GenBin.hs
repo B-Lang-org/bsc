@@ -426,9 +426,9 @@ instance Bin CExpr where
              n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
 
 instance Bin CAssocType where
-    writeBytes (CAssocType pos name n k) = do toBin pos; toBin name; toBin n; toBin k
-    readBytes = do pos <- fromBin; name <- fromBin; n <- fromBin; k <- fromBin
-                   return (CAssocType pos name n k)
+    writeBytes (CAssocType pos name ps k) = do toBin pos; toBin name; toBin ps; toBin k
+    readBytes = do pos <- fromBin; name <- fromBin; ps <- fromBin; k <- fromBin
+                   return (CAssocType pos name ps k)
 
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs

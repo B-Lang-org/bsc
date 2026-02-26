@@ -1,0 +1,17 @@
+package ATFWrongPatternMulti where
+
+-- Test that a multi-parameter ATF equation whose LHS first arg doesn't match
+-- the instance head is an error.
+
+class MapKey k where
+  type Map k v
+  empty :: Map k v
+
+data IntMap v = IntMap v
+data BoolMap v = BoolMap v
+
+-- Wrong: class binds k=Integer, so first arg of Map must be Integer.
+-- Using Bool instead triggers T0156.
+instance MapKey Integer where
+  type Map Bool v = IntMap v  -- should be Map Integer v
+  empty = error "empty"
