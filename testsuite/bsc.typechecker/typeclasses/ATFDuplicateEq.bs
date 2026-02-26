@@ -1,0 +1,17 @@
+package ATFDuplicateEq where
+
+-- Test that an instance with duplicate ATF equations for the same type family
+-- is an error.
+
+class Container f where
+  type Elem f :: *
+  wrap :: Elem f -> f
+  unwrap :: f -> Elem f
+
+data Wrapper a = Wrapper a
+
+instance Container (Wrapper a) where
+  type Elem (Wrapper a) = a
+  type Elem (Wrapper a) = Integer  -- duplicate equation for Elem
+  wrap = Wrapper
+  unwrap (Wrapper x) = x

@@ -3095,8 +3095,8 @@ tiLetseqDef type_env arm@(CLMatch pattern expression) =
     internalError
         ("TCheck.tiLetseqDef: CLMatch should have been desugared:\n" ++
          pfpReadable arm)
-tiLetseqDef type_env d@(CLType {}) =
-    internalError ("TCheck.tiLetseqDef: CLType " ++ ppReadable d)
+tiLetseqDef _type_env (CLType pos name _ _) =
+    err (pos, EATFEquationInLet (pfpString name))
 
 -- tiDefls: type-infer a set of letrec definitions
 --   first argument:         assumptions about type environment
@@ -3107,6 +3107,10 @@ tiLetseqDef type_env d@(CLType {}) =
 --   defs':     definitions, possibly rewritten
 tiDefls :: [Assump] -> [CDefl] -> TI ([VPred], [Assump], [CDefl])
 tiDefls type_env defs = do
+    -- Check for illegal ATF equations in where/letrec bindings
+    case [ (pos, name) | CLType pos name _ _ <- defs ] of
+        (pos, name) : _ -> err (pos, EATFEquationInLet (pfpString name))
+        []               -> return ()
     dss        <- mapM expCLMatch defs -- convert pattern-matches to regular defs
     let ds = concat dss
     let -- impl: untyped (implicitly typed) definitions

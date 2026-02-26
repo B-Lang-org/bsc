@@ -1,0 +1,15 @@
+package ATFMissingEq where
+
+-- Test that an instance which omits a required ATF equation is an error.
+
+class Container f where
+  type Elem f :: *
+  wrap :: Elem f -> f
+  unwrap :: f -> Elem f
+
+data Wrapper a = Wrapper a
+
+-- Missing: type Elem (Wrapper a) = a
+instance Container (Wrapper a) where
+  wrap = Wrapper
+  unwrap (Wrapper x) = x
