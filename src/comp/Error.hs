@@ -700,6 +700,10 @@ data ErrMsg =
         | ETypeSynRecursive [String]
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
+        | EMissingATFEquation String String  -- ^ class name, ATF name
+        | EExtraATFEquation String String    -- ^ class name, ATF name
+        | EDuplicateATFEquation String String -- ^ class name, ATF name
+        | EATFEquationInLet String           -- ^ ATF name
 
         | EUndefinedTask String
         | EUnboundCon String (Maybe String)
@@ -2958,6 +2962,27 @@ getErrorText (EConstrFieldsNotNamed c t) =
     (Type 151, empty,
      s2par ("Constructor " ++ quote c ++ " for type " ++ quote t ++
             " does not have named fields."))
+
+getErrorText (EMissingATFEquation cls atf) =
+    (Type 152, empty,
+     s2par ("Instance of class " ++ ishow cls ++
+            " is missing a type family equation for " ++ ishow atf))
+
+getErrorText (EExtraATFEquation cls atf) =
+    (Type 153, empty,
+     s2par ("Instance of class " ++ ishow cls ++
+            " provides a type family equation for " ++ ishow atf ++
+            " which is not an associated type of that class"))
+
+getErrorText (EDuplicateATFEquation cls atf) =
+    (Type 154, empty,
+     s2par ("Instance of class " ++ ishow cls ++
+            " has duplicate type family equations for " ++ ishow atf))
+
+getErrorText (EATFEquationInLet atf) =
+    (Type 155, empty,
+     s2par ("A type family equation for " ++ ishow atf ++
+            " may only appear in a class instance declaration"))
 
 -- Generation Errors
 

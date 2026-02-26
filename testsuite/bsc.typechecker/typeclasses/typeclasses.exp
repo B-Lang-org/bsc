@@ -83,4 +83,12 @@ compile_pass ATFMultiInst.bs
 compile_pass ATFMultiParam.bs
 compile_pass ATFMap.bs
 
+# Test ATF error cases
+
+compile_fail_error ATFMissingEq.bs T0152
+compile_fail_error ATFExtraEq.bs T0153
+compile_fail_error ATFDuplicateEq.bs T0154
+compile_fail_error ATFEquationInLet.bs T0155
+compile_fail_error ATFEquationInWhere.bs T0155
+
 # --------------------------------------------------

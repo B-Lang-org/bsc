@@ -153,7 +153,10 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
         -- previous symbol table with types and classes added
         (symT, clsErrs) = mkTypeSyms errh mkQuals mmi iks ds insts simp
 
-        allClsErrs = impClsErrs ++ clsErrs
+        -- Validate ATF equations (missing/extra/duplicate) against class declarations.
+        atfErrs  = validateATFEqs mmi ds
+
+        allClsErrs = impClsErrs ++ clsErrs ++ atfErrs
 
         -- finally, add constructors, fields, and variables
         -- XXX and something about top vars?
@@ -662,8 +665,6 @@ mkTypeSyms errh mkQuals maybePackageName iks defs qts s =
               [ getCls errh maybePackageName iks r incoh ps ik vs fds []  qts
                     | CIclass incoh ps ik vs fds _ _   <- defs ]
         r0       = addClasses mkQuals (addTypes mkQuals s importedTypeInfos0) cls
-        -- Collect ATF equations from instance bodies using r0 (type info without
-        -- ATF equations), then store them in the 6th SymTab field.
         atfEqMap = collectATFEqs errh maybePackageName r0 defs
         r        = addATFEqs r0 atfEqMap
     in  (r, concat errss)
@@ -763,6 +764,53 @@ convertATFEq errh r atfId fvIds (args, rhs) =
     in case result of
          Left  msg -> bsErrorUnsafe errh [msg]
          Right x   -> x
+
+
+-- Validate ATF equations in instance bodies against class declarations.
+-- Only checks instances of locally-defined classes (Cclass in defs).
+-- Returns a list of error messages for missing, extra, and duplicate equations.
+validateATFEqs :: Maybe Id -> [CDefn] -> [EMsg]
+validateATFEqs mi defs =
+    let -- Build map: unqualified class name → list of unqualified ATF names
+        classToATFs :: M.Map Id [Id]
+        classToATFs = M.fromList
+            [ (iKName ik, [ca_name | CAssocType _ ca_name _ _ <- ats])
+            | Cclass _ _ ik _ _ ats _ <- defs
+            ]
+        validateInst (Cinstance qt@(CQType _ t) instDs) =
+            case leftCon t of
+              Nothing -> []
+              Just c  ->
+                let cUnqual = unQualId c
+                in case M.lookup cUnqual classToATFs of
+                     Nothing       -> []  -- imported class: skip validation
+                     Just atfList  ->
+                       let clsStr       = pfpString (qual mi cUnqual)
+                           instAtfItems = [ (unQualId name, pos)
+                                          | CLType pos name _ _ <- instDs ]
+                           instAtfNames = map fst instAtfItems
+                           instAtfSet   = S.fromList instAtfNames
+                           classAtfSet  = S.fromList (map unQualId atfList)
+                           -- Detect duplicates: report all occurrences after the first
+                           goDup (seen, errs) (n, p)
+                             | S.member n seen =
+                                 (seen, errs ++ [(p, EDuplicateATFEquation clsStr (pfpString n))])
+                             | otherwise = (S.insert n seen, errs)
+                           dupErrs      = snd $ foldl goDup (S.empty, []) instAtfItems
+                           -- ATF equations in instance not declared in class
+                           extraErrs    = [ (pos, EExtraATFEquation clsStr (pfpString name))
+                                          | (name, pos) <- instAtfItems
+                                          , not (S.member name classAtfSet)
+                                          ]
+                           -- ATFs declared in class but absent from instance
+                           instPos      = getPosition qt
+                           missingErrs  = [ (instPos, EMissingATFEquation clsStr (pfpString atf))
+                                          | atf <- map unQualId atfList
+                                          , not (S.member atf instAtfSet)
+                                          ]
+                       in dupErrs ++ extraErrs ++ missingErrs
+        validateInst _ = []
+    in concatMap validateInst defs
 
 
 qual :: Maybe Id -> Id -> Id
