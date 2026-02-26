@@ -4,6 +4,11 @@ package ATFMultiParam where
 -- 'Out a b' has kind * -> * -> *, and each instance equation maps a pair
 -- of concrete types to a result type.  The typechecker must dispatch to the
 -- correct equation based on the two concrete type arguments.
+--
+-- Note: the intermediate let-binding annotated with the ATF type (not the
+-- expanded type) is necessary so that the typechecker can unify
+-- 'Out a b' structurally before forward-expanding to the concrete result
+-- type.  This avoids needing injective (reverse) ATF matching.
 
 data Pair a b = Pair a b
 
@@ -24,10 +29,16 @@ instance Merge Integer Integer where
   merge = (+)
 
 test1 :: Pair Integer Bool
-test1 = merge 42 True
+test1 = let r :: Out Integer Bool
+            r = merge 42 True
+        in r
 
 test2 :: Maybe Integer
-test2 = merge False 99
+test2 = let r :: Out Bool Integer
+            r = merge False 99
+        in r
 
 test3 :: Integer
-test3 = merge 1 2
+test3 = let r :: Out Integer Integer
+            r = merge 1 2
+        in r

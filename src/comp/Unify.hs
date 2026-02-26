@@ -5,7 +5,6 @@ import Subst
 import CType
 import ErrorUtil(internalError)
 import Util(fastNub)
-import qualified Data.Map as M
 
 -- For tracing
 import PFPrint
@@ -46,10 +45,7 @@ instance Unify Type where
                 Just t1' -> mgu bound_tyvars eqmap t1' t2
                 Nothing  -> case tryExpandATF eqmap t2 of
                     Just t2' -> mgu bound_tyvars eqmap t1 t2'
-                    Nothing  ->
-                        case tryReverseATF eqmap bound_tyvars t1 t2 of
-                            result@(Just _) -> result
-                            Nothing -> tryReverseATF eqmap bound_tyvars t2 t1
+                    Nothing  -> Nothing
     -- don't substitute a variable for itself
     mgu bound_tyvars eqmap tu@(TVar u) tv@(TVar v) = varUnify bound_tyvars u v tu tv
     mgu bound_tyvars eqmap (TVar u) t        = varBindWithEqs u t
@@ -63,10 +59,7 @@ instance Unify Type where
             Just t1' -> mgu bound_tyvars eqmap t1' t2
             Nothing  -> case tryExpandATF eqmap t2 of
                 Just t2' -> mgu bound_tyvars eqmap t1 t2'
-                Nothing  ->
-                    case tryReverseATF eqmap bound_tyvars t1 t2 of
-                        result@(Just _) -> result
-                        Nothing -> tryReverseATF eqmap bound_tyvars t2 t1
+                Nothing  -> Nothing
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2
@@ -140,42 +133,6 @@ isUnSatSyn' :: Type -> Integer -> Bool
 isUnSatSyn' (TCon (TyCon _ _ (TItype n _))) args = n > args
 isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1)
 isUnSatSyn' _  _ = False
-
--- Reverse ATF matching: when an ATF application like (Out t1 t2) must unify
--- with a concrete type like (Pair Integer Bool), and the ATF args (t1, t2)
--- are still unbound type variables, forward expansion via tryExpandATF fails.
--- We instead try each concrete (TGen-free) equation: if the RHS unifies with
--- other_t, we bind the ATF arg variables to the corresponding patterns.
-tryReverseATF :: ATFEqMap -> [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
-tryReverseATF eqmap bound_tyvars atf_t other_t =
-    let (f, as) = splitTAp atf_t
-        try (pats, rhs) acc
-          | any hasTGen pats || hasTGen rhs = acc
-          | otherwise =
-              case mgu bound_tyvars eqmap rhs other_t of
-                  Nothing -> acc
-                  Just (s_rhs, rhs_eqs) ->
-                      let as' = map (apSub s_rhs) as
-                      in case mguPairwise eqmap bound_tyvars (zip as' pats) of
-                          Nothing -> acc
-                          Just (s_pats, pat_eqs) ->
-                              Just (s_pats @@ s_rhs, fastNub (rhs_eqs ++ pat_eqs))
-    in case f of
-        TCon (TyCon i _ (TIatf n)) | length as == n ->
-            foldr try Nothing (M.findWithDefault [] i eqmap)
-        _ -> Nothing
-
-hasTGen :: Type -> Bool
-hasTGen (TGen _ _) = True
-hasTGen (TAp f a)  = hasTGen f || hasTGen a
-hasTGen _          = False
-
-mguPairwise :: ATFEqMap -> [TyVar] -> [(Type, Type)] -> Maybe (Subst, [(Type, Type)])
-mguPairwise _ _ [] = Just (nullSubst, [])
-mguPairwise eqmap bv ((t1, t2):rest) = do
-    (s1, eqs1) <- mgu bv eqmap t1 t2
-    (s2, eqs2) <- mguPairwise eqmap bv (map (\(a, b) -> (apSub s1 a, apSub s1 b)) rest)
-    Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
 
 match :: Type -> Type -> Maybe Subst
 match (TAp l r) (TAp l' r') = rtrace ("match: TAp: " ++ ppReadable (l,r)) $ do
