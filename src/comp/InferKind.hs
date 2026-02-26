@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 module InferKind(inferKinds) where
 import Data.List((\\))
+import Data.Maybe(fromMaybe)
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Util(map_insertMany)
@@ -118,11 +119,11 @@ inferKDefn as (Cinstance qt@(CQType ps t) _) = do
 inferKDefn _ _ = return ()
 
 inferKATF :: Assumps -> [Kind] -> CAssocType -> KI ()
-inferKATF as v_ks (CAssocType _ atf_id ca_n k) = do
+inferKATF as v_ks (CAssocType _ atf_id ca_n mk) = do
     let atf_k    = mustFindK atf_id as
         n_extra  = max 0 (ca_n - length v_ks)
         extra_ks = replicate n_extra KStar
-        expected_k = mkKFun (v_ks ++ extra_ks) k
+        expected_k = mkKFun (v_ks ++ extra_ks) (fromMaybe KStar mk)
     unifyDef atf_id atf_k expected_k
 
 inferCPred :: Assumps -> CPred -> KI ()

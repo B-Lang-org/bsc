@@ -158,17 +158,17 @@ instance NFData CFixity where
 data CAssocType = CAssocType
     { ca_pos        :: Position
     , ca_name       :: Id
-    , ca_decl_arity :: Int   -- total args listed in the ATF declaration (class params + extras)
-    , ca_kind       :: Kind
+    , ca_decl_arity :: Int        -- total args listed in the ATF declaration (class params + extras)
+    , ca_kind       :: Maybe Kind -- Nothing means kind *; consistent with TyCon's Maybe Kind
     } deriving (Eq, Ord, Show)
 
 instance NFData CAssocType where
     rnf (CAssocType pos name n k) = rnf4 pos name n k
 
 instance PPrint CAssocType where
-    pPrint d _ (CAssocType _ name _ k) =
+    pPrint d _ (CAssocType _ name _ mk) =
         text "type" <+> ppConId d name <>
-        if k == KStar then empty else text " ::" <+> pPrint d 0 k
+        maybe empty (\k -> text " ::" <+> pPrint d 0 k) mk
 
 -- Top level definition
 data CDefn

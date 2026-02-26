@@ -4,7 +4,7 @@ package ATFDuplicateEq where
 -- is an error.
 
 class Container f where
-  type Elem f :: *
+  type Elem f
   wrap :: Elem f -> f
   unwrap :: f -> Elem f
 

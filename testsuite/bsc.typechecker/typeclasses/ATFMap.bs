@@ -3,7 +3,7 @@ package ATFMap where
 import Vector
 
 class MapKey k where
-  type Map k v :: *
+  type Map k v
   empty :: Map k v
   update :: Map k v -> k -> v -> Map k v
   lookup :: Map k v -> k -> v

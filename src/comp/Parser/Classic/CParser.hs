@@ -5,7 +5,6 @@
 module Parser.Classic.CParser(pPackage, pDefnsAndEOF, errSyntax, CParser, pType, qcon, eof) where
 
 import Data.List(nub)
-import Data.Maybe(fromMaybe)
 
 import Parse
 import IntLit
@@ -433,7 +432,7 @@ pClassBodyItem =
        -- getTI subtracts the class param count to get ca_extra_arity.
        l L_type ..+ pTyConId +.+ many pTyVarId +.+ opt (dc ..+ pKind)
            >>- \ (name, (args, mk)) ->
-               Left (CAssocType pos name (length args) (fromMaybe KStar mk)))
+               Left (CAssocType pos name (length args) mk))
   ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)

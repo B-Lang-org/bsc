@@ -4,7 +4,7 @@ package ATFMultiInst where
 -- and that the typechecker expands to the correct one based on the argument type.
 
 class Container f where
-  type Elem f :: *
+  type Elem f
   extract :: f -> Elem f
 
 data Box a = Box a
