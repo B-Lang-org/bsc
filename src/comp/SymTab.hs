@@ -338,7 +338,7 @@ getATFEqs :: SymTab -> ATFEqMap
 getATFEqs (S _ _ _ _ _ eqs) = eqs
 
 addATFEqs :: SymTab -> ATFEqMap -> SymTab
-addATFEqs (S v c t f cl _) = S v c t f cl
+addATFEqs (S v c t f cl eqs) newEqs = S v c t f cl (M.unionWith (++) eqs newEqs)
 
 -- a double key lookup into the symbol table to get field names of an interface method
 -- The first key is the interface name, the second the method name.

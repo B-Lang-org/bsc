@@ -1,0 +1,15 @@
+package ATFImportedLib where
+
+-- Library package that defines a class with an ATF and one instance.
+-- ATFImported.bs imports this package and uses the ATF equation
+-- to verify that cross-module ATF expansion works correctly.
+
+class Container f where
+  type Elem f
+  extract :: f -> Elem f
+
+data Box a = Box a
+
+instance Container (Box a) where
+  type Elem (Box a) = a
+  extract (Box x) = x

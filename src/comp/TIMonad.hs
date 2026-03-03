@@ -560,6 +560,11 @@ findFields struct_ty0 field_id = do
         getSortInfo qtc TIabstract =
             -- this should only occur for primitives
             (True, Nothing)
+        getSortInfo qtc (TIatf {}) =
+            -- ATF type constructors are not structs; expansion should have
+            -- removed them, but if the type is still polymorphic treat as
+            -- non-struct so the caller can report a proper type error
+            (True, Nothing)
         getSortInfo qtc (TIdata [] _) =
             -- XXX we can't tell if its fields are visible
             (True, Nothing)

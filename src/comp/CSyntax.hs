@@ -198,7 +198,7 @@ data CDefn
         | CprimType IdK
         | CPragma Pragma
         -- only in package signatures
-        | CIinstance Id CQType
+        | CIinstance Id CQType [CDefl]
         -- CItype is imported abstractly
         | CItype IdK [Id] [Position] -- positions of use that caused export
         | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocType] [Position] -- positions of use that caused export
@@ -217,7 +217,7 @@ instance NFData CDefn where
     rnf (Cprimitive i qt) = rnf2 i qt
     rnf (CprimType ik) = rnf ik
     rnf (CPragma pr) = rnf pr
-    rnf (CIinstance i qt) = rnf2 i qt
+    rnf (CIinstance i qt es) = rnf3 i qt es
     rnf (CItype i as poss) = rnf3 i as poss
     rnf (CIclass incoh ps ik is fd ats poss) = rnf7 incoh ps ik is fd ats poss
     rnf (CIValueSign i ty) = rnf2 i ty
@@ -887,7 +887,7 @@ getName (Cclass _ _ i _ _ _ _) = Right $ iKName i
 getName (Cinstance qt _) = Left $ getPosition qt
 getName (CItype i _ _) = Right $ iKName i
 getName (CIclass _ _ i _ _ _ _) = Right $ iKName i
-getName (CIinstance _ qt) = Left $ getPosition qt
+getName (CIinstance _ qt _) = Left $ getPosition qt
 getName (CIValueSign i _) = Right i
 
 getDName :: CDef -> Id
@@ -1159,7 +1159,7 @@ instance PPrint CDefn where
         (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
       where po [o] = [text ",", text (show o)]
             po os = [t"(" <> sepList (map (text . show) os) (t",") <> t ")"]
-    pPrint d p (CIinstance i qt) =
+    pPrint d p (CIinstance i qt _) =
         t"instance" <+> ppConId d i <+> pPrint d 0 qt
     pPrint d p (CItype i as positions) =
         sep (t"type" <+> ppConIdK d i : map (nest 2 . ppVarId d) as)
