@@ -77,7 +77,7 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
 
         -- instances from the imported packages
         iinstqs = nub [ (i, qt) | CImpSign _ _ (CSignature _ _ _ ds) <- imps,
-                                  CIinstance i qt <- ds ]
+                                  CIinstance i qt _ <- ds ]
         qconv qt =
                 case convCQType symT qt of
                 Left msg -> bsErrorUnsafe errh [msg]
@@ -709,11 +709,20 @@ getTI _ mi _ iks (Cclass _ ps ik vs _ ats fs) =
 getTI _ mi _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
-getTI _ mi _ iks (CIclass _ ps ik vs _ _ _) =
-    [(i, TypeInfo (Just i) k vs ti)]
+getTI _ mi _ iks (CIclass _ ps ik vs _ ats _) =
+    (i, TypeInfo (Just i) k vs ti) : atf_tis
   where i = qual mi (iKName ik)
         k = getK iks ik
+        ks = getNK (genericLength vs) k
         ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
+        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k vs (TIatf n_total))
+                  | CAssocType _ ca_id ca_params mca_k <- ats
+                  , let n_class  = length vs
+                        n_extra  = max 0 (length ca_params - n_class)
+                        extra_ks = replicate n_extra KStar
+                        atf_k    = foldr Kfun (fromMaybe KStar mca_k) (ks ++ extra_ks)
+                        atf_i    = qual mi ca_id
+                        n_total  = n_class + n_extra ]
 getTI _ mi _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
@@ -728,12 +737,23 @@ collectATFEqs :: ErrorHandle -> Maybe Id -> SymTab -> [CDefn]
               -> ATFEqMap
 collectATFEqs errh mi r defs = M.fromListWith (++) $
     [ (atfId, [convertATFEq errh r atfId fvIds (args, rhs)])
-    | Cinstance _ instDs <- defs
-    , CLType _ name args rhs <- instDs
-    , let atfId = qual mi name
+    | d <- defs
+    , CLType _ name args rhs <- instDefs d
+    , let -- Resolve the ATF name to its canonical qualified Id.
+          -- For imported ATFs, the name is unqualified in the
+          -- local source but the type constructor is registered in the
+          -- symbol table under its defining-package qualifier.  Look it
+          -- up there first; fall back to qualifying with the current
+          -- package (mi) for locally-defined ATFs not yet in the table.
+          atfId = case findType r name of
+                    Just (TypeInfo (Just canon) _ _ _) -> canon
+                    _ -> qual mi name
           fvIds = S.toList (S.unions
                     (map (getFQTyVars . CQType []) (rhs:args)))
     ]
+  where instDefs (Cinstance  _ ds)    = ds
+        instDefs (CIinstance _ _ eqs) = eqs
+        instDefs _                    = []
 
 -- Convert a parsed ATF equation (with CType args/rhs) to internal Types.
 -- Free type variables in the equation are replaced with TGen placeholders
