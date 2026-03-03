@@ -1,0 +1,28 @@
+package ATFSizeOf where
+
+-- Test that SizeOf can be applied to a type determined by an ATF.
+-- The compiler must expand Repr Bool -> UInt 8 before it can reduce
+-- SizeOf (Repr Bool) to 8 and accept the synthesized module.
+
+class HasRepr f where
+  type Repr f
+
+instance HasRepr Bool where
+  type Repr Bool = UInt 8
+
+instance HasRepr (UInt n) where
+  type Repr (UInt n) = UInt n
+
+struct Container a =
+  x :: Repr a
+ deriving (Bits)
+
+-- A synthesized module whose register width is SizeOf (Repr Bool) = 8.
+-- Requires ATF expansion followed by SizeOf reduction.
+{-# synthesize sysATFSizeOf #-}
+sysATFSizeOf :: Module Empty
+sysATFSizeOf = module
+  rules
+    when True ==> do
+      $display (valueOf (SizeOf (Container Bool)))
+      $finish
