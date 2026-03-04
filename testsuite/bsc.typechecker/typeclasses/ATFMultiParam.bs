@@ -28,17 +28,16 @@ instance Merge Integer Integer where
   type Out Integer Integer = Integer
   merge = (+)
 
+i :: Integer
+i = 42
+j :: Integer
+j = 17
+
 test1 :: Pair Integer Bool
-test1 = let r :: Out Integer Bool
-            r = merge 42 True
-        in r
+test1 = merge i True
 
 test2 :: Maybe Integer
-test2 = let r :: Out Bool Integer
-            r = merge False 99
-        in r
+test2 = merge False i
 
 test3 :: Integer
-test3 = let r :: Out Integer Integer
-            r = merge 1 2
-        in r
+test3 = merge i j

@@ -1,0 +1,17 @@
+package ATFUnifyError where
+
+class Container f where
+  type Elem f
+  wrap   :: Elem f -> f
+  unwrap :: f -> Elem f
+
+data Box a = Box a
+
+instance Container (Box a) where
+  type Elem (Box a) = a
+  wrap = Box
+  unwrap (Box x) = x
+
+-- Unification creates an equality constraint that fails:
+swizzle :: Elem a -> Elem b
+swizzle = id

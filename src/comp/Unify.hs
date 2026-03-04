@@ -19,47 +19,32 @@ rtrace s x = if doRTrace then traces s x else x
 class Unify t where
     mgu :: [TyVar] {- bound type vars: don't substitute with other tyvars -}
         -> ATFEqMap {- ATF equations for expansion during unification -}
-        -- result: list of substitutions and required numeric type equalities
+        -- result: list of substitutions and required type equalities
         -> t -> t -> Maybe (Subst, [(Type, Type)])
 
 instance Unify Type where
+    mgu bound_tyvars eqmap t1@(TAp _ _) t2 | Just t1' <- tryExpandATF eqmap t1 =
+         mgu bound_tyvars eqmap t1' t2
+    mgu bound_tyvars eqmap t1 t2@(TAp _ _) | Just t2' <- tryExpandATF eqmap t2 =
+         mgu bound_tyvars eqmap t1 t2'
     mgu bound_tyvars eqmap t1 t2
         | kind t1 == KNum =
       case kind t2 of
         KNum -> numUnify bound_tyvars t1 t2
         _ -> internalError("unify kind mismatch: " ++ ppReadable(t1, kind t1, t2, kind t2))
-    mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r') =
-        -- Try structural TAp decomposition first.
-        -- If that fails, try expanding ATF applications before giving up.
-        -- This handles cases like (Rep 8) ~ (Bit 8) where Rep 8 = Bit 8 is an
-        -- ATF equation: structural decomp fails (Rep ≠ Bit), but ATF expansion
-        -- of Rep 8 yields Bit 8, making the unification succeed.
-        case do
-            (s1, eqs1) <- mgu bound_tyvars eqmap l l'
-            (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
-            Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
-        of
-        Just result -> Just result
-        Nothing ->
-            case tryExpandATF eqmap t1 of
-                Just t1' -> mgu bound_tyvars eqmap t1' t2
-                Nothing  -> case tryExpandATF eqmap t2 of
-                    Just t2' -> mgu bound_tyvars eqmap t1 t2'
-                    Nothing  -> Nothing
     -- don't substitute a variable for itself
     mgu bound_tyvars eqmap tu@(TVar u) tv@(TVar v) = varUnify bound_tyvars u v tu tv
     mgu bound_tyvars eqmap (TVar u) t        = varBindWithEqs u t
     mgu bound_tyvars eqmap t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars eqmap (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
-    -- Try to expand associated type family (ATF) applications before giving up.
-    -- This handles cases like (First (P Integer Bool)) ~ Integer where
-    -- First (P a b) = a is an ATF equation.
-    mgu bound_tyvars eqmap t1 t2 =
-        case tryExpandATF eqmap t1 of
-            Just t1' -> mgu bound_tyvars eqmap t1' t2
-            Nothing  -> case tryExpandATF eqmap t2 of
-                Just t2' -> mgu bound_tyvars eqmap t1 t2'
-                Nothing  -> Nothing
+    mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r')
+        | Just (s1, eqs1) <- mgu bound_tyvars eqmap l l',
+          Just (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
+        = Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
+    -- an unreducable ATF application failed to unify: generate an equality constraint
+    mgu bound_tyvars eqmap t1 t2 | isATFAp t1 || isATFAp t2 =
+        Just (nullSubst, [(t1, t2)])
+    mgu bound_tyvars _ _ _ = Nothing
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2

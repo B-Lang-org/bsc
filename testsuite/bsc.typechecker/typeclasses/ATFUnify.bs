@@ -1,0 +1,24 @@
+package ATFUnify where
+
+-- Check that we can successfully unify unreduced ATF types, by introducing equality constraints.
+
+class Container f where
+  type Elem f
+  wrap   :: Elem f -> f
+  unwrap :: f -> Elem f
+
+data Box a = Box a
+
+instance Container (Box a) where
+  type Elem (Box a) = a
+  wrap = Box
+  unwrap (Box x) = x
+
+conv1 :: (Container a) => a -> Box (Elem a)
+conv1 x =
+  let y = unwrap x
+  in wrap y
+
+conv2 :: (Container a) => a -> Box (Elem a)
+conv2 x = wrap $ unwrap x
+
