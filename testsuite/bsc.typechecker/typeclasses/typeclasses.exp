@@ -84,6 +84,7 @@ compile_pass ATFMultiParam.bs
 compile_pass ATFMap.bs
 compile_verilog_pass ATFSizeOf.bs
 compile_pass ATFImported.bs
+compile_pass ATFUnify.bs
 
 # Test ATF error cases
 
@@ -97,6 +98,8 @@ compile_fail_error ATFWrongPatternMulti.bs T0156
 compile_fail_error ATFWrongArity.bs T0157
 compile_fail_error ATFDeclParamMismatch.bs T0158
 compile_fail_error ATFExtraArgNotVar.bs T0159
+# TODO: figure out what error code this should have.
+compile_fail ATFUnifyError.bs
 
 # Test ATF in BSV syntax
 

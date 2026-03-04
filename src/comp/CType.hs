@@ -12,7 +12,7 @@ module CType(
   isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
-  matchATFEqs, matchATFPats, instATF, tryExpandATF,
+  matchATFEqs, matchATFPats, instATF, isATFAp, tryExpandATF,
   isTypeBit, isTypeString,
   isTypePrimAction, isTypeAction,
   isTypeActionValue, isTypeActionValue_,
@@ -530,6 +530,13 @@ normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
         | op == idTNumToStr = cTStr (mkNumFString x) (getPosition op)
 
 normTAp f a = TAp f a
+
+isATFAp :: Type -> Bool
+isATFAp t0 =
+    let (f, as) = splitTAp t0
+    in case f of
+        TCon (TyCon _ _ (TIatf n)) -> length as == n
+        _ -> False
 
 -- Try to expand an ATF application when all arguments are known.
 -- Returns Just the reduced type if an equation matches, Nothing otherwise.

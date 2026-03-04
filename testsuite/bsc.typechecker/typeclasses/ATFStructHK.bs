@@ -7,7 +7,7 @@ package ATFStructHK where
 
 class HasSlot f where
   type Slot f :: * -> *
-  makeSlot :: a -> Slot f a
+  makeSlot :: f -> a -> Slot f a
 
 data BoxTag = BoxTag
 data ListTag = ListTag
@@ -15,13 +15,13 @@ data ListTag = ListTag
 -- BoxTag instance: Slot BoxTag = Maybe
 instance HasSlot BoxTag where
   type Slot BoxTag = Maybe
-  makeSlot x = Valid x
+  makeSlot _ x = Valid x
 
 -- ListTag instance: Slot ListTag = List
 -- A second equation for the same ATF, mapping to a different type constructor.
 instance HasSlot ListTag where
   type Slot ListTag = List
-  makeSlot x = Cons x Nil
+  makeSlot _ x = Cons x Nil
 
 -- Struct whose 'item' field is an ATF applied to a second type parameter.
 -- After expansion: Slot BoxTag elem = Maybe elem, Slot ListTag elem = List elem.
@@ -29,10 +29,10 @@ struct Holder f elem =
   item :: Slot f elem
 
 buildHolder :: Integer -> Holder BoxTag Integer
-buildHolder x = Holder { item = makeSlot x }
+buildHolder x = Holder { item = makeSlot BoxTag x }
 
 buildListHolder :: Integer -> Holder ListTag Integer
-buildListHolder x = Holder { item = makeSlot x }
+buildListHolder x = Holder { item = makeSlot ListTag x }
 
 -- Field access dispatches to the correct ATF equation.
 getItem :: Holder BoxTag Integer -> Maybe Integer
