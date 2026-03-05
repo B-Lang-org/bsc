@@ -22,3 +22,5 @@ conv1 x =
 conv2 :: (Container a) => a -> Box (Elem a)
 conv2 x = wrap $ unwrap x
 
+conv3 :: (StarEq (Elem a) (Elem b)) => Elem a -> Elem b
+conv3 = id

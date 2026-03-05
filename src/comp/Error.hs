@@ -708,6 +708,7 @@ data ErrMsg =
         | EATFArityMismatch String String Int Int  -- ^ class name, ATF name, expected, actual
         | EATFDeclParamMismatch String String String String -- ^ class name, ATF name, expected param, actual param
         | EATFExtraArgNotVar String String String  -- ^ class name, ATF name, non-variable argument
+        | EATFEqUnsupportedKind String String String  -- ^ type1, type2, kind
 
         | EUndefinedTask String
         | EUnboundCon String (Maybe String)
@@ -3014,6 +3015,13 @@ getErrorText (EATFExtraArgNotVar cls atf arg) =
             " in type family equation for " ++ ishow atf ++
             " in instance of " ++ ishow cls ++
             " is not a type variable"))
+
+getErrorText (EATFEqUnsupportedKind t1 t2 k) =
+    (Type 160, empty,
+     s2par ("Cannot create an equality constraint for types of kind " ++ ishow k ++
+            " (only kinds # and * are currently supported):") $$
+     s2par ("  " ++ t1) $$
+     s2par ("  " ++ t2))
 
 -- Generation Errors
 

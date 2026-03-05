@@ -600,7 +600,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
         -- for that argument, just pass the instance to itself
         let isSelfRec = any (== p) (apSub s ps)
             vs' = zipWith (\ x y -> if (y == p) then i else x) vs (apSub s ps)
-        eq_ps <- mapM eqToPred num_eqs
+        eq_ps <- mapM (eqToPred (getPredPositions p)) num_eqs
         let eq_pwps = map (mkPredWithPositions []) eq_ps
         eq_vs <- mapM (const newDict) eq_pwps
         -- if p introduces a new predicate, carry on the position info
@@ -885,17 +885,17 @@ unify x t1 t2 = do
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError eqmap bound_vars x t1'' t2''
 
-eqToPred :: (Type, Type) -> TI Pred
-eqToPred (t1, t2) =
+eqToPred :: [Position] -> (Type, Type) -> TI Pred
+eqToPred poss (t1, t2) =
   case kind t1 of
     KNum  -> do clsNumEq  <- numEqCls;  return $ IsIn clsNumEq  [t1, t2]
     KStar -> do clsStarEq <- starEqCls; return $ IsIn clsStarEq [t1, t2]
-    k     -> internalError ("eqToPred: ATF equality for non-numeric, non-star kind: " ++
-                            ppReadable (t1, t2, k))
+    k     -> err (if null poss then noPosition else head poss,
+                  EATFEqUnsupportedKind (pfpReadable t1) (pfpReadable t2) (ppReadable k))
 
 eqToVPred :: [Position] -> (Type, Type) -> TI VPred
-eqToVPred poss num_eq = do
-  p <- eqToPred num_eq
+eqToVPred poss ty_eq = do
+  p <- eqToPred poss ty_eq
   mkVPredFromPred poss p
 
 unifyNoEq :: (PPrint a, PVPrint a, HasPosition a)

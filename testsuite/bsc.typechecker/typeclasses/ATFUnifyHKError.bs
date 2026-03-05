@@ -1,0 +1,8 @@
+package ATFUnifyError where
+
+class Container f where
+  type Elem f :: * -> *
+
+-- Can't create an equality constraint of kind * -> *
+conv :: Elem f a -> Elem g a
+conv = id
