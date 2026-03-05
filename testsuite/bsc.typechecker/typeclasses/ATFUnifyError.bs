@@ -13,5 +13,5 @@ instance Container (Box a) where
   unwrap (Box x) = x
 
 -- Unification creates an equality constraint that fails:
-swizzle :: Elem a -> Elem b
-swizzle = id
+conv :: Elem a -> Elem b
+conv = id
