@@ -37,13 +37,15 @@ instance Unify Type where
     mgu bound_tyvars eqmap (TVar u) t        = varBindWithEqs u t
     mgu bound_tyvars eqmap t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars eqmap (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
+    -- an unreducable ATF application: identical types unify cleanly (reflexivity);
+    -- different types generate a deferred equality constraint without structural
+    -- decomposition (no injective type family reasoning).
+    mgu bound_tyvars eqmap t1 t2 | isATFAp t1 || isATFAp t2 =
+        if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
     mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r')
         | Just (s1, eqs1) <- mgu bound_tyvars eqmap l l',
           Just (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
         = Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
-    -- an unreducable ATF application failed to unify: generate an equality constraint
-    mgu bound_tyvars eqmap t1 t2 | isATFAp t1 || isATFAp t2 =
-        Just (nullSubst, [(t1, t2)])
     mgu bound_tyvars _ _ _ = Nothing
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])

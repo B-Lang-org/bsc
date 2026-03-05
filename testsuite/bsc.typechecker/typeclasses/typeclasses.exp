@@ -98,8 +98,7 @@ compile_fail_error ATFWrongPatternMulti.bs T0156
 compile_fail_error ATFWrongArity.bs T0157
 compile_fail_error ATFDeclParamMismatch.bs T0158
 compile_fail_error ATFExtraArgNotVar.bs T0159
-# TODO: figure out what error code this should have.
-compile_fail ATFUnifyError.bs
+compile_fail_error ATFUnifyError.bs T0030
 
 # Test ATF in BSV syntax
 

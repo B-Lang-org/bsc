@@ -56,7 +56,7 @@ eqTypeFinalByKind flags symt r t t' =
       Just IKStar -> eqTypeFinal flags symt (mustFindClass symt (CTypeclass idStarEq)) r t t'
       Just k      -> internalError ("eqTypeFinalByKind: ATF equality constraint for " ++
                                     "higher-kinded type not supported: " ++
-                                    ppReadable (t, t', k))
+                                    ppReadable (t, t', k, kCheck r t'))
       Nothing     -> False
 
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool

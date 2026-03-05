@@ -37,7 +37,6 @@ import Unify
 import Pred
 import SATPred
 import TIMonad
-import SymTab(getATFEqs)
 import PreIds
 import StdPrel(isPreClass)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
