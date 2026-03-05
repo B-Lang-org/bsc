@@ -887,9 +887,12 @@ unify x t1 t2 = do
                      in reportUnifyError eqmap bound_vars x t1'' t2''
 
 eqToPred :: (Type, Type) -> TI Pred
-eqToPred (t1, t2) = do
-  clsNumEq <- numEqCls
-  return $ IsIn clsNumEq [t1, t2]
+eqToPred (t1, t2) =
+  case kind t1 of
+    KNum  -> do clsNumEq  <- numEqCls;  return $ IsIn clsNumEq  [t1, t2]
+    KStar -> do clsStarEq <- starEqCls; return $ IsIn clsStarEq [t1, t2]
+    k     -> internalError ("eqToPred: ATF equality for non-numeric, non-star kind: " ++
+                            ppReadable (t1, t2, k))
 
 eqToVPred :: [Position] -> (Type, Type) -> TI VPred
 eqToVPred poss num_eq = do

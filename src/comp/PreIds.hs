@@ -189,13 +189,14 @@ idBuildUndef = prelude_id_no fsBuildUndef
 idMakeUndef = prelude_id_no fsMakeUndef
 idRawUndef = prelude_id_no fsRawUndef
 idAdd = prop_prelude_id_no fsAdd [IdPCommutativeTCon]
-idMax, idMin, idLog, idMul, idDiv, idNumEq, idAnd, idNot, idPrimSplit :: Id
+idMax, idMin, idLog, idMul, idDiv, idNumEq, idStarEq, idAnd, idNot, idPrimSplit :: Id
 idMax = prop_prelude_id_no fsMax [IdPCommutativeTCon]
 idMin = prop_prelude_id_no fsMin [IdPCommutativeTCon]
 idLog = prelude_id_no fsLog
 idMul = prop_prelude_id_no fsMul [IdPCommutativeTCon]
 idDiv = prelude_id_no fsDiv
 idNumEq = prop_prelude_id_no fsNumEq [IdPCommutativeTCon]
+idStarEq = prop_prelude_id_no fsStarEq [IdPCommutativeTCon]
 idAnd = prelude_id_no fsAnd
 idNot = prelude_id_no fsNot
 idPrimSplit = prelude_id_no fsPrimSplit
