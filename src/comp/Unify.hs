@@ -23,10 +23,13 @@ class Unify t where
         -> t -> t -> Maybe (Subst, [(Type, Type)])
 
 instance Unify Type where
+    -- First, attempt to reduce type families.
+    -- Note that this reduces inside of applications of higher-kinded type families.
     mgu bound_tyvars eqmap t1@(TAp _ _) t2 | Just t1' <- tryExpandATF eqmap t1 =
          mgu bound_tyvars eqmap t1' t2
     mgu bound_tyvars eqmap t1 t2@(TAp _ _) | Just t2' <- tryExpandATF eqmap t2 =
          mgu bound_tyvars eqmap t1 t2'
+
     mgu bound_tyvars eqmap t1 t2
         | kind t1 == KNum =
       case kind t2 of
@@ -40,12 +43,15 @@ instance Unify Type where
     -- an unreducable ATF application: identical types unify cleanly (reflexivity);
     -- different types generate a deferred equality constraint without structural
     -- decomposition (no injective type family reasoning).
+    -- Note that for unreducable higher-kinded type families that are directly applied,
+    -- we introduce the equality constraint outside of the application to avoid
+    -- requiring higher-kinded type equality constraints.
     mgu bound_tyvars eqmap t1 t2 | isATFAp t1 || isATFAp t2 =
         if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
-    mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r')
-        | Just (s1, eqs1) <- mgu bound_tyvars eqmap l l',
-          Just (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
-        = Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
+    mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r') = do
+        (s1, eqs1) <- mgu bound_tyvars eqmap l l'
+        (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
+        Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
     mgu bound_tyvars _ _ _ = Nothing
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
