@@ -16,7 +16,7 @@ import PreIds
 import ISyntax
 import ISyntaxSubst(tSubst)
 import ISyntaxUtil
-import SymTab(SymTab, mustFindClass, findSClass)
+import SymTab(SymTab, mustFindClass, findSClass, getATFEqs)
 
 import Pred
 import CType
@@ -54,9 +54,13 @@ eqTypeFinalByKind flags symt r t t' =
     case kCheck r t of
       Just IKNum  -> eqTypeFinal flags symt (mustFindClass symt (CTypeclass idNumEq))  r t t'
       Just IKStar -> eqTypeFinal flags symt (mustFindClass symt (CTypeclass idStarEq)) r t t'
-      Just k      -> internalError ("eqTypeFinalByKind: ATF equality constraint for " ++
-                                    "higher-kinded type not supported: " ++
-                                    ppReadable (t, t', k, kCheck r t'))
+      -- We error out in type checking for situations where an equality constraint would be needed
+      -- for a higher-kinded type, so there is no context to try resolving, here.
+      -- Just check if the types reduce to the same type.
+      Just _      -> let eqmap = getATFEqs symt
+                         (_, ct)  = convType r t
+                         (_, ct') = convType r t'
+                     in  expandSyn eqmap ct == expandSyn eqmap ct'
       Nothing     -> False
 
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
