@@ -1,0 +1,13 @@
+package ATFExtraEq where
+
+-- Test that an instance providing a type equation for an ATF not declared in
+-- the class is an error.
+
+class Simple a where
+  extract :: a -> Integer
+
+data Box a = Box a
+
+instance Simple (Box a) where
+  type Bogus (Box a) = a  -- 'Bogus' is not an ATF of 'Simple'
+  extract (Box _) = 0

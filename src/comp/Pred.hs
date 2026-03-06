@@ -14,6 +14,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
+import qualified Data.Map as M
 import Eval(NFData(..), rnf2, rnf3, rnf7)
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
@@ -121,7 +122,7 @@ instance PVPrint Pred where
     pvPrint d p (IsIn c ts) = pvparen (p>0) $ pvpId d (typeclassId $ name c) <> pvParameterTypes d ts
 
 instance Types Pred where
-    apSub s (IsIn c ts) = IsIn c $ expandSyn <$> apSub s ts
+    apSub s (IsIn c ts) = IsIn c $ expandSyn M.empty <$> apSub s ts
     tv      (IsIn c ts) = tv ts
 
 instance NFData Pred where
@@ -232,8 +233,8 @@ instance PVPrint Inst where
 
 -----------------------------------------------------------------------------
 
-expandSyn :: Type -> Type
-expandSyn t0 = exp [] f as
+expandSyn :: ATFEqMap -> Type -> Type
+expandSyn eqmap t0 = exp [] f as
   where (f, as) = splitTAp t0
         -- All type applications should be split before entering exp
         exp _ f@(TAp _ _) as = internalError $ "expandSyn.exp Unexpected TAp: " ++ ppReadable (f, as)
@@ -255,10 +256,21 @@ expandSyn t0 = exp [] f as
                             t' = setTypePosition (getIdPosition i) t
                             (f', as') = splitTAp $ inst as1 t'
                         in exp (i:syns) f' (as' ++ as2)
+        -- Associated type family: try to match and expand equations
+        exp syns (TCon tc@(TyCon i _ (TIatf n))) as
+          | let numArgs = genericLength as, numArgs >= n =
+              let (as1, as2) = genericSplitAt n as
+                  as1'       = map (expandSyn eqmap) as1
+                  eqs        = M.findWithDefault [] i eqmap
+              in case matchATFEqs eqs as1' of
+                   Just t  -> let (f', as') = splitTAp t
+                              in exp (i:syns) f' (as' ++ map (expandSyn eqmap) as2)
+                   Nothing -> foldl TAp (TCon tc) (as1' ++ map (expandSyn eqmap) as2)
+          | otherwise = foldl TAp (TCon tc) (map (expandSyn eqmap) as)
         exp _ f@(TCon (TyCon i _ _)) as
-          | isTFun i = apTFun f i $ map expandSyn as
+          | isTFun i = apTFun f i $ map (expandSyn eqmap) as
         -- f does not contain a TAp or a synonym TCon, so it cannot have synonyms to expand
-        exp _ f as = foldl TAp f $ map expandSyn as
+        exp _ f as = foldl TAp f $ map (expandSyn eqmap) as
 
 isTFun :: Id -> Bool
 isTFun i = i `elem` numOpNames ++ strOpNames
@@ -299,7 +311,7 @@ instance Instantiate PredWithPositions where
     inst ts (PredWithPositions p poss) = PredWithPositions (inst ts p) poss
 
 instance Instantiate Pred where
-    inst ts (IsIn c t) = IsIn c $ expandSyn <$> inst ts t
+    inst ts (IsIn c t) = IsIn c $ expandSyn M.empty <$> inst ts t
 
 instance Instantiate Inst where
     inst ts (Inst e ks h) = Inst e [] (inst ts h)

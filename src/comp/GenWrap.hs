@@ -26,7 +26,7 @@ import PreIds
 import CSyntax
 import CSyntaxUtil
 import SymTab(SymTab, TypeInfo(..), FieldInfo(..), findType, addTypesUQ,
-              findField, findFieldInfo, getMethodArgNames)
+              findField, findFieldInfo, getMethodArgNames, getATFEqs)
 import MakeSymTab(convCQType)
 import Pred hiding (name)
 import qualified Pred(name)
@@ -1919,7 +1919,7 @@ expandSynSym :: Type -> GWMonad Type
 expandSynSym xt =
  do
    symt <- getSymTab
-   return (expandSyn (updTypes symt xt))
+   return (expandSyn (getATFEqs symt) (updTypes symt xt))
  where
    updTypes r o@(TCon (TyCon i _ TIabstract)) =
      case findType r i of

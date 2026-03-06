@@ -72,3 +72,43 @@ compile_verilog_pass ClassKind3.bsv
 test_c_veri MutualRecContainer
 
 # --------------------------------------------------
+# Test associated type families (ATF) in Classic syntax
+
+compile_pass ATFDecl.bs
+compile_pass ATFKindNum.bs
+compile_pass ATFMultiple.bs
+compile_pass ATFStruct.bs
+compile_pass ATFStructHK.bs
+compile_pass ATFMultiInst.bs
+compile_pass ATFMultiParam.bs
+compile_pass ATFMap.bs
+compile_verilog_pass ATFSizeOf.bs
+compile_pass ATFImported.bs
+compile_pass ATFUnify.bs
+
+# Test ATF error cases
+
+compile_fail_error ATFMissingEq.bs T0152
+compile_fail_error ATFExtraEq.bs T0153
+compile_fail_error ATFDuplicateEq.bs T0154
+compile_fail_error ATFEquationInLet.bs T0155
+compile_fail_error ATFEquationInWhere.bs T0155
+compile_fail_error ATFWrongPattern.bs T0156
+compile_fail_error ATFWrongPatternMulti.bs T0156
+compile_fail_error ATFWrongArity.bs T0157
+compile_fail_error ATFDeclParamMismatch.bs T0158
+compile_fail_error ATFExtraArgNotVar.bs T0159
+compile_fail_error ATFUnifyError.bs T0030
+compile_fail_error ATFUnifyHKError.bs T0160
+
+# Test ATF in BSV syntax
+
+compile_pass ATFDeclBSV.bsv
+compile_fail_error ATFMissingEqBSV.bsv T0152
+compile_fail_error ATFWrongPatternBSV.bsv T0156
+compile_fail_error ATFWrongPatternMultiBSV.bsv T0156
+compile_fail_error ATFWrongArityBSV.bsv T0157
+compile_fail_error ATFDeclParamMismatchBSV.bsv T0158
+compile_fail_error ATFExtraArgNotVarBSV.bsv T0159
+
+# --------------------------------------------------
