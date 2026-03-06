@@ -535,18 +535,23 @@ isATFAp :: Type -> Bool
 isATFAp t0 =
     let (f, as) = splitTAp t0
     in case f of
-        TCon (TyCon _ _ (TIatf n)) -> length as == n
+        TCon (TyCon _ _ (TIatf n)) -> length as >= n
         _ -> False
 
 -- Try to expand an ATF application when all arguments are known.
+-- Handles over-applied ATFs (e.g. Slot f a where Slot :: * -> (* -> *)):
+-- splits off exactly n class args, expands, then reapplies any extra args.
 -- Returns Just the reduced type if an equation matches, Nothing otherwise.
 tryExpandATF :: ATFEqMap -> Type -> Maybe Type
 tryExpandATF eqmap t0 =
     let (f, as) = splitTAp t0
     in case f of
         TCon (TyCon i _ (TIatf n))
-          | length as == n
-          -> matchATFEqs (M.findWithDefault [] i eqmap) as
+          | length as >= n
+          -> let (classArgs, extraArgs) = splitAt n as
+             in case matchATFEqs (M.findWithDefault [] i eqmap) classArgs of
+                    Just rhs -> Just (foldl TAp rhs extraArgs)
+                    Nothing  -> Nothing
         _ -> Nothing
 
 -- Match a list of ATF equations against concrete argument types.
