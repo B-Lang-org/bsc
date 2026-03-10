@@ -46,23 +46,10 @@ eqType0 flags symt r@(E _ _ eqs _) t t' =
     t == t' ||
     EC.isEqual eqs t t' ||
     eqType1 flags symt r t t' ||
-    eqTypeFinalByKind flags symt r t t'
-
--- Dispatch eqTypeFinal to the right equality class based on the kind of t.
-eqTypeFinalByKind :: Flags -> SymTab -> Env -> IType -> IType -> Bool
-eqTypeFinalByKind flags symt r t t' =
-    case kCheck r t of
-      Just IKNum  -> eqTypeFinal flags symt (mustFindClass symt (CTypeclass idNumEq))  r t t'
-      Just IKStar -> let (_, ct)  = convType r t
-                         (_, ct') = convType r t'
-                     in  expandSyn ct == expandSyn ct'
-      -- We error out in type checking for situations where an equality constraint would be needed
-      -- for a higher-kinded type, so there is no context to try resolving, here.
-      -- Just check if the types reduce to the same type.
-      Just _      -> let (_, ct)  = convType r t
-                         (_, ct') = convType r t'
-                     in  expandSyn ct == expandSyn ct'
-      Nothing     -> False
+    -- try reducing type functions and comparing the results
+    eqTypeATF flags symt r t t' ||
+    -- try satisfying NumEq (only useful for numeric types)
+    eqTypeFinal flags symt r t t'
 
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
@@ -88,21 +75,31 @@ eqType1 _ _ _ (ITCon i _ _) (ITCon i' _ _) = i == i'
 eqType1 _ _ _ (ITNum n) (ITNum n') = n == n'
 eqType1 _ _ _ _ _ = False
 
--- Decide if two types are equal by creating an equality proviso
--- (NumEq) in CSyntax and applying "satisfy".
-eqTypeFinal :: Flags -> SymTab -> Class -> Env -> IType -> IType -> Bool
-eqTypeFinal flags symt eqCls e t1 t2
-    -- Attempt to save time by weeding out cases without type applications.
+-- Try to prove two types equal by expanding type functions via normT,
+-- which resolves type functions through class instance lookup.
+eqTypeATF :: Flags -> SymTab -> Env -> IType -> IType -> Bool
+eqTypeATF flags symt r t t' =
+    let (_, ct)  = convType r t
+        (_, ct') = convType r t'
+    in  expandSynN flags symt ct == expandSynN flags symt ct'
+
+-- Decide if two (numeric) types are equal by creating a NumEq proviso
+-- in CSyntax and applying "satisfy".
+eqTypeFinal :: Flags -> SymTab -> Env -> IType -> IType -> Bool
+eqTypeFinal flags symt e t1 t2
+    -- Attempt to save time by weeding out cases without TAdd, SizeOf, etc
     -- (since there's no use trying to equate "n" and "m", for instance)
+    -- XXX can we also weed out when the kind is not numeric?
     | isITAp t1 || isITAp t2 =
-    let (e', t1') = convType e t1
+    let numEqCls = mustFindClass symt (CTypeclass idNumEq)
+        (e', t1') = convType e t1
         (E _ _ _ (PredEnv _ m s), t2') = convType e' t2
         --satisfyEq :: TI ([VPred], [CDefl])
         satisfyEq = do
           eqs <- mapM mkEPred (S.toList s)
           addBoundTVs (M.elems m)
           addExplPreds eqs
-          vp <- mkVPredFromPred [] (IsIn eqCls [t1', t2'])
+          vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
           satisfy eqs [vp]
     in  case (fst $ runTI flags False symt satisfyEq) of
           Right ([],_) -> True
@@ -110,7 +107,7 @@ eqTypeFinal flags symt eqCls e t1 t2
                  False
  where isITAp (ITAp _ _) = True
        isITAp _          = False
-eqTypeFinal _ _ _ _ _ _ = False
+eqTypeFinal _ _ _ _ _ = False
 
 -------
 
@@ -234,7 +231,7 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
                     (ITAp (ITAp (ITCon i _ _) t1) t2)
                          | i == idLog   -> [(ITAp iTLog t1, t2)]
                          | i == idBits  -> [(ITAp iTSizeOf t1, t2)]
-                         | i == idNumEq  -> [(t1, t2)]
+                         | i == idNumEq -> [(t1, t2)]
                     (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
                          -- XXX should we also equate T#(t2,t1)
                          | i == idAdd -> [(ITAp (ITAp iTAdd t1) t2, t3)]
@@ -242,20 +239,20 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
                          | i == idMin -> [(ITAp (ITAp iTMin t1) t2, t3)]
                          | i == idMul -> [(ITAp (ITAp iTMul t1) t2, t3)]
                          | i == idDiv -> [(ITAp (ITAp iTDiv t1) t2, t3)]
-                    -- For classes with type functions: when we see a dictionary
-                    -- like Container f e, add equivalences for each type function.
-                    -- E.g., for "type Elem f = e": (Elem f, e)
-                    otherwise -> atfEqs symt t
+                    -- For classes with type functions: add ATF equivalences.
+                    -- E.g., for Container f e with "type Elem f = e":
+                    -- dict type "Container a Maybe" adds (Elem a, Maybe)
+                    otherwise -> atfEqsFromDict symt t
         eqs' = trace_witness ("num eq witnesses: " ++ ppReadable new_eqs) $
                let eqFn (x,y) ec = EC.equate x y ec
                in  foldr eqFn eqs new_eqs
         ps' = addPred symt e t
 
 -- Generate type function equivalences from a class dictionary type.
--- For a class with "type Elem f = e", when we encounter the dict
--- type "Container f e", we produce the equivalence (Elem f, e).
-atfEqs :: SymTab -> IType -> [(IType, IType)]
-atfEqs symt dictType =
+-- For a class with "type Elem f = e", when dict type "Container a Maybe"
+-- is added, produce the equivalence (Elem a, Maybe).
+atfEqsFromDict :: SymTab -> IType -> [(IType, IType)]
+atfEqsFromDict symt dictType =
     let (hd, classArgs) = splitITAp dictType
         clsId = case hd of
                   ITCon i _ _ -> Just i
@@ -269,17 +266,16 @@ atfEqs symt dictType =
     in case clsId of
          Nothing -> []
          Just cid ->
-           -- Find all ATF type constructors that belong to this class
-           [ (atfApp, targetType)
+           [ (atfApp, targetArg)
            | (atfId, TypeInfo _ atfK _ ti@(TIatf { atf_class_id = acId
                                                   , atf_param_idxs = pIdxs
                                                   , atf_target_idx = tIdx }))
                <- getAllTypes symt
            , acId == cid
-           , all (\idx -> idx < 0 || idx < length classArgs) pIdxs
            , tIdx < length classArgs
-           , let paramArgs = [ classArgs !! idx | idx <- pIdxs, idx >= 0 ]
-                 targetType = classArgs !! tIdx
+           , all (\idx -> idx >= 0 && idx < length classArgs) pIdxs
+           , let paramArgs = [ classArgs !! idx | idx <- pIdxs ]
+                 targetArg = classArgs !! tIdx
                  atfTyCon = ITCon atfId (kToIK atfK) ti
                  atfApp = foldl ITAp atfTyCon paramArgs
            ]
