@@ -332,7 +332,6 @@ getLDefs :: CDefl -> [Id]
 getLDefs (CLValueSign d _) = [getDName d]
 getLDefs (CLValue i _ _) = [i]
 getLDefs (CLMatch p _) = S.toList (getPV p)
-getLDefs (CLType _ i _ _) = [i]
 
 {-
 getFVQuals :: [CQual] -> S.Set Id
@@ -425,7 +424,6 @@ getFVDl (CLValue _ cs qs) =
 getFVDl (CLMatch p e) =
         -- here, we do want to remove any vars bound in the pattern
         getFVE e `minusVS` getPV p
-getFVDl (CLType _ _ _ _) = emptyFVS
 
 -- Note that the def names themselves are included in the set.
 -- To remove them, use "getDName".
@@ -455,7 +453,6 @@ getFTCDl (CLValueSign d me) = getFTCD d `S.union` getFTCQuals me
 getFTCDl (CLValue _ cs me) =
     S.unions (map getFTCC cs) `S.union` getFTCQuals me
 getFTCDl (CLMatch p e) = getPT p `S.union` getFTCE e
-getFTCDl (CLType _ _ args rhs) = S.unions (map getFTyCons args) `S.union` getFTyCons rhs
 
 getFTCD :: CDef -> S.Set Id
 getFTCD (CDef _ t cs) = S.unions (map getFTCC cs) `S.union` getFQTyCons t

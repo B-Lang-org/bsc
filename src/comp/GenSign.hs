@@ -210,12 +210,12 @@ genSign errh exportAll symt
                        Just cl ->
                            -- Qualify ATF names and pass them to classToIClass.
                            let rawAts = M.findWithDefault [] i classDeclaredAts
-                               ats = map (\(CAssocType p n params mk) ->
-                                           CAssocType p (qualTId symt n) params mk) rawAts
+                               ats = map (\(CAssocType name params rhs) ->
+                                           CAssocType (qualTId symt name) params rhs) rawAts
                            in [classToIClass i k cl ats (findPoss i)]
                  -- ATF type constructors are embedded in the enclosing class's
                  -- CAssocType list and must not be re-exported as a standalone CItype.
-                 Just (TypeInfo _ _ _ (TIatf _)) -> []
+                 Just (TypeInfo _ _ _ (TIatf {})) -> []
                  Just ti@(TypeInfo _ k vs (TItype _ _)) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
                      --       ppString ti ++ "\n" ++
@@ -383,20 +383,19 @@ genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
   let i = iKName ik
       qi = qualId currentPkg i
       -- Qualify ATF names so downstream importers can resolve them unambiguously.
-      qats = map (\(CAssocType p n params mk) -> CAssocType p (qualTId s n) params mk) ats
+      qats = map (\(CAssocType name params rhs) -> CAssocType (qualTId s name) params rhs) ats
   in
     case look qi of
     Nothing -> []
     Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats (qualFields currentPkg s fs),[])]
     Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats [getPosition ik], [])]
-genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) instDs) =
+genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _instDs) =
     -- trace (ppReadable (leftCon t, map leftCon (tyConArgs t))) $
     let tcs = leftTyCons (t : tyConArgs t)
     in
     if all (\c -> exported c || imported c) tcs then
-        let atfEqs = [ CLType pos (qualTId s name) (map (qualType s) args) (qualType s rhs)
-                     | CLType pos name args rhs <- instDs ]
-        in [(CIinstance currentPkg (qualCQType s qt) atfEqs, [(getPosition d, WOrphanInst (pfpString (expandSyn (getATFEqs s) t))) | orphan_inst ])]
+        let atfEqs = []
+        in [(CIinstance currentPkg (qualCQType s qt) atfEqs, [(getPosition d, WOrphanInst (pfpString (expandSyn t))) | orphan_inst ])]
     else
         []
   where leftTyCons = mapMaybe leftTyCon
@@ -420,7 +419,7 @@ genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) instDs) =
         cls_con_name = CTypeclass $ fj1 $ leftCon t
         fj2 = fromJustOrErr ("missing instance class: " ++ ppReadable qt)
         cls = fj2 $ findSClass s cls_con_name
-        inst_cls_args = map (expandSyn (getATFEqs s)) (tyConArgs t)
+        inst_cls_args = map expandSyn (tyConArgs t)
         fd_sigs = map (map not) (funDeps cls)
         inst_heads = zipWith boolCompress fd_sigs (repeat inst_cls_args)
         orphan_head = not . (any exported) . (concatMap allTyCons)

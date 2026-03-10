@@ -12,7 +12,7 @@ module CType(
   isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
-  matchATFEqs, matchATFPats, instATF, isATFAp, tryExpandATF,
+  isATFAp,
   isTypeBit, isTypeString,
   isTypePrimAction, isTypeAction,
   isTypeActionValue, isTypeActionValue_,
@@ -49,9 +49,6 @@ module CType(
   -- * Type class constraints
   CQType(..), CPred(..),
   getCQArrows,
-
-  -- * Associated type family equations
-  ATFEq, ATFEqMap,
 
         ) where
 
@@ -125,16 +122,15 @@ data TISort
           -- primitive abstract type
           -- e.g. Integer, Bit, Module, etc.
         | TIabstract
-          -- associated type family: arity only (equations stored separately in SymTab)
-        | TIatf Int
+          -- Associated type function: resolved by looking up the corresponding
+          -- typeclass instance.  Stores the arity (number of LHS params), the
+          -- class that defines this type function, and the indices of the ATF
+          -- params and the target param within the class's parameter list.
+        | TIatf { atf_class_id   :: Id     -- the class this type function belongs to
+               , atf_param_idxs :: [Int]  -- index of each ATF param in the class param list
+               , atf_target_idx :: Int    -- index of the result param in the class param list
+               }
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
-
--- | The equations (pattern args, rhs) for a single associated type family.
-type ATFEq = [([Type], Type)]
-
--- | Map from ATF name to its equations.
--- Stored separately from TISort to avoid cyclic data structures.
-type ATFEqMap = M.Map Id ATFEq
 
 
 data StructSubType
@@ -535,58 +531,8 @@ isATFAp :: Type -> Bool
 isATFAp t0 =
     let (f, as) = splitTAp t0
     in case f of
-        TCon (TyCon _ _ (TIatf n)) -> length as >= n
+        TCon (TyCon _ _ (TIatf { atf_param_idxs = pIdxs })) -> length as == length pIdxs
         _ -> False
-
--- Try to expand an ATF application when all arguments are known.
--- Handles over-applied ATFs (e.g. Slot f a where Slot :: * -> (* -> *)):
--- splits off exactly n class args, expands, then reapplies any extra args.
--- Returns Just the reduced type if an equation matches, Nothing otherwise.
-tryExpandATF :: ATFEqMap -> Type -> Maybe Type
-tryExpandATF eqmap t0 =
-    let (f, as) = splitTAp t0
-    in case f of
-        TCon (TyCon i _ (TIatf n))
-          | length as >= n
-          -> let (classArgs, extraArgs) = splitAt n as
-             in case matchATFEqs (M.findWithDefault [] i eqmap) classArgs of
-                    Just rhs -> Just (foldl TAp rhs extraArgs)
-                    Nothing  -> Nothing
-        _ -> Nothing
-
--- Match a list of ATF equations against concrete argument types.
--- Returns the instantiated RHS type for the first matching equation, or Nothing.
-matchATFEqs :: [([Type], Type)] -> [Type] -> Maybe Type
-matchATFEqs [] _ = Nothing
-matchATFEqs ((pats, rhs):rest) args =
-    case matchATFPats (zip pats args) [] of
-        Just subst -> Just (instATF subst rhs)
-        Nothing    -> matchATFEqs rest args
-
--- One-sided pattern matching: bind TGen placeholders to concrete types.
-matchATFPats :: [(Type, Type)] -> [(Int, Type)] -> Maybe [(Int, Type)]
-matchATFPats [] s = Just s
-matchATFPats ((TGen _ n, t):ps) s =
-    case lookup n s of
-        Nothing -> matchATFPats ps ((n, t):s)
-        Just t' -> if t == t' then matchATFPats ps s else Nothing
-matchATFPats ((TAp f1 a1, TAp f2 a2):ps) s =
-    matchATFPats ((f1,f2):(a1,a2):ps) s
-matchATFPats ((TCon c1, TCon c2):ps) s
-    | c1 == c2  = matchATFPats ps s
-    | otherwise = Nothing
-matchATFPats ((TVar v1, TVar v2):ps) s
-    | v1 == v2  = matchATFPats ps s
-    | otherwise = Nothing
-matchATFPats _ _ = Nothing
-
--- Apply TGen-indexed substitution to a type (used after pattern matching).
-instATF :: [(Int, Type)] -> Type -> Type
-instATF s (TGen _ n) = case lookup n s of
-    Just t  -> t
-    Nothing -> internalError "CType.instATF: unbound TGen"
-instATF s (TAp f a) = TAp (instATF s f) (instATF s a)
-instATF _ t         = t
 
 getTypeKind :: Type -> Maybe Kind
 getTypeKind (TVar (TyVar _ _ k))  = Just k
@@ -669,14 +615,16 @@ instance PPrint TISort where
     pPrint d p (TIdata is enum) = pparen (p>0) $ text (if enum then "TIdata (enum)" else "TIdata") <+> pPrint d 1 is
     pPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pPrint d 1 ss <+> pPrint d 1 is
     pPrint d p (TIabstract) = text "TIabstract"
-    pPrint d p (TIatf n) = pparen (p>0) $ text "TIatf" <+> pPrint d 0 n
+    pPrint d p (TIatf { atf_param_idxs = pIdxs, atf_class_id = cls }) =
+        pparen (p>0) $ text "TIatf" <+> pPrint d 0 (length pIdxs) <+> pPrint d 0 cls
 
 instance NFData TISort where
     rnf (TItype i t) = rnf2 i t
     rnf (TIdata is enum) = rnf2 is enum
     rnf (TIstruct ss is) = rnf2 ss is
     rnf (TIabstract) = ()
-    rnf (TIatf n) = rnf n
+    rnf (TIatf { atf_class_id = c, atf_param_idxs = ps, atf_target_idx = t }) =
+        rnf3 c ps t
 
 instance PPrint StructSubType where
     pPrint _ _ ss = text (show ss)

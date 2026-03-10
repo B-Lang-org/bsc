@@ -1,9 +1,0 @@
-package ATFEquationInLet where
-
--- Test that an ATF equation in a let expression is an error.
-
--- A type family equation is not valid inside a let binding.
-badLet :: Integer
-badLet =
-  let type Fake x = Integer
-  in 42

@@ -154,21 +154,29 @@ instance NFData CFixity where
     rnf (CInfixl p i) = rnf2 p i
     rnf (CInfixr p i) = rnf2 p i
 
--- Associated type family declaration within a class body
+-- Associated type function declaration within a class body.
+-- Defines a type-level function whose value is determined by a functional
+-- dependency of the enclosing class.  For example:
+--
+--   class Container f e | f -> e where
+--     type Elem f = e
+--
+-- The parameters must be a strict subset of the class's type variables.
+-- The RHS must be a single type variable that is determined by the
+-- parameters via at least one functional dependency.
 data CAssocType = CAssocType
-    { ca_pos    :: Position
-    , ca_name   :: Id
-    , ca_params :: [Id]       -- type variable names listed in the ATF declaration (class params first, then extras)
-    , ca_kind   :: Maybe Kind -- Nothing means kind *; consistent with TyCon's Maybe Kind
+    { ca_name   :: Id      -- type function name
+    , ca_params :: [Id]    -- LHS type variables (must be class type variables)
+    , ca_rhs    :: Id      -- RHS type variable (must be fundep-determined by ca_params)
     } deriving (Eq, Ord, Show)
 
 instance NFData CAssocType where
-    rnf (CAssocType pos name ps k) = rnf4 pos name ps k
+    rnf (CAssocType name ps rhs) = rnf3 name ps rhs
 
 instance PPrint CAssocType where
-    pPrint d _ (CAssocType _ name _ mk) =
-        text "type" <+> ppConId d name <>
-        maybe empty (\k -> text " ::" <+> pPrint d 0 k) mk
+    pPrint d _ (CAssocType name ps rhs) =
+        text "type" <+> ppConId d name <+> sep (map (ppVarId d) ps) <+>
+        text "=" <+> ppVarId d rhs
 
 -- Top level definition
 data CDefn
@@ -729,14 +737,12 @@ data CDefl                -- [CQual] part is the when clause used in an interfac
         = CLValueSign CDef [CQual]     -- let x :: T = e2 -- explicit type sig
         | CLValue Id [CClause] [CQual] -- let y = e2      -- no explicit type sig
         | CLMatch CPat CExpr           -- let [z] = e3
-        | CLType Position Id [CType] CType -- type F args = T (assoc type instance)
         deriving (Eq, Ord, Show)
 
 instance NFData CDefl where
     rnf (CLValueSign def me) = rnf2 def me
     rnf (CLValue i cs me) = rnf3 i cs me
     rnf (CLMatch pat e) = rnf2 pat e
-    rnf (CLType pos name args rhs) = rnf4 pos name args rhs
 
 -- Definition, local or global
 data CDef
@@ -897,7 +903,6 @@ getLName :: CDefl -> Id
 getLName (CLValueSign def _) = getDName def
 getLName (CLValue i _ _) = i
 getLName (CLMatch _ _) = internalError "CSyntax.getLName: CLMatch"
-getLName (CLType _ i _ _) = i
 
 iKName :: IdK -> Id
 iKName (IdK i) = i
@@ -1040,7 +1045,6 @@ instance HasPosition CDefl where
     getPosition (CLValueSign d _) = getPosition d
     getPosition (CLValue i _ _) = getPosition i
     getPosition (CLMatch p e) = getPosition (p, e)
-    getPosition (CLType pos _ _ _) = pos
 
 instance HasPosition CDef where
     getPosition (CDef i _ _) = getPosition i
@@ -1436,9 +1440,6 @@ instance PPrint CDefl where
     pPrint d p (CLValue i cs me) = optWhen d me $
         foldr1 ($+$) (map (\ cl -> ppClause d p [ppVarId d i] cl <> t";") cs)
     pPrint d p (CLMatch pat e) = ppClause d p [] (CClause [pat] [] e)
-    pPrint d p (CLType _ name args rhs) =
-        t"type" <+> ppConId d name <+> sep (map (pPrint d maxPrec) args)
-            <+> t"=" <+> pp d rhs
 
 optWhen :: PDetail -> [CQual] -> Doc -> Doc
 optWhen d [] s = s

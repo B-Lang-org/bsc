@@ -1,23 +1,22 @@
 package ATFMultiple where
 
--- Test a class with two ATFs and an instance providing both equations.
--- Both First (P a b) = a and Second (P a b) = b must be expanded correctly.
+-- Test a class with two type functions and an instance providing both
+-- determined parameters.  Both First (P a b) = a and Second (P a b) = b
+-- must be expanded correctly.
 
-class Pair f where
-  type First  f
-  type Second f
-  fstOf :: f -> First f
-  sndOf :: f -> Second f
+class Pair f a b | f -> a b where
+  type First  f = a
+  type Second f = b
+  fstOf :: f -> a
+  sndOf :: f -> b
 
 data P a b = P a b
 
-instance Pair (P a b) where
-  type First  (P a b) = a
-  type Second (P a b) = b
+instance Pair (P a b) a b where
   fstOf (P a _) = a
   sndOf (P _ b) = b
 
--- Monomorphic helpers that force ATF expansion when the method is bound:
+-- Monomorphic helpers that force type function expansion when the method is bound:
 -- fstOf :: P Integer Bool -> Integer  (First (P Integer Bool) = Integer)
 -- sndOf :: P Integer Bool -> Bool     (Second (P Integer Bool) = Bool)
 fstOfP :: P Integer Bool -> Integer

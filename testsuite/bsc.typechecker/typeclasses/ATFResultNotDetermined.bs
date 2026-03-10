@@ -1,0 +1,12 @@
+package ATFResultNotDetermined where
+
+-- Error test: the type function's result variable must be determined
+-- by its parameters via a functional dependency.
+-- The fundep says 'a b -> c', meaning 'c' is determined by the pair
+-- (a, b) together. The type function 'type BadF a = c' only takes 'a',
+-- so 'c' is not determined by 'a' alone.
+-- This should produce an error.
+
+class MyClass a b c | a b -> c where
+  type BadF a = c
+  foo :: a -> b -> c

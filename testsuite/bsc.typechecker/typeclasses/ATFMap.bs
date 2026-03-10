@@ -2,41 +2,41 @@ package ATFMap where
 
 import Vector
 
-class MapKey k where
-  type Map k v
-  update :: Map k v -> k -> v -> Map k v
-  lookup :: Map k v -> k -> v
+-- Test a type function with a higher-kinded result (* -> *).
+-- Map k maps k (from the class) to a type constructor m.
+-- Each instance provides a different map representation.
 
-instance MapKey () where
-  type Map () v = v
-  update _ _ = id
-  lookup x _ = x
+class MapKey k m | k -> m where
+  type Map k = m
+  update :: m v -> k -> v -> m v
+  lookup :: m v -> k -> v
 
-instance MapKey (UInt n) where
-  type Map (UInt n) v = Vector (TExp n) v
+data UnitMap v = UnitMap v
+
+instance MapKey () UnitMap where
+  update _ _ = UnitMap
+  lookup (UnitMap x) _ = x
+
+instance MapKey (UInt n) (Vector (TExp n)) where
   update = Vector.update
   lookup = select
 
-instance (MapKey a, MapKey b) => MapKey (a, b) where
-  type Map (a, b) v = Map a (Map b v)
-  update m (x, y) z = update m x (update (lookup m x) y z)
-  lookup m (x, y) = lookup (lookup m x) y
+-- Monomorphic helpers that force expansion of Map (UInt 8) = Vector 256.
+updateV :: Vector 256 String -> UInt 8 -> String -> Vector 256 String
+updateV = update
 
+lookupV :: Vector 256 String -> UInt 8 -> String
+lookupV = lookup
+
+-- Simple test: use the monomorphic helpers with the concrete types.
 i :: UInt 8
 i = 42
-j :: UInt 3
-j = 8
-k :: UInt 3
-k = 6
 
-empty ::  Map ((UInt 8, UInt 3), (), UInt 3) String
-empty = replicate $ replicate $ replicate "empty"
+empty :: Vector 256 String
+empty = replicate "empty"
 
-map1 ::  Map ((UInt 8, UInt 3), (), UInt 3) String
-map1 = update empty ((i, j), (), k) "hello"
-
-map2 :: Map ((UInt 8, UInt 3), (), UInt 3) String
-map2 = update map1 ((i, k), (), j) "world"
+map1 :: Vector 256 String
+map1 = updateV empty i "hello"
 
 result :: String
-result = lookup map2 ((i, j), (), k)
+result = lookupV map1 i

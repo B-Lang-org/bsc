@@ -31,7 +31,7 @@ import CSyntax
 import CSyntaxUtil(isEnum)
 import SymTab
 import CType
-import CFreeVars(getFTCDn, getVDefIds, getFTyCons, getFQTyVars)
+import CFreeVars(getFTCDn, getVDefIds, getFTyCons)
 import StdPrel
 import InferKind(inferKinds)
 import Type(fn, tArrow, HasKind(..))
@@ -153,10 +153,15 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
         -- previous symbol table with types and classes added
         (symT, clsErrs) = mkTypeSyms errh mkQuals mmi iks ds insts simp
 
-        -- Validate ATF equations (missing/extra/duplicate) against class declarations.
-        atfErrs  = validateATFEqs mmi ds
+        -- Check for type functions in non-determined instance head positions.
+        -- This must happen on the raw definitions before context reduction
+        -- expands type functions in instance heads.
+        instHeadCheck = foldr seq ()
+            [ checkNoTypeFunInHead errh symT mi c (tyConArgs t)
+            | Cinstance (CQType _ t) _ <- ds
+            , let c = fromJustOrErr "mkSymTab: leftCon" (leftCon t) ]
 
-        allClsErrs = impClsErrs ++ clsErrs ++ atfErrs
+        allClsErrs = instHeadCheck `seq` (impClsErrs ++ clsErrs)
 
         -- finally, add constructors, fields, and variables
         -- XXX and something about top vars?
@@ -255,17 +260,17 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 M.empty ts1 ts2
-        mu2 = mgu vs2 M.empty ts2 ts1
+        mu1 = mgu vs1 ts1 ts2
+        mu2 = mgu vs2 ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)
 cmpQInsts bss q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) = do
 
-  let t1' = expandSyn M.empty t1
+  let t1' = expandSyn t1
   let t1_vs = tv t1'
 
-  let t2' = expandSyn M.empty t2
+  let t2' = expandSyn t2
   let t2_vs = tv t2'
 
   let (Forall t1_ks (_ :=> sc1)) = quantify t1_vs ([] :=> t1')
@@ -395,9 +400,42 @@ cConvInst :: ErrorHandle -> SymTab -> CPackage -> CPackage
 cConvInst errh r (CPackage mi exps imps fixs ds includes) =
         CPackage mi exps imps fixs (map (convInst errh mi r) ds) includes
 
+-- Check that no type function (TIatf) appears in the instance head.
+-- Only checks non-determined positions (positions not determined by a fundep).
+checkNoTypeFunInHead :: ErrorHandle -> SymTab -> Id -> Id -> [CType] -> ()
+checkNoTypeFunInHead errh r mi clsId args =
+    let -- A position is safe for type functions only if it is determined
+        -- (True) in EVERY functional dependency.  This ensures the position
+        -- is never used as a source for instance matching.
+        determinedIdxs = case findSClass r (CTypeclass clsId) of
+              Just cls | not (null (funDeps cls)) ->
+                S.fromList [ idx | idx <- [0 .. length (head (funDeps cls)) - 1]
+                           , all (\bs -> bs !! idx) (funDeps cls) ]
+              _ -> S.empty
+        -- Set of base names of all type functions (for matching unqualified names)
+        atfBaseNames = S.fromList
+            [ getIdBase i | (i, TypeInfo _ _ _ (TIatf {})) <- getAllTypes r ]
+        isTypeFun i = S.member (getIdBase i) atfBaseNames
+        findTypeFun (TCon (TyCon i _ (TIatf {}))) = [(getPosition i, i)]
+        findTypeFun (TCon (TyCon i _ _))
+            | isTypeFun i = [(getPosition i, i)]
+            | otherwise = []
+        findTypeFun (TAp f a) = findTypeFun f ++ findTypeFun a
+        findTypeFun _ = []
+        -- Only check non-determined positions
+        nonDetArgs = [ arg | (idx, arg) <- zip [0..] args
+                     , not (S.member idx determinedIdxs) ]
+        found = concatMap findTypeFun nonDetArgs
+    in case found of
+         [] -> ()
+         _  -> bsErrorUnsafe errh
+                 [ (pos, EATFInInstanceHead (pfpReadable tfId))
+                 | (pos, tfId) <- found ]
+
 convInst :: ErrorHandle -> Id -> SymTab -> CDefn -> CDefn
 convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
     let c = fromJustOrErr "convInst: leftCon" (leftCon t)
+
         cls = mustFindClass r (CTypeclass c)
         instanceArgs = tyConArgs t
         clsMethType i = case schemes of
@@ -429,9 +467,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                            Nothing -> -- no type has a field by this name,
                                       -- let clsMethType error about it
                                       []
-        -- Filter out associated type equations (CLType) — they are
-        -- handled separately in collectATFEqs and do not produce defs.
-        methDefs = filter (\d -> case d of { CLType {} -> False; _ -> True }) ds
+        methDefs = ds
         altId (CLValue i cs me) = CLValueSign (CDef (mkUId i) (clsMethType i) cs) me
         altId (CLValueSign (CDef i qt cs) me) = CLValueSign (CDef (mkUId i) qt cs) me
         altId _ = internalError "MakeSymTab.convInst altId"
@@ -469,7 +505,7 @@ convInst _ _ _ d = d
 mkInstId :: Id -> CType -> Id
 mkInstId mi t =
 --    trace ("mkInstId " ++ ppReadable (mi,t, expandSyn t)) $
-    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn M.empty t)))))
+    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t)))))
   where flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
@@ -628,7 +664,7 @@ chkTopDef r mi isDep (Cforeign i qt on ops) = do
                        in  (all isGoodArg args) && (isGoodResult res)
 
     let i' = qual mi i
-    if isGoodType (expandSyn (getATFEqs r) t) then
+    if isGoodType (expandSyn t) then
         return [(i', VarInfo (VarForg name ops) (i' :>: sc) (isDep i))]
      else
         throwError (getPosition i, EForeignNotBit (pfpString i) (pfpString t))
@@ -664,9 +700,7 @@ mkTypeSyms errh mkQuals maybePackageName iks defs qts s =
                     | Cclass  incoh ps ik vs fds _ ifs <- defs ] ++
               [ getCls errh maybePackageName iks r incoh ps ik vs fds []  qts
                     | CIclass incoh ps ik vs fds _ _   <- defs ]
-        r0       = addClasses mkQuals (addTypes mkQuals s importedTypeInfos0) cls
-        atfEqMap = collectATFEqs errh maybePackageName r0 defs
-        r        = addATFEqs r0 atfEqMap
+        r        = addClasses mkQuals (addTypes mkQuals s importedTypeInfos0) cls
     in  (r, concat errss)
 
 getTI :: ErrorHandle -> Maybe Id -> SymTab -> M.Map Id Kind -> CDefn -> [(Id, TypeInfo)]
@@ -690,7 +724,8 @@ getTI _ mi _ iks data_decl@(Cdata {}) =
 getTI _ mi _ iks (Cstruct _ ss ik vs fs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs (TIstruct ss (map cf_name fs)))]
   where i = qual mi (iKName ik)
-getTI _ mi _ iks (Cclass _ ps ik vs _ ats fs) =
+getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
+    checkATFParams `seq`
     (i, TypeInfo (Just i) k vs ti) : atf_tis
   where i = qual mi (iKName ik)
         k = getK iks ik
@@ -698,14 +733,54 @@ getTI _ mi _ iks (Cclass _ ps ik vs _ ats fs) =
         ti = TIstruct SClass
                  (map cf_name fs ++
                   map (\ (CPred (CTypeclass i) _) -> i) ps) -- XXX super
-        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k vs (TIatf n_total))
-                  | CAssocType _ ca_id ca_params mca_k <- ats
-                  , let n_class  = length vs
-                        n_extra  = max 0 (length ca_params - n_class)
-                        extra_ks = replicate n_extra KStar
-                        atf_k    = foldr Kfun (fromMaybe KStar mca_k) (ks ++ extra_ks)
-                        atf_i    = qual mi ca_id
-                        n_total  = n_class + n_extra ]
+        -- Validate that all ATF parameters and RHS are class type variables.
+        checkATFParams =
+          let vs_set = S.fromList vs
+              paramErrs = [ (getPosition ca_name,
+                        EATFDeclParamMismatch (pfpString (iKName ik))
+                          (pfpString ca_name) (pfpString expected) (pfpString actual))
+                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     , (expected, actual) <-
+                         -- Check params are class vars (positionally)
+                         [ (cv, p) | (p, cv) <- zip ca_params vs, p /= cv ] ++
+                         -- Check RHS is a class type variable
+                         [ (cv, ca_rhs) | not (S.member ca_rhs vs_set)
+                                        , cv <- take 1 vs ]
+                     ]
+              -- Check that the RHS is determined by the params via at least one fundep
+              fundepErrs = [ (getPosition ca_name,
+                        EATFResultNotDetermined (pfpString ca_name)
+                          (pfpString ca_rhs) (map pfpString ca_params))
+                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     , let param_set = S.fromList ca_params
+                           -- Check: exists a fundep (srcs, tgts) where
+                           -- all srcs are in param_set and ca_rhs is in tgts
+                           isDetermined = any (\(srcs, tgts) ->
+                               all (`S.member` param_set) srcs &&
+                               ca_rhs `elem` tgts) fds
+                     , not isDetermined
+                     ]
+              errs = paramErrs ++ fundepErrs
+          in case errs of
+               [] -> ()
+               _  -> bsErrorUnsafe errh errs
+        -- ATF type constructors: arity = number of LHS params in the declaration.
+        -- The kind is built from the ATF's own params, not all class params.
+        -- TIatf stores the class Id and param/target indices for instance-based resolution.
+        vs_kind_map = M.fromList (zip vs ks)
+        vs_idx_map  = M.fromList (zip vs [0..])
+        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k ca_params
+                      (TIatf { atf_class_id   = i
+                             , atf_param_idxs = p_idxs
+                             , atf_target_idx = t_idx }))
+                  | CAssocType ca_name ca_params ca_rhs <- ats
+                  , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
+                        result_k = M.findWithDefault KStar ca_rhs vs_kind_map
+                        atf_k    = foldr Kfun result_k param_ks
+                        atf_i    = qual mi ca_name
+                        p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
+                        t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+                  ]
 getTI _ mi _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
@@ -715,189 +790,26 @@ getTI _ mi _ iks (CIclass _ ps ik vs _ ats _) =
         k = getK iks ik
         ks = getNK (genericLength vs) k
         ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
-        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k vs (TIatf n_total))
-                  | CAssocType _ ca_id ca_params mca_k <- ats
-                  , let n_class  = length vs
-                        n_extra  = max 0 (length ca_params - n_class)
-                        extra_ks = replicate n_extra KStar
-                        atf_k    = foldr Kfun (fromMaybe KStar mca_k) (ks ++ extra_ks)
-                        atf_i    = qual mi ca_id
-                        n_total  = n_class + n_extra ]
+        vs_kind_map = M.fromList (zip vs ks)
+        vs_idx_map  = M.fromList (zip vs [0..])
+        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k ca_params
+                      (TIatf { atf_class_id   = i
+                             , atf_param_idxs = p_idxs
+                             , atf_target_idx = t_idx }))
+                  | CAssocType ca_name ca_params ca_rhs <- ats
+                  , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
+                        result_k = M.findWithDefault KStar ca_rhs vs_kind_map
+                        atf_k    = foldr Kfun result_k param_ks
+                        atf_i    = qual mi ca_name
+                        p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
+                        t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+                  ]
 getTI _ mi _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
         -- the CSyntax doesn't provide type var names
         vs = []
 getTI _ _ _ iks _ = []
-
--- Collect all associated type family equations from instance bodies.
--- Uses the knot-tied symtab r lazily: the equations are stored as thunks and
--- are only forced by expandSyn during type-checking, after r is fully built.
-collectATFEqs :: ErrorHandle -> Maybe Id -> SymTab -> [CDefn]
-              -> ATFEqMap
-collectATFEqs errh mi r defs = M.fromListWith (++) $
-    [ (atfId, [convertATFEq errh r atfId fvIds (args, rhs)])
-    | d <- defs
-    , CLType _ name args rhs <- instDefs d
-    , let -- Resolve the ATF name to its canonical qualified Id.
-          -- For imported ATFs, the name is unqualified in the
-          -- local source but the type constructor is registered in the
-          -- symbol table under its defining-package qualifier.  Look it
-          -- up there first; fall back to qualifying with the current
-          -- package (mi) for locally-defined ATFs not yet in the table.
-          atfId = case findType r name of
-                    Just (TypeInfo (Just canon) _ _ _) -> canon
-                    _ -> qual mi name
-          fvIds = S.toList (S.unions
-                    (map (getFQTyVars . CQType []) (rhs:args)))
-    ]
-  where instDefs (Cinstance  _ ds)    = ds
-        instDefs (CIinstance _ _ eqs) = eqs
-        instDefs _                    = []
-
--- Convert a parsed ATF equation (with CType args/rhs) to internal Types.
--- Free type variables in the equation are replaced with TGen placeholders
--- for pattern matching by expandSyn.
--- All conversions run in a single K.run so that kind inference propagates
--- from structural context (e.g. 'n' in 'UInt n' gets kind # because UInt :: # -> *).
-convertATFEq :: ErrorHandle -> SymTab -> Id -> [Id] -> ([CType], CType)
-             -> ([Type], Type)
-convertATFEq errh r atfId fvIds (args, rhs) =
-    let positions = map getPosition fvIds
-        result = K.run $ do
-            -- Allocate a fresh kind variable for each free type variable.
-            -- Kind inference will resolve them from the structural context of
-            -- the argument types and rhs (e.g. 'n' in 'UInt n' -> KNum).
-            as <- mapM (\i -> fmap (i,) (K.newKVar (Just i))) fvIds
-            arg_ts <- mapM (fmap fst . trCType r as) args
-            rhs_t  <- fst <$> trCType r as rhs
-            -- Read back the fully-resolved kind substitution.
-            ksubst <- K.getKSubst
-            -- Build a TGen substitution keyed on TyVar (with resolved kind).
-            let kindOf i = case lookup i as of
-                              Just kv -> K.apKSu ksubst kv
-                              Nothing -> KStar
-                tvars  = [ tVarKind i (kindOf i) | i <- fvIds ]
-                tgens  = zipWith TGen positions [0..]
-                subst  = mkSubst (zip tvars tgens)
-            return (map (apSub subst) arg_ts, apSub subst rhs_t)
-    in case result of
-         Left  msg -> bsErrorUnsafe errh [msg]
-         Right x   -> x
-
-
--- Validate ATF equations in instance bodies against class declarations.
--- Only checks instances of locally-defined classes (Cclass in defs).
--- Returns a list of error messages for missing, extra, duplicate,
--- pattern-mismatch, declaration-param-mismatch, and extra-arg-not-var errors.
-validateATFEqs :: Maybe Id -> [CDefn] -> [EMsg]
-validateATFEqs mi defs =
-    let -- Build map: unqualified class name →
-        --   (n class params, [(unqualified ATF name, declared arity)])
-        classToATFs :: M.Map Id (Int, [(Id, Int)])
-        classToATFs = M.fromList
-            [ (iKName ik, (length params,
-                           [(ca_name, length ca_params) | CAssocType _ ca_name ca_params _ <- ats]))
-            | Cclass _ _ ik params _ ats _ <- defs
-            ]
-        -- Map from unqualified ATF name to declared arity, per class
-        atfArities :: M.Map Id (M.Map Id Int)
-        atfArities = M.map (\(_, ats) -> M.fromList ats) classToATFs
-        -- T0158: ATF declaration params (in class body) must match class params in order.
-        -- The first min(n_class, len(ca_params)) params are compared pairwise.
-        declParamErrs =
-            [ (ca_pos ca, EATFDeclParamMismatch clsStr (pfpString (qual mi (ca_name ca)))
-                                                        (pfpString expected)
-                                                        (pfpString actual))
-            | Cclass _ _ ik params _ ats _ <- defs
-            , ca <- ats
-            , let clsStr = pfpString (qual mi (iKName ik))
-            , (expected, actual) <- zip params (ca_params ca)
-            , unQualId expected /= unQualId actual
-            ]
-        validateInst (Cinstance qt@(CQType _ t) instDs) =
-            case leftCon t of
-              Nothing -> []
-              Just c  ->
-                let cUnqual   = unQualId c
-                in case M.lookup cUnqual classToATFs of
-                     Nothing                  -> []  -- imported class: skip validation
-                     Just (nCP, atfListPairs)  ->
-                       let clsStr       = pfpString (qual mi cUnqual)
-                           classArgs    = snd (splitTAp t)
-                           atfList      = map fst atfListPairs
-                           atfArityMap  = M.findWithDefault M.empty cUnqual atfArities
-                           instAtfItems = [ (unQualId name, pos, args)
-                                          | CLType pos name args _ <- instDs ]
-                           instAtfNames = map (\(n,_,_) -> n) instAtfItems
-                           instAtfSet   = S.fromList instAtfNames
-                           classAtfSet  = S.fromList (map unQualId atfList)
-                           -- Detect duplicates: report all occurrences after the first
-                           goDup (seen, errs) (n, p, _)
-                             | S.member n seen =
-                                 (seen, errs ++ [(p, EDuplicateATFEquation clsStr (pfpString n))])
-                             | otherwise = (S.insert n seen, errs)
-                           dupErrs      = snd $ foldl goDup (S.empty, []) instAtfItems
-                           -- ATF equations in instance not declared in class
-                           extraErrs    = [ (pos, EExtraATFEquation clsStr (pfpString name))
-                                          | (name, pos, _) <- instAtfItems
-                                          , not (S.member name classAtfSet)
-                                          ]
-                           -- ATFs declared in class but absent from instance
-                           instPos      = getPosition qt
-                           missingErrs  = [ (instPos, EMissingATFEquation clsStr (pfpString atf))
-                                          | atf <- map unQualId atfList
-                                          , not (S.member atf instAtfSet)
-                                          ]
-                           -- ATF equation LHS has wrong number of args
-                           arityErrs    = [ (pos, EATFArityMismatch clsStr (pfpString name) expected actual)
-                                          | (name, pos, eqArgs) <- instAtfItems
-                                          , S.member name classAtfSet
-                                          , let actual   = length eqArgs
-                                                expected = M.findWithDefault actual name atfArityMap
-                                          , actual /= expected
-                                          ]
-                           -- Set of names with arity errors (skip pattern/extra-arg checks for them)
-                           arityErrNames = S.fromList
-                               [ name | (name, _, eqArgs) <- instAtfItems
-                               , S.member name classAtfSet
-                               , let actual   = length eqArgs
-                                     expected = M.findWithDefault actual name atfArityMap
-                               , actual /= expected ]
-                           -- ATF equation LHS pattern doesn't match instance head
-                           patternErrs  = [ (pos, EATFPatternMismatch clsStr (pfpString name))
-                                          | (name, pos, eqArgs) <- instAtfItems
-                                          , S.member name classAtfSet
-                                          , not (S.member name arityErrNames)
-                                          , patternMismatch nCP classArgs eqArgs
-                                          ]
-                           -- T0159: extra args (beyond nCP) in ATF equations must be type variables
-                           extraArgErrs = [ (pos, EATFExtraArgNotVar clsStr (pfpString name) (pfpString badArg))
-                                          | (name, pos, eqArgs) <- instAtfItems
-                                          , S.member name classAtfSet
-                                          , not (S.member name arityErrNames)
-                                          , badArg <- drop nCP eqArgs
-                                          , case badArg of { TVar _ -> False; _ -> True }
-                                          ]
-                       in dupErrs ++ extraErrs ++ missingErrs ++ arityErrs ++ patternErrs ++ extraArgErrs
-        validateInst _ = []
-    in declParamErrs ++ concatMap validateInst defs
-
--- Check whether an ATF equation's LHS args conflict with the instance head.
--- Returns True if there is a mismatch.
--- Compares only the first min(nCP, len(eqArgs)) args.
--- A mismatch is detected when both the class arg and the equation arg have
--- concrete type constructors and those constructors differ.
-patternMismatch :: Int -> [CType] -> [CType] -> Bool
-patternMismatch nCP classArgs eqArgs =
-    let n = min nCP (length eqArgs)
-    in any mismatch1 (take n (zip classArgs eqArgs))
-  where
-    mismatch1 (ca, ea) =
-        case (leftCon ca, leftCon ea) of
-            (Just c1, Just c2) -> unQualId c1 /= unQualId c2
-            _                  -> False
-
 
 qual :: Maybe Id -> Id -> Id
 qual Nothing i = i

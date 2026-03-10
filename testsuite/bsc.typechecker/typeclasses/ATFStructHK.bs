@@ -1,44 +1,49 @@
 package ATFStructHK where
 
--- Test that a struct field can have type (F x) a where F x :: * -> * is an ATF.
--- The ATF 'Slot f' has result kind * -> *, so it maps the class parameter f
--- to a type constructor.  A struct field 'item :: Slot f elem' applies that
--- type constructor to a second type variable, yielding a value-kinded type.
+-- Test that a higher-kinded type function (Slot f :: * -> *) correctly
+-- determines a type constructor from the class parameter.
+-- The type function maps the class parameter f to a type constructor s,
+-- so that method signatures can use 's a' to build value-kinded types.
 
-class HasSlot f where
-  type Slot f :: * -> *
-  makeSlot :: f -> a -> Slot f a
+class HasSlot f s | f -> s where
+  type Slot f = s
+  makeSlot :: f -> a -> s a
 
 data BoxTag = BoxTag
 data ListTag = ListTag
 
 -- BoxTag instance: Slot BoxTag = Maybe
-instance HasSlot BoxTag where
-  type Slot BoxTag = Maybe
+instance HasSlot BoxTag Maybe where
   makeSlot _ x = Valid x
 
 -- ListTag instance: Slot ListTag = List
--- A second equation for the same ATF, mapping to a different type constructor.
-instance HasSlot ListTag where
-  type Slot ListTag = List
+instance HasSlot ListTag List where
   makeSlot _ x = Cons x Nil
 
--- Struct whose 'item' field is an ATF applied to a second type parameter.
--- After expansion: Slot BoxTag elem = Maybe elem, Slot ListTag elem = List elem.
-struct Holder f elem =
-  item :: Slot f elem
+-- A struct parameterized by the type constructor s and the element type.
+-- The relationship Slot f = s is enforced through usage with HasSlot.
+struct Holder s elem =
+  item :: s elem
 
-buildHolder :: Integer -> Holder BoxTag Integer
-buildHolder x = Holder { item = makeSlot BoxTag x }
+-- Monomorphic helpers that force expansion of Slot BoxTag = Maybe
+-- and Slot ListTag = List at binding time.
+makeBoxSlot :: BoxTag -> Integer -> Maybe Integer
+makeBoxSlot = makeSlot
 
-buildListHolder :: Integer -> Holder ListTag Integer
-buildListHolder x = Holder { item = makeSlot ListTag x }
+makeListSlot :: ListTag -> Integer -> List Integer
+makeListSlot = makeSlot
 
--- Field access dispatches to the correct ATF equation.
-getItem :: Holder BoxTag Integer -> Maybe Integer
+buildHolder :: Integer -> Holder Maybe Integer
+buildHolder x = Holder { item = makeBoxSlot BoxTag x }
+
+buildListHolder :: Integer -> Holder List Integer
+buildListHolder x = Holder { item = makeListSlot ListTag x }
+
+-- Field access dispatches to the correct expanded type.
+getItem :: Holder Maybe Integer -> Maybe Integer
 getItem h = h.item
 
-getListItem :: Holder ListTag Integer -> List Integer
+getListItem :: Holder List Integer -> List Integer
 getListItem h = h.item
 
 test :: Maybe Integer

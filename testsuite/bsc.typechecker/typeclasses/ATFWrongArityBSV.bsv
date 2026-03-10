@@ -1,19 +1,23 @@
 package ATFWrongArityBSV;
 
-// Test that an ATF equation whose LHS has the wrong number of arguments
-// compared to the class ATF declaration is an error.
+// Test that applying a type function to the wrong number of arguments
+// produces an error.  Elem takes 1 argument but is used with 0 (T0025).
 
-typeclass Container#(type f);
-    type Elem#(type f);
-    function Elem#(f) unwrap(f container);
+typeclass Container#(type f, type e)
+  dependencies (f determines e);
+    type Elem#(type f) = e;
+    function e unwrap(f container);
 endtypeclass
 
 typedef struct { a val; } Wrapper#(type a);
 
-// Wrong: Elem is declared with 1 arg but the equation gives 2.
-instance Container#(Wrapper#(a));
-    type Elem#(Wrapper#(a), Integer) = a;  // too many args
+instance Container#(Wrapper#(a), a);
     function a unwrap(Wrapper#(a) w) = w.val;
 endinstance
+
+// Error: Elem applied to too few arguments
+function Elem test();
+    return ?;
+endfunction
 
 endpackage

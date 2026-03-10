@@ -588,9 +588,8 @@ tiExpr as td exp@(Cinterface pos (Just ti) ds) = do
 tiExpr as td exp@(Cmodule modulePos ms) = do
     s <- getSubst
     v <- newTVar "tiExpr Cmodule" (KStar `Kfun` KStar) exp
-    eqmap <- getATFEqs <$> getSymTab
     -- let pos = getPosition exp
-    case expandSyn eqmap (apSub s td) of
+    case expandSyn (apSub s td) of
       TAp tc t ->  do ms' <- fixup
                       stmts <- mapM toStmt ms'
                       tiExpr as td (Cdo True stmts)
@@ -678,7 +677,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 when (not . null $ eq_ps) $
                   internalError("TCheck.chkVeriIfc: " ++ ppReadable (exp,v,f,ft,t))
                 s <- getSubst
-                let mtype = expandSyn (getATFEqs sy) (apSub s t)
+                let mtype = expandSyn (apSub s t)
                 let (argTypes, resType) = getArrows mtype
 
                 -- This function checks that the number of port names
@@ -835,7 +834,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
     -- monadic evaluations for ty below
 --    tyM1 <- mapM (\ e -> newTVar "tiExpr CmoduleVerilog 4" KStar e) es
 --    tyM2 <- mapM (\ t -> newTVar "tiExpr CmoduleVerilog 5" KStar t) ts
-    case leftCon (expandSyn (getATFEqs sy) (apSub s v)) of
+    case leftCon (expandSyn (apSub s v)) of
      Just ti | (Just fs0) <- getIfcFields ti sy ->
          let fs = {- trace ("fields:" ++ ppReadable fs0) $ -} map unQualId fs0
              ty = foldr fn td ts
@@ -858,8 +857,7 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
 tiExpr as td exp@(CForeignFuncC link_id wrap_cqt) = do
     -- the "wrap_type" should be identical to "td"
     s <- getSubst
-    eqmap_cff <- getATFEqs <$> getSymTab
-    let src_type = expandSyn eqmap_cff (apSub s td)
+    let src_type = expandSyn (apSub s td)
         (argTypes, resType) = getArrows src_type
         -- for positions for new CSyntax constructs
         pos = getPosition link_id
@@ -2089,8 +2087,8 @@ tiField1 as rt (f, e) = do
     -- so replace them with vars and return the preds that determine the vars
     -- XXX disable expanding of type synonyms until failures with TLM
     -- XXX (type synonyms which drop parameters) is resolved
-    -- XXX (tcon_ps, ft) <- expPrimTCons (expandSyn ft0)
-    (tcon_ps, ft) <- expPrimTCons ft0
+    -- XXX (tcon_ps, ft) <- expTFun (expandSyn ft0)
+    (tcon_ps, ft) <- expTFun ft0
     -- Unify the field type and the context expected return type,
     -- possibly returning preds which express type equality
     (t,eq_ps) <- unifyFnTo f e ft rt
@@ -2389,8 +2387,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     -- type functions like SizeOf could have crept into the predicates
     -- via unification, so we expand them out so that they can be satisfied
-    eqmap_tiexpl <- getATFEqs <$> getSymTab
-    ps <- concatMapM (expTConPred . expandSynVPred eqmap_tiexpl) ps0
+    ps <- concatMapM (expTConPred . expandSynVPred) ps0
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps: " ++ ppReadable ps)
 
@@ -3095,9 +3092,6 @@ tiLetseqDef type_env arm@(CLMatch pattern expression) =
     internalError
         ("TCheck.tiLetseqDef: CLMatch should have been desugared:\n" ++
          pfpReadable arm)
-tiLetseqDef _type_env (CLType pos name _ _) =
-    err (pos, EATFEquationInLet (pfpString name))
-
 -- tiDefls: type-infer a set of letrec definitions
 --   first argument:         assumptions about type environment
 --   second argument (exp):  definitions to typecheck
@@ -3107,10 +3101,6 @@ tiLetseqDef _type_env (CLType pos name _ _) =
 --   defs':     definitions, possibly rewritten
 tiDefls :: [Assump] -> [CDefl] -> TI ([VPred], [Assump], [CDefl])
 tiDefls type_env defs = do
-    -- Check for illegal ATF equations in where/letrec bindings
-    case [ (pos, name) | CLType pos name _ _ <- defs ] of
-        (pos, name) : _ -> err (pos, EATFEquationInLet (pfpString name))
-        []               -> return ()
     dss        <- mapM expCLMatch defs -- convert pattern-matches to regular defs
     let ds = concat dss
     let -- impl: untyped (implicitly typed) definitions
@@ -3166,7 +3156,7 @@ optTrivLet e = e
 
 ifcFieldIdToTConId :: Id -> SymTab -> CType -> Maybe Id
 ifcFieldIdToTConId i r t =
-    case leftCon (expandSyn (getATFEqs r) t) of
+    case leftCon (expandSyn t) of
     Nothing -> Nothing
     Just ti ->
         case findType r ti of

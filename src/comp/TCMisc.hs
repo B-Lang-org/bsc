@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 module TCMisc(
         splitF, satisfyFV, satisfy,
-        reducePred, reducePredsAggressive, expPrimTCons, expTConPred,
+        reducePred, reducePredsAggressive, expTFun, expTConPred,
         findAssump, mkQualType, closeFD, niceTypes,
         unifyFnFrom, unifyFnTo, unifyFnFromTo,
         mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, expandFullType,
@@ -194,7 +194,7 @@ satisfy' dvs es ps = do
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
-        vsts <- mapM expPrimTCons ts
+        vsts <- mapM expTFun ts
         let (vss, ts') = unzip vsts
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
@@ -206,21 +206,32 @@ primTConMap = [(idSizeOf, expSizeOfT),
 -- no need to recurse because there is no additional structure
 defaultTConAp :: Type -> Id -> Type -> TI ([VPred], Type)
 defaultTConAp tcon _ t = do
-  (ps, t') <- expPrimTCons t
+  (ps, t') <- expTFun t
   return (ps, TAp tcon t')
 
 -- expand all primitive type-constructors (SizeOf, Id, ...)
-expPrimTCons :: Type -> TI ([VPred], Type)
-expPrimTCons (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
+expTFun :: Type -> TI ([VPred], Type)
+-- Type function application: try to expand via class instance lookup
+expTFun t0
+  | let (f, as) = splitTAp t0,
+    TCon (TyCon _ _ ti@(TIatf { atf_param_idxs = pIdxs })) <- f,
+    let n = length pIdxs,
+    length as >= n = do
+      sy <- getSymTab
+      let (atfArgs, extraArgs) = splitAt n as
+      case expandATFViaInst sy ti atfArgs of
+        Just rhs -> expTFun (foldl TAp rhs extraArgs)
+        Nothing  -> return ([], t0)  -- can't expand yet, leave as-is
+expTFun (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
   -- traceM ("idcon: " ++ ppReadable idcon)
   let f = lookupWithDefault primTConMap (defaultTConAp tcon) idcon
   f idcon t
 
-expPrimTCons (TAp f a) = do
-        (vfs, f') <- expPrimTCons f
-        (vas, a') <- expPrimTCons a
+expTFun (TAp f a) = do
+        (vfs, f') <- expTFun f
+        (vas, a') <- expTFun a
         return (vfs++vas, TAp f' a')
-expPrimTCons t = return ([], t)
+expTFun t = return ([], t)
 
 expSizeOfT :: Id -> Type -> TI ([VPred], Type)
 expSizeOfT sz t = do
@@ -256,7 +267,7 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
           -- we could try to capture and use numeric equalities here
           -- but that would require being on the TI monad,
           -- which doesn't seem worth it
-          (s, []) <- mgu bound_tyvars M.empty (boolCompress bs ts) (boolCompress bs ts')
+          (s, []) <- mgu bound_tyvars (boolCompress bs ts) (boolCompress bs ts')
           let p'' = VPred i' (PredWithPositions (IsIn c ts') (pos' ++ pos))
               rs  = p'':[ vp | vp@(VPred j _) <- vps, j /= i && j /= i']
               pr = removePredPositions pp
@@ -494,8 +505,7 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
       badCon _ = False
   if (any badCon allPredTyCons) then do
     -- loop to keep synonyms and SizeOf out of instance heads
-    eqmap <- getATFEqs <$> getSymTab
-    vps2' <- concatMapM (expTConPred . expandSynVPred eqmap) vps2
+    vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
     reducePredsAggressive' dvs es (sbs2 <++ sbs1) s2 vps2'
    else do
     -- satMany is inside a loop, so it doesn't consistently apply
@@ -568,7 +578,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
 
 predUnify :: [TyVar] -> Pred -> Pred -> Bool
 predUnify bound_tyvars (IsIn c1 ts1) (IsIn c2 ts2)
-    | c1 == c2 = isJust (mgu bound_tyvars M.empty ts1 ts2)
+    | c1 == c2 = isJust (mgu bound_tyvars ts1 ts2)
     | otherwise = False
 
 dvsSub :: Subst -> DVS -> DVS
@@ -609,8 +619,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
             ps' = zipWith mkvpred (vs ++ eq_vs) (map (apSub s) (ps ++ eq_pwps))
             t = predToType (apSub s h)
             e' = apSub s e
-        eqmap <- getATFEqs <$> getSymTab
-        ps'' <- concatMapM (expTConPred . expandSynVPred eqmap) ps'
+        ps'' <- concatMapM (expTConPred . expandSynVPred) ps'
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
             solvedBind = SolvedBind {
@@ -707,7 +716,7 @@ matchTop bound_tyvars mtch (IsIn c1 ts1) (IsIn c2 ts2) =
                     -- if the nonfundep types match, then apply the found
                     -- substitution and see if the fundep types match
                     -- rtrace ("matchTop 1b: " ++ ppReadable ms) $
-                    case mgu bound_tyvars M.empty (apSub ms (boolCompress bs ts1))
+                    case mgu bound_tyvars (apSub ms (boolCompress bs ts1))
                                                   (apSub ms (boolCompress bs ts2)) of
                     Nothing -> Nothing
                     Just us ->  Just (ms, us)
@@ -829,10 +838,8 @@ expandSynN flags s t =
 
 normT :: Type -> TI Type
 normT t = do
-    sy <- getSymTab
-    let eqmap = getATFEqs sy
-    let t' = expandSyn eqmap t
-    (ps, t'') <- expPrimTCons t'
+    let t' = expandSyn t
+    (ps, t'') <- expTFun t'
     -- traceM ("normT: " ++ ppReadable (t,t',(ps,t'')))
     if null ps then
         return t''
@@ -843,7 +850,7 @@ normT t = do
             return t'                -- XXX could expand some
          else do
             s <- getSubst
-            let t''' = expandSyn eqmap (apSub s t'')
+            let t''' = expandSyn (apSub s t'')
             --traces ("normT " ++ ppReadable (ps', t''', s)) $ return ()
             return t'''
 
@@ -852,11 +859,9 @@ normT t = do
 -- available information
 expandFullType :: Type -> TI (Type)
 expandFullType t = do
-                      sy <- getSymTab
-                      let eqmap = getATFEqs sy
                       s <- getSubst
                       tunexp  <- normT t
-                      let t' = expandSyn eqmap (apSub s tunexp)
+                      let t' = expandSyn (apSub s tunexp)
                       return (t')
 
 ----
@@ -868,30 +873,60 @@ unify x t1 t2 = do
     -- traceM("unify 1: " ++ ppReadable(t1, t2))
     s <- getSubst
     bound_vars <- getBoundTVs
-    eqmap <- getATFEqs <$> getSymTab
     let t1' = apSub s t1
         t2' = apSub s t2
     -- traceM("unify 2: " ++ ppReadable(t1', t2'))
-    case mgu bound_vars eqmap t1' t2' of
+    case mgu bound_vars t1' t2' of
      Just (u,[])  -> do extSubst "unify" u; return []
      otherwise -> do
         t1'' <- normT t1'
         t2'' <- normT t2'
         -- traceM ("unify 3:\n" ++ ppReadable (t1'', t2''))
-        case mgu bound_vars eqmap t1'' t2'' of
+        case mgu bound_vars t1'' t2'' of
           Just (u,eqs)  ->
               do extSubst "unify" u
                  mapM (eqToVPred [pos]) eqs
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
-                     in reportUnifyError eqmap bound_vars x t1'' t2''
+                     in reportUnifyError bound_vars x t1'' t2''
 
 eqToPred :: [Position] -> (Type, Type) -> TI Pred
-eqToPred poss (t1, t2) =
-  case kind t1 of
-    KNum  -> do clsNumEq  <- numEqCls;  return $ IsIn clsNumEq  [t1, t2]
-    KStar -> do clsStarEq <- starEqCls; return $ IsIn clsStarEq [t1, t2]
-    k     -> err (if null poss then noPosition else head poss,
-                  EATFEqUnsupportedKind (pfpReadable t1) (pfpReadable t2) (ppReadable k))
+eqToPred poss (t1, t2) = do
+    mp <- tryATFClassPred t1 t2
+    case mp of
+      Just pred -> return pred
+      Nothing -> do
+        mp2 <- tryATFClassPred t2 t1
+        case mp2 of
+          Just pred -> return pred
+          Nothing -> 
+            case kind t1 of
+              KNum  -> do cls <- numEqCls; return $ IsIn cls [t1, t2]
+              k     -> internalError $
+                "eqToPred: required unexpected sort of type equality: " ++
+                ppReadable(t1, t2, k)
+
+-- | Given an ATF application type and a target type, try to build the
+-- corresponding class predicate.  For example, if atfType is @Elem x@
+-- (from @class Container f e | f -> e where type Elem f = e@), and
+-- targetType is @T@, this produces @Just (IsIn Container [x, T])@.
+tryATFClassPred :: Type -> Type -> TI (Maybe Pred)
+tryATFClassPred atfType targetType = do
+    let (f, atfArgs) = splitTAp atfType
+    case f of
+      TCon (TyCon _ _ (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
+                              , atf_target_idx = tIdx })) -> do
+        cls <- findCls (CTypeclass clsId)
+        let nParams = length (csig cls)
+            -- Build class args: place targetType at the target index,
+            -- ATF args at param positions, fresh vars elsewhere
+        freshVars <- mapM (\tv -> newTVar "tryATFClassPred" (kind tv) atfType) (csig cls)
+        let classArgs = [ if idx == tIdx then targetType
+                          else case elemIndex idx pIdxs of
+                                 Just j  -> atfArgs !! j
+                                 Nothing -> freshVars !! idx
+                        | idx <- [0..nParams-1] ]
+        return $ Just (IsIn cls classArgs)
+      _ -> return Nothing
 
 eqToVPred :: [Position] -> (Type, Type) -> TI VPred
 eqToVPred poss ty_eq = do
@@ -910,8 +945,8 @@ unifyNoEq loc x t1 t2 = do
 -----
 
 reportUnifyError :: (PPrint a, PVPrint a, HasPosition a)
-                 => ATFEqMap -> [TyVar] -> a -> Type -> Type -> TI b
-reportUnifyError eqmap bound_vars x orig_t1 orig_t2 =
+                 => [TyVar] -> a -> Type -> Type -> TI b
+reportUnifyError bound_vars x orig_t1 orig_t2 =
     let
         def_err = defaultUnifyError x orig_t1 orig_t2
 
@@ -958,11 +993,11 @@ reportUnifyError eqmap bound_vars x orig_t1 orig_t2 =
         -- unifications.  Therefore a->a->a would match Bool->Int->Int.
         -- This is ok, because it will be reported with the default error.
         canUnify t1 t2 =
-            case (mgu bound_vars eqmap t1 t2) of
+            case (mgu bound_vars t1 t2) of
                 Nothing -> do -- call normT because unify does
                               t1' <- normT t1
                               t2' <- normT t2
-                              case (mgu bound_vars eqmap t1' t2') of
+                              case (mgu bound_vars t1' t2') of
                                   Nothing -> return False
                                   Just _  -> return True
                 Just _  -> return True
@@ -1077,14 +1112,12 @@ unifyFnFromTo x e t = do
 mkVPred :: Position -> PredWithPositions -> TI [VPred]
 mkVPred pos p = do
     v <- newDict
-    eqmap <- getATFEqs <$> getSymTab
-    expTConPred (expandSynVPred eqmap $ VPred v (addPredPositions p [pos]))
+    expTConPred (expandSynVPred $ VPred v (addPredPositions p [pos]))
 
 mkVPredNoNewPos :: PredWithPositions -> TI [VPred]
 mkVPredNoNewPos p = do
     v <- newDict
-    eqmap <- getATFEqs <$> getSymTab
-    expTConPred (expandSynVPred eqmap $ VPred v p)
+    expTConPred (expandSynVPred $ VPred v p)
 
 -- entry point when we don't need synonyms reduced
 -- mainly deriving and other places where we check reducibility
@@ -1616,10 +1649,10 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                   -- whether the non-fundeps match
                   mv = matchList v1 v2
                   -- whether the non-fundeps unify
-                  uv = mgu bound_tyvars M.empty v1 v2
+                  uv = mgu bound_tyvars v1 v2
                   -- check if the fundeps unify, given a subst for non-fundeps
                   check_fds s =
-                      case (mgu bound_tyvars M.empty
+                      case (mgu bound_tyvars
                                 (apSub s (boolCompress bs ts1))
                                 (apSub s (boolCompress bs ts2))) of
                         Nothing -> False
@@ -1630,8 +1663,8 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                         -- doesn't match, so try unify
                         case (uv) of
                            Nothing -> NoConclusion
-                           Just (s,num_eqs)  ->
-                               if (check_fds s && null num_eqs)
+                           Just (s,ty_eqs)  ->
+                               if (check_fds s && null ty_eqs)
                                then Matches
                                else NoConclusion
                     Just s  ->

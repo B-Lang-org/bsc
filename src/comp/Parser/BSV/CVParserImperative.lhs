@@ -2422,7 +2422,6 @@ Check for use of unassigned variables; if any are found, report errors
 >        mapM_ detectUnassignedUsesClause clauses
 >        popState
 > detectUnassignedUsesDefl (CLMatch pat expr) = detectUnassignedUses expr
-> detectUnassignedUsesDefl (CLType {}) = return ()
 
 > detectUnassignedUsesRule :: CRule -> ISConvMonad ()
 > detectUnassignedUsesRule (CRule _ cond quals body) =
@@ -2507,7 +2506,6 @@ Check for use of unassigned variables; if any are found, report errors
 >        sequence_ [declare pos arg Nothing [] >> assign pos arg ATNormal
 >                   | arg <- S.toList (getPV pat), let pos = getPosition arg]
 >        popState
-> warnShadowDefl (CLType {}) = return ()
 
 > checkImperativeStmts :: ISContext -> [ImperativeStatement]
 >                      -> ISConvMonad [ImperativeStatement]

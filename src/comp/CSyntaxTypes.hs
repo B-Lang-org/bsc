@@ -211,11 +211,9 @@ instance Types CDefl where
     apSub s (CLValueSign d me) = CLValueSign (apSub s d) (apSub s me)
     apSub s (CLValue i cs me) = CLValue i (apSub s cs) (apSub s me)
     apSub s (CLMatch p e) = CLMatch (apSub s p) (apSub s e)
-    apSub s (CLType pos i args rhs) = CLType pos i (apSub s args) (apSub s rhs)
     tv (CLValueSign d me) = tv (d, me)
     tv (CLValue i cs me) = tv (cs, me)
     tv (CLMatch p e) = tv (p, e)
-    tv (CLType _ _ args rhs) = tv args `union` tv rhs
 
 instance Types CQType where
     apSub s (CQType ps t) = CQType (apSub s ps) (apSub s t)

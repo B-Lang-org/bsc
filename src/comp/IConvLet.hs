@@ -280,7 +280,6 @@ unpolyd :: Id -> CDefl -> CDefl
 unpolyd i (CLValueSign d qs) = CLValueSign (unpolydd i d) (map (unpolyq i) qs)
 unpolyd i (CLValue _ _ _) = internalError "IConv.unpolyd: CLValue"
 unpolyd i (CLMatch _ _) = internalError "IConv.unpolyd: CLValue"
-unpolyd i d@(CLType {}) = d
 
 unpolyr :: Id -> CRule -> CRule
 unpolyr i (CRule ps me qs e) = CRule ps (fmap (unpoly i) me) (map (unpolyq i) qs) (unpoly i e)

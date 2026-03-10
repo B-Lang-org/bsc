@@ -319,7 +319,7 @@ nArrows t = length $ fst $ getArrows t
 -- expand type aliases and apply type functions
 expandSynSym :: SymTab -> Type -> Type
 expandSynSym symt xt =
-   expandSyn (getATFEqs symt) (updTypes symt xt)
+   expandSyn (updTypes symt xt)
  where
    updTypes r o@(TCon (TyCon i _ TIabstract)) =
      case findType r i of

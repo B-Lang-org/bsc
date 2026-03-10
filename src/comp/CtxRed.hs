@@ -129,7 +129,6 @@ instance CtxRed CDefl where
         p' <- ctxRed p
         e' <- ctxRed e
         return (CLMatch p' e')
-    ctxRed d@(CLType {}) = return d
 
 instance CtxRed CDef where
     ctxRed (CDef i cqt cs) = do
@@ -382,13 +381,13 @@ ctxRedCQType' isInstHead cqt = do
 
     -- do extra reduction on instance heads to avoid synonym-expansion
     -- and SizeOf issues, without unduly disturbing non-instance types
-    -- (and do it here, after "convCQType", so that "expPrimTCons" sees
+    -- (and do it here, after "convCQType", so that "expTFun" sees
     -- the qualified types)
     (qs, t) <- if isInstHead
                then do -- XXX disable expanding of type synonyms until
                        -- XXX failures with TLM instances are resolved
-                       -- XXX (vqs_extra, t1) <- expPrimTCons t0 (expandSyn t0)
-                       (vqs_extra, t1) <- expPrimTCons t0
+                       -- XXX (vqs_extra, t1) <- expTFun t0 (expandSyn t0)
+                       (vqs_extra, t1) <- expTFun t0
                        let qs_extra = map toPredWithPositions vqs_extra
                        return (qs0 ++ qs_extra, t1)
                else return (qs0, t0)

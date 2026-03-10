@@ -264,7 +264,6 @@ instance Simp CDefl where
         CLValueSign (simp r d) (simp r me)
     simp r (CLValue _ _ _) = internalError "Simplify.Simp(CDefl).simp: CLValue"
     simp r (CLMatch _ _) = internalError "Simplify.Simp(CDefl).simp: CLMatch"
-    simp r d@(CLType {}) = d
 
 instance (Simp a) => Simp (Maybe a) where
     simp r Nothing = Nothing
@@ -339,8 +338,6 @@ capturedVarsCDefl (CLValueSign def _) = capturedVarsCDef def
 capturedVarsCDefl (CLMatch pat e) = getPV pat
 capturedVarsCDefl (CLValue var clauses _) =
     S.unions (S.singleton var : map capturedVarsClause clauses)
-capturedVarsCDefl (CLType _ i _ _) = S.singleton i
-
 capturedVarsCDef :: CDef -> S.Set Id
 capturedVarsCDef (CDefT var _ _ clauses) =
     S.unions (S.singleton var : map capturedVarsClause clauses)
