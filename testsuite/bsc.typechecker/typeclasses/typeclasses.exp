@@ -82,12 +82,14 @@ compile_pass ATFStructHK.bs
 compile_pass ATFMultiInst.bs
 compile_pass ATFMultiParam.bs
 compile_pass ATFMap.bs
-compile_verilog_pass ATFSizeOf.bs
 compile_pass ATFImported.bs
 compile_pass ATFUnify.bs
 compile_pass ATFUnifyHK.bs
 compile_pass ATFInInstHeadDetermined.bs
 compile_pass ATFInjective.bs
+
+compile_verilog_pass ATFSizeOf.bs
+compile_verilog_pass ATFPoly.bs
 
 # Test ATF error cases
 

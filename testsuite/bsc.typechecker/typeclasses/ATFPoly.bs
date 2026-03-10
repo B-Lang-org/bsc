@@ -1,0 +1,22 @@
+package ATFPoly where
+
+class (Bits r n) => HasRepr a r n | a -> r n where
+  type Repr a = r
+  type ReprSize a = n
+  toRepr :: a -> r
+
+instance HasRepr Integer (Int 16) 16 where
+  toRepr = fromInteger
+
+polyThing :: (HasRepr a r n, FShow r) => a -> Module Empty
+polyThing x = module
+  reg <- mkReg $ toRepr x
+  rules
+    when True ==> do
+      $display reg
+      $display (valueOf (ReprSize a))
+      $finish
+
+{-# synthesize sysATFPoly #-}
+sysATFPoly :: Module Empty
+sysATFPoly = polyThing 42
