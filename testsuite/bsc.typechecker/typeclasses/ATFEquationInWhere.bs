@@ -1,9 +1,0 @@
-package ATFEquationInWhere where
-
--- Test that an ATF equation in a where clause is an error.
--- This exercises the Cletrec path (tiDefls), distinct from the
--- Cletseq path (tiLetseqDef) tested by ATFEquationInLet.
-
--- A type family equation is not valid inside a where clause.
-badWhere :: Integer
-badWhere = 42 where type Fake x = Integer

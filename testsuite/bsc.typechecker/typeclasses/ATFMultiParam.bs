@@ -1,31 +1,23 @@
 package ATFMultiParam where
 
--- Test an ATF whose arity is 2, consuming both class type parameters.
--- 'Out a b' has kind * -> * -> *, and each instance equation maps a pair
+-- Test a type function whose arity is 2, consuming both class type parameters.
+-- 'Out a b' has kind * -> * -> *, and each instance maps a pair
 -- of concrete types to a result type.  The typechecker must dispatch to the
--- correct equation based on the two concrete type arguments.
---
--- Note: the intermediate let-binding annotated with the ATF type (not the
--- expanded type) is necessary so that the typechecker can unify
--- 'Out a b' structurally before forward-expanding to the concrete result
--- type.  This avoids needing injective (reverse) ATF matching.
+-- correct instance based on the two concrete type arguments.
 
 data Pair a b = Pair a b
 
-class Merge a b where
-  type Out a b
-  merge :: a -> b -> Out a b
+class Merge a b r | a b -> r where
+  type Out a b = r
+  merge :: a -> b -> r
 
-instance Merge Integer Bool where
-  type Out Integer Bool = Pair Integer Bool
+instance Merge Integer Bool (Pair Integer Bool) where
   merge x y = Pair x y
 
-instance Merge Bool Integer where
-  type Out Bool Integer = Maybe Integer
+instance Merge Bool Integer (Maybe Integer) where
   merge x y = if x then Just y else Nothing
 
-instance Merge Integer Integer where
-  type Out Integer Integer = Integer
+instance Merge Integer Integer Integer where
   merge = (+)
 
 i :: Integer

@@ -1,8 +1,8 @@
 package ATFDeclParamMismatch where
 
--- Test that an ATF declaration whose parameter names don't match the class
--- parameter names is an error (T0158).
+-- Test that a type function declaration whose parameter names don't match the
+-- class parameter names is an error (T0158).
 
-class Container f where
-  type Elem g  -- wrong: should be 'f', not 'g'
-  unwrap :: f -> Elem f
+class Container f e | f -> e where
+  type Elem g = e  -- wrong: should be 'f', not 'g'
+  unwrap :: f -> e

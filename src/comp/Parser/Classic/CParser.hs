@@ -267,10 +267,7 @@ pDeflM = pDefl
      ||! pPat +.+ eq ..+ pExpr                     >>> CLMatch
 
 pDefl :: CParser CDefl
-pDefl =  (getPos `into` \ pos ->
-           l L_type ..+ pTyConId +.+ many atyp +.+ eq ..+ typ0
-               >>- \ (name,(args,rhs)) -> CLType pos name args rhs)
-    ||! (pVarId +.+ dc ..+ pQType `into` \ (i,t) ->
+pDefl =  (pVarId +.+ dc ..+ pQType `into` \ (i,t) ->
                 dsm ..+ pClauses1 i               >>- (\ e -> CLValueSign (CDef i t e) [])
             ||! eq ..+ exp0                       >>- (\ e -> CLValueSign (CDef i t [CClause [] [] e]) []))
     ||! pClauseAny `into` \ (i, c) -> pClauses i  >>- (\ cs -> CLValue i (c:cs) [])
@@ -282,7 +279,6 @@ pTDefl = pDefl `into` \ d ->
   where updWhen (CLValueSign d _) qs = CLValueSign d qs
         updWhen (CLValue i cs  _) qs = CLValue i cs  qs
         updWhen (CLMatch _ _) _ = internalError "CParser.pTDefl.updWhen: CLMatch"
-        updWhen (CLType {}) _ = internalError "CParser.pTDefl.updWhen: CLType"
 
 cLam :: Position -> [CPat] -> CExpr -> CExpr
 -- We special-case CPVar and CPAny because the typechecker can
@@ -426,13 +422,11 @@ pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.
 
 pClassBodyItem :: CParser (Either CAssocType CField)
 pClassBodyItem =
-      (getPos `into` \ pos ->
-       -- Accept "type Map k v :: Kind" where k may be the class param and v
-       -- is an extra type param.  We count the args to determine extra arity;
-       -- getTI subtracts the class param count to get ca_extra_arity.
-       l L_type ..+ pTyConId +.+ many pTyVarId +.+ opt (dc ..+ pKind)
-           >>- \ (name, (args, mk)) ->
-               Left (CAssocType pos name args mk))
+      (-- Accept "type Map k v = r" where k may be the class param and v
+       -- is an extra type param.
+       l L_type ..+ pTyConId +.+ many pTyVarId +.+ eq ..+ pTyVarId
+           >>- \ (name, (args, rhs)) ->
+               Left (CAssocType name args rhs))
   ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)

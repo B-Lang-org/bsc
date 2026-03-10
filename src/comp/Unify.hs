@@ -18,41 +18,30 @@ rtrace s x = if doRTrace then traces s x else x
 
 class Unify t where
     mgu :: [TyVar] {- bound type vars: don't substitute with other tyvars -}
-        -> ATFEqMap {- ATF equations for expansion during unification -}
         -- result: list of substitutions and required type equalities
         -> t -> t -> Maybe (Subst, [(Type, Type)])
 
 instance Unify Type where
-    -- First, attempt to reduce type families.
-    -- Note that this reduces inside of applications of higher-kinded type families.
-    mgu bound_tyvars eqmap t1@(TAp _ _) t2 | Just t1' <- tryExpandATF eqmap t1 =
-         mgu bound_tyvars eqmap t1' t2
-    mgu bound_tyvars eqmap t1 t2@(TAp _ _) | Just t2' <- tryExpandATF eqmap t2 =
-         mgu bound_tyvars eqmap t1 t2'
-
-    mgu bound_tyvars eqmap t1 t2
+    -- an unreducable ATF application: identical types unify cleanly (reflexivity);
+    -- different types generate a deferred equality constraint without structural
+    -- decomposition (no injective type family reasoning).
+    mgu bound_tyvars t1 t2 | isATFAp t1 || isATFAp t2 =
+        if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
+    mgu bound_tyvars t1 t2
         | kind t1 == KNum =
       case kind t2 of
         KNum -> numUnify bound_tyvars t1 t2
         _ -> internalError("unify kind mismatch: " ++ ppReadable(t1, kind t1, t2, kind t2))
-    -- don't substitute a variable for itself
-    mgu bound_tyvars eqmap tu@(TVar u) tv@(TVar v) = varUnify bound_tyvars u v tu tv
-    mgu bound_tyvars eqmap (TVar u) t        = varBindWithEqs u t
-    mgu bound_tyvars eqmap t (TVar u)        = varBindWithEqs u t
-    mgu bound_tyvars eqmap (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
-    -- an unreducable ATF application: identical types unify cleanly (reflexivity);
-    -- different types generate a deferred equality constraint without structural
-    -- decomposition (no injective type family reasoning).
-    -- Note that for unreducable higher-kinded type families that are directly applied,
-    -- we introduce the equality constraint outside of the application to avoid
-    -- requiring higher-kinded type equality constraints.
-    mgu bound_tyvars eqmap t1 t2 | isATFAp t1 || isATFAp t2 =
-        if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
-    mgu bound_tyvars eqmap t1@(TAp l r) t2@(TAp l' r') = do
-        (s1, eqs1) <- mgu bound_tyvars eqmap l l'
-        (s2, eqs2) <- mgu bound_tyvars eqmap (apSub s1 r) (apSub s1 r')
+    mgu bound_tyvars t1@(TAp l r) t2@(TAp l' r') = do
+        (s1, eqs1) <- mgu bound_tyvars l l'
+        (s2, eqs2) <- mgu bound_tyvars (apSub s1 r) (apSub s1 r')
         Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
-    mgu bound_tyvars _ _ _ = Nothing
+    -- don't substitute a variable for itself
+    mgu bound_tyvars tu@(TVar u) tv@(TVar v) = varUnify bound_tyvars u v tu tv
+    mgu bound_tyvars (TVar u) t        = varBindWithEqs u t
+    mgu bound_tyvars t (TVar u)        = varBindWithEqs u t
+    mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
+    mgu bound_tyvars _ _ = Nothing
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2
@@ -101,12 +90,12 @@ varUnify bound_tyvars u v tu tv = varBindWithEqs u tv
             ppReadable (bound_tyvars, u, tv)) $ varBind u tv -}
 
 instance (Types t, Unify t) => Unify [t] where
-    mgu bound_tyvars eqmap (x:xs) (y:ys) = do
-        (s1,eqs1) <- mgu bound_tyvars eqmap x y
-        (s2,eqs2) <- mgu bound_tyvars eqmap (apSub s1 xs) (apSub s1 ys)
+    mgu bound_tyvars (x:xs) (y:ys) = do
+        (s1,eqs1) <- mgu bound_tyvars x y
+        (s2,eqs2) <- mgu bound_tyvars (apSub s1 xs) (apSub s1 ys)
         return (s2 @@ s1, fastNub (eqs1 ++ eqs2))
-    mgu bound_tyvars eqmap []     []     = return (nullSubst, [])
-    mgu bound_tyvars eqmap _      _      = Nothing
+    mgu bound_tyvars []     []     = return (nullSubst, [])
+    mgu bound_tyvars _      _      = Nothing
 
 varBindWithEqs :: TyVar -> Type -> Maybe (Subst, [(Type, Type)])
 varBindWithEqs u t = fmap no_eqs $ varBind u t

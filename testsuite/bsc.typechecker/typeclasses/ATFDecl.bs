@@ -1,24 +1,23 @@
 package ATFDecl where
 
--- Test that an ATF declaration is in scope for use in method type signatures,
--- and that a concrete instance with an equation typechecks.
--- The ATF equation Elem (Wrapper a) = a must be expanded by the compiler
--- when checking that unwrap returns the correct type.
+-- Test that a type function declaration is in scope for use in method type
+-- signatures, and that a concrete instance typechecks.
+-- The type function Elem f = e is declared in the class with fundep f -> e.
+-- The instance Container (Wrapper a) a supplies a as the determined param.
 
-class Container f where
-  type Elem f
-  wrap :: Elem f -> f
-  unwrap :: f -> Elem f
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+  unwrap :: f -> e
 
 data Wrapper a = Wrapper a
 
-instance Container (Wrapper a) where
-  type Elem (Wrapper a) = a
+instance Container (Wrapper a) a where
   wrap = Wrapper
   unwrap (Wrapper x) = x
 
 -- Monomorphic specialisation forces Elem (Wrapper Integer) = Integer
--- when the method is bound, exercising ATF expansion in mgu.
+-- when the method is bound, exercising type function expansion in mgu.
 unwrapW :: Wrapper Integer -> Integer
 unwrapW = unwrap
 

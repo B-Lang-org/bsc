@@ -1,15 +1,17 @@
 package ATFWrongArity where
 
--- Test that an ATF equation whose LHS has the wrong number of arguments
--- compared to the class ATF declaration is an error.
+-- Test that applying a type function to the wrong number of arguments
+-- produces an error.  Elem takes 1 argument but is used with 0 (T0025).
 
-class Container f where
-  type Elem f
-  unwrap :: f -> Elem f
+class Container f e | f -> e where
+  type Elem f = e
+  unwrap :: f -> e
 
-data Wrapper a = Wrapper a
+data Box a = Box a
 
--- Wrong: Elem is declared with 1 arg, but the equation gives 2.
-instance Container (Wrapper a) where
-  type Elem (Wrapper a) Integer = a  -- too many args; should be Elem (Wrapper a) = a
-  unwrap (Wrapper x) = x
+instance Container (Box a) a where
+  unwrap (Box x) = x
+
+-- Error: Elem applied to too few arguments
+test :: Elem -> Integer
+test _ = 42

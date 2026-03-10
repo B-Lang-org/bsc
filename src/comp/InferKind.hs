@@ -1,7 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 module InferKind(inferKinds) where
 import Data.List((\\))
-import Data.Maybe(fromMaybe)
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Util(map_insertMany)
@@ -32,8 +31,8 @@ inferKinds mi s ds = run $ do
         getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
         getIK (IdKind i k) = return [(i, k)]
         getIK (IdPKind i pk) = do k <- convertPKindToKind pk; return [(i, k)]
-        getATFIK (CAssocType _ atf_id _ _) = do
-            v <- newKVar (Just atf_id); return [(atf_id, v)]
+        getATFIK (CAssocType ca_name _ _) = do
+            v <- newKVar (Just ca_name); return [(ca_name, v)]
     ass <- mapM get ds
     -- assumptions about the types defined in this package
     let as = concat ass
@@ -109,7 +108,7 @@ inferKDefn as (Cclass _ ps ik vs _ ats fs) = do
     mapM_ (inferCPred as') ps
     -- Constrain the kind of each associated type family constructor
     let v_ks = map snd v_as
-    mapM_ (inferKATF as v_ks) ats
+    mapM_ (inferKATF as vs v_ks) ats
     unifyDefStar i con_k v_as mk
 inferKDefn as (Cinstance qt@(CQType ps t) _) = do
     as' <- mapM makeAssump (getFQTyVarsL qt)
@@ -118,13 +117,17 @@ inferKDefn as (Cinstance qt@(CQType ps t) _) = do
     kcCTypeStar as'' t
 inferKDefn _ _ = return ()
 
-inferKATF :: Assumps -> [Kind] -> CAssocType -> KI ()
-inferKATF as v_ks (CAssocType _ atf_id ca_params mk) = do
-    let atf_k    = mustFindK atf_id as
-        n_extra  = max 0 (length ca_params - length v_ks)
-        extra_ks = replicate n_extra KStar
-        expected_k = mkKFun (v_ks ++ extra_ks) (fromMaybe KStar mk)
-    unifyDef atf_id atf_k expected_k
+-- Infer the kind of an associated type function from its parameters.
+-- The ATF params must be class type variables, so their kinds come from
+-- the class param kinds.  The result kind is the kind of the RHS variable.
+inferKATF :: Assumps -> [Id] -> [Kind] -> CAssocType -> KI ()
+inferKATF as class_vs v_ks (CAssocType ca_name ca_params ca_rhs) = do
+    let atf_k    = mustFindK ca_name as
+        vs_kind_map = M.fromList (zip class_vs v_ks)
+        param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
+        result_k = M.findWithDefault KStar ca_rhs vs_kind_map
+        expected_k = mkKFun param_ks result_k
+    unifyDef ca_name atf_k expected_k
 
 inferCPred :: Assumps -> CPred -> KI ()
 inferCPred as (CPred (CTypeclass i) ts) = kcCTypeStar as (cTApplys (cTCon i) ts)

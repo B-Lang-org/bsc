@@ -1,15 +1,14 @@
 package ATFImportedLib where
 
--- Library package that defines a class with an ATF and one instance.
--- ATFImported.bs imports this package and uses the ATF equation
--- to verify that cross-module ATF expansion works correctly.
+-- Library package that defines a class with a type function and one instance.
+-- ATFImported.bs imports this package and uses the type function
+-- to verify that cross-module expansion works correctly.
 
-class Container f where
-  type Elem f
-  extract :: f -> Elem f
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
 
 data Box a = Box a
 
-instance Container (Box a) where
-  type Elem (Box a) = a
+instance Container (Box a) a where
   extract (Box x) = x

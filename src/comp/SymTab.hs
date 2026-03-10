@@ -10,7 +10,7 @@ module SymTab(
               addTypesQ, addFieldsQ,
               findVar, findCon, findConVis, findType,
               findField, findFieldVis, findSClass, mustFindClass,
-              findFieldInfo, getATFEqs, addATFEqs,
+              findFieldInfo, expandATFViaInst,
               getMethodArgNames, getIfcFieldNames, getIfcFlatMethodNames
               ) where
 
@@ -19,15 +19,14 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(find)
-import Data.Maybe(isNothing, isJust)
+import Data.Maybe(isNothing, isJust, mapMaybe)
 import qualified Data.Map as M
 import Eval(NFData(..), rnf7)
 import PPrint
 import Id
-import Pred(Class(..))
+import Pred(Class(..), Pred(..), Inst(..), Qual(..))
 import Assump
 import Scheme(Scheme(..))
-import Pred(Qual(..))
 import CType
 import Type(isClock, isReset, isInout)
 import CSyntax(CClause)
@@ -158,12 +157,10 @@ instance NFData FieldInfo where
 -- The symbol table is composed of several other tables
 data SymTab =
         S (IdMap VarInfo) (IdMap [ConInfo]) (IdMap TypeInfo) (IdMap [FieldInfo]) (IdMap Class)
-          (IdMap ATFEq)
           -- The TypeInfo is indexed by type and returns the info for that type
           --   (indexed generally by both qualified and unqualified name)
           -- The FieldInfo is indexed by field id (e.g., "_write" returns the fields of Reg)
           --   or by superclass (e.g. Literal returns the superclasses of "Arith")
-          -- The last field holds equations for associated type families
 
 instance Eq SymTab where -- just because we need one for forcing evaluation
     _ == _ = False
@@ -180,7 +177,7 @@ sps wid islist =
     [ show thing ++ "\n" | thing <- islist ]
 
 instance Show SymTab where
-    showsPrec _ (S v c t f cl _) =
+    showsPrec _ (S v c t f cl) =
         showString "Vars: " . showsPrecList 0 (M.toList v) . showString "\n" .
         showString "Cons: " . showsPrecList 0 (M.toList c) . showString "\n" .
         showString "Types: " . showsPrecList 0 (M.toList t) . showString "\n" .
@@ -188,7 +185,7 @@ instance Show SymTab where
         showString "Classes: " . showsPrecList 0 (M.toList cl) . showString "\n"
 
 instance PPrint SymTab where
-    pPrint d _ (S v c t f cl _) =
+    pPrint d _ (S v c t f cl) =
         (text "Vars:" <+> pPrint d 0 (M.toList v) ) $+$
         (text "Cons:" <+> pPrint d 0 (M.toList c) ) $+$
         (text "Types:" <+> pPrint d 0 (M.toList t) ) $+$
@@ -199,21 +196,21 @@ instance NFData SymTab where
     rnf x = ()                -- XXX
 
 emptySymtab :: SymTab
-emptySymtab = S M.empty M.empty M.empty M.empty M.empty M.empty
+emptySymtab = S M.empty M.empty M.empty M.empty M.empty
 
 -- ---------------
 
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
 addVars :: (Id -> [Id]) -> SymTab -> [(Id, VarInfo)] -> SymTab
-addVars mkQuals (S v c t f cl eqs) ivs =
-    S (foldr (uncurry M.insert) v (addQuals mkQuals ivs)) c t f cl eqs
+addVars mkQuals (S v c t f cl) ivs =
+    S (foldr (uncurry M.insert) v (addQuals mkQuals ivs)) c t f cl
 
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
 addTypes :: (Id -> [Id]) -> SymTab -> [(Id, TypeInfo)] -> SymTab
-addTypes mkQuals (S v c t f cl eqs) its =
-    S v c (foldr (uncurry (M.insertWith pickBetter)) t (addQuals mkQuals its)) f cl eqs
+addTypes mkQuals (S v c t f cl) its =
+    S v c (foldr (uncurry (M.insertWith pickBetter)) t (addQuals mkQuals its)) f cl
   where
     -- replace an abstract export with a full export
     pickBetter it1 it2 =
@@ -230,30 +227,29 @@ addTypes mkQuals (S v c t f cl eqs) its =
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
 addCons :: (Id -> [Id]) -> SymTab -> [(Id, ConInfo)] -> SymTab
-addCons mkQuals (S v c t f cl eqs) ics =
+addCons mkQuals (S v c t f cl) ics =
     let
         insertFn (i,c) = M.insertWith conInfoMerge i [c]
         c' = foldr insertFn c (addQuals mkQuals ics)
     in
-        S v c' t f cl eqs
+        S v c' t f cl
 
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
 addFields :: (Id -> [Id]) -> SymTab -> [(Id, FieldInfo)] -> SymTab
-addFields mkQuals (S v c t f cl eqs) ifs =
+addFields mkQuals (S v c t f cl) ifs =
     let
         insertFn (i,f) = M.insertWith fieldInfoMerge i [f]
         f' = foldr insertFn f (addQuals mkQuals ifs)
     in
-        S v c t f' cl eqs
+        S v c t f' cl
 
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
 addClasses :: (Id -> [Id]) -> SymTab -> [Class] -> SymTab
-addClasses mkQuals (S v c t f cl eqs) cls =
+addClasses mkQuals (S v c t f cl) cls =
     S v c t f
           (foldr (uncurry M.insert) cl (addQuals mkQuals (map (\c -> (typeclassId $ name c, c)) cls)))
-          eqs
 
 -- -----
 
@@ -304,26 +300,26 @@ mkSameQual name = [name]
 -- ---------------
 
 findVar :: SymTab -> Id -> Maybe VarInfo
-findVar (S v _ _ _ _ _) i = --trace (ppReadable (show i, show (map fst (M.toList v)))) $
+findVar (S v _ _ _ _) i = --trace (ppReadable (show i, show (map fst (M.toList v)))) $
         M.lookup i v
 
 findCon :: SymTab -> Id -> Maybe [ConInfo]
-findCon (S _ c _ _ _ _) i = M.lookup i c
+findCon (S _ c _ _ _) i = M.lookup i c
 
 findConVis :: SymTab -> Id -> Maybe [ConInfo]
 findConVis s i = fmap (filter ci_visible) (findCon s i)
 
 findType :: SymTab -> Id -> Maybe TypeInfo
-findType (S _ _ t _ _ _) i = M.lookup i t
+findType (S _ _ t _ _) i = M.lookup i t
 
 findField :: SymTab -> Id -> Maybe [FieldInfo]
-findField (S _ _ _ f _ _) i = M.lookup i f
+findField (S _ _ _ f _) i = M.lookup i f
 
 findFieldVis :: SymTab -> Id -> Maybe [FieldInfo]
 findFieldVis s i = fmap (filter fi_visible) (findField s i)
 
 findSClass :: SymTab -> CTypeclass -> Maybe Class
-findSClass (S _ _ _ _ cl _) (CTypeclass i) = M.lookup i cl
+findSClass (S _ _ _ _ cl) (CTypeclass i) = M.lookup i cl
 
 mustFindClass :: SymTab -> CTypeclass -> Class
 mustFindClass r i =
@@ -332,13 +328,48 @@ mustFindClass r i =
      Nothing -> internalError ("mustFindClass " ++ show i)
 
 getAllTypes :: SymTab -> [(Id, TypeInfo)]
-getAllTypes (S _ _ t _ _ _) = M.toList t
+getAllTypes (S _ _ t _ _) = M.toList t
 
-getATFEqs :: SymTab -> ATFEqMap
-getATFEqs (S _ _ _ _ _ eqs) = eqs
+-- | Expand an ATF application by looking up matching class instances.
+-- For each instance, tries to match the ATF args against the relevant
+-- instance head positions, then returns the instance arg at the target index.
+expandATFViaInst :: SymTab -> TISort -> [Type] -> Maybe Type
+expandATFViaInst symt (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
+                             , atf_target_idx = tIdx }) atfArgs =
+    case findSClass symt (CTypeclass clsId) of
+      Nothing -> Nothing
+      Just cls ->
+        let dummyPred = IsIn cls (map TVar (csig cls))
+            insts = genInsts cls [] Nothing dummyPred
+            tryInst (Inst _ _ (_ :=> IsIn _ instArgs)) =
+              -- For each ATF param that is a class param, match ATF arg against instance arg
+              let pairs = [ (instArgs !! idx, arg)
+                          | (idx, arg) <- zip pIdxs atfArgs, idx >= 0 ]
+              in case matchPairs pairs [] of
+                   Just _  -> Just (instArgs !! tIdx)
+                   Nothing -> Nothing
+        in case mapMaybe tryInst insts of
+             (result:_) -> Just result
+             []         -> Nothing
+expandATFViaInst _ _ _ = Nothing
 
-addATFEqs :: SymTab -> ATFEqMap -> SymTab
-addATFEqs (S v c t f cl eqs) newEqs = S v c t f cl (M.unionWith (++) eqs newEqs)
+-- Simple one-sided pattern matching: match instance patterns against concrete types.
+-- Binds TGen placeholders to concrete types.
+matchPairs :: [(Type, Type)] -> [(Int, Type)] -> Maybe [(Int, Type)]
+matchPairs [] s = Just s
+matchPairs ((TGen _ n, t):ps) s =
+    case lookup n s of
+      Nothing -> matchPairs ps ((n, t):s)
+      Just t' -> if t == t' then matchPairs ps s else Nothing
+matchPairs ((TAp f1 a1, TAp f2 a2):ps) s =
+    matchPairs ((f1,f2):(a1,a2):ps) s
+matchPairs ((TCon c1, TCon c2):ps) s
+    | c1 == c2  = matchPairs ps s
+    | otherwise = Nothing
+matchPairs ((TVar v1, TVar v2):ps) s
+    | v1 == v2  = matchPairs ps s
+    | otherwise = Nothing
+matchPairs _ _ = Nothing
 
 -- a double key lookup into the symbol table to get field names of an interface method
 -- The first key is the interface name, the second the method name.

@@ -426,15 +426,14 @@ instance Bin CExpr where
              n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
 
 instance Bin CAssocType where
-    writeBytes (CAssocType pos name ps k) = do toBin pos; toBin name; toBin ps; toBin k
-    readBytes = do pos <- fromBin; name <- fromBin; ps <- fromBin; k <- fromBin
-                   return (CAssocType pos name ps k)
+    writeBytes (CAssocType name ps rhs) = do toBin name; toBin ps; toBin rhs
+    readBytes = do name <- fromBin; ps <- fromBin; rhs <- fromBin
+                   return (CAssocType name ps rhs)
 
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs
     writeBytes (CLValue i cs qs)  = do putI 1; toBin i; toBin cs; toBin qs
     writeBytes (CLMatch p e)  = do putI 2; toBin p; toBin e
-    writeBytes (CLType pos name args rhs) = do putI 3; toBin pos; toBin name; toBin args; toBin rhs
     readBytes =
         do tag <- getI
            case tag of
@@ -442,8 +441,6 @@ instance Bin CDefl where
             1 -> do i <- fromBin; cs <- fromBin; qs <- fromBin;
                     return (CLValue i cs qs)
             2 -> do p <- fromBin; e <- fromBin; return (CLMatch p e)
-            3 -> do pos <- fromBin; name <- fromBin; args <- fromBin; rhs <- fromBin
-                    return (CLType pos name args rhs)
             n -> internalError $ "GenBin.Bin(CDefl).readBytes: " ++ show n
 
 instance Bin CDef where

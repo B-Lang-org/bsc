@@ -1,0 +1,18 @@
+package ATFInInstHeadBiDirectional where
+
+-- Test that using a type function in an instance head produces an error,
+-- when there is a functional dependency case where the corresponding type variable is not determined.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+data Box a = Box a
+instance Container (Box a) a where
+  wrap = Box
+
+class Bar a b | a -> b, b -> a where
+  bar :: a -> b
+
+instance Bar (Box a) (Elem (Box a)) where
+  bar (Box x) = x

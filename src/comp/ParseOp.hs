@@ -88,7 +88,6 @@ pDefl ft (CLMatch p e) = do
     p' <- pPat ft p
     e' <- pExpr ft e
     return (CLMatch p' e')
-pDefl ft d@(CLType {}) = return d
 
 pGuard :: FixTable -> Maybe CExpr -> ErrorMonad (Maybe CExpr)
 pGuard ft Nothing = return Nothing

@@ -237,8 +237,7 @@ instance CSubst CDefl where
         let pvars = getPatVars p
             r' = rmVarIds r pvars
         in  CLMatch (cSubst r p) (cSubst r' e)
-    cSubst r (CLType pos i args rhs) =
-        CLType pos i (cSubst r args) (cSubst r rhs)
+
 
 instance CSubst CQType where
     cSubst r (CQType preds t) = CQType (cSubst r preds) (cSubst r t)

@@ -1203,22 +1203,15 @@ TYPE CLASSES AND INSTANCES
 
 > pTypeclassAssocType :: SV_Parser CAssocType
 > pTypeclassAssocType =
->     do pos <- getPos
->        pKeyword SV_KW_type
->        (idk, params) <- pTypedefConParams <?> "associated type family name"
->        pSemi
->        return (CAssocType pos (iKName idk) params Nothing)
-
-> pInstanceAssocTypeEq :: SV_Parser [CDefl]
-> pInstanceAssocTypeEq =
->     do pos <- getPos
->        pKeyword SV_KW_type
+>     do pKeyword SV_KW_type
 >        name <- pConstructor <?> "associated type family name"
->        args <- option [] (pSymbol SV_SYM_hash >> pInParens (pCommaSep1 pTypeExpr))
+>        pks <- option [] pTypedefParams
+>        let (params, _kinds) = unzip pks
 >        pEq
->        rhs <- pTypeExpr
+>        rhs <- pIdentifier <?> "type variable"
 >        pSemi
->        return [CLType pos name args rhs]
+>        return (CAssocType name params rhs)
+
 
 > pClassNameType :: SV_Parser (Id, CType)
 > pClassNameType =
@@ -1262,8 +1255,7 @@ TYPE CLASSES AND INSTANCES
 >        (name, classType) <- pClassNameType
 >        context <- option [] pProvisos
 >        pSemi
->        functions <- fmap concat (many ( pInstanceAssocTypeEq
->                                        <|> pInstanceFunction
+>        functions <- fmap concat (many ( pInstanceFunction
 >                                        <|> pInstanceModule
 >                                        <|> pInstanceVar))
 >        pEndClause SV_KW_endinstance (Just name)
