@@ -218,24 +218,23 @@ expTFun t0
   | let (f, as) = splitTAp t0,
     TCon (TyCon _ _ ti@(TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
                                , atf_target_idx = tIdx })) <- f,
-    let n = length pIdxs,
-    length as >= n = do
+    length as == length pIdxs = do
       sy <- getSymTab
-      let (atfArgs, extraArgs) = splitAt n as
-      case expandATFViaInst sy ti atfArgs of
-        Just rhs -> expTFun (foldl TAp rhs extraArgs)
+      case expandATFViaInst sy ti as of
+        Just rhs -> expTFun rhs
         Nothing  -> do
-          -- Can't expand (abstract args). Generate a class constraint.
+          -- Can't expand (abstract args). Generate a class constraint
+          -- so the result gets bound when the class is resolved.
           cls <- findCls (CTypeclass clsId)
           let nParams = length (csig cls)
           v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
           let classArgs = [ if idx == tIdx then v
                             else case elemIndex idx pIdxs of
-                                   Just j  -> atfArgs !! j
+                                   Just j  -> as !! j
                                    Nothing -> TVar (csig cls !! idx)
                           | idx <- [0..nParams-1] ]
           vp <- mkVPredFromPred [getPosition t0] (IsIn cls classArgs)
-          return ([vp], foldl TAp v extraArgs)
+          return ([vp], v)
 expTFun (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
   -- traceM ("idcon: " ++ ppReadable idcon)
   let f = lookupWithDefault primTConMap (defaultTConAp tcon) idcon
