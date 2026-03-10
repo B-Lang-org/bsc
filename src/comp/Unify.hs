@@ -23,8 +23,7 @@ class Unify t where
 
 instance Unify Type where
     -- an unreducable ATF application: identical types unify cleanly (reflexivity);
-    -- different types generate a deferred equality constraint without structural
-    -- decomposition (no injective type family reasoning).
+    -- different types generate a deferred equality constraint.
     mgu bound_tyvars t1 t2 | isATFAp t1 || isATFAp t2 =
         if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
     mgu bound_tyvars t1 t2

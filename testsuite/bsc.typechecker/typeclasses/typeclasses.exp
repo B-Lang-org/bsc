@@ -87,6 +87,7 @@ compile_pass ATFImported.bs
 compile_pass ATFUnify.bs
 compile_pass ATFUnifyHK.bs
 compile_pass ATFInInstHeadDetermined.bs
+compile_pass ATFInjective.bs
 
 # Test ATF error cases
 
@@ -94,6 +95,8 @@ compile_fail_error ATFWrongArity.bs T0025
 compile_fail_error ATFDeclParamMismatch.bs T0158
 compile_fail_error ATFInInstHead.bs T0161
 compile_fail_error ATFInInstHeadBiDirectional.bs T0161
+compile_fail_error ATFInInstHeadBiDirectional.bs T0161
+compile_fail_error ATFResultNotDetermined.bs T0162
 compile_fail_error ATFUnifyError.bs T0030
 compile_fail_error ATFUnifyHKError.bs T0030
 
@@ -104,5 +107,3 @@ compile_fail_error ATFWrongArityBSV.bsv T0025
 compile_fail_error ATFDeclParamMismatchBSV.bsv T0158
 
 # --------------------------------------------------
-compile_fail_error ATFInInstHeadBiDirectional.bs T0161
-compile_fail_error ATFResultNotDetermined.bs T0162

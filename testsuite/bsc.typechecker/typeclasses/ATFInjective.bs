@@ -1,0 +1,28 @@
+package ATFInjective where
+
+-- Test injective type functions via bidirectional fundeps.
+-- The class Iso has fundeps a -> b and b -> a, making the
+-- type function Rep injective: knowing Rep a determines a,
+-- and knowing a determines Rep a.
+
+class Iso a b | a -> b, b -> a where
+  type Rep a = b
+  to   :: a -> b
+  from :: b -> a
+
+data X = X
+data Y = Y
+
+instance Iso X Y where
+  to X = Y
+  from Y = X
+
+iid :: (Iso a b) => a -> a
+iid x = from (to x)
+
+class (ToNum :: * -> # -> *) a n | a -> n where {}
+instance ToNum X 1 where {}
+instance ToNum Y 2 where {}
+
+val :: (Iso a b, ToNum b n) => Rep a -> Bit n
+val _ = fromInteger (valueOf n)
