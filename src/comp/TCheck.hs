@@ -2824,7 +2824,9 @@ tiImpls recursive as ibs = do
 
     s   <- getSubst
 
-    let ps = apSub s (concat pss)
+    let ps0 = apSub s (concat pss)
+    ps <- concatMapM expTConPred ps0
+
     when (not . null $ ps) $ satTraceM ("tiImpls " ++ ppReadable is ++ " ps: " ++ ppReadable ps)
 
     -- try to solve as many constraints as possible,
