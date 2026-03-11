@@ -199,8 +199,7 @@ expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
 primTConMap :: [(Id, Id -> Type -> TI ([VPred], Type))]
-primTConMap = [(idSizeOf, expSizeOfT),
-               (idId, expIdOfT)]
+primTConMap = [(idId, expIdOfT)]
 
 -- default action for TCons
 -- no need to recurse because there is no additional structure
@@ -211,27 +210,27 @@ defaultTConAp tcon _ t = do
 
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
--- Type function application: try to expand via class instance lookup.
--- If expansion fails (abstract args), generate a class constraint so
+-- Type function application: try to generate a class constraint so
 -- the result gets bound when the class is resolved.
 expTFun t0
   | let (f, as) = splitTAp t0,
     TCon (TyCon _ _ ti@(TIatf { atf_class_id = clsId
                               , atf_param_idxs = pIdxs
                               , atf_target_idx = tIdx })) <- f,
-    length as == length pIdxs = do
-        -- Can't expand (abstract args). Generate a class constraint
-        -- so the result gets bound when the class is resolved.
+    length as <= length pIdxs = do
+        when (length as < length pIdxs) $
+          internalError $ "expTFun: partially applied type function: " ++ ppReadable (f, as)
         cls <- findCls (CTypeclass clsId)
         let nParams = length (csig cls)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
         let classArgs = [ if idx == tIdx then v
-                        else case elemIndex idx pIdxs of
+                          else case elemIndex idx pIdxs of
                                 Just j  -> as !! j
                                 Nothing -> TVar (csig cls !! idx)
                         | idx <- [0..nParams-1] ]
-        vp <- mkVPredFromPred [getPosition t0] (IsIn cls classArgs)
-        return ([vp], v)
+        vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
+        return (vps, v)
+-- TODO: Just handle Id__ here directly
 expTFun (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
   -- traceM ("idcon: " ++ ppReadable idcon)
   let f = lookupWithDefault primTConMap (defaultTConAp tcon) idcon
@@ -242,13 +241,6 @@ expTFun (TAp f a) = do
         (vas, a') <- expTFun a
         return (vfs++vas, TAp f' a')
 expTFun t = return ([], t)
-
-expSizeOfT :: Id -> Type -> TI ([VPred], Type)
-expSizeOfT sz t = do
-        v <- newTVar "expSizeOfT" KNum sz
-        bits <- bitCls
-        vp <- mkVPredFromPred [getPosition sz] (IsIn bits [t, v])
-        return ([vp], v)
 
 -- eliminate the identity type constructior
 expIdOfT :: Id -> Type -> TI ([VPred], Type)
@@ -301,14 +293,6 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
 -- sat corresponds to section 7.2 "Entailment" in the paper
 -- Typing Haskell in Haskell
 sat :: DVS -> [EPred] -> VPred -> TI ([VPred], SolvedBinds, Subst)
-{-
-sat dvs ps (VPred w pr@(IsIn bts [t1, TAp szof t2]))
-    | name bts == idBits && szof == tSizeOf = do
-    traces ("SizeOf " ++ ppReadable pr) $ return ()
-    tunify t1 t1 t2        -- XXX t1
-    v <- newTVar KNum szof
-    sat dvs ps (VPred w (IsIn bts [t1, v]))
--}
 sat dvs ps p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
@@ -367,7 +351,7 @@ sat dvs ps p =
                 case m_equals of
                   Just (b, (s, num_eqs)) -> do
                     satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
-                    eq_ps <- mapM (eqToVPred (getVPredPositions p)) num_eqs
+                    eq_ps <- concatMapM (eqToVPred (getVPredPositions p)) num_eqs
                     let sb = SolvedBind {
                           bind = b,
                           isRecursive = False  -- From superclass, not recursive
@@ -895,7 +879,7 @@ unify x t1 t2 = do
         case mgu bound_vars t1'' t2'' of
           Just (u,eqs)  ->
               do extSubst "unify" u
-                 mapM (eqToVPred [pos]) eqs
+                 concatMapM (eqToVPred [pos]) eqs
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError bound_vars x t1'' t2''
 
@@ -938,10 +922,10 @@ tryATFClassPred atfType targetType = do
         return $ Just (IsIn cls classArgs)
       _ -> return Nothing
 
-eqToVPred :: [Position] -> (Type, Type) -> TI VPred
+eqToVPred :: [Position] -> (Type, Type) -> TI [VPred]
 eqToVPred poss ty_eq = do
   p <- eqToPred poss ty_eq
-  mkVPredFromPred poss p
+  mkVPredNoNewPos $ mkPredWithPositions poss p
 
 unifyNoEq :: (PPrint a, PVPrint a, HasPosition a)
           => [Char] -> a -> Type -> Type -> TI ()
@@ -1521,8 +1505,6 @@ expandNumericTCons (orig_qs :=> orig_t) =
           | tc == tExp = do v <- newTVar "expandNumericTCons" KNum tc
                             -- There's no class for this, so use NumEq
                             mkResult idNumEq [v, TAp tc t] v
-          | tc == tSizeOf = do v <- newTVar "expandNumericTCons" KNum tc
-                               mkResult idBits [t, v] v
       exp (TAp (TAp tc t1) t2)
           | tc == tAdd = do v <- newTVar "expandNumericTCons" KNum tc
                             mkResult idAdd [t1, t2, v] v

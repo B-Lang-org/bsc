@@ -59,7 +59,6 @@ import Prelude hiding ((<>))
 import Data.Char(isDigit, chr)
 import Data.List(union)
 import Data.Maybe
-import qualified Data.Map as M
 import qualified Data.Generics as Generic
 
 import Eval
@@ -69,8 +68,7 @@ import Id
 import IdPrint
 import PreIds(idArrow, idPrimPair, idPrimUnit, idBit, idString,
               idPrimAction, idAction, idActionValue_, idActionValue,
-              idTNumToStr
-              {-, idSizeOf -})
+              idTNumToStr)
 import Util(itos)
 import ErrorUtil
 import Pragma(IfcPragma)

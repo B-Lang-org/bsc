@@ -1093,9 +1093,6 @@ getStateVarNames (ICon i (ICStateVar {})) = [i]
 getStateVarNames (IAps f _ es) = concatMap getStateVarNames (f:es)
 getStateVarNames _ = []
 
-iTSizeOf :: IType
-iTSizeOf = ITCon idSizeOf (IKStar `IKFun` IKNum) tiSizeOf
-
 iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv :: IType
 iTLog = ITCon idTLog (IKNum `IKFun` IKNum) TIabstract
 iTAdd = ITCon idTAdd (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract

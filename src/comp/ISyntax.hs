@@ -92,7 +92,7 @@ import Eval
 import Id
 import Wires(ResetId, ClockDomain, ClockId, noClockId, noResetId, noDefaultClockId, noDefaultResetId, WireProps)
 import IdPrint
-import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
+import PreIds(idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
 import Backend
 import Prim(PrimOp(..))
 import TypeOps
@@ -413,12 +413,6 @@ normITAp (ITAp (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
   where res = opStrT op [x, y]
 normITAp (ITCon op _ _) (ITNum x) | op == idTNumToStr =
     ITStr (mkNumFString x)
-
-normITAp f@(ITCon op _ _) a | op == idSizeOf && notVar a =
-        -- trace ("normITAp: " ++ ppReadable (ITAp f a)) $
-           ITAp f a
-  where notVar (ITVar _) = False
-        notVar _ = True
 
 normITAp f@(ITCon op _ _) a | op == idId = a
 
