@@ -52,11 +52,10 @@ tName = TCon (TyCon idName (Just KStar) TIabstract)
 tPosition = TCon (TyCon idPosition (Just KStar) TIabstract)
 tType = TCon (TyCon idType (Just KStar) TIabstract)
 
-tPred, tAttributes, tPrimPair, tSizeOf :: Type
+tPred, tAttributes, tPrimPair :: Type
 tPred = TCon (TyCon idPred (Just KStar) TIabstract)
 tAttributes = TCon (TyCon idAttributes (Just KStar) TIabstract)
 tPrimPair = TCon (TyCon idPrimPair (Just (Kfun KStar (Kfun KStar KStar))) (TIstruct SStruct [idPrimFst, idPrimSnd]))
-tSizeOf = TCon (TyCon idSizeOf (Just (Kfun KStar KNum)) TIabstract)
 
 tAction, tActionValue, tActionValue_, tAction_:: Type
 tAction = TCon (TyCon idAction (Just KStar) (TItype 0 (TAp tActionValue tPrimUnit)))

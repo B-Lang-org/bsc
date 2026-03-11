@@ -7,7 +7,7 @@ import Util(mapSnd)
 import PPrint(ppReadable)
 import Flags(Flags)
 
-import PreIds(idSizeOf)
+import CType(TISort(TIatf))
 import ISyntax
 import Changed
 import IConv(iConvT)
@@ -20,8 +20,8 @@ iNormTypes flags symt = iNorm fullNorm
 
         fullNorm' :: IType -> Changed IType
         fullNorm' tf@(ITForAll i k t)   = changed1 (ITForAll i k) (fullNorm' t)
-        fullNorm' (ITAp f@(ITCon op _ _) a)
-          | op == idSizeOf && canNorm a' = Changed $ normalizeSizeOf $ ITAp f a'
+        fullNorm' (ITAp f@(ITCon op _ (TIatf {})) a)
+          | canNorm a' = Changed $ iConvT flags symt $ iToCT $ ITAp f a'
           where -- Could use changedOr directly, but fullNorm does the right thing
                 -- because we will normalize this type whether or not a changes
                 a' = fullNorm a
@@ -34,12 +34,6 @@ iNormTypes flags symt = iNorm fullNorm
           where f' = fullNorm' f
                 a' = fullNorm' a
         fullNorm' _ = Unchanged
-
-        normalizeSizeOf t =
-          let t' = iConvT flags symt $ iToCT t
-          in case t' of
-               ITNum _ -> t'
-               _ -> internalError $ "iNormTypes - unsimplified: " ++ ppReadable (t,t')
 
 class INormTypes a where
   iNorm :: (IType -> IType) -> a -> a

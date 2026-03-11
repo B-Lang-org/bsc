@@ -401,6 +401,7 @@ class (Monad m) => MonadFix m where
 --@ endtypeclass
 --@ \end{libverbatim}
 class coherent Bits a n | a -> n where
+    type SizeOf a = n
     pack   :: a -> Bit n
     unpack :: Bit n -> a
 
@@ -2907,8 +2908,6 @@ instance Eq Reset
   where
    (==) x y = primChr (primResetEQ x y)
    (/=) x y = primChr (primBNot (primResetEQ x y))
-
-primitive type SizeOf :: * -> #
 
 primitive type TAdd :: # -> # -> #
 primitive type TSub :: # -> # -> #

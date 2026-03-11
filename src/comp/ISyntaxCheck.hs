@@ -230,7 +230,6 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
   where new_eqs = case t of
                     (ITAp (ITAp (ITCon i _ _) t1) t2)
                          | i == idLog   -> [(ITAp iTLog t1, t2)]
-                         | i == idBits  -> [(ITAp iTSizeOf t1, t2)]
                          | i == idNumEq -> [(t1, t2)]
                     (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
                          -- XXX should we also equate T#(t2,t1)
