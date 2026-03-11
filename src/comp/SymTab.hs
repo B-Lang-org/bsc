@@ -10,7 +10,7 @@ module SymTab(
               addTypesQ, addFieldsQ,
               findVar, findCon, findConVis, findType,
               findField, findFieldVis, findSClass, mustFindClass,
-              findFieldInfo, expandATFViaInst,
+              findFieldInfo,
               getMethodArgNames, getIfcFieldNames, getIfcFlatMethodNames
               ) where
 
@@ -19,12 +19,12 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(find)
-import Data.Maybe(isNothing, isJust, mapMaybe)
+import Data.Maybe(isNothing, isJust)
 import qualified Data.Map as M
 import Eval(NFData(..), rnf7)
 import PPrint
 import Id
-import Pred(Class(..), Pred(..), Inst(..), Qual(..))
+import Pred(Class(..), Qual(..))
 import Assump
 import Scheme(Scheme(..))
 import CType
@@ -329,47 +329,6 @@ mustFindClass r i =
 
 getAllTypes :: SymTab -> [(Id, TypeInfo)]
 getAllTypes (S _ _ t _ _) = M.toList t
-
--- | Expand an ATF application by looking up matching class instances.
--- For each instance, tries to match the ATF args against the relevant
--- instance head positions, then returns the instance arg at the target index.
-expandATFViaInst :: SymTab -> TISort -> [Type] -> Maybe Type
-expandATFViaInst symt (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
-                             , atf_target_idx = tIdx }) atfArgs =
-    case findSClass symt (CTypeclass clsId) of
-      Nothing -> Nothing
-      Just cls ->
-        let dummyPred = IsIn cls (map TVar (csig cls))
-            insts = genInsts cls [] Nothing dummyPred
-            tryInst (Inst _ _ (_ :=> IsIn _ instArgs)) =
-              -- For each ATF param that is a class param, match ATF arg against instance arg
-              let pairs = [ (instArgs !! idx, arg)
-                          | (idx, arg) <- zip pIdxs atfArgs, idx >= 0 ]
-              in case matchPairs pairs [] of
-                   Just _  -> Just (instArgs !! tIdx)
-                   Nothing -> Nothing
-        in case mapMaybe tryInst insts of
-             (result:_) -> Just result
-             []         -> Nothing
-expandATFViaInst _ _ _ = Nothing
-
--- Simple one-sided pattern matching: match instance patterns against concrete types.
--- Binds TGen placeholders to concrete types.
-matchPairs :: [(Type, Type)] -> [(Int, Type)] -> Maybe [(Int, Type)]
-matchPairs [] s = Just s
-matchPairs ((TGen _ n, t):ps) s =
-    case lookup n s of
-      Nothing -> matchPairs ps ((n, t):s)
-      Just t' -> if t == t' then matchPairs ps s else Nothing
-matchPairs ((TAp f1 a1, TAp f2 a2):ps) s =
-    matchPairs ((f1,f2):(a1,a2):ps) s
-matchPairs ((TCon c1, TCon c2):ps) s
-    | c1 == c2  = matchPairs ps s
-    | otherwise = Nothing
-matchPairs ((TVar v1, TVar v2):ps) s
-    | v1 == v2  = matchPairs ps s
-    | otherwise = Nothing
-matchPairs _ _ = Nothing
 
 -- a double key lookup into the symbol table to get field names of an interface method
 -- The first key is the interface name, the second the method name.
