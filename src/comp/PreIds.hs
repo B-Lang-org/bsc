@@ -81,8 +81,7 @@ idPrimSnd = prelude_id_no fsPrimSnd
 idPrimPair = prelude_id_no fsPrimPair
 idFalse = prelude_id_no fsFalse
 idTrue = prelude_id_no fsTrue
-idSizeOf, idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin :: Id
-idSizeOf = prelude_id_no fsSizeOf
+idTAdd, idTSub, idTMul, idTDiv, idTLog, idTExp, idTMax, idTMin :: Id
 idTAdd = prelude_id_no fsTAdd
 idTSub = prelude_id_no fsTSub
 idTMul = prelude_id_no fsTMul
