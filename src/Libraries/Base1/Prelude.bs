@@ -739,6 +739,8 @@ class (MonadFix m) => IsModule m c | m -> c where
     liftModule     :: Module a -> m a
     liftModuleOp   :: (Module (c a) -> Module (c b)) -> m a -> m b
 
+-- This sadly can't be defined as an associated type function of a Refl type class,
+-- since we currently require that type functions must be fully applied.
 primitive type Id__ :: * -> *
 
 instance IsModule Module Id__ where

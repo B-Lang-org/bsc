@@ -19,7 +19,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import System.IO.Unsafe(unsafePerformIO)
 
-import ListMap(lookupWithDefault)
 import Util
 import PFPrint
 import Position
@@ -198,16 +197,6 @@ expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
         let (vss, ts') = unzip vsts
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
-primTConMap :: [(Id, Id -> Type -> TI ([VPred], Type))]
-primTConMap = [(idId, expIdOfT)]
-
--- default action for TCons
--- no need to recurse because there is no additional structure
-defaultTConAp :: Type -> Id -> Type -> TI ([VPred], Type)
-defaultTConAp tcon _ t = do
-  (ps, t') <- expTFun t
-  return (ps, TAp tcon t')
-
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
 -- Type function application: try to generate a class constraint so
@@ -230,22 +219,14 @@ expTFun t0
                         | idx <- [0..nParams-1] ]
         vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
         return (vps, v)
--- TODO: Just handle Id__ here directly
-expTFun (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
-  -- traceM ("idcon: " ++ ppReadable idcon)
-  let f = lookupWithDefault primTConMap (defaultTConAp tcon) idcon
-  f idcon t
+-- eliminate the identity type constructor.
+expTFun (TAp (TCon (TyCon idId_ _ _)) t) | idId_ == idId = return ([], t)
 
 expTFun (TAp f a) = do
         (vfs, f') <- expTFun f
         (vas, a') <- expTFun a
         return (vfs++vas, TAp f' a')
 expTFun t = return ([], t)
-
--- eliminate the identity type constructior
-expIdOfT :: Id -> Type -> TI ([VPred], Type)
-expIdOfT _ t = do -- traceM ("expIdOf: " ++ ppReadable t)
-                  return ([], t)
 
 -- This is faster than the old joinCtxs in the pathological case
 -- where no contexts are found because we discover that with
@@ -495,10 +476,11 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
   let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
-      badCon (TyCon i _ _) = isJust (lookup i primTConMap)
+      badCon (TyCon _ _ (TIatf {})) = True
+      badCon (TyCon i _ _) | i == idId = True
       badCon _ = False
   if (any badCon allPredTyCons) then do
-    -- loop to keep synonyms and SizeOf out of instance heads
+    -- loop to keep synonyms and type functions out of instance heads
     vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
     reducePredsAggressive' dvs es (sbs2 <++ sbs1) s2 vps2'
    else do
