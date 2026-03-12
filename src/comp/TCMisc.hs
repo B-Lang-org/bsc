@@ -873,7 +873,7 @@ eqToPred poss (t1, t2) = do
         mp2 <- tryATFClassPred t2 t1
         case mp2 of
           Just pred -> return pred
-          Nothing -> 
+          Nothing ->
             case kind t1 of
               KNum  -> do cls <- numEqCls; return $ IsIn cls [t1, t2]
               k     -> internalError $
