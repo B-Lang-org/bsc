@@ -79,9 +79,17 @@ eqType1 _ _ _ _ _ = False
 -- which resolves type functions through class instance lookup.
 eqTypeATF :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 eqTypeATF flags symt r t t' =
-    let (_, ct)  = convType r t
-        (_, ct') = convType r t'
-    in  expandSynN flags symt ct == expandSynN flags symt ct'
+    let (e_ct, ct)   = convType r t
+        (E _ _ _ (PredEnv _ m s), ct') = convType e_ct t'
+    in  case fst $ runTI flags False symt $
+              do eqs <- mapM mkEPred (S.toList s)
+                 addBoundTVs (M.elems m)
+                 addExplPreds eqs
+                 ct_exp  <- normT ct
+                 ct_exp' <- normT ct'
+                 return (ct_exp, ct_exp')
+        of Right (a, b) -> a == b
+           _            -> False
 
 -- Decide if two (numeric) types are equal by creating a NumEq proviso
 -- in CSyntax and applying "satisfy".
@@ -103,7 +111,7 @@ eqTypeFinal flags symt e t1 t2
           satisfy eqs [vp]
     in  case (fst $ runTI flags False symt satisfyEq) of
           Right ([],_) -> True
-          res -> --trace("eqTypeFinal: not satisfied: " ++ ppReadable res) $
+          res -> --trace("eqTypeFinal: not satisfied: " ++ ppReadable (t1, t2, res)) $
                  False
  where isITAp (ITAp _ _) = True
        isITAp _          = False
