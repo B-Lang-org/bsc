@@ -1,0 +1,34 @@
+package ATFSynthIfc where
+
+-- Test that a non-numeric type function can determine the type of a port
+-- in the interface of a synthesized module.  The interface ReprIfc is
+-- parameterized by the class parameter a, and its field types use the
+-- ATF Repr a directly.  The polymorphic mkReprReg produces a module
+-- whose port types are determined by the ATF through the class constraint.
+-- The synthesized module instantiates a = BoolTag, requiring expansion
+-- of Repr BoolTag = UInt 8 to generate correct Verilog port widths.
+
+class (Bits r n) => HasRepr a r n | a -> r n where
+  type Repr a = r
+  type ReprSz a = n
+  toRepr :: a -> r
+
+data BoolTag = BoolTag Bool
+
+instance HasRepr BoolTag (UInt 8) 8 where
+  toRepr (BoolTag b) = if b then 1 else 0
+
+interface ReprIfc a =
+  getVal :: Repr a
+  putVal :: Repr a -> Action
+
+mkReprReg :: (HasRepr a r n) => a -> Module (ReprIfc a)
+mkReprReg initVal = module
+  reg :: Reg (Repr a) <- mkReg (toRepr initVal)
+  interface
+    getVal = reg
+    putVal v = reg := v
+
+{-# synthesize sysATFSynthIfc #-}
+sysATFSynthIfc :: Module (ReprIfc BoolTag)
+sysATFSynthIfc = mkReprReg (BoolTag True)

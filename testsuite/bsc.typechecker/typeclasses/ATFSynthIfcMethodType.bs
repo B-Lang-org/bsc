@@ -1,0 +1,45 @@
+package ATFSynthIfcMethodType where
+
+import Vector
+
+-- Test an interface method type being determined by a type function.
+
+class HasRepr a r | a -> r where
+  type Repr a = r
+  toRepr :: a -> r
+
+data BoolTag = BoolTag Bool
+
+instance HasRepr BoolTag (UInt 8) where
+  toRepr (BoolTag b) = if b then 1 else 0
+
+data ActionTag = ActionTag
+instance HasRepr ActionTag Action where
+  toRepr _ = $display "hi"
+
+data ActionFnTag a = ActionFnTag Bool
+instance (FShow a, Bits a n) => HasRepr (ActionFnTag a) (a -> ActionValue (Maybe a)) where
+  toRepr (ActionFnTag c) x = do
+    $display x
+    return $ if c then Just x else Nothing
+
+interface ReprWrap a =
+  stuff :: Repr a
+
+mkReprWrap :: (HasRepr a r) => a -> Module (ReprWrap a)
+mkReprWrap initVal = module
+  messageM $ printType $ typeOf (_ :: Repr a)
+  interface
+    stuff = toRepr initVal
+
+{-# synthesize sysReprWrapBool #-}
+sysReprWrapBool :: Module (ReprWrap BoolTag)
+sysReprWrapBool = mkReprWrap (BoolTag True)
+
+{-# synthesize sysReprWrapAction #-}
+sysReprWrapAction :: Module (ReprWrap ActionTag)
+sysReprWrapAction = mkReprWrap ActionTag
+
+{-# synthesize sysReprWrapActionFn #-}
+sysReprWrapActionFn :: Module (ReprWrap (ActionFnTag (Int 3)))
+sysReprWrapActionFn = mkReprWrap (ActionFnTag True)

@@ -90,6 +90,10 @@ compile_pass ATFInjective.bs
 
 compile_verilog_pass ATFSizeOf.bs
 compile_verilog_pass ATFPoly.bs
+compile_verilog_pass ATFSynthIfc.bs
+
+# Currently failing, needs type-based port splitting change
+compile_verilog_pass_bug ATFSynthIfcMethodType.bs
 
 # Test ATF error cases
 
