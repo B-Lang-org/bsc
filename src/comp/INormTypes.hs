@@ -21,7 +21,7 @@ iNormTypes flags symt = iNorm fullNorm
         fullNorm' :: IType -> Changed IType
         fullNorm' tf@(ITForAll i k t)   = changed1 (ITForAll i k) (fullNorm' t)
         fullNorm' (ITAp f@(ITCon op _ (TIatf {})) a)
-          | canNorm a' = Changed $ iConvT flags symt $ iToCT $ ITAp f a'
+          | canNorm a' = Changed $ normalizeNumType $ ITAp f a'
           where -- Could use changedOr directly, but fullNorm does the right thing
                 -- because we will normalize this type whether or not a changes
                 a' = fullNorm a
@@ -34,6 +34,12 @@ iNormTypes flags symt = iNorm fullNorm
           where f' = fullNorm' f
                 a' = fullNorm' a
         fullNorm' _ = Unchanged
+
+        normalizeNumType t =
+          let t' = iConvT flags symt $ iToCT t
+          in case t' of
+               ITNum _ -> t'
+               _ -> internalError $ "iNormTypes - unsimplified: " ++ ppReadable (t,t')
 
 class INormTypes a where
   iNorm :: (IType -> IType) -> a -> a
