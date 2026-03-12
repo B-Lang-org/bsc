@@ -206,9 +206,7 @@ expTFun t0
     TCon (TyCon _ _ ti@(TIatf { atf_class_id = clsId
                               , atf_param_idxs = pIdxs
                               , atf_target_idx = tIdx })) <- f,
-    length as <= length pIdxs = do
-        when (length as < length pIdxs) $
-          internalError $ "expTFun: partially applied type function: " ++ ppReadable (f, as)
+    length as == length pIdxs = do
         cls <- findCls (CTypeclass clsId)
         let nParams = length (csig cls)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
