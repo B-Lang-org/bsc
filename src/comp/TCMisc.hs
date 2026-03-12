@@ -4,7 +4,7 @@ module TCMisc(
         reducePred, reducePredsAggressive, expTFun, expTConPred,
         findAssump, mkQualType, closeFD, niceTypes,
         unifyFnFrom, unifyFnTo, unifyFnFromTo,
-        mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, expandFullType,
+        mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, normT, expandFullType,
         unify, unifyNoEq,
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
@@ -820,7 +820,8 @@ normT t = do
     if null ps then
         return t''
      else do
-        (ps', _) <- satisfy [] ps
+        eps <- getExplPreds
+        (ps', _) <- satisfy eps ps
         --unless (null ps') (internalError ("expandSynN " ++ ppReadable (t, ps')))
         if not (null ps') then
             return t'                -- XXX could expand some
