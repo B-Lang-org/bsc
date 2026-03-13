@@ -415,7 +415,19 @@ pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.
                 (\ (ik,(vs,(vis,(fs,der)))) -> Cstruct vis SStruct ik vs fs der)
         ||! l L_interface ..+ pTyConIdK +.+ many pTyVarId +.+ pIfcPrags +.+ eql b  +.+ blockOf noTrig pQStructField +.+ pDer >>-
                 (\ (ik,(vs,(ps,(vis,(fs,der))))) -> Cstruct vis (SInterface ps) ik vs fs der)
-        ||! l L_class ..+ pOptCoherence +.+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps +.+ l L_where ..+ blockOf noTrig pQStructField        >>>>>>>  Cclass
+        ||! l L_class ..+ pOptCoherence +.+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps +.+ l L_where ..+ blockOf noTrig pClassBodyItem        >>- \ (incoh,(ps,(ik,(vs,(fds,items))))) ->
+                let ats = [x | Left  x <- items]
+                    fs  = [x | Right x <- items]
+                in  Cclass incoh ps ik vs fds ats fs
+
+pClassBodyItem :: CParser (Either CAssocType CField)
+pClassBodyItem =
+      (-- Accept "type Map k v = r" where k may be the class param and v
+       -- is an extra type param.
+       l L_type ..+ pTyConId +.+ many pTyVarId +.+ eq ..+ pTyVarId
+           >>- \ (name, (args, rhs)) ->
+               Left (CAssocType name args rhs))
+  ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)
 pOptCoherence = option pCoherence

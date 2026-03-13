@@ -1,10 +1,10 @@
 {-# LANGUAGE PatternGuards #-}
 module TCMisc(
         splitF, satisfyFV, satisfy,
-        reducePred, reducePredsAggressive, expPrimTCons, expTConPred,
+        reducePred, reducePredsAggressive, expTFun, expTConPred,
         findAssump, mkQualType, closeFD, niceTypes,
         unifyFnFrom, unifyFnTo, unifyFnFromTo,
-        mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, expandFullType,
+        mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, normT, expandFullType,
         unify, unifyNoEq,
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
@@ -19,7 +19,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import System.IO.Unsafe(unsafePerformIO)
 
-import ListMap(lookupWithDefault)
 import Util
 import PFPrint
 import Position
@@ -194,45 +193,38 @@ satisfy' dvs es ps = do
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
-        vsts <- mapM expPrimTCons ts
+        vsts <- mapM expTFun ts
         let (vss, ts') = unzip vsts
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
-primTConMap :: [(Id, Id -> Type -> TI ([VPred], Type))]
-primTConMap = [(idSizeOf, expSizeOfT),
-               (idId, expIdOfT)]
+-- expand all type functions
+expTFun :: Type -> TI ([VPred], Type)
+-- Type function application: try to generate a class constraint so
+-- the result gets bound when the class is resolved.
+expTFun t0
+  | let (f, as) = splitTAp t0,
+    TCon (TyCon _ _ ti@(TIatf { atf_class_id = clsId
+                              , atf_param_idxs = pIdxs
+                              , atf_target_idx = tIdx })) <- f,
+    length as == length pIdxs = do
+        cls <- findCls (CTypeclass clsId)
+        let nParams = length (csig cls)
+        v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
+        let classArgs = [ if idx == tIdx then v
+                          else case elemIndex idx pIdxs of
+                                Just j  -> as !! j
+                                Nothing -> TVar (csig cls !! idx)
+                        | idx <- [0..nParams-1] ]
+        vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
+        return (vps, v)
+-- eliminate the identity type constructor.
+expTFun (TAp (TCon (TyCon idId_ _ _)) t) | idId_ == idId = return ([], t)
 
--- default action for TCons
--- no need to recurse because there is no additional structure
-defaultTConAp :: Type -> Id -> Type -> TI ([VPred], Type)
-defaultTConAp tcon _ t = do
-  (ps, t') <- expPrimTCons t
-  return (ps, TAp tcon t')
-
--- expand all primitive type-constructors (SizeOf, Id, ...)
-expPrimTCons :: Type -> TI ([VPred], Type)
-expPrimTCons (TAp tcon@(TCon (TyCon idcon _ _)) t) = do
-  -- traceM ("idcon: " ++ ppReadable idcon)
-  let f = lookupWithDefault primTConMap (defaultTConAp tcon) idcon
-  f idcon t
-
-expPrimTCons (TAp f a) = do
-        (vfs, f') <- expPrimTCons f
-        (vas, a') <- expPrimTCons a
+expTFun (TAp f a) = do
+        (vfs, f') <- expTFun f
+        (vas, a') <- expTFun a
         return (vfs++vas, TAp f' a')
-expPrimTCons t = return ([], t)
-
-expSizeOfT :: Id -> Type -> TI ([VPred], Type)
-expSizeOfT sz t = do
-        v <- newTVar "expSizeOfT" KNum sz
-        bits <- bitCls
-        vp <- mkVPredFromPred [getPosition sz] (IsIn bits [t, v])
-        return ([vp], v)
-
--- eliminate the identity type constructior
-expIdOfT :: Id -> Type -> TI ([VPred], Type)
-expIdOfT _ t = do -- traceM ("expIdOf: " ++ ppReadable t)
-                  return ([], t)
+expTFun t = return ([], t)
 
 -- This is faster than the old joinCtxs in the pathological case
 -- where no contexts are found because we discover that with
@@ -280,14 +272,6 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
 -- sat corresponds to section 7.2 "Entailment" in the paper
 -- Typing Haskell in Haskell
 sat :: DVS -> [EPred] -> VPred -> TI ([VPred], SolvedBinds, Subst)
-{-
-sat dvs ps (VPred w pr@(IsIn bts [t1, TAp szof t2]))
-    | name bts == idBits && szof == tSizeOf = do
-    traces ("SizeOf " ++ ppReadable pr) $ return ()
-    tunify t1 t1 t2        -- XXX t1
-    v <- newTVar KNum szof
-    sat dvs ps (VPred w (IsIn bts [t1, v]))
--}
 sat dvs ps p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
@@ -346,7 +330,7 @@ sat dvs ps p =
                 case m_equals of
                   Just (b, (s, num_eqs)) -> do
                     satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
-                    eq_ps <- mapM (eqToVPred (getVPredPositions p)) num_eqs
+                    eq_ps <- concatMapM (eqToVPred (getVPredPositions p)) num_eqs
                     let sb = SolvedBind {
                           bind = b,
                           isRecursive = False  -- From superclass, not recursive
@@ -490,10 +474,11 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
   let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
-      badCon (TyCon i _ _) = isJust (lookup i primTConMap)
+      badCon (TyCon _ _ (TIatf {})) = True
+      badCon (TyCon i _ _) | i == idId = True
       badCon _ = False
   if (any badCon allPredTyCons) then do
-    -- loop to keep synonyms and SizeOf out of instance heads
+    -- loop to keep synonyms and type functions out of instance heads
     vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
     reducePredsAggressive' dvs es (sbs2 <++ sbs1) s2 vps2'
    else do
@@ -599,7 +584,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
         -- for that argument, just pass the instance to itself
         let isSelfRec = any (== p) (apSub s ps)
             vs' = zipWith (\ x y -> if (y == p) then i else x) vs (apSub s ps)
-        eq_ps <- mapM eqToPred num_eqs
+        eq_ps <- mapM (eqToPred (getPredPositions p)) num_eqs
         let eq_pwps = map (mkPredWithPositions []) eq_ps
         eq_vs <- mapM (const newDict) eq_pwps
         -- if p introduces a new predicate, carry on the position info
@@ -706,7 +691,7 @@ matchTop bound_tyvars mtch (IsIn c1 ts1) (IsIn c2 ts2) =
                     -- substitution and see if the fundep types match
                     -- rtrace ("matchTop 1b: " ++ ppReadable ms) $
                     case mgu bound_tyvars (apSub ms (boolCompress bs ts1))
-                                          (apSub ms (boolCompress bs ts2)) of
+                                                  (apSub ms (boolCompress bs ts2)) of
                     Nothing -> Nothing
                     Just us ->  Just (ms, us)
         in
@@ -828,12 +813,13 @@ expandSynN flags s t =
 normT :: Type -> TI Type
 normT t = do
     let t' = expandSyn t
-    (ps, t'') <- expPrimTCons t'
+    (ps, t'') <- expTFun t'
     -- traceM ("normT: " ++ ppReadable (t,t',(ps,t'')))
     if null ps then
         return t''
      else do
-        (ps', _) <- satisfy [] ps
+        eps <- getExplPreds
+        (ps', _) <- satisfy eps ps
         --unless (null ps') (internalError ("expandSynN " ++ ppReadable (t, ps')))
         if not (null ps') then
             return t'                -- XXX could expand some
@@ -848,7 +834,6 @@ normT t = do
 -- available information
 expandFullType :: Type -> TI (Type)
 expandFullType t = do
-                      sy <- getSymTab
                       s <- getSubst
                       tunexp  <- normT t
                       let t' = expandSyn (apSub s tunexp)
@@ -875,19 +860,53 @@ unify x t1 t2 = do
         case mgu bound_vars t1'' t2'' of
           Just (u,eqs)  ->
               do extSubst "unify" u
-                 mapM (eqToVPred [pos]) eqs
+                 concatMapM (eqToVPred [pos]) eqs
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError bound_vars x t1'' t2''
 
-eqToPred :: (Type, Type) -> TI Pred
-eqToPred (t1, t2) = do
-  clsNumEq <- numEqCls
-  return $ IsIn clsNumEq [t1, t2]
+eqToPred :: [Position] -> (Type, Type) -> TI Pred
+eqToPred poss (t1, t2) = do
+    mp <- tryATFClassPred t1 t2
+    case mp of
+      Just pred -> return pred
+      Nothing -> do
+        mp2 <- tryATFClassPred t2 t1
+        case mp2 of
+          Just pred -> return pred
+          Nothing ->
+            case kind t1 of
+              KNum  -> do cls <- numEqCls; return $ IsIn cls [t1, t2]
+              k     -> internalError $
+                "eqToPred: required unexpected sort of type equality: " ++
+                ppReadable(t1, t2, k)
 
-eqToVPred :: [Position] -> (Type, Type) -> TI VPred
-eqToVPred poss num_eq = do
-  p <- eqToPred num_eq
-  mkVPredFromPred poss p
+-- | Given an ATF application type and a target type, try to build the
+-- corresponding class predicate.  For example, if atfType is @Elem x@
+-- (from @class Container f e | f -> e where type Elem f = e@), and
+-- targetType is @T@, this produces @Just (IsIn Container [x, T])@.
+tryATFClassPred :: Type -> Type -> TI (Maybe Pred)
+tryATFClassPred atfType targetType = do
+    let (f, atfArgs) = splitTAp atfType
+    case f of
+      TCon (TyCon _ _ (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
+                              , atf_target_idx = tIdx })) -> do
+        cls <- findCls (CTypeclass clsId)
+        let nParams = length (csig cls)
+            -- Build class args: place targetType at the target index,
+            -- ATF args at param positions, fresh vars elsewhere
+        freshVars <- mapM (\tv -> newTVar "tryATFClassPred" (kind tv) atfType) (csig cls)
+        let classArgs = [ if idx == tIdx then targetType
+                          else case elemIndex idx pIdxs of
+                                 Just j  -> atfArgs !! j
+                                 Nothing -> freshVars !! idx
+                        | idx <- [0..nParams-1] ]
+        return $ Just (IsIn cls classArgs)
+      _ -> return Nothing
+
+eqToVPred :: [Position] -> (Type, Type) -> TI [VPred]
+eqToVPred poss ty_eq = do
+  p <- eqToPred poss ty_eq
+  mkVPredNoNewPos $ mkPredWithPositions poss p
 
 unifyNoEq :: (PPrint a, PVPrint a, HasPosition a)
           => [Char] -> a -> Type -> Type -> TI ()
@@ -1467,8 +1486,6 @@ expandNumericTCons (orig_qs :=> orig_t) =
           | tc == tExp = do v <- newTVar "expandNumericTCons" KNum tc
                             -- There's no class for this, so use NumEq
                             mkResult idNumEq [v, TAp tc t] v
-          | tc == tSizeOf = do v <- newTVar "expandNumericTCons" KNum tc
-                               mkResult idBits [t, v] v
       exp (TAp (TAp tc t1) t2)
           | tc == tAdd = do v <- newTVar "expandNumericTCons" KNum tc
                             mkResult idAdd [t1, t2, v] v
@@ -1619,8 +1636,8 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                         -- doesn't match, so try unify
                         case (uv) of
                            Nothing -> NoConclusion
-                           Just (s,num_eqs)  ->
-                               if (check_fds s && null num_eqs)
+                           Just (s,ty_eqs)  ->
+                               if (check_fds s && null ty_eqs)
                                then Matches
                                else NoConclusion
                     Just s  ->

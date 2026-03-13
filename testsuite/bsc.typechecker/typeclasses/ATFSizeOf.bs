@@ -1,0 +1,34 @@
+package ATFSizeOf where
+
+-- Test that SizeOf can be applied to a type determined by a type function.
+-- The compiler must expand Repr Bool -> UInt 8 before it can reduce
+-- SizeOf (UInt 8) to 8 and accept the synthesized module.
+
+class HasRepr f r | f -> r where
+  type Repr f = r
+  getRepr :: f -> r
+
+instance HasRepr Bool (UInt 8) where
+  getRepr b = if b then 1 else 0
+
+instance HasRepr (UInt n) (UInt n) where
+  getRepr x = x
+
+-- A struct parameterized by the representation type directly.
+struct Container r =
+  x :: r
+ deriving (Bits)
+
+-- Monomorphic helper that forces Repr Bool = UInt 8 expansion.
+boolRepr :: Bool -> UInt 8
+boolRepr = getRepr
+
+-- A synthesized module whose register width is SizeOf (Container (UInt 8)) = 8.
+-- Requires type function expansion followed by SizeOf reduction.
+{-# synthesize sysATFSizeOf #-}
+sysATFSizeOf :: Module Empty
+sysATFSizeOf = module
+  rules
+    when True ==> do
+      $display (valueOf (SizeOf (Container (UInt 8))))
+      $finish

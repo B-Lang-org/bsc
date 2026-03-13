@@ -700,6 +700,9 @@ data ErrMsg =
         | ETypeSynRecursive [String]
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
+        | EATFDeclParamMismatch String String String String -- ^ class name, ATF name, expected param, actual param
+        | EATFResultNotDetermined String String [String]     -- ^ ATF name, result var, params
+        | EATFInInstanceHead String  -- ^ type function name
 
         | EUndefinedTask String
         | EUnboundCon String (Maybe String)
@@ -2958,6 +2961,25 @@ getErrorText (EConstrFieldsNotNamed c t) =
     (Type 151, empty,
      s2par ("Constructor " ++ quote c ++ " for type " ++ quote t ++
             " does not have named fields."))
+
+getErrorText (EATFDeclParamMismatch cls atf expected actual) =
+    (Type 158, empty,
+     s2par ("Type family declaration for " ++ ishow atf ++
+            " in class " ++ ishow cls ++
+            " expects parameter " ++ ishow expected ++
+            " but found " ++ ishow actual))
+
+getErrorText (EATFResultNotDetermined atf result params) =
+    (Type 162, empty,
+     s2par ("Type function " ++ ishow atf ++
+            ": result variable " ++ ishow result ++
+            " is not determined by parameters " ++ intercalate ", " params ++
+            " via any functional dependency"))
+
+getErrorText (EATFInInstanceHead atf) =
+    (Type 161, empty,
+     s2par ("Type function " ++ ishow atf ++
+            " cannot be used in an instance head"))
 
 -- Generation Errors
 

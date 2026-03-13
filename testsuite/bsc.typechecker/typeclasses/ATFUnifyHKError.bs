@@ -1,0 +1,11 @@
+package ATFUnifyHKError where
+
+-- Test that higher-kinded type function constraints fail properly.
+
+class (Container :: * -> (* -> *) -> *) a s | a -> s where
+  type Elem a = s
+
+data Foo f = Foo (f Bool)
+
+conv :: Foo (Elem a) -> Foo Maybe
+conv = id

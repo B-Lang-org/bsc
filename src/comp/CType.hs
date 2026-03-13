@@ -12,6 +12,7 @@ module CType(
   isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
+  isATFAp,
   isTypeBit, isTypeString,
   isTypePrimAction, isTypeAction,
   isTypeActionValue, isTypeActionValue_,
@@ -67,8 +68,7 @@ import Id
 import IdPrint
 import PreIds(idArrow, idPrimPair, idPrimUnit, idBit, idString,
               idPrimAction, idAction, idActionValue_, idActionValue,
-              idTNumToStr
-              {-, idSizeOf -})
+              idTNumToStr)
 import Util(itos)
 import ErrorUtil
 import Pragma(IfcPragma)
@@ -120,6 +120,14 @@ data TISort
           -- primitive abstract type
           -- e.g. Integer, Bit, Module, etc.
         | TIabstract
+          -- Associated type function: resolved by looking up the corresponding
+          -- typeclass instance.  Stores the arity (number of LHS params), the
+          -- class that defines this type function, and the indices of the ATF
+          -- params and the target param within the class's parameter list.
+        | TIatf { atf_class_id   :: Id     -- the class this type function belongs to
+               , atf_param_idxs :: [Int]  -- index of each ATF param in the class param list
+               , atf_target_idx :: Int    -- index of the result param in the class param list
+               }
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 
@@ -517,6 +525,13 @@ normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
 
 normTAp f a = TAp f a
 
+isATFAp :: Type -> Bool
+isATFAp t0 =
+    let (f, as) = splitTAp t0
+    in case f of
+        TCon (TyCon _ _ (TIatf { atf_param_idxs = pIdxs })) -> length as == length pIdxs
+        _ -> False
+
 getTypeKind :: Type -> Maybe Kind
 getTypeKind (TVar (TyVar _ _ k))  = Just k
 getTypeKind (TCon (TyCon _ mk _)) = mk
@@ -598,12 +613,16 @@ instance PPrint TISort where
     pPrint d p (TIdata is enum) = pparen (p>0) $ text (if enum then "TIdata (enum)" else "TIdata") <+> pPrint d 1 is
     pPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pPrint d 1 ss <+> pPrint d 1 is
     pPrint d p (TIabstract) = text "TIabstract"
+    pPrint d p (TIatf { atf_param_idxs = pIdxs, atf_class_id = cls }) =
+        pparen (p>0) $ text "TIatf" <+> pPrint d 0 (length pIdxs) <+> pPrint d 0 cls
 
 instance NFData TISort where
     rnf (TItype i t) = rnf2 i t
     rnf (TIdata is enum) = rnf2 is enum
     rnf (TIstruct ss is) = rnf2 ss is
     rnf (TIabstract) = ()
+    rnf (TIatf { atf_class_id = c, atf_param_idxs = ps, atf_target_idx = t }) =
+        rnf3 c ps t
 
 instance PPrint StructSubType where
     pPrint _ _ ss = text (show ss)

@@ -1,0 +1,71 @@
+package ATFPolyStructIfc where
+
+-- Test: ATFs determine struct field types, and the struct is used
+-- in a synthesized module interface.  The struct has fields whose
+-- types come from Elem f (star-kind ATF) and Bit (Width g)
+-- (numeric ATF), from two different classes.  Bits is derived on
+-- the struct, so the compiler must resolve both ATFs to compute
+-- SizeOf for the derived instance, then use it in synthesis.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+  wrap :: e -> f
+
+class HasWidth g n | g -> n where
+  type Width g = n
+  toBit :: g -> Bit n
+  fromBit :: Bit n -> g
+
+data Box a = Box a
+data Byte = Byte (Bit 8)
+
+instance Container (Box a) a where
+  extract (Box x) = x
+  wrap = Box
+
+instance HasWidth Byte 8 where
+  toBit (Byte b) = b
+  fromBit = Byte
+
+-- Struct whose field types are determined by two ATFs.
+-- Bits derivation requires expanding both Elem f and Width g.
+struct Packet f g =
+  payload :: Elem f
+  header  :: Bit (Width g)
+ deriving (Bits)
+
+-- Polymorphic builder: both ATFs stay abstract
+buildPacket :: (Container f e, HasWidth g n) =>
+               Elem f -> Bit (Width g) -> Packet f g
+buildPacket p h = Packet { payload = p; header = h }
+
+-- Polymorphic reader
+readPayload :: (Container f e) => Packet f g -> Elem f
+readPayload pkt = pkt.payload
+
+readHeader :: (HasWidth g n) => Packet f g -> Bit (Width g)
+readHeader pkt = pkt.header
+
+-- Interface exposing the struct
+interface Ifc f g =
+  getPacket :: Packet f g
+  putPayload :: Elem f -> Action
+  putHeader :: Bit (Width g) -> Action
+
+mkPacketStore :: (Container f e, HasWidth g n,
+                  Bits (Elem f) en, Bits (Packet f g) pn,
+                  IsModule m c) =>
+                 Elem f -> Bit (Width g) -> m (Ifc f g)
+mkPacketStore initP initH = module
+  r :: Reg (Packet f g) <- mkReg (buildPacket initP initH)
+  interface
+    getPacket = r
+    putPayload p = r := buildPacket p (readHeader r)
+    putHeader  h = r := buildPacket (readPayload r) h
+
+-- Concrete: Elem (Box (UInt 8)) = UInt 8, Width Byte = 8
+-- SizeOf (Packet (Box (UInt 8)) Byte) = SizeOf (UInt 8) + 8 = 16
+{-# synthesize mkU8BytePacketStore #-}
+mkU8BytePacketStore :: Module (Ifc (Box (UInt 8)) Byte)
+mkU8BytePacketStore = mkPacketStore 0 0

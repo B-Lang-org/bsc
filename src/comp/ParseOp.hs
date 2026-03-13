@@ -50,12 +50,12 @@ pDefn ft def@(Cstruct _ sst idk _ fs _) =
        -- Created by Deriving
        SPolyWrap _ _ _ -> internalError("ParseOp.pDefn: unexpected structure type: SPolyWrap\n" ++ ppReadable def)
 
-pDefn ft def@(Cclass incoh cps idk is fdps fs) = do
+pDefn ft def@(Cclass incoh cps idk is fdps ats fs) = do
   let pField f@(CField { cf_default = fcs }) = do
         fcs' <- mapM (pCClause ft) fcs
         return (f { cf_default = fcs' })
   fs' <- mapM pField fs
-  let def' = Cclass incoh cps idk is fdps fs'
+  let def' = Cclass incoh cps idk is fdps ats fs'
   checkDupls def' "function" "typeclass" (iKName idk) (map cf_name fs)
 
 pDefn ft def@(Cdata { cd_name = idk, cd_original_summands = ocs }) =

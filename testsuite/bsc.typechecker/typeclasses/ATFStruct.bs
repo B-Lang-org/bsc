@@ -1,0 +1,37 @@
+package ATFStruct where
+
+-- Test that a type function can determine the type of a struct field
+-- through the class parameter.  The struct Envelope holds a container
+-- and the element extracted from it.  When f = Box Integer,
+-- the determined parameter e becomes Integer.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x
+
+-- A struct parameterized by both f and e.
+-- The relationship Elem f = e is enforced by the typeclass.
+struct Envelope f e =
+  box     :: f
+  element :: e
+
+-- Monomorphic specialisation forces Elem (Box Integer) = Integer at binding.
+extractI :: Box Integer -> Integer
+extractI = extract
+
+-- Build an Envelope (Box Integer) Integer: the element type is determined
+-- by the type function Elem (Box Integer) = Integer.
+buildEnv :: Box Integer -> Envelope (Box Integer) Integer
+buildEnv b = Envelope { box = b; element = extractI b }
+
+-- Access the element field; its type is Integer.
+getElem :: Envelope (Box Integer) Integer -> Integer
+getElem e = e.element
+
+test :: Integer
+test = getElem (buildEnv (Box 42))

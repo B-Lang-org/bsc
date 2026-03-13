@@ -82,15 +82,15 @@ instance Bin CDefn where
         do putI 1; toBin vis; toBin ik; toBin vs; toBin ocs; toBin cs
     writeBytes (Cstruct vis st ik is fs _) =
         do putI 2; toBin vis; toBin st; toBin ik; toBin is; toBin fs
-    writeBytes (Cclass incoh ps ik is deps fs) =
-        do putI 3; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin fs
+    writeBytes (Cclass incoh ps ik is deps ats fs) =
+        do putI 3; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin ats; toBin fs
     writeBytes (Cforeign n cqt fn ports) =
         do putI 4; toBin n; toBin cqt; toBin fn; toBin ports
     writeBytes (Cprimitive i cqt) = do putI 5; toBin i; toBin cqt
     writeBytes (CprimType ik) = do putI 6; toBin ik
-    writeBytes (CIinstance i cqt) = do putI 7; toBin i; toBin cqt
-    writeBytes (CIclass incoh ps ik is deps poss) =
-        do putI 8; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin poss
+    writeBytes (CIinstance i cqt eqs) = do putI 7; toBin i; toBin cqt; toBin eqs
+    writeBytes (CIclass incoh ps ik is deps ats poss) =
+        do putI 8; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin ats; toBin poss
     writeBytes (CIValueSign i cqt) = do putI 9; toBin i; toBin cqt
     writeBytes (CItype ik is poss) = do putI 10; toBin ik; toBin is; toBin poss
     writeBytes (CPragma p) = do putI 11; toBin p
@@ -121,8 +121,9 @@ instance Bin CDefn where
                               ik <- fromBin
                               is <- fromBin
                               deps <- fromBin
+                              ats <- fromBin
                               fs <- fromBin
-                              return (Cclass incoh ps ik is deps fs)
+                              return (Cclass incoh ps ik is deps ats fs)
                      4  -> do when doTrace $ traceM ("Cforeign")
                               n <- fromBin
                               cqt <- fromBin
@@ -136,16 +137,17 @@ instance Bin CDefn where
                               ik <- fromBin
                               return (CprimType ik)
                      7  -> do when doTrace $ traceM ("CIinstance")
-                              i <- fromBin; cqt <- fromBin
-                              return (CIinstance i cqt)
+                              i <- fromBin; cqt <- fromBin; eqs <- fromBin
+                              return (CIinstance i cqt eqs)
                      8  -> do when doTrace $ traceM ("CIclass")
                               incoh <- fromBin
                               ps <- fromBin
                               ik <- fromBin
                               is <- fromBin
                               deps <- fromBin
+                              ats <- fromBin
                               poss <- fromBin
-                              return (CIclass incoh ps ik is deps poss)
+                              return (CIclass incoh ps ik is deps ats poss)
                      9  -> do when doTrace $ traceM ("CIValueSign")
                               i <- fromBin; cqt <- fromBin
                               return (CIValueSign i cqt)
@@ -421,6 +423,11 @@ instance Bin CExpr where
                       e_l <- fromBin; e_rhs <- fromBin
                       return (CSubUpdate pos e_vec (e_h, e_l) e_rhs)
              n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
+
+instance Bin CAssocType where
+    writeBytes (CAssocType name ps rhs) = do toBin name; toBin ps; toBin rhs
+    readBytes = do name <- fromBin; ps <- fromBin; rhs <- fromBin
+                   return (CAssocType name ps rhs)
 
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs

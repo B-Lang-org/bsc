@@ -1,0 +1,42 @@
+package ATFMap where
+
+import Vector
+
+-- Test a type function with a higher-kinded result (* -> *).
+-- Map k maps k (from the class) to a type constructor m.
+-- Each instance provides a different map representation.
+
+class MapKey k m | k -> m where
+  type Map k = m
+  update :: m v -> k -> v -> m v
+  lookup :: m v -> k -> v
+
+data UnitMap v = UnitMap v
+
+instance MapKey () UnitMap where
+  update _ _ = UnitMap
+  lookup (UnitMap x) _ = x
+
+instance MapKey (UInt n) (Vector (TExp n)) where
+  update = Vector.update
+  lookup = select
+
+-- Monomorphic helpers that force expansion of Map (UInt 8) = Vector 256.
+updateV :: Vector 256 String -> UInt 8 -> String -> Vector 256 String
+updateV = update
+
+lookupV :: Vector 256 String -> UInt 8 -> String
+lookupV = lookup
+
+-- Simple test: use the monomorphic helpers with the concrete types.
+i :: UInt 8
+i = 42
+
+empty :: Vector 256 String
+empty = replicate "empty"
+
+map1 :: Vector 256 String
+map1 = updateV empty i "hello"
+
+result :: String
+result = lookupV map1 i

@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 module StdPrel(
     preTypes, preClasses, isPreClass, preValues,
-    tiArrow, tiSizeOf,
+    tiArrow,
     tiUnit, tiPair, tiMaybe, tiList,
     tiBit, tiBool,
     tiInteger, tiReal, tiString, tiChar,
@@ -962,9 +962,7 @@ genNumEqInsts symT _ _ p@(IsIn c [t, t'])
     | tcon == tExp, [t1] <- args,
       (tcon2, args2) <- splitTAp tB,
       tcon2 == tExp, [t2] <- args2   = [ mkImpliedInst (IsIn c [t1, t2])       p ]
-    | tcon == tSizeOf, [t1] <- args  = [ mkImpliedInst (IsIn clsBits [t1, tB]) p ]
-  where clsBits = mustFindClass symT (CTypeclass idBits)
-        -- look up the class, rather than construct it, for better sharing
+  where -- look up the class, rather than construct it, for better sharing
         clsAdd' = mustFindClass symT (CTypeclass idAdd)
         clsMul' = mustFindClass symT (CTypeclass idMul)
         -- tA should have more structure since TAp sorts first
@@ -993,10 +991,11 @@ genNumEqInsts _ _ _ _ = []
 
 -- -------------------------
 
-tiArrow, tiBit, tiSizeOf, tiInteger, tiReal :: TISort
+-- -------------------------
+
+tiArrow, tiBit, tiInteger, tiReal :: TISort
 tiArrow   = TIabstract
 tiBit     = TIabstract
-tiSizeOf  = TIabstract
 tiInteger = TIabstract
 tiReal    = TIabstract
 
@@ -1046,7 +1045,6 @@ preTypes = [
         tyiBit,
         tyiInteger,
         TypeInfo  idString KStar              [] TIabstract,
-        TypeInfo  idSizeOf (Kfun KStar KNum)  [] TIabstract,
 -}
         TypeInfo (Just idAdd) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),
         TypeInfo (Just idMax) (Kfun KNum (Kfun KNum (Kfun KNum KStar))) [v1, v2, v3] (TIstruct SClass []),

@@ -1,0 +1,19 @@
+package ATFUnifyError where
+
+-- Test that unification of two different type function applications fails
+-- when they cannot be proven equal.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap   :: e -> f
+  unwrap :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  wrap = Box
+  unwrap (Box x) = x
+
+-- Unification creates an unsatisfied context Container a Bool
+conv :: Elem a -> Bool
+conv = id

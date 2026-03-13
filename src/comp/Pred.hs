@@ -255,6 +255,8 @@ expandSyn t0 = exp [] f as
                             t' = setTypePosition (getIdPosition i) t
                             (f', as') = splitTAp $ inst as1 t'
                         in exp (i:syns) f' (as' ++ as2)
+        -- Type functions (TIatf) are NOT expanded here; they are handled by
+        -- normT via expTFun, which generates the appropriate class constraint.
         exp _ f@(TCon (TyCon i _ _)) as
           | isTFun i = apTFun f i $ map expandSyn as
         -- f does not contain a TAp or a synonym TCon, so it cannot have synonyms to expand

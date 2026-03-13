@@ -338,7 +338,6 @@ capturedVarsCDefl (CLValueSign def _) = capturedVarsCDef def
 capturedVarsCDefl (CLMatch pat e) = getPV pat
 capturedVarsCDefl (CLValue var clauses _) =
     S.unions (S.singleton var : map capturedVarsClause clauses)
-
 capturedVarsCDef :: CDef -> S.Set Id
 capturedVarsCDef (CDefT var _ _ clauses) =
     S.unions (S.singleton var : map capturedVarsClause clauses)

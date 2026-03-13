@@ -88,7 +88,7 @@ instance CtxRed CDefn where
         popBoundTVs  -- necessary after call to ctxRedCQType
         return (f { cforg_type = cqt' })
 
-    ctxRed d@(Cclass incoh cpreds ik vs fds fs) = do
+    ctxRed d@(Cclass incoh cpreds ik vs fds ats fs) = do
        -- get any kind information we have for the type parameters
        -- XXX is this necessary?
        let i = iKName ik
@@ -112,7 +112,7 @@ instance CtxRed CDefn where
                    Nothing -> ik
                    Just k' -> IdKind i k'
 -}
-       return (Cclass incoh cpreds ik vs fds fs')
+       return (Cclass incoh cpreds ik vs fds ats fs')
 
     ctxRed d = return d
 
@@ -381,13 +381,13 @@ ctxRedCQType' isInstHead cqt = do
 
     -- do extra reduction on instance heads to avoid synonym-expansion
     -- and SizeOf issues, without unduly disturbing non-instance types
-    -- (and do it here, after "convCQType", so that "expPrimTCons" sees
+    -- (and do it here, after "convCQType", so that "expTFun" sees
     -- the qualified types)
     (qs, t) <- if isInstHead
                then do -- XXX disable expanding of type synonyms until
                        -- XXX failures with TLM instances are resolved
-                       -- XXX (vqs_extra, t1) <- expPrimTCons t0 (expandSyn t0)
-                       (vqs_extra, t1) <- expPrimTCons t0
+                       -- XXX (vqs_extra, t1) <- expTFun t0 (expandSyn t0)
+                       (vqs_extra, t1) <- expTFun t0
                        let qs_extra = map toPredWithPositions vqs_extra
                        return (qs0 ++ qs_extra, t1)
                else return (qs0, t0)

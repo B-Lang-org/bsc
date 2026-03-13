@@ -1132,10 +1132,13 @@ TYPE CLASSES AND INSTANCES
 >        context <- option [] pProvisos
 >        deps <- option [] pDependencies
 >        pSemi
->        functions <- many (pTypeclassFunction <|> pTypeclassModule <|> pTypeclassVarDecl)
+>        items <- many (   (fmap Left  pTypeclassAssocType)
+>                      <|> (fmap Right (pTypeclassFunction <|> pTypeclassModule <|> pTypeclassVarDecl)))
+>        let assocTypes = [a | Left  a <- items]
+>            functions  = [f | Right f <- items]
 >        pEndClause SV_KW_endtypeclass (Just $ iKName name)
 >        -- XXX dependencies
->        return [ISTypeclass pos name context deps params functions]
+>        return [ISTypeclass pos name context deps params assocTypes functions]
 
 > pTypeclassModule :: SV_Parser CField
 > pTypeclassModule =
@@ -1197,6 +1200,18 @@ TYPE CLASSES AND INSTANCES
 >                         cf_type = CQType [] varType,
 >                         cf_default = defValue
 >                       })
+
+> pTypeclassAssocType :: SV_Parser CAssocType
+> pTypeclassAssocType =
+>     do pKeyword SV_KW_type
+>        name <- pConstructor <?> "associated type family name"
+>        pks <- option [] pTypedefParams
+>        let (params, _kinds) = unzip pks
+>        pEq
+>        rhs <- pIdentifier <?> "type variable"
+>        pSemi
+>        return (CAssocType name params rhs)
+
 
 > pClassNameType :: SV_Parser (Id, CType)
 > pClassNameType =
@@ -4068,6 +4083,7 @@ a function definition, and a body must be present.
 >         (do when (not isTypeClassItem) (fail "not typeclass item")
 >             lookAhead (choice [pKeyword SV_KW_function,
 >                                pKeyword SV_KW_module,
+>                                pKeyword SV_KW_type,
 >                                pKeyword SV_KW_endtypeclass])
 >             return Nothing)
 >         <|>

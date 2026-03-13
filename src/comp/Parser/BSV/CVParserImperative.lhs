@@ -2277,8 +2277,8 @@ to uniquify them.
 > convImperativeStmtsToCDefns (ISTypedef pos defns : rest) =
 >     do restDefns <- convImperativeStmtsToCDefns rest
 >        return (defns ++ restDefns)
-> convImperativeStmtsToCDefns (ISTypeclass pos name provisos dependencies parameters functions : rest) =
->     do let defn = Cclass Nothing provisos name parameters dependencies functions
+> convImperativeStmtsToCDefns (ISTypeclass pos name provisos dependencies parameters assocTypes functions : rest) =
+>     do let defn = Cclass Nothing provisos name parameters dependencies assocTypes functions
 >        restDefns <- convImperativeStmtsToCDefns rest
 >        return (defn : restDefns)
 > convImperativeStmtsToCDefns (ISTypeclassInstance pos classType functions : rest) =
@@ -2834,7 +2834,7 @@ XXX   Detecting function argument collisions TBD
 >        mapM_ detectUnassigned (S.toList assignedFreeVarSetNotAllPaths)
 >        mapM_ (\var -> assign pos var ATNormal) (S.toList assignedFreeVarSetUnion)
 >        return [stmt]
-> checkImperativeStmt mi stmt@(ISTypeclass pos name provisos dependencies params functions) =
+> checkImperativeStmt mi stmt@(ISTypeclass pos name provisos dependencies params _ functions) =
 >     do return [stmt]
 > checkImperativeStmt mi stmt@(ISTypeclassInstance pos classType functions) =
 >     do mapM_ detectUnassignedUsesDefl functions

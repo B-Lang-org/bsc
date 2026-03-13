@@ -229,7 +229,8 @@ compile_pass Add_SameType.bsv
 # ---------------
 # Test that ambiguous variables due to uses of TLog etc are detected
 
-compile_fail_error AmbigTCon_SizeOf.bsv T0079
+# This is now just a type function, and nothing demands the context
+compile_pass AmbigTCon_SizeOf.bsv
 
 compile_fail_error AmbigTCon_TAdd.bsv T0079
 compile_fail_error AmbigTCon_TSub.bsv T0079

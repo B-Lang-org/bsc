@@ -1,0 +1,25 @@
+package ATFPolyNested where
+
+-- Test: nested ATF application Elem (Elem f) in a polymorphic context.
+-- The outer Container extracts from f, giving Elem f.
+-- If Elem f is itself a container, we can extract again.
+-- This creates a nested unresolved ATF chain.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x
+
+-- Polymorphic double extraction: f contains g, g contains the final value.
+-- Both ATF applications stay abstract until concrete instantiation.
+doubleExtract :: (Container f g, Container g e) => f -> Elem g
+doubleExtract x = extract (extract x)
+
+-- Concrete: f = Box (Box Integer), g = Box Integer, e = Integer
+-- Elem (Box (Box Integer)) = Box Integer, Elem (Box Integer) = Integer
+test :: Integer
+test = doubleExtract (Box (Box 42))

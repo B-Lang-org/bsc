@@ -72,3 +72,59 @@ compile_verilog_pass ClassKind3.bsv
 test_c_veri MutualRecContainer
 
 # --------------------------------------------------
+# Test associated type families (ATF) in Classic syntax
+
+compile_pass ATFDecl.bs
+compile_pass ATFKindNum.bs
+compile_pass ATFMultiple.bs
+compile_pass ATFStruct.bs
+compile_pass ATFStructHK.bs
+compile_pass ATFMultiInst.bs
+compile_pass ATFMultiParam.bs
+compile_pass ATFMap.bs
+compile_pass ATFImported.bs
+compile_pass ATFUnify.bs
+compile_pass ATFUnifyHK.bs
+compile_pass ATFInInstHeadDetermined.bs
+compile_pass ATFInjective.bs
+
+compile_verilog_pass ATFSizeOf.bs
+compile_verilog_pass ATFPoly.bs
+compile_verilog_pass ATFSynthIfc.bs
+
+# Currently failing, needs type-based port splitting change
+compile_verilog_pass_bug ATFSynthIfcMethodType.bs
+
+# Test polymorphic ATF usage
+
+compile_pass ATFPolyDataWidth.bs
+compile_pass ATFPolyElemArith.bs
+compile_pass ATFPolyHK.bs
+compile_pass ATFPolyNested.bs
+compile_pass ATFPolyTwoClass.bs
+
+compile_verilog_pass ATFPolyIfcAddElem.bs
+compile_verilog_pass ATFPolyIfcTwoATF.bs
+compile_verilog_pass ATFPolyStructCodec.bs
+compile_verilog_pass ATFPolyStructIfc.bs
+compile_verilog_pass ATFPolyStructLog.bs
+compile_verilog_pass ATFPolyStructMultiParam.bs
+
+# Test ATF error cases
+
+compile_fail_error ATFWrongArity.bs T0025
+compile_fail_error ATFDeclParamMismatch.bs T0158
+compile_fail_error ATFInInstHead.bs T0161
+compile_fail_error ATFInInstHeadBiDirectional.bs T0161
+compile_fail_error ATFInInstHeadBiDirectional.bs T0161
+compile_fail_error ATFResultNotDetermined.bs T0162
+compile_fail_error ATFUnifyError.bs T0030
+compile_fail_error ATFUnifyHKError.bs T0030
+
+# Test ATF in BSV syntax
+
+compile_pass ATFDeclBSV.bsv
+compile_fail_error ATFWrongArityBSV.bsv T0025
+compile_fail_error ATFDeclParamMismatchBSV.bsv T0158
+
+# --------------------------------------------------

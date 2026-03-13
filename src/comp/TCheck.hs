@@ -2087,8 +2087,8 @@ tiField1 as rt (f, e) = do
     -- so replace them with vars and return the preds that determine the vars
     -- XXX disable expanding of type synonyms until failures with TLM
     -- XXX (type synonyms which drop parameters) is resolved
-    -- XXX (tcon_ps, ft) <- expPrimTCons (expandSyn ft0)
-    (tcon_ps, ft) <- expPrimTCons ft0
+    -- XXX (tcon_ps, ft) <- expTFun (expandSyn ft0)
+    (tcon_ps, ft) <- expTFun ft0
     -- Unify the field type and the context expected return type,
     -- possibly returning preds which express type equality
     (t,eq_ps) <- unifyFnTo f e ft rt
@@ -2824,7 +2824,9 @@ tiImpls recursive as ibs = do
 
     s   <- getSubst
 
-    let ps = apSub s (concat pss)
+    let ps0 = apSub s (concat pss)
+    ps <- concatMapM expTConPred ps0
+
     when (not . null $ ps) $ satTraceM ("tiImpls " ++ ppReadable is ++ " ps: " ++ ppReadable ps)
 
     -- try to solve as many constraints as possible,
@@ -3092,7 +3094,6 @@ tiLetseqDef type_env arm@(CLMatch pattern expression) =
     internalError
         ("TCheck.tiLetseqDef: CLMatch should have been desugared:\n" ++
          pfpReadable arm)
-
 -- tiDefls: type-infer a set of letrec definitions
 --   first argument:         assumptions about type environment
 --   second argument (exp):  definitions to typecheck

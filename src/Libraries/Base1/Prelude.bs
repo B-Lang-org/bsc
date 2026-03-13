@@ -349,6 +349,7 @@ fmap f xs = do
 --@ endtypeclass
 --@ \end{libverbatim}
 class coherent Bits a n | a -> n where
+    type SizeOf a = n
     pack   :: a -> Bit n
     unpack :: Bit n -> a
 
@@ -738,6 +739,8 @@ class (MonadFix m) => IsModule m c | m -> c where
     liftModule     :: Module a -> m a
     liftModuleOp   :: (Module (c a) -> Module (c b)) -> m a -> m b
 
+-- This sadly can't be defined as an associated type function of a Refl type class,
+-- since we currently require that type functions must be fully applied.
 primitive type Id__ :: * -> *
 
 instance IsModule Module Id__ where
@@ -2766,8 +2769,6 @@ instance Eq Reset
   where
    (==) x y = primChr (primResetEQ x y)
    (/=) x y = primChr (primBNot (primResetEQ x y))
-
-primitive type SizeOf :: * -> #
 
 primitive type TAdd :: # -> # -> #
 primitive type TSub :: # -> # -> #

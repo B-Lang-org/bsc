@@ -1,0 +1,62 @@
+package ATFPolyStructMultiParam where
+
+-- Test: a multi-parameter ATF (Out a b) determines a struct field type.
+-- The class Merge has two input type parameters (a, b) and the ATF
+-- Out maps both to the result type.  The struct carries the two
+-- inputs and the merged output.
+
+class Merge a b r | a b -> r where
+  type Out a b = r
+  merge :: a -> b -> r
+
+instance Merge (UInt 8) (UInt 8) (UInt 16) where
+  merge a b = (zeroExtend a << 8) | zeroExtend b
+
+instance Merge Bool (UInt 8) (UInt 8) where
+  merge sel val = if sel then val else 0
+
+-- Struct with multi-parameter ATF determining a field type
+struct MergeResult a b =
+  inputA :: a
+  inputB :: b
+  output :: Out a b
+ deriving (Bits)
+
+-- Polymorphic builder using the multi-param ATF
+buildMerge :: (Merge a b r) =>
+              a -> b -> MergeResult a b
+buildMerge x y = MergeResult {
+  inputA = x;
+  inputB = y;
+  output = merge x y
+}
+
+-- Polymorphic reader
+getOutput :: (Merge a b r) =>
+             MergeResult a b -> Out a b
+getOutput mr = mr.output
+
+-- Interface
+interface Ifc a b =
+  getResult :: MergeResult a b
+  setInputs :: a -> b -> Action
+
+mkMergeStore :: (Merge a b r, Bits a an, Bits b bn,
+                 Bits (Out a b) rn, Bits (MergeResult a b) mn,
+                 IsModule m c) =>
+                a -> b -> m (Ifc a b)
+mkMergeStore initA initB = module
+  r :: Reg (MergeResult a b) <- mkReg (buildMerge initA initB)
+  interface
+    getResult = r
+    setInputs x y = r := buildMerge x y
+
+-- Concrete: Out (UInt 8) (UInt 8) = UInt 16
+{-# synthesize mkU8MergeStore #-}
+mkU8MergeStore :: Module (Ifc (UInt 8) (UInt 8))
+mkU8MergeStore = mkMergeStore 0 0
+
+-- Concrete: Out Bool (UInt 8) = UInt 8
+{-# synthesize mkBoolU8MergeStore #-}
+mkBoolU8MergeStore :: Module (Ifc Bool (UInt 8))
+mkBoolU8MergeStore = mkMergeStore False 0

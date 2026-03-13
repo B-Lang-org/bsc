@@ -24,10 +24,9 @@ import qualified Data.Map as M
 import Eval(NFData(..), rnf7)
 import PPrint
 import Id
-import Pred(Class(..))
+import Pred(Class(..), Qual(..))
 import Assump
 import Scheme(Scheme(..))
-import Pred(Qual(..))
 import CType
 import Type(isClock, isReset, isInout)
 import CSyntax(CClause)

@@ -1,0 +1,20 @@
+package ATFInInstHead where
+
+-- Test that using a type function in an instance head produces an error.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  wrap = Box
+
+-- This should be an error: Elem is a type function and cannot appear
+-- in an instance head.
+class Foo a where
+  foo :: a -> Bool
+
+instance Foo (Elem (Box Integer)) where
+  foo _ = True

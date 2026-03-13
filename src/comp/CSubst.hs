@@ -238,6 +238,7 @@ instance CSubst CDefl where
             r' = rmVarIds r pvars
         in  CLMatch (cSubst r p) (cSubst r' e)
 
+
 instance CSubst CQType where
     cSubst r (CQType preds t) = CQType (cSubst r preds) (cSubst r t)
 

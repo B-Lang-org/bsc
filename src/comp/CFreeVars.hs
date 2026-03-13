@@ -564,17 +564,19 @@ getFTCDn (Cdata { cd_internal_summands = summands,
   where f summand = getFTyCons (cis_arg_type summand)
 getFTCDn (Cstruct _ _ _ vs fields ds) =
     S.unions (map (getFQTyCons . cf_type) fields) `S.union` S.fromList (map typeclassId ds)
-getFTCDn (Cclass _ ps _ _ _ fields) =
-    S.unions (map getCPTyCons ps ++ map f fields)
+getFTCDn (Cclass _ ps _ _ _ ats fields) =
+    S.difference
+        (S.unions (map getCPTyCons ps ++ map f fields))
+        (S.fromList (map ca_name ats))
   where f field = getFQTyCons (cf_type field) `S.union`
                   S.unions (map getFTCC (cf_default field))
                   -- XXX nothing with cf_orig_type?
 getFTCDn (Cinstance qt ds) =
     S.union (getFQTyCons qt) (S.unions (map getFTCDl ds))
-getFTCDn (CIinstance _ qt) = getFQTyCons qt
+getFTCDn (CIinstance _ qt _) = getFQTyCons qt
 getFTCDn (CIValueSign _ t) = getFQTyCons t
 getFTCDn (CItype i vs useposs) = S.empty
-getFTCDn (CIclass incoh ps i vs fds useposs) = S.unions (map getCPTyCons ps)
+getFTCDn (CIclass incoh ps i vs fds _ useposs) = S.unions (map getCPTyCons ps)
 
 getVDefIds :: CDefn -> [Id]
 getVDefIds (CValueSign (CDef i _ _)) = [i]
@@ -587,9 +589,9 @@ getVDefIds (Cforeign { cforg_name = i }) = [i]
 getVDefIds (Ctype i _ _) = [iKName i]
 getVDefIds (Cdata { cd_name = name }) = [iKName name]
 getVDefIds (Cstruct _ _ i _ _ _) = [iKName i]
-getVDefIds (Cclass _ _ i _ _ _) = [iKName i]
+getVDefIds (Cclass _ _ i _ _ ats _) = iKName i : map ca_name ats
 getVDefIds (Cinstance _ _) = []
-getVDefIds (CIinstance _ _) = []
+getVDefIds (CIinstance _ _ _) = []
 getVDefIds (CItype i _ useposs) = [iKName i]
-getVDefIds (CIclass _ _ i _ _ useposs) = [iKName i]
+getVDefIds (CIclass _ _ i _ _ _ useposs) = [iKName i]
 getVDefIds (CIValueSign i _) = [i]
