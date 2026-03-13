@@ -1,0 +1,32 @@
+package ATFPolyElemArith where
+
+-- Test: Elem f used in a polymorphic context where the result
+-- must satisfy Arith.  The unifier sees Elem f (abstract) and
+-- must defer the Arith (Elem f) constraint.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+  wrap :: e -> f
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x
+  wrap = Box
+
+-- Polymorphic: extract, add 1, wrap back.
+-- Requires Arith (Elem f) which is deferred until instantiation.
+increment :: (Container f e, Arith (Elem f)) => f -> f
+increment x = wrap (extract x + 1)
+
+-- Polymorphic: extract two, add them.
+-- Two abstract Elem f types must unify and satisfy Arith.
+addContents :: (Container f e, Arith (Elem f)) => f -> f -> Elem f
+addContents x y = extract x + extract y
+
+test :: Box Integer
+test = increment (Box 41)
+
+test2 :: Integer
+test2 = addContents (Box 10) (Box 32)

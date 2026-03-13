@@ -1,0 +1,39 @@
+package ATFPolyIfcAddElem where
+
+-- Test: interface combines ATF-determined element type with
+-- TAdd on its SizeOf.  The method readExtended returns
+-- Bit (TAdd (SizeOf (Elem f)) 1), chaining ATF -> SizeOf -> TAdd.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+  wrap :: e -> f
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x
+  wrap = Box
+
+-- Interface with chained type functions: ATF -> SizeOf -> TAdd
+interface Ifc f =
+  readElem :: Elem f
+  readExtended :: Bit (TAdd (SizeOf (Elem f)) 1)
+  writeElem :: Elem f -> Action
+
+mkExtendedStore :: (Container f e, Bits (Elem f) n,
+                    Add (SizeOf (Elem f)) 1 m,
+                    IsModule mod c) =>
+                   Elem f -> mod (Ifc f)
+mkExtendedStore initVal = module
+  r :: Reg (Elem f) <- mkReg initVal
+  interface
+    readElem = r
+    readExtended = zeroExtend (pack r)
+    writeElem v = r := v
+
+-- Concrete: Elem (Box (UInt 8)) = UInt 8, SizeOf (UInt 8) = 8,
+--           TAdd 8 1 = 9
+{-# synthesize mkBoxExtStore #-}
+mkBoxExtStore :: Module (Ifc (Box (UInt 8)))
+mkBoxExtStore = mkExtendedStore 0

@@ -1,0 +1,55 @@
+package ATFPolyHK where
+
+-- Test: higher-kinded ATF (Slot f :: * -> *) used polymorphically.
+-- The class includes f in method signatures so it stays resolvable.
+-- Slot f a is an over-applied ATF that the unifier handles.
+
+class HasSlot f s | f -> s where
+  type Slot f = s
+  makeSlot :: f -> a -> s a
+  readSlot :: f -> s a -> a
+
+data BoxTag = BoxTag
+
+instance HasSlot BoxTag Maybe where
+  makeSlot _ x = Valid x
+  readSlot _ (Valid x) = x
+
+-- Polymorphic: Slot f stays abstract at kind * -> *
+polyMakeSlot :: (HasSlot f s) => f -> a -> Slot f a
+polyMakeSlot = makeSlot
+
+-- Polymorphic read: f in the argument keeps it non-ambiguous
+polyReadSlot :: (HasSlot f s) => f -> Slot f a -> a
+polyReadSlot = readSlot
+
+-- Polymorphic round-trip through Slot f a
+polyRoundTrip :: (HasSlot f s) => f -> a -> Slot f a
+polyRoundTrip tag x = polyMakeSlot tag (polyReadSlot tag (polyMakeSlot tag x))
+
+-- Polymorphic: Slot f a as intermediate type in let binding
+polyMakeRead :: (HasSlot f s) => f -> a -> a
+polyMakeRead tag x =
+  let slot :: Slot f a
+      slot = makeSlot tag x
+  in readSlot tag slot
+
+-- Polymorphic: transform slot contents via a function
+polyTransformSlot :: (HasSlot f s) => f -> a -> (a -> b) -> Slot f b
+polyTransformSlot tag x fn = makeSlot tag (fn (readSlot tag (makeSlot tag x)))
+
+-- Monomorphic instantiation
+boxRoundTrip :: BoxTag -> Integer -> Slot BoxTag Integer
+boxRoundTrip = polyRoundTrip
+
+isPositive :: Integer -> Bool
+isPositive n = n > 0
+
+boxTransform :: BoxTag -> Integer -> Slot BoxTag Bool
+boxTransform tag x = polyTransformSlot tag x isPositive
+
+test :: Maybe Integer
+test = boxRoundTrip BoxTag 42
+
+test2 :: Maybe Bool
+test2 = boxTransform BoxTag 42

@@ -1,0 +1,33 @@
+package ATFPolyTwoClass where
+
+-- Test: two different ATF classes used in the same polymorphic function.
+-- SrcElem f and SnkElem g must unify to the same type e.
+-- Both ATFs stay abstract until concrete instantiation.
+
+class Source f e | f -> e where
+  type SrcElem f = e
+  getSource :: f -> e
+
+class Sink g e | g -> e where
+  type SnkElem g = e
+  putSink :: e -> g
+
+data BoxSrc a = BoxSrc a
+data BoxSnk a = BoxSnk a
+
+instance Source (BoxSrc a) a where
+  getSource (BoxSrc x) = x
+
+instance Sink (BoxSnk a) a where
+  putSink = BoxSnk
+
+-- Polymorphic: SrcElem f and SnkElem g both resolve to e.
+-- Uses ATF types in let binding to force abstract unification.
+pipe :: (Source f e, Sink g e) => f -> g
+pipe src =
+  let v :: SrcElem f
+      v = getSource src
+  in putSink v
+
+test :: BoxSnk Integer
+test = pipe (BoxSrc 42)
