@@ -1,0 +1,67 @@
+package ATFPolyStructCodec where
+
+-- Test: a Codec class with two ATFs (numeric Width and star-kind Decoded)
+-- determines the field types of a struct.  The struct carries both
+-- the raw bits (Bit (Width f)) and the decoded value (Decoded f).
+-- The struct is stored in a register in a synthesized module.
+
+class Codec f n e | f -> n e where
+  type Width f = n
+  type Decoded f = e
+  encode :: f -> e -> Bit n
+  decode :: f -> Bit n -> e
+
+data U8Codec = U8Codec
+data U16Codec = U16Codec
+
+instance Codec U8Codec 8 (UInt 8) where
+  encode _ = pack
+  decode _ = unpack
+
+instance Codec U16Codec 16 (UInt 16) where
+  encode _ = pack
+  decode _ = unpack
+
+-- Struct with both ATFs determining field types
+struct EncodedVal f =
+  raw     :: Bit (Width f)
+  decoded :: Decoded f
+ deriving (Bits)
+
+-- Polymorphic builder
+buildEncoded :: (Codec f n e) => f -> Decoded f -> EncodedVal f
+buildEncoded codec val = EncodedVal {
+  raw = encode codec val;
+  decoded = val
+}
+
+-- Polymorphic: decode the raw field
+decodeRaw :: (Codec f n e) => f -> EncodedVal f -> Decoded f
+decodeRaw codec ev = decode codec ev.raw
+
+-- Interface
+interface Ifc f =
+  getDecoded :: Decoded f
+  getRaw :: Bit (Width f)
+  putVal :: Decoded f -> Action
+
+mkCodecStore :: (Bits (Decoded f) dn, IsModule m c) =>
+                f -> Decoded f -> m (Ifc f)
+mkCodecStore codec initVal = module
+  r :: Reg (EncodedVal f) <- mkReg (buildEncoded codec initVal)
+  interface
+    getDecoded = r.decoded
+    getRaw = r.raw
+    putVal v = r := buildEncoded codec v
+
+-- Concrete: Width U8Codec = 8, Decoded U8Codec = UInt 8
+-- SizeOf (EncodedVal U8Codec) = 8 + 8 = 16
+{-# synthesize mkU8CodecStore #-}
+mkU8CodecStore :: Module (Ifc U8Codec)
+mkU8CodecStore = mkCodecStore U8Codec 0
+
+-- Concrete: Width U16Codec = 16, Decoded U16Codec = UInt 16
+-- SizeOf (EncodedVal U16Codec) = 16 + 16 = 32
+{-# synthesize mkU16CodecStore #-}
+mkU16CodecStore :: Module (Ifc U16Codec)
+mkU16CodecStore = mkCodecStore U16Codec 0

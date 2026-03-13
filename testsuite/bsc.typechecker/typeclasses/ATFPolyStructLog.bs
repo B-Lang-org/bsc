@@ -1,0 +1,74 @@
+package ATFPolyStructLog where
+
+-- Test: struct field types use TLog and TAdd applied to ATF results.
+-- A HasCapacity class provides a numeric ATF.  The struct has:
+--   data   :: Bit (Width f)           -- the ATF width
+--   index  :: UInt (TLog (Width f))   -- log of ATF width
+--   tagged :: Bit (TAdd (Width f) 1)  -- ATF width + 1
+-- Bits derivation must expand the ATF then compute all compound types.
+
+class HasWidth f n | f -> n where
+  type Width f = n
+  toBit :: f -> Bit n
+  fromBit :: Bit n -> f
+
+data Word = Word (Bit 32)
+data Half = Half (Bit 16)
+
+instance HasWidth Word 32 where
+  toBit (Word b) = b
+  fromBit = Word
+
+instance HasWidth Half 16 where
+  toBit (Half b) = b
+  fromBit = Half
+
+-- Struct with multiple compound type expressions from one ATF
+struct IndexedFrame f =
+  payload :: Bit (Width f)
+  index   :: UInt (TLog (Width f))
+  tagged  :: Bit (TAdd (Width f) 1)
+ deriving (Bits)
+
+-- Polymorphic builder
+buildIndexed :: (HasWidth f n, Log (Width f) logn,
+                 Add (Width f) 1 m) =>
+                Bit (Width f) -> UInt (TLog (Width f)) -> IndexedFrame f
+buildIndexed val idx = IndexedFrame {
+  payload = val;
+  index = idx;
+  tagged = zeroExtend val
+}
+
+-- Polymorphic reader
+getIndex :: (HasWidth f n, Log (Width f) logn) =>
+            IndexedFrame f -> UInt (TLog (Width f))
+getIndex fr = fr.index
+
+-- Interface
+interface Ifc f =
+  getFrame :: IndexedFrame f
+  putPayload :: Bit (Width f) -> Action
+
+mkIndexedStore :: (HasWidth f n, Log (Width f) logn,
+                   Add (Width f) 1 m,
+                   Bits (IndexedFrame f) fn,
+                   IsModule mod c) =>
+                  mod (Ifc f)
+mkIndexedStore = module
+  r :: Reg (IndexedFrame f) <- mkReg (buildIndexed 0 0)
+  interface
+    getFrame = r
+    putPayload v = r := buildIndexed v 0
+
+-- Concrete: Width Word = 32, TLog 32 = 5, TAdd 32 1 = 33
+-- SizeOf (IndexedFrame Word) = 32 + 5 + 33 = 70
+{-# synthesize mkWordIndexedStore #-}
+mkWordIndexedStore :: Module (Ifc Word)
+mkWordIndexedStore = mkIndexedStore
+
+-- Concrete: Width Half = 16, TLog 16 = 4, TAdd 16 1 = 17
+-- SizeOf (IndexedFrame Half) = 16 + 4 + 17 = 37
+{-# synthesize mkHalfIndexedStore #-}
+mkHalfIndexedStore :: Module (Ifc Half)
+mkHalfIndexedStore = mkIndexedStore

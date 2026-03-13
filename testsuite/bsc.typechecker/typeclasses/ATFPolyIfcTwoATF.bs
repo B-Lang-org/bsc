@@ -1,0 +1,42 @@
+package ATFPolyIfcTwoATF where
+
+-- Test: interface fields use TAdd of two DIFFERENT ATFs.
+-- One class provides Width, another provides Depth.
+-- The interface has a field of Bit (TAdd (Width f) (Depth g)).
+
+class HasWidth f n | f -> n where
+  type Width f = n
+  toBit :: f -> Bit n
+
+class HasDepth g m | g -> m where
+  type Depth g = m
+  getDepth :: g -> Bit m
+
+data Byte = Byte (Bit 8)
+data Shallow = Shallow
+
+instance HasWidth Byte 8 where
+  toBit (Byte b) = b
+
+instance HasDepth Shallow 4 where
+  getDepth _ = 0
+
+-- Interface combining two ATF widths
+interface Ifc f g =
+  readCombined :: Bit (TAdd (Width f) (Depth g))
+  writeData :: Bit (Width f) -> Action
+
+mkCombinedReg :: (HasWidth f n, HasDepth g m,
+                  Add (Width f) (Depth g) total,
+                  IsModule mod c) =>
+                 mod (Ifc f g)
+mkCombinedReg = module
+  r :: Reg (Bit (Width f)) <- mkReg 0
+  interface
+    readCombined = zeroExtend r
+    writeData v = r := v
+
+-- Concrete: Width Byte = 8, Depth Shallow = 4, TAdd 8 4 = 12
+{-# synthesize mkByteShallow #-}
+mkByteShallow :: Module (Ifc Byte Shallow)
+mkByteShallow = mkCombinedReg

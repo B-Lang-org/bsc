@@ -1,0 +1,50 @@
+package ATFPolyDataWidth where
+
+-- Test: polymorphic data type with numeric ATF in constructor field.
+-- The data type Packet carries a Bit (Width f) payload and a
+-- Bit (TAdd (Width f) 1) extended form.  Construction and
+-- pattern matching must handle the abstract numeric ATF type.
+
+class HasWidth f n | f -> n where
+  type Width f = n
+  toBit :: f -> Bit n
+  fromBit :: Bit n -> f
+
+data Byte = Byte (Bit 8)
+data Nibble = Nibble (Bit 4)
+
+instance HasWidth Byte 8 where
+  toBit (Byte b) = b
+  fromBit = Byte
+
+instance HasWidth Nibble 4 where
+  toBit (Nibble b) = b
+  fromBit = Nibble
+
+-- Data type with numeric ATF + TAdd in constructor
+data Encoded f = Encoded (Bit (Width f)) (Bit (TAdd (Width f) 1))
+
+-- Polymorphic constructor: build with ATF-determined widths
+mkEncoded :: (HasWidth f n, Add (Width f) 1 m) =>
+             f -> Encoded f
+mkEncoded val =
+  let raw = toBit val
+  in Encoded raw (zeroExtend raw)
+
+-- Polymorphic pattern match
+getRaw :: Encoded f -> Bit (Width f)
+getRaw (Encoded r _) = r
+
+getExtended :: Encoded f -> Bit (TAdd (Width f) 1)
+getExtended (Encoded _ e) = e
+
+-- Concrete: Width Byte = 8, TAdd 8 1 = 9
+testRaw :: Bit 8
+testRaw = getRaw (mkEncoded (Byte 0xAB))
+
+testExt :: Bit 9
+testExt = getExtended (mkEncoded (Byte 0xAB))
+
+-- Concrete: Width Nibble = 4, TAdd 4 1 = 5
+testNibRaw :: Bit 4
+testNibRaw = getRaw (mkEncoded (Nibble 0xF))

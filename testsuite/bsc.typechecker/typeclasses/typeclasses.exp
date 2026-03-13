@@ -95,6 +95,21 @@ compile_verilog_pass ATFSynthIfc.bs
 # Currently failing, needs type-based port splitting change
 compile_verilog_pass_bug ATFSynthIfcMethodType.bs
 
+# Test polymorphic ATF usage
+
+compile_pass ATFPolyDataWidth.bs
+compile_pass ATFPolyElemArith.bs
+compile_pass ATFPolyHK.bs
+compile_pass ATFPolyNested.bs
+compile_pass ATFPolyTwoClass.bs
+
+compile_verilog_pass ATFPolyIfcAddElem.bs
+compile_verilog_pass ATFPolyIfcTwoATF.bs
+compile_verilog_pass ATFPolyStructCodec.bs
+compile_verilog_pass ATFPolyStructIfc.bs
+compile_verilog_pass ATFPolyStructLog.bs
+compile_verilog_pass ATFPolyStructMultiParam.bs
+
 # Test ATF error cases
 
 compile_fail_error ATFWrongArity.bs T0025
