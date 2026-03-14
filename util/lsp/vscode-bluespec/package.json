@@ -1,0 +1,56 @@
+{
+  "name": "vscode-bluespec",
+  "displayName": "Bluespec",
+  "description": "Bluespec Classic (.bs) language support via bs-lsp",
+  "version": "0.0.1",
+  "publisher": "bsc-lsp",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "bluespec",
+        "aliases": ["Bluespec Classic", "bluespec"],
+        "extensions": [".bs"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bluespec",
+        "scopeName": "source.bluespec",
+        "path": "./syntaxes/bluespec.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Bluespec",
+      "properties": {
+        "bluespec.serverPath": {
+          "type": "string",
+          "default": "bs-lsp",
+          "description": "Path to the bs-lsp binary. Defaults to 'bs-lsp' (must be on PATH)."
+        },
+        "bluespec.serverEnv": {
+          "type": "object",
+          "default": {},
+          "description": "Extra environment variables to pass to bs-lsp (e.g. BLUESPECDIR)."
+        },
+        "bluespec.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Trace LSP communication between VS Code and bs-lsp."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

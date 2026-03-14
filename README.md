@@ -140,6 +140,49 @@ useful.
 
 ---
 
+## Editor Support
+
+The `util/` directory contains editor integrations for several editors
+(`emacs/`, `vim/`, `jedit/`).  For editors that support the
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
+(VS Code, Neovim, Emacs with `lsp-mode`, etc.), BSC ships a dedicated
+language server: **`bs-lsp`**.
+
+`bs-lsp` is built and installed alongside `bsc` by `make install-src`.
+It provides:
+
+- **Hover** — type signatures and kind information on demand
+- **Go-to-definition** — jump to the definition of any symbol, including
+  standard library packages like `Vector`, `FIFO`, `StmtFSM`, etc.
+- **Diagnostics** — parse errors highlighted inline as you type
+
+### VS Code
+
+A VS Code extension is included at `util/lsp/vscode-bluespec/`.
+After building BSC, install it with:
+
+```bash
+# Requires Node.js / npm
+make install-vscode-ext
+```
+
+Then add `inst/bin` to your `PATH` (or set `bluespec.serverPath` in VS Code
+settings to the full path of `bs-lsp`), open a `.bs` file, and the language
+server will start automatically.
+
+### Other LSP clients
+
+Point your client at the `bs-lsp` binary (found in `inst/bin/` after
+`make install-src`) and use `stdio` transport.  Set the `BLUESPECDIR`
+environment variable to the `inst/` directory so that `bs-lsp` can
+locate the standard library:
+
+```bash
+export BLUESPECDIR=/path/to/bsc/inst
+```
+
+---
+
 ## License
 
 The Bluespec toolchain is provided by [Bluespec Inc] and

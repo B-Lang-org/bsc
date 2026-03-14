@@ -1,0 +1,144 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Bluespec Classic",
+  "scopeName": "source.bluespec",
+  "fileTypes": ["bs"],
+  "patterns": [
+    { "include": "#pragma" },
+    { "include": "#block-comment" },
+    { "include": "#line-comment" },
+    { "include": "#string" },
+    { "include": "#char" },
+    { "include": "#numeric" },
+    { "include": "#keyword-control" },
+    { "include": "#keyword-decl" },
+    { "include": "#keyword-storage" },
+    { "include": "#operator" },
+    { "include": "#type-constructor" },
+    { "include": "#function-type-sig" },
+    { "include": "#identifier" }
+  ],
+  "repository": {
+
+    "pragma": {
+      "name": "meta.preprocessor.bluespec",
+      "begin": "\\{-#",
+      "end": "#-\\}",
+      "beginCaptures": { "0": { "name": "punctuation.definition.pragma.begin.bluespec" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.pragma.end.bluespec" } },
+      "contentName": "keyword.other.pragma.bluespec"
+    },
+
+    "block-comment": {
+      "name": "comment.block.bluespec",
+      "begin": "\\{-",
+      "end": "-\\}",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.bluespec" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.bluespec" } }
+    },
+
+    "line-comment": {
+      "name": "comment.line.double-dash.bluespec",
+      "match": "--.*$"
+    },
+
+    "string": {
+      "name": "string.quoted.double.bluespec",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.bluespec" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.string.end.bluespec" } },
+      "patterns": [
+        {
+          "name": "constant.character.escape.bluespec",
+          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[0-9]+|o[0-7]+|x[0-9a-fA-F]+|[abfnrtv\\\\\"'&])"
+        }
+      ]
+    },
+
+    "char": {
+      "name": "string.quoted.single.bluespec",
+      "match": "'([^'\\\\]|\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[0-9]+|o[0-7]+|x[0-9a-fA-F]+|[abfnrtv\\\\\"']))'"
+    },
+
+    "numeric": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.hex.bluespec",
+          "match": "\\b0[xX][0-9a-fA-F]+"
+        },
+        {
+          "name": "constant.numeric.integer.octal.bluespec",
+          "match": "\\b0[oO][0-7]+"
+        },
+        {
+          "name": "constant.numeric.integer.binary.bluespec",
+          "match": "\\b0[bB][01]+"
+        },
+        {
+          "name": "constant.numeric.integer.bluespec",
+          "match": "\\b[0-9][0-9_]*"
+        },
+        {
+          "name": "constant.numeric.float.bluespec",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?"
+        }
+      ]
+    },
+
+    "keyword-control": {
+      "name": "keyword.control.bluespec",
+      "match": "\\b(case|of|if|else|then|do|let|letseq|in|where|when|rules)\\b"
+    },
+
+    "keyword-decl": {
+      "name": "keyword.other.bluespec",
+      "match": "\\b(package|import|qualified|hiding|module|interface|class|instance|coherent|incoherent|data|type|struct|newtype|deriving|foreign|primitive|synthesize|verilog|infix|infixl|infixr|return)\\b"
+    },
+
+    "keyword-storage": {
+      "name": "storage.type.bluespec",
+      "match": "\\b(action|actionvalue|valueOf|stringOf)\\b"
+    },
+
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.type.bluespec",
+          "match": "::"
+        },
+        {
+          "name": "keyword.operator.arrow.bluespec",
+          "match": "->|=>|<-|==>|:="
+        },
+        {
+          "name": "keyword.operator.hash.bluespec",
+          "match": "#"
+        },
+        {
+          "name": "keyword.operator.bluespec",
+          "match": "[!@$%&*+./<=>?@\\\\^|~:,-]+"
+        }
+      ]
+    },
+
+    "type-constructor": {
+      "name": "entity.name.type.bluespec",
+      "match": "\\b[A-Z][a-zA-Z0-9_']*\\b"
+    },
+
+    "function-type-sig": {
+      "comment": "Highlight the name in a type signature: name :: ...",
+      "match": "^([ \\t]*)(([a-z_][a-zA-Z0-9_']*)|(`[A-Z][a-zA-Z0-9_']*`))([ \\t]*)(::)",
+      "captures": {
+        "3": { "name": "entity.name.function.bluespec" },
+        "6": { "name": "keyword.operator.type.bluespec" }
+      }
+    },
+
+    "identifier": {
+      "name": "variable.other.bluespec",
+      "match": "\\b[a-z_][a-zA-Z0-9_']*\\b"
+    }
+  }
+}
