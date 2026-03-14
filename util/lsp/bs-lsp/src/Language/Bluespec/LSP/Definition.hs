@@ -14,7 +14,7 @@ import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
 import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
 import Language.Bluespec.Position (Located (..), Pos (..), SrcSpan (..))
-import Language.Bluespec.Syntax (Ident (..), ModuleId (..), QualIdent (..), QualType (..), Type (..), identText)
+import Language.Bluespec.Syntax (ModuleId (..), QualIdent (..), QualType (..), Type (..), identText)
 import Language.LSP.Protocol.Types
 
 -- | Get definition location for symbol at a position.
