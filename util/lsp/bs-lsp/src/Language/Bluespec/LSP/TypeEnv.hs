@@ -145,8 +145,9 @@ inferExprType env (Located _ expr) = case expr of
   ETypeSig _ qt  -> Just $ expandAlias env $ locVal $ qtType $ locVal qt
   EParens e      -> inferExprType env e
   ENeg e         -> inferExprType env e
-  EIf _ t _      -> inferExprType env t
-  EApp f arg     -> inferAppType env f arg
+  EIf _ t _        -> inferExprType env t
+  EApp f arg       -> inferAppType env f arg
+  EFieldAccess e f -> inferFieldAccessType env e f
   ELet items body ->
     let env' = extendEnvWithLetItems env items
     in  inferExprType env' body
@@ -171,6 +172,23 @@ inferAppType env f arg = do
                                     (unifyTypes (locVal paramTy) argTy)
       in  Just (applySubst subst (locVal retTy))
     _ -> Nothing
+
+-- | Infer the type of a field access expression (receiver.field).
+-- Looks up the receiver type in teStructs, then finds the matching field.
+inferFieldAccessType :: TypeEnv -> LExpr -> Located Ident -> Maybe Type
+inferFieldAccessType env recv field = do
+  recvTy  <- inferExprType env recv
+  tyName  <- outerTypeName recvTy
+  fields  <- Map.lookup tyName (teStructs env)
+  let name = identText (locVal field)
+  matched <- listToMaybe (filter (\fi -> identText (locVal (fieldName fi)) == name) fields)
+  pure (locVal (qtType (locVal (fieldType matched))))
+
+-- | Extract the outermost type constructor name from a type.
+outerTypeName :: Type -> Maybe Text
+outerTypeName (TCon qi)  = Just (qualIdentSimpleName (locVal qi))
+outerTypeName (TApp f _) = outerTypeName (locVal f)
+outerTypeName _          = Nothing
 
 -- | Infer the type of a literal.
 inferLitType :: Literal -> Type
