@@ -13,6 +13,9 @@ module Language.Bluespec.LSP.State
     -- * Module Index
     ModuleInfo (..),
 
+    -- * Re-exports
+    TypeEnv,
+
     -- * State Operations
     getDocument,
     updateDocument,
@@ -34,6 +37,7 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Language.Bluespec.LSP.SymbolTable (SymbolTable, emptySymbolTable)
+import Language.Bluespec.LSP.TypeEnv (TypeEnv, emptyTypeEnv)
 import Language.Bluespec.Syntax (Package)
 import Language.LSP.Protocol.Types (NormalizedUri)
 
@@ -45,6 +49,8 @@ data DocumentState = DocumentState
     dsParsed :: !(Maybe Package),
     -- | Symbol table for this document
     dsSymbols :: !SymbolTable,
+    -- | Type environment for this document (for hover inference)
+    dsTypeEnv :: !TypeEnv,
     -- | Document version
     dsVersion :: !Int
   }
@@ -57,6 +63,7 @@ emptyDocumentState text version =
     { dsText = text,
       dsParsed = Nothing,
       dsSymbols = emptySymbolTable,
+      dsTypeEnv = emptyTypeEnv,
       dsVersion = version
     }
 

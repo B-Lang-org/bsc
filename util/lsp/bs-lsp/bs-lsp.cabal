@@ -27,6 +27,7 @@ library
         Language.Bluespec.LSP.Hover
         Language.Bluespec.LSP.Definition
         Language.Bluespec.LSP.Symbols
+        Language.Bluespec.LSP.TypeEnv
         Language.Bluespec.LSP.Util
     build-depends:
         base >= 4.17 && < 5

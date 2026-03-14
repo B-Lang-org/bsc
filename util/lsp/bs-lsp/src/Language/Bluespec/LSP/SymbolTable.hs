@@ -28,6 +28,12 @@ module Language.Bluespec.LSP.SymbolTable
 
     -- * Import Info
     ImportInfo (..),
+
+    -- * Type alias utilities (used by TypeEnv)
+    AliasMap,
+    collectAliases,
+    expandType,
+    qualIdentSimpleName,
   )
 where
 

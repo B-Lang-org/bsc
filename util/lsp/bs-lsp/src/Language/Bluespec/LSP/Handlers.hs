@@ -25,6 +25,7 @@ import Language.Bluespec.LSP.Hover (getHoverInfoCrossFile)
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.Symbols
+import Language.Bluespec.LSP.TypeEnv (buildTypeEnv)
 import Language.Bluespec.Parser (parseAuto, parseAutoRecovering)
 import Language.Bluespec.Syntax (ModuleId (..), Package)
 import Language.LSP.Protocol.Lens as Lens
@@ -84,15 +85,17 @@ handleDocumentOpen stateVar docUri docText docVersion = do
   -- Parse document (with recovery: always get a partial AST)
   let (pkg, merrs) = parseAutoRecovering (T.unpack filename) docText
 
-  -- Build symbol table from partial or full AST
+  -- Build symbol table and type environment from partial or full AST
   let symbols = buildSymbolTable pkg
+      typeEnv = buildTypeEnv pkg
 
   -- Update state
   let docState =
         DocumentState
-          { dsText = docText,
-            dsParsed = Just pkg,
+          { dsText    = docText,
+            dsParsed  = Just pkg,
             dsSymbols = symbols,
+            dsTypeEnv = typeEnv,
             dsVersion = docVersion
           }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
@@ -123,15 +126,17 @@ handleDocumentChange stateVar docUri changes = do
   -- Parse document (with recovery: always get a partial AST)
   let (pkg, merrs) = parseAutoRecovering (T.unpack filename) newText
 
-  -- Build symbol table from partial or full AST
+  -- Build symbol table and type environment from partial or full AST
   let symbols = buildSymbolTable pkg
+      typeEnv  = buildTypeEnv pkg
 
   -- Update state
   let docState =
         DocumentState
-          { dsText = newText,
-            dsParsed = Just pkg,
+          { dsText    = newText,
+            dsParsed  = Just pkg,
             dsSymbols = symbols,
+            dsTypeEnv = typeEnv,
             dsVersion = newVersion
           }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
