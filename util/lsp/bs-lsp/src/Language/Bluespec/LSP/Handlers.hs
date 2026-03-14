@@ -24,7 +24,7 @@ import Language.Bluespec.LSP.Hover
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.Symbols
-import Language.Bluespec.Parser (parseAuto)
+import Language.Bluespec.Parser (parseAuto, parseAutoRecovering)
 import Language.Bluespec.Syntax (ModuleId (..), Package)
 import Language.LSP.Protocol.Lens as Lens
 import Language.LSP.Protocol.Message
@@ -81,29 +81,27 @@ handleDocumentOpen stateVar docUri docText docVersion = do
   let nuri = toNormalizedUri docUri
       filename = uriToFilename docUri
 
-  -- Parse document
-  let parseResult = parseAuto (T.unpack filename) docText
+  -- Parse document (with recovery: always get a partial AST)
+  let (pkg, merrs) = parseAutoRecovering (T.unpack filename) docText
 
-  -- Build symbol table if parse succeeded
-  let (mPkg, symbols) = case parseResult of
-        Right pkg -> (Just pkg, buildSymbolTable pkg)
-        Left _ -> (Nothing, emptySymbolTable)
+  -- Build symbol table from partial or full AST
+  let symbols = buildSymbolTable pkg
 
   -- Update state
   let docState =
         DocumentState
           { dsText = docText,
-            dsParsed = mPkg,
+            dsParsed = Just pkg,
             dsSymbols = symbols,
             dsVersion = docVersion
           }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
 
   -- Update module index
-  liftIO $ updateModuleIndexFromDoc stateVar filename mPkg symbols
+  liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
 
   -- Publish diagnostics
-  let diagnostics = makeDiagnostics parseResult
+  let diagnostics = makeDiagnostics (maybe (Right pkg) Left merrs)
   sendDiagnostics docUri docVersion diagnostics
 
 -- | Handle document change - re-parse and publish diagnostics.
@@ -122,29 +120,27 @@ handleDocumentChange stateVar docUri changes = do
         (c : _) -> getChangeText c mDoc
   let newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
 
-  -- Parse document
-  let parseResult = parseAuto (T.unpack filename) newText
+  -- Parse document (with recovery: always get a partial AST)
+  let (pkg, merrs) = parseAutoRecovering (T.unpack filename) newText
 
-  -- Build symbol table if parse succeeded
-  let (mPkg, symbols) = case parseResult of
-        Right pkg -> (Just pkg, buildSymbolTable pkg)
-        Left _ -> (Nothing, emptySymbolTable)
+  -- Build symbol table from partial or full AST
+  let symbols = buildSymbolTable pkg
 
   -- Update state
   let docState =
         DocumentState
           { dsText = newText,
-            dsParsed = mPkg,
+            dsParsed = Just pkg,
             dsSymbols = symbols,
             dsVersion = newVersion
           }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
 
   -- Update module index
-  liftIO $ updateModuleIndexFromDoc stateVar filename mPkg symbols
+  liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
 
   -- Publish diagnostics
-  let diagnostics = makeDiagnostics parseResult
+  let diagnostics = makeDiagnostics (maybe (Right pkg) Left merrs)
   sendDiagnostics docUri newVersion diagnostics
 
 -- | Handle document close - remove from state.

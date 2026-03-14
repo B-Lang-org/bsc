@@ -8,6 +8,7 @@ module Language.Bluespec.Parser
   , parseType
   , parseFile
   , parseAuto
+  , parseAutoRecovering
 
     -- * Parser type
   , Parser
@@ -15,7 +16,7 @@ module Language.Bluespec.Parser
   ) where
 
 import Control.Monad (void)
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty(..), toList)
 import System.FilePath (takeExtension)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe, isJust)
@@ -2295,3 +2296,23 @@ parseAuto :: FilePath -> Text -> Either ParseError Package
 parseAuto fp src
   | takeExtension fp == ".bsv" = BSV.parseBSVPackage (T.pack fp) src
   | otherwise                  = parsePackage (T.pack fp) src
+
+-- | Like 'parseAuto', but uses error recovery to always return a (possibly
+-- partial) 'Package' along with any parse errors. Intended for the LSP.
+--
+-- Returns @(pkg, Nothing)@ on clean success, @(pkg, Just bundle)@ on error.
+-- The package is always non-empty (may be a partial AST for BSV files).
+parseAutoRecovering
+  :: FilePath
+  -> Text
+  -> (Package, Maybe ParseError)
+parseAutoRecovering fp src
+  | takeExtension fp == ".bsv" = BSV.parseBSVPackageRecovering (T.pack fp) src
+  | otherwise                  =
+      -- For Classic, fall back to strict parse for now.
+      case parsePackage (T.pack fp) src of
+        Right pkg  -> (pkg, Nothing)
+        Left bundle ->
+          ( Package noSpan (Located noSpan (ModuleId "Main")) Nothing [] [] []
+          , Just bundle
+          )

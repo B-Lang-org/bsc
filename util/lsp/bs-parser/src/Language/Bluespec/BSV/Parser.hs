@@ -7,12 +7,14 @@
 -- This parser produces the same 'Package' AST as the Classic parser.
 module Language.Bluespec.BSV.Parser
   ( parseBSVPackage
+  , parseBSVPackageRecovering
   ) where
 
 import Control.Monad (void, when)
 import Data.List (foldl')
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (catMaybes, fromMaybe, mapMaybe)
 import qualified Data.Set as Set
+import Data.List.NonEmpty (NonEmpty(..), toList)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void (Void)
@@ -52,6 +54,78 @@ parseBSVPackage file input = do
       }
     first' f (Left e) = Left (f e)
     first' _ (Right a) = Right a
+
+-- | Parse a BSV package with error recovery.
+--
+-- Unlike 'parseBSVPackage', this always returns a (possibly partial) 'Package'
+-- even when there are parse errors. The second element is @Just bundle@ if any
+-- errors occurred, @Nothing@ on clean success. Intended for the LSP.
+parseBSVPackageRecovering
+  :: Text
+  -> Text
+  -> (Package, Maybe ParseError)
+parseBSVPackageRecovering file input =
+  case Lex.tokenize file input of
+    Left _ ->
+      ( emptyPkg file
+      , Just $ ParseErrorBundle
+          { bundleErrors  = pure $ FancyError 0 (Set.singleton $ ErrorFail "Lexer error")
+          , bundlePosState = PosState
+              { pstateInput      = Lex.TokenStream []
+              , pstateOffset     = 0
+              , pstateSourcePos  = initialPos (T.unpack file)
+              , pstateTabWidth   = defaultTabWidth
+              , pstateLinePrefix = ""
+              }
+          }
+      )
+    Right ts ->
+      let stream  = Lex.TokenStream ts
+          initSt  = MP.State
+            { MP.stateInput       = stream
+            , MP.stateOffset      = 0
+            , MP.statePosState    = PosState
+                { pstateInput      = stream
+                , pstateOffset     = 0
+                , pstateSourcePos  = initialPos (T.unpack file)
+                , pstateTabWidth   = defaultTabWidth
+                , pstateLinePrefix = ""
+                }
+            , MP.stateParseErrors = []
+            }
+          initPosState = PosState
+            { pstateInput      = stream
+            , pstateOffset     = 0
+            , pstateSourcePos  = initialPos (T.unpack file)
+            , pstateTabWidth   = defaultTabWidth
+            , pstateLinePrefix = ""
+            }
+          (finalSt, result) = MP.runParser' pPackageRecovering initSt
+          errs = MP.stateParseErrors finalSt
+      in case result of
+           Left bundle ->
+             -- Hard failure: return the bundle (may include recovered errors too)
+             let allErrs = toList (bundleErrors bundle) ++ errs
+             in case allErrs of
+                  e:es -> (emptyPkg file, Just bundle { bundleErrors = e :| es })
+                  []   -> (emptyPkg file, Just bundle)
+           Right pkg ->
+             -- Success: check for recovered errors
+             case errs of
+               []   -> (pkg, Nothing)
+               e:es -> (pkg, Just $ ParseErrorBundle
+                 { bundleErrors  = e :| es
+                 , bundlePosState = initPosState
+                 })
+
+emptyPkg :: Text -> Package
+emptyPkg file = Package noSpan
+  (Located noSpan (ModuleId (T.takeWhile (/= '.') (T.pack (reverse (takeWhile (/= '/') (reverse (T.unpack file))))))))
+  Nothing [] [] []
+
+listToNE :: [a] -> Maybe (NonEmpty a)
+listToNE []     = Nothing
+listToNE (x:xs) = Just (x :| xs)
 
 --------------------------------------------------------------------------------
 -- Token primitives
@@ -1475,3 +1549,52 @@ skipToEndModule = go (0 :: Int)
         Lex.TokKeyword Lex.KwEndModule -> go (depth - 1)
         Lex.TokEOF -> pure ()
         _ -> go depth
+
+-- | Skip tokens until we reach a top-level BSV declaration boundary.
+-- Used for error recovery: when a top-level item fails to parse, skip
+-- forward to where the next one might begin.
+skipToTopLevel :: Parser ()
+skipToTopLevel = void $ manyTill anyTok (lookAhead topLevelBoundary)
+  where
+    topLevelBoundary = void topLevelKw <|> void eofTok
+    topLevelKw = tok $ \case
+      Lex.TokKeyword k | isTopLevel k -> Just ()
+      _ -> Nothing
+    eofTok = tok $ \case { Lex.TokEOF -> Just (); _ -> Nothing }
+    isTopLevel k = k `elem`
+      [ Lex.KwModule, Lex.KwInterface, Lex.KwTypedef
+      , Lex.KwFunction, Lex.KwClass, Lex.KwInstance
+      , Lex.KwImport, Lex.KwExport, Lex.KwEndPackage
+      ]
+
+-- | Version of 'pPackage' with error recovery at the top-level statement
+-- boundary. Failed top-level items are skipped and their errors registered.
+pPackageRecovering :: Parser Package
+pPackageRecovering = do
+  sp0   <- peekSpan
+  void  $ optional $ keyword Lex.KwPackage
+  pkgNm <- option (Located sp0 (ConId "Main")) conId
+  void $ optional semi
+  (exps, imps) <- collectExportsImports
+  defns <- catMaybes <$> many (withRecovery recover (Just <$> try pPkgStmt))
+  void $ optional $ keyword Lex.KwEndPackage
+  void $ optional (void colon *> void anyId)
+  void $ optional $ tok (\case { Lex.TokEOF -> Just (); _ -> Nothing })
+  sp1   <- peekSpan
+  let expsMaybe = if null exps then Nothing else Just exps
+  pure $ Package (spanTo sp0 sp1)
+    (Located (locSpan pkgNm) (ModuleId (identText (locVal pkgNm))))
+    expsMaybe imps [] defns
+  where
+    collect = many $ choice
+      [ Left  <$> try pExportDecl
+      , Right <$> try pImportDecl
+      ]
+    collectExportsImports = do
+      items <- collect
+      let exps = concat [es | Left es  <- items]
+          imps = [i        | Right i <- items]
+      pure (exps, imps)
+    recover e = do
+      MP.registerParseError e
+      Nothing <$ skipToTopLevel
