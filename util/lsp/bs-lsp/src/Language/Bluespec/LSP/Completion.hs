@@ -16,7 +16,7 @@ import Data.Text qualified as T
 import Language.LSP.Protocol.Types hiding (SymbolKind)
 
 import Language.Bluespec.LSP.State (ServerState (..), DocumentState (..), ModuleInfo (..), getPreludeSymbols)
-import Language.Bluespec.LSP.SymbolTable (Symbol (..), SymbolKind (..), getAllSymbols)
+import Language.Bluespec.LSP.SymbolTable (Symbol (..), SymbolKind (..), getAllSymbols, formatQualType)
 import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
 import Language.Bluespec.LSP.Util (getIdentifierAtPosition)
 import Language.Bluespec.Position (Located (..), locVal)
@@ -124,13 +124,13 @@ resolveTypeName _ = Nothing
 
 -- | Convert a Field to a CompletionItem.
 fieldToCompletion :: Field -> CompletionItem
-fieldToCompletion Field { fieldName, fieldType = _fieldType } =
+fieldToCompletion Field { fieldName, fieldType } =
   CompletionItem
     { _label               = identText (locVal fieldName)
     , _labelDetails        = Nothing
     , _kind                = Just CompletionItemKind_Field
     , _tags                = Nothing
-    , _detail              = Just (T.pack "field")
+    , _detail              = Just (formatQualType (locVal fieldType))
     , _documentation       = Nothing
     , _deprecated          = Nothing
     , _preselect           = Nothing
