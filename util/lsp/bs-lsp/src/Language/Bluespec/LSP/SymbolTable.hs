@@ -48,6 +48,79 @@ import System.Exit (ExitCode (..))
 import System.FilePath (takeDirectory, (</>))
 import System.Process (readProcessWithExitCode)
 
+-- | Type alias map: type name → (type parameters, expansion type).
+type AliasMap = Map Text ([TyVar], Type)
+
+-- | Collect type aliases from a list of definitions.
+collectAliases :: [LDefinition] -> AliasMap
+collectAliases defs = Map.fromList
+  [ (identText (locVal name), (map locVal tvars, locVal ty))
+  | Located _ (DefType name _kind tvars ty) <- defs
+  ]
+
+-- | Expand type aliases in a 'Type' (single step, applied recursively).
+expandType :: AliasMap -> Type -> Type
+expandType aliases = go
+  where
+    go (TCon qi) =
+      let name = qualIdentSimpleName (locVal qi)
+      in case Map.lookup name aliases of
+           Just ([], body) -> go body
+           _               -> TCon qi
+    go t@(TApp _ _) =
+      let (hd, args) = collectTApp t
+      in case hd of
+           Located _ (TCon qi) ->
+             let name = qualIdentSimpleName (locVal qi)
+                 args' = map (fmap go) args
+             in case Map.lookup name aliases of
+                  Just (tvars, body)
+                    | length tvars == length args ->
+                        let subst = Map.fromList
+                              $ zip (map (identText . tvName) tvars) (map locVal args')
+                        in go (applyTySubst subst body)
+                  _ -> rebuildTApp hd args'
+           _ -> rebuildTApp (fmap go hd) (map (fmap go) args)
+    go (TArrow a b) = TArrow (fmap go a) (fmap go b)
+    go (TTuple ts)  = TTuple (map (fmap go) ts)
+    go (TList t)    = TList (fmap go t)
+    go (TKind t k)  = TKind (fmap go t) k
+    go t            = t  -- TVar, TNum, TString
+
+    -- Collect a left-spine TApp into head + arg list
+    collectTApp :: Type -> (LType, [LType])
+    collectTApp (TApp f arg) =
+      let (hd, args) = collectTApp (locVal f)
+      in (hd, args ++ [arg])
+    collectTApp t = (noLocate t, [])
+
+    -- Rebuild a TApp from head + arg list
+    rebuildTApp :: LType -> [LType] -> Type
+    rebuildTApp hd [] = locVal hd
+    rebuildTApp hd (a:as) =
+      locVal $ foldl (\acc x -> Located (locSpan acc) (TApp acc x)) (Located (locSpan hd) (TApp hd a)) as
+
+    noLocate :: Type -> LType
+    noLocate t = Located noSpan t
+
+-- | Apply a type variable substitution.
+applyTySubst :: Map Text Type -> Type -> Type
+applyTySubst subst = go
+  where
+    go (TVar (Located sp tv)) =
+      Map.findWithDefault (TVar (Located sp tv)) (identText (tvName tv)) subst
+    go (TCon qi)      = TCon qi
+    go (TApp f arg)   = TApp (fmap go f) (fmap go arg)
+    go (TArrow a b)   = TArrow (fmap go a) (fmap go b)
+    go (TTuple ts)    = TTuple (map (fmap go) ts)
+    go (TList t)      = TList (fmap go t)
+    go (TKind t k)    = TKind (fmap go t) k
+    go t              = t
+
+-- | Extract the unqualified name from a QualIdent.
+qualIdentSimpleName :: QualIdent -> Text
+qualIdentSimpleName (QualIdent _ ident) = identText ident
+
 -- | Format a qualified type for display.
 -- This is a simple implementation since prettyQualType isn't exported.
 formatQualType :: QualType -> Text
@@ -60,6 +133,12 @@ formatQualType qt = case qtPreds qt of
     formatQualIdent (QualIdent mMod ident) = case mMod of
       Just (ModuleId m) -> m <> "." <> identText ident
       Nothing -> identText ident
+
+-- | Like 'formatQualType' but expands typedef aliases in the type.
+formatQualTypeExpanded :: AliasMap -> QualType -> Text
+formatQualTypeExpanded aliases qt =
+  let qt' = qt { qtType = fmap (expandType aliases) (qtType qt) }
+  in formatQualType qt'
 
 -- | Symbol kinds matching Bluespec constructs.
 data SymbolKind
@@ -329,7 +408,8 @@ resolvePreludeFromLibDir baseDir = do
 data BuildState = BuildState
   { bsSymbols :: ![Symbol],
     bsImports :: ![ImportInfo],
-    bsParent :: !(Maybe Text)
+    bsParent  :: !(Maybe Text),
+    bsAliases :: !AliasMap
   }
 
 type Builder a = State BuildState a
@@ -344,15 +424,23 @@ buildSymbolTable pkg =
       stPackageName = Just $ unModuleId $ locVal $ pkgName pkg
     }
   where
-    initialState = BuildState [] [] Nothing
-    finalState = execState (collectPackage pkg) initialState
-    symbols = bsSymbols finalState
+    -- Pre-collect type aliases so symbol types can be expanded
+    aliases      = collectAliases (pkgDefns pkg)
+    initialState = BuildState [] [] Nothing aliases
+    finalState   = execState (collectPackage pkg) initialState
+    symbols      = bsSymbols finalState
 
 -- | Build map from names to symbols.
 buildDefMap :: [Symbol] -> Map Text [Symbol]
 buildDefMap = foldr insertSym Map.empty
   where
     insertSym sym = Map.insertWith (++) (symName sym) [sym]
+
+-- | Format a QualType using the current alias map from build state.
+fmtQT :: QualType -> Builder Text
+fmtQT qt = do
+  aliases <- gets bsAliases
+  pure $ formatQualTypeExpanded aliases qt
 
 -- | Add a symbol to the builder state.
 addSymbol :: Symbol -> Builder ()
@@ -407,7 +495,7 @@ collectDefinition :: LDefinition -> Builder ()
 collectDefinition (Located span def) = case def of
   DefValue name mTy clauses -> do
     let nameText = identText $ locVal name
-        typeText = fmap (formatQualType . locVal) mTy
+    typeText <- traverse (fmtQT . locVal) mTy
     addSymbol
       Symbol
         { symName = nameText,
@@ -420,12 +508,13 @@ collectDefinition (Located span def) = case def of
     -- Collect parameters from clauses
     withParent nameText $ mapM_ collectClause clauses
   DefTypeSig name ty -> do
+    typeText <- fmtQT (locVal ty)
     addSymbol
       Symbol
         { symName = identText $ locVal name,
           symKind = SKFunction,
           symSpan = locSpan name,
-          symType = Just $ formatQualType $ locVal ty,
+          symType = Just typeText,
           symDoc = Nothing,
           symParent = Nothing
         }
@@ -488,22 +577,24 @@ collectDefinition (Located span def) = case def of
     let clsNameText = identText $ qualIdent $ locVal clsName
     withParent clsNameText $ mapM_ collectInstanceMember members
   DefPrimitive name ty -> do
+    typeText <- fmtQT (locVal ty)
     addSymbol
       Symbol
         { symName = identText $ locVal name,
           symKind = SKFunction,
           symSpan = locSpan name,
-          symType = Just $ formatQualType $ locVal ty,
+          symType = Just typeText,
           symDoc = Nothing,
           symParent = Nothing
         }
   DefForeign name ty _ext -> do
+    typeText <- fmtQT (locVal ty)
     addSymbol
       Symbol
         { symName = identText $ locVal name,
           symKind = SKFunction,
           symSpan = locSpan name,
-          symType = Just $ formatQualType $ locVal ty,
+          symType = Just typeText,
           symDoc = Nothing,
           symParent = Nothing
         }
@@ -690,13 +781,14 @@ collectConstructor (Located _ Constructor {..}) = do
 -- | Collect interface/record field.
 collectField :: Located Field -> Builder ()
 collectField (Located _ Field {..}) = do
-  parent <- gets bsParent
+  parent   <- gets bsParent
+  typeText <- fmtQT (locVal fieldType)
   addSymbol
     Symbol
       { symName = identText $ locVal fieldName,
         symKind = SKField,
         symSpan = locSpan fieldName,
-        symType = Just $ formatQualType $ locVal fieldType,
+        symType = Just typeText,
         symDoc = Nothing,
         symParent = parent
       }
@@ -705,13 +797,14 @@ collectField (Located _ Field {..}) = do
 collectClassMember :: ClassMember -> Builder ()
 collectClassMember member = case member of
   ClassMethod name ty _ -> do
-    parent <- gets bsParent
+    parent   <- gets bsParent
+    typeText <- fmtQT (locVal ty)
     addSymbol
       Symbol
         { symName = identText $ locVal name,
           symKind = SKFunction,
           symSpan = locSpan name,
-          symType = Just $ formatQualType $ locVal ty,
+          symType = Just typeText,
           symDoc = Nothing,
           symParent = parent
         }
@@ -744,13 +837,14 @@ collectInstanceMember (InstanceMethod name clauses) = do
       }
   withParent (identText $ locVal name) $ mapM_ collectClause clauses
 collectInstanceMember (InstanceTypeSig name ty) = do
-  parent <- gets bsParent
+  parent   <- gets bsParent
+  typeText <- fmtQT (locVal ty)
   addSymbol
     Symbol
       { symName = identText $ locVal name,
         symKind = SKFunction,
         symSpan = locSpan name,
-        symType = Just $ formatQualType $ locVal ty,
+        symType = Just typeText,
         symDoc = Nothing,
         symParent = parent
       }
@@ -759,18 +853,20 @@ collectInstanceMember (InstanceTypeSig name ty) = do
 collectLetItem :: LetItem -> Builder ()
 collectLetItem item = case item of
   LetTypeSig name ty -> do
-    parent <- gets bsParent
+    parent   <- gets bsParent
+    typeText <- fmtQT (locVal ty)
     addSymbol
       Symbol
         { symName = identText $ locVal name,
           symKind = SKVariable,
           symSpan = locSpan name,
-          symType = Just $ formatQualType $ locVal ty,
+          symType = Just typeText,
           symDoc = Nothing,
           symParent = parent
         }
   LetBind Binding {..} -> do
-    parent <- gets bsParent
+    parent   <- gets bsParent
+    typeText <- traverse (fmtQT . locVal) bindType
     -- Get name and span from pattern (if it's a simple variable)
     case getPatternNameAndSpan bindPat of
       Just (name, nameSpan) -> do
@@ -779,7 +875,7 @@ collectLetItem item = case item of
             { symName = name,
               symKind = SKVariable,
               symSpan = nameSpan, -- Use the name's span, not the whole binding span
-              symType = fmap (formatQualType . locVal) bindType,
+              symType = typeText,
               symDoc = Nothing,
               symParent = parent
             }
