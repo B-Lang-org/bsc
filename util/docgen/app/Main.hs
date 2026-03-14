@@ -1,6 +1,7 @@
 -- | @bs-docgen@ — documentation generator for Bluespec source files.
 module Main (main) where
 
+import Data.Text qualified as T
 import Options.Applicative
 
 import Language.Bluespec.DocGen.Generate (DocGenConfig (..), runDocGen)
@@ -21,6 +22,8 @@ optsParser = DocGenConfig
   <*> optional (strOption (long "stdlib-url" <> metavar "URL"
         <> help "External URL for stdlib cross-links (e.g. https://bsc-docs.example.com/stdlib/)"))
   <*> switch (long "verbose" <> short 'v' <> help "Verbose output")
+  <*> optional (T.pack <$> strOption (long "bsc-sha" <> metavar "SHA"
+        <> help "BSC git commit SHA to display in page footers (auto-detected when omitted)"))
 
 -- ---------------------------------------------------------------------------
 -- Main

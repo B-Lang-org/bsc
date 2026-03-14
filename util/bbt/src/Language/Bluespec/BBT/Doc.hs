@@ -28,5 +28,6 @@ runDoc cfg opts = do
         , dgcRefManual = Nothing   -- user projects have no LaTeX manual
         , dgcStdlibUrl = Nothing   -- TODO: expose via bbt.toml or --stdlib-url flag
         , dgcVerbose   = doVerbose opts
+        , dgcBscSha    = Nothing   -- user projects: no BSC SHA in footer
         }
   runDocGen dgcfg

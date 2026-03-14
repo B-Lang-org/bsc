@@ -31,7 +31,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
-import Language.Bluespec.DocGen.HTML (renderDocBlocks)
+import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter)
 import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex)
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
@@ -42,9 +42,10 @@ import Language.Bluespec.DocGen.TexParser
 
 -- | Configuration for reference manual conversion.
 data RefManualConfig = RefManualConfig
-  { rmcTexFile  :: !FilePath   -- ^ path to BH_lang.tex
-  , rmcOutDir   :: !FilePath   -- ^ output directory (files go into rmcOutDir/reference/)
+  { rmcTexFile  :: !FilePath       -- ^ path to BH_lang.tex
+  , rmcOutDir   :: !FilePath       -- ^ output directory (files go into rmcOutDir/reference/)
   , rmcVerbose  :: !Bool
+  , rmcBscSha   :: !(Maybe Text)   -- ^ BSC commit SHA for footer
   } deriving stock (Show)
 
 -- | Sensible defaults.
@@ -53,6 +54,7 @@ defaultRefManualConfig = RefManualConfig
   { rmcTexFile = "BH_lang.tex"
   , rmcOutDir  = "docs"
   , rmcVerbose = False
+  , rmcBscSha  = Nothing
   }
 
 -- ---------------------------------------------------------------------------
@@ -88,9 +90,10 @@ convertRefManual cfg idx = do
   let refDir = rmcOutDir cfg </> "reference"
   createDirectoryIfMissing True refDir
 
-  mapM_ (writeSection refDir idx) sections
-  writeTocPage refDir sections
-  writeTermIndex refDir sections indexEntries
+  let mSha = rmcBscSha cfg
+  mapM_ (writeSection refDir idx mSha) sections
+  writeTocPage refDir sections mSha
+  writeTermIndex refDir sections indexEntries mSha
 
   when' (rmcVerbose cfg) $ do
     putStrLn $ "[docgen] Reference manual: " ++ show (length sections) ++ " sections"
@@ -267,14 +270,14 @@ slugify = T.map slugChar . T.strip . T.toLower
 -- ---------------------------------------------------------------------------
 
 -- | Write a single section as an HTML file.
-writeSection :: FilePath -> SymbolIndex -> Section -> IO ()
-writeSection outDir idx sec = do
+writeSection :: FilePath -> SymbolIndex -> Maybe Text -> Section -> IO ()
+writeSection outDir idx mSha sec = do
   let path = outDir </> T.unpack (secSlug sec) ++ ".html"
-  TLIO.writeFile path (renderHtml (sectionPage sec idx))
+  TLIO.writeFile path (renderHtml (sectionPage sec idx mSha))
 
 -- | Render a section page.
-sectionPage :: Section -> SymbolIndex -> Html
-sectionPage sec idx = H.docTypeHtml $ do
+sectionPage :: Section -> SymbolIndex -> Maybe Text -> Html
+sectionPage sec idx mSha = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.title (H.toHtml (secTitle sec <> " — BH Reference"))
@@ -284,21 +287,22 @@ sectionPage sec idx = H.docTypeHtml $ do
       H.a ! A.href "index.html" $ "Reference Manual"
     H.main $
       renderDocBlocks idx (secBlocks sec)
+    docFooter mSha
 
 -- | Write the table-of-contents index page.
-writeTocPage :: FilePath -> [Section] -> IO ()
-writeTocPage outDir sections = do
+writeTocPage :: FilePath -> [Section] -> Maybe Text -> IO ()
+writeTocPage outDir sections mSha = do
   let path = outDir </> "index.html"
-  TLIO.writeFile path (renderHtml (tocPage sections))
+  TLIO.writeFile path (renderHtml (tocPage sections mSha))
 
 -- | Render the table-of-contents page.
-tocPage :: [Section] -> Html
-tocPage sections = H.docTypeHtml $ do
+tocPage :: [Section] -> Maybe Text -> Html
+tocPage sections mSha = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.title "BH Language Reference"
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
-  H.body $
+  H.body $ do
     H.main $ do
       H.h1 "BH Language Reference"
       H.p "Reference manual for the Bluespec Classic (BH) hardware description language."
@@ -306,25 +310,26 @@ tocPage sections = H.docTypeHtml $ do
       H.p $ do
         H.a ! A.href "term-index.html" $ "Term Index"
         " — alphabetical index of language terms"
+    docFooter mSha
   where
     tocEntry sec =
       H.li $ H.a ! A.href (H.toValue (secSlug sec <> ".html")) $
         H.toHtml (secTitle sec)
 
 -- | Write the back-of-book term index page.
-writeTermIndex :: FilePath -> [Section] -> [IndexEntry] -> IO ()
-writeTermIndex outDir sections entries = do
+writeTermIndex :: FilePath -> [Section] -> [IndexEntry] -> Maybe Text -> IO ()
+writeTermIndex outDir sections entries mSha = do
   let path = outDir </> "term-index.html"
-  TLIO.writeFile path (renderHtml (termIndexPage sections entries))
+  TLIO.writeFile path (renderHtml (termIndexPage sections entries mSha))
 
 -- | Render the alphabetical term index page.
-termIndexPage :: [Section] -> [IndexEntry] -> Html
-termIndexPage sections entries = H.docTypeHtml $ do
+termIndexPage :: [Section] -> [IndexEntry] -> Maybe Text -> Html
+termIndexPage sections entries mSha = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.title "Term Index — BH Reference"
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
-  H.body $
+  H.body $ do
     H.main $ do
       H.nav ! A.class_ "breadcrumb" $
         H.a ! A.href "index.html" $ "Reference Manual"
@@ -332,6 +337,7 @@ termIndexPage sections entries = H.docTypeHtml $ do
       if null entries
         then H.p "(No index entries found.)"
         else renderAlphaGroups sections entries
+    docFooter mSha
 
 -- | Render entries grouped by first letter.
 renderAlphaGroups :: [Section] -> [IndexEntry] -> Html

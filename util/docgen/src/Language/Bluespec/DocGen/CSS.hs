@@ -106,4 +106,15 @@ stylesheet = "\
 \.cm { color: var(--cm-color); font-style: italic; }\n\
 \.st { color: var(--st-color); }\n\
 \.id { color: var(--fg); }\n\
+\\n\
+\/* Footer */\n\
+\.doc-footer {\n\
+\  margin-top: 3rem;\n\
+\  padding: 1rem 0;\n\
+\  border-top: 1px solid var(--border);\n\
+\  color: var(--cm-color);\n\
+\  font-size: 0.85rem;\n\
+\  text-align: center;\n\
+\}\n\
+\.doc-footer a { color: var(--cm-color); }\n\
 \"

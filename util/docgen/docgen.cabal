@@ -42,6 +42,7 @@ library
       , text            >= 2.0
       , aeson           >= 2.1
       , bytestring      >= 0.11
+      , process         >= 1.6
     hs-source-dirs:   src
     default-language: GHC2021
     default-extensions:
@@ -59,6 +60,7 @@ executable bs-docgen
         base                 >= 4.17 && < 5
       , bs-docgen
       , optparse-applicative >= 0.18
+      , text                 >= 2.0
     hs-source-dirs:   app
     default-language: GHC2021
     default-extensions:
