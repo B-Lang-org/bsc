@@ -232,8 +232,11 @@ processLayout tokens = go (LayoutState [] False False False Nothing False) token
               -- interface/struct followed by ConId: layout after the ConId
               t : go st { lsAfterExprKeyword = True, lsInDefinitionHeader = False, lsPrevToken = Just t } rest
             (next:_) | TokPunct PunctLParen <- tokKind next ->
-              -- interface/struct followed by ( : kind annotation, definition header
-              t : go st { lsInDefinitionHeader = True, lsAfterLayout = False, lsAfterExprKeyword = False, lsPrevToken = Just t } rest
+              -- interface/struct followed by (: this is a tuple interface expression (interface (e1,e2))
+              -- or a kind-annotated definition header (interface (Foo :: Kind) ...).
+              -- In EITHER case, emit as-is without layout intervention — the parser handles both.
+              -- Do NOT set lsInDefinitionHeader (that would corrupt state for subsequent definitions).
+              t : go st { lsInDefinitionHeader = False, lsAfterLayout = False, lsAfterExprKeyword = False, lsPrevToken = Just t } rest
             _ ->
               -- interface/struct NOT followed by ConId or (: layout immediately
               t : go st { lsAfterLayout = True, lsInDefinitionHeader = False, lsAfterExprKeyword = False, lsPrevToken = Just t } rest
@@ -258,12 +261,19 @@ processLayout tokens = go (LayoutState [] False False False Nothing False) token
       -- 'in' keyword closes implicit layout contexts (for let/letseq blocks)
       -- Only close if 'in' is on the SAME line as previous token (no indentation check happened)
       -- If 'in' is on a new line, the indentation check already closed the necessary contexts
+      -- If the previous token was an explicit '}', the let used explicit braces and we should
+      -- NOT close any implicit context (the explicit '}' already closed it).
       | TokKeyword KwIn <- tokKind t =
           if lsFromNewLine st
           then -- Token came from a new line: indentation already handled, just emit 'in'
             t : go st { lsPrevToken = Just t } rest
-          else -- Same line: close one implicit context
-            closeForIn st t rest
+          else case lsPrevToken st of
+            Just prev | TokPunct PunctRBrace <- tokKind prev ->
+              -- Previous was explicit '}': let used explicit braces, don't close any context
+              t : go st { lsPrevToken = Just t } rest
+            _ ->
+              -- Same line, no preceding '}': close one implicit context
+              closeForIn st t rest
 
       -- Regular token
       | otherwise =

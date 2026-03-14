@@ -233,10 +233,12 @@ sc = L.space space1 lineComment blockComment
     skipBlockCommentNested :: Int -> Lexer ()
     skipBlockCommentNested 0 = pure ()
     skipBlockCommentNested n = do
-      _ <- takeWhileP Nothing (\c -> c /= '{' && c /= '-')
+      _ <- takeWhileP Nothing (\c -> c /= '{' && c /= '-' && c /= '#')
       choice
-        [ try (string "-}") >> skipBlockCommentNested (n - 1)
-        , try (string "{-" <* notFollowedBy (char '#')) >> skipBlockCommentNested (n + 1)
+        [ try (string "#-}") >> skipBlockCommentNested (n - 1)  -- pragma end closes nesting
+        , try (string "-}") >> skipBlockCommentNested (n - 1)   -- block comment end
+        , try (string "{-#") >> skipBlockCommentNested (n + 1)  -- pragma start opens nesting
+        , try (string "{-") >> skipBlockCommentNested (n + 1)   -- nested block comment
         , anySingle >> skipBlockCommentNested n
         ]
 
