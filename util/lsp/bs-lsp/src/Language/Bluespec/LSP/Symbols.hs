@@ -10,8 +10,8 @@ import Data.Text (Text)
 import Language.LSP.Protocol.Types hiding (SymbolKind)
 import qualified Language.LSP.Protocol.Types as LSP
 
-import Language.Bluespec.Position (SrcSpan(..), Pos(..))
 import Language.Bluespec.LSP.SymbolTable
+import Language.Bluespec.LSP.Util (spanToRange)
 
 -- | Get document symbols for outline view (hierarchical).
 getDocumentSymbols :: SymbolTable -> [DocumentSymbol]
@@ -93,15 +93,3 @@ symKindToLspKind SKTypeVar     = LSP.SymbolKind_TypeParameter
 symKindToLspKind SKVariable    = LSP.SymbolKind_Variable
 symKindToLspKind SKParameter   = LSP.SymbolKind_Variable
 
--- | Convert SrcSpan to LSP Range.
-spanToRange :: SrcSpan -> Range
-spanToRange SrcSpan{..} = Range
-  { _start = Position
-      { _line = fromIntegral (posLine spanBegin - 1)
-      , _character = fromIntegral (posColumn spanBegin - 1)
-      }
-  , _end = Position
-      { _line = fromIntegral (posLine spanFinal - 1)
-      , _character = fromIntegral (posColumn spanFinal - 1)
-      }
-  }

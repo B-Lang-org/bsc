@@ -14,6 +14,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Language.Bluespec.LSP.State (ModuleInfo (..), ServerState (..), getModuleSymbols, getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
+import Language.Bluespec.LSP.Util (spanToRange, positionToPos)
 import Language.Bluespec.Position (Pos (..), SrcSpan (..))
 import Language.Bluespec.Syntax (ModuleId (..))
 import Language.LSP.Protocol.Types
@@ -252,14 +253,6 @@ findModuleQualifier chars identStart =
       | isIdentChar (cs !! (idx - 1)) = findStart cs (idx - 1)
       | otherwise = idx
 
--- | Convert LSP Position (0-indexed) to Bluespec Pos (1-indexed).
-positionToPos :: Position -> Pos
-positionToPos (Position line col) =
-  Pos
-    { posLine = fromIntegral line + 1,
-      posColumn = fromIntegral col + 1
-    }
-
 -- | Convert a symbol to a location.
 symbolToLocation :: Symbol -> Location
 symbolToLocation sym =
@@ -274,18 +267,3 @@ symbolToLocation sym =
 spanToUri :: SrcSpan -> Uri
 spanToUri SrcSpan {..} = Uri $ "file://" <> spanFile
 
--- | Convert SrcSpan to LSP Range.
-spanToRange :: SrcSpan -> Range
-spanToRange SrcSpan {..} =
-  Range
-    { _start =
-        Position
-          { _line = fromIntegral (posLine spanBegin - 1),
-            _character = fromIntegral (posColumn spanBegin - 1)
-          },
-      _end =
-        Position
-          { _line = fromIntegral (posLine spanFinal - 1),
-            _character = fromIntegral (posColumn spanFinal - 1)
-          }
-    }

@@ -9,21 +9,15 @@ import qualified Data.Text as T
 
 import Language.LSP.Protocol.Types hiding (SymbolKind)
 
-import Language.Bluespec.Position (SrcSpan(..), Pos(..))
+import Language.Bluespec.Position ()
 import Language.Bluespec.LSP.SymbolTable
+import Language.Bluespec.LSP.Util (spanToRange, positionToPos)
 
 -- | Get hover information for a symbol at a position.
 getHoverInfo :: SymbolTable -> Position -> Maybe Hover
 getHoverInfo st pos = do
   sym <- lookupAtPosition st (positionToPos pos)
   pure $ symbolToHover sym
-
--- | Convert LSP Position (0-indexed) to Bluespec Pos (1-indexed).
-positionToPos :: Position -> Pos
-positionToPos (Position line col) = Pos
-  { posLine = fromIntegral line + 1
-  , posColumn = fromIntegral col + 1
-  }
 
 -- | Convert a symbol to hover information.
 symbolToHover :: Symbol -> Hover
@@ -54,15 +48,3 @@ kindLabel SKTypeVar = "type variable"
 kindLabel SKVariable = "variable"
 kindLabel SKParameter = "parameter"
 
--- | Convert SrcSpan to LSP Range.
-spanToRange :: SrcSpan -> Range
-spanToRange SrcSpan{..} = Range
-  { _start = Position
-      { _line = fromIntegral (posLine spanBegin - 1)
-      , _character = fromIntegral (posColumn spanBegin - 1)
-      }
-  , _end = Position
-      { _line = fromIntegral (posLine spanFinal - 1)
-      , _character = fromIntegral (posColumn spanFinal - 1)
-      }
-  }
