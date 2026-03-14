@@ -2,8 +2,11 @@
 module Language.Bluespec.LSP.Diagnostics
   ( makeDiagnostics
   , parseErrorToDiagnostic
+  , makeImportDiagnostics
   ) where
 
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.List.NonEmpty (NonEmpty(..))
@@ -17,8 +20,9 @@ import Language.LSP.Protocol.Types
 
 import qualified Language.Bluespec.Parser as Parser
 import Language.Bluespec.Position (SrcSpan(..), Pos(..))
-import Language.Bluespec.Syntax (Package)
+import Language.Bluespec.Syntax (Package, ModuleId(..), unModuleId)
 import qualified Language.Bluespec.Lexer as Lex
+import Language.Bluespec.LSP.SymbolTable (ImportInfo(..), SymbolTable(..))
 
 -- | Convert parse result to LSP diagnostics.
 makeDiagnostics :: Either Parser.ParseError Package -> [Diagnostic]
@@ -134,3 +138,54 @@ formatToken tok = case Lex.tokKind tok of
   Lex.TokPragmaStart -> "'{-#'"
   Lex.TokPragmaEnd -> "'#-}'"
   Lex.TokPragmaContent _ -> "pragma content"
+
+-- | Generate import-resolution diagnostics.
+-- Warns when an imported module is not found in the module index.
+-- Only emits warnings (not errors) to stay conservative about false positives:
+-- a module may exist but not yet be indexed in this session.
+makeImportDiagnostics :: Map Text a -> SymbolTable -> [Diagnostic]
+makeImportDiagnostics moduleIndex st =
+  [ importNotFoundDiag imp
+  | imp <- stImports st
+  , let ModuleId modName = iiModule imp
+  , modName `Map.notMember` moduleIndex
+  -- Don't warn about standard prelude-like imports that are always available
+  , modName `notElem` knownPreludeModules
+  ]
+
+-- | Build a diagnostic for an unresolved import.
+importNotFoundDiag :: ImportInfo -> Diagnostic
+importNotFoundDiag imp = Diagnostic
+  { _range = spanToRange (iiSpan imp)
+  , _severity = Just DiagnosticSeverity_Warning
+  , _code = Nothing
+  , _codeDescription = Nothing
+  , _source = Just "bluespec"
+  , _message = "Module '" <> unModuleId (iiModule imp) <> "' not found in workspace or standard library"
+  , _tags = Nothing
+  , _relatedInformation = Nothing
+  , _data_ = Nothing
+  }
+
+-- | Convert SrcSpan to LSP Range.
+spanToRange :: SrcSpan -> Range
+spanToRange (SrcSpan _ begin end_) = Range
+  { _start = Position (fromIntegral (posLine begin - 1)) (fromIntegral (posColumn begin - 1))
+  , _end   = Position (fromIntegral (posLine end_ - 1)) (fromIntegral (posColumn end_))
+  }
+
+-- | Well-known module names that are always available without indexing.
+-- These are modules from the BSC standard library that every package imports.
+knownPreludeModules :: [Text]
+knownPreludeModules =
+  [ "Prelude", "PreludeBSV", "BuildList", "BuildVector"
+  , "Assert", "DefaultValue", "Printf"
+  , "FIFO", "FIFOF", "SpecialFIFOs", "AlignedFIFOs"
+  , "Reg", "RegFile", "ConfigReg"
+  , "Vector", "List", "ListN", "OVL"
+  , "Connectable", "ClientServer", "GetPut"
+  , "Clocks", "SyncFIFO", "Gearbox"
+  , "Real", "Integer", "Bit", "Bool", "String", "Char"
+  , "Int", "UInt", "Maybe", "Either", "Tuple"
+  , "StmtFSM", "ActionValue", "Action"
+  ]

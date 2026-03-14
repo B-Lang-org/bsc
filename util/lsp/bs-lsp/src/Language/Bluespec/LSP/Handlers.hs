@@ -110,8 +110,11 @@ handleDocumentOpen stateVar docUri docText docVersion = do
   -- Update module index
   liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
 
-  -- Publish diagnostics
-  let diagnostics = makeDiagnostics (maybe (Right pkg) Left merrs)
+  -- Publish diagnostics (parse errors + import warnings)
+  state' <- liftIO $ readTVarIO stateVar
+  let parseDiags = makeDiagnostics (maybe (Right pkg) Left merrs)
+      importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
+      diagnostics = parseDiags ++ importDiags
   sendDiagnostics docUri docVersion diagnostics
 
 -- | Handle document change - re-parse and publish diagnostics.
@@ -151,8 +154,11 @@ handleDocumentChange stateVar docUri changes = do
   -- Update module index
   liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
 
-  -- Publish diagnostics
-  let diagnostics = makeDiagnostics (maybe (Right pkg) Left merrs)
+  -- Publish diagnostics (parse errors + import warnings)
+  state' <- liftIO $ readTVarIO stateVar
+  let parseDiags = makeDiagnostics (maybe (Right pkg) Left merrs)
+      importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
+      diagnostics = parseDiags ++ importDiags
   sendDiagnostics docUri newVersion diagnostics
 
 -- | Handle document close - remove from state.

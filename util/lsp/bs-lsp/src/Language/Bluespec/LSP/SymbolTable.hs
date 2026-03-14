@@ -197,7 +197,9 @@ data ImportInfo = ImportInfo
     -- | Is it qualified?
     iiQualified :: !Bool,
     -- | Import alias
-    iiAlias :: !(Maybe ModuleId)
+    iiAlias :: !(Maybe ModuleId),
+    -- | Source span of the import statement
+    iiSpan :: !SrcSpan
   }
   deriving stock (Show)
 
@@ -493,12 +495,13 @@ collectPackage Package {..} = do
 
 -- | Collect import information.
 collectImport :: Located Import -> Builder ()
-collectImport (Located _ Import {..}) =
+collectImport (Located spn Import {..}) =
   addImport
     ImportInfo
       { iiModule = importModule,
         iiQualified = importQualified,
-        iiAlias = importAs
+        iiAlias = importAs,
+        iiSpan = spn
       }
 
 -- | Collect symbols from a definition.
