@@ -78,6 +78,10 @@ rbrace = tok Lex.TokVRBrace <|> tok (Lex.TokPunct Lex.PunctRBrace)
 semi :: Parser Lex.Token
 semi = tok Lex.TokVSemi <|> tok (Lex.TokPunct Lex.PunctSemi)
 
+-- | Match one or more consecutive semicolons (handles ;; in explicit blocks).
+semis :: Parser ()
+semis = void (some semi)
+
 -- | Match the pipe symbol |.
 -- In Bluespec, | is a regular operator (bitwise OR), not reserved punctuation.
 -- The parser handles it contextually for guards, data constructors, and fundeps.
@@ -281,7 +285,7 @@ spanning a b c = Located (mergeSpans (locSpan a) (locSpan b)) c
 block :: Parser a -> Parser [a]
 block p = do
   void lbrace
-  xs <- p `sepEndBy` semi
+  xs <- p `sepEndBy` semis
   void rbrace
   pure xs
 
@@ -289,7 +293,7 @@ block p = do
 block1 :: Parser a -> Parser [a]
 block1 p = do
   void lbrace
-  xs <- p `sepEndBy1` semi
+  xs <- p `sepEndBy1` semis
   void rbrace
   pure xs
 
@@ -381,7 +385,7 @@ pExport = withSpan $ choice
 -- | Parse package body (imports, fixities, definitions).
 pPackageBody :: Parser ([Located Import], [Located FixityDecl], [LDefinition])
 pPackageBody = do
-  items <- pPackageItem `sepEndBy` semi
+  items <- pPackageItem `sepEndBy` semis
   let imports = [Located s i | (s, Left i) <- items]
       fixDecls = [Located s f | (s, Right (Left f)) <- items]
       defns = [Located s d | (s, Right (Right d)) <- items]
@@ -617,7 +621,7 @@ pConstructor = withSpan $ do
   -- Check for record syntax
   mFields <- optional $ do
     void lbrace
-    fs <- pField `sepEndBy` semi
+    fs <- pField `sepEndBy` semis
     void rbrace
     pure fs
   case mFields of
@@ -643,7 +647,7 @@ pInterfaceDef = do
   tvars <- many pTyVar
   void $ punct Lex.PunctEqual
   void lbrace
-  fields <- pField `sepEndBy` semi
+  fields <- pField `sepEndBy` semis
   void rbrace
   derivs <- pDerivings
   pure $ DefInterface name tvars (map (fmap id) fields) derivs
@@ -986,9 +990,16 @@ pForeignDef = do
   pure $ DefForeign name ty foreignStr
 
 -- | Parse a value definition (function or constant).
--- Also handles operator definitions like (^^) :: Bool -> Bool -> Bool
+-- Handles three forms:
+--   1. name :: type (type signature only)
+--   2. name pats [guards] = expr (standard function/value definition)
+--   3. lhsPat op rhsPat [guards] = expr (infix operator definition)
 pValueDef :: Parser Definition
-pValueDef = do
+pValueDef = try pInfixValueDef <|> pPrefixValueDef
+
+-- | Parse a standard (prefix-style) value definition.
+pPrefixValueDef :: Parser Definition
+pPrefixValueDef = do
   name <- varIdOrOp
   -- Check for type signature
   mTy <- optional $ try $ do
@@ -996,7 +1007,7 @@ pValueDef = do
     withSpan pQualType
   -- Check for clauses
   clauses <- case mTy of
-    Just ty -> do
+    Just _ty -> do
       -- After type sig, may have clauses
       mClauses <- optional $ many pClause
       pure $ fromMaybe [] mClauses
@@ -1005,11 +1016,46 @@ pValueDef = do
       (:[]) <$> pClause
   pure $ DefValue name mTy clauses
 
+-- | Parse an infix operator value definition.
+-- Syntax: lhsPat op rhsPat [guards] = expr
+-- E.g.: _ + x = _ defines (+) in infix style.
+pInfixValueDef :: Parser Definition
+pInfixValueDef = do
+  start <- getPos
+  lhs <- pAtomicPattern
+  op <- infixOp
+  rhs <- pAtomicPattern
+  guard <- optional pGuard
+  void $ punct Lex.PunctEqual
+  body <- pExpr
+  whereBinds <- pWhere
+  end <- getPos
+  let clause = Clause
+        { clauseSpan = mergeSpans start end
+        , clausePats = [lhs, rhs]
+        , clauseGuard = guard
+        , clauseBody = body
+        , clauseWhere = whereBinds
+        }
+  pure $ DefValue op Nothing [clause]
+
 -- | Parse a function clause.
 pClause :: Parser Clause
 pClause = do
   start <- getPos
-  pats <- many pAtomicPattern
+  -- Parse patterns.  For infix operator definitions like `_ + x = ...`,
+  -- we parse the left-hand pattern, consume the infix operator, then the
+  -- right-hand pattern, discarding the operator (the name was already
+  -- captured in pValueDef).
+  pats <- choice
+    [ try $ do
+        -- Infix operator clause: lhsPat op rhsPat = ...
+        lhs <- pAtomicPattern
+        void infixOp
+        rhs <- pAtomicPattern
+        pure [lhs, rhs]
+    , many pAtomicPattern
+    ]
   guard <- optional pGuard
   void $ punct Lex.PunctEqual
   body <- pExpr
@@ -1237,9 +1283,18 @@ pExpr = do
   e <- pExprOps
   -- Check for type annotation: expr :: type
   mTy <- optional $ punct Lex.PunctDColon *> withSpan pQualType
-  case mTy of
+  e' <- case mTy of
     Nothing -> pure e
     Just ty -> pure $ spanning e ty (ETypeSig e ty)
+  -- Check for expression-level where clause: expr where { bindings }
+  -- This is sugar for let { bindings } in expr (Cletrec in the reference)
+  mWhere <- optional $ try $ do
+    void $ keyword Lex.KwWhere
+    block pDefinition
+  case mWhere of
+    Nothing -> pure e'
+    Just defns ->
+      pure $ Located (locSpan e') (EWhere e' defns)
 
 -- | Parse expression with operators.
 pExprOps :: Parser LExpr
@@ -1386,10 +1441,10 @@ pLetItem = choice
   ]
 
 -- | Parse a standalone type signature in a let block.
--- This matches: varId :: Type (not followed by =)
+-- This matches: varId :: Type or (op) :: Type (not followed by =)
 pLetTypeSig :: Parser LetItem
 pLetTypeSig = do
-  name <- varId
+  name <- varIdOrOp
   void $ punct Lex.PunctDColon
   ty <- withSpan pQualType
   -- Make sure there's no = following (that would be a shortDefn/binding)
@@ -1398,14 +1453,18 @@ pLetTypeSig = do
 
 -- | Parse a binding.
 -- Handles both pattern bindings like @(a, b) = expr@ and function-style
--- bindings like @f x y = expr@.
+-- bindings like @f x y = expr@, and guarded bindings like @f x when guard = expr@.
 pBinding :: Parser Binding
-pBinding = do
+pBinding = try pInfixBinding <|> pPrefixBinding
+
+pPrefixBinding :: Parser Binding
+pPrefixBinding = do
   start <- getPos
   pat <- pPattern
   -- Try to parse additional atomic patterns for function-style bindings
   args <- many pAtomicPattern
-  mTy <- optional $ punct Lex.PunctDColon *> withSpan pQualType
+  mTy <- optional $ try $ punct Lex.PunctDColon *> withSpan pQualType
+  _mGuard <- optional pGuard
   void $ punct Lex.PunctEqual
   e <- pExpr
   end <- getPos
@@ -1414,6 +1473,24 @@ pBinding = do
     , bindPat = pat
     , bindArgs = args
     , bindType = mTy
+    , bindExpr = e
+    }
+
+pInfixBinding :: Parser Binding
+pInfixBinding = do
+  start <- getPos
+  lhs <- pAtomicPattern
+  op <- infixOp
+  rhs <- pAtomicPattern
+  _mGuard <- optional pGuard
+  void $ punct Lex.PunctEqual
+  e <- pExpr
+  end <- getPos
+  pure Binding
+    { bindSpan = mergeSpans start end
+    , bindPat = Located (locSpan op) (PVar op)
+    , bindArgs = [lhs, rhs]
+    , bindType = Nothing
     , bindExpr = e
     }
 
@@ -1453,7 +1530,7 @@ pModuleVerilogBody startTok = do
 
   -- Parse method definitions block: { fieldId [mult] = portSpec ... ; ... }
   void lbrace
-  methods <- pVerilogMethod `sepEndBy` semi
+  methods <- pVerilogMethod `sepEndBy` semis
   void rbrace
 
   -- Parse optional scheduling info: [ ... ]
@@ -1655,11 +1732,36 @@ pRule = withSpan $ do
     e <- pAExpr
     void $ punct Lex.PunctColon
     pure e
-  mCond <- optional $ do
-    guard <- pGuard
-    void $ punct Lex.PunctRuleArrow
-    pure guard
-  body <- pExpr
+  -- Parse rule body: either "when guard ==> expr" or "when guard rules { ... }"
+  -- or just "==> expr" (no guard), or a nested "rules { ... }" with optional guard
+  (mCond, body) <- choice
+    [ -- "when guard rules { ... }" -- nested rules
+      try $ do
+        guard <- pGuard
+        nestedStart <- keyword Lex.KwRules
+        nestedRules <- block pRule
+        nestedEnd <- getPos
+        let nestedExpr = Located (mergeSpans (spanOf nestedStart) nestedEnd) (ERules nestedRules)
+        pure (Just guard, nestedExpr)
+    , -- "when guard ==> expr" -- standard rule with guard
+      do
+        guard <- pGuard
+        void $ punct Lex.PunctRuleArrow
+        expr <- pExpr
+        pure (Just guard, expr)
+    , -- "==> expr" -- rule without guard
+      do
+        void $ punct Lex.PunctRuleArrow
+        expr <- pExpr
+        pure (Nothing, expr)
+    , -- "rules { ... }" -- nested rules without guard
+      do
+        nestedStart <- keyword Lex.KwRules
+        nestedRules <- block pRule
+        nestedEnd <- getPos
+        let nestedExpr = Located (mergeSpans (spanOf nestedStart) nestedEnd) (ERules nestedRules)
+        pure (Nothing, nestedExpr)
+    ]
   end <- getPos
   pure Rule
     { ruleSpan = mergeSpans start end
@@ -1727,7 +1829,8 @@ pInterfaceField = do
   pats <- many pAtomicPattern
   void $ punct Lex.PunctEqual
   e <- pExpr
-  mWhen <- optional $ keyword Lex.KwWhen *> pExpr
+  -- The when-guard can be a simple expression or a pattern guard (pat <- expr)
+  mWhen <- optional pGuard
   end <- getPos
   pure InterfaceField
     { ifSpan = mergeSpans start end
@@ -1767,7 +1870,7 @@ data Suffix
 pSuffix :: Parser Suffix
 pSuffix = choice
   [ SuffixField <$> (punct Lex.PunctDot *> (varId <|> ((\v -> Located (locSpan v) (VarId (identText (locVal v)))) <$> conId)))
-  , SuffixRecordUpd <$> (lbrace *> pFieldBind `sepEndBy` semi <* rbrace)
+  , SuffixRecordUpd <$> (lbrace *> pFieldBind `sepEndBy` semis <* rbrace)
   , try pBitSelect  -- Bit selection: e[hi:lo]
   ]
 
@@ -1859,7 +1962,7 @@ pRecord :: Parser LExpr
 pRecord = do
   con <- qualConId
   void lbrace
-  binds <- pFieldBind `sepEndBy` semi
+  binds <- pFieldBind `sepEndBy` semis
   void rbrace
   pure $ Located (locSpan con) (ERecord con binds)
 
@@ -1942,7 +2045,7 @@ pLPattern = do
     -- Check if this is a record pattern (followed by {)
     mRec <- optional $ do
       void lbrace
-      fields <- pFieldPat `sepBy` pFieldPatSep
+      fields <- pFieldPat `sepEndBy` pFieldPatSep
       void rbrace
       pure fields
     case mRec of
@@ -1958,8 +2061,9 @@ pLPattern = do
 
 -- | Parse separator between field patterns (comma or semicolon).
 -- In record patterns, both commas and semicolons are accepted as separators.
+-- Multiple consecutive semicolons are allowed (e.g., ;;).
 pFieldPatSep :: Parser ()
-pFieldPatSep = void (punct Lex.PunctComma) <|> void semi
+pFieldPatSep = void (punct Lex.PunctComma) <|> semis
 
 -- | Parse an atomic pattern.
 pAtomicPattern :: Parser LPattern
@@ -2002,7 +2106,7 @@ pConPat = do
   c <- qualConId
   mRec <- optional $ do
     void lbrace
-    fields <- pFieldPat `sepBy` punct Lex.PunctComma
+    fields <- pFieldPat `sepEndBy` pFieldPatSep
     void rbrace
     pure fields
   case mRec of

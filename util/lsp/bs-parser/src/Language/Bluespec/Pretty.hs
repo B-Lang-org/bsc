@@ -332,6 +332,11 @@ prettyExpr = \case
     , indent 2 $ vsep $ map prettyLetItem items
     , "in" <+> prettyLExpr body
     ]
+  EWhere e defns -> vsep
+    [ prettyLExpr e
+    , "where"
+    , indent 2 $ vsep $ map prettyDefinition defns
+    ]
   EIf cond thenE elseE ->
     "if" <+> prettyLExpr cond <+> "then" <+> prettyLExpr thenE <+> "else" <+> prettyLExpr elseE
   ECase scrut alts -> vsep
@@ -408,6 +413,7 @@ prettyAtomicExpr e@EInfix{} = parens (prettyExpr e)
 prettyAtomicExpr e@ELam{} = parens (prettyExpr e)
 prettyAtomicExpr e@ELet{} = parens (prettyExpr e)
 prettyAtomicExpr e@ELetSeq{} = parens (prettyExpr e)
+prettyAtomicExpr e@EWhere{} = parens (prettyExpr e)
 prettyAtomicExpr e@EIf{} = parens (prettyExpr e)
 prettyAtomicExpr e@ECase{} = parens (prettyExpr e)
 prettyAtomicExpr e@ETypeSig{} = parens (prettyExpr e)
@@ -480,7 +486,7 @@ prettyInterfaceField f =
   prettyIdent (locVal $ ifName f) <+>
   hsep (map prettyLPattern (ifPats f)) <+>
   "=" <+> prettyLExpr (ifValue f) <>
-  maybe mempty (\w -> " when" <+> prettyLExpr w) (ifWhen f)
+  maybe mempty prettyGuard (ifWhen f)
 
 prettyLiteral :: Literal -> Doc ann
 prettyLiteral = \case

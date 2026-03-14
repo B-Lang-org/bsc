@@ -354,6 +354,7 @@ data Expr
   | ELam ![LPattern] !LExpr                      -- ^ Lambda abstraction
   | ELet ![LetItem] !LExpr                       -- ^ Let expression (parallel)
   | ELetSeq ![LetItem] !LExpr                    -- ^ Letseq expression (sequential)
+  | EWhere !LExpr ![Definition]                  -- ^ Expression with where clause: expr where { defns }
   | EIf !LExpr !LExpr !LExpr                     -- ^ If-then-else
   | ECase !LExpr ![Alt]                          -- ^ Case expression
   | EDo ![LStmt]                                 -- ^ Do notation
@@ -504,7 +505,7 @@ data InterfaceField = InterfaceField
   , ifName    :: !(Located Ident)
   , ifPats    :: ![LPattern]              -- ^ Method parameters
   , ifValue   :: !LExpr
-  , ifWhen    :: !(Maybe LExpr)           -- ^ Optional when-guard (e.g. enq x = f.enq x when f.notFull)
+  , ifWhen    :: !(Maybe Guard)           -- ^ Optional when-guard (e.g. enq x = f.enq x when f.notFull)
   }
   deriving stock (Eq, Show, Generic)
 
