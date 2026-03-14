@@ -505,6 +505,9 @@ prettyRulePragma = \case
   RPFireWhenEnabled -> "{-# ASSERT fire when enabled #-}"
   RPCanScheduleFirst -> "{-# can_schedule_first #-}"
   RPClockCrossingRule -> "{-# clock_crossing_rule #-}"
+  RPAggressiveImplicitConditions -> "{-# aggressive_implicit_conditions #-}"
+  RPNoWarn -> "{-# no_warn #-}"
+  RPHide -> "{-# hide #-}"
   RPDoc t -> "{-#" <+> pretty t <+> "#-}"
 
 prettyInterfaceField :: InterfaceField -> Doc ann

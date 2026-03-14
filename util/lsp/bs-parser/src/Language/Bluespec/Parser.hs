@@ -995,6 +995,7 @@ pPrimitiveDef = do
 
 -- | Parse a foreign import.
 -- Grammar: foreign name :: type = "external_name"
+-- Also supports port mapping: foreign name :: type = "external_name",("port1","port2",...)
 pForeignDef :: Parser Definition
 pForeignDef = do
   void $ keyword Lex.KwForeign
@@ -1004,7 +1005,14 @@ pForeignDef = do
   -- The external name is optional, with an = before the string
   mStr <- optional $ do
     void $ punct Lex.PunctEqual
-    locVal <$> stringLit
+    s <- locVal <$> stringLit
+    -- Optional port mapping: ,("port1","port2",...)
+    void $ optional $ try $ do
+      void $ punct Lex.PunctComma
+      void $ punct Lex.PunctLParen
+      void $ stringLit `sepBy` punct Lex.PunctComma
+      void $ punct Lex.PunctRParen
+    pure s
   let foreignStr = case mStr of
         Just (LitString s) -> Just s
         _ -> Nothing
@@ -1805,6 +1813,9 @@ pRulePragma = do
     , RPFireWhenEnabled <$ varIdNamed "fire_when_enabled"
     , RPCanScheduleFirst <$ varIdNamed "can_schedule_first"
     , RPClockCrossingRule <$ varIdNamed "clock_crossing_rule"
+    , RPAggressiveImplicitConditions <$ varIdNamed "aggressive_implicit_conditions"
+    , RPNoWarn <$ varIdNamed "no_warn"
+    , RPHide <$ varIdNamed "hide"
     -- ASSERT-style pragmas: {-# ASSERT fire when enabled #-}
     --                       {-# ASSERT no implicit conditions #-}
     , do
@@ -1844,9 +1855,34 @@ pInterfaceBody :: Parser [InterfaceField]
 pInterfaceBody = block pInterfaceField <|> pure []
 
 pInterfaceField :: Parser InterfaceField
-pInterfaceField = do
+pInterfaceField = try pInterfaceFieldTypeSig <|> pInterfaceFieldDef
+
+-- | Parse a type signature in an interface body: name :: type
+-- Used in inline interface expressions like:
+--   interface Waiter
+--     wait :: Action
+--     wait = noAction when condition
+pInterfaceFieldTypeSig :: Parser InterfaceField
+pInterfaceFieldTypeSig = do
   start <- getPos
-  name <- varId
+  name <- varIdOrOp
+  void $ punct Lex.PunctDColon
+  ty <- withSpan pQualType
+  end <- getPos
+  -- Return as a field with no value (just a type annotation; ignored at parse level)
+  pure InterfaceField
+    { ifSpan = mergeSpans start end
+    , ifName = name
+    , ifPats = []
+    , ifValue = Located (mergeSpans start end) (EVar (fmap (QualIdent Nothing) name))
+    , ifWhen = Nothing
+    }
+
+-- | Parse a field definition in an interface body: name pats = expr [when ...]
+pInterfaceFieldDef :: Parser InterfaceField
+pInterfaceFieldDef = do
+  start <- getPos
+  name <- varIdOrOp
   pats <- many pAtomicPattern
   void $ punct Lex.PunctEqual
   e <- pExpr
@@ -2093,10 +2129,17 @@ pAtomicPattern = choice
   , pWildPat
   , pLitPat
   , pConPat
+  , try pOpVarPat   -- (op) as var pattern - before pTuplePat!
   , pTuplePat
   , pListPat
   , pParenPat
   ]
+
+-- | Parse a parenthesized operator as a variable pattern: (<=), (+), etc.
+pOpVarPat :: Parser LPattern
+pOpVarPat = do
+  v <- parenOpAsId
+  pure $ Located (locSpan v) (PVar v)
 
 -- | Parse a variable pattern (possibly with as-pattern).
 pVarPat :: Parser LPattern

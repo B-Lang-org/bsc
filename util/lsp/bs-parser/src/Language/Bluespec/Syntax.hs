@@ -537,6 +537,9 @@ data RulePragma
   | RPFireWhenEnabled
   | RPCanScheduleFirst
   | RPClockCrossingRule
+  | RPAggressiveImplicitConditions
+  | RPNoWarn
+  | RPHide
   | RPDoc !Text
   deriving stock (Eq, Show, Generic)
 

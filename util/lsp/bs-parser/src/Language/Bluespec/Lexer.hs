@@ -380,17 +380,24 @@ conId = do
   rest <- takeWhileP Nothing isIdentChar
   let ident = T.cons c rest
   -- Check for qualified name (use lookAhead to check without consuming)
-  mDot <- optional (try (lookAhead (char '.' *> satisfy isIdentStart)))
+  mDot <- optional (try (lookAhead (char '.' *> satisfy (\x -> isIdentStart x || isOpChar x))))
   case mDot of
     Just _ -> do
       void $ char '.'  -- Now consume the dot
-      qIdent <- takeWhile1P Nothing isIdentChar
-      pure $ if isUpper (T.head qIdent)
-        then TokQConId ident qIdent
-        else TokQVarId ident qIdent
+      nextCh <- lookAhead anySingle
+      if isIdentStart nextCh
+        then do
+          qIdent <- takeWhile1P Nothing isIdentChar
+          pure $ if isUpper (T.head qIdent)
+            then TokQConId ident qIdent
+            else TokQVarId ident qIdent
+        else do
+          -- qualified operator: Prelude.+ etc.
+          op <- takeWhile1P Nothing isOpChar
+          pure $ TokQVarSym ident op
     Nothing -> pure $ TokConId ident
   where
-    isUpper c = c >= 'A' && c <= 'Z'
+    isUpper x = x >= 'A' && x <= 'Z'
 
 --------------------------------------------------------------------------------
 -- Operator Lexers
@@ -399,6 +406,7 @@ conId = do
 -- | Characters that can appear in operators.
 isOpChar :: Char -> Bool
 isOpChar c = c `elem` ("!#$%&*+./<=>?@\\^|-~:" :: String) || c == '\x2218'  -- ∘
+          || c == '\x00BB'  -- »
 
 -- | Reserved operators that are punctuation.
 reservedOps :: [(Text, Punctuation)]

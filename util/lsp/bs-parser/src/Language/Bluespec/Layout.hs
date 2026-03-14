@@ -133,6 +133,13 @@ processLayout tokens = go (LayoutState [] False False False Nothing False) token
                     | isExpressionLayoutKeyword (tokKind t) = case rest of
                         (next:_) | isConId (tokKind next) ->
                           newState { lsAfterExprKeyword = True }
+                        (next:nextnext:nextnextnext:_)
+                          | TokPunct PunctLParen <- tokKind next
+                          , isConId (tokKind nextnext)
+                          , TokPunct PunctDColon <- tokKind nextnextnext ->
+                          newState { lsInDefinitionHeader = True }  -- kind-annotated def header
+                        (next:_) | TokPunct PunctLParen <- tokKind next ->
+                          newState  -- tuple interface expression, no layout
                         _ ->
                           newState { lsAfterLayout = True }
                     | isContextualLayoutKeyword (tokKind t) = case rest of
@@ -204,11 +211,14 @@ processLayout tokens = go (LayoutState [] False False False Nothing False) token
       -- If next token is on same line, it's likely a definition with type vars - wait for =
       | lsAfterExprKeyword st, isConId (tokKind t) =
           case rest of
+            (next:_) | TokPunct PunctEqual <- tokKind next ->
+              -- Immediately followed by '=': always a definition header
+              t : go st { lsAfterExprKeyword = False, lsInDefinitionHeader = True, lsPrevToken = Just t } rest
             (next:_) | startsNewLine t next ->
-              -- Next token on new line: expression body, trigger layout
+              -- Next token on new line (and not '='): expression body, trigger layout
               t : go st { lsAfterExprKeyword = False, lsAfterLayout = True, lsPrevToken = Just t } rest
             _ ->
-              -- Next token on same line: definition, wait for =
+              -- Next token on same line: definition with type vars, wait for =
               t : go st { lsAfterExprKeyword = False, lsInDefinitionHeader = True, lsPrevToken = Just t } rest
 
       -- Check for layout-triggering keywords
@@ -231,11 +241,16 @@ processLayout tokens = go (LayoutState [] False False False Nothing False) token
             (next:_) | isConId (tokKind next) ->
               -- interface/struct followed by ConId: layout after the ConId
               t : go st { lsAfterExprKeyword = True, lsInDefinitionHeader = False, lsPrevToken = Just t } rest
+            (next:nextnext:nextnextnext:_)
+              | TokPunct PunctLParen <- tokKind next
+              , isConId (tokKind nextnext)
+              , TokPunct PunctDColon <- tokKind nextnextnext ->
+              -- interface/struct (ConId :: kind): kind-annotated definition header
+              -- Set lsInDefinitionHeader so that the following '=' triggers layout
+              t : go st { lsInDefinitionHeader = True, lsAfterLayout = False, lsAfterExprKeyword = False, lsPrevToken = Just t } rest
             (next:_) | TokPunct PunctLParen <- tokKind next ->
-              -- interface/struct followed by (: this is a tuple interface expression (interface (e1,e2))
-              -- or a kind-annotated definition header (interface (Foo :: Kind) ...).
-              -- In EITHER case, emit as-is without layout intervention — the parser handles both.
-              -- Do NOT set lsInDefinitionHeader (that would corrupt state for subsequent definitions).
+              -- interface/struct followed by ( but NOT (ConId ::): tuple interface expression
+              -- emit as-is without layout intervention — the parser handles it
               t : go st { lsInDefinitionHeader = False, lsAfterLayout = False, lsAfterExprKeyword = False, lsPrevToken = Just t } rest
             _ ->
               -- interface/struct NOT followed by ConId or (: layout immediately

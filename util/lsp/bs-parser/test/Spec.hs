@@ -22,7 +22,12 @@ import Language.Bluespec.Syntax
 
 main :: IO ()
 main = do
-  bsvFiles <- findBsvFiles "/work/bsc/src/Libraries"
+  bsvFiles  <- findFiles ".bsv" "/work/bsc/src/Libraries"
+  bsvFiles2 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bsv_examples"
+  bsvFiles3 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bluesim"
+  bsvFiles4 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.lib"
+  bsFiles   <- findFiles ".bs"  "/work/bsc/src/Libraries"
+  let allBsvFiles = bsvFiles ++ bsvFiles2 ++ bsvFiles3 ++ bsvFiles4
   hspec $ do
     describe "Lexer" $ do
       it "lexes identifiers" $ do
@@ -309,7 +314,10 @@ main = do
           ]) `shouldSucceed` \_ -> pure ()
 
     describe "BSV parser — library corpus" $
-      mapM_ makeBsvCorpusTest bsvFiles
+      mapM_ makeBsvCorpusTest allBsvFiles
+
+    describe "Classic parser — library corpus" $
+      mapM_ makeBsCorpusTest bsFiles
 
     describe "Pretty printer" $ do
       it "round-trips simple package" $ do
@@ -338,9 +346,17 @@ makeBsvCorpusTest fp = it fp $ do
     Left  e -> expectationFailure (errorBundlePretty e)
     Right _ -> pure ()
 
--- | Recursively collect all .bsv files under a directory.
-findBsvFiles :: FilePath -> IO [FilePath]
-findBsvFiles root = do
+-- | Build one test case per .bs corpus file.
+makeBsCorpusTest :: FilePath -> Spec
+makeBsCorpusTest fp = it fp $ do
+  src <- TIO.readFile fp
+  case parsePackage (T.pack fp) src of
+    Left  e -> expectationFailure (show e)
+    Right _ -> pure ()
+
+-- | Recursively collect all files with a given extension under a directory.
+findFiles :: String -> FilePath -> IO [FilePath]
+findFiles ext root = do
   exists <- doesDirectoryExist root
   if not exists
     then pure []
@@ -353,7 +369,7 @@ findBsvFiles root = do
         isDir <- doesDirectoryExist path
         if isDir
           then go path
-          else pure [path | takeExtension e == ".bsv"]
+          else pure [path | takeExtension e == ext]
 
 -- | Check if a token is EOF.
 isEof :: Token -> Bool
