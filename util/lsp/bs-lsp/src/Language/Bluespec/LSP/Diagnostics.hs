@@ -37,27 +37,28 @@ parseErrorBundleToDiagnostics :: Parser.ParseError -> [Diagnostic]
 parseErrorBundleToDiagnostics ParseErrorBundle{..} =
   map (parseErrorToDiagnostic (pstateInput bundlePosState)) (NE.toList bundleErrors)
 
--- | Convert a single parse error to an LSP diagnostic.
-parseErrorToDiagnostic :: Lex.TokenStream -> MP.ParseError Lex.TokenStream Void -> Diagnostic
-parseErrorToDiagnostic posState err = Diagnostic
-  { _range = errorRange
-  , _severity = Just DiagnosticSeverity_Error
+-- | Build a Diagnostic with the common bluespec source and all optional fields empty.
+mkDiag :: Range -> DiagnosticSeverity -> Text -> Diagnostic
+mkDiag range sev msg = Diagnostic
+  { _range = range
+  , _severity = Just sev
   , _code = Nothing
   , _codeDescription = Nothing
   , _source = Just "bluespec"
-  , _message = errorMessage
+  , _message = msg
   , _tags = Nothing
   , _relatedInformation = Nothing
   , _data_ = Nothing
   }
+
+-- | Convert a single parse error to an LSP diagnostic.
+parseErrorToDiagnostic :: Lex.TokenStream -> MP.ParseError Lex.TokenStream Void -> Diagnostic
+parseErrorToDiagnostic posState err =
+  mkDiag errorRange DiagnosticSeverity_Error (formatError err)
   where
-    -- Get error position
     errorRange = case err of
       MP.TrivialError offset _ _ -> offsetToRange posState offset
-      MP.FancyError offset _ -> offsetToRange posState offset
-
-    -- Format error message
-    errorMessage = formatError err
+      MP.FancyError offset _     -> offsetToRange posState offset
 
 -- | Convert offset to LSP Range using token stream info.
 offsetToRange :: Lex.TokenStream -> Int -> Range
@@ -158,17 +159,9 @@ makeImportDiagnostics moduleIndex st =
 
 -- | Build a diagnostic for an unresolved import.
 importNotFoundDiag :: ImportInfo -> Diagnostic
-importNotFoundDiag imp = Diagnostic
-  { _range = spanToRange (iiSpan imp)
-  , _severity = Just DiagnosticSeverity_Warning
-  , _code = Nothing
-  , _codeDescription = Nothing
-  , _source = Just "bluespec"
-  , _message = "Module '" <> unModuleId (iiModule imp) <> "' not found in workspace or standard library"
-  , _tags = Nothing
-  , _relatedInformation = Nothing
-  , _data_ = Nothing
-  }
+importNotFoundDiag imp =
+  mkDiag (spanToRange (iiSpan imp)) DiagnosticSeverity_Warning $
+    "Module '" <> unModuleId (iiModule imp) <> "' not found in workspace or standard library"
 
 -- | Well-known module names that are always available without indexing.
 -- These are modules from the BSC standard library that every package imports.
@@ -233,18 +226,10 @@ makeTypeMismatchDiagnostics tenv pkg =
 
 -- | Build a warning diagnostic for a declared/inferred type mismatch.
 typeMismatchDiag :: SrcSpan -> Type -> Type -> Diagnostic
-typeMismatchDiag span_ declTy inferredTy = Diagnostic
-  { _range             = spanToRange span_
-  , _severity          = Just DiagnosticSeverity_Warning
-  , _code              = Nothing
-  , _codeDescription   = Nothing
-  , _source            = Just "bluespec"
-  , _message           = "Declared type " <> prettyType declTy
-                      <> " may not match inferred type " <> prettyType inferredTy
-  , _tags              = Nothing
-  , _relatedInformation = Nothing
-  , _data_             = Nothing
-  }
+typeMismatchDiag span_ declTy inferredTy =
+  mkDiag (spanToRange span_) DiagnosticSeverity_Warning $
+    "Declared type " <> prettyType declTy
+    <> " may not match inferred type " <> prettyType inferredTy
 
 -- | Return True if the type contains any type variables.
 -- Used to skip polymorphic declarations where false positives are likely.

@@ -5,7 +5,7 @@ module Language.Bluespec.LSP.Definition
   )
 where
 
-import Data.List (sortOn)
+import Data.List (partition, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Text (Text)
@@ -89,12 +89,6 @@ selectBestSymbol cursorPos syms =
     groupByParent (s : ss) =
       let (same, diff) = partition (\x -> symParent x == symParent s) ss
        in (s : same) : groupByParent diff
-
-    partition :: (a -> Bool) -> [a] -> ([a], [a])
-    partition _ [] = ([], [])
-    partition p (x : xs) =
-      let (yes, no) = partition p xs
-       in if p x then (x : yes, no) else (yes, x : no)
 
 -- | Get definition location with cross-file resolution.
 -- If the symbol is not found in the current file, searches imported modules,
