@@ -43,7 +43,8 @@ import Language.Bluespec.DocGen.TexParser
 -- | Configuration for reference manual conversion.
 data RefManualConfig = RefManualConfig
   { rmcTexFile  :: !FilePath       -- ^ path to BH_lang.tex
-  , rmcOutDir   :: !FilePath       -- ^ output directory (files go into rmcOutDir/reference/)
+  , rmcSubDir   :: !Text           -- ^ output sub-directory name (e.g. "reference", "bsv-reference")
+  , rmcOutDir   :: !FilePath       -- ^ output directory (files go into rmcOutDir/rmcSubDir/)
   , rmcVerbose  :: !Bool
   , rmcBscSha   :: !(Maybe Text)   -- ^ BSC commit SHA for footer
   } deriving stock (Show)
@@ -52,6 +53,7 @@ data RefManualConfig = RefManualConfig
 defaultRefManualConfig :: RefManualConfig
 defaultRefManualConfig = RefManualConfig
   { rmcTexFile = "BH_lang.tex"
+  , rmcSubDir  = "reference"
   , rmcOutDir  = "docs"
   , rmcVerbose = False
   , rmcBscSha  = Nothing
@@ -87,7 +89,7 @@ convertRefManual cfg idx = do
   let sections = splitSections blocks
 
   -- 7. Write output
-  let refDir = rmcOutDir cfg </> "reference"
+  let refDir = rmcOutDir cfg </> T.unpack (rmcSubDir cfg)
   createDirectoryIfMissing True refDir
 
   let mSha = rmcBscSha cfg

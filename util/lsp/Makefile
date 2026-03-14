@@ -96,7 +96,7 @@ test-lsp:
 
 BBT_CABAL    := $(REPO_ROOT)/util/bbt
 DOCGEN_CABAL := $(REPO_ROOT)/util/docgen
-TEX_MANUAL   := $(REPO_ROOT)/doc/BH_ref_guide/BH_lang.tex
+BSC_DOC_DIR  := $(REPO_ROOT)/doc
 LIB_DIRS     := $(REPO_ROOT)/src/Libraries
 
 .PHONY: docs
@@ -106,7 +106,7 @@ docs:
 	@mkdir -p $(DOCDIR)
 	$(DOCGEN_BIN) \
 	  --lib-dir $(LIB_DIRS) \
-	  $(if $(wildcard $(TEX_MANUAL)),--ref-manual $(TEX_MANUAL),) \
+	  $(if $(wildcard $(BSC_DOC_DIR)),--bsc-doc-dir $(BSC_DOC_DIR),) \
 	  --out $(DOCDIR)
 
 .PHONY: install-docs

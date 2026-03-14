@@ -180,7 +180,7 @@ page title body_ = H.docTypeHtml $ do
     H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1"
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
-  H.body body_
+  H.body $ H.div ! A.class_ "page-layout" $ body_
 
 pageRaw :: Text -> Html -> Html
 pageRaw title body_ = H.docTypeHtml $ do
@@ -189,4 +189,4 @@ pageRaw title body_ = H.docTypeHtml $ do
     H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1"
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "docgen.css"
-  H.body body_
+  H.body $ H.div ! A.class_ "page-layout" $ body_

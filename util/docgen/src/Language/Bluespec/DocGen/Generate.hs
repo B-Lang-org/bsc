@@ -6,7 +6,7 @@ module Language.Bluespec.DocGen.Generate
   , runDocGen
   ) where
 
-import Control.Monad (forM_, when)
+import Control.Monad (filterM, forM_, when)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (isJust)
 import Data.Text (Text)
@@ -14,7 +14,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
 import Data.Text.Lazy.IO qualified as TLIO
 import Data.ByteString.Lazy qualified as LBS
-import System.Directory (createDirectoryIfMissing, doesDirectoryExist, listDirectory)
+import System.Directory (createDirectoryIfMissing, doesDirectoryExist, doesFileExist, listDirectory)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), takeDirectory, takeExtension)
 import System.Process (readProcessWithExitCode)
@@ -32,11 +32,19 @@ import Language.Bluespec.DocGen.RefManual
   (RefManualConfig (..), defaultRefManualConfig, convertRefManual)
 import Language.Bluespec.DocGen.SymbolIndex (buildIndex, renderIndexJson)
 
+-- | A reference manual to convert.
+data ManualSpec = ManualSpec
+  { msTitle   :: !Text      -- ^ display title (e.g. "BH Language Reference")
+  , msTexFile :: !FilePath  -- ^ path to the root .tex file
+  , msSubDir  :: !Text      -- ^ output sub-directory name (e.g. "bh-reference")
+  } deriving stock (Show)
+
 -- | Configuration for a documentation generation run.
 data DocGenConfig = DocGenConfig
   { dgcLibDirs   :: ![FilePath]       -- ^ source directories to scan
   , dgcOutDir    :: !FilePath         -- ^ output directory
   , dgcRefManual :: !(Maybe FilePath) -- ^ path to BH_lang.tex (optional)
+  , dgcBscDocDir :: !(Maybe FilePath) -- ^ path to BSC doc/ directory for auto-discovering all manuals
   , dgcStdlibUrl :: !(Maybe String)   -- ^ external stdlib URL for cross-linking
   , dgcVerbose   :: !Bool
   , dgcBscSha    :: !(Maybe Text)     -- ^ BSC git commit SHA for footer (auto-detected if Nothing)
@@ -48,6 +56,7 @@ defaultDocGenConfig = DocGenConfig
   { dgcLibDirs   = []
   , dgcOutDir    = "docs"
   , dgcRefManual = Nothing
+  , dgcBscDocDir = Nothing
   , dgcStdlibUrl = Nothing
   , dgcVerbose   = False
   , dgcBscSha    = Nothing
@@ -89,44 +98,51 @@ runDocGen cfg = do
   -- 7. Write stdlib index
   TIO.writeFile (stdlibDir </> "index.html") (renderIndexPage pkgMap)
 
-  -- 8. Convert reference manual if provided
-  bscSha <- resolveBscSha cfg
-  hasRef <- case dgcRefManual cfg of
-    Nothing -> pure False
-    Just texPath -> do
-      let rmCfg = defaultRefManualConfig
-                    { rmcTexFile = texPath
-                    , rmcOutDir  = outDir
-                    , rmcVerbose = dgcVerbose cfg
-                    , rmcBscSha  = bscSha
-                    }
-      convertRefManual rmCfg idx
-      pure True
+  -- 8. Determine manuals to convert
+  manuals <- case dgcBscDocDir cfg of
+    Just docDir -> discoverManuals docDir
+    Nothing     -> case dgcRefManual cfg of
+      Nothing      -> pure []
+      Just texPath -> pure [ManualSpec "BH Language Reference" texPath "reference"]
 
-  -- 9. Write site root (links to both sections)
+  -- 9. Convert each manual
+  bscSha <- resolveBscSha cfg manuals
+  forM_ manuals $ \ms -> do
+    let rmCfg = defaultRefManualConfig
+                  { rmcTexFile = msTexFile ms
+                  , rmcSubDir  = msSubDir ms
+                  , rmcOutDir  = outDir
+                  , rmcVerbose = dgcVerbose cfg
+                  , rmcBscSha  = bscSha
+                  }
+    convertRefManual rmCfg idx
+    when (dgcVerbose cfg) $
+      putStrLn $ "[docgen] " ++ T.unpack (msTitle ms) ++ " → " ++ T.unpack (msSubDir ms) ++ "/"
+
+  -- 10. Write site root
   TLIO.writeFile (outDir </> "index.html") $
-    renderHtml (siteRootPage hasRef (dgcStdlibUrl cfg) bscSha)
+    renderHtml (siteRootPage manuals (dgcStdlibUrl cfg) bscSha)
 
-  -- 10. Write stylesheet
+  -- 11. Write stylesheet
   TIO.writeFile (outDir </> "docgen.css") stylesheet
 
-  -- 11. Write symbol index JSON
+  -- 12. Write symbol index JSON
   LBS.writeFile (outDir </> "symbol-index.json") (renderIndexJson idx)
 
   putStrLn $ "[docgen] Done. Output written to " ++ outDir ++ "/"
   putStrLn $ "[docgen] " ++ show (Map.size pkgMap) ++ " packages, "
           ++ show (length allEntries) ++ " documented symbols"
-  when hasRef $
-    putStrLn $ "[docgen] Reference manual converted to " ++ outDir ++ "/reference/"
+  when (not (null manuals)) $
+    putStrLn $ "[docgen] " ++ show (length manuals) ++ " reference manual(s) converted"
 
 -- ---------------------------------------------------------------------------
 -- Site root page
 -- ---------------------------------------------------------------------------
 
 -- | Render the top-level index.html linking to stdlib and (optionally) the
--- reference manual.
-siteRootPage :: Bool -> Maybe String -> Maybe Text -> Html
-siteRootPage hasRef mStdlibUrl mSha =
+-- reference manuals.
+siteRootPage :: [ManualSpec] -> Maybe String -> Maybe Text -> Html
+siteRootPage manuals mStdlibUrl mSha =
   H.docTypeHtml $ do
     H.head $ do
       H.meta ! A.charset "utf-8"
@@ -135,12 +151,7 @@ siteRootPage hasRef mStdlibUrl mSha =
     H.body $ do
       H.main $ do
         H.h1 "Bluespec Documentation"
-        whenB hasRef $
-          H.section $ do
-            H.h2 $ H.a ! A.href "reference/index.html" $ "Language Reference"
-            H.p $ do
-              "Converted from the authoritative LaTeX reference manual. "
-              "Covers syntax, semantics, and built-in constructs."
+        mapM_ manualSection manuals
         H.section $ do
           H.h2 $ do
             case mStdlibUrl of
@@ -149,15 +160,23 @@ siteRootPage hasRef mStdlibUrl mSha =
           H.p $ do
             "Auto-extracted from source files. "
             "Covers the Prelude, Vector, FIFOF, and other library packages. "
-            whenB (isJust mStdlibUrl) $
+            when (isJust mStdlibUrl) $
               H.em "(linking to external hosted docs)"
-        whenB hasRef $
+        when (not (null manuals)) $
           H.section $ do
-            H.h2 $ H.a ! A.href "reference/term-index.html" $ "Term Index"
-            H.p "Alphabetical index of all language terms from the reference manual."
+            H.h2 "Term Indices"
+            H.ul $ mapM_ termIndexEntry manuals
       docFooter mSha
   where
-    whenB cond action = if cond then action else pure ()
+    manualSection ms =
+      H.section $ do
+        let url = msSubDir ms <> "/index.html"
+        H.h2 $ H.a ! A.href (H.toValue url) $ H.toHtml (msTitle ms)
+        H.p $ H.toHtml (msTitle ms <> " — converted from the LaTeX reference manual.")
+
+    termIndexEntry ms =
+      H.li $ H.a ! A.href (H.toValue (msSubDir ms <> "/term-index.html")) $
+        H.toHtml (msTitle ms <> " Term Index")
 
 -- ---------------------------------------------------------------------------
 -- BSC SHA resolution
@@ -165,15 +184,33 @@ siteRootPage hasRef mStdlibUrl mSha =
 
 -- | Determine the BSC commit SHA to embed in footers.
 -- If the user provided one explicitly (via --bsc-sha), use that.
--- Otherwise, if a ref-manual path was given, try 'git rev-parse --short HEAD'
--- in that directory. Falls back to Nothing silently.
-resolveBscSha :: DocGenConfig -> IO (Maybe Text)
-resolveBscSha cfg =
+-- Otherwise, if manuals were provided, try 'git rev-parse --short HEAD'
+-- in the directory of the first manual's tex file. Falls back to Nothing silently.
+resolveBscSha :: DocGenConfig -> [ManualSpec] -> IO (Maybe Text)
+resolveBscSha cfg manuals =
   case dgcBscSha cfg of
     Just sha -> pure (Just sha)
-    Nothing  -> case dgcRefManual cfg of
-      Nothing      -> pure Nothing
-      Just texPath -> gitShortSha (takeDirectory texPath)
+    Nothing  -> case manuals of
+      []    -> pure Nothing
+      (m:_) -> gitShortSha (takeDirectory (msTexFile m))
+
+-- ---------------------------------------------------------------------------
+-- Manual discovery
+-- ---------------------------------------------------------------------------
+
+-- | Discover the standard BSC manuals from a doc directory.
+-- Checks each well-known path for existence; silently skips missing ones.
+discoverManuals :: FilePath -> IO [ManualSpec]
+discoverManuals docDir = do
+  let candidates =
+        [ ManualSpec "BH Language Reference"
+            (docDir </> "BH_ref_guide" </> "BH_lang.tex") "bh-reference"
+        , ManualSpec "BSV Language Reference"
+            (docDir </> "BSV_ref_guide" </> "BSV_lang.tex") "bsv-reference"
+        , ManualSpec "BSC User Guide"
+            (docDir </> "user_guide" </> "user_guide.tex") "user-guide"
+        ]
+  filterM (\ms -> doesFileExist (msTexFile ms)) candidates
 
 -- | Run @git rev-parse --short HEAD@ in the given directory.
 gitShortSha :: FilePath -> IO (Maybe Text)

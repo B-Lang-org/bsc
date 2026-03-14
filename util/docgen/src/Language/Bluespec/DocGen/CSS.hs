@@ -28,7 +28,9 @@ stylesheet = "\
 \  background: var(--bg);\n\
 \}\n\
 \\n\
-\body { margin: 0; padding: 0; display: flex; }\n\
+\body { margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }\n\
+\\n\
+\.page-layout { display: flex; flex: 1; }\n\
 \\n\
 \nav.sidebar {\n\
 \  width: 220px;\n\

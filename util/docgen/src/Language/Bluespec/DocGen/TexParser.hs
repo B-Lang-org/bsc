@@ -211,6 +211,8 @@ block = choice
   , try subsectionCmd
   , try subsubsectionCmd
   , try verbatimEnv
+  , try noteEnv
+  , try tightlistEnv
   , try bulletList
   , try unknownEnv    -- \begin{unknown}...\end{unknown}
   , para              -- always succeeds if any non-newline char is present
@@ -243,9 +245,33 @@ headingCmd cmd level = do
 
 verbatimEnv :: Parser DocBlock
 verbatimEnv = do
-  _ <- string "\\begin{libverbatim}" <* optional newline
-  content <- manyTill anySingle (string "\\end{libverbatim}")
+  envName <- choice
+    [ string "\\begin{libverbatim}" *> pure "libverbatim"
+    , string "\\begin{verbatim}"    *> pure "verbatim"
+    , string "\\begin{BH}"          *> pure "BH"
+    , string "\\begin{BSV}"         *> pure "BSV"
+    ]
+  _ <- optional newline
+  content <- manyTill anySingle (string ("\\end{" <> envName <> "}"))
   pure $ VerbBlock (T.pack content)
+
+noteEnv :: Parser DocBlock
+noteEnv = do
+  _ <- string "\\begin{NOTE}" <* optional newline
+  blocks <- manyTill block (string "\\end{NOTE}")
+  pure $ BulletList [blocks]   -- reuse BulletList as indented block for now
+
+tightlistEnv :: Parser DocBlock
+tightlistEnv = do
+  _ <- string "\\begin{tightlist}" <* optional newline
+  items <- many item
+  _ <- string "\\end{tightlist}"
+  pure $ BulletList items
+  where
+    item = do
+      _ <- string "\\item" <* space1
+      bs <- many (notFollowedBy (string "\\item" <|> string "\\end") *> block)
+      pure bs
 
 bulletList :: Parser DocBlock
 bulletList = do
@@ -292,11 +318,20 @@ balancedArg = T.pack <$> go (0 :: Int)
 -- backtrack and the fallback alternatives get a chance.
 inline :: Parser DocInline
 inline = choice
-  [ try teCmd             -- \te{Foo} → SymRef
+  [ try latexQuotes       -- ``...'' → curly quotes (before plainText eats backticks)
+  , try mathMode          -- $...$ or $$...$$
+  , try teCmd             -- \te{Foo} → SymRef
+  , try termCmd           -- \term{Foo} → Code
+  , try qbsCmd            -- \qbs{code} → Code
+  , try ebsCmd            -- \EBS{code} \BBS{code} → Code
   , try textttCmd         -- \texttt{...} → Code
   , try emphCmd           -- \emph{...} → Emph
   , try textbfCmd         -- \textbf{...} → Strong
   , try ntermCmd          -- \nterm{...} → NonTerm
+  , try mboxCmd           -- \mbox{...} → render content
+  , try gramCmd           -- \gram{} \grammore{} \gramalt{} → NonTerm
+  , try manyOptCmd        -- \many{} \opt{} \alt → grammar operators
+  , try refCmd            -- \ref{label} → §label
   , try indexCmd          -- \index{...} → stripped
   , skipCmd               -- fixed \name tokens — safe, no try needed
   , try unknownCmdInline  -- \unknown{...} → discarded
@@ -386,17 +421,116 @@ indexCmd = do
   _ <- balancedArg
   pure $ Plain ""   -- strip index entries from inline text
 
-skipCmd :: Parser DocInline
-skipCmd = do
+-- | \term{Foo} → Code (typewriter term reference)
+termCmd :: Parser DocInline
+termCmd = do
+  _ <- string "\\term{"
+  content <- balancedArg
+  pure $ Code content
+
+-- | \qbs{code} → Code (inline BH/Classic code)
+qbsCmd :: Parser DocInline
+qbsCmd = do
+  _ <- string "\\qbs{"
+  content <- balancedArg
+  pure $ Code content
+
+-- | \mbox{content} → render content inline
+mboxCmd :: Parser DocInline
+mboxCmd = do
+  _ <- string "\\mbox{"
+  content <- manyTill inline (char '}')
+  pure $ case content of
+    []  -> Plain ""
+    [x] -> x
+    xs  -> Emph xs   -- wrap in emph as a neutral container
+
+-- | \ref{label} → show as "(§label)"
+refCmd :: Parser DocInline
+refCmd = do
+  _ <- string "\\ref{"
+  lbl <- balancedArg
+  pure $ Plain ("\167" <> lbl)
+
+-- | \gram{text} \grammore{text} \gramalt{text} → NonTerm (grammar notation)
+gramCmd :: Parser DocInline
+gramCmd = do
   _ <- choice
-    [ string "\\BS"
-    , string "\\ie"
-    , string "\\eg"
-    , string "\\etc"
-    , string "\\hdivider"
-    , string "\\\\"
+    [ string "\\gram{"
+    , string "\\grammore{"
+    , string "\\gramalt{"
+    , string "\\litem{"
     ]
-  pure $ Plain " "
+  content <- balancedArg
+  pure $ NonTerm content
+
+-- | \many{x} → NonTerm "{x}*"  \opt{x} → NonTerm "[x]"
+manyOptCmd :: Parser DocInline
+manyOptCmd = choice
+  [ do _ <- string "\\many{"
+       content <- balancedArg
+       pure $ NonTerm ("{" <> content <> "}*")
+  , do _ <- string "\\opt{"
+       content <- balancedArg
+       pure $ NonTerm ("[" <> content <> "]")
+  , do _ <- string "\\alt"
+       pure $ Plain " | "
+  ]
+
+-- | \EBS{code} \BBS{code} → Code (example code)
+ebsCmd :: Parser DocInline
+ebsCmd = do
+  _ <- choice [ string "\\EBS{", string "\\BBS{" ]
+  content <- balancedArg
+  pure $ Code content
+
+-- | LaTeX curly quotes: \`\`text'' → "text"
+latexQuotes :: Parser DocInline
+latexQuotes = choice
+  [ do _ <- string "``"
+       content <- manyTill (satisfy (/= '\n')) (string "''")
+       pure $ Plain ("\"" <> T.pack content <> "\"")
+  , do _ <- string "`"
+       pure $ Plain "'"
+  ]
+
+-- | Math mode: $...$ → render content as code; $$...$$ → skip
+mathMode :: Parser DocInline
+mathMode = do
+  _ <- char '$'
+  isDbl <- option False (True <$ char '$')
+  if isDbl
+    then do
+      _ <- manyTill anySingle (string "$$")
+      pure $ Plain ""
+    else do
+      content <- manyTill (satisfy (/= '\n')) (char '$')
+      pure $ Code (T.pack content)
+
+skipCmd :: Parser DocInline
+skipCmd = choice
+  [ -- Commands with a brace argument to swallow
+    do _ <- choice
+         [ string "\\pageref{"
+         , string "\\label{"
+         , string "\\fbox{"
+         , string "\\hspace{"
+         , string "\\hspace*{"
+         , string "\\vspace{"
+         , string "\\vspace*{"
+         , string "\\linewidth"
+         , string "\\textwidth"
+         ]
+       _ <- optional balancedArg
+       pure $ Plain ""
+    -- Simple keyword replacements
+  , string "\\BS"  *> pure (Plain " ")
+  , string "\\ie"  *> pure (Plain "i.e.,")
+  , string "\\eg"  *> pure (Plain "e.g.,")
+  , string "\\etc" *> pure (Plain "etc.")
+  , string "\\hdivider" *> pure (Plain " ")
+  , string "\\\\"  *> pure (Plain " ")
+  ]
 
 plainText :: Parser DocInline
 plainText = do
