@@ -382,6 +382,10 @@ data Expr
       , vModMethods  :: ![VerilogMethod]         -- ^ Method definitions
       , vModSched    :: !(Maybe SchedInfo)       -- ^ Scheduling information
       }
+  -- BSV-specific expressions
+  | ETagged !(Located Ident) ![(Located Ident, LExpr)]  -- ^ tagged Foo { field: val, ... }
+  | EDontCare                                            -- ^ ? (don't-care wildcard)
+  | EBeginEnd ![LStmt] !(Maybe LExpr)                   -- ^ begin { stmts } [expr] end
   deriving stock (Eq, Show, Generic)
 
 -- | A case alternative.
@@ -400,8 +404,15 @@ data Stmt
   = StmtBind !LPattern !(Maybe (Located QualType)) !LExpr  -- ^ Pattern binding
   | StmtLet ![LetItem]                                     -- ^ Let bindings
   | StmtLetSeq ![LetItem]                                  -- ^ Sequential let bindings
-  | StmtAssign !LExpr !LExpr                               -- ^ Register assignment (lhs := rhs)
+  | StmtAssign !LExpr !LExpr                               -- ^ Register assignment (lhs := rhs or lhs <= rhs in BSV)
   | StmtExpr !LExpr                                        -- ^ Expression statement
+  -- BSV-specific statements
+  | StmtFor !LStmt !LExpr !LStmt ![LStmt]                  -- ^ for (init; cond; incr) { body }
+  | StmtWhile !LExpr ![LStmt]                              -- ^ while (cond) body
+  | StmtRepeat !LExpr ![LStmt]                             -- ^ repeat (n) body
+  | StmtContinue                                           -- ^ continue
+  | StmtBreak                                              -- ^ break
+  | StmtReturn !LExpr                                      -- ^ return expr
   deriving stock (Eq, Show, Generic)
 
 -- | A field binding in a record expression.
@@ -497,6 +508,7 @@ data ModuleStmt
   | MStmtRules ![Located Rule]                         -- ^ addRules
   | MStmtInterface ![InterfaceField]                   -- ^ interface definition
   | MStmtTupleInterface ![LExpr]                       -- ^ interface (e1, e2, ...) tuple return
+  | MStmtDef !LDefinition                              -- ^ BSV: local function/type definition in module
   deriving stock (Eq, Show, Generic)
 
 -- | A field in an interface expression.

@@ -12,6 +12,7 @@ module Language.Bluespec.Lexer
     -- * Lexer
   , lexBluespec
   , tokenize
+  , keywordText
 
     -- * Token stream for parser
   , TokenStream (..)
@@ -133,6 +134,42 @@ data Keyword
   | KwSynthesize
   | KwWhen
   | KwWhere
+  -- BSV-specific keywords
+  | KwBegin           -- ^ begin
+  | KwBreak           -- ^ break
+  | KwContinue        -- ^ continue
+  | KwEnd             -- ^ end
+  | KwEndAction       -- ^ endaction
+  | KwEndActionValue  -- ^ endactionvalue
+  | KwEndCase         -- ^ endcase
+  | KwEndFunction     -- ^ endfunction
+  | KwEndInstance     -- ^ endinstance
+  | KwEndInterface    -- ^ endinterface
+  | KwEndMethod       -- ^ endmethod
+  | KwEndModule       -- ^ endmodule
+  | KwEndPackage      -- ^ endpackage
+  | KwEndPar          -- ^ endpar
+  | KwEndRule         -- ^ endrule
+  | KwEndRules        -- ^ endrules
+  | KwEndSeq          -- ^ endseq
+  | KwEndTypeclass    -- ^ endtypeclass
+  | KwEnum            -- ^ enum
+  | KwExport          -- ^ export (BSV)
+  | KwFor             -- ^ for
+  | KwFunction        -- ^ function
+  | KwMatches         -- ^ matches
+  | KwMethod          -- ^ method (BSV method opening)
+  | KwNumeric         -- ^ numeric
+  | KwParameter       -- ^ parameter
+  | KwProvisos        -- ^ provisos
+  | KwRepeat          -- ^ repeat
+  | KwReturn          -- ^ return
+  | KwRule            -- ^ rule (BSV rule opening, different from Classic 'rules')
+  | KwTagged          -- ^ tagged
+  | KwTypedef         -- ^ typedef
+  | KwUnion           -- ^ union
+  | KwVoid            -- ^ void
+  | KwWhile           -- ^ while
   deriving stock (Eq, Show, Bounded, Enum)
 
 -- | Punctuation tokens.
@@ -161,6 +198,7 @@ data Punctuation
   | PunctColonEq      -- ^ :=
   | PunctTilde        -- ^ ~
   | PunctHash         -- ^ #
+  | PunctTick         -- ^ ' (BSV type cast)
   deriving stock (Eq, Show, Bounded, Enum)
 
 --------------------------------------------------------------------------------
@@ -201,15 +239,58 @@ keywords =
   , ("then", KwThen)
   , ("type", KwType)
   , ("valueOf", KwValueOf)
+  , ("valueof", KwValueOf)   -- BSV lowercase alias
   , ("stringOf", KwStringOf)
   , ("verilog", KwVerilog)
   , ("synthesize", KwSynthesize)
   , ("when", KwWhen)
   , ("where", KwWhere)
+  -- BSV-specific keywords
+  , ("begin", KwBegin)
+  , ("break", KwBreak)
+  , ("continue", KwContinue)
+  , ("end", KwEnd)
+  , ("endaction", KwEndAction)
+  , ("endactionvalue", KwEndActionValue)
+  , ("endcase", KwEndCase)
+  , ("endfunction", KwEndFunction)
+  , ("endinstance", KwEndInstance)
+  , ("endinterface", KwEndInterface)
+  , ("endmethod", KwEndMethod)
+  , ("endmodule", KwEndModule)
+  , ("endpackage", KwEndPackage)
+  , ("endpar", KwEndPar)
+  , ("endrule", KwEndRule)
+  , ("endrules", KwEndRules)
+  , ("endseq", KwEndSeq)
+  , ("endtypeclass", KwEndTypeclass)
+  , ("enum", KwEnum)
+  , ("export", KwExport)
+  , ("for", KwFor)
+  , ("function", KwFunction)
+  , ("matches", KwMatches)
+  , ("method", KwMethod)
+  , ("numeric", KwNumeric)
+  , ("parameter", KwParameter)
+  , ("provisos", KwProvisos)
+  , ("repeat", KwRepeat)
+  , ("return", KwReturn)
+  , ("rule", KwRule)
+  , ("tagged", KwTagged)
+  , ("typedef", KwTypedef)
+  , ("union", KwUnion)
+  , ("void", KwVoid)
+  , ("while", KwWhile)
   ]
 
 keywordMap :: Text -> Maybe Keyword
 keywordMap t = lookup t keywords
+
+-- | The source text for a keyword.
+keywordText :: Keyword -> Text
+keywordText kw = case filter ((== kw) . snd) keywords of
+  ((t, _):_) -> t
+  []          -> error "keywordText: unknown keyword"
 
 --------------------------------------------------------------------------------
 -- Lexer Type
@@ -222,12 +303,18 @@ type Lexer = Parsec Void Text
 --------------------------------------------------------------------------------
 
 -- | Skip whitespace and comments.
+-- Handles both Bluespec Classic ({- -}, --) and BSV (/* */, //) comment styles.
 sc :: Lexer ()
 sc = L.space space1 lineComment blockComment
   where
-    lineComment  = L.skipLineComment "--"
+    lineComment  = L.skipLineComment "--" <|> L.skipLineComment "//"
+    -- Block comment: either BSV C-style (/* */) or Classic Haskell-style ({- -})
+    blockComment = cStyleBlockComment <|> haskellBlockComment
+    cStyleBlockComment = do
+      void $ try $ string "/*"
+      void $ manyTill anySingle (string "*/")
     -- Block comment that doesn't match pragmas ({-#)
-    blockComment = do
+    haskellBlockComment = do
       void $ try $ string "{-" <* notFollowedBy (char '#')
       skipBlockCommentNested 1
     skipBlockCommentNested :: Int -> Lexer ()
@@ -349,7 +436,7 @@ operator = do
 
 -- | Lex a numeric literal.
 numericLit :: Lexer TokenKind
-numericLit = sized <|> unsized
+numericLit = sized <|> tickPrefixed <|> unsized
   where
     -- Sized bit literals: 8'hFF, 4'b1010
     sized = try $ do
@@ -357,6 +444,16 @@ numericLit = sized <|> unsized
       void $ char '\''
       (val, fmt) <- sizedFormat
       pure $ TokInteger val (Just (width, fmt))
+
+    -- BSV tick-prefixed literals: 'hFF, 'b1010, 'o77, 'd42
+    tickPrefixed = try $ do
+      void $ char '\''
+      choice
+        [ (char 'h' <|> char 'H') *> (TokInteger <$> hexNum <*> pure (Just (0, IntHex')))
+        , (char 'b' <|> char 'B') *> (TokInteger <$> binNum <*> pure (Just (0, IntBin')))
+        , (char 'o' <|> char 'O') *> (TokInteger <$> octNum <*> pure (Just (0, IntOct')))
+        , (char 'd' <|> char 'D') *> (TokInteger <$> L.decimal <*> pure (Just (0, IntDec')))
+        ]
 
     sizedFormat =
           (char 'h' *> ((,IntHex') <$> hexNum))
@@ -538,8 +635,9 @@ token' file = withSpan file $ choice
   [ try pragma
   , try pragmaEnd
   , try primOp
-  , try numericLit
-  , charLit
+  , try numericLit   -- includes 'h... 'b... tick-prefixed BSV literals
+  , try charLit      -- 'c' character literals
+  , TokPunct PunctTick <$ char '\''  -- bare ' (BSV type cast)
   , stringLit
   , conId
   , varIdOrKeyword

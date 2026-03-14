@@ -7,6 +7,7 @@ module Language.Bluespec.Parser
   , parseExpr
   , parseType
   , parseFile
+  , parseAuto
 
     -- * Parser type
   , Parser
@@ -15,6 +16,7 @@ module Language.Bluespec.Parser
 
 import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty(..))
+import System.FilePath (takeExtension)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
@@ -27,6 +29,7 @@ import qualified Text.Megaparsec as MP
 
 import qualified Language.Bluespec.Lexer as Lex
 import Language.Bluespec.Layout
+import qualified Language.Bluespec.BSV.Parser as BSV
 import Language.Bluespec.Position
 import Language.Bluespec.Syntax
 
@@ -94,8 +97,23 @@ varId = MP.token test expected
   where
     test t = case Lex.tokKind t of
       Lex.TokVarId name -> Just $ Located (Lex.tokSpan t) (VarId name)
+      -- BSV-only keywords that appear as ordinary identifiers in Classic Bluespec
+      Lex.TokKeyword kw | kw `elem` classicVarIdKeywords ->
+        Just $ Located (Lex.tokSpan t) (VarId (Lex.keywordText kw))
       _ -> Nothing
     expected = Set.singleton $ Label $ NE.fromList "variable"
+
+-- | BSV-only keywords that are valid ordinary identifiers in Bluespec Classic.
+-- In Classic, these appear as function/value names rather than syntax keywords.
+classicVarIdKeywords :: [Lex.Keyword]
+classicVarIdKeywords =
+  [ Lex.KwReturn, Lex.KwWhile, Lex.KwFor, Lex.KwBreak, Lex.KwContinue
+  , Lex.KwRepeat, Lex.KwFunction, Lex.KwEndFunction, Lex.KwEndModule
+  , Lex.KwEndInterface, Lex.KwEndRule, Lex.KwEndMethod, Lex.KwEndPackage
+  , Lex.KwEndInstance, Lex.KwEndTypeclass, Lex.KwEndRules
+  , Lex.KwTypedef, Lex.KwStruct, Lex.KwUnion, Lex.KwTagged, Lex.KwMatches
+  , Lex.KwRule
+  ]
 
 -- | Match any constructor identifier.
 conId :: Parser (Located Ident)
@@ -139,6 +157,9 @@ qualVarId = MP.token test expected
     test t = case Lex.tokKind t of
       Lex.TokVarId name -> Just $ Located (Lex.tokSpan t) (QualIdent Nothing (VarId name))
       Lex.TokQVarId m name -> Just $ Located (Lex.tokSpan t) (QualIdent (Just $ ModuleId m) (VarId name))
+      -- BSV-only keywords that appear as ordinary identifiers in Classic Bluespec
+      Lex.TokKeyword kw | kw `elem` classicVarIdKeywords ->
+        Just $ Located (Lex.tokSpan t) (QualIdent Nothing (VarId (Lex.keywordText kw)))
       _ -> Nothing
     expected = Set.singleton $ Label $ NE.fromList "variable"
 
@@ -2226,3 +2247,9 @@ parseFile :: FilePath -> IO (Either ParseError Package)
 parseFile path = do
   content <- TIO.readFile path
   pure $ parsePackage (T.pack path) content
+
+-- | Parse a file, auto-dispatching on extension (.bs -> Classic, .bsv -> BSV).
+parseAuto :: FilePath -> Text -> Either ParseError Package
+parseAuto fp src
+  | takeExtension fp == ".bsv" = BSV.parseBSVPackage (T.pack fp) src
+  | otherwise                  = parsePackage (T.pack fp) src

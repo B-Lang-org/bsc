@@ -374,6 +374,16 @@ prettyExpr = \case
   EStringOf ty -> "stringOf" <+> prettyAtomicType (locVal ty)
   EPrim name args -> pretty name <+> hsep (map (prettyAtomicExpr . locVal) args)
   EParens e -> parens (prettyLExpr e)
+  ETagged con binds ->
+    "tagged" <+> prettyIdent (locVal con)
+      <> if null binds then mempty
+         else braces (hsep $ punctuate comma $ map (\(n,v) -> prettyIdent (locVal n) <> ":" <+> prettyLExpr v) binds)
+  EDontCare -> "?"
+  EBeginEnd stmts mExpr -> vsep $
+    [ "begin"
+    , indent 2 $ vsep $ map (prettyStmt . locVal) stmts
+    ] ++ maybe [] (\e -> [indent 2 (prettyLExpr e)]) mExpr
+    ++ ["end"]
   EModuleVerilog name params clocks resets args methods sched -> vsep
     [ "module verilog" <+> prettyLExpr name
         <> (if null params then mempty else space <> parens (hsep $ punctuate comma $ map prettyLExpr params))
@@ -446,8 +456,23 @@ prettyStmt = \case
     "<-" <+> prettyLExpr e
   StmtLet items -> "let" <+> align (vsep $ map prettyLetItem items)
   StmtLetSeq items -> "letseq" <+> align (vsep $ map prettyLetItem items)
-  StmtAssign lhs rhs -> prettyLExpr lhs <+> ":=" <+> prettyLExpr rhs
+  StmtAssign lhs rhs -> prettyLExpr lhs <+> "<=" <+> prettyLExpr rhs
   StmtExpr e -> prettyLExpr e
+  StmtFor init' cond incr body -> vsep
+    [ "for" <+> "(" <> prettyStmt (locVal init') <> ";" <+> prettyLExpr cond <> ";" <+> prettyStmt (locVal incr) <> ")"
+    , indent 2 $ vsep $ map (prettyStmt . locVal) body
+    ]
+  StmtWhile cond body -> vsep
+    [ "while" <+> parens (prettyLExpr cond)
+    , indent 2 $ vsep $ map (prettyStmt . locVal) body
+    ]
+  StmtRepeat n body -> vsep
+    [ "repeat" <+> parens (prettyLExpr n)
+    , indent 2 $ vsep $ map (prettyStmt . locVal) body
+    ]
+  StmtContinue -> "continue"
+  StmtBreak -> "break"
+  StmtReturn e -> "return" <+> prettyLExpr e
 
 prettyFieldBind :: FieldBind -> Doc ann
 prettyFieldBind fb = prettyIdent (locVal $ fbName fb) <+> "=" <+> prettyLExpr (fbValue fb)
@@ -464,6 +489,7 @@ prettyModuleStmt = \case
   MStmtRules rules -> "rules" <+> align (vsep $ map (prettyRule . locVal) rules)
   MStmtInterface fields -> "interface" <+> align (vsep $ map prettyInterfaceField fields)
   MStmtTupleInterface exprs -> "interface" <+> tupled (map prettyLExpr exprs)
+  MStmtDef d -> prettyDefinition (locVal d)
 
 prettyRule :: Rule -> Doc ann
 prettyRule r = hsep $ catMaybes

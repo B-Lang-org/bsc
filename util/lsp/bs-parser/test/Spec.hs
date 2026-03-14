@@ -3,11 +3,16 @@
 -- | Tests for the Bluespec parser.
 module Main (main) where
 
+import Control.Monad (forM)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
+import System.Directory (doesDirectoryExist, listDirectory)
+import System.FilePath (takeExtension, (</>))
 import Test.Hspec
 import Text.Megaparsec (parse, errorBundlePretty)
 
+import Language.Bluespec.BSV.Parser (parseBSVPackage)
 import Language.Bluespec.Lexer
 import Language.Bluespec.Layout
 import Language.Bluespec.Parser
@@ -16,122 +21,339 @@ import Language.Bluespec.Pretty
 import Language.Bluespec.Syntax
 
 main :: IO ()
-main = hspec $ do
-  describe "Lexer" $ do
-    it "lexes identifiers" $ do
-      let Right toks = tokenize "<test>" "foo Bar _baz"
-      length (filter (not . isEof) toks) `shouldBe` 3
+main = do
+  bsvFiles <- findBsvFiles "/work/bsc/src/Libraries"
+  hspec $ do
+    describe "Lexer" $ do
+      it "lexes identifiers" $ do
+        let Right toks = tokenize "<test>" "foo Bar _baz"
+        length (filter (not . isEof) toks) `shouldBe` 3
 
-    it "lexes operators" $ do
-      let Right toks = tokenize "<test>" "+ - * / :: ->"
-      length (filter (not . isEof) toks) `shouldBe` 6
+      it "lexes operators" $ do
+        let Right toks = tokenize "<test>" "+ - * / :: ->"
+        length (filter (not . isEof) toks) `shouldBe` 6
 
-    it "lexes integer literals" $ do
-      let Right toks = tokenize "<test>" "42 0xFF 8'b10101010"
-      length (filter (not . isEof) toks) `shouldBe` 3
+      it "lexes integer literals" $ do
+        let Right toks = tokenize "<test>" "42 0xFF 8'b10101010"
+        length (filter (not . isEof) toks) `shouldBe` 3
 
-    it "lexes string literals" $ do
-      let Right toks = tokenize "<test>" "\"hello\" 'a'"
-      length (filter (not . isEof) toks) `shouldBe` 2
+      it "lexes string literals" $ do
+        let Right toks = tokenize "<test>" "\"hello\" 'a'"
+        length (filter (not . isEof) toks) `shouldBe` 2
 
-    it "lexes keywords" $ do
-      let Right toks = tokenize "<test>" "package where import module"
-      length (filter (not . isEof) toks) `shouldBe` 4
+      it "lexes keywords" $ do
+        let Right toks = tokenize "<test>" "package where import module"
+        length (filter (not . isEof) toks) `shouldBe` 4
 
-  describe "Parser" $ do
-    it "parses simple package" $ do
-      let input = "package Foo where\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          locVal (pkgName pkg) `shouldBe` ModuleId "Foo"
+    describe "Classic parser" $ do
+      it "parses simple package" $ do
+        let input = "package Foo where\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> locVal (pkgName pkg) `shouldBe` ModuleId "Foo"
 
-    it "parses imports" $ do
-      let input = "package Foo where\nimport Bar\nimport qualified Baz\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          length (pkgImports pkg) `shouldBe` 2
+      it "parses imports" $ do
+        let input = "package Foo where\nimport Bar\nimport qualified Baz\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgImports pkg) `shouldBe` 2
 
-    it "parses type signature" $ do
-      let input = "package Foo where\nfoo :: Int -> Bool\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          length (pkgDefns pkg) `shouldBe` 1
+      it "parses type signature" $ do
+        let input = "package Foo where\nfoo :: Int -> Bool\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgDefns pkg) `shouldBe` 1
 
-    it "parses simple function" $ do
-      let input = "package Foo where\nfoo x = x\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          length (pkgDefns pkg) `shouldBe` 1
+      it "parses simple function" $ do
+        let input = "package Foo where\nfoo x = x\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgDefns pkg) `shouldBe` 1
 
-    it "parses data type" $ do
-      let input = "package Foo where\ndata Maybe a = Just a | Nothing\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          length (pkgDefns pkg) `shouldBe` 1
+      it "parses data type" $ do
+        let input = "package Foo where\ndata Maybe a = Just a | Nothing\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgDefns pkg) `shouldBe` 1
 
-    it "parses interface" $ do
-      let input = "package Foo where\ninterface Counter =\n  inc :: Action\n  get :: UInt 8\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          length (pkgDefns pkg) `shouldBe` 1
+      it "parses interface" $ do
+        let input = "package Foo where\ninterface Counter =\n  inc :: Action\n  get :: UInt 8\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgDefns pkg) `shouldBe` 1
 
-    it "parses let expression" $ do
-      let input = "let x = 1 in x"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses let expression" $ do
+        let input = "let x = 1 in x"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses do expression" $ do
-      let input = "do\n  x <- foo\n  bar x\n"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses do expression" $ do
+        let input = "do\n  x <- foo\n  bar x\n"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses if expression" $ do
-      let input = "if x then y else z"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses if expression" $ do
+        let input = "if x then y else z"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses case expression" $ do
-      let input = "case x of\n  True -> 1\n  False -> 0\n"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses case expression" $ do
+        let input = "case x of\n  True -> 1\n  False -> 0\n"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses lambda" $ do
-      let input = "\\x y -> x + y"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses lambda" $ do
+        let input = "\\x y -> x + y"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses record construction" $ do
-      let input = "Foo { a = 1; b = 2 }"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses record construction" $ do
+        let input = "Foo { a = 1; b = 2 }"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-    it "parses field access" $ do
-      let input = "x.foo.bar"
-      case parseExpr "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right _ -> pure ()
+      it "parses field access" $ do
+        let input = "x.foo.bar"
+        case parseExpr "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right _ -> pure ()
 
-  describe "Pretty printer" $ do
-    it "round-trips simple package" $ do
-      let input = "package Foo where\n\nfoo :: Int\nfoo = 42\n"
-      case parsePackage "<test>" input of
-        Left err -> expectationFailure $ show err
-        Right pkg -> do
-          let pretty = renderPretty 80 (prettyPackage pkg)
-          -- Just check that it produces output
-          T.length pretty `shouldSatisfy` (> 0)
+    describe "BSV parser — unit tests" $ do
+      it "parses empty package" $ do
+        parseBSV "package Foo;\nendpackage" `shouldSucceed`
+          \pkg -> locVal (pkgName pkg) `shouldBe` ModuleId "Foo"
+
+      it "parses package without endpackage" $ do
+        parseBSV "package Foo;\n" `shouldSucceed` \_ -> pure ()
+
+      it "parses empty module" $ do
+        parseBSV "package Foo;\nmodule mkFoo(Empty);\nendmodule\nendpackage"
+          `shouldSucceed` \pkg -> length (pkgDefns pkg) `shouldBe` 1
+
+      it "parses module with synthesize attribute" $ do
+        parseBSV "(* synthesize *)\npackage Foo;\nmodule mkFoo(Empty);\nendmodule\nendpackage"
+          `shouldSucceed` \_ -> pure ()
+
+      it "parses import" $ do
+        parseBSV "package Foo;\nimport FIFO::*;\nendpackage"
+          `shouldSucceed` \pkg -> length (pkgImports pkg) `shouldBe` 1
+
+      it "parses export" $ do
+        parseBSV "package Foo;\nexport mkFoo;\nendpackage"
+          `shouldSucceed` \_ -> pure ()
+
+      it "parses interface declaration" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "interface Counter;"
+          , "  method Action inc();"
+          , "  method Bit#(8) read();"
+          , "endinterface"
+          , "endpackage"
+          ]) `shouldSucceed` \pkg -> length (pkgDefns pkg) `shouldBe` 1
+
+      it "parses typedef enum" $ do
+        parseBSV "package Foo;\ntypedef enum { Red, Green, Blue } Color deriving (Bits, Eq);\nendpackage"
+          `shouldSucceed` \pkg -> length (pkgDefns pkg) `shouldBe` 1
+
+      it "parses typedef struct" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "typedef struct {"
+          , "  Bit#(8) addr;"
+          , "  Bit#(32) data;"
+          , "} BusReq deriving (Bits);"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses typedef alias" $ do
+        parseBSV "package Foo;\ntypedef Bit#(8) Byte;\nendpackage"
+          `shouldSucceed` \_ -> pure ()
+
+      it "parses module with rule" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  rule tick;"
+          , "    $display(\"tick\");"
+          , "  endrule"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses rule with guard" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  Reg#(Bool) en <- mkReg(False);"
+          , "  rule go (en);"
+          , "    $display(\"go\");"
+          , "  endrule"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses method definition" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkCounter(Counter);"
+          , "  Reg#(Bit#(8)) cnt <- mkReg(0);"
+          , "  method Action inc();"
+          , "    cnt <= cnt + 1;"
+          , "  endmethod"
+          , "  method Bit#(8) read();"
+          , "    return cnt;"
+          , "  endmethod"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses action block" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  rule r;"
+          , "    action"
+          , "      $display(\"a\");"
+          , "      $display(\"b\");"
+          , "    endaction"
+          , "  endrule"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses for loop" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  rule r;"
+          , "    for (Integer i = 0; i < 8; i = i + 1)"
+          , "      $display(\"%d\", i);"
+          , "  endrule"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses while loop" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  function Integer f(Integer n);"
+          , "    Integer x = n;"
+          , "    while (x > 0) begin"
+          , "      x = x - 1;"
+          , "    end"
+          , "    return x;"
+          , "  endfunction"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses function definition" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "function Integer add(Integer a, Integer b);"
+          , "  return a + b;"
+          , "endfunction"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses provisos" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo #(parameter Integer n) (Empty)"
+          , "    provisos (Add#(n, 1, m));"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses don't-care expression" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "module mkFoo(Empty);"
+          , "  Reg#(Bit#(8)) r <- mkReg(?);"
+          , "endmodule"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses tagged union expression" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "typedef union tagged {"
+          , "  Bit#(8) Valid;"
+          , "  void Invalid;"
+          , "} Maybe8 deriving (Bits);"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+      it "parses tick-prefixed hex literal" $ do
+        parseBSV "package Foo;\nBit#(8) x = 'hFF;\nendpackage"
+          `shouldSucceed` \_ -> pure ()
+
+      it "parses instance declaration" $ do
+        parseBSV (T.unlines
+          [ "package Foo;"
+          , "typeclass MyClass#(type t);"
+          , "  function t identity(t x);"
+          , "endtypeclass"
+          , "instance MyClass#(Integer);"
+          , "  function Integer identity(Integer x) = x;"
+          , "endinstance"
+          , "endpackage"
+          ]) `shouldSucceed` \_ -> pure ()
+
+    describe "BSV parser — library corpus" $
+      mapM_ makeBsvCorpusTest bsvFiles
+
+    describe "Pretty printer" $ do
+      it "round-trips simple package" $ do
+        let input = "package Foo where\n\nfoo :: Int\nfoo = 42\n"
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> do
+            let pretty = renderPretty 80 (prettyPackage pkg)
+            T.length pretty `shouldSatisfy` (> 0)
+
+-- | Helper: parse a BSV snippet and check success or run an assertion.
+parseBSV :: Text -> Either String Package
+parseBSV src = case parseBSVPackage "<test>" src of
+  Left  e -> Left (errorBundlePretty e)
+  Right p -> Right p
+
+shouldSucceed :: Either String Package -> (Package -> IO ()) -> Expectation
+shouldSucceed (Left e)  _ = expectationFailure e
+shouldSucceed (Right p) f = f p
+
+-- | Build one test case per .bsv corpus file.
+makeBsvCorpusTest :: FilePath -> Spec
+makeBsvCorpusTest fp = it fp $ do
+  src <- TIO.readFile fp
+  case parseBSVPackage (T.pack fp) src of
+    Left  e -> expectationFailure (errorBundlePretty e)
+    Right _ -> pure ()
+
+-- | Recursively collect all .bsv files under a directory.
+findBsvFiles :: FilePath -> IO [FilePath]
+findBsvFiles root = do
+  exists <- doesDirectoryExist root
+  if not exists
+    then pure []
+    else go root
+  where
+    go dir = do
+      entries <- listDirectory dir
+      fmap concat $ forM entries $ \e -> do
+        let path = dir </> e
+        isDir <- doesDirectoryExist path
+        if isDir
+          then go path
+          else pure [path | takeExtension e == ".bsv"]
 
 -- | Check if a token is EOF.
 isEof :: Token -> Bool
