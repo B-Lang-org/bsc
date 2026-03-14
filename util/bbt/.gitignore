@@ -1,1 +1,4 @@
 dist-newstyle/
+
+# Generated documentation output (bbt doc)
+docs/
