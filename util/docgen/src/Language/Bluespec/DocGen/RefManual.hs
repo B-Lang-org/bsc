@@ -93,7 +93,7 @@ convertRefManual cfg idx = do
   let mSha = rmcBscSha cfg
   mapM_ (writeSection refDir idx mSha) sections
   writeTocPage refDir sections mSha
-  writeTermIndex refDir sections indexEntries mSha
+  writeTermIndex refDir indexEntries mSha
 
   when' (rmcVerbose cfg) $ do
     putStrLn $ "[docgen] Reference manual: " ++ show (length sections) ++ " sections"
@@ -172,28 +172,37 @@ stripLayoutCmds = T.unlines . map strip . T.lines
 data IndexEntry = IndexEntry
   { ieKey     :: !Text   -- ^ normalised sort key (lowercase, stripped)
   , ieDisplay :: !Text   -- ^ display form (original, without @\te{}@ decoration)
+  , ieSection :: !Text   -- ^ slug of the section this entry belongs to
   } deriving stock (Show, Eq, Ord)
 
 -- | Scan the preprocessed body for @\index{...}@ commands and return the
--- collected entries.  Duplicates are removed.
+-- collected entries, each tagged with the slug of the enclosing @\section@.
+-- Duplicates (same key + section) are removed.
 collectIndexEntries :: Text -> [IndexEntry]
-collectIndexEntries src = removeDups $ go src
+collectIndexEntries src = removeDups $ go "index" src
   where
-    go t
-      | T.null t = []
+    -- go currentSectionSlug remaining
+    go _    t | T.null t = []
+    go slug t
+      -- Update current section when we see \section{title}
+      | "\\section{" `T.isPrefixOf` t =
+          let content = consumeBalanced (T.drop (T.length "\\section{") t)
+              rest    = T.drop (T.length "\\section{" + T.length content + 1) t
+              newSlug = slugify content
+          in go newSlug rest
       | "\\index{" `T.isPrefixOf` t =
           let content = consumeBalanced (T.drop (T.length "\\index{") t)
               rest    = T.drop (T.length "\\index{" + T.length content + 1) t
-          in toEntry content : go rest
-      | otherwise = go (T.drop 1 t)
+          in toEntry slug content : go slug rest
+      | otherwise = go slug (T.drop 1 t)
 
     -- The \index argument may be "word@\te{word}|textbf" — take the part
     -- before the first '@' or '|'.
-    toEntry raw =
+    toEntry slug raw =
       let stripped = T.takeWhile (\c -> c /= '@' && c /= '|') raw
           display  = stripTeCmd stripped
           key      = T.map toLower (T.strip display)
-      in IndexEntry key display
+      in IndexEntry key display slug
 
     -- Strip \te{...} wrappers from an index entry.
     stripTeCmd t
@@ -317,14 +326,14 @@ tocPage sections mSha = H.docTypeHtml $ do
         H.toHtml (secTitle sec)
 
 -- | Write the back-of-book term index page.
-writeTermIndex :: FilePath -> [Section] -> [IndexEntry] -> Maybe Text -> IO ()
-writeTermIndex outDir sections entries mSha = do
+writeTermIndex :: FilePath -> [IndexEntry] -> Maybe Text -> IO ()
+writeTermIndex outDir entries mSha = do
   let path = outDir </> "term-index.html"
-  TLIO.writeFile path (renderHtml (termIndexPage sections entries mSha))
+  TLIO.writeFile path (renderHtml (termIndexPage entries mSha))
 
 -- | Render the alphabetical term index page.
-termIndexPage :: [Section] -> [IndexEntry] -> Maybe Text -> Html
-termIndexPage sections entries mSha = H.docTypeHtml $ do
+termIndexPage :: [IndexEntry] -> Maybe Text -> Html
+termIndexPage entries mSha = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.title "Term Index — BH Reference"
@@ -336,12 +345,12 @@ termIndexPage sections entries mSha = H.docTypeHtml $ do
       H.h1 "Term Index"
       if null entries
         then H.p "(No index entries found.)"
-        else renderAlphaGroups sections entries
+        else renderAlphaGroups entries
     docFooter mSha
 
 -- | Render entries grouped by first letter.
-renderAlphaGroups :: [Section] -> [IndexEntry] -> Html
-renderAlphaGroups sections entries = do
+renderAlphaGroups :: [IndexEntry] -> Html
+renderAlphaGroups entries = do
   -- Navigation bar: A B C ... links
   H.p ! A.class_ "index-nav" $
     mapM_ (\letter -> do
@@ -365,26 +374,12 @@ renderAlphaGroups sections entries = do
       let letter = headChar e
       H.h2 ! A.id (H.toValue ("idx-" <> T.singleton letter)) $
         H.toHtml (T.singleton letter)
-      H.ul $ mapM_ (renderEntry sections) grp
+      H.ul $ mapM_ renderEntry grp
 
-    renderEntry secs entry =
+    renderEntry entry =
       H.li $ do
-        -- Try to find which section this entry came from
-        let anchor = entryAnchor secs entry
+        let anchor = ieSection entry <> ".html"
         H.a ! A.href (H.toValue anchor) $ H.toHtml (ieDisplay entry)
-
--- | Best-effort: find the first section whose title matches the entry key,
--- otherwise link to the main index.
-entryAnchor :: [Section] -> IndexEntry -> Text
-entryAnchor sections entry =
-  case filter matches sections of
-    (s:_) -> secSlug s <> ".html"
-    []    -> "index.html"
-  where
-    matches s =
-      let st = T.map toLower (T.strip (secTitle s))
-          ek = ieKey entry
-      in ek `T.isInfixOf` st || st `T.isInfixOf` ek
 
 -- ---------------------------------------------------------------------------
 -- Utilities
