@@ -577,6 +577,12 @@ collectStmt (Located _ stmt) = case stmt of
   StmtLetSeq items -> mapM_ collectLetItem items
   StmtAssign _ e -> collectExpr e
   StmtExpr expr -> collectExpr expr
+  StmtFor init_ cond incr body -> collectStmt init_ >> collectExpr cond >> collectStmt incr >> mapM_ collectStmt body
+  StmtWhile cond body -> collectExpr cond >> mapM_ collectStmt body
+  StmtRepeat n body -> collectExpr n >> mapM_ collectStmt body
+  StmtContinue -> pure ()
+  StmtBreak -> pure ()
+  StmtReturn e -> collectExpr e
 
 -- | Collect symbols from module statements.
 collectModuleStmt :: ModuleStmt -> Builder ()
@@ -587,9 +593,10 @@ collectModuleStmt stmt = case stmt of
   MStmtLet items -> mapM_ collectLetItem items
   MStmtLetSeq items -> mapM_ collectLetItem items
   MStmtExpr expr -> collectExpr expr
-  MStmtRules _rules -> pure () -- Rules don't introduce new symbol bindings
+  MStmtRules _rules -> pure ()
   MStmtInterface fields -> mapM_ collectInterfaceFieldFromExpr fields
   MStmtTupleInterface exprs -> mapM_ collectExpr exprs
+  MStmtDef def -> collectDefinition def
 
 -- | Collect symbols from interface fields in module expressions.
 collectInterfaceFieldFromExpr :: InterfaceField -> Builder ()

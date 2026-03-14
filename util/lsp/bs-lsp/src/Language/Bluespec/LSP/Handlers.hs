@@ -24,7 +24,7 @@ import Language.Bluespec.LSP.Hover
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.Symbols
-import Language.Bluespec.Parser (parsePackage)
+import Language.Bluespec.Parser (parseAuto)
 import Language.Bluespec.Syntax (ModuleId (..), Package)
 import Language.LSP.Protocol.Lens as Lens
 import Language.LSP.Protocol.Message
@@ -82,7 +82,7 @@ handleDocumentOpen stateVar docUri docText docVersion = do
       filename = uriToFilename docUri
 
   -- Parse document
-  let parseResult = parsePackage filename docText
+  let parseResult = parseAuto (T.unpack filename) docText
 
   -- Build symbol table if parse succeeded
   let (mPkg, symbols) = case parseResult of
@@ -123,7 +123,7 @@ handleDocumentChange stateVar docUri changes = do
   let newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
 
   -- Parse document
-  let parseResult = parsePackage filename newText
+  let parseResult = parseAuto (T.unpack filename) newText
 
   -- Build symbol table if parse succeeded
   let (mPkg, symbols) = case parseResult of
@@ -325,7 +325,7 @@ scanWorkspaceForModules stateVar rootDir = do
             if isDir
               then scanDir path
               else
-                when (isFile && takeExtension entry == ".bs") $
+                when (isFile && takeExtension entry `elem` [".bs", ".bsv"]) $
                   indexModuleFile stateVar path
 
     when True action = action
@@ -351,12 +351,11 @@ indexModuleFile stateVar filePath = do
               }
       atomically $ modifyTVar' stateVar $ updateModuleIndex moduleName info
 
--- | Try to read and parse a .bs file.
+-- | Try to read and parse a .bs or .bsv file.
 tryReadAndParse :: FilePath -> IO (Either String (Text, Package, SymbolTable))
 tryReadAndParse filePath = do
   text <- TIO.readFile filePath
-  let filename = T.pack filePath
-  case parsePackage filename text of
+  case parseAuto filePath text of
     Left err -> pure $ Left (show err)
     Right pkg -> pure $ Right (text, pkg, buildSymbolTable pkg)
 
