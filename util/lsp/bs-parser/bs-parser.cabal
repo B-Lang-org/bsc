@@ -50,6 +50,7 @@ executable bs-parser
     build-depends:
         base >= 4.17 && < 5
       , bs-parser
+      , bytestring >= 0.11
       , filepath >= 1.4
       , megaparsec >= 9.0
       , optparse-applicative >= 0.18

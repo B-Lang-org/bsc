@@ -936,7 +936,7 @@ pTypedefStruct sp0 = do
         Located (locSpan fNm) $ Field
           { fieldSpan    = locSpan fNm
           , fieldName    = fNm
-          , fieldType    = Just (Located (locSpan fTy) (QualType [] fTy))
+          , fieldType    = Located (locSpan fTy) (QualType [] fTy)
           , fieldPragmas = []
           , fieldDefault = Nothing }
   pure $ Located (spanTo sp0 (locSpan nm))
@@ -1024,7 +1024,7 @@ pInterfaceDecl = do
       pure $ Located (locSpan nm) $ Field
         { fieldSpan    = locSpan nm
         , fieldName    = fmap VarId (fmap identText nm)
-        , fieldType    = Just (Located (locSpan t) (QualType [] t))
+        , fieldType    = Located (locSpan t) (QualType [] t)
         , fieldPragmas = []
         , fieldDefault = Nothing }
       where
@@ -1042,7 +1042,7 @@ pInterfaceDecl = do
       pure $ Located (locSpan nm) $ Field
         { fieldSpan    = locSpan nm
         , fieldName    = fmap VarId (fmap identText nm)
-        , fieldType    = Just (Located (locSpan t) (QualType [] t))
+        , fieldType    = Located (locSpan t) (QualType [] t)
         , fieldPragmas = []
         , fieldDefault = Nothing }
 
