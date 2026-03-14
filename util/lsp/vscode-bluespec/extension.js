@@ -19,9 +19,12 @@ function activate(context) {
   };
 
   const clientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'bluespec' }],
+    documentSelector: [
+      { scheme: 'file', language: 'bluespec' },
+      { scheme: 'file', language: 'bluespec-sv' },
+    ],
     synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.bs'),
+      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{bs,bsv}'),
     },
     traceOutputChannel: vscode.window.createOutputChannel('Bluespec LSP Trace'),
   };

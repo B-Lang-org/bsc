@@ -1,7 +1,7 @@
 {
   "name": "vscode-bluespec",
   "displayName": "Bluespec",
-  "description": "Bluespec Classic (.bs) language support via bs-lsp",
+  "description": "Bluespec Classic (.bs) and SystemVerilog (.bsv) language support via bs-lsp",
   "version": "0.0.1",
   "publisher": "bsc-lsp",
   "engines": {
@@ -19,11 +19,22 @@
         "aliases": ["Bluespec Classic", "bluespec"],
         "extensions": [".bs"],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "bluespec-sv",
+        "aliases": ["Bluespec SystemVerilog", "bsv"],
+        "extensions": [".bsv"],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "bluespec",
+        "scopeName": "source.bluespec",
+        "path": "./syntaxes/bluespec.tmLanguage.json"
+      },
+      {
+        "language": "bluespec-sv",
         "scopeName": "source.bluespec",
         "path": "./syntaxes/bluespec.tmLanguage.json"
       }
