@@ -16,7 +16,7 @@ import Data.Text qualified as T
 import Language.LSP.Protocol.Types hiding (SymbolKind)
 
 import Language.Bluespec.LSP.State (ServerState (..), DocumentState (..), ModuleInfo (..), getPreludeSymbols)
-import Language.Bluespec.LSP.SymbolTable (Symbol (..), SymbolKind (..), getAllSymbols, formatQualType)
+import Language.Bluespec.LSP.SymbolTable (Symbol (..), SymbolKind (..), getAllSymbols, formatQualType, formatQualTypeExpanded)
 import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
 import Language.Bluespec.LSP.Util (getIdentifierAtPosition)
 import Language.Bluespec.Position (Located (..), locVal)
@@ -49,7 +49,7 @@ getCompletions serverState doc sourceText pos@(Position line col) =
       prefix    = T.take (fromIntegral col) lineText
    in if "." `T.isSuffixOf` prefix
         -- Dot completions: receiver.
-        then dotCompletions doc prefix
+        then dotCompletions serverState doc prefix
         else if isImportLine prefix
           -- Import completions
           then importCompletions serverState prefix
@@ -66,9 +66,10 @@ isImportLine t = "import " `T.isPrefixOf` T.stripStart t
 
 -- | Get completions after a dot: receiver.
 -- Looks up the receiver's type in the TypeEnv, then returns the
--- fields/methods of its interface.
-dotCompletions :: DocumentState -> Text -> [CompletionItem]
-dotCompletions doc prefix =
+-- fields/methods of its interface.  Falls back to imported module TypeEnvs
+-- when the struct is not defined locally.
+dotCompletions :: ServerState -> DocumentState -> Text -> [CompletionItem]
+dotCompletions serverState doc prefix =
   let receiverPart = T.dropEnd 1 prefix  -- drop the trailing '.'
       -- Extract the identifier immediately before the dot
       mReceiver = extractLastIdent receiverPart
@@ -76,11 +77,16 @@ dotCompletions doc prefix =
        Nothing  -> []
        Just recv ->
          let tenv = dsTypeEnv doc
+             -- Build a merged TypeEnv including all indexed modules (for struct defs)
+             mergedStructs = Map.unions $
+               teStructs tenv
+               : map (teStructs . miTypeEnv) (Map.elems (ssModuleIndex serverState))
+             tenvMerged = tenv { teStructs = mergedStructs }
          in case lookupVarType tenv recv of
               Nothing  -> []
               Just qty ->
                 let ty = locVal (qtType qty)
-                in fieldsForType tenv ty
+                in fieldsForType tenvMerged ty
 
 -- | Extract the last identifier in a piece of text (before a dot).
 extractLastIdent :: Text -> Maybe Text
@@ -211,7 +217,8 @@ scopeCompletions serverState doc sourceText pos =
       uniqueSyms  = nubBy (\a b -> symName a == symName b) allSyms
       -- Filter by prefix
       matching    = filter (\s -> T.unpack partial `isPrefixOf` T.unpack (symName s)) uniqueSyms
-      symItems    = map symbolToCompletion matching
+      tenv        = dsTypeEnv doc
+      symItems    = map (symbolToCompletionWithEnv tenv) matching
       -- Add keyword completions
       kwItems     = if T.null partial
                        then []
@@ -219,6 +226,18 @@ scopeCompletions serverState doc sourceText pos =
                             | kw <- bluespecKeywords
                             , T.unpack partial `isPrefixOf` T.unpack kw ]
   in symItems ++ kwItems
+
+-- | Convert a Symbol to a CompletionItem, enriching missing type from TypeEnv.
+symbolToCompletionWithEnv :: TypeEnv -> Symbol -> CompletionItem
+symbolToCompletionWithEnv tenv sym =
+  case symType sym of
+    Just _  -> symbolToCompletion sym
+    Nothing ->
+      case lookupVarType tenv (symName sym) of
+        Nothing -> symbolToCompletion sym
+        Just qt ->
+          symbolToCompletion sym
+            { symType = Just (formatQualTypeExpanded (teAliases tenv) qt) }
 
 -- | Convert a Symbol to a CompletionItem.
 symbolToCompletion :: Symbol -> CompletionItem

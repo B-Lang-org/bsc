@@ -20,6 +20,7 @@ import Language.Bluespec.LSP.SymbolTable (buildSymbolTable, SymbolTable, loadPre
 import Language.Bluespec.LSP.Definition (getDefinition, getDefinitionCrossFile)
 import Language.Bluespec.LSP.Util (getIdentifierAtPosition)
 import Language.Bluespec.LSP.State (emptyServerState, updateModuleIndex, ModuleInfo(..), setPreludeSymbols)
+import Language.Bluespec.LSP.TypeEnv (emptyTypeEnv)
 
 -- | Recursively find all .bs files in a directory.
 findBsFiles :: FilePath -> IO [FilePath]
@@ -476,6 +477,7 @@ spec = do
             let libInfo = ModuleInfo
                   { miFilePath = "/workspace/LibModule.bs"
                   , miSymbols = libSt
+                  , miTypeEnv = emptyTypeEnv
                   , miParsed = either (const Nothing) Just (parsePackage "/workspace/LibModule.bs" libModuleSource)
                   }
                 serverState = updateModuleIndex "LibModule" libInfo emptyServerState
@@ -503,6 +505,7 @@ spec = do
             let libInfo = ModuleInfo
                   { miFilePath = "/workspace/LibModule.bs"
                   , miSymbols = libSt
+                  , miTypeEnv = emptyTypeEnv
                   , miParsed = either (const Nothing) Just (parsePackage "/workspace/LibModule.bs" libModuleSource)
                   }
                 serverState = updateModuleIndex "LibModule" libInfo emptyServerState
@@ -528,6 +531,7 @@ spec = do
             let libInfo = ModuleInfo
                   { miFilePath = "/workspace/LibModule.bs"
                   , miSymbols = libSt
+                  , miTypeEnv = emptyTypeEnv
                   , miParsed = either (const Nothing) Just (parsePackage "/workspace/LibModule.bs" libModuleSource)
                   }
                 serverState = updateModuleIndex "LibModule" libInfo emptyServerState
@@ -552,6 +556,7 @@ spec = do
             let libInfo = ModuleInfo
                   { miFilePath = "/workspace/LibModule.bs"
                   , miSymbols = libSt
+                  , miTypeEnv = emptyTypeEnv
                   , miParsed = either (const Nothing) Just (parsePackage "/workspace/LibModule.bs" libModuleSource)
                   }
                 serverState = updateModuleIndex "LibModule" libInfo emptyServerState

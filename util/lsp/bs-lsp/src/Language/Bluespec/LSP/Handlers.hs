@@ -116,7 +116,7 @@ parseAndUpdateDocument stateVar docUri docText docVersion = do
         , dsVersion = docVersion
         }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
-  liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
+  liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols typeEnv
   state' <- liftIO $ readTVarIO stateVar
   let parseDiags  = makeDiagnostics (maybe (Right pkg) Left merrs)
       importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
@@ -327,10 +327,12 @@ indexModuleFile stateVar filePath = do
         "Bluespec LSP: Failed to parse " ++ filePath ++ ": " ++ take 200 err
       pure ()
     Right (_text, pkg, symbols) -> do
-      let info =
+      let typeEnv = buildTypeEnv pkg
+          info =
             ModuleInfo
               { miFilePath = filePath,
                 miSymbols = symbols,
+                miTypeEnv = typeEnv,
                 miParsed = Just pkg
               }
       atomically $ modifyTVar' stateVar $ updateModuleIndex moduleName info
@@ -344,8 +346,8 @@ tryReadAndParse filePath = do
     Right pkg -> pure $ Right (text, pkg, buildSymbolTable pkg)
 
 -- | Update module index when a document is opened/changed.
-updateModuleIndexFromDoc :: TVar ServerState -> Text -> Maybe Package -> SymbolTable -> IO ()
-updateModuleIndexFromDoc stateVar filePath mPkg symbols = do
+updateModuleIndexFromDoc :: TVar ServerState -> Text -> Maybe Package -> SymbolTable -> TypeEnv -> IO ()
+updateModuleIndexFromDoc stateVar filePath mPkg symbols typeEnv = do
   -- Extract module name from the package or use filename
   let modName = case mPkg of
         Just _pkg -> stPackageName symbols
@@ -357,6 +359,7 @@ updateModuleIndexFromDoc stateVar filePath mPkg symbols = do
             ModuleInfo
               { miFilePath = T.unpack filePath,
                 miSymbols = symbols,
+                miTypeEnv = typeEnv,
                 miParsed = mPkg
               }
       atomically $ modifyTVar' stateVar $ updateModuleIndex name info

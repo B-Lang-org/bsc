@@ -73,6 +73,8 @@ data ModuleInfo = ModuleInfo
     miFilePath :: !FilePath,
     -- | Symbol table (lazily populated)
     miSymbols :: !SymbolTable,
+    -- | Type environment (for cross-file type inference and dot completions)
+    miTypeEnv :: !TypeEnv,
     -- | Parsed AST (if parsed)
     miParsed :: !(Maybe Package)
   }
