@@ -308,7 +308,7 @@ scanWorkspaceForModules stateVar rootDir = do
         else do
           entries <- listDirectory dir
           forM_ entries $ \entry -> do
-            let path = dir ++ "/" ++ entry
+            let path = dir </> entry
             isDir <- doesDirectoryExist path
             isFile <- doesFileExist path
             if isDir

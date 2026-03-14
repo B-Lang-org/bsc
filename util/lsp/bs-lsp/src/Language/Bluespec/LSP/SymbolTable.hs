@@ -477,6 +477,20 @@ fmtQT qt = do
   aliases <- gets bsAliases
   pure $ formatQualTypeExpanded aliases qt
 
+-- | Build a top-level Symbol (no parent, no doc comment).
+mkSym :: Text -> SymbolKind -> SrcSpan -> Maybe Text -> Symbol
+mkSym name kind sp mType = Symbol
+  { symName = name, symKind = kind, symSpan = sp
+  , symType = mType, symDoc = Nothing, symParent = Nothing
+  }
+
+-- | Build a child Symbol using the current parent context.
+mkChildSym :: Maybe Text -> Text -> SymbolKind -> SrcSpan -> Maybe Text -> Symbol
+mkChildSym parent name kind sp mType = Symbol
+  { symName = name, symKind = kind, symSpan = sp
+  , symType = mType, symDoc = Nothing, symParent = parent
+  }
+
 -- | Add a symbol to the builder state.
 addSymbol :: Symbol -> Builder ()
 addSymbol sym = modify $ \s -> s {bsSymbols = sym : bsSymbols s}
@@ -532,135 +546,57 @@ collectDefinition (Located _span def) = case def of
   DefValue name mTy clauses -> do
     let nameText = identText $ locVal name
     typeText <- traverse (fmtQT . locVal) mTy
-    addSymbol
-      Symbol
-        { symName = nameText,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = typeText,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
-    -- Collect parameters from clauses
+    addSymbol $ mkSym nameText SKFunction (locSpan name) typeText
     withParent nameText $ mapM_ collectClause clauses
   DefTypeSig name ty -> do
     typeText <- fmtQT (locVal ty)
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = Just typeText,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
   DefType name _kind tvars ty -> do
     let nameText = identText $ locVal name
-    addSymbol
-      Symbol
-        { symName = nameText,
-          symKind = SKType,
-          symSpan = locSpan name,
-          symType = Just $ renderPretty 80 $ prettyType $ locVal ty,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym nameText SKType (locSpan name)
+      (Just $ renderPretty 80 $ prettyType $ locVal ty)
     withParent nameText $ mapM_ collectTyVar tvars
   DefData name _kind tvars constrs _derivs -> do
     let nameText = identText $ locVal name
-    addSymbol
-      Symbol
-        { symName = nameText,
-          symKind = SKData,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym nameText SKData (locSpan name) Nothing
     withParent nameText $ do
       mapM_ collectTyVar tvars
       mapM_ collectConstructor constrs
   DefInterface name tvars fields _derivs -> do
     let nameText = identText $ locVal name
-    addSymbol
-      Symbol
-        { symName = nameText,
-          symKind = SKInterface,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym nameText SKInterface (locSpan name) Nothing
     withParent nameText $ do
       mapM_ collectTyVar tvars
       mapM_ collectField fields
   DefClass _coherence _preds name tvars _fundeps members -> do
     let nameText = identText $ locVal name
-    addSymbol
-      Symbol
-        { symName = nameText,
-          symKind = SKClass,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym nameText SKClass (locSpan name) Nothing
     withParent nameText $ do
       mapM_ collectTyVar tvars
       mapM_ collectClassMember members
-  DefInstance _preds clsName _types members -> do
+  DefInstance _preds clsName _types members ->
     -- Instance methods are collected under the class name
-    let clsNameText = identText $ qualIdent $ locVal clsName
-    withParent clsNameText $ mapM_ collectInstanceMember members
+    withParent (identText $ qualIdent $ locVal clsName) $
+      mapM_ collectInstanceMember members
   DefPrimitive name ty -> do
     typeText <- fmtQT (locVal ty)
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = Just typeText,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
   DefForeign name ty _ext -> do
     typeText <- fmtQT (locVal ty)
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = Just typeText,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
-  DefPrimitiveType name _kind -> do
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKType,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = Nothing
-        }
+    addSymbol $ mkSym (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
+  DefPrimitiveType name _kind ->
+    addSymbol $ mkSym (identText $ locVal name) SKType (locSpan name) Nothing
   DefPragma _ -> pure ()
 
 -- | Collect symbols from a function clause.
 collectClause :: Clause -> Builder ()
 collectClause Clause {..} = do
   mapM_ collectPattern clausePats
-  collectExpr clauseBody -- Traverse expression body to collect let bindings
-  mapM_ collectLetItem (concat [clauseWhere >>= defnsToLetItems])
+  collectExpr clauseBody
+  mapM_ collectLetItem (concatMap defnsToLetItems clauseWhere)
   where
     defnsToLetItems :: LDefinition -> [LetItem]
-    defnsToLetItems (Located _ (DefValue name mTy _)) =
-      [LetTypeSig name (fromMaybe (error "no type") mTy) | isJust mTy]
-      where
-        isJust Nothing = False
-        isJust (Just _) = True
-        fromMaybe _ (Just x) = x
-        fromMaybe d Nothing = d
+    defnsToLetItems (Located _ (DefValue name (Just ty) _)) = [LetTypeSig name ty]
     defnsToLetItems _ = []
 
 -- | Traverse an expression to collect symbols from let bindings and lambdas.
@@ -749,15 +685,7 @@ collectPattern :: LPattern -> Builder ()
 collectPattern (Located _ pat) = case pat of
   PVar name -> do
     parent <- gets bsParent
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKParameter,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKParameter (locSpan name) Nothing
   PCon _ pats -> mapM_ collectPattern pats
   PInfix p1 _ p2 -> collectPattern p1 >> collectPattern p2
   PLit _ -> pure ()
@@ -767,15 +695,7 @@ collectPattern (Located _ pat) = case pat of
   PRecord _ binds -> mapM_ (collectPattern . snd) binds
   PAs name p -> do
     parent <- gets bsParent
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKParameter,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKParameter (locSpan name) Nothing
     collectPattern p
   PTypeSig p _ -> collectPattern p
   PParens p -> collectPattern p
@@ -784,15 +704,7 @@ collectPattern (Located _ pat) = case pat of
 collectTyVar :: Located TyVar -> Builder ()
 collectTyVar (Located tvSpan TyVar {..}) = do
   parent <- gets bsParent
-  addSymbol
-    Symbol
-      { symName = identText tvName,
-        symKind = SKTypeVar,
-        symSpan = tvSpan,
-        symType = Nothing,
-        symDoc = Nothing,
-        symParent = parent
-      }
+  addSymbol $ mkChildSym parent (identText tvName) SKTypeVar tvSpan Nothing
 
 -- | Collect data constructor.
 collectConstructor :: Located Constructor -> Builder ()
@@ -800,34 +712,16 @@ collectConstructor (Located _ Constructor {..}) = do
   parent <- gets bsParent
   -- Constructor can have multiple names (aliases), collect all of them
   forM_ conNames $ \name ->
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKConstructor,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKConstructor (locSpan name) Nothing
   -- Collect record fields if present
-  case conRecord of
-    Just fields -> mapM_ collectField fields
-    Nothing -> pure ()
+  mapM_ (mapM_ collectField) conRecord
 
 -- | Collect interface/record field.
 collectField :: Located Field -> Builder ()
 collectField (Located _ Field {..}) = do
   parent   <- gets bsParent
   typeText <- fmtQT (locVal fieldType)
-  addSymbol
-    Symbol
-      { symName = identText $ locVal fieldName,
-        symKind = SKField,
-        symSpan = locSpan fieldName,
-        symType = Just typeText,
-        symDoc = Nothing,
-        symParent = parent
-      }
+  addSymbol $ mkChildSym parent (identText $ locVal fieldName) SKField (locSpan fieldName) (Just typeText)
 
 -- | Collect class member.
 collectClassMember :: ClassMember -> Builder ()
@@ -835,26 +729,10 @@ collectClassMember member = case member of
   ClassMethod name ty _ -> do
     parent   <- gets bsParent
     typeText <- fmtQT (locVal ty)
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = Just typeText,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
   ClassDefaultImpl name pats _ -> do
     parent <- gets bsParent
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKFunction,
-          symSpan = locSpan name,
-          symType = Nothing,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) Nothing
     withParent (identText $ locVal name) $ mapM_ collectPattern pats
   ClassFixity _ -> pure ()
 
@@ -862,28 +740,12 @@ collectClassMember member = case member of
 collectInstanceMember :: InstanceMember -> Builder ()
 collectInstanceMember (InstanceMethod name clauses) = do
   parent <- gets bsParent
-  addSymbol
-    Symbol
-      { symName = identText $ locVal name,
-        symKind = SKFunction,
-        symSpan = locSpan name,
-        symType = Nothing,
-        symDoc = Nothing,
-        symParent = parent
-      }
+  addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) Nothing
   withParent (identText $ locVal name) $ mapM_ collectClause clauses
 collectInstanceMember (InstanceTypeSig name ty) = do
   parent   <- gets bsParent
   typeText <- fmtQT (locVal ty)
-  addSymbol
-    Symbol
-      { symName = identText $ locVal name,
-        symKind = SKFunction,
-        symSpan = locSpan name,
-        symType = Just typeText,
-        symDoc = Nothing,
-        symParent = parent
-      }
+  addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
 
 -- | Collect symbols from let items.
 collectLetItem :: LetItem -> Builder ()
@@ -891,33 +753,16 @@ collectLetItem item = case item of
   LetTypeSig name ty -> do
     parent   <- gets bsParent
     typeText <- fmtQT (locVal ty)
-    addSymbol
-      Symbol
-        { symName = identText $ locVal name,
-          symKind = SKVariable,
-          symSpan = locSpan name,
-          symType = Just typeText,
-          symDoc = Nothing,
-          symParent = parent
-        }
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKVariable (locSpan name) (Just typeText)
   LetBind Binding {..} -> do
     parent   <- gets bsParent
     typeText <- traverse (fmtQT . locVal) bindType
-    -- Get name and span from pattern (if it's a simple variable)
     case getPatternNameAndSpan bindPat of
       Just (name, nameSpan) -> do
-        addSymbol
-          Symbol
-            { symName = name,
-              symKind = SKVariable,
-              symSpan = nameSpan, -- Use the name's span, not the whole binding span
-              symType = typeText,
-              symDoc = Nothing,
-              symParent = parent
-            }
+        -- Use the name's span, not the whole binding span
+        addSymbol $ mkChildSym parent name SKVariable nameSpan typeText
         withParent name $ do
           mapM_ collectPattern bindArgs
-          -- Traverse the binding body to collect nested let bindings
           collectExpr bindExpr
       Nothing -> collectPattern bindPat
     where
