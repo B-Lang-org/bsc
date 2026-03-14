@@ -16,6 +16,10 @@ optsParser = DocGenConfig
   <*> strOption (long "out" <> short 'o' <> metavar "DIR"
         <> value "docs" <> showDefault
         <> help "Output directory")
+  <*> optional (strOption (long "ref-manual" <> short 'r' <> metavar "FILE"
+        <> help "Path to BH_lang.tex to convert to HTML reference manual"))
+  <*> optional (strOption (long "stdlib-url" <> metavar "URL"
+        <> help "External URL for stdlib cross-links (e.g. https://bsc-docs.example.com/stdlib/)"))
   <*> switch (long "verbose" <> short 'v' <> help "Verbose output")
 
 -- ---------------------------------------------------------------------------

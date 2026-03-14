@@ -29,6 +29,7 @@ library
         Language.Bluespec.DocGen.SymbolIndex
         Language.Bluespec.DocGen.HTML
         Language.Bluespec.DocGen.CSS
+        Language.Bluespec.DocGen.RefManual
     build-depends:
         base            >= 4.17 && < 5
       , bs-parser

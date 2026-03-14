@@ -13,6 +13,7 @@ module Language.Bluespec.DocGen.TexParser
   , collectMacros
   ) where
 
+import Control.Monad (void)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
@@ -50,8 +51,16 @@ collectMacros src = foldr insert emptyMacroEnv (T.lines src)
     insert line env =
       case parseNewcommand line of
         Nothing         -> env
+        Just (_, _, body) | not (balancedBraces body) -> env  -- unbalanced/multi-line, skip
         Just (name, 0, body) -> env { meZeroArg = Map.insert name body (meZeroArg env) }
         Just (name, _, body) -> env { meOneArg  = Map.insert name body (meOneArg env) }
+
+    balancedBraces t = go (0 :: Int) (T.unpack t)
+      where
+        go d []       = d == 0
+        go d ('{':cs) = go (d+1) cs
+        go d ('}':cs) = if d > 0 then go (d-1) cs else False
+        go d (_:cs)   = go d cs
 
     parseNewcommand line =
       let stripped = T.strip line
@@ -65,7 +74,10 @@ collectMacros src = foldr insert emptyMacroEnv (T.lines src)
           (name, rest1) = T.breakOn "}" afterCmd
           rest2    = T.drop 1 rest1   -- drop '}'
           (nargs, rest3) = parseOptArg rest2
-          body     = T.strip $ T.dropAround (\c -> c == '{' || c == '}') rest3
+          body     = T.strip $ stripOuterBraces rest3
+          stripOuterBraces t
+            | "{" `T.isPrefixOf` t && "}" `T.isSuffixOf` t = T.drop 1 (T.dropEnd 1 t)
+            | otherwise = t
       in (name, nargs, body)
 
     parseOptArg t
@@ -81,7 +93,65 @@ collectMacros src = foldr insert emptyMacroEnv (T.lines src)
 
 -- | Expand known macros in a block of text; unknown macros are left as-is.
 expandMacros :: MacroEnv -> Text -> Text
-expandMacros _env txt = txt   -- TODO: implement substitution
+expandMacros env = go
+  where
+    go t
+      | T.null t = T.empty
+      -- Curly-braced macro group: {\name} or {\name extra}
+      | "{" `T.isPrefixOf` t, Just ('\\', rest) <- T.uncons (T.drop 1 t) =
+          let (name, after) = T.span isIdentChar rest
+          in case T.uncons after of
+               Just ('}', rest2) ->
+                 case Map.lookup name (meZeroArg env) of
+                   Just expansion -> go (expansion <> rest2)
+                   Nothing        -> "{" <> "\\" <> name <> "}" <> go rest2
+               Just (' ', rest2) ->
+                 case Map.lookup name (meZeroArg env) of
+                   Just expansion ->
+                     let (extra, rest3) = T.breakOn "}" rest2
+                     in go (expansion <> extra <> T.drop 1 rest3)
+                   Nothing -> T.cons '{' $ go (T.drop 1 t)
+               _ -> T.cons '{' $ go (T.drop 1 t)
+      -- Macro call: \name or \name{arg}
+      | "\\" `T.isPrefixOf` t =
+          let (name, after) = T.span isIdentChar (T.drop 1 t)
+          in if T.null name
+               then "\\" <> go after
+               else case Map.lookup name (meOneArg env) of
+                 Just template ->
+                   case T.uncons (T.stripStart after) of
+                     Just ('{', rest2) ->
+                       let arg      = consumeBalanced rest2
+                           rest3    = T.drop (T.length arg + 1) rest2
+                           expanded = T.replace "#1" arg template
+                       in go (expanded <> rest3)
+                     _ -> "\\" <> name <> go after
+                 Nothing ->
+                   case Map.lookup name (meZeroArg env) of
+                     Just expansion -> go (expansion <> after)
+                     Nothing        -> "\\" <> name <> go after
+      | otherwise =
+          -- Break at the next '\' or '{'.  If the very first character IS one
+          -- of those (e.g. a bare '{' not part of a {\name} group), consume it
+          -- literally so we always make forward progress.
+          case T.break (\c -> c == '\\' || c == '{') t of
+            ("", _)     -> T.cons (T.head t) (go (T.tail t))
+            (plain, rest) -> plain <> go rest
+
+    -- Consume a brace-balanced argument (returns content before closing '}').
+    consumeBalanced :: Text -> Text
+    consumeBalanced = T.pack . go' (0 :: Int) . T.unpack
+      where
+        go' _ []       = []
+        go' 0 ('}':_)  = []
+        go' d ('}':cs) = '}' : go' (d-1) cs
+        go' d ('{':cs) = '{' : go' (d+1) cs
+        go' d (c:cs)   = c   : go' d cs
+
+isIdentChar :: Char -> Bool
+isIdentChar c = (c >= 'a' && c <= 'z')
+             || (c >= 'A' && c <= 'Z')
+             || (c >= '0' && c <= '9')
 
 -- ---------------------------------------------------------------------------
 -- Parse a sequence of @--\@@ comment lines into DocBlocks
@@ -103,11 +173,19 @@ parseDocComment lines_ =
          else t
 
 -- | Parse a chunk of LaTeX text into a list of DocBlocks.
+-- The parser is best-effort: it extracts all blocks it recognises and
+-- silently drops content it cannot parse.  The fallback only fires if
+-- the parser itself throws an unexpected exception (should never happen
+-- with the current grammar).
 parseTexDoc :: Text -> [DocBlock]
 parseTexDoc src =
   case runParser docParser "<doc>" src of
-    Left _   -> [Para [Plain src]]   -- fallback: treat as plain text
-    Right bs -> bs
+    Left _   -> [Para [Plain src]]
+    Right bs -> filter nonEmpty bs
+  where
+    nonEmpty (Para [])          = False
+    nonEmpty (Para [Plain ""])  = False
+    nonEmpty _                  = True
 
 -- ---------------------------------------------------------------------------
 -- LaTeX parser (megaparsec)
@@ -115,18 +193,37 @@ parseTexDoc src =
 
 type BlockParser = Parser [DocBlock]
 
+-- | Top-level document parser.  Does NOT require consuming all input — unknown
+-- LaTeX constructs are absorbed by 'block's fallback alternatives.  If the
+-- parser somehow stalls we return whatever blocks have been accumulated so far.
 docParser :: BlockParser
-docParser = many block <* eof
+docParser = skipWhitespace *> many (block <* skipWhitespace)
 
+-- | Consume any amount of whitespace (spaces, newlines, tabs).
+skipWhitespace :: Parser ()
+skipWhitespace = void $ many (satisfy (\c -> c == '\n' || c == ' ' || c == '\r' || c == '\t'))
+
+-- | All block parsers use 'try' so that if they consume input and then fail,
+-- they fully backtrack to let 'para' (with its catch-all inline) absorb the text.
 block :: Parser DocBlock
 block = choice
-  [ sectionCmd
-  , subsectionCmd
-  , subsubsectionCmd
-  , verbatimEnv
-  , bulletList
-  , para
+  [ try sectionCmd
+  , try subsectionCmd
+  , try subsubsectionCmd
+  , try verbatimEnv
+  , try bulletList
+  , try unknownEnv    -- \begin{unknown}...\end{unknown}
+  , para              -- always succeeds if any non-newline char is present
   ]
+
+-- | Skip an unknown @\begin{name}...\end{name}@ environment entirely.
+unknownEnv :: Parser DocBlock
+unknownEnv = do
+  _ <- string "\\begin{"
+  envName <- takeWhileP (Just "env name") (\c -> c /= '}' && c /= '\n')
+  _ <- char '}'
+  _ <- manyTill anySingle (string ("\\end{" <> envName <> "}"))
+  pure $ Para []
 
 sectionCmd :: Parser DocBlock
 sectionCmd = headingCmd "\\section" 1
@@ -190,17 +287,68 @@ balancedArg = T.pack <$> go (0 :: Int)
 -- Inline parser
 -- ---------------------------------------------------------------------------
 
+-- | All inline parsers that start with a fixed prefix use 'try' so that if
+-- they consume input and then fail (e.g. unbalanced brace), they fully
+-- backtrack and the fallback alternatives get a chance.
 inline :: Parser DocInline
 inline = choice
-  [ teCmd          -- \te{Foo} — type/entity reference → SymRef
-  , textttCmd      -- \texttt{foo} → Code
-  , emphCmd        -- \emph{...} → Emph
-  , textbfCmd      -- \textbf{...} → Strong
-  , ntermCmd       -- \nterm{...} → NonTerm
-  , indexCmd       -- \index{...} → skip (brace-balanced)
-  , skipCmd        -- other known no-op commands
+  [ try teCmd             -- \te{Foo} → SymRef
+  , try textttCmd         -- \texttt{...} → Code
+  , try emphCmd           -- \emph{...} → Emph
+  , try textbfCmd         -- \textbf{...} → Strong
+  , try ntermCmd          -- \nterm{...} → NonTerm
+  , try indexCmd          -- \index{...} → stripped
+  , skipCmd               -- fixed \name tokens — safe, no try needed
+  , try unknownCmdInline  -- \unknown{...} → discarded
+  , try braceGroup        -- {content} — backtrack if unbalanced
   , plainText
+  , inlineCatchAll        -- last resort: any non-newline char
   ]
+
+-- | Consume any single non-newline character as plain text.
+-- This ensures the inline parser never fails on unexpected input,
+-- so 'para' always makes progress and we never fall back to the
+-- whole-document-as-plain-text path.
+inlineCatchAll :: Parser DocInline
+inlineCatchAll = Plain . T.singleton <$> satisfy (/= '\n')
+
+-- | Render an unknown @\cmd@ or @\cmd{arg}@ inline command.
+-- This parser MUST NOT fail after consuming the initial @\@ — it either
+-- returns the rendered inline or falls through via 'inlineCatchAll'.
+unknownCmdInline :: Parser DocInline
+unknownCmdInline = do
+  _ <- char '\\'
+  -- Try to consume a LaTeX identifier.  If nothing follows (e.g. \\{ \\} \\\\ \\$),
+  -- fall back to returning the bare backslash.
+  mName <- optional (takeWhile1P (Just "cmd name") isIdentChar)
+  case mName of
+    Nothing ->
+      -- Bare \  followed by a special char: return the next char literally
+      -- (e.g. \{ → "{", \$ → "$", \\ already handled by skipCmd)
+      fmap (Plain . T.singleton) anySingle
+    Just _name -> do
+      -- Optional single brace-group argument
+      mArg <- optional (char '{' *> balancedArg)
+      pure $ case mArg of
+        Just _  -> Plain ""   -- discard unknown command + arg
+        Nothing -> Plain ""   -- discard unknown command
+
+-- | A bare @{...}@ group — render its contents.
+braceGroup :: Parser DocInline
+braceGroup = do
+  _ <- char '{'
+  content <- manyTill inline (char '}')
+  pure $ case content of
+    []  -> Plain ""
+    [x] -> x
+    xs  -> Plain (T.concat (map inlineToText xs))
+  where
+    inlineToText (Plain t)    = t
+    inlineToText (Code t)     = t
+    inlineToText (SymRef t)   = t
+    inlineToText (NonTerm t)  = t
+    inlineToText (Emph is)    = T.concat (map inlineToText is)
+    inlineToText (Strong is)  = T.concat (map inlineToText is)
 
 teCmd :: Parser DocInline
 teCmd = do

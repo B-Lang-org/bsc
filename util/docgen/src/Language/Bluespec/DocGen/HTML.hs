@@ -6,6 +6,7 @@ module Language.Bluespec.DocGen.HTML
   ( renderPackagePage
   , renderIndexPage
   , renderSitePage
+  , renderDocBlocks
   ) where
 
 import Data.List (sortOn)
@@ -106,6 +107,11 @@ kindLabel DKField       = "field"
 -- ---------------------------------------------------------------------------
 -- Block rendering
 -- ---------------------------------------------------------------------------
+
+-- | Render a list of 'DocBlock's into HTML.
+-- Exported for use by 'RefManual' and other callers.
+renderDocBlocks :: SymbolIndex -> [DocBlock] -> Html
+renderDocBlocks idx = mapM_ (renderBlock idx)
 
 renderBlock :: SymbolIndex -> DocBlock -> Html
 renderBlock idx = \case

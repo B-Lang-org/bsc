@@ -23,8 +23,10 @@ runDoc cfg opts = do
   let root     = cfgRoot cfg
       srcDirs  = map (root </>) (buildSourceDirs (cfgBuild cfg))
       dgcfg    = DocGenConfig
-        { dgcLibDirs = srcDirs
-        , dgcOutDir  = doOutDir opts
-        , dgcVerbose = doVerbose opts
+        { dgcLibDirs   = srcDirs
+        , dgcOutDir    = doOutDir opts
+        , dgcRefManual = Nothing   -- user projects have no LaTeX manual
+        , dgcStdlibUrl = Nothing   -- TODO: expose via bbt.toml or --stdlib-url flag
+        , dgcVerbose   = doVerbose opts
         }
   runDocGen dgcfg
