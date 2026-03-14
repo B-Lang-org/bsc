@@ -18,6 +18,7 @@ common warnings
 library
     import:           warnings
     exposed-modules:
+        Language.Bluespec.Fixity
         Language.Bluespec.Lexer
         Language.Bluespec.Layout
         Language.Bluespec.Parser

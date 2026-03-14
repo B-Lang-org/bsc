@@ -30,6 +30,7 @@ import qualified Text.Megaparsec as MP
 import qualified Language.Bluespec.Lexer as Lex
 import Language.Bluespec.Layout
 import qualified Language.Bluespec.BSV.Parser as BSV
+import Language.Bluespec.Fixity (resolveOps, bluespecFixities)
 import Language.Bluespec.Position
 import Language.Bluespec.Syntax
 
@@ -1329,13 +1330,11 @@ pExpr = do
 pExprOps :: Parser LExpr
 pExprOps = do
   e <- pLExpr
-  mOps <- many $ do
+  ops <- many $ do
     op <- anyOp
     e2 <- pLExpr
     pure (op, e2)
-  case mOps of
-    [] -> pure e
-    ops -> pure $ foldl (\a (op, b) -> spanning a b (EInfix a op b)) e ops
+  pure $ resolveOps bluespecFixities e ops
 
 -- | Parse a left-hand expression (lambda, let, if, case, etc.).
 pLExpr :: Parser LExpr

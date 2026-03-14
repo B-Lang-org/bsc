@@ -20,6 +20,7 @@ import Text.Megaparsec hiding (Token, token, tokens, ParseError)
 import qualified Text.Megaparsec as MP
 
 import qualified Language.Bluespec.Lexer as Lex
+import Language.Bluespec.Fixity (resolveOps, bluespecFixities)
 import Language.Bluespec.Position
 import Language.Bluespec.Syntax
 
@@ -362,12 +363,8 @@ pOperatorExpr = do
   es <- many $ do
     op <- opSym
     e2 <- pUnaryExpr
-    pure (op, e2)
-  pure $ foldl' combine e1 es
-  where
-    combine acc (op, e) =
-      Located (spanTo (locSpan acc) (locSpan e))
-        (EInfix acc (Located (locSpan op) (OpSym (locVal op))) e)
+    pure (Located (locSpan op) (OpSym (locVal op)), e2)
+  pure $ resolveOps bluespecFixities e1 es
 
 pUnaryExpr :: Parser LExpr
 pUnaryExpr = choice
