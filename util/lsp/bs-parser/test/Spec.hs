@@ -45,6 +45,11 @@ main = do
   bsvFiles20 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.interra"
   bsvFiles21 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.assertions"
   bsvFiles22 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.binary"
+  bsvFiles23 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.mcd"
+  bsvFiles24 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.driver"
+  bsvFiles25 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.long_tests"
+  bsvFiles26 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bluetcl"
+  bsvFiles27 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.doc"
   bsFiles   <- findFiles ".bs"  "/work/bsc/src/Libraries"
   bsFiles2  <- findFiles ".bs"  "/work/bsc/testsuite/bsc.bluesim"
   bsFiles3  <- findFiles ".bs"  "/work/bsc/testsuite/bsc.misc"
@@ -63,7 +68,8 @@ main = do
                  ++ bsvFiles10 ++ bsvFiles11 ++ bsvFiles12
                  ++ bsvFiles13 ++ bsvFiles14 ++ bsvFiles15 ++ bsvFiles16
                  ++ bsvFiles17 ++ bsvFiles18 ++ bsvFiles19 ++ bsvFiles20
-                 ++ bsvFiles21 ++ bsvFiles22
+                 ++ bsvFiles21 ++ bsvFiles22 ++ bsvFiles23 ++ bsvFiles24
+                 ++ bsvFiles25 ++ bsvFiles26 ++ bsvFiles27
   hspec $ do
     describe "Lexer" $ do
       it "lexes identifiers" $ do
