@@ -23,10 +23,16 @@ install: all
 	$(INSTALL) -m 755 -d $(BINDIR)
 	$(INSTALL) -m 755 bs-lsp-bin $(BINDIR)/bs-lsp
 
+.PHONY: install-bbt
+install-bbt:
+	cd $(BBT_CABAL) && cabal build exe:bbt
+	$(INSTALL) -m 755 -d $(BINDIR)
+	$(INSTALL) -m 755 $$(cd $(BBT_CABAL) && cabal list-bin bbt) $(BINDIR)/bbt
+
 # Install the VSCode extension.  Requires Node.js / npm.
 # Skips gracefully if npm is not available.
 .PHONY: install-vscode-ext
-install-vscode-ext:
+install-vscode-ext: install install-bbt
 	@if command -v npm >/dev/null 2>&1; then \
 	  echo "Installing vscode-bluespec extension to $(VSCODE_EXT_DIR)..."; \
 	  cd vscode-bluespec && npm install --silent; \
@@ -88,6 +94,7 @@ test-lsp:
 #   make docs DOCDIR=/tmp/docs  # generate to a custom location
 #   make install-docs           # same, but also prints the output path
 
+BBT_CABAL    := $(REPO_ROOT)/util/bbt
 DOCGEN_CABAL := $(REPO_ROOT)/util/docgen
 TEX_MANUAL   := $(REPO_ROOT)/doc/BH_ref_guide/BH_lang.tex
 LIB_DIRS     := $(REPO_ROOT)/src/Libraries
