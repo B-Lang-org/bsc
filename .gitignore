@@ -11,5 +11,8 @@ inst
 # And the build directory
 build
 
+# Generated documentation (bs-docgen output)
+docs/
+
 .vagrant/
 vagrant-out/

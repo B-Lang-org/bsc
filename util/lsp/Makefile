@@ -3,6 +3,7 @@ PWD      := $(shell pwd)
 REPO_ROOT := $(abspath $(PWD)/../..)
 PREFIX   ?= $(REPO_ROOT)/inst
 BINDIR    = $(PREFIX)/bin
+DOCDIR    = $(PREFIX)/doc/bluespec
 
 # Ensure ghcup-managed tools (cabal, ghc-9.10.1, etc.) are on PATH even when
 # make is invoked with a minimal PATH (e.g. from the top-level install-src).
@@ -72,6 +73,38 @@ test-parser:
 .PHONY: test-lsp
 test-lsp:
 	cd bs-lsp && BLUESPEC_SRC="$(REPO_ROOT)" cabal test
+
+# -------------------------
+# Documentation
+# -------------------------
+
+# Build bs-docgen and generate the full documentation site into $(DOCDIR).
+# Includes both the stdlib API docs (from src/Libraries) and the converted
+# BH_lang.tex reference manual.  Output goes to inst/doc/bluespec/ by default,
+# which is already gitignored via 'inst' in the top-level .gitignore.
+#
+# Usage:
+#   make docs                   # generate to inst/doc/bluespec/
+#   make docs DOCDIR=/tmp/docs  # generate to a custom location
+#   make install-docs           # same, but also prints the output path
+
+DOCGEN_CABAL := $(REPO_ROOT)/util/docgen
+TEX_MANUAL   := $(REPO_ROOT)/doc/BH_ref_guide/BH_lang.tex
+LIB_DIRS     := $(REPO_ROOT)/src/Libraries
+
+.PHONY: docs
+docs:
+	@cd $(DOCGEN_CABAL) && cabal build exe:bs-docgen -v0
+	$(eval DOCGEN_BIN := $(shell cd $(DOCGEN_CABAL) && cabal list-bin bs-docgen 2>/dev/null))
+	@mkdir -p $(DOCDIR)
+	$(DOCGEN_BIN) \
+	  --lib-dir $(LIB_DIRS) \
+	  $(if $(wildcard $(TEX_MANUAL)),--ref-manual $(TEX_MANUAL),) \
+	  --out $(DOCDIR)
+
+.PHONY: install-docs
+install-docs: docs
+	@echo "[docgen] Documentation installed to $(DOCDIR)"
 
 .PHONY: clean
 clean:
