@@ -129,22 +129,20 @@ block = choice
   ]
 
 sectionCmd :: Parser DocBlock
-sectionCmd = do
-  _ <- string "\\section{"
-  content <- manyTill inline (char '}')
-  pure $ Heading 1 content
+sectionCmd = headingCmd "\\section" 1
 
 subsectionCmd :: Parser DocBlock
-subsectionCmd = do
-  _ <- string "\\subsection{"
-  content <- manyTill inline (char '}')
-  pure $ Heading 2 content
+subsectionCmd = headingCmd "\\subsection" 2
 
 subsubsectionCmd :: Parser DocBlock
-subsubsectionCmd = do
-  _ <- string "\\subsubsection{"
+subsubsectionCmd = headingCmd "\\subsubsection" 3
+
+-- | Parse a @\cmd{...}@ heading, handling nested braces correctly.
+headingCmd :: Text -> Int -> Parser DocBlock
+headingCmd cmd level = do
+  _ <- string (cmd <> "{")
   content <- manyTill inline (char '}')
-  pure $ Heading 3 content
+  pure $ Heading level content
 
 verbatimEnv :: Parser DocBlock
 verbatimEnv = do
@@ -171,6 +169,24 @@ para = do
   pure $ Para inlines
 
 -- ---------------------------------------------------------------------------
+-- Brace-balanced argument parser
+-- ---------------------------------------------------------------------------
+
+-- | Consume a brace-balanced argument, assuming the opening @{@ has already
+-- been consumed.  Handles any depth of nesting, so
+-- @\index{Foo\@\te{Foo}|textbf}@ parses correctly.
+balancedArg :: Parser Text
+balancedArg = T.pack <$> go (0 :: Int)
+  where
+    go depth = do
+      c <- anySingle
+      case c of
+        '}' | depth == 0 -> pure []
+        '}'              -> (c :) <$> go (depth - 1)
+        '{'              -> (c :) <$> go (depth + 1)
+        _                -> (c :) <$> go depth
+
+-- ---------------------------------------------------------------------------
 -- Inline parser
 -- ---------------------------------------------------------------------------
 
@@ -181,7 +197,7 @@ inline = choice
   , emphCmd        -- \emph{...} → Emph
   , textbfCmd      -- \textbf{...} → Strong
   , ntermCmd       -- \nterm{...} → NonTerm
-  , indexCmd       -- \index{...} → skip
+  , indexCmd       -- \index{...} → skip (brace-balanced)
   , skipCmd        -- other known no-op commands
   , plainText
   ]
@@ -189,14 +205,14 @@ inline = choice
 teCmd :: Parser DocInline
 teCmd = do
   _ <- string "\\te{"
-  name <- manyTill (satisfy (/= '}')) (char '}')
-  pure $ SymRef (T.pack name)
+  name <- balancedArg
+  pure $ SymRef name
 
 textttCmd :: Parser DocInline
 textttCmd = do
   _ <- string "\\texttt{"
-  content <- manyTill (satisfy (/= '}')) (char '}')
-  pure $ Code (T.pack content)
+  content <- balancedArg
+  pure $ Code content
 
 emphCmd :: Parser DocInline
 emphCmd = do
@@ -213,13 +229,13 @@ textbfCmd = do
 ntermCmd :: Parser DocInline
 ntermCmd = do
   _ <- string "\\nterm{"
-  content <- manyTill (satisfy (/= '}')) (char '}')
-  pure $ NonTerm (T.pack content)
+  content <- balancedArg
+  pure $ NonTerm content
 
 indexCmd :: Parser DocInline
 indexCmd = do
   _ <- string "\\index{"
-  _ <- manyTill anySingle (char '}')
+  _ <- balancedArg
   pure $ Plain ""   -- strip index entries from inline text
 
 skipCmd :: Parser DocInline
@@ -236,6 +252,8 @@ skipCmd = do
 
 plainText :: Parser DocInline
 plainText = do
-  c <- satisfy (\c -> c /= '\\' && c /= '{' && c /= '}' && c /= '\n')
-  rest <- takeWhileP Nothing (\c -> c /= '\\' && c /= '{' && c /= '}' && c /= '\n')
+  c <- satisfy notSpecial
+  rest <- takeWhileP Nothing notSpecial
   pure $ Plain (T.cons c rest)
+  where
+    notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n'
