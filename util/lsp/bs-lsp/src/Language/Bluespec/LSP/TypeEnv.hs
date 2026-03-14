@@ -13,11 +13,14 @@ module Language.Bluespec.LSP.TypeEnv
   , lookupVarType
   , inferExprType
   , stripWrapper
+  , Subst
+  , applySubst
+  , unifyTypes
   ) where
 
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (listToMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.Text (Text)
 
 import Language.Bluespec.LSP.SymbolTable (AliasMap, collectAliases, expandType, qualIdentSimpleName)
@@ -143,7 +146,7 @@ inferExprType env (Located _ expr) = case expr of
   EParens e      -> inferExprType env e
   ENeg e         -> inferExprType env e
   EIf _ t _      -> inferExprType env t
-  EApp f _       -> inferExprType env f >>= returnType
+  EApp f arg     -> inferAppType env f arg
   ELet items body ->
     let env' = extendEnvWithLetItems env items
     in  inferExprType env' body
@@ -152,6 +155,22 @@ inferExprType env (Located _ expr) = case expr of
     in  inferExprType env' body
   EDo stmts      -> inferDoType env stmts
   _              -> Nothing
+
+-- | Infer the type of a function application using argument-type specialization.
+-- If the argument type can be inferred, unifies it with the function's parameter
+-- type to specialize type variables in the return type.
+-- E.g. mkReg :: a -> Module#(Reg#(a)), arg = 0 :: Integer → Module#(Reg#(Integer))
+inferAppType :: TypeEnv -> LExpr -> LExpr -> Maybe Type
+inferAppType env f arg = do
+  fty <- inferExprType env f
+  case fty of
+    TArrow paramTy retTy ->
+      let subst = case inferExprType env arg of
+                    Nothing    -> Map.empty
+                    Just argTy -> fromMaybe Map.empty
+                                    (unifyTypes (locVal paramTy) argTy)
+      in  Just (applySubst subst (locVal retTy))
+    _ -> Nothing
 
 -- | Infer the type of a literal.
 inferLitType :: Literal -> Type
@@ -162,11 +181,6 @@ inferLitType (LitInt _ Nothing) = TCon (Located noSpan (QualIdent Nothing (ConId
 inferLitType (LitFloat _)       = TCon (Located noSpan (QualIdent Nothing (ConId "Real")))
 inferLitType (LitChar _)        = TCon (Located noSpan (QualIdent Nothing (ConId "Char")))
 inferLitType (LitString _)      = TCon (Located noSpan (QualIdent Nothing (ConId "String")))
-
--- | Strip one arrow from a function type (return type after one application).
-returnType :: Type -> Maybe Type
-returnType (TArrow _ b) = Just (locVal b)
-returnType _            = Nothing
 
 -- | Infer the type of a do-block from its last statement.
 inferDoType :: TypeEnv -> [LStmt] -> Maybe Type
@@ -219,3 +233,45 @@ collectTApp (TApp f arg) =
   let (hd, args) = collectTApp (locVal f)
   in (hd, args ++ [arg])
 collectTApp t = (Located noSpan t, [])
+
+-- ---------------------------------------------------------------------------
+-- Type substitution and unification
+-- ---------------------------------------------------------------------------
+
+-- | A substitution maps type-variable names to types.
+type Subst = Map Text Type
+
+-- | Apply a substitution to a type.
+-- Replaces type variables; leaves all other constructors intact.
+applySubst :: Subst -> Type -> Type
+applySubst s (TVar lv) =
+  Map.findWithDefault (TVar lv) (identText (tvName (locVal lv))) s
+applySubst s (TApp f a)   = TApp (fmap (applySubst s) f) (fmap (applySubst s) a)
+applySubst s (TArrow a b) = TArrow (fmap (applySubst s) a) (fmap (applySubst s) b)
+applySubst s (TTuple ts)  = TTuple (map (fmap (applySubst s)) ts)
+applySubst s (TList t)    = TList (fmap (applySubst s) t)
+applySubst s (TKind t k)  = TKind (fmap (applySubst s) t) k
+applySubst _ t            = t  -- TCon, TNum, TString: no variables to substitute
+
+-- | Unify two types and return a substitution on success.
+-- Does not perform an occurs check — safe because applySubst is not
+-- applied recursively here, so there is no risk of looping.
+-- Returns Nothing when the types cannot be unified.
+unifyTypes :: Type -> Type -> Maybe Subst
+unifyTypes (TVar lv) t =
+  Just (Map.singleton (identText (tvName (locVal lv))) t)
+unifyTypes t (TVar lv) =
+  Just (Map.singleton (identText (tvName (locVal lv))) t)
+unifyTypes (TCon a) (TCon b)
+  | qualIdentSimpleName (locVal a) == qualIdentSimpleName (locVal b) = Just Map.empty
+unifyTypes (TNum n) (TNum m)
+  | n == m    = Just Map.empty
+unifyTypes (TApp f1 a1) (TApp f2 a2) = do
+  s1 <- unifyTypes (locVal f1) (locVal f2)
+  s2 <- unifyTypes (applySubst s1 (locVal a1)) (applySubst s1 (locVal a2))
+  pure (s1 `Map.union` s2)
+unifyTypes (TArrow a1 b1) (TArrow a2 b2) = do
+  s1 <- unifyTypes (locVal a1) (locVal a2)
+  s2 <- unifyTypes (applySubst s1 (locVal b1)) (applySubst s1 (locVal b2))
+  pure (s1 `Map.union` s2)
+unifyTypes _ _ = Nothing
