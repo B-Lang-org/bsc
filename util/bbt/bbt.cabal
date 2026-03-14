@@ -22,8 +22,10 @@ library
         Language.Bluespec.BBT.Discover
         Language.Bluespec.BBT.Build
         Language.Bluespec.BBT.Doc
+        Language.Bluespec.BBT.New
         Language.Bluespec.BBT.Project
         Language.Bluespec.BBT.LspInfo
+        Language.Bluespec.BBT.Sim
     build-depends:
         base            >= 4.17 && < 5
       , aeson           >= 2.1

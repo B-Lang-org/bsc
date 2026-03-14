@@ -20,7 +20,9 @@ import Language.Bluespec.BBT.Discover
   ( SourceFile (..), Conflict (..), discoverSources )
 import Language.Bluespec.BBT.Doc (DocOpts (..), runDoc)
 import Language.Bluespec.BBT.LspInfo (getLspInfo, renderLspInfo)
+import Language.Bluespec.BBT.New (NewOpts (..), BscLang (..), runNew)
 import Language.Bluespec.BBT.Project (findBscToml)
+import Language.Bluespec.BBT.Sim (SimOpts (..), runSim)
 
 -- ---------------------------------------------------------------------------
 -- CLI types
@@ -33,7 +35,8 @@ data Cmd
   | CmdDoc     !DocOpts
   | CmdShow    !ShowCmd
   | CmdLspInfo !LspInfoOpts
-  | CmdNew     !Text
+  | CmdNew     !NewOpts
+  | CmdSim     !SimOpts
   deriving stock (Show)
 
 data BuildOpts = BuildOpts
@@ -111,8 +114,25 @@ lspInfoOpts = LspInfoOpts
         <> help "Path to bsc.toml"))
   <*> profileOpt
 
-newCmd :: Parser Text
-newCmd = strArgument (metavar "NAME" <> help "Project name")
+-- | @bbt new (bs|bsv) NAME@
+newOpts :: Parser NewOpts
+newOpts = NewOpts
+  <$> argument langReader (metavar "LANG"
+        <> help "Language variant: 'bs' (Classic) or 'bsv' (SystemVerilog)")
+  <*> argument str (metavar "NAME"
+        <> help "Project name (also used as directory name)")
+  where
+    langReader = eitherReader $ \s -> case s of
+      "bs"  -> Right LangBS
+      "bsv" -> Right LangBSV
+      other -> Left $ "Unknown language '" ++ other ++ "' — use 'bs' or 'bsv'"
+
+simOpts :: Parser SimOpts
+simOpts = SimOpts
+  <$> targetOpt
+  <*> profileOpt
+  <*> many (strArgument (metavar "SIM-ARGS"
+        <> help "Extra arguments forwarded to the simulation binary"))
 
 cmdParser :: Parser (GlobalOpts, Cmd)
 cmdParser = (,)
@@ -126,12 +146,14 @@ cmdParser = (,)
             (progDesc "Remove build artifacts"))
         , command "doc"      (info (CmdDoc <$> docOpts)
             (progDesc "Generate HTML documentation for the project"))
+        , command "new"      (info (CmdNew <$> newOpts)
+            (progDesc "Create a new Bluespec project (bbt new bs|bsv NAME)"))
+        , command "sim"      (info (CmdSim <$> simOpts)
+            (progDesc "Compile for Bluesim and run the simulation"))
         , command "show"     (info (CmdShow <$> showCmd)
             (progDesc "Show project information"))
         , command "lsp-info" (info (CmdLspInfo <$> lspInfoOpts)
             (progDesc "Emit JSON project info for the LSP"))
-        , command "new"      (info (CmdNew <$> newCmd)
-            (progDesc "Create a new bbt project"))
         ])
 
 -- ---------------------------------------------------------------------------
@@ -147,12 +169,13 @@ main = do
 
 run :: GlobalOpts -> Cmd -> IO ()
 run gopts cmd = case cmd of
-  CmdNew name     -> runNew name
-  CmdBuild   opts -> withBbtConfig gopts (\cfg -> runBuild cfg opts)
-  CmdCheck   opts -> withBbtConfig gopts (\cfg -> runCheck cfg opts)
-  CmdClean        -> withBbtConfig gopts runClean
-  CmdDoc     opts -> withBbtConfig gopts (\cfg -> runDoc cfg opts)
-  CmdShow    sc   -> withBbtConfig gopts (\cfg -> runShow cfg sc)
+  CmdNew   opts -> runNew opts
+  CmdBuild opts -> withBbtConfig gopts (\cfg -> runBuild cfg opts)
+  CmdCheck opts -> withBbtConfig gopts (\cfg -> runCheck cfg opts)
+  CmdClean      -> withBbtConfig gopts runClean
+  CmdDoc   opts -> withBbtConfig gopts (\cfg -> runDoc cfg opts)
+  CmdSim   opts -> withBbtConfig gopts (\cfg -> runSim cfg opts)
+  CmdShow  sc   -> withBbtConfig gopts (\cfg -> runShow cfg sc)
   CmdLspInfo opts -> withBbtConfig gopts (\cfg -> runLspInfo cfg opts)
 
 withBbtConfig :: GlobalOpts -> (Config -> IO ()) -> IO ()
@@ -243,21 +266,6 @@ runLspInfo :: Config -> LspInfoOpts -> IO ()
 runLspInfo cfg opts = do
   info_ <- getLspInfo cfg (lioProfile opts)
   TIO.putStrLn (renderLspInfo info_)
-
-runNew :: Text -> IO ()
-runNew name = do
-  let toml = T.unlines
-        [ "[package]"
-        , "name    = \"" <> name <> "\""
-        , "version = \"0.1.0\""
-        , ""
-        , "[build]"
-        , "top_file   = \"src/Top.bsv\""
-        , "top_module = \"mkTop\""
-        , "src        = \"src\""
-        ]
-  TIO.writeFile "bsc.toml" toml
-  putStrLn $ "[bbt] Created bsc.toml for project '" ++ T.unpack name ++ "'"
 
 -- ---------------------------------------------------------------------------
 -- Utilities
