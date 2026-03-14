@@ -26,6 +26,7 @@ library
         Language.Bluespec.LSP.SymbolTable
         Language.Bluespec.LSP.Hover
         Language.Bluespec.LSP.Definition
+        Language.Bluespec.LSP.Completion
         Language.Bluespec.LSP.Symbols
         Language.Bluespec.LSP.TypeEnv
         Language.Bluespec.LSP.Util

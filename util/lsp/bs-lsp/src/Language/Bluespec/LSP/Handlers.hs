@@ -19,6 +19,7 @@ import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
+import Language.Bluespec.LSP.Completion (getCompletions)
 import Language.Bluespec.LSP.Definition
 import Language.Bluespec.LSP.Diagnostics
 import Language.Bluespec.LSP.Hover (getHoverInfoCrossFile)
@@ -73,6 +74,12 @@ handlers stateVar =
       requestHandler SMethod_TextDocumentDocumentSymbol $ \req responder -> do
         let docUri = req ^. Lens.params . Lens.textDocument . Lens.uri
         result <- handleDocumentSymbols stateVar docUri
+        responder $ Right result,
+      -- Completions
+      requestHandler SMethod_TextDocumentCompletion $ \req responder -> do
+        let docUri = req ^. Lens.params . Lens.textDocument . Lens.uri
+            pos    = req ^. Lens.params . Lens.position
+        result <- handleCompletion stateVar docUri pos
         responder $ Right result
     ]
 
@@ -206,6 +213,17 @@ handleDocumentSymbols stateVar docUri = do
   case getDocument nuri state of
     Nothing -> pure $ InR $ InR Null
     Just doc -> pure $ InR $ InL $ getDocumentSymbols (dsSymbols doc)
+
+-- | Handle completion request.
+handleCompletion :: TVar ServerState -> Uri -> Position -> LspM () ([CompletionItem] |? (CompletionList |? Null))
+handleCompletion stateVar docUri pos = do
+  let nuri = toNormalizedUri docUri
+  state <- liftIO $ readTVarIO stateVar
+  case getDocument nuri state of
+    Nothing  -> pure $ InR $ InR Null
+    Just doc ->
+      let items = getCompletions state doc (dsText doc) pos
+      in  pure $ InL items
 
 -- | Extract filename from URI.
 uriToFilename :: Uri -> Text
