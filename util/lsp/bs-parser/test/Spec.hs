@@ -26,8 +26,14 @@ main = do
   bsvFiles2 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bsv_examples"
   bsvFiles3 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bluesim"
   bsvFiles4 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.lib"
+  bsvFiles5 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.misc"
+  bsvFiles6 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.arrays"
+  bsvFiles7 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.bugs"
+  bsvFiles8 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.scheduler"
+  bsvFiles9 <- findFiles ".bsv" "/work/bsc/testsuite/bsc.codegen"
   bsFiles   <- findFiles ".bs"  "/work/bsc/src/Libraries"
   let allBsvFiles = bsvFiles ++ bsvFiles2 ++ bsvFiles3 ++ bsvFiles4
+                 ++ bsvFiles5 ++ bsvFiles6 ++ bsvFiles7 ++ bsvFiles8 ++ bsvFiles9
   hspec $ do
     describe "Lexer" $ do
       it "lexes identifiers" $ do
