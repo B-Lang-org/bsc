@@ -90,7 +90,9 @@ expandType aliases = go
                         let subst = Map.fromList
                               $ zip (map (identText . tvName) tvars) (map locVal args')
                         in go (applyTySubst subst body)
-                  _ -> rebuildTApp hd args'
+                  _ -> case evalNumericApp name args' of
+                         Just simplified -> simplified
+                         Nothing         -> rebuildTApp hd args'
            _ -> rebuildTApp (fmap go hd) (map (fmap go) args)
     go (TArrow a b) = TArrow (fmap go a) (fmap go b)
     go (TTuple ts)  = TTuple (map (fmap go) ts)
@@ -113,6 +115,22 @@ expandType aliases = go
 
     noLocate :: Type -> LType
     noLocate t = Located noSpan t
+
+    -- Try to evaluate a fully-concrete numeric type application.
+    -- Returns Nothing when any argument is not a concrete TNum.
+    evalNumericApp :: Text -> [LType] -> Maybe Type
+    evalNumericApp op args = fmap TNum $ case (op, map locVal args) of
+      ("TAdd", [TNum a, TNum b]) -> Just (a + b)
+      ("TMul", [TNum a, TNum b]) -> Just (a * b)
+      ("TSub", [TNum a, TNum b]) | b <= a -> Just (a - b)
+      ("TDiv", [TNum a, TNum b]) | b > 0  -> Just (a `div` b)
+      ("TLog", [TNum a])         | a > 0  -> Just (clog2 a)
+      ("TMax", [TNum a, TNum b]) -> Just (max a b)
+      ("TMin", [TNum a, TNum b]) -> Just (min a b)
+      ("TExp", [TNum a])         -> Just (2 ^ a)
+      _                          -> Nothing
+      where
+        clog2 n = ceiling (logBase 2 (fromIntegral n :: Double) :: Double)
 
 -- | Apply a type variable substitution.
 applyTySubst :: Map Text Type -> Type -> Type
