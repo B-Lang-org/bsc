@@ -9,7 +9,6 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as Set
 import Data.Void (Void)
@@ -23,6 +22,7 @@ import Language.Bluespec.Position (SrcSpan(..), Pos(..))
 import Language.Bluespec.Syntax (Package, ModuleId(..), unModuleId)
 import qualified Language.Bluespec.Lexer as Lex
 import Language.Bluespec.LSP.SymbolTable (ImportInfo(..), SymbolTable(..))
+import Language.Bluespec.LSP.Util (spanToRange)
 
 -- | Convert parse result to LSP diagnostics.
 makeDiagnostics :: Either Parser.ParseError Package -> [Diagnostic]
@@ -165,13 +165,6 @@ importNotFoundDiag imp = Diagnostic
   , _tags = Nothing
   , _relatedInformation = Nothing
   , _data_ = Nothing
-  }
-
--- | Convert SrcSpan to LSP Range.
-spanToRange :: SrcSpan -> Range
-spanToRange (SrcSpan _ begin end_) = Range
-  { _start = Position (fromIntegral (posLine begin - 1)) (fromIntegral (posColumn begin - 1))
-  , _end   = Position (fromIntegral (posLine end_ - 1)) (fromIntegral (posColumn end_))
   }
 
 -- | Well-known module names that are always available without indexing.

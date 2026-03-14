@@ -12,7 +12,7 @@ where
 
 import Control.Concurrent.STM
 import Control.Lens ((^.))
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Control.Monad.IO.Class (liftIO)
 import Data.List (isPrefixOf)
 import Data.Maybe (mapMaybe)
@@ -85,81 +85,42 @@ handlers stateVar =
 
 -- | Handle document open - parse and publish diagnostics.
 handleDocumentOpen :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
-handleDocumentOpen stateVar docUri docText docVersion = do
-  let nuri = toNormalizedUri docUri
-      filename = uriToFilename docUri
-
-  -- Parse document (with recovery: always get a partial AST)
-  let (pkg, merrs) = parseAutoRecovering (T.unpack filename) docText
-
-  -- Build symbol table and type environment from partial or full AST
-  let symbols = buildSymbolTable pkg
-      typeEnv = buildTypeEnv pkg
-
-  -- Update state
-  let docState =
-        DocumentState
-          { dsText    = docText,
-            dsParsed  = Just pkg,
-            dsSymbols = symbols,
-            dsTypeEnv = typeEnv,
-            dsVersion = docVersion
-          }
-  liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
-
-  -- Update module index
-  liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
-
-  -- Publish diagnostics (parse errors + import warnings)
-  state' <- liftIO $ readTVarIO stateVar
-  let parseDiags = makeDiagnostics (maybe (Right pkg) Left merrs)
-      importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
-      diagnostics = parseDiags ++ importDiags
-  sendDiagnostics docUri docVersion diagnostics
+handleDocumentOpen stateVar docUri docText docVersion =
+  parseAndUpdateDocument stateVar docUri docText docVersion
 
 -- | Handle document change - re-parse and publish diagnostics.
 handleDocumentChange :: TVar ServerState -> Uri -> [TextDocumentContentChangeEvent] -> LspM () ()
 handleDocumentChange stateVar docUri changes = do
   let nuri = toNormalizedUri docUri
-      filename = uriToFilename docUri
-
-  -- Get current state
   state <- liftIO $ readTVarIO stateVar
   let mDoc = getDocument nuri state
-
-  -- Apply changes (for now, just use the last full change)
-  let newText = case changes of
-        [] -> maybe "" dsText mDoc
+      newText = case changes of
+        []      -> maybe "" dsText mDoc
         (c : _) -> getChangeText c mDoc
-  let newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
+      newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
+  parseAndUpdateDocument stateVar docUri newText newVersion
 
-  -- Parse document (with recovery: always get a partial AST)
-  let (pkg, merrs) = parseAutoRecovering (T.unpack filename) newText
-
-  -- Build symbol table and type environment from partial or full AST
-  let symbols = buildSymbolTable pkg
+-- | Shared helper: parse text, update state, publish diagnostics.
+parseAndUpdateDocument :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
+parseAndUpdateDocument stateVar docUri docText docVersion = do
+  let nuri     = toNormalizedUri docUri
+      filename = uriToFilename docUri
+      (pkg, merrs) = parseAutoRecovering (T.unpack filename) docText
+      symbols  = buildSymbolTable pkg
       typeEnv  = buildTypeEnv pkg
-
-  -- Update state
-  let docState =
-        DocumentState
-          { dsText    = newText,
-            dsParsed  = Just pkg,
-            dsSymbols = symbols,
-            dsTypeEnv = typeEnv,
-            dsVersion = newVersion
-          }
+      docState = DocumentState
+        { dsText    = docText
+        , dsParsed  = Just pkg
+        , dsSymbols = symbols
+        , dsTypeEnv = typeEnv
+        , dsVersion = docVersion
+        }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
-
-  -- Update module index
   liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols
-
-  -- Publish diagnostics (parse errors + import warnings)
   state' <- liftIO $ readTVarIO stateVar
-  let parseDiags = makeDiagnostics (maybe (Right pkg) Left merrs)
+  let parseDiags  = makeDiagnostics (maybe (Right pkg) Left merrs)
       importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
-      diagnostics = parseDiags ++ importDiags
-  sendDiagnostics docUri newVersion diagnostics
+  sendDiagnostics docUri docVersion (parseDiags ++ importDiags)
 
 -- | Handle document close - remove from state.
 handleDocumentClose :: TVar ServerState -> Uri -> LspM () ()
@@ -353,9 +314,6 @@ scanWorkspaceForModules stateVar rootDir = do
               else
                 when (isFile && takeExtension entry `elem` [".bs", ".bsv"]) $
                   indexModuleFile stateVar path
-
-    when True action = action
-    when False _ = pure ()
 
 -- | Index a single .bs file into the module index.
 indexModuleFile :: TVar ServerState -> FilePath -> IO ()

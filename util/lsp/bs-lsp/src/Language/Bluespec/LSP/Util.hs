@@ -3,6 +3,7 @@ module Language.Bluespec.LSP.Util
   ( spanToRange
   , positionToPos
   , getIdentifierAtPosition
+  , parseQualifiedName
   ) where
 
 import Data.Char (isAlphaNum, isUpper)
@@ -106,3 +107,15 @@ findModuleQualifier chars identStart
       | idx <= 0              = 0
       | isIdentChar (cs !! (idx - 1)) = findQStart cs (idx - 1)
       | otherwise             = idx
+
+-- | Parse a potentially qualified name into (Maybe module, symbol).
+-- E.g. @"Module.foo"@ → @(Just "Module", "foo")@, @"bar"@ → @(Nothing, "bar")@.
+parseQualifiedName :: Text -> (Maybe Text, Text)
+parseQualifiedName name =
+  case T.breakOnEnd "." name of
+    ("", n)     -> (Nothing, n)
+    (modPart, n) ->
+      let modName = T.dropEnd 1 modPart
+      in if T.null modName || T.null n
+           then (Nothing, name)
+           else (Just modName, n)

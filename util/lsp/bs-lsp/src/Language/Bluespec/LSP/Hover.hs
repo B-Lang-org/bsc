@@ -16,7 +16,7 @@ import Language.LSP.Protocol.Types hiding (SymbolKind)
 import Language.Bluespec.Position (Pos (..), SrcSpan (..))
 import Language.Bluespec.LSP.State (ServerState (..), ModuleInfo (..), getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
-import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition)
+import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
 import Language.Bluespec.Syntax (ModuleId (..))
 
 -- | Get hover information for a symbol at a position.
@@ -54,17 +54,6 @@ getHoverInfoCrossFile serverState st sourceText pos =
                      case lookupSymInModuleIndex serverState ident of
                        Just sym -> Just (symbolToHover sym)
                        Nothing  -> fmap symbolToHover $ lookupSymInPrelude serverState ident
-
--- | Parse a potentially qualified name into (Maybe module, symbol).
-parseQualifiedName :: Text -> (Maybe Text, Text)
-parseQualifiedName name =
-  case T.breakOnEnd "." name of
-    ("", n) -> (Nothing, n)
-    (modPart, n) ->
-      let modName = T.dropEnd 1 modPart
-      in if T.null modName || T.null n
-           then (Nothing, name)
-           else (Just modName, n)
 
 -- | Select best symbol for hover given cursor position.
 -- Prefers the symbol whose definition is closest to (but before) the cursor.

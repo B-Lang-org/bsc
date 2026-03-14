@@ -9,10 +9,9 @@ import Data.List (sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Text (Text)
-import Data.Text qualified as T
 import Language.Bluespec.LSP.State (ModuleInfo (..), ServerState (..), getModuleSymbols, getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
-import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition)
+import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
 import Language.Bluespec.Position (Pos (..), SrcSpan (..))
 import Language.Bluespec.Syntax (ModuleId (..))
 import Language.LSP.Protocol.Types
@@ -120,17 +119,6 @@ getDefinitionCrossFile serverState st sourceText pos =
                   Nothing -> case lookupInModuleIndexByName serverState ident of
                     Just loc -> Just loc
                     Nothing -> lookupInPrelude serverState ident
-
--- | Parse a potentially qualified name into (Maybe module, symbol).
-parseQualifiedName :: Text -> (Maybe Text, Text)
-parseQualifiedName name =
-  case T.breakOnEnd "." name of
-    ("", n) -> (Nothing, n) -- No dot, unqualified
-    (modPart, n) ->
-      let modName = T.dropEnd 1 modPart -- Remove trailing dot
-       in if T.null modName || T.null n
-            then (Nothing, name) -- Invalid, treat as unqualified
-            else (Just modName, n)
 
 -- | Look up a symbol in a specific module's symbol table.
 lookupInModule :: ServerState -> Text -> Text -> Maybe Location
