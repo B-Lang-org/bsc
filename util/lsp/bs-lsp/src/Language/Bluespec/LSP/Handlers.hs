@@ -22,6 +22,7 @@ import Data.Text.IO qualified as TIO
 import Language.Bluespec.LSP.Completion (getCompletions)
 import Language.Bluespec.LSP.Definition
 import Language.Bluespec.LSP.Diagnostics
+    (makeDiagnostics, makeImportDiagnostics, makeTypeMismatchDiagnostics)
 import Language.Bluespec.LSP.Hover (getHoverInfoCrossFile)
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable
@@ -120,7 +121,8 @@ parseAndUpdateDocument stateVar docUri docText docVersion = do
   state' <- liftIO $ readTVarIO stateVar
   let parseDiags  = makeDiagnostics (maybe (Right pkg) Left merrs)
       importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
-  sendDiagnostics docUri docVersion (parseDiags ++ importDiags)
+      typeDiags   = makeTypeMismatchDiagnostics typeEnv pkg
+  sendDiagnostics docUri docVersion (parseDiags ++ importDiags ++ typeDiags)
 
 -- | Handle document close - remove from state.
 handleDocumentClose :: TVar ServerState -> Uri -> LspM () ()

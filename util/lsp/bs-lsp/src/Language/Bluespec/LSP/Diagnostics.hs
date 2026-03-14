@@ -1,8 +1,10 @@
--- | Convert parse errors to LSP diagnostics.
+-- | Convert parse errors to LSP diagnostics, and produce semantic diagnostics
+-- for unresolved imports and type-annotation mismatches.
 module Language.Bluespec.LSP.Diagnostics
   ( makeDiagnostics
   , parseErrorToDiagnostic
   , makeImportDiagnostics
+  , makeTypeMismatchDiagnostics
   ) where
 
 import Data.Map.Strict (Map)
@@ -18,10 +20,11 @@ import qualified Text.Megaparsec as MP
 import Language.LSP.Protocol.Types
 
 import qualified Language.Bluespec.Parser as Parser
-import Language.Bluespec.Position (SrcSpan(..), Pos(..))
-import Language.Bluespec.Syntax (Package, ModuleId(..), unModuleId)
+import Language.Bluespec.Position (SrcSpan(..), Pos(..), Located(..))
+import Language.Bluespec.Syntax
 import qualified Language.Bluespec.Lexer as Lex
 import Language.Bluespec.LSP.SymbolTable (ImportInfo(..), SymbolTable(..))
+import Language.Bluespec.LSP.TypeEnv (TypeEnv, inferExprType, unifyTypes, expandAlias)
 import Language.Bluespec.LSP.Util (spanToRange)
 
 -- | Convert parse result to LSP diagnostics.
@@ -182,3 +185,90 @@ knownPreludeModules =
   , "Int", "UInt", "Maybe", "Either", "Tuple"
   , "StmtFSM", "ActionValue", "Action"
   ]
+
+-- ---------------------------------------------------------------------------
+-- 6.3 Type-annotation mismatch diagnostics
+-- ---------------------------------------------------------------------------
+
+-- | Check top-level bindings that carry an explicit inline type annotation
+-- (@Bool x = expr@) and warn when the inferred type is structurally
+-- incompatible with the declared type.
+--
+-- Conservative rules — all must hold before a diagnostic is emitted:
+--   * The declared type contains no type variables (skip polymorphic bindings).
+--   * Inference of the RHS succeeds (skip if we cannot determine a type).
+--   * The binding is a simple, unguarded, zero-argument definition.
+--   * Unification of declared vs inferred fails.
+--
+-- Severity is Warning, never Error — the type resolver is incomplete and
+-- the full provisos are not checked here.
+makeTypeMismatchDiagnostics :: TypeEnv -> Package -> [Diagnostic]
+makeTypeMismatchDiagnostics tenv pkg =
+  concatMap checkDef (pkgDefns pkg)
+  where
+    checkDef (Located _ (DefValue lname (Just lqt) clauses)) =
+      let declTy = locVal (qtType (locVal lqt))
+      in if hasTVars declTy
+           then []  -- polymorphic declaration — skip to avoid false positives
+           else case simpleBody clauses of
+                  Nothing   -> []  -- pattern-matching / guarded def — skip
+                  Just body ->
+                    case inferExprType tenv body of
+                      Nothing       -> []  -- can't infer — don't complain
+                      Just inferred ->
+                        let inferred' = expandAlias tenv inferred
+                            declTy'   = expandAlias tenv declTy
+                        in case unifyTypes declTy' inferred' of
+                             Just _  -> []  -- compatible
+                             Nothing ->
+                               [ typeMismatchDiag
+                                   (locSpan lname) declTy' inferred' ]
+    checkDef _ = []
+
+    -- A "simple body" is a single clause with no argument patterns and no guard.
+    simpleBody :: [Clause] -> Maybe LExpr
+    simpleBody (Clause { clausePats = [], clauseGuard = Nothing, clauseBody } : _)
+      = Just clauseBody
+    simpleBody _ = Nothing
+
+-- | Build a warning diagnostic for a declared/inferred type mismatch.
+typeMismatchDiag :: SrcSpan -> Type -> Type -> Diagnostic
+typeMismatchDiag span_ declTy inferredTy = Diagnostic
+  { _range             = spanToRange span_
+  , _severity          = Just DiagnosticSeverity_Warning
+  , _code              = Nothing
+  , _codeDescription   = Nothing
+  , _source            = Just "bluespec"
+  , _message           = "Declared type " <> prettyType declTy
+                      <> " may not match inferred type " <> prettyType inferredTy
+  , _tags              = Nothing
+  , _relatedInformation = Nothing
+  , _data_             = Nothing
+  }
+
+-- | Return True if the type contains any type variables.
+-- Used to skip polymorphic declarations where false positives are likely.
+hasTVars :: Type -> Bool
+hasTVars (TVar _)      = True
+hasTVars (TApp f a)    = hasTVars (locVal f) || hasTVars (locVal a)
+hasTVars (TArrow a b)  = hasTVars (locVal a) || hasTVars (locVal b)
+hasTVars (TTuple ts)   = any (hasTVars . locVal) ts
+hasTVars (TList t)     = hasTVars (locVal t)
+hasTVars (TKind t _)   = hasTVars (locVal t)
+hasTVars _             = False
+
+-- | Render a 'Type' as human-readable text for diagnostic messages.
+prettyType :: Type -> Text
+prettyType (TCon lqi) =
+  let qi = locVal lqi
+  in case qi of
+       QualIdent (Just (ModuleId m)) i -> m <> "::" <> identText i
+       QualIdent Nothing i             -> identText i
+prettyType (TVar lv)   = identText (tvName (locVal lv))
+prettyType (TNum n)    = T.pack (show n)
+prettyType (TString s) = "\"" <> s <> "\""
+prettyType (TApp f a)  = prettyType (locVal f) <> "#(" <> prettyType (locVal a) <> ")"
+prettyType (TArrow a b) = prettyType (locVal a) <> " -> " <> prettyType (locVal b)
+prettyType (TTuple ts)  = "(" <> T.intercalate ", " (map (prettyType . locVal) ts) <> ")"
+prettyType (TList t)    = "[" <> prettyType (locVal t) <> "]"
+prettyType (TKind t _)  = prettyType (locVal t)

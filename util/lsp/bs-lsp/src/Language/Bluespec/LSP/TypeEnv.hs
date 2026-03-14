@@ -12,6 +12,7 @@ module Language.Bluespec.LSP.TypeEnv
   , mergeTypeEnv
   , lookupVarType
   , inferExprType
+  , expandAlias
   , stripWrapper
   , Subst
   , applySubst
