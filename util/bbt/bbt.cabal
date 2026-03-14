@@ -1,0 +1,64 @@
+cabal-version:      3.0
+name:               bbt
+version:            0.1.0.0
+synopsis:           Bluespec Build Tool — cargo for Bluespec
+description:        Project-aware build tool wrapping bsc, driven by bsc.toml
+license:            BSD-3-Clause
+author:             matx-2 team
+maintainer:         team@example.com
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns -Wmissing-export-lists
+                 -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+                 -Werror=incomplete-patterns
+
+library
+    import:           warnings
+    exposed-modules:
+        Language.Bluespec.BBT.Config
+        Language.Bluespec.BBT.Discover
+        Language.Bluespec.BBT.Build
+        Language.Bluespec.BBT.Project
+        Language.Bluespec.BBT.LspInfo
+    build-depends:
+        base            >= 4.17 && < 5
+      , aeson           >= 2.1
+      , bs-parser
+      , containers      >= 0.6
+      , directory       >= 1.3
+      , filepath        >= 1.4
+      , process         >= 1.6
+      , text            >= 2.0
+      , toml-parser     >= 2.0
+      , bytestring      >= 0.11
+    hs-source-dirs:   src
+    default-language: GHC2021
+    default-extensions:
+        DerivingStrategies
+        GeneralizedNewtypeDeriving
+        LambdaCase
+        OverloadedStrings
+        RecordWildCards
+        StrictData
+
+executable bbt
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base                 >= 4.17 && < 5
+      , bbt
+      , containers           >= 0.6
+      , directory            >= 1.3
+      , filepath             >= 1.4
+      , optparse-applicative >= 0.18
+      , text                 >= 2.0
+    hs-source-dirs:   app
+    default-language: GHC2021
+    default-extensions:
+        DerivingStrategies
+        LambdaCase
+        OverloadedStrings
+        RecordWildCards

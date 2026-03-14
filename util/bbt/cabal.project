@@ -1,0 +1,2 @@
+packages: .
+         ../lsp/bs-parser
