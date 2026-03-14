@@ -19,6 +19,7 @@ help:
 	@echo '    make  install-lsp       Build and install bs-lsp only'
 	@echo '    make  install-vscode-ext  Install the VSCode extension (requires npm)'
 	@echo '    make  install-doc       Build and install just the documentation'
+	@echo '    make  install-bsc-docs  Generate bs-docgen HTML site → inst/doc/bluespec/'
 	@echo
 	@echo '    make  check-smoke  Run a quick smoke test'
 	@echo '    make  check-suite  Run the test suite (this will take time!)'
@@ -57,6 +58,12 @@ install-vscode-ext:
 install-doc:
 	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
 
+# Generate the bs-docgen HTML site (stdlib API docs + BH_lang.tex reference).
+# Output goes to inst/doc/bluespec/, which is covered by the 'inst' gitignore.
+.PHONY: install-bsc-docs
+install-bsc-docs:
+	$(MAKE)  -C util/lsp   PREFIX=$(PREFIX)  install-docs
+
 .PHONY: install-release
 install-release:
 	$(MAKE)  -C release  PREFIX=$(PREFIX)  install
@@ -64,7 +71,7 @@ install-release:
 # -------------------------
 
 .PHONY: release
-release: install-src install-doc install-release
+release: install-src install-doc install-bsc-docs install-release
 
 # -------------------------
 
