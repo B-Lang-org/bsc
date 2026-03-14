@@ -1958,10 +1958,18 @@ data Suffix
 
 pSuffix :: Parser Suffix
 pSuffix = choice
-  [ SuffixField <$> (punct Lex.PunctDot *> (varId <|> ((\v -> Located (locSpan v) (VarId (identText (locVal v)))) <$> conId)))
+  [ SuffixField <$> (punct Lex.PunctDot *> fieldId)
   , SuffixRecordUpd <$> (lbrace *> pFieldBind `sepEndBy` semis <* rbrace)
   , try pBitSelect  -- Bit selection: e[hi:lo]
   ]
+  where
+    -- A field accessor can be a varId, a conId, or a numeric index (e.g. s.0).
+    fieldId =   varId
+            <|> fmap (\v -> Located (locSpan v) (VarId (identText (locVal v)))) conId
+            <|> MP.token numericField Set.empty
+    numericField t = case Lex.tokKind t of
+      Lex.TokInteger n _ -> Just $ Located (Lex.tokSpan t) (VarId (T.pack (show n)))
+      _                  -> Nothing
 
 -- | Parse bit selection suffix: [hi:lo]
 pBitSelect :: Parser Suffix

@@ -472,8 +472,6 @@ findFiles ext root = do
       , "BogusAssertions.bs"
       -- StructDefn_Field_WithDefault.bs tests struct field default values (not yet supported).
       , "StructDefn_Field_WithDefault.bs"
-      -- FieldSelectionWithDigit.bs tests r.0 numeric field selection (not yet supported).
-      , "FieldSelectionWithDigit.bs"
       ]
 
 -- | Check if a token is EOF.
