@@ -115,6 +115,9 @@ classicVarIdKeywords =
   , Lex.KwEndInstance, Lex.KwEndTypeclass, Lex.KwEndRules
   , Lex.KwTypedef, Lex.KwStruct, Lex.KwUnion, Lex.KwTagged, Lex.KwMatches
   , Lex.KwRule
+  -- BSV keywords that can be used as method/field names in Classic interface definitions
+  , Lex.KwEnd     -- 'end' is not a keyword in Classic (used as method name)
+  , Lex.KwMethod  -- 'method' can appear as a class member name in Classic
   ]
 
 -- | Match any constructor identifier.
