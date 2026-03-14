@@ -1,2 +1,4 @@
 packages: .
          ../lsp/bs-parser
+         ../docgen
+with-compiler: ghc-9.6.7

@@ -18,6 +18,7 @@ import Language.Bluespec.BBT.Config
   , loadConfigFrom )
 import Language.Bluespec.BBT.Discover
   ( SourceFile (..), Conflict (..), discoverSources )
+import Language.Bluespec.BBT.Doc (DocOpts (..), runDoc)
 import Language.Bluespec.BBT.LspInfo (getLspInfo, renderLspInfo)
 import Language.Bluespec.BBT.Project (findBscToml)
 
@@ -29,6 +30,7 @@ data Cmd
   = CmdBuild   !BuildOpts
   | CmdCheck   !CheckOpts
   | CmdClean
+  | CmdDoc     !DocOpts
   | CmdShow    !ShowCmd
   | CmdLspInfo !LspInfoOpts
   | CmdNew     !Text
@@ -95,6 +97,14 @@ showCmd = subparser $ mconcat
       (progDesc "Print the exact bsc invocation (dry run)"))
   ]
 
+docOpts :: Parser DocOpts
+docOpts = DocOpts
+  <$> strOption (long "out" <> short 'o' <> metavar "DIR"
+        <> value "docs" <> showDefault
+        <> help "Output directory")
+  <*> switch (long "verbose" <> short 'v' <> help "Verbose output")
+  <*> profileOpt
+
 lspInfoOpts :: Parser LspInfoOpts
 lspInfoOpts = LspInfoOpts
   <$> optional (strOption (long "toml" <> metavar "FILE"
@@ -114,6 +124,8 @@ cmdParser = (,)
             (progDesc "Detect conflicts and syntax-check sources"))
         , command "clean"    (info (pure CmdClean)
             (progDesc "Remove build artifacts"))
+        , command "doc"      (info (CmdDoc <$> docOpts)
+            (progDesc "Generate HTML documentation for the project"))
         , command "show"     (info (CmdShow <$> showCmd)
             (progDesc "Show project information"))
         , command "lsp-info" (info (CmdLspInfo <$> lspInfoOpts)
@@ -139,6 +151,7 @@ run gopts cmd = case cmd of
   CmdBuild   opts -> withBbtConfig gopts (\cfg -> runBuild cfg opts)
   CmdCheck   opts -> withBbtConfig gopts (\cfg -> runCheck cfg opts)
   CmdClean        -> withBbtConfig gopts runClean
+  CmdDoc     opts -> withBbtConfig gopts (\cfg -> runDoc cfg opts)
   CmdShow    sc   -> withBbtConfig gopts (\cfg -> runShow cfg sc)
   CmdLspInfo opts -> withBbtConfig gopts (\cfg -> runLspInfo cfg opts)
 

@@ -22,6 +22,7 @@ library
     exposed-modules:
         Language.Bluespec.DocGen.DocAST
         Language.Bluespec.DocGen.Extract
+        Language.Bluespec.DocGen.Generate
         Language.Bluespec.DocGen.TexParser
         Language.Bluespec.DocGen.PlainParser
         Language.Bluespec.DocGen.Highlight
@@ -56,12 +57,7 @@ executable bs-docgen
     build-depends:
         base                 >= 4.17 && < 5
       , bs-docgen
-      , bytestring           >= 0.11
-      , containers           >= 0.6
-      , directory            >= 1.3
-      , filepath             >= 1.4
       , optparse-applicative >= 0.18
-      , text                 >= 2.0
     hs-source-dirs:   app
     default-language: GHC2021
     default-extensions:

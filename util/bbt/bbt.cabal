@@ -21,11 +21,13 @@ library
         Language.Bluespec.BBT.Config
         Language.Bluespec.BBT.Discover
         Language.Bluespec.BBT.Build
+        Language.Bluespec.BBT.Doc
         Language.Bluespec.BBT.Project
         Language.Bluespec.BBT.LspInfo
     build-depends:
         base            >= 4.17 && < 5
       , aeson           >= 2.1
+      , bs-docgen
       , bs-parser
       , containers      >= 0.6
       , directory       >= 1.3
