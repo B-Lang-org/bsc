@@ -148,6 +148,7 @@ inferExprType env (Located _ expr) = case expr of
   EIf _ t _        -> inferExprType env t
   EApp f arg       -> inferAppType env f arg
   EFieldAccess e f -> inferFieldAccessType env e f
+  EInfix l op r    -> inferInfixType env (locVal op) l r
   ELet items body ->
     let env' = extendEnvWithLetItems env items
     in  inferExprType env' body
@@ -183,6 +184,25 @@ inferFieldAccessType env recv field = do
   let name = identText (locVal field)
   matched <- listToMaybe (filter (\fi -> identText (locVal (fieldName fi)) == name) fields)
   pure (locVal (qtType (locVal (fieldType matched))))
+
+-- | Infer the result type of an infix operator application.
+-- For comparison operators, always returns Bool.
+-- For arithmetic/bitwise operators, returns the type of the left operand
+-- (correct in well-typed Bluespec code where both sides have the same type).
+inferInfixType :: TypeEnv -> Op -> LExpr -> LExpr -> Maybe Type
+inferInfixType env op l _r =
+  let sym = opSym op
+  in if sym `elem` cmpOps
+       then Just boolType
+       else if sym `elem` logicOps
+         then Just boolType
+         else inferExprType env l  -- arithmetic/bitwise: same type as left
+  where
+    cmpOps   = ["==", "/=", "<", ">", "<=", ">="]
+    logicOps = ["&&", "||"]
+    boolType = TCon (Located noSpan (QualIdent Nothing (ConId "Bool")))
+    opSym (OpSym s)      = s
+    opSym (OpIdent lqi)  = qualIdentText lqi
 
 -- | Extract the outermost type constructor name from a type.
 outerTypeName :: Type -> Maybe Text
