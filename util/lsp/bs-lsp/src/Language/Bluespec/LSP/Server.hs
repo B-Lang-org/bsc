@@ -75,8 +75,8 @@ serverDefinition stateVar =
           atomically $ modifyTVar' stateVar (setPreludeSymbols mPrelude)
 
         -- Extract workspace roots from initialization params
-        let params = req ^. Lens.params
-            workspaceRoots = getWorkspaceRoots params
+        let initParams = req ^. Lens.params
+            workspaceRoots = getWorkspaceRoots initParams
 
         liftIO $ atomically $ modifyTVar' stateVar $ \state ->
           state {ssWorkspace = workspaceRoots, ssLibraryDirs = libDirs}
@@ -119,13 +119,13 @@ serverDefinition stateVar =
 
 -- | Extract workspace root paths from initialization params.
 getWorkspaceRoots :: InitializeParams -> [FilePath]
-getWorkspaceRoots params =
+getWorkspaceRoots initParams =
   -- First try workspaceFolders, then fall back to rootUri, then rootPath
-  case params ^. Lens.workspaceFolders of
+  case initParams ^. Lens.workspaceFolders of
     Just (InL folders) -> mapMaybe getFolderPath folders
-    _ -> case params ^. Lens.rootUri of
-      InL uri -> [uriToPath uri]
-      InR _ -> case params ^. Lens.rootPath of
+    _ -> case initParams ^. Lens.rootUri of
+      InL docUri -> [uriToPath docUri]
+      InR _ -> case initParams ^. Lens.rootPath of
         Just (InL path) -> [T.unpack path]
         _ -> []
   where
