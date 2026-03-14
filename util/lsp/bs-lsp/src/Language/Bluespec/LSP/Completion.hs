@@ -8,7 +8,7 @@ module Language.Bluespec.LSP.Completion
   ( getCompletions
   ) where
 
-import Data.List (isPrefixOf, nubBy)
+import Data.List (nubBy)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -128,30 +128,37 @@ resolveTypeName (TApp f _) =
   resolveTypeName (locVal f)
 resolveTypeName _ = Nothing
 
+-- | Build a CompletionItem with only label, kind, and detail set.
+mkCompletionItem :: Text -> CompletionItemKind -> Maybe Text -> CompletionItem
+mkCompletionItem label kind detail = CompletionItem
+  { _label               = label
+  , _labelDetails        = Nothing
+  , _kind                = Just kind
+  , _tags                = Nothing
+  , _detail              = detail
+  , _documentation       = Nothing
+  , _deprecated          = Nothing
+  , _preselect           = Nothing
+  , _sortText            = Nothing
+  , _filterText          = Nothing
+  , _insertText          = Nothing
+  , _insertTextFormat    = Nothing
+  , _insertTextMode      = Nothing
+  , _textEdit            = Nothing
+  , _textEditText        = Nothing
+  , _additionalTextEdits = Nothing
+  , _commitCharacters    = Nothing
+  , _command             = Nothing
+  , _data_               = Nothing
+  }
+
 -- | Convert a Field to a CompletionItem.
 fieldToCompletion :: Field -> CompletionItem
 fieldToCompletion Field { fieldName, fieldType } =
-  CompletionItem
-    { _label               = identText (locVal fieldName)
-    , _labelDetails        = Nothing
-    , _kind                = Just CompletionItemKind_Field
-    , _tags                = Nothing
-    , _detail              = Just (formatQualType (locVal fieldType))
-    , _documentation       = Nothing
-    , _deprecated          = Nothing
-    , _preselect           = Nothing
-    , _sortText            = Nothing
-    , _filterText          = Nothing
-    , _insertText          = Nothing
-    , _insertTextFormat    = Nothing
-    , _insertTextMode      = Nothing
-    , _textEdit            = Nothing
-    , _textEditText        = Nothing
-    , _additionalTextEdits = Nothing
-    , _commitCharacters    = Nothing
-    , _command             = Nothing
-    , _data_                = Nothing
-    }
+  mkCompletionItem
+    (identText (locVal fieldName))
+    CompletionItemKind_Field
+    (Just (formatQualType (locVal fieldType)))
 
 -- ---------------------------------------------------------------------------
 -- Import completions
@@ -175,27 +182,7 @@ extractModulePrefix t =
 -- | Convert a module name to a CompletionItem.
 moduleToCompletion :: Text -> CompletionItem
 moduleToCompletion name =
-  CompletionItem
-    { _label               = name
-    , _labelDetails        = Nothing
-    , _kind                = Just CompletionItemKind_Module
-    , _tags                = Nothing
-    , _detail              = Just "module"
-    , _documentation       = Nothing
-    , _deprecated          = Nothing
-    , _preselect           = Nothing
-    , _sortText            = Nothing
-    , _filterText          = Nothing
-    , _insertText          = Nothing
-    , _insertTextFormat    = Nothing
-    , _insertTextMode      = Nothing
-    , _textEdit            = Nothing
-    , _textEditText        = Nothing
-    , _additionalTextEdits = Nothing
-    , _commitCharacters    = Nothing
-    , _command             = Nothing
-    , _data_                = Nothing
-    }
+  mkCompletionItem name CompletionItemKind_Module (Just "module")
 
 -- ---------------------------------------------------------------------------
 -- Scope completions
@@ -216,7 +203,7 @@ scopeCompletions serverState doc sourceText pos =
       -- Deduplicate by name
       uniqueSyms  = nubBy (\a b -> symName a == symName b) allSyms
       -- Filter by prefix
-      matching    = filter (\s -> T.unpack partial `isPrefixOf` T.unpack (symName s)) uniqueSyms
+      matching    = filter (\s -> partial `T.isPrefixOf` symName s) uniqueSyms
       tenv        = dsTypeEnv doc
       symItems    = map (symbolToCompletionWithEnv tenv) matching
       -- Add keyword completions
@@ -224,7 +211,7 @@ scopeCompletions serverState doc sourceText pos =
                        then []
                        else [ keywordToCompletion kw
                             | kw <- bluespecKeywords
-                            , T.unpack partial `isPrefixOf` T.unpack kw ]
+                            , partial `T.isPrefixOf` kw ]
   in symItems ++ kwItems
 
 -- | Convert a Symbol to a CompletionItem, enriching missing type from TypeEnv.
@@ -242,52 +229,12 @@ symbolToCompletionWithEnv tenv sym =
 -- | Convert a Symbol to a CompletionItem.
 symbolToCompletion :: Symbol -> CompletionItem
 symbolToCompletion sym =
-  CompletionItem
-    { _label               = symName sym
-    , _labelDetails        = Nothing
-    , _kind                = Just (symKindToCompletionKind (symKind sym))
-    , _tags                = Nothing
-    , _detail              = symType sym
-    , _documentation       = Nothing
-    , _deprecated          = Nothing
-    , _preselect           = Nothing
-    , _sortText            = Nothing
-    , _filterText          = Nothing
-    , _insertText          = Nothing
-    , _insertTextFormat    = Nothing
-    , _insertTextMode      = Nothing
-    , _textEdit            = Nothing
-    , _textEditText        = Nothing
-    , _additionalTextEdits = Nothing
-    , _commitCharacters    = Nothing
-    , _command             = Nothing
-    , _data_               = Nothing
-    }
+  mkCompletionItem (symName sym) (symKindToCompletionKind (symKind sym)) (symType sym)
 
 -- | Convert a keyword to a CompletionItem.
 keywordToCompletion :: Text -> CompletionItem
 keywordToCompletion kw =
-  CompletionItem
-    { _label               = kw
-    , _labelDetails        = Nothing
-    , _kind                = Just CompletionItemKind_Keyword
-    , _tags                = Nothing
-    , _detail              = Nothing
-    , _documentation       = Nothing
-    , _deprecated          = Nothing
-    , _preselect           = Nothing
-    , _sortText            = Nothing
-    , _filterText          = Nothing
-    , _insertText          = Nothing
-    , _insertTextFormat    = Nothing
-    , _insertTextMode      = Nothing
-    , _textEdit            = Nothing
-    , _textEditText        = Nothing
-    , _additionalTextEdits = Nothing
-    , _commitCharacters    = Nothing
-    , _command             = Nothing
-    , _data_               = Nothing
-    }
+  mkCompletionItem kw CompletionItemKind_Keyword Nothing
 
 -- | Map SymbolKind to CompletionItemKind.
 symKindToCompletionKind :: SymbolKind -> CompletionItemKind
