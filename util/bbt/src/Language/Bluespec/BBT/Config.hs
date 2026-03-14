@@ -55,6 +55,11 @@ data BuildConfig = BuildConfig
   , buildSourceDirs        :: ![FilePath]
   , buildSourceDirsExclude :: ![FilePath]
   , buildSourceDirsAdd     :: ![FilePath]
+  -- | Directories to skip entirely during recursive source scanning.
+  -- Unlike 'buildSourceDirsExclude', this applies during the recursive
+  -- walk — useful for excluding test/example subdirs nested inside a
+  -- source directory (e.g. @Near_Mem_IO/Near_Mem_IO_AXI4_Unit_Test@).
+  , buildScanExclude       :: ![FilePath]
   } deriving stock (Show)
 
 data FlagsConfig = FlagsConfig
@@ -233,9 +238,6 @@ getStr key tbl = case lookupVal key tbl of
   Just (Text' _ s) -> Just s
   _                -> Nothing
 
-getStrD :: Text -> Text -> TomlTable -> Text
-getStrD key def_ tbl = fromMaybe def_ (getStr key tbl)
-
 getBool :: Text -> TomlTable -> Maybe Bool
 getBool key tbl = case lookupVal key tbl of
   Just (Bool' _ b) -> Just b
@@ -271,6 +273,7 @@ parseBuild tbl = Right BuildConfig
   , buildSourceDirs        = map T.unpack (getStrList "source_dirs" tbl)
   , buildSourceDirsExclude = map T.unpack (getStrList "source_dirs_exclude" tbl)
   , buildSourceDirsAdd     = map T.unpack (getStrList "source_dirs_add" tbl)
+  , buildScanExclude       = map T.unpack (getStrList "scan_exclude" tbl)
   }
 
 parseFlags :: TomlTable -> Either String FlagsConfig

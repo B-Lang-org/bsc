@@ -6,7 +6,7 @@ module Language.Bluespec.BBT.Build
   , dryRunFlags
   ) where
 
-import Data.List (intercalate, nub)
+import Data.List (intercalate)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -63,7 +63,6 @@ buildTarget cfg mTarget mProfile = do
                 then pure (Left (TopFileNotFound topAbs))
                 else do
                   let flags = assembleBscFlags cfg tcfg mProfile srcs
-                  let topMod = fromMaybe (inferTopModule top) (buildTopModule (cfgBuild cfg))
                   let bdir = fromMaybe "build/bdir" (targetBuildDir tcfg)
                   let absBdir = absPath (cfgRoot cfg) bdir
                   createDirectoryIfMissing True absBdir
@@ -183,10 +182,4 @@ absPath root path
   | isRelative path = root </> path
   | otherwise       = path
 
--- | Infer a top module name from the top file path.
--- @src/Top.bsv@ → @mkTop@.  Falls back to the filename stem.
-inferTopModule :: FilePath -> Text
-inferTopModule path =
-  let stem = T.pack $ reverse $ takeWhile (/= '/') $ dropWhile (`elem` ['.', 'b', 's', 'v']) $ reverse path
-  in "mk" <> stem
 

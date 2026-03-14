@@ -18,7 +18,7 @@ module Language.Bluespec.BBT.Discover
   ) where
 
 import Control.Exception (SomeException, catch, evaluate, try)
-import Data.List (isPrefixOf, nub)
+import Data.List (isSuffixOf, nub)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (mapMaybe)
@@ -60,7 +60,8 @@ discoverSources cfg mProfile = do
   root <- makeAbsolute (cfgRoot cfg)
   absDirs <- mapM (toAbs root) (expandGlobs dirs)
   existingDirs <- filterM doesDirectoryExist absDirs
-  files <- fmap concat $ mapM collectDir existingDirs
+  let scanExclude = map (root </>) (buildScanExclude (cfgBuild cfg))
+  files <- fmap concat $ mapM (collectDir scanExclude) existingDirs
   let conflictMap = buildConflictMap files
   case resolveConflicts conflictMap (cfgConflicts cfg) of
     Left cs    -> pure (Left cs)
@@ -109,10 +110,13 @@ resolveConflicts conflictMap resolutions =
           case filter (\sf -> sfPath sf `endsWithPath` winner) files of
             (f : _) -> Right f
             []      -> Left files  -- winner path didn't match any file
+    -- | True if @haystack@ ends with the path component @needle@.
+    -- Handles the common case where @needle@ is a relative path
+    -- (e.g. "src_Core/CPU/Foo.bsv") and @haystack@ is absolute
+    -- (e.g. "/work/Flute/src_Core/CPU/Foo.bsv").
     endsWithPath haystack needle =
-      needle `isSuffixOf'` haystack || haystack == needle
-    isSuffixOf' suffix str = suffix `isPrefixOf` reverse (dropWhile (/= '/') (reverse str))
-                          || str == suffix
+      haystack == needle
+      || ("/" ++ needle) `isSuffixOf` haystack
 
 -- ---------------------------------------------------------------------------
 -- Internal helpers
@@ -128,8 +132,10 @@ expandGlobs = map stripGlob
       | otherwise = p
 
 -- | Recursively collect all @.bs@ and @.bsv@ files in a directory.
-collectDir :: FilePath -> IO [SourceFile]
-collectDir dir = do
+-- The @scanExclude@ list contains absolute directory paths to skip entirely
+-- during the recursive walk (e.g. test or example subdirs).
+collectDir :: [FilePath] -> FilePath -> IO [SourceFile]
+collectDir scanExclude dir = do
   entries <- listDirectory dir `catchAll` \_ -> pure []
   fmap concat $ mapM (processEntry dir) entries
   where
@@ -137,7 +143,9 @@ collectDir dir = do
       let fullPath = parent </> entry
       isDir <- doesDirectoryExist fullPath
       if isDir
-        then collectDir fullPath
+        then if fullPath `elem` scanExclude
+               then pure []
+               else collectDir scanExclude fullPath
         else case takeExtension entry of
                ".bs"  -> toSourceFile fullPath
                ".bsv" -> toSourceFile fullPath
