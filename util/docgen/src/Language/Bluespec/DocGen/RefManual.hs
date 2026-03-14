@@ -31,7 +31,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
-import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter)
+import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter, mathJaxScripts)
 import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex)
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
@@ -293,6 +293,7 @@ sectionPage sec idx mSha = H.docTypeHtml $ do
     H.meta ! A.charset "utf-8"
     H.title (H.toHtml (secTitle sec <> " — BH Reference"))
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
   H.body $ do
     H.nav ! A.class_ "breadcrumb" $
       H.a ! A.href "index.html" $ "Reference Manual"
@@ -313,6 +314,7 @@ tocPage sections mSha = H.docTypeHtml $ do
     H.meta ! A.charset "utf-8"
     H.title "BH Language Reference"
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
   H.body $ do
     H.main $ do
       H.h1 "BH Language Reference"
@@ -340,6 +342,7 @@ termIndexPage entries mSha = H.docTypeHtml $ do
     H.meta ! A.charset "utf-8"
     H.title "Term Index — BH Reference"
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
   H.body $ do
     H.main $ do
       H.nav ! A.class_ "breadcrumb" $

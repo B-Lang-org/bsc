@@ -494,18 +494,24 @@ latexQuotes = choice
        pure $ Plain "'"
   ]
 
--- | Math mode: $...$ → render content as code; $$...$$ → skip
+-- | Math mode.
+-- * @$...$@  → @\(...\)@ (MathJax inline marker)
+-- * @$$...$$@ → @\[...\]@ (MathJax display marker)
+--
+-- The raw LaTeX content is kept verbatim inside the MathJax delimiters so
+-- that MathJax can render it in the browser.  MathJax is served as a local
+-- file (@../mathjax.js@) written to the output directory by 'runDocGen'.
 mathMode :: Parser DocInline
 mathMode = do
   _ <- char '$'
   isDbl <- option False (True <$ char '$')
   if isDbl
     then do
-      _ <- manyTill anySingle (string "$$")
-      pure $ Plain ""
+      content <- manyTill anySingle (string "$$")
+      pure $ Plain ("\\[\n" <> T.pack content <> "\n\\]")
     else do
-      content <- manyTill (satisfy (/= '\n')) (char '$')
-      pure $ Code (T.pack content)
+      content <- manyTill (satisfy (\c -> c /= '\n' && c /= '$')) (char '$')
+      pure $ Plain ("\\(" <> T.pack content <> "\\)")
 
 skipCmd :: Parser DocInline
 skipCmd = choice
@@ -538,4 +544,4 @@ plainText = do
   rest <- takeWhileP Nothing notSpecial
   pure $ Plain (T.cons c rest)
   where
-    notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n'
+    notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n' && ch /= '$'

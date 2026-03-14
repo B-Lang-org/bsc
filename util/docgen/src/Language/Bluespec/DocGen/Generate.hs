@@ -27,7 +27,7 @@ import Language.Bluespec.DocGen.CSS (stylesheet)
 import Language.Bluespec.DocGen.DocAST (dePackage)
 import Language.Bluespec.DocGen.Extract (extractDocsFromFile)
 import Language.Bluespec.DocGen.HTML
-  (renderPackagePage, renderIndexPage, docFooter)
+  (renderPackagePage, renderIndexPage, docFooter, mathJaxScripts)
 import Language.Bluespec.DocGen.RefManual
   (RefManualConfig (..), defaultRefManualConfig, convertRefManual)
 import Language.Bluespec.DocGen.SymbolIndex (buildIndex, renderIndexJson)
@@ -126,7 +126,10 @@ runDocGen cfg = do
   -- 11. Write stylesheet
   TIO.writeFile (outDir </> "docgen.css") stylesheet
 
-  -- 12. Write symbol index JSON
+  -- 12. Download MathJax bundle (for local math rendering, no CDN at view time)
+  downloadMathjax outDir (dgcVerbose cfg)
+
+  -- 13. Write symbol index JSON
   LBS.writeFile (outDir </> "symbol-index.json") (renderIndexJson idx)
 
   putStrLn $ "[docgen] Done. Output written to " ++ outDir ++ "/"
@@ -148,6 +151,7 @@ siteRootPage manuals mStdlibUrl mSha =
       H.meta ! A.charset "utf-8"
       H.title "Bluespec Documentation"
       H.link ! A.rel "stylesheet" ! A.href "docgen.css"
+      mathJaxScripts "mathjax.js"
     H.body $ do
       H.main $ do
         H.h1 "Bluespec Documentation"
@@ -220,6 +224,42 @@ gitShortSha dir = do
   case ec of
     ExitSuccess -> pure $ Just (T.strip (T.pack out))
     _           -> pure Nothing
+
+-- ---------------------------------------------------------------------------
+-- MathJax download
+-- ---------------------------------------------------------------------------
+
+-- | MathJax CDN URL for the single-file tex-svg bundle (version 3).
+mathjaxUrl :: String
+mathjaxUrl = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+
+-- | Download the MathJax bundle to @outDir/mathjax.js@ if not already present.
+-- Tries @wget@ then @curl@; warns but does not fail if both are unavailable.
+-- When the file already exists it is not re-downloaded.
+downloadMathjax :: FilePath -> Bool -> IO ()
+downloadMathjax outDir verbose = do
+  let dest = outDir </> "mathjax.js"
+  exists <- doesFileExist dest
+  if exists
+    then when verbose $ putStrLn $ "[docgen] MathJax already present: " ++ dest
+    else do
+      when verbose $ putStrLn $ "[docgen] Downloading MathJax from " ++ mathjaxUrl
+      (ec, _, _) <- readProcessWithExitCode "wget"
+        ["-q", "-O", dest, mathjaxUrl] ""
+      case ec of
+        ExitSuccess -> when verbose $
+          putStrLn $ "[docgen] MathJax saved to " ++ dest
+        _ -> do
+          -- wget failed or not available; try curl
+          (ec2, _, _) <- readProcessWithExitCode "curl"
+            ["-sSL", "-o", dest, mathjaxUrl] ""
+          case ec2 of
+            ExitSuccess -> when verbose $
+              putStrLn $ "[docgen] MathJax saved to " ++ dest
+            _ -> putStrLn $
+              "[docgen] Warning: could not download MathJax. "
+              ++ "Math will not render. Run: wget -O "
+              ++ dest ++ " " ++ mathjaxUrl
 
 -- ---------------------------------------------------------------------------
 -- Source file collection

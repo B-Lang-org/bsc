@@ -8,6 +8,7 @@ module Language.Bluespec.DocGen.HTML
   , renderSitePage
   , renderDocBlocks
   , docFooter
+  , mathJaxScripts
   ) where
 
 import Data.List (sortOn)
@@ -180,6 +181,7 @@ page title body_ = H.docTypeHtml $ do
     H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1"
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
   H.body $ H.div ! A.class_ "page-layout" $ body_
 
 pageRaw :: Text -> Html -> Html
@@ -189,4 +191,14 @@ pageRaw title body_ = H.docTypeHtml $ do
     H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1"
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "docgen.css"
+    mathJaxScripts "mathjax.js"
   H.body $ H.div ! A.class_ "page-layout" $ body_
+
+-- | Emit MathJax configuration + loader scripts.
+-- The @src@ argument is the relative path to the local @mathjax.js@ bundle.
+-- MathJax processes @\\(...\\)@ inline and @\\[...\\]@ display delimiters.
+mathJaxScripts :: Text -> Html
+mathJaxScripts src = do
+  H.script ! A.type_ "text/javascript" $
+    "MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]}};"
+  H.script ! A.type_ "text/javascript" ! A.src (H.toValue src) ! A.async "async" $ ""
