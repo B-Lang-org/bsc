@@ -16,29 +16,31 @@ import Language.LSP.Protocol.Types hiding (SymbolKind)
 import Language.Bluespec.Position (Pos (..), SrcSpan (..))
 import Language.Bluespec.LSP.State (ServerState (..), ModuleInfo (..), getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
+import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
 import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
 import Language.Bluespec.Syntax (ModuleId (..))
 
 -- | Get hover information for a symbol at a position.
 -- First tries position-based lookup (cursor on definition), then falls back to
 -- name-based lookup (cursor on usage/reference).
-getHoverInfo :: SymbolTable -> Text -> Position -> Maybe Hover
-getHoverInfo st sourceText pos =
+-- Uses the TypeEnv to fill in types for symbols that lack them (e.g. module-local bindings).
+getHoverInfo :: TypeEnv -> SymbolTable -> Text -> Position -> Maybe Hover
+getHoverInfo tenv st sourceText pos =
   case lookupAtPosition st (positionToPos pos) of
-    Just sym -> Just $ symbolToHover sym
+    Just sym -> Just $ symbolToHoverWithEnv tenv sym
     Nothing  ->
       -- Try name-based lookup: extract identifier at position, search by name
       case getIdentifierAtPosition sourceText pos of
         Nothing    -> Nothing
         Just ident -> case lookupByName st ident of
           []   -> Nothing
-          syms -> Just $ symbolToHover (selectBestForHover (positionToPos pos) syms)
+          syms -> Just $ symbolToHoverWithEnv tenv (selectBestForHover (positionToPos pos) syms)
 
 -- | Get hover information with cross-file fallback.
 -- Searches imports and prelude when the symbol is not found locally.
-getHoverInfoCrossFile :: ServerState -> SymbolTable -> Text -> Position -> Maybe Hover
-getHoverInfoCrossFile serverState st sourceText pos =
-  case getHoverInfo st sourceText pos of
+getHoverInfoCrossFile :: ServerState -> TypeEnv -> SymbolTable -> Text -> Position -> Maybe Hover
+getHoverInfoCrossFile serverState tenv st sourceText pos =
+  case getHoverInfo tenv st sourceText pos of
     Just h  -> Just h
     Nothing ->
       case getIdentifierAtPosition sourceText pos of
@@ -103,6 +105,18 @@ lookupSymInPrelude serverState symName =
     Just prelude -> case lookupByName prelude symName of
       []      -> Nothing
       (s : _) -> Just s
+
+-- | Convert a symbol to hover, enriching missing type info from TypeEnv.
+symbolToHoverWithEnv :: TypeEnv -> Symbol -> Hover
+symbolToHoverWithEnv tenv sym =
+  case symType sym of
+    Just _  -> symbolToHover sym
+    Nothing ->
+      case lookupVarType tenv (symName sym) of
+        Nothing -> symbolToHover sym
+        Just qt ->
+          let typeText = formatQualTypeExpanded (teAliases tenv) qt
+          in symbolToHover sym { symType = Just typeText }
 
 -- | Convert a symbol to hover information.
 symbolToHover :: Symbol -> Hover

@@ -29,6 +29,10 @@ module Language.Bluespec.LSP.SymbolTable
     -- * Import Info
     ImportInfo (..),
 
+    -- * Type formatting
+    formatQualType,
+    formatQualTypeExpanded,
+
     -- * Type alias utilities (used by TypeEnv)
     AliasMap,
     collectAliases,

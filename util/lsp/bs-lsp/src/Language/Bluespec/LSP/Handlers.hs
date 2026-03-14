@@ -137,7 +137,7 @@ handleHover stateVar docUri pos = do
   state <- liftIO $ readTVarIO stateVar
   case getDocument nuri state of
     Nothing -> pure $ InR Null
-    Just doc -> case getHoverInfoCrossFile state (dsSymbols doc) (dsText doc) pos of
+    Just doc -> case getHoverInfoCrossFile state (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
       Nothing -> pure $ InR Null
       Just hoverInfo -> pure $ InL hoverInfo
 

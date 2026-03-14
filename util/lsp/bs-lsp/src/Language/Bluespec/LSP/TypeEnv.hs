@@ -19,7 +19,6 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Text (Text)
-import Data.Text qualified as T
 
 import Language.Bluespec.LSP.SymbolTable (AliasMap, collectAliases, expandType, qualIdentSimpleName)
 import Language.Bluespec.Position (Located (..), noSpan)
@@ -61,10 +60,14 @@ collectDef (Located _ def) env = case def of
   DefTypeSig name qt ->
     env { teVars = Map.insert (identText (locVal name)) (locVal qt) (teVars env) }
 
-  DefValue name (Just qt) _ ->
+  DefValue name (Just qt) clauses ->
     -- Prefer DefTypeSig if already present; DefValue type sig is a fallback
     let k = identText (locVal name)
-    in env { teVars = Map.insertWith (\_ old -> old) k (locVal qt) (teVars env) }
+        env' = env { teVars = Map.insertWith (\_ old -> old) k (locVal qt) (teVars env) }
+    in foldr collectClauseTypes env' clauses
+
+  DefValue _ Nothing clauses ->
+    foldr collectClauseTypes env clauses
 
   -- Struct definition: DefData with one constructor that has record fields.
   DefData name _ _ [Located _ Constructor { conRecord = Just rfields }] _ ->
@@ -80,6 +83,50 @@ collectDef (Located _ def) env = case def of
     in env { teVars = Map.fromList sigs `Map.union` teVars env }
 
   _ -> env
+
+-- | Collect types from a clause body (walk into module expressions).
+collectClauseTypes :: Clause -> TypeEnv -> TypeEnv
+collectClauseTypes Clause { clauseBody } env =
+  collectExprTypes (locVal clauseBody) env
+
+-- | Walk an expression looking for module bodies to collect local binding types.
+collectExprTypes :: Expr -> TypeEnv -> TypeEnv
+collectExprTypes expr env = case expr of
+  EModule stmts  -> foldr collectModuleStmtType env stmts
+  EParens e      -> collectExprTypes (locVal e) env
+  _              -> env
+
+-- | Collect types declared in a module statement.
+-- For MStmtBind with an explicit type annotation, records pat-name → stripped type.
+-- For MStmtLet/MStmtLetSeq, records let-bound type signatures.
+collectModuleStmtType :: ModuleStmt -> TypeEnv -> TypeEnv
+collectModuleStmtType stmt env = case stmt of
+  MStmtBind pat (Just lty) _ ->
+    collectPatternType pat (locVal lty) env
+  MStmtBind pat Nothing expr ->
+    -- Infer from the RHS and strip Module#/ActionValue# wrapper
+    case fmap (stripWrapper . expandAlias env) (inferExprType env expr) of
+      Nothing -> env
+      Just t  -> collectPatternType pat t env
+  MStmtLet items  -> extendEnvWithLetItems env items
+  MStmtLetSeq items -> extendEnvWithLetItems env items
+  MStmtDef def    -> collectDef def env
+  _               -> env
+
+-- | Record type for a single-variable pattern.
+collectPatternType :: LPattern -> Type -> TypeEnv -> TypeEnv
+collectPatternType lpat ty env = case locVal lpat of
+  PVar name ->
+    let k  = identText (locVal name)
+        qt = plainQualType ty
+    in env { teVars = Map.insertWith (\_ old -> old) k qt (teVars env) }
+  PTypeSig p _ -> collectPatternType p ty env
+  PParens   p  -> collectPatternType p ty env
+  _            -> env
+
+-- | Wrap a bare Type in a QualType with no predicates.
+plainQualType :: Type -> QualType
+plainQualType t = QualType [] (Located noSpan t)
 
 -- | Look up the declared type of a variable name.
 lookupVarType :: TypeEnv -> Text -> Maybe QualType
@@ -127,7 +174,7 @@ inferDoType env stmts = listToMaybe $ mapMaybe inferStmt (reverse stmts)
   where
     inferStmt (Located _ stmt) = case stmt of
       StmtExpr e  -> inferExprType env e
-      StmtBind p (Just qt) _ ->
+      StmtBind _ (Just qt) _ ->
         Just $ expandAlias env $ locVal $ qtType $ locVal qt
       StmtBind _ Nothing e ->
         fmap (stripWrapper . expandAlias env) (inferExprType env e)
