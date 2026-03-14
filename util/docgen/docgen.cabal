@@ -1,0 +1,71 @@
+cabal-version:      3.0
+name:               bs-docgen
+version:            0.1.0.0
+synopsis:           Bluespec documentation generator — Haddock for Bluespec
+description:        Extracts --@ and -- | doc comments from .bs/.bsv sources,
+                    converts the LaTeX reference manual, and generates a
+                    navigable HTML site with cross-linked symbols.
+license:            BSD-3-Clause
+author:             matx-2 team
+maintainer:         team@example.com
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns -Wmissing-export-lists
+                 -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+                 -Werror=incomplete-patterns
+
+library
+    import:           warnings
+    exposed-modules:
+        Language.Bluespec.DocGen.DocAST
+        Language.Bluespec.DocGen.Extract
+        Language.Bluespec.DocGen.TexParser
+        Language.Bluespec.DocGen.PlainParser
+        Language.Bluespec.DocGen.Highlight
+        Language.Bluespec.DocGen.SymbolIndex
+        Language.Bluespec.DocGen.HTML
+        Language.Bluespec.DocGen.CSS
+    build-depends:
+        base            >= 4.17 && < 5
+      , bs-parser
+      , blaze-html      >= 0.9
+      , blaze-markup    >= 0.8
+      , containers      >= 0.6
+      , directory       >= 1.3
+      , filepath        >= 1.4
+      , megaparsec      >= 9.0
+      , text            >= 2.0
+      , aeson           >= 2.1
+      , bytestring      >= 0.11
+    hs-source-dirs:   src
+    default-language: GHC2021
+    default-extensions:
+        DerivingStrategies
+        GeneralizedNewtypeDeriving
+        LambdaCase
+        OverloadedStrings
+        RecordWildCards
+        StrictData
+
+executable bs-docgen
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base                 >= 4.17 && < 5
+      , bs-docgen
+      , bytestring           >= 0.11
+      , containers           >= 0.6
+      , directory            >= 1.3
+      , filepath             >= 1.4
+      , optparse-applicative >= 0.18
+      , text                 >= 2.0
+    hs-source-dirs:   app
+    default-language: GHC2021
+    default-extensions:
+        DerivingStrategies
+        LambdaCase
+        OverloadedStrings
+        RecordWildCards
