@@ -4,6 +4,7 @@ module Language.Bluespec.LSP.Util
   , positionToPos
   , getIdentifierAtPosition
   , parseQualifiedName
+  , typeConstructorName
   ) where
 
 import Data.Char (isAlphaNum, isUpper)
@@ -12,7 +13,8 @@ import qualified Data.Text as T
 
 import Language.LSP.Protocol.Types (Position(..), Range(..))
 
-import Language.Bluespec.Position (SrcSpan(..), Pos(..))
+import Language.Bluespec.Position (SrcSpan(..), Pos(..), Located(..))
+import Language.Bluespec.Syntax (QualIdent(..), Type(..), identText)
 
 -- | Convert a Bluespec 'SrcSpan' to an LSP 'Range'.
 -- Bluespec uses 1-indexed positions; LSP uses 0-indexed.
@@ -119,3 +121,13 @@ parseQualifiedName name =
       in if T.null modName || T.null n
            then (Nothing, name)
            else (Just modName, n)
+
+-- | Extract the outermost type constructor name from a 'Type'.
+-- Returns 'Nothing' for type variables, function types, etc.
+-- E.g. @Reg#(UInt#(8))@ → @Just "Reg"@.
+typeConstructorName :: Type -> Maybe Text
+typeConstructorName (TCon qi) =
+  case locVal qi of
+    QualIdent _ ident -> Just (identText ident)
+typeConstructorName (TApp f _) = typeConstructorName (locVal f)
+typeConstructorName _          = Nothing

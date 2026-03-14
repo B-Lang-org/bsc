@@ -18,7 +18,7 @@ import Language.LSP.Protocol.Types hiding (SymbolKind)
 import Language.Bluespec.LSP.State (ServerState (..), DocumentState (..), ModuleInfo (..), getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable (Symbol (..), SymbolKind (..), getAllSymbols, formatQualType, formatQualTypeExpanded)
 import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
-import Language.Bluespec.LSP.Util (getIdentifierAtPosition)
+import Language.Bluespec.LSP.Util (getIdentifierAtPosition, typeConstructorName)
 import Language.Bluespec.Position (Located (..), locVal)
 import Language.Bluespec.Syntax
 
@@ -113,20 +113,11 @@ extractLastIdent t =
 -- | Get the fields/methods for a type from the TypeEnv.
 fieldsForType :: TypeEnv -> Type -> [CompletionItem]
 fieldsForType tenv ty =
-  case resolveTypeName ty of
+  case typeConstructorName ty of
     Nothing   -> []
     Just name -> case Map.lookup name (teStructs tenv) of
       Nothing     -> []
       Just fields -> map fieldToCompletion fields
-
--- | Extract the outermost type constructor name from a type.
-resolveTypeName :: Type -> Maybe Text
-resolveTypeName (TCon qi) =
-  case locVal qi of
-    QualIdent _ ident -> Just (identText ident)
-resolveTypeName (TApp f _) =
-  resolveTypeName (locVal f)
-resolveTypeName _ = Nothing
 
 -- | Build a CompletionItem with only label, kind, and detail set.
 mkCompletionItem :: Text -> CompletionItemKind -> Maybe Text -> CompletionItem

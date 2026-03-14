@@ -12,9 +12,9 @@ import Data.Text (Text)
 import Language.Bluespec.LSP.State (ModuleInfo (..), ServerState (..), getModuleSymbols, getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
-import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
+import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName, typeConstructorName)
 import Language.Bluespec.Position (Located (..), Pos (..), SrcSpan (..))
-import Language.Bluespec.Syntax (ModuleId (..), QualIdent (..), QualType (..), Type (..), identText)
+import Language.Bluespec.Syntax (ModuleId (..), QualType (..))
 import Language.LSP.Protocol.Types
 
 -- | Get definition location for symbol at a position.
@@ -128,18 +128,12 @@ lookupFieldAccess serverState tenv instanceName fieldName =
     Nothing -> Nothing
     Just qt ->
       -- Get the outermost type constructor name
-      case outerTypeName (locVal (qtType qt)) of
+      case typeConstructorName (locVal (qtType qt)) of
         Nothing       -> Nothing
         Just typeName ->
           -- Look for fieldName in that type's interface/struct across all indexed modules
           listToMaybe $ mapMaybe (lookupFieldInModule typeName fieldName)
                                  (Map.elems (ssModuleIndex serverState))
-
--- | Find the outermost constructor name from a type.
-outerTypeName :: Type -> Maybe Text
-outerTypeName (TCon qi)  = case locVal qi of QualIdent _ ident -> Just (identText ident)
-outerTypeName (TApp f _) = outerTypeName (locVal f)
-outerTypeName _          = Nothing
 
 -- | Look up a field symbol by interface type name in a ModuleInfo.
 lookupFieldInModule :: Text -> Text -> ModuleInfo -> Maybe Location
