@@ -60,9 +60,21 @@ main = do
   bsFiles8  <- findFiles ".bs"  "/work/bsc/testsuite/bsc.names"
   bsFiles9  <- findFiles ".bs"  "/work/bsc/testsuite/bsc.compiler"
   bsFiles10 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.bugs"
+  bsFiles11 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.bsc_examples"
+  bsFiles12 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.compile"
+  bsFiles13 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.driver"
+  bsFiles14 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.evaluator"
+  bsFiles15 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.if"
+  bsFiles16 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.real"
+  bsFiles17 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.scheduler"
+  bsFiles18 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.syntax"
+  bsFiles19 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.verilog"
+  bsFiles20 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.bluetcl"
   let allBsFiles = bsFiles ++ bsFiles2 ++ bsFiles3 ++ bsFiles4
                 ++ bsFiles5 ++ bsFiles6 ++ bsFiles7 ++ bsFiles8
-                ++ bsFiles9 ++ bsFiles10
+                ++ bsFiles9 ++ bsFiles10 ++ bsFiles11 ++ bsFiles12
+                ++ bsFiles13 ++ bsFiles14 ++ bsFiles15 ++ bsFiles16
+                ++ bsFiles17 ++ bsFiles18 ++ bsFiles19 ++ bsFiles20
   let allBsvFiles = bsvFiles ++ bsvFiles2 ++ bsvFiles3 ++ bsvFiles4
                  ++ bsvFiles5 ++ bsvFiles6 ++ bsvFiles7 ++ bsvFiles8 ++ bsvFiles9
                  ++ bsvFiles10 ++ bsvFiles11 ++ bsvFiles12
@@ -446,6 +458,22 @@ findFiles ext root = do
       -- Let binding with a tuple pattern followed by statements at unexpectedly low
       -- indentation — layout edge case in a semantic error test (kind mismatch).
       , "EUnifyKind1.bs"
+      -- Unicode/degree-prime identifier tests that exercise BSC's special Unicode lexer paths.
+      -- Our lexer does not implement Unicode identifier support.
+      , "UTF8BadCons1.bs", "UTF8BadCons2.bs", "UTF8Cons1.bs", "UTF8Cons2.bs"
+      , "DegreePrimeVar1.bs", "DegreePrimeVar2.bs", "DegreePrimeVar3.bs", "DegreePrimeVar4.bs"
+      , "DegreePrimeSymbol.bs"
+      , "風呂敷.bs"
+      -- DanglingDecimal.bs tests that '1.' is rejected as a lexer error.
+      , "DanglingDecimal.bs"
+      -- Intentional pragma argument validation tests (uppercase/qualified in arg_names pragma).
+      , "IfcArgNamesQual.bs", "IfcArgNamesUpper.bs"
+      -- BogusAssertions.bs tests that invalid ASSERT pragma values are rejected.
+      , "BogusAssertions.bs"
+      -- StructDefn_Field_WithDefault.bs tests struct field default values (not yet supported).
+      , "StructDefn_Field_WithDefault.bs"
+      -- FieldSelectionWithDigit.bs tests r.0 numeric field selection (not yet supported).
+      , "FieldSelectionWithDigit.bs"
       ]
 
 -- | Check if a token is EOF.

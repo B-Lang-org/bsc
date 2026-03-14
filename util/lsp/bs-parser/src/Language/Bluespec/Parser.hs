@@ -274,7 +274,8 @@ literal = intLit <|> floatLit <|> charLit <|> stringLit
 -- | Match a module identifier.
 moduleId :: Parser (Located ModuleId)
 moduleId = do
-  c <- conId
+  -- BSC allows both uppercase (ConId) and lowercase (varId) package/module names.
+  c <- conId <|> varId
   pure $ Located (locSpan c) (ModuleId $ identText $ locVal c)
 
 --------------------------------------------------------------------------------
@@ -349,8 +350,11 @@ pPackage = do
     }
 
 -- | Parse export list.
+-- Supports both explicit (@(a, b, c)@) and hiding (@hiding (a, b, c)@) forms.
+-- The hiding/explicit distinction is not currently used by the LSP.
 pExports :: Parser [Located Export]
 pExports = do
+  void $ optional (varIdNamed "hiding")
   void $ punct Lex.PunctLParen
   xs <- pExport `sepBy` punct Lex.PunctComma
   void $ punct Lex.PunctRParen
@@ -1315,20 +1319,15 @@ starKind = void $ MP.token test expected
 pExpr :: Parser LExpr
 pExpr = do
   e <- pExprOps
-  -- Check for type annotation: expr :: type
-  mTy <- optional $ punct Lex.PunctDColon *> withSpan pQualType
-  e' <- case mTy of
-    Nothing -> pure e
-    Just ty -> pure $ spanning e ty (ETypeSig e ty)
   -- Check for expression-level where clause: expr where { bindings }
   -- This is sugar for let { bindings } in expr (Cletrec in the reference)
   mWhere <- optional $ try $ do
     void $ keyword Lex.KwWhere
     block pDefinition
   case mWhere of
-    Nothing -> pure e'
+    Nothing -> pure e
     Just defns ->
-      pure $ Located (locSpan e') (EWhere e' defns)
+      pure $ Located (locSpan e) (EWhere e defns)
 
 -- | Parse expression with operators.
 pExprOps :: Parser LExpr
@@ -1775,12 +1774,33 @@ pRule = withSpan $ do
         nestedEnd <- getPos
         let nestedExpr = Located (mergeSpans (spanOf nestedStart) nestedEnd) (ERules nestedRules)
         pure (Just guard, nestedExpr)
+    , -- "when guard ==> { stmts }" -- rule with guard and explicit action block
+      try $ do
+        guard <- pGuard
+        void $ punct Lex.PunctRuleArrow
+        blockStart <- getPos
+        void $ lookAhead (punct Lex.PunctLBrace)
+        stmts <- block pStmt
+        blockEnd <- getPos
+        let blockExpr = Located (mergeSpans blockStart blockEnd)
+                          (EDo (map (Located noSpan) stmts))
+        pure (Just guard, blockExpr)
     , -- "when guard ==> expr" -- standard rule with guard
       do
         guard <- pGuard
         void $ punct Lex.PunctRuleArrow
         expr <- pExpr
         pure (Just guard, expr)
+    , -- "==> { stmts }" -- rule body as explicit action block (no guard)
+      try $ do
+        void $ punct Lex.PunctRuleArrow
+        blockStart <- getPos
+        void $ lookAhead (punct Lex.PunctLBrace)
+        stmts <- block pStmt
+        blockEnd <- getPos
+        let blockExpr = Located (mergeSpans blockStart blockEnd)
+                          (EDo (map (Located noSpan) stmts))
+        pure (Nothing, blockExpr)
     , -- "==> expr" -- rule without guard
       do
         void $ punct Lex.PunctRuleArrow
@@ -1905,9 +1925,18 @@ pFExpr :: Parser LExpr
 pFExpr = do
   f <- pAExpr
   args <- many pAExpr
-  case args of
+  e <- case args of
     [] -> pure f
     _ -> pure $ foldl (\a b -> spanning a b (EApp a b)) f args
+  -- Handle type annotation as a postfix on a function-applied expression.
+  -- This matches BSC's grammar where "aexp :: type" forms a typed expression
+  -- that can still participate in operator expressions: "(e :: t) + 1".
+  mTy <- optional $ try $ do
+    void $ punct Lex.PunctDColon
+    withSpan pQualType
+  pure $ case mTy of
+    Nothing -> e
+    Just ty -> spanning e ty (ETypeSig e ty)
 
 -- | Parse an atomic expression.
 pAExpr :: Parser LExpr

@@ -495,7 +495,9 @@ numericLit = sized <|> tickPrefixed <|> unsized
             sign <- option "" (T.singleton <$> oneOf ("+-" :: String))
             exp' <- takeWhile1P Nothing isDigit
             pure (sign <> exp')
-          let floatStr = T.pack (show int) <> "." <> frac <> maybe "" id mExp
+          -- Haskell's 'read :: Double' doesn't accept 'e+N'; normalise to 'eN' or 'e-N'.
+          let normExp = fmap (\e -> if T.isPrefixOf "+" e then T.drop 1 e else e) mExp
+          let floatStr = T.pack (show int) <> "." <> frac <> maybe "" ("e" <>) normExp
           pure $ TokFloat (read $ T.unpack floatStr)
         Nothing -> do
           mExp <- optional $ try $ do
@@ -505,7 +507,8 @@ numericLit = sized <|> tickPrefixed <|> unsized
             pure (sign <> exp')
           case mExp of
             Just exp' -> do
-              let floatStr = T.pack (show int) <> "e" <> exp'
+              let normExp = if T.isPrefixOf "+" exp' then T.drop 1 exp' else exp'
+              let floatStr = T.pack (show int) <> "e" <> normExp
               pure $ TokFloat (read $ T.unpack floatStr)
             Nothing -> pure $ TokInteger int Nothing
 
