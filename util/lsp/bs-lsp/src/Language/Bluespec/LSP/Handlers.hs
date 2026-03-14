@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 -- | LSP request handlers for Bluespec.
 module Language.Bluespec.LSP.Handlers
@@ -20,7 +21,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
 import Language.Bluespec.LSP.Definition
 import Language.Bluespec.LSP.Diagnostics
-import Language.Bluespec.LSP.Hover
+import Language.Bluespec.LSP.Hover (getHoverInfoCrossFile)
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable
 import Language.Bluespec.LSP.Symbols
@@ -157,7 +158,7 @@ handleHover stateVar docUri pos = do
   state <- liftIO $ readTVarIO stateVar
   case getDocument nuri state of
     Nothing -> pure $ InR Null
-    Just doc -> case getHoverInfo (dsSymbols doc) pos of
+    Just doc -> case getHoverInfoCrossFile state (dsSymbols doc) (dsText doc) pos of
       Nothing -> pure $ InR Null
       Just hoverInfo -> pure $ InL hoverInfo
 
@@ -338,7 +339,7 @@ indexModuleFile stateVar filePath = do
       hPutStrLn stderr $
         "Bluespec LSP: Failed to parse " ++ filePath ++ ": " ++ take 200 err
       pure ()
-    Right (text, pkg, symbols) -> do
+    Right (_text, pkg, symbols) -> do
       let info =
             ModuleInfo
               { miFilePath = filePath,
@@ -360,8 +361,8 @@ updateModuleIndexFromDoc :: TVar ServerState -> Text -> Maybe Package -> SymbolT
 updateModuleIndexFromDoc stateVar filePath mPkg symbols = do
   -- Extract module name from the package or use filename
   let modName = case mPkg of
-        Just pkg -> stPackageName symbols
-        Nothing -> Just $ T.pack $ takeBaseName $ T.unpack filePath
+        Just _pkg -> stPackageName symbols
+        Nothing   -> Just $ T.pack $ takeBaseName $ T.unpack filePath
   case modName of
     Nothing -> pure ()
     Just name -> do

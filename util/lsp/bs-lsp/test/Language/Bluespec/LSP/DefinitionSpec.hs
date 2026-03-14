@@ -17,7 +17,8 @@ import Language.Bluespec.Parser (parsePackage)
 import Language.Bluespec.Position (SrcSpan(..))
 import qualified Language.Bluespec.Position as Pos
 import Language.Bluespec.LSP.SymbolTable (buildSymbolTable, SymbolTable, loadPreludeSymbolTable, discoverPreludeFilePath, getAllSymbols, Symbol(..), SymbolKind(..), LibrarySearchResult(..), discoverLibrariesDirWithDebug, discoverLibrariesDir, formatLibrarySearchError)
-import Language.Bluespec.LSP.Definition (getDefinition, getDefinitionCrossFile, getIdentifierAtPosition)
+import Language.Bluespec.LSP.Definition (getDefinition, getDefinitionCrossFile)
+import Language.Bluespec.LSP.Util (getIdentifierAtPosition)
 import Language.Bluespec.LSP.State (emptyServerState, updateModuleIndex, ModuleInfo(..), setPreludeSymbols)
 
 -- | Recursively find all .bs files in a directory.
@@ -574,7 +575,7 @@ spec = do
         searchResult <- discoverLibrariesDirWithDebug
         case searchResult of
           LibraryNotFound _ ->
-            expectationFailure $ formatLibrarySearchError searchResult
+            pendingWith "standard library not discoverable in this environment (set BLUESPEC_SRC or BLUESPECDIR)"
           LibraryFound libDir -> do
             -- Find all .bs files in the library
             bsFiles <- findBsFiles libDir
@@ -599,7 +600,7 @@ spec = do
         searchResult <- discoverLibrariesDirWithDebug
         case searchResult of
           LibraryNotFound _ ->
-            expectationFailure $ formatLibrarySearchError searchResult
+            pendingWith "standard library not discoverable in this environment (set BLUESPEC_SRC or BLUESPECDIR)"
           LibraryFound libDir -> do
             -- Find and load all .bs files
             bsFiles <- findBsFiles libDir
@@ -633,7 +634,7 @@ spec = do
         searchResult <- discoverLibrariesDirWithDebug
         case searchResult of
           LibraryNotFound _ ->
-            expectationFailure $ formatLibrarySearchError searchResult
+            pendingWith "standard library not discoverable in this environment (set BLUESPEC_SRC or BLUESPECDIR)"
           LibraryFound libDir -> do
             -- Find and load Prelude specifically
             bsFiles <- findBsFiles libDir

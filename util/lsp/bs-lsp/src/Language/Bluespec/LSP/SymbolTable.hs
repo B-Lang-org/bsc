@@ -31,6 +31,7 @@ module Language.Bluespec.LSP.SymbolTable
   )
 where
 
+import Control.Exception (SomeException, try)
 import Control.Monad (forM_)
 import Control.Monad.State.Strict
 import Data.Map.Strict (Map)
@@ -339,10 +340,14 @@ discoverLibrariesDirWithDebug = do
 
 -- | Try to discover the Bluespec source from Bazel.
 -- Queries Bazel for the @bsc-source external repository location.
+-- Returns Nothing if bazel is not installed or the query fails.
 discoverFromBazel :: IO (Maybe FilePath)
 discoverFromBazel = do
-  -- Get bazel output base
-  (exitCode1, outputBase, _) <- readProcessWithExitCode "bazel" ["info", "output_base"] ""
+  -- Get bazel output base (bazel may not be installed)
+  r1 <- try (readProcessWithExitCode "bazel" ["info", "output_base"] "") :: IO (Either SomeException (ExitCode, String, String))
+  (exitCode1, outputBase) <- case r1 of
+    Left _  -> pure (ExitFailure 1, "")
+    Right (ec, out, _) -> pure (ec, out)
   case exitCode1 of
     ExitFailure _ -> pure Nothing
     ExitSuccess -> do
@@ -492,7 +497,7 @@ collectImport (Located _ Import {..}) =
 
 -- | Collect symbols from a definition.
 collectDefinition :: LDefinition -> Builder ()
-collectDefinition (Located span def) = case def of
+collectDefinition (Located _span def) = case def of
   DefValue name mTy clauses -> do
     let nameText = identText $ locVal name
     typeText <- traverse (fmtQT . locVal) mTy
@@ -746,13 +751,13 @@ collectPattern (Located _ pat) = case pat of
 
 -- | Collect type variable.
 collectTyVar :: Located TyVar -> Builder ()
-collectTyVar (Located span TyVar {..}) = do
+collectTyVar (Located tvSpan TyVar {..}) = do
   parent <- gets bsParent
   addSymbol
     Symbol
       { symName = identText tvName,
         symKind = SKTypeVar,
-        symSpan = span,
+        symSpan = tvSpan,
         symType = Nothing,
         symDoc = Nothing,
         symParent = parent
@@ -898,14 +903,14 @@ lookupAtPosition st pos = case filter (containsPos pos . fst) (stByPosition st) 
   [] -> Nothing
   xs -> Just $ snd $ minimumBySpanSize xs
   where
-    containsPos p span =
-      spanBegin span <= p && p <= spanFinal span
+    containsPos p ss =
+      spanBegin ss <= p && p <= spanFinal ss
 
     minimumBySpanSize = foldr1 (\a b -> if spanSize (fst a) < spanSize (fst b) then a else b)
 
-    spanSize span =
-      let start = spanBegin span
-          end = spanFinal span
+    spanSize ss =
+      let start = spanBegin ss
+          end   = spanFinal ss
        in (posLine end - posLine start) * 1000 + (posColumn end - posColumn start)
 
 -- | Look up symbols by name.
