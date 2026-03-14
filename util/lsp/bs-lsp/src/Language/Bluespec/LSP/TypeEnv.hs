@@ -66,6 +66,10 @@ collectDef (Located _ def) env = case def of
     let k = identText (locVal name)
     in env { teVars = Map.insertWith (\_ old -> old) k (locVal qt) (teVars env) }
 
+  -- Struct definition: DefData with one constructor that has record fields.
+  DefData name _ _ [Located _ Constructor { conRecord = Just rfields }] _ ->
+    env { teStructs = Map.insert (identText (locVal name)) (map locVal rfields) (teStructs env) }
+
   DefInterface name _ fields _ ->
     env { teStructs = Map.insert (identText (locVal name)) (map locVal fields) (teStructs env) }
 
