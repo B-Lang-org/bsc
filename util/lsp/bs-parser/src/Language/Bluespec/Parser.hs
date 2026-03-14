@@ -653,7 +653,7 @@ pField :: Parser (Located Field)
 pField = withSpan $ do
   name <- varId
   void $ punct Lex.PunctDColon
-  ty <- pType
+  ty <- withSpan pQualType
   pragmas <- concat <$> many pMethodPragma
   def <- optional $ do
     void $ punct Lex.PunctEqual
@@ -1618,6 +1618,12 @@ pModuleStmt = do
         pure $ MStmtBind pat mTy e
     , try $ do
         void $ keyword Lex.KwInterface
+        void $ punct Lex.PunctLParen
+        exprs <- sepBy pExpr (punct Lex.PunctComma)
+        void $ punct Lex.PunctRParen
+        pure $ MStmtTupleInterface exprs
+    , try $ do
+        void $ keyword Lex.KwInterface
         -- MStmtInterface is for anonymous interface blocks (interface { ... })
         -- Named interfaces (interface Foo { ... }) are parsed as pExpr
         fields <- block pInterfaceField
@@ -1642,18 +1648,17 @@ pRule = withSpan $ do
   start <- getPos
   -- Parse pragmas first (they precede the rule they modify)
   pragmas <- many pRulePragma
-  -- Then parse optional rule name (label)
+  -- Then parse optional rule name (label): any atomic expression followed by ':'
+  -- This covers static strings ("foo":), identifiers (foo:), and dynamic
+  -- expressions (("prefix" +++ integerToString i):)
   mName <- optional $ try $ do
-    s <- stringLit <|> ((\i -> Located (locSpan i) (LitString (identText (locVal i)))) <$> anyId)
+    e <- pAExpr
     void $ punct Lex.PunctColon
-    pure $ case locVal s of
-      LitString t -> Located (locSpan s) t
-      _ -> Located (locSpan s) ""
+    pure e
   mCond <- optional $ do
-    void $ keyword Lex.KwWhen
-    cond <- pExpr
+    guard <- pGuard
     void $ punct Lex.PunctRuleArrow
-    pure cond
+    pure guard
   body <- pExpr
   end <- getPos
   pure Rule
@@ -1722,12 +1727,14 @@ pInterfaceField = do
   pats <- many pAtomicPattern
   void $ punct Lex.PunctEqual
   e <- pExpr
+  mWhen <- optional $ keyword Lex.KwWhen *> pExpr
   end <- getPos
   pure InterfaceField
     { ifSpan = mergeSpans start end
     , ifName = name
     , ifPats = pats
     , ifValue = e
+    , ifWhen = mWhen
     }
 
 -- | Parse function application.
@@ -1860,7 +1867,8 @@ pRecord = do
 pFieldBind :: Parser FieldBind
 pFieldBind = do
   start <- getPos
-  name <- varId
+  -- Accept qualified field names (e.g. Module.field = value), discard qualifier
+  name <- fmap (fmap qualIdent) qualVarId
   void $ punct Lex.PunctEqual
   e <- pExpr
   end <- getPos
@@ -2003,9 +2011,11 @@ pConPat = do
 
 -- | Parse a field pattern.
 -- Grammar: fieldId = pat | fieldId (shorthand for fieldId = fieldId)
+-- Also accepts qualified field names (Module.field = pat), discarding the qualifier.
 pFieldPat :: Parser (Located Ident, LPattern)
 pFieldPat = do
-  name <- varId
+  -- Accept qualified field names (e.g. Module.field = pat), discard qualifier
+  name <- fmap (fmap qualIdent) qualVarId
   -- Check if there's an explicit pattern (fieldId = pat) or shorthand (fieldId)
   mPat <- optional $ do
     void $ punct Lex.PunctEqual

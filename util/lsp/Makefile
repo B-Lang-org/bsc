@@ -3,6 +3,10 @@ PWD      := $(shell pwd)
 REPO_ROOT := $(abspath $(PWD)/../..)
 PREFIX   ?= $(REPO_ROOT)/inst
 BINDIR    = $(PREFIX)/bin
+
+# Ensure ghcup-managed tools (cabal, ghc-9.10.1, etc.) are on PATH even when
+# make is invoked with a minimal PATH (e.g. from the top-level install-src).
+export PATH := $(HOME)/.ghcup/bin:$(HOME)/.cabal/bin:$(PATH)
 INSTALL  ?= install -c
 
 # VSCode extension install directory

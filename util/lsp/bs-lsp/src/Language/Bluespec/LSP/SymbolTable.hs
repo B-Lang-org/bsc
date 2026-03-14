@@ -589,6 +589,7 @@ collectModuleStmt stmt = case stmt of
   MStmtExpr expr -> collectExpr expr
   MStmtRules _rules -> pure () -- Rules don't introduce new symbol bindings
   MStmtInterface fields -> mapM_ collectInterfaceFieldFromExpr fields
+  MStmtTupleInterface exprs -> mapM_ collectExpr exprs
 
 -- | Collect symbols from interface fields in module expressions.
 collectInterfaceFieldFromExpr :: InterfaceField -> Builder ()
@@ -688,7 +689,7 @@ collectField (Located _ Field {..}) = do
       { symName = identText $ locVal fieldName,
         symKind = SKField,
         symSpan = locSpan fieldName,
-        symType = Just $ renderPretty 80 $ prettyType $ locVal fieldType,
+        symType = Just $ formatQualType $ locVal fieldType,
         symDoc = Nothing,
         symParent = parent
       }

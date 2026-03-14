@@ -238,7 +238,7 @@ data Binding = Binding
 data Field = Field
   { fieldSpan    :: !SrcSpan
   , fieldName    :: !(Located Ident)
-  , fieldType    :: !(LType)
+  , fieldType    :: !(Located QualType)  -- ^ Field type, possibly with class constraints
   , fieldPragmas :: ![MethodPragma]
   , fieldDefault :: !(Maybe LExpr)
   }
@@ -495,6 +495,7 @@ data ModuleStmt
   | MStmtExpr !LExpr                                   -- ^ expression (for effects)
   | MStmtRules ![Located Rule]                         -- ^ addRules
   | MStmtInterface ![InterfaceField]                   -- ^ interface definition
+  | MStmtTupleInterface ![LExpr]                       -- ^ interface (e1, e2, ...) tuple return
   deriving stock (Eq, Show, Generic)
 
 -- | A field in an interface expression.
@@ -503,15 +504,16 @@ data InterfaceField = InterfaceField
   , ifName    :: !(Located Ident)
   , ifPats    :: ![LPattern]              -- ^ Method parameters
   , ifValue   :: !LExpr
+  , ifWhen    :: !(Maybe LExpr)           -- ^ Optional when-guard (e.g. enq x = f.enq x when f.notFull)
   }
   deriving stock (Eq, Show, Generic)
 
 -- | A rule definition.
 data Rule = Rule
   { ruleSpan    :: !SrcSpan
-  , ruleName    :: !(Maybe (Located Text))    -- ^ Optional rule name
+  , ruleName    :: !(Maybe LExpr)             -- ^ Optional rule name (any expression)
   , rulePragmas :: ![RulePragma]              -- ^ Rule pragmas
-  , ruleCond    :: !(Maybe LExpr)             -- ^ Optional condition (when)
+  , ruleCond    :: !(Maybe Guard)             -- ^ Optional condition (when), supports comma-separated conjuncts
   , ruleBody    :: !LExpr                     -- ^ Rule body (action)
   }
   deriving stock (Eq, Show, Generic)

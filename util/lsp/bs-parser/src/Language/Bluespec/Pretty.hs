@@ -199,7 +199,7 @@ prettyConstructor con = case conRecord con of
 
 prettyField :: Field -> Doc ann
 prettyField f =
-  prettyLIdent (fieldName f) <+> "::" <+> prettyLType (fieldType f) <>
+  prettyLIdent (fieldName f) <+> "::" <+> prettyQualType (locVal (fieldType f)) <>
   hsep (map prettyMethodPragma (fieldPragmas f)) <>
   maybe mempty (\e -> " =" <+> prettyLExpr e) (fieldDefault f)
 
@@ -457,12 +457,13 @@ prettyModuleStmt = \case
   MStmtExpr e -> prettyLExpr e
   MStmtRules rules -> "rules" <+> align (vsep $ map (prettyRule . locVal) rules)
   MStmtInterface fields -> "interface" <+> align (vsep $ map prettyInterfaceField fields)
+  MStmtTupleInterface exprs -> "interface" <+> tupled (map prettyLExpr exprs)
 
 prettyRule :: Rule -> Doc ann
 prettyRule r = hsep $ catMaybes
-  [ ((<> ":") . dquotes . pretty . locVal) <$> ruleName r
+  [ ((<> ":") . prettyLExpr) <$> ruleName r
   , if null (rulePragmas r) then Nothing else Just $ hsep $ map prettyRulePragma (rulePragmas r)
-  , (\c -> "when" <+> prettyLExpr c <+> "==>") <$> ruleCond r
+  , (\g -> prettyGuard g <+> "==>") <$> ruleCond r
   , Just $ prettyLExpr (ruleBody r)
   ]
 
@@ -478,7 +479,8 @@ prettyInterfaceField :: InterfaceField -> Doc ann
 prettyInterfaceField f =
   prettyIdent (locVal $ ifName f) <+>
   hsep (map prettyLPattern (ifPats f)) <+>
-  "=" <+> prettyLExpr (ifValue f)
+  "=" <+> prettyLExpr (ifValue f) <>
+  maybe mempty (\w -> " when" <+> prettyLExpr w) (ifWhen f)
 
 prettyLiteral :: Literal -> Doc ann
 prettyLiteral = \case
