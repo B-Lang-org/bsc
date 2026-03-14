@@ -148,7 +148,7 @@ handleDefinition stateVar docUri pos = do
   state <- liftIO $ readTVarIO stateVar
   case getDocument nuri state of
     Nothing -> pure $ InR $ InR Null
-    Just doc -> case getDefinitionCrossFile state (dsSymbols doc) (dsText doc) pos of
+    Just doc -> case getDefinitionCrossFile state (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
       Just loc -> pure $ InL $ Definition $ InL loc
       Nothing -> do
         let docPath = T.unpack (uriToFilename docUri)
@@ -167,7 +167,7 @@ handleDefinition stateVar docUri pos = do
             docPath
             imports
         state' <- liftIO $ readTVarIO stateVar
-        case getDefinitionCrossFile state' (dsSymbols doc) (dsText doc) pos of
+        case getDefinitionCrossFile state' (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
           Nothing -> pure $ InR $ InR Null
           Just loc -> pure $ InL $ Definition $ InL loc
 

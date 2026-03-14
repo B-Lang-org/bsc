@@ -484,7 +484,7 @@ spec = do
 
             -- Look up 'helper' at line 5, col 11 in MainModule (usage site)
             -- This should find the definition in LibModule at line 3
-            let result = getDefinitionCrossFile serverState mainSt mainModuleSource (pos 5 11)
+            let result = getDefinitionCrossFile serverState emptyTypeEnv mainSt mainModuleSource (pos 5 11)
             case result of
               Nothing -> expectationFailure "Expected to find cross-file definition but got Nothing"
               Just loc -> do
@@ -512,7 +512,7 @@ spec = do
 
             -- Look up 'LibType' at line 7, col 11 in MainModule (usage in type signature)
             -- This should find the definition in LibModule at line 5
-            let result = getDefinitionCrossFile serverState mainSt mainModuleSource (pos 7 11)
+            let result = getDefinitionCrossFile serverState emptyTypeEnv mainSt mainModuleSource (pos 7 11)
             case result of
               Nothing -> expectationFailure "Expected to find cross-file type definition but got Nothing"
               Just loc -> do
@@ -538,7 +538,7 @@ spec = do
 
             -- Look up 'helper' at line 8, col 9 in MainWithLocal
             -- This should find the LOCAL definition at line 5, not the imported one
-            let result = getDefinitionCrossFile serverState mainSt mainWithLocalSource (pos 8 9)
+            let result = getDefinitionCrossFile serverState emptyTypeEnv mainSt mainWithLocalSource (pos 8 9)
             case result of
               Nothing -> expectationFailure "Expected to find local definition but got Nothing"
               Just loc -> do
@@ -572,7 +572,7 @@ spec = do
               Left err -> expectationFailure $ "Unknown source parse failed: " ++ err
               Right unknownSt -> do
                 -- Look up 'unknownFunction' - should not be found anywhere
-                let result = getDefinitionCrossFile serverState unknownSt unknownSource (pos 3 7)
+                let result = getDefinitionCrossFile serverState emptyTypeEnv unknownSt unknownSource (pos 3 7)
                 result `shouldBe` Nothing
 
     describe "standard library definitions" $ do
@@ -676,7 +676,7 @@ spec = do
 
                         -- Look up the type at line 2, col 10 (where the type name starts in signature)
                         let typeCol = 10  -- "myFunc :: " is 10 chars
-                        let result = getDefinitionCrossFile serverState userSt userSource (pos 2 typeCol)
+                        let result = getDefinitionCrossFile serverState emptyTypeEnv userSt userSource (pos 2 typeCol)
                         case result of
                           Nothing -> expectationFailure $
                             "Failed to find definition for '" ++ T.unpack typeName ++ "'"

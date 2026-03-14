@@ -11,9 +11,10 @@ import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Text (Text)
 import Language.Bluespec.LSP.State (ModuleInfo (..), ServerState (..), getModuleSymbols, getPreludeSymbols)
 import Language.Bluespec.LSP.SymbolTable
+import Language.Bluespec.LSP.TypeEnv (TypeEnv (..), lookupVarType)
 import Language.Bluespec.LSP.Util (spanToRange, positionToPos, getIdentifierAtPosition, parseQualifiedName)
-import Language.Bluespec.Position (Pos (..), SrcSpan (..))
-import Language.Bluespec.Syntax (ModuleId (..))
+import Language.Bluespec.Position (Located (..), Pos (..), SrcSpan (..))
+import Language.Bluespec.Syntax (Ident (..), ModuleId (..), QualIdent (..), QualType (..), Type (..), identText)
 import Language.LSP.Protocol.Types
 
 -- | Get definition location for symbol at a position.
@@ -98,8 +99,9 @@ selectBestSymbol cursorPos syms =
 -- | Get definition location with cross-file resolution.
 -- If the symbol is not found in the current file, searches imported modules,
 -- then falls back to the Prelude for builtin types.
-getDefinitionCrossFile :: ServerState -> SymbolTable -> Text -> Position -> Maybe Location
-getDefinitionCrossFile serverState st sourceText pos =
+-- TypeEnv is used to resolve field access (e.g. myFifo.enq → FIFO interface).
+getDefinitionCrossFile :: ServerState -> TypeEnv -> SymbolTable -> Text -> Position -> Maybe Location
+getDefinitionCrossFile serverState tenv st sourceText pos =
   -- First try: local lookup
   case getDefinition st sourceText pos of
     Just loc -> Just loc
@@ -108,17 +110,54 @@ getDefinitionCrossFile serverState st sourceText pos =
       case getIdentifierAtPosition sourceText pos of
         Nothing -> Nothing
         Just ident ->
-          -- Handle qualified names (e.g., "Module.symbol")
+          -- Handle qualified names (e.g., "Module.symbol" or "instance.field")
           let (mModQual, symName) = parseQualifiedName ident
            in case mModQual of
-                -- Qualified: look in specific module
-                Just modName -> lookupInModule serverState modName symName
+                -- Qualified: try module lookup first, then instance field access
+                Just qualifier ->
+                  case lookupInModule serverState qualifier symName of
+                    Just loc -> Just loc
+                    Nothing  -> lookupFieldAccess serverState tenv qualifier symName
                 -- Unqualified: search all imports, then fall back to Prelude
                 Nothing -> case lookupInImports serverState (stImports st) ident of
                   Just loc -> Just loc
                   Nothing -> case lookupInModuleIndexByName serverState ident of
                     Just loc -> Just loc
                     Nothing -> lookupInPrelude serverState ident
+
+-- | Look up a field access: instance.field where instance has an interface type.
+-- Looks up the type of 'instanceName' in the TypeEnv, then finds 'fieldName'
+-- in the corresponding interface/struct definition.
+lookupFieldAccess :: ServerState -> TypeEnv -> Text -> Text -> Maybe Location
+lookupFieldAccess serverState tenv instanceName fieldName =
+  case lookupVarType tenv instanceName of
+    Nothing -> Nothing
+    Just qt ->
+      -- Get the outermost type constructor name
+      case outerTypeName (locVal (qtType qt)) of
+        Nothing       -> Nothing
+        Just typeName ->
+          -- Look for fieldName in that type's interface/struct across all indexed modules
+          listToMaybe $ mapMaybe (lookupFieldInModule typeName fieldName)
+                                 (Map.elems (ssModuleIndex serverState))
+
+-- | Find the outermost constructor name from a type.
+outerTypeName :: Type -> Maybe Text
+outerTypeName (TCon qi)  = case locVal qi of QualIdent _ ident -> Just (identText ident)
+outerTypeName (TApp f _) = outerTypeName (locVal f)
+outerTypeName _          = Nothing
+
+-- | Look up a field symbol by interface type name in a ModuleInfo.
+lookupFieldInModule :: Text -> Text -> ModuleInfo -> Maybe Location
+lookupFieldInModule typeName fieldName info =
+  -- Check if the module defines this interface/struct type
+  case Map.lookup typeName (teStructs (miTypeEnv info)) of
+    Nothing -> Nothing
+    Just _  ->
+      -- The field's symbol should be in the module's SymbolTable
+      case lookupByName (miSymbols info) fieldName of
+        []      -> Nothing
+        (s : _) -> Just (symbolToLocation s)
 
 -- | Look up a symbol in a specific module's symbol table.
 lookupInModule :: ServerState -> Text -> Text -> Maybe Location
