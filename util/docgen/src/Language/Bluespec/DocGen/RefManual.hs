@@ -31,7 +31,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
-import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter, mathJaxScripts)
+import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter, mathJaxScripts, searchHeader)
 import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex)
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
@@ -295,11 +295,13 @@ sectionPage sec idx mSha = H.docTypeHtml $ do
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
+    searchHeader "../"
     H.nav ! A.class_ "breadcrumb" $
       H.a ! A.href "index.html" $ "Reference Manual"
     H.main $
       renderDocBlocks idx (secBlocks sec)
     docFooter mSha
+    H.script ! A.src "../search.js" $ ""
 
 -- | Write the table-of-contents index page.
 writeTocPage :: FilePath -> [Section] -> Maybe Text -> IO ()
@@ -316,6 +318,7 @@ tocPage sections mSha = H.docTypeHtml $ do
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
+    searchHeader "../"
     H.main $ do
       H.h1 "BH Language Reference"
       H.p "Reference manual for the Bluespec Classic (BH) hardware description language."
@@ -324,6 +327,7 @@ tocPage sections mSha = H.docTypeHtml $ do
         H.a ! A.href "term-index.html" $ "Term Index"
         " — alphabetical index of language terms"
     docFooter mSha
+    H.script ! A.src "../search.js" $ ""
   where
     tocEntry sec =
       H.li $ H.a ! A.href (H.toValue (secSlug sec <> ".html")) $
@@ -344,6 +348,7 @@ termIndexPage entries mSha = H.docTypeHtml $ do
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
+    searchHeader "../"
     H.main $ do
       H.nav ! A.class_ "breadcrumb" $
         H.a ! A.href "index.html" $ "Reference Manual"
@@ -352,6 +357,7 @@ termIndexPage entries mSha = H.docTypeHtml $ do
         then H.p "(No index entries found.)"
         else renderAlphaGroups entries
     docFooter mSha
+    H.script ! A.src "../search.js" $ ""
 
 -- | Render entries grouped by first letter.
 renderAlphaGroups :: [IndexEntry] -> Html

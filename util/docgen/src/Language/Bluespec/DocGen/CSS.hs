@@ -119,4 +119,62 @@ stylesheet = "\
 \  text-align: center;\n\
 \}\n\
 \.doc-footer a { color: var(--cm-color); }\n\
+\\n\
+\/* Search */\n\
+\.search-header {\n\
+\  background: var(--sidebar-bg);\n\
+\  border-bottom: 1px solid var(--border);\n\
+\  padding: 0.4rem 1rem;\n\
+\  position: sticky;\n\
+\  top: 0;\n\
+\  z-index: 100;\n\
+\  display: flex;\n\
+\  align-items: center;\n\
+\}\n\
+\.search-container {\n\
+\  position: relative;\n\
+\  width: 320px;\n\
+\}\n\
+\.bs-search-input {\n\
+\  width: 100%;\n\
+\  box-sizing: border-box;\n\
+\  padding: 0.35rem 0.75rem;\n\
+\  border: 1px solid var(--border);\n\
+\  border-radius: 4px;\n\
+\  font-size: 0.9rem;\n\
+\  background: var(--bg);\n\
+\  color: var(--fg);\n\
+\  outline: none;\n\
+\}\n\
+\.bs-search-input:focus { border-color: var(--link-color); }\n\
+\.bs-search-results {\n\
+\  position: absolute;\n\
+\  top: calc(100% + 2px);\n\
+\  left: 0;\n\
+\  right: 0;\n\
+\  background: var(--bg);\n\
+\  border: 1px solid var(--border);\n\
+\  border-radius: 4px;\n\
+\  box-shadow: 0 4px 12px rgba(0,0,0,.15);\n\
+\  list-style: none;\n\
+\  margin: 0;\n\
+\  padding: 0;\n\
+\  z-index: 200;\n\
+\  max-height: 380px;\n\
+\  overflow-y: auto;\n\
+\}\n\
+\.bs-search-results li a {\n\
+\  display: flex;\n\
+\  justify-content: space-between;\n\
+\  align-items: center;\n\
+\  padding: 0.35rem 0.75rem;\n\
+\  text-decoration: none;\n\
+\  color: var(--fg);\n\
+\  font-size: 0.9rem;\n\
+\  gap: 1rem;\n\
+\}\n\
+\.bs-search-results li a:hover,\n\
+\.bs-search-results li a:focus { background: var(--sidebar-bg); outline: none; }\n\
+\.bs-pkg { color: var(--cm-color); font-size: 0.8em; white-space: nowrap; }\n\
+\.bs-no-match { padding: 0.35rem 0.75rem; color: var(--cm-color); font-size: 0.9rem; }\n\
 \"

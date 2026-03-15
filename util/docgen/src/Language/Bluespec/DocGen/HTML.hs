@@ -9,6 +9,7 @@ module Language.Bluespec.DocGen.HTML
   , renderDocBlocks
   , docFooter
   , mathJaxScripts
+  , searchHeader
   ) where
 
 import Data.List (sortOn)
@@ -182,7 +183,10 @@ page title body_ = H.docTypeHtml $ do
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
-  H.body $ H.div ! A.class_ "page-layout" $ body_
+  H.body $ do
+    searchHeader "../"
+    H.div ! A.class_ "page-layout" $ body_
+    H.script ! A.src "../search.js" $ ""
 
 pageRaw :: Text -> Html -> Html
 pageRaw title body_ = H.docTypeHtml $ do
@@ -192,7 +196,10 @@ pageRaw title body_ = H.docTypeHtml $ do
     H.title $ H.toHtml title
     H.link ! A.rel "stylesheet" ! A.href "docgen.css"
     mathJaxScripts "mathjax.js"
-  H.body $ H.div ! A.class_ "page-layout" $ body_
+  H.body $ do
+    searchHeader ""
+    H.div ! A.class_ "page-layout" $ body_
+    H.script ! A.src "search.js" $ ""
 
 -- | Emit MathJax configuration + loader scripts.
 -- The @src@ argument is the relative path to the local @mathjax.js@ bundle.
@@ -202,3 +209,17 @@ mathJaxScripts src = do
   H.script ! A.type_ "text/javascript" $
     "MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]}};"
   H.script ! A.type_ "text/javascript" ! A.src (H.toValue src) ! A.async "async" $ ""
+
+-- | Sticky search header bar.
+-- The @root@ argument is the path prefix to reach the doc root
+-- (empty string @""@ for root pages, @"../"@ for pages one level deep).
+searchHeader :: Text -> Html
+searchHeader root =
+  H.header ! A.class_ "search-header" $ do
+    H.div ! A.class_ "search-container" $ do
+      H.input ! A.class_ "bs-search-input"
+              ! A.type_ "search"
+              ! A.placeholder "Search symbols\x2026"
+              ! H.dataAttribute "root" (H.toValue root)
+              ! A.autocomplete "off"
+      H.ul ! A.class_ "bs-search-results" ! A.hidden "" $ ""

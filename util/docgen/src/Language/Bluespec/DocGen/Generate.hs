@@ -24,10 +24,11 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.CSS (stylesheet)
+import Language.Bluespec.DocGen.JS (searchScript)
 import Language.Bluespec.DocGen.DocAST (dePackage)
 import Language.Bluespec.DocGen.Extract (extractDocsFromFile)
 import Language.Bluespec.DocGen.HTML
-  (renderPackagePage, renderIndexPage, docFooter, mathJaxScripts)
+  (renderPackagePage, renderIndexPage, docFooter, mathJaxScripts, searchHeader)
 import Language.Bluespec.DocGen.RefManual
   (RefManualConfig (..), defaultRefManualConfig, convertRefManual)
 import Language.Bluespec.DocGen.SymbolIndex (buildIndex, renderIndexJson)
@@ -126,6 +127,9 @@ runDocGen cfg = do
   -- 11. Write stylesheet
   TIO.writeFile (outDir </> "docgen.css") stylesheet
 
+  -- 12b. Write search script
+  TIO.writeFile (outDir </> "search.js") searchScript
+
   -- 12. Download MathJax bundle (for local math rendering, no CDN at view time)
   downloadMathjax outDir (dgcVerbose cfg)
 
@@ -153,6 +157,7 @@ siteRootPage manuals mStdlibUrl mSha =
       H.link ! A.rel "stylesheet" ! A.href "docgen.css"
       mathJaxScripts "mathjax.js"
     H.body $ do
+      searchHeader ""
       H.main $ do
         H.h1 "Bluespec Documentation"
         mapM_ manualSection manuals
@@ -171,6 +176,7 @@ siteRootPage manuals mStdlibUrl mSha =
             H.h2 "Term Indices"
             H.ul $ mapM_ termIndexEntry manuals
       docFooter mSha
+      H.script ! A.src "search.js" $ ""
   where
     manualSection ms =
       H.section $ do
