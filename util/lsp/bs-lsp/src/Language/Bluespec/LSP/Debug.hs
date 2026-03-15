@@ -101,11 +101,23 @@ pumpMessages src dst logH dir = go
       case mMsg of
         Nothing -> logLine logH dir "<stream closed>"
         Just (hdr, body) -> do
-          logLine logH dir (BSC.unpack body)
+          logLine logH dir (summarizeBody body)
           BS.hPut dst hdr
           BS.hPut dst body
           hFlush dst
           go
+
+-- | Summarize a message body for logging.
+-- Large bodies (file content in didOpen/didChange) are truncated so the
+-- log stays readable.  The body forwarded to the server is always intact.
+summarizeBody :: ByteString -> String
+summarizeBody body
+  | BSC.length body <= maxLogBytes = BSC.unpack body
+  | otherwise =
+      BSC.unpack (BSC.take maxLogBytes body)
+        ++ "...[" ++ show (BSC.length body) ++ " bytes total, truncated]"
+  where
+    maxLogBytes = 2048
 
 -- | Read one complete LSP message: @(header_bytes_including_separator, body)@.
 -- Returns 'Nothing' on EOF or a malformed\/missing @Content-Length@ header.

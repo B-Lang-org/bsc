@@ -11,9 +11,10 @@ module Language.Bluespec.LSP.Handlers
   )
 where
 
+import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
 import Control.Lens ((^.))
-import Control.Monad (forM_, when)
+import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
 import Data.List (isPrefixOf)
 import Data.Maybe (mapMaybe)
@@ -85,12 +86,17 @@ handlers stateVar =
         responder $ Right result
     ]
 
--- | Handle document open - parse and publish diagnostics.
+-- | Handle document open - parse and publish diagnostics asynchronously.
+-- The notification handler returns immediately so the server stays responsive
+-- while heavy work (buildSymbolTable, buildTypeEnv, diagnostics) runs in the
+-- background.  This is essential for large files like Prelude.bs.
 handleDocumentOpen :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
-handleDocumentOpen stateVar docUri docText docVersion =
-  parseAndUpdateDocument stateVar docUri docText docVersion
+handleDocumentOpen stateVar docUri docText docVersion = do
+  env <- getLspEnv
+  void $ liftIO $ forkIO $ runLspT env $
+    parseAndUpdateDocument stateVar docUri docText docVersion
 
--- | Handle document change - re-parse and publish diagnostics.
+-- | Handle document change - re-parse and publish diagnostics asynchronously.
 handleDocumentChange :: TVar ServerState -> Uri -> [TextDocumentContentChangeEvent] -> LspM () ()
 handleDocumentChange stateVar docUri changes = do
   let nuri = toNormalizedUri docUri
@@ -100,7 +106,9 @@ handleDocumentChange stateVar docUri changes = do
         []      -> maybe "" dsText mDoc
         (c : _) -> getChangeText c mDoc
       newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
-  parseAndUpdateDocument stateVar docUri newText newVersion
+  env <- getLspEnv
+  void $ liftIO $ forkIO $ runLspT env $
+    parseAndUpdateDocument stateVar docUri newText newVersion
 
 -- | Shared helper: parse text, update state, publish diagnostics.
 parseAndUpdateDocument :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()

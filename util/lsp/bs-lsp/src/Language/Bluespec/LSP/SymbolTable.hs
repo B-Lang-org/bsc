@@ -299,7 +299,9 @@ discoverPreludeFilePath = do
       exeDir  <- canonicalizePath (takeDirectory exePath)
       let preludePath = exeDir </> ".." </> "lib-srcs" </> "Libraries" </> "Base1" </> "Prelude.bs"
       exists <- doesFileExist preludePath
-      pure $ if exists then Just preludePath else Nothing
+      if exists
+        then Just <$> canonicalizePath preludePath
+        else pure Nothing
 
 -- | Load the prelude symbol table by parsing the actual Prelude.bs file.
 -- Returns Nothing if the file cannot be found or parsed.
@@ -377,7 +379,7 @@ discoverLibrariesDirWithDebug = do
       let candidate = exeDir </> ".." </> "lib-srcs" </> "Libraries"
       exists <- doesDirectoryExist candidate
       if exists
-        then pure (LibraryFound candidate)
+        then LibraryFound <$> canonicalizePath candidate
         else pure
                ( LibraryNotFound
                    [ "BLUESPEC_LIB_DIR: (not set)",
