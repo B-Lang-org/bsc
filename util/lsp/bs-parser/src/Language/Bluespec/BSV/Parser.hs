@@ -1338,7 +1338,11 @@ pMsSubiface = do
 pMsMethod :: Parser ModuleStmt
 pMsMethod = do
   sp0  <- keyword Lex.KwMethod
-  void $ optional (try pType)
+  -- Only consume the optional return-type annotation if a method name
+  -- (another varId) follows immediately.  Without this guard, a method
+  -- with no explicit return type — e.g. "method wset(v);" — would have
+  -- its name consumed as a type variable, causing the parse to fail.
+  void $ optional (try (pType <* lookAhead varId))
   nm   <- varId
   pats <- option [] $ do
     void lparen
@@ -1363,13 +1367,15 @@ pMsMethod = do
   where
     mFormal = do
       void $ optional attrInsts
-      void $ optional (try pType)
+      -- Only consume the type annotation if a varId (the parameter name) follows.
+      void $ optional (try (pType <* lookAhead varId))
       nm <- varId
       pure (Located (locSpan nm) (PVar nm))
 
 pMsVarDecl :: Parser ModuleStmt
 pMsVarDecl = do
   sp0 <- peekSpan
+  void $ optional attrInsts
   t   <- pTypePrimary
   nm  <- varId
   -- Accept both '<-' (monadic bind) and '=' (combinational assignment)
@@ -1521,7 +1527,17 @@ pExportItem = choice
       pure $ Located (locSpan nm) (ExportType (locVal nm) (mSpec >> Just []))
   , do nm <- varId
        pure $ Located (locSpan nm) (ExportVar (locVal nm))
+  -- Allow lowercase keywords used as export names (e.g. 'export when;').
+  -- In BSV, function/rule guards use the keyword 'when', but it can also
+  -- name a prelude function exported by a library package.
+  , do nm <- kwAsVarId
+       pure $ Located (locSpan nm) (ExportVar (locVal nm))
   ]
+  where
+    -- Match a keyword token as a variable-identifier export name.
+    kwAsVarId = tok $ \case
+      Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+      _ -> Nothing
 
 pImportDecl :: Parser (Located Import)
 pImportDecl = do
@@ -1659,7 +1675,8 @@ pBviImport = do
   case locVal s of
     LitString t | t /= "BDPI" -> pure ()
     _ -> fail "not a BVI import"
-  void $ optional (void varId *> void equals)
+  -- The BVI type name is a ConId (e.g. "RWire" in `import "BVI" RWire = module`)
+  void $ optional (void anyId *> void equals)
   void $ keyword Lex.KwModule
   void $ optional $ try $ void lbracket *> void pType *> void rbracket
   nm <- varId
