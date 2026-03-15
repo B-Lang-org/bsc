@@ -1,6 +1,7 @@
--- | Convert the BSC LaTeX reference manual (@BH_lang.tex@) to HTML.
+-- | Convert a BSC LaTeX reference manual to HTML.
 --
 -- Pipeline:
+-- 0. Resolve @\input{...}@ directives by inlining sub-files.
 -- 1. Strip everything before @\begin{document}@.
 -- 2. Collect zero-arg and one-arg @\newcommand@ macros from the preamble.
 -- 3. Pre-process the document body: strip TeX comments, expand macros,
@@ -8,7 +9,7 @@
 -- 4. Collect @\index{...}@ entries from the preprocessed body.
 -- 5. Parse with 'TexParser.parseTexDoc', which handles @\section@,
 --    @\subsection@, @\te@, @\nterm@, @\begin{libverbatim}@, etc.
--- 6. Split on @Heading 1@ boundaries → one HTML file per top-level section.
+-- 6. Split on heading boundaries → one HTML file per section.
 -- 7. Write a table-of-contents @index.html@ and a back-of-book term index.
 module Language.Bluespec.DocGen.RefManual
   ( convertRefManual
@@ -19,14 +20,14 @@ module Language.Bluespec.DocGen.RefManual
 import Data.Char (isAlphaNum, toLower)
 import Data.List (groupBy, sortOn)
 import Data.ByteString qualified as BS
-import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding (decodeLatin1)
 import Data.Text.Lazy.IO qualified as TLIO
-import System.Directory (createDirectoryIfMissing)
-import System.FilePath ((</>))
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.FilePath ((</>), takeDirectory)
+import System.IO (hPutStrLn, stderr)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Html5 (Html, (!))
 import Text.Blaze.Html5 qualified as H
@@ -44,8 +45,9 @@ import Language.Bluespec.DocGen.TexParser
 
 -- | Configuration for reference manual conversion.
 data RefManualConfig = RefManualConfig
-  { rmcTexFile  :: !FilePath       -- ^ path to BH_lang.tex
-  , rmcSubDir   :: !Text           -- ^ output sub-directory name (e.g. "reference", "bsv-reference")
+  { rmcTexFile  :: !FilePath       -- ^ path to BH_lang.tex (or other root .tex)
+  , rmcTitle    :: !Text           -- ^ human-readable manual title (e.g. "BH Language Reference")
+  , rmcSubDir   :: !Text           -- ^ output sub-directory name (e.g. "bh-reference")
   , rmcOutDir   :: !FilePath       -- ^ output directory (files go into rmcOutDir/rmcSubDir/)
   , rmcVerbose  :: !Bool
   , rmcBscSha   :: !(Maybe Text)   -- ^ BSC commit SHA for footer
@@ -55,6 +57,7 @@ data RefManualConfig = RefManualConfig
 defaultRefManualConfig :: RefManualConfig
 defaultRefManualConfig = RefManualConfig
   { rmcTexFile = "BH_lang.tex"
+  , rmcTitle   = "BH Language Reference"
   , rmcSubDir  = "reference"
   , rmcOutDir  = "docs"
   , rmcVerbose = False
@@ -68,12 +71,16 @@ defaultRefManualConfig = RefManualConfig
 -- | Convert the reference manual LaTeX file to a set of HTML pages.
 convertRefManual :: RefManualConfig -> SymbolIndex -> IO ()
 convertRefManual cfg idx = do
-  -- BH_lang.tex uses Latin-1 (ISO 8859-1) encoding, not UTF-8.
+  -- LaTeX source files use Latin-1 (ISO 8859-1) encoding, not UTF-8.
   raw <- BS.readFile (rmcTexFile cfg)
   let src = decodeLatin1 raw
 
+  -- 0. Inline \input{...} sub-files (e.g. libraries_ref_guide uses many)
+  let texDir = takeDirectory (rmcTexFile cfg)
+  src' <- resolveInputs texDir src
+
   -- 1. Split preamble from body
-  let (preamble, body) = splitDocument src
+  let (preamble, body) = splitDocument src'
 
   -- 2. Collect macros from preamble
   let env = collectMacros preamble
@@ -96,15 +103,69 @@ convertRefManual cfg idx = do
   let refDir = rmcOutDir cfg </> T.unpack (rmcSubDir cfg)
   createDirectoryIfMissing True refDir
 
-  let mSha = rmcBscSha cfg
-  mapM_ (writeSection refDir idx labelMap mSha) sections
-  writeTocPage refDir sections mSha
-  writeTermIndex refDir indexEntries mSha
+  let mSha  = rmcBscSha cfg
+      title = rmcTitle cfg
+  mapM_ (writeSection refDir idx labelMap mSha title) sections
+  writeTocPage refDir sections mSha title
+  writeTermIndex refDir indexEntries mSha title
 
   when' (rmcVerbose cfg) $ do
-    putStrLn $ "[docgen] Reference manual: " ++ show (length sections) ++ " sections"
+    putStrLn $ "[docgen] " ++ T.unpack title ++ ": " ++ show (length sections) ++ " sections"
     putStrLn $ "[docgen] Term index: " ++ show (length indexEntries) ++ " entries"
     putStrLn $ "[docgen] Output: " ++ refDir
+
+-- ---------------------------------------------------------------------------
+-- \input{} resolution
+-- ---------------------------------------------------------------------------
+
+-- | Inline all @\input{path}@ directives by reading the referenced files.
+-- Paths are resolved relative to @baseDir@; if the path has no extension,
+-- @.tex@ is appended (LaTeX convention).  Nested @\input@ commands in the
+-- included files are resolved recursively.  Commented-out @\input@ lines
+-- (where a @%@ precedes @\input@ on the same line) are left as-is.
+resolveInputs :: FilePath -> Text -> IO Text
+resolveInputs baseDir src = go src
+  where
+    go t = case T.breakOn "\\input{" t of
+      (before, rest)
+        | T.null rest -> pure before
+        | otherwise   -> do
+            let after             = T.drop (T.length "\\input{") rest
+                (rawPath, closing) = T.break (== '}') after
+                afterClose         = T.drop 1 closing   -- skip '}'
+            if isCommented before
+              -- Leave commented-out \input unchanged
+              then do
+                rest' <- go afterClose
+                pure (before <> "\\input{" <> rawPath <> "}" <> rest')
+              else do
+                content <- tryReadInput (T.unpack rawPath)
+                rest' <- go afterClose
+                pure (before <> content <> "\n" <> rest')
+
+    -- Check whether the fragment before the \input token is on a commented line
+    -- (i.e. there is a bare % between the last newline and this point).
+    isCommented before =
+      let lineFragment = T.takeWhileEnd (/= '\n') before
+      in "%" `T.isInfixOf` lineFragment
+
+    -- Try to read the input file, appending .tex if needed.
+    tryReadInput path = do
+      let candidates = [baseDir </> path, baseDir </> (path ++ ".tex")]
+      mFp <- findFirst candidates
+      case mFp of
+        Nothing -> do
+          hPutStrLn stderr $
+            "[docgen] Warning: \\input{" ++ path ++ "} not found in " ++ baseDir
+          pure T.empty
+        Just fp -> do
+          raw <- BS.readFile fp
+          let content = decodeLatin1 raw
+          -- Recurse so nested \input in sub-files are also resolved
+          resolveInputs (takeDirectory fp) content
+
+    findFirst []     = pure Nothing
+    findFirst (p:ps) = doesFileExist p >>= \e -> if e then pure (Just p) else findFirst ps
 
 -- ---------------------------------------------------------------------------
 -- Document splitting
@@ -309,51 +370,50 @@ slugify = T.map slugChar . T.strip . T.toLower
 -- ---------------------------------------------------------------------------
 
 -- | Write a single section as an HTML file.
-writeSection :: FilePath -> SymbolIndex -> LabelMap -> Maybe Text -> Section -> IO ()
-writeSection outDir idx lmap mSha sec = do
+writeSection :: FilePath -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Section -> IO ()
+writeSection outDir idx lmap mSha title sec = do
   let path = outDir </> T.unpack (secSlug sec) ++ ".html"
-  TLIO.writeFile path (renderHtml (sectionPage sec idx lmap mSha))
+  TLIO.writeFile path (renderHtml (sectionPage sec idx lmap mSha title))
 
 -- | Render a section page.
-sectionPage :: Section -> SymbolIndex -> LabelMap -> Maybe Text -> Html
-sectionPage sec idx lmap mSha = H.docTypeHtml $ do
+sectionPage :: Section -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Html
+sectionPage sec idx lmap mSha title = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
-    H.title (H.toHtml (secTitle sec <> " — BH Reference"))
+    H.title (H.toHtml (secTitle sec <> " — " <> title))
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
     H.nav ! A.class_ "breadcrumb" $
-      H.a ! A.href "index.html" $ "Reference Manual"
+      H.a ! A.href "index.html" $ H.toHtml title
     H.main $
       renderDocBlocks idx lmap (secBlocks sec)
     docFooter mSha
     H.script ! A.src "../search.js" $ ""
 
 -- | Write the table-of-contents index page.
-writeTocPage :: FilePath -> [Section] -> Maybe Text -> IO ()
-writeTocPage outDir sections mSha = do
+writeTocPage :: FilePath -> [Section] -> Maybe Text -> Text -> IO ()
+writeTocPage outDir sections mSha title = do
   let path = outDir </> "index.html"
-  TLIO.writeFile path (renderHtml (tocPage sections mSha))
+  TLIO.writeFile path (renderHtml (tocPage sections mSha title))
 
 -- | Render the table-of-contents page.
-tocPage :: [Section] -> Maybe Text -> Html
-tocPage sections mSha = H.docTypeHtml $ do
+tocPage :: [Section] -> Maybe Text -> Text -> Html
+tocPage sections mSha title = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
-    H.title "BH Language Reference"
+    H.title (H.toHtml title)
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
     H.main $ do
-      H.h1 "BH Language Reference"
-      H.p "Reference manual for the Bluespec Classic (BH) hardware description language."
+      H.h1 (H.toHtml title)
       H.ul $ mapM_ tocEntry sections
       H.p $ do
         H.a ! A.href "term-index.html" $ "Term Index"
-        " — alphabetical index of language terms"
+        " — alphabetical index of terms"
     docFooter mSha
     H.script ! A.src "../search.js" $ ""
   where
@@ -362,24 +422,24 @@ tocPage sections mSha = H.docTypeHtml $ do
         H.toHtml (secTitle sec)
 
 -- | Write the back-of-book term index page.
-writeTermIndex :: FilePath -> [IndexEntry] -> Maybe Text -> IO ()
-writeTermIndex outDir entries mSha = do
+writeTermIndex :: FilePath -> [IndexEntry] -> Maybe Text -> Text -> IO ()
+writeTermIndex outDir entries mSha title = do
   let path = outDir </> "term-index.html"
-  TLIO.writeFile path (renderHtml (termIndexPage entries mSha))
+  TLIO.writeFile path (renderHtml (termIndexPage entries mSha title))
 
 -- | Render the alphabetical term index page.
-termIndexPage :: [IndexEntry] -> Maybe Text -> Html
-termIndexPage entries mSha = H.docTypeHtml $ do
+termIndexPage :: [IndexEntry] -> Maybe Text -> Text -> Html
+termIndexPage entries mSha title = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
-    H.title "Term Index — BH Reference"
+    H.title (H.toHtml ("Term Index — " <> title))
     H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
     H.main $ do
       H.nav ! A.class_ "breadcrumb" $
-        H.a ! A.href "index.html" $ "Reference Manual"
+        H.a ! A.href "index.html" $ H.toHtml title
       H.h1 "Term Index"
       if null entries
         then H.p "(No index entries found.)"

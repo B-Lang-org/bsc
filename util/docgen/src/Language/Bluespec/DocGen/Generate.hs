@@ -35,9 +35,10 @@ import Language.Bluespec.DocGen.SymbolIndex (SymbolRef (..), buildIndex, renderI
 
 -- | A reference manual to convert.
 data ManualSpec = ManualSpec
-  { msTitle   :: !Text      -- ^ display title (e.g. "BH Language Reference")
-  , msTexFile :: !FilePath  -- ^ path to the root .tex file
-  , msSubDir  :: !Text      -- ^ output sub-directory name (e.g. "bh-reference")
+  { msTitle       :: !Text      -- ^ display title (e.g. "BH Language Reference")
+  , msTexFile     :: !FilePath  -- ^ path to the root .tex file
+  , msSubDir      :: !Text      -- ^ output sub-directory name (e.g. "bh-reference")
+  , msDescription :: !Text      -- ^ one-line description for the homepage
   } deriving stock (Show)
 
 -- | Configuration for a documentation generation run.
@@ -110,13 +111,17 @@ runDocGen cfg = do
     Just docDir -> discoverManuals docDir
     Nothing     -> case dgcRefManual cfg of
       Nothing      -> pure []
-      Just texPath -> pure [ManualSpec "BH Language Reference" texPath "reference"]
+      Just texPath -> pure
+        [ ManualSpec "BH Language Reference" texPath "reference"
+            "Reference manual for the Bluespec Classic (BH) hardware description language."
+        ]
 
   -- 9. Convert each manual
   bscSha <- resolveBscSha cfg manuals
   forM_ manuals $ \ms -> do
     let rmCfg = defaultRefManualConfig
                   { rmcTexFile = msTexFile ms
+                  , rmcTitle   = msTitle ms
                   , rmcSubDir  = msSubDir ms
                   , rmcOutDir  = outDir
                   , rmcVerbose = dgcVerbose cfg
@@ -173,7 +178,7 @@ siteRootPage manuals mStdlibUrl mSha =
               Just url -> H.a ! A.href (H.toValue url) $ "Standard Library"
               Nothing  -> H.a ! A.href "stdlib/index.html" $ "Standard Library"
           H.p $ do
-            "Auto-extracted from source files. "
+            "Auto-extracted API docs from source files. "
             "Covers the Prelude, Vector, FIFOF, and other library packages. "
             when (isJust mStdlibUrl) $
               H.em "(linking to external hosted docs)"
@@ -188,7 +193,7 @@ siteRootPage manuals mStdlibUrl mSha =
       H.section $ do
         let url = msSubDir ms <> "/index.html"
         H.h2 $ H.a ! A.href (H.toValue url) $ H.toHtml (msTitle ms)
-        H.p $ H.toHtml (msTitle ms <> " — converted from the LaTeX reference manual.")
+        H.p $ H.toHtml (msDescription ms)
 
     termIndexEntry ms =
       H.li $ H.a ! A.href (H.toValue (msSubDir ms <> "/term-index.html")) $
@@ -220,11 +225,21 @@ discoverManuals :: FilePath -> IO [ManualSpec]
 discoverManuals docDir = do
   let candidates =
         [ ManualSpec "BH Language Reference"
-            (docDir </> "BH_ref_guide" </> "BH_lang.tex") "bh-reference"
+            (docDir </> "BH_ref_guide" </> "BH_lang.tex")
+            "bh-reference"
+            "Reference manual for the Bluespec Classic (BH) hardware description language."
         , ManualSpec "BSV Language Reference"
-            (docDir </> "BSV_ref_guide" </> "BSV_lang.tex") "bsv-reference"
+            (docDir </> "BSV_ref_guide" </> "BSV_lang.tex")
+            "bsv-reference"
+            "Reference manual for Bluespec SystemVerilog (BSV)."
         , ManualSpec "BSC User Guide"
-            (docDir </> "user_guide" </> "user_guide.tex") "user-guide"
+            (docDir </> "user_guide" </> "user_guide.tex")
+            "user-guide"
+            "User guide for the BSC compiler: flags, scheduling, synthesis, simulation."
+        , ManualSpec "Libraries Reference Guide"
+            (docDir </> "libraries_ref_guide" </> "libraries_ref_guide.tex")
+            "libraries-reference"
+            "Detailed documentation for all standard Bluespec library packages."
         ]
   filterM (\ms -> doesFileExist (msTexFile ms)) candidates
 
