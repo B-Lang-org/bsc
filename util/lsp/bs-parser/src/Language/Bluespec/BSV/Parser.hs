@@ -33,6 +33,25 @@ import Language.Bluespec.Syntax
 type Parser = Parsec Void Lex.TokenStream
 type ParseError = ParseErrorBundle Lex.TokenStream Void
 
+-- | BSV structural keywords that must NOT be treated as identifiers or type
+-- variable names.  These are block terminators (@end*@) and control-flow
+-- operators; using them as ordinary identifiers would silently consume tokens
+-- that the outer parser needs as delimiters.
+isStructuralKw :: Lex.Keyword -> Bool
+isStructuralKw k = k `elem`
+  [ Lex.KwBegin,       Lex.KwEnd
+  , Lex.KwElse
+  , Lex.KwEndAction,   Lex.KwEndActionValue
+  , Lex.KwEndCase
+  , Lex.KwEndFunction, Lex.KwEndInstance, Lex.KwEndInterface
+  , Lex.KwEndMethod,   Lex.KwEndModule,   Lex.KwEndPackage
+  , Lex.KwEndPar,      Lex.KwEndRule,     Lex.KwEndRules
+  , Lex.KwEndSeq,      Lex.KwEndTypeclass
+  , Lex.KwFor,         Lex.KwWhile,       Lex.KwRepeat
+  , Lex.KwIf,          Lex.KwReturn,      Lex.KwBreak, Lex.KwContinue
+  , Lex.KwMatches,     Lex.KwTagged
+  ]
+
 --------------------------------------------------------------------------------
 -- Entry point
 --------------------------------------------------------------------------------
@@ -225,6 +244,9 @@ intLit = tok $ \case
 strLit :: Parser (Located Literal)
 strLit = tok $ \case { Lex.TokString t -> Just (LitString t); _ -> Nothing }
 
+floatLit :: Parser (Located Literal)
+floatLit = tok $ \case { Lex.TokFloat d -> Just (LitFloat d); _ -> Nothing }
+
 anyTok :: Parser (Located ())
 anyTok = tok (\_ -> Just ())
 
@@ -274,10 +296,20 @@ pTypeHashApp = do
   name <- qualId
   hash
   lparen
-  args <- pType `sepBy1` comma
+  args <- pTypeArg `sepBy1` comma
   rparen
   let base = Located (locSpan name) (TCon name)
   pure $ foldl' (\a b -> Located (spanTo (locSpan a) (locSpan b)) (TApp a b)) base args
+  where
+    -- BSV allows both types and value-expressions inside #(...) parameter
+    -- lists: e.g. `T#(tail(xs), n+1)`.  We parse a type atom and then
+    -- consume any trailing `(...)` suffix so that function-call expressions
+    -- like `tail(ifc_list)` do not cause the whole type application to fail.
+    pTypeArg :: Parser LType
+    pTypeArg = do
+      t <- pType
+      void $ optional $ try $ void lparen *> (pTypeArg `sepBy` comma) *> void rparen
+      pure t
 
 pTypeParens :: Parser LType
 pTypeParens = do
@@ -319,13 +351,16 @@ pTypeAtom = choice
          QualIdent Nothing  id -> case id of
            ConId _ -> TCon qid
            VarId t -> TVar (Located (locSpan qid) (TyVar (VarId t) Nothing))
-  , -- BSV keywords used as type variable names (e.g. `data` in `method data read()`)
+  , -- BSV keywords used as type variable names (e.g. `data` in `method data read()`).
+    -- Structural keywords (end*, else, if, for, …) are excluded; they are
+    -- block terminators that must not be consumed as identifiers.
     do lk <- tok $ \case
-                 Lex.TokKeyword k ->
-                   let t = Lex.keywordText k
-                   in case T.uncons t of
-                        Just (c, _) | c >= 'a' && c <= 'z' -> Just (VarId t)
-                        _                                    -> Nothing
+                 Lex.TokKeyword k
+                   | not (isStructuralKw k)
+                   , let t = Lex.keywordText k
+                   , Just (c, _) <- T.uncons t
+                   , c >= 'a' && c <= 'z'
+                   -> Just (VarId t)
                  _ -> Nothing
        pure $ Located (locSpan lk) (TVar (Located (locSpan lk) (TyVar (locVal lk) Nothing)))
   ]
@@ -546,6 +581,7 @@ pSuffix = choice
 pAtomicExpr :: Parser LExpr
 pAtomicExpr = choice
   [ do lit <- intLit; pure $ Located (locSpan lit) (ELit lit)
+  , do lit <- floatLit; pure $ Located (locSpan lit) (ELit lit)
   , do lit <- strLit; pure $ Located (locSpan lit) (ELit lit)
   , do sp <- namedOp "?"; pure $ Located dummySpan EDontCare
   , try pParenExpr
@@ -555,17 +591,70 @@ pAtomicExpr = choice
   , try pBeginEnd
   , try pActionBlock
   , try pActionValueBlock
+  , try pInlineModuleExpr
   , try pInterfaceExpr
   , try pRulesExpr
   , try pSeqFsm
   , try pParFsm
   , try pTypeAssertion
   , try pStructExpr
+  -- BSV uses :: (not .) for module-qualified names: Prelude::primGetName
+  -- The lexer produces 3 tokens (TokConId, PunctDColon, TokVarId/TokConId)
+  -- rather than a single TokQVarId/TokQConId, so qualId alone won't match.
+  , try $ do
+      sp0  <- peekSpan
+      modNm <- conId
+      void dcolon
+      nm   <- anyId
+      let sp  = spanTo sp0 (locSpan nm)
+          qid = Located sp (QualIdent (Just (ModuleId (identText (locVal modNm)))) (locVal nm))
+      pure $ Located sp $
+        case locVal nm of
+          ConId _ -> ECon qid
+          _       -> EVar qid
   , do qid <- qualId
        pure $ Located (locSpan qid) $
          case locVal qid of
            QualIdent _ (ConId _) -> ECon qid
            _                     -> EVar qid
+  -- BSV backtick-prefixed identifiers in expressions: `BSV_GENC, `True, `clk
+  -- These are preprocessor macro references or clock domain references.
+  , try $ do
+      sp0 <- punct Lex.PunctBacktick
+      nm  <- anyId
+      let sp  = spanTo sp0 (locSpan nm)
+          qid = Located sp (QualIdent Nothing (locVal nm))
+      pure $ Located sp (EVar qid)
+  -- BSV escaped identifiers in expressions: \== or \$sampled
+  , try $ do
+      (sp, nm) <- choice
+        [ -- `\` then operator
+          do void $ punct Lex.PunctBackslash
+             op <- opSym
+             mSuffix <- optional (tok $ \case { Lex.TokVarId t -> Just t; _ -> Nothing })
+             pure (locSpan op, locVal op <> maybe "" locVal mSuffix)
+          -- `\$name` lexed as a single VarSym starting with `\`
+        , do op <- tok $ \case
+                     Lex.TokVarSym t | "\\" `T.isPrefixOf` t -> Just t
+                     _ -> Nothing
+             mSuffix <- optional (tok $ \case { Lex.TokVarId t -> Just t; _ -> Nothing })
+             pure (locSpan op, T.drop 1 (locVal op) <> maybe "" locVal mSuffix)
+        ]
+      let qid = Located sp (QualIdent Nothing (VarId nm))
+      pure $ Located sp (EVar qid)
+  -- BSV allows lowercase keywords as variable names in expressions (e.g. `data`, `when`).
+  -- Structural keywords (end*, else, if, for, …) are excluded so they are
+  -- never consumed as identifiers inside expression parsers.
+  , do lk <- tok $ \case
+               Lex.TokKeyword k
+                 | not (isStructuralKw k)
+                 , let t = Lex.keywordText k
+                 , Just (c, _) <- T.uncons t
+                 , c >= 'a' && c <= 'z'
+                 -> Just (VarId t)
+               _ -> Nothing
+       let qid = Located (locSpan lk) (QualIdent Nothing (locVal lk))
+       pure $ Located (locSpan lk) (EVar qid)
   ]
 
 pParenExpr :: Parser LExpr
@@ -623,6 +712,29 @@ pValueOf = do
   sp1 <- rparen
   pure $ Located (spanTo sp0 sp1) (EValueOf t)
 
+-- | Parse an inline module expression: `module#(T); stmts endmodule`
+-- These appear as function arguments in BSV library code (e.g. SVA.bsv).
+-- We skip the body since we don't extract symbols from inline modules.
+pInlineModuleExpr :: Parser LExpr
+pInlineModuleExpr = do
+  sp0 <- keyword Lex.KwModule
+  -- Optional type argument: #(Type)
+  void $ optional $ try $ do
+    hash
+    void lparen; void $ manyTill anyTok rparen
+  void semi
+  skipModuleBody 1
+  pure $ Located sp0 EDontCare
+  where
+    skipModuleBody :: Int -> Parser ()
+    skipModuleBody 0 = pure ()
+    skipModuleBody n = choice
+      [ keyword Lex.KwModule    *> skipModuleBody (n + 1)
+      , keyword Lex.KwEndModule *> skipModuleBody (n - 1)
+      , tok (\case { Lex.TokEOF -> Just (); _ -> Nothing }) *> pure ()
+      , anyTok                  *> skipModuleBody n
+      ]
+
 pBeginEnd :: Parser LExpr
 pBeginEnd = do
   sp0 <- keyword Lex.KwBegin
@@ -673,30 +785,72 @@ pRulesExpr = do
 pSeqFsm :: Parser LExpr
 pSeqFsm = do
   sp0 <- tok (\case { Lex.TokVarId "seq" -> Just (); _ -> Nothing }) >>= pure . locSpan
-  stmts <- many (try pExprSemi)
+  stmts <- many (try pFsmStmt)
   sp1   <- keyword Lex.KwEndSeq
   void $ optional (void colon *> void anyId)
   pure $ Located (spanTo sp0 sp1) (EDo stmts)
-  where
-    pExprSemi = do
-      sp <- peekSpan
-      e  <- pExpr
-      void semi
-      pure $ Located (spanTo sp (locSpan e)) (StmtExpr e)
 
 pParFsm :: Parser LExpr
 pParFsm = do
   sp0 <- tok (\case { Lex.TokVarId "par" -> Just (); _ -> Nothing }) >>= pure . locSpan
-  stmts <- many (try pExprSemi)
+  stmts <- many (try pFsmStmt)
   sp1   <- keyword Lex.KwEndPar
   void $ optional (void colon *> void anyId)
   pure $ Located (spanTo sp0 sp1) (EDo stmts)
-  where
-    pExprSemi = do
+
+-- | Parse one statement inside a seq/par FSM block.
+-- These blocks support control-flow constructs (if, while, for, repeat,
+-- nested seq/par) in addition to plain expression-statements.
+pFsmStmt :: Parser (Located Stmt)
+pFsmStmt = choice
+  [ try $ do  -- if/else
+      sp0 <- keyword Lex.KwIf
+      void lparen; void pExpr; void rparen
+      void pFsmBody
+      void $ option [] (keyword Lex.KwElse *> pFsmBody)
+      pure $ Located sp0 (StmtExpr (Located sp0 EDontCare))
+  , try $ do  -- while
+      sp0 <- keyword Lex.KwWhile
+      void lparen; void pExpr; void rparen
+      void pFsmBody
+      pure $ Located sp0 (StmtExpr (Located sp0 EDontCare))
+  , try $ do  -- for
+      sp0 <- keyword Lex.KwFor
+      balancedParens
+      void pFsmBody
+      pure $ Located sp0 (StmtExpr (Located sp0 EDontCare))
+  , try $ do  -- repeat
+      sp0 <- keyword Lex.KwRepeat
+      void lparen; void pExpr; void rparen
+      void pFsmBody
+      pure $ Located sp0 (StmtExpr (Located sp0 EDontCare))
+  , try $ do  -- nested seq
+      e <- pSeqFsm
+      pure $ Located (locSpan e) (StmtExpr e)
+  , try $ do  -- nested par
+      e <- pParFsm
+      pure $ Located (locSpan e) (StmtExpr e)
+  , do  -- expression statement
       sp <- peekSpan
       e  <- pExpr
       void semi
       pure $ Located (spanTo sp (locSpan e)) (StmtExpr e)
+  ]
+
+pFsmBody :: Parser [Located Stmt]
+pFsmBody = choice
+  [ do void $ tok (\case { Lex.TokVarId "seq" -> Just (); _ -> Nothing })
+       ss <- many (try pFsmStmt)
+       void $ keyword Lex.KwEndSeq
+       void $ optional (void colon *> void anyId)
+       pure ss
+  , do void $ tok (\case { Lex.TokVarId "par" -> Just (); _ -> Nothing })
+       ss <- many (try pFsmStmt)
+       void $ keyword Lex.KwEndPar
+       void $ optional (void colon *> void anyId)
+       pure ss
+  , (:[]) <$> pFsmStmt
+  ]
 
 pTypeAssertion :: Parser LExpr
 pTypeAssertion = do
@@ -746,6 +900,13 @@ pStmt = choice
       pure $ Located (spanTo sp0 (locSpan e)) (StmtReturn e)
   , try pLetStmt
   , try pMatchStmt
+  -- action...endaction block as a statement (no trailing semicolon needed)
+  , try $ (\e -> Located (locSpan e) (StmtExpr e)) <$> pActionBlock
+  , try $ (\e -> Located (locSpan e) (StmtExpr e)) <$> pActionValueBlock
+  -- Nested function definition inside function/action bodies
+  , try $ do
+      d <- pFunctionDef
+      pure $ Located (locSpan d) (StmtExpr (Located (locSpan d) EDontCare))
   , try pVarDeclStmt
   , try pRegWriteStmt  -- must come before pExprStmt
   , try pAssignStmt   -- lhs = rhs; (variable/array reassignment)
@@ -885,14 +1046,15 @@ pLetStmt = do
   let item = LetBind (Binding (locSpan nm) (Located (locSpan nm) (PVar nm)) [] Nothing e)
   pure $ Located (spanTo sp0 (locSpan e)) (StmtLet [item])
 
--- | Parse 'match pattern = expression;' — BSV tuple/struct destructuring.
+-- | Parse 'match pattern = expression;' or 'match pattern <- expression;'
+-- — BSV tuple/struct destructuring.
 -- 'match' is not a keyword; it lexes as TokVarId "match".
 pMatchStmt :: Parser LStmt
 pMatchStmt = do
   sp0 <- peekSpan
   void $ tok $ \case { Lex.TokVarId "match" -> Just (); _ -> Nothing }
   pat <- pPattern
-  void equals
+  void $ choice [void equals, void larrow]
   e   <- pExpr
   void semi
   pure $ Located (spanTo sp0 (locSpan e)) (StmtBind pat Nothing e)
@@ -974,6 +1136,8 @@ stmtsToExpr _  ss = Located (locSpan (last ss)) (EDo ss)
 pCondPredicate :: Parser LExpr
 pCondPredicate = do
   e  <- pExpr
+  -- Optional "matches pat" on the first term (BSV: `if (x matches tagged Foo)`)
+  void $ optional $ try $ void (keyword Lex.KwMatches) *> void pPattern
   es <- many $ try $ do
     namedOp "&&&"
     e2 <- pExpr
@@ -1019,9 +1183,12 @@ pMethodDef = do
   where
     methodFormal = do
       void $ optional attrInsts
-      _mTy <- optional (try (pType <* lookAhead varId))
-      nm   <- varId
+      _mTy <- optional (try (pType <* lookAhead (varId <|> kwAsVarId)))
+      nm   <- varId <|> kwAsVarId
       pure (Located (locSpan nm) (PVar nm))
+    kwAsVarId = tok $ \case
+      Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+      _ -> Nothing
 
 pSubifaceDef :: Parser InterfaceField
 pSubifaceDef = do
@@ -1122,9 +1289,15 @@ pTypedefEnum sp0 = do
            (DefData nm Nothing tvs ctors (fromMaybe [] mDeriv))
   where
     enumElem = do
-      cnm  <- conId
-      mVal <- optional $ void equals *> intLit
-      pure (cnm, mVal)
+      cnm <- conId
+      -- Skip optional `= value` (integer literal or backtick macro like `\`OVL_FATAL`)
+      void $ optional $ try $ do
+        void equals
+        choice [ void intLit
+               , void (tok (\case { Lex.TokPunct Lex.PunctBacktick -> Just (); _ -> Nothing }))
+                   *> void anyId
+               ]
+      pure (cnm, Nothing)
 
 pStructMember :: Parser (Located Ident, LType)
 pStructMember = do
@@ -1157,7 +1330,7 @@ pInterfaceDecl = do
     pMethodProto = do
       void $ optional attrInsts
       void $ keyword Lex.KwMethod
-      mTy <- optional (try (pType <* lookAhead varId))
+      mTy <- optional (try (pType <* lookAhead (varId <|> kwAsVarId')))
       nm  <- varId
       void $ optional $ do
         void lparen
@@ -1175,10 +1348,13 @@ pInterfaceDecl = do
         , fieldPragmas = []
         , fieldDefault = Nothing }
       where
+        kwAsVarId' = tok $ \case
+          Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+          _ -> Nothing
         methodProtoFormal = do
           void $ optional attrInsts
-          void $ optional (try pType)
-          void varId
+          void $ optional (try (pType <* lookAhead (varId <|> kwAsVarId')))
+          void (varId <|> kwAsVarId')
 
     pSubifaceDecl' = do
       void $ optional attrInsts
@@ -1200,7 +1376,8 @@ pInterfaceDecl = do
 pFunctionDef :: Parser LDefinition
 pFunctionDef = do
   sp0 <- keyword Lex.KwFunction
-  retTy <- pType
+  -- Return type is optional (BSV allows `function name(args) = expr` without type annotation)
+  mRetTy <- optional (try (pType <* lookAhead (choice [void varId, void pOperIdent, void kwAsVarId])))
   nm <- choice [varId, pOperIdent, kwAsVarId]
   pats <- option [] $ do
     void lparen
@@ -1217,7 +1394,8 @@ pFunctionDef = do
     , do void equals; e <- pExpr; void semi
          pure ([Located (locSpan e) (StmtExpr e)], locSpan e)
     ]
-  let qt     = Located (locSpan retTy) (QualType [] retTy)
+  let retTy  = fromMaybe (Located sp0 (TCon (Located sp0 (QualIdent Nothing (ConId "?"))))) mRetTy
+      qt     = Located (locSpan retTy) (QualType [] retTy)
       clause = Clause sp0 pats Nothing (stmtsToExpr sp0 body) []
   pure $ Located (spanTo sp0 sp1) (DefValue nm (Just qt) [clause])
   where
@@ -1225,18 +1403,30 @@ pFunctionDef = do
       void $ optional attrInsts
       -- Handle `function RetType f(formals...)` function-type formals
       isFn <- option False (True <$ keyword Lex.KwFunction)
-      void $ optional (try (pType <* lookAhead varId))
-      nm <- varId
+      void $ optional (try (pType <* lookAhead (varId <|> kwAsVarId)))
+      nm <- varId <|> kwAsVarId
       -- If it's a function formal, consume the nested formals list
       when isFn $ void $ optional $ do
         void lparen
         void $ funcFormal `sepBy` comma
         void rparen
       pure $ Located (locSpan nm) (PVar nm)
-    pOperIdent = do
-      void $ punct Lex.PunctBackslash
-      op <- opSym
-      pure $ Located (locSpan op) (VarId (locVal op))
+    pOperIdent = choice
+      [ -- `\` followed by operator: `\==`, `\$sampled`
+        do void $ punct Lex.PunctBackslash
+           op <- opSym
+           mSuffix <- optional (tok $ \case { Lex.TokVarId t -> Just t; _ -> Nothing })
+           let nm = locVal op <> maybe "" locVal mSuffix
+           pure $ Located (locSpan op) (VarId nm)
+        -- `\$name` lexed as a single VarSym starting with `\`
+      , do op <- tok $ \case
+                   Lex.TokVarSym t | "\\" `T.isPrefixOf` t -> Just t
+                   _ -> Nothing
+           mSuffix <- optional (tok $ \case { Lex.TokVarId t -> Just t; _ -> Nothing })
+           -- strip leading `\` to get the actual identifier
+           let nm = T.drop 1 (locVal op) <> maybe "" locVal mSuffix
+           pure $ Located (locSpan op) (VarId nm)
+      ]
     -- Allow BSV keywords as function names (e.g. `function a when(...)`)
     kwAsVarId = tok $ \case
       Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
@@ -1306,12 +1496,38 @@ pModuleStmt = choice
   , try pMsVarDecl
   , try pMsFuncDef
   , try pMsLetBind
+  , try pMsFor      -- for loops at module level (hardware unrolling)
   , try pMsIf       -- if/else blocks in module body (conditional instantiation)
   , try pMsReturn   -- return stmt at end of module expression
   , try pMsAssign   -- lhs = rhs; (assignment to previously declared variable)
   , try pMsPreproc  -- skip `ifdef / `else / `endif / `define etc.
   , pMsExpr
   ]
+
+-- | Parse a for loop at module level: `for (...) begin...end`
+-- These are hardware-unrolling constructs; we skip the body.
+pMsFor :: Parser ModuleStmt
+pMsFor = do
+  void $ keyword Lex.KwFor
+  balancedParens  -- consume (init; cond; incr) with nested parens
+  -- body: begin...end block with module statements, or a single statement
+  choice
+    [ do void $ keyword Lex.KwBegin
+         void $ optional (void colon *> void anyId)
+         skipBeginBody 1
+    , void (try pModuleStmt)
+    ]
+  pure (MStmtLet [])
+  where
+    -- Skip tokens maintaining begin/end nesting depth, stopping at depth 0
+    skipBeginBody :: Int -> Parser ()
+    skipBeginBody 0 = void $ optional (void colon *> void anyId)
+    skipBeginBody n = choice
+      [ keyword Lex.KwBegin *> skipBeginBody (n + 1)
+      , keyword Lex.KwEnd   *> skipBeginBody (n - 1)
+      , tok (\case { Lex.TokEOF -> Just (); _ -> Nothing }) *> pure ()
+      , anyTok              *> skipBeginBody n
+      ]
 
 -- | Skip a preprocessor directive line inside a module body.
 -- These are not valid BSV tokens but pass through the lexer as
@@ -1409,7 +1625,10 @@ pMsMethod = do
 pMsVarDecl :: Parser ModuleStmt
 pMsVarDecl = do
   sp0 <- peekSpan
-  mattrs <- optional (try attrInsts)
+  -- Use someAttrInsts (requires >= 1 attribute) so that optional returns Nothing
+  -- when no attributes are present.  attrInsts uses `many` (always succeeds),
+  -- which would make optional always return Just () and guard always pass.
+  mattrs <- optional (try someAttrInsts)
   choice
     [ -- Attribute + bare varId <- expr  (no explicit type)
       -- e.g. `(* hide *) _ifc <- vMkCReg5(init);`
@@ -1420,7 +1639,7 @@ pMsVarDecl = do
          pure (MStmtBind (Located (locSpan nm) (PVar nm)) Nothing e)
     , -- Type name [subscript] ([ <- | = ] expr | ;)
       do t  <- pTypePrimary
-         nm <- varId
+         nm <- varId <|> kwAsVarId
          -- Allow optional array subscript: e.g. `Reg#(a) v[n];`
          void $ optional $ try $ void lbracket *> void (optional pExpr) *> void rbracket
          choice
@@ -1439,8 +1658,21 @@ pMsVarDecl = do
            -- Forward declaration: Type name;  (variable assigned later via '=')
            , do void semi
                 pure (MStmtLet [])
+           -- Old BSV2 instantiation syntax: Type name(args);
+           -- e.g. `ResolveZ#(t) i1();`  or  `mkFoo#(p) inst(ifc);`
+           , do void lparen
+                void $ pExpr `sepBy` comma
+                void rparen
+                void semi
+                pure (MStmtBind (Located (locSpan nm) (PVar nm)) (Just t)
+                                (Located sp0 EDontCare))
            ]
     ]
+
+  where
+    kwAsVarId = tok $ \case
+      Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+      _ -> Nothing
 
 pMsFuncDef :: Parser ModuleStmt
 pMsFuncDef = MStmtDef <$> pFunctionDef
@@ -1566,6 +1798,16 @@ pTcMember = choice
         DefValue nm _ (c:_) ->
           pure (ClassDefaultImpl nm (clausePats c) (clauseBody c))
         _ -> fail "expected function"
+  -- BSV module declarations as typeclass members: `module mkFoo#(T x)(Ifc);`
+  , try $ do
+      void $ keyword Lex.KwModule
+      nm <- varId
+      -- skip optional value params #(...) and interface type (...) up to semicolon
+      void $ manyTill anyTok semi
+      let unknownTy = Located (locSpan nm) (TCon (Located (locSpan nm) (QualIdent Nothing (ConId "?"))))
+      pure (ClassMethod (fmap VarId (fmap identText nm))
+                        (Located (locSpan nm) (QualType [] unknownTy))
+                        Nothing)
   , do t <- pType; nm <- varId; void semi
        pure (ClassMethod (fmap VarId (fmap identText nm))
                          (Located (locSpan t) (QualType [] t))
@@ -1742,6 +1984,10 @@ skipIfdefBlock = do
 pPackage :: Parser Package
 pPackage = do
   sp0   <- peekSpan
+  -- Skip leading preprocessor directives (e.g. `ifdef/`define before `package`).
+  -- Use skipIfdefBlock first so that balanced `ifdef...`else...`endif blocks
+  -- (including `else` which is a keyword token) are consumed atomically.
+  void $ many $ choice [try skipIfdefBlock, try skipPreprocDirective]
   void  $ optional $ keyword Lex.KwPackage
   pkgNm <- option (Located sp0 (ConId "Main")) conId
   void $ optional semi
@@ -1761,7 +2007,7 @@ pPackage = do
       items <- many $ choice
         [ Left  <$> try pExportDecl
         , Right <$> try pImportDecl
-        , Left [] <$ try skipPreprocDirective
+        , Left [] <$ choice [try skipIfdefBlock, try skipPreprocDirective]
         ]
       let exps = concat [es | Left es  <- items]
           imps = [i        | Right i <- items]
@@ -1866,6 +2112,9 @@ topLevelBoundary = void topLevelKw <|> void eofTok
 pPackageRecovering :: Parser Package
 pPackageRecovering = do
   sp0   <- peekSpan
+  -- Skip leading preprocessor directives (e.g. `ifdef/`define before `package`).
+  -- Use skipIfdefBlock first to handle balanced `ifdef...`else...`endif blocks.
+  void $ many $ choice [try skipIfdefBlock, try skipPreprocDirective]
   void  $ optional $ keyword Lex.KwPackage
   pkgNm <- option (Located sp0 (ConId "Main")) conId
   void $ optional semi
@@ -1885,11 +2134,9 @@ pPackageRecovering = do
       [ Left  <$> try pExportDecl
       , Right <$> try pImportDecl
       -- Skip preprocessor directives (`ifdef, `endif, `else, `define, etc.) that
-      -- may appear interspersed with imports.  These are not valid BSV tokens but
-      -- pass through the lexer as TokPunct PunctBacktick + TokVarId/TokConId.
-      -- We consume the directive header plus any tokens up to the next keyword or
-      -- backtick, so that regular imports following the directive are still collected.
-      , Left [] <$ try skipPreprocDirective
+      -- may appear interspersed with imports.  Use skipIfdefBlock first so that
+      -- balanced `ifdef...`else...`endif blocks are consumed atomically.
+      , Left [] <$ choice [try skipIfdefBlock, try skipPreprocDirective]
       ]
     collectExportsImports = do
       items <- collect

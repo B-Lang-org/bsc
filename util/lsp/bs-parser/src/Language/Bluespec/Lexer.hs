@@ -514,14 +514,18 @@ numericLit = sized <|> tickPrefixed <|> unsized
               pure $ TokFloat (read $ T.unpack floatStr)
             Nothing -> pure $ TokInteger int Nothing
 
-    hexNum = foldl' (\a d -> a * 16 + fromIntegral (hexDigitVal d)) 0 . T.unpack <$>
-             takeWhile1P (Just "hex digit") isHexDigit
+    -- BSV allows _ as a digit separator: 'hffff_0000, 32'b1010_1100
+    hexNum = foldl' (\a d -> a * 16 + fromIntegral (hexDigitVal d)) 0
+             . filter (/='_') . T.unpack <$>
+             takeWhile1P (Just "hex digit") (\c -> isHexDigit c || c == '_')
 
-    binNum = foldl' (\a d -> a * 2 + if d == '1' then 1 else 0) 0 . T.unpack <$>
-             takeWhile1P (Just "binary digit") (\c -> c == '0' || c == '1')
+    binNum = foldl' (\a d -> a * 2 + if d == '1' then 1 else 0) 0
+             . filter (/='_') . T.unpack <$>
+             takeWhile1P (Just "binary digit") (\c -> c == '0' || c == '1' || c == '_')
 
-    octNum = foldl' (\a d -> a * 8 + fromIntegral (octDigitVal d)) 0 . T.unpack <$>
-             takeWhile1P (Just "octal digit") isOctDigit
+    octNum = foldl' (\a d -> a * 8 + fromIntegral (octDigitVal d)) 0
+             . filter (/='_') . T.unpack <$>
+             takeWhile1P (Just "octal digit") (\c -> isOctDigit c || c == '_')
 
     hexDigitVal :: Char -> Int
     hexDigitVal c
