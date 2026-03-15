@@ -166,6 +166,7 @@ data Keyword
   | KwReturn          -- ^ return
   | KwRule            -- ^ rule (BSV rule opening, different from Classic 'rules')
   | KwTagged          -- ^ tagged
+  | KwTypeclass       -- ^ typeclass
   | KwTypedef         -- ^ typedef
   | KwUnion           -- ^ union
   | KwVoid            -- ^ void
@@ -277,6 +278,7 @@ keywords =
   , ("return", KwReturn)
   , ("rule", KwRule)
   , ("tagged", KwTagged)
+  , ("typeclass", KwTypeclass)
   , ("typedef", KwTypedef)
   , ("union", KwUnion)
   , ("void", KwVoid)

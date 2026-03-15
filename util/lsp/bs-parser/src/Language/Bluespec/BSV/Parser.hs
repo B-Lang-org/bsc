@@ -1534,11 +1534,16 @@ pRule = do
 
 pTypeclassDef :: Parser LDefinition
 pTypeclassDef = do
-  sp0  <- keyword Lex.KwClass
+  sp0  <- (keyword Lex.KwTypeclass <|> keyword Lex.KwClass)
   nm   <- conId
   tvs  <- option [] (try pTypeFormals)
+  -- Optional `dependencies (...)` clause (BSV typeclasses); may have nested
+  -- parens like `dependencies (r determines (a,n))`.
+  void $ optional $ try $ do
+    void $ tok $ \case { Lex.TokVarId "dependencies" -> Just (); _ -> Nothing }
+    balancedParens
   void $ optional (try pProvisos)
-  void semi
+  void $ optional semi
   mems <- many (try pTcMember)
   sp1  <- keyword Lex.KwEndTypeclass
   void $ optional (void colon *> void anyId)
