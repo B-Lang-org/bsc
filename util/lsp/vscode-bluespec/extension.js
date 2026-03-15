@@ -24,25 +24,35 @@ function findBesideBsc() {
   return null;
 }
 
-function activate(context) {
-  const config = vscode.workspace.getConfiguration('bluespec');
+// Build LanguageClient options from current configuration.
+function buildClientOptions(config) {
   const configuredPath = config.get('serverPath', 'bs-lsp');
-  const extraEnv = config.get('serverEnv', {});
+  const extraEnv       = config.get('serverEnv', {});
+  const debugMode      = config.get('debugMode', false);
+  const debugLogPath   = config.get('debugLogPath', '/tmp/bs-lsp-debug.log');
 
-  // If the user left serverPath at the default, try to auto-locate bs-lsp
-  // next to the bsc binary via a login shell.
   let serverPath = configuredPath;
   if (configuredPath === 'bs-lsp') {
     serverPath = findBesideBsc() ?? 'bs-lsp';
   }
 
+  // Inject BS_LSP_DEBUG when debug mode is enabled
+  const debugEnv = debugMode ? { BS_LSP_DEBUG: debugLogPath || '/tmp/bs-lsp-debug.log' } : {};
+
   const serverOptions = {
     command: serverPath,
     transport: TransportKind.stdio,
     options: {
-      env: Object.assign({}, process.env, extraEnv),
+      env: Object.assign({}, process.env, extraEnv, debugEnv),
     },
   };
+
+  return serverOptions;
+}
+
+async function startClient(context) {
+  const config = vscode.workspace.getConfiguration('bluespec');
+  const serverOptions = buildClientOptions(config);
 
   const clientOptions = {
     documentSelector: [
@@ -62,12 +72,57 @@ function activate(context) {
     clientOptions
   );
 
-  client.start();
+  await client.start();
+
+  // Notify the user where the debug log is being written
+  const debugMode    = config.get('debugMode', false);
+  const debugLogPath = config.get('debugLogPath', '/tmp/bs-lsp-debug.log');
+  if (debugMode) {
+    const logPath = debugLogPath || '/tmp/bs-lsp-debug.log';
+    vscode.window.showInformationMessage(
+      `Bluespec LSP debug mode ON — logging JSON-RPC traffic to: ${logPath}`
+    );
+  }
+}
+
+async function stopClient() {
+  if (client) {
+    await client.stop();
+    client = undefined;
+  }
+}
+
+function activate(context) {
+  startClient(context);
+
+  // Command: Bluespec: Restart Language Server
+  context.subscriptions.push(
+    vscode.commands.registerCommand('bluespec.restartServer', async () => {
+      await stopClient();
+      await startClient(context);
+      vscode.window.showInformationMessage('Bluespec language server restarted.');
+    })
+  );
+
+  // Auto-restart when debug settings change
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(async (event) => {
+      const affected =
+        event.affectsConfiguration('bluespec.debugMode') ||
+        event.affectsConfiguration('bluespec.debugLogPath') ||
+        event.affectsConfiguration('bluespec.serverPath') ||
+        event.affectsConfiguration('bluespec.serverEnv');
+
+      if (affected) {
+        await stopClient();
+        await startClient(context);
+      }
+    })
+  );
 }
 
 function deactivate() {
-  if (!client) return undefined;
-  return client.stop();
+  return stopClient();
 }
 
 module.exports = { activate, deactivate };

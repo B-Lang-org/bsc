@@ -7,6 +7,8 @@
     { "include": "#pragma" },
     { "include": "#block-comment" },
     { "include": "#line-comment" },
+    { "include": "#c-block-comment" },
+    { "include": "#c-line-comment" },
     { "include": "#string" },
     { "include": "#char" },
     { "include": "#numeric" },
@@ -40,6 +42,19 @@
     "line-comment": {
       "name": "comment.line.double-dash.bluespec",
       "match": "--.*$"
+    },
+
+    "c-block-comment": {
+      "name": "comment.block.bluespec",
+      "begin": "/\\*",
+      "end": "\\*/",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.bluespec" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.bluespec" } }
+    },
+
+    "c-line-comment": {
+      "name": "comment.line.double-slash.bluespec",
+      "match": "//.*$"
     },
 
     "string": {

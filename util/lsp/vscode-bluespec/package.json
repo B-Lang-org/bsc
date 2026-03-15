@@ -24,7 +24,7 @@
         "id": "bluespec-sv",
         "aliases": ["Bluespec SystemVerilog", "bsv"],
         "extensions": [".bsv"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration-bsv.json"
       }
     ],
     "grammars": [
@@ -35,8 +35,14 @@
       },
       {
         "language": "bluespec-sv",
-        "scopeName": "source.bluespec",
-        "path": "./syntaxes/bluespec.tmLanguage.json"
+        "scopeName": "source.bluespec-sv",
+        "path": "./syntaxes/bluespec-sv.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "bluespec.restartServer",
+        "title": "Bluespec: Restart Language Server"
       }
     ],
     "configuration": {
@@ -57,6 +63,16 @@
           "enum": ["off", "messages", "verbose"],
           "default": "off",
           "description": "Trace LSP communication between VS Code and bs-lsp."
+        },
+        "bluespec.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable bs-lsp debug logging. All JSON-RPC traffic (requests, responses, notifications) will be written to bluespec.debugLogPath. Requires the language server to restart — run 'Bluespec: Restart Language Server' after toggling."
+        },
+        "bluespec.debugLogPath": {
+          "type": "string",
+          "default": "/tmp/bs-lsp-debug.log",
+          "description": "File path for bs-lsp debug log (used when bluespec.debugMode is true)."
         }
       }
     }

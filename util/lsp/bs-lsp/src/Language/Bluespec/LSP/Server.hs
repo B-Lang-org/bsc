@@ -15,6 +15,7 @@ import Control.Monad (forM_, void)
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (mapMaybe)
 import Data.Text qualified as T
+import Language.Bluespec.LSP.Debug (withDebugLogging)
 import Language.Bluespec.LSP.Handlers
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable (LibrarySearchResult (..), discoverLibrariesDirWithDebug, loadPreludeSymbolTable)
@@ -22,21 +23,38 @@ import Language.LSP.Protocol.Lens as Lens
 import Language.LSP.Protocol.Types
 import Language.LSP.Server hiding (runServer)
 import System.Directory (doesDirectoryExist, listDirectory)
+import System.Environment (lookupEnv)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr, stdin, stdout)
 
 -- | Run the LSP server on stdin/stdout.
+--
+-- If the environment variable @BS_LSP_DEBUG@ is set, all JSON-RPC traffic is
+-- tee'd to a log file.  The variable's value is used as the log path; if it
+-- is @1@ or empty, @\/tmp\/bs-lsp-debug.log@ is used instead.
 runServer :: IO Int
 runServer = do
-  -- Create server state
+  mDebug <- lookupEnv "BS_LSP_DEBUG"
   stateVar <- newTVarIO emptyServerState
-
-  runServerWithHandles
-    (LogAction $ const $ pure ()) -- IO logger (disabled)
-    (LogAction $ const $ pure ()) -- LspM logger (disabled)
-    stdin
-    stdout
-    (serverDefinition stateVar)
+  case mDebug of
+    Nothing ->
+      runServerWithHandles
+        (LogAction $ const $ pure ())
+        (LogAction $ const $ pure ())
+        stdin
+        stdout
+        (serverDefinition stateVar)
+    Just logPath -> do
+      let path = case logPath of { "1" -> ""; p -> p }
+      hPutStrLn stderr $ "Bluespec LSP: debug logging to " ++
+        (if null path then "/tmp/bs-lsp-debug.log" else path)
+      withDebugLogging path $ \teeIn teeOut ->
+        runServerWithHandles
+          (LogAction $ const $ pure ())
+          (LogAction $ const $ pure ())
+          teeIn
+          teeOut
+          (serverDefinition stateVar)
 
 -- | LSP server options.
 lspOptions :: Options
