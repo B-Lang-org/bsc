@@ -1618,8 +1618,16 @@ pExportItem :: Parser (Located Export)
 pExportItem = choice
   [ try $ do
       pkg <- conId
-      void dcolon
-      namedOp "*"
+      -- `::*` may lex as a single TokConSym "::*" (greedy scan)
+      -- or as TokPunct PunctDColon + "*". Handle both.
+      void $ tok $ \case
+        Lex.TokConSym "::*"          -> Just ()
+        Lex.TokPunct Lex.PunctDColon -> Just ()
+        _ -> Nothing
+      void $ optional $ tok $ \case
+        Lex.TokVarSym "*" -> Just ()
+        Lex.TokConSym "*" -> Just ()
+        _ -> Nothing
       pure $ Located (locSpan pkg) (ExportModule (ModuleId (identText (locVal pkg))))
   , try $ do
       nm <- conId
