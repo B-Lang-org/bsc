@@ -162,7 +162,12 @@ renderInline idx lmap = \case
   SectionRef lbl ->
     let slug = fromMaybe lbl (Map.lookup lbl lmap)
         url  = slug <> ".html"
-    in H.a ! A.href (H.toValue url) $ H.toHtml ("\167" <> lbl :: Text)
+        -- Display the section name without the raw label prefix (e.g. "sec-").
+        -- Strip a leading "sec-" and replace hyphens with spaces so that
+        -- \ref{sec-overloading} renders as "overloading" rather than "§sec-overloading".
+        rawDisplay = if "sec-" `T.isPrefixOf` lbl then T.drop 4 lbl else slug
+        displayText = T.replace "-" " " rawDisplay
+    in H.a ! A.href (H.toValue url) $ H.toHtml displayText
 
 resolveUrl :: SymbolRef -> Maybe Text
 resolveUrl ref = Just $ srPackage ref <> ".html#" <> srAnchor ref

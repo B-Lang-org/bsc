@@ -16,6 +16,8 @@ module Language.Bluespec.DocGen.TexParser
 import Control.Monad (void)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Void (Void)
@@ -40,6 +42,18 @@ data MacroEnv = MacroEnv
 emptyMacroEnv :: MacroEnv
 emptyMacroEnv = MacroEnv Map.empty Map.empty
 
+-- | Macros that have dedicated inline parsers and should NOT be expanded
+-- by the macro system.  Expanding them produces complex LaTeX (e.g. \makebox,
+-- \begingroup) that the parser cannot sensibly render.
+skippedMacros :: Set Text
+skippedMacros = Set.fromList
+  [ "te", "nterm", "term", "qbs"
+  , "many", "opt", "alt"
+  , "gram", "grammore", "gramalt", "litem"
+  , "EBS", "BBS"
+  , "ttsymbol"
+  ]
+
 -- ---------------------------------------------------------------------------
 -- Macro collection (scans preamble for \newcommand)
 -- ---------------------------------------------------------------------------
@@ -52,6 +66,7 @@ collectMacros src = foldr insert emptyMacroEnv (T.lines src)
       case parseNewcommand line of
         Nothing         -> env
         Just (_, _, body) | not (balancedBraces body) -> env  -- unbalanced/multi-line, skip
+        Just (name, _, _) | Set.member name skippedMacros -> env  -- has dedicated parser
         Just (name, 0, body) -> env { meZeroArg = Map.insert name body (meZeroArg env) }
         Just (name, _, body) -> env { meOneArg  = Map.insert name body (meOneArg env) }
 
@@ -138,15 +153,17 @@ expandMacros env = go
             ("", _)     -> T.cons (T.head t) (go (T.tail t))
             (plain, rest) -> plain <> go rest
 
-    -- Consume a brace-balanced argument (returns content before closing '}').
+    -- Consume a brace-balanced argument.  Handles \{ and \} as escaped braces
+    -- (they do not change the depth counter).
     consumeBalanced :: Text -> Text
     consumeBalanced = T.pack . go' (0 :: Int) . T.unpack
       where
-        go' _ []       = []
-        go' 0 ('}':_)  = []
-        go' d ('}':cs) = '}' : go' (d-1) cs
-        go' d ('{':cs) = '{' : go' (d+1) cs
-        go' d (c:cs)   = c   : go' d cs
+        go' _ []             = []
+        go' 0 ('}':_)        = []
+        go' d ('}':cs)       = '}' : go' (d-1) cs
+        go' d ('{':cs)       = '{' : go' (d+1) cs
+        go' d ('\\':c:cs)    = '\\' : c : go' d cs  -- \X: skip without depth change
+        go' d (c:cs)         = c   : go' d cs
 
 isIdentChar :: Char -> Bool
 isIdentChar c = (c >= 'a' && c <= 'z')
@@ -185,6 +202,7 @@ parseTexDoc src =
   where
     nonEmpty (Para [])          = False
     nonEmpty (Para [Plain ""])  = False
+    nonEmpty (Para [Plain " "]) = False
     nonEmpty _                  = True
 
 -- ---------------------------------------------------------------------------
@@ -214,6 +232,7 @@ block = choice
   , try noteEnv
   , try tightlistEnv
   , try bulletList
+  , try gramProductionBlock  -- \gram{name}{body} — two-arg grammar production
   , try unknownEnv    -- \begin{unknown}...\end{unknown}
   , para              -- always succeeds if any non-newline char is present
   ]
@@ -236,10 +255,12 @@ subsectionCmd = headingCmd "\\subsection" 2
 subsubsectionCmd :: Parser DocBlock
 subsubsectionCmd = headingCmd "\\subsubsection" 3
 
--- | Parse a @\cmd{...}@ heading, handling nested braces correctly.
+-- | Parse a @\cmd{...}@ or @\cmd*{...}@ heading.
 headingCmd :: Text -> Int -> Parser DocBlock
 headingCmd cmd level = do
-  _ <- string (cmd <> "{")
+  _ <- string cmd
+  _ <- optional (char '*')   -- starred variants (\section* etc.) are fine
+  _ <- char '{'
   content <- manyTill inline (char '}')
   pure $ Heading level content
 
@@ -285,6 +306,22 @@ bulletList = do
       bs <- many (notFollowedBy (string "\\item" <|> string "\\end") *> block)
       pure bs
 
+-- | Parse a @\gram{name}{body}@ grammar production (two-arg form).
+-- Renders as: NonTerm name, Plain " ::= ", body_inlines...
+gramProductionBlock :: Parser DocBlock
+gramProductionBlock = do
+  _ <- string "\\gram{"
+  name <- balancedArg
+  _ <- skipMany (satisfy (\c -> c == ' ' || c == '\n' || c == '\r' || c == '\t'))
+  _ <- char '{'
+  rawBody <- balancedArg
+  let bodyBlocks  = parseTexDoc rawBody
+      bodyInlines = concatMap paraInlines bodyBlocks
+  pure $ Para (NonTerm name : Plain " ::= " : bodyInlines)
+  where
+    paraInlines (Para is) = is
+    paraInlines _         = []
+
 para :: Parser DocBlock
 para = do
   inlines <- some inline
@@ -296,8 +333,9 @@ para = do
 -- ---------------------------------------------------------------------------
 
 -- | Consume a brace-balanced argument, assuming the opening @{@ has already
--- been consumed.  Handles any depth of nesting, so
--- @\index{Foo\@\te{Foo}|textbf}@ parses correctly.
+-- been consumed.  Handles @\{@ and @\}@ as escaped braces (they do not change
+-- the depth counter and are unescaped to their literal characters).
+-- Other @\X@ sequences are preserved verbatim.
 balancedArg :: Parser Text
 balancedArg = T.pack <$> go (0 :: Int)
   where
@@ -307,7 +345,31 @@ balancedArg = T.pack <$> go (0 :: Int)
         '}' | depth == 0 -> pure []
         '}'              -> (c :) <$> go (depth - 1)
         '{'              -> (c :) <$> go (depth + 1)
+        '\\'             -> do
+          c2 <- anySingle
+          case c2 of
+            '{' -> ('{' :) <$> go depth   -- \{ → literal {, don't count depth
+            '}' -> ('}' :) <$> go depth   -- \} → literal }, don't count depth
+            '#' -> ('#' :) <$> go depth   -- \# → literal #
+            '$' -> ('$' :) <$> go depth   -- \$ → literal $
+            '%' -> ('%' :) <$> go depth   -- \% → literal %
+            _   -> ('\\' :) . (c2 :) <$> go depth
         _                -> (c :) <$> go depth
+
+-- ---------------------------------------------------------------------------
+-- Shared inline-to-text conversion
+-- ---------------------------------------------------------------------------
+
+-- | Convert an inline element to plain text (for contexts that need a string,
+-- such as quoted content, grammar rule names, etc.).
+inlineToText :: DocInline -> Text
+inlineToText (Plain t)      = t
+inlineToText (Code t)       = t
+inlineToText (SymRef t)     = t
+inlineToText (SectionRef t) = t
+inlineToText (NonTerm t)    = t
+inlineToText (Emph is)      = T.concat (map inlineToText is)
+inlineToText (Strong is)    = T.concat (map inlineToText is)
 
 -- ---------------------------------------------------------------------------
 -- Inline parser
@@ -318,8 +380,9 @@ balancedArg = T.pack <$> go (0 :: Int)
 -- backtrack and the fallback alternatives get a chance.
 inline :: Parser DocInline
 inline = choice
-  [ try latexQuotes       -- ``...'' → curly quotes (before plainText eats backticks)
+  [ try latexQuotes       -- ``...'' → double quotes (before plainText eats backticks)
   , try mathMode          -- $...$ or $$...$$
+  , try ttsymbolCmd       -- \ttsymbol{n} → Code (single char at ASCII n)
   , try teCmd             -- \te{Foo} → SymRef
   , try termCmd           -- \term{Foo} → Code
   , try qbsCmd            -- \qbs{code} → Code
@@ -329,16 +392,35 @@ inline = choice
   , try textbfCmd         -- \textbf{...} → Strong
   , try ntermCmd          -- \nterm{...} → NonTerm
   , try mboxCmd           -- \mbox{...} → render content
-  , try gramCmd           -- \gram{} \grammore{} \gramalt{} → NonTerm
+  , try gramCmd           -- \grammore{} \gramalt{} \litem{} → NonTerm
   , try manyOptCmd        -- \many{} \opt{} \alt → grammar operators
-  , try refCmd            -- \ref{label} → §label
+  , try refCmd            -- \ref{label} → section link
   , try indexCmd          -- \index{...} → stripped
   , skipCmd               -- fixed \name tokens — safe, no try needed
+  , try singleNewline     -- \n not followed by \n or block-start → space
   , try unknownCmdInline  -- \unknown{...} → discarded
   , try braceGroup        -- {content} — backtrack if unbalanced
   , plainText
   , inlineCatchAll        -- last resort: any non-newline char
   ]
+
+-- | A single newline that is NOT followed by another newline or a block-level
+-- command is treated as a space (soft line break within a paragraph).
+-- This prevents each source line from becoming its own @<p>@ tag.
+singleNewline :: Parser DocInline
+singleNewline = do
+  _ <- char '\n'
+  notFollowedBy (char '\n')
+  notFollowedBy blockStartMarker
+  pure $ Plain " "
+  where
+    blockStartMarker = void $ choice
+      [ string "\\section"
+      , string "\\subsection"
+      , string "\\subsubsection"
+      , string "\\begin{"
+      , string "\\gram{"
+      ]
 
 -- | Consume any single non-newline character as plain text.
 -- This ensures the inline parser never fails on unexpected input,
@@ -377,26 +459,29 @@ braceGroup = do
     []  -> Plain ""
     [x] -> x
     xs  -> Plain (T.concat (map inlineToText xs))
-  where
-    inlineToText (Plain t)       = t
-    inlineToText (Code t)        = t
-    inlineToText (SymRef t)      = t
-    inlineToText (SectionRef t)  = "\167" <> t
-    inlineToText (NonTerm t)     = t
-    inlineToText (Emph is)       = T.concat (map inlineToText is)
-    inlineToText (Strong is)     = T.concat (map inlineToText is)
+
+-- | @\ttsymbol{n}@ → Code with the character at ASCII position n.
+-- This is used to typeset special characters in the tt font.
+ttsymbolCmd :: Parser DocInline
+ttsymbolCmd = do
+  _ <- string "\\ttsymbol{"
+  digits <- takeWhile1P (Just "digit") (\c -> c >= '0' && c <= '9')
+  _ <- char '}'
+  let n  = read (T.unpack digits) :: Int
+      ch = toEnum n :: Char
+  pure $ Code (T.singleton ch)
 
 teCmd :: Parser DocInline
 teCmd = do
   _ <- string "\\te{"
-  name <- balancedArg
-  pure $ SymRef name
+  content <- manyTill inline (char '}')
+  pure $ SymRef (T.concat (map inlineToText content))
 
 textttCmd :: Parser DocInline
 textttCmd = do
   _ <- string "\\texttt{"
-  content <- balancedArg
-  pure $ Code content
+  content <- manyTill inline (char '}')
+  pure $ Code (T.concat (map inlineToText content))
 
 emphCmd :: Parser DocInline
 emphCmd = do
@@ -413,8 +498,8 @@ textbfCmd = do
 ntermCmd :: Parser DocInline
 ntermCmd = do
   _ <- string "\\nterm{"
-  content <- balancedArg
-  pure $ NonTerm content
+  content <- manyTill inline (char '}')
+  pure $ NonTerm (T.concat (map inlineToText content))
 
 indexCmd :: Parser DocInline
 indexCmd = do
@@ -426,15 +511,15 @@ indexCmd = do
 termCmd :: Parser DocInline
 termCmd = do
   _ <- string "\\term{"
-  content <- balancedArg
-  pure $ Code content
+  content <- manyTill inline (char '}')
+  pure $ Code (T.concat (map inlineToText content))
 
 -- | \qbs{code} → Code (inline BH/Classic code)
 qbsCmd :: Parser DocInline
 qbsCmd = do
   _ <- string "\\qbs{"
-  content <- balancedArg
-  pure $ Code content
+  content <- manyTill inline (char '}')
+  pure $ Code (T.concat (map inlineToText content))
 
 -- | \mbox{content} → render content inline
 mboxCmd :: Parser DocInline
@@ -454,26 +539,27 @@ refCmd = do
   pure $ SectionRef lbl
 
 -- | \gram{text} \grammore{text} \gramalt{text} → NonTerm (grammar notation)
+-- Note: \gram{name}{body} is handled by 'gramProductionBlock' (block-level).
+-- This inline parser handles only the one-arg variants.
 gramCmd :: Parser DocInline
 gramCmd = do
   _ <- choice
-    [ string "\\gram{"
-    , string "\\grammore{"
+    [ string "\\grammore{"
     , string "\\gramalt{"
     , string "\\litem{"
     ]
-  content <- balancedArg
-  pure $ NonTerm content
+  content <- manyTill inline (char '}')
+  pure $ NonTerm (T.concat (map inlineToText content))
 
 -- | \many{x} → NonTerm "{x}*"  \opt{x} → NonTerm "[x]"
 manyOptCmd :: Parser DocInline
 manyOptCmd = choice
   [ do _ <- string "\\many{"
-       content <- balancedArg
-       pure $ NonTerm ("{" <> content <> "}*")
+       content <- manyTill inline (char '}')
+       pure $ NonTerm ("{" <> T.concat (map inlineToText content) <> "}*")
   , do _ <- string "\\opt{"
-       content <- balancedArg
-       pure $ NonTerm ("[" <> content <> "]")
+       content <- manyTill inline (char '}')
+       pure $ NonTerm ("[" <> T.concat (map inlineToText content) <> "]")
   , do _ <- string "\\alt"
        pure $ Plain " | "
   ]
@@ -482,18 +568,27 @@ manyOptCmd = choice
 ebsCmd :: Parser DocInline
 ebsCmd = do
   _ <- choice [ string "\\EBS{", string "\\BBS{" ]
-  content <- balancedArg
-  pure $ Code content
+  content <- manyTill inline (char '}')
+  pure $ Code (T.concat (map inlineToText content))
 
--- | LaTeX curly quotes: \`\`text'' → "text"
+-- | LaTeX curly quotes: @``text''@ → @"text"@.
+-- Content is read character-by-character so the @''@ terminator is reliably
+-- detected even when the content contains apostrophes (e.g. "don't care").
+-- The raw content is then post-processed through 'parseTexDoc' so that
+-- any embedded LaTeX commands (e.g. @\mbox{\te{...}}@) are rendered.
 latexQuotes :: Parser DocInline
 latexQuotes = choice
   [ do _ <- string "``"
-       content <- manyTill (satisfy (/= '\n')) (string "''")
-       pure $ Plain ("\"" <> T.pack content <> "\"")
+       rawContent <- manyTill anySingle (string "''")
+       let inlines = concatMap paraInlines (parseTexDoc (T.pack rawContent))
+           text    = T.concat (map inlineToText inlines)
+       pure $ Plain ("\"" <> text <> "\"")
   , do _ <- string "`"
        pure $ Plain "'"
   ]
+  where
+    paraInlines (Para is) = is
+    paraInlines _         = []
 
 -- | Math mode.
 -- * @$...$@  → @\(...\)@ (MathJax inline marker)
@@ -527,9 +622,14 @@ skipCmd = choice
          , string "\\vspace*{"
          , string "\\linewidth"
          , string "\\textwidth"
+         , string "\\fontfamily{"   -- part of \ttsymbol expansion
          ]
        _ <- optional balancedArg
        pure $ Plain ""
+    -- Font/grouping commands that appear in \ttsymbol expansion
+  , string "\\begingroup"  *> pure (Plain "")
+  , string "\\endgroup"    *> pure (Plain "")
+  , string "\\selectfont"  *> pure (Plain "")
     -- Simple keyword replacements
   , string "\\BS"  *> pure (Plain " ")
   , string "\\ie"  *> pure (Plain "i.e.,")
@@ -545,4 +645,8 @@ plainText = do
   rest <- takeWhileP Nothing notSpecial
   pure $ Plain (T.cons c rest)
   where
-    notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n' && ch /= '$'
+    -- Stop at backslash, braces, newline, dollar, and backtick.
+    -- Backtick is excluded so that ``...'' quote pairs are handled by
+    -- latexQuotes before plainText consumes them.
+    notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n'
+                 && ch /= '$'  && ch /= '`'
