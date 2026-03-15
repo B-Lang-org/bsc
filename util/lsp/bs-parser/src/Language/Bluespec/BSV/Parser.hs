@@ -438,10 +438,16 @@ pOperatorExpr :: Parser LExpr
 pOperatorExpr = do
   e1 <- pUnaryExpr
   es <- many $ do
-    op <- opSym
+    op <- opSymNotTernary
     e2 <- pUnaryExpr
     pure (Located (locSpan op) (OpSym (locVal op)), e2)
   pure $ resolveOps bluespecFixities e1 es
+  where
+    -- Exclude "?" from binary operators so pCondExpr can handle it as ternary.
+    opSymNotTernary = tok $ \case
+      Lex.TokVarSym t | t /= "?" -> Just t
+      Lex.TokConSym t -> Just t
+      _ -> Nothing
 
 pUnaryExpr :: Parser LExpr
 pUnaryExpr = choice
@@ -1083,6 +1089,7 @@ pInterfaceDecl = do
       [ try (Just <$> pMethodProto)
       , try (Just <$> pSubifaceDecl')
       , try (Nothing <$ someAttrInsts)
+      , Nothing <$ try skipPreprocDirective  -- `ifdef/`endif inside interface body
       ]
 
     pMethodProto = do
@@ -1196,13 +1203,28 @@ pModuleDef = do
 pModuleFormalParams :: Parser ()
 pModuleFormalParams = do
   hash
+  -- Use balanced-paren scanning so preprocessor directives inside the
+  -- parameter list (e.g. `ifdef ISA_F ... `endif) are skipped gracefully.
+  -- We don't extract parameter names here; see pModuleStmt for bindings.
+  void $ balancedParens
+
+-- | Consume a balanced parenthesised block, including all nested parens.
+-- Handles any token stream, including preprocessor directives.
+balancedParens :: Parser ()
+balancedParens = do
   void lparen
-  void $ sepBy (do
-    void $ optional attrInsts
-    void $ optional (keyword Lex.KwParameter)
-    void $ optional (try pType)
-    void varId) comma
-  void rparen
+  go (1 :: Int)
+  where
+    go 0 = pure ()
+    go n = do
+      mt <- optional $ tok $ \k -> Just k
+      case mt of
+        Nothing -> pure ()   -- EOF
+        Just t  -> case locVal t of
+          Lex.TokPunct Lex.PunctLParen -> go (n + 1)
+          Lex.TokPunct Lex.PunctRParen -> go (n - 1)
+          Lex.TokEOF                   -> pure ()
+          _                            -> go n
 
 pModuleStmt :: Parser ModuleStmt
 pModuleStmt = choice
@@ -1212,8 +1234,32 @@ pModuleStmt = choice
   , try pMsVarDecl
   , try pMsFuncDef
   , try pMsLetBind
+  , try pMsPreproc  -- skip `ifdef / `else / `endif / `define etc.
   , pMsExpr
   ]
+
+-- | Skip a preprocessor directive line inside a module body.
+-- These are not valid BSV tokens but pass through the lexer as
+-- TokPunct PunctBacktick + TokVarId/TokConId.
+--
+-- We consume ONLY the directive header:
+--   `ifdef COND   → backtick + "ifdef" + "COND"
+--   `endif        → backtick + "endif"
+--   `else         → backtick + "else"
+--   `define N v   → backtick + "define" + name-ident (value left for next parse)
+--
+-- The body code between `ifdef and `endif is left in the stream and
+-- handled by the normal pModuleStmt parsers.
+pMsPreproc :: Parser ModuleStmt
+pMsPreproc = do
+  tok (\case { Lex.TokPunct Lex.PunctBacktick -> Just (); _ -> Nothing })
+  void anyId   -- directive name: ifdef, endif, else, define, undef, …
+  -- Consume one optional identifier argument (e.g. the condition for `ifdef).
+  void $ optional $ tok $ \case
+    Lex.TokVarId _ -> Just ()
+    Lex.TokConId _ -> Just ()
+    _ -> Nothing
+  pure $ MStmtLet []  -- no-op
 
 pMsRule :: Parser ModuleStmt
 pMsRule = do
@@ -1285,10 +1331,18 @@ pMsVarDecl = do
   sp0 <- peekSpan
   t   <- pTypePrimary
   nm  <- varId
-  void larrow
-  e   <- pExpr
+  -- Accept both '<-' (monadic bind) and '=' (combinational assignment)
+  (isArrow, e) <- choice
+    [ (True,)  <$> (larrow *> pExpr)
+    , (False,) <$> (equals *> pExpr)
+    ]
   void semi
-  pure (MStmtBind (Located (locSpan nm) (PVar nm)) (Just t) e)
+  if isArrow
+    then pure (MStmtBind (Located (locSpan nm) (PVar nm)) (Just t) e)
+    else let qt     = Located (locSpan t) (QualType [] t)
+             clause = Clause sp0 [] Nothing e []
+         in pure (MStmtDef (Located (spanTo sp0 (locSpan e))
+                              (DefValue nm (Just qt) [clause])))
 
 pMsFuncDef :: Parser ModuleStmt
 pMsFuncDef = MStmtDef <$> pFunctionDef
@@ -1451,6 +1505,20 @@ pImportDecl = do
 -- Package
 --------------------------------------------------------------------------------
 
+-- | Skip a preprocessor directive (`` `ifdef ``, `` `endif ``, `` `define ``,
+-- etc.).  The lexer passes backtick + identifier through, so we consume that
+-- token pair plus any trailing non-keyword tokens (directive arguments).
+skipPreprocDirective :: Parser ()
+skipPreprocDirective = do
+  tok (\case { Lex.TokPunct Lex.PunctBacktick -> Just (); _ -> Nothing })
+  void anyId   -- directive name: ifdef, endif, else, define, undef, …
+  -- Skip non-keyword, non-backtick tokens (the directive arguments/condition)
+  void $ manyTill anyTok $ lookAhead $ void $ tok $ \case
+    Lex.TokKeyword _ -> Just ()
+    Lex.TokPunct Lex.PunctBacktick -> Just ()
+    Lex.TokEOF -> Just ()
+    _ -> Nothing
+
 pPackage :: Parser Package
 pPackage = do
   sp0   <- peekSpan
@@ -1473,6 +1541,7 @@ pPackage = do
       items <- many $ choice
         [ Left  <$> try pExportDecl
         , Right <$> try pImportDecl
+        , Left [] <$ try skipPreprocDirective
         ]
       let exps = concat [es | Left es  <- items]
           imps = [i        | Right i <- items]
@@ -1594,6 +1663,12 @@ pPackageRecovering = do
     collect = many $ choice
       [ Left  <$> try pExportDecl
       , Right <$> try pImportDecl
+      -- Skip preprocessor directives (`ifdef, `endif, `else, `define, etc.) that
+      -- may appear interspersed with imports.  These are not valid BSV tokens but
+      -- pass through the lexer as TokPunct PunctBacktick + TokVarId/TokConId.
+      -- We consume the directive header plus any tokens up to the next keyword or
+      -- backtick, so that regular imports following the directive are still collected.
+      , Left [] <$ try skipPreprocDirective
       ]
     collectExportsImports = do
       items <- collect
