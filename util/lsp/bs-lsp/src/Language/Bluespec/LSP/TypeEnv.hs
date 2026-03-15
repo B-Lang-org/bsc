@@ -46,9 +46,13 @@ emptyTypeEnv = TypeEnv Map.empty Map.empty Map.empty
 -- | Build a TypeEnv from a parsed Package.
 buildTypeEnv :: Package -> TypeEnv
 buildTypeEnv pkg =
-  let aliases = collectAliases (pkgDefns pkg)
-      env0    = emptyTypeEnv { teAliases = aliases }
-  in foldr collectDef env0 (pkgDefns pkg)
+  let aliases  = collectAliases (pkgDefns pkg)
+      env0     = emptyTypeEnv { teAliases = aliases }
+      -- First pass: collect declared types, structs, and class method signatures
+      envSigs  = foldr collectDef env0 (pkgDefns pkg)
+      -- Second pass: distribute parameter types into teVars using the
+      -- gathered function type signatures
+  in foldr (collectDefParams envSigs) envSigs (pkgDefns pkg)
 
 -- | Merge two TypeEnvs (right-biased for conflicts).
 mergeTypeEnv :: TypeEnv -> TypeEnv -> TypeEnv
@@ -57,6 +61,42 @@ mergeTypeEnv a b = TypeEnv
   , teAliases = teAliases a `Map.union` teAliases b
   , teStructs = teStructs a `Map.union` teStructs b
   }
+
+-- | Extract ordered argument types from a QualType (splits on TArrow).
+extractArgTypes :: QualType -> [Type]
+extractArgTypes qt = go (locVal (qtType qt))
+  where
+    go (TArrow a b) = locVal a : go (locVal b)
+    go _            = []
+
+-- | Distribute function parameter types into teVars using gathered signatures.
+-- For each DefValue, looks up the function's declared type in sigEnv and
+-- assigns the corresponding argument types to the named parameters in each clause.
+collectDefParams :: TypeEnv -> LDefinition -> TypeEnv -> TypeEnv
+collectDefParams sigEnv (Located _ def) env = case def of
+  DefValue name _ clauses ->
+    let k = identText (locVal name)
+    in case Map.lookup k (teVars sigEnv) of
+         Nothing -> env
+         Just qt ->
+           let argTypes = extractArgTypes qt
+           in foldr (collectClauseParams argTypes) env clauses
+  _ -> env
+
+-- | Associate clause pattern names with the expected argument types from
+-- the function's type signature.
+collectClauseParams :: [Type] -> Clause -> TypeEnv -> TypeEnv
+collectClauseParams argTypes Clause { clausePats, clauseBody } env =
+  let env' = zipPatTypes clausePats argTypes env
+  in collectExprTypes (locVal clauseBody) env'
+
+-- | Walk a list of patterns and a list of argument types together,
+-- adding PVar bindings to the env.
+zipPatTypes :: [LPattern] -> [Type] -> TypeEnv -> TypeEnv
+zipPatTypes [] _ env = env
+zipPatTypes _ [] env = env
+zipPatTypes (p:ps) (t:ts) env =
+  collectPatternType p t (zipPatTypes ps ts env)
 
 -- | Collect type information from a single definition.
 collectDef :: LDefinition -> TypeEnv -> TypeEnv

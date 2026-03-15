@@ -141,9 +141,24 @@ handleHover stateVar docUri pos = do
   state <- liftIO $ readTVarIO stateVar
   case getDocument nuri state of
     Nothing -> pure $ InR Null
-    Just doc -> case getHoverInfoCrossFile state (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
-      Nothing -> pure $ InR Null
-      Just hoverInfo -> pure $ InL hoverInfo
+    Just doc ->
+      case getHoverInfoCrossFile state (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
+        Just hoverInfo -> pure $ InL hoverInfo
+        Nothing -> do
+          -- Ensure imports are indexed (fast if already done; slow first time only)
+          let docPath = T.unpack (uriToFilename docUri)
+              imports = stImports (dsSymbols doc)
+          liftIO $
+            ensureImportsIndexed
+              stateVar
+              (ssWorkspace state)
+              (ssLibraryDirs state)
+              docPath
+              imports
+          state' <- liftIO $ readTVarIO stateVar
+          case getHoverInfoCrossFile state' (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
+            Nothing    -> pure $ InR Null
+            Just hoverInfo -> pure $ InL hoverInfo
 
 -- | Handle go-to-definition request.
 handleDefinition :: TVar ServerState -> Uri -> Position -> LspM () (Definition |? ([DefinitionLink] |? Null))
