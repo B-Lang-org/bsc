@@ -13,6 +13,7 @@ where
 
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
+import Control.Exception (SomeException, try)
 import Control.Lens ((^.))
 import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
@@ -93,8 +94,8 @@ handlers stateVar =
 handleDocumentOpen :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
 handleDocumentOpen stateVar docUri docText docVersion = do
   env <- getLspEnv
-  void $ liftIO $ forkIO $ runLspT env $
-    parseAndUpdateDocument stateVar docUri docText docVersion
+  void $ liftIO $ forkIO $
+    forkParseAndUpdate env stateVar docUri docText docVersion
 
 -- | Handle document change - re-parse and publish diagnostics asynchronously.
 handleDocumentChange :: TVar ServerState -> Uri -> [TextDocumentContentChangeEvent] -> LspM () ()
@@ -107,8 +108,24 @@ handleDocumentChange stateVar docUri changes = do
         (c : _) -> getChangeText c mDoc
       newVersion = maybe 0 ((+ 1) . dsVersion) mDoc
   env <- getLspEnv
-  void $ liftIO $ forkIO $ runLspT env $
-    parseAndUpdateDocument stateVar docUri newText newVersion
+  void $ liftIO $ forkIO $
+    forkParseAndUpdate env stateVar docUri newText newVersion
+
+-- | Run parseAndUpdateDocument in a background thread, catching any exception
+-- so that VS Code always receives a publishDiagnostics (even if empty) and
+-- never spins forever.  Exceptions are logged to stderr for diagnostics.
+forkParseAndUpdate
+  :: LanguageContextEnv ()
+  -> TVar ServerState -> Uri -> Text -> Int -> IO ()
+forkParseAndUpdate env stateVar docUri docText docVersion = do
+  result <- try (runLspT env (parseAndUpdateDocument stateVar docUri docText docVersion))
+  case result of
+    Right () -> pure ()
+    Left (e :: SomeException) -> do
+      hPutStrLn stderr $
+        "bs-lsp: exception while processing " ++ show docUri ++ ": " ++ show e
+      -- Still publish empty diagnostics so VS Code doesn't spin forever.
+      runLspT env $ sendDiagnostics docUri docVersion []
 
 -- | Shared helper: parse text, update state, publish diagnostics.
 parseAndUpdateDocument :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
