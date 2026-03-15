@@ -131,6 +131,18 @@ stylesheet = "\
 \  display: flex;\n\
 \  align-items: center;\n\
 \}\n\
+\.home-btn {\n\
+\  color: var(--fg);\n\
+\  font-weight: 600;\n\
+\  font-size: 0.95rem;\n\
+\  text-decoration: none;\n\
+\  white-space: nowrap;\n\
+\  margin-right: 1rem;\n\
+\  padding: 0.2rem 0.5rem;\n\
+\  border-radius: 4px;\n\
+\}\n\
+\.home-btn:hover { background: var(--border); }\n\
+\\n\
 \.search-container {\n\
 \  position: relative;\n\
 \  width: 320px;\n\

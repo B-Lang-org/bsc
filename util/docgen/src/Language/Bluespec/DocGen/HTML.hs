@@ -232,6 +232,8 @@ mathJaxScripts src = do
 searchHeader :: Text -> Html
 searchHeader root =
   H.header ! A.class_ "search-header" $ do
+    H.a ! A.class_ "home-btn"
+        ! A.href (H.toValue (root <> "index.html")) $ "Bluespec Docs"
     H.div ! A.class_ "search-container" $ do
       H.input ! A.class_ "bs-search-input"
               ! A.type_ "search"
