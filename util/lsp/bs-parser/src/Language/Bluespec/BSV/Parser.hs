@@ -10,7 +10,7 @@ module Language.Bluespec.BSV.Parser
   , parseBSVPackageRecovering
   ) where
 
-import Control.Monad (void, when)
+import Control.Monad (guard, void, when)
 import Data.List (foldl')
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe)
 import qualified Data.Set as Set
@@ -409,6 +409,11 @@ pPatternAtom = choice
        pure $ Located (locSpan lit) (PLit lit)
   , do lit <- strLit
        pure $ Located (locSpan lit) (PLit lit)
+  -- Parenthesised pattern: (pat)
+  , do sp0 <- lparen
+       p   <- pPattern
+       sp1 <- rparen
+       pure $ Located (spanTo sp0 sp1) (locVal p)
   ]
 
 pPatternTuple :: Parser LPattern
@@ -428,6 +433,8 @@ pExpr = pCondExpr
 pCondExpr :: Parser LExpr
 pCondExpr = do
   e <- pOperatorExpr
+  -- BSV allows `expr matches pat` as a condition; consume the pattern but keep the expr.
+  void $ optional $ try $ keyword Lex.KwMatches *> void pPattern
   mc <- optional $ do
     namedOp "?"
     t <- pExpr
@@ -633,7 +640,7 @@ pInterfaceExpr :: Parser LExpr
 pInterfaceExpr = do
   sp0  <- keyword Lex.KwInterface
   mNm  <- optional (try conId)
-  void semi
+  void $ optional semi
   meths <- many (try pInterfaceStmt)
   sp1  <- keyword Lex.KwEndInterface
   void $ optional (void colon *> void anyId)
@@ -973,7 +980,7 @@ pInterfaceStmt = choice
 pMethodDef :: Parser InterfaceField
 pMethodDef = do
   sp0    <- keyword Lex.KwMethod
-  _mTy   <- optional (try pType)
+  _mTy   <- optional (try (pType <* lookAhead varId))
   nm     <- varId
   pats   <- option [] $ do
     void lparen
@@ -998,7 +1005,7 @@ pMethodDef = do
   where
     methodFormal = do
       void $ optional attrInsts
-      _mTy <- optional (try pType)
+      _mTy <- optional (try (pType <* lookAhead varId))
       nm   <- varId
       pure (Located (locSpan nm) (PVar nm))
 
@@ -1176,7 +1183,7 @@ pFunctionDef :: Parser LDefinition
 pFunctionDef = do
   sp0 <- keyword Lex.KwFunction
   retTy <- pType
-  nm <- choice [varId, pOperIdent]
+  nm <- choice [varId, pOperIdent, kwAsVarId]
   pats <- option [] $ do
     void lparen
     fs <- funcFormal `sepBy` comma
@@ -1200,7 +1207,7 @@ pFunctionDef = do
       void $ optional attrInsts
       -- Handle `function RetType f(formals...)` function-type formals
       isFn <- option False (True <$ keyword Lex.KwFunction)
-      void $ optional (try pType)
+      void $ optional (try (pType <* lookAhead varId))
       nm <- varId
       -- If it's a function formal, consume the nested formals list
       when isFn $ void $ optional $ do
@@ -1212,6 +1219,10 @@ pFunctionDef = do
       void $ punct Lex.PunctBackslash
       op <- opSym
       pure $ Located (locSpan op) (VarId (locVal op))
+    -- Allow BSV keywords as function names (e.g. `function a when(...)`)
+    kwAsVarId = tok $ \case
+      Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+      _ -> Nothing
 
 --------------------------------------------------------------------------------
 -- Module definition
@@ -1227,6 +1238,8 @@ pModuleDef = do
   ifcTy <- optional $ try $ do
     t <- pType
     void $ optional varId
+    -- Allow array subscript on the interface name: e.g. `Reg#(a) ifc[]`
+    void $ optional $ try $ void lbracket *> void (optional pExpr) *> void rbracket
     pure t
   void rparen
   void $ optional (try pProvisos)
@@ -1275,6 +1288,9 @@ pModuleStmt = choice
   , try pMsVarDecl
   , try pMsFuncDef
   , try pMsLetBind
+  , try pMsIf       -- if/else blocks in module body (conditional instantiation)
+  , try pMsReturn   -- return stmt at end of module expression
+  , try pMsAssign   -- lhs = rhs; (assignment to previously declared variable)
   , try pMsPreproc  -- skip `ifdef / `else / `endif / `define etc.
   , pMsExpr
   ]
@@ -1375,21 +1391,38 @@ pMsMethod = do
 pMsVarDecl :: Parser ModuleStmt
 pMsVarDecl = do
   sp0 <- peekSpan
-  void $ optional attrInsts
-  t   <- pTypePrimary
-  nm  <- varId
-  -- Accept both '<-' (monadic bind) and '=' (combinational assignment)
-  (isArrow, e) <- choice
-    [ (True,)  <$> (larrow *> pExpr)
-    , (False,) <$> (equals *> pExpr)
+  mattrs <- optional (try attrInsts)
+  choice
+    [ -- Attribute + bare varId <- expr  (no explicit type)
+      -- e.g. `(* hide *) _ifc <- vMkCReg5(init);`
+      do guard (mattrs /= Nothing)
+         nm <- varId
+         e  <- larrow *> pExpr
+         void semi
+         pure (MStmtBind (Located (locSpan nm) (PVar nm)) Nothing e)
+    , -- Type name [subscript] ([ <- | = ] expr | ;)
+      do t  <- pTypePrimary
+         nm <- varId
+         -- Allow optional array subscript: e.g. `Reg#(a) v[n];`
+         void $ optional $ try $ void lbracket *> void (optional pExpr) *> void rbracket
+         choice
+           [ -- Initialized: Type name <- expr;  or  Type name = expr;
+             do (isArrow, e) <- choice
+                  [ (True,)  <$> (larrow *> pExpr)
+                  , (False,) <$> (equals *> pExpr)
+                  ]
+                void semi
+                if isArrow
+                  then pure (MStmtBind (Located (locSpan nm) (PVar nm)) (Just t) e)
+                  else let qt     = Located (locSpan t) (QualType [] t)
+                           clause = Clause sp0 [] Nothing e []
+                       in pure (MStmtDef (Located (spanTo sp0 (locSpan e))
+                                            (DefValue nm (Just qt) [clause])))
+           -- Forward declaration: Type name;  (variable assigned later via '=')
+           , do void semi
+                pure (MStmtLet [])
+           ]
     ]
-  void semi
-  if isArrow
-    then pure (MStmtBind (Located (locSpan nm) (PVar nm)) (Just t) e)
-    else let qt     = Located (locSpan t) (QualType [] t)
-             clause = Clause sp0 [] Nothing e []
-         in pure (MStmtDef (Located (spanTo sp0 (locSpan e))
-                              (DefValue nm (Just qt) [clause])))
 
 pMsFuncDef :: Parser ModuleStmt
 pMsFuncDef = MStmtDef <$> pFunctionDef
@@ -1405,6 +1438,58 @@ pMsLetBind = do
 
 pMsExpr :: Parser ModuleStmt
 pMsExpr = MStmtExpr <$> (pExpr <* void semi)
+
+-- | Parse a variable assignment in module context: lhs = rhs;
+-- Handles cases like `ifc = (interface Foo; ... endinterface);`
+pMsAssign :: Parser ModuleStmt
+pMsAssign = do
+  lhs <- pPostfixExpr
+  void equals
+  rhs <- pExpr
+  void semi
+  pure (MStmtExpr rhs)
+
+-- | Parse an if/else block in module context (conditional instantiation).
+-- The branches may contain arbitrary module statements; we collect them all.
+pMsIf :: Parser ModuleStmt
+pMsIf = do
+  sp0  <- keyword Lex.KwIf
+  void lparen; void pExpr; void rparen
+  then_ <- pMsBeginEnd
+  else_ <- option [] (keyword Lex.KwElse *> pMsBeginEnd)
+  -- Represent as a list of sub-statements; use MStmtLet [] as a no-op carrier
+  -- and MStmtDef/MStmtBind for sub-statements that introduce bindings.
+  -- For simplicity, flatten all sub-statements as an MStmtExpr(EDontCare).
+  let dummy = Located sp0 EDontCare
+  pure (MStmtExpr (Located sp0 (ELet (bindingsFrom (then_ ++ else_)) dummy)))
+  where
+    bindingsFrom :: [ModuleStmt] -> [LetItem]
+    bindingsFrom = concatMap toLetItem
+    toLetItem (MStmtBind (Located sp (PVar nm)) _ e) =
+      [LetBind (Binding sp (Located sp (PVar nm)) [] Nothing e)]
+    toLetItem (MStmtDef (Located sp (DefValue nm mty cls))) =
+      [LetBind (Binding sp (Located sp (PVar nm)) [] mty
+                  (case cls of { [c] -> clauseBody c; _ -> Located sp EDontCare }))]
+    toLetItem _ = []
+
+-- | Parse a `begin ... end` block as a list of module statements,
+-- or a single module statement if no `begin` keyword.
+pMsBeginEnd :: Parser [ModuleStmt]
+pMsBeginEnd = choice
+  [ do void $ keyword Lex.KwBegin
+       ss <- many (try pModuleStmt)
+       void $ keyword Lex.KwEnd
+       pure ss
+  , (:[]) <$> pModuleStmt
+  ]
+
+-- | Parse `return expr ;` in module context.
+pMsReturn :: Parser ModuleStmt
+pMsReturn = do
+  void $ keyword Lex.KwReturn
+  e <- pExpr
+  void semi
+  pure (MStmtExpr e)
 
 --------------------------------------------------------------------------------
 -- Rules
