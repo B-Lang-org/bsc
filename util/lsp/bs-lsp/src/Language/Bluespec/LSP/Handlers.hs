@@ -91,8 +91,16 @@ handlers stateVar =
 -- The notification handler returns immediately so the server stays responsive
 -- while heavy work (buildSymbolTable, buildTypeEnv, diagnostics) runs in the
 -- background.  This is essential for large files like Prelude.bs.
+--
+-- We immediately register an empty DocumentState stub so that hover /
+-- go-to-def requests that arrive before parsing finishes get a valid
+-- document (with no symbols yet) instead of Nothing, which would cause
+-- the server to silently return null.
 handleDocumentOpen :: TVar ServerState -> Uri -> Text -> Int -> LspM () ()
 handleDocumentOpen stateVar docUri docText docVersion = do
+  let nuri = toNormalizedUri docUri
+  liftIO $ atomically $ modifyTVar' stateVar $
+    updateDocument nuri (emptyDocumentState docText docVersion)
   env <- getLspEnv
   void $ liftIO $ forkIO $
     forkParseAndUpdate env stateVar docUri docText docVersion

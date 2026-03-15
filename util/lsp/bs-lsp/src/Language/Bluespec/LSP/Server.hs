@@ -84,8 +84,10 @@ serverDefinition stateVar =
               dirs <- getLibrarySearchDirs libDir
               pure (dirs, Just libDir)
 
-        -- Load prelude symbols
-        liftIO $ do
+        -- Load prelude symbols in background so initialize response is not blocked.
+        -- Hover/goto-def will simply find no Prelude symbols until this finishes
+        -- (typically < 1 s), which is far better than blocking the whole handshake.
+        liftIO $ void $ forkIO $ do
           mPrelude <- loadPreludeSymbolTable
           case mPrelude of
             Nothing -> hPutStrLn stderr "Bluespec LSP: Prelude.bs not found or failed to parse"
