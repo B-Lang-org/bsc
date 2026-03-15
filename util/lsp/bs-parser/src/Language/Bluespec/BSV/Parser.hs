@@ -242,14 +242,17 @@ spanTo (SrcSpan f s _) (SrcSpan _ _ e) = SrcSpan f s e
 -- | Parse `(* attrName [= expr], ... *)` attribute instances, return list of names.
 attrInsts :: Parser ()
 attrInsts = void $ many $ do
-  namedOp "(*"
-  void $ manyTill anyTok (namedOp "*)")
+  -- (* ... *) — lexed as TokPunct PunctLParen + TokVarSym "*" ... TokVarSym "*" + TokPunct PunctRParen
+  void lparen
+  namedOp "*"
+  void $ manyTill anyTok (try (namedOp "*" *> void rparen))
 
 -- | Like 'attrInsts' but requires at least one attribute (safe to use in loops).
 someAttrInsts :: Parser ()
 someAttrInsts = void $ some $ do
-  namedOp "(*"
-  void $ manyTill anyTok (namedOp "*)")
+  void lparen
+  namedOp "*"
+  void $ manyTill anyTok (try (namedOp "*" *> void rparen))
 
 --------------------------------------------------------------------------------
 -- Types
@@ -1553,10 +1556,11 @@ skipToEndModule = go (0 :: Int)
 -- | Skip tokens until we reach a top-level BSV declaration boundary.
 -- Used for error recovery: when a top-level item fails to parse, skip
 -- forward to where the next one might begin.
-skipToTopLevel :: Parser ()
-skipToTopLevel = void $ manyTill anyTok (lookAhead topLevelBoundary)
+-- | A parser that succeeds (without consuming input) when the current token is
+-- a top-level keyword or EOF. Used as the sentinel for 'skipToTopLevel'.
+topLevelBoundary :: Parser ()
+topLevelBoundary = void topLevelKw <|> void eofTok
   where
-    topLevelBoundary = void topLevelKw <|> void eofTok
     topLevelKw = tok $ \case
       Lex.TokKeyword k | isTopLevel k -> Just ()
       _ -> Nothing
@@ -1582,9 +1586,10 @@ pPackageRecovering = do
   void $ optional $ tok (\case { Lex.TokEOF -> Just (); _ -> Nothing })
   sp1   <- peekSpan
   let expsMaybe = if null exps then Nothing else Just exps
-  pure $ Package (spanTo sp0 sp1)
-    (Located (locSpan pkgNm) (ModuleId (identText (locVal pkgNm))))
-    expsMaybe imps [] defns
+  let pkg = Package (spanTo sp0 sp1)
+              (Located (locSpan pkgNm) (ModuleId (identText (locVal pkgNm))))
+              expsMaybe imps [] defns
+  pure pkg
   where
     collect = many $ choice
       [ Left  <$> try pExportDecl
@@ -1595,6 +1600,16 @@ pPackageRecovering = do
       let exps = concat [es | Left es  <- items]
           imps = [i        | Right i <- items]
       pure (exps, imps)
-    recover e = do
-      MP.registerParseError e
-      Nothing <$ skipToTopLevel
+    recover _ = do
+      -- If we are at a top-level boundary (top-level keyword or EOF), do NOT
+      -- consume it.  Failing empty here causes 'withRecovery' to propagate an
+      -- empty failure, which makes 'many' stop the loop gracefully.  This also
+      -- prevents us from accidentally consuming 'endpackage' or the EOF token,
+      -- which would corrupt the rest of the package parse.
+      --
+      -- NOTE: do NOT call registerParseError here — megaparsec's withRecovery
+      -- handles error registration automatically when recovery succeeds.
+      -- Calling it manually causes runParser' to return Left bundle even on
+      -- overall parse success.
+      notFollowedBy topLevelBoundary
+      Nothing <$ (anyTok *> manyTill anyTok (lookAhead topLevelBoundary))
