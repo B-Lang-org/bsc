@@ -26,6 +26,7 @@ runDoc cfg opts = do
         { dgcLibDirs   = srcDirs
         , dgcOutDir    = doOutDir opts
         , dgcRefManual = Nothing   -- user projects have no LaTeX manual
+        , dgcBscDocDir = Nothing   -- user projects have no BSC doc/ tree
         , dgcStdlibUrl = Nothing   -- TODO: expose via bbt.toml or --stdlib-url flag
         , dgcVerbose   = doVerbose opts
         , dgcBscSha    = Nothing   -- user projects: no BSC SHA in footer
