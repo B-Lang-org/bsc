@@ -86,7 +86,7 @@ runDocGen cfg = do
 
   -- Add package/module names to the index so the search bar can find them.
   let pkgIdx = Map.fromList
-        [ (pkg, SymbolRef { srPackage = pkg, srSection = "stdlib", srAnchor = "top" })
+        [ (pkg, SymbolRef { srPackage = pkg, srSection = "stdlib", srAnchor = "top", srDisplay = Nothing })
         | pkg <- Map.keys pkgMap ]
       idx = symbolIdx <> pkgIdx
 
@@ -116,9 +116,9 @@ runDocGen cfg = do
             "Reference manual for the Bluespec Classic (BH) hardware description language."
         ]
 
-  -- 9. Convert each manual
+  -- 9. Convert each manual (collect extra index entries for split subsections)
   bscSha <- resolveBscSha cfg manuals
-  forM_ manuals $ \ms -> do
+  extraIdxs <- mapM (\ms -> do
     let rmCfg = defaultRefManualConfig
                   { rmcTexFile = msTexFile ms
                   , rmcTitle   = msTitle ms
@@ -127,9 +127,11 @@ runDocGen cfg = do
                   , rmcVerbose = dgcVerbose cfg
                   , rmcBscSha  = bscSha
                   }
-    convertRefManual rmCfg idx
+    extra <- convertRefManual rmCfg idx
     when (dgcVerbose cfg) $
       putStrLn $ "[docgen] " ++ T.unpack (msTitle ms) ++ " → " ++ T.unpack (msSubDir ms) ++ "/"
+    pure extra
+    ) manuals
 
   -- 10. Write site root
   TLIO.writeFile (outDir </> "index.html") $
@@ -144,8 +146,9 @@ runDocGen cfg = do
   -- 12. Download MathJax bundle (for local math rendering, no CDN at view time)
   downloadMathjax outDir (dgcVerbose cfg)
 
-  -- 13. Write symbol index JSON
-  LBS.writeFile (outDir </> "symbol-index.json") (renderIndexJson idx)
+  -- 13. Write symbol index JSON (merging in manual section entries)
+  let fullIdx = idx <> Map.unions extraIdxs
+  LBS.writeFile (outDir </> "symbol-index.json") (renderIndexJson fullIdx)
 
   putStrLn $ "[docgen] Done. Output written to " ++ outDir ++ "/"
   putStrLn $ "[docgen] " ++ show (Map.size pkgMap) ++ " packages, "

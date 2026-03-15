@@ -21,7 +21,7 @@ searchScript = "(function(){\
 \      .then(function(r){return r.json();})\
 \      .then(function(d){\
 \        cache=Object.entries(d.symbols||{}).map(function(kv){\
-\          return{name:kv[0],pkg:kv[1].package,url:kv[1].url};\
+\          return{name:kv[0],pkg:kv[1].display||kv[1].package,url:kv[1].url};\
 \        });\
 \        cb(cache);\
 \      }).catch(function(){cache=[];cb(cache);});\

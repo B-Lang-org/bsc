@@ -17,6 +17,7 @@ module Language.Bluespec.DocGen.RefManual
   , defaultRefManualConfig
   ) where
 
+import Control.Monad (forM, forM_)
 import Data.Char (isAlphaNum, toLower)
 import Data.List (groupBy, sortOn)
 import Data.ByteString qualified as BS
@@ -35,7 +36,7 @@ import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
 import Language.Bluespec.DocGen.HTML (LabelMap, renderDocBlocks, docFooter, mathJaxScripts, searchHeader)
-import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex)
+import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex, SymbolRef (..))
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
 
@@ -69,7 +70,9 @@ defaultRefManualConfig = RefManualConfig
 -- ---------------------------------------------------------------------------
 
 -- | Convert the reference manual LaTeX file to a set of HTML pages.
-convertRefManual :: RefManualConfig -> SymbolIndex -> IO ()
+-- Returns additional SymbolIndex entries (one per split subsection) so they
+-- can be merged into the global search index by the caller.
+convertRefManual :: RefManualConfig -> SymbolIndex -> IO SymbolIndex
 convertRefManual cfg idx = do
   -- LaTeX source files use Latin-1 (ISO 8859-1) encoding, not UTF-8.
   raw <- BS.readFile (rmcTexFile cfg)
@@ -101,11 +104,13 @@ convertRefManual cfg idx = do
 
   -- 7. Write output
   let refDir = rmcOutDir cfg </> T.unpack (rmcSubDir cfg)
+      subDir = rmcSubDir cfg
   createDirectoryIfMissing True refDir
 
   let mSha  = rmcBscSha cfg
       title = rmcTitle cfg
-  mapM_ (writeSection refDir idx labelMap mSha title) sections
+  extraIdxs <- forM sections $ \sec ->
+    writeSectionOrSplit refDir subDir idx labelMap mSha title sec
   writeTocPage refDir sections mSha title
   writeTermIndex refDir indexEntries mSha title
 
@@ -113,6 +118,8 @@ convertRefManual cfg idx = do
     putStrLn $ "[docgen] " ++ T.unpack title ++ ": " ++ show (length sections) ++ " sections"
     putStrLn $ "[docgen] Term index: " ++ show (length indexEntries) ++ " entries"
     putStrLn $ "[docgen] Output: " ++ refDir
+
+  pure (Map.unions extraIdxs)
 
 -- ---------------------------------------------------------------------------
 -- \input{} resolution
@@ -313,11 +320,18 @@ collectIndexEntries src = removeDups $ go "index" src
 -- Section splitting
 -- ---------------------------------------------------------------------------
 
--- | A section extracted from the document.
+-- | A section extracted from the document (split on H1 = \section{}).
 data Section = Section
   { secTitle  :: !Text
   , secSlug   :: !Text     -- ^ URL-safe filename stem
   , secBlocks :: ![DocBlock]
+  } deriving stock (Show)
+
+-- | A subsection within a split section (split on H2 = \subsection{}).
+data Subsection = Subsection
+  { subTitle  :: !Text
+  , subSlug   :: !Text     -- ^ URL-safe slug (combined with parent secSlug for filenames)
+  , subBlocks :: ![DocBlock]
   } deriving stock (Show)
 
 -- | Split a list of DocBlocks into sections on every @Heading 1@.
@@ -344,6 +358,31 @@ splitSections blocks = go blocks Nothing []
 
     mkSection t bs = Section t (slugify t) bs
 
+-- | Split a section's blocks into subsections on every @Heading 2@.
+-- Returns @[]@ if the section has fewer than 2 H2 headings (no split needed).
+splitSubsections :: Section -> [Subsection]
+splitSubsections sec = case go (secBlocks sec) Nothing [] of
+    subs | length subs >= 2 -> subs
+    _                       -> []
+  where
+    go [] Nothing  _   = []
+    go [] (Just t) acc = [mkSub t (reverse acc)]
+    go (b:bs) title acc
+      | isH2 b =
+          let finished = case title of
+                Nothing -> []
+                Just t  -> [mkSub t (reverse acc)]
+          in finished ++ go bs (Just (titleText b)) [b]
+      | otherwise = go bs title (b : acc)
+
+    isH2 (Heading 2 _) = True
+    isH2 _             = False
+
+    titleText (Heading _ inlines) = inlinesToText inlines
+    titleText _                   = "Untitled"
+
+    mkSub t bs = Subsection t (slugify t) bs
+
 -- | Convert heading inlines to plain text.
 inlinesToText :: [DocInline] -> Text
 inlinesToText = T.concat . map go
@@ -369,13 +408,56 @@ slugify = T.map slugChar . T.strip . T.toLower
 -- HTML output
 -- ---------------------------------------------------------------------------
 
--- | Write a single section as an HTML file.
+-- | Write a section, splitting into per-subsection pages if there are >= 2
+-- subsections (H2 blocks).  Returns extra SymbolIndex entries for search.
+writeSectionOrSplit
+  :: FilePath -> Text -> SymbolIndex -> LabelMap -> Maybe Text -> Text
+  -> Section -> IO SymbolIndex
+writeSectionOrSplit outDir subDir idx lmap mSha title sec = do
+  let subs = splitSubsections sec
+  if null subs
+    then do
+      writeSection outDir idx lmap mSha title sec
+      pure Map.empty
+    else writeSectionSplit outDir subDir idx lmap mSha title sec subs
+
+-- | Write a section that has been split into per-subsection pages.
+-- Creates:
+--   {secSlug}.html      — index listing all subsections
+--   {secSlug}-{subSlug}.html — one page per subsection (with sidebar)
+-- Returns SymbolIndex entries for all subsections (for search).
+writeSectionSplit
+  :: FilePath -> Text -> SymbolIndex -> LabelMap -> Maybe Text -> Text
+  -> Section -> [Subsection] -> IO SymbolIndex
+writeSectionSplit outDir subDir idx lmap mSha title sec subs = do
+  -- Section index page
+  let idxPath = outDir </> T.unpack (secSlug sec) ++ ".html"
+  TLIO.writeFile idxPath (renderHtml (sectionIndexPage sec subs mSha title))
+  -- Individual subsection pages
+  forM_ subs $ \sub -> do
+    let path = outDir </> T.unpack (secSlug sec <> "-" <> subSlug sub) ++ ".html"
+    TLIO.writeFile path (renderHtml (subsectionPage sec subs sub idx lmap mSha title))
+  -- Build SymbolIndex entries so subsections appear in search
+  let entries = Map.fromList
+        [ ( subTitle sub
+          , SymbolRef
+              { srPackage = secSlug sec <> "-" <> subSlug sub
+              , srSection = subDir
+              , srAnchor  = "top"
+              , srDisplay = Just title
+              }
+          )
+        | sub <- subs
+        ]
+  pure entries
+
+-- | Write a single (non-split) section as an HTML file.
 writeSection :: FilePath -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Section -> IO ()
 writeSection outDir idx lmap mSha title sec = do
   let path = outDir </> T.unpack (secSlug sec) ++ ".html"
   TLIO.writeFile path (renderHtml (sectionPage sec idx lmap mSha title))
 
--- | Render a section page.
+-- | Render a plain section page (no subsection sidebar).
 sectionPage :: Section -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Html
 sectionPage sec idx lmap mSha title = H.docTypeHtml $ do
   H.head $ do
@@ -389,6 +471,63 @@ sectionPage sec idx lmap mSha title = H.docTypeHtml $ do
       H.a ! A.href "index.html" $ H.toHtml title
     H.main $
       renderDocBlocks idx lmap (secBlocks sec)
+    docFooter mSha
+    H.script ! A.src "../search.js" $ ""
+
+-- | Render the index page for a split section (lists all subsections).
+sectionIndexPage :: Section -> [Subsection] -> Maybe Text -> Text -> Html
+sectionIndexPage sec subs mSha title = H.docTypeHtml $ do
+  H.head $ do
+    H.meta ! A.charset "utf-8"
+    H.title (H.toHtml (secTitle sec <> " — " <> title))
+    H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
+  H.body $ do
+    searchHeader "../"
+    H.nav ! A.class_ "breadcrumb" $
+      H.a ! A.href "index.html" $ H.toHtml title
+    H.div ! A.class_ "sub-layout" $ do
+      H.aside ! A.class_ "sub-sidebar" $ do
+        H.h3 (H.toHtml (secTitle sec))
+        H.ul $ forM_ subs $ \sub ->
+          H.li $ H.a
+            ! A.href (H.toValue (secSlug sec <> "-" <> subSlug sub <> ".html"))
+            $ H.toHtml (subTitle sub)
+      H.main $ do
+        H.h1 (H.toHtml (secTitle sec))
+        H.ul $ forM_ subs $ \sub ->
+          H.li $ H.a
+            ! A.href (H.toValue (secSlug sec <> "-" <> subSlug sub <> ".html"))
+            $ H.toHtml (subTitle sub)
+    docFooter mSha
+    H.script ! A.src "../search.js" $ ""
+
+-- | Render a subsection page with a sidebar listing sibling subsections.
+subsectionPage
+  :: Section -> [Subsection] -> Subsection
+  -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Html
+subsectionPage sec subs sub idx lmap mSha title = H.docTypeHtml $ do
+  H.head $ do
+    H.meta ! A.charset "utf-8"
+    H.title (H.toHtml (subTitle sub <> " — " <> title))
+    H.link ! A.rel "stylesheet" ! A.href "../docgen.css"
+    mathJaxScripts "../mathjax.js"
+  H.body $ do
+    searchHeader "../"
+    H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "index.html" $ H.toHtml title
+      " / "
+      H.a ! A.href (H.toValue (secSlug sec <> ".html")) $ H.toHtml (secTitle sec)
+    H.div ! A.class_ "sub-layout" $ do
+      H.aside ! A.class_ "sub-sidebar" $ do
+        H.h3 (H.toHtml (secTitle sec))
+        H.ul $ forM_ subs $ \s -> do
+          let active = subSlug s == subSlug sub
+              href   = secSlug sec <> "-" <> subSlug s <> ".html"
+          H.li ! (if active then A.class_ "active" else mempty) $
+            H.a ! A.href (H.toValue href) $ H.toHtml (subTitle s)
+      H.main $
+        renderDocBlocks idx lmap (subBlocks sub)
     docFooter mSha
     H.script ! A.src "../search.js" $ ""
 
@@ -418,8 +557,17 @@ tocPage sections mSha title = H.docTypeHtml $ do
     H.script ! A.src "../search.js" $ ""
   where
     tocEntry sec =
-      H.li $ H.a ! A.href (H.toValue (secSlug sec <> ".html")) $
-        H.toHtml (secTitle sec)
+      let subs = splitSubsections sec
+      in if null subs
+         then H.li $ H.a ! A.href (H.toValue (secSlug sec <> ".html")) $
+                H.toHtml (secTitle sec)
+         else H.li $ do
+                H.a ! A.href (H.toValue (secSlug sec <> ".html")) $
+                  H.toHtml (secTitle sec)
+                H.ul $ forM_ subs $ \sub ->
+                  H.li $ H.a
+                    ! A.href (H.toValue (secSlug sec <> "-" <> subSlug sub <> ".html"))
+                    $ H.toHtml (subTitle sub)
 
 -- | Write the back-of-book term index page.
 writeTermIndex :: FilePath -> [IndexEntry] -> Maybe Text -> Text -> IO ()

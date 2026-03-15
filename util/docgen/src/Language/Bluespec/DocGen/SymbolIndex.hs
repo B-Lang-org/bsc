@@ -27,9 +27,10 @@ import Language.Bluespec.DocGen.DocAST
 
 -- | A resolved symbol reference: where to find the symbol in the output.
 data SymbolRef = SymbolRef
-  { srPackage :: !Text   -- ^ e.g. "Prelude"
-  , srSection :: !Text   -- ^ "stdlib" or "reference"
-  , srAnchor  :: !Text   -- ^ e.g. "v:mkReg", "t:Reg", "c:Bits"
+  { srPackage :: !Text         -- ^ page filename stem (e.g. "Prelude")
+  , srSection :: !Text         -- ^ "stdlib" or subdirectory name
+  , srAnchor  :: !Text         -- ^ e.g. "v:mkReg", "t:Reg", "c:Bits", "top"
+  , srDisplay :: !(Maybe Text) -- ^ human-readable badge name for search (overrides srPackage when set)
   } deriving stock (Show, Eq)
 
 -- | Map from symbol name to its location.
@@ -50,6 +51,7 @@ buildIndex = foldr insertEntry Map.empty
       { srPackage = dePackage de
       , srSection = deSection de
       , srAnchor  = anchor (deKind de) (deName de)
+      , srDisplay = Nothing
       }
 
 -- ---------------------------------------------------------------------------
@@ -93,9 +95,13 @@ renderIndexJson idx =
         [ (name, refToJson ref) | (name, ref) <- Map.toList idx ]
     ]
   where
-    refToJson ref = Aeson.object
-      [ "package" .= srPackage ref
-      , "section" .= srSection ref
-      , "anchor"  .= srAnchor  ref
-      , "url"     .= symbolUrl ref
-      ]
+    refToJson ref =
+      let base = [ "package" .= srPackage ref
+                 , "section" .= srSection ref
+                 , "anchor"  .= srAnchor  ref
+                 , "url"     .= symbolUrl ref
+                 ]
+          withDisplay = case srDisplay ref of
+            Nothing  -> base
+            Just dis -> ("display" .= dis) : base
+      in Aeson.object withDisplay

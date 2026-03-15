@@ -189,4 +189,30 @@ stylesheet = "\
 \.bs-search-results li a:focus { background: var(--sidebar-bg); outline: none; }\n\
 \.bs-pkg { color: var(--cm-color); font-size: 0.8em; white-space: nowrap; }\n\
 \.bs-no-match { padding: 0.35rem 0.75rem; color: var(--cm-color); font-size: 0.9rem; }\n\
+\\n\
+\/* Subsection split-page layout: sidebar + main content */\n\
+\.sub-layout {\n\
+\  display: flex;\n\
+\  flex: 1;\n\
+\  gap: 0;\n\
+\}\n\
+\.sub-sidebar {\n\
+\  width: 220px;\n\
+\  flex-shrink: 0;\n\
+\  background: var(--sidebar-bg);\n\
+\  border-right: 1px solid var(--border);\n\
+\  padding: 1rem;\n\
+\  position: sticky;\n\
+\  top: 0;\n\
+\  height: 100vh;\n\
+\  overflow-y: auto;\n\
+\  box-sizing: border-box;\n\
+\}\n\
+\.sub-sidebar h3 { font-size: 0.9rem; margin: 0 0 0.5rem 0; color: var(--cm-color); text-transform: uppercase; letter-spacing: 0.04em; }\n\
+\.sub-sidebar ul { list-style: none; padding: 0; margin: 0; }\n\
+\.sub-sidebar li { margin: 0.15rem 0; }\n\
+\.sub-sidebar a { color: var(--link-color); text-decoration: none; font-size: 0.9rem; display: block; padding: 0.15rem 0.4rem; border-radius: 3px; }\n\
+\.sub-sidebar a:hover { background: var(--border); }\n\
+\.sub-sidebar li.active > a { font-weight: 600; color: var(--fg); background: var(--border); }\n\
+\.sub-layout > main { min-width: 0; }\n\
 \"
