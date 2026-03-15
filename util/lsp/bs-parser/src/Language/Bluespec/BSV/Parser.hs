@@ -397,6 +397,10 @@ pPatternAtom :: Parser LPattern
 pPatternAtom = choice
   [ do sp <- punct Lex.PunctUnderscore
        pure $ Located sp PWild
+  -- '.fieldName' pattern — binds a local variable with the same name as the field
+  , do sp0 <- punct Lex.PunctDot
+       nm  <- varId
+       pure $ Located (spanTo sp0 (locSpan nm)) (PVar nm)
   , do con <- conId
        pure $ Located (locSpan con) (PCon (Located (locSpan con) (QualIdent Nothing (locVal con))) [])
   , do name <- varId
@@ -720,10 +724,18 @@ pStmt = choice
       void semi
       pure $ Located (spanTo sp0 (locSpan e)) (StmtReturn e)
   , try pLetStmt
+  , try pMatchStmt
   , try pVarDeclStmt
   , try pRegWriteStmt  -- must come before pExprStmt
   , try pAssignStmt   -- lhs = rhs; (variable/array reassignment)
   , try pBindStmt
+  -- Skip balanced `ifdef...`endif blocks (including conditional else-if branches)
+  -- and simple directives that appear inside statement blocks.
+  , Located dummySpan (StmtExpr (Located dummySpan EDontCare)) <$ try skipIfdefBlock
+  , Located dummySpan (StmtExpr (Located dummySpan EDontCare)) <$ try skipPreprocDirective
+  -- Handle "orphan" else/else-if clauses that appear at statement level after
+  -- `ifdef blocks are consumed.  Treat them as no-op statements.
+  , try pOrphanElse
   , pExprStmt
   ]
 
@@ -852,6 +864,18 @@ pLetStmt = do
   let item = LetBind (Binding (locSpan nm) (Located (locSpan nm) (PVar nm)) [] Nothing e)
   pure $ Located (spanTo sp0 (locSpan e)) (StmtLet [item])
 
+-- | Parse 'match pattern = expression;' — BSV tuple/struct destructuring.
+-- 'match' is not a keyword; it lexes as TokVarId "match".
+pMatchStmt :: Parser LStmt
+pMatchStmt = do
+  sp0 <- peekSpan
+  void $ tok $ \case { Lex.TokVarId "match" -> Just (); _ -> Nothing }
+  pat <- pPattern
+  void equals
+  e   <- pExpr
+  void semi
+  pure $ Located (spanTo sp0 (locSpan e)) (StmtBind pat Nothing e)
+
 pVarDeclStmt :: Parser LStmt
 pVarDeclStmt = do
   sp0 <- peekSpan
@@ -910,6 +934,17 @@ pExprStmt = do
   e   <- pExpr
   void semi
   pure $ Located (spanTo sp0 (locSpan e)) (StmtExpr e)
+
+-- | Handle an "orphan" @else@ or @else if@ clause that appears at statement
+-- level after @`ifdef ... `endif@ blocks are consumed.  This is not standard
+-- BSV but arises from preprocessor-conditional else branches.
+-- Treat it as a no-op statement.
+pOrphanElse :: Parser LStmt
+pOrphanElse = do
+  sp0 <- keyword Lex.KwElse
+  void $ optional $ keyword Lex.KwIf *> lparen *> pExpr *> rparen
+  void pStmtBlock
+  pure $ Located sp0 (StmtExpr (Located sp0 EDontCare))
 
 stmtsToExpr :: SrcSpan -> [LStmt] -> LExpr
 stmtsToExpr sp [] = Located sp (ETuple [])
@@ -1518,6 +1553,53 @@ skipPreprocDirective = do
     Lex.TokPunct Lex.PunctBacktick -> Just ()
     Lex.TokEOF -> Just ()
     _ -> Nothing
+
+-- | Skip a balanced `` `ifdef/`ifndef ... `endif `` block, including all
+-- content and nested ifdef blocks.  Used in statement contexts where an ifdef
+-- block may appear mid-statement (e.g. inside an if-else chain), making the
+-- remaining `else` branches unreachable.
+skipIfdefBlock :: Parser ()
+skipIfdefBlock = do
+  -- Consume the opening `ifdef / `ifndef
+  tok (\case { Lex.TokPunct Lex.PunctBacktick -> Just (); _ -> Nothing })
+  dir <- anyId
+  -- Skip directive arguments
+  void $ manyTill anyTok $ lookAhead $ void $ tok $ \case
+    Lex.TokKeyword _ -> Just ()
+    Lex.TokPunct Lex.PunctBacktick -> Just ()
+    Lex.TokEOF -> Just ()
+    _ -> Nothing
+  -- Only proceed (and consume to matching endif) for opening directives
+  let dirName = identText (locVal dir)
+  if dirName `elem` ["ifdef", "ifndef"]
+    then go 1
+    else pure ()
+  where
+    backtick  = tok (\case { Lex.TokPunct Lex.PunctBacktick -> Just (); _ -> Nothing })
+    stopToken = tok $ \case
+      Lex.TokKeyword k | k `elem`
+        [ Lex.KwEndFunction, Lex.KwEndModule, Lex.KwEndPackage
+        , Lex.KwEndInterface, Lex.KwEndAction, Lex.KwEndActionValue
+        , Lex.KwEndRule, Lex.KwEndMethod ] -> Just ()
+      Lex.TokEOF -> Just ()
+      _ -> Nothing
+    isOpenDir d = let t = identText (locVal d) in t == "ifdef" || t == "ifndef"
+    isEndDir  d = identText (locVal d) == "endif"
+    go 0 = pure ()
+    go n = do
+      atStop <- option False (True <$ lookAhead stopToken)
+      if atStop then pure () else do
+        atBacktick <- option False (True <$ lookAhead backtick)
+        if atBacktick
+          then do
+            void backtick
+            mdir <- optional anyId
+            case mdir of
+              Nothing -> go n
+              Just d | isOpenDir d -> go (n + 1)
+                     | isEndDir  d -> go (n - 1)
+                     | otherwise   -> go n
+          else void anyTok >> go n
 
 pPackage :: Parser Package
 pPackage = do
