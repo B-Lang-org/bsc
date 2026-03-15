@@ -319,6 +319,15 @@ pTypeAtom = choice
          QualIdent Nothing  id -> case id of
            ConId _ -> TCon qid
            VarId t -> TVar (Located (locSpan qid) (TyVar (VarId t) Nothing))
+  , -- BSV keywords used as type variable names (e.g. `data` in `method data read()`)
+    do lk <- tok $ \case
+                 Lex.TokKeyword k ->
+                   let t = Lex.keywordText k
+                   in case T.uncons t of
+                        Just (c, _) | c >= 'a' && c <= 'z' -> Just (VarId t)
+                        _                                    -> Nothing
+                 _ -> Nothing
+       pure $ Located (locSpan lk) (TVar (Located (locSpan lk) (TyVar (locVal lk) Nothing)))
   ]
 
 pQualType :: Parser (Located QualType)
@@ -355,8 +364,13 @@ pTypeFormal :: Parser (Located TyVar)
 pTypeFormal = do
   isNum <- option False (True <$ keyword Lex.KwNumeric)
   void $ keyword Lex.KwType
-  nm <- anyId
+  -- Allow BSV keywords as type formal names (e.g. `type data`, `type input`)
+  nm <- anyId <|> kwAsAnyId
   pure $ Located (locSpan nm) (TyVar (locVal nm) (if isNum then Just KNum else Nothing))
+  where
+    kwAsAnyId = tok $ \case
+      Lex.TokKeyword k -> Just (VarId (Lex.keywordText k))
+      _ -> Nothing
 
 pTypeDefType :: Parser (Located Ident, [Located TyVar])
 pTypeDefType = do
@@ -1143,17 +1157,21 @@ pInterfaceDecl = do
     pMethodProto = do
       void $ optional attrInsts
       void $ keyword Lex.KwMethod
-      t  <- pType
-      nm <- varId
+      mTy <- optional (try (pType <* lookAhead varId))
+      nm  <- varId
       void $ optional $ do
         void lparen
         void $ methodProtoFormal `sepBy` comma
         void rparen
       void semi
+      let fieldTy = case mTy of
+            Just t  -> Located (locSpan t) (QualType [] t)
+            Nothing -> Located (locSpan nm) (QualType [] (Located (locSpan nm)
+                         (TCon (Located (locSpan nm) (QualIdent Nothing (ConId "?"))))))
       pure $ Located (locSpan nm) $ Field
         { fieldSpan    = locSpan nm
         , fieldName    = fmap VarId (fmap identText nm)
-        , fieldType    = Located (locSpan t) (QualType [] t)
+        , fieldType    = fieldTy
         , fieldPragmas = []
         , fieldDefault = Nothing }
       where
