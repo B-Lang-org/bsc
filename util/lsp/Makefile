@@ -31,6 +31,8 @@ install-bbt:
 
 # Install the VSCode extension.  Requires Node.js / npm.
 # Skips gracefully if npm is not available.
+# Also updates ~/.vscode/extensions/extensions.json so VS Code recognises the
+# manually-deployed extension without needing a marketplace install.
 .PHONY: install-vscode-ext
 install-vscode-ext: install install-bbt
 	@if command -v npm >/dev/null 2>&1; then \
@@ -38,13 +40,44 @@ install-vscode-ext: install install-bbt
 	  cd vscode-bluespec && npm install --silent; \
 	  rm -rf "$(VSCODE_EXT_DIR)"; \
 	  mkdir -p "$(VSCODE_EXT_DIR)"; \
-	  cp -r extension.js language-configuration.json package.json syntaxes node_modules "$(VSCODE_EXT_DIR)/"; \
+	  cp -r extension.js \
+	        language-configuration.json \
+	        language-configuration-bsv.json \
+	        package.json syntaxes node_modules "$(VSCODE_EXT_DIR)/"; \
+	  python3 -c "\
+import json, os, time; \
+ext_json = os.path.expanduser('~/.vscode/extensions/extensions.json'); \
+exts = []; \
+os.makedirs(os.path.dirname(ext_json), exist_ok=True); \
+(open(ext_json).read() and exts.__init__(json.load(open(ext_json)))) if os.path.exists(ext_json) else None; \
+exts = [e for e in exts if e.get('identifier', {}).get('id') != 'bsc-lsp.vscode-bluespec']; \
+exts.append({'identifier': {'id': 'bsc-lsp.vscode-bluespec'}, 'version': '0.0.1', 'location': {'scheme': 'file', 'path': '$(VSCODE_EXT_DIR)'}, 'relativeLocation': 'vscode-bluespec-0.0.1', 'metadata': {'installedTimestamp': int(time.time() * 1000)}}); \
+open(ext_json, 'w').write(json.dumps(exts, indent=2) + '\n'); \
+print('Updated', ext_json) \
+"; \
 	  echo "Done. Restart VS Code (or run 'Developer: Reload Window') to activate."; \
 	  echo "Make sure $(BINDIR) is on your PATH, or set bluespec.serverPath in VS Code settings."; \
 	else \
 	  echo "npm not found — skipping VSCode extension install."; \
 	  echo "To install manually: cd vscode-bluespec && npm install && ./setup.sh"; \
 	fi
+
+# Build a self-contained .vsix extension package.
+# Uses a pure-Python builder (mk-vsix.py) so Node >=20 / vsce is not required.
+# Output: vscode-bluespec/vscode-bluespec-$(EXT_VERSION).vsix
+EXT_VERSION ?= 0.0.1
+VSIX_OUT    := $(PWD)/vscode-bluespec/vscode-bluespec-$(EXT_VERSION).vsix
+
+.PHONY: package-vsix
+package-vsix:
+	@if command -v npm >/dev/null 2>&1; then \
+	  cd vscode-bluespec && npm install --silent; \
+	fi
+	@echo "Packaging $(VSIX_OUT)..."
+	@python3 $(PWD)/vscode-bluespec/mk-vsix.py \
+	         $(PWD)/vscode-bluespec \
+	         $(VSIX_OUT)
+	@echo "Install with: code --install-extension $(VSIX_OUT)"
 
 # -------------------------
 # Tests

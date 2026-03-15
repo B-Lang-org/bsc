@@ -16,14 +16,24 @@
     "languages": [
       {
         "id": "bluespec",
-        "aliases": ["Bluespec Classic", "bluespec"],
-        "extensions": [".bs"],
+        "aliases": [
+          "Bluespec Classic",
+          "bluespec"
+        ],
+        "extensions": [
+          ".bs"
+        ],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "bluespec-sv",
-        "aliases": ["Bluespec SystemVerilog", "bsv"],
-        "extensions": [".bsv"],
+        "aliases": [
+          "Bluespec SystemVerilog",
+          "bsv"
+        ],
+        "extensions": [
+          ".bsv"
+        ],
         "configuration": "./language-configuration-bsv.json"
       }
     ],
@@ -60,7 +70,11 @@
         },
         "bluespec.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "Trace LSP communication between VS Code and bs-lsp."
         },
@@ -79,5 +93,8 @@
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^2.22.0"
   }
 }
