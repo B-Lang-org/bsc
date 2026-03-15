@@ -1042,7 +1042,10 @@ pTypedefStruct :: SrcSpan -> Parser LDefinition
 pTypedefStruct sp0 = do
   void $ keyword Lex.KwStruct
   void lbrace
-  mems <- many pStructMember
+  mems <- fmap catMaybes $ many $
+    (Nothing <$ try skipIfdefBlock) <|>
+    (Nothing <$ try skipPreprocDirective) <|>
+    (Just <$> pStructMember)
   void rbrace
   (nm, tvs) <- pTypeDefType
   mDeriv <- optional (try pDeriving)
@@ -1062,7 +1065,10 @@ pTypedefTaggedUnion sp0 = do
   void $ keyword Lex.KwUnion
   void $ keyword Lex.KwTagged
   void lbrace
-  mems <- many pUnionMember
+  mems <- fmap catMaybes $ many $
+    (Nothing <$ try skipIfdefBlock) <|>
+    (Nothing <$ try skipPreprocDirective) <|>
+    (Just <$> pUnionMember)
   void rbrace
   (nm, tvs) <- pTypeDefType
   mDeriv <- optional (try pDeriving)
