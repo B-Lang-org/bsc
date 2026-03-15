@@ -27,14 +27,16 @@ import Language.Bluespec.Syntax (ModuleId (..))
 getHoverInfo :: TypeEnv -> SymbolTable -> Text -> Position -> Maybe Hover
 getHoverInfo tenv st sourceText pos =
   case lookupAtPosition st (positionToPos pos) of
-    Just sym -> Just $ symbolToHoverWithEnv tenv sym
+    Just sym -> Just $ symbolToHoverWithEnv tenv (enrichFromSiblings st sym)
     Nothing  ->
       -- Try name-based lookup: extract identifier at position, search by name
       case getIdentifierAtPosition sourceText pos of
         Nothing    -> Nothing
         Just ident -> case lookupByName st ident of
           []   -> Nothing
-          syms -> Just $ symbolToHoverWithEnv tenv (selectBestForHover (positionToPos pos) syms)
+          syms ->
+            let best = selectBestForHover (positionToPos pos) syms
+            in Just $ symbolToHoverWithEnv tenv (enrichFromSiblings st best)
 
 -- | Get hover information with cross-file fallback.
 -- Searches imports and prelude when the symbol is not found locally.
@@ -105,6 +107,17 @@ lookupSymInPrelude serverState symName =
     Just prelude -> case lookupByName prelude symName of
       []      -> Nothing
       (s : _) -> Just s
+
+-- | If a symbol has no type, fill it from a sibling declaration with the same
+-- name that does have one (e.g. a LetTypeSig / DefTypeSig alongside the
+-- corresponding LetBind / DefValue).
+enrichFromSiblings :: SymbolTable -> Symbol -> Symbol
+enrichFromSiblings st sym = case symType sym of
+  Just _  -> sym
+  Nothing ->
+    let siblings  = lookupByName st (symName sym)
+        sibType   = listToMaybe (mapMaybe symType siblings)
+    in sym { symType = sibType }
 
 -- | Convert a symbol to hover, enriching missing type info from TypeEnv.
 symbolToHoverWithEnv :: TypeEnv -> Symbol -> Hover

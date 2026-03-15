@@ -19,6 +19,8 @@ module Language.Bluespec.DocGen.RefManual
 import Data.Char (isAlphaNum, toLower)
 import Data.List (groupBy, sortOn)
 import Data.ByteString qualified as BS
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding (decodeLatin1)
@@ -31,7 +33,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
-import Language.Bluespec.DocGen.HTML (renderDocBlocks, docFooter, mathJaxScripts, searchHeader)
+import Language.Bluespec.DocGen.HTML (LabelMap, renderDocBlocks, docFooter, mathJaxScripts, searchHeader)
 import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex)
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
@@ -76,10 +78,12 @@ convertRefManual cfg idx = do
   -- 2. Collect macros from preamble
   let env = collectMacros preamble
 
-  -- 3. Pre-process body
-  let processed = preprocessBody env body
+  -- 3. Pre-process body in stages so we can collect labels before they are stripped
+  let afterComments = stripAndExpand env body
+      labelMap      = collectLabelMap afterComments   -- collect before \label is stripped
+      processed     = stripLayoutCmds afterComments
 
-  -- 4. Collect \index entries (before they are stripped by the parser)
+  -- 4. Collect \index entries
   let indexEntries = collectIndexEntries processed
 
   -- 5. Parse into DocBlocks
@@ -93,7 +97,7 @@ convertRefManual cfg idx = do
   createDirectoryIfMissing True refDir
 
   let mSha = rmcBscSha cfg
-  mapM_ (writeSection refDir idx mSha) sections
+  mapM_ (writeSection refDir idx labelMap mSha) sections
   writeTocPage refDir sections mSha
   writeTermIndex refDir indexEntries mSha
 
@@ -126,11 +130,34 @@ splitDocument src =
 -- 3. Expand macros from the preamble.
 -- 4. Remove layout-only commands (@\newpage@, @\clearpage@, @\pagestyle@, etc.).
 preprocessBody :: MacroEnv -> Text -> Text
-preprocessBody env =
-  stripLayoutCmds
-  . expandMacros env
+preprocessBody env = stripLayoutCmds . stripAndExpand env
+
+-- | Steps 1–3 of pre-processing: strip comments, expand macros.
+-- @\label@ commands are still present at this stage.
+stripAndExpand :: MacroEnv -> Text -> Text
+stripAndExpand env =
+  expandMacros env
   . stripComments
   . T.dropWhile (/= '\n')  -- drop remainder of \begin{document} line
+
+-- | Collect a map from @\label{lbl}@ keys to the slug of the enclosing
+-- top-level @\section@.  Must be called on the text BEFORE 'stripLayoutCmds'
+-- so that @\label@ commands are still present.
+collectLabelMap :: Text -> LabelMap
+collectLabelMap = go "introduction" Map.empty
+  where
+    go _ m t | T.null t = m
+    go slug m t
+      | "\\section{" `T.isPrefixOf` t =
+          let rest    = T.drop (T.length "\\section{") t
+              title   = T.takeWhile (/= '}') rest
+              newSlug = slugify title
+          in go newSlug m (T.drop 1 (T.dropWhile (/= '}') rest))
+      | "\\label{" `T.isPrefixOf` t =
+          let rest = T.drop (T.length "\\label{") t
+              lbl  = T.takeWhile (/= '}') rest
+          in go slug (Map.insert lbl slug m) (T.drop 1 (T.dropWhile (/= '}') rest))
+      | otherwise = go slug m (T.drop 1 t)
 
 -- | Strip TeX line comments: everything from @%@ to end of line.
 -- Handles escaped @\%@.
@@ -260,12 +287,13 @@ splitSections blocks = go blocks Nothing []
 inlinesToText :: [DocInline] -> Text
 inlinesToText = T.concat . map go
   where
-    go (Plain t)     = t
-    go (Code t)      = t
-    go (Emph is)     = inlinesToText is
-    go (Strong is)   = inlinesToText is
-    go (SymRef t)    = t
-    go (NonTerm t)   = t
+    go (Plain t)        = t
+    go (Code t)         = t
+    go (Emph is)        = inlinesToText is
+    go (Strong is)      = inlinesToText is
+    go (SymRef t)       = t
+    go (SectionRef t)   = "\167" <> t
+    go (NonTerm t)      = t
 
 -- | Make a URL-safe slug from a section title.
 slugify :: Text -> Text
@@ -281,14 +309,14 @@ slugify = T.map slugChar . T.strip . T.toLower
 -- ---------------------------------------------------------------------------
 
 -- | Write a single section as an HTML file.
-writeSection :: FilePath -> SymbolIndex -> Maybe Text -> Section -> IO ()
-writeSection outDir idx mSha sec = do
+writeSection :: FilePath -> SymbolIndex -> LabelMap -> Maybe Text -> Section -> IO ()
+writeSection outDir idx lmap mSha sec = do
   let path = outDir </> T.unpack (secSlug sec) ++ ".html"
-  TLIO.writeFile path (renderHtml (sectionPage sec idx mSha))
+  TLIO.writeFile path (renderHtml (sectionPage sec idx lmap mSha))
 
 -- | Render a section page.
-sectionPage :: Section -> SymbolIndex -> Maybe Text -> Html
-sectionPage sec idx mSha = H.docTypeHtml $ do
+sectionPage :: Section -> SymbolIndex -> LabelMap -> Maybe Text -> Html
+sectionPage sec idx lmap mSha = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.title (H.toHtml (secTitle sec <> " — BH Reference"))
@@ -299,7 +327,7 @@ sectionPage sec idx mSha = H.docTypeHtml $ do
     H.nav ! A.class_ "breadcrumb" $
       H.a ! A.href "index.html" $ "Reference Manual"
     H.main $
-      renderDocBlocks idx (secBlocks sec)
+      renderDocBlocks idx lmap (secBlocks sec)
     docFooter mSha
     H.script ! A.src "../search.js" $ ""
 

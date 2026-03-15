@@ -7,6 +7,7 @@
 module Language.Bluespec.LSP.Handlers
   ( handlers,
     scanWorkspaceForModules,
+    refreshDiagnosticsForOpenDocs,
   )
 where
 
@@ -109,19 +110,20 @@ parseAndUpdateDocument stateVar docUri docText docVersion = do
       (pkg, merrs) = parseAutoRecovering (T.unpack filename) docText
       symbols  = buildSymbolTable pkg
       typeEnv  = buildTypeEnv pkg
+      parseDiags = makeDiagnostics (maybe (Right pkg) Left merrs)
+      typeDiags  = makeTypeMismatchDiagnostics typeEnv pkg
       docState = DocumentState
-        { dsText    = docText
-        , dsParsed  = Just pkg
-        , dsSymbols = symbols
-        , dsTypeEnv = typeEnv
-        , dsVersion = docVersion
+        { dsText             = docText
+        , dsParsed           = Just pkg
+        , dsSymbols          = symbols
+        , dsTypeEnv          = typeEnv
+        , dsVersion          = docVersion
+        , dsNonImportDiags   = parseDiags ++ typeDiags
         }
   liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
   liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols typeEnv
   state' <- liftIO $ readTVarIO stateVar
-  let parseDiags  = makeDiagnostics (maybe (Right pkg) Left merrs)
-      importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
-      typeDiags   = makeTypeMismatchDiagnostics typeEnv pkg
+  let importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
   sendDiagnostics docUri docVersion (parseDiags ++ importDiags ++ typeDiags)
 
 -- | Handle document close - remove from state.
@@ -210,6 +212,17 @@ sendDiagnostics docUri docVersion diags = do
             _diagnostics = diags
           }
   sendNotification SMethod_TextDocumentPublishDiagnostics params
+
+-- | Re-publish import diagnostics for every currently open document.
+-- Called after workspace scan completes so that "module not found" warnings
+-- are cleared for modules that have just been indexed.
+refreshDiagnosticsForOpenDocs :: TVar ServerState -> LspM () ()
+refreshDiagnosticsForOpenDocs stateVar = do
+  state <- liftIO $ readTVarIO stateVar
+  forM_ (getAllDocuments state) $ \(nuri, doc) -> do
+    let docUri      = fromNormalizedUri nuri
+        importDiags = makeImportDiagnostics (ssModuleIndex state) (dsSymbols doc)
+    sendDiagnostics docUri (dsVersion doc) (dsNonImportDiags doc ++ importDiags)
 
 -- | Extract text from a content change event
 getChangeText :: TextDocumentContentChangeEvent -> Maybe DocumentState -> Text

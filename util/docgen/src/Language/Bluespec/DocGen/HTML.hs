@@ -3,7 +3,8 @@
 -- Each package gets one page (e.g. @stdlib/Prelude.html@) with a sidebar
 -- symbol index and per-symbol sections, Hackage-style.
 module Language.Bluespec.DocGen.HTML
-  ( renderPackagePage
+  ( LabelMap
+  , renderPackagePage
   , renderIndexPage
   , renderSitePage
   , renderDocBlocks
@@ -26,6 +27,11 @@ import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
 import Language.Bluespec.DocGen.SymbolIndex
+
+-- | Map from LaTeX @\label{lbl}@ keys to the slug of the section page that
+-- contains them (e.g. @"sec-type"@ → @"types"@).
+-- Used to turn @\ref{lbl}@ into a proper hyperlink.
+type LabelMap = Map Text Text
 
 -- ---------------------------------------------------------------------------
 -- Public API
@@ -97,7 +103,7 @@ renderEntry idx de =
     case deTypeSig de of
       Nothing  -> pure ()
       Just sig -> H.pre ! A.class_ "type-sig" $ H.toHtml sig
-    H.div ! A.class_ "doc" $ mapM_ (renderBlock idx) (deDoc de)
+    H.div ! A.class_ "doc" $ mapM_ (renderBlock idx Map.empty) (deDoc de)
 
 kindLabel :: DocKind -> Text
 kindLabel DKValue       = ""
@@ -113,20 +119,21 @@ kindLabel DKField       = "field"
 
 -- | Render a list of 'DocBlock's into HTML.
 -- Exported for use by 'RefManual' and other callers.
-renderDocBlocks :: SymbolIndex -> [DocBlock] -> Html
-renderDocBlocks idx = mapM_ (renderBlock idx)
+-- Pass 'Map.empty' for @lmap@ when rendering stdlib pages (no @\ref{}@ calls).
+renderDocBlocks :: SymbolIndex -> LabelMap -> [DocBlock] -> Html
+renderDocBlocks idx lmap = mapM_ (renderBlock idx lmap)
 
-renderBlock :: SymbolIndex -> DocBlock -> Html
-renderBlock idx = \case
-  Para inlines       -> H.p $ mapM_ (renderInline idx) inlines
-  Heading n inlines  -> heading n (mapM_ (renderInline idx) inlines)
+renderBlock :: SymbolIndex -> LabelMap -> DocBlock -> Html
+renderBlock idx lmap = \case
+  Para inlines       -> H.p $ mapM_ (renderInline idx lmap) inlines
+  Heading n inlines  -> heading n (mapM_ (renderInline idx lmap) inlines)
   CodeBlock _ src    -> H.pre $ H.code $ H.toHtml src
   VerbBlock src      -> H.pre $ H.code $ H.toHtml src
-  BulletList items   -> H.ul $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx) bs) items
-  OrderedList items  -> H.ol $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx) bs) items
+  BulletList items   -> H.ul $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items
+  OrderedList items  -> H.ol $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items
   Table hdr rows     -> H.table $ do
-    H.thead $ H.tr $ mapM_ (\cs -> H.th $ mapM_ (renderInline idx) cs) hdr
-    H.tbody $ mapM_ (\row -> H.tr $ mapM_ (\cs -> H.td $ mapM_ (renderInline idx) cs) row) rows
+    H.thead $ H.tr $ mapM_ (\cs -> H.th $ mapM_ (renderInline idx lmap) cs) hdr
+    H.tbody $ mapM_ (\row -> H.tr $ mapM_ (\cs -> H.td $ mapM_ (renderInline idx lmap) cs) row) rows
   HRule              -> H.hr
 
 heading :: Int -> Html -> Html
@@ -139,12 +146,12 @@ heading _ = H.h4
 -- Inline rendering
 -- ---------------------------------------------------------------------------
 
-renderInline :: SymbolIndex -> DocInline -> Html
-renderInline idx = \case
+renderInline :: SymbolIndex -> LabelMap -> DocInline -> Html
+renderInline idx lmap = \case
   Plain t    -> H.toHtml t
   Code  t    -> H.code $ H.toHtml t
-  Emph  is   -> H.em $ mapM_ (renderInline idx) is
-  Strong is  -> H.strong $ mapM_ (renderInline idx) is
+  Emph  is   -> H.em $ mapM_ (renderInline idx lmap) is
+  Strong is  -> H.strong $ mapM_ (renderInline idx lmap) is
   NonTerm t  -> H.em ! A.class_ "nt" $ H.toHtml t
   SymRef name ->
     case lookupSymbol name idx of
@@ -152,6 +159,10 @@ renderInline idx = \case
       Just ref ->
         let url = fromMaybe name (resolveUrl ref)
         in H.a ! A.href (H.toValue url) $ H.code $ H.toHtml name
+  SectionRef lbl ->
+    let slug = fromMaybe lbl (Map.lookup lbl lmap)
+        url  = slug <> ".html"
+    in H.a ! A.href (H.toValue url) $ H.toHtml ("\167" <> lbl :: Text)
 
 resolveUrl :: SymbolRef -> Maybe Text
 resolveUrl ref = Just $ srPackage ref <> ".html#" <> srAnchor ref

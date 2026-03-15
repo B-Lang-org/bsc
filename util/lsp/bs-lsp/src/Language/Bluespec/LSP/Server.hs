@@ -90,13 +90,18 @@ serverDefinition stateVar =
             hPutStrLn stderr "Bluespec LSP: Indexing standard library in background..."
             scanWorkspaceForModules stateVar libDir
             hPutStrLn stderr "Bluespec LSP: Standard library indexing complete"
+            runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
         -- Scan workspace for modules in background thread
         liftIO $ forM_ workspaceRoots $ \root -> do
-          void $ forkIO $ scanWorkspaceForModules stateVar root
+          void $ forkIO $ do
+            scanWorkspaceForModules stateVar root
+            runLspT env $ refreshDiagnosticsForOpenDocs stateVar
           -- Also scan bazel-bin for generated modules
           let bazelBinPath = root </> "bazel-bin"
-          void $ forkIO $ scanWorkspaceForModules stateVar bazelBinPath
+          void $ forkIO $ do
+            scanWorkspaceForModules stateVar bazelBinPath
+            runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
         pure $ Right env,
       staticHandlers = \_caps -> handlers stateVar,

@@ -40,8 +40,9 @@ data DocInline
   | Code     !Text                           -- ^ inline code (no highlighting)
   | Emph     ![DocInline]
   | Strong   ![DocInline]
-  | SymRef   !Text                           -- ^ cross-reference to a named symbol
-  | NonTerm  !Text                           -- ^ grammar non-terminal (\nterm)
+  | SymRef      !Text                        -- ^ cross-reference to a named symbol
+  | SectionRef  !Text                        -- ^ \ref{label} cross-reference to a manual section
+  | NonTerm     !Text                        -- ^ grammar non-terminal (\nterm)
   deriving stock (Show, Eq)
 
 -- ---------------------------------------------------------------------------

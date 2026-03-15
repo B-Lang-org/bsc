@@ -378,12 +378,13 @@ braceGroup = do
     [x] -> x
     xs  -> Plain (T.concat (map inlineToText xs))
   where
-    inlineToText (Plain t)    = t
-    inlineToText (Code t)     = t
-    inlineToText (SymRef t)   = t
-    inlineToText (NonTerm t)  = t
-    inlineToText (Emph is)    = T.concat (map inlineToText is)
-    inlineToText (Strong is)  = T.concat (map inlineToText is)
+    inlineToText (Plain t)       = t
+    inlineToText (Code t)        = t
+    inlineToText (SymRef t)      = t
+    inlineToText (SectionRef t)  = "\167" <> t
+    inlineToText (NonTerm t)     = t
+    inlineToText (Emph is)       = T.concat (map inlineToText is)
+    inlineToText (Strong is)     = T.concat (map inlineToText is)
 
 teCmd :: Parser DocInline
 teCmd = do
@@ -445,12 +446,12 @@ mboxCmd = do
     [x] -> x
     xs  -> Emph xs   -- wrap in emph as a neutral container
 
--- | \ref{label} → show as "(§label)"
+-- | \ref{label} → SectionRef node (rendered as a hyperlink by HTML backend)
 refCmd :: Parser DocInline
 refCmd = do
   _ <- string "\\ref{"
   lbl <- balancedArg
-  pure $ Plain ("\167" <> lbl)
+  pure $ SectionRef lbl
 
 -- | \gram{text} \grammore{text} \gramalt{text} → NonTerm (grammar notation)
 gramCmd :: Parser DocInline

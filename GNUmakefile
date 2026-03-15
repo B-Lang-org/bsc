@@ -15,7 +15,7 @@ help:
 	@echo
 	@echo '    make  release      Build a release dir with the tools and docs'
 	@echo
-	@echo '    make  install-src       Build and install the compiler + bs-lsp'
+	@echo '    make  install-src       Build and install the compiler + bs-lsp + bbt'
 	@echo '    make  install-lsp       Build and install bs-lsp only'
 	@echo '    make  install-vscode-ext  Install the VSCode extension (requires npm)'
 	@echo '    make  install-doc       Build and install just the documentation'
@@ -45,6 +45,7 @@ rem_build:
 install-src:
 	$(MAKE)  -C src        PREFIX=$(PREFIX)  install
 	$(MAKE)  -C util/lsp   PREFIX=$(PREFIX)  install
+	$(MAKE)  -C util/bbt   PREFIX=$(PREFIX)  install
 
 .PHONY: install-lsp
 install-lsp:
@@ -97,6 +98,7 @@ clean: rem_build
 	-$(MAKE)  -C doc      clean
 	-$(MAKE)  -C release  clean
 	-$(MAKE)  -C util/lsp clean
+	-$(MAKE)  -C util/bbt clean
 
 full_clean: rem_inst rem_build
 	-$(MAKE)  -C src      full_clean

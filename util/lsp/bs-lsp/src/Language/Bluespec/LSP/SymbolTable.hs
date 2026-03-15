@@ -53,8 +53,8 @@ import Language.Bluespec.Parser (parsePackage)
 import Language.Bluespec.Position
 import Language.Bluespec.Pretty (prettyType, renderPretty)
 import Language.Bluespec.Syntax
-import System.Directory (doesDirectoryExist, doesFileExist)
-import System.Environment (lookupEnv)
+import System.Directory (canonicalizePath, doesDirectoryExist, doesFileExist)
+import System.Environment (getExecutablePath, lookupEnv)
 import System.Exit (ExitCode (..))
 import System.FilePath (takeDirectory, (</>))
 import System.Process (readProcessWithExitCode)
@@ -288,11 +288,18 @@ discoverPreludeFilePath = do
     tryBazel = do
       mLibDir <- discoverFromBazel
       case mLibDir of
-        Nothing -> pure Nothing
+        Nothing     -> tryRelativeToExecutable
         Just libDir -> do
           let preludePath = libDir </> "Base1" </> "Prelude.bs"
           exists <- doesFileExist preludePath
-          pure $ if exists then Just preludePath else Nothing
+          if exists then pure (Just preludePath) else tryRelativeToExecutable
+
+    tryRelativeToExecutable = do
+      exePath <- getExecutablePath
+      exeDir  <- canonicalizePath (takeDirectory exePath)
+      let preludePath = exeDir </> ".." </> "lib-srcs" </> "Libraries" </> "Base1" </> "Prelude.bs"
+      exists <- doesFileExist preludePath
+      pure $ if exists then Just preludePath else Nothing
 
 -- | Load the prelude symbol table by parsing the actual Prelude.bs file.
 -- Returns Nothing if the file cannot be found or parsed.
@@ -358,15 +365,28 @@ discoverLibrariesDirWithDebug = do
       result <- discoverFromBazel
       case result of
         Just libDir -> pure (LibraryFound libDir)
-        Nothing ->
-          pure
-            ( LibraryNotFound
-                [ "BLUESPEC_LIB_DIR: (not set)",
-                  "BLUESPEC_SRC: (not set)",
-                  "BLUESPECDIR: (not set)",
-                  "Bazel query: failed or @bsc-source not available"
-                ]
-            )
+        Nothing     -> tryRelativeToExecutable
+
+    -- Last resort: look for Libraries/ relative to the bs-lsp executable.
+    -- When installed via 'make install-src', the layout is:
+    --   inst/bin/bs-lsp
+    --   inst/lib/Libraries/Base1/Prelude.bs  ...
+    tryRelativeToExecutable = do
+      exePath <- getExecutablePath
+      exeDir  <- canonicalizePath (takeDirectory exePath)
+      let candidate = exeDir </> ".." </> "lib-srcs" </> "Libraries"
+      exists <- doesDirectoryExist candidate
+      if exists
+        then pure (LibraryFound candidate)
+        else pure
+               ( LibraryNotFound
+                   [ "BLUESPEC_LIB_DIR: (not set)",
+                     "BLUESPEC_SRC: (not set)",
+                     "BLUESPECDIR: (not set)",
+                     "Bazel query: failed or @bsc-source not available",
+                     "Relative to executable (" <> exeDir <> "): ../lib-srcs/Libraries not found"
+                   ]
+               )
 
 -- | Try to discover the Bluespec source from Bazel.
 -- Queries Bazel for the @bsc-source external repository location.

@@ -39,7 +39,7 @@ import Data.Text (Text)
 import Language.Bluespec.LSP.SymbolTable (SymbolTable, emptySymbolTable)
 import Language.Bluespec.LSP.TypeEnv (TypeEnv, emptyTypeEnv)
 import Language.Bluespec.Syntax (Package)
-import Language.LSP.Protocol.Types (NormalizedUri)
+import Language.LSP.Protocol.Types (Diagnostic, NormalizedUri)
 
 -- | Per-document state.
 data DocumentState = DocumentState
@@ -52,7 +52,9 @@ data DocumentState = DocumentState
     -- | Type environment for this document (for hover inference)
     dsTypeEnv :: !TypeEnv,
     -- | Document version
-    dsVersion :: !Int
+    dsVersion :: !Int,
+    -- | Parse and type diagnostics (stable; does not include import diags)
+    dsNonImportDiags :: ![Diagnostic]
   }
   deriving stock (Show)
 
@@ -64,7 +66,8 @@ emptyDocumentState text version =
       dsParsed = Nothing,
       dsSymbols = emptySymbolTable,
       dsTypeEnv = emptyTypeEnv,
-      dsVersion = version
+      dsVersion = version,
+      dsNonImportDiags = []
     }
 
 -- | Information about a module in the workspace.

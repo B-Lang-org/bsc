@@ -31,7 +31,7 @@ import Language.Bluespec.DocGen.HTML
   (renderPackagePage, renderIndexPage, docFooter, mathJaxScripts, searchHeader)
 import Language.Bluespec.DocGen.RefManual
   (RefManualConfig (..), defaultRefManualConfig, convertRefManual)
-import Language.Bluespec.DocGen.SymbolIndex (buildIndex, renderIndexJson)
+import Language.Bluespec.DocGen.SymbolIndex (SymbolRef (..), buildIndex, renderIndexJson)
 
 -- | A reference manual to convert.
 data ManualSpec = ManualSpec
@@ -76,12 +76,18 @@ runDocGen cfg = do
   when (dgcVerbose cfg) $
     putStrLn $ "[docgen] Extracted " ++ show (length allEntries) ++ " doc entries"
 
-  -- 3. Build symbol index
-  let idx = buildIndex allEntries
+  -- 3. Build symbol index (symbols first, then add package names for searchability)
+  let symbolIdx = buildIndex allEntries
 
   -- 4. Group by package
   let pkgMap = foldr (\e m -> Map.insertWith (++) (dePackage e) [e] m)
                      Map.empty allEntries
+
+  -- Add package/module names to the index so the search bar can find them.
+  let pkgIdx = Map.fromList
+        [ (pkg, SymbolRef { srPackage = pkg, srSection = "stdlib", srAnchor = "top" })
+        | pkg <- Map.keys pkgMap ]
+      idx = symbolIdx <> pkgIdx
 
   -- 5. Create output directories
   let outDir    = dgcOutDir cfg
