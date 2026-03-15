@@ -71,55 +71,58 @@ serverDefinition stateVar =
       doInitialize = \env req -> do
         liftIO $ hPutStrLn stderr "Bluespec LSP: Initializing..."
 
-        -- Discover standard library location
-        (libDirs, mLibDir) <- liftIO $ do
-          libResult <- discoverLibrariesDirWithDebug
-          case libResult of
-            LibraryNotFound searched -> do
-              hPutStrLn stderr "Bluespec LSP: Standard library not found"
-              mapM_ (hPutStrLn stderr . ("  " ++)) searched
-              pure ([], Nothing)
-            LibraryFound libDir -> do
-              hPutStrLn stderr $ "Bluespec LSP: Found standard library at: " ++ libDir
-              dirs <- getLibrarySearchDirs libDir
-              pure (dirs, Just libDir)
-
-        -- Load prelude symbols in background so initialize response is not blocked.
-        -- Hover/goto-def will simply find no Prelude symbols until this finishes
-        -- (typically < 1 s), which is far better than blocking the whole handshake.
-        liftIO $ void $ forkIO $ do
-          mPrelude <- loadPreludeSymbolTable
-          case mPrelude of
-            Nothing -> hPutStrLn stderr "Bluespec LSP: Prelude.bs not found or failed to parse"
-            Just _ -> hPutStrLn stderr "Bluespec LSP: Loaded Prelude symbols"
-          atomically $ modifyTVar' stateVar (setPreludeSymbols mPrelude)
-
-        -- Extract workspace roots from initialization params
-        let initParams = req ^. Lens.params
-            workspaceRoots = getWorkspaceRoots initParams
+        -- Extract workspace roots immediately (no I/O needed).
+        let initParams      = req ^. Lens.params
+            workspaceRoots  = getWorkspaceRoots initParams
 
         liftIO $ atomically $ modifyTVar' stateVar $ \state ->
-          state {ssWorkspace = workspaceRoots, ssLibraryDirs = libDirs}
+          state {ssWorkspace = workspaceRoots}
 
         liftIO $ hPutStrLn stderr $ "Workspace roots: " ++ show workspaceRoots
 
-        -- Index standard library in background thread
-        liftIO $ case mLibDir of
-          Nothing -> pure ()
-          Just libDir -> void $ forkIO $ do
-            hPutStrLn stderr "Bluespec LSP: Indexing standard library in background..."
-            scanWorkspaceForModules stateVar libDir
-            hPutStrLn stderr "Bluespec LSP: Standard library indexing complete"
-            runLspT env $ refreshDiagnosticsForOpenDocs stateVar
+        -- All heavy work (library discovery, Prelude parsing, indexing) runs in
+        -- a single background thread so the initialize response is sent instantly.
+        -- The bottleneck was discoverLibrariesDirWithDebug running a Bazel query
+        -- (JVM startup: ~5-6 s) before any env-var path was found.
+        liftIO $ void $ forkIO $ do
+          -- 1. Discover standard library location (may run Bazel query).
+          (libDirs, mLibDir) <- do
+            libResult <- discoverLibrariesDirWithDebug
+            case libResult of
+              LibraryNotFound searched -> do
+                hPutStrLn stderr "Bluespec LSP: Standard library not found"
+                mapM_ (hPutStrLn stderr . ("  " ++)) searched
+                pure ([], Nothing)
+              LibraryFound libDir -> do
+                hPutStrLn stderr $ "Bluespec LSP: Found standard library at: " ++ libDir
+                dirs <- getLibrarySearchDirs libDir
+                pure (dirs, Just libDir)
 
-        -- Scan workspace for modules in background thread
-        liftIO $ forM_ workspaceRoots $ \root -> do
-          void $ forkIO $ do
+          atomically $ modifyTVar' stateVar $ \state ->
+            state {ssLibraryDirs = libDirs}
+
+          -- 2. Load Prelude symbols.
+          mPrelude <- loadPreludeSymbolTable
+          case mPrelude of
+            Nothing -> hPutStrLn stderr "Bluespec LSP: Prelude.bs not found or failed to parse"
+            Just _  -> hPutStrLn stderr "Bluespec LSP: Loaded Prelude symbols"
+          atomically $ modifyTVar' stateVar (setPreludeSymbols mPrelude)
+
+          -- 3. Index standard library.
+          case mLibDir of
+            Nothing    -> pure ()
+            Just libDir -> do
+              hPutStrLn stderr "Bluespec LSP: Indexing standard library in background..."
+              scanWorkspaceForModules stateVar libDir
+              hPutStrLn stderr "Bluespec LSP: Standard library indexing complete"
+              runLspT env $ refreshDiagnosticsForOpenDocs stateVar
+
+          -- 4. Scan workspace roots for modules.
+          forM_ workspaceRoots $ \root -> do
             scanWorkspaceForModules stateVar root
             runLspT env $ refreshDiagnosticsForOpenDocs stateVar
-          -- Also scan bazel-bin for generated modules
-          let bazelBinPath = root </> "bazel-bin"
-          void $ forkIO $ do
+            -- Also scan bazel-bin for generated modules.
+            let bazelBinPath = root </> "bazel-bin"
             scanWorkspaceForModules stateVar bazelBinPath
             runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
