@@ -227,6 +227,19 @@ infixOp = MP.token test expected
 varIdOrOp :: Parser (Located Ident)
 varIdOrOp = varId <|> parenOpAsId
 
+-- | Match a qualified variable identifier (e.g. @Prelude.foo@) and return
+-- only the simple (unqualified) name part as a @Located Ident@.
+-- Used so that top-level qualified definitions like @Prelude.foo :: T@ parse
+-- correctly; the qualifier is discarded since the parser's symbol model
+-- does not need it for local definitions.
+qualVarIdAsSimple :: Parser (Located Ident)
+qualVarIdAsSimple = MP.token test expected
+  where
+    test t = case Lex.tokKind t of
+      Lex.TokQVarId _m name -> Just $ Located (Lex.tokSpan t) (VarId name)
+      _ -> Nothing
+    expected = Set.singleton $ Label $ NE.fromList "qualified variable"
+
 -- | Match an integer literal.
 intLit :: Parser (Located Literal)
 intLit = MP.token test expected
@@ -1038,7 +1051,7 @@ pValueDef = try pInfixValueDef <|> pPrefixValueDef
 -- | Parse a standard (prefix-style) value definition.
 pPrefixValueDef :: Parser Definition
 pPrefixValueDef = do
-  name <- varIdOrOp
+  name <- varIdOrOp <|> qualVarIdAsSimple
   -- Check for type signature
   mTy <- optional $ try $ do
     void $ punct Lex.PunctDColon

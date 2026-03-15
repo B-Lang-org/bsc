@@ -4,6 +4,7 @@ module Language.Bluespec.BBT.Sim
   , runSim
   ) where
 
+import Control.Exception (IOException, try)
 import Data.List (intercalate)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe)
@@ -72,12 +73,14 @@ doSim root tcfg modName topAbs srcs opts = do
         ]
 
   putStrLn $ "[bbt] Compiling for Bluesim..."
-  (ec, _out, err) <- readProcessWithExitCode "bsc" flags ""
-  case ec of
-    ExitFailure n -> do
+  r <- try (readProcessWithExitCode "bsc" flags "") :: IO (Either IOException (ExitCode, String, String))
+  case r of
+    Left ioErr -> die $ "bsc not found in PATH: " ++ show ioErr
+                        ++ "\nInstall bsc and ensure it is on your PATH."
+    Right (ExitFailure n, _out, err) -> do
       hPutStrLn stderr err
       die $ "bsc compilation failed (exit " ++ show n ++ ")"
-    ExitSuccess -> do
+    Right (ExitSuccess, _out, _err) -> do
       -- The sim binary bsc produces has the module name as the filename
       let simBin = absSimd </> T.unpack modName
       binExists <- doesFileExist simBin

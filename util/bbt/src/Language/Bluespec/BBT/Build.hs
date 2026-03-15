@@ -6,6 +6,7 @@ module Language.Bluespec.BBT.Build
   , dryRunFlags
   ) where
 
+import Control.Exception (IOException, try)
 import Data.List (intercalate)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe)
@@ -74,10 +75,15 @@ buildTarget cfg mTarget mProfile = do
                   let allFlags = flags ++ ["-elab", topAbs]
                   putStrLn $ "[bbt] Building target '" ++ T.unpack tname ++ "'"
                   putStrLn $ "[bbt] bsc " ++ unwords allFlags
-                  (ec, _out, err) <- readProcessWithExitCode "bsc" allFlags ""
-                  case ec of
-                    ExitSuccess  -> pure (Right BuildOk)
-                    ExitFailure n -> pure (Right (BuildFailed n err))
+                  r <- try (readProcessWithExitCode "bsc" allFlags "") :: IO (Either IOException (ExitCode, String, String))
+                  case r of
+                    Left ioErr -> pure (Right (BuildFailed 127
+                        ("bsc not found in PATH: " ++ show ioErr
+                         ++ "\nInstall bsc and ensure it is on your PATH.")))
+                    Right (ec, _out, err) ->
+                      case ec of
+                        ExitSuccess   -> pure (Right BuildOk)
+                        ExitFailure n -> pure (Right (BuildFailed n err))
 
 -- | Return the bsc flags that would be passed, without running anything.
 dryRunFlags :: Config -> Maybe Text -> Maybe Text -> IO (Either BuildError [String])
