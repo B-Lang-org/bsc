@@ -71,12 +71,22 @@ main = do
   bsFiles19 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.verilog"
   bsFiles20 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.bluetcl"
   bsFiles21 <- findFiles ".bs"  "/work/bsc/testsuite/bsc.synthesize"
+  -- External real-world projects
+  extBsvFlute   <- findFiles ".bsv" "/work/Flute"
+  extBsvToooba  <- findFiles ".bsv" "/work/Toooba"
+  extBsvPiccolo <- findFiles ".bsv" "/work/Piccolo"
+  extBsvSOC     <- findFiles ".bsv" "/work/SOC"
+  extBsFlute    <- findFiles ".bs"  "/work/Flute"
+  extBsToooba   <- findFiles ".bs"  "/work/Toooba"
+  extBsPiccolo  <- findFiles ".bs"  "/work/Piccolo"
+  extBsSOC      <- findFiles ".bs"  "/work/SOC"
   let allBsFiles = bsFiles ++ bsFiles2 ++ bsFiles3 ++ bsFiles4
                 ++ bsFiles5 ++ bsFiles6 ++ bsFiles7 ++ bsFiles8
                 ++ bsFiles9 ++ bsFiles10 ++ bsFiles11 ++ bsFiles12
                 ++ bsFiles13 ++ bsFiles14 ++ bsFiles15 ++ bsFiles16
                 ++ bsFiles17 ++ bsFiles18 ++ bsFiles19 ++ bsFiles20
                 ++ bsFiles21
+                ++ extBsFlute ++ extBsToooba ++ extBsPiccolo ++ extBsSOC
   let allBsvFiles = bsvFiles ++ bsvFiles2 ++ bsvFiles3 ++ bsvFiles4
                  ++ bsvFiles5 ++ bsvFiles6 ++ bsvFiles7 ++ bsvFiles8 ++ bsvFiles9
                  ++ bsvFiles10 ++ bsvFiles11 ++ bsvFiles12
@@ -84,6 +94,7 @@ main = do
                  ++ bsvFiles17 ++ bsvFiles18 ++ bsvFiles19 ++ bsvFiles20
                  ++ bsvFiles21 ++ bsvFiles22 ++ bsvFiles23 ++ bsvFiles24
                  ++ bsvFiles25 ++ bsvFiles26 ++ bsvFiles27
+                 ++ extBsvFlute ++ extBsvToooba ++ extBsvPiccolo ++ extBsvSOC
   hspec $ do
     describe "Lexer" $ do
       it "lexes identifiers" $ do
