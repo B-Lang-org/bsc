@@ -315,7 +315,7 @@ gramProductionBlock = do
   _ <- skipMany (satisfy (\c -> c == ' ' || c == '\n' || c == '\r' || c == '\t'))
   _ <- char '{'
   rawBody <- balancedArg
-  let bodyBlocks  = parseTexDoc rawBody
+  let bodyBlocks  = parseTexDoc (stripGramMathDollars rawBody)
       bodyInlines = concatMap paraInlines bodyBlocks
   pure $ Para (NonTerm name : Plain " ::= " : bodyInlines)
   where
@@ -348,8 +348,8 @@ balancedArg = T.pack <$> go (0 :: Int)
         '\\'             -> do
           c2 <- anySingle
           case c2 of
-            '{' -> ('{' :) <$> go depth   -- \{ → literal {, don't count depth
-            '}' -> ('}' :) <$> go depth   -- \} → literal }, don't count depth
+            '{' -> ('\\' :) . ('{' :) <$> go depth   -- \{ → keep escaped, don't count depth
+            '}' -> ('\\' :) . ('}' :) <$> go depth   -- \} → keep escaped, don't count depth
             '#' -> ('#' :) <$> go depth   -- \# → literal #
             '$' -> ('$' :) <$> go depth   -- \$ → literal $
             '%' -> ('%' :) <$> go depth   -- \% → literal %
@@ -538,6 +538,35 @@ refCmd = do
   lbl <- balancedArg
   pure $ SectionRef lbl
 
+-- | Strip @$\term{...}$@ and @$\nterm{...}$@ dollar wrappers from grammar
+-- production body text.  In BH_lang.tex these dollar signs are a LaTeX font
+-- hack (switching to CM typewriter for certain Latin-1 operator characters)
+-- rather than genuine math mode.  Leaving them in place would send
+-- @\term{X}@ to MathJax, which doesn't know @\term@ and renders it in red.
+stripGramMathDollars :: Text -> Text
+stripGramMathDollars src
+  | not ("$\\" `T.isInfixOf` src) = src   -- fast path: nothing to do
+  | otherwise = go src
+  where
+    gramPrefixes = ["term{", "nterm{"]
+
+    go t = case T.breakOn "$\\" t of
+      (before, rest)
+        | T.null rest -> before
+        | otherwise   ->
+            let afterDollarSlash = T.drop 2 rest  -- skip "$\"
+            in if any (`T.isPrefixOf` afterDollarSlash) gramPrefixes
+               then
+                 -- Unwrap: keep the \cmd{...} but drop the surrounding $...$
+                 let withSlash            = T.drop 1 rest    -- "\term{...}$..."
+                     (inner, closing)     = T.break (== '$') withSlash
+                 in case T.uncons closing of
+                      Just ('$', after) -> before <> inner <> go after
+                      _                 -> before <> "$\\" <> go afterDollarSlash
+               else
+                 -- Not a grammar terminal — leave unchanged, continue scanning
+                 before <> "$\\" <> go afterDollarSlash
+
 -- | \gram{text} \grammore{text} \gramalt{text} → NonTerm (grammar notation)
 -- Note: \gram{name}{body} is handled by 'gramProductionBlock' (block-level).
 -- This inline parser handles only the one-arg variants.
@@ -548,8 +577,13 @@ gramCmd = do
     , string "\\gramalt{"
     , string "\\litem{"
     ]
-  content <- manyTill inline (char '}')
-  pure $ NonTerm (T.concat (map inlineToText content))
+  rawContent <- balancedArg
+  let stripped = stripGramMathDollars rawContent
+      inlines  = concatMap paraInlines (parseTexDoc stripped)
+  pure $ NonTerm (T.concat (map inlineToText inlines))
+  where
+    paraInlines (Para is) = is
+    paraInlines _         = []
 
 -- | \many{x} → NonTerm "{x}*"  \opt{x} → NonTerm "[x]"
 manyOptCmd :: Parser DocInline
