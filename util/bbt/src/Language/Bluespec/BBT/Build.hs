@@ -72,7 +72,19 @@ buildTarget cfg mTarget mProfile = do
                       let absVdir = absPath (cfgRoot cfg) vdir
                       createDirectoryIfMissing True absVdir
                     Nothing -> pure ()
-                  let allFlags = flags ++ ["-elab", topAbs]
+                  -- When the target has a verilog_dir, generate Verilog:
+                  --   bsc -verilog -g <module> ... <topfile>
+                  -- Otherwise just type-check/elaborate:
+                  --   bsc -elab ... <topfile>
+                  -- The per-target top_module override is respected (e.g. the
+                  -- verilog target might synthesise mkTop while the build target
+                  -- type-checks mkSim).
+                  let buildMod = buildTopModule (cfgBuild cfg)
+                      modName  = maybe buildMod Just (targetTopModule tcfg)
+                      genFlags = case (targetVerilogDir tcfg, modName) of
+                        (Just _, Just m) -> ["-verilog", "-g", T.unpack m]
+                        _                -> ["-elab"]
+                      allFlags = flags ++ genFlags ++ [topAbs]
                   putStrLn $ "[bbt] Building target '" ++ T.unpack tname ++ "'"
                   putStrLn $ "[bbt] bsc " ++ unwords allFlags
                   r <- try (readProcessWithExitCode "bsc" allFlags "") :: IO (Either IOException (ExitCode, String, String))
@@ -94,7 +106,14 @@ dryRunFlags cfg mTarget mProfile = do
       srcResult <- discoverSources cfg mProfile
       case srcResult of
         Left cs   -> pure (Left (ConflictsRemain cs))
-        Right srcs -> pure (Right (assembleBscFlags cfg tcfg mProfile srcs))
+        Right srcs ->
+          let base     = assembleBscFlags cfg tcfg mProfile srcs
+              buildMod = buildTopModule (cfgBuild cfg)
+              modName  = maybe buildMod Just (targetTopModule tcfg)
+              genFlags = case (targetVerilogDir tcfg, modName) of
+                (Just _, Just m) -> ["-verilog", "-g", T.unpack m]
+                _                -> ["-elab"]
+          in  pure (Right (base ++ genFlags))
 
 -- ---------------------------------------------------------------------------
 -- Internal helpers
