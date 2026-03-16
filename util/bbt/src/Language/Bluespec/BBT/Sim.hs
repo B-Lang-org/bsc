@@ -61,13 +61,21 @@ doSim root tcfg modName topAbs srcs opts = do
   createDirectoryIfMissing True absBdir
   createDirectoryIfMissing True absSimd
 
-  let pFlag = intercalate ":" (searchPath srcs ++ ["+"])
+  let pFlag    = intercalate ":" (searchPath srcs ++ ["+"])
+      modStr   = T.unpack modName
+      absCsrcs = map (mkAbs root) (targetCSources tcfg)
 
-  -- Step 1: compile the source file
+  -- Step 1: compile + elaborate the source file.
+  -- -g <module> forces BSC to elaborate (and write a .ba file for) the named
+  -- top-level module even when it has no synthesis pragma.  Without this, BSC
+  -- only writes .bo files and the link step (which needs a pre-built .ba) fails
+  -- with S0040 "No elaboration file (.ba) was found".
   let compileFlags =
         [ "-sim", "-u"
+        , "-g",        modStr
         , "-p",        pFlag
         , "-bdir",     absBdir
+        , "-simdir",   absSimd
         , "-info-dir", absBdir
         , topAbs
         ]
@@ -82,16 +90,18 @@ doSim root tcfg modName topAbs srcs opts = do
       die $ "bsc compilation failed (exit " ++ show n ++ ")"
     Right (ExitSuccess, _out, _err) -> do
 
-      -- Step 2: link/elaborate into a Bluesim binary
-      let simBin = absSimd </> T.unpack modName
+      -- Step 2: link the Bluesim binary.
+      -- C sources (BDPI) must be listed here so BSC can compile and link them.
+      let simBin = absSimd </> modStr
           linkFlags =
             [ "-sim"
             , "-p",      pFlag
             , "-bdir",   absBdir
             , "-simdir", absSimd
-            , "-e",      T.unpack modName
+            , "-e",      modStr
             , "-o",      simBin
             ]
+            ++ absCsrcs
 
       putStrLn $ "[bbt] Linking Bluesim binary..."
       r2 <- try (readProcessWithExitCode "bsc" linkFlags "") :: IO (Either IOException (ExitCode, String, String))
