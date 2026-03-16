@@ -70,7 +70,7 @@ toml name lang = T.unlines
   , "top_module = \"mkTop\""
   , "src        = \"src\""
   , ""
-  , "[[target.default]]"
+  , "[target.default]"
   , "build_dir   = \"build/bdir\""
   , "sim_dir     = \"build/sim\""
   , "verilog_dir = \"build/verilog\""
