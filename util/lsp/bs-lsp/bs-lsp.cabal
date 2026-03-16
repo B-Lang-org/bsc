@@ -49,6 +49,7 @@ library
       , unordered-containers >= 0.2
       , hashable >= 1.4
       , process >= 1.6
+      , bytestring >= 0.11
     hs-source-dirs:   src
     default-language: GHC2021
     default-extensions:

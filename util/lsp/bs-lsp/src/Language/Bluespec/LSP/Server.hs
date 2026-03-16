@@ -14,6 +14,9 @@ import Control.Exception (SomeException, try)
 import Control.Lens ((^.))
 import Control.Monad (forM_, void)
 import Control.Monad.IO.Class (liftIO)
+import Data.Aeson qualified as Aeson
+import Data.Aeson.Types (parseMaybe, (.:))
+import Data.ByteString.Char8 qualified as BS8
 import Data.Maybe (mapMaybe)
 import Data.Text qualified as T
 import Language.Bluespec.LSP.Handlers
@@ -22,11 +25,11 @@ import Language.Bluespec.LSP.SymbolTable (LibrarySearchResult (..), discoverLibr
 import Language.LSP.Protocol.Lens as Lens
 import Language.LSP.Protocol.Types
 import Language.LSP.Server hiding (runServer)
-import System.Directory (doesDirectoryExist, listDirectory)
+import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
 import System.Exit (ExitCode (..), exitSuccess)
-import System.FilePath ((</>))
+import System.FilePath (takeDirectory, (</>))
 import System.IO (hPutStrLn, stderr, stdin, stdout)
-import System.Process (readProcessWithExitCode)
+import System.Process (CreateProcess (..), proc, readCreateProcessWithExitCode, readProcessWithExitCode)
 
 -- | Run the LSP server on stdin/stdout.
 runServer :: IO Int
@@ -106,8 +109,25 @@ serverDefinition stateVar =
               runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
           -- 4. Scan workspace roots for modules.
+          -- If a bsc.toml is found (searching upward from the root), use
+          -- `bbt lsp-info` to get the exact source directories; otherwise
+          -- fall back to scanning the full workspace root.
           forM_ workspaceRoots $ \root -> do
-            scanWorkspaceForModules stateVar root
+            mToml <- findBscTomlFrom root
+            scanDirs <- case mToml of
+              Nothing -> pure [root]
+              Just tomlPath -> do
+                let projectDir = takeDirectory tomlPath
+                mDirs <- queryBbtSourceDirs projectDir
+                case mDirs of
+                  Nothing -> do
+                    hPutStrLn stderr "bs-lsp: bbt lsp-info unavailable, scanning full workspace"
+                    pure [root]
+                  Just dirs -> do
+                    hPutStrLn stderr $ "bs-lsp: bsc.toml found, scanning bbt source dirs: " ++ show dirs
+                    pure dirs
+            forM_ scanDirs $ \dir ->
+              scanWorkspaceForModules stateVar dir
             runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
         pure $ Right env,
@@ -143,6 +163,37 @@ getWorkspaceRoots initParams =
   where
     getFolderPath folder = Just $ uriToPath (folder ^. Lens.uri)
     uriToPath (Uri u) = T.unpack $ maybe u Prelude.id $ T.stripPrefix "file://" u
+
+-- | Search upward from @dir@ for a @bsc.toml@ manifest file.
+findBscTomlFrom :: FilePath -> IO (Maybe FilePath)
+findBscTomlFrom dir = do
+  let candidate = dir </> "bsc.toml"
+  exists <- doesFileExist candidate
+  if exists
+    then pure (Just candidate)
+    else do
+      let parent = takeDirectory dir
+      if parent == dir   -- reached filesystem root
+        then pure Nothing
+        else findBscTomlFrom parent
+
+-- | Run @bbt lsp-info@ in @projectDir@ and return its @source_dirs@.
+-- Returns 'Nothing' if @bbt@ is not on PATH, exits non-zero, or the output
+-- cannot be parsed.
+queryBbtSourceDirs :: FilePath -> IO (Maybe [FilePath])
+queryBbtSourceDirs projectDir = do
+  result <- try run :: IO (Either SomeException (ExitCode, String, String))
+  pure $ case result of
+    Left _                      -> Nothing
+    Right (ExitFailure _, _, _) -> Nothing
+    Right (ExitSuccess, out, _) ->
+      case Aeson.decodeStrict (BS8.pack out) of
+        Nothing  -> Nothing
+        Just obj -> parseMaybe (.: "source_dirs") obj
+  where
+    run = readCreateProcessWithExitCode
+            (proc "bbt" ["lsp-info"]) { cwd = Just projectDir }
+            ""
 
 -- | Poll every 5 s and exit if the client process (VS Code) is gone.
 -- This prevents orphaned bs-lsp processes when VS Code is killed without
