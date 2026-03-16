@@ -121,7 +121,7 @@ bsSource = T.unlines
   , "      do"
   , "        $display (\"Hello, World! cycle = %0d\" counter)"
   , "        counter := counter + 1"
-  , "        when (counter == 4) ($finish 0)"
+  , "        if counter == 4 then $finish 0 else action {}"
   ]
 
 gitignore :: Text

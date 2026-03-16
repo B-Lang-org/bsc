@@ -62,39 +62,58 @@ doSim root tcfg modName topAbs srcs opts = do
   createDirectoryIfMissing True absSimd
 
   let pFlag = intercalate ":" (searchPath srcs ++ ["+"])
-      flags  =
+
+  -- Step 1: compile the source file
+  let compileFlags =
         [ "-sim", "-u"
-        , "-p",       pFlag
-        , "-bdir",    absBdir
-        , "-simdir",  absSimd
+        , "-p",        pFlag
+        , "-bdir",     absBdir
         , "-info-dir", absBdir
-        , "-e", T.unpack modName
         , topAbs
         ]
 
   putStrLn $ "[bbt] Compiling for Bluesim..."
-  r <- try (readProcessWithExitCode "bsc" flags "") :: IO (Either IOException (ExitCode, String, String))
-  case r of
+  r1 <- try (readProcessWithExitCode "bsc" compileFlags "") :: IO (Either IOException (ExitCode, String, String))
+  case r1 of
     Left ioErr -> die $ "bsc not found in PATH: " ++ show ioErr
                         ++ "\nInstall bsc and ensure it is on your PATH."
     Right (ExitFailure n, _out, err) -> do
       hPutStrLn stderr err
       die $ "bsc compilation failed (exit " ++ show n ++ ")"
     Right (ExitSuccess, _out, _err) -> do
-      -- The sim binary bsc produces has the module name as the filename
+
+      -- Step 2: link/elaborate into a Bluesim binary
       let simBin = absSimd </> T.unpack modName
-      binExists <- doesFileExist simBin
-      if not binExists
-        then die $ "Simulation binary not found: " ++ simBin
-               ++ "\n  (Check that 'top_module' in bsc.toml matches the module name)"
-        else do
-          putStrLn $ "[bbt] Running: " ++ simBin
-          (ec2, out2, err2) <- readProcessWithExitCode simBin (simArgs opts) ""
-          putStr out2
-          putStr err2
-          case ec2 of
-            ExitSuccess   -> putStrLn "[bbt] Simulation finished."
-            ExitFailure n -> putStrLn $ "[bbt] Simulation exited with code " ++ show n
+          linkFlags =
+            [ "-sim"
+            , "-p",      pFlag
+            , "-bdir",   absBdir
+            , "-simdir", absSimd
+            , "-e",      T.unpack modName
+            , "-o",      simBin
+            ]
+
+      putStrLn $ "[bbt] Linking Bluesim binary..."
+      r2 <- try (readProcessWithExitCode "bsc" linkFlags "") :: IO (Either IOException (ExitCode, String, String))
+      case r2 of
+        Left ioErr -> die $ "bsc not found in PATH: " ++ show ioErr
+                            ++ "\nInstall bsc and ensure it is on your PATH."
+        Right (ExitFailure n, _out, err) -> do
+          hPutStrLn stderr err
+          die $ "bsc link failed (exit " ++ show n ++ ")"
+        Right (ExitSuccess, _out, _err) -> do
+          binExists <- doesFileExist simBin
+          if not binExists
+            then die $ "Simulation binary not found: " ++ simBin
+                   ++ "\n  (Check that 'top_module' in bsc.toml matches the module name)"
+            else do
+              putStrLn $ "[bbt] Running: " ++ simBin
+              (ec3, out3, err3) <- readProcessWithExitCode simBin (simArgs opts) ""
+              putStr out3
+              putStr err3
+              case ec3 of
+                ExitSuccess   -> putStrLn "[bbt] Simulation finished."
+                ExitFailure n -> putStrLn $ "[bbt] Simulation exited with code " ++ show n
 
 -- ---------------------------------------------------------------------------
 -- Helpers
