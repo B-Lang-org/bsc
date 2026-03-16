@@ -43,25 +43,29 @@ data ManualSpec = ManualSpec
 
 -- | Configuration for a documentation generation run.
 data DocGenConfig = DocGenConfig
-  { dgcLibDirs   :: ![FilePath]       -- ^ source directories to scan
-  , dgcOutDir    :: !FilePath         -- ^ output directory
-  , dgcRefManual :: !(Maybe FilePath) -- ^ path to BH_lang.tex (optional)
-  , dgcBscDocDir :: !(Maybe FilePath) -- ^ path to BSC doc/ directory for auto-discovering all manuals
-  , dgcStdlibUrl :: !(Maybe String)   -- ^ external stdlib URL for cross-linking
-  , dgcVerbose   :: !Bool
-  , dgcBscSha    :: !(Maybe Text)     -- ^ BSC git commit SHA for footer (auto-detected if Nothing)
+  { dgcLibDirs      :: ![FilePath]       -- ^ source directories to scan
+  , dgcOutDir       :: !FilePath         -- ^ output directory
+  , dgcRefManual    :: !(Maybe FilePath) -- ^ path to BH_lang.tex (optional)
+  , dgcBscDocDir    :: !(Maybe FilePath) -- ^ path to BSC doc/ directory for auto-discovering all manuals
+  , dgcStdlibUrl    :: !(Maybe String)   -- ^ external stdlib URL for cross-linking
+  , dgcVerbose      :: !Bool
+  , dgcBscSha       :: !(Maybe Text)     -- ^ BSC git commit SHA for footer (auto-detected if Nothing)
+  , dgcProjectName  :: !(Maybe Text)     -- ^ project name (e.g. from bsc.toml [package].name)
+  , dgcProjectDesc  :: !(Maybe Text)     -- ^ project description (e.g. from bsc.toml [package].description)
   } deriving stock (Show)
 
 -- | Sensible defaults: scan nothing, output to @docs/@.
 defaultDocGenConfig :: DocGenConfig
 defaultDocGenConfig = DocGenConfig
-  { dgcLibDirs   = []
-  , dgcOutDir    = "docs"
-  , dgcRefManual = Nothing
-  , dgcBscDocDir = Nothing
-  , dgcStdlibUrl = Nothing
-  , dgcVerbose   = False
-  , dgcBscSha    = Nothing
+  { dgcLibDirs      = []
+  , dgcOutDir       = "docs"
+  , dgcRefManual    = Nothing
+  , dgcBscDocDir    = Nothing
+  , dgcStdlibUrl    = Nothing
+  , dgcVerbose      = False
+  , dgcBscSha       = Nothing
+  , dgcProjectName  = Nothing
+  , dgcProjectDesc  = Nothing
   }
 
 -- | Run the documentation generator.
@@ -135,7 +139,8 @@ runDocGen cfg = do
 
   -- 10. Write site root
   TLIO.writeFile (outDir </> "index.html") $
-    renderHtml (siteRootPage manuals (dgcStdlibUrl cfg) bscSha)
+    renderHtml (siteRootPage manuals (dgcStdlibUrl cfg) bscSha
+                             (dgcProjectName cfg) (dgcProjectDesc cfg))
 
   -- 11. Write stylesheet
   TIO.writeFile (outDir </> "docgen.css") stylesheet
@@ -162,29 +167,50 @@ runDocGen cfg = do
 
 -- | Render the top-level index.html linking to stdlib and (optionally) the
 -- reference manuals.
-siteRootPage :: [ManualSpec] -> Maybe String -> Maybe Text -> Html
-siteRootPage manuals mStdlibUrl mSha =
-  H.docTypeHtml $ do
+siteRootPage :: [ManualSpec] -> Maybe String -> Maybe Text
+             -> Maybe Text -> Maybe Text -> Html
+siteRootPage manuals mStdlibUrl mSha mProjName mProjDesc =
+  let -- Derive a page title from the project name, falling back to the
+      -- generic "Bluespec Documentation" for BSC's own documentation site.
+      pageTitle :: Text
+      pageTitle = case mProjName of
+        Just n  -> n <> " — Bluespec Documentation"
+        Nothing -> "Bluespec Documentation"
+
+      -- Section heading for the auto-extracted package docs.
+      -- For user projects use the project name; for BSC itself use "Standard Library".
+      pkgSectionTitle :: Text
+      pkgSectionTitle = case mProjName of
+        Just n  -> n <> " Packages"
+        Nothing -> "Standard Library"
+
+      -- Sub-heading description.
+      pkgSectionDesc :: Text
+      pkgSectionDesc = case mProjDesc of
+        Just d  -> d
+        Nothing -> "Auto-extracted API docs from source files. "
+                <> "Covers the Prelude, Vector, FIFOF, and other library packages."
+
+  in H.docTypeHtml $ do
     H.head $ do
       H.meta ! A.charset "utf-8"
-      H.title "Bluespec Documentation"
+      H.title $ H.toHtml pageTitle
       H.link ! A.rel "stylesheet" ! A.href "docgen.css"
       mathJaxScripts "mathjax.js"
     H.body $ do
       searchHeader ""
       H.main $ do
-        H.h1 "Bluespec Documentation"
+        H.h1 $ H.toHtml pageTitle
         mapM_ manualSection manuals
         H.section $ do
           H.h2 $ do
             case mStdlibUrl of
-              Just url -> H.a ! A.href (H.toValue url) $ "Standard Library"
-              Nothing  -> H.a ! A.href "stdlib/index.html" $ "Standard Library"
+              Just url -> H.a ! A.href (H.toValue url) $ H.toHtml pkgSectionTitle
+              Nothing  -> H.a ! A.href "stdlib/index.html" $ H.toHtml pkgSectionTitle
           H.p $ do
-            "Auto-extracted API docs from source files. "
-            "Covers the Prelude, Vector, FIFOF, and other library packages. "
+            H.toHtml pkgSectionDesc
             when (isJust mStdlibUrl) $
-              H.em "(linking to external hosted docs)"
+              H.em " (linking to external hosted docs)"
         when (not (null manuals)) $
           H.section $ do
             H.h2 "Term Indices"
