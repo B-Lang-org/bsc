@@ -77,16 +77,6 @@
           ],
           "default": "off",
           "description": "Trace LSP communication between VS Code and bs-lsp."
-        },
-        "bluespec.debugMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable bs-lsp debug logging. All JSON-RPC traffic (requests, responses, notifications) will be written to bs-lsp-debug.log next to your bsc.toml (or the workspace root if none is found). The server restarts automatically when this setting changes."
-        },
-        "bluespec.debugLogPath": {
-          "type": "string",
-          "default": "",
-          "description": "Override path for the bs-lsp debug log (used when bluespec.debugMode is true). Leave empty to auto-detect: the log is written as bs-lsp-debug.log next to the bsc.toml in your workspace, or in the workspace root if no bsc.toml is found."
         }
       }
     }

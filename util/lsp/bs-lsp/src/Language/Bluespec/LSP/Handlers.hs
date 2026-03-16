@@ -153,7 +153,12 @@ parseAndUpdateDocument stateVar docUri docText docVersion = do
         , dsVersion          = docVersion
         , dsNonImportDiags   = parseDiags ++ typeDiags
         }
-  liftIO $ atomically $ modifyTVar' stateVar $ updateDocument nuri docState
+  -- Only update if the document is still open (guard against stale-close race:
+  -- VS Code may close a file while parsing is in flight).
+  liftIO $ atomically $ modifyTVar' stateVar $ \state ->
+    case getDocument nuri state of
+      Nothing -> state  -- doc was closed while we were parsing; discard
+      Just _  -> updateDocument nuri docState state
   liftIO $ updateModuleIndexFromDoc stateVar filename (Just pkg) symbols typeEnv
   state' <- liftIO $ readTVarIO stateVar
   let importDiags = makeImportDiagnostics (ssModuleIndex state') symbols
@@ -178,20 +183,18 @@ handleHover stateVar docUri pos = do
       case getHoverInfoCrossFile state (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
         Just hoverInfo -> pure $ InL hoverInfo
         Nothing -> do
-          -- Ensure imports are indexed (fast if already done; slow first time only)
+          -- Kick off import indexing in the background and return null immediately.
+          -- The client will retry once indexing is done.
           let docPath = T.unpack (uriToFilename docUri)
               imports = stImports (dsSymbols doc)
-          liftIO $
+          void $ liftIO $ forkIO $
             ensureImportsIndexed
               stateVar
               (ssWorkspace state)
               (ssLibraryDirs state)
               docPath
               imports
-          state' <- liftIO $ readTVarIO stateVar
-          case getHoverInfoCrossFile state' (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
-            Nothing    -> pure $ InR Null
-            Just hoverInfo -> pure $ InL hoverInfo
+          pure $ InR Null
 
 -- | Handle go-to-definition request.
 handleDefinition :: TVar ServerState -> Uri -> Position -> LspM () (Definition |? ([DefinitionLink] |? Null))
@@ -205,23 +208,16 @@ handleDefinition stateVar docUri pos = do
       Nothing -> do
         let docPath = T.unpack (uriToFilename docUri)
             imports = stImports (dsSymbols doc)
-        case dsParsed doc of
-          Nothing ->
-            if null imports
-              then liftIO $ hPutStrLn stderr $ "Bluespec LSP: Document parse failed; imports unavailable for " ++ docPath
-              else pure ()
-          Just _ -> pure ()
-        liftIO $
+        -- Kick off import indexing in the background and return null immediately.
+        -- The client will retry once indexing is done.
+        void $ liftIO $ forkIO $
           ensureImportsIndexed
             stateVar
             (ssWorkspace state)
             (ssLibraryDirs state)
             docPath
             imports
-        state' <- liftIO $ readTVarIO stateVar
-        case getDefinitionCrossFile state' (dsTypeEnv doc) (dsSymbols doc) (dsText doc) pos of
-          Nothing -> pure $ InR $ InR Null
-          Just loc -> pure $ InL $ Definition $ InL loc
+        pure $ InR $ InR Null
 
 -- | Handle document symbols request.
 -- Returns hierarchical DocumentSymbol list (the modern format).
