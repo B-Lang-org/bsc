@@ -102,6 +102,7 @@ compile_pass ATFPolyElemArith.bs
 compile_pass ATFPolyHK.bs
 compile_pass ATFPolyNested.bs
 compile_pass ATFPolyTwoClass.bs
+compile_pass ATFMultiParamIfc.bs
 
 compile_verilog_pass ATFPolyIfcAddElem.bs
 compile_verilog_pass ATFPolyIfcTwoATF.bs

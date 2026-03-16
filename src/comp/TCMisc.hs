@@ -210,10 +210,16 @@ expTFun t0
         cls <- findCls (CTypeclass clsId)
         let nParams = length (csig cls)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
+        -- For class params that are neither the ATF target nor ATF
+        -- parameters, create fresh type variables.  Using class signature
+        -- TyVars directly (TVar (csig cls !! idx)) would leak their names
+        -- into provisos, causing kind conflicts when a name collides with
+        -- a type variable from the enclosing definition at a different kind.
+        freshVars <- mapM (\tv -> newTVar "expTFun" (kind tv) t0) (csig cls)
         let classArgs = [ if idx == tIdx then v
                           else case elemIndex idx pIdxs of
                                 Just j  -> as !! j
-                                Nothing -> TVar (csig cls !! idx)
+                                Nothing -> freshVars !! idx
                         | idx <- [0..nParams-1] ]
         vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
         return (vps, v)
