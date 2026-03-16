@@ -119,6 +119,7 @@ defaultTarget = TargetConfig
   , targetInfoDir    = Nothing
   , targetSimDir     = Nothing
   , targetSimulator  = Nothing
+  , targetTopModule  = Nothing
   , targetCSources   = []
   , targetCLib       = Nothing
   , targetDefines    = Map.empty

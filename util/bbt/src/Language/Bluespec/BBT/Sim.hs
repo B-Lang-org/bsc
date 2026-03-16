@@ -14,7 +14,9 @@ import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), isRelative)
 import System.IO (hPutStrLn, stderr)
-import System.Process (readProcessWithExitCode)
+import System.Process (readProcessWithExitCode, createProcess, proc,
+                       waitForProcess, StdStream (..))
+import qualified System.Process as P
 
 import Language.Bluespec.BBT.Config
 import Language.Bluespec.BBT.Discover
@@ -35,11 +37,14 @@ runSim cfg opts = do
       tcfg    = resolveT cfg mTarget
 
   -- Validate config
+  -- The target may override top_module (e.g. a sim target using mkSim while
+  -- the build target uses mkTop).  Fall back to [build].top_module if not set.
   case (buildTopFile (cfgBuild cfg), buildTopModule (cfgBuild cfg)) of
     (Nothing, _) -> die "bsc.toml: [build] missing 'top_file'"
     (_, Nothing) -> die "bsc.toml: [build] missing 'top_module'"
-    (Just top, Just modName) -> do
-      let topAbs = mkAbs root top
+    (Just top, Just buildMod) -> do
+      let modName = maybe buildMod id (targetTopModule tcfg)
+          topAbs  = mkAbs root top
       topExists <- doesFileExist topAbs
       if not topExists
         then die $ "Top file not found: " ++ topAbs
@@ -118,9 +123,15 @@ doSim root tcfg modName topAbs srcs opts = do
                    ++ "\n  (Check that 'top_module' in bsc.toml matches the module name)"
             else do
               putStrLn $ "[bbt] Running: " ++ simBin
-              (ec3, out3, err3) <- readProcessWithExitCode simBin (simArgs opts) ""
-              putStr out3
-              putStr err3
+              -- Inherit stdin/stdout/stderr so simulation binaries that use
+              -- terminal I/O or output raw bytes work correctly.
+              (_, _, _, ph) <- createProcess
+                (proc simBin (simArgs opts))
+                  { P.std_in  = Inherit
+                  , P.std_out = Inherit
+                  , P.std_err = Inherit
+                  }
+              ec3 <- waitForProcess ph
               case ec3 of
                 ExitSuccess   -> putStrLn "[bbt] Simulation finished."
                 ExitFailure n -> putStrLn $ "[bbt] Simulation exited with code " ++ show n
@@ -146,6 +157,7 @@ simDefaultTarget = TargetConfig
   , targetInfoDir    = Nothing
   , targetSimDir     = Just "build/sim"
   , targetSimulator  = Nothing
+  , targetTopModule  = Nothing
   , targetCSources   = []
   , targetCLib       = Nothing
   , targetDefines    = Map.empty

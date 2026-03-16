@@ -92,6 +92,7 @@ data TargetConfig = TargetConfig
   , targetInfoDir    :: !(Maybe FilePath)
   , targetSimDir     :: !(Maybe FilePath)
   , targetSimulator  :: !(Maybe Text)
+  , targetTopModule  :: !(Maybe Text)   -- ^ per-target top module override (e.g. mkSim for sim targets)
   , targetCSources   :: ![FilePath]
   , targetCLib       :: !(Maybe FilePath)
   , targetDefines    :: !(Map Text Text)
@@ -327,6 +328,7 @@ parseTarget tbl = do
     , targetInfoDir    = fmap T.unpack (getStr "info_dir"    tbl)
     , targetSimDir     = fmap T.unpack (getStr "sim_dir"     tbl)
     , targetSimulator  = getStr "simulator" tbl
+    , targetTopModule  = getStr "top_module" tbl
     , targetCSources   = map T.unpack (getStrList "c_sources" tbl)
     , targetCLib       = fmap T.unpack (getStr "c_lib" tbl)
     , targetDefines    = defs
