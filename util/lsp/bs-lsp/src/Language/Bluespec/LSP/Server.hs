@@ -111,10 +111,6 @@ serverDefinition stateVar =
           forM_ workspaceRoots $ \root -> do
             scanWorkspaceForModules stateVar root
             runLspT env $ refreshDiagnosticsForOpenDocs stateVar
-            -- Also scan bazel-bin for generated modules.
-            let bazelBinPath = root </> "bazel-bin"
-            scanWorkspaceForModules stateVar bazelBinPath
-            runLspT env $ refreshDiagnosticsForOpenDocs stateVar
 
         pure $ Right env,
       staticHandlers = \_caps -> handlers stateVar,

@@ -41,7 +41,6 @@ module Language.Bluespec.LSP.SymbolTable
   )
 where
 
-import Control.Exception (SomeException, try)
 import Control.Monad (forM_)
 import Control.Monad.State.Strict
 import Data.Map.Strict (Map)
@@ -55,9 +54,7 @@ import Language.Bluespec.Pretty (prettyType, renderPretty)
 import Language.Bluespec.Syntax
 import System.Directory (canonicalizePath, doesDirectoryExist, doesFileExist)
 import System.Environment (getExecutablePath, lookupEnv)
-import System.Exit (ExitCode (..))
 import System.FilePath (takeDirectory, (</>))
-import System.Process (readProcessWithExitCode)
 
 -- | Type alias map: type name → (type parameters, expansion type).
 type AliasMap = Map Text ([TyVar], Type)
@@ -327,7 +324,7 @@ data LibrarySearchResult
 -- 1. BLUESPEC_LIB_DIR environment variable
 -- 2. BLUESPEC_SRC environment variable
 -- 3. BLUESPECDIR environment variable
--- 4. Querying Bazel for @bsc-source location
+-- 4. Path relative to the bs-lsp executable
 -- Returns either the path found or a list of places searched.
 discoverLibrariesDirWithDebug :: IO LibrarySearchResult
 discoverLibrariesDirWithDebug = do
@@ -360,14 +357,8 @@ discoverLibrariesDirWithDebug = do
           exists <- doesDirectoryExist libDir
           if exists
             then pure (LibraryFound libDir)
-            else tryBazel
-        Nothing -> tryBazel
-
-    tryBazel = do
-      result <- discoverFromBazel
-      case result of
-        Just libDir -> pure (LibraryFound libDir)
-        Nothing     -> tryRelativeToExecutable
+            else tryRelativeToExecutable
+        Nothing -> tryRelativeToExecutable
 
     -- Last resort: look for Libraries/ relative to the bs-lsp executable.
     -- When installed via 'make install-src', the layout is:
@@ -385,42 +376,9 @@ discoverLibrariesDirWithDebug = do
                    [ "BLUESPEC_LIB_DIR: (not set)",
                      "BLUESPEC_SRC: (not set)",
                      "BLUESPECDIR: (not set)",
-                     "Bazel query: failed or @bsc-source not available",
                      "Relative to executable (" <> exeDir <> "): ../lib-srcs/Libraries not found"
                    ]
                )
-
--- | Try to discover the Bluespec source from Bazel.
--- Queries Bazel for the @bsc-source external repository location.
--- Returns Nothing if bazel is not installed or the query fails.
-discoverFromBazel :: IO (Maybe FilePath)
-discoverFromBazel = do
-  -- Get bazel output base (bazel may not be installed)
-  r1 <- try (readProcessWithExitCode "bazel" ["info", "output_base"] "") :: IO (Either SomeException (ExitCode, String, String))
-  (exitCode1, outputBase) <- case r1 of
-    Left _  -> pure (ExitFailure 1, "")
-    Right (ec, out, _) -> pure (ec, out)
-  case exitCode1 of
-    ExitFailure _ -> pure Nothing
-    ExitSuccess -> do
-      let outputBasePath = filter (/= '\n') outputBase
-      -- Query for the prelude file location
-      (exitCode2, preludePath, _) <-
-        readProcessWithExitCode
-          "bazel"
-          ["cquery", "--output=files", "@bsc-source//:prelude"]
-          ""
-      case exitCode2 of
-        ExitFailure _ -> pure Nothing
-        ExitSuccess -> do
-          let relPath = filter (/= '\n') (head (lines preludePath))
-              -- The path is relative, prepend output base
-              fullPath = outputBasePath </> relPath
-              -- Go up from src/Libraries/Base1/Prelude.bs to get the source root
-              srcRoot = takeDirectory (takeDirectory (takeDirectory (takeDirectory fullPath)))
-              libDir = srcRoot </> "src" </> "Libraries"
-          exists <- doesDirectoryExist libDir
-          pure $ if exists then Just libDir else Nothing
 
 -- | Simple version that just returns Maybe FilePath.
 discoverLibrariesDir :: IO (Maybe FilePath)
@@ -436,7 +394,7 @@ formatLibrarySearchError (LibraryFound _) = "Library found (this shouldn't be an
 formatLibrarySearchError (LibraryNotFound searched) =
   "Standard library not found. Searched locations:\n"
     ++ unlines (map ("  - " ++) searched)
-    ++ "\nEither set BLUESPEC_LIB_DIR/BLUESPECDIR/BLUESPEC_SRC or run from within a Bazel workspace."
+    ++ "\nSet BLUESPEC_LIB_DIR, BLUESPECDIR, or BLUESPEC_SRC to point to the BSC installation or source tree."
 
 -- | Resolve a standard library directory from a provided path.
 resolveLibraryDir :: FilePath -> IO (Maybe FilePath)

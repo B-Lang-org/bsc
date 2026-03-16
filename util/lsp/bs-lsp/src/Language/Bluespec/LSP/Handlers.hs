@@ -282,12 +282,11 @@ ensureImportsIndexed stateVar workspaceRoots libraryDirs docPath imports = do
       topLevelDirs = mapMaybe (topLevelDir docPath) workspaceRoots
       topLevelSearch =
         concatMap
-          (\(root, topDir) -> [root </> topDir, root </> "bazel-bin" </> topDir])
+          (\(root, topDir) -> [root </> topDir])
           topLevelDirs
       searchDirs =
         docDir
           : workspaceRoots
-          ++ map (</> "bazel-bin") workspaceRoots
           ++ topLevelSearch
           ++ libraryDirs
   forM_ imports $ \imp -> do
@@ -347,7 +346,6 @@ topLevelDir docPath root =
       rootParts = splitDirectories root
    in if rootParts `isPrefixOf` docParts
         then case drop (Prelude.length rootParts) docParts of
-          ("bazel-bin" : top : _) -> Just (root, top)
           (top : _) -> Just (root, top)
           _ -> Nothing
         else Nothing
