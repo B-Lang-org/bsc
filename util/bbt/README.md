@@ -29,7 +29,7 @@ bbt/
 ## Building
 
 ```bash
-cd /work/bsc/util/bbt
+cd util/bbt
 ~/.ghcup/bin/cabal build
 ~/.ghcup/bin/cabal run bbt -- --help
 ```

@@ -31,7 +31,7 @@ bs-lsp/
 ## Building and Testing
 
 ```bash
-cd /work/bsc/util/lsp/bs-lsp
+cd util/lsp/bs-lsp
 ~/.ghcup/bin/cabal build
 ~/.ghcup/bin/cabal test bs-lsp-test
 ~/.ghcup/bin/cabal run bs-lsp   # runs on stdio; attach your editor
@@ -81,10 +81,10 @@ The LSP protocol uses **0-indexed** line/column. The `bs-parser` uses
 ### Library Discovery
 
 At startup, `SymbolTable.hs` looks for standard library sources in order:
-1. `BLUESPEC_SRC` environment variable
-2. `BLUESPECDIR` environment variable → `$BLUESPECDIR/Libraries/`
-3. Bazel query (if in a Bazel workspace)
-4. `getExecutablePath` → `../lib/lsp-libs/` (relative to binary)
+1. `BLUESPEC_LIB_DIR` environment variable
+2. `BLUESPEC_SRC` environment variable → `$BLUESPEC_SRC/src/Libraries/`
+3. `BLUESPECDIR` environment variable → `$BLUESPECDIR/lib/Libraries/`
+4. `getExecutablePath` → `../lib-srcs/Libraries/` (relative to binary)
 
 ---
 
@@ -116,7 +116,7 @@ support, add `".bsv"` to the `languages[0].extensions` array in `package.json`.
 
 To test the extension locally:
 ```bash
-cd /work/bsc/util/lsp/vscode-bluespec
+cd util/lsp/vscode-bluespec
 npm install
 vsce package   # produces bluespec-*.vsix
 # Install via VS Code: Extensions → ⋯ → Install from VSIX

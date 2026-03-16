@@ -38,16 +38,16 @@ docgen/
 ## Building
 
 ```bash
-cd /work/bsc/util/docgen
+cd util/docgen
 ~/.ghcup/bin/cabal build
 ```
 
 To generate docs for the BSC standard library + reference manual:
 ```bash
 ~/.ghcup/bin/cabal run bs-docgen -- \
-  --lib-dir /work/bsc/src/Libraries \
-  --ref-manual /work/language-bluespec/BH_lang.tex \
-  --out /tmp/bsc-docs
+  --lib-dir ../../src/Libraries \
+  --ref-manual ../../doc/BH_ref_guide/BH_lang.tex \
+  --out bsc-docs
 ```
 
 ---

@@ -4,7 +4,7 @@
 `bs-docgen`, and `bbt`. It handles both Bluespec surface syntaxes:
 
 - **Classic** (`.bs`) — Haskell-like syntax, e.g. `module mkTop = ...`
-- **SystemVerilog** (`.bsv`) — Verilog-like syntax, e.g. `module mkTop(...); ...`
+- **Bluespec SystemVerilog** (`.bsv`) — Verilog-like syntax, e.g. `module mkTop(...); ...`
 
 ---
 
@@ -15,14 +15,15 @@ bs-parser/
 ├── bs-parser.cabal
 ├── cabal.project
 ├── src/Language/Bluespec/
-│   ├── Parser.hs           ← Classic parser (parsePackage)
+│   ├── Parser.hs           ← Classic parser (parsePackage) + parseAuto dispatch
 │   ├── Lexer.hs            ← Classic lexer (scanTokens)
+│   ├── Layout.hs           ← Layout-rule token insertion (virtual {, }, ;)
+│   ├── Fixity.hs           ← Operator fixity table + Pratt parser
 │   ├── Syntax.hs           ← Classic AST types (Package, Defn, Expr, …)
 │   ├── Position.hs         ← SrcSpan, SrcPos types
-│   ├── BSV/
-│   │   ├── Parser.hs       ← BSV parser (parseBSVPackage)
-│   │   └── Lexer.hs        ← BSV lexer
-│   └── Parser.hs           ← parseAuto: dispatches on .bs/.bsv extension
+│   ├── Pretty.hs           ← Pretty-printing for types and expressions
+│   └── BSV/
+│       └── Parser.hs       ← BSV parser (parseBSVPackage) + BSV lexer
 └── test/
     └── ParserTest.hs       ← HSpec test suite
 ```
@@ -32,7 +33,7 @@ bs-parser/
 ## Building and Testing
 
 ```bash
-cd /work/bsc/util/lsp/bs-parser
+cd util/lsp/bs-parser
 ~/.ghcup/bin/cabal build
 ~/.ghcup/bin/cabal test bs-parser-test --test-show-details=always
 ```
@@ -95,9 +96,6 @@ the file extension and delegates to either `parsePackage` (Classic) or
 
 ## Common Failure Modes
 
-- **Brace/paren counting**: `balancedArg` in `TexParser.hs` (docgen) can
-  over-consume if a template body has unbalanced braces. Always check with
-  real input before committing.
 - **Whitespace sensitivity**: Classic is layout-sensitive (like Haskell).
   The lexer inserts virtual `{`, `}`, `;` tokens. Changes to whitespace
   handling ripple through many tests.

@@ -250,7 +250,7 @@ emptySymbolTable =
 -- 1. BLUESPEC_LIB_DIR environment variable
 -- 2. BLUESPEC_SRC environment variable
 -- 3. BLUESPECDIR environment variable
--- 4. Querying Bazel for @bsc-source location
+-- 4. Path relative to the bs-lsp executable
 -- Returns the path to the real Prelude.bs if found, otherwise Nothing.
 discoverPreludeFilePath :: IO (Maybe FilePath)
 discoverPreludeFilePath = do
@@ -276,18 +276,9 @@ discoverPreludeFilePath = do
     tryBluespecDir = do
       mBluespecDir <- lookupEnv "BLUESPECDIR"
       case mBluespecDir of
-        Nothing -> tryBazel
+        Nothing -> tryRelativeToExecutable
         Just bluespecDir -> do
           let preludePath = bluespecDir </> "lib" </> "Libraries" </> "Prelude.bs"
-          exists <- doesFileExist preludePath
-          if exists then pure (Just preludePath) else tryBazel
-
-    tryBazel = do
-      mLibDir <- discoverFromBazel
-      case mLibDir of
-        Nothing     -> tryRelativeToExecutable
-        Just libDir -> do
-          let preludePath = libDir </> "Base1" </> "Prelude.bs"
           exists <- doesFileExist preludePath
           if exists then pure (Just preludePath) else tryRelativeToExecutable
 

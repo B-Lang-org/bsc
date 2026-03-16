@@ -72,10 +72,8 @@ serverDefinition stateVar =
 
         -- All heavy work (library discovery, Prelude parsing, indexing) runs in
         -- a single background thread so the initialize response is sent instantly.
-        -- The bottleneck was discoverLibrariesDirWithDebug running a Bazel query
-        -- (JVM startup: ~5-6 s) before any env-var path was found.
         liftIO $ void $ forkIO $ do
-          -- 1. Discover standard library location (may run Bazel query).
+          -- 1. Discover standard library location.
           (libDirs, mLibDir) <- do
             libResult <- discoverLibrariesDirWithDebug
             case libResult of
