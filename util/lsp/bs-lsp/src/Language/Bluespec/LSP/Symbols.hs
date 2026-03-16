@@ -6,6 +6,8 @@ module Language.Bluespec.LSP.Symbols
 
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import Language.LSP.Protocol.Types hiding (SymbolKind)
 import qualified Language.LSP.Protocol.Types as LSP
@@ -16,7 +18,7 @@ import Language.Bluespec.LSP.Util (spanToRange)
 -- | Get document symbols for outline view (hierarchical).
 getDocumentSymbols :: SymbolTable -> [DocumentSymbol]
 getDocumentSymbols st =
-  map (buildDocSymbol childrenOf) roots
+  map (buildDocSymbol Set.empty childrenOf) roots
   where
     allSyms = getAllSymbols st
     -- Root symbols have no parent and are outline-worthy
@@ -33,8 +35,12 @@ buildChildrenMap = foldr insert Map.empty
       Just parent -> Map.insertWith (++) parent [sym] m
 
 -- | Recursively build a DocumentSymbol with children.
-buildDocSymbol :: Map Text [Symbol] -> Symbol -> DocumentSymbol
-buildDocSymbol childrenOf sym =
+-- The @visited@ set tracks ancestor names to break cycles: if two symbols
+-- have names that form a parent/child loop in the flat childrenOf map (e.g.
+-- due to nested functions that shadow an outer name), we skip the repeated
+-- name instead of recursing forever.
+buildDocSymbol :: Set Text -> Map Text [Symbol] -> Symbol -> DocumentSymbol
+buildDocSymbol visited childrenOf sym =
   DocumentSymbol
     { _name = symName sym
     , _detail = symType sym
@@ -46,10 +52,11 @@ buildDocSymbol childrenOf sym =
     , _children = childrenDocs
     }
   where
+    visited' = Set.insert (symName sym) visited
     directChildren =
-      filter isOutlineSymbol $
+      filter (\c -> isOutlineSymbol c && symName c `Set.notMember` visited') $
       Map.findWithDefault [] (symName sym) childrenOf
-    childrenDocs = case map (buildDocSymbol childrenOf) directChildren of
+    childrenDocs = case map (buildDocSymbol visited' childrenOf) directChildren of
       [] -> Nothing
       cs -> Just cs
 

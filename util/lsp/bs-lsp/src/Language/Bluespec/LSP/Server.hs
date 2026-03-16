@@ -8,14 +8,14 @@ module Language.Bluespec.LSP.Server
 where
 
 import Colog.Core (LogAction (..))
-import Control.Concurrent (forkIO)
+import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.STM
+import Control.Exception (SomeException, try)
 import Control.Lens ((^.))
 import Control.Monad (forM_, void)
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (mapMaybe)
 import Data.Text qualified as T
-import Language.Bluespec.LSP.Debug (withDebugLogging)
 import Language.Bluespec.LSP.Handlers
 import Language.Bluespec.LSP.State
 import Language.Bluespec.LSP.SymbolTable (LibrarySearchResult (..), discoverLibrariesDirWithDebug, loadPreludeSymbolTable)
@@ -23,38 +23,21 @@ import Language.LSP.Protocol.Lens as Lens
 import Language.LSP.Protocol.Types
 import Language.LSP.Server hiding (runServer)
 import System.Directory (doesDirectoryExist, listDirectory)
-import System.Environment (lookupEnv)
+import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr, stdin, stdout)
+import System.Process (readProcessWithExitCode)
 
 -- | Run the LSP server on stdin/stdout.
---
--- If the environment variable @BS_LSP_DEBUG@ is set, all JSON-RPC traffic is
--- tee'd to a log file.  The variable's value is used as the log path; if it
--- is @1@ or empty, @\/tmp\/bs-lsp-debug.log@ is used instead.
 runServer :: IO Int
 runServer = do
-  mDebug <- lookupEnv "BS_LSP_DEBUG"
   stateVar <- newTVarIO emptyServerState
-  case mDebug of
-    Nothing ->
-      runServerWithHandles
-        (LogAction $ const $ pure ())
-        (LogAction $ const $ pure ())
-        stdin
-        stdout
-        (serverDefinition stateVar)
-    Just logPath -> do
-      let path = case logPath of { "1" -> ""; p -> p }
-      hPutStrLn stderr $ "Bluespec LSP: debug logging to " ++
-        (if null path then "/tmp/bs-lsp-debug.log" else path)
-      withDebugLogging path $ \teeIn teeOut ->
-        runServerWithHandles
-          (LogAction $ const $ pure ())
-          (LogAction $ const $ pure ())
-          teeIn
-          teeOut
-          (serverDefinition stateVar)
+  runServerWithHandles
+    (LogAction $ const $ pure ())
+    (LogAction $ const $ pure ())
+    stdin
+    stdout
+    (serverDefinition stateVar)
 
 -- | LSP server options.
 lspOptions :: Options
@@ -74,6 +57,13 @@ serverDefinition stateVar =
         -- Extract workspace roots immediately (no I/O needed).
         let initParams      = req ^. Lens.params
             workspaceRoots  = getWorkspaceRoots initParams
+
+        -- Watch the client process: exit if VS Code is killed without sending
+        -- shutdown/exit (avoids orphaned bs-lsp processes).
+        case initParams ^. Lens.processId of
+          InL clientPid ->
+            liftIO $ void $ forkIO $ watchClientProcess (fromIntegral clientPid)
+          _ -> pure ()
 
         liftIO $ atomically $ modifyTVar' stateVar $ \state ->
           state {ssWorkspace = workspaceRoots}
@@ -159,6 +149,22 @@ getWorkspaceRoots initParams =
   where
     getFolderPath folder = Just $ uriToPath (folder ^. Lens.uri)
     uriToPath (Uri u) = T.unpack $ maybe u Prelude.id $ T.stripPrefix "file://" u
+
+-- | Poll every 5 s and exit if the client process (VS Code) is gone.
+-- This prevents orphaned bs-lsp processes when VS Code is killed without
+-- sending a proper LSP shutdown/exit sequence.
+watchClientProcess :: Int -> IO ()
+watchClientProcess clientPid = loop
+  where
+    loop = do
+      threadDelay (5 * 1_000_000)
+      killResult <- try (readProcessWithExitCode "kill" ["-0", show clientPid] "")
+                      :: IO (Either SomeException (ExitCode, String, String))
+      case killResult of
+        Right (ExitSuccess, _, _) -> loop  -- client still alive
+        _                                     -> do    -- client gone or error
+          hPutStrLn stderr "bs-lsp: client process gone, exiting"
+          exitSuccess
 
 -- | Get standard library search directories (root + immediate subdirs).
 getLibrarySearchDirs :: FilePath -> IO [FilePath]
