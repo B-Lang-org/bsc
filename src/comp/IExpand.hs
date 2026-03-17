@@ -70,7 +70,6 @@ import ISyntax
 import ISyntaxSubst(eSubst, eSubstBatchWithNorm)
 import IConv(iConvT, iConvExpr)
 import ISyntaxUtil
-import ISyntaxCheck(iGetKind)
 import IExpandUtils
 import Wires
 import IWireSet
@@ -2883,10 +2882,8 @@ evalApAccum tag exprCtx typeCtx (ILam i t body) (E a : as) = do
   evalApAccum "ILam-accum" (M.insert i a' exprCtx) typeCtx body as
 
 -- Continue accumulating for ILAM with type argument
-evalApAccum tag exprCtx typeCtx e@(ILAM i k body) (T t : as) = do
-  -- Simplify numeric types involving SizeOf before adding to typeCtx
-  t' <- if isUnSimpNumT t then simpNumT (getIExprPosition e) t else return t
-  evalApAccum "ILAM-accum" exprCtx (M.insert i t' typeCtx) body as
+evalApAccum tag exprCtx typeCtx e@(ILAM i k body) (T t : as) =
+  evalApAccum "ILAM-accum" exprCtx (M.insert i t typeCtx) body as
 
 -- Hit something else: apply accumulated substitutions if any, then continue
 evalApAccum tag exprCtx typeCtx e args = do
@@ -2924,27 +2921,9 @@ evalAp str e es = do
       traceM ("evalAp exit  " ++ str' ++ " ]:\n"++ ppReadable (mkAp e es, r))
   return r
 
-isUnSimpNumT :: IType -> Bool
-isUnSimpNumT (ITNum _) = False
-isUnSimpNumT t = iGetKind t == Just IKNum
-
-simpNumT :: Position -> IType -> G IType
-simpNumT pos t = do
-    flags <- getFlags
-    symt <- getSymTab
-    case iConvT flags symt (iToCT t) of
-      t'@(ITNum _) -> return t'
-      _ -> errG (pos, EValueOf (ppString t))
-
 -- evaluate a function application
 -- [arg] is a stack of application arguments on the left spine of the expression
 evalAp' :: HExpr -> [Arg] -> G PExpr
-
--- simplify numeric types involving SizeOf
-evalAp' e (T t : as) | isUnSimpNumT t = do
-  t' <- simpNumT (getIExprPosition e) t
-  evalAp "simpNumT" e (T t' : as)
-
 evalAp' f@(ICon i (ICDef t e)) as = do
         -- recurse into evaluating e
         step i
