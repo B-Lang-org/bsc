@@ -1,7 +1,5 @@
 package ATFSynthIfcMethodType where
 
-import Vector
-
 -- Test an interface method type being determined by a type function.
 
 class HasRepr a r | a -> r where
