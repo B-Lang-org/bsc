@@ -934,8 +934,8 @@ irulesMapM f (IRules sps rs) = do
 -- Similar to the routine in ISyntaxCheck, but with shortcuts to make
 -- it faster.
 
-iGetType :: IExpr a -> IType
-iGetType e0 =
+iGetTypeNorm :: (IType -> IType) -> IExpr a -> IType
+iGetTypeNorm norm e0 =
     let iGetTypePrim _ PrimIf [t] [_,_,_] = t
         iGetTypePrim _ PrimConcat [_,_,ITNum n] [_,_] = itBitN n
         iGetTypePrim _ PrimMul [_,_,ITNum n] [_,_] = itBitN n
@@ -963,7 +963,7 @@ iGetType e0 =
                 isNRes PrimSRL = True
                 isNRes PrimSRA = True
                 isNRes _       = False
-        iGetTypePrim e _ _ _ = tCheck emptyEnv e
+        iGetTypePrim e _ _ _ = norm $ tCheck emptyEnv e
 
         tCheck r (ILam i t e) =
                 itFun t (tCheck (addT i t r) e)
@@ -973,7 +973,7 @@ iGetType e0 =
                 ITForAll i _ rt -> tSubst i t rt
                 tt -> internalError ("iGetType.tCheck: " ++ ppString (e0, e, tt, t))
         tCheck r (IAps f (t:ts) []) = tCheck r (IAps (IAps f [t] []) ts [])
-        tCheck r (IAps f ts es) = dropArrows (length es) (tCheck r (IAps f ts []))
+        tCheck r (IAps f ts es) = dropArrows (length es) (norm $ tCheck r (IAps f ts []))
         tCheck r (IVar i) = findT i r
         tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
         tCheck r (ICon c ic) = iConType ic
@@ -994,7 +994,10 @@ iGetType e0 =
         (ICon c ic) -> iConType ic
         e@(IAps (ICon _ (ICPrim _ p)) ts es) -> iGetTypePrim e p ts es
         -- General
-        e -> tCheck emptyEnv e
+        e -> norm $ tCheck emptyEnv e
+
+iGetType :: IExpr a -> IType
+iGetType = iGetTypeNorm id
 
 -- input must be an interface type
 iGetIfcName :: IType -> Id

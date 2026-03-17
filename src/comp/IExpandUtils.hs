@@ -2757,7 +2757,7 @@ toHeap tag e cell_name = do
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
         -- do the real work of adding the cell
         norm <- getTypeNormalizer
-        addHeapUnev tag (norm $ iGetType e) e cell_name
+        addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 
 -- Used when you absolutely need to get an IRefT back
 -- for arrays
@@ -2770,7 +2770,7 @@ toHeapCon tag (ICon i (ICDef t e)) cell_name = do
 -- heap all other constants
 toHeapCon tag e@(ICon _ _) cell_name = do
   norm <- getTypeNormalizer
-  addHeapUnev tag (norm $ iGetType e) e cell_name
+  addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 toHeapCon tag e cell_name = toHeap tag e cell_name
 
 {-# INLINE toHeapWHNF #-}
@@ -2787,13 +2787,13 @@ toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), 
                           addHeapWHNF tag (norm t) pe' cell_name
 toHeapWHNF tag e cell_name = do
   norm <- getTypeNormalizer
-  addHeapWHNF tag (norm $ iGetType e) (P pTrue e) cell_name
+  addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 
 {-# INLINE toHeapWHNFCon #-}
 toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNFCon tag e@(ICon _ _) cell_name = do
     norm <- getTypeNormalizer
-    addHeapWHNF tag (norm $ iGetType e) (P pTrue e) cell_name
+    addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
 
 {-# INLINE toHeapWHNFInferName #-}

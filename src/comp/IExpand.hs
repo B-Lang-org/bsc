@@ -293,7 +293,7 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
               -- get the expression and its name info
               (e, expr_name) = heapOf p
               -- the type for the new IDef being created
-              t = norm $ iGetType e
+              t = iGetTypeNorm norm e
               -- the name for the new IDef being created
               i = case expr_name of
                     Just name ->
@@ -958,7 +958,7 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
         -- traceM (ppReadable (zip fs betterInfoByField))
 
         norm <- getTypeNormalizer
-        let fieldTypes = map (norm . iGetType) es
+        let fieldTypes = map (iGetTypeNorm norm) es
 
         let fieldBlobs =
                 zip4 (map unQualId fs) betterInfoByField es fieldTypes
@@ -1096,7 +1096,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
         norm <- getTypeNormalizer
         -- want the result type, not a type including arguments
         let methType :: IType
-            methType = norm $ iGetType e0
+            methType = iGetTypeNorm norm e0
         (P p e', ws1) <- case e0 of
                          -- tuples are allowable for ActionValue methods only
                          IAps f@(ICon _ (ICTuple {})) ts [e1, e2] |
@@ -1158,7 +1158,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
             rdyPort    = BetterInfo.mi_ready bi
 
         norm <- getTypeNormalizer
-        let final_t = norm $ iGetType final_e
+        let final_t = iGetTypeNorm norm final_e
         -- split wire sets for more accurate tracking
         return ([],
                 ((IDef i final_t final_e []), final_ws,
@@ -3561,7 +3561,7 @@ conAp' ci prim@(ICPrim _ PrimSetSelPosition) f (T _ : E pos_e : E res_e : as) = 
   poss <- evalPositions pos_e
   norm <- getTypeNormalizer
   let res_e' = mkAp res_e as
-      t' = norm $ iGetType res_e'
+      t' = iGetTypeNorm norm res_e'
       icon = (ICon ci prim)
       handler = doSetSelPosition icon t' poss
   -- don't allow evalStaticOp to push through PrimSetSelPosition
@@ -4298,7 +4298,7 @@ doArrayUpdate f@(ICon upd_i (ICPrim {iConType = opType}))
                 nfError "primArrayUpdate" $
                     mkAp f [T elem_t, E arr_e', E idx_e', E val_e']
         norm <- getTypeNormalizer
-        let res_t = norm $ iGetType arr_e -- result type is (PrimArray t)
+        let res_t = iGetTypeNorm norm arr_e -- result type is (PrimArray t)
         addPredG idx_p $ evalStaticOp arr_e res_t handleArrayUpdate
     _ -> internalError ("IExpand.doArrayUpdate: index: " ++ ppReadable idx_e')
 
@@ -4450,7 +4450,7 @@ improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimChr)) ts2 [chr_els]) = do
   when doTraceIf $ traceM ("improveIf PrimChr triggered " ++ show (cnd,thn,els))
   norm <- getTypeNormalizer
-  let chrArgType = norm $ iGetType chr_thn
+  let chrArgType = iGetTypeNorm norm chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
 
@@ -4814,7 +4814,7 @@ doSel sel s tys ty n as ee (p, e) =
               -- and fixup selector type (instantiating and dropping missing types)
               IAps csel@(ICon ic sel2@(ICSel { })) tys2 args@(sv@(ICon _ (ICStateVar { })):_) -> do
                 let resType = dropArrows (length args) (norm $ itInst (iConType sel2) tys2)
-                let newSelTy = norm $ (iGetType sv) `itFun` resType
+                let newSelTy = (iGetTypeNorm norm sv) `itFun` resType
                 let sel2' = sel2 { iConType = newSelTy }
                 let e'' = (IAps (ICon ic sel2') [] [sv])
                 addPredG p $
