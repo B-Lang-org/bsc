@@ -5,7 +5,7 @@ import Vector
 -- Test an interface method type being determined by a type function.
 
 class HasRepr a r | a -> r where
-  type Repr a = r
+  type ReprOf a = r
   toRepr :: a -> r
 
 data BoolTag = BoolTag Bool
@@ -17,6 +17,10 @@ data ActionTag = ActionTag
 instance HasRepr ActionTag Action where
   toRepr _ = $display "hi"
 
+data FnTag a = FnTag Bool
+instance (FShow a, Bits a n) => HasRepr (FnTag a) (a -> Maybe a) where
+  toRepr (FnTag c) x = if c then Just x else Nothing
+
 data ActionFnTag a = ActionFnTag Bool
 instance (FShow a, Bits a n) => HasRepr (ActionFnTag a) (a -> ActionValue (Maybe a)) where
   toRepr (ActionFnTag c) x = do
@@ -24,11 +28,11 @@ instance (FShow a, Bits a n) => HasRepr (ActionFnTag a) (a -> ActionValue (Maybe
     return $ if c then Just x else Nothing
 
 interface ReprWrap a =
-  stuff :: Repr a
+  stuff :: ReprOf a
 
 mkReprWrap :: (HasRepr a r) => a -> Module (ReprWrap a)
 mkReprWrap initVal = module
-  messageM $ printType $ typeOf (_ :: Repr a)
+  messageM $ printType $ typeOf (_ :: ReprOf a)
   interface
     stuff = toRepr initVal
 
@@ -39,6 +43,10 @@ sysReprWrapBool = mkReprWrap (BoolTag True)
 {-# synthesize sysReprWrapAction #-}
 sysReprWrapAction :: Module (ReprWrap ActionTag)
 sysReprWrapAction = mkReprWrap ActionTag
+
+{-# synthesize sysReprWrapFn #-}
+sysReprWrapFn :: Module (ReprWrap (FnTag (Int 3)))
+sysReprWrapFn = mkReprWrap (FnTag True)
 
 {-# synthesize sysReprWrapActionFn #-}
 sysReprWrapActionFn :: Module (ReprWrap (ActionFnTag (Int 3)))
