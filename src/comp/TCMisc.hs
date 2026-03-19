@@ -515,8 +515,34 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
     let pr' = IsIn c ts'
         pp' = PredWithPositions pr' pos
         v' = VPred w pp'
+        -- Quick pre-check: can the instance head possibly match the predicate?
+        -- Compares head type constructors at non-fundep argument positions.
+        -- If both sides have a concrete non-synonym constructor and they
+        -- differ, no match is possible so we skip the expensive newInst call.
+        -- We only check non-fundep positions because fundep-determined
+        -- positions are resolved via mgu after the initial match.
+        -- matchTop uses pickJust over fundeps, so we need ANY fundep to work.
+        canMatch :: Pred -> Pred -> Bool
+        canMatch (IsIn c1 pred_ts) (IsIn _ inst_ts) =
+            case funDeps c1 of
+              [] -> and $ zipWith ok pred_ts inst_ts
+              fds -> any checkFD fds
+          where
+            checkFD bs = and [ ok pt it | (False, pt, it) <- zip3 bs pred_ts inst_ts ]
+            ok pt it = case (headTyCon pt, headTyCon it) of
+                            (Just pc, Just ic) -> pc == ic
+                            _                  -> True
+            -- Extract head TyCon Id only if it's not a type synonym
+            -- (those could expand to match anything)
+            headTyCon t = case leftTyCon t of
+                            Just (TyCon _ _ (TItype {})) -> Nothing  -- synonym
+                            Just (TyCon i _ _)           -> Just i
+                            _                            -> Nothing
+
         f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
         f incoherent [] = return Nothing
+        f incoherent (i@(Inst _ _ (_ :=> h_orig)):is)
+          | not (canMatch pr' h_orig) = f incoherent is
         f incoherent (i:is) = do
                 (m_tv, i'@(Inst _ _ (_ :=> h))) <- newInst i (getVPredPositions v')
                 x <- byInst v' i'
