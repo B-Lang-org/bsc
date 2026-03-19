@@ -24,8 +24,8 @@ class Unify t where
 instance Unify Type where
     -- an unreducable ATF application: identical types unify cleanly (reflexivity);
     -- different types generate a deferred equality constraint.
-    mgu bound_tyvars t1 t2 | isATFAp t1 || isATFAp t2 =
-        if t1 == t2 then Just (nullSubst, []) else Just (nullSubst, [(t1, t2)])
+    mgu bound_tyvars t1 t2
+        | isATFAp t1 || isATFAp t2 = atfUnify bound_tyvars t1 t2
     mgu bound_tyvars t1 t2
         | kind t1 == KNum =
       case kind t2 of
@@ -41,6 +41,17 @@ instance Unify Type where
     mgu bound_tyvars t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
     mgu bound_tyvars _ _ = Nothing
+
+atfUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
+atfUnify bound_tyvars t1 t2 
+    | t1 == t2 = Just (nullSubst, [])
+-- prefer an equality constraint to unifying a bound type variable
+-- or defining a variable in terms of itself
+atfUnify bound_tyvars (TVar u) t
+    | not (u `elem` (bound_tyvars ++ tv t)) = varBindWithEqs u t
+atfUnify bound_tyvars t (TVar u)
+    | not (u `elem` (bound_tyvars ++ tv t)) = varBindWithEqs u t
+atfUnify bound_tyvars t1 t2 = Just (nullSubst, [(t1,t2)])
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2

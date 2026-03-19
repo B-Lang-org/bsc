@@ -916,7 +916,7 @@ unify x t1 t2 = do
         case mgu bound_vars t1'' t2'' of
           Just (u,eqs)  ->
               do extSubst "unify" u
-                 concatMapM (eqToVPred [pos]) eqs
+                 concatMapM (eqToVPred [pos]) $ nub eqs
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError bound_vars x t1'' t2''
 
