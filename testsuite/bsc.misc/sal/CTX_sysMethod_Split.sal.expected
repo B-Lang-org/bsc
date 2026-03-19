@@ -19,9 +19,9 @@ BEGIN
     IN IF Prim!bitToBool(def_c__h114)
 	 THEN LET def_x__h188 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
 	      IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-	      IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
-	      IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
 	      IN LET def_x__h144 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(3))
+	      IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
+	      IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
 	      IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] = CTX_RegUN{8}!meth_write(def_x__h144, state0.inst_rg1)
 	      IN LET state1 : STATE = state0 WITH .inst_rg1 := act1.1
 	      IN ( state1,
@@ -29,9 +29,9 @@ BEGIN
 	 ELSE IF (NOT Prim!bitToBool(def_c__h114))
 		THEN LET def_x__h188 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
 		     IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-		     IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
-		     IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
 		     IN LET def_x__h190 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(4))
+		     IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
+		     IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
 		     IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
 			      CTX_RegUN{8}!meth_write(def_x__h190, state0.inst_rg2)
 		     IN LET state1 : STATE = state0 WITH .inst_rg2 := act1.1
@@ -39,8 +39,8 @@ BEGIN
 			  IF Prim!bitToBool(def_c__h114) THEN def_y_avValue__h187 ELSE def_y_avValue__h214 ENDIF )
 		ELSE LET def_x__h188 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg1)
 		     IN LET def_x__h215 : Bit{8}!T = CTX_RegUN{8}!meth_read(state0.inst_rg2)
-		     IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
 		     IN LET def_y_avValue__h214 : Bit{8}!T = Prim1{8}!primAdd(def_x__h215, Bit{8}!mkConst(2))
+		     IN LET def_y_avValue__h187 : Bit{8}!T = Prim1{8}!primAdd(def_x__h188, Bit{8}!mkConst(1))
 		     IN ( state0,
 			  IF Prim!bitToBool(def_c__h114) THEN def_y_avValue__h187 ELSE def_y_avValue__h214 ENDIF )
 	      ENDIF

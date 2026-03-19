@@ -19,11 +19,11 @@ BEGIN
      #) ;
   
   meth_get (state0 : STATE) : Bit{8}!T =
-    LET def__element_first__h657 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_0)
-    IN LET def__element_first__h663 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_1)
-    IN LET def__element_first__h669 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_2)
-    IN LET def__element_first__h675 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_3)
-    IN LET def_x__h523 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_idx)
+    LET def_x_first__h494 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_3)
+    IN LET def_x_first__h417 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_2)
+    IN LET def_x_first__h340 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_1)
+    IN LET def_x_first__h263 : Bit{8}!T = CTX_FIFO2{8}!meth_first(state0.inst_fs_0)
+    IN LET def_x__h572 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_idx)
     IN LET def_ARR_fs_0_first_fs_1_first_fs_2_first_fs_3_first___d5 : ARRAY [0..3] OF Bit{8}!T =
 	     [[ i : [0..3] ] def__element_first__h657 ] WITH [1] := def__element_first__h663
 	     WITH [2] := def__element_first__h669
