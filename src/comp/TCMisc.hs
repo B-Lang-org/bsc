@@ -546,11 +546,12 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     (Just pc, Just ic) -> pc == ic
                     _ -> True
                 | (False, pt, it) <- zip3 bs pred_ts inst_ts ]
-            -- Extract head TyCon Id only if it's not a type synonym
+            -- Extract head TyCon Id only if it's not a type synonym or ATF
             -- (those could expand to match anything)
             leftNonSynTyCon t =
                 case leftTyCon t of
                     Just (TyCon _ _ (TItype {})) -> Nothing  -- synonym
+                    Just (TyCon _ _ (TIatf {}))  -> Nothing  -- ATF
                     Just (TyCon i _ _)           -> Just i
                     _                            -> Nothing
 
