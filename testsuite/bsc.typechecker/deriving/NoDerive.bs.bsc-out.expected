@@ -7,8 +7,8 @@ Error: "NoDerive.bs", line 6, column 0: (T0032)
     "NoDerive.bs", line 9, column 22
   An instance for this context exists, but it depends on the following
   contexts for which there are no instances:
-    Prelude.Bits Prelude.Integer b__,
-    Prelude.Add c__ b__ d__,
+    Prelude.Add b__ c__ d__,
+    Prelude.Bits Prelude.Integer c__,
+    Prelude.Add 1 d__ a__,
     Prelude.Add e__ 1 d__,
-    Prelude.Max b__ 1 d__,
-    Prelude.Add 1 d__ a__
+    Prelude.Max c__ 1 d__

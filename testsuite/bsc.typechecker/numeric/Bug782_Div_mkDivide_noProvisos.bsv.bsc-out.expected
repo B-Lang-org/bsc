@@ -6,8 +6,8 @@ Error: "Bug782_Div_mkDivide_noProvisos.bsv", line 28, column 8: (T0030)
     _m__#(Bug782_Div_mkDivide_noProvisos::Divide#(int_n, fra_n, int_d, fra_d,
     int_q, fra_q))
   With the following provisos:
-    Add#(3, fra_d, int_ex)
     IsModule#(_m__, _c__)
+    Add#(3, fra_d, int_ex)
   The following additional provisos are needed:
     Add#(a__, fra_q, 21)
       Introduced at the following locations:
@@ -30,7 +30,7 @@ Error: "Bug782_Div_mkDivide_noProvisos.bsv", line 28, column 8: (T0030)
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 75, column 63
       The proviso could also be deduced from the following information:
 	Add#(int_n, fra_d, TAdd#(int_q, e__))
-    Add#(int_q, f__, TAdd#(int_n, fra_d))
+    Add#(f__, int_q, TAdd#(int_n, fra_d))
       Introduced at the following locations:
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 75, column 63
     Add#(1, g__, TAdd#(int_q, fra_n))
