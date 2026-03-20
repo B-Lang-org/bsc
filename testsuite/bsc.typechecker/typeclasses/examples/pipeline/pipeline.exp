@@ -4,14 +4,12 @@
 
 
 # --------------------------------------------------
-# Attempted version that results in an error about ambiguous variables
-# (the message is interesting because it has duplicate messages, due to
-# variables introduced at the same locations)
+# Previously resulted in an ambiguous variables error (T0033),
+# but improved proviso ordering in satMany now resolves the ambiguity.
 # XXX The source of the ambiguity is really because the typeclass instances
 # XXX break the stated dependency requirement; why doesn't BSC catch this?
 
-compile_fail_error Tb1.bsv T0033 1
-compare_file Tb1.bsv.bsc-out
+compile_pass Tb1.bsv
 
 # --------------------------------------------------
 # A version that compiles
