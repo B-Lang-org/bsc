@@ -1,0 +1,63 @@
+package TestNoopTernary where
+
+-- Issue: pack . unpack on a two-constructor sum type generates a ternary
+-- expression whose branches are identical — a no-op — when the larger
+-- payload itself contains a derived-Bits sum type (see TestNoopCase).
+--
+-- When the larger constructor wraps a Sum7 value (7-constructor sub-type),
+-- the inner pack(unpack()) trace produces a no-op case for that sub-type
+-- (all inner branches = same bit slice).  This causes the outer ternary
+-- (which gates on the 1-bit constructor tag) to also have identical branches.
+--
+-- Compile:
+--   bsc -verilog -p .:%/Libraries -bdir build -vdir verilog TestNoopTernary.bs
+--
+-- -----------------------------------------------------------------------
+-- Generated Verilog:
+--
+--   reg [3:0] CASE_..._q1, CASE_..._q2;
+--   assign _read =
+--     { r[7],
+--       r[7] ? { r[6:4], CASE_..._q1 }   // Large constructor: = r[6:0]
+--             : r[6:0] };                 // Small constructor: = r[6:0]
+--   // Both branches equal r[6:0], so: _read = {r[7], r[6:0]} = r
+--
+--   // Inner case (q1) is a no-op — every branch is the same:
+--   always@(r) begin
+--     case (r[6:4])
+--       3'd1, 3'd2, 3'd4: q1 = r[3:0];
+--       default:          q1 = r[3:0];
+--     endcase
+--   end
+--   // identical always block for _write_1 / q2
+--
+-- Should be:
+--
+--   assign _read = r;
+--   assign r$D_IN = _write_1;
+
+-- 7-constructor sub-type that triggers the inner no-op case.
+data Sum7
+ = S7_0
+ | S7_1 (UInt 4)
+ | S7_2 (UInt 1)
+ | S7_3
+ | S7_4 (UInt 1)
+ | S7_5
+ | S7_6 (UInt 1)
+ deriving (Bits)
+
+-- Two-constructor sum type:
+--   tag=0, 2-bit payload  (smaller constructor)
+--   tag=1, 7-bit payload  (larger constructor, wraps Sum7)
+-- Total: 1 tag + 7 payload = 8 bits.
+data BigSmall
+ = Small (UInt 2)
+ | Big   Sum7
+ deriving (Bits)
+
+{-# verilog mkTestNoopTernary #-}
+mkTestNoopTernary :: (IsModule m c) => m (Reg BigSmall)
+mkTestNoopTernary = module
+  r :: Reg BigSmall <- mkRegU
+  return r
