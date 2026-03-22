@@ -88,3 +88,5 @@ if { $vtest == 1 } {
 
 # ---------------
 
+compile_verilog_pass TestDoubleNorm.bs
+find_n_strings_bug mkTestDoubleNorm.v "?" 0
