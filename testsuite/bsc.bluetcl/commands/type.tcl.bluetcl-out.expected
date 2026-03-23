@@ -113,7 +113,7 @@ Typeclass
     instances
         Bits#(Bit#(k), k)
         Bits#(Bool, 1)
-        Bits#(Either#(a, b), _v100)   provisos (Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101), Add#(1, _v103, _v100))
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
         Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
@@ -141,7 +141,7 @@ Typeclass
     instances
         Bits#(Bit#(k), k)
         Bits#(Bool, 1)
-        Bits#(Either#(a, b), _v100)   provisos (Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101), Add#(1, _v103, _v100))
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
         Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
@@ -169,7 +169,7 @@ Typeclass
     instances
         Bits#(Bit#(k), k)
         Bits#(Bool, 1)
-        Bits#(Either#(a, b), _v100)   provisos (Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101), Add#(1, _v103, _v100))
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
         Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
@@ -197,7 +197,7 @@ Typeclass
     instances
         Bits#(Bit#(k), k)
         Bits#(Bool, 1)
-        Bits#(Either#(a, b), _v100)   provisos (Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101), Add#(1, _v103, _v100))
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
         Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))

@@ -504,7 +504,7 @@ reducePredsAggressive dvs es vps0 = do
 reducePredsAggressive' :: DVS -> [EPred] -> SolvedBinds -> Subst -> [VPred] ->
                           TI ([VPred], SolvedBinds, Subst)
 reducePredsAggressive' dvs es sbs1 s1 vps1 = do
-  (vps2, sbs2, s2) <- maskAllowIncoherent $ satMany dvs es [] emptySBs s1 vps1
+  (vps2, sbs2, s2) <- maskAllowIncoherent $ satMany' dvs es [] emptySBs s1 vps1
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
   let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
