@@ -216,6 +216,7 @@ instance TclObjCvt TISort where
                             toTclObj $ TLst [TStr "PolyWrap", TLst (map TCL tfs)]
 
     toTclObj TIabstract = toTclObj "Abstract"
+    toTclObj (TIatf {}) = toTclObj "TypeFunction"
 
 
 instance TclObjCvt FieldInfo where

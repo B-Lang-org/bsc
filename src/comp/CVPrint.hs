@@ -1252,6 +1252,8 @@ instance PVPrint TISort where
     pvPrint d p (TIdata is enum) = pparen (p>0) $ text (if enum then "TIdata (enum)" else "TIdata") <+> pvPrint d 1 is
     pvPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pvPrint d 1 ss <+> pvPrint d 1 is
     pvPrint d p (TIabstract) = text "TIabstract"
+    pvPrint d p (TIatf { atf_class_id = cls, atf_param_idxs = pIdxs }) =
+        pparen (p>0) $ text "TIatf" <+> pvPrint d 0 (length pIdxs) <+> pvPrint d 0 cls
 
 instance PVPrint StructSubType where
     pvPrint _ _ ss = text (show ss)
