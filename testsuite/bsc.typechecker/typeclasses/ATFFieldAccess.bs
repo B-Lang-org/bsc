@@ -1,0 +1,34 @@
+package ATFFieldAccess where
+
+-- Test that struct field access and update work through associated type
+-- functions (type synonyms declared inside typeclasses).
+
+class MyClass tag a s | tag a -> s where
+  type MyType tag a = s
+
+data PlainTag = PlainTag
+instance MyClass PlainTag a a where {}
+
+interface Foo =
+  x :: Bool
+  y :: Integer
+ deriving (Bits)
+
+-- Field access through a type function (identity case)
+testAccess :: MyType PlainTag (Foo) -> Bool
+testAccess f = f.x
+
+-- Field update through a type function
+testUpdate :: MyType PlainTag (Foo) -> MyType PlainTag (Foo)
+testUpdate f = f { x = True }
+
+-- Nested type function access
+class Outer tag a b | tag a -> b where
+  type OuterType tag a = b
+
+data OuterTag = OuterTag
+instance Outer OuterTag a (MyType PlainTag a) where {}
+
+-- This chains two type functions
+testNested :: OuterType OuterTag Foo -> Bool
+testNested f = f.x

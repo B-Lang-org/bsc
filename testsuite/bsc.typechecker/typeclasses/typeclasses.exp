@@ -87,6 +87,7 @@ compile_pass ATFUnify.bs
 compile_pass ATFUnifyHK.bs
 compile_pass ATFInInstHeadDetermined.bs
 compile_pass ATFInjective.bs
+compile_pass ATFFieldAccess.bs
 
 compile_verilog_pass ATFSizeOf.bs
 compile_verilog_pass ATFPoly.bs

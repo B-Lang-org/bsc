@@ -13,7 +13,7 @@ import Pred
 import Scheme
 import Assump
 import TIMonad
-import TCMisc(unify, unifyFnFrom, unifyFnTo, mkVPred, niceTypes)
+import TCMisc(unify, unifyFnFrom, unifyFnTo, mkVPred, niceTypes, expandFullType)
 import PreIds(idPrimUnit, tupleIds, idComma, idPrimPair, idPrimFst, idPrimSnd)
 import CSyntax
 import CType(leftTyCon, getArrows, isTypeUnit)
@@ -130,7 +130,8 @@ tiPCon td c args = do
 tiPField :: Id -> Type -> (Id, CPat) -> TI ([VPred], [Assump], (Id, CPat))
 tiPField si rt (i, p) =
      do
-        (i' :>: sc, _, _) <- findFields rt i
+        rt' <- apSubTI rt >>= expandFullType
+        (i' :>: sc, _, _) <- findFields rt' i
         (qs :=> t', _)   <- freshInst "B" i sc
         (t,eq_ps) <- unifyFnTo i p t' rt
         (ps, as, p')     <- tiPat' t p

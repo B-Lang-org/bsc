@@ -308,8 +308,11 @@ tiExpr as td exp@(CStruct mb c ies) = do
 tiExpr as td exp@(CStructUpd e []) = tiExpr as td e
 tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
     (ps, e') <- tiExpr as td e
+    -- Normalize to expand associated type functions for struct update
+    s_upd <- getSubst
+    td' <- expandFullType (apSub s_upd td)
     -- XXX should use all fields to disambiguate
-    (_, ti, _) <- findFields td i
+    (_, ti, _) <- findFields td' i
     sy <- getSymTab
     case findType sy ti of
      Just (TypeInfo _ _ _ (TIstruct sst qfs)) | isUpdateable sst -> do
@@ -2055,7 +2058,11 @@ tiSelect readTag as td e i f = do
                      tiExpr as te e
 
     --do s <- getSubst; trace ("sel1 " ++ ppReadable ((exp, apSub s td), (e, apSub s te), (i, apSub s tf))) $ return ()
-    (i' :>: sc, ti, n)  <- findFields (f te) i
+    -- Normalize the struct type to expand associated type functions
+    -- so that field access works through type family results.
+    s_sel <- getSubst
+    struct_ty <- expandFullType (apSub s_sel (f te))
+    (i' :>: sc, ti, n)  <- findFields struct_ty i
     (qs :=> t, ts)  <- freshInstT "F" i sc tf
     -- do s <- getSubst; trace ("sel2 " ++ ppReadable (exp, apSub s t, apSub s tf)) $ return ()
     case t of
