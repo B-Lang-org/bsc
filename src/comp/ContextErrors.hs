@@ -824,68 +824,50 @@ ambiguousVarsErr pos pairs =
     in
         (pos, EAmbiguous (map mkVarInfo nice_pairs))
 
-mkAmbVarExplanation :: PredWithPositions -> Doc
+mkAmbVarExplanation :: PredWithPositions -> (String, [Position])
 mkAmbVarExplanation (PredWithPositions p@(IsIn c _) poss) =
     let cid = typeclassId $ name c
-        use_poss_doc = nest 2 (vcat (map (text . prPosition) (nub poss)))
-        use_doc
+        use_str
             | cid == idBitwise =
-               s2par ("Bitwise operators" ++
-                      " in or at the following locations:")
+               "Bitwise operators"
             | cid == idBitReduce =
-               s2par ("Bit reduction operator" ++
-                      " in or at the following locations:")
+               "Bit reduction operator"
             | cid == idBits =
-               s2par ("Bits#() proviso introduced" ++
-                      " (for bit vector packing/unpacking)" ++
-                      " in or at the following locations:")
+               ("Bits#() proviso introduced" ++
+                " (for bit vector packing/unpacking)")
             | cid == idBitExtend =
-               s2par ("Bit vector extend or truncate" ++
-                      " in or at the following locations:")
+               "Bit vector extend or truncate"
             | cid == idPrimSelectable =
-               s2par ("Selection with []" ++
-                      " in or at the following locations:")
+               "Selection with []"
             | cid == idPrimIndex =
                -- this shouldn't happen?
                -- unless we change "<<" and "[x:y]" to take index types?
-               s2par ("Indexing into a vector" ++
-                      " in or at the following locations:")
+               "Indexing into a vector"
             | cid == idEq =
-               s2par ("Equality or inequality operator" ++
-                      " in or at the following locations:")
+               "Equality or inequality operator"
             | cid == idLiteral =
-               s2par ("Numeric constant" ++
-                      " in or at the following locations:")
+               "Numeric constant"
             | cid == idSizedLiteral =
-               s2par ("Sized numeric constant" ++
-                      " in or at the following locations:")
+               "Sized numeric constant"
             | cid == idRealLiteral =
-               s2par ("Real numeric constant" ++
-                      " in or at the following locations:")
+               "Real numeric constant"
             | cid == idStringLiteral =
-               s2par ("String constant" ++
-                      " in or at the following locations:")
+               "String constant"
             | cid == idArith =
-               s2par ("Arithmetic operator" ++
-                      " in or at the following locations:")
+               "Arithmetic operator"
             | cid == idOrd =
-               s2par ("Comparison operator" ++
-                      " in or at the following locations:")
+               "Comparison operator"
             | cid == idBounded =
-               s2par ("Use of minBound or maxBound" ++
-                      " in or at the following locations:")
+               "Use of minBound or maxBound"
             | cid == idPrimParam =
-               s2par ("Assignment to an imported module parameter" ++
-                      " in or at the following locations:")
+               "Assignment to an imported module parameter"
             | cid == idPrimPort =
-               s2par ("Assignment to an imported module port" ++
-                      " in or at the following locations:")
+               "Assignment to an imported module port"
             | otherwise =
                -- just display the predicate
-               s2par ("The proviso " ++ pfpString p ++ " introduced" ++
-                      " in or at the following locations:")
+               ("The proviso " ++ pfpString p ++ " introduced")
     in
-        use_doc $$ use_poss_doc
+        (use_str, nub poss)
 
 
 -- ========================================================================

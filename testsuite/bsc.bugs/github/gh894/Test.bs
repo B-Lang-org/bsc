@@ -1,0 +1,31 @@
+package Test where
+
+import Vector
+import FloatingPoint
+
+class BuildVector' n a r | r -> n a where
+  vec' :: Vector n a -> a -> r
+
+instance (Add n 1 n1) => BuildVector' n a (Vector n1 a) where
+  vec' l x = reverse $ x :> l
+
+instance (Add n 1 n1, BuildVector' n1 a r) => BuildVector' n a (a -> r) where
+  vec' l x = vec' $ x :> l
+
+class BuildVector t where
+  vec :: t
+
+instance BuildVector (Vector 0 a) where
+  vec = nil
+
+instance (BuildVector' 0 a r) => BuildVector (a -> r) where
+  vec = vec' nil
+
+fpNeg :: FloatingPoint e m -> FloatingPoint e m
+fpNeg fp = fp { sign = not fp.sign }
+
+showVec :: Vector n Float -> Fmt
+showVec x = fshow x
+
+boom :: Fmt
+boom = showVec (vec fpNeg 0.0 1.0 2.0 3.0)
