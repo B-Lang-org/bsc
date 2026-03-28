@@ -14,20 +14,24 @@ module sysFromChunksTest();
 
       // Test 1: Basic 8-bit chunks to 32-bit value
       action
-         Vector#(4, Bit#(8)) chunks8 = cons(8'h12, cons(8'h34, cons(8'h56, cons(8'h78, nil))));
+         Vector#(4, Bit#(8)) chunks8 = cons(8'h78, cons(8'h56, cons(8'h34, cons(8'h12, nil))));
+         Bit#(32) expected32 = 'h12345678;
          Bit#(32) result32 = fromChunks(chunks8);
          $display("Test 1: 8-bit chunks to 32-bit");
          $display("  Chunks: %h %h %h %h", chunks8[0], chunks8[1], chunks8[2], chunks8[3]);
-         $display("  Result: %h (expected: 12345678)", result32);
+         $display("  Result: %h (expected: %h)", result32, expected32);
+         $display("  Match: %s", (expected32 == result32) ? "PASS" : "FAIL");
       endaction
 
       // Test 2: 16-bit chunks to 64-bit value
       action
-         Vector#(4, Bit#(16)) chunks16 = cons(16'hABCD, cons(16'hEF01, cons(16'h2345, cons(16'h6789, nil))));
+         Vector#(4, Bit#(16)) chunks16 = cons(16'h6789, cons(16'h2345, cons(16'hEF01, cons(16'hABCD, nil))));
+         Bit#(64) expected64 = 'hABCDEF0123456789;
          Bit#(64) result64 = fromChunks(chunks16);
          $display("Test 2: 16-bit chunks to 64-bit");
          $display("  Chunks: %h %h %h %h", chunks16[0], chunks16[1], chunks16[2], chunks16[3]);
-         $display("  Result: %h (expected: ABCDEF0123456789)", result64);
+         $display("  Result: %h (expected: %h)", result64, expected64);
+         $display("  Match: %s", (expected64 == result64) ? "PASS" : "FAIL");
       endaction
 
       // Test 3: Round-trip test (toChunks -> fromChunks)
@@ -45,22 +49,26 @@ module sysFromChunksTest();
 
       // Test 4: UInt type conversion
       action
-         Vector#(4, Bit#(8)) chunks_uint = cons(8'h01, cons(8'h02, cons(8'h03, cons(8'h04, nil))));
+         Vector#(4, Bit#(8)) chunks_uint = cons(8'h04, cons(8'h03, cons(8'h02, cons(8'h01, nil))));
+         UInt#(32) expected_uint = 'h01020304;
          UInt#(32) result_uint = fromChunks(chunks_uint);
          $display("Test 4: 8-bit chunks to UInt#(32)");
          $display("  Chunks: %h %h %h %h", chunks_uint[0], chunks_uint[1],
                   chunks_uint[2], chunks_uint[3]);
-         $display("  Result: %h (expected: 01020304)", result_uint);
+         $display("  Result: %h (expected: %h)", result_uint, expected_uint);
+         $display("  Match: %s", (expected_uint == result_uint) ? "PASS" : "FAIL");
       endaction
 
       // Test 5: Int type conversion
       action
-         Vector#(2, Bit#(16)) chunks_int = cons(16'hFFFF, cons(16'h8000, nil));
+         Vector#(2, Bit#(16)) chunks_int = cons(16'h8000, cons(16'hFFFF, nil));
+         Int#(32) expected_int = unpack('hFFFF8000);
          Int#(32) result_int = fromChunks(chunks_int);
          $display("Test 5: 16-bit chunks to Int#(32)");
          $display("  Chunks: %h %h", chunks_int[0], chunks_int[1]);
-         $display("  Result: %h (expected: FFFF8000)", result_int);
+         $display("  Result: %h (expected: %h)", result_int, expected_int);
          $display("  As signed: %0d", result_int);
+         $display("  Match: %s", (expected_int == result_int) ? "PASS" : "FAIL");
       endaction
 
       // Test 6: Single chunk (identity case)
@@ -75,11 +83,13 @@ module sysFromChunksTest();
 
       // Test 7: Small value with padding in last chunk
       action
-         Vector#(2, Bit#(8)) chunks_small = cons(8'h5A, cons(8'hA5, nil));
-         Bit#(12) result_12 = fromChunks(chunks_small);
+         Vector#(2, Bit#(8)) chunks_small = cons(8'hA5, cons(8'h5A, nil));
+         Bit#(12) expected12 = 'hAA5;
+         Bit#(12) result12 = fromChunks(chunks_small);
          $display("Test 7: 12-bit value from 8-bit chunks (with padding)");
          $display("  Chunks: %h %h", chunks_small[0], chunks_small[1]);
-         $display("  Result: %h (expected: 5A5, padding dropped)", result_12);
+         $display("  Result: %h (expected: %h, padding dropped)", result12, expected12);
+         $display("  Match: %s", (expected12 == result12) ? "PASS" : "FAIL");
       endaction
 
       // Test 8: Round-trip with various sizes
@@ -106,11 +116,13 @@ module sysFromChunksTest();
 
       // Test 10: 4-bit chunks to 16-bit value
       action
-         Vector#(4, Bit#(4)) chunks4 = cons(4'h1, cons(4'h2, cons(4'h3, cons(4'h4, nil))));
+         Vector#(4, Bit#(4)) chunks4 = cons(4'h4, cons(4'h3, cons(4'h2, cons(4'h1, nil))));
+         Bit#(16) expected16 = 'h1234;
          Bit#(16) result16 = fromChunks(chunks4);
          $display("Test 10: 4-bit chunks to 16-bit");
          $display("  Chunks: %h %h %h %h", chunks4[0], chunks4[1], chunks4[2], chunks4[3]);
-         $display("  Result: %h (expected: 1234)", result16);
+         $display("  Result: %h (expected: %h)", result16, expected16);
+         $display("  Match: %s", (expected16 == result16) ? "PASS" : "FAIL");
       endaction
 
       $display("");
@@ -120,30 +132,36 @@ module sysFromChunksTest();
       // Test 11: 7-bit value from 5-bit chunks (padding in last chunk)
       action
          Vector#(2, Bit#(5)) chunks5_to_7 = cons(5'h1F, cons(5'h03, nil));
+         Bit#(7) expected7 = 'b1111111;
          Bit#(7) result7 = fromChunks(chunks5_to_7);
          $display("Test 11: 7-bit value from 5-bit chunks");
          $display("  Chunks: %b %b", chunks5_to_7[0], chunks5_to_7[1]);
-         $display("  Result: %b (expected: 1111111, 7 bits from 10 bits)", result7);
+         $display("  Result: %b (expected: %b, 7 bits from 10 bits)", result7, expected7);
+         $display("  Match: %s", (expected7 == result7) ? "PASS" : "FAIL");
       endaction
 
       // Test 12: 13-bit value from 5-bit chunks
       action
          Vector#(3, Bit#(5)) chunks5_to_13 = cons(5'h1F, cons(5'h15, cons(5'h0A, nil)));
+         Bit#(13) expected13 = 'h0abf;
          Bit#(13) result13 = fromChunks(chunks5_to_13);
          $display("Test 12: 13-bit value from 5-bit chunks");
          $display("  Chunks: %b %b %b", chunks5_to_13[0], chunks5_to_13[1], chunks5_to_13[2]);
          $display("  Result: %b (13 bits from 15 bits)", result13);
-         $display("  Result hex: %h", result13);
+         $display("  Result hex: %h (expected: %h)", result13, expected13);
+         $display("  Match: %s", (expected13 == result13) ? "PASS" : "FAIL");
       endaction
 
       // Test 13: 10-bit value from 3-bit chunks (needs 4 chunks, last has padding)
       action
          Vector#(4, Bit#(3)) chunks3_to_10 = cons(3'h7, cons(3'h6, cons(3'h5, cons(3'h4, nil))));
+         Bit#(10) expected10 = 'h177;
          Bit#(10) result10 = fromChunks(chunks3_to_10);
          $display("Test 13: 10-bit value from 3-bit chunks");
          $display("  Chunks: %b %b %b %b", chunks3_to_10[0], chunks3_to_10[1], chunks3_to_10[2], chunks3_to_10[3]);
          $display("  Result: %b (10 bits from 12 bits)", result10);
-         $display("  Result hex: %h", result10);
+         $display("  Result hex: %h (expected: %h)", result10, expected10);
+         $display("  Match: %s", (expected10 == result10) ? "PASS" : "FAIL");
       endaction
 
       // Test 14: Round-trip with non-even sizes (17-bit value, 5-bit chunks)

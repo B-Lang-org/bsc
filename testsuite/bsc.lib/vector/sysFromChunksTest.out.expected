@@ -1,30 +1,35 @@
 === fromChunks Tests ===
 
 Test 1: 8-bit chunks to 32-bit
-  Chunks: 12 34 56 78
-  Result: 78563412 (expected: 12345678)
+  Chunks: 78 56 34 12
+  Result: 12345678 (expected: 12345678)
+  Match: PASS
 Test 2: 16-bit chunks to 64-bit
-  Chunks: abcd ef01 2345 6789
-  Result: 67892345ef01abcd (expected: ABCDEF0123456789)
+  Chunks: 6789 2345 ef01 abcd
+  Result: abcdef0123456789 (expected: abcdef0123456789)
+  Match: PASS
 Test 3: Round-trip 48-bit value
   Original:  deadbeeffeed
   Chunks: ed fe ef be ad de
   Recovered: deadbeeffeed
   Match: PASS
 Test 4: 8-bit chunks to UInt#(32)
-  Chunks: 01 02 03 04
-  Result: 04030201 (expected: 01020304)
+  Chunks: 04 03 02 01
+  Result: 01020304 (expected: 01020304)
+  Match: PASS
 Test 5: 16-bit chunks to Int#(32)
-  Chunks: ffff 8000
-  Result: 8000ffff (expected: FFFF8000)
-  As signed: -2147418113
+  Chunks: 8000 ffff
+  Result: ffff8000 (expected: ffff8000)
+  As signed: -32768
+  Match: PASS
 Test 6: Single chunk identity
   Chunk:  87654321
   Result: 87654321
   Match: PASS
 Test 7: 12-bit value from 8-bit chunks (with padding)
-  Chunks: 5a a5
-  Result: 55a (expected: 5A5, padding dropped)
+  Chunks: a5 5a
+  Result: aa5 (expected: aa5, padding dropped)
+  Match: PASS
 Test 8: Round-trip 20-bit value
   Original:  abcde
   Recovered: abcde
@@ -34,22 +39,26 @@ Test 9: Round-trip 128-bit value
   Recovered: 0123456789abcdeffedcba9876543210
   Match: PASS
 Test 10: 4-bit chunks to 16-bit
-  Chunks: 1 2 3 4
-  Result: 4321 (expected: 1234)
+  Chunks: 4 3 2 1
+  Result: 1234 (expected: 1234)
+  Match: PASS
 
 === Non-even chunk size tests ===
 
 Test 11: 7-bit value from 5-bit chunks
   Chunks: 11111 00011
   Result: 1111111 (expected: 1111111, 7 bits from 10 bits)
+  Match: PASS
 Test 12: 13-bit value from 5-bit chunks
   Chunks: 11111 10101 01010
   Result: 0101010111111 (13 bits from 15 bits)
-  Result hex: 0abf
+  Result hex: 0abf (expected: 0abf)
+  Match: PASS
 Test 13: 10-bit value from 3-bit chunks
   Chunks: 111 110 101 100
   Result: 0101110111 (10 bits from 12 bits)
-  Result hex: 177
+  Result hex: 177 (expected: 177)
+  Match: PASS
 Test 14: Round-trip 17-bit value with 5-bit chunks
   Original:  1cafe (11100101011111110)
   Chunks: 11110 10111 10010 00011
