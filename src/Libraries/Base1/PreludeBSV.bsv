@@ -88,17 +88,16 @@ interface VRWireN#(numeric type n);
   method Bit#(1) whas();
 endinterface
 
-// for addCFWire desugaring
-module vMkRWire1(VRWireN#(1));
-
+// __mkRWireSubmodule only exists so that BSC can get a handle on the
+// 'AVInst' for the submodule instantiation of 'vMkRWire', by applying
+// a few compiler stages to the definition.  This occurs in
+// 'AAddSchedAssumps' where BSC implements the checking of
+// 'conflict_free' attributes by adding RWire writes to those rules,
+// and for that it needs to instantiate new RWire modules.
+//
+module __mkRWireSubmodule();
    (* hide *)
    VRWire#(Bit#(1)) _rw <- vMkRWire;
-   method wset(v);
-      return(toPrimAction(_rw.wset(v)));
-   endmethod
-   method wget = _rw.wget;
-   method whas = pack(_rw.whas);
-
 endmodule
 
 interface VRWire0;
@@ -413,19 +412,6 @@ module mkPulseWireOR(PulseWire);
 endmodule
 
 // =======
-
-// for addCFWire desugaring
-module vMkUnsafeRWire1(VRWireN#(1));
-
-   (* hide *)
-   VRWire#(Bit#(1)) _rw <- vMkUnsafeRWire;
-   method wset(v);
-      return(toPrimAction(_rw.wset(v)));
-   endmethod
-   method wget = _rw.wget;
-   method whas = pack(_rw.whas);
-
-endmodule
 
 import "BVI" RWire =
    module vMkUnsafeRWire (VRWire#(a))
