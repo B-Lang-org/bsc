@@ -1,0 +1,75 @@
+package ATFReorderedParams where
+
+-- Test that associated type families work when the ATF parameters
+-- are in a different order than the class parameters.
+-- Here the class is (HasField f a s | s f -> a) but the ATF is
+-- (FieldType s f = a), with s and f reordered relative to f, a, s.
+
+-- Proxy type for field names
+data (F :: $ -> *) f = F
+
+class HasField f a s | s f -> a where
+  type FieldType s f = a
+  getField :: F f -> s -> a
+  setField :: F f -> a -> s -> s
+
+instance (Generic s r, HasField' f a r) => HasField f a s where
+  getField f s = getField' f (from s)
+  setField f a s = to (setField' f a (from s))
+
+class HasField' f a s | s f -> a where
+  getField' :: F f -> s -> a
+  setField' :: F f -> a -> s -> s
+
+-- Ignore MetaData, MetaCons
+instance (HasField' f a r) => HasField' f a (Meta m r) where
+  getField' f (Meta r) = getField' f r
+  setField' f a (Meta r) = Meta (setField' f a r)
+
+-- Left does not match, recurse on right
+instance (HasField' f a r2) => HasField' f a (r1, r2) where
+  getField' f (_, y) = getField' f y
+  setField' f a (x, y) = (x, setField' f a y)
+
+-- Left matches
+instance HasField' f a (Meta (MetaField f i) (Conc a), r) where
+  getField' _ (Meta (Conc x), _) = x
+  setField' _ x (_, y) = (Meta (Conc x), y)
+
+-- Last/only field matches
+instance HasField' f a (Meta (MetaField f i) (Conc a)) where
+  getField' _ (Meta (Conc x)) = x
+  setField' _ x _ = Meta (Conc x)
+
+-------------------------------------------------------------------------------
+
+struct MyStruct =
+  x :: UInt 8
+  y :: Bool
+
+-- Use the ATF in a polymorphic context
+readField :: (HasField f a s) => F f -> s -> a
+readField = getField
+
+-- Monomorphic helpers to force ATF expansion
+readX :: MyStruct -> UInt 8
+readX = readField (F :: F "x")
+
+readY :: MyStruct -> Bool
+readY = readField (F :: F "y")
+
+-- Use the ATF in an interface port type
+interface FieldIfc s =
+  getX :: FieldType s "x"
+  getY :: FieldType s "y"
+
+mkFieldReader :: (HasField "x" a1 s, HasField "y" a2 s)
+              => s -> Module (FieldIfc s)
+mkFieldReader s = module
+  interface
+    getX = getField (F :: F "x") s
+    getY = getField (F :: F "y") s
+
+{-# synthesize sysATFReorderedParams #-}
+sysATFReorderedParams :: Module (FieldIfc MyStruct)
+sysATFReorderedParams = mkFieldReader (MyStruct { x = 42; y = True })

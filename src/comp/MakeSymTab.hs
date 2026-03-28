@@ -743,11 +743,11 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                           (pfpString ca_name) (pfpString expected) (pfpString actual))
                      | CAssocType ca_name ca_params ca_rhs <- ats
                      , (expected, actual) <-
-                         -- Check params are class vars (positionally)
-                         [ (cv, p) | (p, cv) <- zip ca_params vs, p /= cv ] ++
+                         -- Check params are class type variables
+                         [ (head vs, p) | p <- ca_params
+                                        , not (S.member p vs_set) ] ++
                          -- Check RHS is a class type variable
-                         [ (cv, ca_rhs) | not (S.member ca_rhs vs_set)
-                                        , cv <- take 1 vs ]
+                         [ (head vs, ca_rhs) | not (S.member ca_rhs vs_set) ]
                      ]
               -- Check that the RHS is determined by the params via at least one fundep
               fundepErrs = [ (getPosition ca_name,

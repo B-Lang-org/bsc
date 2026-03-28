@@ -92,6 +92,7 @@ compile_pass ATFFieldAccess.bs
 compile_verilog_pass ATFSizeOf.bs
 compile_verilog_pass ATFPoly.bs
 compile_verilog_pass ATFSynthIfc.bs
+compile_verilog_pass ATFReorderedParams.bs
 
 # Currently failing, needs type-based port splitting change
 compile_verilog_pass_bug ATFSynthIfcMethodType.bs
