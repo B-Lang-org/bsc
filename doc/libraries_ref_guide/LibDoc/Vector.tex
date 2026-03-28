@@ -2263,11 +2263,27 @@ function element_type[ ]
 &\\ \te{toChunks}&Convert a value to a Vector of chunks, possibly
 padding the final chunk.  The input type and size as well as the chunk
 type and size  are determined from their types. \\
- \cline{2-2}
+& \\ \cline{2-2}
 &\begin{libverbatim}
-function Vector#(n_chunk, chunk_type) toChunks(type_x x)
-    provisos( Bits#(chunk_type, chunk_sz), Bits#(type_x, x_sz)
-            , Div#(x_sz, chunk_sz, n_chunk) );
+function Vector#(n_chunk, chunk_type) toChunks(a_type x)
+    provisos( Bits#(chunk_type, chunk_sz), Bits#(a_type, a_sz)
+            , Div#(a_sz, chunk_sz, n_chunk) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{fromChunks@\te{fromChunks} (\te{Vector} function)}
+\index[function]{Vector!fromChunks}
+\begin{tabular}{|p{.9 in}|p{4.7 in}|}
+\hline
+&\\ \te{fromChunks}&The inverse of \te{toChunks}. Convert a Vector of
+chunks to a value, dropping any padding on the final chunk. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function atype fromChunks(Vector#(n_chunk, chunk_type) v)
+    provisos( Bits#(chunk_type, chunk_sz), Bits#(a_type, a_sz)
+            , Div#(a_sz, chunk_sz, n_chunk) );
 \end{libverbatim}
 \\
 \hline
