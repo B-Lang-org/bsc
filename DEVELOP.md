@@ -38,6 +38,9 @@ The following is a running list of those writings.
   * Like the LaTeX documentation for flags in the BSC User Guide,
     there is short LaTeX document for hidden flags at BS Inc (called `internal-user-guide`),
     which could become part of a BSC Developer Guide
+* Names that BSC has built-in knowledge of (such as definitions in the Prelude)
+  are specified in `src/comp/PreStrings.hs`, which are then wrapped as identifiers
+  in `src/comp/PreIds.hs`
 
 ### Compiling
 
@@ -49,12 +52,38 @@ The following is a running list of those writings.
 
 * See the test suite's own [README file](./testsuite/README.md)
 
+### Formal verification
+
+* [Discussion thread](https://github.com/B-Lang-org/bsc/discussions/333)
+  * [This comment](https://github.com/B-Lang-org/bsc/discussions/333#discussioncomment-491981)
+    mentions BSC stages for outputting modules in SAL or LambdaCalcus
+    languages for formal analysis.  Similar stages for generating Lean
+    or Rocq could be written using these as templates.
+
+### Debugging
+
+* [Example debugging rule condition evaluation](https://github.com/B-Lang-org/bsc/discussions/798#discussioncomment-14013205)
+  * From the use of `-v` to identify stages, to using `-d` to dump
+    stage outputs, to using `show-elab-progress` and `-trace-eval-nf`
+    to debug evaluation
+
 ### BSC stage: Parsing
 
 * [Keyword parsing in BH/Classic](https://github.com/B-Lang-org/language-bh/issues/5#issuecomment-1856814271)
+* Various features in BSV are implemented implicitly with typeclasses,
+  such as [updating and selecting with bracket syntax](https://groups.io/g/b-lang-discuss/message/877)
+  and handling of uninitialized variables
+* [Implicit reading and writing of registers](https://groups.io/g/b-lang-discuss/message/877)
+  is handled in the type checker by looking for methods named `_read` and `_write`
+* StmtFSM
+  * [Library and the use of Position primitives](https://groups.io/g/bsc-dev/topic/81853144#msg21)
+  * [Naming](https://github.com/B-Lang-org/bsc/pull/882#issuecomment-3887648972)
 
 ### BSC stage: Type checking
 
+* [System tasks are handled specially](https://github.com/B-Lang-org/bsc/pull/780#discussion_r2045809939)
+  * Because tasks can take variable argument lists, a dummy type
+    signature is given in the Prelude
 * See the link on the use of SMT solvers, below
 
 ### BSC stage: Elaboration
@@ -72,6 +101,7 @@ The following is a running list of those writings.
 
 * [Naming conventions in the generated Verilog](https://groups.io/g/b-lang-discuss/topic/106903347)
 * [Verilog/Bluesim "main" and the naming of clock and reset ports](https://groups.io/g/b-lang-discuss/message/606)
+* [System tasks/functions in ASyntax](https://github.com/B-Lang-org/bsc/pull/780#issuecomment-2811236368)
 
 ### BSC backend: Verilog
 
@@ -91,12 +121,15 @@ The following is a running list of those writings.
 * [Support for reflection in BSC](https://groups.io/g/b-lang-discuss/message/513)
   * specifically, Bluetcl (outside the language) and Generics (inside the language)
 * See the link on how Bluesim's C API is imported into Bluetcl, above, under Bluesim
+* [Extracting source type information for display in a waveform viewer](https://groups.io/g/b-lang-discuss/topic/116530680#msg887)
 
 ### SMT solvers
 
 * [The ways that SMT solvers are used in BSC](https://groups.io/g/b-lang-discuss/message/370)
 * [SAT solver usage and dumping](https://github.com/B-Lang-org/bsc/discussions/693#discussioncomment-9148985)
 * TBD: Status of the SMT solver source codes and how they are incorporated into BSC
+* [How a new feature might be added to specify assumptions for the SMT solver](https://github.com/B-Lang-org/bsc/discussions/417#discussioncomment-1505426)
+  * From handling in the evaluator to ISyntax to ASyntax to scheduling
 
 ### Clock and Reset methodology
 
