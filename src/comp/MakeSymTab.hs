@@ -749,6 +749,19 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                          -- Check RHS is a class type variable
                          [ (head vs, ca_rhs) | not (S.member ca_rhs vs_set) ]
                      ]
+              dupErrs = [ (getPosition ca_name,
+                        EATFDeclDuplicateParam (pfpString ca_name) (pfpString p))
+                     | CAssocType ca_name ca_params _ <- ats
+                     , p <- findDups ca_params
+                     ]
+              findDups [] = []
+              findDups (x:xs) | x `elem` xs = [x]
+                              | otherwise    = findDups xs
+              paramIsResultErrs = [ (getPosition ca_name,
+                        EATFDeclParamIsResult (pfpString ca_name) (pfpString ca_rhs))
+                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     , ca_rhs `elem` ca_params
+                     ]
               -- Check that the RHS is determined by the params via at least one fundep
               fundepErrs = [ (getPosition ca_name,
                         EATFResultNotDetermined (pfpString ca_name)
@@ -762,7 +775,7 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                                ca_rhs `elem` tgts) fds
                      , not isDetermined
                      ]
-              errs = paramErrs ++ fundepErrs
+              errs = paramErrs ++ dupErrs ++ paramIsResultErrs ++ fundepErrs
           in case errs of
                [] -> ()
                _  -> bsErrorUnsafe errh errs

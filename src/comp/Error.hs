@@ -701,6 +701,8 @@ data ErrMsg =
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
         | EATFDeclParamMismatch String String String String -- ^ class name, ATF name, expected param, actual param
+        | EATFDeclDuplicateParam String String              -- ^ ATF name, duplicate param
+        | EATFDeclParamIsResult String String               -- ^ ATF name, param that is also result
         | EATFResultNotDetermined String String [String]     -- ^ ATF name, result var, params
         | EATFInInstanceHead String  -- ^ type function name
 
@@ -2975,6 +2977,17 @@ getErrorText (EATFDeclParamMismatch cls atf expected actual) =
             " in class " ++ ishow cls ++
             " expects parameter " ++ ishow expected ++
             " but found " ++ ishow actual))
+
+getErrorText (EATFDeclDuplicateParam atf param) =
+    (Type 159, empty,
+     s2par ("Type family declaration for " ++ ishow atf ++
+            " has duplicate parameter " ++ ishow param))
+
+getErrorText (EATFDeclParamIsResult atf param) =
+    (Type 160, empty,
+     s2par ("Type family declaration for " ++ ishow atf ++
+            " uses " ++ ishow param ++
+            " as both a parameter and the result"))
 
 getErrorText (EATFResultNotDetermined atf result params) =
     (Type 162, empty,

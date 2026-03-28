@@ -117,6 +117,8 @@ compile_verilog_pass ATFPolyStructMultiParam.bs
 
 compile_fail_error ATFWrongArity.bs T0025
 compile_fail_error ATFDeclParamMismatch.bs T0158
+compile_fail_error ATFDuplicateParam.bs T0159
+compile_fail_error ATFParamIsResult.bs T0160
 compile_fail_error ATFInInstHead.bs T0161
 compile_fail_error ATFInInstHeadBiDirectional.bs T0161
 compile_fail_error ATFInInstHeadBiDirectional.bs T0161

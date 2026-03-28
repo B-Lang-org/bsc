@@ -1,0 +1,7 @@
+package ATFDuplicateParam where
+
+-- Test that a type function declaration with duplicate parameters is an error.
+
+class MyClass a b c | a b -> c where
+  type Foo a a = c  -- error: duplicate parameter 'a'
+  method :: a -> b -> c
