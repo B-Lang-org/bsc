@@ -6,6 +6,7 @@ bsc_compile TestSchedErr.bsv {-verilog -elab}
 bsc_compile TaggedUnionPoly.bsv
 
 set sedPosition {-e /position.*%/s/\[0-9\]/N/g}
+set sedCRegPosition { -e s/CReg\[0-9\]\+/CRegNNNN/g }
 
 # -------------------------
 # Test Bluetcl commands
@@ -24,7 +25,7 @@ bluetcl_run_compare_pass help.tcl
 # XXX
 
 # Test "bpackage"
-bluetcl_run_compare_pass bpackage.tcl
+bluetcl_run_compare_pass bpackage.tcl {} {} {} $sedCRegPosition
 
 # Test "defs"
 # XXX

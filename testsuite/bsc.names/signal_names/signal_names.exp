@@ -5,8 +5,12 @@ proc check_ats { filename_root } {
     if {$vtest == 1} {
 	set filename "$filename_root.bsv"
 	set output [make_bsc_vcomp_output_name $filename]
+
+	# Ignore PreludeBSV line number changes
+	set ere_options { -e s/VRWire\[0-9\]\+/VRWireNNNN/g }
+
 	compile_verilog_pass $filename {} {-dATS}
-	compare_file_filter_ids $output
+	compare_file_filter_ids $output {} {} $ere_options
     }
 }
 
