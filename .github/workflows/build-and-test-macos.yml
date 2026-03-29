@@ -30,13 +30,9 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout_override && 360 || 45 }}
     steps:
-      - uses: actions/checkout@v5
-      - name: Checkout submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
       - name: Install dependencies
         shell: bash
         env:
@@ -62,7 +58,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: build-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -137,7 +133,7 @@ jobs:
             exit 0
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
           path: inst.tar.gz
@@ -148,7 +144,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 240 }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         shell: bash
@@ -157,7 +153,7 @@ jobs:
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -167,7 +163,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -210,7 +206,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -221,7 +217,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 60 }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -231,7 +227,7 @@ jobs:
           brew install ccache libelf
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -246,7 +242,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-toooba-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -305,7 +301,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         shell: bash
@@ -314,7 +310,7 @@ jobs:
         run: ".github/workflows/install_dependencies_testsuite_macos.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -334,7 +330,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-contrib-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -374,7 +370,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-contrib-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -385,10 +381,10 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-macos
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -414,7 +410,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-bdw-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -454,7 +450,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-bdw-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
