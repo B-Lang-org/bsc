@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InputGate_OnlyInMethodReady.bsv
 code generation for sysInputGate_OnlyInMethodReady starts
-=== IOproperties:
+=== IOproperties (InputGate_OnlyInMethodReady sysInputGate_OnlyInMethodReady):
 Name                         I/O  size props
 RDY_set                        O     1
 CLK                            I     1 clock

@@ -1,13 +1,13 @@
 checking package dependencies
 compiling ImpCond.bsv
 code generation for sysImpCond starts
-=== schedule:
+=== schedule (ImpCond sysImpCond):
 parallel: [esposito: [RL_r -> []]]
 order: [RL_r]
 
 -----
 
-=== resources:
+=== resources (ImpCond sysImpCond):
 [(fs_0.enq, [(if idx_EQ_0___d7 then fs_0.enq 8'd0, 1)]),
  (fs_0.i_notFull, [(fs_0.i_notFull, 1)]),
  (fs_1.enq, [(if idx_EQ_1___d8 then fs_1.enq 8'd0, 1)]),
@@ -20,7 +20,7 @@ order: [RL_r]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ImpCond sysImpCond):
 SchedInfo [] [] [] []
 
 -----

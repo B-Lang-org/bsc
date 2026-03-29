@@ -5,18 +5,18 @@ Warning: "InterfaceOrderingResource.bs", line 10, column 0: (G0010)
   Rule "act" was treated as more urgent than "write". Conflicts:
     "act" cannot fire before "write": calls to r.write vs. r.read
     "write" cannot fire before "act": calls to r.write vs. r.read
-=== schedule:
+=== schedule (InterfaceOrderingResource sysInterfaceOrderingResource):
 parallel: [esposito: [act -> [], RL_write -> [act]]]
 order: [act, RL_write]
 
 -----
 
-=== resources:
+=== resources (InterfaceOrderingResource sysInterfaceOrderingResource):
 [(r.read, [(r.read, 1)]), (r.write, [(r.write r__h135, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (InterfaceOrderingResource sysInterfaceOrderingResource):
 SchedInfo [RDY_act CF [RDY_act, act], act C act] [] [] []
 
 -----

@@ -5,13 +5,13 @@ Warning: "SharedPortsRegFile.bsv", line 4, column 8: (G0010)
   Rule "do1" was treated as more urgent than "do2". Conflicts:
     "do1" cannot fire before "do2": calls to rg.write vs. rg.read
     "do2" cannot fire before "do1": calls to rg.write vs. rg.read
-=== schedule:
+=== schedule (SharedPortsRegFile sysSharedPortsRegFile):
 parallel: [esposito: [RL_do1 -> [], RL_do2 -> [RL_do1]]]
 order: [RL_do1, RL_do2]
 
 -----
 
-=== resources:
+=== resources (SharedPortsRegFile sysSharedPortsRegFile):
 [(idx1.read, [(idx1.read, 1)]),
  (idx2.read, [(idx2.read, 1)]),
  (rf.sub, [(rf.sub i__h411, 2), (rf.sub i__h443, 1)]),
@@ -20,7 +20,7 @@ order: [RL_do1, RL_do2]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SharedPortsRegFile sysSharedPortsRegFile):
 SchedInfo [] [] [] []
 
 -----

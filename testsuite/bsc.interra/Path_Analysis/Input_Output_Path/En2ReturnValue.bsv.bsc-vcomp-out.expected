@@ -1,7 +1,7 @@
 checking package dependencies
 compiling En2ReturnValue.bsv
 code generation for mkEn2ReturnValue starts
-=== pathsPostSched:
+=== pathsPostSched (En2ReturnValue mkEn2ReturnValue):
 Combinational paths from inputs to outputs:
   EN_start -> result
 

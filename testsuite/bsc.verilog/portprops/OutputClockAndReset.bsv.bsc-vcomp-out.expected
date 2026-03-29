@@ -1,7 +1,7 @@
 checking package dependencies
 compiling OutputClockAndReset.bsv
 code generation for sysOutputClockAndReset starts
-=== IOproperties:
+=== IOproperties (OutputClockAndReset sysOutputClockAndReset):
 Name                         I/O  size props
 CLK_clk_out                    O     1 clock
 CLK_GATE_clk_out               O     1 clock gate

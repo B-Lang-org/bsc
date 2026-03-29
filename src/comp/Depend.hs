@@ -351,7 +351,7 @@ parseFile errh flags fatal_name_mismatch fname = do
     let isClassic = hasDotSuf bscSrcSuffix fname
 
     t <- getNow
-    let dumpnames = (baseName (dropSuf fname), "", "")
+    let dumpnames = (Just (baseName (dropSuf fname)), Nothing, Nothing)
 
     start flags DFcpp
     file <- doCPP errh flags fname
@@ -396,7 +396,7 @@ parseSrc' :: Bool -> ErrorHandle -> Flags -> String -> String ->
 parseSrc' True errh flags filename inp = do
   -- Classic parser
   t <- getNow
-  let dumpnames = (baseName (dropSuf filename), "", "")
+  let dumpnames = (Just (baseName (dropSuf filename)), Nothing, Nothing)
   start flags DFparsed
   let lflags = LFlags { lf_is_stdlib = stdlibNames flags,
                         lf_allow_sv_kws = not outlaw_sv_kws_as_classic_ids }

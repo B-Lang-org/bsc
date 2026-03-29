@@ -5,7 +5,7 @@ Warning: "DummyInRuleQual.bs", line 11, column 20: (P0223)
 Warning: "DummyInRuleQual.bs", line 13, column 18: (P0223)
   Definition of `b' is not used.
 code generation for sysDummyInRuleQual starts
-=== ATS:
+=== ATS (DummyInRuleQual sysDummyInRuleQual):
 APackage sysDummyInRuleQual
 -- APackage parameters
 []

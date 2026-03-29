@@ -1,18 +1,18 @@
 checking package dependencies
 compiling ArgCondUse.bsv
 code generation for mkArgCondUse starts
-=== schedule:
+=== schedule (ArgCondUse mkArgCondUse):
 parallel: [esposito: [m -> []]]
 order: [m]
 
 -----
 
-=== resources:
+=== resources (ArgCondUse mkArgCondUse):
 [(r.write, [(if NOT_m_value_SLE_0___d2 then r.write m_value, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ArgCondUse mkArgCondUse):
 SchedInfo [RDY_m CF [RDY_m, m], m C m] [] [] []
 
 -----

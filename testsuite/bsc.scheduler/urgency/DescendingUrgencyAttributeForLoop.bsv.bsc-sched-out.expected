@@ -1,7 +1,7 @@
 checking package dependencies
 compiling DescendingUrgencyAttributeForLoop.bsv
 code generation for sysDescendingUrgencyAttributeForLoop starts
-=== schedule:
+=== schedule (DescendingUrgencyAttributeForLoop sysDescendingUrgencyAttributeForLoop):
 parallel: [esposito: [RL_test_rule_1 -> [],
 		      RL_test_rule_2 -> [RL_test_rule_1],
 		      RL_test_rule_2_1 -> [RL_test_rule_1],
@@ -10,7 +10,7 @@ order: [RL_test_rule_2, RL_test_rule_2_1, RL_test_rule_2_2, RL_test_rule_1]
 
 -----
 
-=== resources:
+=== resources (DescendingUrgencyAttributeForLoop sysDescendingUrgencyAttributeForLoop):
 [(count.read, [(count.read, 1)]),
  (count.write, [(count.write x__h489, 1), (count.write x__h268, 1)]),
  (count_1.read, [(count_1.read, 1)]),
@@ -20,7 +20,7 @@ order: [RL_test_rule_2, RL_test_rule_2_1, RL_test_rule_2_2, RL_test_rule_1]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DescendingUrgencyAttributeForLoop sysDescendingUrgencyAttributeForLoop):
 SchedInfo [] [] [] []
 
 -----

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling NoInline.bsv
 code generation for sysNoInline starts
-=== ATS:
+=== ATS (NoInline sysNoInline):
 APackage sysNoInline
 -- APackage parameters
 []
@@ -41,7 +41,7 @@ clock domain = Just (0), resets = []
 
 Verilog file created: sysNoInline.v
 code generation for module_fnNoInline starts
-=== ATS:
+=== ATS (NoInline module_fnNoInline):
 APackage module_fnNoInline -- function
 -- APackage parameters
 []

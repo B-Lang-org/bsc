@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_InputClock_NoName_Clash):
 package ImportForeignModule_InputClock_NoName_Clash;
 interface Ifc;
     method Clock _clk__4();

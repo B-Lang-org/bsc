@@ -12,13 +12,13 @@ Warning: "SplitIf2.bsv", line 6, column 8: (G0010)
   Rule "toggle1" was treated as more urgent than "xfer". Conflicts:
     "toggle1" cannot fire before "xfer": calls to r1.write vs. r1.read
     "xfer" cannot fire before "toggle1": calls to r1.write vs. r1.read
-=== schedule:
+=== schedule (SplitIf2 mkSplitIf2_Test):
 parallel: [esposito: [RL_toggle1 -> [], RL_toggle2 -> [], xfer -> [RL_toggle2, RL_toggle1]]]
 order: [RL_toggle1, RL_toggle2, xfer]
 
 -----
 
-=== resources:
+=== resources (SplitIf2 mkSplitIf2_Test):
 [(r1.read, [(r1.read, 1)]),
  (r1.write, [(if xfer_sel then r1.write r2__h256, 1), (r1.write NOT_r1___d2, 1)]),
  (r2.read, [(r2.read, 1)]),
@@ -28,7 +28,7 @@ order: [RL_toggle1, RL_toggle2, xfer]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SplitIf2 mkSplitIf2_Test):
 SchedInfo
 [RDY_xfer CF [RDY_xfer, xfer], xfer C xfer]
 []
@@ -63,13 +63,13 @@ Warning: "SplitIf2.bsv", line 6, column 8: (G0022)
   According to the generated schedule, method `xfer' is never ready.
 Verilog file created: mkSplitIf2_Test.v
 code generation for sysSplitIf2 starts
-=== schedule:
+=== schedule (SplitIf2 sysSplitIf2):
 parallel: [esposito: [RL_toggleDir -> [], RL_r -> [], RL_incr -> [], RL_done -> []]]
 order: [RL_r, RL_toggleDir, RL_done, RL_incr]
 
 -----
 
-=== resources:
+=== resources (SplitIf2 sysSplitIf2):
 [(count.read, [(count.read, 1)]),
  (count.write, [(count.write count_PLUS_1___d5, 1)]),
  (dir.read, [(dir.read, 1)]),
@@ -79,7 +79,7 @@ order: [RL_r, RL_toggleDir, RL_done, RL_incr]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SplitIf2 sysSplitIf2):
 SchedInfo [] [] [] []
 
 -----

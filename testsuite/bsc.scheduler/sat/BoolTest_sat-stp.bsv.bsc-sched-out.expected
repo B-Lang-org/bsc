@@ -5,13 +5,13 @@ Warning: "BoolTest_sat-stp.bsv", line 9, column 8: (G0010)
   Rule "aa" was treated as more urgent than "bb". Conflicts:
     "aa" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "aa": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (BoolTest_sat-stp sysBoolTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (BoolTest_sat-stp sysBoolTest):
 [(ua.read, [(ua.read, 1)]),
  (ub.read, [(ub.read, 1)]),
  (uc.read, [(uc.read, 1)]),
@@ -20,7 +20,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (BoolTest_sat-stp sysBoolTest):
 SchedInfo [] [] [] []
 
 -----

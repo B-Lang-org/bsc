@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Ex4.bsv
 code generation for mkEx4 starts
-=== schedule:
+=== schedule (Ex4 mkEx4):
 parallel: [esposito: [a -> [],
 		      c -> [],
 		      RL_b1 -> [],
@@ -13,7 +13,7 @@ order: [a, RL_b1, RL_b2, RL_b3, RL_b4, RL_b5, c]
 
 -----
 
-=== resources:
+=== resources (Ex4 mkEx4):
 [(r1.write, [(r1.write r2__h490, 1)]),
  (r2.read, [(r2.read, 1)]),
  (r2.write, [(r2.write r3__h394, 1)]),
@@ -30,7 +30,7 @@ order: [a, RL_b1, RL_b2, RL_b3, RL_b4, RL_b5, c]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Ex4 mkEx4):
 SchedInfo
 [RDY_a CF [RDY_a, RDY_c, a, c], RDY_c CF [RDY_c, a, c], a SBR [a, c], c SBR c]
 [((a, c), [RL_b1, RL_b2, RL_b3, RL_b4, RL_b5])]

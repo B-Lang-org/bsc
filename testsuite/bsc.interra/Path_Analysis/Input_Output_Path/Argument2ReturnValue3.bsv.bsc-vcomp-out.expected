@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Argument2ReturnValue3.bsv
 code generation for mkArgument2ReturnValue3 starts
-=== pathsPostSched:
+=== pathsPostSched (Argument2ReturnValue3 mkArgument2ReturnValue3):
 Combinational paths from inputs to outputs:
   start_inp -> start
 

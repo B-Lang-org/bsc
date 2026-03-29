@@ -20,7 +20,7 @@ Warning: "MinimalRuleWarnings.bsv", line 1, column 8: (G0010)
       calls to the_r.write vs. the_r.read
     "theRuleFour" cannot fire before "theRuleThree":
       calls to the_r.write vs. the_r.read
-=== schedule:
+=== schedule (MinimalRuleWarnings sysMinimalRuleWarnings):
 parallel: [esposito: [RL_theRuleOne -> [],
 		      RL_theRuleTwo -> [RL_theRuleOne],
 		      RL_theRuleThree -> [RL_theRuleTwo, RL_theRuleOne],
@@ -29,7 +29,7 @@ order: [RL_theRuleOne, RL_theRuleTwo, RL_theRuleThree, RL_theRuleFour]
 
 -----
 
-=== resources:
+=== resources (MinimalRuleWarnings sysMinimalRuleWarnings):
 [(the_r.read, [(the_r.read, 1)]),
  (the_r.write,
   [(the_r.write x__h113, 1),
@@ -39,7 +39,7 @@ order: [RL_theRuleOne, RL_theRuleTwo, RL_theRuleThree, RL_theRuleFour]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (MinimalRuleWarnings sysMinimalRuleWarnings):
 SchedInfo [] [] [] []
 
 -----

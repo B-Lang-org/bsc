@@ -2,7 +2,7 @@ checking package dependencies
 compiling DummyInDo.bs
 Warning: "DummyInDo.bs", line 9, column 9: (P0223)
   Definition of `a' is not used.
-=== internal:
+=== internal (DummyInDo):
 IPackage DummyInDo
   --linked packages
 

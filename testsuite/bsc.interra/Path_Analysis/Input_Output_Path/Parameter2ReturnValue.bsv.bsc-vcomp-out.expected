@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Parameter2ReturnValue.bsv
 code generation for mkParameter2ReturnValue starts
-=== pathsPostSched:
+=== pathsPostSched (Parameter2ReturnValue mkParameter2ReturnValue):
 Combinational paths from inputs to outputs:
   param -> result
 

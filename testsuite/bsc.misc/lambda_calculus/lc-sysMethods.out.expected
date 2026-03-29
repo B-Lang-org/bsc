@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (Methods sysMethods):
 data MOD_sysMethods =
     MOD_sysMethods
 	{ inst_x__sysMethods :: MOD_RegN #51
@@ -106,3 +107,5 @@ meth_start_and_result_sysMethods =
 meth_RDY_start_and_result_sysMethods :: MOD_sysMethods -> Bool;
 meth_RDY_start_and_result_sysMethods =
     (\ (state0 :: MOD_sysMethods) -> True);
+
+-----

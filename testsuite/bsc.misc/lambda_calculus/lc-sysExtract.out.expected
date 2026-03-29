@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (Extract sysExtract):
 data MOD_sysExtract =
     MOD_sysExtract
 	{ inst_src1__sysExtract :: MOD_RegUN #12
@@ -55,3 +56,5 @@ rule_RL_do_dynamic_sysExtract =
 	 ; (state1 :: MOD_sysExtract) = state0 { inst_snk2__sysExtract = snd3 act1 }
 	 }
      in mktuple guard1 state1 ());
+
+-----

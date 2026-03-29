@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_DefaultReset_NoName_InputReset_NoName):
 package ImportForeignModule_DefaultReset_NoName_InputReset_NoName;
 module mkMod(Empty);
   let _bv2 <- exposeCurrentClock;

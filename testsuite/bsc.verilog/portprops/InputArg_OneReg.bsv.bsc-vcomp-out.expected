@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InputArg_OneReg.bsv
 code generation for sysInputArg_OneReg starts
-=== IOproperties:
+=== IOproperties (InputArg_OneReg sysInputArg_OneReg):
 Name                         I/O  size props
 b                              I    16 reg
 CLK                            I     1 clock

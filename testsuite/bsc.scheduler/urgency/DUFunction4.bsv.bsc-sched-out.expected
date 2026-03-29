@@ -1,7 +1,7 @@
 checking package dependencies
 compiling DUFunction4.bsv
 code generation for sysDUFunction4 starts
-=== schedule:
+=== schedule (DUFunction4 sysDUFunction4):
 parallel: [esposito: [setGo -> [],
 		      clearGo -> [],
 		      deq -> [],
@@ -29,7 +29,7 @@ order: [clearGo,
 
 -----
 
-=== resources:
+=== resources (DUFunction4 sysDUFunction4):
 [(cntrs_0.read, [(cntrs_0.read, 1)]),
  (cntrs_0.write, [(cntrs_0.write cntrs_0_PLUS_1___d10, 1)]),
  (cntrs_1.read, [(cntrs_1.read, 1)]),
@@ -70,7 +70,7 @@ order: [clearGo,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DUFunction4 sysDUFunction4):
 SchedInfo
 [RDY_clearGo CF [RDY_clearGo, RDY_deq, RDY_first, clearGo, deq, first, setGo],
  RDY_deq CF [RDY_deq, RDY_first, clearGo, deq, first, setGo],

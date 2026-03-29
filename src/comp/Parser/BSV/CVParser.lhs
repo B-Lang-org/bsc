@@ -5900,7 +5900,7 @@ tokenize and parse string into CSyntax
 >       t <- getNow
 >       start flags DFvpp
 >       vppOut@(ppsource, includes)  <- preprocess errh flags initpos source
->       let dumpnames = (baseName (dropSuf filename), "", "")
+>       let dumpnames = (Just (baseName (dropSuf filename)), Nothing, Nothing)
 >       t <- dump errh flags t DFvpp dumpnames (VPPOut vppOut)
 >       when ( preprocessOnly flags ) $ do putStrLn ppsource
 >                                          exitOK errh

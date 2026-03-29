@@ -5,18 +5,18 @@ Warning: "IfcRuleWarning.bsv", line 6, column 8: (G0010)
   Rule "bar" was treated as more urgent than "baz". Conflicts:
     "bar" cannot fire before "baz": calls to the_r.write vs. the_r.read
     "baz" cannot fire before "bar": calls to the_r.write vs. the_r.read
-=== schedule:
+=== schedule (IfcRuleWarning sysIfcRuleWarning):
 parallel: [esposito: [bar -> [], RL_baz -> [bar]]]
 order: [bar, RL_baz]
 
 -----
 
-=== resources:
+=== resources (IfcRuleWarning sysIfcRuleWarning):
 [(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h97, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IfcRuleWarning sysIfcRuleWarning):
 SchedInfo [RDY_bar CF [RDY_bar, bar], bar C bar] [] [] []
 
 -----

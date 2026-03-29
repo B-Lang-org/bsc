@@ -9,13 +9,13 @@ Warning: "CaseTest_sat-yices.bsv", line 6, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (CaseTest_sat-yices sysCaseTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (CaseTest_sat-yices sysCaseTest):
 [(idx.read, [(idx.read, 1)]),
  (u0.read, [(u0.read, 1)]),
  (u1.read, [(u1.read, 1)]),
@@ -29,7 +29,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (CaseTest_sat-yices sysCaseTest):
 SchedInfo [] [] [] []
 
 -----

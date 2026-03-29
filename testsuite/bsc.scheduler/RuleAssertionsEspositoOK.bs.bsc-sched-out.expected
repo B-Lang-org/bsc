@@ -1,18 +1,18 @@
 checking package dependencies
 compiling RuleAssertionsEspositoOK.bs
 code generation for sysRuleAssertionsEspositoOK starts
-=== schedule:
+=== schedule (RuleAssertionsEspositoOK sysRuleAssertionsEspositoOK):
 parallel: [esposito: [RL_setT -> [], RL_setF -> [RL_setT], RL_flip -> [RL_setF, RL_setT]]]
 order: [RL_setT, RL_setF, RL_flip]
 
 -----
 
-=== resources:
+=== resources (RuleAssertionsEspositoOK sysRuleAssertionsEspositoOK):
 [(a.read, [(a.read, 1)]), (a.write, [(a.write NOT_a___d2, 1), (a.write 1'd1, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (RuleAssertionsEspositoOK sysRuleAssertionsEspositoOK):
 SchedInfo [] [] [] []
 
 -----

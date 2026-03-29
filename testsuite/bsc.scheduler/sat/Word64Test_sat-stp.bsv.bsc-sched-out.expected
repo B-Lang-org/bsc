@@ -5,20 +5,20 @@ Warning: "Word64Test_sat-stp.bsv", line 6, column 8: (G0010)
   Rule "aa" was treated as more urgent than "bb". Conflicts:
     "aa" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "aa": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (Word64Test_sat-stp sysWord64Test):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (Word64Test_sat-stp sysWord64Test):
 [(ua.read, [(ua.read, 1)]),
  (uc.read, [(uc.read, 1)]),
  (uc.write, [(uc.write x__h248, 1), (uc.write x__h307, 1), (uc.write x__h373, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Word64Test_sat-stp sysWord64Test):
 SchedInfo [] [] [] []
 
 -----

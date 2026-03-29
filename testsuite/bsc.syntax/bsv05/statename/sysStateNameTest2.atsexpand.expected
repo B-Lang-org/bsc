@@ -1,3 +1,4 @@
+=== ATSexpand (StateNameTest2 sysStateNameTest2):
 APackage sysStateNameTest2
 -- APackage parameters
 []
@@ -35,3 +36,5 @@ b :: ABSTRACT:  Prelude.VReg = RegN
 -- AP instance comments
 -- AP remaining proof obligations
 []
+
+-----

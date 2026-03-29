@@ -1,13 +1,13 @@
 checking package dependencies
 compiling ConfigReg2.bsv
 code generation for sysConfigReg starts
-=== schedule:
+=== schedule (ConfigReg2 sysConfigReg):
 parallel: [esposito: [_write -> [], _read -> [], RL_the_r_propagate -> []]]
 order: [_write, _read, RL_the_r_propagate]
 
 -----
 
-=== resources:
+=== resources (ConfigReg2 sysConfigReg):
 [(the_r_the_r.read, [(the_r_the_r.read, 1)]),
  (the_r_the_r.write, [(the_r_the_r.write x__h151, 1)]),
  (the_r_the_rw.wget, [(the_r_the_rw.wget, 1)]),
@@ -16,7 +16,7 @@ order: [_write, _read, RL_the_r_propagate]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ConfigReg2 sysConfigReg):
 SchedInfo
 [RDY__read CF [RDY__read, _read, _write],
  RDY__write CF [RDY__read, RDY__write, _read, _write],

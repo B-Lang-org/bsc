@@ -7,7 +7,7 @@ Error: "ResourceOneRuleFailIII.bs", line 27, column 12: (G0004)
   and
     a.upd(...)
   For the complete expressions use the flag `-show-range-conflict'.
-=== schedule:
+=== schedule (ResourceOneRuleFailIII sysResourceOneRuleFailIII):
 Nothing
 
 -----

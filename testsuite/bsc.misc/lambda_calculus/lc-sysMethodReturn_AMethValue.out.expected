@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (MethodReturn_AMethValue sysMethodReturn_AMethValue):
 data MOD_sysMethodReturn_AMethValue =
     MOD_sysMethodReturn_AMethValue
 	{ inst_s__sysMethodReturn_AMethValue :: MOD_mkMethodReturn_AMethValue_Sub };
@@ -30,3 +31,5 @@ meth_m_sysMethodReturn_AMethValue =
 meth_RDY_m_sysMethodReturn_AMethValue :: MOD_sysMethodReturn_AMethValue -> Bool;
 meth_RDY_m_sysMethodReturn_AMethValue =
     (\ (state0 :: MOD_sysMethodReturn_AMethValue) -> True);
+
+-----

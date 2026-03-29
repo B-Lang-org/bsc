@@ -1,3 +1,4 @@
+=== dumpSAL (MergeIf2 sysMergeIf2):
 CTX_sysMergeIf2 : CONTEXT =
 BEGIN
   
@@ -64,3 +65,5 @@ BEGIN
     IN ( TRUE, state4 ) ;
   
 END
+
+-----

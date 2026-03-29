@@ -16,7 +16,7 @@ Warning: "ResourceTwoRules.bs", line 19, column 0: (G0010)
   Rule "Contender" was treated as more urgent than "Contender_1". Conflicts:
     "Contender" cannot fire before "Contender_1": resource limit on a.sub
     "Contender_1" cannot fire before "Contender": resource limit on a.sub
-=== schedule:
+=== schedule (ResourceTwoRules sysResourceTwoRules):
 parallel: [esposito: [RL_Contender -> [],
 		      RL_Contender_1 -> [RL_Contender],
 		      RL_Contender_2 -> [],
@@ -32,7 +32,7 @@ order: [RL_Contender,
 
 -----
 
-=== resources:
+=== resources (ResourceTwoRules sysResourceTwoRules):
 [(a.sub,
   [(a.sub 8'd0, 5),
    (a.sub 8'd1, 5),
@@ -43,7 +43,7 @@ order: [RL_Contender,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ResourceTwoRules sysResourceTwoRules):
 SchedInfo [] [] [] []
 
 -----

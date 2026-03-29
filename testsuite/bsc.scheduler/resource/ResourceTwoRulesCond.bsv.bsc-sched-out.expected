@@ -132,7 +132,7 @@ Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0010)
   Rule "contend_2" was treated as more urgent than "contend_3". Conflicts:
     "contend_2" cannot fire before "contend_3": resource limit on rf.sub
     "contend_3" cannot fire before "contend_2": resource limit on rf.sub
-=== schedule:
+=== schedule (ResourceTwoRulesCond sysResourceTwoRulesCond):
 parallel: [esposito: [RL_contend -> [],
 		      RL_contend_1 -> [RL_contend],
 		      RL_contend_2 -> [RL_contend_1, RL_contend],
@@ -152,7 +152,7 @@ order: [RL_contend,
 
 -----
 
-=== resources:
+=== resources (ResourceTwoRulesCond sysResourceTwoRulesCond):
 [(dest_0.write, [(if do_write_0__h1695 then dest_0.write x__h1930, 1)]),
  (dest_1.write, [(if do_write_1__h1996 then dest_1.write x__h2007, 1)]),
  (dest_2.write, [(if do_write_2__h2071 then dest_2.write x__h2082, 1)]),
@@ -181,7 +181,7 @@ order: [RL_contend,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ResourceTwoRulesCond sysResourceTwoRulesCond):
 SchedInfo [] [] [] []
 
 -----

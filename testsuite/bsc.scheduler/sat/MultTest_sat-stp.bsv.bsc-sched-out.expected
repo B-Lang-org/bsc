@@ -9,13 +9,13 @@ Warning: "MultTest_sat-stp.bsv", line 9, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (MultTest_sat-stp sysMultTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (MultTest_sat-stp sysMultTest):
 [(ua.read, [(ua.read, 1)]),
  (ub.read, [(ub.read, 1)]),
  (uc.read, [(uc.read, 1)]),
@@ -24,7 +24,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (MultTest_sat-stp sysMultTest):
 SchedInfo [] [] [] []
 
 -----

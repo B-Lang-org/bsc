@@ -1,3 +1,4 @@
+=== ATS (ShiftMult sysShiftMult):
 APackage sysShiftMult
 -- APackage parameters
 []
@@ -71,3 +72,5 @@ clock domain = Just (0), resets = [0]
 -- AP instance comments
 -- AP remaining proof obligations
 []
+
+-----

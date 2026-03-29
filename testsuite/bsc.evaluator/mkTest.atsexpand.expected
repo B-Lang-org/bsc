@@ -1,3 +1,4 @@
+=== ATSexpand (IfLiftingPredOpt mkTest):
 APackage mkTest
 -- APackage parameters
 []
@@ -84,3 +85,5 @@ rule RL_Rule "Rule":
 -- AP instance comments
 -- AP remaining proof obligations
 []
+
+-----

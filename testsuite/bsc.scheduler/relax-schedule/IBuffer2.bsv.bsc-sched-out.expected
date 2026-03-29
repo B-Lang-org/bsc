@@ -4,7 +4,7 @@ compiling ./X86_Datatypes.bsv
 compiling ./BaseTypes.bsv
 compiling IBuffer2.bsv
 code generation for mkIBuffer starts
-=== schedule:
+=== schedule (IBuffer2 mkIBuffer):
 parallel: [esposito: [handleIBufferRequest -> [],
 		      flushAddress -> [],
 		      handleCacheResponse -> [],
@@ -32,7 +32,7 @@ order: [handleIBufferRequest,
 
 -----
 
-=== resources:
+=== resources (IBuffer2 mkIBuffer):
 [(cacheAddrQueue_caq_deqw.whas, [(cacheAddrQueue_caq_deqw.whas, 1)]),
  (cacheAddrQueue_caq_deqw.wset, [(cacheAddrQueue_caq_deqw.wset, 1)]),
  (cacheAddrQueue_caq_enqw.wget, [(cacheAddrQueue_caq_enqw.wget, 1)]),
@@ -81,7 +81,7 @@ order: [handleIBufferRequest,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IBuffer2 mkIBuffer):
 SchedInfo
 [RDY_cacheRequest CF [RDY_cacheRequest,
 		      RDY_flush,

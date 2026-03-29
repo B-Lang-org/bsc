@@ -1,13 +1,13 @@
 checking package dependencies
 compiling PutUrgency.bsv
 code generation for mkPutTest starts
-=== schedule:
+=== schedule (PutUrgency mkPutTest):
 parallel: [esposito: [RL_display_output -> [], put -> []]]
 order: [RL_display_output, put]
 
 -----
 
-=== resources:
+=== resources (PutUrgency mkPutTest):
 [(lfifo.deq, [(lfifo.deq, 1)]),
  (lfifo.enq, [(lfifo.enq put, 1)]),
  (lfifo.first, [(lfifo.first, 1)]),
@@ -16,7 +16,7 @@ order: [RL_display_output, put]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (PutUrgency mkPutTest):
 SchedInfo [RDY_put CF [RDY_put, put], put C put] [] [(put, [(Left RL_display_output)])] []
 
 -----

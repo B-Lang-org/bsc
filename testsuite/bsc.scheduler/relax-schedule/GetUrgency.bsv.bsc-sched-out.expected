@@ -2,7 +2,7 @@ checking package dependencies
 compiling ./BypassFIFO.bsv
 compiling GetUrgency.bsv
 code generation for mkGetTest starts
-=== schedule:
+=== schedule (GetUrgency mkGetTest):
 parallel: [esposito: [RL_enq -> [],
 		      RL_bypass_fifo_doResult -> [],
 		      get -> [],
@@ -16,7 +16,7 @@ order: [RL_enq,
 
 -----
 
-=== resources:
+=== resources (GetUrgency mkGetTest):
 [(bypass_fifo_deqw.whas, [(bypass_fifo_deqw.whas, 1)]),
  (bypass_fifo_deqw.wset, [(bypass_fifo_deqw.wset, 1)]),
  (bypass_fifo_enqw.wget, [(bypass_fifo_enqw.wget, 1)]),
@@ -40,7 +40,7 @@ order: [RL_enq,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (GetUrgency mkGetTest):
 SchedInfo
 [RDY_get CF [RDY_get, get], get C get]
 []

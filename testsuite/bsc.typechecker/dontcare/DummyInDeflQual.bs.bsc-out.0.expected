@@ -2,7 +2,7 @@ checking package dependencies
 compiling DummyInDeflQual.bs
 Warning: "DummyInDeflQual.bs", line 5, column 10: (P0223)
   Definition of `x' is not used.
-=== internal:
+=== internal (DummyInDeflQual):
 IPackage DummyInDeflQual
   --linked packages
 

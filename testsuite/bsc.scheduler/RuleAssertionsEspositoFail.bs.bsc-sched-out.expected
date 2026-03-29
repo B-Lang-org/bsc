@@ -9,7 +9,7 @@ Error: "RuleAssertionsEspositoFail.bs", line 17, column 48: (G0005)
     esposito: [RL_setT -> [],
 	       RL_setF -> [RL_setT],
 	       RL_flip -> [RL_setF, RL_setT]]
-=== schedule:
+=== schedule (RuleAssertionsEspositoFail sysRuleAssertionsEspositoFail):
 Just (parallel: [esposito: [RL_setT -> [], RL_setF -> [RL_setT], RL_flip -> [RL_setF, RL_setT]]]
       order: [RL_setT, RL_setF, RL_flip])
 

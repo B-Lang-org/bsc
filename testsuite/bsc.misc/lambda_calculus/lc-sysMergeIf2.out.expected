@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (MergeIf2 sysMergeIf2):
 data MOD_sysMergeIf2 =
     MOD_sysMergeIf2
 	{ inst_w__sysMergeIf2 :: MOD_RegN #17
@@ -77,3 +78,5 @@ rule_RL_r_sysMergeIf2 =
 	       else state3
 	 }
      in mktuple guard4 state4 ());
+
+-----

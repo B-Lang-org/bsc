@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_InputClock_NoName_VarExpr):
 package ImportForeignModule_InputClock_NoName_VarExpr;
 module mkMyReg#(Clock iclk)(Reg#(Bool));
   Reg#(Bool) _m__;

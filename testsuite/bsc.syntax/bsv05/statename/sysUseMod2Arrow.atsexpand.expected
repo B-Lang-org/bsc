@@ -1,3 +1,4 @@
+=== ATSexpand (UseMod2Arrow sysUseMod2Arrow):
 APackage sysUseMod2Arrow
 -- APackage parameters
 []
@@ -36,3 +37,5 @@ e_r :: ABSTRACT:  Prelude.VReg = RegN
 -- AP instance comments
 -- AP remaining proof obligations
 []
+
+-----

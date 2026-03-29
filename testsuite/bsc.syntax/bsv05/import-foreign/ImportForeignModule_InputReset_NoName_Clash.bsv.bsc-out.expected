@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_InputReset_NoName_Clash):
 package ImportForeignModule_InputReset_NoName_Clash;
 interface Ifc;
     method Reset _rst__4();

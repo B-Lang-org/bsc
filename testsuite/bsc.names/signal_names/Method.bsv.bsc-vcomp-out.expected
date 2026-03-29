@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Method.bsv
 code generation for sysMethod starts
-=== ATS:
+=== ATS (Method sysMethod):
 APackage sysMethod
 -- APackage parameters
 []

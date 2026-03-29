@@ -1,7 +1,7 @@
 checking package dependencies
 compiling DescendingUrgencyAttributeSplitIf.bsv
 code generation for sysDescendingUrgencyAttributeSplitIf starts
-=== schedule:
+=== schedule (DescendingUrgencyAttributeSplitIf sysDescendingUrgencyAttributeSplitIf):
 parallel: [esposito: [RL_test_rule_2_T_T -> [],
 		      RL_test_rule_2_T_F -> [],
 		      RL_test_rule_2_F -> [],
@@ -10,7 +10,7 @@ order: [RL_test_rule_2_T_T, RL_test_rule_2_T_F, RL_test_rule_1, RL_test_rule_2_F
 
 -----
 
-=== resources:
+=== resources (DescendingUrgencyAttributeSplitIf sysDescendingUrgencyAttributeSplitIf):
 [(count_r.read, [(count_r.read, 1)]),
  (count_r.write,
   [(count_r.write x__h210, 1),
@@ -22,7 +22,7 @@ order: [RL_test_rule_2_T_T, RL_test_rule_2_T_F, RL_test_rule_1, RL_test_rule_2_F
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DescendingUrgencyAttributeSplitIf sysDescendingUrgencyAttributeSplitIf):
 SchedInfo [] [] [] []
 
 -----

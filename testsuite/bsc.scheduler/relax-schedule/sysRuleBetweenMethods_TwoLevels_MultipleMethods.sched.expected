@@ -1,3 +1,4 @@
+=== vschedinfo (RuleBetweenMethods_TwoLevels_MultipleMethods sysRuleBetweenMethods_TwoLevels_MultipleMethods):
 SchedInfo
 [RDY_am1 CF [RDY_am1, RDY_am2, RDY_am3, RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
  RDY_am2 CF [RDY_am2, RDY_am3, RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
@@ -25,3 +26,5 @@ SchedInfo
  ((vm3, am3), [s.RL_sub_rule_btwn_vms_am3])]
 [(am1, [(Right am1)]), (am2, [(Right am2)]), (am3, [(Right am3)])]
 []
+
+-----

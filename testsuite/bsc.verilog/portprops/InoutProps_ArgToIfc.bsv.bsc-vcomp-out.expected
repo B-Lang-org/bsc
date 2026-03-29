@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InoutProps_ArgToIfc.bsv
 code generation for sysInoutProps_ArgToIfc starts
-=== IOproperties:
+=== IOproperties (InoutProps_ArgToIfc sysInoutProps_ArgToIfc):
 Name                         I/O  size props
 CLK                            I     1 unused
 RST_N                          I     1 unused

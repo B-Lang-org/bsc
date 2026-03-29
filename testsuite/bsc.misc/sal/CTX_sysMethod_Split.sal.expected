@@ -1,3 +1,4 @@
+=== dumpSAL (Method_Split sysMethod_Split):
 CTX_sysMethod_Split : CONTEXT =
 BEGIN
   
@@ -45,3 +46,5 @@ BEGIN
   meth_RDY_m (state0 : STATE) : BOOLEAN = TRUE ;
   
 END
+
+-----

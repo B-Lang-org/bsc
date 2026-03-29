@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InoutProps_UnusedArgBVI.bsv
 code generation for sysInoutProps_UnusedArgBVI starts
-=== IOproperties:
+=== IOproperties (InoutProps_UnusedArgBVI sysInoutProps_UnusedArgBVI):
 Name                         I/O  size props
 CLK                            I     1 clock
 RST_N                          I     1 reset

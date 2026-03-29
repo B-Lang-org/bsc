@@ -1,7 +1,7 @@
 checking package dependencies
 compiling En2Rdy5.bsv
 code generation for mkEn2Rdy5 starts
-=== pathsPostSched:
+=== pathsPostSched (En2Rdy5 mkEn2Rdy5):
 Combinational paths from inputs to outputs:
   EN_start -> RDY_result
 

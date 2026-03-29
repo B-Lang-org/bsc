@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_DefaultReset_NoName_NonVarExpr):
 package ImportForeignModule_DefaultReset_NoName_NonVarExpr;
 module mkMyReg(Reg#(Bool));
   let _bv1 <- exposeCurrentClock;

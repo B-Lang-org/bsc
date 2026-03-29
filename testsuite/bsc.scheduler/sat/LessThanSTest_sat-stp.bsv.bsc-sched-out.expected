@@ -9,13 +9,13 @@ Warning: "LessThanSTest_sat-stp.bsv", line 10, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (LessThanSTest_sat-stp sysLessThanSTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (LessThanSTest_sat-stp sysLessThanSTest):
 [(ua.read, [(ua.read, 1)]),
  (ub.read, [(ub.read, 1)]),
  (uc.read, [(uc.read, 1)]),
@@ -24,7 +24,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (LessThanSTest_sat-stp sysLessThanSTest):
 SchedInfo [] [] [] []
 
 -----

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling LiteralNum_ENotation.bsv
 code generation for sysLiteralNum_ENotation starts
-=== ATS:
+=== ATS (LiteralNum_ENotation sysLiteralNum_ENotation):
 APackage sysLiteralNum_ENotation
 -- APackage parameters
 []

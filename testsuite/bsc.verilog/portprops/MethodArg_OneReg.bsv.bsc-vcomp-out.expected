@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MethodArg_OneReg.bsv
 code generation for sysMethodArg_OneReg starts
-=== IOproperties:
+=== IOproperties (MethodArg_OneReg sysMethodArg_OneReg):
 Name                         I/O  size props
 RDY_m                          O     1 const
 CLK                            I     1 clock

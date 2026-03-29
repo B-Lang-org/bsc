@@ -1,13 +1,13 @@
 checking package dependencies
 compiling SharedPortsFIFO.bsv
 code generation for sysSharedPortsFIFO starts
-=== schedule:
+=== schedule (SharedPortsFIFO sysSharedPortsFIFO):
 parallel: [esposito: [RL_do_enq -> [], RL_do_otherwise -> []]]
 order: [RL_do_enq, RL_do_otherwise]
 
 -----
 
-=== resources:
+=== resources (SharedPortsFIFO sysSharedPortsFIFO):
 [(f.enq, [(f.enq 8'd0, 1)]),
  (f.i_notFull, [(f.i_notFull, 1)]),
  (f.notFull, [(f.notFull, 1)]),
@@ -16,7 +16,7 @@ order: [RL_do_enq, RL_do_otherwise]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SharedPortsFIFO sysSharedPortsFIFO):
 SchedInfo [] [] [] []
 
 -----

@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_InputClock_NoName_NonVarExpr_Dup):
 package ImportForeignModule_InputClock_NoName_NonVarExpr_Dup;
 module launderClock#(Clock i)(Clock);
   i

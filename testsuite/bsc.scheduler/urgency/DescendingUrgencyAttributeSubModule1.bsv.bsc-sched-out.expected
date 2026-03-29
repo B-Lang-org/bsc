@@ -1,19 +1,19 @@
 checking package dependencies
 compiling DescendingUrgencyAttributeSubModule1.bsv
 code generation for sysDescendingUrgencyAttributeSubModule1 starts
-=== schedule:
+=== schedule (DescendingUrgencyAttributeSubModule1 sysDescendingUrgencyAttributeSubModule1):
 parallel: [esposito: [RL_test_rule_1 -> [], RL_m_test_rule_2 -> [RL_test_rule_1]]]
 order: [RL_test_rule_1, RL_m_test_rule_2]
 
 -----
 
-=== resources:
+=== resources (DescendingUrgencyAttributeSubModule1 sysDescendingUrgencyAttributeSubModule1):
 [(count_r.read, [(count_r.read, 1)]),
  (count_r.write, [(count_r.write x__h152, 1), (count_r.write x__h102, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DescendingUrgencyAttributeSubModule1 sysDescendingUrgencyAttributeSubModule1):
 SchedInfo [] [] [] []
 
 -----

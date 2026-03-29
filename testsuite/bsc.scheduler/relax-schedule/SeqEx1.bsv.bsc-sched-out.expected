@@ -1,13 +1,13 @@
 checking package dependencies
 compiling SeqEx1.bsv
 code generation for mkSeqEx1 starts
-=== schedule:
+=== schedule (SeqEx1 mkSeqEx1):
 parallel: [esposito: [a -> [], b -> [], RL_c -> [], RL_d -> [RL_c]]]
 order: [b, RL_c, RL_d, a]
 
 -----
 
-=== resources:
+=== resources (SeqEx1 mkSeqEx1):
 [(r1.read, [(r1.read, 1)]),
  (r1.write, [(r1.write x__h291, 1), (r1.write x__h335, 1)]),
  (r2.write, [(r2.write rw2_whas____d5, 1)]),
@@ -18,7 +18,7 @@ order: [b, RL_c, RL_d, a]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SeqEx1 mkSeqEx1):
 SchedInfo
 [RDY_a CF [RDY_a, RDY_b, a, b], RDY_b CF [RDY_b, a, b], [a, b] SBR a, b C b]
 [((b, a), [RL_c, RL_d])]

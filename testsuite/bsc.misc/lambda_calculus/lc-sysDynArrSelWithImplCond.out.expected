@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (DynArrSelWithImplCond sysDynArrSelWithImplCond):
 data MOD_sysDynArrSelWithImplCond =
     MOD_sysDynArrSelWithImplCond
 	{ inst_fs_0__sysDynArrSelWithImplCond :: MOD_FIFO2 #8
@@ -69,3 +70,5 @@ meth_RDY_get_sysDynArrSelWithImplCond =
 		  else if (primEQ def_x__h523 (2 :: Bit #2))
 		       then def_fs_2_i_notEmpty____d9
 		       else if (primEQ def_x__h523 (3 :: Bit #2)) then def_fs_3_i_notEmpty____d10 else (1 :: Bit #1)));
+
+-----

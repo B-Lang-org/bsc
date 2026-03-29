@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MethodRead.bsv
 code generation for sysMethodRead starts
-=== ATS:
+=== ATS (MethodRead sysMethodRead):
 APackage sysMethodRead
 -- APackage parameters
 []

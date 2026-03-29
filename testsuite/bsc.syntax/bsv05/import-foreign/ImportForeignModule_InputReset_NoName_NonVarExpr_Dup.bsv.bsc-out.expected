@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_InputReset_NoName_NonVarExpr_Dup):
 package ImportForeignModule_InputReset_NoName_NonVarExpr_Dup;
 module launderReset#(Reset i)(Reset);
   i

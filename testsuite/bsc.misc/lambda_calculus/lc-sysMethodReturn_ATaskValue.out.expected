@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (MethodReturn_ATaskValue sysMethodReturn_ATaskValue):
 data MOD_sysMethodReturn_ATaskValue = MOD_sysMethodReturn_ATaskValue { };
 
 ctor_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue;
@@ -18,3 +19,5 @@ meth_m_sysMethodReturn_ATaskValue =
 meth_RDY_m_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue -> Bool;
 meth_RDY_m_sysMethodReturn_ATaskValue =
     (\ (state0 :: MOD_sysMethodReturn_ATaskValue) -> True);
+
+-----

@@ -11,6 +11,7 @@ import System.IO.Unsafe(unsafePerformIO)
 import System.CPUTime(getCPUTime)
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
+import Data.Maybe(fromMaybe)
 import qualified Data.Set as S
 import System.Time -- XXX: from old-time package
 -- hbc libs
@@ -23,7 +24,7 @@ import IOMutVar
 
 -- compiler libs
 import Flags( Flags(..), verbose, quiet,
-             DumpFlag(..), dumpInfo, hasDumpStrict)
+             DumpFlag(..), dumpInfo)
 -- import CSyntax
 import CVPrint
 import IdPrint
@@ -66,7 +67,7 @@ fmtDouble = printf "%.2f"
 start :: Flags -> DumpFlag -> IO ()
 start flags d = when (verbose flags) (putStrLnF ("starting " ++ drop 2 (show d)) >> hFlush stdout)
 
-type DumpNames = (String {- file name (last path component) -}, String {- package name -}, String {- module name or empty -})
+type DumpNames = (Maybe String {- file name (last path component) -}, Maybe String {- package name -}, Maybe String {- module name -})
 
 dump :: (PPrint a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
@@ -105,8 +106,14 @@ dumpStr :: ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> String
 dumpStr errh flags t d names@(file, pkg, mod) a = do
     -- the name of this stage
     let sname = drop 2 (show d)
-    let names' = (file,pkg,mod,sname)
-    let header = "=== " ++ sname ++ ":\n"
+    let names' = (fromMaybe "" file, fromMaybe "" pkg, fromMaybe "" mod, sname)
+    -- Build a coordinate string from the most specific available name
+    let coords = case (file, pkg, mod) of
+                   (_, _, Just m) -> Just $ maybe m (\p -> p ++ " " ++ m) pkg
+                   (_, Just p, _) -> Just p
+                   (Just f, _, _) -> Just f
+                   _              -> Nothing
+    let header = "=== " ++ sname ++ maybe "" (\c -> " (" ++ c ++ ")") coords ++ ":\n"
     let footer = "\n-----\n"
     -- first, dump the info appropriately
     case (dumpInfo flags d) of
@@ -114,17 +121,10 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
             let dumpPath = substNames names' file
             currentDumped <- readVar dumpedFiles
             let hasBeenDumped = dumpPath `S.member` currentDumped
-            let isSpecificDump = hasDumpStrict flags d
-            -- Don't allow explicit parsed dumps to accumulate to avoid a double dump
-            -- from the double parse (first for dependencies and then for code).
-            let doubleParsedPasses = [DFvpp, DFbsvlex, DFparsed]
-            let isDoubleParseDump = isSpecificDump && d `elem` doubleParsedPasses
-            let writeFileFn = if hasBeenDumped && not isDoubleParseDump
+            let writeFileFn = if hasBeenDumped
                               then appendFileCatch
                               else writeFileCatch
-            -- Add a header and footer to -dall dumps in case they end up in the same file.
-            let a' = if hasDumpStrict flags d then a else header ++ a ++ footer
-            writeFileFn errh dumpPath a'
+            writeFileFn errh dumpPath (header ++ a ++ footer)
             writeVar dumpedFiles (S.insert dumpPath currentDumped)
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
@@ -141,7 +141,7 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
                         sname ++ " flag")
              exitOK errh
         (Just (pass, Just pkg_or_mod))
-          | pass == d && (pkg_or_mod == pkg || pkg_or_mod == mod) -> do
+          | pass == d && (Just pkg_or_mod == pkg || Just pkg_or_mod == mod) -> do
              putStrLnF ("\ncompilation stopped because of -KILL" ++
                         sname ++ "=" ++ pkg_or_mod ++ " flag")
              exitOK errh

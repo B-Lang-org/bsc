@@ -276,7 +276,7 @@ compile_with_deps errh flags name = do
     when (verb) $ putStrLnF "checking package dependencies"
 
     t <- getNow
-    let dumpnames = (baseName (dropSuf name), "", "")
+    let dumpnames = (Just (baseName (dropSuf name)), Nothing, Nothing)
 
     -- get the list of depended files which need recompiling (with parsed packages and warnings)
     start flags DFdepend
@@ -337,7 +337,7 @@ compilePackage
     -- Encode the file path for internal use
     pwd <- getCurrentDirectory
     let name = createEncodedFullFilePath name_orig pwd
-        dumpnames = (baseName (dropSuf name), getIdString (unQualId pkgId), "")
+        dumpnames = (Just (baseName (dropSuf name)), Just (getIdString (unQualId pkgId)), Nothing)
 
     clkTime <- getClockTime
     epochTime <- getPOSIXTime
@@ -567,8 +567,8 @@ compilePackage
     let gen :: (IPackage HeapData, Bool) -> [WrapInfo] -> IO (IPackage HeapData, Bool)
         gen (im, !success) []  = return (im, success)
         gen (im, !success) (wi@(WrapInfo { mod_nm = i, wrapped_mod = i' }) : xs) = do
-            let (filename, pkgname, _) = dumpnames
-                dumpnames' = (filename, pkgname, getIdString (unQualId i))
+            let (mfile, mpkg, _) = dumpnames
+                dumpnames' = (mfile, mpkg, Just (getIdString (unQualId i)))
                 fwrapper = i `elem` map (\ (i, _, _, _, _) -> i) funcs
 
             let
@@ -1394,7 +1394,7 @@ simLink errh flags toplevel afilenames cfilenames = do
     let t = tStart
 
     -- XXX (file, package, module) names for %-substitution in dump filenames
-    let dumpnames = ("","","")
+    let dumpnames = (Nothing, Nothing, Nothing)
 
     -- in case the user listed the same file twice
     -- (they could still have given two .ba for the same module,
@@ -1847,7 +1847,7 @@ vLink errh flags topmod_name vfilenames0 afilenames cfilenames = do
     let t = tStart
 
     -- XXX (file, package, module) names for %-substitution in dump filenames
-    let dumpnames = ("","","")
+    let dumpnames = (Nothing, Nothing, Nothing)
 
     pwd <- getCurrentDirectory
     let name = createEncodedFullFilePath "placeholder" pwd
@@ -2140,7 +2140,7 @@ vGenMods t0 flags abmis = do
             let modId = apkg_name (abmi_apkg abmi)
                 modstr = getIdString (unQualId modId)
             -- XXX should the file and package name be set?
-            let dumpnames = ("", "", modstr)
+            let dumpnames = (Nothing, Nothing, Just modstr)
             -- verbose message
             when (verbose flags) $ putStrLnF ("*****")
             when (showCodeGen flags || verbose flags) $

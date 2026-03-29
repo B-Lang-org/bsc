@@ -95,7 +95,7 @@ Warning: "TooManyBlockersEsposito.bs", line 14, column 0: (G0010)
       calls to arrs_15.upd vs. arrs_15.upd
     "Victim_15" cannot fire before "Blocker":
       calls to arrs_15.upd vs. arrs_15.upd
-=== schedule:
+=== schedule (TooManyBlockersEsposito sysTooManyBlockersEsposito):
 parallel: [esposito: [RL_Blocker -> [],
 		      RL_Victim -> [RL_Blocker],
 		      RL_Victim_1 -> [RL_Blocker],
@@ -133,7 +133,7 @@ order: [RL_Blocker,
 
 -----
 
-=== resources:
+=== resources (TooManyBlockersEsposito sysTooManyBlockersEsposito):
 [(arrs_0.upd, [(arrs_0.upd 1'd1 1'd0, 1), (arrs_0.upd 1'd1 1'd1, 1)]),
  (arrs_1.upd, [(arrs_1.upd 1'd1 1'd0, 1), (arrs_1.upd 1'd1 1'd1, 1)]),
  (arrs_10.upd, [(arrs_10.upd 1'd1 1'd0, 1), (arrs_10.upd 1'd1 1'd1, 1)]),
@@ -153,7 +153,7 @@ order: [RL_Blocker,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (TooManyBlockersEsposito sysTooManyBlockersEsposito):
 SchedInfo [] [] [] []
 
 -----

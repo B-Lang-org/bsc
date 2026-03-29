@@ -11,19 +11,19 @@ Warning: "ResourcePredicates.bs", line 9, column 0: (G0010)
       calls to
 	a.upd vs. a.sub
 	a.upd vs. a.upd
-=== schedule:
+=== schedule (ResourcePredicates sysResourcePredicates):
 parallel: [esposito: [RL_A -> [], RL_B -> [RL_A]]]
 order: [RL_A, RL_B]
 
 -----
 
-=== resources:
+=== resources (ResourcePredicates sysResourcePredicates):
 [(a.sub, [(a.sub 2'd0, 2), (a.sub 2'd2, 1)]),
  (a.upd, [(a.upd 2'd1 x__h252, 1), (a.upd 2'd3 x__h269, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ResourcePredicates sysResourcePredicates):
 SchedInfo [] [] [] []
 
 -----

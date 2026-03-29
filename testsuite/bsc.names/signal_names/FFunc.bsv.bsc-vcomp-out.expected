@@ -3,7 +3,7 @@ compiling FFunc.bsv
 Foreign import file created: fnFFunc.ba
 VPI wrapper files created: vpi_wrapper_fnFFunc.{c,h}
 code generation for sysFFunc starts
-=== ATS:
+=== ATS (FFunc sysFFunc):
 APackage sysFFunc
 -- APackage parameters
 []

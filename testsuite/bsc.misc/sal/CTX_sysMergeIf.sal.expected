@@ -1,3 +1,4 @@
+=== dumpSAL (MergeIf sysMergeIf):
 CTX_sysMergeIf : CONTEXT =
 BEGIN
   
@@ -57,3 +58,5 @@ BEGIN
     IN ( def_f3_i_notFull_AND_f2_i_notFull_AND_f1_i_notFull___d5, state7 ) ;
   
 END
+
+-----

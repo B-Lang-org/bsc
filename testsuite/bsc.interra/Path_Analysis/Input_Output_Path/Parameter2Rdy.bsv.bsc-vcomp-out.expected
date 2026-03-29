@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Parameter2Rdy.bsv
 code generation for mkParameter2Rdy starts
-=== pathsPostSched:
+=== pathsPostSched (Parameter2Rdy mkParameter2Rdy):
 Combinational paths from inputs to outputs:
   param -> RDY_result
 

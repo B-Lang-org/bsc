@@ -1,5 +1,5 @@
 checking package dependencies
-=== parsed:
+=== parsed (ImportForeignModule_DefaultClock_Underscore):
 package ImportForeignModule_DefaultClock_Underscore;
 module mkMod(Empty);
   let _bv0 <- exposeCurrentClock;

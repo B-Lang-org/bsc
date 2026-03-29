@@ -21,7 +21,7 @@ Warning: "DUFunction2.bsv", line 19, column 8: (G0010)
   Rule "doit_4" was treated as more urgent than "doit_5". Conflicts:
     "doit_4" cannot fire before "doit_5": calls to outf.enq vs. outf.enq
     "doit_5" cannot fire before "doit_4": calls to outf.enq vs. outf.enq
-=== schedule:
+=== schedule (DUFunction2 sysDUFunction2):
 parallel: [esposito: [setGo -> [],
 		      clearGo -> [],
 		      deq -> [],
@@ -36,7 +36,7 @@ order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4
 
 -----
 
-=== resources:
+=== resources (DUFunction2 sysDUFunction2):
 [(cntrs_0.read, [(cntrs_0.read, 1)]),
  (cntrs_0.write, [(cntrs_0.write cntrs_0_PLUS_1___d5, 1)]),
  (cntrs_1.read, [(cntrs_1.read, 1)]),
@@ -75,7 +75,7 @@ order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DUFunction2 sysDUFunction2):
 SchedInfo
 [RDY_clearGo CF [RDY_clearGo, RDY_deq, RDY_first, clearGo, deq, first, setGo],
  RDY_deq CF [RDY_deq, RDY_first, clearGo, deq, first, setGo],

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MethodValue_Const.bsv
 code generation for sysMethodValue_Const starts
-=== IOproperties:
+=== IOproperties (MethodValue_Const sysMethodValue_Const):
 Name                         I/O  size props
 m                              O    16 const
 RDY_m                          O     1 const

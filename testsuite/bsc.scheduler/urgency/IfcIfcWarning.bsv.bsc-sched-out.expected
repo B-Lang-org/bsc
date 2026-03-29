@@ -1,19 +1,19 @@
 checking package dependencies
 compiling IfcIfcWarning.bsv
 code generation for sysIfcIfcWarning starts
-=== schedule:
+=== schedule (IfcIfcWarning sysIfcIfcWarning):
 parallel: [esposito: [bar -> [], baz -> []]]
 order: [bar, baz]
 
 -----
 
-=== resources:
+=== resources (IfcIfcWarning sysIfcIfcWarning):
 [(the_r.read, [(the_r.read, 1)]),
  (the_r.write, [(the_r.write x__h108, 1), (the_r.write x__h134, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IfcIfcWarning sysIfcIfcWarning):
 SchedInfo
 [RDY_bar CF [RDY_bar, RDY_baz, bar, baz],
  RDY_baz CF [RDY_baz, bar, baz],

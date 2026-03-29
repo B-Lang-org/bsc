@@ -1,7 +1,7 @@
 checking package dependencies
 compiling TaskValue.bsv
 code generation for sysTaskValue starts
-=== ATS:
+=== ATS (TaskValue sysTaskValue):
 APackage sysTaskValue
 -- APackage parameters
 []

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MethodActionValue.bsv
 code generation for mkMethodActionValue_Sub starts
-=== ATS:
+=== ATS (MethodActionValue mkMethodActionValue_Sub):
 APackage mkMethodActionValue_Sub
 -- APackage parameters
 []
@@ -52,7 +52,7 @@ method (RDY_m, [])RDY_m clocked_by (default_clock) reset_by (no_reset);
 
 Verilog file created: mkMethodActionValue_Sub.v
 code generation for sysMethodActionValue starts
-=== ATS:
+=== ATS (MethodActionValue sysMethodActionValue):
 APackage sysMethodActionValue
 -- APackage parameters
 []

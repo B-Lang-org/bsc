@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InHigh.bsv
 code generation for mkSub starts
-=== IOproperties:
+=== IOproperties (InHigh mkSub):
 Name                         I/O  size props
 result                         O     1 reg
 CLK                            I     1 clock
@@ -18,7 +18,7 @@ Warning: "InHigh.bsv", line 26, column 11: (G0015)
     start
   The behavior of the design will likely be incorrect if the method is not
   enabled on every clock cycle.
-=== IOproperties:
+=== IOproperties (InHigh mkTop):
 Name                         I/O  size props
 RDY_start                      O     1 const
 result                         O     1 reg
@@ -38,7 +38,7 @@ Warning: "InHigh.bsv", line 41, column 11: (G0015)
     start
   The behavior of the design will likely be incorrect if the method is not
   enabled on every clock cycle.
-=== IOproperties:
+=== IOproperties (InHigh mkTest1):
 Name                         I/O  size props
 CLK                            I     1 clock
 RST_N                          I     1 reset
@@ -54,7 +54,7 @@ Warning: "InHigh.bsv", line 51, column 11: (G0015)
     start
   The behavior of the design will likely be incorrect if the method is not
   enabled on every clock cycle.
-=== IOproperties:
+=== IOproperties (InHigh mkTest2):
 Name                         I/O  size props
 CLK                            I     1 clock
 RST_N                          I     1 reset

@@ -13,13 +13,13 @@ Warning: "SplitIf.bsv", line 6, column 8: (G0117)
   clock cycle. Affected method calls:
     r2.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
-=== schedule:
+=== schedule (SplitIf mkSplitIf_Test):
 parallel: [esposito: [RL_toggle2 -> [], xfer_T -> [], xfer_F -> [], RL_toggle1 -> [xfer_T]]]
 order: [RL_toggle2, xfer_T, xfer_F, RL_toggle1]
 
 -----
 
-=== resources:
+=== resources (SplitIf mkSplitIf_Test):
 [(r1.read, [(r1.read, 1)]),
  (r1.write, [(r1.write xfer_sel, 1), (r1.write NOT_r1___d2, 1)]),
  (r2.read, [(r2.read, 1)]),
@@ -29,7 +29,7 @@ order: [RL_toggle2, xfer_T, xfer_F, RL_toggle1]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SplitIf mkSplitIf_Test):
 SchedInfo [RDY_xfer CF [RDY_xfer, xfer], xfer C xfer] [] [(xfer, [(Left RL_toggle2)])] []
 
 -----
@@ -58,13 +58,13 @@ Logical execution order: toggle2, xfer_T, xfer_F, toggle1
 ==============================================
 Verilog file created: mkSplitIf_Test.v
 code generation for sysSplitIf starts
-=== schedule:
+=== schedule (SplitIf sysSplitIf):
 parallel: [esposito: [RL_toggleDir -> [], RL_r -> [], RL_incr -> [], RL_done -> []]]
 order: [RL_r, RL_toggleDir, RL_done, RL_incr]
 
 -----
 
-=== resources:
+=== resources (SplitIf sysSplitIf):
 [(count.read, [(count.read, 1)]),
  (count.write, [(count.write count_PLUS_1___d5, 1)]),
  (dir.read, [(dir.read, 1)]),
@@ -74,7 +74,7 @@ order: [RL_r, RL_toggleDir, RL_done, RL_incr]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SplitIf sysSplitIf):
 SchedInfo [] [] [] []
 
 -----

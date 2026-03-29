@@ -17,7 +17,7 @@ Warning: "MutExBig.bsv", line 4, column 8: (G0010)
   Rule "r3y" was treated as more urgent than "r5y". Conflicts:
     "r3y" cannot fire before "r5y": calls to y.write vs. y.read
     "r5y" cannot fire before "r3y": calls to y.write vs. y.read
-=== schedule:
+=== schedule (MutExBig sysMutExBig):
 parallel: [esposito: [RL_r1 -> [],
 		      RL_r2 -> [],
 		      RL_r3 -> [],
@@ -32,7 +32,7 @@ order: [RL_r1, RL_r2, RL_r3, RL_r4, RL_done, RL_r1y, RL_r2y, RL_r3y, RL_r4y, RL_
 
 -----
 
-=== resources:
+=== resources (MutExBig sysMutExBig):
 [(flag_0.read, [(flag_0.read, 1)]),
  (flag_1.read, [(flag_1.read, 1)]),
  (flag_2.read, [(flag_2.read, 1)]),
@@ -46,7 +46,7 @@ order: [RL_r1, RL_r2, RL_r3, RL_r4, RL_done, RL_r1y, RL_r2y, RL_r3y, RL_r4y, RL_
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (MutExBig sysMutExBig):
 SchedInfo [] [] [] []
 
 -----
