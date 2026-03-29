@@ -33,7 +33,7 @@ import Data.Generics (listify)
 import qualified Data.Map as M
 
 -- Bluespec imports
-import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr,
+import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr, fst3,
             thd, readOrErr)
 import IOUtil(getEnvDef)
 
@@ -4184,8 +4184,8 @@ tclDepend ["file",fname]= do
 --
 tclDepend ["recomp",fname]= do
     flags <- getGFlags
-    fnames <- chkDeps globalErrHandle flags fname
-    return $ toHTObj fnames
+    pkgs <- chkDeps globalErrHandle flags fname
+    return $ toHTObj (map fst3 pkgs)
 
 tclDepend xs = internalError $ "tclDepend: grammar mismatch: " ++ (show xs)
 

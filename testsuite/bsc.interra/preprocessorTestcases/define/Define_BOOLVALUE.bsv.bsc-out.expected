@@ -1,7 +1,7 @@
 checking package dependencies
-compiling Define_BOOLVALUE.bsv
-Warning: Unknown position: (S0001)
+Warning: "Define_BOOLVALUE.bsv", line 5, column 9: (S0001)
   File name `Define_BOOLVALUE.bsv' does not match package name `Design'
+compiling Define_BOOLVALUE.bsv
 Error: "Define_BOOLVALUE.bsv", line 12, column 5: (T0084)
   The following function expects 2 arguments, but it was used without any
   arguments:

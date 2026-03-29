@@ -1,5 +1,5 @@
 checking package dependencies
-compiling Ifdef_NegPackageLevel.bsv
-Warning: Unknown position: (S0001)
+Warning: "Ifdef_NegPackageLevel.bsv", line 5, column 9: (S0001)
   File name `Ifdef_NegPackageLevel.bsv' does not match package name `Design'
+compiling Ifdef_NegPackageLevel.bsv
 All packages are up to date.

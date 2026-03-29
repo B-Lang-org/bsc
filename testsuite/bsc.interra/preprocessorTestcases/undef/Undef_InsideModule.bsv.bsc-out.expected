@@ -1,5 +1,5 @@
 checking package dependencies
-compiling Undef_InsideModule.bsv
-Warning: Unknown position: (S0001)
+Warning: "Undef_InsideModule.bsv", line 1, column 9: (S0001)
   File name `Undef_InsideModule.bsv' does not match package name `Design'
+compiling Undef_InsideModule.bsv
 All packages are up to date.

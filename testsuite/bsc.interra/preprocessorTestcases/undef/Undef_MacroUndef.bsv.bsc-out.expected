@@ -1,5 +1,5 @@
 checking package dependencies
-compiling Undef_MacroUndef.bsv
-Warning: Unknown position: (S0001)
+Warning: "Undef_MacroUndef.bsv", line 5, column 9: (S0001)
   File name `Undef_MacroUndef.bsv' does not match package name `Design'
+compiling Undef_MacroUndef.bsv
 All packages are up to date.

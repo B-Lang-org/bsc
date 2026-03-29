@@ -1,12 +1,12 @@
 checking package dependencies
 compiling NoInline_ArgNotInBits.bsv
+Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
+  Cannot synthesize `module_fnNoInline_ArgNotInBits­': The interface method
+  `fnNoInline_ArgNotInBits' uses type(s) that are not in the Bits or
+  SplitPorts typeclasses: NoInline_ArgNotInBits::L
 Error: Unknown position: (T0031)
   The provisos for this expression could not be resolved because there are no
   instances of the form:
     Bits#(NoInline_ArgNotInBits::L, a__)
   The proviso was implied by expressions at the following positions:
     "NoInline_ArgNotInBits.bsv", line 4, column 15
-Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
-  Cannot synthesize `module_fnNoInline_ArgNotInBits­': The interface method
-  `fnNoInline_ArgNotInBits' uses type(s) that are not in the Bits or
-  SplitPorts typeclasses: NoInline_ArgNotInBits::L

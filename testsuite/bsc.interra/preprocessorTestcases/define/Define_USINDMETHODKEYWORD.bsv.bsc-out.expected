@@ -1,6 +1,6 @@
 checking package dependencies
-compiling Define_USINDMETHODKEYWORD.bsv
-Warning: Unknown position: (S0001)
+Warning: "Define_USINDMETHODKEYWORD.bsv", line 5, column 9: (S0001)
   File name `Define_USINDMETHODKEYWORD.bsv' does not match package name
   `Design'
+compiling Define_USINDMETHODKEYWORD.bsv
 All packages are up to date.

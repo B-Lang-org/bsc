@@ -1,6 +1,6 @@
 checking package dependencies
-compiling Define_redefiningMacroValue.bsv
-Warning: Unknown position: (S0001)
+Warning: "Define_redefiningMacroValue.bsv", line 1, column 9: (S0001)
   File name `Define_redefiningMacroValue.bsv' does not match package name
   `Design'
+compiling Define_redefiningMacroValue.bsv
 All packages are up to date.

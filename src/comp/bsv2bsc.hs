@@ -18,7 +18,7 @@ main =
 bsv2bsc :: String -> String -> IO ()
 bsv2bsc filename text =
     do errh <- initErrorHandle
-       (pkg,_) <- bsvParseString errh (defaultFlags "") True filename (stripExt filename) text
+       (pkg, _, _) <- bsvParseString errh (defaultFlags "") filename (stripExt filename) text
        putStrLn (ppReadable pkg)
 
 stripExt :: String -> String

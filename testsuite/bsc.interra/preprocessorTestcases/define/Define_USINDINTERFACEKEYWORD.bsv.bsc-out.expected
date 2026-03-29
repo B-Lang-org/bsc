@@ -1,6 +1,6 @@
 checking package dependencies
-compiling Define_USINDINTERFACEKEYWORD.bsv
-Warning: Unknown position: (S0001)
+Warning: "Define_USINDINTERFACEKEYWORD.bsv", line 5, column 9: (S0001)
   File name `Define_USINDINTERFACEKEYWORD.bsv' does not match package name
   `Design'
+compiling Define_USINDINTERFACEKEYWORD.bsv
 All packages are up to date.

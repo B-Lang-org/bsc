@@ -34,7 +34,7 @@ import SCC(scc)
 -- utility libs
 import ParseOp
 import PFPrint
-import Util(headOrErr, fromJustOrErr, joinByFst, quote)
+import Util(headOrErr, fromJustOrErr, joinByFst, quote, fst3)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName,
                     mkNameWithoutSuffix,
@@ -147,7 +147,7 @@ import SimFileUtils(analyzeBluesimDependencies)
 import Verilog(VProgram(..), vGetMainModName, getVeriInsts)
 import Depend
 import Version(bscVersionStr, copyright, buildnum)
-import Classic
+import Classic(SyntaxMode(..), setSyntax)
 import ILift(iLift)
 import ACleanup(aCleanup)
 import ATaskSplice(aTaskSplice)
@@ -256,32 +256,35 @@ compile_with_deps :: ErrorHandle -> Flags -> String -> IO (Bool)
 compile_with_deps errh flags name = do
     let
         verb = showUpds flags && not (quiet flags)
-        -- the flags to "compileFile" when re-compiling depended modules
+        -- the flags when re-compiling depended modules
         flags_depend = flags { updCheck = False,
                                genName = [],
                                showCodeGen = verb }
-        -- the flags to "compileFile" when re-compiling this module
+        -- the flags when re-compiling this module
         flags_this = flags_depend { genName = genName flags }
-        comp (success, binmap0, hashmap0) fn = do
+        comp (success, binmap0, hashmap0) (fn, pkg, parse_warns) = do
             when (verb) $ putStrLnF ("compiling " ++ fn)
+            -- Show warnings for this file
+            when (not $ null parse_warns) $ bsWarning errh parse_warns
             let fl = if (fn == name)
                      then flags_this
                      else flags_depend
+            t <- getNow
             (cur_success, binmap, hashmap)
-                <- compileFile errh fl binmap0 hashmap0 fn
+                <- compilePackage errh fl t binmap0 hashmap0 fn pkg
             return (cur_success && success, binmap, hashmap)
     when (verb) $ putStrLnF "checking package dependencies"
 
     t <- getNow
     let dumpnames = (baseName (dropSuf name), "", "")
 
-    -- get the list of depended files which need recompiling
+    -- get the list of depended files which need recompiling (with parsed packages and warnings)
     start flags DFdepend
-    fs <- chkDeps errh flags name
-    _ <- dump errh flags t DFdepend dumpnames fs
+    pkgs <- chkDeps errh flags name
+    _ <- dump errh flags t DFdepend dumpnames (map fst3 pkgs)
 
     -- compile them
-    (ok, _, _) <- foldM comp (True, M.empty, M.empty) fs
+    (ok, _, _) <- foldM comp (True, M.empty, M.empty) pkgs
 
     when (verb) $
       if ok then
@@ -298,45 +301,21 @@ compile_no_deps errh flags name = do
 -- returns whether the compile errored or not
 compileFile :: ErrorHandle -> Flags -> BinMap HeapData -> HashMap -> String ->
                IO (Bool, BinMap HeapData, HashMap)
-compileFile errh flags binmap hashmap name_orig = do
-    pwd <- getCurrentDirectory
-    let name = (createEncodedFullFilePath name_orig pwd)
-        name_rel = (getRelativeFilePath name)
-
-    let syntax = if hasDotSuf bscSrcSuffix name then CLASSIC else BSV
-    setSyntax syntax
-
-    t <- getNow
-    let dumpnames = (baseName (dropSuf name), "", "")
-
-    start flags DFcpp
-    file <- doCPP errh flags name
-    _ <- dumpStr errh flags t DFcpp dumpnames file
-
+compileFile errh flags binmap hashmap name = do
     -- ===== the break point between file manipulation and compilation
 
-    -- We don't start and dump this stage because that is handled inside
-    -- the "parseSrc" function (since BSV parsing has multiple stages)
-    (pkg@(CPackage i _ _ _ _ _), t)
-        <- parseSrc (syntax == CLASSIC) errh flags True name file
-    when (getIdString i /= baseName (dropSuf name)) $
-         bsWarning errh
-             [(noPosition, WFilePackageNameMismatch name_rel (pfpString i))]
+    (pkg, t, parse_warns) <- parseFile errh flags False name
 
-    -- dump CSyntax
-    when (showCSyntax flags) (putStrLnF (show pkg))
-    -- dump stats
-    stats flags DFparsed pkg
+    -- Show warnings for this file
+    when (not $ null parse_warns) $ bsWarning errh parse_warns
 
-    let dumpnames = (baseName (dropSuf name), getIdString (unQualId i), "")
-    compilePackage errh flags dumpnames t binmap hashmap name pkg
+    compilePackage errh flags t binmap hashmap name pkg
 
 -------------------------------------------------------------------------
 
 compilePackage ::
     ErrorHandle ->
     Flags ->
-    DumpNames ->
     TimeInfo ->
     BinMap HeapData ->
     HashMap ->
@@ -346,12 +325,19 @@ compilePackage ::
 compilePackage
     errh
     flags                -- user switches
-    dumpnames
     tStart
     binmap0
     hashmap0
-    name -- String --
+    name_orig -- String --
     min@(CPackage pkgId _ _ _ _ _) = do
+
+    -- Set syntax mode for the compilation pipeline (error messages, printing, etc.)
+    setSyntax (if hasDotSuf bscSrcSuffix name_orig then CLASSIC else BSV)
+
+    -- Encode the file path for internal use
+    pwd <- getCurrentDirectory
+    let name = createEncodedFullFilePath name_orig pwd
+        dumpnames = (baseName (dropSuf name), getIdString (unQualId pkgId), "")
 
     clkTime <- getClockTime
     epochTime <- getPOSIXTime

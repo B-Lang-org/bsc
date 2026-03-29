@@ -1,5 +1,5 @@
 checking package dependencies
-compiling Define_MORETHANONELINE.bsv
-Warning: Unknown position: (S0001)
+Warning: "Define_MORETHANONELINE.bsv", line 5, column 9: (S0001)
   File name `Define_MORETHANONELINE.bsv' does not match package name `Design'
+compiling Define_MORETHANONELINE.bsv
 All packages are up to date.

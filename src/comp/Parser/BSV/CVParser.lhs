@@ -27,7 +27,7 @@
 > import Type
 > import IntLit
 > import Error(internalError, EMsg, WMsg, ErrMsg(..),
->              ErrorHandle, bsError, bsWarning, exitOK)
+>              ErrorHandle, bsError, exitOK)
 > import Flags(Flags, DumpFlag(..),
 >              stdlibNames, disableAssertions, preprocessOnly, genName)
 > import Util
@@ -5877,25 +5877,23 @@ get current "Position"
 parse tokens into CSyntax
 
 > bsvParseTokens :: ErrorHandle -> Flags ->
->                   Bool -> String -> String -> [SV_Token] ->
->                   IO CPackage
-> bsvParseTokens errh flags show_warns filename defaultPkgName tokens =
+>                   String -> String -> [SV_Token] ->
+>                   IO (CPackage, [WMsg])
+> bsvParseTokens errh flags filename defaultPkgName tokens =
 >     do let initPos | null tokens = initialPosition filename
 >                    | otherwise = start_position (head tokens)
 >        result <- runParser (pPackageWithWarnings defaultPkgName)
 >                  (emptyParserState errh flags) initPos tokens
 >        case result of
 >          Left  errs         -> bsError errh errs
->          Right (pkg, warns) -> do when (not (null warns) && show_warns) $
->                                       bsWarning errh warns
->                                   return pkg
+>          Right (pkg, warns) -> return (pkg, warns)
 
 tokenize and parse string into CSyntax
 
 > bsvParseString :: ErrorHandle -> Flags ->
->                   Bool -> String -> String -> String ->
->                   IO (CPackage, TimeInfo)
-> bsvParseString errh flags show_warns filename defaultPkgName source =
+>                   String -> String -> String ->
+>                   IO (CPackage, TimeInfo, [WMsg])
+> bsvParseString errh flags filename defaultPkgName source =
 >     do
 >       let initpos =
 >               updatePosStdlib (initialPosition filename) (stdlibNames flags)
@@ -5914,11 +5912,11 @@ tokenize and parse string into CSyntax
 parsing is done after we return
 
 >       start flags DFparsed
->       (CPackage name exports imports fixs defs _)
->            <- bsvParseTokens errh flags show_warns filename defaultPkgName tokens
+>       (CPackage name exports imports fixs defs _, warns)
+>            <- bsvParseTokens errh flags filename defaultPkgName tokens
 >       let package = (CPackage name exports imports fixs defs (map CInclude includes))
 >       t <- vdump errh flags t DFparsed dumpnames package
->       return (package, t)
+>       return (package, t, warns)
 
 wrapper function to allow parsing from TCL for a specific type
 XXX should fixup positions here
