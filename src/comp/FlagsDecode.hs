@@ -395,7 +395,10 @@ helpMessage showHidden prog args cd =
                  "You may substitute -KILL for -d" ++
                    " to stop compilation after the named pass",
                   "",
-                  "-dall supports filename arguments including digraphs",
+                  "-dall enables dumping after every pass;" ++
+                  " an optional filename (with digraphs) may be provided." ++
+                  " If a filename is given for an individual pass, it takes" ++
+                  " precedence over the -dall filename.",
                   "",
                   "Note: If a file is dumped to multiple times in a compilation,",
                   "it is appended to after the first dump.",
