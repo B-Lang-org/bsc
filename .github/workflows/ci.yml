@@ -51,7 +51,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       ghc_version: 9.6.7
-      hls_version: 2.10.0.0
+      hls_version: 2.13.0.0
       timeout_override: ${{ matrix.timeout_override }}
     secrets: inherit
 
@@ -67,7 +67,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       ghc_version: 9.6.7
-      hls_version: 2.10.0.0
+      hls_version: 2.13.0.0
       timeout_override: ${{ matrix.timeout_override }}
       brew_update: ${{ matrix.brew_update }}
     secrets: inherit
@@ -80,14 +80,14 @@ jobs:
     strategy:
       matrix:
         ghc:
-          - version: 9.4.8
-            hls: 2.10.0.0
           - version: 9.8.4
-            hls: 2.10.0.0
-          - version: 9.10.1
-            hls: 2.10.0.0
+            hls: 2.13.0.0
+          - version: 9.10.3
+            hls:
           - version: 9.12.2
-            hls: 2.10.0.0
+            hls: 2.13.0.0
+          - version: 9.14.1
+            hls:
       fail-fast: false
     name: "Build/Test: GHC Ubuntu"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
@@ -101,14 +101,14 @@ jobs:
     strategy:
       matrix:
         ghc:
-          - version: 9.4.8
-            hls: 2.10.0.0
           - version: 9.8.4
-            hls: 2.10.0.0
-          - version: 9.10.1
-            hls: 2.10.0.0
+            hls: 2.13.0.0
+          - version: 9.10.3
+            hls:
           - version: 9.12.2
-            hls: 2.10.0.0
+            hls: 2.13.0.0
+          - version: 9.14.1
+            hls:
       fail-fast: false
     name: "Build/Test: GHC macOS"
     uses: ./.github/workflows/build-and-test-macos.yml
