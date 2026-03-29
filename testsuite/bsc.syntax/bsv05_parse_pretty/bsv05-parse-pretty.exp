@@ -2,24 +2,6 @@
 # tests for Bluespec Verilog 0.5 syntax
 # parse - prettyprint - parse loop
 
-proc strip_dump_wrapper { filename } {
-    # Remove the dump header (first line: "=== stage (coords):") and
-    # footer ("-----" line and everything after) so the file can be re-parsed.
-    set f [open $filename r]
-    set content [read $f]
-    close $f
-    set lines [split $content "\n"]
-    # Drop first line (header) and find where the footer starts
-    set body [lrange $lines 1 end]
-    set idx [lsearch $body "-----"]
-    if {$idx >= 0} {
-        set body [lrange $body 0 [expr {$idx - 1}]]
-    }
-    set f [open $filename w]
-    puts -nonewline $f [join $body "\n"]
-    close $f
-}
-
 proc bsc_compile_prettyprint_parse { source { options "" } } {
     set outfile "${source}-pretty-out.bsv"
     if [bsc_compile $source "$options -dparsed=$outfile"] then {

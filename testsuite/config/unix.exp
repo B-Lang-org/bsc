@@ -3265,6 +3265,26 @@ proc make_pass { target {make_opt "" }  { outfile "make.log" } }  {
 }
 
 
+# Remove the dump header (first line: "=== stage (coords):") and footer
+# ("-----" line and everything after) from a dump file so it can be re-parsed
+# as source code.
+proc strip_dump_wrapper { filename } {
+    set f [open $filename r]
+    set content [read $f]
+    close $f
+    set lines [split $content "\n"]
+    # Drop first line (header) and find where the footer starts
+    set body [lrange $lines 1 end]
+    set idx [lsearch $body "-----"]
+    if {$idx >= 0} {
+        set body [lrange $body 0 [expr {$idx - 1}]]
+    }
+    set f [open $filename w]
+    puts -nonewline $f [join $body "\n"]
+    close $f
+}
+
+
 #
 # Initialization
 #
