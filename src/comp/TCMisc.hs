@@ -1476,7 +1476,7 @@ defaultClasses fixedVars givenPreds unsatisfiedPreds =
 
 -- Given the fixed variables from the context (that is, any vars in
 -- the assumptions and any bound vars) and a qualified type, determine
--- if any of the preds in the qualified type are unsatisfiabl because
+-- if any of the preds in the qualified type are unsatisfiable because
 -- they contain variables not fixed by the caller.
 
 checkForAmbiguousPreds :: Id -> [TyVar] -> Qual Type -> TI ()
@@ -1556,6 +1556,25 @@ expandNumericTCons (orig_qs :=> orig_t) =
                             mkResult idMax [t1, t2, v] v
           | tc == tMin = do v <- newTVar "expandNumericTCons" KNum tc
                             mkResult idMin [t1, t2, v] v
+      -- Associated type families: expand like expTFun
+      exp t0
+          | let (f, as) = splitTAp t0,
+            TCon (TyCon _ _ (TIatf { atf_class_id = clsId
+                                   , atf_param_idxs = pIdxs
+                                   , atf_target_idx = tIdx })) <- f,
+            length as == length pIdxs = do
+                symt <- getSymTab
+                let cls = mustFindClass symt (CTypeclass clsId)
+                    nParams = length (csig cls)
+                v <- newTVar "expandNumericTCons" (kind (csig cls !! tIdx)) t0
+                freshVars <- mapM (\tv -> newTVar "expandNumericTCons" (kind tv) t0) (csig cls)
+                let classArgs = [ if idx == tIdx then v
+                                  else case elemIndex idx pIdxs of
+                                        Just j  -> as !! j
+                                        Nothing -> freshVars !! idx
+                                | idx <- [0..nParams-1] ]
+                let p = PredWithPositions (IsIn cls classArgs) []
+                return ([p], v)
       exp (TAp t1 t2) = do (ps1, t1') <- exp t1
                            (ps2, t2') <- exp t2
                            return (ps1 ++ ps2, TAp t1' t2')

@@ -7,5 +7,5 @@ class (Container :: * -> (* -> *) -> *) a s | a -> s where
 
 data Foo f = Foo (f Bool)
 
-conv :: Foo (Elem a) -> Foo Maybe
-conv = id
+conv :: a -> Foo (Elem a) -> Foo Maybe
+conv _ = id

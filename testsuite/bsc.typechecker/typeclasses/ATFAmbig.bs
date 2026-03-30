@@ -1,0 +1,12 @@
+package ATFAmbig where
+
+-- Test that a type function applied to an ambiguous type var is rejected.
+
+class (Container :: * -> (* -> *) -> *) a s | a -> s where
+  type Elem a = s
+
+data Foo f = Foo (f Bool)
+
+-- Nothing determines a
+conv :: (Container a Maybe) => Foo (Elem a) -> Foo Maybe
+conv = id

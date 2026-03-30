@@ -125,6 +125,7 @@ compile_fail_error ATFInInstHeadBiDirectional.bs T0161
 compile_fail_error ATFResultNotDetermined.bs T0162
 compile_fail_error ATFUnifyError.bs T0030
 compile_fail_error ATFUnifyHKError.bs T0030
+compile_fail_error ATFAmbig.bs T0079
 
 # Test ATF in BSV syntax
 

@@ -15,5 +15,5 @@ instance Container (Box a) a where
   unwrap (Box x) = x
 
 -- Unification creates an unsatisfied context Container a Bool
-conv :: Elem a -> Bool
-conv = id
+conv :: a -> Elem a -> Bool
+conv _ = id
