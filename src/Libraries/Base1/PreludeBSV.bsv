@@ -82,12 +82,6 @@ interface VRWire#(type a) ;
    method Bool whas() ;
 endinterface: VRWire
 
-interface VRWireN#(numeric type n);
-  method PrimAction wset(Bit#(n) datain);
-  method Bit#(n) wget();
-  method Bit#(1) whas();
-endinterface
-
 // __mkRWireSubmodule only exists so that BSC can get a handle on the
 // 'AVInst' for the submodule instantiation of 'vMkRWire', by applying
 // a few compiler stages to the definition.  This occurs in

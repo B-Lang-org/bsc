@@ -259,7 +259,6 @@ package Prelude(
         NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
-        primMethod, -- TODO: Needed only in PreludeBSV for vMkRWire1, should be removed.
         WrapField(..), WrapMethod(..), WrapPorts(..),
         Port(..), unPort, SplitPorts(..)
         ) where
