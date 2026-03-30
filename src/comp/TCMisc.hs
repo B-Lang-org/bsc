@@ -748,7 +748,7 @@ matchTop bound_tyvars mtch (IsIn c1 ts1) (IsIn c2 ts2) =
                     -- substitution and see if the fundep types match
                     -- rtrace ("matchTop 1b: " ++ ppReadable ms) $
                     case mgu bound_tyvars (apSub ms (boolCompress bs ts1))
-                                                  (apSub ms (boolCompress bs ts2)) of
+                                          (apSub ms (boolCompress bs ts2)) of
                     Nothing -> Nothing
                     Just us ->  Just (ms, us)
         in

@@ -1078,6 +1078,7 @@ instance PVPrint CDefl where
     pvPrint d p (CLMatch pat e) =
         t"match"<+> pp d pat <+> t"=" $+$
                   nest 4 (pp d e) <> t";"
+
 optWhen :: PDetail -> [CQual] -> Doc -> Doc
 optWhen d [] s = s
 optWhen d qs s = s $+$ (t"    " <> ppQuals d qs)

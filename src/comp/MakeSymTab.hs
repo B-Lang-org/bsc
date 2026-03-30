@@ -435,7 +435,6 @@ checkNoTypeFunInHead errh r mi clsId args =
 convInst :: ErrorHandle -> Id -> SymTab -> CDefn -> CDefn
 convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
     let c = fromJustOrErr "convInst: leftCon" (leftCon t)
-
         cls = mustFindClass r (CTypeclass c)
         instanceArgs = tyConArgs t
         clsMethType i = case schemes of

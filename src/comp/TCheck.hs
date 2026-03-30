@@ -3101,6 +3101,7 @@ tiLetseqDef type_env arm@(CLMatch pattern expression) =
     internalError
         ("TCheck.tiLetseqDef: CLMatch should have been desugared:\n" ++
          pfpReadable arm)
+
 -- tiDefls: type-infer a set of letrec definitions
 --   first argument:         assumptions about type environment
 --   second argument (exp):  definitions to typecheck

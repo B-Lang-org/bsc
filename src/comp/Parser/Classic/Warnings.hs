@@ -103,6 +103,7 @@ classicWarnDefl (CLMatch p e) =
   -- CLMatch binds variables based on the value of e, so they aren't
   -- in scope when checking the expression.
   classicWarnExpr e
+
 -- Recursion is handled outside of classicWarnDef, based on context.
 classicWarnDef :: CDef -> ClassicWarnM [WMsg]
 classicWarnDef (CDef i _ cs) = concatMapM classicWarnClause cs
