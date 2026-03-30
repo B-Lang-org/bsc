@@ -5,7 +5,7 @@ proc test_primtcon_normalization { bsfile module } {
     global bsc
     global subdir
 
-    # Compile with expanded and normtypes dumps
+    # Compile with expanded dump
     set dump_options "-dexpanded=expanded_%m.out"
     compile_verilog_pass $bsfile {} $dump_options
 
