@@ -1,0 +1,7 @@
+package ATFNonAmbigTernary where
+
+class (MyAdd :: # -> # -> # -> *) a b c | a b -> c, a c -> b, b c -> a where
+  type MyTAdd a b = c
+
+sysNonAmbigTernary :: (MyAdd 1 n c) => Module (Reg (Bit (MyTAdd 1 n)))
+sysNonAmbigTernary = mkReg _

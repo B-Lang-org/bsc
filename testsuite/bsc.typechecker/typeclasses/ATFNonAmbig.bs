@@ -1,0 +1,12 @@
+package ATFNonAmbig where
+
+-- Test that a type function applied to a type var is not ambiguous
+-- if the type function is injective.
+
+class (Container :: * -> (* -> *) -> *) a s | a -> s, s -> a where
+  type Elem a = s
+
+data Foo f = Foo (f Bool)
+
+conv :: (Container a Maybe) => Foo (Elem a) -> Foo Maybe
+conv = id
