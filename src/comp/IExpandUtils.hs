@@ -2523,7 +2523,8 @@ fullTypeNormalizer _ _ v@(ITVar _)     = v
 fullTypeNormalizer flags symt (ITForAll i k t) = ITForAll i k t'
   where t' = fullTypeNormalizer flags symt t
 fullTypeNormalizer flags symt t@(ITAp _ _)
-    | (f@(ITCon _ _ (TIatf {})), as) <- splitITAp t
+    | (f@(ITCon _ _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
+    , length as == length pIdxs
     , as' <- map (fullTypeNormalizer flags symt) as
     , all canNorm as'
     = normTFun $ foldl ITAp f as'
