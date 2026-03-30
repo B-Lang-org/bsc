@@ -420,13 +420,13 @@ pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.
                     fs  = [x | Right x <- items]
                 in  Cclass incoh ps ik vs fds ats fs
 
-pClassBodyItem :: CParser (Either CAssocType CField)
+pClassBodyItem :: CParser (Either CAssocDepFun CField)
 pClassBodyItem =
       (-- Accept "type Map k v = r" where k may be the class param and v
        -- is an extra type param.
        l L_type ..+ pTyConId +.+ many pTyVarId +.+ eq ..+ pTyVarId
            >>- \ (name, (args, rhs)) ->
-               Left (CAssocType name args rhs))
+               Left (CAssocDepFun name args rhs))
   ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)

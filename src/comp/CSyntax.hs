@@ -24,7 +24,7 @@ module CSyntax(
         CRule(..),
         CDefn(..),
         CDefl(..),
-        CAssocType(..),
+        CAssocDepFun(..),
         CFunDeps,
         CPred(..),
         CTypeclass(..),
@@ -164,17 +164,17 @@ instance NFData CFixity where
 -- The parameters must be a strict subset of the class's type variables.
 -- The RHS must be a single type variable that is determined by the
 -- parameters via at least one functional dependency.
-data CAssocType = CAssocType
+data CAssocDepFun = CAssocDepFun
     { ca_name   :: Id      -- type function name
     , ca_params :: [Id]    -- LHS type variables (must be class type variables)
     , ca_rhs    :: Id      -- RHS type variable (must be fundep-determined by ca_params)
     } deriving (Eq, Ord, Show)
 
-instance NFData CAssocType where
-    rnf (CAssocType name ps rhs) = rnf3 name ps rhs
+instance NFData CAssocDepFun where
+    rnf (CAssocDepFun name ps rhs) = rnf3 name ps rhs
 
-instance PPrint CAssocType where
-    pPrint d _ (CAssocType name ps rhs) =
+instance PPrint CAssocDepFun where
+    pPrint d _ (CAssocDepFun name ps rhs) =
         text "type" <+> ppConId d name <+> sep (map (ppVarId d) ps) <+>
         text "=" <+> ppVarId d rhs
 
@@ -193,7 +193,7 @@ data CDefn
                   -- first [Id] are the names of this definition's argument type variables
                   -- last [CTypeclass] are derived classes
         -- incoherent_matches superclasses name_with_kind variables fundeps assoc_types default_methods
-        | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocType] CFields
+        | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] CFields
         | Cinstance CQType [CDefl]
         | CValue Id [CClause]
         | CValueSign CDef
@@ -209,7 +209,7 @@ data CDefn
         | CIinstance Id CQType [CDefl]
         -- CItype is imported abstractly
         | CItype IdK [Id] [Position] -- positions of use that caused export
-        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocType] [Position] -- positions of use that caused export
+        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] [Position] -- positions of use that caused export
         | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 

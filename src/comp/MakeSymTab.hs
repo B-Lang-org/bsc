@@ -740,7 +740,7 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
               paramErrs = [ (getPosition ca_name,
                         EATFDeclParamMismatch (pfpString (iKName ik))
                           (pfpString ca_name) (pfpString expected) (pfpString actual))
-                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
                      , (expected, actual) <-
                          -- Check params are class type variables
                          [ (head vs, p) | p <- ca_params
@@ -750,7 +750,7 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                      ]
               dupErrs = [ (getPosition ca_name,
                         EATFDeclDuplicateParam (pfpString ca_name) (pfpString p))
-                     | CAssocType ca_name ca_params _ <- ats
+                     | CAssocDepFun ca_name ca_params _ <- ats
                      , p <- findDups ca_params
                      ]
               findDups [] = []
@@ -758,14 +758,14 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                               | otherwise    = findDups xs
               paramIsResultErrs = [ (getPosition ca_name,
                         EATFDeclParamIsResult (pfpString ca_name) (pfpString ca_rhs))
-                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
                      , ca_rhs `elem` ca_params
                      ]
               -- Check that the RHS is determined by the params via at least one fundep
               fundepErrs = [ (getPosition ca_name,
                         EATFResultNotDetermined (pfpString ca_name)
                           (pfpString ca_rhs) (map pfpString ca_params))
-                     | CAssocType ca_name ca_params ca_rhs <- ats
+                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
                      , let param_set = S.fromList ca_params
                            -- Check: exists a fundep (srcs, tgts) where
                            -- all srcs are in param_set and ca_rhs is in tgts
@@ -787,7 +787,7 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                       (TIatf { atf_class_id   = i
                              , atf_param_idxs = p_idxs
                              , atf_target_idx = t_idx }))
-                  | CAssocType ca_name ca_params ca_rhs <- ats
+                  | CAssocDepFun ca_name ca_params ca_rhs <- ats
                   , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
                         result_k = M.findWithDefault KStar ca_rhs vs_kind_map
                         atf_k    = foldr Kfun result_k param_ks
@@ -810,7 +810,7 @@ getTI _ mi _ iks (CIclass _ ps ik vs _ ats _) =
                       (TIatf { atf_class_id   = i
                              , atf_param_idxs = p_idxs
                              , atf_target_idx = t_idx }))
-                  | CAssocType ca_name ca_params ca_rhs <- ats
+                  | CAssocDepFun ca_name ca_params ca_rhs <- ats
                   , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
                         result_k = M.findWithDefault KStar ca_rhs vs_kind_map
                         atf_k    = foldr Kfun result_k param_ks

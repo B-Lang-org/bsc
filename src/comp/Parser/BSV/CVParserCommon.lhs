@@ -126,7 +126,7 @@ combined declaration/assignment
 >   | ISInterface Position IdK [IfcPragma] [Id] CFields
 > --  interface #(params) name; methods; endinterface
 > --        return [Cstruct True SInterface name params methods []]
->   | ISTypeclass Position IdK [CPred] [([Id],[Id])] [Id] [CAssocType] CFields
+>   | ISTypeclass Position IdK [CPred] [([Id],[Id])] [Id] [CAssocDepFun] CFields
 > --        return [Cclass False context name params dependencies assocTypes functions]
 >   | ISTypeclassInstance Position CQType [CDefl]
 >   | ISImport Position [Id] -- imported packages

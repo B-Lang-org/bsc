@@ -31,7 +31,7 @@ inferKinds mi s ds = run $ do
         getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
         getIK (IdKind i k) = return [(i, k)]
         getIK (IdPKind i pk) = do k <- convertPKindToKind pk; return [(i, k)]
-        getATFIK (CAssocType ca_name _ _) = do
+        getATFIK (CAssocDepFun ca_name _ _) = do
             v <- newKVar (Just ca_name); return [(ca_name, v)]
     ass <- mapM get ds
     -- assumptions about the types defined in this package
@@ -120,8 +120,8 @@ inferKDefn _ _ = return ()
 -- Infer the kind of an associated type function from its parameters.
 -- The ATF params must be class type variables, so their kinds come from
 -- the class param kinds.  The result kind is the kind of the RHS variable.
-inferKATF :: Assumps -> [Id] -> [Kind] -> CAssocType -> KI ()
-inferKATF as class_vs v_ks (CAssocType ca_name ca_params ca_rhs) = do
+inferKATF :: Assumps -> [Id] -> [Kind] -> CAssocDepFun -> KI ()
+inferKATF as class_vs v_ks (CAssocDepFun ca_name ca_params ca_rhs) = do
     let atf_k    = mustFindK ca_name as
         vs_kind_map = M.fromList (zip class_vs v_ks)
         param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]

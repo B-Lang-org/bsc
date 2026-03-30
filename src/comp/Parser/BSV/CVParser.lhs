@@ -1201,7 +1201,7 @@ TYPE CLASSES AND INSTANCES
 >                         cf_default = defValue
 >                       })
 
-> pTypeclassAssocType :: SV_Parser CAssocType
+> pTypeclassAssocType :: SV_Parser CAssocDepFun
 > pTypeclassAssocType =
 >     do pKeyword SV_KW_type
 >        name <- pConstructor <?> "associated type family name"
@@ -1210,7 +1210,7 @@ TYPE CLASSES AND INSTANCES
 >        pEq
 >        rhs <- pIdentifier <?> "type variable"
 >        pSemi
->        return (CAssocType name params rhs)
+>        return (CAssocDepFun name params rhs)
 
 
 > pClassNameType :: SV_Parser (Id, CType)

@@ -194,7 +194,7 @@ genSign errh exportAll symt
                                     (Left _, Left _) -> EQ
 
         -- ATF declarations per locally-defined class (for classToIClass).
-        classDeclaredAts :: M.Map Id [CAssocType]
+        classDeclaredAts :: M.Map Id [CAssocDepFun]
         classDeclaredAts = M.fromList
             [ (qualId currentPkg (iKName ik), ats)
             | Cclass _ _ ik _ _ ats _ <- ds ]
@@ -210,11 +210,11 @@ genSign errh exportAll symt
                        Just cl ->
                            -- Qualify ATF names and pass them to classToIClass.
                            let rawAts = M.findWithDefault [] i classDeclaredAts
-                               ats = map (\(CAssocType name params rhs) ->
-                                           CAssocType (qualTId symt name) params rhs) rawAts
+                               ats = map (\(CAssocDepFun name params rhs) ->
+                                           CAssocDepFun (qualTId symt name) params rhs) rawAts
                            in [classToIClass i k cl ats (findPoss i)]
                  -- ATF type constructors are embedded in the enclosing class's
-                 -- CAssocType list and must not be re-exported as a standalone CItype.
+                 -- CAssocDepFun list and must not be re-exported as a standalone CItype.
                  Just (TypeInfo _ _ _ (TIatf {})) -> []
                  Just ti@(TypeInfo _ k vs (TItype _ _)) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
@@ -383,7 +383,7 @@ genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
   let i = iKName ik
       qi = qualId currentPkg i
       -- Qualify ATF names so downstream importers can resolve them unambiguously.
-      qats = map (\(CAssocType name params rhs) -> CAssocType (qualTId s name) params rhs) ats
+      qats = map (\(CAssocDepFun name params rhs) -> CAssocDepFun (qualTId s name) params rhs) ats
   in
     case look qi of
     Nothing -> []
@@ -677,7 +677,7 @@ expandPkgExports symt imps exps =
 
 -- ---------------
 
-classToIClass :: Id -> Kind -> Class -> [CAssocType] -> [Position] -> CDefn
+classToIClass :: Id -> Kind -> Class -> [CAssocDepFun] -> [Position] -> CDefn
 classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
                            allowIncoherent = incoh}) ats poss =
     let getTVarId (TyVar i _ _) = i

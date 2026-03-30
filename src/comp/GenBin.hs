@@ -425,10 +425,10 @@ instance Bin CExpr where
                       return (CSubUpdate pos e_vec (e_h, e_l) e_rhs)
              n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
 
-instance Bin CAssocType where
-    writeBytes (CAssocType name ps rhs) = do toBin name; toBin ps; toBin rhs
+instance Bin CAssocDepFun where
+    writeBytes (CAssocDepFun name ps rhs) = do toBin name; toBin ps; toBin rhs
     readBytes = do name <- fromBin; ps <- fromBin; rhs <- fromBin
-                   return (CAssocType name ps rhs)
+                   return (CAssocDepFun name ps rhs)
 
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs
