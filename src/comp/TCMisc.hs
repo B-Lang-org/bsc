@@ -534,7 +534,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
         pp' = PredWithPositions pr' pos
         v' = VPred w pp'
         -- Quick pre-check: can the instance head possibly match the predicate?
-        -- Compares head type constructors at non-fundep argument positions.
+        -- Compares head type constructors at non-determined fundep positions.
         -- If both sides have a concrete non-synonym constructor and they
         -- differ, no match is possible so we skip the expensive newInst call.
         -- We only check non-fundep positions because fundep-determined
@@ -542,20 +542,20 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
         -- matchTop uses pickJust over fundeps, so we need ANY fundep to work.
         canMatch :: Pred -> Pred -> Bool
         canMatch (IsIn c1 pred_ts) (IsIn _ inst_ts) =
-            case funDeps c1 of
-              [] -> and $ zipWith ok pred_ts inst_ts
-              fds -> any checkFD fds
+            any checkFD $ funDeps c1
           where
-            checkFD bs = and [ ok pt it | (False, pt, it) <- zip3 bs pred_ts inst_ts ]
-            ok pt it = case (headTyCon pt, headTyCon it) of
-                            (Just pc, Just ic) -> pc == ic
-                            _                  -> True
+            checkFD bs = and
+                [ case (leftNonSynTyCon pt, leftNonSynTyCon it) of
+                    (Just pc, Just ic) -> pc == ic
+                    _ -> True
+                | (False, pt, it) <- zip3 bs pred_ts inst_ts ]
             -- Extract head TyCon Id only if it's not a type synonym
             -- (those could expand to match anything)
-            headTyCon t = case leftTyCon t of
-                            Just (TyCon _ _ (TItype {})) -> Nothing  -- synonym
-                            Just (TyCon i _ _)           -> Just i
-                            _                            -> Nothing
+            leftNonSynTyCon t =
+                case leftTyCon t of
+                    Just (TyCon _ _ (TItype {})) -> Nothing  -- synonym
+                    Just (TyCon i _ _)           -> Just i
+                    _                            -> Nothing
 
         f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
         f incoherent [] = return Nothing
