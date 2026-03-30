@@ -573,7 +573,7 @@ getFTCDn (Cclass _ ps _ _ _ ats fields) =
                   -- XXX nothing with cf_orig_type?
 getFTCDn (Cinstance qt ds) =
     S.union (getFQTyCons qt) (S.unions (map getFTCDl ds))
-getFTCDn (CIinstance _ qt _) = getFQTyCons qt
+getFTCDn (CIinstance _ qt) = getFQTyCons qt
 getFTCDn (CIValueSign _ t) = getFQTyCons t
 getFTCDn (CItype i vs useposs) = S.empty
 getFTCDn (CIclass incoh ps i vs fds _ useposs) = S.unions (map getCPTyCons ps)
@@ -591,7 +591,7 @@ getVDefIds (Cdata { cd_name = name }) = [iKName name]
 getVDefIds (Cstruct _ _ i _ _ _) = [iKName i]
 getVDefIds (Cclass _ _ i _ _ ats _) = iKName i : map ca_name ats
 getVDefIds (Cinstance _ _) = []
-getVDefIds (CIinstance _ _ _) = []
+getVDefIds (CIinstance _ _) = []
 getVDefIds (CItype i _ useposs) = [iKName i]
 getVDefIds (CIclass _ _ i _ _ _ useposs) = [iKName i]
 getVDefIds (CIValueSign i _) = [i]

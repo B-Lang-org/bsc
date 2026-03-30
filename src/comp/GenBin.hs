@@ -88,7 +88,7 @@ instance Bin CDefn where
         do putI 4; toBin n; toBin cqt; toBin fn; toBin ports; toBin ni
     writeBytes (Cprimitive i cqt) = do putI 5; toBin i; toBin cqt
     writeBytes (CprimType ik) = do putI 6; toBin ik
-    writeBytes (CIinstance i cqt eqs) = do putI 7; toBin i; toBin cqt; toBin eqs
+    writeBytes (CIinstance i cqt) = do putI 7; toBin i; toBin cqt
     writeBytes (CIclass incoh ps ik is deps ats poss) =
         do putI 8; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin ats; toBin poss
     writeBytes (CIValueSign i cqt) = do putI 9; toBin i; toBin cqt
@@ -138,8 +138,8 @@ instance Bin CDefn where
                               ik <- fromBin
                               return (CprimType ik)
                      7  -> do when doTrace $ traceM ("CIinstance")
-                              i <- fromBin; cqt <- fromBin; eqs <- fromBin
-                              return (CIinstance i cqt eqs)
+                              i <- fromBin; cqt <- fromBin
+                              return (CIinstance i cqt)
                      8  -> do when doTrace $ traceM ("CIclass")
                               incoh <- fromBin
                               ps <- fromBin

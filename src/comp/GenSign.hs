@@ -394,8 +394,7 @@ genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _instDs) =
     let tcs = leftTyCons (t : tyConArgs t)
     in
     if all (\c -> exported c || imported c) tcs then
-        let atfEqs = []
-        in [(CIinstance currentPkg (qualCQType s qt) atfEqs, [(getPosition d, WOrphanInst (pfpString (expandSyn t))) | orphan_inst ])]
+        [(CIinstance currentPkg (qualCQType s qt), [(getPosition d, WOrphanInst (pfpString (expandSyn t))) | orphan_inst ])]
     else
         []
   where leftTyCons = mapMaybe leftTyCon
