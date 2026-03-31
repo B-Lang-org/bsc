@@ -263,23 +263,20 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
 atfEqsFromDict :: SymTab -> IType -> [(IType, IType)]
 atfEqsFromDict symt dictType =
     let (hd, classArgs) = splitITAp dictType
-        clsId = case hd of
-                  ITCon i _ _ -> Just i
-                  _ -> Nothing
+        allTypes = getAllTypes symt
         -- Convert Kind to IKind
         kToIK KStar = IKStar
         kToIK KNum  = IKNum
         kToIK KStr  = IKStr
         kToIK (Kfun a b) = IKFun (kToIK a) (kToIK b)
-        kToIK _ = IKStar  -- fallback
-    in case clsId of
-         Nothing -> []
-         Just cid ->
+        kToIK (KVar _) = IKStar
+    in case hd of
+         ITCon cid _ _ ->
            [ (atfApp, targetArg)
            | (atfId, TypeInfo _ atfK _ ti@(TIatf { atf_class_id = acId
                                                   , atf_param_idxs = pIdxs
                                                   , atf_target_idx = tIdx }))
-               <- getAllTypes symt
+               <- allTypes
            , acId == cid
            , tIdx < length classArgs
            , all (\idx -> idx >= 0 && idx < length classArgs) pIdxs
@@ -288,6 +285,7 @@ atfEqsFromDict symt dictType =
                  atfTyCon = ITCon atfId (kToIK atfK) ti
                  atfApp = foldl ITAp atfTyCon paramArgs
            ]
+         _ -> []
 
 addT :: SymTab -> Id -> IType -> Env -> Env
 addT symt i t (E tm km eqs ps) = addDict symt t $ E (M.insert i t tm) km eqs ps

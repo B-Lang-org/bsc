@@ -466,7 +466,6 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                            Nothing -> -- no type has a field by this name,
                                       -- let clsMethType error about it
                                       []
-        methDefs = ds
         altId (CLValue i cs me) = CLValueSign (CDef (mkUId i) (clsMethType i) cs) me
         altId (CLValueSign (CDef i qt cs) me) = CLValueSign (CDef (mkUId i) qt cs) me
         altId _ = internalError "MakeSymTab.convInst altId"
@@ -497,7 +496,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                              -- XXX Lennart's comment: hacky encoding of dict
                              -- XXX "tiExpr" looks for this construction
                              CHasType (anyExprAt (getPosition di)) cqt)
-        body = Cletrec (map altId methDefs) (CStruct (Just True) c (map mkf methDefs ++ sds))
+        body = Cletrec (map altId ds) (CStruct (Just True) c (map mkf ds ++ sds))
     in  (CValueSign (CDef (mkInstId mi t) qt [CClause [] [] body]))
 convInst _ _ _ d = d
 
@@ -694,14 +693,14 @@ mkTypeSyms :: ErrorHandle
            -> (Id -> [Id]) -> Maybe Id -> M.Map Id Kind -> [CDefn] -> QInsts
            -> SymTab -> (SymTab, [EMsg])
 mkTypeSyms errh mkQuals maybePackageName iks defs qts s =
-    let importedTypeInfos0 = concatMap (getTI errh maybePackageName r iks) defs
+    let importedTypeInfos = concatMap (getTI errh maybePackageName r iks) defs
         (cls, errss) =
             unzip $
               [ getCls errh maybePackageName iks r incoh ps ik vs fds ifs qts
                     | Cclass  incoh ps ik vs fds _ ifs <- defs ] ++
               [ getCls errh maybePackageName iks r incoh ps ik vs fds []  qts
                     | CIclass incoh ps ik vs fds _ _   <- defs ]
-        r        = addClasses mkQuals (addTypes mkQuals s importedTypeInfos0) cls
+        r        = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
     in  (r, concat errss)
 
 getTI :: ErrorHandle -> Maybe Id -> SymTab -> M.Map Id Kind -> CDefn -> [(Id, TypeInfo)]
@@ -727,7 +726,7 @@ getTI _ mi _ iks (Cstruct _ ss ik vs fs _) =
   where i = qual mi (iKName ik)
 getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
     checkATFParams `seq`
-    (i, TypeInfo (Just i) k vs ti) : atf_tis
+    (i, TypeInfo (Just i) k vs ti) : mkATFTIs mi i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
         ks = getNK (genericLength vs) k
@@ -777,52 +776,40 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
           in case errs of
                [] -> ()
                _  -> bsErrorUnsafe errh errs
-        -- ATF type constructors: arity = number of LHS params in the declaration.
-        -- The kind is built from the ATF's own params, not all class params.
-        -- TIatf stores the class Id and param/target indices for instance-based resolution.
-        vs_kind_map = M.fromList (zip vs ks)
-        vs_idx_map  = M.fromList (zip vs [0..])
-        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k ca_params
-                      (TIatf { atf_class_id   = i
-                             , atf_param_idxs = p_idxs
-                             , atf_target_idx = t_idx }))
-                  | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                  , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
-                        result_k = M.findWithDefault KStar ca_rhs vs_kind_map
-                        atf_k    = foldr Kfun result_k param_ks
-                        atf_i    = qual mi ca_name
-                        p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
-                        t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
-                  ]
 getTI _ mi _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
 getTI _ mi _ iks (CIclass _ ps ik vs _ ats _) =
-    (i, TypeInfo (Just i) k vs ti) : atf_tis
+    (i, TypeInfo (Just i) k vs ti) : mkATFTIs mi i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
         ks = getNK (genericLength vs) k
         ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
-        vs_kind_map = M.fromList (zip vs ks)
-        vs_idx_map  = M.fromList (zip vs [0..])
-        atf_tis = [ (atf_i, TypeInfo (Just atf_i) atf_k ca_params
-                      (TIatf { atf_class_id   = i
-                             , atf_param_idxs = p_idxs
-                             , atf_target_idx = t_idx }))
-                  | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                  , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
-                        result_k = M.findWithDefault KStar ca_rhs vs_kind_map
-                        atf_k    = foldr Kfun result_k param_ks
-                        atf_i    = qual mi ca_name
-                        p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
-                        t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
-                  ]
 getTI _ mi _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
         -- the CSyntax doesn't provide type var names
         vs = []
 getTI _ _ _ iks _ = []
+
+-- Build TypeInfo entries for associated type functions in a class.
+-- Shared between Cclass and CIclass cases of getTI.
+mkATFTIs :: Maybe Id -> Id -> [Id] -> [Kind] -> [CAssocDepFun] -> [(Id, TypeInfo)]
+mkATFTIs mi classId vs ks ats =
+    [ (atf_i, TypeInfo (Just atf_i) atf_k ca_params
+        (TIatf { atf_class_id   = classId
+               , atf_param_idxs = p_idxs
+               , atf_target_idx = t_idx }))
+    | CAssocDepFun ca_name ca_params ca_rhs <- ats
+    , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
+          result_k = M.findWithDefault KStar ca_rhs vs_kind_map
+          atf_k    = foldr Kfun result_k param_ks
+          atf_i    = qual mi ca_name
+          p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
+          t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+    ]
+  where vs_kind_map = M.fromList (zip vs ks)
+        vs_idx_map  = M.fromList (zip vs [0..])
 
 qual :: Maybe Id -> Id -> Id
 qual Nothing i = i
