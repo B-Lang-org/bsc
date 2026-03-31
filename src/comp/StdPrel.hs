@@ -991,8 +991,6 @@ genNumEqInsts _ _ _ _ = []
 
 -- -------------------------
 
--- -------------------------
-
 tiArrow, tiBit, tiInteger, tiReal :: TISort
 tiArrow   = TIabstract
 tiBit     = TIabstract
