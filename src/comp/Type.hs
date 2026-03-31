@@ -112,10 +112,6 @@ kNN = Kfun KNum KNum
 kNNS = Kfun KNum kNS
 kNS  = Kfun KNum KStar
 
--- star kinds
-kSSS :: Kind
-kSSS = Kfun KStar (Kfun KStar KStar)
-
 tAdd, tSub, tMul, tDiv, tLog, tExp, tMax, tMin :: Type
 tAdd = TCon (TyCon idTAdd (Just kNNN) TIabstract)
 tSub = TCon (TyCon idTSub (Just kNNN) TIabstract)
