@@ -739,14 +739,13 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
           let vs_set = S.fromList vs
               paramErrs = [ (getPosition ca_name,
                         EATFDeclParamMismatch (pfpString (iKName ik))
-                          (pfpString ca_name) (pfpString expected) (pfpString actual))
+                          (pfpString ca_name) (map pfpString vs) (pfpString badV))
                      | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                     , (expected, actual) <-
+                     , badV <-
                          -- Check params are class type variables
-                         [ (head vs, p) | p <- ca_params
-                                        , not (S.member p vs_set) ] ++
+                         [ p | p <- ca_params, not (S.member p vs_set) ] ++
                          -- Check RHS is a class type variable
-                         [ (head vs, ca_rhs) | not (S.member ca_rhs vs_set) ]
+                         [ ca_rhs | not (S.member ca_rhs vs_set) ]
                      ]
               dupErrs = [ (getPosition ca_name,
                         EATFDeclDuplicateParam (pfpString ca_name) (pfpString p))
