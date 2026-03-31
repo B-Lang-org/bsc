@@ -1541,6 +1541,33 @@ updNStateVars n = do
 -}
 -- ----------
 
+-- Check that state variable types don't contain free type variables
+-- or unevaluated type functions.  These indicate a polymorphic or
+-- type-function-dependent type that wasn't fully resolved.
+chkStateVarTypes :: Id -> IType -> [[IType]] -> G ()
+chkStateVarTypes i t tss = do
+    let allTypes = t : concat tss
+        ftvs = S.unions (map fTVars allTypes)
+        atfs = concatMap findATFs allTypes
+    when (not (S.null ftvs)) $
+        internalError $ "IExpand.newState: state variable " ++
+            ppReadable i ++ " has free type variables: " ++
+            ppReadable (S.toList ftvs) ++
+            " in types: " ++ ppReadable allTypes
+    when (not (null atfs)) $
+        internalError $ "IExpand.newState: state variable " ++
+            ppReadable i ++ " has unevaluated type functions: " ++
+            ppReadable atfs ++
+            " in types: " ++ ppReadable allTypes
+  where
+    findATFs :: IType -> [IType]
+    findATFs ty@(ITAp _ _)
+        | (ITCon _ _ (TIatf {}), as) <- splitITAp ty
+        = ty : concatMap findATFs as
+    findATFs (ITAp f a) = findATFs f ++ findATFs a
+    findATFs (ITForAll _ _ body) = findATFs body
+    findATFs _ = []
+
 -- instantiate a state variable (Verilog module)
 newState :: Bool -> Bool -> IType -> [[IType]] -> VModInfo ->
             IStateLoc -> [HExpr] -> G HExpr
@@ -1592,6 +1619,7 @@ newState b ui t tss vi ns es = do
          clock_map <- handleClockConnections e
          reset_map <- handleResetConnections clock_map e
          let v  = IStateVar b ui no vi es t tss clock_map reset_map ns
+         chkStateVarTypes i0 t tss
          i <- uniqueStateName i0
          when doTraceLoc $  traceM("new state id: " ++ (ppString i))
          addStateVar (i, v)
