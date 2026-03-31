@@ -12,7 +12,7 @@ module ISyntaxSubst(
         eSubst,
         etSubst,
         tSubstBatch,
-        eSubstBatchWithNorm,
+        eSubstBatch,
         -- Internal types (exposed for testing/debugging)
         SubstContext(..),
         SomeCtx(..),
@@ -280,18 +280,18 @@ mapMaybeChanged _ Nothing  = Unchanged
 mapMaybeChanged f (Just x) = changed1 Just (f x)
 
 -- Internal expression substitution with contexts
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> EmptyExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> SingleExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> EmptyExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> SingleExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> BatchExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> EmptyExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> SingleExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> BatchExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-{-# SPECIALIZE eSubstWithNorm :: (IType -> IType) -> BatchExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
-eSubstWithNorm :: (ExprSubstCtx ectx a, TypeSubstCtx tctx)
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> EmptyExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> SingleExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> EmptyExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> SingleExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> BatchExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> EmptyExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> SingleExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> BatchExpr a -> SingleType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+{-# SPECIALIZE eSubstWith :: (IType -> IType) -> BatchExpr a -> BatchType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
+eSubstWith :: (ExprSubstCtx ectx a, TypeSubstCtx tctx)
            => (IType -> IType) -> ectx -> tctx -> S.Set Id -> IExpr a -> Changed (IExpr a)
-eSubstWithNorm norm ectx tctx allIds e
+eSubstWith norm ectx tctx allIds e
     | ctxIsEmpty ectx && ctxIsEmpty tctx = Unchanged
     | otherwise = sub ectx tctx allIds e
   where
@@ -306,9 +306,9 @@ eSubstWithNorm norm ectx tctx allIds e
           -- Variable shadowed: remove from context and continue
           -- We reprocess ee because it is possible i is in the free vars
           -- of the context, so we will need alpha-conversion.
-          -- We call eSubstWithNorm so that we check if the context is now empty.
+          -- We call eSubstWith so that we check if the context is now empty.
           case ctxRemove i ectx of
-            SomeCtx ectx' -> eSubstWithNorm norm ectx' tctx allIds ee
+            SomeCtx ectx' -> eSubstWith norm ectx' tctx allIds ee
         Nothing ->
           if ctxContainsVar i ectx
           then -- Alpha-conversion needed: add renaming and continue
@@ -328,7 +328,7 @@ eSubstWithNorm norm ectx tctx allIds e
           -- of the context, so we will need alpha-conversion.
           -- We call eSubstWith so that we check if both contexts are now empty.
           case ctxRemove i tctx of
-            SomeCtx tctx' -> eSubstWithNorm norm ectx tctx' allIds ee
+            SomeCtx tctx' -> eSubstWith norm ectx tctx' allIds ee
         Nothing ->
           if ctxContainsVar i tctx
           then -- Alpha-conversion needed: add renaming and continue
@@ -356,7 +356,7 @@ eSubst i x e
     | otherwise = e
   where fvx = fVars x
         allIds = fvx `S.union` aVars e
-        result = eSubstWithNorm id (SingleExpr i x fvx) EmptyType allIds e
+        result = eSubstWith id (SingleExpr i x fvx) EmptyType allIds e
 
 -- Public API: type substitution in expression
 {-# INLINE etSubst #-}
@@ -366,12 +366,12 @@ etSubst i t e
     | otherwise = e
   where ftx = fTVars t
         allIds = ftx `S.union` aVars e
-        result = eSubstWithNorm id (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) allIds e
+        result = eSubstWith id (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) allIds e
 
 -- Public API: batch expression and type substitution, with normalization
-{-# INLINE eSubstBatchWithNorm #-}
-eSubstBatchWithNorm :: forall a. (IType -> IType) -> M.Map Id (IExpr a) -> M.Map Id IType -> IExpr a -> IExpr a
-eSubstBatchWithNorm norm exprMap typeMap e
+{-# INLINE eSubstBatch #-}
+eSubstBatch :: forall a. (IType -> IType) -> M.Map Id (IExpr a) -> M.Map Id IType -> IExpr a -> IExpr a
+eSubstBatch norm exprMap typeMap e
     | exprSize == 0 && typeSize == 0 = e
     | Changed e' <- result = deepseq e' e'
     | otherwise = e
@@ -381,30 +381,30 @@ eSubstBatchWithNorm norm exprMap typeMap e
     result = case (exprSize, typeSize) of
           (0, 1) -> let (i, t) = M.findMin typeMap
                         ftx = fTVars t
-                    in eSubstWithNorm norm (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) (ftx `S.union` aVars e) e
+                    in eSubstWith norm (EmptyExpr :: EmptyExpr a) (SingleType i t ftx) (ftx `S.union` aVars e) e
           (0, _) -> let ftx = S.unions $ M.elems $ M.map fTVars typeMap
-                    in eSubstWithNorm norm (EmptyExpr :: EmptyExpr a) (BatchType typeMap ftx) (ftx `S.union` aVars e) e
+                    in eSubstWith norm (EmptyExpr :: EmptyExpr a) (BatchType typeMap ftx) (ftx `S.union` aVars e) e
           (1, 0) -> let (i, x) = M.findMin exprMap
                         fvx = fVars x
-                    in eSubstWithNorm norm (SingleExpr i x fvx) EmptyType (fvx `S.union` aVars e) e
+                    in eSubstWith norm (SingleExpr i x fvx) EmptyType (fvx `S.union` aVars e) e
           (1, 1) -> let (ei, ex) = M.findMin exprMap
                         (ti, tt) = M.findMin typeMap
                         fvx = fVars ex
                         ftx = fTVars tt
-                    in eSubstWithNorm norm (SingleExpr ei ex fvx) (SingleType ti tt ftx) (fvx `S.union` ftx `S.union` aVars e) e
+                    in eSubstWith norm (SingleExpr ei ex fvx) (SingleType ti tt ftx) (fvx `S.union` ftx `S.union` aVars e) e
           (1, _) -> let (ei, ex) = M.findMin exprMap
                         fvx = fVars ex
                         ftx = S.unions $ M.elems $ M.map fTVars typeMap
-                    in eSubstWithNorm norm (SingleExpr ei ex fvx) (BatchType typeMap ftx) (fvx `S.union` ftx `S.union` aVars e) e
+                    in eSubstWith norm (SingleExpr ei ex fvx) (BatchType typeMap ftx) (fvx `S.union` ftx `S.union` aVars e) e
           (_, 0) -> let fvx = S.unions $ M.elems $ M.map fVars exprMap
-                    in eSubstWithNorm norm (BatchExpr exprMap fvx) EmptyType (fvx `S.union` aVars e) e
+                    in eSubstWith norm (BatchExpr exprMap fvx) EmptyType (fvx `S.union` aVars e) e
           (_, 1) -> let fvx = S.unions $ M.elems $ M.map fVars exprMap
                         (ti, tt) = M.findMin typeMap
                         ftx = fTVars tt
-                    in eSubstWithNorm norm (BatchExpr exprMap fvx) (SingleType ti tt ftx) (fvx `S.union` ftx `S.union` aVars e) e
+                    in eSubstWith norm (BatchExpr exprMap fvx) (SingleType ti tt ftx) (fvx `S.union` ftx `S.union` aVars e) e
           (_, _) -> let fvx = S.unions $ M.elems $ M.map fVars exprMap
                         ftx = S.unions $ M.elems $ M.map fTVars typeMap
-                    in eSubstWithNorm norm (BatchExpr exprMap fvx) (BatchType typeMap ftx) (fvx `S.union` ftx `S.union` aVars e) e
+                    in eSubstWith norm (BatchExpr exprMap fvx) (BatchType typeMap ftx) (fvx `S.union` ftx `S.union` aVars e) e
 
 {-# INLINE mapChanged #-}
 mapChanged :: (a -> Changed a) -> [a] -> Changed [a]

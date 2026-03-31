@@ -67,7 +67,7 @@ import TypeCheck(topExpr)
 import VModInfo
 import Pragma
 import ISyntax
-import ISyntaxSubst(eSubst, eSubstBatchWithNorm)
+import ISyntaxSubst(eSubst, eSubstBatch)
 import IConv(iConvT, iConvExpr)
 import ISyntaxUtil
 import IExpandUtils
@@ -2919,10 +2919,10 @@ evalApAccum tag exprCtx typeCtx e args = do
     traceM ("applying batched subst: " ++
              show (M.size exprCtx) ++ " exprs, " ++
              show (M.size typeCtx) ++ " types")
-  -- eSubstBatchWithNorm will do no work if exprCtx and typeCtx are empty
+  -- eSubstBatch will do no work if exprCtx and typeCtx are empty
   -- (but in evalAppAccum, at least one of them won't be)
   norm <- getTypeNormalizer
-  let e' = eSubstBatchWithNorm norm exprCtx typeCtx e
+  let e' = eSubstBatch norm exprCtx typeCtx e
   -- evalAp will handle if substitution revealed more ILam/ILAM
   evalAp tag e' args
 
