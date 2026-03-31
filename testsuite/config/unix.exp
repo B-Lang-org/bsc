@@ -2476,6 +2476,44 @@ proc find_regexp_int { filename string exact_count {expfind 1} {expbug 0} {bug "
 }
 
 
+proc regexp_match { filename str } {
+    global target_triplet
+    global srcdir
+    global subdir
+
+    incr_stat "regexp_match"
+
+    set filename [join [concat $subdir $filename] "/" ]
+    set status [catch {open $filename r} filestream]
+    if { $status != 0 } {
+        fail "Error executing regexp_match -- could not open `$filename'"
+        return {}
+    }
+
+    set status [catch {read $filestream} filecontents]
+    catch "close $filestream" ignore
+    if { $status != 0 } {
+        fail "Error executing regexp_match -- could not read `$filename'"
+        return {}
+    }
+
+    verbose -log "Looking for regexp {$str} in $filename" 2
+    set status [catch {regexp -line -- $str $filecontents range submatch} found]
+    if { $status != 0 } {
+        fail "Error executing regexp_match -- failed regexp {$str}"
+        return {}
+    }
+
+    if { $found > 0 } {
+	pass "matched {$str} in `$filename': $submatch"
+    } else {
+	fail "did not match {$str} in `$filename'"
+    }
+
+    return $submatch
+}
+
+
 proc compare_file_bug { filename  {expected ""} { bug "" }} {
     global target_triplet
 
