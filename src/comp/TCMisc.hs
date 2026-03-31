@@ -197,30 +197,36 @@ expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
         let (vss, ts') = unzip vsts
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
+-- Build a class predicate from a fully-applied ATF.  Given the ATF's
+-- class, param indices, target index, the ATF arguments, and the type
+-- to place at the target position, fills in fresh vars for any class
+-- params not covered by the ATF.
+mkATFClassPred :: String -> Type -> Id -> [Int] -> Int -> [Type] -> Type
+               -> TI (Class, [Type])
+mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
+    cls <- findCls (CTypeclass clsId)
+    let nParams = length (csig cls)
+    freshVars <- mapM (\tv -> newTVar tag (kind tv) posType) (csig cls)
+    let classArgs = [ if idx == tIdx then targetType
+                      else case elemIndex idx pIdxs of
+                            Just j  -> atfArgs !! j
+                            Nothing -> freshVars !! idx
+                    | idx <- [0..nParams-1] ]
+    return (cls, classArgs)
+
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
 -- Type function application: try to generate a class constraint so
 -- the result gets bound when the class is resolved.
 expTFun t0
   | let (f, as) = splitTAp t0,
-    TCon (TyCon _ _ ti@(TIatf { atf_class_id = clsId
-                              , atf_param_idxs = pIdxs
-                              , atf_target_idx = tIdx })) <- f,
+    TCon (TyCon _ _ (TIatf { atf_class_id = clsId
+                           , atf_param_idxs = pIdxs
+                           , atf_target_idx = tIdx })) <- f,
     length as == length pIdxs = do
         cls <- findCls (CTypeclass clsId)
-        let nParams = length (csig cls)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
-        -- For class params that are neither the ATF target nor ATF
-        -- parameters, create fresh type variables.  Using class signature
-        -- TyVars directly (TVar (csig cls !! idx)) would leak their names
-        -- into provisos, causing kind conflicts when a name collides with
-        -- a type variable from the enclosing definition at a different kind.
-        freshVars <- mapM (\tv -> newTVar "expTFun" (kind tv) t0) (csig cls)
-        let classArgs = [ if idx == tIdx then v
-                          else case elemIndex idx pIdxs of
-                                Just j  -> as !! j
-                                Nothing -> freshVars !! idx
-                        | idx <- [0..nParams-1] ]
+        (_, classArgs) <- mkATFClassPred "expTFun" t0 clsId pIdxs tIdx as v
         vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
         return (vps, v)
 -- eliminate the identity type constructor.
@@ -947,16 +953,8 @@ tryATFClassPred atfType targetType = do
     case f of
       TCon (TyCon _ _ (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
                               , atf_target_idx = tIdx })) -> do
-        cls <- findCls (CTypeclass clsId)
-        let nParams = length (csig cls)
-            -- Build class args: place targetType at the target index,
-            -- ATF args at param positions, fresh vars elsewhere
-        freshVars <- mapM (\tv -> newTVar "tryATFClassPred" (kind tv) atfType) (csig cls)
-        let classArgs = [ if idx == tIdx then targetType
-                          else case elemIndex idx pIdxs of
-                                 Just j  -> atfArgs !! j
-                                 Nothing -> freshVars !! idx
-                        | idx <- [0..nParams-1] ]
+        (cls, classArgs) <- mkATFClassPred "tryATFClassPred" atfType
+                              clsId pIdxs tIdx atfArgs targetType
         return $ Just (IsIn cls classArgs)
       _ -> return Nothing
 
@@ -1563,16 +1561,10 @@ expandNumericTCons (orig_qs :=> orig_t) =
                                    , atf_param_idxs = pIdxs
                                    , atf_target_idx = tIdx })) <- f,
             length as == length pIdxs = do
-                symt <- getSymTab
-                let cls = mustFindClass symt (CTypeclass clsId)
-                    nParams = length (csig cls)
+                cls <- findCls (CTypeclass clsId)
                 v <- newTVar "expandNumericTCons" (kind (csig cls !! tIdx)) t0
-                freshVars <- mapM (\tv -> newTVar "expandNumericTCons" (kind tv) t0) (csig cls)
-                let classArgs = [ if idx == tIdx then v
-                                  else case elemIndex idx pIdxs of
-                                        Just j  -> as !! j
-                                        Nothing -> freshVars !! idx
-                                | idx <- [0..nParams-1] ]
+                (_, classArgs) <- mkATFClassPred "expandNumericTCons" t0
+                                    clsId pIdxs tIdx as v
                 let p = PredWithPositions (IsIn cls classArgs) []
                 return ([p], v)
       exp (TAp t1 t2) = do (ps1, t1') <- exp t1
