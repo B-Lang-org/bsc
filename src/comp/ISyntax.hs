@@ -401,6 +401,9 @@ checkRUnionAttributes (IRules sps1 rs1) (IRules sps2 rs2) =
         (msgs, sps')
 
 
+-- This function just handles special built-in type functions like TAdd and Id__,
+-- would be nice to get rid of it if we can make those work via preds, as with
+-- user-defined type functions.
 normITAp :: IType -> IType -> IType
 normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
     mkNumConT (fromJust res)

@@ -121,13 +121,13 @@ data TISort
           -- e.g. Integer, Bit, Module, etc.
         | TIabstract
           -- Associated type function: resolved by looking up the corresponding
-          -- typeclass instance.  Stores the arity (number of LHS params), the
-          -- class that defines this type function, and the indices of the ATF
-          -- params and the target param within the class's parameter list.
+          -- typeclass instance.  Stores the class that defines this type function,
+          -- and the indices of the ATF params and the target param within the class's
+          -- parameter list.
         | TIatf { atf_class_id   :: Id     -- the class this type function belongs to
-               , atf_param_idxs :: [Int]  -- index of each ATF param in the class param list
-               , atf_target_idx :: Int    -- index of the result param in the class param list
-               }
+                , atf_param_idxs :: [Int]  -- index of each ATF param in the class param list
+                , atf_target_idx :: Int    -- index of the result param in the class param list
+                }
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 

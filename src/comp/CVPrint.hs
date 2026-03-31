@@ -258,14 +258,15 @@ instance PVPrint CDefn where
 
     pvPrint d p (CValueSign def) = pvPrint d p def
 
-    pvPrint d p (Cclass Nothing ps ik is fd _ ss) =
+    pvPrint d p (Cclass Nothing ps ik is fd ats ss) =
        ((pBlockNT d 0 False
         [t"typeclass" <+> pp d ik <+> pvParameterTypeVars d is,
          pvpFDs d fd,
          if ps==[]
            then empty
            else t "  provisos (" <> sepList (map (pvPrint d 0) ps) (t",") <> t")"] empty)<> (t";")) $+$
-       pBlockNT d 4 False (map (\s -> ppField d (t"function") True s <> t";") ss) empty $+$
+       pBlockNT d 4 False (map (pvpAssocDepFun d) ats ++
+                            map (\s -> ppField d (t"function") True s <> t";") ss) empty $+$
        t"endtypeclass"
 
     pvPrint d p (Cinstance (CQType ps ty) ds) =
@@ -402,6 +403,11 @@ pvpFDs d fd = text "  dependencies" <+> sepList (map (pvpFD d) fd) (t",")
 
 pvpFD :: PDetail -> ([Id], [Id]) -> Doc
 pvpFD d (as,rs) = sep (map (pvpId d) as) <+> t "->" <+> sep (map (pvpId d) rs)
+
+pvpAssocDepFun :: PDetail -> CAssocDepFun -> Doc
+pvpAssocDepFun d (CAssocDepFun name ps rhs) =
+    t"type" <+> pvPrint d 0 name <>
+    pvParameterTypeVars d ps <+> t"=" <+> pvpId d rhs <> t";"
 
 {-
 ppFDs d [] = t""
