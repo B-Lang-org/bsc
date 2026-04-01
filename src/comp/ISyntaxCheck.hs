@@ -134,9 +134,10 @@ tCheck flags symt r eqTy ec@(ILam i t e) =
         itFun t (tCheck flags symt (addT symt i t r) eqTy e)
 tCheck flags symt r eqTy ec@(IAps f0 ts [a]) =
         let f = iAps f0 ts []
-            at = tCheck flags symt r eqTy a
+            norm = changedOrId $ fullTypeNormalizer flags symt
+            at = norm $ tCheck flags symt r eqTy a
             (rt, at') =
-                case changedOrId (fullTypeNormalizer flags symt) $ tCheck flags symt r eqTy f of
+                case norm $ tCheck flags symt r eqTy f of
                     ITAp (ITAp arr at') rt | arr == itArrow -> (rt, at')
                     tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
         in  -- This trace can lead to infinite loops.

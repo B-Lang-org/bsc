@@ -3196,7 +3196,7 @@ conAp' c (ICOut { iConType = outty, conTagInfo = cti }) o as = do
           as'' <- mapM toHeapArg as'
 -}
           norm <- getTypeNormalizer
-          evalStaticOp' True True False e (norm resType) (doOut o c tys ty cti as')
+          evalStaticOp' True True False e resType (doOut o c tys ty cti as')
       _ -> internalError ("conAp': ICOut: " ++ ppReadable (mkAp o as))
 conAp' c (ICSel { iConType = selty, selNo = n }) sel as = do
     norm <- getTypeNormalizer

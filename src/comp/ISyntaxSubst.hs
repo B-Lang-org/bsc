@@ -258,16 +258,12 @@ etSubstIConInfo tsubFn esubFn ii@(ICUndet { imVal = mval }) =
   changed2 (\ct mv -> ii { iConType = ct, imVal = mv })
            (iConType ii) mval
            (tsubFn (iConType ii)) (mapMaybeChanged esubFn mval)
--- ICClock: substitute iConType and recurse into clock wires
-etSubstIConInfo tsubFn esubFn ii@(ICClock { iClock = clk }) =
-  changed2 (\ct clk' -> ii { iConType = ct, iClock = clk' })
-           (iConType ii) clk
-           (tsubFn (iConType ii)) (subClk esubFn clk)
--- ICReset: substitute iConType and recurse into reset (clock + wire)
-etSubstIConInfo tsubFn esubFn ii@(ICReset { iReset = rst }) =
-  changed2 (\ct rst' -> ii { iConType = ct, iReset = rst' })
-           (iConType ii) rst
-           (tsubFn (iConType ii)) (subRst esubFn rst)
+-- ICClock: recurse into clock wires (iConType is always Bit 1, no substitution needed)
+etSubstIConInfo _tsubFn esubFn ii@(ICClock { iClock = clk }) =
+  changed1 (\clk' -> ii { iClock = clk' }) (subClk esubFn clk)
+-- ICReset: recurse into reset wires (iConType is always Bit 1, no substitution needed)
+etSubstIConInfo _tsubFn esubFn ii@(ICReset { iReset = rst }) =
+  changed1 (\rst' -> ii { iReset = rst' }) (subRst esubFn rst)
 -- ICInout: substitute iConType and recurse into inout (clock + reset + wire)
 etSubstIConInfo tsubFn esubFn ii@(ICInout { iInout = io }) =
   changed2 (\ct io' -> ii { iConType = ct, iInout = io' })
@@ -339,6 +335,8 @@ eSubstWith ectx tctx allIds e
   where
     tSubWithNorm :: (TypeSubstCtx tctx') => tctx' -> S.Set Id -> IType -> Changed IType
     tSubWithNorm tctx allIds t =
+      -- Need to normalize the entire type after substitution, because even if the original type is in normal form,
+      -- we may substitute into a type function application that can now be reduced.
       changed1 (changedOrId $ ctxNorm tctx) $ tSubstWith tctx allIds t
     -- sub needs to be polymorphic because the context type can change at
     -- ctxAdd (to batch) or ctxRemove (to single or empty) for both contexts
