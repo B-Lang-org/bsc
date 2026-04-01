@@ -948,7 +948,8 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
         let modPos = getIdPosition modId
             fs = map (setIdPosition modPos) fs0
 
-        let ifcName = iGetIfcName (iGetType e)
+        norm <- getTypeNormalizer'
+        let ifcName = iGetIfcName (iGetTypeNorm norm e)
         let betterInfo = BetterInfo.extractMethodInfo flags symt ifcName
         -- traceM ((ppReadable ifcName) ++ ": " ++ (ppReadable betterInfo))
         let newBetterInfo :: Id -> BetterInfo.BetterInfo
@@ -958,7 +959,6 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
             betterInfoByField = map newBetterInfo fs
         -- traceM (ppReadable (zip fs betterInfoByField))
 
-        norm <- getTypeNormalizer'
         let fieldTypes = map (iGetTypeNorm norm) es
 
         let fieldBlobs =
@@ -2523,12 +2523,15 @@ walkNF e =
                 IAps f@(ICon i_sel (ICSel { })) ts es -> do
                     (p, es', ws) <- walkList walkNF es
 
+                    norm <- getTypeNormalizer'
+                    let uIsAction = isActionType (iGetTypeNorm norm u)
+
                     -- handle method calls (ICSel of a ICStateVar)
                     let handleMethod meth_id svar = do
                             let c = getMethodClock meth_id svar
                             let r = getMethodReset meth_id svar
                             let p_gate =
-                                    if isActionType (iGetType u)
+                                    if uIsAction
                                     then if (inClockDomain noClockDomain c)
                                          then pAtom (iFalse)
                                          else pAtom (getClockGate c)
@@ -2537,8 +2540,7 @@ walkNF e =
                                                         "Clock: " ++ ppReadable c ++
                                                         "Reset: " ++ ppReadable r ++
                                                         "Clock gate: " ++ ppReadable p_gate)
-                            when (isActionType (iGetType u)) $
-                                addClkGateUse c
+                            when uIsAction $ addClkGateUse c
                             upd (pConjs [p0, p, p_gate]) (IAps f ts es') (wsAddReset r (wsAddClock c ws))
 
                     case es' of
@@ -2941,9 +2943,10 @@ evalAp str e es = do
   -- when "cross" is False, this just returns "r_orig"
   r <- mapPExprPosition cross ((P pred e), r_orig)
   when doTraceTypes $ do
+      norm <- getTypeNormalizer'
       let unev = mkAp e es
-      let unev_t = iGetType unev
-      let r_t = iGetType iexpr
+      let unev_t = iGetTypeNorm norm unev
+      let r_t = iGetTypeNorm norm iexpr
       when (unev_t /= r_t) $
           internalError ("bad types: " ++ ppReadable (unev_t, unev, r_t, r))
   when doDebug $
@@ -4837,12 +4840,12 @@ doSel sel s tys ty n as ee (p, e) =
         -- v | C_av.avAction_  || C_av.avValue_ ->
         -- AV_ selection must be a saturated application, no stray arguments
         _ | s == idAVValue_ && isCanonAV_ e && null as -> do
-            norm <- getTypeNormalizer
+            norm <- getTypeNormalizer'
             case e of
               -- drop arguments to value side of ActionValue method (see AMethValue)
               -- and fixup selector type (instantiating and dropping missing types)
               IAps csel@(ICon ic sel2@(ICSel { })) tys2 args@(sv@(ICon _ (ICStateVar { })):_) -> do
-                let resType = dropArrows (length args) (itInstNorm norm (iConType sel2) tys2)
+                let resType = dropArrows (length args) (itInstNorm (changedOrId norm) (iConType sel2) tys2)
                 let newSelTy = (iGetTypeNorm norm sv) `itFun` resType
                 let sel2' = sel2 { iConType = newSelTy }
                 let e'' = (IAps (ICon ic sel2') [] [sv])
