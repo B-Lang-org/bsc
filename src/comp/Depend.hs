@@ -353,13 +353,13 @@ parseFile errh flags fatal_name_mismatch fname = do
     t <- getNow
     let dumpnames = (Just (baseName (dropSuf fname)), Nothing, Nothing)
 
-    start flags DFcpp
-    file <- doCPP errh flags fname
-    _ <- dumpStr errh flags t DFcpp dumpnames file
-
     -- parseSrc needs encoded path for position tracking
     pwd <- getCurrentDirectory
     let fname_encoded = createEncodedFullFilePath fname pwd
+
+    start flags DFcpp
+    file <- doCPP errh flags fname_encoded
+    _ <- dumpStr errh flags t DFcpp dumpnames file
 
     -- parseSrc handles its own dump stages (DFparsed, DFvpp, etc.)
     (pkg@(CPackage i _ _ _ _ _), t', warns) <- parseSrc isClassic errh flags fname_encoded file
