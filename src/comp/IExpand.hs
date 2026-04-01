@@ -66,6 +66,7 @@ import qualified TIMonad as TM
 import TypeCheck(topExpr)
 import VModInfo
 import Pragma
+import Changed(changedOrId)
 import ISyntax
 import ISyntaxSubst(eSubst, eSubstBatch)
 import IConv(iConvT, iConvExpr)
@@ -957,7 +958,7 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
             betterInfoByField = map newBetterInfo fs
         -- traceM (ppReadable (zip fs betterInfoByField))
 
-        norm <- getTypeNormalizer
+        norm <- getTypeNormalizer'
         let fieldTypes = map (iGetTypeNorm norm) es
 
         let fieldBlobs =
@@ -1093,7 +1094,7 @@ iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
-        norm <- getTypeNormalizer
+        norm <- getTypeNormalizer'
         -- want the result type, not a type including arguments
         let methType :: IType
             methType = iGetTypeNorm norm e0
@@ -1157,7 +1158,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
 
-        norm <- getTypeNormalizer
+        norm <- getTypeNormalizer'
         let final_t = iGetTypeNorm norm final_e
         -- split wire sets for more accurate tracking
         return ([],
@@ -2921,7 +2922,7 @@ evalApAccum tag exprCtx typeCtx e args = do
              show (M.size typeCtx) ++ " types")
   -- eSubstBatch will do no work if exprCtx and typeCtx are empty
   -- (but in evalAppAccum, at least one of them won't be)
-  norm <- getTypeNormalizer
+  norm <- getTypeNormalizer'
   let e' = eSubstBatch norm exprCtx typeCtx e
   -- evalAp will handle if substitution revealed more ILam/ILAM
   evalAp tag e' args
@@ -3182,7 +3183,7 @@ conAp' c (ICOut { iConType = outty, conTagInfo = cti }) o as = do
     case dropT as of
       E e : as' -> do
           let tys = takeT as
-              ty = case norm $ itInst outty tys of
+              ty = case itInstNorm norm outty tys of
                      (ITAp _ t) -> t
                      _ -> internalError "IExpand.conAp' ICOut: ty"
               resType = dropArrows (length as') ty
@@ -3199,7 +3200,7 @@ conAp' c (ICSel { iConType = selty, selNo = n }) sel as = do
     case dropT as of
       E e : as' -> do
           let tys = takeT as
-              ty = case norm $ itInst selty tys of
+              ty = case itInstNorm norm selty tys of
                      (ITAp _ t) -> t
                      _ -> internalError "IExpand.conAp' ICSel: ty"
               resType = dropArrows (length as') ty
@@ -3587,7 +3588,7 @@ conAp' tfs (ICPrim _ PrimIntBitsToInteger) fe [T (ITNum k), E e] = evalStaticOp 
 
 conAp' ci prim@(ICPrim _ PrimSetSelPosition) f (T _ : E pos_e : E res_e : as) = do
   poss <- evalPositions pos_e
-  norm <- getTypeNormalizer
+  norm <- getTypeNormalizer'
   let res_e' = mkAp res_e as
       t' = iGetTypeNorm norm res_e'
       icon = (ICon ci prim)
@@ -4325,7 +4326,7 @@ doArrayUpdate f@(ICon upd_i (ICPrim {iConType = opType}))
                 --traceM("Update: " ++ show arr_e')
                 nfError "primArrayUpdate" $
                     mkAp f [T elem_t, E arr_e', E idx_e', E val_e']
-        norm <- getTypeNormalizer
+        norm <- getTypeNormalizer'
         let res_t = iGetTypeNorm norm arr_e -- result type is (PrimArray t)
         addPredG idx_p $ evalStaticOp arr_e res_t handleArrayUpdate
     _ -> internalError ("IExpand.doArrayUpdate: index: " ++ ppReadable idx_e')
@@ -4444,7 +4445,7 @@ improveIf f t cnd (IAps (ICon i1 c1@(ICCon {conTagInfo = cti1})) ts1 es1)
                                                            = do
   when doTraceIf $ traceM ("improveIf ICCon triggered" ++ show i1 ++ show i2)
   norm <- getTypeNormalizer
-  let realConType = norm $ itInst (iConType c1) ts1
+  let realConType = itInstNorm norm (iConType c1) ts1
       (argTypes, _) = itGetArrows realConType
   when (length argTypes /= length es1 || length argTypes /= length es2) $ internalError ("improveIf Con:" ++ ppReadable (argTypes, es1, es2))
   (es', bs) <- mapAndUnzipM (\(t, e1, e2) -> improveIf f t cnd e1 e2) (zip3 argTypes es1 es2)
@@ -4457,7 +4458,7 @@ improveIf f t cnd (IAps (ICon i1 c1@(ICTuple {})) ts1 es1)
                                                              = do
   when doTraceIf $ traceM ("improveIf ICTuple triggered" ++ show i1 ++ show i2)
   norm <- getTypeNormalizer
-  let realConType = norm $ itInst (iConType c1) ts1
+  let realConType = itInstNorm norm (iConType c1) ts1
       (argTypes, _) = itGetArrows realConType
   when (length argTypes /= length es1 || length argTypes /= length es2) $ internalError ("improveIf Con:" ++ ppReadable (argTypes, es1, es2))
   (es', bs) <- mapAndUnzipM (\(t, e1, e2) -> improveIf f t cnd e1 e2) (zip3 argTypes es1 es2)
@@ -4477,7 +4478,7 @@ improveIf f t cnd thn@(IAps concat@(ICon _ (ICPrim _ PrimConcat)) ts1@[ITNum sx,
 improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimChr)) ts2 [chr_els]) = do
   when doTraceIf $ traceM ("improveIf PrimChr triggered " ++ show (cnd,thn,els))
-  norm <- getTypeNormalizer
+  norm <- getTypeNormalizer'
   let chrArgType = iGetTypeNorm norm chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
@@ -4498,7 +4499,7 @@ improveIf f t cnd thn@(IAps (ICon i1 c1@(ICCon {})) ts1 es1)
   = do
       when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
       norm <- getTypeNormalizer
-      let realConType = norm $ itInst (iConType c1) ts1
+      let realConType = itInstNorm norm (iConType c1) ts1
           (argTypes, _) = itGetArrows realConType
       when (length argTypes /= length es1) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es1))
       let mkUndet t = icUndetAt (getIdPosition i2) t u
@@ -4511,7 +4512,7 @@ improveIf f t cnd thn@(ICon i1 (ICUndet { iuKind = u }))
   = do
       when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
       norm <- getTypeNormalizer
-      let realConType = norm $ itInst (iConType c2) ts2
+      let realConType = itInstNorm norm (iConType c2) ts2
           (argTypes, _) = itGetArrows realConType
       when (length argTypes /= length es2) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es2))
       let mkUndet t = icUndetAt (getIdPosition i1) t u
@@ -4841,7 +4842,7 @@ doSel sel s tys ty n as ee (p, e) =
               -- drop arguments to value side of ActionValue method (see AMethValue)
               -- and fixup selector type (instantiating and dropping missing types)
               IAps csel@(ICon ic sel2@(ICSel { })) tys2 args@(sv@(ICon _ (ICStateVar { })):_) -> do
-                let resType = dropArrows (length args) (norm $ itInst (iConType sel2) tys2)
+                let resType = dropArrows (length args) (itInstNorm norm (iConType sel2) tys2)
                 let newSelTy = (iGetTypeNorm norm sv) `itFun` resType
                 let sel2' = sel2 { iConType = newSelTy }
                 let e'' = (IAps (ICon ic sel2') [] [sv])

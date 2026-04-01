@@ -19,6 +19,7 @@ import ISyntaxSubst(tSubst)
 import Wires
 import VModInfo(vFields, VFieldInfo(..), lookupOutputClockWires)
 import CType(TISort(..), StructSubType(..))
+import Changed
 
 --import Debug.Trace
 
@@ -892,6 +893,10 @@ itInst (ITForAll i _ t) (a:as) = itInst (tSubst i a t) as
 itInst t                []     = t
 itInst t                as     = internalError ("itInst: " ++ ppReadable (t, as))
 
+-- Instantiate and normalize (expand type synonyms and type functions)
+itInstNorm :: (IType -> IType) -> IType -> [IType] -> IType
+itInstNorm norm t ts = norm (itInst t ts)
+
 leftmost :: IType -> IType
 leftmost (ITAp t _) = leftmost t
 leftmost t = t
@@ -934,7 +939,7 @@ irulesMapM f (IRules sps rs) = do
 -- Similar to the routine in ISyntaxCheck, but with shortcuts to make
 -- it faster.
 
-iGetTypeNorm :: (IType -> IType) -> IExpr a -> IType
+iGetTypeNorm :: (IType -> Changed IType) -> IExpr a -> IType
 iGetTypeNorm norm e0 =
     let iGetTypePrim _ PrimIf [t] [_,_,_] = t
         iGetTypePrim _ PrimConcat [_,_,ITNum n] [_,_] = itBitN n
@@ -963,7 +968,7 @@ iGetTypeNorm norm e0 =
                 isNRes PrimSRL = True
                 isNRes PrimSRA = True
                 isNRes _       = False
-        iGetTypePrim e _ _ _ = norm $ tCheck emptyEnv e
+        iGetTypePrim e _ _ _ = changedOrId norm $ tCheck emptyEnv e
 
         tCheck r (ILam i t e) =
                 itFun t (tCheck (addT i t r) e)
@@ -973,7 +978,8 @@ iGetTypeNorm norm e0 =
                 ITForAll i _ rt -> tSubst i t rt
                 tt -> internalError ("iGetType.tCheck: " ++ ppString (e0, e, tt, t))
         tCheck r (IAps f (t:ts) []) = tCheck r (IAps (IAps f [t] []) ts [])
-        tCheck r (IAps f ts es) = dropArrows (length es) (norm $ tCheck r (IAps f ts []))
+        tCheck r (IAps f ts es) =
+          dropArrows (length es) (changedOrId norm $ tCheck r (IAps f ts []))
         tCheck r (IVar i) = findT i r
         tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
         tCheck r (ICon c ic) = iConType ic
@@ -994,10 +1000,10 @@ iGetTypeNorm norm e0 =
         (ICon c ic) -> iConType ic
         e@(IAps (ICon _ (ICPrim _ p)) ts es) -> iGetTypePrim e p ts es
         -- General
-        e -> norm $ tCheck emptyEnv e
+        e -> changedOrId norm $ tCheck emptyEnv e
 
 iGetType :: IExpr a -> IType
-iGetType = iGetTypeNorm id
+iGetType = iGetTypeNorm $ \ _ -> Unchanged
 
 -- input must be an interface type
 iGetIfcName :: IType -> Id

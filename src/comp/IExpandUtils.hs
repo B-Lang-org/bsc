@@ -21,7 +21,7 @@ module IExpandUtils(
         setBackendSpecific, cacheDef,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
-        getTypeNormalizer, fullTypeNormalizer,
+        getTypeNormalizer, getTypeNormalizer', fullTypeNormalizer,
         getNewRuleSuffix, updNewRuleSuffix,
         mapPExprPosition,
         chkClockDomain, chkResetDomain, fixupActionWireSet,
@@ -104,6 +104,7 @@ import Pragma(PProp(..), SPIdMap, substSchedPragmaIds,
               extractSchedPragmaIds, removeSchedPragmaIds)
 import Util
 import Verilog(vKeywords, vIsValidIdent)
+import Changed
 
 import IOUtil(progArgs)
 import ISyntaxXRef(mapIExprPosition, mapIExprPosition2)
@@ -2515,19 +2516,19 @@ updHeap tag (p, HeapData ref) e = do
    let e' = e { hc_name = best_name }
    deepseq best_name $ liftIO (writeIORef ref e')
 
-fullTypeNormalizer :: Flags -> SymTab -> IType -> IType
-fullTypeNormalizer _ _ c@(ITCon _ _ _) = c
-fullTypeNormalizer _ _ n@(ITNum _)     = n
-fullTypeNormalizer _ _ s@(ITStr _)     = s
-fullTypeNormalizer _ _ v@(ITVar _)     = v
-fullTypeNormalizer flags symt (ITForAll i k t) = ITForAll i k t'
+fullTypeNormalizer :: Flags -> SymTab -> IType -> Changed IType
+fullTypeNormalizer _ _ (ITCon _ _ _) = Unchanged
+fullTypeNormalizer _ _ (ITNum _)     = Unchanged
+fullTypeNormalizer _ _ (ITStr _)     = Unchanged
+fullTypeNormalizer _ _ (ITVar _)     = Unchanged
+fullTypeNormalizer flags symt (ITForAll i k t) = changed1 (ITForAll i k) t'
   where t' = fullTypeNormalizer flags symt t
 fullTypeNormalizer flags symt t@(ITAp _ _)
     | (f@(ITCon _ _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
     , length as == length pIdxs
-    , as' <- map (fullTypeNormalizer flags symt) as
+    , as' <- map (changedOrId $ fullTypeNormalizer flags symt) as
     , all canNorm as'
-    = normTFun $ foldl ITAp f as'
+    = Changed $ normTFun $ foldl ITAp f as'
   where -- iToCT which we use below cannot handle ITVar and ITForAll
         canNorm (ITVar _)        = False
         canNorm (ITForAll _ _ _) = False
@@ -2539,15 +2540,18 @@ fullTypeNormalizer flags symt t@(ITAp _ _)
                ((ITCon _ _ (TIatf {})), _) -> internalError $
                     "fullTypeNormalizer - unsimplified: " ++ ppReadable (t,t')
                _ -> t'
-fullTypeNormalizer flags symt (ITAp f a) = normITAp f' a'
+fullTypeNormalizer flags symt (ITAp f a) = changed2 normITAp f a f' a'
   where f' = fullTypeNormalizer flags symt f
         a' = fullTypeNormalizer flags symt a
 
-getTypeNormalizer :: G (IType -> IType)
-getTypeNormalizer = do
+getTypeNormalizer' :: G (IType -> Changed IType)
+getTypeNormalizer' = do
   flags <- getFlags
   symt <- getSymTab
   return $ fullTypeNormalizer flags symt
+
+getTypeNormalizer :: G (IType -> IType)
+getTypeNormalizer = fmap changedOrId getTypeNormalizer'
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]
@@ -2757,7 +2761,7 @@ toHeap tag e cell_name = do
         when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
         -- do the real work of adding the cell
-        norm <- getTypeNormalizer
+        norm <- getTypeNormalizer'
         addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 
 -- Used when you absolutely need to get an IRefT back
@@ -2770,7 +2774,7 @@ toHeapCon tag (ICon i (ICDef t e)) cell_name = do
   toHeapCon tag e' cell_name
 -- heap all other constants
 toHeapCon tag e@(ICon _ _) cell_name = do
-  norm <- getTypeNormalizer
+  norm <- getTypeNormalizer'
   addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 toHeapCon tag e cell_name = toHeap tag e cell_name
 
@@ -2787,13 +2791,13 @@ toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), 
                           norm <- getTypeNormalizer
                           addHeapWHNF tag (norm t) pe' cell_name
 toHeapWHNF tag e cell_name = do
-  norm <- getTypeNormalizer
+  norm <- getTypeNormalizer'
   addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 
 {-# INLINE toHeapWHNFCon #-}
 toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNFCon tag e@(ICon _ _) cell_name = do
-    norm <- getTypeNormalizer
+    norm <- getTypeNormalizer'
     addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
 

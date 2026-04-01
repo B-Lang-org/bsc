@@ -10,7 +10,6 @@ module Changed where
 --   - Can't define: pure/return (unclear if should be Changed or Unchanged)
 -- Lazy in 'a' to minimize peak memory residency (deepseq at top level handles forcing)
 data Changed a = Changed a | Unchanged
-
 -- Rebuild with 1 Changed argument
 {-# INLINE changed1 #-}
 changed1 :: (a -> b) -> Changed a -> Changed b
@@ -22,6 +21,11 @@ changed1 f (Changed x) = Changed (f x)
 changedOr :: a -> Changed a -> a
 changedOr orig Unchanged = orig
 changedOr _ (Changed x) = x
+
+-- Lift a function that may return changed to a function that returns a value
+{-# INLINE changedOrId #-}
+changedOrId :: (a -> Changed a) -> a -> a
+changedOrId f x = changedOr x (f x)
 
 -- Rebuild with 2 Changed arguments - returns Unchanged only if both unchanged
 {-# INLINE changed2 #-}

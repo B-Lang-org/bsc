@@ -16,6 +16,7 @@ import PreIds
 import ISyntax
 import ISyntaxSubst(tSubst)
 import ISyntaxUtil
+import Changed(changedOrId)
 import IExpandUtils
 import SymTab(SymTab, mustFindClass, findSClass, getAllTypes, TypeInfo(..))
 
@@ -135,7 +136,7 @@ tCheck flags symt r eqTy ec@(IAps f0 ts [a]) =
         let f = iAps f0 ts []
             at = tCheck flags symt r eqTy a
             (rt, at') =
-                case fullTypeNormalizer flags symt $ tCheck flags symt r eqTy f of
+                case changedOrId (fullTypeNormalizer flags symt) $ tCheck flags symt r eqTy f of
                     ITAp (ITAp arr at') rt | arr == itArrow -> (rt, at')
                     tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
         in  -- This trace can lead to infinite loops.
