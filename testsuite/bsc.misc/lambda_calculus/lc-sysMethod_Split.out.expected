@@ -25,37 +25,31 @@ dim_sysMethod_Split =
 meth_m_sysMethod_Split :: MOD_sysMethod_Split -> (Bool, MOD_sysMethod_Split, Bit #8);
 meth_m_sysMethod_Split =
     (\ (state0 :: MOD_sysMethod_Split) ->
-     let { (def_c__h114 :: Bit #1) = meth_read_RegUN (inst_c__sysMethod_Split state0) }
-     in if (bitToBool def_c__h114)
-	then let { (def_x__h188 :: Bit #8) = meth_read_RegUN (inst_rg1__sysMethod_Split state0)
-		 ; (def_x__h215 :: Bit #8) = meth_read_RegUN (inst_rg2__sysMethod_Split state0)
-		 ; (def_x__h144 :: Bit #8) = primAdd def_x__h188 (3 :: Bit #8)
-		 ; (def_y_avValue__h214 :: Bit #8) = primAdd def_x__h215 (2 :: Bit #8)
-		 ; (def_y_avValue__h187 :: Bit #8) = primAdd def_x__h188 (1 :: Bit #8)
+     let { (def_c__h144 :: Bit #1) = meth_read_RegUN (inst_c__sysMethod_Split state0) }
+     in if (bitToBool def_c__h144)
+	then let { (def_x__h224 :: Bit #8) = meth_read_RegUN (inst_rg1__sysMethod_Split state0)
+		 ; (def_x__h251 :: Bit #8) = meth_read_RegUN (inst_rg2__sysMethod_Split state0)
+		 ; (def_x__h174 :: Bit #8) = primAdd def_x__h224 (3 :: Bit #8)
+		 ; (def_x__h249 :: Bit #8) = primAdd def_x__h251 (2 :: Bit #8)
+		 ; (def_x__h222 :: Bit #8) = primAdd def_x__h224 (1 :: Bit #8)
 		 ; (act1 :: (Bool, MOD_RegUN #8, ())) =
-		       meth_write_RegUN def_x__h144 (inst_rg1__sysMethod_Split state0)
+		       meth_write_RegUN def_x__h174 (inst_rg1__sysMethod_Split state0)
 		 ; (guard1 :: Bool) = fst3 act1
 		 ; (state1 :: MOD_sysMethod_Split) = state0 { inst_rg1__sysMethod_Split = snd3 act1 }
 		 }
-	     in mktuple
-		    guard1
-		    state1
-		    (if (bitToBool def_c__h114) then def_y_avValue__h187 else def_y_avValue__h214)
-	else if (not (bitToBool def_c__h114))
-	     then let { (def_x__h188 :: Bit #8) = meth_read_RegUN (inst_rg1__sysMethod_Split state0)
-		      ; (def_x__h215 :: Bit #8) = meth_read_RegUN (inst_rg2__sysMethod_Split state0)
-		      ; (def_x__h190 :: Bit #8) = primAdd def_x__h215 (4 :: Bit #8)
-		      ; (def_y_avValue__h214 :: Bit #8) = primAdd def_x__h215 (2 :: Bit #8)
-		      ; (def_y_avValue__h187 :: Bit #8) = primAdd def_x__h188 (1 :: Bit #8)
+	     in mktuple guard1 state1 (if (bitToBool def_c__h144) then def_x__h222 else def_x__h249)
+	else if (not (bitToBool def_c__h144))
+	     then let { (def_x__h224 :: Bit #8) = meth_read_RegUN (inst_rg1__sysMethod_Split state0)
+		      ; (def_x__h251 :: Bit #8) = meth_read_RegUN (inst_rg2__sysMethod_Split state0)
+		      ; (def_x__h226 :: Bit #8) = primAdd def_x__h251 (4 :: Bit #8)
+		      ; (def_x__h249 :: Bit #8) = primAdd def_x__h251 (2 :: Bit #8)
+		      ; (def_x__h222 :: Bit #8) = primAdd def_x__h224 (1 :: Bit #8)
 		      ; (act1 :: (Bool, MOD_RegUN #8, ())) =
-			    meth_write_RegUN def_x__h190 (inst_rg2__sysMethod_Split state0)
+			    meth_write_RegUN def_x__h226 (inst_rg2__sysMethod_Split state0)
 		      ; (guard1 :: Bool) = fst3 act1
 		      ; (state1 :: MOD_sysMethod_Split) = state0 { inst_rg2__sysMethod_Split = snd3 act1 }
 		      }
-		  in mktuple
-			 guard1
-			 state1
-			 (if (bitToBool def_c__h114) then def_y_avValue__h187 else def_y_avValue__h214)
+		  in mktuple guard1 state1 (if (bitToBool def_c__h144) then def_x__h222 else def_x__h249)
 	     else nullUpd);
 
 meth_RDY_m_sysMethod_Split :: MOD_sysMethod_Split -> Bool;
