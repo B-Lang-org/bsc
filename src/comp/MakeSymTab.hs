@@ -772,7 +772,8 @@ getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
                                ca_rhs `elem` tgts) fds
                      , not isDetermined
                      ]
-              errs = paramErrs ++ dupErrs ++ paramIsResultErrs ++ fundepErrs
+              tvErrs = paramErrs ++ dupErrs ++ paramIsResultErrs
+              errs = if null tvErrs then fundepErrs else tvErrs
           in case errs of
                [] -> ()
                _  -> bsErrorUnsafe errh errs
