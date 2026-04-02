@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ATFUnifyError.bs
+Error: "ATFUnifyError.bs", line 18, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    a -> ATFUnifyError.Elem a -> Prelude.Bool
+  The following contexts are needed:
+    ATFUnifyError.Container a Prelude.Bool
+      Introduced at the following locations:
+	"ATFUnifyError.bs", line 19, column 9

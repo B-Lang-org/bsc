@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ATFUnifyHKError.bs
+Error: "ATFUnifyHKError.bs", line 10, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    a -> ATFUnifyHKError.Foo (ATFUnifyHKError.Elem a) -> ATFUnifyHKError.Foo
+    Prelude.Maybe
+  The following contexts are needed:
+    ATFUnifyHKError.Container a Prelude.Maybe
+      Introduced at the following locations:
+	"ATFUnifyHKError.bs", line 11, column 9

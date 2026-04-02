@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFWrongArity.bs
+Error: "ATFWrongArity.bs", line 16, column 8: (T0025)
+  The type `Elem' is applied to too few arguments.
