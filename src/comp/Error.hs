@@ -2976,7 +2976,7 @@ getErrorText (EATFDeclParamMismatch cls atf expected actual) =
      s2par ("Type family declaration for " ++ ishow atf ++
             " mentions type variable " ++ ishow actual ++
             " not in the variables of its class " ++ ishow cls ++
-            ": " ++ intercalate "," expected))
+            ": " ++ intercalate ", " (map ishow expected)))
 
 getErrorText (EATFDeclDuplicateParam atf param) =
     (Type 159, empty,
@@ -2993,8 +2993,10 @@ getErrorText (EATFResultNotDetermined atf result params) =
     (Type 162, empty,
      s2par ("Type function " ++ ishow atf ++
             ": result variable " ++ ishow result ++
-            " is not determined by parameters " ++ intercalate ", " params ++
+            " is not determined by " ++ paramWord ++
+            " " ++ intercalate ", " (map ishow params) ++
             " via any functional dependency"))
+  where paramWord = if length params == 1 then "parameter" else "parameters"
 
 getErrorText (EATFInInstanceHead atf) =
     (Type 161, empty,
