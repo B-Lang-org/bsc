@@ -43,7 +43,13 @@ endfunction
 module mkCompletionBuffer (CompletionBuffer#(n, a))
   provisos (Bits#(a, sa), Log#(n, ln), Add#(1, ln, ln1));
 
-    let hi = fromInteger(valueOf(n) - 1);
+  // Used to be: let hi = fromInteger(valueOf(n) - 1);
+  // This stopped working after let generalization was turned off by default.
+  // Writing a no-argument function is a workaround that allows the generalized
+  // type signature (which requires a proviso).
+  function t hi() provisos(Literal#(t));
+    return(fromInteger(valueOf(n) - 1));
+  endfunction
 
     function Action incr(Reg#(Bit#(ln)) r);
      action
