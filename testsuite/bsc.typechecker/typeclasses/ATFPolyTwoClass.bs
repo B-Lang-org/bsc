@@ -22,12 +22,14 @@ instance Sink (BoxSnk a) a where
   putSink = BoxSnk
 
 -- Polymorphic: SrcElem f and SnkElem g both resolve to e.
--- Uses ATF types in let binding to force abstract unification.
+-- Uses both ATF types in let bindings to force abstract unification.
 pipe :: (Source f e, Sink g e) => f -> g
 pipe src =
   let v :: SrcElem f
       v = getSource src
-  in putSink v
+      w :: SnkElem g
+      w = v
+  in putSink w
 
 test :: BoxSnk Integer
 test = pipe (BoxSrc 42)

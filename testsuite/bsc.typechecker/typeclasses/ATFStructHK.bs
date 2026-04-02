@@ -22,28 +22,27 @@ instance HasSlot ListTag List where
 
 -- A struct parameterized by the type constructor s and the element type.
 -- The relationship Slot f = s is enforced through usage with HasSlot.
-struct Holder s elem =
-  item :: s elem
+struct Holder tag elem =
+  item :: Slot tag elem
 
--- Monomorphic helpers that force expansion of Slot BoxTag = Maybe
--- and Slot ListTag = List at binding time.
-makeBoxSlot :: BoxTag -> Integer -> Maybe Integer
+-- Monomorphic helpers using the type function directly.
+makeBoxSlot :: BoxTag -> Integer -> Slot BoxTag Integer
 makeBoxSlot = makeSlot
 
-makeListSlot :: ListTag -> Integer -> List Integer
+makeListSlot :: ListTag -> Integer -> Slot ListTag Integer
 makeListSlot = makeSlot
 
-buildHolder :: Integer -> Holder Maybe Integer
+buildHolder :: Integer -> Holder BoxTag Integer
 buildHolder x = Holder { item = makeBoxSlot BoxTag x }
 
-buildListHolder :: Integer -> Holder List Integer
+buildListHolder :: Integer -> Holder ListTag Integer
 buildListHolder x = Holder { item = makeListSlot ListTag x }
 
 -- Field access dispatches to the correct expanded type.
-getItem :: Holder Maybe Integer -> Maybe Integer
+getItem :: Holder BoxTag Integer -> Maybe Integer
 getItem h = h.item
 
-getListItem :: Holder List Integer -> List Integer
+getListItem :: Holder ListTag Integer -> List Integer
 getListItem h = h.item
 
 test :: Maybe Integer

@@ -1,6 +1,6 @@
 package ATFInInstHead where
 
--- Test that using a type function in an instance head produces an error.
+-- Test that using a type function in a non-determined position of an instance head is an error.
 
 class Container f e | f -> e where
   type Elem f = e
@@ -12,7 +12,7 @@ instance Container (Box a) a where
   wrap = Box
 
 -- This should be an error: Elem is a type function and cannot appear
--- in an instance head.
+-- in a non-determined position.
 class Foo a where
   foo :: a -> Bool
 

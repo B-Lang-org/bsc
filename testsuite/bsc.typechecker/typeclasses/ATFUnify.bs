@@ -14,10 +14,11 @@ instance Container (Box a) a where
   wrap = Box
   unwrap (Box x) = x
 
-conv1 :: (Container a e) => a -> Box e
+-- Use Elem directly in the type signature
+conv1 :: (Container a e) => a -> Box (Elem a)
 conv1 x =
   let y = unwrap x
   in wrap y
 
-conv2 :: (Container a e) => a -> Box e
+conv2 :: (Container a e) => a -> Box (Elem a)
 conv2 x = wrap $ unwrap x

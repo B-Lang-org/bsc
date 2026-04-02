@@ -21,11 +21,11 @@ instance MapKey (UInt n) (Vector (TExp n)) where
   update = Vector.update
   lookup = select
 
--- Monomorphic helpers that force expansion of Map (UInt 8) = Vector 256.
-updateV :: Vector 256 String -> UInt 8 -> String -> Vector 256 String
+-- Monomorphic helpers using the type function directly.
+updateV :: Map (UInt 8) String -> UInt 8 -> String -> Map (UInt 8) String
 updateV = update
 
-lookupV :: Vector 256 String -> UInt 8 -> String
+lookupV :: Map (UInt 8) String -> UInt 8 -> String
 lookupV = lookup
 
 -- Simple test: use the monomorphic helpers with the concrete types.

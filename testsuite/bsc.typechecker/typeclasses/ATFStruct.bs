@@ -14,23 +14,20 @@ data Box a = Box a
 instance Container (Box a) a where
   extract (Box x) = x
 
--- A struct parameterized by both f and e.
--- The relationship Elem f = e is enforced by the typeclass.
-struct Envelope f e =
+struct Envelope f =
   box     :: f
-  element :: e
+  element :: Elem f
 
--- Monomorphic specialisation forces Elem (Box Integer) = Integer at binding.
-extractI :: Box Integer -> Integer
+-- Monomorphic specialisation using the type function directly.
+extractI :: Box Integer -> Elem (Box Integer)
 extractI = extract
 
--- Build an Envelope (Box Integer) Integer: the element type is determined
--- by the type function Elem (Box Integer) = Integer.
-buildEnv :: Box Integer -> Envelope (Box Integer) Integer
+-- Build an Envelope using the type function for the element type.
+buildEnv :: Box Integer -> Envelope (Box Integer)
 buildEnv b = Envelope { box = b; element = extractI b }
 
--- Access the element field; its type is Integer.
-getElem :: Envelope (Box Integer) Integer -> Integer
+-- Access the element field; its type is Elem (Box Integer) = Integer.
+getElem :: Envelope (Box Integer) -> Elem (Box Integer)
 getElem e = e.element
 
 test :: Integer

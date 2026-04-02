@@ -8,7 +8,7 @@ package ATFReorderedParams where
 -- Proxy type for field names
 data (F :: $ -> *) f = F
 
-class HasField f a s | s f -> a where
+class HasField f a s | f s -> a where
   type FieldType s f = a
   getField :: F f -> s -> a
   setField :: F f -> a -> s -> s

@@ -11,6 +11,9 @@ class FixedWidth f n | f -> n where
 instance FixedWidth Bool 1 where
   encode b = pack b
 
--- Verify that the result type is exactly Bit 1 after expansion.
-result :: Bit 1
+encode' :: (FixedWidth a n) => a -> Bit (Width a)
+encode' = encode
+
+-- Verify that the Width type function matches the result of encode for Bool.
+result :: Bit (Width Bool)
 result = encode True

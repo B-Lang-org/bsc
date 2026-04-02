@@ -16,13 +16,11 @@ instance Pair (P a b) a b where
   fstOf (P a _) = a
   sndOf (P _ b) = b
 
--- Monomorphic helpers that force type function expansion when the method is bound:
--- fstOf :: P Integer Bool -> Integer  (First (P Integer Bool) = Integer)
--- sndOf :: P Integer Bool -> Bool     (Second (P Integer Bool) = Bool)
-fstOfP :: P Integer Bool -> Integer
+-- Monomorphic helpers using the type functions directly:
+fstOfP :: P Integer Bool -> First (P Integer Bool)
 fstOfP = fstOf
 
-sndOfP :: P Integer Bool -> Bool
+sndOfP :: P Integer Bool -> Second (P Integer Bool)
 sndOfP = sndOf
 
 -- fstOfP returns Integer (expanded from First (P Integer Bool))

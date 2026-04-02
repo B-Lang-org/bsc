@@ -23,14 +23,14 @@ instance Container (Tagged t a) a where
 instance Container (Pair a b) a where
   extract (Pair x _) = x
 
--- Each binding forces expansion of a different instance.
-fromBox :: Box Integer -> Integer
+-- Each binding uses Elem to reference the type function directly.
+fromBox :: Box Integer -> Elem (Box Integer)
 fromBox = extract
 
-fromTagged :: Tagged Bool Integer -> Integer
+fromTagged :: Tagged Bool Integer -> Elem (Tagged Bool Integer)
 fromTagged = extract
 
-fromPair :: Pair Integer Bool -> Integer
+fromPair :: Pair Integer Bool -> Elem (Pair Integer Bool)
 fromPair = extract
 
 test1 :: Integer

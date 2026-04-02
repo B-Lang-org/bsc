@@ -25,11 +25,11 @@ i = 42
 j :: Integer
 j = 17
 
-test1 :: Pair Integer Bool
+test1 :: Out Integer Bool
 test1 = merge i True
 
-test2 :: Maybe Integer
+test2 :: Out Bool Integer
 test2 = merge False i
 
-test3 :: Integer
+test3 :: Out Integer Integer
 test3 = merge i j
