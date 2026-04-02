@@ -16,7 +16,7 @@ instance Container (Box a) a where
 
 -- Polymorphic double extraction: f contains g, g contains the final value.
 -- Both ATF applications stay abstract until concrete instantiation.
-doubleExtract :: (Container f g, Container g e) => f -> Elem g
+doubleExtract :: (Container f e, Container (Elem f) e') => f -> Elem (Elem f)
 doubleExtract x = extract (extract x)
 
 -- Concrete: f = Box (Box Integer), g = Box Integer, e = Integer

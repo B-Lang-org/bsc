@@ -1,5 +1,8 @@
 package ATFPoly where
 
+-- Test synthesizing a module that instantiates a register with a type determined by a type function.
+-- Also test valueOf on a polymorphic type function's type parameter.
+
 class (Bits r n) => HasRepr a r n | a -> r n where
   type Repr a = r
   type ReprSize a = n
