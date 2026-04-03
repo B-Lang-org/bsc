@@ -353,7 +353,7 @@ compile_pass Bug782_ProvisoClassic.bs
 
 # This has a proviso (with a free variable) that should be resolvable
 # (but the resolution will need to return a substitution)
-compile_fail Bug782_ProvisoBSV.bsv
+compile_fail Bug782_ProvisoBSV.bsv -let-gen
 compare_file Bug782_ProvisoBSV.bsv.bsc-out
 
 # ---
@@ -367,7 +367,7 @@ compile_pass Bug782_TLM2BRAM_OK.bsv
 # ---
 # Example from comment 17
 
-compile_fail Bug782_AddUp.bsv
+compile_fail Bug782_AddUp.bsv -let-gen
 compare_file Bug782_AddUp.bsv.bsc-out
 
 compile_pass Bug782_AddUp_OK.bsv

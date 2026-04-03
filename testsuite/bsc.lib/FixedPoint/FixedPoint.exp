@@ -1,5 +1,5 @@
 
-test_c_veri_bsv Fptest
+test_c_veri_bsv_modules_options Fptest {} -let-gen
 
 test_c_veri_bsv FromReal_10_10
 if { $vtest == 1 } {
@@ -39,10 +39,11 @@ find_n_warning  FromReal_500_1.bsv.bsc-vcomp-out S0015 0
 test_c_veri_bsv Round
 test_c_veri_bsv SaturateArith
 
-test_c_veri_bsv ExtendedPrecision
+test_c_veri_bsv_modules_options ExtendedPrecision {} -let-gen
 
 # This test attempts to prevent Bluesim from dividing by zero
 # (avoiding Bug 1342), by guarding the StmtFSM rule with a check for zero,
 # rather than embedding the check in the rule body's logic.
-test_c_veri_bsv Quots
+test_c_veri_bsv_modules_options Quots {} -let-gen
+
 

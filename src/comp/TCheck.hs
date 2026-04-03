@@ -16,7 +16,7 @@ import Util(fst3)
 import IntLit
 import IntegerUtil(mask)
 import Classic(isBSV)
-import Flags(Flags)
+import Flags(Flags, letGen)
 import PFPrint
 import Id
 import FStringCompat
@@ -2916,11 +2916,15 @@ tiImpls recursive as ibs = do
     -- Apply the substitution to the code fragments
     let altss_final = map (apSub s) altss'          -- new alternatives
 
+    flags <- getFlags
+
     -- Determine the generic variables and produce the inferred type scheme
     let
         -- The generic vars are the local vars (tv of the ts and the rs)
-        -- which are not fixed
-        gs = (lvs_final `union` tv rs_final) \\ fs_final
+        -- which are not fixed; empty when generalization is disabled
+        gs = if letGen flags
+             then (lvs_final `union` tv rs_final) \\ fs_final
+             else []
         -- The inferred type scheme quantified over "gs"
         scs' =
             map (quantify gs . (map toPredWithPositions rs_final :=>)) ts_final
@@ -2943,9 +2947,9 @@ tiImpls recursive as ibs = do
         -- no local constraints, so use bindings as is
         let
             -- Create an explicitly typed definition for a given i
-            -- The generic variables are (tv t \\ fs_final)
+            -- The generic variables are those in t which are generalized
             mkExpl (i,_) t (alts, me) =
-                CLValueSign (CDefT i (tv t \\ fs_final) (CQType [] t) alts) me
+                CLValueSign (CDefT i (filter (`elem` gs) (tv t)) (CQType [] t) alts) me
             defs = zipWith3 mkExpl ibs ts_final altss_final
         in
             -- return the deferred predicates, the assumptions for the

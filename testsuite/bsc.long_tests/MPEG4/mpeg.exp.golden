@@ -7,15 +7,15 @@ set env(GHCRTS) "-K20M"
 # disable VCD check because the files are too large
 set check_vcd 0
 
-test_c_only_bsv_multi \
+test_c_only_bsv_multi_options \
     Testbench_novideo mkTestbench_novideo \
     {mkMpeg4 mkIDCT_top mkMCR mkFrmBuffer mkBtStrmPrsr mkByteAlign} \
-    mkTestbench_novideo.c.out.expected {} {} $check_vcd
+    -let-gen mkTestbench_novideo.c.out.expected {} {} {} $check_vcd
 
-test_veri_only_bsv_multi \
+test_veri_only_bsv_multi_options \
     Testbench_novideo mkTestbench_novideo \
     {mkMpeg4 mkIDCT_top mkMCR mkFrmBuffer mkBtStrmPrsr mkByteAlign} \
-    mkTestbench_novideo.v.out.expected {} {} $check_vcd
+    -let-gen mkTestbench_novideo.v.out.expected {} {} {} $check_vcd
 
 if [info exists ghcrts_save] {
   set env(GHCRTS) $ghcrts_save

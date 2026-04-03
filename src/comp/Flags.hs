@@ -154,7 +154,8 @@ data Flags = Flags {
         verilogFilter :: [String],
         warnActionShadowing :: Bool,
         warnMethodUrgency :: Bool,
-        warnUndetPred :: Bool
+        warnUndetPred :: Bool,
+        letGen :: Bool
         }
 -- don't derive Show -- it causes an optimized ghc build to take a long time
 --        deriving (Show)

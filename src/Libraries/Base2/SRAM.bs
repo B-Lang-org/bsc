@@ -52,7 +52,8 @@ wrapSRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Add 1 lat lat1, Add 4 l
             m (SyncSRAMC lat adrs dtas, RAM adr dta)
 wrapSRAM =
   module
-    let lat = fromInteger (valueOf lat)
+    let lat :: (Literal a) => a
+        lat = fromInteger (valueOf lat)
     out :: FIFOF dta           <- mkUGSizedFIFOF (lat + 4)    -- output FIFO
     adr :: Reg (Bit adrs)      <- mkConfigRegU                -- SRAM address reg
     dta :: Reg (Bit dtas)      <- mkConfigRegU                -- SRAM data reg

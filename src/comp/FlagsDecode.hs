@@ -654,7 +654,8 @@ defaultFlags bluespecdir = Flags {
         verilogFilter = [],
         warnActionShadowing = True,
         warnMethodUrgency = True,
-        warnUndetPred = False
+        warnUndetPred = False,
+        letGen = False
         }
 
 -- Default path value replaced in adjustFinalFlags
@@ -1256,6 +1257,10 @@ externalFlags = [
         ("lift",
          (Toggle (\f x -> f {ifLift=x}) (showIfTrue ifLift),
           "lift method calls in \"if\" actions", Visible)),
+
+        ("let-gen",
+         (Toggle (\f x -> f {letGen=x}) (showIfTrue letGen),
+          "generalize untyped let bindings", Hidden)),
 
         ("max-tcheck-stack-depth",
          (Arg "depth"
@@ -1950,7 +1955,8 @@ showFlagsRaw flags =
           ("vsim", show (vsim flags)),
           ("warnActionShadowing", show (warnActionShadowing flags)),
           ("warnMethodUrgency", show (warnMethodUrgency flags)),
-          ("warnUndetPred", show (warnUndetPred flags))
+          ("warnUndetPred", show (warnUndetPred flags)),
+          ("letGen", show (letGen flags))
          ]
         in "Flags {\n" ++
                (intercalate ",\n" (map render fields)) ++

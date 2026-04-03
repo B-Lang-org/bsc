@@ -132,5 +132,6 @@ Flags {
 	vsim = Nothing,
 	warnActionShadowing = True,
 	warnMethodUrgency = True,
-	warnUndetPred = False
+	warnUndetPred = False,
+	letGen = False
 }

@@ -1,5 +1,5 @@
 
-test_c_veri_bsv MiscFunc
+test_c_veri_bsv_modules_options MiscFunc {} -let-gen
 
 ## Tests shifting and dynamic index select
 test_c_veri_bsv ShiftOutTest

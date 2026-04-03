@@ -58,7 +58,7 @@ compile_pass_bug StructDeepPattern.bs 1080
 compile_pass TaskIdentifiers.bs
 
 # need literal support for $display
-compile_pass ParseDisplay.bs
+compile_pass ParseDisplay.bs -let-gen
 compile_pass ParseDisplay.bsv
 
 compile_pass StringLit.bs 
@@ -140,7 +140,7 @@ test_c_veri_bs_modules LiteralTest {}
 # Support sized literals with Verilog-style syntax
 # (fixes Google issue #67372462)
 compile_pass SizedLiteral.bs
-compile_fail_error SizedLiteralAmbig.bs T0033
+compile_fail_error SizedLiteralAmbig.bs T0033 1 -let-gen
 test_c_veri_bs_modules SizedLiteralMono {}
 test_c_veri_bs_modules SizedLiteralTest {}
 

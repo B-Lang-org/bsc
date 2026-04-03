@@ -6,7 +6,7 @@ compile_pass Mpmc_TLM.bsv
 compile_pass State.bsv
 
 # Joe's later example (Bug 1629)
-compile_pass Cache_Controller.bsv
+compile_pass Cache_Controller.bsv -let-gen
 
 # Todd's example, originally tagged as Bug 1573 by Ravi
 compile_pass ToddBogusBits.bsv

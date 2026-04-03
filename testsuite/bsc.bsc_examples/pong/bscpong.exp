@@ -1,2 +1,2 @@
-compile_pass TbTopLevel.bs
-compile_verilog_pass TbTopLevel.bs mkTbTopLevel
+compile_pass TbTopLevel.bs -let-gen
+compile_verilog_pass TbTopLevel.bs mkTbTopLevel -let-gen

@@ -26,7 +26,7 @@ proc mesa_test_veri_and_sanitize_warnings {expected} {
 #this code extracted from test_c_veri_worker_int
   global vtest
   if { $vtest == 1 } {
-    compile_verilog_pass TestMesa.bsv sysTestMesa
+    compile_verilog_pass TestMesa.bsv sysTestMesa -let-gen
     link_verilog_pass {sysTestMesa.v mkMesa_Vff.v mkMesa_Dm.v mkMesa_Mif.v mkMesaLpm.v mkMesa.v} sysTestMesa
     sim_verilog sysTestMesa
     move sysTestMesa.out sysTestMesa.v.out
@@ -62,7 +62,7 @@ copy MesaTx.bsv Mesa.bsv
 #test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.tx.v.expected
 
 mesa_test_veri_and_sanitize_warnings mesa.tx.v.expected
-test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.tx.expected
+test_c_only_bsv_modules_options TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} -let-gen mesa.tx.expected
 
 mesa_save_outputs tx
 
@@ -73,7 +73,7 @@ mesa_cleanup
 
 #test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.static.v.expected
 mesa_test_veri_and_sanitize_warnings mesa.static.v.expected
-test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.static.expected
+test_c_only_bsv_modules_options TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} -let-gen mesa.static.expected
 
 mesa_save_outputs static
 
@@ -93,7 +93,7 @@ mesa_cleanup
 
 #test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.circ.v.expected 
 mesa_test_veri_and_sanitize_warnings mesa.circ.v.expected 
-test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.circ.expected 
+test_c_only_bsv_modules_options TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} -let-gen mesa.circ.expected 
 
 mesa_save_outputs circ
 

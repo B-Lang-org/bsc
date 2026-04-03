@@ -7,10 +7,10 @@
 compile_pass BasicDisplay.bs
 
 # XXX Same as the basic test?
-compile_pass DisplayTypeCheck.bs
+compile_pass DisplayTypeCheck.bs -let-gen
 
 # Wrapping an argument in "unpack" is OK because the proviso will be defaulted
-compile_pass NonConflictingBitTypes.bs
+compile_pass NonConflictingBitTypes.bs -let-gen
 
 # XXX Whatever this was testing, it no longer does
 compile_fail_error ConflictingBitTypes.bs T0033

@@ -32,7 +32,7 @@ test_veri_only Oper sysOper.v.out.expected
 test_c_only Oper
 #test_syn Oper
 
-test_c_veri Lib
+test_c_veri_bs_modules_options Lib {} -let-gen
 #test_syn Lib 
 
 test_c_veri ExpectedExclusiveActions
