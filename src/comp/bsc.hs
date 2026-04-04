@@ -295,21 +295,14 @@ compile_with_deps errh flags name = do
 
 compile_no_deps :: ErrorHandle -> Flags -> String -> IO (Bool)
 compile_no_deps errh flags name = do
-  (ok, _, _) <- compileFile errh flags M.empty M.empty name
-  return ok
-
--- returns whether the compile errored or not
-compileFile :: ErrorHandle -> Flags -> BinMap HeapData -> HashMap -> String ->
-               IO (Bool, BinMap HeapData, HashMap)
-compileFile errh flags binmap hashmap name = do
-    -- ===== the break point between file manipulation and compilation
-
     (pkg, t, parse_warns) <- parseFile errh flags False name
 
     -- Show warnings for this file
     when (not $ null parse_warns) $ bsWarning errh parse_warns
 
-    compilePackage errh flags t binmap hashmap name pkg
+    (ok, _, _) <- compilePackage errh flags t M.empty M.empty name pkg
+    return ok
+
 
 -------------------------------------------------------------------------
 
