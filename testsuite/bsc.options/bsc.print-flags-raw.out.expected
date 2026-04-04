@@ -43,6 +43,7 @@ Flags {
 	keepFires = False,
 	keepInlined = False,
 	kill = Nothing,
+	letGen = False,
 	linkFlags = [],
 	maxTIStackDepth = 1000,
 	methodBVI = False,
@@ -132,6 +133,5 @@ Flags {
 	vsim = Nothing,
 	warnActionShadowing = True,
 	warnMethodUrgency = True,
-	warnUndetPred = False,
-	letGen = False
+	warnUndetPred = False
 }
