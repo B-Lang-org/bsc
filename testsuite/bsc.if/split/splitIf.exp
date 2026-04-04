@@ -73,7 +73,7 @@ compare_file manyVariations.bs.canon.dump
 count_rules_after_splitIf Nosplit.bsv 1
 count_rules_after_splitIf Plain.bsv 1
 count_rules_after_splitIf Split.bsv 2
-count_rules_after_splitIf boundvariableok.bsv 2 {} -let-gen
+count_rules_after_splitIf boundvariableok.bsv 2 sysx -let-gen
 compile_verilog_pass methodactionsplitin1.bsv usesGo -dsplitIf=methodactionsplitin1.bsv.$dump_suffix
 if { $vtest == 1 } {
 find_n_regexp methodactionsplitin1.bsv.$dump_suffix $rules_regex 2
