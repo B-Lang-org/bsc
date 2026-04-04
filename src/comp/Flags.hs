@@ -65,6 +65,7 @@ data Flags = Flags {
         keepInlined :: Bool,
         kill :: Maybe (DumpFlag, Maybe String),
         ifLift :: Bool,
+        letGen :: Bool,
         maxTIStackDepth :: Int,
         methodBVI :: Bool,
         methodConf :: Bool,
@@ -154,8 +155,7 @@ data Flags = Flags {
         verilogFilter :: [String],
         warnActionShadowing :: Bool,
         warnMethodUrgency :: Bool,
-        warnUndetPred :: Bool,
-        letGen :: Bool
+        warnUndetPred :: Bool
         }
 -- don't derive Show -- it causes an optimized ghc build to take a long time
 --        deriving (Show)

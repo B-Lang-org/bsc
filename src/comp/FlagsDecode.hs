@@ -561,6 +561,7 @@ defaultFlags bluespecdir = Flags {
         keepInlined = False,
         kill = Nothing,
         ifLift = True,
+        letGen = False,
         maxTIStackDepth = 1000,
         methodBVI = False,
         methodConf = False,
@@ -654,8 +655,7 @@ defaultFlags bluespecdir = Flags {
         verilogFilter = [],
         warnActionShadowing = True,
         warnMethodUrgency = True,
-        warnUndetPred = False,
-        letGen = False
+        warnUndetPred = False
         }
 
 -- Default path value replaced in adjustFinalFlags
@@ -1866,6 +1866,7 @@ showFlagsRaw flags =
           ("keepFires", show (keepFires flags)),
           ("keepInlined", show (keepInlined flags)),
           ("kill", show (kill flags)),
+          ("letGen", show (letGen flags)),
           ("linkFlags", show (linkFlags flags)),
           ("maxTIStackDepth", show (maxTIStackDepth flags)),
           ("methodBVI", show (methodBVI flags)),
@@ -1955,8 +1956,7 @@ showFlagsRaw flags =
           ("vsim", show (vsim flags)),
           ("warnActionShadowing", show (warnActionShadowing flags)),
           ("warnMethodUrgency", show (warnMethodUrgency flags)),
-          ("warnUndetPred", show (warnUndetPred flags)),
-          ("letGen", show (letGen flags))
+          ("warnUndetPred", show (warnUndetPred flags))
          ]
         in "Flags {\n" ++
                (intercalate ",\n" (map render fields)) ++
