@@ -19,6 +19,7 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 
 import Data.Either(partitionEithers)
+import PredTrie
 import FStringCompat(concatFString)
 import PFPrint
 import PreStrings(fsTilde)
@@ -54,6 +55,11 @@ doTraceKI = "-trace-kind-inference" `elem` progArgs
 
 doTraceOverlap :: Bool
 doTraceOverlap = "-trace-instance-overlap" `elem` progArgs
+
+-- Use the legacy flat-list instance index (pre-trie).
+-- Pass -legacy-inst-index to bsc to select this path, e.g. for comparison.
+useLegacyInstIndex :: Bool
+useLegacyInstIndex = "-legacy-inst-index" `elem` progArgs
 
 mkSymTab :: ErrorHandle -> CPackage -> IO SymTab
 mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
@@ -864,16 +870,14 @@ getK iks ik =
         IdKind _ k -> k
         _ -> internalError ("getK " ++ ppReadable iks ++ show ik)
 
-getQInsts :: Id -> [[Bool]] -> QInsts -> (QInsts, [EMsg])
--- Exempt classes that are auto-derived for every type from overlap-checking.
--- This limits the impact of the O(n^2) scaling issues because of
--- the O(n^2) instance sort / overlap check. Unfortunately, it
--- isn't an asymptotic fix.
-getQInsts ci _ qts
+-- Legacy O(n^2) instance ordering + overlap check (used when -legacy-inst-index).
+-- Exempt auto-derived classes (e.g. Generic) from overlap checking for
+-- performance; sort remaining instances most-specific-first via tsort.
+getQInstsLegacy :: Id -> [[Bool]] -> QInsts -> (QInsts, [EMsg])
+getQInstsLegacy ci _ qts
   | ci `elem` autoderivedClasses =
     ([ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ], [])
-
-getQInsts ci bss qts = (cls_qts', errs)
+getQInstsLegacy ci bss qts = (cls_qts', errs)
   where cls_qts  = [ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ]
         cls_qt_g = [ (qi, lt_qis) | qi <- cls_qts,
                                     let more_specific qi' = cmpQInsts bss qi' qi == Right (Just LT),
@@ -882,9 +886,13 @@ getQInsts ci bss qts = (cls_qts', errs)
                      Left cycles -> internalError ("getQInsts cycles? " ++
                                                    ppReadable (cycles, cls_qt_g))
                      Right sorted -> sorted
-        -- XXX another O(n^2) traversal complicated by duplicate instance checking
         chk_pairs = uniquePairs cls_qts
         errs = fst $ partitionEithers $ map (uncurry (cmpQInsts bss)) chk_pairs
+
+getQInsts :: Id -> QInsts -> QInsts
+-- Filter instances to those belonging to class ci.
+-- Overlap checking is integrated into buildInstIndex.
+getQInsts ci qts = [ qi | qi@(QInst _ (_ :=> t)) <- qts, leftCon t == Just ci ]
 
 doInst :: Maybe Id -> SymTab -> Class -> QInst -> Inst
 doInst currentPkg r c (QInst mi p@(ps :=> t)) =
@@ -905,6 +913,20 @@ doInst currentPkg r c (QInst mi p@(ps :=> t)) =
 genBss :: [Id] -> CFunDeps -> [[Bool]]
 genBss vs []  = [ replicate (length vs) False ]
 genBss vs fds = [ map (`elem` rs) vs | (_, rs) <- fds ]
+
+-- Check for overlap errors using the shared instance trie.
+-- Variable positions in the instance key become Free in the probe query
+-- so cross-branch overlaps are correctly found.  j /= i avoids self-comparison.
+overlapErrors :: [[Bool]] -> [(Int, QInst, Inst)] -> PredTrie (Int, QInst, Inst) -> [EMsg]
+overlapErrors bss tagged trie = nub errs
+  where
+    probeQuery (_, _, Inst _ _ (_ :=> p) _) = overlapProbeQuery p
+    errs = [ e | item@(i, qi, _) <- tagged
+               , (j, qj, _)      <- lookupPredTrie (probeQuery item) trie
+               , j > i           -- process each unordered pair only once
+               , Left e          <- [cmpQInsts bss qi qj] ]
+
+-- ---------------
 
 getCls :: ErrorHandle -> Maybe Id -> Maybe Id -> M.Map Id Kind -> SymTab ->
           -- class components
@@ -929,22 +951,55 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
         -- a list of all False leads to useless work.
         bss2 = [ map (mkFunDep2 rs1 rs2) vs | (rs1, rs2) <- fds ]
         qi = qual mi i
-        (qinsts, errs) = getQInsts qi bss qts
-        c = Class {
-         name = CTypeclass qi,
-         csig = tvs,
-         super = [ (c, IsIn (mustFindClass r c) (map conv ts)) | CPred c ts <- ps ],
-         genInsts = \ _ _ _ -> map (doInst mi r c) qinsts,
-         tyConOf = TyCon qi (Just k)
-                   (TIstruct SClass (map cf_name ifs ++
-                                     map (\ (CPred (CTypeclass i) _) -> i) ps)),
-         funDeps = bss,
-         funDeps2 = bss2,
-         allowIncoherent = incoh,
-         isComm = False,
-         pkg_src = src_pkg
-         }
-    in  (c, errs)
+        mkClass genInsts' getInsts' =
+          Class {
+            name = CTypeclass qi,
+            csig = tvs,
+            super = [ (c', IsIn (mustFindClass r c') (map conv ts)) | CPred c' ts <- ps ],
+            genInsts  = genInsts',
+            getInsts  = getInsts',
+            tyConOf = TyCon qi (Just k)
+                      (TIstruct SClass (map cf_name ifs ++
+                                        map (\ (CPred (CTypeclass i) _) -> i) ps)),
+            funDeps = bss,
+            funDeps2 = bss2,
+            inputPositions = pureInputPositions bss (length tvs),
+            allowIncoherent = incoh,
+            isComm = False,
+            pkg_src = src_pkg
+          }
+    in if useLegacyInstIndex
+       then let (qinsts, errs) = getQInstsLegacy qi bss qts
+                all_insts = map (doInst mi r c) qinsts
+                c = mkClass (\ _ _ _ -> all_insts) all_insts
+            in (c, errs)
+       else let qinsts    = getQInsts qi qts
+                all_insts = map (doInst mi r c) qinsts
+                -- Single trie over (index, QInst, Inst) triples, shared between
+                -- genInsts lookups and overlap checking.  The index provides
+                -- identity for the overlap self-check; QInst is needed by
+                -- cmpQInsts; Inst is what genInsts returns.
+                tagged = zip3 [0 :: Int ..] qinsts all_insts
+                -- cmpQInsts freshens type variables before comparing, so
+                -- specificity is correctly detected even when instances share
+                -- variable names (e.g. both use 'a' and 'b').
+                cmpForSort (_, qi1, _) (_, qi2, _) =
+                    case cmpQInsts bss qi1 qi2 of
+                        Right (Just LT) -> LT  -- qi1 more specific, try first
+                        Right (Just GT) -> GT  -- qi1 less specific, try last
+                        _               -> EQ
+                trie   = buildPredTrie cmpForSort
+                             (\(_, _, Inst _ _ (_ :=> p) _) -> p) tagged
+                errs   = overlapErrors bss tagged trie
+                -- S.empty suppresses Bound: for overlapping classes like
+                -- AppendTuple''/Has_tpl_n, a non-matching concrete instance
+                -- must be visible to trigger the incoherent path in
+                -- sat/satisfyX and propagate fd_subst correctly.  Using
+                -- Bound would hide those instances and produce T0029 errors.
+                c = mkClass (\ _ _ p ->
+                                 [ inst | (_, _, inst) <- lookupPredTrie (predQuery S.empty p) trie ])
+                            all_insts
+            in (c, errs)
 
 -- ---------------
 
