@@ -73,18 +73,22 @@ checkDVS dvs t = all (flip elem dvs) (tv t)
 clsAdd :: SymTab -> Class
 clsAdd symT = Class {
         name = CTypeclass idAdd,
-        csig = [tvarh1, tvarh2, tvarh3],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genAddInsts symT,
+        getInsts = [],
         tyConOf = TyCon idAdd (Just (Kfun KNum (Kfun KNum (Kfun KNum KStar)))) (TIstruct SClass []),
-        funDeps = [[False, False, True], [False, True, False], [True, False, False]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just False, Just True],
                     [Just False, Just True, Just False],
                     [Just True, Just False, Just False]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2, tvarh3]
+        bss = [[False, False, True], [False, True, False], [True, False, False]]
 
 genAddInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -336,16 +340,20 @@ isKnownLTE _ _ = False
 clsMax :: Class
 clsMax = Class {
         name = CTypeclass idMax,
-        csig = [tvarh1, tvarh2, tvarh3],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genMaxInsts,
+        getInsts = [],
         tyConOf = TyCon idMax (Just (Kfun KNum (Kfun KNum (Kfun KNum KStar)))) (TIstruct SClass []),
-        funDeps = [[False, False, True]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just False, Just True]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2, tvarh3]
+        bss = [[False, False, True]]
 
 genMaxInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -427,16 +435,20 @@ equalMaxTerms (MaxTerms i1 s1) (MaxTerms i2 s2) = (i1 == i2) && (s1 == s2)
 clsMin :: Class
 clsMin = Class {
         name = CTypeclass idMin,
-        csig = [tvarh1, tvarh2, tvarh3],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genMinInsts,
+        getInsts = [],
         tyConOf = TyCon idMin (Just (Kfun KNum (Kfun KNum (Kfun KNum KStar)))) (TIstruct SClass []),
-        funDeps = [[False, False, True]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just False, Just True]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2, tvarh3]
+        bss = [[False, False, True]]
 
 genMinInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -522,16 +534,20 @@ equalMinTerms (MinTerms i1 s1) (MinTerms i2 s2) = (i1 == i2) && (s1 == s2)
 clsLog :: Class
 clsLog = Class {
         name = CTypeclass idLog,
-        csig = [tvarh1, tvarh2],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genLogInsts,
+        getInsts = [],
         tyConOf = TyCon idLog (Just (Kfun KNum (Kfun KNum KStar))) (TIstruct SClass []),
-        funDeps = [[False, True]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just True]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = False,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2]
+        bss = [[False, True]]
 
 genLogInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -614,18 +630,22 @@ genLogInsts _ _ _ = []
 clsMul :: SymTab -> Class
 clsMul symT = Class {
         name = CTypeclass idMul,
-        csig = [tvarh1, tvarh2, tvarh3],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genMulInsts symT,
+        getInsts = [],
         tyConOf = TyCon idMul (Just (Kfun KNum (Kfun KNum (Kfun KNum KStar)))) (TIstruct SClass []),
-        funDeps = [[False, False, True], [False, True, False], [True, False, False]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just False, Just True],
                     [Just False, Just True, Just False],
                     [Just True, Just False, Just False]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2, tvarh3]
+        bss = [[False, False, True], [False, True, False], [True, False, False]]
 
 genMulInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -886,16 +906,20 @@ constDifferenceMulTerms (MulTerms i mul_b) c =
 clsDiv :: Class
 clsDiv = Class {
         name = CTypeclass idDiv,
-        csig = [tvarh1, tvarh2, tvarh3],
+        csig = vs,
         super = [],  -- [IsIn clsSize [TVar tvarh1], IsIn clsSize [TVar tvarh2], IsIn clsSize [TVar tvarh3]]
         genInsts = genDivInsts,
+        getInsts = [],
         tyConOf = TyCon idDiv (Just (Kfun KNum (Kfun KNum (Kfun KNum KStar)))) (TIstruct SClass []),
-        funDeps = [[False, False, True]],
+        funDeps = bss,
         funDeps2 = [[Just False, Just False, Just True]],
+        inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = False,
         pkg_src = Just idPrelude
         }
+  where vs  = [tvarh1, tvarh2, tvarh3]
+        bss = [[False, False, True]]
 
 genDivInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 
@@ -944,16 +968,20 @@ clsNumEq :: SymTab -> Class
 clsNumEq symT =
        Class {
             name = CTypeclass idNumEq,
-            csig = [tvarh1, tvarh2],
+            csig = vs,
             super = [],
             genInsts = genNumEqInsts symT,
+            getInsts = [],
             tyConOf = TyCon idNumEq (Just kNNS) (TIstruct SClass []),
-            funDeps  = [[False, True], [True, False]],
+            funDeps  = bss,
             funDeps2 = [[Just False, Just True], [Just True, Just False]],
+            inputPositions = pureInputPositions bss (length vs),
             allowIncoherent = Just False,
             isComm = True,
             pkg_src = Just idPrelude
             }
+  where vs  = [tvarh1, tvarh2]
+        bss = [[False, True], [True, False]]
 
 genNumEqInsts :: SymTab ->  [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- safe base-case if t1 and t2 are syntactically equal

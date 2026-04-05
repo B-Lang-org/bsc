@@ -2,11 +2,11 @@
 {-# LANGUAGE PatternGuards #-}
 module Pred(
             Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
-            getInsts,
             removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
             expandSyn, predToType, qualToType, mkInst,
             Instantiate(..),
             predToCPred, qualTypeToCQType,
+            pureInputPositions,
             ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -14,7 +14,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
-import Eval(NFData(..), rnf2, rnf4, rnf8)
+import Eval
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
 import Id
@@ -140,33 +140,16 @@ data Class
             tyConOf :: TyCon,
             funDeps :: [[Bool]],
             funDeps2 :: [[Maybe Bool]],
+            inputPositions :: [Int],      -- pure-input positions for PredTrie (pureInputPositions funDeps (length csig))
+                                          -- empty when all positions are outputs: trie degenerates to a flat list
             genInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst],
+            getInsts :: [Inst],           -- flat list for display/analysis
             allowIncoherent :: Maybe Bool, -- Just False = always coherent
                                            -- Just True  = always incoherent
                                            -- Nothing = flag-controlled
             isComm :: Bool, -- if the class is commutative (used for Add and Mul)
             pkg_src :: Maybe Id -- package from which this class came
         }
-
--- Instances are stored as a function, to support primitive numeric typeclasses
--- with an infinite number of instances (Add, Mul, etc).
--- For finite classes, the function ignores its arguments and just returns
--- the list of instances; so use this function to retrieve those instances.
-getInsts :: Class -> [Inst]
-getInsts c = genInsts c [] Nothing (IsIn cls [])
-    where
-      err s = internalError $ "getInsts: no " ++ show s
-      cls = Class { name = CTypeclass(dummyId (err "dummyId")),
-                    csig = err "csig",
-                    super = err "super",
-                    genInsts = err "getInsts",
-                    tyConOf = err "tyConOf",
-                    funDeps = err "funDeps",
-                    funDeps2 = err "funDeps2",
-                    allowIncoherent = err "allowIncoherent",
-                    isComm = err "isComm",
-                    pkg_src = err "pkg_src"
-                  }
 
 instance Show Class where
     showsPrec p c =
@@ -196,9 +179,17 @@ instance PVPrint Class where
                 pvPrint d 0 (funDeps c) <>
                 text ")"
 
-
 instance NFData Class where
-    rnf (Class x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) = rnf8 x1 x2 x3 x4 x5 x8 x9 x10
+    rnf c = rnf (name c)            `seq`
+            rnf (csig c)            `seq`
+            rnf (super c)           `seq`
+            rnf (tyConOf c)         `seq`
+            rnf (funDeps c)         `seq`
+            rnf (inputPositions c)  `seq`
+            -- funDeps2, genInsts, getInsts intentionally not forced
+            rnf (allowIncoherent c) `seq`
+            rnf (isComm c)          `seq`
+            rnf (pkg_src c)
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -206,6 +197,13 @@ instance Eq Class where
 instance Ord Class where
     c <= c'  = (name c, csig c) <= (name c', csig c')
     c `compare` c'  = (name c, csig c) `compare` (name c', csig c')
+
+-- | Compute Class.inputPositions from the functional-dependency matrix and arity.
+-- Returns positions that are False (input) in ALL fundep directions.
+-- When empty (all positions are outputs in some direction), the PredTrie
+-- degenerates to a flat list and returns all instances for any query.
+pureInputPositions :: [[Bool]] -> Int -> [Int]
+pureInputPositions bss n = [ i | i <- [0 .. n - 1], not (any (!! i) bss) ]
 
 -- someone should comment what all these
 -- things are that go into an Inst.
