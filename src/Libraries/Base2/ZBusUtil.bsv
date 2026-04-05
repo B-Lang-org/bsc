@@ -63,7 +63,7 @@ import "BVI" ConvertToZ = module vMkConvertToZ (ConvertToZ#(i))
 			  endmodule
 
 module mkConvertToZ(ConvertToZ#(i))
-   provisos (Eq#(i), Bits#(i, si), Bits#(ZBit#(i), sz));
+   provisos (Eq#(i), Bits#(i, si));
    ConvertToZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ConvertToZ
@@ -102,7 +102,7 @@ import "BVI" ConvertFromZ = module vMkConvertFromZ (ConvertFromZ#(i))
 			    endmodule
 
 module mkConvertFromZ(ConvertFromZ#(i))
-   provisos (Eq#(i), Bits#(ZBit#(i), sz), Bits#(i, si1));
+   provisos (Eq#(i), Bits#(i, si1));
    ConvertFromZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ConvertFromZ
@@ -141,7 +141,7 @@ import "BVI" ResolveZ = module vMkResolveZ  (ResolveZ#(i))
 			endmodule
 
 module mkResolveZ(ResolveZ#(i))
-   provisos (Eq#(i), Bits#(i, si), Bits#(ZBit#(i), sz));
+   provisos (Eq#(i), Bits#(i, si));
    ResolveZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ResolveZ
