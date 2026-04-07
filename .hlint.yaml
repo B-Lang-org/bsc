@@ -1,0 +1,106 @@
+# Warnings currently triggered by your code
+- ignore: {name: "Avoid lambda"} # 38 hints
+- ignore: {name: "Avoid lambda using `infix`"} # 14 hints
+- ignore: {name: "Collapse lambdas"} # 4 hints
+- ignore: {name: "Eta reduce"} # 395 hints
+- ignore: {name: "Evaluate"} # 7 hints
+- ignore: {name: "Fuse foldr/map"} # 20 hints
+- ignore: {name: "Fuse mapM/map"} # 6 hints
+- ignore: {name: "Fuse mapM_/map"} # 2 hints
+- ignore: {name: "Hoist not"} # 16 hints
+- ignore: {name: "Missing NOINLINE pragma"} # 5 hints
+- ignore: {name: "Move brackets to avoid $"} # 50 hints
+- ignore: {name: "Move filter"} # 1 hint
+- ignore: {name: "Move map inside list comprehension"} # 2 hints
+- ignore: {name: "Move nub out"} # 1 hint
+- ignore: {name: "Parse error: on input `='"} # 1 hint
+- ignore: {name: "Parse error: on input `pattern'"} # 3 hints
+- ignore: {name: "Redundant $"} # 180 hints
+- ignore: {name: "Redundant =="} # 4 hints
+- ignore: {name: "Redundant bracket"} # 7186 hints
+- ignore: {name: "Redundant case"} # 2 hints
+- ignore: {name: "Redundant flip"} # 2 hints
+- ignore: {name: "Redundant if"} # 30 hints
+- ignore: {name: "Redundant lambda"} # 21 hints
+- ignore: {name: "Redundant map"} # 5 hints
+- ignore: {name: "Redundant return"} # 35 hints
+- ignore: {name: "Redundant seq"} # 18 hints
+- ignore: {name: "Replace case with fromMaybe"} # 20 hints
+- ignore: {name: "Replace case with maybe"} # 16 hints
+- ignore: {name: "Unused LANGUAGE pragma"} # 18 hints
+- ignore: {name: "Use /="} # 2 hints
+- ignore: {name: "Use :"} # 46 hints
+- ignore: {name: "Use <$>"} # 413 hints
+- ignore: {name: "Use <&>"} # 94 hints
+- ignore: {name: "Use <|>"} # 2 hints
+- ignore: {name: "Use =<<"} # 3 hints
+- ignore: {name: "Use =="} # 2 hints
+- ignore: {name: "Use >"} # 1 hint
+- ignore: {name: "Use >=>"} # 4 hints
+- ignore: {name: "Use LANGUAGE pragmas"} # 1 hint
+- ignore: {name: "Use all"} # 10 hints
+- ignore: {name: "Use any"} # 6 hints
+- ignore: {name: "Use any nested"} # 1 hint
+- ignore: {name: "Use bimap"} # 11 hints
+- ignore: {name: "Use break"} # 1 hint
+- ignore: {name: "Use camelCase"} # 759 hints
+- ignore: {name: "Use concat"} # 3 hints
+- ignore: {name: "Use concatMap"} # 15 hints
+- ignore: {name: "Use const"} # 4 hints
+- ignore: {name: "Use elem"} # 14 hints
+- ignore: {name: "Use error"} # 2 hints
+- ignore: {name: "Use evalState"} # 6 hints
+- ignore: {name: "Use exitSuccess"} # 3 hints
+- ignore: {name: "Use fewer LANGUAGE pragmas"} # 1 hint
+- ignore: {name: "Use fewer imports"} # 21 hints
+- ignore: {name: "Use first"} # 5 hints
+- ignore: {name: "Use fmap"} # 16 hints
+- ignore: {name: "Use foldM_"} # 2 hints
+- ignore: {name: "Use foldr"} # 2 hints
+- ignore: {name: "Use for_"} # 1 hint
+- ignore: {name: "Use fromMaybe"} # 11 hints
+- ignore: {name: "Use fromRight"} # 1 hint
+- ignore: {name: "Use guards"} # 31 hints
+- ignore: {name: "Use head"} # 22 hints
+- ignore: {name: "Use id"} # 1 hint
+- ignore: {name: "Use infix"} # 65 hints
+- ignore: {name: "Use intercalate"} # 1 hint
+- ignore: {name: "Use isDigit"} # 1 hint
+- ignore: {name: "Use isJust"} # 21 hints
+- ignore: {name: "Use isNothing"} # 4 hints
+- ignore: {name: "Use lambda-case"} # 1 hint
+- ignore: {name: "Use list comprehension"} # 118 hints
+- ignore: {name: "Use list literal"} # 5 hints
+- ignore: {name: "Use list literal pattern"} # 3 hints
+- ignore: {name: "Use map"} # 1 hint
+- ignore: {name: "Use map once"} # 2 hints
+- ignore: {name: "Use map with tuple-section"} # 12 hints
+- ignore: {name: "Use mapM_"} # 1 hint
+- ignore: {name: "Use mapMaybe"} # 6 hints
+- ignore: {name: "Use maximum"} # 4 hints
+- ignore: {name: "Use maybe"} # 3 hints
+- ignore: {name: "Use negate"} # 2 hints
+- ignore: {name: "Use newtype instead of data"} # 5 hints
+- ignore: {name: "Use notElem"} # 12 hints
+- ignore: {name: "Use null"} # 4 hints
+- ignore: {name: "Use or"} # 3 hints
+- ignore: {name: "Use otherwise"} # 1 hint
+- ignore: {name: "Use print"} # 2 hints
+- ignore: {name: "Use putStrLn"} # 10 hints
+- ignore: {name: "Use record patterns"} # 199 hints
+- ignore: {name: "Use replicate"} # 1 hint
+- ignore: {name: "Use replicateM"} # 1 hint
+- ignore: {name: "Use second"} # 4 hints
+- ignore: {name: "Use section"} # 16 hints
+- ignore: {name: "Use shows"} # 4 hints
+- ignore: {name: "Use tuple-section"} # 24 hints
+- ignore: {name: "Use uncurry"} # 8 hints
+- ignore: {name: "Use unless"} # 172 hints
+- ignore: {name: "Use unwords"} # 3 hints
+- ignore: {name: "Use void"} # 4 hints
+- ignore: {name: "Use when"} # 9 hints
+- ignore: {name: "Use withFile"} # 1 hint
+- ignore: {name: "Use writeIORef"} # 1 hint
+- ignore: {name: "Use zipWith"} # 15 hints
+- ignore: {name: "Use zipWithM"} # 1 hint
+- ignore: {name: "Used otherwise as a pattern"} # 28 hints
