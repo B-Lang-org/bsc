@@ -104,3 +104,6 @@
 - ignore: {name: "Use zipWith"} # 15 hints
 - ignore: {name: "Use zipWithM"} # 1 hint
 - ignore: {name: "Used otherwise as a pattern"} # 28 hints
+
+- arguments:
+    - --ignore-glob=src/comp/CPPLineDirectives.hs
