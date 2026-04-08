@@ -298,6 +298,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
             allow = allowIncoherent cls
         in  Right $ Typeclass qi k vs ps fdeps allow insts (map mkPair fieldInfos)
     -- associated type function: treat like an abstract/primary type
+    -- XXX we should probably report some additional info here, like what class it's associated with, etc.
     analyzeNonNumTCon t qi k vs as isC (TIatf {}) =
         Right $ Primary qi k vs isC (w t)
 

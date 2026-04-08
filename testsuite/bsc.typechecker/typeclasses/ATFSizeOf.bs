@@ -23,11 +23,13 @@ struct Container f =
 boolRepr :: Bool -> Repr Bool
 boolRepr = getRepr
 
--- A synthesized module whose register width is SizeOf (Container (UInt 8)) = 8.
+-- A synthesized module whose register width is SizeOf (Container Bool) = 8.
 -- Requires type function expansion followed by SizeOf reduction.
 {-# synthesize sysATFSizeOf #-}
 sysATFSizeOf :: Module Empty
 sysATFSizeOf = module
+  r :: Reg (Container Bool) <- mkReg _
+
   rules
     when True ==> do
       $display (valueOf (SizeOf (Container Bool)))
