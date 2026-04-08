@@ -948,7 +948,6 @@ eqToPred poss (t1, t2) = do
 -- corresponding class predicate.  For example, if atfType is @Elem x@
 -- (from @class Container f e | f -> e where type Elem f = e@), and
 -- targetType is @T@, this produces @Just (IsIn Container [x, T])@.
--- Note that we should only be given type equalities given 
 tryATFClassPred :: Type -> Type -> TI (Maybe Pred)
 tryATFClassPred atfType targetType = do
     let (f, atfArgs) = splitTAp atfType
