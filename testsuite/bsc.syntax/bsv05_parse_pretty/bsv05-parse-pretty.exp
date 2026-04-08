@@ -56,3 +56,6 @@ compile_ppp_pass PopCount0.bsv
 
 # Map (function arguments)
 compile_ppp_pass Map.bsv
+
+# typeclass with associated type function
+compile_ppp_pass TypeclassATF.bsv

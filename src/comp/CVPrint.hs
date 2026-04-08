@@ -398,10 +398,10 @@ ppIfcPrags d (Just xs) = if (null filtered) then empty else prt
 
 pvpFDs :: PDetail -> CFunDeps -> Doc
 pvpFDs d [] = empty
-pvpFDs d fd = text "  dependencies" <+> sepList (map (pvpFD d) fd) (t",")
+pvpFDs d fd = text "  dependencies" <+> t"(" <> sepList (map (pvpFD d) fd) (t",") <> t")"
 
 pvpFD :: PDetail -> ([Id], [Id]) -> Doc
-pvpFD d (as,rs) = sep (map (pvpId d) as) <+> t "->" <+> sep (map (pvpId d) rs)
+pvpFD d (as,rs) = sep (map (pvpId d) as) <+> t "determines" <+> sep (map (pvpId d) rs)
 
 pvpAssocDepFun :: PDetail -> CAssocDepFun -> Doc
 pvpAssocDepFun d (CAssocDepFun name ps rhs) =
