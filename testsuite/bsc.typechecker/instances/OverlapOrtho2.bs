@@ -1,0 +1,14 @@
+package OverlapOrtho2 where
+
+-- Orthogonal 2-param overlap: instance A is concrete at pos 0 (Bool,*),
+-- instance B is concrete at pos 1 (*,UInt n).  Neither subsumes the other.
+-- Witness: (Bool, UInt 8) satisfies both.  Expect T0128.
+
+class Ortho2 a b where
+    ortho2 :: a -> b -> Bool
+
+instance Ortho2 Bool b where
+    ortho2 x _ = x
+
+instance Ortho2 a (UInt n) where
+    ortho2 _ _ = True

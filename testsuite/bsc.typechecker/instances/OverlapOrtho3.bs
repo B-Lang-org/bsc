@@ -1,0 +1,14 @@
+package OverlapOrtho3 where
+
+-- Orthogonal 3-param overlap: instance A is concrete at pos 0 (Bool,*,*),
+-- instance B is concrete at pos 1 (*,Bool,*).  Neither subsumes the other.
+-- Witness: (Bool, Bool, t) satisfies both.  Expect T0128.
+
+class Ortho3 a b c where
+    ortho3 :: a -> b -> c -> Bool
+
+instance Ortho3 Bool b c where
+    ortho3 _ _ _ = True
+
+instance Ortho3 a Bool c where
+    ortho3 _ _ _ = False

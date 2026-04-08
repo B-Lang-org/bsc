@@ -3,6 +3,43 @@ compile_fail_error DuplicateInstanceLocal.bs T0099
 compile_fail_error DuplicateInstanceRename.bsv T0099
 compile_fail_error BadOverlap.bsv T0128
 
+# Orthogonal multi-param overlaps: instances concrete at different positions,
+# neither subsumes the other.
+compile_fail_error OverlapOrtho2.bs T0128
+compile_fail_error OverlapOrtho3.bs T0128
+# Legacy instance index must produce the same errors.
+compile_fail_error OverlapOrtho2.bs T0128 1 "-legacy-inst-index"
+compile_fail_error OverlapOrtho3.bs T0128 1 "-legacy-inst-index"
+
+# Functional dependency (a -> b) — trie indexes only the input position.
+test_c_veri FundepSelect sysFundepSelect.out.expected
+test_c_veri_bs_modules_options FundepSelect {} {-legacy-inst-index} sysFundepSelect.out.expected
+
+# Mutual fundep (a -> b, b -> a) — inputPositions is empty; trie
+# degenerates to a flat Leaf; all instances returned for every query.
+# Two methods (mfdtagA :: a->Bit8, mfdtagB :: b->Bit8) demonstrate that
+# instance selection works via either argument position.
+test_c_veri MutualFundep sysMutualFundep.out.expected
+test_c_veri_bs_modules_options MutualFundep {} {-legacy-inst-index} sysMutualFundep.out.expected
+
+# Type synonym in instance head — predTrieKey calls expandSyn so the
+# instance is stored under the expanded TyCon, matching the normalised query.
+test_c_veri TypeSynInst sysTypeSynInst.out.expected
+test_c_veri_bs_modules_options TypeSynInst {} {-legacy-inst-index} sysTypeSynInst.out.expected
+
+# Numeric type-function head (TAdd, TDiv, etc.) at an input position —
+# mkQueryElem returns Free so all trie branches are probed.  A polymorphic
+# helper that creates TAdd n 1 for abstract n commits to the catch-all via
+# incoherent resolution.
+test_c_veri TypeFunInst sysTypeFunInst.out.expected
+test_c_veri_bs_modules_options TypeFunInst {} {-legacy-inst-index} sysTypeFunInst.out.expected
+
+# Both instances share a concrete UInt head at position 1; they live in
+# [Just Bool, Just UInt, Nothing] and [Nothing, Just UInt, Just Bool].
+# overlapProbeQuery must cross trie levels to find the conflict.
+compile_fail_error OverlapSharedDim.bs T0128
+compile_fail_error OverlapSharedDim.bs T0128 1 "-legacy-inst-index"
+
 # confirm that we detect bits instances of different sizes
 compile_fail_error DuplicateBitsSize.bs T0099
 
