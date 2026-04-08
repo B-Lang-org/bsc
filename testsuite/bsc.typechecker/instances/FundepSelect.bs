@@ -1,0 +1,31 @@
+package FundepSelect where
+
+-- Class with functional dependency a -> b.
+-- pureInputPositions [[False, True]] 2 = [0]
+-- The PredTrie indexes only on position 0; position 1 (the fundep output) is
+-- excluded from the trie key and query.  If position 1 were mistakenly
+-- included, the key and query would have different lengths or miss instances
+-- whose output type is not yet determined at query time.
+
+class FDSelect a b | a -> b where
+    fdTag :: a -> Bit 8
+
+instance FDSelect Bool (UInt 8) where
+    fdTag _ = 1
+
+instance FDSelect (UInt n) Bool where
+    fdTag _ = 2
+
+instance FDSelect (Maybe a) (Maybe Bool) where
+    fdTag _ = 3
+
+{-# verilog sysFundepSelect #-}
+sysFundepSelect :: Module Empty
+sysFundepSelect = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (fdTag True)
+                $display "%0d" (fdTag (42 :: UInt 8))
+                $display "%0d" (fdTag (Just True))
+                $finish 0

@@ -1,0 +1,34 @@
+package IncoherentOrder where
+
+-- Test incoherent instance resolution under incomplete type information.
+--
+-- When a polymorphic function uses an incoherent class, the instance is
+-- resolved at the definition site under the available (incomplete) type
+-- context.  This can yield a different instance than a direct call with
+-- full type information.
+--
+-- Without 'incoherent', the polymorphic helper below would require a
+-- 'Which a' proviso (T0030).
+
+class incoherent Which a where
+    which :: a -> Bit 8
+
+instance (Bits a n) => Which a where   -- general: matches under Bits constraint
+    which _ = 1
+
+instance Which (UInt n) where          -- specific: matches UInt directly
+    which _ = 2
+
+-- Instance resolved here under (Bits a n) only → general instance → always 1.
+throughBits :: (Bits a n) => a -> Bit 8
+throughBits = which
+
+{-# verilog sysIncoherentOrder #-}
+sysIncoherentOrder :: Module Empty
+sysIncoherentOrder = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (which (42 :: UInt 8))       -- direct: specific → 2
+                $display "%0d" (throughBits (42 :: UInt 8)) -- via Bits helper: general → 1
+                $finish 0
