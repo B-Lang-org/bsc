@@ -118,17 +118,17 @@ compile_verilog_pass ATFPolyStructMultiParam.bs
 
 compile_fail_error ATFWrongArity.bs T0025
 compare_file ATFWrongArity.bs.bsc-out
-compile_fail_error ATFDeclParamMismatch.bs T0158
+compile_fail_error ATFDeclParamMismatch.bs T0152
 compare_file ATFDeclParamMismatch.bs.bsc-out
-compile_fail_error ATFDuplicateParam.bs T0159
+compile_fail_error ATFDuplicateParam.bs T0153
 compare_file ATFDuplicateParam.bs.bsc-out
-compile_fail_error ATFParamIsResult.bs T0160
+compile_fail_error ATFParamIsResult.bs T0154
 compare_file ATFParamIsResult.bs.bsc-out
-compile_fail_error ATFInInstHead.bs T0161
+compile_fail_error ATFInInstHead.bs T0156
 compare_file ATFInInstHead.bs.bsc-out
-compile_fail_error ATFInInstHeadBiDirectional.bs T0161
+compile_fail_error ATFInInstHeadBiDirectional.bs T0156
 compare_file ATFInInstHeadBiDirectional.bs.bsc-out
-compile_fail_error ATFResultNotDetermined.bs T0162
+compile_fail_error ATFResultNotDetermined.bs T0155
 compare_file ATFResultNotDetermined.bs.bsc-out
 compile_fail_error ATFUnifyError.bs T0030
 compare_file ATFUnifyError.bs.bsc-out
@@ -153,7 +153,7 @@ compile_pass ATFQualifiedBSV.bsv
 compile_pass ATFDeclBSV.bsv
 compile_fail_error ATFWrongArityBSV.bsv T0025
 compare_file ATFWrongArityBSV.bsv.bsc-out
-compile_fail_error ATFDeclParamMismatchBSV.bsv T0158
+compile_fail_error ATFDeclParamMismatchBSV.bsv T0152
 compare_file ATFDeclParamMismatchBSV.bsv.bsc-out
 
 # --------------------------------------------------

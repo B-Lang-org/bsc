@@ -2972,34 +2972,34 @@ getErrorText (EConstrFieldsNotNamed c t) =
             " does not have named fields."))
 
 getErrorText (EATFDeclParamMismatch cls atf expected actual) =
-    (Type 158, empty,
-     s2par ("Type family declaration for " ++ ishow atf ++
+    (Type 152, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
             " mentions type variable " ++ ishow actual ++
             " not in the variables of its class " ++ ishow cls ++
-            ": " ++ intercalate ", " (map ishow expected)))
+            ": " ++ intercalate ", " expected))
 
 getErrorText (EATFDeclDuplicateParam atf param) =
-    (Type 159, empty,
-     s2par ("Type family declaration for " ++ ishow atf ++
+    (Type 153, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
             " has duplicate parameter " ++ ishow param))
 
 getErrorText (EATFDeclParamIsResult atf param) =
-    (Type 160, empty,
-     s2par ("Type family declaration for " ++ ishow atf ++
+    (Type 154, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
             " uses " ++ ishow param ++
             " as both a parameter and the result"))
 
 getErrorText (EATFResultNotDetermined atf result params) =
-    (Type 162, empty,
+    (Type 155, empty,
      s2par ("Type function " ++ ishow atf ++
-            ": result variable " ++ ishow result ++
-            " is not determined by " ++ paramWord ++
+            " has result variable " ++ ishow result ++
+            " that is not determined by " ++ paramWord ++
             " " ++ intercalate ", " (map ishow params) ++
             " via any functional dependency"))
   where paramWord = if length params == 1 then "parameter" else "parameters"
 
 getErrorText (EATFInInstanceHead atf) =
-    (Type 161, empty,
+    (Type 156, empty,
      s2par ("Type function " ++ ishow atf ++
             " cannot be used in an instance head"))
 
