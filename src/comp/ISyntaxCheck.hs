@@ -18,7 +18,7 @@ import ISyntaxSubst(tSubst)
 import ISyntaxUtil
 import Changed(changedOrId)
 import IExpandUtils
-import SymTab(SymTab, mustFindClass, findSClass, getAllTypes, TypeInfo(..))
+import SymTab(SymTab, mustFindClass, findSClass)
 
 import Pred
 import CType
@@ -51,7 +51,7 @@ eqType0 flags symt r@(E _ _ eqs _) t t' =
     -- try reducing type functions and comparing the results
     eqTypeATF flags symt r t t' ||
     -- try satisfying NumEq (only useful for numeric types)
-    eqTypeFinal flags symt r t t'
+    eqTypeNum flags symt r t t'
 
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
@@ -95,15 +95,15 @@ eqTypeATF flags symt r t t' =
 
 -- Decide if two (numeric) types are equal by creating a NumEq proviso
 -- in CSyntax and applying "satisfy".
-eqTypeFinal :: Flags -> SymTab -> Env -> IType -> IType -> Bool
-eqTypeFinal flags symt e t1 t2
+eqTypeNum :: Flags -> SymTab -> Env -> IType -> IType -> Bool
+eqTypeNum flags symt r t1 t2
     -- Attempt to save time by weeding out cases without TAdd, SizeOf, etc
     -- (since there's no use trying to equate "n" and "m", for instance)
     -- XXX can we also weed out when the kind is not numeric?
     | isITAp t1 || isITAp t2 =
     let numEqCls = mustFindClass symt (CTypeclass idNumEq)
-        (e', t1') = convType e t1
-        (E _ _ _ (PredEnv _ m s), t2') = convType e' t2
+        (r', t1') = convType r t1
+        (E _ _ _ (PredEnv _ m s), t2') = convType r' t2
         --satisfyEq :: TI ([VPred], [CDefl])
         satisfyEq = do
           eqs <- mapM mkEPred (S.toList s)
@@ -113,11 +113,11 @@ eqTypeFinal flags symt e t1 t2
           satisfy eqs [vp]
     in  case (fst $ runTI flags False symt satisfyEq) of
           Right ([],_) -> True
-          res -> --trace("eqTypeFinal: not satisfied: " ++ ppReadable (t1, t2, res)) $
+          res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
                  False
  where isITAp (ITAp _ _) = True
        isITAp _          = False
-eqTypeFinal _ _ _ _ _ = False
+eqTypeNum _ _ _ _ _ = False
 
 -------
 
@@ -250,44 +250,11 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
                          | i == idMin -> [(ITAp (ITAp iTMin t1) t2, t3)]
                          | i == idMul -> [(ITAp (ITAp iTMul t1) t2, t3)]
                          | i == idDiv -> [(ITAp (ITAp iTDiv t1) t2, t3)]
-                    -- For classes with type functions: add ATF equivalences.
-                    -- E.g., for Container f e with "type Elem f = e":
-                    -- dict type "Container a Maybe" adds (Elem a, Maybe)
-                    otherwise -> atfEqsFromDict symt t
+                    otherwise -> []
         eqs' = trace_witness ("num eq witnesses: " ++ ppReadable new_eqs) $
                let eqFn (x,y) ec = EC.equate x y ec
                in  foldr eqFn eqs new_eqs
         ps' = addPred symt e t
-
--- Generate type function equivalences from a class dictionary type.
--- For a class with "type Elem f = e", when dict type "Container a Maybe"
--- is added, produce the equivalence (Elem a, Maybe).
-atfEqsFromDict :: SymTab -> IType -> [(IType, IType)]
-atfEqsFromDict symt dictType =
-    let (hd, classArgs) = splitITAp dictType
-        allTypes = getAllTypes symt
-        -- Convert Kind to IKind
-        kToIK KStar = IKStar
-        kToIK KNum  = IKNum
-        kToIK KStr  = IKStr
-        kToIK (Kfun a b) = IKFun (kToIK a) (kToIK b)
-        kToIK (KVar _) = IKStar
-    in case hd of
-         ITCon cid _ _ ->
-           [ (atfApp, targetArg)
-           | (atfId, TypeInfo _ atfK _ ti@(TIatf { atf_class_id = acId
-                                                  , atf_param_idxs = pIdxs
-                                                  , atf_target_idx = tIdx }))
-               <- allTypes
-           , acId == cid
-           , tIdx < length classArgs
-           , all (\idx -> idx >= 0 && idx < length classArgs) pIdxs
-           , let paramArgs = [ classArgs !! idx | idx <- pIdxs ]
-                 targetArg = classArgs !! tIdx
-                 atfTyCon = ITCon atfId (kToIK atfK) ti
-                 atfApp = foldl ITAp atfTyCon paramArgs
-           ]
-         _ -> []
 
 addT :: SymTab -> Id -> IType -> Env -> Env
 addT symt i t (E tm km eqs ps) = addDict symt t $ E (M.insert i t tm) km eqs ps
@@ -321,36 +288,36 @@ emptyPredEnv = PredEnv 0 M.empty S.empty
 
 convType :: Env -> IType -> (Env, Type)
 convType _ (ITForAll i k t) = internalError ("convType: ITForAll " ++ ppReadable (i, k, t))
-convType e (ITAp t1 t2) =
-    let (e', t1') = convType e t1
-        (e'', t2') = convType e' t2
-    in  (e'', TAp t1' t2')
-convType e@(E tm km eqs (PredEnv n m s)) (ITVar i) =
+convType r (ITAp t1 t2) =
+    let (r', t1') = convType r t1
+        (r'', t2') = convType r' t2
+    in  (r'', TAp t1' t2')
+convType r@(E tm km eqs (PredEnv n m s)) (ITVar i) =
     case (M.lookup i m) of
-      Just tyvar -> (e, TVar tyvar)
+      Just tyvar -> (r, TVar tyvar)
       Nothing ->
-          let k = fromJustOrErr ("findK: " ++ ppReadable (e, i)) $ findK i e
+          let k = fromJustOrErr ("findK: " ++ ppReadable (r, i)) $ findK i r
               tyvar = TyVar i n (iToCK k)
-              e' = E tm km eqs (PredEnv (n+1) (M.insert i tyvar m) s)
-          in  (e', TVar tyvar)
-convType e (ITCon i k s) = (e, TCon (TyCon i (Just (iToCK k)) s))
-convType e (ITNum n) = (e, TCon (TyNum n noPosition))
-convType e (ITStr s) = (e, TCon (TyStr s noPosition))
+              r' = E tm km eqs (PredEnv (n+1) (M.insert i tyvar m) s)
+          in  (r', TVar tyvar)
+convType r (ITCon i k s) = (r, TCon (TyCon i (Just (iToCK k)) s))
+convType r (ITNum n) = (r, TCon (TyNum n noPosition))
+convType r (ITStr s) = (r, TCon (TyStr s noPosition))
 
 convTypes :: Env -> [IType] -> (Env, [Type])
-convTypes e [] = (e, [])
-convTypes e (t:ts) = let (e', t') = convType e t
-                         (e'', ts') = convTypes e' ts
-                     in  (e'', t':ts')
+convTypes r [] = (r, [])
+convTypes r (t:ts) = let (r', t') = convType r t
+                         (r'', ts') = convTypes r' ts
+                     in  (r'', t':ts')
 
 addPred :: SymTab -> Env -> IType -> PredEnv
-addPred symt e@(E _ _ _ ps) t =
+addPred symt r@(E _ _ _ ps) t =
     let
         res =
             case (splitITAp t) of
               (ITCon i _ _, as) | (Just cls) <- findSClass symt (CTypeclass i)
-                -> let (e', as') = convTypes e as
-                   in  Just (e', IsIn cls as')
+                -> let (r', as') = convTypes r as
+                   in  Just (r', IsIn cls as')
               _ -> Nothing
     in
         case res of

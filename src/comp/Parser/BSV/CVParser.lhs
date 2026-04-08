@@ -1132,7 +1132,7 @@ TYPE CLASSES AND INSTANCES
 >        context <- option [] pProvisos
 >        deps <- option [] pDependencies
 >        pSemi
->        items <- many (   (fmap Left  pTypeclassAssocType)
+>        items <- many (   (fmap Left  pTypeclassAssocDepFun)
 >                      <|> (fmap Right (pTypeclassFunction <|> pTypeclassModule <|> pTypeclassVarDecl)))
 >        let assocTypes = [a | Left  a <- items]
 >            functions  = [f | Right f <- items]
@@ -1201,10 +1201,10 @@ TYPE CLASSES AND INSTANCES
 >                         cf_default = defValue
 >                       })
 
-> pTypeclassAssocType :: SV_Parser CAssocDepFun
-> pTypeclassAssocType =
+> pTypeclassAssocDepFun :: SV_Parser CAssocDepFun
+> pTypeclassAssocDepFun =
 >     do pKeyword SV_KW_type
->        name <- pConstructor <?> "associated type family name"
+>        name <- pConstructor <?> "associated type dependency function name"
 >        pks <- option [] pTypedefParams
 >        let (params, _kinds) = unzip pks
 >        pEq

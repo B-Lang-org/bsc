@@ -21,7 +21,7 @@ module IExpandUtils(
         setBackendSpecific, cacheDef,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
-        getTypeNormalizer, getTypeNormalizer', fullTypeNormalizer,
+        getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
         getNewRuleSuffix, updNewRuleSuffix,
         mapPExprPosition,
         chkClockDomain, chkResetDomain, fixupActionWireSet,
@@ -344,6 +344,8 @@ canLiftCond'_List m es =
 
 
 -- Test if a type is allowed in the residual program.
+-- Note that this is only used by walkNF in IExpand;
+-- all residual type functions should be normalized at this point.
 
 isPrimType :: IType -> Bool
 -- Primitive interfaces
@@ -2516,6 +2518,8 @@ updHeap tag (p, HeapData ref) e = do
    let e' = e { hc_name = best_name }
    deepseq best_name $ liftIO (writeIORef ref e')
 
+-- Type normalization function used in evaluation.
+-- Fully traverse and reduce all type function applications where possible.
 fullTypeNormalizer :: Flags -> SymTab -> IType -> Changed IType
 fullTypeNormalizer _ _ (ITCon _ _ _) = Unchanged
 fullTypeNormalizer _ _ (ITNum _)     = Unchanged
@@ -2525,7 +2529,7 @@ fullTypeNormalizer flags symt (ITForAll i k t) = changed1 (ITForAll i k) t'
   where t' = fullTypeNormalizer flags symt t
 fullTypeNormalizer flags symt t@(ITAp _ _)
     | (f@(ITCon _ _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
-    , length as == length pIdxs
+    , length as == length pIdxs  -- Only attempt to reduce type functions that are fully applied.
     , as' <- map (changedOrId $ fullTypeNormalizer flags symt) as
     , all canNorm as'
     = Changed $ normTFun $ foldl ITAp f as'
@@ -2535,6 +2539,7 @@ fullTypeNormalizer flags symt t@(ITAp _ _)
         canNorm (ITAp f a)       = canNorm f && canNorm a
         canNorm _                = True
         normTFun t =
+          -- calling iConvT does the normalization here.
           let t' = iConvT flags symt $ iToCT t
           in case splitITAp t' of
                ((ITCon _ _ (TIatf {})), _) -> internalError $
@@ -2544,14 +2549,14 @@ fullTypeNormalizer flags symt (ITAp f a) = changed2 normITAp f a f' a'
   where f' = fullTypeNormalizer flags symt f
         a' = fullTypeNormalizer flags symt a
 
-getTypeNormalizer' :: G (IType -> Changed IType)
-getTypeNormalizer' = do
+getTypeNormalizerC :: G (IType -> Changed IType)
+getTypeNormalizerC = do
   flags <- getFlags
   symt <- getSymTab
   return $ fullTypeNormalizer flags symt
 
 getTypeNormalizer :: G (IType -> IType)
-getTypeNormalizer = fmap changedOrId getTypeNormalizer'
+getTypeNormalizer = fmap changedOrId getTypeNormalizerC
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]
@@ -2761,7 +2766,7 @@ toHeap tag e cell_name = do
         when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
         -- do the real work of adding the cell
-        norm <- getTypeNormalizer'
+        norm <- getTypeNormalizerC
         addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 
 -- Used when you absolutely need to get an IRefT back
@@ -2774,7 +2779,7 @@ toHeapCon tag (ICon i (ICDef t e)) cell_name = do
   toHeapCon tag e' cell_name
 -- heap all other constants
 toHeapCon tag e@(ICon _ _) cell_name = do
-  norm <- getTypeNormalizer'
+  norm <- getTypeNormalizerC
   addHeapUnev tag (iGetTypeNorm norm e) e cell_name
 toHeapCon tag e cell_name = toHeap tag e cell_name
 
@@ -2791,13 +2796,13 @@ toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), 
                           norm <- getTypeNormalizer
                           addHeapWHNF tag (norm t) pe' cell_name
 toHeapWHNF tag e cell_name = do
-  norm <- getTypeNormalizer'
+  norm <- getTypeNormalizerC
   addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 
 {-# INLINE toHeapWHNFCon #-}
 toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNFCon tag e@(ICon _ _) cell_name = do
-    norm <- getTypeNormalizer'
+    norm <- getTypeNormalizerC
     addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
 toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
 

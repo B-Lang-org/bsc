@@ -412,10 +412,8 @@ checkNoTypeFunInHead errh r mi clsId args =
                 S.fromList [ idx | idx <- [0 .. length (head (funDeps cls)) - 1]
                            , all (\bs -> bs !! idx) (funDeps cls) ]
               _ -> S.empty
-        -- Set of base names of all type functions (for matching unqualified names)
-        atfBaseNames = S.fromList
-            [ getIdBase i | (i, TypeInfo _ _ _ (TIatf {})) <- getAllTypes r ]
-        isTypeFun i = S.member (getIdBase i) atfBaseNames
+        isTypeFun i | Just (TypeInfo _ _ _ (TIatf {})) <- findType r i = True
+                    | otherwise = False
         findTypeFun (TCon (TyCon i _ (TIatf {}))) = [(getPosition i, i)]
         findTypeFun (TCon (TyCon i _ _))
             | isTypeFun i = [(getPosition i, i)]
@@ -426,11 +424,10 @@ checkNoTypeFunInHead errh r mi clsId args =
         nonDetArgs = [ arg | (idx, arg) <- zip [0..] args
                      , not (S.member idx determinedIdxs) ]
         found = concatMap findTypeFun nonDetArgs
-    in case found of
-         [] -> ()
-         _  -> bsErrorUnsafe errh
-                 [ (pos, EATFInInstanceHead (pfpReadable tfId))
-                 | (pos, tfId) <- found ]
+    in if null found then ()
+       else bsErrorUnsafe errh
+                [ (pos, EATFInInstanceHead (pfpReadable tfId))
+                | (pos, tfId) <- found ]
 
 convInst :: ErrorHandle -> Id -> SymTab -> CDefn -> CDefn
 convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
@@ -700,7 +697,7 @@ mkTypeSyms errh mkQuals maybePackageName iks defs qts s =
                     | Cclass  incoh ps ik vs fds _ ifs <- defs ] ++
               [ getCls errh maybePackageName iks r incoh ps ik vs fds []  qts
                     | CIclass incoh ps ik vs fds _ _   <- defs ]
-        r        = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
+        r = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
     in  (r, concat errss)
 
 getTI :: ErrorHandle -> Maybe Id -> SymTab -> M.Map Id Kind -> CDefn -> [(Id, TypeInfo)]
@@ -725,58 +722,14 @@ getTI _ mi _ iks (Cstruct _ ss ik vs fs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs (TIstruct ss (map cf_name fs)))]
   where i = qual mi (iKName ik)
 getTI errh mi _ iks (Cclass _ ps ik vs fds ats fs) =
-    checkATFParams `seq`
+    checkATFParams errh (iKName ik) vs fds ats `seq`
     (i, TypeInfo (Just i) k vs ti) : mkATFTIs mi i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
-        ks = getNK (genericLength vs) k
+        ks = getArgKinds k
         ti = TIstruct SClass
                  (map cf_name fs ++
                   map (\ (CPred (CTypeclass i) _) -> i) ps) -- XXX super
-        -- Validate that all ATF parameters and RHS are class type variables.
-        checkATFParams =
-          let vs_set = S.fromList vs
-              paramErrs = [ (getPosition ca_name,
-                        EATFDeclParamMismatch (pfpString (iKName ik))
-                          (pfpString ca_name) (map pfpString vs) (pfpString badV))
-                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                     , badV <-
-                         -- Check params are class type variables
-                         [ p | p <- ca_params, not (S.member p vs_set) ] ++
-                         -- Check RHS is a class type variable
-                         [ ca_rhs | not (S.member ca_rhs vs_set) ]
-                     ]
-              dupErrs = [ (getPosition ca_name,
-                        EATFDeclDuplicateParam (pfpString ca_name) (pfpString p))
-                     | CAssocDepFun ca_name ca_params _ <- ats
-                     , p <- findDups ca_params
-                     ]
-              findDups [] = []
-              findDups (x:xs) | x `elem` xs = [x]
-                              | otherwise    = findDups xs
-              paramIsResultErrs = [ (getPosition ca_name,
-                        EATFDeclParamIsResult (pfpString ca_name) (pfpString ca_rhs))
-                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                     , ca_rhs `elem` ca_params
-                     ]
-              -- Check that the RHS is determined by the params via at least one fundep
-              fundepErrs = [ (getPosition ca_name,
-                        EATFResultNotDetermined (pfpString ca_name)
-                          (pfpString ca_rhs) (map pfpString ca_params))
-                     | CAssocDepFun ca_name ca_params ca_rhs <- ats
-                     , let param_set = S.fromList ca_params
-                           -- Check: exists a fundep (srcs, tgts) where
-                           -- all srcs are in param_set and ca_rhs is in tgts
-                           isDetermined = any (\(srcs, tgts) ->
-                               all (`S.member` param_set) srcs &&
-                               ca_rhs `elem` tgts) fds
-                     , not isDetermined
-                     ]
-              tvErrs = paramErrs ++ dupErrs ++ paramIsResultErrs
-              errs = if null tvErrs then fundepErrs else tvErrs
-          in case errs of
-               [] -> ()
-               _  -> bsErrorUnsafe errh errs
 getTI _ mi _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
   where i = qual mi (iKName ik)
@@ -784,7 +737,7 @@ getTI _ mi _ iks (CIclass _ ps ik vs _ ats _) =
     (i, TypeInfo (Just i) k vs ti) : mkATFTIs mi i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
-        ks = getNK (genericLength vs) k
+        ks = getArgKinds k
         ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
 getTI _ mi _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract)]
@@ -792,6 +745,53 @@ getTI _ mi _ iks (CprimType ik) =
         -- the CSyntax doesn't provide type var names
         vs = []
 getTI _ _ _ iks _ = []
+
+-- Validate that all ATF parameters and RHS are class type variables,
+-- that there are no duplicates, and that the RHS is determined by
+-- the parameters via at least one functional dependency.
+checkATFParams :: ErrorHandle -> Id -> [Id] -> CFunDeps -> [CAssocDepFun] -> ()
+checkATFParams errh className vs fds ats =
+    if null errs then () else bsErrorUnsafe errh errs
+  where
+    vs_set = S.fromList vs
+    paramErrs = [ (getPosition ca_name,
+                EATFDeclParamMismatch (pfpString className)
+                  (pfpString ca_name) (map pfpString vs) (pfpString badV))
+             | CAssocDepFun ca_name ca_params ca_rhs <- ats
+             , badV <-
+                 -- Check params are class type variables
+                 [ p | p <- ca_params, not (S.member p vs_set) ] ++
+                 -- Check RHS is a class type variable
+                 [ ca_rhs | not (S.member ca_rhs vs_set) ]
+             ]
+    dupErrs = [ (getPosition ca_name,
+                EATFDeclDuplicateParam (pfpString ca_name) (pfpString p))
+             | CAssocDepFun ca_name ca_params _ <- ats
+             , p <- findDups ca_params
+             ]
+    findDups [] = []
+    findDups (x:xs) | x `elem` xs = [x]
+                    | otherwise    = findDups xs
+    paramIsResultErrs = [ (getPosition ca_name,
+                EATFDeclParamIsResult (pfpString ca_name) (pfpString ca_rhs))
+             | CAssocDepFun ca_name ca_params ca_rhs <- ats
+             , ca_rhs `elem` ca_params
+             ]
+    -- Check that the RHS is determined by the params via at least one fundep
+    fundepErrs = [ (getPosition ca_name,
+                EATFResultNotDetermined (pfpString ca_name)
+                  (pfpString ca_rhs) (map pfpString ca_params))
+             | CAssocDepFun ca_name ca_params ca_rhs <- ats
+             , let param_set = S.fromList ca_params
+                   -- Check: exists a fundep (srcs, tgts) where
+                   -- all srcs are in param_set and ca_rhs is in tgts
+                   isDetermined = any (\(srcs, tgts) ->
+                       all (`S.member` param_set) srcs &&
+                       ca_rhs `elem` tgts) fds
+             , not isDetermined
+             ]
+    tvErrs = paramErrs ++ dupErrs ++ paramIsResultErrs
+    errs = if null tvErrs then fundepErrs else tvErrs
 
 -- Build TypeInfo entries for associated type functions in a class.
 -- Shared between Cclass and CIclass cases of getTI.

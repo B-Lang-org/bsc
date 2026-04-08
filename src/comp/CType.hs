@@ -38,7 +38,7 @@ module CType(
   isKVar, getArgKinds, getResKind,
 
   -- ** Constructing Kinds
-  baseKVar,
+  baseKVar, mkKFun,
 
   -- * Type Classes
   CTypeclass(..),
@@ -574,6 +574,10 @@ getArgKinds _ = []
 getResKind :: Kind -> Kind
 getResKind (Kfun a b) = getResKind b
 getResKind k = k
+
+mkKFun :: [Kind] -> Kind -> Kind
+mkKFun []     k = k
+mkKFun (a:as) k = Kfun a (mkKFun as k)
 
 instance PPrint Kind where
     pPrint _ _ KStar = text "*"

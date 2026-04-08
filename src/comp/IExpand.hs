@@ -948,7 +948,7 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
         let modPos = getIdPosition modId
             fs = map (setIdPosition modPos) fs0
 
-        norm <- getTypeNormalizer'
+        norm <- getTypeNormalizerC
         let ifcName = iGetIfcName (iGetTypeNorm norm e)
         let betterInfo = BetterInfo.extractMethodInfo flags symt ifcName
         -- traceM ((ppReadable ifcName) ++ ": " ++ (ppReadable betterInfo))
@@ -1094,7 +1094,7 @@ iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
                  G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
-        norm <- getTypeNormalizer'
+        norm <- getTypeNormalizerC
         -- want the result type, not a type including arguments
         let methType :: IType
             methType = iGetTypeNorm norm e0
@@ -1158,7 +1158,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
 
-        norm <- getTypeNormalizer'
+        norm <- getTypeNormalizerC
         let final_t = iGetTypeNorm norm final_e
         -- split wire sets for more accurate tracking
         return ([],
@@ -1545,6 +1545,8 @@ updNStateVars n = do
 -- Check that state variable types don't contain free type variables
 -- or unevaluated type functions.  These indicate a polymorphic or
 -- type-function-dependent type that wasn't fully resolved.
+-- Not having type vars here also means we do not need to substitute
+-- inside ICStateVar in ISyntaxSubst.
 chkStateVarTypes :: Id -> IType -> [[IType]] -> G ()
 chkStateVarTypes i t tss = do
     let allTypes = t : concat tss
@@ -2523,7 +2525,7 @@ walkNF e =
                 IAps f@(ICon i_sel (ICSel { })) ts es -> do
                     (p, es', ws) <- walkList walkNF es
 
-                    norm <- getTypeNormalizer'
+                    norm <- getTypeNormalizerC
                     let uIsAction = isActionType (iGetTypeNorm norm u)
 
                     -- handle method calls (ICSel of a ICStateVar)
@@ -2924,7 +2926,7 @@ evalApAccum tag exprCtx typeCtx e args = do
              show (M.size typeCtx) ++ " types")
   -- eSubstBatch will do no work if exprCtx and typeCtx are empty
   -- (but in evalAppAccum, at least one of them won't be)
-  norm <- getTypeNormalizer'
+  norm <- getTypeNormalizerC
   let e' = eSubstBatch norm exprCtx typeCtx e
   -- evalAp will handle if substitution revealed more ILam/ILAM
   evalAp tag e' args
@@ -2943,7 +2945,7 @@ evalAp str e es = do
   -- when "cross" is False, this just returns "r_orig"
   r <- mapPExprPosition cross ((P pred e), r_orig)
   when doTraceTypes $ do
-      norm <- getTypeNormalizer'
+      norm <- getTypeNormalizerC
       let unev = mkAp e es
       let unev_t = iGetTypeNorm norm unev
       let r_t = iGetTypeNorm norm iexpr
@@ -3195,7 +3197,6 @@ conAp' c (ICOut { iConType = outty, conTagInfo = cti }) o as = do
               toHeapArg a = return a
           as'' <- mapM toHeapArg as'
 -}
-          norm <- getTypeNormalizer
           evalStaticOp' True True False e resType (doOut o c tys ty cti as')
       _ -> internalError ("conAp': ICOut: " ++ ppReadable (mkAp o as))
 conAp' c (ICSel { iConType = selty, selNo = n }) sel as = do
@@ -3591,7 +3592,7 @@ conAp' tfs (ICPrim _ PrimIntBitsToInteger) fe [T (ITNum k), E e] = evalStaticOp 
 
 conAp' ci prim@(ICPrim _ PrimSetSelPosition) f (T _ : E pos_e : E res_e : as) = do
   poss <- evalPositions pos_e
-  norm <- getTypeNormalizer'
+  norm <- getTypeNormalizerC
   let res_e' = mkAp res_e as
       t' = iGetTypeNorm norm res_e'
       icon = (ICon ci prim)
@@ -4329,7 +4330,7 @@ doArrayUpdate f@(ICon upd_i (ICPrim {iConType = opType}))
                 --traceM("Update: " ++ show arr_e')
                 nfError "primArrayUpdate" $
                     mkAp f [T elem_t, E arr_e', E idx_e', E val_e']
-        norm <- getTypeNormalizer'
+        norm <- getTypeNormalizerC
         let res_t = iGetTypeNorm norm arr_e -- result type is (PrimArray t)
         addPredG idx_p $ evalStaticOp arr_e res_t handleArrayUpdate
     _ -> internalError ("IExpand.doArrayUpdate: index: " ++ ppReadable idx_e')
@@ -4481,7 +4482,7 @@ improveIf f t cnd thn@(IAps concat@(ICon _ (ICPrim _ PrimConcat)) ts1@[ITNum sx,
 improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimChr)) ts2 [chr_els]) = do
   when doTraceIf $ traceM ("improveIf PrimChr triggered " ++ show (cnd,thn,els))
-  norm <- getTypeNormalizer'
+  norm <- getTypeNormalizerC
   let chrArgType = iGetTypeNorm norm chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
@@ -4840,7 +4841,7 @@ doSel sel s tys ty n as ee (p, e) =
         -- v | C_av.avAction_  || C_av.avValue_ ->
         -- AV_ selection must be a saturated application, no stray arguments
         _ | s == idAVValue_ && isCanonAV_ e && null as -> do
-            norm <- getTypeNormalizer'
+            norm <- getTypeNormalizerC
             case e of
               -- drop arguments to value side of ActionValue method (see AMethValue)
               -- and fixup selector type (instantiating and dropping missing types)

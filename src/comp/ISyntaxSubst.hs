@@ -308,10 +308,6 @@ subPair :: (IExpr a -> Changed (IExpr a)) -> (IExpr a, IExpr a)
         -> Changed (IExpr a, IExpr a)
 subPair esubFn (a, b) = changed2 (,) a b (esubFn a) (esubFn b)
 
-mapMaybeChanged :: (a -> Changed a) -> Maybe a -> Changed (Maybe a)
-mapMaybeChanged _ Nothing  = Unchanged
-mapMaybeChanged f (Just x) = changed1 Just (f x)
-
 -- Internal expression substitution with contexts
 {-# SPECIALIZE eSubstWith :: EmptyExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}
 {-# SPECIALIZE eSubstWith :: SingleExpr a -> EmptyType -> S.Set Id -> IExpr a -> Changed (IExpr a) #-}

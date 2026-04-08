@@ -2059,7 +2059,7 @@ tiSelect readTag as td e i f = do
 
     --do s <- getSubst; trace ("sel1 " ++ ppReadable ((exp, apSub s td), (e, apSub s te), (i, apSub s tf))) $ return ()
     -- Normalize the struct type to expand associated type functions
-    -- so that field access works through type family results.
+    -- so that field access works through type function results.
     s_sel <- getSubst
     struct_ty <- expandFullType (apSub s_sel (f te))
     (i' :>: sc, ti, n)  <- findFields struct_ty i

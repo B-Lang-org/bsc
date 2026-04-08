@@ -223,6 +223,7 @@ expTFun t0
     TCon (TyCon _ _ (TIatf { atf_class_id = clsId
                            , atf_param_idxs = pIdxs
                            , atf_target_idx = tIdx })) <- f,
+    -- Don't attempt to expand partially applied type functions.
     length as == length pIdxs = do
         cls <- findCls (CTypeclass clsId)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
@@ -231,7 +232,6 @@ expTFun t0
         return (vps, v)
 -- eliminate the identity type constructor.
 expTFun (TAp (TCon (TyCon idId_ _ _)) t) | idId_ == idId = return ([], t)
-
 expTFun (TAp f a) = do
         (vfs, f') <- expTFun f
         (vas, a') <- expTFun a
@@ -881,6 +881,7 @@ normT t = do
     if null ps then
         return t''
      else do
+        -- A type function can expand to a pred that is satisfied locally by an explicit pred.
         eps <- getExplPreds
         (ps', _) <- satisfy eps ps
         --unless (null ps') (internalError ("expandSynN " ++ ppReadable (t, ps')))
@@ -923,7 +924,7 @@ unify x t1 t2 = do
         case mgu bound_vars t1'' t2'' of
           Just (u,eqs)  ->
               do extSubst "unify" u
-                 concatMapM (eqToVPred [pos]) $ nub eqs
+                 concatMapM (eqToVPred [pos]) eqs
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError bound_vars x t1'' t2''
 
@@ -947,12 +948,14 @@ eqToPred poss (t1, t2) = do
 -- corresponding class predicate.  For example, if atfType is @Elem x@
 -- (from @class Container f e | f -> e where type Elem f = e@), and
 -- targetType is @T@, this produces @Just (IsIn Container [x, T])@.
+-- Note that we should only be given type equalities given 
 tryATFClassPred :: Type -> Type -> TI (Maybe Pred)
 tryATFClassPred atfType targetType = do
     let (f, atfArgs) = splitTAp atfType
     case f of
       TCon (TyCon _ _ (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
-                              , atf_target_idx = tIdx })) -> do
+                              , atf_target_idx = tIdx }))
+        | length atfArgs == length pIdxs -> do
         (cls, classArgs) <- mkATFClassPred "tryATFClassPred" atfType
                               clsId pIdxs tIdx atfArgs targetType
         return $ Just (IsIn cls classArgs)
@@ -1481,7 +1484,7 @@ checkForAmbiguousPreds :: Id -> [TyVar] -> Qual Type -> TI ()
 checkForAmbiguousPreds i fvs1 qt = do
   -- in order to catch ambiguous variables arising from uses of TLog etc,
   -- expand such TCons into additional predicates
-  (qs :=> t) <- expandNumericTCons qt
+  (qs :=> t) <- expandTCons qt
 
   let
         -- the explicit predicates
@@ -1518,8 +1521,8 @@ checkForAmbiguousPreds i fvs1 qt = do
                                     (map pfp amb_preds')
                                     (pfp t'))
 
-expandNumericTCons :: Qual Type -> TI (Qual Type)
-expandNumericTCons (orig_qs :=> orig_t) =
+expandTCons :: Qual Type -> TI (Qual Type)
+expandTCons (orig_qs :=> orig_t) =
   let
       mkResult cls_id ts v = do
         symt <- getSymTab
@@ -1536,25 +1539,25 @@ expandNumericTCons (orig_qs :=> orig_t) =
       -- expand to the associate typeclass (is this better for err msgs?)
       exp :: Type -> TI ([PredWithPositions], Type)
       exp (TAp tc t)
-          | tc == tLog = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tLog = do v <- newTVar "expandTCons" KNum tc
                             mkResult idLog [t, v] v
-          | tc == tExp = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tExp = do v <- newTVar "expandTCons" KNum tc
                             -- There's no class for this, so use NumEq
                             mkResult idNumEq [v, TAp tc t] v
       exp (TAp (TAp tc t1) t2)
-          | tc == tAdd = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tAdd = do v <- newTVar "expandTCons" KNum tc
                             mkResult idAdd [t1, t2, v] v
-          | tc == tSub = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tSub = do v <- newTVar "expandTCons" KNum tc
                             mkResult idAdd [t1, v, t2] v
-          | tc == tMul = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tMul = do v <- newTVar "expandTCons" KNum tc
                             mkResult idMul [t1, t2, v] v
-          | tc == tDiv = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tDiv = do v <- newTVar "expandTCons" KNum tc
                             mkResult idDiv [t1, t2, v] v
-          | tc == tMax = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tMax = do v <- newTVar "expandTCons" KNum tc
                             mkResult idMax [t1, t2, v] v
-          | tc == tMin = do v <- newTVar "expandNumericTCons" KNum tc
+          | tc == tMin = do v <- newTVar "expandTCons" KNum tc
                             mkResult idMin [t1, t2, v] v
-      -- Associated type families: expand like expTFun
+      -- Associated type functions: expand like expTFun
       exp t0
           | let (f, as) = splitTAp t0,
             TCon (TyCon _ _ (TIatf { atf_class_id = clsId
@@ -1562,8 +1565,8 @@ expandNumericTCons (orig_qs :=> orig_t) =
                                    , atf_target_idx = tIdx })) <- f,
             length as == length pIdxs = do
                 cls <- findCls (CTypeclass clsId)
-                v <- newTVar "expandNumericTCons" (kind (csig cls !! tIdx)) t0
-                (_, classArgs) <- mkATFClassPred "expandNumericTCons" t0
+                v <- newTVar "expandTCons" (kind (csig cls !! tIdx)) t0
+                (_, classArgs) <- mkATFClassPred "expandTCons" t0
                                     clsId pIdxs tIdx as v
                 let p = PredWithPositions (IsIn cls classArgs) []
                 return ([p], v)

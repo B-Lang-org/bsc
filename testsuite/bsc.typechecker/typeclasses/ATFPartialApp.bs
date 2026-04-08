@@ -1,0 +1,18 @@
+package ATFPartialApp where
+
+-- Test passing a partially applied type function as a type argument.
+
+class Container f e | f -> e where
+  type Elem f = e
+
+data Wrapper a = Wrapper a
+
+instance Container (Wrapper a) a where {}
+
+struct SlotOfThing f a =
+  stuff :: f a
+
+-- Use the partially-applied ATF Elem as a type constructor argument.
+-- The field type (Elem (Wrapper a)) expands to a via the Container instance.
+extract :: SlotOfThing Elem (Wrapper a) -> a
+extract foo = foo.stuff

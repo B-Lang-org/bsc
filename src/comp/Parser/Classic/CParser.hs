@@ -422,8 +422,7 @@ pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.
 
 pClassBodyItem :: CParser (Either CAssocDepFun CField)
 pClassBodyItem =
-      (-- Accept "type Map k v = r" where k may be the class param and v
-       -- is an extra type param.
+      (-- Accept "type Repr a = r" where a and r are class param variables.
        l L_type ..+ pTyConId +.+ many pTyVarId +.+ eq ..+ pTyVarId
            >>- \ (name, (args, rhs)) ->
                Left (CAssocDepFun name args rhs))

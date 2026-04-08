@@ -7,6 +7,7 @@ import Util(map_insertMany)
 import Error(internalError, EMsg, ErrMsg(..))
 import Id
 import CSyntax
+import CType(mkKFun)
 import CFreeVars(getFQTyVars, getCPTyVars)
 import SymTab
 import KIMisc
@@ -106,7 +107,7 @@ inferKDefn as (Cclass _ ps ik vs _ ats fs) = do
                 kcCQTypeStar (map_insertMany fv_as as') (cf_type field)
     mapM_ doField fs
     mapM_ (inferCPred as') ps
-    -- Constrain the kind of each associated type family constructor
+    -- Constrain the kind of each associated type function constructor
     let v_ks = map snd v_as
     mapM_ (inferKATF as vs v_ks) ats
     unifyDefStar i con_k v_as mk

@@ -41,7 +41,6 @@ module CVPrint (
         getName,
         getLName,
         isTDef,
-        getNK,
         HasPosition(..),
         StructSubType(..),
         pvpId, pvParameterTypes) where

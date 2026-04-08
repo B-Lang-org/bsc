@@ -389,10 +389,9 @@ genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
     Nothing -> []
     Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats (qualFields currentPkg s fs),[])]
     Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats [getPosition ik], [])]
-genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _instDs) =
+genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
     -- trace (ppReadable (leftCon t, map leftCon (tyConArgs t))) $
-    let tcs = leftTyCons (t : tyConArgs t)
-    in
+    let tcs = leftTyCons (t : tyConArgs t) in
     if all (\c -> exported c || imported c) tcs then
         [(CIinstance currentPkg (qualCQType s qt), [(getPosition d, WOrphanInst (pfpString (expandSyn t))) | orphan_inst ])]
     else

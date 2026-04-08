@@ -192,7 +192,7 @@ data CDefn
                   -- Bool indicates the constrs are visible
                   -- first [Id] are the names of this definition's argument type variables
                   -- last [CTypeclass] are derived classes
-        -- incoherent_matches superclasses name_with_kind variables fundeps assoc_types default_methods
+        -- incoherent_matches superclasses name_with_kind variables fundeps assoc_dep_funs default_methods
         | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] CFields
         | Cinstance CQType [CDefl]
         | CValue Id [CClause]
