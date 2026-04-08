@@ -271,7 +271,7 @@ of GHC, currently 9.6.7.  The source is also tested with a range of
 newer GHC versions (currently 9.8, 9.10, and 9.12) any of which are
 also fine.
 
-### Haskell libraries via Cabal
+### Haskell libraries via Cabal v1
 
 Building BSC requires some additional Haskell libraries beyond the standard
 GHC libraries.  We recommend using the `cabal` command to install
@@ -285,27 +285,98 @@ through the package manager.
 
 The BSC build currently assumes that libraries have been installed
 globally with GHC.  This is why we have shown the `cabal` command
-using the legacy `v1-install` subcommand, which install globally:
+using the legacy `v1-install` subcommand, which installs globally:
 
 ```bash
 cabal update
 cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
-Cabal's newer `v2-install` has the advantage of not installing the
-libraries into the GHC installation.  This is useful if the GHC
-installation is globally installed and you want to build BSC without
-disturbing the global setup; or if GHC is installed via a package
-manager and you don't want to mix cabal-installed files with package
-manager-installed files.  Using `v2-install` is possible, but requires
-passing an additional flag to GHC, which can be done by defining `GHC`
-in the environment when calling `make` in the later steps.  For
-example (cabal 3.x only):
+### Haskell libraries via Cabal v2
+
+If the GHC installation is globally installed or if GHC is installed via a
+package manager, we can use an environment to avoid disturbing the global setup
+or mixing cabal-installed files with package manager-installed files.
+
+Cabal's newer `v2-install` command installs executables but doesn't normally
+install libraries.  Getting the libraries we require to build BSC installed is
+possible but requires passing an additional flag to `ghc`.  We need to force a
+library installation into a package environment with the
+[`--lib`][cabal-lib-option] option. Installation into the default user
+environment can be made implicitly or explicitly when calling `cabal`, but we
+must always be explicit about this environment with `ghc` and `ghc-pkg`.
+
+> [!WARNING]
+> The `cabal` option is `--package-env` but the `ghc` option is `-package-env`.
+>
+> The BSC Makefile sets [`-hide-all-packages`][bsc-hide-all-pkgs] preventing `ghc` from looking for
+> the package environment;
+>
+> - in file `.ghc.environment.arch-os-version` in the current directory or any parent directory,
+> - in file `$XDG_DATA_HOME/.ghc/arch-os-version/environments/default`.
+>
+
+[bsc-hide-all-pkgs]: https://github.com/B-Lang-org/bsc/blob/71db9d6821b34874c504151e29203a6010bf1589/src/comp/Makefile#L183
+[cabal-lib-option]: https://cabal.readthedocs.io/en/latest/cabal-commands.html#adding-libraries-to-ghc-package-environments
+
+<dl>
+<dt>Installing into and using the default environment either implictly or explicitly</dt>
+<dd>
+
+The diff shows how to be explicit about it:
+
+```diff
+  cabal install --lib \
++   --package-env=default \
+    regex-compat syb old-time split strict-concurrency
+```
+
+The default environment is `~/.ghc/$ARCH-$OS-$GHCVER/environments/default` but
+this will only be created if we install into it.
+
+We give `-package-env` to `ghc` by setting the Makefile variable `GHC`:
 
 ```bash
-cabal v2-install --package-env=default regex-compat syb old-time split strict-concurrency
-make GHC="ghc -package-env default"
+GHC="ghc -package-env default" make install-src
 ```
+</dd>
+
+<dt>Installing into and using a local file environment</dt>
+<dd>
+
+```diff
+  cabal install --lib \
++   --package-env=.ghc.environment.x86_64-linux-9.12.4 \
+    regex-compat syb old-time split strict-concurrency
+```
+
+Get the location of the `package-db`. We'll give this to `ghc-pkg`:
+
+```bash
+cat .ghc.environment.x86_64-linux-9.12.4 | grep "^package-db"
+package-db $HOME/.local/state/cabal/store/ghc-9.12.4-5301/package.db
+```
+
+Start the make, setting both `GHC` and `GHC_PKG` Makefile variables:
+
+```bash
+GHC="ghc -package-env=$PWD/.ghc.environment.x86_64-linux-9.12.4" \
+  GHC_PKG="ghc-pkg --user-package-db=$HOME/.local/state/cabal/store/ghc-9.12.4-5301/package.db/" \
+  make install-src
+```
+</dd>
+</dl>
+
+> [!NOTE]
+> The `cabal v2-install` command is an alias for `cabal install`.
+>
+> The [`--write-environment-files`][cabal-write-env] option of its `v2-`
+> commands defaults to `never`.  This is supported by `ghc-8.4.4` and later
+> being able to ignore the [package environment][ghc-pkg-env] if given
+> `-package-env -`.
+
+[cabal-write-env]: https://cabal.readthedocs.io/en/latest/cabal-project-description-file.html#cfg-field-write-ghc-environment-files
+[ghc-pkg-env]: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/packages.html#package-environments
 
 To build a version of BSC that supports profiling, be aware that
 profiling versions of the libraries need to be installed.
