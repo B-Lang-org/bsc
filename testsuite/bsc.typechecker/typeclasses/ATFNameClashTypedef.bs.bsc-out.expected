@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ATFNameClashTypedef.bs
+Error: "ATFNameClashTypedef.bs", line 8, column 7: (T0011)
+  Declaration of `Elem' conflicts with previous declaration at
+  "ATFNameClashTypedef.bs", line 5, column 5

@@ -136,6 +136,17 @@ compile_fail_error ATFUnifyHKError.bs T0030
 compare_file ATFUnifyHKError.bs.bsc-out
 compile_fail_error ATFAmbig.bs T0079
 compare_file ATFAmbig.bs.bsc-out
+compile_fail_error ATFNameClashTwoClasses.bs T0011
+compare_file ATFNameClashTwoClasses.bs.bsc-out
+compile_fail_error ATFNameClashSameClass.bs T0011
+compare_file ATFNameClashSameClass.bs.bsc-out
+compile_fail_error ATFNameClashTypedef.bs T0011
+compare_file ATFNameClashTypedef.bs.bsc-out
+
+# Test ATF qualified imports
+
+compile_pass ATFQualified.bs
+compile_pass ATFQualifiedBSV.bsv
 
 # Test ATF in BSV syntax
 

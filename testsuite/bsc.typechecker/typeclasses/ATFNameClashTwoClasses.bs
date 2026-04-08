@@ -1,0 +1,28 @@
+package ATFNameClashTwoClasses where
+
+-- Test that two typeclasses in the same file can each declare a type
+-- function with the same name, disambiguated by their class.
+
+class Container1 f e | f -> e where
+  type Elem f = e
+  extract1 :: f -> e
+
+class Container2 g h | g -> h where
+  type Elem g = h
+  extract2 :: g -> h
+
+data Box a = Box a
+data Tag a = Tag a
+
+instance Container1 (Box a) a where
+  extract1 (Box x) = x
+
+instance Container2 (Tag a) a where
+  extract2 (Tag x) = x
+
+-- Each Elem reference is resolved to the correct class by the argument type.
+test1 :: Box Integer -> Elem (Box Integer)
+test1 = extract1
+
+test2 :: Tag Bool -> Elem (Tag Bool)
+test2 = extract2

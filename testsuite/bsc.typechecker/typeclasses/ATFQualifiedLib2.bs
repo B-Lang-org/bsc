@@ -1,0 +1,10 @@
+package ATFQualifiedLib2 where
+
+class Container2 g h | g -> h where
+  type Elem g = h
+  unwrap :: g -> h
+
+data Tag a = Tag a
+
+instance Container2 (Tag a) a where
+  unwrap (Tag x) = x

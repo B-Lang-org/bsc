@@ -1,0 +1,9 @@
+package ATFNameClashSameClass where
+
+-- Test that a single typeclass cannot declare two type functions
+-- with the same name.
+
+class MyClass a b c | a -> b, a -> c where
+  type Result a = b
+  type Result a = c
+  method :: a -> b
