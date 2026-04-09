@@ -17,17 +17,17 @@ module Language.Bluespec.DocGen.RefManual
   , defaultRefManualConfig
   ) where
 
-import Control.Monad (forM, forM_)
+import Control.Monad (forM, forM_, when)
 import Data.Char (isAlphaNum, toLower)
-import Data.List (groupBy, sortOn)
+import Data.List (groupBy, nub, sortOn)
 import Data.ByteString qualified as BS
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding (decodeLatin1)
 import Data.Text.Lazy.IO qualified as TLIO
-import System.Directory (createDirectoryIfMissing, doesFileExist)
-import System.FilePath ((</>), takeDirectory)
+import System.Directory (copyFile, createDirectoryIfMissing, doesFileExist)
+import System.FilePath ((</>), takeDirectory, takeFileName, takeExtension)
 import System.IO (hPutStrLn, stderr)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Html5 (Html, (!))
@@ -114,9 +114,14 @@ convertRefManual cfg idx = do
   writeTocPage refDir sections mSha title
   writeTermIndex refDir indexEntries mSha title
 
+  -- Copy referenced images to output directory
+  let imgPaths = collectImagePaths processed
+  copyImages texDir refDir imgPaths (rmcVerbose cfg)
+
   when' (rmcVerbose cfg) $ do
     putStrLn $ "[docgen] " ++ T.unpack title ++ ": " ++ show (length sections) ++ " sections"
     putStrLn $ "[docgen] Term index: " ++ show (length indexEntries) ++ " entries"
+    putStrLn $ "[docgen] Images: " ++ show (length imgPaths) ++ " referenced"
     putStrLn $ "[docgen] Output: " ++ refDir
 
   pure (Map.unions extraIdxs)
@@ -191,14 +196,6 @@ splitDocument src =
 -- ---------------------------------------------------------------------------
 -- Pre-processing
 -- ---------------------------------------------------------------------------
-
--- | Pre-process the document body before parsing:
--- 1. Strip TeX line comments (@% ...@ to end of line).
--- 2. Strip @\end{document}@.
--- 3. Expand macros from the preamble.
--- 4. Remove layout-only commands (@\newpage@, @\clearpage@, @\pagestyle@, etc.).
-preprocessBody :: MacroEnv -> Text -> Text
-preprocessBody env = stripLayoutCmds . stripAndExpand env
 
 -- | Steps 1–3 of pre-processing: strip comments, expand macros.
 -- @\label@ commands are still present at this stage.
@@ -296,25 +293,72 @@ collectIndexEntries src = removeDups $ go "index" src
     -- The \index argument may be "word@\te{word}|textbf" — take the part
     -- before the first '@' or '|'.
     toEntry slug raw =
-      let stripped = T.takeWhile (\c -> c /= '@' && c /= '|') raw
-          display  = stripTeCmd stripped
+      let -- Strip formatting hints after @ or |
+          stripped = T.takeWhile (\c -> c /= '@' && c /= '|') raw
+          -- Take the last !-separated segment (sub-entry is the specific term)
+          lastPart = last (T.splitOn "!" stripped)
+          display  = cleanIndexText lastPart
           key      = T.map toLower (T.strip display)
       in IndexEntry key display slug
 
-    -- Strip \te{...} wrappers from an index entry.
-    stripTeCmd t
-      | "\\te{" `T.isPrefixOf` t = consumeBalanced (T.drop (T.length "\\te{") t)
-      | otherwise                 = t
-
-    consumeBalanced = T.pack . go' (0 :: Int) . T.unpack
+    -- Clean up LaTeX markup in index entry text.
+    cleanIndexText :: Text -> Text
+    cleanIndexText = stripTexCmds . T.strip
       where
-        go' _ []       = []
-        go' 0 ('}':_)  = []
-        go' d ('}':cs) = '}' : go' (d-1) cs
-        go' d ('{':cs) = '{' : go' (d+1) cs
-        go' d (c:cs)   = c   : go' d cs
+        stripTexCmds t
+          | T.null t = t
+          -- \te{content} → content
+          | "\\te{" `T.isPrefixOf` t = stripTexCmds (extractBraced (T.drop 4 t))
+          -- \texttt{content} → content
+          | "\\texttt{" `T.isPrefixOf` t = stripTexCmds (extractBraced (T.drop 8 t))
+          -- \textbf{content} → content
+          | "\\textbf{" `T.isPrefixOf` t = stripTexCmds (extractBraced (T.drop 8 t))
+          -- \emph{content} → content
+          | "\\emph{" `T.isPrefixOf` t = stripTexCmds (extractBraced (T.drop 6 t))
+          -- \_ → _
+          | "\\_" `T.isPrefixOf` t = "_" <> stripTexCmds (T.drop 2 t)
+          -- \{ → {  \} → }
+          | "\\{" `T.isPrefixOf` t = "{" <> stripTexCmds (T.drop 2 t)
+          | "\\}" `T.isPrefixOf` t = "}" <> stripTexCmds (T.drop 2 t)
+          -- \$ → $
+          | "\\$" `T.isPrefixOf` t = "$" <> stripTexCmds (T.drop 2 t)
+          -- Skip other \commands with brace args
+          | "\\" `T.isPrefixOf` t =
+              let rest = T.drop 1 t
+                  (cmd, after) = T.span (\c -> (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) rest
+              in if not (T.null cmd) && "{" `T.isPrefixOf` after
+                 then stripTexCmds (extractBraced (T.drop 1 after))
+                 else if not (T.null cmd)
+                      then stripTexCmds after
+                      else T.cons '\\' (stripTexCmds rest)
+          | otherwise = T.cons (T.head t) (stripTexCmds (T.tail t))
+
+        -- Extract content from a brace-balanced group, return content + rest
+        extractBraced :: Text -> Text
+        extractBraced t =
+          let (content, rest) = splitAtBrace t
+          in content <> stripTexCmds rest
+
+        splitAtBrace :: Text -> (Text, Text)
+        splitAtBrace = go' (0 :: Int) . T.unpack
+          where
+            go' _ []       = ("", "")
+            go' 0 ('}':cs) = ("", T.pack cs)
+            go' d ('}':cs) = let (a, b) = go' (d-1) cs in (T.cons '}' a, b)
+            go' d ('{':cs) = let (a, b) = go' (d+1) cs in (T.cons '{' a, b)
+            go' d (c:cs)   = let (a, b) = go' d cs in (T.cons c a, b)
 
     removeDups = map head . groupBy (\a b -> ieKey a == ieKey b) . sortOn ieKey
+
+    -- Consume a brace-balanced string, returning content before the closing '}'.
+    consumeBalanced :: Text -> Text
+    consumeBalanced = T.pack . cbal (0 :: Int) . T.unpack
+      where
+        cbal _ []       = []
+        cbal 0 ('}':_)  = []
+        cbal d ('}':cs) = '}' : cbal (d-1) cs
+        cbal d ('{':cs) = '{' : cbal (d+1) cs
+        cbal d (c:cs)   = c   : cbal d cs
 
 -- ---------------------------------------------------------------------------
 -- Section splitting
@@ -394,6 +438,8 @@ inlinesToText = T.concat . map go
     go (SymRef t)       = t
     go (SectionRef t)   = "\167" <> t
     go (NonTerm t)      = t
+    go (Footnote is)    = inlinesToText is
+    go (Link _ is)      = inlinesToText is
 
 -- | Make a URL-safe slug from a section title.
 slugify :: Text -> Text
@@ -467,8 +513,12 @@ sectionPage sec idx lmap mSha title = H.docTypeHtml $ do
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
-    H.nav ! A.class_ "breadcrumb" $
+    H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
       H.a ! A.href "index.html" $ H.toHtml title
+      H.span ! A.class_ "sep" $ ""
+      H.span $ H.toHtml (secTitle sec)
     H.main $
       renderDocBlocks idx lmap (secBlocks sec)
     docFooter mSha
@@ -484,8 +534,12 @@ sectionIndexPage sec subs mSha title = H.docTypeHtml $ do
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
-    H.nav ! A.class_ "breadcrumb" $
+    H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
       H.a ! A.href "index.html" $ H.toHtml title
+      H.span ! A.class_ "sep" $ ""
+      H.span $ H.toHtml (secTitle sec)
     H.div ! A.class_ "sub-layout" $ do
       H.aside ! A.class_ "sub-sidebar" $ do
         H.h3 (H.toHtml (secTitle sec))
@@ -515,9 +569,13 @@ subsectionPage sec subs sub idx lmap mSha title = H.docTypeHtml $ do
   H.body $ do
     searchHeader "../"
     H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
       H.a ! A.href "index.html" $ H.toHtml title
-      " / "
+      H.span ! A.class_ "sep" $ ""
       H.a ! A.href (H.toValue (secSlug sec <> ".html")) $ H.toHtml (secTitle sec)
+      H.span ! A.class_ "sep" $ ""
+      H.span $ H.toHtml (subTitle sub)
     H.div ! A.class_ "sub-layout" $ do
       H.aside ! A.class_ "sub-sidebar" $ do
         H.h3 (H.toHtml (secTitle sec))
@@ -547,6 +605,10 @@ tocPage sections mSha title = H.docTypeHtml $ do
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
+    H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
+      H.span $ H.toHtml title
     H.main $ do
       H.h1 (H.toHtml title)
       H.ul $ mapM_ tocEntry sections
@@ -585,9 +647,13 @@ termIndexPage entries mSha title = H.docTypeHtml $ do
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
+    H.nav ! A.class_ "breadcrumb" $ do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
+      H.a ! A.href "index.html" $ H.toHtml title
+      H.span ! A.class_ "sep" $ ""
+      H.span $ "Term Index"
     H.main $ do
-      H.nav ! A.class_ "breadcrumb" $
-        H.a ! A.href "index.html" $ H.toHtml title
       H.h1 "Term Index"
       if null entries
         then H.p "(No index entries found.)"
@@ -631,6 +697,54 @@ renderAlphaGroups entries = do
 -- ---------------------------------------------------------------------------
 -- Utilities
 -- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Image copying
+-- ---------------------------------------------------------------------------
+
+-- | Scan preprocessed text for @\includegraphics@ paths.
+collectImagePaths :: Text -> [Text]
+collectImagePaths = nub . go
+  where
+    go t = case T.breakOn "\\includegraphics" t of
+      (_, rest)
+        | T.null rest -> []
+        | otherwise ->
+            let after = T.drop (T.length "\\includegraphics") rest
+                -- Skip optional [...] argument
+                after2 = case T.uncons after of
+                  Just ('[', r) -> T.drop 1 (T.dropWhile (/= ']') r)
+                  _             -> after
+            in case T.uncons (T.stripStart after2) of
+                 Just ('{', r) ->
+                   let path = T.takeWhile (/= '}') r
+                       rest2 = T.drop (T.length path + 1) r
+                   in path : go rest2
+                 _ -> go (T.drop 1 after)
+
+-- | Copy image files from the source directory to the output directory.
+-- Tries common image extensions if the path has no extension.
+copyImages :: FilePath -> FilePath -> [Text] -> Bool -> IO ()
+copyImages srcDir outDir paths verbose = forM_ paths $ \path -> do
+  let pathStr = T.unpack path
+      candidates
+        | null (takeExtension pathStr) =
+            [ srcDir </> pathStr ++ ext | ext <- [".png", ".jpg", ".pdf", ".eps", ".svg"] ]
+        | otherwise = [srcDir </> pathStr]
+  mSrc <- findFirst' candidates
+  case mSrc of
+    Nothing -> when verbose $
+      hPutStrLn stderr $ "[docgen] Warning: image not found: " ++ pathStr
+    Just srcPath -> do
+      let destPath = outDir </> takeFileName srcPath
+      exists <- doesFileExist destPath
+      when (not exists) $ do
+        copyFile srcPath destPath
+        when verbose $
+          putStrLn $ "[docgen] Copied image: " ++ takeFileName srcPath
+  where
+    findFirst' []     = pure Nothing
+    findFirst' (p:ps) = doesFileExist p >>= \e -> if e then pure (Just p) else findFirst' ps
 
 when' :: Applicative f => Bool -> f () -> f ()
 when' True  action = action

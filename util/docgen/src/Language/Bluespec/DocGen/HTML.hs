@@ -13,6 +13,7 @@ module Language.Bluespec.DocGen.HTML
   , searchHeader
   ) where
 
+import Control.Monad (when)
 import Data.List (sortOn)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -20,6 +21,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
+import System.FilePath (takeFileName, takeExtension)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Html5 (Html, (!))
 import Text.Blaze.Html5 qualified as H
@@ -44,7 +46,7 @@ renderPackagePage
   -> SymbolIndex   -- ^ global cross-reference index
   -> Text          -- ^ rendered HTML
 renderPackagePage pkgName entries idx =
-  TL.toStrict $ renderHtml $ page pkgName $ do
+  TL.toStrict $ renderHtml $ page pkgName breadcrumb $ do
     H.nav ! A.class_ "sidebar" $ do
       H.h2 $ H.toHtml pkgName
       H.ul $ mapM_ sidebarItem (sortOn deName entries)
@@ -53,11 +55,18 @@ renderPackagePage pkgName entries idx =
         H.span ! A.class_ "kw" $ "package "
         H.code $ H.toHtml pkgName
       mapM_ (renderEntry idx) (sortOn deName entries)
+  where
+    breadcrumb = do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
+      H.a ! A.href "index.html" $ "Standard Library"
+      H.span ! A.class_ "sep" $ ""
+      H.span $ H.toHtml pkgName
 
 -- | Render the stdlib package index page.
 renderIndexPage :: Map Text [DocEntry] -> Text
 renderIndexPage pkgMap =
-  TL.toStrict $ renderHtml $ page "Standard Library" $ do
+  TL.toStrict $ renderHtml $ page "Standard Library" breadcrumb $ do
     H.nav ! A.class_ "sidebar" $ do
       H.h2 "Packages"
       H.ul $ mapM_ (\p -> H.li $ H.a ! A.href (H.toValue (p <> ".html")) $ H.toHtml p)
@@ -70,6 +79,11 @@ renderIndexPage pkgMap =
           H.a ! A.href (H.toValue (p <> ".html")) $ H.toHtml p
           H.toHtml (" — " <> T.pack (show (length es)) <> " documented symbols"))
         (Map.toAscList pkgMap)
+  where
+    breadcrumb = do
+      H.a ! A.href "../index.html" $ "Bluespec Docs"
+      H.span ! A.class_ "sep" $ ""
+      H.span $ "Standard Library"
 
 -- | Render the top-level site index.
 renderSitePage :: Text
@@ -131,10 +145,22 @@ renderBlock idx lmap = \case
   VerbBlock src      -> H.pre $ H.code $ H.toHtml src
   BulletList items   -> H.ul $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items
   OrderedList items  -> H.ol $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items
-  Table hdr rows     -> H.table $ do
-    H.thead $ H.tr $ mapM_ (\cs -> H.th $ mapM_ (renderInline idx lmap) cs) hdr
+  Table hdr rows     -> H.table ! A.class_ "doc-table" $ do
+    when (any (not . null) hdr) $
+      H.thead $ H.tr $ mapM_ (\cs -> H.th $ mapM_ (renderInline idx lmap) cs) hdr
     H.tbody $ mapM_ (\row -> H.tr $ mapM_ (\cs -> H.td $ mapM_ (renderInline idx lmap) cs) row) rows
   HRule              -> H.hr
+  Image path mCaption -> H.figure ! A.class_ "doc-figure" $ do
+    -- Normalize image path: strip directory prefix, add .png if no extension
+    let filename = T.pack $ takeFileName (T.unpack path)
+        imgSrc   = if T.null (T.pack (takeExtension (T.unpack filename)))
+                   then filename <> ".png"
+                   else filename
+    H.img ! A.src (H.toValue imgSrc) ! A.alt (H.toValue (fromMaybe "" mCaption))
+    case mCaption of
+      Nothing -> pure ()
+      Just cap -> H.figcaption $ H.toHtml cap
+  BlockQuote blocks  -> H.blockquote $ mapM_ (renderBlock idx lmap) blocks
 
 heading :: Int -> Html -> Html
 heading 1 = H.h1
@@ -168,6 +194,13 @@ renderInline idx lmap = \case
         rawDisplay = if "sec-" `T.isPrefixOf` lbl then T.drop 4 lbl else slug
         displayText = T.replace "-" " " rawDisplay
     in H.a ! A.href (H.toValue url) $ H.toHtml displayText
+  Footnote is ->
+    H.span ! A.class_ "footnote" $ do
+      " ("
+      mapM_ (renderInline idx lmap) is
+      ")"
+  Link url is ->
+    H.a ! A.href (H.toValue url) $ mapM_ (renderInline idx lmap) is
 
 resolveUrl :: SymbolRef -> Maybe Text
 resolveUrl ref = Just $ srPackage ref <> ".html#" <> srAnchor ref
@@ -191,8 +224,8 @@ docFooter (Just sha) =
 -- Page shell
 -- ---------------------------------------------------------------------------
 
-page :: Text -> Html -> Html
-page title body_ = H.docTypeHtml $ do
+page :: Text -> Html -> Html -> Html
+page title breadcrumb body_ = H.docTypeHtml $ do
   H.head $ do
     H.meta ! A.charset "utf-8"
     H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1"
@@ -201,6 +234,7 @@ page title body_ = H.docTypeHtml $ do
     mathJaxScripts "../mathjax.js"
   H.body $ do
     searchHeader "../"
+    H.nav ! A.class_ "breadcrumb" $ breadcrumb
     H.div ! A.class_ "page-layout" $ body_
     H.script ! A.src "../search.js" $ ""
 

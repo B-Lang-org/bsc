@@ -6,6 +6,7 @@ module Language.Bluespec.DocGen.Generate
   , runDocGen
   ) where
 
+import Control.Exception (try, SomeException)
 import Control.Monad (filterM, forM_, when)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (isJust)
@@ -300,22 +301,26 @@ downloadMathjax outDir verbose = do
     then when verbose $ putStrLn $ "[docgen] MathJax already present: " ++ dest
     else do
       when verbose $ putStrLn $ "[docgen] Downloading MathJax from " ++ mathjaxUrl
-      (ec, _, _) <- readProcessWithExitCode "wget"
-        ["-q", "-O", dest, mathjaxUrl] ""
-      case ec of
-        ExitSuccess -> when verbose $
-          putStrLn $ "[docgen] MathJax saved to " ++ dest
-        _ -> do
-          -- wget failed or not available; try curl
-          (ec2, _, _) <- readProcessWithExitCode "curl"
-            ["-sSL", "-o", dest, mathjaxUrl] ""
-          case ec2 of
-            ExitSuccess -> when verbose $
-              putStrLn $ "[docgen] MathJax saved to " ++ dest
-            _ -> putStrLn $
+      -- Try curl first (more commonly available), then wget.
+      -- Use try to catch the exception when the binary doesn't exist.
+      ok <- tryDownload "curl" ["-sSL", "-o", dest, mathjaxUrl]
+      if ok
+        then when verbose $ putStrLn $ "[docgen] MathJax saved to " ++ dest
+        else do
+          ok2 <- tryDownload "wget" ["-q", "-O", dest, mathjaxUrl]
+          if ok2
+            then when verbose $ putStrLn $ "[docgen] MathJax saved to " ++ dest
+            else putStrLn $
               "[docgen] Warning: could not download MathJax. "
-              ++ "Math will not render. Run: wget -O "
+              ++ "Math will not render. Run: curl -sSL -o "
               ++ dest ++ " " ++ mathjaxUrl
+  where
+    tryDownload :: String -> [String] -> IO Bool
+    tryDownload cmd args = do
+      result <- try (readProcessWithExitCode cmd args "") :: IO (Either SomeException (ExitCode, String, String))
+      case result of
+        Right (ExitSuccess, _, _) -> pure True
+        _                         -> pure False
 
 -- ---------------------------------------------------------------------------
 -- Source file collection

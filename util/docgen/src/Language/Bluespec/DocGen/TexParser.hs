@@ -228,13 +228,23 @@ block = choice
   [ try sectionCmd
   , try subsectionCmd
   , try subsubsectionCmd
+  , try paragraphCmd          -- \paragraph{title} → Heading 4
   , try verbatimEnv
+  , try centerboxverbatimEnv  -- \begin{centerboxverbatim} → VerbBlock
   , try noteEnv
   , try tightlistEnv
   , try bulletList
-  , try gramProductionBlock  -- \gram{name}{body} — two-arg grammar production
-  , try unknownEnv    -- \begin{unknown}...\end{unknown}
-  , para              -- always succeeds if any non-newline char is present
+  , try enumerateEnv          -- \begin{enumerate} → OrderedList
+  , try listEnv               -- \begin{list}{marker}{...} → BulletList
+  , try tabularEnv            -- \begin{tabular}{spec} → Table
+  , try centerEnv             -- \begin{center} → pass-through (renders inner blocks)
+  , try figureEnv             -- \begin{figure} → Image with optional caption
+  , try quoteEnv              -- \begin{quote} → BlockQuote
+  , try tabbingEnv            -- \begin{tabbing} → VerbBlock (best-effort)
+  , try minipageEnv           -- \begin{minipage} → pass-through
+  , try gramProductionBlock   -- \gram{name}{body} — two-arg grammar production
+  , try unknownEnv            -- \begin{unknown}...\end{unknown}
+  , para                      -- always succeeds if any non-newline char is present
   ]
 
 -- | Skip an unknown @\begin{name}...\end{name}@ environment entirely.
@@ -306,6 +316,269 @@ bulletList = do
       bs <- many (notFollowedBy (string "\\item" <|> string "\\end") *> block)
       pure bs
 
+-- | @\paragraph{title}@ → Heading level 4.
+paragraphCmd :: Parser DocBlock
+paragraphCmd = do
+  _ <- string "\\paragraph{"
+  content <- manyTill inline (char '}')
+  pure $ Heading 4 content
+
+-- | @\begin{enumerate}...\item...\end{enumerate}@ → OrderedList.
+enumerateEnv :: Parser DocBlock
+enumerateEnv = do
+  _ <- string "\\begin{enumerate}" <* optional newline
+  items <- many item
+  _ <- string "\\end{enumerate}"
+  pure $ OrderedList items
+  where
+    item = do
+      _ <- string "\\item"
+      _ <- optional (satisfy (\c -> c == ' ' || c == '\n'))
+      bs <- many (notFollowedBy (string "\\item" <|> string "\\end") *> block)
+      pure bs
+
+-- | @\begin{list}{marker}{params}...@  → BulletList.
+-- Custom list environments used for bullets/numbered lists.
+listEnv :: Parser DocBlock
+listEnv = do
+  _ <- string "\\begin{list}{"
+  _ <- balancedArg   -- marker (e.g. $\bullet$)
+  _ <- char '{'
+  _ <- balancedArg   -- params
+  _ <- optional newline
+  items <- many item
+  _ <- string "\\end{list}"
+  pure $ BulletList items
+  where
+    item = do
+      _ <- string "\\item"
+      _ <- optional (satisfy (\c -> c == ' ' || c == '\n'))
+      bs <- many (notFollowedBy (string "\\item" <|> string "\\end") *> block)
+      pure bs
+
+-- | @\begin{centerboxverbatim}...@ → VerbBlock.
+-- Also handles @\begin{codebox}@, @\begin{smcenterboxverbatim}@.
+centerboxverbatimEnv :: Parser DocBlock
+centerboxverbatimEnv = do
+  envName <- choice
+    [ string "\\begin{centerboxverbatim}" *> pure "centerboxverbatim"
+    , string "\\begin{smcenterboxverbatim}" *> pure "smcenterboxverbatim"
+    , string "\\begin{codebox}"  *> pure "codebox"
+    , string "\\begin{smbox}"    *> pure "smbox"
+    , string "\\begin{fminipage}" *> pure "fminipage"
+    ]
+  _ <- optional newline
+  content <- manyTill anySingle (string ("\\end{" <> envName <> "}"))
+  pure $ VerbBlock (T.pack content)
+
+-- | @\begin{tabular}{spec}...@ → Table.
+-- Handles @&@ column separators, @\\\\@ row terminators, @\hline@, @\multicolumn@.
+tabularEnv :: Parser DocBlock
+tabularEnv = do
+  _ <- string "\\begin{tabular}"
+  -- Consume optional column spec: {|l|c|r|p{1in}|...}
+  _ <- optional (char '{' *> balancedArg)
+  _ <- optional newline
+  raw <- manyTill anySingle (string "\\end{tabular}")
+  let rawText = T.pack raw
+      rows    = parseTabularRows rawText
+  case rows of
+    []     -> pure $ Para []
+    [r]    -> pure $ Table r []
+    (r:rs) -> pure $ Table r rs
+
+-- | Parse the body of a tabular environment into rows of cells.
+-- Each row is separated by @\\\\@, each cell by @&@.
+-- @\hline@ and @\cline{...}@ are stripped.
+parseTabularRows :: Text -> [[[DocInline]]]
+parseTabularRows raw =
+  let -- Split by \\ (row terminator).  Handle both \\ and \\\\ (escaped in source).
+      rawRows = splitOnRowSep raw
+      -- Remove empty rows and process each
+      processed = filter (not . isEmptyRow) (map processRow rawRows)
+  in processed
+  where
+    -- Split text on \\ that are row terminators (not inside braces)
+    splitOnRowSep t = case T.breakOn "\\\\" t of
+      (before, rest)
+        | T.null rest -> [before]
+        | otherwise   -> before : splitOnRowSep (T.drop 2 rest)
+
+    isEmptyRow cells = null cells || all null cells || all (all isBlankInline) cells
+
+    isBlankInline (Plain t) = T.null (T.strip t)
+    isBlankInline _         = False
+
+    processRow :: Text -> [[DocInline]]
+    processRow rowText =
+      let -- Strip \hline, \cline{...}, \multicolumn-related whitespace
+          cleaned = stripTableCmds rowText
+          -- Split by & (column separator)
+          cells   = T.splitOn "&" cleaned
+      in map parseCell cells
+
+    parseCell :: Text -> [DocInline]
+    parseCell cellText =
+      let trimmed = T.strip cellText
+      in if T.null trimmed
+         then []
+         else concatMap paraInlines (parseTexDoc trimmed)
+
+    paraInlines :: DocBlock -> [DocInline]
+    paraInlines (Para is) = is
+    paraInlines _         = []
+
+    -- Strip table layout commands from a row.
+    stripTableCmds :: Text -> Text
+    stripTableCmds = go
+      where
+        go t
+          | T.null t = t
+          | "\\hline" `T.isPrefixOf` t = go (T.drop 6 t)
+          | "\\cline{" `T.isPrefixOf` t =
+              let rest = T.drop 7 t  -- skip \cline{
+                  after = T.drop 1 (T.dropWhile (/= '}') rest)
+              in go after
+          | "\\multicolumn{" `T.isPrefixOf` t = handleMulticolumn t
+          | otherwise = T.cons (T.head t) (go (T.tail t))
+
+        -- \multicolumn{n}{spec}{content} → extract content
+        handleMulticolumn t =
+          let rest1 = T.drop (T.length "\\multicolumn{") t
+              -- Skip first arg (span count)
+              (_, after1) = T.breakOn "}" rest1
+              rest2 = T.drop 1 after1  -- skip }
+              -- Skip second arg (column spec)
+          in case T.uncons rest2 of
+               Just ('{', rest3) ->
+                 let (_, after2) = T.breakOn "}" rest3
+                     rest4 = T.drop 1 after2  -- skip }
+                 in case T.uncons rest4 of
+                      Just ('{', rest5) ->
+                        let content = T.pack $ consumeBal (0 :: Int) (T.unpack rest5)
+                            afterContent = T.drop (T.length content + 1) rest5
+                        in content <> go afterContent
+                      _ -> go rest4
+               _ -> go rest2
+
+        consumeBal _ []        = []
+        consumeBal 0 ('}':_)   = []
+        consumeBal d ('}':cs)  = '}' : consumeBal (d-1) cs
+        consumeBal d ('{':cs)  = '{' : consumeBal (d+1) cs
+        consumeBal d (c:cs)    = c   : consumeBal d cs
+
+-- | @\begin{center}...@ → pass-through (renders inner blocks).
+-- This is critical because most tables are wrapped in center.
+centerEnv :: Parser DocBlock
+centerEnv = do
+  _ <- string "\\begin{center}" <* optional newline
+  blocks <- many (notFollowedBy (string "\\end{center}") *> block)
+  _ <- string "\\end{center}"
+  -- Return the first meaningful block, or wrap in Para
+  case blocks of
+    [b] -> pure b
+    bs  -> pure $ BulletList [bs]  -- reuse BulletList as generic container
+
+-- | @\begin{figure}[placement]...@ → Image with optional caption.
+-- Extracts \includegraphics path and \caption text.
+figureEnv :: Parser DocBlock
+figureEnv = do
+  _ <- string "\\begin{figure}"
+  _ <- optional (char '[' *> takeWhileP Nothing (/= ']') *> char ']')  -- [htbp] etc.
+  _ <- optional newline
+  content <- manyTill anySingle (string "\\end{figure}")
+  let raw = T.pack content
+      imgPath = extractIncludegraphics raw
+      caption = extractCaption raw
+  case imgPath of
+    Just path -> pure $ Image path caption
+    Nothing   -> pure $ Para (maybe [] (\c -> [Plain c]) caption)
+
+-- | @\begin{quote}...@ → BlockQuote.
+quoteEnv :: Parser DocBlock
+quoteEnv = do
+  _ <- string "\\begin{quote}" <* optional newline
+  blocks <- many (notFollowedBy (string "\\end{quote}") *> block)
+  _ <- string "\\end{quote}"
+  pure $ BlockQuote blocks
+
+-- | @\begin{tabbing}...@ → VerbBlock (best-effort: preserve as preformatted text).
+-- Strips tabbing commands (\=, \>, \kill) and renders content.
+tabbingEnv :: Parser DocBlock
+tabbingEnv = do
+  _ <- string "\\begin{tabbing}" <* optional newline
+  content <- manyTill anySingle (string "\\end{tabbing}")
+  let raw = T.pack content
+      -- Clean up tabbing commands for a readable rendering
+      cleaned = T.unlines
+        [ cleanTabbingLine line
+        | line <- T.lines raw
+        , not (T.null (T.strip line))
+        , not ("\\kill" `T.isSuffixOf` T.strip line)
+        ]
+  pure $ VerbBlock cleaned
+
+-- | @\begin{minipage}...@ → pass-through (renders inner content).
+minipageEnv :: Parser DocBlock
+minipageEnv = do
+  _ <- string "\\begin{minipage}"
+  _ <- optional (char '[' *> takeWhileP Nothing (/= ']') *> char ']')
+  _ <- optional (char '{' *> balancedArg)  -- width spec
+  _ <- optional newline
+  blocks <- many (notFollowedBy (string "\\end{minipage}") *> block)
+  _ <- string "\\end{minipage}"
+  case blocks of
+    [b] -> pure b
+    bs  -> pure $ BulletList [bs]
+
+-- | Clean a single line from a tabbing environment: strip \=, \>, \+, \- etc.
+cleanTabbingLine :: Text -> Text
+cleanTabbingLine = T.replace "\\=" "  " . T.replace "\\>" "  "
+                 . T.replace "\\+" "" . T.replace "\\-" ""
+                 . T.replace "\\kill" "" . T.replace "\\pushtabs" ""
+                 . T.replace "\\poptabs" ""
+
+-- | Extract the path from @\includegraphics[...]{path}@ in raw text.
+extractIncludegraphics :: Text -> Maybe Text
+extractIncludegraphics raw =
+  case T.breakOn "\\includegraphics" raw of
+    (_, rest)
+      | T.null rest -> Nothing
+      | otherwise ->
+          let after = T.drop (T.length "\\includegraphics") rest
+              -- Skip optional [...] argument
+              after2 = case T.uncons after of
+                Just ('[', r) -> T.drop 1 (T.dropWhile (/= ']') r)
+                _             -> after
+              -- Extract {path}
+          in case T.uncons (T.stripStart after2) of
+               Just ('{', r) -> Just $ T.takeWhile (/= '}') r
+               _             -> Nothing
+
+-- | Extract caption text from @\caption{text}@ in raw text.
+extractCaption :: Text -> Maybe Text
+extractCaption raw =
+  case T.breakOn "\\caption{" raw of
+    (_, rest)
+      | T.null rest -> Nothing
+      | otherwise ->
+          let after = T.drop (T.length "\\caption{") rest
+              content = T.pack $ consumeBal (0 :: Int) (T.unpack after)
+          in if T.null content then Nothing else Just (stripTexCmds content)
+  where
+    consumeBal _ []        = []
+    consumeBal 0 ('}':_)   = []
+    consumeBal d ('}':cs)  = '}' : consumeBal (d-1) cs
+    consumeBal d ('{':cs)  = '{' : consumeBal (d+1) cs
+    consumeBal d (c:cs)    = c   : consumeBal d cs
+
+    -- Minimal stripping of TeX commands from caption text
+    stripTexCmds t = T.replace "\\BSV" "BSV" . T.replace "\\BH" "BH"
+                   . T.replace "\\bsc" "bsc" . T.replace "\\BS" "Bluespec"
+                   . T.replace "\\emph{" "" . T.replace "\\texttt{" ""
+                   . T.replace "\\te{" "" . T.replace "}" ""
+                   $ t
+
 -- | Parse a @\gram{name}{body}@ grammar production (two-arg form).
 -- Renders as: NonTerm name, Plain " ::= ", body_inlines...
 gramProductionBlock :: Parser DocBlock
@@ -370,6 +643,8 @@ inlineToText (SectionRef t) = t
 inlineToText (NonTerm t)    = t
 inlineToText (Emph is)      = T.concat (map inlineToText is)
 inlineToText (Strong is)    = T.concat (map inlineToText is)
+inlineToText (Footnote is)  = T.concat (map inlineToText is)
+inlineToText (Link _ is)    = T.concat (map inlineToText is)
 
 -- ---------------------------------------------------------------------------
 -- Inline parser
@@ -396,6 +671,13 @@ inline = choice
   , try manyOptCmd        -- \many{} \opt{} \alt → grammar operators
   , try refCmd            -- \ref{label} → section link
   , try indexCmd          -- \index{...} → stripped
+  , try footnoteCmd       -- \footnote{text} → Footnote
+  , try textitCmd         -- \textit{...} → Emph
+  , try urlCmd            -- \url{url} → Link
+  , try hrefCmd           -- \href{url}{text} → Link
+  , try includegraphicsInline  -- \includegraphics[...]{path} → Plain (image ref)
+  , try centerlineCmd     -- \centerline{content} → render content
+  , tildeSpace            -- ~ → non-breaking space (no try needed, single char)
   , skipCmd               -- fixed \name tokens — safe, no try needed
   , try singleNewline     -- \n not followed by \n or block-start → space
   , try unknownCmdInline  -- \unknown{...} → discarded
@@ -538,6 +820,56 @@ refCmd = do
   lbl <- balancedArg
   pure $ SectionRef lbl
 
+-- | @\footnote{text}@ → Footnote inline (rendered as parenthetical).
+footnoteCmd :: Parser DocInline
+footnoteCmd = do
+  _ <- string "\\footnote{"
+  content <- manyTill inline (char '}')
+  pure $ Footnote content
+
+-- | @\textit{text}@ → Emph (alias for \emph).
+textitCmd :: Parser DocInline
+textitCmd = do
+  _ <- string "\\textit{"
+  content <- manyTill inline (char '}')
+  pure $ Emph content
+
+-- | @\url{url}@ → Link with URL as display text.
+urlCmd :: Parser DocInline
+urlCmd = do
+  _ <- string "\\url{"
+  url <- balancedArg
+  pure $ Link url [Plain url]
+
+-- | @\href{url}{text}@ → Link.
+hrefCmd :: Parser DocInline
+hrefCmd = do
+  _ <- string "\\href{"
+  url <- balancedArg
+  _ <- char '{'
+  content <- manyTill inline (char '}')
+  pure $ Link url content
+
+-- | @\includegraphics[opts]{path}@ as inline → Plain text indicating image.
+-- (Block-level figure handling is done by figureEnv.)
+includegraphicsInline :: Parser DocInline
+includegraphicsInline = do
+  _ <- string "\\includegraphics"
+  _ <- optional (char '[' *> takeWhileP Nothing (/= ']') *> char ']')
+  _ <- char '{'
+  path <- balancedArg
+  pure $ Plain ("[Image: " <> path <> "]")
+
+-- | @\centerline{content}@ → render content inline.
+centerlineCmd :: Parser DocInline
+centerlineCmd = do
+  _ <- string "\\centerline{"
+  content <- manyTill inline (char '}')
+  case content of
+    []  -> pure $ Plain ""
+    [x] -> pure x
+    xs  -> Plain . T.concat <$> pure (map inlineToText xs)
+
 -- | Strip @$\term{...}$@ and @$\nterm{...}$@ dollar wrappers from grammar
 -- production body text.  In BH_lang.tex these dollar signs are a LaTeX font
 -- hack (switching to CM typewriter for certain Latin-1 operator characters)
@@ -654,12 +986,21 @@ skipCmd = choice
          , string "\\hspace*{"
          , string "\\vspace{"
          , string "\\vspace*{"
-         , string "\\linewidth"
-         , string "\\textwidth"
          , string "\\fontfamily{"   -- part of \ttsymbol expansion
+         , string "\\caption{"      -- outside figure context
+         , string "\\cite{"         -- bibliography references
          ]
-       _ <- optional balancedArg
+       _ <- balancedArg
        pure $ Plain ""
+    -- No-argument commands (do NOT consume a brace argument)
+  , string "\\linewidth"   *> pure (Plain "")
+  , string "\\textwidth"   *> pure (Plain "")
+  , string "\\small"       *> pure (Plain "")
+  , string "\\large"       *> pure (Plain "")
+  , string "\\Large"       *> pure (Plain "")
+  , string "\\normalsize"  *> pure (Plain "")
+  , string "\\centering"   *> pure (Plain "")
+  , string "\\raggedright" *> pure (Plain "")
     -- Font/grouping commands that appear in \ttsymbol expansion
   , string "\\begingroup"  *> pure (Plain "")
   , string "\\endgroup"    *> pure (Plain "")
@@ -673,14 +1014,16 @@ skipCmd = choice
   , string "\\\\"  *> pure (Plain " ")
   ]
 
+-- | @~@ → non-breaking space (LaTeX tilde).
+tildeSpace :: Parser DocInline
+tildeSpace = char '~' *> pure (Plain "\160")   -- U+00A0 non-breaking space
+
 plainText :: Parser DocInline
 plainText = do
   c <- satisfy notSpecial
   rest <- takeWhileP Nothing notSpecial
   pure $ Plain (T.cons c rest)
   where
-    -- Stop at backslash, braces, newline, dollar, and backtick.
-    -- Backtick is excluded so that ``...'' quote pairs are handled by
-    -- latexQuotes before plainText consumes them.
+    -- Stop at backslash, braces, newline, dollar, backtick, and tilde.
     notSpecial ch = ch /= '\\' && ch /= '{' && ch /= '}' && ch /= '\n'
-                 && ch /= '$'  && ch /= '`'
+                 && ch /= '$'  && ch /= '`' && ch /= '~'

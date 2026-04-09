@@ -28,6 +28,8 @@ data DocBlock
   | Table      ![[DocInline]] ![[[DocInline]]]  -- ^ header row, data rows
   | HRule                                    -- ^ horizontal rule (\hdivider)
   | VerbBlock  !Text                         -- ^ libverbatim environment
+  | Image      !Text !(Maybe Text)           -- ^ image path, optional caption
+  | BlockQuote ![DocBlock]                   -- ^ block quotation
   deriving stock (Show, Eq)
 
 -- ---------------------------------------------------------------------------
@@ -43,6 +45,8 @@ data DocInline
   | SymRef      !Text                        -- ^ cross-reference to a named symbol
   | SectionRef  !Text                        -- ^ \ref{label} cross-reference to a manual section
   | NonTerm     !Text                        -- ^ grammar non-terminal (\nterm)
+  | Footnote    ![DocInline]                 -- ^ footnote content
+  | Link        !Text ![DocInline]           -- ^ URL, display content
   deriving stock (Show, Eq)
 
 -- ---------------------------------------------------------------------------

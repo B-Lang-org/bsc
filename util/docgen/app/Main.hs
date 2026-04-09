@@ -26,6 +26,10 @@ optsParser = DocGenConfig
   <*> switch (long "verbose" <> short 'v' <> help "Verbose output")
   <*> optional (T.pack <$> strOption (long "bsc-sha" <> metavar "SHA"
         <> help "BSC git commit SHA to display in page footers (auto-detected when omitted)"))
+  <*> optional (T.pack <$> strOption (long "project-name" <> metavar "NAME"
+        <> help "Project name for the documentation site title"))
+  <*> optional (T.pack <$> strOption (long "project-desc" <> metavar "DESC"
+        <> help "Project description shown on the documentation homepage"))
 
 -- ---------------------------------------------------------------------------
 -- Main
