@@ -140,7 +140,10 @@ renderDocBlocks idx lmap = mapM_ (renderBlock idx lmap)
 renderBlock :: SymbolIndex -> LabelMap -> DocBlock -> Html
 renderBlock idx lmap = \case
   Para inlines       -> H.p $ mapM_ (renderInline idx lmap) inlines
-  Heading n inlines  -> heading n (mapM_ (renderInline idx lmap) inlines)
+  Heading n inlines  ->
+    let slug = slugifyInlines inlines
+        tag  = heading n
+    in tag ! A.id (H.toValue slug) $ mapM_ (renderInline idx lmap) inlines
   CodeBlock _ src    -> H.pre $ H.code $ H.toHtml src
   VerbBlock src      -> H.pre $ H.code $ H.toHtml src
   BulletList items   -> H.ul $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items
@@ -167,6 +170,25 @@ heading 1 = H.h1
 heading 2 = H.h2
 heading 3 = H.h3
 heading _ = H.h4
+
+-- | Generate a URL-safe slug from heading inlines for use as an anchor id.
+slugifyInlines :: [DocInline] -> Text
+slugifyInlines = T.intercalate "-" . T.words . T.map slugChar . T.toLower . T.concat . map inlineText
+  where
+    slugChar c
+      | c >= 'a' && c <= 'z' = c
+      | c >= '0' && c <= '9' = c
+      | c == ' ' = ' '
+      | otherwise = ' '
+    inlineText (Plain t)      = t
+    inlineText (Code t)       = t
+    inlineText (Emph is)      = T.concat (map inlineText is)
+    inlineText (Strong is)    = T.concat (map inlineText is)
+    inlineText (SymRef t)     = t
+    inlineText (SectionRef t) = t
+    inlineText (NonTerm t)    = t
+    inlineText (Footnote is)  = T.concat (map inlineText is)
+    inlineText (Link _ is)    = T.concat (map inlineText is)
 
 -- ---------------------------------------------------------------------------
 -- Inline rendering
