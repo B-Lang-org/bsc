@@ -315,6 +315,8 @@ must always be explicit about this environment with `ghc` and `ghc-pkg`.
 > - in file `.ghc.environment.arch-os-version` in the current directory or any parent directory,
 > - in file `$XDG_DATA_HOME/.ghc/arch-os-version/environments/default`.
 >
+> The Cabal user guide uses `$ARCH-$OS-$GHCVER` and the GHC user guide uses
+> `arch-os-version`.
 
 [bsc-hide-all-pkgs]: https://github.com/B-Lang-org/bsc/blob/71db9d6821b34874c504151e29203a6010bf1589/src/comp/Makefile#L183
 [cabal-lib-option]: https://cabal.readthedocs.io/en/latest/cabal-commands.html#adding-libraries-to-ghc-package-environments
