@@ -148,6 +148,12 @@ compare_file ATFNameClashTypedef.bs.bsc-out
 compile_pass ATFQualified.bs
 compile_pass ATFQualifiedBSV.bsv
 
+# Test ATF export scoping (matches GHC: (..) exports ATFs, no (..) does not)
+
+compile_pass ATFExportWithDots.bs
+compile_fail_error ATFExportNoDots.bs T0007
+compare_file ATFExportNoDots.bs.bsc-out
+
 # Test ATF in BSV syntax
 
 compile_pass ATFDeclBSV.bsv

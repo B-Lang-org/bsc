@@ -1,0 +1,8 @@
+package ATFExportWithDots where
+
+-- Test that importing a class with (..) makes its ATF visible.
+
+import ATFExportLib
+
+test :: Box Integer -> Elem (Box Integer)
+test = extract

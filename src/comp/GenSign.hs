@@ -28,7 +28,6 @@ import Position(Position(..))
 import TypeCheck(qualifyClassDefaults)
 
 --import Util(traces)
---import Debug.Trace(trace)
 --import Debug.Trace
 
 
@@ -136,9 +135,10 @@ genSign errh exportAll symt
         warns = concat warnss
 
         -- def: the names of the defs in ss (that have names),
-        -- plus ATF type constructors from exported classes (defined as part of the class).
-        -- ATF names in ats are already qualified (by genDefSign), so no qualId needed
-        -- for CIclass.  For Cclass (concrete export) we still apply qualId for safety.
+        -- plus ATF type constructors from exported classes.
+        -- For Cclass (exported with (..)), all ATFs are included.
+        -- For CIclass (exported without (..)), only independently exported ATFs.
+        -- ATF names in CIclass ats are already qualified (by genDefSign).
         def = S.fromList ([ i | (Right i) <- map getName ss ] ++
                           [ qualId currentPkg (ca_name at)
                           | Cclass  _ _ _ _ _ ats _ <- ss, at <- ats ] ++
@@ -384,11 +384,15 @@ genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
       qi = qualId currentPkg i
       -- Qualify ATF names so downstream importers can resolve them unambiguously.
       qats = map (\(CAssocDepFun name params rhs) -> CAssocDepFun (qualTId s name) params rhs) ats
+      -- ATFs that are independently exported by name (for the no-(..) case).
+      -- Matches GHC: exporting a class without (..) does not export its ATFs,
+      -- but ATFs can be exported independently by naming them in the export list.
+      indepExportedATFs = filter (\at -> look (ca_name at) /= Nothing) qats
   in
     case look qi of
     Nothing -> []
     Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats (qualFields currentPkg s fs),[])]
-    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats [getPosition ik], [])]
+    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds indepExportedATFs [getPosition ik], [])]
 genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
     -- trace (ppReadable (leftCon t, map leftCon (tyConArgs t))) $
     let tcs = leftTyCons (t : tyConArgs t) in
