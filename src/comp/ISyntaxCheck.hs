@@ -259,7 +259,7 @@ atfEqsFromDict symt dictType =
            [ (atfApp, targetArg)
            | (atfId, TypeInfo _ atfK _ ti@(TIatf { atf_class_id = acId
                                                  , atf_param_idxs = pIdxs
-                                                 , atf_target_idx = tIdx }) _)
+                                                 , atf_target_idx = tIdx }))
                <- allTypes
            , acId == cid
            , tIdx < length classArgs
