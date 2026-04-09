@@ -576,7 +576,8 @@ getFTCDn (Cinstance qt ds) =
 getFTCDn (CIinstance _ qt) = getFQTyCons qt
 getFTCDn (CIValueSign _ t) = getFQTyCons t
 getFTCDn (CItype i vs useposs) = S.empty
-getFTCDn (CIclass incoh ps i vs fds _ useposs) = S.unions (map getCPTyCons ps)
+getFTCDn (CIclass incoh ps i vs fds atfs useposs) =
+      S.unions (map getCPTyCons ps) `S.union` S.fromList (map ca_name atfs)
 
 getVDefIds :: CDefn -> [Id]
 getVDefIds (CValueSign (CDef i _ _)) = [i]

@@ -696,6 +696,8 @@ genModule
       putStrLn "Rule state locs"
       putStr (ppReadable rule_locs)
 
+    -- We no longer normalize types here, since the evaluator now normalizes as it goes.
+
     start flags DFinlineFmt
     imod_fmt <- iInlineFmt errh imod0
     iMCheck flags symt imod_fmt "Fmt inline"
