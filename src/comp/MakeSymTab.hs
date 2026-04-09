@@ -154,6 +154,8 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
         (symT, clsErrs) = mkTypeSyms errh mkQuals mmi iks ds insts simp
 
         -- Check for type functions in non-determined instance head positions.
+        -- They are only permitted in positions that are soley determined by
+        -- functional dependencies and never used for instance matching.
         -- This must happen on the raw definitions before context reduction
         -- expands type functions in instance heads.
         instHeadCheck = foldr seq ()
