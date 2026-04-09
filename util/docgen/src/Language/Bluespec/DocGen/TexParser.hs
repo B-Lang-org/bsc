@@ -288,8 +288,10 @@ verbatimEnv = do
 
 noteEnv :: Parser DocBlock
 noteEnv = do
-  _ <- string "\\begin{NOTE}" <* optional newline
-  blocks <- manyTill block (string "\\end{NOTE}")
+  _ <- string "\\begin{NOTE}"
+  skipWhitespace
+  blocks <- many (notFollowedBy (string "\\end{NOTE}") *> block <* skipWhitespace)
+  _ <- string "\\end{NOTE}"
   pure $ BulletList [blocks]   -- reuse BulletList as indented block for now
 
 tightlistEnv :: Parser DocBlock
@@ -471,8 +473,9 @@ parseTabularRows raw =
 -- This is critical because most tables are wrapped in center.
 centerEnv :: Parser DocBlock
 centerEnv = do
-  _ <- string "\\begin{center}" <* optional newline
-  blocks <- many (notFollowedBy (string "\\end{center}") *> block)
+  _ <- string "\\begin{center}"
+  skipWhitespace
+  blocks <- many (notFollowedBy (string "\\end{center}") *> block <* skipWhitespace)
   _ <- string "\\end{center}"
   -- Return the first meaningful block, or wrap in Para
   case blocks of
@@ -497,8 +500,9 @@ figureEnv = do
 -- | @\begin{quote}...@ → BlockQuote.
 quoteEnv :: Parser DocBlock
 quoteEnv = do
-  _ <- string "\\begin{quote}" <* optional newline
-  blocks <- many (notFollowedBy (string "\\end{quote}") *> block)
+  _ <- string "\\begin{quote}"
+  skipWhitespace
+  blocks <- many (notFollowedBy (string "\\end{quote}") *> block <* skipWhitespace)
   _ <- string "\\end{quote}"
   pure $ BlockQuote blocks
 
@@ -524,8 +528,8 @@ minipageEnv = do
   _ <- string "\\begin{minipage}"
   _ <- optional (char '[' *> takeWhileP Nothing (/= ']') *> char ']')
   _ <- optional (char '{' *> balancedArg)  -- width spec
-  _ <- optional newline
-  blocks <- many (notFollowedBy (string "\\end{minipage}") *> block)
+  skipWhitespace
+  blocks <- many (notFollowedBy (string "\\end{minipage}") *> block <* skipWhitespace)
   _ <- string "\\end{minipage}"
   case blocks of
     [b] -> pure b
@@ -785,7 +789,10 @@ ntermCmd = do
 
 indexCmd :: Parser DocInline
 indexCmd = do
-  _ <- string "\\index{"
+  _ <- string "\\index"
+  -- Handle optional type: \index[function]{...}, \index[type]{...}, etc.
+  _ <- optional (char '[' *> takeWhileP Nothing (/= ']') *> char ']')
+  _ <- char '{'
   _ <- balancedArg
   pure $ Plain ""   -- strip index entries from inline text
 
