@@ -321,13 +321,13 @@ cmpQInsts bss q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) = do
 -- equally specific instance heads are the same after alpha-renaming
 mkDuplicateError :: QInst -> QInst -> EMsg
 mkDuplicateError q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) =
-  (getPosition t2, EDuplicateInstance (pfpReadable t1) (getPosition t1))
+  (getPosition t2, EDuplicateInstance (pfpString t1) (getPosition t1))
 
 
 -- bad overlapping instances (i.e. cannot be ordered)
 mkOverlapError :: QInst -> QInst -> EMsg
 mkOverlapError q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) =
-  (getPosition t1, EBadInstanceOverlap (pfpReadable t1) (pfpReadable t2) (getPosition t2))
+  (getPosition t1, EBadInstanceOverlap (pfpString t1) (pfpString t2) (getPosition t2))
 
 chkFunDeps :: (Id, [Id], CFunDeps) -> [EMsg]
 chkFunDeps (cls, vs, fds) =
@@ -452,7 +452,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                                -- not this type
                                bsErrorUnsafe errh
                                  [(getPosition i,
-                                   ENotField (pfpReadable c) (pfpReadable i))]
+                                   ENotField (pfpString c) (pfpString i))]
                          _ -> -- this should not occur because there should
                               -- only be one FieldInfo entry for a given type
                               internalError("MakeSymTab.clsMethType: " ++
