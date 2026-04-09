@@ -143,7 +143,9 @@ renderBlock idx lmap = \case
   Heading n inlines  ->
     let slug = slugifyInlines inlines
         tag  = heading n
-    in tag ! A.id (H.toValue slug) $ mapM_ (renderInline idx lmap) inlines
+    in tag ! A.id (H.toValue slug) $ do
+         mapM_ (renderInline idx lmap) inlines
+         H.a ! A.class_ "anchor-link" ! A.href (H.toValue ("#" <> slug)) $ "#"
   CodeBlock _ src    -> H.pre $ H.code $ H.toHtml src
   VerbBlock src      -> H.pre $ H.code $ H.toHtml src
   BulletList items   -> H.ul $ mapM_ (\bs -> H.li $ mapM_ (renderBlock idx lmap) bs) items

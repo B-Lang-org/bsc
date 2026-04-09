@@ -196,6 +196,21 @@ stylesheet = "\
 \/* Heading level 4 (\\paragraph) */\n\
 \h4 { font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent); font-weight: 600; }\n\
 \\n\
+\/* Anchor links on headings */\n\
+\.anchor-link {\n\
+\  opacity: 0;\n\
+\  margin-left: 0.4em;\n\
+\  color: var(--cm-color);\n\
+\  text-decoration: none;\n\
+\  font-weight: 400;\n\
+\  transition: opacity 0.15s;\n\
+\}\n\
+\h1:hover .anchor-link,\n\
+\h2:hover .anchor-link,\n\
+\h3:hover .anchor-link,\n\
+\h4:hover .anchor-link { opacity: 1; }\n\
+\.anchor-link:hover { color: var(--link-color); }\n\
+\\n\
 \/* Breadcrumb navigation */\n\
 \.breadcrumb {\n\
 \  padding: 0.5rem 1.25rem;\n\

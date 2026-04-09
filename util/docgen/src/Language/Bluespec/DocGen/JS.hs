@@ -71,4 +71,17 @@ searchScript = "(function(){\
 \  });\
 \}\
 \document.querySelectorAll('.bs-search-input').forEach(init);\
-\})();"
+\})();\n\
+\/* Anchor link: copy URL on click instead of navigating */\n\
+\document.addEventListener('click',function(e){\
+\  var a=e.target.closest('.anchor-link');\
+\  if(!a)return;\
+\  e.preventDefault();\
+\  var url=location.origin+location.pathname+a.getAttribute('href');\
+\  navigator.clipboard.writeText(url).then(function(){\
+\    var old=a.textContent;\
+\    a.textContent='copied!';\
+\    a.style.opacity='1';\
+\    setTimeout(function(){a.textContent=old;a.style.opacity='';},1200);\
+\  });\
+\});"
