@@ -428,7 +428,7 @@ checkNoTypeFunInHead errh r mi clsId args =
         found = concatMap findTypeFun nonDetArgs
     in if null found then ()
        else bsErrorUnsafe errh
-                [ (pos, EATFInInstanceHead (pfpReadable tfId))
+                [ (pos, EATFInInstanceHead (pfpString tfId))
                 | (pos, tfId) <- found ]
 
 convInst :: ErrorHandle -> Id -> SymTab -> CDefn -> CDefn

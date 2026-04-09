@@ -1310,7 +1310,7 @@ instance Bin TISort where
     writeBytes (TIdata is enum) = do putI 1; toBin is; toBin enum
     writeBytes (TIstruct su is) = do putI 2; toBin su; toBin is
     writeBytes (TIabstract)     = do putI 3
-    writeBytes (TIatf c ps t )  = do putI 4; toBin c; toBin ps; toBin t
+    writeBytes (TIatf c ps t)   = do putI 4; toBin c; toBin ps; toBin t
     readBytes = do
         i <- getI
         case i of
