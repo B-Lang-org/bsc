@@ -286,6 +286,9 @@ void bk_stop_now(tSimStateHdl simHdl, tSInt32 status);
  */
 void bk_finish_now(tSimStateHdl simHdl, tSInt32 status);
 
+/* Report a fatal error and end simulation. */
+void bk_fatal_now(tSimStateHdl simHdl, tSInt32 status);
+
 /* Test if $stop was called. */
 tBool bk_stopped(tSimStateHdl simHdl);
 
@@ -296,6 +299,9 @@ tBool bk_finished(tSimStateHdl simHdl);
  * or bk_finish_now().
  */
 tSInt32 bk_exit_status(tSimStateHdl simHdl);
+
+/* Test if $fatal was called. */
+tBool bk_fataled(tSimStateHdl simHdl);
 
 
 /*

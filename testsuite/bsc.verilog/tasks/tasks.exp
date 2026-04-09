@@ -218,7 +218,21 @@ compile_object_pass  AssertTasks.bsv
 link_objects_pass sysAssertTasks.ba sysAssertTasks
 
 # make sure $error / $fatal work as expected
-test_c_veri_bsv ErrorTest
+if {$ctest == 1} {
+compile_object_pass ErrorTest.bsv sysErrorTest
+link_objects_pass {"sysErrorTest"} sysErrorTest
+sim_output_status sysErrorTest 1
+move sysErrorTest.out sysErrorTest.c.out
+compare_file sysErrorTest.c.out sysErrorTest.out.expected
+}
+if {$vtest == 1} {
+compile_verilog_pass ErrorTest.bsv sysErrorTest "-system-verilog-tasks"
+link_verilog_pass sysErrorTest.v sysErrorTest
+sim_verilog_status sysErrorTest 1
+move sysErrorTest.out sysErrorTest.v.out
+compare_file_filtered sysErrorTest.v.out sysErrorTest.out.expected {} \
+    {-e "/^ *Time:/d" -e "/^ *Scope:/d" -e "s/^(ERROR|FATAL):.*: //"}
+}
 
 # Test use of a polymorphic task in a polymorphic function
 # (There was a bug in AConv that was forgetting to apply the type arguments,

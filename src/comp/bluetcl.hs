@@ -2629,6 +2629,7 @@ simGrammar = (tclcmd "sim" namespace helpStr "") .+.
                     , lookupGrammar, lsGrammar, nextEdgeGrammar, pwdGrammar
                     , runGrammar, runToGrammar
                     , stepGrammar, stopGrammar, syncGrammar, timeGrammar
+                    , isFatalGrammar
                     , timescaleGrammar
                     , unloadGrammar, upGrammar, vcdGrammar, verGrammar
                     ])
@@ -2671,6 +2672,7 @@ simGrammar = (tclcmd "sim" namespace helpStr "") .+.
           stopGrammar = kw "stop" "Stop a running simulation" ""
           syncGrammar = kw "sync" "Wait for simulator execution to complete" ""
           timeGrammar = kw "time" "Display current simulation time" ""
+          isFatalGrammar = kw "isfatal" "Return whether the last termination was caused by $fatal" ""
           timescaleGrammar = (kw "timescale" "Specify simulation timescale" "") .+.
                              (arg "timescale" StringArg "simulation timescale (Verilog-format)")
           unloadGrammar = kw "unload" "Unload the current bluesim model" ""
@@ -2887,6 +2889,13 @@ tclSim ("run":args) = do
                   -- advance with no pre-set limit
                   _ <- bk_advance bs (args == ["async"])
                   return $ TLst []
+    Nothing -> ioError $ userError ("There is no bluesim model loaded")
+----------
+tclSim ["isfatal"] = do
+  g <- readIORef globalVar
+  case (tp_bluesim g) of
+    Just bs -> do fatal <- bk_fataled bs
+                  return $ if fatal then TStr "1" else TStr "0"
     Nothing -> ioError $ userError ("There is no bluesim model loaded")
 ----------
 tclSim ("runto":time:args) = do

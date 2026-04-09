@@ -139,9 +139,10 @@ struct tSimState {
   // flag to record when executing a combinational logic schedule
   bool in_combo_schedule;
 
-  // flags marking when $stop or $finish has been executed
+  // flags marking when $stop, $finish, or $fatal has been executed
   bool stop_called;
   bool finish_called;
+  bool fatal_called;
   bool abort_called;
   tSInt32 exit_status;
   volatile bool force_halt;

@@ -43,6 +43,7 @@ Subcommands:
   stop                          Stop a running simulation
   sync                          Wait for simulator execution to complete
   time                          Display current simulation time
+  isfatal                       Return whether the last termination was caused by $fatal
   timescale <timescale>         Specify simulation timescale
   unload                        Unload the current bluesim model
   up [<N>]                      Move up the module hierarchy
