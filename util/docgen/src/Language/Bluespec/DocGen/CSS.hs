@@ -140,10 +140,6 @@ stylesheet = "\
 \.doc-table th {\n\
 \  background: var(--sidebar-bg);\n\
 \  font-weight: 600;\n\
-\  font-size: 0.82rem;\n\
-\  text-transform: uppercase;\n\
-\  letter-spacing: 0.03em;\n\
-\  color: #4a5568;\n\
 \}\n\
 \.doc-table tr:nth-child(even) td { background: #fafbfd; }\n\
 \.doc-table tr:hover td { background: #edf2f7; }\n\
