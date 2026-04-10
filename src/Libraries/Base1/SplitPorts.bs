@@ -34,11 +34,10 @@ class ShallowSplitPorts a p | a -> p where
   shallowUnsplitPorts :: p -> a
   shallowSplitPortNames :: a -> String -> List String
 
-instance (Generic a r, ShallowSplitPorts' r p) =>
-    ShallowSplitPorts a p where
+instance (ShallowSplitPorts' (Rep a) p) => ShallowSplitPorts a p where
   shallowSplitPorts = shallowSplitPorts' ∘ from
   shallowUnsplitPorts = to ∘ shallowUnsplitPorts'
-  shallowSplitPortNames _ = shallowSplitPortNames' (_ :: r)
+  shallowSplitPortNames _ = shallowSplitPortNames' (_ :: (Rep a))
 
 class ShallowSplitPorts' r p | r -> p where
   shallowSplitPorts' :: r -> p
@@ -132,10 +131,10 @@ instance (DeepSplitPorts a p) => DeepSplitTuplePorts a p where
   deepSplitTuplePortNames i _ base = deepSplitPortNames (_ :: a) $ base +++ "_" +++ integerToString i
 
 
-instance (Generic a r, DeepSplitPorts' r a p) => DeepSplitPorts a p where
-  deepSplitPorts = deepSplitPorts' (_ :: r)
-  deepUnsplitPorts = deepUnsplitPorts' (_ :: r)
-  deepSplitPortNames = deepSplitPortNames' (_ :: r)
+instance (DeepSplitPorts' (Rep a) a p) => DeepSplitPorts a p where
+  deepSplitPorts = deepSplitPorts' (_ :: Rep a)
+  deepUnsplitPorts = deepUnsplitPorts' (_ :: Rep a)
+  deepSplitPortNames = deepSplitPortNames' (_ :: Rep a)
 
 class DeepSplitPorts' r a p | r a -> p where
   deepSplitPorts' :: r -> a -> p
@@ -149,10 +148,10 @@ instance (SplitPorts a p) => DeepSplitPorts' r a p where
   deepSplitPortNames' _ = portNames
 
 -- Recurse into the fields of a struct
-instance (Generic a r, DeepSplitPorts'' r p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
+instance (DeepSplitPorts'' (Rep a) p) => DeepSplitPorts' (Meta (MetaData name pkg args 1) r') a p where
   deepSplitPorts' _ = deepSplitPorts'' ∘ from
   deepUnsplitPorts' _ = to ∘ deepUnsplitPorts''
-  deepSplitPortNames' _ _ = deepSplitPortNames'' (_ :: r)
+  deepSplitPortNames' _ _ = deepSplitPortNames'' (_ :: Rep a)
 
 class DeepSplitPorts'' r p | r -> p where
   deepSplitPorts'' :: r -> p

@@ -56,7 +56,7 @@ instance (CShow a) => CShowTuple a where
   cshowTuple = cshow
 
 -- Default generic instance uses the CShow' type class over generic representations
-instance (Generic a r, CShow' r) => CShow a where
+instance (CShow' (Rep a)) => CShow a where
   cshow x = cshow' $ from x
   cshowP x = cshowP' $ from x
 

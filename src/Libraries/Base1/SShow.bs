@@ -73,7 +73,7 @@ instance (SShow a) => SShowTuple a where
   sshowTuple = sshow
 
 -- Default generic instance uses the SShow' type class over generic representations
-instance (Generic a r, SShow' r) => SShow a where
+instance (SShow' (Rep a)) => SShow a where
   sshow x = sshow' $ from x
   sshowP x = sshowP' $ from x
 
