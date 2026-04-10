@@ -321,7 +321,9 @@ bulletList = do
 -- | @\paragraph{title}@ → Heading level 4.
 paragraphCmd :: Parser DocBlock
 paragraphCmd = do
-  _ <- string "\\paragraph{"
+  _ <- string "\\paragraph"
+  _ <- optional (char '*')
+  _ <- char '{'
   content <- manyTill inline (char '}')
   pure $ Heading 4 content
 
@@ -445,23 +447,24 @@ parseTabularRows raw =
           | otherwise = T.cons (T.head t) (go (T.tail t))
 
         -- \multicolumn{n}{spec}{content} → extract content
+        -- Uses brace-balanced extraction for all 3 args (spec may contain p{width})
         handleMulticolumn t =
           let rest1 = T.drop (T.length "\\multicolumn{") t
-              -- Skip first arg (span count)
-              (_, after1) = T.breakOn "}" rest1
-              rest2 = T.drop 1 after1  -- skip }
-              -- Skip second arg (column spec)
-          in case T.uncons rest2 of
+              -- Skip first arg (span count) — brace-balanced
+              arg1 = T.pack $ consumeBal (0 :: Int) (T.unpack rest1)
+              after1 = T.drop (T.length arg1 + 1) rest1
+          in case T.uncons (T.stripStart after1) of
                Just ('{', rest3) ->
-                 let (_, after2) = T.breakOn "}" rest3
-                     rest4 = T.drop 1 after2  -- skip }
-                 in case T.uncons rest4 of
+                 -- Skip second arg (column spec) — brace-balanced
+                 let arg2 = T.pack $ consumeBal (0 :: Int) (T.unpack rest3)
+                     after2 = T.drop (T.length arg2 + 1) rest3
+                 in case T.uncons (T.stripStart after2) of
                       Just ('{', rest5) ->
                         let content = T.pack $ consumeBal (0 :: Int) (T.unpack rest5)
                             afterContent = T.drop (T.length content + 1) rest5
                         in content <> go afterContent
-                      _ -> go rest4
-               _ -> go rest2
+                      _ -> go after2
+               _ -> go after1
 
         consumeBal _ []        = []
         consumeBal 0 ('}':_)   = []
@@ -576,12 +579,32 @@ extractCaption raw =
     consumeBal d ('{':cs)  = '{' : consumeBal (d+1) cs
     consumeBal d (c:cs)    = c   : consumeBal d cs
 
-    -- Minimal stripping of TeX commands from caption text
-    stripTexCmds t = T.replace "\\BSV" "BSV" . T.replace "\\BH" "BH"
-                   . T.replace "\\bsc" "bsc" . T.replace "\\BS" "Bluespec"
-                   . T.replace "\\emph{" "" . T.replace "\\texttt{" ""
-                   . T.replace "\\te{" "" . T.replace "}" ""
-                   $ t
+    -- Strip TeX commands from caption text, preserving literal content.
+    stripTexCmds :: Text -> Text
+    stripTexCmds t
+      | T.null t = t
+      -- \cmd{content} → extract content
+      | "\\emph{" `T.isPrefixOf` t   = stripTexCmds (extractAndContinue 6 t)
+      | "\\texttt{" `T.isPrefixOf` t = stripTexCmds (extractAndContinue 8 t)
+      | "\\textbf{" `T.isPrefixOf` t = stripTexCmds (extractAndContinue 8 t)
+      | "\\te{" `T.isPrefixOf` t     = stripTexCmds (extractAndContinue 4 t)
+      -- \name → known replacements
+      | "\\BSV" `T.isPrefixOf` t  = "BSV" <> stripTexCmds (T.drop 4 t)
+      | "\\BH" `T.isPrefixOf` t   = "BH" <> stripTexCmds (T.drop 3 t)
+      | "\\bsc" `T.isPrefixOf` t  = "bsc" <> stripTexCmds (T.drop 4 t)
+      | "\\BS" `T.isPrefixOf` t   = "Bluespec" <> stripTexCmds (T.drop 3 t)
+      -- \{ \} → literal braces
+      | "\\{" `T.isPrefixOf` t    = "{" <> stripTexCmds (T.drop 2 t)
+      | "\\}" `T.isPrefixOf` t    = "}" <> stripTexCmds (T.drop 2 t)
+      | otherwise                  = T.cons (T.head t) (stripTexCmds (T.tail t))
+
+    -- Drop prefix of length n, extract brace-balanced content, append rest
+    extractAndContinue :: Int -> Text -> Text
+    extractAndContinue n t =
+      let inner = T.drop n t
+          content = T.pack $ consumeBal (0 :: Int) (T.unpack inner)
+          rest = T.drop (T.length content + 1) inner
+      in content <> rest
 
 -- | Parse a @\gram{name}{body}@ grammar production (two-arg form).
 -- Renders as: NonTerm name, Plain " ::= ", body_inlines...
