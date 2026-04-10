@@ -11,6 +11,7 @@ module Language.Bluespec.DocGen.HTML
   , docFooter
   , mathJaxScripts
   , searchHeader
+  , slugifyInlines
   ) where
 
 import Control.Monad (when)

@@ -35,7 +35,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 
 import Language.Bluespec.DocGen.DocAST
-import Language.Bluespec.DocGen.HTML (LabelMap, renderDocBlocks, docFooter, mathJaxScripts, searchHeader)
+import Language.Bluespec.DocGen.HTML (LabelMap, renderDocBlocks, docFooter, mathJaxScripts, searchHeader, slugifyInlines)
 import Language.Bluespec.DocGen.SymbolIndex (SymbolIndex, SymbolRef (..))
 import Language.Bluespec.DocGen.TexParser
   ( MacroEnv, collectMacros, expandMacros, parseTexDoc )
@@ -462,9 +462,7 @@ writeSectionOrSplit
 writeSectionOrSplit outDir subDir idx lmap mSha title sec = do
   let subs = splitSubsections sec
   if null subs
-    then do
-      writeSection outDir idx lmap mSha title sec
-      pure Map.empty
+    then writeSection outDir subDir idx lmap mSha title sec
     else writeSectionSplit outDir subDir idx lmap mSha title sec subs
 
 -- | Write a section that has been split into per-subsection pages.
@@ -483,8 +481,14 @@ writeSectionSplit outDir subDir idx lmap mSha title sec subs = do
   forM_ subs $ \sub -> do
     let path = outDir </> T.unpack (secSlug sec <> "-" <> subSlug sub) ++ ".html"
     TLIO.writeFile path (renderHtml (subsectionPage sec subs sub idx lmap mSha title))
-  -- Build SymbolIndex entries so subsections appear in search
-  let entries = Map.fromList
+  -- Build SymbolIndex entries: the section itself and each sub-page
+  let secEntry = Map.singleton (secTitle sec) SymbolRef
+                   { srPackage = secSlug sec
+                   , srSection = subDir
+                   , srAnchor  = "top"
+                   , srDisplay = Just title
+                   }
+      subEntries = Map.fromList
         [ ( subTitle sub
           , SymbolRef
               { srPackage = secSlug sec <> "-" <> subSlug sub
@@ -495,13 +499,57 @@ writeSectionSplit outDir subDir idx lmap mSha title sec subs = do
           )
         | sub <- subs
         ]
-  pure entries
+      subH2Entries = Map.unions
+        [ Map.fromList
+            [ ( inlinesToText inlines
+              , SymbolRef
+                  { srPackage = secSlug sec <> "-" <> subSlug sub
+                  , srSection = subDir
+                  , srAnchor  = slugifyInlines inlines
+                  , srDisplay = Just (subTitle sub <> " — " <> title)
+                  }
+              )
+            | Heading n inlines <- subBlocks sub, n >= 2
+            ]
+        | sub <- subs
+        ]
+  pure (secEntry <> subEntries <> subH2Entries)
 
 -- | Write a single (non-split) section as an HTML file.
-writeSection :: FilePath -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Section -> IO ()
-writeSection outDir idx lmap mSha title sec = do
+-- Returns search index entries for the section title and its H2 headings.
+writeSection :: FilePath -> Text -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Section -> IO SymbolIndex
+writeSection outDir subDir idx lmap mSha title sec = do
   let path = outDir </> T.unpack (secSlug sec) ++ ".html"
   TLIO.writeFile path (renderHtml (sectionPage sec idx lmap mSha title))
+  pure (sectionSearchEntries subDir title sec)
+
+-- | Build search index entries for a non-split section:
+-- the section title (linking to the page top) plus every H2 heading
+-- (linking to its in-page anchor).
+sectionSearchEntries :: Text -> Text -> Section -> SymbolIndex
+sectionSearchEntries subDir manualTitle sec =
+  Map.fromList (secEntry : h2Entries)
+  where
+    secEntry =
+      ( secTitle sec
+      , SymbolRef
+          { srPackage = secSlug sec
+          , srSection = subDir
+          , srAnchor  = "top"
+          , srDisplay = Just manualTitle
+          }
+      )
+    h2Entries =
+      [ ( inlinesToText inlines
+        , SymbolRef
+            { srPackage = secSlug sec
+            , srSection = subDir
+            , srAnchor  = slugifyInlines inlines
+            , srDisplay = Just (secTitle sec <> " — " <> manualTitle)
+            }
+        )
+      | Heading n inlines <- secBlocks sec, n >= 2
+      ]
 
 -- | Render a plain section page (no subsection sidebar).
 sectionPage :: Section -> SymbolIndex -> LabelMap -> Maybe Text -> Text -> Html
