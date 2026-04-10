@@ -1,0 +1,53 @@
+name: cabal v2-install
+
+on: [push]
+
+jobs:
+  v2-install-file:
+    name: Package environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.12'
+          cabal-version: '3.16'
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo .github/workflows/install_dependencies_ubuntu.sh
+
+      - name: Write file environment
+        shell: bash
+        run: |
+          cabal install --lib \
+            --package-env=.ghc.environment.x86_64-linux-9.12 \
+            regex-compat syb old-time split strict-concurrency
+
+      - name: Use file environment
+        shell: bash
+        run: |
+          PKGDB=$(cat .ghc.environment.x86_64-linux-9.12 | grep "^package-db" | cut -d' ' -f2)
+          GHC="ghc -package-env=$PWD/.ghc.environment.x86_64-linux-9.12" \
+            GHC_PKG="ghc-pkg --user-package-db=$PKGDB" \
+            make install-src --debug --trace
+
+      - name: Write named environment
+        shell: bash
+        run: |
+          cabal install --lib \
+            --package-env=bluespec \
+            regex-compat syb old-time split strict-concurrency
+
+      - name: Use named environment
+        shell: bash
+        run: |
+          GHC_VERSION=$(ghc --numeric-version)
+          PKGDB=$(cat $HOME/.ghc/x86_64-linux-${GHC_VERSION}/environments/bluespec | grep "^package-db" | cut -d' ' -f2)
+          GHC="ghc -package-env=bluespec" \
+            GHC_PKG="ghc-pkg --user-package-db=$PKGDB" \
+            make install-src --debug --trace
