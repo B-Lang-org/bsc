@@ -271,7 +271,7 @@ of GHC, currently 9.6.7.  The source is also tested with a range of
 newer GHC versions (currently 9.8, 9.10, and 9.12) any of which are
 also fine.
 
-### Haskell libraries via Cabal v1
+### Required Haskell libraries
 
 Building BSC requires some additional Haskell libraries beyond the standard
 GHC libraries.  We recommend using the `cabal` command to install
@@ -283,6 +283,11 @@ then you may need to install libraries through the package manager as
 well (as shown in the above summaries) or you may need to install `cabal`
 through the package manager.
 
+To build a version of BSC that supports profiling, be aware that profiling
+versions of the libraries need to be installed.
+
+#### Installing required libraries with `cabal v1-install`
+
 The BSC build currently assumes that libraries have been installed
 globally with GHC.  This is why we have shown the `cabal` command
 using the legacy `v1-install` subcommand, which installs globally:
@@ -292,7 +297,7 @@ cabal update
 cabal v1-install regex-compat syb old-time split strict-concurrency
 ```
 
-### Haskell libraries via Cabal v2
+#### Installing required libraries with `cabal v2-install`
 
 If the GHC installation is globally installed or if GHC is installed via a
 package manager, we can use an environment to avoid disturbing the global setup
@@ -379,9 +384,6 @@ GHC="ghc -package-env=$PWD/.ghc.environment.x86_64-linux-9.12.4" \
 
 [cabal-write-env]: https://cabal.readthedocs.io/en/latest/cabal-project-description-file.html#cfg-field-write-ghc-environment-files
 [ghc-pkg-env]: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/packages.html#package-environments
-
-To build a version of BSC that supports profiling, be aware that
-profiling versions of the libraries need to be installed.
 
 ### SMT solvers
 
