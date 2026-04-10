@@ -1,4 +1,5 @@
--- | Top-level documentation generation entry point. 
+{-# LANGUAGE TemplateHaskell #-}
+-- | Top-level documentation generation entry point.
 -- Exposed as a library function so that @bbt doc@ can call it directly.
 module Language.Bluespec.DocGen.Generate
   ( DocGenConfig (..)
@@ -6,8 +7,9 @@ module Language.Bluespec.DocGen.Generate
   , runDocGen
   ) where
 
-import Control.Exception (try, SomeException)
 import Control.Monad (filterM, forM_, when)
+import Data.ByteString qualified as BS
+import Data.FileEmbed (embedFile)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (isJust)
 import Data.Text (Text)
@@ -149,8 +151,8 @@ runDocGen cfg = do
   -- 12b. Write search script
   TIO.writeFile (outDir </> "search.js") searchScript
 
-  -- 12. Download MathJax bundle (for local math rendering, no CDN at view time)
-  downloadMathjax outDir (dgcVerbose cfg)
+  -- 12. Write vendored MathJax bundle (embedded at compile time; no network access)
+  BS.writeFile (outDir </> "mathjax.js") mathjaxBundle
 
   -- 13. Write symbol index JSON (merging in manual section entries)
   let fullIdx = idx <> Map.unions extraIdxs
@@ -283,44 +285,13 @@ gitShortSha dir = do
     _           -> pure Nothing
 
 -- ---------------------------------------------------------------------------
--- MathJax download
+-- Vendored static assets
 -- ---------------------------------------------------------------------------
 
--- | MathJax CDN URL for the single-file tex-svg bundle (version 3).
-mathjaxUrl :: String
-mathjaxUrl = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
-
--- | Download the MathJax bundle to @outDir/mathjax.js@ if not already present.
--- Tries @wget@ then @curl@; warns but does not fail if both are unavailable.
--- When the file already exists it is not re-downloaded.
-downloadMathjax :: FilePath -> Bool -> IO ()
-downloadMathjax outDir verbose = do
-  let dest = outDir </> "mathjax.js"
-  exists <- doesFileExist dest
-  if exists
-    then when verbose $ putStrLn $ "[docgen] MathJax already present: " ++ dest
-    else do
-      when verbose $ putStrLn $ "[docgen] Downloading MathJax from " ++ mathjaxUrl
-      -- Try curl first (more commonly available), then wget.
-      -- Use try to catch the exception when the binary doesn't exist.
-      ok <- tryDownload "curl" ["-sSL", "-o", dest, mathjaxUrl]
-      if ok
-        then when verbose $ putStrLn $ "[docgen] MathJax saved to " ++ dest
-        else do
-          ok2 <- tryDownload "wget" ["-q", "-O", dest, mathjaxUrl]
-          if ok2
-            then when verbose $ putStrLn $ "[docgen] MathJax saved to " ++ dest
-            else putStrLn $
-              "[docgen] Warning: could not download MathJax. "
-              ++ "Math will not render. Run: curl -sSL -o "
-              ++ dest ++ " " ++ mathjaxUrl
-  where
-    tryDownload :: String -> [String] -> IO Bool
-    tryDownload cmd args = do
-      result <- try (readProcessWithExitCode cmd args "") :: IO (Either SomeException (ExitCode, String, String))
-      case result of
-        Right (ExitSuccess, _, _) -> pure True
-        _                         -> pure False
+-- | Vendored MathJax tex-svg bundle, embedded at compile time.
+-- Avoids network access and CDN supply-chain risk at doc-generation time.
+mathjaxBundle :: BS.ByteString
+mathjaxBundle = $(embedFile "data/mathjax.js")
 
 -- ---------------------------------------------------------------------------
 -- Source file collection
