@@ -1,4 +1,4 @@
--- | Top-level documentation generation entry point.
+-- | Top-level documentation generation entry point. 
 -- Exposed as a library function so that @bbt doc@ can call it directly.
 module Language.Bluespec.DocGen.Generate
   ( DocGenConfig (..)
