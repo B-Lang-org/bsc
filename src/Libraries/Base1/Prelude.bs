@@ -3803,6 +3803,7 @@ primArrayNewU k = primArrayNew k _
 
 instance Functor Array
   where
+    fmap :: (a -> b) -> Array a -> Array b
     fmap f v =
       let buildResult :: Integer -> Array b -> Array b
           buildResult i arr =
