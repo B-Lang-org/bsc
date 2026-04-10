@@ -3801,6 +3801,15 @@ arrayLength a =
 primArrayNewU :: Integer -> Array a
 primArrayNewU k = primArrayNew k _
 
+instance Functor Array
+  where
+    fmap f v =
+      let buildResult :: Integer -> Array b -> Array b
+          buildResult i arr =
+            if i < 0 then arr
+            else buildResult (i - 1) (primArrayUpdate arr i (f (primArraySelect v i)))
+      in buildResult (primArrayLength v - 1) (primArrayNewU (primArrayLength v))
+
 instance PrimSelectable (Array a) a
   where
    primSelectFn :: (PrimIndex ix dx) =>
