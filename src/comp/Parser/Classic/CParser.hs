@@ -35,7 +35,7 @@ import Pragma
 -- XXX
 import IOUtil(progArgs)
 
-infix 6 >>>> , >>>>> , >>>>>> , >>>>>>> , {- >>>>>>>> , -} >>>>>>>>>
+infix 6 >>>> , >>>>> , >>>>>> , {- >>>>>>> , >>>>>>>> , -} >>>>>>>>>
 
 -- XXX
 useLayout :: Bool
@@ -873,8 +873,8 @@ noTrig = mkPosition fsEmpty 0 (-1)
             -> (b -> c -> d -> e -> f) -> Parser a f
 (>>>>>>)    :: Parser a (b, (c, (d, (e, f))))
             -> (b -> c -> d -> e -> f -> g) -> Parser a g
-(>>>>>>>)   :: Parser a (b, (c, (d, (e, (f, g)))))
-            -> (b -> c -> d -> e -> f -> g -> h) -> Parser a h
+--(>>>>>>>)   :: Parser a (b, (c, (d, (e, (f, g)))))
+--            -> (b -> c -> d -> e -> f -> g -> h) -> Parser a h
 --(>>>>>>>>)  :: Parser a (b, (c, (d, (e, (f, (g, h))))))
 --            -> (b -> c -> d -> e -> f -> g -> h -> i) -> Parser a i
 (>>>>>>>>>) :: Parser a (b, (c, (d, (e, (f, (g, (h, i)))))))
