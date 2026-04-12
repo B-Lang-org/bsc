@@ -20,7 +20,7 @@ import Control.Monad(unless)
 -- the foreign src IDs, and their corresponding ForeignFunctions
 genForeign :: ErrorHandle -> Flags -> String -> CPackage ->
               IO [(Id, ForeignFunction)]
-genForeign errh flags prefix (CPackage pkg_id _ _ _ defs _) =
+genForeign errh flags prefix (CPackage pkg_id _ _ _ _ defs _) =
     let
         isPPforeignImport (PPforeignImport {}) = True
         isPPforeignImport _ = False

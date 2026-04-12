@@ -52,7 +52,7 @@ import IConvLet(docycles, reorderDs, unpoly)
 type Env a = M.Map Id (IExpr a)
 
 iConvPackage :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (IPackage a)
-iConvPackage errh flags r (CPackage pi _ _ _ ds _) =
+iConvPackage errh flags r (CPackage pi _ _ _ _ ds _) =
     return (IPackage pi [] ps ds')
   where ds' = concatMap (iConvD errh flags pi r env pvs) ds
         env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds'])
@@ -78,8 +78,8 @@ iConvVar flags r env i =
         Just e  -> e
         Nothing ->
                 case findVar r i of
-                Just (VarInfo VarPrim (_ :>: sc) _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
-                Just (VarInfo (VarForg name mps) (_ :>: sc) _) ->
+                Just (VarInfo VarPrim (_ :>: sc) _ _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
+                Just (VarInfo (VarForg name mps) (_ :>: sc) _ _) ->
                         let t = iConvSc flags r sc
                             ops' = case mps of
                                    Just (ips, [op]) -> Just (zip ips (repeat 0), [(op, 0)])        -- XXX a hack for single output
@@ -95,10 +95,10 @@ iConvVar flags r env i =
                                            ("IConv.iConvVar.flatPairs: " ++
                                             show it)
                         in  ICon i (ICForeign t name False ops' Nothing)
-                Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _) ->
+                Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _ _) ->
                     let (IsIn cl _) = removePredPositions pp
                     in iConvField flags r (typeclassId $ name cl) i
-                Just (VarInfo VarDefn (_ :>: sc) _) ->
+                Just (VarInfo VarDefn (_ :>: sc) _ _) ->
                     let t = iConvSc flags r sc
                     in  -- XXX should we use an error for the value
                         -- XXX so that it isn't silently used?
@@ -111,7 +111,7 @@ iConvTask :: SymTab -> Id -> IType -> IExpr a
 iConvTask r i it =
    case findVar r i of
         -- only care about name - no "port-magic" for $display and friends
-        Just (VarInfo (VarForg name _) _ _) ->
+        Just (VarInfo (VarForg name _) _ _ _) ->
             -- trace("iConvTask: " ++ ppReadable it) $
             (ICon i (ICForeign it name False Nothing Nothing))
         Just x  -> internalError ("iConvTask: foreign function info for " ++
@@ -649,7 +649,7 @@ iConvLit LPosition pos t = iMkPosition pos
 iConvField :: Flags -> SymTab -> Id -> Id -> IExpr a
 iConvField flags r ti i =
     case findType r ti of
-      Just (TypeInfo _ _ _ (TIstruct _ fs)) ->
+      Just (TypeInfo _ _ _ (TIstruct _ fs) _) ->
           --trace ("iConvField " ++ ppReadable (i, ti, fs, elemIndex i fs)) $
           --trace ("iConvField " ++ ppReadable (i, lookupSelType flags ti i r)) $
           let fieldnum = fromJustOrErr "iConvField" (findIndex (qualEq i) fs)

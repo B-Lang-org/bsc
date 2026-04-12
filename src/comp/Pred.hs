@@ -14,7 +14,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
-import Eval(NFData(..), rnf2, rnf3, rnf7)
+import Eval(NFData(..), rnf2, rnf4, rnf8)
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
 import Id
@@ -144,7 +144,8 @@ data Class
             allowIncoherent :: Maybe Bool, -- Just False = always coherent
                                            -- Just True  = always incoherent
                                            -- Nothing = flag-controlled
-            isComm :: Bool -- if the class is commutative (used for Add and Mul)
+            isComm :: Bool, -- if the class is commutative (used for Add and Mul)
+            pkg_src :: Maybe Id -- package from which this class came
         }
 
 -- Instances are stored as a function, to support primitive numeric typeclasses
@@ -163,7 +164,8 @@ getInsts c = genInsts c [] Nothing (IsIn cls [])
                     funDeps = err "funDeps",
                     funDeps2 = err "funDeps2",
                     allowIncoherent = err "allowIncoherent",
-                    isComm = err "isComm"
+                    isComm = err "isComm",
+                    pkg_src = err "pkg_src"
                   }
 
 instance Show Class where
@@ -194,8 +196,9 @@ instance PVPrint Class where
                 pvPrint d 0 (funDeps c) <>
                 text ")"
 
+
 instance NFData Class where
-    rnf (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) = rnf7 x1 x2 x3 x4 x5 x8 x9
+    rnf (Class x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) = rnf8 x1 x2 x3 x4 x5 x8 x9 x10
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -206,17 +209,17 @@ instance Ord Class where
 
 -- someone should comment what all these
 -- things are that go into an Inst.
-data Inst = Inst CExpr [TyVar] (Qual Pred)
+data Inst = Inst CExpr [TyVar] (Qual Pred) (Maybe Id)
 
 instance NFData Inst where
-    rnf (Inst x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (Inst x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
-mkInst :: CExpr -> Qual Pred -> Inst
-mkInst e i = Inst e (tv i) i
+mkInst :: CExpr -> Qual Pred -> Maybe Id -> Inst
+mkInst e i pkg = Inst e (tv i) i pkg
 
 instance Types Inst where
-    apSub s (Inst e _ i) = Inst (apSub s e) [] (apSub s i)
-    tv (Inst _ vs _) = vs
+    apSub s (Inst e _ i pkg) = Inst (apSub s e) [] (apSub s i) pkg
+    tv (Inst _ vs _ _) = vs
 
 {-
 instance Match Pred where
@@ -225,10 +228,10 @@ instance Match Pred where
 -}
 
 instance PPrint Inst where
-    pPrint d p (Inst e _ qp) = text "(Inst" <+> pPrint d 10 e <+> pPrint d 10 qp <> text ")"
+    pPrint d p (Inst e _ qp pkg) = text "(Inst" <+> pPrint d 10 e <+> pPrint d 10 qp <+> pPrint d 10 pkg <> text ")"
 
 instance PVPrint Inst where
-    pvPrint d p (Inst e _ qp) = text "(Inst" <+> pvPrint d 10 e <+> pvPrint d 10 qp <> text ")"
+    pvPrint d p (Inst e _ qp pkg) = text "(Inst" <+> pvPrint d 10 e <+> pvPrint d 10 qp <+> pvPrint d 10 pkg <> text ")"
 
 -----------------------------------------------------------------------------
 
@@ -304,4 +307,4 @@ instance Instantiate Pred where
     inst ts (IsIn c t) = IsIn c $ expandSyn <$> inst ts t
 
 instance Instantiate Inst where
-    inst ts (Inst e ks h) = Inst e [] (inst ts h)
+    inst ts (Inst e ks h pkg) = Inst e [] (inst ts h) pkg

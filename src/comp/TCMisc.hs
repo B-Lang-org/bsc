@@ -563,10 +563,10 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
 
         f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
         f incoherent [] = return Nothing
-        f incoherent (i@(Inst _ _ (_ :=> h_orig)):is)
+        f incoherent (i@(Inst _ _ (_ :=> h_orig) _):is)
           | not (canMatch pr' h_orig) = f incoherent is
         f incoherent (i:is) = do
-                (m_tv, i'@(Inst _ _ (_ :=> h))) <- newInst i (getVPredPositions v')
+                (m_tv, i'@(Inst _ _ (_ :=> h) _)) <- newInst i (getVPredPositions v')
                 x <- byInst v' i'
                 case x of
                    Nothing -> do
@@ -581,7 +581,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                      when (not (isNullSubst bad_inst_subst)) $
                        internalError("reducePred - bad inst subst: " ++
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
-                     let Inst _ _ (_ :=> h) = i
+                     let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
                      return $ Just (qs, sb, fd_subst, minst)
 
@@ -630,7 +630,7 @@ dvsSub s dvs =
 -}
 
 byInst :: VPred -> Inst -> TI (Maybe ([VPred], SolvedBind, (Subst, Subst)))
-byInst (VPred i p) (Inst e _ (ps :=> h)) = do
+byInst (VPred i p) (Inst e _ (ps :=> h) _) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
@@ -672,7 +672,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h)) = do
 -- was introduced). XXX unfortunately we can only pass one pos to the var
 -- Also the lowest TVar, for use in trimming
 newInst :: Inst -> [Position] -> TI (Maybe TyVar, Inst)
-newInst ii@(Inst _ vs _) poss = do
+newInst ii@(Inst _ vs _ _) poss = do
     let getpos v = getMostUsefulPosition poss (getPosition v)
     when doVarTrace $ traceM ("newInst " ++ ppReadable ii)
     ts <- mapM (\ v -> newTVar "newInst" (kind v) (getpos v)) vs
@@ -777,7 +777,7 @@ findAssump i as =
         s <- getSymTab
         case findVar s i of
          Nothing -> errorAtId EUnboundVar i
-         Just (VarInfo _ a d) -> do
+         Just (VarInfo _ a d _) -> do
             case d of
                 Nothing -> return ()
                 Just str -> twarn (getPosition i,
@@ -1661,7 +1661,7 @@ data MatchResult = NoConclusion
 
 byInstIsReducible :: VPred -> Inst -> TI MatchResult
 byInstIsReducible (VPred i p) ii = do
-    (mv, Inst e _ (ps :=> h)) <- newInst ii (getPredPositions p)
+    (mv, Inst e _ (ps :=> h) _) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
     return $
         matchTopIsReducible bound_tyvars h (removePredPositions p)

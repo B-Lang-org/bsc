@@ -161,7 +161,7 @@ getPkgInfo errh flags pname =
 
 -- Extract PkgInfo from a parsed CPackage
 getInfo :: ErrorHandle -> Flags -> [ModName] -> FilePath -> CPackage -> [WMsg] -> IO PkgInfo
-getInfo errh flags gflags fname pkg@(CPackage i _ imps _ defs incs) warns = do
+getInfo errh flags gflags fname pkg@(CPackage i _ imps _ _ defs incs) warns = do
     -- the mod time of the source file
     tbs <- getModTime fname
 
@@ -362,7 +362,7 @@ parseFile errh flags fatal_name_mismatch fname = do
     _ <- dumpStr errh flags t DFcpp dumpnames file
 
     -- parseSrc handles its own dump stages (DFparsed, DFvpp, etc.)
-    (pkg@(CPackage i _ _ _ _ _), t', warns) <- parseSrc isClassic errh flags fname_encoded file
+    (pkg@(CPackage i _ _ _ _ _ _), t', warns) <- parseSrc isClassic errh flags fname_encoded file
 
     -- Check for package name mismatch
     let reportMismatch = if fatal_name_mismatch then bsError else bsWarning

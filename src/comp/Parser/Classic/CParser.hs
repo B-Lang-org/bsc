@@ -51,7 +51,7 @@ pPackage =
         (sepBy pImport dsm +.+ osm ..+
             sepBy pFixity dsm +.+ osm ..+
             pDefns) +..
-                osm >>>>>> (\ a b c d e -> CPackage a b c d e [])) +..
+                osm >>>>>> (\ a b c d e -> CPackage a b c [] d e [])) +..
                     eof
 
 pExports :: CParser (Either [CExport] [CExport])
@@ -882,7 +882,7 @@ noTrig = mkPosition fsEmpty 0 (-1)
 p >>>> f = p >>- \ (x,(y,z)) -> f x y z
 p >>>>> f = p >>- \ (x,(y,(z,w))) -> f x y z w
 p >>>>>> f = p >>- \ (x,(y,(z,(w,a)))) -> f x y z w a
-p >>>>>>> f = p >>- \ (x,(y,(z,(w,(a,b))))) -> f x y z w a b
+--p >>>>>>> f = p >>- \ (x,(y,(z,(w,(a,b))))) -> f x y z w a b
 --p >>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,c)))))) -> f x y z w a b c
 p >>>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,(c,d))))))) -> f x y z w a b c d
 

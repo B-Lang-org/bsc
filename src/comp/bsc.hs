@@ -93,7 +93,7 @@ import IConv(iConvPackage, iConvDef)
 import FixupDefs(fixupDefs, updDef)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
-import BinUtil(BinMap, HashMap, readImports, replaceImports)
+import BinUtil(BinMap, HashMap, readImports, replaceImportedSignatures)
 import GenBin(genBinFile)
 import GenWrap(genWrap, WrapInfo(..))
 import GenFuncWrap(genFuncWrap, addFuncWrap)
@@ -302,7 +302,6 @@ compile_no_deps errh flags name = do
     (ok, _, _) <- compilePackage errh flags t M.empty M.empty name pkg
     return ok
 
-
 -------------------------------------------------------------------------
 
 compilePackage ::
@@ -321,7 +320,7 @@ compilePackage
     binmap0
     hashmap0
     name_orig -- String --
-    min@(CPackage pkgId _ _ _ _ _) = do
+    min@(CPackage pkgId _ _ _ _ _ _) = do
 
     -- Set syntax mode for the compilation pipeline (error messages, printing, etc.)
     setSyntax (if hasDotSuf bscSrcSuffix name_orig then CLASSIC else BSV)
@@ -346,10 +345,10 @@ compilePackage
 
     start flags DFimports
     -- Read imported signatures
-    (mimp@(CPackage _ _ imps _ _ _), binmap, hashmap)
+    (mimp@(CPackage _ _ imps impsigs _ _ _), binmap, hashmap)
         <- readImports errh flags binmap0 hashmap0 min
     when (hasDump flags DFimports) $
-      let imps' = [ppReadable s |  (CImpSign _ _ s) <- imps]
+      let imps' = [ppReadable s |  (CImpSign _ _ s) <- impsigs]
       in mapM_ (putStr) imps'
          --mapM_ (\ (CImpSign _ _ s) -> putStr (ppReadable s)) imps
     t <- dump errh flags tStart DFimports dumpnames mimp
@@ -464,10 +463,10 @@ compilePackage
 
     -- Read binary interface files
     start flags DFbinary
-    let (_, _, impsigs, binmods0, pkgsigs) =
+    let (_, _, impsigs', binmods0, pkgsigs) =
             let findFn i = fromJustOrErr "bsc: binmap" $ M.lookup i binmap
                 sorted_ps = [ getIdString i
-                               | CImpSign _ _ (CSignature i _ _ _) <- imps ]
+                               | CImpSign _ _ (CSignature i _ _ _) <- impsigs ]
             in  unzip5 $ map findFn sorted_ps
 
     -- injects the "magic" variables genC and genVerilog
@@ -502,7 +501,7 @@ compilePackage
     start flags DFsympostbinary
     -- XXX The way we construct the symtab is to replace the user-visible
     -- XXX imports with the full imports.
-    let mint = replaceImports mctx impsigs
+    let mint = replaceImportedSignatures mctx impsigs'
     internalSymt <- mkSymTab errh mint
     t <- dump errh flags t DFsympostbinary dumpnames mint
 
@@ -2171,7 +2170,7 @@ compileCDefToIDef :: ErrorHandle -> Flags -> DumpNames -> SymTab ->
 compileCDefToIDef errh flags dumpnames symt ipkg def =
  do
     let pkgid = ipkg_name ipkg
-    let cpkg0 = CPackage pkgid (Left []) [] [] [def] []
+    let cpkg0 = CPackage pkgid (Left []) [] [] [] [def] []
     t <- getNow
 
     start flags DFwrapper_ctxreduce
@@ -2185,7 +2184,7 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     start flags DFwrapper_simplified
     let cpkg_simp = simplify flags cpkg_chk
         def' = case cpkg_simp of
-                 (CPackage _ _ _ _ [d] _) -> d
+                 (CPackage _ _ _ _ _ [d] _) -> d
                  _ -> internalError "compileCDefToIDef: unexpected number of defs"
     t <- dump errh flags t DFwrapper_simplified dumpnames cpkg_simp
 

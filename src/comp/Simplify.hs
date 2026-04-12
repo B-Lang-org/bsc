@@ -32,10 +32,10 @@ traced name orig result =
 -- XXX not updated for let/letrec split
 
 simplify :: Flags -> CPackage -> CPackage
-simplify flags pkg@(CPackage mi exps imps fixs ds includes)
+simplify flags pkg@(CPackage mi exps imps impsigs fixs ds includes)
     | simplifyCSyntax flags =
         let (env, _) = selectSimple [] [ d | CValueSign d <- ds ]
-        in  CPackage mi exps imps fixs (simp env ds) includes
+        in  CPackage mi exps imps impsigs fixs (simp env ds) includes
     | otherwise = pkg
 
 cLetRec :: [CDefl] -> CExpr -> CExpr

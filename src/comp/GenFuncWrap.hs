@@ -50,7 +50,7 @@ type FuncInfo = (Id, Id, Id, [Id], CQType)
 genFuncWrap :: ErrorHandle -> Flags -> Bool -> CPackage -> SymTab ->
                IO (CPackage, SymTab, [FuncInfo])
 genFuncWrap errh flags False p s = return (p, s, [])
-genFuncWrap errh flags True (CPackage pkgId exps imps fixs ds includes) symt = do
+genFuncWrap errh flags True (CPackage pkgId exps imps impsigs fixs ds includes) symt = do
     let
         -- separate out the noinline pragmas
         (fpragmas, ds_no_fpragmas) = partition isNoInline ds
@@ -87,7 +87,7 @@ genFuncWrap errh flags True (CPackage pkgId exps imps fixs ds includes) symt = d
                   (addTypesQ symt (ts ++ qts)) (concat fss)
 
     return $
-        (CPackage pkgId exps imps fixs ds' includes, symt', concat iss)
+        (CPackage pkgId exps imps impsigs fixs ds' includes, symt', concat iss)
 
 -- ---------------
 
@@ -132,6 +132,7 @@ wrapFun errh pkgId d@(CDef i qt@(CQType [] t) cs) =
         -- type info for the new ifc
         ifcInf = TypeInfo (Just ifcQId) KStar []
                      (TIstruct (SInterface noIfcPragmas) [i])
+                     Nothing
 
         -- pragmas for the method
         field_pragmas = [PIArgNames argNames]
@@ -150,6 +151,7 @@ wrapFun errh pkgId d@(CDef i qt@(CQType [] t) cs) =
                      field_pragmas
                      [] -- no defaults
                      Nothing -- no type for wrapper tracking
+                     Nothing
 
         -- ----------
         -- generate a new module, providing that interface
@@ -198,9 +200,9 @@ wrapFun errh _ (CDefT i _ _ _) =
 
 addFuncWrap :: ErrorHandle -> SymTab -> [FuncInfo] -> CPackage -> IO CPackage
 addFuncWrap _ _ [] p = return p
-addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
+addFuncWrap errh symt is (CPackage modid exps imps impsigs fixs ds includes) = do
     is' <- concatMapM addf is
-    return $ CPackage modid exps imps fixs (ds ++ is') includes
+    return $ CPackage modid exps imps impsigs fixs (ds ++ is') includes
   where
     addf :: FuncInfo -> IO [CDefn]
     addf (mi, ti, i, args, qt) =
@@ -295,8 +297,8 @@ expandSynSym symt xt =
  where
    updTypes r o@(TCon (TyCon i _ TIabstract)) =
      case findType r i of
-       Just (TypeInfo (Just i') k _ ti) -> TCon (TyCon i' (Just k) ti)
-       Just (TypeInfo Nothing _ _ _ ) ->
+       Just (TypeInfo (Just i') k _ ti _) -> TCon (TyCon i' (Just k) ti)
+       Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("genFuncWrap: expandSynSym: unexpected numeric type:"
                           ++ ppReadable i)
        Nothing -> o
