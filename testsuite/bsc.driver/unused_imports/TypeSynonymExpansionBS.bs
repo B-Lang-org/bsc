@@ -1,4 +1,4 @@
--- Test: Type synonym expansion (Classic syntax - Phase 1)
+-- Test: Uses during type synonym expansion (Classic syntax - Phase 1)
 -- Expected: NO warning - Helper is used via type synonym Byte
 
 package TypeSynonymExpansionBS where
