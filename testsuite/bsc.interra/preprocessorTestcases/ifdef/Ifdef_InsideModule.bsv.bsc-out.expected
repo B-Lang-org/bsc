@@ -2,6 +2,6 @@ checking package dependencies
 Warning: "Ifdef_InsideModule.bsv", line 1, column 9: (S0001)
   File name `Ifdef_InsideModule.bsv' does not match package name `Design'
 compiling Ifdef_InsideModule.bsv
-Warning: "Ifdef_InsideModule.bsv", line 3, column 8: (T0129)
+Warning: "Ifdef_InsideModule.bsv", line 3, column 8: (T0157)
   Package `Vector' is imported but not used
 All packages are up to date.

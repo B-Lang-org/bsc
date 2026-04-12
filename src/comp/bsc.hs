@@ -348,9 +348,9 @@ compilePackage
     (mimp@(CPackage _ _ imps impsigs _ _ _), binmap, hashmap)
         <- readImports errh flags binmap0 hashmap0 min
     when (hasDump flags DFimports) $
-      let imps' = [ppReadable s |  (CImpSign _ _ s) <- impsigs]
-      in mapM_ (putStr) imps'
-         --mapM_ (\ (CImpSign _ _ s) -> putStr (ppReadable s)) imps
+      let impsigs' = [ppReadable s |  (CImpSign _ _ s) <- impsigs]
+      in mapM_ (putStr) impsigs'
+         --mapM_ (\ (CImpSign _ _ s) -> putStr (ppReadable s)) impsigs
     t <- dump errh flags tStart DFimports dumpnames mimp
 
     start flags DFopparse

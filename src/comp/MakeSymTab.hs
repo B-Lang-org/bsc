@@ -151,8 +151,11 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
 
         mkQuals = mkDefaultQuals -- always unqualify
 
+        -- Nothing as src_pkg means "defined in the current package being compiled"
+        local_pkg = Nothing
+
         -- previous symbol table with types and classes added
-        (symT, clsErrs) = mkTypeSyms errh mkQuals mmi Nothing iks ds insts simp
+        (symT, clsErrs) = mkTypeSyms errh mkQuals mmi local_pkg iks ds insts simp
 
         -- Check for type functions in non-determined instance head positions.
         -- They are only permitted in positions that are soley determined by
@@ -170,10 +173,10 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
         -- XXX and something about top vars?
         -- XXX and something about instances?
         final_symT =
-            let s1 = symAddCons mkQuals mmi Nothing symT ds
-                s2 = symAddFields mkQuals mmi Nothing s1 ds
-                s3 = symAddVars mkQuals mmi Nothing s2 ds
-            in  case (getTopVars s3 mmi Nothing ds) of
+            let s1 = symAddCons mkQuals mmi local_pkg symT ds
+                s2 = symAddFields mkQuals mmi local_pkg s1 ds
+                s3 = symAddVars mkQuals mmi local_pkg s2 ds
+            in  case (getTopVars s3 mmi local_pkg ds) of
                     Left msgs -> bsError errh (errmsgs msgs)
                     Right vs  ->
                         let ivs = [ let i = mkInstId mi (updTypes s3 t)
@@ -216,9 +219,11 @@ updTypes r t = t
 
 -- ---------------
 -- Package usage tracking for unused import warnings
+-- (See GenSign.hs for a description of the three-phase approach.)
 
--- | Extract packages referenced by type constructors in package definitions.
--- This runs after mkSymTab but before type checking, capturing type synonym
+-- Extract packages referenced by type constructors in package definitions
+-- (Phase 1 of unused import detection).
+-- Runs after mkSymTab but before type checking, capturing type synonym
 -- uses before they are expanded away. Type synonyms are expanded recursively
 -- to find all transitively referenced packages.
 getPackagesUsedInTypes :: SymTab -> CPackage -> S.Set Id
@@ -226,7 +231,7 @@ getPackagesUsedInTypes symtab (CPackage _ _ _ _ _ ds _) =
     let directTyCons = S.unions (map getFTCDn ds)
     in  S.unions (map (getPackagesForType symtab) (S.toList directTyCons))
 
--- | For a type constructor, get its source package and recursively expand
+-- For a type constructor, get its source package and recursively expand
 -- if it's a type synonym. Non-synonym types (data, struct, abstract) are
 -- not recursed into. Returns empty set for local types (ti_pkg = Nothing).
 getPackagesForType :: SymTab -> Id -> S.Set Id

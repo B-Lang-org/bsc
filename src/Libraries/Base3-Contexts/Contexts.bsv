@@ -10,5 +10,7 @@ import LBus::*;
 
 export ModuleContext::*;
 export ModuleCollect::*;
+export CBus::*;
+export LBus::*;
 
 endpackage

@@ -210,6 +210,7 @@ instance Ord Class where
 -- someone should comment what all these
 -- things are that go into an Inst.
 data Inst = Inst CExpr [TyVar] (Qual Pred) (Maybe Id)
+                                            -- ^ source package (Nothing = current package)
 
 instance NFData Inst where
     rnf (Inst x1 x2 x3 x4) = rnf4 x1 x2 x3 x4

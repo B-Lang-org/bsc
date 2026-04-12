@@ -1,7 +1,7 @@
 module Deriving(derive) where
 
 import Data.List(intercalate)
-import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr, fst3)
+import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import Position

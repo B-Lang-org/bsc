@@ -85,7 +85,7 @@ import TypeAnalysisTclUtil
 
 import ABin
 import ABinUtil
-import BinUtil(BinMap, BinFile, HashMap, readBin, sortImports)
+import BinUtil(BinMap, BinFile, HashMap, readBin, sortImportedSignatures)
 import ForeignFunctions(ForeignFuncMap)
 import SimPrimitiveModules(isPrimitiveModule)
 import SimCCBlock(SimCCBlock(..), primBlocks)
@@ -647,7 +647,7 @@ tclPackage ("load":args) = do
       mkCImp (_, _, bo_sig, (IPackage iid _ _ _), _) =
           -- XXX is False OK here?
           CImpSign (getIdString iid) False bo_sig
-      impsigs' = sortImports ((map mkCImp bininfos) ++ impsigs)
+      impsigs' = sortImportedSignatures ((map mkCImp bininfos) ++ impsigs)
       cpack' = CPackage pid exps cimps impsigs' cf defs incs
   symtab <- mkSymTab globalErrHandle cpack'
 

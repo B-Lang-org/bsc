@@ -52,8 +52,7 @@ tiDefns errh s flags ds = do
               defErr = case result of
                           (Left emsgs)  -> Left emsgs
                           (Right cdefn) -> rmFreeTypeVars cdefn
-  let checked = map checkDef ds
-  let (checks, wss, pkgss) = unzip3 checked
+  let (checks, wss, pkgss) = unzip3 (map checkDef ds)
   let (errors, ds') = apFst concat $ separate checks
   let have_errors = not (null errors)
   let mkErrorDef (Left _)  (CValueSign (CDef i t _)) = Just (mkPoisonedCDefn i t)
@@ -62,9 +61,8 @@ tiDefns errh s flags ds = do
       mkErrorDef (Left _)  d = internalError ("tiDefns - not CValueSign or Cclass: " ++ ppReadable d)
       mkErrorDef (Right _) _ = Nothing
   let error_defs = catMaybes (zipWith mkErrorDef checks ds)
-  let checked_error_defs = map checkDef error_defs
   let (double_error_msgs, error_defs') =
-          apFst concat $ separate $ map fst3 checked_error_defs
+          apFst concat $ separate $ map fst3 (map checkDef error_defs)
   -- Accumulate all used packages (only from the first round, poison pills don't use new symbols)
   let allUsedPkgs = S.unions pkgss
   -- XXX: we give up - some type signatures are bogus

@@ -5,13 +5,18 @@ compile_pass Helper.bsv
 compile_pass Helper2.bsv
 compile_pass Helper3.bsv
 compile_pass HelperAlias.bsv
+# OrphanInstance defines an orphan instance used by OrphanInstanceUse.
+# We confirm the orphan warning fires, both to verify the test setup
+# and because the import is justified despite no direct symbol use.
 compile_pass_warning OrphanInstance.bsv T0127 1
 compare_file OrphanInstance.bsv.bsc-out
+compile_pass_warning OrphanInstanceBS.bs T0127 1
+compare_file OrphanInstanceBS.bs.bsc-out
 
 # Test 1: Basic unused import - should warn about Helper
-compile_pass_warning UnusedImport.bsv T0129 1
+compile_pass_warning UnusedImport.bsv T0157 1
 compare_file UnusedImport.bsv.bsc-out
-compile_pass_warning UnusedImportBS.bs T0129 1
+compile_pass_warning UnusedImportBS.bs T0157 1
 compare_file UnusedImportBS.bs.bsc-out
 
 # Test 2: Constructor use - should NOT warn
@@ -34,10 +39,9 @@ compile_pass_no_warning FieldAccessBS.bs
 compile_pass_no_warning InstanceUse.bsv
 compile_pass_no_warning InstanceUseBS.bs
 
-# Test 6b: Orphan instance use - should NOT warn about OrphanInstance
+# Test 6b: Orphan instance use - importing for the orphan instance justifies
+# the import, so there should be no unused import warning
 compile_pass_no_warning OrphanInstanceUse.bsv
-compile_pass_warning OrphanInstanceBS.bs T0127 1
-compare_file OrphanInstanceBS.bs.bsc-out
 compile_pass_no_warning OrphanInstanceUseBS.bs
 
 # Test 7: Re-export package - should NOT warn
@@ -56,7 +60,8 @@ compile_pass_no_warning ReexportDataBS.bs
 compile_pass_no_warning ReexportFunction.bsv
 compile_pass_no_warning ReexportFunctionBS.bs
 
-# Test 11: Local export with imported type - should NOT warn
+# Test 11: Local definition using an imported type - should NOT warn.
+# (The import is used in the function's type signature.)
 compile_pass_no_warning LocalExportWithImportedType.bsv
 compile_pass_no_warning LocalExportWithImportedTypeBS.bs
 
@@ -69,5 +74,5 @@ compile_pass_no_warning TypeclassConstraint.bsv
 compile_pass_no_warning TypeclassConstraintBS.bs
 
 # Test 14: Ambiguous constructor - should warn about Helper2
-compile_pass_warning AmbiguousConstructor.bsv T0129 1
+compile_pass_warning AmbiguousConstructor.bsv T0157 1
 compare_file AmbiguousConstructor.bsv.bsc-out

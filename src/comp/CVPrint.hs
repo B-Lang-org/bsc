@@ -91,9 +91,9 @@ pvpExports d (Right excludes) = [ text "/* Do not export (unsupported)" ] ++ map
 pvpExports d (Left exports) = map (pp d) exports
 
 instance PVPrint CPackage where
-    pvPrint d _ (CPackage i exps imps impsigs fixs def includes) =
+    pvPrint d _ (CPackage i exps imps _impsigs fixs def includes) =
         (t"package" <+> pp d i <> t";") $+$ empty $+$
-        pBlockNT d 0 True (pvpExports d exps ++ map (pp d) imps ++ map (pp d) impsigs ++ map (pp d) fixs ++ pdefs d def ++ map (pp d) includes) (t"\n") $+$
+        pBlockNT d 0 True (pvpExports d exps ++ map (pp d) imps ++ map (pp d) fixs ++ pdefs d def ++ map (pp d) includes) (t"\n") $+$
         (t"endpackage:" <+> pp d i)
 
 pdefs :: PDetail -> [CDefn] -> [Doc]

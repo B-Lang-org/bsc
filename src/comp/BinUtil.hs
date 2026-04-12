@@ -2,7 +2,7 @@ module BinUtil (
                 BinMap, BinFile,
                 HashMap,
                 readImports,
-                readBin, sortImports,
+                readBin, sortImportedSignatures,
                 replaceImportedSignatures
                ) where
 
@@ -53,7 +53,9 @@ type BinMap a = M.Map String (BinFile a)
 readImports :: ErrorHandle -> Flags -> BinMap a -> HashMap -> CPackage ->
                IO (CPackage, BinMap a, HashMap)
 readImports errh flags binmap0 hashmap0
-            (CPackage pkgId exps imps _old_impsigs fixs ds includes) = do
+            (CPackage pkgId exps imps old_impsigs fixs ds includes) = do
+  when (not (null old_impsigs)) $
+      internalError "readImports: unexpected non-empty impsigs"
   let
       pkgName = getIdString pkgId
 
@@ -84,7 +86,7 @@ readImports errh flags binmap0 hashmap0
                         Nothing -> internalError ("mkCImp: " ++ ppReadable s)
   let impsigs' = map mkCImp (M.toList qualmap)
 
-  let sortedImpsigs = sortImports impsigs'
+  let sortedImpsigs = sortImportedSignatures impsigs'
   let cpkg' = CPackage pkgId exps imps sortedImpsigs fixs ds includes
 
   return (cpkg', binmap, hashmap)
@@ -128,8 +130,8 @@ readBin errh flags maybePkgName binmap0 hashmap0 p0 = do
 
 -- Sort signatures topologically: output signature list such that,
 -- if signature s1 comes before signature s2, then s1 does not import s2
-sortImports :: [CImportedSignature] -> [CImportedSignature]
-sortImports signatures =
+sortImportedSignatures :: [CImportedSignature] -> [CImportedSignature]
+sortImportedSignatures signatures =
     let
         -- We map the signatures to strings and sort a graph of strings,
         -- so that sorting is stable (the Ord instance for the tuple includes
@@ -152,7 +154,7 @@ sortImports signatures =
                        <- signatures]
         lookupFn i = case (M.lookup i sMap) of
                        Just s -> s
-                       Nothing -> internalError ("sortImports: " ++ i)
+                       Nothing -> internalError ("sortImportedSignatures: " ++ i)
     in  case tsort sGraph of
         Left cycle -> internalError ("import cycle:\n" ++ ppString cycle)
         Right order -> map lookupFn order

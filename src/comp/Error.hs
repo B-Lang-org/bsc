@@ -2811,7 +2811,7 @@ getErrorText (WOrphanInst inst) =
             " instance resolution if the orphan instance is not imported everywhere it could be used."))
 
 getErrorText (WUnusedImport pkg) =
-    (Type 129, empty,
+    (Type 157, empty,
      s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
 
 getErrorText (EBadInstanceOverlap inst1 inst2 position2) =

@@ -7,7 +7,7 @@ include ../common.mk
 
 .PHONY: build
 build: $(BUILDDIR)
-	$(BSC) -u $(BSCFLAGS) -suppress-warnings T0129:S0080 Contexts.bsv
+	$(BSC) -u $(BSCFLAGS) Contexts.bsv
 	cp -p Contexts.defines $(BUILDDIR)
 
 $(BUILDDIR):
