@@ -2,6 +2,7 @@
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
                   mkSymTab,
+                  getPackagesUsedInTypes,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
                   convCType,
@@ -212,6 +213,36 @@ updTypes r (TCon (TyCon i _ _)) =
 updTypes r (TAp f a) = TAp (updTypes r f) (updTypes r a)
 updTypes r t = t
 
+
+-- ---------------
+-- Package usage tracking for unused import warnings
+
+-- | Extract packages referenced by type constructors in package definitions.
+-- This runs after mkSymTab but before type checking, capturing type synonym
+-- uses before they are expanded away. Type synonyms are expanded recursively
+-- to find all transitively referenced packages.
+getPackagesUsedInTypes :: SymTab -> CPackage -> S.Set Id
+getPackagesUsedInTypes symtab (CPackage _ _ _ _ _ ds _) =
+    let directTyCons = S.unions (map getFTCDn ds)
+    in  S.unions (map (getPackagesForType symtab) (S.toList directTyCons))
+
+-- | For a type constructor, get its source package and recursively expand
+-- if it's a type synonym. Non-synonym types (data, struct, abstract) are
+-- not recursed into. Returns empty set for local types (ti_pkg = Nothing).
+getPackagesForType :: SymTab -> Id -> S.Set Id
+getPackagesForType symtab tycon =
+    case findType symtab tycon of
+        Just (TypeInfo { ti_pkg = Just pkg, ti_sort = TItype _ rhs }) ->
+            -- Type synonym from imported package: record package and recurse
+            let rhsTyCons = getFTyCons rhs
+                recursivePkgs = S.unions (map (getPackagesForType symtab) (S.toList rhsTyCons))
+            in  S.insert pkg recursivePkgs
+        Just (TypeInfo { ti_pkg = Just pkg }) ->
+            -- Non-synonym from imported package: record package only
+            S.singleton pkg
+        _ -> S.empty  -- Not found or local type (ti_pkg = Nothing)
+
+-- ---------------
 
 data QInst = QInst Id (Qual CType)
 

@@ -80,7 +80,7 @@ import Pragma
 import VModInfo(VPathInfo, VPort)
 import Deriving(derive)
 import SymTab
-import MakeSymTab(mkSymTab, cConvInst)
+import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
 import TypeCheck(cCtxReduceIO, cTypeCheck)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
@@ -414,6 +414,10 @@ compilePackage
     symt <- mkSymTab errh mctx
     t <- dump errh flags t DFsympostctxreduce dumpnames symt
 
+    -- Extract packages used in type constructors from the parsed package
+    -- (before any transformations that might expand synonyms or change types)
+    let pkgsUsedInTypes = getPackagesUsedInTypes symt mctx
+
     -- Turn instance declarations into ordinary definitions
     start flags DFconvinst
     let minst = cConvInst errh symt mctx
@@ -421,7 +425,7 @@ compilePackage
 
     -- Type check and insert dictionaries
     start flags DFtypecheck
-    (mod, tcErrors) <- cTypeCheck errh flags symt minst
+    (mod, tcErrors, pkgsUsedInCode) <- cTypeCheck errh flags symt minst
     --putStr (ppReadable mod)
     t <- dump errh flags t DFtypecheck dumpnames mod
 
@@ -618,9 +622,17 @@ compilePackage
     start flags DFwriteBin
 
     -- Generate the user-visible type signature
-    bi_sig <- genUserSign errh symt mctx
+    (bi_sig, pkgsUsedInExports) <- genUserSign errh symt mctx
     -- Generate a type signature where everything is visible
     bo_sig <- genEverythingSign errh symt mctx
+
+    -- Check for unused imports by combining packages from all three sources
+    let (CPackage _ _ imports _ _ _ _) = mctx
+        allUsedPkgs = S.unions [pkgsUsedInTypes, pkgsUsedInCode, pkgsUsedInExports]
+        importedPkgs = [i | (CImpId _ i) <- imports]
+        unusedPkgs = filter (\pkg -> not (S.member pkg allUsedPkgs)) importedPkgs
+        unusedWarns = [(getPosition pkg, WUnusedImport (pfpString pkg)) | pkg <- unusedPkgs]
+    when (not (null unusedWarns)) $ bsWarning errh unusedWarns
 
     -- Generate binary version of the internal tree .bo file
     let bin_filename = putInDir (bdir flags) name binSuffix
@@ -2178,7 +2190,7 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     t <- dump errh flags t DFwrapper_ctxreduce dumpnames cpkg_ctx
 
     start flags DFwrapper_typecheck
-    (cpkg_chk, tcErrors) <- cTypeCheck errh flags symt cpkg_ctx
+    (cpkg_chk, tcErrors, _usedPkgs) <- cTypeCheck errh flags symt cpkg_ctx
     t <- dump errh flags t DFwrapper_typecheck dumpnames cpkg_chk
 
     start flags DFwrapper_simplified

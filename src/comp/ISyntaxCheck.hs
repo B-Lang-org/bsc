@@ -93,8 +93,8 @@ eqTypeNum flags symt r t1 t2
           addExplPreds eqs
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
           satisfy eqs [vp]
-    in  case (fst $ runTI flags False symt satisfyEq) of
-          Right ([],_) -> True
+    in  case runTI flags False symt satisfyEq of
+          (Right ([],_), _, _) -> True
           res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
                  False
  where isITAp (ITAp _ _) = True

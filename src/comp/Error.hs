@@ -615,6 +615,7 @@ data ErrMsg =
         | WShadowDecl String Position -- ^ var name, previous declaration pos
         | WNeverAssigned String -- ^ variable was declared but not assigned
         | WDeprecated String String String -- ^ what, it's name, optional text
+        | WUnusedImport String -- ^ package name that was imported but not used
         | EObsolete String String String -- ^ what, it's name, optional text
         | MRestrictions String String  -- ^ please refer to the section on ____ in the Bluespec User Guide for restrictions on using ___
         | WExperimental String  -- ^ support for ___ is experimental
@@ -2808,6 +2809,10 @@ getErrorText (WOrphanInst inst) =
             "The instance's typeclass as well as all of the instance's source type parameters " ++
             " are defined in other packages. This can lead to confusing and inconsistent " ++
             " instance resolution if the orphan instance is not imported everywhere it could be used."))
+
+getErrorText (WUnusedImport pkg) =
+    (Type 129, empty,
+     s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
 
 getErrorText (EBadInstanceOverlap inst1 inst2 position2) =
     (Type 128, empty,

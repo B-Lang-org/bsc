@@ -1,7 +1,7 @@
 module Deriving(derive) where
 
 import Data.List(intercalate)
-import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr)
+import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr, fst3)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import Position
@@ -958,7 +958,7 @@ addAutoDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
 addAutoDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
-    | Right True <- fst (runTI flags False r check) = derivs
+    | (Right True, _, _) <- runTI flags False r check = derivs
   where check = do
           let (kind, sort) =
                   -- trace ("check undef: " ++ show clsId) $
