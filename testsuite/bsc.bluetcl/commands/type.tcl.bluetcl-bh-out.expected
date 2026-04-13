@@ -99,7 +99,7 @@ Typeclass
         Prelude.Arith Prelude.Integer
         Prelude.Arith Prelude.Real
         Prelude.Arith Prelude.String
-    position {%/Libraries/Prelude.bs 530 21 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 583 21 {Library Prelude}}
 
 Bits a n
 Typeclass
@@ -129,7 +129,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 403 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -157,7 +157,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 403 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -185,7 +185,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 403 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -213,7 +213,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 403 15 {Library Prelude}}
 
 Has_tpl_1 t a
 Typeclass
@@ -224,14 +224,14 @@ Typeclass
     members
         {t -> a} tpl_1
     instances
-        Prelude.Has_tpl_1 (Prelude.Tuple2 a b) a
-        Prelude.Has_tpl_1 (Prelude.Tuple3 a b c) a
-        Prelude.Has_tpl_1 (Prelude.Tuple4 a b c d) a
-        Prelude.Has_tpl_1 (Prelude.Tuple5 a b c d e) a
-        Prelude.Has_tpl_1 (Prelude.Tuple6 a b c d e f) a
-        Prelude.Has_tpl_1 (Prelude.Tuple7 a b c d e f g) a
-        Prelude.Has_tpl_1 (Prelude.Tuple8 a b c d e f g h) a
-    position {%/Libraries/Prelude.bs 3321 17 {Library Prelude}}
+        Prelude.Has_tpl_1 (a, b) a
+        Prelude.Has_tpl_1 (a, b, c) a
+        Prelude.Has_tpl_1 (a, b, c, d) a
+        Prelude.Has_tpl_1 (a, b, c, d, e) a
+        Prelude.Has_tpl_1 (a, b, c, d, e, f) a
+        Prelude.Has_tpl_1 (a, b, c, d, e, f, g) a
+        Prelude.Has_tpl_1 (a, b, c, d, e, f, g, h) a
+    position {%/Libraries/Prelude.bs 3463 17 {Library Prelude}}
 
 Bitify Baz (int, n):
 UNKNOWN
