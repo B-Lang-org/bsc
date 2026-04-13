@@ -1,0 +1,11 @@
+package ExpSizeOf_Let_NoCtx where
+
+-- A let binding with a type annotation containing SizeOf should require
+-- a Bits context, but currently doesn't (the CHasType path in tiExpr
+-- handles inline annotations but not let bindings).
+-- This is filed as a known bug.
+
+foo :: a -> String
+foo _ = let x :: Bit (SizeOf a)
+            x = _
+        in  printType $ typeOf $ x

@@ -1,0 +1,12 @@
+checking package dependencies
+compiling ExpSizeOf_Let_NoCtx.bs
+Error: "ExpSizeOf_Let_NoCtx.bs", line 8, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    a -> Prelude.String
+  The following contexts are needed:
+    Prelude.Bits a a__
+      Introduced at the following locations:
+	"ExpSizeOf_Let_NoCtx.bs", line 9, column 22
+  The type variables are from the following positions:
+    "a__" at "ExpSizeOf_Let_NoCtx.bs", line 9, column 22
