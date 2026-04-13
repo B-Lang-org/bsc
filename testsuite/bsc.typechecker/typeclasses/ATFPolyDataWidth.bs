@@ -31,11 +31,12 @@ mkEncoded val =
   let raw = toBit val
   in Encoded raw (zeroExtend raw)
 
--- Polymorphic pattern match
-getRaw :: Encoded f -> Bit (Width f)
+-- Polymorphic pattern match: need HasWidth context because Width f
+-- in the return type generates an implicit HasWidth predicate.
+getRaw :: (HasWidth f n) => Encoded f -> Bit (Width f)
 getRaw (Encoded r _) = r
 
-getExtended :: Encoded f -> Bit (TAdd (Width f) 1)
+getExtended :: (HasWidth f n, Add (Width f) 1 m) => Encoded f -> Bit (TAdd (Width f) 1)
 getExtended (Encoded _ e) = e
 
 -- Concrete: Width Byte = 8, TAdd 8 1 = 9

@@ -19,7 +19,7 @@ compile_pass ExpSizeOf_Instances.bsv
 compile_pass ExpSizeOf_InstancesBase.bsv
 
 # Test that SizeOf is expanded even when it's buried in a type synonym
-compile_pass_bug ExpSizeOf_InstancesBaseSyn.bsv 1729
+compile_pass ExpSizeOf_InstancesBaseSyn.bsv
 
 # ---------------
 # Test that SizeOf introduced through the type of a field in a struct value
@@ -32,6 +32,29 @@ compile_verilog_pass ExpSizeOf_Field.bsv
 # but after adding the normtypes pass (later replaced by extra normalization in expanded),
 # it succeeds.
 compile_verilog_pass ExpSizeOf_FieldSyn.bsv
+compile_verilog_pass ExpSizeOf_FieldSyn_BS.bs
+compile_pass ExpSizeOf_FieldSyn_Minimal.bs
+
+# ---------------
+# Test that SizeOf is expanded inside 'valueOf' (GitHub Issue #890)
+
+compile_fail_error ExpSizeOf_ValueOf_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_ValueOf_NoCtx.bs]
+
+compile_pass ExpSizeOf_ValueOf_WithCtx.bs
+
+# Perform the same tests for 'stringOf'
+compile_fail_error ExpSizeOf_StringOf_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_StringOf_NoCtx.bs]
+compile_pass ExpSizeOf_StringOf_WithCtx.bs
+
+# Kind errors in valueOf type argument
+compile_fail_error ValueOf_KindMismatch_Arity.bs T0025
+compile_fail_error ValueOf_KindMismatch_Res.bs T0026
+
+# SizeOf in a let binding type annotation requires a Bits context
+compile_fail_error ExpSizeOf_Let_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_Let_NoCtx.bs]
 
 # ---------------
 

@@ -385,10 +385,7 @@ ctxRedCQType' isInstHead cqt = do
     -- (and do it here, after "convCQType", so that "expTFun" sees
     -- the qualified types)
     (qs, t) <- if isInstHead
-               then do -- XXX disable expanding of type synonyms until
-                       -- XXX failures with TLM instances are resolved
-                       -- XXX (vqs_extra, t1) <- expTFun t0 (expandSyn t0)
-                       (vqs_extra, t1) <- expTFun t0
+               then do (vqs_extra, t1) <- expTFun (expandSyn t0)
                        let qs_extra = map toPredWithPositions vqs_extra
                        return (qs0 ++ qs_extra, t1)
                else return (qs0, t0)
