@@ -36,7 +36,7 @@ mkEncoded val =
 getRaw :: (HasWidth f n) => Encoded f -> Bit (Width f)
 getRaw (Encoded r _) = r
 
-getExtended :: (HasWidth f n, Add (Width f) 1 m) => Encoded f -> Bit (TAdd (Width f) 1)
+getExtended :: (HasWidth f n) => Encoded f -> Bit (TAdd (Width f) 1)
 getExtended (Encoded _ e) = e
 
 -- Concrete: Width Byte = 8, TAdd 8 1 = 9
