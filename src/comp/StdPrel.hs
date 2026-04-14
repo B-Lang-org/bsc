@@ -10,7 +10,8 @@ module StdPrel(
     tiAction, tiRules,
     tiClock, tiReset, tiInout,
     tiPrimArray,
-    tiPosition, tiType, tiName, tiPred, tiSchedPragma
+    tiPosition, tiType, tiName, tiPred, tiSchedPragma,
+    mkNumInstBody
    ) where
 
 import qualified Bag as B
@@ -25,7 +26,7 @@ import CType
 import Type
 import Pred
 import PreIds
-import CSyntax(anyTExpr)
+import CSyntax
 import Subst(Types(..))
 import Unify(mgu)
 
@@ -42,6 +43,9 @@ tvarh1 = tVarKind v1 KNum
 tvarh2 = tVarKind v2 KNum
 tvarh3 = tVarKind v3 KNum
 
+mkNumInstBody :: CType -> CExpr
+mkNumInstBody t = CStructT t []
+
 -- instance for p' :=> p
 -- avoid mkInst because it does quantification
 -- that will introduce unnecessary (and sometimes harmful)
@@ -49,7 +53,10 @@ tvarh3 = tVarKind v3 KNum
 mkImpliedInst :: Pred -> Pred -> Inst
 mkImpliedInst p' p = Inst r [] ([pp'] :=> p) (Just idPrelude)
   where pp' = mkPredWithPositions [] p'
-        r   = anyTExpr (predToType p' `fn` predToType p)
+        instTy = predToType p
+        ty = predToType p' `fn` instTy
+        def = CDefT id_fun [] (CQType [] ty) [CClause [CPAny noPosition] [] (mkNumInstBody instTy)]
+        r = Cletseq [CLValueSign def []] (CVar id_fun)
 
 -- the DVS are the type variables in the concrete type of a type signature
 -- (i.e.  without provisos)
@@ -84,47 +91,47 @@ genAddInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- (C1, C2, ?) : (C1, C2, C1+C2)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1+n2) p1)
 
 -- (C1, ?, C3) : (C1, C3-C1, C3)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _, t3@(TCon (TyNum i3 _))])
         | i3 >= i1 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum (i3 - i1) p1)
 
 -- (?, C2, C3) : (C3-C2, C2, C3)
 genAddInsts _ _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2)), t3@(TCon (TyNum i3 _))])
         | i3 >= i2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum (i3 - i2) p2)
 
 -- (0, T, ?) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (T, 0, ?) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (?, T, T) : (0, T, T)
 genAddInsts _ _ _ (IsIn c [_, t2, t3])
         | t2 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum 0 (getPosition t2))
 
 -- (T, ?, T) : (T, 0, T)
 genAddInsts _ _ _ (IsIn c [t1, _, t3])
         | t1 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum 0 (getPosition t1))
 
@@ -141,7 +148,7 @@ genAddInsts symT _ _ p@(IsIn c [t1, t2, TCon (TyNum n npos)])
 genAddInsts _ _ _ p@(IsIn c [t1, t2, t3])
     | t3 == cTApplys tAdd [t1, t2] ||
       t3 == cTApplys tAdd [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
- where r = anyTExpr (predToType p)
+ where r = mkNumInstBody (predToType p)
 
 -- (T1, T2, TAdd#(T1, T3)) : NumEq(T2,T3) => itself
 -- (T1, T2, TAdd#(T3, T1)) : NumEq(T2,T3) => itself
@@ -171,7 +178,7 @@ genAddInsts symT _ _ p@(IsIn c [t1, t2, t3])
 {-
         -- We can pre-simplify the NumEq, if it is more efficient:
         if (nullAddTerms b1_rem && nullAddTerms b2_rem)
-        then let r = anyTExpr (predToType p)
+        then let r = mkNumInstBody (predToType p)
              in  [mkInst r ([] :=> p) (Just idPrelude)]
         else case (fromAddTerms b1_rem) of
                (TAp (TAp tc t1') t2') | tc == tAdd
@@ -198,7 +205,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [t1,t2, tv@(TVar v)])
       mgu bvs tv t3 /= Nothing =
         --trace ("TAdd " ++ ppReadable (r, p)) $
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tAdd t1) t2
 
@@ -224,7 +231,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [t1, tv@(TVar v), t3])
       mgu bvs tv t2 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = cTApplys tSub [t3, t1]
 genAddInsts _ bvs (Just dvs) (IsIn c [tv@(TVar v), t2, t3])
@@ -234,7 +241,7 @@ genAddInsts _ bvs (Just dvs) (IsIn c [tv@(TVar v), t2, t3])
       mgu bvs tv t1 /= Nothing =
         --trace ("Add TMax " ++ ppReadable p) $
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = cTApplys tSub [t3, t2]
 
@@ -345,20 +352,20 @@ genMaxInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- (C1, C2, ?) : (C1, C2, max(C1,C2))
 genMaxInsts _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 `max` n2) p1)
 
 -- (0, T, ?) : (0, T, T)
 genMaxInsts _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (T, 0, ?) : (T, 0, T)
 genMaxInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T1, T2, TMax#(T1,T2)) : itself
@@ -366,7 +373,7 @@ genMaxInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
 genMaxInsts _ _ (IsIn c [t1, t2, t3])
     | t3 == cTApplys tMax [t1, t2] ||
       t3 == cTApplys tMax [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
- where r = anyTExpr (predToType p)
+ where r = mkNumInstBody (predToType p)
        p = IsIn c [t1, t2, t3]
 
 -- XXX The above rules are a simple case of this
@@ -376,7 +383,7 @@ genMaxInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMaxTerms s1 s2 =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
   where s1 = toMaxTerms (TAp (TAp tMax t1) t2)
         s2 = toMaxTerms t3
-        r = anyTExpr (predToType p)
+        r = mkNumInstBody (predToType p)
 
 -- when satisfyFV, as a last resort:
 -- (T1, T2, V) : (T1, T2, TMax#(T1,T2))
@@ -387,7 +394,7 @@ genMaxInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMax t1) t2
 
@@ -436,20 +443,20 @@ genMinInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- (C1, C2, ?) : (C1, C2, min(C1,C2))
 genMinInsts _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 `min` n2) p1)
 
 -- (0, T, ?) : (0, T, 0)
 genMinInsts _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 0, ?) : (T, 0, 0)
 genMinInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (T1, T2, TMin#(T1,T2)) : itself
@@ -457,7 +464,7 @@ genMinInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
 genMinInsts _ _ (IsIn c [t1, t2, t3])
     | t3 == cTApplys tMin [t1, t2] ||
       t3 == cTApplys tMin [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
- where r = anyTExpr (predToType p)
+ where r = mkNumInstBody (predToType p)
        p = IsIn c [t1, t2, t3]
 
 -- XXX The above rules are a simple case of this
@@ -467,7 +474,7 @@ genMinInsts _ _ p@(IsIn c [t1, t2, t3]) | equalMinTerms s1 s2 =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
   where s1 = toMinTerms (TAp (TAp tMin t1) t2)
         s2 = toMinTerms t3
-        r = anyTExpr (predToType p)
+        r = mkNumInstBody (predToType p)
 
 -- when satisfyFV, as a last resort:
 -- (T1, T2, V) : (T1, T2, TMin#(T1,T2))
@@ -478,7 +485,7 @@ genMinInsts bvs (Just dvs) (IsIn c [t1, t2, tv@(TVar v)])
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMin t1) t2
 
@@ -535,7 +542,7 @@ genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
 -- (C, ?) : (C, log(C))
 genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
         | i1 > 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2]
         t2 = TCon (TyNum (log2 i1) p1)
 
@@ -547,7 +554,7 @@ genLogInsts _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _])
 -- (?, C) : (2^C, C)
 genLogInsts _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2))])
         | i2 >= 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2]
         t1 = TCon (TyNum (2 ^ i2) p2)
 -}
@@ -559,7 +566,7 @@ genLogInsts _ _ p@(IsIn c [t1, t2])
       tcon == tLog, arg == t1 = [ mkInst r ([] :=> p) (Just idPrelude) ]
     | (tcon, [arg]) <- splitTAp t1,
       tcon == tExp, arg == t2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
 
 -- XXX Add this?
 -- (TExp#(T1), T2) : NumEq(T1,T2) => itself
@@ -580,7 +587,7 @@ genLogInsts bvs (Just dvs) (IsIn c [tv@(TVar v),t2])
       checkDVS dvs t2,
       mgu bvs tv t1 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2]
         t1 = TAp tExp t2
 -}
@@ -595,7 +602,7 @@ genLogInsts bvs (Just dvs) (IsIn c [t1,tv@(TVar v)])
       checkDVS dvs t1,
       mgu bvs tv t2 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2]
         t2 = TAp tLog t1
 
@@ -625,59 +632,59 @@ genMulInsts :: SymTab -> [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- (C1, C2, ?) : (C1, C2, C1*C2)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum n1 p1)), t2@(TCon (TyNum n2 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum (n1 * n2) p1)
 
 -- (C1, ?, C3) : (C1, C3/C1, C3) when C3/C1 has no remainder (and C1 is not 0)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum i1 p1)), _, t3@(TCon (TyNum i3 _))])
         | i1 /= 0 && i3 `mod` i1 == 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum (i3 `div` i1) p1)
 
 -- (?, C2, C3) : (C3/C2, C2, C3) when C3/C2 has no remainder (and C2 is not 0)
 genMulInsts _ _ _ (IsIn c [_, t2@(TCon (TyNum i2 p2)), t3@(TCon (TyNum i3 _))])
         | i2 /= 0 && i3 `mod` i2 == 0 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum (i3 `div` i2) p2)
 
 -- (1, T, ?) : (1, T, T)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum 1 _)), t2, _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (0, T, ?) : (0, T, 0)
 genMulInsts _ _ _ (IsIn c [t1@(TCon (TyNum 0 _)), t2, _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 1, ?) : (T, 1, T)
 genMulInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- (T, 0, ?) : (T, 0, 0)
 genMulInsts _ _ _ (IsIn c [t1, t2@(TCon (TyNum 0 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t2]
 
 -- (?, T, T) : (1, T, T)
 genMulInsts _ _ _ (IsIn c [_, t2, t3])
         | t2 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TCon (TyNum 1 (getPosition t2))
 
 -- (T, ?, T) : (T, 1, T)
 genMulInsts _ _ _ (IsIn c [t1, _, t3])
         | t1 == t3 = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TCon (TyNum 1 (getPosition t1))
 
@@ -694,14 +701,14 @@ genMulInsts symT _ _ p@(IsIn c [t1, t2, TCon (TyNum n npos)])
 genMulInsts _ _ _ p@(IsIn c [t1, t2, t3])
     | t3 == cTApplys tMul [t1, t2] ||
       t3 == cTApplys tMul [t2, t1] = [ mkInst r ([] :=> p) (Just idPrelude) ]
- where r = anyTExpr (predToType p)
+ where r = mkNumInstBody (predToType p)
 
 -- XXX The above rules are simple cases of this:
 genMulInsts symT _ _ p@(IsIn c [t1, t2, t3])
     | (equalMulTerms b1 b2) = [ mkInst r ([] :=> p) (Just idPrelude) ]
  where b1 = toMulTerms (TAp (TAp tMul t1) t2)
        b2 = toMulTerms t3
-       r = anyTExpr (predToType p)
+       r = mkNumInstBody (predToType p)
 
 -- (T1, T1, TMul#(T2, T2)) : NumEq(T1,T2) => itself
 genMulInsts symT _ _ p@(IsIn c [t1,t1',t3])
@@ -799,20 +806,20 @@ genMulInsts _ bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tMul t1) t2
 
 {-
 genMulInsts (Just dvs) (IsIn c [t1,TVar v,t3]) | v `notElem` dvs =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t2 = TAp (TAp tDiv t3) t1
 
 genMulInsts (Just dvs) (IsIn c [TVar v,t2,t3]) | v `notElem` dvs =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t1 = TAp (TAp tDiv t3) t2
 -}
@@ -895,14 +902,14 @@ genDivInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 -- (C1, C2, ?) : (C1, C2, C1/C2)
 genDivInsts _ _ (IsIn c [t1@(TCon (TyNum i1 pos)), t2@(TCon (TyNum i2 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TCon (TyNum ((i1+i2-1) `div` i2) pos)
 
 -- (T, 1, ?) : (T, 1, T)
 genDivInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
         = [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t1]
 
 -- XXX Add this?
@@ -911,7 +918,7 @@ genDivInsts _ _ (IsIn c [t1, t2@(TCon (TyNum 1 _)), _])
 -- (T1, T2, TDiv#(T1,T2)) : itself
 genDivInsts _ _ (IsIn c [t1, t2, t3])
     | t3 == cTApplys tDiv [t1, t2] = [ mkInst r ([] :=> p) (Just idPrelude) ]
- where r = anyTExpr (predToType p)
+ where r = mkNumInstBody (predToType p)
        p = IsIn c [t1, t2, t3]
 
 -- when satisfyFV, as a last resort:
@@ -924,7 +931,7 @@ genDivInsts bvs (Just dvs) (IsIn c [t1,t2,tv@(TVar v)])
       checkDVS dvs (t1, t2),
       mgu bvs tv t3 /= Nothing =
         [ mkInst r ([] :=> p) (Just idPrelude) ]
-  where r = anyTExpr (predToType p)
+  where r = mkNumInstBody (predToType p)
         p = IsIn c [t1, t2, t3]
         t3 = TAp (TAp tDiv t1) t2
 
@@ -953,7 +960,7 @@ genNumEqInsts :: SymTab ->  [TyVar] -> Maybe [TyVar] -> Pred -> [Inst]
 genNumEqInsts symT _ _ p@(IsIn c [t1, t2])
     | t1 == t2 = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t1, t1]
-        r = anyTExpr (predToType p)
+        r = mkNumInstBody (predToType p)
 
 -- reduce a requested equality to a simpler provisos
 -- (i.e. fewer type functions)
@@ -980,16 +987,16 @@ genNumEqInsts symT _ _ p@(IsIn c [t, t'])
 genNumEqInsts _ _ _ (IsIn c [TVar {}, t2]) | null (tv t2)
     = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t2, t2]
-        r = anyTExpr (predToType p)
+        r = mkNumInstBody (predToType p)
 genNumEqInsts symT _ _ (IsIn c [t1, TVar {}]) | null (tv t1)
     = [ mkInst r ([] :=> p) (Just idPrelude) ]
   where p = IsIn c [t1, t1]
-        r = anyTExpr (predToType p)
+        r = mkNumInstBody (predToType p)
 
 -- reduce away a generated type variable
 genNumEqInsts symT bvs (Just dvs) (IsIn c [t1, t2])
     | TVar v <- tB, checkDVS dvs tA, mgu bvs tB tA /= Nothing,
-      let p = IsIn c [tA, tA], let r = anyTExpr (predToType p) =
+      let p = IsIn c [tA, tA], let r = mkNumInstBody (predToType p) =
         --trace ("NumEq " ++ ppReadable (r, p)) $
         [ mkInst r ([] :=> p) (Just idPrelude) ]
   where (tA, tB) = ordPair (t1, t2)

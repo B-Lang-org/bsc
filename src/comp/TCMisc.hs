@@ -37,7 +37,7 @@ import Pred
 import SATPred
 import TIMonad
 import PreIds
-import StdPrel(isPreClass)
+import StdPrel(isPreClass, mkNumInstBody)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
                cTApply, cVApply, anyTExpr)
 import Literal
@@ -592,8 +592,9 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                 Just _ -> do
                     -- XXX for now, no new info is learned, just sat
                     --traceM("   success.")
-                    let r = anyTExpr (predToType pr')
-                        b = (w, predToType pr', r)
+                    let t = predToType pr'
+                        r = mkNumInstBody t
+                        b = (w, t, r)
                         sb = mkSolvedBind b False
                     return $ Just ([], sb, nullSubst, Nothing)
       else return r
