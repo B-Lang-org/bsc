@@ -2810,10 +2810,6 @@ getErrorText (WOrphanInst inst) =
             " are defined in other packages. This can lead to confusing and inconsistent " ++
             " instance resolution if the orphan instance is not imported everywhere it could be used."))
 
-getErrorText (WUnusedImport pkg) =
-    (Type 157, empty,
-     s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
-
 getErrorText (EBadInstanceOverlap inst1 inst2 position2) =
     (Type 128, empty,
      s2par ("Overlapping typeclass instances " ++ inst1 ++ " and " ++ inst2 ++
@@ -3007,6 +3003,10 @@ getErrorText (EATFInInstanceHead atf) =
     (Type 156, empty,
      s2par ("Type function " ++ ishow atf ++
             " cannot be used in an instance head"))
+
+getErrorText (WUnusedImport pkg) =
+    (Type 157, empty,
+     s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
 
 -- Generation Errors
 

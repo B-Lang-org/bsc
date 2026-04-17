@@ -10,7 +10,6 @@ import BypassReg::*;
 import Cntrs::*;
 // imported so that the .bo files are generated
 import DefaultValue::*;
-import FShow::*;
 import Gray::*;
 import GrayCounter::*;
 import HList::*;

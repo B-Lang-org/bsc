@@ -1,3 +1,7 @@
 
 test_c_veri_bsv FShowTest
 
+# Test for backwards compatibility:
+# The FShow package can still be imported
+# but a warning is reported that it is unnecessary
+compile_pass_warning Import.bsv T0157
