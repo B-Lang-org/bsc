@@ -20,7 +20,7 @@ import Position(noPosition)
 import Pragma
 import CSyntax
 import CFreeVars
-import CType(leftTyCon, tyConArgs, isTConArrow, allTyCons, allTConNames)
+import CType(leftTyCon, tyConArgs, isTConArrow, allTyCons)
 import Pred(Class(..), predToCPred, expandSyn)
 import SymTab
 import Assump(Assump(..))
@@ -761,5 +761,7 @@ getPackagesUsedByExports currentPkg (CSignature _ _ _ defns) =
     getPackageFromDefn (CprimType (IdKind i _)) = getIdPackage i
     getPackageFromDefn (CIinstance _ _) = Nothing  -- Instances don't have a name
     getPackageFromDefn (CPragma _) = Nothing
+    getPackageFromDefn d =
+        internalError ("getPackageFromDefn: unexpected after typecheck: " ++ ppReadable d)
 
 -- ---------------
