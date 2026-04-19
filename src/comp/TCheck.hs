@@ -2092,7 +2092,10 @@ tiField1 as rt (f, e) = do
     (qs :=> ft0, xts) <- freshInstT "G" f sc rt
     -- Fields might be defined using type constructors (like SizeOf),
     -- so replace them with vars and return the preds that determine the vars
-    (tcon_ps, ft) <- expTFun (expandSyn ft0)
+    -- XXX disable expanding of type synonyms until failures with TLM
+    -- XXX (type synonyms which drop parameters) is resolved
+    -- XXX (tcon_ps, ft) <- expTFun (expandSyn ft0)
+    (tcon_ps, ft) <- expTFun ft0
     -- Unify the field type and the context expected return type,
     -- possibly returning preds which express type equality
     (t,eq_ps) <- unifyFnTo f e ft rt
