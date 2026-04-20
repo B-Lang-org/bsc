@@ -386,7 +386,14 @@ ctxRedCQType' isInstHead cqt = do
     (qs, t) <- if isInstHead
                then do (vqs_extra, t1) <- expTFun (expandSyn t0)
                        let qs_extra = map toPredWithPositions vqs_extra
-                       return (qs0 ++ qs_extra, t1)
+                       -- Use the expanded type t1 only if expTFun actually
+                       -- found something to expand (i.e. generated predicates).
+                       -- Otherwise keep the original t0.
+                       -- XXX we should probably be unconditionally expanding synonymns
+                       -- here and in tiField1, but there is existing code that relies on
+                       -- the current behavior, so changing this requires more thought.
+                       let t' = if null vqs_extra then t0 else t1
+                       return (qs0 ++ qs_extra, t')
                else return (qs0, t0)
 
     -- construct the predicates and try to reduce them
