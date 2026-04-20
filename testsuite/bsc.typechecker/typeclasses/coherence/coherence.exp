@@ -1,4 +1,4 @@
-# Tests for transitive incoherence warnings (T0158).
+# Tests for transitive incoherence warnings and errors (T0158/T0159).
 # IncoherentBase defines a class marked `incoherent` with a generic and a more
 # specific overlapping instance.  Each Instance_* test derives another class
 # (coherent, incoherent, or default-annotation) whose instance depends on
@@ -7,21 +7,18 @@
 
 # ---- Instance-level proviso constraints ----
 
-# All four Instance_* packages resolve IncoherentBase incoherently via a
-# proviso and therefore produce exactly one T0158 transitive-incoherence
-# warning.  They all compile and simulate correctly.
+# coherent class depending on incoherent resolution: compile error T0159.
+compile_fail_error Instance_Coherent.bs T0159
 
-test_c_veri_bs_modules_options Instance_Coherent {} {}
-find_n_warning Instance_Coherent.bs.bsc-vcomp-out T0158 1
+# default class (no annotation): T0159 error when flag off, T0158 warning when flag on.
+compile_fail_error Instance_Default_FlagOff.bs T0159
 
-test_c_veri_bs_modules_options Instance_Default_FlagOff {} {}
-find_n_warning Instance_Default_FlagOff.bs.bsc-vcomp-out T0158 1
-
-test_c_veri_bs_modules_options Instance_Default_FlagOn {} {}
+test_c_veri_bs_modules_options Instance_Default_FlagOn {} {-incoherent-instance-matches}
 find_n_warning Instance_Default_FlagOn.bs.bsc-vcomp-out T0158 1
 
+# incoherent class: transitive incoherence is suppressed (0 T0158 warnings).
 test_c_veri_bs_modules_options Instance_Incoherent {} {}
-find_n_warning Instance_Incoherent.bs.bsc-vcomp-out T0158 1
+find_n_warning Instance_Incoherent.bs.bsc-vcomp-out T0158 0
 
 # ---- Superclass constraints ----
 

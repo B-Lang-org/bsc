@@ -7,7 +7,7 @@ module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
                    DirectIncoherence(..), addDirectIncoherence,
                    sbsEmpty, fromSB, (<++), emptySBs,
                    recursiveBinds, nonRecursiveBinds,
-                   bindClasses, directIncoherences,
+                   bindClasses, bindTypes, directIncoherences,
                    getRecursiveDefls, getNonRecursiveDefls,
                    getIncoherentIds, computeTransitiveIncoherent) where
 
@@ -76,14 +76,16 @@ data SolvedBinds = SolvedBinds {
   recursiveIds :: S.Set Id,
   nonRecursiveIds :: S.Set Id,
   incoherentIds :: S.Set Id,
-  bindClasses :: M.Map Id (Maybe Class),           -- class per bind (for allowIncoherent check)
+  bindClasses :: M.Map Id Class,                   -- class per bind (for allowIncoherent check)
+  bindTypes :: M.Map Id Type,                      -- type per bind (for diagnostic messages)
   directIncoherences :: M.Map Id DirectIncoherence -- root cause per directly-incoherent bind
 } deriving (Show)
 
 instance Types SolvedBinds where
   apSub s sbs = sbs {
     recursiveBinds = [ ((i, apSub s t, apSub s e), fv) | ((i, t, e), fv) <- recursiveBinds sbs ],
-    nonRecursiveBinds = [ ((i, apSub s t, apSub s e), fv) | ((i, t, e), fv) <- nonRecursiveBinds sbs ]
+    nonRecursiveBinds = [ ((i, apSub s t, apSub s e), fv) | ((i, t, e), fv) <- nonRecursiveBinds sbs ],
+    bindTypes = M.map (apSub s) (bindTypes sbs)
   }
   tv sbs = recTVs `union` nonRecTVs
     where recTVs    = tv [ (t, e) | ((_, t, e), _) <- recursiveBinds sbs ]
@@ -96,7 +98,7 @@ sbsEmpty sbs = null (recursiveBinds sbs) && null (nonRecursiveBinds sbs)
 -- Note: Both self-recursive and non-recursive bindings are independent of accum
 -- Self-recursive bindings depend only on themselves, fresh variables, and source EPreds
 fromSB :: SolvedBind -> SolvedBinds
-fromSB (SolvedBind b@(i, _, _) fv isRec isInc cls) =
+fromSB (SolvedBind b@(i, t, _) fv isRec isInc cls) =
   if isRec
     then SolvedBinds {
       recursiveBinds = [(b, fv)],
@@ -104,7 +106,8 @@ fromSB (SolvedBind b@(i, _, _) fv isRec isInc cls) =
       recursiveIds = S.singleton i,
       nonRecursiveIds = S.empty,
       incoherentIds = if isInc then S.singleton i else S.empty,
-      bindClasses = M.singleton i cls,
+      bindClasses = maybe M.empty (M.singleton i) cls,
+      bindTypes = M.singleton i t,
       directIncoherences = M.empty
     }
     else SolvedBinds {
@@ -113,7 +116,8 @@ fromSB (SolvedBind b@(i, _, _) fv isRec isInc cls) =
       recursiveIds = S.empty,
       nonRecursiveIds = S.singleton i,
       incoherentIds = if isInc then S.singleton i else S.empty,
-      bindClasses = M.singleton i cls,
+      bindClasses = maybe M.empty (M.singleton i) cls,
+      bindTypes = M.singleton i t,
       directIncoherences = M.empty
     }
 
@@ -151,6 +155,7 @@ new <++ old
                       nonRecursiveIds = nonRecursiveIds new `S.union` (nonRecursiveIds old `S.difference` nowNotNonRecIds),
                       incoherentIds = incoherentIds new `S.union` incoherentIds old,
                       bindClasses = bindClasses new `M.union` bindClasses old,
+                      bindTypes = bindTypes new `M.union` bindTypes old,
                       directIncoherences = directIncoherences new `M.union` directIncoherences old
                    }
           noBadDeps = all (not . dependsOn (recursiveIds result)) (nonRecursiveBinds result)
@@ -213,6 +218,7 @@ emptySBs = SolvedBinds {
              nonRecursiveIds = S.empty,
              incoherentIds = S.empty,
              bindClasses = M.empty,
+             bindTypes = M.empty,
              directIncoherences = M.empty
            }
 
