@@ -344,15 +344,21 @@ sat dvs ps p =
           x  <- reducePred ps dvs p
           case x of
             Nothing -> fail "sat unreduced"
-            Just (qs, sb, us, Nothing) ->
+            Just (qs, sb, us, Nothing, mpkg) ->
                 satTrace ("sat calls satMany ") $ do
-                satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs -- qs should have us applied already
-            Just (qs, sb, us, Just (h@(IsIn c _))) | fromMaybe ai (allowIncoherent c) ->
+                result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs -- qs should have us applied already
+                case result of
+                  ([], sbs, s_final) -> do
+                    recordPackageUse mpkg
+                    return ([], sbs, s_final)
+                  other -> return other
+            Just (qs, sb, us, Just (h@(IsIn c _)), mpkg) | fromMaybe ai (allowIncoherent c) ->
               satTrace ("sat calls satMany (incoherent) ") $ do
               result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
               case result of
                 (ps@(_:_), sbs, s_final) -> return $ (ps, sbs, s_final)
                 ([], sbs, s_final) -> do
+                  recordPackageUse mpkg
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
                   when (allowIncoherent c /= Just True) $
@@ -521,7 +527,7 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
 -- instance match isn't incoherent (or if we are ok committing to an
 -- incoherent match)
 reducePred :: [EPred] -> DVS -> VPred ->
-              TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
+              TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred, Maybe Id))
 reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
     pushSatStackContext
     bound_tyvars <- getBoundTVs
@@ -554,7 +560,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     Just (TyCon i _ _)           -> Just i
                     _                            -> Nothing
 
-        f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred))
+        f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred, Maybe Id))
         f incoherent [] = return Nothing
         f incoherent (i@(Inst _ _ (_ :=> h_orig) _):is)
           | useLegacyInstIndex && not (canMatch pr' h_orig) = f incoherent is
@@ -565,7 +571,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                    Nothing -> do
                      let chk = predUnify bound_tyvars pr' h
                      f (chk || incoherent) is
-                   Just (qs, sb, (inst_subst, fd_subst)) -> do
+                   Just (qs, sb, (inst_subst, fd_subst), mpkg) -> do
                      -- when ((not $ null qs) && (not $ isNullSubst inst_subst)) $
                      --     traceM("qs, inst_subst, fd_subst: " ++ ppReadable (qs, inst_subst, fd_subst))
                      -- does the inst_subst affect anything *outside* of the instance?
@@ -576,7 +582,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
                      let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
-                     return $ Just (qs, sb, fd_subst, minst)
+                     return $ Just (qs, sb, fd_subst, minst, mpkg)
 
     let is' = genInsts c bound_tyvars dvs pr'
     r <- f False is'
@@ -601,7 +607,7 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                         r = mkNumInstBody t
                         b = (w, t, r)
                         sb = mkSolvedBind b False
-                    return $ Just ([], sb, nullSubst, Nothing)
+                    return $ Just ([], sb, nullSubst, Nothing, Nothing)
       else return r
 
 predUnify :: [TyVar] -> Pred -> Pred -> Bool
@@ -620,7 +626,7 @@ dvsSub s dvs =
         traces ("dvsSub " ++ ppReadable (dvs, s)) dvs
 -}
 
-byInst :: VPred -> Inst -> TI (Maybe ([VPred], SolvedBind, (Subst, Subst)))
+byInst :: VPred -> Inst -> TI (Maybe ([VPred], SolvedBind, (Subst, Subst), Maybe Id))
 byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
@@ -631,8 +637,6 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     case m of
      Nothing -> return Nothing
      Just (inst_subst, (fd_subst, num_eqs)) -> do
-        -- Record that this instance's package was used
-        recordPackageUse pkg
         let s = fd_subst @@ inst_subst
         vs <- mapM (const newDict) ps
         -- if the instance is recursive (has a proviso for itself and expects
@@ -653,7 +657,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
             solvedBind = mkSolvedBind binding isSelfRec
-        return (Just (ps'', solvedBind, (inst_subst, fd_subst)))
+        return (Just (ps'', solvedBind, (inst_subst, fd_subst), pkg))
 
 -- Create a new instance by replacing the type variables in the instance
 -- with fresh variables.

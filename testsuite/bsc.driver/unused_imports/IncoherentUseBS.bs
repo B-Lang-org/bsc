@@ -1,0 +1,16 @@
+package IncoherentUseBS where
+
+import Helper
+import BoolDescribableBS
+import GeneralDescribableBS
+
+-- applyDescribe carries the Describable constraint explicitly.
+applyDescribe :: (Describable a) => a -> String
+applyDescribe x = describe x
+
+-- testFn has only a Bits constraint; Describable a is not a given.
+-- Calling applyDescribe generates the predicate Describable a, which is not
+-- in the givens, so instance resolution fires against the imported instances.
+-- The same incoherence path as IncoherentUse.bsv applies.
+testFn :: (Bits a aw) => a -> String
+testFn x = applyDescribe x
