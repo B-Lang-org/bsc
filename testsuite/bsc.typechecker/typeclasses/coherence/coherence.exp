@@ -1,0 +1,43 @@
+# Tests for transitive incoherence warnings (T0158).
+# IncoherentBase defines a class marked `incoherent` with a generic and a more
+# specific overlapping instance.  Each Instance_* test derives another class
+# (coherent, incoherent, or default-annotation) whose instance depends on
+# IncoherentBase via a proviso.  Each Super_* test uses IncoherentBase as a
+# superclass constraint instead.
+
+# ---- Instance-level proviso constraints ----
+
+# All four Instance_* packages resolve IncoherentBase incoherently via a
+# proviso and therefore produce exactly one T0158 transitive-incoherence
+# warning.  They all compile and simulate correctly.
+
+test_c_veri_bs_modules_options Instance_Coherent {} {}
+find_n_warning Instance_Coherent.bs.bsc-vcomp-out T0158 1
+
+test_c_veri_bs_modules_options Instance_Default_FlagOff {} {}
+find_n_warning Instance_Default_FlagOff.bs.bsc-vcomp-out T0158 1
+
+test_c_veri_bs_modules_options Instance_Default_FlagOn {} {}
+find_n_warning Instance_Default_FlagOn.bs.bsc-vcomp-out T0158 1
+
+test_c_veri_bs_modules_options Instance_Incoherent {} {}
+find_n_warning Instance_Incoherent.bs.bsc-vcomp-out T0158 1
+
+# ---- Superclass constraints ----
+
+# Super_* classes use IncoherentBase as a superclass.  The incoherent match is
+# captured once inside the top-level dictionary function and applied uniformly
+# to all callers, so behaviour is coherent from the callers' perspective.
+# No T0158 warning is expected.
+
+test_c_veri_bs_modules_options Super_Coherent {} {}
+find_n_warning Super_Coherent.bs.bsc-vcomp-out T0158 0
+
+test_c_veri_bs_modules_options Super_Default_FlagOff {} {}
+find_n_warning Super_Default_FlagOff.bs.bsc-vcomp-out T0158 0
+
+test_c_veri_bs_modules_options Super_Default_FlagOn {} {}
+find_n_warning Super_Default_FlagOn.bs.bsc-vcomp-out T0158 0
+
+test_c_veri_bs_modules_options Super_Incoherent {} {}
+find_n_warning Super_Incoherent.bs.bsc-vcomp-out T0158 0
