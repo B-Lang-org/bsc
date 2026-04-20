@@ -798,6 +798,7 @@ data ErrMsg =
         | WIncoherentMatch String String
         | WOrphanInst String
         | WTransitiveIncoherentMatch String String String
+        | ECoherentTransitiveIncoherentMatch String String String
         | EModInstWrongArgs [Position]
         | EAmbiguous [(String, Position, [(String, [Position])])]
         | EAmbiguousExplCtx [Doc] [Doc] Doc
@@ -3013,6 +3014,12 @@ getErrorText (WTransitiveIncoherentMatch pred root_pred root_inst) =
     (Type 158, empty,
      s2par ("Proviso " ++ pred ++ " is satisfied by a dictionary that transitively " ++
             "depends on an incoherent match of " ++ root_pred ++
+            " against instance " ++ root_inst))
+
+getErrorText (ECoherentTransitiveIncoherentMatch pred root_pred root_inst) =
+    (Type 159, empty,
+     s2par ("Coherent proviso " ++ pred ++ " is satisfied by a dictionary that " ++
+            "transitively depends on an incoherent match of " ++ root_pred ++
             " against instance " ++ root_inst))
 
 -- Generation Errors

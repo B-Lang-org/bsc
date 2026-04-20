@@ -40,7 +40,7 @@ import TIMonad
 import PreIds
 import StdPrel(isPreClass, mkNumInstBody)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
-               cTApply, cVApply, anyTExpr)
+               cTApply, cVApply)
 import Literal
 import IntLit
 import SymTab
@@ -216,27 +216,38 @@ mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
     return (cls, classArgs)
 
 -- Compute the transitive incoherence closure on a fully-merged SolvedBinds,
--- emitting a warning for each binding that becomes transitively incoherent.
+-- emitting a warning or error for each binding that becomes transitively incoherent.
+-- Behaviour depends on the class annotation (allowIncoherent) of the depending bind:
+--   incoherent (Just True)  -- suppress: the class explicitly allows incoherence
+--   coherent   (Just False) -- error T0159: coherence promise violated
+--   default    (Nothing)    -- error T0159 if -incoherent-instance-matches is off
+--                           -- warn  T0158 if -incoherent-instance-matches is on
 -- Uses the stored DirectIncoherence info for accurate position and root-cause message.
 warnTransitiveIncoherent :: SolvedBinds -> TI SolvedBinds
 warnTransitiveIncoherent sbs = do
     let sbs' = computeTransitiveIncoherent sbs
         newlyIncoherent = getIncoherentIds sbs' `S.difference` getIncoherentIds sbs
-        allBindings = recursiveBinds sbs' ++ nonRecursiveBinds sbs'
-    mapM_ (warnOne allBindings (directIncoherences sbs')) (S.toList newlyIncoherent)
+    mapM_ (diagnoseOne (bindTypes sbs') (directIncoherences sbs') (bindClasses sbs'))
+          (S.toList newlyIncoherent)
     return sbs'
   where
-    warnOne bindings diMap i =
-      let mt = listToMaybe [ t | ((j, t, _), _) <- bindings, j == i ]
-          mdi = M.lookup i diMap
-          pos = maybe noPosition diPos mdi
-          (rootPredStr, rootInstStr) = case mdi of
-            Nothing -> ("unknown", "unknown")
-            Just di -> let (np, ni) = niceTypes (diPred di, diInst di)
-                       in (pfpString np, pfpString ni)
-      in  case mt of
-            Just t  -> twarn (pos, WTransitiveIncoherentMatch (pfpString t) rootPredStr rootInstStr)
-            Nothing -> return ()
+    diagnoseOne typeMap diMap clsMap i = do
+      ai <- getAllowIncoherent
+      case M.lookup i clsMap >>= allowIncoherent of
+        Just True -> return ()   -- incoherent class: suppress
+        mallow    ->
+          if fromMaybe ai mallow
+            then twarn (pos, WTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
+            else err   (pos, ECoherentTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
+      where
+        t  = fromJustOrErr "warnTransitiveIncoherent: id not in bindTypes"
+                           (M.lookup i typeMap)
+        di = fromJustOrErr "warnTransitiveIncoherent: id not in directIncoherences"
+                           (M.lookup i diMap)
+        pos = diPos di
+        (rootPredStr, rootInstStr) = let (np, ni) = niceTypes (diPred di, diInst di)
+                                     in (pfpString np, pfpString ni)
+        tStr = pfpString t
 
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
