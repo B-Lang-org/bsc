@@ -224,13 +224,13 @@ Typeclass
     members
         {t -> a} tpl_1
     instances
-        Prelude.Has_tpl_1 (a, b) a
-        Prelude.Has_tpl_1 (a, b, c) a
-        Prelude.Has_tpl_1 (a, b, c, d) a
-        Prelude.Has_tpl_1 (a, b, c, d, e) a
-        Prelude.Has_tpl_1 (a, b, c, d, e, f) a
-        Prelude.Has_tpl_1 (a, b, c, d, e, f, g) a
-        Prelude.Has_tpl_1 (a, b, c, d, e, f, g, h) a
+        Prelude.Has_tpl_1 (Prelude.Tuple2 a b) a
+        Prelude.Has_tpl_1 (Prelude.Tuple3 a b c) a
+        Prelude.Has_tpl_1 (Prelude.Tuple4 a b c d) a
+        Prelude.Has_tpl_1 (Prelude.Tuple5 a b c d e) a
+        Prelude.Has_tpl_1 (Prelude.Tuple6 a b c d e f) a
+        Prelude.Has_tpl_1 (Prelude.Tuple7 a b c d e f g) a
+        Prelude.Has_tpl_1 (Prelude.Tuple8 a b c d e f g h) a
     position {%/Libraries/Prelude.bs 3463 17 {Library Prelude}}
 
 Bitify Baz (Int 32) n:
