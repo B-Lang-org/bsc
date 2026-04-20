@@ -50,7 +50,7 @@ module Id(
         isFromRHSId, setFromRHSId,
         isSignedId, setSignedId,
         setInternal,
-        isDictId,
+        isDictId, isIncoherentDict,
         isInternal,
         isSplitRuleId,
         isRuleId,
@@ -523,6 +523,9 @@ isHideAllId idx = hasIdProp idx IdP_hide_all
 
 isDictId :: Id -> Bool
 isDictId i = hasIdProp i IdPDict
+
+isIncoherentDict :: Id -> Bool
+isIncoherentDict i = isDictId i && hasIdProp i IdPIncoherent
 
 isRuleId :: Id -> Bool
 isRuleId idx = hasIdProp idx IdPRule
