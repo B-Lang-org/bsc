@@ -56,5 +56,8 @@ compile_fail_error ValueOf_KindMismatch_Res.bs T0026
 compile_fail_error ExpSizeOf_Let_NoCtx.bs T0030
 compare_file [make_bsc_output_name ExpSizeOf_Let_NoCtx.bs]
 
+# Test that cExtend works when type synonyms are expanded in instance heads
+compile_pass CExtendSynonym.bsv
+
 # ---------------
 
