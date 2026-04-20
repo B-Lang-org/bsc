@@ -9,7 +9,8 @@ module TCMisc(
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
         checkForAmbiguousPreds,
-        propagateFunDeps, isReduciblePred
+        propagateFunDeps, isReduciblePred,
+        warnTransitiveIncoherent
               ) where
 
 import Data.Maybe
@@ -214,6 +215,29 @@ mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
                     | idx <- [0..nParams-1] ]
     return (cls, classArgs)
 
+-- Compute the transitive incoherence closure on a fully-merged SolvedBinds,
+-- emitting a warning for each binding that becomes transitively incoherent.
+-- Uses the stored DirectIncoherence info for accurate position and root-cause message.
+warnTransitiveIncoherent :: SolvedBinds -> TI SolvedBinds
+warnTransitiveIncoherent sbs = do
+    let sbs' = computeTransitiveIncoherent sbs
+        newlyIncoherent = getIncoherentIds sbs' `S.difference` getIncoherentIds sbs
+        allBindings = recursiveBinds sbs' ++ nonRecursiveBinds sbs'
+    mapM_ (warnOne allBindings (directIncoherences sbs')) (S.toList newlyIncoherent)
+    return sbs'
+  where
+    warnOne bindings diMap i =
+      let mt = listToMaybe [ t | ((j, t, _), _) <- bindings, j == i ]
+          mdi = M.lookup i diMap
+          pos = maybe noPosition diPos mdi
+          (rootPredStr, rootInstStr) = case mdi of
+            Nothing -> ("unknown", "unknown")
+            Just di -> let (np, ni) = niceTypes (diPred di, diInst di)
+                       in (pfpString np, pfpString ni)
+      in  case mt of
+            Just t  -> twarn (pos, WTransitiveIncoherentMatch (pfpString t) rootPredStr rootInstStr)
+            Nothing -> return ()
+
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
 -- Type function application: try to generate a class constraint so
@@ -352,9 +376,12 @@ sat dvs ps p =
                 ([], sbs, s_final) -> do
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
+                  let VPred dictId _ = p
+                      di = DirectIncoherence (apSub s_final (toPred p)) (apSub s_final h) pos
+                      sbs' = addDirectIncoherence dictId di sbs
                   when (allowIncoherent c /= Just True) $
                     twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return $ ([], sbs, s_final)
+                  return $ ([], sbs', s_final)
             bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
@@ -577,7 +604,9 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                      let minst = toMaybe incoherent h
                          -- Mark the binding incoherent for LiftDicts.
                          sb'   = if incoherent then markIncoherent sb else sb
-                     return $ Just (qs, sb', fd_subst, minst)
+                         -- Record the class so warnTransitiveIncoherent can check allowIncoherent.
+                         sb''  = sb' { solvedClass = Just c }
+                     return $ Just (qs, sb'', fd_subst, minst)
 
     let is' = genInsts c bound_tyvars dvs pr'
     r <- f False is'
