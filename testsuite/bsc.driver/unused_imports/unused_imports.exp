@@ -44,6 +44,42 @@ compile_pass_no_warning InstanceUseBS.bs
 compile_pass_no_warning OrphanInstanceUse.bsv
 compile_pass_no_warning OrphanInstanceUseBS.bs
 
+# Test 6c: Orphan instance used when class comes from a DIFFERENT import.
+# BoolDescribable (and BoolDescribableBS) define Describable#(Bool) as an
+# orphan instance but do NOT re-export the Describable class.  The consumer
+# imports Helper for the class and BoolDescribable for the instance separately.
+# BoolDescribable can only be justified by the orphan instance resolution in
+# byInst, not by any class or symbol lookup - this is the precise scenario
+# where a bug in recordPackageUse would produce a spurious T0157 warning.
+compile_pass_warning BoolDescribable.bsv T0127 1
+compare_file BoolDescribable.bsv.bsc-out
+compile_pass_warning BoolDescribableBS.bs T0127 1
+compare_file BoolDescribableBS.bs.bsc-out
+compile_pass_no_warning UseOrphanSeparately.bsv
+compile_pass_no_warning UseOrphanSeparatelyBS.bs
+
+# Tests 6e-6f: Incoherent instance match.
+# Helper packages: GeneralDescribable defines a general Describable#(a) instance;
+# BoolDescribable (already compiled above) is the specific Describable#(Bool).
+compile_pass_warning GeneralDescribable.bsv T0127 1
+compile_pass_warning GeneralDescribableBS.bs T0127 1
+
+# Test 6e: Incoherent match backed out (allowIncoherent=off).
+# byInst matches GeneralDescribable with incoherent=True (BoolDescribable's
+# specific instance triggers predUnify for the rigid type variable).  With
+# allowIncoherent=False, bad_match fires -> T0030 compile error.
+# The fixed sat branch does not spuriously record the package.
+compile_fail_error IncoherentUse.bsv T0030 1
+compile_fail_error IncoherentUseBS.bs T0030 1
+
+# Test 6f: Incoherent match allowed (-incoherent-instance-matches).
+# GeneralDescribable commits via the incoherent sat branch and is recorded
+# (no T0157 for it).  BoolDescribable only triggered the predUnify incoherence
+# detection (byInst returns Nothing for it) so it is never committed and T0157
+# correctly fires for it.  Two T0126 warnings fire (typecheck + ctxReduce).
+compile_pass_warning IncoherentUse.bsv T0126 2 "-incoherent-instance-matches"
+compile_pass_warning IncoherentUseBS.bs T0126 2 "-incoherent-instance-matches"
+
 # Test 7: Re-export package - should NOT warn
 compile_pass_no_warning Reexport.bsv
 compile_pass_no_warning ReexportBS.bs
