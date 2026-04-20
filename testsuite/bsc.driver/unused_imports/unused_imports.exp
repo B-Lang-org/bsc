@@ -58,6 +58,14 @@ compare_file BoolDescribableBS.bs.bsc-out
 compile_pass_no_warning UseOrphanSeparately.bsv
 compile_pass_no_warning UseOrphanSeparatelyBS.bs
 
+# Test 6d: Orphan instance used ONLY via a proviso resolved during ctxReduce.
+# cCtxReduceIO previously discarded tsUsedPackages, so the recording from
+# ctxReduce was lost.  Since the instance body does not call describe on Bool,
+# cTypeCheck never re-resolved Describable#(Bool), leaving BoolDescribable
+# out of pkgsUsedInCode and causing a spurious T0157.
+compile_pass_no_warning ProvisoDrop.bsv
+compile_pass_no_warning ProvisoDrop.bs
+
 # Tests 6e-6f: Incoherent instance match.
 # Helper packages: GeneralDescribable defines a general Describable#(a) instance;
 # BoolDescribable (already compiled above) is the specific Describable#(Bool).
