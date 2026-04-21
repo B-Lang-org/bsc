@@ -578,7 +578,7 @@ createMapForOneMeth meth_id mult ins me mo = if check then
       -- for method "x", make the names "x_1, x_2, .." for the ports
       -- make the names x_<port>_n for multi-ported methods
       method_input_names = [ addNum meth_n arg_n |
-                             meth_n <- meth_mult, arg_n  <- [1 .. length ins]]
+                             arg_n <- [1 .. length ins], meth_n <- meth_mult]
       addNum fs n =
           concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
 
