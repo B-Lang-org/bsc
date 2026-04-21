@@ -8,8 +8,7 @@ order: [bar, baz]
 -----
 
 === resources (IfcIfcWarning sysIfcIfcWarning):
-[(the_r.read, [(the_r.read, 1)]),
- (the_r.write, [(the_r.write x__h108, 1), (the_r.write x__h134, 1)])]
+[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h77, 1), (the_r.write x__h90, 1)])]
 
 -----
 
