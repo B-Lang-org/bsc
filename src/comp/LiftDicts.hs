@@ -219,6 +219,8 @@ handleDictFun ts e@(CAnyT _ _ t) = internalError $ "handleDictFun undefined (CAn
 handleDictFun ts0 (CTApply f ts)
   | null ts0 = handleDictFun ts f
   | otherwise = internalError $ "handleDictFunc stacked CTApply: " ++ ppReadable (ts0, f, ts)
+handleDictFun ts (Cletseq [CLValueSign (CDefT id_f [] (CQType [] ty) _) []] (CVar id_f'))
+  | id_f == id_f' = return ty
 handleDictFun ts e = internalError $ "handleDictFun unexpected expression: " ++ ppReadable (ts, e) ++ "\n" ++ show e
 
 -- General inlining map (more than dictionaries):
@@ -344,8 +346,10 @@ processCDeflsSeq p m (d:ds) = do
       let m' = M.insert i e m
       processCDeflsSeq p m' ds
     Keep d'' -> do
-      let m' = shadowBindings (S.singleton $ getLName d'') m
-      (ds', m'') <- processCDeflsSeq p m' ds
+      let i = getLName d''
+      let m' = shadowBindings (S.singleton i) m
+      let p' = if isDictId i then S.insert i p else p
+      (ds', m'') <- processCDeflsSeq p' m' ds
       return (d'':ds', m'')
 
 instance LiftDicts CExpr where
