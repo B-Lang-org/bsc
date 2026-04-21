@@ -62,7 +62,7 @@ if { $ctest == 1 } {
   \}}
 
     find_regexp sysIfElseCase_Inline.cxx {
-  switch \(DEF_x__h[0-9]+\) \{
+  switch \(DEF__read__h[0-9]+\) \{
   case \(tUInt8\)0u\:
     DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_1_THEN_r_ETC___d[0-9]+ \= \(tUInt8\)0u\;
     break\;
@@ -127,7 +127,7 @@ if { $vtest == 1 } {
 # (The arm for index 5 has been merged with the default.)
 if { $ctest == 1 } {
     find_regexp sysDupResult.cxx {
-  switch \(DEF_x__h[0-9]+\) \{
+  switch \(DEF__read__h[0-9]+\) \{
   case \(tUInt8\)0u\:
   case \(tUInt8\)2u\:
   case \(tUInt8\)6u\:
