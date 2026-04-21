@@ -78,7 +78,7 @@ import qualified IfcBetterInfo as BetterInfo
 import ITransform(iTransExpr)
 
 import IOUtil(progArgs)
-import ISyntaxXRef(mapIExprPosition, mapIExprPositionConservative)
+import ISyntaxXRef(mapIExprPosition)
 import IStateLoc
 
 -----------------------------------------------------------------------------
@@ -562,7 +562,7 @@ eqPtrs heap ptrs =
         hptrs (IAps f _ es) = foldr (union . hptrs) [] (f:es)
         hptrs (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } }))
                             = foldr (union . hptrs) [] es
-        hptrs (IRefT _ p _) = [p]
+        hptrs (IRefT _ p _ _) = [p]
         hptrs _ = []
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
         ptrs' = case tSortInt g of
@@ -573,11 +573,11 @@ eqPtrs heap ptrs =
         step p (dsm, ptrm) =
                 let e = sub (heapOf p)
                     sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-                    sub e@(IRefT t i _) =
+                    sub e@(IRefT t i _ _) =
                         case IM.lookup i ptrm of
                         Nothing -> e
                         -- hd_ref errors because we don't use it once we have the iheap
-                        Just i' -> IRefT t i' (internalError "eqPtrs ref")
+                        Just i' -> IRefT t i' (internalError "eqPtrs ref") (internalError "eqPtrs ref")
                     sub e = e
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
@@ -1337,8 +1337,9 @@ handlePrim isMFix (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCu
 handlePrim isMFix curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleFix })) [t] [e]) = do
         when doDebug $ traceM "handlePrim: enter PrimModuleFix"
         showModProgress ns ("Attempting recursive module instantiation")
-        (ptr, ref) <- addHeapCell "prim-mod-fix" (HLoop (Just (stateLocToId ns)))
-        let rt = IRefT t ptr ref
+        let name = stateLocToId ns
+        (ptr, ref) <- addHeapCell "prim-mod-fix" (HLoop (Just name))
+        let rt = IRefT t ptr (S.singleton $ getPosition name) ref
         stno <- getStateNo
         old_rblobs <- getSavedRules
         clearSavedRules
@@ -2290,7 +2291,7 @@ findNF (IAps (ICon _ (ICPrim _ PrimCase)) _ (idx:def:n0:e0:_)) = findNF e0
 findNF (IAps (ICon _ (ICPrim _ PrimArrayDynSelect)) [elem_t, _] [a, _]) =
     let findNFInArray (ICon i (ICLazyArray _ arr _)) =
             case (Array.elems arr) of
-              (ArrayCell ptr ref : _) -> findNF (IRefT elem_t ptr ref)
+              (ArrayCell ptr ref : _) -> findNF (IRefT elem_t ptr S.empty ref)
               _ -> internalError ("findNFInArray: no elements")
         findNFInArray e@(IRefT {}) = do P _ e' <- unheap (pExpr e)
                                         findNFInArray e'
@@ -2432,24 +2433,23 @@ walkNF e =
     when (doDebug || doTraceNF) $ traceM ("not prim type: " ++ ppReadable (e, iGetType e))
     nfError "walkNF" e
   else do
-    cross <- getCross
     when (doDebug || doTraceNF) $ traceM ("walkNF " ++ ppReadable e)
-    let upd p e@(IRefT _ _ _) ws = do
+    let upd p e@(IRefT _ _ _ _) ws = do
             P p' e' <- unheap (P p e)
             upd p' e' ws
         upd p n ws =
             let pn = P p n in
             case e of
-            o@(IRefT _ ptr ref) -> do
+            o@(IRefT _ ptr _ ref) -> do
               old_cell <- getHeap ref
               let old_name = hc_name old_cell
-                  new_cell = HNF { hc_pexpr = P p (mapIExprPosition cross (o,n)),
+                  new_cell = HNF { hc_pexpr = P p n, -- (mapIExprPosition cross (o,n)),
                                    hc_wire_set = ws,
                                    hc_name = old_name }
               updHeap "walkNF" (ptr, ref) new_cell
               return (if isCon n then
-                          (P p (mapIExprPosition cross (o,n)), ws)
-                      else (P p (mapIExprPositionConservative cross (n,o)), ws))
+                          (P p n, ws) -- (mapIExprPosition cross (o,n)), ws)
+                      else (P p o, ws)) -- (mapIExprPositionConservative cross (n,o)), ws))
             _ -> return (pn, ws)
 
         recurse p0 u =
@@ -2499,7 +2499,7 @@ walkNF e =
                       (ICon i (ICLazyArray arr_t arr u)) -> do
                         let cells = Array.elems arr
                         let mapFn (ArrayCell ptr ref) = do
-                                (P p _, ws) <- walkNF (IRefT elem_t ptr ref)
+                                (P p _, ws) <- walkNF (IRefT elem_t ptr S.empty ref)
                                 return (p, ws)
                         (ps, wss) <- mapAndUnzipM mapFn cells
                         let e' = IAps f ts [arr_e, idx_e']
@@ -2524,8 +2524,7 @@ walkNF e =
 
                 IAps f@(ICon _ (ICPrim _ p)) ts es | realPrimOp p -> do
                     (p, es', ws) <- walkList walkNF es
-                    cross <- getCross
-                    upd (pConj p0 p) (IAps f ts (map (mapIExprPosition cross) (zip es es'))) ws
+                    upd (pConj p0 p) (IAps f ts es') ws -- (map (mapIExprPosition cross) (zip es es'))) ws
 
                 IAps f@(ICon i_sel (ICSel { })) ts es -> do
                     (p, es', ws) <- walkList walkNF es
@@ -2573,7 +2572,7 @@ walkNF e =
 
                         -- the inner selector can wind up on the heap
                         -- because of "move" in evalHeap
-                        [e_ref@(IRefT t ptr ref)] | (isitActionValue_ t) || (isitAction t)
+                        [e_ref@(IRefT t ptr poss ref)] | (isitActionValue_ t) || (isitAction t)
                             ->  do (P p' e', ws) <- walkNF e_ref
                                    upd (pConj p0 p') (IAps f ts [e']) ws
                         _ ->    do when doDebug $ traceM "not stvar or foreign\n"
@@ -2606,8 +2605,8 @@ walkNF e =
 
                 -- recurse cannot be called with an IRefT because of guard code in walkNF
                 -- and because IRefT cannot be evaluated WHNF or HNF (see unheap)
-                IRefT _ _ _ -> internalError ("evalNF: IRefT " ++ ppReadable (e, u))
-                -- ref@(IRefT _ _ r) -> do (P p e', ws) <- walkNF ref
+                IRefT _ _ _ _ -> internalError ("evalNF: IRefT " ++ ppReadable (e, u))
+                -- ref@(IRefT _ _ _ r) -> do (P p e', ws) <- walkNF ref
                 --                        upd (pConj p0 p) e' ws
                 (ICon i (ICModPort {})) -> do
                     ws <- getPortWires i
@@ -2621,7 +2620,7 @@ walkNF e =
                 _ -> upd p0 e wsEmpty
 
     case e of
-        ref@(IRefT _ _ r) -> do
+        ref@(IRefT _ _ _ r) -> do
             hc <- getHeap r
             case hc of
                 HUnev { hc_hexpr = e } -> do
@@ -2683,7 +2682,7 @@ fuse (sz1, e1) (sz2, e2) = (sz3, e)
 -- note that iexpr is a "heaped" version of the expression
 evalUH :: HExpr -> G (HExpr, PExpr)
 evalUH e = do
-        let isRef (IRefT _ _ _) = True
+        let isRef (IRefT _ _ _ _) = True
             isRef _             = False
         pe@(P p0 e0) <- eval1 e
         when (doTraceHeapAlloc && isRef e) $
@@ -2699,7 +2698,7 @@ evalUH e = do
                            evalAp "Uninit Vector" icon [T t, E pos, E name]
                          _ | isBitType t -> do
                            let cells = Array.elems arr
-                           let f (ArrayCell p r) = (1, IRefT itBit1 p r)
+                           let f (ArrayCell p r) = (1, IRefT itBit1 p S.empty r)
                            let e_szs = map f cells
                            let fused = snd $ foldl1 fuse e_szs
                            eval1 fused
@@ -2707,8 +2706,8 @@ evalUH e = do
             -- traceM ("specialArr: " ++ ppReadable (e, e0, e'))
             let pe = P (pConj p' p0) e'
             case e of
-              IRefT _ p r -> do updHeap "evalUH-array" (p, r) (HWHNF pe Nothing)
-                                return (e, pe)
+              IRefT _ p _ r -> do updHeap "evalUH-array" (p, r) (HWHNF pe Nothing)
+                                  return (e, pe)
               _ -> do e'' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
                       return (e'', pe)
           _ -> do
@@ -2840,7 +2839,7 @@ evalStaticOp' doUH doBK doUndet e resultType handler = do
     then return res
     else -- it's a bookkeeping no-op, so preserve the heap name if any
       case e of
-        IRefT _ _ r -> do
+        IRefT _ _ _ r -> do
             old_cell <- getHeap r
             let old_name = hc_name old_cell
             res' <- toHeapWHNF "set-sel-pos" (pExprToHExpr res) old_name
@@ -2867,7 +2866,7 @@ evalStaticOpInArray' doUH doBK doUndet
         -- leave the preds in the array elems, walkNF will collect them
         let cells = Array.elems arr
             mapFn (ArrayCell ref_p ref_r) = do
-                let ref_e = IRefT elem_ty ref_p ref_r
+                let ref_e = IRefT elem_ty ref_p S.empty ref_r
                 ref_pe' <- evalStaticOp' doUH doBK doUndet
                                          ref_e resultType handler
                 return (pExprToHExpr ref_pe')
@@ -2940,15 +2939,15 @@ evalApAccum tag exprCtx typeCtx e args = do
 -- (types and expressions)
 -- calls evalAp' to do the actual work, and corrects the cross-ref info
 evalAp :: String -> HExpr -> [Arg] -> G PExpr
+evalAp str e es | not (doDebug || doTraceTypes) = evalAp' e es
 evalAp str e es = do
-  cross <- getCross
   let str' = str ++ " (" ++ show (length es) ++ ")"
   when doDebug $
       -- cannot "show (mkAp e es)" or "show e" or else it goes in an infinite loop
       traceM ("evalAp enter " ++ str' ++ " [:\n" ++ ppReadable (mkAp e es))
-  r_orig@(P pred iexpr) <- evalAp' e es
+  r@(P pred iexpr) <- evalAp' e es
   -- when "cross" is False, this just returns "r_orig"
-  r <- mapPExprPosition cross ((P pred e), r_orig)
+  -- r <- mapPExprPosition cross ((P pred e), r_orig)
   when doTraceTypes $ do
       norm <- getTypeNormalizerC
       let unev = mkAp e es
@@ -2960,16 +2959,21 @@ evalAp str e es = do
       traceM ("evalAp exit  " ++ str' ++ " ]:\n"++ ppReadable (mkAp e es, r))
   return r
 
+{-# INLINE evalDef #-}
+evalDef :: Id -> IType -> HExpr -> [Arg] -> G PExpr
+evalDef i t e as = do
+  -- recurse into evaluating e
+  step i
+  e' <- cacheDef i t e
+  evalAp "ICDef" e' as
+
 -- evaluate a function application
 -- [arg] is a stack of application arguments on the left spine of the expression
 evalAp' :: HExpr -> [Arg] -> G PExpr
-evalAp' f@(ICon i (ICDef t e)) as = do
-        -- recurse into evaluating e
-        step i
-        e' <- cacheDef i t e
-        when doFunExpand $ do
-            traceM ("expand " ++ ppReadable (mkAp f as))
-        r <- evalAp "ICDef" e' as
+evalAp' f@(ICon i (ICDef t e)) as | not doFunExpand = evalDef i t e as
+evalAp' f@(ICon i (ICDef t e)) as = do -- doFunExpand is true
+        traceM ("expand " ++ ppReadable (mkAp f as))
+        r <- evalDef i t e as
         when doFunExpand2 $ do
             let P _ re = r
             traceM ("expand done\n" ++ ppReadable (mkAp f as, re))
@@ -2999,12 +3003,12 @@ evalAp' e@(IAps f tys es)      as =
 -- look up heap references for constants, but leave as heap reference for others
 -- XXX Lennart is not sure why
 -- Ravi: I think this is so conAp and friends can "see" all the relevant constants
-evalAp' e@(IRefT _ ptr ref)            [] = do
+evalAp' e@(IRefT _ ptr _ ref)            [] = do
         pe <- evalHeap (ptr, ref)
         case pe of
             P _ (ICon _ _) -> return pe                -- expand constants
             _ -> return (pExpr e)                -- keep heap pointer for rest
-evalAp' (IRefT t ptr ref)              as = do
+evalAp' (IRefT t ptr _ ref)              as = do
         (P p e) <- evalHeap (ptr, ref)
 --        when (p /= pTrue) $ traceM ("implicit function condition lost: " ++ ppReadable (p, e)) -- XXX
         let e' = iePrimWhenPred t p e
@@ -3017,7 +3021,6 @@ evalAp' e@(IVar i)             as = internalError ("evalAp IVar: " ++ ppReadable
 evalHeap :: (HeapPointer, HeapData) -> G PExpr
 evalHeap (ptr, ref) = do
     hc <- getHeap ref
-    cross <- getCross
     case hc of
      HLoop (Just name) -> errG (getPosition name, EModuleLoop (pfpString name))
      -- XXX should not be possible (we hope)
@@ -3041,9 +3044,10 @@ evalHeap (ptr, ref) = do
                          [Just (prefix (unQualId name)) | name <- field_names]
                 as' <- zipWithM (toHeap "move-tuple") as struct_field_names
                 when doDebug $ traceM ("evalHeap move #1\n" ++ ppReadable (zip as' as))
-                let pe'' = P p (mapIExprPosition cross
+                let pe'' = P p (IAps f ts as')
+                {-           (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
-                                 (IAps f ts (map (mapIExprPosition cross) (zip as as')))))
+                                 (IAps f ts (map (mapIExprPosition cross) (zip as as'))))) -}
                 let new_cell = HWHNF { hc_pexpr = pe'', hc_name = expr_name }
                 updHeap "evalHeap-tuple" (ptr,ref) new_cell
                 return pe''
@@ -3060,9 +3064,10 @@ evalHeap (ptr, ref) = do
                 let th = if (isLazyOp f) then toHeapInferName else toHeapWHNFInferName
                 as' <- mapM (th "move-ap") as
                 when doDebug $ traceM ("evalHeap move #2\n" ++ ppReadable (zip as' as))
-                let pe'' = P p (mapIExprPosition cross
+                let pe'' = P p (IAps f ts as')
+                {-            (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
-                                 (IAps f ts (map (mapIExprPosition cross) (zip as as')))))
+                                 (IAps f ts (map (mapIExprPosition cross) (zip as as'))))) -}
                 let new_cell = HWHNF { hc_pexpr = pe'', hc_name = expr_name }
                 updHeap "evalHeap-IAps" (ptr,ref) new_cell
                 return pe''
@@ -3074,12 +3079,11 @@ evalHeap (ptr, ref) = do
 -- used when IAps expr@(ICon name coninfo) ...
 -- so Id is name, IConInfo is coninfo, IExpr is expr, as are the accumulated arguments
 conAp :: Id -> IConInfo HeapData -> HExpr -> [Arg] -> G PExpr
-conAp i ic e as = do
-  when doConAp $
-      traceM ("conAp enter: " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as))
+conAp i ic e as | not doConAp = conAp' i ic e as
+conAp i ic e as = do -- doConAp is True
+  traceM ("conAp enter: " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as))
   r <- conAp' i ic e as
-  when doConAp $
-      traceM ("conAp exit " ++ ppReadable i ++ "\n" ++ ppReadable (mkAp e as, r))
+  traceM ("conAp exit " ++ ppReadable i ++ "\n" ++ ppReadable r)
   return r
 
 bldAp' :: String -> HExpr -> [Arg] -> G PExpr
@@ -3971,7 +3975,7 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                            u = undefKindToInteger UDontCare
                        in  doBuildUndefined elem_ty pos u as'
                   else let (ArrayCell ptr ref) = arr Array.! n
-                       in  evalAp "DynSel const" (IRefT elem_ty ptr ref) as'
+                       in  evalAp "DynSel const" (IRefT elem_ty ptr S.empty ref) as'
           _ -> do
             -- check if they're all the same
             -- (this will also convert selection from 1-element arrays
@@ -3983,7 +3987,7 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                            _ -> internalError ("doDynSel: empty array")
             if all_eq
               then let (ArrayCell ptr ref) = head cells
-                       elem_e = IRefT elem_ty ptr ref
+                       elem_e = IRefT elem_ty ptr S.empty ref
                        -- still need to check the bounds
                        sel_pos = getPosition sel_i
                        res_e = mkDynSelBoundsCheck sel_pos idx_sz
@@ -3992,7 +3996,7 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
               else do
                 -- apply the elements to as' and eval
                 let mapFn (ArrayCell ptr ref) = do
-                        let r = IRefT elem_ty ptr ref
+                        let r = IRefT elem_ty ptr S.empty ref
                         (pe, P p e') <- evalUH (mkAp r as')
                         return (pe, p, e')
                 -- "pes" are used to construct the result if no progress is made
@@ -4023,7 +4027,7 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                     -- XXX this is duplicating what "doIf" does, for preserving
                     -- XXX heap refs; does it really help?
                     let mkCell pe = do
-                          IRefT _ ref_p ref_r
+                          IRefT _ ref_p _ ref_r
                               <- toHeapWHNFConInferName "DynSel" pe
                           return (ArrayCell ref_p ref_r)
                     cells' <- mapM mkCell pes
@@ -4127,7 +4131,7 @@ getBuriedPreds (IAps ic@(ICon _ (ICPrim _ PrimArrayDynSelect))
     then return pTrue
     else do
       let cells = Array.elems arr
-          mapFn (ArrayCell ptr ref) = getBuriedPreds (IRefT elem_ty ptr ref)
+          mapFn (ArrayCell ptr ref) = getBuriedPreds (IRefT elem_ty ptr S.empty ref)
       pidx <- getBuriedPreds idx
       pes <- mapM mapFn cells
       return (pConj pidx (pSel idx idx_sz pes))
@@ -4207,7 +4211,7 @@ ppExprRefs (IAps e _ es) = do _ <- ppExprRefs e
 ppExprRefs (IVar _) = return ()
 ppExprRefs (ILAM _ _ e) = ppExprRefs e
 ppExprRefs (ICon _ _) = return ()
-ppExprRefs r@(IRefT _ _ _) = do
+ppExprRefs r@(IRefT _ _ _ _) = do
   (P _ e) <- unheap (P pTrue r)
   traceM(ppString r ++ " = " ++ ppReadable e)
   ppExprRefs e
@@ -4273,7 +4277,7 @@ doArraySelect f (T elem_t : E arr_e : E idx_e : as) = do
         let handleArraySelect ic@(ICon _ (ICLazyArray { iArray = arr })) =
                 if iArrayInRange arr index then do
                   (p, r) <- iArraySelect arr index
-                  evalAp "array-select" (IRefT elem_t p r) as
+                  evalAp "array-select" (IRefT elem_t p S.empty r) as
                 else
                   -- this is the same as the "paradox handling" in doOut
                   evalAp "array-select-paradox" (icUndet elem_t UNotUsed) as
@@ -4393,10 +4397,10 @@ improveIf f t cnd (ICon i1 (ICLazyArray { iConType = ct1, iArray = arr1 }))
          refs2 = Array.elems arr2
      refs' <- zipWithM (\ref1 ref2 -> if (ac_ptr ref1) == (ac_ptr ref2) then
                                        return ref1
-                                      else do let e1 = IRefT elemType (ac_ptr ref1) (ac_ref ref1)
-                                              let e2 = IRefT elemType (ac_ptr ref2) (ac_ref ref2)
+                                      else do let e1 = IRefT elemType (ac_ptr ref1) S.empty (ac_ref ref1)
+                                              let e2 = IRefT elemType (ac_ptr ref2) S.empty (ac_ref ref2)
                                               let cell' = IAps f [elemType] [cnd, e1, e2]
-                                              IRefT _ p r <- toHeapConInferName "improve-if" cell'
+                                              IRefT _ p _ r <- toHeapConInferName "improve-if" cell'
                                               return (ArrayCell p r))
                        refs1 refs2
      -- XXX use i1 or i2?
@@ -4653,7 +4657,7 @@ improveDynSel ic idx_e idx_sz arr_i arr_ty arr_bounds elem_es =
 -}
         _ -> do
           let mkCell e = do
-                IRefT _ ref_p ref_r <- toHeapWHNFConInferName "improveDynSel" e
+                IRefT _ ref_p _ ref_r <- toHeapWHNFConInferName "improveDynSel" e
                 return (ArrayCell ref_p ref_r)
           cells <- mapM mkCell elem_es
           let arr' = Array.listArray arr_bounds cells
@@ -4881,7 +4885,7 @@ isCanon (IAps (ICon _ (ICSel { })) _ [_]) = True
 isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
 -- AV of foreign function application is canon
 --isCanon (IAps (ICon _ (ICForeign { })) _ _) = True
-isCanon (IRefT _ _ _) = True
+isCanon (IRefT _ _ _ _) = True
 isCanon _ = False
 
 -- is the selected expression canonical for AV_ selection
@@ -5091,11 +5095,11 @@ instance HeapToDef HExpr where
 --    collPtrs (ICon _ (ICStateVar { iVar = iv })) m = collPtrs iv m
     collPtrs (ICon _ (ICLazyArray _ arr _)) m =
         let elem_ty = (undefined :: IType)
-            mkRef (ArrayCell p r) = IRefT elem_ty p r
+            mkRef (ArrayCell p r) = IRefT elem_ty p S.empty r
             refs = map mkRef (Array.elems arr)
         in  collPtrs refs m
     collPtrs (ICon _ _) m = m
-    collPtrs (IRefT _ p r) m =
+    collPtrs (IRefT _ p _ r) m =
         if p `IM.member` m then
             m
         else
@@ -5116,7 +5120,7 @@ instance HeapToDef HExpr where
               let elem_ty = case arr_ty of
                               (ITAp c t) | (c == itPrimArray) -> t
                               _ -> internalError ("hToDef: array type")
-                  mkRef (ArrayCell p r) = IRefT elem_ty p r
+                  mkRef (ArrayCell p r) = IRefT elem_ty p S.empty r
                   refs = map mkRef (Array.elems arr)
                   -- use library code to make the primitive, but preserve the Id
                   ic = case icPrimBuildArray (length refs) of
@@ -5126,7 +5130,7 @@ instance HeapToDef HExpr where
                   es = map (hToDef m) refs
               in (IAps ic ts es)
           _ -> internalError ("hToDef: uninitialized array")
-    hToDef m r@(IRefT _ p _) =
+    hToDef m r@(IRefT _ p _ _) =
         let value = case IM.lookup p m of
                     Just e -> (mapIExprPosition True (r, e))
                     Nothing -> internalError ("hToDef IRefT " ++ show p)
@@ -5218,7 +5222,7 @@ getStateVars clk lvs vs (ICon _ (ICValue _ e) : xs) = getStateVars clk lvs vs (e
 getStateVars clk lvs vs (ICon i (ICIFace { }) : xs) = do is <- getStateVars clk lvs vs xs
                                                          return (i:is)
 getStateVars clk lvs vs (ICon _ _ : xs) = getStateVars clk lvs vs xs
-getStateVars clk lvs vs (x@(IRefT _ _ _) : xs) = do uhx <- unheapU x
+getStateVars clk lvs vs (x@(IRefT _ _ _ _) : xs) = do uhx <- unheapU x
                                                   getStateVars clk lvs vs (uhx : xs)
 -}
 
