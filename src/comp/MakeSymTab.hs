@@ -538,8 +538,11 @@ convInst _ _ _ d = d
 mkInstId :: Id -> CType -> Id
 mkInstId mi t =
 --    trace ("mkInstId " ++ ppReadable (mi,t, expandSyn t)) $
-    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t)))))
-  where flat (TVar (TyVar i _ _)) = [i]
+    addIdProp (mkQId pos qfs inst_fs) IdPDict
+  where pos = getPosition t
+        qfs = getIdFString mi
+        inst_fs = concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t))))
+        flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
         flat (TCon (TyStr s _)) = [mkStrId s]
