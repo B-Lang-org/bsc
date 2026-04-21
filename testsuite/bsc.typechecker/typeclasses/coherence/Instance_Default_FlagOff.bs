@@ -1,0 +1,37 @@
+package Instance_Default_FlagOff where
+
+import IncoherentBase
+import Vector
+
+class DependingDefault a where
+  dependMethod :: a -> String
+
+instance (IncoherentBase a) => DependingDefault a where
+  dependMethod x = "default " +++ printType (typeOf x) +++ ": " +++ baseMethod x
+
+testByteDirect :: String
+testByteDirect =
+  let v :: Vector 4 Byte
+      v = replicate 0
+  in dependMethod v
+
+testIntDirect :: String
+testIntDirect =
+  let v :: Vector 4 (Int 8)
+      v = replicate 0
+  in dependMethod v
+
+useGeneric :: Vector n a -> String
+useGeneric v = dependMethod v
+
+testByteViaGeneric :: String
+testByteViaGeneric = useGeneric ((replicate 0) :: Vector 4 Byte)
+
+sysInstance_Default_FlagOff :: Module Empty
+sysInstance_Default_FlagOff = module
+  rules
+    "show": when True ==> do
+      $display "Byte direct: " testByteDirect
+      $display "Int direct: " testIntDirect
+      $display "Byte via generic: " testByteViaGeneric
+      $finish 0

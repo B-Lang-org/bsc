@@ -30,6 +30,7 @@ import Assump
 import CSubst(cSubstN)
 import CFreeVars(getFVC, getFTCC)
 import Util(separate, apFst, quote, fst3)
+--import Debug.Trace(trace, traceM)
 
 cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, Bool, S.Set Id)
 cTypeCheck errh flags symtab (CPackage name exports imports impsigs fixs defns includes) = do
@@ -136,7 +137,8 @@ checkTopPreds mid a ps = do
 topExpr :: CType -> CExpr -> TI ([VPred], CExpr)
 topExpr td e = do
   (ps, e') <- tiExpr [] td e
-  (ps', sbs) <- satisfy [] ps
+  (ps', sbs0) <- satisfy [] ps
+  sbs <- warnTransitiveIncoherent sbs0
   s <- getSubst
   let rec_defls    = getRecursiveDefls sbs
       nonrec_defls = getNonRecursiveDefls sbs
