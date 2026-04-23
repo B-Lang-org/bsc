@@ -724,8 +724,8 @@ classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
 -- Detection happens in three phases, each run in bsc.hs and combined:
 --   Phase 1 (MakeSymTab): type synonym uses -- scanned before typechecking
 --                         so synonyms are visible before expansion
---   Phase 2 (TypeCheck):  symbol uses during typechecking (variables,
---                         constructors, type constructors, class instances)
+--   Phase 2 (TypeCheck + CtxRed): symbol uses during typechecking (variables,
+--                                 constructors, type constructors, class instances)
 --   Phase 3 (GenSign):    re-exported items -- scanned after signature
 --                         generation to see which packages contributed exports
 
