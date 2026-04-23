@@ -72,6 +72,10 @@ check-suite:
 check-suite-parallel:
 	$(MAKE) -C testsuite checkparallel
 
+.PHONY: full-suite-parallel
+full-suite-parallel:
+	$(MAKE) -C testsuite fullparallel
+
 # -------------------------
 
 clean: rem_build
