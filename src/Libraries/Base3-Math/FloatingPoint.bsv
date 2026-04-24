@@ -3163,7 +3163,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),UInt#(n))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+               out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+               out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin
@@ -3354,7 +3359,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),Int#(n))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+               out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+	       out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin
@@ -3547,7 +3557,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m), FixedPoint#(isize,fsize))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+	       out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+               out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin
