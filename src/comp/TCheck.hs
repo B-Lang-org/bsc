@@ -2547,9 +2547,9 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
     -- Apply the substitution to the code fragments
-    let alts''     =  apSub s alts'             -- new alternatives
-        asbs       =  apSub s sbs1              -- new dict bindings
-        me''       =  apSub s me'               -- update guards
+    let alts'' = apSub s alts'
+        me''   = apSub s me'
+    asbs <- warnTransitiveIncoherent (apSub s sbs1)
 
     -- Determine the generic variables and produce the inferred type scheme
     let
@@ -2904,8 +2904,8 @@ tiImpls recursive as ibs = do
 
     -- update the info we computed above
     s <- getSubst
-    let sbs_final = apSub s (sbs3 <++ sbs2 <++ sbs1)
-        ts_final = apSub s ts'
+    sbs_final <- warnTransitiveIncoherent (apSub s (sbs3 <++ sbs2 <++ sbs1))
+    let ts_final = apSub s ts'
         fs_final = tv (apSub s as) `union` bvs
         vss_final = map tv ts_final
         lvs_final = foldr1 union vss_final

@@ -1,0 +1,17 @@
+package IncoherentBase where
+
+import Vector
+import Prelude
+
+type Byte = Bit 8
+
+class incoherent IncoherentBase a where
+  baseMethod :: a -> String
+
+-- Generic vector instance
+instance IncoherentBase (Vector n a) where
+  baseMethod _ = "generic vector instance"
+
+-- Specific byte vector instance - overlaps when a = Byte
+instance IncoherentBase (Vector n Byte) where
+  baseMethod _ = "byte vector instance"

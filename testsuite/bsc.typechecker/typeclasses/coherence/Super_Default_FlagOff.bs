@@ -1,0 +1,37 @@
+package Super_Default_FlagOff where
+
+import IncoherentBase
+import Vector
+
+class (IncoherentBase a) => SuperDefault a where
+  superMethod :: a -> String
+
+instance SuperDefault (Vector n a) where
+  superMethod x = "super default " +++ printType (typeOf x) +++ ": " +++ baseMethod x
+
+testByteDirect :: String
+testByteDirect =
+  let v :: Vector 4 Byte
+      v = replicate 0
+  in superMethod v
+
+testIntDirect :: String
+testIntDirect =
+  let v :: Vector 4 (Int 8)
+      v = replicate 0
+  in superMethod v
+
+useGeneric :: Vector n a -> String
+useGeneric v = superMethod v
+
+testByteViaGeneric :: String
+testByteViaGeneric = useGeneric ((replicate 0) :: Vector 4 Byte)
+
+sysSuper_Default_FlagOff :: Module Empty
+sysSuper_Default_FlagOff = module
+  rules
+    "show": when True ==> do
+      $display "Byte direct: " testByteDirect
+      $display "Int direct: " testIntDirect
+      $display "Byte via generic: " testByteViaGeneric
+      $finish 0

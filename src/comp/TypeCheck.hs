@@ -136,7 +136,8 @@ checkTopPreds mid a ps = do
 topExpr :: CType -> CExpr -> TI ([VPred], CExpr)
 topExpr td e = do
   (ps, e') <- tiExpr [] td e
-  (ps', sbs) <- satisfy [] ps
+  (ps', sbs0) <- satisfy [] ps
+  sbs <- warnTransitiveIncoherent sbs0
   s <- getSubst
   let rec_defls    = getRecursiveDefls sbs
       nonrec_defls = getNonRecursiveDefls sbs
