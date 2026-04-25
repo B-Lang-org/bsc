@@ -3,7 +3,6 @@
 module GenBin(genBinFile, readBinFile) where
 
 import Control.Monad(when)
-import Data.Word
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B
@@ -29,19 +28,23 @@ doTrace = elem "-trace-genbin" progArgs
 header :: [Byte]
 header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260427-1"
 
+headerBS :: B.ByteString
+headerBS = B.pack header
+
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
 genBinFile errh fn bi_sig bo_sig ipkg =
     writeBinaryFileCatch errh fn (header ++ encode (bi_sig, bo_sig, ipkg))
 
-readBinFile :: ErrorHandle -> String -> [Word8] ->
+readBinFile :: ErrorHandle -> String -> B.ByteString ->
                IO (CSignature, CSignature, IPackage a, String)
 readBinFile errh nm s =
-    if take (length header) s == header
-    then let ((bi_sig, bo_sig, ipkg), hash) =
-                 decodeWithHash $ drop (length header) s
-         in return (bi_sig, bo_sig, ipkg, hash)
-    else bsError errh [(noPosition, EBinFileVerMismatch nm)]
+    let hlen = B.length headerBS
+    in if B.take hlen s == headerBS
+       then let ((bi_sig, bo_sig, ipkg), hash) =
+                    decodeWithHash $ B.drop hlen s
+            in return (bi_sig, bo_sig, ipkg, hash)
+       else bsError errh [(noPosition, EBinFileVerMismatch nm)]
 
 -- ----------
 -- Bin CSignature

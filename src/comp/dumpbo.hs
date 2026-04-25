@@ -9,7 +9,7 @@ import GenBin
 import ISyntax
 import Error(initErrorHandle)
 import System.IO
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as BS
 
 main :: IO ()
 main = do
@@ -20,7 +20,7 @@ main = do
                        [mi@(c:_)] | (c /= '-') -> return (False, mi)
                        _ -> do putStr ("Usage: dumpbo [-bi] mod-id\n")
                                exitWith (ExitFailure 1)
-    file <- B.unpack <$> B.readFile fname
+    file <- BS.readFile fname
     (bi_sig, bo_sig, ipkg, hash) <- readBinFile errh fname file
     hSetEncoding stdout utf8
     if (isBI)
