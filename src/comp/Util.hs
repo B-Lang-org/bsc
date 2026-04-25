@@ -607,12 +607,13 @@ hashInit = Hash 0 4000000063
 -- showpair (x,y) = "(" ++ (showHex x ("," ++ (showHex y ")")))
 
 nextHash :: Hash -> [Word8] -> Hash
-nextHash h s = foldl' f h s
-    where f :: Hash -> Word8 -> Hash
-          f (Hash x y) c =
-              let y' = (rotate x 5) + (toEnum (fromEnum c))
-                  x' = y + y' + 1442968193
-              in Hash x' y'
+nextHash h s = foldl' nextHashByte h s
+
+nextHashByte :: Hash -> Word8 -> Hash
+nextHashByte (Hash x y) c =
+    let y' = (rotate x 5) + (toEnum (fromEnum c))
+        x' = y + y' + 1442968193
+    in Hash x' y'
 
 nextHash32 :: Hash -> Word32 -> Hash
 nextHash32 (Hash x y) n =

@@ -36,16 +36,20 @@ import qualified Data.ByteString as B
 header :: [Byte]
 header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260418-1"
 
+headerBS :: B.ByteString
+headerBS = B.pack header
+
 genABinFile :: ErrorHandle -> String -> ABin -> IO ()
 genABinFile errh fn abin =
     writeBinaryFileCatch errh fn (header ++ encode abin)
 
-readABinFile :: ErrorHandle -> String -> [Byte] -> (ABin, String)
+readABinFile :: ErrorHandle -> String -> B.ByteString -> (ABin, String)
 readABinFile errh nm s =
-    if take (length header) s == header
-    then (decode (drop (length header) s), "")
-    --then (decodeWithHash (drop (length header) s))
-    else bsErrorUnsafe errh [(noPosition, EBinFileVerMismatch nm)]
+    let hlen = B.length headerBS
+    in if B.take hlen s == headerBS
+       then (decode (B.drop hlen s), "")
+       --then (decodeWithHash (B.drop hlen s))
+       else bsErrorUnsafe errh [(noPosition, EBinFileVerMismatch nm)]
 
 -- ----------
 -- Bin ABin
