@@ -2444,6 +2444,11 @@ extendHeap = do s <- get
                 mapM_ copycell ((uncurry enumFromTo) (bounds oldheap))
 -}
 
+improveCellName :: HExpr -> Maybe Id -> G (Maybe Id)
+improveCellName _ mi@(Just i)
+  | not $ isPreludePosition $ getPosition i = return mi
+improveCellName e _ = inferName e
+
 addHeapCell :: String -> HeapCell -> G (HeapPointer, HeapData)
 addHeapCell tag cell = do
   s <- get
@@ -2454,7 +2459,8 @@ addHeapCell tag cell = do
   return (p, HeapData ref)
 
 addHeapUnev :: String -> IType -> HExpr -> Maybe Id -> G HExpr
-addHeapUnev tag t e cell_name = do
+addHeapUnev tag t e cell_name_orig = do
+ cell_name <- improveCellName e cell_name_orig
  let newcell = (HUnev { hc_hexpr = e, hc_name = cell_name })
  cross <- getCross
  (p, r) <- addHeapCell tag newcell
@@ -2467,7 +2473,8 @@ addHeapUnev tag t e cell_name = do
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
-addHeapWHNF tag t pe cell_name = do
+addHeapWHNF tag t pe@(P _ e) cell_name_orig = do
+  cell_name <- improveCellName e cell_name_orig
   let newcell = (HWHNF { hc_pexpr = pe, hc_name = cell_name })
   (p, r) <- addHeapCell tag newcell
   let result = IRefT t p r

@@ -85,10 +85,6 @@ module mkDesign(clk,
   wire [7 : 0] i_multiplicand$D_IN;
   wire i_multiplicand$EN;
 
-  // remaining internal signals
-  wire [7 : 0] x__h663, x__h814, x__h874;
-  wire [3 : 0] x__h851, x__h896;
-
   // value method done
   assign done = i_done_reg ;
 
@@ -99,7 +95,7 @@ module mkDesign(clk,
   assign i_acc$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       8'd0 :
-	       (i_mult[0] ? x__h814 : i_acc) ;
+	       (i_mult[0] ? i_acc + i_multiplicand : i_acc) ;
   assign i_acc$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
@@ -108,7 +104,7 @@ module mkDesign(clk,
   assign i_count$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       4'd0 :
-	       ((i_enable && i_count != 4'd4) ? x__h896 : 4'd0) ;
+	       ((i_enable && i_count != 4'd4) ? i_count + 4'd1 : 4'd0) ;
   assign i_count$EN = 1'd1 ;
 
   // register i_done_reg
@@ -127,24 +123,19 @@ module mkDesign(clk,
   assign i_mult$D_IN =
 	     (shift_and_add_load && i_count == 4'd0) ?
 	       shift_and_add_b :
-	       x__h851 ;
+	       { 1'd0, i_mult[3:1] } ;
   assign i_mult$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
 
   // register i_multiplicand
   assign i_multiplicand$D_IN =
-	     (shift_and_add_load && i_count == 4'd0) ? x__h663 : x__h874 ;
+	     (shift_and_add_load && i_count == 4'd0) ?
+	       { 4'b0, shift_and_add_a } :
+	       { i_multiplicand[6:0], 1'd0 } ;
   assign i_multiplicand$EN =
 	     shift_and_add_load && i_count == 4'd0 ||
 	     i_enable && i_count != 4'd4 ;
-
-  // remaining internal signals
-  assign x__h663 = { 4'b0, shift_and_add_a } ;
-  assign x__h814 = i_acc + i_multiplicand ;
-  assign x__h851 = { 1'd0, i_mult[3:1] } ;
-  assign x__h874 = { i_multiplicand[6:0], 1'd0 } ;
-  assign x__h896 = i_count + 4'd1 ;
 
   // handling of inlined registers
 
