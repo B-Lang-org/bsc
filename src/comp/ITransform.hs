@@ -1695,15 +1695,19 @@ iTransFixupDefNames flags = do
                        <- M.toList old_defmap ]
 
       -- Identify the name to be used, by filtering out the non-CSE defs
-      -- and picking the best name from the remaining (for now, the first)
+      -- and picking the best name from the remaining
       rename_map =
           let pickId cse_id def_ips =
                   -- filter out the non-CSE defs
                   case (filter (not . defPropsHasNoCSE . snd) def_ips) of
                     -- if they're all non-CSE, keep the bad name
                     [] -> cse_id
-                    -- otherwise, take the first def name
-                    ((def_id, _):_) -> def_id
+                    -- prefer a keep-marked name, then a non-bad name
+                    ips -> case filter (isKeepId . fst) ips of
+                             ((def_id, _):_) -> def_id
+                             [] -> case filter (not . isBadId . fst) ips of
+                                     ((def_id, _):_) -> def_id
+                                     [] -> fst (head ips)
           in  M.mapWithKey pickId cse_ids_map
 
       -- function to rename ICValue references (to use the new CSE name)
