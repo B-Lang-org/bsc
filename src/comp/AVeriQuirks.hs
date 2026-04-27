@@ -286,13 +286,25 @@ aQExp top (APrim aid t p es) | p == PrimAdd || p == PrimSub = do
 -- All multipliers should already be assigned directly to a
 -- def, and they should all have output size equal to the
 -- sum of the input sizes.  We check those properties here.
+-- The arguments must be in named defs (via mkDefS) so that Verilog
+-- evaluates their width-sensitive subexpressions (e.g. negation in
+-- sign-magnitude arithmetic) in the correct narrow context rather than
+-- the wider result context.
 aQExp top x@(APrim aid t p es) | p == PrimMul =
     if top
     then if ((aSize t) == (sum (map aSize es)))
-         then do es' <- mapM (aQExp False) es
+         then do es' <- mapM mkDefS es
                  return (APrim aid t p es')
          else internalError $ "aQExp: PrimMul result size is ill-typed: " ++ (show x)
     else internalError $ "aQExp: PrimMul does not feed into a def: " ++ (show x)
+
+-- PrimQuot and PrimRem have the same width-context issue as PrimMul:
+-- when arguments are complex expressions (e.g. sign-magnitude negations),
+-- Verilog evaluates them in the result width rather than the operand width.
+-- Forcing arguments into named defs gives each the correct narrow context.
+aQExp top x@(APrim aid t p es) | p == PrimQuot || p == PrimRem = do
+    es' <- mapM mkDefS es
+    return (APrim aid t p es')
 
 -- For PrimMux and PrimPriMux operators,
 aQExp top x@(APrim aid t p es) | p == PrimMux || p == PrimPriMux = do
