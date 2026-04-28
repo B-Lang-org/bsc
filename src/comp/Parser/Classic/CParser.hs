@@ -227,6 +227,7 @@ aexp' =     pAny                           >>- anyExprAt
         ||! numericLit
         ||! string
         ||! char
+        ||! unbasedUnsized
         ||! blkexp -- XXX maybe it should be expX
 
 pQType :: CParser CQType
@@ -1005,6 +1006,12 @@ pStringAsId = lcp "<string>"  (\p x->case x of L_string  s     -> Just (mkId p (
 
 char :: CParser CExpr
 char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar c))); _ -> Nothing)
+
+unbasedUnsized :: CParser CExpr
+unbasedUnsized = lcp "<unbased-unsized>" (\p x -> case x of
+    L_unbasedUnsized True  -> Just (cVar (idConstAllBitsSetAt p))
+    L_unbasedUnsized False -> Just (cVar (idConstAllBitsUnsetAt p))
+    _                      -> Nothing)
 
 hide :: CParser ()
 hide = literal fsHide

@@ -1,0 +1,20 @@
+package UnbasedUnsized() where
+
+zeros8 :: Bit 8
+zeros8 = '0
+
+ones8 :: Bit 8
+ones8 = '1
+
+zeros32 :: Bit 32
+zeros32 = '0
+
+ones32 :: Bit 32
+ones32 = '1
+
+-- Width inferred from function argument context
+isAllZeros :: Bit 8 -> Bool
+isAllZeros x = (x == '0)
+
+isAllOnes :: Bit 8 -> Bool
+isAllOnes x = (x == '1)
