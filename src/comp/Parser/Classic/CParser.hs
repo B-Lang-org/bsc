@@ -609,6 +609,7 @@ pAPat =     pVarIdOrU `into` (\ mi ->
         ||! pConId                                                        >>- (\i -> CPCon i [])
         ||! lp +.+ sepBy pPat (l L_comma) +.. rp                        >>> pMkTuple
         ||! numericLit                                                        >>- litToPLit
+        ||! lcp "'0" (\p x -> case x of L_unbasedUnsized False -> Just (CPLit (CLiteral p (LInt (ilDec 0)))); _ -> Nothing)
   where
     litToPLit (CLit l) = CPLit l
     litToPLit _ = internalError "CParser.pAPat: litToPLit"

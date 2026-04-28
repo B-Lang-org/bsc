@@ -14,4 +14,12 @@ function Bool isAllOnes(Bit#(8) x);
     return (x == '1);
 endfunction
 
+// '0 in pattern position
+function String describeZero(Bit#(8) x);
+    case (x)
+        '0: return "all zeros";
+        default: return "nonzero";
+    endcase
+endfunction
+
 endpackage

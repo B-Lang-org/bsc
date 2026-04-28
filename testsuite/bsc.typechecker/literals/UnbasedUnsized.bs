@@ -18,3 +18,8 @@ isAllZeros x = (x == '0)
 
 isAllOnes :: Bit 8 -> Bool
 isAllOnes x = (x == '1)
+
+-- '0 in pattern position
+describeZero :: Bit 8 -> String
+describeZero '0 = "all zeros"
+describeZero _  = "nonzero"
