@@ -3613,14 +3613,15 @@ conAp' _ prim@(ICPrim _ op) fe@(ICon prim_id _) [E e] | stringPrim op =
                PrimStringLength ->
                    return $ pExpr $ iMkLitAt pos itInteger (genericLength s)
                PrimGetStringPosition -> return $ pExpr $ iMkPosition pos
-               PrimStringSplit ->
+               PrimStringSplit -> do
+                   let pairType = itPair itChar itString
                    case s of
-                     [] -> return $ pExpr $ iMkInvalid resType
+                     [] -> return $ pExpr $ iMkInvalid pairType
                      (c:r) -> let e_c = iMkCharAt pos c
                                   e_r = iMkStringAt pos r
                                   e_pair = iMkPairAt pos
                                                itChar itString e_c e_r
-                              in  return $ pExpr $ iMkValid resType e_pair
+                              in  return $ pExpr $ iMkValid pairType e_pair
                PrimStringToChar ->
                    case s of
                      [c] -> return $ pExpr $ iMkCharAt pos c
