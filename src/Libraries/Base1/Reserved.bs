@@ -26,15 +26,29 @@ instance Bits (Reserved n) n
         pack   _ = _
         unpack _ = _
 
+instance ValidateBits (Reserved n) n
+    where
+        unpackValid _ = Valid _
+
 instance Bits (ReservedZero n) n
     where
         pack   _ = 0
         unpack x = ReservedZero (unpack x)
 
+instance ValidateBits (ReservedZero n) n
+    where
+        unpackValid x = if x == 0 then Valid (ReservedZero x) else Invalid
+
 instance Bits (ReservedOne n) n
     where
         pack   _ = fromInteger ((2 ** (valueOf n)) - 1)
         unpack x = ReservedOne (unpack x)
+
+instance ValidateBits (ReservedOne n) n
+    where
+        unpackValid x = if x == fromInteger ((2 ** (valueOf n)) - 1)
+                          then Valid (ReservedOne x)
+                          else Invalid
 
 --@ Any two \te{Reserved} values are considered to be equal.
 --@ \begin{libverbatim}

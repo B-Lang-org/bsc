@@ -34,6 +34,12 @@ instance Bits (UIntRange lo hi) (TLog (TAdd hi 1))
         pack (U x) = x -- primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x
         unpack  x  = U x -- (primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x)
 
+instance ValidateBits (UIntRange lo hi) (TLog (TAdd hi 1))
+    where
+        unpackValid x = if x >= fromInteger (valueOf lo) && x <= fromInteger (valueOf hi)
+                          then Valid (U x)
+                          else Invalid
+
 --@ \lineup
 --@ \begin{libverbatim}
 --@ instance Literal #(UIntRange#(lo, hi));

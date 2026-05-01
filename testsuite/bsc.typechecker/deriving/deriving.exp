@@ -61,5 +61,9 @@ test_veri_only_bsv DeriveFShow
 
 test_veri_only_bsv DeriveDefaultValue
 
+test_veri_only DeriveValidateBits
+
+compile_pass_warning HandBitsDerivedValidateBits.bs T0158 1
+
 # --------------------
 

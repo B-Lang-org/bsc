@@ -1,0 +1,10 @@
+package HandBitsDerivedValidateBits where
+
+data T = A | B
+  deriving (Eq, ValidateBits)
+
+instance Bits T 1 where
+  pack A = 0
+  pack B = 1
+  unpack 0 = A
+  unpack 1 = B
