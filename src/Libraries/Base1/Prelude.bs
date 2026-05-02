@@ -2200,6 +2200,13 @@ instance Eq String
     (==) x y = primChr (primStringEQ x y)
     (/=) x y = primChr (primBNot (primStringEQ x y))
 
+instance Ord String
+  where
+    (<) x y = primChr (primStringLT x y)
+    (<=) x y = primChr (primStringLE x y)
+    (>) x y = primChr (primStringLT y x)
+    (>=) x y = primChr (primStringLE y x)
+
 instance Arith String
   where
     (+) x y  = x +++ y
@@ -3094,6 +3101,8 @@ primitive primExtractInternal :: Bit n -> Bit l -> Bit l -> Bit k
 
 primitive primStringConcat :: String -> String -> String
 primitive primStringEQ :: String -> String -> Bit 1
+primitive primStringLE :: String -> String -> Bit 1
+primitive primStringLT :: String -> String -> Bit 1
 
 primitive primJoinRules :: Rules -> Rules -> Rules
 
@@ -3572,7 +3581,7 @@ instance (TupleSize' a n) => TupleSize a n where {}
 
 class TupleSize' a n | a -> n where {}
 instance TupleSize' a 1 where {}
-instance (TupleSize' b (TSub n 1)) => TupleSize' (a, b) n where {}
+instance (TupleSize' b n) => TupleSize' (a, b) (TAdd n 1) where {}
 
 -- FUNCTIONS TO REPLACE UNAVAILABLE INFIXES
 

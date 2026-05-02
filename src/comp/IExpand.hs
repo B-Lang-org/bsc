@@ -3648,6 +3648,8 @@ conAp' _ prim@(ICPrim _ op) fe@(ICon prim_id _) [E e1, E e2] | stringPrim op =
                       e2'@(ICon _ (ICString {iStr = s2})) =
           case op of
             PrimStringEQ -> return $ pExpr $ iMkBool (s1 == s2)
+            PrimStringLT -> return $ pExpr $ iMkBool (s1 < s2)
+            PrimStringLE -> return $ pExpr $ iMkBool (s1 <= s2)
             PrimStringConcat -> return $ pExpr $ iMkStringAt (getIExprPosition e2') (s1 ++ s2)
             _ -> internalError ("conAp' unknown string prim: " ++ ppReadable op)
         handleString2 e1' e2' =

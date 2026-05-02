@@ -1,0 +1,36 @@
+Test 00
+x is not less than y
+z is not less than w
+x is less than or equal to y
+z is less than or equal to w
+x is not greater than y
+z is not greater than w
+x is greater than or equal to y
+z is greater than or equal to w
+Test 01
+x is less than y
+z is less than w
+x is less than or equal to y
+z is less than or equal to w
+x is not greater than y
+z is not greater than w
+x is not greater than or equal to y
+z is not greater than or equal to w
+Test 10
+x is not less than y
+z is not less than w
+x is not less than or equal to y
+z is not less than or equal to w
+x is greater than y
+z is greater than w
+x is greater than or equal to y
+z is greater than or equal to w
+Test 11
+x is not less than y
+z is not less than w
+x is less than or equal to y
+z is less than or equal to w
+x is not greater than y
+z is not greater than w
+x is greater than or equal to y
+z is greater than or equal to w

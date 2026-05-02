@@ -320,16 +320,29 @@ iMkValid t e =
 iMkNil :: IType -> IExpr a
 iMkNil t = IAps icPrimChr [mkNumConT 1, itList t] [iMkLitSize 1 0]
 
+-- The Cons constructor's internal struct type, matching the frontend's
+-- anonymous struct (List_$Cons with fields _1, _2) from CParser.
+itListCons :: IType -> IType
+itListCons t =
+  let tc_id = mkTCId idList (idCons noPosition)
+      (id_1:id_2:_) = tupleIds
+      ti = TIstruct SStruct [id_1, id_2]
+  in  ITAp (ITCon tc_id (IKFun IKStar IKStar) ti) t
+
 iMkCons :: IType -> IExpr a -> IExpr a -> IExpr a
 iMkCons t e_hd e_tl =
   let a = take1tmpVarIds
       ic_ty = ITForAll a IKStar $
-              (ITVar a) `itFun` (itList (ITVar a)) `itFun` (itList (ITVar a))
+              itListCons (ITVar a) `itFun` (itList (ITVar a))
       cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
       ic = ICon (idCons noPosition)
                 (ICCon { iConType = ic_ty, conTagInfo = cti })
-      -- multiple arguments become a single struct argument
-      e = iMkPairAt noPosition t (itList t) e_hd e_tl
+      (id_1:id_2:_) = tupleIds
+      tc_id = mkTCId idList (idCons noPosition)
+      tup_ty = ITForAll a IKStar $
+               (ITVar a) `itFun` itList (ITVar a) `itFun` itListCons (ITVar a)
+      tup = ICon tc_id (ICTuple tup_ty [id_1, id_2])
+      e = IAps tup [t] [e_hd, e_tl]
   in  IAps ic [t] [e]
 
 iMkList :: IType -> [IExpr a] -> IExpr a

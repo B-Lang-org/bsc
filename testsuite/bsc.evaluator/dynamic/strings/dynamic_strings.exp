@@ -21,4 +21,5 @@ test_c_veri_bsv StringInteger "" "" $iverilog_pre12
 # modelsim and iverilog (prior to v13) get this wrong in different ways
 test_c_veri_bsv StringIntegerWithNull "" "" "$iverilog_pre13 modelsim"
 test_c_veri_bsv StringEQ
+test_c_veri_bsv StringLT
 test_c_veri_bsv DynamicFormatString

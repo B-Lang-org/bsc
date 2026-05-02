@@ -1,0 +1,109 @@
+-- TreeMap: an ordered finite map from keys to values, implemented as
+-- a functional red-black tree (Okasaki 1999).  Keys must be in Ord.
+-- Lookup and insertion are O(log n).  Values of this type cannot be
+-- stored in hardware state (not in Bits); use during static elaboration.
+package TreeMap (
+    TreeMap,
+    empty,
+    singleton,
+    member,
+    lookup,
+    insertWith,
+    insert,
+    isEmpty,
+    size,
+    fromList,
+    toList,
+    foldr,
+    foldrWithKey
+) where
+
+data Color = R | B
+
+data (TreeMap :: * -> * -> *) k v
+  = Leaf
+  | Branch Color k v (TreeMap k v) (TreeMap k v)
+
+-- The empty map.
+empty :: TreeMap k v
+empty = Leaf
+
+-- A map containing exactly one key-value pair.
+singleton :: k -> v -> TreeMap k v
+singleton k v = Branch B k v Leaf Leaf
+
+-- True if the key is present in the map.
+member :: (Ord k) => k -> TreeMap k v -> Bool
+member _ Leaf = False
+member k (Branch _ k2 _ l r) = case (compare k k2) of
+  EQ -> True
+  LT -> member k l
+  GT -> member k r
+
+-- Return Just the value associated with the key, or Nothing if absent.
+lookup :: (Ord k) => k -> TreeMap k v -> Maybe v
+lookup _ Leaf = Nothing
+lookup k (Branch _ k2 v l r) = case (compare k k2) of
+  EQ -> Just v
+  LT -> lookup k l
+  GT -> lookup k r
+
+balance :: Color -> k -> v -> TreeMap k v -> TreeMap k v -> TreeMap k v
+balance B k3 v3 (Branch R k2 v2 (Branch R k1 v1 a b) c) d =
+  Branch R k2 v2 (Branch B k1 v1 a b) (Branch B k3 v3 c d)
+balance B k3 v3 (Branch R k1 v1 a (Branch R k2 v2 b c)) d =
+  Branch R k2 v2 (Branch B k1 v1 a b) (Branch B k3 v3 c d)
+balance B k1 v1 a (Branch R k3 v3 (Branch R k2 v2 b c) d) =
+  Branch R k2 v2 (Branch B k1 v1 a b) (Branch B k3 v3 c d)
+balance B k1 v1 a (Branch R k2 v2 b (Branch R k3 v3 c d)) =
+  Branch R k2 v2 (Branch B k1 v1 a b) (Branch B k3 v3 c d)
+balance c k v l r = Branch c k v l r
+
+makeBlack :: TreeMap k v -> TreeMap k v
+makeBlack (Branch _ k v l r) = Branch B k v l r
+makeBlack Leaf = Leaf
+
+insertWithColorBlind :: (Ord k) => (v -> v -> v) -> k -> v -> TreeMap k v -> TreeMap k v
+insertWithColorBlind _ k v Leaf = Branch R k v Leaf Leaf
+insertWithColorBlind f k v (Branch color k2 v2 l r) = case (compare k k2) of
+      EQ -> Branch color k2 (f v v2) l r
+      LT -> balance color k2 v2 (insertWithColorBlind f k v l) r
+      GT -> balance color k2 v2 l (insertWithColorBlind f k v r)
+
+-- Insert a key-value pair, using f to combine values on collision.
+-- f is called as f new old; if the key is absent, new is inserted directly.
+insertWith :: (Ord k) => (v -> v -> v) -> k -> v -> TreeMap k v -> TreeMap k v
+insertWith f k v t = makeBlack (insertWithColorBlind f k v t)
+
+-- Insert a key-value pair, replacing any existing value for that key.
+insert :: (Ord k) => k -> v -> TreeMap k v -> TreeMap k v
+insert = insertWith const
+
+-- True if the map contains no entries.
+isEmpty :: TreeMap k v -> Bool
+isEmpty Leaf = True
+isEmpty _ = False
+
+-- Number of key-value pairs in the map.
+size :: TreeMap k v -> Integer
+size Leaf = 0
+size (Branch _ _ _ l r) = 1 + size l + size r
+
+-- Build a map from a list of key-value pairs.  For duplicate keys,
+-- the leftmost (earliest) value is kept.
+fromList :: (Ord k) => List (k, v) -> TreeMap k v
+fromList Nil = empty
+fromList (Cons p rest) = insert p.fst p.snd (fromList rest)
+
+-- Fold key-value pairs in ascending key order.
+foldrWithKey :: (k -> v -> b -> b) -> b -> TreeMap k v -> b
+foldrWithKey _ z Leaf = z
+foldrWithKey f z (Branch _ k v l r) = foldrWithKey f (f k v (foldrWithKey f z r)) l
+
+-- Fold values in ascending key order.
+foldr :: (v -> b -> b) -> b -> TreeMap k v -> b
+foldr f z t = foldrWithKey (\_ v acc -> f v acc) z t
+
+-- Return all key-value pairs in ascending key order.
+toList :: TreeMap k v -> List (k, v)
+toList t = foldrWithKey (\k v acc -> Cons (k, v) acc) Nil t

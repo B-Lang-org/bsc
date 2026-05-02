@@ -37,4 +37,5 @@ $(BUILDDIR)/Reserved.bo:	Reserved.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeB
 $(BUILDDIR)/RevertingVirtualReg.bo:	RevertingVirtualReg.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/SShow.bo:	SShow.bs $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/SplitPorts.bo:	SplitPorts.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/TreeMap.bo:	TreeMap.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Vector.bo:	Vector.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Array.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo

@@ -119,6 +119,8 @@ data PrimOp =
         | PrimStringConcat
         | PrimStringToInteger
         | PrimStringEQ
+        | PrimStringLT
+        | PrimStringLE
         | PrimStringLength
 
         | PrimStringSplit
@@ -405,6 +407,8 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primStringConcat" = PrimStringConcat
         tp "primStringToInteger" = PrimStringToInteger
         tp "primStringEQ" = PrimStringEQ
+        tp "primStringLT" = PrimStringLT
+        tp "primStringLE" = PrimStringLE
         tp "primStringLength" = PrimStringLength
 
         tp "primStringSplit" = PrimStringSplit
@@ -706,6 +710,8 @@ instance NFData PrimOp where
     rnf PrimStringConcat = ()
     rnf PrimStringToInteger = ()
     rnf PrimStringEQ = ()
+    rnf PrimStringLT = ()
+    rnf PrimStringLE = ()
     rnf PrimStringLength = ()
     rnf PrimStringSplit = ()
     rnf PrimStringCons = ()
