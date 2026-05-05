@@ -263,6 +263,8 @@ data Deriving = Deriving
 data ClassMember
   = ClassMethod !(Located Ident) !(Located QualType) !(Maybe LExpr)
     -- ^ Type signature with optional inline default: varId :: Type [= expr]
+  | ClassAssocType !(Located Ident) ![Located TyVar] !LType
+    -- ^ Associated type function: type Name args = Type
   | ClassDefaultImpl !(Located Ident) ![LPattern] !LExpr
     -- ^ Default implementation clause: varId [pats] = expr
   | ClassFixity !(Located FixityDecl)

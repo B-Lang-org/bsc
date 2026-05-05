@@ -234,6 +234,8 @@ prettyClassMember = \case
   ClassMethod name ty def ->
     prettyLIdent name <+> "::" <+> prettyQualType (locVal ty) <>
     maybe mempty (\e -> line <> prettyLIdent name <+> "=" <+> prettyLExpr e) def
+  ClassAssocType name tvars ty ->
+    "type" <+> prettyLIdent name <+> hsep (map prettyLTyVar tvars) <+> "=" <+> prettyLType ty
   ClassDefaultImpl name pats body ->
     prettyLIdent name <+> hsep (map prettyLPattern pats) <+> "=" <+> prettyLExpr body
   ClassFixity fd -> prettyFixityDecl fd

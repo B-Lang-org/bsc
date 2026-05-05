@@ -862,14 +862,27 @@ pFunDep = do
 -- | Parse a class member.
 -- Class members can be:
 -- 1. Fixity declarations
--- 2. Type signatures: varId :: type
--- 3. Default implementations: varId [pats] = expr (without type sig)
+-- 2. Associated type functions: type Name args = type
+-- 3. Type signatures: varId :: type
+-- 4. Default implementations: varId [pats] = expr (without type sig)
 pClassMember :: Parser ClassMember
 pClassMember = choice
   [ ClassFixity <$> withSpan pFixityDecl
+  , try pClassAssocType
   , try pClassMethodWithSig  -- Type signature (possibly with inline default)
   , pClassDefaultImpl        -- Default implementation (no type sig)
   ]
+
+-- | Parse a class-associated type function.
+-- Handles: type Name args = type
+pClassAssocType :: Parser ClassMember
+pClassAssocType = do
+  void $ keyword Lex.KwType
+  name <- conId <|> varId
+  tvars <- many pTyVar
+  void $ punct Lex.PunctEqual
+  ty <- pType
+  pure $ ClassAssocType name tvars ty
 
 -- | Parse a class method with type signature.
 -- Handles: varId :: type [= expr] or (op) :: type [= expr]

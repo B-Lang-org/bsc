@@ -701,6 +701,10 @@ collectClassMember member = case member of
     parent   <- gets bsParent
     typeText <- fmtQT (locVal ty)
     addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) (Just typeText)
+  ClassAssocType name _ ty -> do
+    parent   <- gets bsParent
+    typeText <- fmtQT (QualType [] ty)
+    addSymbol $ mkChildSym parent (identText $ locVal name) SKType (locSpan name) (Just typeText)
   ClassDefaultImpl name pats _ -> do
     parent <- gets bsParent
     addSymbol $ mkChildSym parent (identText $ locVal name) SKFunction (locSpan name) Nothing

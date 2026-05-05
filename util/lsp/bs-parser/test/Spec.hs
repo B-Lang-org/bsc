@@ -154,6 +154,18 @@ main = do
           Left err -> expectationFailure $ show err
           Right pkg -> length (pkgDefns pkg) `shouldBe` 1
 
+      it "parses class-associated type functions" $ do
+        let input = T.unlines
+              [ "package Foo where"
+              , "class (SlotEncoding :: * -> * -> * -> * -> *)"
+              , "    tag a s ts | tag a -> s ts where"
+              , "  type Slot     tag a = s"
+              , "  type TileSlot tag a = ts"
+              ]
+        case parsePackage "<test>" input of
+          Left err -> expectationFailure $ show err
+          Right pkg -> length (pkgDefns pkg) `shouldBe` 1
+
       it "parses let expression" $ do
         let input = "let x = 1 in x"
         case parseExpr "<test>" input of
