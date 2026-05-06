@@ -75,6 +75,10 @@ compile_pass_warning_bug TransitiveSynonymBSBad.bs T0157
 compile_pass_no_warning TypeclassConstraint.bsv
 compile_pass_no_warning TypeclassConstraintBS.bs
 
-# Test 14: Ambiguous constructor - should warn about Helper2
+# Test 14: type alias used only in a type constraint - should NOT warn
+compile_pass TypeAliasConstraintHelperBS.bs
+compile_pass_warning_bug TypeAliasConstraintBS.bs T0157
+
+# Test 15: Ambiguous constructor - should warn about Helper2
 compile_pass_warning AmbiguousConstructor.bsv T0157 1
 compare_file AmbiguousConstructor.bsv.bsc-out
