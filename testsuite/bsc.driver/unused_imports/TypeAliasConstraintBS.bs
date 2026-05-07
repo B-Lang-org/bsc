@@ -1,4 +1,4 @@
--- Test: import used only in a type constraint - should NOT warn
+-- Test: import only referenced from a context that ctxreduce removes
 -- Expected: NO warning
 
 package TypeAliasConstraintBS where

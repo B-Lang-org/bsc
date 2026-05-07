@@ -75,7 +75,7 @@ compile_pass_warning_bug TransitiveSynonymBSBad.bs T0157
 compile_pass_no_warning TypeclassConstraint.bsv
 compile_pass_no_warning TypeclassConstraintBS.bs
 
-# Test 14: type alias used only in a type constraint - should NOT warn
+# Test 14: import only referenced from a context that ctxreduce removes
 compile_pass TypeAliasConstraintHelperBS.bs
 compile_pass_warning_bug TypeAliasConstraintBS.bs T0157
 
