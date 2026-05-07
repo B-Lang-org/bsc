@@ -1,0 +1,9 @@
+-- Test: import only referenced from a context that ctxreduce removes
+-- Expected: NO warning
+
+package TypeAliasConstraintBS where
+
+import TypeAliasConstraintHelperBS
+
+f :: (DefaultValue (MyAlias t)) => Maybe t -> Maybe t
+f x = x

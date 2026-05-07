@@ -403,6 +403,10 @@ compilePackage
     symt11 <- mkSymTab errh mder
     t <- dump errh flags t DFsympostderiving dumpnames symt11
 
+    -- Extract packages used in type constructors from the parsed package
+    -- (before any transformations that might expand synonyms or change types)
+    let pkgsUsedInTypes = getPackagesUsedInTypes symt11 mder
+
     -- Reduce the contexts as far as possible
     start flags DFctxreduce
     mctx <- cCtxReduceIO errh flags symt11 mder
@@ -413,10 +417,6 @@ compilePackage
     start flags DFsympostctxreduce
     symt <- mkSymTab errh mctx
     t <- dump errh flags t DFsympostctxreduce dumpnames symt
-
-    -- Extract packages used in type constructors from the parsed package
-    -- (before any transformations that might expand synonyms or change types)
-    let pkgsUsedInTypes = getPackagesUsedInTypes symt mctx
 
     -- Turn instance declarations into ordinary definitions
     start flags DFconvinst
