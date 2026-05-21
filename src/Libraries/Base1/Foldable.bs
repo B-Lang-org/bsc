@@ -1,4 +1,4 @@
-package Foldable(Foldable(..), Foldable1(..)) where
+package Foldable where
 
 import qualified Array
 import qualified List
@@ -29,6 +29,8 @@ import qualified Vector
 --@   function List#(a) toList(t#(a) xs);
 --@   function Bool elem(a x, t#(a) xs)
 --@     provisos (Eq#(a));
+--@   function Integer length(t#(a) xs);
+--@   function Bool null(t#(a) xs);
 --@ endtypeclass
 --@ \end{libverbatim}
 class Foldable t where
@@ -69,6 +71,12 @@ class Foldable t where
   elem :: (Eq a) => a -> t a -> Bool
   elem x = foldr (\ y acc -> y == x || acc) False
 
+  length :: t a -> Integer
+  length = foldr (\ _ n -> n + 1) 0
+
+  null :: t a -> Bool
+  null = foldr (\ _ _ -> False) True
+
 instance Foldable Array where
   foldr = Array.foldr
   foldl = Array.foldl
@@ -79,18 +87,24 @@ instance Foldable List where
   foldl = List.foldl
   mapM_ = List.mapM_
   toList = id
+  length = List.length
+  null = List.null
 
 instance Foldable (ListN.ListN n) where
   foldr = ListN.foldr
   foldl = ListN.foldl
   mapM_ = ListN.mapM_
   toList = ListN.toList
+  length _ = valueOf n
+  null _ = valueOf n == 0
 
 instance Foldable (Vector.Vector n) where
   foldr = Vector.foldr
   foldl = Vector.foldl
   mapM_ = Vector.mapM_
   toList = Vector.toList
+  length _ = valueOf n
+  null _ = valueOf n == 0
 
 instance Foldable Maybe where
   foldr _ z Invalid   = z
@@ -99,6 +113,10 @@ instance Foldable Maybe where
   foldl f z (Valid x) = f z x
   toList Invalid   = Nil
   toList (Valid x) = Cons x Nil
+  length Invalid   = 0
+  length (Valid _) = 1
+  null Invalid   = True
+  null (Valid _) = False
 
 --@ \index{Foldable1@\te{Foldable1} (type class)}
 --@ Fold operations that require the container to be non-empty.
