@@ -5,7 +5,7 @@
 $(BUILDDIR)/ActionSeq.bo:	ActionSeq.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Array.bo:	Array.bsv $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Assert.bo:	Assert.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
-$(BUILDDIR)/CShow.bo:	CShow.bs $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/CShow.bo:	CShow.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Clocks.bo:	Clocks.bsv $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/ConfigReg.bo:	ConfigReg.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Connectable.bo:	Connectable.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/ListN.bo $(BUILDDIR)/Inout.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
@@ -19,6 +19,7 @@ $(BUILDDIR)/FIFOLevel.bo:	FIFOLevel.bsv $(BUILDDIR)/FIFOF_.bo $(BUILDDIR)/GetPut
 $(BUILDDIR)/FShow.bo:	FShow.bsv $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/FoldFIFO.bo:	FoldFIFO.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/FoldFIFOF.bo:	FoldFIFOF.bs $(BUILDDIR)/FIFOF.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/Foldable.bo:	Foldable.bs $(BUILDDIR)/Array.bo $(BUILDDIR)/List.bo $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Fork.bo:	Fork.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/GetPut.bo:	GetPut.bs $(BUILDDIR)/FIFO.bo $(BUILDDIR)/FIFOF.bo $(BUILDDIR)/Connectable.bo $(BUILDDIR)/Clocks.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Inout.bo:	Inout.bsv $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
@@ -36,7 +37,8 @@ $(BUILDDIR)/Real.bo:	Real.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/RegFile.bo:	RegFile.bs $(BUILDDIR)/ConfigReg.bo $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Reserved.bo:	Reserved.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/RevertingVirtualReg.bo:	RevertingVirtualReg.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
-$(BUILDDIR)/SShow.bo:	SShow.bs $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/SShow.bo:	SShow.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/SplitPorts.bo:	SplitPorts.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/Traversable.bo:	Traversable.bs $(BUILDDIR)/List.bo $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Foldable.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/TreeMap.bo:	TreeMap.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Vector.bo:	Vector.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Array.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
