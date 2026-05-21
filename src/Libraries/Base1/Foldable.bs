@@ -18,6 +18,14 @@ import qualified Vector
 --@     provisos (Monad#(m));
 --@   function m#(b) foldlM(function m#(b) fn(b z, a x), b z, t#(a) xs)
 --@     provisos (Monad#(m));
+--@   function f#(void) traverse_(function f#(b) fn(a x), t#(a) xs)
+--@     provisos (Applicative#(f));
+--@   function f#(void) sequenceA_(t#(f#(a)) xs)
+--@     provisos (Applicative#(f));
+--@   function m#(void) mapM_(function m#(b) fn(a x), t#(a) xs)
+--@     provisos (Monad#(m));
+--@   function m#(void) sequence_(t#(m#(a)) xs)
+--@     provisos (Monad#(m));
 --@   function List#(a) toList(t#(a) xs);
 --@   function Bool elem(a x, t#(a) xs)
 --@     provisos (Eq#(a));
@@ -39,6 +47,22 @@ class Foldable t where
   foldlM :: (Monad m) => (b -> a -> m b) -> b -> t a -> m b
   foldlM f z0 xs = foldr (\ x k z -> f z x `bind` k) pure xs z0
 
+  -- The `_` traversal helpers sequence the actions left-to-right and
+  -- discard the rebuilt container. They only need \te{Foldable} (no
+  -- \te{Traversable}) because the action sequencing can be expressed
+  -- via \te{foldr}.
+  traverse_ :: (Applicative f) => (a -> f b) -> t a -> f ()
+  traverse_ f = foldr (\ x acc -> f x *> acc) (pure ())
+
+  sequenceA_ :: (Applicative f) => t (f a) -> f ()
+  sequenceA_ = foldr (*>) (pure ())
+
+  mapM_ :: (Monad m) => (a -> m b) -> t a -> m ()
+  mapM_ = traverse_
+
+  sequence_ :: (Monad m) => t (m a) -> m ()
+  sequence_ = sequenceA_
+
   toList :: t a -> List a
   toList = foldr Cons Nil
 
@@ -53,16 +77,19 @@ instance Foldable Array where
 instance Foldable List where
   foldr = List.foldr
   foldl = List.foldl
+  mapM_ = List.mapM_
   toList = id
 
 instance Foldable (ListN.ListN n) where
   foldr = ListN.foldr
   foldl = ListN.foldl
+  mapM_ = ListN.mapM_
   toList = ListN.toList
 
 instance Foldable (Vector.Vector n) where
   foldr = Vector.foldr
   foldl = Vector.foldl
+  mapM_ = Vector.mapM_
   toList = Vector.toList
 
 instance Foldable Maybe where
@@ -74,12 +101,11 @@ instance Foldable Maybe where
   toList (Valid x) = Cons x Nil
 
 --@ \index{Foldable1@\te{Foldable1} (type class)}
---@ The class of \emph{non-empty} foldable containers --- those for which
---@ a fold over an associative binary operator is always well-defined.
---@ Mirrors Haskell's \te{Data.Semigroup.Foldable.Foldable1}, except that
---@ instances may be parameterised by a size proviso (e.g.\ \te{Vector n}
---@ and \te{ListN n} require \te{(Add 1 m n)}) to statically rule out the
---@ empty case at the use site.
+--@ Fold operations that require the container to be non-empty.
+--@ This is seperated from \te{Foldable} because fixed-size containers
+--@ (e.g.\ \te{Vector n}, \te{ListN n}) may require an extra proviso to
+--@ assert non-zero size, not needed by the corresponding \te{Foldable}
+--@ instances.
 --@ \begin{libverbatim}
 --@ typeclass Foldable1 #(type t)
 --@   provisos (Foldable#(t));

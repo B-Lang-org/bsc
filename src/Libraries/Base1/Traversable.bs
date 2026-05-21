@@ -41,16 +41,6 @@ instance Traversable Maybe where
   traverse _ Invalid   = pure Invalid
   traverse f (Valid x) = fmap Valid (f x)
 
--- The `_` variants discard the rebuilt container and return `f ()`.
-
-traverse_ :: (Traversable t, Applicative f) => (a -> f b) -> t a -> f ()
-traverse_ f xs = () <$ traverse f xs
-
-sequenceA_ :: (Traversable t, Applicative f) => t (f a) -> f ()
-sequenceA_ xs = () <$ sequenceA xs
-
-mapM_ :: (Traversable t, Monad m) => (a -> m b) -> t a -> m ()
-mapM_ = traverse_
-
-sequence_ :: (Traversable t, Monad m) => t (m a) -> m ()
-sequence_ = sequenceA_
+-- The `_` variants of these helpers (\te{traverse_}, \te{sequenceA_},
+-- \te{mapM_}, \te{sequence_}) live in \te{Foldable}: they only need
+-- \te{Foldable} since they don't rebuild the container.
