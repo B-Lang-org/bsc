@@ -29,11 +29,11 @@ import TIMonad
 import IOUtil(progArgs)
 import Util(tracep, fromJustOrErr)
 
-doTraceEqWitnesses :: Bool
-doTraceEqWitnesses = "-trace-eq-witnesses" `elem` progArgs
+doTraceICheck :: Bool
+doTraceICheck = "-trace-icheck" `elem` progArgs
 
-trace_witness :: String -> a -> a
-trace_witness = tracep doTraceEqWitnesses
+trace_icheck :: String -> a -> a
+trace_icheck = tracep doTraceICheck
 
 -----
 
@@ -45,12 +45,17 @@ eqType flags symt r t t' = eqType0 flags symt r t t'
 
 eqType0 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 eqType0 flags symt r@(E _ _ eqs _) t t' =
-    --trace ("eqType0 " ++ ppReadable(t,t')) $
-    t == t' ||
-    EC.isEqual eqs t t' ||
-    eqType1 flags symt r t t' ||
-    -- try satisfying NumEq (only useful for numeric types)
-    eqTypeNum flags symt r t t'
+    let r_direct = t == t'
+        r_ec = EC.isEqual eqs t t'
+        r_eq1 = eqType1 flags symt r t t'
+        result = r_direct || r_ec || r_eq1 ||
+                 eqTypeNum flags symt r t t'
+    in trace_icheck ("eqType0: " ++ ppReadable t ++ " =?= " ++ ppReadable t'
+                     ++ " direct=" ++ show r_direct
+                     ++ " ec=" ++ show r_ec
+                     ++ " eq1=" ++ show r_eq1
+                     ++ " result=" ++ show result) $
+       result
 
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
@@ -66,6 +71,7 @@ eqType1 flags symt r (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
 eqType1 flags symt r (ITAp (ITAp (ITCon tc _ _) tA) tB)
                      (ITAp (ITAp (ITCon tc' _ _) tA') tB')
     | (tc == idArrow noPosition) && (tc' == idArrow noPosition) =
+    trace_icheck ("eqType1 arrow: adding dict from " ++ ppReadable tA) $
     let r2 = addDict symt tA r
     in  eqType0 flags symt r tA tA' && eqType0 flags symt r2 tB tB'
 
@@ -94,6 +100,7 @@ eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
     let numEqCls = mustFindClass symt (CTypeclass idNumEq)
         (r', t1') = convType r t1
         (rWithT2@(E _ _ _ (PredEnv _ m s)), t2') = convType r' t2
+        boundTVs = M.elems m
         -- For each numeric-kind EC class, emit a spanning tree of
         -- equalities (n-1 pairs, not all n*(n-1)/2) --- satisfy chases
         -- transitively via unification, so this is enough.
@@ -112,14 +119,21 @@ eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
           eqs <- mapM mkEPred (S.toList s)
           ecEqs <- mapM (\(a, b) -> mkEPred (IsIn numEqCls [a, b]))
                         ecNumEqTypes
-          addBoundTVs (M.elems m)
+          addBoundTVs boundTVs
           addExplPreds (eqs ++ ecEqs)
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
-          satisfyFV (M.elems m) (eqs ++ ecEqs) [vp]
-    in  case tiResult (runTI flags False symt satisfyEq) of
-          Right ([],_) -> True
-          res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
-                 False
+          satisfyFV boundTVs (eqs ++ ecEqs) [vp]
+        ti_result = tiResult (runTI flags False symt satisfyEq)
+        result = case ti_result of
+                   Right ([],_) -> True
+                   _ -> False
+    in  trace_icheck ("eqTypeNum: " ++ ppReadable t1 ++ " =?= " ++ ppReadable t2
+                      ++ " preds=" ++ ppReadable (S.toList s)
+                      ++ " result=" ++ show result
+                      ++ (case ti_result of
+                            Left msgs -> " err=" ++ show msgs
+                            Right (vps, _) -> " remaining=" ++ ppReadable vps)) $
+        result
  where isITAp (ITAp _ _) = True
        isITAp _          = False
 eqTypeNum _ _ _ _ _ = False
@@ -136,6 +150,7 @@ type EqTy = Env -> IType -> IType -> Bool
 tCheck :: Flags -> SymTab -> IATFCache -> Env -> EqTy -> IExpr a -> IType
 tCheck flags symt cache r eqTy ec@(ILam i t e) =
     -- assert (kCheckErr r t == IKStar) "ILam" (ec, kCheckErr r t) $
+        trace_icheck ("tCheck ILam: " ++ ppReadable i ++ " :: " ++ ppReadable t) $
         itFun t (tCheck flags symt cache (addT symt i t r) eqTy e)
 tCheck flags symt cache r eqTy ec@(IAps f0 ts [a]) =
         let f = iAps f0 ts []
@@ -145,9 +160,11 @@ tCheck flags symt cache r eqTy ec@(IAps f0 ts [a]) =
                 case norm $ tCheck flags symt cache r eqTy f of
                     ITAp (ITAp arr at') rt | arr == itArrow -> (rt, at')
                     tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
-        in  -- This trace can lead to infinite loops.
-            --trace("tCheck " ++ ppReadable((f,tCheck flags symt r eqTy f),(a,at))) $
-            assert (eqTy r at at') "IAp"
+            eq_result = eqTy r at at'
+        in  trace_icheck ("tCheck IAps: at=" ++ ppReadable at
+                          ++ " at'=" ++ ppReadable at'
+                          ++ " eq=" ++ show eq_result) $
+            assert eq_result "IAp"
                (r, ec, a, (at, at') {-, (f,ft),(a,at)-}) (at, at') rt
 tCheck flags symt cache r eqTy (IAps f ts (e:es)) =
     tCheck flags symt cache r eqTy (IAps (IAps f ts [e]) [] es)
@@ -156,18 +173,18 @@ tCheck flags symt cache r eqTy (ILAM i k e) =
     ITForAll i k (tCheck flags symt cache (addK i k r) eqTy e)
 tCheck flags symt cache r eqTy ec@(IAps e [t] []) =
         case tCheck flags symt cache r eqTy e of
-        --et@(ITForAll i k rt) ->
         ITForAll i k rt ->
             let kt = kCheckErr r t
                 rt'= tSubst i t rt
-            in  --trace ("tCheck " ++ ppReadable ((e,et),(t,kt))) $
+            in  trace_icheck ("tCheck IAP: t=" ++ ppReadable t
+                              ++ " k=" ++ ppReadable k ++ " kt=" ++ ppReadable kt) $
                 assert (k == kt) "IAP" (ec, (i,k,rt), kt) (k, kt) rt'
         tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
 tCheck flags symt cache r eqTy (IAps f (t:ts) []) =
     tCheck flags symt cache r eqTy (IAps (IAps f [t] []) ts [])
 tCheck _ _ _ _ _ (ICon c ic) = iConType ic
 tCheck flags symt cache r eqTy (IAps f [] []) =
-    -- trace ("tCheck " ++ show f) $
+    trace_icheck ("tCheck IAps []: " ++ show f) $
     tCheck flags symt cache r eqTy f
 tCheck _ _ _ _ _ (IRefT t _ _ _) = t
 --tCheck _ _ _ _ e = internalError ("no match in tCheck: " ++ ppReadable e)
@@ -199,6 +216,7 @@ tCheckIPackage :: Flags -> SymTab -> IPackage a -> Bool
 tCheckIPackage flags symt (IPackage pi _ _ ds atf_cache) =
     let r  = emptyEnv
         defOK (IDef i t e _) =
+            trace_icheck ("=== tCheckIPackage defOK: " ++ ppReadable i ++ " :: " ++ ppReadable t) $
             let t' = tCheck flags symt atf_cache r (eqType flags symt) e
             in  assert (eqType flags symt r t' t) "defOK1"
                     (i,e,(t,t')) (t, t') True
@@ -243,7 +261,9 @@ emptyEnv :: Env
 emptyEnv = E M.empty M.empty EC.empty emptyPredEnv
 
 addDict :: SymTab -> IType -> Env -> Env
-addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
+addDict symt t e@(E tm km eqs ps) =
+    trace_icheck ("addDict: " ++ ppReadable t ++ " -> eqs: " ++ ppReadable new_eqs) $
+    E tm km eqs' ps'
   where new_eqs = case t of
                     (ITAp (ITAp (ITCon i _ _) t1) t2)
                          | i == idLog   -> [(ITAp iTLog t1, t2)]
@@ -259,8 +279,7 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
                     -- E.g., for Container f e with "type Elem f = e":
                     -- dict type "Container a Maybe" adds (Elem a, Maybe)
                     otherwise -> atfEqsFromDict symt t
-        eqs' = trace_witness ("num eq witnesses: " ++ ppReadable new_eqs) $
-               let eqFn (x,y) ec = EC.equate x y ec
+        eqs' = let eqFn (x,y) ec = EC.equate x y ec
                in  foldr eqFn eqs new_eqs
         ps' = addPred symt e t
 
@@ -295,7 +314,9 @@ atfEqsFromDict symt dictType =
          _ -> []
 
 addT :: SymTab -> Id -> IType -> Env -> Env
-addT symt i t (E tm km eqs ps) = addDict symt t $ E (M.insert i t tm) km eqs ps
+addT symt i t (E tm km eqs ps) =
+    trace_icheck ("addT: " ++ ppReadable i ++ " :: " ++ ppReadable t) $
+    addDict symt t $ E (M.insert i t tm) km eqs ps
 
 addK :: Id -> IKind -> Env -> Env
 addK i k (E tm km eqs ps) = E tm (M.insert i k km) eqs ps
