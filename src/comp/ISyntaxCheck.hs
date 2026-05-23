@@ -116,8 +116,8 @@ eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
           addExplPreds (eqs ++ ecEqs)
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
           satisfy (eqs ++ ecEqs) [vp]
-    in  case runTI flags False symt satisfyEq of
-          (Right ([],_), _, _) -> True
+    in  case tiResult (runTI flags False symt satisfyEq) of
+          Right ([],_) -> True
           res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
                  False
  where isITAp (ITAp _ _) = True
@@ -133,29 +133,29 @@ assert False s e t x = internalError ("assert failed: " ++ s ++ "\n" ++ ppReadab
 
 type EqTy = Env -> IType -> IType -> Bool
 
-tCheck :: Flags -> SymTab -> Env -> EqTy -> IExpr a -> IType
-tCheck flags symt r eqTy ec@(ILam i t e) =
+tCheck :: Flags -> SymTab -> IATFCache -> Env -> EqTy -> IExpr a -> IType
+tCheck flags symt cache r eqTy ec@(ILam i t e) =
     -- assert (kCheckErr r t == IKStar) "ILam" (ec, kCheckErr r t) $
-        itFun t (tCheck flags symt (addT symt i t r) eqTy e)
-tCheck flags symt r eqTy ec@(IAps f0 ts [a]) =
+        itFun t (tCheck flags symt cache (addT symt i t r) eqTy e)
+tCheck flags symt cache r eqTy ec@(IAps f0 ts [a]) =
         let f = iAps f0 ts []
-            norm = changedOrId $ fullTypeNormalizer flags symt
-            at = norm $ tCheck flags symt r eqTy a
+            norm = changedOrId $ fullTypeNormalizer flags symt cache
+            at = norm $ tCheck flags symt cache r eqTy a
             (rt, at') =
-                case norm $ tCheck flags symt r eqTy f of
+                case norm $ tCheck flags symt cache r eqTy f of
                     ITAp (ITAp arr at') rt | arr == itArrow -> (rt, at')
                     tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
         in  -- This trace can lead to infinite loops.
             --trace("tCheck " ++ ppReadable((f,tCheck flags symt r eqTy f),(a,at))) $
             assert (eqTy r at at') "IAp"
                (r, ec, a, (at, at') {-, (f,ft),(a,at)-}) (at, at') rt
-tCheck flags symt r eqTy (IAps f ts (e:es)) =
-    tCheck flags symt r eqTy (IAps (IAps f ts [e]) [] es)
-tCheck _ _ r _ (IVar i) = findT i r
-tCheck flags symt r eqTy (ILAM i k e) =
-    ITForAll i k (tCheck flags symt (addK i k r) eqTy e)
-tCheck flags symt r eqTy ec@(IAps e [t] []) =
-        case tCheck flags symt r eqTy e of
+tCheck flags symt cache r eqTy (IAps f ts (e:es)) =
+    tCheck flags symt cache r eqTy (IAps (IAps f ts [e]) [] es)
+tCheck _ _ _ r _ (IVar i) = findT i r
+tCheck flags symt cache r eqTy (ILAM i k e) =
+    ITForAll i k (tCheck flags symt cache (addK i k r) eqTy e)
+tCheck flags symt cache r eqTy ec@(IAps e [t] []) =
+        case tCheck flags symt cache r eqTy e of
         --et@(ITForAll i k rt) ->
         ITForAll i k rt ->
             let kt = kCheckErr r t
@@ -163,13 +163,13 @@ tCheck flags symt r eqTy ec@(IAps e [t] []) =
             in  --trace ("tCheck " ++ ppReadable ((e,et),(t,kt))) $
                 assert (k == kt) "IAP" (ec, (i,k,rt), kt) (k, kt) rt'
         tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
-tCheck flags symt r eqTy (IAps f (t:ts) []) =
-    tCheck flags symt r eqTy (IAps (IAps f [t] []) ts [])
-tCheck _ _ _ _ (ICon c ic) = iConType ic
-tCheck flags symt r eqTy (IAps f [] []) =
+tCheck flags symt cache r eqTy (IAps f (t:ts) []) =
+    tCheck flags symt cache r eqTy (IAps (IAps f [t] []) ts [])
+tCheck _ _ _ _ _ (ICon c ic) = iConType ic
+tCheck flags symt cache r eqTy (IAps f [] []) =
     -- trace ("tCheck " ++ show f) $
-    tCheck flags symt r eqTy f
-tCheck _ _ _ _ (IRefT t _ _ _) = t
+    tCheck flags symt cache r eqTy f
+tCheck _ _ _ _ _ (IRefT t _ _ _) = t
 --tCheck _ _ _ _ e = internalError ("no match in tCheck: " ++ ppReadable e)
 
 kCheck :: Env -> IType -> Maybe IKind
@@ -196,10 +196,10 @@ kCheckErr r t = fj $ kCheck r t
   where fj = fromJustOrErr ("findK: " ++ ppReadable (r, t))
 
 tCheckIPackage :: Flags -> SymTab -> IPackage a -> Bool
-tCheckIPackage flags symt (IPackage pi _ _ ds) =
+tCheckIPackage flags symt (IPackage pi _ _ ds atf_cache) =
     let r  = emptyEnv
         defOK (IDef i t e _) =
-            let t' = tCheck flags symt r (eqType flags symt) e
+            let t' = tCheck flags symt atf_cache r (eqType flags symt) e
             in  assert (eqType flags symt r t' t) "defOK1"
                     (i,e,(t,t')) (t, t') True
     in  all defOK ds
@@ -212,7 +212,7 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
         let eqTy _ = (==) -- Just direct equality, no other manipulations.
             r = foldr (\ (i, k) r -> addK i k r) emptyEnv iks
             defOK (IDef i t e _) =
-                let t' = tCheck flags symt r eqTy e
+                let t' = tCheck flags symt M.empty r eqTy e
                 in  assert (t == t') "defOK2"
                         (i,e,(t,t')) (t, t') True
             ifcOK (IEFace i _ maybe_e maybe_r _ _) =
@@ -226,8 +226,8 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
 
             rulesOK (IRules sps rs) = all ruleOK rs
             ruleOK (IRule { irule_pred = p , irule_body = a }) =
-                let tp = tCheck flags symt r eqTy p
-                    ta = tCheck flags symt r eqTy a
+                let tp = tCheck flags symt M.empty r eqTy p
+                    ta = tCheck flags symt M.empty r eqTy a
                 in
                     assert (tp == itBit1) "ruleOK p"
                         (p, tp) (p, tp) True &&

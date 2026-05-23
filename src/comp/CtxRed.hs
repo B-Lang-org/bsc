@@ -18,7 +18,7 @@ import TCMisc
 import SymTab
 import MakeSymTab(convCQTypeWithAssumps)
 import VModInfo(VArgInfo(..))
-import Util(concatMapM, fst3)
+import Util(concatMapM)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
@@ -26,15 +26,25 @@ import IOUtil(progArgs)
 doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
-cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, S.Set Id)
+-- Perform context reduction on the definitions in a package.
+-- Returns a triple:
+--  * the context-reduced package
+--  * the set of Ids of packages whose symbols were used during reduction
+--    (folded into the unused-import warning check in bsc.hs)
+--  * the cache of ATF (associated type function) resolutions recorded
+--    while solving contexts (merged with the cache from typecheck in
+--    bsc.hs and threaded through iConvPackage into elaboration)
+cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage ->
+               IO (CPackage, S.Set Id, CATFCache)
 cCtxReduceIO errh flags s (CPackage mi exps imps impsigs fixs ds includes) = do
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    let (res, wmsgs, pkgsUsed) = runTI flags False s (mapM ctxRed ds)
-    when (not (null wmsgs)) $ bsWarning errh wmsgs
-    case res of
+    let ti_res = runTI flags False s (mapM ctxRed ds)
+    when (not (null (tiWarnings ti_res))) $ bsWarning errh (tiWarnings ti_res)
+    case tiResult ti_res of
       Left emsgs -> bsError errh emsgs
-      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes, pkgsUsed)
+      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes,
+                           tiUsedPackages ti_res, tiATFCache ti_res)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =
@@ -42,7 +52,7 @@ cCtxReduceDef flags s def =
     -- warnings better, return an ErrorMonad.
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    case fst3 (runTI flags False s (ctxRed def)) of
+    case tiResult (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
     Right t   -> Right t
 

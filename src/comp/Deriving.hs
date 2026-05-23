@@ -958,7 +958,7 @@ addAutoDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
 addAutoDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
-    | (Right True, _, _) <- runTI flags False r check = derivs
+    | Right True <- tiResult (runTI flags False r check) = derivs
   where check = do
           let (kind, sort) =
                   -- trace ("check undef: " ++ show clsId) $
