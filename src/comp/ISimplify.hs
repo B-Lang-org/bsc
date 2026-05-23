@@ -27,8 +27,8 @@ import Eval
 --   * let d = Literal-Bits n in ... .fromInteger d NNN  -->   NNN
 
 iSimplify :: (NFData a) => IPackage a -> IPackage a
-iSimplify (IPackage pi lps ps ds) =
-    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))        -- XXX
+iSimplify (IPackage pi lps ps ds atfCache) =
+    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds))) atfCache        -- XXX
 
 iSimpDefs :: NFData a => [IDef a] -> [IDef a]
 iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds

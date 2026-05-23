@@ -20,7 +20,7 @@ import ISyntaxUtil(iDefsMap)
 --     (to avoid lookups when evaluating the code).  This creates a cyclic
 --     data structure when defs call each other recursively.
 fixupDefs :: IPackage a -> [(IPackage a, String)] -> (IPackage a, [IDef a])
-fixupDefs (IPackage mi _ ps ds) ipkgs =
+fixupDefs (IPackage mi _ ps ds own_atf_cache) ipkgs =
     let
         (ms, _) = unzip ipkgs
 
@@ -28,10 +28,10 @@ fixupDefs (IPackage mi _ ps ds) ipkgs =
         -- XXX The nub is needed (at least) because we call "fixupDefs"
         -- XXX multiple times on a package and so we may be adding the ipkg
         -- XXX pragmas multiple times.
-        ps' = nub $ concat $ ps : [ ps | IPackage _ _ ps _ <- ms ]
+        ps' = nub $ concat $ ps : [ ps | IPackage _ _ ps _ _ <- ms ]
 
         -- Get all the defs from this package and the imported packages
-        ads = concat (ds : map (\ (IPackage _ _ _ ds) -> ds) ms)
+        ads = concat (ds : map (\ (IPackage _ _ _ ds _) -> ds) ms)
 
         -- Create a recursive data structure by populating the map "m"
         -- with defs created using the map itself
@@ -39,11 +39,12 @@ fixupDefs (IPackage mi _ ps ds) ipkgs =
         ads' = iDefsMap (fixUp m) ads
 
         -- The new package contents
-        ipkg_sigs = [ (mi, s) | (m@(IPackage mi _ _ _), s) <- ipkgs ]
+        ipkg_sigs = [ (mi, s) | (m@(IPackage mi _ _ _ _), s) <- ipkgs ]
         ds' = iDefsMap (fixUp m) ds
+        merged_atf_cache = foldl mergeIATFCaches own_atf_cache [ ipkg_atf_cache m | (m, _) <- ipkgs ]
     in
         --trace ("fixup " ++ ppReadable (map fst (M.toList m))) $
-        (IPackage mi ipkg_sigs ps' ds', ads')
+        (IPackage mi ipkg_sigs ps' ds' merged_atf_cache, ads')
 
 
 -- ===============

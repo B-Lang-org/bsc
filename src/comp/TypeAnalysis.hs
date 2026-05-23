@@ -12,7 +12,7 @@ module TypeAnalysis (
 import Data.List(genericDrop, intercalate, (\\), nub, sortBy)
 import Data.Char(isUpper)
 
-import Util(doRight, itos, fst3)
+import Util(doRight, itos)
 import Error(internalError, EMsg, ErrMsg(..))
 import Flags
 import Classic
@@ -351,7 +351,7 @@ getBitWidth flags symtab t =
     case (findSClass symtab (CTypeclass idBits)) of
         Nothing -> Nothing -- Prelude hasn't been loaded :)
         -- Bits is a coherent typeclass
-        Just c -> case (fst3 $ TI.runTI flags False symtab (getBitWidthM c)) of
+        Just c -> case (TI.tiResult $ TI.runTI flags False symtab (getBitWidthM c)) of
                       Right r -> r
                       Left _  -> Nothing
   where

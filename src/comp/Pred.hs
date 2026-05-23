@@ -148,7 +148,8 @@ data Class
                                            -- Just True  = always incoherent
                                            -- Nothing = flag-controlled
             isComm :: Bool, -- if the class is commutative (used for Add and Mul)
-            pkg_src :: Maybe Id -- package from which this class came
+            pkg_src :: Maybe Id, -- package from which this class came
+            assocTypes :: [(TyCon, [Int], Int)]
         }
 
 instance Show Class where
@@ -158,6 +159,7 @@ instance Show Class where
                 showsPrec 0 (csig c) . showString " " .
                 showsPrec 0 (super c) . showString " " .
                 showsPrec 0 (funDeps c) .
+                showsPrec 0 (assocTypes c) .
                 showString ")"
 
 instance PPrint Class where
@@ -167,7 +169,8 @@ instance PPrint Class where
         pPrint d 0 (csig c) <+>
         pPrint d 0 (super c) <+>
         pPrint d 0 (getInsts c) <+>
-        pPrint d 0 (funDeps c) <>
+        pPrint d 0 (funDeps c) <+>
+        pPrint d 0 (assocTypes c) <>
         text ")"
 
 instance PVPrint Class where
@@ -176,7 +179,8 @@ instance PVPrint Class where
                 pvPrint d 0 (csig c) <+>
                 pvPrint d 0 (super c) <+>
                 pvPrint d 0 (getInsts c) <+>
-                pvPrint d 0 (funDeps c) <>
+                pvPrint d 0 (funDeps c) <+>
+                pvPrint d 0 (assocTypes c) <>
                 text ")"
 
 instance NFData Class where
@@ -189,7 +193,8 @@ instance NFData Class where
             -- funDeps2, genInsts, getInsts intentionally not forced
             rnf (allowIncoherent c) `seq`
             rnf (isComm c)          `seq`
-            rnf (pkg_src c)
+            rnf (pkg_src c)         `seq`
+            rnf (assocTypes c)
 
 instance Eq Class where
     c == c'  =  name c == name c'

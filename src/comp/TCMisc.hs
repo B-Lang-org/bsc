@@ -323,6 +323,14 @@ sat dvs ps p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
     bound_tyvars <- getBoundTVs
+    let IsIn p_cl p_tys = toPred p
+        recordATFs s_final =
+          let resolvedTys = apSub s_final p_tys
+          in sequence_
+               [ recordATFResult (tcon_name atfTC)
+                                 [resolvedTys !! i | i <- paramIdxs]
+                                 (resolvedTys !! targetIdx)
+               | (atfTC, paramIdxs, targetIdx) <- assocTypes p_cl ]
     let lookfor_result :: Maybe (Bind, (Subst, [(Type,Type)]))
         -- I'm a little worried that matching against the whole_stack
         -- will have lexical scoping issues where p will match against
@@ -385,6 +393,7 @@ sat dvs ps p =
                 case result of
                   ([], sbs, s_final) -> do
                     recordPackageUse mpkg
+                    recordATFs s_final
                     return ([], sbs, s_final)
                   other -> return other
             Just (qs, sb, us, Just (h@(IsIn c _)), mpkg) | fromMaybe ai (allowIncoherent c) ->
@@ -394,6 +403,7 @@ sat dvs ps p =
                 (ps@(_:_), sbs, s_final) -> return $ (ps, sbs, s_final)
                 ([], sbs, s_final) -> do
                   recordPackageUse mpkg
+                  recordATFs s_final
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
                   let VPred dictId _ = p
@@ -912,7 +922,7 @@ expandSynN :: Flags -> SymTab -> Type -> Type
 expandSynN flags s t =
    -- should only need to match instances for coherent typeclasses
    -- XXX user code corner-case?
-   case fst3 $ runTI flags False s $
+   case tiResult $ runTI flags False s $
                 do addBoundTVs (tv t) -- to prevent generated variable capture
                    normT t
    of  Left msg -> internalError ("expandSynN " ++ ppReadable msg)

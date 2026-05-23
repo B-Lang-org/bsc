@@ -181,7 +181,7 @@ doImport errh flags hashmap i = do
     (file, name) <- fromMaybeM (bsError errh [missingErr]) $
                       readBinFilePath errh (getIdPosition i)
                           (verbose flags) binname (ifcPath flags)
-    (bi_sig, bo_sig, ipkg@(IPackage pi impHashes _ _), hash)
+    (bi_sig, bo_sig, ipkg@(IPackage pi impHashes _ _ _), hash)
         <- readBinFile errh name file
     when (pi /= i) $
         bsError errh [(noPosition, EBinFilePkgNameMismatch name
