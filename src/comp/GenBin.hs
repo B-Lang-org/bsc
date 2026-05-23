@@ -27,7 +27,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260427-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260523-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -535,15 +535,18 @@ instance Bin (IPackage a) where
            toBin (ipkg_depends pkg)
            toBin (ipkg_pragmas pkg)
            toBin (ipkg_defs pkg)
+           toBin (ipkg_atf_cache pkg)
     readBytes = do when doTrace $ traceM("read IPackage")
-                   name    <- fromBin
-                   depends <- fromBin
-                   pragmas <- fromBin
-                   defs    <- fromBin
-                   return $ IPackage { ipkg_name    = name
-                                     , ipkg_depends = depends
-                                     , ipkg_pragmas = pragmas
-                                     , ipkg_defs    = defs
+                   name      <- fromBin
+                   depends   <- fromBin
+                   pragmas   <- fromBin
+                   defs      <- fromBin
+                   atfCache  <- fromBin
+                   return $ IPackage { ipkg_name      = name
+                                     , ipkg_depends   = depends
+                                     , ipkg_pragmas   = pragmas
+                                     , ipkg_defs      = defs
+                                     , ipkg_atf_cache = atfCache
                                      }
 
 -- ----------

@@ -644,7 +644,7 @@ tclPackage ("load":args) = do
 
   -- update the CImports and symbol table
   let (CPackage pid exps cimps impsigs cf defs incs) = tp_cpack g
-      mkCImp (_, _, bo_sig, (IPackage iid _ _ _), _) =
+      mkCImp (_, _, bo_sig, (IPackage iid _ _ _ _), _) =
           -- XXX is False OK here?
           CImpSign (getIdString iid) False bo_sig
       impsigs' = sortImportedSignatures ((map mkCImp bininfos) ++ impsigs)
@@ -751,7 +751,7 @@ addNewImports ims (CPackage pid exps imps impsigs cf defs incs) =
     (CPackage pid exps imps impsigs' cf defs incs)
     where impsigs' = impsigs ++ map addOneImport ims
           addOneImport :: (CSignature, IPackage a, String, String) -> CImportedSignature
-          addOneImport (cs, (IPackage iid _ _ _), _, _) =
+          addOneImport (cs, (IPackage iid _ _ _ _), _, _) =
               -- XXX Bool var for qual names?
               CImpSign (getIdString iid) False cs
 
@@ -783,7 +783,7 @@ tclDefs ("module":args) =
   let getOneMods :: String -> IO [Id]
       getOneMods pnm = do
         imp <- lookupImport pnm
-        let (IPackage _ _ pragmas _) = ip_ipkg imp
+        let (IPackage _ _ pragmas _ _) = ip_ipkg imp
             getMods (Pnoinline fs) = fs
             getMods (Pproperties m pps) = if (PPverilog `elem` pps)
                                           then [m]
