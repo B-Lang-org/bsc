@@ -115,7 +115,7 @@ eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
           addBoundTVs (M.elems m)
           addExplPreds (eqs ++ ecEqs)
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
-          satisfy (eqs ++ ecEqs) [vp]
+          satisfyFV (M.elems m) (eqs ++ ecEqs) [vp]
     in  case tiResult (runTI flags False symt satisfyEq) of
           Right ([],_) -> True
           res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
