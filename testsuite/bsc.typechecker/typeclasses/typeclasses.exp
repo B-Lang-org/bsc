@@ -114,6 +114,10 @@ compile_verilog_pass ATFPolyStructIfc.bs
 compile_verilog_pass ATFPolyStructLog.bs
 compile_verilog_pass ATFPolyStructMultiParam.bs
 
+# Test that a user-defined ATF cache miss is resolved by normTFun
+compile_verilog_pass ATFPolyCacheMiss.bs {} "-dexpanded=expanded_%m.out"
+find_n_strings expanded_sysATFPolyCacheMiss.out "EncSize" 0
+
 # Test ATF error cases
 
 compile_fail_error ATFWrongArity.bs T0025

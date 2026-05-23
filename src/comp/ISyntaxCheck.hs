@@ -92,7 +92,7 @@ eqTypeNum flags symt r t1 t2
           addBoundTVs (M.elems m)
           addExplPreds eqs
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
-          satisfy eqs [vp]
+          satisfyFV (M.elems m) eqs [vp]
     in  case tiResult (runTI flags False symt satisfyEq) of
           Right ([],_) -> True
           _ -> False

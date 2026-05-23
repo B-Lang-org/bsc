@@ -1,0 +1,42 @@
+package ATFPolyCacheMiss where
+
+-- Test that a user-defined ATF cache miss during iExpand is resolved
+-- by the normTFun fallback.  checkPair has Encode(a) in its proviso
+-- but internally creates Encoded((a, a)) via the tuple instance.
+-- The concrete EncSize((UInt 5, UInt 5)) is derived polymorphically,
+-- so ctxreduce does not record it.  During iExpand it becomes a cache
+-- miss resolved by normTFun.
+
+class Encode a n | a -> n where
+    type EncSize a = n
+    encode :: a -> Bit n
+
+instance Encode (UInt k) k where
+    encode x = pack x
+
+instance Encode Bool 1 where
+    encode True  = 1
+    encode False = 0
+
+instance (Encode a sa, Encode b sb) => Encode (a, b) (TAdd sa sb) where
+    encode (x, y) = encode x ++ encode y
+
+data Encoded a = Encoded (Bit (EncSize a))
+
+wrap :: (Encode a sa) => a -> Encoded a
+wrap x = Encoded (encode x)
+
+checkPair :: (Encode a sa) => a -> Bool
+checkPair x = case wrap (x, x) of
+                 Encoded b -> msb b == 1
+
+{-# verilog sysATFPolyCacheMiss #-}
+sysATFPolyCacheMiss :: Module Empty
+sysATFPolyCacheMiss = module
+  r :: Reg (UInt 5) <- mkReg 7
+  rules
+    "test": when True ==>
+      action
+        let result = checkPair r
+        if result then $display "pass" else $display "FAIL"
+        $finish 0
