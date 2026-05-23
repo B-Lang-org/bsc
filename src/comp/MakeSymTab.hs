@@ -851,11 +851,15 @@ mkATFTIs mi src_pkg classId vs ks ats =
           result_k = M.findWithDefault KStar ca_rhs vs_kind_map
           atf_k    = foldr Kfun result_k param_ks
           atf_i    = qual mi ca_name
-          p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
-          t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+          p_idxs   = [ get_idx p | p <- ca_params ]
+          t_idx    = get_idx ca_rhs
     ]
   where vs_kind_map = M.fromList (zip vs ks)
         vs_idx_map  = M.fromList (zip vs [0..])
+        get_idx v = fromJustOrErr
+          ("mkATFTIs: variable " ++ ppReadable v ++
+           " not found in class " ++ ppReadable classId)
+          (M.lookup v vs_idx_map)
 
 qual :: Maybe Id -> Id -> Id
 qual Nothing i = i
@@ -965,9 +969,13 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
                 result_k = M.findWithDefault KStar ca_rhs vs_kind_map
                 atf_k    = foldr Kfun result_k param_ks
                 atf_i    = qual mi ca_name
-                p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
-                t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+                p_idxs   = [ get_idx p | p <- ca_params ]
+                t_idx    = get_idx ca_rhs
           ]
+        get_idx v = fromJustOrErr
+          ("getTI CIclass: variable " ++ ppReadable v ++
+           " not found in class " ++ ppReadable qi)
+          (M.lookup v vs_idx_map)
         mkClass genInsts' getInsts' =
           Class {
             name = CTypeclass qi,

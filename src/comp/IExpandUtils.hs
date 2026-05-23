@@ -148,8 +148,10 @@ doTracePortTypes :: Bool
 doTracePortTypes = elem "-trace-port-types" progArgs
 doTraceLoc :: Bool
 doTraceLoc = elem "-trace-state-loc" progArgs
-doTraceATFMiss :: Bool
-doTraceATFMiss = elem "-trace-atf-miss" progArgs
+doTraceATFCache :: Bool
+doTraceATFCache = elem "-trace-atf-cache" progArgs
+doTraceATFCacheMiss :: Bool
+doTraceATFCacheMiss = doTraceATFCache || elem "-trace-atf-cache-miss" progArgs
 
 -----------------------------------------------------------------------------
 
@@ -2547,7 +2549,11 @@ fullTypeNormalizer flags symt cache t@(ITAp _ _)
     , as' <- map (changedOrId $ fullTypeNormalizer flags symt cache) as
     , all canNorm as'
     = Changed $ case M.lookup (atfId, as') cache of
-        Just result -> result
+        Just result ->
+          tracep doTraceATFCache
+            ("fullTypeNormalizer - ATF cache hit: " ++ ppReadable (atfId, as') ++
+             " -> " ++ ppReadable result)
+            result
         Nothing -> normTFun $ foldl ITAp f as'
   where -- The cache is keyed on concrete types; ITVar and ITForAll can't be looked up
         canNorm (ITVar _)        = False
@@ -2555,7 +2561,7 @@ fullTypeNormalizer flags symt cache t@(ITAp _ _)
         canNorm (ITAp f a)       = canNorm f && canNorm a
         canNorm _                = True
         normTFun t =
-          let t' = tracep doTraceATFMiss
+          let t' = tracep doTraceATFCacheMiss
                      ("fullTypeNormalizer - ATF cache miss: " ++ ppReadable t)
                      (iConvT flags symt $ iToCT t)
           in case splitITAp t' of
@@ -2628,7 +2634,8 @@ getATFCache = do s <- get
 mergeATFCache :: IATFCache -> G ()
 mergeATFCache new_entries =
     when (not (M.null new_entries)) $ do
-      traceM $ "mergeATFCache: " ++ ppReadable new_entries
+      when doTraceATFCache $
+        traceM $ "mergeATFCache: " ++ ppReadable new_entries
       modify (\s -> s { atfCache = mergeIATFCaches new_entries (atfCache s) })
 
 {-# INLINE getWireSetCache #-}
