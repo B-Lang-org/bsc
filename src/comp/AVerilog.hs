@@ -418,7 +418,7 @@ aVerilog errh flags pps aspack ffmap =
         -- -----
         -- other
         -- (keep in the package order, for lack of a better order)
-        ds7 = filter (isADefFromList (M.keys defmap7)) ds
+        ds7 = filter (isADefFromMap defmap7) ds
         (other_decls, other_defs) = mkVDeclsAndDefs vDef ds7
         other_decls_filtered = filter (not . isPreDeclared) other_decls
 
@@ -1730,8 +1730,8 @@ findADefs ds defmap =
               Just d -> (d:ds_accum, M.delete i defmap_accum)
     in  foldr fn ([], defmap) ds
 
-isADefFromList :: [AId] -> ADef -> Bool
-isADefFromList is (ADef i _ _ _) = i `elem` is
+isADefFromMap :: M.Map AId a -> ADef -> Bool
+isADefFromMap m (ADef i _ _ _) = M.member i m
 
 -- ==============================
 
