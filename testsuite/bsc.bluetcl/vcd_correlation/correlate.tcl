@@ -35,9 +35,14 @@ proc parseVCD { path } {
         } elseif { $t0 eq "\$upscope" } {
             set scopeStack [lrange $scopeStack 0 end-1]
         } elseif { $t0 eq "\$var" } {
-            lappend vars [list [join $scopeStack "."] \
-                               [lindex $toks 4] \
-                               [lindex $toks 2]]
+            # VCD format: $var <type> <width> <id> <name> [range] $end
+            # If <name> starts with `\` it's a VCD-escaped identifier;
+            # strip the leading backslash to match wiretypemap keys.
+            set vname [lindex $toks 4]
+            if { [string index $vname 0] eq "\\" } {
+                set vname [string range $vname 1 end]
+            }
+            lappend vars [list [join $scopeStack "."] $vname [lindex $toks 2]]
         }
     }
     close $fh
