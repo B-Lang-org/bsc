@@ -10,7 +10,7 @@ global srcdir
 global subdir
 global lasterr
 
-set here   [absolute $srcdir]
+set here    [absolute $srcdir]
 set testdir [file join $here $subdir]
 
 cd $testdir
@@ -19,16 +19,26 @@ set status [exec_with_log_and_return "vcd_correlation" \
                 lasterr 2]
 cd $here
 
+set output_file   [file join $testdir run_correlation.out]
+set expected_file [file join $testdir run_correlation.out.expected]
+set diff_out      [file join $testdir run_correlation.out.diff-out]
+file delete -force $diff_out
+
+# On failure, write just the unified diff to .diff-out. The actual
+# output, build transcript, and per-sim logs are all picked up by
+# archive_logs.sh via the *.out / *.log patterns.
 if { $status != 0 } {
+    set fh [open $diff_out w]
+    puts $fh "vcd_correlation: run_correlation.sh exited non-zero ($lasterr)"
+    close $fh
     fail "vcd_correlation: run_correlation.sh exited non-zero ($lasterr)"
+} elseif { ![file exists $expected_file] } {
+    unresolved "vcd_correlation: no expected file"
+} elseif { [catch {exec diff -u $expected_file $output_file} diff_err] } {
+    set fh [open $diff_out w]
+    puts $fh $diff_err
+    close $fh
+    fail "vcd_correlation: output differs from expected (see [file join $subdir [file tail $diff_out]])"
 } else {
-    set output_file [file join $testdir run_correlation.out]
-    set expected_file [file join $testdir run_correlation.out.expected]
-    if { ![file exists $expected_file] } {
-        unresolved "vcd_correlation: no expected file"
-    } elseif { [catch {exec diff $output_file $expected_file} diff_err] } {
-        fail "vcd_correlation: output differs from expected\n$diff_err"
-    } else {
-        pass "vcd_correlation: wiretypemap matches both VCDs as expected"
-    }
+    pass "vcd_correlation: wiretypemap matches both VCDs as expected"
 }

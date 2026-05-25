@@ -20,7 +20,8 @@ cd "$(dirname "$0")"
 BSC=${BSC:-/home/ravi/bluespec/claude/bsc/inst/bin/bsc}
 BLUETCL=${BLUETCL:-/home/ravi/bluespec/claude/bsc/inst/bin/bluetcl}
 
-rm -rf bo_sim bo_default bo_kib veri_default veri_kib sim build.log
+rm -rf bo_sim bo_default bo_kib veri_default veri_kib sim \
+       vcd_correlation_build.log
 mkdir -p bo_sim sim
 
 # build_verilog <variant-tag> <bsc-extra-flags>
@@ -31,19 +32,19 @@ build_verilog () {
     local veri="veri_${variant}"
     mkdir -p "$bo" "$veri"
     {
-      echo "[wt][$variant] Compiling WireTypesSim to Verilog..."
+      echo "[WireTypes][$variant] Compiling to Verilog..."
       $BSC $extra -bdir "$bo" -verilog -vdir "$veri" -elab -u -g sysWireTypeTest WireTypesSim.bsv
       $BSC $extra -bdir "$bo" -verilog -vdir "$veri" -e sysWireTypeTest -o "$veri/sysWireTypeTest"
-      echo "[sp][$variant] Compiling SplitPortsSim to Verilog..."
+      echo "[SplitPorts][$variant] Compiling to Verilog..."
       $BSC $extra -bdir "$bo" -verilog -vdir "$veri" -elab -u -g sysSplitPortsTest SplitPortsSim.bsv
       $BSC $extra -bdir "$bo" -verilog -vdir "$veri" -e sysSplitPortsTest -o "$veri/sysSplitPortsTest"
-      echo "[wt][$variant] Running Verilog sim..."
-      (cd "$veri" && ./sysWireTypeTest +bscvcd 2>&1) > "$veri/wt_sim.log" || true
-      mv "$veri/dump.vcd" "$veri/wt.vcd"
-      echo "[sp][$variant] Running Verilog sim..."
-      (cd "$veri" && ./sysSplitPortsTest +bscvcd 2>&1) > "$veri/sp_sim.log" || true
-      mv "$veri/dump.vcd" "$veri/sp.vcd"
-    } >> build.log 2>&1
+      echo "[WireTypes][$variant] Running Verilog sim..."
+      (cd "$veri" && ./sysWireTypeTest +bscvcd 2>&1) > "$veri/WireTypes_sim.log" || true
+      mv "$veri/dump.vcd" "$veri/WireTypes.vcd"
+      echo "[SplitPorts][$variant] Running Verilog sim..."
+      (cd "$veri" && ./sysSplitPortsTest +bscvcd 2>&1) > "$veri/SplitPorts_sim.log" || true
+      mv "$veri/dump.vcd" "$veri/SplitPorts.vcd"
+    } >> vcd_correlation_build.log 2>&1
 }
 
 # Build Bluesim only once -- -keep-inlined-boundaries doesn't affect it
@@ -51,17 +52,17 @@ build_verilog () {
 # Use a separate bo_sim cache so it stays disjoint from the Verilog
 # variants' .bo dirs.
 {
-  echo "[wt] Compiling WireTypesSim to Bluesim..."
+  echo "[WireTypes] Compiling to Bluesim..."
   $BSC -bdir bo_sim -sim -simdir sim -elab -u -g sysWireTypeTest WireTypesSim.bsv
   $BSC -bdir bo_sim -sim -simdir sim -e sysWireTypeTest -o sim/sysWireTypeTest
-  echo "[sp] Compiling SplitPortsSim to Bluesim..."
+  echo "[SplitPorts] Compiling to Bluesim..."
   $BSC -bdir bo_sim -sim -simdir sim -elab -u -g sysSplitPortsTest SplitPortsSim.bsv
   $BSC -bdir bo_sim -sim -simdir sim -e sysSplitPortsTest -o sim/sysSplitPortsTest
-  echo "[wt] Running Bluesim..."
-  (cd sim && ./sysWireTypeTest -V wt.vcd 2>&1) > sim/wt_sim.log || true
-  echo "[sp] Running Bluesim..."
-  (cd sim && ./sysSplitPortsTest -V sp.vcd 2>&1) > sim/sp_sim.log || true
-} > build.log 2>&1
+  echo "[WireTypes] Running Bluesim..."
+  (cd sim && ./sysWireTypeTest -V WireTypes.vcd 2>&1) > sim/WireTypes_sim.log || true
+  echo "[SplitPorts] Running Bluesim..."
+  (cd sim && ./sysSplitPortsTest -V SplitPorts.vcd 2>&1) > sim/SplitPorts_sim.log || true
+} > vcd_correlation_build.log 2>&1
 
 build_verilog default ""
 build_verilog kib "-keep-inlined-boundaries"
@@ -75,15 +76,15 @@ correlate_variant () {
     echo "########## variant: $variant (Verilog $extra_desc; Bluesim is flag-agnostic) ##########"
 
     TOP_NAME=sysWireTypeTest \
-      VERI_VCD="$(pwd)/$veri/wt.vcd" \
-      SIM_VCD="$(pwd)/sim/wt.vcd" \
+      VERI_VCD="$(pwd)/$veri/WireTypes.vcd" \
+      SIM_VCD="$(pwd)/sim/WireTypes.vcd" \
       MOD_AT_LIST="mkWireTypes main.top.dut mkPixelStash main.top.dut.leafA mkPixelStash main.top.dut.leafB" \
       bash -c "cd '$bo' && $BLUETCL ../correlate.tcl"
     echo ""
 
     TOP_NAME=sysSplitPortsTest \
-      VERI_VCD="$(pwd)/$veri/sp.vcd" \
-      SIM_VCD="$(pwd)/sim/sp.vcd" \
+      VERI_VCD="$(pwd)/$veri/SplitPorts.vcd" \
+      SIM_VCD="$(pwd)/sim/SplitPorts.vcd" \
       MOD_AT_LIST="mkSplitPortsTest main.top.dut" \
       bash -c "cd '$bo' && $BLUETCL ../correlate.tcl"
     echo ""

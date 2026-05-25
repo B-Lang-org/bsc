@@ -75,29 +75,27 @@ proc candidateKeys { scope name dutScope } {
 # print stable summary, return hit count
 proc correlate { label vars dutScope typeDict } {
     set hits {}
-    set misses 0
-    set ignored 0
     foreach v $vars {
         lassign $v scope name width
         if { $scope ne $dutScope && ![string match "${dutScope}.*" $scope] } {
-            incr ignored
             continue
         }
-        set matched 0
         foreach k [candidateKeys $scope $name $dutScope] {
             if { [dict exists $typeDict $k] } {
                 lappend hits [list $k [dict get $typeDict $k]]
-                set matched 1
                 break
             }
         }
-        if { !$matched } { incr misses }
     }
     set hitCount [llength $hits]
     puts "=== $label ==="
     puts "  hits:    $hitCount"
-    puts "  misses:  $misses"
-    puts "  ignored: $ignored"
+    # NOTE: misses/ignored counts are intentionally omitted from the
+    # baselined output. They reflect how many *other* wires the VCD
+    # contains that we have no candidate for -- a number that varies
+    # by iverilog version (iverilog 12 dumps more derived/intermediate
+    # wires than 11) without changing anything about correlation
+    # correctness. The matched-wires list (below) is the stable signal.
     puts "  matched wires (sorted):"
     foreach h [lsort -unique $hits] {
         puts "    [lindex $h 0] : [lindex $h 1]"
