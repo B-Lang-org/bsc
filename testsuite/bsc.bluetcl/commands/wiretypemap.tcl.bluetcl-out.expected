@@ -2,6 +2,7 @@
 mkWireTypes
 ----------
 Command: module wiretypemap mkWireTypes
+CAN_FIRE_RL_advance_pulse_tick Bool
 CAN_FIRE_RL_bram_serverAdapter_cnt_finalAdd Bool
 CAN_FIRE_RL_bram_serverAdapter_moveToOutFIFO Bool
 CAN_FIRE_RL_bram_serverAdapter_outData_dequeue Bool
@@ -9,13 +10,18 @@ CAN_FIRE_RL_bram_serverAdapter_outData_enqueue Bool
 CAN_FIRE_RL_bram_serverAdapter_overRun Bool
 CAN_FIRE_RL_bram_serverAdapter_s1__dreg_update Bool
 CAN_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Bool
+CAN_FIRE_RL_count_pulse Bool
 CAN_FIRE_RL_drain_sync Bool
+CAN_FIRE_RL_poke_bypass Bool
+CAN_FIRE_RL_poke_cell_wire Bool
 CAN_FIRE_RL_poke_creg_0 Bool
 CAN_FIRE_RL_poke_creg_1 Bool
 CAN_FIRE_RL_poke_creg_2 Bool
 CAN_FIRE_RL_poke_creg_3 Bool
 CAN_FIRE_RL_poke_creg_4 Bool
+CAN_FIRE_RL_poke_pulse Bool
 CAN_FIRE_RL_rotate_palette Bool
+CAN_FIRE_RL_shift_history Bool
 CAN_FIRE_RL_sink_cells Bool
 CLK Clock
 EN_loadPixel Bool
@@ -27,6 +33,7 @@ RDY_palette Bool
 RDY_setPalette Bool
 RDY_topPixel Bool
 RST_N Reset
+WILL_FIRE_RL_advance_pulse_tick Bool
 WILL_FIRE_RL_bram_serverAdapter_cnt_finalAdd Bool
 WILL_FIRE_RL_bram_serverAdapter_moveToOutFIFO Bool
 WILL_FIRE_RL_bram_serverAdapter_outData_dequeue Bool
@@ -34,13 +41,18 @@ WILL_FIRE_RL_bram_serverAdapter_outData_enqueue Bool
 WILL_FIRE_RL_bram_serverAdapter_overRun Bool
 WILL_FIRE_RL_bram_serverAdapter_s1__dreg_update Bool
 WILL_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Bool
+WILL_FIRE_RL_count_pulse Bool
 WILL_FIRE_RL_drain_sync Bool
+WILL_FIRE_RL_poke_bypass Bool
+WILL_FIRE_RL_poke_cell_wire Bool
 WILL_FIRE_RL_poke_creg_0 Bool
 WILL_FIRE_RL_poke_creg_1 Bool
 WILL_FIRE_RL_poke_creg_2 Bool
 WILL_FIRE_RL_poke_creg_3 Bool
 WILL_FIRE_RL_poke_creg_4 Bool
+WILL_FIRE_RL_poke_pulse Bool
 WILL_FIRE_RL_rotate_palette Bool
+WILL_FIRE_RL_shift_history Bool
 WILL_FIRE_RL_sink_cells Bool
 bram_memory.ADDR Bit#(6)
 bram_memory.DI WireTypes::Cell
@@ -49,23 +61,37 @@ bram_memory.WE Bool
 bram_serverAdapter_cnt Int#(3)
 bram_serverAdapter_cnt.D_IN Int#(3)
 bram_serverAdapter_cnt.Q_OUT Int#(3)
+bram_serverAdapter_cnt_1 Int#(3)
 bram_serverAdapter_cnt_1.WGET Int#(3)
 bram_serverAdapter_cnt_1.WHAS Bool
 bram_serverAdapter_cnt_1.WVAL Int#(3)
+bram_serverAdapter_cnt_1.wget Int#(3)
+bram_serverAdapter_cnt_1.whas Bool
+bram_serverAdapter_cnt_2 Int#(3)
 bram_serverAdapter_cnt_2.WGET Int#(3)
 bram_serverAdapter_cnt_2.WHAS Bool
 bram_serverAdapter_cnt_2.WVAL Int#(3)
+bram_serverAdapter_cnt_2.wget Int#(3)
+bram_serverAdapter_cnt_2.whas Bool
+bram_serverAdapter_cnt_3 Int#(3)
 bram_serverAdapter_cnt_3.WGET Int#(3)
 bram_serverAdapter_cnt_3.WHAS Bool
 bram_serverAdapter_cnt_3.WVAL Int#(3)
+bram_serverAdapter_cnt_3.wget Int#(3)
+bram_serverAdapter_cnt_3.whas Bool
 bram_serverAdapter_outData_beforeDeq.D_IN Bool
 bram_serverAdapter_outData_beforeDeq.Q_OUT Bool
 bram_serverAdapter_outData_beforeEnq.D_IN Bool
 bram_serverAdapter_outData_beforeEnq.Q_OUT Bool
+bram_serverAdapter_outData_dequeueing Bool
 bram_serverAdapter_outData_dequeueing.WHAS Bool
+bram_serverAdapter_outData_dequeueing.whas Bool
+bram_serverAdapter_outData_enqw WireTypes::Cell
 bram_serverAdapter_outData_enqw.WGET WireTypes::Cell
 bram_serverAdapter_outData_enqw.WHAS Bool
 bram_serverAdapter_outData_enqw.WVAL WireTypes::Cell
+bram_serverAdapter_outData_enqw.wget WireTypes::Cell
+bram_serverAdapter_outData_enqw.whas Bool
 bram_serverAdapter_outData_ff.D_IN WireTypes::Cell
 bram_serverAdapter_outData_ff.D_OUT WireTypes::Cell
 bram_serverAdapter_outData_ff.EMPTY_N Bool
@@ -73,12 +99,24 @@ bram_serverAdapter_outData_ff.FULL_N Bool
 bram_serverAdapter_s1 Maybe#(Bool)
 bram_serverAdapter_s1.D_IN Maybe#(Bool)
 bram_serverAdapter_s1.Q_OUT Maybe#(Bool)
+bram_serverAdapter_s1_1 Maybe#(Bool)
 bram_serverAdapter_s1_1.WGET Maybe#(Bool)
 bram_serverAdapter_s1_1.WHAS Bool
 bram_serverAdapter_s1_1.WVAL Maybe#(Bool)
+bram_serverAdapter_s1_1.wget Maybe#(Bool)
+bram_serverAdapter_s1_1.whas Bool
+bram_serverAdapter_writeWithResp {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.WGET {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.WHAS Bool
 bram_serverAdapter_writeWithResp.WVAL {Tuple2#(Bool, Bool)}
+bram_serverAdapter_writeWithResp.wget {Tuple2#(Bool, Bool)}
+bram_serverAdapter_writeWithResp.whas Bool
+cellWire WireTypes::Cell
+cellWire.WGET WireTypes::Cell
+cellWire.WHAS Bool
+cellWire.WVAL WireTypes::Cell
+cellWire.wget WireTypes::Cell
+cellWire.whas Bool
 cells.D_IN WireTypes::Cell
 cells.D_OUT WireTypes::Cell
 cells.EMPTY_N Bool
@@ -110,6 +148,22 @@ pal {Vector::Vector#(4, WireTypes::Color)}
 pal.D_IN {Vector::Vector#(4, WireTypes::Color)}
 pal.Q_OUT {Vector::Vector#(4, WireTypes::Color)}
 palette {Vector::Vector#(4, WireTypes::Color)}
+pixelBypass Maybe#(WireTypes::Pixel)
+pixelBypass.WGET Maybe#(WireTypes::Pixel)
+pixelBypass.WVAL Maybe#(WireTypes::Pixel)
+pixelBypass.wget Maybe#(WireTypes::Pixel)
+pulse Bool
+pulse.WHAS Bool
+pulse.whas Bool
+pulseCount UInt#(8)
+pulseCount.D_IN UInt#(8)
+pulseCount.Q_OUT UInt#(8)
+pulseHistory Bit#(8)
+pulseHistory.D_IN Bit#(8)
+pulseHistory.Q_OUT Bit#(8)
+pulseTick Bit#(2)
+pulseTick.D_IN Bit#(2)
+pulseTick.Q_OUT Bit#(2)
 px WireTypes::Pixel
 px.D_IN WireTypes::Pixel
 px.Q_OUT WireTypes::Pixel
@@ -129,20 +183,29 @@ topPixel WireTypes::Pixel
 {bram_serverAdapter_cnt_1$WGET} Int#(3)
 {bram_serverAdapter_cnt_1$WHAS} Bool
 {bram_serverAdapter_cnt_1$WVAL} Int#(3)
+{bram_serverAdapter_cnt_1$wget} Int#(3)
+{bram_serverAdapter_cnt_1$whas} Bool
 {bram_serverAdapter_cnt_2$WGET} Int#(3)
 {bram_serverAdapter_cnt_2$WHAS} Bool
 {bram_serverAdapter_cnt_2$WVAL} Int#(3)
+{bram_serverAdapter_cnt_2$wget} Int#(3)
+{bram_serverAdapter_cnt_2$whas} Bool
 {bram_serverAdapter_cnt_3$WGET} Int#(3)
 {bram_serverAdapter_cnt_3$WHAS} Bool
 {bram_serverAdapter_cnt_3$WVAL} Int#(3)
+{bram_serverAdapter_cnt_3$wget} Int#(3)
+{bram_serverAdapter_cnt_3$whas} Bool
 {bram_serverAdapter_outData_beforeDeq$D_IN} Bool
 {bram_serverAdapter_outData_beforeDeq$Q_OUT} Bool
 {bram_serverAdapter_outData_beforeEnq$D_IN} Bool
 {bram_serverAdapter_outData_beforeEnq$Q_OUT} Bool
 {bram_serverAdapter_outData_dequeueing$WHAS} Bool
+{bram_serverAdapter_outData_dequeueing$whas} Bool
 {bram_serverAdapter_outData_enqw$WGET} WireTypes::Cell
 {bram_serverAdapter_outData_enqw$WHAS} Bool
 {bram_serverAdapter_outData_enqw$WVAL} WireTypes::Cell
+{bram_serverAdapter_outData_enqw$wget} WireTypes::Cell
+{bram_serverAdapter_outData_enqw$whas} Bool
 {bram_serverAdapter_outData_ff$D_IN} WireTypes::Cell
 {bram_serverAdapter_outData_ff$D_OUT} WireTypes::Cell
 {bram_serverAdapter_outData_ff$EMPTY_N} Bool
@@ -152,9 +215,18 @@ topPixel WireTypes::Pixel
 {bram_serverAdapter_s1_1$WGET} Maybe#(Bool)
 {bram_serverAdapter_s1_1$WHAS} Bool
 {bram_serverAdapter_s1_1$WVAL} Maybe#(Bool)
+{bram_serverAdapter_s1_1$wget} Maybe#(Bool)
+{bram_serverAdapter_s1_1$whas} Bool
 {bram_serverAdapter_writeWithResp$WGET} {Tuple2#(Bool, Bool)}
 {bram_serverAdapter_writeWithResp$WHAS} Bool
 {bram_serverAdapter_writeWithResp$WVAL} {Tuple2#(Bool, Bool)}
+{bram_serverAdapter_writeWithResp$wget} {Tuple2#(Bool, Bool)}
+{bram_serverAdapter_writeWithResp$whas} Bool
+{cellWire$WGET} WireTypes::Cell
+{cellWire$WHAS} Bool
+{cellWire$WVAL} WireTypes::Cell
+{cellWire$wget} WireTypes::Cell
+{cellWire$whas} Bool
 {cells$D_IN} WireTypes::Cell
 {cells$D_OUT} WireTypes::Cell
 {cells$EMPTY_N} Bool
@@ -177,6 +249,17 @@ topPixel WireTypes::Pixel
 {mpx$Q_OUT} Maybe#(WireTypes::Pixel)
 {pal$D_IN} {Vector::Vector#(4, WireTypes::Color)}
 {pal$Q_OUT} {Vector::Vector#(4, WireTypes::Color)}
+{pixelBypass$WGET} Maybe#(WireTypes::Pixel)
+{pixelBypass$WVAL} Maybe#(WireTypes::Pixel)
+{pixelBypass$wget} Maybe#(WireTypes::Pixel)
+{pulse$WHAS} Bool
+{pulse$whas} Bool
+{pulseCount$D_IN} UInt#(8)
+{pulseCount$Q_OUT} UInt#(8)
+{pulseHistory$D_IN} Bit#(8)
+{pulseHistory$Q_OUT} Bit#(8)
+{pulseTick$D_IN} Bit#(2)
+{pulseTick$Q_OUT} Bit#(2)
 {px$D_IN} WireTypes::Pixel
 {px$Q_OUT} WireTypes::Pixel
 {syncfifo$dD_OUT} Maybe#(WireTypes::Pixel)
