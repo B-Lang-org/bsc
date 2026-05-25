@@ -1,0 +1,38 @@
+# Regression tests for the compile-time blowups and stack-overflow
+# sites fixed earlier on this branch.  Each module is a synthetic
+# input that targets a specific quadratic or strictness fix.  The
+# tests would either time out or stack-overflow before reaching the
+# phase under test without all the fixes applied; with the fixes,
+# each compile completes in roughly a minute or two.
+#
+# All three are compiled with -elab so they also exercise .ba
+# generation on principle.
+
+if {$vtest == 1} {
+
+    # 4096 CRegs with trivial rules.  Catches the InlineCReg
+    # O(svars * creg_ports) scan in the creg phase, the AVerilog ds7
+    # quadratic in the verilog phase, and AExpand.aoptExpandTest.
+    #
+    # Implicitly catches regressions in:
+    #   - InlineCReg: Set membership for creg_ports lookup
+    #   - AVerilog: Map membership in ds7 filter via isADefFromMap
+    #   - AExpand: precompute aoptExpandTest's instVars as a Set
+    #   - SCC: foldl' in decrList (used by AOpt's tsortADefs)
+    #   - Balanced: strict foldbal recursion (used by SCC.ntsort)
+    #   - IExpand: rework eqPtrs to use foldl' / strict tuple / SCC.tsort
+    #   - ITransform: strict State, forced cse_map / def_map / idNo
+    #   - AOpt: strict State, forced defmap / usemap on addDef
+    #   - SpeedyString: strict IntMap and forced IORef updates
+    compile_verilog_pass CregInlineBlowup.bsv mkCregInlineBlowup "-elab"
+
+    # 256 CRegs plus heavy per-rule arithmetic.  Primarily exercises
+    # the AVerilog ds7 quadratic (verilog phase 60-110x faster with
+    # the fix), and also AExpand at moderate scale.
+    compile_verilog_pass CregMemBlowup.bsv mkCregMemBlowup "-elab +RTS -K3G -RTS"
+
+    # 8192 plain Regs + 512 rules with deep arithmetic.  Primarily
+    # exercises AExpand.aoptExpandTest (aopt phase ~10x faster with
+    # the sinstVars Set fix) and AVerilog ds7 at scale.
+    compile_verilog_pass AoptScanBlowup.bsv mkAoptScanBlowup "-elab +RTS -K3G -RTS"
+}
