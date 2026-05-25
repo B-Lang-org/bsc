@@ -171,6 +171,15 @@ leafB.push_p WireTypes.Pixel
 leafB.top WireTypes.Pixel
 loadPixel Prelude.PrimUnit
 loadPixel_p WireTypes.Pixel
+loopCnt {Prelude.Bit 12}
+loopCnt.CLK Prelude.Clock
+loopCnt.DATA_A {Prelude.Bit 12}
+loopCnt.DATA_B {Prelude.Bit 12}
+loopCnt.DATA_C {Prelude.Bit 12}
+loopCnt.DATA_F {Prelude.Bit 12}
+loopCnt.Q_OUT {Prelude.Bit 12}
+loopCnt.RST Prelude.Reset
+loopCnt.q_state {Prelude.Bit 12}
 maybePixel {Prelude.Maybe WireTypes.Pixel}
 mpx {Prelude.Maybe WireTypes.Pixel}
 mpx.CLK Prelude.Clock
@@ -345,6 +354,13 @@ topPixel WireTypes.Pixel
 {leafB$push_p} WireTypes.Pixel
 {leafB$push} Prelude.PrimUnit
 {leafB$top} WireTypes.Pixel
+{loopCnt$CLK} Prelude.Clock
+{loopCnt$DATA_A} {Prelude.Bit 12}
+{loopCnt$DATA_B} {Prelude.Bit 12}
+{loopCnt$DATA_C} {Prelude.Bit 12}
+{loopCnt$DATA_F} {Prelude.Bit 12}
+{loopCnt$Q_OUT} {Prelude.Bit 12}
+{loopCnt$RST} Prelude.Reset
 {mpx$CLK} Prelude.Clock
 {mpx$D_IN} {Prelude.Maybe WireTypes.Pixel}
 {mpx$Q_OUT} {Prelude.Maybe WireTypes.Pixel}
