@@ -3,23 +3,23 @@ namespace import ::Bluetcl::*
 # Verify wiretypemap matches actual VCD wires for both Verilog and
 # Bluesim backends. Emits stable, sorted output for test diffing.
 #
-# Driven via env vars so it can be re-invoked for multiple modules:
-#   MOD_NAME         name of the synthesized module to correlate
-#   TOP_NAME         top-level Verilog/Bluesim wrapper module (for `module load`)
-#   VERI_VCD         path to Verilog VCD
-#   VERI_DUT_SCOPE   VCD scope path of the dut inside the Verilog VCD
-#   SIM_VCD          path to Bluesim VCD
-#   SIM_DUT_SCOPE    VCD scope path of the dut inside the Bluesim VCD
+# Driven via env vars:
+#   TOP_NAME     top-level wrapper module name (for `module load`)
+#   VERI_VCD     path to Verilog VCD
+#   SIM_VCD      path to Bluesim VCD
+#   MOD_AT_LIST  TCL list of (module name, dut scope) pairs to correlate.
+#                The same scope is used for both Verilog and Bluesim
+#                (sub-instance scopes are named identically in both
+#                backends). Multiple instances of the same module at
+#                different scopes are listed as separate pairs -- one
+#                wiretypemap covers all of them, which is the value of
+#                the per-.ba map design.
+#
+# For each (module, scope) pair, runs `module wiretypemap <module>`,
+# parses each VCD, and reports matched wires within that scope only.
 
 flags set {-verilog}
 module load $::env(TOP_NAME)
-set tmap [module wiretypemap $::env(MOD_NAME)]
-
-# Build dict from candidate name -> IType
-set typeDict [dict create]
-foreach entry $tmap {
-    dict set typeDict [lindex $entry 0] [lindex $entry 1]
-}
 
 # Parse VCD: returns list of {scope_path name width} tuples
 proc parseVCD { path } {
@@ -49,6 +49,16 @@ proc parseVCD { path } {
     return $vars
 }
 
+# Cache VCDs (we re-correlate per module)
+set veriVars {}
+if { [info exists ::env(VERI_VCD)] && [file exists $::env(VERI_VCD)] } {
+    set veriVars [parseVCD $::env(VERI_VCD)]
+}
+set simVars {}
+if { [info exists ::env(SIM_VCD)] && [file exists $::env(SIM_VCD)] } {
+    set simVars [parseVCD $::env(SIM_VCD)]
+}
+
 # Compute candidate lookup keys for a given (scope, name) relative to dut
 proc candidateKeys { scope name dutScope } {
     set keys [list $name]
@@ -61,9 +71,9 @@ proc candidateKeys { scope name dutScope } {
     return $keys
 }
 
-# Correlate VCD vars with wiretypemap and print stable summary
-proc correlate { label vcdPath dutScope typeDict } {
-    set vars [parseVCD $vcdPath]
+# Correlate VCD vars (within the given scope) with the typeDict,
+# print stable summary, return hit count
+proc correlate { label vars dutScope typeDict } {
     set hits {}
     set misses 0
     set ignored 0
@@ -95,21 +105,25 @@ proc correlate { label vcdPath dutScope typeDict } {
     return $hitCount
 }
 
-puts "##### module: $::env(MOD_NAME) #####"
-
 set totalHits 0
-if { [info exists ::env(VERI_VCD)] && [file exists $::env(VERI_VCD)] } {
-    incr totalHits [correlate "Verilog" $::env(VERI_VCD) \
-                              $::env(VERI_DUT_SCOPE) $typeDict]
-}
-if { [info exists ::env(SIM_VCD)] && [file exists $::env(SIM_VCD)] } {
-    incr totalHits [correlate "Bluesim" $::env(SIM_VCD) \
-                              $::env(SIM_DUT_SCOPE) $typeDict]
+foreach { modName dutScope } $::env(MOD_AT_LIST) {
+    set tmap [module wiretypemap $modName]
+    set typeDict [dict create]
+    foreach entry $tmap {
+        dict set typeDict [lindex $entry 0] [lindex $entry 1]
+    }
+    puts "##### module: $modName  @  $dutScope #####"
+    if { [llength $veriVars] > 0 } {
+        incr totalHits [correlate "Verilog" $veriVars $dutScope $typeDict]
+    }
+    if { [llength $simVars] > 0 } {
+        incr totalHits [correlate "Bluesim" $simVars $dutScope $typeDict]
+    }
+    puts ""
 }
 
 puts "=== summary ==="
-puts "  wiretypemap entries: [llength $tmap]"
-puts "  total VCD hits:      $totalHits"
+puts "  total VCD hits across all (module, scope) pairs: $totalHits"
 if { $totalHits > 0 } {
     puts "RESULT: PASS"
 } else {

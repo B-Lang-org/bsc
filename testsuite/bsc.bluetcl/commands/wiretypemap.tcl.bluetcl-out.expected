@@ -1,5 +1,5 @@
 -verilog
-mkWireTypes
+mkPixelStash mkWireTypes
 ----------
 Command: module wiretypemap mkWireTypes
 CAN_FIRE_RL_advance_pulse_tick Bool
@@ -138,6 +138,14 @@ creg.Q_OUT_2 WireTypes::Pixel
 creg.Q_OUT_3 WireTypes::Pixel
 creg.Q_OUT_4 WireTypes::Pixel
 currentCell WireTypes::Cell
+leafA.depth Bit#(8)
+leafA.push void
+leafA.push_p WireTypes::Pixel
+leafA.top WireTypes::Pixel
+leafB.depth Bit#(8)
+leafB.push void
+leafB.push_p WireTypes::Pixel
+leafB.top WireTypes::Pixel
 loadPixel void
 loadPixel_p WireTypes::Pixel
 maybePixel Maybe#(WireTypes::Pixel)
@@ -245,6 +253,14 @@ topPixel WireTypes::Pixel
 {creg$Q_OUT_3} WireTypes::Pixel
 {creg$Q_OUT_4} WireTypes::Pixel
 {creg$Q_OUT} WireTypes::Pixel
+{leafA$depth} Bit#(8)
+{leafA$push_p} WireTypes::Pixel
+{leafA$push} void
+{leafA$top} WireTypes::Pixel
+{leafB$depth} Bit#(8)
+{leafB$push_p} WireTypes::Pixel
+{leafB$push} void
+{leafB$top} WireTypes::Pixel
 {mpx$D_IN} Maybe#(WireTypes::Pixel)
 {mpx$Q_OUT} Maybe#(WireTypes::Pixel)
 {pal$D_IN} {Vector::Vector#(4, WireTypes::Color)}
@@ -266,4 +282,36 @@ topPixel WireTypes::Pixel
 {syncfifo$dEMPTY_N} Bool
 {syncfifo$sD_IN} Maybe#(WireTypes::Pixel)
 {syncfifo$sFULL_N} Bool
+---------
+Command: module wiretypemap mkPixelStash
+CAN_FIRE_RL_sink Bool
+CLK Clock
+EN_push Bool
+RDY_depth Bool
+RDY_push Bool
+RDY_top Bool
+RST_N Reset
+WILL_FIRE_RL_sink Bool
+cnt Bit#(8)
+cnt.D_IN Bit#(8)
+cnt.Q_OUT Bit#(8)
+depth Bit#(8)
+last WireTypes::Pixel
+last.D_IN WireTypes::Pixel
+last.Q_OUT WireTypes::Pixel
+push void
+push_p WireTypes::Pixel
+q.D_IN WireTypes::Pixel
+q.D_OUT WireTypes::Pixel
+q.EMPTY_N Bool
+q.FULL_N Bool
+top WireTypes::Pixel
+{cnt$D_IN} Bit#(8)
+{cnt$Q_OUT} Bit#(8)
+{last$D_IN} WireTypes::Pixel
+{last$Q_OUT} WireTypes::Pixel
+{q$D_IN} WireTypes::Pixel
+{q$D_OUT} WireTypes::Pixel
+{q$EMPTY_N} Bool
+{q$FULL_N} Bool
 ---------

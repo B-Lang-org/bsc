@@ -40,16 +40,21 @@ mkdir -p bo veri sim
   (cd sim && ./sysSplitPortsTest -V sp.vcd 2>&1) > sim/sp_sim.log || true
 } > build.log 2>&1
 
-# Run correlation for mkWireTypes
-MOD_NAME=mkWireTypes TOP_NAME=sysWireTypeTest \
-  VERI_VCD="$(pwd)/veri/wt.vcd" VERI_DUT_SCOPE="main.top.dut" \
-  SIM_VCD="$(pwd)/sim/wt.vcd"   SIM_DUT_SCOPE="main.top.dut" \
+# Run correlation for mkWireTypes + its leaf instances. mkPixelStash is
+# separately synthesized and instantiated twice (leafA, leafB), so we
+# correlate the same wiretypemap against both sub-scopes -- demonstrating
+# that one wiretypemap query covers every instance of that module.
+TOP_NAME=sysWireTypeTest \
+  VERI_VCD="$(pwd)/veri/wt.vcd" \
+  SIM_VCD="$(pwd)/sim/wt.vcd" \
+  MOD_AT_LIST="mkWireTypes main.top.dut mkPixelStash main.top.dut.leafA mkPixelStash main.top.dut.leafB" \
   bash -c "cd bo && $BLUETCL ../correlate.tcl"
 
 echo ""
 
 # Run correlation for mkSplitPortsTest
-MOD_NAME=mkSplitPortsTest TOP_NAME=sysSplitPortsTest \
-  VERI_VCD="$(pwd)/veri/sp.vcd" VERI_DUT_SCOPE="main.top.dut" \
-  SIM_VCD="$(pwd)/sim/sp.vcd"   SIM_DUT_SCOPE="main.top.dut" \
+TOP_NAME=sysSplitPortsTest \
+  VERI_VCD="$(pwd)/veri/sp.vcd" \
+  SIM_VCD="$(pwd)/sim/sp.vcd" \
+  MOD_AT_LIST="mkSplitPortsTest main.top.dut" \
   bash -c "cd bo && $BLUETCL ../correlate.tcl"
