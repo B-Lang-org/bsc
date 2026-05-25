@@ -1121,7 +1121,14 @@ tclModule ["methods",modname] = do
                ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                            | aif <- ifc ]
            let tifc = getModuleIfc abmi
-           fs <- getIfcHierarchy Nothing ifc_map tifc
+           fs <-
+             let defl_fs = [ Field fId inf Nothing | (fId, inf) <- ifc_map ]
+             in do mres <- runExceptT $ mgetIfcHierarchy Nothing ifc_map tifc
+                   case mres of
+                     Right res -> return res
+                     Left _ -> -- source ifc type didn't match the synthesized
+                               --   ports (e.g. SplitPorts); use the flat list
+                               return defl_fs
            return (dispIfcHierarchyNames fs)
 
 ------
