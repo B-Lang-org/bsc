@@ -3684,7 +3684,8 @@ getWireTypeMap apkg =
 
     submodEntries avi =
         candidateNames avi ++
-        (if isCRegInst avi then candidateNames (cregToReg avi) else [])
+        (if isCRegInst avi then candidateNames (cregToReg avi) else []) ++
+        inlinedWireCandidates avi
     candidateNames avi =
         let inst_str = getIdString (avi_vname avi)
             isReg = isRegInst avi
@@ -3697,6 +3698,53 @@ getWireTypeMap apkg =
                                    else []
                 in  [verilog_flat, bluesim_form] ++ reg_shortcut
         in  concatMap mkCandidates (M.toList (avi_port_types avi))
+
+    -- When aInlineWires removes an RWire/BypassWire AVInst, the wires
+    -- that remain in the post-renameio Verilog are <inst>$wget (data,
+    -- typed) and <inst>$whas (Bool). Emit these as candidates so the
+    -- VCD correlator picks them up. Bluesim doesn't inline wires
+    -- (simExpand reads APackage directly), so the .wget/.whas forms
+    -- are over-emitted there -- harmless.
+    inlinedWireCandidates avi
+        | isRWire avi || isBypassWire avi
+          || isRWire0 avi || isBypassWire0 avi =
+            let inst_str = getIdString (avi_vname avi)
+                pts = avi_port_types avi
+                -- Pull the surviving wires' types directly from the
+                -- primitive's port map. WGET (or its WSET arg) holds the
+                -- source-level data type; WHAS holds Bool. Variants that
+                -- don't have a given port (RWire0 has no wget,
+                -- BypassWire has no whas) simply have no entry to find,
+                -- so they emit nothing.
+                wgetEntries =
+                    case M.lookup (VName "WGET") pts of
+                        Just t -> [ mkEntry (inst_str ++ "$wget") t
+                                  , mkEntry (inst_str ++ ".wget") t ]
+                        Nothing -> []
+                whasEntries =
+                    case M.lookup (VName "WHAS") pts of
+                        Just t -> [ mkEntry (inst_str ++ "$whas") t
+                                  , mkEntry (inst_str ++ ".whas") t ]
+                        Nothing -> []
+                -- Bluesim VCDs always label the surviving wire as just
+                -- the bare instance name (bs_prim_mod_wire.h emits one
+                -- $var named inst_name unconditionally, mirroring the
+                -- register Q_OUT shortcut). For RWire/BypassWire the
+                -- bare wire carries the data type (WGET); for
+                -- RWire0/PulseWire it carries whas (Bool); for
+                -- BypassWire0 -- which has neither WGET nor WHAS in
+                -- avi_port_types because both are constant -- Bluesim
+                -- still dumps a 1-bit "always 1" wire, so we hardcode
+                -- itBool for that case. Verilog disallows port/instance
+                -- name collisions, so this can't shadow a real port.
+                bareEntry =
+                    case M.lookup (VName "WGET") pts of
+                        Just t -> [ mkEntry inst_str t ]
+                        Nothing -> case M.lookup (VName "WHAS") pts of
+                            Just t -> [ mkEntry inst_str t ]
+                            Nothing -> [ mkEntry inst_str itBool ]
+            in  wgetEntries ++ whasEntries ++ bareEntry
+        | otherwise = []
 
 
 getSubmodPortInfo :: Maybe Type -> AVInst -> IO ([PortArgInfo], [PortIfcInfo])
