@@ -979,7 +979,8 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
                 (oneOf [ loadGrammar, clearGrammar, submodsGrammar
                        , rulesGrammar, ifcGrammar, methodsGrammar
                        , bflagsGrammar
-                       , portsGrammar, porttypesGrammar, listGrammar
+                       , portsGrammar, porttypesGrammar, wiretypemapGrammar
+                       , listGrammar
                        , methodConditionsGrammar
                        ])
     where helpStr = "Load and query information on a module"
@@ -1002,6 +1003,11 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
           listGrammar = (kw "list" "List the loaded modules" "")
           porttypesGrammar =
               (kw "porttypes" "Show the types of the ports of a module" "") .+.
+              (arg "module" StringArg "module name")
+          wiretypemapGrammar =
+              (kw "wiretypemap"
+                  "Map wire names to source types, for VCD correlation"
+                  "") .+.
               (arg "module" StringArg "module name")
 
 
@@ -1198,6 +1204,17 @@ tclModule ["porttypes",modname] = do
            let h_arg_types = concatMap dispPortsModArg arginfo
                h_ifc_types = concatMap dispPortsIfc ifcinfo
            return $ TLst $ nub (h_arg_types ++ h_ifc_types)
+------
+tclModule ["wiretypemap",modname] = do
+  if (isPrimitiveModule modname)
+   then return $ TLst []
+   else do
+     minfo <- findModule modname
+     case minfo of
+       Nothing -> return $ TLst []
+       Just abmi -> do
+           let apkg = abemi_apkg abmi
+           return $ TLst $ nub $ getWireTypeMap apkg
 ------
 tclModule ["flags",modname] = do
   if (isPrimitiveModule modname)
@@ -3585,6 +3602,101 @@ getModPortInfo apkg pps tifc = do
     return
         (concatMap getModArg inps,
          concatMap getIfcHier ifc_hier)
+
+
+-- ---------------
+-- Build a module-scope-relative {name, IType} list covering every wire
+-- in the APackage we can assign a sensible source-level type to.
+--
+-- Categories emitted:
+--   * external port wires    (apkg_external_wire_types)
+--   * input clock CLKs and gates  (Clock / Bool)
+--   * input reset port wires (Reset)
+--   * EN_<method> and RDY_<method>           (Bool)
+--   * CAN_FIRE_RL_<rule> and WILL_FIRE_RL_<rule>  (Bool)
+--   * submodule connection wires (avi_port_types)
+--
+-- For each submodule wire we emit every candidate name a VCD might use,
+-- so a single map serves both Verilog and Bluesim correlation:
+--   * inst$port   (Verilog flat, post-renameio)
+--   * inst.port   (Bluesim scope-relative; correlator concatenates while
+--                  descending into the sub-scope)
+--   * inst        (Verilog reg-Q_OUT shortcut, when reg)
+-- For CReg instances, the same candidates are also emitted after applying
+-- cregToReg's port-name rewrite, so the Reg-converted Verilog names are
+-- covered without depending on which flags were active at build time.
+--
+-- Over-emission is intentional: a correlator building a name -> type
+-- dict can index by VCD wire name and match whichever form appears.
+getWireTypeMap :: APackage -> [HTclObj]
+getWireTypeMap apkg =
+    let mkEntry name t = TLst [TStr name, TStr (pfpString t)]
+        wires = apkg_external_wires apkg
+        ext_entries = [ mkEntry (getVNameString vn) t
+                      | (vn, t) <- M.toList (apkg_external_wire_types apkg) ]
+        clk_entries = concatMap clockEntries (input_clocks (wClk wires))
+        rst_entries = concatMap resetEntries (input_resets (wRst wires))
+        ifc = apkg_interface apkg
+        en_rdy_entries = concatMap methodEnRdyEntries ifc
+        rule_entries = concatMap ruleFireEntries (apkg_rules apkg)
+        sub_entries = concatMap submodEntries (apkg_state_instances apkg)
+    in  ext_entries ++ clk_entries ++ rst_entries
+            ++ en_rdy_entries ++ rule_entries ++ sub_entries
+  where
+    mkEntry name t = TLst [TStr name, TStr (pfpString t)]
+
+    -- Input clock oscillator (Clock) and optional gate wire (Bool)
+    clockEntries (_, Nothing) = []
+    clockEntries (_, Just (osc, mgate)) =
+        mkEntry (getVNameString osc) itClock :
+        (case mgate of
+            Right vn -> [mkEntry (getVNameString vn) itBool]
+            Left _   -> [])
+
+    -- Input reset port wire (Reset)
+    resetEntries (_, (Just port, _)) =
+        [mkEntry (getVNameString port) itReset]
+    resetEntries _ = []
+
+    -- EN_<method> and RDY_<method> (both Bool). Skip AIFaces that are
+    -- themselves RDY entries (they appear as separate AIFaces with
+    -- names like RDY_foo, and applying mkRdyId to them would produce
+    -- RDY_RDY_foo). RDY is always emitted for actual methods by
+    -- canonical name, even for always_ready methods -- over-emission
+    -- is fine; names that don't show up in any VCD just go unmatched.
+    methodEnRdyEntries aif =
+        case aif_fieldinfo aif of
+            Method { vf_enable = mEn } | not (isRdyId (aIfaceName aif)) ->
+                let nm = aIfaceName aif
+                    en = case mEn of
+                           Just (vn, _) -> [mkEntry (getVNameString vn) itBool]
+                           Nothing      -> []
+                    rdy = mkEntry (getIdString (mkRdyId nm)) itBool
+                in  rdy : en
+            _ -> []
+
+    -- CAN_FIRE_RL_<rule> and WILL_FIRE_RL_<rule> (Bool). These signals
+    -- may be optimized away by aOpt, but over-emission is harmless.
+    ruleFireEntries r =
+        let ri = arule_id r
+        in  [ mkEntry (getIdString (mkIdCanFire ri))  itBool
+            , mkEntry (getIdString (mkIdWillFire ri)) itBool ]
+
+    submodEntries avi =
+        candidateNames avi ++
+        (if isCRegInst avi then candidateNames (cregToReg avi) else [])
+    candidateNames avi =
+        let inst_str = getIdString (avi_vname avi)
+            isReg = isRegInst avi
+            mkCandidates (vn, t) =
+                let port_str = getVNameString vn
+                    verilog_flat = mkEntry (inst_str ++ "$" ++ port_str) t
+                    bluesim_form = mkEntry (inst_str ++ "." ++ port_str) t
+                    reg_shortcut = if isReg && port_str == qoutPortStr
+                                   then [mkEntry inst_str t]
+                                   else []
+                in  [verilog_flat, bluesim_form] ++ reg_shortcut
+        in  concatMap mkCandidates (M.toList (avi_port_types avi))
 
 
 getSubmodPortInfo :: Maybe Type -> AVInst -> IO ([PortArgInfo], [PortIfcInfo])

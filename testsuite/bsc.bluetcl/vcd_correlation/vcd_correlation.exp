@@ -1,0 +1,34 @@
+# Wire-type / VCD correlation integration test.
+#
+# Compiles WireTypesSim to both Verilog and Bluesim, generates VCDs,
+# then verifies that every wire appearing in either VCD that matches
+# an entry in mkWireTypes's `module wiretypemap` is correctly
+# correlated (Verilog flat / Bluesim scope-relative / reg-inline
+# shortcut forms all covered).
+
+global srcdir
+global subdir
+global lasterr
+
+set here   [absolute $srcdir]
+set testdir [file join $here $subdir]
+
+cd $testdir
+set status [exec_with_log_and_return "vcd_correlation" \
+                "./run_correlation.sh > run_correlation.out 2>&1" \
+                lasterr 2]
+cd $here
+
+if { $status != 0 } {
+    fail "vcd_correlation: run_correlation.sh exited non-zero ($lasterr)"
+} else {
+    set output_file [file join $testdir run_correlation.out]
+    set expected_file [file join $testdir run_correlation.out.expected]
+    if { ![file exists $expected_file] } {
+        unresolved "vcd_correlation: no expected file"
+    } elseif { [catch {exec diff $output_file $expected_file} diff_err] } {
+        fail "vcd_correlation: output differs from expected\n$diff_err"
+    } else {
+        pass "vcd_correlation: wiretypemap matches both VCDs as expected"
+    }
+}
