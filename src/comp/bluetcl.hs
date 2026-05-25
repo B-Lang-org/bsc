@@ -3705,6 +3705,7 @@ getWireTypeMap apkg =
         cregInlinedCandidates avi ++
         inlinedWireCandidates avi ++
         probeCandidates avi ++
+        counterCandidates avi ++
         submodClockResetCandidates avi
 
     -- For each submodule instance, emit candidate names for the
@@ -3828,6 +3829,23 @@ getWireTypeMap apkg =
                             , mkEntry (inst_str ++ "$EN_port" ++ p ++ "__write") itBool
                             ]) [(0::Int)..4]
                   Nothing -> []
+        | otherwise = []
+
+    -- Counter primitives: Bluesim's dump_VCD_defs emits the bare
+    -- instance name at the parent scope (carrying the data value),
+    -- mirroring the register Q_OUT shortcut. Inside the counter's
+    -- sub-scope it also emits `q_state` as an alias of Q_OUT. The
+    -- standard candidateNames path already covers `inst.Q_OUT`,
+    -- `inst$Q_OUT`, etc.; we just need the bare-name and q_state
+    -- forms here. See bs_prim_mod_counter.h.
+    counterCandidates avi
+        | vName (avi_vmi avi) == VName "Counter" =
+            case M.lookup (VName "Q_OUT") (avi_port_types avi) of
+                Just t ->
+                    let inst_str = getIdString (avi_vname avi)
+                    in  [ mkEntry inst_str t
+                        , mkEntry (inst_str ++ ".q_state") t ]
+                Nothing -> []
         | otherwise = []
 
     -- Probe primitives don't generate a real submodule instance --
