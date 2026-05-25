@@ -1,7 +1,7 @@
 ##### module: mkWireTypes #####
 === Verilog ===
-  hits:    72
-  misses:  114
+  hits:    80
+  misses:  116
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -40,6 +40,9 @@
     mpx : Maybe#(WireTypes::Pixel)
     pal : Vector::Vector#(4, WireTypes::Color)
     palette : Vector::Vector#(4, WireTypes::Color)
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
     px : WireTypes::Pixel
     setPalette_cs : Vector::Vector#(4, WireTypes::Color)
     syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
@@ -56,6 +59,7 @@
     bram_serverAdapter_outData_beforeDeq$Q_OUT : Bool
     bram_serverAdapter_outData_beforeEnq$D_IN : Bool
     bram_serverAdapter_outData_beforeEnq$Q_OUT : Bool
+    bram_serverAdapter_outData_enqw$whas : Bool
     bram_serverAdapter_outData_ff$D_IN : WireTypes::Cell
     bram_serverAdapter_outData_ff$FULL_N : Bool
     bram_serverAdapter_s1$D_IN : Maybe#(Bool)
@@ -67,13 +71,17 @@
     creg$D_IN : WireTypes::Pixel
     mpx$D_IN : Maybe#(WireTypes::Pixel)
     pal$D_IN : Vector::Vector#(4, WireTypes::Color)
+    pulse$whas : Bool
+    pulseCount$D_IN : UInt#(8)
+    pulseHistory$D_IN : Bit#(8)
+    pulseTick$D_IN : Bit#(2)
     px$D_IN : WireTypes::Pixel
     syncfifo$dEMPTY_N : Bool
     syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo$sFULL_N : Bool
 === Bluesim ===
-  hits:    34
-  misses:  73
+  hits:    47
+  misses:  70
   ignored: 6
   matched wires (sorted):
     CLK : Clock
@@ -83,11 +91,19 @@
     bram_memory.DO : WireTypes::Cell
     bram_memory.WE : Bool
     bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_cnt_1 : Int#(3)
+    bram_serverAdapter_cnt_2 : Int#(3)
+    bram_serverAdapter_cnt_3 : Int#(3)
+    bram_serverAdapter_outData_dequeueing : Bool
+    bram_serverAdapter_outData_enqw : WireTypes::Cell
     bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
     bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
     bram_serverAdapter_outData_ff.EMPTY_N : Bool
     bram_serverAdapter_outData_ff.FULL_N : Bool
     bram_serverAdapter_s1 : Maybe#(Bool)
+    bram_serverAdapter_s1_1 : Maybe#(Bool)
+    bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
+    cellWire : WireTypes::Cell
     cells.D_IN : WireTypes::Cell
     cells.D_OUT : WireTypes::Cell
     cells.EMPTY_N : Bool
@@ -106,10 +122,15 @@
     creg.Q_OUT_4 : WireTypes::Pixel
     mpx : Maybe#(WireTypes::Pixel)
     pal : Vector::Vector#(4, WireTypes::Color)
+    pixelBypass : Maybe#(WireTypes::Pixel)
+    pulse : Bool
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
     px : WireTypes::Pixel
 === summary ===
-  wiretypemap entries: 181
-  total VCD hits:      106
+  wiretypemap entries: 264
+  total VCD hits:      127
 RESULT: PASS
 
 ##### module: mkSplitPortsTest #####
