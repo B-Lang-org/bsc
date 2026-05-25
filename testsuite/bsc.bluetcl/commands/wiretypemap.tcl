@@ -18,7 +18,16 @@ puts [module load mkWireTypes]
 
 puts {----------}
 
-# Exercise rich types: struct (Pixel), tagged union (Cell),
-# enum (Color), Vector#(4, Color), Maybe#(Pixel), plus a
-# FIFOF submodule whose ports carry the tagged-union type.
+# Exercise rich types: struct (Pixel), tagged union (Cell), enum
+# (Color), Vector#(4, Color), Maybe#(Pixel), plus polymorphic
+# primitives (Reg/FIFOF/BRAM/SyncFIFO/CReg/RWire/BypassWire/PulseWire).
 dumpMap mkWireTypes
+
+# Hierarchical case: mkPixelStash is a separately-synthesized leaf
+# instantiated as leafA and leafB inside mkWireTypes. The per-module
+# wiretypemap is keyed by module name (not instance), so one query
+# covers all instances of that module. This is what makes per-.ba
+# wiretypemap consumption efficient -- you compute the map once and
+# match every instance of that module at any scope in the design
+# hierarchy.
+dumpMap mkPixelStash
