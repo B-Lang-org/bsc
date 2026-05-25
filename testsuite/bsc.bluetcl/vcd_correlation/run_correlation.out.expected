@@ -1,8 +1,8 @@
 ########## variant: default (Verilog default flags; Bluesim is flag-agnostic) ##########
 ##### module: mkWireTypes  @  main.top.dut #####
 === Verilog ===
-  hits:    100
-  misses:  195
+  hits:    105
+  misses:  190
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -28,11 +28,13 @@
     bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
     bram_serverAdapter_outData_ff.EMPTY_N : Bool
     bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     cells.D_IN : WireTypes::Cell
     cells.D_OUT : WireTypes::Cell
     cells.EMPTY_N : Bool
     cells.FULL_N : Bool
+    cells.RST : Reset
     cl : WireTypes::Cell
     creg : WireTypes::Pixel
     currentCell : WireTypes::Cell
@@ -53,10 +55,13 @@
     px : WireTypes::Pixel
     setPalette_cs : Vector::Vector#(4, WireTypes::Color)
     simpleCount : UInt#(4)
+    syncfifo.dCLK : Clock
     syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
     syncfifo.dEMPTY_N : Bool
+    syncfifo.sCLK : Clock
     syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo.sFULL_N : Bool
+    syncfifo.sRST : Reset
     topPixel : WireTypes::Pixel
     bram_memory$ADDR : Bit#(6)
     bram_memory$DI : WireTypes::Cell
@@ -95,8 +100,8 @@
     syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo$sFULL_N : Bool
 === Bluesim ===
-  hits:    57
-  misses:  96
+  hits:    59
+  misses:  94
   ignored: 6
   matched wires (sorted):
     CLK : Clock
@@ -115,6 +120,7 @@
     bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
     bram_serverAdapter_outData_ff.EMPTY_N : Bool
     bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     bram_serverAdapter_s1_1 : Maybe#(Bool)
     bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
@@ -123,6 +129,7 @@
     cells.D_OUT : WireTypes::Cell
     cells.EMPTY_N : Bool
     cells.FULL_N : Bool
+    cells.RST : Reset
     cl : WireTypes::Cell
     creg : WireTypes::Pixel
     creg.D_IN_0 : WireTypes::Pixel
@@ -150,8 +157,8 @@
 
 ##### module: mkPixelStash  @  main.top.dut.leafA #####
 === Verilog ===
-  hits:    22
-  misses:  21
+  hits:    23
+  misses:  20
   ignored: 277
   matched wires (sorted):
     CLK : Clock
@@ -168,6 +175,7 @@
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
     top : WireTypes::Pixel
     cnt$D_IN : Bit#(8)
     last$D_IN : WireTypes::Pixel
@@ -176,8 +184,8 @@
     q$EMPTY_N : Bool
     q$FULL_N : Bool
 === Bluesim ===
-  hits:    9
-  misses:  7
+  hits:    10
+  misses:  6
   ignored: 143
   matched wires (sorted):
     CLK : Clock
@@ -188,11 +196,12 @@
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
 
 ##### module: mkPixelStash  @  main.top.dut.leafB #####
 === Verilog ===
-  hits:    22
-  misses:  21
+  hits:    23
+  misses:  20
   ignored: 277
   matched wires (sorted):
     CLK : Clock
@@ -209,6 +218,7 @@
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
     top : WireTypes::Pixel
     cnt$D_IN : Bit#(8)
     last$D_IN : WireTypes::Pixel
@@ -217,8 +227,8 @@
     q$EMPTY_N : Bool
     q$FULL_N : Bool
 === Bluesim ===
-  hits:    9
-  misses:  7
+  hits:    10
+  misses:  6
   ignored: 143
   matched wires (sorted):
     CLK : Clock
@@ -229,15 +239,16 @@
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 219
+  total VCD hits across all (module, scope) pairs: 230
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####
 === Verilog ===
-  hits:    31
-  misses:  24
+  hits:    32
+  misses:  23
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -256,6 +267,7 @@ RESULT: PASS
     inflight.D_OUT : SplitPortsTest::Inner
     inflight.EMPTY_N : Bool
     inflight.FULL_N : Bool
+    inflight.RST : Reset
     last_header : SplitPortsTest::Header
     last_inner : SplitPortsTest::Inner
     sub_count : Bit#(16)
@@ -271,8 +283,8 @@ RESULT: PASS
     last_header$D_IN : SplitPortsTest::Header
     last_inner$D_IN : SplitPortsTest::Inner
 === Bluesim ===
-  hits:    11
-  misses:  8
+  hits:    12
+  misses:  7
   ignored: 6
   matched wires (sorted):
     CLK : Clock
@@ -283,18 +295,19 @@ RESULT: PASS
     inflight.D_OUT : SplitPortsTest::Inner
     inflight.EMPTY_N : Bool
     inflight.FULL_N : Bool
+    inflight.RST : Reset
     last_header : SplitPortsTest::Header
     last_inner : SplitPortsTest::Inner
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 42
+  total VCD hits across all (module, scope) pairs: 44
 RESULT: PASS
 
 ########## variant: kib (Verilog -keep-inlined-boundaries; Bluesim is flag-agnostic) ##########
 ##### module: mkWireTypes  @  main.top.dut #####
 === Verilog ===
-  hits:    131
-  misses:  195
+  hits:    136
+  misses:  190
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -320,11 +333,13 @@ RESULT: PASS
     bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
     bram_serverAdapter_outData_ff.EMPTY_N : Bool
     bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     cells.D_IN : WireTypes::Cell
     cells.D_OUT : WireTypes::Cell
     cells.EMPTY_N : Bool
     cells.FULL_N : Bool
+    cells.RST : Reset
     cl : WireTypes::Cell
     creg : WireTypes::Pixel
     currentCell : WireTypes::Cell
@@ -345,10 +360,13 @@ RESULT: PASS
     px : WireTypes::Pixel
     setPalette_cs : Vector::Vector#(4, WireTypes::Color)
     simpleCount : UInt#(4)
+    syncfifo.dCLK : Clock
     syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
     syncfifo.dEMPTY_N : Bool
+    syncfifo.sCLK : Clock
     syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo.sFULL_N : Bool
+    syncfifo.sRST : Reset
     topPixel : WireTypes::Pixel
     bram_memory$ADDR : Bit#(6)
     bram_memory$DI : WireTypes::Cell
@@ -418,8 +436,8 @@ RESULT: PASS
     syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo$sFULL_N : Bool
 === Bluesim ===
-  hits:    57
-  misses:  96
+  hits:    59
+  misses:  94
   ignored: 6
   matched wires (sorted):
     CLK : Clock
@@ -438,6 +456,7 @@ RESULT: PASS
     bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
     bram_serverAdapter_outData_ff.EMPTY_N : Bool
     bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     bram_serverAdapter_s1_1 : Maybe#(Bool)
     bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
@@ -446,6 +465,7 @@ RESULT: PASS
     cells.D_OUT : WireTypes::Cell
     cells.EMPTY_N : Bool
     cells.FULL_N : Bool
+    cells.RST : Reset
     cl : WireTypes::Cell
     creg : WireTypes::Pixel
     creg.D_IN_0 : WireTypes::Pixel
@@ -473,8 +493,8 @@ RESULT: PASS
 
 ##### module: mkPixelStash  @  main.top.dut.leafA #####
 === Verilog ===
-  hits:    22
-  misses:  21
+  hits:    23
+  misses:  20
   ignored: 308
   matched wires (sorted):
     CLK : Clock
@@ -491,6 +511,7 @@ RESULT: PASS
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
     top : WireTypes::Pixel
     cnt$D_IN : Bit#(8)
     last$D_IN : WireTypes::Pixel
@@ -499,8 +520,8 @@ RESULT: PASS
     q$EMPTY_N : Bool
     q$FULL_N : Bool
 === Bluesim ===
-  hits:    9
-  misses:  7
+  hits:    10
+  misses:  6
   ignored: 143
   matched wires (sorted):
     CLK : Clock
@@ -511,11 +532,12 @@ RESULT: PASS
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
 
 ##### module: mkPixelStash  @  main.top.dut.leafB #####
 === Verilog ===
-  hits:    22
-  misses:  21
+  hits:    23
+  misses:  20
   ignored: 308
   matched wires (sorted):
     CLK : Clock
@@ -532,6 +554,7 @@ RESULT: PASS
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
     top : WireTypes::Pixel
     cnt$D_IN : Bit#(8)
     last$D_IN : WireTypes::Pixel
@@ -540,8 +563,8 @@ RESULT: PASS
     q$EMPTY_N : Bool
     q$FULL_N : Bool
 === Bluesim ===
-  hits:    9
-  misses:  7
+  hits:    10
+  misses:  6
   ignored: 143
   matched wires (sorted):
     CLK : Clock
@@ -552,15 +575,16 @@ RESULT: PASS
     q.D_OUT : WireTypes::Pixel
     q.EMPTY_N : Bool
     q.FULL_N : Bool
+    q.RST : Reset
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 250
+  total VCD hits across all (module, scope) pairs: 261
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####
 === Verilog ===
-  hits:    31
-  misses:  24
+  hits:    32
+  misses:  23
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -579,6 +603,7 @@ RESULT: PASS
     inflight.D_OUT : SplitPortsTest::Inner
     inflight.EMPTY_N : Bool
     inflight.FULL_N : Bool
+    inflight.RST : Reset
     last_header : SplitPortsTest::Header
     last_inner : SplitPortsTest::Inner
     sub_count : Bit#(16)
@@ -594,8 +619,8 @@ RESULT: PASS
     last_header$D_IN : SplitPortsTest::Header
     last_inner$D_IN : SplitPortsTest::Inner
 === Bluesim ===
-  hits:    11
-  misses:  8
+  hits:    12
+  misses:  7
   ignored: 6
   matched wires (sorted):
     CLK : Clock
@@ -606,10 +631,11 @@ RESULT: PASS
     inflight.D_OUT : SplitPortsTest::Inner
     inflight.EMPTY_N : Bool
     inflight.FULL_N : Bool
+    inflight.RST : Reset
     last_header : SplitPortsTest::Header
     last_inner : SplitPortsTest::Inner
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 42
+  total VCD hits across all (module, scope) pairs: 44
 RESULT: PASS
 

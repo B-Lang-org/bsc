@@ -35,18 +35,26 @@ OK (2 top-level fields)
   WILL_FIRE_RL_unnamed_1 Bool
   bump void
   cnt Bit#(16)
+  cnt.CLK Clock
   cnt.D_IN Bit#(16)
   cnt.Q_OUT Bit#(16)
+  cnt.RST Reset
+  inflight.CLK Clock
   inflight.D_IN SplitPortsTest::Inner
   inflight.D_OUT SplitPortsTest::Inner
   inflight.EMPTY_N Bool
   inflight.FULL_N Bool
+  inflight.RST Reset
   last_header SplitPortsTest::Header
+  last_header.CLK Clock
   last_header.D_IN SplitPortsTest::Header
   last_header.Q_OUT SplitPortsTest::Header
+  last_header.RST Reset
   last_inner SplitPortsTest::Inner
+  last_inner.CLK Clock
   last_inner.D_IN SplitPortsTest::Inner
   last_inner.Q_OUT SplitPortsTest::Inner
+  last_inner.RST Reset
   sub_count Bit#(16)
   sub_get SplitPortsTest::Inner
   sub_getHdr SplitPortsTest::Header
@@ -54,16 +62,24 @@ OK (2 top-level fields)
   sub_putHdr void
   sub_putHdr_1 SplitPortsTest::Header
   sub_put_1 SplitPortsTest::Inner
+  {cnt$CLK} Clock
   {cnt$D_IN} Bit#(16)
   {cnt$Q_OUT} Bit#(16)
+  {cnt$RST} Reset
+  {inflight$CLK} Clock
   {inflight$D_IN} SplitPortsTest::Inner
   {inflight$D_OUT} SplitPortsTest::Inner
   {inflight$EMPTY_N} Bool
   {inflight$FULL_N} Bool
+  {inflight$RST} Reset
+  {last_header$CLK} Clock
   {last_header$D_IN} SplitPortsTest::Header
   {last_header$Q_OUT} SplitPortsTest::Header
+  {last_header$RST} Reset
+  {last_inner$CLK} Clock
   {last_inner$D_IN} SplitPortsTest::Inner
   {last_inner$Q_OUT} SplitPortsTest::Inner
+  {last_inner$RST} Reset
 === assertions ===
 PASS: sub_put_1 reports type (SplitPortsTest::Inner)
 PASS: sub_putHdr_1 reports type (SplitPortsTest::Header)

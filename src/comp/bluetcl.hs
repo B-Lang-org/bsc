@@ -3634,29 +3634,46 @@ getWireTypeMap apkg =
         wires = apkg_external_wires apkg
         ext_entries = [ mkEntry (getVNameString vn) t
                       | (vn, t) <- M.toList (apkg_external_wire_types apkg) ]
-        clk_entries = concatMap clockEntries (input_clocks (wClk wires))
-        rst_entries = concatMap resetEntries (input_resets (wRst wires))
+        clk_entries     = concatMap inClockEntries  (input_clocks  (wClk wires))
+        outClk_entries  = concatMap outClockEntries (output_clocks (wClk wires))
+        rst_entries     = concatMap inResetEntries  (input_resets  (wRst wires))
+        outRst_entries  = concatMap outResetEntries (output_resets (wRst wires))
         ifc = apkg_interface apkg
         en_rdy_entries = concatMap methodEnRdyEntries ifc
         rule_entries = concatMap ruleFireEntries (apkg_rules apkg)
         sub_entries = concatMap submodEntries (apkg_state_instances apkg)
-    in  ext_entries ++ clk_entries ++ rst_entries
+    in  ext_entries
+            ++ clk_entries ++ outClk_entries
+            ++ rst_entries ++ outRst_entries
             ++ en_rdy_entries ++ rule_entries ++ sub_entries
   where
     mkEntry name t = TLst [TStr name, TStr (pfpString t)]
 
     -- Input clock oscillator (Clock) and optional gate wire (Bool)
-    clockEntries (_, Nothing) = []
-    clockEntries (_, Just (osc, mgate)) =
+    inClockEntries (_, Nothing) = []
+    inClockEntries (_, Just (osc, mgate)) =
         mkEntry (getVNameString osc) itClock :
         (case mgate of
             Right vn -> [mkEntry (getVNameString vn) itBool]
             Left _   -> [])
 
+    -- Output clock oscillator (Clock) and optional gate VPort (Bool)
+    outClockEntries (_, Nothing) = []
+    outClockEntries (_, Just (osc, mgate)) =
+        mkEntry (getVNameString osc) itClock :
+        (case mgate of
+            Just (vn, _) -> [mkEntry (getVNameString vn) itBool]
+            Nothing      -> [])
+
     -- Input reset port wire (Reset)
-    resetEntries (_, (Just port, _)) =
+    inResetEntries (_, (Just port, _)) =
         [mkEntry (getVNameString port) itReset]
-    resetEntries _ = []
+    inResetEntries _ = []
+
+    -- Output reset port wire (Reset)
+    outResetEntries (_, (Just port, _)) =
+        [mkEntry (getVNameString port) itReset]
+    outResetEntries _ = []
 
     -- EN_<method> and RDY_<method> (both Bool). Skip AIFaces that are
     -- themselves RDY entries (they appear as separate AIFaces with
@@ -3687,7 +3704,47 @@ getWireTypeMap apkg =
         (if isCRegInst avi then candidateNames (cregToReg avi) else []) ++
         cregInlinedCandidates avi ++
         inlinedWireCandidates avi ++
-        probeCandidates avi
+        probeCandidates avi ++
+        submodClockResetCandidates avi
+
+    -- For each submodule instance, emit candidate names for the
+    -- wires connecting parent's clocks/resets to the submodule's
+    -- clock/reset ports. Both Verilog flat (<inst>$<port>) and
+    -- Bluesim scope-relative (<inst>.<port>) forms. Covers:
+    --   * input clocks  -- oscillator (Clock) and optional gate (Bool)
+    --   * output clocks -- oscillator and optional gate (same)
+    --   * input resets  -- port wire (Reset)
+    --   * output resets -- port wire (Reset)
+    -- Without these, a submodule like mkBRAM2 (two clock ports CLKA
+    -- and CLKB) or mkSyncFIFO (separate source/dest clocks and resets)
+    -- would have its clock/reset connection wires show up as misses
+    -- in the correlation, even though we know they're Clock/Reset.
+    submodClockResetCandidates avi =
+        let inst_str = getIdString (avi_vname avi)
+            vmi     = avi_vmi avi
+            emit vn t = [ mkEntry (inst_str ++ "$" ++ getVNameString vn) t
+                        , mkEntry (inst_str ++ "." ++ getVNameString vn) t ]
+            -- input clocks: (Id, Maybe (VOscPort, VInputGatePort))
+            inClk (_, Nothing) = []
+            inClk (_, Just (osc, mgate)) =
+                emit osc itClock ++
+                (case mgate of
+                    Right vn -> emit vn itBool
+                    Left _   -> [])
+            -- output clocks: (Id, Maybe (VOscPort, VOutputGatePort))
+            outClk (_, Nothing) = []
+            outClk (_, Just (osc, mgate)) =
+                emit osc itClock ++
+                (case mgate of
+                    Just (vn, _) -> emit vn itBool
+                    Nothing      -> [])
+            -- resets: (Id, (Maybe VName, Maybe Id))
+            rst (_, (Just vn, _)) = emit vn itReset
+            rst _                 = []
+        in  concatMap inClk  (input_clocks  (vClk vmi)) ++
+            concatMap outClk (output_clocks (vClk vmi)) ++
+            concatMap rst    (input_resets  (vRst vmi)) ++
+            concatMap rst    (output_resets (vRst vmi))
     candidateNames avi =
         let inst_str = getIdString (avi_vname avi)
             isReg = isRegInst avi

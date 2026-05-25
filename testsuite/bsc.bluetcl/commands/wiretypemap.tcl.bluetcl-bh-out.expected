@@ -59,12 +59,15 @@ WILL_FIRE_RL_rotate_palette Prelude.Bool
 WILL_FIRE_RL_shift_history Prelude.Bool
 WILL_FIRE_RL_sink_cells Prelude.Bool
 bram_memory.ADDR {Prelude.Bit 6}
+bram_memory.CLK Prelude.Clock
 bram_memory.DI WireTypes.Cell
 bram_memory.DO WireTypes.Cell
 bram_memory.WE Prelude.Bool
 bram_serverAdapter_cnt {Prelude.Int 3}
+bram_serverAdapter_cnt.CLK Prelude.Clock
 bram_serverAdapter_cnt.D_IN {Prelude.Int 3}
 bram_serverAdapter_cnt.Q_OUT {Prelude.Int 3}
+bram_serverAdapter_cnt.RST Prelude.Reset
 bram_serverAdapter_cnt_1 {Prelude.Int 3}
 bram_serverAdapter_cnt_1.WGET {Prelude.Int 3}
 bram_serverAdapter_cnt_1.WHAS Prelude.Bool
@@ -83,8 +86,10 @@ bram_serverAdapter_cnt_3.WHAS Prelude.Bool
 bram_serverAdapter_cnt_3.WVAL {Prelude.Int 3}
 bram_serverAdapter_cnt_3.wget {Prelude.Int 3}
 bram_serverAdapter_cnt_3.whas Prelude.Bool
+bram_serverAdapter_outData_beforeDeq.CLK Prelude.Clock
 bram_serverAdapter_outData_beforeDeq.D_IN Prelude.Bool
 bram_serverAdapter_outData_beforeDeq.Q_OUT Prelude.Bool
+bram_serverAdapter_outData_beforeEnq.CLK Prelude.Clock
 bram_serverAdapter_outData_beforeEnq.D_IN Prelude.Bool
 bram_serverAdapter_outData_beforeEnq.Q_OUT Prelude.Bool
 bram_serverAdapter_outData_dequeueing Prelude.Bool
@@ -96,13 +101,17 @@ bram_serverAdapter_outData_enqw.WHAS Prelude.Bool
 bram_serverAdapter_outData_enqw.WVAL WireTypes.Cell
 bram_serverAdapter_outData_enqw.wget WireTypes.Cell
 bram_serverAdapter_outData_enqw.whas Prelude.Bool
+bram_serverAdapter_outData_ff.CLK Prelude.Clock
 bram_serverAdapter_outData_ff.D_IN WireTypes.Cell
 bram_serverAdapter_outData_ff.D_OUT WireTypes.Cell
 bram_serverAdapter_outData_ff.EMPTY_N Prelude.Bool
 bram_serverAdapter_outData_ff.FULL_N Prelude.Bool
+bram_serverAdapter_outData_ff.RST Prelude.Reset
 bram_serverAdapter_s1 {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1.CLK Prelude.Clock
 bram_serverAdapter_s1.D_IN {Prelude.Maybe Prelude.Bool}
 bram_serverAdapter_s1.Q_OUT {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1.RST Prelude.Reset
 bram_serverAdapter_s1_1 {Prelude.Maybe Prelude.Bool}
 bram_serverAdapter_s1_1.WGET {Prelude.Maybe Prelude.Bool}
 bram_serverAdapter_s1_1.WHAS Prelude.Bool
@@ -121,14 +130,19 @@ cellWire.WHAS Prelude.Bool
 cellWire.WVAL WireTypes.Cell
 cellWire.wget WireTypes.Cell
 cellWire.whas Prelude.Bool
+cells.CLK Prelude.Clock
 cells.D_IN WireTypes.Cell
 cells.D_OUT WireTypes.Cell
 cells.EMPTY_N Prelude.Bool
 cells.FULL_N Prelude.Bool
+cells.RST Prelude.Reset
 cl WireTypes.Cell
+cl.CLK Prelude.Clock
 cl.D_IN WireTypes.Cell
 cl.Q_OUT WireTypes.Cell
+cl.RST Prelude.Reset
 creg WireTypes.Pixel
+creg.CLK Prelude.Clock
 creg.D_IN WireTypes.Pixel
 creg.D_IN_0 WireTypes.Pixel
 creg.D_IN_1 WireTypes.Pixel
@@ -141,11 +155,16 @@ creg.Q_OUT_1 WireTypes.Pixel
 creg.Q_OUT_2 WireTypes.Pixel
 creg.Q_OUT_3 WireTypes.Pixel
 creg.Q_OUT_4 WireTypes.Pixel
+creg.RST Prelude.Reset
 currentCell WireTypes.Cell
+leafA.CLK Prelude.Clock
+leafA.RST_N Prelude.Reset
 leafA.depth {Prelude.Bit 8}
 leafA.push Prelude.PrimUnit
 leafA.push_p WireTypes.Pixel
 leafA.top WireTypes.Pixel
+leafB.CLK Prelude.Clock
+leafB.RST_N Prelude.Reset
 leafB.depth {Prelude.Bit 8}
 leafB.push Prelude.PrimUnit
 leafB.push_p WireTypes.Pixel
@@ -154,12 +173,17 @@ loadPixel Prelude.PrimUnit
 loadPixel_p WireTypes.Pixel
 maybePixel {Prelude.Maybe WireTypes.Pixel}
 mpx {Prelude.Maybe WireTypes.Pixel}
+mpx.CLK Prelude.Clock
 mpx.D_IN {Prelude.Maybe WireTypes.Pixel}
 mpx.Q_OUT {Prelude.Maybe WireTypes.Pixel}
+mpx.RST Prelude.Reset
+mpxProbe.CLK Prelude.Clock
 mpxProbe.PROBE {Prelude.Maybe WireTypes.Pixel}
 pal {Vector.Vector 4 WireTypes.Color}
+pal.CLK Prelude.Clock
 pal.D_IN {Vector.Vector 4 WireTypes.Color}
 pal.Q_OUT {Vector.Vector 4 WireTypes.Color}
+pal.RST Prelude.Reset
 palette {Vector.Vector 4 WireTypes.Color}
 pixelBypass {Prelude.Maybe WireTypes.Pixel}
 pixelBypass.WGET {Prelude.Maybe WireTypes.Pixel}
@@ -169,37 +193,54 @@ pulse Prelude.Bool
 pulse.WHAS Prelude.Bool
 pulse.whas Prelude.Bool
 pulseCount {Prelude.UInt 8}
+pulseCount.CLK Prelude.Clock
 pulseCount.D_IN {Prelude.UInt 8}
 pulseCount.Q_OUT {Prelude.UInt 8}
+pulseCount.RST Prelude.Reset
 pulseHistory {Prelude.Bit 8}
+pulseHistory.CLK Prelude.Clock
 pulseHistory.D_IN {Prelude.Bit 8}
 pulseHistory.Q_OUT {Prelude.Bit 8}
+pulseHistory.RST Prelude.Reset
 pulseTick {Prelude.Bit 2}
+pulseTick.CLK Prelude.Clock
 pulseTick.D_IN {Prelude.Bit 2}
 pulseTick.Q_OUT {Prelude.Bit 2}
+pulseTick.RST Prelude.Reset
 px WireTypes.Pixel
+px.CLK Prelude.Clock
 px.D_IN WireTypes.Pixel
 px.Q_OUT WireTypes.Pixel
+px.RST Prelude.Reset
+pxProbe.CLK Prelude.Clock
 pxProbe.PROBE WireTypes.Pixel
 setPalette Prelude.PrimUnit
 setPalette_cs {Vector.Vector 4 WireTypes.Color}
 simpleCount {Prelude.UInt 4}
+simpleCount.CLK Prelude.Clock
 simpleCount.D_IN {Prelude.UInt 4}
 simpleCount.Q_OUT {Prelude.UInt 4}
+simpleCount.RST Prelude.Reset
 simplePulse Prelude.Bool
 simplePulse.WHAS Prelude.Bool
 simplePulse.whas Prelude.Bool
+syncfifo.dCLK Prelude.Clock
 syncfifo.dD_OUT {Prelude.Maybe WireTypes.Pixel}
 syncfifo.dEMPTY_N Prelude.Bool
+syncfifo.sCLK Prelude.Clock
 syncfifo.sD_IN {Prelude.Maybe WireTypes.Pixel}
 syncfifo.sFULL_N Prelude.Bool
+syncfifo.sRST Prelude.Reset
 topPixel WireTypes.Pixel
 {bram_memory$ADDR} {Prelude.Bit 6}
+{bram_memory$CLK} Prelude.Clock
 {bram_memory$DI} WireTypes.Cell
 {bram_memory$DO} WireTypes.Cell
 {bram_memory$WE} Prelude.Bool
+{bram_serverAdapter_cnt$CLK} Prelude.Clock
 {bram_serverAdapter_cnt$D_IN} {Prelude.Int 3}
 {bram_serverAdapter_cnt$Q_OUT} {Prelude.Int 3}
+{bram_serverAdapter_cnt$RST} Prelude.Reset
 {bram_serverAdapter_cnt_1$WGET} {Prelude.Int 3}
 {bram_serverAdapter_cnt_1$WHAS} Prelude.Bool
 {bram_serverAdapter_cnt_1$WVAL} {Prelude.Int 3}
@@ -215,8 +256,10 @@ topPixel WireTypes.Pixel
 {bram_serverAdapter_cnt_3$WVAL} {Prelude.Int 3}
 {bram_serverAdapter_cnt_3$wget} {Prelude.Int 3}
 {bram_serverAdapter_cnt_3$whas} Prelude.Bool
+{bram_serverAdapter_outData_beforeDeq$CLK} Prelude.Clock
 {bram_serverAdapter_outData_beforeDeq$D_IN} Prelude.Bool
 {bram_serverAdapter_outData_beforeDeq$Q_OUT} Prelude.Bool
+{bram_serverAdapter_outData_beforeEnq$CLK} Prelude.Clock
 {bram_serverAdapter_outData_beforeEnq$D_IN} Prelude.Bool
 {bram_serverAdapter_outData_beforeEnq$Q_OUT} Prelude.Bool
 {bram_serverAdapter_outData_dequeueing$WHAS} Prelude.Bool
@@ -226,12 +269,16 @@ topPixel WireTypes.Pixel
 {bram_serverAdapter_outData_enqw$WVAL} WireTypes.Cell
 {bram_serverAdapter_outData_enqw$wget} WireTypes.Cell
 {bram_serverAdapter_outData_enqw$whas} Prelude.Bool
+{bram_serverAdapter_outData_ff$CLK} Prelude.Clock
 {bram_serverAdapter_outData_ff$D_IN} WireTypes.Cell
 {bram_serverAdapter_outData_ff$D_OUT} WireTypes.Cell
 {bram_serverAdapter_outData_ff$EMPTY_N} Prelude.Bool
 {bram_serverAdapter_outData_ff$FULL_N} Prelude.Bool
+{bram_serverAdapter_outData_ff$RST} Prelude.Reset
+{bram_serverAdapter_s1$CLK} Prelude.Clock
 {bram_serverAdapter_s1$D_IN} {Prelude.Maybe Prelude.Bool}
 {bram_serverAdapter_s1$Q_OUT} {Prelude.Maybe Prelude.Bool}
+{bram_serverAdapter_s1$RST} Prelude.Reset
 {bram_serverAdapter_s1_1$WGET} {Prelude.Maybe Prelude.Bool}
 {bram_serverAdapter_s1_1$WHAS} Prelude.Bool
 {bram_serverAdapter_s1_1$WVAL} {Prelude.Maybe Prelude.Bool}
@@ -247,12 +294,17 @@ topPixel WireTypes.Pixel
 {cellWire$WVAL} WireTypes.Cell
 {cellWire$wget} WireTypes.Cell
 {cellWire$whas} Prelude.Bool
+{cells$CLK} Prelude.Clock
 {cells$D_IN} WireTypes.Cell
 {cells$D_OUT} WireTypes.Cell
 {cells$EMPTY_N} Prelude.Bool
 {cells$FULL_N} Prelude.Bool
+{cells$RST} Prelude.Reset
+{cl$CLK} Prelude.Clock
 {cl$D_IN} WireTypes.Cell
 {cl$Q_OUT} WireTypes.Cell
+{cl$RST} Prelude.Reset
+{creg$CLK} Prelude.Clock
 {creg$D_IN_0} WireTypes.Pixel
 {creg$D_IN_1} WireTypes.Pixel
 {creg$D_IN_2} WireTypes.Pixel
@@ -270,6 +322,7 @@ topPixel WireTypes.Pixel
 {creg$Q_OUT_3} WireTypes.Pixel
 {creg$Q_OUT_4} WireTypes.Pixel
 {creg$Q_OUT} WireTypes.Pixel
+{creg$RST} Prelude.Reset
 {creg$port0__read} WireTypes.Pixel
 {creg$port0__write_1} WireTypes.Pixel
 {creg$port1__read} WireTypes.Pixel
@@ -280,43 +333,66 @@ topPixel WireTypes.Pixel
 {creg$port3__write_1} WireTypes.Pixel
 {creg$port4__read} WireTypes.Pixel
 {creg$port4__write_1} WireTypes.Pixel
+{leafA$CLK} Prelude.Clock
+{leafA$RST_N} Prelude.Reset
 {leafA$depth} {Prelude.Bit 8}
 {leafA$push_p} WireTypes.Pixel
 {leafA$push} Prelude.PrimUnit
 {leafA$top} WireTypes.Pixel
+{leafB$CLK} Prelude.Clock
+{leafB$RST_N} Prelude.Reset
 {leafB$depth} {Prelude.Bit 8}
 {leafB$push_p} WireTypes.Pixel
 {leafB$push} Prelude.PrimUnit
 {leafB$top} WireTypes.Pixel
+{mpx$CLK} Prelude.Clock
 {mpx$D_IN} {Prelude.Maybe WireTypes.Pixel}
 {mpx$Q_OUT} {Prelude.Maybe WireTypes.Pixel}
+{mpx$RST} Prelude.Reset
+{mpxProbe$CLK} Prelude.Clock
 {mpxProbe$PROBE_VALID} Prelude.Bool
 {mpxProbe$PROBE} {Prelude.Maybe WireTypes.Pixel}
+{pal$CLK} Prelude.Clock
 {pal$D_IN} {Vector.Vector 4 WireTypes.Color}
 {pal$Q_OUT} {Vector.Vector 4 WireTypes.Color}
+{pal$RST} Prelude.Reset
 {pixelBypass$WGET} {Prelude.Maybe WireTypes.Pixel}
 {pixelBypass$WVAL} {Prelude.Maybe WireTypes.Pixel}
 {pixelBypass$wget} {Prelude.Maybe WireTypes.Pixel}
 {pulse$WHAS} Prelude.Bool
 {pulse$whas} Prelude.Bool
+{pulseCount$CLK} Prelude.Clock
 {pulseCount$D_IN} {Prelude.UInt 8}
 {pulseCount$Q_OUT} {Prelude.UInt 8}
+{pulseCount$RST} Prelude.Reset
+{pulseHistory$CLK} Prelude.Clock
 {pulseHistory$D_IN} {Prelude.Bit 8}
 {pulseHistory$Q_OUT} {Prelude.Bit 8}
+{pulseHistory$RST} Prelude.Reset
+{pulseTick$CLK} Prelude.Clock
 {pulseTick$D_IN} {Prelude.Bit 2}
 {pulseTick$Q_OUT} {Prelude.Bit 2}
+{pulseTick$RST} Prelude.Reset
+{px$CLK} Prelude.Clock
 {px$D_IN} WireTypes.Pixel
 {px$Q_OUT} WireTypes.Pixel
+{px$RST} Prelude.Reset
+{pxProbe$CLK} Prelude.Clock
 {pxProbe$PROBE_VALID} Prelude.Bool
 {pxProbe$PROBE} WireTypes.Pixel
+{simpleCount$CLK} Prelude.Clock
 {simpleCount$D_IN} {Prelude.UInt 4}
 {simpleCount$Q_OUT} {Prelude.UInt 4}
+{simpleCount$RST} Prelude.Reset
 {simplePulse$WHAS} Prelude.Bool
 {simplePulse$whas} Prelude.Bool
+{syncfifo$dCLK} Prelude.Clock
 {syncfifo$dD_OUT} {Prelude.Maybe WireTypes.Pixel}
 {syncfifo$dEMPTY_N} Prelude.Bool
+{syncfifo$sCLK} Prelude.Clock
 {syncfifo$sD_IN} {Prelude.Maybe WireTypes.Pixel}
 {syncfifo$sFULL_N} Prelude.Bool
+{syncfifo$sRST} Prelude.Reset
 ---------
 Command: module wiretypemap mkPixelStash
 CAN_FIRE_RL_sink Prelude.Bool
@@ -328,25 +404,37 @@ RDY_top Prelude.Bool
 RST_N Prelude.Reset
 WILL_FIRE_RL_sink Prelude.Bool
 cnt {Prelude.Bit 8}
+cnt.CLK Prelude.Clock
 cnt.D_IN {Prelude.Bit 8}
 cnt.Q_OUT {Prelude.Bit 8}
+cnt.RST Prelude.Reset
 depth {Prelude.Bit 8}
 last WireTypes.Pixel
+last.CLK Prelude.Clock
 last.D_IN WireTypes.Pixel
 last.Q_OUT WireTypes.Pixel
+last.RST Prelude.Reset
 push Prelude.PrimUnit
 push_p WireTypes.Pixel
+q.CLK Prelude.Clock
 q.D_IN WireTypes.Pixel
 q.D_OUT WireTypes.Pixel
 q.EMPTY_N Prelude.Bool
 q.FULL_N Prelude.Bool
+q.RST Prelude.Reset
 top WireTypes.Pixel
+{cnt$CLK} Prelude.Clock
 {cnt$D_IN} {Prelude.Bit 8}
 {cnt$Q_OUT} {Prelude.Bit 8}
+{cnt$RST} Prelude.Reset
+{last$CLK} Prelude.Clock
 {last$D_IN} WireTypes.Pixel
 {last$Q_OUT} WireTypes.Pixel
+{last$RST} Prelude.Reset
+{q$CLK} Prelude.Clock
 {q$D_IN} WireTypes.Pixel
 {q$D_OUT} WireTypes.Pixel
 {q$EMPTY_N} Prelude.Bool
 {q$FULL_N} Prelude.Bool
+{q$RST} Prelude.Reset
 ---------
