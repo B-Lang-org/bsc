@@ -4,6 +4,7 @@ import Vector::*;
 import FIFOF::*;
 import BRAM::*;
 import Clocks::*;
+import Probe::*;
 
 // ---- Interesting type fixtures ----------------------------------
 
@@ -118,6 +119,12 @@ module mkWireTypes (WireTypeIfc);
     PixelStash              leafA <- mkPixelStash;
     PixelStash              leafB <- mkPixelStash;
 
+    // Probe primitives -- specifically for VCD inspection. Bluesim
+    // dumps them as `<inst>$PROBE`; Verilog instantiates ProbeWire
+    // with an IN port (covered by the standard candidate path).
+    Probe#(Pixel)           pxProbe   <- mkProbe;
+    Probe#(Maybe#(Pixel))   mpxProbe  <- mkProbe;
+
     // BRAM with a tagged-union data type (polymorphic primitive: addr +
     // data, both interesting). Address type is Bit#(6) -> 64 entries.
     BRAM_Configure cfg = defaultValue;
@@ -203,6 +210,8 @@ module mkWireTypes (WireTypeIfc);
             address: truncate(pack(p.x)), datain: tagged Px p });
         leafA.push(p);
         leafB.push(Pixel { x: p.x + 1, y: p.y, color: p.color });
+        pxProbe  <= p;
+        mpxProbe <= tagged Valid p;
     endmethod
 
     method Pixel         topPixel    () = px;
