@@ -351,10 +351,11 @@ Folding a list in a binary-subdivision scheme.
 >   | null x                    =  e
 >   | otherwise                 =  fst (recFn (length x) x)
 >   where recFn 1 (a : as)      =  (a, as)
->         recFn n as            =  (a1 * a2, as2)
+>         recFn n as            =  v `seq` (v, as2)
 >           where m             =  n `div` 2
 >                 (a1, !as1)    =  recFn (n - m) as
 >                 (a2, as2)     =  recFn m       as1
+>                 v             =  a1 * a2
 
 > inrange                        :: (Ord a) => a -> (a, a) -> Bool
 > a `inrange` (l, r)                =  l <= a && a <= r
