@@ -1,7 +1,7 @@
 ##### module: mkWireTypes #####
 === Verilog ===
-  hits:    48
-  misses:  138
+  hits:    72
+  misses:  114
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -47,6 +47,30 @@
     syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
     syncfifo.sFULL_N : Bool
     topPixel : WireTypes::Pixel
+    bram_memory$ADDR : Bit#(6)
+    bram_memory$DI : WireTypes::Cell
+    bram_memory$DO : WireTypes::Cell
+    bram_memory$WE : Bool
+    bram_serverAdapter_cnt$D_IN : Int#(3)
+    bram_serverAdapter_outData_beforeDeq$D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq$Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq$D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq$Q_OUT : Bool
+    bram_serverAdapter_outData_ff$D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff$FULL_N : Bool
+    bram_serverAdapter_s1$D_IN : Maybe#(Bool)
+    cells$D_IN : WireTypes::Cell
+    cells$D_OUT : WireTypes::Cell
+    cells$EMPTY_N : Bool
+    cells$FULL_N : Bool
+    cl$D_IN : WireTypes::Cell
+    creg$D_IN : WireTypes::Pixel
+    mpx$D_IN : Maybe#(WireTypes::Pixel)
+    pal$D_IN : Vector::Vector#(4, WireTypes::Color)
+    px$D_IN : WireTypes::Pixel
+    syncfifo$dEMPTY_N : Bool
+    syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo$sFULL_N : Bool
 === Bluesim ===
   hits:    34
   misses:  73
@@ -85,13 +109,13 @@
     px : WireTypes::Pixel
 === summary ===
   wiretypemap entries: 181
-  total VCD hits:      82
+  total VCD hits:      106
 RESULT: PASS
 
 ##### module: mkSplitPortsTest #####
 === Verilog ===
-  hits:    24
-  misses:  31
+  hits:    31
+  misses:  24
   ignored: 25
   matched wires (sorted):
     CLK : Clock
@@ -117,6 +141,13 @@ RESULT: PASS
     sub_getHdr : SplitPortsTest::Header
     sub_putHdr_1 : SplitPortsTest::Header
     sub_put_1 : SplitPortsTest::Inner
+    cnt$D_IN : Bit#(16)
+    inflight$D_IN : SplitPortsTest::Inner
+    inflight$D_OUT : SplitPortsTest::Inner
+    inflight$EMPTY_N : Bool
+    inflight$FULL_N : Bool
+    last_header$D_IN : SplitPortsTest::Header
+    last_inner$D_IN : SplitPortsTest::Inner
 === Bluesim ===
   hits:    11
   misses:  8
@@ -134,5 +165,5 @@ RESULT: PASS
     last_inner : SplitPortsTest::Inner
 === summary ===
   wiretypemap entries: 46
-  total VCD hits:      35
+  total VCD hits:      42
 RESULT: PASS
