@@ -11,6 +11,7 @@ CAN_FIRE_RL_bram_serverAdapter_overRun Prelude.Bool
 CAN_FIRE_RL_bram_serverAdapter_s1__dreg_update Prelude.Bool
 CAN_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Prelude.Bool
 CAN_FIRE_RL_count_pulse Prelude.Bool
+CAN_FIRE_RL_count_simple Prelude.Bool
 CAN_FIRE_RL_drain_sync Prelude.Bool
 CAN_FIRE_RL_poke_bypass Prelude.Bool
 CAN_FIRE_RL_poke_cell_wire Prelude.Bool
@@ -20,6 +21,7 @@ CAN_FIRE_RL_poke_creg_2 Prelude.Bool
 CAN_FIRE_RL_poke_creg_3 Prelude.Bool
 CAN_FIRE_RL_poke_creg_4 Prelude.Bool
 CAN_FIRE_RL_poke_pulse Prelude.Bool
+CAN_FIRE_RL_poke_simple Prelude.Bool
 CAN_FIRE_RL_rotate_palette Prelude.Bool
 CAN_FIRE_RL_shift_history Prelude.Bool
 CAN_FIRE_RL_sink_cells Prelude.Bool
@@ -42,6 +44,7 @@ WILL_FIRE_RL_bram_serverAdapter_overRun Prelude.Bool
 WILL_FIRE_RL_bram_serverAdapter_s1__dreg_update Prelude.Bool
 WILL_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Prelude.Bool
 WILL_FIRE_RL_count_pulse Prelude.Bool
+WILL_FIRE_RL_count_simple Prelude.Bool
 WILL_FIRE_RL_drain_sync Prelude.Bool
 WILL_FIRE_RL_poke_bypass Prelude.Bool
 WILL_FIRE_RL_poke_cell_wire Prelude.Bool
@@ -51,6 +54,7 @@ WILL_FIRE_RL_poke_creg_2 Prelude.Bool
 WILL_FIRE_RL_poke_creg_3 Prelude.Bool
 WILL_FIRE_RL_poke_creg_4 Prelude.Bool
 WILL_FIRE_RL_poke_pulse Prelude.Bool
+WILL_FIRE_RL_poke_simple Prelude.Bool
 WILL_FIRE_RL_rotate_palette Prelude.Bool
 WILL_FIRE_RL_shift_history Prelude.Bool
 WILL_FIRE_RL_sink_cells Prelude.Bool
@@ -179,6 +183,12 @@ px.Q_OUT WireTypes.Pixel
 pxProbe.PROBE WireTypes.Pixel
 setPalette Prelude.PrimUnit
 setPalette_cs {Vector.Vector 4 WireTypes.Color}
+simpleCount {Prelude.UInt 4}
+simpleCount.D_IN {Prelude.UInt 4}
+simpleCount.Q_OUT {Prelude.UInt 4}
+simplePulse Prelude.Bool
+simplePulse.WHAS Prelude.Bool
+simplePulse.whas Prelude.Bool
 syncfifo.dD_OUT {Prelude.Maybe WireTypes.Pixel}
 syncfifo.dEMPTY_N Prelude.Bool
 syncfifo.sD_IN {Prelude.Maybe WireTypes.Pixel}
@@ -249,12 +259,27 @@ topPixel WireTypes.Pixel
 {creg$D_IN_3} WireTypes.Pixel
 {creg$D_IN_4} WireTypes.Pixel
 {creg$D_IN} WireTypes.Pixel
+{creg$EN_port0__write} Prelude.Bool
+{creg$EN_port1__write} Prelude.Bool
+{creg$EN_port2__write} Prelude.Bool
+{creg$EN_port3__write} Prelude.Bool
+{creg$EN_port4__write} Prelude.Bool
 {creg$Q_OUT_0} WireTypes.Pixel
 {creg$Q_OUT_1} WireTypes.Pixel
 {creg$Q_OUT_2} WireTypes.Pixel
 {creg$Q_OUT_3} WireTypes.Pixel
 {creg$Q_OUT_4} WireTypes.Pixel
 {creg$Q_OUT} WireTypes.Pixel
+{creg$port0__read} WireTypes.Pixel
+{creg$port0__write_1} WireTypes.Pixel
+{creg$port1__read} WireTypes.Pixel
+{creg$port1__write_1} WireTypes.Pixel
+{creg$port2__read} WireTypes.Pixel
+{creg$port2__write_1} WireTypes.Pixel
+{creg$port3__read} WireTypes.Pixel
+{creg$port3__write_1} WireTypes.Pixel
+{creg$port4__read} WireTypes.Pixel
+{creg$port4__write_1} WireTypes.Pixel
 {leafA$depth} {Prelude.Bit 8}
 {leafA$push_p} WireTypes.Pixel
 {leafA$push} Prelude.PrimUnit
@@ -284,6 +309,10 @@ topPixel WireTypes.Pixel
 {px$Q_OUT} WireTypes.Pixel
 {pxProbe$PROBE_VALID} Prelude.Bool
 {pxProbe$PROBE} WireTypes.Pixel
+{simpleCount$D_IN} {Prelude.UInt 4}
+{simpleCount$Q_OUT} {Prelude.UInt 4}
+{simplePulse$WHAS} Prelude.Bool
+{simplePulse$whas} Prelude.Bool
 {syncfifo$dD_OUT} {Prelude.Maybe WireTypes.Pixel}
 {syncfifo$dEMPTY_N} Prelude.Bool
 {syncfifo$sD_IN} {Prelude.Maybe WireTypes.Pixel}
