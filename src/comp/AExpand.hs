@@ -33,6 +33,7 @@ data ExpandData a2 = ExpandData{
                              suses     :: M.Map Id Int,
                              skeeps    :: S.Set Id,
                              sss       :: [AVInst],
+                             sinstVars :: S.Set AId,
                              sws       :: [AId],
                              sfs       :: a2,
                              -- test function for expansion
@@ -167,7 +168,9 @@ aExpDefs errh keepFires expnond expcheap expTest sigInfo os ios muxes (ss', ws',
                 ExpandData { skeepFire = keepFires, sexpnond = expnond,
                              sexpcheap = expcheap, suses = usemap,
                              skeeps = (S.fromList keepIds),
-                             sss = ss', sws = ws', sfs = fs',
+                             sss = ss',
+                             sinstVars = S.fromList (aVars ss'),
+                             sws = ws', sfs = fs',
                              sexpandTest = expTest}
     in
         -- traces ("keepIds=" ++ ppReadable keepIds
@@ -725,13 +728,13 @@ aoptExpandTest edata i e =
       expcheap  = sexpcheap edata
       uses      = suses edata
       nuse      = getUses uses i
-      instVars  = aVars (sss edata)
+      instVars  = sinstVars edata
   in  ((expnond || isLocalAId i) &&
        ((not keepFires) || (not (isFire i))) &&
        (not (isKeepId i)) &&
        inlineable e &&
        ((nuse > 0 && isSimple expcheap e) || ((nuse == 1) && (isSmall e))) &&
-       (isConst e || not (i `elem` instVars)) ||
+       (isConst e || not (i `S.member` instVars)) ||
        mustInline e
        )
 
@@ -750,6 +753,7 @@ expandAPackage errh apkg = apkgN
             ,suses = usemap
             ,skeeps = (S.empty)
             ,sss = []    -- not used
+            ,sinstVars = S.empty  -- not used (sss is empty)
             ,sws = []   -- not used
             ,sfs = ((apkg_rules apkg), (apkg_interface apkg))
             ,sexpandTest = aSeriExpandTest
