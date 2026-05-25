@@ -11,6 +11,7 @@ CAN_FIRE_RL_bram_serverAdapter_overRun Bool
 CAN_FIRE_RL_bram_serverAdapter_s1__dreg_update Bool
 CAN_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Bool
 CAN_FIRE_RL_count_pulse Bool
+CAN_FIRE_RL_count_simple Bool
 CAN_FIRE_RL_drain_sync Bool
 CAN_FIRE_RL_poke_bypass Bool
 CAN_FIRE_RL_poke_cell_wire Bool
@@ -20,6 +21,7 @@ CAN_FIRE_RL_poke_creg_2 Bool
 CAN_FIRE_RL_poke_creg_3 Bool
 CAN_FIRE_RL_poke_creg_4 Bool
 CAN_FIRE_RL_poke_pulse Bool
+CAN_FIRE_RL_poke_simple Bool
 CAN_FIRE_RL_rotate_palette Bool
 CAN_FIRE_RL_shift_history Bool
 CAN_FIRE_RL_sink_cells Bool
@@ -42,6 +44,7 @@ WILL_FIRE_RL_bram_serverAdapter_overRun Bool
 WILL_FIRE_RL_bram_serverAdapter_s1__dreg_update Bool
 WILL_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Bool
 WILL_FIRE_RL_count_pulse Bool
+WILL_FIRE_RL_count_simple Bool
 WILL_FIRE_RL_drain_sync Bool
 WILL_FIRE_RL_poke_bypass Bool
 WILL_FIRE_RL_poke_cell_wire Bool
@@ -51,6 +54,7 @@ WILL_FIRE_RL_poke_creg_2 Bool
 WILL_FIRE_RL_poke_creg_3 Bool
 WILL_FIRE_RL_poke_creg_4 Bool
 WILL_FIRE_RL_poke_pulse Bool
+WILL_FIRE_RL_poke_simple Bool
 WILL_FIRE_RL_rotate_palette Bool
 WILL_FIRE_RL_shift_history Bool
 WILL_FIRE_RL_sink_cells Bool
@@ -179,6 +183,12 @@ px.Q_OUT WireTypes::Pixel
 pxProbe.PROBE WireTypes::Pixel
 setPalette void
 setPalette_cs {Vector::Vector#(4, WireTypes::Color)}
+simpleCount UInt#(4)
+simpleCount.D_IN UInt#(4)
+simpleCount.Q_OUT UInt#(4)
+simplePulse Bool
+simplePulse.WHAS Bool
+simplePulse.whas Bool
 syncfifo.dD_OUT Maybe#(WireTypes::Pixel)
 syncfifo.dEMPTY_N Bool
 syncfifo.sD_IN Maybe#(WireTypes::Pixel)
@@ -249,12 +259,27 @@ topPixel WireTypes::Pixel
 {creg$D_IN_3} WireTypes::Pixel
 {creg$D_IN_4} WireTypes::Pixel
 {creg$D_IN} WireTypes::Pixel
+{creg$EN_port0__write} Bool
+{creg$EN_port1__write} Bool
+{creg$EN_port2__write} Bool
+{creg$EN_port3__write} Bool
+{creg$EN_port4__write} Bool
 {creg$Q_OUT_0} WireTypes::Pixel
 {creg$Q_OUT_1} WireTypes::Pixel
 {creg$Q_OUT_2} WireTypes::Pixel
 {creg$Q_OUT_3} WireTypes::Pixel
 {creg$Q_OUT_4} WireTypes::Pixel
 {creg$Q_OUT} WireTypes::Pixel
+{creg$port0__read} WireTypes::Pixel
+{creg$port0__write_1} WireTypes::Pixel
+{creg$port1__read} WireTypes::Pixel
+{creg$port1__write_1} WireTypes::Pixel
+{creg$port2__read} WireTypes::Pixel
+{creg$port2__write_1} WireTypes::Pixel
+{creg$port3__read} WireTypes::Pixel
+{creg$port3__write_1} WireTypes::Pixel
+{creg$port4__read} WireTypes::Pixel
+{creg$port4__write_1} WireTypes::Pixel
 {leafA$depth} Bit#(8)
 {leafA$push_p} WireTypes::Pixel
 {leafA$push} void
@@ -284,6 +309,10 @@ topPixel WireTypes::Pixel
 {px$Q_OUT} WireTypes::Pixel
 {pxProbe$PROBE_VALID} Bool
 {pxProbe$PROBE} WireTypes::Pixel
+{simpleCount$D_IN} UInt#(4)
+{simpleCount$Q_OUT} UInt#(4)
+{simplePulse$WHAS} Bool
+{simplePulse$whas} Bool
 {syncfifo$dD_OUT} Maybe#(WireTypes::Pixel)
 {syncfifo$dEMPTY_N} Bool
 {syncfifo$sD_IN} Maybe#(WireTypes::Pixel)

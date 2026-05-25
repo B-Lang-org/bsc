@@ -3685,6 +3685,7 @@ getWireTypeMap apkg =
     submodEntries avi =
         candidateNames avi ++
         (if isCRegInst avi then candidateNames (cregToReg avi) else []) ++
+        cregInlinedCandidates avi ++
         inlinedWireCandidates avi ++
         probeCandidates avi
     candidateNames avi =
@@ -3745,6 +3746,31 @@ getWireTypeMap apkg =
                             Just t -> [ mkEntry inst_str t ]
                             Nothing -> [ mkEntry inst_str itBool ]
             in  wgetEntries ++ whasEntries ++ bareEntry
+        | otherwise = []
+
+    -- aInlineCReg creates intermediate wires for each CReg port:
+    --   <inst>$port<n>__read     -- read result, data-typed
+    --   <inst>$port<n>__write_1  -- write argument, data-typed
+    --   <inst>$EN_port<n>__write -- write enable, Bool
+    -- bsc always uses a 5-port CRegN5 primitive even for smaller CRegs,
+    -- so emit 5 ports' worth of candidates. With -keep-inlined-boundaries
+    -- these survive in the Verilog output and appear in the VCD; without
+    -- the flag they may be folded by the optimizer.
+    cregInlinedCandidates avi
+        | isCRegInst avi =
+            let inst_str = getIdString (avi_vname avi)
+                -- pull the data type from the converted Reg AVInst
+                dataType = M.lookup (VName "Q_OUT")
+                                    (avi_port_types (cregToReg avi))
+            in  case dataType of
+                  Just t ->
+                      concatMap (\n ->
+                        let p = show n
+                        in  [ mkEntry (inst_str ++ "$port" ++ p ++ "__read") t
+                            , mkEntry (inst_str ++ "$port" ++ p ++ "__write_1") t
+                            , mkEntry (inst_str ++ "$EN_port" ++ p ++ "__write") itBool
+                            ]) [(0::Int)..4]
+                  Nothing -> []
         | otherwise = []
 
     -- Probe primitives don't generate a real submodule instance --

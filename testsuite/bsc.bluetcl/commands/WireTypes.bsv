@@ -111,6 +111,15 @@ module mkWireTypes (WireTypeIfc);
     Reg#(Bit#(8))           pulseHistory <- mkReg(0);
     Reg#(Bit#(2))           pulseTick    <- mkReg(0);
 
+    // A second PulseWire used with a simple, single-consumer pattern
+    // -- aOpt aggressively folds `simplePulse._read` into the rule
+    // predicate, eliminating the literal `simplePulse$whas` wire from
+    // the Verilog VCD. With `-keep-inlined-boundaries`, the wire is
+    // preserved. This is a deliberate negative-then-positive test of
+    // the flag's effect.
+    PulseWire               simplePulse  <- mkPulseWire;
+    Reg#(UInt#(4))          simpleCount  <- mkReg(0);
+
     // Two instances of a separately-synthesized leaf, so the VCD has
     // sub-scopes `leafA` and `leafB` (each instantiating a Reg#(Pixel)
     // and a FIFOF#(Pixel)). The same mkPixelStash wiretypemap covers
@@ -198,6 +207,17 @@ module mkWireTypes (WireTypeIfc);
 
     rule shift_history;
         pulseHistory <= { pulseHistory[6:0], pack(pulse) };
+    endrule
+
+    // Drive simplePulse unconditionally and consume in exactly one
+    // rule with a trivial predicate -- the canonical pattern that aOpt
+    // folds away. Without -keep-inlined-boundaries: simplePulse$whas
+    // disappears from the Verilog VCD. With the flag: it survives.
+    rule poke_simple;
+        simplePulse.send;
+    endrule
+    rule count_simple (simplePulse);
+        simpleCount <= simpleCount + 1;
     endrule
 
     method Action loadPixel (Pixel p);
