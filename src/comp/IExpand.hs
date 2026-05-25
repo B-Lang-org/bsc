@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances, RelaxedPolyRec, PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
 -- Todo
 --  * Use a set to keep track of variable values to handle x==c1 || x==c2
 --  * Don't generate x!=0 && x!=1 && x!= 2 ...
@@ -41,7 +42,7 @@ import FileIOUtil(openFileCatch, hCloseCatch, hFlushCatch, hGetBufferingCatch,
                   hSetBufferingCatch, hPutStrCatch, hGetLineCatch,
                   hGetCharCatch, hIsEOFCatch, hIsReadableCatch,
                   hIsWritableCatch)
-import GraphWrapper(tSortInt)
+import qualified SCC
 import IntegerUtil(mask)
 import Util
 import PFPrint
@@ -565,12 +566,12 @@ eqPtrs heap ptrs =
         hptrs (IRefT _ p _ _) = [p]
         hptrs _ = []
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
-        ptrs' = case tSortInt g of
+        ptrs' = case SCC.tsort g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
                                             (concatMap (ppReadable . heapCellToHExpr . getHeapCell)
                                                     (concatMap id iss)))
                 Right ps -> ps
-        step p (dsm, ptrm) =
+        step p (!dsm, !ptrm) =
                 let e = sub (heapOf p)
                     sub (IAps f ts es) = IAps (sub f) ts (map sub es)
                     sub e@(IRefT t i _ _) =
@@ -582,7 +583,7 @@ eqPtrs heap ptrs =
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
                     Just h -> (dsm, IM.insert p h ptrm)
-        (dsm, ptrm) = foldr step (M.empty, IM.empty) (reverse ptrs')
+        (dsm, ptrm) = foldl' (flip step) (M.empty, IM.empty) ptrs'
     in  --traces (show (length ptrs, length (M.elems dsm))) $
         --traces (show (IM.toList ptrm)) $
         --traces (show (M.elems dsm)) $
