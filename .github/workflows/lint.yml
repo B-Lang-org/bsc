@@ -1,4 +1,4 @@
-name: Linting
+name: HLint Run
 
 on:
   pull_request:
@@ -16,3 +16,4 @@ jobs:
       with:
         path: "."
         fail-on: suggestion
+        hlint-bin: hlint --hint=hlint.yaml
