@@ -3685,7 +3685,8 @@ getWireTypeMap apkg =
     submodEntries avi =
         candidateNames avi ++
         (if isCRegInst avi then candidateNames (cregToReg avi) else []) ++
-        inlinedWireCandidates avi
+        inlinedWireCandidates avi ++
+        probeCandidates avi
     candidateNames avi =
         let inst_str = getIdString (avi_vname avi)
             isReg = isRegInst avi
@@ -3744,6 +3745,27 @@ getWireTypeMap apkg =
                             Just t -> [ mkEntry inst_str t ]
                             Nothing -> [ mkEntry inst_str itBool ]
             in  wgetEntries ++ whasEntries ++ bareEntry
+        | otherwise = []
+
+    -- Probe primitives don't generate a real submodule instance --
+    -- bsc inlines them as wire pairs in the parent module. Both
+    -- backends use the same naming convention at the parent scope:
+    --   <inst>$PROBE       -- the probed data value
+    --   <inst>$PROBE_VALID -- Bool, asserted when the probe is written
+    --                        (Verilog only; Bluesim emits just $PROBE
+    --                         and folds validity into the dump policy)
+    -- See bs_prim_mod_probe.h for Bluesim, and the inlined wire decls
+    -- in the generated Verilog for the Verilog convention. There is
+    -- no scope-relative `.PROBE` form -- the `$PROBE` suffix is part
+    -- of the wire name, not a scope separator.
+    probeCandidates avi
+        | vName (avi_vmi avi) == VName "Probe" =
+            let inst_str = getIdString (avi_vname avi)
+                validEntry = mkEntry (inst_str ++ "$PROBE_VALID") itBool
+            in  case M.lookup (VName "IN") (avi_port_types avi) of
+                    Just t  -> [ mkEntry (inst_str ++ "$PROBE") t
+                               , validEntry ]
+                    Nothing -> [ validEntry ]
         | otherwise = []
 
 

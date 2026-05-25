@@ -152,6 +152,7 @@ maybePixel {Prelude.Maybe WireTypes.Pixel}
 mpx {Prelude.Maybe WireTypes.Pixel}
 mpx.D_IN {Prelude.Maybe WireTypes.Pixel}
 mpx.Q_OUT {Prelude.Maybe WireTypes.Pixel}
+mpxProbe.PROBE {Prelude.Maybe WireTypes.Pixel}
 pal {Vector.Vector 4 WireTypes.Color}
 pal.D_IN {Vector.Vector 4 WireTypes.Color}
 pal.Q_OUT {Vector.Vector 4 WireTypes.Color}
@@ -175,6 +176,7 @@ pulseTick.Q_OUT {Prelude.Bit 2}
 px WireTypes.Pixel
 px.D_IN WireTypes.Pixel
 px.Q_OUT WireTypes.Pixel
+pxProbe.PROBE WireTypes.Pixel
 setPalette Prelude.PrimUnit
 setPalette_cs {Vector.Vector 4 WireTypes.Color}
 syncfifo.dD_OUT {Prelude.Maybe WireTypes.Pixel}
@@ -263,6 +265,8 @@ topPixel WireTypes.Pixel
 {leafB$top} WireTypes.Pixel
 {mpx$D_IN} {Prelude.Maybe WireTypes.Pixel}
 {mpx$Q_OUT} {Prelude.Maybe WireTypes.Pixel}
+{mpxProbe$PROBE_VALID} Prelude.Bool
+{mpxProbe$PROBE} {Prelude.Maybe WireTypes.Pixel}
 {pal$D_IN} {Vector.Vector 4 WireTypes.Color}
 {pal$Q_OUT} {Vector.Vector 4 WireTypes.Color}
 {pixelBypass$WGET} {Prelude.Maybe WireTypes.Pixel}
@@ -278,6 +282,8 @@ topPixel WireTypes.Pixel
 {pulseTick$Q_OUT} {Prelude.Bit 2}
 {px$D_IN} WireTypes.Pixel
 {px$Q_OUT} WireTypes.Pixel
+{pxProbe$PROBE_VALID} Prelude.Bool
+{pxProbe$PROBE} WireTypes.Pixel
 {syncfifo$dD_OUT} {Prelude.Maybe WireTypes.Pixel}
 {syncfifo$dEMPTY_N} Prelude.Bool
 {syncfifo$sD_IN} {Prelude.Maybe WireTypes.Pixel}
