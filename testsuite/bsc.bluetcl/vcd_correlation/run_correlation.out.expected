@@ -1,0 +1,138 @@
+##### module: mkWireTypes #####
+=== Verilog ===
+  hits:    48
+  misses:  138
+  ignored: 25
+  matched wires (sorted):
+    CLK : Clock
+    EN_loadPixel : Bool
+    EN_setPalette : Bool
+    RDY_currentCell : Bool
+    RDY_loadPixel : Bool
+    RDY_maybePixel : Bool
+    RDY_palette : Bool
+    RDY_setPalette : Bool
+    RDY_topPixel : Bool
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_outData_beforeDeq.D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq.Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq.D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq.Q_OUT : Bool
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    currentCell : WireTypes::Cell
+    loadPixel_p : WireTypes::Pixel
+    maybePixel : Maybe#(WireTypes::Pixel)
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    palette : Vector::Vector#(4, WireTypes::Color)
+    px : WireTypes::Pixel
+    setPalette_cs : Vector::Vector#(4, WireTypes::Color)
+    syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
+    syncfifo.dEMPTY_N : Bool
+    syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo.sFULL_N : Bool
+    topPixel : WireTypes::Pixel
+=== Bluesim ===
+  hits:    34
+  misses:  73
+  ignored: 6
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    creg.D_IN_0 : WireTypes::Pixel
+    creg.D_IN_1 : WireTypes::Pixel
+    creg.D_IN_2 : WireTypes::Pixel
+    creg.D_IN_3 : WireTypes::Pixel
+    creg.D_IN_4 : WireTypes::Pixel
+    creg.Q_OUT_0 : WireTypes::Pixel
+    creg.Q_OUT_1 : WireTypes::Pixel
+    creg.Q_OUT_2 : WireTypes::Pixel
+    creg.Q_OUT_3 : WireTypes::Pixel
+    creg.Q_OUT_4 : WireTypes::Pixel
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    px : WireTypes::Pixel
+=== summary ===
+  wiretypemap entries: 181
+  total VCD hits:      82
+RESULT: PASS
+
+##### module: mkSplitPortsTest #####
+=== Verilog ===
+  hits:    24
+  misses:  31
+  ignored: 25
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    EN_sub_put : Bool
+    EN_sub_putHdr : Bool
+    RDY_bump : Bool
+    RDY_sub_count : Bool
+    RDY_sub_get : Bool
+    RDY_sub_getHdr : Bool
+    RDY_sub_put : Bool
+    RDY_sub_putHdr : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+    sub_count : Bit#(16)
+    sub_get : SplitPortsTest::Inner
+    sub_getHdr : SplitPortsTest::Header
+    sub_putHdr_1 : SplitPortsTest::Header
+    sub_put_1 : SplitPortsTest::Inner
+=== Bluesim ===
+  hits:    11
+  misses:  8
+  ignored: 6
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+=== summary ===
+  wiretypemap entries: 46
+  total VCD hits:      35
+RESULT: PASS

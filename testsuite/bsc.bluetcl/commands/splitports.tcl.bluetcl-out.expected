@@ -1,0 +1,74 @@
+=== porttypes ===
+  CLK Clock
+  EN_bump Bool
+  EN_sub_put Bool
+  EN_sub_putHdr Bool
+  RDY_bump Bool
+  RDY_sub_count Bool
+  RDY_sub_get Bool
+  RDY_sub_getHdr Bool
+  RDY_sub_put Bool
+  RDY_sub_putHdr Bool
+  RST_N Reset
+  sub_count Bit#(16)
+  sub_get SplitPortsTest::Inner
+  sub_getHdr SplitPortsTest::Header
+  sub_putHdr_1 SplitPortsTest::Header
+  sub_put_1 SplitPortsTest::Inner
+=== methods ===
+OK (2 top-level fields)
+=== wiretypemap ===
+  CAN_FIRE_RL_unnamed Bool
+  CAN_FIRE_RL_unnamed_1 Bool
+  CLK Clock
+  EN_bump Bool
+  EN_sub_put Bool
+  EN_sub_putHdr Bool
+  RDY_bump Bool
+  RDY_sub_count Bool
+  RDY_sub_get Bool
+  RDY_sub_getHdr Bool
+  RDY_sub_put Bool
+  RDY_sub_putHdr Bool
+  RST_N Reset
+  WILL_FIRE_RL_unnamed Bool
+  WILL_FIRE_RL_unnamed_1 Bool
+  bump void
+  cnt Bit#(16)
+  cnt.D_IN Bit#(16)
+  cnt.Q_OUT Bit#(16)
+  inflight.D_IN SplitPortsTest::Inner
+  inflight.D_OUT SplitPortsTest::Inner
+  inflight.EMPTY_N Bool
+  inflight.FULL_N Bool
+  last_header SplitPortsTest::Header
+  last_header.D_IN SplitPortsTest::Header
+  last_header.Q_OUT SplitPortsTest::Header
+  last_inner SplitPortsTest::Inner
+  last_inner.D_IN SplitPortsTest::Inner
+  last_inner.Q_OUT SplitPortsTest::Inner
+  sub_count Bit#(16)
+  sub_get SplitPortsTest::Inner
+  sub_getHdr SplitPortsTest::Header
+  sub_put void
+  sub_putHdr void
+  sub_putHdr_1 SplitPortsTest::Header
+  sub_put_1 SplitPortsTest::Inner
+  {cnt$D_IN} Bit#(16)
+  {cnt$Q_OUT} Bit#(16)
+  {inflight$D_IN} SplitPortsTest::Inner
+  {inflight$D_OUT} SplitPortsTest::Inner
+  {inflight$EMPTY_N} Bool
+  {inflight$FULL_N} Bool
+  {last_header$D_IN} SplitPortsTest::Header
+  {last_header$Q_OUT} SplitPortsTest::Header
+  {last_inner$D_IN} SplitPortsTest::Inner
+  {last_inner$Q_OUT} SplitPortsTest::Inner
+=== assertions ===
+PASS: sub_put_1 reports type (SplitPortsTest::Inner)
+PASS: sub_putHdr_1 reports type (SplitPortsTest::Header)
+PASS: sub_get reports type (SplitPortsTest::Inner)
+PASS: sub_count reports type (Bit#(16))
+PASS: last_inner.D_IN reports type (SplitPortsTest::Inner)
+PASS: last_header.Q_OUT reports type (SplitPortsTest::Header)
+PASS: inflight.D_IN reports type (SplitPortsTest::Inner)

@@ -4,6 +4,8 @@ bsc_compile Test.bsv {-verilog -elab}
 bsc_compile Test2.bsv {-verilog -elab}
 bsc_compile TestSchedErr.bsv {-verilog -elab}
 bsc_compile TaggedUnionPoly.bsv
+bsc_compile WireTypes.bsv {-verilog -elab}
+bsc_compile SplitPortsTest.bs {-verilog -elab}
 
 set sedPosition {-e /position.*%/s/\[0-9\]/N/g}
 set sedCRegPosition { -e s/CReg\[0-9\]\+/CRegNNNN/g }
@@ -44,6 +46,12 @@ bluetcl_run_compare_pass type_bh.tcl "" "" $sedPosition
 
 # Test "module"
 bluetcl_run_compare_pass module.tcl
+
+# Test "module wiretypemap" (VCD type-correlation map)
+bluetcl_run_compare_pass wiretypemap.tcl
+
+# Coverage: SplitPorts sub-interface with collapsed method arg
+bluetcl_run_compare_pass splitports.tcl
 
 # Test "schedule"
 bluetcl_run_compare_pass schedule.tcl

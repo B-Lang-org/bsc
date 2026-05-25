@@ -1,0 +1,186 @@
+-verilog
+mkWireTypes
+----------
+Command: module wiretypemap mkWireTypes
+CAN_FIRE_RL_bram_serverAdapter_cnt_finalAdd Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_moveToOutFIFO Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_outData_dequeue Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_outData_enqueue Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_overRun Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_s1__dreg_update Prelude.Bool
+CAN_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Prelude.Bool
+CAN_FIRE_RL_drain_sync Prelude.Bool
+CAN_FIRE_RL_poke_creg_0 Prelude.Bool
+CAN_FIRE_RL_poke_creg_1 Prelude.Bool
+CAN_FIRE_RL_poke_creg_2 Prelude.Bool
+CAN_FIRE_RL_poke_creg_3 Prelude.Bool
+CAN_FIRE_RL_poke_creg_4 Prelude.Bool
+CAN_FIRE_RL_rotate_palette Prelude.Bool
+CAN_FIRE_RL_sink_cells Prelude.Bool
+CLK Prelude.Clock
+EN_loadPixel Prelude.Bool
+EN_setPalette Prelude.Bool
+RDY_currentCell Prelude.Bool
+RDY_loadPixel Prelude.Bool
+RDY_maybePixel Prelude.Bool
+RDY_palette Prelude.Bool
+RDY_setPalette Prelude.Bool
+RDY_topPixel Prelude.Bool
+RST_N Prelude.Reset
+WILL_FIRE_RL_bram_serverAdapter_cnt_finalAdd Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_moveToOutFIFO Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_outData_dequeue Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_outData_enqueue Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_overRun Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_s1__dreg_update Prelude.Bool
+WILL_FIRE_RL_bram_serverAdapter_stageReadResponseAlways Prelude.Bool
+WILL_FIRE_RL_drain_sync Prelude.Bool
+WILL_FIRE_RL_poke_creg_0 Prelude.Bool
+WILL_FIRE_RL_poke_creg_1 Prelude.Bool
+WILL_FIRE_RL_poke_creg_2 Prelude.Bool
+WILL_FIRE_RL_poke_creg_3 Prelude.Bool
+WILL_FIRE_RL_poke_creg_4 Prelude.Bool
+WILL_FIRE_RL_rotate_palette Prelude.Bool
+WILL_FIRE_RL_sink_cells Prelude.Bool
+bram_memory.ADDR {Prelude.Bit 6}
+bram_memory.DI WireTypes.Cell
+bram_memory.DO WireTypes.Cell
+bram_memory.WE Prelude.Bool
+bram_serverAdapter_cnt {Prelude.Int 3}
+bram_serverAdapter_cnt.D_IN {Prelude.Int 3}
+bram_serverAdapter_cnt.Q_OUT {Prelude.Int 3}
+bram_serverAdapter_cnt_1.WGET {Prelude.Int 3}
+bram_serverAdapter_cnt_1.WHAS Prelude.Bool
+bram_serverAdapter_cnt_1.WVAL {Prelude.Int 3}
+bram_serverAdapter_cnt_2.WGET {Prelude.Int 3}
+bram_serverAdapter_cnt_2.WHAS Prelude.Bool
+bram_serverAdapter_cnt_2.WVAL {Prelude.Int 3}
+bram_serverAdapter_cnt_3.WGET {Prelude.Int 3}
+bram_serverAdapter_cnt_3.WHAS Prelude.Bool
+bram_serverAdapter_cnt_3.WVAL {Prelude.Int 3}
+bram_serverAdapter_outData_beforeDeq.D_IN Prelude.Bool
+bram_serverAdapter_outData_beforeDeq.Q_OUT Prelude.Bool
+bram_serverAdapter_outData_beforeEnq.D_IN Prelude.Bool
+bram_serverAdapter_outData_beforeEnq.Q_OUT Prelude.Bool
+bram_serverAdapter_outData_dequeueing.WHAS Prelude.Bool
+bram_serverAdapter_outData_enqw.WGET WireTypes.Cell
+bram_serverAdapter_outData_enqw.WHAS Prelude.Bool
+bram_serverAdapter_outData_enqw.WVAL WireTypes.Cell
+bram_serverAdapter_outData_ff.D_IN WireTypes.Cell
+bram_serverAdapter_outData_ff.D_OUT WireTypes.Cell
+bram_serverAdapter_outData_ff.EMPTY_N Prelude.Bool
+bram_serverAdapter_outData_ff.FULL_N Prelude.Bool
+bram_serverAdapter_s1 {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1.D_IN {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1.Q_OUT {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1_1.WGET {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_s1_1.WHAS Prelude.Bool
+bram_serverAdapter_s1_1.WVAL {Prelude.Maybe Prelude.Bool}
+bram_serverAdapter_writeWithResp.WGET {Prelude.PrimPair Prelude.Bool Prelude.Bool}
+bram_serverAdapter_writeWithResp.WHAS Prelude.Bool
+bram_serverAdapter_writeWithResp.WVAL {Prelude.PrimPair Prelude.Bool Prelude.Bool}
+cells.D_IN WireTypes.Cell
+cells.D_OUT WireTypes.Cell
+cells.EMPTY_N Prelude.Bool
+cells.FULL_N Prelude.Bool
+cl WireTypes.Cell
+cl.D_IN WireTypes.Cell
+cl.Q_OUT WireTypes.Cell
+creg WireTypes.Pixel
+creg.D_IN WireTypes.Pixel
+creg.D_IN_0 WireTypes.Pixel
+creg.D_IN_1 WireTypes.Pixel
+creg.D_IN_2 WireTypes.Pixel
+creg.D_IN_3 WireTypes.Pixel
+creg.D_IN_4 WireTypes.Pixel
+creg.Q_OUT WireTypes.Pixel
+creg.Q_OUT_0 WireTypes.Pixel
+creg.Q_OUT_1 WireTypes.Pixel
+creg.Q_OUT_2 WireTypes.Pixel
+creg.Q_OUT_3 WireTypes.Pixel
+creg.Q_OUT_4 WireTypes.Pixel
+currentCell WireTypes.Cell
+loadPixel Prelude.PrimUnit
+loadPixel_p WireTypes.Pixel
+maybePixel {Prelude.Maybe WireTypes.Pixel}
+mpx {Prelude.Maybe WireTypes.Pixel}
+mpx.D_IN {Prelude.Maybe WireTypes.Pixel}
+mpx.Q_OUT {Prelude.Maybe WireTypes.Pixel}
+pal {Vector.Vector 4 WireTypes.Color}
+pal.D_IN {Vector.Vector 4 WireTypes.Color}
+pal.Q_OUT {Vector.Vector 4 WireTypes.Color}
+palette {Vector.Vector 4 WireTypes.Color}
+px WireTypes.Pixel
+px.D_IN WireTypes.Pixel
+px.Q_OUT WireTypes.Pixel
+setPalette Prelude.PrimUnit
+setPalette_cs {Vector.Vector 4 WireTypes.Color}
+syncfifo.dD_OUT {Prelude.Maybe WireTypes.Pixel}
+syncfifo.dEMPTY_N Prelude.Bool
+syncfifo.sD_IN {Prelude.Maybe WireTypes.Pixel}
+syncfifo.sFULL_N Prelude.Bool
+topPixel WireTypes.Pixel
+{bram_memory$ADDR} {Prelude.Bit 6}
+{bram_memory$DI} WireTypes.Cell
+{bram_memory$DO} WireTypes.Cell
+{bram_memory$WE} Prelude.Bool
+{bram_serverAdapter_cnt$D_IN} {Prelude.Int 3}
+{bram_serverAdapter_cnt$Q_OUT} {Prelude.Int 3}
+{bram_serverAdapter_cnt_1$WGET} {Prelude.Int 3}
+{bram_serverAdapter_cnt_1$WHAS} Prelude.Bool
+{bram_serverAdapter_cnt_1$WVAL} {Prelude.Int 3}
+{bram_serverAdapter_cnt_2$WGET} {Prelude.Int 3}
+{bram_serverAdapter_cnt_2$WHAS} Prelude.Bool
+{bram_serverAdapter_cnt_2$WVAL} {Prelude.Int 3}
+{bram_serverAdapter_cnt_3$WGET} {Prelude.Int 3}
+{bram_serverAdapter_cnt_3$WHAS} Prelude.Bool
+{bram_serverAdapter_cnt_3$WVAL} {Prelude.Int 3}
+{bram_serverAdapter_outData_beforeDeq$D_IN} Prelude.Bool
+{bram_serverAdapter_outData_beforeDeq$Q_OUT} Prelude.Bool
+{bram_serverAdapter_outData_beforeEnq$D_IN} Prelude.Bool
+{bram_serverAdapter_outData_beforeEnq$Q_OUT} Prelude.Bool
+{bram_serverAdapter_outData_dequeueing$WHAS} Prelude.Bool
+{bram_serverAdapter_outData_enqw$WGET} WireTypes.Cell
+{bram_serverAdapter_outData_enqw$WHAS} Prelude.Bool
+{bram_serverAdapter_outData_enqw$WVAL} WireTypes.Cell
+{bram_serverAdapter_outData_ff$D_IN} WireTypes.Cell
+{bram_serverAdapter_outData_ff$D_OUT} WireTypes.Cell
+{bram_serverAdapter_outData_ff$EMPTY_N} Prelude.Bool
+{bram_serverAdapter_outData_ff$FULL_N} Prelude.Bool
+{bram_serverAdapter_s1$D_IN} {Prelude.Maybe Prelude.Bool}
+{bram_serverAdapter_s1$Q_OUT} {Prelude.Maybe Prelude.Bool}
+{bram_serverAdapter_s1_1$WGET} {Prelude.Maybe Prelude.Bool}
+{bram_serverAdapter_s1_1$WHAS} Prelude.Bool
+{bram_serverAdapter_s1_1$WVAL} {Prelude.Maybe Prelude.Bool}
+{bram_serverAdapter_writeWithResp$WGET} {Prelude.PrimPair Prelude.Bool Prelude.Bool}
+{bram_serverAdapter_writeWithResp$WHAS} Prelude.Bool
+{bram_serverAdapter_writeWithResp$WVAL} {Prelude.PrimPair Prelude.Bool Prelude.Bool}
+{cells$D_IN} WireTypes.Cell
+{cells$D_OUT} WireTypes.Cell
+{cells$EMPTY_N} Prelude.Bool
+{cells$FULL_N} Prelude.Bool
+{cl$D_IN} WireTypes.Cell
+{cl$Q_OUT} WireTypes.Cell
+{creg$D_IN_0} WireTypes.Pixel
+{creg$D_IN_1} WireTypes.Pixel
+{creg$D_IN_2} WireTypes.Pixel
+{creg$D_IN_3} WireTypes.Pixel
+{creg$D_IN_4} WireTypes.Pixel
+{creg$D_IN} WireTypes.Pixel
+{creg$Q_OUT_0} WireTypes.Pixel
+{creg$Q_OUT_1} WireTypes.Pixel
+{creg$Q_OUT_2} WireTypes.Pixel
+{creg$Q_OUT_3} WireTypes.Pixel
+{creg$Q_OUT_4} WireTypes.Pixel
+{creg$Q_OUT} WireTypes.Pixel
+{mpx$D_IN} {Prelude.Maybe WireTypes.Pixel}
+{mpx$Q_OUT} {Prelude.Maybe WireTypes.Pixel}
+{pal$D_IN} {Vector.Vector 4 WireTypes.Color}
+{pal$Q_OUT} {Vector.Vector 4 WireTypes.Color}
+{px$D_IN} WireTypes.Pixel
+{px$Q_OUT} WireTypes.Pixel
+{syncfifo$dD_OUT} {Prelude.Maybe WireTypes.Pixel}
+{syncfifo$dEMPTY_N} Prelude.Bool
+{syncfifo$sD_IN} {Prelude.Maybe WireTypes.Pixel}
+{syncfifo$sFULL_N} Prelude.Bool
+---------
