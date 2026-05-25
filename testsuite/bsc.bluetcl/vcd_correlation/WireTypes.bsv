@@ -35,6 +35,36 @@ interface WireTypeIfc;
     method Cell            currentCell  ();
 endinterface
 
+// ---- A separately-synthesized leaf module --------------------------
+// Used by mkWireTypes below. Instantiating it twice creates two
+// distinct sub-scopes (leafA, leafB) in the VCDs -- each correlates
+// against the *same* mkPixelStash wiretypemap. This proves the per-
+// module map design works: one wiretypemap query covers all
+// instances of that module.
+
+interface PixelStash;
+    method Action push(Pixel p);
+    method Pixel  top();
+    method Bit#(8) depth();
+endinterface
+
+(* synthesize *)
+module mkPixelStash (PixelStash);
+    Reg#(Pixel)    last  <- mkReg(Pixel { x: 0, y: 0, color: RED });
+    FIFOF#(Pixel)  q     <- mkFIFOF;
+    Reg#(Bit#(8))  cnt   <- mkReg(0);
+
+    rule sink (q.notEmpty);
+        last <= q.first;
+        q.deq;
+        cnt  <= cnt + 1;
+    endrule
+
+    method Action push(Pixel p) = q.enq(p);
+    method Pixel  top  = last;
+    method Bit#(8) depth = cnt;
+endmodule
+
 (* synthesize *)
 module mkWireTypes (WireTypeIfc);
     // Registers with rich element types
@@ -79,6 +109,14 @@ module mkWireTypes (WireTypeIfc);
     Reg#(UInt#(8))          pulseCount   <- mkReg(0);
     Reg#(Bit#(8))           pulseHistory <- mkReg(0);
     Reg#(Bit#(2))           pulseTick    <- mkReg(0);
+
+    // Two instances of a separately-synthesized leaf, so the VCD has
+    // sub-scopes `leafA` and `leafB` (each instantiating a Reg#(Pixel)
+    // and a FIFOF#(Pixel)). The same mkPixelStash wiretypemap covers
+    // both sub-scopes -- the hierarchical correlation test exercises
+    // this.
+    PixelStash              leafA <- mkPixelStash;
+    PixelStash              leafB <- mkPixelStash;
 
     // BRAM with a tagged-union data type (polymorphic primitive: addr +
     // data, both interesting). Address type is Bit#(6) -> 64 entries.
@@ -163,6 +201,8 @@ module mkWireTypes (WireTypeIfc);
         bram.portA.request.put(BRAMRequest{
             write: True, responseOnWrite: False,
             address: truncate(pack(p.x)), datain: tagged Px p });
+        leafA.push(p);
+        leafB.push(Pixel { x: p.x + 1, y: p.y, color: p.color });
     endmethod
 
     method Pixel         topPixel    () = px;
