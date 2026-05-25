@@ -583,7 +583,40 @@ eqPtrs heap ptrs =
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
                     Just h -> (dsm, IM.insert p h ptrm)
-        (dsm, ptrm) = foldl' (flip step) (M.empty, IM.empty) ptrs'
+        (dsm0, ptrm0) = foldl' (flip step) (M.empty, IM.empty) ptrs'
+
+        -- Pass 2: pick the best-named pointer per equivalence class as
+        -- the canonical, instead of whichever pointer pass-1 happened to
+        -- see first.  Uses the same Id-quality preference as
+        -- ITransform.rename_map (see Id.idQuality).
+        --
+        -- The class is stored as a Set of (quality, ptr) so S.findMax
+        -- returns the best canonical in O(log n).
+        rankOf p = idQuality (hc_name (getHeapCell p))
+
+        -- Reverse ptrm0: canonical -> set of (rank, redirected pointer)
+        revPtrm :: IM.IntMap (S.Set (Int, HeapPointer))
+        revPtrm = IM.foldlWithKey'
+                    (\m src dst ->
+                       let !cls = S.insert (rankOf src, src)
+                                    (IM.findWithDefault S.empty dst m)
+                       in  IM.insert dst cls m)
+                    IM.empty ptrm0
+
+        improve e c0 (!dsm, !ptrm) =
+            let cls    = S.insert (rankOf c0, c0)
+                           (IM.findWithDefault S.empty c0 revPtrm)
+                (_, c) = S.findMax cls
+            in  if c == c0
+                then (dsm, ptrm)
+                else ( M.insert e c dsm
+                     , IM.delete c $
+                       S.foldl' (\m (_, p) -> IM.insert p c m) ptrm cls )
+
+        (dsm, ptrm) = M.foldlWithKey'
+                        (\acc e c0 -> improve e c0 acc)
+                        (dsm0, ptrm0)
+                        dsm0
     in  --traces (show (length ptrs, length (M.elems dsm))) $
         --traces (show (IM.toList ptrm)) $
         --traces (show (M.elems dsm)) $
