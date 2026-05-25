@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ImplicitParams, PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
 module ITransform(
 
                  -- the transform stage
@@ -18,7 +19,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Control.Monad(foldM, forM)
-import Control.Monad.State(State, runState, gets, get, put)
+import Control.Monad.State.Strict(State, runState, gets, get, put)
 import Data.List((\\))
 import qualified Data.Map as M
 
@@ -1470,7 +1471,9 @@ newExprT t e = do
         let i = setBadId $ mkId noPosition (mkFString ((prefix ts) ++ itos n))
             e' = ICon i (ICValue t e)
             d = IDef i t e []  -- props get lost here, but restored in iTransRenameIdsInDef
-        put $ ts { idNo = n+1, cse_map = M.insert e (e', d) cmap }
+            cmap' = M.insert e (e', d) cmap
+            !n'   = n + 1
+        cmap' `seq` put $ ts { idNo = n', cse_map = cmap' }
         -- traceM ("newExprT " ++ ppString e ++ " -> " ++ ppString (e',d))
         return e'
 
@@ -1478,7 +1481,8 @@ addDefT :: Id -> IType -> IExpr a -> [DefProp] -> T () a
 addDefT i t e p = do
   -- traceM $ "addDefT " ++ ppString i ++ " " ++ ppString e
   ts <- get
-  put $ ts {def_map = M.insert i (t,e,p) (def_map ts) }
+  let dmap' = M.insert i (t,e,p) (def_map ts)
+  dmap' `seq` put $ ts {def_map = dmap' }
 
 getDefT :: Id -> T (Maybe (IExpr a)) a
 getDefT i = get >>= (return . fmap snd3 . M.lookup i . def_map)
