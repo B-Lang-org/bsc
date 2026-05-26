@@ -174,10 +174,18 @@ GHCINCLUDES =  \
 	-i$(YICES_HS) \
 	-i$(HTCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
-# Default RTS flags for programs built with a Haskell main
-# 256MB heap, 10MB stack, 1 second interval between heap profiles
+# Default RTS flags for programs built with a Haskell main:
+# 256MB heap, 1 second interval between heap profiles, and a -K
+# stack cap.  The profiling build uses a much larger -K because
+# -fprof-auto adds a cost-centre frame around every closure entry,
+# which inflates peak stack usage by roughly an order of magnitude
+# on the perf regression suite.
 # If you modify this, also update rts_opts in ../vendor/htcl/haskell.c
+ifeq ($(BSC_BUILD),PROF)
+RTSFLAGS = "-with-rtsopts=-H256m -K256m -i1"
+else
 RTSFLAGS = "-with-rtsopts=-H256m -K10m -i1"
+endif
 FVIA ?= -fasm
 GHCFLAGS = \
 	-hide-all-packages \
