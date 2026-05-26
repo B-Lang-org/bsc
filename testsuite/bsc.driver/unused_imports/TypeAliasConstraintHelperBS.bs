@@ -1,0 +1,3 @@
+package TypeAliasConstraintHelperBS where
+
+type MyAlias t = Maybe t

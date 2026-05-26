@@ -1,0 +1,56 @@
+package TypeFunInst where
+
+-- isTFunTyCon path in mkQueryElem.
+--
+-- When a class predicate's type argument has a numeric-type-function
+-- head (TAdd, TDiv, etc.) at a pure-input position, mkQueryElem
+-- returns Free rather than Con tc.  This ensures the trie probes all
+-- branches, not just the one keyed by the type-function name.
+--
+-- Observable scenario: an incoherent class with specific instances for
+-- concrete sizes and a catch-all.  Direct concrete calls select the
+-- specific instance.  A call via a polymorphic helper whose body
+-- uses a type-function annotation forces the predicate to carry
+-- TAdd n 1 (for abstract n); incoherent resolution then commits to the
+-- catch-all at definition time, so the helper always returns 0 regardless
+-- of the concrete call-site size.
+
+-- Note: This behavior is a little odd until you realize we do not permit
+---matches constrained by a numeric equality. That restriction feels
+-- a little strange, but it does mean you can use numeric type functions
+-- to reduce a type to a value a specific numeric instance can handle.
+-- That seems like a valuable programming style to support.
+class incoherent SizeTag n where
+    sizeTag :: Bit n -> Bit 8
+
+instance SizeTag 8 where
+    sizeTag _ = 1
+
+instance SizeTag 16 where
+    sizeTag _ = 2
+
+instance SizeTag n where     -- catch-all
+    sizeTag _ = 0
+
+-- viaTypeFun: the body uses `0 :: Bit (TAdd n 1)` where n is abstract.
+-- BSC type-checks this with the predicate SizeTag (TAdd n 1).
+-- mkQueryElem sees TAdd n 1: leftTyCon = Just TAdd_tc, isTFunTyCon → Free.
+-- Free probes all branches; byInst fails for concrete 8 and 16
+-- (cannot match TCon 8 or TCon 16 against TAdd n 1).
+-- The catch-all matches (n_fresh → TAdd n 1) and incoherent resolution
+-- commits to it at definition time → always returns 0.
+viaTypeFun :: Bit n -> Bit 8
+viaTypeFun _ = sizeTag (0 :: Bit (TAdd n 1))
+
+{-# verilog sysTypeFunInst #-}
+sysTypeFunInst :: Module Empty
+sysTypeFunInst = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (sizeTag (0 :: Bit 8))   -- 1: specific instance
+                $display "%0d" (sizeTag (0 :: Bit 16))  -- 2: specific instance
+                $display "%0d" (sizeTag (0 :: Bit 7))   -- 0: catch-all (no Bit 7 instance)
+                $display "%0d" (viaTypeFun (0 :: Bit 7))  -- 0: catch-all committed at defn
+                $display "%0d" (viaTypeFun (0 :: Bit 15)) -- 0: catch-all committed at defn
+                $finish 0
