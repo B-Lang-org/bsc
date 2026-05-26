@@ -1,9 +1,16 @@
 # Regression tests for the compile-time blowups and stack-overflow
 # sites fixed earlier on this branch.  Each module is a synthetic
-# input that targets a specific quadratic or strictness fix.  The
-# tests would either time out or stack-overflow before reaching the
-# phase under test without all the fixes applied; with the fixes,
-# each compile completes in roughly a minute or two.
+# input that targets a specific quadratic or strictness fix.  Without
+# the fixes the tests either time out or stack-overflow with limits
+# far above what they need here; with the fixes peak non-prof stack
+# usage is ~6-12M and each compile completes in roughly a minute or
+# two.
+#
+# Each test passes an explicit -K sized at >=2x the measured peak so
+# that a regression that grows stack usage on a normal bsc will be
+# caught.  The PROF build (BSC_BUILD=PROF) bakes in -K256m to
+# accommodate cost-centre overhead (~10x), so the same tests pass
+# with the prof binary.
 #
 # All three are compiled with -elab so they also exercise .ba
 # generation on principle.
@@ -13,6 +20,7 @@ if {$vtest == 1} {
     # 4096 CRegs with trivial rules.  Catches the InlineCReg
     # O(svars * creg_ports) scan in the creg phase, the AVerilog ds7
     # quadratic in the verilog phase, and AExpand.aoptExpandTest.
+    # Peak stack: ~6M; cap at -K16m gives >2x margin.
     #
     # Implicitly catches regressions in:
     #   - InlineCReg: Set membership for creg_ports lookup
@@ -24,15 +32,19 @@ if {$vtest == 1} {
     #   - ITransform: strict State, forced cse_map / def_map / idNo
     #   - AOpt: strict State, forced defmap / usemap on addDef
     #   - SpeedyString: strict IntMap and forced IORef updates
-    compile_verilog_pass CregInlineBlowup.bsv mkCregInlineBlowup "-elab"
+    compile_verilog_pass CregInlineBlowup.bsv mkCregInlineBlowup "-elab +RTS -K16m -RTS"
 
     # 256 CRegs plus heavy per-rule arithmetic.  Primarily exercises
     # the AVerilog ds7 quadratic (verilog phase 60-110x faster with
-    # the fix), and also AExpand at moderate scale.
-    compile_verilog_pass CregMemBlowup.bsv mkCregMemBlowup "-elab +RTS -K3G -RTS"
+    # the fix) and AExpand at moderate scale.  Peak stack: ~6M; cap
+    # at -K16m gives >2x margin.
+    compile_verilog_pass CregMemBlowup.bsv mkCregMemBlowup "-elab +RTS -K16m -RTS"
 
     # 8192 plain Regs + 512 rules with deep arithmetic.  Primarily
     # exercises AExpand.aoptExpandTest (aopt phase ~10x faster with
-    # the sinstVars Set fix) and AVerilog ds7 at scale.
-    compile_verilog_pass AoptScanBlowup.bsv mkAoptScanBlowup "-elab +RTS -K3G -RTS"
+    # the sinstVars Set fix) and AVerilog ds7 at scale.  Peak stack
+    # is ~12M (the depth-128 arithmetic chains run through IExpand's
+    # evalAp loop); cap at -K40m gives >3x margin to absorb GHC-version
+    # variance seen in CI.
+    compile_verilog_pass AoptScanBlowup.bsv mkAoptScanBlowup "-elab +RTS -K40m -RTS"
 }
