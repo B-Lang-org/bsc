@@ -12,12 +12,12 @@ data DeepSplit a = DeepSplit a
 -- Tag to indicate that the DeepSplitPorts recursion should terminate
 data NoSplit a = NoSplit a
 
-instance (ShallowSplitPorts a p) => SplitPorts (ShallowSplit a) p where
+instance SplitPorts (ShallowSplit a) (ShallowPortsOf a) where
   splitPorts (ShallowSplit x) = shallowSplitPorts x
   unsplitPorts = ShallowSplit ∘ shallowUnsplitPorts
   portNames _ = shallowSplitPortNames (_ :: a)
 
-instance (DeepSplitPorts a p) => SplitPorts (DeepSplit a) p where
+instance SplitPorts (DeepSplit a) (DeepPortsOf a) where
   splitPorts (DeepSplit x) = deepSplitPorts x
   unsplitPorts = DeepSplit ∘ deepUnsplitPorts
   portNames _ = deepSplitPortNames (_ :: a)
@@ -30,6 +30,7 @@ instance DeepSplitPorts (NoSplit a) (Port a) where
 
 -- Helper class using generics, to split a struct or vector into a tuple of ports.
 class ShallowSplitPorts a p | a -> p where
+  type ShallowPortsOf a = p
   shallowSplitPorts :: a -> p
   shallowUnsplitPorts :: p -> a
   shallowSplitPortNames :: a -> String -> List String
@@ -78,7 +79,7 @@ instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta m r) p where
   shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
   shallowSplitPortNames' _ = shallowSplitPortNames' (_ :: r)
 
-instance (SplitPorts a p) => ShallowSplitPorts' (Conc a) p where
+instance ShallowSplitPorts' (Conc a) (PortsOf a) where
   shallowSplitPorts' (Conc x) = splitPorts x
   shallowUnsplitPorts' = Conc ∘ unsplitPorts
   shallowSplitPortNames' _ = portNames (_ :: a)
@@ -86,6 +87,7 @@ instance (SplitPorts a p) => ShallowSplitPorts' (Conc a) p where
 
 -- Helper class using generics, to recursively split structs and vectors into a tuple of ports.
 class DeepSplitPorts a p | a -> p where
+  type DeepPortsOf a = p
   deepSplitPorts :: a -> p
   deepUnsplitPorts :: p -> a
   deepSplitPortNames :: a -> String -> List String
@@ -143,7 +145,7 @@ class DeepSplitPorts' r a p | r a -> p where
   deepSplitPortNames' :: r -> a -> String -> List String
 
 -- Terminate recursion for n /= 1 constructors
-instance (SplitPorts a p) => DeepSplitPorts' r a p where
+instance DeepSplitPorts' r a (PortsOf a) where
   deepSplitPorts' _ = splitPorts
   deepUnsplitPorts' _ = unsplitPorts
   deepSplitPortNames' _ = portNames

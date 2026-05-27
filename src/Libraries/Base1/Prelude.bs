@@ -4695,7 +4695,7 @@ class WrapMethod m w | m -> w where
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (SplitPorts a p, WrapPorts p pb, WrapMethod b v, Curry (pb -> v) w) =>
+instance (WrapPorts (PortsOf a) pb, WrapMethod b v, Curry (pb -> v) w) =>
     WrapMethod (a -> b) w where
   toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
   fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
@@ -4711,18 +4711,18 @@ instance (SplitPorts a p, WrapPorts p pb, WrapMethod b v, Curry (pb -> v) w) =>
     (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
 
   inputPortNames _ (Cons h t) =
-    filterZeroWidthPorts (_ :: p) (checkPortNames (_ :: a) h)
+    filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h)
     `listPrimAppend` inputPortNames (_ :: b) t
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
 
   outputPortNames _ = outputPortNames (_ :: b)
 
   saveMethodPortTypes _ modName (Cons h t) result = do
-    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) h
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) h
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
-instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
+instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
   toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
@@ -4732,11 +4732,11 @@ instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
     " excess arg_names provided for method " +++ prefix
   inputPortNames _ Nil = Nil
   inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
+  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
-    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
 
-instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
+instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb) =>
     WrapMethod a pb where
   toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
   fromWrapMethod = unsplitPorts ∘ unpackPorts
@@ -4746,9 +4746,9 @@ instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
     " excess arg_names provided for method " +++ prefix
   inputPortNames _ Nil = Nil
   inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  outputPortNames _ base = filterZeroWidthPorts (_ :: p) $ checkPortNames (_ :: a) base
+  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
   saveMethodPortTypes _ modName _ result =
-    savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
 
 class WrapPorts p pb | p -> pb where
   -- Convert from a tuple of Port values to a tuple of bits.
@@ -4838,6 +4838,7 @@ checkPortNames proxy base =
     else pn
 
 class SplitPorts a p | a -> p where
+  type PortsOf a = p
   -- Convert a value to a tuple of values corresponding to ports.
   splitPorts :: a -> p
   -- Combine a tuple of values corresponding to ports into a value.
