@@ -22,7 +22,7 @@ struct Bar =
  deriving (Bits)
 
 -- XXX would be nice to be able to derive this
-instance (ShallowSplitPorts Bar p) => SplitPorts Bar p where
+instance SplitPorts Bar (ShallowPortsOf Bar) where
   splitPorts = shallowSplitPorts
   unsplitPorts = shallowUnsplitPorts
   portNames = shallowSplitPortNames
@@ -36,7 +36,7 @@ struct Baz =
  -- No Bits instance needed
 
 -- XXX would be nice to be able to derive this
-instance (ShallowSplitPorts Baz p) => SplitPorts Baz p where
+instance SplitPorts Baz (ShallowPortsOf Baz) where
   splitPorts = shallowSplitPorts
   unsplitPorts = shallowUnsplitPorts
   portNames = shallowSplitPortNames
