@@ -173,7 +173,7 @@ package Prelude(
         Tuple6, tuple6, Has_tpl_6(..),
         Tuple7, tuple7, Has_tpl_7(..),
         Tuple8, tuple8, Has_tpl_8(..),
-        AppendTuple(..), AppendTuple', AppendTuple'', TupleSize, TupleSize',
+        AppendTuple(..), AppendTuple', AppendTuple'', TupleSize(..), TupleSize',
 
         -- lists required for desugaring
         List(..),
@@ -3548,6 +3548,7 @@ tuple8 :: a -> b -> c -> d -> e -> f -> g -> h   -> Tuple8 a b c d e f g h
 tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
 
 class AppendTuple a b c | a b -> c where
+  type TAppendTuple a b = c
   appendTuple :: a -> b -> c
   splitTuple :: c -> (a, b)
 
@@ -3587,7 +3588,8 @@ instance (AppendTuple'' a b c) => AppendTuple'' (h, a) b (h, c) where
   splitTuple'' (x, y) = case splitTuple'' y of
     (w, z) -> ((x, w), z)
 
-class TupleSize a n | a -> n where {}
+class TupleSize a n | a -> n where
+  type TTupleSize a = n
 instance TupleSize () 0 where {}
 instance (TupleSize' a n) => TupleSize a n where {}
 
@@ -4693,7 +4695,7 @@ class WrapMethod m w | m -> w where
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (pb -> v) w) =>
+instance (SplitPorts a p, WrapPorts p pb, WrapMethod b v, Curry (pb -> v) w) =>
     WrapMethod (a -> b) w where
   toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
   fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
@@ -4720,7 +4722,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, WrapMethod b v, Curry (
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
+instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
   toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
@@ -4734,7 +4736,7 @@ instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: p) modName $ checkPortNames (_ :: a) result
 
-instance (SplitPorts a p, TupleSize p n, WrapPorts p pb, PrimSeqTupleBits pb) =>
+instance (SplitPorts a p, WrapPorts p pb, PrimSeqTupleBits pb) =>
     WrapMethod a pb where
   toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
   fromWrapMethod = unsplitPorts ∘ unpackPorts
@@ -4758,8 +4760,8 @@ class WrapPorts p pb | p -> pb where
   -- Filter the port names to only those that have non-zero width.
   filterZeroWidthPorts :: p -> List String -> List String
 
-instance (Bits a n, NonEmptyBits n ab, WrapPorts b bb, AppendTuple ab bb pb) =>
-    WrapPorts (Port a, b) pb where
+instance (Bits a n, NonEmptyBits n ab, WrapPorts b bb) =>
+    WrapPorts (Port a, b) (TAppendTuple ab bb) where
   packPorts (Port a, b) = toNonEmptyBits (pack a) `appendTuple` packPorts b
   unpackPorts p = case splitTuple p of
     (ab, bb) -> (Port (unpack (fromNonEmptyBits ab)), unpackPorts bb)
@@ -4824,13 +4826,14 @@ instance PrimSeqTupleBits () where
 -- Compute the list port names for type 'a' given a base name.
 -- Check that the number of port names matches the number of ports.
 -- This error should only occur if there is an error in a SplitPorts instance.
-checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
+checkPortNames :: (SplitPorts a p) => a -> String -> List String
 checkPortNames proxy base =
   let pn = portNames proxy base
+      n = valueOf (TTupleSize p)
   in
-    if listLength pn /= valueOf n
+    if listLength pn /= n
     then primError (getEvalPosition proxy) $
-      "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
+      "SplitPorts: " +++ base +++ " has " +++ integerToString n +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
     else pn
 
@@ -4878,7 +4881,7 @@ class SplitTuplePorts a p | a -> p where
   unsplitTuplePorts :: p -> a
   splitTuplePortNames :: Integer -> a -> String -> List String
 
-instance (SplitPorts a p, SplitTuplePorts b q, AppendTuple p q r) => SplitTuplePorts (a, b) r where
+instance (SplitPorts a p, SplitTuplePorts b q) => SplitTuplePorts (a, b) (TAppendTuple p q) where
   splitTuplePorts (a, b) = splitPorts a `appendTuple` splitTuplePorts b
   unsplitTuplePorts x = case splitTuple x of
     (a, b) -> (unsplitPorts a, unsplitTuplePorts b)
