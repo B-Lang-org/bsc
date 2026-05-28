@@ -1270,9 +1270,7 @@ findEdges env (ATupleSel _ (AMethCall t i qmi args) oi) =
     in  ([PNStateMethodRes i mi oi], edges, muxes)
 findEdges env (ATupleSel _ (AMethValue t i qmi) oi) =
     ([PNStateMethodRes i (unQualId qmi) oi], [], [])
-findEdges env (ATupleSel _ e _) =
-    internalError
-        ("APaths.findEdges: unexpected ATupleSel expression: " ++ ppReadable e)
+findEdges env (ATupleSel _ e _) = findEdges env e
 
 findEdges env (ATuple _ es) =
     -- return any connections found in the element expressions

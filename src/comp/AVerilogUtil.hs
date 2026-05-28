@@ -31,8 +31,8 @@ module AVerilogUtil (
                      VConvtOpts(..)
                     ) where
 
-import Data.List(nub, partition, genericLength, union, intersect, (\\),
-                 uncons)
+import Data.List(nub, partition, genericLength, genericIndex, union, intersect,
+                 (\\), uncons)
 import Data.Maybe
 
 import FStringCompat(FString, getFString)
@@ -605,6 +605,10 @@ vDefMpd vco adef@(ADef i_t t_t@(ATAbstract aid _) e_t _) _ | aid==idInout_ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
 vDefMpd vco adef@(ADef i_t t_t@(ATString _) e_t _) _ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
+-- A tuple-typed def is emitted as a single wide wire whose value is the
+-- bit-concat of its elements; ATupleSel uses are rendered as bit slices.
+vDefMpd vco (ADef i_t t_t@(ATTuple _) e_t _) _ =
+    [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
 
 vDefMpd vco adef@(ADef _ _ _ _) _ = internalError( "unexpected pattern in AVerilog::vDefMpd: " ++ ppReadable adef ) ;
 
@@ -694,6 +698,22 @@ vExpr vco (ASDef _ i)                           = VEVar (vId i)
 vExpr vco (ASPort _ i)                          = VEVar (vId i)
 vExpr vco (ASParam _ i)                         = VEVar (vId i)
 vExpr vco (ASAny (ATBit w) _)                   = VEUnknown w (vco_unspec vco)
+
+-- A tuple is laid out in Verilog as a bit-concat with the first element
+-- in the most-significant position.
+vExpr vco (ATuple _ es) = VEConcat (map (vExpr vco) es)
+vExpr vco (ATupleSel _ (ATuple _ es) idx) = vExpr vco (es `genericIndex` (idx - 1))
+vExpr vco (ATupleSel _ e idx) =
+    case aType e of
+      ATTuple ts ->
+          let sizes      = map aSize ts
+              total      = sum sizes
+              above      = sum (take (fromInteger idx - 1) sizes)
+              elem_size  = sizes `genericIndex` (idx - 1)
+              hi         = total - above - 1
+              lo         = total - above - elem_size
+          in  VESelect (vExpr vco e) (VEConst hi) (VEConst lo)
+      t -> internalError ("vExpr: ATupleSel of non-tuple type " ++ ppReadable t)
 
 vExpr vco e = internalError ("vExpr vco " ++ ppReadable e)
 
@@ -1052,6 +1072,8 @@ vSize (ATAbstract i [1]) | i==idInout_ = Nothing
 vSize (ATAbstract i [n]) | i==idInout_ = Just (VEConst (n-1), VEConst 0)
 vSize t@(ATString (Just _)) = Just (VEConst ((aSize t)-1::Integer), VEConst 0)
 vSize (ATString Nothing)  = Just (VEConst (dummy_string_size - 1::Integer), VEConst 0)
+-- A tuple is represented as a bit-concat of its elements.
+vSize t@(ATTuple _) = Just (VEConst (aSize t - 1), VEConst 0)
 vSize t = internalError("Attempt to get size of non-Bit type: " ++ ppReadable t)
 
 -- Looks at VRange to determine if Verilog expression is 0 size [-1:0]  yuck.
