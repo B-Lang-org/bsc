@@ -1131,7 +1131,7 @@ convStmt _ (AStmtDef (ADef i t e _)) = do
   e_expr <- convAExpr e
   return [(defId i, convAType t, e_expr)]
 
-convStmt avmap (AStmtAction cset (ACall obj meth (_:srcArgs))) = do
+convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
   let c = getCondExpr cset
 
   instmap <- gets instMap
@@ -1142,7 +1142,7 @@ convStmt avmap (AStmtAction cset (ACall obj meth (_:srcArgs))) = do
   -- convert the condition
   c_expr <- convAExpr c
   -- a SplitPorts argument expands into one AExpr per hardware port
-  a_exprs <- mapM convAExpr (concatMap argInputPorts srcArgs)
+  a_exprs <- mapM convAExpr (concatMap argInputPorts as)
 
   let
       -- the kind of module that this instance is
@@ -1204,9 +1204,6 @@ convStmt _ (AStmtAction cset (AFCall i f isC as isAssumpCheck)) = do
   -- the effect is outside our scope, and there is no return value,
   -- so do nothing
   return []
-
-convStmt _ (AStmtAction _ (ACall _ _ [])) =
-  internalError "SAL.convStmt: ACall without condition"
 
 convStmt _ (AStmtAction cset (ATaskAction i f isC k as tmp t b)) = do
   -- the effect is outside our scope, but there is a return value,
