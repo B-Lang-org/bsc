@@ -260,7 +260,7 @@ addCFCondWires cfRules ruleMethCondMap r | rid `S.member` cfRules =
       let (newActions, newUseInfo) = unzip $ [(a, (rid, mid, UUAction a)) | (MethodId o m, c) <- ms,
                                                                             let obj = mkCFCondWireInstId rid o m,
                                                                             let mid = MethodId obj uqWSet,
-                                                                            let a   = ACall obj uqWSet [aTrue,c]]
+                                                                            let a   = ACall obj uqWSet [aTrue, c]]
       in (r { arule_actions = arule_actions r ++ newActions }, newUseInfo)
     Nothing -> internalError ("AAddAchedAssumps.addCFCondWires missing rule: " ++
                               ppReadable r ++ ppReadable ruleMethCondMap)

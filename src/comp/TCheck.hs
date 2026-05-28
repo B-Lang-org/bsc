@@ -682,19 +682,35 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 s <- getSubst
                 let mtype = expandSyn (apSub s t)
                 let (argTypes, resType) = getArrows mtype
+                    -- Decompose one source-language argument's type into its
+                    -- input port types (PrimUnit contributes no ports,
+                    -- PrimPair recurses, any other type is a single port).
+                    argPortTypes :: Type -> [Type]
+                    argPortTypes (TAp (TAp (TCon (TyCon pi _ _)) l) r)
+                      | pi == idPrimPair = argPortTypes l ++ argPortTypes r
+                    argPortTypes ty
+                      | ty == tPrimUnit = []
+                      | otherwise = [ty]
 
-                -- This function checks that the number of port names
-                -- matches the number of arguments in the type.
-                let chkArgs :: [VPort] -> [Type] -> TI ()
-                    chkArgs ports types =
-                        if (length ports > length types)
-                        then -- The extra port names could be used in the error
-                             err (getPosition f,
-                                  EForeignModTooManyPorts f_str)
-                        else if (length ports < length types)
-                        then err (getPosition f,
-                                  EForeignModTooFewPorts f_str)
-                        else mapM_ chkArgType types
+                -- Regroup the flat BVI port list per source-language argument,
+                -- consuming exactly the input-port count for each argument's
+                -- type.  The lists must finish together.
+                let chkArgs :: [VPort] -> [Type] -> TI [[VPort]]
+                    chkArgs ports srcArgs = go ports srcArgs
+                      where
+                        go [] [] = return []
+                        go _  [] = err (getPosition f,
+                                        EForeignModTooManyPorts f_str)
+                        go ps (srcTy:srcTys) =
+                          let leaves = argPortTypes srcTy
+                              n      = length leaves
+                          in  if length ps < n
+                              then err (getPosition f,
+                                        EForeignModTooFewPorts f_str)
+                              else do mapM_ chkArgType leaves
+                                      let (here, rest) = splitAt n ps
+                                      groups <- go rest srcTys
+                                      return (here : groups)
 
                 -- This function checks that the argument types are bitable
                     chkArgType t =
@@ -809,15 +825,17 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                 else errInoutHasArgs
                     Method { vf_inputs = inputs, vf_enable = me, vf_outputs = outputs } ->
                             do -- updates inputs, me and mo when processing Classic format
-                               (inputs', me', outputs') <- chkResType inputs me outputs resType
+                               -- chkResType still works on a flat port list
+                               (inputs', me', outputs') <- chkResType (concat inputs) me outputs resType
                                -- check if any actions are SB with themselves
                                when (((isActionWithValue resType) ||
                                       (isActionWithoutValue resType) ||
                                       (isPrimAction resType)) &&
                                       (f `elem` self_sbs))
                                     (errActionSelfSB f)
-                               chkArgs inputs' argTypes
-                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_outputs = outputs' })
+                               -- Regroup the flat port list per source-arg
+                               groupedInputs <- chkArgs inputs' argTypes
+                               return (vfi { vf_inputs = groupedInputs, vf_enable = me', vf_outputs = outputs' })
     -- paramResults <- mapM tiParam es
     qsses <- mapM tiArg args
 --  let   (pses, tys) = unzip paramResults

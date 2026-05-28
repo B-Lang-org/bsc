@@ -367,7 +367,10 @@ xaSRemoveUnused keepFires pkg =
             let en = case (vf_enable m) of
                          Nothing -> []
                          Just _ -> [MethodEnable]
-                args = map MethodArg [1..genericLength (vf_inputs m)]
+                -- enumerate MethodArg per (argN, portM) coordinate
+                args = [ MethodArg argN portM
+                       | (argN, ports) <- zip [1..] (vf_inputs m)
+                       , (portM, _) <- zip [1..] ports ]
             in  [ mkMethId v i ino part |
                   part <- en ++ args, ino <- if mult > 1
                                              then map Just [0 .. mult-1]

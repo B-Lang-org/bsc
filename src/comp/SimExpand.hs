@@ -1959,8 +1959,8 @@ mergeUses = stableOrdNub . concat
 -- Returns the method uses in an action.
 -- A use is a method Id on a particular instance (instId, methId)
 aUses :: M.Map AId [(AId,AId)] -> AAction -> [(AId,AId)]
-aUses m a@(ACall i mi es) =
-    [(i, unQualId mi)] ++ mergeUses (map (eDomain m) es)
+aUses m a@(ACall i mi args) =
+    [(i, unQualId mi)] ++ mergeUses (map (eDomain m) args)
 aUses m a@(AFCall i _ _ es isAssump) =
     if isAssump then [] else mergeUses $ map (eDomain m) es
 aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
@@ -1970,8 +1970,8 @@ aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
 -- A use is a method Id on a particular instance (instId, methId)
 eDomain :: M.Map AId [(AId,AId)] -> AExpr -> [(AId,AId)]
 eDomain m (APrim _ _ _ es) = mergeUses $ map (eDomain m) es
-eDomain m e@(AMethCall _ i mi es) =
-    mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
+eDomain m e@(AMethCall _ i mi args) =
+    mergeUses ([(i, unQualId mi)] : map (eDomain m) args)
 -- don't count the return value uses of actionvalue, only the action part
 eDomain m (AMethValue _ _ _) = []
 eDomain m (ATupleSel _ e _) = eDomain m e

@@ -5,7 +5,7 @@ module VModInfo(VModInfo, mkVModInfo,
                 VName(..), VPort, VSchedInfo, VMethodConflictInfo,
                 VPathInfo(..), VeriPortProp(..),
                 VArgInfo(..), isParam, isPort, isClock, isReset, isInout,
-                VFieldInfo(..),
+                VFieldInfo(..), vfMethodArgPorts,
                 VClockInfo(..), InputClockInf, OutputClockInf,
                 VOscPort, VInputGatePort, VOutputGatePort,
                 VResetInfo(..), ResetInf, VWireInfo(..),
@@ -273,7 +273,8 @@ data VFieldInfo = Method { vf_name   :: Id, -- method name
                            vf_reset  :: (Maybe Id), -- optional reset
                            -- optional because the method may be independent of a reset signal
                            vf_mult   :: Integer, -- multiplicity
-                           vf_inputs :: [VPort],
+                           -- input ports grouped by method argument
+                           vf_inputs :: [[VPort]],
                            vf_outputs:: [VPort],
                            vf_enable :: Maybe VPort }
                 | Clock { vf_name :: Id } -- output clock name
@@ -292,6 +293,12 @@ instance HasPosition VFieldInfo where
   getPosition (Reset i)                 = getPosition i -- or noPosition?
   getPosition (Inout { vf_name = n })  = getPosition n
 
+-- Flat list of every hardware port across a method's source-level arguments.
+-- For consumers that don't care about the per-argument grouping.
+vfMethodArgPorts :: VFieldInfo -> [VPort]
+vfMethodArgPorts (Method { vf_inputs = iss }) = concat iss
+vfMethodArgPorts _ = []
+
 instance NFData VFieldInfo where
     rnf (Method x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
     rnf (Clock x) = rnf x
@@ -301,7 +308,7 @@ instance NFData VFieldInfo where
 instance PPrint VFieldInfo where
     pPrint d p (Method n c r m i o e) =
       text "method " <> pouts o <> pPrint d p n <> pmult m <>
-      pins i <> pena e <+> ppMClk d c <+> ppMRst d r <>
+      pins (concat i) <> pena e <+> ppMClk d c <+> ppMRst d r <>
       text ";"
         where pouts [] = empty
               pouts [po] = pPrint d p po

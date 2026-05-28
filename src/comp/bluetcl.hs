@@ -3299,24 +3299,21 @@ rawIfcFieldName (RawInout i _ _ _ _) = i
 
 
 rawIfcFieldFromAIFace :: [PProp] -> AIFace -> RawIfcField
-rawIfcFieldFromAIFace _
-    (AIDef i args _ _ def
+rawIfcFieldFromAIFace _ iface@(AIDef i _ _ _ def
      (Method _ clk rst mult ins outs Nothing) _) =
     let -- include the type in the "outs"
         outs' = zip outs $
           case adef_type def of
             ATTuple ts -> ts
             t          -> [t]
-    in  RawMethod i mult clk rst (mapFst Just args) ins outs' Nothing
-rawIfcFieldFromAIFace pps
-    (AIAction args _ _ i _
+    in  RawMethod i mult clk rst (mapFst Just (aIfaceArgs iface)) (concat ins) outs' Nothing
+rawIfcFieldFromAIFace pps iface@(AIAction _ _ _ i _
      (Method _ clk rst mult ins [] me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
-    in  RawMethod i mult clk rst (mapFst Just args) ins [] me'
-rawIfcFieldFromAIFace pps
-    (AIActionValue args _ _ i _ def
+    in  RawMethod i mult clk rst (mapFst Just (aIfaceArgs iface)) (concat ins) [] me'
+rawIfcFieldFromAIFace pps iface@(AIActionValue _ _ _ i _ def
      (Method _ clk rst mult ins outs me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
@@ -3326,7 +3323,7 @@ rawIfcFieldFromAIFace pps
           case adef_type def of
             ATTuple ts -> ts
             t          -> [t]
-    in  RawMethod i mult clk rst (mapFst Just args) ins outs' me'
+    in  RawMethod i mult clk rst (mapFst Just (aIfaceArgs iface)) (concat ins) outs' me'
 rawIfcFieldFromAIFace _ (AIClock i _ (Clock _)) = RawClock i
 rawIfcFieldFromAIFace _ (AIReset i _ (Reset _)) = RawReset i
 rawIfcFieldFromAIFace _ (AIInout i (AInout e) (Inout _ vn mclk mrst)) =
@@ -3335,14 +3332,15 @@ rawIfcFieldFromAIFace _ aif =
     internalError ("rawIfcFieldFromAIFace: unexpected AIFace combo: " ++
                    ppReadable aif)
 
-rawIfcFieldFromAVInst :: ([AType], Maybe AType, [AType]) ->
+rawIfcFieldFromAVInst :: ([[AType]], Maybe AType, [AType]) ->
                          VFieldInfo -> RawIfcField
 rawIfcFieldFromAVInst (arg_tys,_,out_tys) (Method i clk rst mult ins outs me) =
     let -- XXX AVInst doesn't record argument names
-        args = zip (repeat Nothing) arg_tys
+        -- flatten per-arg port type groups for the RawMethod args field
+        args = zip (repeat Nothing) (concat arg_tys)
         -- add the return bit-type to the outs
         outs' = zip outs out_tys
-    in  RawMethod i mult clk rst args ins outs' me
+    in  RawMethod i mult clk rst args (concat ins) outs' me
 rawIfcFieldFromAVInst _ (Clock i) = RawClock i
 rawIfcFieldFromAVInst _ (Reset i) = RawReset i
 rawIfcFieldFromAVInst (_,_,[t]) (Inout i vn mclk mrst) = RawInout i t vn mclk mrst
@@ -3645,8 +3643,8 @@ getSubmodPortInfo mtifc avi = do
        concatMap getIfcHier ifc_hier)
 
 adjustPrimFields :: Maybe Type -> AVInst ->
-                    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
+                    ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustPrimFields Nothing _ vfts = vfts
 adjustPrimFields (Just tifc) avi vfts =
     if (leftCon tifc == Just idReg)
@@ -3690,8 +3688,8 @@ adjustPrimFields (Just tifc) avi vfts =
     else vfts
 
 -- This is a no-op but it does add some error checking
-adjustRegAlignedFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                   ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustRegAlignedFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                   ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustRegAlignedFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` id_read noPosition)  = vf
@@ -3701,8 +3699,8 @@ adjustRegAlignedFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 
-adjustRegFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                   ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustRegFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                   ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustRegFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idPreludeRead)  = vf { vf_name = id_read noPosition }
@@ -3711,8 +3709,8 @@ adjustRegFields (vfi, fts) =
                                         ppReadable (vf_name vf))
     in  (map renameField vfi, fts)
 
-adjustFIFOFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustFIFOFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustFIFOFields (vfi, fts) =
     let enq_rdy   = mkRdyId idEnq
         deq_rdy   = mkRdyId idDeq
@@ -3724,8 +3722,8 @@ adjustFIFOFields (vfi, fts) =
         renameField vft = [vft]
     in  unzip $ concatMap renameField $ zip vfi fts
 
-adjustFIFO0Fields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                      ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustFIFO0Fields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                      ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustFIFO0Fields (vfi, fts) =
     let (clk, rst) =
             case vfi of
@@ -3737,8 +3735,8 @@ adjustFIFO0Fields (vfi, fts) =
         first_fts = ([], Nothing, [])
     in  (first_vfi:vfi, first_fts:fts)
 
-adjustSyncRegFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                       ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustSyncRegFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                       ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustSyncRegFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             -- XXX these are qualified Clock, not Prelude
@@ -3750,16 +3748,16 @@ adjustSyncRegFields (vfi, fts) =
                                         ppReadable (vf_name vf))
     in  (map renameField vfi, fts)
 
-adjustRWireFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                     ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustRWireFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                     ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustRWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWHas)  = vf { vf_name = unQualId $ mkRdyId idWGet }
         renameField vf = vf
     in  (map renameField vfi, fts)
 
-adjustRWire0Fields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                      ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustRWire0Fields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                      ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustRWire0Fields (vfi, fts) =
     let (clk, rst) =
             case vfi of
@@ -3770,8 +3768,8 @@ adjustRWire0Fields (vfi, fts) =
         wget_fts = ([], Nothing, [])
     in  (wget_vfi:vfi, wget_fts:fts)
 
-adjustWireFields :: ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-                    ([VFieldInfo], [([AType], Maybe AType, [AType])])
+adjustWireFields :: ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+                    ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustWireFields (vfi, fts) =
     let readId  = id_read noPosition
         writeId = id_write noPosition
@@ -3784,8 +3782,8 @@ adjustWireFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 adjustPulseWireFields ::
-    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-    ([VFieldInfo], [([AType], Maybe AType, [AType])])
+    ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+    ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustPulseWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWSet) = vf { vf_name = unQualId idSend }
@@ -3796,8 +3794,8 @@ adjustPulseWireFields (vfi, fts) =
     in  (map renameField vfi, fts)
 
 adjustBypassWireFields ::
-    ([VFieldInfo], [([AType], Maybe AType, [AType])]) ->
-    ([VFieldInfo], [([AType], Maybe AType, [AType])])
+    ([VFieldInfo], [([[AType]], Maybe AType, [AType])]) ->
+    ([VFieldInfo], [([[AType]], Maybe AType, [AType])])
 adjustBypassWireFields (vfi, fts) =
     let renameField vf@(Method {vf_name = i })
             | (i `qualEq` idWGet) = vf { vf_name = id_read noPosition }
@@ -4222,7 +4220,7 @@ get_method_to_signal_map vmod = do
   case f of
        Method {} -> return ()
        _ -> mzero -- failure, as in the guard function
-  port <- (vf_inputs f) ++ (vf_outputs f) ++ (maybeToList $ vf_enable f)
+  port <- vfMethodArgPorts f ++ vf_outputs f ++ maybeToList (vf_enable f)
   count <- case (vf_mult f) of
     1 -> return Nothing
     k -> map Just [1..k]

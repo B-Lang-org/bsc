@@ -382,7 +382,7 @@ getPortInfo pps aif =
                   when (isEnWhenRdy pps name) (fail "no enable port")
                   return (fst e)
         args = aIfaceArgs aif
-        ps   = map fst (vf_inputs vfi)
+        ps   = map fst (vfMethodArgPorts vfi)
         ins  = [ (t,i,vn) | ((i,t),vn) <- zip args ps ]
         rts  = aIfaceResTypes aif
         rets  = zip rts $ map fst $ vf_outputs vfi

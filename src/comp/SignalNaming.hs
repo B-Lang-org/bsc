@@ -65,7 +65,9 @@ signalNameFromAExpr' (expr@AMethCall { })
 signalNameFromAExpr' (expr@AMethCall { }) =
     ppString (ae_objid expr) ++ "_" ++
     ppString (unQualId (ameth_id expr)) ++ "_" ++
-    connectWith "_" (map signalNameFromAExpr' (ae_args expr))
+    connectWith "_" (map signalNameFromAExpr' (concatMap argPorts (ae_args expr)))
+  where argPorts (ATuple _ es) = es
+        argPorts e             = [e]
 signalNameFromAExpr' (expr@AMethValue { }) =
     ppString (ae_objid expr) ++ "_" ++ ppString (unQualId (ameth_id expr))
 signalNameFromAExpr' (expr@ATuple { }) =
