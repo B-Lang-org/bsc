@@ -1069,10 +1069,8 @@ aExprToCExpr _ p@(APrim _ _ PrimStringConcat args) = argCount (==2) args $
 aExprToCExpr _ p@(APrim _ _ _ _) =
   internalError ("unhandled primitive: " ++ (show p))
 aExprToCExpr _ (AMethCall _ id mid args) =
-  do arg_list <- mapM (aExprToCExpr noRet) (concatMap argPorts args)
+  do arg_list <- mapM (aExprToCExpr noRet) (concatMap argInputPorts args)
      return $ (aInstMethIdToC id mid) `cCall` arg_list
-  where argPorts (ATuple _ es) = es
-        argPorts e             = [e]
 -- a tuple is laid out in wide data as a concatenation of its elements,
 -- with the first element in the most-significant bits (Verilog {e1,...,en})
 aExprToCExpr ret e@(ATuple _ exprs) =
@@ -1287,11 +1285,9 @@ aActionToCFunCall :: (Maybe (Bool,AId)) -> AAction
                      -> State ConvState (ReturnStyle, CCExpr, CCExpr)
 aActionToCFunCall _ c@(ACall id mth_id (cond_e:srcArgs)) =
   do cond <- aExprToCExpr noRet cond_e
-     arg_list <- mapM (aExprToCExpr noRet) (concatMap argPorts srcArgs)
+     arg_list <- mapM (aExprToCExpr noRet) (concatMap argInputPorts srcArgs)
      let call = (aInstMethIdToC id mth_id) `cCall` arg_list
      return (Direct, cond, call)
-  where argPorts (ATuple _ es) = es
-        argPorts e             = [e]
 aActionToCFunCall Nothing act@(AFCall {}) =
   do ff_map <- gets function_map
      let c = headOrErr "action has no condition" (aact_args act)

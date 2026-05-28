@@ -107,6 +107,7 @@ import ErrorMonad(ErrorMonad(..), convErrorMonadToIO)
 import PFPrint
 import Flags(Flags)
 import ASyntax
+import ASyntaxUtil(argInputPorts)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle)
 import VModInfo(vPath, vFields, vArgs,
                 VPathInfo(..), VName(..), VFieldInfo(..), vfMethodArgPorts,
@@ -1192,15 +1193,10 @@ mkActionEdges env en (ACall state_id qual_meth_id (cond:srcArgs)) =
     let meth_id = unQualId qual_meth_id
         meth_en = PNStateMethodEnable state_id meth_id
         meth_arg_mux = PNStateMethodArgMux state_id meth_id
-        -- A SplitPorts argument carries its ports as an ATuple AExpr;
-        -- unwrap one level so we get one AExpr per hardware port, and
-        -- track the (argN, portM) coordinates along the way.
-        argPorts (ATuple _ es) = es
-        argPorts e             = [e]
         argPortPairs =
             [ (PNStateMethodArg state_id meth_id argN portM, e)
             | (argN, srcArg) <- zip [1..] srcArgs
-            , (portM, e)     <- zip [1..] (argPorts srcArg) ]
+            , (portM, e)     <- zip [1..] (argInputPorts srcArg) ]
         hasArgPorts = not (null argPortPairs)
     in
       -- if the method has arguments, connect the enable signal of the
@@ -1244,14 +1240,10 @@ findEdges env (AMethCall t i qmi args) =
     -- make edges between exprs and meth input
     -- return the output connection
     let mi = unQualId qmi
-        -- A SplitPorts arg arrives as an ATuple of per-port AExprs;
-        -- unwrap one level to enumerate the (argN, portM) coordinates.
-        argPorts (ATuple _ es) = es
-        argPorts e             = [e]
         argPortPairs =
             [ (PNStateMethodArg i mi argN portM, e)
             | (argN, srcArg) <- zip [1..] args
-            , (portM, e)     <- zip [1..] (argPorts srcArg) ]
+            , (portM, e)     <- zip [1..] (argInputPorts srcArg) ]
         f (pn, e) = let (is, edges, muxes) = findEdges env e
                         es' = edges ++ connectEdge pn is
                     in  (es', muxes)
@@ -1265,12 +1257,10 @@ findEdges env (ATupleSel _ (AMethCall t i qmi args) oi) =
     -- make edges between exprs and meth input
     -- return the output connection
     let mi = unQualId qmi
-        argPorts (ATuple _ es) = es
-        argPorts e             = [e]
         argPortPairs =
             [ (PNStateMethodArg i mi argN portM, e)
             | (argN, srcArg) <- zip [1..] args
-            , (portM, e)     <- zip [1..] (argPorts srcArg) ]
+            , (portM, e)     <- zip [1..] (argInputPorts srcArg) ]
         f (pn, e) = let (is, edges, muxes) = findEdges env e
                         es' = edges ++ connectEdge pn is
                     in  (es', muxes)
