@@ -450,6 +450,14 @@ aClock c = do
                              aclock_gate = gate_aexpr })
     _ -> internalError ("AConv.ASClock: " ++ (show c))
 
+-- A wrapped method has () for arguments that have no non-empty ports,
+-- we drop them when converting to ASyntax.
+dropPrimUnitArgs :: [IExpr a] -> [IExpr a]
+dropPrimUnitArgs = filter (not . isPrimUnitArg)
+  where
+    isPrimUnitArg (ICon i _) = i == idPrimUnit
+    isPrimUnitArg _          = False
+
 aSExpr :: IExpr a -> M AExpr
 aSExpr e = do
         e' <- aExpr e
@@ -658,7 +666,7 @@ aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
 aSelExpr sels (ICon i (ICStateVar { }) : es)
     | (pfx@((_, atype) : _), [(m, atypeTup)]) <- span (isTupleSelector . fst) sels = do
   i' <- transId i
-  es' <- mapM aSExpr es
+  es' <- mapM aSExpr (dropPrimUnitArgs es)
   let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
   return $ ATupleSel atype (AMethCall atypeTup i' m es') (idx + 1)
 
@@ -691,7 +699,7 @@ aSelExpr sels base@(ICon i (ICStateVar { }) : es)
 aSelExpr [(m, atype)] (ICon i (ICStateVar { }) : es) = do
   i' <- transId i
   -- one AExpr per source argument; SplitPorts args are ATuple AExprs
-  args <- mapM aSExpr es
+  args <- mapM aSExpr (dropPrimUnitArgs es)
   return $ AMethCall atype i' m args
 
 aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockGate = do
@@ -937,7 +945,7 @@ aAction1 _ cond (IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = d
         -- for a SplitPorts argument whose IExpr is a PrimPair; consumers
         -- that walk individual hardware ports match on ATuple to split
         -- those tuples back into per-port AExprs.
-        es' <- mapM aSExpr es
+        es' <- mapM aSExpr (dropPrimUnitArgs es)
         i' <- transId i
         return [ACall i' m (cond' : es')]
 
