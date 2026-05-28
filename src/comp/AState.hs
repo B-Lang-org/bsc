@@ -367,12 +367,12 @@ aState' flags pps schedule_info apkg = do
             in  (c':es)
         addWF rid es = internalError("addWF: " ++ ppReadable (rid, es))
 
-        cvtForeign rid resets (AFCall id f isC (c:es) _) =
-            AForeignCall id (cvtName isC f) (addWF rid (c:es)) [] resets
-        cvtForeign rid resets a@(ATaskAction id f isC _ (c:es) Nothing _ _) =
-            AForeignCall id (cvtName isC f) (addWF rid (c:es)) [] resets
-        cvtForeign rid resets  (ATaskAction id f isC _ (c:es) (Just aid) ty _) =
-            AForeignCall id (cvtName isC f) (addWF rid (c:es)) [aid] resets
+        cvtForeign rid resets (AFCall id f isC es _) =
+            AForeignCall id (cvtName isC f) (addWF rid es) [] resets
+        cvtForeign rid resets a@(ATaskAction id f isC _ es Nothing _ _) =
+            AForeignCall id (cvtName isC f) (addWF rid es) [] resets
+        cvtForeign rid resets  (ATaskAction id f isC _ es (Just aid) ty _) =
+            AForeignCall id (cvtName isC f) (addWF rid es) [aid] resets
         cvtForeign rid resets a@(ACall { }) =
             internalError("AState.cvtForeign - not foreign:" ++ ppReadable a)
 
