@@ -1045,18 +1045,13 @@ mkEmuxs :: ([AExpr] -> [AExpr]) -> ([AExpr] -> [AExpr]) ->
            ([ADef], [ADef], [ADef], AExprSubst)
 mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
     let
-        -- A SplitPorts argument arrives as an ATuple of per-port AExprs;
-        -- unwrap one level so each AExpr corresponds to a hardware port.
-        argPorts (ATuple _ es) = es
-        argPorts e             = [e]
-
         -- Break each MethPortBlob into a list of the expressions for
         -- each argument, and then transpose the entire structure to
         -- make a list of, for each argument, a list of the different
         -- expressions used by the different uses for that argument
         arg_blobs = transpose [ [ (e, (cnd es), rs) | e <- tl es ] |
                                     (AMethCall _ _ _ args, rs) <- emrs,
-                                    let es = concatMap argPorts args ]
+                                    let es = concatMap argInputPorts args ]
 
         -- (argN, portM) coordinates for each input-port position; derived
         -- from the first call's args shape (all calls share the same
@@ -1066,7 +1061,7 @@ mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
             ((AMethCall _ _ _ args, _) : _) ->
                 [ (argN, portM)
                 | (argN, arg)   <- zip [1..] (tlG args)
-                , (portM, _)    <- zip [1..] (argPorts arg) ]
+                , (portM, _)    <- zip [1..] (argInputPorts arg) ]
             _ -> []
 
         -- Call mkEmux once for each input port of the method, giving it
