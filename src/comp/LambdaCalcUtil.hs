@@ -977,10 +977,10 @@ updateAVInstTypes avi = do
 
 updateAActionTypes :: AAction -> UTM AAction
 -- method condition is Bool type, arguments and return values are Bit type
-updateAActionTypes (ACall obj meth (c:srcArgs)) = do
+updateAActionTypes (ACall obj meth (c:as)) = do
   c' <- updateAExprTypes_Bool c
-  srcArgs' <- mapM updateAExprTypes_Bits srcArgs
-  return (ACall obj meth (c':srcArgs'))
+  as' <- mapM updateAExprTypes_Bits as
+  return (ACall obj meth (c':as'))
 -- action task/ffunc condition is Bool type, arguments are Bit/Real/String type
 updateAActionTypes (AFCall i f isC (c:as) isAssumpCheck) = do
   c' <- updateAExprTypes_Bool c
@@ -1034,10 +1034,10 @@ updateAExprTypes mty (APrim i t p args) = updateAPrimTypes mty p i t args
 
 -- method arguments and return values are Bit type,
 -- except RDY methods which return Bool
-updateAExprTypes _ (AMethCall t obj meth args) = do
-  args' <- mapM updateAExprTypes_Bits args
+updateAExprTypes _ (AMethCall t obj meth as) = do
+  as' <- mapM updateAExprTypes_Bits as
   let t' = if (isRdyId meth) then mkATBool else t
-  return (AMethCall t' obj meth args')
+  return (AMethCall t' obj meth as')
 
 -- method return values are Bit type
 updateAExprTypes _ e@(AMethValue t obj meth) = return e

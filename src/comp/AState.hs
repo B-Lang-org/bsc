@@ -935,13 +935,11 @@ mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
       -- (For actions, the first argument is the condition, so remove it)
       exp :: UniqueUse -> AExpr
       exp (UUExpr e _) = e
-      exp (UUAction (ACall o m args)) =
-          AMethCall aTAction o m args
-      exp (UUAction (AFCall i f isC args isA)) =
-          AFunCall aTAction i f isC args
+      exp (UUAction (ACall o m es)) = AMethCall aTAction o m es
+      exp (UUAction (AFCall i f isC es isA)) = AFunCall aTAction i f isC es
       -- XXX think this is just used for expression muxing
-      exp (UUAction (ATaskAction i f isC n args tid tty isA)) =
-          AFunCall aTAction i f isC args
+      exp (UUAction (ATaskAction i f isC n es tid tty isA)) =
+          AFunCall aTAction i f isC es
 
       -- ---------------
       -- Make the MethodBlob

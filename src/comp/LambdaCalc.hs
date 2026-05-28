@@ -1186,14 +1186,14 @@ convAExpr (ASAny t Nothing) = let st = convAType t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth args) = do
+convAExpr (AMethCall _ obj meth as) = do
   modId <- gets curModId
   state_expr <- gets curState
   instmap <- gets instMap
   let (mod, _, _) = lookupMod instmap obj
       mname = methId mod meth
       modState = SSelect state_expr (instFieldId modId obj)
-  a_exprs <- mapM convAExpr (concatMap argInputPorts args)
+  a_exprs <- mapM convAExpr (concatMap argInputPorts as)
   return $ SApply (SVar mname) (a_exprs ++ [modState])
 
 convAExpr e@(AMethValue t obj meth) =

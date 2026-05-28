@@ -120,10 +120,10 @@ chkMethArg e = case chkAExpr e of
                  t          -> isBit t
 
 chkAAction :: AAction -> Bool
-chkAAction aa@(ACall i m (c:srcArgs)) =
+chkAAction aa@(ACall i m (c:es)) =
     tracePP "chkAAction ACall" aa $
-        all chkMethArg srcArgs && chkCond (chkAExpr c)
-chkAAction afc@(AFCall { aact_args = (c:es) }) =
+        all chkMethArg es && chkCond (chkAExpr c)
+chkAAction afc@(AFCall { aact_objid = i, aact_args = (c:es) }) =
     tracePP "chkAAction AFCall" afc $
         chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
 chkAAction ata@(ATaskAction { aact_args = (c:es) }) =
@@ -270,8 +270,8 @@ chkAExpr e@(APrim _ t op es) =
                 then t
                 else internalError ("chkAExpr: other " ++ ppReadable (e, t, map chkAExpr es))
 
-chkAExpr e@(AMethCall t _ _ args) =
-        if all chkMethArg args
+chkAExpr e@(AMethCall t _ _ es) =
+        if all chkMethArg es
                 then t
                 else internalError ("chkAExpr: methcall " ++ ppReadable e)
 chkAExpr e@(AFunCall { ae_type = t, ae_args = es }) =
@@ -428,8 +428,7 @@ checkUses ds is ps es = concatMap (checkUse ds is ps) es
 
 checkUse :: S.Set AId -> S.Set AId -> S.Set AId -> AExpr -> [AId]
 checkUse ds is ps (APrim _ _ _ es)     = checkUses ds is ps es
-checkUse ds is ps (AMethCall _ i m args) =
-    checkUses ds is ps args  -- XXX check i and m ?
+checkUse ds is ps (AMethCall _ i m es) = checkUses ds is ps es  -- XXX check i and m ?
 checkUse ds is ps (AMethValue _ i m)   = [] -- XXX check i and m ?
 checkUse ds is ps (ATuple _ es)        = checkUses ds is ps es
 checkUse ds is ps (ATupleSel _ e _)    = checkUse ds is ps e

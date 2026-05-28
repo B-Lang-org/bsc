@@ -779,11 +779,11 @@ rUses (Rule _ _ preds reads writes) = do
   return (RuleUses ps rs ws)
 
 aUses :: AAction -> UCM (ExprUses, ActionUses)
-aUses a@(ACall i mi (c:srcArgs)) = do
+aUses a@(ACall i mi (c:es)) = do
     cond_uses <- eDomain c
     dm <- getDefMap
     arg_uses  <- liftM (map (addUseCond dm c)) $
-                 mapM eDomain srcArgs
+                 mapM eDomain es
     expr_uses <- mergeExprUsesM (cond_uses : arg_uses)
     let action_uses = singleMethodActionUse i (unQualId mi) a
     return (expr_uses, action_uses)
@@ -843,9 +843,9 @@ eDomain (APrim _ _ PrimArrayDynSelect [arr_e, idx_e]) = do
 eDomain (APrim { ae_args = es }) =
     -- should primitives have resource constraints?
     mapM eDomain es >>= mergeExprUsesM
-eDomain e@(AMethCall _ i mi args) = do
+eDomain e@(AMethCall _ i mi es) = do
     let this_use = singleMethodExprUse i (unQualId mi) e ucTrue
-    es_uses <- mapM eDomain args
+    es_uses <- mapM eDomain es
     mergeExprUsesM (this_use : es_uses)
 eDomain (ATuple _ es) = mapM eDomain es >>= mergeExprUsesM
 eDomain (ATupleSel _ e _) = eDomain e

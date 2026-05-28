@@ -4330,17 +4330,17 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
               | otherwise = (True, text "...")
           -- (method, hasCond, args, moreInfo)
           getUseInfo :: UniqueUse -> (String, Maybe Doc, Doc, Bool)
-          getUseInfo u@(UUExpr (AMethCall _ i m args) _) =
+          getUseInfo u@(UUExpr (AMethCall _ i m es) _) =
               let meth = getIdBaseString i ++ "." ++ getIdBaseString m
                   (moreCondInfo, cond) = mkCondInfo (extractCondition u)
-                  (moreArgInfo, argsDoc) = mkArgs args
+                  (moreArgInfo, argsDoc) = mkArgs es
               in  (meth, cond, argsDoc, moreCondInfo || moreArgInfo)
           getUseInfo (UUExpr e _) =
               internalError ("getUseInfo: e = " ++ ppReadable e)
-          getUseInfo (UUAction (ACall i m (c:srcArgs))) =
+          getUseInfo (UUAction (ACall i m (c:es))) =
               let meth = getIdBaseString i ++ "." ++ getIdBaseString m
                   (moreCondInfo, cond) = mkCondInfo c
-                  (moreArgInfo, argsDoc) = mkArgs srcArgs
+                  (moreArgInfo, argsDoc) = mkArgs es
               in  (meth, cond, argsDoc, moreCondInfo || moreArgInfo)
           getUseInfo (UUAction a) =
               internalError ("getUseInfo: a = " ++ ppReadable a)
