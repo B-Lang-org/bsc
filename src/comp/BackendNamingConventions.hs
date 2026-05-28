@@ -580,10 +580,10 @@ createMapForOneMeth meth_id mult ins outs me = if check then
       -- with multiplicity > 1, the meth_n in meth_mult already has the
       -- copy-number suffix folded in.
       method_input_names =
-          [ mkMethArgStr meth_n (toInteger argN) (toInteger portM)
+          [ mkMethArgStr meth_n argN portM
           | meth_n <- meth_mult
-          , (argN, ports) <- zip [1..] ins
-          , (portM, _)    <- zip [1..] ports ]
+          , (argN, ports) <- zip [1 :: Integer ..] ins
+          , (portM, _)    <- zip [1 :: Integer ..] ports ]
       -- the Verilog port names for the above
       verilog_input_names = map getFStringForVerilogPair (concat ins)
 

@@ -1381,6 +1381,8 @@ ppV d (i, t) = pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";"
 
 instance PPrint AAbstractInput where
     pPrint d p (AAI_Port v) = ppV d v
+    pPrint d p (AAI_MultiPort vs) =
+        text "multi {" <+> sep (map (ppV d) vs) <+> text "}"
     pPrint d p (AAI_Clock osc Nothing) =
         text "clock {" <+>
         (text "osc =" <+> pPrint d 0 osc) <+>
