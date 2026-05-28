@@ -110,14 +110,15 @@ import ASyntax
 import ASyntaxUtil(argInputPorts)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle)
 import VModInfo(vPath, vFields, vArgs,
-                VPathInfo(..), VName(..), VFieldInfo(..), vfMethodArgPorts,
+                VPathInfo(..), VName(..), VFieldInfo(..),
                 VArgInfo(..), VWireInfo(..),
                 getInputClockPorts, getInputResetPorts,
-                isClock, isReset, isPort, isParam, id_to_vName,mkNamedEnable)
+                isClock, isReset, isPort, isParam, id_to_vName,
+                mkNamedEnable, mkNamedOutputs)
 import Pragma
 import Control.Monad(when)
 import Data.Maybe(isJust, isNothing, fromJust)
-import Data.List(partition, genericIndex)
+import Data.List(partition)
 import Id(unQualId, getIdBaseString)
 import Eval
 import Position(getPosition)
@@ -190,10 +191,10 @@ data PathNode =
     PNCanFire AId  |
     -- enable signal of a method or rule
     PNWillFire AId  |
-    -- arguments to methods of current module (Ids: method, argument)
+    -- arguments to methods of current module (Ids: method, input port)
     PNTopMethodArg AId AId  |
-    -- return values of methods of current module (Ids: method, result #)
-    PNTopMethodRes AId Integer  |
+    -- return values of methods of current module (Ids: method, output port)
+    PNTopMethodRes AId AId  |
     -- this is an internal graph node for the method's ready signal,
     -- the real output port is handled by a separate read method
     -- (Id: method)
@@ -258,8 +259,8 @@ printPathNode use_pvprint d p node =
             (PNTopMethodArg meth_id arg_id) ->
                 fsep [text "Argument", pp arg_id,
                       s2par "of top-level method", quotes (pp meth_id)]
-            (PNTopMethodRes meth_id res_num) ->
-                fsep [text "Output", pp res_num,
+            (PNTopMethodRes meth_id res_id) ->
+                fsep [text "Output", pp res_id,
                       s2par "of top-level method", quotes (pp meth_id)]
             (PNTopMethodReady meth_id) ->
                 fsep [s2par "Ready condition",
@@ -300,7 +301,7 @@ instance NFData PathNode where
     rnf (PNCanFire aid) = rnf aid
     rnf (PNWillFire aid) = rnf aid
     rnf (PNTopMethodArg a1 a2) = rnf2 a1 a2
-    rnf (PNTopMethodRes aid n) = rnf2 aid n
+    rnf (PNTopMethodRes a1 a2) = rnf2 a1 a2
     rnf (PNTopMethodReady aid) = rnf aid
     rnf (PNTopMethodEnable aid) = rnf aid
     rnf (PNTopArgument aid n) = rnf2 aid n
@@ -574,14 +575,14 @@ aPathsPreSched errh flags apkg = do
           [(arg, PNTopMethodArg m arg) | iface@(AIActionValue { aif_name = m }) <- ifc,
                                          (arg,_) <- aIfaceArgs iface]
 
-      num_outputs (ADef {adef_type = ATTuple ts}) = fromIntegral (length ts)
-      num_outputs _ = 1
+      -- Per-port output names for a method (one Id per hardware output port).
+      methodOutputIds iface = mkNamedOutputs (aif_fieldinfo iface)
 
       method_outputs =
-          [(m, PNTopMethodRes m res) | (AIDef { aif_name = m, aif_value = v }) <- ifc,
-                                       res <- [1..(num_outputs v)] ] ++
-          [(m, PNTopMethodRes m res) | (AIActionValue { aif_name = m, aif_value = v }) <- ifc,
-                                       res <- [1..(num_outputs v)] ]
+          [(m, PNTopMethodRes m o) | iface@(AIDef { aif_name = m }) <- ifc,
+                                     o <- methodOutputIds iface ] ++
+          [(m, PNTopMethodRes m o) | iface@(AIActionValue { aif_name = m }) <- ifc,
+                                     o <- methodOutputIds iface ]
 
       method_enables =
           -- Name creation is safe, since it is based on VFieldInfo
@@ -708,7 +709,8 @@ aPathsPreSched errh flags apkg = do
           -- connect the definition to the method result
           -- (this method has no enable, so it cannot contribute to any
           -- methcall argument muxes, so just use "mkEdges")
-          else [edge | (res, e') <- zip [1..] results, edge <- mkEdges (PNTopMethodRes mid res) e' env]
+          else [edge | (resId, e') <- zip (methodOutputIds iface) results,
+                       edge <- mkEdges (PNTopMethodRes mid resId) e' env]
           where result_types | ATTuple ts <- t = ts
                              | otherwise = [t]
                 results | ATuple { ae_elems = elems } <- e = elems
@@ -784,8 +786,8 @@ aPathsPreSched errh flags apkg = do
               -- connect the definitions to the method results
               -- (this method's Enable could contribute to methcall argument
               -- muxes, so use "mkEdgesWithMux")
-              else [edge | (res, e') <- zip [1..] results,
-                    edge <- (mkEdgesWithMux en_node (PNTopMethodRes m res) e' env)]) ++
+              else [edge | (resId, e') <- zip (methodOutputIds iface) results,
+                    edge <- (mkEdgesWithMux en_node (PNTopMethodRes m resId) e' env)]) ++
                -- connect the rules
               concatMap mkMRuleEdges rs
 
@@ -932,13 +934,14 @@ aPathsPreSched errh flags apkg = do
   -- (a path from WF(r1) to CF(r2) implies r1 more urgent than r2)
 
   -- For urgency to be computed by paths, we must assume a path from
-  -- a method's ready signal to its enable signal.
-  let rdy_to_en_edges = [(PNTopMethodRes rdy_id 1, PNTopMethodEnable m_id) |
+  -- a method's ready signal to its enable signal.  The RDY method has a
+  -- single output port whose Id matches the method's own Id.
+  let rdy_to_en_edges = [(PNTopMethodRes rdy_id rdy_id, PNTopMethodEnable m_id) |
                              (AIAction { aif_pred = (ASDef _ rdy_id),
-                                         aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ] ++
-                        [(PNTopMethodRes rdy_id 1, PNTopMethodEnable m_id) |
+                                         aif_name =  m_id }) <- ifc ] ++
+                        [(PNTopMethodRes rdy_id rdy_id, PNTopMethodEnable m_id) |
                              (AIActionValue { aif_pred = (ASDef _ rdy_id),
-                                              aif_name =  m_id, aif_fieldinfo = m_fi }) <- ifc ]
+                                              aif_name =  m_id }) <- ifc ]
 
   pathgraph' <- addEdgesWithNodes pathgraph rdy_to_en_edges
   let reachables = findReachables pathgraph' will_fire_nodes
@@ -1109,12 +1112,9 @@ aPathsPostSched flags pps apkg pathGraphInfo (ASchedule scheds _) = do
               Just info -> info
               Nothing -> internalError ("APaths findMethod: " ++ ppReadable m)
 
-  -- the "arg" is already the VName and not a number
+  -- the "arg" / "res" is already the per-port AId, so no lookup needed
   let convertArg m arg = aidToVName arg
-
-  let convertRes m res_num =
-          case (findMethod m) of
-              (_, res) -> res `genericIndex` (res_num - 1)
+      convertRes m res = aidToVName res
 
   let convertEnable m =
           case (findMethod m) of
