@@ -1205,6 +1205,9 @@ convStmt _ (AStmtAction cset (AFCall i f isC as isAssumpCheck)) = do
   -- so do nothing
   return []
 
+convStmt _ (AStmtAction _ (ACall _ _ [])) =
+  internalError "SAL.convStmt: ACall without condition"
+
 convStmt _ (AStmtAction cset (ATaskAction i f isC k as tmp t b)) = do
   -- the effect is outside our scope, but there is a return value,
   -- so assign it to an unknown value
