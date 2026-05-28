@@ -27,6 +27,7 @@ import IntLit
 import Prim(PrimOp(..))
 import VModInfo(vName, VArgInfo(..), isParam, isPort, getVNameString)
 import ASyntax
+import ASyntaxUtil(argInputPorts)
 import LambdaCalcUtil
 
 -- TODO:
@@ -1008,11 +1009,8 @@ convStmt modId avmap (AStmtAction cset (ACall obj meth (_:srcArgs))) = do
 
   -- convert the condition
   c_expr <- convAExpr c
-  -- convert the arguments; a SplitPorts argument arrives as an ATuple
-  -- of per-port AExprs that we flatten into separate function arguments
-  let argPorts (ATuple _ es) = es
-      argPorts e             = [e]
-  a_exprs <- mapM convAExpr (concatMap argPorts srcArgs)
+  -- a SplitPorts argument expands into one AExpr per hardware port
+  a_exprs <- mapM convAExpr (concatMap argInputPorts srcArgs)
 
   let
       -- the kind of module that this instance is
@@ -1192,9 +1190,7 @@ convAExpr (AMethCall _ obj meth args) = do
   let (mod, _, _) = lookupMod instmap obj
       mname = methId mod meth
       modState = SSelect state_expr (instFieldId modId obj)
-      argPorts (ATuple _ es) = es
-      argPorts e             = [e]
-  a_exprs <- mapM convAExpr (concatMap argPorts args)
+  a_exprs <- mapM convAExpr (concatMap argInputPorts args)
   return $ SApply (SVar mname) (a_exprs ++ [modState])
 
 convAExpr e@(AMethValue t obj meth) =

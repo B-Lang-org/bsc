@@ -258,6 +258,20 @@ instance ATypeC ADef where
 
 -- ---------------
 
+-- Return the AExprs that drive each individual hardware input port of a
+-- method argument.  A SplitPorts argument has tuple type: if the AExpr is
+-- a literal ATuple we return its elements directly, otherwise we emit one
+-- ATupleSel per element so each port is driven by a Bit-typed expression.
+-- Anything else (a single-port argument) is returned unchanged as a
+-- singleton list.
+argInputPorts :: AExpr -> [AExpr]
+argInputPorts (ATuple _ es) = es
+argInputPorts e = case aType e of
+  ATTuple ts -> [ ATupleSel t e idx | (idx, t) <- zip [1..] ts ]
+  _          -> [e]
+
+-- ---------------
+
 class AExprs a where
     mapAExprs :: (AExpr -> AExpr) -> a -> a
     mapMAExprs :: (Monad m) => (AExpr -> m AExpr) -> a -> m a
