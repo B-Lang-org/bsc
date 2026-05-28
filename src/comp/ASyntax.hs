@@ -544,8 +544,6 @@ data AAbstractInput =
         AAI_Port AInput |
         -- a single source argument that is split into multiple hardware ports
         -- (e.g. a struct argument whose fields each become a port).
-        -- The list MUST be non-empty; a zero-port argument is represented as
-        -- AAI_MultiPort [] only when the source argument has zero-width.
         AAI_MultiPort [AInput] |
         -- clock osc and maybe gate
         AAI_Clock AId (Maybe AId) |
