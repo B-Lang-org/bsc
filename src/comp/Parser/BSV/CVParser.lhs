@@ -1512,12 +1512,15 @@ returns a single identifier formed by joining the components with underscores.
 >                                    clk rst 0 [] [p] Nothing,
 >                                False)]
 >                            Just _ -> internalError "pMethodVeriProt(4)"
+>        -- BVI lists each method arg port individually; TCheck regroups
+>        -- per source-argument once the type signature is known.
+>        let argGroups = map (:[]) args
 >        return ((name,
 >                 V.Method fullname
 >                          clk
 >                          rst
 >                          multi
->                          args
+>                          argGroups
 >                          oPorts
 >                          en,
 >                  not(null nullOrReady))
@@ -4602,7 +4605,8 @@ a "module verilog":
 >     let g (s,Nothing) = [(s,[])]
 >         g (s,Just g) = [(s,[]),(g,[])]
 >         f (Nothing, _) = []
->         f (Just i , cmg) = [V.Method i Nothing Nothing 1 (concat(map g cmg)) [] Nothing]
+>         f (Just i , cmg) =
+>             [V.Method i Nothing Nothing 1 (map (:[]) (concat (map g cmg))) [] Nothing]
 >     in concat . (map f)
 
 > pImperativeForeignModuleAt :: Position -> Attributes -> ImperativeFlags

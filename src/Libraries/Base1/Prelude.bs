@@ -4622,8 +4622,9 @@ data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
 
 
--- Tag a method with metadata: the input and output port names.
-primitive primMethod :: List String -> List String -> a -> a
+-- Tag a method with metadata: the input port names for each method argument,
+-- and the output port names.
+primitive primMethod :: List (List String) -> List String -> a -> a
 
 -- Convert bewtween a field in an interface that is being synthesized,
 -- and a field in the corresponding field in the generated wrapper interface.
@@ -4686,19 +4687,19 @@ class WrapMethod m w | m -> w where
   -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
   methodArgBaseNames :: m -> String -> List String -> Integer -> List String
 
-  -- Compute the list of input port names for a method, from the argument base names.
-  inputPortNames :: m -> List String -> List String
+  -- Compute the list of input port names for each method argument, given the per-argument base names.
+  inputPortNames :: m -> List String -> List (List String)
 
-  -- Compute the list of input port names for a method, from the result base name.
+  -- Compute the list of output port names for a method, from the result base name.
   outputPortNames :: m -> String -> List String
 
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (WrapPorts (PortsOf a) pb, WrapMethod b v, Curry (pb -> v) w) =>
-    WrapMethod (a -> b) w where
-  toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
-  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
+instance (WrapPorts (PortsOf a) pb, WrapMethod b v) =>
+    WrapMethod (a -> b) (pb -> v) where
+  toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
+  fromWrapMethod g = fromWrapMethod ∘ g ∘ packPorts ∘ splitPorts
 
   methodArgBaseNames _ prefix (Cons h t) i = Cons
     -- arg_names can start with a digit
@@ -4711,8 +4712,8 @@ instance (WrapPorts (PortsOf a) pb, WrapMethod b v, Curry (pb -> v) w) =>
     (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
 
   inputPortNames _ (Cons h t) =
-    filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h)
-    `listPrimAppend` inputPortNames (_ :: b) t
+    Cons (filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h))
+         (inputPortNames (_ :: b) t)
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
 
   outputPortNames _ = outputPortNames (_ :: b)

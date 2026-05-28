@@ -13,9 +13,10 @@ dVars :: (AExprs a) => a -> [AId]
 dVars = findAExprs dVarsE
   where dVarsE (ASDef _ i) = [i]
         dVarsE (APrim { ae_args = es }) = dVars es
-        dVarsE (AMethCall { ae_args = es}) = dVars es
+        dVarsE (AMethCall { ae_args = args}) = dVars args
         dVarsE (ANoInlineFunCall { ae_args = es }) = dVars es
         dVarsE (AFunCall { ae_args = es }) = dVars es
+        dVarsE (ATuple _ es) = dVars es
         dVarsE _ = []
 
 aDropDefs :: ASPackage -> ASPackage

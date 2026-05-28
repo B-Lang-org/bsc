@@ -139,7 +139,8 @@ aMethValues (AMGate {}) = []
 -- find AMethCall uses in an AExpr (ignore references to AV values)
 aMethCalls :: AExpr -> [(AId, AId)]
 aMethCalls e@(APrim {}) = concatMap aMethCalls (ae_args e)
-aMethCalls (AMethCall _ obj meth es) = ((obj,meth) : concatMap aMethCalls es)
+aMethCalls (AMethCall _ obj meth args) =
+    ((obj,meth) : concatMap aMethCalls args)
 aMethCalls (AMethValue _ obj meth) = []
 aMethCalls (ATuple _ es) = concatMap aMethCalls es
 aMethCalls (ATupleSel _ e _) = aMethCalls e
@@ -187,7 +188,8 @@ exprForeignCalls e@(AFunCall {})  =
   then e : concatMap exprForeignCalls (ae_args e)
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
-exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
+exprForeignCalls e@(AMethCall {}) =
+    concatMap exprForeignCalls (ae_args e)
 exprForeignCalls (ATuple _ es) = concatMap exprForeignCalls es
 exprForeignCalls (ATupleSel _ e _) = exprForeignCalls e
 exprForeignCalls e@(ANoInlineFunCall {}) =
@@ -285,16 +287,16 @@ instance (AExprs b) => AExprs [b] where
     findAExprs f l = concatMap (findAExprs f) l
 
 instance AExprs AAction where
-    mapAExprs f (ACall id mid es) =
-        (ACall id mid (mapAExprs f es))
+    mapAExprs f (ACall id mid args) =
+        ACall id mid (mapAExprs f args)
     mapAExprs f (AFCall id fun isC es isA) =
-        (AFCall id fun isC (mapAExprs f es) isA)
+        AFCall id fun isC (mapAExprs f es) isA
     mapAExprs f (ATaskAction id fun isC n es tid tty isA) =
-        (ATaskAction id fun isC n (mapAExprs f es) tid tty isA)
+        ATaskAction id fun isC n (mapAExprs f es) tid tty isA
     -- monadic
-    mapMAExprs f (ACall id mid es) =
-        do es' <- mapMAExprs f es
-           return (ACall id mid es')
+    mapMAExprs f (ACall id mid args) =
+        do args' <- mapMAExprs f args
+           return (ACall id mid args')
     mapMAExprs f (AFCall id fun isC es isA) =
         do es' <- mapMAExprs f es
            return (AFCall id fun isC es' isA)
@@ -302,9 +304,9 @@ instance AExprs AAction where
         do es' <- mapMAExprs f es
            return (ATaskAction id fun isC n es' tid tty isA)
     -- find
-    findAExprs f (ACall id mid es) = findAExprs f es
-    findAExprs f (AFCall id fun isC es isA) = findAExprs f es
-    findAExprs f (ATaskAction id fun isC n es tid tty isA) = findAExprs f es
+    findAExprs f (ACall _ _ args) = findAExprs f args
+    findAExprs f (AFCall _ _ _ es _) = findAExprs f es
+    findAExprs f (ATaskAction _ _ _ _ es _ _ _) = findAExprs f es
 
 instance AExprs ADef where
     mapAExprs f (ADef id ty e p) = (ADef id ty (mapAExprs f e) p)

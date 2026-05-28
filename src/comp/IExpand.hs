@@ -1056,8 +1056,8 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
 
 -- expand a method
 iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
+                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
@@ -1073,31 +1073,57 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e)
      _ -> iExpandMethod' implicitCond curClk (i, bi, outs, e') p
 
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], [String], HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
                  Id -> IType -> Pred HeapData ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
-    --traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show (ins, outs))
     if null ins then internalError "iExpandMethodLam: no inputs" else return ()
-    let i' :: Id
-        i' = mkId (getPosition i) $ mkFString $ head ins
-        -- substitute argument with a modvar and replace with body
-        eb' :: HExpr
-        eb' = eSubst li (ICon i' (ICMethArg ty)) eb
+    let arg_port_types       = itTupleElems ty
+    when (length arg_port_types /= length (head ins)) $
+        internalError $ "iExpandMethodLam: port-count mismatch for method " ++
+                        ppString i ++ " arg type " ++ ppReadable ty ++
+                        " (" ++ show (length arg_port_types) ++
+                        " ports vs " ++ show (length (head ins)) ++
+                        " names): " ++ show (head ins)
+    let arg_ports :: [(Id, IType)]
+        arg_ports = zipWith (\name pt -> (mkId (getPosition i) (mkFString name), pt))
+                            (head ins) arg_port_types
+        arg_expr  = buildArgExpr ty arg_ports
+        eb' = eSubst li arg_expr eb
     (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
-        iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, outs, eb')
-    let inps :: [VPort]
+        iExpandMethod modId (n+1) (map fst arg_ports ++ args)
+                      (pConj implicitCond p) clkRst (i, bi, tail ins, outs, eb')
+    let inps :: [[VPort]]
         inps = vf_inputs wf1
-    let wf1' :: VFieldInfo
+        arg_vports = map (id_to_vPort . fst) arg_ports
+        wf1' :: VFieldInfo
         wf1' = case wf1 of
-                  (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
+                  (Method {}) -> wf1 { vf_inputs = arg_vports : inps }
                   _ -> internalError "iExpandMethodLam: unexpected wf1"
-    return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
+    return (arg_ports : its, (d, ws1, wf1'), (wd, ws2, wf2))
+
+-- Build an HExpr matching the given tuple type's shape, with one ICMethArg
+-- per hardware input port (in the order given).
+buildArgExpr :: IType -> [(Id, IType)] -> HExpr
+buildArgExpr ty arg_ports
+  | ty == itPrimUnit =
+      ICon idPrimUnit (ICTuple { iConType = itPrimUnit, fieldIds = [] })
+  | otherwise = case ty of
+      ITAp (ITAp (ITCon ip _ _) t1) t2 | ip == idPrimPair ->
+        let n1 = length (itTupleElems t1)
+            (l1, l2) = splitAt n1 arg_ports
+            e1 = buildArgExpr t1 l1
+            e2 = buildArgExpr t2 l2
+        in iMkPairAt noPosition t1 t2 e1 e2
+      _ -> case arg_ports of
+             [(pid, _)] -> ICon pid (ICMethArg ty)
+             _ -> internalError $ "buildArgExpr: port count mismatch for " ++
+                                  ppReadable ty
 
 iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
                   Pred HeapData ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         norm <- getTypeNormalizerC
@@ -2179,6 +2205,24 @@ evalStringList e = do
       else internalError ("evalStringList con: " ++ show i)
     _ -> nfError "evalStringList" e'
 
+-- Evaluate a `List (List String)` literal into `[[String]]`.
+evalStringListList :: HExpr -> G ([[String]], Position)
+evalStringListList e = do
+  e' <- evaleUH e
+  case e' of
+    IAps (ICon i _) _ [a] ->
+      if i == idCons noPosition then do
+        a' <- evaleUH a
+        case a' of
+          IAps (ICon _ (ICTuple {})) _ [e_h, e_t] -> do
+            (h, _) <- evalStringList e_h
+            (t, _) <- evalStringListList e_t
+            return (h:t, getIExprPosition e')
+          _ -> internalError ("evalStringListList Cons: " ++ showTypeless a')
+      else if i == idPrimChr then return ([], getIExprPosition e')
+      else internalError ("evalStringListList con: " ++ show i)
+    _ -> nfError "evalStringListList" e'
+
 -----------------------------------------------------------------------------
 
 evalHandle :: HExpr -> G Handle
@@ -2622,12 +2666,20 @@ walkNF e =
                 _ -> upd p0 e wsEmpty
 
     case e of
-        ref@(IRefT _ _ r) -> do
+        ref@(IRefT _ ptr r) -> do
             hc <- getHeap r
             case hc of
-                HUnev { hc_hexpr = e } -> do
-                    e' <- unheapAll e
-                    internalError ("walkNF unev: " ++ ppReadable (e, e'))
+                HUnev { hc_hexpr = hu_e } -> do
+                    -- Force the unevaluated cell to WHNF and retry.  Without
+                    -- the WrapMethod Curry context, method-call arguments at
+                    -- the caller can still be HUnev when we reach them here:
+                    -- the wrapper builds a tuple-of-bits arg, evalHeap stores
+                    -- each tuple field as HUnev, and walkNF later needs to
+                    -- force them itself.
+                    when doTraceNF $
+                        traceM ("walkNF unev (forcing): " ++ ppReadable hu_e)
+                    _ <- evalHeap (ptr, r)
+                    walkNF ref
                 HLoop name ->
                     internalError ("walkNF loop: " ++ ppReadable name)
                 -- reuse ref for better CSE
@@ -3170,7 +3222,7 @@ conAp' i (ICPrim _ PrimIsRawUndefined) _ (T t : E e : as) = do
             return (P p iFalse)
 
 conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
-  (inNames, _) <- evalStringList eInNames
+  (inNames, _) <- evalStringListList eInNames
   (outNames, _) <- evalStringList eOutNames
   P p meth' <- eval1 meth
   return $ P p $ ICon (dummyId noPosition) $ ICMethod {

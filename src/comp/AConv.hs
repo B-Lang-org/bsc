@@ -186,11 +186,11 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         flags <- getFlags
 
         -- AVInst keeps the types of method ports
-        let tsConv :: Id -> [IType] -> ([AType], Maybe AType, [AType])
+        let tsConv :: Id -> [IType] -> ([[AType]], Maybe AType, [AType])
             tsConv i ts =
                 let inputs = initOrErr "tsConv" ts
                     res = lastOrErr "tsConv" ts
-                    in_types = map (aTypeConv i) inputs
+                    in_types = map (aTupleTypesConv i) inputs
                     (en_type, val_type)
                       | isitActionValue_ res
                           = (Just (ATBit 1), aTupleTypesConv i (getAV_Type res))
@@ -336,7 +336,16 @@ aAbstractInput (IAI_Inout r n) = (AAI_Inout r n)
 aIface :: Flags -> IEFace a -> M AIFace
 aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
         --trace ("enter " ++ ppReadable i) $ return ()
-        let its' = [ (arg_i, aTypeConv arg_i arg_t) | (arg_i, arg_t) <- its]
+        -- `its` is grouped by source-language argument (one inner list per
+        -- argument).  A singleton group becomes AAI_Port; multi-element
+        -- groups become AAI_MultiPort, preserving the per-argument grouping
+        -- introduced by GenWrap / SplitPorts.
+        let convGroup group = [ (arg_i, aTypeConv arg_i arg_t)
+                              | (arg_i, arg_t) <- group ]
+            mkAAI group = case convGroup group of
+                            [p] -> AAI_Port p
+                            ps  -> AAI_MultiPort ps
+            its' = map mkAAI its
             g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
         case (maybe_e, maybe_rs) of
           (Nothing, Nothing) -> internalError ("AConv.aIface nothing in it "
@@ -605,6 +614,7 @@ aTupleExpr (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
         ae1 <- aSExpr e1
         ae2 <- aTupleExpr e2
         return (ae1:ae2)
+aTupleExpr (ICon i _) | i == idPrimUnit = return []
 aTupleExpr e = fmap (:[]) (aSExpr e)
 
 -- the PrimFst/PrimSnd selectors that project an element out of a
@@ -680,8 +690,9 @@ aSelExpr sels base@(ICon i (ICStateVar { }) : es)
 -- value method
 aSelExpr [(m, atype)] (ICon i (ICStateVar { }) : es) = do
   i' <- transId i
-  es' <- mapM aSExpr es
-  return $ AMethCall atype i' m es'
+  -- one AExpr per source argument; SplitPorts args are ATuple AExprs
+  args <- mapM aSExpr es
+  return $ AMethCall atype i' m args
 
 aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockGate = do
         ac <- aClock c
@@ -755,6 +766,7 @@ aTypeConvE a t = abs t []
                   internalError ("aTypeConvE|" ++ show t)
 
 aTupleTypesConv :: Id -> IType -> [AType]
+aTupleTypesConv _ t | t == itPrimUnit = []
 aTupleTypesConv a (ITAp (ITAp (ITCon p _ _) t1) t2) | p == idPrimPair =
   aTypeConv a t1 : aTupleTypesConv a t2
 aTupleTypesConv a t = [aTypeConv a t]
@@ -884,7 +896,7 @@ aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
        internalError ("aAction1: too many arguments to avAction_: " ++
                       ppReadable es)
    cond' <- aSExpr cond
-   return [(ATaskAction i name isC n [cond'] Nothing value_type False)]
+   return [ATaskAction i name isC n [cond'] Nothing value_type False]
 
 -- action part of ActionValue task with arguments
 aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
@@ -906,7 +918,7 @@ aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
                       ppReadable es)
    cond' <- aSExpr cond
    fes'   <- mapM aSExpr fes
-   return [(ATaskAction i name isC n (cond' : fes') Nothing value_type False)]
+   return [ATaskAction i name isC n (cond':fes') Nothing value_type False]
 
 aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAction_ =
    case es of
@@ -921,6 +933,10 @@ aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAc
 
 aAction1 _ cond (IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = do
         cond' <- aSExpr cond
+        -- One AExpr per source argument.  aSExpr produces an ATuple AExpr
+        -- for a SplitPorts argument whose IExpr is a PrimPair; consumers
+        -- that walk individual hardware ports match on ATuple to split
+        -- those tuples back into per-port AExprs.
         es' <- mapM aSExpr es
         i' <- transId i
         return [ACall i' m (cond' : es')]
@@ -932,7 +948,7 @@ aAction1 _ cond (IAps (ICon i (ICForeign { fName = name, isC = isC, foports = No
         -- assume we do not need applied types,
         -- the foreign function is truly polymorphic
         --let ns = [ n | ITNum n <- ts ]
-        return [AFCall i name isC (cond' : es') False]
+        return [AFCall i name isC (cond':es') False]
 
 -- noinline functions returning Action are not synthesizable, so this
 -- branch is not needed

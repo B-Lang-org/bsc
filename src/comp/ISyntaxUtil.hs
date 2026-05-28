@@ -939,6 +939,17 @@ itGetArrows it = itGetArrows' [] it
   where itGetArrows' ts (ITAp (ITAp arr a) r) | arr == itArrow = itGetArrows' (a:ts) r
         itGetArrows' ts r = (reverse ts, r)
 
+-- Flatten a (possibly nested) right-associated PrimPair tuple type into its
+-- element types in left-to-right order.  PrimUnit contributes no elements,
+-- PrimPair recurses into both sides, anything else is a single element.
+itTupleElems :: IType -> [IType]
+itTupleElems t
+  | t == itPrimUnit = []
+  | otherwise = case t of
+                  ITAp (ITAp (ITCon ip _ _) t1) t2 | ip == idPrimPair ->
+                      itTupleElems t1 ++ itTupleElems t2
+                  _ -> [t]
+
 -- #############################################################################
 -- #
 -- #############################################################################

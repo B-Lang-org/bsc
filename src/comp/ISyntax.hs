@@ -192,8 +192,8 @@ data IEFace a = IEFace {
         -- the name of an actual method to construct the name of its
         -- associated ready method.
         ief_name :: Id,
-        -- arguments
-        ief_args :: [(Id, IType)],
+        -- arguments, split into ports.
+        ief_args :: [[(Id, IType)]],
         -- Prior to 'iSplitIface', 'ief_value' contains the expression for
         -- the whole method and 'ief_body' is empty.  After 'iSplitIface',
         -- 'ief_value' contains the return value (if any) and 'ief_body'
@@ -820,7 +820,11 @@ data IConInfo a =
           -- only exists before expansion
         | ICSchedPragmas { iConType :: IType, iPragmas :: [CSchedulePragma] }
 
-        | ICMethod { iConType :: IType, iInputNames :: [String], iOutputNames :: [String], iMethod :: IExpr a }
+        | ICMethod { iConType :: IType,
+                     -- per-source-argument input port name groups
+                     iInputNames :: [[String]],
+                     iOutputNames :: [String],
+                     iMethod :: IExpr a }
         | ICClock { iConType :: IType, iClock :: IClock a }
         | ICReset { iConType :: IType, iReset :: IReset a } -- iReset has effective type itBit1
         | ICInout { iConType :: IType, iInout :: IInout a }
@@ -1062,7 +1066,7 @@ ppMV d (i, ty) = ppId d i <+> text "::" <+> pPrint d 0 ty
 instance PPrint (IEFace a) where
     pPrint d p (IEFace i vs et rules wp fi)
         =       text "-- args" $+$
-                foldr (($+$) . ppMV d) b vs
+                foldr (($+$) . ppMV d) b (concat vs)
               where b =        text "-- body" $+$
                         (case et of
                           Just (e,t) -> ppDef d $ IDef i t e []
