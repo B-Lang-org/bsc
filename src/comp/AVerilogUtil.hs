@@ -857,8 +857,9 @@ vState  flags rewire_map avinst =
         -- Below, we construct info on the method:
         --   arguments, return values, and enables
 
-        mkArgId :: Id -> Integer -> Maybe Integer -> VId
-        mkArgId m k m_port = vMethId v_inst_name m m_port (MethodArg k) port_rename_table
+        mkArgId :: Id -> Integer -> Integer -> Maybe Integer -> VId
+        mkArgId m argN portM m_port =
+            vMethId v_inst_name m m_port (MethodArg argN portM) port_rename_table
 
         mkEnId m m_port = vMethId v_inst_name m m_port MethodEnable port_rename_table
 
@@ -884,14 +885,21 @@ vState  flags rewire_map avinst =
         -- the size if it is not 1-bit
         inps :: [(VId, VId, Maybe VRange)]
         inps =  [ (mkVId (portid s ino),
-                   mkArgId m k ino,
+                   mkArgId m argN portM ino,
                    vSize argType)
                   | (meth@(Method m _ _ mult ps outs me),
-                     (argTypes,_,_))
+                     (argTypeGroups,_,_))
                         <- zip (vFields vi) mts,
-                    -- let multu = getMethodMultUse m,
                     ino <- if mult > 1 then map Just [0..mult-1] else [Nothing],
-                    (VName s, argType, k) <- zip3 (map fst ps) argTypes [1..],
+                    -- one (vname, type) per input port, paired with its
+                    -- (argN, portM) coordinates in the source argument list
+                    (s, argType, argN, portM) <-
+                        [ (s, t, argN, portM)
+                        | (argN, portGroup, typeGroup) <-
+                              zip3 [1..] ps argTypeGroups
+                        , (portM, (VName s, _), t) <-
+                              zip3 [1..] portGroup typeGroup
+                        ],
                     isNotZeroSized argType
                 ]
 

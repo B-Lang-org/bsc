@@ -217,6 +217,8 @@ getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
 getAExprDefs def_map known ((AFunCall _ _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
+getAExprDefs def_map known ((ATuple _ elems):es) =
+  getAExprDefs def_map known (elems ++ es)
 getAExprDefs def_map known ((ASDef _ i):es) =
   case (M.lookup i known) of
     Just _ -> getAExprDefs def_map known es
@@ -566,9 +568,11 @@ instance PPrint AStmt where
   pPrint d p (AStmtDef def) =
       pparen (p > 0) (text "AStmtDef" <+> pPrint d 1 def)
   pPrint d p (AStmtAction cset act) =
+      -- prepend the recomputed condition to the action's argument list
       let c = getCondExpr cset
-          as = aact_args act
-          act' = act { aact_args = (c:as) }
+          act' = case aact_args act of
+                   (_:as) -> act { aact_args = c : as }
+                   []     -> act { aact_args = [c] }
       in  pparen (p > 0) (text "AStmtAction" <+> pPrint d 1 act')
   pPrint d p (AStmtIf cset tblk fblk) =
       pparen (p > 0)
@@ -754,9 +758,10 @@ mergeStmts defmap stmts0 =
         makeStmt :: Either ADef AAction -> AStmt
         makeStmt (Left d) = AStmtDef d
         makeStmt (Right a) =
-            case (aact_args a) of
+            -- strip the leading condition off aact_args
+            case aact_args a of
               (c:as) -> AStmtAction (getAndTerms c) (a { aact_args = as })
-              _ -> internalError ("makeStmt: aact_args: " ++ ppReadable a)
+              _      -> internalError ("makeStmt: aact_args: " ++ ppReadable a)
     in
         reverseStmts $ foldl addStmt [] $ map makeStmt stmts0
 
@@ -972,10 +977,10 @@ updateAVInstTypes avi = do
 
 updateAActionTypes :: AAction -> UTM AAction
 -- method condition is Bool type, arguments and return values are Bit type
-updateAActionTypes (ACall obj meth (c:as)) = do
+updateAActionTypes (ACall obj meth (c:srcArgs)) = do
   c' <- updateAExprTypes_Bool c
-  as' <- mapM updateAExprTypes_Bits as
-  return (ACall obj meth (c':as'))
+  srcArgs' <- mapM updateAExprTypes_Bits srcArgs
+  return (ACall obj meth (c':srcArgs'))
 -- action task/ffunc condition is Bool type, arguments are Bit/Real/String type
 updateAActionTypes (AFCall i f isC (c:as) isAssumpCheck) = do
   c' <- updateAExprTypes_Bool c
@@ -1029,10 +1034,10 @@ updateAExprTypes mty (APrim i t p args) = updateAPrimTypes mty p i t args
 
 -- method arguments and return values are Bit type,
 -- except RDY methods which return Bool
-updateAExprTypes _ (AMethCall t obj meth as) = do
-  as' <- mapM updateAExprTypes_Bits as
+updateAExprTypes _ (AMethCall t obj meth args) = do
+  args' <- mapM updateAExprTypes_Bits args
   let t' = if (isRdyId meth) then mkATBool else t
-  return (AMethCall t' obj meth as')
+  return (AMethCall t' obj meth args')
 
 -- method return values are Bit type
 updateAExprTypes _ e@(AMethValue t obj meth) = return e

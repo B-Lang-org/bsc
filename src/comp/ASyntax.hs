@@ -97,7 +97,6 @@ module ASyntax(
         mkMethStr,
         mkMethArgStr,
         mkMethResStr,
-        methResultNums,
         isMethId,
         MethodPart(..),
         getParams,
@@ -128,7 +127,7 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_res)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_arg, fs_res)
 import FStringCompat
 -- import Position(noPosition)
 import Position
@@ -543,23 +542,27 @@ type AInput = (AId, AType)
 data AAbstractInput =
         -- simple input using one port
         AAI_Port AInput |
+        -- a single source argument that is split into multiple hardware ports
+        -- (e.g. a struct argument whose fields each become a port).
+        -- The list MUST be non-empty; a zero-port argument is represented as
+        -- AAI_MultiPort [] only when the source argument has zero-width.
+        AAI_MultiPort [AInput] |
         -- clock osc and maybe gate
         AAI_Clock AId (Maybe AId) |
         AAI_Reset AId |
         AAI_Inout AId Integer
-        -- room to add other types here, like:
-        --   AAI_Struct [(AId, AType)]
-        --   ...
     deriving (Eq, Show)
 
 instance NFData AAbstractInput where
     rnf (AAI_Port p) = rnf p
+    rnf (AAI_MultiPort ps) = rnf ps
     rnf (AAI_Clock osc mgate) = rnf2 osc mgate
     rnf (AAI_Reset wire) = rnf wire
     rnf (AAI_Inout wire sz) = rnf2 wire sz
 
 absInputToPorts :: AAbstractInput -> [AInput]
 absInputToPorts (AAI_Port p) = [p]
+absInputToPorts (AAI_MultiPort ps) = ps
 absInputToPorts (AAI_Clock osc Nothing) = [(osc, aTBool)]
 absInputToPorts (AAI_Clock osc (Just gate)) = [(osc, aTBool), (gate, aTBool)]
 absInputToPorts (AAI_Reset r) = [(r,aTBool)]
@@ -581,10 +584,11 @@ data AVInst = AVInst {
     -- XXX This list corresponds to vFields in the VModInfo, but cannot be
     -- XXX stored there, because VModInfo is created before types are known.
     -- There is a triple for each method in vFields of VModInfo.
-    -- The triple contains the types of each argument (in order), maybe
-    -- the type of the EN, and the return values.
+    -- The first component lists the types of the ports arising from each
+    -- method argument. The second is maybe the type of the EN, and the
+    -- third is the types of the output ports arising from the method result.
     -- NOTE: These are the output language types (i.e. ATBit n)
-    avi_meth_types :: [([AType], Maybe AType, [AType])],
+    avi_meth_types :: [([[AType]], Maybe AType, [AType])],
     -- This field maps source-language types to their corresponding ports
     avi_port_types :: M.Map VName IType,
     avi_vmi :: VModInfo,     -- Verilog names, conflict info, etc.
@@ -784,7 +788,7 @@ instance NFData AAssumption where
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
-                        aif_inputs    :: [AInput],
+                        aif_inputs    :: [AAbstractInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
                         aif_value     :: ADef,
@@ -792,13 +796,13 @@ data AIFace =   AIDef { aif_name      :: AId,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
                         aif_assumps :: [AAssumption] }
-              | AIAction { aif_inputs    :: [AInput],
+              | AIAction { aif_inputs    :: [AAbstractInput],
                            aif_props     :: WireProps,
                            aif_pred      :: APred,
                            aif_name      :: AId,
                            aif_body      :: [ARule],
                            aif_fieldinfo :: VFieldInfo }
-              | AIActionValue { aif_inputs    :: [AInput],
+              | AIActionValue { aif_inputs    :: [AAbstractInput],
                                 aif_props     :: WireProps,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
@@ -852,11 +856,18 @@ aIfaceResIds (AIDef {aif_name=id}) = [id]
 aIfaceResIds (AIActionValue {aif_name=id}) = [id]
 aIfaceResIds _ = []
 
+-- Source-language argument groups (each group is one method argument, which
+-- may decompose to multiple hardware ports).
+aIfaceArgGroups :: AIFace -> [AAbstractInput]
+aIfaceArgGroups (AIClock {}) = []
+aIfaceArgGroups (AIReset {}) = []
+aIfaceArgGroups (AIInout {}) = []
+aIfaceArgGroups f = aif_inputs f
+
+-- Flat list of hardware-level input ports, in order, expanding multi-port
+-- argument groups.
 aIfaceArgs :: AIFace -> [AInput]
-aIfaceArgs (AIClock {}) = []
-aIfaceArgs (AIReset {}) = []
-aIfaceArgs (AIInout {}) = []
-aIfaceArgs f = aif_inputs f
+aIfaceArgs = concatMap absInputToPorts . aIfaceArgGroups
 
 -- associate the internal and external names and width of AIFace args
 
@@ -864,9 +875,10 @@ aiface_argnames_width :: AIFace -> [(AId, String, Integer)]
 aiface_argnames_width (AIClock {}) = []
 aiface_argnames_width (AIReset {}) = []
 aiface_argnames_width aif =
-    zip3 (map fst (aif_inputs aif))
-        (map (getVNameString . fst) (vf_inputs (aif_fieldinfo aif)))
-        (map aIfaceArgSize (aif_inputs aif))
+    let ports = aIfaceArgs aif
+    in zip3 (map fst ports)
+        (map (getVNameString . fst) (vfMethodArgPorts (aif_fieldinfo aif)))
+        (map aIfaceArgSize ports)
 
 
 aIfaceArgSize :: AInput -> Integer
@@ -1037,7 +1049,10 @@ data AExpr
             ae_type :: AType,
             ae_objid :: AId,
             ameth_id :: AMethodId,
-            ae_args :: [AExpr]        -- external state method call
+            -- external state method call: one AExpr per source argument
+            -- (a SplitPorts arg arrives as an ATuple AExpr; consumers that
+            -- walk individual hardware ports match on ATuple).
+            ae_args :: [AExpr]
         }
         -- like AMethCall, but for the return value of actionvalue methods,
         -- where the return value no longer has to care about the arguments,
@@ -1448,7 +1463,7 @@ instance PPrint AIFace where
     -- XXX print assumptions
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_value ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1456,7 +1471,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIAction {} ) =
         (text "--AIAction" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1464,7 +1479,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_value ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
@@ -1498,18 +1513,18 @@ ppActions d as = text "{" <+> sep (map ppA as) <+> text "}"
 -- AFCall/ATaskAction prints i instead of the string name
 -- to print the Bluespec function being called, not the foreign one
 instance PPrint AAction where
-    pPrint d _ (ACall i m (c : es)) | isOne c = pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es)
-    pPrint d _ (ACall i m (c : es)) = sep [
+    pPrint d _ (ACall i m (c:es)) | isOne c = pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es)
+    pPrint d _ (ACall i m (c:es)) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es))
         ]
-    pPrint d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrint d 1) es)
-    pPrint d _ (AFCall i _ _ (c : es) _) = sep [
+    pPrint d _ (AFCall i _ _ (c:es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrint d 1) es)
+    pPrint d _ (AFCall i _ _ (c:es) _) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <+> sep (map (pPrint d 1) es))
         ]
-    pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es)
-    pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
+    pPrint d _ (ATaskAction i _ _ n (c:es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es)
+    pPrint d _ (ATaskAction i _ _ n (c:es) _ _ _) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es))
         ]
@@ -1573,9 +1588,10 @@ instance PPrint AExpr where
     pPrint d p (ANoInlineFunCall _ i _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (AFunCall _ i _ _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrint d p (AMethCall _ i m es) =
-        pparen (p>0 && not (null es)) $
-        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
+    pPrint d p (AMethCall _ i m args) =
+        pparen (p>0 && not (null args)) $
+        pPrint d 1 i <>
+        sep (text "." <> ppMethId d m : map (pPrint d 1) args)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
     pPrint d p (ATuple _ es) = parens (commaSep (map (pPrint d 0) es))
@@ -1740,18 +1756,19 @@ ppeVTI m d (vi, es, ns) =
 
 instance PPrintExpand AIFace where
     -- XXX print assumptions
-    pPrintExpand m d ec (AIDef id is wp g b _ _) =
+    pPrintExpand m d ec ai@(AIDef id _ wp g b _ _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) (aIfaceArgs ai) $+$
         text ""
-    pPrintExpand m d ec (AIAction is wp g _ rs _) =
+    pPrintExpand m d ec ai@(AIAction _ wp g _ rs _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) (aIfaceArgs ai) $+$
         text ""
-    pPrintExpand m d ec (AIActionValue is wp g _ rs b _) =
+    pPrintExpand m d ec ai@(AIActionValue _ wp g _ rs b _) =
+        let args = aIfaceArgs ai in
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
-        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) args $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) args $+$
         text ""
     pPrintExpand m d ec (AIClock i c _) = pPrint d (getP ec) c
     pPrintExpand m d ec (AIReset i r _) = pPrint d (getP ec) r
@@ -1772,20 +1789,20 @@ ppeActions m d as = text "{" <+> sep (map ppeA as) <+> text "}"
         where ppeA a = pPrintExpand m d defContext a <> text ";"
 
 instance PPrintExpand AAction where
-    pPrintExpand m d _ (ACall i meth (c : es)) | isOne c =
+    pPrintExpand m d _ (ACall i meth (c:es)) | isOne c =
         pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (ACall i meth (c : es)) = sep [
+    pPrintExpand m d _ (ACall i meth (c:es)) = sep [
         text "if" <+> pPrintExpand m d bContext c <+> text "then",
         nest 2 (pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es))
         ]
-    pPrintExpand m d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (AFCall i _ _ (c : es) _) = sep [
+    pPrintExpand m d _ (AFCall i _ _ (c:es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es)
+    pPrintExpand m d _ (AFCall i _ _ (c:es) _) = sep [
         text "if" <+> pPrintExpand m d bContext c <+> text "then",
         nest 2 (pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es))
 
         ]
-    pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
+    pPrintExpand m d _ (ATaskAction i _ _ n (c:es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es)
+    pPrintExpand m d _ (ATaskAction i _ _ n (c:es) _ _ _) = sep [
         text "if" <+> pPrintExpand m d defContext c <+> text "then",
         nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es))
 
@@ -1867,15 +1884,18 @@ instance PPrintExpand AExpr where
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
     pPrintExpand m d ec (AMethCall _ i meth []) | qualEq meth idPreludeRead = pPrint d 1 i
-    pPrintExpand m d ec (AMethCall _ i meth es) =
+    pPrintExpand m d ec (AMethCall _ i meth args) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
-               <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
+               <> if (null args) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
-                   docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
-    pPrintExpand m d ec (ATuple _ es) =  parens (commaSep (map (pPrintExpand m d defContext) es))
-    pPrintExpand m d ec (ATupleSel _ e idx) = (pparen (useParen ec) $ pPrintExpand m d defContext e) <> text ("[" ++ itos idx ++ "]")
+                   docArgs = map (pPrintExpand m d defContext) args
+    pPrintExpand m d ec (AMethValue _ i meth) =
+        pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATuple _ es) =
+        pparen (useParen ec) $ parens (commaSep (map (pPrintExpand m d defContext) es))
+    pPrintExpand m d ec (ATupleSel _ e idx) =
+        pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||
@@ -1906,23 +1926,25 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    MethodArg Integer            | -- argument 1, 2, ... input
-    MethodResult (Maybe Integer) | -- return value: Nothing for a single result,
-                                   -- Just 1, 2, ... when split across ports
-    MethodEnable                   -- enable signal input
+    -- Source argument index (1-based) and the hardware port index within
+    -- that argument (1-based).  A normal arg has a single port at index 1;
+    -- a SplitPorts arg may have several.
+    MethodArg Integer Integer    |
+    MethodResult Integer | -- return value 1, 2, ... output
+    MethodEnable           -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_<argnum> starting from 1
---     (e.g. the_fifo$enq_1)
---   Return values are <inst>$<meth>_RES_<resnum> when the result is split across
---     multiple output ports (e.g. the_fifo$first_RES_1), or just <inst>$<meth>
---     when the method has a single result (e.g. the_fifo$first)
+--   Arguments are <inst>$<meth>_ARG_<argnum>_<portnum> starting from 1
+--     (e.g. the_fifo$enq_ARG_1_1).  The <portnum> distinguishes hardware
+--     ports of the same source-language argument (e.g. a SplitPorts tuple);
+--     a normal argument has port 1 only.
+--   Return values are <inst>$<meth>_RES_<resnum> (e.g. the_fifo$first_RES_1)
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Multi-ported methods are <inst>$<meth>_<portnum>_<argnum>
--- or <inst>$<meth>_<portnum>_RES_<resnum>
--- The portnum is only omitted if the method has one or
--- and infinite number of ports (like a register)
+-- Methods with multiplicity > 1 are <inst>$<meth>_<copynum>_ARG_<argnum>_<portnum>
+-- or <inst>$<meth>_<copynum>_RES_<resnum>
+-- The copynum is only omitted if the method has one or
+-- an infinite number of ports (like a register)
 -- XXX these should probably just be a data type rather than Ids
 mkMethId :: Id -> Id -> Maybe Integer -> MethodPart -> Id
 mkMethId o m ino mp =
@@ -1948,8 +1970,8 @@ mkMethStr obj m m_port mp =
                                        fsUnderscore,
                                        mkNumFString port]
         base = case mp of
-                   MethodArg n -> mkMethArgStr meth_port n
-                   MethodResult mn -> mkMethResStr meth_port mn
+                   MethodArg argN portM -> mkMethArgStr meth_port argN portM
+                   MethodResult n -> mkMethResStr meth_port n
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]
@@ -1958,26 +1980,18 @@ mkMethStr obj m m_port mp =
                        fsDollar,
                        base]
 
-mkMethArgStr :: FString -> Integer -> FString
-mkMethArgStr meth_port n =
-    if (n == 0)
+mkMethArgStr :: FString -> Integer -> Integer -> FString
+mkMethArgStr meth_port argN portM =
+    if (argN == 0 || portM == 0)
     then internalError "mkMethArgStr"
-    else concatFString [meth_port, fsUnderscore, mkNumFString n]
+    else concatFString [meth_port, fsUnderscore, fs_arg,
+                        mkNumFString argN, fsUnderscore, mkNumFString portM]
 
-mkMethResStr :: FString -> Maybe Integer -> FString
--- a single result gets no _RES_ suffix
-mkMethResStr meth_port Nothing = meth_port
-mkMethResStr meth_port (Just n) =
+mkMethResStr :: FString -> Integer -> FString
+mkMethResStr meth_port n =
     if (n == 0)
     then internalError "mkMethResStr"
     else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
-
--- The result numbers for a method with the given list of results: Nothing
--- (no _RES_ suffix) for a single result, Just 1, Just 2, ... when split across
--- multiple output ports.
-methResultNums :: [a] -> [Maybe Integer]
-methResultNums [_] = [Nothing]
-methResultNums xs  = zipWith (\ _ n -> Just n) xs [1..]
 
 -- #############################################################################
 -- #

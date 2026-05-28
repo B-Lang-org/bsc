@@ -12,7 +12,7 @@ import ErrorUtil(internalError)
 import Id
 import PreIds(idPrimAction, idInout_, idPrimUnit)
 import VModInfo(vArgs, vFields, VName(..), VeriPortProp(..),
-                VArgInfo(..), VFieldInfo(..), VPort)
+                VArgInfo(..), VFieldInfo(..), vfMethodArgPorts, VPort)
 import Prim
 import ASyntax
 import ASyntaxUtil( AVars(..) )
@@ -243,9 +243,13 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                                     createVerilogNameMapForAVInst flags v,
                          -- for each method (not clocks or resets)
                          vfi@(Method {}) <- vFields (avi_vmi v),
-                         -- for each method input part (args and enables)
+                         -- for each method input part (args and enables);
+                         -- args carry (source-arg #, port-within-arg #)
                          (methpart, (vname, pprops))
-                             <- (zip (map MethodArg [1..]) (vf_inputs vfi)) ++
+                             <- [ (MethodArg argN portM, port)
+                                | (argN, ports) <- zip [1..] (vf_inputs vfi)
+                                , (portM, port) <- zip [1..] ports
+                                ] ++
                                 case (vf_enable vfi) of
                                     Nothing -> []
                                     Just port -> [(MethodEnable, port)],
@@ -394,7 +398,7 @@ noUse :: AId -> AExpr -> Bool
 noUse i (APrim _ _ _ es)     = and (map (noUse i) es)
 noUse i (ANoInlineFunCall _ _ _ es) = and (map (noUse i) es)
 noUse i (AFunCall _ _ _ _ es) = and (map (noUse i) es)
-noUse i (AMethCall _ _ _ es) = and (map (noUse i) es)
+noUse i (AMethCall _ _ _ args) = and (map (noUse i) args)
 noUse i (ASPort _ i')        = i /= i'
 noUse i (ASParam _ i')       = i /= i'
 noUse i (ASDef _ i')         = i /= i'
