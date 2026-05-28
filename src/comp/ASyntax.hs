@@ -1884,12 +1884,12 @@ instance PPrintExpand AExpr where
                                                  ( parens $ sep $ punctuate comma (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATaskValue _ i _ _ n) = pparen (useParen ec) $ pPrint d 1 i <> text ("#" ++ itos(n))
     pPrintExpand m d ec (AMethCall _ i meth []) | qualEq meth idPreludeRead = pPrint d 1 i
-    pPrintExpand m d ec (AMethCall _ i meth args) =
+    pPrintExpand m d ec (AMethCall _ i meth es) =
                pPrint d 1 i <> text "."
                <> ppMethId d meth
-               <> if (null args) then empty else (parens (hsep ( punctuate comma docArgs )) )
+               <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
-                   docArgs = map (pPrintExpand m d defContext) args
+                   docArgs = map (pPrintExpand m d defContext) es
     pPrintExpand m d ec (AMethValue _ i meth) =
         pPrint d 1 i <> text "." <> ppMethId d meth
     pPrintExpand m d ec (ATuple _ es) =

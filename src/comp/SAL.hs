@@ -1294,13 +1294,13 @@ convAExpr (ASAny t Nothing) = return $ anyVar t
 
 convAExpr (APrim _ t p args) = convAPrim p t args
 
-convAExpr (AMethCall _ obj meth args) = do
+convAExpr (AMethCall _ obj meth as) = do
   state_expr <- gets curState
   instmap <- gets instMap
   let (submod, submod_tys, _) = lookupMod instmap obj
       fnvar = submodMethVar submod submod_tys meth
       modState = SStructSel state_expr (instFieldId obj)
-  a_exprs <- mapM convAExpr (concatMap argInputPorts args)
+  a_exprs <- mapM convAExpr (concatMap argInputPorts as)
   return $ sApply fnvar (a_exprs ++ [modState])
 
 convAExpr e@(AMethValue t obj meth) =
