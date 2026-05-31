@@ -162,4 +162,12 @@ compare_file ATFWrongArityBSV.bsv.bsc-out
 compile_fail_error ATFDeclParamMismatchBSV.bsv T0152
 compare_file ATFDeclParamMismatchBSV.bsv.bsc-out
 
+# Regression: a rank-2 polymorphic struct field whose proviso uses
+# a class whose instance decomposes the ATF target into TAdd of the
+# component ATFs used to trigger an internal "assert failed: IAp"
+# (post-inference type check) because the parent ATF link was lost
+# during instance reduction.
+
+compile_pass ATFPairAddDecompose.bs
+
 # --------------------------------------------------
