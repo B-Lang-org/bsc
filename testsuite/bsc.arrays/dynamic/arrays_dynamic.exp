@@ -151,12 +151,16 @@ compile_verilog_pass ActionVecShortIndex.bsv {} {-aggressive-conditions}
 compare_verilog sysActionVecShortIndex.v
 
 # When an array selection is used as the condition for an Action,
-# the merging of the out-of-bounds with the last element *does* happen.
+# the merging of the out-of-bounds with the last element used to happen,
+# but sinced we changed the evaluator to preserver array selection
+# (rather than turn into if-then-else immediately) we are able to
+# decide how to handle out-of-bounds selection at a later point and,
+# in this case, can perform no Action.
 #
-compile_verilog_pass VecCondAction.bsv
+# The output is specific to aggr-conds being on, so ensure it is
+compile_verilog_pass VecCondAction.bsv {} {-aggressive-conditions}
 #
-# The f$ENQ signal is True when idx==3
-# XXX Fix this bug?
+# This checks that f$ENQ signal is False when idx==3
 #
 compare_verilog sysVecCondAction.v
 

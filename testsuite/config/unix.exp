@@ -2616,6 +2616,12 @@ proc test_c_only { module {expected ""} {cbug ""} {sort_output 0} } {
     test_c_veri_internal $module {} "bs" 1 0 $expected $cbug "" $sort_output
 }
 
+# test the C simulator output via simulation with compile options
+proc test_c_only_bs_modules_options { top modules gen_options {expected ""} {cbug ""} {link_options ""} {sim_options ""} {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker_int $top $sysmod $modules "bs" 1 0 $gen_options $link_options $sim_options $expected $cbug "" $sort_output
+}
+
 # compile link and test the C simulator output
 proc test_c_only_bsv { module {expected ""} {cbug ""} {sort_output 0} } {
     test_c_veri_internal $module {} "bsv" 1 0 $expected $cbug "" $sort_output

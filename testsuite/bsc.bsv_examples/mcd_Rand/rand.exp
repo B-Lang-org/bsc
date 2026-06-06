@@ -1,7 +1,9 @@
 
+# The output is specific to aggr-conds being on, so ensure it is
+
 # Bluesim
-test_c_only_bsv_multi Top mkTop {mkRandTop}
+test_c_only_bsv_multi_options Top mkTop {mkRandTop} {-aggressive-conditions}
 
 # Verilog outputs a few coincident edges differently
-test_veri_only_bsv_multi Top mkTop {mkRandTop} mkTop.v.out.expected
+test_veri_only_bsv_multi_options Top mkTop {mkRandTop} {-aggressive-conditions} mkTop.v.out.expected
 

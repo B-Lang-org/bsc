@@ -2,6 +2,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -suppress-warnings G0001:G0002 -suppress-warnings ALL -suppress-warnings T1234:T0001 -suppress-warnings T0002:T0003:T0001
 
 Flags:
+     -aggressive-conditions
      -i   BLUESPECDIR
      -lift
      -o   a.out

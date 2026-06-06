@@ -51,7 +51,7 @@ module sysVecCondAction(CLK,
   wire f$CLR, f$DEQ, f$ENQ, f$FULL_N;
 
   // remaining internal signals
-  reg CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1;
+  reg SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6;
 
   // submodule f
   FIFO2 #(.width(32'd8), .guarded(1'd1)) f(.RST(RST_N),
@@ -83,8 +83,8 @@ module sysVecCondAction(CLK,
   // submodule f
   assign f$D_IN = 8'd0 ;
   assign f$ENQ =
-	     f$FULL_N &&
-	     CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1 ;
+	     (!SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 || f$FULL_N) &&
+	     SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 ;
   assign f$DEQ = 1'b0 ;
   assign f$CLR = 1'b0 ;
 
@@ -92,12 +92,11 @@ module sysVecCondAction(CLK,
   always@(idx or rgs_0 or rgs_1 or rgs_2)
   begin
     case (idx)
-      2'd0: CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1 = rgs_0;
-      2'd1: CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1 = rgs_1;
-      2'd2: CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1 = rgs_2;
+      2'd0: SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 = rgs_0;
+      2'd1: SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 = rgs_1;
+      2'd2: SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 = rgs_2;
       2'd3:
-	  CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1 =
-	      1'b0 /* unspecified value */ ;
+	  SEL_ARR_rgs_0_rgs_1_rgs_2_idx___d6 = 1'b0 /* unspecified value */ ;
     endcase
   end
 

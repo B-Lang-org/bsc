@@ -511,7 +511,7 @@ traceflags = [
 
 defaultFlags :: String -> Flags
 defaultFlags bluespecdir = Flags {
-        aggImpConds = False,
+        aggImpConds = True,
         allowIncoherentMatches = False,
         backend = Nothing,
         bdir = Nothing,
@@ -611,7 +611,7 @@ defaultFlags bluespecdir = Flags {
         rstGate = False,
         ruleNameCheck = True,
         satBackend = SAT_Yices,
-        schedConds = False,
+        schedConds = True,
         schedDOT = False,
         schedQueries = [],
         showCSyntax = False,
