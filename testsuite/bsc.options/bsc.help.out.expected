@@ -67,6 +67,7 @@ Compiler flags:
 -show-timestamps        include timestamps in generated files
 -show-version           include compiler version in generated files
 -sim                    compile BSV generating Bluesim object
+-sim-codegen-only       generate Bluesim C++ files but do not compile or link them
 -simdir dir             output directory for Bluesim intermediate files
 -split-if               split "if" in actions
 -steps n                terminate elaboration after this many function unfolding steps

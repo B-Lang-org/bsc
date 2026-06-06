@@ -106,6 +106,7 @@ Flags {
 	showStats = False,
 	showUpds = True,
 	showVersion = True,
+	simCodegenOnly = False,
 	simplifyCSyntax = False,
 	strictMethodSched = True,
 	suppressWarnings = SomeMsgs [],

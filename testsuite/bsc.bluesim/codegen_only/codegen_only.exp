@@ -1,0 +1,58 @@
+#
+# Tests for the -sim-codegen-only flag
+#
+
+# Check that none of the listed files exist
+proc files_dont_exist { filenames } {
+    global subdir
+
+    incr_stat "files_dont_exist"
+
+    set foundfile ""
+    foreach filename $filenames {
+        set fullname [join [concat $subdir $filename] "/" ]
+        if {[file exists $fullname]} {
+            set foundfile $filename
+            break
+        }
+    }
+
+    if {$foundfile == ""} {
+        pass "found none of the files: $filenames"
+    } else {
+        fail "file `$foundfile' should not exist"
+    }
+}
+
+# -------------------------
+# With -sim-codegen-only, linking with the Bluesim backend writes the
+# generated C++ files to the simdir and exits successfully without
+# compiling or linking them: no object files, no shared library, and
+# no executable.
+
+if { $ctest == 1 } {
+
+compile_object_pass CodegenOnly.bsv mkCodegenOnly
+
+mkdir simfiles
+link_objects_pass {} mkCodegenOnly {-sim-codegen-only -simdir simfiles}
+
+# The Bluesim C++ files are generated ...
+files_exist { simfiles/mkCodegenOnly.cxx \
+              simfiles/mkCodegenOnly.h \
+              simfiles/model_mkCodegenOnly.cxx \
+              simfiles/model_mkCodegenOnly.h }
+
+# ... but they are not compiled or linked
+files_dont_exist { simfiles/mkCodegenOnly.o \
+                   simfiles/model_mkCodegenOnly.o \
+                   mkCodegenOnly.cexe \
+                   mkCodegenOnly.cexe.so }
+
+}
+
+# -------------------------
+# The flag is rejected when linking with a non-Bluesim backend
+
+compile_no_source_fail_error "verilog_codegen_only" \
+    {-verilog -sim-codegen-only -e mkCodegenOnly mkCodegenOnly.ba} S0096
