@@ -869,15 +869,28 @@ though can it ever be anything other than KStar?)
 optional "deriving (Class, Class, ...)" clause
 returns names of classes to be derived, or error if deriving not permitted
 
-> pDerivationsIf :: Bool -> SV_Parser [CTypeclass]
+> pDerivationsIf :: Bool -> SV_Parser [CDeriving]
 > pDerivationsIf False = option [] $
 >     do pos <- getPos
 >        pKeyword SV_KW_deriving
 >        failWithErr (pos, EForbiddenDeriving)
-> pDerivationsIf True = option [] $
->     do pKeyword SV_KW_deriving
->        pInParens (pCommaSep1 (pTypeclass <?> "typeclass name"))
+> pDerivationsIf True = many pDeriving
 
+> pDeriving :: SV_Parser CDeriving
+> pDeriving = pKeyword SV_KW_deriving
+>        *> ( pDerivingStock
+>      -- <|> pDerivingVia
+>           )
+
+> pDerivingStock :: SV_Parser CDeriving
+> pDerivingStock = CStock <$> pInParens (pCommaSep1 (pTypeclass <?> "typeclass name"))
+
+For now Deriving Via is disabled for bsv.
+pDerivingVia :: SV_Parser CDeriving
+pDerivingVia = CVia
+           <$> (pTypeclass <?> "typeclass name")
+            *> pKeyword SV_KW_via
+           <*> (pIdentifier <?> "via target")
 
 > pTypeclass :: SV_Parser CTypeclass
 > pTypeclass = CTypeclass <$> pQualConstructor
@@ -895,7 +908,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 > pTypedefStructField ::
 >     SV_Parser (Maybe Id {- constructor ID prefix -}
 >                -> [(Id, PartialKind)] {- type parameters collected thus far -}
->                -> [CTypeclass] {- derivings collected thus far -}
+>                -> [CDeriving] {- derivings collected thus far -}
 >                -> (CField, [CDefn] {- accum'd defs -}))
 > pTypedefStructField =
 >         do mkSubUnion <- pTypedefTaggedUnionType False False
@@ -919,7 +932,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                                 cf_type = typ,
 >                                 cf_default = []
 >                               }
->            return (const $ const  $ const (field, []))
+>            return (const $ const $ const (field, []))
 
 many struct fields
 returns a function which requires a supertype prefix
@@ -928,7 +941,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 > pTypedefStructFields ::
 >     SV_Parser (Maybe Id {- constructor ID prefix -}
 >                -> [(Id, PartialKind)] {- type parameters accumulated thus far -}
->                -> [CTypeclass] {- derivations accumulated thus far -}
+>                -> [CDeriving] {- derivations accumulated thus far -}
 >                -> [(CField, [CDefn] {- accum'd defs -})])
 > pTypedefStructFields =
 >     do mks <- many pTypedefStructField
@@ -946,7 +959,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                    -> SV_Parser
 >                       (Maybe Id {- constructor ID prefix -}
 >                        -> [(Id, PartialKind)] {- type parameters collected thus far -}
->                        -> [CTypeclass] {- derivations collected thus far -}
+>                        -> [CDeriving] {- derivations collected thus far -}
 >                        -> ((Id, CType, [Id], [CQType]), [CDefn]))
 > pTypedefStructType isTopLevel =
 >     do pKeyword SV_KW_struct
@@ -981,7 +994,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >     SV_Parser (Maybe Id {- constructor ID prefix -}
 >                -> Integer {- tag encoding -}
 >                -> [(Id, PartialKind)] {- type parameters collected thus far -}
->                -> [CTypeclass] {- derivations collected thus far -}
+>                -> [CDeriving] {- derivations collected thus far -}
 >                -> (TaggedUnionField, [CDefn] {- accum'd defs -}))
 > pTypedefTaggedUnionField =
 >         do mkSubStruct <- pTypedefStructType False
@@ -1052,7 +1065,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 > pTypedefTaggedUnionFields ::
 >     SV_Parser (Maybe Id {- constructor ID prefix -}
 >                -> [(Id, PartialKind)] {- type parameters collected thus far -}
->                -> [CTypeclass] {- derivations collected thus far -}
+>                -> [CDeriving] {- derivations collected thus far -}
 >                -> [(TaggedUnionField, [CDefn])])
 > pTypedefTaggedUnionFields =
 >     do mks <- many1 pTypedefTaggedUnionField
@@ -1075,7 +1088,7 @@ will be a field inside a struct and should be an identifier
 >                            -> SV_Parser
 >                               (Maybe Id {- constructor ID prefix -}
 >                                -> [(Id, PartialKind)] {- type params collected thus far -}
->                                -> [CTypeclass] {- derivations collected thus far -}
+>                                -> [CDeriving] {- derivations collected thus far -}
 >                                -> ((Id, CType, [CQType]), [CDefn]))
 > pTypedefTaggedUnionType isTopLevel uppercaseName =
 >     do pKeyword SV_KW_union >> pKeyword SV_KW_tagged

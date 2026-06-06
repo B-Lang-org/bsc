@@ -560,10 +560,10 @@ getFTCDn (Cforeign { cforg_type = t } ) = getFQTyCons t
 getFTCDn (Ctype _ _ t) = getFTyCons t
 getFTCDn (Cdata { cd_internal_summands = summands,
                   cd_derivings = derivings }) =
-    S.unions (map f summands) `S.union` S.fromList (map typeclassId derivings)
+    S.unions (map f summands) `S.union` mconcat (map getFTDer derivings)
   where f summand = getFTyCons (cis_arg_type summand)
 getFTCDn (Cstruct _ _ _ vs fields ds) =
-    S.unions (map (getFQTyCons . cf_type) fields) `S.union` S.fromList (map typeclassId ds)
+    S.unions (map (getFQTyCons . cf_type) fields) `S.union` mconcat (map getFTDer ds)
 getFTCDn (Cclass _ ps _ _ _ ats fields) =
     S.difference
         (S.unions (map getCPTyCons ps ++ map f fields))
@@ -578,6 +578,10 @@ getFTCDn (CIValueSign _ t) = getFQTyCons t
 getFTCDn (CItype i vs useposs) = S.empty
 getFTCDn (CIclass incoh ps i vs fds atfs useposs) =
       S.unions (map getCPTyCons ps) `S.union` S.fromList (map ca_name atfs)
+
+getFTDer :: CDeriving -> S.Set Id
+getFTDer (CStock tcs) = S.fromList (map typeclassId tcs)
+getFTDer (CVia tc _) = S.singleton (typeclassId tc)
 
 getVDefIds :: CDefn -> [Id]
 getVDefIds (CValueSign (CDef i _ _)) = [i]

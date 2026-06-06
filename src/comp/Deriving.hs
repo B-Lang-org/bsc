@@ -95,8 +95,8 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
-    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
+        stockDerivs = addAutoDerivs flags r qual_name ty_vars (getStockDerivs derivs)
+    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) stockDerivs
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -105,8 +105,8 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
                  _ -> internalError "Deriving.doDer Cstruct: findType"
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
-    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
+        stockDerivs = addAutoDerivs flags r qual_name ty_vars (getStockDerivs derivs)
+    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) stockDerivs
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -992,5 +992,11 @@ addAutoDerivs flags r i tvs derivs =
          setPos clsId = setIdPosition pos (unQualId clsId)
          f = addAutoDeriv flags r i tvs
 
+getStockTC :: CDeriving -> [CTypeclass]
+getStockTC (CStock tcs) = tcs
+getStockTC _ = []
+
+getStockDerivs :: [CDeriving] -> [CTypeclass]
+getStockDerivs = concatMap getStockTC
 
 -- -------------------------
