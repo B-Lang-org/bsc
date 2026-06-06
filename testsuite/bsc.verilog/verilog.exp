@@ -25,7 +25,8 @@ test_c_only Misc
 
 # Bluesim also generates warnings that Verilog can't
 test_veri_only Mips sysMips.v.out.expected
-test_c_only Mips
+# The warnings depend on if aggr-conds is on, so ensure it is
+test_c_only_bs_modules_options Mips {} {-aggressive-conditions}
 #test_syn Mips 
 
 test_veri_only Oper sysOper.v.out.expected

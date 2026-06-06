@@ -1,5 +1,5 @@
 Flags {
-	aggImpConds = False,
+	aggImpConds = True,
 	allowIncoherentMatches = False,
 	backend = Nothing,
 	bdir = Nothing,
@@ -92,7 +92,7 @@ Flags {
 	rstGate = False,
 	ruleNameCheck = True,
 	satBackend = SAT_Yices,
-	schedConds = False,
+	schedConds = True,
 	schedDOT = False,
 	schedQueries = [],
 	showCSyntax = False,

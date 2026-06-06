@@ -10,6 +10,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -p foo::foo:bar:foo:baz:baz:foo -bdir bar
 
 Flags:
+    -aggressive-conditions
     -bdir bar
     -i BLUESPECDIR
     -lift
