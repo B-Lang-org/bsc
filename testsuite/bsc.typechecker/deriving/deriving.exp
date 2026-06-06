@@ -23,12 +23,18 @@ compare_file NoDerive2.bs.bsc-out
 # test for correct creation of derived instances
 
 compile_pass DerivingTest.bs 
+compile_pass Multiple.bs
 
 
 # --------------------
 # more deriving tests (using verilog only for $display and $finish) 
 
 test_veri_only DerivingMod
+
+# --------------------
+# test for correct deriving via
+
+compile_pass DerivingVia.bs
 
 
 # --------------------

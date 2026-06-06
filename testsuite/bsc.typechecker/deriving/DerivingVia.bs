@@ -1,0 +1,13 @@
+package DerivingVia() where
+
+import SplitPorts
+
+data Foo = Foo (Int 8)
+  deriving (Bits)
+  deriving SplitPorts via ShallowSplit
+
+struct Bar =
+  { x :: Int 8
+  ; y :: Int 8
+  } deriving (Bits)
+    deriving SplitPorts via ShallowSplit
