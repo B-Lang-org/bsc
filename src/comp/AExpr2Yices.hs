@@ -607,6 +607,11 @@ convAExpr2YExpr mty (ATupleSel ty@(ATBit width) (AMethValue _ modId methId) selI
     smap <- gets stateMap
     let e = AMethValue ty modId (getMethodOutputPortAt smap modId methId selIdx)
     addUnknownExpr mty e width
+-- A select from any other tuple-typed expression (e.g. a noinline result, or a
+-- def holding split ports) is opaque to the solver, like the call itself; model
+-- it as an independent variable (memoized, so identical selects compare equal).
+convAExpr2YExpr mty e@(ATupleSel (ATBit width) _ _) =
+    addUnknownExpr mty e width
 
 convAExpr2YExpr mty e@(AMGate (ATBit 1) _ _) =
     -- Gates are used as Bool, so the current context should be YBool,
