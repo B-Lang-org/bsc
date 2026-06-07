@@ -96,7 +96,9 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
         stockDerivs = addAutoDerivs flags r qual_name ty_vars (getStockDerivs derivs)
-    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) stockDerivs
+    in Right [data_decl]
+       : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) stockDerivs
+       ++ map (doVia xs qual_name ty_vars) (getViaDerivs derivs)
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -106,7 +108,9 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         stockDerivs = addAutoDerivs flags r qual_name ty_vars (getStockDerivs derivs)
-    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) stockDerivs
+    in Right [struct_decl]
+       : map (doStructDer r packageid xs qual_name ty_vars fields) stockDerivs
+       ++ map (doVia xs qual_name ty_vars) (getViaDerivs derivs)
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -241,6 +245,59 @@ doStructDer _ _ _ i vs cs (CTypeclass di) | isTCId i =
 doStructDer _ _ _ i vs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
+-- -------------------------
+
+-- | Derive an instance of a typeclass using Deriving via mechanism
+-- for a given data (sum type), and return the instance definitions.
+--  packageid = id name of the package
+--  xs  =  available bindings
+--  i   =  qualified id of the data type
+--  vs  =  argument type variables of the data type
+--  di  =  the class to be derived
+--  tgt =  data type via which to derive
+doVia :: [(Id, CDefn)] -> Id -> [Type] ->
+             (CTypeclass, Id) -> Either EMsg [CDefn]
+doVia xs i vs (di, tgt)
+  | Just (Cclass _ _ ident (dv : args) _ _ fs) <- lookup (typeclassId di) xs
+  = let
+      -- Use tmpVar so the data type variables ids are different than typeclass ones
+      appliedData = cTApplys (cTCon i) (map cTVar $ take (length vs) tmpVarYIds)
+      appliedClass = cTApplys (cTCon $ iKName ident) $ appliedData : map cTVar args
+      ctx = [CPred di (TAp (cTCon tgt) appliedData : map cTVar args)]
+      subst' :: CType -> CType
+      subst' t'
+        | Just t <- isTyVar t'
+        , t == dv
+        = appliedData
+      subst' t = t
+      subst :: CType -> (CType, [CType])
+      subst ty = let (a, rs) = splitTAp ty
+                 in (subst' a, map subst' rs)
+      mkCDef :: CField -> CDef
+      mkCDef f =
+        let
+          CQType preds ty = cf_type f
+          tys = subst ty
+          (args', ret) = getCQArrows $ cf_type f
+          vars = zip args' tmpVarXIds
+          cvar :: (CQType, Id) -> CExpr
+          cvar (t, id)
+            | Just v <- isCTyVar t
+            , v == dv
+            = CCon tgt $ [cVar id]
+          cvar (_, id) = cVar id
+          fun_name = unQualId $ cf_name f
+          call = CApply (cVar fun_name) $ map cvar vars
+          body = case isCTyVar ret of
+            Just v | v == dv -> Ccase (getPosition di) call [CCaseArm (CPCon tgt [CPVar id_y]) [] (cVar id_y)]
+            _ -> call
+        in CDef fun_name (CQType preds $ uncurry cTApplys tys) [CClause (map (CPVar . snd) vars) [] body]
+      mkFun :: CField -> CDefl
+      mkFun f = CLValueSign (mkCDef f) []
+    in Right $ pure $ Cinstance (CQType ctx appliedClass) (map mkFun fs)
+
+doVia _ _ _ (di, tgt) =
+  Left (getPosition di, ECannotDerive (pfpString di ++ " via " ++ pfpString tgt))
 
 -- -------------------------
 
@@ -876,6 +933,15 @@ genericRepWrapName pos tid isData cid fid = mkId pos $ concatFString $
 
 -- -------------------------
 
+isTyVar :: CType -> Maybe Id
+isTyVar (TVar tvar) = Just $ tv_name tvar
+isTyVar _ = Nothing
+
+isCTyVar :: CQType -> Maybe Id
+isCTyVar (CQType _ t) = isTyVar t
+
+-- -------------------------
+
 eNot :: CExpr -> CExpr
 eNot e = cVApply idNot [e]
 eAnd :: CExpr -> CExpr -> CExpr
@@ -998,5 +1064,12 @@ getStockTC _ = []
 
 getStockDerivs :: [CDeriving] -> [CTypeclass]
 getStockDerivs = concatMap getStockTC
+
+getViaTC :: CDeriving -> Maybe (CTypeclass, Id)
+getViaTC (CVia tc id) = Just (tc, id)
+getViaTC _ = Nothing
+
+getViaDerivs :: [CDeriving] -> [(CTypeclass, Id)]
+getViaDerivs = mapMaybe getViaTC
 
 -- -------------------------
