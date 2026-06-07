@@ -260,7 +260,8 @@ package Prelude(
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
         WrapField(..), WrapMethod(..), fromWrapNoInline, WrapPorts(..), NonEmptyBits(..),
-        Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
+        Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..),
+        SplitTuplePorts(..)
         ) where
 
 infixr  0 $
@@ -4893,10 +4894,7 @@ instance SplitPorts a (Port a) where
   unsplitPorts = unPort
   portNames _  base = Cons base Nil
 
-{-
-XXX Consider if we want to split tuples by default. This would change the current behavior,
-but might be a sensible one, especially if we support methods with multiple output ports.
-
+-- Tuples arguments and outputs are split into seperate ports by default:
 instance (SplitTuplePorts (a, b) r) => SplitPorts (a, b) r where
   splitPorts = splitTuplePorts
   unsplitPorts = unsplitTuplePorts
@@ -4907,7 +4905,8 @@ class SplitTuplePorts a p | a -> p where
   unsplitTuplePorts :: p -> a
   splitTuplePortNames :: Integer -> a -> String -> List String
 
-instance (SplitPorts a p, SplitTuplePorts b q) => SplitTuplePorts (a, b) (TAppendTuple p q) where
+instance (SplitPorts a p, SplitTuplePorts b q, AppendTuple p q r) =>
+    SplitTuplePorts (a, b) r where
   splitTuplePorts (a, b) = splitPorts a `appendTuple` splitTuplePorts b
   unsplitTuplePorts x = case splitTuple x of
     (a, b) -> (unsplitPorts a, unsplitTuplePorts b)
@@ -4919,4 +4918,4 @@ instance (SplitPorts a p) => SplitTuplePorts a p where
   splitTuplePorts = splitPorts
   unsplitTuplePorts x = unsplitPorts x
   splitTuplePortNames i _ base = portNames (_ :: a) $ base +++ "_" +++ integerToString i
--}
+
