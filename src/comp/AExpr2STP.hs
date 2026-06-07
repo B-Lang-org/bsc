@@ -616,6 +616,11 @@ convAExpr2SExpr mty (ATupleSel ty@(ATBit width) (AMethValue _ modId methId) selI
         e = (AMethValue ty modId portId)
     -- XXX This could be an unevaluated function, applied to converted arguments
     addUnknownExpr mty e width
+-- A select from any other tuple-typed expression (e.g. a noinline result, or a
+-- def holding split ports) is opaque to the solver, like the call itself; model
+-- it as an independent variable (memoized, so identical selects compare equal).
+convAExpr2SExpr mty e@(ATupleSel (ATBit width) _ _) =
+    addUnknownExpr mty e width
 
 convAExpr2SExpr mty e@(AMGate (ATBit 1) _ _) =
     -- Gates are used as Bool, so the current context should be SBool,
