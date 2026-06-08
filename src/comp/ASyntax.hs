@@ -1273,9 +1273,11 @@ data ANoInlineFun =
          String
          -- numeric types
          [Integer]
-         -- port list (inputs,outputs), each is port name and size
-         -- XXX sizes all seem to be generated as 0.
-         ([(String, Integer)], [(String, Integer)])
+         -- port list (inputs, outputs); each port is its name and bit size.
+         -- Inputs are grouped per argument (the inner list is one argument's
+         -- ports, of which there may be several when the argument splits); the
+         -- outputs are a flat list (the single result, possibly split).]
+         ([[(String, Integer)]], [(String, Integer)])
          -- when an instance name is assigned to the call, it is stored here
          (Maybe String)
     deriving (Eq, Ord, Show)

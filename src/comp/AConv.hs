@@ -711,6 +711,22 @@ aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockOsc = do
         ac <- aClock c
         return (aclock_osc ac)
 
+-- tuple (fst/snd) selection from the result of a noinline (foreign) function.
+-- The foreign call produces the combined result value; ATupleSel picks out
+-- the element.  The element index is the number of "snd" selectors in the
+-- chain (a flat tuple (a,b,c) is the right-nested pairs (a,(b,c)), so the
+-- k-th element is reached by k snds followed by an fst).
+aSelExpr sels@(_:_) [fcall]
+    | all ((\ s -> s == idPrimFst || s == idPrimSnd) . fst) sels
+    , isForeignFunCall fcall = do
+  fcall' <- aExpr fcall
+  let atype = snd (headOrErr "AConv.aSelExpr: foreign sel" sels)
+      idx = genericLength (filter ((== idPrimSnd) . fst) sels)
+  return $ ATupleSel atype fcall' (idx + 1)
+  where isForeignFunCall (ICon _ (ICForeign { foports = Just _ })) = True
+        isForeignFunCall (IAps (ICon _ (ICForeign { foports = Just _ })) _ _) = True
+        isForeignFunCall _ = False
+
 aSelExpr sels base = internalError
               ("AConv.aSelExpr:" ++
                ppReadable sels ++ "\n" ++ ppReadable base)
