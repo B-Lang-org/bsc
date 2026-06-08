@@ -349,6 +349,7 @@ fsMetaField        = mkFString "MetaField"
 fsPolyWrapField    = mkFString "val"
 fsWrapField       = mkFString "WrapField"
 fsFromWrapField   = mkFString "fromWrapField"
+fsFromWrapNoInline = mkFString "fromWrapNoInline"
 fsToWrapField     = mkFString "toWrapField"
 fsSaveFieldPortTypes = mkFString "saveFieldPortTypes"
 

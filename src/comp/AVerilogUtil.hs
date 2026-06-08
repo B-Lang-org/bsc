@@ -520,34 +520,52 @@ vDefMpd vco def@(ADef i t (APrim _ _ PrimMux es) _) _ =
 vDefMpd vco (ADef i t
                (ANoInlineFunCall _ _
                   (ANoInlineFun n is (ips, ops) (Just inst_name)) es) _) _ =
-        let ops' = ops -- filter (\(x,y) -> y >= 0 ) $ traces ("ops " ++ show ops) ops
-                   -- Size information all appears to be 0
-            (ips',es')  = unzip $ filter (isNotZeroSized  . ae_type . snd) (zip ips es)
+        let
             oname = VEVar (vId i) -- a concat of the outputs
-            oports = case ops' of
-                     [(o, _)] -> [(mkVId o, Just oname)]
-                     ons -> let ns = tailOrErr "vDefMpd.oports" (scanr (+) 0 (map snd ons))
-                            in  zipWith (\ (o, s) l ->
-                                        (mkVId o,
-                                         Just (veSelect
-                                                 oname
-                                                 (VEConst (l+s-1))
-                                                 (VEConst l))))
-                                                 ons
-                                                 ns
+            -- An output that splits into several ports is the bit-concat of
+            -- those ports, so connect each port to a slice of the result wire.
+            oports = sliceAcross oname ops
+            -- The input ports are grouped per argument; connect each argument's
+            -- value to its port(s).  An argument that splits into several ports
+            -- is the bit-concat of them, and since a Verilog expression (e.g. a
+            -- concatenation) cannot be bit-sliced directly, such an argument is
+            -- first assigned to a wire, which is then sliced.
+            (iwires, iports) = mkInputs (0 :: Integer) (zip ips es)
         in
+        iwires ++
         [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
           VMInst {
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
                   -- these are size params, so default width of 32 is fine
                   vi_inst_params = Left (map (\x -> (Nothing,VEConst x)) is),
-                  vi_inst_ports  = (zip
-                                    (map (mkVId . fst) ips')
-                                    (map (Just . (vExpr vco)) es')
-                                    ++ oports)
+                  vi_inst_ports  = iports ++ oports
                  }
             ]
+  where
+        -- connect each port to the corresponding slice of an expression
+        -- (a single port takes the whole expression)
+        sliceAcross _  []        = []
+        sliceAcross ev [(o, _)]  = [(mkVId o, Just ev)]
+        sliceAcross ev pts =
+            let ns = tailOrErr "vDefMpd.sliceAcross" (scanr (+) 0 (map snd pts))
+            in  zipWith (\ (o, s) l ->
+                          (mkVId o,
+                           Just (veSelect ev (VEConst (l+s-1)) (VEConst l))))
+                        pts ns
+        -- connect each argument (paired with its port list) to its port(s);
+        -- returns extra wire decls (for split args) and the port connections
+        mkInputs _ []                = ([], [])
+        mkInputs k ((argPts, e):rest) =
+            let ev = vExpr vco e
+                (wires, conns) = case argPts of
+                  []       -> ([], [])                          -- zero-width arg
+                  [(o, _)] -> ([], [(mkVId o, Just ev)])        -- one port: whole value
+                  _        -> let wid = mkVId (inst_name ++ "_arg_" ++ itos k)
+                              in  ([VMDecl (VVDWire (vSize (ae_type e)) (VVar wid) ev)],
+                                   sliceAcross (VEVar wid) argPts)
+                (wires', conns') = mkInputs (k+1) rest
+            in  (wires ++ wires', conns ++ conns')
 
 vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
@@ -654,6 +672,11 @@ vExpr vco (APrim _ _ PrimConcat es@(e:_)) | allSame es = VERepeat (VEConst (gene
 vExpr vco (APrim _ _ PrimConcat es) = VEConcat (map (vExpr vco) es)
 -- Avoid repetition syntax for strings
 vExpr vco (APrim _ _ PrimStringConcat es) = VEConcat (map (vExpr vco) es)
+-- A constant bit-extract composes with an inner constant select (e.g. reading
+-- a field out of a combined split port that is itself a slice), so route it
+-- through vSelectBits to avoid an illegal chained index like x[a:b][c:d].
+vExpr vco (APrim _ _ PrimExtract [e1, ASInt _ _ (IntLit _ _ h), ASInt _ _ (IntLit _ _ l)]) =
+    vSelectBits (vExpr vco e1) h l
 vExpr vco (APrim _ _ PrimExtract [e1, e2, e3]) | e2 == e3 = VESelect1 (vExpr vco e1) (vExprC vco e2)
 vExpr vco (APrim _ _ PrimExtract [e1, e2, e3]) | isConst e2 && isConst e3 = VESelect (vExpr vco e1) (vExprC vco e2) (vExprC vco e3)
 vExpr vco (APrim _ _ PrimIf [e1, e2, e3]) = VEIf (vExpr vco e1) (vExpr vco e2) (vExpr vco e3)
@@ -712,10 +735,21 @@ vExpr vco (ATupleSel _ e idx) =
               elem_size  = sizes `genericIndex` (idx - 1)
               hi         = total - above - 1
               lo         = total - above - elem_size
-          in  VESelect (vExpr vco e) (VEConst hi) (VEConst lo)
+          in  vSelectBits (vExpr vco e) hi lo
       t -> internalError ("vExpr: ATupleSel of non-tuple type " ++ ppReadable t)
 
 vExpr vco e = internalError ("vExpr vco " ++ ppReadable e)
+
+-- Select bits [hi:lo] of an expression.  If the expression is itself a
+-- constant bit-select (e.g. the result of a nested ATupleSel, as happens when
+-- a split-port value is a tuple of tuples), compose the two selects into a
+-- single one rather than emitting an illegal chained index like x[a:b][c:d].
+vSelectBits :: VExpr -> Integer -> Integer -> VExpr
+vSelectBits (VESelect base _ (VEConst baseLo)) hi lo =
+    vSelectBits base (baseLo + hi) (baseLo + lo)
+vSelectBits (VESelect1 base (VEConst baseLo)) hi lo =
+    vSelectBits base (baseLo + hi) (baseLo + lo)
+vSelectBits e hi lo = veSelect e (VEConst hi) (VEConst lo)
 
 vXor :: VExpr -> VExpr -> VExpr
 vXor (VEWConst id_t s b i1) (VEWConst _ _ _ i2) = VEWConst id_t s b (integerXor i1 i2)

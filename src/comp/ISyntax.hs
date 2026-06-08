@@ -745,6 +745,10 @@ data IConInfo a =
         | ICPrim { iConType :: IType, primOp :: PrimOp } -- primitive
           -- foreign function; foports specifies input and output port names in verilog
           -- (for functions implemented via module instantiation - primarily "noinlined")
+          -- The inputs are grouped per argument (the inner list is the ports of
+          -- one argument, of which there may be several when the argument splits);
+          -- the outputs are a flat list (the single result, possibly split).
+          -- Each port is its name and bit size.
           -- Nothing in foports indicates this is a "true" foreign function
           -- (positional module instantiation is no longer supported)
           -- fcallNo is a cookie used to mark foreign function calls during elaboration
@@ -753,7 +757,7 @@ data IConInfo a =
         | ICForeign { iConType :: IType,
                       fName :: String,
                       isC :: Bool,
-                      foports :: Maybe ([(String, Integer)], [(String, Integer)]),
+                      foports :: Maybe ([[(String, Integer)]], [(String, Integer)]),
                       fcallNo :: Maybe Integer }
           -- constructor
         | ICCon { iConType :: IType, conTagInfo :: ConTagInfo }

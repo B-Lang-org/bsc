@@ -259,7 +259,7 @@ package Prelude(
         NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
-        WrapField(..), WrapMethod(..), WrapPorts(..), NonEmptyBits(..),
+        WrapField(..), WrapMethod(..), fromWrapNoInline, WrapPorts(..), NonEmptyBits(..),
         Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
@@ -4626,6 +4626,14 @@ data (MetaField :: $ -> # -> *) name idx = MetaField
 -- and the output port names.
 primitive primMethod :: List (List String) -> List String -> a -> a
 
+-- Like primMethod, but for a noinline function: records the (possibly split)
+-- input and output port names directly on the foreign-function value, so that
+-- a call to it connects to the same port names that the generated module
+-- exposes.  Unlike primMethod, it does not wrap the result value (which would
+-- not be transparent to expression evaluation); it annotates the foreign
+-- function in place.
+primitive primNoInline :: List (List String) -> List String -> a -> a
+
 -- Convert bewtween a field in an interface that is being synthesized,
 -- and a field in the corresponding field in the generated wrapper interface.
 -- Also takes the name of the field for error reporting purposes.
@@ -4676,6 +4684,20 @@ instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
   fromWrapField _ = primInoutUncast0
   saveFieldPortTypes _ _ modName _ _ result =
     primSavePortType modName result $ typeOf (_ :: (Inout a))
+
+-- Like fromWrapMethod, but for a noinline function: also records the (possibly
+-- split) input and output port names of the function via primNoInline, so that
+-- a call to the noinline function connects to the same port names that the
+-- generated module exposes.  noinline functions do not support naming pragmas,
+-- so the function name is used both as the prefix for naming both the input
+-- and output ports; only the arg names are supplied separately.
+fromWrapNoInline :: (WrapMethod m w) => String -> List String -> w -> m
+fromWrapNoInline name argNames x =
+  let argBaseNames = methodArgBaseNames (_ :: m) name argNames 1
+  in fromWrapMethod (primNoInline
+                       (inputPortNames (_ :: m) argBaseNames)
+                       (outputPortNames (_ :: m) name)
+                       x)
 
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.
