@@ -66,7 +66,7 @@ import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
-import Data.List(partition, intersperse, intercalate, nub, sortBy, genericDrop)
+import Data.List(partition, intersperse, intercalate, nub, sortBy)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad(when)
@@ -1079,8 +1079,8 @@ aExprToCExpr ret e@(ATuple _ exprs) =
 -- elements strictly below the selected one; sizeAfter is therefore the low bit
 -- of element idx, and [aSize t + sizeAfter - 1 : sizeAfter] is its bit range.
 aExprToCExpr ret (ATupleSel t e idx) =
-  wideExtractPrim ret (aSize t) e (aSize t + sizeAfter - 1) sizeAfter
-  where sizeAfter = sum $ map aSize $ genericDrop idx $ att_elem_types $ ae_type e
+  wideExtractPrim ret (aSize t) e hi lo
+  where (hi, lo) = tupleElemRange (ae_type e) idx
 aExprToCExpr _ e@(AMGate _ id clkid) =
   do gmap <- gets gate_map
      case (M.lookup e gmap) of
