@@ -2248,20 +2248,13 @@ makeMethodTemps apkg =
 getNoInlineInfo :: [ADef] -> ( [ADef], [(String, String)] )
 getNoInlineInfo defs =
     let
-        -- extract the output port name
-        getOutPortName (_,[(oname,_)]) = oname
-        getOutPortName _ = internalError "getNoInlineInfo: invalid ports"
-
         cvtDef (ADef di dt
                   (ANoInlineFunCall ft fi
-                    (ANoInlineFun mod_name _ ports (Just inst_name))
+                    (ANoInlineFun mod_name _ _ (Just inst_name))
                     es) props) =
             let
                 pos = getPosition fi
-                -- XXX because noinline "foreign" Id is escaped with an "_",
-                -- XXX we can't get the method name from "fi"
-                --methId = fi
-                methId = mkId pos (mkFString (getOutPortName ports))
+                methId = mkId pos (mkFString (getIdBaseString fi))
                 instId = mkId pos (mkFString inst_name)
                 new_def = ADef di dt (AMethCall ft instId methId es) props
             in

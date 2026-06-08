@@ -950,6 +950,14 @@ itTupleElems t
                       itTupleElems t1 ++ itTupleElems t2
                   _ -> [t]
 
+-- The element bit-widths of a (bitified) tuple type, in left-to-right port order
+-- (flattening nested PrimPair tuples via itTupleElems).  A non-Bit leaf yields
+-- 0, so callers that want only the actual ports can filter out the zeros.
+bitTupleSizes :: IType -> [Integer]
+bitTupleSizes = map leafSize . itTupleElems
+  where leafSize (ITAp b (ITNum n)) | b == itBit = n
+        leafSize _ = 0
+
 -- #############################################################################
 -- #
 -- #############################################################################

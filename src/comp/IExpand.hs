@@ -3232,6 +3232,28 @@ conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
     iMethod = meth'
   }
 
+-- primNoInline records the (possibly split) input/output port names of a
+-- noinline function onto its foreign-function value, by rewriting foports.
+-- The per-port sizes come from the (bitified) foreign-function type; zero-width
+-- ports are dropped, to match the names (which inputPortNames/outputPortNames
+-- have already filtered).
+conAp' i (ICPrim _ PrimNoInline) _ [T _t, E eInNames, E eOutNames, E fe] = do
+  (inNames, _) <- evalStringListList eInNames
+  (outNames, _) <- evalStringList eOutNames
+  P p fe' <- eval1 fe
+  case fe' of
+    ICon fi fc@(ICForeign { iConType = ft }) ->
+      let (argTys, resTy) = itGetArrows ft
+          -- pair each (non-zero-width) port name with its size, flattening a
+          -- bitified tuple type into the bit-sizes of its ports
+          mkPorts names ty = zip names (filter (/= 0) (bitTupleSizes ty))
+          -- inputs are grouped per argument (kept as a 2-d list)
+          ips = zipWith mkPorts inNames argTys
+          ops = mkPorts outNames resTy
+      in  return $ P p $ ICon fi (fc { foports = Just (ips, ops) })
+    -- not a foreign-function value (shouldn't happen): leave unchanged
+    _ -> return (P p fe')
+
 -- XXX is this still needed?
 conAp' i (ICUndet { iConType = t })  e as | t == itClock =
    errG (getIdPosition i, EUndeterminedClock)

@@ -81,19 +81,21 @@ iConvVar flags r env i =
                 Just (VarInfo VarPrim (_ :>: sc) _ _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
                 Just (VarInfo (VarForg name mps) (_ :>: sc) _ _) ->
                         let t = iConvSc flags r sc
+                            -- inputs are grouped per argument;
+                            -- foreign functions have one (unsplit) port per argument,
+                            -- so each inner list is a singleton.
+                            -- A single-output foreign function may be polymorphic
+                            -- (e.g. Fork's `Bit n -> Bit m`), whose port sizes are
+                            -- type variables that addSizes cannot read; the sizes
+                            -- are not used for a single output, so just record 0.
                             ops' = case mps of
-                                   Just (ips, [op]) -> Just (zip ips (repeat 0), [(op, 0)])        -- XXX a hack for single output
+                                   Just (ips, [op]) -> Just (map (\ip -> [(ip, 0)]) ips, [(op, 0)])
                                    Just (ips, ops) -> Just (addSizes ips ops [] t)
                                    Nothing -> Nothing
                             addSizes (i:is) ops ins (ITAp (ITAp arr (ITAp bit (ITNum n))) r) | arr == itArrow && bit == itBit =
-                                addSizes is ops ((i, n):ins) r
-                            addSizes [] ops ins t = (reverse ins, zip ops (flatPairs t))
+                                addSizes is ops ([(i, n)]:ins) r
+                            addSizes [] ops ins t = (reverse ins, zip ops (bitTupleSizes t))
                             addSizes is ops ins t = internalError ("addSizes mismatch: " ++ ppReadable (is, ops, ins, t))
-                            flatPairs (ITAp bit (ITNum n)) | bit == itBit = [n]
-                            flatPairs (ITAp (ITAp pair a) b) = flatPairs a ++ flatPairs b
-                            flatPairs it = internalError
-                                           ("IConv.iConvVar.flatPairs: " ++
-                                            show it)
                         in  ICon i (ICForeign t name False ops' Nothing)
                 Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _ _) ->
                     let (IsIn cl _) = removePredPositions pp

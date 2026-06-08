@@ -92,6 +92,88 @@ if { $vtest == 1 } {
     find_regexp mkSomeArgNamesSplitTest.v {input  putFooBar_2_b;}
 }
 
+# ----------
+# Port splitting for the arguments and results of noinline functions.
+# The generated module_<f> exposes split input/output ports, and the caller's
+# instantiation connects the argument values and result to those same names
+# (verified in both the Verilog and Bluesim backends).
+
+# Argument and result are a struct with a direct (custom) SplitPorts instance
+# -- no ShallowSplit newtype.  Foo splits into two ports named after its fields.
+test_c_veri_bs_modules NoinlineSplit {module_swapFoo}
+if { $vtest == 1 } {
+    find_regexp module_swapFoo.v {input  \[7 : 0\] swapFoo_f_x;}
+    find_regexp module_swapFoo.v {input  \[7 : 0\] swapFoo_f_y;}
+    find_regexp module_swapFoo.v {output \[7 : 0\] swapFoo_x;}
+    find_regexp module_swapFoo.v {output \[7 : 0\] swapFoo_y;}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_f_x\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_f_y\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_x\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_y\(}
+}
+
+# Several arguments, some split (direct SplitPorts instance) and some not:
+# each argument's value is connected to its own port(s) (the input ports are
+# grouped per argument).  The split arguments are destructured by a pattern in
+# the function head, so they have no name and get the default _<n> base name.
+test_c_veri_bs_modules NoinlineSplitMulti {module_combine}
+if { $vtest == 1 } {
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1000_x;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1000_y;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine_k;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1002_x;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1002_y;}
+    find_regexp module_combine.v {output \[7 : 0\] combine_x;}
+    find_regexp module_combine.v {output \[7 : 0\] combine_y;}
+    # the unsplit argument connects directly; the split ones are sliced
+    find_regexp sysNoinlineSplitMulti.v {\.combine_k\(8'd10\)}
+    find_regexp sysNoinlineSplitMulti.v {\.combine__a1000_x\(}
+    find_regexp sysNoinlineSplitMulti.v {\.combine__a1002_y\(}
+}
+
+# Argument and result split *recursively* via a direct (deep) SplitPorts
+# instance -- no DeepSplit newtype.  A vector, a tuple, and a nested struct all
+# become separate ports.
+test_c_veri_bs_modules NoinlineDeepSplit {module_tweak}
+if { $vtest == 1 } {
+    find_regexp module_tweak.v {input  tweak_b_v_0;}
+    find_regexp module_tweak.v {input  tweak_b_v_2;}
+    find_regexp module_tweak.v {input  tweak_b_w_1;}
+    find_regexp module_tweak.v {input  \[15 : 0\] tweak_b_w_2;}
+    find_regexp module_tweak.v {input  \[7 : 0\] tweak_b_z_x;}
+    find_regexp module_tweak.v {input  \[7 : 0\] tweak_b_z_y;}
+    find_regexp module_tweak.v {output tweak_v_0;}
+    find_regexp module_tweak.v {output \[15 : 0\] tweak_w_2;}
+    find_regexp module_tweak.v {output \[7 : 0\] tweak_z_x;}
+    find_regexp sysNoinlineDeepSplit.v {\.tweak_b_z_x\(}
+    find_regexp sysNoinlineDeepSplit.v {\.tweak_z_y\(}
+}
+
+# Result is a tuple split into ports named after the tuple fields (fst, snd),
+# using the ShallowSplit newtype.
+test_c_veri_bs_modules NoinlineSplitTuple {module_divmod}
+if { $vtest == 1 } {
+    find_regexp module_divmod.v {output \[7 : 0\] divmod_fst;}
+    find_regexp module_divmod.v {output divmod_snd;}
+    find_regexp sysNoinlineSplitTuple.v {\.divmod_fst\(}
+    find_regexp sysNoinlineSplitTuple.v {\.divmod_snd\(}
+}
+
+# Result is a 3-element tuple (ShallowSplit newtype): the shallow split peels
+# off the first field (fst) and leaves the rest in one combined port (snd).
+# Reading the individual fields out of the combined snd port slices a value
+# that is itself a slice, which must compose into a single index rather than
+# an illegal chained index like wire[8:0][8:1].
+test_c_veri_bs_modules NoinlineSplitTuple3 {module_triple}
+if { $vtest == 1 } {
+    find_regexp module_triple.v {output \[7 : 0\] triple_fst;}
+    find_regexp module_triple.v {output \[8 : 0\] triple_snd;}
+    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[8:1\]}
+    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[0\]}
+}
+
+# ----------
+
 compile_verilog_fail_error TooManyArgNames.bs S0015
 compare_file TooManyArgNames.bs.bsc-vcomp-out
 
