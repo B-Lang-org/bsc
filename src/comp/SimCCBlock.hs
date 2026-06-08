@@ -66,7 +66,7 @@ import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
-import Data.List(partition, intersperse, intercalate, nub, sortBy, genericDrop)
+import Data.List(partition, intersperse, intercalate, nub, sortBy)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad(when)
@@ -1074,8 +1074,8 @@ aExprToCExpr _ (AMethCall _ id mid args) =
 aExprToCExpr ret e@(ATuple _ exprs) =
   wideConcatPrim ret (aSize e) exprs
 aExprToCExpr ret (ATupleSel t e idx) =
-  wideExtractPrim ret (aSize t) e (aSize t + sizeAfter - 1) sizeAfter
-  where sizeAfter = sum $ map aSize $ genericDrop idx $ att_elem_types $ ae_type e
+  wideExtractPrim ret (aSize t) e hi lo
+  where (hi, lo) = tupleElemRange (ae_type e) idx
 aExprToCExpr _ e@(AMGate _ id clkid) =
   do gmap <- gets gate_map
      case (M.lookup e gmap) of

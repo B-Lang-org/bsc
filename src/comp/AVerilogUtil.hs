@@ -770,16 +770,8 @@ vExpr vco (ASAny (ATBit w) _)                   = VEUnknown w (vco_unspec vco)
 vExpr vco (ATuple _ es) = VEConcat (map (vExpr vco) es)
 vExpr vco (ATupleSel _ (ATuple _ es) idx) = vExpr vco (es `genericIndex` (idx - 1))
 vExpr vco (ATupleSel _ e idx) =
-    case aType e of
-      ATTuple ts ->
-          let sizes      = map aSize ts
-              total      = sum sizes
-              above      = sum (take (fromInteger idx - 1) sizes)
-              elem_size  = sizes `genericIndex` (idx - 1)
-              hi         = total - above - 1
-              lo         = total - above - elem_size
-          in  vSelectBits (vExpr vco e) hi lo
-      t -> internalError ("vExpr: ATupleSel of non-tuple type " ++ ppReadable t)
+    let (hi, lo) = tupleElemRange (aType e) idx
+    in  vSelectBits (vExpr vco e) hi lo
 
 vExpr vco e = internalError ("vExpr vco " ++ ppReadable e)
 
