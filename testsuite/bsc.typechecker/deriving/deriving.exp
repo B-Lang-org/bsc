@@ -32,10 +32,11 @@ compile_pass Multiple.bs
 test_veri_only DerivingMod
 
 # --------------------
-# test for correct deriving via
+# tests for deriving via
 
 compile_pass DerivingVia.bs
-
+compile_fail_error DerivingViaHK.bs T0030
+compare_file DerivingViaHK.bs.bsc-out
 
 # --------------------
 # test that structs of one field can derive for instances from that field
