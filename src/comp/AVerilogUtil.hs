@@ -522,7 +522,7 @@ vDefMpd vco (ADef i t
                   (ANoInlineFun n is (ips, ops) (Just inst_name)) es) _) _ =
         let
             -- connect the result and each argument to their (split) ports
-            oports = connect (ASDef t i) ops
+            oports = connectTuplePorts vco (ASDef t i) ops
             (iwires, iports) = mkInputs (0 :: Integer) (zip es ips)
         in
         iwires ++
@@ -536,64 +536,19 @@ vDefMpd vco (ADef i t
                  }
             ]
   where
-        -- Connect a port group to the matching parts of a tuple value by walking
-        -- its (right-nested) tuple type with ATupleSel, which vExpr lowers by
-        -- selecting a literal element directly or slicing a variable -- so a
-        -- Verilog concatenation is never bit-sliced by hand.
-        connect val pts =
-            [ (mkVId o, Just (vExpr vco (tupleSelPath val path)))
-            | (path, (o, _)) <- portFrontier (ae_type val) pts ]
-
         -- An argument that can't be selected in place (not a variable or literal
         -- tuple, e.g. a bare concat) is bound to a wire <inst>_arg_<k> first.
         mkInputs _ []             = ([], [])
         mkInputs k ((e, pts):rest) =
             let (wires, base)
-                  | length pts <= 1 || selectable e = ([], e)
+                  | length pts <= 1 || isSelectable e = ([], e)
                   | otherwise =
                       let aid = setIdBaseString i (inst_name ++ "_arg_" ++ itos k)
                       in  ([VMDecl (VVDWire (vSize (ae_type e)) (VVar (vId aid)) (vExpr vco e))],
                            ASDef (ae_type e) aid)
-                conns = connect base pts
+                conns = connectTuplePorts vco base pts
                 (wires', conns') = mkInputs (k+1) rest
             in  (wires ++ wires', conns ++ conns')
-
-        selectable (ATuple {})  = True
-        selectable (ASDef {})   = True
-        selectable (ASPort {})  = True
-        selectable (ASParam {}) = True
-        selectable _            = False
-
-        -- Match the flat port list to the tuple structure.  A single port takes
-        -- the whole value (its recorded width may be a placeholder, e.g. 0 for a
-        -- polymorphic foreign function); otherwise split the ports among the
-        -- tuple's elements by width, so a shallow split stops at the top level
-        -- and a deep split reaches the leaves.
-        portFrontier _  []   = []
-        portFrontier _  [p]  = [([], p)]
-        portFrontier (ATTuple ts) pts =
-            concat $ zipWith (\ idx (t', ps) -> [ (idx:path, p)
-                                                | (path, p) <- portFrontier t' ps ])
-                             [1 ..] (splitByWidth ts pts)
-        portFrontier ty pts =
-            internalError ("vDefMpd.portFrontier: " ++ ppReadable (ty, pts))
-
-        -- split the port list so group i spans aSize (ts !! i)
-        splitByWidth []       _   = []
-        splitByWidth (t':ts')  pts =
-            let (grp, rest) = takeWidth (aSize t') pts
-            in  (t', grp) : splitByWidth ts' rest
-          where takeWidth 0 ps      = ([], ps)
-                takeWidth _ []      = ([], [])
-                takeWidth w (p:ps)  = let (g, r) = takeWidth (w - snd p) ps
-                                      in  (p:g, r)
-
-        -- apply a selector path (1-based ATupleSel indices) to a tuple value
-        tupleSelPath val []         = val
-        tupleSelPath val (idx:rest) =
-            case ae_type val of
-              ATTuple ts -> tupleSelPath (ATupleSel (ts `genericIndex` (idx-1)) val idx) rest
-              ty         -> internalError ("vDefMpd.tupleSelPath: " ++ ppReadable ty)
 
 vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
@@ -660,6 +615,64 @@ vDefMpd vco adef@(ADef _ _ _ _) _ = internalError( "unexpected pattern in AVeril
 
 
 -- ------------------------------
+-- Connecting a tuple-typed value to a flat list of split ports.
+
+-- Connect each port to the matching part of a tuple value by walking its
+-- (right-nested) tuple type with ATupleSel, which vExpr lowers by selecting a
+-- literal element directly or slicing a variable (composing via vSelectBits) --
+-- so a Verilog concatenation is never bit-sliced by hand.  Reusable by any pass
+-- that wires a tuple-typed value to a flat list of sized ports.
+connectTuplePorts :: VConvtOpts -> AExpr -> [(String, Integer)] -> [(VId, Maybe VExpr)]
+connectTuplePorts vco val pts =
+    [ (mkVId o, Just (vExpr vco (tupleSelPath val path)))
+    | (path, (o, _)) <- portFrontier (ae_type val) pts ]
+
+-- Match the flat port list to the tuple structure.  A single port takes the
+-- whole value (its recorded width may be a placeholder, e.g. 0 for a polymorphic
+-- foreign function); otherwise split the ports among the tuple's elements by
+-- width, so a shallow split stops at the top level and a deep split reaches the
+-- leaves.
+portFrontier :: AType -> [(String, Integer)] -> [([Integer], (String, Integer))]
+portFrontier _  []   = []
+portFrontier _  [p]  = [([], p)]
+portFrontier (ATTuple ts) pts =
+    concat $ zipWith (\ idx (t', ps) -> [ (idx:path, p)
+                                        | (path, p) <- portFrontier t' ps ])
+                     [1 ..] (splitByTupleWidth ts pts)
+portFrontier ty pts =
+    internalError ("AVerilogUtil.portFrontier: " ++ ppReadable (ty, pts))
+
+-- Split the flat port list so that group i has total width = aSize (ts !! i).
+splitByTupleWidth :: [AType] -> [(String, Integer)]
+                  -> [(AType, [(String, Integer)])]
+splitByTupleWidth []       _   = []
+splitByTupleWidth (t':ts')  pts =
+    let (grp, rest) = takeWidth (aSize t') pts
+    in  (t', grp) : splitByTupleWidth ts' rest
+  where takeWidth 0 ps      = ([], ps)
+        takeWidth _ []      = ([], [])
+        takeWidth w (p:ps)  = let (g, r) = takeWidth (w - snd p) ps
+                              in  (p:g, r)
+
+-- Apply a selector path (1-based ATupleSel indices) to a tuple value.
+tupleSelPath :: AExpr -> [Integer] -> AExpr
+tupleSelPath val []         = val
+tupleSelPath val (idx:rest) =
+    case ae_type val of
+      ATTuple ts -> tupleSelPath (ATupleSel (ts `genericIndex` (idx-1)) val idx) rest
+      ty         -> internalError ("AVerilogUtil.tupleSelPath: " ++ ppReadable ty)
+
+-- A variable (sliceable) or literal tuple (element-selectable) can be selected
+-- from in place; anything else must be bound to a wire first.
+isSelectable :: AExpr -> Bool
+isSelectable (ATuple {})  = True
+isSelectable (ASDef {})   = True
+isSelectable (ASPort {})  = True
+isSelectable (ASParam {}) = True
+isSelectable _            = False
+
+
+-- ------------------------------
 
 veSelect :: VExpr -> VExpr -> VExpr -> VExpr
 veSelect e h l = if h == l then VESelect1 e l else VESelect e h l
@@ -718,11 +731,13 @@ vExpr vco (APrim _ t PrimZeroExt [e]) =
                         0,
                     vExpr vco e]
 vExpr vco (APrim _ t PrimSignExt [e]) | aSize e == 1 && aSize t > 0 = VERepeat (VEConst (aSize t)) (vExpr vco e)
-vExpr vco e0@(APrim _ t PrimSignExt [e]) = VEConcat [vERepeat fill (VESelect1 vexp vhi), vexp]
+-- Replicate the sign bit.  Select it through vSelectBits so that sign-extending
+-- a value that is itself a bit-select (e.g. a struct field) composes into one
+-- index rather than an illegal chained index like x[a:b][hi].
+vExpr vco e0@(APrim _ t PrimSignExt [e]) = VEConcat [vERepeat fill (vSelectBits vexp (j-1) (j-1)), vexp]
     where fill = if (j >= i) then
                    internalError("AVerilogUtil.broken SignExtend: " ++ ppReadable e0)
                  else i-j
-          vhi = VEConst (j-1)
           vexp = vExpr vco e
           i = aSize t
           j = aSize e
