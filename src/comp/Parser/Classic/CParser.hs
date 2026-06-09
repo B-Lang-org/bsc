@@ -537,7 +537,7 @@ pDeriving = l L_deriving ..+
         ||! pDerivingVia)
 
 pDerivingStock :: CParser CDeriving
-pDerivingStock = lp ..+ sepBy1 pTypeclass cm +.. rp         >>- CStock
+pDerivingStock = lp ..+ sepBy pTypeclass cm +.. rp         >>- CStock
 
 pDerivingVia :: CParser CDeriving
 pDerivingVia = pTypeclass +.+ l L_via ..+ pTyConId          >>> CVia
