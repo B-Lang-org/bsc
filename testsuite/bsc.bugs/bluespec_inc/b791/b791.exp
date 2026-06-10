@@ -3,4 +3,6 @@ if {$vtest == 1} {
   link_verilog_pass loop.v loop
 }
 
-test_c_veri_bsv_modules Bug791 mkTuple
+# mkTuple has a Tuple2 interface.  A tuple is not a valid module interface
+# (PrimPair is a struct, not an interface), so synthesizing it fails (T0043).
+compile_verilog_pass_bug Bug791.bsv mkTuple tuple-interface
