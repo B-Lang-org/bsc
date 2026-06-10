@@ -28,15 +28,19 @@ endmodule
 module mkMesaTxLpm(ILpm);
    let cocoon <- mkTheCocoon;
    let ilpmwires <- mkMesaTxLpm0;
-   match {.ilpm, .wires} = ilpmwires;
+   let ilpm  = ilpmwires.ilpm;
+   let wires = ilpmwires.wires;
 
    mkConnection(cocoon, wires);
    return ilpm;
 endmodule
 
-typedef Tuple2#(ILpm, LPMMemoryWires) ILPM0;
+interface ILPM0;
+   interface ILpm ilpm;
+   interface LPMMemoryWires wires;
+endinterface
 
- (* synthesize *)
+(* synthesize *)
 module mkMesaTxLpm0(ILPM0);
    LPMMemoryStub stub <- mkStub;
    let sram = stub.mem;
@@ -61,7 +65,7 @@ module mkMesaTxLpm0(ILPM0);
 	 pending <= tagged Valid (d32[20:0] + {0, third_base});
    endrule
 
-   interface ILpm fst;
+   interface ILpm ilpm;
       interface Server mif;
 	 interface Put request;
 	    method put(x) if (!isValid(pending));
@@ -92,9 +96,9 @@ module mkMesaTxLpm0(ILPM0);
       endinterface: mif
       // In the transactional model, we don't need to define the interface to a real RAM:
       interface ram = ?;
-   endinterface: fst
+   endinterface: ilpm
 
-   interface snd = stub.cocoon;
+   interface wires = stub.cocoon;
 
 endmodule
 
