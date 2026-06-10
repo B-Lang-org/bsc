@@ -112,7 +112,7 @@ the dequeue side and a \te{Put} interface on the enqueue side.\\
 &\begin{libverbatim}
 module mkCGetPut(Tuple2#(CGet#(n, element_type), 
                          Put#(element_type)))
-  provisos (Bits#(element_type)); 
+  provisos (Bits#(element_type, sz)); 
 \end{libverbatim}
 \\ \hline
 \end{tabular}
@@ -128,7 +128,7 @@ dequeue side and a \te{CPut} interface on the enqueue side.\\
 &\begin{libverbatim}
 module mkGetCPut(Tuple2#(Get#(element_type), 
                          CPut#(n, element_type)))
-  provisos (Bits#(element_type));
+  provisos (Bits#(element_type, sz));
 \end{libverbatim}
 \\ \hline
 \end{tabular}
@@ -150,8 +150,8 @@ module mkGetCPut(Tuple2#(Get#(element_type),
 module mkClientCServer(
                Tuple2#(Client#(req_type, resp_type),
                        CServer#(n, req_type, resp_type)))
-  provisos (Bits#(req_type), 
-            Bits#(resp_type));
+  provisos (Bits#(req_type, sreq), 
+            Bits#(resp_type, sresp));
 \end{libverbatim}
 \\ \hline
 \end{tabular}
@@ -169,8 +169,8 @@ interface. \\
 module mkCClientServer(
                 Tuple2#(CClient#(n, req_type, resp_type), 
                         Server#(req_type, resp_type)))
-  provisos (Bits#(req_type), 
-            Bits#(resp_type)); 
+  provisos (Bits#(req_type, sreq), 
+            Bits#(resp_type, sresp)); 
 \end{libverbatim}
 \\ \hline
 \end{tabular}

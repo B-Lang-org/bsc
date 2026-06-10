@@ -128,11 +128,11 @@ typedef Tuple2 #(Get#(element_type), BPut#(element_type)) GetBPut #(type element
 
 The \te{BGet} and \te{BPut} interface are connectable.
 \begin{libverbatim}
-instance Connectable #(BGet#(sa), BPut#(sa));
+instance Connectable #(BGet#(element_type), BPut#(element_type));
 \end{libverbatim}
 \lineup
 \begin{libverbatim}
-instance Connectable #(BPut#(sa), BGet#(sa));
+instance Connectable #(BPut#(element_type), BGet#(element_type));
 \end{libverbatim}
 
 \item{\te{BClient} and \te{BServer}}
@@ -149,8 +149,8 @@ typedef Tuple2 #(Client#(req_type, resp_type), BServer#(req_type, resp_type))
 A \te{BClient} can be connected to a \te{BServer}
 and vice versa.
 \begin{libverbatim}
-instance Connectable #(BClientS#(req_type, resp_type), BServerS#(req_type, resp_type));
-instance Connectable #(BServerS#(req_type, resp_type), BClientS#(req_type, resp_type));
+instance Connectable #(BClient#(req_type, resp_type), BServer#(req_type, resp_type));
+instance Connectable #(BServer#(req_type, resp_type), BClient#(req_type, resp_type));
 \end{libverbatim}
 
 
@@ -167,8 +167,8 @@ instance Connectable #(BServerS#(req_type, resp_type), BClientS#(req_type, resp_
 \te{mkBGetPut} & Create one end of the buffer.  Access to it is via a \te{Put} interface.\\
 \cline{2-2}
 & \begin{libverbatim}
-module mkBGetPut(Tuple2 #(BGet#(sa), Put#(a)))
-  provisos (Bits#(a, sa));
+module mkBGetPut(Tuple2 #(BGet#(element_type), Put#(element_type)))
+  provisos (Bits#(element_type, sz));
 \end{libverbatim}
 \\ \hline
 \end{tabular}
@@ -182,8 +182,8 @@ module mkBGetPut(Tuple2 #(BGet#(sa), Put#(a)))
 interface. \\
 \cline{2-2}
 &\begin{libverbatim}
-module mkGetBPut(Tuple2 #(Get#(a), BPut#(sa)))
-  provisos (Bits#(a, sa));
+module mkGetBPut(Tuple2 #(Get#(element_type), BPut#(element_type)))
+  provisos (Bits#(element_type, sz));
 \end{libverbatim} 
 \\
 \hline
@@ -204,7 +204,7 @@ module mkGetBPut(Tuple2 #(Get#(a), BPut#(sa)))
 &\begin{libverbatim}
 module mkClientBServer(Tuple2 #(Client#(req_type, resp_type), 
                                 BServer#(req_type, resp_type)))
-  provisos (Bits#(req_type), Bits#(resp_type));
+  provisos (Bits#(req_type, sreq), Bits#(resp_type, sresp));
 \end{libverbatim}
 \\
 \hline
@@ -219,9 +219,9 @@ module mkClientBServer(Tuple2 #(Client#(req_type, resp_type),
 \te{mkBClientServer}&\\
 \cline{2-2}
 &\begin{libverbatim}
-module mkBClientServer(Tuple2 #(BClientS#(req_type, resp_type), 
+module mkBClientServer(Tuple2 #(BClient#(req_type, resp_type),
                                 Server#(req_type, resp_type)))
-  provisos (Bits#(req_type), Bits#(resp_type));
+  provisos (Bits#(req_type, sreq), Bits#(resp_type, sresp));
 \end{libverbatim}
 \\
 \hline
