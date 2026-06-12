@@ -138,6 +138,7 @@ inlineDefs pkg =
       isNotOk d
         | isUnsized (adef_type d)         = True
         | (aSize d > 64)                  = True
+        | isTupleType (adef_type d)       = True
         | isTaskOrForeignFunc d           = True
         | isCase d                        = True
         | otherwise                       = False
@@ -229,7 +230,12 @@ optimizeConcats pkg =
                        _   -> APrim pid pty PrimConcat args''
        -- recurse for other
        optConcat (APrim i t o as) = APrim i t o (map optConcat as)
-       optConcat (AMethCall t o m as) = AMethCall t o m (map optConcat as)
+       optConcat (AMethCall t o m args) =
+           AMethCall t o m (map optConcat args)
+       -- XXX There is maybe an opportunity to optimize tuple construction here,
+       -- since that basically turns into a concat as well.
+       optConcat (ATuple t as) = ATuple t (map optConcat as)
+       optConcat (ATupleSel t e idx) = ATupleSel t (optConcat e) idx
        optConcat (AFunCall t i f isC as) = AFunCall t i f isC (map optConcat as)
        optConcat e = e
    in mapAExprs optConcat pkg
@@ -316,9 +322,15 @@ convertASAny errh flags apkg = do
       cvtASAnyExpr (APrim aid ty op args) =
         do args' <- mapM cvtASAnyExpr args
            return $ APrim aid ty op args'
-      cvtASAnyExpr (AMethCall ty aid  mid args) =
+      cvtASAnyExpr (AMethCall ty aid mid args) =
         do args' <- mapM cvtASAnyExpr args
            return $ AMethCall ty aid mid args'
+      cvtASAnyExpr (ATuple ty elems) =
+        do elems' <- mapM cvtASAnyExpr elems
+           return $ ATuple ty elems'
+      cvtASAnyExpr (ATupleSel ty exp idx) =
+        do exp' <- cvtASAnyExpr exp
+           return $ ATupleSel ty exp' idx
       cvtASAnyExpr (ANoInlineFunCall ty aid fun args) =
         do args' <- mapM cvtASAnyExpr args
            return $ ANoInlineFunCall ty aid fun args'

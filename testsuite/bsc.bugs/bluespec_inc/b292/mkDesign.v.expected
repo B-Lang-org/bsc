@@ -87,7 +87,7 @@ module mkDesign(clk,
 
   // remaining internal signals
   wire [7 : 0] x__h663, x__h814, x__h874;
-  wire [3 : 0] x__h851, x__h896;
+  wire [3 : 0] x__h896, x__h851;
 
   // value method done
   assign done = i_done_reg ;

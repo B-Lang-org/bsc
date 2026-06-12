@@ -1040,7 +1040,7 @@ combineCombSchedInfo use_map domain_id_map parent_abi parent_csi
         -- schedule graph and conflicts (even the methods not used by
         -- any parent rules), so we need to know which are the method Ids
         child_apkg = abmi_apkg child_abi
-        child_meth_set = S.fromList $ map aIfaceName (apkg_interface child_apkg)
+        child_meth_set = S.fromList $ map aif_name (apkg_interface child_apkg)
 
         -- combine each part of the CSI
         comb_sched_map = combineSchedMap inst parent_uses
@@ -1669,7 +1669,7 @@ mkRdyMap abi =
         mkPair (AIClock {}) = []
         mkPair (AIReset {}) = []
         mkPair ifc =
-            let name = aIfaceName ifc
+            let name = aif_name ifc
                 pred_e = aIfacePred ifc
             in  if (isRdyId name)
                 then [] -- Rdy methods don't have Rdy methods
@@ -1959,8 +1959,8 @@ mergeUses = stableOrdNub . concat
 -- Returns the method uses in an action.
 -- A use is a method Id on a particular instance (instId, methId)
 aUses :: M.Map AId [(AId,AId)] -> AAction -> [(AId,AId)]
-aUses m a@(ACall i mi es) =
-    [(i, unQualId mi)] ++ mergeUses (map (eDomain m) es)
+aUses m a@(ACall i mi args) =
+    [(i, unQualId mi)] ++ mergeUses (map (eDomain m) args)
 aUses m a@(AFCall i _ _ es isAssump) =
     if isAssump then [] else mergeUses $ map (eDomain m) es
 aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
@@ -1970,10 +1970,12 @@ aUses m a@(ATaskAction i _ _ _ es _ _ isAssump) =
 -- A use is a method Id on a particular instance (instId, methId)
 eDomain :: M.Map AId [(AId,AId)] -> AExpr -> [(AId,AId)]
 eDomain m (APrim _ _ _ es) = mergeUses $ map (eDomain m) es
-eDomain m e@(AMethCall _ i mi es) =
-    mergeUses ([(i, unQualId mi)] : map (eDomain m) es)
+eDomain m e@(AMethCall _ i mi args) =
+    mergeUses ([(i, unQualId mi)] : map (eDomain m) args)
 -- don't count the return value uses of actionvalue, only the action part
 eDomain m (AMethValue _ _ _) = []
+eDomain m (ATupleSel _ e _) = eDomain m e
+eDomain m (ATuple _ es) = mergeUses $ map (eDomain m) es
 eDomain m (ANoInlineFunCall _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain m (AFunCall _ _ _ _ es) = mergeUses $ map (eDomain m) es
 eDomain _ e@(ASPort _ i) = []
@@ -2210,10 +2212,11 @@ makeMethodTemps apkg =
                                   (AIDef {})         -> (True,False)
                                   (AIActionValue {}) -> (False,True)
                                   otherwise          -> (False,False)
+              v = aif_value aif
           in if is_def || is_av
-             then case process is_av (aif_value aif) (aif_name aif) seqNo of
+             then case process is_av v (aif_name aif) seqNo of
                     (Just t@(ADef tid ty e props)) ->
-                       let aid = adef_objid (aif_value aif)
+                       let aid = adef_objid v
                            -- unclear if propagating the props is correct
                            new_def = (ADef aid ty (ASDef ty tid) props)
                            aif' = aif { aif_value = new_def }
@@ -2245,20 +2248,13 @@ makeMethodTemps apkg =
 getNoInlineInfo :: [ADef] -> ( [ADef], [(String, String)] )
 getNoInlineInfo defs =
     let
-        -- extract the output port name
-        getOutPortName (_,[(oname,_)]) = oname
-        getOutPortName _ = internalError "getNoInlineInfo: invalid ports"
-
         cvtDef (ADef di dt
                   (ANoInlineFunCall ft fi
-                    (ANoInlineFun mod_name _ ports (Just inst_name))
+                    (ANoInlineFun mod_name _ _ (Just inst_name))
                     es) props) =
             let
                 pos = getPosition fi
-                -- XXX because noinline "foreign" Id is escaped with an "_",
-                -- XXX we can't get the method name from "fi"
-                --methId = fi
-                methId = mkId pos (mkFString (getOutPortName ports))
+                methId = mkId pos (mkFString (getIdBaseString fi))
                 instId = mkId pos (mkFString inst_name)
                 new_def = ADef di dt (AMethCall ft instId methId es) props
             in

@@ -9,13 +9,14 @@ import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import PPrint
 import Id
-import PreIds(idFromWrapField, idActionValue, idStrArg)
+import PreIds(idFromWrapNoInline, idActionValue)
 import CSyntax
+import CSyntaxUtil(mkList, stringLiteralAt)
 import SymTab
 import Scheme
 import Assump
 import Type(tModule, fn)
-import CType(getArrows, getRes, cTStr)
+import CType(getArrows, getRes)
 import Pred(expandSyn)
 import TypeCheck(cCtxReduceDef)
 import Subst(tv)
@@ -226,8 +227,13 @@ addFuncWrap errh symt is (CPackage modid exps imps impsigs fixs ds includes) = d
                       let -- the number of arguments
                           n = nArrows t_
                       -- definitions for the wrapper and wrappee
-                      d <- funcDef errh symt i qt i_ n qt_
-                      let d_ = funcDef_ mi i i_ qt_ args
+                      d <- funcDef errh symt i qt i_ n args qt_
+                      -- the "wrappee": a foreign declaration marked as a
+                      -- noinline function (the final True = cforg_is_noinline);
+                      -- its port names are filled in later, in IExpand, by the
+                      -- primNoInline primitive (see fromWrapFieldNoInline) from
+                      -- the types via the SplitPorts class
+                      let d_ = Cforeign i_ qt_ (Just (getIdString mi)) Nothing True
                       return [d, d_]
                 _ -> internalError ("addFuncWrap: " ++ ppString (ti_, i_))
 
@@ -240,16 +246,24 @@ addFuncWrap errh symt is (CPackage modid exps imps impsigs fixs ds includes) = d
 --   oqt = qualified type of the original function
 --   i_ = the escaped id (declared as foreign)
 --   n  = the number of arguments to the foreign function
+--   args = the function's argument ids (for naming the input ports)
 --   t  = the base type of the foreign function
-funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> CQType -> IO CDefn
-funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
+funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> [Id] -> CQType -> IO CDefn
+funcDef errh symt i oqt@(CQType _ ot) i_ n args (CQType _ t) =
     let pos = getPosition i
         r = getRes ot
         -- the result is either an actionvalue or a value
         isAV = isActionValue symt r
 
-        fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (getIdFString i) (getIdPosition i)
-        expr = cVApply idFromWrapField [fnp, CVar i_]
+        -- noinline functions do not support naming pragmas, so the function
+        -- name is used both as the port-name prefix and as the result port name
+        -- (matching what GenWrap uses for the generated module's interface
+        -- method), so that fromWrapNoInline computes the same (split) port names
+        -- that the module exposes.
+        name      = stringLiteralAt pos (getIdString i)
+        arg_names = mkList pos [ stringLiteralAt (getPosition a) (getIdString a)
+                               | a <- args ]
+        expr = cVApply idFromWrapNoInline [name, arg_names, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet
@@ -257,28 +271,6 @@ funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
         then bsError errh [(pos, ENoInlineAction (getIdBaseString i))]
         else return $
              CValueSign (CDef i oqt [CClause [] [] expr])
-
--- ---------------
-
--- make the foreign function declaration (with escaped id) to be wrapped.
---   mi   = the combinational module to instantiate
---   i_   = the escaped identifier to use for the foreign declaration
---   i    = the original identifier, which also happens to be the
---          name of the method on the module, which is the prefix for
---          the port names for the method (used to generate the port names)
---   qt_  = the qualified type of the wrapped function
---          (this has been bitified by GenWrap)
---   args = List of function args
-funcDef_ :: Id -> Id -> Id -> CQType -> [Id] -> CDefn
-funcDef_ mi i i_ qt_ args =
-    let
-        mstr = getIdString mi
-        -- input ports: <methId>_<argId>
-        iports = [ oport ++ "_" ++ getIdString arg | arg <- args ]
-        -- output port: <methId>
-        oport = getIdString i
-    in
-        Cforeign i_ qt_ (Just mstr) (Just (iports, [oport])) True
 
 -- ---------------
 

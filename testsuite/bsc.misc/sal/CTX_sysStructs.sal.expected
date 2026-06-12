@@ -42,8 +42,8 @@ BEGIN
     IN ( Prim!bitToBool(def_s__h482), state2 ) ;
   
   rule_RL_tss (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_t1___d8 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t1)
-    IN LET def_t2___d6 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t2)
+    LET def_t2___d6 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t2)
+    IN LET def_t1___d8 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_t1)
     IN LET act1 : [ CTX_RegUN{12}!STATE, Unit!T ] =
 	     CTX_RegUN{12}!meth_write(Prim2{8,4}!primConcat(Prim2{12,8}!primExtract(def_t2___d6),
 							    Prim2{12,4}!primExtract(def_t1___d8)),

@@ -8,7 +8,7 @@ struct Foo =
   y :: Int 8
  deriving (Bits)
 
-instance (ShallowSplitPorts Foo p) => SplitPorts Foo p where
+instance SplitPorts Foo (ShallowPortsOf Foo) where
   splitPorts = shallowSplitPorts
   unsplitPorts = shallowUnsplitPorts
   portNames = shallowSplitPortNames
@@ -18,7 +18,7 @@ struct Bar =
   f_x :: Int 16
  deriving (Bits)
 
-instance (ShallowSplitPorts Bar p) => SplitPorts Bar p where
+instance SplitPorts Bar (ShallowPortsOf Bar) where
   splitPorts = shallowSplitPorts
   unsplitPorts = shallowUnsplitPorts
   portNames = shallowSplitPortNames
