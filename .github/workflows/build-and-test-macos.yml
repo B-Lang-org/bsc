@@ -39,15 +39,13 @@ jobs:
           BREW_UPDATE: ${{ inputs.brew_update }}
         run: |
           .github/workflows/install_dependencies_macos.sh
-          # If the runner doesn't have 'ghcup', install it
-          if ! [ -x "$(command -v ghcup)" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
-            echo "$HOME/.ghcup/bin" >> $GITHUB_PATH
-            export PATH=$HOME/.ghcup/bin:$PATH
-          fi
-          # Don't rely on the VM to pick the GHC version
-          ghcup install ghc ${{ inputs.ghc_version }}
-          ghcup set ghc ${{ inputs.ghc_version }}
+      # Don't rely on the VM to pick the GHC version
+      # (and don't assume that GHCup is already installed on the runner)
+      - name: Install GHC
+        uses: haskell/ghcup-setup@v1
+        with:
+          ghc: ${{ inputs.ghc_version }}
+          cabal: recommended
       # Until BSC uses cabal to build, pre-install these packages
       - name: Install Haskell dependencies
         shell: bash
