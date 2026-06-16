@@ -740,8 +740,8 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
                         then return (inputs, Just final_port, [])
-                        else if (isBitTuple t)
-                        -- XXX should have multiple output ports for bit tuples here?
+                        else if (isBit t)
+                        -- The Classic fieldinfo format can only have a single result port.
                         then return (inputs, Nothing, [final_port])
                         else if (t == tPrimUnit)
                         then return (ps, Nothing, [])
