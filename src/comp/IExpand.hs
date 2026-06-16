@@ -4894,7 +4894,7 @@ isCanon (ICon _ (ICModParam { })) = True
 isCanon (ICon _ (ICClock { })) = True
 --isCanon (IAps (ICon _ (ICPrim _ PrimBlock)) _ _) = True                -- XXX is this the best way?
 isCanon (IAps (ICon _ (ICSel { })) _ [_]) = True
---isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
+isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
 -- AV of foreign function application is canon
 --isCanon (IAps (ICon _ (ICForeign { })) _ _) = True
 isCanon (IRefT _ _ _) = True
