@@ -193,11 +193,11 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                     in_types = map (aTypeConv i) inputs
                     (en_type, val_type)
                       | isitActionValue_ res
-                          = (Just (ATBit 1), aTypesConv i (getAV_Type res))
+                          = (Just (ATBit 1), aTupleTypesConv i (getAV_Type res))
                       | isActionType res
                           = (Just (ATBit 1), [])
                       | otherwise
-                          = (Nothing, aTypesConv i res)
+                          = (Nothing, aTupleTypesConv i res)
                 in (in_types, en_type, val_type)
 
         let (IRules sps irule_list) = rs
@@ -707,7 +707,7 @@ aTypeConv a (ITAp (ITCon r _ _) elem_ty) | r == idPrimArray =
     -- no way to get the size
     internalError("aTypeConv: array: " ++ ppReadable a)
 aTypeConv a t@(ITAp (ITAp (ITCon p _ _) _) _) | p == idPrimPair =
-  ATTuple (aTypesConv a t)
+  ATTuple (aTupleTypesConv a t)
 aTypeConv _ t | t == itReal = ATReal
 aTypeConv _ t | t == itString = ATString Nothing
 -- Deal with AVs
@@ -731,7 +731,7 @@ aTypeConvE a (ITAp (ITCon r _ _) elem_ty) | r == idPrimArray =
   -- XXX but this func isn't used to get the type of PrimBuildArray
   internalError ("aTypeConv: array: " ++ ppReadable a)
 aTypeConvE _ t@(ITAp (ITAp (ITCon p _ _) _) _) | p == idPrimPair =
-  ATTuple (aTypesConv p t)
+  ATTuple (aTupleTypesConv p t)
 aTypeConvE a t | t == itReal = ATReal
 aTypeConvE a t | t == itString =
   case a of
@@ -744,10 +744,10 @@ aTypeConvE a t = abs t []
         abs _ _ = -- ATAbstract idBit []        -- XXX what's this
                   internalError ("aTypeConvE|" ++ show t)
 
-aTypesConv :: Id -> IType -> [AType]
-aTypesConv a (ITAp (ITAp (ITCon p _ _) t1) t2) | p == idPrimPair =
-  aTypeConv a t1 : aTypesConv a t2
-aTypesConv a t = [aTypeConv a t]
+aTupleTypesConv :: Id -> IType -> [AType]
+aTupleTypesConv a (ITAp (ITAp (ITCon p _ _) t1) t2) | p == idPrimPair =
+  aTypeConv a t1 : aTupleTypesConv a t2
+aTupleTypesConv a t = [aTypeConv a t]
 
 realPrim :: PrimOp -> Bool
 realPrim p = p `elem`
