@@ -46,19 +46,20 @@ dim_sysStructs =
 rule_RL_add_em_sysStructs :: MOD_sysStructs -> (Bool, MOD_sysStructs, ());
 rule_RL_add_em_sysStructs =
     (\ (state0 :: MOD_sysStructs) ->
-     let { (def_x__h549 :: Bit #9) = meth_read_RegN (inst_a__sysStructs state0)
-	 ; (def_x__h557 :: Bit #9) = meth_read_RegN (inst_b__sysStructs state0)
-	 ; (def_x__h541 :: Bit #9) = primAdd def_x__h549 def_x__h557
-	 ; (def_x__h529 :: Bit #9) = primAdd def_x__h541 (4 :: Bit #9)
-	 ; (def_s__h482 :: Bit #1) = meth_read_RegN (inst_s__sysStructs state0)
-	 ; (act1 :: (Bool, MOD_RegN #9, ())) = meth_write_RegN def_x__h529 (inst_a__sysStructs state0)
+     let { (def_a__h504 :: Bit #9) = meth_read_RegN (inst_a__sysStructs state0)
+	 ; (def_b__h512 :: Bit #9) = meth_read_RegN (inst_b__sysStructs state0)
+	 ; (def_s__h444 :: Bit #1) = meth_read_RegN (inst_s__sysStructs state0)
+	 ; (def_a_PLUS_b___d4 :: Bit #9) = primAdd def_a__h504 def_b__h512
+	 ; (def_a_PLUS_b_PLUS_4___d5 :: Bit #9) = primAdd def_a_PLUS_b___d4 (4 :: Bit #9)
+	 ; (act1 :: (Bool, MOD_RegN #9, ())) =
+	       meth_write_RegN def_a_PLUS_b_PLUS_4___d5 (inst_a__sysStructs state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysStructs) = state0 { inst_a__sysStructs = snd3 act1 }
 	 ; (act2 :: (Bool, MOD_RegN #1, ())) = meth_write_RegN (0 :: Bit #1) (inst_s__sysStructs state1)
 	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
 	 ; (state2 :: MOD_sysStructs) = state1 { inst_s__sysStructs = snd3 act2 }
 	 }
-     in mktuple ((bitToBool def_s__h482) && guard2) state2 ());
+     in mktuple ((bitToBool def_s__h444) && guard2) state2 ());
 
 rule_RL_tss_sysStructs :: MOD_sysStructs -> (Bool, MOD_sysStructs, ());
 rule_RL_tss_sysStructs =

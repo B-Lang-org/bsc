@@ -20,7 +20,8 @@ order: [RL_aa, RL_ab, RL_bb]
  (ua.read, [(ua.read, 1)]),
  (ub.read, [(ub.read, 1)]),
  (uc.read, [(uc.read, 1)]),
- (uc.write, [(uc.write x__h320, 1), (uc.write x__h404, 1), (uc.write x__h419, 1)])]
+ (uc.write,
+  [(uc.write uc_PLUS_1___d7, 1), (uc.write uc_PLUS_2___d15, 1), (uc.write uc_PLUS_3___d18, 1)])]
 
 -----
 

@@ -9,7 +9,7 @@ order: [b, RL_c, RL_d, a]
 
 === resources (SeqEx1 mkSeqEx1):
 [(r1.read, [(r1.read, 1)]),
- (r1.write, [(r1.write x__h291, 1), (r1.write x__h335, 1)]),
+ (r1.write, [(r1.write r1_PLUS_2___d3, 1), (r1.write r1_PLUS_1___d4, 1)]),
  (r2.write, [(r2.write rw2_whas____d5, 1)]),
  (rw1.whas, [(rw1.whas, 1)]),
  (rw1.wset, [(rw1.wset 1'd1, 1)]),

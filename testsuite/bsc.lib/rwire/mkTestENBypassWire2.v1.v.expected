@@ -29,6 +29,9 @@ module mkTestENBypassWire2(CLK,
   input  CLK;
   input  RST_N;
 
+  // inlined wires
+  wire [31 : 0] testWire$wget;
+
   // register counter
   reg [31 : 0] counter;
   wire [31 : 0] counter$D_IN;
@@ -40,7 +43,9 @@ module mkTestENBypassWire2(CLK,
 
   // remaining internal signals
   wire [63 : 0] counter_MUL_counter___d5;
-  wire [31 : 0] testWire__read__h212;
+
+  // inlined wires
+  assign testWire$wget = toggle ? counter_MUL_counter___d5[31:0] : 32'd0 ;
 
   // register counter
   assign counter$D_IN = counter + 32'd1 ;
@@ -52,8 +57,6 @@ module mkTestENBypassWire2(CLK,
 
   // remaining internal signals
   assign counter_MUL_counter___d5 = counter * counter ;
-  assign testWire__read__h212 =
-	     toggle ? counter_MUL_counter___d5[31:0] : 32'd0 ;
 
   // handling of inlined registers
 
@@ -88,7 +91,7 @@ module mkTestENBypassWire2(CLK,
   always@(negedge CLK)
   begin
     #0;
-    if (RST_N != `BSV_RESET_VALUE) $display("Wire: %h", testWire__read__h212);
+    if (RST_N != `BSV_RESET_VALUE) $display("Wire: %h", testWire$wget);
   end
   // synopsys translate_on
 endmodule  // mkTestENBypassWire2

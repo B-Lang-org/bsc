@@ -9,7 +9,7 @@ order: [RL_Good]
 
 === resources (ResourceOneRuleOK sysResourceOneRuleOK):
 [(a.sub, [(a.sub 8'd0, 5), (a.sub 8'd1, 4), (a.sub 8'd2, 3), (a.sub 8'd3, 2), (a.sub 8'd4, 1)]),
- (r.write, [(r.write x__h283, 1)])]
+ (r.write, [(r.write a_sub_0_PLUS_a_sub_1_PLUS_a_sub_2_PLUS_a_sub_3_ETC___d9, 1)])]
 
 -----
 
