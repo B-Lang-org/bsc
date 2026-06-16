@@ -196,14 +196,6 @@ isBitTupleType t = isBitType t
 isActionType :: IType -> Bool
 isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
 
--- extension point for ActionValue methods
-isValueType :: IType -> Bool
-isValueType x | (isitActionValue_ x) = True
-isValueType (ITAp t n) | t == itBit = True
-isValueType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
-    isBitType t1 && isValueType t2
-isValueType _ = False
-
 -- Constructors
 iMkLit :: IType -> Integer -> IExpr a
 iMkLit t i = ICon idIntLit (ICInt { iConType = t, iVal = ilDec i })

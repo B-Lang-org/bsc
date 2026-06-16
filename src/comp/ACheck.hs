@@ -98,6 +98,7 @@ chkAIface aa@(AIAction { aif_body = rs }) =
 
 chkAIface aa@(AIActionValue { aif_value = d, aif_body = rs }) =
     tracePP "chkAIface AIActionValue" aa $ (all chkARule rs) && (chkADef d)
+
 chkAIface aa@(AIClock { aif_clock = c }) =
     tracePP "chkAIface AIClock" aa $ chkAClock c
 

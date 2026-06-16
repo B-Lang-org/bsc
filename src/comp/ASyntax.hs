@@ -1573,14 +1573,11 @@ instance PPrint AExpr where
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
     pPrint d p (AMethCall _ i m es) =
         pparen (p>0 && not (null es)) $
-        pPrint d 1 i <>
-        sep (text "." <> ppMethId d m : map (pPrint d 1) es)
+        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
-    pPrint d p (ATuple _ es) =
-        pparen (p>0) $ parens (commaSep (map (pPrint d 0) es))
-    pPrint d p (ATupleSel _ e idx) =
-        pparen (p>0) $ pPrint d 0 e <> text "[" <> pPrint d 0 idx <> text "]"
+    pPrint d p (ATuple _ es) = parens (commaSep (map (pPrint d 0) es))
+    pPrint d p (ATupleSel _ e idx) =  pPrint d 1 e <> text "[" <> pPrint d 0 idx <> text "]"
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
     pPrint d p (ASDef _ i) = pPrint d p i
@@ -1874,12 +1871,9 @@ instance PPrintExpand AExpr where
                <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
                    docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth) =
-        pPrint d 1 i <> text "." <> ppMethId d meth
-    pPrintExpand m d ec (ATuple _ es) =
-        pparen (useParen ec) $ parens (commaSep (map (pPrintExpand m d defContext) es))
-    pPrintExpand m d ec (ATupleSel _ e idx) =
-        pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
+    pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATuple _ es) =  parens (commaSep (map (pPrintExpand m d defContext) es))
+    pPrintExpand m d ec (ATupleSel _ e idx) = (pparen (useParen ec) $ pPrintExpand m d defContext e) <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||

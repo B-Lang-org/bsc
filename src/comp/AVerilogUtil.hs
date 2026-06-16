@@ -889,7 +889,6 @@ vState  flags rewire_map avinst =
                   | (meth@(Method m _ _ mult ps outs me),
                      (argTypes,_,_))
                         <- zip (vFields vi) mts,
-                        -- (VName s, vps)
                     -- let multu = getMethodMultUse m,
                     ino <- if mult > 1 then map Just [0..mult-1] else [Nothing],
                     (VName s, argType, k) <- zip3 (map fst ps) argTypes [1..],

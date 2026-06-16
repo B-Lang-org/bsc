@@ -379,7 +379,7 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
                                    ae <- aExpr val_
                                    --trace ("exit av " ++ ppReadable i) $ return ()
                                    return (AIActionValue its' wp g i arule_list
-                                            (ADef i (aTypeConv i t) ae []) fi )
+                                           (ADef i (aTypeConv i t) ae []) fi )
                                    -- should internalError if size(val_)==0 XXX
 
 aRule :: IRule a -> M ARule
