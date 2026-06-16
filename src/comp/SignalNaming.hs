@@ -73,7 +73,7 @@ signalNameFromAExpr' (expr@ATuple { }) =
     connectWith "_" (map signalNameFromAExpr' (ae_elems expr))
 signalNameFromAExpr' (expr@ATupleSel { }) =
     signalNameFromAExpr' (ae_exp expr) ++
-    "_" ++ itos (ae_index expr)
+    "_SEL_" ++ itos (ae_index expr)
 signalNameFromAExpr' (expr@ANoInlineFunCall { }) =
     -- use the identifier name (it is the user-known function name);
     -- the string in ANoInlineFun is the module name

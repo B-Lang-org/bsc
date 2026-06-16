@@ -584,6 +584,11 @@ convAExpr2YExpr mty (APrim i (ATBit width) p args) = do
 -- Method calls create independent variables, with given width
 -- XXX Passing the current context is just a heuristic
 -- XXX TODO: some methods calls may be mutex, such as FIFO.full and FIFO.empty
+-- A bare AMethCall/AMethValue (with no ATupleSel applied) refers to a method
+-- with a single output port; a method with multiple output ports is always
+-- wrapped in an ATupleSel selecting one of them (handled in the arms below).
+-- Reaching the internalError here would mean a multi-output method was used
+-- without selecting a port.
 convAExpr2YExpr mty (AMethCall ty@(ATBit width) modId methId args) = do
     -- get the actual port name, so that methods which share the same output port
     -- will appear logically equivalent

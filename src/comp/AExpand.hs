@@ -539,9 +539,12 @@ getExprSize (APrim _ _ _ es) = (nub $ concat vars, sum terms, 1 + maximum depths
 
 getExprSize (AMethCall t i mid args) = ([mid],1,1)
 getExprSize (AMethValue t i mid)     = ([mid],1,1)
-getExprSize (ATupleSel t e i)        = (vars, terms + 1, depth + 1)
-    where (vars,terms,depth) = getExprSize e
-getExprSize (ATuple t es)            = (nub $ concat vars, sum terms + 1, maximum depths + 1)
+-- Tuple construction and selection only appear at port boundaries, where they
+-- pack/unpack a method's output port values.  They are pure wiring and generate
+-- no logic, so (like PrimBNot/PrimInv above) they add no terms or depth: the
+-- size is just that of the underlying expression(s).
+getExprSize (ATupleSel t e i)        = getExprSize e
+getExprSize (ATuple t es)            = (nub $ concat vars, sum terms, maximum depths)
     where (vars,terms,depths) = unzip3 $ map getExprSize es
 getExprSize (ATaskValue { })         = ([],   1,1)
 getExprSize (ASPort t i)             = ([i],  1,1)

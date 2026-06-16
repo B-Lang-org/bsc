@@ -632,26 +632,34 @@ aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
         -- the cookie "n" will connect it back up to the action side
         return (ATaskValue t i name isC n)
 
--- port selected from value part of ActionValue method
+-- A port selected (via PrimFst/PrimSnd) from a method that returns a tuple.
+-- This covers both value methods (which still carry their arguments) and the
+-- value part of an ActionValue method (whose arguments were dropped in
+-- IExpand, leaving an extra avValue_ selector before the method).  The leading
+-- PrimSnd selectors are skipped to reach the method; the number of skipped
+-- selectors (length sels - length rest) plus the head selector gives the
+-- 0-based output port index.
 aSelExpr ((sel, atype) : sels) base@(ICon i (ICStateVar { }) : es)
     | (sel == idPrimFst || sel == idPrimSnd)
-    , [(iav, atypeTup), (m, _)] <- dropWhile ((== idPrimSnd) . fst) sels = do
+    , let rest = dropWhile ((== idPrimSnd) . fst) sels
+    , length rest == 1 || length rest == 2 = do
   i' <- transId i
-  -- arguments should have been dropped in IExpand
-  when (not (null es)) $
-      internalError ("AConv.aExpr actionvalue value with args " ++
-                     ppReadable sels ++ "\n" ++ ppReadable base)
-  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - 2
-  return $ ATupleSel atype (AMethValue atypeTup i' m) $ idx + 1
-
--- port selected from value method
-aSelExpr ((sel, atype) : sels) (ICon i (ICStateVar { }) : es)
-    | (sel == idPrimFst || sel == idPrimSnd)
-    , [(m, atypeTup)] <- dropWhile ((== idPrimSnd) . fst) sels = do
-  i' <- transId i
-  es' <- mapM aSExpr es
-  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - 1
-  return $ ATupleSel atype (AMethCall atypeTup i' m es') $ idx + 1
+  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - length rest
+  meth <- case rest of
+            -- value method: still carries its arguments
+            [(m, atypeTup)] -> do
+              es' <- mapM aSExpr es
+              return $ AMethCall atypeTup i' m es'
+            -- value part of an ActionValue method: arguments were already
+            -- dropped in IExpand, so none should remain here
+            [(_iav, atypeTup), (m, _)] -> do
+              when (not (null es)) $
+                  internalError ("AConv.aExpr actionvalue value with args " ++
+                                 ppReadable sels ++ "\n" ++ ppReadable base)
+              return $ AMethValue atypeTup i' m
+            _ -> internalError ("AConv.aSelExpr: unexpected selectors " ++
+                                ppReadable rest)
+  return $ ATupleSel atype meth (idx + 1)
 
 -- value part of ActionValue method
 aSelExpr sels@[(iav, atype), (m, _)] base@(ICon i (ICStateVar { }) : es)
