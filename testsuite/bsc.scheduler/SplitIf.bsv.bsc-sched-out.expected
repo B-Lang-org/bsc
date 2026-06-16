@@ -25,7 +25,7 @@ order: [RL_toggle2, xfer_T, xfer_F, RL_toggle1]
  (r2.read, [(r2.read, 1)]),
  (r2.write, [(r2.write xfer_sel, 1), (r2.write NOT_r2___d4, 1)]),
  (w.whas, [(w.whas, 1)]),
- (w.wset, [(w.wset r2__h277, 1)])]
+ (w.wset, [(w.wset r2__h256, 1)])]
 
 -----
 
