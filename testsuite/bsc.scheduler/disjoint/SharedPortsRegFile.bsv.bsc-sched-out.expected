@@ -14,9 +14,9 @@ order: [RL_do1, RL_do2]
 === resources (SharedPortsRegFile sysSharedPortsRegFile):
 [(idx1.read, [(idx1.read, 1)]),
  (idx2.read, [(idx2.read, 1)]),
- (rf.sub, [(rf.sub i__h411, 2), (rf.sub i__h443, 1)]),
+ (rf.sub, [(rf.sub idx2___d5, 2), (rf.sub idx1___d1, 1)]),
  (rg.read, [(rg.read, 1)]),
- (rg.write, [(rg.write x__h418, 1), (rg.write x__h449, 1)])]
+ (rg.write, [(rg.write rg_MINUS_1___d4, 1), (rg.write rg_PLUS_1___d8, 1)])]
 
 -----
 

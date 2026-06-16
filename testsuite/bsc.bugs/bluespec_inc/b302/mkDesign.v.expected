@@ -59,15 +59,15 @@ module mkDesign(clk,
 	       IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_P_ETC__q2,
 	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC___d15,
 	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC__q1,
-	       _theResult_____1_snd__h572,
-	       notB__h187,
-	       quotient__h202;
+	       _theResult_____1_snd__h607,
+	       notB__h218,
+	       quotient__h233;
 
   // value method result
   assign result =
 	     { result_a[9:5] >= result_b,
-	       _theResult_____1_snd__h572,
-	       quotient__h202 } ;
+	       _theResult_____1_snd__h607,
+	       quotient__h233 } ;
 
   // remaining internal signals
   assign IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42 =
@@ -101,31 +101,31 @@ module mkDesign(clk,
   assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45 =
 	     { 1'd0,
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42 } +
-	     { 1'd0, notB__h187 } +
+	     { 1'd0, notB__h218 } +
 	     6'd1 ;
   assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_r_ETC___d36 =
 	     { 1'd0,
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_B_ETC___d33 } +
-	     { 1'd0, notB__h187 } +
+	     { 1'd0, notB__h218 } +
 	     6'd1 ;
   assign _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d27 =
 	     { 1'd0,
 	       IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_P_ETC___d24 } +
-	     { 1'd0, notB__h187 } +
+	     { 1'd0, notB__h218 } +
 	     6'd1 ;
   assign _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d18 =
 	     { 1'd0,
 	       IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_ETC___d15 } +
-	     { 1'd0, notB__h187 } +
+	     { 1'd0, notB__h218 } +
 	     6'd1 ;
   assign _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d9 =
-	     { 1'd0, result_a[8:4] } + { 1'd0, notB__h187 } + 6'd1 ;
-  assign _theResult_____1_snd__h572 =
+	     { 1'd0, result_a[8:4] } + { 1'd0, notB__h218 } + 6'd1 ;
+  assign _theResult_____1_snd__h607 =
 	     _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45[5] ?
 	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_I_ETC___d45[4:0] :
 	       IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_IF_0_CONCA_ETC___d42 ;
-  assign notB__h187 = ~result_b ;
-  assign quotient__h202 =
+  assign notB__h218 = ~result_b ;
+  assign quotient__h233 =
 	     { _0_CONCAT_result_a_BITS_8_TO_4_PLUS_0_CONCAT_IN_ETC___d9[5],
 	       _0_CONCAT_IF_0_CONCAT_result_a_BITS_8_TO_4_PLUS_ETC___d18[5],
 	       _0_CONCAT_IF_0_CONCAT_IF_0_CONCAT_result_a_BITS_ETC___d27[5],

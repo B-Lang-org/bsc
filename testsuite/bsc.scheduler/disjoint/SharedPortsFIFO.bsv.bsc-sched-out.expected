@@ -12,7 +12,7 @@ order: [RL_do_enq, RL_do_otherwise]
  (f.i_notFull, [(f.i_notFull, 1)]),
  (f.notFull, [(f.notFull, 1)]),
  (rg.read, [(rg.read, 1)]),
- (rg.write, [(rg.write x__h234, 1), (rg.write x__h261, 1)])]
+ (rg.write, [(rg.write rg_MINUS_1___d3, 1), (rg.write rg_PLUS_1___d6, 1)])]
 
 -----
 
