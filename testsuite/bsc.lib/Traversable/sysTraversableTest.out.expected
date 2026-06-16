@@ -1,0 +1,17 @@
+-- traverse (Vector, all valid) --
+14
+-- traverse (Vector, fails) --
+none
+-- traverse (List) --
+21
+-- traverse (ListN) --
+104
+-- sequenceA (Vector of Maybe) --
+10
+none
+-- sequence (alias) --
+10
+-- mapM (Vector, Maybe monad) --
+10
+-- traverse (Maybe) --
+42

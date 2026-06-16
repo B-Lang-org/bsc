@@ -1,0 +1,4 @@
+
+# tests for the Foldable and Foldable1 library classes
+test_c_veri FoldableTest
+test_c_veri Foldable1Test
