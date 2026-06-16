@@ -40,7 +40,7 @@ type ModDefMap = M.Map String DefMap
 -- map from method names to method port info
 type MethMap = M.Map AId ( Maybe VName            -- enable
                          , [(AType, AId, VName)]  -- args
-                         , [(AType, VName)]       -- return
+                         , Maybe (AType, VName)   -- return
                          , Bool                   -- is action
                          , [AId]                  -- rule Ids
                          )
@@ -294,8 +294,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                   ]
       meth_args = concat [ ins | (_,ins,_,_,_) <- M.elems meth_map ]
       meth_rets = [ (rt, n, vn)
-                  | (n, (_,_,rts,_,_)) <- M.toList meth_map
-                  , (rt,vn) <- rts
+                  | (n, (_,_,(Just (rt,vn)),_,_)) <- M.toList meth_map
                   ]
       ports = meth_ens ++ meth_args ++ meth_rets
 
@@ -533,7 +532,7 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
              then -- we have to find the name of the port associated
                   -- with the RDY method
                   let rdy_id = mkRdyId (aif_name m)
-                      mport = do (_,_,[(_,vn)],_,_) <- M.lookup rdy_id meth_map
+                      mport = do (_,_,Just (_,vn),_,_) <- M.lookup rdy_id meth_map
                                  return $ ASPort aTBool (vName_to_id vn)
                  in case mport of
                       (Just prt) -> [SFSCond prt ss []]
@@ -548,21 +547,15 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
          wp      = aIfaceProps m
          rst_ids = map (ae_objid . areset_wire)
                        (mapMaybe (\n -> lookup n reset_list) (wpResets wp))
-     (men, ins, rs, _, ifcrules) <- M.lookup name meth_map
+     (men, ins, mr, _, ifcrules) <- M.lookup name meth_map
      let prt vn     = vName_to_id vn
-         rt         =
-              case rs of
-                 [(t,_)] -> Just t
-                 []      -> Nothing
-                 _      -> internalError ("cvtIFace: multiple return values "
-                                      ++ "not supported in method "
-                                      ++ ppReadable name)
+         rt         = do { (t,_) <- mr; return t }
          en_stmts   = maybe [] (\vn -> [SFSAssign True (prt vn) aTrue]) men
          wf_stmts   = map (\i -> SFSAssign False (mkIdWillFire i) aTrue) ifcrules
          in_stmts   = map (\(t,i,vn) -> SFSAssign True (prt vn) (ASPort t i)) ins
          body_stmts =
-           case rs of
-             [(t,vn)] ->
+           case mr of
+             Just (t,vn) ->
                -- account for the possible return of an actionvalue result
                let -- the return def
                    ret_def  = aif_value m
@@ -595,13 +588,9 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                    -- ready is off (the user lied about it being always_en'd),
                    -- but, at that point, all bets are off anyway
                    check_rdy ss' ++ ret_stmts
-             [] -> check_rdy $
+             Nothing -> check_rdy $
                         cvtActions modId name
                             def_map method_order_map S.empty body rst_ids
-             -- TODO: Support methods with multiple return values
-             _ -> internalError ("cvtIFace: multiple return values "
-                                  ++ "not supported in method "
-                                  ++ ppReadable name)
          all_stmts  = concat [en_stmts, wf_stmts, in_stmts, body_stmts]
      return $ SimCCFn (getIdBaseString name) args rt all_stmts
 

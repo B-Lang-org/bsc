@@ -373,7 +373,7 @@ getSimPackageInputs spkg =
 -- -----
 
 getPortInfo :: [PProp] -> AIFace
-            -> Maybe (AId, (Maybe VName, [(AType,AId,VName)], [(AType,VName)], Bool, [AId]))
+            -> Maybe (AId, (Maybe VName, [(AType,AId,VName)], Maybe (AType,VName), Bool, [AId]))
 getPortInfo pps aif =
     let name = aif_name aif
         vfi  = aif_fieldinfo aif
@@ -384,15 +384,22 @@ getPortInfo pps aif =
         args = aIfaceArgs aif
         ps   = map fst (vf_inputs vfi)
         ins  = [ (t,i,vn) | ((i,t),vn) <- zip args ps ]
-        rts  = aIfaceResTypes aif
-        rets  = zip rts $ map fst $ vf_outputs vfi
+        rt   = aIfaceResType aif
+        -- A value method has at most one result.  In Bluesim that whole value
+        -- is returned directly, so when the Verilog output is split across
+        -- several ports (vf_outputs) we keep just the first port, which carries
+        -- the entire value; the remaining ports are Verilog-only slicing
+        -- metadata and are not needed here.
+        ret  = case vf_outputs vfi of
+                 ((vn,_) : _) -> Just (rt, vn)
+                 []           -> Nothing
         isAction = case aif of
                      (AIAction {})      -> True
                      (AIActionValue {}) -> True
                      otherwise          -> False
         rules = map aRuleName (aIfaceRules aif)
     in case vfi of
-         (Method {}) -> Just (name, (en, ins, rets, isAction, rules))
+         (Method {}) -> Just (name, (en, ins, ret, isAction, rules))
          otherwise   -> Nothing
 
 -- -----

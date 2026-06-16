@@ -65,7 +65,7 @@ module ASyntax(
         getArrayElemType,
         getArraySize,
         aIfaceProps,
-        aIfaceResTypes,
+        aIfaceResType,
         aIfaceResIds,
         aIfaceArgs,
         aIfaceArgSize,
@@ -837,13 +837,14 @@ aIfaceProps (AIAction      { aif_props = p }) = p
 aIfaceProps (AIActionValue { aif_props = p }) = p
 aIfaceProps _ = emptyWireProps
 
-aIfaceResTypes :: AIFace -> [AType]
+-- The result type of an interface method, which may be a tuple for multiple output ports.
+aIfaceResType :: AIFace -> AType
 -- XXX should be ATAction?
-aIfaceResTypes (AIAction { }) = []
-aIfaceResTypes (AIDef { aif_value = (ADef _ t _ _) }) = [t]
-aIfaceResTypes (AIActionValue { aif_value = (ADef _ t _ _) }) = [t]
+aIfaceResType (AIAction { }) = ATBit 0
+aIfaceResType (AIDef { aif_value = (ADef _ t _ _)}) = t
+aIfaceResType (AIActionValue { aif_value = (ADef _ t _ _)}) = t
 -- should not need type of clock or reset
-aIfaceResTypes x = internalError ("aIfaceResTypes: " ++ show x)
+aIfaceResType x = internalError ("aIfaceResType: " ++ show x)
 
 aIfaceResIds :: AIFace -> [AId]
 aIfaceResIds (AIDef {aif_name=id}) = [id]

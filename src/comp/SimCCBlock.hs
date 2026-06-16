@@ -367,7 +367,7 @@ aTypeToCType :: AType -> (CCFragment -> CCFragment)
 aTypeToCType (ATBit size) = (`ofType` (bitsType size CTunsigned))
 aTypeToCType (ATString _) = (`ofType` (classType "std::string"))
 aTypeToCType (ATReal) = (`ofType` doubleType)
-aTypeToCType (ATTuple ts) = userType "WideData"
+aTypeToCType (ATTuple _) = userType "WideData"
 aTypeToCType (ATArray _ _) = internalError "Unexpected array"
 aTypeToCType (ATAbstract _ _) = internalError "Unexpected abstract type"
 
@@ -1071,8 +1071,13 @@ aExprToCExpr _ p@(APrim _ _ _ _) =
 aExprToCExpr _ (AMethCall _ id mid args) =
   do arg_list <- mapM (aExprToCExpr noRet) args
      return $ (aInstMethIdToC id mid) `cCall` arg_list
+-- a tuple is laid out in wide data as a concatenation of its elements,
+-- with the first element in the most-significant bits (Verilog {e1,...,en})
 aExprToCExpr ret e@(ATuple _ exprs) =
   wideConcatPrim ret (aSize e) exprs
+-- NB: idx is 1-based (see AConv and AState), so 'genericDrop idx' yields the
+-- elements strictly below the selected one; sizeAfter is therefore the low bit
+-- of element idx, and [aSize t + sizeAfter - 1 : sizeAfter] is its bit range.
 aExprToCExpr ret (ATupleSel t e idx) =
   wideExtractPrim ret (aSize t) e (aSize t + sizeAfter - 1) sizeAfter
   where sizeAfter = sum $ map aSize $ genericDrop idx $ att_elem_types $ ae_type e
@@ -2161,7 +2166,7 @@ wideLocalDef _ = []
 -- (i.e. it is larger than 64 bits, or it is a tuple)
 wideDataType :: AType -> Bool
 wideDataType (ATBit sz) = sz > 64
-wideDataType (ATTuple ts) = True
+wideDataType (ATTuple _) = True
 wideDataType _ = False
 
 
