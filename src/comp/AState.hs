@@ -681,14 +681,14 @@ genModVars vs omMultMap = allmvars
                     -- preserving the source-language grouping of argTypes
                     [ (MethodArg argN portM, argType, True)
                           | (argN, typeGroup) <- zip [1..] argTypes
-                          , (portM, argType) <- zip [1..] typeGroup ] ++
+                          , (portM, argType) <- zip (splitPortNums typeGroup) typeGroup ] ++
                     -- enable triple
                     (case (en_type) of
                          Nothing -> []
                          (Just t) -> [(MethodEnable, t, True)]) ++
                     -- value triple
                     [(MethodResult mn, t, False)
-                        | (mn, t) <- zip (methResultNums val_types) val_types ],
+                        | (mn, t) <- zip (splitPortNums val_types) val_types ],
                 -- uniquifiers for multiple ports
                 -- (if only one copy, then the list just contains 0)
                 ino <- map (toMaybe (mult > 1)) [ 0 .. (getMultUse (modId, methId) - 1) `max` 0 ],
@@ -1059,7 +1059,7 @@ mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
             ((AMethCall _ _ _ args, _) : _) ->
                 [ (argN, portM)
                 | (argN, arg)   <- zip [1..] (tlG args)
-                , (portM, _)    <- zip [1..] (argInputPorts arg) ]
+                , (portM, _)    <- zip (splitPortNums (argInputPorts arg)) (argInputPorts arg) ]
             _ -> []
 
         -- Call mkEmux once for each input port of the method, giving it
@@ -1106,7 +1106,7 @@ mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
 --  * The definition for the output of the mux
 --
 mkEmux :: ExclusiveRulesDB -> [AId] -> OrderMap ->
-          Maybe Integer -> AId -> AId -> Integer -> Integer ->
+          Maybe Integer -> AId -> AId -> Integer -> Maybe Integer ->
           [(AExpr, AExpr, Maybe [ARuleId])] -> ([ADef], [ADef], [ADef])
 mkEmux exclusive_rules_db value_method_ids om ino o m argN portM [(e, _, _)] =
     -- Only one input to the mux
@@ -1360,7 +1360,7 @@ mkIdGuards _ _ _ exp = internalError $ "mkIdGuards: " ++ ppReadable exp
 -- Helper functions
 --
 
-argId :: Maybe Integer -> Id -> Id -> Integer -> Integer -> Id
+argId :: Maybe Integer -> Id -> Id -> Integer -> Maybe Integer -> Id
 argId ino o m argN portM = mkMethId o m ino (MethodArg argN portM)
 
 aWillFireId :: AId -> AExpr

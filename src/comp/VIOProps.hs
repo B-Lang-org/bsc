@@ -154,8 +154,8 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          -- for each method (not clocks or resets)
                          vfi@(Method {}) <- vFields (avi_vmi v),
                          -- for each method output port
-                         (methOutPart, (vname, pprops))
-                             <- zip (map MethodResult (methResultNums (vf_outputs vfi)))
+                         (methpart, (vname, pprops))
+                             <- zip (map MethodResult (splitPortNums (vf_outputs vfi)))
                                     (vf_outputs vfi),
 
                          -- for each port copy
@@ -166,7 +166,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          let meth_id = mkMethId (avi_vname v)
                                                 (vf_name vfi)
                                                 ino
-                                                methOutPart,
+                                                methpart,
                          -- convert to Verilog signal name
                          let veri_id = xLateIdUsingFStringMap nmap meth_id
                     ]
@@ -248,7 +248,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          (methpart, (vname, pprops))
                              <- [ (MethodArg argN portM, port)
                                 | (argN, ports) <- zip [1..] (vf_inputs vfi)
-                                , (portM, port) <- zip [1..] ports
+                                , (portM, port) <- zip (splitPortNums ports) ports
                                 ] ++
                                 case (vf_enable vfi) of
                                     Nothing -> []
