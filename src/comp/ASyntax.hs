@@ -97,6 +97,7 @@ module ASyntax(
         mkMethStr,
         mkMethArgStr,
         mkMethResStr,
+        splitPortNums,
         isMethId,
         MethodPart(..),
         getParams,
@@ -127,7 +128,7 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_arg, fs_res)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_port)
 import FStringCompat
 -- import Position(noPosition)
 import Position
@@ -1928,23 +1929,26 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    -- Source argument index (1-based) and the hardware port index within
-    -- that argument (1-based).  A normal arg has a single port at index 1;
-    -- a SplitPorts arg may have several.
-    MethodArg Integer Integer    |
-    MethodResult Integer | -- return value 1, 2, ... output
+    -- Source argument index (1-based) and, when the argument is split across
+    -- several hardware ports (e.g. a SplitPorts tuple), the port index within
+    -- that argument (Just 1, 2, ...).  An un-split argument has Nothing.
+    MethodArg Integer (Maybe Integer) |
+    -- return value: Nothing for a single (un-split) result, Just 1, 2, ...
+    -- when the result is split across multiple output ports
+    MethodResult (Maybe Integer) |
     MethodEnable           -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_ARG_<argnum>_<portnum> starting from 1
---     (e.g. the_fifo$enq_ARG_1_1).  The <portnum> distinguishes hardware
---     ports of the same source-language argument (e.g. a SplitPorts tuple);
---     a normal argument has port 1 only.
---   Return values are <inst>$<meth>_RES_<resnum> (e.g. the_fifo$first_RES_1)
+--   Arguments are <inst>$<meth>_<argnum> starting from 1 (e.g. the_fifo$enq_1).
+--     When an argument is split across several hardware ports, each port gets
+--     an extra _PORT_<portnum> suffix (e.g. the_fifo$enq_1_PORT_1).
+--   Return values are just <inst>$<meth> for a single result
+--     (e.g. the_fifo$first); when the result is split across several output
+--     ports, each gets a _PORT_<portnum> suffix (e.g. the_fifo$first_PORT_1).
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Methods with multiplicity > 1 are <inst>$<meth>_<copynum>_ARG_<argnum>_<portnum>
--- or <inst>$<meth>_<copynum>_RES_<resnum>
+-- Methods with multiplicity > 1 prefix the above with the copy number,
+-- <inst>$<meth>_<copynum>_...
 -- The copynum is only omitted if the method has one or
 -- an infinite number of ports (like a register)
 -- XXX these should probably just be a data type rather than Ids
@@ -1973,7 +1977,7 @@ mkMethStr obj m m_port mp =
                                        mkNumFString port]
         base = case mp of
                    MethodArg argN portM -> mkMethArgStr meth_port argN portM
-                   MethodResult n -> mkMethResStr meth_port n
+                   MethodResult mn -> mkMethResStr meth_port mn
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]
@@ -1982,18 +1986,33 @@ mkMethStr obj m m_port mp =
                        fsDollar,
                        base]
 
-mkMethArgStr :: FString -> Integer -> Integer -> FString
-mkMethArgStr meth_port argN portM =
-    if (argN == 0 || portM == 0)
+-- An argument is named <meth>_<argnum>.  When the argument is split across
+-- multiple hardware ports, each port gets an extra _PORT_<portnum> suffix.
+mkMethArgStr :: FString -> Integer -> Maybe Integer -> FString
+mkMethArgStr meth_port argN mPortM =
+    if (argN == 0)
     then internalError "mkMethArgStr"
-    else concatFString [meth_port, fsUnderscore, fs_arg,
-                        mkNumFString argN, fsUnderscore, mkNumFString portM]
+    else concatFString ([meth_port, fsUnderscore, mkNumFString argN] ++
+                        portSuffix mPortM)
 
-mkMethResStr :: FString -> Integer -> FString
-mkMethResStr meth_port n =
-    if (n == 0)
-    then internalError "mkMethResStr"
-    else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
+-- A single (un-split) result is just <meth>; when the result is split across
+-- multiple output ports, each port gets a _PORT_<portnum> suffix.
+mkMethResStr :: FString -> Maybe Integer -> FString
+mkMethResStr meth_port mPortM = concatFString (meth_port : portSuffix mPortM)
+
+-- The _PORT_<n> suffix for a split input/output port (empty when not split)
+portSuffix :: Maybe Integer -> [FString]
+portSuffix Nothing  = []
+portSuffix (Just n) = if (n == 0)
+                      then internalError "portSuffix"
+                      else [fsUnderscore, fs_port, mkNumFString n]
+
+-- Port numbers for an input/output split across the given list of hardware
+-- ports: Nothing (no _PORT_ suffix) for a single port, Just 1, Just 2, ...
+-- when split across several.
+splitPortNums :: [a] -> [Maybe Integer]
+splitPortNums [_] = [Nothing]
+splitPortNums xs  = zipWith (\ _ n -> Just n) xs [1..]
 
 -- #############################################################################
 -- #

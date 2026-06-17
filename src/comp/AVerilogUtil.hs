@@ -946,7 +946,7 @@ vState  flags rewire_map avinst =
         -- Below, we construct info on the method:
         --   arguments, return values, and enables
 
-        mkArgId :: Id -> Integer -> Integer -> Maybe Integer -> VId
+        mkArgId :: Id -> Integer -> Maybe Integer -> Maybe Integer -> VId
         mkArgId m argN portM m_port =
             vMethId v_inst_name m m_port (MethodArg argN portM) port_rename_table
 
@@ -987,7 +987,7 @@ vState  flags rewire_map avinst =
                         | (argN, portGroup, typeGroup) <-
                               zip3 [1..] ps argTypeGroups
                         , (portM, (VName s, _), t) <-
-                              zip3 [1..] portGroup typeGroup
+                              zip3 (splitPortNums portGroup) portGroup typeGroup
                         ],
                     isNotZeroSized argType
                 ]
@@ -1022,7 +1022,7 @@ vState  flags rewire_map avinst =
                    mkResId m k ino)
                   | ((Method m _ _ mult ss outs me), (_,_,retTypes))
                         <- zip (vFields vi) mts,
-                     ((VName s, vps), retType, k) <- zip3 outs retTypes (methResultNums outs),
+                     ((VName s, vps), retType, k) <- zip3 outs retTypes (splitPortNums outs),
                      isNotZeroSized retType,
                      -- let multu = getMethodMultUse m,
                      ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]

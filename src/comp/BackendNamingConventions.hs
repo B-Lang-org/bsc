@@ -95,9 +95,9 @@ rwireHasId = mkId noPosition (mkFString rwireHasStr)
 
 rwireSetEnId, rwireSetArgId, rwireGetResId, rwireHasResId :: Id -> Id
 rwireSetEnId i  = mkMethId i rwireSetId Nothing MethodEnable
-rwireSetArgId i = mkMethId i rwireSetId Nothing (MethodArg 1 1)
-rwireGetResId i = mkMethId i rwireGetId Nothing (MethodResult 1)
-rwireHasResId i = mkMethId i rwireHasId Nothing (MethodResult 1)
+rwireSetArgId i = mkMethId i rwireSetId Nothing (MethodArg 1 Nothing)
+rwireGetResId i = mkMethId i rwireGetId Nothing (MethodResult Nothing)
+rwireHasResId i = mkMethId i rwireHasId Nothing (MethodResult Nothing)
 
 -- ==============================
 -- Primitive CReg
@@ -136,7 +136,7 @@ cregWriteId n = mkId noPosition (mkFString (cregWriteStr n))
 cregReadResId, cregWriteEnId, cregWriteArgId :: Id -> Int -> Id
 cregReadResId  i n = mkMethId i (cregReadId n)  Nothing (MethodResult Nothing)
 cregWriteEnId  i n = mkMethId i (cregWriteId n) Nothing MethodEnable
-cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1 1)
+cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1 Nothing)
 
 -- ---------------
 -- Names of ports and parameters on primtive CReg
@@ -353,7 +353,7 @@ regWriteId pos = mkId pos (mkFString regWriteStr)
 regReadResId, regWriteEnId, regWriteArgId :: Id -> Id
 regReadResId  i = mkMethId i (regReadId noPosition)  Nothing (MethodResult Nothing)
 regWriteEnId  i = mkMethId i (regWriteId noPosition) Nothing MethodEnable
-regWriteArgId i = mkMethId i (regWriteId noPosition) Nothing (MethodArg 1 1)
+regWriteArgId i = mkMethId i (regWriteId noPosition) Nothing (MethodArg 1 Nothing)
 
 regSchedInfo :: SchedInfo Id
 regSchedInfo =
@@ -575,7 +575,8 @@ createMapForOneMeth meth_id mult ins outs me = if check then
                   else [ concatFString [meth_fstr, fsUnderscore, mkNumFString n] |
                          n <- [0 .. mult-1] ]
 
-      -- For method "x", names are "x_ARG_<argN>_<portM>" — one entry per
+      -- For method "x", names are "x_<argN>" (plus a "_PORT_<portM>" suffix
+      -- when an argument is split across several ports) — one entry per
       -- hardware port, preserving the source-arg grouping.  For methods
       -- with multiplicity > 1, the meth_n in meth_mult already has the
       -- copy-number suffix folded in.
@@ -583,13 +584,13 @@ createMapForOneMeth meth_id mult ins outs me = if check then
           [ mkMethArgStr meth_n argN portM
           | meth_n <- meth_mult
           , (argN, ports) <- zip [1 :: Integer ..] ins
-          , (portM, _)    <- zip [1 :: Integer ..] ports ]
+          , (portM, _)    <- zip (splitPortNums ports) ports ]
       -- the Verilog port names for the above
       verilog_input_names = map getFStringForVerilogPair (concat ins)
 
       -- names for the output ports
       method_output_names = [ mkMethResStr meth_n out_n |
-                              meth_n <- meth_mult, out_n  <- methResultNums outs]
+                              meth_n <- meth_mult, out_n  <- splitPortNums outs]
 
       -- the Verilog port names for the above
       verilog_output_names = map getFStringForVerilogPair outs

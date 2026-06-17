@@ -370,7 +370,7 @@ xaSRemoveUnused keepFires pkg =
                 -- enumerate MethodArg per (argN, portM) coordinate
                 args = [ MethodArg argN portM
                        | (argN, ports) <- zip [1..] (vf_inputs m)
-                       , (portM, _) <- zip [1..] ports ]
+                       , (portM, _) <- zip (splitPortNums ports) ports ]
             in  [ mkMethId v i ino part |
                   part <- en ++ args, ino <- if mult > 1
                                              then map Just [0 .. mult-1]
