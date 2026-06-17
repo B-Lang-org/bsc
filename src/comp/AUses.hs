@@ -577,9 +577,9 @@ cseWithArgs e = do
   case (M.lookup e cseMap) of
     Just (i, t) -> return (ASDef t i)
     Nothing -> do
-      e' <- do
-              args' <- mapM cse (ae_args e)
-              return (e { ae_args = args' })
+      let args = ae_args e
+      args' <- mapM cse args
+      let e' = e { ae_args = args' }
       cseMap <- getCseMap
       case (M.lookup e' cseMap) of
         Just (i, t) -> return (ASDef t i)
@@ -782,8 +782,7 @@ aUses :: AAction -> UCM (ExprUses, ActionUses)
 aUses a@(ACall i mi (c:es)) = do
     cond_uses <- eDomain c
     dm <- getDefMap
-    arg_uses  <- liftM (map (addUseCond dm c)) $
-                 mapM eDomain es
+    arg_uses  <- liftM (map (addUseCond dm c)) $ mapM eDomain es
     expr_uses <- mergeExprUsesM (cond_uses : arg_uses)
     let action_uses = singleMethodActionUse i (unQualId mi) a
     return (expr_uses, action_uses)

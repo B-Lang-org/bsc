@@ -271,10 +271,9 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
     findSupport e@(ASDef _ i)                            = [DDef def i]
         where def = M.findWithDefault (err i) i idToDef
     findSupport e@(APrim { ae_args = es})                = findAExprs findSupport es
-    findSupport e@(AMethCall {ae_args = args}) =
+    findSupport e@(AMethCall {ae_args = es})             =
       case getMethodOutputPorts portMap (ae_objid e) (ameth_id e) of
-        [vlogport] -> findAExprs findSupport args ++
-                      [DMethod (ae_objid e) vlogport]
+        [vlogport] -> findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
         ports -> internalError ("buildSupportMap: unexpected output ports: "
                                 ++ ppReadable (ae_objid e, ameth_id e, ports))
     findSupport e@(AMethValue {})                        =
@@ -282,8 +281,8 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
         [vlogport] -> [DMethod (ae_objid e) vlogport]
         ports -> internalError ("buildSupportMap: unexpected output ports: "
                                 ++ ppReadable (ae_objid e, ameth_id e, ports))
-    findSupport (ATupleSel _ e@(AMethCall {ae_args = args}) idx) =
-        findAExprs findSupport args ++ [DMethod (ae_objid e) vlogport]
+    findSupport (ATupleSel _ e@(AMethCall {ae_args = es}) idx) =
+        findAExprs findSupport es ++ [DMethod (ae_objid e) vlogport]
         where
           ports = getMethodOutputPorts portMap (ae_objid e) (ameth_id e)
           vlogport = genericIndex ports (idx - 1)
