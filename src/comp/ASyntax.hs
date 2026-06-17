@@ -97,6 +97,7 @@ module ASyntax(
         mkMethStr,
         mkMethArgStr,
         mkMethResStr,
+        methResultNums,
         isMethId,
         MethodPart(..),
         getParams,
@@ -127,7 +128,7 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_arg, fs_res)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_res)
 import FStringCompat
 -- import Position(noPosition)
 import Position
@@ -1905,17 +1906,20 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    MethodArg Integer    | -- argument 1, 2, ... input
-    MethodResult Integer | -- return value 1, 2, ... output
-    MethodEnable           -- enable signal input
+    MethodArg Integer            | -- argument 1, 2, ... input
+    MethodResult (Maybe Integer) | -- return value: Nothing for a single result,
+                                   -- Just 1, 2, ... when split across ports
+    MethodEnable                   -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_ARG_<argnum> starting from 1
---     (e.g. the_fifo$enq_ARG_1)
---   Return values are <inst>$<meth>_RES_<resnum> (e.g. the_fifo$first_RES_1)
+--   Arguments are <inst>$<meth>_<argnum> starting from 1
+--     (e.g. the_fifo$enq_1)
+--   Return values are <inst>$<meth>_RES_<resnum> when the result is split across
+--     multiple output ports (e.g. the_fifo$first_RES_1), or just <inst>$<meth>
+--     when the method has a single result (e.g. the_fifo$first)
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Multi-ported methods are <inst>$<meth>_<portnum>_ARG_<argnum>
+-- Multi-ported methods are <inst>$<meth>_<portnum>_<argnum>
 -- or <inst>$<meth>_<portnum>_RES_<resnum>
 -- The portnum is only omitted if the method has one or
 -- and infinite number of ports (like a register)
@@ -1945,7 +1949,7 @@ mkMethStr obj m m_port mp =
                                        mkNumFString port]
         base = case mp of
                    MethodArg n -> mkMethArgStr meth_port n
-                   MethodResult n -> mkMethResStr meth_port n
+                   MethodResult mn -> mkMethResStr meth_port mn
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
                        concatFString [fsEnable, meth_port]
@@ -1958,13 +1962,22 @@ mkMethArgStr :: FString -> Integer -> FString
 mkMethArgStr meth_port n =
     if (n == 0)
     then internalError "mkMethArgStr"
-    else concatFString [meth_port, fsUnderscore, fs_arg, mkNumFString n]
+    else concatFString [meth_port, fsUnderscore, mkNumFString n]
 
-mkMethResStr :: FString -> Integer -> FString
-mkMethResStr meth_port n =
+mkMethResStr :: FString -> Maybe Integer -> FString
+-- a single result gets no _RES_ suffix
+mkMethResStr meth_port Nothing = meth_port
+mkMethResStr meth_port (Just n) =
     if (n == 0)
     then internalError "mkMethResStr"
     else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
+
+-- The result numbers for a method with the given list of results: Nothing
+-- (no _RES_ suffix) for a single result, Just 1, Just 2, ... when split across
+-- multiple output ports.
+methResultNums :: [a] -> [Maybe Integer]
+methResultNums [_] = [Nothing]
+methResultNums xs  = zipWith (\ _ n -> Just n) xs [1..]
 
 -- #############################################################################
 -- #

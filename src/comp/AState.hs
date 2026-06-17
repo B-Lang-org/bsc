@@ -445,9 +445,9 @@ aState' flags pps schedule_info apkg = do
         -- actionvalue method value references can be unconditionally converted
         subst :: AExpr -> Maybe AExpr
         subst (AMethValue vt modId methId) =
-            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult 1)))
+            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult Nothing)))
         subst (ATupleSel vt (AMethValue _ modId methId) idx) =
-            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult idx)))
+            Just (ASPort vt (mkMethId modId methId Nothing (MethodResult (Just idx))))
         -- substitute AMOsc, AMGate, AMReset references with their port
         subst (AMGate gt modId clkId) =
             Just (mkOutputGatePort vmi_map modId clkId)
@@ -458,7 +458,7 @@ aState' flags pps schedule_info apkg = do
                   let ino = do mult <- M.lookup (modId, methId) omMultMap
                                -- send unused calls of multi-ported methods to port 0
                                toMaybe (mult > 1) 0
-                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult 1)))
+                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult Nothing)))
               me' -> me'
         subst e@(ATupleSel vt (AMethCall _ modId methId es) idx) =
             case (M.lookup e substs) of
@@ -466,7 +466,7 @@ aState' flags pps schedule_info apkg = do
                   let ino = do mult <- M.lookup (modId, methId) omMultMap
                                -- send unused calls of multi-ported methods to port 0
                                toMaybe (mult > 1) 0
-                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult idx)))
+                  in Just (ASPort vt (mkMethId modId methId ino (MethodResult (Just idx))))
               me' -> me'
         -- AMethValue, AMGate and AMethCall should cover it
         subst e = Nothing
@@ -685,8 +685,8 @@ genModVars vs omMultMap = allmvars
                          Nothing -> []
                          (Just t) -> [(MethodEnable, t, True)]) ++
                     -- value triple
-                    [(MethodResult n, t, False)
-                        | (n, t) <- zip [1..] val_types ],
+                    [(MethodResult mn, t, False)
+                        | (mn, t) <- zip (methResultNums val_types) val_types ],
                 -- uniquifiers for multiple ports
                 -- (if only one copy, then the list just contains 0)
                 ino <- map (toMaybe (mult > 1)) [ 0 .. (getMultUse (modId, methId) - 1) `max` 0 ],
@@ -1058,9 +1058,9 @@ mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
             case aType e of
                 ATTuple ats ->
                     [ (ATupleSel at e idx,
-                       ASPort at $ mkMethId o m ino $ MethodResult idx)
+                       ASPort at $ mkMethId o m ino $ MethodResult (Just idx))
                     | (idx, at) <- zip [1..] ats ]
-                at -> [ (e, ASPort at $ mkMethId o m ino $ MethodResult 1) ]
+                at -> [ (e, ASPort at $ mkMethId o m ino $ MethodResult Nothing) ]
 
         -- Replace the method call with the output port of the method
         subst = concatMap mkPortSubsts emrs

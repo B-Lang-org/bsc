@@ -96,8 +96,8 @@ rwireHasId = mkId noPosition (mkFString rwireHasStr)
 rwireSetEnId, rwireSetArgId, rwireGetResId, rwireHasResId :: Id -> Id
 rwireSetEnId i  = mkMethId i rwireSetId Nothing MethodEnable
 rwireSetArgId i = mkMethId i rwireSetId Nothing (MethodArg 1)
-rwireGetResId i = mkMethId i rwireGetId Nothing (MethodResult 1)
-rwireHasResId i = mkMethId i rwireHasId Nothing (MethodResult 1)
+rwireGetResId i = mkMethId i rwireGetId Nothing (MethodResult Nothing)
+rwireHasResId i = mkMethId i rwireHasId Nothing (MethodResult Nothing)
 
 -- ==============================
 -- Primitive CReg
@@ -134,7 +134,7 @@ cregReadId  n = mkId noPosition (mkFString (cregReadStr n))
 cregWriteId n = mkId noPosition (mkFString (cregWriteStr n))
 
 cregReadResId, cregWriteEnId, cregWriteArgId :: Id -> Int -> Id
-cregReadResId  i n = mkMethId i (cregReadId n)  Nothing (MethodResult 1)
+cregReadResId  i n = mkMethId i (cregReadId n)  Nothing (MethodResult Nothing)
 cregWriteEnId  i n = mkMethId i (cregWriteId n) Nothing MethodEnable
 cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1)
 
@@ -351,7 +351,7 @@ regWriteId pos = mkId pos (mkFString regWriteStr)
 
 -- XXX no position?
 regReadResId, regWriteEnId, regWriteArgId :: Id -> Id
-regReadResId  i = mkMethId i (regReadId noPosition)  Nothing (MethodResult 1)
+regReadResId  i = mkMethId i (regReadId noPosition)  Nothing (MethodResult Nothing)
 regWriteEnId  i = mkMethId i (regWriteId noPosition) Nothing MethodEnable
 regWriteArgId i = mkMethId i (regWriteId noPosition) Nothing (MethodArg 1)
 
@@ -583,8 +583,8 @@ createMapForOneMeth meth_id mult ins outs me = if check then
       verilog_input_names = map getFStringForVerilogPair ins
 
       -- names for the output ports
-      method_output_names = [ mkMethResStr meth_n (toInteger out_n) |
-                              meth_n <- meth_mult, out_n  <- [1 .. length outs]]
+      method_output_names = [ mkMethResStr meth_n out_n |
+                              meth_n <- meth_mult, out_n  <- methResultNums outs]
 
       -- the Verilog port names for the above
       verilog_output_names = map getFStringForVerilogPair outs

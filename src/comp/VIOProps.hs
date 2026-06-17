@@ -155,7 +155,8 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                          vfi@(Method {}) <- vFields (avi_vmi v),
                          -- for each method output port
                          (methOutPart, (vname, pprops))
-                             <- zip (map MethodResult [1..]) (vf_outputs vfi),
+                             <- zip (map MethodResult (methResultNums (vf_outputs vfi)))
+                                    (vf_outputs vfi),
 
                          -- for each port copy
                          ino <- if (vf_mult vfi > 1) then
