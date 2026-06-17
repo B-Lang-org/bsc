@@ -89,11 +89,11 @@ Schedule dump file created: sysSplitTupleMethodTest.sched
 Rule schedule
 -------------
 Rule: aa
-Predicate: vs.get(x)[1] && (! vs.get(x)[2])
+Predicate: (vs.get(x)[1]) && (! (vs.get(x)[2]))
 Blocking rules: (none)
  
 Rule: ab
-Predicate: (! vs.get(x)[1]) && vs.get(x)[2]
+Predicate: (! (vs.get(x)[1])) && (vs.get(x)[2])
 Blocking rules: (none)
  
 Rule: cc
