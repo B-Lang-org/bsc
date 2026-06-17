@@ -29,6 +29,45 @@ find_regexp sysMethodEnableToArgMux.v {
 compile_verilog_fail_error PortPath.bsv G0032
 
 # --------------------------------------------------
+# Tests for path analysis through split (multi-port) method inputs/outputs.
+# Each method result is split into one port per struct field, so paths are
+# tracked per output port rather than per method.
+
+# A value method whose result is split into ports: a combinational path is
+# reported only to the output port (p1) that depends on the input; the port
+# fed from a register (p2) has no path.
+compile_verilog_pass SplitOutputPath.bs
+find_regexp mkSplitOutputPath.v {
+// Combinational paths from inputs to outputs:
+//   get_1_p1 -> get_p1
+}
+find_regexp_fail mkSplitOutputPath.v {-> get_p2}
+
+# Paths through a submodule's split output method: routing through the
+# submodule's combinational result field (p1) yields a path; routing through
+# its registered field (p2) does not.
+compile_verilog_pass SplitSubmodPath.bs
+find_regexp mkSubmodPathComb.v {
+// Combinational paths from inputs to outputs:
+//   top_1 -> top
+}
+find_regexp mkSubmodPathReg.v {
+// No combinational paths from inputs to outputs
+}
+
+# An ActionValue method with a split result: combinational path only to the
+# input-dependent output port (p1).
+compile_verilog_pass SplitAVPath.bs
+find_regexp mkSplitAVPath.v {
+// Combinational paths from inputs to outputs:
+//   upd_1_p1 -> upd_p1
+}
+find_regexp_fail mkSplitAVPath.v {-> upd_p2}
+
+# A combinational loop through a submodule's split output port is detected.
+compile_verilog_fail_error SplitOutputLoop.bs G0032
+
+# --------------------------------------------------
 # When methods are allowed to be less urgent than rules,
 # we will need tests here that check that the "&& !CF_rl"
 # is added in to the RDY signal and not directly to the WF
