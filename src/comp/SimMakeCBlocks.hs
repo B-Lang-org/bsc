@@ -1450,8 +1450,7 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         substAV (ATuple ts es) = ATuple ts (map substAV es)
         substAV (ATupleSel t e i) = ATupleSel t (substAV e) i
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
-        substAV (AMethCall t o m args) =
-            AMethCall t o m (map substAV args)
+        substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
         substAV e = e
 
@@ -1625,8 +1624,8 @@ substGateReferences smap stmts =
         -- otherwise, follow exprs
         substInAExpr e@(APrim { ae_args = es }) =
             e { ae_args = map substInAExpr es }
-        substInAExpr e@(AMethCall { ae_args = args }) =
-            e { ae_args = map substInAExpr args }
+        substInAExpr e@(AMethCall { ae_args = es }) =
+            e { ae_args = map substInAExpr es }
         substInAExpr e@(ATuple { ae_elems = es }) =
             e { ae_elems = map substInAExpr es }
         substInAExpr e@(ATupleSel { ae_exp = e1 }) =

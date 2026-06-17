@@ -123,7 +123,7 @@ class RankMethCalls ats_t where
 instance RankMethCalls AExpr where
     rankMethCalls ver expr@(AMethCall { ameth_id = name, ae_args = args }) =
         let (ranked_args, defs_to_rewrite) = rankMethCalls ver args
-        in  (expr { ameth_id = rankId ver name, ae_args = ranked_args },
+        in  (expr { ameth_id = rankId ver name, ae_args = ranked_args  },
              defs_to_rewrite)
     rankMethCalls ver expr@(AMethValue { ameth_id = name }) =
         (expr { ameth_id = rankId ver name }, [])
