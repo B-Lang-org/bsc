@@ -4,7 +4,7 @@ import CSyntax
 import SymTab
 import TypeCheck(topExpr)
 import Type
-import qualified TIMonad as TIM(runTI)
+import qualified TIMonad as TIM(TIResult(..), runTI)
 import Flags(Flags, showElabProgress)
 import IConv(iConvExpr)
 import ASyntax
@@ -28,7 +28,7 @@ import PPrint
 import Pragma(ASchedulePragma)
 import Error(internalError, ErrMsg(..), showErrorList, ErrorHandle)
 import Id
-import Util(unzipWith, ordPairBy, fst3)
+import Util(unzipWith, ordPairBy)
 import Util(mapSnd)
 
 -- | Method name mapped to condition of usage
@@ -222,14 +222,14 @@ getRWireInstFn :: ErrorHandle -> Flags -> SymTab ->
                   M.Map AId HExpr -> IO (Id -> AVInst)
 getRWireInstFn errh flags r alldefs = do
   let blobT = TAp tModule tEmpty
-  case fst3 $ (TIM.runTI flags False r (topExpr blobT (CVar id__mkRWireSubmodule))) of
+  case TIM.tiResult $ (TIM.runTI flags False r (topExpr blobT (CVar id__mkRWireSubmodule))) of
     Left errs -> internalError (ppReadable errs)
     Right (_,e') -> do
       let iexpr = iConvExpr errh flags r alldefs e'
       let def :: IDef HeapData
           def = IDef id_x (iGetType iexpr) iexpr []
       let flags' = flags { showElabProgress = False }
-      iepkg <- iExpand errh flags' r alldefs False [] def
+      iepkg <- iExpand errh flags' r alldefs M.empty False [] def
       rwire_pkg <- aConv errh [] flags (iSplitIf flags iepkg)
       case (apkg_state_instances rwire_pkg) of
         [rwire_inst] ->

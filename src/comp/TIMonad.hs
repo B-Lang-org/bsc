@@ -2,7 +2,8 @@
 module TIMonad(
         TI,
         apSubTI,
-        runTI, err, errs, twarn, handle,
+        CATFCache, mergeCATFCaches,
+        TIResult(..), runTI, err, errs, twarn, handle,
         getAllowIncoherent, maskAllowIncoherent,
         getFlags, setFlags, getSymTab,
         getSubst, clearSubst, extSubst, updSubst,
@@ -17,7 +18,7 @@ module TIMonad(
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
         numEqCls,
         updAssumpPos,
-        recordPackageUse,
+        recordPackageUse, recordATFResult,
         incrementSatStack, decrementSatStack, getSatStack, mkTSSatElement, TSSatElement,
               pushSatStackContext, popSatStackContext
         , tiRecoveringFromError
@@ -48,6 +49,7 @@ import Control.Monad(when)
 import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
+import qualified Data.Map as M
 import qualified Data.Set as S
 import Util(headOrErr)
 
@@ -74,8 +76,14 @@ data TStatePersistent = TStatePersistent {
    -- or only for marked typeclasses
    tsAllowIncoherent :: Bool,
    tsWarns :: [WMsg], -- accumulated warning messages
-   tsUsedPackages :: S.Set Id -- packages from which symbols were used
+   tsUsedPackages :: S.Set Id, -- packages from which symbols were used
+   tsATFCache :: CATFCache
 }
+
+type CATFCache = M.Map (Id, [Type]) Type
+
+mergeCATFCaches :: CATFCache -> CATFCache -> CATFCache
+mergeCATFCaches = M.union
 
 -- typechecking state that is restored in case of error
 data TStateRecover = TStateRecover {
@@ -146,7 +154,8 @@ initPersistentState flags ai s = TStatePersistent {
     tsWarns = [],
     tsAllowIncoherent = ai,
     tsRecoveredErrors = [],
-    tsUsedPackages = S.empty
+    tsUsedPackages = S.empty,
+    tsATFCache = M.empty
   }
 
 initRecoverState :: TStateRecover
@@ -157,19 +166,36 @@ initRecoverState = TStateRecover {
     tsSatStack = mkSizedStack [mkSizedStack []]
   }
 
-runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg], S.Set Id)
-runTI flags ai s m = (final_result, tsWarns pState, tsUsedPackages pState)
-  where (result, pState) = runState error_run
-                                    (initPersistentState flags ai s)
-        error_run = (runExceptT (runStateT m initRecoverState))
+data TIResult a = TIResult {
+    tiResult       :: Either [EMsg] a,
+    tiWarnings     :: [WMsg],
+    tiUsedPackages :: S.Set Id,
+    tiATFCache     :: CATFCache
+  }
+
+runTI :: Flags -> Bool -> SymTab -> TI a -> TIResult a
+runTI flags ai s m = TIResult {
+    tiResult       = mkFinalResult result rec_errors,
+    tiWarnings     = tsWarns pState,
+    tiUsedPackages = tsUsedPackages pState,
+    tiATFCache     = tsATFCache pState
+  }
+  where (result, pState) = runTIState flags ai s m
         rec_errors = tsRecoveredErrors pState
-        final_result =
-            case result of
-              Left es -> Left ((errmsgs es) ++ rec_errors)
-              Right (answer, _) ->
-                  case rec_errors of
-                    [] -> Right answer
-                    es -> Left es
+
+runTIState :: Flags -> Bool -> SymTab -> TI a ->
+              (Either EMsgs (a, TStateRecover), TStatePersistent)
+runTIState flags ai s m = runState error_run (initPersistentState flags ai s)
+  where error_run = runExceptT (runStateT m initRecoverState)
+
+mkFinalResult :: Either EMsgs (a, TStateRecover) -> [EMsg] -> Either [EMsg] a
+mkFinalResult result rec_errors =
+    case result of
+      Left es -> Left (errmsgs es ++ rec_errors)
+      Right (answer, _) ->
+          case rec_errors of
+            [] -> Right answer
+            es -> Left es
 
 -- Add an error from which we have recovered to the accumulating list of
 -- such errors.  If you forget to call this function in your error handler
@@ -248,6 +274,11 @@ recordPackageUse :: Maybe Id -> TI ()
 recordPackageUse Nothing = return ()  -- no package to record
 recordPackageUse (Just pkg) = lift (modify (addPackage pkg))
   where addPackage pkg s = s { tsUsedPackages = S.insert pkg (tsUsedPackages s) }
+
+recordATFResult :: Id -> [Type] -> Type -> TI ()
+recordATFResult atfId args result =
+    lift (modify addATF)
+  where addATF s = s { tsATFCache = M.insert (atfId, args) result (tsATFCache s) }
 
 -- XXX maybe someday get rid of this function and replace with catchError
 handle :: TI a -> (EMsgs -> TI a) -> TI a

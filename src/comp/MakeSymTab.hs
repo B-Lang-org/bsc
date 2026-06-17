@@ -738,10 +738,10 @@ mkTypeSyms errh mkQuals maybePackageName src_pkg iks defs qts s =
     let importedTypeInfos = concatMap (getTI errh maybePackageName src_pkg r iks) defs
         (cls, errss) =
             unzip $
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ifs qts
-                    | Cclass  incoh ps ik vs fds _ ifs <- defs ] ++
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds []  qts
-                    | CIclass incoh ps ik vs fds _ _   <- defs ]
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats ifs qts
+                    | Cclass  incoh ps ik vs fds ats ifs <- defs ] ++
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats []  qts
+                    | CIclass incoh ps ik vs fds ats _   <- defs ]
         r = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
     in  (r, concat errss)
 
@@ -851,11 +851,15 @@ mkATFTIs mi src_pkg classId vs ks ats =
           result_k = M.findWithDefault KStar ca_rhs vs_kind_map
           atf_k    = foldr Kfun result_k param_ks
           atf_i    = qual mi ca_name
-          p_idxs   = [ M.findWithDefault (-1) p vs_idx_map | p <- ca_params ]
-          t_idx    = M.findWithDefault (-1) ca_rhs vs_idx_map
+          p_idxs   = [ get_idx p | p <- ca_params ]
+          t_idx    = get_idx ca_rhs
     ]
   where vs_kind_map = M.fromList (zip vs ks)
         vs_idx_map  = M.fromList (zip vs [0..])
+        get_idx v = fromJustOrErr
+          ("mkATFTIs: variable " ++ ppReadable v ++
+           " not found in class " ++ ppReadable classId)
+          (M.lookup v vs_idx_map)
 
 qual :: Maybe Id -> Id -> Id
 qual Nothing i = i
@@ -930,9 +934,10 @@ overlapErrors bss tagged trie = nub errs
 
 getCls :: ErrorHandle -> Maybe Id -> Maybe Id -> M.Map Id Kind -> SymTab ->
           -- class components
-          Maybe Bool -> [CPred] -> IdK -> [Id] -> CFunDeps -> CFields ->
+          Maybe Bool -> [CPred] -> IdK -> [Id] -> CFunDeps -> [CAssocDepFun] ->
+          CFields ->
           QInsts -> (Class, [EMsg])
-getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
+getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
     let k = getK iks ik
         i = iKName ik
         ks = getNK (genericLength vs) k
@@ -951,6 +956,26 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
         -- a list of all False leads to useless work.
         bss2 = [ map (mkFunDep2 rs1 rs2) vs | (rs1, rs2) <- fds ]
         qi = qual mi i
+        vs_kind_map = M.fromList (zip vs ks)
+        vs_idx_map  = M.fromList (zip vs [0 :: Int ..])
+        atf_infos =
+          [ (TyCon atf_i (Just atf_k)
+                 (TIatf { atf_class_id   = qi
+                        , atf_param_idxs = p_idxs
+                        , atf_target_idx = t_idx }),
+             p_idxs, t_idx)
+          | CAssocDepFun ca_name ca_params ca_rhs <- ats
+          , let param_ks = [ M.findWithDefault KStar p vs_kind_map | p <- ca_params ]
+                result_k = M.findWithDefault KStar ca_rhs vs_kind_map
+                atf_k    = foldr Kfun result_k param_ks
+                atf_i    = qual mi ca_name
+                p_idxs   = [ get_idx p | p <- ca_params ]
+                t_idx    = get_idx ca_rhs
+          ]
+        get_idx v = fromJustOrErr
+          ("getTI CIclass: variable " ++ ppReadable v ++
+           " not found in class " ++ ppReadable qi)
+          (M.lookup v vs_idx_map)
         mkClass genInsts' getInsts' =
           Class {
             name = CTypeclass qi,
@@ -966,7 +991,8 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
             inputPositions = pureInputPositions bss (length tvs),
             allowIncoherent = incoh,
             isComm = False,
-            pkg_src = src_pkg
+            pkg_src = src_pkg,
+            assocTypes = atf_infos
           }
     in if useLegacyInstIndex
        then let (qinsts, errs) = getQInstsLegacy qi bss qts

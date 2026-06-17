@@ -1,0 +1,27 @@
+package TestATFCacheMiss where
+
+data Raw a = Raw (Bit (SizeOf a))
+
+uncook :: (Bits a sz) => a -> Raw a
+uncook x = Raw (pack x)
+
+-- checkPair only requires Bits(a) in its proviso but internally
+-- creates Raw((a, a)) via the tuple Bits instance.  The concrete
+-- SizeOf((UInt 5, UInt 5)) is derived polymorphically inside the
+-- body, so ctxreduce does not record it.  During iExpand the type
+-- variable is substituted, producing a concrete ATF application
+-- that is not in the cache -- a cache miss resolved by normTFun.
+checkPair :: (Bits a sa) => a -> Bool
+checkPair x = case uncook (x, x) of
+                Raw b -> msb b == 1
+
+{-# verilog mkTest_TestATFCacheMiss #-}
+mkTest_TestATFCacheMiss :: Module Empty
+mkTest_TestATFCacheMiss = module
+  r :: Reg (UInt 5) <- mkReg 7
+  rules
+    "test": when True ==>
+      action
+        let result = checkPair r
+        if result then $display "pass" else $display "FAIL"
+        $finish 0

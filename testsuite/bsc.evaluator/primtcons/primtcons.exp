@@ -28,3 +28,5 @@ test_primtcon_normalization "TestTMul_VectorReg.bs" "mkTest_TestTMul_VectorReg"
 test_primtcon_normalization "TestTMul_StatefulIndex.bs" "mkTest_TestTMul_StatefulIndex"
 test_primtcon_normalization "TestTLog_UIntParam.bs" "mkTest_TestTLog_UIntParam"
 test_primtcon_normalization "TestTLog_TypeVar.bs" "mkTest_TestTLog_TypeVar"
+
+test_primtcon_normalization "TestATFCacheMiss.bs" "mkTest_TestATFCacheMiss"

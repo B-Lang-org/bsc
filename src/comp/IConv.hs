@@ -32,6 +32,7 @@ import Pred
 import SymTab
 import Type(tPrimPair, tBit, HasKind(..))
 import CType(cTVarKind, typeclassId, cTVarNum)
+import TIMonad(CATFCache)
 import VModInfo(mkVModInfo, VName(..), VFieldInfo(..))
 import Type(tString, fn, tName, tAttributes)
 import TCMisc(expandSynN)
@@ -51,19 +52,23 @@ import IConvLet(docycles, reorderDs, unpoly)
 
 type Env a = M.Map Id (IExpr a)
 
-iConvPackage :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (IPackage a)
-iConvPackage errh flags r (CPackage pi _ _ _ _ ds _) =
-    return (IPackage pi [] ps ds')
+iConvPackage :: ErrorHandle -> Flags -> SymTab ->
+               CATFCache -> CPackage -> IO (IPackage a)
+iConvPackage errh flags r ctypeATFCache (CPackage pi _ _ _ _ ds _) =
+    return (IPackage pi [] ps ds' itypeATFCache)
   where ds' = concatMap (iConvD errh flags pi r env pvs) ds
         env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds'])
         pvs = map IVar tmpVarIds
         ps = [ qualP p | CPragma p <- ds ]
         qualP (Pproperties i ps) = Pproperties (qualId pi i) ps
         qualP (Pnoinline is)     = Pnoinline (map (qualId pi) is)
+        convT = iConvT flags r
+        itypeATFCache = M.mapKeys (\(i, ts) -> (i, map convT ts))
+                                  (M.map convT ctypeATFCache)
 
 
 iConvDef :: ErrorHandle -> Flags -> SymTab -> IPackage a -> CDefn -> IDef a
-iConvDef errh flags r (IPackage pi _ _ ds) def =
+iConvDef errh flags r (IPackage pi _ _ ds _) def =
     let env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds])
         pvs = map IVar tmpVarIds
     in  case iConvD errh flags pi r env pvs def of
@@ -163,6 +168,8 @@ iConvVS errh flags r env pvs i vs (CQType _ t) cs =
         in  --trace ("iConvCs: " ++ ppReadable vs)
             (i, t'', e')
 
+-- expandSynN resolves ATFs before conversion to IType, so the resulting
+-- IType contains no ATF applications and does not need the ATF cache.
 iConvT :: Flags -> SymTab -> Type -> IType
 iConvT flags s t = iConvT' (expandSynN flags s t)
 

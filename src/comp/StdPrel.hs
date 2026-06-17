@@ -85,7 +85,8 @@ clsAdd symT = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2, tvarh3]
         bss = [[False, False, True], [False, True, False], [True, False, False]]
@@ -350,7 +351,8 @@ clsMax = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2, tvarh3]
         bss = [[False, False, True]]
@@ -445,7 +447,8 @@ clsMin = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2, tvarh3]
         bss = [[False, False, True]]
@@ -544,7 +547,8 @@ clsLog = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = False,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2]
         bss = [[False, True]]
@@ -642,7 +646,8 @@ clsMul symT = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = True,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2, tvarh3]
         bss = [[False, False, True], [False, True, False], [True, False, False]]
@@ -916,7 +921,8 @@ clsDiv = Class {
         inputPositions = pureInputPositions bss (length vs),
         allowIncoherent = Just False,
         isComm = False,
-        pkg_src = Just idPrelude
+        pkg_src = Just idPrelude,
+        assocTypes = []
         }
   where vs  = [tvarh1, tvarh2, tvarh3]
         bss = [[False, False, True]]
@@ -978,7 +984,8 @@ clsNumEq symT =
             inputPositions = pureInputPositions bss (length vs),
             allowIncoherent = Just False,
             isComm = True,
-            pkg_src = Just idPrelude
+            pkg_src = Just idPrelude,
+            assocTypes = []
             }
   where vs  = [tvarh1, tvarh2]
         bss = [[False, True], [True, False]]
