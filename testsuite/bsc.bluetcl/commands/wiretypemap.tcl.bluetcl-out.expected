@@ -160,16 +160,13 @@ currentCell WireTypes::Cell
 leafA.CLK Clock
 leafA.RST_N Reset
 leafA.depth Bit#(8)
-leafA.push void
 leafA.push_p WireTypes::Pixel
 leafA.top WireTypes::Pixel
 leafB.CLK Clock
 leafB.RST_N Reset
 leafB.depth Bit#(8)
-leafB.push void
 leafB.push_p WireTypes::Pixel
 leafB.top WireTypes::Pixel
-loadPixel void
 loadPixel_p WireTypes::Pixel
 loopCnt Bit#(12)
 loopCnt.CLK Clock
@@ -223,7 +220,6 @@ px.Q_OUT WireTypes::Pixel
 px.RST Reset
 pxProbe.CLK Clock
 pxProbe.PROBE WireTypes::Pixel
-setPalette void
 setPalette_cs {Vector::Vector#(4, WireTypes::Color)}
 simpleCount UInt#(4)
 simpleCount.CLK Clock
@@ -346,13 +342,11 @@ topPixel WireTypes::Pixel
 {leafA$RST_N} Reset
 {leafA$depth} Bit#(8)
 {leafA$push_p} WireTypes::Pixel
-{leafA$push} void
 {leafA$top} WireTypes::Pixel
 {leafB$CLK} Clock
 {leafB$RST_N} Reset
 {leafB$depth} Bit#(8)
 {leafB$push_p} WireTypes::Pixel
-{leafB$push} void
 {leafB$top} WireTypes::Pixel
 {loopCnt$CLK} Clock
 {loopCnt$DATA_A} Bit#(12)
@@ -430,7 +424,6 @@ last.CLK Clock
 last.D_IN WireTypes::Pixel
 last.Q_OUT WireTypes::Pixel
 last.RST Reset
-push void
 push_p WireTypes::Pixel
 q.CLK Clock
 q.D_IN WireTypes::Pixel

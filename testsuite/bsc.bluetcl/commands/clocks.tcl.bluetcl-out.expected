@@ -63,7 +63,6 @@ defReg.CLK Clock
 defReg.D_IN Bit#(16)
 defReg.Q_OUT Bit#(16)
 defReg.RST Reset
-feed void
 feed_v Bit#(16)
 lastAlt Bit#(16)
 lastDefault Bit#(16)
@@ -110,7 +109,6 @@ taker.CLK Clock
 taker.CLK_altClk Clock
 taker.RST_N Reset
 taker.RST_N_altRst Reset
-taker.feed void
 taker.feed_v Bit#(16)
 taker.lastAlt Bit#(16)
 taker.lastDefault Bit#(16)
@@ -129,7 +127,6 @@ taker.lastDefault Bit#(16)
 {taker$RST_N_altRst} Reset
 {taker$RST_N} Reset
 {taker$feed_v} Bit#(16)
-{taker$feed} void
 {taker$lastAlt} Bit#(16)
 {taker$lastDefault} Bit#(16)
 ---------

@@ -1,4 +1,3 @@
-if {$vtest == 1} {
-compile_verilog_pass TestSyn.bs mkStack
-compare_file TestSyn.bs.bsc-vcomp-out
-}
+# push is a tuple of Actions, which is not a valid interface method (PrimPair
+# is a struct, not an interface), so synthesizing mkStack fails (T0043).
+compile_verilog_pass_bug TestSyn.bs mkStack tuple-interface

@@ -1,4 +1,4 @@
-import "BDPI" function ActionValue_#(32) my_time (Bit#(8) x);
+import "BDPI" function ActionValue_#(Bit#(32)) my_time (Bit#(8) x);
 
 function ActionValue#(Bit#(32)) my_time2(Bit#(8) x);
    let y = my_time(x);

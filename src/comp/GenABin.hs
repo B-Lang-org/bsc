@@ -34,7 +34,7 @@ import qualified Data.ByteString as B
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260427-4"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260616-1"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
@@ -227,6 +227,7 @@ instance Bin AAbstractInput where
     writeBytes (AAI_Clock osc mgate) = do putI 1; toBin osc; toBin mgate
     writeBytes (AAI_Reset r) = do putI 2; toBin r
     writeBytes (AAI_Inout r n) = do putI 3; toBin r; toBin n
+    writeBytes (AAI_MultiPort ps) = do putI 4; toBin ps
     readBytes = do
         i <- getI
         case i of
@@ -234,6 +235,7 @@ instance Bin AAbstractInput where
          1 -> do osc <- fromBin; mgate <- fromBin; return (AAI_Clock osc mgate)
          2 -> do r <- fromBin; return (AAI_Reset r)
          3 -> do r <- fromBin; n <- fromBin; return (AAI_Inout r n)
+         4 -> do ps <- fromBin; return (AAI_MultiPort ps)
          n -> internalError $ "GenABin.Bin(AAbstractInfo).readBytes: " ++ show n
 
 -- ----------
@@ -295,8 +297,8 @@ instance Bin AAction where
     writeBytes (ACall i m as) = do putI 0; toBin i; toBin m; toBin as
     writeBytes (AFCall i f isC as isA) =
         do putI 1; toBin i; toBin f; toBin isC; toBin as; toBin isA
-    writeBytes (ATaskAction i f isC c as tmp ty isA) =
-        do putI 2; toBin i; toBin f; toBin isC; toBin c; toBin as;
+    writeBytes (ATaskAction i f isC n as tmp ty isA) =
+        do putI 2; toBin i; toBin f; toBin isC; toBin n; toBin as;
            toBin tmp; toBin ty; toBin isA
     readBytes =
         do i <- getI
@@ -305,10 +307,10 @@ instance Bin AAction where
                     return (ACall i m as)
             1 -> do i <- fromBin; f <- fromBin; isC <- fromBin; as <- fromBin;
                     isA <- fromBin; return (AFCall i f isC as isA)
-            2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; c <- fromBin;
+            2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; n <- fromBin;
                     as <- fromBin; tmp <- fromBin; ty <- fromBin;
                     isA <- fromBin;
-                    return (ATaskAction i f isC c as tmp ty isA)
+                    return (ATaskAction i f isC n as tmp ty isA)
             n -> internalError $ "GenABin.Bin(AAction).readBytes: " ++ show n
 
 instance Bin WireProps where

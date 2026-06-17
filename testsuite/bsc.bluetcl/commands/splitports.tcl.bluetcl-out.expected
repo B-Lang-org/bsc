@@ -33,7 +33,6 @@ OK (2 top-level fields)
   RST_N Reset
   WILL_FIRE_RL_unnamed Bool
   WILL_FIRE_RL_unnamed_1 Bool
-  bump void
   cnt Bit#(16)
   cnt.CLK Clock
   cnt.D_IN Bit#(16)
@@ -58,8 +57,6 @@ OK (2 top-level fields)
   sub_count Bit#(16)
   sub_get SplitPortsTest::Inner
   sub_getHdr SplitPortsTest::Header
-  sub_put void
-  sub_putHdr void
   sub_putHdr_1 SplitPortsTest::Header
   sub_put_1 SplitPortsTest::Inner
   {cnt$CLK} Clock

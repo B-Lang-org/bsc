@@ -63,7 +63,6 @@ defReg.CLK Prelude.Clock
 defReg.D_IN {Prelude.Bit 16}
 defReg.Q_OUT {Prelude.Bit 16}
 defReg.RST Prelude.Reset
-feed Prelude.PrimUnit
 feed_v {Prelude.Bit 16}
 lastAlt {Prelude.Bit 16}
 lastDefault {Prelude.Bit 16}
@@ -110,7 +109,6 @@ taker.CLK Prelude.Clock
 taker.CLK_altClk Prelude.Clock
 taker.RST_N Prelude.Reset
 taker.RST_N_altRst Prelude.Reset
-taker.feed Prelude.PrimUnit
 taker.feed_v {Prelude.Bit 16}
 taker.lastAlt {Prelude.Bit 16}
 taker.lastDefault {Prelude.Bit 16}
@@ -129,7 +127,6 @@ taker.lastDefault {Prelude.Bit 16}
 {taker$RST_N_altRst} Prelude.Reset
 {taker$RST_N} Prelude.Reset
 {taker$feed_v} {Prelude.Bit 16}
-{taker$feed} Prelude.PrimUnit
 {taker$lastAlt} {Prelude.Bit 16}
 {taker$lastDefault} {Prelude.Bit 16}
 ---------

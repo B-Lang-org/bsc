@@ -33,7 +33,6 @@ OK (2 top-level fields)
   RST_N Prelude.Reset
   WILL_FIRE_RL_unnamed Prelude.Bool
   WILL_FIRE_RL_unnamed_1 Prelude.Bool
-  bump Prelude.PrimUnit
   cnt {Prelude.Bit 16}
   cnt.CLK Prelude.Clock
   cnt.D_IN {Prelude.Bit 16}
@@ -58,8 +57,6 @@ OK (2 top-level fields)
   sub_count {Prelude.Bit 16}
   sub_get SplitPortsTest.Inner
   sub_getHdr SplitPortsTest.Header
-  sub_put Prelude.PrimUnit
-  sub_putHdr Prelude.PrimUnit
   sub_putHdr_1 SplitPortsTest.Header
   sub_put_1 SplitPortsTest.Inner
   {cnt$CLK} Prelude.Clock

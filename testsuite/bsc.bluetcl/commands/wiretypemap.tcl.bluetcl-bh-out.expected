@@ -160,16 +160,13 @@ currentCell WireTypes.Cell
 leafA.CLK Prelude.Clock
 leafA.RST_N Prelude.Reset
 leafA.depth {Prelude.Bit 8}
-leafA.push Prelude.PrimUnit
 leafA.push_p WireTypes.Pixel
 leafA.top WireTypes.Pixel
 leafB.CLK Prelude.Clock
 leafB.RST_N Prelude.Reset
 leafB.depth {Prelude.Bit 8}
-leafB.push Prelude.PrimUnit
 leafB.push_p WireTypes.Pixel
 leafB.top WireTypes.Pixel
-loadPixel Prelude.PrimUnit
 loadPixel_p WireTypes.Pixel
 loopCnt {Prelude.Bit 12}
 loopCnt.CLK Prelude.Clock
@@ -223,7 +220,6 @@ px.Q_OUT WireTypes.Pixel
 px.RST Prelude.Reset
 pxProbe.CLK Prelude.Clock
 pxProbe.PROBE WireTypes.Pixel
-setPalette Prelude.PrimUnit
 setPalette_cs {Vector.Vector 4 WireTypes.Color}
 simpleCount {Prelude.UInt 4}
 simpleCount.CLK Prelude.Clock
@@ -346,13 +342,11 @@ topPixel WireTypes.Pixel
 {leafA$RST_N} Prelude.Reset
 {leafA$depth} {Prelude.Bit 8}
 {leafA$push_p} WireTypes.Pixel
-{leafA$push} Prelude.PrimUnit
 {leafA$top} WireTypes.Pixel
 {leafB$CLK} Prelude.Clock
 {leafB$RST_N} Prelude.Reset
 {leafB$depth} {Prelude.Bit 8}
 {leafB$push_p} WireTypes.Pixel
-{leafB$push} Prelude.PrimUnit
 {leafB$top} WireTypes.Pixel
 {loopCnt$CLK} Prelude.Clock
 {loopCnt$DATA_A} {Prelude.Bit 12}
@@ -430,7 +424,6 @@ last.CLK Prelude.Clock
 last.D_IN WireTypes.Pixel
 last.Q_OUT WireTypes.Pixel
 last.RST Prelude.Reset
-push Prelude.PrimUnit
 push_p WireTypes.Pixel
 q.CLK Prelude.Clock
 q.D_IN WireTypes.Pixel

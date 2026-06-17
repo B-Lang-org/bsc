@@ -1,0 +1,19 @@
+package NoinlineSplitTuple where
+
+-- A (2-)tuple result is split into one port per element by default, named
+-- _1, _2.
+{-# noinline divmod #-}
+divmod :: Int 8 -> Int 8 -> (Int 8, Bool)
+divmod a b = (a + b, a == b)
+
+{-# synthesize sysNoinlineSplitTuple #-}
+sysNoinlineSplitTuple :: Module Empty
+sysNoinlineSplitTuple =
+  module
+    r :: Reg (Int 8) <- mkReg 0
+    rules
+      when True ==> r := r + 1
+      when r == 5 ==>
+        case divmod 7 3 of
+          (s, e) -> $display "s=%d e=%d" s e
+      when r == 6 ==> $finish

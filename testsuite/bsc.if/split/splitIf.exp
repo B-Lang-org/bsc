@@ -119,3 +119,8 @@ count_rules_after_splitIf Cond_AV_NoSplit.bsv 3 {sysCond_AV_NoSplit} {-split-if}
 count_rules_after_splitIf Cond_MethodArg_Split.bsv 1 {sysCond_MethodArg_Split}
 count_rules_after_splitIf Cond_MethodArg_NoSplit.bsv 3 {sysCond_MethodArg_NoSplit} {-split-if}
 
+# Port-split ActionValue result in iSplitIface (ShallowSplit value stays a tuple,
+# not Bit#(n)).  NoSplit: action unsplit; Split: splitIf also splits the action.
+count_rules_after_splitIf MultiPortAVNoSplit.bs 1 {sysMultiPortAVNoSplit}
+count_rules_after_splitIf MultiPortAVSplit.bs 2 {sysMultiPortAVSplit}
+
