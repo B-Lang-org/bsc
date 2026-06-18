@@ -807,6 +807,7 @@ data ErrMsg =
         | ENotExpr
         | ELocalRec [String]
         | ENotAnInterface
+        | WInterfaceSyntaxUsedForStruct String
         | ENotModule String
         | EPolyField
         | ENotKNum String
@@ -3007,6 +3008,10 @@ getErrorText (EATFInInstanceHead atf) =
 getErrorText (WUnusedImport pkg) =
     (Type 157, empty,
      s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
+
+getErrorText (WInterfaceSyntaxUsedForStruct name) =
+    (Type 160, empty, s2par ("Interface syntax used to construct " ++ quote name ++
+                             ", but that type is a struct, not an interface."))
 
 -- Generation Errors
 

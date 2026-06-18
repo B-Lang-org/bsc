@@ -1,0 +1,6 @@
+checking package dependencies
+compiling WInterfaceSyntaxUsedForStruct.bs
+Warning: "WInterfaceSyntaxUsedForStruct.bs", line 20, column 12: (T0160)
+  Interface syntax used to construct `Foo', but that type is a struct, not an
+  interface.
+All packages are up to date.

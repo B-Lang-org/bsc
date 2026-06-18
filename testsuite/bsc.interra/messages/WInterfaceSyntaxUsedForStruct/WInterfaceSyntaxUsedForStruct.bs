@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WInterfaceSyntaxUsedForStruct.bs
+
+-- Author : Amy Ringo        <amy@matx.com>
+
+-- Description: This testcase triggers the WInterfaceSyntaxUsedForStruct
+-- warning of the bluespec compiler
+--
+-----------------------------------------------------------------------
+
+package WInterfaceSyntaxUsedForStruct () where
+
+struct Foo =
+  bar :: Int 8
+
+foo :: Module Foo
+foo = module
+  interface Foo
+    bar = 0
