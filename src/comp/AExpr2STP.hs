@@ -19,7 +19,6 @@ import qualified Data.Map as M
 import qualified STP as S
 
 import Data.Maybe(fromMaybe)
-import Data.List (genericIndex)
 
 import ErrorUtil(internalError)
 import Flags
@@ -33,7 +32,7 @@ import PFPrint
 import Util(itos, map_insertMany, makePairs)
 import TopUtils(withElapsed)
 
-import AExpr2Util(getMethodOutputPorts)
+import AExpr2Util(getSingleMethodOutputPort, getMethodOutputPortAt)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
@@ -585,41 +584,24 @@ convAExpr2SExpr mty (APrim i (ATBit width) p args) = do
 -- wrapped in an ATupleSel selecting one of them (handled in the arms below).
 -- Reaching the internalError here would mean a multi-output method was used
 -- without selecting a port.
+-- the port helpers canonicalize to the actual port name, so that methods which
+-- share the same output port appear logically equivalent
+-- XXX These could be unevaluated functions, applied to converted arguments
 convAExpr2SExpr mty (AMethCall ty@(ATBit width) modId methId args) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let e = case getMethodOutputPorts smap modId methId of
-              [portId] -> AMethCall ty modId portId args
-              ports -> internalError ("convAExpr2SExpr: unexpected output ports: " ++
-                                       ppReadable (modId, methId, ports))
-    -- XXX This could be an unevaluated function, applied to converted arguments
+    let e = AMethCall ty modId (getSingleMethodOutputPort smap modId methId) args
     addUnknownExpr mty e width
 convAExpr2SExpr mty (AMethValue ty@(ATBit width) modId methId) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let e = case getMethodOutputPorts smap modId methId of
-              [portId] -> AMethValue ty modId portId
-              ports -> internalError ("convAExpr2SExpr: unexpected output ports: " ++
-                                       ppReadable (modId, methId, ports))
-    -- XXX This could be an unevaluated function, applied to converted arguments
+    let e = AMethValue ty modId (getSingleMethodOutputPort smap modId methId)
     addUnknownExpr mty e width
 convAExpr2SExpr mty (ATupleSel ty@(ATBit width) (AMethCall _ modId methId args) selIdx) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPorts smap modId methId `genericIndex` selIdx
-        e = (AMethCall ty modId portId args)
-    -- XXX This could be an unevaluated function, applied to converted arguments
+    let e = AMethCall ty modId (getMethodOutputPortAt smap modId methId selIdx) args
     addUnknownExpr mty e width
 convAExpr2SExpr mty (ATupleSel ty@(ATBit width) (AMethValue _ modId methId) selIdx) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPorts smap modId methId `genericIndex` selIdx
-        e = (AMethValue ty modId portId)
-    -- XXX This could be an unevaluated function, applied to converted arguments
+    let e = AMethValue ty modId (getMethodOutputPortAt smap modId methId selIdx)
     addUnknownExpr mty e width
 
 convAExpr2SExpr mty e@(AMGate (ATBit 1) _ _) =

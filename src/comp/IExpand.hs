@@ -320,7 +320,6 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
               -- and maybe a Def, if the expression is a def reference
               if simple e || isActionType t || isPairType t then
                   -- inline the expression, no def is created for this heap ptr
-                  --trace ("not inlining " ++ show i ++ " " ++ ppReadable t) $
                   (e', Nothing)
               else
                   -- assign the expr to a def, and replace the ptr reference

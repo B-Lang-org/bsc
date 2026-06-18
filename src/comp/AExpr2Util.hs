@@ -1,11 +1,13 @@
 -- Common code used by various converters
 
 module AExpr2Util(
-  getMethodOutputPorts
+  getMethodOutputPorts,
+  getSingleMethodOutputPort,
+  getMethodOutputPortAt
 ) where
 
 import qualified Data.Map as M
-import Data.List(find)
+import Data.List(find, genericIndex)
 
 import ErrorUtil(internalError)
 import PPrint
@@ -47,6 +49,22 @@ getMethodOutputPorts stateMap modId methId =
       out_err = internalError("canonMethCalls: method has no output: " ++
                               ppReadable (modId, methId))
   in  if null ports then out_err else map (vName_to_id . fst) ports
+
+-- A bare method reference (with no tuple selection) refers to a method with a
+-- single output port.  Return that (canonical) port, failing if the method has
+-- multiple output ports (those must be reached through a tuple selector).
+getSingleMethodOutputPort :: (M.Map AId VModInfo) -> AId -> AId -> AId
+getSingleMethodOutputPort stateMap modId methId =
+  case getMethodOutputPorts stateMap modId methId of
+    [portId] -> portId
+    ports -> internalError ("getSingleMethodOutputPort: unexpected output ports: " ++
+                            ppReadable (modId, methId, ports))
+
+-- The output port at the given tuple-selector index, for a method whose result
+-- is split across multiple output ports.
+getMethodOutputPortAt :: (M.Map AId VModInfo) -> AId -> AId -> Integer -> AId
+getMethodOutputPortAt stateMap modId methId selIdx =
+  getMethodOutputPorts stateMap modId methId `genericIndex` selIdx
 
 -- -------------------------
 

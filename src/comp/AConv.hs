@@ -512,7 +512,12 @@ aExpr e@(IAps (ICon _ (ICSel {})) _ _) = aSelExpr sels selExpr
       unfoldICSel e@(IAps (ICon i (ICSel {})) _ [e']) =
           let (sels, a) = unfoldICSel e'
           in  ((i, aTypeConvE e $ iGetType e) : sels, a)
-      unfoldICSel e@(IAps (ICon i (ICSel {})) _ a) = ([(i, aTypeConvE e $ iGetType e)], a)
+      unfoldICSel e@(IAps (ICon i (ICSel {})) _ a@(_:_)) =
+          ([(i, aTypeConvE e $ iGetType e)], a)
+      -- a selector is always applied to at least its object operand
+      unfoldICSel e@(IAps (ICon _ (ICSel {})) _ []) =
+          internalError ("AConv.unfoldICSel: ICSel applied to no arguments:\n" ++
+                         ppReadable e)
       unfoldICSel e = ([], [e])
 
 aExpr (IAps (ICon _ (ICCon { iConType = ITAp _ t, conTagInfo = cti })) _ _) | t == itBit1 =
@@ -602,6 +607,11 @@ aTupleExpr (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
         return (ae1:ae2)
 aTupleExpr e = fmap (:[]) (aSExpr e)
 
+-- the PrimFst/PrimSnd selectors that project an element out of a
+-- tuple-returning method's result
+isTupleSelector :: Id -> Bool
+isTupleSelector s = s == idPrimFst || s == idPrimSnd
+
 aSelExpr :: [(Id, AType)] -> [IExpr a] -> M AExpr
 
 -- value part of ActionValue task without arguments
@@ -632,48 +642,40 @@ aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
         -- the cookie "n" will connect it back up to the action side
         return (ATaskValue t i name isC n)
 
--- A port selected (via PrimFst/PrimSnd) from a method that returns a tuple.
--- This covers both value methods (which still carry their arguments) and the
--- value part of an ActionValue method (whose arguments were dropped in
--- IExpand, leaving an extra avValue_ selector before the method).  The leading
--- PrimSnd selectors are skipped to reach the method; the number of skipped
--- selectors (length sels - length rest) plus the head selector gives the
--- 0-based output port index.
-aSelExpr ((sel, atype) : sels) base@(ICon i (ICStateVar { }) : es)
-    | (sel == idPrimFst || sel == idPrimSnd)
-    , let rest = dropWhile ((== idPrimSnd) . fst) sels
-    , length rest == 1 || length rest == 2 = do
+-- A port selected (via PrimFst/PrimSnd) from a value method that returns a
+-- tuple.  The value method still carries its arguments.  The number of PrimSnd
+-- selectors skipped to reach the method is the 0-based output port index.
+aSelExpr sels (ICon i (ICStateVar { }) : es)
+    | (pfx@((_, atype) : _), [(m, atypeTup)]) <- span (isTupleSelector . fst) sels = do
   i' <- transId i
-  let idx = toInteger $ (if sel == idPrimSnd then 1 else 0) + length sels - length rest
-  meth <- case rest of
-            -- value method: still carries its arguments
-            [(m, atypeTup)] -> do
-              es' <- mapM aSExpr es
-              return $ AMethCall atypeTup i' m es'
-            -- value part of an ActionValue method: arguments were already
-            -- dropped in IExpand, so none should remain here
-            [(_iav, atypeTup), (m, _)] -> do
-              when (not (null es)) $
-                  internalError ("AConv.aExpr actionvalue value with args " ++
-                                 ppReadable sels ++ "\n" ++ ppReadable base)
-              return $ AMethValue atypeTup i' m
-            _ -> internalError ("AConv.aSelExpr: unexpected selectors " ++
-                                ppReadable rest)
-  return $ ATupleSel atype meth (idx + 1)
+  es' <- mapM aSExpr es
+  let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
+  return $ ATupleSel atype (AMethCall atypeTup i' m es') (idx + 1)
 
--- value part of ActionValue method
-aSelExpr sels@[(iav, atype), (m, _)] base@(ICon i (ICStateVar { }) : es)
-    | (iav == idAVValue_) = do
+-- The value part of an ActionValue method, either bare or with a port selected
+-- (via PrimFst/PrimSnd) from a tuple-returning method.  The arguments were
+-- dropped in IExpand, so none should remain.  When there are leading
+-- PrimFst/PrimSnd selectors, the number of PrimSnd selectors is the 0-based
+-- output port index.
+aSelExpr sels base@(ICon i (ICStateVar { }) : es)
+    | (pfx, [(iav, atypeTup), (m, _)]) <- span (isTupleSelector . fst) sels
+    , iav == idAVValue_ = do
   i' <- transId i
-  -- arguments should have been dropped in IExpand
   when (not (null es)) $
       internalError ("AConv.aExpr actionvalue value with args " ++
                      ppReadable sels ++ "\n" ++ ppReadable base)
-  -- IExpand is failing to optimize away bit-zero results from methods
-  -- and foreign functions, so catch that here for ActionValue methods
-  return $ if (atype == aTZero)
-           then ASInt i (ATBit 0) (ilDec 0)
-           else AMethValue atype i' m
+  let meth = AMethValue atypeTup i' m
+  case pfx of
+    -- bare ActionValue output.
+    -- IExpand is failing to optimize away bit-zero results from methods
+    -- and foreign functions, so catch that here for ActionValue methods.
+    [] -> return $ if (atypeTup == aTZero)
+                   then ASInt i (ATBit 0) (ilDec 0)
+                   else meth
+    -- a port selected from a tuple-returning ActionValue method
+    ((_, atype) : _) -> do
+      let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
+      return $ ATupleSel atype meth (idx + 1)
 
 -- value method
 aSelExpr [(m, atype)] (ICon i (ICStateVar { }) : es) = do
