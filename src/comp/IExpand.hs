@@ -2666,20 +2666,12 @@ walkNF e =
                 _ -> upd p0 e wsEmpty
 
     case e of
-        ref@(IRefT _ ptr r) -> do
+        ref@(IRefT _ _ r) -> do
             hc <- getHeap r
             case hc of
-                HUnev { hc_hexpr = hu_e } -> do
-                    -- Force the unevaluated cell to WHNF and retry.  Without
-                    -- the WrapMethod Curry context, method-call arguments at
-                    -- the caller can still be HUnev when we reach them here:
-                    -- the wrapper builds a tuple-of-bits arg, evalHeap stores
-                    -- each tuple field as HUnev, and walkNF later needs to
-                    -- force them itself.
-                    when doTraceNF $
-                        traceM ("walkNF unev (forcing): " ++ ppReadable hu_e)
-                    _ <- evalHeap (ptr, r)
-                    walkNF ref
+                HUnev { hc_hexpr = e } -> do
+                    e' <- unheapAll e
+                    internalError ("walkNF unev: " ++ ppReadable (e, e'))
                 HLoop name ->
                     internalError ("walkNF loop: " ++ ppReadable name)
                 -- reuse ref for better CSE

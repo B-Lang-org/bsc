@@ -4718,10 +4718,12 @@ class WrapMethod m w | m -> w where
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (WrapPorts (PortsOf a) pb, WrapMethod b v) =>
+instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb, WrapMethod b v) =>
     WrapMethod (a -> b) (pb -> v) where
-  toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
-  fromWrapMethod g = fromWrapMethod ∘ g ∘ packPorts ∘ splitPorts
+  -- deep-seq the packed argument so its per-port fields are evaluated before
+  -- they reach walkNF (mirroring the deep-seq already done on method results)
+  toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts ∘ primDeepSeqTupleBits
+  fromWrapMethod g = fromWrapMethod ∘ g ∘ primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
 
   methodArgBaseNames _ prefix (Cons h t) i = Cons
     -- arg_names can start with a digit
