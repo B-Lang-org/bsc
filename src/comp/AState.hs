@@ -1011,12 +1011,12 @@ mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
 --  * an expression substitution to replace old expressions with uses
 --    of the new definitions
 
-mkEmuxss :: ([AExpr] -> [AExpr]) -> ([AExpr] -> [AExpr]) ->
+mkEmuxss :: ([AExpr] -> [AExpr]) ->
             ([AExpr] -> AExpr) ->
             ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob ->
             ([ADef], [ADef], [ADef], AExprSubst)
-mkEmuxss tl tlG cnd rdb value_method_ids om (((o, m), f), emrss) =
-    let genfunct = mkEmuxs tl tlG cnd rdb value_method_ids om o m
+mkEmuxss tl cnd rdb value_method_ids om (((o, m), f), emrss) =
+    let genfunct = mkEmuxs tl cnd rdb value_method_ids om o m
         (sel_dss, val_dss, out_dss, sss) = unzip4 (zipWith genfunct (map (toMaybe f) [0..]) emrss)
     in  (concat sel_dss, concat val_dss, concat out_dss, concat sss)
 
@@ -1025,23 +1025,23 @@ mkEmuxss tl tlG cnd rdb value_method_ids om (((o, m), f), emrss) =
 -- XXX conditional def/use analysis.
 mkEmuxssExpr :: ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob
              -> ([ADef], [ADef], [ADef], AExprSubst)
-mkEmuxssExpr = mkEmuxss id id (const aTrue)
+mkEmuxssExpr = mkEmuxss id (const aTrue)
 
 mkEmuxssAction :: ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob
                -> ([ADef], [ADef], [ADef], AExprSubst)
-mkEmuxssAction = mkEmuxss tail tail head
+mkEmuxssAction = mkEmuxss tail head
 
 -- ---------------
 
 -- This function produces a set of muxes per port
 -- (that is, per copy of the method on a single state instance)
 
-mkEmuxs :: ([AExpr] -> [AExpr]) -> ([AExpr] -> [AExpr]) ->
+mkEmuxs :: ([AExpr] -> [AExpr]) ->
            ([AExpr] -> AExpr) ->
            ExclusiveRulesDB -> [AId] -> OrderMap ->
            AId -> AId -> Maybe Integer -> MethPortBlob ->
            ([ADef], [ADef], [ADef], AExprSubst)
-mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
+mkEmuxs tl cnd rdb value_method_ids om o m ino emrs =
     let
         -- Break each MethPortBlob into a list of the expressions for
         -- each argument, and then transpose the entire structure to
@@ -1053,12 +1053,12 @@ mkEmuxs tl tlG cnd rdb value_method_ids om o m ino emrs =
 
         -- (argN, portM) coordinates for each input-port position; derived
         -- from the first call's args shape (all calls share the same
-        -- method, hence the same shape).  `tlG` strips the cond from the
+        -- method, hence the same shape).  `tl` strips the cond from the
         -- args list when called from the action variant.
         portCoords = case emrs of
             ((AMethCall _ _ _ args, _) : _) ->
                 [ (argN, portM)
-                | (argN, arg)   <- zip [1..] (tlG args)
+                | (argN, arg)   <- zip [1..] (tl args)
                 , (portM, _)    <- zip (splitPortNums (argInputPorts arg)) (argInputPorts arg) ]
             _ -> []
 
