@@ -1509,18 +1509,18 @@ ppActions d as = text "{" <+> sep (map ppA as) <+> text "}"
 -- AFCall/ATaskAction prints i instead of the string name
 -- to print the Bluespec function being called, not the foreign one
 instance PPrint AAction where
-    pPrint d _ (ACall i m (c:es)) | isOne c = pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es)
-    pPrint d _ (ACall i m (c:es)) = sep [
+    pPrint d _ (ACall i m (c : es)) | isOne c = pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es)
+    pPrint d _ (ACall i m (c : es)) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es))
         ]
-    pPrint d _ (AFCall i _ _ (c:es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrint d 1) es)
-    pPrint d _ (AFCall i _ _ (c:es) _) = sep [
+    pPrint d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrint d 1) es)
+    pPrint d _ (AFCall i _ _ (c : es) _) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <+> sep (map (pPrint d 1) es))
         ]
-    pPrint d _ (ATaskAction i _ _ n (c:es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es)
-    pPrint d _ (ATaskAction i _ _ n (c:es) _ _ _) = sep [
+    pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es)
+    pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
         nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es))
         ]
@@ -1584,10 +1584,9 @@ instance PPrint AExpr where
     pPrint d p (ANoInlineFunCall _ i _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (AFunCall _ i _ _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
-    pPrint d p (AMethCall _ i m args) =
-        pparen (p>0 && not (null args)) $
-        pPrint d 1 i <>
-        sep (text "." <> ppMethId d m : map (pPrint d 1) args)
+    pPrint d p (AMethCall _ i m es) =
+        pparen (p>0 && not (null es)) $
+        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
         pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
     pPrint d p (ATuple _ es) = parens (commaSep (map (pPrint d 0) es))
@@ -1785,20 +1784,20 @@ ppeActions m d as = text "{" <+> sep (map ppeA as) <+> text "}"
         where ppeA a = pPrintExpand m d defContext a <> text ";"
 
 instance PPrintExpand AAction where
-    pPrintExpand m d _ (ACall i meth (c:es)) | isOne c =
+    pPrintExpand m d _ (ACall i meth (c : es)) | isOne c =
         pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (ACall i meth (c:es)) = sep [
+    pPrintExpand m d _ (ACall i meth (c : es)) = sep [
         text "if" <+> pPrintExpand m d bContext c <+> text "then",
         nest 2 (pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es))
         ]
-    pPrintExpand m d _ (AFCall i _ _ (c:es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (AFCall i _ _ (c:es) _) = sep [
+    pPrintExpand m d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es)
+    pPrintExpand m d _ (AFCall i _ _ (c : es) _) = sep [
         text "if" <+> pPrintExpand m d bContext c <+> text "then",
         nest 2 (pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es))
 
         ]
-    pPrintExpand m d _ (ATaskAction i _ _ n (c:es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es)
-    pPrintExpand m d _ (ATaskAction i _ _ n (c:es) _ _ _) = sep [
+    pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es)
+    pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
         text "if" <+> pPrintExpand m d defContext c <+> text "then",
         nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es))
 
@@ -1886,10 +1885,8 @@ instance PPrintExpand AExpr where
                <> if (null es) then empty else (parens (hsep ( punctuate comma docArgs )) )
                    where
                    docArgs = map (pPrintExpand m d defContext) es
-    pPrintExpand m d ec (AMethValue _ i meth) =
-        pPrint d 1 i <> text "." <> ppMethId d meth
-    pPrintExpand m d ec (ATuple _ es) =
-        parens (commaSep (map (pPrintExpand m d defContext) es))
+    pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
+    pPrintExpand m d ec (ATuple _ es) =  parens (commaSep (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATupleSel _ e idx) =
         pPrintExpand m d pContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i

@@ -4223,7 +4223,7 @@ get_method_to_signal_map vmod = do
   case f of
        Method {} -> return ()
        _ -> mzero -- failure, as in the guard function
-  port <- vfMethodArgPorts f ++ vf_outputs f ++ maybeToList (vf_enable f)
+  port <- vfMethodArgPorts f ++ (vf_outputs f) ++ (maybeToList $ vf_enable f)
   count <- case (vf_mult f) of
     1 -> return Nothing
     k -> map Just [1..k]

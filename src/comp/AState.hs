@@ -1011,8 +1011,7 @@ mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
 --  * an expression substitution to replace old expressions with uses
 --    of the new definitions
 
-mkEmuxss :: ([AExpr] -> [AExpr]) ->
-            ([AExpr] -> AExpr) ->
+mkEmuxss :: ([AExpr] -> [AExpr]) -> ([AExpr] -> AExpr) ->
             ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob ->
             ([ADef], [ADef], [ADef], AExprSubst)
 mkEmuxss tl cnd rdb value_method_ids om (((o, m), f), emrss) =
@@ -1036,8 +1035,7 @@ mkEmuxssAction = mkEmuxss tail head
 -- This function produces a set of muxes per port
 -- (that is, per copy of the method on a single state instance)
 
-mkEmuxs :: ([AExpr] -> [AExpr]) ->
-           ([AExpr] -> AExpr) ->
+mkEmuxs :: ([AExpr] -> [AExpr]) -> ([AExpr] -> AExpr) ->
            ExclusiveRulesDB -> [AId] -> OrderMap ->
            AId -> AId -> Maybe Integer -> MethPortBlob ->
            ([ADef], [ADef], [ADef], AExprSubst)

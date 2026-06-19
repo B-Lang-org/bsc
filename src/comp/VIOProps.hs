@@ -12,7 +12,7 @@ import ErrorUtil(internalError)
 import Id
 import PreIds(idPrimAction, idInout_, idPrimUnit)
 import VModInfo(vArgs, vFields, VName(..), VeriPortProp(..),
-                VArgInfo(..), VFieldInfo(..), vfMethodArgPorts, VPort)
+                VArgInfo(..), VFieldInfo(..), VPort)
 import Prim
 import ASyntax
 import ASyntaxUtil( AVars(..) )
