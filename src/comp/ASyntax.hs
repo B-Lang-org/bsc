@@ -18,6 +18,7 @@ module ASyntax(
         APred,
         AIFace(..),
         AInput,
+        AMethodInput,
         AAbstractInput(..),
         AOutput,
         AClock(..),
@@ -537,6 +538,11 @@ getArraySize t = internalError ("getArraySize: " ++ ppReadable t)
 -- then to be AAbstractInput.)
 type AInput = (AId, AType)
 
+-- One source-language method argument, decomposed into the hardware input
+-- ports it occupies (a single port for an unsplit argument, several for a
+-- split struct/tuple).  A method's arguments are then a list of these groups.
+type AMethodInput = [AInput]
+
 -- These are abstract inputs (including inouts), which can map to one or more
 -- hardware ports.  These are used in APackage for module arg inputs, prior to
 -- being converted to AInput in AState.
@@ -782,7 +788,7 @@ instance NFData AAssumption where
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
-                        aif_inputs    :: [[AInput]],
+                        aif_inputs    :: [AMethodInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
                         aif_value     :: ADef,
@@ -790,13 +796,13 @@ data AIFace =   AIDef { aif_name      :: AId,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
                         aif_assumps :: [AAssumption] }
-              | AIAction { aif_inputs    :: [[AInput]],
+              | AIAction { aif_inputs    :: [AMethodInput],
                            aif_props     :: WireProps,
                            aif_pred      :: APred,
                            aif_name      :: AId,
                            aif_body      :: [ARule],
                            aif_fieldinfo :: VFieldInfo }
-              | AIActionValue { aif_inputs    :: [[AInput]],
+              | AIActionValue { aif_inputs    :: [AMethodInput],
                                 aif_props     :: WireProps,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
@@ -852,7 +858,7 @@ aIfaceResIds _ = []
 
 -- Source-language argument groups (each group is one method argument, which
 -- may decompose to multiple hardware ports).
-aIfaceArgGroups :: AIFace -> [[AInput]]
+aIfaceArgGroups :: AIFace -> [AMethodInput]
 aIfaceArgGroups (AIClock {}) = []
 aIfaceArgGroups (AIReset {}) = []
 aIfaceArgGroups (AIInout {}) = []

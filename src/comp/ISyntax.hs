@@ -11,6 +11,7 @@ module ISyntax(
         IRules(..),
         IRule(..),
         IEFace(..),
+        IMethodInput,
         IModule(..),
         IAbstractInput(..),
         IStateVar(..),
@@ -186,6 +187,11 @@ data IAbstractInput =
         --   IAI_Struct [(Id, IType)]
     deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+-- One method argument, decomposed into the ports it occupies (one port for an
+-- unsplit argument, several for a split struct/tuple).  A method's arguments
+-- are a list of these groups.
+type IMethodInput = [(Id, IType)]
+
 data IEFace a = IEFace {
         -- This is either an actual method or a ready signal for another
         -- method.  Use 'isRdyId' to determine which.  Use 'mkRdyId' on
@@ -193,7 +199,7 @@ data IEFace a = IEFace {
         -- associated ready method.
         ief_name :: Id,
         -- arguments, split into ports.
-        ief_args :: [[(Id, IType)]],
+        ief_args :: [IMethodInput],
         -- Prior to 'iSplitIface', 'ief_value' contains the expression for
         -- the whole method and 'ief_body' is empty.  After 'iSplitIface',
         -- 'ief_value' contains the return value (if any) and 'ief_body'

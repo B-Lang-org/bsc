@@ -1057,7 +1057,7 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
 -- expand a method
 iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
                  (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
-                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
@@ -1075,7 +1075,7 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e)
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                  (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
                  Id -> IType -> Pred HeapData ->
-                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
     if null ins then internalError "iExpandMethodLam: no inputs" else return ()
@@ -1123,7 +1123,7 @@ buildArgExpr ty arg_ports
 
 iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
                   Pred HeapData ->
-                 G ([[(Id, IType)]], (HDef, HWireSet, VFieldInfo),
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         norm <- getTypeNormalizerC
