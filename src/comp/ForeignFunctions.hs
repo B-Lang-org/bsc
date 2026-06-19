@@ -153,9 +153,7 @@ data ForeignCall = FFCall   { fc_func :: ForeignFunction
 
 fc_args :: ForeignCall -> [AExpr]
 fc_args (FFCall _ expr)  = ae_args expr
--- aact_args includes the cond as the first element; strip it so the
--- argument list matches the foreign function's parameter list.
-fc_args (FFAction _ act) = drop 1 (aact_args act)
+fc_args (FFAction _ act) = tailOrErr "action has no condition" (aact_args act)
 
 getFn :: ForeignFuncMap -> String -> ForeignFunction
 getFn ff_map name =
@@ -445,16 +443,20 @@ mkSystemTaskCallAction act@(AFCall {}) =
   let name = afcall_fun act
       add_sim = fnNeedsSimHdl name
       add_this = fnNeedsLocation name
-      -- aact_args has cond as first element; strip it for the actual call args
-      args = mkSystemTaskArgs add_sim add_this Nothing (drop 1 (aact_args act))
+      args = mkSystemTaskArgs add_sim add_this
+                              Nothing
+                              (tailOrErr "action has no condition"
+                                         (aact_args act))
   in (None, mapFnName name, args)
 mkSystemTaskCallAction act@(ATaskAction {}) =
   let name = ataskact_fun act
       (ret_style,ret_arg) = mkSystemTaskReturn act
       add_sim = fnNeedsSimHdl name
       add_this = fnNeedsLocation name
-      -- aact_args has cond as first element; strip it for the actual call args
-      args = mkSystemTaskArgs add_sim add_this ret_arg (drop 1 (aact_args act))
+      args = mkSystemTaskArgs add_sim add_this
+                              ret_arg
+                              (tailOrErr "action has no condition"
+                                         (aact_args act))
   in (ret_style, mapFnName name, args)
 mkSystemTaskCallAction act =
   internalError $ "mkSystemTaskCall: non-systask action -- " ++ (show act)
