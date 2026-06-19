@@ -568,11 +568,9 @@ instance PPrint AStmt where
   pPrint d p (AStmtDef def) =
       pparen (p > 0) (text "AStmtDef" <+> pPrint d 1 def)
   pPrint d p (AStmtAction cset act) =
-      -- prepend the recomputed condition to the action's argument list
       let c = getCondExpr cset
-          act' = case aact_args act of
-                   (_:as) -> act { aact_args = c : as }
-                   []     -> act { aact_args = [c] }
+          as = aact_args act
+          act' = act { aact_args = (c:as) }
       in  pparen (p > 0) (text "AStmtAction" <+> pPrint d 1 act')
   pPrint d p (AStmtIf cset tblk fblk) =
       pparen (p > 0)
