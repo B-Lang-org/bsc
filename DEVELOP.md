@@ -41,6 +41,7 @@ The following is a running list of those writings.
 * Names that BSC has built-in knowledge of (such as definitions in the Prelude)
   are specified in `src/comp/PreStrings.hs`, which are then wrapped as identifiers
   in `src/comp/PreIds.hs`
+* For Haskell language server setup see dedicated [README file](./util/haskell-language-server/README.md)
 
 ### Compiling
 
