@@ -1,0 +1,49 @@
+package VecNestedDeep where
+
+import SplitPorts
+import Vector
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+-- Cell has a nested struct field `c` (DeepSplit recurses into it) and a field `d`
+-- wrapped in NoSplit so the DeepSplit recursion TERMINATES there, leaving `d`
+-- packed even at the leaf level.
+struct Cell =
+  c :: Inner
+  d :: NoSplit Bool
+ deriving (Bits)
+
+-- DeepSplit of a (Vector 2 Cell): each vector element recurses through Cell into
+-- Inner, producing multi-level leaf names under a vector index:
+--   outputs: get_0_c_a get_0_c_b get_0_d  get_1_c_a get_1_c_b get_1_d
+--   inputs : get_1_0_c_a ... get_1_1_d
+-- (the NoSplit field d stays a single port get_0_d, NOT recursed further).
+--
+-- Combinational edges chosen to exercise multi-level leaves AND cross-index
+-- isolation:
+--   element 0 deep leaf c.a straight-through from input elem 0 c.a
+--       get_1_0_c_a -> get_0_c_a
+--   element 1 NoSplit-packed leaf d crossed from input elem 0 d
+--       get_1_0_d -> get_1_d
+-- everything else registered: no get_0_c_b path, no get_1_c_a path, and the
+-- crossed d edge proves index isolation (source elem 0, dest elem 1).
+interface Ifc =
+  get :: DeepSplit (Vector 2 Cell) -> DeepSplit (Vector 2 Cell)
+
+{-# synthesize mkVecNestedDeep #-}
+mkVecNestedDeep :: Module Ifc
+mkVecNestedDeep =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit v) =
+        let unD :: NoSplit Bool -> Bool
+            unD (NoSplit x) = x
+            c0 = Cell { c = Inner { a = (v !! 0).c.a; b = r }       -- c0.c.a comb from in elem 0
+                      ; d = NoSplit r }
+            c1 = Cell { c = Inner { a = r; b = r }                  -- registered
+                      ; d = NoSplit (unD ((v !! 0).d)) }           -- c1.d comb from in elem 0 d
+        in  DeepSplit (c0 :> c1 :> nil)

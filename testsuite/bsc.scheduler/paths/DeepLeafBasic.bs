@@ -1,0 +1,28 @@
+package DeepLeafBasic where
+
+import SplitPorts
+
+-- Inner nested struct
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+-- Outer struct whose fields are themselves structs
+struct Outer =
+  x :: Inner
+  y :: Inner
+ deriving (Bits)
+
+interface Ifc =
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkDeepLeafBasic #-}
+mkDeepLeafBasic :: Module Ifc
+mkDeepLeafBasic =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit a) =
+        DeepSplit (Outer { x = Inner { a = a.x.a; b = r }
+                         ; y = Inner { a = r; b = a.y.b } })

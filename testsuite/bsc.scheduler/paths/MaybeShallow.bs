@@ -1,0 +1,25 @@
+package MaybeShallow where
+
+import SplitPorts
+
+-- A struct with one plain field and one Maybe field.  Maybe is a
+-- 2-constructor (tagged-union) type, so even a ShallowSplit must keep it
+-- packed as a single port (tag + payload together), rather than splitting it.
+struct Rec =
+  flag :: Bool
+  mb   :: Maybe Bool
+ deriving (Bits)
+
+interface Ifc =
+  get :: ShallowSplit Rec -> ShallowSplit Rec
+
+{-# synthesize mkMaybeShallow #-}
+mkMaybeShallow :: Module Ifc
+mkMaybeShallow =
+  module
+    r :: Reg (Maybe Bool) <- mkReg Nothing
+    interface
+      get (ShallowSplit a) =
+        -- flag is combinational from the (packed Maybe) input mb;
+        -- the output mb field comes from a register, so no path to it.
+        ShallowSplit (Rec { flag = isValid a.mb; mb = r })

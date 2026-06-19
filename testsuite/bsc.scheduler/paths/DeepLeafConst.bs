@@ -1,0 +1,35 @@
+package DeepLeafConst where
+
+import SplitPorts
+
+-- Nested struct (Outer field is itself a struct).
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Inner
+ deriving (Bits)
+
+interface Ifc =
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+-- Each of the four deep leaves is driven by a different kind of source, so
+-- path analysis must produce a path for exactly one of them:
+--   get_x_a <- a.x.a        (combinational input  => get_1_x_a -> get_x_a)
+--   get_x_b <- True         (constant             => no path)
+--   get_y_a <- r            (register             => no path)
+--   get_y_b <- False        (constant             => no path)
+-- Crucially, only ONE input leaf is even used, so none of the other input
+-- leaves (get_1_x_b, get_1_y_a, get_1_y_b) may appear as a path source.
+{-# synthesize mkDeepLeafConst #-}
+mkDeepLeafConst :: Module Ifc
+mkDeepLeafConst =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit a) =
+        DeepSplit (Outer { x = Inner { a = a.x.a; b = True }
+                         ; y = Inner { a = r; b = False } })

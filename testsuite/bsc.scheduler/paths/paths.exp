@@ -75,4 +75,645 @@ compile_verilog_fail_error SplitOutputLoop.bs G0032
 #...
 
 # --------------------------------------------------
+
+# ==================================================
+# Additional path-analysis tests for split (multi-port) method ports
+# (deep/shallow, value & ActionValue, submodule, loops, granularity, EN/RDY)
+# ==================================================
+
+
+# --------------------------------------------------
+# Deep-split path analysis through NESTED structs (struct whose field is a
+# struct).  Deep splitting recurses to leaf ports (<m>_<f>_<subf>), and path
+# analysis tracks paths per deep-leaf (input-port, output-port) pair.
+
+# Outer{x::Inner, y::Inner}: a deep-split value method where each output leaf
+# that is combinational from an input leaf shows that exact edge, while leaves
+# fed from a register show none.  Per-leaf isolation: get_x_a comes from
+# get_1_x_a and get_y_b from get_1_y_b; the registered leaves get_x_b / get_y_a
+# have no incoming path, and no cross-leaf (e.g. get_1_x_a -> get_x_b) edge.
+compile_verilog_pass DeepLeafBasic.bs
+find_regexp mkDeepLeafBasic.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x_a -> get_x_a
+//   get_1_y_b -> get_y_b
+}
+find_regexp_fail mkDeepLeafBasic.v {-> get_x_b}
+find_regexp_fail mkDeepLeafBasic.v {-> get_y_a}
+
+# Deep-split leaves wired from a DIFFERENT input leaf than the same-named one,
+# so path analysis must follow actual data flow, not port-name matching:
+#   get_x_a <- a.y.b  =>  get_1_y_b -> get_x_a
+#   get_y_b <- a.x.a  =>  get_1_x_a -> get_y_b
+# The naive name-matching edges (get_1_x_a -> get_x_a, get_1_y_b -> get_y_b)
+# must NOT appear.
+compile_verilog_pass DeepLeafCross.bs
+find_regexp mkDeepLeafCross.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x_a -> get_y_b
+//   get_1_y_b -> get_x_a
+}
+find_regexp_fail mkDeepLeafCross.v {get_1_x_a -> get_x_a}
+find_regexp_fail mkDeepLeafCross.v {get_1_y_b -> get_y_b}
+
+# Two levels of nesting: Top{m::Mid, n::Mid}, Mid{p::Leaf, q::Leaf}.  Deep
+# split produces three-component leaf ports (get_1_m_p_lo -> get_m_p_lo).  Only
+# two of the eight leaves are combinational from their matching input leaf; the
+# rest come from a register, isolating the two-levels-deep leaves.
+compile_verilog_pass DeepLeafTwoLevels.bs
+find_regexp mkDeepLeafTwoLevels.v {
+// Combinational paths from inputs to outputs:
+//   get_1_m_p_lo -> get_m_p_lo
+//   get_1_n_q_hi -> get_n_q_hi
+}
+find_regexp_fail mkDeepLeafTwoLevels.v {-> get_m_p_hi}
+find_regexp_fail mkDeepLeafTwoLevels.v {get_1_m_q_lo ->}
+
+# Each deep leaf of Outer{x::Inner, y::Inner} is driven by a different source:
+# combinational input (get_x_a <- a.x.a), constant (get_x_b <- True,
+# get_y_b <- False), and register (get_y_a <- r).  Only the combinational leaf
+# yields a path; constant- and register-fed leaves do not, and no unused input
+# leaf (get_1_x_b / get_1_y_a / get_1_y_b) appears as a path source.
+compile_verilog_pass DeepLeafConst.bs
+find_regexp mkDeepLeafConst.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x_a -> get_x_a
+}
+find_regexp_fail mkDeepLeafConst.v {-> get_x_b}
+find_regexp_fail mkDeepLeafConst.v {-> get_y_a}
+find_regexp_fail mkDeepLeafConst.v {get_1_y_b ->}
+
+# A combinational loop closed through a submodule's DEEP leaf port (the x.a leaf
+# is combinational input->output in the submodule, and an RWire feeds its output
+# leaf back to its input leaf).  Path analysis detects the cycle through the
+# per-leaf result node, so compilation fails with G0032.
+compile_verilog_fail_error DeepLeafLoop.bs G0032
+
+
+# IOMatrixCross: value method, ShallowSplit Pair in+out, output fields are
+# CROSSED from the inputs (out p1 <= in p2, out p2 <= in p1).  Asserts both
+# crossed edges exist and neither straight-through edge does.
+compile_verilog_pass IOMatrixCross.bs
+find_regexp mkIOMatrixCross.v {
+//   get_1_p1 -> get_p2
+//   get_1_p2 -> get_p1
+}
+find_regexp_fail mkIOMatrixCross.v {get_1_p1 -> get_p1}
+find_regexp_fail mkIOMatrixCross.v {get_1_p2 -> get_p2}
+
+# IOMatrixCombine: value method, ShallowSplit Pair in+out, output field p1
+# COMBINES both split inputs (a.p1 && a.p2); output field p2 is registered.
+# Asserts the single combined edge (both inputs -> get_p1) exists and that
+# nothing reaches get_p2.
+compile_verilog_pass IOMatrixCombine.bs
+find_regexp mkIOMatrixCombine.v {\(get_1_p1, get_1_p2\) -> get_p1}
+find_regexp_fail mkIOMatrixCombine.v {-> get_p2}
+
+# IOMatrixFanout: value method, ShallowSplit Pair in+out, single input field
+# p1 FANS OUT to both output fields (p1 = a.p1, p2 = not a.p1); input field p2
+# feeds nothing.  Asserts both fan-out edges exist and that get_1_p2 drives no
+# output.
+compile_verilog_pass IOMatrixFanout.bs
+find_regexp mkIOMatrixFanout.v {
+//   get_1_p1 -> get_p1
+//   get_1_p1 -> get_p2
+}
+find_regexp_fail mkIOMatrixFanout.v {get_1_p2 ->}
+
+# IOMatrixDeepCross: value method, DeepSplit of a nested struct (Outer with an
+# Inner field).  DeepSplit recurses to leaf ports get_1_x_a/get_1_x_b/get_1_y.
+# The two inner leaves are CROSSED (out x_a <= in x_b, out x_b <= in x_a) and
+# the top-level y passes straight through.  Asserts the crossed deep edges and
+# the straight y edge, and that neither straight inner edge exists.
+compile_verilog_pass IOMatrixDeepCross.bs
+find_regexp mkIOMatrixDeepCross.v {
+//   get_1_x_a -> get_x_b
+//   get_1_x_b -> get_x_a
+//   get_1_y -> get_y
+}
+find_regexp_fail mkIOMatrixDeepCross.v {get_1_x_a -> get_x_a}
+find_regexp_fail mkIOMatrixDeepCross.v {get_1_x_b -> get_x_b}
+
+# IOMatrixDeepCombine: value method, DeepSplit nested struct.  Each inner
+# output leaf COMBINES a disjoint pair of input leaves (x_a <= x_a && y,
+# x_b <= x_b && y); the top-level output y is registered.  Asserts both
+# combined deep edges exist and that nothing reaches get_y.
+compile_verilog_pass IOMatrixDeepCombine.bs
+find_regexp mkIOMatrixDeepCombine.v {\(get_1_x_a, get_1_y\) -> get_x_a}
+find_regexp mkIOMatrixDeepCombine.v {\(get_1_x_b, get_1_y\) -> get_x_b}
+find_regexp_fail mkIOMatrixDeepCombine.v {-> get_y}
+
+
+# --------------------------------------------------
+# AV dimension: ActionValue methods with SPLIT INPUT args.
+
+# An ActionValue method with both a split input arg and a split result,
+# wired "crossed": output upd_p1 is combinational from input upd_1_p2 and
+# output upd_p2 from input upd_1_p1.  Demonstrates per-INPUT-port tracking:
+# each split output depends on exactly one specific split input, and the
+# "diagonal" edges (upd_1_p1 -> upd_p1, upd_1_p2 -> upd_p2) are absent.
+compile_verilog_pass AVSplitInPath.bs
+find_regexp mkAVSplitInPath.v {
+// Combinational paths from inputs to outputs:
+//   upd_1_p1 -> upd_p2
+//   upd_1_p2 -> upd_p1
+}
+find_regexp_fail mkAVSplitInPath.v {upd_1_p1 -> upd_p1}
+find_regexp_fail mkAVSplitInPath.v {upd_1_p2 -> upd_p2}
+
+# An ActionValue method whose split input arg is threaded straight through a
+# submodule's split input/output.  Only input upd_1_p1 reaches the
+# submodule's combinational result field, so the single path is
+# upd_1_p1 -> upd_p1; input upd_1_p2 feeds only the submodule's registered
+# field (no path), and output upd_p2 (registered) has no path.
+compile_verilog_pass AVSubmodInPath.bs
+find_regexp mkAVSubmodInPath.v {
+// Combinational paths from inputs to outputs:
+//   upd_1_p1 -> upd_p1
+}
+find_regexp_fail mkAVSubmodInPath.v {upd_1_p2 ->}
+find_regexp_fail mkAVSubmodInPath.v {-> upd_p2}
+
+# An ActionValue method whose split input port indexes a single-ported
+# combinational submodule read, with a rule using the same read port (so the
+# index is muxed by EN_upd).  The data path upd_1_p1 -> upd_p1 is reported;
+# the analysis does NOT add a spurious EN_upd -> upd_p1 edge, and the
+# registered field upd_p2 has no path.  Exercises split AV input through a
+# submodule's declared combinational result with an enable-muxed argument.
+compile_verilog_pass AVEnArgMuxPath.bs
+find_regexp mkAVEnArgMuxPath.v {
+// Combinational paths from inputs to outputs:
+//   upd_1_p1 -> upd_p1
+}
+find_regexp_fail mkAVEnArgMuxPath.v {EN_upd ->}
+find_regexp_fail mkAVEnArgMuxPath.v {-> upd_p2}
+
+
+
+# --------------------------------------------------
+# Tests for path analysis through a SUBMODULE's split (multi-port) method
+# ports.  The top module threads its (possibly split) inputs through a
+# submodule whose argument and/or result are split into per-field ports, and
+# path analysis must track reachability at the per-port granularity through
+# the submodule's argument and result nodes.
+
+# Routes the top's split input ports straight through the submodule's split
+# *argument* ports and out the submodule's split result ports.  The submodule
+# result p1 is combinational from arg p1 while p2 is registered, so the only
+# path is top_1_p1 -> top_p1 (established through the submodule's per-port
+# argument node get_1_p1).  There is no cross-edge into top_p2.
+compile_verilog_pass SubmodInputArgPath.bs
+find_regexp mkSubmodInputArgPath.v {
+// Combinational paths from inputs to outputs:
+//   top_1_p1 -> top_p1
+}
+find_regexp_fail mkSubmodInputArgPath.v {-> top_p2}
+
+# A DEEP-split submodule: the nested Inner struct is recursed to leaf ports.
+# Leaf x.a and field y are combinational through the submodule while leaf x.b
+# is registered, so paths are tracked at leaf granularity:
+#   top_1_x_a -> top_x_a  and  top_1_y -> top_y, with nothing reaching the
+# registered leaf top_x_b.
+compile_verilog_pass SubmodDeepLeafPath.bs
+find_regexp mkSubmodDeepLeafPath.v {
+// Combinational paths from inputs to outputs:
+//   top_1_x_a -> top_x_a
+//   top_1_y -> top_y
+}
+find_regexp_fail mkSubmodDeepLeafPath.v {-> top_x_b}
+
+# Muxes between TWO of the submodule's combinational split output ports
+# (get_p1 / get_p2) under a select input, driving a single top output.  Both
+# the data input (top_1, feeding both submodule arg ports) and the select
+# input (top_2) reach the output: (top_1, top_2) -> top.  The submodule's
+# registered output port get_p3 is never selected and contributes no path.
+compile_verilog_pass SubmodSelectOutPath.bs
+find_regexp mkSubmodSelectOutPath.v {
+// Combinational paths from inputs to outputs:
+//   \(top_1\, top_2\) -> top
+}
+
+# Crossbar through DISTINCT submodule split output ports: top output q1 is fed
+# from submodule output get_p2 and top output q2 from get_p1, so the paths are
+# crossed (top_1_q1 -> top_q2 and top_1_q2 -> top_q1) with NO straight-through
+# top_1_q1 -> top_q1.  The submodule's registered output get_p3 reaches
+# neither top output port.
+compile_verilog_pass SubmodCrossbarPath.bs
+find_regexp mkSubmodCrossbarPath.v {
+// Combinational paths from inputs to outputs:
+//   top_1_q1 -> top_q2
+//   top_1_q2 -> top_q1
+}
+find_regexp_fail mkSubmodCrossbarPath.v {top_1_q1 -> top_q1}
+
+
+# --------------------------------------------------
+# Per-port combinational LOOP detection through SPLIT (multi-port) method ports.
+
+
+# Splitting AVOIDS a false loop: the top feeds its input into a submodule's
+# split input p1 and the submodule's combinational output p1 into a *second*
+# submodule's split input p2.  Since out-p1 depends only on in-p1 (never in-p2),
+# the feedback into in-p2 is a dead end, so there is no loop -- only the real
+# path top_1 -> top (from g2.in_p1) remains.  Packed ports would risk a false
+# loop here.
+compile_verilog_pass LoopNoFalseLoop.bs
+find_regexp mkLoopNoFalseLoop.v {
+// Combinational paths from inputs to outputs:
+//   top_1 -> top
+}
+
+# A combinational loop that re-enters the SPLIT INPUT arg port p1 of a submodule
+# that combinationally SWAPS its fields (out_p1 = in_p2, out_p2 = in_p1).  The
+# feedback drives in_p1 and reads the swapped out_p2, closing the cycle through
+# "Argument 1" of the split method => G0032.
+compile_verilog_fail_error LoopInputArgLoop.bs G0032
+
+# A combinational loop through an ActionValue method's SPLIT ports: the AV
+# result's split output p1 (combinational from split input p1) is consumed and
+# drives the RWire whose value feeds the AV's split input p1 => G0032.
+compile_verilog_fail_error LoopAVPortLoop.bs G0032
+
+# Sibling to LoopInputArgLoop: feed the top input into the same SWAP submodule's
+# split input p1 but RETURN its split output p1.  Because out_p1 = in_p2 (not
+# in_p1), the input on p1 reaches only the discarded out_p2, so per-port
+# discrimination reports NO combinational paths (and no loop).  Reading the
+# *wrong* swapped port is what made LoopInputArgLoop loop.
+compile_verilog_pass LoopSwapNoLoop.bs
+find_regexp mkLoopSwapNoLoop.v {
+// No combinational paths from inputs to outputs
+}
+
+
+# --------------------------------------------------
+# Granularity + composition tests for split (multi-port) method ports.
+
+# Same nested struct as a ShallowSplit result: only the TOP level is split, so
+# the nested field x stays PACKED as one port (get_x).  The combinational path
+# is reported at the coarse packed granularity: get_1_x -> get_x.  No per-leaf
+# ports (get_x_a) exist.  Contrast with GranDeepNested below.
+compile_verilog_pass GranShallowNested.bs
+find_regexp mkGranShallowNested.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x -> get_x
+}
+find_regexp_fail mkGranShallowNested.v {get_x_a}
+
+# Same nested struct as a DeepSplit result: recursion splits the nested field
+# into leaf ports (get_x_a, get_x_b).  Only x.a is combinational from the input,
+# so the path is reported at per-leaf granularity (get_1_x_a -> get_x_a) and the
+# registered leaves get_x_b / get_y have no path.  This shows the finer
+# granularity of DeepSplit vs the packed ShallowSplit path above.
+compile_verilog_pass GranDeepNested.bs
+find_regexp mkGranDeepNested.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x_a -> get_x_a
+}
+find_regexp_fail mkGranDeepNested.v {-> get_x_b}
+find_regexp_fail mkGranDeepNested.v {-> get_y}
+
+# Two split arguments named lhs/rhs via the arg_names pragma.  Path analysis
+# distinguishes sub-ports of arg lhs from arg rhs: result p1 is combinational
+# from lhs.p1 and result p2 from rhs.p2, yielding exactly the edges
+# combine_lhs_p1 -> combine_p1 and combine_rhs_p2 -> combine_p2, but NOT the
+# cross edges combine_lhs_p2 -> combine_p2 or combine_rhs_p1 -> combine_p1.
+compile_verilog_pass GranTwoArgs.bs
+find_regexp mkGranTwoArgs.v {
+// Combinational paths from inputs to outputs:
+//   combine_lhs_p1 -> combine_p1
+//   combine_rhs_p2 -> combine_p2
+}
+find_regexp_fail mkGranTwoArgs.v {combine_lhs_p2 -> combine_p2}
+find_regexp_fail mkGranTwoArgs.v {combine_rhs_p1 -> combine_p1}
+
+# DeepSplit of a (Vector 3 Bool): each element becomes its own port (input
+# get_1_0/get_1_1/get_1_2, output get_0/get_1/get_2).  Result element 2 is
+# combinational from input element 2, so the path is exactly get_1_2 -> get_2;
+# the register-fed elements get_0 / get_1 have no incoming path.
+compile_verilog_pass GranVec.bs
+find_regexp mkGranVec.v {
+// Combinational paths from inputs to outputs:
+//   get_1_2 -> get_2
+}
+find_regexp_fail mkGranVec.v {-> get_0}
+
+# NoSplit terminates the DeepSplit recursion: the field x (wrapped in NoSplit)
+# stays as ONE packed port (get_x) instead of leaf ports get_x_a / get_x_b, so
+# the path is reported at the packed granularity get_1_x -> get_x.  The leaf y
+# is register-fed and has no path.
+compile_verilog_pass GranNoSplit.bs
+find_regexp mkGranNoSplit.v {
+// Combinational paths from inputs to outputs:
+//   get_1_x -> get_x
+}
+find_regexp_fail mkGranNoSplit.v {get_x_a}
+find_regexp_fail mkGranNoSplit.v {-> get_y}
+
+
+# --------------------------------------------------
+# EN/RDY interaction with split (multi-port) method ports.
+
+# An Action method's enable (EN_doit) feeds a *split* value-output port: only the
+# field driven by EN (rd_p1) has a combinational path; the constant field rd_p2
+# has none.  Shows EN_<m> -> <m>_<field> per split output port.
+compile_verilog_pass EnRdyEnToSplitOut.bs
+find_regexp mkEnRdyEnToSplitOut.v {
+// Combinational paths from inputs to outputs:
+//   EN_doit -> rd_p1
+}
+find_regexp_fail mkEnRdyEnToSplitOut.v {-> rd_p2}
+
+# A split INPUT sub-port feeds another method's RDY.  'put' forwards its split
+# input field p1 onto an RWire whose value gates value-method 'gate', so the path
+# is (put_1_p1, EN_put) -> RDY_gate.  The other split input port (put_1_p2) is
+# never forwarded, so it does not appear in any path; RDY_put has none either.
+compile_verilog_pass EnRdyInToRdy.bs
+find_regexp mkEnRdyInToRdy.v {
+// Combinational paths from inputs to outputs:
+//   \(put_1_p1, EN_put\) -> RDY_gate
+}
+find_regexp_fail mkEnRdyInToRdy.v {put_1_p2 ->}
+find_regexp_fail mkEnRdyInToRdy.v {-> RDY_put}
+
+# An Action method's enable reaches a DEEP-split leaf output port.  rd's deep
+# result has nested struct field x.a (port rd_x_a) driven by EN_fire; sibling
+# leaves rd_x_b and rd_y come from registers, so only rd_x_a has a path.
+compile_verilog_pass EnRdyDeepEnOut.bs
+find_regexp mkEnRdyDeepEnOut.v {
+// Combinational paths from inputs to outputs:
+//   EN_fire -> rd_x_a
+}
+find_regexp_fail mkEnRdyDeepEnOut.v {-> rd_x_b}
+find_regexp_fail mkEnRdyDeepEnOut.v {-> rd_y}
+
+# An ActionValue method with a split result combined with an EN edge.  Each split
+# input port maps to its own split output port (upd_1_p1 -> upd_p1,
+# upd_1_p2 -> upd_p2) with no crossed edges, and the method's enable reaches a
+# separate value output (EN_upd -> busy).
+compile_verilog_pass EnRdyAVEnResult.bs
+find_regexp mkEnRdyAVEnResult.v {
+// Combinational paths from inputs to outputs:
+//   upd_1_p1 -> upd_p1
+//   upd_1_p2 -> upd_p2
+//   EN_upd -> busy
+}
+find_regexp_fail mkEnRdyAVEnResult.v {upd_1_p1 -> upd_p2}
+find_regexp_fail mkEnRdyAVEnResult.v {upd_1_p2 -> upd_p1}
+
+# Two distinct method enables route to two distinct split output ports:
+# EN_setA -> rd_p1 and EN_setB -> rd_p2, with no crossed edges.  Demonstrates
+# per-port tracking of separate enables into a single split result.
+compile_verilog_pass EnRdyTwoEnSplit.bs
+find_regexp mkEnRdyTwoEnSplit.v {
+// Combinational paths from inputs to outputs:
+//   EN_setA -> rd_p1
+//   EN_setB -> rd_p2
+}
+find_regexp_fail mkEnRdyTwoEnSplit.v {EN_setA -> rd_p2}
+find_regexp_fail mkEnRdyTwoEnSplit.v {EN_setB -> rd_p1}
+
+
+# MIXED-KIND: split argument, single PACKED result depending on ONE split input
+# field.  The packed output port (get) has a path from get_1_p1 only; the other
+# split input field (get_1_p2) is ignored, so no get_1_p2 -> get edge.  Verifies
+# per-input tracking across the split->packed boundary.
+compile_verilog_pass SplitInPackedOneField.bs
+find_regexp mkSplitInPackedOneField.v {
+// Combinational paths from inputs to outputs:
+//   get_1_p1 -> get
+}
+find_regexp_fail mkSplitInPackedOneField.v {get_1_p2 -> get}
+
+# MIXED-KIND (reverse): single PACKED Bool argument feeding a SPLIT result.  The
+# plain input fans into the first split output field (get_p1) combinationally;
+# the second split output field (get_p2) is registered.  So get_1 -> get_p1 is
+# reported but get_1 -> get_p2 is not -- asymmetric edge across the packed->split
+# boundary.
+compile_verilog_pass PackedInSplitOut.bs
+find_regexp mkPackedInSplitOut.v {
+// Combinational paths from inputs to outputs:
+//   get_1 -> get_p1
+}
+find_regexp_fail mkPackedInSplitOut.v {get_1 -> get_p2}
+
+# MIXED-KIND (merge): split argument (BOTH fields), single PACKED Bool result
+# (a.p1 || a.p2).  Both split input ports combine into the one packed output, so
+# the analysis reports a single combined edge (get_1_p1, get_1_p2) -> get rather
+# than two separate edges.  Asserts the combined edge exists and the individual
+# get_1_p1 -> get edge does NOT.
+compile_verilog_pass SplitInPackedCombine.bs
+find_regexp mkSplitInPackedCombine.v {
+// Combinational paths from inputs to outputs:
+//   \(get_1_p1\, get_1_p2\) -> get
+}
+find_regexp_fail mkSplitInPackedCombine.v {get_1_p1 -> get}
+
+
+# A single split INPUT sub-port fanning out across METHOD boundaries: one Action
+# method forwards only field p1 of its split arg onto a combinational RWire, and
+# two DISTINCT value methods (outA, outB) both read it.  So put_1_p1 reaches the
+# outputs of two different methods, while its sibling put_1_p2 (never written to
+# the wire) reaches neither.
+compile_verilog_pass RWireFanout.bs
+find_regexp mkRWireFanout.v {// Combinational paths from inputs to outputs:
+//   \(put_1_p1\, EN_put\) -> outA
+//   \(put_1_p1\, EN_put\) -> outB}
+find_regexp_fail mkRWireFanout.v {put_1_p2 ->}
+
+# DeepSplit version of the cross-method fanout: the shared source is a deep leaf
+# sub-port (put_1_a_x) of a nested struct.  One Action method forwards only that
+# leaf onto a combinational wire; two distinct value methods read it, so the leaf
+# fans out to outputs of two methods, while sibling leaves put_1_a_y and put_1_b
+# reach neither.
+compile_verilog_pass DeepWireFanout.bs
+find_regexp mkDeepWireFanout.v {// Combinational paths from inputs to outputs:
+//   \(put_1_a_x\, EN_put\) -> outA
+//   \(put_1_a_x\, EN_put\) -> outB}
+find_regexp_fail mkDeepWireFanout.v {put_1_a_y ->}
+find_regexp_fail mkDeepWireFanout.v {put_1_b ->}
+
+# Disjoint per-source fanout across method boundaries: the Action method forwards
+# each split input field onto its own wire.  Field p1 fans out to TWO methods
+# (outA, outB); the sibling field p2 reaches a DIFFERENT third method (outC) only.
+# Path analysis keeps the two sources independent: no put_1_p1 -> outC edge and
+# no put_1_p2 -> outA edge.
+compile_verilog_pass SiblingDisjointFanout.bs
+find_regexp mkSiblingDisjointFanout.v {// Combinational paths from inputs to outputs:
+//   \(put_1_p1\, EN_put\) -> outA
+//   \(put_1_p1\, EN_put\) -> outB
+//   \(put_1_p2\, EN_put\) -> outC}
+find_regexp_fail mkSiblingDisjointFanout.v {put_1_p1\, EN_put\) -> outC}
+find_regexp_fail mkSiblingDisjointFanout.v {put_1_p2\, EN_put\) -> outA}
+
+
+# --------------------------------------------------
+# Tagged-union / multi-constructor split: a struct field that is a 2-constructor
+# type (Maybe, or a user enum-with-payload) is kept PACKED as one port, even
+# under ShallowSplit/DeepSplit, since SplitPorts only splits single-constructor
+# structs/vectors.  These verify the tag+payload port naming and that paths are
+# tracked at the granularity of that single packed union port.
+
+# ShallowSplit: the Maybe field stays a single packed port (get_1_mb / get_mb).
+# The plain output flag is combinational from the packed union input, so the
+# only path is get_1_mb -> get_flag.  The union output (get_mb) is register-fed
+# (no path), and the flat input get_1_flag is unused (no path).
+compile_verilog_pass MaybeShallow.bs
+find_regexp mkMaybeShallow.v {
+// Combinational paths from inputs to outputs:
+//   get_1_mb -> get_flag
+}
+find_regexp_fail mkMaybeShallow.v {-> get_mb}
+find_regexp_fail mkMaybeShallow.v {get_1_flag ->}
+
+# DeepSplit: recursion splits the outer struct into leaf ports but TERMINATES
+# at the 2-constructor Maybe field, so get_1_mb / get_mb are single packed ports
+# (no get_1_mb_* subports).  Tag and payload both flow through, giving the only
+# path get_1_mb -> get_mb.  The leaf output get_lo is register-fed (no path) and
+# the leaf input get_1_lo is unused (no path).
+compile_verilog_pass MaybeDeep.bs
+find_regexp mkMaybeDeep.v {
+// Combinational paths from inputs to outputs:
+//   get_1_mb -> get_mb
+}
+find_regexp_fail mkMaybeDeep.v {-> get_lo}
+find_regexp_fail mkMaybeDeep.v {get_1_lo ->}
+find_regexp_fail mkMaybeDeep.v {get_1_mb_}
+
+# A user-defined 2-constructor union WITH a payload (data Cmd = Nop | Run Bool):
+# the same packing applies (step_1_cmd / step_echo are single packed ports).
+# The packed union input flows only to the packed union output (step_1_cmd ->
+# step_echo); the plain Bool output step_ack is register-fed and the plain input
+# step_1_sel is unused, demonstrating per-port granularity.
+compile_verilog_pass UnionPayload.bs
+find_regexp mkUnionPayload.v {
+// Combinational paths from inputs to outputs:
+//   step_1_cmd -> step_echo
+}
+find_regexp_fail mkUnionPayload.v {-> step_ack}
+find_regexp_fail mkUnionPayload.v {step_1_sel ->}
+
+
+# --------------------------------------------------
+# A split method-input SELECTOR field data-dependently muxes between two
+# distinct single-ported combinational submodule reads (each read indexed by a
+# separate split data field), driving one unsplit output.  The selector edge
+# must appear alongside both selected data fields, while the unused 'dead' field
+# (still a real input port) contributes no path.
+compile_verilog_pass SelectorMuxPath.bs
+find_regexp mkSelectorMuxPath.v {
+// Combinational paths from inputs to outputs:
+//   \(run_1_sel, run_1_a, run_1_b\) -> run
+}
+find_regexp_fail mkSelectorMuxPath.v {run_1_dead ->}
+
+# --------------------------------------------------
+# Same selector-mux pattern, but with a SPLIT output: each split output port is
+# muxed by the SAME selector field but a DIFFERENT data field (o1 from a, o2
+# from b).  Per-(input,output)-port tracking attributes the selector edge to
+# each output port together with ONLY the data field that output consumes:
+#   (sel, a) -> o1   and   (sel, b) -> o2, with no cross edges and no 'dead'.
+compile_verilog_pass SelectorSplitOutPath.bs
+find_regexp mkSelectorSplitOutPath.v {
+// Combinational paths from inputs to outputs:
+//   \(run_1_sel, run_1_a\) -> run_o1
+//   \(run_1_sel, run_1_b\) -> run_o2
+}
+find_regexp_fail mkSelectorSplitOutPath.v {run_1_b\) -> run_o1}
+find_regexp_fail mkSelectorSplitOutPath.v {run_1_a\) -> run_o2}
+find_regexp_fail mkSelectorSplitOutPath.v {run_1_dead.*->}
+
+# --------------------------------------------------
+# A split method-input selector field muxes between a MODULE ARGUMENT (port
+# input 'v') and a split data field, driving one unsplit output.  The path
+# enters via the split method input and exits through the module's own
+# argument-driven logic, so the output depends on (run_1_sel, run_1_d, v); the
+# unused split field 'dead' contributes no path.
+compile_verilog_pass ArgSelectorPath.bs
+find_regexp mkArgSelectorPath.v {
+// Combinational paths from inputs to outputs:
+//   \(run_1_sel, run_1_d, v\) -> run
+}
+find_regexp_fail mkArgSelectorPath.v {run_1_dead ->}
+
+
+# VecStructDeepMulti: DeepSplit (Vector 3 Pair) -> leaf ports per element
+# (get_0_p1 .. get_2_p2). Two simultaneous combinational edges, one CROSSED across
+# vector indices: elem0 p1 straight-through (get_1_0_p1 -> get_0_p1) and elem2 p2
+# sourced from input elem1 p2 (get_1_1_p2 -> get_2_p2). Asserts both edges exist
+# and that no same-index sibling / wrong-source edge appears.
+compile_verilog_pass VecStructDeepMulti.bs
+find_regexp mkVecStructDeepMulti.v {
+// Combinational paths from inputs to outputs:
+//   get_1_0_p1 -> get_0_p1
+//   get_1_1_p2 -> get_2_p2
+}
+find_regexp_fail mkVecStructDeepMulti.v {get_1_0_p2 -> get_0_p1}
+find_regexp_fail mkVecStructDeepMulti.v {get_1_2_p2 -> get_2_p2}
+
+# VecStructShallow: ShallowSplit (Vector 3 Pair) -> the vector is unpacked into
+# one PACKED port per element (get_0 get_1 get_2 / get_1_0 ..), with NO per-field
+# leaf granularity (contrast VecStructDeepMulti). Two edges, one crossed across
+# indices: get_1_0 -> get_0 and get_1_1 -> get_2. Asserts the packed edges exist and
+# that no leaf port name like get_0_p1 ever appears.
+compile_verilog_pass VecStructShallow.bs
+find_regexp mkVecStructShallow.v {
+// Combinational paths from inputs to outputs:
+//   get_1_0 -> get_0
+//   get_1_1 -> get_2
+}
+find_regexp_fail mkVecStructShallow.v {get_0_p1}
+find_regexp_fail mkVecStructShallow.v {get_1_2 ->}
+
+# VecNestedDeep: DeepSplit (Vector 2 Cell) where Cell has a nested struct field
+# c (recursed to multi-level leaves get_0_c_a / get_0_c_b) and a NoSplit field d that
+# TERMINATES recursion (stays packed as get_0_d). Two edges, one crossed across
+# indices: deep leaf get_1_0_c_a -> get_0_c_a and NoSplit-packed leaf get_1_0_d ->
+# get_1_d (source elem0, dest elem1). Asserts both edges and absence of the
+# registered / wrong-index siblings.
+compile_verilog_pass VecNestedDeep.bs
+find_regexp mkVecNestedDeep.v {
+// Combinational paths from inputs to outputs:
+//   get_1_0_c_a -> get_0_c_a
+//   get_1_0_d -> get_1_d
+}
+find_regexp_fail mkVecNestedDeep.v {get_1_1_d -> get_1_d}
+find_regexp_fail mkVecNestedDeep.v {-> get_0_c_b}
+
+
+# Per-port loop discrimination: a genuine combinational loop confined to split
+# field p1 of method `get'.  The cycle MUST be detected (G0032) and the cycle
+# report must name exactly the offending split port -- "Argument 1"/"Return
+# value 1" of `get' -- and NOT the sibling field p2's ports.  Counterpart to the
+# passing no-loop tests, proving per-port (not whole-method) cycle reporting.
+compile_verilog_fail_error LoopConfinedP1.bs G0032
+find_regexp LoopConfinedP1.bs.bsc-vcomp-out {Argument 1 of method `get'}
+find_regexp LoopConfinedP1.bs.bsc-vcomp-out {Return value 1 of method `get'}
+find_regexp_fail LoopConfinedP1.bs.bsc-vcomp-out {Argument 2 of method `get'}
+find_regexp_fail LoopConfinedP1.bs.bsc-vcomp-out {Return value 2 of method `get'}
+
+# Mirror image of LoopConfinedP1: the loop is confined to split field p2, so the
+# G0032 cycle report must name "Argument 2"/"Return value 2" of `get' and NOT
+# "Argument 1"/"Return value 1".  Together with LoopConfinedP1 this proves the
+# positional split-port index in the cycle report genuinely discriminates the
+# offending field (it is not always reported as port "1").
+compile_verilog_fail_error LoopConfinedP2.bs G0032
+find_regexp LoopConfinedP2.bs.bsc-vcomp-out {Argument 2 of method `get'}
+find_regexp LoopConfinedP2.bs.bsc-vcomp-out {Return value 2 of method `get'}
+find_regexp_fail LoopConfinedP2.bs.bsc-vcomp-out {Argument 1 of method `get'}
+find_regexp_fail LoopConfinedP2.bs.bsc-vcomp-out {Return value 1 of method `get'}
+
+# Per-split-port discrimination across MULTIPLE split arguments.  Method `op'
+# takes two split Pair arguments, so its input split ports are numbered 1,2
+# (arg1.p1, arg1.p2) and 3,4 (arg2.p1, arg2.p2).  The loop is confined to
+# arg2's field p1 == split input port 3, reaching result field p1 == return
+# value 1.  G0032 must name "Argument 3"/"Return value 1" of `op' and NOT
+# "Argument 1", "Argument 2", or "Return value 2" -- demonstrating that the
+# cycle report indexes the precise split port, not the whole method argument.
+compile_verilog_fail_error LoopConfinedArg2.bs G0032
+find_regexp LoopConfinedArg2.bs.bsc-vcomp-out {Argument 3 of method `op'}
+find_regexp LoopConfinedArg2.bs.bsc-vcomp-out {Return value 1 of method `op'}
+find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 1 of method `op'}
+find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 2 of method `op'}
+find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Return value 2 of method `op'}
+
 }
