@@ -3299,22 +3299,25 @@ rawIfcFieldName (RawInout i _ _ _ _) = i
 
 
 rawIfcFieldFromAIFace :: [PProp] -> AIFace -> RawIfcField
-rawIfcFieldFromAIFace _ iface@(AIDef i _ _ _ def
-     (Method _ clk rst mult ins outs Nothing) _) =
+rawIfcFieldFromAIFace _
+    iface@(AIDef i _ _ _ def
+          (Method _ clk rst mult ins outs Nothing) _) =
     let -- include the type in the "outs"
         outs' = zip outs $
           case adef_type def of
             ATTuple ts -> ts
             t          -> [t]
     in  RawMethod i mult clk rst (mapFst Just (aIfaceArgs iface)) (concat ins) outs' Nothing
-rawIfcFieldFromAIFace pps iface@(AIAction _ _ _ i _
-     (Method _ clk rst mult ins [] me@(Just _))) =
+rawIfcFieldFromAIFace pps
+    iface@(AIAction _ _ _ i _
+          (Method _ clk rst mult ins [] me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
     in  RawMethod i mult clk rst (mapFst Just (aIfaceArgs iface)) (concat ins) [] me'
-rawIfcFieldFromAIFace pps iface@(AIActionValue _ _ _ i _ def
-     (Method _ clk rst mult ins outs me@(Just _))) =
+rawIfcFieldFromAIFace pps
+    iface@(AIActionValue _ _ _ i _ def
+          (Method _ clk rst mult ins outs me@(Just _))) =
     let -- filter out inhigh enable ports
         -- XXX is there a better way to do this?
         me' = if (isAlwaysEn pps i) then Nothing else me
