@@ -1141,6 +1141,7 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
 
   -- convert the condition
   c_expr <- convAExpr c
+  -- convert the arguments
   -- a SplitPorts argument expands into one AExpr per hardware port
   a_exprs <- mapM convAExpr (concatMap argInputPorts as)
 
