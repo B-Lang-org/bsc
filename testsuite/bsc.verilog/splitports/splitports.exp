@@ -162,16 +162,16 @@ if { $vtest == 1 } {
 }
 
 # Result is a 3-element tuple, split into one port per element by default
-# (_1, _2, _3).  The combined result wire is sliced positionally to drive
-# each split port, and the caller reads each field with a single index
-# (never an illegal chained index like wire[8:0][8:1]).
+# (_1, _2, _3).  Each port drives its own element wire, which is read directly
+# -- there is no combined wire to slice, so no chained index can arise.
 test_c_veri_bs_modules NoinlineSplitTuple3 {module_triple}
 if { $vtest == 1 } {
     find_regexp module_triple.v {output \[7 : 0\] triple_1;}
     find_regexp module_triple.v {output \[7 : 0\] triple_2;}
     find_regexp module_triple.v {output triple_3;}
-    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[8:1\]}
-    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[0\]}
+    # each result port drives its own element wire, read directly (no slice)
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_1\(triple__f1_1\)}
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_3\(triple__f1_3\)}
     find_regexp_fail sysNoinlineSplitTuple3.v {\]\[}
 }
 
