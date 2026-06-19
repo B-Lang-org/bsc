@@ -609,19 +609,16 @@ createMapForOneMeth meth_id mult ins outs me = if check then
                      method_enable_names ++
                      method_output_names
 
-      verilog_names_pre_mult =
-                     verilog_input_names ++
-                     verilog_enable_name ++
-                     verilog_output_names
-
-      -- handle the multiplicity for verilog names here
-      -- note how we go from 1..mult instead of 0..mult-1
-      -- as the method side does
-      verilog_names = if (mult <= 1)
-                      then verilog_names_pre_mult
-                      else [concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))] | -- PORT_N
-                            fs <- verilog_names_pre_mult,
-                            n <- [1..mult]]
+      -- expand each section with the multiplicity copy as the outer loop and
+      -- the ports inner, to match method_names and AVerilogUtil's "inps".
+      -- (Copies number 1..mult here, but 0..mult-1 on the method side.)
+      multCopies names = if (mult <= 1)
+                         then names
+                         else [ concatFString [fs, fsUnderscore, mkNumFString n]
+                              | n <- [1..mult], fs <- names ]
+      verilog_names = multCopies verilog_input_names ++
+                      multCopies verilog_enable_name ++
+                      multCopies verilog_output_names
 
 -- XXX what is going on here?! can someone add a comment?
 getFStringForVerilogPair :: (VName, [VeriPortProp]) -> FString

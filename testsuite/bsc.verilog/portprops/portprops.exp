@@ -143,5 +143,18 @@ compare_file InoutProps_UnusedArgBVI.bsv.bsc-vcomp-out
 
 # ----------
 
+# Method multiplicity port mapping (PR #928): an imported method with
+# multiplicity > 1 and more than one argument must connect each Verilog port to
+# the matching internal wire (multiplicity copy outer, arguments inner).  This
+# guards against a transposed mapping that connected e.g. .A_2 to A_3.
+compile_verilog_pass IncorrectPortMapping.bsv
+find_regexp mkExample.v {\.A_2\(someModule\$A_2\)}
+find_regexp mkExample.v {\.B_1\(someModule\$B_1\)}
+find_regexp mkExample.v {\.B_3\(someModule\$B_3\)}
+find_regexp_fail mkExample.v {\.A_2\(someModule\$A_3\)}
+find_regexp_fail mkExample.v {\.B_1\(someModule\$A_2\)}
+
+# ----------
+
 }
 
