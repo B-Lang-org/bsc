@@ -543,9 +543,6 @@ type AInput = (AId, AType)
 data AAbstractInput =
         -- simple input using one port
         AAI_Port AInput |
-        -- a single source argument that is split into multiple hardware ports
-        -- (e.g. a struct argument whose fields each become a port).
-        AAI_MultiPort [AInput] |
         -- clock osc and maybe gate
         AAI_Clock AId (Maybe AId) |
         AAI_Reset AId |
@@ -554,14 +551,12 @@ data AAbstractInput =
 
 instance NFData AAbstractInput where
     rnf (AAI_Port p) = rnf p
-    rnf (AAI_MultiPort ps) = rnf ps
     rnf (AAI_Clock osc mgate) = rnf2 osc mgate
     rnf (AAI_Reset wire) = rnf wire
     rnf (AAI_Inout wire sz) = rnf2 wire sz
 
 absInputToPorts :: AAbstractInput -> [AInput]
 absInputToPorts (AAI_Port p) = [p]
-absInputToPorts (AAI_MultiPort ps) = ps
 absInputToPorts (AAI_Clock osc Nothing) = [(osc, aTBool)]
 absInputToPorts (AAI_Clock osc (Just gate)) = [(osc, aTBool), (gate, aTBool)]
 absInputToPorts (AAI_Reset r) = [(r,aTBool)]
@@ -787,7 +782,7 @@ instance NFData AAssumption where
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
-                        aif_inputs    :: [AAbstractInput],
+                        aif_inputs    :: [[AInput]],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
                         aif_value     :: ADef,
@@ -795,13 +790,13 @@ data AIFace =   AIDef { aif_name      :: AId,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
                         aif_assumps :: [AAssumption] }
-              | AIAction { aif_inputs    :: [AAbstractInput],
+              | AIAction { aif_inputs    :: [[AInput]],
                            aif_props     :: WireProps,
                            aif_pred      :: APred,
                            aif_name      :: AId,
                            aif_body      :: [ARule],
                            aif_fieldinfo :: VFieldInfo }
-              | AIActionValue { aif_inputs    :: [AAbstractInput],
+              | AIActionValue { aif_inputs    :: [[AInput]],
                                 aif_props     :: WireProps,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
@@ -857,7 +852,7 @@ aIfaceResIds _ = []
 
 -- Source-language argument groups (each group is one method argument, which
 -- may decompose to multiple hardware ports).
-aIfaceArgGroups :: AIFace -> [AAbstractInput]
+aIfaceArgGroups :: AIFace -> [[AInput]]
 aIfaceArgGroups (AIClock {}) = []
 aIfaceArgGroups (AIReset {}) = []
 aIfaceArgGroups (AIInout {}) = []
@@ -866,7 +861,7 @@ aIfaceArgGroups f = aif_inputs f
 -- Flat list of hardware-level input ports, in order, expanding multi-port
 -- argument groups.
 aIfaceArgs :: AIFace -> [AInput]
-aIfaceArgs = concatMap absInputToPorts . aIfaceArgGroups
+aIfaceArgs = concat . aIfaceArgGroups
 
 -- associate the internal and external names and width of AIFace args
 
@@ -1384,8 +1379,6 @@ ppV d (i, t) = pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";"
 
 instance PPrint AAbstractInput where
     pPrint d p (AAI_Port v) = ppV d v
-    pPrint d p (AAI_MultiPort vs) =
-        text "multi {" <+> sep (map (ppV d) vs) <+> text "}"
     pPrint d p (AAI_Clock osc Nothing) =
         text "clock {" <+>
         (text "osc =" <+> pPrint d 0 osc) <+>

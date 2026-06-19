@@ -223,7 +223,6 @@ instance Bin AAbstractInput where
     writeBytes (AAI_Clock osc mgate) = do putI 1; toBin osc; toBin mgate
     writeBytes (AAI_Reset r) = do putI 2; toBin r
     writeBytes (AAI_Inout r n) = do putI 3; toBin r; toBin n
-    writeBytes (AAI_MultiPort ps) = do putI 4; toBin ps
     readBytes = do
         i <- getI
         case i of
@@ -231,7 +230,6 @@ instance Bin AAbstractInput where
          1 -> do osc <- fromBin; mgate <- fromBin; return (AAI_Clock osc mgate)
          2 -> do r <- fromBin; return (AAI_Reset r)
          3 -> do r <- fromBin; n <- fromBin; return (AAI_Inout r n)
-         4 -> do ps <- fromBin; return (AAI_MultiPort ps)
          n -> internalError $ "GenABin.Bin(AAbstractInfo).readBytes: " ++ show n
 
 -- ----------

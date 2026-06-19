@@ -337,15 +337,12 @@ aIface :: Flags -> IEFace a -> M AIFace
 aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
         --trace ("enter " ++ ppReadable i) $ return ()
         -- `its` is grouped by source-language argument (one inner list per
-        -- argument).  A singleton group becomes AAI_Port; multi-element
-        -- groups become AAI_MultiPort, preserving the per-argument grouping
-        -- introduced by GenWrap / SplitPorts.
-        let convGroup group = [ (arg_i, aTypeConv arg_i arg_t)
-                              | (arg_i, arg_t) <- group ]
-            mkAAI group = case convGroup group of
-                            [p] -> AAI_Port p
-                            ps  -> AAI_MultiPort ps
-            its' = map mkAAI its
+        -- argument); aif_inputs keeps that grouping, with one inner list of
+        -- ports per argument (a singleton for an unsplit argument, several for
+        -- a struct/tuple argument split into multiple ports by SplitPorts).
+        let its' = [ [ (arg_i, aTypeConv arg_i arg_t)
+                     | (arg_i, arg_t) <- group ]
+                   | group <- its ]
             g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
         case (maybe_e, maybe_rs) of
           (Nothing, Nothing) -> internalError ("AConv.aIface nothing in it "
