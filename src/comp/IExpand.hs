@@ -3232,11 +3232,12 @@ conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
     iMethod = meth'
   }
 
--- primNoInline records the (possibly split) input/output port names of a
--- noinline function onto its foreign-function value, by rewriting foports.
--- The per-port sizes come from the (bitified) foreign-function type; zero-width
--- ports are dropped, to match the names (which inputPortNames/outputPortNames
--- have already filtered).
+-- A {-# noinline #-} Bluespec function is compiled into a separate module and
+-- referenced like a foreign function (GenFuncWrap emits a Cforeign for it).
+-- primNoInline records the (possibly split) input/output port names of that
+-- noinline function onto the reference, by rewriting foports.  The per-port
+-- sizes come from the (bitified) type; zero-width ports are dropped, to match
+-- the names (which inputPortNames/outputPortNames have already filtered).
 conAp' i (ICPrim _ PrimNoInline) _ [T _t, E eInNames, E eOutNames, E fe] = do
   (inNames, _) <- evalStringListList eInNames
   (outNames, _) <- evalStringList eOutNames
@@ -3251,8 +3252,10 @@ conAp' i (ICPrim _ PrimNoInline) _ [T _t, E eInNames, E eOutNames, E fe] = do
           ips = zipWith mkPorts inNames argTys
           ops = mkPorts outNames resTy
       in  return $ P p $ ICon fi (fc { foports = Just (ips, ops) })
-    -- not a foreign-function value (shouldn't happen): leave unchanged
-    _ -> return (P p fe')
+    -- the argument is the foreign-function reference GenFuncWrap produced for
+    -- the noinline function, so it is always an ICForeign here
+    _ -> internalError ("conAp' PrimNoInline: not a foreign-function reference: " ++
+                        ppReadable fe')
 
 -- XXX is this still needed?
 conAp' i (ICUndet { iConType = t })  e as | t == itClock =
