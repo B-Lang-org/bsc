@@ -291,8 +291,8 @@ instance Bin AAction where
     writeBytes (ACall i m as) = do putI 0; toBin i; toBin m; toBin as
     writeBytes (AFCall i f isC as isA) =
         do putI 1; toBin i; toBin f; toBin isC; toBin as; toBin isA
-    writeBytes (ATaskAction i f isC n as tmp ty isA) =
-        do putI 2; toBin i; toBin f; toBin isC; toBin n; toBin as;
+    writeBytes (ATaskAction i f isC c as tmp ty isA) =
+        do putI 2; toBin i; toBin f; toBin isC; toBin c; toBin as;
            toBin tmp; toBin ty; toBin isA
     readBytes =
         do i <- getI
@@ -301,10 +301,10 @@ instance Bin AAction where
                     return (ACall i m as)
             1 -> do i <- fromBin; f <- fromBin; isC <- fromBin; as <- fromBin;
                     isA <- fromBin; return (AFCall i f isC as isA)
-            2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; n <- fromBin;
+            2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; c <- fromBin;
                     as <- fromBin; tmp <- fromBin; ty <- fromBin;
                     isA <- fromBin;
-                    return (ATaskAction i f isC n as tmp ty isA)
+                    return (ATaskAction i f isC c as tmp ty isA)
             n -> internalError $ "GenABin.Bin(AAction).readBytes: " ++ show n
 
 instance Bin WireProps where

@@ -917,7 +917,7 @@ aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
        internalError ("aAction1: too many arguments to avAction_: " ++
                       ppReadable es)
    cond' <- aSExpr cond
-   return [ATaskAction i name isC n [cond'] Nothing value_type False]
+   return [(ATaskAction i name isC n [cond'] Nothing value_type False)]
 
 -- action part of ActionValue task with arguments
 aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
@@ -939,7 +939,7 @@ aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
                       ppReadable es)
    cond' <- aSExpr cond
    fes'   <- mapM aSExpr fes
-   return [ATaskAction i name isC n (cond':fes') Nothing value_type False]
+   return [(ATaskAction i name isC n (cond' : fes') Nothing value_type False)]
 
 aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAction_ =
    case es of
@@ -969,7 +969,7 @@ aAction1 _ cond (IAps (ICon i (ICForeign { fName = name, isC = isC, foports = No
         -- assume we do not need applied types,
         -- the foreign function is truly polymorphic
         --let ns = [ n | ITNum n <- ts ]
-        return [AFCall i name isC (cond':es') False]
+        return [AFCall i name isC (cond' : es') False]
 
 -- noinline functions returning Action are not synthesizable, so this
 -- branch is not needed

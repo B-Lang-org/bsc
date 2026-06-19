@@ -1861,11 +1861,11 @@ warnAndRecordArbitraryEarliness
                       -- not an Action method
                       (Nothing, Nothing) -> False
                       -- has no arguments
-                      (Just ((ACall _ _ (_:es)) : _), Just _) | null es
+                      (Just ((ACall _ _ (c:es)) : _), Just _) | null es
                           -> False
                       -- otherwise, test whether the arguments can differ
                       -- during simultaneous calls
-                      (Just [ACall _ _ (_:es1)], Just [ACall _ _ (_:es2)])
+                      (Just [ACall _ _ (c1:es1)], Just [ACall _ _ (c2:es2)])
                           -> -- if there is only one call, check whether the
                              -- args differ (the conditions don't matter)
                              es1 /= es2
@@ -4321,27 +4321,24 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
               | isTrue c  = (False, Nothing)
               | show_all  = (False, Just $ ppe c)
               | otherwise = (True, Just $ text "...")
-          -- Render method arguments preserving the source-argument grouping:
-          -- a SplitPorts argument arrives as an ATuple AExpr, anything else
-          -- prints bare via the standard expression pretty-printer.
-          mkArgs srcArgs
-              | null srcArgs = (False, empty)
-              | show_all  = (False, commaSep (map ppe srcArgs))
+          mkArgs es
+              | null es   = (False, empty)
+              | show_all  = (False, commaSep (map ppe es))
               | otherwise = (True, text "...")
           -- (method, hasCond, args, moreInfo)
           getUseInfo :: UniqueUse -> (String, Maybe Doc, Doc, Bool)
           getUseInfo u@(UUExpr (AMethCall _ i m es) _) =
               let meth = getIdBaseString i ++ "." ++ getIdBaseString m
                   (moreCondInfo, cond) = mkCondInfo (extractCondition u)
-                  (moreArgInfo, argsDoc) = mkArgs es
-              in  (meth, cond, argsDoc, moreCondInfo || moreArgInfo)
+                  (moreArgInfo, args) = mkArgs es
+              in  (meth, cond, args, moreCondInfo || moreArgInfo)
           getUseInfo (UUExpr e _) =
               internalError ("getUseInfo: e = " ++ ppReadable e)
           getUseInfo (UUAction (ACall i m (c:es))) =
               let meth = getIdBaseString i ++ "." ++ getIdBaseString m
                   (moreCondInfo, cond) = mkCondInfo c
-                  (moreArgInfo, argsDoc) = mkArgs es
-              in  (meth, cond, argsDoc, moreCondInfo || moreArgInfo)
+                  (moreArgInfo, args) = mkArgs es
+              in  (meth, cond, args, moreCondInfo || moreArgInfo)
           getUseInfo (UUAction a) =
               internalError ("getUseInfo: a = " ++ ppReadable a)
           -- construct the error

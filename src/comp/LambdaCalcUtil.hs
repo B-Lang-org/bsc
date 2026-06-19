@@ -756,10 +756,9 @@ mergeStmts defmap stmts0 =
         makeStmt :: Either ADef AAction -> AStmt
         makeStmt (Left d) = AStmtDef d
         makeStmt (Right a) =
-            -- strip the leading condition off aact_args
-            case aact_args a of
+            case (aact_args a) of
               (c:as) -> AStmtAction (getAndTerms c) (a { aact_args = as })
-              _      -> internalError ("makeStmt: aact_args: " ++ ppReadable a)
+              _ -> internalError ("makeStmt: aact_args: " ++ ppReadable a)
     in
         reverseStmts $ foldl addStmt [] $ map makeStmt stmts0
 
