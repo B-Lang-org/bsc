@@ -118,7 +118,7 @@ import VModInfo(vPath, vFields, vArgs,
 import Pragma
 import Control.Monad(when)
 import Data.Maybe(isJust, isNothing, fromJust)
-import Data.List(partition)
+import Data.List(partition, genericIndex, genericLength)
 import Id(unQualId, getIdBaseString)
 import Eval
 import Position(getPosition)
@@ -143,7 +143,11 @@ trace_apaths = "-trace-apaths" `elem` progArgs
 --
 
 
-type PathEnv = M.Map AId PathNode
+-- Maps the Id of each local def and module input to its PathNode(s).  The
+-- value is a list because a def that binds a tuple is a bundle of independent
+-- per-element signals, each with its own node (see PNDefTupleElem); ordinary
+-- names map to a singleton.
+type PathEnv = M.Map AId [PathNode]
 
 -- The information that is passed between the pre and post scheduler stages
 data PathGraphInfo = PathGraphInfo
@@ -170,6 +174,11 @@ type PathUrgencyPairs = [(ARuleId, ARuleId, [PathNode])]
 data PathNode =
     -- ID in the ADefT
     PNDef AId  |
+    -- one element of a local def that binds a tuple value (Ids: def, 1-based
+    -- element index).  A tuple-valued def is a bundle of independent per-element
+    -- signals, so each element is its own node -- exactly as PNDef is for a
+    -- scalar def -- rather than collapsing the elements into a single node.
+    PNDefTupleElem AId Integer  |
     -- arguments to methods of submodules
     --   (Ids: instance, method, source-arg #, port-within-arg #)
     PNStateMethodArg AId AId Integer Integer  |
@@ -227,6 +236,9 @@ printPathNode use_pvprint d p node =
     in  case (node) of
             (PNDef def_id) ->
                 fsep [text "Definition", quotes (pp def_id)]
+            (PNDefTupleElem def_id idx) ->
+                fsep [text "Definition", quotes (pp def_id),
+                      s2par "element", pp idx]
             (PNStateMethodArg inst_id meth_id arg_id port_id) ->
                 fsep [text "Argument", pp arg_id,
                       s2par "port", pp port_id,
@@ -293,6 +305,7 @@ instance PVPrint PathNode where
 
 instance NFData PathNode where
     rnf (PNDef aid) = rnf aid
+    rnf (PNDefTupleElem aid n) = rnf2 aid n
     rnf (PNStateMethodArg a1 a2 n1 n2) = rnf4 a1 a2 n1 n2
     rnf (PNStateMethodRes a1 a2 n) = rnf3 a1 a2 n
     rnf (PNStateMethodEnable a1 a2) = rnf2 a1 a2
@@ -315,6 +328,7 @@ instance NFData PathNode where
 filterPNDefs :: [PathNode] -> [PathNode]
 filterPNDefs pns = filter (not . isPNDef) pns
     where isPNDef (PNDef _) = True
+          isPNDef (PNDefTupleElem _ _) = True
           isPNDef _ = False
 
 alwaysRdyNode :: [PProp] -> PathNode -> Bool
@@ -462,8 +476,14 @@ aPathsPreSched errh flags apkg = do
   -- ====================
   -- Determine the nodes of the graph
 
-  let defs = [(i, PNDef i) | (ADef i _ _ _) <- ds]
-      def_nodes = map snd defs
+  -- A def that binds a tuple gets one node per element (PNDefTupleElem); any
+  -- other def gets a single PNDef node.  This keeps the per-element signals of
+  -- a tuple distinct so that selecting one element does not pull in the others.
+  let defNodes (ADef i (ATTuple ts) _ _) =
+          [ PNDefTupleElem i k | k <- [1 .. genericLength ts] ]
+      defNodes (ADef i _ _ _) = [PNDef i]
+      defs = [(i, defNodes d) | d@(ADef i _ _ _) <- ds]
+      def_nodes = concatMap snd defs
 
   -- ----------
 
@@ -676,7 +696,8 @@ aPathsPreSched errh flags apkg = do
 
   -- add ifc_env elements one-by-one,
   -- bailing with an error if we ever need to combine
-  let env = foldr (uncurry (M.insertWith overlap_error)) def_map ifc_env
+  let env = foldr (uncurry (M.insertWith overlap_error)) def_map
+                  [ (i, [n]) | (i, n) <- ifc_env ]
 
   when trace_apaths $
     traceM ("env = " ++ ppReadable (M.toList env))
@@ -689,7 +710,22 @@ aPathsPreSched errh flags apkg = do
   -- --------------------
   -- Defs (ds)
 
-  let mkDefEdges (ADef i _ e _) = mkEdges (PNDef i) e env
+  -- For a tuple-binding def, connect each element's contributors to that
+  -- element's node; for any other def, connect to its single PNDef node.
+  let mkDefEdges (ADef i (ATTuple ts) e _) =
+          concat [ mkElemEdges i e k et | (k, et) <- zip [1..] ts ]
+      mkDefEdges (ADef i _ e _) = mkEdges (PNDef i) e env
+      -- APaths assumes tuples are flat (SplitPorts flattens even deep splits to
+      -- a tuple of leaves), so a tuple element should never itself be a tuple.
+      mkElemEdges i _ _ (ATTuple _) =
+          internalError ("APaths.mkDefEdges: nested tuple in def " ++
+                         ppReadable i ++ " -- tuples are expected to be " ++
+                         "flattened before path analysis")
+      mkElemEdges i e k et = mkEdges (PNDefTupleElem i k) (tupleElemExpr e et k) env
+      -- the k-th element (1-based) of a tuple-valued expression: index a
+      -- literal tuple directly, otherwise select it (handled by findEdges)
+      tupleElemExpr (ATuple _ es) _  k = es `genericIndex` (k - 1)
+      tupleElemExpr e             et k = ATupleSel et e k
       def_edges = concatMap mkDefEdges ds
 
   -- --------------------
@@ -1270,6 +1306,14 @@ findEdges env (ATupleSel _ (AMethCall t i qmi args) oi) =
     in  ([PNStateMethodRes i mi oi], edges, muxes)
 findEdges env (ATupleSel _ (AMethValue t i qmi) oi) =
     ([PNStateMethodRes i (unQualId qmi) oi], [], [])
+-- selecting an element of a tuple-binding def reads just that element's node,
+-- not the whole def -- this is what keeps the per-element signals distinct
+findEdges env (ATupleSel _ (ASDef _ d) oi)
+    | Just pns <- M.lookup d env, oi >= 1, oi <= genericLength pns =
+    ([pns `genericIndex` (oi - 1)], [], [])
+-- selecting an element of a literal tuple reads just that element
+findEdges env (ATupleSel _ (ATuple _ es) oi)
+    | oi >= 1, oi <= genericLength es = findEdges env (es `genericIndex` (oi - 1))
 findEdges env (ATupleSel _ e _) = findEdges env e
 
 findEdges env (ATuple _ es) =
@@ -1288,17 +1332,17 @@ findEdges env (ATaskValue { }) = ([],[],[])
 findEdges env (ASPort t i) =
     case (M.lookup i env) of
         Nothing -> internalError ("findEdges: unknown ASPort: " ++ ppReadable i)
-        Just pn -> ([pn],[],[])
+        Just pns -> (pns,[],[])
 -- module parameter reference
 findEdges env (ASParam t i) =
     case (M.lookup i env) of
         Nothing -> internalError ("findEdges: unknown ASParam: " ++ ppReadable i)
-        Just pn -> ([pn],[],[])
--- ref to local def
+        Just pns -> (pns,[],[])
+-- ref to local def (a tuple-binding def contributes all its element nodes)
 findEdges env (ASDef t i) =
     case (M.lookup i env) of
         Nothing -> internalError ("findEdges: unknown ASDef: " ++ ppReadable i)
-        Just pn -> ([pn],[],[])
+        Just pns -> (pns,[],[])
 findEdges env (ASInt _ _ _) = ([],[],[])
 findEdges env (ASReal _ _ _) = ([],[],[])
 findEdges env (ASStr _ _ _) = ([],[],[])

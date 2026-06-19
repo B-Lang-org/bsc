@@ -682,38 +682,41 @@ find_regexp_fail mkVecNestedDeep.v {-> get_0_c_b}
 
 # Per-port loop discrimination: a genuine combinational loop confined to split
 # field p1 of method `get'.  The cycle MUST be detected (G0032) and the cycle
-# report must name exactly the offending split port -- "Argument 1"/"Return
-# value 1" of `get' -- and NOT the sibling field p2's ports.  Counterpart to the
-# passing no-loop tests, proving per-port (not whole-method) cycle reporting.
+# report must name exactly the offending split port -- "Argument 1 port 1"/
+# "Return value 1" of `get' -- and NOT the sibling field p2's port.  Counterpart
+# to the passing no-loop tests, proving per-port (not whole-method) cycle
+# reporting.  (Split fields stay one argument with multiple ports, so the
+# offending field is "Argument 1 port 1", not a separate "Argument 1".)
 compile_verilog_fail_error LoopConfinedP1.bs G0032
-find_regexp LoopConfinedP1.bs.bsc-vcomp-out {Argument 1 of method `get'}
+find_regexp LoopConfinedP1.bs.bsc-vcomp-out {Argument 1 port 1 of method `get'}
 find_regexp LoopConfinedP1.bs.bsc-vcomp-out {Return value 1 of method `get'}
-find_regexp_fail LoopConfinedP1.bs.bsc-vcomp-out {Argument 2 of method `get'}
+find_regexp_fail LoopConfinedP1.bs.bsc-vcomp-out {Argument 1 port 2 of method `get'}
 find_regexp_fail LoopConfinedP1.bs.bsc-vcomp-out {Return value 2 of method `get'}
 
 # Mirror image of LoopConfinedP1: the loop is confined to split field p2, so the
-# G0032 cycle report must name "Argument 2"/"Return value 2" of `get' and NOT
-# "Argument 1"/"Return value 1".  Together with LoopConfinedP1 this proves the
-# positional split-port index in the cycle report genuinely discriminates the
-# offending field (it is not always reported as port "1").
+# G0032 cycle report must name "Argument 1 port 2"/"Return value 2" of `get' and
+# NOT "Argument 1 port 1"/"Return value 1".  Together with LoopConfinedP1 this
+# proves the positional split-port index in the cycle report genuinely
+# discriminates the offending field (it is not always reported as port "1").
 compile_verilog_fail_error LoopConfinedP2.bs G0032
-find_regexp LoopConfinedP2.bs.bsc-vcomp-out {Argument 2 of method `get'}
+find_regexp LoopConfinedP2.bs.bsc-vcomp-out {Argument 1 port 2 of method `get'}
 find_regexp LoopConfinedP2.bs.bsc-vcomp-out {Return value 2 of method `get'}
-find_regexp_fail LoopConfinedP2.bs.bsc-vcomp-out {Argument 1 of method `get'}
+find_regexp_fail LoopConfinedP2.bs.bsc-vcomp-out {Argument 1 port 1 of method `get'}
 find_regexp_fail LoopConfinedP2.bs.bsc-vcomp-out {Return value 1 of method `get'}
 
 # Per-split-port discrimination across MULTIPLE split arguments.  Method `op'
-# takes two split Pair arguments, so its input split ports are numbered 1,2
-# (arg1.p1, arg1.p2) and 3,4 (arg2.p1, arg2.p2).  The loop is confined to
-# arg2's field p1 == split input port 3, reaching result field p1 == return
-# value 1.  G0032 must name "Argument 3"/"Return value 1" of `op' and NOT
-# "Argument 1", "Argument 2", or "Return value 2" -- demonstrating that the
-# cycle report indexes the precise split port, not the whole method argument.
+# takes two split Pair arguments, so it has split input ports "Argument 1 port
+# 1/2" (arg1.p1/p2) and "Argument 2 port 1/2" (arg2.p1/p2).  The loop is
+# confined to arg2's field p1 == "Argument 2 port 1", reaching result field p1
+# == return value 1.  G0032 must name "Argument 2 port 1"/"Return value 1" of
+# `op' and NOT arg1's ports ("Argument 1 port 1/2") or "Return value 2" --
+# demonstrating that the cycle report indexes the precise split port AND the
+# correct source argument, not the whole method argument.
 compile_verilog_fail_error LoopConfinedArg2.bs G0032
-find_regexp LoopConfinedArg2.bs.bsc-vcomp-out {Argument 3 of method `op'}
+find_regexp LoopConfinedArg2.bs.bsc-vcomp-out {Argument 2 port 1 of method `op'}
 find_regexp LoopConfinedArg2.bs.bsc-vcomp-out {Return value 1 of method `op'}
-find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 1 of method `op'}
-find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 2 of method `op'}
+find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 1 port 1 of method `op'}
+find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Argument 1 port 2 of method `op'}
 find_regexp_fail LoopConfinedArg2.bs.bsc-vcomp-out {Return value 2 of method `op'}
 
 }
