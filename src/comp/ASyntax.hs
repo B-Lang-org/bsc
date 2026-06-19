@@ -1889,9 +1889,9 @@ instance PPrintExpand AExpr where
     pPrintExpand m d ec (AMethValue _ i meth) =
         pPrint d 1 i <> text "." <> ppMethId d meth
     pPrintExpand m d ec (ATuple _ es) =
-        pparen (useParen ec) $ parens (commaSep (map (pPrintExpand m d defContext) es))
+        parens (commaSep (map (pPrintExpand m d defContext) es))
     pPrintExpand m d ec (ATupleSel _ e idx) =
-        pparen (useParen ec) $ pPrintExpand m d defContext e <> text ("[" ++ itos idx ++ "]")
+        pPrintExpand m d pContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||
