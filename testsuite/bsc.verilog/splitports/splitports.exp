@@ -162,14 +162,19 @@ if { $vtest == 1 } {
 # Result is a 3-element tuple (ShallowSplit newtype): the shallow split peels
 # off the first field (fst) and leaves the rest in one combined port (snd).
 # Reading the individual fields out of the combined snd port slices a value
-# that is itself a slice, which must compose into a single index rather than
-# an illegal chained index like wire[8:0][8:1].
+# that is itself a slice.  Rather than emit an illegal chained index like
+# wire[8:0][8:1], the combined snd port is lifted into an intermediate wire
+# and the inner fields are read by slicing that wire.
 test_c_veri_bs_modules NoinlineSplitTuple3 {module_triple}
 if { $vtest == 1 } {
     find_regexp module_triple.v {output \[7 : 0\] triple_fst;}
     find_regexp module_triple.v {output \[8 : 0\] triple_snd;}
-    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[8:1\]}
-    find_regexp sysNoinlineSplitTuple3.v {triple__f1\[0\]}
+    # The combined snd port is read into a lifted wire, which is then re-sliced
+    # for the inner fields -- never a chained index on the source slice.
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_snd\(triple__f1\[8:0\]\)}
+    find_regexp sysNoinlineSplitTuple3.v {triple_SEL_2___d[0-9]+\[8:1\]}
+    find_regexp sysNoinlineSplitTuple3.v {triple_SEL_2___d[0-9]+\[0\]}
+    find_regexp_fail sysNoinlineSplitTuple3.v {\]\[}
 }
 
 # ----------
