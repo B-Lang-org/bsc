@@ -1462,7 +1462,8 @@ returns a single identifier formed by joining the components with underscores.
 >             -- Bool indicates whether there's a separate Ready method for this one
 > pMethodVeriProt prefix =
 >     do pos <- getPos
->        -- TODO: Add syntax for specifiying multiple output ports
+>        -- A hand-written BVI value method has a single result port; there is
+>        -- no syntax for multiple output ports yet (TODO).
 >        (optOPort, name) <- pMethodNameOptOPort <?> "method output port or name"
 >        let oPorts = maybeToList optOPort
 >        multi <- option 1 (pInBrackets pDecimal)
@@ -1512,8 +1513,8 @@ returns a single identifier formed by joining the components with underscores.
 >                                    clk rst 0 [] [p] Nothing,
 >                                False)]
 >                            Just _ -> internalError "pMethodVeriProt(4)"
->        -- BVI lists each method arg port individually; TCheck regroups
->        -- per source-argument once the type signature is known.
+>        -- BVI does not support method args with multiple ports,
+>        -- but VModInfo.Method expects a list of ports for each arg.
 >        let argGroups = map (:[]) args
 >        return ((name,
 >                 V.Method fullname
