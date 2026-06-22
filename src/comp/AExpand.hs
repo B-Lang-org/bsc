@@ -461,7 +461,7 @@ isSimple c (APrim i t PrimConcat es)                              = c && all (is
 isSimple c e@(APrim _ _ p es)                                     = c && isSmall e && cheap p es -- && all (isSimple c) es
 isSimple c (AMethCall _ _ _ es)                                   = null es
 isSimple c (AMethValue _ _ _)                                     = True
-isSimple c (ATupleSel _ e _)                                      = False
+isSimple c (ATupleSel _ e _)                                      = isSimple c e
 isSimple c (ATuple _ es)                                          = all (isSimple c) es
 -- foreign function calls cannot be inlined
 -- (except for $signed and $unsigned - handled by mustInline)

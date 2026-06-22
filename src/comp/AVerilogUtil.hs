@@ -524,10 +524,18 @@ vDefMpd vco (ADef i t
             -- connect the result and each argument to their (split) ports
             oports = connectTuplePorts vco (ASDef t i) ops
             (iwires, iports) = mkInputs (0 :: Integer) (zip es ips)
+            -- A tuple result is declared as one wire per element (which the
+            -- instance's split output ports drive directly via connectTuplePorts
+            -- and the type-based ATupleSel lowering); anything else is one wire.
+            resultDecls = case t of
+                            ATTuple ts -> [ VMDecl $ VVDecl VDWire (vSize tk)
+                                                          [VVar (tupleElemVId i k)]
+                                          | (k, tk) <- zip [1..] ts ]
+                            _ -> [VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)]]
         in
         iwires ++
-        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-          VMInst {
+        resultDecls ++
+        [ VMInst {
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
                   -- these are size params, so default width of 32 is fine
@@ -606,10 +614,20 @@ vDefMpd vco adef@(ADef i_t t_t@(ATAbstract aid _) e_t _) _ | aid==idInout_ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
 vDefMpd vco adef@(ADef i_t t_t@(ATString _) e_t _) _ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
--- A tuple-typed def is emitted as a single wide wire whose value is the
--- bit-concat of its elements; ATupleSel uses are rendered as bit slices.
-vDefMpd vco (ADef i_t t_t@(ATTuple _) e_t _) _ =
-    [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
+-- A tuple-typed def is emitted as one wire per element, so that an ATupleSel
+-- references the element wire (vExpr) instead of slicing.  (A noinline tuple
+-- result is handled by the ANoInlineFunCall clause above, which declares
+-- per-element wires that the instance drives directly.)
+--
+-- A literal tuple uses its element expressions directly:
+vDefMpd vco (ADef i (ATTuple ts) (ATuple _ es) _) _ =
+    [ VMDecl $ VVDWire (vSize t) (VVar (tupleElemVId i k)) (vExpr vco e)
+    | (k, t, e) <- zip3 [1..] ts es ]
+-- Any other tuple-typed def is an invariant violation: tuples reach codegen
+-- only as literals (above) or as noinline results (the ANoInlineFunCall clause,
+-- which declares per-element wires the instance drives directly).
+vDefMpd _ adef@(ADef _ (ATTuple _) _ _) _ =
+    internalError ("AVerilog::vDefMpd: non-literal/non-noinline tuple def: " ++ ppReadable adef)
 
 vDefMpd vco adef@(ADef _ _ _ _) _ = internalError( "unexpected pattern in AVerilog::vDefMpd: " ++ ppReadable adef ) ;
 
@@ -701,6 +719,11 @@ suff (VId is i m) s = VId (is ++ s) i m
 pref :: String -> VId -> VId
 pref p (VId is i m) = VId (p ++ is) i m
 
+-- The wire name for element `idx` (1-based) of a tuple-typed def that has been
+-- split into one wire per element.  Both the def declaration (vDefMpd) and the
+-- references to it (vExpr) must agree on this name.
+tupleElemVId :: AId -> Integer -> VId
+tupleElemVId i idx = suff (vId i) ("_" ++ itos idx)
 
 -- ==============================
 -- main conversion for AExpr to VExpr
@@ -753,15 +776,24 @@ vExpr vco (AFunCall _ _ n isC es) =
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
 vExpr vco (ASStr _ _ s)                         = VEString s
+-- The only ATuple nodes are built during I->A conversion from tuples of port values.
+-- Every such ATuple is consumed by element selection or split into one wire per element
+-- (vDefMpd), so a whole tuple never reaches vExpr as a value.
+vExpr vco (ASDef (ATTuple ts) i) =
+    internalError ("vExpr: whole tuple def reached codegen: " ++ ppReadable (i, ts))
 vExpr vco (ASDef _ i)                           = VEVar (vId i)
 vExpr vco (ASPort _ i)                          = VEVar (vId i)
 vExpr vco (ASParam _ i)                         = VEVar (vId i)
 vExpr vco (ASAny (ATBit w) _)                   = VEUnknown w (vco_unspec vco)
 
--- A tuple is laid out in Verilog as a bit-concat with the first element
--- in the most-significant position.
-vExpr vco (ATuple _ es) = VEConcat (map (vExpr vco) es)
+-- See above: a reassembled ATuple is always element-selected or split into
+-- per-element wires, so a whole ATuple never reaches vExpr -- this is an
+-- invariant check.
+vExpr vco (ATuple _ es) =
+    internalError ("vExpr: tuple reached codegen as a value: " ++ ppReadable es)
 vExpr vco (ATupleSel _ (ATuple _ es) idx) = vExpr vco (es `genericIndex` (idx - 1))
+-- A select from a split def references the element wire directly (no slice).
+vExpr vco (ATupleSel _ (ASDef _ i) idx) = VEVar (tupleElemVId i idx)
 vExpr vco (ATupleSel _ e idx) =
     let (hi, lo) = tupleElemRange (aType e) idx
     in  veSelect (vExpr vco e) (VEConst hi) (VEConst lo)
