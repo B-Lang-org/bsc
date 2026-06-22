@@ -161,20 +161,53 @@ if { $vtest == 1 } {
 
 # Result is a 3-element tuple (ShallowSplit newtype): the shallow split peels
 # off the first field (fst) and leaves the rest in one combined port (snd).
-# Reading the individual fields out of the combined snd port slices a value
-# that is itself a slice.  Rather than emit an illegal chained index like
-# wire[8:0][8:1], the combined snd port is lifted into an intermediate wire
-# and the inner fields are read by slicing that wire.
+# The result is reassembled as one wire per top-level field, driven directly by
+# the output ports (no slicing of a wide result wire).  The combined snd port is
+# its own element wire, so reading the inner Int 8 out of it is a single index on
+# that wire -- never an illegal chained index like wire[8:0][8:1].
 test_c_veri_bs_modules NoinlineSplitTuple3 {module_triple}
 if { $vtest == 1 } {
     find_regexp module_triple.v {output \[7 : 0\] triple_fst;}
     find_regexp module_triple.v {output \[8 : 0\] triple_snd;}
-    # The combined snd port is read into a lifted wire, which is then re-sliced
-    # for the inner fields -- never a chained index on the source slice.
-    find_regexp sysNoinlineSplitTuple3.v {\.triple_snd\(triple__f1\[8:0\]\)}
-    find_regexp sysNoinlineSplitTuple3.v {triple_SEL_2___d[0-9]+\[8:1\]}
-    find_regexp sysNoinlineSplitTuple3.v {triple_SEL_2___d[0-9]+\[0\]}
+    # each result field is its own wire, driven directly by its output port
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_fst\(triple__f1_1\)}
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_snd\(triple__f1_2\)}
+    # the inner Int 8 is read directly out of the snd element wire (a single
+    # index on that wire, not a slice of a slice)
+    find_regexp sysNoinlineSplitTuple3.v {triple__f1_2\[8:1\]}
     find_regexp_fail sysNoinlineSplitTuple3.v {\]\[}
+}
+
+# An ordinary submodule (NOT a noinline function) whose Action method takes a
+# shallow-split struct argument and writes each element to its own register.
+# The struct's fields are leaves, so each split input port is wired straight to
+# its register -- no slicing or concat.
+test_c_veri SplitInputRegs
+if { $vtest == 1 } {
+    find_regexp mkSplitInputRegs.v {input  \[7 : 0\] put_1_x;}
+    find_regexp mkSplitInputRegs.v {input  \[7 : 0\] put_1_y;}
+    find_regexp mkSplitInputRegs.v {rx[$]D_IN = put_1_x ;}
+    find_regexp mkSplitInputRegs.v {ry[$]D_IN = put_1_y ;}
+    # each element drives its register directly -- the ports are never sliced
+    find_regexp_fail mkSplitInputRegs.v {put_1_[xy]\[}
+}
+
+# A non-constant struct value (derived from register state) is passed to a
+# submodule's shallow-split argument.  The tuple value is a literal-tuple def, so
+# it is emitted as one wire per element and each split input port is driven
+# directly by its element wire -- no slicing of a combined wide wire.  (This is an
+# ordinary synthesized submodule, not noinline.)
+test_c_veri SplitArgSlice
+if { $vtest == 1 } {
+    # the submodule's shallow-split argument: leaf `a` on its own port, the
+    # nested `inner` struct combined into one port
+    find_regexp mkSub.v {input  \[7 : 0\] put_1_a;}
+    find_regexp mkSub.v {input  \[15 : 0\] put_1_inner;}
+    # the Outer value is split into per-element wires (..._1 / ..._2) and each
+    # split port is driven directly by its element wire (no bit-select)
+    find_regexp sysSplitArgSlice.v {s[$]put_1_a = [A-Za-z0-9_]+_1 ;}
+    find_regexp sysSplitArgSlice.v {s[$]put_1_inner = [A-Za-z0-9_]+_2 ;}
+    find_regexp_fail sysSplitArgSlice.v {\[[0-9]+:[0-9]+\]}
 }
 
 # ----------
