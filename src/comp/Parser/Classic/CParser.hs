@@ -9,7 +9,7 @@ import Data.List(nub)
 import Parse
 import IntLit
 import FStringCompat
-import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline,
+import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline, fsMinus,
                   fsASSERT, fsFire, fsEnabled, fsNo, fsImplicit, fsConditions,
                   fsCan, fsSchedule, fsFirst, fsClockCrossing, fsRule,
                   fsEmpty, fsConfOp, fsHide, fsHideAll,
@@ -90,8 +90,8 @@ exp0 :: CParser CExpr
 exp0 = exp00                          >>- (\x->case x of [CRand e] -> e; _ -> COper x)
 
 exp00 :: CParser [COp]
-exp00 =   {-negat +.+ expX +.+ exp01  >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
-        ||! -} expX +.+ exp01                >>- (\ (e, es) -> CRand e : es)
+exp00 =   negat +.+ expX +.+ exp01  >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
+        ||! expX +.+ exp01                >>- (\ (e, es) -> CRand e : es)
 exp01 :: CParser [COp]
 exp01 =   pOper +.+ exp00             >>- (\ (o, es) -> CRator 2 o : es)
         ||! succeed                             []
@@ -679,6 +679,10 @@ qconop = con +.+ dot ..+ conop                                        >>> qualId
 
 pOper :: CParser Id
 pOper = pAnySym ||! l L_bquote ..+ pAnyId +.. l L_bquote
+
+negat :: CParser Id
+negat = testp "-" (\i -> getIdFString i == fsMinus) varop
+        >>- \i -> idNegateAt (getPosition i)
 
 pConOper :: CParser Id
 pConOper = pConOp ||! l L_bquote ..+ pConId +.. l L_bquote
