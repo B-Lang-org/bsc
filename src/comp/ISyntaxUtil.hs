@@ -1117,11 +1117,11 @@ getStateVarNames _ = []
 
 iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv :: IType
 iTLog = ITCon idTLog (IKNum `IKFun` IKNum) TIabstract
-iTAdd = ITCon idTAdd (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMax = ITCon idTMax (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMin = ITCon idTMin (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMul = ITCon idTMul (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTDiv = ITCon idTDiv (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
+iTAdd = ITCon idTAdd (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMax = ITCon idTMax (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMin = ITCon idTMin (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMul = ITCon idTMul (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTDiv = ITCon idTDiv (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
 
 iDefMap :: (IExpr a -> IExpr a) -> IDef a -> IDef a
 iDefMap f (IDef i t e p) = IDef i t (f e) p
