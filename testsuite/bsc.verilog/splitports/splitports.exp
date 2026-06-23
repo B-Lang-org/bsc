@@ -210,6 +210,17 @@ if { $vtest == 1 } {
     find_regexp_fail sysSplitArgSlice.v {\[[0-9]+:[0-9]+\]}
 }
 
+# A split tuple result read inside a case that drives a register: the case
+# becomes an always-block whose sensitivity list is built by aIds (not vExpr).
+# aIds must name the element wires the same way vExpr does (pick__f1_1/_2), or
+# the sensitivity list references the undeclared whole-tuple def name pick__f1
+# (regression: aIds had no ATupleSel case and this internal-errored).
+test_c_veri SplitTupleSensitivity
+if { $vtest == 1 } {
+    find_regexp sysSplitTupleSensitivity.v {pick__f1_1 or pick__f1_2}
+    find_regexp_fail sysSplitTupleSensitivity.v {or pick__f1[ )]}
+}
+
 # ----------
 
 compile_verilog_fail_error TooManyArgNames.bs S0015
