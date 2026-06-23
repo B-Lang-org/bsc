@@ -1,0 +1,151 @@
+package DeriveValidateBits(sysDeriveValidateBits) where
+
+import Reserved
+import UIntRange
+
+-- Empty struct: trivially valid for any (zero-bit) input
+struct EmptyS = { }
+  deriving (Bits, ValidateBits, FShow)
+
+-- Single-field struct: validates iff the field validates
+struct SingleS = { a :: Bit 4 }
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Multi-field struct
+struct PairS = { x :: Bit 8; y :: Bit 8 }
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Enum with non-power-of-2 tags: bit pattern 2'd3 is invalid
+data Color = Red | Green | Blue
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Single-constructor data (no tag bits): always valid if body validates
+data OneCtor = Only (Bit 4)
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Tagged union with 3 ctors: 2 tag bits, value 2'd3 is invalid
+data TUnion = T0 (Bit 4) | T1 (Bit 8) | T2 (Bit 8)
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Recursive: struct containing a derived struct and an enum
+struct Outer = { inner :: PairS; flag :: Color }
+  deriving (Bits, Eq, ValidateBits, FShow)
+
+-- Struct exercising library ValidateBits instances (all derived through):
+-- (no FShow because UIntRange has no FShow instance)
+struct LibMix = { rz :: ReservedZero 2; ur :: UIntRange 3 6 }
+  deriving (Bits, ValidateBits)
+
+reportS :: (FShow a) => String -> Maybe a -> Action
+reportS label mv = case mv of
+                     Valid v -> $display label " => Valid " (fshow v)
+                     Invalid -> $display label " => Invalid"
+
+-- Same as reportS but doesn't require FShow on the contents
+reportV :: String -> Maybe a -> Action
+reportV label mv = case mv of
+                     Valid _ -> $display label " => Valid"
+                     Invalid -> $display label " => Invalid"
+
+sysDeriveValidateBits :: Module Empty
+sysDeriveValidateBits = module
+  rules
+    "test": when True ==> do
+      -- Empty struct
+      let r0 :: Maybe EmptyS = unpackValid 0
+      reportS "EmptyS" r0
+
+      -- Single-field struct round-trip
+      let s1 = SingleS { a = 0xA }
+          r1 :: Maybe SingleS = unpackValid (pack s1)
+      reportS "SingleS roundtrip" r1
+
+      -- Pair round-trip
+      let p1 = PairS { x = 0xAB; y = 0xCD }
+          r2 :: Maybe PairS = unpackValid (pack p1)
+      reportS "PairS roundtrip" r2
+
+      -- Enum: each defined tag should be Valid; tag 3 should be Invalid
+      let c0 :: Maybe Color = unpackValid 0
+          c1 :: Maybe Color = unpackValid 1
+          c2 :: Maybe Color = unpackValid 2
+          c3 :: Maybe Color = unpackValid 3
+      reportS "Color 0" c0
+      reportS "Color 1" c1
+      reportS "Color 2" c2
+      reportS "Color 3" c3
+
+      -- Single-ctor data: always Valid
+      let oc :: Maybe OneCtor = unpackValid (pack (Only 0xF))
+      reportS "OneCtor roundtrip" oc
+
+      -- Tagged union: each defined tag valid
+      let u0 :: Maybe TUnion = unpackValid (pack (T0 0xA))
+          u1 :: Maybe TUnion = unpackValid (pack (T1 0xBC))
+          u2 :: Maybe TUnion = unpackValid (pack (T2 0xDE))
+      reportS "TUnion T0" u0
+      reportS "TUnion T1" u1
+      reportS "TUnion T2" u2
+      -- Hand-built bit pattern with tag = 3 (10 bits: 2-bit tag = 3, 8-bit body)
+      let ubad :: Maybe TUnion = unpackValid 0b1100000000
+      reportS "TUnion bad tag" ubad
+
+      -- Recursive: nested struct round-trip
+      let o1 = Outer { inner = p1; flag = Green }
+          ro :: Maybe Outer = unpackValid (pack o1)
+      reportS "Outer roundtrip" ro
+      -- 18 bits: 16 for PairS + 2 for Color; set Color bits to 2'd3
+      let badColor :: Bit 2 = 3
+          obad :: Maybe Outer = unpackValid (pack p1 ++ badColor)
+      reportS "Outer bad Color" obad
+
+      -- Maybe (derived through PrimUnit/PrimPair): both tags are defined,
+      -- so unpackValid is always Valid; inner Maybe shows Just/Nothing
+      let nMaybe :: Maybe (Bit 4) = Nothing
+          jMaybe :: Maybe (Bit 4) = Just 0xA
+          mNothing :: Maybe (Maybe (Bit 4)) = unpackValid (pack nMaybe)
+          mJust    :: Maybe (Maybe (Bit 4)) = unpackValid (pack jMaybe)
+      reportS "Maybe Nothing" mNothing
+      reportS "Maybe Just"    mJust
+
+      -- File: any 32-bit pattern is total (no FShow instance, so reportV)
+      let fInv :: Maybe File = unpackValid 0
+          fFD  :: Maybe File = unpackValid (pack (FD 0x55))
+          fMCD :: Maybe File = unpackValid (pack (MCD 0x66))
+      reportV "File Invalid" fInv
+      reportV "File FD"      fFD
+      reportV "File MCD"     fMCD
+
+      -- Reserved: always Valid (value is don't-care)
+      let res :: Maybe (Reserved 4) = unpackValid 0xA
+      reportS "Reserved" res
+
+      -- ReservedZero: only 0 is Valid
+      let rz0 :: Maybe (ReservedZero 4) = unpackValid 0
+          rz1 :: Maybe (ReservedZero 4) = unpackValid 1
+      reportS "ReservedZero 0" rz0
+      reportS "ReservedZero 1" rz1
+
+      -- ReservedOne: only all-ones is Valid
+      let ro0 :: Maybe (ReservedOne 4) = unpackValid 0
+          roF :: Maybe (ReservedOne 4) = unpackValid 0xF
+      reportS "ReservedOne 0" ro0
+      reportS "ReservedOne F" roF
+
+      -- UIntRange 3 6: only 3..6 are Valid (3-bit representation)
+      let ur2 :: Maybe (UIntRange 3 6) = unpackValid 2
+          ur4 :: Maybe (UIntRange 3 6) = unpackValid 4
+          ur7 :: Maybe (UIntRange 3 6) = unpackValid 7
+      reportV "UIntRange 2" ur2
+      reportV "UIntRange 4" ur4
+      reportV "UIntRange 7" ur7
+
+      -- Composition: derived struct over library instances
+      let lmGood :: Maybe LibMix = unpackValid 0b00100  -- rz=00, ur=4
+          lmBadRz :: Maybe LibMix = unpackValid 0b01100 -- rz=01 invalid
+          lmBadUr :: Maybe LibMix = unpackValid 0b00111 -- ur=7 out of range
+      reportV "LibMix good"   lmGood
+      reportV "LibMix bad rz" lmBadRz
+      reportV "LibMix bad ur" lmBadUr
+
+      $finish 0

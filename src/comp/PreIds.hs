@@ -158,9 +158,10 @@ idPreludePlus :: Id
 idPreludePlus = prelude_id_no fsPlus
 
 -- Used by deriving
-idEq, idBits, idLiteral, idRealLiteral, idSizedLiteral, idStringLiteral :: Id
+idEq, idBits, idValidateBits, idLiteral, idRealLiteral, idSizedLiteral, idStringLiteral :: Id
 idEq = prelude_id_no fsEq
 idBits = prelude_id_no fsBits
+idValidateBits = prelude_id_no fsValidateBits
 idLiteral = prelude_id_no fsLiteral
 idRealLiteral = prelude_id_no fsRealLiteral
 idSizedLiteral = prelude_id_no fsSizedLiteral
@@ -173,13 +174,14 @@ idDefaultValue = prelude_id_no fsDefaultValue
 id_defaultValue = prelude_id_no fs_defaultValue
 idClsDeepSeqCond = prelude_id_no fsClsDeepSeqCond
 idPrimDeepSeqCond = prelude_id_no fsPrimDeepSeqCond
-idPrimSeqCond, idUndefined, idEqual, idNotEqual, idPack, idUnpack, idFmap :: Id
+idPrimSeqCond, idUndefined, idEqual, idNotEqual, idPack, idUnpack, idUnpackValid, idFmap :: Id
 idPrimSeqCond = prelude_id_no fsPrimSeqCond
 idUndefined = prelude_id_no fsUndefined
 idEqual = prelude_id_no fsEqual
 idNotEqual = prelude_id_no fsNotEqual
 idPack = prelude_id_no fsPack
 idUnpack = prelude_id_no fsUnpack
+idUnpackValid = prelude_id_no fsUnpackValid
 idFmap = prelude_id_no fsFmap
 idMaxBound, idMinBound, idBuildUndef, idMakeUndef, idRawUndef, idAdd :: Id
 idMaxBound = prelude_id_no fsMaxBound

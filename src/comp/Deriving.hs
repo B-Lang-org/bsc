@@ -1,8 +1,10 @@
 module Deriving(derive) where
 
-import Data.List(intercalate)
+import Control.Monad(when)
+import Data.List(intercalate, foldl')
 import Util(log2, checkEither, headOrErr, lastOrErr, unconsOrErr, fromJustOrErr)
-import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
+import Error(internalError, EMsg, WMsg, ErrMsg(..), ErrorHandle,
+             bsError, bsWarning)
 import Flags(Flags)
 import Position
 import Id
@@ -10,7 +12,8 @@ import PreIds(
               -- identifiers
               tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y, idPolyWrapField,
               -- internal type constructors
-              idId, idPrimPair, idArrow, idFmt,
+              idId, idPrimPair, idArrow, idFmt, idMaybe,
+              idValid, idInvalid,
               -- internal type fields
               idPrimFst, idPrimSnd,
               -- type constructors
@@ -19,14 +22,14 @@ import PreIds(
               idMetaData, idStarArg, idNumArg, idStrArg, idStarConArg, idNumConArg, idOtherConArg,
               idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes that the compiler can derive
-              idEq, idBits, idFShow, idBounded, idDefaultValue,
+              idEq, idBits, idValidateBits, idFShow, idBounded, idDefaultValue,
               -- classes that are auto-derived
               autoderivedClasses,
               idGeneric,
               -- internal classes defined in terms of Generic but still occasionally auto-derived
               idClsUninitialized, idUndefined,
               -- class members
-              idPack, idUnpack,
+              idPack, idUnpack, idUnpackValid,
               idEqual, idNotEqual,
               idfshow,
               idMaxBound, idMinBound,
@@ -70,19 +73,24 @@ derive errh flags r (CPackage i exps imps impsigs fixs ds includes) =
         -- top-level definitions (eg value defns, type decls, tyepeclass decls,
         -- instance defns etc). NB we only need the typeclass decls
         env = [ (unQualId i, d) | d <- all_ds, (Right i) <- [getName d] ]
-    in  case checkEither (concatMap (doDer flags r i env) ds) of
-          -- If deriving succeeded, return the updated CPackage with the extra
-          -- declarations.
-          Right dss'  -> return (CPackage i exps imps impsigs fixs (concat dss') includes)
-          Left msgs@(msg:rest) -> bsError errh msgs
-          Left [] -> internalError "Deriving.derive: doDer failed with empty error list!]"
+        (warns, results) =
+            let perDecl = map (doDer flags r i env) ds
+            in  (concatMap fst perDecl, concatMap snd perDecl)
+    in  do
+          when (not (null warns)) $ bsWarning errh warns
+          case checkEither results of
+            -- If deriving succeeded, return the updated CPackage with the extra
+            -- declarations.
+            Right dss'  -> return (CPackage i exps imps impsigs fixs (concat dss') includes)
+            Left msgs@(msg:rest) -> bsError errh msgs
+            Left [] -> internalError "Deriving.derive: doDer failed with empty error list!]"
 
 -- my guesses at the arguments:
 --  packageid  =  id of the package
 --  xs =  available bindings
 --  d  =  single definition potentially requiring deriving
 doDer :: Flags -> SymTab -> Id -> [(Id, CDefn)] -> CDefn ->
-         [Either EMsg [CDefn]]
+         ([WMsg], [Either EMsg [CDefn]])
 doDer flags r packageid xs data_decl@(Cdata {}) =
     let unqual_name = iKName (cd_name data_decl)
         qual_name = qualId packageid unqual_name
@@ -96,7 +104,10 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
         derivs' = addAutoDerivs flags r qual_name ty_vars derivs
-    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
+        warns = derivedValidateBitsWarns qual_name derivs'
+    in (warns,
+        Right [data_decl] :
+        map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs')
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -106,15 +117,19 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         derivs' = addAutoDerivs flags r qual_name ty_vars derivs
-    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
+        warns = derivedValidateBitsWarns qual_name derivs'
+    in (warns,
+        Right [struct_decl] :
+        map (doStructDer r packageid xs qual_name ty_vars fields) derivs')
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
-    | res_kind /= KStar = [Right [prim_decl]]
+    | res_kind /= KStar = ([], [Right [prim_decl]])
     -- Id__ a will pick up typeclass instances from the type a
-    | qual_name == idId = [Right [prim_decl]]
-    | null derivs = [Right [prim_decl]]
-    | otherwise = Right [prim_decl] :
-                     map (doPrimTypeDer qual_name ty_vars) derivs
+    | qual_name == idId = ([], [Right [prim_decl]])
+    | null derivs = ([], [Right [prim_decl]])
+    | otherwise = ([],
+                   Right [prim_decl] :
+                   map (doPrimTypeDer qual_name ty_vars) derivs)
   where qual_name = qualId packageid i
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
@@ -122,7 +137,19 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         derivs = addAutoDerivs flags r qual_name ty_vars []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
-doDer flags r packageid xs d = [Right [d]]
+doDer flags r packageid xs d = ([], [Right [d]])
+
+-- | A derived ValidateBits is compatible with derived Bits, but a
+-- hand-written Bits instance is likely not to match.
+derivedValidateBitsWarns :: Id -> [CTypeclass] -> [WMsg]
+derivedValidateBitsWarns ty_id derivs
+    | any (isCls idValidateBits) derivs && not (any (isCls idBits) derivs) =
+        let pos = case [ getPosition d | d <- derivs, isCls idValidateBits d ] of
+                    (p:_) -> p
+                    []    -> getPosition ty_id
+        in  [(pos, WDerivedValidateBitsHandwrittenBits (pfpString ty_id))]
+    | otherwise = []
+  where isCls clsId (CTypeclass di) = qualEq di clsId
 
 doPrimTypeDer :: Id -> [Type] -> CTypeclass -> Either EMsg [CDefn]
 doPrimTypeDer i vs (CTypeclass di)
@@ -158,6 +185,8 @@ doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
 doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idValidateBits =
+  doDValidateBits (getPosition di) i vs ocs cs
 doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
 doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
@@ -205,6 +234,8 @@ doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idEq =
   Right [doSEq (getPosition di) i vs cs]
 doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idValidateBits =
+  Right [doSValidateBits (getPosition di) i vs cs]
 doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
 doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
@@ -311,68 +342,166 @@ doDEq dpos i vs ocs cs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
 
 -- -------------------------
 
+-- | Build the instance context for deriving Bits or ValidateBits on a struct.
+-- For
+--     struct S = { a :: T1; b :: T2 } deriving (Bits)
+-- returns the context (`Bits T1 sa, Bits T2 sb, Add sa sb sz`) and the total
+-- size (`sz`).
+structBitsContextAndSize :: Id -> Position -> CFields -> ([CPred], Type)
+structBitsContextAndSize clsId pos fields = (ctx, sz)
+  where n     = length fields
+        avs   = take (n-1) (everyThird tmpTyVarIds)
+        bvs   = take n (everyThird (tail tmpTyVarIds))
+        aCtx  = if null fields then []
+                else let f _ [] _ = []
+                         f a (s:ss) (m:mm) =
+                             CPred (CTypeclass idAdd)
+                                   [cTVarNum s, cTVarNum a, cTVarNum m]
+                                 : f m ss mm
+                         f _ _ _ = internalError "Deriving.structBitsInstContext.f: _ (_:_) []"
+                         (b, bs) = unconsOrErr "Deriving.structBitsInstContext: null bvs" $
+                                     reverse bvs
+                     in  f b bs avs
+        bCtx  = zipWith (\ (CField { cf_type = cqt@(CQType _ t) }) sv ->
+                          CPred (CTypeclass clsId)
+                                [t, cTVarNum (setIdPosition (getPosition cqt) sv)])
+                        fields bvs
+        cCtx  = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
+        ctx   = bCtx ++ aCtx ++ cCtx
+        sz    = case fields of
+                  []  -> cTNum 0 pos
+                  [_] -> cTVarNum (setIdPosition pos (headOrErr "structBitsInstContext" bvs))
+                  _   -> cTVarNum (setIdPosition pos (lastOrErr "structBitsInstContext" avs))
+
+-- | Single primSplit as a continuation-passing primitive. Builds
+--     let v = primSplit e in <k v.fst v.snd>
+-- where the caller supplies a fresh `v` and a continuation that uses the two
+-- halves. Multiple splits compose by nesting splitBit calls inside the
+-- continuation. The widths of the halves are determined by the surrounding
+-- context via primSplit's `Add n m k` proviso, not by this helper.
+splitBit :: CExpr -> Id -> (CExpr -> CExpr -> CExpr) -> CExpr
+splitBit e v k = monoDef v (cVApply idPrimSplit [e]) $
+                   k (CSelectTT idPrimPair (CVar v) idPrimFst)
+                     (CSelectTT idPrimPair (CVar v) idPrimSnd)
+
 -- | Derive Bits for a struct (product type), and return the instance defn.
 -- Recursively pack/unpack each field, and concatenate/split the results.
 doSBits :: Position -> Id -> [Type] -> CFields -> CDefn
 doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty, sz])) [pk, un]
   where tiPos = getPosition ti
-        ctx = bCtx ++ aCtx ++ cCtx
-        cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
-        bCtx = zipWith (\ (CField { cf_type = cqt@(CQType _ t) }) sv ->
-                        CPred (CTypeclass idBits)
-                                  [t, cTVarKind
-                                      (setIdPosition (getPosition cqt) sv)
-                                      KNum]) fields bvs
-        aCtx = let f _ [] _ = []
-                   f a (s:ss) (n:nn) =
-                       CPred (CTypeclass idAdd)
-                                 [cTVarKind s KNum, cTVarKind a KNum,
-                                  cTVarKind n KNum] : f n ss nn
-                   f _ _ _ = internalError "Deriving.doSBits.f: _ (_:_) []"
-                   (b, bs) = unconsOrErr "Deriving.doSBits: null bvs" $
-                               reverse bvs
-                in if null fields then [] else f b bs avs
-        avs = take (n-1) (everyThird tmpTyVarIds)
-        bvs = take n (everyThird (tail tmpTyVarIds))
-        sz = case fields of
-                [] -> cTNum 0 tiPos
-                [_] -> cTVarKind (setIdPosition tiPos (headOrErr "doSBits" bvs)) KNum
-                _   -> cTVarKind (setIdPosition tiPos (lastOrErr "doSBits" avs)) KNum
+        (ctx, sz) = structBitsContextAndSize idBits tiPos fields
         aty = cTApplys (cTCon ti) vs
         bty = TAp (cTCon idBit) sz
-        n = length fields
-
-        pk = CLValueSign (CDef (idPackNQ dpos) (CQType [] (aty `fn` bty)) [pkc]) []
-        pkc = CClause [CPVar id_x] [] pkb
         vx = CVar id_x
+
         pkb = case fields of
                 [] -> anyExprAt tiPos
                 _  -> foldr1 eConcat
                       [cVApply idPack [CSelectTT ti vx (cf_name field)]
                        | field <- fields]
+        pkc = CClause [CPVar id_x] [] pkb
+        pk  = CLValueSign (CDef (idPackNQ dpos) (CQType [] (aty `fn` bty)) [pkc]) []
 
-        un = CLValueSign (CDef (idUnpackNQ dpos) (CQType [] (bty `fn` aty)) [unc]) []
+        goUnpack acc bs []     _      = CStruct (Just True) ti (reverse acc)
+        goUnpack acc bs [f]    _      = CStruct (Just True) ti $ reverse $
+                                          (cf_name f, cVApply idUnpack [bs]) : acc
+        goUnpack acc bs (f:rest) (v:vs) =
+            splitBit bs v $ \slice next ->
+              goUnpack ((cf_name f, cVApply idUnpack [slice]) : acc) next rest vs
+        goUnpack _ _ _ _ = internalError "Deriving.doSBits.goUnpack: empty supply"
+        ukb = goUnpack [] vx fields tmpVarXIds
         unc = CClause [CPVar id_x] [] ukb
-        ukb = case fields of
-                [] -> CStruct (Just True) ti []
-                [field] -> CStruct (Just True) ti [(cf_name field, cVApply idUnpack [vx])]
-                _  -> let xs = take (n-1) tmpVarXIds
-                          bind = mkBind vx xs
-                          mkBind o [] = id
-                          mkBind o (x:xs) =
-                                monoDef x (cVApply idPrimSplit [o]) .
-                                mkBind (CSelectTT idPrimPair (CVar x) idPrimSnd) xs
-                          mkExp [field] y _ =
-                              [(cf_name field, cVApply idUnpack
-                                [CSelectTT idPrimPair (CVar y) idPrimSnd])]
-                          mkExp (field:fields) y (x:xs) =
-                              (cf_name field, cVApply idUnpack
-                               [CSelectTT idPrimPair (CVar x) idPrimFst]) :
-                              mkExp fields x xs
-                          mkExp _ _ _ = internalError "Deriving.doSBits.ukb.mkExp: [] _ _ or _ _ []"
-                          err = internalError "Deriving.doSBits.ukb.mkExp: no var"
-                      in  bind (CStruct (Just True) ti (mkExp fields err xs))
+        un  = CLValueSign (CDef (idUnpackNQ dpos) (CQType [] (bty `fn` aty)) [unc]) []
 
+
+-- | Number of bits needed to represent the tag of a tagged union with the
+-- given constructors (using their assigned tag values).
+dataNumTagBits :: Position -> CSummands -> Type
+dataNumTagBits pos tags = cTNum (log2 (max_tag + 1)) pos
+  where max_tag = foldl' max 0 [cis_tag_encoding tag | tag <- tags]
+
+-- | Build the instance context for deriving Bits or ValidateBits on a tagged
+-- union. For
+--     data T = C1 T1 | C2 T2 deriving (Bits)
+-- this drives:
+--     instance (Bits T1 sa, Bits T2 sb, ...) => Bits T sz
+-- where sz = log2(num ctors) + max(sa, sb). Returns the context (the provisos
+-- before `=>`), the total size (`sz`), and the per-summand payload size type
+-- variables (`[sa, sb, …]`) for callers that need to reference them in the
+-- generated pack/unpack body. The clsId argument selects between Bits and
+-- ValidateBits.
+dataBitsInstContextAndSizes :: Id -> Position -> CSummands
+                          -> ([CPred], Type, [Type])
+dataBitsInstContextAndSizes clsId pos tags =
+    (provisos, num_rep_bits_ctype, payload_sizes)
+  where fix_position    = setIdPosition pos
+        make_num_vars n l = map (cTVarNum . fix_position) $ take n l
+        num_tags        = length tags
+        num_tag_bits_ctype = dataNumTagBits pos tags
+        -- three disjoint streams of fresh ids (different mod-3 phases)
+        sofar_supply    = everyThird tmpTyVarIds
+        field_supply    = everyThird (tail tmpTyVarIds)
+        padding_supply  = everyThird (tail (tail tmpTyVarIds))
+        payload_sizes   = make_num_vars num_tags field_supply
+        (num_rep_bits_var, max_payload_size_sofar_vars) =
+            unconsOrErr "Deriving.dataBitsInstContextAndSize: sofar_supply" $
+              make_num_vars num_tags sofar_supply
+        max_num_payload_bits    = last max_payload_size_sofar_vars
+        payload_size_paddings = make_num_vars num_tags padding_supply
+        (final_bit_size_provisos, num_rep_bits_ctype) =
+            case tags of
+              []  -> ([], cTNum 0 pos)
+              [_] -> ([], headOrErr "dataBitsInstContextAndSize" payload_sizes)
+              _   -> ([CPred (CTypeclass idAdd)
+                             [num_tag_bits_ctype, max_num_payload_bits, num_rep_bits_var]],
+                      num_rep_bits_var)
+        payload_bits_provisos =
+            zipWith (\ field sv -> CPred (CTypeclass clsId) [cis_arg_type field, sv])
+                    tags payload_sizes
+        max_payload_size_add_provisos
+             | num_tags <= 1 = []
+             | otherwise =
+               zipWith (\ x sv -> CPred (CTypeclass idAdd) [x, sv, max_num_payload_bits])
+                       payload_size_paddings payload_sizes
+        max_payload_size_max_provisos
+             | null tags = []
+             | otherwise =
+                 let f _ [] _ = []
+                     f a (s:ss) (m:mm) =
+                         CPred (CTypeclass idMax) [s, a, m] : f m ss mm
+                     f _ _ _ = internalError "Deriving.dataBitsInstContextAndSize.f: _ (_:_) []"
+                     (b, bs) = unconsOrErr "Deriving.dataBitsInstContextAndSize: null payload_sizes" $
+                                 reverse payload_sizes
+                 in  f b bs max_payload_size_sofar_vars
+        provisos = payload_bits_provisos ++ max_payload_size_add_provisos ++
+                   max_payload_size_max_provisos ++ final_bit_size_provisos
+
+-- | Build the case-on-tag dispatch shared by unpack and unpackValid for a
+-- tagged union. mkConsequent decides what each tag arm produces — for Bits
+-- it's `Ci (unpack body)`, for ValidateBits it's an unpackValid chain wrapped
+-- in Valid. extraArms is appended after the per-tag arms (used by
+-- ValidateBits to add a wildcard returning Invalid for sparse tag values).
+dataBitsUnpackClauses :: Position -> Position -> CSummands -> Type
+                      -> (CInternalSummand -> CExpr -> CExpr) -> [CCaseArm]
+                      -> [CClause]
+dataBitsUnpackClauses dpos pos tags num_tag_bits_ctype
+                      mkConsequent extraArms
+    | length tags == 1 =
+        [CClause [CPVar id_x] [] $
+         mkConsequent (headOrErr "dataBitsUnpackClauses" tags) vx]
+    | otherwise =
+        [CClause [CPVar id_x] [] $
+         monoDef id_y (cVApply idPrimSplit [vx]) $
+         Ccase dpos
+               (hasSz (CSelectTT idPrimPair vy idPrimFst) num_tag_bits_ctype)
+               (map mkArm tags ++ extraArms)]
+  where vx       = CVar id_x
+        vy       = CVar id_y
+        bodyExpr = cVApply idPrimTrunc [CSelectTT idPrimPair vy idPrimSnd]
+        mkArm tag = CCaseArm
+            { cca_pattern    = CPLit (num_to_cliteral_at pos (cis_tag_encoding tag))
+            , cca_filters    = []
+            , cca_consequent = mkConsequent tag bodyExpr }
 
 -- | Derive Bits instance for a data (sum) type, with the pack and unpack
 -- functions. The packing for a data type consists of a tag and a body. The tag
@@ -399,11 +528,8 @@ doDBits dpos enum_name type_vars original_tags tags
     -- no provisos are required and encoding does not recurse
     let -- unpacked_ctype: original enum type
         unpacked_ctype = cTApplys (cTCon enum_name) type_vars
-        -- highest tag encoding
-        max_tag | null tags = 0
-                | otherwise = foldr1 max [cis_tag_encoding tag | tag <- tags]
         -- # of bits required to represent the tag (i.e., the enum type)
-        num_bits_ctype = cTNum (log2 (max_tag + 1)) (getPosition enum_name)
+        num_bits_ctype = dataNumTagBits (getPosition enum_name) tags
         -- packed_ctype: Bit n (n bits required to represent the enum)
         packed_ctype = TAp (cTCon idBit) num_bits_ctype
         pack_function =
@@ -421,128 +547,174 @@ doDBits dpos enum_name type_vars original_tags tags
          (CQType [] (cTApplys (cTCon idBits) [unpacked_ctype, num_bits_ctype]))
          [CLValueSign pack_function [], CLValueSign unpack_function []]]
 doDBits dpos type_name type_vars original_tags tags =
-    -- default case where fields contain data in addition to tags: provisos
-    -- are required to compute the final bit size
-    let -- decl_position: where the original type was declared
-        decl_position = getPosition type_name
-        -- fix_position: point an id at the type for which we're deriving
-        fix_position = setIdPosition decl_position
-        -- make_num_vars: turn a list of ids into usable numeric types
-        -- fix their position and mark them as KNum
-        make_num_vars n l = map (cTVarNum . fix_position) $ take n l
-        -- type_ctype: the csyntax type for which we're deriving
+    let decl_position = getPosition type_name
         unpacked_ctype = cTApplys (cTCon type_name) type_vars
-        -- num_tags: number of tags in the tagged union
         num_tags = length tags
-        -- max tag: the highest tag encoding
-        max_tag | null tags = 0
-                | otherwise = foldr1 max [cis_tag_encoding tag | tag <- tags]
-        -- num_tag_bits_ctype: the number of bits required to represent the tag
-        num_tag_bits_ctype = cTNum (log2 (max_tag + 1)) decl_position
-        -- provisos constraining the final bit size
-        provisos = fields_provisos_bits ++ max_field_size_add_provisos ++
-                   max_field_size_max_provisos ++ final_bit_size_provisos
-        -- make sure all subfields can be turned into bits
-        fields_provisos_bits =
-            zipWith (\ field sv -> CPred (CTypeclass idBits) [cis_arg_type field, sv])
-                    tags field_bit_sizes
-        -- max_field_size_provisos constrain max_num_field_bits to an
-        --   upper bound of all subfield sizes by context:
-        --       add freshvar sizeof(field) max_num_field_bits
-        max_field_size_add_provisos
-             | num_tags <= 1 = []
-             | otherwise =
-               zipWith ( \ x sv ->
-                         CPred (CTypeclass idAdd)
-                                   [x, sv, max_num_field_bits])
-                       field_bit_size_paddings field_bit_sizes
-        -- max_field_size_max_provisos constrain max_num_field_bits to
-        --   the least upper bound of all subfield sizes by constraining
-        --   lastvar to be the largest
-        max_field_size_max_provisos
-             | null tags = []
-             | otherwise =
-                 let f _ [] _ = []
-                     f a (s:ss) (n:nn) =
-                         CPred (CTypeclass idMax) [s, a, n] : f n ss nn
-                     f _ _ _ = internalError "Deriving.doDBits.f: _ (_:_) []"
-                     (b, bs) = unconsOrErr "Deriving.doDBits: null field_bit_sizes" $
-                                 reverse field_bit_sizes
-                 in  f b bs max_field_size_sofar_vars
-        (num_rep_bits_var, max_field_size_sofar_vars) =
-          unconsOrErr "Deriving.doDBits: tmpTyVarIds" $
-            make_num_vars num_tags (everyThird tmpTyVarIds)
-        -- max_num_field_bits: # bits required to represent all fields w/o tags
-        max_num_field_bits = last max_field_size_sofar_vars
-        -- field_bit_sizes: the bit sizes of the fields (as CTypes)
-        field_bit_sizes = make_num_vars num_tags (everyThird (tail tmpTyVarIds))
-        -- field_bit_size_paddings: padding between individual field size
-        --   and the maximum field size; used only once, as dummy variables
-        field_bit_size_paddings = make_num_vars num_tags (everyThird (tail (tail tmpTyVarIds)))
-        -- final_bit_size_provisos constrain the final bit size of the
-        --   tagged union: tag size + max(field sizes) = final size
-        -- num_rep_bits_ctype: the final bit size of the tagged union
-        (final_bit_size_provisos, num_rep_bits_ctype) =
-                case original_tags of
-                []  -> ([], cTNum 0 decl_position)
-                [_] -> ([], headOrErr "doDBits" field_bit_sizes)
-                _   -> ([CPred (CTypeclass idAdd)
-                                   [num_tag_bits_ctype,
-                                    max_num_field_bits,
-                                    num_rep_bits_var]],
-                        num_rep_bits_var)
+        num_tag_bits_ctype = dataNumTagBits decl_position tags
+        (provisos, num_rep_bits_ctype, payload_sizes) =
+            dataBitsInstContextAndSizes idBits decl_position tags
         packed_ctype = TAp (cTCon idBit) num_rep_bits_ctype
-        pack_function =
-            CDef (idPackNQ dpos) (CQType [] (unpacked_ctype `fn` packed_ctype))
-                 pack_clauses
+        vx = CVar id_x
+
+        pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
+                                          hasSz (cVApply idPack [vx]) sz]
+        mkArm tag field_sz = CCaseArm
+            { cca_pattern    = CPCon1 type_name (getCISName tag) (CPVar id_x)
+            , cca_filters    = []
+            , cca_consequent = pkBody field_sz }
+        tag_expr  = hasSz (cVApply idPrimOrd [vx]) num_tag_bits_ctype
+        body_expr = Ccase decl_position vx $ zipWith mkArm tags payload_sizes
         pack_clauses
             | num_tags == 1 =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
             | otherwise = [CClause [CPVar id_x] [] (cVApply idPrimConcat [tag_expr, body_expr])]
+        pack_function =
+            CDef (idPackNQ dpos) (CQType [] (unpacked_ctype `fn` packed_ctype))
+                 pack_clauses
 
-        tag_expr = hasSz (cVApply idPrimOrd [vx]) num_tag_bits_ctype
-        body_expr = Ccase decl_position vx $ zipWith mkArm tags field_bit_sizes
-
-        mkArm tag field_sz = CCaseArm { cca_pattern = CPCon1 type_name (getCISName tag) (CPVar id_x)
-                                      , cca_filters = []
-                                      , cca_consequent = pkBody field_sz
-                                      }
-
-        pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
-                                          hasSz (cVApply idPack [vx]) sz ]
-
+        unpack_type     = CQType [] (packed_ctype `fn` unpacked_ctype)
+        unpack_clauses  =
+            dataBitsUnpackClauses dpos decl_position tags num_tag_bits_ctype
+                (\ tag bodyExpr -> CCon1 type_name (getCISName tag) (cVApply idUnpack [bodyExpr]))
+                []
         unpack_function = CDef (idUnpackNQ dpos) unpack_type unpack_clauses
-        unpack_type = CQType [] (packed_ctype `fn` unpacked_ctype)
-        unpack_clauses
-            -- if there's only one, unpack the contents
-            | num_tags == 1 = [CClause [CPVar id_x] [] (CCon1 type_name (getCISName (headOrErr "doDBits" tags))
-                                                  (cVApply idUnpack [vx]))]
-             | otherwise = [CClause [CPVar id_x] []
-                            (monoDef id_y (cVApply idPrimSplit [vx]) $
-                             Ccase dpos
-                                   (hasSz (CSelectTT idPrimPair vy idPrimFst)
-                                    num_tag_bits_ctype)
-                                   (map mkUn tags))]
-        mkUn tag =
-            CCaseArm { cca_pattern = CPLit (num_to_cliteral_at decl_position
-                                            (cis_tag_encoding tag)),
-                       cca_filters = [],
-                       cca_consequent = (CCon1 type_name (getCISName tag)
-                                         unBody) }
-        unBody = cVApply idUnpack [cVApply idPrimTrunc
-                                   [CSelectTT idPrimPair vy idPrimSnd]]
-        vx = CVar id_x
-        vy = CVar id_y
-    in  Right $
-        [Cinstance (CQType provisos
-                    (cTApplys (cTCon idBits) [unpacked_ctype,
-                                              num_rep_bits_ctype]))
+    in  Right
+        [Cinstance (CQType provisos (cTApplys (cTCon idBits) [unpacked_ctype, num_rep_bits_ctype]))
          [CLValueSign pack_function [], CLValueSign unpack_function []]]
 
 hasSz :: CExpr -> Type -> CExpr
 hasSz e s = CHasType e (CQType [] (TAp tBit s))
+
+-- | Build "case e of { Valid v -> body; Invalid -> Invalid }".
+-- Used in derived ValidateBits to thread Invalid through a chain of field
+-- validations.
+eMaybeBind :: Position -> CExpr -> Id -> CExpr -> CExpr
+eMaybeBind pos e v body =
+    Ccase pos e
+        [ CCaseArm { cca_pattern    = CPCon idValid [CPVar v]
+                   , cca_filters    = []
+                   , cca_consequent = body }
+        , CCaseArm { cca_pattern    = CPCon idInvalid []
+                   , cca_filters    = []
+                   , cca_consequent = mkMaybe Nothing }
+        ]
+
+-- | Derive ValidateBits for a struct, by chaining unpackValid over each field.
+-- The result is Valid only if every field validates. For
+--     struct S = { a :: T1; b :: T2 } deriving (ValidateBits)
+-- the generated unpackValid is roughly:
+--     unpackValid bs = case unpackValid (slice for a) of
+--                        Valid a' -> case unpackValid (slice for b) of
+--                                      Valid b' -> Valid (S { a = a'; b = b' })
+--                                      Invalid -> Invalid
+--                        Invalid -> Invalid
+--
+-- We do not implement unpack in terms of unpackValid: unpack returns a partial
+-- result with bottoms only where forced, while unpackValid returns Invalid at
+-- the top level on any failure, losing the partial result.
+doSValidateBits :: Position -> Id -> [Type] -> CFields -> CDefn
+doSValidateBits dpos ti vs fields =
+    Cinstance (CQType ctx (cTApplys (cTCon idValidateBits) [aty, sz])) [un]
+  where (ctx, sz) = structBitsContextAndSize idValidateBits (getPosition ti) fields
+        aty = cTApplys (cTCon ti) vs
+        bty = TAp (cTCon idBit) sz
+        mty = TAp (cTCon idMaybe) aty
+
+        fieldVars = zip fields tmpVarYIds
+        result    = mkMaybe $ Just $ CStruct (Just True) ti
+                      [(cf_name f, CVar v) | (f, v) <- fieldVars]
+
+        chain _  []             _      = result
+        chain bs [(_, v)]       _      =
+            eMaybeBind dpos (cVApply idUnpackValid [bs]) v result
+        chain bs ((_, v):rest)  (x:xs) =
+            splitBit bs x $ \slice next ->
+              eMaybeBind dpos (cVApply idUnpackValid [slice]) v $
+                chain next rest xs
+        chain _ _ _ = internalError "Deriving.doSValidateBits.chain: empty supply"
+
+        unc = CClause [CPVar id_x] [] (chain (CVar id_x) fieldVars tmpVarXIds)
+        un  = CLValueSign (CDef (idUnpackValidNQ dpos)
+                                (CQType [] (bty `fn` mty)) [unc]) []
+
+-- | Derive ValidateBits for a tagged union. unpackValid dispatches on the tag
+-- bits: defined tags chain unpackValid over the body and wrap in Valid; sparse
+-- tag values fall through to Invalid. For
+--     data T = C1 T1 | C2 T2 deriving (ValidateBits)
+-- the dispatch is:
+--     case tag of
+--       0 -> case unpackValid body of
+--              Valid v -> Valid (C1 v)
+--              Invalid -> Invalid
+--       1 -> case unpackValid body of
+--              Valid v -> Valid (C2 v)
+--              Invalid -> Invalid
+--       _ -> Invalid
+-- For an enum (no bodies) each defined tag maps directly to Valid Ci.
+--
+-- See doSValidateBits for why unpack is not implemented in terms of
+-- unpackValid.
+doDValidateBits :: Position -> Id -> [Type] -> COSummands -> CSummands ->
+                   Either EMsg [CDefn]
+doDValidateBits _ type_name _ _ tags
+    | not (null (duplicate_tag_encoding_errors type_name tags)) =
+        Left (head (duplicate_tag_encoding_errors type_name tags))
+doDValidateBits dpos enum_name type_vars original_tags tags
+    | isEnum original_tags =
+    let epos           = getPosition enum_name
+        unpacked_ctype = cTApplys (cTCon enum_name) type_vars
+        num_bits_ctype = dataNumTagBits epos tags
+        packed_ctype   = TAp (cTCon idBit) num_bits_ctype
+        result_ctype   = TAp (cTCon idMaybe) unpacked_ctype
+        unpack_function =
+            CDef (idUnpackValidNQ dpos)
+                 (CQType [] (packed_ctype `fn` result_ctype))
+                 [CClause [CPVar id_x] []
+                    (Ccase epos (CVar id_x) (map mkArm tags ++ [wildcard]))]
+        wildcard = CCaseArm { cca_pattern    = CPAny epos
+                            , cca_filters    = []
+                            , cca_consequent = mkMaybe Nothing }
+        mkArm tag = CCaseArm
+            { cca_pattern    = CPLit (num_to_cliteral_at epos
+                                       (cis_tag_encoding tag))
+            , cca_filters    = []
+            , cca_consequent = mkMaybe (Just (CCon (getCISName tag) [])) }
+    in  Right
+        [Cinstance
+         (CQType [] (cTApplys (cTCon idValidateBits)
+                              [unpacked_ctype, num_bits_ctype]))
+         [CLValueSign unpack_function []]]
+doDValidateBits dpos type_name type_vars original_tags tags =
+    let decl_position = getPosition type_name
+        unpacked_ctype = cTApplys (cTCon type_name) type_vars
+        num_tag_bits_ctype = dataNumTagBits decl_position tags
+        (provisos, num_rep_bits_ctype, _) =
+            dataBitsInstContextAndSizes idValidateBits decl_position tags
+        packed_ctype = TAp (cTCon idBit) num_rep_bits_ctype
+        result_ctype = TAp (cTCon idMaybe) unpacked_ctype
+        body_var     = headOrErr "doDValidateBits: tmpVarYIds" tmpVarYIds
+
+        unpack_clauses =
+            dataBitsUnpackClauses dpos decl_position tags num_tag_bits_ctype
+                (\ tag bodyExpr ->
+                    eMaybeBind decl_position
+                               (cVApply idUnpackValid [bodyExpr])
+                               body_var
+                               (mkMaybe (Just (CCon1 type_name (getCISName tag)
+                                                     (CVar body_var)))))
+                [CCaseArm { cca_pattern    = CPAny decl_position
+                          , cca_filters    = []
+                          , cca_consequent = mkMaybe Nothing }]
+        unpack_function = CDef (idUnpackValidNQ dpos)
+                               (CQType [] (packed_ctype `fn` result_ctype))
+                               unpack_clauses
+    in  Right
+        [Cinstance (CQType provisos
+                     (cTApplys (cTCon idValidateBits)
+                               [unpacked_ctype, num_rep_bits_ctype]))
+         [CLValueSign unpack_function []]]
 
 
 -- -------------------------
@@ -906,6 +1078,8 @@ idPackNQ :: Position -> Id
 idPackNQ pos = setIdPosition pos (unQualId idPack)
 idUnpackNQ :: Position -> Id
 idUnpackNQ pos = setIdPosition pos (unQualId idUnpack)
+idUnpackValidNQ :: Position -> Id
+idUnpackValidNQ pos = setIdPosition pos (unQualId idUnpackValid)
 idfshowNQ :: Position -> Id
 idfshowNQ pos = setIdPosition pos (unQualId idfshow)
 idMaxBoundNQ :: Position -> Id

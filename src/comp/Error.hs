@@ -797,6 +797,7 @@ data ErrMsg =
         | EClassFundepsEmpty String
         | WIncoherentMatch String String
         | WOrphanInst String
+        | WDerivedValidateBitsHandwrittenBits String
         | EModInstWrongArgs [Position]
         | EAmbiguous [(String, Position, [(String, [Position])])]
         | EAmbiguousExplCtx [Doc] [Doc] Doc
@@ -3007,6 +3008,13 @@ getErrorText (EATFInInstanceHead atf) =
 getErrorText (WUnusedImport pkg) =
     (Type 157, empty,
      s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
+
+getErrorText (WDerivedValidateBitsHandwrittenBits ty) =
+    (Type 158, empty,
+     s2par ("Deriving " ++ quote "ValidateBits" ++ " for " ++ ishow ty ++
+            " without also deriving " ++ quote "Bits" ++
+            ". The derived instance may not match the hand-written " ++
+            quote "Bits" ++ " instance."))
 
 -- Generation Errors
 
