@@ -118,7 +118,8 @@ eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
           satisfy (eqs ++ ecEqs) [vp]
     in  case runTI flags False symt satisfyEq of
           (Right ([],_), _, _) -> True
-          _ -> False
+          res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $
+                 False
  where isITAp (ITAp _ _) = True
        isITAp _          = False
 eqTypeNum _ _ _ _ _ = False
