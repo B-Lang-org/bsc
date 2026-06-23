@@ -690,12 +690,6 @@ isSelectable (ASParam {}) = True
 isSelectable _            = False
 
 
--- ------------------------------
-
-veSelect :: VExpr -> VExpr -> VExpr -> VExpr
-veSelect e h l = if h == l then VESelect1 e l else VESelect e h l
-
-
 -- ==============================
 
 vId :: Id -> VId
@@ -791,12 +785,12 @@ vExpr vco (ASAny (ATBit w) _)                   = VEUnknown w (vco_unspec vco)
 -- invariant check.
 vExpr vco (ATuple _ es) =
     internalError ("vExpr: tuple reached codegen as a value: " ++ ppReadable es)
+
+-- Similarly, we should only see ATupleSel over a literal tuple or a tuple def.
 vExpr vco (ATupleSel _ (ATuple _ es) idx) = vExpr vco (es `genericIndex` (idx - 1))
--- A select from a split def references the element wire directly (no slice).
 vExpr vco (ATupleSel _ (ASDef _ i) idx) = VEVar (tupleElemVId i idx)
-vExpr vco (ATupleSel _ e idx) =
-    let (hi, lo) = tupleElemRange (aType e) idx
-    in  veSelect (vExpr vco e) (VEConst hi) (VEConst lo)
+vExpr _ (ATupleSel _ e _) =
+    internalError ("vExpr: ATupleSel over non-literal/non-def base: " ++ ppReadable e)
 
 vExpr vco e = internalError ("vExpr vco " ++ ppReadable e)
 
@@ -1196,6 +1190,8 @@ aIds (APrim _ _ _ es)     = concatMap aIds es
 -- aIds (AMethValue _ i m)   = [(vMethId i m 1 MethodResult M.Empty)]
 aIds (ANoInlineFunCall _ _ _ es)  = concatMap aIds es
 aIds (AFunCall _ _ _ _ es) = concatMap aIds es
+aIds (ATupleSel _ (ATuple _ es) idx) = aIds (es `genericIndex` (idx - 1))
+aIds (ATupleSel _ (ASDef _ i) idx)   = [tupleElemVId i idx]
 aIds (ASPort _ i)         = [vId i]
 aIds (ASParam _ i)        = [vId i]
 aIds (ASDef _ i)          = [vId i]
