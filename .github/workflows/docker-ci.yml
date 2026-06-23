@@ -1,0 +1,216 @@
+name: Docker CI
+
+on: 
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Debug Info
+        run: |
+          echo "Runner OS: $(uname -a)"
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory: $(ls -la)"
+
+  # ------------------------------
+  # Basic linting requirements for new commits
+  build-check-src:
+    name: "Check: code cleanliness"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tabs and whitespace
+        shell: bash
+        run: ".github/workflows/check_whitespace.sh"
+
+  build-check-testsuite:
+    name: "Check: testsuite lint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check CONFDIR
+        run: |
+          cd testsuite
+          ../.github/workflows/check_confdir.py
+          ../.github/workflows/check_symlinks.py
+
+  # ------------------------------
+  # Builds for release, using a reliable and stable version of GHC
+  build-and-test-ubuntu:
+    name: "Build/Test: Ubuntu"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Debug Info
+        run: |
+          echo "Runner OS: $(uname -a)"
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory: $(ls -la)"
+      - name: Install GHC
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 9.6.6
+          cabal-version: latest
+      - name: Build and Test
+        run: |
+          make -j3
+          make -j3 test
+
+  build-and-test-macos:
+    strategy:
+      matrix:
+        os: [ macos-13, macos-14, macos-15 ]
+      fail-fast: false
+    name: "Build/Test: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GHC and HLS
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 9.6.6
+          cabal-version: latest
+      - name: Build and Test
+        run: |
+          make -j3
+          make -j3 test
+
+  # ------------------------------
+  # Tests using other recent versions of GHC
+  build-and-test-ghc-ubuntu:
+    strategy:
+      matrix:
+        ghc:
+          - version: 9.4.8
+          - version: 9.8.4
+          - version: 9.10.1
+          - version: 9.12.1
+      fail-fast: false
+    name: "Build/Test: GHC Ubuntu"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GHC
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc.version }}
+          cabal-version: latest
+      - name: Build and Test
+        run: |
+          make -j3
+          make -j3 test
+
+  build-and-test-ghc-macos:
+    strategy:
+      matrix:
+        ghc:
+          - version: 9.4.8
+          - version: 9.8.4
+          - version: 9.10.1
+          - version: 9.12.1
+      fail-fast: false
+    name: "Build/Test: GHC macOS"
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GHC and HLS
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc.version }}
+          cabal-version: latest
+      - name: Build and Test
+        run: |
+          make -j3
+          make -j3 test
+
+  # ------------------------------
+  # Test the building of documentation
+  build-doc-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-22.04, ubuntu-24.04 ]
+      fail-fast: false
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-full
+      - name: Build
+        run: |
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz
+      - name: Upload doc not tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
+
+  build-doc-macOS:
+    strategy:
+      matrix:
+        os: [ macos-13, macos-14, macos-15 ]
+      fail-fast: false
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          brew install mactex
+      - name: Build
+        run: |
+          export PATH=/Library/TeX/texbin/:$PATH
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz
+      - name: Upload doc not tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.os}}-doc-not-tar
+          path: inst/doc
+
+  # ------------------------------
+  # Build platform-generic documents for releases
+  build-releasenotes-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04 ]
+      fail-fast: false
+    name: "Build releasenotes: ${{ matrix.os }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-full
+      - name: Build
+        run: |
+          make install-release
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }} releasenotes
+          path: inst.tar.gz 
