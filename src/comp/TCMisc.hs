@@ -450,8 +450,20 @@ satMany' dvs es rs_accum sbs s (p:ps) = do
             -- prevented satisfying -- is this apSub just covering for an
             -- issue elsewhere (that should not have returned unsubst'd preds)?
             --
+            -- We also apply "s'" to the not-yet-processed preds "ps".  Even
+            -- though "p" could not be fully satisfied, reducing it may have
+            -- committed improvements (e.g. grounding a variable via a
+            -- functional dependency).  A sibling pred whose own reduction is
+            -- determined by such a variable must see the improvement, otherwise
+            -- it is matched against an unbound variable and left unreduced --
+            -- and its own fundep never fires.  (E.g. FilterField grounds
+            -- "r_common" but leaves a residual "Foo a c"; without this, the
+            -- sibling "DeepSplitPorts'' r_common p" never reduces, so "p" is
+            -- not determined in the instance head.)  The fully-solved ("Left")
+            -- branch below already does this ("apSub s' ps"); doing it here too
+            -- keeps the branches consistent.
             rtrace ("satMany Right: " ++ ppReadable needed) $
-            satMany' dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) ps
+            satMany' dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
         ([], sbs', s') ->
             -- If p is satisfied, we "drop" it, but add its binding and
             -- substitution.
