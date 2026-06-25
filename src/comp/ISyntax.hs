@@ -440,9 +440,9 @@ fTVars (ITStr _) = S.empty
 
 
 splitITAp :: IType -> (IType, [IType])
-splitITAp (ITAp f a) = let (l, as) = splitITAp f
-                       in  (l, as ++ [a])
-splitITAp t = (t, [])
+splitITAp t0 = go t0 []
+  where go (ITAp f a) acc = go f (a : acc)
+        go t          acc = (t, acc)
 
 
 -- ==============================
