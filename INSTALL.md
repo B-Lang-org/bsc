@@ -200,9 +200,8 @@ sudo dnf install \
 ```
 
 Note that there are currently no `ghc-strict-concurrency-devel` or
-`ghc-strict-concurrency-prof` packages.  Until such packages are
-created, that library would need to be installed using `cabal`, which
-is available via the `cabal-install` package.
+`ghc-strict-concurrency-prof` packages in upstream Fedora, however they can be installed using the [Terra repository](https://terrapkg.com/).
+You can also install using `cabal`, which is available via the `cabal-install` package.
 
 ### MacOS systems
 
