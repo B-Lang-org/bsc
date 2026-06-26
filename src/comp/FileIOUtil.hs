@@ -51,6 +51,7 @@ import Data.Word
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TEE
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 
 import Util(concatMapM, mapFst)
@@ -83,9 +84,9 @@ readFilePath errh pos verb name path =
     readFilesPath' errh pos verb [name] path >>= mapM (decodeUtf8orError errh name)
 
 readBinFilePath :: ErrorHandle -> Position ->
-                   Bool -> String -> [String] -> IO (Maybe ([Word8], String))
+                   Bool -> String -> [String] -> IO (Maybe (BS.ByteString, String))
 readBinFilePath errh pos verb name path =
-    readFilesPath' errh pos verb [name] path >>= return . mapFst B.unpack
+    readFilesPath' errh pos verb [name] path >>= return . mapFst (BS.concat . B.toChunks)
 
 -- for this variant, the file name can have an absolute path
 readFilePathOrAbs :: ErrorHandle -> Position ->
@@ -215,22 +216,22 @@ readFileCatch errh pos fname = do
 
 -- This returns whether the read was successful,
 -- for callers who will move on if the file is not available
-readBinaryFileMaybe :: FilePath -> IO (Maybe [Word8])
+readBinaryFileMaybe :: FilePath -> IO (Maybe BS.ByteString)
 readBinaryFileMaybe fname =
     let
-        handler :: CE.IOException -> IO (Maybe [Word8])
+        handler :: CE.IOException -> IO (Maybe BS.ByteString)
         handler ioe = return Nothing
 
-        rdFile = do  file <- B.unpack <$> B.readFile fname
+        rdFile = do  file <- BS.readFile fname
                      return (Just file)
     in
         catchIO rdFile handler
 
 -- This produces an error if the read is unsuccessful,
 -- for callers which expect the file to be there
-readBinaryFileCatch :: ErrorHandle -> Position -> FilePath -> IO [Word8]
+readBinaryFileCatch :: ErrorHandle -> Position -> FilePath -> IO BS.ByteString
 readBinaryFileCatch errh pos fname =
-    catchIO (B.unpack <$> B.readFile fname) (fileReadError errh emptyContext pos fname)
+    catchIO (BS.readFile fname) (fileReadError errh emptyContext pos fname)
 
 -- If the file writing fails, a BSC error message is reported
 writeFileCatch :: ErrorHandle -> FilePath -> String -> IO ()

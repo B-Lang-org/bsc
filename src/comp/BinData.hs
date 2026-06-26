@@ -50,7 +50,7 @@ import IntLit
 import Undefined
 import Prim hiding(PrimArg(..))
 
-import Util(Hash, hashInit, nextHash, showHash)
+import Util(Hash, hashInit, nextHashByte, showHash)
 
 import Data.List(sort, intercalate)
 import Control.Monad(replicateM, liftM, ap)
@@ -59,6 +59,7 @@ import Data.Array.Unboxed
 import Data.Bits
 import Data.Word
 import GHC.IsList(IsList(..))
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as TE
@@ -325,7 +326,7 @@ section s action = do { beginSection s; action; endSection }
 -- in addition to unconsumed bytes and an optional hash of
 -- consumed bytes.
 
-data IS = IS BinTable [Byte] !(Maybe Hash) -- Integer
+data IS = IS !BinTable !BS.ByteString !Int !(Maybe Hash)
 
 -- In monad is a state transformer type monad
 newtype In a = In (IS -> (a,IS))
@@ -347,16 +348,15 @@ getN :: Int -> In [Byte]
 getN n = replicateM n getB
 
 getB :: In Byte
-getB = In $ \is -> consume_byte is
-  where consume_byte (IS _ [] _) =
-          internalError "BinData.getB: unexpected end of byte stream"
-        consume_byte (IS bc (b:bs) (Just h)) =
-            -- trace ((show n) ++ ": " ++ (showHex (ord b) "")) $
-            let h' = nextHash h [b]
-            in seq h' $ (b,(IS bc bs (Just h')))
-        consume_byte (IS bc (b:bs) Nothing) =
-          -- trace ((show n) ++ ": " ++ (showHex (ord b) "")) $
-          (b,(IS bc bs Nothing))
+getB = In $ \(IS bc bs off mh) ->
+  if off >= BS.length bs
+  then internalError "BinData.getB: unexpected end of byte stream"
+  else let !b = BS.index bs off
+           !off' = off + 1
+       in case mh of
+            Just h -> let !h' = nextHashByte h b
+                      in (b, IS bc bs off' (Just h'))
+            Nothing -> (b, IS bc bs off' Nothing)
 
 -- get an Int value (between 0 and 255)
 getI :: In Int
@@ -409,10 +409,10 @@ mkNewVal :: (BinTable -> (Table v)) ->
             (BinTable -> (Table v) -> BinTable) ->
             In (Int,v)
 mkNewVal get set =
-  In $ \(IS bt bs h) ->
+  In $ \(IS bt bs off h) ->
           let (Known n m) = get bt
               bt' = set bt (Known (n+1) m)
-          in ((n, undefined), (IS bt' bs h))
+          in ((n, undefined), (IS bt' bs off h))
 
 -- get the right table, add a mapping from the index to the value,
 -- and put back the updated table while returning ()
@@ -420,17 +420,17 @@ mkRecordVal ::(BinTable -> (Table v)) ->
               (BinTable -> (Table v) -> BinTable) ->
               (Int -> v -> In ())
 mkRecordVal get set idx v =
-  In $ \(IS bt bs h) ->
+  In $ \(IS bt bs off h) ->
           let (Known n m) = get bt
               bt' = v `seq` set bt (Known n (M.insert idx v m))
-          in ((), (IS bt' bs h))
+          in ((), (IS bt' bs off h))
 
 
 -- get the right table and look up the value for the given index
 mkLookupIdx ::(BinTable -> (Table v)) ->
               (Int -> In v)
 mkLookupIdx get idx =
-  In $ \is@(IS bt _ _) ->
+  In $ \is@(IS bt _ _ _) ->
           let (Known _ m) = get bt
           in case (M.lookup idx m) of
                (Just v) -> (v, is)
@@ -1520,21 +1520,21 @@ runOut (Out xs _) = let bes   = compress $ toList xs
 encode :: (Bin a) => a -> [Byte]
 encode x = runOut (toBin x)
 
-runIn :: In a -> [Byte] -> Bool -> (a, [Byte], String)
+runIn :: In a -> BS.ByteString -> Bool -> (a, Int, String)
 runIn (In f) bs do_hash =
   let h0 = if do_hash then (Just hashInit) else Nothing
-      (x,(IS _ bs' h)) = f (IS unknownTable bs h0)
+      (x,(IS _ _ off h)) = f (IS unknownTable bs 0 h0)
       hstr = maybe "" showHash h
-  in (x, bs', hstr)
+  in (x, off, hstr)
 
-decode :: (Bin a) => [Byte] -> a
-decode s = let (x, bs, _) = runIn fromBin s False
-           in if (null bs)
+decode :: (Bin a) => BS.ByteString -> a
+decode s = let (x, off, _) = runIn fromBin s False
+           in if off == BS.length s
               then x
               else internalError "BinData.decode: unused trailing bytes"
 
-decodeWithHash :: (Bin a) => [Byte] -> (a,String)
-decodeWithHash s = let (x, bs, hstr) = runIn fromBin s True
-                   in if (null bs)
+decodeWithHash :: (Bin a) => BS.ByteString -> (a,String)
+decodeWithHash s = let (x, off, hstr) = runIn fromBin s True
+                   in if off == BS.length s
                       then (x, hstr)
                       else internalError "BinData.decodeWithHash: unused trailing bytes"
