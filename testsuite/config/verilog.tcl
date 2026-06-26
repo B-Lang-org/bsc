@@ -281,10 +281,13 @@ proc clean_iverilog_output { infile outfile } {
 
     set readmem_script {-e {/^\$readmem/d}}
     set readmem_script2 {-e {/^WARNING:.*\$readmem/d}}
+    # Iverilog 12+ warns about excess hex digits when $readmemh data
+    # is wider than the target register
+    set readmem_script3 {-e {/^WARNING:.*Excess hex digits/d}}
     set finish_script {-e {/\$finish/d}}
     set vcd_script {-e {/^VCD info/d}}
 
-    sed $infile $outfile {} "$readmem_script $readmem_script2 $finish_script $vcd_script"
+    sed $infile $outfile {} "$readmem_script $readmem_script2 $readmem_script3 $finish_script $vcd_script"
 }
 
 ## Cleans the simulation output
