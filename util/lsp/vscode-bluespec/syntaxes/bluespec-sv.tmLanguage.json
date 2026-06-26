@@ -1,0 +1,146 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Bluespec SystemVerilog",
+  "scopeName": "source.bluespec-sv",
+  "fileTypes": ["bsv"],
+  "patterns": [
+    { "include": "#attribute" },
+    { "include": "#block-comment" },
+    { "include": "#line-comment" },
+    { "include": "#string" },
+    { "include": "#numeric" },
+    { "include": "#keyword-control" },
+    { "include": "#keyword-decl" },
+    { "include": "#keyword-storage" },
+    { "include": "#system-task" },
+    { "include": "#operator" },
+    { "include": "#type-constructor" },
+    { "include": "#function-type-sig" },
+    { "include": "#identifier" }
+  ],
+  "repository": {
+
+    "attribute": {
+      "name": "meta.preprocessor.bluespec-sv",
+      "begin": "\\(\\*",
+      "end": "\\*\\)",
+      "beginCaptures": { "0": { "name": "punctuation.definition.attribute.begin.bluespec-sv" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.attribute.end.bluespec-sv" } },
+      "contentName": "keyword.other.attribute.bluespec-sv"
+    },
+
+    "block-comment": {
+      "name": "comment.block.bluespec-sv",
+      "begin": "/\\*",
+      "end": "\\*/",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.bluespec-sv" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.bluespec-sv" } }
+    },
+
+    "line-comment": {
+      "name": "comment.line.double-slash.bluespec-sv",
+      "match": "//.*$"
+    },
+
+    "string": {
+      "name": "string.quoted.double.bluespec-sv",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.bluespec-sv" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.string.end.bluespec-sv" } },
+      "patterns": [
+        {
+          "name": "constant.character.escape.bluespec-sv",
+          "match": "\\\\([0-9]+|x[0-9a-fA-F]+|[abfnrtv\\\\\"'0])"
+        }
+      ]
+    },
+
+    "numeric": {
+      "patterns": [
+        {
+          "comment": "Sized literal: 8'hFF, 4'b1010, 16'd255, 8'o377",
+          "name": "constant.numeric.sized.bluespec-sv",
+          "match": "\\b[0-9]+'[bBhHoOdD][0-9a-fA-F_xXzZ]+"
+        },
+        {
+          "name": "constant.numeric.integer.hex.bluespec-sv",
+          "match": "\\b0[xX][0-9a-fA-F_]+"
+        },
+        {
+          "name": "constant.numeric.integer.octal.bluespec-sv",
+          "match": "\\b0[oO][0-7_]+"
+        },
+        {
+          "name": "constant.numeric.integer.binary.bluespec-sv",
+          "match": "\\b0[bB][01_]+"
+        },
+        {
+          "name": "constant.numeric.float.bluespec-sv",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?"
+        },
+        {
+          "name": "constant.numeric.integer.bluespec-sv",
+          "match": "\\b[0-9][0-9_]*"
+        }
+      ]
+    },
+
+    "keyword-control": {
+      "name": "keyword.control.bluespec-sv",
+      "match": "\\b(case|endcase|matches|if|else|for|while|return|begin|end|repeat|break|continue)\\b"
+    },
+
+    "keyword-decl": {
+      "name": "keyword.other.bluespec-sv",
+      "match": "\\b(package|endpackage|import|export|module|endmodule|interface|endinterface|method|endmethod|rule|endrule|rules|endrules|function|endfunction|instance|endinstance|typeclass|endtypeclass|struct|union|tagged|enum|type|typedef|numeric|deriving|provisos|let|letseq|seq|endseq|par|endpar|action|endaction|actionvalue|endactionvalue|clocked_by|reset_by|default_clock|default_reset|no_clock|no_reset|inout|parameter|inhigh|void|attribute|input|output)\\b"
+    },
+
+    "keyword-storage": {
+      "name": "storage.type.bluespec-sv",
+      "match": "\\b(valueOf|stringOf|True|False|Invalid|Valid)\\b"
+    },
+
+    "system-task": {
+      "comment": "Verilog-style system tasks: $display, $finish, etc.",
+      "name": "support.function.system-task.bluespec-sv",
+      "match": "\\$[a-zA-Z_][a-zA-Z0-9_$]*"
+    },
+
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.type.bluespec-sv",
+          "match": "::"
+        },
+        {
+          "name": "keyword.operator.arrow.bluespec-sv",
+          "match": "->|=>|<-|<=|:="
+        },
+        {
+          "name": "keyword.operator.bluespec-sv",
+          "match": "[!@$%&*+./<=>?\\\\^|~:,-]+"
+        }
+      ]
+    },
+
+    "type-constructor": {
+      "name": "entity.name.type.bluespec-sv",
+      "match": "\\b[A-Z][a-zA-Z0-9_']*\\b"
+    },
+
+    "function-type-sig": {
+      "comment": "Highlight name in a type signature: name :: ...",
+      "match": "^([ \\t]*)([a-z_][a-zA-Z0-9_']*)([ \\t]*)(::)",
+      "captures": {
+        "2": { "name": "entity.name.function.bluespec-sv" },
+        "4": { "name": "keyword.operator.type.bluespec-sv" }
+      }
+    },
+
+    "identifier": {
+      "name": "variable.other.bluespec-sv",
+      "match": "\\b[a-z_][a-zA-Z0-9_']*\\b"
+    }
+  }
+}

@@ -4,8 +4,11 @@ PREFIX?=$(TOP)/inst
 LIBDIR=$(abspath $(PREFIX)/lib)
 BINDIR=$(abspath $(PREFIX)/bin)
 
-# Where files are ultimately installed
+# Where compiled library objects are installed
 INSTALLDIR=$(LIBDIR)/Libraries
+
+# Where library source files are installed (for bs-lsp)
+SRCSINSTALLDIR=$(abspath $(PREFIX)/lib-srcs/Libraries)
 
 # Where files are built
 # (separate from the install location, to avoid recompiling)

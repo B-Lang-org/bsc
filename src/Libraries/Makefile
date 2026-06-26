@@ -33,6 +33,11 @@ build:
 install: build
 	install -d $(INSTALLDIR)
 	install -m644 $(BUILDDIR)/* $(INSTALLDIR)
+	for dir in $(DIRS); do \
+	  install -d $(SRCSINSTALLDIR)/$$dir; \
+	  files=$$(ls $$dir/*.bs $$dir/*.bsv 2>/dev/null); \
+	  [ -n "$$files" ] && install -m644 $$files $(SRCSINSTALLDIR)/$$dir || true; \
+	done
 
 TAGS: $(SRCS)
 	$(TOP)/util/scripts/btags $+
