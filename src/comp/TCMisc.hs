@@ -450,8 +450,10 @@ satMany' dvs es rs_accum sbs s (p:ps) = do
             -- prevented satisfying -- is this apSub just covering for an
             -- issue elsewhere (that should not have returned unsubst'd preds)?
             --
+            -- Since we apply "s" to "needed", we also apply it to the not-yet-
+            -- processed preds "ps".
             rtrace ("satMany Right: " ++ ppReadable needed) $
-            satMany' dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) ps
+            satMany' dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
         ([], sbs', s') ->
             -- If p is satisfied, we "drop" it, but add its binding and
             -- substitution.
