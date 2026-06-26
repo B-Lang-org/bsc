@@ -1,0 +1,34 @@
+=== Testing NaN ===
+80000000
+=== Testing Inf  ===
+7fffffff
+=== Testing -Inf  ===
+80000000
+=== Testing Zero  ===
+0
+=== Testing Quarter  ===
+0
+=== Testing Half ===
+0
+=== Testing One ===
+1
+=== Testing One and Half ===
+2
+=== Testing One ===
+1
+=== Testing One and Half ===
+1
+=== Testing Negative Denormalized ===
+ffffffff
+=== Testing One ===
+1
+=== Testing One and Half ===
+2
+=== Testing Postive Denormalized ===
+1
+=== Testing One ===
+1
+=== Testing One and Half ===
+1
+=== Testing Minus One and Half ===
+ffffffff
