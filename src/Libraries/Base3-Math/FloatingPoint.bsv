@@ -3153,8 +3153,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),UInt#(n))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 UInt#(TAdd#(n,TAdd#(m,2))) sfd = unpack(zExtendLSB({getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 1 - zeroExtend(unpack(pack(frac)));
 
@@ -3308,8 +3306,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),Int#(n))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 // needs to be large so bits aren't lost before rounding
 	 Int#(TAdd#(n,TAdd#(m,2))) sfd = fl.sign ? -unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd})) : unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 2 - zeroExtend(unpack(pack(frac)));
@@ -3506,8 +3502,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m), FixedPoint#(isize,fsize))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 // needs to be large so bits aren't lost before rounding
 	 Int#(TAdd#(n,TAdd#(m,2))) sfd = fl.sign ? -unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd})) : unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 2 - zeroExtend(unpack(pack(frac)));
