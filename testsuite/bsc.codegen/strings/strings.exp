@@ -26,6 +26,10 @@ compare_file CharLiteralBad_Multiple.bsv.bsc-vcomp-out
 # Test non-error behavior
 test_veri_only_bsv StringCharFunctions
 
+# Verify string prims produce correctly-typed results
+compile_verilog_pass StringCharFunctions.bsv {} {-trace-eval-types}
+compile_verilog_pass StringSplitTypes.bs {} {-trace-eval-types}
+
 # Test error conditions
 
 # head of empty string

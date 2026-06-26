@@ -1,0 +1,10 @@
+-- Test that PrimStringSplit produces correctly-typed results
+-- when checked with -trace-eval-types
+
+package StringSplitTypes where
+
+{-# synthesize sysStringSplitTypes #-}
+sysStringSplitTypes :: Module Empty
+sysStringSplitTypes = module
+   rg :: Reg Bool
+   rg <- mkReg (isJust (stringSplit "hello"))
