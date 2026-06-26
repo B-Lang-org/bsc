@@ -36,6 +36,7 @@ import Prim
 import Pragma(DefProp, defPropsHasNoCSE)
 import ISyntax
 import ISyntaxUtil
+import Undefined(UndefKind(..))
 import IPrims(doPrimOp)
 import IInline(iSortDs, iInline)
 import BExpr
@@ -423,6 +424,13 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]
                 (_,_,IAps (ICon _ (ICPrim _ PrimBNot)) _ [x]) | eqE cnd x
                                       -> iTrAp2 ctx p [t] [cnd,thn,iTrue]
 
+                -- if c then _ else e  -->  e
+                -- This is more aggressive than just matching UNoMatch, but
+                -- it appears to make a positive difference.
+                -- Note that enabling the symmetric simplification for thn
+                -- when els is a don't care disturbs the expected pack . unpack
+                -- structure and makes some things worse while fixing others.
+                (_, ICon _ (ICUndet {}), _) -> (els, True)
                 _ -> (IAps p [t] [cnd, thn, els], False)
 
 -- Boolean optimization

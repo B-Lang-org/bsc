@@ -66,3 +66,10 @@ string_does_not_occur mkDecoder.v "xxxx"
 string_does_not_occur mkDecoder.v "unspecified value"
 string_does_not_occur mkDecoder.v "\?"
 string_does_not_occur mkDecoder.v "case"
+
+compile_verilog_pass TestNoopCase.bs "" "-opt-undetermined-vals"
+find_n_strings mkTestNoopCase.v "case" 0
+
+compile_verilog_pass TestNoopTernary.bs "" "-opt-undetermined-vals"
+find_n_strings mkTestNoopTernary.v "?" 0
+
