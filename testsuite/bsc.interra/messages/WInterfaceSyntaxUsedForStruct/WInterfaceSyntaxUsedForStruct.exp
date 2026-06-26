@@ -1,0 +1,2 @@
+compile_pass WInterfaceSyntaxUsedForStruct.bs
+compare_file WInterfaceSyntaxUsedForStruct.bs.bsc-out

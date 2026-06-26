@@ -578,10 +578,16 @@ tiExpr as td exp@(Cinterface pos Nothing ds) = internalError "TCheck.tiExpr: Cin
 --   apply once we remove the "in i" part.
 --
 tiExpr as td exp@(Cinterface pos (Just ti) ds) = do
+    sy <- getSymTab
     let
         mkFieldPair d = let i = getLName d
                         in  (i, Cletseq [d] (CVar i))
         ifc = CStruct (Just True) ti (map mkFieldPair ds)
+    -- check that ti actually names an interface (not a struct)
+    case findType sy ti of
+      Just (TypeInfo { ti_sort = TIstruct SStruct _ }) ->
+        twarn (getPosition ti, WInterfaceSyntaxUsedForStruct (pfpString ti))
+      _ -> return ()
     -- check that the user's argument names match those in the type
     -- declaration, and warn if not (if the warning is turned on)
     checkMethodArgNames ti ds
