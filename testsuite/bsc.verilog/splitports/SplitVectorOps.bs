@@ -1,0 +1,76 @@
+package SplitVectorOps where
+
+-- Tests for the non-port instances of the SplitVector newtype: Functor,
+-- Applicative, Foldable, Traversable, Bounded, Eq, Bits, PrimSelectable,
+-- PrimUpdateable and FShow.  These all delegate to the underlying Vector, so we
+-- just confirm the delegation works through the newtype wrapper.  (Vector has
+-- no Ord instance, so the derived Ord on SplitVector is not exercised.)
+
+import BuildVector
+import SplitPorts
+import qualified Foldable
+import qualified Traversable
+
+incMaybe :: Int 8 -> Maybe (Int 8)
+incMaybe x = Valid (x + 1)
+
+a :: SplitVector 4 (Int 8)
+a = SplitVector (vec 1 2 3 4)
+
+b :: SplitVector 4 (Int 8)
+b = SplitVector (vec 10 20 30 40)
+
+-- Classic has no [] subscript syntax, so we drive PrimSelectable/PrimUpdateable
+-- through the underlying class methods (this is how Vector's select/update are
+-- defined, and how the BSV [] / [] := syntax desugars).
+sel :: SplitVector 4 (Int 8) -> Integer -> Int 8
+sel sv i = primSelectFn (getStringPosition "") sv i
+
+{-# synthesize sysSplitVectorOps #-}
+sysSplitVectorOps :: Module Empty
+sysSplitVectorOps =
+  module
+    reg_sv :: Reg (SplitVector 4 (Int 8)) <- mkReg (SplitVector (vec 1 2 3 4))
+    step :: Reg (UInt 2) <- mkReg 0
+
+    let lo :: SplitVector 4 (Int 8)
+        lo = minBound
+        hi :: SplitVector 4 (Int 8)
+        hi = maxBound
+        rt :: SplitVector 4 (Int 8)
+        rt = unpack (pack b)
+
+    rules
+      -- Step 0: exercise the pure instances and issue a sub-element register
+      -- update (PrimUpdateable) whose effect we observe in step 1.
+      when step == 0 ==> do
+        -- Functor
+        $display "fmap:   " (fshow (fmap (\ x -> x * 2) a))
+        -- Applicative (only liftA2; SplitVector has pure, but it adds no extra
+        -- coverage of the delegation)
+        $display "liftA2: " (fshow (liftA2 (+) a b))
+        -- Foldable
+        $display "foldr:  %0d" (Foldable.foldr (+) 0 a)
+        $display "foldl:  %0d" (Foldable.foldl (-) 0 a)
+        $display "length: %0d" (Foldable.length a)
+        $display "elem:   " (fshow (Foldable.elem 3 a)) " " (fshow (Foldable.elem 99 a))
+        -- Traversable (pure, via the Maybe applicative)
+        $display "trav:   " (fshow (Traversable.traverse incMaybe a))
+        -- Bounded
+        $display "bounds: " (fshow lo) " " (fshow hi)
+        -- Eq (Vector, and hence SplitVector, has no Ord instance)
+        $display "eq:     " (fshow (a == a)) " " (fshow (a == b))
+        -- Bits round-trip
+        $display "bits:   " (fshow (rt == b))
+        -- PrimSelectable
+        $display "select: %0d %0d" (sel a 0) (sel a 3)
+        -- FShow
+        $display "fshow:  " (fshow a)
+        -- PrimUpdateable: update one element; observed next cycle.
+        reg_sv := primUpdateFn (getStringPosition "") reg_sv._read 1 99
+        step := 1
+
+      -- Step 1: the register update is now visible.
+      when step == 1 ==> do
+        $display "reg:    " (fshow reg_sv._read) " upd1 %0d" (sel reg_sv._read 1)
+        $finish

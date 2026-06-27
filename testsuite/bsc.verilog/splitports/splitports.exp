@@ -221,6 +221,57 @@ if { $vtest == 1 } {
     find_regexp_fail sysSplitTupleSensitivity.v {or pick__f1[ )]}
 }
 
+# SplitVector: splits a vector into n groups of ports, splitting each element
+# via the element type's own SplitPorts instance, for both inputs and outputs.
+test_c_veri SplitVectorPorts
+if { $vtest == 1 } {
+    # -- input port splitting --
+    # plain elements: each kept whole as one port
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putInts_1_0;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putInts_1_3;}
+    # DeepSplit elements: each Foo recursively split into x and y
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putFoos_1_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putFoos_1_2_y;}
+    # ShallowSplit elements, with a prefix pragma
+    find_regexp mkSplitVectorPortsTest.v {input  \[2 : 0\] PUT_BARS_1_0_v;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[16 : 0\] PUT_BARS_1_1_w;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[15 : 0\] PUT_BARS_1_1_z;}
+    # custom (non-tag) SplitPorts instance elements
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putPairs_1_0_a;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[15 : 0\] putPairs_1_1_b;}
+    # nested SplitVectors
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putGrid_1_0_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putGrid_1_1_2_y;}
+    # multiple split-vector arguments with an arg_names pragma
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putTwo_foos_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putTwo_ints_1;}
+    # a SplitVector field of a shallow-split struct
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putWrap_1_items_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {input  putWrap_1_tag;}
+    # -- output port splitting --
+    # value method, plain elements
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] getInts_0;}
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] getInts_3;}
+    # value method, DeepSplit elements, with a result pragma
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] GET_FOOS_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] GET_FOOS_2_y;}
+    # combinational method: split input and split output (result pragma)
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] bumpFoos_1_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] BUMP_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] BUMP_1_y;}
+    # the split input element feeds the split output element combinationally
+    find_regexp mkSplitVectorPortsTest.v {bumpFoos_1_0_x -> BUMP_0_x}
+    # ActionValue method: split input and split output
+    find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] updateVec_1_0;}
+    find_regexp mkSplitVectorPortsTest.v {input  EN_updateVec;}
+    find_regexp mkSplitVectorPortsTest.v {output \[7 : 0\] updateVec_0_x;}
+    find_regexp mkSplitVectorPortsTest.v {output RDY_updateVec;}
+}
+
+# SplitVector also delegates the standard Vector instances (Functor, Applicative,
+# Foldable, Traversable, Bounded, Eq, Bits, PrimSelectable, PrimUpdateable, FShow).
+test_c_veri SplitVectorOps
+
 # ----------
 
 compile_verilog_fail_error TooManyArgNames.bs S0015
