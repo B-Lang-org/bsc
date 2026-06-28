@@ -213,8 +213,7 @@ instance (DeepSplitPorts a p) => DeepSplitPorts'' (Conc a) p where
 -- A newtype wrapper for a Vector that recursively splits its elements into
 -- the corresponding SplitPorts ports.
 data SplitVector n a = SplitVector (Vector n a)
-  deriving
-    (Eq, Ord, Bits, CShow)
+  deriving (Eq, Ord, Bits, CShow, DefaultValue)
 
 unSplitVector :: SplitVector n a -> Vector n a
 unSplitVector (SplitVector v) = v
