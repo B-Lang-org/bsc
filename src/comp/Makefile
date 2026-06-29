@@ -240,7 +240,7 @@ SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
 TCLEXES = bluetcl
-UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
+UTILEXES = bo2bloogle bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
 SHOWRULESEXES = showrules
 
 EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
@@ -337,6 +337,12 @@ vcdcheck: $(SOURCES)
 
 .PHONY: showrules
 showrules: $(SOURCES)
+	$(PREBUILDCOMMAND)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
+	$(POSTBUILDCOMMAND)
+
+.PHONY: bo2bloogle
+bo2bloogle: $(SOURCES)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
