@@ -2,6 +2,6 @@
 
 CONFDIR = $(realpath ../..)
 
-DONTKEEPFILES = simfiles
+DONTKEEPFILES = simfiles enabled enabled_fail sub_cg sub_plain hierA hierB
 
 include $(CONFDIR)/clean.mk
