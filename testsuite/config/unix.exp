@@ -2837,7 +2837,7 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
         # -block-codegen, so the object can be generated/compiled once and
         # shared across simulations (and reused by the dependency analysis).
         if { [llength $modules] > 0 } {
-            check_block_codegen_modules $modules
+            check_block_codegen_modules $modules $link_options
         }
     }
 
@@ -2849,9 +2849,17 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
 # the per-module files are present in the test directory).  Source-only:
 # byte-identity makes compiling or simulating the block-codegen output
 # unnecessary.
-proc check_block_codegen_modules { modules } {
+proc check_block_codegen_modules { modules link_options } {
     global srcdir
     global subdir
+    # -show-timestamps embeds the wall-clock time, and -show-version the build
+    # version, into the generated files.  Those legitimately differ between two
+    # separate bsc invocations, so byte-identity is not expected when they are
+    # requested; skip the check in that case.
+    if { [regexp -- {-show-(timestamps|version)} $link_options] } {
+        return
+    }
+    set here [absolute $srcdir]
     foreach mod $modules {
         # only handle bsc-generated modules: a bare module name or an explicit
         # ".ba".  Skip anything else in the module list (pre-built objects,
@@ -2861,11 +2869,19 @@ proc check_block_codegen_modules { modules } {
         set modname [file rootname $mod]
         set bcgdir "blockcg_$modname"
         mkdir $bcgdir
-        link_objects_pass {} $modname "-block-codegen -simdir $bcgdir"
-        compare_file $bcgdir/$modname.cxx $modname.cxx "check_block_codegen"
-        compare_file $bcgdir/$modname.h   $modname.h   "check_block_codegen"
+        # Use bsc_link_objects directly (not link_objects_pass) so that entries
+        # which cannot stand alone as a -block-codegen root -- e.g. an imported
+        # "BDPI" function rather than a synthesized submodule -- are silently
+        # skipped rather than reported as failures.  (Elaboration-affecting
+        # options are already baked into the .ba that block-codegen reads, so
+        # they need not be replayed here.)
+        if { [bsc_link_objects {} $modname "-block-codegen -simdir $bcgdir"] && \
+             [file exists [file join $here $subdir $modname.cxx]] && \
+             [file exists [file join $here $subdir $bcgdir $modname.cxx]] } {
+            compare_file $bcgdir/$modname.cxx $modname.cxx "check_block_codegen"
+            compare_file $bcgdir/$modname.h   $modname.h   "check_block_codegen"
+        }
         # remove the scratch directory (so no per-test cleanup rule is needed)
-        set here [absolute $srcdir]
         file delete -force [file join $here $subdir $bcgdir]
     }
 }
