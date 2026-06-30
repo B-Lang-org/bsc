@@ -73,19 +73,19 @@ simExpand errh flags topname fabis = do
                              assertNoSchedErr emodinfos_used_by_name
 
     -- reject top-level modules with always_enabled ifc, if generating
-    -- a Bluesim executable; with -sim-codegen-only the output is never
+    -- a Bluesim executable; with -block-codegen the output is never
     -- executed, so any module may serve as the codegen root
     let topModInfo =
            case (lookup (getIdString topmodId) modinfos_used_by_name) of
                Just (mi,_) -> mi
                Nothing     -> internalError ("simExpand: topmodId not found")
-    when ((not (genSysC flags)) && (not (simCodegenOnly flags)) &&
+    when ((not (genSysC flags)) && (not (blockCodegen flags)) &&
           (hasEnabledMethod topModInfo)) $
         bsError errh [(noPosition, EBSimEnablePragma)]
 
     -- reject top-level modules with arguments or params in Bluesim or SystemC
     let (top_args, top_params) = getArgsAndParams topModInfo
-    when (not (simCodegenOnly flags)) $
+    when (not (blockCodegen flags)) $
      if (genSysC flags)
      then when ((not (null top_args)) || (not (null top_params))) $
                bsError errh [(noPosition, EBSimTopLevelArgOrParam True (top_args ++ top_params))]

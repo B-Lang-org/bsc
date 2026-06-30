@@ -1152,7 +1152,7 @@ data ErrMsg =
 
         -- Bluesim-specific errors/warnings
         | EBluesimNoXZ String
-        | ESimCodegenOnlyNoSim
+        | EBlockCodegenNoSim
 
         -- Errors/warnings from the SystemC wrapper generator
         | ESystemCWrapperComboPaths String
@@ -4494,9 +4494,9 @@ getErrorText (EMissingVPIWrapperFile fname is_dpi) =
      in  s2par ("Cannot find the " ++ ifctype ++ " file " ++ ishow fname ++
                 " in the Verilog search path."))
 
-getErrorText ESimCodegenOnlyNoSim =
+getErrorText EBlockCodegenNoSim =
     (System 96, empty,
-     s2par ("The flag -sim-codegen-only is only supported when linking " ++
+     s2par ("The flag -block-codegen is only supported when linking " ++
             "with the Bluesim back end (-sim)."))
 
 -- Runtime errors
