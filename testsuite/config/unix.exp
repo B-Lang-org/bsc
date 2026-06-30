@@ -2831,8 +2831,43 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
 
             erase $sysmod.c.vcd
         }
+
+        # Each bsc-generated submodule's Bluesim C++ must be identical whether
+        # it is generated as part of this design or on its own with
+        # -block-codegen, so the object can be generated/compiled once and
+        # shared across simulations (and reused by the dependency analysis).
+        if { [llength $modules] > 0 } {
+            check_block_codegen_modules $modules
+        }
     }
 
+}
+
+# For each bsc-generated submodule, regenerate its Bluesim C++ on its own with
+# -block-codegen and confirm it is byte-identical to the version generated as
+# part of building the enclosing design (which the caller has just built, so
+# the per-module files are present in the test directory).  Source-only:
+# byte-identity makes compiling or simulating the block-codegen output
+# unnecessary.
+proc check_block_codegen_modules { modules } {
+    global srcdir
+    global subdir
+    foreach mod $modules {
+        # only handle bsc-generated modules: a bare module name or an explicit
+        # ".ba".  Skip anything else in the module list (pre-built objects,
+        # C/C++ sources, etc.).
+        set ext [file extension $mod]
+        if { ($ext != "") && ($ext != ".ba") } { continue }
+        set modname [file rootname $mod]
+        set bcgdir "blockcg_$modname"
+        mkdir $bcgdir
+        link_objects_pass {} $modname "-block-codegen -simdir $bcgdir"
+        compare_file $bcgdir/$modname.cxx $modname.cxx "check_block_codegen"
+        compare_file $bcgdir/$modname.h   $modname.h   "check_block_codegen"
+        # remove the scratch directory (so no per-test cleanup rule is needed)
+        set here [absolute $srcdir]
+        file delete -force [file join $here $subdir $bcgdir]
+    }
 }
 
 proc check_verilog_output { output expected veribug } {
