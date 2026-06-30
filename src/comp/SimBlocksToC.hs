@@ -95,8 +95,13 @@ simBlocksToC flags time top_block def_clk def_rst
 
     let cvtModBlock = convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_block
     module_names <- concatMapM (cvtModBlock writeFileC) mod_blocks
-    schedule_names <- convertSchedules flags time top_block def_clk def_rst sb_map ff_map
-                                       wdef_inst_map scheds clk_groups gate_info writeFileC
+    -- With -block-codegen the root is a reusable block, not a runnable top: it
+    -- has no schedule of its own and no "model_" wrapper (whatever instantiates
+    -- it supplies the schedule), matching submodule form.
+    schedule_names <- if blockCodegen flags
+                      then return []
+                      else convertSchedules flags time top_block def_clk def_rst sb_map ff_map
+                                            wdef_inst_map scheds clk_groups gate_info writeFileC
     return $ module_names ++ schedule_names
 
 lookupInstance :: SBMap -> Maybe SBId -> String -> Maybe SBId

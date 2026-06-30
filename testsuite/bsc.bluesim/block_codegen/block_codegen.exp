@@ -2,17 +2,18 @@
 # Tests for the -block-codegen flag
 #
 # -block-codegen (used with -sim) writes a module's Bluesim C++ to the
-# simdir and stops: it does not compile or link, and it does not require
-# the codegen root to be a runnable Bluesim top.  The intent is that an
-# external build system owns the C++ compile/link, so that a module's
-# per-module C++ can be generated once and shared.  The tests below check
-# both halves of that contract:
-#   * the flag generates the files and nothing else (and accepts modules
-#     that a normal Bluesim link would reject), and
-#   * the generated per-module C++ is deterministic: code-generating a
-#     module with the flag matches a normal -sim build of that same module
-#     (with vs. without the flag), and a submodule's C++ is the same no
-#     matter where it sits in the hierarchy (different hierarchies).
+# simdir and stops: it does not compile or link, it does not require the
+# codegen root to be a runnable Bluesim top, and it generates the module
+# exactly as it would appear as a *submodule* -- with no top-level "model_"
+# wrapper and no top-level interface ports.  That makes a module's per-module
+# C++ independent of where it is used, so an external build system can
+# generate and compile it once and share the object across simulations; the
+# stock Bluesim dependency analysis then reuses it.  The tests below check:
+#   * the flag generates only the per-module files (no compile, no link, and
+#     no "model_" wrapper), and accepts modules a normal Bluesim link would
+#     reject (always_enabled); and
+#   * the generated per-module C++ is byte-identical to the same module built
+#     as a submodule, and is the same across different hierarchies.
 #
 
 # Check that none of the listed files exist
@@ -38,10 +39,10 @@ proc files_dont_exist { filenames } {
 }
 
 # -------------------------
-# With -block-codegen, linking with the Bluesim backend writes the
-# generated C++ files to the simdir and exits successfully without
-# compiling or linking them: no object files, no shared library, and
-# no executable.
+# With -block-codegen, linking with the Bluesim backend writes the per-module
+# C++ files to the simdir and exits successfully without compiling or linking
+# them, and without generating a top-level "model_" wrapper (the block is
+# never a runnable top).
 
 if { $ctest == 1 } {
 
@@ -50,14 +51,14 @@ compile_object_pass BlockCodegen.bsv mkBlockCodegen
 mkdir simfiles
 link_objects_pass {} mkBlockCodegen {-block-codegen -simdir simfiles}
 
-# The Bluesim C++ files are generated ...
+# The per-module Bluesim C++ files are generated ...
 files_exist { simfiles/mkBlockCodegen.cxx \
-              simfiles/mkBlockCodegen.h \
-              simfiles/model_mkBlockCodegen.cxx \
-              simfiles/model_mkBlockCodegen.h }
+              simfiles/mkBlockCodegen.h }
 
-# ... but they are not compiled or linked
-files_dont_exist { simfiles/mkBlockCodegen.o \
+# ... but nothing is compiled or linked, and no "model_" wrapper is produced
+files_dont_exist { simfiles/model_mkBlockCodegen.cxx \
+                   simfiles/model_mkBlockCodegen.h \
+                   simfiles/mkBlockCodegen.o \
                    simfiles/model_mkBlockCodegen.o \
                    mkBlockCodegen.cexe \
                    mkBlockCodegen.cexe.so }
@@ -66,53 +67,37 @@ files_dont_exist { simfiles/mkBlockCodegen.o \
 
 # -------------------------
 # A module whose interface is always_enabled cannot be the top of a normal
-# Bluesim simulation, but -block-codegen accepts it as a codegen root,
-# since the generated model is never run.
+# Bluesim simulation, but -block-codegen accepts it as a codegen root, and
+# generates it exactly as it appears when instantiated as a submodule.
 
 if { $ctest == 1 } {
 
 compile_object_pass Enabled.bsv mkAlwaysEnabled
+compile_object_pass Enabled.bsv mkUsesEnabled
 
 # A normal Bluesim link rejects an always_enabled top ...
 mkdir enabled_fail
 link_objects_fail_error {} mkAlwaysEnabled G0062 1 {-simdir enabled_fail}
 
-# ... but -block-codegen generates its C++ anyway.
+# ... but -block-codegen generates its per-module C++ (and no model_) ...
 mkdir enabled
 link_objects_pass {} mkAlwaysEnabled {-block-codegen -simdir enabled}
-files_exist { enabled/mkAlwaysEnabled.cxx \
-              enabled/mkAlwaysEnabled.h }
+files_exist      { enabled/mkAlwaysEnabled.cxx enabled/mkAlwaysEnabled.h }
+files_dont_exist { enabled/model_mkAlwaysEnabled.cxx }
+
+# ... which is byte-identical to the module built as a submodule.
+mkdir enabled_use
+link_objects_pass {} mkUsesEnabled {-simdir enabled_use}
+compare_file enabled/mkAlwaysEnabled.cxx enabled_use/mkAlwaysEnabled.cxx
+compare_file enabled/mkAlwaysEnabled.h   enabled_use/mkAlwaysEnabled.h
 
 }
 
 # -------------------------
-# The C++ generated for a module does not depend on whether -block-codegen
-# was used: code-generating mkSub as a Bluesim top with the flag produces
-# byte-identical .cxx/.h to a normal -sim build of the same module.
-# (The testsuite always passes -no-show-timestamps -no-show-version, so the
-# generated headers are deterministic.)
-
-if { $ctest == 1 } {
-
-compile_object_pass SharedSub.bsv mkSub
-
-# with the flag: generate only
-mkdir sub_cg
-link_objects_pass {} mkSub {-block-codegen -simdir sub_cg}
-
-# without the flag: a normal Bluesim build of the same module as top
-mkdir sub_plain
-link_objects_pass {} mkSub {-simdir sub_plain}
-
-compare_file sub_cg/mkSub.cxx sub_plain/mkSub.cxx
-compare_file sub_cg/mkSub.h   sub_plain/mkSub.h
-
-}
-
-# -------------------------
-# The C++ generated for a module does not depend on the hierarchy it is
-# instantiated in: mkSub appears one level down in mkTop and two levels
-# down in mkTop2, but its per-module .cxx/.h are identical in both.
+# The C++ generated by -block-codegen is byte-identical to the same module
+# built as a submodule, and the submodule form does not depend on the
+# surrounding hierarchy.  (The testsuite always passes -no-show-timestamps
+# -no-show-version, so the generated headers are deterministic.)
 
 if { $ctest == 1 } {
 
@@ -121,12 +106,21 @@ compile_object_pass Hier.bsv mkMid
 compile_object_pass Hier.bsv mkTop
 compile_object_pass Hier.bsv mkTop2
 
+# block-codegen the module on its own
+mkdir sub_cg
+link_objects_pass {} mkSub {-block-codegen -simdir sub_cg}
+
+# mkSub one level down in mkTop, and two levels down in mkTop2
 mkdir hierA
 link_objects_pass {} mkTop  {-simdir hierA}
-
 mkdir hierB
 link_objects_pass {} mkTop2 {-simdir hierB}
 
+# block-codegen output is byte-identical to the submodule form ...
+compare_file sub_cg/mkSub.cxx hierA/mkSub.cxx
+compare_file sub_cg/mkSub.h   hierA/mkSub.h
+
+# ... and the submodule form does not depend on the hierarchy
 compare_file hierA/mkSub.cxx hierB/mkSub.cxx
 compare_file hierA/mkSub.h   hierB/mkSub.h
 
