@@ -1,0 +1,71 @@
+-- D6: many *wide* method return ports, named deliberately out of sorted order.
+--
+-- This pressures the ordering of a module's method (enable / argument /
+-- return) ports in the generated Bluesim C++.  Those port lists come from a
+-- map keyed by Id, whose order depends on interned-Id order and so can differ
+-- between building the module on its own (-block-codegen) and as part of the
+-- whole design.  The ports must therefore be emitted in a context-independent
+-- (name) order for the per-module C++ to be byte-identical either way.
+--
+-- The return values are *wide* (more than 64 bits) on purpose: narrow defs are
+-- moved onto the function stack (and ordered separately), whereas wide values
+-- stay as class members whose declaration/initialization order is exactly the
+-- port order under test.
+--
+-- Written in Classic (.bs) syntax so the sweep also exercises that frontend.
+package SchedFixMeths(Many(..), mkSchedFixMeths) where
+
+interface Many =
+    load :: Bit 96 -> Action
+    wz   :: Bit 96
+    wa   :: Bit 96
+    wm   :: Bit 96
+    wb   :: Bit 96
+    wy   :: Bit 96
+    wc   :: Bit 96
+    wx   :: Bit 96
+    wd   :: Bit 96
+    ww   :: Bit 96
+    we   :: Bit 96
+    wv   :: Bit 96
+    wf   :: Bit 96
+    wu   :: Bit 96
+    wg   :: Bit 96
+    wt   :: Bit 96
+    wh   :: Bit 96
+    ws   :: Bit 96
+    wi   :: Bit 96
+    wr   :: Bit 96
+    wj   :: Bit 96
+    wq   :: Bit 96
+    wk   :: Bit 96
+
+{-# verilog mkSchedFixMeths #-}
+mkSchedFixMeths :: Module Many
+mkSchedFixMeths =
+    module
+        r :: Reg (Bit 96) <- mkReg 0
+        interface
+            load x = r := x
+            wz = r + 26
+            wa = r + 1
+            wm = r + 13
+            wb = r + 2
+            wy = r + 25
+            wc = r + 3
+            wx = r + 24
+            wd = r + 4
+            ww = r + 23
+            we = r + 5
+            wv = r + 22
+            wf = r + 6
+            wu = r + 21
+            wg = r + 7
+            wt = r + 20
+            wh = r + 8
+            ws = r + 19
+            wi = r + 9
+            wr = r + 18
+            wj = r + 10
+            wq = r + 17
+            wk = r + 11

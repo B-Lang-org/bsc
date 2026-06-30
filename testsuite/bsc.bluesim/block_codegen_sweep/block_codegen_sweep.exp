@@ -1,0 +1,28 @@
+#
+# Pressure -block-codegen byte-identity across the "access count" dimensions,
+# stepping each 0 -> 1 -> 2 -> n:
+#   D1  mkD1_0..3   - number of internal rules reading a shared value
+#   D2  mkD2_args   - number of method arguments (0..3)
+#   D3  mkD3_1..3   - number of methods in the interface
+#   D4  mkD4_*      - method kind (value / action / actionvalue)
+#   D5  mkD5_0..3   - number of (non-primitive) submodule instances
+#   D6  mkSchedFixMeths - many method ports, named out of sorted order (Classic .bs)
+#   D7  mkD7_fwd    - subinterface forwarding to a submodule (the cache shape)
+#   D8  mkD8_insts  - several submodule instances (insertion order != name order)
+#   D9  mkD9_sink   - many regs/rules/methods (declared out of order) together
+#
+# Each module is a submodule of sysSchedFixTb, so the testsuite's block-codegen
+# check (check_block_codegen_modules, invoked by the test_c_veri worker)
+# regenerates each on its own with -block-codegen and confirms the per-module
+# C++ is byte-identical to the version built as part of the design.
+#
+
+test_c_veri_bsv_multi SchedFixTb sysSchedFixTb \
+    { mkD1_0 mkD1_1 mkD1_2 mkD1_3 \
+      mkD2_args \
+      mkD3_1 mkD3_2 mkD3_3 \
+      mkD4_val mkD4_act mkD4_av \
+      mkD5_0 mkD5_1 mkD5_2 mkD5_3 \
+      mkSchedFixMeths \
+      mkD7_fwd mkLeaf \
+      mkD8_insts mkD9_sink }
