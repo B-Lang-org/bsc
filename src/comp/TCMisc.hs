@@ -39,7 +39,7 @@ import TIMonad
 import PreIds
 import StdPrel(isPreClass, mkNumInstBody)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
-               cTApply, cVApply, anyTExpr)
+               cTApply, cVApply)
 import Literal
 import IntLit
 import SymTab

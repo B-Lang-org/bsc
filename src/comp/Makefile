@@ -183,6 +183,7 @@ GHCFLAGS = \
 	-hide-all-packages \
 	$(FVIA) \
 	-Wall \
+        -Werror \
 	-fno-warn-orphans \
 	-fno-warn-name-shadowing \
 	-fno-warn-unused-matches \
