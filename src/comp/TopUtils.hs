@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, GeneralizedNewtypeDeriving, CPP #-}
+{-# LANGUAGE FlexibleInstances, CPP #-}
 module TopUtils where
 
 -- Haskell libs

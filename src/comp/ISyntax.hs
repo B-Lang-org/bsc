@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, DeriveDataTypeable #-}
 module ISyntax(
         IPackage(..),
         IDef(..),

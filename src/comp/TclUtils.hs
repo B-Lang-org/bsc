@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module TclUtils(
     ExpandInfoBag(..),
     ExpandInfoHelper(..),

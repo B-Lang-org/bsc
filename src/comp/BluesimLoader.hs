@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, ScopedTypeVariables, MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE ForeignFunctionInterface, ScopedTypeVariables, MultiParamTypeClasses, FlexibleInstances #-}
 module BluesimLoader ( BluesimModel(..)
                      , loadBluesimModel
                      , unloadBluesimModel

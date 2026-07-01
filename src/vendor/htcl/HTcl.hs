@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, ForeignFunctionInterface, CApiFFI #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches -Werror #-}
 
 -- User level Haskell interface for TCL
