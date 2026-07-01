@@ -18,7 +18,8 @@ compile_pass ExpSizeOf_Instances.bsv
 
 compile_pass ExpSizeOf_InstancesBase.bsv
 
-# Test that SizeOf is expanded even when it's buried in a type synonym
+# Test that SizeOf is expanded even when it's buried in a type synonym.
+# This was Bluespec Inc Bug 1729 (also GitHub Issue #311).
 compile_pass ExpSizeOf_InstancesBaseSyn.bsv
 
 # ---------------
@@ -33,31 +34,81 @@ compile_verilog_pass ExpSizeOf_Field.bsv
 # it succeeds.
 compile_verilog_pass ExpSizeOf_FieldSyn.bsv
 compile_verilog_pass ExpSizeOf_FieldSyn_BS.bs
+
+# Minimal reproduction: without expanding the synonym in ctxRedCQType, the
+# derived Generic instance fails to typecheck (the needed Bits context is not
+# injected), so it fails to compile.  A plain compile_pass is therefore a
+# sufficient regression guard -- no intermediate dump is needed.
 compile_pass ExpSizeOf_FieldSyn_Minimal.bs
 
-# ---------------
-# Test that SizeOf is expanded inside 'valueOf' (GitHub Issue #890)
+# Using a struct field whose type uses SizeOf through a synonym requires a Bits
+# context on the struct's type parameter.  The requirement is introduced during
+# typecheck of the field access, so it must be provided (GitHub Issue #890).
+compile_fail_error ExpSizeOf_FieldSyn_Use_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_FieldSyn_Use_NoCtx.bs]
+compile_pass ExpSizeOf_FieldSyn_Use_WithCtx.bs
 
+# A struct field whose SizeOf-using type has a type variable that is not a
+# parameter of the struct is not exempted from the Bits requirement: the field
+# must declare the context explicitly (GitHub Issues #890 and #310).  BSC
+# currently reports two T0030 errors here (one of which lacks a source
+# position), so this uses an expected count of 2 rather than compare_file.
+compile_fail_error ExpSizeOf_FieldSyn_Unbound_NoCtx.bs T0030 2
+compile_pass ExpSizeOf_FieldSyn_Unbound_WithCtx.bs
+
+# ---------------
+# Test that type functions like SizeOf are expanded in explicitly-typed
+# expressions, introducing the implicit contexts they require and reporting an
+# error when those contexts are not provided (GitHub Issue #890).  This covers
+# 'valueOf', 'stringOf', type-annotated expressions, and explicitly-typed let
+# bindings (valueOf and stringOf are themselves implemented using type-annotated
+# expressions).
+
+# valueOf
 compile_fail_error ExpSizeOf_ValueOf_NoCtx.bs T0030
 compare_file [make_bsc_output_name ExpSizeOf_ValueOf_NoCtx.bs]
-
 compile_pass ExpSizeOf_ValueOf_WithCtx.bs
 
-# Perform the same tests for 'stringOf'
+# stringOf
 compile_fail_error ExpSizeOf_StringOf_NoCtx.bs T0030
 compare_file [make_bsc_output_name ExpSizeOf_StringOf_NoCtx.bs]
 compile_pass ExpSizeOf_StringOf_WithCtx.bs
+
+# type-annotated expression, e.g. '(_ :: Bit (SizeOf a))'
+compile_fail_error ExpSizeOf_TypedExpr_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_TypedExpr_NoCtx.bs]
+compile_pass ExpSizeOf_TypedExpr_WithCtx.bs
+
+# explicitly-typed let binding
+compile_fail_error ExpSizeOf_Let_NoCtx.bs T0030
+compare_file [make_bsc_output_name ExpSizeOf_Let_NoCtx.bs]
 
 # Kind errors in valueOf type argument
 compile_fail_error ValueOf_KindMismatch_Arity.bs T0025
 compile_fail_error ValueOf_KindMismatch_Res.bs T0026
 
-# SizeOf in a let binding type annotation requires a Bits context
-compile_fail_error ExpSizeOf_Let_NoCtx.bs T0030
-compare_file [make_bsc_output_name ExpSizeOf_Let_NoCtx.bs]
+# ---------------
+# Type synonyms and type functions in instance heads
+# (GitHub Issue #311, bsc-contrib PR 46)
 
-# Test that cExtend works when type synonyms are expanded in instance heads
+# Plain type synonyms in an instance head are left unexpanded, so this compiles
+# without the explicit method types that bsc-contrib PR 46 previously needed.
 compile_pass CExtendSynonym.bsv
+
+# A type function (here a user-defined ATF) in the instance-head synonyms forces
+# the conditional expansion in ctxRedCQType', which re-introduces the dangling
+# parameter and still fails -- unless explicit method types are given.  This is
+# the case that remains broken (GitHub Issue #311).
+compile_fail_error CExtendATF.bsv T0035
+compile_pass CExtendATFExplicit.bsv
+
+# ---------------
+# SizeOf in the length of a Vector of subinterfaces (GitHub Issue #313,
+# Bluespec Inc Bug 1917).  This is not fixed by PR #916: the example typechecks,
+# but fails when synthesized, because GenWrap decides whether the field is a
+# method or a subinterface before typecheck and cannot reduce the SizeOf.
+compile_pass ExpSizeOf_VectorIfc.bsv
+compile_verilog_fail_error ExpSizeOf_VectorIfc.bsv T0043
 
 # ---------------
 

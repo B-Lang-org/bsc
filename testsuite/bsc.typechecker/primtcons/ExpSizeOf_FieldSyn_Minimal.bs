@@ -1,8 +1,10 @@
 package ExpSizeOf_FieldSyn_Minimal where
 
 -- Minimal reproduction: a struct with a field type that uses SizeOf
--- through a type synonym. Without expanding synonyms in ctxRedCQType,
--- we fail to inject the needed Bits context in the derived Generic instance.
+-- through a type synonym.  Without expanding synonyms in ctxRedCQType, the
+-- needed Bits context is not injected into the derived Generic instance, and
+-- that instance then fails to typecheck -- i.e. the failure is a compile
+-- error, so compile_pass is a sufficient regression guard here.
 
 type S t = SizeOf t
 

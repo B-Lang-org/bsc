@@ -1,0 +1,12 @@
+checking package dependencies
+compiling ExpSizeOf_FieldSyn_Use_NoCtx.bs
+Error: "ExpSizeOf_FieldSyn_Use_NoCtx.bs", line 18, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    ExpSizeOf_FieldSyn_Use_NoCtx.Node a -> Prelude.Bool
+  The following contexts are needed:
+    Prelude.Bits a a__
+      Introduced at the following locations:
+	"ExpSizeOf_FieldSyn_Use_NoCtx.bs", line 15, column 10
+  The type variables are from the following positions:
+    "a__" at "ExpSizeOf_FieldSyn_Use_NoCtx.bs", line 15, column 10

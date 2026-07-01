@@ -1,0 +1,18 @@
+package ATFFieldUnifyHKError where
+
+-- Like ATFUnifyHKError, but the unification of a higher-kinded type function
+-- application with a concrete type constructor is forced by reading a struct
+-- field.  Reading a field whose type uses the higher-kinded ATF (Elem a), and
+-- assigning it to Foo Maybe, requires Container a Maybe which is not in scope,
+-- so typecheck reports the missing context (T0030).
+
+class (Container :: * -> (* -> *) -> *) a s | a -> s where
+  type Elem a = s
+
+data Foo f = Foo (f Bool)
+
+struct Holder a =
+  val :: Foo (Elem a)
+
+getMaybe :: Holder a -> Foo Maybe
+getMaybe h = h.val

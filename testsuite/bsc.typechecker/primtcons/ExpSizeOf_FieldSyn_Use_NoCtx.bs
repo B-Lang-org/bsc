@@ -1,0 +1,19 @@
+package ExpSizeOf_FieldSyn_Use_NoCtx where
+
+-- Reading a struct field whose type uses SizeOf through a synonym chain
+-- requires a Bits context on the struct's type parameter.  The field type
+-- 'T a' expands to 'UInt (SizeOf a)', and reading the field during typecheck
+-- introduces the implicit 'Bits a' context.  Here it is not provided, so
+-- typecheck reports the missing context (T0030), confirming that the field's
+-- context requirement is handled during typecheck.  (GitHub Issue #890)
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct Node dataType =
+  dat  :: dataType
+  wide :: T dataType
+ deriving (Bits, Eq)
+
+fnNeedsCtx :: Node a -> Bool
+fnNeedsCtx n = n.wide == 0

@@ -1,5 +1,14 @@
-// Reduced version of bsc-contrib AMBA_TLM library.
-// Check that we can use type synonyms in instance heads.
+// Reduced version of the bsc-contrib AMBA_TLM library (see bsc-contrib PR 46).
+// Check that we can use type synonyms in instance heads.  The synonyms 'TLMId'
+// and 'AxiId' drop the 'addr_size' parameter; expanding them fully in the
+// instance head would leave 'addr_size' dangling and break unification.  This
+// exercises the (now conditional) synonym expansion in CtxRed.ctxRedCQType' --
+// see the XXX there and GitHub Issue #311.  Because these synonyms contain no
+// type function, the conditional expansion leaves them alone, so this compiles;
+// bsc-contrib PR 46 added explicit method types to work around the earlier
+// (unconditional-expansion) failure, and those are no longer needed here.
+// CExtendATF.bsv shows a variant that *does* still fail, because it puts a type
+// function in the synonyms and so triggers the expansion.
 
 function Bit#(m) zExtend(Bit#(n) value)
    provisos(Add#(n,m,k));

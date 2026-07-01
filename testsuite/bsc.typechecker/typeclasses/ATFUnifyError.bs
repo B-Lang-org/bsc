@@ -1,7 +1,10 @@
 package ATFUnifyError where
 
--- Test that unification of a type function application with a concrete type
--- fails when the needed class context is missing.
+-- Test that unifying a type function application (Elem a) with a concrete
+-- type (Bool) requires the corresponding class context (Container a Bool).
+-- Here it is missing, so typecheck reports it (T0030).  The unification is
+-- forced by giving 'id' the explicit type 'a -> Elem a -> Bool'.
+-- (See ATFFieldUnifyError for the same check via struct field access.)
 
 class Container f e | f -> e where
   type Elem f = e
@@ -14,10 +17,6 @@ instance Container (Box a) a where
   wrap = Box
   unwrap (Box x) = x
 
--- Reading a struct field whose type is Elem f, and assigning to Bool,
--- requires Container f Bool which is not in scope.
-struct Holder f =
-  val :: Elem f
-
-getBool :: Holder a -> Bool
-getBool h = h.val
+-- Unification creates an unsatisfied context Container a Bool
+conv :: a -> Elem a -> Bool
+conv _ = id
