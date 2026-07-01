@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ImplicitParams, PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
 module ITransform(
 
                  -- the transform stage
@@ -18,9 +19,10 @@ import Prelude hiding ((<>))
 #endif
 
 import Control.Monad(foldM, forM)
-import Control.Monad.State(State, runState, gets, get, put)
+import Control.Monad.State.Strict(State, runState, gets, get, put)
 import Data.List((\\))
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 
 import IntegerUtil(mask, integerAnd)
 import Util(log2, itos, appFstM, snd3, makePairs, flattenPairs,
@@ -1462,7 +1464,9 @@ newExprT t e = do
         let i = setBadId $ mkId noPosition (mkFString ((prefix ts) ++ itos n))
             e' = ICon i (ICValue t e)
             d = IDef i t e []  -- props get lost here, but restored in iTransRenameIdsInDef
-        put $ ts { idNo = n+1, cse_map = M.insert e (e', d) cmap }
+            cmap' = M.insert e (e', d) cmap
+            !n'   = n + 1
+        cmap' `seq` put $ ts { idNo = n', cse_map = cmap' }
         -- traceM ("newExprT " ++ ppString e ++ " -> " ++ ppString (e',d))
         return e'
 
@@ -1470,7 +1474,8 @@ addDefT :: Id -> IType -> IExpr a -> [DefProp] -> T () a
 addDefT i t e p = do
   -- traceM $ "addDefT " ++ ppString i ++ " " ++ ppString e
   ts <- get
-  put $ ts {def_map = M.insert i (t,e,p) (def_map ts) }
+  let dmap' = M.insert i (t,e,p) (def_map ts)
+  dmap' `seq` put $ ts {def_map = dmap' }
 
 getDefT :: Id -> T (Maybe (IExpr a)) a
 getDefT i = get >>= (return . fmap snd3 . M.lookup i . def_map)
@@ -1684,31 +1689,22 @@ iTransFixupDefNames flags = do
       old_defmap = def_map transform_state
       old_csemap = cse_map transform_state
 
-      -- A map from (bad) CSE names to the defs that it replaced
-      -- (from those defs, we'll want to pick a good name, to keep)
-      -- (and attempt to preserve the defprops?)
-      cse_ids_map :: M.Map Id [(Id, [DefProp])]
+      -- For each CSE name, the set of CSE-able defs that replaced it,
+      -- stored as a quality-ranked Set so picking the best Id is O(log n).
+      -- DefP_NoCSE defs are excluded at build time; missing keys map to
+      -- the cse_name identity via iTransRenameId's findWithDefault.
+      cse_ids_map :: M.Map Id (S.Set (Int, Id))
       cse_ids_map =
-          M.fromListWith (++) $
-               [ (cse_name, [(def_name, props)])
-                 | (def_name, (_, ICon cse_name value@(ICValue {}), props))
-                       <- M.toList old_defmap ]
+          M.fromListWith S.union $
+               [ ( cse_name
+                 , S.singleton (idQuality (Just def_name), def_name) )
+                 | (def_name, (_, ICon cse_name _value@(ICValue {}), props))
+                       <- M.toList old_defmap
+                 , not (defPropsHasNoCSE props) ]
 
-      -- Identify the name to be used, by filtering out the non-CSE defs
-      -- and picking the best name from the remaining
-      rename_map =
-          let pickId cse_id def_ips =
-                  -- filter out the non-CSE defs
-                  case (filter (not . defPropsHasNoCSE . snd) def_ips) of
-                    -- if they're all non-CSE, keep the bad name
-                    [] -> cse_id
-                    -- prefer a keep-marked name, then a non-bad name
-                    ips -> case filter (isKeepId . fst) ips of
-                             ((def_id, _):_) -> def_id
-                             [] -> case filter (not . isBadId . fst) ips of
-                                     ((def_id, _):_) -> def_id
-                                     [] -> fst (head ips)
-          in  M.mapWithKey pickId cse_ids_map
+      -- The best Id is the maximum of the quality-ordered set.
+      rename_map :: M.Map Id Id
+      rename_map = M.map (snd . S.findMax) cse_ids_map
 
       -- function to rename ICValue references (to use the new CSE name)
       rename_expr = iTransRenameIdsInExpr rename_map
