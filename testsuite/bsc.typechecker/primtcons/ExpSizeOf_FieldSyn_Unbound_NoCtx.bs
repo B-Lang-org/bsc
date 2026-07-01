@@ -1,0 +1,15 @@
+package ExpSizeOf_FieldSyn_Unbound_NoCtx where
+
+-- A struct field whose type uses SizeOf through a synonym, where the type
+-- variable is *not* a parameter of the struct.  Because the variable is
+-- unbound in the struct type, the field's implicit Bits context cannot be
+-- satisfied by the struct itself, so the field must declare it explicitly.
+-- Here it does not, so typecheck reports the missing context (T0030).
+-- (GitHub Issues #890 and #310: the field's context requirement is not
+-- wrongly exempted here, despite the XXX in TCheck.tiField1.)
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct MyS =
+  sfield :: T dataType

@@ -1,0 +1,11 @@
+package ExpSizeOf_FieldSyn_Unbound_WithCtx where
+
+-- As ExpSizeOf_FieldSyn_Unbound_NoCtx, but the field declares the Bits
+-- context that its SizeOf-using type requires, so typecheck succeeds.
+-- (GitHub Issues #890 and #310)
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct MyS =
+  sfield :: (Bits dataType sz) => T dataType
