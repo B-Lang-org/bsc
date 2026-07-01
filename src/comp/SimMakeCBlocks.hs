@@ -1437,6 +1437,20 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         -- Convert the graph to the format expected by tsort.
         g_edges = M.toList g
 
+        -- tsort breaks ties by node Ord (for defs, the run-dependent AId Ord),
+        -- so rank def nodes by id-name before tsort and map back for a stable
+        -- order.  (Actions keep their position; Left<Right keeps defs first.)
+        g_def_ids = nub [ i | (n,ns) <- g_edges, Left i <- n:ns ]
+        rank_map = M.fromList $
+                     zip (sortBy (\a b -> compare (getIdString a) (getIdString b)) g_def_ids)
+                         [(0::Integer)..]
+        unrank_map = M.fromList [ (r,i) | (i,r) <- M.toList rank_map ]
+        encNode (Left i)  = Left (fromJust (M.lookup i rank_map))
+        encNode (Right n) = Right n
+        decNode (Left r)  = Left (fromJust (M.lookup r unrank_map))
+        decNode (Right n) = Right n
+        enc_edges = [ (encNode n, map encNode ns) | (n,ns) <- g_edges ]
+
         -- ----------
         -- convert a graph node back into a def/action
         -- and then to a SimCCFnStmt
@@ -1509,17 +1523,17 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         -- the lower valued nodes first.  Thus, we have chosen the node
         -- representation to put Defs first, followed by Actions in the
         -- order that they were give by the user.)
-        case (tsort g_edges) of
+        case (tsort enc_edges) of
             Left iss ->
                 let -- lookup def and action nodes
                     lookupFn = either (Left . getDef) (Right . getAct)
-                    xss = map (map lookupFn) iss
+                    xss = map (map (lookupFn . decNode)) iss
                 in  internalError ("tsortActionsAndDefs: cyclic: " ++
                                    ppReadable (modId, rId) ++
                                    ppReadable xss)
             Right is ->
                 let -- lookup def and action nodes
-                    xs = map (either (Left . getDef) (Right . getAct)) is
+                    xs = map ((either (Left . getDef) (Right . getAct)) . decNode) is
                     -- group by reset conditions
                     grouped = groupRsts xs
                 in -- declare the local temporaries
