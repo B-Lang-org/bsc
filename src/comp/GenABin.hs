@@ -753,6 +753,7 @@ instance Bin VMItem where
                                          toBin m
     writeBytes (VMGroup a body)     = do putI 6; toBin a; toBin body
     writeBytes (VMFunction f)       = do putI 7; toBin f
+    writeBytes (VMDPI dpi)          = do putI 8; toBin dpi
     readBytes = do
       i <- getI
       case i of
@@ -766,6 +767,7 @@ instance Bin VMItem where
                 return (VMRegGroup i s c m)
         6 -> do a <- fromBin; body <- fromBin; return (VMGroup a body)
         7 -> do f <- fromBin; return (VMFunction f)
+        8 -> do dpi <- fromBin; return (VMDPI dpi)
         n -> internalError $ "GenABin(VMItem).readBytes: " ++ show n
 
 instance Bin VVDecl where
