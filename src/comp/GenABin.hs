@@ -642,10 +642,11 @@ instance Bin VModule where
                    body <-fromBin; return (VModule name c ports body)
 
 instance Bin VDPI where
-    writeBytes (VDPI name ret args) =
-        do toBin name; toBin ret; toBin args
-    readBytes = do name <- fromBin; ret <- fromBin; args <- fromBin;
-                   return (VDPI name ret args)
+    writeBytes (VDPI name mclink cfn ret args) =
+        do toBin name; toBin mclink; toBin cfn; toBin ret; toBin args
+    readBytes = do name <- fromBin; mclink <- fromBin; cfn <- fromBin;
+                   ret <- fromBin; args <- fromBin;
+                   return (VDPI name mclink cfn ret args)
 
 instance Bin VDPIType where
     writeBytes (VDT_void)    = do putI 0

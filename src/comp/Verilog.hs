@@ -130,26 +130,36 @@ ppComment cs =
 
 
 -- VDPI
---    * The function name
+--    * The function name (the SystemVerilog function name)
+--    * An optional C linkage name (the "c_identifier =" alias); when present,
+--      the SV function links to this generated wrapper C symbol instead of a
+--      C function of the same name.  Used for monomorphized polymorphic imports.
+--    * An optional "real" C function name that the wrapper forwards to (present
+--      exactly when the c_identifier alias is).  Carried so the wrapper can be
+--      generated directly from the VDPI.
 --    * The return type
 --    * The arguments (name, whether it's an input, type)
-data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
+data VDPI = VDPI VId (Maybe String) (Maybe String) VDPIType [(VId, Bool, VDPIType)]
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint VDPI where
-  pPrint d p (VDPI name ret args) =
+  pPrint d p (VDPI name mclink _cfn ret args) =
     let
         mkDir False = text "output"
         mkDir True  = text "input"
         ppArg (i, dir, t) = mkDir dir <+> pPrint d 0 t <+> pPrint d 0 i
+        clink = case mclink of
+                  Nothing -> empty
+                  Just s  -> text s <+> text "="
     in
-        text "import \"DPI-C\" function" <+>
+        text "import \"DPI-C\"" <+> clink <+> text "function" <+>
         pPrint d 0 ret <+> pPrint d 0 name <+> text "(" <>
         sepList (map ppArg args) (text ",") <>
         text ");"
 
 instance NFData VDPI where
-    rnf (VDPI name ret args) = rnf3 name ret args
+    rnf (VDPI name mclink cfn ret args) =
+        rnf name `seq` rnf mclink `seq` rnf cfn `seq` rnf ret `seq` rnf args
 
 data VDPIType = VDT_void
               | VDT_byte
@@ -167,6 +177,10 @@ instance PPrint VDPIType where
   pPrint _ _ VDT_longint = text "longint unsigned"
   pPrint _ _ (VDT_wide n) = text $ "bit [" ++ itos (n-1) ++ ":0]"
   pPrint _ _ VDT_string  = text "string"
+  -- VDT_poly is not emitted in DPI import declarations: polymorphic operands
+  -- are monomorphized to a concrete "bit [W-1:0]" (VDT_wide W) per use width
+  -- (see ForeignFunctions.mkDPIDeclarations).  This rendering is a harmless
+  -- placeholder should it ever be printed.
   pPrint _ _ VDT_poly    = text "bit []"
 
 instance NFData VDPIType where

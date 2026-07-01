@@ -54,7 +54,8 @@ import VPrims(verilogInstancePrefix, viWidth)
 import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateFStringUsingFStringMap)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
-                        isPoly, isWide, isMappedAVId)
+                        isPoly, isWide, isMappedAVId,
+                        isPolyFF, mkDPIMonoName, dpiPolyWidths)
 
 import Util
 import IntegerUtil
@@ -75,7 +76,11 @@ data VConvtOpts = VConvtOpts {
                               vco_v95_tasks   :: [String],
                               vco_readableMux :: Bool,
                               vco_sv_tasks    :: Bool,
-                              vco_use_dpi     :: Bool
+                              vco_use_dpi     :: Bool,
+                              -- foreign-function map and def widths, for
+                              -- monomorphizing polymorphic DPI call names
+                              vco_ffmap       :: ForeignFuncMap,
+                              vco_def_widths  :: M.Map AId Integer
                               }
 
 
@@ -86,7 +91,9 @@ flagsToVco flags = VConvtOpts {
                                vco_v95_tasks = ["$signed", "$unsigned"],
                                vco_readableMux = readableMux flags,
                                vco_sv_tasks = systemVerilogTasks flags,
-                               vco_use_dpi = useDPI flags
+                               vco_use_dpi = useDPI flags,
+                               vco_ffmap = M.empty,
+                               vco_def_widths = M.empty
                               }
 
 -- This has been abolished from the compiler everywhere but the Verilog backend
@@ -215,7 +222,14 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
   if aid==idSVA then fcall es
                   else foldr (Vif . mkNotEqualsReset . vExpr vco) fcall_body resets
   where
-    vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
+    -- monomorphize the DPI call name by the concrete polymorphic-operand widths
+    dpiName = if vco_use_dpi vco
+              then dpiMonoCallName vco taskid retW (map (aSize . aType) es)
+              else taskid
+    retW = case ids of
+             (w:_) -> M.lookup w (vco_def_widths vco)
+             []    -> Nothing
+    vtaskid = VId (vCommentTaskName vco dpiName) aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids
                  in case isAForeignCallWithRetAsArg vco ffmap f of
                      (Just ty) -> ([], (ASDef ty lv) : es)
@@ -582,7 +596,12 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
     [ VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]
     , VMStmt { vi_translate_off = True, vi_body = body }
     ]
-  where name = vCommentTaskName vco (vNameToTask (vco_use_dpi vco) (ae_funname fn))
+  where name = vCommentTaskName vco foreignNm
+        foreignNm = if vco_use_dpi vco
+                    then dpiMonoCallName vco (ae_funname fn)
+                                         (Just (aSize t_t))
+                                         (map (aSize . aType) (ae_args fn))
+                    else vNameToTask False (ae_funname fn)
         vtaskid = VId name (ae_objid fn) Nothing
         sensitivityList = nub (concatMap aIds (ae_args fn))
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
@@ -684,8 +703,11 @@ vExpr vco (APrim aid t p es) = VEOp (idToVId aid) (vExpr vco (APrim aid t p (ini
 -- vExpr vco (AMethCall t i m []) = VEVar (vMethId i m 1 MethodResult M.Empty)
 -- vExpr vco (AMethCall t i m _) = internalError "AVerilog.vExpr: AMethCall with args"
 -- vExpr vco (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult M.Empty)
-vExpr vco (AFunCall _ _ n isC es) =
-  let name = vCommentTaskName vco (if isC then vNameToTask (vco_use_dpi vco) n else n)
+vExpr vco e@(AFunCall t _ n isC es) =
+  let foreignName = if vco_use_dpi vco
+                    then dpiMonoCallName vco n (Just (aSize t)) (map (aSize . aType) es)
+                    else vNameToTask False n
+      name = vCommentTaskName vco (if isC then foreignName else n)
   in VEFctCall (mkVId name) (map (vExpr vco) es)
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
@@ -1099,10 +1121,20 @@ vCommentTaskName vco s | vco_v95 vco && elem s (vco_v95_tasks vco) = " /*" ++ s 
                        | otherwise = s
 
 -- create a Verilog DPI/VPI task name from a foreign function name
--- XXX When using DPI, if any types are poly, use the wrapper name
 vNameToTask :: Bool -> String -> String
 vNameToTask True  s = s
 vNameToTask False s = "$imported_" ++ s
+
+-- Monomorphize a DPI foreign-call name by the concrete widths of its
+-- polymorphic operands, matching ForeignFunctions.mkDPIDeclarations.  For a
+-- monomorphic function (or one not found), the base name is returned unchanged.
+-- 'mretW' is the concrete return width (used only when the return is
+-- polymorphic); 'argWs' are the concrete argument widths (aligned to ff_args).
+dpiMonoCallName :: VConvtOpts -> String -> Maybe Integer -> [Integer] -> String
+dpiMonoCallName vco base mretW argWs =
+  case M.lookup base (vco_ffmap vco) of
+    Just ff | isPolyFF ff -> mkDPIMonoName base (dpiPolyWidths ff mretW argWs)
+    _                     -> base
 
 
 -- ==============================
