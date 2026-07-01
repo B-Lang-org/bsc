@@ -22,7 +22,7 @@ import SCC(tsort)
 import Util
 
 import Data.Maybe(mapMaybe, isJust, fromJust, fromMaybe, maybeToList)
-import Data.List(partition, nub, union, find, sortBy, (\\))
+import Data.List(partition, nub, union, find, sortBy, sortOn, (\\))
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -264,8 +264,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       -- to compute CAN_FIRE and WILL_FIRE signals.
       -- Sort by base name so the order doesn't depend on raw_defs' AId map
       -- order (AId's Ord follows run-dependent interned-FString order).
-      all_defs = sortBy (\(_,i1) (_,i2) -> compare (getIdBaseString i1) (getIdBaseString i2))
-                        (map cvtADef raw_defs)
+      all_defs = sortOn (getIdBaseString . snd) (map cvtADef raw_defs)
       cf_wf_ex = [ ASDef t i
                  | (t,i) <- all_defs
                  , (isFire i)
@@ -301,8 +300,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                   ]
       -- Sort by base name so the order doesn't depend on the AId map order
       -- (AId's Ord follows run-dependent interned-FString order).
-      ports = sortBy (\(_,a,_) (_,b,_) -> compare (getIdBaseString a) (getIdBaseString b))
-                     (meth_ens ++ meth_args ++ meth_rets)
+      ports = sortOn (\(_,a,_) -> getIdBaseString a) (meth_ens ++ meth_args ++ meth_rets)
 
       -- ----------
       -- clock domains
@@ -1443,15 +1441,21 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         -- tsort breaks ties by node Ord (for defs, the run-dependent AId Ord),
         -- so rank def nodes by id-name before tsort and map back for a stable
         -- order.  (Actions keep their position; Left<Right keeps defs first.)
-        g_def_ids = nub [ i | (n,ns) <- g_edges, Left i <- n:ns ]
+        g_def_ids :: [AId]
+        g_def_ids = S.toList $ S.fromList [ i | (n,ns) <- g_edges, Left i <- n:ns ]
+        rank_map :: M.Map AId Integer
         rank_map = M.fromList $
-                     zip (sortBy (\a b -> compare (getIdString a) (getIdString b)) g_def_ids)
+                     zip (sortOn getIdString g_def_ids)
                          [(0::Integer)..]
+        unrank_map :: M.Map Integer AId
         unrank_map = M.fromList [ (r,i) | (i,r) <- M.toList rank_map ]
+        encNode :: Node -> EncNode
         encNode (Left i)  = Left (fromJust (M.lookup i rank_map))
         encNode (Right n) = Right n
+        decNode :: EncNode -> Node
         decNode (Left r)  = Left (fromJust (M.lookup r unrank_map))
         decNode (Right n) = Right n
+        enc_edges :: [EncEdge]
         enc_edges = [ (encNode n, map encNode ns) | (n,ns) <- g_edges ]
 
         -- ----------
@@ -1549,6 +1553,11 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 
 type Node = Either AId Integer
 type Edge = (Node, [Node])
+
+-- A Node with its def id (the Left) replaced by that id's integer rank,
+-- so tsort's Ord-based tie-breaking is stable rather than AId-order dependent.
+type EncNode = Either Integer Integer
+type EncEdge = (EncNode, [EncNode])
 
 -- ----------
 

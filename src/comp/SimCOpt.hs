@@ -13,9 +13,8 @@ import Util(mapSnd)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)
-import Data.List(find, intercalate, sortBy)
+import Data.List(find, intercalate, sortOn)
 import Data.List.Split(split, condense, oneOf)
-import Data.Function(on)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -223,7 +222,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
           let fname = sf_name fn
               -- Sort by base name so the order doesn't depend on the Id sort
               -- (which carries hierarchy-dependent qualifier/position info).
-              moved_aids = sortBy (compare `on` getIdBaseString)
+              moved_aids = sortOn getIdBaseString
                              (map snd (M.findWithDefault [] ((Just sbid),fname) move_map))
               new_defs = [ SFSDef isPort (ty,aid) Nothing
                          | aid <- moved_aids
