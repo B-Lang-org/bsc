@@ -70,6 +70,7 @@ HTCL_INC_FLAGS += $(addprefix -D,$(TCL_DEFS))
 
 GHC ?= ghc
 GHCJOBS ?= 1
+GHC_PKG ?= ghc-pkg
 
 GHCVERSION=$(shell $(GHC) --version | head -1 | grep -Eo "[0-9]+\.[0-9]+\.[0-9]" )
 $(info Building with GHC $(GHCVERSION))
