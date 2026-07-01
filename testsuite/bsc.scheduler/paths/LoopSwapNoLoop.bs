@@ -1,0 +1,40 @@
+package LoopSwapNoLoop where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- The same combinational SWAP submodule as the input-arg loop test:
+--   out_p1 = in_p2   and   out_p2 = in_p1
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopSwapNoLoopSub #-}
+mkLoopSwapNoLoopSub :: Module SubIfc
+mkLoopSwapNoLoopSub =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p2; p2 = a.p1 })
+
+interface TopIfc =
+  top :: Bool -> Bool
+
+-- Feed the top input into the swap submodule's split INPUT p1, but RETURN the
+-- swap submodule's split OUTPUT p1.  Because out_p1 = in_p2 (NOT in_p1), the
+-- value that came in on in_p1 only reaches out_p2, which is discarded here.
+-- So the only real combinational path is from the constant on in_p2... and the
+-- top input that drives in_p1 reaches NO output port.  Per-port tracking
+-- discriminates the swapped ports, so there is NO path top_1 -> top and (had a
+-- feedback been wired) NO loop.  Sibling to LoopInputArgLoop, which DOES loop
+-- because it reads the swapped out_p2.
+{-# synthesize mkLoopSwapNoLoop #-}
+mkLoopSwapNoLoop :: Module TopIfc
+mkLoopSwapNoLoop =
+  module
+    s <- mkLoopSwapNoLoopSub
+    interface
+      top x = case s.get (ShallowSplit (Pair { p1 = x; p2 = False })) of
+                ShallowSplit res -> res.p1

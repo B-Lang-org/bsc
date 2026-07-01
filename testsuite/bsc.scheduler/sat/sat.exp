@@ -12,7 +12,7 @@ set sources [list \
 		 ArraySelectShortIndexTest ArraySelectLongIndexTest \
 		 ArraySelectImplCondTest \
 		 ParamBoolTest ParamBitsTest \
-		 Word64Test
+		 Word64Test SplitTupleMethodTest
                 ]
 
 set solvers [list yices stp]

@@ -1,0 +1,41 @@
+package DeepLeafTwoLevels where
+
+import SplitPorts
+
+-- Three levels of nesting: Top -> Mid -> Leaf.
+struct Leaf =
+  lo :: Bool
+  hi :: Bool
+ deriving (Bits)
+
+struct Mid =
+  p :: Leaf
+  q :: Leaf
+ deriving (Bits)
+
+struct Top =
+  m :: Mid
+  n :: Mid
+ deriving (Bits)
+
+interface Ifc =
+  -- Deep split recurses two levels of nested structs down to leaf ports,
+  -- e.g. input get_1_m_p_lo, output get_m_p_lo.
+  get :: DeepSplit Top -> DeepSplit Top
+
+-- Only two of the eight deep leaves are combinational from their matching
+-- input leaf; the rest come from a register.  This checks that path analysis
+-- reaches two-levels-deep leaf ports and isolates them:
+--   get_m_p_lo  <- a.m.p.lo   => get_1_m_p_lo -> get_m_p_lo
+--   get_n_q_hi  <- a.n.q.hi   => get_1_n_q_hi -> get_n_q_hi
+{-# synthesize mkDeepLeafTwoLevels #-}
+mkDeepLeafTwoLevels :: Module Ifc
+mkDeepLeafTwoLevels =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit a) =
+        DeepSplit (Top { m = Mid { p = Leaf { lo = a.m.p.lo; hi = r }
+                                 ; q = Leaf { lo = r; hi = r } }
+                       ; n = Mid { p = Leaf { lo = r; hi = r }
+                                 ; q = Leaf { lo = r; hi = a.n.q.hi } } })

@@ -2726,24 +2726,22 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           in  S.unions $ map findRulePortUses rs
 
       -- Given an interface field, determine if a conflict edge is needed
-      findAIFaceUses (AIActionValue { aif_name = mid,
-                                      aif_value = d,
-                                      aif_body = rs,
-                                      aif_inputs = as }) =
+      findAIFaceUses iface@(AIActionValue { aif_name = mid,
+                                            aif_value = d,
+                                            aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                    valset = findAVValueUses d
                in  S.intersection argset (S.union condset valset)
-      findAIFaceUses (AIAction { aif_name = mid,
-                                 aif_body = rs,
-                                 aif_inputs = as }) =
+      findAIFaceUses iface@(AIAction { aif_name = mid,
+                                       aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                in  S.intersection argset condset
       findAIFaceUses _ = S.empty
@@ -4139,11 +4137,11 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     -- rule, dId and rId will be the same)
     [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred, dExpr] rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-        where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
-    | isRdyId dId = []
-    | otherwise   = [(Rule dId Nothing [ifPred] [ifPred,dExpr] [])]
-        where dExpr = ASDef t dId
+    where dExpr = ASDef t dId
+cvtIfc (AIDef mId _ _ _ _ _ _) | isRdyId mId = []
+cvtIfc (AIDef mId _ _ ifPred (ADef dId t _ _) _ _) =
+    [(Rule mId Nothing [ifPred] [ifPred, dExpr] [])]
+    where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []

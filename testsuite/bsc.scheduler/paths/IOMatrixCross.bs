@@ -1,0 +1,22 @@
+package IOMatrixCross where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- A value method whose split result CROSSES the split input: output field
+  -- p1 is wired from input field p2, and output field p2 is wired from input
+  -- field p1.  Path analysis must report exactly the crossed edges and NONE
+  -- of the straight-through edges.
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkIOMatrixCross #-}
+mkIOMatrixCross :: Module Ifc
+mkIOMatrixCross =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p2; p2 = a.p1 })

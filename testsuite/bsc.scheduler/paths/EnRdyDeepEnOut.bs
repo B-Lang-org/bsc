@@ -1,0 +1,32 @@
+package EnRdyDeepEnOut where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- An Action method 'fire' with an enable, and a value method 'rd' whose
+  -- DEEP-split result has a leaf (x_a) driven combinationally by EN_fire,
+  -- while sibling leaves (x_b, y) come from registers.  Path analysis should
+  -- report a path only to the deep leaf output port rd_x_a.
+  fire :: Bool -> Action
+  rd   :: DeepSplit Outer
+
+{-# synthesize mkEnRdyDeepEnOut #-}
+mkEnRdyDeepEnOut :: Module Ifc
+mkEnRdyDeepEnOut =
+  module
+    w  :: RWire Bool <- mkRWire
+    rb :: Reg Bool   <- mkReg False
+    ry :: Reg Bool   <- mkReg False
+    interface
+      fire v = w.wset v
+      rd = DeepSplit (Outer { x = Inner { a = isValid (w.wget); b = rb }; y = ry })

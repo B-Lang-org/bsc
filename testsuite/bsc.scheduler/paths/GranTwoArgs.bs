@@ -1,0 +1,27 @@
+package GranTwoArgs where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- A value method with TWO split arguments, named "lhs"/"rhs" via the arg_names
+-- pragma.  Each argument is split into its own field ports (combine_lhs_p1,
+-- combine_rhs_p2, ...) and the result is split too.  The result field p1 is
+-- combinational from the lhs argument's p1, and result field p2 is
+-- combinational from the rhs argument's p2.  Path analysis must distinguish
+-- sub-ports of arg lhs vs arg rhs: the path goes lhs_p1 -> p1 and rhs_p2 -> p2,
+-- but NOT the cross edges lhs_p2 -> p2 or rhs_p1 -> p1.
+interface Ifc =
+  combine :: ShallowSplit Pair -> ShallowSplit Pair -> ShallowSplit Pair
+    {-# arg_names = ["lhs", "rhs"] #-}
+
+{-# synthesize mkGranTwoArgs #-}
+mkGranTwoArgs :: Module Ifc
+mkGranTwoArgs =
+  module
+    interface
+      combine (ShallowSplit l) (ShallowSplit r) =
+        ShallowSplit (Pair { p1 = l.p1; p2 = r.p2 })

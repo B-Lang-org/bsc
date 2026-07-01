@@ -1,0 +1,55 @@
+package SelectorMuxPath where
+
+import SplitPorts
+import Vector
+
+-- Split input has a selector field plus two data fields and one unused field.
+-- The selector field (sel) chooses which of TWO combinational submodule reads
+-- is forwarded to the (single, unsplit) output.
+struct Cmd =
+  sel  :: Bool
+  a    :: Bit 4
+  b    :: Bit 4
+  dead :: Bit 4
+ deriving (Bits)
+
+-- A single-ported combinational lookup submodule (RegFile-like): the read is
+-- combinational from the index argument.
+interface LookupIfc =
+  lookup :: Bit 4 -> Bool
+
+{-# synthesize mkSelectorMuxSubA #-}
+mkSelectorMuxSubA :: Module LookupIfc
+mkSelectorMuxSubA =
+  module
+    rs :: Vector 16 (Reg Bool) <- replicateM (mkReg False)
+    interface
+      lookup i = (select rs i)._read
+
+{-# synthesize mkSelectorMuxSubB #-}
+mkSelectorMuxSubB :: Module LookupIfc
+mkSelectorMuxSubB =
+  module
+    rs :: Vector 16 (Reg Bool) <- replicateM (mkReg False)
+    interface
+      lookup i = (select rs i)._read
+
+interface TopIfc =
+  -- split input (Cmd -> 4 ports), single unsplit Bool output
+  run :: ShallowSplit Cmd -> Bool
+
+-- The split input field 'sel' index-selects between two distinct combinational
+-- submodule reads: subA.lookup indexed by the 'a' data field, subB.lookup
+-- indexed by the 'b' data field.  Because the mux is data-dependent on the
+-- split fields, the single output 'run' is combinationally reachable from the
+-- selector port (run_1_sel) AND from BOTH selected data ports (run_1_a,
+-- run_1_b).  The 'dead' field drives nothing, so run_1_dead must NOT appear.
+{-# synthesize mkSelectorMuxPath #-}
+mkSelectorMuxPath :: Module TopIfc
+mkSelectorMuxPath =
+  module
+    subA <- mkSelectorMuxSubA
+    subB <- mkSelectorMuxSubB
+    interface
+      run (ShallowSplit c) =
+        if c.sel then subA.lookup c.a else subB.lookup c.b

@@ -1462,7 +1462,10 @@ returns a single identifier formed by joining the components with underscores.
 >             -- Bool indicates whether there's a separate Ready method for this one
 > pMethodVeriProt prefix =
 >     do pos <- getPos
+>        -- A hand-written BVI value method has a single result port; there is
+>        -- no syntax for multiple output ports yet (TODO).
 >        (optOPort, name) <- pMethodNameOptOPort <?> "method output port or name"
+>        let oPorts = maybeToList optOPort
 >        multi <- option 1 (pInBrackets pDecimal)
 >        args <- (option [] (pInParens (pCommaSep pMethodArgVeriPort))
 >                 <?> "method arguments")
@@ -1507,16 +1510,19 @@ returns a single identifier formed by joining the components with underscores.
 >                            Just (VeriPt p) ->
 >                              [(mkRdyId name,
 >                                V.Method (mkRdyId fullname)
->                                    clk rst 0 [] (Just p) Nothing,
+>                                    clk rst 0 [] [p] Nothing,
 >                                False)]
 >                            Just _ -> internalError "pMethodVeriProt(4)"
+>        -- BVI does not support method args with multiple ports,
+>        -- but VModInfo.Method expects a list of ports for each arg.
+>        let argGroups = map (:[]) args
 >        return ((name,
 >                 V.Method fullname
 >                          clk
 >                          rst
 >                          multi
->                          args
->                          optOPort
+>                          argGroups
+>                          oPorts
 >                          en,
 >                  not(null nullOrReady))
 >                : nullOrReady)
@@ -4600,7 +4606,8 @@ a "module verilog":
 >     let g (s,Nothing) = [(s,[])]
 >         g (s,Just g) = [(s,[]),(g,[])]
 >         f (Nothing, _) = []
->         f (Just i , cmg) = [V.Method i Nothing Nothing 1 (concat(map g cmg)) Nothing Nothing]
+>         f (Just i , cmg) =
+>             [V.Method i Nothing Nothing 1 (map (:[]) (concat (map g cmg))) [] Nothing]
 >     in concat . (map f)
 
 > pImperativeForeignModuleAt :: Position -> Attributes -> ImperativeFlags

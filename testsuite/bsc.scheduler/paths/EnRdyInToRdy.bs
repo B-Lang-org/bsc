@@ -1,0 +1,25 @@
+package EnRdyInToRdy where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- 'put' takes a split argument and forwards one sub-port (p1) onto an RWire.
+  -- 'gate' is a value method whose readiness (RDY) is the *value* carried on
+  -- that RWire, so RDY_gate combinationally depends on the split input port
+  -- put_1_p1 (and not on put_1_p2, which is never forwarded).
+  put  :: ShallowSplit Pair -> Action
+  gate :: Bool
+
+{-# synthesize mkEnRdyInToRdy #-}
+mkEnRdyInToRdy :: Module Ifc
+mkEnRdyInToRdy =
+  module
+    w :: RWire Bool <- mkRWire
+    interface
+      put (ShallowSplit a) = w.wset a.p1
+      gate = False when fromMaybe False (w.wget)

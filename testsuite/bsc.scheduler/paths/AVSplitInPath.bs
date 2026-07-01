@@ -1,0 +1,26 @@
+package AVSplitInPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface AVIfc =
+  -- ActionValue method with BOTH a split input arg and a split result.
+  -- The output p1 is combinational from the *crossed* input field p2, and
+  -- the output p2 is combinational from the input field p1.  This pins down
+  -- per-input-port path tracking: each split output port depends on exactly
+  -- one specific split input port, and the "diagonal" edges are absent.
+  upd :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+
+{-# synthesize mkAVSplitInPath #-}
+mkAVSplitInPath :: Module AVIfc
+mkAVSplitInPath =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      upd (ShallowSplit a) =
+        do r := a.p1
+           return (ShallowSplit (Pair { p1 = a.p2; p2 = a.p1 }))

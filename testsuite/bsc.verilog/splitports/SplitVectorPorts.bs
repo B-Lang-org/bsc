@@ -1,0 +1,160 @@
+package SplitVectorPorts where
+
+-- Tests for the SplitVector port-splitting newtype.
+--
+-- SplitVector n a splits a vector into n groups of ports, splitting each
+-- element via the element type's own SplitPorts instance.  This exercises both
+-- input and output port splitting:
+--   * plain (default, whole-element) elements
+--   * DeepSplit elements
+--   * ShallowSplit elements
+--   * a user-supplied SplitPorts instance as the element
+--   * nested SplitVectors
+--   * multiple split-vector arguments with an arg_names pragma
+--   * a prefix pragma
+--   * a SplitVector field of a shallow-split struct
+--   * value methods, combinational methods (split input + split output) and
+--     ActionValue methods that return SplitVectors (output port splitting)
+--
+-- The values are recovered for display (verifying the splitPorts/unsplitPorts
+-- round-trip through the generated ports) using the unShallowSplit / unDeepSplit
+-- / unSplitVector helpers from the SplitPorts library.
+
+import Vector
+import BuildVector
+import SplitPorts
+import CShow
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+struct Bar =
+  v :: Vector 3 Bool
+  w :: (Bool, UInt 16)
+  z :: Foo
+ deriving (Bits)
+
+-- A custom (non-tag) SplitPorts instance, to check that SplitVector defers to
+-- the element type's own SplitPorts instance for naming and splitting.
+struct Pair =
+  a :: Int 8
+  b :: UInt 16
+ deriving (Bits)
+
+instance SplitPorts Pair (Port (Int 8), Port (UInt 16)) where
+  splitPorts x = (Port x.a, Port x.b)
+  unsplitPorts (Port a, Port b) = Pair { a = a; b = b; }
+  portNames _ base = Cons (base +++ "_a") $ Cons (base +++ "_b") Nil
+
+-- A struct with a SplitVector field, to check that SplitVector composes inside
+-- a shallow-split struct.
+struct Wrap =
+  items :: SplitVector 2 (DeepSplit Foo)
+  tag :: Bool
+ -- No Bits instance needed
+
+interface SplitTest =
+  -- == Input port splitting ==
+  -- Plain elements: each element kept whole as one port (default SplitPorts).
+  putInts :: SplitVector 4 (Int 8) -> Action
+  -- DeepSplit elements: each Foo recursively split into x and y ports.
+  putFoos :: SplitVector 3 (DeepSplit Foo) -> Action
+  -- ShallowSplit elements, with a prefix pragma.
+  putBars :: SplitVector 2 (ShallowSplit Bar) -> Action {-# prefix = "PUT_BARS" #-}
+  -- Custom SplitPorts instance elements.
+  putPairs :: SplitVector 2 Pair -> Action
+  -- Nested SplitVectors.
+  putGrid :: SplitVector 2 (SplitVector 3 (DeepSplit Foo)) -> Action
+  -- Multiple split-vector arguments with arg_names.
+  putTwo :: SplitVector 2 (DeepSplit Foo) -> SplitVector 2 (Int 8) -> Action {-# arg_names = ["foos", "ints"] #-}
+  -- SplitVector as a field of a shallow-split struct.
+  putWrap :: ShallowSplit Wrap -> Action
+
+  -- == Output port splitting ==
+  -- Value method, plain elements: output ports getInts_0 .. getInts_3.
+  getInts :: SplitVector 4 (Int 8)
+  -- Value method, DeepSplit elements, with a result pragma naming the outputs.
+  getFoos :: SplitVector 3 (DeepSplit Foo) {-# result = "GET_FOOS" #-}
+  -- Combinational method: split input AND split output (the in -> out path is
+  -- checked in the generated Verilog).
+  bumpFoos :: SplitVector 2 (DeepSplit Foo) -> SplitVector 2 (DeepSplit Foo) {-# result = "BUMP" #-}
+  -- ActionValue method: split input and split output.
+  updateVec :: SplitVector 2 (Int 8) -> ActionValue (SplitVector 2 (DeepSplit Foo))
+
+{-# synthesize mkSplitVectorPortsTest #-}
+mkSplitVectorPortsTest :: Module SplitTest
+mkSplitVectorPortsTest =
+  module
+    acc :: Reg (Int 8) <- mkReg 0
+    interface
+      putInts sv = $display "putInts: " (cshow (unSplitVector sv))
+      putFoos sv = $display "putFoos: " (cshow (map unDeepSplit (unSplitVector sv)))
+      putBars sv = $display "putBars: " (cshow (map unShallowSplit (unSplitVector sv)))
+      putPairs sv = $display "putPairs: " (cshow (unSplitVector sv))
+      putGrid sv = $display "putGrid: " (cshow (map (\ inner -> map unDeepSplit (unSplitVector inner)) (unSplitVector sv)))
+      putTwo foos ints = $display "putTwo: " (cshow (map unDeepSplit (unSplitVector foos))) " " (cshow (unSplitVector ints))
+      putWrap (ShallowSplit w) =
+        $display "putWrap: items=" (cshow (map unDeepSplit (unSplitVector w.items))) " tag=" (cshow w.tag)
+
+      getInts = SplitVector (vec 50 60 70 80)
+      getFoos = SplitVector $ map DeepSplit $
+                  vec (Foo { x = 1; y = 2; }) (Foo { x = 3; y = 4; }) (Foo { x = 5; y = 6; })
+      bumpFoos sv =
+        SplitVector $ map (\ f -> DeepSplit $ Foo { x = f.x + 1; y = f.y - 1; }) $
+          map unDeepSplit (unSplitVector sv)
+      updateVec sv = do
+        acc := acc + 1
+        return $ SplitVector $ map (\ n -> DeepSplit $ Foo { x = n; y = acc; }) (unSplitVector sv)
+
+{-# synthesize sysSplitVectorPorts #-}
+sysSplitVectorPorts :: Module Empty
+sysSplitVectorPorts =
+  module
+    s <- mkSplitVectorPortsTest
+    i :: Reg (UInt 8) <- mkReg 0
+    rules
+      when True ==> i := i + 1
+      when i == 0 ==>
+        s.putInts $ SplitVector $ vec 10 (negate 20) 30 (negate 40)
+      when i == 1 ==>
+        s.putFoos $ SplitVector $ map DeepSplit $
+          vec (Foo { x = 1; y = 2; }) (Foo { x = 3; y = 4; }) (Foo { x = 5; y = 6; })
+      when i == 2 ==>
+        s.putBars $ SplitVector $ map ShallowSplit $
+          vec (Bar { v = vec True False True; w = (True, 0x1234); z = Foo { x = 7; y = 8; } })
+              (Bar { v = vec False True False; w = (False, 0x5678); z = Foo { x = 9; y = 10; } })
+      when i == 3 ==>
+        s.putPairs $ SplitVector $
+          vec (Pair { a = 11; b = 0xABCD; }) (Pair { a = negate 12; b = 0x00FF; })
+      when i == 4 ==>
+        s.putGrid $ SplitVector $
+          vec (SplitVector $ map DeepSplit $
+                 vec (Foo { x = 1; y = 2; }) (Foo { x = 3; y = 4; }) (Foo { x = 5; y = 6; }))
+              (SplitVector $ map DeepSplit $
+                 vec (Foo { x = 7; y = 8; }) (Foo { x = 9; y = 10; }) (Foo { x = 11; y = 12; }))
+      when i == 5 ==>
+        s.putTwo (SplitVector $ map DeepSplit $ vec (Foo { x = 13; y = 14; }) (Foo { x = 15; y = 16; }))
+                 (SplitVector $ vec 100 (negate 101))
+      when i == 6 ==>
+        s.putWrap $ ShallowSplit $
+          Wrap { items = SplitVector $ map DeepSplit $
+                           vec (Foo { x = 21; y = 22; }) (Foo { x = 23; y = 24; });
+                 tag = True; }
+      when i == 7 ==>
+        $display "getInts: " (cshow (unSplitVector s.getInts))
+      when i == 8 ==>
+        $display "getFoos: " (cshow (map unDeepSplit (unSplitVector s.getFoos)))
+      when i == 9 ==>
+        $display "bumpFoos: "
+          (cshow (map unDeepSplit (unSplitVector
+            (s.bumpFoos (SplitVector $ map DeepSplit $
+                           vec (Foo { x = 30; y = 40; }) (Foo { x = 50; y = 60; }))))))
+      when i == 10 ==> do
+        res <- s.updateVec (SplitVector $ vec 70 80)
+        $display "updateVec: " (cshow (map unDeepSplit (unSplitVector res)))
+      when i == 11 ==> do
+        res <- s.updateVec (SplitVector $ vec 90 100)
+        $display "updateVec: " (cshow (map unDeepSplit (unSplitVector res)))
+      when i == 12 ==> $finish

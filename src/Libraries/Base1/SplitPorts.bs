@@ -4,20 +4,30 @@ package SplitPorts where
 
 import qualified List
 import Vector
+import CShow
+import Foldable
+import Traversable
 
 -- Newtype tags to indicate that a types should be split (recursively or not) into ports
 data ShallowSplit a = ShallowSplit a
+unShallowSplit :: ShallowSplit a -> a
+unShallowSplit (ShallowSplit x) = x
+
 data DeepSplit a = DeepSplit a
+unDeepSplit :: DeepSplit a -> a
+unDeepSplit (DeepSplit x) = x
 
 -- Tag to indicate that the DeepSplitPorts recursion should terminate
 data NoSplit a = NoSplit a
+unNoSplit :: NoSplit a -> a
+unNoSplit (NoSplit x) = x
 
-instance (ShallowSplitPorts a p) => SplitPorts (ShallowSplit a) p where
+instance SplitPorts (ShallowSplit a) (ShallowPortsOf a) where
   splitPorts (ShallowSplit x) = shallowSplitPorts x
   unsplitPorts = ShallowSplit ∘ shallowUnsplitPorts
   portNames _ = shallowSplitPortNames (_ :: a)
 
-instance (DeepSplitPorts a p) => SplitPorts (DeepSplit a) p where
+instance SplitPorts (DeepSplit a) (DeepPortsOf a) where
   splitPorts (DeepSplit x) = deepSplitPorts x
   unsplitPorts = DeepSplit ∘ deepUnsplitPorts
   portNames _ = deepSplitPortNames (_ :: a)
@@ -30,6 +40,7 @@ instance DeepSplitPorts (NoSplit a) (Port a) where
 
 -- Helper class using generics, to split a struct or vector into a tuple of ports.
 class ShallowSplitPorts a p | a -> p where
+  type ShallowPortsOf a = p
   shallowSplitPorts :: a -> p
   shallowUnsplitPorts :: p -> a
   shallowSplitPortNames :: a -> String -> List String
@@ -44,7 +55,8 @@ class ShallowSplitPorts' r p | r -> p where
   shallowUnsplitPorts' :: p -> r
   shallowSplitPortNames' :: r -> String -> List String
 
-instance (ShallowSplitPorts' a p, ShallowSplitPorts' b q, AppendTuple p q r) => ShallowSplitPorts' (a, b) r where
+instance (ShallowSplitPorts' a p, ShallowSplitPorts' b q) =>
+    ShallowSplitPorts' (a, b) (TAppendTuple p q) where
   shallowSplitPorts' (a, b) = shallowSplitPorts' a `appendTuple` shallowSplitPorts' b
   shallowUnsplitPorts' x = case splitTuple x of
     (a, b) -> (shallowUnsplitPorts' a, shallowUnsplitPorts' b)
@@ -77,7 +89,7 @@ instance (ShallowSplitPorts' r p) => ShallowSplitPorts' (Meta m r) p where
   shallowUnsplitPorts' = Meta ∘ shallowUnsplitPorts'
   shallowSplitPortNames' _ = shallowSplitPortNames' (_ :: r)
 
-instance (SplitPorts a p) => ShallowSplitPorts' (Conc a) p where
+instance ShallowSplitPorts' (Conc a) (PortsOf a) where
   shallowSplitPorts' (Conc x) = splitPorts x
   shallowUnsplitPorts' = Conc ∘ unsplitPorts
   shallowSplitPortNames' _ = portNames (_ :: a)
@@ -85,6 +97,7 @@ instance (SplitPorts a p) => ShallowSplitPorts' (Conc a) p where
 
 -- Helper class using generics, to recursively split structs and vectors into a tuple of ports.
 class DeepSplitPorts a p | a -> p where
+  type DeepPortsOf a = p
   deepSplitPorts :: a -> p
   deepUnsplitPorts :: p -> a
   deepSplitPortNames :: a -> String -> List String
@@ -142,7 +155,7 @@ class DeepSplitPorts' r a p | r a -> p where
   deepSplitPortNames' :: r -> a -> String -> List String
 
 -- Terminate recursion for n /= 1 constructors
-instance (SplitPorts a p) => DeepSplitPorts' r a p where
+instance DeepSplitPorts' r a (PortsOf a) where
   deepSplitPorts' _ = splitPorts
   deepUnsplitPorts' _ = unsplitPorts
   deepSplitPortNames' _ = portNames
@@ -158,7 +171,8 @@ class DeepSplitPorts'' r p | r -> p where
   deepUnsplitPorts'' :: p -> r
   deepSplitPortNames'' :: r -> String -> List String
 
-instance (DeepSplitPorts'' a p, DeepSplitPorts'' b q, AppendTuple p q r) => DeepSplitPorts'' (a, b) r where
+instance (DeepSplitPorts'' a p, DeepSplitPorts'' b q) =>
+    DeepSplitPorts'' (a, b) (TAppendTuple p q) where
   deepSplitPorts'' (a, b) = deepSplitPorts'' a `appendTuple` deepSplitPorts'' b
   deepUnsplitPorts'' x = case splitTuple x of
     (a, b) -> (deepUnsplitPorts'' a, deepUnsplitPorts'' b)
@@ -195,3 +209,59 @@ instance (DeepSplitPorts a p) => DeepSplitPorts'' (Conc a) p where
   deepSplitPorts'' (Conc x) = deepSplitPorts x
   deepUnsplitPorts'' = Conc ∘ deepUnsplitPorts
   deepSplitPortNames'' _ = deepSplitPortNames (_ :: a)
+
+-- A newtype wrapper for a Vector that recursively splits its elements into
+-- the corresponding SplitPorts ports.
+data SplitVector n a = SplitVector (Vector n a)
+  deriving (Eq, Ord, Bits, CShow, DefaultValue)
+
+unSplitVector :: SplitVector n a -> Vector n a
+unSplitVector (SplitVector v) = v
+
+instance Functor (SplitVector n) where
+  fmap f (SplitVector v) = SplitVector (fmap f v)
+
+instance Applicative (SplitVector n) where
+  pure x = SplitVector (pure x)
+  (<*>) (SplitVector f) (SplitVector v) = SplitVector (f <*> v)
+  liftA2 f (SplitVector v1) (SplitVector v2) = SplitVector (liftA2 f v1 v2)
+
+instance Foldable (SplitVector n) where
+  foldr f z (SplitVector v) = foldr f z v
+  foldl f z (SplitVector v) = foldl f z v
+  foldrM f z (SplitVector v) = foldrM f z v
+  foldlM f z (SplitVector v) = foldlM f z v
+  traverse_ f (SplitVector v) = traverse_ f v
+  sequenceA_ (SplitVector v) = sequenceA_ v
+  mapM_ f (SplitVector v) = mapM_ f v
+  sequence_ (SplitVector v) = sequence_ v
+  toList (SplitVector v) = toList v
+  elem x (SplitVector v) = elem x v
+  length (SplitVector v) = length v
+  null (SplitVector v) = null v
+
+instance Traversable (SplitVector n) where
+  traverse f (SplitVector v) = SplitVector <$> traverse f v
+  sequenceA (SplitVector v) = SplitVector <$> sequenceA v
+  mapM f (SplitVector v) = SplitVector <$> mapM f v
+  sequence (SplitVector v) = SplitVector <$> sequence v
+
+instance (Bounded (Vector n a)) => Bounded (SplitVector n a) where
+  minBound = SplitVector minBound
+  maxBound = SplitVector maxBound
+
+instance PrimSelectable (SplitVector n a) a where
+  primSelectFn pos (SplitVector v) = primSelectFn pos v
+
+instance PrimUpdateable (SplitVector n a) a where
+  primUpdateFn pos (SplitVector v) x n = SplitVector (primUpdateFn pos v x n)
+
+instance (FShow (Vector n a)) => FShow (SplitVector n a) where
+  fshow (SplitVector v) = fshow v
+
+instance (SplitPorts a p, ConcatTuple n p q) => SplitPorts (SplitVector n a) q where
+  splitPorts (SplitVector v) = concatTuple $ map splitPorts v
+  unsplitPorts = SplitVector ∘ map unsplitPorts ∘ unconcatTuple
+  portNames _ base =
+    let genElem i = portNames (_ :: a) (base +++ "_" +++ integerToString i)
+    in List.concat $ List.map genElem $ List.upto 0 (valueOf n - 1)
