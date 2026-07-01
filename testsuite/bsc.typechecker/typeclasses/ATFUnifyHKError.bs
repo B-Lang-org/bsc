@@ -1,16 +1,16 @@
 package ATFUnifyHKError where
 
--- Test that higher-kinded type function constraints fail properly.
+-- Test that unifying a higher-kinded type function application (Elem a,
+-- of kind * -> *) with a concrete type constructor (Maybe) requires the
+-- corresponding class context (Container a Maybe).  Here it is missing, so
+-- typecheck reports it (T0030).  The unification is forced by giving 'id'
+-- the explicit type 'a -> Foo (Elem a) -> Foo Maybe'.
+-- (See ATFFieldUnifyHKError for the same check via struct field access.)
 
 class (Container :: * -> (* -> *) -> *) a s | a -> s where
   type Elem a = s
 
 data Foo f = Foo (f Bool)
 
--- Reading a struct field whose type uses a higher-kinded ATF (Elem a),
--- and assigning to Foo Maybe, requires Container a Maybe which is missing.
-struct Holder a =
-  val :: Foo (Elem a)
-
-getMaybe :: Holder a -> Foo Maybe
-getMaybe h = h.val
+conv :: a -> Foo (Elem a) -> Foo Maybe
+conv _ = id

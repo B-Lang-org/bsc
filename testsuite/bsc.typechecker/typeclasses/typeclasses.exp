@@ -134,6 +134,12 @@ compile_fail_error ATFUnifyError.bs T0030
 compare_file ATFUnifyError.bs.bsc-out
 compile_fail_error ATFUnifyHKError.bs T0030
 compare_file ATFUnifyHKError.bs.bsc-out
+# Same checks as ATFUnify{,HK}Error, but forcing the unification via struct
+# field access instead of via 'id'
+compile_fail_error ATFFieldUnifyError.bs T0030
+compare_file ATFFieldUnifyError.bs.bsc-out
+compile_fail_error ATFFieldUnifyHKError.bs T0030
+compare_file ATFFieldUnifyHKError.bs.bsc-out
 compile_fail_error ATFAmbig.bs T0079
 compare_file ATFAmbig.bs.bsc-out
 compile_fail_error ATFNameClashTwoClasses.bs T0011
