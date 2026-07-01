@@ -13,8 +13,9 @@ import Util(mapSnd)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)
-import Data.List(find, intercalate)
+import Data.List(find, intercalate, sortBy)
 import Data.List.Split(split, condense, oneOf)
+import Data.Function(on)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -220,8 +221,12 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                          _ -> internalError "SimCOpt.moveDefsOntoStack btype_lookup"
       moveDefs (Just sbid) fn =  -- move within block
           let fname = sf_name fn
+              -- Sort by base name so the order doesn't depend on the Id sort
+              -- (which carries hierarchy-dependent qualifier/position info).
+              moved_aids = sortBy (compare `on` getIdBaseString)
+                             (map snd (M.findWithDefault [] ((Just sbid),fname) move_map))
               new_defs = [ SFSDef isPort (ty,aid) Nothing
-                         | (_,aid) <- M.findWithDefault [] ((Just sbid),fname) move_map
+                         | aid <- moved_aids
                          , let ty = btype_lookup (sbid,aid)
                          , let isPort = S.member (sbid,aid) port_set
                          ]
