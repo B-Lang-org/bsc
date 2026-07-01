@@ -23,6 +23,7 @@ compare_file NoDerive2.bs.bsc-out
 # test for correct creation of derived instances
 
 compile_pass DerivingTest.bs 
+compile_pass Multiple.bs
 
 
 # --------------------
@@ -30,6 +31,12 @@ compile_pass DerivingTest.bs
 
 test_veri_only DerivingMod
 
+# --------------------
+# tests for deriving via
+
+compile_pass DerivingVia.bs
+compile_fail_error DerivingViaHK.bs T0030
+compare_file DerivingViaHK.bs.bsc-out
 
 # --------------------
 # test that structs of one field can derive for instances from that field

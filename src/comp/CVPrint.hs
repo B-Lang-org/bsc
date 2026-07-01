@@ -438,9 +438,8 @@ pBlockNT _ n nl xs sep =
         (t (replicate n ' ') <>
         foldr1 ($+$) (map (\ x -> x <> if nl then sep $+$ empty else sep) xs))
 
-ppDer :: PDetail -> [CTypeclass] -> Doc
-ppDer d [] = empty
-ppDer d is = text "deriving (" <> sepList (map (pvPrint d 0) is) (text ",") <> text ")"
+ppDer :: PDetail -> [CDeriving] -> Doc
+ppDer d drvs = vcatList (map (pPrint d 0) drvs) empty
 
 --isTerminated (Caction _ _) = True
 --isTerminated (Cdo _ _) = True
