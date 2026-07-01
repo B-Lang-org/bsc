@@ -6,7 +6,7 @@ import ASyntax
 import ASyntaxUtil
 import Id( Id, getIdBaseString, setIdBaseString
          , getIdQualString, setIdQualString
-         , unQualId, isFire )
+         , unQualId, isFire, mkIdCanFire )
 import ABinUtil(InstModMap)
 import ErrorUtil(internalError)
 import Util(mapSnd)
@@ -123,7 +123,19 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                    , let unqual_id = unQualId qual_id
                    , let sbid = sb_id blk
                    ]
-      sched_refs = [ (k, dr) | (k, (dr,_)) <- sched_tups ]
+      -- Drop own-schedule reads of top interface-method CAN_FIREs: a submodule
+      -- reaches that readiness by the RDY call, so this matches its member/local
+      -- classification (see DEVELOP.md).
+      bcgTopMethodCFs =
+          if not (blockCodegen flags) then S.empty
+          else case (do mod <- M.lookup "" instmodmap
+                        find (\b -> sb_name b == mod) blocks) of
+                 Nothing  -> S.empty
+                 Just tsb -> S.fromList [ (sb_id tsb, mkIdCanFire mid)
+                                        | (_, meths) <- sb_methods tsb
+                                        , (mid, _) <- meths ]
+      sched_refs = [ (k, dr) | (k, (dr,_)) <- sched_tups
+                             , not (k `S.member` bcgTopMethodCFs) ]
       sched_defs = M.fromListWith combine_refs sched_refs
       sched_qids = M.fromListWith S.union [ (k, S.singleton q) | (k,(_,q)) <- sched_tups ]
 
