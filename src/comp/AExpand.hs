@@ -367,7 +367,10 @@ xaSRemoveUnused keepFires pkg =
             let en = case (vf_enable m) of
                          Nothing -> []
                          Just _ -> [MethodEnable]
-                args = map MethodArg [1..genericLength (vf_inputs m)]
+                -- enumerate MethodArg per (argN, portM) coordinate
+                args = [ MethodArg argN portM
+                       | (argN, ports) <- zip [1..] (vf_inputs m)
+                       , (portM, _) <- zip (splitPortNums ports) ports ]
             in  [ mkMethId v i ino part |
                   part <- en ++ args, ino <- if mult > 1
                                              then map Just [0 .. mult-1]
@@ -458,6 +461,8 @@ isSimple c (APrim i t PrimConcat es)                              = c && all (is
 isSimple c e@(APrim _ _ p es)                                     = c && isSmall e && cheap p es -- && all (isSimple c) es
 isSimple c (AMethCall _ _ _ es)                                   = null es
 isSimple c (AMethValue _ _ _)                                     = True
+isSimple c (ATupleSel _ e _)                                      = isSimple c e
+isSimple c (ATuple _ es)                                          = all (isSimple c) es
 -- foreign function calls cannot be inlined
 -- (except for $signed and $unsigned - handled by mustInline)
 isSimple c e@(AFunCall { })                                       = False
@@ -537,6 +542,13 @@ getExprSize (APrim _ _ _ es) = (nub $ concat vars, sum terms, 1 + maximum depths
 
 getExprSize (AMethCall t i mid args) = ([mid],1,1)
 getExprSize (AMethValue t i mid)     = ([mid],1,1)
+-- Tuple construction and selection only appear at port boundaries, where they
+-- pack/unpack a method's output port values.  They are pure wiring and generate
+-- no logic, so (like PrimBNot/PrimInv above) they add no terms or depth: the
+-- size is just that of the underlying expression(s).
+getExprSize (ATupleSel t e i)        = getExprSize e
+getExprSize (ATuple t es)            = (nub $ concat vars, sum terms, maximum depths)
+    where (vars,terms,depths) = unzip3 $ map getExprSize es
 getExprSize (ATaskValue { })         = ([],   1,1)
 getExprSize (ASPort t i)             = ([i],  1,1)
 getExprSize (ASParam t i)            = ([i],  1,1)

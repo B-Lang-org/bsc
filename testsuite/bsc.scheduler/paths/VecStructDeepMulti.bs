@@ -1,0 +1,35 @@
+package VecStructDeepMulti where
+
+import SplitPorts
+import Vector
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- DeepSplit of a (Vector 3 Pair): each element recurses to leaf ports, so the
+-- result ports are get_0_p1 get_0_p2 get_1_p1 get_1_p2 get_2_p1 get_2_p2 and the
+-- argument ports are get_1_0_p1 ... get_1_2_p2 (leading 1 = argument number).
+--
+-- Several distinct elements are simultaneously combinational, with one CROSSED
+-- across vector indices:
+--   element 0 : p1 straight-through from input element 0 p1   (get_1_0_p1 -> get_0_p1)
+--   element 2 : p2 crossed from input element 1 p2            (get_1_1_p2 -> get_2_p2)
+-- everything else is registered, so there must be NO other edges -- in
+-- particular no same-index sibling like get_1_0_p2 -> get_0_p1 and no
+-- get_1_2_p2 -> get_2_p2 (the source is element 1, not element 2).
+interface Ifc =
+  get :: DeepSplit (Vector 3 Pair) -> DeepSplit (Vector 3 Pair)
+
+{-# synthesize mkVecStructDeepMulti #-}
+mkVecStructDeepMulti :: Module Ifc
+mkVecStructDeepMulti =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit v) =
+        let e0 = Pair { p1 = (v !! 0).p1; p2 = r }          -- e0.p1 comb from in elem 0
+            e1 = Pair { p1 = r;          p2 = r }           -- all registered
+            e2 = Pair { p1 = r;          p2 = (v !! 1).p2 } -- e2.p2 comb from in elem 1
+        in  DeepSplit (e0 :> e1 :> e2 :> nil)

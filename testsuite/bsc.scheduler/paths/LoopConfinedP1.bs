@@ -1,0 +1,44 @@
+package LoopConfinedP1 where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- A submodule whose split output port p1 is combinational from split input
+-- port p1, while output port p2 is combinational from input port p2 -- the
+-- two split fields are kept on INDEPENDENT combinational paths (no crossing).
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopConfinedP1Sub #-}
+mkLoopConfinedP1Sub :: Module SubIfc
+mkLoopConfinedP1Sub =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = a.p2 })
+
+-- Close a genuine combinational loop through ONLY split field p1:
+--   rw1.wget -> get's split input p1 -> get's split output p1 -> rw1.wset
+-- Split field p2 is driven by a CONSTANT into the input and its output is
+-- consumed by a register write (no feedback), so p2's ports cannot be part of
+-- any cycle.  The cycle therefore runs through "Argument 1"/"Return value 1"
+-- of method `get' but NOT "Argument 2"/"Return value 2".  This is the per-port
+-- precision counterpart to the passing no-loop tests: G0032 must name exactly
+-- the p1 port and never the p2 port.
+{-# synthesize mkLoopConfinedP1 #-}
+mkLoopConfinedP1 :: Module Empty
+mkLoopConfinedP1 =
+  module
+    s <- mkLoopConfinedP1Sub
+    rw1 :: RWire Bool <- mkRWire
+    sink :: Reg Bool <- mkReg False
+    let fb = isValid (rw1.wget)
+    rules
+      "close_p1_only": when True ==>
+        case s.get (ShallowSplit (Pair { p1 = fb; p2 = False })) of
+          ShallowSplit res ->
+            do (if res.p1 then rw1.wset True else noAction)
+               sink := res.p2

@@ -1,0 +1,7 @@
+sel=0 out=0
+sel=1 out=1
+sel=2 out=3
+sel=3 out=7
+sel=4 out=255
+sel=5 out=4
+sel=6 out=7

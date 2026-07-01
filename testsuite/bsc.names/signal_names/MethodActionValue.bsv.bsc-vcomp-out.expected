@@ -81,7 +81,7 @@ i :: ABSTRACT:  MethodActionValue.Ifc­ = mkMethodActionValue_Sub
 					  [])
 					 [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }]
 					 []
-					 meth types=[([], Just (Bit 1), Just (Bit 8)), ([], Nothing, Just (Bit 1))]
+					 meth types=[([], Just (Bit 1), [Bit 8]), ([], Nothing, [Bit 1])]
 					 port types=m -> Prelude.Bit 8
 -- AP local definitions
 i_m_PLUS_8___d2 :: Bit 8;

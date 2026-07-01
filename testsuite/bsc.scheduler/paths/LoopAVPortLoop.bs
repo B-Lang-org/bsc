@@ -1,0 +1,41 @@
+package LoopAVPortLoop where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- An ActionValue method with a split argument and a split result whose output
+-- port p1 is combinational from input port p1.  (p2 comes from a register.)
+interface AVIfc =
+  upd :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+
+{-# synthesize mkLoopAVPortLoopSub #-}
+mkLoopAVPortLoopSub :: Module AVIfc
+mkLoopAVPortLoopSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      upd (ShallowSplit a) =
+        do r := a.p2
+           return (ShallowSplit (Pair { p1 = a.p1; p2 = r }))
+
+-- Close a combinational loop through the ActionValue method's split ports:
+--   rw.wget -> upd's split input p1 -> upd's split output p1 -> rw.wset
+-- The AV result is consumed combinationally and drives the same RWire whose
+-- value feeds the AV input, so the cycle runs through "Argument 1" and
+-- "Return value 1" of the ActionValue method `upd` => G0032.
+{-# synthesize mkLoopAVPortLoop #-}
+mkLoopAVPortLoop :: Module Empty
+mkLoopAVPortLoop =
+  module
+    s <- mkLoopAVPortLoopSub
+    rw :: RWire Bool <- mkRWire
+    let fb = isValid (rw.wget)
+    rules
+      "close": when True ==>
+        do res <- s.upd (ShallowSplit (Pair { p1 = fb; p2 = False }))
+           case res of
+             ShallowSplit v -> if v.p1 then rw.wset True else noAction
