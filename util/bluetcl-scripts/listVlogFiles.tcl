@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # \
-exec $BLUESPECDIR/bin/bluetcl "$0" "$@"
+exec bluetcl "$0" "$@"
 
 package require utils
 
@@ -145,7 +145,7 @@ set primitives   [list]
 set imported     [list]
 
 set vdir [lindex [Bluetcl::flags show vdir] 1]
-set bsdir $::env(BLUESPECDIR)
+set bsdir $env(BLUESPECDIR)
 
 set libs [list [file join $bsdir "Verilog"] [file join $bsdir "Libraries"]]
 set vsearch [split [lindex [Bluetcl::flags show p] 1] ":"]
