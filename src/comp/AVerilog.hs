@@ -202,16 +202,21 @@ aVerilog errh flags pps aspack ffmap =
 
         -- The main module
         -- XXX note, no special port grouping/commenting for bit blasted mod
+        -- DPI imports are emitted at module scope (as body items), so that
+        -- multiple modules using the same foreign function don't collide at
+        -- Verilator's shared $unit scope; they go in the module that contains
+        -- the foreign-function calls (the main module).
+        dpi_items = map VMDPI dpi_decls
         mainMod =
             if doBitBlast
             then VModule { vm_name = modnameBB,
                            vm_comments = [],
                            vm_ports = [(bargs,[])],
-                           vm_body = bbItems }
+                           vm_body = dpi_items ++ bbItems }
             else VModule { vm_name = modnameUB,
                            vm_comments = [],
                            vm_ports = (groupPorts signal_info args),
-                           vm_body = ubItems }
+                           vm_body = dpi_items ++ ubItems }
 
         -- The un-blasted wrapper, when bit-blasting
         -- It has the unblasted name, the unblasted ports,
