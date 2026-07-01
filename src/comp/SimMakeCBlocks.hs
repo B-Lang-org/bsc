@@ -296,7 +296,10 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       meth_rets = [ (rt, n, vn)
                   | (n, (_,_,(Just (rt,vn)),_,_)) <- M.toList meth_map
                   ]
-      ports = meth_ens ++ meth_args ++ meth_rets
+      -- Sort by base name so the order doesn't depend on the AId map order
+      -- (AId's Ord follows run-dependent interned-FString order).
+      ports = sortBy (\(_,a,_) (_,b,_) -> compare (getIdBaseString a) (getIdBaseString b))
+                     (meth_ens ++ meth_args ++ meth_rets)
 
       -- ----------
       -- clock domains
