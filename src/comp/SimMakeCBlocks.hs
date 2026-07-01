@@ -262,7 +262,10 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       -- ----------
       -- public and private class defs (public defs are all defs needed
       -- to compute CAN_FIRE and WILL_FIRE signals.
-      all_defs = map cvtADef raw_defs
+      -- Sort by base name so the order doesn't depend on raw_defs' AId map
+      -- order (AId's Ord follows run-dependent interned-FString order).
+      all_defs = sortBy (\(_,i1) (_,i2) -> compare (getIdBaseString i1) (getIdBaseString i2))
+                        (map cvtADef raw_defs)
       cf_wf_ex = [ ASDef t i
                  | (t,i) <- all_defs
                  , (isFire i)
