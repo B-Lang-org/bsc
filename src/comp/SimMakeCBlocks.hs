@@ -749,7 +749,8 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
       -- so its interface methods are not fired by its own schedule.  Keep the
       -- method nodes in the schedule graph (so edges from rules stay valid) but
       -- emit no statements for them; their enable/argument ports then go
-      -- unreferenced and are optimized away, matching submodule form.
+      -- unreferenced and are optimized away, matching submodule form.  (See
+      -- DEVELOP.md.)
       isTopMethodNode (Sched rid) =
           (rid `S.member` top_vmeth_set) || (rid `S.member` top_ameth_set)
       isTopMethodNode (Exec rid) =

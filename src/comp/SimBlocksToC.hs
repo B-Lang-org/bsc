@@ -50,6 +50,7 @@ simBlocksToC flags time top_block def_clk def_rst
         -- within that block to the clock domain on which that signal is written.
         -- Since the Ids can be both in the port and def namespace, they are encoded as a pair
         -- "Bool,Id").
+        -- (Emitted clock domain is from M.ba; see DEVELOP.md re -block-codegen.)
         matchesInst i1 = \(i2,_) -> q1' == getIdQual i2
           where q1  = getIdQualString i1
                 q1' = mkFString $ if q1 == "top" then "" else drop 4 q1

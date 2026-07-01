@@ -31,6 +31,9 @@ getModTime f =
                 return $ Just (modificationTime s)
         else return Nothing
 
+-- Flags that make an object unreusable under a different setting (isStale checks
+-- these before reuse).  -block-codegen is omitted: its output equals the
+-- submodule form (see DEVELOP.md).
 codeGenOptionDescr :: Flags -> Bool -> String
 codeGenOptionDescr flags is_top =
     unwords $ [ "Generation options:" ] ++
