@@ -1,0 +1,64 @@
+package SelectorSplitOutPath where
+
+import SplitPorts
+import Vector
+
+-- Split input: a selector field plus two data fields and one unused field.
+struct Cmd =
+  sel  :: Bool
+  a    :: Bit 4
+  b    :: Bit 4
+  dead :: Bit 4
+ deriving (Bits)
+
+-- Split output with two independent fields.
+struct Out =
+  o1 :: Bool
+  o2 :: Bool
+ deriving (Bits)
+
+-- Single-ported combinational lookup submodule.
+interface LookupIfc =
+  lookup :: Bit 4 -> Bool
+
+{-# synthesize mkSelectorSplitOutSubA #-}
+mkSelectorSplitOutSubA :: Module LookupIfc
+mkSelectorSplitOutSubA =
+  module
+    rs :: Vector 16 (Reg Bool) <- replicateM (mkReg False)
+    interface
+      lookup i = (select rs i)._read
+
+{-# synthesize mkSelectorSplitOutSubB #-}
+mkSelectorSplitOutSubB :: Module LookupIfc
+mkSelectorSplitOutSubB =
+  module
+    rs :: Vector 16 (Reg Bool) <- replicateM (mkReg False)
+    interface
+      lookup i = (select rs i)._read
+
+interface TopIfc =
+  -- both split input (4 ports) and split output (2 ports)
+  run :: ShallowSplit Cmd -> ShallowSplit Out
+
+-- Each split OUTPUT port gets its own data-dependent mux driven by the SAME
+-- selector field but DIFFERENT data fields:
+--   o1 = sel ? subA.lookup a : False    => depends on (sel, a)
+--   o2 = sel ? r              : subB.lookup b  => depends on (sel, b)  (r registered)
+-- Per-(input,output)-port tracking should therefore report:
+--   o1 reachable from run_1_sel and run_1_a but NOT run_1_b
+--   o2 reachable from run_1_sel and run_1_b but NOT run_1_a
+-- and 'dead' reaches neither output.  This confirms the selector edge is
+-- attributed per output port together with only the data field that output
+-- actually consumes.
+{-# synthesize mkSelectorSplitOutPath #-}
+mkSelectorSplitOutPath :: Module TopIfc
+mkSelectorSplitOutPath =
+  module
+    subA <- mkSelectorSplitOutSubA
+    subB <- mkSelectorSplitOutSubB
+    r :: Reg Bool <- mkReg False
+    interface
+      run (ShallowSplit c) =
+        ShallowSplit (Out { o1 = if c.sel then subA.lookup c.a else False
+                          ; o2 = if c.sel then r else subB.lookup c.b })

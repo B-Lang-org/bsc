@@ -1,0 +1,34 @@
+package DeepLeafCross where
+
+import SplitPorts
+
+-- Nested struct: Outer has two Inner-struct fields.
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Inner
+ deriving (Bits)
+
+interface Ifc =
+  -- Deep split: every leaf becomes its own port (get_1_x_a, get_x_a, ...).
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+-- The output leaves are wired from *different* input leaves than the
+-- same-named one, so path analysis must follow the actual data flow rather
+-- than matching port names:
+--   get_x_a  <- a.y.b   (so edge: get_1_y_b -> get_x_a, NOT get_1_x_a)
+--   get_y_b  <- a.x_a   (so edge: get_1_x_a -> get_y_b, NOT get_1_y_b)
+-- The other two leaves are registered, so they have no incoming path.
+{-# synthesize mkDeepLeafCross #-}
+mkDeepLeafCross :: Module Ifc
+mkDeepLeafCross =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit a) =
+        DeepSplit (Outer { x = Inner { a = a.y.b; b = r }
+                         ; y = Inner { a = r; b = a.x.a } })

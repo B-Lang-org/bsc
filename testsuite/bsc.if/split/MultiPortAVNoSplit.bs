@@ -1,0 +1,24 @@
+package MultiPortAVNoSplit where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- Port-split ActionValue result in iSplitIface (ShallowSplit value stays a
+-- tuple, not Bit#(n)), action left unsplit (one rule).
+interface Ifc =
+  avmeth :: ActionValue (ShallowSplit Pair)
+
+{-# synthesize sysMultiPortAVNoSplit #-}
+sysMultiPortAVNoSplit :: Module Ifc
+sysMultiPortAVNoSplit =
+  module
+    cond :: Reg Bool <- mkRegU
+    x :: Reg Bool <- mkRegU
+    interface
+      avmeth =
+        do nosplitIf cond (x := True) (x := False)
+           return (ShallowSplit (Pair { p1 = cond; p2 = x }))

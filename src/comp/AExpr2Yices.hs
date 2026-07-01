@@ -30,7 +30,7 @@ import VModInfo(VModInfo)
 import PFPrint
 import Util(itos, map_insertMany, makePairs)
 import TopUtils(withElapsed)
-import AExpr2Util(getMethodOutputPort)
+import AExpr2Util(getSingleMethodOutputPort, getMethodOutputPortAt)
 
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
@@ -583,20 +583,29 @@ convAExpr2YExpr mty (APrim i (ATBit width) p args) = do
 -- Method calls create independent variables, with given width
 -- XXX Passing the current context is just a heuristic
 -- XXX TODO: some methods calls may be mutex, such as FIFO.full and FIFO.empty
+-- A bare AMethCall/AMethValue (with no ATupleSel applied) refers to a method
+-- with a single output port; a method with multiple output ports is always
+-- wrapped in an ATupleSel selecting one of them (handled in the arms below).
+-- Reaching the internalError here would mean a multi-output method was used
+-- without selecting a port.
+-- the port helpers canonicalize to the actual port name, so that methods which
+-- share the same output port appear logically equivalent
+-- XXX These could be unevaluated functions, applied to converted arguments
 convAExpr2YExpr mty (AMethCall ty@(ATBit width) modId methId args) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPort smap modId methId
-        e = (AMethCall ty modId portId args)
-    -- XXX This could be an unevaluated function, applied to converted arguments
+    let e = AMethCall ty modId (getSingleMethodOutputPort smap modId methId) args
     addUnknownExpr mty e width
 convAExpr2YExpr mty (AMethValue ty@(ATBit width) modId methId) = do
-    -- get the actual port name, so that methods which share the same output port
-    -- will appear logically equivalent
     smap <- gets stateMap
-    let portId = getMethodOutputPort smap modId methId
-        e = (AMethValue ty modId portId)
+    let e = AMethValue ty modId (getSingleMethodOutputPort smap modId methId)
+    addUnknownExpr mty e width
+convAExpr2YExpr mty (ATupleSel ty@(ATBit width) (AMethCall _ modId methId args) selIdx) = do
+    smap <- gets stateMap
+    let e = AMethCall ty modId (getMethodOutputPortAt smap modId methId selIdx) args
+    addUnknownExpr mty e width
+convAExpr2YExpr mty (ATupleSel ty@(ATBit width) (AMethValue _ modId methId) selIdx) = do
+    smap <- gets stateMap
+    let e = AMethValue ty modId (getMethodOutputPortAt smap modId methId selIdx)
     addUnknownExpr mty e width
 
 convAExpr2YExpr mty e@(AMGate (ATBit 1) _ _) =

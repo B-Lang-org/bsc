@@ -119,7 +119,7 @@ simMakeCBlocks flags sim_system =
       -- methods on the top-level module
       top_methods   = sp_interface top_pkg
       (top_ameths, top_vmeths) = partition aIfaceHasAction top_methods
-      top_vmeth_set = S.fromList $ concatMap aIfaceResId top_vmeths
+      top_vmeth_set = S.fromList $ concatMap aIfaceResIds top_vmeths
       top_ameth_set = S.fromList $ map aRuleName $ concatMap aIfaceRules top_ameths
 
       -- input clocks to the top-level module
@@ -132,7 +132,7 @@ simMakeCBlocks flags sim_system =
                    , let p_name = getModuleName p
                    , let ms = sp_interface p
                    , m <- ms
-                   , let m_name = aIfaceName m
+                   , let m_name = aif_name m
                    , let m_rules = aIfaceRules m
                    , let sub_actions = concatMap arule_actions m_rules
                    , let sub_names = [ (o,m) | (ACall o m _) <- sub_actions ]
@@ -208,6 +208,10 @@ getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
+getExprIds in_sched def_map known ((ATuple _ elems):es) =
+  getExprIds in_sched def_map known (elems ++ es)
+getExprIds in_sched def_map known ((ATupleSel _ e _):es) =
+  getExprIds in_sched def_map known (e:es)
 getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 getExprIds in_sched def_map known ((AFunCall _ _ _ _ args):es) =
@@ -323,7 +327,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
 
       dms = [ M.singleton clk [(aid, fromJust m')]
             | m <- iface
-            , let aid = aIfaceName m
+            , let aid = aif_name m
             , let m' = cvtIFace modId (sp_pps pkg)
                            def_map meth_map method_order_map reset_list m
             , isJust m'
@@ -517,7 +521,7 @@ cvtIFace :: Id -> [PProp] ->
             DefMap -> MethMap -> MethodOrderMap -> [(ResetId, AReset)] ->
             AIFace -> Maybe SimCCFn
 cvtIFace modId pps def_map meth_map method_order_map reset_list m =
-  do let name    = aIfaceName m
+  do let name    = aif_name m
          inputs  = aIfaceArgs m
          args    = [ (t,i) | (i,t) <- inputs ]
          -- always_enabled methods need to forcibly check their ready signal
@@ -527,7 +531,7 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
              if ((isAlwaysEn pps name) && (aIfaceHasAction m))
              then -- we have to find the name of the port associated
                   -- with the RDY method
-                  let rdy_id = mkRdyId (aIfaceName m)
+                  let rdy_id = mkRdyId (aif_name m)
                       mport = do (_,_,Just (_,vn),_,_) <- M.lookup rdy_id meth_map
                                  return $ ASPort aTBool (vName_to_id vn)
                  in case mport of
@@ -1443,6 +1447,8 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 
         -- function to substitute ASDef for AMethValue
         substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
+        substAV (ATuple ts es) = ATuple ts (map substAV es)
+        substAV (ATupleSel t e i) = ATupleSel t (substAV e) i
         substAV (APrim i t o es) = (APrim i t o (map substAV es))
         substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
         substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
@@ -1620,6 +1626,10 @@ substGateReferences smap stmts =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AMethCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
+        substInAExpr e@(ATuple { ae_elems = es }) =
+            e { ae_elems = map substInAExpr es }
+        substInAExpr e@(ATupleSel { ae_exp = e1 }) =
+            e { ae_exp = substInAExpr e1 }
         substInAExpr e@(ANoInlineFunCall { ae_args = es }) =
             e { ae_args = map substInAExpr es }
         substInAExpr e@(AFunCall { ae_args = es }) =

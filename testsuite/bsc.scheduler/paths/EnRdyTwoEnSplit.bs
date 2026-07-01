@@ -1,0 +1,29 @@
+package EnRdyTwoEnSplit where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- Two independent Action methods, each forwarding onto its own RWire.  A
+  -- value method 'rd' has a split result where p1 is gated by setA's enable and
+  -- p2 is gated by setB's enable.  Path analysis should report EN_setA only to
+  -- rd_p1 and EN_setB only to rd_p2 (no crossed edges), demonstrating per-port
+  -- routing of distinct method enables.
+  setA :: Action
+  setB :: Action
+  rd   :: ShallowSplit Pair
+
+{-# synthesize mkEnRdyTwoEnSplit #-}
+mkEnRdyTwoEnSplit :: Module Ifc
+mkEnRdyTwoEnSplit =
+  module
+    wa :: RWire Bool <- mkRWire
+    wb :: RWire Bool <- mkRWire
+    interface
+      setA = wa.wset True
+      setB = wb.wset True
+      rd = ShallowSplit (Pair { p1 = isValid (wa.wget); p2 = isValid (wb.wget) })

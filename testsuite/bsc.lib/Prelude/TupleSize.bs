@@ -4,7 +4,7 @@ package TupleSize where
 
 -- Helper function that requires TupleSize constraint
 tupleSize :: (TupleSize t n) => t -> Integer
-tupleSize _ = valueOf n
+tupleSize _ = valueOf (TTupleSize t)
 
 {-# verilog sysTupleSize #-}
 sysTupleSize :: Module Empty
