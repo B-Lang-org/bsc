@@ -110,7 +110,7 @@ Flags {
 	strictMethodSched = True,
 	suppressWarnings = SomeMsgs [],
 	synthesize = False,
-	systemVerilogTasks = False,
+	systemVerilogOutput = False,
 	tclShowHidden = False,
 	testAssert = False,
 	timeStamps = True,
