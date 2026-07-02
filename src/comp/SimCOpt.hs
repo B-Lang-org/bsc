@@ -123,9 +123,13 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                    , let unqual_id = unQualId qual_id
                    , let sbid = sb_id blk
                    ]
-      -- Drop own-schedule reads of top interface-method CAN_FIREs: a submodule
-      -- reaches that readiness by the RDY call, so this matches its member/local
-      -- classification (see DEVELOP.md).
+      -- In -c mode, ignore reads of the root module's interface-method
+      -- CAN_FIRE defs made by the root's own schedule (which -c does not
+      -- emit).  A parent module reaches that readiness through the RDY
+      -- method call rather than by reading the def, so ignoring these
+      -- reads gives each def the same member-vs-stack-local classification
+      -- it has in block (submodule) form.  (See the DEVELOP.md section on
+      -- -c and byte-identity.)
       bcgTopMethodCFs =
           if not (blockCodegen flags) then S.empty
           else case (do mod <- M.lookup "" instmodmap

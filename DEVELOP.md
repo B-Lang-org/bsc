@@ -125,6 +125,12 @@ The following is a running list of those writings.
 
 #### `-c` (codegen mode): per-module byte-identity
 
+Terminology: a module generated as a `-e` link's *top* is in "top form" (its
+interface methods are fired by the design schedule that the link also
+generates); everywhere else -- under `-c`, or as a submodule of any design --
+it is in "block form".  Block form is the shared, reusable output; top form
+is private to the link that made it.
+
 `-sim -c M` emits `M`'s Bluesim C++ (and only `M`'s) without a runnable top, so
 `M`'s object can be built once and reused wherever `M` appears in a design.
 Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
