@@ -745,7 +745,7 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
       mkStmt0 = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
                              inst_map full_def_map non_prim_calls
                              gate_substs sched_conflicts sched_ME_inhibits
-      -- With -block-codegen the root is a reusable block, not a runnable top,
+      -- In -c mode the root is a reusable block, not a runnable top,
       -- so its interface methods are not fired by its own schedule.  Keep the
       -- method nodes in the schedule graph (so edges from rules stay valid) but
       -- emit no statements for them; their enable/argument ports then go

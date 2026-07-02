@@ -50,7 +50,7 @@ simBlocksToC flags time top_block def_clk def_rst
         -- within that block to the clock domain on which that signal is written.
         -- Since the Ids can be both in the port and def namespace, they are encoded as a pair
         -- "Bool,Id").
-        -- (Emitted clock domain is from M.ba; see DEVELOP.md re -block-codegen.)
+        -- (Emitted clock domain is from M.ba; see DEVELOP.md re -c mode.)
         matchesInst i1 = \(i2,_) -> q1' == getIdQual i2
           where q1  = getIdQualString i1
                 q1' = mkFString $ if q1 == "top" then "" else drop 4 q1
@@ -96,7 +96,7 @@ simBlocksToC flags time top_block def_clk def_rst
 
     let cvtModBlock = convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_block
     module_names <- concatMapM (cvtModBlock writeFileC) mod_blocks
-    -- With -block-codegen the root is a reusable block, not a runnable top: it
+    -- In -c mode the root is a reusable block, not a runnable top: it
     -- has no schedule of its own and no "model_" wrapper (whatever instantiates
     -- it supplies the schedule), matching submodule form.
     schedule_names <- if blockCodegen flags

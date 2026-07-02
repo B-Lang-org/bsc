@@ -1,8 +1,8 @@
 // A module whose interface has an always_enabled method.  Such a module
 // cannot be the top of a normal Bluesim simulation (it is rejected with
-// G0062), but -block-codegen must accept it as a codegen root, since the
+// G0062), but the -c codegen mode must accept it as a codegen root, since the
 // generated model is never executed.  mkUsesEnabled instantiates it so the
-// testsuite can check that the block-codegen output matches the submodule
+// testsuite can check that the -c output matches the submodule
 // form for this (motivating) case too.
 package Enabled;
 

@@ -226,6 +226,10 @@ hmain args = do
             do { setFlags flags; doWarnings; showPreamble flags;
                  simLink errh flags top abinFiles cSrcFiles;
                  exitOK errh }
+        DCodeGen flags mods abinFiles ->
+            do { setFlags flags; doWarnings; showPreamble flags;
+                 codeGen errh flags mods abinFiles;
+                 exitOK errh }
 
 
 main' :: ErrorHandle -> Flags -> String -> IO ()
@@ -1283,7 +1287,7 @@ genModuleC errh flags dumpnames time0 toplevel abis =
 
        -- extract file dependency structure and determine if any
        -- existing bluesim packages can reuse existing object files
-       -- (with -block-codegen, all files are always regenerated)
+       -- (in -c mode, all files are always regenerated)
        start flags DFsimDepend
        reused <- if (blockCodegen flags)
                  then return []
@@ -1383,6 +1387,19 @@ genModuleC errh flags dumpnames time0 toplevel abis =
        -- XXX return the headers separate from the files which need to be
        -- XXX compiled
        return (time, names, reused_names, creation_time)
+
+-- ===============
+-- CodeGen
+
+-- The -c mode: generate code for a module from its elaborated (.ba)
+-- file, the middle stage of the three-stage flow (elaborate -> codegen ->
+-- link).  For Bluesim this reuses the front half of simLink, which under
+-- blockCodegen generates each module's C++ as a reusable block (no
+-- schedule or top-level wrapper) and skips compiling and linking.
+codeGen :: ErrorHandle -> Flags -> [String] -> [String] -> IO ()
+codeGen errh flags mods abinFiles =
+    let flags' = flags { blockCodegen = True }
+    in  mapM_ (\m -> simLink errh flags' m abinFiles []) mods
 
 -- ===============
 -- SimLink

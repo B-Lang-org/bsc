@@ -3,7 +3,7 @@
 -- This pressures the ordering of a module's method (enable / argument /
 -- return) ports in the generated Bluesim C++.  Those port lists come from a
 -- map keyed by Id, whose order depends on interned-Id order and so can differ
--- between building the module on its own (-block-codegen) and as part of the
+-- between building the module on its own (-c) and as part of the
 -- whole design.  The ports must therefore be emitted in a context-independent
 -- (name) order for the per-module C++ to be byte-identical either way.
 --

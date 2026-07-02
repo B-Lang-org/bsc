@@ -1185,6 +1185,30 @@ proc bsc_link_objects { objects toplevel { options "" } } {
     return [expr $status == 0]
 }
 
+# -sim -c codegen (generate a module's code from its elaborated .ba file)
+# returns true iff code generation succeeded for all modules
+proc bsc_gen_modules { modules { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set ok 1
+    foreach mod $modules {
+        set output [make_bsc_ccomp_output_name $mod]
+        set gen_options "-no-show-timestamps -no-show-version -sim -c $mod"
+        set cmd "$bsc $gen_options $options >& $output"
+        verbose "Executing: $cmd" 4
+        set status [exec_with_log "bsc_gen_modules" $cmd 2]
+        if { $status != 0 } { set ok 0 }
+    }
+    cd $here
+    return $ok
+}
+
 # -verilog -u compile
 # returns true iff compilation succeeded
 proc bsc_compile_verilog { source { module "" } { options "" } } {
@@ -1720,6 +1744,21 @@ proc link_objects_pass { objects toplevel {options ""}} {
           pass "`$objects' link to executable `$toplevel'"
       } else {
           fail "`$objects' should link to executable `$toplevel'"
+      }
+    }
+}
+
+# generate code for modules from their .ba files (-sim -c)
+proc gen_modules_pass { modules {options ""}} {
+    global ctest
+
+    if {$ctest == 1} {
+      incr_stat "gen_modules_pass"
+
+      if [bsc_gen_modules $modules $options] then {
+          pass "`$modules' generate code"
+      } else {
+          fail "`$modules' should generate code"
       }
     }
 }
@@ -2834,7 +2873,7 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
 
         # Each bsc-generated submodule's Bluesim C++ must be identical whether
         # it is generated as part of this design or on its own with
-        # -block-codegen, so the object can be generated/compiled once and
+        # the -c codegen mode, so the object can be generated/compiled once and
         # shared across simulations (and reused by the dependency analysis).
         if { [llength $modules] > 0 } {
             check_block_codegen_modules $modules $link_options
@@ -2844,11 +2883,10 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
 }
 
 # For each bsc-generated submodule, regenerate its Bluesim C++ on its own with
-# -block-codegen and confirm it is byte-identical to the version generated as
-# part of building the enclosing design (which the caller has just built, so
+# the -c codegen mode and confirm it is byte-identical to the version generated
+# as part of building the enclosing design (which the caller has just built, so
 # the per-module files are present in the test directory).  Source-only:
-# byte-identity makes compiling or simulating the block-codegen output
-# unnecessary.
+# byte-identity makes compiling or simulating the -c output unnecessary.
 proc check_block_codegen_modules { modules link_options } {
     global srcdir
     global subdir
@@ -2869,13 +2907,13 @@ proc check_block_codegen_modules { modules link_options } {
         set modname [file rootname $mod]
         set bcgdir "blockcg_$modname"
         mkdir $bcgdir
-        # Use bsc_link_objects directly (not link_objects_pass) so that entries
-        # which cannot stand alone as a -block-codegen root -- e.g. an imported
-        # "BDPI" function rather than a synthesized submodule -- are silently
+        # Use bsc_gen_modules directly (not gen_modules_pass) so that entries
+        # which cannot stand alone as a -c root -- e.g. an imported "BDPI"
+        # function rather than a synthesized submodule -- are silently
         # skipped rather than reported as failures.  (Elaboration-affecting
-        # options are already baked into the .ba that block-codegen reads, so
-        # they need not be replayed here.)
-        if { [bsc_link_objects {} $modname "-block-codegen -simdir $bcgdir"] && \
+        # options are already baked into the .ba that -c reads, so they need
+        # not be replayed here.)
+        if { [bsc_gen_modules [list $modname] "-simdir $bcgdir"] && \
              [file exists [file join $here $subdir $modname.cxx]] && \
              [file exists [file join $here $subdir $bcgdir $modname.cxx]] } {
             compare_file $bcgdir/$modname.cxx $modname.cxx "check_block_codegen"

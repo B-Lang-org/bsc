@@ -3,7 +3,7 @@
 //   mkTop  -> mkSub             (one level)
 //   mkTop2 -> mkMid -> mkSub    (two levels)
 // The per-module C++ generated for mkSub must be identical in both, since
-// the whole point of -block-codegen is that a module's C++ does not depend
+// the whole point of per-module codegen (-c) is that a module's C++ does not depend
 // on the surrounding hierarchy.
 package Hier;
 

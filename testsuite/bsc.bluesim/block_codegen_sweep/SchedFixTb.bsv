@@ -1,5 +1,5 @@
 // Instantiates every SchedFix child so each gets a nested per-module C++, which
-// the block-codegen check compares against the standalone (-block-codegen)
+// the codegen-mode check compares against the standalone (-c)
 // form.  Driving is split across mutually-exclusive rules so no two conflicting
 // methods of the same instance are called in one rule.
 package SchedFixTb;

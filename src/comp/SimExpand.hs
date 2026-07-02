@@ -73,7 +73,7 @@ simExpand errh flags topname fabis = do
                              assertNoSchedErr emodinfos_used_by_name
 
     -- reject top-level modules with always_enabled ifc, if generating
-    -- a Bluesim executable; with -block-codegen the output is never
+    -- a Bluesim executable; in -c mode the output is never
     -- executed, so any module may serve as the codegen root
     let topModInfo =
            case (lookup (getIdString topmodId) modinfos_used_by_name) of

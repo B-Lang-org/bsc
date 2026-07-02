@@ -21,7 +21,7 @@ Compiler flags:
 -Xv arg                 pass argument to the Verilog link process
 -aggressive-conditions  construct implicit conditions aggressively
 -bdir dir               output directory for .bo and .ba files
--block-codegen          with -sim, generate a module's Bluesim C++ but do not compile or link it
+-c module               generate code for ``module'' from its elaborated .ba file
 -check-assert           test assertions with the Assert library
 -continue-after-errors  aggressively continue compilation after an error has been detected
 -cpp                    preprocess the source with the C preprocessor

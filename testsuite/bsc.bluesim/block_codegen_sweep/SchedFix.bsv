@@ -1,8 +1,8 @@
-// Pressure -block-codegen byte-identity across the "access count" dimensions,
+// Pressure -c codegen-mode byte-identity across the "access count" dimensions,
 // stepping each 0 -> 1 -> 2 -> n.  Every module here is a submodule of the
-// testbench in SchedFixTb.bsv; the testsuite's block-codegen check then
+// testbench in SchedFixTb.bsv; the testsuite's codegen-mode check then
 // confirms each module's per-module C++ is byte-identical whether built on its
-// own (-block-codegen) or as part of the design.
+// own (-c) or as part of the design.
 package SchedFix;
 
 // ---------------------------------------------------------------------------

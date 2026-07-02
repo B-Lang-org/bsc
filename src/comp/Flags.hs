@@ -26,6 +26,9 @@ data Flags = Flags {
         backend :: Maybe Backend,
         bdir :: Maybe String,
         biasMethodScheduling :: Bool,
+        -- internal: set by the driver when in -c mode (generate a module's
+        -- code from its .ba, as a reusable block rather than a runnable top);
+        -- never settable from the command line -- see codegenNames
         blockCodegen :: Bool,
         bluespecDir :: String,
         cIncPath :: [String],
@@ -46,6 +49,7 @@ data Flags = Flags {
         dumpAll :: Maybe (Maybe FilePath), -- maybe dump to file or stdout
         dumps :: [(DumpFlag, Maybe FilePath)], -- dump to file or stdout
         enablePoisonPills :: Bool,
+        codegenNames :: [String],
         entry :: Maybe String,
         expandATSlimit :: Int,
         expandIf :: Bool,

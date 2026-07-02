@@ -121,15 +121,15 @@ The following is a running list of those writings.
 * [How Bluesim provides implementations for import-BVI](https://groups.io/g/b-lang-discuss/topic/106520424)
 * [How the Bluesim C API is imported into Bluetcl](https://groups.io/g/b-lang-discuss/message/554)
 * There is a template for making Bluesim standalone programs (without Tcl) in `bsc/util/bsim_standalone/`
-* `-block-codegen`: per-module byte-identity and object reuse (see below)
+* `-c` (codegen mode): per-module byte-identity and object reuse (see below)
 
-#### `-block-codegen`: per-module byte-identity
+#### `-c` (codegen mode): per-module byte-identity
 
-`-sim -block-codegen -g M` emits `M`'s Bluesim C++ without a runnable top, so
+`-sim -c M` emits `M`'s Bluesim C++ without a runnable top, so
 `M`'s object can be built once and reused wherever `M` appears in a design.
 Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
 version/timestamp/`codeGenOptionDescr` match, never comparing content -- so
-`M`'s `-block-codegen` output must equal the C++ it gets as a submodule.
+`M`'s `-c` output must equal the C++ it gets as a submodule.
 
 It does, because both are generated from the same already-elaborated `M.ba`;
 only two things differ between the runs, and both are neutralized:
@@ -146,8 +146,7 @@ only two things differ between the runs, and both are neutralized:
   not a direct read).
 
 `check_block_codegen_modules` (`testsuite/config/unix.exp`) enforces it: it
-rebuilds every multi-module test's submodules with `-block-codegen` and
-byte-compares.
+rebuilds every multi-module test's submodules with `-c` and byte-compares.
 
 ### Bluetcl
 

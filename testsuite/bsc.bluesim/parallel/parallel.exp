@@ -59,8 +59,8 @@ test_c_only_bsv_multi_options TbGCD mkTbGCD {} \
 
 # -------------------------
 # The C++ generated for the submodule mkGCD does not depend on whether it is
-# built as part of its parent mkTbGCD or on its own with -block-codegen: the
-# per-module .cxx/.h are byte-identical.  That is what lets the object be
+# built as part of its parent mkTbGCD or on its own with the -c codegen mode:
+# the per-module .cxx/.h are byte-identical.  That is what lets the object be
 # generated and compiled once and shared across simulations (and reused by
 # the Bluesim dependency analysis).  Since the source is byte-identical,
 # there is no need to compile, link, or simulate both ways.
@@ -70,9 +70,9 @@ if { $ctest == 1 } {
 compile_object_pass GCD.bsv mkGCD
 compile_object_pass TbGCD.bsv mkTbGCD
 
-# mkGCD on its own, via -block-codegen
+# mkGCD on its own, via -c
 mkdir gcd_blockcg
-link_objects_pass {} mkGCD {-block-codegen -simdir gcd_blockcg}
+gen_modules_pass {mkGCD} {-simdir gcd_blockcg}
 
 # mkGCD as a submodule, generated as part of linking mkTbGCD
 mkdir gcd_nested
