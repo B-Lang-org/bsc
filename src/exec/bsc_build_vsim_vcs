@@ -178,14 +178,32 @@ fi
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
+# -dump-formats handling.  VCS emits VCD natively ($dumpvars); FSDB is enabled
+# with -kdb (modern VCS bundles the Verdi FSDB writer, so no external Verdi PLI
+# is needed) plus +define+BSC_FSDB so the harness calls $fsdbDumpvars.  VCS does
+# not produce FST.
+DUMP_FLAGS=""
+if [ -n "$BSC_VSIM_TRACE_FORMATS" ]; then
+    OLDIFS=$IFS; IFS=','
+    for fmt in $BSC_VSIM_TRACE_FORMATS; do
+        case "$fmt" in
+            none|vcd) ;;
+            fsdb) DUMP_FLAGS="$DUMP_FLAGS -kdb -debug_access+all +define+BSC_FSDB" ;;
+            *) echo "ERROR: vcs does not support waveform dump format '$fmt' (supported: vcd, fsdb)" >&2
+               IFS=$OLDIFS; exit 1 ;;
+        esac
+    done
+    IFS=$OLDIFS
+fi
+
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
     VCS_VERBOSE="-V"
-    echo "exec: vcs -V -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+    echo "exec: vcs -V -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS $DUMP_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
 else
     VCS_VERBOSE=""
 fi
-vcs $VCS_VERBOSE -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+vcs $VCS_VERBOSE -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS $DUMP_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
 status=$?
 if [ "$status" != "0" ]; then
     echo "ERROR: cannot compile Verilog files" >&2
