@@ -533,6 +533,7 @@ defaultFlags bluespecdir = Flags {
         passThroughAssertions = False,
         doICheck = True,
         dumpAll = Nothing,
+        dumpFormats = ["vcd"],
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
@@ -1694,6 +1695,23 @@ externalFlags = [
          (Arg "path" (\f s -> Left (f {vPathRaw = splitPath' f s vPathRaw})) (showPath vPathRaw),
           "search path (`:' sep.) for Verilog files", Visible)),
 
+        ("dump-formats",
+         let valids = ["none", "vcd", "fst", "fsdb"]
+             setFn f s =
+               let toks = filter (not . null) (splitWhen (== ',') s)
+               in case filter (`notElem` valids) toks of
+                    (bad:_) -> Right (cmdPosition, EBadArgFlag "-dump-formats" bad valids)
+                    []      -> Left $ f { dumpFormats =
+                                           if "none" `elem` toks
+                                           then []
+                                           else nub (filter (/= "none") toks) }
+             getFn = FRTString (\f -> case dumpFormats f of
+                                        [] -> "none"
+                                        fs -> intercalate "," fs)
+         in  (Arg "formats" setFn (Just getFn),
+              "waveform formats to compile into the simulation " ++
+              "(comma-separated subset of vcd,fst,fsdb; or none)", Visible)),
+
         ("vsim",
          let setFn f s = case setBackend f Verilog of
                            Left f' -> Left $ f' {vsim = Just s}
@@ -1845,6 +1863,7 @@ showFlagsRaw flags =
           ("disableAssertions", show (disableAssertions flags)),
           ("doICheck", show (doICheck flags)),
           ("dumpAll", show (dumpAll flags)),
+          ("dumpFormats", show (dumpFormats flags)),
           ("dumps", show (dumps flags)),
           ("enablePoisonPills", show (enablePoisonPills flags)),
           ("entry", show (entry flags)),

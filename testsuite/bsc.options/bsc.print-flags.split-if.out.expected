@@ -3,6 +3,7 @@ bsc -i BLUESPECDIR -print-flags -split-if
 
 Flags:
     -aggressive-conditions
+    -dump-formats   vcd
     -i BLUESPECDIR
     -lift
     -o a.out
