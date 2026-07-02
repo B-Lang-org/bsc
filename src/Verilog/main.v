@@ -52,7 +52,9 @@ module main();
  `define BSV_DUMP_TOP main
 `endif
 
-   reg [8*256:1] filename;
+   reg [8*256:1] filename;        // VCD dump file
+   reg [8*256:1] fst_filename;    // FST dump file
+   reg [8*256:1] fsdb_filename;   // FSDB dump file
 
    initial begin
       // CLK_GATE = 1'b1;
@@ -70,29 +72,39 @@ module main();
       else if (do_vcd)
 	filename = "dump.vcd";
 
-      if ($value$plusargs("bscfsdb=%s", filename))
+      if ($value$plusargs("bscfst=%s", fst_filename))
+	do_fst = 1;
+      else if (do_fst)
+	fst_filename = "dump.fst";
+
+      if ($value$plusargs("bscfsdb=%s", fsdb_filename))
 	do_fsdb = 1; // avoids bug in cvc
       else if (do_fsdb)
-	filename = "dump.fsdb";
+	fsdb_filename = "dump.fsdb";
 
+      // FSDB uses its own system tasks, available only when the Verdi PLI was
+      // linked (BSC_FSDB defined); it can coexist with a VCD/FST dump below.
 `ifdef BSC_FSDB
       if (do_fsdb) begin
-         $fsdbDumpfile(filename);
+         $fsdbDumpfile(fsdb_filename);
          $fsdbDumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
       end
 `else
+      if (do_fsdb)
+	$display("ERROR: %m was not built with FSDB support (rebuild with -dump-formats fsdb)");
+`endif
 
-//      if (do_fst && ! do_vcd) begin
-//         $dumpfile("|vcd2fst -F -f dump.fst -");
-//         $dumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
-//      end
-
-      if (do_vcd) begin
+      // VCD and FST share $dumpfile/$dumpvars; the on-disk format for FST is
+      // selected by the simulator at run time (e.g. iverilog: vvp -fst), so a
+      // build runs at most one of them -- FST takes precedence if both are asked.
+      if (do_fst) begin
+         $dumpfile(fst_filename);
+         $dumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
+      end
+      else if (do_vcd) begin
          $dumpfile(filename);
          $dumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
       end
-
-`endif
 
       #0
       RST = `BSV_RESET_VALUE;

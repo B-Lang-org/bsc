@@ -3,6 +3,7 @@ bsc -i BLUESPECDIR -print-flags -suppress-warnings G0001:G0002 -suppress-warning
 
 Flags:
      -aggressive-conditions
+    -dump-formats   vcd
      -i   BLUESPECDIR
      -lift
      -o   a.out

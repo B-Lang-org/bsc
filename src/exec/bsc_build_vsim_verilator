@@ -180,6 +180,20 @@ fi
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
+# Validate the requested waveform dump formats (-dump-formats).  verilator
+# currently supports only VCD (via --trace); fst/fsdb are not yet wired here.
+if [ -n "$BSC_VSIM_TRACE_FORMATS" ]; then
+    OLDIFS=$IFS; IFS=','
+    for fmt in $BSC_VSIM_TRACE_FORMATS; do
+        case "$fmt" in
+            none|vcd) ;;
+            *) echo "ERROR: verilator does not support waveform dump format '$fmt' (supported: vcd)" >&2
+               IFS=$OLDIFS; exit 1 ;;
+        esac
+    done
+    IFS=$OLDIFS
+fi
+
 TRACEFLAGS="--trace"
 
 # Don't rely on the top module file being the first on the command-line
