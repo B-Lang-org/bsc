@@ -125,7 +125,7 @@ The following is a running list of those writings.
 
 #### `-c` (codegen mode): per-module byte-identity
 
-`-sim -c M` emits `M`'s Bluesim C++ without a runnable top, so
+`-sim -c M` emits `M`'s Bluesim C++ (and only `M`'s) without a runnable top, so
 `M`'s object can be built once and reused wherever `M` appears in a design.
 Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
 version/timestamp/`codeGenOptionDescr` match, never comparing content -- so
