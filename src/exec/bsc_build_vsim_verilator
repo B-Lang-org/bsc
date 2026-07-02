@@ -180,21 +180,33 @@ fi
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
-# Validate the requested waveform dump formats (-dump-formats).  verilator
-# currently supports only VCD (via --trace); fst/fsdb are not yet wired here.
+# -dump-formats handling.  verilator compiles in exactly one trace format:
+# --trace (VCD) or --trace-fst (FST), which are mutually exclusive; "none"
+# builds with no tracing (faster).  fsdb is not a verilator format.  sim_main.cpp
+# selects the matching writer class via verilator's VM_TRACE_FST macro.
+TRACEFLAGS="--trace"
 if [ -n "$BSC_VSIM_TRACE_FORMATS" ]; then
+    want_vcd=no; want_fst=no
     OLDIFS=$IFS; IFS=','
     for fmt in $BSC_VSIM_TRACE_FORMATS; do
         case "$fmt" in
-            none|vcd) ;;
-            *) echo "ERROR: verilator does not support waveform dump format '$fmt' (supported: vcd)" >&2
+            none) ;;
+            vcd)  want_vcd=yes ;;
+            fst)  want_fst=yes ;;
+            *) echo "ERROR: verilator does not support waveform dump format '$fmt' (supported: vcd, fst)" >&2
                IFS=$OLDIFS; exit 1 ;;
         esac
     done
     IFS=$OLDIFS
+    if [ "$want_vcd" = yes ] && [ "$want_fst" = yes ]; then
+        echo "ERROR: verilator cannot build both vcd and fst into one binary (--trace and --trace-fst are mutually exclusive); choose one" >&2
+        exit 1
+    fi
+    if   [ "$want_fst" = yes ]; then TRACEFLAGS="--trace-fst"
+    elif [ "$want_vcd" = yes ]; then TRACEFLAGS="--trace"
+    else                             TRACEFLAGS=""   # none: no tracing compiled in
+    fi
 fi
-
-TRACEFLAGS="--trace"
 
 # Don't rely on the top module file being the first on the command-line
 TOPMOD=${BSC_TOPLEVEL_MODULE}
