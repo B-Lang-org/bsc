@@ -121,6 +121,40 @@ The following is a running list of those writings.
 * [How Bluesim provides implementations for import-BVI](https://groups.io/g/b-lang-discuss/topic/106520424)
 * [How the Bluesim C API is imported into Bluetcl](https://groups.io/g/b-lang-discuss/message/554)
 * There is a template for making Bluesim standalone programs (without Tcl) in `bsc/util/bsim_standalone/`
+* `-c` (codegen mode): per-module byte-identity and object reuse (see below)
+
+#### `-c` (codegen mode): per-module byte-identity
+
+Terminology: a module generated as a `-e` link's *top* is in "top form" (its
+interface methods are fired by the design schedule that the link also
+generates); everywhere else -- under `-c`, or as a submodule of any design --
+it is in "block form".  Block form is the shared, reusable output; top form
+is private to the link that made it.
+
+`-sim -c M` emits `M`'s Bluesim C++ (and only `M`'s) without a runnable top, so
+`M`'s object can be built once and reused wherever `M` appears in a design.
+Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
+version/timestamp/`codeGenOptionDescr` match, never comparing content -- so
+`M`'s `-c` output must equal the C++ it gets as a submodule.  (A link's own
+top is the exception: it is generated in "top form", which the descriptor
+records as `top`, so the two forms are never mixed by reuse.)
+
+It does, because both are generated from the same already-elaborated `M.ba`;
+only two things differ between the runs, and both are neutralized:
+
+* **Interned-`Id` order** varies with what else is compiled, but only *reorders*
+  output, and every per-module emission site is name-sorted (the four
+  "Canonicalize ... order" commits, plus pre-existing sorts).
+* **The schedule** (`M`'s own, firing-suppressed, vs the whole design's) reaches
+  per-module codegen through three channels, each made `M`-intrinsic:
+  *top-ness* (`mkScheduleStmts` drops `M`'s own interface-method firing, so DCE
+  gives submodule form), *VCD clock annotation* (`clk_map`; the emitted domain
+  comes from `M.ba`), and *member-vs-local* (`moveDefsOntoStack`; a top
+  interface method's readiness is reached by the RDY call, as a parent would,
+  not a direct read).
+
+`check_block_codegen_modules` (`testsuite/config/unix.exp`) enforces it: it
+rebuilds every multi-module test's submodules with `-c` and byte-compares.
 
 ### Bluetcl
 

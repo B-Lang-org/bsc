@@ -22,7 +22,7 @@ import SCC(tsort)
 import Util
 
 import Data.Maybe(mapMaybe, isJust, fromJust, fromMaybe, maybeToList)
-import Data.List(partition, nub, union, find, sortBy, (\\))
+import Data.List(partition, nub, union, find, sortBy, sortOn, (\\))
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -258,7 +258,9 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       -- ----------
       -- public and private class defs (public defs are all defs needed
       -- to compute CAN_FIRE and WILL_FIRE signals.
-      all_defs = map cvtADef raw_defs
+      -- Sort by base name so the order doesn't depend on raw_defs' AId map
+      -- order (AId's Ord follows run-dependent interned-FString order).
+      all_defs = sortOn (getIdBaseString . snd) (map cvtADef raw_defs)
       cf_wf_ex = [ ASDef t i
                  | (t,i) <- all_defs
                  , (isFire i)
@@ -292,7 +294,9 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       meth_rets = [ (rt, n, vn)
                   | (n, (_,_,(Just (rt,vn)),_,_)) <- M.toList meth_map
                   ]
-      ports = meth_ens ++ meth_args ++ meth_rets
+      -- Sort by base name so the order doesn't depend on the AId map order
+      -- (AId's Ord follows run-dependent interned-FString order).
+      ports = sortOn (\(_,a,_) -> getIdBaseString a) (meth_ens ++ meth_args ++ meth_rets)
 
       -- ----------
       -- clock domains
@@ -738,9 +742,22 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
                 internalError ("mkScheduleStmts: as = " ++ ppReadable as)
       gate_substs = mkGateSubstMap top_gates $
                         concatMap (di_clock_substs . snd) domain_infos
-      mkStmt = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
-                            inst_map full_def_map non_prim_calls
-                            gate_substs sched_conflicts sched_ME_inhibits
+      mkStmt0 = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
+                             inst_map full_def_map non_prim_calls
+                             gate_substs sched_conflicts sched_ME_inhibits
+      -- In -c mode the root is a reusable block, not a runnable top,
+      -- so its interface methods are not fired by its own schedule.  Keep the
+      -- method nodes in the schedule graph (so edges from rules stay valid) but
+      -- emit no statements for them; their enable/argument ports then go
+      -- unreferenced and are optimized away, matching submodule form.  (See
+      -- DEVELOP.md.)
+      isTopMethodNode (Sched rid) =
+          (rid `S.member` top_vmeth_set) || (rid `S.member` top_ameth_set)
+      isTopMethodNode (Exec rid) =
+          (rid `S.member` top_vmeth_set) || (rid `S.member` top_ameth_set)
+      mkStmt n = if (blockCodegen flags) && (isTopMethodNode n)
+                 then []
+                 else mkStmt0 n
       (pos_rule_stmts, neg_rule_stmts) =
           if (ss_posedge sim_sched)
           then (stableOrdNub (concatMap mkStmt edge_sched_order), [])
@@ -1430,6 +1447,26 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         -- Convert the graph to the format expected by tsort.
         g_edges = M.toList g
 
+        -- tsort breaks ties by node Ord (for defs, the run-dependent AId Ord),
+        -- so rank def nodes by id-name before tsort and map back for a stable
+        -- order.  (Actions keep their position; Left<Right keeps defs first.)
+        g_def_ids :: [AId]
+        g_def_ids = S.toList $ S.fromList [ i | (n,ns) <- g_edges, Left i <- n:ns ]
+        rank_map :: M.Map AId Integer
+        rank_map = M.fromList $
+                     zip (sortOn getIdString g_def_ids)
+                         [(0::Integer)..]
+        unrank_map :: M.Map Integer AId
+        unrank_map = M.fromList [ (r,i) | (i,r) <- M.toList rank_map ]
+        encNode :: Node -> EncNode
+        encNode (Left i)  = Left (fromJust (M.lookup i rank_map))
+        encNode (Right n) = Right n
+        decNode :: EncNode -> Node
+        decNode (Left r)  = Left (fromJust (M.lookup r unrank_map))
+        decNode (Right n) = Right n
+        enc_edges :: [EncEdge]
+        enc_edges = [ (encNode n, map encNode ns) | (n,ns) <- g_edges ]
+
         -- ----------
         -- convert a graph node back into a def/action
         -- and then to a SimCCFnStmt
@@ -1500,17 +1537,17 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         -- the lower valued nodes first.  Thus, we have chosen the node
         -- representation to put Defs first, followed by Actions in the
         -- order that they were give by the user.)
-        case (tsort g_edges) of
+        case (tsort enc_edges) of
             Left iss ->
                 let -- lookup def and action nodes
                     lookupFn = either (Left . getDef) (Right . getAct)
-                    xss = map (map lookupFn) iss
+                    xss = map (map (lookupFn . decNode)) iss
                 in  internalError ("tsortActionsAndDefs: cyclic: " ++
                                    ppReadable (modId, rId) ++
                                    ppReadable xss)
             Right is ->
                 let -- lookup def and action nodes
-                    xs = map (either (Left . getDef) (Right . getAct)) is
+                    xs = map ((either (Left . getDef) (Right . getAct)) . decNode) is
                     -- group by reset conditions
                     grouped = groupRsts xs
                 in -- declare the local temporaries
@@ -1523,6 +1560,11 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 
 type Node = Either AId Integer
 type Edge = (Node, [Node])
+
+-- A Node with its def id (the Left) replaced by that id's integer rank,
+-- so tsort's Ord-based tie-breaking is stable rather than AId-order dependent.
+type EncNode = Either Integer Integer
+type EncEdge = (EncNode, [EncNode])
 
 -- ----------
 

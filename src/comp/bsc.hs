@@ -226,6 +226,10 @@ hmain args = do
             do { setFlags flags; doWarnings; showPreamble flags;
                  simLink errh flags top abinFiles cSrcFiles;
                  exitOK errh }
+        DCodeGen flags mods abinFiles ->
+            do { setFlags flags; doWarnings; showPreamble flags;
+                 codeGen errh flags mods abinFiles;
+                 exitOK errh }
 
 
 main' :: ErrorHandle -> Flags -> String -> IO ()
@@ -1283,8 +1287,11 @@ genModuleC errh flags dumpnames time0 toplevel abis =
 
        -- extract file dependency structure and determine if any
        -- existing bluesim packages can reuse existing object files
+       -- (in -c mode, all files are always regenerated)
        start flags DFsimDepend
-       reused <- analyzeBluesimDependencies flags sim_system prefix
+       reused <- if (blockCodegen flags)
+                 then return []
+                 else analyzeBluesimDependencies flags sim_system prefix
        time <- dump errh flags time DFsimDepend dumpnames reused
 
        -- optimize the SimPackages and SimSchedules
@@ -1382,6 +1389,19 @@ genModuleC errh flags dumpnames time0 toplevel abis =
        return (time, names, reused_names, creation_time)
 
 -- ===============
+-- CodeGen
+
+-- The -c mode: generate code for a module from its elaborated (.ba)
+-- file, the middle stage of the three-stage flow (elaborate -> codegen ->
+-- link).  For Bluesim this reuses the front half of simLink, which under
+-- blockCodegen generates each module's C++ as a reusable block (no
+-- schedule or top-level wrapper) and skips compiling and linking.
+codeGen :: ErrorHandle -> Flags -> [String] -> [String] -> IO ()
+codeGen errh flags mods abinFiles =
+    let flags' = flags { blockCodegen = True }
+    in  mapM_ (\m -> simLink errh flags' m abinFiles []) mods
+
+-- ===============
 -- SimLink
 
 simLink :: ErrorHandle -> Flags -> String -> [String] -> [String] -> IO ()
@@ -1434,7 +1454,10 @@ simLink errh flags toplevel afilenames cfilenames = do
     start flags DFbluesimcompile
     let jobs = parallelSimLink flags
     (gen_ofiles, compiled_user_ofiles) <-
-        if (jobs > 1)
+        if (blockCodegen flags)
+        then -- the user's build system compiles the generated files
+          return ([], [])
+        else if (jobs > 1)
         then do
           compileParallelCFiles errh flags False
               toplevel gen_cfiles user_cfiles
@@ -1452,9 +1475,10 @@ simLink errh flags toplevel afilenames cfilenames = do
     t <- dump errh flags t_before_compilations DFbluesimcompile dumpnames
               ofiles
 
-    -- if not generating a SystemC model, link to a Bluesim executable
+    -- if generating a SystemC model or only generating code,
+    -- there is nothing to link; otherwise link a Bluesim executable
     start flags DFbluesimlink
-    when (not (genSysC flags)) $
+    when (not (genSysC flags) && not (blockCodegen flags)) $
       cxxLink errh flags toplevel ofiles creation_time
     t <- dump errh flags t DFbluesimlink dumpnames toplevel
 

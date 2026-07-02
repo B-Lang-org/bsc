@@ -50,6 +50,7 @@ simBlocksToC flags time top_block def_clk def_rst
         -- within that block to the clock domain on which that signal is written.
         -- Since the Ids can be both in the port and def namespace, they are encoded as a pair
         -- "Bool,Id").
+        -- (Emitted clock domain is from M.ba; see DEVELOP.md re -c mode.)
         matchesInst i1 = \(i2,_) -> q1' == getIdQual i2
           where q1  = getIdQualString i1
                 q1' = mkFString $ if q1 == "top" then "" else drop 4 q1
@@ -94,9 +95,21 @@ simBlocksToC flags time top_block def_clk def_rst
                   let wide_defs = M.findWithDefault [] mod wdef_mod_map ]
 
     let cvtModBlock = convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_block
-    module_names <- concatMapM (cvtModBlock writeFileC) mod_blocks
-    schedule_names <- convertSchedules flags time top_block def_clk def_rst sb_map ff_map
-                                       wdef_inst_map scheds clk_groups gate_info writeFileC
+    -- In -c mode only the named root's files are written (the cc -c contract:
+    -- one module in, that module's outputs out).  Submodules get their files
+    -- from their own -c invocations; their content is byte-identical either
+    -- way, so only which files are written changes, never their bytes.
+    let gen_blocks = if blockCodegen flags
+                     then filter ((== top_block) . sb_id) mod_blocks
+                     else mod_blocks
+    module_names <- concatMapM (cvtModBlock writeFileC) gen_blocks
+    -- In -c mode the root is a reusable block, not a runnable top: it
+    -- has no schedule of its own and no "model_" wrapper (whatever instantiates
+    -- it supplies the schedule), matching submodule form.
+    schedule_names <- if blockCodegen flags
+                      then return []
+                      else convertSchedules flags time top_block def_clk def_rst sb_map ff_map
+                                            wdef_inst_map scheds clk_groups gate_info writeFileC
     return $ module_names ++ schedule_names
 
 lookupInstance :: SBMap -> Maybe SBId -> String -> Maybe SBId
@@ -182,7 +195,10 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         wide_defs = M.findWithDefault [] (sb_id sb) wdef_mod_map
         wdef_inst_map = M.fromList [("", wide_defs)]
         uses_foreign_fn = blockCallsForeignFn sb
-        is_top = (sb_id sb) == top_blk
+        -- "top" here means generated in top form (the form the -e link's
+        -- schedule and model_ expect); in -c mode the root is generated
+        -- in block form, so its descriptor must say so
+        is_top = (sb_id sb) == top_blk && not (blockCodegen flags)
 
         -- list of subblocks that need to be included
         include_ids = nub (map (\(id,_,_)->id) (sb_state sb))
