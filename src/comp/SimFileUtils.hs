@@ -31,13 +31,16 @@ getModTime f =
                 return $ Just (modificationTime s)
         else return Nothing
 
--- Flags that make an object unreusable under a different setting (isStale checks
--- these before reuse).  blockCodegen (-c mode) is omitted: its output equals the
--- submodule form (see DEVELOP.md).
+-- Settings that make an object unreusable under a different setting (isStale
+-- checks these before reuse).  blockCodegen (-c mode) is omitted: its output
+-- equals the submodule form (see DEVELOP.md).  "top" marks top form (the
+-- form the -e link's schedule and model_ expect), so a block-form artifact
+-- can never be taken as a link's top, nor vice versa.
 codeGenOptionDescr :: Flags -> Bool -> String
 codeGenOptionDescr flags is_top =
     unwords $ [ "Generation options:" ] ++
               (if (keepFires flags) then ["keep-fires"] else []) ++
+              (if is_top then ["top"] else []) ++
               (if (is_top && (genSysC flags)) then ["sysc-top"] else [])
 
 readCodeGenOptionDescr :: FilePath -> IO (Maybe String)

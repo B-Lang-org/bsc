@@ -129,7 +129,9 @@ The following is a running list of those writings.
 `M`'s object can be built once and reused wherever `M` appears in a design.
 Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
 version/timestamp/`codeGenOptionDescr` match, never comparing content -- so
-`M`'s `-c` output must equal the C++ it gets as a submodule.
+`M`'s `-c` output must equal the C++ it gets as a submodule.  (A link's own
+top is the exception: it is generated in "top form", which the descriptor
+records as `top`, so the two forms are never mixed by reuse.)
 
 It does, because both are generated from the same already-elaborated `M.ba`;
 only two things differ between the runs, and both are neutralized:

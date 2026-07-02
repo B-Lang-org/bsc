@@ -195,7 +195,10 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         wide_defs = M.findWithDefault [] (sb_id sb) wdef_mod_map
         wdef_inst_map = M.fromList [("", wide_defs)]
         uses_foreign_fn = blockCallsForeignFn sb
-        is_top = (sb_id sb) == top_blk
+        -- "top" here means generated in top form (the form the -e link's
+        -- schedule and model_ expect); in -c mode the root is generated
+        -- in block form, so its descriptor must say so
+        is_top = (sb_id sb) == top_blk && not (blockCodegen flags)
 
         -- list of subblocks that need to be included
         include_ids = nub (map (\(id,_,_)->id) (sb_state sb))

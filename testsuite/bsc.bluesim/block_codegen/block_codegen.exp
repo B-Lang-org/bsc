@@ -142,6 +142,29 @@ files_dont_exist { top_only/mkMid.cxx top_only/mkSub.cxx \
 }
 
 # -------------------------
+# -c output is block form; a link's top is generated in top form.  The
+# generation-options descriptor in the .h records the form, so a fresh
+# block-form artifact is never reused as the top of a link (and a
+# top-form artifact from an earlier link of the same design still is).
+
+if { $ctest == 1 } {
+
+# generate block form into the current directory (where -e would look)
+gen_modules_pass {mkBlockCodegen}
+# fabricate an up-to-date object, so only the descriptor can reject reuse
+exec touch [file join [absolute $srcdir] $subdir mkBlockCodegen.o]
+# the link must regenerate its top rather than reuse the block form ...
+link_objects_pass {} mkBlockCodegen
+find_regexp_fail [make_bsc_ccomp_output_name mkBlockCodegen] \
+    {Bluesim object reused}
+# ... but relinking reuses the top-form artifact it just made
+link_objects_pass {} mkBlockCodegen
+find_regexp [make_bsc_ccomp_output_name mkBlockCodegen] \
+    {Bluesim object reused: mkBlockCodegen}
+
+}
+
+# -------------------------
 # Command-line checks: -c is its own mode
 
 # -c cannot be combined with -e (linking is a separate step)
