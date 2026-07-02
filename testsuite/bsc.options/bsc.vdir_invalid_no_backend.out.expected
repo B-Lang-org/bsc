@@ -16,6 +16,7 @@ bsc -i BLUESPECDIR -print-flags -vdir INVALID
 
 Flags:
      -aggressive-conditions
+    -dump-formats   vcd
      -i   BLUESPECDIR
      -lift
      -o   a.out
