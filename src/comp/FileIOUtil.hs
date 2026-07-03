@@ -86,7 +86,7 @@ readFilePath errh pos verb name path =
 readBinFilePath :: ErrorHandle -> Position ->
                    Bool -> String -> [String] -> IO (Maybe (BS.ByteString, String))
 readBinFilePath errh pos verb name path =
-    readFilesPath' errh pos verb [name] path >>= return . mapFst (BS.concat . B.toChunks)
+    readFilesPath' errh pos verb [name] path >>= return . mapFst B.toStrict
 
 -- for this variant, the file name can have an absolute path
 readFilePathOrAbs :: ErrorHandle -> Position ->
