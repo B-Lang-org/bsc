@@ -33,7 +33,9 @@ find_n_warning Super_Coherent.bs.bsc-vcomp-out T0158 0
 test_c_veri_bs_modules_options Super_Default_FlagOff {} {}
 find_n_warning Super_Default_FlagOff.bs.bsc-vcomp-out T0158 0
 
-test_c_veri_bs_modules_options Super_Default_FlagOn {} {}
+# The expected sim output is identical with the flag on
+copy sysSuper_Default_FlagOff.out.expected sysSuper_Default_FlagOn.out.expected
+test_c_veri_bs_modules_options Super_Default_FlagOn {} {-incoherent-instance-matches}
 find_n_warning Super_Default_FlagOn.bs.bsc-vcomp-out T0158 0
 
 test_c_veri_bs_modules_options Super_Incoherent {} {}
