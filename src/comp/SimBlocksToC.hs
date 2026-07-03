@@ -187,12 +187,17 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         -- list of subblocks that need to be included
         include_ids = nub (map (\(id,_,_)->id) (sb_state sb))
 
+        -- whether to emit the per-signal VCD dumping code (-dump-formats vcd);
+        -- with -dump-formats none it is stubbed out, dropping a lot of
+        -- generated code in large/replicated designs.
+        genVCD = "vcd" `elem` dumpFormats flags
+
         -- class declaration (for the H file)
-        class_decl = simCCBlockToClassDeclaration sb_map sb
+        class_decl = simCCBlockToClassDeclaration genVCD sb_map sb
 
         -- method definitions (for the CXX file)
         (method_defs, state) =
-            runState (simCCBlockToClassDefinition sb_map dom_map sb)
+            runState (simCCBlockToClassDefinition genVCD sb_map dom_map sb)
                      (initialState ff_map wdef_inst_map (unSpecTo flags))
         lit_defs = mkLiteralDecls (nub (literals state))
         str_defs = mkStringDecls (M.toList (str_map state))
