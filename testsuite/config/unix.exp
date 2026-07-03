@@ -272,6 +272,23 @@ proc which_dumpbo {} {
     return $dumpbo
 }
 
+proc which_dumpba {} {
+    global env
+
+    if { [info exists DUMPBA] && [file exists $DUMPBA] } then {
+        set dumpba [absolute_filename $DUMPBA]
+    } elseif { [info exists env(DUMPBA)] && [file exists $env(DUMPBA)] } then {
+        set dumpba [absolute_filename $env(DUMPBA)]
+    } else {
+        set dumpba [which dumpba]
+    }
+    if {$dumpba == 0} then {
+        perror "can't find dumpba -- set DUMPBA to /path/filename"
+        exit 1
+    }
+    return $dumpba
+}
+
 proc which_vcdcheck {} {
     global env
 
@@ -908,6 +925,11 @@ proc make_dumpbo_output_name { file } {
     return $filename
 }
 
+proc make_dumpba_output_name { file } {
+    set filename "$file.dumpba-out"
+    return $filename
+}
+
 proc make_vcdcheck_output_name { file } {
     set filename "$file.vcdcheck-out"
     return $filename
@@ -1080,6 +1102,26 @@ proc dumpbi {source} {
     set cmd "$dumpbo -bi $source >& $output"
     verbose "Executing: $cmd" 4
     set status [exec_with_log "dumpbi" $cmd 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+# file needs to be an *absolute* path for invoking dumpba
+proc dumpba {source} {
+    global dumpba
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_dumpba_output_name $source]
+    set cmd "$dumpba $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "dumpba" $cmd 2]
 
     cd $here
     return [expr $status == 0]
@@ -1536,6 +1578,20 @@ proc dumpbo_pass { source xfail } {
     }
 }
 
+proc dumpba_pass { source xfail } {
+
+    if {[do_internal_checks] && $xfail != 1} {
+
+        incr_stat "dumpba"
+
+        if [dumpba $source] then {
+           pass "Intermediate file `$source' can be loaded"
+        } else {
+           fail "Intermediate file `$source' should load"
+        }
+    }
+}
+
 # Return the list of synthesised modules for which a .ba file is
 # expected after a verilog compile.  Only -elab compiles produce .ba.
 proc verilog_ba_modules { module options } {
@@ -1583,6 +1639,7 @@ proc check_intermediate_files { source xfail {options ""} {modules ""} } {
             }
             if {[file exists $check_path]} {
                 pass "Intermediate file `$ba_file' exists"
+                dumpba_pass $check_path $xfail
             } else {
                 fail "Intermediate file `$ba_file' should exist"
             }
@@ -3459,6 +3516,7 @@ proc bsc_initialize {} {
     global DO_INTERNAL_CHECKS
 
     global dumpbo
+    global dumpba
     global vcdcheck
     global bsc2bsv
 
@@ -3475,6 +3533,7 @@ proc bsc_initialize {} {
         # the binaries if we are running internal tests.
         if [do_internal_checks] {
             set dumpbo [which_dumpbo]
+            set dumpba [which_dumpba]
             set vcdcheck [which_vcdcheck]
             set bsc2bsv [which_bsc2bsv]
         }
