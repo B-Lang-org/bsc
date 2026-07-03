@@ -1516,7 +1516,13 @@ cmdCompileBluesimCFile flags cName = do
         -- show is used for quoting
         opts = map show (cxxFlags flags)
         files = [show (mangleFileName cName)]
-    cmd <- cmdCXXCompile flags (opts ++ switches) files
+        -- the generated model/schedule file (model_<top>.cxx) is dispatch code:
+        -- compiling it at -O3 is disproportionately slow and buys no measurable
+        -- run time, so allow its flags to be overridden with TOP_CXXFLAGS
+        cflags_var = if ("model_" `isPrefixOf` (baseName cName))
+                     then "TOP_CXXFLAGS"
+                     else "CXXFLAGS"
+    cmd <- cmdCXXCompileWithEnv cflags_var flags (opts ++ switches) files
     let cNameRel = getRelativeFilePath cName
     -- we lie here and mention both header and object (un-mangled name)
     let msg = engine ++ " object created: " ++ (dropSuf cNameRel) ++
@@ -1731,9 +1737,19 @@ cxxCompile errh flags sws fs = do
 --   sws = switches (like -c, -o)
 --   fs  = filenames
 cmdCXXCompile :: Flags -> [String] -> [String] -> IO String
-cmdCXXCompile flags sws fs = do
+cmdCXXCompile = cmdCXXCompileWithEnv "CXXFLAGS"
+
+-- Same, but taking the name of the environment variable that supplies the
+-- compiler flags (falling back to CXXFLAGS if that variable is not set).
+-- This lets specific generated files (e.g. the Bluesim model/schedule file,
+-- via TOP_CXXFLAGS) be compiled with different flags: the model file is
+-- dispatch code whose g++ -O3 compile time grows much faster than any
+-- run-time benefit, so users can set e.g. TOP_CXXFLAGS=-O1.
+cmdCXXCompileWithEnv :: String -> Flags -> [String] -> [String] -> IO String
+cmdCXXCompileWithEnv cflags_var flags sws fs = do
     comp <- getEnvDef "CXX" dfltCxxCompile
-    cflags <- getEnvDef "CXXFLAGS" dfltCXXFLAGS
+    base_cflags <- getEnvDef "CXXFLAGS" dfltCXXFLAGS
+    cflags <- getEnvDef cflags_var base_cflags
     let debug_flags = if (cDebug flags) then "-g" else ""
     bsc_cflags <- getEnvDef "BSC_CXXFLAGS" dfltBSC_CXXFLAGS
     let cmd = unwords $ [ comp, cflags, debug_flags, bsc_cflags ] ++ sws ++ fs
