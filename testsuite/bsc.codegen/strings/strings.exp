@@ -26,7 +26,9 @@ compare_file CharLiteralBad_Multiple.bsv.bsc-vcomp-out
 # Test non-error behavior
 test_veri_only_bsv StringCharFunctions
 
-# Verify string prims produce correctly-typed results
+# Verify string prims produce correctly-typed results.
+# The -trace-eval-types flag turns evaluator type mismatches into
+# compile failures, so successful compilation is itself the check.
 compile_verilog_pass StringCharFunctions.bsv {} {-trace-eval-types}
 compile_verilog_pass StringSplitTypes.bs {} {-trace-eval-types}
 
