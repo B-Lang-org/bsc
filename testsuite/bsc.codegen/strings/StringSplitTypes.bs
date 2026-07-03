@@ -6,5 +6,9 @@ package StringSplitTypes where
 {-# synthesize sysStringSplitTypes #-}
 sysStringSplitTypes :: Module Empty
 sysStringSplitTypes = module
+   -- non-empty string exercises the Valid result path
    rg :: Reg Bool
    rg <- mkReg (isJust (stringSplit "hello"))
+   -- empty string exercises the Invalid result path
+   rg2 :: Reg Bool
+   rg2 <- mkReg (isJust (stringSplit ""))
