@@ -22,7 +22,9 @@ import ListMap(lookupWithDefault)
 import Util
 import FileNameUtil(hasSuf)
 import PFPrint
-import Error(internalError, ErrorHandle)
+import Error(internalError, ErrorHandle, bsWarning, ErrMsg(WSVReservedIdent))
+import Position(getPosition)
+import qualified Data.Generics as Generic
 import Flags(Flags, systemVerilogOutput,
              removeReg, removeCross, removeInoutConnect, removeUnusedMods,
              useDPI, verilogDeclareAllFirst)
@@ -59,7 +61,21 @@ import qualified GraphWrapper as G
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
-       return (VProgram mods dpi_decls comments)
+    do let vprog = VProgram mods dpi_decls comments
+       -- warn about identifiers that collide with SystemVerilog reserved
+       -- words; the printer emits them as escaped identifiers (see the
+       -- PPrint VId instance), which keeps the output legal, but the user
+       -- may prefer to rename them (promote G0129 to make this an error)
+       let sv_clashes =
+               M.toList $ M.fromListWith (\_ old -> old)
+                   [ (s, getPosition i)
+                   | VId s i _ <- Generic.listify isReservedVId vprog ]
+             where isReservedVId (VId s _ _) = isSVReservedWord s
+       if (null sv_clashes)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVReservedIdent name) | (name, pos) <- sv_clashes ]
+       return vprog
   where
         vco = flagsToVco flags
         -- look for pass-through comments, taking care of \n

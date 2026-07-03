@@ -1,0 +1,11 @@
+# Identifiers that are reserved in SystemVerilog (or are std:: package class
+# names) but are legal BSV identifiers must produce Verilog that parses for
+# SystemVerilog-mode consumers (e.g. verilator with DPI).  bsc emits them as
+# escaped identifiers and warns (G0129) for each; the design must still
+# compile, link and run identically on all backends.
+test_c_veri_bsv SvKeywords sysSvKeywords.out.expected
+
+if {$vtest == 1} {
+# one G0129 warning per colliding identifier
+find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0129)} 7
+}

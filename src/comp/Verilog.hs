@@ -27,6 +27,7 @@ module Verilog(
                getVeriInsts,
                vGetMainModName,
                vKeywords,
+               isSVReservedWord,
                vSeq,
                vVDecl,
                vGroup,
@@ -50,6 +51,7 @@ import Prelude hiding ((<>))
 
 import Data.List(nub)
 import Data.Maybe(fromMaybe)
+import qualified Data.Set as S
 import Eval
 import PPrint
 import Fixity(Fixity(..))
@@ -760,7 +762,14 @@ getVIdString :: VId -> String
 getVIdString (VId s _ _) = s
 
 instance PPrint VId where
-        pPrint d p (VId s i _) = text s
+        pPrint d p (VId s i _)
+          -- identifiers that are reserved in SystemVerilog (but not in
+          -- Verilog-2001, which BSV's parser already rejects as identifiers)
+          -- are printed as escaped identifiers, so the generated code parses
+          -- under both language levels (escaped identifiers are legal in
+          -- both; the trailing space is part of the escape syntax)
+          | s `S.member` svKeywordSet = text ("\\" ++ s ++ " ")
+          | otherwise = text s
 
 instance HasPosition VId where
   getPosition (VId _ inside_id _) = getPosition inside_id
@@ -1083,6 +1092,45 @@ vKeywords =
     "macromodule", "tri1", "pull0", "trireg", "small", "tri", "signed", "pull1", "time", "highz0",
     "localparam", "medium", "highz1", "initial"
     ]
+
+-- Words that are reserved in SystemVerilog (IEEE 1800) but not in
+-- Verilog-2001.  BSV's parser rejects Verilog-2001 keywords as identifiers,
+-- but these can appear as user names (e.g. a register named "process") and
+-- would break any SystemVerilog-mode consumer of the generated code (for
+-- example verilator with DPI, or VCS with -sv), so the printer emits them as
+-- escaped identifiers.  The list is the 1800-2017 reserved words minus the
+-- Verilog-2001 set, plus the built-in std package class names, which parsers
+-- treat as type names.
+svKeywordSet :: S.Set String
+svKeywordSet = S.fromList
+    [ "accept_on", "alias", "always_comb", "always_ff", "always_latch",
+      "assert", "assume", "before", "bind", "bins", "binsof", "bit", "break",
+      "byte", "chandle", "checker", "class", "clocking", "const", "constraint",
+      "context", "continue", "cover", "covergroup", "coverpoint", "cross",
+      "dist", "do", "endchecker", "endclass", "endclocking", "endgroup",
+      "endinterface", "endpackage", "endprogram", "endproperty", "endsequence",
+      "enum", "eventually", "expect", "export", "extends", "extern", "final",
+      "first_match", "foreach", "forkjoin", "global", "iff", "ignore_bins",
+      "illegal_bins", "implements", "implies", "import", "inside", "int",
+      "interconnect", "interface", "intersect", "join_any", "join_none",
+      "let", "local", "logic", "longint", "matches", "modport", "nettype",
+      "new", "nexttime", "null", "package", "packed", "priority", "program",
+      "property", "protected", "pure", "rand", "randc", "randcase",
+      "randsequence", "ref", "reject_on", "restrict", "return", "s_always",
+      "s_eventually", "s_nexttime", "s_until", "s_until_with", "sequence",
+      "shortint", "shortreal", "soft", "solve", "static", "string", "strong",
+      "struct", "super", "sync_accept_on", "sync_reject_on", "tagged", "this",
+      "throughout", "timeprecision", "timeunit", "type", "typedef", "union",
+      "unique", "unique0", "until", "until_with", "untyped", "var", "virtual",
+      "void", "wait_order", "weak", "wildcard", "with", "within",
+      -- std package built-in classes
+      "process", "semaphore", "mailbox"
+    ]
+
+-- whether an identifier collides with an SV-reserved word and will therefore
+-- be emitted in escaped form by the printer
+isSVReservedWord :: String -> Bool
+isSVReservedWord s = s `S.member` svKeywordSet
 
 vIsValidIdent :: String -> Bool
 vIsValidIdent ""     = False
