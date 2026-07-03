@@ -4,7 +4,7 @@ module Util where
 import Data.Char(intToDigit)
 import Data.Word(Word8,Word32,Word64)
 import Data.Bits
-import Data.List(sort, sortBy, group, groupBy, nubBy, union, foldl')
+import Data.List(sort, sortBy, group, groupBy, nubBy, union)
 import Data.Bifunctor(first,second)
 import Control.Monad(foldM)
 import Debug.Trace(trace)
@@ -606,25 +606,11 @@ hashInit = Hash 0 4000000063
 
 -- showpair (x,y) = "(" ++ (showHex x ("," ++ (showHex y ")")))
 
-nextHash :: Hash -> [Word8] -> Hash
-nextHash h s = foldl' nextHashByte h s
-
 nextHashByte :: Hash -> Word8 -> Hash
 nextHashByte (Hash x y) c =
     let y' = (rotate x 5) + (toEnum (fromEnum c))
         x' = y + y' + 1442968193
     in Hash x' y'
-
-nextHash32 :: Hash -> Word32 -> Hash
-nextHash32 (Hash x y) n =
-    let y' = (rotate x 20) + n
-        x' = y + y' + 1442968193
-    in Hash x' y'
-
-nextHash64 :: Hash -> Word64 -> Hash
-nextHash64 h n =
-    let (hi,lo) = n `quotRem` (2^(32::Int))
-    in nextHash32 (nextHash32 h (fromIntegral lo)) (fromIntegral hi)
 
 hashValue :: Hash -> Word64
 hashValue (Hash x y) = ((fromIntegral x) `shiftL` 32) .|. (fromIntegral y)
