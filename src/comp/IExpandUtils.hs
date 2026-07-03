@@ -2469,6 +2469,14 @@ addHeapCell tag cell = do
   when doTraceHeapAlloc $ traceM("addHeapCell(" ++ show p ++ "): " ++ tag ++ "\n")
   return (p, HeapData ref)
 
+-- Construct an "IRefT" expression referring to a heap cell.
+-- The deepseq forces the type and position in the IRefT so that
+-- they will not be thunks holding references to the original expression.
+mkIRefT :: IType -> HeapPointer -> S.Set Position -> HeapData -> HExpr
+mkIRefT t p poss r =
+  let result = IRefT t p poss r
+  in  deepseq result result
+
 addHeapUnev :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 addHeapUnev tag t e cell_name_orig = do
  cell_name <- improveCellName e cell_name_orig
@@ -2476,13 +2484,11 @@ addHeapUnev tag t e cell_name_orig = do
  (p, r) <- addHeapCell tag newcell
  -- trace_hcell p e
  let poss = S.singleton $ getIExprPosition e
- let result = IRefT t p poss r
+ let result = mkIRefT t p poss r
  when doTraceHeap $ traceM ("addHeapUnev " ++ ppString cell_name ++ " [" ++
                             prPositionConcise (getPosition cell_name) ++ "] " ++
                             ppReadable (result,t,e))
- -- The deepseq forces the type and position in the IRefT so that
- -- they will not be thunks holding references to the original expression.
- return $ deepseq result result -- (mapIExprPosition cross (e, result))
+ return result -- (mapIExprPosition cross (e, result))
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
@@ -2491,14 +2497,12 @@ addHeapWHNF tag t pe@(P _ e) cell_name_orig = do
   let newcell = (HWHNF { hc_pexpr = pe, hc_name = cell_name })
   (p, r) <- addHeapCell tag newcell
   let poss = S.singleton $ getIExprPosition e
-  let result = IRefT t p poss r
+  let result = mkIRefT t p poss r
   when doTraceHeap $ traceM ("addHeapWHNF " ++ ppString cell_name ++ " [" ++
                              prPositionConcise (getPosition cell_name) ++ "] " ++
                              ppReadable (result,t,pe))
 
-  -- The deepseq forces the type and position in the IRefT so that
-  -- they will not be thunks holding references to the original expression.
-  return $ deepseq cell_name $ deepseq result result
+  return $ deepseq cell_name result
 
 {-
 -- add an expression to the heap that is in NF
@@ -2526,9 +2530,9 @@ addHeapPred tag e = do
   let newcell = (HNF { hc_pexpr = pe, hc_wire_set = ws, hc_name = Nothing })
   (p, r) <- addHeapCell tag newcell
   let poss = S.singleton $ getIExprPosition e
-  let result = IRefT t p poss r
+  let result = mkIRefT t p poss r
   when doTraceHeap $ traceM ("addHeapPred " ++ ppReadable (result,e))
-  return $ deepseq result result
+  return result
 
 {-# INLINE getHeap #-}
 getHeap :: HeapData -> G HeapCell
