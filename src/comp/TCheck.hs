@@ -2547,9 +2547,9 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
     -- Apply the substitution to the code fragments
-    let alts'' = apSub s alts'
-        me''   = apSub s me'
-    asbs <- warnTransitiveIncoherent (apSub s sbs1)
+    let alts'' = apSub s alts'                  -- new alternatives
+        me''   = apSub s me'                    -- update guards
+    asbs <- warnTransitiveIncoherent (apSub s sbs1)  -- new dict bindings
 
     -- Determine the generic variables and produce the inferred type scheme
     let

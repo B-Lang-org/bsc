@@ -624,7 +624,8 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
                      let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
-                         -- Mark the binding incoherent for LiftDicts.
+                         -- Mark the binding incoherent, so that warnTransitiveIncoherent
+                         -- can identify bindings that transitively depend on it.
                          sb'   = if incoherent then markIncoherent sb else sb
                          -- Record the class so warnTransitiveIncoherent can check allowIncoherent.
                          sb''  = sb' { solvedClass = Just c }
