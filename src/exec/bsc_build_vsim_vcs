@@ -184,16 +184,23 @@ VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 # not produce FST.
 DUMP_FLAGS=""
 if [ -n "$BSC_VSIM_TRACE_FORMATS" ]; then
+    want_dump=no
     OLDIFS=$IFS; IFS=','
     for fmt in $BSC_VSIM_TRACE_FORMATS; do
         case "$fmt" in
-            none|vcd) ;;
-            fsdb) DUMP_FLAGS="$DUMP_FLAGS -kdb -debug_access+all +define+BSC_FSDB" ;;
+            none) ;;
+            vcd)  want_dump=yes ;;
+            fsdb) want_dump=yes
+                  DUMP_FLAGS="$DUMP_FLAGS -kdb -debug_access+all +define+BSC_FSDB" ;;
             *) echo "ERROR: vcs does not support waveform dump format '$fmt' (supported: vcd, fsdb)" >&2
                IFS=$OLDIFS; exit 1 ;;
         esac
     done
     IFS=$OLDIFS
+    # with "none", compile out the main.v dump trigger so a +bscvcd/+bscfst
+    # request errors instead of dumping (VCD is native to vcs, so this is the
+    # only honest way to honor "none")
+    if [ "$want_dump" = no ]; then DUMP_FLAGS="+define+BSC_NO_DUMP"; fi
 fi
 
 # compile Verilog files

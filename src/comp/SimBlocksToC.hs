@@ -514,22 +514,34 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         dump_methods  = [ comment "State dumping function" state_dump_def ]
 
         -- function for dumping VCDs
+        -- with -dump-formats none the per-signal dump code was not generated,
+        -- so instead of silently writing an empty VCD, report an error when
+        -- dumping is requested (dump_VCD_defs runs once, at VCD-header time)
+        genVCD         = "vcd" `elem` dumpFormats flags
+        no_vcd_msg     = "Error: this model was built with -dump-formats none; "
+                         ++ "no waveform dumping is available\n"
+        no_vcd_err     = stmt $ (var "fprintf") `cCall`
+                                  [ var "stderr", mkStr no_vcd_msg ]
         top_backing    = [mkBacking top_blk]
         dump_type      = (userType "tVCDDumpType") (mkVar "dt")
         vcd_depth      = (var "vcd_depth") `cCall` [ var "sim_hdl" ]
         vcd_hdr_proto  = function void (mkScopedVar "dump_VCD_defs") []
         vcd_hdr_def    = define vcd_hdr_proto
-                                (block [ mkDumpCall top_blk "dump_VCD_defs"
-                                                    [ vcd_depth ]])
+                                (if genVCD
+                                 then block [ mkDumpCall top_blk "dump_VCD_defs"
+                                                         [ vcd_depth ]]
+                                 else block [ no_vcd_err ])
         backing_fn sb  = (var ((sb_name sb) ++ "_backing")) `cCall` [ var "sim_hdl" ]
         vcd_proto      = function void (mkScopedVar "dump_VCD") [ dump_type ]
         vcd_def        = define vcd_proto
-                                (block [ mkDumpCall top_blk "dump_VCD"
-                                                    [ var "dt"
-                                                    , vcd_depth
-                                                    , backing_fn top_blk
-                                                    ]
-                                       ])
+                                (if genVCD
+                                 then block [ mkDumpCall top_blk "dump_VCD"
+                                                         [ var "dt"
+                                                         , vcd_depth
+                                                         , backing_fn top_blk
+                                                         ]
+                                            ]
+                                 else block [])
         vcd_methods = [ comment "VCD dumping functions" (blankLines 0) ] ++
                       top_backing ++ [ vcd_hdr_def, vcd_def ]
 
