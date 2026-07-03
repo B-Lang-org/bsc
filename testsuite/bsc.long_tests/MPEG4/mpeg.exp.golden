@@ -7,15 +7,22 @@ set env(GHCRTS) "-K20M"
 # disable VCD check because the files are too large
 set check_vcd 0
 
+# (the trailing args are: cbug/vbug, link_options, sim_options, sort_output,
+# check_vcd -- $check_vcd was previously landing in the sort_output slot,
+# leaving the VCD check enabled despite the comment above)
 test_c_only_bsv_multi_options \
     Testbench_novideo mkTestbench_novideo \
     {mkMpeg4 mkIDCT_top mkMCR mkFrmBuffer mkBtStrmPrsr mkByteAlign} \
-    -let-gen mkTestbench_novideo.c.out.expected {} {} {} $check_vcd
+    -let-gen mkTestbench_novideo.c.out.expected {} {} {} 0 $check_vcd
 
+# The design's displays come from separately-synthesized modules, so their
+# order within a cycle is not guaranteed across simulators (verilator swaps
+# two coincident lines relative to the iverilog golden); sort_output
+# canonicalizes the order so all Verilog simulators share the golden.
 test_veri_only_bsv_multi_options \
     Testbench_novideo mkTestbench_novideo \
     {mkMpeg4 mkIDCT_top mkMCR mkFrmBuffer mkBtStrmPrsr mkByteAlign} \
-    -let-gen mkTestbench_novideo.v.out.expected {} {} {} $check_vcd
+    -let-gen mkTestbench_novideo.v.out.expected {} {} {} 1 $check_vcd
 
 if [info exists ghcrts_save] {
   set env(GHCRTS) $ghcrts_save
