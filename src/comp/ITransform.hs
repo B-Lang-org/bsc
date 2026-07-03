@@ -431,6 +431,7 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]
                 -- when els is a don't care disturbs the expected pack . unpack
                 -- structure and makes some things worse while fixing others.
                 (_, ICon _ (ICUndet {}), _) -> (els, True)
+
                 _ -> (IAps p [t] [cnd, thn, els], False)
 
 -- Boolean optimization
