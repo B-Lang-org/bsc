@@ -35,27 +35,33 @@ module sysBRAM0Test();
    BRAM#(Bit#(8), Bit#(0)) dut1 <- mkBRAM2Server(defaultValue);
    BRAM#(Bit#(0), Bit#(0)) dut2 <- mkBRAM2Server(defaultValue);
 
+   // The load file must not have more entries than the memory: simulators
+   // may only warn (iverilog) but may also treat it as fatal (verilator).
+   // Zero-width-address BRAMs have one location, so they load the one-entry
+   // bram1.txt, and the 8-bit-address BRAMs load the larger bram2.txt.
    let cfg1 = defaultValue ;
    cfg1.loadFormat = tagged Hex "bram2.txt" ;
-   BRAM#(Bit#(0), Bit#(8)) dut3 <- mkBRAM2Server(cfg1);
+   let cfg1a = defaultValue ;
+   cfg1a.loadFormat = tagged Hex "bram1.txt" ;
+   BRAM#(Bit#(0), Bit#(8)) dut3 <- mkBRAM2Server(cfg1a);
    BRAM#(Bit#(8), Bit#(0)) dut4 <- mkBRAM2Server(cfg1);
-   BRAM#(Bit#(0), Bit#(0)) dut5 <- mkBRAM2Server(cfg1);
+   BRAM#(Bit#(0), Bit#(0)) dut5 <- mkBRAM2Server(cfg1a);
 
    BRAM1Port#(Bit#(0), Bit#(8)) dut6 <- mkBRAM1Server(defaultValue);
    BRAM1Port#(Bit#(8), Bit#(0)) dut7 <- mkBRAM1Server(defaultValue);
    BRAM1Port#(Bit#(0), Bit#(0)) dut8 <- mkBRAM1Server(defaultValue);
 
-   BRAM1Port#(Bit#(0), Bit#(8)) dut9 <- mkBRAM1Server(cfg1);
+   BRAM1Port#(Bit#(0), Bit#(8)) dut9 <- mkBRAM1Server(cfg1a);
    BRAM1Port#(Bit#(8), Bit#(0)) dut10 <- mkBRAM1Server(cfg1);
-   BRAM1Port#(Bit#(0), Bit#(0)) dut11 <- mkBRAM1Server(cfg1);
+   BRAM1Port#(Bit#(0), Bit#(0)) dut11 <- mkBRAM1Server(cfg1a);
 
    BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut12 <- mkBRAM1ServerBE(defaultValue);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut13 <- mkBRAM1ServerBE(defaultValue);
    BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut14 <- mkBRAM1ServerBE(defaultValue);
 
-   BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut15 <- mkBRAM1ServerBE(cfg1);
+   BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut15 <- mkBRAM1ServerBE(cfg1a);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut16 <- mkBRAM1ServerBE(cfg1);
-   BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut17 <- mkBRAM1ServerBE(cfg1);
+   BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut17 <- mkBRAM1ServerBE(cfg1a);
 
    let cfg2 = defaultValue ;
    cfg2.latency=2;
@@ -65,25 +71,27 @@ module sysBRAM0Test();
 
    let cfg3 = cfg2;
    cfg3.loadFormat = tagged Hex "bram2.txt" ;
-   BRAM#(Bit#(0), Bit#(8)) dut23 <- mkBRAM2Server(cfg3);
+   let cfg3a = cfg2;
+   cfg3a.loadFormat = tagged Hex "bram1.txt" ;
+   BRAM#(Bit#(0), Bit#(8)) dut23 <- mkBRAM2Server(cfg3a);
    BRAM#(Bit#(8), Bit#(0)) dut24 <- mkBRAM2Server(cfg3);
-   BRAM#(Bit#(0), Bit#(0)) dut25 <- mkBRAM2Server(cfg3);
+   BRAM#(Bit#(0), Bit#(0)) dut25 <- mkBRAM2Server(cfg3a);
 
    BRAM1Port#(Bit#(0), Bit#(8)) dut26 <- mkBRAM1Server(cfg2);
    BRAM1Port#(Bit#(8), Bit#(0)) dut27 <- mkBRAM1Server(cfg2);
    BRAM1Port#(Bit#(0), Bit#(0)) dut28 <- mkBRAM1Server(cfg2);
 
-   BRAM1Port#(Bit#(0), Bit#(8)) dut29 <- mkBRAM1Server(cfg3);
+   BRAM1Port#(Bit#(0), Bit#(8)) dut29 <- mkBRAM1Server(cfg3a);
    BRAM1Port#(Bit#(8), Bit#(0)) dut30 <- mkBRAM1Server(cfg3);
-   BRAM1Port#(Bit#(0), Bit#(0)) dut31 <- mkBRAM1Server(cfg3);
+   BRAM1Port#(Bit#(0), Bit#(0)) dut31 <- mkBRAM1Server(cfg3a);
 
    BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut32 <- mkBRAM1ServerBE(cfg2);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut33 <- mkBRAM1ServerBE(cfg2);
    BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut34 <- mkBRAM1ServerBE(cfg2);
 
-   BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut35 <- mkBRAM1ServerBE(cfg3);
+   BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut35 <- mkBRAM1ServerBE(cfg3a);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut36 <- mkBRAM1ServerBE(cfg3);
-   BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut37 <- mkBRAM1ServerBE(cfg3);
+   BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut37 <- mkBRAM1ServerBE(cfg3a);
 
    Stmt test =
    seq
