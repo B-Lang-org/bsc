@@ -97,6 +97,12 @@ module main();
       // VCD and FST share $dumpfile/$dumpvars; the on-disk format for FST is
       // selected by the simulator at run time (e.g. iverilog: vvp -fst), so a
       // build runs at most one of them -- FST takes precedence if both are asked.
+      // With -dump-formats none the build script defines BSC_NO_DUMP: the dump
+      // trigger is compiled out and a request errors loudly instead of dumping.
+`ifdef BSC_NO_DUMP
+      if (do_fst || do_vcd)
+	$display("ERROR: %m was built with -dump-formats none; no waveform dumping is available");
+`else
       if (do_fst) begin
          $dumpfile(fst_filename);
          $dumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
@@ -105,6 +111,7 @@ module main();
          $dumpfile(filename);
          $dumpvars(`BSV_DUMP_LEVEL, `BSV_DUMP_TOP);
       end
+`endif
 
       #0
       RST = `BSV_RESET_VALUE;
