@@ -22,8 +22,9 @@ compare_verilog mkArgImpConnect.v
 
 
 
-# this should not fail basicinout should be able to run twice.
-compile_verilog_pass_bug ImpArgConnect2.bsv ""  "basicinout Bug" [list -verilog-filter $filter1 -verilog-filter $filter1]
+# basicinout is idempotent (already-plain inout ports pass through), so
+# running it twice works
+compile_verilog_pass ImpArgConnect2.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter1]
 
 
 # Test for multiple script
