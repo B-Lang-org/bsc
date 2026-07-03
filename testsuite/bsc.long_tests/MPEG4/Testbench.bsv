@@ -16,11 +16,9 @@ module mkTestbench ();
    Mpeg4_IFC dut();
    mkMpeg4 the_dut(dut);
 
-   // Error: value processing error at line 208670 of file 'bitstream.txt'
-   //    Malformed value.
-   // Warning: file 'y.txt' does not completely fill the memory 'the_y_io'.
-   // Warning: file 'u.txt' does not completely fill the memory 'the_u_io'.
-   // Warning: file 'v.txt' does not completely fill the memory 'the_v_io'.
+   // The data files do not completely fill their memories, so the loader
+   // warns about a gap at the end of 'bitstream.txt', 'y.txt', 'u.txt'
+   // and 'v.txt'; the unfilled addresses are never read.
 
    RegFile#(Bit#(20),Bit#(8)) stimulus_io();
    mkRegFileLoad#("bitstream.txt",0,208670) the_stimulus_io(stimulus_io);

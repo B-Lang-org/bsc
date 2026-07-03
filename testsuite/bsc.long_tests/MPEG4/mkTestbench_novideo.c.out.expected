@@ -1,5 +1,4 @@
-Error: value processing error at line 208670 of file 'bitstream.txt'
-       Malformed value.
+Warning: file 'bitstream.txt' for memory 'the_stimulus_io' has a gap at address 208670.
 Warning: file 'u.txt' for memory 'the_u_io' has a gap at address 2661120.
 Warning: file 'v.txt' for memory 'the_v_io' has a gap at address 2661120.
 Warning: file 'y.txt' for memory 'the_y_io' has a gap at address 10644480.
