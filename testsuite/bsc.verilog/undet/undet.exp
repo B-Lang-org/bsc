@@ -17,7 +17,7 @@ if { $vtest == 1 } {
     # Make sure 13-bit y values are optimized away.
     string_does_not_occur sysUndetComp.v "13'd"
 
-    # Undefined values before the end currently trigger unnecessary != tests
-    # We should test:
+    # Undefined values before the end of the if-else tree used to trigger
+    # unnecessary != tests; check that none are generated:
     string_does_not_occur sysUndetComp.v "!="
 }
