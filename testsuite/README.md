@@ -95,9 +95,7 @@ These tests are disabled if `showrules` is not found in the
 
 The test suite is currently able to use the following developer
 tools, if they exist in the `TEST_RELEASE` `bin` directory:
-`dumpbo`, `vcdcheck`, and `bsc2bsv`.  There is also a `dumpba`
-tool, which is not being used by the test suite, but could be
-usefully added.
+`dumpbo`, `dumpba`, `vcdcheck`, and `bsc2bsv`.
 
 After each compilation that generates a `.bo` file, the suite
 can perform a sanity check by running `dumpbo` on the file
@@ -105,9 +103,11 @@ and checking for an error exit code.  There are also a small
 number of tests that explicitly run `dumpbo` as part of their
 testing.
 
-The suite does not currently perform a sanity check on
-generated `.ba` files, but that would be possible with
-`dumpba` as a future extension.
+Similarly, when a compilation is expected to generate `.ba`
+files (Bluesim compiles, and Verilog compiles invoked with
+`-elab`), the suite can check that each `.ba` file exists and
+sanity-check it by running `dumpba` on the file and checking
+for an error exit code.
 
 After each Bluesim simulation that generates a `.vcd` file,
 the suite can perform a sanity check by running `vcdcheck`
