@@ -27,15 +27,15 @@
 
 module mkImpArgConnect(CLK,
 		       RST_N,
-		       .arg(a$FOO));
+		       arg);
   input  CLK;
   input  RST_N;
-  inout  [4 : 0] a$FOO;
+  inout  [4 : 0] arg;
 
   // ports of submodule a
-  wire [4 : 0] a$FOO;
+  wire [4 : 0] arg;
 
   // submodule a
-  InoutStubSrc1 a(.FOO(a$FOO));
+  InoutStubSrc1 a(.FOO(arg));
 endmodule  // mkImpArgConnect
 

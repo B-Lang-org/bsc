@@ -39,13 +39,14 @@ foreach my $outfile (@ARGV) {
 	    my $signal = $2;
 	    my $origsig = $2;
 
+	    # An inout not bound through a port expression is already a
+	    # plain port (bsc renames one-port-per-net inouts itself and
+	    # only shorted inouts keep the expression form); pass it
+	    # through unchanged.  This also makes the filter idempotent.
 	    if (exists $SIGNALS{$signal}) {
 		my $pin = $SIGNALS{$signal};
 		$signal =~ s/\$/\\\$/g;
 		$line =~ s/$signal/$pin/;
-	    } else {
-		print("Failed to locate signal=$signal in module port list (basicinout)!\nPlease report this error to the BSC developers, by opening a ticket\nin the issue database\: https\:\/\/github.com\/B-Lang-org\/bsc\/issues\n\n");
-		die;
 	    }
 	    push @newlines, $line;
 	} elsif ($line =~ m/input/ && $inmodule) {
