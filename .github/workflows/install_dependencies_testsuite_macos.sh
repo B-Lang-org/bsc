@@ -8,4 +8,5 @@ brew install \
   ccache \
   deja-gnu \
   icarus-verilog \
+  verilator \
   systemc

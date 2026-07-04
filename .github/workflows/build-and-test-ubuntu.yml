@@ -19,6 +19,10 @@ on:
         required: false
         default: false
         type: boolean
+      verilator_testsuite:
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-ubuntu:
@@ -193,6 +197,87 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: test-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
+          path: logs.tar.gz
+
+  # Run the Verilog testsuite with Verilator in place of iverilog.
+  # Informational for now (continue-on-error): the testsuite is not yet
+  # expected to be clean under every runner's Verilator -- in particular
+  # ubuntu-22.04 ships Verilator 4.038, which predates several fixes --
+  # so failures here report Verilator compatibility without blocking the
+  # merge.  CTEST=0 SYSTEMCTEST=0 makes the run Verilog-only: the Bluesim
+  # and SystemC backends are already covered by the main testsuite job.
+  test-ubuntu-verilator:
+    name: "Test Verilator ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 360
+    needs: build-ubuntu
+    if: inputs.verilator_testsuite
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
+
+      - name: Download bsc
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v5
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-verilator-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-verilator-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
+
+      - name: Run testsuite with Verilator
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=/usr/lib/ccache:$PATH
+
+          # Use the LLVM linker as the C++ linker
+          # for a moderate build-time speedup over ld.bfd
+          export LINKER=lld
+          export LDFLAGS="-Wl,-fuse-ld=$LINKER"
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations)
+          export CXXFLAGS="-O0"
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          CORES=$(nproc)
+          echo "Cores: ${CORES}"
+          verilator --version
+
+          make -j ${CORES} -C testsuite checkparallel \
+               TEST_BSC_VERILOG_SIM=verilator CTEST=0 SYSTEMCTEST=0
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-logs-verilator-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
 
   test-toooba-ubuntu:
