@@ -1,0 +1,15 @@
+checking package dependencies
+compiling ClockCheckRule.bsv
+code generation for sysClockCheckRule starts
+Error: "ClockCheckRule.bsv", line 8, column 6: (G0007)
+  Reference across clock domain in rule `test'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	r.read
+    Clock domain 2:
+      c:
+	the_s.read
+  During elaboration of rule `test' at "ClockCheckRule.bsv", line 8, column 6.
+  During elaboration of `sysClockCheckRule' at "ClockCheckRule.bsv", line 2,
+  column 8.
