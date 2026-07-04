@@ -8,30 +8,27 @@ proc make_sed_cmd { cmd_file out_file_ext } {
     return $sed_cmd
 }
 
-#  Check verilog filter -- basicinout
-set filter1 "./basicinout.pl"
+# Check the -verilog-filter flag with a sample filter that renames
+# identifiers: renamefire.pl shortens the -keep-fires rule-signal
+# prefixes (CAN_FIRE_ -> CF_, WILL_FIRE_ -> WF_) in the generated .v.
+set filter1 "./renamefire.pl"
 set filter2 [make_sed_cmd {simple.sed} {}]
 set filter3 [make_sed_cmd {doesnotexist.sed} {}]
 
-compile_verilog_pass RedoInoutConnect.bsv "" [list -verilog-filter $filter1]
-compare_verilog mkRedoInoutConnect.v
+compile_verilog_pass RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1]
+compare_verilog mkRenameTest.v mkRenameTest.v.renamed.expected
 
-compile_verilog_pass ImpArgConnect.bsv ""  [list -verilog-filter $filter1]
-compare_verilog mkImpArgConnect.v
-compare_verilog mkArgImpConnect.v
+# the filter only renames identifiers it introduces no match for, so
+# applying it twice gives the same result
+erase RenameTest.bo
+compile_verilog_pass RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter1]
+compare_verilog mkRenameTest.v mkRenameTest.v.renamed.expected
 
+# multiple scripts compose in order (the sed renames CLK to CLOCK)
+erase RenameTest.bo
+compile_verilog_pass RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter2]
+compare_verilog mkRenameTest.v mkRenameTest.v.renamed2.expected
 
-
-# basicinout is idempotent (already-plain inout ports pass through), so
-# running it twice works
-compile_verilog_pass ImpArgConnect2.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter1]
-
-
-# Test for multiple script
-compile_verilog_pass ImpArgConnect3.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter2]
-compare_verilog mkImpArgConnect3.v
-compare_verilog mkArgImpConnect3.v
-
-
-compile_verilog_fail ImpArgConnect4.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter3]
-
+# a filter that fails (here, sed with a missing script) fails the compile
+erase RenameTest.bo
+compile_verilog_fail RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter3]
