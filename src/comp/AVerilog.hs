@@ -1646,7 +1646,15 @@ type SizeAndTypeMap = M.Map VId (Maybe VRange, VDType)
 mkSizeAndTypeMap :: [VMItem] -> SizeAndTypeMap
 mkSizeAndTypeMap defs = M.fromList $
   [ (i, (sz, VDWire)) | VMDecl (VVDWire sz (VVar i) _) <- defs ] ++
-  [ (i, (sz, t)) | VMDecl (VVDecl t sz vs) <- defs, VVar i <- vs ]
+  [ (i, (sz, t)) | d@(VMDecl (VVDecl t sz vs)) <- defs,
+                   checkDeclType t d,
+                   VVar i <- vs ]
+  where
+    -- only wire and reg decls are expected in the defs
+    checkDeclType t d
+      | (t == VDWire) || (t == VDReg) = True
+      | otherwise = internalError ("mkSizeAndTypeMap: unexpected decl type: " ++
+                                   ppReadable d)
 
 getSizeAndTypeM :: VId -> SizeAndTypeMap -> Maybe (Maybe VRange, VDType)
 getSizeAndTypeM = M.lookup
