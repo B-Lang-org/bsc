@@ -53,8 +53,10 @@ symlinks in `/usr/bin/` that point to the executables in
 
 To build a complete release of BSC, you will need:
  - The standard Haskell compiler [GHC]. The recommended version is the
-   latest 9.6 point release, but the Bluespec compiler should work
-   with any release from 7.10.3 through 9.12.  We recommend installing
+   latest 9.6 point release, which is the primary version built and
+   tested by this project's CI; newer releases through 9.14 are also
+   tested (see the [CI workflow] for the exact set).  Older
+   releases are untested and may not work.  We recommend installing
    GHC via the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, `split`, and `strict-concurrency`.
@@ -81,6 +83,7 @@ The following dependencies are optional, though recommended:
    additional fonts.
  - To format release notes for publication, the [Asciidoctor] tool.
 
+[CI workflow]: .github/workflows/ci.yml
 [GHC]: https://www.haskell.org/ghc/
 [GHCUp]: https://www.haskell.org/ghcup/
 [Icarus Verilog]: https://steveicarus.github.io/iverilog/
