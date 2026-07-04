@@ -19,6 +19,9 @@
 # straight compile  no backend
 # proc compile_pass { source {options ""} {nodeps 0}}
 
+# compile with a backend, ungated by $ctest/$vtest, for checking compile-time dumps
+# proc compile_backend_pass { source {options ""} {nodeps 0}}
+
 # straight compile c backend
 # proc compile_object_pass { source { module "" } {options "" }}
 
@@ -1566,6 +1569,17 @@ proc compile_pass { source {options ""} {nodeps 0}} {
 proc compile_pass_no_warning { source {options ""} {nodeps 0}} {
     compile_pass $source $options $nodeps
     no_warnings [make_bsc_output_name $source]
+}
+
+# Compile with a backend selected, for tests that check a compile-time
+# (backend-independent) artifact, such as a -d dump file.  Unlike
+# compile_object_pass / compile_verilog_pass, this is not gated on the
+# $ctest/$vtest settings: those say whether to simulate with a backend,
+# but the follow-on checks of a compile-time dump are never gated, so the
+# compile that produces the dump must not be gated either.  The backend
+# is arbitrary, since the artifact doesn't depend on the choice.
+proc compile_backend_pass { source {options ""} {nodeps 0}} {
+    compile_pass $source "-verilog $options" $nodeps
 }
 
 
