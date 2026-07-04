@@ -8,8 +8,7 @@ set env(GHCRTS) "-K20M"
 set check_vcd 0
 
 # (the trailing args are: cbug/vbug, link_options, sim_options, sort_output,
-# check_vcd -- $check_vcd was previously landing in the sort_output slot,
-# leaving the VCD check enabled despite the comment above)
+# check_vcd)
 test_c_only_bsv_multi_options \
     Testbench_novideo mkTestbench_novideo \
     {mkMpeg4 mkIDCT_top mkMCR mkFrmBuffer mkBtStrmPrsr mkByteAlign} \

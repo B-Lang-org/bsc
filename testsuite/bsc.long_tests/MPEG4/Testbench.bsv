@@ -16,12 +16,12 @@ module mkTestbench ();
    Mpeg4_IFC dut();
    mkMpeg4 the_dut(dut);
 
-   // The data files do not completely fill their memories, so the loader
-   // warns about a gap at the end of 'bitstream.txt', 'y.txt', 'u.txt'
-   // and 'v.txt'; the unfilled addresses are never read.
+   // The video data files do not completely fill their memories, so the
+   // loader warns about gaps in 'y.txt', 'u.txt' and 'v.txt'; the unfilled
+   // addresses are never read.
 
    RegFile#(Bit#(20),Bit#(8)) stimulus_io();
-   mkRegFileLoad#("bitstream.txt",0,208670) the_stimulus_io(stimulus_io);
+   mkRegFileLoad#("bitstream.txt",0,208669) the_stimulus_io(stimulus_io);
 
    RegFile#(Bit#(16),Bit#(113)) mbhdr();
    mkRegFileLoad#("usable_mb_hdr.txt",0,41578) the_mbhdr(mbhdr);
