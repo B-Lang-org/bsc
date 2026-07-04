@@ -532,13 +532,19 @@ isBadId idx = hasIdProp idx IdP_bad_name
 
 -- | Quality score for an optional Id: higher = preferred as canonical.
 -- Used wherever we pick the "best" Id from a group of equivalent ones
--- (e.g. ITransform.runCSE's pickId, IExpand.eqPtrs's pass-2).
--- An IdP_keep'd Id beats a non-bad Id beats a bad Id beats no name at all.
+-- (e.g. ITransform.runCSE's pickId, IExpand.eqPtrs's pass-2, and
+-- AConv's pickId).
+-- An IdP_keep'd Id beats a plain user-written Id, which beats a name
+-- derived from an expression (IdP_from_rhs, e.g. x_PLUS_5__d32 --
+-- structural information, but not a source name), which beats a name
+-- generated without any information (IdP_bad_name, e.g. __d5), which
+-- beats no name at all.
 idQuality :: Maybe Id -> Int
-idQuality (Just i) | isKeepId i      = 2
-                   | not (isBadId i) = 1
-                   | otherwise       = 0
-idQuality Nothing                    = -1
+idQuality (Just i) | isKeepId i    = 4
+                   | isFromRHSId i = 2
+                   | isBadId i     = 1
+                   | otherwise     = 3
+idQuality Nothing                  = 0
 
 isFromRHSId :: Id -> Bool
 isFromRHSId idx = hasIdProp idx IdP_from_rhs
