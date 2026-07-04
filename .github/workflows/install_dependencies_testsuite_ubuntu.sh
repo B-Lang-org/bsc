@@ -9,4 +9,5 @@ apt-get install -y \
     tcsh \
     dejagnu \
     iverilog \
+    verilator \
     libsystemc-dev
