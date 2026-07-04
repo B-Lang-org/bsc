@@ -349,14 +349,13 @@ getN n = replicateM n getB
 
 getB :: In Byte
 getB = In $ \(IS bc bs off mh) ->
-  if off >= BS.length bs
-  then internalError "BinData.getB: unexpected end of byte stream"
-  else let !b = BS.index bs off
-           !off' = off + 1
-       in case mh of
-            Just h -> let !h' = nextHashByte h b
-                      in (b, IS bc bs off' (Just h'))
-            Nothing -> (b, IS bc bs off' Nothing)
+  case BS.indexMaybe bs off of
+    Nothing -> internalError "BinData.getB: unexpected end of byte stream"
+    Just b -> let !off' = off + 1
+              in case mh of
+                   Just h -> let !h' = nextHashByte h b
+                             in (b, IS bc bs off' (Just h'))
+                   Nothing -> (b, IS bc bs off' Nothing)
 
 -- get an Int value (between 0 and 255)
 getI :: In Int
