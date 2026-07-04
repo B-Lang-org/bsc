@@ -200,12 +200,15 @@ jobs:
           path: logs.tar.gz
 
   # Run the Verilog testsuite with Verilator in place of iverilog.
-  # Informational for now (continue-on-error): the testsuite is not yet
-  # expected to be clean under every runner's Verilator -- in particular
-  # ubuntu-22.04 ships Verilator 4.038, which predates several fixes --
-  # so failures here report Verilator compatibility without blocking the
-  # merge.  CTEST=0 SYSTEMCTEST=0 makes the run Verilog-only: the Bluesim
-  # and SystemC backends are already covered by the main testsuite job.
+  # Informational for now (continue-on-error at the job level): a failure
+  # reports Verilator compatibility without failing the workflow or
+  # blocking the merge.  On ubuntu-22.04 the tolerance moves down to the
+  # testsuite step itself, so that job reports green with a warning
+  # annotation rather than a red X: its Verilator (4.038) predates
+  # several fixes the suite relies on and serves as a permanent
+  # old-version canary, never expected to run clean.  CTEST=0
+  # SYSTEMCTEST=0 makes the run Verilog-only: the Bluesim and SystemC
+  # backends are already covered by the main testsuite job.
   test-ubuntu-verilator:
     name: "Test Verilator ${{ inputs.os }} ghc-${{ inputs.ghc_version }}"
     runs-on: ${{ inputs.os }}
@@ -239,6 +242,10 @@ jobs:
             test-verilator-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-
 
       - name: Run testsuite with Verilator
+        id: testsuite
+        # ubuntu-22.04 (Verilator 4.038) is informational-only: don't let
+        # its expected failures turn the step (and job) red
+        continue-on-error: ${{ inputs.os == 'ubuntu-22.04' }}
         env:
           CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: |
@@ -272,9 +279,19 @@ jobs:
           CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: ccache --show-stats
 
+      # Surface a tolerated failure without turning the job red
+      # (step outcome is the pre-continue-on-error result)
+      - name: Report informational failure
+        if: steps.testsuite.outcome == 'failure'
+        run: |
+          echo "::warning::Verilator testsuite failed on ${{ inputs.os }} (informational only)"
+          echo "Verilator testsuite failed on ${{ inputs.os }} (informational only)" \
+               >> "$GITHUB_STEP_SUMMARY"
+
       # Save test logs on failure so we can diagnose
+      # (also on a tolerated failure, where failure() stays false)
       - name: Archive test logs
-        if: failure()
+        if: failure() || steps.testsuite.outcome == 'failure'
         uses: actions/upload-artifact@v6
         with:
           name: test-logs-verilator-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
