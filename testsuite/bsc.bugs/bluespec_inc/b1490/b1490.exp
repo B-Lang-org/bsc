@@ -1,16 +1,21 @@
 
-set rtsflags {+RTS -M256M -Sstderr -RTS}
-
-# For tests that need more than the default
-proc rts_flags { heapsize } {
-    return "+RTS -M${heapsize}M -Sstderr -RTS"
-}
+# The heap cap must comfortably clear bsc's baked-in allocation-area hint
+# (-with-rtsopts=-H256m, src/comp/Makefile): the RTS sizes its heap toward
+# the hint no matter how small the live set is, with a steady state a few
+# MB above it.  Caps at or just above 256M measure the RTS's boundary
+# accounting -- which varies by GHC version and OS -- rather than the
+# compile, and have needed repeated per-test nudges (272, 275) as CI
+# configurations shifted.  One uniform cap with real margin over the hint
+# still proves what this directory cares about: bug 1490 made these
+# compiles exhaust memory EXPONENTIALLY in the sort depth, so any fixed
+# few-hundred-MB cap separates fixed from broken by orders of magnitude.
+set rtsflags {+RTS -M288M -Sstderr -RTS}
 
 # -----
 
 compile_verilog_pass Bug1490Bool.bsv {} $rtsflags
 compile_verilog_pass Bug1490MyBool.bsv {} $rtsflags
-compile_verilog_pass Bug1490MyUnion.bsv {} [rts_flags 272]
+compile_verilog_pass Bug1490MyUnion.bsv {} $rtsflags
 compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 
 # -----
@@ -22,6 +27,6 @@ compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 # original design compiles within the standard limit.
 compile_verilog_pass VsortOriginal.bsv {} $rtsflags
 
-compile_verilog_pass VsortWorkaround.bsv {} [rts_flags 275]
+compile_verilog_pass VsortWorkaround.bsv {} $rtsflags
 
 # -----
