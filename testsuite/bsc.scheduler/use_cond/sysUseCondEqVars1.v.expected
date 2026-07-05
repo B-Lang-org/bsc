@@ -105,7 +105,7 @@ module sysUseCondEqVars1(CLK,
   always@(negedge CLK)
   begin
     #0;
-    if (a == 16'd1 && b == 16'd1 || a == 16'd0 && b == 16'd0)
+    if (b == 16'd1 && a == 16'd1 || b == 16'd0 && a == 16'd0)
       $display("Error: \"UseCondEqVars1.bsv\", line 17, column 9: (R0002)\n  Conflict-free rules RL_test2 and RL_test1 called conflicting methods read\n  and write of module instance source.\n");
   end
   // synopsys translate_on
