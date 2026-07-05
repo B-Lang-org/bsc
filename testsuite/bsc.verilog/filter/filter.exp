@@ -29,6 +29,14 @@ erase RenameTest.bo
 compile_verilog_pass RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter2]
 compare_verilog mkRenameTest.v mkRenameTest.v.renamed2.expected
 
+# ... and apply in command-line order: the second sed rewrites the WF_
+# prefix that the first filter introduces (WILL_FIRE_ -> WF_ -> W_F_);
+# in the reverse order there would be no WF_ to rewrite yet
+set filter4 [make_sed_cmd {order.sed} {}]
+erase RenameTest.bo
+compile_verilog_pass RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter4]
+compare_verilog mkRenameTest.v mkRenameTest.v.renamed3.expected
+
 # a filter that fails (here, sed with a missing script) fails the compile
 erase RenameTest.bo
 compile_verilog_fail RenameTest.bsv "" [list -keep-fires -verilog-filter $filter1 -verilog-filter $filter3]
