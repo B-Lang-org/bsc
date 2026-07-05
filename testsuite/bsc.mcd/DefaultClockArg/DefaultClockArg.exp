@@ -1,0 +1,100 @@
+# Tests for the "default_clock" and "default_reset" attributes, which
+# designate module arguments as the module's default clock and reset
+# (Github issue #985)
+
+if { $vtest == 1 } {
+
+# check the generated ports: no implicit default clock/reset ports,
+# and the state is clocked/reset by the argument ports
+# (G0020 is the usual warning for $display in a method; there should be
+# no G0130 warning, because the method has a clock to default to)
+compile_verilog_pass_warning DefaultClockArg.bsv G0020
+string_does_not_occur DefaultClockArg.bsv.bsc-vcomp-out {(G0129)}
+string_does_not_occur DefaultClockArg.bsv.bsc-vcomp-out {(G0130)}
+string_does_not_occur mkDefaultClockArg.v {input  CLK;}
+string_does_not_occur mkDefaultClockArg.v {input  RST_N;}
+string_occurs mkDefaultClockArg.v {input  CLK_clk_in;}
+string_occurs mkDefaultClockArg.v {input  RST_N_rst_in;}
+string_occurs mkDefaultClockArg.v {posedge CLK_clk_in}
+
+# designating only the clock: the implicit default reset remains
+# (associated with the designated clock)
+compile_verilog_pass DefaultClockArgOnly.bsv
+string_does_not_occur sysDefaultClockArgOnly.v {input  CLK;}
+string_occurs sysDefaultClockArgOnly.v {input  CLK_clk_in;}
+string_occurs sysDefaultClockArgOnly.v {input  RST_N;}
+string_occurs sysDefaultClockArgOnly.v {posedge CLK_clk_in}
+
+# designating only the reset: the implicit default clock remains
+compile_verilog_pass DefaultResetArgOnly.bsv
+string_occurs sysDefaultResetArgOnly.v {input  CLK;}
+string_does_not_occur sysDefaultResetArgOnly.v {input  RST_N;}
+string_occurs sysDefaultResetArgOnly.v {input  RST_N_rst_in;}
+
+# the "default_reset_port" attribute provides a port name for the
+# implicit default reset (formerly the meaning of "default_reset")
+compile_verilog_pass DefaultResetRename.bsv
+string_occurs sysDefaultResetRename.v {input  RSTX;}
+string_does_not_occur sysDefaultResetRename.v {input  RST_N;}
+
+# the attributes which name the default clock and reset ports apply to
+# designated arguments: the argument name is used inside the module and
+# the given names are used for the boundary ports
+compile_verilog_pass DefaultClockArgPortNames.bsv
+string_occurs sysDefaultClockArgPortNames.v {input  XCLK;}
+string_occurs sysDefaultClockArgPortNames.v {input  XRST;}
+string_does_not_occur sysDefaultClockArgPortNames.v {input  CLK_clk_in;}
+string_does_not_occur sysDefaultClockArgPortNames.v {input  RST_N_rst_in;}
+string_occurs sysDefaultClockArgPortNames.v {posedge XCLK}
+
+# default_clock_gate applies to a designated argument (it gets a gate
+# port, with the given name)
+compile_verilog_pass DefaultClockArgGate.bsv
+string_occurs sysDefaultClockArgGate.v {input  CLK_clk_in;}
+string_occurs sysDefaultClockArgGate.v {input  XGATE;}
+
+# the clock/reset prefixes apply to the derived port names of designated
+# arguments; with an empty prefix, the port is the bare argument name
+compile_verilog_pass DefaultClockArgEmptyPrefix.bsv
+string_occurs sysDefaultClockArgEmptyPrefix.v {input  clk_in;}
+
+# when only the default reset is designated, the implicit default clock
+# still exists and reset arguments can be clocked by it
+compile_verilog_pass DefaultResetArgClockedBy.bsv
+string_occurs sysDefaultResetArgClockedBy.v {input  CLK;}
+string_occurs sysDefaultResetArgClockedBy.v {input  RST_N_rst_in;}
+string_does_not_occur sysDefaultResetArgClockedBy.v {input  RST_N;}
+
+}
+
+# full flow: the designated defaults clock the module's state, rules and
+# stub methods (which would otherwise degenerate to noClock and lose
+# their bodies)
+test_c_veri_bsv DefaultClockArg
+
+# error tests
+compile_fail_error DefaultClockArg_NoSuchArg.bsv P0182
+compile_fail_error DefaultClockArg_WrongType.bsv P0181
+compile_fail_error DefaultResetArg_WrongType.bsv P0181
+
+# a "default_reset" value which does not name an argument is an error
+# whose message points at "default_reset_port" (the attribute with the
+# former port-renaming meaning of "default_reset")
+compile_fail_error DefaultResetLegacy.bsv P0225
+find_n_strings DefaultResetLegacy.bsv.bsc-out default_reset_port 1
+
+# port-name clash checking covers the ports of designated arguments:
+# a port name given for a designated default clock/reset clashing with
+# the derived name of another argument (or with the remaining implicit
+# default clock port), and the derived name of a designated argument
+# clashing with a name given for another argument
+compile_verilog_fail_error DefaultClockArg_ClashOverride.bsv P0183
+compile_verilog_fail_error DefaultResetArg_ClashImplicit.bsv P0183
+compile_verilog_fail_error DefaultClockArg_ClashDerived.bsv P0183
+
+# the prefixes need not be capitalized, so prefix-derived names of
+# designated arguments (and of a remaining implicit default port) can
+# collide with the names or renames of ordinary arguments
+compile_verilog_fail_error DefaultClockArg_ClashPrefix.bsv P0183
+compile_verilog_fail_error DefaultClockArg_ClashEmptyPrefix.bsv P0183
+compile_verilog_fail_error DefaultResetArg_ClashBarePrefix.bsv P0183

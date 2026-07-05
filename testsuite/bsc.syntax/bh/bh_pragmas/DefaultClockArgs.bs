@@ -1,0 +1,36 @@
+package DefaultClockArgs where
+
+-- Test the "default_clock" and "default_reset" properties, which
+-- designate module arguments as the module's default clock and reset
+-- (so no changeSpecialWires dance is needed in the module body)
+
+interface Ifc =
+    poke  :: Action
+    count :: UInt 8
+
+{-# synthesize mkDefaultClockArgsSub {
+     default_clock = clk,
+     default_reset = rst } #-}
+mkDefaultClockArgsSub :: (IsModule m mType) => Clock -> Reset -> m Ifc
+mkDefaultClockArgsSub clk rst = module
+  ctr :: Reg (UInt 8) <- mkReg 0
+  rules
+    "r_tick": when True ==> ctr := ctr + 1
+  interface
+    poke = $display "poke fired"
+    count = ctr
+
+{-# synthesize sysDefaultClockArgs #-}
+sysDefaultClockArgs :: (IsModule m mType) => m Empty
+sysDefaultClockArgs = module
+  c <- exposeCurrentClock
+  r <- exposeCurrentReset
+  dut :: Ifc <- mkDefaultClockArgsSub c r
+  cycles :: Reg (UInt 8) <- mkReg 0
+  rules
+    "r_count": when True ==> cycles := cycles + 1
+    "r_poke": when (cycles == 2) ==> dut.poke
+    "r_done": when (cycles == 5) ==>
+      action
+        $display "count = %0d" dut.count
+        $finish 0

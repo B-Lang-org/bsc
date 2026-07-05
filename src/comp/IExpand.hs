@@ -612,34 +612,91 @@ iExpandModuleDef (IDef i t e _) = do
     fmod <- isNoInlinedFunc
     pps <- getPragmas
 
-    (clkRst, default_args, default_vargs) <-
-        if (fmod)
-        then return ((missingDefaultClock, missingDefaultReset), [], [])
-        else do
-           let def_clk_id = setIdPosition mod_pos idDefaultClock
-               def_rst_id = setIdPosition mod_pos idDefaultReset
-               has_clk = hasDefaultClk pps
-               has_rst = hasDefaultRst pps
-               gated   = isGatedDefaultClk pps ||
-                         -- continue to consult the trace flag
-                         gateDefaultClock
-           (topClk, clockargs, vclkargs) <-
-               if has_clk
-               then do (c, a, v) <- makeInputClk gated def_clk_id
-                       return (c, [a], [v])
-               else return (missingDefaultClock, [], [])
-           -- associate the default reset with the default clock
-           let reset_clock_family = if has_clk
-                                    then (Just def_clk_id)
-                                    else Nothing
-           (topRstn, resetargs, vrstargs) <-
-               if has_rst
-               then do (r, a, v) <- makeInputRstn def_rst_id reset_clock_family
-                       return (r, [a], [v])
-               else return (missingDefaultReset, [], [])
-           return ((topClk, topRstn), clockargs ++ resetargs, vclkargs ++ vrstargs)
+    let def_clk_id = setIdPosition mod_pos idDefaultClock
+        def_rst_id = setIdPosition mod_pos idDefaultReset
+        has_clk = hasDefaultClk pps
+        has_rst = hasDefaultRst pps
+        m_clk_arg = getDefaultClockArg pps
+        m_rst_arg = getDefaultResetArg pps
+        gated   = isGatedDefaultClk pps ||
+                  -- continue to consult the trace flag
+                  gateDefaultClock
+
+    -- The implicit default clock is created up front (before the module
+    -- arguments are processed), so that it exists when reset arguments
+    -- refer to it with clocked_by; likewise the implicit default reset,
+    -- preserving the traditional order of clock and domain creation.
+    -- When an argument is designated as the default clock or reset (with
+    -- the "default_clock"/"default_reset" attributes), the default can
+    -- only be determined after the arguments have been processed; that
+    -- work is left for "resolveDefaults", which iExpandModuleLam runs
+    -- after processing the clock and reset arguments.
+    (m_topClk, clk_dargs, clk_dvargs) <-
+        if fmod
+        then return (Just missingDefaultClock, [], [])
+        else case m_clk_arg of
+               Just _ -> return (Nothing, [], [])
+               Nothing
+                 | has_clk -> do (c, a, v) <- makeInputClk gated def_clk_id
+                                 return (Just c, [a], [v])
+                 | otherwise -> return (Just missingDefaultClock, [], [])
+    (m_topRstn, rst_dargs, rst_dvargs) <-
+        if fmod
+        then return (Just missingDefaultReset, [], [])
+        else case (m_clk_arg, m_rst_arg) of
+               (Nothing, Nothing)
+                 | has_rst ->
+                     do -- associate the default reset with the default clock
+                        let fam = if has_clk then (Just def_clk_id) else Nothing
+                        (r, a, v) <- makeInputRstn def_rst_id fam
+                        return (Just r, [a], [v])
+                 | otherwise -> return (Just missingDefaultReset, [], [])
+               _ -> return (Nothing, [], [])
+
+    let resolveDefaults :: G ((HClock, HReset), [IAbstractInput], [VArgInfo])
+        resolveDefaults = do
+          topClk <-
+              case m_topClk of
+                Just c -> return c
+                Nothing -> do
+                    -- an argument was designated as the default clock
+                    -- (its input clock was created with the other args)
+                    let clk_arg = fromJustOrErr
+                                    "iExpandModuleDef: no default clock arg"
+                                    m_clk_arg
+                    mclk <- getBoundaryClock clk_arg
+                    case mclk of
+                      Just c -> return c
+                      Nothing -> internalError
+                                   ("iExpandModuleDef: unknown default " ++
+                                    "clock arg: " ++ ppReadable clk_arg)
+          (topRstn, extra_args, extra_vargs) <-
+              case m_topRstn of
+                Just r -> return (r, [], [])
+                Nothing ->
+                  case m_rst_arg of
+                    -- an argument was designated as the default reset
+                    Just rst_arg -> do
+                        mrst <- getBoundaryReset rst_arg
+                        case mrst of
+                          Just r -> return (r, [], [])
+                          Nothing -> internalError
+                                       ("iExpandModuleDef: unknown default " ++
+                                        "reset arg: " ++ ppReadable rst_arg)
+                    -- the default clock is a designated argument, but the
+                    -- implicit default reset remains; it is created here,
+                    -- in the family of the designated clock
+                    Nothing
+                      | has_rst -> do (r, a, v) <- makeInputRstn def_rst_id m_clk_arg
+                                      return (r, [a], [v])
+                      | otherwise -> return (missingDefaultReset, [], [])
+          return ((topClk, topRstn),
+                  clk_dargs ++ rst_dargs ++ extra_args,
+                  clk_dvargs ++ rst_dvargs ++ extra_vargs)
+
     -- iExpandModuleLam elaborates the actual module
-    (args, vargs, (P p_ifc ifc)) <- iExpandModuleLam i clkRst e
+    (args, vargs, clkRst, default_args, default_vargs, (P p_ifc ifc))
+        <- iExpandModuleLam i resolveDefaults e
 
     showTopProgress "Elaborating interface"
     pushIfcSchedNameScope
@@ -665,9 +722,16 @@ iExpandModuleDef (IDef i t e _) = do
 -- ----------
 
 -- Elaborate a (top-level) module with arguments
-iExpandModuleLam :: Id -> (HClock, HReset) -> HExpr
-                 -> G ([IAbstractInput], [VArgInfo], PExpr)
-iExpandModuleLam i clkRst e = do
+-- The given action completes the default clock/reset info; it is run
+-- after the clock/reset arguments have been processed, for when an
+-- argument is designated as a default (with the "default_clock" or
+-- "default_reset" attribute).
+iExpandModuleLam :: Id
+                 -> G ((HClock, HReset), [IAbstractInput], [VArgInfo])
+                 -> HExpr
+                 -> G ([IAbstractInput], [VArgInfo], (HClock, HReset),
+                       [IAbstractInput], [VArgInfo], PExpr)
+iExpandModuleLam i resolveDefaults e = do
     -- the separation of the core expression from the ILam
     -- relies on the property that none of the ILam ids are the same
     -- (so the substitution is safe to do on just the core expression)
@@ -687,6 +751,9 @@ iExpandModuleLam i clkRst e = do
     (as1, mod_expr1) <- iExpandModuleClockArgs i as0 mod_expr0
     -- process resets
     (as2, mod_expr2) <- iExpandModuleResetArgs i as1 mod_expr1
+    -- the clock/reset arguments are processed, so the default clock/reset
+    -- can now be determined, if it wasn't created up front
+    (clkRst, default_args, default_vargs) <- resolveDefaults
     -- process inouts
     (as3, mod_expr3) <- iExpandModuleInoutArgs i clkRst as2 mod_expr2
     -- process ifc args
@@ -705,7 +772,7 @@ iExpandModuleLam i clkRst e = do
     -- elaborate the module body
     e' <- iExpandModule False clkRst [] pTrue mod_expr
     -- return the results
-    return (absinps, vargs, e')
+    return (absinps, vargs, clkRst, default_args, default_vargs, e')
 
 type ArgState = Either (IAbstractInput, VArgInfo) (Id, IType)
 
@@ -1133,20 +1200,24 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
 
         -- action methods get the default clock when there is no other
         -- XXX distinguish between "no clock" and "noClock"?
-        let (final_e, final_ws) =
+        (final_e, final_ws) <-
               if isActionType methType then
                 case (fixupActionWireSet curClk ws) of
-                  Just ws' -> (e', ws')
-                  Nothing ->
+                  Just ws' -> return (e', ws')
+                  Nothing -> do
+                      -- there is no clock for this method to default to,
+                      -- so it becomes noClock and loses its actions
+                      eWarning (getIdPosition i,
+                                WMethodNoDefaultClock (pfpString i))
                       case e' of
                         IAps f@(ICon _ (ICTuple {})) ts [e1, e2]
                           | isActionType methType
                           -> let pos = getIdPosition i
                                  vt = actionValue_BitN methType
                                  v = icUndetAt pos vt UNotUsed
-                             in  (IAps f ts [v, icNoActions], ws)
+                             in  return (IAps f ts [v, icNoActions], ws)
                         _ -> internalError "iExpandMethod: fixupActionWireSet"
-              else (e', ws)
+              else return (e', ws)
 
         methClock <- methodClockName i methType final_ws
         when doTraceClock $ traceM ("methType: " ++ ppReadable methType ++
@@ -1964,16 +2035,23 @@ convRules curClkRstn@(curClk, _) ns p0 e = do
 
         -- if there is no associated clock, add the default clock
         -- XXX distinguish between "no clock" and "noClock"?
-        let (final_a, final_ws) =
+        (final_a, final_ws, final_rps) <-
                 case (fixupActionWireSet curClk ws) of
-                  Just ws' -> (a', ws')
-                  Nothing -> (icNoActions, ws)
+                  Just ws' -> return (a', ws', rps)
+                  Nothing -> do
+                      -- there is no clock for this rule to default to,
+                      -- so it becomes noClock and loses its body
+                      eWarning (getPosition rId, WRuleNoDefaultClock str')
+                      -- the warning already says that the body is removed,
+                      -- so suppress the follow-on warning (G0023) about the
+                      -- rule having no actions
+                      return (icNoActions, ws, nub (RPnoWarn : rps))
         let wp  = wsToProps final_ws
 
         when doTraceClock $ traceM ("convRules2: " ++ ppReadable final_ws)
         showRuleProgress ns hide str' ("Finished rule")
         popRuleSchedNameScope
-        return (IRules [] [IRule rId rps str' wp c' final_a Nothing ns'])
+        return (IRules [] [IRule rId final_rps str' wp c' final_a Nothing ns'])
       (ICon _ (ICPrim { primOp = PrimNoRules })) ->
         return iREmpty
       (IAps (ICon _ (ICPrim { primOp = PrimAddSchedPragmas })) _ [ICon _ (ICSchedPragmas { iPragmas = sps1 }), rs]) -> do

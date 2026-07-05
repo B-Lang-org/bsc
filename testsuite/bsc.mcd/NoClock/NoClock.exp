@@ -16,16 +16,24 @@ test_c_veri_bsv OutputNoClock
 # Test that rules with no associated clock are removed
 # and Action/ActionValue methods with no associated clock are marked as such
 # (and that neither impedes Verilog or Blueim compilation)
+# A warning is reported when this happens (G0129 for rules, G0130 for
+# methods), since the body of the rule/method is silently dropped
+# (the follow-on warning G0023, about the rule having no actions, is
+# suppressed, because G0129 already says that the body is removed)
 
-compile_verilog_pass_warning FixupRule_NoDefaultClock.bsv G0023
-compile_object_pass_warning FixupRule_NoDefaultClock.bsv G0023
+compile_verilog_pass_warning FixupRule_NoDefaultClock.bsv G0129
+string_does_not_occur [make_bsc_vcomp_output_name FixupRule_NoDefaultClock.bsv] \
+    {(G0023)}
+compile_object_pass_warning FixupRule_NoDefaultClock.bsv G0129
 link_objects_pass {} sysFixupRule_NoDefaultClock
 
-compile_verilog_pass_warning FixupRule_NoClock.bsv G0023
-compile_object_pass_warning FixupRule_NoClock.bsv G0023
+compile_verilog_pass_warning FixupRule_NoClock.bsv G0129
+string_does_not_occur [make_bsc_vcomp_output_name FixupRule_NoClock.bsv] \
+    {(G0023)}
+compile_object_pass_warning FixupRule_NoClock.bsv G0129
 link_objects_pass {} sysFixupRule_NoClock
 
-compile_verilog_pass FixupMethod_NoDefaultClock.bsv {} {-dexpanded}
+compile_verilog_pass_warning FixupMethod_NoDefaultClock.bsv G0130 1 {} {-dexpanded}
 find_n_strings [make_bsc_vcomp_output_name FixupMethod_NoDefaultClock.bsv] \
     {method (m, [])m enable ((EN_m, [])) clocked_by (no_clock) reset_by (no_reset);} 1
 compile_object_pass FixupMethod_NoDefaultClock.bsv

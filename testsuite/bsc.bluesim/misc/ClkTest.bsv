@@ -1,5 +1,5 @@
 (* synthesize *)
-(* default_clock_osc = "clk", default_reset = "rst" *)
+(* default_clock_osc = "clk", default_reset_port = "rst" *)
 module sysClkTest();
 
    Reg#(UInt#(8)) count <- mkReg(0);
