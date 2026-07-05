@@ -52,12 +52,12 @@ symlinks in `/usr/bin/` that point to the executables in
 ## Requirements
 
 To build a complete release of BSC, you will need:
- - The standard Haskell compiler [GHC]. The recommended version is the
-   latest 9.6 point release, which is the primary version built and
-   tested by this project's CI; newer releases through 9.14 are also
-   tested (see the [CI workflow] for the exact set).  Older
-   releases are untested and may not work.  We recommend installing
-   GHC via the popular installer [GHCup].
+ - The standard Haskell compiler [GHC]. The recommended version is
+   9.6.7, which is the primary version built and tested by this
+   project's continuous integration (CI); newer versions are also
+   tested (see the [CI workflow] for the exact set).  Older versions
+   are untested and may not work.  We recommend installing GHC via
+   the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, `split`, and `strict-concurrency`.
  - The GNU Multiple Precision Arithmetic Library (GMP). `libgmp` is
