@@ -1,0 +1,28 @@
+package ShadowLock(C5(..), m5, V(..), IfcSL(..), mkShadowLockLocal) where
+
+-- Locks the symbol-table behavior the Prelude pack/unpack wrappers rely
+-- on: a top-level definition shadows the same-named class method in the
+-- value namespace (see the notes in MakeSymTab.hs), while instance
+-- declarations still resolve their method bindings through the class's
+-- field table.  The wrapper returns 17; the instance methods return
+-- other values; every call site must see 17.
+class C5 a where
+    m5 :: a -> Bit 8
+
+m5 :: (C5 a) => a -> Bit 8
+m5 _ = 17
+
+data V = MkV
+
+instance C5 V where
+    m5 _ = 5
+
+interface IfcSL =
+    out :: Bit 8
+
+{-# verilog mkShadowLockLocal #-}
+mkShadowLockLocal :: Module IfcSL
+mkShadowLockLocal =
+  module
+    interface
+        out = m5 MkV

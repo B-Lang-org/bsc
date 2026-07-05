@@ -1,0 +1,7 @@
+checking package dependencies
+compiling TypeMismatch.bs
+code generation for mkTypeMismatch starts
+Compilation message: "TypeMismatch.bs", line 14, column 36: ENTERED-PACK-B
+Compilation message: "TypeMismatch.bs", line 11, column 32: ENTERED-UNPACK-A
+Verilog file created: mkTypeMismatch.v
+All packages are up to date.
