@@ -328,6 +328,14 @@ canLiftCond' m (ICon _ (ICMethArg _)) = (False, m)
 -- other arrays are unexpected
 canLiftCond' m (ICon _ (ICLazyArray arr_ty arr u)) =
     internalError ("IExpandUtils.canLiftCond: unexpected array")
+-- held pack/unpack coercions should have been squeezed out by the
+-- condition-handling paths (doIf, evalStaticOp', walkNF) before any
+-- condition-liftability question is asked; this cannot force them (pure
+-- context), so fail loudly rather than answer wrongly
+canLiftCond' m (ICon _ (ICLazyPack {})) =
+    internalError ("IExpandUtils.canLiftCond: unexpected held coercion (pack)")
+canLiftCond' m (ICon _ (ICLazyUnpack {})) =
+    internalError ("IExpandUtils.canLiftCond: unexpected held coercion (unpack)")
 canLiftCond' m (ICon _ _) = (True, m)
 canLiftCond' m ref@(IRefT t p poss r) =
     -- only follow references for which we haven't yet computed the answer
@@ -3480,6 +3488,12 @@ instance Wireable HExpr where
   extractWires (ICon i (ICModPort {})) = ?mkport i
 
   extractWires (ICon i (ICInout { iInout = inout })) = ?mkinout i inout
+
+  -- a held pack/unpack coercion: its wires are those of the value it
+  -- holds (lzApplied references the same state, plus the dictionary,
+  -- which is pure)
+  extractWires (ICon _ (ICLazyPack { lzOrig = o })) = extractWires o
+  extractWires (ICon _ (ICLazyUnpack { lzOrig = o })) = extractWires o
 
   extractWires _ = return ?z
 

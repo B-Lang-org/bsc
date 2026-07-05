@@ -1,0 +1,5 @@
+checking package dependencies
+compiling VecCopy.bsv
+code generation for mkVecCopy starts
+Verilog file created: mkVecCopy.v
+All packages are up to date.

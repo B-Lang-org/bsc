@@ -652,6 +652,10 @@ instance Bin (IConInfo a) where
         internalError "GenBin.Bin(IConInfo).writeBytes: ICInout"
     writeBytes (ICLazyArray _ _ _) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyArray"
+    writeBytes (ICLazyPack {}) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyPack"
+    writeBytes (ICLazyUnpack {}) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyUnpack"
     writeBytes (ICPred _ _) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICPred"
     writeBytes (ICHandle { }) =

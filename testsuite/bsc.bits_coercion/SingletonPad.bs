@@ -1,0 +1,28 @@
+package SingletonPad(IfcSP(..), mkSingletonPad) where
+
+-- The lawful boundary case on the OTHER side from NonLawful: a
+-- zero-information type padded to one bit, whose pack emits a
+-- don't-care and whose unpack ignores its argument.  This satisfies
+-- the Bits law up to resolution of don't-cares (any bit vector is a
+-- legal resolution of pack's `?`), so the compiler may choose any
+-- resolution for round trips.  Width-1 coercions are resolved eagerly,
+-- so this behaves exactly as it always did: the register's D_IN is the
+-- don't-care's resolution, and the design simply compiles.
+data SP = MkSP
+
+instance Bits SP 1 where
+    pack _ = _
+    unpack _ = MkSP
+
+interface IfcSP =
+    dummy :: Bool
+
+{-# verilog mkSingletonPad #-}
+mkSingletonPad :: Module IfcSP
+mkSingletonPad =
+  module
+    r :: Reg SP <- mkRegU
+    rules
+        "writeback": when True ==> r := r
+    interface
+        dummy = True

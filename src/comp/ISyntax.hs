@@ -848,6 +848,22 @@ data IConInfo a =
         | ICInout { iConType :: IType, iInout :: IInout a }
         -- uninit is used to give simpler error messages for completely uninitialized bit vectors / vectors
         | ICLazyArray { iConType :: IType, iArray :: ILazyArray a, uninit :: Maybe (IExpr a, IExpr a)}
+          -- a held pack/unpack coercion (see PrimPack/PrimUnpack in IExpand):
+          -- created only during elaboration; never appears in a .bo or in
+          -- the final IModule (walkNF/evalStaticOp' eliminate it on demand).
+          -- lzOrig is the (heaped) value the coercion was applied to, and
+          -- lzApplied is a (heaped, unevaluated) application of the
+          -- underlying Bits class method to lzOrig -- so forcing evaluates
+          -- the method body at most once no matter how many consumers
+          -- demand the result, while a matching opposite coercion can
+          -- still cancel against lzOrig at any time (Bits is coherent, so
+          -- equal type arguments imply interchangeable dictionaries).
+          -- lzTa/lzTn are the (a, n) type arguments, used for the
+          -- cancellation match.
+        | ICLazyPack { iConType :: IType, lzTa :: IType, lzTn :: IType,
+                       lzOrig :: IExpr a, lzApplied :: IExpr a }
+        | ICLazyUnpack { iConType :: IType, lzTa :: IType, lzTn :: IType,
+                         lzOrig :: IExpr a, lzApplied :: IExpr a }
         | ICName { iConType :: IType, iName :: Id }
         | ICAttrib { iConType :: IType, iAttributes :: [(Position,PProp)] }
           -- This was updated to support a list of positions,
@@ -893,6 +909,8 @@ ordC (ICPosition { }) = 29
 ordC (ICType { }) = 30
 ordC (ICPred { }) = 31
 ordC (ICMethod { }) = 32
+ordC (ICLazyPack { }) = 33
+ordC (ICLazyUnpack { }) = 34
 
 instance Eq (IConInfo a) where
     x == y  =  cmpC x y == EQ
@@ -946,6 +964,14 @@ cmpC c1 c2 =
         ICInout { } -> EQ
         ICLazyArray { iArray = arr } -> compare (map ac_ptr (Array.elems arr))
                                                 (map ac_ptr (Array.elems (iArray c2)))
+        -- lzApplied is deliberately not compared: it is determined by
+        -- lzOrig and the (coherent) dictionary, and two independently
+        -- created coercions of the same value should compare equal even
+        -- though they hold separate applied cells
+        ICLazyPack { lzTa = ta1, lzTn = tn1, lzOrig = o1 } ->
+            compare (ta1, tn1, o1) (lzTa c2, lzTn c2, lzOrig c2)
+        ICLazyUnpack { lzTa = ta1, lzTn = tn1, lzOrig = o1 } ->
+            compare (ta1, tn1, o1) (lzTa c2, lzTn c2, lzOrig c2)
         ICName { iName = n } -> compare n (iName c2)
         ICAttrib { iAttributes = pps } ->
             let pps_no_pos = map snd pps
@@ -1270,6 +1296,8 @@ instance NFData (IConInfo a) where
     rnf (ICName x1 x2) = rnf2 x1 x2
     rnf (ICAttrib x1 x2) = rnf2 x1 x2
     rnf (ICLazyArray x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (ICLazyPack x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
+    rnf (ICLazyUnpack x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
     rnf (ICPosition x1 x2) = rnf2 x1 x2
     rnf (ICType x1 x2) = rnf2 x1 x2
     rnf (ICPred x1 x2) = rnf2 x1 x2
@@ -1469,6 +1497,8 @@ showTypelessCI (ICIs {iConType = t, conTagInfo = cti}) = "(ICIs _ " ++ (ppReadab
 showTypelessCI (ICOut {iConType = t, conTagInfo = cti}) = "(ICOut _ " ++ (ppReadable cti) ++ ")"
 showTypelessCI (ICTuple {iConType = t, fieldIds = fs}) = "(ICTuple _ " ++ (show fs) ++ ")"
 showTypelessCI (ICSel {iConType = t, selNo = i, numSel = j}) = "(ICSel _ " ++ (show i) ++ " " ++ (show j) ++ ")"
+showTypelessCI (ICLazyPack {lzOrig = o}) = "(ICLazyPack _ [" ++ showTypeless o ++ "])"
+showTypelessCI (ICLazyUnpack {lzOrig = o}) = "(ICLazyUnpack _ [" ++ showTypeless o ++ "])"
 showTypelessCI (ICVerilog {iConType = t, isUserImport = ui, vInfo = v, vMethTs = vts}) = "(ICVerilog _ " ++ {--(show v)--} "<vmodinfo>" ++ " [_])"
 showTypelessCI (ICUndet {iConType = t, iuKind = k, imVal = Nothing}) = "(ICUndet _ _ )"
 showTypelessCI (ICUndet {iConType = t, iuKind = k, imVal = Just v})  = "(ICUndet _ _ [" ++ ppReadable v ++ "])"
