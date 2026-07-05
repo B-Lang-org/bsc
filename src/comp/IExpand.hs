@@ -3112,6 +3112,21 @@ bldApUH' s f as = do
         when doConAp $ traceM ("bldApUH' " ++ s ++ " " ++ ppReadable e)
         return (P pTrue e)
 
+-- Unfold a primPack/primUnpack application into the underlying Bits class
+-- method, picked out of the dictionary argument (the primitives take the
+-- Bits dictionary; see Prelude.bs).  A dictionary in WHNF is an ICTuple
+-- application whose fieldIds name the class methods, so the method is
+-- taken from it directly by name.
+unfoldBitsCoercion :: String -> Id -> HExpr -> [Arg] -> G PExpr
+unfoldBitsCoercion tag meth_i dictE rest = do
+    (_, P pd d) <- evalUH dictE
+    case d of
+      IAps (ICon _ (ICTuple { fieldIds = fs })) _ ms
+        | Just k <- findIndex (qualEq meth_i) fs, k < length ms ->
+            addPredG pd $ evalAp tag (ms !! k) rest
+      _ -> internalError ("unfoldBitsCoercion (" ++ tag ++ "): " ++
+                          "unexpected dictionary: " ++ ppReadable d)
+
 conAp' :: Id -> IConInfo HeapData -> HExpr -> [Arg] -> G PExpr
 
 -- Delta rules: execute primitives (constants)
@@ -3490,6 +3505,29 @@ conAp' _ (ICPrim _ PrimZeroExt) _ [t2@(T t), t1, t3, e] =
                                            e]
 conAp' i (ICPrim _ PrimTrunc) _   [_, n@(T _), m@(T _), e@(E _)] =
         evalAp "PrimTrunc" (icSelect (getIdPosition i)) [n, T (mkNumConT 0), m, e]
+
+-- primPack/primUnpack: the implicit Bits pack/unpack coercions applied by
+-- the Prelude wrappers (see Prelude.bs).  For now, unfold immediately to
+-- the class method picked out of the dictionary argument, evaluating
+-- exactly what a direct call of the class method would have.
+-- The payload argument may be absent (a higher-order use such as
+-- "map pack xs" can leave the wrapper partially applied); the method
+-- applied to no arguments is a legal value in that case.
+--
+-- Fast path first: at type Bit n the Bits instance is the identity (the
+-- Prelude owns that instance, and the class is coherent, so no other can
+-- exist), so return the payload without touching the dictionary.  Besides
+-- saving work, this keeps the heap shape at Bit-typed coercion sites
+-- (every GenWrap boundary, every Bit-typed register write) identical to a
+-- compiler without the coercion prims.
+conAp' _ (ICPrim _ PrimPack) _ (T ta : T tn : E _ : E x : rest)
+    | ta == aitBit tn = evalAp "PrimPack-id" x rest
+conAp' _ (ICPrim _ PrimUnpack) _ (T ta : T tn : E _ : E x : rest)
+    | ta == aitBit tn = evalAp "PrimUnpack-id" x rest
+conAp' _ (ICPrim _ PrimPack) _ (T _ : T _ : E d : rest) =
+        unfoldBitsCoercion "PrimPack" idPack d rest
+conAp' _ (ICPrim _ PrimUnpack) _ (T _ : T _ : E d : rest) =
+        unfoldBitsCoercion "PrimUnpack" idUnpack d rest
 
 -- Special case of doPrimOp that checks bounds and keeps the base.
 conAp' tfs (ICPrim _ PrimIntegerToBit) fe [T ty@(ITNum k), E e] = evalStaticOp e (itBitN k) handleInt
