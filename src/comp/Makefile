@@ -164,7 +164,17 @@ GHC += -optl -headerpad_max_install_names
 endif
 
 # flags for the haskell compiler RTS
-GHCRTSFLAGS ?= +RTS -M4G -A128m -RTS
+#
+# GHC's parallel --make compiles up to GHCJOBS modules concurrently in
+# ONE process sharing ONE heap, and -A128m gives each job its own
+# 128 MB allocation area inside it.  A flat max-heap sized for one job
+# therefore overflows intermittently as the number of GHC jobs
+# increases, depending on which large modules the scheduler happens to
+# compile at the same time.  Scale the cap with the job count: the
+# single-job baseline (4G, the previous fixed value) plus 1G for each
+# additional job.
+GHCMAXHEAP ?= $(shell expr 3 + $(GHCJOBS))G
+GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
