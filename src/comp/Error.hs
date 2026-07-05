@@ -1001,6 +1001,7 @@ data ErrMsg =
         | WRuleAlwaysFalse String Bool
         | WRuleNoActions String Bool
         | WRuleUndetPred Bool String [Position]
+        | WSVReservedIdent String
         | WMethodNeverReady String
         | WNoScheduleDump String [String]
 
@@ -1021,8 +1022,6 @@ data ErrMsg =
         | ESplitInsideNoSplit String
 
         | WMissingRule String
-
-        | WSVReservedIdent String
 
         | WFCall [(String, Position, [Position])]
 
@@ -3121,12 +3120,6 @@ getErrorText (ESplitInsideNoSplit expr) =
 getErrorText (WMissingRule s) =
     (Generate 17, empty, s2par ("Rule not found: " ++ ishow s))
 
-getErrorText (WSVReservedIdent name) =
-    (Generate 129, empty,
-     s2par ("The identifier " ++ quote name ++ " is a reserved word in " ++
-            "SystemVerilog and will be emitted as an escaped identifier " ++
-            "in the generated Verilog."))
-
 -- Generate 19 is obsolete.  It used to be that Generate 18 was for
 -- reporting WFCall of one method with one position and Generate 19 was
 -- for one method with multiple positions.
@@ -3999,6 +3992,12 @@ getErrorText (WRuleUndetPred is_meth rule poss) =
               s2par ("Don't-care values were introduced at the following positions:") $$
               nest 4 (vcat (map (text . prPosition) poss))
     )
+
+getErrorText (WSVReservedIdent name) =
+    (Generate 129, empty,
+     s2par ("The identifier " ++ quote name ++ " is a reserved word in " ++
+            "SystemVerilog and will be emitted as an escaped identifier " ++
+            "in the generated Verilog."))
 
 
 ---------------------------------------------------------------------------
