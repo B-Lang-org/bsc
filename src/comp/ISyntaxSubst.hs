@@ -5,6 +5,19 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE CPP #-}
+#if MIN_VERSION_GLASGOW_HASKELL(8,9,0,0)
+#else
+{-
+This is needed for ghc 8.8.4 on Ubuntu 22.04 LTS, or else `type
+ExprSubstCtx ctx a = SubstContext ctx (IExpr a)` triggers
+
+* Non type-variable argument
+    in the constraint: SubstContext ctx (IExpr a)
+  (Use FlexibleContexts to permit this)
+-}
+{-# LANGUAGE FlexibleContexts #-}
+#endif
 
 module ISyntaxSubst(
         -- Public API
