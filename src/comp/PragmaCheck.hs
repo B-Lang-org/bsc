@@ -2,14 +2,15 @@ module PragmaCheck ( checkModuleArgPragmas,
                      checkModulePortNames,
                      ArgInfo(..),
                      extractVTPairs,
-                     renamePProps
+                     renamePProps,
+                     applyDefaultArgAttrs
                    ) where
 
 import qualified Data.Map as M
 
 import Control.Monad(msum)
 import Data.List(groupBy, sort, partition, nub, intersect)
-import Data.Maybe(listToMaybe, mapMaybe, catMaybes, fromMaybe)
+import Data.Maybe(listToMaybe, mapMaybe, catMaybes, fromMaybe, isNothing)
 
 import Util(thd, fst3, headOrErr)
 
@@ -95,6 +96,52 @@ renamePProps vtis pps =
 
 
 -- ==============================
+-- Apply attributes for the default clock/reset to designated arguments
+
+-- When an argument is designated as the module's default clock or reset
+-- (with the "default_clock"/"default_reset" attributes), the attributes
+-- which refer to the default clock or reset by name -- naming its ports
+-- (default_clock_osc, default_clock_gate, default_reset_port), gating it
+-- (default_gate_inhigh, default_gate_unused, gate_input_clocks) or
+-- relating it to other clocks (clock_family, clock_ancestors) -- apply
+-- to the designated argument: the argument's name is used inside the
+-- module and the specified names are used for the ports on the boundary.
+-- This function rewrites such references to refer to the designated
+-- argument directly, so that the existing handling of argument
+-- attributes applies downstream.
+-- (References with an empty port name are not renames -- an empty name
+-- for the default clock/reset is how no_default_clock/no_default_reset
+-- are represented -- so those are left alone.)
+applyDefaultArgAttrs :: [PProp] -> [PProp]
+applyDefaultArgAttrs pps =
+    let m_clk_arg = getDefaultClockArg pps
+        m_rst_arg = getDefaultResetArg pps
+
+        substId def_id (Just arg) i | (i == def_id) = arg
+        substId _ _ i = i
+        substClk = substId idDefaultClock m_clk_arg
+        substRst = substId idDefaultReset m_rst_arg
+
+        substPair subst p@(_, "") = p
+        substPair subst (i, s) = (subst i, s)
+
+        fixPProp (PPclock_osc ps)   = PPclock_osc (map (substPair substClk) ps)
+        fixPProp (PPclock_gate ps)  = PPclock_gate (map (substPair substClk) ps)
+        fixPProp (PPgate_inhigh is) = PPgate_inhigh (map substClk is)
+        fixPProp (PPgate_unused is) = PPgate_unused (map substClk is)
+        fixPProp (PPgate_input_clocks is) =
+            PPgate_input_clocks (map substClk is)
+        fixPProp (PPclock_family is)     = PPclock_family (map substClk is)
+        fixPProp (PPclock_ancestors iss) =
+            PPclock_ancestors (map (map substClk) iss)
+        fixPProp (PPreset_port ps)  = PPreset_port (map (substPair substRst) ps)
+        fixPProp p = p
+    in  if (isNothing m_clk_arg) && (isNothing m_rst_arg)
+        then pps
+        else map fixPProp pps
+
+
+-- ==============================
 -- Initial sanity check of module pragmas relating to module arguments
 
 modifies :: Id -> PProp -> Bool
@@ -110,6 +157,8 @@ modifies n (PParg_reset_by ps)
 modifies n (PPgate_inhigh is) = n `elem` is
 modifies n (PPgate_unused is) = n `elem` is
 modifies n (PPparam is)       = n `elem` is
+modifies n (PPdefault_clock_arg i) = n == i
+modifies n (PPdefault_reset_arg i) = n == i
 modifies _ _                  = False
 
 isParam :: PProp -> Bool
@@ -122,11 +171,13 @@ isOscOrGate (PPclock_osc _)   = True
 isOscOrGate (PPclock_gate _)  = True
 isOscOrGate (PPgate_inhigh _) = True
 isOscOrGate (PPgate_unused _) = True
+isOscOrGate (PPdefault_clock_arg _) = True
 isOscOrGate _                 = False
 
 isReset :: PProp -> Bool
 isReset (PPreset_port _)     = True
 isReset (PParg_clocked_by _) = True
+isReset (PPdefault_reset_arg _) = True
 isReset _                    = False
 
 isArg :: PProp -> Bool
@@ -279,7 +330,10 @@ checkModuleArgPragmas pos pps_orig pps vtis =
             in  case (clk_prefixes, clk_prefix, default_clock_osc) of
                     (s:_: _, _, _) ->
                         Just (pos, EMultipleAttribute $ getModulePragmaName $ PPCLK s)
-                    (_, Just "", Nothing) ->
+                    -- an empty prefix is OK if there is no default clock port
+                    -- (because an argument is designated as the default clock)
+                    (_, Just "", Nothing)
+                        | isNothing (getDefaultClockArg pps) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
                     _ -> Nothing
@@ -294,7 +348,8 @@ checkModuleArgPragmas pos pps_orig pps vtis =
             in  case (gate_prefixes, gate_prefix, default_clock_gate) of
                     (s:_:_, _, _) ->
                         Just (pos, EMultipleAttribute $ getModulePragmaName $ PPGATE s)
-                    (_, Just "", Nothing) ->
+                    (_, Just "", Nothing)
+                        | isNothing (getDefaultClockArg pps) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultClock))
                     _ -> Nothing
@@ -308,7 +363,8 @@ checkModuleArgPragmas pos pps_orig pps vtis =
                       [ lookup idDefaultReset xs | PPreset_port xs <- ps ]
             in  case (rst_prefixes, rst_prefix, default_reset_port) of
                     (s:_:_, _, _) -> Just (pos, EMultipleAttribute $ getModulePragmaName $ PPRSTN s)
-                    (_, Just "", Nothing) ->
+                    (_, Just "", Nothing)
+                        | isNothing (getDefaultResetArg pps) ->
                         Just (pos, EEmptyPrefixNoPortName
                                        (getIdBaseString idDefaultReset))
                     _ -> Nothing
@@ -364,9 +420,71 @@ checkModuleArgPragmas pos pps_orig pps vtis =
                                port_info
 
     -- ---------------
+    -- it is an error to designate more than one argument as the default
+    -- clock or reset
+
+        emsg8 =
+            let def_clk_args = [ i | PPdefault_clock_arg i <- pps ]
+                def_rst_args = [ i | PPdefault_reset_arg i <- pps ]
+                def_rst_renames = [ i | PPreset_port ps <- pps,
+                                        (i, s) <- ps,
+                                        i == idDefaultReset, s /= "" ]
+            in  case (def_clk_args, def_rst_args, def_rst_renames) of
+                  (_:_:_, _, _) -> Just (pos, EMultipleAttribute "default_clock")
+                  (_, _:_:_, _) -> Just (pos, EMultipleAttribute "default_reset")
+                  (_, _, _:_:_) -> Just (pos, EMultipleAttribute "default_reset_port")
+                  _ -> Nothing
+
+    -- ---------------
+    -- it is an error if the value of a "default_clock" or "default_reset"
+    -- attribute names a whole Vector argument (an element can be
+    -- designated, but not the vector)
+
+        emsg10 =
+            let vec_args = [ getIdBaseString v
+                           | (v, _, Vector {}) <- vtis ]
+                bad_clk = [ i | PPdefault_clock_arg i <- pps,
+                                getIdBaseString i `elem` vec_args ]
+                bad_rst = [ i | PPdefault_reset_arg i <- pps,
+                                getIdBaseString i `elem` vec_args ]
+            in  case (bad_clk, bad_rst) of
+                  ((i:_), _) ->
+                      Just (getPosition i,
+                            EAttributeOnWrongArgType "default_clock"
+                                (getIdBaseString i) "a Vector")
+                  (_, (i:_)) ->
+                      Just (getPosition i,
+                            EAttributeOnWrongArgType "default_reset"
+                                (getIdBaseString i) "a Vector")
+                  _ -> Nothing
+
+    -- ---------------
+    -- it is an error if the value of a "default_reset" attribute does not
+    -- name an argument; this is reported with a dedicated message (rather
+    -- than by the generic check of emsg5), because in earlier releases
+    -- this attribute provided a port name for the implicit default reset,
+    -- and users migrating such code should be pointed at the
+    -- "default_reset_port" attribute
+
+        emsg11 =
+            let all_args = [ getIdBaseString v | (v, _, _) <- vtis ] ++
+                           [ getIdBaseString v'
+                           | (_, _, ai@(Vector {})) <- vtis,
+                             (v', _) <- extractVTPairs ai ]
+                bad = [ i | PPdefault_reset_arg i <- pps,
+                            getIdBaseString i `notElem` all_args ]
+            in  case bad of
+                  (i:_) -> Just (getPosition i,
+                                 EDefaultResetNoSuchArg (getIdBaseString i))
+                  [] -> Nothing
+
+    -- ---------------
     -- report any errors or warnings
 
-    in  case (msum [ emsg0, emsg1, emsg2, emsg3
+    -- (emsg8, emsg10 and emsg11 are checked before emsg4/emsg5 so that
+    -- values naming arguments which cannot be designated are reported as
+    -- such, not as generic references to a non-existent argument)
+    in  case (msum [ emsg0, emsg1, emsg2, emsg3, emsg8, emsg10, emsg11
                    , emsg4, emsg5, emsg6, emsg7 ]) of
           (Just e) -> EMError [e]
           Nothing  -> EMResult ()

@@ -1,0 +1,10 @@
+package DefaultClockWrongType where
+
+-- Error: the "default_clock" value names an argument which is not a Clock
+
+{-# synthesize sysDefaultClockWrongType {
+     default_clock = rst } #-}
+sysDefaultClockWrongType :: (IsModule m mType) => Clock -> Reset -> m Empty
+sysDefaultClockWrongType clk rst = module
+  rules
+    "r_disp": when True ==> $display "Hello"

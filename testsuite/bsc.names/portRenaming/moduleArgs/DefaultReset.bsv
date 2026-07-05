@@ -3,7 +3,7 @@ interface ModIfc;
 endinterface
 
 (* synthesize
- , default_reset = "RESET"
+ , default_reset_port = "RESET"
  *)
 module sysDefaultReset(ModIfc ifc);
 

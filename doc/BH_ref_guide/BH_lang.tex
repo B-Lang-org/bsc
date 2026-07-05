@@ -3452,6 +3452,11 @@ A number of properties can be specified for a module which affects
 \gramalt{\term{bitBlast}}\\
 \gramalt{\term{CLK} \term{=} \nterm{varName}}\\
 \gramalt{\term{RSTN} \term{=} \nterm{varName}}\\
+\gramalt{\term{no{\US}default{\US}clock}}\\
+\gramalt{\term{no{\US}default{\US}reset}}\\
+\gramalt{\term{default{\US}clock} \term{=} \nterm{varName}}\\
+\gramalt{\term{default{\US}reset} \term{=} \nterm{varName}}\\
+\gramalt{\term{default{\US}reset{\US}port} \term{=} \nterm{varName}}\\
 \gramalt{\term{options} \term{=} \term{\LBRACE} \many{\nterm{string} \term{,}} \term{\RBRACE}}
 
 \gram{varName}{\nterm{varId} \alt \nterm{conId} \alt \nterm{string}}
@@ -3482,6 +3487,25 @@ multiple bits into the individual bits, and also make all port names upper case.
 specify the name of the clock, the default is \te{CLK}.
 \litem{\te{RSTN}}
 specify the name of the reset, the default is \te{RST{\US}N}.
+\litem{\te{no{\US}default{\US}clock}}
+remove the implicit default clock port from the generated module.
+\litem{\te{no{\US}default{\US}reset}}
+remove the implicit default reset port from the generated module.
+\litem{\te{default{\US}clock}}
+designate the named \te{Clock} argument of the module as the module's
+default clock: the implicit default clock port is not generated and,
+inside the module, the designated argument is the clock used wherever
+the default clock would be (for instance, by submodule instantiations,
+rules, and methods which do not specify a clock).
+\litem{\te{default{\US}reset}}
+designate the named \te{Reset} argument of the module as the module's
+default reset: the implicit default reset port is not generated and,
+inside the module, the designated argument is the reset used wherever
+the default reset would be.
+\litem{\te{default{\US}reset{\US}port}}
+specify the name of the implicit default reset port (or, when an
+argument is designated with \te{default{\US}reset}, the name of that
+argument's port).
 \litem{\te{options}}
 specify additional compiler flags that override the current compiler flags
 (as given on the command line).

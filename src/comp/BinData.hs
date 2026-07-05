@@ -802,6 +802,8 @@ instance Bin PProp where
     writeBytes (PPdeprecate txt)        = do putI 31; toBin txt
     writeBytes (PPinst_hide)            = putI 32
     writeBytes (PPinst_hide_all)        = putI 33
+    writeBytes (PPdefault_clock_arg i)  = do putI 34; toBin i
+    writeBytes (PPdefault_reset_arg i)  = do putI 35; toBin i
     readBytes = do
         i <- getI
         case i of
@@ -838,6 +840,8 @@ instance Bin PProp where
           31 -> do txt <- fromBin; return (PPdeprecate txt)
           32 -> return PPinst_hide
           33 -> return PPinst_hide_all
+          34 -> do i <- fromBin; return (PPdefault_clock_arg i)
+          35 -> do i <- fromBin; return (PPdefault_reset_arg i)
           n  -> internalError $ "BinData.Bin(PProp).readBytes: " ++ show n
 
 instance Bin PPnm where

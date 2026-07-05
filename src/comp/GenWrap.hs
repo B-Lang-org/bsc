@@ -544,7 +544,9 @@ getDef generating ds (i, pps) =
               let ext = (CQType ctx t_ext)
               let vts = getDefArgs e t_ext
               vtis <- mapM expandArg vts
-              let pps' = renamePProps vtis pps
+              -- attributes for the default clock/reset apply to arguments
+              -- designated with the default_clock/default_reset attributes
+              let pps' = applyDefaultArgAttrs (renamePProps vtis pps)
               -- check pragmas for every def
               convEM $ checkModuleArgPragmas (getPosition i) pps pps' vtis
               -- only return info for the defs which are generated
