@@ -538,8 +538,18 @@ vDefMpd vco (ADef i t
         [ VMInst {
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
-                  -- these are size params, so default width of 32 is fine
-                  vi_inst_params = Left (map (\x -> (Nothing,VEConst x)) is),
+                  -- BSV noinline functions are enforced monomorphic
+                  -- (T0111), so they never have parameters and take the
+                  -- named (empty) side.  Classic foreign functions
+                  -- applied at numeric types (e.g. Fork) do pass them:
+                  -- size params (default width of 32 is fine), and
+                  -- necessarily POSITIONAL, in type-argument order,
+                  -- because the foreign declaration names only ports --
+                  -- the hand-written module's parameter names (e.g.
+                  -- Fork.v's iw/ow) are unknown to the compiler.
+                  vi_inst_params = if null is
+                                   then Right []
+                                   else Left (map (\x -> (Nothing,VEConst x)) is),
                   vi_inst_ports  = iports ++ oports
                  }
             ]
