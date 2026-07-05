@@ -1,16 +1,25 @@
 
+# The pack/unpack coercion primitives cancel Bits round trips during
+# elaboration, so in the default mode the downstream optimizers this
+# directory was written to exercise (ITransform's pack.unpack identity
+# rules and AOpt's concat-of-extracts joining) never see the round-trip
+# structure.  Compile with -hack-eager-pack-unpack so the coercions
+# elaborate eagerly and that downstream cleanup is still tested.  The
+# generated Verilog is identical in both modes; the cancellation path
+# itself is covered by bsc.bits_coercion.
+
 # -----
 # Test that the derived Bits instance for Either optimizes properly.
 
-compile_verilog_pass LeftBig.bs "" "-opt-undetermined-vals"
+compile_verilog_pass LeftBig.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 compare_verilog mkLeftBigReg.v
 
-compile_verilog_pass RightBig.bs "" "-opt-undetermined-vals"
+compile_verilog_pass RightBig.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 compare_verilog mkRightBigReg.v
 
 # -----
 
-compile_verilog_pass Maybe.bs "" "-opt-undetermined-vals"
+compile_verilog_pass Maybe.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 compare_verilog mkMaybeReg.v
 
 # -----
@@ -20,7 +29,7 @@ compare_verilog mkMaybeReg.v
 # Test  = Optimizing tag tests without injecting chains of != comparisons.
 
 proc do_tests { name } {
-    compile_verilog_pass ${name}.bs "" "-opt-undetermined-vals"
+    compile_verilog_pass ${name}.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
     compare_verilog mk${name}Reg.v
     compare_verilog mkMaybe${name}Reg.v
     compare_verilog mk${name}Test.v
@@ -40,7 +49,7 @@ do_tests C1
 # -----
 
 # Test that pack . unpack optimizes away for enums (including non-contiguous)
-compile_verilog_pass Enums.bsv
+compile_verilog_pass Enums.bsv "" "-hack-eager-pack-unpack"
 
 compare_verilog mkEnumType1Reg.v
 compare_verilog mkEnumType2Reg.v
@@ -58,7 +67,7 @@ compare_verilog mkEnumType3Test.v
 # union tag is present (and the associated values are valid).
 # The generated expressions for the value ports should reduce to just wires.
 
-compile_verilog_pass Decoder.bs "" "-opt-undetermined-vals -unspecified-to x"
+compile_verilog_pass Decoder.bs "" "-opt-undetermined-vals -unspecified-to x -hack-eager-pack-unpack"
 
 # If mkDecoder.v does not simplify correctly, conditionals and/or Xs
 # may appear in the generated output.
@@ -67,12 +76,12 @@ string_does_not_occur mkDecoder.v "unspecified value"
 string_does_not_occur mkDecoder.v "\?"
 string_does_not_occur mkDecoder.v "case"
 
-compile_verilog_pass TestNoopCase.bs "" "-opt-undetermined-vals"
+compile_verilog_pass TestNoopCase.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 find_n_strings mkTestNoopCase.v "case" 0
 find_regexp mkTestNoopCase.v {assign _read = r ;}
 find_regexp mkTestNoopCase.v {assign r\$D_IN = _write_1 ;}
 
-compile_verilog_pass TestNoopTernary.bs "" "-opt-undetermined-vals"
+compile_verilog_pass TestNoopTernary.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 find_n_strings mkTestNoopTernary.v "?" 0
 find_regexp mkTestNoopTernary.v {assign _read = r ;}
 find_regexp mkTestNoopTernary.v {assign r\$D_IN = _write_1 ;}
