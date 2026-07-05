@@ -222,8 +222,8 @@ mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
 -- emitting a warning or error for each binding that becomes transitively incoherent.
 -- Behaviour depends on the class annotation (allowIncoherent) of the depending bind:
 --   incoherent (Just True)  -- suppress: the class explicitly allows incoherence
---   coherent   (Just False) -- error T0159: coherence promise violated
---   default    (Nothing)    -- error T0159 if -incoherent-instance-matches is off
+--   coherent   (Just False) -- error T0158: coherence promise violated
+--   default    (Nothing)    -- error T0158 if -incoherent-instance-matches is off
 --                           -- warn  T0158 if -incoherent-instance-matches is on
 -- Uses the stored DirectIncoherence info for accurate position and root-cause message.
 warnTransitiveIncoherent :: SolvedBinds -> TI SolvedBinds
@@ -239,9 +239,8 @@ warnTransitiveIncoherent sbs = do
       case M.lookup i clsMap >>= allowIncoherent of
         Just True -> return ()   -- incoherent class: suppress
         mallow    ->
-          if fromMaybe ai mallow
-            then twarn (pos, WTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
-            else err   (pos, ECoherentTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
+          let msg = (pos, WTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
+          in  if fromMaybe ai mallow then twarn msg else err msg
       where
         t  = fromJustOrErr "warnTransitiveIncoherent: id not in bindTypes"
                            (M.lookup i typeMap)

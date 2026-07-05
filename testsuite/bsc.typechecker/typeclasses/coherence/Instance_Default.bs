@@ -1,4 +1,4 @@
-package Instance_Default_FlagOn where
+package Instance_Default where
 
 import IncoherentBase
 import Vector
@@ -27,8 +27,8 @@ useGeneric v = dependMethod v
 testByteViaGeneric :: String
 testByteViaGeneric = useGeneric ((replicate 0) :: Vector 4 Byte)
 
-sysInstance_Default_FlagOn :: Module Empty
-sysInstance_Default_FlagOn = module
+sysInstance_Default :: Module Empty
+sysInstance_Default = module
   rules
     "show": when True ==> do
       $display "Byte direct: " testByteDirect

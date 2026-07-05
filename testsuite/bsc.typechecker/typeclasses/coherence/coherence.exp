@@ -1,4 +1,6 @@
-# Tests for transitive incoherence warnings and errors (T0158/T0159).
+# Tests for transitive incoherence diagnostics (T0158: an error normally,
+# a warning under -incoherent-instance-matches or for classes annotated
+# incoherent).
 # IncoherentBase defines a class marked `incoherent` with a generic and a more
 # specific overlapping instance.  Each Instance_* test derives another class
 # (coherent, incoherent, or default-annotation) whose instance depends on
@@ -7,14 +9,17 @@
 
 # ---- Instance-level proviso constraints ----
 
-# coherent class depending on incoherent resolution: compile error T0159.
-compile_fail_error Instance_Coherent.bs T0159
+# coherent class depending on incoherent resolution: compile error T0158.
+compile_fail_error Instance_Coherent.bs T0158
 
-# default class (no annotation): T0159 error when flag off, T0158 warning when flag on.
-compile_fail_error Instance_Default_FlagOff.bs T0159
+# default class (no annotation): T0158 error when the flag is off, T0158
+# warning when it is on.  One source serves both runs: the flag-off compile
+# fails (so it leaves no .bo behind for -u to reuse) and the flag-on run
+# compiles fresh.
+compile_fail_error Instance_Default.bs T0158
 
-test_c_veri_bs_modules_options Instance_Default_FlagOn {} {-incoherent-instance-matches}
-find_n_warning Instance_Default_FlagOn.bs.bsc-vcomp-out T0158 1
+test_c_veri_bs_modules_options Instance_Default {} {-incoherent-instance-matches}
+find_n_warning Instance_Default.bs.bsc-vcomp-out T0158 1
 
 # incoherent class: transitive incoherence is suppressed (0 T0158 warnings).
 test_c_veri_bs_modules_options Instance_Incoherent {} {}
@@ -30,13 +35,16 @@ find_n_warning Instance_Incoherent.bs.bsc-vcomp-out T0158 0
 test_c_veri_bs_modules_options Super_Coherent {} {}
 find_n_warning Super_Coherent.bs.bsc-vcomp-out T0158 0
 
-test_c_veri_bs_modules_options Super_Default_FlagOff {} {}
-find_n_warning Super_Default_FlagOff.bs.bsc-vcomp-out T0158 0
+# The default-annotation class compiles cleanly with the flag both off and
+# on, with identical sim output, so one source and one expected file serve
+# both runs.  Erase the .bo in between: bsc -u would otherwise see it as up
+# to date and skip recompiling under the new flags.
+test_c_veri_bs_modules_options Super_Default {} {}
+find_n_warning Super_Default.bs.bsc-vcomp-out T0158 0
 
-# The expected sim output is identical with the flag on
-copy sysSuper_Default_FlagOff.out.expected sysSuper_Default_FlagOn.out.expected
-test_c_veri_bs_modules_options Super_Default_FlagOn {} {-incoherent-instance-matches}
-find_n_warning Super_Default_FlagOn.bs.bsc-vcomp-out T0158 0
+erase Super_Default.bo
+test_c_veri_bs_modules_options Super_Default {} {-incoherent-instance-matches}
+find_n_warning Super_Default.bs.bsc-vcomp-out T0158 0
 
 test_c_veri_bs_modules_options Super_Incoherent {} {}
 find_n_warning Super_Incoherent.bs.bsc-vcomp-out T0158 0
