@@ -92,14 +92,11 @@ RUNTESTFLAGS += --objdir .
 ## insert the user-specified flags at the end
 RUNTESTFLAGS += --status $(RTFLAGS)
 
-# standard targets
-.PHONY:	check localcheck
-
-
 CHECKPREREQUISITES	?= clean localcheck
 
 
 # run tests in current directory and recurse through subdirs
+.PHONY: check
 check:	$(CHECKPREREQUISITES)
 	$(RUNTESTENV) $(RUNTEST) $(RUNTESTFLAGS)
 
@@ -118,12 +115,14 @@ LOCALCHECKPREREQUISITES ?= localclean
 LOCALCHKCMD ?= $(RUNTESTENV) $(RUNTEST) $(RUNTESTFLAGS) *.exp
 
 # run tests in this directory only
+.PHONY: localcheck
 localcheck: $(LOCALCHECKPREREQUISITES)
 	$(LOCALCHKCMD)
 
 # This creates the file 'all_tests.mk', that is used by the 'run-tests'
 # target in the 'parallel.mk' file.  It also checks for duplicates
 # which can cause problems.
+.PHONY: run-tests-setup
 run-tests-setup:
 	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) \
 		| awk '{t=t " " $$0} END{print "ALL_TESTS :=" t}' \
