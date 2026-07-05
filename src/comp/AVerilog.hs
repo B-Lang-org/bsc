@@ -56,61 +56,6 @@ import qualified GraphWrapper as G
 -- Flags are the compiler flags
 -- [PProp] are the Pragmas
 -- XXX this function is too big
--- Rename one-port-per-net inout ports to plain named ports.  bsc binds
--- each inout port of a generated module to its internal net with a
--- port expression in the module header -- ".iioo(x$INOUT)", or
--- ".arg(arg)" for a module argument -- a header form some tools
--- (notably Verilator) cannot parse.  When the port is the only one on
--- its net the expression serves no purpose: rename the net to the port
--- name throughout the module and emit a plain port.  Ports sharing a
--- net (shorted inouts) keep the expression form; Verilog has no
--- plain-port rendering for those.  (A port whose name is already in
--- use elsewhere in the module is left in expression form; that should
--- not happen, but this pass must not capture.)
-renameInoutPorts :: VModule -> VModule
-renameInoutPorts vm =
-    let args = concatMap fst (vm_ports vm)
-
-        -- how many inout ports sit on each net (VId equality is by
-        -- Verilog name, which is net identity)
-        net_count :: M.Map VId Int
-        net_count = M.fromListWith (+)
-                        [ (i', 1) | VAInout _ (Just i') _ <- args ]
-        -- how often each identifier occurs anywhere in the module
-        id_count :: M.Map VId Int
-        id_count = M.fromListWith (+)
-                       [ (v, 1) | v <- Generic.listify isVId vm ]
-          where isVId :: VId -> Bool
-                isVId _ = True
-
-        renames :: M.Map VId VId
-        renames = M.fromList
-                      [ (i', i)
-                      | VAInout i (Just i') _ <- args
-                      , M.lookup i' net_count == Just 1
-                      , i /= i'
-                        -- the port name occurs only in its own header
-                        -- expression, so adopting it cannot capture
-                      , M.lookup i id_count == Just 1 ]
-
-        subst :: VId -> VId
-        subst v = M.findWithDefault v v renames
-
-        vm' = Generic.everywhere (Generic.mkT subst) vm
-
-        -- drop the now-trivial expressions (".iioo(iioo)"), including
-        -- ports that were already 1:1 with a same-named net
-        net_count' :: M.Map VId Int
-        net_count' = M.fromListWith (+)
-                         [ (i', 1)
-                         | VAInout _ (Just i') _
-                               <- concatMap fst (vm_ports vm') ]
-        plain (VAInout i (Just i') r)
-            | i == i', M.lookup i' net_count' == Just 1
-            = VAInout i Nothing r
-        plain a = a
-    in  vm' { vm_ports = [ (map plain as, c) | (as, c) <- vm_ports vm' ] }
-
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
@@ -793,6 +738,61 @@ mkVDeclsAndDefs vDef ds =
 
 -- ==============================
 -- Top-level inout handing
+
+-- Rename one-port-per-net inout ports to plain named ports.  bsc binds
+-- each inout port of a generated module to its internal net with a
+-- port expression in the module header -- ".iioo(x$INOUT)", or
+-- ".arg(arg)" for a module argument -- a header form some tools
+-- (notably Verilator) cannot parse.  When the port is the only one on
+-- its net the expression serves no purpose: rename the net to the port
+-- name throughout the module and emit a plain port.  Ports sharing a
+-- net (shorted inouts) keep the expression form; Verilog has no
+-- plain-port rendering for those.  (A port whose name is already in
+-- use elsewhere in the module is left in expression form; that should
+-- not happen, but this pass must not capture.)
+renameInoutPorts :: VModule -> VModule
+renameInoutPorts vm =
+    let args = concatMap fst (vm_ports vm)
+
+        -- how many inout ports sit on each net (VId equality is by
+        -- Verilog name, which is net identity)
+        net_count :: M.Map VId Int
+        net_count = M.fromListWith (+)
+                        [ (i', 1) | VAInout _ (Just i') _ <- args ]
+        -- how often each identifier occurs anywhere in the module
+        id_count :: M.Map VId Int
+        id_count = M.fromListWith (+)
+                       [ (v, 1) | v <- Generic.listify isVId vm ]
+          where isVId :: VId -> Bool
+                isVId _ = True
+
+        renames :: M.Map VId VId
+        renames = M.fromList
+                      [ (i', i)
+                      | VAInout i (Just i') _ <- args
+                      , M.lookup i' net_count == Just 1
+                      , i /= i'
+                        -- the port name occurs only in its own header
+                        -- expression, so adopting it cannot capture
+                      , M.lookup i id_count == Just 1 ]
+
+        subst :: VId -> VId
+        subst v = M.findWithDefault v v renames
+
+        vm' = Generic.everywhere (Generic.mkT subst) vm
+
+        -- drop the now-trivial expressions (".iioo(iioo)"), including
+        -- ports that were already 1:1 with a same-named net
+        net_count' :: M.Map VId Int
+        net_count' = M.fromListWith (+)
+                         [ (i', 1)
+                         | VAInout _ (Just i') _
+                               <- concatMap fst (vm_ports vm') ]
+        plain (VAInout i (Just i') r)
+            | i == i', M.lookup i' net_count' == Just 1
+            = VAInout i Nothing r
+        plain a = a
+    in  vm' { vm_ports = [ (map plain as, c) | (as, c) <- vm_ports vm' ] }
 
 computeInouts :: M.Map AId AId -> ASPackage -> [(Id, AType, Id)]
 computeInouts inout_rewire_map aspack =
