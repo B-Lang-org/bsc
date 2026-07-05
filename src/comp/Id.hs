@@ -540,11 +540,22 @@ isBadId idx = hasIdProp idx IdP_bad_name
 -- generated without any information (IdP_bad_name, e.g. __d5), which
 -- beats no name at all.
 idQuality :: Maybe Id -> Int
-idQuality (Just i) | isKeepId i    = 4
+idQuality (Just i) | isHiddenId i  = -1
+                   | isKeepId i    = 4
                    | isFromRHSId i = 2
                    | isBadId i     = 1
                    | otherwise     = 3
 idQuality Nothing                  = 0
+
+-- | Ids marked hidden or internal carry no useful information for a
+-- reader.  They rank below no name at all, because an unnamed def later
+-- receives a descriptive expression-derived name (e.g. from AConv's
+-- newAIdFromAExpr), whereas adopting the hidden name would suppress
+-- that.  (No leading-underscore string check here: that convention is
+-- overloaded -- internal for signals, but intentional hierarchy elision
+-- for instance names.)
+isHiddenId :: Id -> Bool
+isHiddenId i = isHideId i || isInternal i
 
 isFromRHSId :: Id -> Bool
 isFromRHSId idx = hasIdProp idx IdP_from_rhs
