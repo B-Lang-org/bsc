@@ -2,6 +2,12 @@ package Prelude(
         {-Add(..), Max(..), Log(..),-}
         Functor(..), (<$>), Applicative(..), Monad(..), MonadFix(..),
         Bits(..), Eq(..),
+        -- The top-level pack/unpack wrappers (which shadow the Bits class
+        -- methods of the same names; see the comment at their definitions).
+        -- These must be exported as values: without this, importing packages
+        -- only see the class methods from Bits(..) and would bypass the
+        -- primPack/primUnpack coercion primitives.
+        pack, unpack,
         Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
         Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
         PrimParam(..), PrimPort(..),
@@ -404,6 +410,29 @@ class coherent Bits a n | a -> n where
     type SizeOf a = n
     pack   :: a -> Bit n
     unpack :: Bit n -> a
+
+-- Coercion primitives wrapping the Bits class methods.  They take the
+-- Bits dictionary (as an ordinary dictionary proviso), so the evaluator
+-- can run the real class method when the coerced value is demanded; until
+-- then it can keep the coercion symbolic, allowing matching pack/unpack
+-- pairs to cancel without elaborating the instance bodies at all.
+-- Not exported: user code reaches them only through pack/unpack below.
+primitive primPack   :: (Bits a n) => a -> Bit n
+primitive primUnpack :: (Bits a n) => Bit n -> a
+
+-- User-callable pack/unpack.  These top-level definitions deliberately
+-- SHADOW the Bits class methods of the same names in the value namespace
+-- (a top-level definition replaces the method-derived variable entry; see
+-- the load-bearing note in MakeSymTab.hs), so every call of pack/unpack
+-- anywhere routes through the coercion primitives.  Instance declarations
+-- are unaffected: their method bindings resolve through the class's field
+-- list, not the value namespace, so "instance Bits T where pack = ..."
+-- keeps working unchanged.
+pack :: (Bits a n) => a -> Bit n
+pack x = primPack x
+
+unpack :: (Bits a n) => Bit n -> a
+unpack b = primUnpack b
 
 --@ The class of types on which equality is defined.
 --@ \index{Eq@\te{Eq} (type class)}
