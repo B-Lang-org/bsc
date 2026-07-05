@@ -178,6 +178,20 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
         -- finally, add constructors, fields, and variables
         -- XXX and something about top vars?
         -- XXX and something about instances?
+        --
+        -- NOTE: the insertion order below is LOAD-BEARING.  Class methods
+        -- are added to the variable table first (symAddVars, as VarMeth)
+        -- and top-level definitions after (getTopVars/addVarsUQ), so a
+        -- top-level definition with the same name as a class method
+        -- silently replaces the method's variable entry (addVars is a
+        -- plain map insert; the duplicate-definition check cannot see
+        -- method names, see CFreeVars.getVDefIds).  The Prelude relies on
+        -- this: its top-level pack/unpack wrappers shadow the Bits class
+        -- methods of the same names, routing all calls through the
+        -- primPack/primUnpack coercion primitives, while instance
+        -- declarations still resolve their method bindings through the
+        -- FIELD table (see convInst), which is unaffected.  The same
+        -- ordering is relied on in addImpSyms below for the import path.
         final_symT =
             let s1 = symAddCons mkQuals mmi local_pkg symT ds
                 s2 = symAddFields mkQuals mmi local_pkg s1 ds
@@ -1169,6 +1183,11 @@ addImpSyms errh insts (s, errs0) (CImpSign name qf (CSignature pkgName _ _ ds)) 
                 else mkDefaultQuals name
             (s1, errs1) = mkTypeSyms errh mkQuals Nothing src_pkg M.empty ds insts s
             s2 = symAddFields mkQuals mi src_pkg s1 ds
+            -- NOTE: methods (symAddVars) before top-level values (addVars
+            -- of getTopVars below): this order is LOAD-BEARING, exactly as
+            -- in mkSymTab's final_symT above -- the Prelude's pack/unpack
+            -- wrapper values must shadow the Bits class methods when a
+            -- package imports the Prelude's signature.
             s3 = symAddVars mkQuals mi src_pkg s2 ds
         in  case (getTopVars s3 mi src_pkg ds) of
             Left msgs -> bsErrorUnsafe errh (errmsgs msgs)

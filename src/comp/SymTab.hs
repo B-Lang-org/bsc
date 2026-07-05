@@ -210,6 +210,14 @@ emptySymtab = S M.empty M.empty M.empty M.empty M.empty
 
 -- mkQuals applied to identifier returns a list of forms of that identifier
 -- which should be added to the symbol table (qual, unqual, re-qual)
+--
+-- NOTE: this is a plain map insert -- a later insertion under the same
+-- name silently replaces an earlier one, with no diagnostic.  MakeSymTab
+-- inserts class methods (VarMeth) before top-level values, and the
+-- Prelude's pack/unpack wrappers rely on winning that collision to shadow
+-- the Bits class methods (see the notes in MakeSymTab.mkSymTab and
+-- MakeSymTab.addImpSyms).  Do not add duplicate-name rejection here
+-- without accounting for that.
 addVars :: (Id -> [Id]) -> SymTab -> [(Id, VarInfo)] -> SymTab
 addVars mkQuals (S v c t f cl) ivs =
     S (foldr (uncurry M.insert) v (addQuals mkQuals ivs)) c t f cl
