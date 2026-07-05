@@ -1,0 +1,91 @@
+# Tests for the pack/unpack coercion primitives (primPack/primUnpack):
+# holding, bidirectional cancellation, the squeeze-on-demand sites, and
+# the -hack-eager-pack-unpack diagnostic.
+
+# ---------------
+# Core cancellation: a register round trip of a custom type never
+# elaborates the (message-instrumented) instance methods, and the copy
+# path is a wire.
+compile_verilog_pass CoerceHold.bs mkCoerceHold
+compare_file CoerceHold.bs.bsc-vcomp-out
+if { $vtest == 1 } {
+    find_n_strings mkCoerceHold.v {assign dst$D_IN = src ;} 1
+    find_n_strings mkCoerceHold.v {ENTERED} 0
+}
+
+# The same round trip under the eager diagnostic: each method runs once.
+compile_verilog_pass CoerceHoldEager.bs mkCoerceHoldEager {-hack-eager-pack-unpack}
+compare_file CoerceHoldEager.bs.bsc-vcomp-out
+
+# ---------------
+# Cancellation at scale (BSV, vector of registers).
+compile_verilog_pass VecCopy.bsv mkVecCopy
+compare_file VecCopy.bsv.bsc-vcomp-out
+
+# ---------------
+# Coercions at different types must NOT cancel: both instrumented
+# methods run.
+compile_verilog_pass TypeMismatch.bs mkTypeMismatch
+compare_file TypeMismatch.bs.bsc-vcomp-out
+
+# ---------------
+# The documented semantics: unpack of an input port re-packed to an
+# output is a wire (no re-encode of non-canonical encodings).
+compile_verilog_pass Gigo.bsv mkGigo
+if { $vtest == 1 } {
+    find_n_strings mkGigo.v {assign out = out_inp ;} 1
+}
+
+# ---------------
+# Higher-order use of pack (partially applied coercion primitive).
+compile_verilog_pass HigherOrder.bs mkHigherOrder
+
+# ---------------
+# A value both decoded and written back cancels in either elaboration
+# order.
+compile_verilog_pass SharedBoth.bs mkSharedDecodeFirst
+compile_verilog_pass SharedBoth.bs mkSharedWriteFirst
+if { $vtest == 1 } {
+    find_n_strings mkSharedDecodeFirst.v {assign r$D_IN = r ;} 1
+    find_n_strings mkSharedWriteFirst.v {assign r$D_IN = r ;} 1
+}
+
+# ---------------
+# Non-lawful instances: the law is assumed, the round trip cancels, the
+# attempted "normalization" does not happen (documented behavior).
+compile_verilog_pass NonLawful.bs mkNonLawful
+if { $vtest == 1 } {
+    find_n_strings mkNonLawful.v {assign r$D_IN = r ;} 1
+}
+
+# ---------------
+# Zero-width coercions are never held.
+compile_verilog_pass ZeroWidth.bs mkZeroWidth
+
+# ---------------
+# A zero-information type padded to one bit, with pack emitting a
+# don't-care: lawful up to resolution of don't-cares; must simply
+# compile (width-1 coercions are resolved eagerly).
+compile_verilog_pass SingletonPad.bs mkSingletonPad
+
+# ---------------
+# Typechecker-inserted coercions on system-task arguments.
+compile_verilog_pass TaskArg.bsv mkTaskArg
+
+# ---------------
+# import-BVI ready signals (unpack in the desugaring) with a constant
+# RDY.
+compile_verilog_pass BviReady.bsv mkBviReady
+
+# ---------------
+# Shadowing lock-in: the symbol-table ordering the Prelude wrappers rely
+# on (top-level defs shadow same-named class methods; instances resolve
+# through the field table).  Wrapper value is 17 everywhere.
+compile_verilog_pass ShadowLock.bs mkShadowLockLocal
+compile_verilog_pass ShadowLockUse.bs mkShadowLockUse
+compile_verilog_pass ShadowLockUseBsv.bsv mkShadowLockUseBsv
+if { $vtest == 1 } {
+    find_n_strings mkShadowLockLocal.v {assign out = 8'd17 ;} 1
+    find_n_strings mkShadowLockUse.v {assign out = 8'd17 ;} 1
+    find_n_strings mkShadowLockUseBsv.v {assign out = 8'd17 ;} 1
+}

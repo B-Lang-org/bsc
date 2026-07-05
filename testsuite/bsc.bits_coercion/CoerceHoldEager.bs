@@ -1,0 +1,18 @@
+package CoerceHoldEager(mkCoerceHoldEager) where
+
+-- The same round trip compiled with -hack-eager-pack-unpack (see the
+-- .exp file): the coercions are resolved eagerly, so the instrumented
+-- instance methods each run exactly once (one ENTERED-PACK and one
+-- ENTERED-UNPACK line in the compile output).
+import CoerceHold
+
+{-# verilog mkCoerceHoldEager #-}
+mkCoerceHoldEager :: Module Ifc
+mkCoerceHoldEager =
+  module
+    src :: Reg T <- mkRegU
+    dst :: Reg T <- mkRegU
+    rules
+        "copy": when True ==> dst := src
+    interface
+        dummy = True

@@ -1,9 +1,11 @@
 module ISimplify(iSimplify) where
 
-import Data.List((\\))
+import Data.List((\\), findIndex)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util(fromJustOrErr)
+import IOUtil(progArgs)
+import PreIds(idPack, idUnpack)
 import PPrint
 import IntLit
 import ErrorUtil
@@ -57,6 +59,27 @@ iSimpAp n (ILam i _ e) [] (a:as)
 iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
   where m = doPrim prim ts es
         r = fromJustOrErr "iSimpAp ICPrim Nothing" m
+-- Under -hack-eager-pack-unpack (a debugging aid, see IExpand), resolve
+-- pack/unpack coercion primitives against statically-known dictionaries,
+-- like the ICSel case below does for method selections -- restoring the
+-- static resolution a compiler without coercion holding performs.  The
+-- method is located by field name (not a hard-coded slot) so a change to
+-- the Bits class shape cannot silently pick the wrong field.
+-- Zero- and one-bit coercions are resolved unconditionally when the
+-- dictionary is statically known: the evaluator never holds them (a
+-- lawful one-bit instance is at most an inverter -- there is no
+-- cancellation win to defer for -- and held one-bit values would
+-- otherwise permeate the condition machinery), so resolving them here
+-- restores the old static folding for Bool logic and does the unfold
+-- once per .bo instead of once per elaboration use.
+iSimpAp n (ICon _ (ICPrim _ p)) ts (dict : es)
+    | p == PrimPack || p == PrimUnpack, n,
+      doEagerPackUnpack || smallWidth ts,
+      Just meth <- selectDictMethod meth_i dict
+    = iSimpAp n meth [] es
+  where meth_i = if p == PrimPack then idPack else idUnpack
+        smallWidth [_, ITNum w] = w <= 1
+        smallWidth _ = False
 iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
         es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
   where m = selectTuple (fromInteger k) def
@@ -74,6 +97,23 @@ selectTuple k (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
         IAps (ICon _ (ICTuple { })) _ ms -> Just $ ms !! k
         _ -> Nothing
 selectTuple _ _ = Nothing
+
+-- like selectTuple, but locating the field by name in the dictionary's
+-- fieldIds (used for the pack/unpack coercion primitives under
+-- -hack-eager-pack-unpack)
+selectDictMethod :: (NFData a) => Id -> IExpr a -> Maybe (IExpr a)
+selectDictMethod meth (ICon di (ICDef { iConDef = IAps (ICon _ (ICTuple { fieldIds = fs })) _ ms }))
+    | Just k <- findIndex (qualEq meth) fs, k < length ms,
+      let e = ms !! k, di `notElem` dVars e = Just e
+selectDictMethod meth (IAps (ICon _ (ICDef { iConDef = body })) ts []) =
+        case iSimpAp False body ts [] of
+        IAps (ICon _ (ICTuple { fieldIds = fs })) _ ms
+            | Just k <- findIndex (qualEq meth) fs, k < length ms -> Just (ms !! k)
+        _ -> Nothing
+selectDictMethod _ _ = Nothing
+
+doEagerPackUnpack :: Bool
+doEagerPackUnpack = elem "-hack-eager-pack-unpack" progArgs
 
 -- XXX should we do more PrimOps here?
 doPrim :: PrimOp -> [IType] -> [IExpr a] -> Maybe (IExpr a)
