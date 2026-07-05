@@ -119,7 +119,10 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command:
+substitute the following command.  Note well that the version of `ghc`
+tested for building the Bluespec toolchain is the version specified in
+the `ghcup install ghc` command above.  If your system packages an
+older `ghc` (check with `ghc --version`), it might not work.
 
 ```bash
 sudo apt-get install \
@@ -178,7 +181,10 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command:
+substitute the following command.  Note well that the version of `ghc`
+tested for building the Bluespec toolchain is the version specified in
+the `ghcup install ghc` command above.  If your system packages an
+older `ghc` (check with `ghc --version`), it might not work.
 
 ```bash
 sudo dnf install \
