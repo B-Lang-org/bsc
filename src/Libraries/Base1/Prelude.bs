@@ -406,6 +406,13 @@ class (Monad m) => MonadFix m where
 --@     function a unpack(Bit#(n) x);
 --@ endtypeclass
 --@ \end{libverbatim}
+--@ Instances are required to be mutually inverse up to resolution of
+--@ don't-cares: unpack (pack x) == x exactly, and every bit vector b
+--@ must be a legal resolution of pack (unpack b) (bits where pack
+--@ emits a don't-care may resolve arbitrarily; determinate bits must
+--@ equal b).  The compiler relies on this: matching pack/unpack pairs
+--@ are cancelled during elaboration without evaluating the instance
+--@ methods, choosing the identity as the round trip's resolution.
 class coherent Bits a n | a -> n where
     type SizeOf a = n
     pack   :: a -> Bit n
