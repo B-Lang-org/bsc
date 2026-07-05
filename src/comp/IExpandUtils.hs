@@ -2460,11 +2460,16 @@ improveCellName _ mi@(Just i)
   | not $ isPreludePosition $ getPosition i = return mi
 improveCellName e _ = inferName e
 
+-- Cells enter the heap only here and in updHeap, so forcing the name at
+-- both places ensures that the heap never stores a name thunk.  Names can
+-- be lazily derived from expressions (see inferName), so an unforced name
+-- can retain arbitrary expression structure -- and, worse, a pre-update
+-- snapshot of another heap cell read while inferring the name.
 addHeapCell :: String -> HeapCell -> G (HeapPointer, HeapData)
 addHeapCell tag cell = do
   s <- get
   let p = hp s
-  ref <- liftIO (newIORef (cell))
+  ref <- deepseq (hc_name cell) $ liftIO (newIORef (cell))
   put (s { hp = p+1 })
   when doTraceHeapAlloc $ traceM("addHeapCell(" ++ show p ++ "): " ++ tag ++ "\n")
   return (p, HeapData ref)
@@ -2501,8 +2506,7 @@ addHeapWHNF tag t pe@(P _ e) cell_name_orig = do
   when doTraceHeap $ traceM ("addHeapWHNF " ++ ppString cell_name ++ " [" ++
                              prPositionConcise (getPosition cell_name) ++ "] " ++
                              ppReadable (result,t,pe))
-
-  return $ deepseq cell_name result
+  return result
 
 {-
 -- add an expression to the heap that is in NF
@@ -2510,11 +2514,12 @@ addHeapNF :: String -> IType -> PExpr -> HWireSet -> G HExpr
 addHeapNF tag t pe ws = do
   let newcell = (HNF { hc_pexpr = pe, hc_wire_set = ws, hc_name = Nothing })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition (pExprToHExpr pe)
+  let result = mkIRefT t p poss r
 -- flags <- getFlags
 -- mapIExprPosition flags?
   when doTraceHeap $ traceM ("addHeapNF " ++ ppReadable (result,t,pe))
-  return $ deepseq result result
+  return result
 -}
 
 -- "evalPred" needs to create references for shared expressions.
