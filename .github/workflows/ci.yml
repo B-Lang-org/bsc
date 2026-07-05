@@ -50,6 +50,7 @@ jobs:
     uses: ./.github/workflows/build-and-test-ubuntu.yml
     with:
       os: ${{ matrix.os }}
+      # reminder: update INSTALL.md to match this ghc_version
       ghc_version: 9.6.7
       hls_version: 2.13.0.0
       timeout_override: ${{ matrix.timeout_override }}
