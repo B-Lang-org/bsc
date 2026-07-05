@@ -1,6 +1,3 @@
-Warning: file 'u.txt' for memory 'the_u_io' has a gap at address 2661120.
-Warning: file 'v.txt' for memory 'the_v_io' has a gap at address 2661120.
-Warning: file 'y.txt' for memory 'the_y_io' has a gap at address 10644480.
 Warning: RegFile 'top.the_dut.frmbuf.the_ram2' -- Read address is out of bounds: 0x2aaaa
 START detected
 start code detected byte_align_pos  0 
