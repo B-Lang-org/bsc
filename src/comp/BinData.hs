@@ -58,7 +58,7 @@ import Data.Array.IArray()
 import Data.Array.Unboxed
 import Data.Bits
 import Data.Word
-import GHC.IsList(IsList(..))
+import GHC.Exts(IsList(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as TE
