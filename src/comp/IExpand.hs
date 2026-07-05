@@ -3785,13 +3785,13 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
          else
             case (op, as') of
             (PrimBNot, [E e]) | isDyn e ->
-                -- The iTransExpr catch-all will handle PrimIf but not arrays
-                let handler e' =
-                        case (doPrimOp bestPosition op [] [e']) of
-                          Just (Right e_res) -> return (pExpr e_res)
-                          Just (Left errmsg) -> errG (bestPosition, errmsg)
-                          Nothing -> evalAp "Prim PrimBNot" fe [E e']
-                in  addPredG p $ evalStaticOp e itBit1 handler
+                -- Push the negation through conditional structure with
+                -- per-heap-cell memoization (see pushBNot): pushing once
+                -- per PATH instead of once per cell is exponential in the
+                -- depth of a shared conditional DAG.  The WHNF arg is used
+                -- (not the heaped form) so that re-dispatch through the
+                -- evaluator can collapse all-equal dynamic selects.
+                addPredG p $ pushBNot bestPosition fe e
             -- name primitives
             (PrimJoinNames, [E (ICon _ (ICName { iName = n1 })),
                              E (ICon _ (ICName { iName = n2 }))]) ->
@@ -4728,6 +4728,113 @@ doOr2 f as@[E e1, E e2] pe1@(P p1 ie1) = do
       ICon _ (ICInt { iVal = IntLit { ilValue = 1 } }) -> return $ P p iTrue
       _ -> bldAp' "PrimBOr" f [E e1, E ee2] -- e1 and ee2 have the implicit conditions
 doOr2 f as pe = internalError("IExpand.doOr : " ++ ppReadable f ++ ppReadable as ++ ppReadable pe)
+
+-- Push PrimBNot through a (possibly shared) conditional DAG once per
+-- heap CELL, not once per path: the per-cell result is cached
+-- (heapBNots in the evaluator state, same pattern as the extractWires
+-- cache), intermediate results are heaped so the pushed result is a
+-- DAG rather than an inline tree, and leaves that do not fold are
+-- rebuilt from their HEAPED form (no re-evaluation, no fresh cells).
+--
+-- Predicates (implicit conditions, e.g. from FIFO methods in the
+-- selected elements) are carried OUTSIDE the returned expression, the
+-- way evalStaticOp' carries them (pIf on the branch preds): heaping a
+-- constant-with-pred yields a REF, and refs defeat the structural
+-- equality folding (improveIf/iTransExpr's "if c k k ==> k") that
+-- static consumers -- e.g. the termination condition of an
+-- Integer-indexed Prelude recursion -- depend on.  Constant results
+-- are therefore always delivered bare, with the cell's pred lifted
+-- into the P (see "deliver"); only non-constant residuals are
+-- returned as shared refs.  Exception: a residual dyn-select is
+-- returned INLINE and never heaped or cached (see the tail below).
+pushBNot :: Position -> HExpr -> HExpr -> G PExpr
+pushBNot pos fe e = pushBNot' pos fe S.empty e
+
+pushBNot' :: Position -> HExpr -> S.Set HeapPointer -> HExpr -> G PExpr
+pushBNot' pos fe visited e = do
+    (ee, P pe ew) <- evalUH e
+    let mkey = case ee of
+                 IRefT _ ptr _ -> Just ptr
+                 _ -> Nothing
+    -- cycle guard (cf. extractWires' visited set): self-referential
+    -- structures (e.g. guard logic) leave the negation unpushed
+    case mkey of
+      Just k | k `S.member` visited ->
+          addPredG pe $ bldAp' "Prim PrimBNot" fe [E ee]
+      _ -> do
+       let visited' = maybe visited (\k -> S.insert k visited) mkey
+       cache <- getBNotCache
+       case (mkey >>= \k -> M.lookup k cache) of
+        Just r -> deliver pe r
+        Nothing -> do
+          P pres res <-
+            case ew of
+              IAps f@(ICon _ (ICPrim _ PrimIf)) [_] [c, tb, eb] -> do
+                P pt tb' <- pushBNot' pos fe visited' tb
+                P pf eb' <- pushBNot' pos fe visited' eb
+                -- as in evalStaticOp': improveIf on the BARE branch
+                -- results, so equal constants collapse, with the
+                -- branch preds merged under the condition rather than
+                -- baked into heap cells
+                (m, _) <- improveIf f itBit1 c tb' eb'
+                p' <- pIf c pt pf
+                return (P p' m)
+              IAps (ICon _ (ICPrim _ PrimArrayDynSelect)) _ _ ->
+                -- arrays keep the static-op path (the selectable
+                -- elements need the array machinery); the elements are
+                -- pushed with the SAME visited set -- re-entering via
+                -- the evaluator would reset the cycle guard and loop
+                evalStaticOp ee itBit1 (pushBNot' pos fe visited')
+              -- undet scrutinees and book-keeping wrappers also take
+              -- the static-op path (its doUndet and PrimSetSelPosition
+              -- arms), with pushBNot' as the leaf handler, as the
+              -- stock evalStaticOp recursion would have handled them
+              ICon _ (ICUndet {}) ->
+                evalStaticOp ee itBit1 (pushBNot' pos fe visited')
+              IAps (ICon _ (ICPrim _ PrimSetSelPosition)) _ _ ->
+                evalStaticOp ee itBit1 (pushBNot' pos fe visited')
+              _ -> bnotLeaf ee ew
+          case res of
+            -- do NOT heap or cache a residual dyn-select: a heaped
+            -- select is frozen WHNF, but a select over elements with
+            -- implicit conditions can only be collapsed by re-entering
+            -- the evaluator (doDynSel is the one place that strips the
+            -- elements' preds, carrying them in pSel, and merges
+            -- all-equal elements) -- so it must stay INLINE, as the
+            -- stock static-op path returned it, for consumers to
+            -- re-dispatch
+            IAps (ICon _ (ICPrim _ PrimArrayDynSelect)) _ _ ->
+              return (P (pConj pe pres) res)
+            _ ->
+              case mkey of
+                Just k -> do
+                  -- cache the heaped form (the pred goes into the cell,
+                  -- and unheaping recovers it); the result is delivered
+                  -- through the same path as a cache hit
+                  r <- toHeapWHNF "bnot-push" itBit1 (P pres res) Nothing
+                  updBNotCache k r
+                  deliver pe r
+                Nothing -> return (P (pConj pe pres) res)
+  where
+    bnotLeaf ee ew =
+        case doPrimOp pos PrimBNot [] [ew] of
+          Just (Right r) -> return (pExpr r)
+          Just (Left errmsg) -> errG (pos, errmsg)
+          -- re-enter the evaluator on the HEAPED leaf: the leaf is not
+          -- dyn, so this lands in the strict-prim catch-all, which
+          -- applies iTransExpr simplifications (e.g. !(a==b) folding)
+          -- that downstream static folding depends on
+          Nothing -> evalAp "Prim PrimBNot" fe [E ee]
+    -- deliver a heaped result: a constant comes back BARE, with the
+    -- cell's pred lifted into the P, so that equal constants in
+    -- sibling branches/elements still fold structurally; anything
+    -- else keeps the shared ref (pointer equality still folds
+    -- if-of-same-cell, and the pushed DAG stays a DAG)
+    deliver p r = do
+        pe'@(P _ e') <- unheap (P p r)
+        case e' of
+          ICon _ _ -> return pe'
+          _ -> return (P p r)
 
 -----------------------------------------------------------------------------
 

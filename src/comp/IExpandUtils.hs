@@ -21,6 +21,7 @@ module IExpandUtils(
         setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
+        getBNotCache, updBNotCache,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
         instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
@@ -526,6 +527,10 @@ data GState = GState {
         -- XXX this could be stored in the heap cells?
         heapWires      :: !(M.Map HeapPointer HWireSet),
 
+        -- This is a cache for "pushBNot" (see IExpand), so that pushing a
+        -- negation through a shared if-DAG is O(cells), not O(paths).
+        heapBNots      :: !(M.Map HeapPointer HExpr),
+
         -- XXX what is the Id? flattened name?
         vars           :: [(Id, HStateVar)], -- instantiated verilog modules
         portTypeMap    :: PortTypeMap, -- map of state var -> port -> type
@@ -613,6 +618,7 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       newResetId = initResetId,
                       hp = 0,
                       heapWires = M.empty,
+                      heapBNots = M.empty,
                       vars = [],
                       portTypeMap = M.empty,
                       rules = iREmpty,
@@ -2634,6 +2640,18 @@ updWireSetCache p ws = do
   s <- get
   let cache' = M.insert p ws (heapWires s)
   put s { heapWires = cache' }
+
+{-# INLINE getBNotCache #-}
+getBNotCache :: G (M.Map HeapPointer HExpr)
+getBNotCache = do s <- get
+                  return (heapBNots s)
+
+{-# INLINE updBNotCache #-}
+updBNotCache :: HeapPointer -> HExpr -> G ()
+updBNotCache p e = do
+  s <- get
+  let cache' = M.insert p e (heapBNots s)
+  put s { heapBNots = cache' }
 
 {-# INLINE getModuleName #-}
 getModuleName :: G String

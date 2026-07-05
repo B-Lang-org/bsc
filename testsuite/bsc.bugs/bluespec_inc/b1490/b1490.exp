@@ -15,10 +15,12 @@ compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 
 # -----
 
-# There has been a regression and this example now exhausts the heap
-compile_verilog_fail VsortOriginal.bsv {} $rtsflags
-# Confirm that the test failed in the way we expect
-find_n_strings [make_bsc_vcomp_output_name VsortOriginal.bsv] "Heap exhausted" 1
+# This example (the original bug 1490 report) used to exhaust the heap:
+# the evaluator's push of a negation through conditional structure
+# traversed the shared if-DAG once per path (exponential in sort depth).
+# The push is now memoized per heap cell (pushBNot in IExpand), so the
+# original design compiles within the standard limit.
+compile_verilog_pass VsortOriginal.bsv {} $rtsflags
 
 compile_verilog_pass VsortWorkaround.bsv {} [rts_flags 275]
 
