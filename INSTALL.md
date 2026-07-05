@@ -127,7 +127,7 @@ sudo apt-get install \
    libghc-split-dev
 ```
 
-However, if you use the package manager and want to profile the
+If you use the system's package manager and want to profile the
 Bluespec compiler (unlikely for most users), you will also need to the
 profiling-enabled versions of the Haskell libraries:
 
@@ -186,7 +186,7 @@ sudo dnf install \
    ghc-split-devel
 ```
 
-However, if you use the package manager and want to profile the
+If you use the system's package manager and want to profile the
 Bluespec compiler (unlikely for most users), you will also need to the
 profiling-enabled versions of the Haskell libraries:
 
