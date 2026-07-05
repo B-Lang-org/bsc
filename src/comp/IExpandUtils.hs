@@ -2036,19 +2036,10 @@ chkIfcPortNames :: ErrorHandle -> [IAbstractInput] -> [HEFace] -> VClockInfo -> 
 chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
     when (not (null emsgs)) $ bsError errh emsgs
   where
-    input_clock_ports i =
-      case lookup i ci of
-        Just (Just (VName o, Right (VName g))) -> [o, g]
-        Just (Just (VName o, Left _)) -> [o]
-        _ -> []
     output_clock_ports i =
       case lookup i co of
         Just (Just (VName o, Just (VName g, _))) -> [o, g]
         Just (Just (VName o, Nothing)) -> [o]
-        _ -> []
-    input_reset_ports i =
-      case lookup i ri of
-        Just (Just (VName r), _) -> [r]
         _ -> []
     output_reset_ports i =
       case lookup i ro of
@@ -2057,15 +2048,21 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
 
     arg_port_names = [ (getIdBaseString i, i) | IAI_Port (i, _) <- args ]
     arg_inout_names = [ (getIdBaseString i, i) | IAI_Inout i _ <- args ]
-    arg_clock_names = [ (n, i) | IAI_Clock i _ <- args, n <- input_clock_ports i ]
-    arg_reset_names = [ (n, i) | IAI_Reset i <- args, n <- input_reset_ports i ]
 
-    default_clock_names = [ (n, idDefaultClock) | n <- input_clock_ports idDefaultClock ]
-    default_reset_names = [ (n, idDefaultReset) | n <- input_reset_ports idDefaultReset ]
+    -- the input clock/reset infos pair each input's name (which, for
+    -- arguments, is the argument name) with its port names; this covers
+    -- renamed ports and the implicit default clock and reset
+    in_clock_ports (Just (VName o, Right (VName g))) = [o, g]
+    in_clock_ports (Just (VName o, Left _)) = [o]
+    in_clock_ports Nothing = []
+    in_reset_ports (Just (VName r), _) = [r]
+    in_reset_ports _ = []
+
+    arg_clock_names = [ (n, i) | (i, inf) <- ci, n <- in_clock_ports inf ]
+    arg_reset_names = [ (n, i) | (i, inf) <- ri, n <- in_reset_ports inf ]
 
     arg_names = sort $
-      arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names ++
-      default_clock_names ++ default_reset_names
+      arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names
 
     ifc_port_names =
       [ (n, i)

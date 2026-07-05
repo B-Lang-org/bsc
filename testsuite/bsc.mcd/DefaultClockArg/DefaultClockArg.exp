@@ -98,3 +98,7 @@ compile_verilog_fail_error DefaultClockArg_ClashDerived.bsv P0183
 compile_verilog_fail_error DefaultClockArg_ClashPrefix.bsv P0183
 compile_verilog_fail_error DefaultClockArg_ClashEmptyPrefix.bsv P0183
 compile_verilog_fail_error DefaultResetArg_ClashBarePrefix.bsv P0183
+
+# a method port clashing with the port of a designated argument is
+# also detected (G0107, checked at elaboration)
+compile_verilog_fail_error DefaultClockArg_ClashIfc.bsv G0107
