@@ -232,7 +232,11 @@ jobs:
         shell: bash
         env:
           BREW_UPDATE: ${{ inputs.brew_update }}
-        run: ".github/workflows/install_dependencies_testsuite_macos.sh"
+        # verilator is installed here rather than in the shared script,
+        # so the jobs that don't run it don't pay for it
+        run: |
+          .github/workflows/install_dependencies_testsuite_macos.sh
+          brew install verilator
 
       - name: Download bsc
         uses: actions/download-artifact@v8
