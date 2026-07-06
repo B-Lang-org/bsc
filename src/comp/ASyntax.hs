@@ -1273,13 +1273,14 @@ data ANoInlineFun =
     ANoInlineFun
          -- function nam
          String
-         -- numeric types (the ITNum type arguments of the call).
-         -- Only Classic foreign functions can have these; BSV noinline
-         -- functions are enforced monomorphic (T0111).  They are
-         -- emitted as positional Verilog instance parameters in
-         -- type-argument order, because the foreign declaration gives
-         -- no parameter names (see vDefMpd in AVerilogUtil).
-         [Integer]
+         -- numeric parameters: the declaration's type variable names
+         -- paired with the concrete values at this call site.  Only
+         -- Classic foreign functions have these (BSV noinline functions
+         -- are enforced monomorphic, T0111).  They are emitted as NAMED
+         -- Verilog instance parameters, so the hand-written module must
+         -- name its parameters after the declaration's type variables
+         -- (see vDefMpd in AVerilogUtil and Fork.bs/Fork.v).
+         [(String, Integer)]
          -- port list (inputs, outputs); each port is its name and bit size.
          -- Inputs are grouped per argument (the inner list is one argument's
          -- ports, of which there may be several when the argument splits); the

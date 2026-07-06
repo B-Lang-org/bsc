@@ -1,0 +1,10 @@
+package BadForeignWidth(bad) where
+
+-- A foreign function bound to a module must use a bare type variable
+-- (or a literal) for every bit width: the widths are passed to the
+-- module as instance parameters named by the type variables.  A
+-- type-function width has no name to pass, so it is rejected.
+foreign vbad :: Bit n -> Bit (TAdd n 1) = "Bad",("i","o")
+
+bad :: Bit 4 -> Bit 5
+bad = vbad

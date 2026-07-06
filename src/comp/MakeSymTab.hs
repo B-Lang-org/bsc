@@ -685,7 +685,13 @@ chkTopDef r mi src_pkg isDep (CIValueSign i ct) = do
     sc <- mkSchemeWithSymTab r ct
     return [(i, VarInfo VarDefn (i :>: sc) (isDep i) src_pkg)]
 chkTopDef r mi src_pkg isDep (Cforeign i qt on ops ni) = do
-    sc@(Forall _ (_ :=> t)) <- mkSchemeWithSymTab r qt
+    qual_t@(_ :=> t) <- convCQType r qt
+    let tvs = tv qual_t
+        -- quantification order (mkSchemeWithSymTab uses the same order),
+        -- which is also the order of the type arguments at applications;
+        -- these names become the Verilog instance parameter names
+        tvnames = map (getIdString . getTyVarId) tvs
+        sc = quantify tvs qual_t
     let name = case on of
                 Just s -> s
                 Nothing -> getIdString i
@@ -704,12 +710,36 @@ chkTopDef r mi src_pkg isDep (Cforeign i qt on ops ni) = do
                        in  (all isGoodArg args) && (isGoodResult res)
 
     let i' = qual mi i
+    -- For foreign functions bound to a module (a port list is given),
+    -- every bit width in the type must be a bare type variable or a
+    -- numeric literal: the widths are passed to the module as instance
+    -- parameters NAMED by the type variables, and the module must never
+    -- have to compute a width from others (a type-function width would
+    -- force the Verilog to reimplement the type arithmetic).
+    let widthArgs :: CType -> [CType]
+        widthArgs ty = case ty of
+                         (TAp (TCon _) w) | isTypeBit ty -> [w]
+                                          | isTypeActionValue_ ty -> [w]
+                         _ -> []
+        isBareWidth (TVar _) = True
+        isBareWidth (TCon (TyNum _ _)) = True
+        isBareWidth _ = False
+        (arg_ts, res_t) = getArrows (expandSyn t)
+        bad_widths = [ w | w <- concatMap widthArgs (res_t : arg_ts),
+                           not (isBareWidth w) ]
     -- This check is skipped for noinline-created foreign functions, since their type is
     -- determined by the WrapField type class, and a bad foreign type will raise an error in typecheck.
-    if ni || isGoodType (expandSyn t) then
-        return [(i', VarInfo (VarForg name ops) (i' :>: sc) (isDep i) src_pkg)]
-     else
-        throwError (getPosition i, EForeignNotBit (pfpString i) (pfpString t))
+    -- (the check applies only to foreign functions bound to a module;
+    -- a "true" foreign function has no port list and takes no parameters)
+    case bad_widths of
+      (w:_) | not ni && isJust ops ->
+        throwError (getPosition i,
+                    EForeignWidthNotBare (pfpString i) (pfpString w))
+      _ ->
+        if ni || isGoodType (expandSyn t) then
+            return [(i', VarInfo (VarForg name tvnames ops) (i' :>: sc) (isDep i) src_pkg)]
+         else
+            throwError (getPosition i, EForeignNotBit (pfpString i) (pfpString t))
 chkTopDef r mi src_pkg isDep (CValueSign (CDef v t _)) = do
             sc <- mkSchemeWithSymTab r t
             let v' = qual mi v
