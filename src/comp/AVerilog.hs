@@ -76,14 +76,14 @@ aVerilog errh flags pps aspack ffmap =
        -- printed anywhere in the program (including expression- and
        -- statement-position uses, which are references to declared or
        -- external names) is a reserved word or std package identifier.
-       -- In that case no rename would happen and no G0129/G0130/G0131
+       -- In that case no rename would happen and no G0131/G0132/G0133
        -- warning would be emitted, so the program is returned untouched,
        -- with no further traversal and no rebuild of the structure.
        -- (VIds in metadata slots that the printer never emits as
        -- identifiers -- e.g. the provenance ids carried by
        -- VEOp/VEUnOp/VEWConst -- are deliberately not scanned; a reserved
        -- word surviving only in such a slot previously drew a spurious
-       -- G0129 despite never being printed.)
+       -- G0131 despite never being printed.)
        let suspect_str s = isVReservedWord s || isSVStdPackageIdent s
            suspect_vid (VId s _ _) = suspect_str s
            dpi_name_vids = [ n | VDPI n _ _ <- dpi_decls ] ++
@@ -99,9 +99,9 @@ aVerilog errh flags pps aspack ffmap =
          -- built-in std package (process, semaphore, mailbox) cannot be
          -- protected by escaping: some tools (verilator) resolve the names
          -- at parse time even in escaped form.  Rename the internal ones
-         -- (warning G0130); externally visible names -- the module itself,
+         -- (warning G0132); externally visible names -- the module itself,
          -- its ports, DPI functions, foreign Verilog functions -- cannot be
-         -- renamed unilaterally, so for those only warn (G0131).
+         -- renamed unilaterally, so for those only warn (G0133).
          let (vprog, renamed, extern_clashes) =
                  renameSVStdIdents foreign_func_names vprog0
          if (null renamed)
@@ -117,7 +117,7 @@ aVerilog errh flags pps aspack ffmap =
          -- warn about identifiers that collide with Verilog or SystemVerilog
          -- reserved words; the printer emits them as escaped identifiers (see
          -- the PPrint VId instance), which keeps the output legal, but the
-         -- user may prefer to rename them (promote G0129 to make this an
+         -- user may prefer to rename them (promote G0131 to make this an
          -- error)
          let sv_clashes =
                  M.toList $ M.fromListWith (\_ old -> old)
@@ -1995,7 +1995,7 @@ renameSVStdIdents foreign_funcs (VProgram vmods dpis comments) =
         -- declaration or call) must stay ahead of the per-module body
         -- occurrences, whose VIds may carry no useful position (e.g.
         -- function-call VIds are fabricated at noPosition).  Reordering
-        -- it changes which position a G0131 warning reports.
+        -- it changes which position a G0133 warning reports.
         externs = M.toList $ M.fromListWith (\_ old -> old)
                       (dpi_clashes ++ foreign_clashes ++
                        concat [ e | (_, _, e) <- results ])

@@ -4,7 +4,7 @@ package SvKeywordsForeign(sysSvKeywordsForeign) where
 -- SystemVerilog's built-in std package.  The generated call must keep
 -- the user's name: renaming it would break the reference to the
 -- function definition in the user's own Verilog code.  bsc therefore
--- emits the call unchanged and only warns (G0131) that the externally
+-- emits the call unchanged and only warns (G0133) that the externally
 -- determined name collides.
 
 -- a hand-written Verilog function, named after a std:: class
