@@ -1,0 +1,27 @@
+package SvKeywordsForeign(sysSvKeywordsForeign) where
+
+-- A hand-written Verilog function may itself be named after a class of
+-- SystemVerilog's built-in std package.  The generated call must keep
+-- the user's name: renaming it would break the reference to the
+-- function definition in the user's own Verilog code.  bsc therefore
+-- emits the call unchanged and only warns (G0131) that the externally
+-- determined name collides.
+
+-- a hand-written Verilog function, named after a std:: class
+foreign process :: Bit 8 -> Bit 8
+
+{-# verilog sysSvKeywordsForeign #-}
+sysSvKeywordsForeign :: Module Empty
+sysSvKeywordsForeign =
+  module
+    count :: Reg (Bit 8) <- mkReg 0
+
+    rules
+      "step": when True ==>
+        action
+          count := process count
+
+      "done": when (count == 5) ==>
+        action
+          $display "%0d" count
+          ($finish 0)

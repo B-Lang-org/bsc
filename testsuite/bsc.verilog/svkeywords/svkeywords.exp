@@ -21,3 +21,20 @@ test_c_veri SvKeywordsBH sysSvKeywordsBH.out.expected
 if {$vtest == 1} {
 find_n_strings SvKeywordsBH.bs.bsc-vcomp-out {(G0129)} 3
 }
+
+# A hand-written Verilog function (Classic `foreign') may itself be named
+# after a std package class.  The call site must keep the user's name --
+# renaming it would break the reference to the definition in the user's
+# own Verilog code -- so bsc emits the call unchanged and warns (G0131)
+# instead of renaming (G0130).  Compile-only: the function has no C
+# implementation, so only the Verilog backend applies.
+compile_verilog_pass SvKeywordsForeign.bs sysSvKeywordsForeign
+
+if {$vtest == 1} {
+# the externally determined name is reported once, not renamed
+find_n_strings SvKeywordsForeign.bs.bsc-vcomp-out {(G0131)} 1
+find_regexp_fail SvKeywordsForeign.bs.bsc-vcomp-out {\(G0130\)}
+# the call site keeps the user's name, unrenamed
+find_regexp sysSvKeywordsForeign.v {process\(}
+find_regexp_fail sysSvKeywordsForeign.v {process_}
+}
