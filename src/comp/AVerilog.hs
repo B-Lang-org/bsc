@@ -1968,11 +1968,11 @@ instance VUse VExpr where
 renameSVStdIdents :: VProgram
                   -> (VProgram, [(String, String, Position)], [(String, Position)])
 renameSVStdIdents (VProgram vmods dpis comments) =
-    let dpi_names = S.fromList ([ s | VDPI (VId s _ _) _ _ <- dpis ] ++
-                                [ s | VDPI _ _ args <- dpis,
+    let dpi_names = S.fromList ([ s | VDPI (VId s _ _) _ _ _ _ <- dpis ] ++
+                                [ s | VDPI _ _ _ _ args <- dpis,
                                       (VId s _ _, _, _) <- args ])
         dpi_clashes = [ (s, getPosition i)
-                      | VDPI (VId s i _) _ _ <- dpis,
+                      | VDPI (VId s i _) _ _ _ _ <- dpis,
                         isSVStdPackageIdent s ]
         results = map (renameSVStdIdentsInVModule dpi_names) vmods
         vmods'  = [ m | (m, _, _) <- results ]
@@ -2053,7 +2053,7 @@ vargVIds :: VArg -> [VId]
 vargVIds (VAInput i _)       = [i]
 vargVIds (VAInout i mi _)    = i : maybe [] (:[]) mi
 vargVIds (VAOutput i _)      = [i]
-vargVIds (VAParameter i _ _) = [i]
+vargVIds (VAParameter i _ _ _) = [i]
 
 -- Apply a VId transformation to every renameable identifier position in a
 -- module body: everything except submodule instantiation port/parameter
