@@ -42,7 +42,7 @@ import FileIOUtil(openFileCatch, hCloseCatch, hFlushCatch, hGetBufferingCatch,
                   hSetBufferingCatch, hPutStrCatch, hGetLineCatch,
                   hGetCharCatch, hIsEOFCatch, hIsReadableCatch,
                   hIsWritableCatch)
-import qualified SCC
+import GraphWrapper(tSortInt)
 import IntegerUtil(mask)
 import Util
 import PFPrint
@@ -566,7 +566,14 @@ eqPtrs heap ptrs =
         hptrs (IRefT _ p _ _) = [p]
         hptrs _ = []
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
-        ptrs' = case SCC.tsort g of
+        -- tSortInt (Data.Graph), not SCC.tsort: the two sorts break ties
+        -- between independent nodes differently, and the tie order decides
+        -- which of two equal-expression heap cells pass 1 makes canonical
+        -- -- visibly so when one twin is named and one is not (the named
+        -- canonical becomes a Bluesim-symbol-table/VCD-visible def).
+        -- Keep upstream's sort so pass-1 canonical choice matches upstream;
+        -- pass 2 below then only improves named-vs-named choices.
+        ptrs' = case tSortInt g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
                                             (concatMap (ppReadable . heapCellToHExpr . getHeapCell)
                                                     (concatMap id iss)))
@@ -603,6 +610,14 @@ eqPtrs heap ptrs =
                        in  IM.insert dst cls m)
                     IM.empty ptrm0
 
+        -- Visibility guard: only re-pick among visibly-named pointers.
+        -- pDef hides nameless and bad-named defs but keeps well-named
+        -- ones, so promoting a well-named pointer over a hidden pass-1
+        -- canonical would flip the def from hidden to visible in the
+        -- Bluesim symbol table and VCD.  A hidden canonical therefore
+        -- stays canonical; pass 2 may only improve WHICH visible name
+        -- is used, never create a newly-visible def.
+        improve e c0 (!dsm, !ptrm) | rankOf c0 < 1 = (dsm, ptrm)
         improve e c0 (!dsm, !ptrm) =
             let cls    = S.insert (rankOf c0, c0)
                            (IM.findWithDefault S.empty c0 revPtrm)

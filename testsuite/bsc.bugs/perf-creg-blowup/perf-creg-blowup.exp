@@ -28,7 +28,7 @@ if {$vtest == 1} {
     #   - AExpand: precompute aoptExpandTest's instVars as a Set
     #   - SCC: foldl' in decrList (used by AOpt's tsortADefs)
     #   - Balanced: strict foldbal recursion (used by SCC.ntsort)
-    #   - IExpand: rework eqPtrs to use foldl' / strict tuple / SCC.tsort
+    #   - IExpand: rework eqPtrs to use foldl' / strict tuple
     #   - ITransform: strict State, forced cse_map / def_map / idNo
     #   - AOpt: strict State, forced defmap / usemap on addDef
     #   - SpeedyString: strict IntMap and forced IORef updates
