@@ -51,6 +51,29 @@ if { $vtest == 1 } {
 }
 
 # ---------------
+# Held+held merge (improveIf): a mux of two registers of a custom type
+# merges into ONE held unpack over the raw-bits mux, and the write-path
+# pack cancels against it: the instrumented instance methods are never
+# elaborated, and the register's D_IN is a direct register-to-register
+# mux with no pack/unpack residue.
+compile_verilog_pass MuxHold.bs mkMuxHold
+compare_file MuxHold.bs.bsc-vcomp-out
+if { $vtest == 1 } {
+    find_n_strings mkMuxHold.v {assign dst$D_IN = cond ? src1 : src2 ;} 1
+    find_n_strings mkMuxHold.v {ENTERED} 0
+}
+
+# Two independently created held unpacks of the SAME value in the two
+# branches of the mux (the else branch takes an extra unpack(pack(..))
+# round trip): the merge keeps a held coercion without materializing
+# either applied form, and the write-back still cancels.
+compile_verilog_pass MuxHoldShared.bs mkMuxHoldShared
+compare_file MuxHoldShared.bs.bsc-vcomp-out
+if { $vtest == 1 } {
+    find_n_strings mkMuxHoldShared.v {ENTERED} 0
+}
+
+# ---------------
 # Non-lawful instances: the law is assumed, the round trip cancels, the
 # attempted "normalization" does not happen (documented behavior).
 compile_verilog_pass NonLawful.bs mkNonLawful
@@ -88,4 +111,105 @@ if { $vtest == 1 } {
     find_n_strings mkShadowLockLocal.v {assign out = 8'd17 ;} 1
     find_n_strings mkShadowLockUse.v {assign out = 8'd17 ;} 1
     find_n_strings mkShadowLockUseBsv.v {assign out = 8'd17 ;} 1
+}
+
+# ---------------
+# Unlawful NORMALIZING instances (pack and unpack both mask to the low
+# nibble, so pack.unpack /= id on non-canonical bits) make the
+# hold/cancel policy OBSERVABLE in simulation: where a round trip
+# cancels the normalization is skipped (raw bits flow through); where
+# the methods elaborate it is applied.  These sim tests pin the current
+# policy on both backends; the .out.expected goldens were derived from
+# actual runs.  The non-canonical bits are routed through DYNAMIC
+# register reads because unpack of a static constant is unfolded (and
+# normalizes) at hold-time.
+
+# Adjacent cancellation: reg-to-reg copy through the normalizing type
+# from a raw Bit 8 register holding 0xFF displays the RAW ff, not the
+# normalized 0f; no method logic (masking) in the Verilog, no ENTERED-*
+# lines at elaboration.
+test_c_veri NormAdjacent
+if { $vtest == 1 } {
+    find_n_strings NormAdjacent.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings sysNormAdjacent.v {assign dst$D_IN = braw ;} 1
+    find_n_strings sysNormAdjacent.v {4'd0} 0
+}
+
+# Held+held mux merge (the stage-2 arm) is CONSISTENT with adjacent
+# cancellation: (c ? unpack v1 : unpack v2) written to a register merges
+# into one held unpack over the raw-bits mux and the write-path pack
+# cancels, so the RAW branch bits ab / cd are displayed (not 0b / 0d),
+# D_IN is the direct register mux, and no masking logic exists anywhere
+# in the Verilog.
+test_c_veri NormMux
+if { $vtest == 1 } {
+    find_n_strings NormMux.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings sysNormMux.v {assign dst$D_IN = cond ? v1 : v2 ;} 1
+    find_n_strings sysNormMux.v {4'd0} 0
+}
+
+# The squeeze-path boundary: with MIXED branch shapes (held unpack vs
+# directly-constructed value) the merge does not fire and the squeeze
+# clauses materialize the held branch's unpack (and the write-path pack,
+# which no longer sees a held coercion): normalization IS applied on the
+# write path (0b / 05), exactly one ENTERED-UNPACK and one ENTERED-PACK.
+# The read-back for the display is still an adjacent round trip and
+# still cancels (the $display argument is the bare register).  This
+# documents the current design's boundary, not a preference between the
+# two answers for a law-violating instance.
+test_c_veri NormMuxMixed
+if { $vtest == 1 } {
+    find_n_strings NormMuxMixed.bs.bsc-vcomp-out {ENTERED-PACK} 1
+    find_n_strings NormMuxMixed.bs.bsc-vcomp-out {ENTERED-UNPACK} 1
+    find_n_strings sysNormMuxMixed.v {$display("dst=%h", dst);} 1
+}
+
+# The same source as NormMux under -hack-eager-pack-unpack: the escape
+# hatch elaborates the methods at every use site (write mux: two unpacks
+# and one pack; display read-back: one unpack and one pack), so the
+# normalization is applied everywhere and the output is 0b / 0d where
+# default mode shows ab / cd -- pinning the documented mode difference.
+test_c_veri_bs_modules_options NormEager {} {-hack-eager-pack-unpack}
+if { $vtest == 1 } {
+    find_n_strings NormEager.bs.bsc-vcomp-out {ENTERED-PACK} 2
+    find_n_strings NormEager.bs.bsc-vcomp-out {ENTERED-UNPACK} 3
+    find_n_strings sysNormEager.v {$display("dst=%h", { 4'd0, dst[3:0] });} 1
+}
+
+# The same source as NormAdjacent (its default-mode twin) under
+# -hack-eager-pack-unpack: the methods elaborate on the write path (one
+# unpack, one pack) and on the display read-back (one unpack, one pack),
+# so the normalization IS applied and the display shows the normalized
+# 0f where default mode shows the raw ff; the register write path in
+# the Verilog is the masked nibble, not the raw wire.  This eager twin
+# proves the default-mode result is cancellation doing real work: the
+# methods it skips WOULD normalize.
+test_c_veri_bs_modules_options NormAdjacentEager {} {-hack-eager-pack-unpack}
+if { $vtest == 1 } {
+    find_n_strings NormAdjacentEager.bs.bsc-vcomp-out {ENTERED-PACK} 2
+    find_n_strings NormAdjacentEager.bs.bsc-vcomp-out {ENTERED-UNPACK} 2
+    find_n_strings sysNormAdjacentEager.v {assign dst$D_IN = { 4'd0, braw[3:0] } ;} 1
+    find_n_strings sysNormAdjacentEager.v {assign dst$D_IN = braw ;} 0
+    find_n_strings sysNormAdjacentEager.v {$display("dst=%h", { 4'd0, dst[3:0] });} 1
+}
+
+# The same source as NormMuxMixed (its default-mode twin) under
+# -hack-eager-pack-unpack.  The sim output is IDENTICAL to default mode
+# (0b / 05 / 0b), and that is itself meaningful: in this design the
+# register only ever holds canonical values (the mixed-shape write path
+# normalizes even in default mode), and normalization of
+# already-canonical values is the identity, so eagerly elaborating the
+# read-back methods cannot change the displayed value.  The
+# differentiation is STRUCTURAL: the read-back $display argument in the
+# Verilog is the masked expression where default mode shows the bare
+# register, and both methods also elaborate on the read-back
+# (ENTERED-PACK/UNPACK 2/2 vs default mode's 1/1).  This eager twin
+# proves the default-mode result is cancellation doing real work: the
+# read-back round trip it cancels WOULD otherwise elaborate.
+test_c_veri_bs_modules_options NormMuxMixedEager {} {-hack-eager-pack-unpack}
+if { $vtest == 1 } {
+    find_n_strings NormMuxMixedEager.bs.bsc-vcomp-out {ENTERED-PACK} 2
+    find_n_strings NormMuxMixedEager.bs.bsc-vcomp-out {ENTERED-UNPACK} 2
+    find_n_strings sysNormMuxMixedEager.v {$display("dst=%h", { 4'd0, dst[3:0] });} 1
+    find_n_strings sysNormMuxMixedEager.v {$display("dst=%h", dst);} 0
 }
