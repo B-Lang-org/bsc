@@ -63,39 +63,72 @@ aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
     do let vprog0 = VProgram mods dpi_decls comments
-       -- Identifiers that collide with the class names of SystemVerilog's
-       -- built-in std package (process, semaphore, mailbox) cannot be
-       -- protected by escaping: some tools (verilator) resolve the names
-       -- at parse time even in escaped form.  Rename the internal ones
-       -- (warning G0130); externally visible names -- the module itself,
-       -- its ports, DPI functions -- cannot be renamed unilaterally, so
-       -- for those only warn (G0131).
-       let (vprog, renamed, extern_clashes) = renameSVStdIdents vprog0
-       if (null renamed)
-         then return ()
-         else bsWarning errh
-                  [ (pos, WSVStdIdentRenamed name new_name)
-                  | (name, new_name, pos) <- renamed ]
-       if (null extern_clashes)
-         then return ()
-         else bsWarning errh
-                  [ (pos, WSVStdIdentExternal name)
-                  | (name, pos) <- extern_clashes ]
-       -- warn about identifiers that collide with Verilog or SystemVerilog
-       -- reserved words; the printer emits them as escaped identifiers (see
-       -- the PPrint VId instance), which keeps the output legal, but the
-       -- user may prefer to rename them (promote G0129 to make this an
-       -- error)
-       let sv_clashes =
-               M.toList $ M.fromListWith (\_ old -> old)
-                   [ (s, getPosition i)
-                   | VId s i _ <- Generic.listify isReservedVId vprog ]
-             where isReservedVId (VId s _ _) = isVReservedWord s
-       if (null sv_clashes)
-         then return ()
-         else bsWarning errh
-                  [ (pos, WSVReservedIdent name) | (name, pos) <- sv_clashes ]
-       return vprog
+       -- Gate the identifier legalization below on a cheap scan of the
+       -- positions where a colliding name can originate.  The scan is
+       -- sound by the invariant documented at vModuleDeclVIds: every VId
+       -- that the printer emits as an identifier either occurs in a
+       -- declaration position of some module, is a '$'-prefixed system
+       -- task/function name, or is a foreign Verilog/DPI function or task
+       -- name.  A '$'-prefixed name can never be a reserved word or a std
+       -- package identifier, so scanning the declaration positions plus
+       -- the DPI names and the foreign Verilog function names is exactly
+       -- sufficient: if none of them is suspect, then no identifier
+       -- printed anywhere in the program (including expression- and
+       -- statement-position uses, which are references to declared or
+       -- external names) is a reserved word or std package identifier.
+       -- In that case no rename would happen and no G0129/G0130/G0131
+       -- warning would be emitted, so the program is returned untouched,
+       -- with no further traversal and no rebuild of the structure.
+       -- (VIds in metadata slots that the printer never emits as
+       -- identifiers -- e.g. the provenance ids carried by
+       -- VEOp/VEUnOp/VEWConst -- are deliberately not scanned; a reserved
+       -- word surviving only in such a slot previously drew a spurious
+       -- G0129 despite never being printed.)
+       let suspect_str s = isVReservedWord s || isSVStdPackageIdent s
+           suspect_vid (VId s _ _) = suspect_str s
+           dpi_name_vids = [ n | VDPI n _ _ <- dpi_decls ] ++
+                           [ a | VDPI _ _ args <- dpi_decls,
+                                 (a, _, _) <- args ]
+           has_suspects = any suspect_vid dpi_name_vids ||
+                          any (suspect_str . fst) foreign_func_names ||
+                          any (any suspect_vid . vModuleDeclVIds) mods
+       if (not has_suspects)
+        then return vprog0
+        else do
+         -- Identifiers that collide with the class names of SystemVerilog's
+         -- built-in std package (process, semaphore, mailbox) cannot be
+         -- protected by escaping: some tools (verilator) resolve the names
+         -- at parse time even in escaped form.  Rename the internal ones
+         -- (warning G0130); externally visible names -- the module itself,
+         -- its ports, DPI functions, foreign Verilog functions -- cannot be
+         -- renamed unilaterally, so for those only warn (G0131).
+         let (vprog, renamed, extern_clashes) =
+                 renameSVStdIdents foreign_func_names vprog0
+         if (null renamed)
+           then return ()
+           else bsWarning errh
+                    [ (pos, WSVStdIdentRenamed name new_name)
+                    | (name, new_name, pos) <- renamed ]
+         if (null extern_clashes)
+           then return ()
+           else bsWarning errh
+                    [ (pos, WSVStdIdentExternal name)
+                    | (name, pos) <- extern_clashes ]
+         -- warn about identifiers that collide with Verilog or SystemVerilog
+         -- reserved words; the printer emits them as escaped identifiers (see
+         -- the PPrint VId instance), which keeps the output legal, but the
+         -- user may prefer to rename them (promote G0129 to make this an
+         -- error)
+         let sv_clashes =
+                 M.toList $ M.fromListWith (\_ old -> old)
+                     [ (s, getPosition i)
+                     | VId s i _ <- Generic.listify isReservedVId vprog ]
+               where isReservedVId (VId s _ _) = isVReservedWord s
+         if (null sv_clashes)
+           then return ()
+           else bsWarning errh
+                    [ (pos, WSVReservedIdent name) | (name, pos) <- sv_clashes ]
+         return vprog
   where
         vco = flagsToVco flags
         -- look for pass-through comments, taking care of \n
@@ -280,6 +313,48 @@ aVerilog errh flags pps aspack ffmap =
         dpi_decls = if (useDPI flags)
                     then mkDPIDeclarations $ getForeignFunctions ffmap aspack
                     else []
+
+    -- ----------
+    -- names of foreign Verilog functions and tasks
+    --
+    -- Classic `foreign' imports of hand-written Verilog functions
+    -- (isC=False) are called by the user-chosen name, which refers to a
+    -- definition in the user's own Verilog code; a call site must match
+    -- that definition, so these names are externally determined (warn
+    -- only, like DPI names) and must never be renamed.
+    --
+    --  * value calls remain AFunCall expressions in the package and are
+    --    emitted verbatim as function calls (see vExpr in AVerilogUtil);
+    --  * action and ActionValue calls have been collected into
+    --    aspkg_foreign_calls, where afc_fun already holds the name as it
+    --    will be emitted (see cvtName in AState): system tasks and
+    --    non-DPI imported-C wrappers are '$'-prefixed, DPI functions
+    --    appear under their raw C name (already external via the DPI
+    --    declarations above), and foreign Verilog tasks keep their
+    --    user-chosen name -- so taking every name that is not
+    --    '$'-prefixed is a safe over-approximation.
+
+        foreign_func_names :: [(String, Position)]
+        foreign_func_names =
+            findAExprs exprVForeignCalls aspack ++
+            [ (afc_fun fc, getPosition (afc_name fc))
+            | (_, fcs) <- aspkg_foreign_calls aspack,
+              fc <- fcs,
+              not (isTaskName (afc_fun fc)) ]
+          where
+            exprVForeignCalls e@(AFunCall {}) =
+                [ (ae_funname e, getPosition (ae_objid e))
+                | not (ae_isC e), not (isTaskName (ae_funname e)) ]
+                ++ concatMap exprVForeignCalls (ae_args e)
+            exprVForeignCalls e@(APrim {}) =
+                concatMap exprVForeignCalls (ae_args e)
+            exprVForeignCalls e@(AMethCall {}) =
+                concatMap exprVForeignCalls (ae_args e)
+            exprVForeignCalls e@(ANoInlineFunCall {}) =
+                concatMap exprVForeignCalls (ae_args e)
+            exprVForeignCalls _ = []
+            isTaskName ('$':_) = True
+            isTaskName _       = False
 
     -- ----------
     -- define a function (vDef) for mapping an ADef to a Verilog item
@@ -1890,31 +1965,51 @@ instance VUse VExpr where
 -- (external code connects to them by name), the port and parameter names
 -- of instantiated submodules (they belong to the submodule: for generated
 -- submodules that module's own compilation handles them consistently, and
--- for imported Verilog they are the user's), and DPI function and
--- argument names (C linkage, and part of the import declaration).
+-- for imported Verilog they are the user's), DPI function and
+-- argument names (C linkage, and part of the import declaration), and
+-- foreign Verilog function and task names (the calls refer to
+-- definitions in the user's own Verilog code).
 
-renameSVStdIdents :: VProgram
+renameSVStdIdents :: [(String, Position)] -> VProgram
                   -> (VProgram, [(String, String, Position)], [(String, Position)])
-renameSVStdIdents (VProgram vmods dpis comments) =
+renameSVStdIdents foreign_funcs (VProgram vmods dpis comments) =
     let dpi_names = S.fromList ([ s | VDPI (VId s _ _) _ _ <- dpis ] ++
                                 [ s | VDPI _ _ args <- dpis,
                                       (VId s _ _, _, _) <- args ])
+        -- foreign Verilog function/task calls name a definition in the
+        -- user's own Verilog code, so, like DPI names, they must never
+        -- be renamed (the call would no longer match its definition)
+        extern_names = dpi_names `S.union` S.fromList (map fst foreign_funcs)
         dpi_clashes = [ (s, getPosition i)
                       | VDPI (VId s i _) _ _ <- dpis,
                         isSVStdPackageIdent s ]
-        results = map (renameSVStdIdentsInVModule dpi_names) vmods
+        foreign_clashes = [ (s, pos) | (s, pos) <- foreign_funcs,
+                                       isSVStdPackageIdent s ]
+        results = map (renameSVStdIdentsInVModule extern_names) vmods
         vmods'  = [ m | (m, _, _) <- results ]
         renamed = concat [ r | (_, r, _) <- results ]
-        -- one report per name (the same name can clash in several places)
+        -- One report per name (the same name can clash in several places).
+        -- NB the ordering of this list is semantically significant: the
+        -- dedup keeps the FIRST entry for each name, so dpi_clashes and
+        -- foreign_clashes (which carry the source position of the
+        -- declaration or call) must stay ahead of the per-module body
+        -- occurrences, whose VIds may carry no useful position (e.g.
+        -- function-call VIds are fabricated at noPosition).  Reordering
+        -- it changes which position a G0131 warning reports.
         externs = M.toList $ M.fromListWith (\_ old -> old)
-                      (dpi_clashes ++ concat [ e | (_, _, e) <- results ])
+                      (dpi_clashes ++ foreign_clashes ++
+                       concat [ e | (_, _, e) <- results ])
     in  (VProgram vmods' dpis comments, renamed, externs)
 
+-- The set argument is the names that are externally determined for the
+-- whole program (DPI function and argument names, foreign Verilog
+-- function and task names): occurrences of these are never renamed,
+-- only reported.
 renameSVStdIdentsInVModule :: S.Set String -> VModule
                            -> (VModule,
                                [(String, String, Position)],
                                [(String, Position)])
-renameSVStdIdentsInVModule dpi_names vmod =
+renameSVStdIdentsInVModule extern_names vmod =
     let mod_name  = getVIdString (vm_name vmod)
         port_vids = [ vid | (vargs, _) <- vm_ports vmod,
                             varg <- vargs, vid <- vargVIds varg ]
@@ -1944,7 +2039,7 @@ renameSVStdIdentsInVModule dpi_names vmod =
           where stdVId (VId s _ _) = isSVStdPackageIdent s
 
         isExternal n = n == mod_name || n `S.member` port_names
-                                     || n `S.member` dpi_names
+                                     || n `S.member` extern_names
         (extern_uses, internal_uses) = partition (isExternal . fst) std_uses
 
         -- the module's own name and ports, reported even though they are
@@ -1983,10 +2078,63 @@ vargVIds (VAInout i mi _)    = i : maybe [] (:[]) mi
 vargVIds (VAOutput i _)      = [i]
 vargVIds (VAParameter i _ _) = [i]
 
+-- Every declaration-position identifier of a module: the module's own
+-- name, its port and parameter names, and, per body item, the names it
+-- declares (variables, functions and their local declarations, register
+-- groups) or takes from another module's interface (an instantiated
+-- module's name and its port/parameter connection keys) plus the
+-- instance name.  This is a spine walk only: it never descends into
+-- statements, expressions or lvalues.
+--
+-- Soundness invariant, relied upon by the legalization gate in aVerilog:
+-- every VId that the Verilog printer emits as an identifier in the .v
+-- output either
+--   (1) occurs in one of the declaration positions collected here
+--       (expression- and statement-position identifiers are references
+--       to declared nets/regs/ports/parameters/functions, so the same
+--       string also occurs in a declaration position),
+--   (2) is a '$'-prefixed system task/function name (VTask/VEFctCall,
+--       cf. isTaskVId), which can never be a reserved word or a std
+--       package identifier, or
+--   (3) is a foreign Verilog or DPI function/task name, which the gate
+--       scans separately from the package's foreign-call info and the
+--       VDPI declarations (see foreign_func_names in aVerilog).
+-- VIds also occur in metadata slots that the printer never emits as
+-- identifiers (the provenance ids inside VEOp/VEUnOp/VEWConst); those
+-- are deliberately not collected.  If a new printed identifier position
+-- is ever added that falls outside (1)-(3), it must be added here or
+-- the gate becomes unsound.
+--
+-- (Keep this in sync with mapRenameableVIds/collectRenameableVIds
+-- below.  The VMItem constructors are matched exhaustively, without a
+-- wildcard, so that adding a constructor triggers an
+-- incomplete-pattern warning here rather than silently escaping the
+-- scan.)
+vModuleDeclVIds :: VModule -> [VId]
+vModuleDeclVIds vmod =
+    vm_name vmod :
+    [ vid | (vargs, _) <- vm_ports vmod, va <- vargs, vid <- vargVIds va ] ++
+    concatMap go (vm_body vmod)
+  where
+    go :: VMItem -> [VId]
+    go (VMDecl d)            = declVIds d
+    go (VMInst mn inm iparams iports) =
+        mn : inm : either (const []) (map fst) iparams ++ map fst iports
+    go (VMAssign _ _)        = []
+    go (VMStmt {})           = []
+    go (VMComment _ it)      = go it
+    go (VMRegGroup i _ _ it) = i : go it
+    go (VMGroup _ itss)      = concatMap (concatMap go) itss
+    go (VMFunction (VFunction n _ decls _)) = n : concatMap declVIds decls
+    declVIds :: VVDecl -> [VId]
+    declVIds (VVDecl _ _ vs) = map vvName vs
+    declVIds (VVDWire _ v _) = [vvName v]
+
 -- Apply a VId transformation to every renameable identifier position in a
 -- module body: everything except submodule instantiation port/parameter
 -- names and submodule module names, which belong to the instantiated
--- module.  (Keep this in sync with collectRenameableVIds below.)
+-- module.  (Keep this in sync with collectRenameableVIds below and with
+-- vModuleDeclVIds above.)
 mapRenameableVIds :: (VId -> VId) -> [VMItem] -> [VMItem]
 mapRenameableVIds f items = map go items
   where
@@ -2004,7 +2152,8 @@ mapRenameableVIds f items = map go items
     gen = Generic.everywhere (Generic.mkT f)
 
 -- The identifiers that mapRenameableVIds would transform.
--- (Keep this in sync with mapRenameableVIds above.)
+-- (Keep this in sync with mapRenameableVIds above and with
+-- vModuleDeclVIds above.)
 collectRenameableVIds :: [VMItem] -> [VId]
 collectRenameableVIds items = concatMap go items
   where
