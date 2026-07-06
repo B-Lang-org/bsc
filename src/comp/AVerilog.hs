@@ -4,6 +4,7 @@
 module AVerilog (aVerilog) where
 
 import Data.List(nub,
+            mapAccumL,
             partition,
             intercalate,
             sort,
@@ -22,8 +23,9 @@ import ListMap(lookupWithDefault)
 import Util
 import FileNameUtil(hasSuf)
 import PFPrint
-import Error(internalError, ErrorHandle, bsWarning, ErrMsg(WSVReservedIdent))
-import Position(getPosition)
+import Error(internalError, ErrorHandle, bsWarning,
+             ErrMsg(WSVReservedIdent, WSVStdIdentRenamed, WSVStdIdentExternal))
+import Position(getPosition, Position)
 import qualified Data.Generics as Generic
 import Flags(Flags, systemVerilogOutput,
              removeReg, removeCross, removeInoutConnect, removeUnusedMods,
@@ -61,16 +63,35 @@ import qualified GraphWrapper as G
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
-    do let vprog = VProgram mods dpi_decls comments
-       -- warn about identifiers that collide with SystemVerilog reserved
-       -- words; the printer emits them as escaped identifiers (see the
-       -- PPrint VId instance), which keeps the output legal, but the user
-       -- may prefer to rename them (promote G0129 to make this an error)
+    do let vprog0 = VProgram mods dpi_decls comments
+       -- Identifiers that collide with the class names of SystemVerilog's
+       -- built-in std package (process, semaphore, mailbox) cannot be
+       -- protected by escaping: some tools (verilator) resolve the names
+       -- at parse time even in escaped form.  Rename the internal ones
+       -- (warning G0130); externally visible names -- the module itself,
+       -- its ports, DPI functions -- cannot be renamed unilaterally, so
+       -- for those only warn (G0131).
+       let (vprog, renamed, extern_clashes) = renameSVStdIdents vprog0
+       if (null renamed)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVStdIdentRenamed name new_name)
+                  | (name, new_name, pos) <- renamed ]
+       if (null extern_clashes)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVStdIdentExternal name)
+                  | (name, pos) <- extern_clashes ]
+       -- warn about identifiers that collide with Verilog or SystemVerilog
+       -- reserved words; the printer emits them as escaped identifiers (see
+       -- the PPrint VId instance), which keeps the output legal, but the
+       -- user may prefer to rename them (promote G0129 to make this an
+       -- error)
        let sv_clashes =
                M.toList $ M.fromListWith (\_ old -> old)
                    [ (s, getPosition i)
                    | VId s i _ <- Generic.listify isReservedVId vprog ]
-             where isReservedVId (VId s _ _) = isSVReservedWord s
+             where isReservedVId (VId s _ _) = isVReservedWord s
        if (null sv_clashes)
          then return ()
          else bsWarning errh
@@ -1858,3 +1879,150 @@ instance VUse VExpr where
 
 
 -- ==============================
+
+-- ==============================
+-- Renaming of identifiers that collide with the class names of
+-- SystemVerilog's built-in std package (process, semaphore, mailbox).
+--
+-- These are not reserved words, so the escaped-identifier treatment that
+-- the printer applies to reserved words does not help: some tools
+-- (verilator) resolve the std class names at parse time, so even the
+-- escaped form fails to parse.  Internal identifiers are therefore
+-- renamed, by appending underscores until fresh.
+--
+-- Names that are visible outside the generated module cannot be renamed
+-- unilaterally and are only reported: the module's own name and its ports
+-- (external code connects to them by name), the port and parameter names
+-- of instantiated submodules (they belong to the submodule: for generated
+-- submodules that module's own compilation handles them consistently, and
+-- for imported Verilog they are the user's), and DPI function and
+-- argument names (C linkage, and part of the import declaration).
+
+renameSVStdIdents :: VProgram
+                  -> (VProgram, [(String, String, Position)], [(String, Position)])
+renameSVStdIdents (VProgram vmods dpis comments) =
+    let dpi_names = S.fromList ([ s | VDPI (VId s _ _) _ _ <- dpis ] ++
+                                [ s | VDPI _ _ args <- dpis,
+                                      (VId s _ _, _, _) <- args ])
+        dpi_clashes = [ (s, getPosition i)
+                      | VDPI (VId s i _) _ _ <- dpis,
+                        isSVStdPackageIdent s ]
+        results = map (renameSVStdIdentsInVModule dpi_names) vmods
+        vmods'  = [ m | (m, _, _) <- results ]
+        renamed = concat [ r | (_, r, _) <- results ]
+        -- one report per name (the same name can clash in several places)
+        externs = M.toList $ M.fromListWith (\_ old -> old)
+                      (dpi_clashes ++ concat [ e | (_, _, e) <- results ])
+    in  (VProgram vmods' dpis comments, renamed, externs)
+
+renameSVStdIdentsInVModule :: S.Set String -> VModule
+                           -> (VModule,
+                               [(String, String, Position)],
+                               [(String, Position)])
+renameSVStdIdentsInVModule dpi_names vmod =
+    let mod_name  = getVIdString (vm_name vmod)
+        port_vids = [ vid | (vargs, _) <- vm_ports vmod,
+                            varg <- vargs, vid <- vargVIds varg ]
+        port_names = S.fromList (map getVIdString port_vids)
+
+        -- every identifier string in the module, as the freshness pool
+        all_names = S.fromList
+            [ s | VId s _ _ <- Generic.listify vidAny vmod ]
+          where vidAny :: VId -> Bool
+                vidAny _ = True
+
+        -- std-colliding occurrences in renameable (non-formal) positions,
+        -- one representative position per name
+        std_uses =
+            M.toList $ M.fromListWith (\_ old -> old)
+                [ (s, getPosition i)
+                | VId s i _ <- collectRenameableVIds (vm_body vmod),
+                  isSVStdPackageIdent s ]
+
+        -- std-colliding names that occur in the module body only in
+        -- non-renameable positions (submodule port/parameter names)
+        formal_only =
+            M.toList $ M.fromListWith (\_ old -> old)
+                [ (s, getPosition i)
+                | VId s i _ <- Generic.listify stdVId (vm_body vmod),
+                  s `notElem` map fst std_uses ]
+          where stdVId (VId s _ _) = isSVStdPackageIdent s
+
+        isExternal n = n == mod_name || n `S.member` port_names
+                                     || n `S.member` dpi_names
+        (extern_uses, internal_uses) = partition (isExternal . fst) std_uses
+
+        -- the module's own name and ports, reported even though they are
+        -- not "uses" in the body scan
+        own_clashes = [ (getVIdString vid, getPosition vid)
+                      | vid <- vm_name vmod : port_vids,
+                        isSVStdPackageIdent (getVIdString vid) ]
+
+        freshen used n =
+            head [ n' | k <- [(1::Int)..]
+                      , let n' = n ++ replicate k '_'
+                      , not (n' `S.member` used)
+                      , not (isVReservedWord n')
+                      , not (isSVStdPackageIdent n') ]
+        (_, ren_list) =
+            mapAccumL
+                (\used (n, pos) ->
+                     let n' = freshen used n
+                     in  (S.insert n' used, (n, n', pos)))
+                all_names internal_uses
+        ren_map = M.fromList [ (n, n') | (n, n', _) <- ren_list ]
+
+        renameVId vid@(VId s i inf) =
+            case M.lookup s ren_map of
+              Just s' -> VId s' i inf
+              Nothing -> vid
+
+        body' = mapRenameableVIds renameVId (vm_body vmod)
+
+        externs = own_clashes ++ extern_uses ++ formal_only
+    in  (vmod { vm_body = body' }, ren_list, externs)
+
+vargVIds :: VArg -> [VId]
+vargVIds (VAInput i _)       = [i]
+vargVIds (VAInout i mi _)    = i : maybe [] (:[]) mi
+vargVIds (VAOutput i _)      = [i]
+vargVIds (VAParameter i _ _) = [i]
+
+-- Apply a VId transformation to every renameable identifier position in a
+-- module body: everything except submodule instantiation port/parameter
+-- names and submodule module names, which belong to the instantiated
+-- module.  (Keep this in sync with collectRenameableVIds below.)
+mapRenameableVIds :: (VId -> VId) -> [VMItem] -> [VMItem]
+mapRenameableVIds f items = map go items
+  where
+    go (VMInst mn inm iparams iports) =
+        VMInst mn (f inm)
+               (either (Left . map (\(ms, e) -> (ms, gen e)))
+                       (Right . map (\(pn, me) -> (pn, fmap gen me)))
+                       iparams)
+               [ (pn, fmap gen me) | (pn, me) <- iports ]
+    go (VMComment c it)      = VMComment c (go it)
+    go (VMRegGroup a b c it) = VMRegGroup (f a) b c (go it)
+    go (VMGroup t bss)       = VMGroup t (map (map go) bss)
+    go item                  = gen item
+    gen :: Generic.Data a => a -> a
+    gen = Generic.everywhere (Generic.mkT f)
+
+-- The identifiers that mapRenameableVIds would transform.
+-- (Keep this in sync with mapRenameableVIds above.)
+collectRenameableVIds :: [VMItem] -> [VId]
+collectRenameableVIds items = concatMap go items
+  where
+    go (VMInst _ inm iparams iports) =
+        inm : either (concatMap (vids . snd))
+                     (concatMap (maybe [] vids . snd))
+                     iparams
+            ++ concatMap (maybe [] vids . snd) iports
+    go (VMComment _ it)      = go it
+    go (VMRegGroup a _ _ it) = a : go it
+    go (VMGroup _ bss)       = concatMap (concatMap go) bss
+    go item                  = vids item
+    vids :: Generic.Data a => a -> [VId]
+    vids = Generic.listify vidAny
+      where vidAny :: VId -> Bool
+            vidAny _ = True
