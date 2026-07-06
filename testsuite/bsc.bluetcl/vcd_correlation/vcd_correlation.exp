@@ -15,7 +15,7 @@ set testdir [file join $here $subdir]
 
 cd $testdir
 set status [exec_with_log_and_return "vcd_correlation" \
-                "./run_correlation.sh > run_correlation.out 2>&1" \
+                "./run_correlation.sh >& run_correlation.out" \
                 lasterr 2]
 cd $here
 
