@@ -96,8 +96,8 @@ getWireTypeMap apkg =
     -- is fine; names that don't show up in any VCD just go unmatched.
     methodEnRdyEntries aif =
         case aif_fieldinfo aif of
-            Method { vf_enable = mEn } | not (isRdyId (aIfaceName aif)) ->
-                let nm = aIfaceName aif
+            Method { vf_enable = mEn } | not (isRdyId (aif_name aif)) ->
+                let nm = aif_name aif
                     en = case mEn of
                            Just (vn, _) -> [mkEntry (getVNameString vn) itBool]
                            Nothing      -> []
