@@ -1,0 +1,5 @@
+checking package dependencies
+compiling MuxHoldShared.bs
+code generation for mkMuxHoldShared starts
+Verilog file created: mkMuxHoldShared.v
+All packages are up to date.

@@ -1,0 +1,26 @@
+package TestDoubleNormEager where
+
+-- The EAGER twin of TestDoubleNorm (see TestDoubleNorm.bs): the same
+-- Opt4 register module, under a new module name so the generated
+-- Verilog does not clobber mkTestDoubleNorm.v, compiled with
+-- -hack-eager-pack-unpack (see opt.exp).
+--
+-- In eager mode the pack/unpack coercion primitives elaborate the
+-- instance methods at every use site instead of holding/cancelling
+-- them, so the normalization muxes documented in the TestDoubleNorm.bs
+-- header comment materialize on BOTH the read and the write path:
+--
+--   assign _read  = (r == 5'd0) ? r : {1'b1, ~x__h_inv_r[3:0]};
+--   assign r$D_IN = (_write_1 == 5'd0) ? _write_1 : {1'b1, ~x__h_inv_w[3:0]};
+--
+-- and "assign _read = r ;" is absent.  This proves the default-mode pin
+-- (zero "?" muxes, wire-through read) is cancellation doing real work,
+-- not a vacuous test.
+
+import TestDoubleNorm
+
+{-# verilog mkTestDoubleNormEager #-}
+mkTestDoubleNormEager :: (IsModule m c) => m (Reg Opt4)
+mkTestDoubleNormEager = module
+  r :: Reg Opt4 <- mkRegU
+  return r

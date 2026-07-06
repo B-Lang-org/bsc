@@ -21,7 +21,7 @@ module IExpandUtils(
         setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getErrHandle, getModuleName,
-        getBNotCache, updBNotCache,
+        getBNotCache, updBNotCache, getBitsSelInfo,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer, mergeATFCache,
         instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
@@ -88,7 +88,7 @@ import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, MsgContext,
              bsError, bsWarning, bsErrorWithContext, bsWarningWithContext,
              bsErrorWithContextNoExit, exitFail, closeOpenHandles)
 import Position
-import SymTab(SymTab, getIfcFlatMethodNames)
+import SymTab(SymTab, getIfcFlatMethodNames, findType, TypeInfo(..))
 import PreStrings(s_unnamed)
 import FStringCompat
 import Id
@@ -504,6 +504,12 @@ data GStateRO = GStateRO {
         symtab :: !SymTab,
         -- lazy because computing the defenv may be expensive and (often) unnecessary
         defenv :: M.Map Id HExpr,
+        -- selector indices (selNo of pack, selNo of unpack, numSel) of the
+        -- Bits class methods, looked up in the symbol table once per
+        -- elaboration instead of once per held-coercion creation; lazy so
+        -- that the lookup only happens if a coercion is actually held
+        -- (see IExpand.mkBitsMethodSel, the only consumer)
+        bitsSelInfo :: (Integer, Integer, Integer),
         checkMaxStep :: !Bool,
         maxStep :: !Integer,
         stepWarnInterval :: !Integer,
@@ -624,7 +630,8 @@ initGState errh flags symt alldefs atf_cache defId is_noinlined_func pps =
                           maxStep = redSteps flags,
                           stepWarnInterval = redStepsWarnInterval flags,
                           flags = flags,
-                          defenv = alldefs
+                          defenv = alldefs,
+                          bitsSelInfo = findBitsSelInfo symt
                         }
         gs = GState { stepNo = 0,
                       nextWarnStep = redStepsWarnInterval flags,
@@ -672,6 +679,22 @@ initGState errh flags symt alldefs atf_cache defId is_noinlined_func pps =
                       atfCache = atf_cache
  }
     in  gs
+
+-- Field indices of the pack and unpack methods in the Bits class
+-- dictionary (and the total number of dictionary fields), taken from the
+-- symbol table rather than hard-coded so that a change to the shape of
+-- the Bits class cannot silently select the wrong dictionary field.
+-- Computed at most once per elaboration (see the bitsSelInfo field of
+-- GStateRO); IExpand.mkBitsMethodSel builds the per-site selector ICon
+-- from these indices.
+findBitsSelInfo :: SymTab -> (Integer, Integer, Integer)
+findBitsSelInfo symt =
+    case findType symt idBits of
+      Just (TypeInfo _ _ _ (TIstruct _ fs) _)
+        | Just kp <- findIndex (qualEq idPack) fs,
+          Just ku <- findIndex (qualEq idUnpack) fs ->
+            (toInteger kp, toInteger ku, toInteger (length fs))
+      ti -> internalError ("findBitsSelInfo: " ++ ppReadable ti)
 
 data GOutput a = GOutput { go_clock_domains :: [(ClockDomain, [HClock])],
                            go_resets   :: [HReset],
@@ -2661,6 +2684,11 @@ getSymTab = do s <- get
 getDefEnv :: G (M.Map Id HExpr)
 getDefEnv = do s <- get
                return (defenv (ro s))
+
+{-# INLINE getBitsSelInfo #-}
+getBitsSelInfo :: G (Integer, Integer, Integer)
+getBitsSelInfo = do s <- get
+                    return (bitsSelInfo (ro s))
 
 {-# INLINE getFlags #-}
 getFlags :: G Flags
