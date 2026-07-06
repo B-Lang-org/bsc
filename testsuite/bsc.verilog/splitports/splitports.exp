@@ -288,3 +288,13 @@ compare_file BadSplitInst_PortNameConflict.bs.bsc-vcomp-out
 
 compile_verilog_fail_error BadSplitInst_TooManyPortNames.bs S0015
 compare_file BadSplitInst_TooManyPortNames.bs.bsc-vcomp-out
+
+# Two mutually exclusive calls to the same tuple-argument Action method in
+# ONE rule are merged into a single call (ILift under the default -lift,
+# ACleanup under -no-lift).  The merged argument must stay a per-element
+# tuple construction: a whole-tuple mux def is an internal error in
+# AVerilog (vDefMpd), which only renders literal tuple defs.
+compile_verilog_pass SplitIfTuple.bsv
+compile_verilog_pass SplitIfTuple.bsv {} {-no-lift}
+# The cross-rule variant exercises AState's per-port muxing of tuple args.
+compile_verilog_pass CrossRule.bsv
