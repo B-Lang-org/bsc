@@ -685,7 +685,22 @@ chkTopDef r mi src_pkg isDep (CIValueSign i ct) = do
     sc <- mkSchemeWithSymTab r ct
     return [(i, VarInfo VarDefn (i :>: sc) (isDep i) src_pkg)]
 chkTopDef r mi src_pkg isDep (Cforeign i qt on ops ni) = do
-    qual_t@(_ :=> t) <- convCQType r qt
+    qual_t@(preds :=> t) <- convCQType r qt
+    -- Only numeric provisos are permitted on foreign functions: they are
+    -- checked at each application and then erased (their dictionaries
+    -- carry no content), so the foreign implementation never sees them.
+    -- Anything else (e.g. Bits) would need real dictionary content or
+    -- coercion insertion, which a foreign body cannot provide.
+    let numericClassIds = [idAdd, idMul, idDiv, idLog, idMax, idMin, idNumEq]
+        isNumericPred p = let (IsIn cl _) = removePredPositions p
+                          in  any (qualEq (typeclassId (name cl))) numericClassIds
+    -- (noinline-created foreign functions carry WrapField provisos at
+    -- this stage; they are checked in typecheck, as before)
+    case filter (not . isNumericPred) preds of
+      (p:_) | not ni -> throwError (getPosition i,
+                            EForeignCtxNotNumeric (pfpString i)
+                                (pfpString (removePredPositions p)))
+      _ -> return ()
     let tvs = tv qual_t
         -- quantification order (mkSchemeWithSymTab uses the same order),
         -- which is also the order of the type arguments at applications;

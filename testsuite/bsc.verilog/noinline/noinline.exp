@@ -78,5 +78,12 @@ compile_verilog_fail NoInline_Polymorphic.bsv T0111
 # a literal for every bit width (widths become instance parameters named
 # by the type variables; a type-function width has no name to pass)
 compile_verilog_fail BadForeignWidth.bs T0159
+
+# Numeric provisos on foreign functions are permitted (checked at each
+# application, then erased); anything else is rejected
+compile_verilog_pass ForeignCtxGood.bs
+find_regexp sysForeignCtxGood.v {Dup #\(\.iw\(8\), \.ow\(16\)\)}
+compile_verilog_fail ForeignCtxViolated.bs T0031
+compile_verilog_fail ForeignCtxBad.bs T0160
 }
 

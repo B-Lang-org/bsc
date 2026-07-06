@@ -12,9 +12,10 @@ import Vector
 --@
 
 -- The type variables name the Verilog instance parameters, so they
--- must match Fork.v's parameter names (iw, ow).
--- XXX ow == 2*iw, but we can't have contexts on foreign.
-foreign vfork :: Bit iw -> Bit ow = "Fork",("i","o")
+-- must match Fork.v's parameter names (iw, ow).  The proviso enforces
+-- the width relationship at every application (it is checked by the
+-- typechecker and then erased).
+foreign vfork :: (Add iw iw ow) => Bit iw -> Bit ow = "Fork",("i","o")
 
 --@ Copy a value into two identical values.
 --@ \begin{libverbatim}
