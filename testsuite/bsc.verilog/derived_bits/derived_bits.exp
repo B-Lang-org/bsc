@@ -78,7 +78,11 @@ string_does_not_occur mkDecoder.v "case"
 
 compile_verilog_pass TestNoopCase.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 find_n_strings mkTestNoopCase.v "case" 0
+find_regexp mkTestNoopCase.v {assign _read = r ;}
+find_regexp mkTestNoopCase.v {assign r\$D_IN = _write_1 ;}
 
 compile_verilog_pass TestNoopTernary.bs "" "-opt-undetermined-vals -hack-eager-pack-unpack"
 find_n_strings mkTestNoopTernary.v "?" 0
+find_regexp mkTestNoopTernary.v {assign _read = r ;}
+find_regexp mkTestNoopTernary.v {assign r\$D_IN = _write_1 ;}
 
