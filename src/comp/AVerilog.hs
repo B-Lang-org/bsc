@@ -2118,7 +2118,8 @@ vModuleDeclVIds vmod =
   where
     go :: VMItem -> [VId]
     go (VMDecl d)            = declVIds d
-    go (VMInst mn inm iparams iports) =
+    go (VMInst { vi_module_name = mn, vi_inst_name = inm,
+                 vi_inst_params = iparams, vi_inst_ports = iports }) =
         mn : inm : either (const []) (map fst) iparams ++ map fst iports
     go (VMAssign _ _)        = []
     go (VMStmt {})           = []
@@ -2138,12 +2139,14 @@ vModuleDeclVIds vmod =
 mapRenameableVIds :: (VId -> VId) -> [VMItem] -> [VMItem]
 mapRenameableVIds f items = map go items
   where
-    go (VMInst mn inm iparams iports) =
-        VMInst mn (f inm)
-               (either (Left . map (\(ms, e) -> (ms, gen e)))
-                       (Right . map (\(pn, me) -> (pn, fmap gen me)))
-                       iparams)
-               [ (pn, fmap gen me) | (pn, me) <- iports ]
+    go inst@(VMInst { vi_inst_name = inm, vi_inst_params = iparams,
+                      vi_inst_ports = iports }) =
+        inst { vi_inst_name = f inm,
+               vi_inst_params =
+                   either (Left . map (\(ms, e) -> (ms, gen e)))
+                          (Right . map (\(pn, me) -> (pn, fmap gen me)))
+                          iparams,
+               vi_inst_ports = [ (pn, fmap gen me) | (pn, me) <- iports ] }
     go (VMComment c it)      = VMComment c (go it)
     go (VMRegGroup a b c it) = VMRegGroup (f a) b c (go it)
     go (VMGroup t bss)       = VMGroup t (map (map go) bss)
@@ -2157,7 +2160,8 @@ mapRenameableVIds f items = map go items
 collectRenameableVIds :: [VMItem] -> [VId]
 collectRenameableVIds items = concatMap go items
   where
-    go (VMInst _ inm iparams iports) =
+    go (VMInst { vi_inst_name = inm, vi_inst_params = iparams,
+                 vi_inst_ports = iports }) =
         inm : either (concatMap (vids . snd))
                      (concatMap (maybe [] vids . snd))
                      iparams
