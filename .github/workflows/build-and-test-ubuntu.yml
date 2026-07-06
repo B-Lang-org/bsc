@@ -221,7 +221,11 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
+        # verilator is installed here rather than in the shared script,
+        # so the jobs that don't run it don't pay for it
+        run: |
+          sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh
+          sudo apt-get install -y verilator
 
       - name: Download bsc
         uses: actions/download-artifact@v8
