@@ -15,7 +15,7 @@ import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
 import Data.Char(isSpace, toLower, ord)
 import Data.List(intersect, nub, partition, intersperse, sort,
-            isPrefixOf, isSuffixOf, unzip5, intercalate)
+            isPrefixOf, isSuffixOf, unzip5, intercalate, foldl')
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Data.Maybe(isJust, isNothing)
 import Numeric(showOct)
@@ -85,7 +85,7 @@ import TypeCheck(cCtxReduceIO, cTypeCheck, mergeCATFCaches)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
 import Simplify(simplify)
-import ISyntax(IPackage(..), IModule(..), IATFCache,
+import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
                IEFace(..), IDef(..), IExpr(..), fdVars)
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
@@ -523,6 +523,15 @@ compilePackage
     t <- dump errh flags t DFisimplify dumpnames imods
     stats flags DFisimplify imods
 
+    -- The ATF cache used during elaboration: this package's entries unioned
+    -- with the entries of every (transitively) loaded import.  This union is
+    -- only ever held in memory; each .bo file stores just its own package's
+    -- entries.  The union covers the full transitive closure because
+    -- "binmods" does: each .bo's ipkg_depends records its writer's entire
+    -- loaded closure (see ipkg_sigs in fixupDefs).
+    let elabATFCache = foldl' mergeIATFCaches (ipkg_atf_cache imods)
+                              [ ipkg_atf_cache m | (m, _) <- binmods ]
+
     let orderGens :: IPackage HeapData -> [WrapInfo] -> [WrapInfo]
         orderGens (IPackage pid _ _ ds _) gs =
                 --trace (ppReadable (gis, g, os)) $
@@ -574,7 +583,7 @@ compilePackage
                 def_comp = do
                   def <- genModule errh wi fwrapper flags dumpnames'
                              prefix (getIdBaseString pkgId)
-                             internalSymt alldefs (ipkg_atf_cache im) (getDef im i')
+                             internalSymt alldefs elabATFCache (getDef im i')
                   return (def, True)
                 ex_comp s = do
                   hFlush stdout >> hPutStr stderr s
