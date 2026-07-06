@@ -1,11 +1,23 @@
-# Identifiers that are reserved in SystemVerilog (or are std:: package class
-# names) but are legal BSV identifiers must produce Verilog that parses for
-# SystemVerilog-mode consumers (e.g. verilator with DPI).  bsc emits them as
-# escaped identifiers and warns (G0129) for each; the design must still
-# compile, link and run identically on all backends.
+# Identifiers that are reserved words in SystemVerilog (or std package
+# class names) but legal BSV identifiers must produce Verilog that parses
+# for SystemVerilog-mode consumers (e.g. verilator with DPI).  bsc emits
+# the reserved words as escaped identifiers (G0129) and renames the std
+# package class names, which escaping cannot protect (G0130); the design
+# must still compile, link and run identically on all backends.
 test_c_veri_bsv SvKeywords sysSvKeywords.out.expected
 
 if {$vtest == 1} {
-# one G0129 warning per colliding identifier
-find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0129)} 7
+# escaped reserved words: global, soft, strong, weak, uwire
+find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0129)} 5
+# renamed std package class names: process, semaphore, mailbox
+find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0130)} 3
+}
+
+# Verilog-2001 keywords can reach the Verilog backend from Classic (BH)
+# source, where any keyword is a legal identifier; they must be escaped
+# too.
+test_c_veri SvKeywordsBH sysSvKeywordsBH.out.expected
+
+if {$vtest == 1} {
+find_n_strings SvKeywordsBH.bs.bsc-vcomp-out {(G0129)} 3
 }
