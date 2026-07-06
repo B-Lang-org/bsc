@@ -11,6 +11,7 @@ module sysSvKeywords();
    Reg#(Bit#(8)) soft      <- mkReg(4);
    Reg#(Bit#(8)) strong    <- mkReg(5);
    Reg#(Bit#(8)) weak      <- mkReg(6);
+   Reg#(Bit#(8)) uwire     <- mkReg(7);
 
    rule step;
       process   <= process + 1;
@@ -20,9 +21,11 @@ module sysSvKeywords();
       soft      <= soft + global;
       strong    <= strong + soft;
       weak      <= weak + strong;
+      uwire     <= uwire + weak;
       if (process == 5) begin
-         $display("values %0d %0d %0d %0d %0d %0d %0d",
-                  process, semaphore, mailbox, global, soft, strong, weak);
+         $display("values %0d %0d %0d %0d %0d %0d %0d %0d",
+                  process, semaphore, mailbox, global, soft, strong, weak,
+                  uwire);
          $finish(0);
       end
    endrule

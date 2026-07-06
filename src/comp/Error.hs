@@ -1002,6 +1002,8 @@ data ErrMsg =
         | WRuleNoActions String Bool
         | WRuleUndetPred Bool String [Position]
         | WSVReservedIdent String
+        | WSVStdIdentRenamed String String
+        | WSVStdIdentExternal String
         | WMethodNeverReady String
         | WNoScheduleDump String [String]
 
@@ -3996,8 +3998,24 @@ getErrorText (WRuleUndetPred is_meth rule poss) =
 getErrorText (WSVReservedIdent name) =
     (Generate 129, empty,
      s2par ("The identifier " ++ quote name ++ " is a reserved word in " ++
-            "SystemVerilog and will be emitted as an escaped identifier " ++
-            "in the generated Verilog."))
+            "Verilog or SystemVerilog and will be emitted as an escaped " ++
+            "identifier in the generated Verilog."))
+
+getErrorText (WSVStdIdentRenamed name new_name) =
+    (Generate 130, empty,
+     s2par ("The identifier " ++ quote name ++ " is the name of a class " ++
+            "in SystemVerilog's built-in std package, which some tools " ++
+            "resolve even in escaped form.  It has been renamed to " ++
+            quote new_name ++ " in the generated Verilog.  Consider " ++
+            "renaming it in the source."))
+
+getErrorText (WSVStdIdentExternal name) =
+    (Generate 131, empty,
+     s2par ("The externally visible identifier " ++ quote name ++ " is " ++
+            "the name of a class in SystemVerilog's built-in std package " ++
+            "and cannot be renamed in the generated Verilog.  Some tools " ++
+            "(for example verilator) will fail to parse code that uses " ++
+            "this name.  Consider renaming it in the source."))
 
 
 ---------------------------------------------------------------------------
