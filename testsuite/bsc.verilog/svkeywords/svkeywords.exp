@@ -1,16 +1,16 @@
 # Identifiers that are reserved words in SystemVerilog (or std package
 # class names) but legal BSV identifiers must produce Verilog that parses
 # for SystemVerilog-mode consumers (e.g. verilator with DPI).  bsc emits
-# the reserved words as escaped identifiers (G0129) and renames the std
-# package class names, which escaping cannot protect (G0130); the design
+# the reserved words as escaped identifiers (G0131) and renames the std
+# package class names, which escaping cannot protect (G0132); the design
 # must still compile, link and run identically on all backends.
 test_c_veri_bsv SvKeywords sysSvKeywords.out.expected
 
 if {$vtest == 1} {
 # escaped reserved words: global, soft, strong, weak, uwire
-find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0129)} 5
+find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0131)} 5
 # renamed std package class names: process, semaphore, mailbox
-find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0130)} 3
+find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0132)} 3
 }
 
 # Verilog-2001 keywords can reach the Verilog backend from Classic (BH)
@@ -19,21 +19,21 @@ find_n_strings SvKeywords.bsv.bsc-vcomp-out {(G0130)} 3
 test_c_veri SvKeywordsBH sysSvKeywordsBH.out.expected
 
 if {$vtest == 1} {
-find_n_strings SvKeywordsBH.bs.bsc-vcomp-out {(G0129)} 3
+find_n_strings SvKeywordsBH.bs.bsc-vcomp-out {(G0131)} 3
 }
 
 # A hand-written Verilog function (Classic `foreign') may itself be named
 # after a std package class.  The call site must keep the user's name --
 # renaming it would break the reference to the definition in the user's
-# own Verilog code -- so bsc emits the call unchanged and warns (G0131)
-# instead of renaming (G0130).  Compile-only: the function has no C
+# own Verilog code -- so bsc emits the call unchanged and warns (G0133)
+# instead of renaming (G0132).  Compile-only: the function has no C
 # implementation, so only the Verilog backend applies.
 compile_verilog_pass SvKeywordsForeign.bs sysSvKeywordsForeign
 
 if {$vtest == 1} {
 # the externally determined name is reported once, not renamed
-find_n_strings SvKeywordsForeign.bs.bsc-vcomp-out {(G0131)} 1
-find_regexp_fail SvKeywordsForeign.bs.bsc-vcomp-out {\(G0130\)}
+find_n_strings SvKeywordsForeign.bs.bsc-vcomp-out {(G0133)} 1
+find_regexp_fail SvKeywordsForeign.bs.bsc-vcomp-out {\(G0132\)}
 # the call site keeps the user's name, unrenamed
 find_regexp sysSvKeywordsForeign.v {process\(}
 find_regexp_fail sysSvKeywordsForeign.v {process_}

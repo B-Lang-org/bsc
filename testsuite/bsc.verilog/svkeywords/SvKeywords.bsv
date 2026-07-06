@@ -1,7 +1,7 @@
 // Identifiers that are reserved words in SystemVerilog (or std:: package
 // class names) but legal BSV identifiers.  The generated Verilog must work
 // with SystemVerilog-mode consumers (e.g. verilator with DPI): bsc emits
-// these as escaped identifiers, warning G0129 for each.
+// these as escaped identifiers, warning G0131 for each.
 (* synthesize *)
 module sysSvKeywords();
    Reg#(Bit#(8)) process   <- mkReg(0);

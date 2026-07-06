@@ -3996,13 +3996,13 @@ getErrorText (WRuleUndetPred is_meth rule poss) =
     )
 
 getErrorText (WSVReservedIdent name) =
-    (Generate 129, empty,
+    (Generate 131, empty,
      s2par ("The identifier " ++ quote name ++ " is a reserved word in " ++
             "Verilog or SystemVerilog and will be emitted as an escaped " ++
             "identifier in the generated Verilog."))
 
 getErrorText (WSVStdIdentRenamed name new_name) =
-    (Generate 130, empty,
+    (Generate 132, empty,
      s2par ("The identifier " ++ quote name ++ " is the name of a class " ++
             "in SystemVerilog's built-in std package, which some tools " ++
             "resolve even in escaped form.  It has been renamed to " ++
@@ -4010,7 +4010,7 @@ getErrorText (WSVStdIdentRenamed name new_name) =
             "renaming it in the source."))
 
 getErrorText (WSVStdIdentExternal name) =
-    (Generate 131, empty,
+    (Generate 133, empty,
      s2par ("The externally visible identifier " ++ quote name ++ " is " ++
             "the name of a class in SystemVerilog's built-in std package " ++
             "and cannot be renamed in the generated Verilog.  Some tools " ++
