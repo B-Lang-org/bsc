@@ -52,7 +52,7 @@ import FStringCompat
 import PreStrings(fsUnderscore)
 import PreIds
 import Flags
-import SymTab(SymTab, findType, TypeInfo(..))
+import SymTab(SymTab)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle,
              recordHandleOpen, recordHandleClose)
 import Position
@@ -3156,9 +3156,27 @@ bldApUH' s f as = do
 -- consumers that need the real value (e.g. strict primitives), the
 -- applied form is forced instead, evaluated at most once via its heap
 -- cell.  Recurses because a method body can itself produce a coercion.
+-- The wrapper is non-recursive and INLINE so that the common no-coercion
+-- case costs its callers (notably the strict-prim argument loop) only
+-- the two constructor-tag tests, with no extra call; the recursive
+-- squeeze work lives out of line in squeezeHeld, entered only when a
+-- held node is actually present.
+{-# INLINE evalUHSqueezed #-}
 evalUHSqueezed :: HExpr -> G (HExpr, PExpr)
 evalUHSqueezed e = do
-    r@(_, P p e') <- evalUH e
+    r@(_, P _ e') <- evalUH e
+    case e' of
+      ICon _ (ICLazyPack { })   -> squeezeHeld r
+      ICon _ (ICLazyUnpack { }) -> squeezeHeld r
+      _ -> return r
+
+-- The out-of-line squeeze path of evalUHSqueezed: force the applied
+-- form of the held coercion, conjoining any predicates that surface,
+-- and squeeze again (via evalUHSqueezed, whose non-held arm terminates
+-- the recursion) because a method body can itself produce a coercion.
+{-# NOINLINE squeezeHeld #-}
+squeezeHeld :: (HExpr, PExpr) -> G (HExpr, PExpr)
+squeezeHeld r@(_, P p e') =
     case e' of
       ICon _ (ICLazyPack { lzApplied = a }) -> do
           (aee, P pa aw) <- evalUHSqueezed a
@@ -3171,21 +3189,25 @@ evalUHSqueezed e = do
 -- Build the ICSel selector for a Bits class method (pack or unpack), as
 -- IConv.iConvField would, with the field indices taken from the symbol
 -- table rather than hard-coded so that a change to the shape of the Bits
--- class cannot silently select the wrong dictionary field.  The
--- selector's type is the primitive's own type: (Bits a n) => a -> Bit n
--- converts (iConvSc/qualToType) to exactly the selector type that
+-- class cannot silently select the wrong dictionary field.  The indices
+-- are computed once per elaboration and cached in the evaluator state
+-- (IExpandUtils.findBitsSelInfo) rather than looked up per held-node
+-- creation; only the selector Id's position is per-site (stamped from
+-- the primitive's own Id, for diagnostics and xref).  The selector's
+-- type is the primitive's own type: (Bits a n) => a -> Bit n converts
+-- (iConvSc/qualToType) to exactly the selector type that
 -- IConv.lookupSelType produces for the method.
 mkBitsMethodSel :: Id -> IType -> Id -> G HExpr
 mkBitsMethodSel prim_i selty meth_i = do
-    symt <- getSymTab
-    case findType symt idBits of
-      Just (TypeInfo _ _ _ (TIstruct _ fs) _)
-        | Just k <- findIndex (qualEq meth_i) fs ->
-          return (ICon (setIdPosition (getIdPosition prim_i) meth_i)
-                       (ICSel { iConType = selty,
-                                selNo = toInteger k,
-                                numSel = toInteger (length fs) }))
-      ti -> internalError ("mkBitsMethodSel: " ++ ppReadable (meth_i, ti))
+    (k_pack, k_unpack, n) <- getBitsSelInfo
+    let k | qualEq meth_i idPack   = k_pack
+          | qualEq meth_i idUnpack = k_unpack
+          | otherwise = internalError ("mkBitsMethodSel: " ++
+                                       ppReadable meth_i)
+    return (ICon (setIdPosition (getIdPosition prim_i) meth_i)
+                 (ICSel { iConType = selty,
+                          selNo = k,
+                          numSel = n }))
 
 -- Unfold a primPack/primUnpack application into the underlying Bits class
 -- method, picked out of the dictionary argument (the primitives take the
@@ -4609,6 +4631,58 @@ doIf f as = internalError("IExpand.doIf : " ++ ppReadable f ++ ppReadable as)
 -- improve the static elaboration of the output of an if
 -- to prevent exponential growth with conditional assignments and updates
 improveIf :: HExpr -> IType -> HExpr -> HExpr -> HExpr -> G (HExpr, Bool)
+-- Merge two held coercions of the same kind at the same type into ONE
+-- held coercion over a merged payload, materializing NEITHER: the
+-- merged node's payload (lzOrig) and applied form (lzApplied) are both
+-- unevaluated ifs over the branches' respective cells, so a
+-- distinct-payload mux (e.g. r2 <= (c ? r1 : r3) at a non-Bit type)
+-- stays cancellable against a later opposite coercion, where the
+-- squeeze clauses below would materialize both instance-method
+-- applications and leave the round trip's residue to ITransform.
+-- Nothing is forced here, and held nodes carry no predicate of their
+-- own (creation deliberately detaches the payload's implicit
+-- conditions; see the PrimPack/PrimUnpack hold arms in conAp'), so no
+-- pa == pTrue guard is needed: the branch cells' conditions surface
+-- later, exactly when (and if) the merged node is forced or cancelled.
+-- Fast path: when both nodes hold the SAME payload cell (two
+-- independently created coercions of one value; cmpC deliberately
+-- ignores lzApplied), the "then" node is returned unchanged, keeping
+-- the shared lzOrig ref.  Mixed kinds or mismatched type arguments
+-- fall through to the squeeze clauses below, so this arm only ever
+-- ADDS cancellations.
+improveIf f t cnd thn@(ICon i1 n1@(ICLazyPack { lzTa = ta1, lzTn = tn1,
+                                                lzOrig = o1, lzApplied = a1 }))
+                  (ICon _ (ICLazyPack { lzTa = ta2, lzTn = tn2,
+                                        lzOrig = o2, lzApplied = a2 }))
+    | ta1 == ta2, tn1 == tn2 =
+    if o1 == o2
+     then return (thn, True)
+     else do
+       when doTraceIf $ traceM("improveIf held pack merge: " ++ ppReadable (ta1, tn1))
+       -- the payload if has the payload type (ta), the applied if the
+       -- packed type (t = Bit tn = iConType of the node)
+       -- lzOrig must reference an evaluated cell (the creation path in
+       -- conAp' builds it with evalUH, and the cancellation path hands
+       -- it to consumers that unheap it), so heap the residual payload
+       -- mux in WHNF state; lzApplied stays unevaluated, as at creation.
+       o' <- toHeapWHNF "improve-if-held" ta1 (P pTrue (IAps f [ta1] [cnd, o1, o2])) Nothing
+       a' <- toHeapCon "improve-if-held" t (IAps f [t] [cnd, a1, a2]) Nothing
+       return (ICon i1 (n1 { lzOrig = o', lzApplied = a' }), True)
+improveIf f t cnd thn@(ICon i1 n1@(ICLazyUnpack { lzTa = ta1, lzTn = tn1,
+                                                  lzOrig = o1, lzApplied = a1 }))
+                  (ICon _ (ICLazyUnpack { lzTa = ta2, lzTn = tn2,
+                                          lzOrig = o2, lzApplied = a2 }))
+    | ta1 == ta2, tn1 == tn2 =
+    if o1 == o2
+     then return (thn, True)
+     else do
+       when doTraceIf $ traceM("improveIf held unpack merge: " ++ ppReadable (ta1, tn1))
+       -- the payload if has the packed type (Bit tn), the applied if
+       -- the payload type (t = ta = iConType of the node)
+       -- see the pack arm above: lzOrig must be an evaluated cell
+       o' <- toHeapWHNF "improve-if-held" (aitBit tn1) (P pTrue (IAps f [aitBit tn1] [cnd, o1, o2])) Nothing
+       a' <- toHeapCon "improve-if-held" t (IAps f [t] [cnd, a1, a2]) Nothing
+       return (ICon i1 (n1 { lzOrig = o', lzApplied = a' }), True)
 -- Squeeze a held pack/unpack coercion in either branch, so that it can
 -- merge with the other branch's structure.  Without this, a conditional
 -- update chain over an unpacked register (v' = if c then upd(v) else v,

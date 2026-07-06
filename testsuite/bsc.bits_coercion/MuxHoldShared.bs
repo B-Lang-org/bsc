@@ -1,0 +1,30 @@
+package MuxHoldShared(mkMuxHoldShared) where
+
+-- The equal-payload case of the held+held merge: the two branches of
+-- the mux are INDEPENDENTLY created held unpacks of the SAME value (the
+-- else branch goes through an extra unpack(pack(..)) round trip, so it
+-- is a distinct coercion node over the same payload).  The merge must
+-- recognize that the payloads agree and keep a held coercion without
+-- materializing either applied form, so the write-path pack still
+-- cancels: no ENTERED-* lines in the compile output and no method
+-- logic in the generated Verilog.
+import MuxHold
+
+{-# verilog mkMuxHoldShared #-}
+mkMuxHoldShared :: Module IfcM
+mkMuxHoldShared =
+  module
+    cond :: Reg Bool <- mkRegU
+    b :: Reg (Bit 16) <- mkRegU
+    dst :: Reg TM <- mkRegU
+    rules
+        "copy": when True ==>
+            let v :: Bit 16
+                v = b
+                w :: TM
+                w = unpack v
+            in  dst := (if cond
+                        then unpack v
+                        else unpack (pack w))
+    interface
+        dummy = True

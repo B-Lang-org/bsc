@@ -1,0 +1,28 @@
+package NormAdjacentEager(sysNormAdjacentEager) where
+
+-- The SAME design as sysNormAdjacent (its default-mode twin), compiled
+-- with -hack-eager-pack-unpack (see the .exp file): the escape hatch
+-- elaborates the instance methods instead of holding/cancelling the
+-- adjacent round trips, so the unlawful instance's normalization IS
+-- applied on both the write path and the read-back, and the display
+-- shows the normalized 0f where default mode (NormAdjacent) shows the
+-- raw ff.  This eager twin proves the default-mode result is
+-- cancellation doing real work: the methods it skips WOULD normalize.
+import NormAdjacent
+
+sysNormAdjacentEager :: Module Empty
+sysNormAdjacentEager =
+  module
+    braw :: Reg (Bit 8) <- mkReg 0xFF
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 2) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := unpack braw
+            cnt := cnt + 1
+            if cnt == 1 then
+                action
+                  $display "dst=%h" (pack dst)
+                  $finish 0
+             else
+                noAction

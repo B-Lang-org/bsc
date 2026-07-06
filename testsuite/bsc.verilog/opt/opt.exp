@@ -96,3 +96,22 @@ if { $vtest == 1 } {
     find_n_strings mkTestDoubleNorm.v "?" 0
     find_n_strings mkTestDoubleNorm.v {assign _read = r ;} 1
 }
+
+# The eager twin of the TestDoubleNorm stanza above (its default-mode
+# twin): the same Opt4 design under a new module name (so the generated
+# Verilog does not clobber mkTestDoubleNorm.v), compiled with
+# -hack-eager-pack-unpack.  The escape hatch elaborates the instance
+# methods at every use site, so the normalization muxes documented in
+# the TestDoubleNorm.bs header comment materialize on BOTH the read and
+# the write path (two "?" conditionals) and the wire-through read
+# "assign _read = r ;" is ABSENT.  This eager twin proves the
+# default-mode result is cancellation doing real work: zero "?" muxes
+# and the wire-through read come from cancelling methods that WOULD
+# re-normalize, not from a vacuous test.
+compile_verilog_pass TestDoubleNormEager.bs mkTestDoubleNormEager {-hack-eager-pack-unpack}
+if { $vtest == 1 } {
+    find_n_strings mkTestDoubleNormEager.v "?" 2
+    find_n_strings mkTestDoubleNormEager.v {assign _read = (r == 5'd0) ? r : { 1'd1, ~INV_r__q1[3:0] } ;} 1
+    find_n_strings mkTestDoubleNormEager.v {(_write_1 == 5'd0) ? _write_1 : { 1'd1, ~INV_write_1__q2[3:0] } ;} 1
+    find_n_strings mkTestDoubleNormEager.v {assign _read = r ;} 0
+}

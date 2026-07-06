@@ -1,0 +1,45 @@
+package NormAdjacent(NB(..), sysNormAdjacent) where
+
+-- Policy pinned: for an UNLAWFUL, NORMALIZING Bits instance (pack and
+-- unpack both mask to the low nibble, so pack.unpack /= id on
+-- non-canonical bits), an ADJACENT pack/unpack round trip CANCELS
+-- during elaboration: the methods never run and the attempted
+-- normalization is SKIPPED, so raw bits flow through.  The unlawful
+-- instance is the observability tool: with a lawful instance,
+-- cancelling and elaborating are indistinguishable; here they differ
+-- (raw 0xff vs normalized 0x0f), so any future change to the
+-- cancellation policy changes the simulation output.
+--
+-- Here a raw Bit 8 register holding non-canonical bits (0xff) is
+-- decoded with unpack and written to a register of the custom type
+-- (write path = pack(unpack braw), cancels), then read back and
+-- displayed with pack (read path = pack(unpack stored), cancels): the
+-- display must show the RAW value ff, not the normalized 0f.
+--
+-- NOTE: the non-canonical bits must arrive via a DYNAMIC value (a
+-- register read); unpack of a static constant is unfolded eagerly at
+-- hold-time (so constant folding behaves as without holding) and WOULD
+-- normalize.  The instance methods are message-instrumented: no
+-- ENTERED-* lines may appear in the compile output.
+data NB = MkNB (Bit 8)
+
+instance Bits NB 8 where
+    pack (MkNB v) = primSeq (message "ENTERED-PACK" ()) (v & 0x0F)
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkNB (v & 0x0F))
+
+sysNormAdjacent :: Module Empty
+sysNormAdjacent =
+  module
+    braw :: Reg (Bit 8) <- mkReg 0xFF
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 2) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := unpack braw
+            cnt := cnt + 1
+            if cnt == 1 then
+                action
+                  $display "dst=%h" (pack dst)
+                  $finish 0
+             else
+                noAction
