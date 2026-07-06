@@ -4718,7 +4718,8 @@ class WrapMethod m w | m -> w where
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb, WrapMethod b v) =>
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb, WrapMethod b v) =>
     WrapMethod (a -> b) (pb -> v) where
   -- deep-seq the packed argument so its per-port fields are evaluated before
   -- they reach walkNF (mirroring the deep-seq already done on method results)
@@ -4747,7 +4748,8 @@ instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb, WrapMethod b v) =>
     saveMethodPortTypes (_ :: b) modName t result
   saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
-instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb) =>
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
   toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
@@ -4761,7 +4763,8 @@ instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb) =>
   saveMethodPortTypes _ modName _ result =
     savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
 
-instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb) =>
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb) =>
     WrapMethod a pb where
   toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
   fromWrapMethod = unsplitPorts ∘ unpackPorts
@@ -4851,14 +4854,13 @@ instance PrimSeqTupleBits () where
 -- Compute the list port names for type 'a' given a base name.
 -- Check that the number of port names matches the number of ports.
 -- This error should only occur if there is an error in a SplitPorts instance.
-checkPortNames :: (SplitPorts a p) => a -> String -> List String
+checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
 checkPortNames proxy base =
   let pn = portNames proxy base
-      n = valueOf (TTupleSize p)
   in
-    if listLength pn /= n
+    if listLength pn /= valueOf n
     then primError (getEvalPosition proxy) $
-      "SplitPorts: " +++ base +++ " has " +++ integerToString n +++
+      "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
     else pn
 
