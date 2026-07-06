@@ -142,8 +142,12 @@ cleanupActions flags pred as =
                         newid <- newName
                         addDef (ADef newid aTBool
                                 (APrim newid aTBool PrimBOr [cond, cond']) [])
-                        -- For SplitPorts args (ATuple), merge per element so
-                        -- the resulting AExpr keeps the source-arg shape.
+                        -- A tuple-typed arg (SplitPorts) must stay a
+                        -- literal ATuple all the way to the backend
+                        -- (AVerilog only renders literal tuple defs), so
+                        -- merge per element, selecting from a non-literal
+                        -- side with ATupleSel -- the form AState already
+                        -- emits and AVerilog lowers.
                         let mergeOne arg arg' = do
                                 argid <- newName
                                 let argtyp = (aType arg)
@@ -151,9 +155,14 @@ cleanupActions flags pred as =
                                     (APrim argid argtyp PrimIf
                                        [cond, arg, arg']) [])
                                 return (ASDef argtyp argid)
-                            mergeArg (ATuple ty es) (ATuple _ es') = do
-                                es'' <- zipWithM mergeOne es es'
-                                return (ATuple ty es'')
+                            tupleElems (ATuple _ es) _ = es
+                            tupleElems e ts =
+                                [ ATupleSel t e i | (i, t) <- zip [1..] ts ]
+                            mergeArg arg arg'
+                              | ATTuple ts <- aType arg = do
+                                es'' <- zipWithM mergeArg (tupleElems arg ts)
+                                                          (tupleElems arg' ts)
+                                return (ATuple (aType arg) es'')
                             mergeArg arg arg' = mergeOne arg arg'
                         newargs <- zipWithM mergeArg args args'
                         let newcall = ACall id methodid
