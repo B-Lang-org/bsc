@@ -1,0 +1,665 @@
+########## variant: default (Verilog default flags; Bluesim is flag-agnostic) ##########
+##### module: mkWireTypes  @  main.top.dut #####
+=== Verilog ===
+  hits:    117
+  matched wires (sorted):
+    CLK : Clock
+    EN_loadPixel : Bool
+    EN_setPalette : Bool
+    RDY_currentCell : Bool
+    RDY_loadPixel : Bool
+    RDY_maybePixel : Bool
+    RDY_palette : Bool
+    RDY_setPalette : Bool
+    RDY_topPixel : Bool
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_outData_beforeDeq.D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq.Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq.D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq.Q_OUT : Bool
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cells.RST : Reset
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    currentCell : WireTypes::Cell
+    leafA.depth : Bit#(8)
+    leafA.push_p : WireTypes::Pixel
+    leafA.top : WireTypes::Pixel
+    leafB.depth : Bit#(8)
+    leafB.push_p : WireTypes::Pixel
+    leafB.top : WireTypes::Pixel
+    loadPixel_p : WireTypes::Pixel
+    loopCnt.DATA_A : Bit#(12)
+    loopCnt.DATA_B : Bit#(12)
+    loopCnt.DATA_C : Bit#(12)
+    loopCnt.DATA_F : Bit#(12)
+    loopCnt.Q_OUT : Bit#(12)
+    loopCnt.RST : Reset
+    loopCnt.q_state : Bit#(12)
+    maybePixel : Maybe#(WireTypes::Pixel)
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    palette : Vector::Vector#(4, WireTypes::Color)
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
+    px : WireTypes::Pixel
+    setPalette_cs : Vector::Vector#(4, WireTypes::Color)
+    simpleCount : UInt#(4)
+    syncfifo.dCLK : Clock
+    syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
+    syncfifo.dEMPTY_N : Bool
+    syncfifo.sCLK : Clock
+    syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo.sFULL_N : Bool
+    syncfifo.sRST : Reset
+    topPixel : WireTypes::Pixel
+    bram_memory$ADDR : Bit#(6)
+    bram_memory$DI : WireTypes::Cell
+    bram_memory$DO : WireTypes::Cell
+    bram_memory$WE : Bool
+    bram_serverAdapter_cnt$D_IN : Int#(3)
+    bram_serverAdapter_outData_beforeDeq$D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq$Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq$D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq$Q_OUT : Bool
+    bram_serverAdapter_outData_enqw$whas : Bool
+    bram_serverAdapter_outData_ff$D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff$FULL_N : Bool
+    bram_serverAdapter_s1$D_IN : Maybe#(Bool)
+    cells$D_IN : WireTypes::Cell
+    cells$D_OUT : WireTypes::Cell
+    cells$EMPTY_N : Bool
+    cells$FULL_N : Bool
+    cl$D_IN : WireTypes::Cell
+    creg$D_IN : WireTypes::Pixel
+    leafA$push_p : WireTypes::Pixel
+    leafB$push_p : WireTypes::Pixel
+    loopCnt$DATA_A : Bit#(12)
+    loopCnt$DATA_B : Bit#(12)
+    loopCnt$DATA_C : Bit#(12)
+    loopCnt$DATA_F : Bit#(12)
+    mpx$D_IN : Maybe#(WireTypes::Pixel)
+    mpxProbe$PROBE_VALID : Bool
+    mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
+    pal$D_IN : Vector::Vector#(4, WireTypes::Color)
+    pulse$whas : Bool
+    pulseCount$D_IN : UInt#(8)
+    pulseHistory$D_IN : Bit#(8)
+    pulseTick$D_IN : Bit#(2)
+    px$D_IN : WireTypes::Pixel
+    pxProbe$PROBE_VALID : Bool
+    pxProbe$PROBE : WireTypes::Pixel
+    simpleCount$D_IN : UInt#(4)
+    syncfifo$dEMPTY_N : Bool
+    syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo$sFULL_N : Bool
+  Verilog module type at main.top.dut: mkWireTypes OK
+=== Bluesim ===
+  hits:    66
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_cnt_1 : Int#(3)
+    bram_serverAdapter_cnt_2 : Int#(3)
+    bram_serverAdapter_cnt_3 : Int#(3)
+    bram_serverAdapter_outData_dequeueing : Bool
+    bram_serverAdapter_outData_enqw : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    bram_serverAdapter_s1_1 : Maybe#(Bool)
+    bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
+    cellWire : WireTypes::Cell
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cells.RST : Reset
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    creg.D_IN_0 : WireTypes::Pixel
+    creg.D_IN_1 : WireTypes::Pixel
+    creg.D_IN_2 : WireTypes::Pixel
+    creg.D_IN_3 : WireTypes::Pixel
+    creg.D_IN_4 : WireTypes::Pixel
+    creg.Q_OUT_0 : WireTypes::Pixel
+    creg.Q_OUT_1 : WireTypes::Pixel
+    creg.Q_OUT_2 : WireTypes::Pixel
+    creg.Q_OUT_3 : WireTypes::Pixel
+    creg.Q_OUT_4 : WireTypes::Pixel
+    loopCnt : Bit#(12)
+    loopCnt.DATA_A : Bit#(12)
+    loopCnt.DATA_B : Bit#(12)
+    loopCnt.DATA_C : Bit#(12)
+    loopCnt.DATA_F : Bit#(12)
+    loopCnt.Q_OUT : Bit#(12)
+    loopCnt.q_state : Bit#(12)
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    pixelBypass : Maybe#(WireTypes::Pixel)
+    pulse : Bool
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
+    px : WireTypes::Pixel
+    simpleCount : UInt#(4)
+    simplePulse : Bool
+    mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
+    pxProbe$PROBE : WireTypes::Pixel
+  Bluesim module type at main.top.dut: mkWireTypes OK
+
+##### module: mkPixelStash  @  main.top.dut.leafA #####
+=== Verilog ===
+  hits:    23
+  matched wires (sorted):
+    CLK : Clock
+    EN_push : Bool
+    RDY_depth : Bool
+    RDY_push : Bool
+    RDY_top : Bool
+    RST_N : Reset
+    cnt : Bit#(8)
+    depth : Bit#(8)
+    last : WireTypes::Pixel
+    push_p : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+    top : WireTypes::Pixel
+    cnt$D_IN : Bit#(8)
+    last$D_IN : WireTypes::Pixel
+    q$D_IN : WireTypes::Pixel
+    q$D_OUT : WireTypes::Pixel
+    q$EMPTY_N : Bool
+    q$FULL_N : Bool
+  Verilog module type at main.top.dut.leafA: mkPixelStash OK
+=== Bluesim ===
+  hits:    10
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    cnt : Bit#(8)
+    last : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+  Bluesim module type at main.top.dut.leafA: mkPixelStash OK
+
+##### module: mkPixelStash  @  main.top.dut.leafB #####
+=== Verilog ===
+  hits:    23
+  matched wires (sorted):
+    CLK : Clock
+    EN_push : Bool
+    RDY_depth : Bool
+    RDY_push : Bool
+    RDY_top : Bool
+    RST_N : Reset
+    cnt : Bit#(8)
+    depth : Bit#(8)
+    last : WireTypes::Pixel
+    push_p : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+    top : WireTypes::Pixel
+    cnt$D_IN : Bit#(8)
+    last$D_IN : WireTypes::Pixel
+    q$D_IN : WireTypes::Pixel
+    q$D_OUT : WireTypes::Pixel
+    q$EMPTY_N : Bool
+    q$FULL_N : Bool
+  Verilog module type at main.top.dut.leafB: mkPixelStash OK
+=== Bluesim ===
+  hits:    10
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    cnt : Bit#(8)
+    last : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+  Bluesim module type at main.top.dut.leafB: mkPixelStash OK
+
+=== summary ===
+  total FST hits across all (module, scope) pairs: 249
+  module types recorded for all (module, scope) pairs: yes
+RESULT: PASS
+
+##### module: mkSplitPortsTest  @  main.top.dut #####
+=== Verilog ===
+  hits:    32
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    EN_sub_put : Bool
+    EN_sub_putHdr : Bool
+    RDY_bump : Bool
+    RDY_sub_count : Bool
+    RDY_sub_get : Bool
+    RDY_sub_getHdr : Bool
+    RDY_sub_put : Bool
+    RDY_sub_putHdr : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    inflight.RST : Reset
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+    sub_count : Bit#(16)
+    sub_get : SplitPortsTest::Inner
+    sub_getHdr : SplitPortsTest::Header
+    sub_putHdr_1 : SplitPortsTest::Header
+    sub_put_1 : SplitPortsTest::Inner
+    cnt$D_IN : Bit#(16)
+    inflight$D_IN : SplitPortsTest::Inner
+    inflight$D_OUT : SplitPortsTest::Inner
+    inflight$EMPTY_N : Bool
+    inflight$FULL_N : Bool
+    last_header$D_IN : SplitPortsTest::Header
+    last_inner$D_IN : SplitPortsTest::Inner
+  Verilog module type at main.top.dut: mkSplitPortsTest OK
+=== Bluesim ===
+  hits:    12
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    inflight.RST : Reset
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+  Bluesim module type at main.top.dut: mkSplitPortsTest OK
+
+=== summary ===
+  total FST hits across all (module, scope) pairs: 44
+  module types recorded for all (module, scope) pairs: yes
+RESULT: PASS
+
+########## variant: kib (Verilog -keep-inlined-boundaries; Bluesim is flag-agnostic) ##########
+##### module: mkWireTypes  @  main.top.dut #####
+=== Verilog ===
+  hits:    148
+  matched wires (sorted):
+    CLK : Clock
+    EN_loadPixel : Bool
+    EN_setPalette : Bool
+    RDY_currentCell : Bool
+    RDY_loadPixel : Bool
+    RDY_maybePixel : Bool
+    RDY_palette : Bool
+    RDY_setPalette : Bool
+    RDY_topPixel : Bool
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_outData_beforeDeq.D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq.Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq.D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq.Q_OUT : Bool
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cells.RST : Reset
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    currentCell : WireTypes::Cell
+    leafA.depth : Bit#(8)
+    leafA.push_p : WireTypes::Pixel
+    leafA.top : WireTypes::Pixel
+    leafB.depth : Bit#(8)
+    leafB.push_p : WireTypes::Pixel
+    leafB.top : WireTypes::Pixel
+    loadPixel_p : WireTypes::Pixel
+    loopCnt.DATA_A : Bit#(12)
+    loopCnt.DATA_B : Bit#(12)
+    loopCnt.DATA_C : Bit#(12)
+    loopCnt.DATA_F : Bit#(12)
+    loopCnt.Q_OUT : Bit#(12)
+    loopCnt.RST : Reset
+    loopCnt.q_state : Bit#(12)
+    maybePixel : Maybe#(WireTypes::Pixel)
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    palette : Vector::Vector#(4, WireTypes::Color)
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
+    px : WireTypes::Pixel
+    setPalette_cs : Vector::Vector#(4, WireTypes::Color)
+    simpleCount : UInt#(4)
+    syncfifo.dCLK : Clock
+    syncfifo.dD_OUT : Maybe#(WireTypes::Pixel)
+    syncfifo.dEMPTY_N : Bool
+    syncfifo.sCLK : Clock
+    syncfifo.sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo.sFULL_N : Bool
+    syncfifo.sRST : Reset
+    topPixel : WireTypes::Pixel
+    bram_memory$ADDR : Bit#(6)
+    bram_memory$DI : WireTypes::Cell
+    bram_memory$DO : WireTypes::Cell
+    bram_memory$WE : Bool
+    bram_serverAdapter_cnt$D_IN : Int#(3)
+    bram_serverAdapter_cnt_1$wget : Int#(3)
+    bram_serverAdapter_cnt_1$whas : Bool
+    bram_serverAdapter_cnt_2$wget : Int#(3)
+    bram_serverAdapter_cnt_2$whas : Bool
+    bram_serverAdapter_cnt_3$wget : Int#(3)
+    bram_serverAdapter_cnt_3$whas : Bool
+    bram_serverAdapter_outData_beforeDeq$D_IN : Bool
+    bram_serverAdapter_outData_beforeDeq$Q_OUT : Bool
+    bram_serverAdapter_outData_beforeEnq$D_IN : Bool
+    bram_serverAdapter_outData_beforeEnq$Q_OUT : Bool
+    bram_serverAdapter_outData_dequeueing$whas : Bool
+    bram_serverAdapter_outData_enqw$wget : WireTypes::Cell
+    bram_serverAdapter_outData_enqw$whas : Bool
+    bram_serverAdapter_outData_ff$D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff$FULL_N : Bool
+    bram_serverAdapter_s1$D_IN : Maybe#(Bool)
+    bram_serverAdapter_s1_1$wget : Maybe#(Bool)
+    bram_serverAdapter_s1_1$whas : Bool
+    bram_serverAdapter_writeWithResp$wget : Tuple2#(Bool, Bool)
+    bram_serverAdapter_writeWithResp$whas : Bool
+    cellWire$wget : WireTypes::Cell
+    cellWire$whas : Bool
+    cells$D_IN : WireTypes::Cell
+    cells$D_OUT : WireTypes::Cell
+    cells$EMPTY_N : Bool
+    cells$FULL_N : Bool
+    cl$D_IN : WireTypes::Cell
+    creg$D_IN : WireTypes::Pixel
+    creg$EN_port0__write : Bool
+    creg$EN_port1__write : Bool
+    creg$EN_port2__write : Bool
+    creg$EN_port3__write : Bool
+    creg$EN_port4__write : Bool
+    creg$port0__read : WireTypes::Pixel
+    creg$port0__write_1 : WireTypes::Pixel
+    creg$port1__read : WireTypes::Pixel
+    creg$port1__write_1 : WireTypes::Pixel
+    creg$port2__read : WireTypes::Pixel
+    creg$port2__write_1 : WireTypes::Pixel
+    creg$port3__read : WireTypes::Pixel
+    creg$port3__write_1 : WireTypes::Pixel
+    creg$port4__read : WireTypes::Pixel
+    creg$port4__write_1 : WireTypes::Pixel
+    leafA$push_p : WireTypes::Pixel
+    leafB$push_p : WireTypes::Pixel
+    loopCnt$DATA_A : Bit#(12)
+    loopCnt$DATA_B : Bit#(12)
+    loopCnt$DATA_C : Bit#(12)
+    loopCnt$DATA_F : Bit#(12)
+    mpx$D_IN : Maybe#(WireTypes::Pixel)
+    mpxProbe$PROBE_VALID : Bool
+    mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
+    pal$D_IN : Vector::Vector#(4, WireTypes::Color)
+    pixelBypass$wget : Maybe#(WireTypes::Pixel)
+    pulse$whas : Bool
+    pulseCount$D_IN : UInt#(8)
+    pulseHistory$D_IN : Bit#(8)
+    pulseTick$D_IN : Bit#(2)
+    px$D_IN : WireTypes::Pixel
+    pxProbe$PROBE_VALID : Bool
+    pxProbe$PROBE : WireTypes::Pixel
+    simpleCount$D_IN : UInt#(4)
+    simplePulse$whas : Bool
+    syncfifo$dEMPTY_N : Bool
+    syncfifo$sD_IN : Maybe#(WireTypes::Pixel)
+    syncfifo$sFULL_N : Bool
+  Verilog module type at main.top.dut: mkWireTypes OK
+=== Bluesim ===
+  hits:    66
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    bram_memory.ADDR : Bit#(6)
+    bram_memory.DI : WireTypes::Cell
+    bram_memory.DO : WireTypes::Cell
+    bram_memory.WE : Bool
+    bram_serverAdapter_cnt : Int#(3)
+    bram_serverAdapter_cnt_1 : Int#(3)
+    bram_serverAdapter_cnt_2 : Int#(3)
+    bram_serverAdapter_cnt_3 : Int#(3)
+    bram_serverAdapter_outData_dequeueing : Bool
+    bram_serverAdapter_outData_enqw : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_IN : WireTypes::Cell
+    bram_serverAdapter_outData_ff.D_OUT : WireTypes::Cell
+    bram_serverAdapter_outData_ff.EMPTY_N : Bool
+    bram_serverAdapter_outData_ff.FULL_N : Bool
+    bram_serverAdapter_outData_ff.RST : Reset
+    bram_serverAdapter_s1 : Maybe#(Bool)
+    bram_serverAdapter_s1_1 : Maybe#(Bool)
+    bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
+    cellWire : WireTypes::Cell
+    cells.D_IN : WireTypes::Cell
+    cells.D_OUT : WireTypes::Cell
+    cells.EMPTY_N : Bool
+    cells.FULL_N : Bool
+    cells.RST : Reset
+    cl : WireTypes::Cell
+    creg : WireTypes::Pixel
+    creg.D_IN_0 : WireTypes::Pixel
+    creg.D_IN_1 : WireTypes::Pixel
+    creg.D_IN_2 : WireTypes::Pixel
+    creg.D_IN_3 : WireTypes::Pixel
+    creg.D_IN_4 : WireTypes::Pixel
+    creg.Q_OUT_0 : WireTypes::Pixel
+    creg.Q_OUT_1 : WireTypes::Pixel
+    creg.Q_OUT_2 : WireTypes::Pixel
+    creg.Q_OUT_3 : WireTypes::Pixel
+    creg.Q_OUT_4 : WireTypes::Pixel
+    loopCnt : Bit#(12)
+    loopCnt.DATA_A : Bit#(12)
+    loopCnt.DATA_B : Bit#(12)
+    loopCnt.DATA_C : Bit#(12)
+    loopCnt.DATA_F : Bit#(12)
+    loopCnt.Q_OUT : Bit#(12)
+    loopCnt.q_state : Bit#(12)
+    mpx : Maybe#(WireTypes::Pixel)
+    pal : Vector::Vector#(4, WireTypes::Color)
+    pixelBypass : Maybe#(WireTypes::Pixel)
+    pulse : Bool
+    pulseCount : UInt#(8)
+    pulseHistory : Bit#(8)
+    pulseTick : Bit#(2)
+    px : WireTypes::Pixel
+    simpleCount : UInt#(4)
+    simplePulse : Bool
+    mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
+    pxProbe$PROBE : WireTypes::Pixel
+  Bluesim module type at main.top.dut: mkWireTypes OK
+
+##### module: mkPixelStash  @  main.top.dut.leafA #####
+=== Verilog ===
+  hits:    23
+  matched wires (sorted):
+    CLK : Clock
+    EN_push : Bool
+    RDY_depth : Bool
+    RDY_push : Bool
+    RDY_top : Bool
+    RST_N : Reset
+    cnt : Bit#(8)
+    depth : Bit#(8)
+    last : WireTypes::Pixel
+    push_p : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+    top : WireTypes::Pixel
+    cnt$D_IN : Bit#(8)
+    last$D_IN : WireTypes::Pixel
+    q$D_IN : WireTypes::Pixel
+    q$D_OUT : WireTypes::Pixel
+    q$EMPTY_N : Bool
+    q$FULL_N : Bool
+  Verilog module type at main.top.dut.leafA: mkPixelStash OK
+=== Bluesim ===
+  hits:    10
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    cnt : Bit#(8)
+    last : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+  Bluesim module type at main.top.dut.leafA: mkPixelStash OK
+
+##### module: mkPixelStash  @  main.top.dut.leafB #####
+=== Verilog ===
+  hits:    23
+  matched wires (sorted):
+    CLK : Clock
+    EN_push : Bool
+    RDY_depth : Bool
+    RDY_push : Bool
+    RDY_top : Bool
+    RST_N : Reset
+    cnt : Bit#(8)
+    depth : Bit#(8)
+    last : WireTypes::Pixel
+    push_p : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+    top : WireTypes::Pixel
+    cnt$D_IN : Bit#(8)
+    last$D_IN : WireTypes::Pixel
+    q$D_IN : WireTypes::Pixel
+    q$D_OUT : WireTypes::Pixel
+    q$EMPTY_N : Bool
+    q$FULL_N : Bool
+  Verilog module type at main.top.dut.leafB: mkPixelStash OK
+=== Bluesim ===
+  hits:    10
+  matched wires (sorted):
+    CLK : Clock
+    RST_N : Reset
+    cnt : Bit#(8)
+    last : WireTypes::Pixel
+    q.D_IN : WireTypes::Pixel
+    q.D_OUT : WireTypes::Pixel
+    q.EMPTY_N : Bool
+    q.FULL_N : Bool
+    q.RST : Reset
+  Bluesim module type at main.top.dut.leafB: mkPixelStash OK
+
+=== summary ===
+  total FST hits across all (module, scope) pairs: 280
+  module types recorded for all (module, scope) pairs: yes
+RESULT: PASS
+
+##### module: mkSplitPortsTest  @  main.top.dut #####
+=== Verilog ===
+  hits:    32
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    EN_sub_put : Bool
+    EN_sub_putHdr : Bool
+    RDY_bump : Bool
+    RDY_sub_count : Bool
+    RDY_sub_get : Bool
+    RDY_sub_getHdr : Bool
+    RDY_sub_put : Bool
+    RDY_sub_putHdr : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    inflight.RST : Reset
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+    sub_count : Bit#(16)
+    sub_get : SplitPortsTest::Inner
+    sub_getHdr : SplitPortsTest::Header
+    sub_putHdr_1 : SplitPortsTest::Header
+    sub_put_1 : SplitPortsTest::Inner
+    cnt$D_IN : Bit#(16)
+    inflight$D_IN : SplitPortsTest::Inner
+    inflight$D_OUT : SplitPortsTest::Inner
+    inflight$EMPTY_N : Bool
+    inflight$FULL_N : Bool
+    last_header$D_IN : SplitPortsTest::Header
+    last_inner$D_IN : SplitPortsTest::Inner
+  Verilog module type at main.top.dut: mkSplitPortsTest OK
+=== Bluesim ===
+  hits:    12
+  matched wires (sorted):
+    CLK : Clock
+    EN_bump : Bool
+    RST_N : Reset
+    cnt : Bit#(16)
+    inflight.D_IN : SplitPortsTest::Inner
+    inflight.D_OUT : SplitPortsTest::Inner
+    inflight.EMPTY_N : Bool
+    inflight.FULL_N : Bool
+    inflight.RST : Reset
+    last_header : SplitPortsTest::Header
+    last_inner : SplitPortsTest::Inner
+  Bluesim module type at main.top.dut: mkSplitPortsTest OK
+
+=== summary ===
+  total FST hits across all (module, scope) pairs: 44
+  module types recorded for all (module, scope) pairs: yes
+RESULT: PASS
+
