@@ -38,13 +38,19 @@ proc usage {} {
     puts "  -v            = print version information and exit"
     puts "  -V \[<file>\]   = dump waveforms to VCD file (default: dump.vcd)"
     puts "  +<arg>        = Verilog-style plus-arg"
-    puts ""    
+    puts ""
+    puts "  +bscvcd\[=<file>\] = dump waveforms to VCD file (default: dump.vcd)"
+    puts "  +bscfst\[=<file>\] = dump waveforms to FST file (default: dump.fst)"
+    puts "  (the model must be built with the requested format; see the"
+    puts "   -dump-formats flag of bsc)"
+    puts ""
     puts "Examples:"
     puts "  $prefix"
     puts "  $prefix -c 'sim step 40; puts \[sim time\]'"
     puts "  $prefix -f sim_cmds.tcl"
     puts "  $prefix -m 3000"
     puts "  $prefix -V sim.vcd"
+    puts "  $prefix +bscfst=sim.fst"
     puts "  $prefix +doFoo"
     exit
 }
@@ -82,7 +88,8 @@ incr current_arg 1
 set script ""
 set script_file ""
 set run_cmd "run"
-set vcd_arg ""
+set wave_fmt "vcd"
+set wave_arg ""
 set arg_list [list]
 set show_version 0
 
@@ -166,17 +173,39 @@ while {$current_arg != $stop_at_arg} {
                   set show_version 1
                 }
       "-V"      { incr current_arg 1
+	          # keep a file name chosen earlier for VCD dumping
+	          if {$wave_fmt != "vcd" || $wave_arg == ""} { set wave_arg "on" }
+	          set wave_fmt "vcd"
 	          if { ($current_arg == $stop_at_arg) ||
 		       [string match "-*" [lindex $argv $current_arg]] ||
 		       [string match "+*" [lindex $argv $current_arg]] } then {
-		      set vcd_arg "on"
-                  } else {			  
-		      set vcd_arg [lindex $argv $current_arg]
+                  } else {
+		      set wave_arg [lindex $argv $current_arg]
 		      incr current_arg 1
                   }
-                } 
+                }
       "+*"      { incr current_arg 1
 	          lappend arg_list [string range $arg 1 [string length $arg]]
+	          # +bscvcd and +bscfst also select waveform dumping,
+	          # uniformly with the Verilog simulators (the plus-arg
+	          # is still visible to the design, as in Verilog); a bare
+	          # selector keeps a file name chosen earlier for the same
+	          # format
+	          if {[string equal $arg "+bscvcd"]} {
+	              if {$wave_fmt != "vcd" || $wave_arg == ""} { set wave_arg "on" }
+	              set wave_fmt "vcd"
+	          } elseif {[string match "+bscvcd=*" $arg]} {
+	              set wave_fmt "vcd"
+	              set wave_arg [string range $arg 8 end]
+	              if {$wave_arg == ""} { set wave_arg "on" }
+	          } elseif {[string equal $arg "+bscfst"]} {
+	              if {$wave_fmt != "fst" || $wave_arg == ""} { set wave_arg "on" }
+	              set wave_fmt "fst"
+	          } elseif {[string match "+bscfst=*" $arg]} {
+	              set wave_fmt "fst"
+	              set wave_arg [string range $arg 8 end]
+	              if {$wave_arg == ""} { set wave_arg "on" }
+	          }
                 }
       "default" { puts "Error: invalid option '$arg'"
 	          usage
@@ -228,9 +257,10 @@ if {[llength $arg_list] != 0} {
     eval "sim arg $arg_list"
 }
  
-# set up VCD if requested
-if {$vcd_arg != ""} {
-    eval "sim vcd $vcd_arg"
+# set up waveform dumping if requested
+# (no eval: the argument may be a file name containing spaces etc.)
+if {$wave_arg != ""} {
+    sim $wave_fmt $wave_arg
 }
 
 # if there is no script supplied, just run the model in the requested mode

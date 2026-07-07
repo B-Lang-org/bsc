@@ -1989,7 +1989,11 @@ simCCBlockToClassDefinition genVCD sb_map sch_map sb =
          vcd_recurse =
            [ decl $ (unsigned . int) $ (mkVar "l") `assign` new_l ] ++
            sub_calls
-         scope_start = [ stmt $ (var "vcd_write_scope_start") `cCall` [var "sim_hdl", var "inst_name"] ]
+         -- the module name is recorded as the scope's component type;
+         -- formats that can express it (FST) make it visible to viewers
+         scope_start = [ stmt $ (var "vcd_write_scope_start") `cCall`
+                                  [ var "sim_hdl", var "inst_name"
+                                  , mkStr (sb_name sb) ] ]
          scope_end = [ stmt $ (var "vcd_write_scope_end") `cCall` [var "sim_hdl"] ]
          vcd_dump_defs_body =
            block (scope_start ++

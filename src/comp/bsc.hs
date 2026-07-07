@@ -1401,6 +1401,15 @@ simLink errh flags toplevel afilenames cfilenames = do
     tStart <- getNow
     let t = tStart
 
+    -- Bluesim can only dump waveforms in VCD and FST formats
+    let bad_fmts = filter (`notElem` ["vcd", "fst"]) (dumpFormats flags)
+    when (not (null bad_fmts)) $
+        bsError errh
+            [(cmdPosition,
+              EGeneric ("Bluesim does not support waveform dump format `" ++
+                        f ++ "' (supported: vcd, fst)"))
+            | f <- bad_fmts]
+
     -- XXX (file, package, module) names for %-substitution in dump filenames
     let dumpnames = (Nothing, Nothing, Nothing)
 
@@ -1802,7 +1811,10 @@ cxxLink errh flags toplevel names creation_time = do
                      ["-o", soFile]
         -- show is used for quoting
         opts = map show $ linkFlags flags
-        files = map show compile_names ++ ["-lm"] ++ userlibs
+        -- the FST waveform writer (pulled out of the kernel library when
+        -- the model is built with -dump-formats fst) requires zlib
+        fstlibs = if "fst" `elem` dumpFormats flags then ["-lz"] else []
+        files = map show compile_names ++ ["-lm"] ++ fstlibs ++ userlibs
     cxxCompile errh flags (opts ++ switches) files
     when (not (cDebug flags)) $ cleanseSharedLib errh flags soFile
     unless (quiet flags) $ putStrLnF ("Simulation shared library created: " ++ soFile)

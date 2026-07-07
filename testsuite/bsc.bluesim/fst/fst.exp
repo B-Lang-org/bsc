@@ -1,0 +1,219 @@
+# Tests for Bluesim FST waveform dumping (-dump-formats fst)
+#
+# The FST files themselves are checked by converting them back to VCD
+# text with fst2vcd (from GTKWave); those checks are skipped when
+# fst2vcd is not on the PATH.
+
+# pass if a file exists and is non-empty
+proc file_nonempty { fname } {
+    global srcdir
+    global subdir
+
+    set afile [join [concat $subdir $fname] "/"]
+    if { [file exists $afile] && ([file size $afile] > 0) } {
+        pass "file `$fname' exists and is non-empty"
+    } else {
+        fail "file `$fname' is missing or empty"
+    }
+}
+
+# pass if a file does not exist
+proc file_absent { fname } {
+    global srcdir
+    global subdir
+
+    set afile [join [concat $subdir $fname] "/"]
+    if { [file exists $afile] } {
+        fail "file `$fname' should not exist"
+    } else {
+        pass "file `$fname' does not exist"
+    }
+}
+
+# convert an FST file to VCD text with fst2vcd
+proc fst_to_vcd { fst2vcd fname outname } {
+    global srcdir
+    global subdir
+
+    set here [pwd]
+    cd [file join [absolute $srcdir] $subdir]
+    set status [exec_with_log "fst2vcd" "$fst2vcd $fname -o $outname"]
+    cd $here
+    if { $status == 0 } {
+        pass "`$fname' converts to VCD"
+    } else {
+        fail "`$fname' does not convert to VCD"
+    }
+}
+
+# dump an FST file's hierarchy (with scope module types) to a file,
+# using the fstscopes utility (fst2vcd cannot check scope module
+# types: its reader path discards the scope component field)
+proc fst_hierarchy { fstscopes fname outname } {
+    global srcdir
+    global subdir
+
+    set here [pwd]
+    cd [file join [absolute $srcdir] $subdir]
+    set status [exec_with_log "fstscopes" "$fstscopes $fname > $outname"]
+    cd $here
+    if { $status == 0 } {
+        pass "`$fname' hierarchy dumps"
+    } else {
+        fail "`$fname' hierarchy does not dump"
+    }
+}
+
+if { $ctest == 1 } {
+
+    compile_object_pass FstDump.bsv
+
+    # Bluesim does not support FSDB: linking must fail
+    link_objects_fail_error sysFstNone sysFstNone S0015 1 {-dump-formats fsdb}
+
+    # -------------------------
+    # model built with FST support only
+
+    link_objects_pass sysFstDump sysFstDump {-dump-formats fst}
+
+    sim_output sysFstDump {+bscfst=sysFstDump.fst}
+    compare_file sysFstDump.out
+    file_nonempty sysFstDump.fst
+
+    set fst2vcd [which fst2vcd]
+    if { $fst2vcd != 0 } {
+        fst_to_vcd $fst2vcd sysFstDump.fst sysFstDump.fst-vcd
+        # the hierarchy and signals are all present
+        find_regexp sysFstDump.fst-vcd {\$scope module main \$end}
+        find_regexp sysFstDump.fst-vcd {\$scope module core \$end}
+        find_regexp sysFstDump.fst-vcd {\$var reg 1 \S+ CLK \$end}
+        find_regexp sysFstDump.fst-vcd {\$var reg 8 \S+ counter \$end}
+        find_regexp sysFstDump.fst-vcd {\$var reg 48 \S+ mid \$end}
+        find_regexp sysFstDump.fst-vcd {\$var reg 128 \S+ wide \$end}
+        string_occurs sysFstDump.fst-vcd "Bluespec FST dumper"
+        # the counter reaches its final value of 42
+        find_regexp sysFstDump.fst-vcd {^b00101010 \S+$}
+    }
+
+    # the module type of each scope is recorded in the FST (as the
+    # scope's component name), where viewers can display it; these
+    # checks are skipped when fstscopes (from `make install-extra`)
+    # is not available
+    set fstscopes [find_fstscopes]
+    if { $fstscopes != 0 } {
+        fst_hierarchy $fstscopes sysFstDump.fst sysFstDump.fst-hier
+        string_occurs sysFstDump.fst-hier "scope top sysFstDump"
+        string_occurs sysFstDump.fst-hier "scope core mkFstDumpCore"
+        string_occurs sysFstDump.fst-hier "var 8 counter"
+        string_occurs sysFstDump.fst-hier "var 1 CLK (alias)"
+    }
+
+    # the same value assertions that vcdcheck provides for VCDs, run
+    # natively on the FST (skipped when fstcheck, from
+    # `make install-extra`, is not available)
+    fstcheck_pass sysFstDump.fst {-c "main.top.core.counter exists" \
+                                  -c "main.top.core.counter becomes 1 @10" \
+                                  -c "main.top.core.counter equals 5 @50" \
+                                  -c "main.top.core.counter equals 42 @420" \
+                                  -c "main.top.core.mid equals 294 @420" \
+                                  -c "main.top.core.wide equals 126 @420" \
+                                  -c "main.top.core.CLK toggles @425"}
+
+    # requesting VCD from an FST-only model is a loud error, but the
+    # simulation still runs (and no VCD file is created)
+    sim_output sysFstDump {-V sysFstDump.no.vcd}
+    string_occurs sysFstDump.out "Error: this model was not built with VCD support (rebuild with -dump-formats vcd)"
+    string_occurs sysFstDump.out "counter = 35"
+    file_absent sysFstDump.no.vcd
+
+    sim_output sysFstDump {+bscvcd}
+    string_occurs sysFstDump.out "Error: this model was not built with VCD support (rebuild with -dump-formats vcd)"
+
+    # -------------------------
+    # model built with both VCD and FST support
+
+    link_objects_pass sysFstBoth sysFstBoth {-dump-formats vcd,fst}
+
+    sim_output sysFstBoth {+bscfst=sysFstBoth.fst}
+    compare_file sysFstBoth.out sysFstDump.out.expected
+    file_nonempty sysFstBoth.fst
+
+    sim_output sysFstBoth {+bscvcd=sysFstBoth.vcd}
+    compare_file sysFstBoth.out sysFstDump.out.expected
+    # the VCD really is VCD text
+    string_occurs sysFstBoth.vcd "Bluespec VCD dumper"
+    find_regexp sysFstBoth.vcd {\$var reg 8 \S+ counter \$end}
+
+    # -V still works on a model with VCD support
+    sim_output sysFstBoth {-V sysFstBoth.V.vcd}
+    string_occurs sysFstBoth.V.vcd "Bluespec VCD dumper"
+
+    # switching formats mid-simulation ends the current dump cleanly
+    # and starts a fresh file in the new format (regression: this used
+    # to crash on a NULL writer when switching with dumping enabled)
+    sim_output sysFstBoth {-f fstswitch.cmd}
+    move sysFstBoth.out sysFstSwitch.out
+    compare_file sysFstSwitch.out fstswitch.out.expected
+    string_occurs sysFstSw.vcd "Bluespec VCD dumper"
+    file_nonempty sysFstSw.fst
+    file_nonempty dump.vcd
+    erase dump.vcd
+
+    # -------------------------
+    # model built with VCD support only (the default)
+
+    link_objects_pass sysFstVcdOnly sysFstVcdOnly
+
+    # VCD dumping works on its own
+    sim_output sysFstVcdOnly {-V sysFstVcdOnly.vcd}
+    string_occurs sysFstVcdOnly.vcd "Bluespec VCD dumper"
+    find_regexp sysFstVcdOnly.vcd {\$var reg 8 \S+ counter \$end}
+
+    # the per-signal dump code is generated, but the FST writer is
+    # not referenced (it is only linked in when fst is selected)
+    string_occurs mkFstDumpCore.cxx "vcd_write_val"
+    string_does_not_occur model_sysFstVcdOnly.cxx "vcd_register_fst"
+    string_occurs model_sysFstDump.cxx "vcd_register_fst"
+
+    sim_output sysFstVcdOnly {+bscfst}
+    string_occurs sysFstVcdOnly.out "Error: this model was not built with FST support (rebuild with -dump-formats fst)"
+    string_occurs sysFstVcdOnly.out "counter = 35"
+    file_absent dump.fst
+
+    # -------------------------
+    # model built with no waveform support
+
+    link_objects_pass sysFstNone sysFstNone {-dump-formats none}
+
+    # the per-signal dump code really is dropped: relinking with
+    # none must regenerate the module (not reuse the object built
+    # with vcd,fst above) without the dump machinery (the clock
+    # definitions, which the kernel owns, are not gated)
+    string_does_not_occur mkFstDumpCore.cxx "vcd_write_val"
+    string_does_not_occur mkFstDumpCore.cxx "vcd_defs"
+    string_occurs model_sysFstNone.cxx "no waveform dumping is available"
+
+    sim_output sysFstNone {+bscfst}
+    string_occurs sysFstNone.out "Error: this model was built with -dump-formats none; no waveform dumping is available"
+    string_occurs sysFstNone.out "counter = 35"
+    file_absent dump.fst
+
+    # -------------------------
+    # the $dump* system tasks dump FST on a model built with fst
+
+    compile_object_pass FstTasks.bsv
+    link_objects_pass sysFstTasks sysFstTasks {-dump-formats fst}
+
+    sim_output sysFstTasks
+    compare_file sysFstTasks.out
+    file_nonempty sysFstTasks.fst
+
+    if { $fst2vcd != 0 } {
+        fst_to_vcd $fst2vcd sysFstTasks.fst sysFstTasks.fst-vcd
+        # $dumpoff/$dumpon become FST blackout regions, and the
+        # $dumpoff writes X for all signals
+        string_occurs sysFstTasks.fst-vcd "\$dumpoff \$end"
+        string_occurs sysFstTasks.fst-vcd "\$dumpon \$end"
+        string_occurs sysFstTasks.fst-vcd "bxxxxxxxxxxxxxxxx"
+    }
+}

@@ -187,10 +187,11 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         -- list of subblocks that need to be included
         include_ids = nub (map (\(id,_,_)->id) (sb_state sb))
 
-        -- whether to emit the per-signal VCD dumping code (-dump-formats vcd);
+        -- whether to emit the per-signal waveform dumping code, which is
+        -- shared by the VCD and FST writers (-dump-formats vcd/fst);
         -- with -dump-formats none it is stubbed out, dropping a lot of
         -- generated code in large/replicated designs.
-        genVCD = "vcd" `elem` dumpFormats flags
+        genVCD = any (`elem` ["vcd", "fst"]) (dumpFormats flags)
 
         -- class declaration (for the H file)
         class_decl = simCCBlockToClassDeclaration genVCD sb_map sb
@@ -425,10 +426,27 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                             (case def_rst of
                                (Just _) -> [ setup_reset ]
                                Nothing  -> [])
+        -- record which waveform formats (-dump-formats) this model was
+        -- built with, so that the kernel can reject requests for other
+        -- formats; building with fst also registers the FST writer,
+        -- which is what links it (and its libz dependency) into the model
+        set_wave_formats =
+            let mask = sum [ v | (f, v) <- [("vcd", 1), ("fst", 2)]
+                               , f `elem` dumpFormats flags ]
+                set_stmt = stmt $ (var "vcd_set_allowed_formats") `cCall`
+                                    [ var "simHdl", mkUInt32 mask ]
+                reg_stmt = stmt $ (var "vcd_register_fst") `cCall`
+                                    [ var "simHdl" ]
+            in [ comment "waveform formats selected with -dump-formats"
+                         set_stmt ] ++
+               (if "fst" `elem` dumpFormats flags then [ reg_stmt ] else [])
+
         create_model_def =
           define create_model_decl
                  (block $ -- record the sim state handle
                           [ (mkVar "sim_hdl") `assign` (var "simHdl") ] ++
+                          -- record the available waveform dump formats
+                          set_wave_formats ++
                           -- clear reset counters
                           [ stmt $ (var "init_reset_request_counters") `cCall`
                                      [ var "sim_hdl" ] ] ++
@@ -513,11 +531,12 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                                 (block [mkDumpCall top_blk "dump_state" [mkUInt32 0]])
         dump_methods  = [ comment "State dumping function" state_dump_def ]
 
-        -- function for dumping VCDs
+        -- function for dumping waveforms (VCD or FST)
         -- with -dump-formats none the per-signal dump code was not generated,
         -- so instead of silently writing an empty VCD, report an error when
-        -- dumping is requested (dump_VCD_defs runs once, at VCD-header time)
-        genVCD         = "vcd" `elem` dumpFormats flags
+        -- dumping is requested (dump_VCD_defs runs once, at VCD-header time);
+        -- the kernel also rejects the request earlier, when it is made
+        genVCD         = any (`elem` ["vcd", "fst"]) (dumpFormats flags)
         no_vcd_msg     = "Error: this model was built with -dump-formats none; "
                          ++ "no waveform dumping is available\n"
         no_vcd_err     = stmt $ (var "fprintf") `cCall`

@@ -2649,7 +2649,8 @@ cvtMaybeWith h (Just x) = toTclObj x >>= (\o -> (return [TLst [h,(TCL o)]]))
 simGrammar :: HTclCmdGrammar
 simGrammar = (tclcmd "sim" namespace helpStr "") .+.
              (oneOf [ argGrammar, cdGrammar, clockGrammar, configGrammar
-                    , describeGrammar, getGrammar, getRangeGrammar, loadGrammar
+                    , describeGrammar, fstGrammar, getGrammar, getRangeGrammar
+                    , loadGrammar
                     , lookupGrammar, lsGrammar, nextEdgeGrammar, pwdGrammar
                     , runGrammar, runToGrammar
                     , stepGrammar, stopGrammar, syncGrammar, timeGrammar
@@ -2706,6 +2707,11 @@ simGrammar = (tclcmd "sim" namespace helpStr "") .+.
                        (optional $ oneOf [ (kw "on" "Turn on VCD dumping" "")
                                          , (kw "off" "Turn off VCD dumping" "")
                                          , (arg "file" StringArg "Dump to named VCD file")
+                                         ])
+          fstGrammar = (kw "fst" "Control dumping waveforms to an FST file" "") .+.
+                       (optional $ oneOf [ (kw "on" "Turn on FST dumping" "")
+                                         , (kw "off" "Turn off FST dumping" "")
+                                         , (arg "file" StringArg "Dump to named FST file")
                                          ])
           verGrammar = kw "version" "Show Bluesim model version information" ""
 
@@ -3065,31 +3071,9 @@ tclSim ("up":args) = do
                   return $ TLst []
     Nothing -> ioError $ userError ("There is no bluesim model loaded")
 ----------
-tclSim ("vcd":args) = do
-  g <- readIORef globalVar
-  case (tp_bluesim g) of
-    Just bs -> case args of
-                 []      -> -- return name of active VCD file, if any
-                            do l <- toTclObj $ maybeToList (active_vcd_file bs)
-                               return $ TCL l
-                 ["on"]  -> -- turn on VCD dumping
-                            do _ <- bk_enable_VCD_dumping bs
-                               when (isNothing $ active_vcd_file bs) $
-                                    let bs' = bs { active_vcd_file = Just "dump.vcd" }
-                                    in modifyIORef globalVar (\gv -> gv { tp_bluesim = Just bs' })
-                               return $ TLst []
-                 ["off"] -> -- turn off VCD dumping
-                            do bk_disable_VCD_dumping bs
-                               return $ TLst []
-                 [file]  -> -- dump to named file
-                            do _ <- bk_set_VCD_file bs file
-                               _ <- bk_enable_VCD_dumping bs
-                               let bs' = bs { active_vcd_file = Just file }
-                               modifyIORef globalVar (\gv -> gv { tp_bluesim = Just bs' })
-                               return $ TLst []
-                 _ -> internalError $ "tclSim: grammar mismatch: " ++ (show args)
-
-    Nothing -> ioError $ userError ("There is no bluesim model loaded")
+tclSim ("vcd":args) = simWaveform "vcd" args
+----------
+tclSim ("fst":args) = simWaveform "fst" args
 ----------
 tclSim ["version"] = do
   g <- readIORef globalVar
@@ -3100,6 +3084,39 @@ tclSim ["version"] = do
     Nothing -> ioError $ userError ("There is no bluesim model loaded")
 ----------
 tclSim xs = internalError $ "tclSim: grammar mismatch: " ++ (show xs)
+
+-- Shared implementation of the "sim vcd" and "sim fst" commands.
+-- Selecting a format that the model was not built with (-dump-formats)
+-- fails; the kernel reports the error on stderr and the simulation
+-- continues without dumping.
+simWaveform :: String -> [String] -> IO HTclObj
+simWaveform fmt args = do
+  g <- readIORef globalVar
+  case (tp_bluesim g) of
+    Just bs -> case args of
+                 []      -> -- return name of the current dump file, if any
+                            do fn <- bk_get_VCD_file_name bs
+                               l <- toTclObj (if null fn then [] else [fn])
+                               return $ TCL l
+                 ["on"]  -> -- turn on waveform dumping
+                            do st <- bk_set_waveform_format bs fmt
+                               when (st == OK) $ do
+                                 _ <- bk_enable_VCD_dumping bs
+                                 return ()
+                               return $ TLst []
+                 ["off"] -> -- turn off waveform dumping
+                            do bk_disable_VCD_dumping bs
+                               return $ TLst []
+                 [file]  -> -- dump to named file
+                            do st <- bk_set_waveform_format bs fmt
+                               when (st == OK) $ do
+                                 _ <- bk_set_VCD_file bs file
+                                 _ <- bk_enable_VCD_dumping bs
+                                 return ()
+                               return $ TLst []
+                 _ -> internalError $ "simWaveform: grammar mismatch: " ++ (show args)
+
+    Nothing -> ioError $ userError ("There is no bluesim model loaded")
 
 -- We treat a list of symbols (starting with leaf, going back to root)
 -- as a hierarchical path structure.

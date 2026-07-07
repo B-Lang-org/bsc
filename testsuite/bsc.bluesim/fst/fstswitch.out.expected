@@ -1,0 +1,5 @@
+counter = 5 mid = 35 wide = 15
+counter = 15 mid = 105 wide = 45
+sysFstSw.fst
+counter = 25 mid = 175 wide = 75
+dump.vcd

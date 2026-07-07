@@ -25,6 +25,8 @@ import HTcl
 import SimCCBlock(pfxModel)
 
 import System.Posix.DynamicLinker
+import System.IO(hPutStrLn, stderr)
+import Control.Exception(try, SomeException)
 import Data.Bits
 import Data.List(intercalate, isPrefixOf)
 import Data.Int
@@ -384,7 +386,6 @@ data BluesimModel =
        , model_hdl              :: WordPtr
        , sim_hdl                :: WordPtr
        , current_clock          :: BSClock
-       , active_vcd_file        :: Maybe String
        , current_directory      :: [BSSymbol]
        , cleanup_handlers       :: [IO ()]
          -- configuration state
@@ -430,7 +431,9 @@ data BluesimModel =
        , bk_peek_range_value    :: BSSymbol -> BSIndex -> IO BSValue
        , bk_num_symbols         :: BSSymbol -> IO Word32
        , bk_get_nth_symbol      :: BSSymbol -> Word32 -> IO BSSymbol
+       , bk_set_waveform_format :: String -> IO BSStatus
        , bk_set_VCD_file        :: String -> IO BSStatus
+       , bk_get_VCD_file_name   :: IO String
        , bk_enable_VCD_dumping  :: IO Bool
        , bk_disable_VCD_dumping :: IO ()
        , bk_shutdown            :: IO ()
@@ -490,9 +493,13 @@ loadBluesimModel fname top_name = do
   c_bk_num_symbols         <- dlsym dl "bk_num_symbols"
   c_bk_get_nth_symbol      <- dlsym dl "bk_get_nth_symbol"
   c_bk_set_VCD_file        <- dlsym dl "bk_set_VCD_file"
+  c_bk_get_VCD_file_name   <- dlsym dl "bk_get_VCD_file_name"
   c_bk_enable_VCD_dumping  <- dlsym dl "bk_enable_VCD_dumping"
   c_bk_disable_VCD_dumping <- dlsym dl "bk_disable_VCD_dumping"
   c_bk_shutdown            <- dlsym dl "bk_shutdown"
+  -- only in models built by newer bsc versions, so allow it to be missing
+  -- (older models support only VCD dumping)
+  e_bk_set_waveform_format <- try (dlsym dl "bk_set_waveform_format")
   -- convert functions to Haskell types and build BluesimModel
   let new_model :: IO WordPtr
       new_model = fromC $ dl_ret_ptr c_new_model
@@ -521,6 +528,26 @@ loadBluesimModel fname top_name = do
       set_vcd_fn simHdl s =
           let fn = dl_ptr_str_ret_int c_bk_set_VCD_file
           in withCString s (fromC . fn (toC simHdl))
+      vcd_file_name_fn :: WordPtr -> IO String
+      vcd_file_name_fn simHdl =
+          do cstr <- dl_ptr_ret_str c_bk_get_VCD_file_name (toC simHdl)
+             fromCString cstr
+      set_wave_format_fn :: WordPtr -> String -> IO BSStatus
+      set_wave_format_fn simHdl s =
+          case e_bk_set_waveform_format of
+            Right c_fn ->
+                let fn = dl_ptr_str_ret_int c_fn
+                in withCString s (fromC . fn (toC simHdl))
+            Left (_ :: SomeException) ->
+                -- models from before bk_set_waveform_format existed
+                -- can only dump VCD
+                if (s == "vcd")
+                then return OK
+                else do hPutStrLn stderr
+                          ("Error: this model was built by a bsc version " ++
+                           "without waveform format selection; only VCD " ++
+                           "dumping is available")
+                        return (Error 1)
       plusarg_fn :: WordPtr -> String -> IO ()
       plusarg_fn simHdl s =
           let fn = dl_ptr_str_ret_void c_bk_append_argument
@@ -575,7 +602,6 @@ loadBluesimModel fname top_name = do
                           , model_hdl              = model_hdl
                           , sim_hdl                = sim_hdl
                           , current_clock          = 0  -- default clock handle
-                          , active_vcd_file        = Nothing
                           , current_directory      = [top_symbol]
                           , cleanup_handlers       = []
                           , is_interactive         = False
@@ -619,7 +645,9 @@ loadBluesimModel fname top_name = do
                           , bk_peek_range_value    = peek_range_fn
                           , bk_num_symbols         = (fromC . dl_ptr_ret_uint c_bk_num_symbols . toC)
                           , bk_get_nth_symbol      = (fromC . dl_ptr_uint_ret_ptr c_bk_get_nth_symbol . toC)
+                          , bk_set_waveform_format = set_wave_format_fn sim_hdl
                           , bk_set_VCD_file        = set_vcd_fn sim_hdl
+                          , bk_get_VCD_file_name   = vcd_file_name_fn sim_hdl
                           , bk_enable_VCD_dumping  = (fromC $ dl_ptr_ret_uchar c_bk_enable_VCD_dumping) sim_hdl
                           , bk_disable_VCD_dumping = (fromC $ dl_ptr_ret_void c_bk_disable_VCD_dumping) sim_hdl
                           , bk_shutdown            = (fromC $ dl_ptr_ret_void c_bk_shutdown) sim_hdl
