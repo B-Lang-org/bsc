@@ -2,7 +2,7 @@
 module VCD ( VCD, parseVCD, parseVCDSize, formatVCD
            , VCDCmd(..), Code, VCDBitType(..), VCDValue(..)
            , VCDChangeEntry, signal_code, new_value
-           , SignalType(..), ScopeType
+           , SignalType(..), ScopeType(..)
            , vcd_code_to_string
            , vcd_is_true_bit, vcd_is_x, vcd_is_z, vcd_to_integer
            , to_VCDValue, to_X_VCDValue

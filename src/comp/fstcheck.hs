@@ -1,33 +1,36 @@
-module Main_vcdcheck(main) where
+module Main_fstcheck(main) where
+
+-- Check assertions against an FST waveform file, with the same
+-- checks and behavior as vcdcheck has for VCD files: the FST is read
+-- into the VCD command representation (FSTRead) and the checks run
+-- on the shared engine (WaveCheck).
 
 import Version
-import FileNameUtil(hasDotSuf, vcdSuffix)
+import FileNameUtil(hasDotSuf)
 import Position
 import Error(EMsg, ErrMsg(..), showErrorList)
 import Util(separate)
 import WaveCheck
+import FSTRead(readFST)
 import IOUtil(getEnvDef)
 import TopUtils(dfltBluespecDir)
-import VCD
 
 import System.Environment(getArgs)
 import System.Console.GetOpt
 import System.IO
 import System.Exit
-import Control.Exception(bracket)
 import Control.Monad(when, msum)
 import Data.List(partition)
 import Data.Maybe(fromMaybe, isJust, fromJust)
-
-import qualified Data.ByteString.Lazy.Char8 as C
 import Text.Regex
 import Numeric(readDec, readSigned)
 
--- import Debug.Trace
-
 -- Version string (matches main BSC version numbering)
 versionString :: String
-versionString = versionStr True (bluespec ++ " vcdcheck utility")
+versionString = versionStr True (bluespec ++ " fstcheck utility")
+
+fstSuffix :: String
+fstSuffix = "fst"
 
 -- -------------------------------------------------------------------
 -- Option processing
@@ -35,8 +38,7 @@ versionString = versionStr True (bluespec ++ " vcdcheck utility")
 -- Structure which holds all option settings
 data Options = Options { optShowVersion  :: Bool
                        , optShowHelp     :: Bool
-                       , optVCD1         :: Maybe FilePath
-                       , optVCD2         :: Maybe FilePath
+                       , optFST          :: Maybe FilePath
                        , optCheckStrings :: [String]
                        , optLimitString  :: String
                        , optCheckCmds    :: [CheckCmd]
@@ -49,8 +51,7 @@ defaultOptions :: Options
 defaultOptions =
     Options { optShowVersion  = False
             , optShowHelp     = False
-            , optVCD1         = Nothing
-            , optVCD2         = Nothing
+            , optFST          = Nothing
             , optCheckStrings = []
             , optLimitString  = ""
             , optCheckCmds    = []
@@ -79,17 +80,16 @@ options =
 
 -- Header used in usage message
 usage_header :: String
-usage_header = "Usage: vcdcheck [OPTIONS] <VCD>\n" ++
-               "       vcdcheck [OPTIONS] <VCD1> <VCD2>"
+usage_header = "Usage: fstcheck [OPTIONS] <FST>"
 
 -- Parse the command line to produce the option structure, etc.
 parseOpts :: [String] -> String -> (Options, [String], [EMsg])
-parseOpts argv bluespecdir =
+parseOpts argv _bluespecdir =
     let (opts,args0,errs) = getOpt Permute options argv
         options0 = foldl (flip id) defaultOptions opts
-        (vcds,args1) = partition (hasDotSuf vcdSuffix) args0
+        (fsts,args1) = partition (hasDotSuf fstSuffix) args0
         emsgs0 = map toEMsg errs
-        (options1,emsgs1) = checkVCDs vcds (options0,emsgs0)
+        (options1,emsgs1) = checkFSTs fsts (options0,emsgs0)
         emsgs2 = if (null args1)
                  then emsgs1
                  else emsgs1 ++
@@ -99,25 +99,23 @@ parseOpts argv bluespecdir =
             then (options1,emsgs2)
             else case (readSigned readDec (optLimitString options1)) of
                    [(n,"")] | n >= 0 -> (options1 { optLimit = n }, emsgs2)
-                   otherwise         -> (options1, emsgs2 ++
+                   _                 -> (options1, emsgs2 ++
                                                    [(noPosition, EBadArgFlag "--limit" (optLimitString options1) ["non-negative integers"])])
         (options3,emsgs4) = parseCheckCmds (options2, emsgs3)
     in (options3, [], emsgs4)
-    where checkVCDs fs (os,es) =
+    where checkFSTs fs (os,es) =
               case fs of
-                [vcd1]      -> (os { optVCD1 = Just vcd1 }, es)
-                [vcd1,vcd2] -> (os { optVCD1 = Just vcd1, optVCD2 = Just vcd2 }, es)
-                [] -> (os,es ++ [(noPosition, EGeneric "no VCD files given")])
-                _ -> (os,es ++ [(noPosition, EGeneric "too many VCD files given")])
+                [fst1] -> (os { optFST = Just fst1 }, es)
+                []     -> (os,es ++ [(noPosition, EGeneric "no FST file given")])
+                _      -> (os,es ++ [(noPosition, EGeneric "too many FST files given")])
           parseCheckCmds (os,es) =
               let ss = optCheckStrings os
-                  fnums = (if (isJust (optVCD1 os)) then [file1] else []) ++
-                          (if (isJust (optVCD2 os)) then [file2] else [])
+                  fnums = if (isJust (optFST os)) then [file1] else []
                   (bad,cmds) = separate (concatMap (parseCheckCmd fnums) ss)
-                  errs = [ (noPosition, EGeneric ("invalid check command: " ++ s))
-                         | s <- bad
-                         ]
-              in (os { optCheckCmds = cmds }, es ++ errs)
+                  errs2 = [ (noPosition, EGeneric ("invalid check command: " ++ s))
+                          | s <- bad
+                          ]
+              in (os { optCheckCmds = cmds }, es ++ errs2)
 
 -- Produce a standard EMsg value from an option parser error string
 toEMsg :: String -> EMsg
@@ -126,15 +124,15 @@ toEMsg s = fromMaybe (noPosition, EGeneric s) $
                             , missing_arg
                             ]]
   where bad_option_regex = mkRegex "unrecognized option `(.*)'"
-        bad_option x = do [opt] <- matchRegex bad_option_regex s
+        bad_option _ = do [opt] <- matchRegex bad_option_regex s
                           return (noPosition, EUnknownFlag opt)
         missing_arg_regex = mkRegex "option `(.*)' requires an argument .*"
-        missing_arg x = do [opt] <- matchRegex missing_arg_regex s
+        missing_arg _ = do [opt] <- matchRegex missing_arg_regex s
                            return (noPosition, EOneArgFlag opt)
 
 -- Validate command-line and process help requests
 checkCmdLine :: Options -> [String] -> [EMsg] -> IO ()
-checkCmdLine opts args errs =
+checkCmdLine opts _args errs =
   do when (optShowVersion opts) $
           do hPutStrLn stdout versionString
              hPutStrLn stdout copyright
@@ -159,24 +157,18 @@ main = do -- parse command line arguments
           -- handle errors and/or request for help and version info
           checkCmdLine opts args emsgs
 
-          ok <- if (isJust (optVCD2 opts))
-                then compareTwoVCDs opts
-                else checkOneVCD opts
+          ok <- checkOneFST opts
 
           exitWith (if ok then ExitSuccess else (ExitFailure 2))
 
-checkOneVCD :: Options -> IO Bool
-checkOneVCD opts =
-    do let vcd_in = fromJust (optVCD1 opts)
-       bracket (openFile vcd_in ReadMode)
-               (\hIn -> do { hClose hIn; return False })
-               (\hIn -> do txt <- C.hGetContents hIn
-                           let msgs = checkStream (optCheckCmds opts) vcd_in (parseVCD txt)
-                           when (not (null msgs)) $ mapM_ putStrLn msgs
-                           return (null msgs)
-               )
-
-compareTwoVCDs :: Options -> IO Bool
-compareTwoVCDs opts =
-    do putStrLn $ "Checking " ++ (fromJust (optVCD1 opts)) ++ " against " ++ (fromJust (optVCD2 opts))
-       return True
+checkOneFST :: Options -> IO Bool
+checkOneFST opts =
+    do let fst_in = fromJust (optFST opts)
+       mstream <- readFST fst_in
+       case mstream of
+         Nothing -> do hPutStrLn stderr ("cannot open '" ++ fst_in ++ "'")
+                       return False
+         Just stream ->
+             do let msgs = checkStream (optCheckCmds opts) fst_in stream
+                when (not (null msgs)) $ mapM_ putStrLn msgs
+                return (null msgs)

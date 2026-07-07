@@ -307,6 +307,57 @@ proc which_vcdcheck {} {
 }
 
 
+# Locate the fstscopes utility (which dumps an FST waveform file's
+# hierarchy, including scope module types).  Unlike which_vcdcheck,
+# this probes softly: it returns 0 when the tool is not available, and
+# tests skip the checks that need it (fstscopes is built and installed
+# by `make install-extra` in src/comp, like vcdcheck).
+proc find_fstscopes {} {
+    global env
+
+    if { [info exists env(FSTSCOPES)] && [file exists $env(FSTSCOPES)] } {
+        return [absolute_filename $env(FSTSCOPES)]
+    }
+    return [which fstscopes]
+}
+
+# Locate the fstcheck utility (vcdcheck's checks for FST waveform
+# files), with the same soft probing as find_fstscopes
+proc find_fstcheck {} {
+    global env
+
+    if { [info exists env(FSTCHECK)] && [file exists $env(FSTCHECK)] } {
+        return [absolute_filename $env(FSTCHECK)]
+    }
+    return [which fstcheck]
+}
+
+# Run fstcheck assertions against an FST file, skipping silently when
+# the fstcheck utility is not available
+proc fstcheck_pass { fstfile options } {
+    set fstcheck [find_fstcheck]
+    if { $fstcheck == 0 } {
+        return
+    }
+
+    incr_stat "fstcheck_pass"
+
+    global srcdir
+    global subdir
+
+    set here [pwd]
+    cd [file join [absolute $srcdir] $subdir]
+    set output "$fstfile.fstcheck-out"
+    set status [exec_with_log "fstcheck" "$fstcheck $options $fstfile >& $output"]
+    cd $here
+    if { $status == 0 } {
+        pass "checks on `$fstfile' succeed"
+    } else {
+        fail "checks on `$fstfile' should succeed"
+    }
+}
+
+
 proc which_m4 {} {
 
     set m4 [which m4]
