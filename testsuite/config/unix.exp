@@ -2966,7 +2966,15 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
         }
 
         set cmods [concat $sysmod $modules]
-        link_objects_pass $cmods $sysmod $link_options
+        set c_link_options $link_options
+        if { $check_vcd == 1 } {
+            # link FST support in as well, so that waveform dumping
+            # can be checked in both formats below; the flag goes
+            # first because link_options may end with file arguments,
+            # and bsc requires flags to appear before files
+            set c_link_options "-dump-formats vcd,fst $link_options"
+        }
+        link_objects_pass $cmods $sysmod $c_link_options
         sim_output $sysmod $sim_options
 
 	set outfile $sysmod.c.out
@@ -3001,6 +3009,21 @@ proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options l
             }
 
             erase $sysmod.c.vcd
+
+            # check that Bluesim fst dumping is not totally broken
+            sim_output $sysmod "+bscfst=$sysmod.c.fst $sim_options"
+            move $sysmod.out $sysmod.c-fst.out
+
+            # clean up to be safe
+            erase $sysmod.out
+
+            # check that fst dumping does not change behavior
+            # (assuming this is not a known simulator bug)
+            if {[string compare $cbug ""] == 0} {
+                compare_file $sysmod.c-fst.out $sysmod.c.out
+            }
+
+            erase $sysmod.c.fst
         }
     }
 
