@@ -275,11 +275,17 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- a list of just the pointers
       ptrs0 = IM.keys iheap
       -- CSE the pointers and return a map from old pointers to the remaining
-      -- canonical ones.  The pointers are returned in tsorted order.
-      -- The tsort does a non-circularity check, which is a property we
-      -- expect in IModule, but the function "pDef" below also relies on it
-      -- (since "pDef" and "m" are recursively built)
-      (tsorted_cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
+      -- canonical ones.  NOTE: despite the internal tsort, the pointers are
+      -- NOT returned in topological order -- they come back in the CSE
+      -- map's key order (canonicalized-expression order), so the defs list
+      -- built from them below is not dependencies-first and downstream
+      -- code must not assume it is.  The tsort orders only the internal
+      -- CSE fold (dependencies first, so duplicate detection compares
+      -- canonical pointers) and performs a non-circularity check, which is
+      -- a property we expect in IModule and which the function "pDef"
+      -- below also relies on (since "pDef" and "m" are recursively built,
+      -- the lazy knot terminates only on acyclic references)
+      (cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
       -- function for translating old pointers to new ones
       ptran p = IM.findWithDefault p p ptr_map
 
@@ -330,7 +336,7 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- a map from the new pointers to their expressions
       --    Actually, a map to a pair of an expression and maybe an IDef;
       --    if the expr is a def reference, the maybe contains the def.
-      ptr_info = [ (p, pDef p) | p <- tsorted_cse_ptrs ]
+      ptr_info = [ (p, pDef p) | p <- cse_ptrs ]
 
       -- a lookup function for the "ptr_info" map,
       -- returning just the expression to replace the ptr reference
@@ -565,15 +571,18 @@ eqPtrs heap ptrs =
         -- was quadratic in the number of references, via Data.List.union
         -- per subexpression), but the result is kept in first-occurrence
         -- order rather than IntSet (sorted) order: the tsort's output
-        -- order is sensitive to edge order, and the def order and
-        -- CSE-representative choice in the generated code follow it, so
-        -- first-occurrence order keeps this rewrite from reordering the
-        -- defs of every generated module.  Preserving the order is
-        -- essentially free -- versus dumping the set sorted, it costs
-        -- one extra membership test and one cons per pointer -- and is a
-        -- convenience, not a contract: nothing downstream is entitled to
-        -- a particular def order, so a future rewrite that has a reason
-        -- to reorder may.
+        -- order is sensitive to edge order, the CSE fold's processing
+        -- order follows the tsort, and that decides -- between duplicate
+        -- defs -- which pointer becomes the representative whose number
+        -- appears in generated def names.  (The emitted defs LIST is in
+        -- canonicalized-expression order, not tsort order; see the note
+        -- at the call site.)  First-occurrence order therefore keeps
+        -- this rewrite from renaming defs across generated modules.
+        -- Preserving it is essentially free -- versus dumping the set
+        -- sorted, it costs one extra membership test and one cons per
+        -- pointer -- and is a convenience, not a contract: nothing
+        -- downstream is entitled to particular def names or order, so a
+        -- future rewrite that has a reason to change them may.
         hptrs e0 = reverse (snd (go e0 (IS.empty, [])))
           where
             go (IAps f _ es) acc = foldl (flip go) acc (f:es)
