@@ -2641,11 +2641,19 @@ walkNF e =
                 -- lifting -- which cannot force a held node from its
                 -- pure context).  Leaving the cell HWHNF was an
                 -- optimization to keep it cancellable after the walk,
-                -- but a consumer that could still cancel would get the
-                -- materialized value instead -- exactly what its squeeze
-                -- would have produced, so only the cancellation QoR of
-                -- that narrow case is traded for the guarantee that a
-                -- walked cell is always HNF.  Sharing of the
+                -- but that case is essentially unrealizable: every
+                -- forcing consumer (squeeze, this arm) substitutes the
+                -- applied form into its own result and never revisits
+                -- the cell, so the cell is only overwritten when a
+                -- walked structure RETAINS it -- and the one structure
+                -- that does (the dynsel arm's ArrayCells) previously
+                -- ICEd in the HNF-demanding consumers rather than ever
+                -- delivering a late cancellation.  A consumer that
+                -- nevertheless found the cell overwritten would get the
+                -- materialized value -- exactly what its squeeze would
+                -- have produced -- so correctness never depended on the
+                -- policy either way (the WalkThenCancel test pins the
+                -- demand-then-cancel orders).  Sharing of the
                 -- materialized form lives in lzApplied's own cell, which
                 -- the walkNF below updates to HNF on the first walk
                 -- (later walks are the memoized-ref fast path).
