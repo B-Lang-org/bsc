@@ -1,0 +1,22 @@
+package UndetProp(P2(..), Ifc(..), mkUndetProp) where
+
+-- pack of an UNDETERMINED payload is coerced eagerly (the hold arms
+-- special-case ICUndet) so undefined-value propagation behaves as
+-- without holding: the module must simply compile, with the
+-- instrumented pack running once at elaboration.
+data P2 = MkP2 (Bit 4) (Bit 4)
+
+instance Bits P2 8 where
+    pack (MkP2 a b) = primSeq (message "ENTERED-PACK" ()) (a ++ b)
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkP2 v[7:4] v[3:0])
+
+interface Ifc =
+  out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkUndetProp #-}
+mkUndetProp :: Module Ifc
+mkUndetProp = module
+  let u :: P2
+      u = _
+  interface Ifc
+    out = pack u

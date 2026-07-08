@@ -1,0 +1,29 @@
+package ConstFold(E4(..), Ifc(..), mkConstFold) where
+
+-- unpack of a CONSTANT is unfolded eagerly at hold-time (the design
+-- note: constant payloads coerce eagerly so static folding -- case
+-- tags, if conditions -- behaves exactly as without holding).  The
+-- instrumented method runs exactly once at elaboration and the case
+-- folds to a constant output.
+data E4 = EA | EB | EC | ED
+
+instance Bits E4 2 where
+    pack e = primSeq (message "ENTERED-PACK" ())
+               (case e of { EA -> 0; EB -> 1; EC -> 2; ED -> 3 })
+    unpack v = primSeq (message "ENTERED-UNPACK" ())
+                 (case v of { 0 -> EA; 1 -> EB; 2 -> EC; _ -> ED })
+
+interface Ifc =
+  out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkConstFold #-}
+mkConstFold :: Module Ifc
+mkConstFold = module
+  let e :: E4
+      e = unpack 2
+  interface Ifc
+    out = case e of
+            EA -> 0x11
+            EB -> 0x22
+            EC -> 0x33
+            ED -> 0x44

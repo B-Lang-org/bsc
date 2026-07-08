@@ -1,0 +1,28 @@
+package CondSqueeze(P2(..), Ifc(..), mkCondSqueeze) where
+
+-- A held pack shared (through one let-bound value) between a rule
+-- condition and a module output: the strict comparison in the rule
+-- condition squeezes the coercion, and the instance method must run
+-- exactly ONCE -- the output reuses the materialized application
+-- through the held node's shared applied-form cell.
+data P2 = MkP2 (Bit 4) (Bit 4)
+
+instance Bits P2 8 where
+    pack (MkP2 a b) = primSeq (message "ENTERED-PACK" ()) (a ++ b)
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkP2 v[7:4] v[3:0])
+
+interface Ifc =
+  out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkCondSqueeze #-}
+mkCondSqueeze :: Module Ifc
+mkCondSqueeze = module
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  y :: Reg (Bit 8) <- mkReg 0
+  let pv :: Bit 8
+      pv = pack (MkP2 a b)
+  rules
+    "upd": when (pv == 0x12) ==> y := 0xFF
+  interface Ifc
+    out = pv

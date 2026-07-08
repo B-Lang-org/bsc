@@ -1,0 +1,36 @@
+package NestedHold(Inner(..), Outer(..), IfcN(..), mkNestedHold) where
+
+-- Nested custom instances: the outer type's methods call the Prelude
+-- pack/unpack wrappers on the inner type, so materializing an outer
+-- method creates (and then squeezes) an inner held coercion INSIDE
+-- the method body -- the recursion squeezeHeld exists for.  Here a
+-- register round trip of the outer type cancels without elaborating
+-- EITHER instance's methods (no ENTERED-* lines), and the copy path
+-- is a wire.  NestedForce.bs is the companion that genuinely demands
+-- the value.
+data Inner = MkI (Bit 8)
+
+instance Bits Inner 8 where
+    pack (MkI v) = primSeq (message "ENTERED-IPACK" ()) v
+    unpack v = primSeq (message "ENTERED-IUNPACK" ()) (MkI v)
+
+data Outer = MkO Inner (Bit 4)
+
+instance Bits Outer 12 where
+    pack (MkO i x) = primSeq (message "ENTERED-OPACK" ()) (pack i ++ x)
+    unpack v = primSeq (message "ENTERED-OUNPACK" ())
+                 (MkO (unpack v[11:4]) v[3:0])
+
+interface IfcN =
+    dummy :: Bool
+
+{-# verilog mkNestedHold #-}
+mkNestedHold :: Module IfcN
+mkNestedHold =
+  module
+    src :: Reg Outer <- mkRegU
+    dst :: Reg Outer <- mkRegU
+    rules
+        "copy": when True ==> dst := src
+    interface
+        dummy = True

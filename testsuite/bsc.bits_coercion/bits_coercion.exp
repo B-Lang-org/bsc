@@ -254,3 +254,108 @@ if { $vtest == 1 } {
     find_n_strings NormEnumUndet.bs.bsc-vcomp-out {ENTERED} 0
     find_n_strings mkNormEnumUndet.v {assign dst$D_IN = (sel == 2'd0) ? b1 : b2 ;} 1
 }
+
+# ---------------
+# Consumer sweep: the three leak fixes were all in CONSUMERS of held
+# nodes, so the cases below pin one consumer each, with instrumented
+# instances counting method elaborations and the netlist shape pinned
+# where it is deterministic.  (Each was also checked to produce a
+# netlist equivalent to -hack-eager-pack-unpack.)
+
+# Nested custom instances: a round trip of the outer type cancels
+# without elaborating EITHER instance's methods; a genuine demand
+# (field selection) materializes outer and inner exactly once each --
+# the inner held coercion is created and squeezed inside the outer
+# method's own body.  NestedHold.bs must be compiled first so the
+# NestedForce.bs compile output contains only its own messages.
+compile_verilog_pass NestedHold.bs mkNestedHold
+compile_verilog_pass NestedForce.bs mkNestedForce
+if { $vtest == 1 } {
+    find_n_strings NestedHold.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings mkNestedHold.v {assign dst$D_IN = src ;} 1
+    find_n_strings NestedForce.bs.bsc-vcomp-out {ENTERED-OUNPACK} 1
+    find_n_strings NestedForce.bs.bsc-vcomp-out {ENTERED-IUNPACK} 1
+    find_n_strings NestedForce.bs.bsc-vcomp-out {ENTERED-OPACK} 0
+    find_n_strings NestedForce.bs.bsc-vcomp-out {ENTERED-IPACK} 0
+}
+
+# impCondOf payload shapes: a tagged-union construction and a bare
+# Vector payload (the buried FIFO condition sits in the constructor
+# argument / the element cells).
+compile_verilog_pass UnionCond.bs mkUnionCond
+compile_verilog_pass VecPayload.bs mkVecPayload
+if { $vtest == 1 } {
+    find_n_strings mkUnionCond.v {assign rdy = f$EMPTY_N ;} 1
+    find_n_strings mkVecPayload.v {assign rdy = f$EMPTY_N ;} 1
+}
+
+# A held pack shared between a rule condition and a module output:
+# the strict comparison in the condition squeezes it, and the method
+# runs exactly once (the output reuses the shared applied-form cell).
+compile_verilog_pass CondSqueeze.bs mkCondSqueeze
+if { $vtest == 1 } {
+    find_n_strings CondSqueeze.bs.bsc-vcomp-out {ENTERED-PACK} 1
+    find_n_strings CondSqueeze.bs.bsc-vcomp-out {ENTERED-UNPACK} 0
+    find_n_strings mkCondSqueeze.v {assign out = { a, b } ;} 1
+}
+
+# A double round trip cancels pairwise all the way to the raw bits.
+compile_verilog_pass ChainCancel.bs mkChainCancel
+if { $vtest == 1 } {
+    find_n_strings ChainCancel.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings mkChainCancel.v {assign out = braw ;} 1
+}
+
+# unpack of a constant is unfolded eagerly (the method runs once at
+# elaboration) and static folding proceeds as without holding: the
+# case over the decoded enum folds to a constant.
+compile_verilog_pass ConstFold.bs mkConstFold
+if { $vtest == 1 } {
+    find_n_strings ConstFold.bs.bsc-vcomp-out {ENTERED-UNPACK} 1
+    find_n_strings mkConstFold.v {assign out = 8'h33 ;} 1
+}
+
+# pack of an undetermined payload is coerced eagerly so undefined
+# propagation behaves as without holding (the resolved constant is a
+# don't-care and deliberately not pinned).
+compile_verilog_pass UndetProp.bs mkUndetProp
+if { $vtest == 1 } {
+    find_n_strings UndetProp.bs.bsc-vcomp-out {ENTERED-PACK} 1
+}
+
+# Cancellation across an ActionValue method boundary: the callee's
+# boundary unpack and the caller's write-path pack cancel; the
+# register input is the callee's return port.  (The one compile
+# generates both modules via their pragmas.)
+compile_verilog_pass AVHold.bs mkAVHold
+if { $vtest == 1 } {
+    find_n_strings AVHold.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings mkAVHold.v {assign dst$D_IN = src$get ;} 1
+}
+
+# A same-cycle RWire handoff of a custom type wrapped in Maybe (a
+# derived instance layered over the custom one): the producer's
+# boundary pack of a raw construction genuinely runs (once); the
+# consumer's wget/re-pack round trip cancels to the wire.
+compile_verilog_pass RWireHold.bs mkRWireHold
+if { $vtest == 1 } {
+    find_n_strings RWireHold.bs.bsc-vcomp-out {ENTERED-PACK} 1
+    find_n_strings RWireHold.bs.bsc-vcomp-out {ENTERED-UNPACK} 0
+    find_n_strings mkRWireHold.v {assign y$D_IN = rw$wget ;} 1
+}
+
+# Dynamic selection over held packs whose payloads carry implicit
+# conditions, under -aggressive-conditions: the rule condition becomes
+# a PSel pterm over the array cells (the selection-shaped route to
+# canLiftCond's pure cell unheap), and the per-element conditions are
+# lifted into a case over the index.
+compile_verilog_pass AggrDynSel.bs mkAggrDynSel {-aggressive-conditions}
+if { $vtest == 1 } {
+    find_n_strings mkAggrDynSel.v {1'd0: y$EN = f1$EMPTY_N;} 1
+    find_n_strings mkAggrDynSel.v {1'd1: y$EN = f2$EMPTY_N;} 1
+}
+
+# Serialization gate: -elab writes the elaborated IModule to a .ba,
+# whose writer rejects held coercions; a coercion-heavy module (the
+# dynsel shape that once leaked HWHNF cells) must pass through it.
+compile_verilog_pass ElabSer.bs mkElabSer {-elab}
