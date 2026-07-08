@@ -89,7 +89,11 @@ compile_pass ATFInInstHeadDetermined.bs
 compile_pass ATFInjective.bs
 compile_pass ATFFieldAccess.bs
 compile_pass ATFPartialApp.bs
+# A field type that reaches an ATF through a type synonym must not make
+# the auto-derived Generic instance fail with a spurious T0029
+compile_pass ATFSynonymField.bs
 
+compile_verilog_pass ATFSynonymFieldUse.bs
 compile_verilog_pass ATFSizeOf.bs
 compile_verilog_pass ATFPoly.bs
 compile_verilog_pass ATFSynthIfc.bs

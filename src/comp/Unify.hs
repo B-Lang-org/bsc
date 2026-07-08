@@ -3,6 +3,7 @@ module Unify(Unify(..), matchList) where
 import Type
 import Subst
 import CType
+import Pred(expandSyn)
 import ErrorUtil(internalError)
 import Util(fastNub)
 
@@ -24,8 +25,15 @@ class Unify t where
 instance Unify Type where
     -- an unreducable ATF application: identical types unify cleanly (reflexivity);
     -- different types generate a deferred equality constraint.
+    -- A type synonym is expanded when (and only when) that exposes an ATF
+    -- application, so that a synonym-hidden ATF unifies exactly like the
+    -- direct ATF application, instead of a variable being structurally
+    -- bound to the unexpanded synonym (which pins a fundep-determined
+    -- variable and makes derived-instance schemes spuriously mismatch).
     mgu bound_tyvars t1 t2
-        | isATFAp t1 || isATFAp t2 = atfUnify bound_tyvars t1 t2
+        | isATFAp t1' || isATFAp t2' = atfUnify bound_tyvars t1' t2'
+      where t1' = expandSynATF t1
+            t2' = expandSynATF t2
     mgu bound_tyvars t1 t2
         | kind t1 == KNum =
       case kind t2 of
@@ -41,6 +49,21 @@ instance Unify Type where
     mgu bound_tyvars t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
     mgu bound_tyvars _ _ = Nothing
+
+-- Expand a saturated type-synonym application when (and only when) the
+-- expansion is a fully applied type-function (ATF) application, so that
+-- unification treats it exactly like the direct ATF application.
+-- Synonyms whose expansion does not reveal an ATF at the head are left
+-- unexpanded, because existing code relies on structural unification of
+-- unexpanded synonyms (e.g. synonyms that drop some of their parameters).
+expandSynATF :: Type -> Type
+expandSynATF t
+    | isSynAp t, not (isUnSatSyn t), isATFAp t' = t'
+    | otherwise = t
+  where t' = expandSyn t
+        isSynAp tt = case fst (splitTAp tt) of
+                       TCon (TyCon _ _ (TItype _ _)) -> True
+                       _ -> False
 
 atfUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 atfUnify bound_tyvars t1 t2

@@ -1,0 +1,48 @@
+package ATFSynonymFieldUse where
+
+-- Companion to ATFSynonymField: exercise data/struct fields whose types
+-- reach an ATF through a type synonym, all the way through elaboration.
+-- The derived Generic instances are used explicitly (via from/to) and
+-- the types are stored in registers, so the synonym-hidden ATF must
+-- survive typecheck, Bits derivation, and synthesis.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+
+type ElemSyn f = Elem f
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x
+
+data WrapSyn f =
+   WrapSyn (ElemSyn f)
+ | NoElem
+ deriving (Bits)
+
+struct SBox f =
+  field :: ElemSyn f
+ deriving (Bits)
+
+-- Round trip through the derived Generic representation.
+roundTrip :: (Generic a r) => a -> a
+roundTrip x = to (from x)
+
+sboxVal :: SBox (Box (UInt 8))
+sboxVal = SBox { field = 42 }
+
+wrapVal :: WrapSyn (Box (UInt 8))
+wrapVal = WrapSyn 42
+
+{-# synthesize sysATFSynonymFieldUse #-}
+sysATFSynonymFieldUse :: Module Empty
+sysATFSynonymFieldUse = module
+  r1 :: Reg (SBox (Box (UInt 8))) <- mkReg (roundTrip sboxVal)
+  r2 :: Reg (WrapSyn (Box (UInt 8))) <- mkReg (roundTrip wrapVal)
+
+  rules
+    when True ==> do
+      r1 := SBox { field = extract (Box (r1.field + 1)) }
+      r2 := roundTrip (WrapSyn r1.field)
