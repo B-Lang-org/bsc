@@ -1,0 +1,62 @@
+package FdStability where
+
+-- Pin the resolution behavior that makes fundep improvements from a
+-- matched instance unsafe to commit before the instance's context is
+-- discharged.
+--
+-- TC (Maybe t) m first matches the specific instance, whose fundep
+-- output would improve m to 5 -- but its (TD t) context cannot be
+-- discharged while t is unresolved, so the attempt is abandoned and
+-- the improvement is NOT committed.  The sibling pred TC2 Bool m then
+-- commits m := 6, and on retry the specific TC instance no longer
+-- matches (5 ~ 6 fails) and no longer unifies, so the catch-all is
+-- selected coherently.  A direct call at Maybe Bool, where (TD Bool)
+-- is available, selects the specific instance instead.
+--
+-- Any future scheme that commits a coherent match (or its fundep
+-- substitution) before its context is discharged must still defer
+-- here -- the catch-all instance unifies with the pred at match time,
+-- so the improvement m := 5 is not final -- or it would reject this
+-- program.  Expected output: 1 (direct, specific) then 2 (through
+-- foo, catch-all).
+
+class TC x n | x -> n where
+    tcVal :: x -> Bit n
+    tcTag :: x -> Bit 8
+
+instance (TD a) => TC (Maybe a) 5 where
+    tcVal _ = 0
+    tcTag _ = 1
+
+instance TC x 6 where
+    tcVal _ = 0
+    tcTag _ = 2
+
+class TD a where
+    tdVal :: a -> Bool
+
+instance TD Bool where
+    tdVal x = x
+
+class TC2 x n | x -> n where
+    tc2Val :: x -> Bit n
+
+instance TC2 Bool 6 where
+    tc2Val _ = 0
+
+-- forces the two fundep outputs to be the same variable
+h :: Bit n -> Bit n -> Bool
+h _ _ = True
+
+foo :: Maybe t -> Bool -> Bit 8
+foo x b = if h (tcVal x) (tc2Val b) then tcTag x else 0
+
+{-# verilog sysFdStability #-}
+sysFdStability :: Module Empty
+sysFdStability = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (tcTag (Just True))       -- direct: specific -> 1
+                $display "%0d" (foo (Just True) False)   -- via foo: catch-all -> 2
+                $finish 0

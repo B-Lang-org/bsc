@@ -20,6 +20,27 @@ erase LeafOrder.bo
 # Legacy instance index must produce identical output.
 test_c_veri_bs_modules_options LeafOrder {} {-legacy-inst-index} sysLeafOrder.out.expected
 
+# A deeper leaf: four instances forming a specificity chain A < B < C
+# plus an instance X incomparable to A and B, declared adversarially.
+# Each of the four calls must select the most specific matching
+# instance (1, 3, 2, 4); a comparison sort of the collapsed partial
+# order answers 3 for the first call.
+test_c_veri LeafOrderChain sysLeafOrderChain.out.expected
+erase LeafOrderChain.bo
+test_c_veri_bs_modules_options LeafOrderChain {} {-legacy-inst-index} sysLeafOrderChain.out.expected
+
+# Fundep improvements from a matched-but-undischarged instance must not
+# be committed: the specific TC instance matches first and would improve
+# the output position to 5, but its context is not yet satisfiable and a
+# sibling pred then fixes the output to 6, after which only the
+# catch-all matches (coherently).  Pins the acceptance and instance
+# choice (1 direct, 2 through the helper) that any future
+# commit-coherent-matches scheme must preserve by deferring improving
+# matches whose walk suffix still contains a unifiable instance.
+test_c_veri FdStability sysFdStability.out.expected
+erase FdStability.bo
+test_c_veri_bs_modules_options FdStability {} {-legacy-inst-index} sysFdStability.out.expected
+
 # An instance head containing a primitive numeric type function (TAdd)
 # unifies with a numeric-literal head, so the pair overlaps without being
 # orderable and must be rejected, under both index implementations.
