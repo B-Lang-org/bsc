@@ -1,0 +1,22 @@
+package UnionCond(U(..), Ifc(..), mkUnionCond) where
+
+import FIFO
+
+-- impCondOf of a held pack whose payload is a tagged-union
+-- construction (with don't-care padding in the derived instance): the
+-- buried condition sits in the constructor's argument, exercising the
+-- union-construction traversal of getBuriedPreds.
+data U = Big (Bit 8) | Small (Bit 4)
+  deriving (Bits)
+
+interface Ifc =
+  rdy :: Bool {-# always_ready #-}
+
+{-# verilog mkUnionCond #-}
+mkUnionCond :: Module Ifc
+mkUnionCond = module
+  f :: FIFO (Bit 8) <- mkFIFO
+  rules
+    "deq": when True ==> f.deq
+  interface Ifc
+    rdy = impCondOf (pack (Big f.first))

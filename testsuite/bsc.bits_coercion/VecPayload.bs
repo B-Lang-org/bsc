@@ -1,0 +1,23 @@
+package VecPayload(Ifc(..), mkVecPayload) where
+
+import Vector
+import FIFO
+
+-- impCondOf of a held pack whose payload is a bare Vector (the
+-- payload heap cell holds the lazy array itself, not a struct
+-- containing one): the buried condition sits in the element cells,
+-- exercising the array traversal of getBuriedPreds directly under
+-- the held node.
+interface Ifc =
+  rdy :: Bool {-# always_ready #-}
+
+{-# verilog mkVecPayload #-}
+mkVecPayload :: Module Ifc
+mkVecPayload = module
+  f :: FIFO (Bit 4) <- mkFIFO
+  let vv :: Vector 2 (Bit 4)
+      vv = replicate f.first
+  rules
+    "deq": when True ==> f.deq
+  interface Ifc
+    rdy = impCondOf (pack vv)

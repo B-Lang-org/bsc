@@ -1,0 +1,27 @@
+package ChainCancel(T(..), Ifc(..), mkChainCancel) where
+
+-- A double round trip -- pack (unpack (pack (unpack v))) via
+-- intermediate typed values -- cancels pairwise all the way down to
+-- the raw register bits: no instance method elaborates and the output
+-- is the register wire.
+data T = MkT (Bit 16)
+
+instance Bits T 16 where
+    pack (MkT v) = primSeq (message "ENTERED-PACK" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkT v)
+
+interface Ifc =
+  out :: Bit 16 {-# always_ready #-}
+
+{-# verilog mkChainCancel #-}
+mkChainCancel :: Module Ifc
+mkChainCancel = module
+  braw :: Reg (Bit 16) <- mkReg 0xBEEF
+  let w1 :: T
+      w1 = unpack braw
+      b1 :: Bit 16
+      b1 = pack w1
+      w2 :: T
+      w2 = unpack b1
+  interface Ifc
+    out = pack w2

@@ -1,0 +1,29 @@
+package ElabSer(Pair(..), Ifc(..), mkElabSer) where
+
+import Vector
+
+-- Serialization gate: -elab writes the elaborated module to a .ba,
+-- whose writer (GenBin) rejects held coercions.  A coercion-heavy
+-- module (dynamic selection over held packs, the shape that once
+-- leaked HWHNF cells to the module output) must elaborate to an
+-- IModule with no held nodes anywhere GenBin can see.
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkElabSer #-}
+mkElabSer :: Module Ifc
+mkElabSer = module
+  idx :: Reg (UInt 2) <- mkReg 0
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  let mk1 = Pair { hi = a._read; lo = b._read }
+      mk2 = Pair { hi = b._read; lo = a._read }
+      vs :: Vector 2 (Bit 8)
+      vs = pack mk1 :> pack mk2 :> nil
+  interface Ifc
+    out = select vs idx

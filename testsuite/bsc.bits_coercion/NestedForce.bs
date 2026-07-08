@@ -1,0 +1,20 @@
+package NestedForce(IfcF(..), mkNestedForce) where
+
+-- Companion to NestedHold: a field selection genuinely demands the
+-- nested value, so the outer unpack materializes exactly once, which
+-- in turn materializes the inner unpack exactly once (the held
+-- coercion created inside the outer method's body is squeezed by the
+-- inner field selection).  The packs never run.
+import NestedHold
+
+interface IfcF =
+    out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkNestedForce #-}
+mkNestedForce :: Module IfcF
+mkNestedForce =
+  module
+    src :: Reg Outer <- mkRegU
+    interface
+        out = case src of
+                MkO (MkI b) _x -> b

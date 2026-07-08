@@ -1,0 +1,36 @@
+package AggrDynSel(Pair(..), Ifc(..), mkAggrDynSel) where
+
+import Vector
+import FIFO
+
+-- Dynamic selection over held pack coercions whose payloads carry
+-- implicit conditions (FIFO firsts), used in a rule under
+-- -aggressive-conditions: the rule's implicit condition becomes a
+-- PSel pterm over the array cells, and evalPTerm's aggressive path
+-- walks it and asks canLiftCond -- the selection-shaped route to the
+-- pure NF-demanding unheap of the cells.
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  push1 :: Bit 4 -> Action
+  push2 :: Bit 4 -> Action
+
+{-# verilog mkAggrDynSel #-}
+mkAggrDynSel :: Module Ifc
+mkAggrDynSel = module
+  idx :: Reg (UInt 1) <- mkReg 0
+  f1 :: FIFO (Bit 4) <- mkFIFO
+  f2 :: FIFO (Bit 4) <- mkFIFO
+  y :: Reg (Bit 8) <- mkReg 0
+  let mk1 = Pair { hi = f1.first; lo = 0xF }
+      mk2 = Pair { hi = 0x3; lo = f2.first }
+      vs :: Vector 2 (Bit 8)
+      vs = pack mk1 :> pack mk2 :> nil
+  rules
+    "r": when True ==> y := select vs idx
+  interface Ifc
+    push1 v = f1.enq v
+    push2 v = f2.enq v
