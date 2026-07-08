@@ -359,3 +359,19 @@ if { $vtest == 1 } {
 # whose writer rejects held coercions; a coercion-heavy module (the
 # dynsel shape that once leaked HWHNF cells) must pass through it.
 compile_verilog_pass ElabSer.bs mkElabSer {-elab}
+
+# One shared held pack, written to a Bit-typed port by one rule (a
+# genuine demand) and case-decoded through unpack by another: the
+# demand does NOT destroy the cancellation, in EITHER rule order,
+# because forcing consumers substitute the applied form and leave the
+# held cell itself intact for later consumers.  Exactly one pack per
+# module (the port), zero unpacks (both decodes cancel), and the
+# decoded field is a direct register wire.  (One compile generates
+# both modules; the counts below are their sum.)
+compile_verilog_pass WalkThenCancel.bs mkWriteFirst
+if { $vtest == 1 } {
+    find_n_strings WalkThenCancel.bs.bsc-vcomp-out {ENTERED-PACK} 2
+    find_n_strings WalkThenCancel.bs.bsc-vcomp-out {ENTERED-UNPACK} 0
+    find_n_strings mkWriteFirst.v {assign z$D_IN = a ;} 1
+    find_n_strings mkDecodeFirst.v {assign z$D_IN = a ;} 1
+}

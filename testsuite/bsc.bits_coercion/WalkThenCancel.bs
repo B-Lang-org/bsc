@@ -1,0 +1,47 @@
+package WalkThenCancel(P2(..), Ifc(..), mkWriteFirst, mkDecodeFirst) where
+
+-- One shared held pack: written to a Bit-typed register by one rule
+-- (a genuine demand -- the port needs bits) and case-decoded through
+-- unpack by another rule (a cancellation opportunity).
+data P2 = MkP2 (Bit 4) (Bit 4)
+
+instance Bits P2 8 where
+    pack (MkP2 x y) = primSeq (message "ENTERED-PACK" ()) (x ++ y)
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkP2 v[7:4] v[3:0])
+
+interface Ifc =
+  dummy :: Bool
+
+{-# verilog mkWriteFirst #-}
+mkWriteFirst :: Module Ifc
+mkWriteFirst = module
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  yb :: Reg (Bit 8) <- mkReg 0
+  z :: Reg (Bit 4) <- mkReg 0
+  let pv :: Bit 8
+      pv = pack (MkP2 a b)
+      u :: P2
+      u = unpack pv
+  rules
+    "w": when True ==> yb := pv
+    "d": when True ==> z := (case u of { MkP2 h _l -> h; })
+  interface Ifc
+    dummy = True
+
+{-# verilog mkDecodeFirst #-}
+mkDecodeFirst :: Module Ifc
+mkDecodeFirst = module
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  yb :: Reg (Bit 8) <- mkReg 0
+  z :: Reg (Bit 4) <- mkReg 0
+  let pv :: Bit 8
+      pv = pack (MkP2 a b)
+      u :: P2
+      u = unpack pv
+  rules
+    "d": when True ==> z := (case u of { MkP2 h _l -> h; })
+    "w": when True ==> yb := pv
+  interface Ifc
+    dummy = True
