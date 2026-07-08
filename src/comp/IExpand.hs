@@ -577,7 +577,11 @@ eqPtrs heap ptrs =
         -- appears in generated def names.  (The emitted defs LIST is in
         -- canonicalized-expression order, not tsort order; see the note
         -- at the call site.)  First-occurrence order therefore keeps
-        -- this rewrite from renaming defs across generated modules.
+        -- this rewrite from renaming defs across generated modules --
+        -- and def names are the one piece of this that is user-visible,
+        -- surfacing as signal names in the generated code, where a
+        -- gratuitous rename shows up in netlist diffs, waveform setups
+        -- and constraint files.
         -- Preserving it is essentially free -- versus dumping the set
         -- sorted, it costs one extra membership test and one cons per
         -- pointer -- and is a convenience, not a contract: nothing
