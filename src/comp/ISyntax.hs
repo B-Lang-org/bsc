@@ -1195,6 +1195,13 @@ instance PPrint (IExpr a) where
     pPrint d@PDReadable _ (ICon i (ICPrim _ p)) = text (show p)
     pPrint d@PDReadable _ (ICon i (ICIFace _ _ is)) = ppId d i <> text"{" <> sep (map (pPrint d 10) is) <> text "}"
     pPrint d@PDReadable _ (ICon i (ICLazyArray {})) = ppId d i <> text "[Array]"
+    -- distinguish held coercions from an application of the bare
+    -- primitive (they only ever print from diagnostics, so show the
+    -- payload ref too)
+    pPrint d@PDReadable _ (ICon i (ICLazyPack { lzOrig = o })) =
+        ppId d i <> text "[Held " <> pPrint d 0 o <> text "]"
+    pPrint d@PDReadable _ (ICon i (ICLazyUnpack { lzOrig = o })) =
+        ppId d i <> text "[Held " <> pPrint d 0 o <> text "]"
 --    pPrint d@PDReadable _ (ICon id con) = ppId d id <> text (": " ++ show con)
     pPrint d p (IVar i) = ppId d i -- <> text ":V"
     pPrint d p (ILAM i k e) = ppQuant "/\\ "  d p i k e

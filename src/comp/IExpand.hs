@@ -569,7 +569,8 @@ eqPtrs heap ptrs =
         heapOf p =
                 case (getHeapCell p) of
                 HNF { hc_pexpr = P _ e } -> e
-                e -> internalError ("eqPtrs.heapOf " ++ ppReadable e)
+                e -> internalError ("eqPtrs.heapOf: cell " ++ show p ++
+                                    " not in NF: " ++ ppReadable e)
         hptrs (IAps f _ es) = foldr (union . hptrs) [] (f:es)
         hptrs (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } }))
                             = foldr (union . hptrs) [] es
@@ -5635,6 +5636,17 @@ instance HeapToDef HExpr where
                     Just e -> (mapIExprPosition True (r, e))
                     Nothing -> internalError ("hToDef IRefT " ++ show p)
         in value
+    -- A held coercion surviving inline (not behind a heap ref, so not
+    -- caught by the heapOf HNF check) would otherwise pass through
+    -- silently and die far downstream (or never); fail here, where the
+    -- evaluator's invariant -- walkNF substitutes or materializes every
+    -- held node -- is supposed to hold
+    hToDef _ e@(ICon _ (ICLazyPack { })) =
+        internalError ("hToDef: held coercion escaped elaboration: " ++
+                       showTypeless e)
+    hToDef _ e@(ICon _ (ICLazyUnpack { })) =
+        internalError ("hToDef: held coercion escaped elaboration: " ++
+                       showTypeless e)
     hToDef m e = e
 
 instance HeapToDef HStateVar where
