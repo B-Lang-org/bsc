@@ -1,0 +1,31 @@
+package DynSelHold(Pair(..), Ifc(..), mkDynSelHold) where
+
+import Vector
+
+-- Elements of a dynamically-selected array can be held pack coercions
+-- (doDynSel's no-progress path re-heaps the evaluated elements into
+-- fresh array cells).  The residual PrimArrayDynSelect retains the
+-- array cells themselves, so walkNF must leave every reachable cell in
+-- NF at module output; a held cell left behind ICEd in eqPtrs.heapOf.
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  out :: Bit 8 {-# always_ready #-}
+
+{-# verilog mkDynSelHold #-}
+mkDynSelHold :: Module Ifc
+mkDynSelHold = module
+  idx :: Reg (UInt 3) <- mkReg 0
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  c :: Reg (Bit 4) <- mkReg 2
+  let mk1 = Pair { hi = a._read; lo = 0xF }
+      mk2 = Pair { hi = 0x3; lo = b._read }
+      mk3 = Pair { hi = c._read; lo = c._read }
+      vs :: Vector 3 (Bit 8)
+      vs = pack mk1 :> pack mk2 :> pack mk3 :> nil
+  interface Ifc
+    out = select vs idx._read

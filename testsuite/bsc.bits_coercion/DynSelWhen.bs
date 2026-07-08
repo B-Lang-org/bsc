@@ -1,0 +1,30 @@
+package DynSelWhen(Pair(..), Ifc(..), mkDynSelWhen) where
+
+import Vector
+
+-- A "when" guard over a dynamic selection whose array cells are held
+-- pack coercions: PrimWhen runs the guard through evalNF and then
+-- canLiftCond, which follows the array cells through a pure unheap
+-- that demands NF -- so the walk must have upd'd the held cells.
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  out :: Bit 8
+
+{-# verilog mkDynSelWhen #-}
+mkDynSelWhen :: Module Ifc
+mkDynSelWhen = module
+  idx :: Reg (UInt 3) <- mkReg 0
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  c :: Reg (Bit 4) <- mkReg 2
+  let mk1 = Pair { hi = a._read; lo = 0xF }
+      mk2 = Pair { hi = 0x3; lo = b._read }
+      mk3 = Pair { hi = c._read; lo = c._read }
+      vs :: Vector 3 (Bit 8)
+      vs = pack mk1 :> pack mk2 :> pack mk3 :> nil
+  interface Ifc
+    out = 0 when (select vs idx._read == 0xAA)

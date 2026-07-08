@@ -1,0 +1,38 @@
+package ImpCondMethodArg(Chunk(..), Inner(..), Ifc(..), mkInner, mkImpCondMethodArg) where
+
+import FIFO
+
+-- Negative control for the held-coercion getBuriedPreds arms:
+-- impCondOf of a METHOD CALL whose argument crosses a pack boundary
+-- must keep producing the full condition (the callee's RDY and the
+-- argument's own implicit condition).
+struct Chunk =
+  addr :: Bit 16
+  len  :: Bit 8
+ deriving (Bits)
+
+interface Inner =
+  tryEmit :: Chunk -> Action
+
+{-# verilog mkInner #-}
+mkInner :: Module Inner
+mkInner = module
+  ok :: Reg Bool <- mkReg False
+  cnt :: Reg (Bit 8) <- mkReg 0
+  interface Inner
+    tryEmit c = cnt := c.len when ok
+
+interface Ifc =
+  hasNext :: Bool {-# always_ready #-}
+
+{-# verilog mkImpCondMethodArg #-}
+mkImpCondMethodArg :: Module Ifc
+mkImpCondMethodArg = module
+  q :: FIFO Chunk <- mkFIFO
+  inner :: Inner <- mkInner
+  rules
+    "drain": when True ==> do
+      inner.tryEmit q.first
+      q.deq
+  interface Ifc
+    hasNext = impCondOf (inner.tryEmit q.first)

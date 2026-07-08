@@ -213,3 +213,44 @@ if { $vtest == 1 } {
     find_n_strings sysNormMuxMixedEager.v {$display("dst=%h", { 4'd0, dst[3:0] });} 1
     find_n_strings sysNormMuxMixedEager.v {$display("dst=%h", dst);} 0
 }
+
+# ---------------
+# Held coercions leaking through dynamic-selection array cells: the
+# residual PrimArrayDynSelect retains the array cells themselves, so
+# the walk must leave every reachable cell in NF.  These pin the
+# module-output path (eqPtrs), the when-guard path (PrimWhen ->
+# canLiftCond) and the rule-body if path (evalPTerm -> canLiftCond);
+# each ICEd when a walked held cell was left un-upd'd.
+compile_verilog_pass DynSelHold.bs mkDynSelHold
+compile_verilog_pass DynSelWhen.bs mkDynSelWhen
+compile_verilog_pass DynSelIfCond.bs mkDynSelIfCond
+
+# ---------------
+# impCondOf must see through held coercions: the payload's implicit
+# conditions are detached from the node at creation, so getBuriedPreds
+# recurses through the payload (struct fields and vector elements are
+# forced, as packing them would).  A blind fallback silently dropped
+# the condition (rdy became a constant 1).  The method-call form is
+# the negative control: its conditions come from the method-application
+# machinery, not from the held-coercion arms.
+compile_verilog_pass ImpCondHold.bs mkImpCondHold
+compile_verilog_pass ImpCondHoldVec.bs mkImpCondHoldVec
+compile_verilog_pass ImpCondMethodArg.bs mkImpCondMethodArg
+if { $vtest == 1 } {
+    find_n_strings mkImpCondHold.v {assign rdy = f$EMPTY_N ;} 1
+    find_n_strings mkImpCondHoldVec.v {assign rdy = f$EMPTY_N ;} 1
+    find_n_strings mkImpCondMethodArg.v {assign hasNext = inner$RDY_tryEmit && q$EMPTY_N ;} 1
+}
+
+# ---------------
+# Muxing a held coercion against a (policy-droppable) undefined value
+# keeps the held node instead of materializing the instance method for
+# the merge: the raw undefined default of the incomplete case at the
+# enum-like type is dropped, the two branches' held unpacks merge, and
+# the write-path pack cancels -- no ENTERED-* lines and a direct
+# raw-bits register mux.
+compile_verilog_pass NormEnumUndet.bs mkNormEnumUndet
+if { $vtest == 1 } {
+    find_n_strings NormEnumUndet.bs.bsc-vcomp-out {ENTERED} 0
+    find_n_strings mkNormEnumUndet.v {assign dst$D_IN = (sel == 2'd0) ? b1 : b2 ;} 1
+}

@@ -1,0 +1,25 @@
+package ImpCondHoldVec(Wrap(..), Ifc(..), mkImpCondHoldVec) where
+
+import Vector
+import FIFO
+
+-- impCondOf of a held pack whose payload is a struct containing a
+-- Vector: the buried condition sits two levels down (struct field ->
+-- array element), exercising the constructor and array traversal of
+-- getBuriedPreds.
+struct Wrap =
+  vals :: Vector 2 (Bit 4)
+  tag  :: Bit 2
+ deriving (Bits)
+
+interface Ifc =
+  rdy :: Bool {-# always_ready #-}
+
+{-# verilog mkImpCondHoldVec #-}
+mkImpCondHoldVec :: Module Ifc
+mkImpCondHoldVec = module
+  f :: FIFO (Bit 4) <- mkFIFO
+  rules
+    "deq": when True ==> f.deq
+  interface Ifc
+    rdy = impCondOf (pack (Wrap { vals = replicate f.first; tag = 1 }))
