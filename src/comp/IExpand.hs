@@ -33,6 +33,7 @@ import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,
 import System.FilePath(isRelative)
 import qualified Data.Array as Array
 import qualified Data.IntMap as IM
+import qualified Data.IntSet as IS
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Debug.Trace(traceM)
@@ -559,11 +560,29 @@ eqPtrs heap ptrs =
                 case (getHeapCell p) of
                 HNF { hc_pexpr = P _ e } -> e
                 e -> internalError ("eqPtrs.heapOf " ++ ppReadable e)
-        hptrs (IAps f _ es) = foldr (union . hptrs) [] (f:es)
-        hptrs (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } }))
-                            = foldr (union . hptrs) [] es
-        hptrs (IRefT _ p _) = [p]
-        hptrs _ = []
+        -- Collect the heap pointers referenced by a cell's expression,
+        -- in first-occurrence order.  The order matters: the tsort's
+        -- output order is sensitive to the edge order, and the def
+        -- order (and CSE representative choice) downstream follows it,
+        -- so this must visit exactly as the old quadratic
+        -- Data.List.union formulation did; an IntSet provides the
+        -- duplicate check.
+        hptrs e0 = reverse (snd (go e0 (IS.empty, [])))
+          where
+            go (IAps f _ es) acc = foldl (flip go) acc (f:es)
+            go (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } })) acc =
+                foldl (flip go) acc es
+            -- array elements are heap pointers hidden from expression
+            -- traversal (see the ArrayCell comment in ISyntax); without
+            -- this arm the tsort has no edges from a residual dynamic
+            -- selection to its element cells, and the CSE below can
+            -- never identify two selections over equal arrays
+            go (ICon _ (ICLazyArray _ arr _)) acc =
+                foldl (\a (ArrayCell p _) -> ins p a) acc (Array.elems arr)
+            go (IRefT _ p _) acc = ins p acc
+            go _ acc = acc
+            ins p acc@(s, xs) | p `IS.member` s = acc
+                              | otherwise       = (IS.insert p s, p : xs)
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
         ptrs' = case tSortInt g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
@@ -578,6 +597,19 @@ eqPtrs heap ptrs =
                         Nothing -> e
                         -- hd_ref errors because we don't use it once we have the iheap
                         Just i' -> IRefT t i' (internalError "eqPtrs ref")
+                    -- canonicalize array element pointers the same way,
+                    -- so that selections over CSE-equal arrays compare
+                    -- equal (cmpC compares arrays by ac_ptr); like the
+                    -- IRefT arm, this only affects the comparison key --
+                    -- emission goes through the pointer-translation map
+                    -- built by the caller, which translates the original
+                    -- pointers cell by cell
+                    sub (ICon i ic@(ICLazyArray { iArray = arr })) =
+                        let remap cell@(ArrayCell q _) =
+                                case IM.lookup q ptrm of
+                                  Nothing -> cell
+                                  Just q' -> ArrayCell q' (internalError "eqPtrs ref")
+                        in  ICon i (ic { iArray = fmap remap arr })
                     sub e = e
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
