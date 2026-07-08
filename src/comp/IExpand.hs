@@ -2629,23 +2629,33 @@ walkNF e =
                     internalError "walkNF array"
 
                 -- Squeeze out a held pack/unpack coercion by walking its
-                -- applied form.  Deliberately does NOT call upd: writing
-                -- the materialized result over the dispatched-on cell
-                -- would destroy the coercion for consumers that could
-                -- still cancel against it.  The cell stays HWHNF and
-                -- falls out of reachability once every consumer has been
-                -- walked or cancelled; sharing of the materialized form
-                -- lives in lzApplied's own cell, which the walkNF below
-                -- updates to HNF on the first walk (later walks are the
-                -- memoized-ref fast path).
+                -- applied form, and upd the dispatched-on cell with the
+                -- materialized result.  The upd is load-bearing: walked
+                -- structures can retain pointers to their sub-cells
+                -- rather than the walk's substituted results (the
+                -- PrimArrayDynSelect arm above keeps the original
+                -- ArrayCells), and later consumers of those cells demand
+                -- HNF (eqPtrs/pDef heapOf at module output,
+                -- canLiftCond' via unheapNFNoImpEvil during condition
+                -- lifting -- which cannot force a held node from its
+                -- pure context).  Leaving the cell HWHNF was an
+                -- optimization to keep it cancellable after the walk,
+                -- but a consumer that could still cancel would get the
+                -- materialized value instead -- exactly what its squeeze
+                -- would have produced, so only the cancellation QoR of
+                -- that narrow case is traded for the guarantee that a
+                -- walked cell is always HNF.  Sharing of the
+                -- materialized form lives in lzApplied's own cell, which
+                -- the walkNF below updates to HNF on the first walk
+                -- (later walks are the memoized-ref fast path).
                 (ICon _ (ICLazyPack { lzApplied = a })) -> do
                     _ <- evalUH a  -- force the applied cell to WHNF
                     (P pa a', ws) <- walkNF a
-                    return (P (pConj p0 pa) a', ws)
+                    upd (pConj p0 pa) a' ws
                 (ICon _ (ICLazyUnpack { lzApplied = a })) -> do
                     _ <- evalUH a
                     (P pa a', ws) <- walkNF a
-                    return (P (pConj p0 pa) a', ws)
+                    upd (pConj p0 pa) a' ws
 
                 -- any remaining constants, etc. cannot have a HWireSet attached
                 _ -> upd p0 e wsEmpty
