@@ -560,13 +560,20 @@ eqPtrs heap ptrs =
                 case (getHeapCell p) of
                 HNF { hc_pexpr = P _ e } -> e
                 e -> internalError ("eqPtrs.heapOf " ++ ppReadable e)
-        -- Collect the heap pointers referenced by a cell's expression,
-        -- in first-occurrence order.  The order matters: the tsort's
-        -- output order is sensitive to the edge order, and the def
-        -- order (and CSE representative choice) downstream follows it,
-        -- so this must visit exactly as the old quadratic
-        -- Data.List.union formulation did; an IntSet provides the
-        -- duplicate check.
+        -- Collect the heap pointers referenced by a cell's expression.
+        -- An IntSet provides the duplicate check (the old formulation
+        -- was quadratic in the number of references, via Data.List.union
+        -- per subexpression), but the result is kept in first-occurrence
+        -- order rather than IntSet (sorted) order: the tsort's output
+        -- order is sensitive to edge order, and the def order and
+        -- CSE-representative choice in the generated code follow it, so
+        -- first-occurrence order keeps this rewrite from reordering the
+        -- defs of every generated module.  Preserving the order is
+        -- essentially free -- versus dumping the set sorted, it costs
+        -- one extra membership test and one cons per pointer -- and is a
+        -- convenience, not a contract: nothing downstream is entitled to
+        -- a particular def order, so a future rewrite that has a reason
+        -- to reorder may.
         hptrs e0 = reverse (snd (go e0 (IS.empty, [])))
           where
             go (IAps f _ es) acc = foldl (flip go) acc (f:es)
