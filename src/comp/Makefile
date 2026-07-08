@@ -240,10 +240,11 @@ SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
 TCLEXES = bluetcl
-UTILEXES = bo2bloogle bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
+BO2BLOOGLEEXES = bo2bloogle
+UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
 SHOWRULESEXES = showrules
 
-EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
+EXES = $(BSCEXES) $(TCLEXES) $(BO2BLOOGLEEXES) $(UTILEXES) $(SHOWRULESEXES)
 
 .PHONY: all
 all: $(EXES)
@@ -382,7 +383,7 @@ endif
 # Install targets
 
 .PHONY: install
-install: $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
+install: $(BSCEXES) $(TCLEXES) $(BO2BLOOGLEEXES) install-bsc install-bluetcl install-bo2bloogle
 
 .PHONY: install-extra
 install-extra: $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
@@ -406,6 +407,11 @@ install-bsc: $(PKGINFO)
 install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
 install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
 install-bluetcl: $(PKGINFO)
+
+.PHONY: install-bo2bloogle
+install-bo2bloogle: $(addprefix $(BINDIR)/,$(BO2BLOOGLEEXES))
+install-bo2bloogle: $(addprefix $(BINDIR)/core/,$(BO2BLOOGLEEXES))
+install-bo2bloogle: $(PKGINFO)
 
 .PHONY: install-utils
 install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
