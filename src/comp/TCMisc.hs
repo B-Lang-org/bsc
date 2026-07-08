@@ -29,6 +29,7 @@ import Id
 import Error(internalError, EMsg, ErrMsg(..))
 import Flags(Flags, useProvisoSAT)
 import Type
+import TypeOps(isPrimTFunName)
 import Subst
 import Assump
 import Scheme
@@ -588,13 +589,16 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     (Just pc, Just ic) -> pc == ic
                     _ -> True
                 | (False, pt, it) <- zip3 bs pred_ts inst_ts ]
-            -- Extract head TyCon Id only if it's not a type synonym or ATF
-            -- (those could expand to match anything)
+            -- Extract head TyCon Id only if it's not a type synonym, ATF,
+            -- or primitive type function (those could expand/evaluate to
+            -- match anything, so a head mismatch is not a clash)
             leftNonSynTyCon t =
                 case leftTyCon t of
                     Just (TyCon _ _ (TItype {})) -> Nothing  -- synonym
                     Just (TyCon _ _ (TIatf {}))  -> Nothing  -- ATF
-                    Just (TyCon i _ _)           -> Just i
+                    Just (TyCon i _ _)
+                        | isPrimTFunName i       -> Nothing  -- TAdd etc.
+                        | otherwise              -> Just i
                     _                            -> Nothing
 
         f :: Bool -> [Inst] -> TI (Maybe ([VPred], SolvedBind, Subst, Maybe Pred, Maybe Id))

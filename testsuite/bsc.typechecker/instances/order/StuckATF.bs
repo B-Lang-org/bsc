@@ -1,0 +1,20 @@
+package StuckATF where
+
+-- A pred whose input-position argument is a stuck associated type
+-- function: NPick (SizeOf a) with a rigid and no (Bits a n) given, so
+-- normT cannot expand SizeOf a.  The trie probe for the pred must treat
+-- the ATF head as Free: probing a Con(SizeOf) branch hides NPick 1, so
+-- the catch-all instance matches with no incoherence flag and is
+-- committed as if coherent.
+
+class NPick n where
+    npick :: Bit n -> Bit 8
+
+instance NPick 1 where
+    npick _ = 1
+
+instance NPick n where
+    npick _ = 2
+
+noBits :: a -> Bit 8
+noBits _ = npick (0 :: Bit (SizeOf a))
