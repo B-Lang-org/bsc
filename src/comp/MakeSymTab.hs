@@ -916,15 +916,18 @@ genBss vs fds = [ map (`elem` rs) vs | (_, rs) <- fds ]
 
 -- Check for overlap errors using the shared instance trie.
 -- Variable positions in the instance key become Free in the probe query
--- so cross-branch overlaps are correctly found.  j /= i avoids self-comparison.
-overlapErrors :: [[Bool]] -> [(Int, QInst, Inst)] -> PredTrie (Int, QInst, Inst) -> [EMsg]
-overlapErrors bss tagged trie = nub errs
+-- so cross-branch overlaps are correctly found.  j > i avoids self-comparison
+-- and processes each unordered pair only once, in the canonical (low, high)
+-- direction that the memo table (see getCls) stores.
+overlapErrors :: (Int -> Int -> Either EMsg (Maybe Ordering)) ->
+                 [(Int, QInst, Inst)] -> PredTrie (Int, QInst, Inst) -> [EMsg]
+overlapErrors pairCmp tagged trie = nub errs
   where
     probeQuery (_, _, Inst _ _ (_ :=> p) _) = overlapProbeQuery p
-    errs = [ e | item@(i, qi, _) <- tagged
-               , (j, qj, _)      <- lookupPredTrie (probeQuery item) trie
-               , j > i           -- process each unordered pair only once
-               , Left e          <- [cmpQInsts bss qi qj] ]
+    errs = [ e | item@(i, _, _) <- tagged
+               , (j, _, _)      <- lookupPredTrie (probeQuery item) trie
+               , j > i
+               , Left e         <- [pairCmp i j] ]
 
 -- ---------------
 
@@ -980,17 +983,54 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
                 -- identity for the overlap self-check; QInst is needed by
                 -- cmpQInsts; Inst is what genInsts returns.
                 tagged = zip3 [0 :: Int ..] qinsts all_insts
-                -- cmpQInsts freshens type variables before comparing, so
-                -- specificity is correctly detected even when instances share
-                -- variable names (e.g. both use 'a' and 'b').
-                cmpForSort (_, qi1, _) (_, qi2, _) =
-                    case cmpQInsts bss qi1 qi2 of
-                        Right (Just LT) -> LT  -- qi1 more specific, try first
-                        Right (Just GT) -> GT  -- qi1 less specific, try last
-                        _               -> EQ
-                trie   = buildPredTrie cmpForSort
+                -- Pairwise instance comparisons, memoized in a lazy Map
+                -- keyed on the canonical (low, high) index pair, so that
+                -- the overlap check and the leaf sort below each force a
+                -- given pair's cmpQInsts at most once between them.
+                -- (cmpQInsts freshens type variables before comparing, so
+                -- specificity is correctly detected even when instances
+                -- share variable names.)
+                cmpMemo = M.fromList
+                    [ ((i, j), cmpQInsts bss qi qj)
+                      | ((i, qi, _) : rest) <- tails tagged
+                      , (j, qj, _) <- rest ]
+                pairCmp i j
+                  | i == j = internalError "MakeSymTab.getCls: pairCmp i i"
+                  | i < j = find_cmp (i, j)
+                  | otherwise = fmap (fmap flipOrd) (find_cmp (j, i))
+                  where find_cmp k = fromJustOrErr "MakeSymTab.getCls: pairCmp"
+                                         (M.lookup k cmpMemo)
+                        flipOrd LT = GT
+                        flipOrd GT = LT
+                        flipOrd EQ = EQ
+                -- Order each trie leaf most-specific-first.  cmpQInsts
+                -- yields only a partial order: non-overlapping instances
+                -- are incomparable.  A comparison sort is not sound for a
+                -- partial order — an incomparable instance between two
+                -- comparable ones can keep the sort from ever comparing
+                -- them, leaving a less-specific instance ahead of a
+                -- strictly-more-specific one (which byInst would then
+                -- select, with no incoherence flagged).  So topologically
+                -- sort the strict specificity edges, as getQInstsLegacy
+                -- does for the whole instance list.  Instances share a
+                -- leaf only when they agree on the head constructor at
+                -- every pure-input position, and the leaf's pairs have
+                -- already been compared by the overlap check, so this
+                -- costs no additional cmpQInsts calls.
+                sortLeaf items@(_:_:_) =
+                    let g = [ (i, [ j | (j, _, _) <- items, i /= j,
+                                        pairCmp j i == Right (Just LT) ])
+                            | (i, _, _) <- items ]
+                        im = M.fromList [ (idx, item) | item@(idx, _, _) <- items ]
+                    in  case tsort g of
+                          Right is -> [ im M.! i | i <- is ]
+                          Left cycles ->
+                              internalError ("MakeSymTab.sortLeaf cycles? " ++
+                                             ppReadable cycles)
+                sortLeaf items = items
+                trie   = buildPredTrie sortLeaf
                              (\(_, _, Inst _ _ (_ :=> p) _) -> p) tagged
-                errs   = overlapErrors bss tagged trie
+                errs   = overlapErrors pairCmp tagged trie
                 -- S.empty suppresses Bound: for overlapping classes like
                 -- AppendTuple''/Has_tpl_n, a non-matching concrete instance
                 -- must be visible to trigger the incoherent path in
