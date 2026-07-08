@@ -4739,6 +4739,25 @@ improveIf f t cnd thn@(ICon i1 n1@(ICLazyUnpack { lzTa = ta1, lzTn = tn1,
        o' <- toHeapWHNF "improve-if-held" (aitBit tn1) (P pTrue (IAps f [aitBit tn1] [cnd, o1, o2])) Nothing
        a' <- toHeapCon "improve-if-held" t (IAps f [t] [cnd, a1, a2]) Nothing
        return (ICon i1 (n1 { lzOrig = o', lzApplied = a' }), True)
+-- Muxing a held coercion against an undefined value drops the undefined
+-- side and keeps the held node, subject to the same improveIfUndet
+-- policy as the general undefined-dropping clauses at the end of this
+-- function.  These clauses must come BEFORE the squeeze clauses below:
+-- a held node reaching the squeeze would forcibly materialize the
+-- instance method -- destroying the cancellability of exactly the
+-- residue this feature exists to remove -- only to then merge with an
+-- undefined value that the policy says can simply be dropped.  When the
+-- policy refuses the drop (a user-written don't-care, or a Bit-typed
+-- mux, i.e. a held pack), fall through to the squeeze clauses as
+-- before.
+improveIf f t cnd thn els@(ICon _ (ICUndet { iuKind = u }))
+    | isHeldCoercion thn, improveIfUndet u t = do
+  when doTraceIf $ traceM ("improveIf held/Undet (els) triggered " ++ ppReadable (cnd, thn, els))
+  return (thn, True)
+improveIf f t cnd thn@(ICon _ (ICUndet { iuKind = u })) els
+    | isHeldCoercion els, improveIfUndet u t = do
+  when doTraceIf $ traceM ("improveIf held/Undet (thn) triggered " ++ ppReadable (cnd, thn, els))
+  return (els, True)
 -- Squeeze a held pack/unpack coercion in either branch, so that it can
 -- merge with the other branch's structure.  Without this, a conditional
 -- update chain over an unpacked register (v' = if c then upd(v) else v,
@@ -4973,6 +4992,11 @@ improveIfUndet _         t | isSimpleType t = True
 improveIfUndet UDontCare _ = False
 -- Removing undefined bits gets in the way of pack . unpack optimization
 improveIfUndet _         t = not $ isBitType t
+
+isHeldCoercion :: HExpr -> Bool
+isHeldCoercion (ICon _ (ICLazyPack { }))   = True
+isHeldCoercion (ICon _ (ICLazyUnpack { })) = True
+isHeldCoercion _                           = False
 
 -- simplify evaluated dyn-sel expressions, not just to reduce the order of
 -- growth of elaboration, but also to avoid triggering elaboration errors
