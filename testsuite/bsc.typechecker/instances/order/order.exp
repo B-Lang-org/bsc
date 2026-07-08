@@ -2,25 +2,42 @@
 # context reduction (most-specific-first), in corners where the
 # instance trie's ordering or probing could disagree with the
 # legacy all-pairs index.
+#
+# The trie and legacy variants must recompile from source (not reuse a
+# .bo produced by the other variant, which would bake in that variant's
+# instance choice), so the .bo is erased between variants.
 
 # Three instances share one trie leaf; the middle one overlaps neither
 # of the others, so specificity is only a partial order on the leaf.
 # A fully concrete call must select the most specific instance (3),
-# not the declaration-first catch-all (1).
+# not the declaration-first catch-all (1).  Before the per-leaf
+# topological sort, the trie leaf kept declaration order here (the
+# comparison sort never compares the first and last instances) and the
+# catch-all was selected; the legacy index has always ordered this
+# correctly, so only the default variant exposed the bug.
 test_c_veri LeafOrder sysLeafOrder.out.expected
+erase LeafOrder.bo
 # Legacy instance index must produce identical output.
 test_c_veri_bs_modules_options LeafOrder {} {-legacy-inst-index} sysLeafOrder.out.expected
 
 # An instance head containing a primitive numeric type function (TAdd)
 # unifies with a numeric-literal head, so the pair overlaps without being
 # orderable and must be rejected, under both index implementations.
+# Before TAdd-headed instances were keyed into the catch-all branch, the
+# trie's overlap probes missed the pair and the default variant compiled
+# silently; the legacy all-pairs check has always rejected it.
 compile_fail_error TFunHead.bs T0128
+erase TFunHead.bo
 compile_fail_error TFunHead.bs T0128 1 {-legacy-inst-index}
 
-# A pred with a stuck associated-type-function head (NPick (SizeOf a),
-# with a rigid and no Bits given) must probe every trie branch: NPick 1
-# is unifiable with the pred, so the catch-all match is incoherent and
-# must be deferred and reported, not silently committed.  The expected
-# output pins that NPick appears among the needed contexts.
+# A pred with a stuck associated-type-function head must probe every
+# trie branch, so that unifiable instances (NPick 1 vs NPick (SizeOf a))
+# remain visible to incoherence detection.  This pins the invariant
+# rather than exposing a live bug: every current surface-syntax inlet
+# (signatures, annotations, data fields, instance heads, synonyms)
+# expands ATF applications into class contexts at conversion, so the
+# pred reaches the probe as NPick a__ with a fresh variable.  The pin
+# guards the probe behavior for any future path that skips one of
+# those expansion gates (as mkVPredFromPred already does).
 compile_fail StuckATF.bs
 compare_file StuckATF.bs.bsc-out

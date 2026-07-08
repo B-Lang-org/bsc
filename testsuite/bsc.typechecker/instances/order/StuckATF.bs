@@ -1,11 +1,21 @@
 package StuckATF where
 
--- A pred whose input-position argument is a stuck associated type
--- function: NPick (SizeOf a) with a rigid and no (Bits a n) given, so
--- normT cannot expand SizeOf a.  The trie probe for the pred must treat
--- the ATF head as Free: probing a Con(SizeOf) branch hides NPick 1, so
--- the catch-all instance matches with no incoherence flag and is
--- committed as if coherent.
+-- Pin the treatment of a pred over a stuck associated type function:
+-- NPick at type SizeOf a, with a rigid and no (Bits a n) given.  The
+-- ATF cannot expand, and the instance-trie probe must see ALL NPick
+-- instances: NPick 1 is unifiable with the pred, so the catch-all
+-- match is incoherent and must be deferred and reported (this file's
+-- expected output pins NPick among the needed contexts), never
+-- silently committed as coherent.
+--
+-- Note this pins an invariant rather than a reachable bug: signature
+-- conversion expands the ATF into a (Bits a n) context and a fresh
+-- variable, so the pred reaches the instance probe as NPick n, not
+-- NPick (SizeOf a) -- as do all other current surface inlets
+-- (annotations, data fields, instance heads, synonyms).  The pin
+-- guards the probe for any internal path that skips an expansion
+-- gate, where a Con-keyed ATF probe would hide NPick 1 and certify
+-- the catch-all as coherent.
 
 class NPick n where
     npick :: Bit n -> Bit 8
