@@ -1,0 +1,25 @@
+package ImpCondHold(Pair(..), Ifc(..), mkImpCondHold) where
+
+import FIFO
+
+-- impCondOf of a VALUE-LEVEL held pack: the payload's implicit
+-- condition (FIFO nonempty, from f.first) is deliberately detached
+-- from the held node at creation, so getBuriedPreds must look through
+-- the node (via its payload) to recover it.  A blind fallback
+-- silently dropped the condition (rdy became a constant 1).
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  rdy :: Bool {-# always_ready #-}
+
+{-# verilog mkImpCondHold #-}
+mkImpCondHold :: Module Ifc
+mkImpCondHold = module
+  f :: FIFO (Bit 4) <- mkFIFO
+  rules
+    "deq": when True ==> f.deq
+  interface Ifc
+    rdy = impCondOf (pack (Pair { hi = f.first; lo = f.first }))
