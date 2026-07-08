@@ -464,10 +464,37 @@ checkNoTypeFunInHead errh r mi clsId args =
             | otherwise = []
         findTypeFun (TAp f a) = findTypeFun f ++ findTypeFun a
         findTypeFun _ = []
+        -- A type function can also be hidden behind a type synonym.
+        -- Expand each saturated synonym application and reject any type
+        -- function application in it that mentions a type variable (or
+        -- is not fully applied): such an application can neither be
+        -- reduced away nor used for instance matching.  Ground
+        -- applications are left alone; context reduction expands and
+        -- reduces them to a concrete type (Bug 1729, GitHub issue #311;
+        -- see ExpSizeOf_InstancesBaseSyn in the testsuite).  The error
+        -- is reported at the position of the synonym use.
+        synArity i | Just (TypeInfo { ti_sort = TItype n _ }) <- findType r i = Just n
+                   | otherwise = Nothing
+        findSynTypeFun t =
+            case splitTAp t of
+              (TCon (TyCon i _ _), as)
+                | Just n <- synArity i, toInteger (length as) >= n ->
+                    [ (getPosition i, tf)
+                    | tf <- varTypeFuns (expandSyn (updTypes r t)) ]
+              (_, as) -> concatMap findSynTypeFun as
+        varTypeFuns t =
+            case splitTAp t of
+              (TCon (TyCon i _ (TIatf { atf_param_idxs = pIdxs })), as)
+                | length as /= length pIdxs || not (null (tv as)) ->
+                    i : concatMap varTypeFuns as
+              (_, as) -> concatMap varTypeFuns as
         -- Only check non-determined positions
         nonDetArgs = [ arg | (idx, arg) <- zip [0..] args
                      , not (S.member idx determinedIdxs) ]
-        found = concatMap findTypeFun nonDetArgs
+        checkArg a = case findTypeFun a of
+                       [] -> findSynTypeFun a
+                       ds -> ds
+        found = concatMap checkArg nonDetArgs
     in if null found then ()
        else bsErrorUnsafe errh
                 [ (pos, EATFInInstanceHead (pfpString tfId))

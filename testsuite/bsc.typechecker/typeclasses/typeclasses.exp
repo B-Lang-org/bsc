@@ -86,6 +86,8 @@ compile_pass ATFImported.bs
 compile_pass ATFUnify.bs
 compile_pass ATFUnifyHK.bs
 compile_pass ATFInInstHeadDetermined.bs
+compile_pass ATFInInstHeadDeterminedSynonym.bs
+compile_pass ATFInInstHeadSynonymGround.bs
 compile_pass ATFInjective.bs
 compile_pass ATFFieldAccess.bs
 compile_pass ATFPartialApp.bs
@@ -132,6 +134,11 @@ compile_fail_error ATFInInstHead.bs T0156
 compare_file ATFInInstHead.bs.bsc-out
 compile_fail_error ATFInInstHeadBiDirectional.bs T0156
 compare_file ATFInInstHeadBiDirectional.bs.bsc-out
+# Same checks with the type function hidden behind a type synonym
+compile_fail_error ATFInInstHeadSynonym.bs T0156
+compare_file ATFInInstHeadSynonym.bs.bsc-out
+compile_fail_error ATFInInstHeadSynonymElsewhere.bs T0156
+compare_file ATFInInstHeadSynonymElsewhere.bs.bsc-out
 compile_fail_error ATFResultNotDetermined.bs T0155
 compare_file ATFResultNotDetermined.bs.bsc-out
 compile_fail_error ATFUnifyError.bs T0030

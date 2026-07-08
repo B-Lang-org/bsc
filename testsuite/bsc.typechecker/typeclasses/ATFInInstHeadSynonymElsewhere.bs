@@ -1,0 +1,21 @@
+package ATFInInstHeadSynonymElsewhere where
+
+-- Like ATFInInstHeadSynonym, but the type function's argument also
+-- appears elsewhere in the instance head.  Before the check saw
+-- through synonyms, this form was silently accepted (the head was
+-- rewritten by instance-head expansion), while the directly-written
+-- form was rejected with T0156.  Both must be rejected identically.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+type ElemSyn f = Elem f
+
+data Pair a b = Pair a b
+
+class Foo a where
+  foo :: a -> Bool
+
+instance Foo (Pair f (ElemSyn f)) where
+  foo _ = True

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFInInstHeadSynonym.bs
+Error: "ATFInInstHeadSynonym.bs", line 18, column 14: (T0156)
+  Type function `ATFInInstHeadSynonym.Elem' cannot be used in an instance head

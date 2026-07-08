@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ATFInInstHeadSynonymElsewhere.bs
+Error: "ATFInInstHeadSynonymElsewhere.bs", line 20, column 22: (T0156)
+  Type function `ATFInInstHeadSynonymElsewhere.Elem' cannot be used in an
+  instance head

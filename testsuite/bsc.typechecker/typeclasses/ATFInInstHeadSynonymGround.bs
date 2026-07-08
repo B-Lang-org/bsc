@@ -1,0 +1,24 @@
+package ATFInInstHeadSynonymGround where
+
+-- A type function hidden behind a type synonym in an instance head is
+-- allowed when its application is ground: context reduction expands
+-- and reduces it to a concrete type (here Elem (Box Integer) reduces
+-- to Integer).  Same behavior as ExpSizeOf_InstancesBaseSyn (Bug 1729,
+-- GitHub issue #311), with a user-defined ATF.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+type ElemSyn f = Elem f
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  wrap = Box
+
+class Foo a where
+  foo :: a -> Bool
+
+instance Foo (ElemSyn (Box Integer)) where
+  foo _ = True
