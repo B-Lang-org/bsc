@@ -4428,6 +4428,40 @@ getBuriedPreds (IAps ic@(ICon i_sel (ICSel { })) ts1 [e])
     | (i_sel == idAVValue_ || i_sel == idAVAction_) = do
   --traceM("getBuriedPreds: AV sel")
   getBuriedPreds e
+-- Struct and union constructions are lazy (their conAp' arms do not
+-- force the arguments), so implicit conditions can still be buried in
+-- unevaluated field cells, which the IRefT arm above cannot unheap.
+-- Force each field to WHNF and recurse; the constructor itself adds no
+-- implicit condition.  This is reached through the held-coercion arms
+-- below: a held pack's payload is exactly such a raw construction.
+getBuriedPreds (IAps (ICon _ (ICTuple { })) _ es) = getBuriedPredsForced es
+getBuriedPreds (IAps (ICon _ (ICCon { })) _ es) = getBuriedPredsForced es
+-- Held pack/unpack coercions detach their payload's implicit
+-- conditions at creation (see the PrimPack/PrimUnpack hold arms in
+-- conAp'): the conditions live in the payload's heap cell and
+-- re-surface when the coercion is forced or cancelled.  This function
+-- is a third kind of consumer -- it neither forces nor cancels -- so it
+-- must look through the node itself.  Recurse through the payload
+-- (lzOrig), where the buried conditions live; forcing lzApplied would
+-- surface the same conditions, but at the cost of materializing the
+-- instance method.  A lawful pack is strict in the whole payload (it
+-- produces all of the bits), so no conditioning of the payload's
+-- conditions is needed.
+getBuriedPreds (ICon _ (ICLazyPack { lzOrig = o })) = getBuriedPredsForced [o]
+getBuriedPreds (ICon _ (ICLazyUnpack { lzOrig = o })) = getBuriedPredsForced [o]
+-- An unselected array can likewise bury conditions in its element
+-- cells (a held pack's payload can be a Vector, whose pack instance is
+-- strict in every element)
+getBuriedPreds (ICon _ (ICLazyArray arr_ty arr u)) =
+  if (isJust u)
+    then return pTrue
+    else do
+      let elem_ty = case arr_ty of
+                      (ITAp c t) | (c == itPrimArray) -> t
+                      _ -> internalError ("getBuriedPreds: array type: " ++
+                                          ppReadable arr_ty)
+          mkRef (ArrayCell p r) = IRefT elem_ty p r
+      getBuriedPredsForced (map mkRef (Array.elems arr))
 getBuriedPreds e@(ICon _ _) = do
   --traceM("getBuriedPreds: con: e = " ++ ppReadable e ++ show e)
   return pTrue
@@ -4437,6 +4471,18 @@ getBuriedPreds e@(ICon _ _) = do
 getBuriedPreds e = do
   --traceM("getBuriedPreds: other: e = " ++ ppReadable e ++ show e)
   return pTrue
+
+-- Force each expression to WHNF -- surfacing the implicit condition
+-- recorded in its heap cell, which "unheap" alone cannot do for a cell
+-- that is still unevaluated -- and collect the buried conditions of
+-- the results
+getBuriedPredsForced :: [HExpr] -> G HPred
+getBuriedPredsForced es = do
+  let f e = do (_, P p e') <- evalUH e
+               p' <- getBuriedPreds e'
+               return (pConj p p')
+  ps <- mapM f es
+  return (pConjs ps)
 
 {-
 -- Quick utility for printing the refs in an HPred or HExpr,
