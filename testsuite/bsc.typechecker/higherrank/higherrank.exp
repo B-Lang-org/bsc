@@ -17,3 +17,20 @@ compare_file UninitializedStruct.bs.bsc-vcomp-out
 
 # We can still piecewise-define members of a higher-rank member of a struct
 test_c_veri_bsv UninitializedStructBSV
+
+# Skolemization pins for polymorphic fields: a field value that forces
+# the field's quantified variable to a concrete type, to another
+# quantified variable, or to a rigid variable of the enclosing
+# signature must be rejected at the offending expression.
+compile_fail_error HRBadRet.bs T0020
+compile_fail_error HRConfuse.bs T0020
+compile_fail_error HREscape.bs T0020
+
+# A proviso'd polymorphic field: the field's given discharges the
+# body's wanted at construction, and selection instantiates freshly
+# at each use.
+compile_pass HRProviso.bs
+
+# Struct update re-checks the new value against the field's scheme;
+# the updated value still instantiates at two different types.
+compile_pass HRUpdate.bs
