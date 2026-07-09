@@ -34,3 +34,8 @@ compile_pass HRProviso.bs
 # Struct update re-checks the new value against the field's scheme;
 # the updated value still instantiates at two different types.
 compile_pass HRUpdate.bs
+
+# An outward escape through an enclosing METAVARIABLE (an unannotated
+# binder): previously accepted and failed as an elaboration internal
+# error; the scope check reports it at the field.
+compile_fail_error HREscape2.bs T0161
