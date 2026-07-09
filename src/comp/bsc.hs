@@ -80,7 +80,8 @@ import Pragma
 import VModInfo(VPathInfo, VPort)
 import Deriving(derive)
 import SymTab
-import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
+import MakeSymTab(mkSymTab, mkSymTabWithWarnings, cConvInst,
+                  getPackagesUsedInTypes)
 import TypeCheck(cCtxReduceIO, cTypeCheck)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
@@ -368,7 +369,7 @@ compilePackage
     -- symbols.
     --
     start flags DFsyminitial
-    symt00 <- mkSymTab errh mop
+    symt00 <- mkSymTabWithWarnings errh mop
     t <- dump errh flags t DFsyminitial dumpnames symt00
 
     -- whether we are doing code generation for modules
