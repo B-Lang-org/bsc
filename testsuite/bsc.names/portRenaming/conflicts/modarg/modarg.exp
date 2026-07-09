@@ -44,3 +44,15 @@ compile_verilog_fail_error ModargInoutRename.bsv G0107
 
 # ----------
 
+# Test for conflicts between method ports and the ports of input clock
+# and reset arguments (derived, renamed, and gate port names) and of the
+# implicit default clock and reset
+
+compile_verilog_fail_error InputClockMethod.bsv G0107
+compile_verilog_fail_error InputClockRenameMethod.bsv G0107
+compile_verilog_fail_error InputGateMethod.bsv G0107
+compile_verilog_fail_error InputResetMethod.bsv G0107
+compile_verilog_fail_error DefaultClockMethod.bsv G0107
+compile_verilog_fail_error DefaultResetMethod.bsv G0107
+
+# ----------

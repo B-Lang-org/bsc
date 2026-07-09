@@ -1,7 +1,8 @@
 {-# LANGUAGE CPP #-}
 module SimExpand ( simExpand, simExpandSched, simCheckPackage ) where
 
-import Data.Maybe (isNothing, isJust, catMaybes, mapMaybe, maybeToList)
+import Data.Maybe (isNothing, isJust, catMaybes, mapMaybe, maybeToList,
+                   fromMaybe, listToMaybe)
 import Data.List (partition, union, nub, sort, sortBy, delete)
 import Control.Monad (when, guard, msum {-, mapM_ -})
 import Debug.Trace
@@ -25,7 +26,8 @@ import Id (mkId,
            mkIdTempReturn)
 import VModInfo
 import Wires(WireProps(..), ClockDomain)
-import Pragma(PProp(..), isAlwaysEn, isEnWhenRdy, RulePragma(..))
+import Pragma(PProp(..), isAlwaysEn, isEnWhenRdy, RulePragma(..),
+              getDefaultClockArg, getDefaultResetArg)
 import ASyntax
 import ASyntaxUtil(aSubst, findAExprs, exprFold)
 import AScheduleInfo
@@ -93,17 +95,39 @@ simExpand errh flags topname fabis = do
     let pkg_map = M.fromList (map (\p -> (sp_name p,p)) simpkgs)
 
     -- record default clock and reset for top module
-    let def_clk = msum $ [ lookup idDefaultClock xs
-                         | (PPclock_osc xs) <- (abmi_pps topModInfo)
-                         ] ++
-                         [Just "CLK"]
+    -- (when an argument is designated as the default clock/reset, its
+    -- port serves as the top-level default clock/reset)
+    let top_pps = abmi_pps topModInfo
+        arg_port_name prefix rename_lookups arg =
+            let base = getIdBaseString arg
+                m_name = msum [ lookup arg xs | xs <- rename_lookups ]
+                dflt = if (null prefix) then base else (prefix ++ "_" ++ base)
+            in  fromMaybe dflt m_name
+        def_clk = case (getDefaultClockArg top_pps) of
+                    Just arg ->
+                        let prefix = fromMaybe "CLK" $
+                                       listToMaybe [ s | PPCLK s <- top_pps ]
+                            renames = [ xs | PPclock_osc xs <- top_pps ]
+                        in  Just (arg_port_name prefix renames arg)
+                    Nothing ->
+                        msum $ [ lookup idDefaultClock xs
+                               | (PPclock_osc xs) <- top_pps
+                               ] ++
+                               [Just "CLK"]
         top_clk = do x <- def_clk
                      guard (not (null x))
                      return x
-        def_rst = msum $ [ lookup idDefaultReset xs
-                         | (PPreset_port xs) <- (abmi_pps topModInfo)
-                         ] ++
-                         [Just "RSTN"]
+        def_rst = case (getDefaultResetArg top_pps) of
+                    Just arg ->
+                        let prefix = fromMaybe (resetName flags) $
+                                       listToMaybe [ s | PPRSTN s <- top_pps ]
+                            renames = [ xs | PPreset_port xs <- top_pps ]
+                        in  Just (arg_port_name prefix renames arg)
+                    Nothing ->
+                        msum $ [ lookup idDefaultReset xs
+                               | (PPreset_port xs) <- top_pps
+                               ] ++
+                               [Just "RSTN"]
         top_rst = do x <- def_rst
                      guard (not (null x))
                      return x

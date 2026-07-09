@@ -1,0 +1,12 @@
+package DoubleDefaultReset where
+
+-- Error: multiple default_reset properties
+
+{-# synthesize sysDoubleDefaultReset {
+     default_reset = "RSTA",
+     default_reset = "RSTB" } #-}
+sysDoubleDefaultReset :: (IsModule m mType) => m Empty
+sysDoubleDefaultReset = module
+  r :: Reg (UInt 8) <- mkReg 0
+  rules
+    "r_tick": when True ==> r := r + 1

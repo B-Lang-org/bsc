@@ -629,6 +629,12 @@ pPragma = l L_lpragma ..+ pPragma'  +.. l L_rpragma
                     ||! literal (mkFString "parameter") ..+ var >>- PPparam . (\i -> [i])
                     ||! literal (mkFString "no_default_clock") .> PPclock_osc  [(idDefaultClock,"")]
                     ||! literal (mkFString "no_default_reset") .> PPreset_port [(idDefaultReset,"")]
+                    -- the value names a Clock/Reset argument of the module,
+                    -- to be designated as the module's default clock/reset
+                    ||! literal (mkFString "default_clock") ..+ eq ..+ varcon >>- PPdefault_clock_arg
+                    ||! literal (mkFString "default_reset") ..+ eq ..+ varcon >>- PPdefault_reset_arg
+                    -- the value is a port name for the implicit default reset
+                    ||! literal (mkFString "default_reset_port") ..+ eq ..+ varcon >>- (\i -> PPreset_port [(setIdPosition (getIdPosition i) idDefaultReset, getIdString i)])
                     ||! literal (mkFString "gate_input_clocks") ..+ eq ..+ l L_lcurl ..+ sepBy varcon cm +.. l L_rcurl >>- PPgate_input_clocks
                     ||! literal (mkFString "clock_family") ..+ eq ..+ l L_lcurl ..+ sepBy varcon cm +.. l L_rcurl >>- PPclock_family
                     ||! literal (mkFString "clock_prefix") ..+ eq ..+ varString >>- PPCLK

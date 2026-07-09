@@ -693,6 +693,7 @@ data ErrMsg =
         | ESVPNoClosingParen String
         | ESVPNoId String
         | ENotUTF8
+        | EDefaultResetNoSuchArg String  -- ^ value of the default_reset attr
 
         -- Type checker and static elaboration errors
 
@@ -1003,6 +1004,8 @@ data ErrMsg =
         | WRuleUndetPred Bool String [Position]
         | WMethodNeverReady String
         | WNoScheduleDump String [String]
+        | WRuleNoDefaultClock String
+        | WMethodNoDefaultClock String
 
         | WMethodAnnotChange String String [String]
         | WSATNotAvailable String String (Maybe String)
@@ -1727,7 +1730,7 @@ getErrorText (EEmptyPrefixNoPortName s)
   | s == "default_clock" =
     (Parse 177, empty, s2par ("The default clock must be given a name if no prefix is used.  Either remove the empty clock_prefix/gate_prefix, use default_clock_osc/default_clock_gate to provide a port name, or use no_default_clock to remove the port entirely."))
   | s == "default_reset" =
-    (Parse 177, empty, s2par ("The default reset must be given a name if no prefix is used.  Either remove the empty reset_prefix, use default_reset to provide a port name, or use no_default_reset to remove the port entirely."))
+    (Parse 177, empty, s2par ("The default reset must be given a name if no prefix is used.  Either remove the empty reset_prefix, use default_reset_port to provide a port name, or use no_default_reset to remove the port entirely."))
   | otherwise =
     (Parse 177, empty, s2par (s ++ " must be given a name if no prefix is used."))
 getErrorText (EConflictingGateAttr s) =
@@ -1891,6 +1894,12 @@ getErrorText (WUnusedDef i) =
      s2par ("Definition of " ++ quote i ++ " is not used."))
 getErrorText ENotUTF8 =
     (Parse 224, empty, s2par "File encoding is not UTF-8")
+getErrorText (EDefaultResetNoSuchArg name) =
+    (Parse 225, empty,
+     s2par ("The module argument " ++ quote name ++ " named in the " ++
+            "default_reset attribute does not exist.  If the intent was " ++
+            "to provide a port name for the implicit default reset, use " ++
+            "the " ++ quote "default_reset_port" ++ " attribute instead."))
 
 -- Type check and elaboration errors
 
@@ -3991,6 +4000,28 @@ getErrorText (WRuleUndetPred is_meth rule poss) =
               s2par ("Don't-care values were introduced at the following positions:") $$
               nest 4 (vcat (map (text . prPosition) poss))
     )
+
+getErrorText (WRuleNoDefaultClock rule) =
+    (Generate 129, empty,
+     s2par ("The rule " ++ quote rule ++ " has no associated clock, " ++
+            "so it would be clocked by the default clock; but the default " ++
+            "clock is missing or is " ++ quote "noClock" ++ ".  The rule " ++
+            "will be clocked by " ++ quote "noClock" ++ " and its body " ++
+            "will be removed.  If this is not intended, provide a clock " ++
+            "(for instance, by designating an input clock as the module's " ++
+            "default clock with the " ++ quote "default_clock" ++
+            " attribute)."))
+
+getErrorText (WMethodNoDefaultClock method) =
+    (Generate 130, empty,
+     s2par ("The method " ++ quote method ++ " has no associated clock, " ++
+            "so it would be clocked by the default clock; but the default " ++
+            "clock is missing or is " ++ quote "noClock" ++ ".  The method " ++
+            "will be clocked by " ++ quote "noClock" ++ " and any actions " ++
+            "in its body will be removed.  If this is not intended, " ++
+            "provide a clock (for instance, by designating an input clock " ++
+            "as the module's default clock with the " ++
+            quote "default_clock" ++ " attribute)."))
 
 
 ---------------------------------------------------------------------------

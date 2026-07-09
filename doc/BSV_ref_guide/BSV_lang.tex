@@ -10065,6 +10065,8 @@ gate\_input\_clocks=    &\ref{sec-gateclk-attrib}  &$\surd$\\
 \hline
 gate\_all\_clocks    &\ref{sec-gateclk-attrib}  &$\surd$   \\
 \hline
+default\_clock=    &\ref{sec-explicitclock}  &$\surd$ \\
+\hline
 default\_clock\_osc=    &\ref{sec-explicitclock}  &$\surd$ \\
 \hline
 default\_clock\_gate=    &\ref{sec-explicitclock}  &$\surd$   \\
@@ -10074,6 +10076,8 @@ default\_gate\_inhigh    &\ref{sec-explicitclock}  &$\surd$  \\
 default\_gate\_unused    &\ref{sec-explicitclock}  &$\surd$  \\
 \hline
 default\_reset=    &\ref{sec-explicitclock} & $\surd$   \\
+\hline
+default\_reset\_port=    &\ref{sec-explicitclock} & $\surd$   \\
 \hline
 clock\_family= &\ref{sec-clockfamily}&$\surd$  \\
 \hline
@@ -10224,28 +10228,35 @@ associated with a module and are only applied when the module is synthesized.
 
 \subsubsection{Default clock and reset naming attributes}
 
+\index{default\_clock=@\te{default\_clock=} (attribute)}
 \index{default\_clock\_osc=@\te{default\_clock\_osc=} (attribute)}
 \index{default\_clock\_gate=@\te{default\_clock\_gate=} (attribute)}
 \index{default\_gate\_inhigh=@\te{default\_gate\_inhigh} (attribute)}
 \index{default\_gate\_unused=@\te{default\_gate\_unused} (attribute)}
 \index{default\_reset=@\te{default\_reset=} (attribute)}
+\index{default\_reset\_port=@\te{default\_reset\_port=} (attribute)}
 \label{sec-explicitclock}
+\index{attribute!default\_clock=}
 \index{attribute!default\_clock\_osc=}
 \index{attribute!default\_clock\_gate=}
 \index{attribute!defualt\_gate\_inhigh=}
 \index{attribute!defualt\_gate\_unused=}
 \index{attribute!default\_reset=}
+\index{attribute!default\_reset\_port=}
 
 The default clock and reset naming attributes are associated with  a module
 and are only applied when the module is synthesized.
 
 
 The attributes \te{default\_clock\_osc=}, \te{default\_clock\_gate=},
-and \te{default\_reset=} provide the names for  the default
-clock oscillator, default gate, 
+and \te{default\_reset\_port=} provide the names for  the default
+clock oscillator, default gate,
 and default reset ports for a module.  When a name for the  default
 clock or reset is provided, any
-prefix attribute for that port is ignored. 
+prefix attribute for that port is ignored.
+(In earlier releases, the \te{default\_reset=} attribute provided the
+port name; that attribute now designates a module argument as the
+default reset, as described below.)
 
 The attributes \te{default\_gate\_inhigh} and 
 \te{default\_gate\_unused}  indicate that a gate port
@@ -10268,6 +10279,27 @@ The attributes \te{no\_default\_clock} and
 \te{no\_default\_reset} are used to remove the ports for   the default
 clock  and  the
 default reset.
+
+The attribute \te{default\_clock=} designates a \te{Clock} argument of
+the module as the module's default clock: the implicit default clock
+port is not generated, and, inside the module, the designated argument
+is the clock used wherever the default clock would be (for instance, by
+submodule instantiations, rules, and methods which do not specify a
+clock).  The value of the attribute must be the name of a \te{Clock}
+argument of the module.  This is useful for renaming the default clock,
+without needing \te{clocked\_by} on every instantiation inside the
+module.  Similarly, the \te{default\_reset=} attribute designates a
+\te{Reset} argument of the module as the module's default reset; its
+value must be the name of a \te{Reset} argument of the module.
+
+The attributes which name the default clock and reset ports
+(\te{default\_clock\_osc=}, \te{default\_clock\_gate=},
+\te{default\_gate\_inhigh}, \te{default\_gate\_unused}, and
+\te{default\_reset\_port=}) apply to the designated argument: the
+argument's name is used inside the module and the specified names are
+used for the ports on the boundary.  Without them, the designated
+argument's ports are named as for any other input clock or reset
+argument (for instance, \te{CLK\_clk\_in}).
 
 
 % \begin{boxedverbatim}
@@ -10314,6 +10346,10 @@ Attribute&Description\\
 &\\
 \hline
 \hline
+\te{default\_clock=} & Designates the named \te{Clock} argument
+as the module's default clock (the implicit default clock port is
+removed). \\
+\hline
 \te{default\_clock\_osc=} & Provides the  name
 for  the default oscillator port. \\
 \hline
@@ -10328,13 +10364,39 @@ for the default gate port.\\
  \te{default\_gate\_unused}  & Removes the gate ports for the module
  and the gate is unused. \\
 \hline
-\te{default\_reset=}& Provides the   name
+\te{default\_reset=} & Designates the named \te{Reset} argument
+as the module's default reset (the implicit default reset port is
+removed). \\
+\hline
+\te{default\_reset\_port=}& Provides the   name
 for the default reset port. \\
 \hline
 \te{no\_default\_reset}&Removes the port for the default reset.\\
 \hline
 \end{tabular}
 \end{center}
+
+Example using \te{default\_clock=} and \te{default\_reset=} to designate
+module arguments as the defaults:
+
+\begin{libverbatim}
+(* synthesize *)
+(* default_clock = "clk_in", default_reset = "rst_in" *)
+module mkMod(Clock clk_in, Reset rst_in, ModIfc ifc);
+   // clocked by clk_in and reset by rst_in
+   Reg#(Bool) r <- mkReg(False);
+   ...
+endmodule
+\end{libverbatim}
+
+generates the following in the Verilog:
+
+\begin{libverbatim}
+module mkMod(CLK_clk_in, RST_N_rst_in, ...
+\end{libverbatim}
+
+There are no \te{CLK} and \te{RST\_N} ports; the module's state is
+clocked and reset through the argument ports.
 
 % ----------------
 

@@ -5049,9 +5049,10 @@ process attributes attached to a module
 >                    "clock_prefix", "gate_prefix", "reset_prefix",
 >                    "doc", "descending_urgency", "preempts",
 >                    "execution_order", "mutually_exclusive", "conflict_free",
->                    "default_clock_osc", "default_clock_gate",
+>                    "default_clock", "default_clock_osc", "default_clock_gate",
 >                    "default_gate_inhigh", "default_gate_unused",
->                    "default_reset", "no_default_clock", "no_default_reset",
+>                    "default_reset", "default_reset_port",
+>                    "no_default_clock", "no_default_reset",
 >                    "gate_all_clocks", "gate_input_clocks",
 >                    "clock_family", "clock_ancestors" ]
 
@@ -5135,13 +5136,28 @@ the error message
 >        "clock_prefix" -> stringP PPCLK  name
 >        "gate_prefix"  -> stringP PPGATE name
 >        "reset_prefix" -> stringP PPRSTN name
+>        "default_clock" ->
+>            -- the value names a Clock argument of the module, to be
+>            -- designated as the module's default clock
+>            let pos = getPosition value
+>                mkPProp s = return (PPdefault_clock_arg (mk_dangling_id s pos))
+>            in  nonEmptyStringPM mkPProp name
 >        "default_clock_osc" ->
 >            stringP (mkDef PPclock_osc def_clk) name
 >        "default_clock_gate" ->
 >            nonEmptyStringP (mkDef PPclock_gate def_clk) name
 >        "default_gate_inhigh" -> numeric (PPgate_inhigh [def_clk]) name
 >        "default_gate_unused" -> numeric (PPgate_unused [def_clk]) name
->        "default_reset" -> stringP (mkDef PPreset_port def_rst) name
+>        "default_reset" ->
+>            -- the value names a Reset argument of the module, to be
+>            -- designated as the module's default reset
+>            -- (in earlier releases, this attribute provided a port name
+>            -- for the implicit default reset; that meaning has moved to
+>            -- the "default_reset_port" attribute)
+>            let pos = getPosition value
+>                mkPProp s = return (PPdefault_reset_arg (mk_dangling_id s pos))
+>            in  nonEmptyStringPM mkPProp name
+>        "default_reset_port" -> stringP (mkDef PPreset_port def_rst) name
 >        "no_default_clock" -> numeric (PPclock_osc [(def_clk,"")]) name
 >        "no_default_reset" -> numeric (PPreset_port [(def_rst,"")]) name
 >        "options" -> case value of

@@ -1,0 +1,10 @@
+package DefaultClockUnknownArg where
+
+-- Error: the "default_clock" value does not name an argument
+
+{-# synthesize sysDefaultClockUnknownArg {
+     default_clock = foo } #-}
+sysDefaultClockUnknownArg :: (IsModule m mType) => Clock -> m Empty
+sysDefaultClockUnknownArg clk = module
+  rules
+    "r_disp": when True ==> $display "Hello"

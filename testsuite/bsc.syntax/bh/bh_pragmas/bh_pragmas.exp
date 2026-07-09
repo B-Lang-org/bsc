@@ -38,3 +38,18 @@ find_n_strings DoubleResetPrefix.bs.bsc-out reset_prefix 1
 compile_verilog_pass Synthesize.bs
 # We compare the Verilog output to make sure it is generated.
 compare_verilog mkSynthesize.v
+
+# Support for the default_clock and default_reset properties, which
+# designate module arguments as the default clock and reset
+# (Github issue #985)
+test_c_veri_bs_modules DefaultClockArgs {}
+compare_verilog mkDefaultClockArgsSub.v
+
+compile_fail_error DefaultClockUnknownArg.bs P0182
+find_n_strings DefaultClockUnknownArg.bs.bsc-out default_clock 1
+
+compile_fail_error DefaultClockWrongType.bs P0181
+find_n_strings DefaultClockWrongType.bs.bsc-out default_clock 1
+
+compile_fail_error DoubleDefaultReset.bs P0156
+find_n_strings DoubleDefaultReset.bs.bsc-out default_reset 1
