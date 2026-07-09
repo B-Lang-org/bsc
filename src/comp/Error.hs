@@ -776,6 +776,8 @@ data ErrMsg =
         | EFunDepConflict String String String [Position]
             -- class name, context, conflicting instance head, positions
         | WFunDepCoverage String String [String]
+        | EBoundTyVarEscape String [String]
+            -- escaping type variable, enclosing bindings that capture it
         | ECtxRedWrongBitSize String Integer Integer [Position]
         | ECtxRedBitwiseBool [Position]
         | ECtxRedBitwise String [Position]
@@ -2106,6 +2108,21 @@ getErrorText (WFunDepCoverage inst cls vars) =
             "different results.  If the class's resolution is " ++
             "intentionally not a function of its inputs, declare the " ++
             "class " ++ quote "incoherent" ++ "."))
+
+getErrorText (EBoundTyVarEscape v capturers) =
+    (Type 161, empty,
+     s2par ((if null v
+             then "A type variable which is quantified "
+             else "The type variable " ++ quote v ++
+                  ", which is quantified ") ++
+            "at this definition, would escape its scope" ++
+            (if null capturers
+             then ""
+             else " into the type of " ++
+                  unwordsAnd (map quote capturers)) ++
+            ".  A value whose type mentions a locally quantified " ++
+            "variable cannot be used or bound outside the " ++
+            "quantifier's scope."))
 
 -- Type 32 was EContextReductionVar until it merged with EContextReduction
 -- sufficiently long ago that we can reuse the number now

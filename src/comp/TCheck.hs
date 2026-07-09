@@ -2587,6 +2587,34 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     let (ds_h', rs2') = partition (\ (VPred w _) -> w `S.member` dsh_ids) stl_out
         ds = ds_h' ++ ds_up
 
+    -- Skolem-escape check: a type variable quantified at this
+    -- definition must not leak into the type of anything bound
+    -- outside it.  The unifier's guards keep the skolem itself from
+    -- being substituted, but an outer metavariable may legally be
+    -- bound TO a skolem (the allowed direction); if such a binding
+    -- survives to here, an enclosing binding would generalize or
+    -- instantiate this definition's quantified variable -- unsound,
+    -- and previously an internal error at elaboration time.  The
+    -- substituted assumption types are where any such escape is
+    -- visible.
+    -- Fast path: enclosing assumptions predate this definition's
+    -- skolems, so an escape can only travel through the substitution;
+    -- scan its ranges (per-definition trimmed, small) and touch the
+    -- full environment only on a candidate hit.
+    let esc_candidates = filter (`elem` getSubstRange s_stl) vs_bound_here
+        escaped_vs = filter (\v -> v `elem` tv (apSub s_stl as))
+                            esc_candidates
+        escapees   = nub [ pfpString ai
+                         | (ai :>: asc) <- as
+                         , any (`elem` escaped_vs) (tv (apSub s_stl asc)) ]
+    when (not (null escaped_vs)) $
+        -- a generated variable name (a field's or method's quantified
+        -- variable is freshly instantiated) means nothing to the user
+        let esc_name = case pfpString (head escaped_vs) of
+                         n | "_tc" `isPrefixOf` n -> ""
+                           | otherwise            -> n
+        in  err (getPosition i, EBoundTyVarEscape esc_name escapees)
+
     ---- Begin: Added for defaulting
 
     -- Try to solve some remaining constraints by defaulting.
