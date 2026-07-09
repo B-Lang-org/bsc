@@ -4472,13 +4472,16 @@ Add a proviso to the surrounding construct.
 
 A new class is declared using the following syntax:
 
-\gram{typeclassDef}{ \term{typeclass} \nterm{typeclassIde}
+\gram{typeclassDef}{ \term{typeclass} \opt{\nterm{coherenceAnno}}
+                                      \nterm{typeclassIde}
                                       \nterm{typeFormals}
                                       \opt{ \nterm{provisos}}} \\
 \grammore                  { \opt {\nterm{typedepends}} \term{;} } \\
 %                                      \term{;} } \\
 \grammore          { \hmm \many{ \nterm{overloadedDef} } } \\
 \grammore          { \term{endtypeclass} \opt{: \nterm{typeclassIde} } }
+
+\gram{coherenceAnno}{ \term{coherent} {\alt} \term{incoherent} }
 
 \gram{typeclassIde}{ \nterm{Identifier} }
 
@@ -4512,6 +4515,24 @@ two or more \nterm{type} parameters; the \nterm{typedepends} comes after the
 typeclass's provisos (if any) and before the semicolon. The
 {\nterm{overloadedDef}s} declare the overloaded variables or function
 names,  and their types.
+
+\index{coherent@\te{coherent} (typeclass annotation)}
+\index{incoherent@\te{incoherent} (typeclass annotation)}
+The optional coherence annotation (\texttt{coherent} or
+\texttt{incoherent}, before the typeclass name) declares whether
+instance selection for this class is expected to be a function of the
+use's types alone.  Declaring a typeclass \texttt{incoherent} states
+that its resolution is intentionally relational---the same
+constraint may legitimately be resolvable by more than one
+instance---and permits the compiler to select an instance even when
+the choice is not forced, regardless of the global
+\texttt{-incoherent-instance-matches} flag; \texttt{coherent}
+forbids such selection, likewise regardless of the flag.  An
+unannotated typeclass follows the flag.  Like \texttt{dependencies}
+and \texttt{determines}, the words are recognized only in this
+position and remain usable as ordinary identifiers elsewhere.
+(The same annotation has long been available in the Bluespec Classic
+syntax.)
 
 Example (from the Standard Prelude package):
 \index{Standard Prelude}
@@ -4704,6 +4725,19 @@ Example:
 \begin{verbatim}
 typedef enum { Red, Blue, Green } Color deriving (Eq);
 \end{verbatim}
+
+\index{type classes!dependency coverage}
+Each instance of a typeclass with dependencies (Section
+\ref{sec-typeclass-def}) should itself honor the dependency: within
+the instance declaration, the dependent type parameters should be
+determined by the determining parameters, either directly or through
+the instance's provisos.  The compiler warns about an instance whose
+dependent parameter is not covered in this way, since the same inputs
+could then be satisfied with many different results, contradicting
+what the dependency promises.  If the class's resolution is
+intentionally not a function of its inputs, declare the typeclass
+\texttt{incoherent} (Section \ref{sec-typeclass-def}); the warning is
+suppressed for instances of \texttt{incoherent} classes.
 
 
 % ----------------------------------------------------------------
