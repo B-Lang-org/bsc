@@ -139,6 +139,9 @@ compile_fail_error ATFInInstHeadSynonym.bs T0156
 compare_file ATFInInstHeadSynonym.bs.bsc-out
 compile_fail_error ATFInInstHeadSynonymElsewhere.bs T0156
 compare_file ATFInInstHeadSynonymElsewhere.bs.bsc-out
+# A direct and a synonym-hidden type function in the same head: both reported
+compile_fail_error ATFInInstHeadSynonymBoth.bs T0156 2
+compare_file ATFInInstHeadSynonymBoth.bs.bsc-out
 compile_fail_error ATFResultNotDetermined.bs T0155
 compare_file ATFResultNotDetermined.bs.bsc-out
 compile_fail_error ATFUnifyError.bs T0030

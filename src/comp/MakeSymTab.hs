@@ -491,9 +491,11 @@ checkNoTypeFunInHead errh r mi clsId args =
         -- Only check non-determined positions
         nonDetArgs = [ arg | (idx, arg) <- zip [0..] args
                      , not (S.member idx determinedIdxs) ]
-        checkArg a = case findTypeFun a of
-                       [] -> findSynTypeFun a
-                       ds -> ds
+        -- Report both the directly-written type functions and the ones
+        -- hidden behind synonyms, deduplicated (a directly-written type
+        -- function inside a synonym's argument can also appear in the
+        -- synonym's expansion).
+        checkArg a = nub (findTypeFun a ++ findSynTypeFun a)
         found = concatMap checkArg nonDetArgs
     in if null found then ()
        else bsErrorUnsafe errh
