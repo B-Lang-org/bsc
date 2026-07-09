@@ -1,24 +1,22 @@
 package FdStability where
 
--- Pin the resolution behavior that makes fundep improvements from a
--- matched instance unsafe to commit before the instance's context is
--- discharged.
+-- Pin ordered-clause fundep resolution.
 --
--- TC (Maybe t) m first matches the specific instance, whose fundep
--- output would improve m to 5 -- but its (TD t) context cannot be
--- discharged while t is unresolved, so the attempt is abandoned and
--- the improvement is NOT committed.  The sibling pred TC2 Bool m then
--- commits m := 6, and on retry the specific TC instance no longer
--- matches (5 ~ 6 fails) and no longer unifies, so the catch-all is
--- selected coherently.  A direct call at Maybe Bool, where (TD Bool)
--- is available, selects the specific instance instead.
+-- TC (Maybe t) m first matches the specific instance -- the clause for
+-- Maybe inputs -- whose fundep output is 5.  The sibling pred TC2 Bool m
+-- fixes m to 6, and on retry the Maybe clause still matches the inputs
+-- but its determined position conflicts (5 ~ 6): the predicate is
+-- rejected rather than falling through to the catch-all clause, in
+-- either argument order.  (With -commit-coherent-matches the improvement
+-- m := 5 is committed at the first match and the sibling's demand for 6
+-- is what fails; the program is rejected either way.)
 --
--- Any future scheme that commits a coherent match (or its fundep
--- substitution) before its context is discharged must still defer
--- here -- the catch-all instance unifies with the pred at match time,
--- so the improvement m := 5 is not final -- or it would reject this
--- program.  Expected output: 1 (direct, specific) then 2 (through
--- foo, catch-all).
+-- Under -legacy-defer-instances the historical policy applies: the
+-- specific match is discarded (its context is unsatisfied), the sibling
+-- commits m := 6, and the retried predicate falls through to the
+-- catch-all clause, selecting an instance by its fundep output; the
+-- program then compiles printing 1 (direct call, specific instance via
+-- TD Bool) and 2 (through foo, catch-all).
 
 class TC x n | x -> n where
     tcVal :: x -> Bit n

@@ -4,12 +4,21 @@
 
 
 # --------------------------------------------------
-# Previously resulted in an ambiguous variables error (T0033),
-# but improved proviso ordering in satMany now resolves the ambiguity.
-# XXX The source of the ambiguity is really because the typeclass instances
-# XXX break the stated dependency requirement; why doesn't BSC catch this?
+# The SeriesPipeline instances break the stated dependency requirement:
+# the function-headed instance determines a BuriedPipeline output, and
+# the catch-all instance coerces to any demanded output, so resolution
+# used to select an instance by its fundep OUTPUT, falling through when
+# the determined positions conflicted.  Under ordered-clause fundep
+# semantics the function-headed instance is the clause for function
+# inputs, its output conflict is not a license to fall through, and the
+# program is rejected -- as the long-standing XXX comment here asked
+# ("why doesn't BSC catch this?").  The legacy policy still accepts it
+# under -legacy-defer-instances.
 
-compile_pass Tb1.bsv
+compile_fail_error Tb1.bsv T0033
+erase Tb1.bo
+erase Pipeline1.bo
+compile_pass Tb1.bsv {-legacy-defer-instances}
 
 # --------------------------------------------------
 # A version that compiles

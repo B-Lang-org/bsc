@@ -1,0 +1,14 @@
+checking package dependencies
+compiling FdOrder.bs
+Error: "FdOrder.bs", line 30, column 24: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    FdOrder.TC2 Prelude.Bool 5
+Error: "FdOrder.bs", line 32, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Prelude.Maybe t -> Prelude.Bool -> Prelude.Bool
+  The following contexts are needed:
+    FdOrder.TC (Prelude.Maybe t) 6
+      Introduced at the following locations:
+	"FdOrder.bs", line 33, column 25
