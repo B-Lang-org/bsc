@@ -62,3 +62,9 @@ compile_fail_error TFunHead.bs T0128 1 {-legacy-inst-index}
 # those expansion gates (as mkVPredFromPred already does).
 compile_fail StuckATF.bs
 compare_file StuckATF.bs.bsc-out
+erase StuckATF.bo
+# The legacy index's canMatch pre-filter treats ATF heads as
+# inconclusive, so the same instances stay visible and the report is
+# identical.
+compile_fail StuckATF.bs {-legacy-inst-index}
+compare_file StuckATF.bs.bsc-out
