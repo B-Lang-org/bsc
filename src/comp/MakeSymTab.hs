@@ -1023,7 +1023,12 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
                             | (i, _, _) <- items ]
                         im = M.fromList [ (idx, item) | item@(idx, _, _) <- items ]
                     in  case tsort g of
-                          Right is -> [ im M.! i | i <- is ]
+                          Right is ->
+                              [ map_lookupOrErr
+                                    ("MakeSymTab.sortLeaf: tsort returned " ++
+                                     "an index not in the leaf: " ++ show i)
+                                    i im
+                              | i <- is ]
                           Left cycles ->
                               internalError ("MakeSymTab.sortLeaf cycles? " ++
                                              ppReadable cycles)
