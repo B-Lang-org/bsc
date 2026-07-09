@@ -56,6 +56,22 @@ import Debug.Trace
 useLegacyInstIndex :: Bool
 useLegacyInstIndex = elem "-legacy-inst-index" progArgs
 
+-- Restore the legacy instance-resolution policy: an instance whose input
+-- positions match but whose fundep-determined positions conflict is skipped
+-- (allowing a later, less specific instance to be selected), and a coherent
+-- match whose context is not yet satisfied is discarded and retried instead
+-- of being committed.  See doc/dev-notes/typechecker-coherent-instance-
+-- commitment.md.
+legacyDeferInstances :: Bool
+legacyDeferInstances = elem "-legacy-defer-instances" progArgs
+
+-- Commit coherent instance matches whose contexts are not yet satisfied
+-- (continue with the residual goals instead of putting the original pred
+-- aside to retry).  Sound under the ordered-clause semantics, but not yet
+-- the default: unresolved-context errors would report the residual goals
+-- instead of the original predicate, which degrades the curated error
+-- messages (e.g. the missing-Bits-instance and BVI port diagnostics)
+-- until residual-to-root provenance is wired into error reporting.
 doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs
 rtrace :: String -> a -> a
@@ -97,10 +113,27 @@ splitF fs ps = partition (all (`elem` fs) . tv) ps
 -- predicates which were solved.  (The dictionaries are defined in
 -- terms of existing dictionaries, such as the "es".)
 
--- The outcome of a reduction pass (sat for one predicate; sMany,
--- satMany, reducePredsAggressive for a list): the predicates that
--- could not be discharged, with the accumulated bindings and
--- substitution.
+-- Whether a partial reduction may be kept: Committable means the
+-- instance choice is final -- a coherent match that no other
+-- instance and no in-scope given could ever satisfy -- so the caller
+-- may commit to the reduction instead of putting the predicate aside
+-- to retry.
+data Commitment = Committable
+                | Provisional
+                deriving (Eq)
+
+-- The outcome of reducing one predicate (sat): the residual goals
+-- that remain, with the bindings and substitution produced.
+data SatResult = SatResult {
+        satNeeded     :: [VPred],
+        satBinds      :: SolvedBinds,
+        satSubst      :: Subst,
+        satCommitment :: Commitment
+    }
+
+-- The outcome of a reduction loop over many predicates (sMany,
+-- satMany, reducePredsAggressive): the predicates that could not be
+-- discharged, with the accumulated bindings and substitution.
 data SolveResult = SolveResult {
         solveNeeded :: [VPred],
         solveBinds  :: SolvedBinds,
@@ -162,18 +195,12 @@ satisfy' dvs es ps = do
         --   ps - the predicates to try satisfying
         -- Try satisfying each pred in "ps" in turn.  If "sat" cannot reduce
         -- it entirely (that is, "sat" returns the preds that it reduced to),
-        -- then we ignore the result of "sat" and put the predicate aside
-        -- (in "rs").  If "sat" can reduce the pred entirely, then we add the
-        -- pred to the list of known preds ("es") and we add the bindings
-        -- and substitution to the current result.  If the subst gives us
-        -- new information about any of the unsatisfied preds ("rs") then
-        -- we attempt to solve those again (put them back in "ps") in case
-        -- progress can be made with the new information.
-        --
-        -- XXX Why do we ignore the result when a pred doesn't sat all the way?
-        -- Is it for better error messages?  That is, so that we report the
-        -- original pred?
-        -- XXX Can we at least keep any of the substitution?
+        -- we ignore the result of "sat" and put the original predicate
+        -- aside (in "rs") to retry.  If "sat" can reduce the pred entirely,
+        -- we add the bindings and substitution to the current result.  If
+        -- the subst gives us new information about any of the unsatisfied
+        -- preds ("rs") then we attempt to solve those again (put them back
+        -- in "ps") in case progress can be made with the new information.
         --
         -- Note that we do allow partial results from numeric typeclasses
         -- (but only when not attempting "last resort" satisfying, though
@@ -191,7 +218,7 @@ satisfy' dvs es ps = do
              else
                 sMany (dvsSub s' dvs) (apSub s' es) unchanged_rs (sbs' <++ sbs) (s' @@ s) (apSub s' changed_rs)
         sMany dvs es rs sbs s (p:ps) = do
-            SolveResult x_needed sbs' s' <- sat dvs es p
+            SatResult x_needed x_sbs x_s _x_commitment <- sat dvs es p
             -- satTrace ("sMany: sat=" ++ ppReadable (p, x_needed)) $ return ()
             case x_needed of
                 -- if the predicate failed to reduce away completely,
@@ -201,11 +228,11 @@ satisfy' dvs es ps = do
                 (_:_) | not (vpIsPreClass p) || isJust dvs ->
                     sMany dvs es (p:rs) sbs s ps
                 new_ps ->
-                    if isNullSubst s' then
-                        sMany dvs es (new_ps ++ rs) (sbs' <++ sbs) s ps
+                    if isNullSubst x_s then
+                        sMany dvs es (new_ps ++ rs) (x_sbs <++ sbs) s ps
                     else do
-                        let (changed_rs, unchanged_rs) = split_rs s' rs
-                        sMany (dvsSub s' dvs) (apSub s' es) (new_ps ++ unchanged_rs) (sbs' <++ sbs) (s' @@ s) (apSub s' (changed_rs ++ ps))
+                        let (changed_rs, unchanged_rs) = split_rs x_s rs
+                        sMany (dvsSub x_s dvs) (apSub x_s es) (new_ps ++ unchanged_rs) (x_sbs <++ sbs) (x_s @@ s) (apSub x_s (changed_rs ++ ps))
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
@@ -329,7 +356,14 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
 --
 -- sat corresponds to section 7.2 "Entailment" in the paper
 -- Typing Haskell in Haskell
-sat :: DVS -> [EPred] -> VPred -> TI SolveResult
+--
+-- The Commitment in the result is only meaningful when the returned
+-- [VPred] is non-empty (a partial reduction): Committable means the
+-- reduction came from a coherent instance match that no other instance
+-- and no in-scope given could ever satisfy, so the caller may commit to
+-- it (keep the bindings and continue with the residual goals) instead of
+-- putting the original predicate aside to retry.
+sat :: DVS -> [EPred] -> VPred -> TI SatResult
 sat dvs ps p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
@@ -370,10 +404,10 @@ sat dvs ps p =
                                   -}
            -- if we satisfy numeric provisos recursively, we haven't proven it
            (VPred vp (PredWithPositions (IsIn cl _) poss)) | isPreClass cl ->
-                   return (SolveResult [p] emptySBs nullSubst)
+                   return (SatResult [p] emptySBs nullSubst Provisional)
            _ -> satTrace ("sat recursive: " ++ ppReadable (p, b, s)) $
                 let sb = mkSolvedBind b True -- Found on stack, recursive
-                in return (SolveResult [] (fromSB sb) s)
+                in return (SatResult [] (fromSB sb) s Provisional)
       _ -> do
        let this_point :: TSSatElement
            this_point = (mkTSSatElement dvs ps p)
@@ -382,7 +416,7 @@ sat dvs ps p =
          Just (b, (s, [])) -> do
              satTrace ("sat in super: " ++ ppReadable (p, concatMap bySuperE ps)) $ return ()
              let sb = mkSolvedBind b False -- Satisfied via superclass from source, not recursive
-             return (SolveResult [] (fromSB sb) s)
+             return (SatResult [] (fromSB sb) s Provisional)
          -- we might introduce a numeric equality here, so try instance reduction first
          m_equals -> do
           -- if instance reduction fails, fall back to introducing an equality
@@ -392,8 +426,9 @@ sat dvs ps p =
                     satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
                     eq_ps <- concatMapM (eqToVPred (getVPredPositions p)) num_eqs
                     let sb = mkSolvedBind b False -- From superclass, not recursive
-                    satMany (dvsSub s dvs) (apSub s ps) [] (fromSB sb) s eq_ps
-                  Nothing -> satTrace msg $ return (SolveResult [p] emptySBs nullSubst)
+                    SolveResult rs sbs s' <- satMany (dvsSub s dvs) (apSub s ps) [] (fromSB sb) s eq_ps
+                    return (SatResult rs sbs s' Provisional)
+                  Nothing -> satTrace msg $ return (SatResult [p] emptySBs nullSubst Provisional)
           ai <- getAllowIncoherent
           x  <- reducePred ps dvs p
           case x of
@@ -405,13 +440,33 @@ sat dvs ps p =
                   SolveResult [] sbs s_final -> do
                     recordPackageUse mpkg
                     recordATFs s_final
-                    return (SolveResult [] sbs s_final)
-                  other -> return other
+                    return (SatResult [] sbs s_final Provisional)
+                  SolveResult needed sbs s_final -> do
+                    -- A coherent match whose context is not yet satisfied:
+                    -- under ordered-clause fundep semantics no other
+                    -- instance can ever satisfy this predicate, so the
+                    -- choice is final and the caller may commit to it --
+                    -- unless an in-scope given (which is not an instance)
+                    -- could still discharge the predicate whole after
+                    -- refinement.
+                    commitment <-
+                      if legacyDeferInstances
+                      then return Provisional
+                      else do
+                        stack_eps <- getExplPreds
+                        let p_pred = apSub s_final (toPred p)
+                            givens = concatMap bySuperE (ps ++ stack_eps)
+                            unifiable (EPred _ gp) =
+                                predUnify bound_tyvars p_pred gp
+                        return (if any unifiable givens
+                                then Provisional else Committable)
+                    when (commitment == Committable) $ recordPackageUse mpkg
+                    return (SatResult needed sbs s_final commitment)
             Just (Reduction qs sb us (Just (h@(IsIn c _))) mpkg) | fromMaybe ai (allowIncoherent c) ->
               satTrace ("sat calls satMany (incoherent) ") $ do
               result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
               case result of
-                SolveResult ps@(_:_) sbs s_final -> return (SolveResult ps sbs s_final)
+                SolveResult ps@(_:_) sbs s_final -> return (SatResult ps sbs s_final Provisional)
                 SolveResult [] sbs s_final -> do
                   recordPackageUse mpkg
                   -- No recordATFs here: an incoherent match is an
@@ -426,7 +481,7 @@ sat dvs ps p =
                       sbs' = addDirectIncoherence dictId di sbs
                   when (allowIncoherent c /= Just True) $
                     twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return (SolveResult [] sbs' s_final)
+                  return (SatResult [] sbs' s_final Provisional)
             bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
@@ -503,7 +558,9 @@ satMany' dvs es rs_accum sbs s [] = do
   (final_rs, s', sbs') <- joinNeededCtxs rs_accum
   return (SolveResult final_rs (sbs' <++ sbs) (s' @@ s))
 satMany' dvs es rs_accum sbs s (p:ps) = do
-    SolveResult x_needed x_sbs x_subst <- sat dvs es p
+    -- this path always commits partial reductions, so the Commitment
+    -- from "sat" is not consulted
+    SatResult x_needed x_sbs x_subst _ <- sat dvs es p
     let x = (x_needed, x_sbs, x_subst)
     rtrace ("satMany: sat="++ ppReadable (p,x)) $ return ()
     case x of
@@ -621,7 +678,8 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
         -- differ, no match is possible so we skip the expensive newInst call.
         -- We only check non-fundep positions because fundep-determined
         -- positions are resolved via mgu after the initial match.
-        -- matchTop uses pickJust over fundeps, so we need ANY fundep to work.
+        -- matchTop picks the first fundep row that works, so we need ANY
+        -- fundep to work.
         canMatch :: Pred -> Pred -> Bool
         canMatch (IsIn c1 pred_ts) (IsIn _ inst_ts) =
             any checkFD $ funDeps c1
@@ -651,14 +709,47 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                 (m_tv, i'@(Inst _ _ (_ :=> h) _)) <- newInst i (getVPredPositions v')
                 x <- byInst v' i'
                 case x of
-                   Nothing -> do
-                     let chk = predUnify bound_tyvars pr' h
-                     -- If chk is true, we have found a more-specific instance that could
-                     -- have matched if more type information were known, but didn't because
-                     -- the instance being requested is more general. Any instance matches
-                     -- from this point on are incoherent matches.
+                   NoMatch -> do
+                     let chk = earlierInstanceMayCapture pr' h
                      f (chk || incoherent) is
-                   Just (InstMatch qs sb inst_subst fd_subst mpkg) -> do
+                   Conflict -> do
+                     ai <- getAllowIncoherent
+                     if outputFallThroughAllowed ai c
+                       then
+                         -- Legacy/relational policy: skip the instance,
+                         -- allowing a later (less specific) one to be
+                         -- selected by its outputs.  An `incoherent' class
+                         -- has declared that its resolution is not a
+                         -- function of its inputs (e.g. the Has_tpl_n
+                         -- tuple machinery), so the ordered-clause
+                         -- discipline does not apply to it.  An
+                         -- output-conflict skip is the definition of
+                         -- output-driven selection -- the demanded
+                         -- output just chose against this clause -- so
+                         -- the eventual match past it is
+                         -- information-dependent and MUST carry the
+                         -- flag: an unmarked match would be treated as
+                         -- coherent evidence (unique, so eligible for
+                         -- reuse that would freeze one context's
+                         -- relational choice into another's).  Under
+                         -- the -legacy-defer-instances hatch the old
+                         -- behavior is restored exactly (unmarked).
+                         f (incoherent || not legacyDeferInstances) is
+                       else
+                         -- Ordered-clause fundep semantics: this instance's
+                         -- input positions match, so it is the selected
+                         -- clause, and inputs only become more concrete
+                         -- under refinement, so no other clause can ever be
+                         -- selected.  Its determined positions cannot unify
+                         -- with the predicate's, so the predicate is
+                         -- unsatisfiable as stated: falling through to a
+                         -- later clause would let the demanded output
+                         -- choose the clause, violating the functional
+                         -- dependency.  Stop the walk and leave the
+                         -- predicate unreduced; the standard
+                         -- unresolved-context reporting applies.
+                         return Nothing
+                   Match (InstMatch qs sb inst_subst fd_subst mpkg) -> do
                      -- when ((not $ null qs) && (not $ isNullSubst inst_subst)) $
                      --     traceM("qs, inst_subst, fd_subst: " ++ ppReadable (qs, inst_subst, fd_subst))
                      -- does the inst_subst affect anything *outside* of the instance?
@@ -707,6 +798,79 @@ predUnify bound_tyvars (IsIn c1 ts1) (IsIn c2 ts2)
     | c1 == c2 = isJust (mgu bound_tyvars ts1 ts2)
     | otherwise = False
 
+-- Modal check shared by the walk (reducePred) and the reducibility
+-- probe (isReduciblePred): could this earlier instance still capture
+-- the predicate under SOME refinement?  Refinement includes call-site
+-- instantiation of the definition's rigid variables, so the check
+-- must not treat the bound set as fixed (it unifies with an empty
+-- bound set): otherwise a rigid-headed predicate would prune every
+-- specific instance here and a catch-all below would look
+-- uniquely-matching (coherent) inside the definition while call
+-- sites would select the specific instance -- exactly the
+-- incoherence this check exists to detect.
+earlierInstanceMayCapture :: Pred -> Pred -> Bool
+earlierInstanceMayCapture = predUnify []
+
+-- The hatches that license output-driven fall-through: the class's
+-- own `incoherent' annotation, with the global
+-- -legacy-defer-instances flag or the hidden
+-- -incoherent-instance-matches default (the "ai" argument) as
+-- fallbacks.  This is THE single statement of the exemption; the
+-- walk, the reporting probe, and the reducibility probe all consult
+-- it.
+outputFallThroughAllowed :: Bool -> Class -> Bool
+outputFallThroughAllowed ai c =
+    legacyDeferInstances || fromMaybe ai (allowIncoherent c)
+
+-- One fundep row of an instance-head comparison: non-fundep positions
+-- via the caller's match function, then the determined positions via
+-- unification.  This is the single statement of the row core;
+-- matchTop and matchTopIsReducible both consume it.
+-- The three-way result of matching a predicate against an instance
+-- head (or one fundep row of it).  The reducibility probes reuse the
+-- shape with a = () and a weaker reading: there NoMatch means "no
+-- conclusion from this instance".
+data Match a =
+      NoMatch    -- the input (non-determined) positions do not match
+    | Conflict   -- the inputs match but the fundep-determined
+                 -- positions clash: under ordered-clause fundep
+                 -- semantics this instance is the selected clause and
+                 -- the predicate is unsatisfiable as stated
+    | Match a    -- the head matches, carrying evidence
+
+-- The first Match wins; otherwise any Conflict decides (a conflict in
+-- one row's determined positions blocks a one-way match of those
+-- positions in the mirror row, preserving the legacy row fall-back
+-- for multi-fundep classes); otherwise NoMatch.
+firstMatch :: [Match a] -> Match a
+firstMatch ms = case [ m | m@(Match _) <- ms ] of
+                  (m:_) -> m
+                  []    -> if any isConflict ms then Conflict else NoMatch
+  where isConflict Conflict = True
+        isConflict _        = False
+
+-- Compare one fundep row of a predicate against an instance head:
+-- the row's input positions must match, per the caller's match
+-- function, and the determined positions must then unify.  On Match,
+-- the evidence is the input-match substitution (which specializes
+-- the instance) paired with the fundep improvement (to apply to the
+-- monad) and any numeric equalities it requires.
+matchFDRow :: [TyVar] -> ([Type] -> [Type] -> Maybe Subst)
+           -> [Type] -> [Type] -> [Bool]
+           -> Match (Subst, (Subst, [(Type, Type)]))
+matchFDRow bound_tyvars mtch ts1 ts2 bs =
+    let nbs = map not bs
+        v1 = boolCompress nbs ts1
+        v2 = boolCompress nbs ts2
+    in  case mtch v1 v2 of
+          Nothing -> NoMatch
+          Just ms ->
+              let fd1 = apSub ms (boolCompress bs ts1)
+                  fd2 = apSub ms (boolCompress bs ts2)
+              in  case mgu bound_tyvars fd1 fd2 of
+                    Just us -> Match (ms, us)
+                    Nothing -> Conflict
+
 dvsSub :: Subst -> DVS -> DVS
 dvsSub s dvs = dvs
 {-
@@ -729,7 +893,7 @@ data InstMatch = InstMatch {
         imPackage   :: Maybe Id
     }
 
-byInst :: VPred -> Inst -> TI (Maybe InstMatch)
+byInst :: VPred -> Inst -> TI (Match InstMatch)
 byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     -- no longer necessary because reducePred now provides a fresh instance
     -- Inst e _ (ps :=> h) <- newInst ii (getPredPositions p)
@@ -738,8 +902,9 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
                      h (removePredPositions p)
     -- rtrace ("byInst " ++ ppReadable (p, ps :=> h, m)) $ return ()
     case m of
-     Nothing -> return Nothing
-     Just (inst_subst, (fd_subst, num_eqs)) -> do
+     NoMatch -> return NoMatch
+     Conflict -> return Conflict
+     Match (inst_subst, (fd_subst, num_eqs)) -> do
         let s = fd_subst @@ inst_subst
         vs <- mapM (const newDict) ps
         -- if the instance is recursive (has a proviso for itself and expects
@@ -760,7 +925,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
             solvedBind = mkSolvedBind binding isSelfRec
-        return (Just (InstMatch ps'' solvedBind inst_subst fd_subst pkg))
+        return (Match (InstMatch ps'' solvedBind inst_subst fd_subst pkg))
 
 -- Create a new instance by replacing the type variables in the instance
 -- with fresh variables.
@@ -783,14 +948,16 @@ lookfor bound_tyvars _ [] = Nothing
 lookfor bound_tyvars v@(VPred i pp) eps@(EPred e pr':ps) =
     let pr = removePredPositions pp
         meq x y = if x == y then Just nullSubst else Nothing
-    in  -- traces ("lookfor " ++ ppReadable (pr, pr', matchTop bound_tyvars meq pr pr', ps)) $
+    in  -- traces ("lookfor " ++ ppReadable (pr, pr', ps)) $
+        -- A given is not an instance clause, so Conflict here just means
+        -- this given does not discharge the predicate; keep looking.
         case matchTop bound_tyvars meq pr pr' of
-        Just (inst_subst, fd_subst_and_eqs) | isNullSubst inst_subst ->
+        Match (inst_subst, fd_subst_and_eqs) | isNullSubst inst_subst ->
             Just ((i, predToType pr, e), fd_subst_and_eqs)
-        Just (inst_subst, fd_subst) ->
+        Match (inst_subst, fd_subst) ->
             internalError ("lookfor bad: " ++
                            ppReadable (bound_tyvars, v, eps, inst_subst, fd_subst))
-        Nothing -> lookfor bound_tyvars v ps
+        _ -> lookfor bound_tyvars v ps
 
 commute :: [Type] -> [Type]
 commute ts@[t1,t2] = [t2, t1]
@@ -808,61 +975,18 @@ bySuperE ep@(EPred e p@(IsIn c ts)) = ep : eps ++ comm
                      [(EPred e (IsIn c (commute ts)))]
                   else []
 
--- Given:
--- * bound variables
--- * a function for determining when two predicates "match"
---   (by matching their lists of type parameters)
---   which returns the substitution which makes them match
--- * two predicates
--- Returns:
--- * two substitutions:
---     the first is applied to the instance (to specialize it)
---     the second is anything we've learned from fundeps (added to the monad)
---     the second substitution is paired with any numeric equalities we discover
---      we need
---
--- This function is used by byInst to test if a predicate matches an instance,
--- where the "match" function is list unification.  By changing the match
--- function, this could be used in other ways.
---
+-- Match a predicate against an instance head: each fundep row goes
+-- through matchFDRow and the rows join with firstMatch.  The "match"
+-- function decides how non-fundep positions compare: byInst passes
+-- one-way list matching; lookfor passes equality.
+-- XXX the fundep lists are not used jointly?
 matchTop :: [TyVar] ->
             ([Type] -> [Type] -> Maybe Subst) ->
-            Pred -> Pred -> Maybe (Subst, (Subst, [(Type, Type)]))
-matchTop bound_tyvars mtch (IsIn c1 ts1) (IsIn c2 ts2) =
-    -- rtrace ("matchTop: " ++ ppReadable (IsIn c1 ts1, IsIn c2 ts2, c1==c2)) $
-    if c1 /= c2 then
-        -- different classes obviously don't match
-        Nothing
-    else
-        -- rtrace ("matchTop 0: " ++ ppReadable (name c1, funDeps c1, ts1, ts2)) $
-        let mfd bs =
-                -- first check that the nonfundep types match
-                let nbs = map not bs
-                    v1 = (boolCompress nbs ts1)
-                    v2 = (boolCompress nbs ts2)
-                    mv = mtch v1 v2
-                in
-                case mv of
-                Nothing ->
-                    -- rtrace ("matchTop 1a: " ++ ppReadable (v1, v2, mv)) $
-                    Nothing
-                Just ms ->
-                    -- if the nonfundep types match, then apply the found
-                    -- substitution and see if the fundep types match
-                    -- rtrace ("matchTop 1b: " ++ ppReadable ms) $
-                    case mgu bound_tyvars (apSub ms (boolCompress bs ts1))
-                                          (apSub ms (boolCompress bs ts2)) of
-                    Nothing -> Nothing
-                    Just us ->  Just (ms, us)
-        in
-            -- find the first fundep list which matches
-            -- XXX the fundep lists are not used jointly?
-            pickJust (map mfd (funDeps c1))
-
-pickJust :: [Maybe a] -> Maybe a
-pickJust mxs = foldr pickL Nothing mxs
-  where pickL m@(Just _) _ = m
-        pickL _          m = m
+            Pred -> Pred -> Match (Subst, (Subst, [(Type, Type)]))
+matchTop bound_tyvars mtch (IsIn c1 ts1) (IsIn c2 ts2)
+    | c1 /= c2  = NoMatch
+    | otherwise = firstMatch [ matchFDRow bound_tyvars mtch ts1 ts2 bs
+                             | bs <- funDeps c1 ]
 
 
 -------
