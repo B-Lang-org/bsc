@@ -4532,7 +4532,8 @@ unannotated typeclass follows the flag.  Like \texttt{dependencies}
 and \texttt{determines}, the words are recognized only in this
 position and remain usable as ordinary identifiers elsewhere.
 (The same annotation has long been available in the Bluespec Classic
-syntax.)
+syntax.)  Section \ref{sec-instance-coherence} specifies the
+selection rules and exactly what the annotation changes.
 
 Example (from the Standard Prelude package):
 \index{Standard Prelude}
@@ -4739,6 +4740,103 @@ intentionally not a function of its inputs, declare the typeclass
 \texttt{incoherent} (Section \ref{sec-typeclass-def}); the warning is
 suppressed for instances of \texttt{incoherent} classes.
 
+
+% ----------------------------------------------------------------
+
+\subsection{Instance selection and coherence}
+
+\label{sec-instance-coherence}
+
+\index{type classes!instance selection}
+\index{type classes!coherence}
+\index{coherent@\te{coherent} (typeclass annotation)}
+\index{incoherent@\te{incoherent} (typeclass annotation)}
+
+When an overloaded identifier is used, the compiler must select the
+instance declaration that supplies its implementation.  Instances of
+a class may overlap, that is, a use may be matched by the type
+parameters of more than one instance declaration.  The compiler
+orders overlapping instances from more specific to less specific: an
+instance is more specific than another if its parameter types are an
+instantiation of the other's.  Two instances neither of which is more
+specific than the other have no specified relative order.
+
+For a class whose parameters are related by dependencies (Section
+\ref{sec-typeclass-def}), the parameters on the left-hand side of
+\texttt{determines} are the \emph{inputs} of the dependency; instance
+selection is driven by the inputs alone.  The compiler selects the
+most specific instance whose input parameters match the use, and that
+instance's declaration then determines the remaining (dependent)
+parameters, as the dependency promises.  If the types demanded by the
+context conflict with what the selected instance determines, the
+program is rejected; the compiler does \emph{not} skip the selected
+instance and try a less specific one.  Falling through on such a
+conflict would mean that the demanded result type, rather than the
+inputs, chooses the instance, so the same expression could resolve to
+different instances in different contexts.  The property that
+selection is a function of the inputs is called \emph{coherence}.
+
+Example:
+\begin{verbatim}
+typeclass Content#(type c, type e)
+    dependencies (c determines e);
+      function e first(c container);
+endtypeclass
+
+instance Content#(List#(a), a);    // more specific
+   ...
+endinstance
+
+instance Content#(t, Bool);        // less specific (matches any t)
+   ...
+endinstance
+\end{verbatim}
+A use of \texttt{first} at a \texttt{List\#(Bit\#(8))} selects the
+first instance, so its result has type \texttt{Bit\#(8)}.  A context
+that instead demands a \texttt{Bool} result from
+\texttt{first} applied to a \texttt{List\#(Bit\#(8))} is a type error:
+the input (the container type) selects the \texttt{List} instance,
+which determines the element type, and the compiler reports the
+conflict rather than falling through to the catch-all instance.
+
+The compiler commits to an instance only when the use's input types
+are refined enough that no more specific instance could still match,
+and only when no proviso in scope could supply the constraint
+instead.  Inside a polymorphic definition, a constraint whose inputs
+mention the definition's type variables is deferred---to the
+definition's own provisos or to its callers---rather than resolved
+prematurely against a less specific instance.
+
+A typeclass may be declared \texttt{incoherent} to opt out of this
+discipline:
+\begin{verbatim}
+typeclass incoherent Pick#(type a, type b)
+    dependencies (a determines b);
+      function b pick(a x);
+endtypeclass
+\end{verbatim}
+For an \texttt{incoherent} class, an instance whose dependent
+parameters conflict with the context is skipped, and a less specific
+instance may be selected in its place; resolution may therefore be
+driven by the demanded result type as well as by the inputs, and the
+same constraint may resolve to different instances in different
+contexts.  This is appropriate for classes whose dependency is
+declared to guide type inference even though resolution is
+intentionally structural.  Declaring a typeclass \texttt{coherent}
+states the default behavior explicitly.
+
+Separately, each instance is expected to cover the class's
+dependencies within its own declaration (an uncovered instance
+behaves incoherently even in a coherent class); see the coverage
+warning described in Section \ref{sec-instance-def}.
+
+The compiler flag \texttt{-legacy-defer-instances} restores the
+resolution behavior of earlier compiler versions, in which every
+instance whose dependent parameters conflicted was skipped.  It is
+intended as a temporary migration aid for code that relied on
+output-driven selection, and it may be removed in a future release;
+such code should instead declare the affected typeclasses
+\texttt{incoherent}.
 
 % ----------------------------------------------------------------
 

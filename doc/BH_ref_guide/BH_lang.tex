@@ -1263,27 +1263,39 @@ two of the types uniquely determines the remaining type, {\ie}
 See section {\ref{sec-primitives-size-types}} for more detailed
 insights into the use of functional dependencies.
 
-The compiler checks that each instance declaration honors the class's
-dependencies: within an instance, the dependent parameters should be
-determined by the determining parameters, directly or through the
-instance's context, and the compiler warns otherwise, since an
-uncovered instance lets the same inputs be satisfied with many
-different results, contradicting what the dependency promises.
+Functional dependencies are enforced by the compiler.  At a use of an
+overloaded identifier, instances are ordered from more specific to
+less specific and selection is driven by the determining (left-hand
+side) parameters of the dependency alone: the compiler selects the
+most specific instance whose determining parameters match, and that
+instance then fixes the dependent parameters, as the dependency
+promises.  If the context demands dependent types that conflict with
+the selected instance, the program is rejected; the compiler does not
+fall through to a less specific instance, since the demanded result
+would then be choosing the instance ({\emph{incoherence}}).
+
+The compiler also checks that each instance declaration honors the
+class's dependencies: within an instance, the dependent parameters
+should be determined by the determining parameters, directly or
+through the instance's context, and the compiler warns otherwise,
+since an uncovered instance lets the same inputs be satisfied with
+many different results, contradicting what the dependency promises.
 
 \index{coherent@\te{coherent} (keyword)}
 \index{incoherent@\te{incoherent} (keyword)}
 The optional coherence annotation ({\te{coherent}} or
-{\te{incoherent}}, immediately after the {\te{class}} keyword)
-declares whether instance selection for the class is expected to be a
-function of the use's types alone.  An {\te{incoherent}} class has
-declared that its resolution is intentionally relational---the same
-constraint may legitimately be resolvable by more than one
-instance---so the compiler may select an instance even when the
-choice is not forced, and the coverage warning is suppressed for its
-instances (the Prelude's tuple-selection classes are an example);
-{\te{coherent}} forbids unforced selection regardless of the global
-{\te{-incoherent-instance-matches}} flag, which unannotated classes
-follow.
+{\te{incoherent}}, immediately after the {\te{class}} keyword) opts a
+class out of this discipline.  For an {\te{incoherent}} class, an
+instance whose dependent parameters conflict is skipped and a less
+specific instance may be selected instead, so resolution may be
+driven by the demanded result type and may differ from context to
+context; the coverage warning is suppressed for its instances.  This
+is appropriate for classes whose dependency is declared to guide type
+inference even though resolution is intentionally structural (the
+Prelude's tuple-selection classes are an example).  {\te{coherent}}
+states the default explicitly.  The compiler flag
+{\te{-legacy-defer-instances}} restores the older, output-driven
+resolution behavior globally, as a temporary migration aid.
 
 Example:
 \begin{verbatim}
