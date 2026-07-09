@@ -2884,7 +2884,7 @@ tiImpls recursive as ibs = do
     -- be resolved).  so we do that reduction here.
 
     let eqs = []
-    (ps'', sbs2, s_agg) <- reducePredsAggressive Nothing eqs ps'
+    SolveResult ps'' sbs2 s_agg <- reducePredsAggressive Nothing eqs ps'
 
     when (not . null $ ps') $ do
       if (not . null $ ps'') then
