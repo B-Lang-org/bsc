@@ -1192,7 +1192,7 @@ The general concepts behind classes, instances, overloading etc.
 were introduced in section {\ref{sec-overloading}}.  A new class is
 declared using the following:
 
-\gram{topDefn}{\term{class} \opt{\nterm{context} \term{=>}} \nterm{classId} \many{\nterm{tyVarId}} \opt{\term{|} \nterm{funDep}}
+\gram{topDefn}{\term{class} \opt{\term{coherent} {\alt} \term{incoherent}} \opt{\nterm{context} \term{=>}} \nterm{classId} \many{\nterm{tyVarId}} \opt{\term{|} \nterm{funDep}}
         \term{where} \term{\{}} \\
 \grammore{ \many{\nterm{varId} \term{::} \nterm{ctxType} \term{;}} } \\
 \grammore{ \term{\}} }
@@ -1263,9 +1263,33 @@ two of the types uniquely determines the remaining type, {\ie}
 See section {\ref{sec-primitives-size-types}} for more detailed
 insights into the use of functional dependencies.
 
-\begin{NOTE}
-Functional dependencies are not currently checked by the compiler.
-\end{NOTE}
+The compiler checks that each instance declaration honors the class's
+dependencies: within an instance, the dependent parameters should be
+determined by the determining parameters, directly or through the
+instance's context, and the compiler warns otherwise, since an
+uncovered instance lets the same inputs be satisfied with many
+different results, contradicting what the dependency promises.
+
+\index{coherent@\te{coherent} (keyword)}
+\index{incoherent@\te{incoherent} (keyword)}
+The optional coherence annotation ({\te{coherent}} or
+{\te{incoherent}}, immediately after the {\te{class}} keyword)
+declares whether instance selection for the class is expected to be a
+function of the use's types alone.  An {\te{incoherent}} class has
+declared that its resolution is intentionally relational---the same
+constraint may legitimately be resolvable by more than one
+instance---so the compiler may select an instance even when the
+choice is not forced, and the coverage warning is suppressed for its
+instances (the Prelude's tuple-selection classes are an example);
+{\te{coherent}} forbids unforced selection regardless of the global
+{\te{-incoherent-instance-matches}} flag, which unannotated classes
+follow.
+
+Example:
+\begin{verbatim}
+ class incoherent Pick a b | a -> b where
+     pick :: a -> b
+\end{verbatim}
 
 % ----------------------------------------------------------------
 
