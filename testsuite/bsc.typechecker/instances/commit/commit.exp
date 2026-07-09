@@ -1,0 +1,60 @@
+# Tests for committing to coherent instance matches (ordered-clause
+# fundep semantics).  The T0159 message shape is pinned in
+# ../../bound-type-vars (BVC).
+
+# the selected clause's determined output conflicts with the demanded
+# type: final under ordered clauses, fall-through under the legacy flag
+# (erase first: a stale .bo from a previous run's legacy-variant pass
+# would let `bsc -u' skip the recompile and "compile")
+erase LegacyHatch.bo
+compile_fail_error LegacyHatch.bsv T0159
+erase LegacyHatch.bo
+compile_pass LegacyHatch.bsv {-legacy-defer-instances}
+
+# a committed match's unsatisfiable numeric proviso is reported with
+# the obligation and its use site, not backed out
+erase CommitAncestry.bo
+compile_fail CommitAncestry.bsv
+compare_file CommitAncestry.bsv.bsc-out
+
+# --------------------
+# Pins for the documented assumptions of ordered-clause commitment
+# (dev-notes/typechecker-coherent-instance-commitment.md, section 4.0)
+
+# A2: a type synonym at an input position selects the same clause as
+# its expansion (passing proves the specific clause was selected)
+compile_pass SynonymInput.bsv
+
+# A4: a unifiable given blocks commitment -- the matched catch-all's
+# unresolvable subgoal must not be stranded; the pred defers whole and
+# the enclosing given discharges it
+compile_pass GivenBlocksCommit.bsv
+
+# A5: the incoherent annotation licenses output-driven fall-through
+# with no legacy flag (the coherent twin is LegacyHatch above)
+compile_pass IncoherentFallThrough.bsv
+
+# A7: sole-instance output determination commits while the output
+# position is still a metavariable
+compile_pass OutputDetermined.bsv
+
+# A9: reporting stays anchored to the user-written predicate through
+# a two-layer instance chain (root pred, use site, leaf obligation)
+compile_fail ChainAncestry.bsv
+compare_file ChainAncestry.bsv.bsc-out
+
+# A3: cross-branch enumeration -- the catch-all is reachable through
+# the Nothing branch, and specific clauses are walked before it
+compile_pass CrossBranch.bsv
+
+# A5 matrix: the annotated class still falls through under the hatch
+erase IncoherentFallThrough.bo
+compile_pass IncoherentFallThrough.bsv {-legacy-defer-instances}
+
+# A7: output determination through the coherent-PARTIAL commit path
+compile_pass PartialOutputCommit.bsv
+
+# A9: the residual is rooted -- reported as the user-written L1#(a),
+# with the L2#(a) it reduced to as the dependency
+compile_fail WeakChainRoot.bsv
+compare_file WeakChainRoot.bsv.bsc-out
