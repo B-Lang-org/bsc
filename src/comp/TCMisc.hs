@@ -42,7 +42,7 @@ import TIMonad
 import PreIds
 import StdPrel(isPreClass, mkNumInstBody)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
-               cTApply, cVApply, anyTExpr)
+               cTApply, cVApply)
 import Literal
 import IntLit
 import SymTab
@@ -127,21 +127,27 @@ data Commitment = Committable
                 deriving (Eq)
 
 -- The outcome of reducing one predicate (sat): the residual goals
--- that remain, with the bindings and substitution produced.
+-- that remain, with the bindings and substitution produced, and the
+-- updated solved-dictionary list (see "sat").  The caller must adopt
+-- the solved list only where it also keeps the returned bindings --
+-- the entries reference dictionary ids bound there.
 data SatResult = SatResult {
         satNeeded     :: [VPred],
         satBinds      :: SolvedBinds,
         satSubst      :: Subst,
-        satCommitment :: Commitment
+        satCommitment :: Commitment,
+        satSolved     :: [EPred]
     }
 
 -- The outcome of a reduction loop over many predicates (sMany,
 -- satMany, reducePredsAggressive): the predicates that could not be
--- discharged, with the accumulated bindings and substitution.
+-- discharged, with the accumulated bindings and substitution, and
+-- the updated solved-dictionary list (see "sat").
 data SolveResult = SolveResult {
         solveNeeded :: [VPred],
         solveBinds  :: SolvedBinds,
-        solveSubst  :: Subst
+        solveSubst  :: Subst,
+        solveSolved :: [EPred]
     }
 
 satisfy :: [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
@@ -181,8 +187,8 @@ satisfyXStream dvs es ps = do
         -- satTraceM ("satisfy enter: " ++ ppString (dvs, ps))
 -- it is not clear if applying the substitution here wins or not
         s0 <- getSubst
-        SolveResult rs sbs s <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
---      SolveResult rs sbs s <- satisfy' dvs es ps
+        SolveResult rs sbs s _ <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
+--      SolveResult rs sbs s _ <- satisfy' dvs es ps
         -- satTraceM ("satisfy exit: " ++ ppString (rs,sbs,s) ++ "\n")
         extSubst "satisfyX" s
         return $ (rs, apSub s sbs)
@@ -202,7 +208,7 @@ satisfy' :: DVS -> [EPred] -> [VPred] -> TI SolveResult
 satisfy' dvs es ps = do
        (ps0, s0, sbs0) <- joinNeededCtxs ps
        -- satTraceM ("satisfy (join)' = " ++ ppString (ps0, sbs0, s0))
-       result <- sMany dvs es [] sbs0 s0 ps0
+       result <- sMany dvs es [] [] sbs0 s0 ps0
        -- satTraceM ("satisfy (result)' = " ++ ppString result)
        return result
   where
@@ -210,6 +216,8 @@ satisfy' dvs es ps = do
         -- Arguments:
         --   dvs - dependent vars, when attempting "last resort" satisfying
         --   es - given preds, which can be assumed for satisfying other preds
+        --   solved - dictionaries already solved or committed during this
+        --            satisfy pass, available for discharging equal preds
         --   rs - preds which we tried to satisfy but couldn't
         --   bs - bindings resulting from satisfying
         --   s  - substitution resulting from satisfying
@@ -218,7 +226,14 @@ satisfy' dvs es ps = do
         -- pred via a committable coherent instance match (no other instance
         -- and no in-scope given could ever satisfy it), we commit: keep the
         -- bindings and substitution, continue with the residual goals in
-        -- place of the pred.  If "sat" cannot reduce it entirely and the
+        -- place of the pred, and record the pred's dictionary in "solved"
+        -- so an equal pred later discharges against it instead of
+        -- re-deriving the same reduction subtree.  Fully satisfied preds
+        -- are recorded the same way.  ("solved" is deliberately separate
+        -- from "es": a given blocks commitment in "sat" because it is
+        -- evidence not derivable from instances, whereas a solved
+        -- dictionary IS instance evidence and must not block commitment.)
+        -- If "sat" cannot reduce it entirely and the
         -- reduction is not committable (an incoherent match, or a given may
         -- yet discharge it), we ignore the result of "sat" and put the
         -- original predicate aside (in "rs") to retry.  If "sat" can reduce
@@ -232,9 +247,9 @@ satisfy' dvs es ps = do
         -- (but only when not attempting "last resort" satisfying, though
         -- is that condition even necessary?).
         --
-        sMany :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
-                 TI SolveResult
-        sMany dvs es rs sbs s [] =
+        sMany :: DVS -> [EPred] -> [EPred] -> [VPred] -> SolvedBinds -> Subst
+                 -> [VPred] -> TI SolveResult
+        sMany dvs es solved rs sbs s [] =
             {- satTrace ("sMany: rs=" ++ ppReadable rs) $ -} do
             (rs', s', sbs') <- joinNeededCtxs rs
             let (changed_rs, unchanged_rs) = split_rs s' rs'
@@ -243,37 +258,45 @@ satisfy' dvs es ps = do
                 -- the loop is done; numeric residuals are NOT solved
                 -- here -- they flow to the caller's settlement point
                 -- (see the satisfy/satisfyStream contract above)
-                return (SolveResult rs' (sbs' <++ sbs) (s' @@ s))
+                return (SolveResult rs' (sbs' <++ sbs) (s' @@ s) (apSub s' solved))
              else
-                sMany (dvsSub s' dvs) (apSub s' es) unchanged_rs (sbs' <++ sbs) (s' @@ s) (apSub s' changed_rs)
-        sMany dvs es rs sbs s (p:ps) = do
-            SatResult x_needed x_sbs x_s x_commit <- sat dvs es p
+                sMany (dvsSub s' dvs) (apSub s' es) (apSub s' solved) unchanged_rs (sbs' <++ sbs) (s' @@ s) (apSub s' changed_rs)
+        sMany dvs es solved rs sbs s (p:ps) = do
+            SatResult x_needed x_sbs x_s x_commit x_solved <- sat dvs es solved p
             -- satTrace ("sMany: sat=" ++ ppReadable (p, x_needed)) $ return ()
+            let VPred p_id p_pwp = p
+                p_solved = EPred (CVar p_id) (removePredPositions p_pwp)
             case x_needed of
                 -- a committable partial reduction: the instance choice is
-                -- final, so commit it rather than retrying from scratch.
-                -- (The committed pred is NOT added to "es": discharging a
-                -- later equal pred against its dictionary would create a
-                -- binding that references an earlier-merged binding, which
-                -- the SolvedBinds merge order forbids; later equal preds
-                -- simply reduce through the same instance again.)
+                -- final, so commit it rather than retrying from scratch,
+                -- and make its dictionary (and the dictionaries solved
+                -- inside its reduction, returned in x_solved) available
+                -- to later equal preds
                 needed@(_:_) | x_commit == Committable && not (vpIsPreClass p) ->
                     let (changed_rs, unchanged_rs) = split_rs x_s rs
-                    in  sMany (dvsSub x_s dvs) (apSub x_s es) unchanged_rs
+                    in  sMany (dvsSub x_s dvs) (apSub x_s es)
+                              (apSub x_s (p_solved : x_solved)) unchanged_rs
                               (x_sbs <++ sbs) (x_s @@ s)
                               (apSub x_s (needed ++ changed_rs ++ ps))
                 -- if the predicate failed to reduce away completely,
-                -- put it aside and ignore its result,
+                -- put it aside and ignore its result (including x_solved,
+                -- whose bindings are being discarded with x_sbs),
                 -- except when it's a numeric typeclass and we're not doing
                 -- "last resort" satisfying
                 (_:_) | not (vpIsPreClass p) || isJust dvs ->
-                    sMany dvs es (p:rs) sbs s ps
+                    sMany dvs es solved (p:rs) sbs s ps
                 new_ps ->
+                    -- x_sbs is kept in both branches below, so the
+                    -- dictionaries solved inside the reduction are adopted
+                    let solved' = if null new_ps && not (vpIsPreClass p)
+                                  then p_solved : x_solved
+                                  else x_solved
+                    in
                     if isNullSubst x_s then
-                        sMany dvs es (new_ps ++ rs) (x_sbs <++ sbs) s ps
+                        sMany dvs es solved' (new_ps ++ rs) (x_sbs <++ sbs) s ps
                     else do
                         let (changed_rs, unchanged_rs) = split_rs x_s rs
-                        sMany (dvsSub x_s dvs) (apSub x_s es) (new_ps ++ unchanged_rs) (x_sbs <++ sbs) (x_s @@ s) (apSub x_s (changed_rs ++ ps))
+                        sMany (dvsSub x_s dvs) (apSub x_s es) (apSub x_s solved') (new_ps ++ unchanged_rs) (x_sbs <++ sbs) (x_s @@ s) (apSub x_s (changed_rs ++ ps))
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos anc)) = do
@@ -371,8 +394,17 @@ joinCtxs bound_tyvars vps = listToMaybe (mapMaybe matchBlobs joined_blob_list)
 -- and no in-scope given could ever satisfy, so the caller may commit to
 -- it (keep the bindings and continue with the residual goals) instead of
 -- putting the original predicate aside to retry.
-sat :: DVS -> [EPred] -> VPred -> TI SatResult
-sat dvs ps p =
+--
+-- "solved" holds the dictionaries of preds already solved or committed
+-- during the enclosing satisfy pass.  They discharge equal preds (like
+-- givens do) but do not block commitment: unlike a given, a solved
+-- dictionary is itself instance evidence, so it cannot contradict the
+-- instance choice.  The satSolved field of the result is the updated
+-- solved list, extended with the dictionaries solved inside this
+-- reduction; the caller must adopt it only where it also keeps the
+-- returned bindings (the entries reference dictionary ids bound there).
+sat :: DVS -> [EPred] -> [EPred] -> VPred -> TI SatResult
+sat dvs ps solved p =
     satTrace ("sat: trying " ++ ppReadable p ++ " in " ++ ppReadable ps) $ do
     whole_stack <- getSatStack
     bound_tyvars <- getBoundTVs
@@ -404,19 +436,19 @@ sat dvs ps p =
                                   -}
            -- if we satisfy numeric provisos recursively, we haven't proven it
            (VPred vp (PredWithPositions (IsIn cl _) poss _)) | isPreClass cl ->
-                   return (SatResult [p] emptySBs nullSubst Provisional)
+                   return (SatResult [p] emptySBs nullSubst Provisional solved)
            _ -> satTrace ("sat recursive: " ++ ppReadable (p, b, s)) $
                 let sb = mkSolvedBind b True -- Found on stack, recursive
-                in return (SatResult [] (fromSB sb) s Provisional)
+                in return (SatResult [] (fromSB sb) s Provisional solved)
       _ -> do
        let this_point :: TSSatElement
            this_point = (mkTSSatElement dvs ps p)
        incrementSatStack this_point
-       return_val <- case lookfor bound_tyvars p (concatMap bySuperE ps) of
+       return_val <- case lookfor bound_tyvars p (concatMap bySuperE ps ++ solved) of
          Just (b, (s, [])) -> do
              satTrace ("sat in super: " ++ ppReadable (p, concatMap bySuperE ps)) $ return ()
-             let sb = mkSolvedBind b False -- Satisfied via superclass from source, not recursive
-             return (SatResult [] (fromSB sb) s Provisional)
+             let sb = mkSolvedBind b False -- Satisfied via given or solved dictionary, not recursive
+             return (SatResult [] (fromSB sb) s Provisional solved)
          -- we might introduce a numeric equality here, so try instance reduction first
          m_equals -> do
           -- if instance reduction fails, fall back to introducing an equality
@@ -427,28 +459,30 @@ sat dvs ps p =
                     let VPred _ p_pwp = p
                     eq_ps <- concatMapM (eqToVPred (getPredAncestors p_pwp) (getVPredPositions p)) num_eqs
                     let sb = mkSolvedBind b False -- From superclass, not recursive
-                    SolveResult rs sbs s' <- satMany (dvsSub s dvs) (apSub s ps) [] (fromSB sb) s eq_ps
-                    return (SatResult rs sbs s' Provisional)
-                  Nothing -> satTrace msg $ return (SatResult [p] emptySBs nullSubst Provisional)
+                    SolveResult rs sbs s' solved' <- satMany (dvsSub s dvs) (apSub s ps) (apSub s solved) [] (fromSB sb) s eq_ps
+                    return (SatResult rs sbs s' Provisional solved')
+                  Nothing -> satTrace msg $ return (SatResult [p] emptySBs nullSubst Provisional solved)
           ai <- getAllowIncoherent
           x  <- reducePred ps dvs p
           case x of
             Nothing -> fail "sat unreduced"
             Just (Reduction qs sb us Nothing mpkg) ->
                 satTrace ("sat calls satMany ") $ do
-                result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs -- qs should have us applied already
+                result <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs -- qs should have us applied already
                 case result of
-                  SolveResult [] sbs s_final -> do
+                  SolveResult [] sbs s_final solved' -> do
                     recordPackageUse mpkg
-                    return (SatResult [] sbs s_final Provisional)
-                  SolveResult needed sbs s_final -> do
+                    return (SatResult [] sbs s_final Provisional solved')
+                  SolveResult needed sbs s_final solved' -> do
                     -- A coherent match whose context is not yet satisfied:
                     -- under ordered-clause fundep semantics no other
                     -- instance can ever satisfy this predicate, so the
                     -- choice is final and the caller may commit to it --
                     -- unless an in-scope given (which is not an instance)
                     -- could still discharge the predicate whole after
-                    -- refinement.
+                    -- refinement.  "solved" dictionaries are deliberately
+                    -- not consulted here: they are instance evidence, so
+                    -- they cannot contradict the instance choice.
                     commitment <-
                       if legacyDeferInstances
                       then return Provisional
@@ -470,30 +504,30 @@ sat dvs ps p =
                         return (if any unifiable givens
                                 then Provisional else Committable)
                     when (commitment == Committable) $ recordPackageUse mpkg
-                    return (SatResult needed sbs s_final commitment)
+                    return (SatResult needed sbs s_final commitment solved')
             Just (Reduction qs sb us (Just (h@(IsIn c _))) mpkg) | fromMaybe ai (allowIncoherent c) ->
               satTrace ("sat calls satMany (incoherent) ") $ do
-              result0 <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
+              result0 <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs
               -- An incoherent match is deliberately revocable until its
               -- context is fully discharged (it must never adopt on
               -- numeric debt), so render the verdict here: settle its
               -- numeric residuals in a local batch before deciding
               -- full-vs-partial.
               result <- case result0 of
-                SolveResult needed0@(_:_) sbs s_final -> do
+                SolveResult needed0@(_:_) sbs s_final solved0 -> do
                     (needed, nsbs) <- batchSolveNumericPreds
                                           (apSub s_final ps) needed0
-                    return (SolveResult needed (nsbs <++ sbs) s_final)
+                    return (SolveResult needed (nsbs <++ sbs) s_final solved0)
                 r -> return r
               case result of
-                SolveResult ps@(_:_) sbs s_final -> return (SatResult ps sbs s_final Provisional)
-                SolveResult [] sbs s_final -> do
+                SolveResult ps@(_:_) sbs s_final solved' -> return (SatResult ps sbs s_final Provisional solved')
+                SolveResult [] sbs s_final solved' -> do
                   recordPackageUse mpkg
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
                   when (allowIncoherent c /= Just True) $
                     twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return (SatResult [] sbs s_final Provisional)
+                  return (SatResult [] sbs s_final Provisional solved')
             bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
@@ -650,15 +684,18 @@ joinNeededCtxs' s sbs ps = do
 -- preds to retry satisfying
 --
 -- Return values are similar to "sat" since they recursively call each other.
-satMany :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
+-- The solveSolved field of the result is the updated solved-dictionary
+-- list (see "sat"); this path keeps all bindings it produces, so every
+-- solved pred is recorded and returned.
+satMany :: DVS -> [EPred] -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
            TI SolveResult
 -- Heuristic: sort predicates so those with concrete type arguments are processed
 -- before those with all-variable arguments.  This ensures fundep-producing
 -- predicates (e.g. Bits (UInt 32) n) resolve type variables before
 -- predicates that depend on those variables (e.g. Bits a n), avoiding
 -- expensive scans of all instances for unresolvable predicates.
-satMany dvs es rs_accum sbs s ps =
-    satMany' dvs es rs_accum sbs s (sortBy cmpPredConcreteness ps)
+satMany dvs es solved rs_accum sbs s ps =
+    satMany' dvs es solved rs_accum sbs s (sortBy cmpPredConcreteness ps)
     where
         cmpPredConcreteness :: VPred -> VPred -> Ordering
         cmpPredConcreteness (VPred _ (PredWithPositions (IsIn _ ts1) _ _))
@@ -666,22 +703,28 @@ satMany dvs es rs_accum sbs s ps =
             compare (concreteness ts2) (concreteness ts1) -- higher first
         concreteness ts = length (filter (not . isTVar) ts)
 
-satMany' :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
+satMany' :: DVS -> [EPred] -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
     TI SolveResult
 -- rs_accum is an accumulating parameter of "needed" VPreds
 -- if satisfying fails these are returned (for error messages and ctxReduce)
-satMany' dvs es [] sbs s [] = return (SolveResult [] sbs s)
-satMany' dvs es rs_accum sbs s [] = do
+satMany' dvs es solved [] sbs s [] = return (SolveResult [] sbs s solved)
+satMany' dvs es solved rs_accum sbs s [] = do
   (final_rs, s', sbs') <- joinNeededCtxs rs_accum
   -- the loop is done; numeric residuals are NOT solved here -- they
   -- flow to the caller's settlement point (see the
   -- satisfy/satisfyStream contract above)
-  return (SolveResult final_rs (sbs' <++ sbs) (s' @@ s))
-satMany' dvs es rs_accum sbs s (p:ps) = do
+  return (SolveResult final_rs (sbs' <++ sbs) (s' @@ s) (apSub s' solved))
+satMany' dvs es solved rs_accum sbs s (p:ps) = do
     -- this path always commits partial reductions, so the Commitment
-    -- from "sat" is not consulted
-    SatResult x_needed x_sbs x_subst _ <- sat dvs es p
+    -- from "sat" is not consulted; all bindings are kept, so the
+    -- solved list from "sat" is always adopted, and fully satisfied
+    -- preds are recorded in it
+    SatResult x_needed x_sbs x_subst _ x_solved <- sat dvs es solved p
     let x = (x_needed, x_sbs, x_subst)
+        VPred p_id p_pwp = p
+        solved' = if null x_needed && not (vpIsPreClass p)
+                  then EPred (CVar p_id) (removePredPositions p_pwp) : x_solved
+                  else x_solved
     rtrace ("satMany: sat="++ ppReadable (p,x)) $ return ()
     case x of
         (needed@(_:_), sbs', s') ->
@@ -700,20 +743,20 @@ satMany' dvs es rs_accum sbs s (p:ps) = do
             -- Since we apply "s" to "needed", we also apply it to the not-yet-
             -- processed preds "ps".
             rtrace ("satMany Right: " ++ ppReadable needed) $
-            satMany' dvs es ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
+            satMany' dvs es (apSub s' solved') ((apSub s' needed) ++ rs_accum) (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
         ([], sbs', s') ->
             -- If p is satisfied, we "drop" it, but add its binding and
             -- substitution.
             if isNullSubst s' then
                 -- Straight-up drop it
                 rtrace ("satMany Left True") $
-                satMany' dvs es rs_accum (sbs' <++ sbs) s ps
+                satMany' dvs es solved' rs_accum (sbs' <++ sbs) s ps
             else do
               let (changed_rs, unchanged_rs) = split_rs s' rs_accum
               if null changed_rs then
                  -- no impact on accumulated predicates
                  rtrace ("satMany Left False True") $
-                 satMany' dvs es rs_accum (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
+                 satMany' dvs es (apSub s' solved') rs_accum (sbs' <++ sbs) (s' @@ s) (apSub s' ps)
                else
                 -- Drop it, but try from the beginning again to see if any of
                 -- the accumulated rs's can now be
@@ -724,7 +767,7 @@ satMany' dvs es rs_accum sbs s (p:ps) = do
                 let rs' = (apSub s' changed_rs) ++ unchanged_rs
                 (rs'', s1, sbs1) <- joinNeededCtxs rs'
                 let s2 = s1 @@ s'
-                satMany (dvsSub s2 dvs) (apSub s2 es) [] (sbs1 <++ sbs' <++ sbs)
+                satMany (dvsSub s2 dvs) (apSub s2 es) (apSub s2 solved') [] (sbs1 <++ sbs' <++ sbs)
                         (s2 @@ s) (rs'' ++ apSub s2 ps)
 
 
@@ -735,18 +778,18 @@ reducePredsAggressive dvs es vps0 = do
   -- traceM ("reducePredsAggressive (enter): " ++ ppReadable vps0)
   (vps1, s1, sbs1) <- joinNeededCtxs vps0
   checkJoinCtxs "reducePredsAggressive 1" vps0 s1 vps1
-  reducePredsAggressive' dvs es sbs1 s1 vps1
+  reducePredsAggressive' dvs es [] sbs1 s1 vps1
 
-reducePredsAggressive' :: DVS -> [EPred] -> SolvedBinds -> Subst -> [VPred] ->
+reducePredsAggressive' :: DVS -> [EPred] -> [EPred] -> SolvedBinds -> Subst -> [VPred] ->
                           TI SolveResult
-reducePredsAggressive' dvs es sbs1 s1 vps1 = do
+reducePredsAggressive' dvs es solved sbs1 s1 vps1 = do
   -- Note that we are calling satMany' here, which does not apply the sorting optimization.
   -- There are some existing bugs where the order in which preds are reduced affects whether
   -- instance resolution succeeds (see bsc-contrib/Libraries/GenC/GenCMsg/GenCMsg.bs),
   -- so we conservatively preserve the original order.
   -- Sorting or not sorting here does not seem to have a measurable effect on the overall
   -- performance of type checking.
-  SolveResult vps2 sbs2 s2 <- maskAllowIncoherent $ satMany' dvs es [] emptySBs s1 vps1
+  SolveResult vps2 sbs2 s2 solved2 <- maskAllowIncoherent $ satMany' dvs es solved [] emptySBs s1 vps1
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
   let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
@@ -756,7 +799,7 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
   if (any badCon allPredTyCons) then do
     -- loop to keep synonyms and type functions out of instance heads
     vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
-    reducePredsAggressive' dvs es (sbs2 <++ sbs1) s2 vps2'
+    reducePredsAggressive' dvs es solved2 (sbs2 <++ sbs1) s2 vps2'
    else do
     -- satMany is inside a loop, so it doesn't consistently apply
     -- its accumulated substitution to the reduced predicates.
@@ -769,7 +812,7 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
     -- numeric preds here.
     let vps2' = apSub s2 vps2
     (vps3, nsbs) <- batchSolveNumericPreds (apSub s2 es) vps2'
-    return (SolveResult vps3 (nsbs <++ sbs2 <++ sbs1) s2)
+    return (SolveResult vps3 (nsbs <++ sbs2 <++ sbs1) s2 solved2)
 
 -- note that the subst we return is safe to commit to as long as the
 -- instance match isn't incoherent (or if we are ok committing to an
@@ -1806,21 +1849,21 @@ defaultClasses fixedVars givenPreds unsatisfiedPreds =
               let s = mkSubst [(i,t)]
                   ps' = apSub s ps
 
-              answer0 <- satMany (Just fixedVars) givenPreds [] emptySBs s ps'
+              answer0 <- satMany (Just fixedVars) givenPreds [] [] emptySBs s ps'
               -- candidate validation is a verdict: settle the numeric
               -- residuals under this candidate before requiring emptiness
               -- (this speculative pass is quarantined -- only the
               -- substitution of an accepted candidate is merged)
               answer <- case answer0 of
-                SolveResult rs0@(_:_) sbs0 s0 -> do
+                SolveResult rs0@(_:_) sbs0 s0 solved0 -> do
                     (rs1, nsbs) <- batchSolveNumericPreds
                                        (apSub s0 givenPreds) rs0
-                    return (SolveResult rs1 (nsbs <++ sbs0) s0)
+                    return (SolveResult rs1 (nsbs <++ sbs0) s0 solved0)
                 r -> return r
               return $ case answer of
               -- we reject this default if it does not work for some pred
               -- or if it results in a substitution of a bound variable
-                SolveResult [] _ s' | not $ subsFixedVar s' -> Just s'
+                SolveResult [] _ s' _ | not $ subsFixedVar s' -> Just s'
                 _ -> Nothing
        tryDefault i ps s@(Just _) t = return s
 

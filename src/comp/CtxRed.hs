@@ -401,7 +401,7 @@ ctxRedCQType' isInstHead cqt = do
 
     -- core context reduction
     let dvs = (tv vqs) ++ prev_bound_tvs
-    SolveResult ps _ s <- reducePredsAggressive (Just dvs) [] vqs
+    SolveResult ps _ s _ <- reducePredsAggressive (Just dvs) [] vqs
 
     let t' = apSub s t
 
