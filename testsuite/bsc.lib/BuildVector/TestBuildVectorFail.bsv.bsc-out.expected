@@ -22,19 +22,15 @@ Error: "TestBuildVectorFail.bsv", line 20, column 24: (T0031)
     Literal#(Bool)
   The proviso was implied by expressions at the following positions:
     "TestBuildVectorFail.bsv", line 20, column 28
-Error: "TestBuildVectorFail.bsv", line 26, column 23: (T0032)
+Error: "TestBuildVectorFail.bsv", line 26, column 27: (T0032)
   This expression requires the following proviso which could not be resolved:
     BuildVector::BuildVector#(Bool, function Vector::Vector#(3, Integer) f(Bool x1, Bool x2), 0)
-  The proviso was implied by expressions at the following positions:
-    "TestBuildVectorFail.bsv", line 26, column 27
   An instance for this proviso exists, but it depends on the following proviso
   for which there is no instance:
     BuildVector::BuildVector#(Bool, Vector::Vector#(3, Integer), 2)
-Error: "TestBuildVectorFail.bsv", line 32, column 11: (T0032)
+Error: "TestBuildVectorFail.bsv", line 32, column 15: (T0032)
   This expression requires the following proviso which could not be resolved:
     BuildVector::BuildVector#(Bool, function Bit#(3) f(Bool x1, Bool x2), 0)
-  The proviso was implied by expressions at the following positions:
-    "TestBuildVectorFail.bsv", line 32, column 15
   An instance for this proviso exists, but it depends on the following proviso
   for which there is no instance:
     BuildVector::BuildVector#(Bool, Bit#(3), 2)
