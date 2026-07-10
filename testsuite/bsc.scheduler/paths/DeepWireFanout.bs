@@ -1,0 +1,37 @@
+package DeepWireFanout where
+
+import SplitPorts
+
+struct Inner =
+  x :: Bool
+  y :: Bool
+ deriving (Bits)
+
+struct Outer =
+  a :: Inner
+  b :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- DeepSplit input recurses to leaf ports (put_1_a_x, put_1_a_y, put_1_b).
+  -- One Action method forwards ONLY the deep leaf a.x onto a combinational
+  -- wire; two distinct value methods read it.  The single deep leaf input
+  -- sub-port put_1_a_x fans out to the outputs of TWO different methods, while
+  -- its siblings put_1_a_y and put_1_b reach neither output.
+  put  :: DeepSplit Outer -> Action
+  outA :: Bool
+  outB :: Bool
+
+{-# synthesize mkDeepWireFanout #-}
+mkDeepWireFanout :: Module Ifc
+mkDeepWireFanout =
+  module
+    w :: RWire Bool <- mkRWire
+    interface
+      put (DeepSplit o) = w.wset o.a.x
+      outA = case w.wget of
+               Just v -> v
+               Nothing -> False
+      outB = case w.wget of
+               Just v -> not v
+               Nothing -> True

@@ -1,11 +1,13 @@
 -- Common code used by various converters
 
 module AExpr2Util(
-  getMethodOutputPort
+  getMethodOutputPorts,
+  getSingleMethodOutputPort,
+  getMethodOutputPortAt
 ) where
 
 import qualified Data.Map as M
-import Data.List(find)
+import Data.List(find, genericIndex)
 
 import ErrorUtil(internalError)
 import PPrint
@@ -32,8 +34,8 @@ import VModInfo(VModInfo(..), VFieldInfo(..), vName_to_id)
 -- XXX we can replace them with an unevaluated function applied to its arguments!
 -- XXX That way, the SMT solver will handle any equivalence of the arguments.
 
-getMethodOutputPort :: (M.Map AId VModInfo) -> AId -> AId -> AId
-getMethodOutputPort stateMap modId methId =
+getMethodOutputPorts :: (M.Map AId VModInfo) -> AId -> AId -> [AId]
+getMethodOutputPorts stateMap modId methId =
   let mod_err = internalError("canonMethCalls: module not found: " ++
                               ppReadable modId)
       fields = vFields $ M.findWithDefault mod_err modId stateMap
@@ -41,14 +43,28 @@ getMethodOutputPort stateMap modId methId =
                                ppReadable (modId, methId))
       findFn (Method { vf_name = i }) = qualEq i methId
       findFn _ = False
-      mport = case (find findFn fields) of
-                Just (Method { vf_output = mo }) -> mo
+      ports = case (find findFn fields) of
+                Just (Method { vf_outputs = os }) -> os
                 _ -> meth_err
       out_err = internalError("canonMethCalls: method has no output: " ++
                               ppReadable (modId, methId))
-  in  case mport of
-        Just (vn,_) -> vName_to_id vn
-        _ -> out_err
+  in  if null ports then out_err else map (vName_to_id . fst) ports
+
+-- A bare method reference (with no tuple selection) refers to a method with a
+-- single output port.  Return that (canonical) port, failing if the method has
+-- multiple output ports (those must be reached through a tuple selector).
+getSingleMethodOutputPort :: (M.Map AId VModInfo) -> AId -> AId -> AId
+getSingleMethodOutputPort stateMap modId methId =
+  case getMethodOutputPorts stateMap modId methId of
+    [portId] -> portId
+    ports -> internalError ("getSingleMethodOutputPort: unexpected output ports: " ++
+                            ppReadable (modId, methId, ports))
+
+-- The output port at the given tuple-selector index, for a method whose result
+-- is split across multiple output ports.
+getMethodOutputPortAt :: (M.Map AId VModInfo) -> AId -> AId -> Integer -> AId
+getMethodOutputPortAt stateMap modId methId selIdx =
+  getMethodOutputPorts stateMap modId methId `genericIndex` selIdx
 
 -- -------------------------
 

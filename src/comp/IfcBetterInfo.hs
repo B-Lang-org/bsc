@@ -25,7 +25,6 @@ import VModInfo
 -- and for recording the types of external method ports
 data BetterInfo = BetterMethodInfo
                   { mi_id     :: Id, -- method Id
-                    mi_result :: VPort, -- possible rename for method result
                     mi_ready  :: VPort, -- for ready signal
                     mi_enable :: VPort, -- for enable signal
                     mi_prefix :: Id     -- default prefix for arguments (which are not found in classic)
@@ -49,7 +48,6 @@ matchMethodName id mn = qualEq id (mi_id mn)
 -- creates a basic method remaing
 noMethodInfo :: Id -> BetterInfo
 noMethodInfo fieldId = BetterMethodInfo {mi_id = fieldId,
-                                     mi_result = id_to_vPort fieldId,
                                      mi_ready  = id_to_vPort $ mkRdyId fieldId,
                                      mi_enable = id_to_vPort $ mkEnableId fieldId,
                                      mi_prefix = fieldId
@@ -58,8 +56,7 @@ noMethodInfo fieldId = BetterMethodInfo {mi_id = fieldId,
 
 instance PPrint BetterInfo  where
     pPrint d i info = (text "methodNames") <> ppId d (mi_id info) <> equals <> braces
-                        ( printMaybe d i "Result:" (mi_result info) <>
-                          printMaybe d i "Ready:" (mi_ready info) <>
+                        ( printMaybe d i "Ready:" (mi_ready info) <>
                           printMaybe d i "Enable:" (mi_enable info) <>
                           text "Prefix:" <> pPrint d i (mi_prefix info)
                         )
@@ -93,10 +90,9 @@ fieldInfoToBetterInfo :: Flags -> SymTab -> (Id,Maybe FieldInfo) -> BetterInfo
 fieldInfoToBetterInfo flags symTab (fieldId, Nothing) = noMethodInfo fieldId
 fieldInfoToBetterInfo flags symTab (fieldId, Just fi) =
     BetterMethodInfo {mi_id = fieldId,
-                      mi_result = maybe (id_to_vPort fieldId) (str_to_vPort) mres,
                       mi_ready  = maybe (id_to_vPort $ mkRdyId fieldId) str_to_vPort mrdy,
                       mi_enable = maybe (id_to_vPort $ mkEnableId fieldId) str_to_vPort  men,
                       mi_prefix = maybe fieldId (setIdBaseString fieldId) mprefix
                }
     where prags   = fi_pragmas fi
-          (mprefix,mres,mrdy,men,_,_,_) = getMethodPragmaInfo prags
+          (mprefix,_,mrdy,men,_,_,_) = getMethodPragmaInfo prags

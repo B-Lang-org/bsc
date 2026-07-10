@@ -1,0 +1,48 @@
+package AVEnArgMuxPath where
+
+import SplitPorts
+import Vector
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- Single-ported combinational lookup submodule (RegFile-like): the read is
+-- combinational from the index argument.
+interface LookupIfc =
+  lookup :: Bit 4 -> Bool
+
+{-# synthesize mkAVEnArgMuxSub #-}
+mkAVEnArgMuxSub :: Module LookupIfc
+mkAVEnArgMuxSub =
+  module
+    rs :: Vector 16 (Reg Bool) <- replicateM (mkReg False)
+    interface
+      lookup i = (select rs i)._read
+
+-- ActionValue method whose SPLIT input port upd_1_p1 selects an index into
+-- the single-ported submodule.  Because a rule in the same module also uses
+-- that one read port, BSC muxes the read index by the method's enable, so
+-- the split output port upd_p1 is combinational on BOTH the split input
+-- (upd_1_p1) and the enable (EN_upd).  This exercises the enable-to-output
+-- edge for a split AV result.  upd_p2 is registered: no combinational path.
+interface AVIfc =
+  upd :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+
+{-# synthesize mkAVEnArgMuxPath #-}
+mkAVEnArgMuxPath :: Module AVIfc
+mkAVEnArgMuxPath =
+  module
+    sub <- mkAVEnArgMuxSub
+    ptr :: Reg (Bit 4) <- mkRegU
+    r :: Reg Bool <- mkReg False
+    rules
+      "bump": when True ==>
+        action
+          ptr := ptr + 1
+          r := sub.lookup ptr
+    interface
+      upd (ShallowSplit a) =
+        do ptr := ptr + (if a.p1 then 1 else 0)  -- makes the rule conflict with the method
+           return (ShallowSplit (Pair { p1 = sub.lookup (if a.p1 then 3 else 5); p2 = r }))
