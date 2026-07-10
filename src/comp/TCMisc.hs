@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 module TCMisc(
         splitF, satisfyFV, satisfy,
+        satisfyStream, satisfyFVStream, batchSolveNumericPreds,
         reducePred, Reduction(..),
         reducePredsAggressive, SolveResult(..), expTFun, expTConPred,
         findAssump, mkQualType, closeFD, niceTypes,
@@ -106,6 +107,17 @@ splitF fs ps = partition (all (`elem` fs) . tv) ps
 -- predicates which were solved.  (The dictionaries are defined in
 -- terms of existing dictionaries, such as the "es".)
 
+-- "satisfy" and "satisfyFV" are verdict-complete: numeric residuals
+-- are settled (proven or refuted by the SAT solver, in one batch)
+-- before the residual list is returned, so a caller may treat the
+-- result as final -- an empty result means fully satisfied.  Callers
+-- that instead OWN a later settlement point (tiExpl''' settles once
+-- per definition, after defaulting; tiImpls hands its residuals to
+-- reducePredsAggressive, which settles) use the "Stream" variants,
+-- which leave numeric residuals unsolved so they flow to the owner.
+-- The satisfy loop itself never consults the solver: a solver verdict
+-- may reject the program but never rewinds a binding or a match.
+
 -- Whether a partial reduction may be kept: Committable means the
 -- instance choice is final -- a coherent match that no other
 -- instance and no in-scope given could ever satisfy -- so the caller
@@ -136,6 +148,9 @@ data SolveResult = SolveResult {
 satisfy :: [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
 satisfy es ps = satisfyX Nothing es ps
 
+satisfyStream :: [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
+satisfyStream es ps = satisfyXStream Nothing es ps
+
 -- This version also takes a list of the variables from the
 -- environment, which have been filtered for dependencies.  These
 -- TyVars are used only in "genInsts" (in "reducePred") for numeric
@@ -147,9 +162,23 @@ satisfyFV vs es ps =
         satTrace ("satisfyFV " ++ ppReadable ps) $
         satisfyX (Just vs) es ps
 
+satisfyFVStream :: [TyVar] -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
+satisfyFVStream vs es ps =
+        satTrace ("satisfyFVStream " ++ ppReadable ps) $
+        satisfyXStream (Just vs) es ps
+
 satisfyX :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
 satisfyX _   es [] = return ([], emptySBs)
 satisfyX dvs es ps = do
+        (rs, sbs) <- satisfyXStream dvs es ps
+        -- settle the numeric residuals (see the contract above)
+        s <- getSubst
+        (rs', nsbs) <- batchSolveNumericPreds (apSub s es) rs
+        return (rs', nsbs <++ sbs)
+
+satisfyXStream :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
+satisfyXStream _   es [] = return ([], emptySBs)
+satisfyXStream dvs es ps = do
         -- satTraceM ("satisfy enter: " ++ ppString (dvs, ps))
 -- it is not clear if applying the substitution here wins or not
         s0 <- getSubst
@@ -212,6 +241,9 @@ satisfy' dvs es ps = do
             let (changed_rs, unchanged_rs) = split_rs s' rs'
             if null changed_rs then do
                 checkJoinCtxs "satisfy" rs s' rs'
+                -- the loop is done; numeric residuals are NOT solved
+                -- here -- they flow to the caller's settlement point
+                -- (see the satisfy/satisfyStream contract above)
                 return (SolveResult rs' (sbs' <++ sbs) (s' @@ s))
              else
                 sMany (dvsSub s' dvs) (apSub s' es) unchanged_rs (sbs' <++ sbs) (s' @@ s) (apSub s' changed_rs)
@@ -475,7 +507,18 @@ sat dvs ps p =
                     return (SatResult needed sbs s_final commitment)
             Just (Reduction qs sb us (Just (h@(IsIn c _))) mpkg) | fromMaybe ai (allowIncoherent c) ->
               satTrace ("sat calls satMany (incoherent) ") $ do
-              result <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
+              result0 <- satMany (dvsSub us dvs) (apSub us ps) [] (fromSB sb) us qs
+              -- An incoherent match is deliberately revocable until its
+              -- context is fully discharged (it must never adopt on
+              -- numeric debt), so render the verdict here: settle its
+              -- numeric residuals in a local batch before deciding
+              -- full-vs-partial.
+              result <- case result0 of
+                SolveResult needed0@(_:_) sbs s_final -> do
+                    (needed, nsbs) <- batchSolveNumericPreds
+                                          (apSub s_final ps) needed0
+                    return (SolveResult needed (nsbs <++ sbs) s_final)
+                r -> return r
               case result of
                 SolveResult ps@(_:_) sbs s_final -> return (SatResult ps sbs s_final Provisional)
                 SolveResult [] sbs s_final -> do
@@ -525,6 +568,111 @@ checkJoinCtxs tag rs s rs' = do
   when (isJust (joinCtxs bound_tyvars rs')) $
     internalError ("incomplete join (" ++ tag ++ "): " ++ ppReadable (rs, rs', s))
 
+-- Batched proviso SAT solving, run at the base of a satisfy loop
+-- (sMany's and satMany''s base cases, so nested reductions inside
+-- "sat" batch their own residuals too) over the whole numeric residual
+-- set, instead of once per predicate per reduction attempt with a
+-- fresh solver each time.  One fresh solver session serves each batch
+-- (deliberately not kept between batches; see below), and each
+-- predicate is proven from the definition's givens alone (see the XXX
+-- below for the richer sibling-residual assumption scheme, which is
+-- sound but parked).
+-- Ground proven facts are immutable and are cached in the TI state,
+-- so later passes discharge them without consulting the solver at
+-- all.
+batchSolveNumericPreds :: [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
+batchSolveNumericPreds es rs = do
+    flags <- getFlags
+    let isNumVP (VPred _ (PredWithPositions (IsIn c _) _ _)) = isPreClass c
+        nps = filter isNumVP rs
+    if not (useProvisoSAT flags) || null nps
+      then return (rs, emptySBs)
+      else do
+        proven_cache <- getNumProven
+        refuted_cache <- getNumRefuted
+        -- Solve and cache the normalized form (synonyms and associated
+        -- type functions expanded), as the per-predicate code did: the
+        -- SAT converters model an unexpanded application as an opaque
+        -- uninterpreted term, losing its arithmetic meaning, and one
+        -- logical predicate would otherwise occupy several cache keys.
+        let normPred (IsIn c ts) = IsIn c <$> mapM normT ts
+        nnps <- mapM (\ vp -> do p <- normPred (toPred vp)
+                                 return (vp, p)) nps
+        -- A fully ground numeric predicate's truth is context-free, so
+        -- both cached outcomes are final: proven facts discharge without
+        -- the solver, refuted facts stay residual without re-asking.
+        let (hits, rest) =
+                partition (\ (_, p) -> p `S.member` proven_cache) nnps
+            (known_bad, misses) =
+                partition (\ (_, p) -> p `S.member` refuted_cache) rest
+            mkNumBind ((VPred w _), p) =
+                let t = predToType p
+                in  mkSolvedBind (w, t, mkNumInstBody t) False
+            givens = [ p | EPred _ p <- es ]
+            ground (_, p) = null (tv p)
+            -- discharged preds are removed in place: the survivors keep
+            -- their arrival order, which flows onward into retry order,
+            -- inferred contexts, and error messages
+            residualsWithout discharged =
+                let ds = S.fromList [ i | ((VPred i _), _) <- discharged ]
+                in  [ vp | vp@(VPred i _) <- rs, i `S.notMember` ds ]
+            -- Prove each pending pred from the definition's givens, as
+            -- the per-predicate code did.  Ground preds are closed
+            -- arithmetic: they are queried with no assumptions at all,
+            -- so their outcome is their truth -- cacheable in both
+            -- directions.
+            --
+            -- XXX Passing the sibling residuals as additional
+            -- assumptions (proving each pred from the givens plus the
+            -- residuals that survive to the context) would let jointly-
+            -- constrained sets discharge that individual queries
+            -- cannot; it is sound with a shrinking assumption set, but
+            -- empirically the extra assertions make later queries in
+            -- the batch answer wrongly (Bug782_Div regressions even
+            -- with a fresh session and a givens-only retry).  The root
+            -- cause is unidentified -- static review found the
+            -- per-query push/pop hygiene clean in both backends -- so
+            -- it needs a solver-layer investigation first.
+            loop st done [] = return (done, st)
+            loop st done (x@(_, p):pend) = do
+                let assums | ground x = []
+                           | otherwise = givens
+                (res, st') <- solvePred st assums p
+                loop st' ((x, isJust res) : done) pend
+        if null misses
+          then return (residualsWithout hits,
+                       foldr ((<++) . fromSB . mkNumBind) emptySBs hits)
+          else do
+            satTraceM ("proviso SAT batch: " ++ show (length misses) ++
+                       " preds, " ++ show (length hits + length known_bad) ++
+                       " cache hits")
+            -- a fresh solver session per batch, living entirely within
+            -- this one atomic IO block (solvePred push/pops around
+            -- each query, so queries in the batch share converted
+            -- terms).  The session is deliberately NOT kept between
+            -- batches: the vendored Yices binding resets the whole
+            -- library whenever any context is created, so a session
+            -- may not outlive an evaluation window in which another
+            -- one could be created -- confining it to a single block
+            -- makes the one-live-context assumption hold by
+            -- construction.  Only the ground verdict caches persist
+            -- across batches, and they are solver-independent.
+            let (solved_results, _) = unsafePerformIO $ do
+                    st0 <- initSATPredState flags
+                    loop st0 [] misses
+            let proven   = [ x | (x, True)  <- solved_results ]
+                unproven = [ x | (x, False) <- solved_results ]
+                new_proven  = [ p | x@(_, p) <- proven,   ground x ]
+                -- an unproven ground pred can never become provable
+                -- (its arithmetic is closed and it was queried with no
+                -- assumptions)
+                new_refuted = [ p | x@(_, p) <- unproven, ground x ]
+                sbs = foldr ((<++) . fromSB . mkNumBind) emptySBs
+                            (hits ++ proven)
+            when (not (null new_proven && null new_refuted)) $
+                addNumDecided new_proven new_refuted
+            return (residualsWithout (hits ++ proven), sbs)
+
 joinNeededCtxs :: [VPred] -> TI ([VPred], Subst, SolvedBinds)
 joinNeededCtxs = joinNeededCtxs' nullSubst emptySBs
 
@@ -567,6 +715,9 @@ satMany' :: DVS -> [EPred] -> [VPred] -> SolvedBinds -> Subst -> [VPred] ->
 satMany' dvs es [] sbs s [] = return (SolveResult [] sbs s)
 satMany' dvs es rs_accum sbs s [] = do
   (final_rs, s', sbs') <- joinNeededCtxs rs_accum
+  -- the loop is done; numeric residuals are NOT solved here -- they
+  -- flow to the caller's settlement point (see the
+  -- satisfy/satisfyStream contract above)
   return (SolveResult final_rs (sbs' <++ sbs) (s' @@ s))
 satMany' dvs es rs_accum sbs s (p:ps) = do
     -- this path always commits partial reductions, so the Commitment
@@ -653,7 +804,14 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
     -- its accumulated substitution to the reduced predicates.
     -- Apply the substitution here to clean that up before returning
     -- to the external caller.
-    return (SolveResult (apSub s2 vps2) (sbs2 <++ sbs1) s2)
+    --
+    -- Aggressive reduction is a settlement owner: its callers (CtxRed
+    -- signature simplification, tiImpls' proviso generation, the
+    -- error reporters) all need a final residual, so settle the
+    -- numeric preds here.
+    let vps2' = apSub s2 vps2
+    (vps3, nsbs) <- batchSolveNumericPreds (apSub s2 es) vps2'
+    return (SolveResult vps3 (nsbs <++ sbs2 <++ sbs1) s2)
 
 -- note that the subst we return is safe to commit to as long as the
 -- instance match isn't incoherent (or if we are ok committing to an
@@ -676,7 +834,7 @@ instance PPrint Reduction where
         pPrint d p ((qs, sb, us), (minst, mpkg))
 
 reducePred :: [EPred] -> DVS -> VPred -> TI (Maybe Reduction)
-reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos anc)) = do
+reducePred _eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos anc)) = do
     pushSatStackContext
     bound_tyvars <- getBoundTVs
     ts' <- mapM normT ts
@@ -782,27 +940,12 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos anc)) = do
     r <- f False is'
     rpTrace ("reducePred " ++ ppReadable (dvs, pr', is', r)) $ return ()
     popSatStackContext
-    flags <- getFlags
-    if (useProvisoSAT flags) && (isNothing r) && (isPreClass c)
-      then do --traceM("attempting to solve numeric proviso")
-              let ps = [ p | (EPred _ p) <- eps ]
-              let res = unsafePerformIO $ do
-                          s <- initSATPredState flags
-                          (r, _) <- solvePred s ps pr'
-                          return r
-              case res of
-                Nothing -> do
-                    --traceM("   failed.")
-                    return Nothing
-                Just _ -> do
-                    -- XXX for now, no new info is learned, just sat
-                    --traceM("   success.")
-                    let t = predToType pr'
-                        r = mkNumInstBody t
-                        b = (w, t, r)
-                        sb = mkSolvedBind b False
-                    return $ Just (Reduction [] sb nullSubst Nothing Nothing)
-      else return r
+    -- Numeric predicates that instance reduction cannot discharge are
+    -- no longer sent to the proviso SAT solver here, one at a time
+    -- with a fresh solver per query; they flow to the end of the
+    -- enclosing satisfy loop, where batchSolveNumericPreds proves the
+    -- whole residual set in one solver session (see there).
+    return r
 
 predUnify :: [TyVar] -> Pred -> Pred -> Bool
 predUnify bound_tyvars (IsIn c1 ts1) (IsIn c2 ts2)
@@ -973,7 +1116,13 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
         ps'' <- concatMapM (expTConPred . expandSynVPred) ps'
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
-            solvedBind = mkSolvedBind binding isSelfRec
+            -- The binding's expression does not reference the deferred
+            -- numeric-equality dictionaries (eq_vs), but it is only
+            -- valid evidence if those equalities hold; record them as
+            -- semantic dependencies so anything walking a binding's
+            -- free variables (emission ordering, later reuse checks)
+            -- sees the obligation (see SolvedBinds.addBindDeps).
+            solvedBind = addBindDeps eq_vs (mkSolvedBind binding isSelfRec)
         return (Match (InstMatch ps'' solvedBind inst_subst fd_subst pkg))
 
 -- Create a new instance by replacing the type variables in the instance
@@ -1667,7 +1816,17 @@ defaultClasses fixedVars givenPreds unsatisfiedPreds =
               let s = mkSubst [(i,t)]
                   ps' = apSub s ps
 
-              answer <- satMany (Just fixedVars) givenPreds [] emptySBs s ps'
+              answer0 <- satMany (Just fixedVars) givenPreds [] emptySBs s ps'
+              -- candidate validation is a verdict: settle the numeric
+              -- residuals under this candidate before requiring emptiness
+              -- (this speculative pass is quarantined -- only the
+              -- substitution of an accepted candidate is merged)
+              answer <- case answer0 of
+                SolveResult rs0@(_:_) sbs0 s0 -> do
+                    (rs1, nsbs) <- batchSolveNumericPreds
+                                       (apSub s0 givenPreds) rs0
+                    return (SolveResult rs1 (nsbs <++ sbs0) s0)
+                r -> return r
               return $ case answer of
               -- we reject this default if it does not work for some pred
               -- or if it results in a substitution of a bound variable

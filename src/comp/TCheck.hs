@@ -35,6 +35,7 @@ import Assump
 import TIMonad
 import TCPat
 import TCMisc
+import StdPrel(isPreClass)
 import CtxRed
 import CSyntax
 import CSyntaxUtil
@@ -2447,7 +2448,9 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     -- from the given constraints "eqs"
     -- ps' = the unsolved constraints
     -- sbs2 = new bindings (new dictionaries defined from given dictionaries)
-    (ps', sbs2)     <- satisfy eqs (apSub s0 ps)
+    -- (streaming: numeric residuals settle once for this definition,
+    -- below, rather than at the end of every satisfy pass)
+    (ps', sbs2)     <- satisfyStream eqs (apSub s0 ps)
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfy): " ++ ppReadable ps')
 
@@ -2488,7 +2491,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     -- for the tyvars "dvs".
     -- ps' = the remaining unsolved constraints
     -- sbs3 = new bindings for the solved constraints
-    (ps', sbs3)     <- satisfyFV dvs eqs (apSub s rs1)
+    (ps', sbs3)     <- satisfyFVStream dvs eqs (apSub s rs1)
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfyFV) " ++ ppReadable ps')
 
@@ -2530,9 +2533,49 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- from an enclosing binding will be deferred, to be solved by
         -- the enclosing binding.  Contexts which have no vars at all
         -- may also appear in this list and are handled below as "uds".
-        ds  = ds2 ++ ds3
+        ds0 = ds2 ++ ds3
 
     ---- End: Section which Lennart marked with XXXX
+
+    -- This definition's SINGLE settlement point: the satisfy passes
+    -- above stream their numeric residuals here unsolved (see the
+    -- satisfy/satisfyStream contract in TCMisc); prove them now, in
+    -- one batch, before defaulting sees them.  Retained preds (rs2)
+    -- and deferred preds (ds0) both settle: a deferred pred that is
+    -- only provable at an enclosing binding survives its batch
+    -- untouched and defers exactly as before, while ground ones must
+    -- settle here or be misreported as unsatisfiable (uds).
+    s_stl <- getSubst
+    -- Deferred debt belongs to its owner: a non-ground deferred pred
+    -- (its variables are fixed by an enclosing binding) rides upward
+    -- UNQUERIED and settles once, at the binding that owns its
+    -- variables -- otherwise every nesting level re-queries inherited
+    -- debt (measured: the desugared _theResult__ locals dominated the
+    -- session count).  Two exceptions must settle here:
+    --   * ground preds -- no owner above; the uds check would
+    --     misreport them as unsatisfiable instances; and
+    --   * when this binding HAS givens -- a deferred pred may be
+    --     SAT-entailed by this signature's provisos (e.g. Add b a c
+    --     from a given Add a b c), a proof the parent cannot redo
+    --     because here the proviso is a given and there it is a
+    --     sibling wanted.  Only NUMERIC-class givens count: they are
+    --     the only assumptions the solver can assert, so without one
+    --     SAT-provability here is plain validity, which the owner
+    --     proves identically -- deferral is lossless, and the
+    --     given-free desugared locals are exactly where the session
+    --     explosion lived.
+    let ds0' = apSub s_stl ds0
+        (ds_ground, ds_open) = partition (null . tv) ds0'
+        has_num_givens = any (\ (EPred _ (IsIn c _)) -> isPreClass c) eqs
+        ds_here | has_num_givens = ds_ground ++ ds_open
+                | otherwise      = ds_ground
+        ds_up   | has_num_givens = []
+                | otherwise      = ds_open
+        dsh_ids = S.fromList [ w | VPred w _ <- ds_here ]
+    (stl_out, sbs_stl) <- batchSolveNumericPreds (apSub s_stl eqs)
+                              (apSub s_stl rs2 ++ ds_here)
+    let (ds_h', rs2') = partition (\ (VPred w _) -> w `S.member` dsh_ids) stl_out
+        ds = ds_h' ++ ds_up
 
     ---- Begin: Added for defaulting
 
@@ -2540,15 +2583,15 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
     -- rs  = remaining unsolved constraints
     -- sbs4 = bindings for any constraints solved by defaulting
     (rs, sbs4, amb_vars)
-        <- if (null rs2)  -- whether there are any unresolved contexts
-           then return (rs2, emptySBs, [])  -- don't do work if not necessary
-           else defaultClasses avs eqs rs2
+        <- if (null rs2')  -- whether there are any unresolved contexts
+           then return (rs2', emptySBs, [])  -- don't do work if not necessary
+           else defaultClasses avs eqs rs2'
 
     -- defaulting extends the substitution
     s <- getSubst
 
     -- Consolidate the bindings under one final name
-    let sbs1 = sbs4 <++ sbs23
+    let sbs1 = sbs4 <++ sbs_stl <++ sbs23
 
     -- The final remaining constraints are now named "rs"
     --trace ("tiExpl''': rs, rs2: " ++ ppReadable (rs,rs2)) $ return ()
@@ -2880,7 +2923,9 @@ tiImpls recursive as ibs = do
     -- provisos when we re-type-check with tiExpl
 
     eqsFV <- getExplPreds
-    (ps', sbs1) <- satisfyFV bvs eqsFV ps
+    -- streaming: the aggressive reduction below is this group's
+    -- settlement owner
+    (ps', sbs1) <- satisfyFVStream bvs eqsFV ps
 
     when (not . null $ ps) $ do
       if (not . null $ ps') then
