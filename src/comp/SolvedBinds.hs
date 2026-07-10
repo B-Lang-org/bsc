@@ -1,7 +1,10 @@
 -- | SolvedBinds are sets of solved dictionary bindings.
--- They group recursive and non-recursive dictionary bindings separately, ensure there are
--- no references to recursive bindings from non-recursive bindings and keep non-recursive
--- bindings in topologically sorted order.
+-- They group recursive and non-recursive dictionary bindings separately.
+-- At emission time (getRecursiveDefls/getNonRecursiveDefls) the groups are
+-- normalized: non-recursive bindings that reference recursive ones are
+-- promoted into the recursive group, and the remaining non-recursive
+-- bindings are put in dependency order (definitions before uses), as
+-- required by the positional scoping of the Cletseq they are emitted into.
 module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
                    markIncoherent, addBindDeps,
                    sbsEmpty, fromSB, (<++), emptySBs,
@@ -10,6 +13,7 @@ module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
 import Prelude hiding ((<>))
 
 import Data.List(union, partition)
+import qualified Data.Map as M
 import qualified Data.Set as S
 
 import ErrorUtil(internalError)
@@ -59,7 +63,8 @@ addBindDeps :: [Id] -> SolvedBind -> SolvedBind
 addBindDeps is sb = sb { freeVars = foldr S.insert (freeVars sb) is }
 
 -- Collection of bindings categorized by recursion
--- nonRecursiveBinds are maintained in topologically sorted order
+-- Both lists accumulate newest-first; categorization and dependency
+-- order are normalized at emission time (see normalizeSBs)
 data SolvedBinds = SolvedBinds {
   recursiveBinds :: [(Bind, S.Set Id)], -- binding and free variables
   nonRecursiveBinds :: [(Bind, S.Set Id)],
@@ -100,38 +105,84 @@ fromSB (SolvedBind b@(i, _, _) fv isRec) =
 
 infixl 6 <++ -- directional append new <++ old
 
--- Merge bindings, maintaining categorization and topological order
--- CRITICAL: Always merge as (new <++ old), never swap!
--- Invariant: new.nonRec doesn't depend on old
+-- Merge bindings: plain accumulation, newest first.  During solving a
+-- binding's rhs references the fresh dictionary ids of its subgoals,
+-- which are solved and merged later -- i.e. sit earlier in the
+-- newest-first list -- so accumulation order is already close to
+-- dependency order.  A binding that discharges against a previously
+-- solved (committed) dictionary references an id merged before it;
+-- such out-of-chronology references are repaired at emission time
+-- (normalizeSBs), not here.
 (<++) :: SolvedBinds -> SolvedBinds -> SolvedBinds
-new <++ old
-    -- Check invariant here
-    | any (dependsOn oldAllIds) (nonRecursiveBinds new) =
-        internalError $ "SolvedBinds invariant violated: new depends on old!\n" ++
-                        "new: " ++ ppReadable new ++ "\n" ++
-                        "old: " ++ ppReadable old
-    | noBadDeps = result
-    | otherwise = internalError $ "nonRecursive depending on recursive in result: " ++
-                                  ppReadable (new, old, result)
-    where dependsOn s ((_,_,_), fv) = not $ S.disjoint fv s
-          oldAllIds = recursiveIds old `S.union` nonRecursiveIds old
-          promoteTransitively [] nonRecs = ([], nonRecs)
-          promoteTransitively promoted nonRecs = (promoted ++ transitivePromoted, finalNonRecs)
-            where promotedIds = S.fromList [ i | ((i, _, _), _) <- promoted ]
-                  (newlyPromoted, stillNonRecs) = partition (dependsOn promotedIds) nonRecs
-                  (transitivePromoted, finalNonRecs) = promoteTransitively newlyPromoted stillNonRecs
-          (newlyRec, stillNonRec) = uncurry promoteTransitively $
-                                    partition (dependsOn $ recursiveIds new) (nonRecursiveBinds old)
-          -- Updates for cached sets
-          newRecIds = S.fromList [i | ((i, _, _), _) <- recursiveBinds new ++ newlyRec]
-          nowNotNonRecIds = S.fromList [ i | ((i, _ , _), _)  <- newlyRec ]
-          result = SolvedBinds {
-                      recursiveBinds = newlyRec ++ recursiveBinds new ++ recursiveBinds old,
-                      nonRecursiveBinds = nonRecursiveBinds new ++ stillNonRec,
-                      recursiveIds = newRecIds `S.union` recursiveIds old,
-                      nonRecursiveIds = nonRecursiveIds new `S.union` (nonRecursiveIds old `S.difference` nowNotNonRecIds)
-                   }
-          noBadDeps = all (not . dependsOn (recursiveIds result)) (nonRecursiveBinds result)
+new <++ old = SolvedBinds {
+    recursiveBinds = recursiveBinds new ++ recursiveBinds old,
+    nonRecursiveBinds = nonRecursiveBinds new ++ nonRecursiveBinds old,
+    recursiveIds = recursiveIds new `S.union` recursiveIds old,
+    nonRecursiveIds = nonRecursiveIds new `S.union` nonRecursiveIds old
+  }
+
+-- Normalization for emission.
+--
+-- Non-recursive bindings are emitted as a Cletseq, whose scoping is
+-- positional: a binding may only reference bindings emitted before it.
+-- The accumulated newest-first order is already definition-before-use
+-- except where a binding references a previously solved dictionary, so
+-- emission performs a stable topological repair: bindings keep their
+-- accumulated relative order except where a reference forces a
+-- definition earlier.
+--
+-- The Cletseq scopes outside the Cletrec of the recursive bindings, so
+-- a non-recursive binding that (transitively) references a recursive
+-- binding cannot stay in the Cletseq; it is promoted to the recursive
+-- group here.
+normalizeSBs :: SolvedBinds -> ([Bind], [Bind])
+normalizeSBs sbs = (map fst recs, map fst (orderBinds nonrecs))
+  where
+    dependsOn ids (_, fv) = not (S.disjoint fv ids)
+    promote rids promoted rest =
+        case partition (dependsOn rids) rest of
+          ([], _) -> (promoted, rest)
+          (newly, rest') ->
+              let rids' = rids `S.union` S.fromList [ i | ((i, _, _), _) <- newly ]
+              in  promote rids' (promoted ++ newly) rest'
+    (promoted, nonrecs) = promote (recursiveIds sbs) [] (nonRecursiveBinds sbs)
+    recs = recursiveBinds sbs ++ promoted
+
+-- Stable topological order, definitions before uses: repeatedly emit
+-- the earliest remaining binding all of whose references are already
+-- emitted.  Input that is already dependency-ordered is returned
+-- unchanged.
+orderBinds :: [(Bind, S.Set Id)] -> [(Bind, S.Set Id)]
+orderBinds bs =
+    let n = length bs
+        idx_bs = zip [(0::Int)..] bs
+        bind_at = M.fromList idx_bs
+        pos_of_id = M.fromList [ (i, k) | (k, ((i, _, _), _)) <- idx_bs ]
+        -- positions this binding references (within the group, sans self)
+        deps k fv = [ j | i <- S.toList fv,
+                          Just j <- [M.lookup i pos_of_id], j /= k ]
+        dep_lists = [ (k, deps k fv) | (k, (_, fv)) <- idx_bs ]
+        dependents = M.fromListWith (++) [ (j, [k]) | (k, ds) <- dep_lists, j <- ds ]
+        indeg0 = M.fromList [ (k, length ds) | (k, ds) <- dep_lists ]
+        ready0 = S.fromList [ k | (k, 0) <- M.toList indeg0 ]
+        emit d (rdy, ind) =
+            let c = M.findWithDefault 1 d ind - 1
+            in  (if c == 0 then S.insert d rdy else rdy, M.insert d c ind)
+        go ready indeg acc
+          | S.null ready =
+              if length acc == n
+                then reverse acc
+                else internalError $
+                       "SolvedBinds.orderBinds: dependency cycle among " ++
+                       "non-recursive bindings:\n" ++
+                       ppReadable [ b | (b, _) <- bs ]
+          | otherwise =
+              let (k, ready') = S.deleteFindMin ready
+                  (ready'', indeg') =
+                      foldr emit (ready', indeg)
+                            (M.findWithDefault [] k dependents)
+              in  go ready'' indeg' (bind_at M.! k : acc)
+    in  go ready0 indeg0 []
 
 emptySBs :: SolvedBinds
 emptySBs = SolvedBinds {
@@ -149,7 +200,7 @@ instance PPrint SolvedBinds where
     )
 
 getRecursiveDefls :: SolvedBinds -> [CDefl]
-getRecursiveDefls = map (mkDefl . fst) . recursiveBinds
+getRecursiveDefls = map mkDefl . fst . normalizeSBs
 
 getNonRecursiveDefls :: SolvedBinds -> [CDefl]
-getNonRecursiveDefls = map (mkDefl .fst) . nonRecursiveBinds
+getNonRecursiveDefls = map mkDefl . snd . normalizeSBs

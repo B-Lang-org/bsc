@@ -1042,7 +1042,7 @@ findReducedPreds ds vps = do
   bvs <- getBoundTVs
   let reduceOne vp = do
           let dvs = (tv vp) ++ bvs
-          SolveResult reduce_res _ _ <- reducePredsAggressive (Just dvs) (eds ++ eps) [vp]
+          SolveResult reduce_res _ _ _ <- reducePredsAggressive (Just dvs) (eds ++ eps) [vp]
           case (reduce_res) of
             -- The predicate can reduce away entirely here even though
             -- the main solve failed on it: the report runs in a
