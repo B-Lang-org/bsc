@@ -15,7 +15,7 @@
 # ("why doesn't BSC catch this?").  The legacy policy still accepts it
 # under -legacy-defer-instances.
 
-compile_fail_error Tb1.bsv T0033
+compile_fail_error Tb1.bsv T0159
 erase Tb1.bo
 erase Pipeline1.bo
 compile_pass Tb1.bsv {-legacy-defer-instances}

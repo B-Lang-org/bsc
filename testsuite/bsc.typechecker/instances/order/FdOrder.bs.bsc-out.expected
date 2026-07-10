@@ -1,14 +1,20 @@
 checking package dependencies
 compiling FdOrder.bs
-Error: "FdOrder.bs", line 30, column 24: (T0031)
-  The contexts for this expression could not be resolved because there are no
-  instances of the form:
+Error: "FdOrder.bs", line 30, column 24: (T0159)
+  The context cannot be satisfied:
     FdOrder.TC2 Prelude.Bool 5
-Error: "FdOrder.bs", line 32, column 0: (T0030)
-  The contexts for this expression are too general.
-  Given type:
-    Prelude.Maybe t -> Prelude.Bool -> Prelude.Bool
-  The following contexts are needed:
+  Its arguments select the instance:
+    FdOrder.TC2 Prelude.Bool 6
+  (instances of class `FdOrder.TC2' are selected by the arguments at the input
+  positions of the class's functional dependencies), but the types the
+  instance determines at the dependent positions differ from the types the
+  context requires.
+Error: "FdOrder.bs", line 33, column 25: (T0159)
+  The context cannot be satisfied:
     FdOrder.TC (Prelude.Maybe t) 6
-      Introduced at the following locations:
-	"FdOrder.bs", line 33, column 25
+  Its arguments select the instance:
+    FdOrder.TC (Prelude.Maybe a__) 5
+  (instances of class `FdOrder.TC' are selected by the arguments at the input
+  positions of the class's functional dependencies), but the types the
+  instance determines at the dependent positions differ from the types the
+  context requires.
