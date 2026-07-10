@@ -8,7 +8,7 @@
 module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
                    markIncoherent, addBindDeps,
                    sbsEmpty, fromSB, (<++), emptySBs,
-                   extractClosures,
+                   extractClosures, renameBinds, allBindIds,
                    getRecursiveDefls, getNonRecursiveDefls) where
 
 import Prelude hiding ((<>))
@@ -22,6 +22,7 @@ import Id
 import CSyntax
 import CSyntaxTypes()
 import CFreeVars(getFVE)
+import CSubst(cSubst)
 import PPrint
 import Subst
 
@@ -137,8 +138,20 @@ new <++ old = SolvedBinds {
 -- binding cannot stay in the Cletseq; it is promoted to the recursive
 -- group here.
 normalizeSBs :: SolvedBinds -> ([Bind], [Bind])
-normalizeSBs sbs = (map fst recs, map fst (orderBinds nonrecs))
+normalizeSBs sbs = checkFVs `seq` (map fst recs, map fst (orderBinds nonrecs))
   where
+    -- debugging check: the recorded freeVars must cover the
+    -- expression's actual free variables, or orderBinds misses edges
+    checkFVs =
+        let bad = [ (b, S.toList missing, S.toList fv)
+                  | (b@(_, _, e), fv) <- recursiveBinds sbs ++
+                                         nonRecursiveBinds sbs,
+                    let missing = snd (getFVE e) `S.difference` fv,
+                    not (S.null missing) ]
+        in  if null bad
+              then ()
+              else internalError ("SolvedBinds.normalizeSBs: freeVars " ++
+                                  "out of date:\n" ++ ppReadable bad)
     dependsOn ids (_, fv) = not (S.disjoint fv ids)
     promote rids promoted rest =
         case partition (dependsOn rids) rest of
@@ -192,6 +205,29 @@ emptySBs = SolvedBinds {
              recursiveIds = S.empty,
              nonRecursiveIds = S.empty
            }
+
+-- All binding ids in the collection
+allBindIds :: SolvedBinds -> S.Set Id
+allBindIds sbs = recursiveIds sbs `S.union` nonRecursiveIds sbs
+
+-- Rename binding ids -- definitions and references -- throughout the
+-- collection.  Used when depositing a copy of a solved closure whose
+-- source predicates keep flowing: the flow will re-solve those
+-- predicates and re-bind their original dictionary ids in an inner
+-- scope, so the deposited copy must not share them.
+renameBinds :: M.Map Id Id -> SolvedBinds -> SolvedBinds
+renameBinds m sbs | M.null m = sbs
+renameBinds m sbs = SolvedBinds {
+    recursiveBinds = map renB (recursiveBinds sbs),
+    nonRecursiveBinds = map renB (nonRecursiveBinds sbs),
+    recursiveIds = S.map ren (recursiveIds sbs),
+    nonRecursiveIds = S.map ren (nonRecursiveIds sbs)
+  }
+  where
+    ren i = M.findWithDefault i i m
+    env = (M.empty, M.empty,
+           M.fromList [ (i, CVar i') | (i, i') <- M.toList m ], M.empty)
+    renB ((i, t, e), fv) = ((ren i, t, cSubst env e), S.map ren fv)
 
 -- Extract the transitive closure of bindings reachable from the given
 -- root ids, for reuse elsewhere.  A root is accepted only if its
