@@ -196,10 +196,12 @@ emptySBs = SolvedBinds {
 -- Extract the transitive closure of bindings reachable from the given
 -- root ids, for reuse elsewhere.  A root is accepted only if its
 -- closure never references an id in the forbidden set (the dictionary
--- of an unsolved predicate -- such a closure is incomplete).
--- References to ids bound nowhere in this collection (top-level
--- instance ids, lambda-bound given dictionaries) are permitted;
--- their validity is the caller's scoping concern.
+-- of an unsolved predicate -- such a closure is incomplete) and never
+-- passes through a binding marked incoherent (evidence from an
+-- incoherent instance match is information-dependent and must not be
+-- frozen for reuse).  References to ids bound nowhere in this
+-- collection (top-level instance ids, lambda-bound given dictionaries)
+-- are permitted; their validity is the caller's scoping concern.
 -- Returns the closure bindings of all accepted roots (each binding
 -- once) and the set of accepted roots.
 extractClosures :: S.Set Id -> [Id] -> SolvedBinds -> (SolvedBinds, S.Set Id)
@@ -208,7 +210,8 @@ extractClosures forbidden roots sbs = (closure_sbs, S.fromList ok_roots)
     tagged = [ (b, fv, True)  | (b, fv) <- recursiveBinds sbs ] ++
              [ (b, fv, False) | (b, fv) <- nonRecursiveBinds sbs ]
     bind_map = M.fromList [ (i, x) | x@((i, _, _), _, _) <- tagged ]
-    -- reachability check for one root: True if no forbidden id is reached
+    -- reachability check for one root: True if no forbidden id or
+    -- incoherent-marked binding is reached
     ok seen [] = True
     ok seen (i:is)
       | i `S.member` forbidden = False
@@ -216,7 +219,9 @@ extractClosures forbidden roots sbs = (closure_sbs, S.fromList ok_roots)
       | otherwise =
           case M.lookup i bind_map of
             Nothing -> ok (S.insert i seen) is
-            Just (_, fv, _) -> ok (S.insert i seen) (S.toList fv ++ is)
+            Just ((i', _, _), fv, _)
+              | hasIdProp i' IdPIncoherent -> False
+              | otherwise -> ok (S.insert i seen) (S.toList fv ++ is)
     ok_roots = [ r | r <- roots, ok S.empty [r] ]
     -- joint collection over the accepted roots (each binding once)
     collect seen [] acc = acc
