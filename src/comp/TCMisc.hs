@@ -182,16 +182,26 @@ satisfyX dvs es ps = do
         return (rs', nsbs <++ sbs)
 
 satisfyXStream :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
-satisfyXStream _   es [] = return ([], emptySBs)
 satisfyXStream dvs es ps = do
+        (rs, sbs, _) <- satisfyEx dvs es ps
+        return (rs, sbs)
+
+-- Like satisfyXStream, but additionally returns the solved-dictionary
+-- list accumulated during the pass: an EPred (CVar v) pr entry for
+-- each fully solved or committed non-numeric pred, where v's binding
+-- is in the returned SolvedBinds.  Used by propagateFunDeps to pool
+-- solved dictionaries for reuse.
+satisfyEx :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds, [EPred])
+satisfyEx _   es [] = return ([], emptySBs, [])
+satisfyEx dvs es ps = do
         -- satTraceM ("satisfy enter: " ++ ppString (dvs, ps))
 -- it is not clear if applying the substitution here wins or not
         s0 <- getSubst
-        SolveResult rs sbs s _ <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
---      SolveResult rs sbs s _ <- satisfy' dvs es ps
+        SolveResult rs sbs s solved <- satisfy' dvs (apSub s0 es) (apSub s0 ps)
+--      SolveResult rs sbs s solved <- satisfy' dvs es ps
         -- satTraceM ("satisfy exit: " ++ ppString (rs,sbs,s) ++ "\n")
         extSubst "satisfyX" s
-        return $ (rs, apSub s sbs)
+        return $ (rs, apSub s sbs, apSub s solved)
 
 -- break up preds into those affected by a substitution and those not
 -- in order to loop more efficiently in satisfy'
@@ -451,84 +461,106 @@ sat dvs ps solved p =
              return (SatResult [] (fromSB sb) s Provisional solved)
          -- we might introduce a numeric equality here, so try instance reduction first
          m_equals -> do
-          -- if instance reduction fails, fall back to introducing an equality
-          let fail msg =
-                case m_equals of
-                  Just (b, (s, num_eqs)) -> do
-                    satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
-                    let VPred _ p_pwp = p
-                    eq_ps <- concatMapM (eqToVPred (getPredAncestors p_pwp) (getVPredPositions p)) num_eqs
-                    let sb = mkSolvedBind b False -- From superclass, not recursive
-                    SolveResult rs sbs s' solved' <- satMany (dvsSub s dvs) (apSub s ps) (apSub s solved) [] (fromSB sb) s eq_ps
-                    return (SatResult rs sbs s' Provisional solved')
-                  Nothing -> satTrace msg $ return (SatResult [p] emptySBs nullSubst Provisional solved)
-          ai <- getAllowIncoherent
-          x  <- reducePred ps dvs p
-          case x of
-            Nothing -> fail "sat unreduced"
-            Just (Reduction qs sb us Nothing mpkg) ->
-                satTrace ("sat calls satMany ") $ do
-                result <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs -- qs should have us applied already
+          -- Try the pool of previously solved ground dictionaries before
+          -- walking instances: a pool hit is final coherent evidence for
+          -- an equal pred, so reuse its dictionary instead of re-deriving
+          -- the reduction -- unless an in-scope given unifies with the
+          -- predicate, in which case defer to the given (mirroring the
+          -- committable guard).
+          pool <- if legacyDeferInstances then return [] else getSolvedPool
+          m_pool <- case lookfor bound_tyvars p pool of
+                      Just (b, (s_pool, [])) -> do
+                        stack_eps <- getExplPreds
+                        let unifiable (EPred _ gp) =
+                                predUnify bound_tyvars (toPred p) gp
+                        return $ if any unifiable (concatMap bySuperE (ps ++ stack_eps))
+                                 then Nothing
+                                 else Just (b, s_pool)
+                      _ -> return Nothing
+          case m_pool of
+           Just (b, s_pool) ->
+              satTrace ("sat in pool: " ++ ppReadable p) $
+              let sb = mkSolvedBind b False -- Reused pooled dictionary, not recursive
+              in  return (SatResult [] (fromSB sb) s_pool Provisional solved)
+           Nothing -> do
+            -- if instance reduction fails, fall back to introducing an equality
+            let fail msg =
+                  case m_equals of
+                    Just (b, (s, num_eqs)) -> do
+                      satTrace ("sat in super (num eq): " ++ ppReadable (p, concatMap bySuperE ps, num_eqs)) $ return ()
+                      let VPred _ p_pwp = p
+                      eq_ps <- concatMapM (eqToVPred (getPredAncestors p_pwp) (getVPredPositions p)) num_eqs
+                      let sb = mkSolvedBind b False -- From superclass, not recursive
+                      SolveResult rs sbs s' solved' <- satMany (dvsSub s dvs) (apSub s ps) (apSub s solved) [] (fromSB sb) s eq_ps
+                      return (SatResult rs sbs s' Provisional solved')
+                    Nothing -> satTrace msg $ return (SatResult [p] emptySBs nullSubst Provisional solved)
+            ai <- getAllowIncoherent
+            x  <- reducePred ps dvs p
+            case x of
+              Nothing -> fail "sat unreduced"
+              Just (Reduction qs sb us Nothing mpkg) ->
+                  satTrace ("sat calls satMany ") $ do
+                  result <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs -- qs should have us applied already
+                  case result of
+                    SolveResult [] sbs s_final solved' -> do
+                      recordPackageUse mpkg
+                      return (SatResult [] sbs s_final Provisional solved')
+                    SolveResult needed sbs s_final solved' -> do
+                      -- A coherent match whose context is not yet satisfied:
+                      -- under ordered-clause fundep semantics no other
+                      -- instance can ever satisfy this predicate, so the
+                      -- choice is final and the caller may commit to it --
+                      -- unless an in-scope given (which is not an instance)
+                      -- could still discharge the predicate whole after
+                      -- refinement.  "solved" dictionaries are deliberately
+                      -- not consulted here: they are instance evidence, so
+                      -- they cannot contradict the instance choice.
+                      commitment <-
+                        if legacyDeferInstances
+                        then return Provisional
+                        else do
+                          stack_eps <- getExplPreds
+                          let p_pred = apSub s_final (toPred p)
+                              givens = concatMap bySuperE (ps ++ stack_eps)
+                              -- Modal check, so unify unguarded ([]): a
+                              -- given from an enclosing frame quantifies
+                              -- over its own rigid variables, which are
+                              -- distinct TyVars from (but instantiable
+                              -- to) this definition's; the bound-variable
+                              -- guards would hide such a given and let
+                              -- the commit freeze an instance reduction
+                              -- the outer given was meant to discharge
+                              -- whole.
+                              unifiable (EPred _ gp) =
+                                  predUnify [] p_pred gp
+                          return (if any unifiable givens
+                                  then Provisional else Committable)
+                      when (commitment == Committable) $ recordPackageUse mpkg
+                      return (SatResult needed sbs s_final commitment solved')
+              Just (Reduction qs sb us (Just (h@(IsIn c _))) mpkg) | fromMaybe ai (allowIncoherent c) ->
+                satTrace ("sat calls satMany (incoherent) ") $ do
+                result0 <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs
+                -- An incoherent match is deliberately revocable until its
+                -- context is fully discharged (it must never adopt on
+                -- numeric debt), so render the verdict here: settle its
+                -- numeric residuals in a local batch before deciding
+                -- full-vs-partial.
+                result <- case result0 of
+                  SolveResult needed0@(_:_) sbs s_final solved0 -> do
+                      (needed, nsbs) <- batchSolveNumericPreds
+                                            (apSub s_final ps) needed0
+                      return (SolveResult needed (nsbs <++ sbs) s_final solved0)
+                  r -> return r
                 case result of
+                  SolveResult ps@(_:_) sbs s_final solved' -> return (SatResult ps sbs s_final Provisional solved')
                   SolveResult [] sbs s_final solved' -> do
                     recordPackageUse mpkg
+                    let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
+                    let pos = getPosition $ getVPredPositions p
+                    when (allowIncoherent c /= Just True) $
+                      twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
                     return (SatResult [] sbs s_final Provisional solved')
-                  SolveResult needed sbs s_final solved' -> do
-                    -- A coherent match whose context is not yet satisfied:
-                    -- under ordered-clause fundep semantics no other
-                    -- instance can ever satisfy this predicate, so the
-                    -- choice is final and the caller may commit to it --
-                    -- unless an in-scope given (which is not an instance)
-                    -- could still discharge the predicate whole after
-                    -- refinement.  "solved" dictionaries are deliberately
-                    -- not consulted here: they are instance evidence, so
-                    -- they cannot contradict the instance choice.
-                    commitment <-
-                      if legacyDeferInstances
-                      then return Provisional
-                      else do
-                        stack_eps <- getExplPreds
-                        let p_pred = apSub s_final (toPred p)
-                            givens = concatMap bySuperE (ps ++ stack_eps)
-                            -- Modal check, so unify unguarded ([]): a
-                            -- given from an enclosing frame quantifies
-                            -- over its own rigid variables, which are
-                            -- distinct TyVars from (but instantiable
-                            -- to) this definition's; the bound-variable
-                            -- guards would hide such a given and let
-                            -- the commit freeze an instance reduction
-                            -- the outer given was meant to discharge
-                            -- whole.
-                            unifiable (EPred _ gp) =
-                                predUnify [] p_pred gp
-                        return (if any unifiable givens
-                                then Provisional else Committable)
-                    when (commitment == Committable) $ recordPackageUse mpkg
-                    return (SatResult needed sbs s_final commitment solved')
-            Just (Reduction qs sb us (Just (h@(IsIn c _))) mpkg) | fromMaybe ai (allowIncoherent c) ->
-              satTrace ("sat calls satMany (incoherent) ") $ do
-              result0 <- satMany (dvsSub us dvs) (apSub us ps) (apSub us solved) [] (fromSB sb) us qs
-              -- An incoherent match is deliberately revocable until its
-              -- context is fully discharged (it must never adopt on
-              -- numeric debt), so render the verdict here: settle its
-              -- numeric residuals in a local batch before deciding
-              -- full-vs-partial.
-              result <- case result0 of
-                SolveResult needed0@(_:_) sbs s_final solved0 -> do
-                    (needed, nsbs) <- batchSolveNumericPreds
-                                          (apSub s_final ps) needed0
-                    return (SolveResult needed (nsbs <++ sbs) s_final solved0)
-                r -> return r
-              case result of
-                SolveResult ps@(_:_) sbs s_final solved' -> return (SatResult ps sbs s_final Provisional solved')
-                SolveResult [] sbs s_final solved' -> do
-                  recordPackageUse mpkg
-                  let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
-                  let pos = getPosition $ getVPredPositions p
-                  when (allowIncoherent c /= Just True) $
-                    twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return (SatResult [] sbs s_final Provisional solved')
-            bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
+              bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
 
@@ -2052,11 +2084,23 @@ expandTCons (orig_qs :=> orig_t) =
 -- propagation and matching are the same thing).
 
 -- propagateFunDeps returns the supplied predicates updated with
--- any information learned by matching instances. It does not
--- drop any matched predicates because it doesn't bind dictionaries.
+-- any information learned by matching instances.
 -- propagateFunDeps also returns the (possibly smaller) list of
 -- unsatisfied predicates for use in fail-fast context reduction
 -- (see updateContexts)
+--
+-- Rather than discarding the dictionary bindings of this satisfy pass,
+-- fully solved ground predicates (whose binding closures are complete)
+-- are deposited into the solved-dictionary pool: the bindings are
+-- emitted with the enclosing binding group's letseq (see
+-- push/popSolvedPool), later occurrences of the same predicate
+-- discharge against the pooled dictionary instead of re-deriving the
+-- reduction (see "sat"), and the deposited predicates are dropped from
+-- the returned list since their dictionaries are now permanently
+-- bound.  Ground predicates cannot match incoherently (from ground
+-- inputs, unification with an instance head is the same as matching,
+-- so an earlier unifiable instance would have been selected), so
+-- pooling them never freezes an information-dependent choice.
 propagateFunDeps :: [VPred] -> TI ([VPred], [VPred])
 propagateFunDeps ps0 =
   do
@@ -2071,13 +2115,51 @@ propagateFunDeps ps0 =
     flags <- getFlags
     setFlags (flags { useProvisoSAT = False })
 
-    (ps_unsat, _) <- satisfy eps ps
+    (ps_unsat, sbs, solved_out) <- satisfyEx Nothing eps ps
 
     -- restore the flags
     setFlags flags
 
+    deposits_ok <- getPoolDepositsOK
+    accepted <-
+      if legacyDeferInstances || not deposits_ok
+      then return S.empty
+      else do
+        let candidates = [ (v, pr) | EPred (CVar v) pr <- solved_out,
+                                     null (tv pr) ]
+            -- A closure is refused if it references the dictionary of
+            -- an unsolved predicate (incomplete) or of ANY in-scope
+            -- given: pool entries must be pure instance derivations.
+            -- A given-derived entry would carry evidence into nested
+            -- explicitly-typed definitions whose own solve is not
+            -- entitled to that given (only to its own context plus
+            -- instances), making program acceptance depend on whether
+            -- an earlier apply node happened to solve the same pred --
+            -- and given-derived solves are cheap lookups anyway, so
+            -- pooling them saves nothing.
+            given_ids = S.fromList [ v | EPred e _ <- eps,
+                                         CVar v <- [e] ]
+            forbidden = S.fromList [ v | VPred v _ <- ps_unsat ]
+                        `S.union` given_ids
+            (pool_sbs, ok) =
+                extractClosures forbidden (map fst candidates) sbs
+        pool <- getSolvedPool
+        let in_pool pr = any (\ (EPred _ pr') -> pr == pr') pool
+            nubByPred = nubBy (\ (EPred _ a) (EPred _ b) -> a == b)
+            -- pool entries only for preds not already pooled (the
+            -- bindings are deposited for every accepted candidate, so
+            -- a duplicate's alias binding still gets emitted)
+            new_entries = nubByPred [ EPred (CVar v) pr
+                                    | (v, pr) <- candidates,
+                                      v `S.member` ok,
+                                      not (in_pool pr) ]
+        when (not (sbsEmpty pool_sbs)) $
+            addSolvedPool new_entries pool_sbs
+        return ok
+
     s' <- getSubst
-    return (apSub s' ps, ps_unsat)
+    let ps_kept = [ p | p@(VPred v _) <- ps, not (v `S.member` accepted) ]
+    return (apSub s' ps_kept, ps_unsat)
 
 -------
 

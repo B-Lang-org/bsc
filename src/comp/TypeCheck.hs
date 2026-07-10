@@ -135,11 +135,16 @@ checkTopPreds mid a ps = do
 -- returning any unsatisfied preds
 topExpr :: CType -> CExpr -> TI ([VPred], CExpr)
 topExpr td e = do
+  -- dictionaries pooled during checking (see propagateFunDeps) are
+  -- emitted with this expression's letseq
+  pool_frame <- pushSolvedPool
   (ps, e') <- tiExpr [] td e
   (ps', sbs) <- satisfy [] ps
+  pool_sbs <- popSolvedPool pool_frame
   s <- getSubst
-  let rec_defls    = getRecursiveDefls sbs
-      nonrec_defls = getNonRecursiveDefls sbs
+  let sbs' = pool_sbs <++ sbs
+      rec_defls    = getRecursiveDefls sbs'
+      nonrec_defls = getNonRecursiveDefls sbs'
   -- Generate code: nonrec outside (letseq), rec inside (letrec)
   return (apSub s (ps', cLetSeq nonrec_defls $ cLetRec rec_defls e'))
 
