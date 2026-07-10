@@ -7,9 +7,9 @@ package FdStability where
 -- fixes m to 6, and on retry the Maybe clause still matches the inputs
 -- but its determined position conflicts (5 ~ 6): the predicate is
 -- rejected rather than falling through to the catch-all clause, in
--- either argument order.  (With -commit-coherent-matches the improvement
--- m := 5 is committed at the first match and the sibling's demand for 6
--- is what fails; the program is rejected either way.)
+-- either argument order.  (With commitment -- the default -- the
+-- improvement m := 5 is committed at the first match and the sibling's
+-- demand for 6 is what fails; the program is rejected either way.)
 --
 -- Under -legacy-defer-instances the historical policy applies: the
 -- specific match is discarded (its context is unsatisfied), the sibling

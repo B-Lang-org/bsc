@@ -1,11 +1,6 @@
 checking package dependencies
 compiling FdStability.bs
-Error: "FdStability.bs", line 49, column 0: (T0030)
-  The contexts for this expression are too general.
-  Given type:
-    Prelude.Maybe t -> Prelude.Bool -> Prelude.Bit 8
-  The following contexts are needed:
-    FdStability.TC (Prelude.Maybe t) 6
-      Introduced at the following locations:
-	"FdStability.bs", line 50, column 41
-	"FdStability.bs", line 50, column 16
+Error: "FdStability.bs", line 50, column 26: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    FdStability.TC2 Prelude.Bool 5
