@@ -1,0 +1,19 @@
+package ATFInInstHeadSynonym where
+
+-- Like ATFInInstHead, but the type function reaches the instance head
+-- through a type synonym, applied to a type variable.  The check must
+-- see through the synonym and reject this the same way it rejects the
+-- directly-written form: the application can neither be reduced away
+-- nor used for instance matching.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+type ElemSyn f = Elem f
+
+class Foo a where
+  foo :: a -> Bool
+
+instance Foo (ElemSyn f) where
+  foo _ = True

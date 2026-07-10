@@ -1,0 +1,19 @@
+package ATFInInstHeadSynonymBoth where
+
+-- Both a directly-written and a synonym-hidden type function in the
+-- same instance head: both must be reported (two T0156 errors), not
+-- just the directly-written one.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+type ElemSyn f = Elem f
+
+data Pair a b = Pair a b
+
+class Foo a where
+  foo :: a -> Bool
+
+instance Foo (Pair (Elem f) (ElemSyn g)) where
+  foo _ = True

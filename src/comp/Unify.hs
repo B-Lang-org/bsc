@@ -1,8 +1,10 @@
 {-# LANGUAGE PatternGuards #-}
 module Unify(Unify(..), matchList) where
+import Data.Maybe(fromMaybe, isJust)
 import Type
 import Subst
 import CType
+import Pred(expandSyn)
 import ErrorUtil(internalError)
 import Util(fastNub)
 
@@ -24,8 +26,16 @@ class Unify t where
 instance Unify Type where
     -- an unreducable ATF application: identical types unify cleanly (reflexivity);
     -- different types generate a deferred equality constraint.
+    -- A type synonym is expanded when (and only when) that exposes an ATF
+    -- application, so that a synonym-hidden ATF unifies exactly like the
+    -- direct ATF application, instead of a variable being structurally
+    -- bound to the unexpanded synonym (which pins a fundep-determined
+    -- variable and makes derived-instance schemes spuriously mismatch).
     mgu bound_tyvars t1 t2
-        | isATFAp t1 || isATFAp t2 = atfUnify bound_tyvars t1 t2
+        | isJust m1 || isJust m2 =
+            atfUnify bound_tyvars (fromMaybe t1 m1) (fromMaybe t2 m2)
+      where m1 = asATFAp t1
+            m2 = asATFAp t2
     mgu bound_tyvars t1 t2
         | kind t1 == KNum =
       case kind t2 of
@@ -41,6 +51,27 @@ instance Unify Type where
     mgu bound_tyvars t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
     mgu bound_tyvars _ _ = Nothing
+
+-- Return the type as a fully applied type-function (ATF) application,
+-- if it is one -- either directly, or behind a saturated type synonym.
+-- Synonyms are not expanded unconditionally, for three reasons:
+--  * unification is a hot path and expandSyn is a deep expansion, so
+--    only synonym-headed types should pay for it;
+--  * expandSyn fails on unsaturated synonym applications, so saturation
+--    must be checked first; and
+--  * a synonym whose expansion is not an ATF application must keep the
+--    existing structural unification of the unexpanded synonym, which
+--    existing code relies on (e.g. synonyms that drop some of their
+--    parameters; see GitHub issue #311).
+asATFAp :: Type -> Maybe Type
+asATFAp t
+    | isATFAp t = Just t
+    | isSynAp t, not (isUnSatSyn t), isATFAp t' = Just t'
+    | otherwise = Nothing
+  where t' = expandSyn t
+        isSynAp tt = case fst (splitTAp tt) of
+                       TCon (TyCon _ _ (TItype _ _)) -> True
+                       _ -> False
 
 atfUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 atfUnify bound_tyvars t1 t2

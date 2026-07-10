@@ -1,0 +1,12 @@
+package ExpSizeOf_ValueOf_WithCtx where
+
+data Thing = Thing (UInt 42) deriving (Bits)
+
+foo :: (Bits a sz) => a -> Integer
+foo _ = valueOf (SizeOf a)
+
+{-# synthesize main #-}
+main :: Module Empty
+main = module
+  rules
+    "asdf": when True ==> $display (foo $ Thing _)

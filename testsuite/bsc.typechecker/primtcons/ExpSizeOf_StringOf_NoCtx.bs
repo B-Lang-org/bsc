@@ -1,0 +1,12 @@
+package ExpSizeOf_StringOf_NoCtx where
+
+data Thing = Thing (UInt 42) deriving (Bits)
+
+foo :: a -> String
+foo _ = stringOf (TNumToStr (SizeOf a))
+
+{-# synthesize main #-}
+main :: Module Empty
+main = module
+  rules
+    "asdf": when True ==> $display (foo $ Thing _)

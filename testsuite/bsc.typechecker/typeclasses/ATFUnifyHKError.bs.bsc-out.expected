@@ -1,6 +1,6 @@
 checking package dependencies
 compiling ATFUnifyHKError.bs
-Error: "ATFUnifyHKError.bs", line 10, column 0: (T0030)
+Error: "ATFUnifyHKError.bs", line 15, column 0: (T0030)
   The contexts for this expression are too general.
   Given type:
     a -> ATFUnifyHKError.Foo (ATFUnifyHKError.Elem a) -> ATFUnifyHKError.Foo
@@ -8,4 +8,5 @@ Error: "ATFUnifyHKError.bs", line 10, column 0: (T0030)
   The following contexts are needed:
     ATFUnifyHKError.Container a Prelude.Maybe
       Introduced at the following locations:
-	"ATFUnifyHKError.bs", line 11, column 9
+	"ATFUnifyHKError.bs", line 15, column 18
+	"ATFUnifyHKError.bs", line 16, column 9

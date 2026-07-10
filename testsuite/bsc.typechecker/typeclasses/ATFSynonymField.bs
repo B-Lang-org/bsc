@@ -1,0 +1,29 @@
+package ATFSynonymField where
+
+-- Test that a data/struct field whose type reaches an associated type
+-- function through a type synonym compiles.  The auto-derived Generic
+-- instance must not report a spurious "signature too general" (T0029)
+-- error: the given scheme (from the instance head, where synonyms are
+-- expanded and the type function is generalized to a fresh variable
+-- constrained by the class predicate) and the deduced scheme (where the
+-- field type keeps the unexpanded synonym) are equal up to the
+-- fundep-forced substitution.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+
+type ElemSyn f = Elem f
+
+data WrapSyn f =
+   WrapSyn (ElemSyn f)
+ | NoElem
+
+struct SBox f =
+  field :: ElemSyn f
+
+-- A field applying the type function directly (not via a synonym)
+-- already compiled; check that it stays working.
+data WrapDirect f =
+   WrapDirect (Elem f)
+ | NoElemDirect
