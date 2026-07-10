@@ -474,7 +474,7 @@ isSvSymbol str = str `S.member` svSymbolSet
 
 svKeywordSet :: S.Set String
 svKeywordSet =
-    S.fromList [str | (tok, str, svVer) <- svKeywordTable]
+    S.fromList [str | (tok, str, svVer) <- svParserKeywordTable]
 
 svSymbolSet :: S.Set String
 svSymbolSet =
