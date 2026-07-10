@@ -58,3 +58,11 @@ compile_pass PartialOutputCommit.bsv
 # with the L2#(a) it reduced to as the dependency
 compile_fail WeakChainRoot.bsv
 compare_file WeakChainRoot.bsv.bsc-out
+
+# the earlier-instance-may-capture judgment is modal: with the pred's
+# variable rigid, a guarded judgment would call the output conflict at
+# the less specific clause conclusive and name that clause as selected;
+# the modal judgment defers to the definition-level report naming the
+# true obligation (and the uncovered catch-all's T0160 is pinned too)
+compile_fail ModalCapture.bs
+compare_file ModalCapture.bs.bsc-out
