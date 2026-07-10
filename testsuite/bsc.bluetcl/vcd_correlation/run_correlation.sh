@@ -17,8 +17,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-BSC=${BSC:-/home/ravi/bluespec/claude/bsc/inst/bin/bsc}
-BLUETCL=${BLUETCL:-/home/ravi/bluespec/claude/bsc/inst/bin/bluetcl}
+BSC=${BSC:-bsc}
+BLUETCL=${BLUETCL:-bluetcl}
 
 rm -rf bo_sim bo_default bo_kib veri_default veri_kib sim \
        vcd_correlation_build.log
