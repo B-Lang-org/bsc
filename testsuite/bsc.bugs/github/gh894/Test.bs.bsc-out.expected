@@ -1,56 +1,8 @@
 checking package dependencies
 compiling Test.bs
-Error: "Test.bs", line 30, column 0: (T0033)
-  There is not enough explicit type information to deduce the types of all
-  expressions. Consider adding more type declarations to help resolve this
-  ambiguity.
-    An ambiguous type was introduced at "Test.bs", line 31, column 7
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
-    An ambiguous type was introduced at "Test.bs", line 31, column 38
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
-      Real numeric constant in or at the following locations:
-	"Test.bs", line 31, column 38
-    An ambiguous type was introduced at "Test.bs", line 31, column 34
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
-      Real numeric constant in or at the following locations:
-	"Test.bs", line 31, column 34
-    An ambiguous type was introduced at "Test.bs", line 31, column 30
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
-      Real numeric constant in or at the following locations:
-	"Test.bs", line 31, column 30
-    An ambiguous type was introduced at "Test.bs", line 31, column 26
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
-      Real numeric constant in or at the following locations:
-	"Test.bs", line 31, column 26
-    An ambiguous type was introduced at "Test.bs", line 31, column 20
-    This type resulted from:
-      The proviso Test.BuildVector ((FloatingPoint.FloatingPoint b__ c__ ->
-      FloatingPoint.FloatingPoint b__ c__) -> d__ -> e__ -> f__ -> g__ ->
-      Vector.Vector a__ (FloatingPoint.FloatingPoint 8 23)) introduced in or
-      at the following locations:
-	"Test.bs", line 31, column 16
+Error: "Test.bs", line 31, column 16: (T0032)
+  This expression requires the following context which could not be resolved:
+    Test.BuildVector ((FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) -> (FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) -> (FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) -> (FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) -> (FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) -> Vector.Vector c__ (FloatingPoint.FloatingPoint 8 23))
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    Test.BuildVector' 4 (FloatingPoint.FloatingPoint a__ b__ -> FloatingPoint.FloatingPoint a__ b__) (Vector.Vector c__ (FloatingPoint.FloatingPoint 8 23))

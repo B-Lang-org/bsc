@@ -60,7 +60,14 @@ reportedPwp s pwp =
                      , not (isPreClass c) ]
     in  case nonPre of
           [] -> pwp
-          _  -> apSub s (last nonPre)
+          -- carry the residual's positions along: the root may have
+          -- been created at a positionless site (e.g. a generated
+          -- wrapper signature) while the residual accumulated real
+          -- source positions on its way through the reduction
+          _  -> let root = last nonPre
+                    new_poss = filter (`notElem` getPredPositions root)
+                                      (getPredPositions pwp)
+                in  apSub s (addPredPositions root new_poss)
 
 rootVPreds :: [VPred] -> TI [VPred]
 rootVPreds vps = do
@@ -530,12 +537,19 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
 
 handleCtxRedWrapField:: Maybe Id -> Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
 handleCtxRedWrapField mid pos (vp, reduced_ps) name userty =
-    (pos, EBadIfcType (fmap pfpString mid) $
+    (pos', EBadIfcType (fmap pfpString mid) $
      "The interface method `" ++ getFString name ++
      "' uses type(s) that are not in the Bits or SplitPorts typeclasses: " ++
      intercalate ", " (concatMap bitsPredType reduced_ps)
      )
     where
+      -- A rooted report can arrive with no useful position (the
+      -- residual was reduced far from its source); fall back to the
+      -- predicate's carried positions, which point at the method.
+      pos' = case (pos == noPosition,
+                   filterPositions pos (getVPredPositions vp)) of
+               (True, (p : _)) -> p
+               _ -> pos
       bitsPredType :: VPred -> [String]
       bitsPredType (VPred _ (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [t, _]) _ _))
         | cid == idBits = [pfpString t]
@@ -565,8 +579,13 @@ handleWeakContext pos t qs ds rs0 = do
 
     -- For each proviso, figure out whether it can be reduced, just
     -- not all the way (the inability to reduce a required proviso is
-    -- the real stumbling point)
-    rs_noimpl_reduced <- findReducedPredWPs ds rs_noimpl
+    -- the real stumbling point).  The reduction is self-contained (no
+    -- "ds" givens): the "could also be deduced from" hint must list
+    -- the complete sub-proviso set, not one with members silently
+    -- discharged against internally deferred predicates -- that would
+    -- leave the hint's remaining members referencing variables the
+    -- message never defines.
+    rs_noimpl_reduced <- findReducedPredWPs [] rs_noimpl
 
     xs <- mapM (handleWeakContext' pos t qs) rs_noimpl_reduced
     -- separate out the handled from the non-handled
@@ -1085,8 +1104,18 @@ earlyContextReduction pos ps =
                         return (p, isReducible)
     rs <- mapM try_pred ps
     let err_preds = map fst (filter (not . snd) rs)
-    when (not (null err_preds)) $
-        handleContextReduction Nothing pos err_preds
+        -- Failing fast is worthwhile because it reports at a precise
+        -- use position.  When neither the site nor the predicate has
+        -- one (generated code), defer to the definition-level report,
+        -- which knows the definition's name and position.  The
+        -- predicate cannot escape unreported: it is irreducible, so
+        -- nothing can discharge it downstream, and the
+        -- definition-level check is the terminal backstop.
+        reportable p = pos /= noPosition ||
+                       any (/= noPosition) (getVPredPositions p)
+        err_now = filter reportable err_preds
+    when (not (null err_now)) $
+        handleContextReduction Nothing pos err_now
 
 -- ========================================================================
 
