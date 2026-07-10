@@ -533,6 +533,7 @@ defaultFlags bluespecdir = Flags {
         passThroughAssertions = False,
         doICheck = True,
         dumpAll = Nothing,
+        dumpFormats = ["vcd"],
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
@@ -628,7 +629,7 @@ defaultFlags bluespecdir = Flags {
         strictMethodSched = True,
         suppressWarnings = SomeMsgs [],
         synthesize = False,
-        systemVerilogTasks = False,
+        systemVerilogOutput = False,
         tclShowHidden = False,
         testAssert = False,
         timeStamps = True,
@@ -1455,9 +1456,15 @@ externalFlags = [
           "check that rule names are unique (when disabled unique numbers are assigned)", Hidden)),
 
 
+        ("system-verilog-output",
+         (Toggle (\f x -> f {systemVerilogOutput=x}) (showIfTrue systemVerilogOutput),
+         "emit SystemVerilog output (SV tasks like $error, string parameters)", Hidden)),
+
+        -- old, backward-compatible spelling of -system-verilog-output
         ("system-verilog-tasks",
-         (Toggle (\f x -> f {systemVerilogTasks=x}) (showIfTrue systemVerilogTasks),
-         "preserve SystemVerilog tasks (e.g. $error) in output code", Hidden)),
+         (Toggle (\f x -> f {systemVerilogOutput=x}) (showIfTrue systemVerilogOutput),
+         "deprecated spelling of -system-verilog-output",
+         Deprecated "Use -system-verilog-output instead.")),
 
         ("sched-conditions",
          (Toggle (\f x -> f {schedConds=x}) (showIfTrue schedConds),
@@ -1694,6 +1701,23 @@ externalFlags = [
          (Arg "path" (\f s -> Left (f {vPathRaw = splitPath' f s vPathRaw})) (showPath vPathRaw),
           "search path (`:' sep.) for Verilog files", Visible)),
 
+        ("dump-formats",
+         let valids = ["none", "vcd", "fst", "fsdb"]
+             setFn f s =
+               let toks = filter (not . null) (splitWhen (== ',') s)
+               in case filter (`notElem` valids) toks of
+                    (bad:_) -> Right (cmdPosition, EBadArgFlag "-dump-formats" bad valids)
+                    []      -> Left $ f { dumpFormats =
+                                           if "none" `elem` toks
+                                           then []
+                                           else nub (filter (/= "none") toks) }
+             getFn = FRTString (\f -> case dumpFormats f of
+                                        [] -> "none"
+                                        fs -> intercalate "," fs)
+         in  (Arg "formats" setFn (Just getFn),
+              "waveform formats to compile into the simulation " ++
+              "(comma-separated subset of vcd,fst,fsdb; or none)", Visible)),
+
         ("vsim",
          let setFn f s = case setBackend f Verilog of
                            Left f' -> Left $ f' {vsim = Just s}
@@ -1845,6 +1869,7 @@ showFlagsRaw flags =
           ("disableAssertions", show (disableAssertions flags)),
           ("doICheck", show (doICheck flags)),
           ("dumpAll", show (dumpAll flags)),
+          ("dumpFormats", show (dumpFormats flags)),
           ("dumps", show (dumps flags)),
           ("enablePoisonPills", show (enablePoisonPills flags)),
           ("entry", show (entry flags)),
@@ -1935,7 +1960,7 @@ showFlagsRaw flags =
           ("strictMethodSched", show (strictMethodSched flags)),
           ("suppressWarnings", show (suppressWarnings flags)),
           ("synthesize", show (synthesize flags)),
-          ("systemVerilogTasks", show (systemVerilogTasks flags)),
+          ("systemVerilogOutput", show (systemVerilogOutput flags)),
           ("tclShowHidden", show (tclShowHidden flags)),
           ("testAssert", show (testAssert flags)),
           ("timeStamps", show (timeStamps flags)),

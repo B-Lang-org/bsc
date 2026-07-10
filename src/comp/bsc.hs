@@ -36,7 +36,7 @@ import ParseOp
 import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote, fst3)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
-                    mkAName, mkVName, mkVPICName,
+                    mkAName, mkVName, mkVPICName, mkDPICName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
                     bscSrcSuffix, binSuffix,
@@ -131,7 +131,7 @@ import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
-                        mkImportDeclarations)
+                        mkImportDeclarations, isPoly)
 import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
 import DPIWrappers(genDPIWrappers)
 import SimCCBlock
@@ -442,10 +442,12 @@ compilePackage
     start flags DFgenVPI
     blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
+    -- Note: with DPI, wrapper generation happens later (in genModuleVerilog),
+    -- once the concrete widths of polymorphic imports are known; see there.
     vpi_wrappers <- if (backend flags /= Just Verilog)
                     then return []
                     else if (useDPI flags)
-                         then genDPIWrappers errh flags prefix blurb ffuncs
+                         then return []
                          else genVPIWrappers errh flags prefix blurb ffuncs
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
 
@@ -1183,6 +1185,16 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
                    else vprog0
        t <- dump errh flags t DFverilogDollar dumpnames vprog
 
+       -- Generate DPI wrapper C files for any polymorphic imports.  This is
+       -- done here (not in the early foreign-function pass) because the set of
+       -- concrete widths, and hence the monomorphized wrappers, is only known
+       -- from the generated Verilog's DPI import declarations.
+       when (useDPI flags) $ do
+           let VProgram _ vdpis _ = vprog
+           ff_blurb <- mkGenFileHeader flags
+           _ <- genDPIWrappers errh flags prefix ff_blurb vdpis
+           return ()
+
        -- Write the Verilog files
        start flags DFwriteVerilog
        vfilenames <- writeVerilog errh flags prefix
@@ -1516,7 +1528,13 @@ cmdCompileBluesimCFile flags cName = do
         -- show is used for quoting
         opts = map show (cxxFlags flags)
         files = [show (mangleFileName cName)]
-    cmd <- cmdCXXCompile flags (opts ++ switches) files
+        -- the generated model/schedule file (model_<top>.cxx) is dispatch code:
+        -- compiling it at -O3 is disproportionately slow and buys no measurable
+        -- run time, so allow its flags to be overridden with TOP_CXXFLAGS
+        cflags_var = if ("model_" `isPrefixOf` (baseName cName))
+                     then "TOP_CXXFLAGS"
+                     else "CXXFLAGS"
+    cmd <- cmdCXXCompileWithEnv cflags_var flags (opts ++ switches) files
     let cNameRel = getRelativeFilePath cName
     -- we lie here and mention both header and object (un-mangled name)
     let msg = engine ++ " object created: " ++ (dropSuf cNameRel) ++
@@ -1731,9 +1749,19 @@ cxxCompile errh flags sws fs = do
 --   sws = switches (like -c, -o)
 --   fs  = filenames
 cmdCXXCompile :: Flags -> [String] -> [String] -> IO String
-cmdCXXCompile flags sws fs = do
+cmdCXXCompile = cmdCXXCompileWithEnv "CXXFLAGS"
+
+-- Same, but taking the name of the environment variable that supplies the
+-- compiler flags (falling back to CXXFLAGS if that variable is not set).
+-- This lets specific generated files (e.g. the Bluesim model/schedule file,
+-- via TOP_CXXFLAGS) be compiled with different flags: the model file is
+-- dispatch code whose g++ -O3 compile time grows much faster than any
+-- run-time benefit, so users can set e.g. TOP_CXXFLAGS=-O1.
+cmdCXXCompileWithEnv :: String -> Flags -> [String] -> [String] -> IO String
+cmdCXXCompileWithEnv cflags_var flags sws fs = do
     comp <- getEnvDef "CXX" dfltCxxCompile
-    cflags <- getEnvDef "CXXFLAGS" dfltCXXFLAGS
+    base_cflags <- getEnvDef "CXXFLAGS" dfltCXXFLAGS
+    cflags <- getEnvDef cflags_var base_cflags
     let debug_flags = if (cDebug flags) then "-g" else ""
     bsc_cflags <- getEnvDef "BSC_CXXFLAGS" dfltBSC_CXXFLAGS
     let cmd = unwords $ [ comp, cflags, debug_flags, bsc_cflags ] ++ sws ++ fs
@@ -2005,7 +2033,13 @@ vSimLink errh flags toplevel prefix vfiles ofiles = do
                 veriFiles bsdir ++
                 (map vfnString vfiles) ++
                 ofiles)
-        cmd = unwords (build_script : args)
+        -- pass the requested waveform dump formats to the build script, which
+        -- translates them to the simulator's mechanism (or errors if unsupported)
+        dumpFmts = case dumpFormats flags of
+                     [] -> "none"
+                     fs -> intercalate "," fs
+        cmd = "BSC_VSIM_TRACE_FORMATS=" ++ dumpFmts ++ " " ++
+              unwords (build_script : args)
     when (verbose flags) $ putStrLnF ("exec: " ++ cmd)
     rc <- system cmd
     case rc of
@@ -2097,7 +2131,30 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
       t <- timestampStr flags "compile user-provided C files" t
 
       (t, ofiles3) <-
-        if (useDPI flags) then return (t, [])
+        if (useDPI flags)
+        then do
+          -- Polymorphic imports have a generated DPI wrapper file
+          -- ("dpi_wrapper_<name>.c") which must be linked.  We do NOT
+          -- pre-compile it here: it includes svdpi.h, which lives in the
+          -- simulator's (Verilator's) include path, so we hand the source
+          -- file to the link step and let Verilator compile it.
+          let isPolyFFunc ff = isPoly (ff_ret ff) || any isPoly (ff_args ff)
+              poly_ffuncs = filter isPolyFFunc ffuncs
+          if (null poly_ffuncs)
+            then return (t, [])
+            else do
+              let findDPIWrapperFile ffunc = do
+                    let ffunc_name = getIdString (ff_name ffunc)
+                        dpiwrapper_filename = mkDPICName Nothing "" ffunc_name
+                    mfile <- readFilePath errh noPosition False
+                                          dpiwrapper_filename (vPath flags)
+                    case mfile of
+                      Nothing -> bsError errh [(noPosition,
+                                    EMissingVPIWrapperFile dpiwrapper_filename False)]
+                      Just (_, filename) -> return filename
+              dpiwrapper_filenames <- mapM findDPIWrapperFile poly_ffuncs
+              t <- timestampStr flags "locate DPI wrapper files" t
+              return (t, dpiwrapper_filenames)
         else do
           -- compile all necessary vpi wrapper files
 

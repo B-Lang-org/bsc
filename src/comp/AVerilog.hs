@@ -4,6 +4,7 @@
 module AVerilog (aVerilog) where
 
 import Data.List(nub,
+            mapAccumL,
             partition,
             intercalate,
             sort,
@@ -17,13 +18,18 @@ import Data.Maybe
 import System.IO.Unsafe
 import qualified Data.Set as S
 import qualified Data.Map as M
+import qualified Data.Generics as Generic
 
 import ListMap(lookupWithDefault)
 import Util
 import FileNameUtil(hasSuf)
 import PFPrint
-import Error(internalError, ErrorHandle)
-import Flags(Flags, removeReg, removeCross, removeInoutConnect, removeUnusedMods,
+import Error(internalError, ErrorHandle, bsWarning,
+             ErrMsg(WSVReservedIdent, WSVStdIdentRenamed, WSVStdIdentExternal))
+import Position(getPosition, Position)
+import qualified Data.Generics as Generic
+import Flags(Flags, systemVerilogOutput,
+             removeReg, removeCross, removeInoutConnect, removeUnusedMods,
              useDPI, verilogDeclareAllFirst)
 import Id
 import Pragma(PProp(..))
@@ -34,7 +40,7 @@ import VPrims(vPriEnc,vMux,vPriMux,verilogInstancePrefix)
 import AVerilogUtil
 import InlineReg
 import BackendNamingConventions(isRegInst, isClockCrossingRegInst, isInoutConnect)
-import ForeignFunctions(ForeignFuncMap, mkDPIDeclarations, getForeignFunctions)
+import ForeignFunctions(ForeignFuncMap, mkDPIDeclarations, getDPIInstantiations)
 import qualified GraphWrapper as G
 
 --import Debug.Trace
@@ -58,9 +64,48 @@ import qualified GraphWrapper as G
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
-       return (VProgram mods dpi_decls comments)
+    do let vprog0 = VProgram (map renameInoutPorts mods) dpi_decls comments
+       -- Identifiers that collide with the class names of SystemVerilog's
+       -- built-in std package (process, semaphore, mailbox) cannot be
+       -- protected by escaping: some tools (verilator) resolve the names
+       -- at parse time even in escaped form.  Rename the internal ones
+       -- (warning G0130); externally visible names -- the module itself,
+       -- its ports, DPI functions -- cannot be renamed unilaterally, so
+       -- for those only warn (G0131).
+       let (vprog, renamed, extern_clashes) = renameSVStdIdents vprog0
+       if (null renamed)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVStdIdentRenamed name new_name)
+                  | (name, new_name, pos) <- renamed ]
+       if (null extern_clashes)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVStdIdentExternal name)
+                  | (name, pos) <- extern_clashes ]
+       -- warn about identifiers that collide with Verilog or SystemVerilog
+       -- reserved words; the printer emits them as escaped identifiers (see
+       -- the PPrint VId instance), which keeps the output legal, but the
+       -- user may prefer to rename them (promote G0129 to make this an
+       -- error)
+       let sv_clashes =
+               M.toList $ M.fromListWith (\_ old -> old)
+                   [ (s, getPosition i)
+                   | VId s i _ <- Generic.listify isReservedVId vprog ]
+             where isReservedVId (VId s _ _) = isVReservedWord s
+       if (null sv_clashes)
+         then return ()
+         else bsWarning errh
+                  [ (pos, WSVReservedIdent name) | (name, pos) <- sv_clashes ]
+       return vprog
   where
-        vco = flagsToVco flags
+        -- vco carries the foreign-function map and def widths so that DPI call
+        -- sites can be monomorphized (name-mangled by concrete width)
+        vco = (flagsToVco flags)
+                { vco_ffmap = ffmap
+                , vco_def_widths =
+                    M.fromList [ (i, aSize t) | ADef i t _ _ <- aspkg_values aspack ]
+                }
         -- look for pass-through comments, taking care of \n
         -- XXX should these attach to the main module instead of the
         -- XXX entire file (attached to file in case of multiple modules)
@@ -196,16 +241,21 @@ aVerilog errh flags pps aspack ffmap =
 
         -- The main module
         -- XXX note, no special port grouping/commenting for bit blasted mod
+        -- DPI imports are emitted at module scope (as body items), so that
+        -- multiple modules using the same foreign function don't collide at
+        -- Verilator's shared $unit scope; they go in the module that contains
+        -- the foreign-function calls (the main module).
+        dpi_items = map VMDPI dpi_decls
         mainMod =
             if doBitBlast
             then VModule { vm_name = modnameBB,
                            vm_comments = [],
                            vm_ports = [(bargs,[])],
-                           vm_body = bbItems }
+                           vm_body = dpi_items ++ bbItems }
             else VModule { vm_name = modnameUB,
                            vm_comments = [],
                            vm_ports = (groupPorts signal_info args),
-                           vm_body = ubItems }
+                           vm_body = dpi_items ++ ubItems }
 
         -- The un-blasted wrapper, when bit-blasting
         -- It has the unblasted name, the unblasted ports,
@@ -241,7 +291,7 @@ aVerilog errh flags pps aspack ffmap =
     -- create import-DPI statements, if using DPI
 
         dpi_decls = if (useDPI flags)
-                    then mkDPIDeclarations $ getForeignFunctions ffmap aspack
+                    then mkDPIDeclarations $ getDPIInstantiations ffmap aspack
                     else []
 
     -- ----------
@@ -321,15 +371,19 @@ aVerilog errh flags pps aspack ffmap =
         -- XXX might be good to allow the user to specify a default
 
         args :: [VArg]
-        args =        [ VAParameter (vId i) r v
+        args =        [ VAParameter (vId i) r v isStr
                      | (i, t) <- ps,
-                       let (r, v) = case t of
+                       let (r, v, isStr) = case t of
                                       ATBit sz -> (Just (VEConst (sz-1),
                                                          VEConst 0),
-                                             VEWConst (mkVId "0") sz 2 0)
-                                      ATString _ -> (Nothing, VEString "")
-                                      ATReal -> (Nothing, VEReal 0.0)
-                                      _ -> (Nothing, VEConst 0) ] ++
+                                             VEWConst (mkVId "0") sz 2 0, False)
+                                      -- under -system-verilog-output, emit a SV
+                                      -- `string` parameter so $display treats it
+                                      -- as a string, not a packed bit-vector
+                                      ATString _ -> (Nothing, VEString "",
+                                                     systemVerilogOutput flags)
+                                      ATReal -> (Nothing, VEReal 0.0, False)
+                                      _ -> (Nothing, VEConst 0, False) ] ++
                 [ VAInput (vId i) (vSize t)
                      | (i, t) <- is ] ++
                 filterSharedInout
@@ -737,6 +791,61 @@ mkVDeclsAndDefs vDef ds =
 
 -- ==============================
 -- Top-level inout handing
+
+-- Rename one-port-per-net inout ports to plain named ports.  bsc binds
+-- each inout port of a generated module to its internal net with a
+-- port expression in the module header -- ".iioo(x$INOUT)", or
+-- ".arg(arg)" for a module argument -- a header form some tools
+-- (notably Verilator) cannot parse.  When the port is the only one on
+-- its net the expression serves no purpose: rename the net to the port
+-- name throughout the module and emit a plain port.  Ports sharing a
+-- net (shorted inouts) keep the expression form; Verilog has no
+-- plain-port rendering for those.  (A port whose name is already in
+-- use elsewhere in the module is left in expression form; that should
+-- not happen, but this pass must not capture.)
+renameInoutPorts :: VModule -> VModule
+renameInoutPorts vm =
+    let args = concatMap fst (vm_ports vm)
+
+        -- how many inout ports sit on each net (VId equality is by
+        -- Verilog name, which is net identity)
+        net_count :: M.Map VId Int
+        net_count = M.fromListWith (+)
+                        [ (i', 1) | VAInout _ (Just i') _ <- args ]
+        -- how often each identifier occurs anywhere in the module
+        id_count :: M.Map VId Int
+        id_count = M.fromListWith (+)
+                       [ (v, 1) | v <- Generic.listify isVId vm ]
+          where isVId :: VId -> Bool
+                isVId _ = True
+
+        renames :: M.Map VId VId
+        renames = M.fromList
+                      [ (i', i)
+                      | VAInout i (Just i') _ <- args
+                      , M.lookup i' net_count == Just 1
+                      , i /= i'
+                        -- the port name occurs only in its own header
+                        -- expression, so adopting it cannot capture
+                      , M.lookup i id_count == Just 1 ]
+
+        subst :: VId -> VId
+        subst v = M.findWithDefault v v renames
+
+        vm' = Generic.everywhere (Generic.mkT subst) vm
+
+        -- drop the now-trivial expressions (".iioo(iioo)"), including
+        -- ports that were already 1:1 with a same-named net
+        net_count' :: M.Map VId Int
+        net_count' = M.fromListWith (+)
+                         [ (i', 1)
+                         | VAInout _ (Just i') _
+                               <- concatMap fst (vm_ports vm') ]
+        plain (VAInout i (Just i') r)
+            | i == i', M.lookup i' net_count' == Just 1
+            = VAInout i Nothing r
+        plain a = a
+    in  vm' { vm_ports = [ (map plain as, c) | (as, c) <- vm_ports vm' ] }
 
 computeInouts :: M.Map AId AId -> ASPackage -> [(Id, AType, Id)]
 computeInouts inout_rewire_map aspack =
@@ -1837,3 +1946,150 @@ instance VUse VExpr where
 
 
 -- ==============================
+
+-- ==============================
+-- Renaming of identifiers that collide with the class names of
+-- SystemVerilog's built-in std package (process, semaphore, mailbox).
+--
+-- These are not reserved words, so the escaped-identifier treatment that
+-- the printer applies to reserved words does not help: some tools
+-- (verilator) resolve the std class names at parse time, so even the
+-- escaped form fails to parse.  Internal identifiers are therefore
+-- renamed, by appending underscores until fresh.
+--
+-- Names that are visible outside the generated module cannot be renamed
+-- unilaterally and are only reported: the module's own name and its ports
+-- (external code connects to them by name), the port and parameter names
+-- of instantiated submodules (they belong to the submodule: for generated
+-- submodules that module's own compilation handles them consistently, and
+-- for imported Verilog they are the user's), and DPI function and
+-- argument names (C linkage, and part of the import declaration).
+
+renameSVStdIdents :: VProgram
+                  -> (VProgram, [(String, String, Position)], [(String, Position)])
+renameSVStdIdents (VProgram vmods dpis comments) =
+    let dpi_names = S.fromList ([ s | VDPI (VId s _ _) _ _ _ _ <- dpis ] ++
+                                [ s | VDPI _ _ _ _ args <- dpis,
+                                      (VId s _ _, _, _) <- args ])
+        dpi_clashes = [ (s, getPosition i)
+                      | VDPI (VId s i _) _ _ _ _ <- dpis,
+                        isSVStdPackageIdent s ]
+        results = map (renameSVStdIdentsInVModule dpi_names) vmods
+        vmods'  = [ m | (m, _, _) <- results ]
+        renamed = concat [ r | (_, r, _) <- results ]
+        -- one report per name (the same name can clash in several places)
+        externs = M.toList $ M.fromListWith (\_ old -> old)
+                      (dpi_clashes ++ concat [ e | (_, _, e) <- results ])
+    in  (VProgram vmods' dpis comments, renamed, externs)
+
+renameSVStdIdentsInVModule :: S.Set String -> VModule
+                           -> (VModule,
+                               [(String, String, Position)],
+                               [(String, Position)])
+renameSVStdIdentsInVModule dpi_names vmod =
+    let mod_name  = getVIdString (vm_name vmod)
+        port_vids = [ vid | (vargs, _) <- vm_ports vmod,
+                            varg <- vargs, vid <- vargVIds varg ]
+        port_names = S.fromList (map getVIdString port_vids)
+
+        -- every identifier string in the module, as the freshness pool
+        all_names = S.fromList
+            [ s | VId s _ _ <- Generic.listify vidAny vmod ]
+          where vidAny :: VId -> Bool
+                vidAny _ = True
+
+        -- std-colliding occurrences in renameable (non-formal) positions,
+        -- one representative position per name
+        std_uses =
+            M.toList $ M.fromListWith (\_ old -> old)
+                [ (s, getPosition i)
+                | VId s i _ <- collectRenameableVIds (vm_body vmod),
+                  isSVStdPackageIdent s ]
+
+        -- std-colliding names that occur in the module body only in
+        -- non-renameable positions (submodule port/parameter names)
+        formal_only =
+            M.toList $ M.fromListWith (\_ old -> old)
+                [ (s, getPosition i)
+                | VId s i _ <- Generic.listify stdVId (vm_body vmod),
+                  s `notElem` map fst std_uses ]
+          where stdVId (VId s _ _) = isSVStdPackageIdent s
+
+        isExternal n = n == mod_name || n `S.member` port_names
+                                     || n `S.member` dpi_names
+        (extern_uses, internal_uses) = partition (isExternal . fst) std_uses
+
+        -- the module's own name and ports, reported even though they are
+        -- not "uses" in the body scan
+        own_clashes = [ (getVIdString vid, getPosition vid)
+                      | vid <- vm_name vmod : port_vids,
+                        isSVStdPackageIdent (getVIdString vid) ]
+
+        freshen used n =
+            head [ n' | k <- [(1::Int)..]
+                      , let n' = n ++ replicate k '_'
+                      , not (n' `S.member` used)
+                      , not (isVReservedWord n')
+                      , not (isSVStdPackageIdent n') ]
+        (_, ren_list) =
+            mapAccumL
+                (\used (n, pos) ->
+                     let n' = freshen used n
+                     in  (S.insert n' used, (n, n', pos)))
+                all_names internal_uses
+        ren_map = M.fromList [ (n, n') | (n, n', _) <- ren_list ]
+
+        renameVId vid@(VId s i inf) =
+            case M.lookup s ren_map of
+              Just s' -> VId s' i inf
+              Nothing -> vid
+
+        body' = mapRenameableVIds renameVId (vm_body vmod)
+
+        externs = own_clashes ++ extern_uses ++ formal_only
+    in  (vmod { vm_body = body' }, ren_list, externs)
+
+vargVIds :: VArg -> [VId]
+vargVIds (VAInput i _)       = [i]
+vargVIds (VAInout i mi _)    = i : maybe [] (:[]) mi
+vargVIds (VAOutput i _)      = [i]
+vargVIds (VAParameter i _ _ _) = [i]
+
+-- Apply a VId transformation to every renameable identifier position in a
+-- module body: everything except submodule instantiation port/parameter
+-- names and submodule module names, which belong to the instantiated
+-- module.  (Keep this in sync with collectRenameableVIds below.)
+mapRenameableVIds :: (VId -> VId) -> [VMItem] -> [VMItem]
+mapRenameableVIds f items = map go items
+  where
+    go (VMInst mn inm iparams iports) =
+        VMInst mn (f inm)
+               (either (Left . map (\(ms, e) -> (ms, gen e)))
+                       (Right . map (\(pn, me) -> (pn, fmap gen me)))
+                       iparams)
+               [ (pn, fmap gen me) | (pn, me) <- iports ]
+    go (VMComment c it)      = VMComment c (go it)
+    go (VMRegGroup a b c it) = VMRegGroup (f a) b c (go it)
+    go (VMGroup t bss)       = VMGroup t (map (map go) bss)
+    go item                  = gen item
+    gen :: Generic.Data a => a -> a
+    gen = Generic.everywhere (Generic.mkT f)
+
+-- The identifiers that mapRenameableVIds would transform.
+-- (Keep this in sync with mapRenameableVIds above.)
+collectRenameableVIds :: [VMItem] -> [VId]
+collectRenameableVIds items = concatMap go items
+  where
+    go (VMInst _ inm iparams iports) =
+        inm : either (concatMap (vids . snd))
+                     (concatMap (maybe [] vids . snd))
+                     iparams
+            ++ concatMap (maybe [] vids . snd) iports
+    go (VMComment _ it)      = go it
+    go (VMRegGroup a _ _ it) = a : go it
+    go (VMGroup _ bss)       = concatMap (concatMap go) bss
+    go item                  = vids item
+    vids :: Generic.Data a => a -> [VId]
+    vids = Generic.listify vidAny
+      where vidAny :: VId -> Bool
+            vidAny _ = True

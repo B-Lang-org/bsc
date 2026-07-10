@@ -108,9 +108,12 @@ Pretty print SV tokens, e.g., keyword "end", symbol "&"
 >     let (desc, ver) = (lookupDescAndVer kw svKeywordTable)
 >         verdesc = case ver of
 >                   Verilog2001 -> "V2K"
+>                   Verilog2005 -> "V2005"
 >                   SystemVerilog30 -> "SV 3.0"
 >                   SystemVerilog31 -> "SV 3.1"
 >                   SystemVerilog31a -> "SV 3.1a"
+>                   SystemVerilog2009 -> "SV 2009"
+>                   SystemVerilog2012 -> "SV 2012"
 >                   Bluespec38 -> "BSV 3.8"
 >                   -- _ -> "internal"
 >     in  verdesc ++ " keyword " ++ quote desc
