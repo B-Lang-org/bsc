@@ -363,8 +363,15 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 ts1 ts2
-        mu2 = mgu vs2 ts2 ts1
+        -- Overlap is a modal question (could any type satisfy both
+        -- heads?), answered by unifying fully and then attributing
+        -- direction by inspecting whose variables the substitution
+        -- had to bind (okSubst).  mguModal keeps each head's own
+        -- variables substitutable -- the strict mgu would refuse the
+        -- binding outright and orthogonal overlaps (each head concrete
+        -- in a different position) would look disjoint.
+        mu1 = mguModal vs1 ts1 ts2
+        mu2 = mguModal vs2 ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)

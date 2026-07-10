@@ -493,6 +493,7 @@ traceflags = [
           "trace-type-extsubst",
           "trace-usemap",
           "trace-disjoint-tests",
+          "check-subst-bound",
           "trace-a-definitions",
           "trace-clock",
           "trace-def-cache",
