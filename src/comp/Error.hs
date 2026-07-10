@@ -1153,6 +1153,12 @@ data ErrMsg =
         -- Bluesim-specific errors/warnings
         | EBluesimNoXZ String
 
+        -- Errors for the .ba -> code generation mode (-c)
+        | EGenWithEntry String
+        | EGenWithSrcFile String
+        | EGenVerilogNotSupported
+        | EGenWithSystemC
+
         -- Errors/warnings from the SystemC wrapper generator
         | ESystemCWrapperComboPaths String
         | ESystemCWrapperInvalidMethods [String]
@@ -4492,6 +4498,27 @@ getErrorText (EMissingVPIWrapperFile fname is_dpi) =
      let ifctype = if is_dpi then "DPI" else "VPI"
      in  s2par ("Cannot find the " ++ ifctype ++ " file " ++ ishow fname ++
                 " in the Verilog search path."))
+
+getErrorText (EGenWithEntry entry) =
+    (System 96, empty,
+     s2par ("The flag -c generates code from an elaborated module; " ++
+            "it cannot be combined with -e (linking).  To link " ++
+            ishow entry ++ ", run bsc again with -e."))
+
+getErrorText (EGenWithSrcFile fname) =
+    (System 97, empty,
+     s2par ("The flag -c operates on elaborated (.ba) files, so a " ++
+            "source file (" ++ ishow fname ++ ") cannot be provided.  " ++
+            "To compile and generate from source, use -g."))
+
+getErrorText EGenVerilogNotSupported =
+    (System 98, empty,
+     s2par ("The flag -c is only supported with the Bluesim " ++
+            "back end (-sim)."))
+
+getErrorText EGenWithSystemC =
+    (System 99, empty,
+     s2par ("The flag -c is not supported with -systemc; use -sim."))
 
 -- Runtime errors
 getErrorText (EMutuallyExclusiveRulesFire r1 r2) =
