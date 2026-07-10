@@ -2005,7 +2005,13 @@ vSimLink errh flags toplevel prefix vfiles ofiles = do
                 veriFiles bsdir ++
                 (map vfnString vfiles) ++
                 ofiles)
-        cmd = unwords (build_script : args)
+        -- pass the requested waveform dump formats to the build script, which
+        -- translates them to the simulator's mechanism (or errors if unsupported)
+        dumpFmts = case dumpFormats flags of
+                     [] -> "none"
+                     fs -> intercalate "," fs
+        cmd = "BSC_VSIM_TRACE_FORMATS=" ++ dumpFmts ++ " " ++
+              unwords (build_script : args)
     when (verbose flags) $ putStrLnF ("exec: " ++ cmd)
     rc <- system cmd
     case rc of
