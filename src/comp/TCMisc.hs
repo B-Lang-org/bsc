@@ -504,8 +504,14 @@ sat dvs ps solved pool p =
           m_pool <- case lookfor bound_tyvars p pool of
                       Just (b, (s_pool, [])) | closed_p -> do
                         stack_eps <- getExplPreds
+                        -- modal, like the committable guard it mirrors:
+                        -- a given from an enclosing frame quantifies over
+                        -- distinct rigid variables, and the guarded
+                        -- unifier would hide it, letting the pool
+                        -- discharge a predicate the given was meant to
+                        -- claim
                         let unifiable (EPred _ gp) =
-                                predUnify bound_tyvars (toPred p) gp
+                                predUnify [] (toPred p) gp
                         return $ if any unifiable (concatMap bySuperE (ps ++ stack_eps))
                                  then Nothing
                                  else Just (b, s_pool)
