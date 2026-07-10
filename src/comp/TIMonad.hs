@@ -49,6 +49,7 @@ import SymTab
 import PreIds(idBits, idLiteral, idRealLiteral, idSizedLiteral,
               idStringLiteral, idNumEq)
 import Control.Monad(when)
+import Data.List(partition)
 import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
@@ -100,10 +101,15 @@ data TStateRecover = TStateRecover {
   -- rather than re-posed
   tsNumProven :: S.Set Pred,
   tsNumRefuted :: S.Set Pred,
-  -- pool of reusable solved dictionaries (ground preds) and their
-  -- not-yet-emitted bindings; scoped by push/popSolvedPool frames
-  -- around each binding group (see TCMisc.propagateFunDeps)
+  -- pool of reusable solved dictionaries and their not-yet-emitted
+  -- bindings; scoped by push/popSolvedPool frames around each binding
+  -- group (see TCMisc.propagateFunDeps).  Ground entries stay visible
+  -- inside nested frames; non-ground entries are frame-local, because
+  -- a nested definition could otherwise generalize over one of the
+  -- entry's free type variables while its dictionary stays monomorphic
+  -- in the enclosing frame.
   tsSolvedPool :: [EPred],
+  tsSolvedPoolNG :: [EPred],
   tsPoolSbs :: SolvedBinds,
   -- whether pool deposits are currently allowed; disabled while
   -- checking qualifiers, whose code is emitted outside the current
@@ -183,6 +189,7 @@ initRecoverState = TStateRecover {
     tsNumProven = S.empty,
     tsNumRefuted = S.empty,
     tsSolvedPool = [],
+    tsSolvedPoolNG = [],
     tsPoolSbs = emptySBs,
     tsPoolDepositsOK = True
   }
@@ -253,6 +260,14 @@ tiRecoveringFromError' do_something create_fake_output = do
             -}
             s <- getSubst
             updSubst (trimSubst dummy)
+            -- The solved-dictionary pool lives in TI state, so the
+            -- trimmed substitution must be forced into it exactly as
+            -- it is forced into the returned value: a pool binding
+            -- deposited inside "do_something" may mention a type
+            -- variable resolved inside it, whose mapping is destroyed
+            -- by the trim.  (Vars still free at this point have no
+            -- mapping to lose and resolve later as usual.)
+            apSubSolvedPool s
             return (apSub s answer)
           ))
      (\es ->
@@ -366,34 +381,54 @@ addNumDecided proven refuted = modify (\ s ->
 -- emission) scopes around the whole group body, including nested
 -- groups.
 
+-- all entries visible in the current frame (ground entries from any
+-- enclosing frame, non-ground entries from this frame only)
 getSolvedPool :: TI [EPred]
-getSolvedPool = gets tsSolvedPool
+getSolvedPool = do
+    g <- gets tsSolvedPool
+    ng <- gets tsSolvedPoolNG
+    return (ng ++ g)
 
 -- deposit entries and their bindings into the current pool frame
 addSolvedPool :: [EPred] -> SolvedBinds -> TI ()
 addSolvedPool eps sbs = modify add
-  where add s = s { tsSolvedPool = eps ++ tsSolvedPool s,
+  where (ng, g) = partition (\ (EPred _ p) -> not (null (tv p))) eps
+        add s = s { tsSolvedPool = g ++ tsSolvedPool s,
+                    tsSolvedPoolNG = ng ++ tsSolvedPoolNG s,
                     tsPoolSbs = sbs <++ tsPoolSbs s }
 
 -- Enter a binding-group frame: bindings deposited from here on belong
--- to this frame (they will be emitted in this group's letseq).  Pool
--- entries from enclosing frames stay visible, since their bindings are
--- emitted by an enclosing group's letseq that scopes around this group.
-pushSolvedPool :: TI ([EPred], SolvedBinds)
+-- to this frame (they will be emitted in this group's letseq).  Ground
+-- pool entries from enclosing frames stay visible, since their
+-- bindings are emitted by an enclosing group's letseq that scopes
+-- around this group; non-ground entries are hidden from the nested
+-- frame (see tsSolvedPoolNG).
+pushSolvedPool :: TI (([EPred], [EPred]), SolvedBinds)
 pushSolvedPool = do
     pool <- gets tsSolvedPool
+    pool_ng <- gets tsSolvedPoolNG
     sbs <- gets tsPoolSbs
-    modify (\ s -> s { tsPoolSbs = emptySBs })
-    return (pool, sbs)
+    modify (\ s -> s { tsSolvedPoolNG = [], tsPoolSbs = emptySBs })
+    return ((pool, pool_ng), sbs)
 
 -- Leave a binding-group frame: return this frame's deposited bindings
 -- for emission into the group's letseq, drop this frame's pool entries,
 -- and restore the enclosing frame's state.
-popSolvedPool :: ([EPred], SolvedBinds) -> TI SolvedBinds
-popSolvedPool (pool0, sbs0) = do
+popSolvedPool :: (([EPred], [EPred]), SolvedBinds) -> TI SolvedBinds
+popSolvedPool ((pool0, pool_ng0), sbs0) = do
     frame_sbs <- gets tsPoolSbs
-    modify (\ s -> s { tsSolvedPool = pool0, tsPoolSbs = sbs0 })
+    modify (\ s -> s { tsSolvedPool = pool0, tsSolvedPoolNG = pool_ng0,
+                       tsPoolSbs = sbs0 })
     return frame_sbs
+
+-- force a substitution into the pool state (see tiRecoveringFromError:
+-- must be kept in step with the answer value when the substitution is
+-- about to be trimmed)
+apSubSolvedPool :: Subst -> TI ()
+apSubSolvedPool s = modify app
+  where app st = st { tsSolvedPool = apSub s (tsSolvedPool st),
+                      tsSolvedPoolNG = apSub s (tsSolvedPoolNG st),
+                      tsPoolSbs = apSub s (tsPoolSbs st) }
 
 getPoolDepositsOK :: TI Bool
 getPoolDepositsOK = gets tsPoolDepositsOK
