@@ -249,7 +249,10 @@ funcDef errh symt i oqt@(CQType _ ot) i_ n (CQType _ t) =
         isAV = isActionValue symt r
 
         fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (getIdFString i) (getIdPosition i)
-        expr = cVApply idFromWrapField [fnp, CVar i_]
+        -- position the wrap method at the noinline function, so the
+        -- WrapField proviso it mints reports there rather than at
+        -- "Unknown position" when it cannot be discharged
+        expr = cVApply (setIdPosition pos idFromWrapField) [fnp, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet

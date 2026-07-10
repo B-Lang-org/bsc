@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
-                  mkSymTab,
+                  mkSymTab, mkSymTabWithWarnings,
                   getPackagesUsedInTypes,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
@@ -28,7 +28,7 @@ import Id
 -- for PPrint and PVPrint Id instances
 import IdPrint()
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..),
-             ErrorHandle, bsError, bsErrorUnsafe)
+             ErrorHandle, bsError, bsErrorUnsafe, bsWarning)
 import CSyntax
 import CSyntaxUtil(isEnum)
 import SymTab
@@ -62,7 +62,17 @@ useLegacyInstIndex :: Bool
 useLegacyInstIndex = "-legacy-inst-index" `elem` progArgs
 
 mkSymTab :: ErrorHandle -> CPackage -> IO SymTab
-mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
+mkSymTab = mkSymTab' False
+
+-- Also emit instance-hygiene warnings (fundep coverage).  Used for the
+-- first symbol table built from the user-written package; the
+-- pipeline re-derives symbol tables from transformed packages several
+-- times, which must not repeat the warnings.
+mkSymTabWithWarnings :: ErrorHandle -> CPackage -> IO SymTab
+mkSymTabWithWarnings = mkSymTab' True
+
+mkSymTab' :: Bool -> ErrorHandle -> CPackage -> IO SymTab
+mkSymTab' warn errh (CPackage mi _ imps impsigs _ ds _) =
     let
         mmi = Just mi
 
@@ -173,6 +183,54 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             | Cinstance (CQType _ t) _ <- ds
             , let c = fromJustOrErr "mkSymTab: leftCon" (leftCon t) ]
 
+        -- Warn when an instance of a coherent class leaves a
+        -- fundep-determined position underdetermined: a variable in a
+        -- determined position of the instance head that is not a
+        -- function of the input positions -- directly or through the
+        -- closure of the instance's proviso fundeps (numeric classes
+        -- included) -- means the same inputs can match with many
+        -- different results, so nothing premised on the dependency
+        -- can rely on that instance.
+        -- `incoherent' classes have declared exactly that and are
+        -- exempt.
+        covWarns =
+            [ (getPosition t,
+               WFunDepCoverage (pfpString t) (pfpString c)
+                               (map pfpString uncovered))
+            | Cinstance (CQType provisos t) _ <- ds
+            , Just c <- [leftCon t]
+            , Just cls <- [findSClass symT (CTypeclass c)]
+            , allowIncoherent cls /= Just True
+            , not (null (funDeps cls))
+            , let args = tyConArgs t
+            , row <- funDeps cls
+            , length row == length args
+            , let sideVars det = S.fromList $
+                      concat [ tv a | (a, d) <- zip args row, d == det ]
+                  inp_vs = sideVars False
+                  det_vs = sideVars True
+                  predAdds acc (CPred (CTypeclass pc) pts) =
+                      case findSClass symT (CTypeclass pc) of
+                        Just pcls
+                          | not (null (funDeps pcls))
+                          , all ((== length pts) . length) (funDeps pcls)
+                          -> foldl (rowAdd pts) acc (funDeps pcls)
+                        _ -> acc
+                  rowAdd pts acc prow =
+                      let p_in = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, not d ]
+                          p_out = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, d ]
+                      in  if p_in `S.isSubsetOf` acc
+                            then acc `S.union` p_out
+                            else acc
+                  closure vs =
+                      let vs' = foldl predAdds vs provisos
+                      in  if vs' == vs then vs else closure vs'
+                  uncovered = S.toList (det_vs `S.difference` closure inp_vs)
+            , not (null uncovered)
+            ]
+
         allClsErrs = instHeadCheck `seq` (impClsErrs ++ clsErrs)
 
         -- finally, add constructors, fields, and variables
@@ -205,7 +263,8 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             bsError errh fundepErrs
         else if not (null allClsErrs) then
             bsError errh allClsErrs
-        else
+        else do
+            when (warn && not (null covWarns)) $ bsWarning errh covWarns
             -- report the kind inference error safely
             case miks of
                 Left msg -> bsError errh [msg]
@@ -304,8 +363,15 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 ts1 ts2
-        mu2 = mgu vs2 ts2 ts1
+        -- Overlap is a modal question (could any type satisfy both
+        -- heads?), answered by unifying fully and then attributing
+        -- direction by inspecting whose variables the substitution
+        -- had to bind (okSubst).  mguModal keeps each head's own
+        -- variables substitutable -- the strict mgu would refuse the
+        -- binding outright and orthogonal overlaps (each head concrete
+        -- in a different position) would look disjoint.
+        mu1 = mguModal vs1 ts1 ts2
+        mu2 = mguModal vs2 ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)
@@ -916,15 +982,18 @@ genBss vs fds = [ map (`elem` rs) vs | (_, rs) <- fds ]
 
 -- Check for overlap errors using the shared instance trie.
 -- Variable positions in the instance key become Free in the probe query
--- so cross-branch overlaps are correctly found.  j /= i avoids self-comparison.
-overlapErrors :: [[Bool]] -> [(Int, QInst, Inst)] -> PredTrie (Int, QInst, Inst) -> [EMsg]
-overlapErrors bss tagged trie = nub errs
+-- so cross-branch overlaps are correctly found.  j > i avoids self-comparison
+-- and processes each unordered pair only once, in the canonical (low, high)
+-- direction that the memo table (see getCls) stores.
+overlapErrors :: (Int -> Int -> Either EMsg (Maybe Ordering)) ->
+                 [(Int, QInst, Inst)] -> PredTrie (Int, QInst, Inst) -> [EMsg]
+overlapErrors pairCmp tagged trie = nub errs
   where
     probeQuery (_, _, Inst _ _ (_ :=> p) _) = overlapProbeQuery p
-    errs = [ e | item@(i, qi, _) <- tagged
-               , (j, qj, _)      <- lookupPredTrie (probeQuery item) trie
-               , j > i           -- process each unordered pair only once
-               , Left e          <- [cmpQInsts bss qi qj] ]
+    errs = [ e | item@(i, _, _) <- tagged
+               , (j, _, _)      <- lookupPredTrie (probeQuery item) trie
+               , j > i
+               , Left e         <- [pairCmp i j] ]
 
 -- ---------------
 
@@ -980,17 +1049,59 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ifs qts =
                 -- identity for the overlap self-check; QInst is needed by
                 -- cmpQInsts; Inst is what genInsts returns.
                 tagged = zip3 [0 :: Int ..] qinsts all_insts
-                -- cmpQInsts freshens type variables before comparing, so
-                -- specificity is correctly detected even when instances share
-                -- variable names (e.g. both use 'a' and 'b').
-                cmpForSort (_, qi1, _) (_, qi2, _) =
-                    case cmpQInsts bss qi1 qi2 of
-                        Right (Just LT) -> LT  -- qi1 more specific, try first
-                        Right (Just GT) -> GT  -- qi1 less specific, try last
-                        _               -> EQ
-                trie   = buildPredTrie cmpForSort
+                -- Pairwise instance comparisons, memoized in a lazy Map
+                -- keyed on the canonical (low, high) index pair, so that
+                -- the overlap check and the leaf sort below each force a
+                -- given pair's cmpQInsts at most once between them.
+                -- (cmpQInsts freshens type variables before comparing, so
+                -- specificity is correctly detected even when instances
+                -- share variable names.)
+                cmpMemo = M.fromList
+                    [ ((i, j), cmpQInsts bss qi qj)
+                      | ((i, qi, _) : rest) <- tails tagged
+                      , (j, qj, _) <- rest ]
+                pairCmp i j
+                  | i == j = internalError "MakeSymTab.getCls: pairCmp i i"
+                  | i < j = find_cmp (i, j)
+                  | otherwise = fmap (fmap flipOrd) (find_cmp (j, i))
+                  where find_cmp k = fromJustOrErr "MakeSymTab.getCls: pairCmp"
+                                         (M.lookup k cmpMemo)
+                        flipOrd LT = GT
+                        flipOrd GT = LT
+                        flipOrd EQ = EQ
+                -- Order each trie leaf most-specific-first.  cmpQInsts
+                -- yields only a partial order: non-overlapping instances
+                -- are incomparable.  A comparison sort is not sound for a
+                -- partial order — an incomparable instance between two
+                -- comparable ones can keep the sort from ever comparing
+                -- them, leaving a less-specific instance ahead of a
+                -- strictly-more-specific one (which byInst would then
+                -- select, with no incoherence flagged).  So topologically
+                -- sort the strict specificity edges, as getQInstsLegacy
+                -- does for the whole instance list.  Instances share a
+                -- leaf only when they agree on the head constructor at
+                -- every pure-input position, and the leaf's pairs have
+                -- already been compared by the overlap check, so this
+                -- costs no additional cmpQInsts calls.
+                sortLeaf items@(_:_:_) =
+                    let g = [ (i, [ j | (j, _, _) <- items, i /= j,
+                                        pairCmp j i == Right (Just LT) ])
+                            | (i, _, _) <- items ]
+                        im = M.fromList [ (idx, item) | item@(idx, _, _) <- items ]
+                    in  case tsort g of
+                          Right is ->
+                              [ map_lookupOrErr
+                                    ("MakeSymTab.sortLeaf: tsort returned " ++
+                                     "an index not in the leaf: " ++ show i)
+                                    i im
+                              | i <- is ]
+                          Left cycles ->
+                              internalError ("MakeSymTab.sortLeaf cycles? " ++
+                                             ppReadable cycles)
+                sortLeaf items = items
+                trie   = buildPredTrie sortLeaf
                              (\(_, _, Inst _ _ (_ :=> p) _) -> p) tagged
-                errs   = overlapErrors bss tagged trie
+                errs   = overlapErrors pairCmp tagged trie
                 -- S.empty suppresses Bound: for overlapping classes like
                 -- AppendTuple''/Has_tpl_n, a non-matching concrete instance
                 -- must be visible to trigger the incoherent path in

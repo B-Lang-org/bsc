@@ -1,0 +1,60 @@
+package FdStability where
+
+-- Pin ordered-clause fundep resolution.
+--
+-- TC (Maybe t) m first matches the specific instance -- the clause for
+-- Maybe inputs -- whose fundep output is 5.  The sibling pred TC2 Bool m
+-- fixes m to 6, and on retry the Maybe clause still matches the inputs
+-- but its determined position conflicts (5 ~ 6): the predicate is
+-- rejected rather than falling through to the catch-all clause, in
+-- either argument order.  (With commitment -- the default -- the
+-- improvement m := 5 is committed at the first match and the sibling's
+-- demand for 6 is what fails; the program is rejected either way.)
+--
+-- Under -legacy-defer-instances the historical policy applies: the
+-- specific match is discarded (its context is unsatisfied), the sibling
+-- commits m := 6, and the retried predicate falls through to the
+-- catch-all clause, selecting an instance by its fundep output; the
+-- program then compiles printing 1 (direct call, specific instance via
+-- TD Bool) and 2 (through foo, catch-all).
+
+class TC x n | x -> n where
+    tcVal :: x -> Bit n
+    tcTag :: x -> Bit 8
+
+instance (TD a) => TC (Maybe a) 5 where
+    tcVal _ = 0
+    tcTag _ = 1
+
+instance TC x 6 where
+    tcVal _ = 0
+    tcTag _ = 2
+
+class TD a where
+    tdVal :: a -> Bool
+
+instance TD Bool where
+    tdVal x = x
+
+class TC2 x n | x -> n where
+    tc2Val :: x -> Bit n
+
+instance TC2 Bool 6 where
+    tc2Val _ = 0
+
+-- forces the two fundep outputs to be the same variable
+h :: Bit n -> Bit n -> Bool
+h _ _ = True
+
+foo :: Maybe t -> Bool -> Bit 8
+foo x b = if h (tcVal x) (tc2Val b) then tcTag x else 0
+
+{-# verilog sysFdStability #-}
+sysFdStability :: Module Empty
+sysFdStability = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (tcTag (Just True))       -- direct: specific -> 1
+                $display "%0d" (foo (Just True) False)   -- via foo: catch-all -> 2
+                $finish 0

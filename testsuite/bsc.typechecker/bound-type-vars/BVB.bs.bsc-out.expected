@@ -1,0 +1,6 @@
+checking package dependencies
+compiling BVB.bs
+Error: "BVB.bs", line 4, column 6: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Generic Prelude.Bool r

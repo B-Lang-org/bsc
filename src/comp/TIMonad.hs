@@ -12,6 +12,10 @@ module TIMonad(
         EPred(..), Infer2, CheckT, TaskCheckT,
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
+        getSolvedPool, addSolvedPool, addSolvedPoolNG, addPoolUsed,
+        pushSolvedPool, popSolvedPool,
+        getPoolDepositsOK, withoutPoolDeposits, withoutSolvedPool,
+        getNumProven, getNumRefuted, addNumDecided,
         errorAtId, findCons, findTyCon, findFields, findCls,
         bitCls,
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
@@ -39,6 +43,7 @@ import Error(internalError, EMsg, WMsg, EMsgs(..), ErrMsg(..))
 import Flags(Flags, maxTIStackDepth)
 import Subst
 import Pred
+import SolvedBinds(SolvedBinds, emptySBs, (<++), extractClosures)
 import Scheme
 import Assump
 import SymTab
@@ -56,9 +61,16 @@ import Util(headOrErr)
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
-doVarTrace, doSubstTrace, dontTrim :: Bool
+doVarTrace, doSubstTrace, doBoundCheck, dontTrim :: Bool
 doVarTrace = elem "-trace-tcvar" progArgs
 doSubstTrace = elem "-trace-type-extsubst" progArgs
+-- Invariant check (development): a bound (rigid) type variable has
+-- exactly one binder -- its quantifier -- so it must never appear in
+-- the domain of a substitution extension.  The unifier's guards and
+-- the modal/actual split in instance matching are supposed to
+-- guarantee this; this check enforces it at the single choke point
+-- where unification results enter the monad state.
+doBoundCheck = elem "-check-subst-bound" progArgs
 dontTrim = elem "-trace-skip-trim" progArgs
 
 -------
@@ -83,7 +95,32 @@ data TStateRecover = TStateRecover {
   -- stack of bound tyvars (list of lists for stuff bound at each level)
   tsBoundTyVarStack :: [[TyVar]],
   tsExplPreds :: [[EPred]],
-  tsSatStack :: TSSuperSatStack
+  tsSatStack :: TSSuperSatStack,
+  -- numeric predicates already decided by the proviso SAT solver in
+  -- this definition, so repeated queries are answered from here
+  -- rather than re-posed
+  tsNumProven :: S.Set Pred,
+  tsNumRefuted :: S.Set Pred,
+  -- pool of reusable solved dictionaries and their not-yet-emitted
+  -- bindings; scoped by push/popSolvedPool frames around each binding
+  -- group (see TCMisc.propagateFunDeps).  Ground entries stay visible
+  -- inside nested frames; non-ground entries are frame-local, because
+  -- a nested definition could otherwise generalize over one of the
+  -- entry's free type variables while its dictionary stays monomorphic
+  -- in the enclosing frame.
+  tsSolvedPool :: [EPred],
+  tsSolvedPoolNG :: [EPred],
+  tsPoolSbs :: SolvedBinds,
+  -- bindings of non-ground (alias) entries, kept separate because they
+  -- are emitted only if a consult actually discharged a predicate
+  -- against them (tsPoolUsedNG): an unused alias closure would be a
+  -- dead binding carrying free type variables into the emitted code
+  tsPoolSbsNG :: SolvedBinds,
+  tsPoolUsedNG :: S.Set Id,
+  -- whether pool deposits are currently allowed; disabled while
+  -- checking qualifiers, whose code is emitted outside the current
+  -- group's dictionary letseq (see withoutPoolDeposits)
+  tsPoolDepositsOK :: Bool
 }
 
 type TSSatElement = EPred
@@ -93,7 +130,7 @@ mkTSSatElement :: (Maybe [TyVar]) -> [EPred] -> VPred -> TSSatElement
 -- variable to the pred.  We still will need to solve the pred "p".
 -- It is useful when there is recursion, where the solved "p" will
 -- refer right back to this predicate.
-mkTSSatElement _ _ (VPred i (PredWithPositions p _)) = EPred (CVar i) p
+mkTSSatElement _ _ (VPred i (PredWithPositions p _ _)) = EPred (CVar i) p
 
 type TSSatStack = SizedStack TSSatElement
 type TSSuperSatStack = SizedStack TSSatStack
@@ -154,7 +191,15 @@ initRecoverState = TStateRecover {
     tsCurSubst = nullSubst,
     tsBoundTyVarStack = [],
     tsExplPreds = [],
-    tsSatStack = mkSizedStack [mkSizedStack []]
+    tsSatStack = mkSizedStack [mkSizedStack []],
+    tsNumProven = S.empty,
+    tsNumRefuted = S.empty,
+    tsSolvedPool = [],
+    tsSolvedPoolNG = [],
+    tsPoolSbs = emptySBs,
+    tsPoolSbsNG = emptySBs,
+    tsPoolUsedNG = S.empty,
+    tsPoolDepositsOK = True
   }
 
 runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg], S.Set Id)
@@ -223,6 +268,14 @@ tiRecoveringFromError' do_something create_fake_output = do
             -}
             s <- getSubst
             updSubst (trimSubst dummy)
+            -- The solved-dictionary pool lives in TI state, so the
+            -- trimmed substitution must be forced into it exactly as
+            -- it is forced into the returned value: a pool binding
+            -- deposited inside "do_something" may mention a type
+            -- variable resolved inside it, whose mapping is destroyed
+            -- by the trim.  (Vars still free at this point have no
+            -- mapping to lose and resolve later as usual.)
+            apSubSolvedPool s
             return (apSub s answer)
           ))
      (\es ->
@@ -317,6 +370,136 @@ popExplPreds :: TI ()
 popExplPreds = modify dropPreds
   where dropPreds s = s { tsExplPreds = tail (tsExplPreds s) }
 
+getNumProven :: TI (S.Set Pred)
+getNumProven = gets tsNumProven
+
+getNumRefuted :: TI (S.Set Pred)
+getNumRefuted = gets tsNumRefuted
+
+addNumDecided :: [Pred] -> [Pred] -> TI ()
+addNumDecided proven refuted = modify (\ s ->
+    s { tsNumProven = foldr S.insert (tsNumProven s) proven,
+        tsNumRefuted = foldr S.insert (tsNumRefuted s) refuted })
+
+-- The solved-dictionary pool: reusable dictionaries for ground
+-- predicates solved during the current binding group, together with
+-- their not-yet-emitted bindings.  A pool entry's dictionary may be
+-- referenced by any code within the binding group, because the group's
+-- dictionary letseq (into which the pooled bindings are merged at
+-- emission) scopes around the whole group body, including nested
+-- groups.
+
+-- all entries visible in the current frame (ground entries from any
+-- enclosing frame, non-ground entries from this frame only)
+getSolvedPool :: TI [EPred]
+getSolvedPool = do
+    g <- gets tsSolvedPool
+    ng <- gets tsSolvedPoolNG
+    return (ng ++ g)
+
+-- deposit ground entries and their bindings into the current pool
+-- frame; the bindings are unconditionally emitted with the frame,
+-- since the flow references their dictionaries directly (the deposited
+-- predicates are dropped from it)
+addSolvedPool :: [EPred] -> SolvedBinds -> TI ()
+addSolvedPool eps sbs = modify add
+  where add s = s { tsSolvedPool = eps ++ tsSolvedPool s,
+                    tsPoolSbs = sbs <++ tsPoolSbs s }
+
+-- deposit non-ground alias entries and their (freshly renamed)
+-- bindings; these are emitted only if some consult discharges a
+-- predicate against them (see tsPoolUsedNG)
+addSolvedPoolNG :: [EPred] -> SolvedBinds -> TI ()
+addSolvedPoolNG eps sbs = modify add
+  where add s = s { tsSolvedPoolNG = eps ++ tsSolvedPoolNG s,
+                    tsPoolSbsNG = sbs <++ tsPoolSbsNG s }
+
+-- record that a pool entry's dictionary was used to discharge a
+-- predicate, so its closure must be emitted
+addPoolUsed :: Id -> TI ()
+addPoolUsed i = modify (\ s ->
+    s { tsPoolUsedNG = S.insert i (tsPoolUsedNG s) })
+
+-- Enter a binding-group frame: bindings deposited from here on belong
+-- to this frame (they will be emitted in this group's letseq).  Ground
+-- pool entries from enclosing frames stay visible, since their
+-- bindings are emitted by an enclosing group's letseq that scopes
+-- around this group; non-ground entries are hidden from the nested
+-- frame (see tsSolvedPoolNG).
+pushSolvedPool :: TI (([EPred], [EPred]), (SolvedBinds, SolvedBinds, S.Set Id))
+pushSolvedPool = do
+    pool <- gets tsSolvedPool
+    pool_ng <- gets tsSolvedPoolNG
+    sbs <- gets tsPoolSbs
+    sbs_ng <- gets tsPoolSbsNG
+    used <- gets tsPoolUsedNG
+    modify (\ s -> s { tsSolvedPoolNG = [], tsPoolSbs = emptySBs,
+                       tsPoolSbsNG = emptySBs, tsPoolUsedNG = S.empty })
+    return ((pool, pool_ng), (sbs, sbs_ng, used))
+
+-- Leave a binding-group frame: return this frame's deposited bindings
+-- for emission into the group's letseq -- the ground bindings always,
+-- the non-ground alias closures only where a consult marked them used
+-- -- drop this frame's pool entries, and restore the enclosing frame's
+-- state.
+popSolvedPool :: (([EPred], [EPred]), (SolvedBinds, SolvedBinds, S.Set Id))
+              -> TI SolvedBinds
+popSolvedPool ((pool0, pool_ng0), (sbs0, sbs_ng0, used0)) = do
+    frame_sbs <- gets tsPoolSbs
+    frame_sbs_ng <- gets tsPoolSbsNG
+    used <- gets tsPoolUsedNG
+    let (used_sbs, _) = extractClosures S.empty (S.toList used) frame_sbs_ng
+    modify (\ s -> s { tsSolvedPool = pool0, tsSolvedPoolNG = pool_ng0,
+                       tsPoolSbs = sbs0, tsPoolSbsNG = sbs_ng0,
+                       tsPoolUsedNG = used0 })
+    return (frame_sbs <++ used_sbs)
+
+-- force a substitution into the pool state (see tiRecoveringFromError:
+-- must be kept in step with the answer value when the substitution is
+-- about to be trimmed)
+apSubSolvedPool :: Subst -> TI ()
+apSubSolvedPool s = modify app
+  where app st = st { tsSolvedPool = apSub s (tsSolvedPool st),
+                      tsSolvedPoolNG = apSub s (tsSolvedPoolNG st),
+                      tsPoolSbs = apSub s (tsPoolSbs st),
+                      tsPoolSbsNG = apSub s (tsPoolSbsNG st) }
+
+getPoolDepositsOK :: TI Bool
+getPoolDepositsOK = gets tsPoolDepositsOK
+
+-- Disable pool deposits while checking a qualifier (an implicit
+-- condition or filter attached to a definition).  Qualifier code is
+-- emitted OUTSIDE the current group's dictionary letseq -- IConv
+-- evaluates it in the scope where the definition is bound -- so its
+-- dictionaries must come from an enclosing group: the qualifier's
+-- predicates must keep flowing (deferred upward) rather than being
+-- solved into the current frame's letseq.
+withoutPoolDeposits :: TI a -> TI a
+withoutPoolDeposits action = do
+    old <- gets tsPoolDepositsOK
+    modify (\ s -> s { tsPoolDepositsOK = False })
+    r <- action
+    modify (\ s -> s { tsPoolDepositsOK = old })
+    return r
+
+-- Run an action with the solved-dictionary pool hidden entirely --
+-- no consults, no deposits.  Used for error-reporting reductions: a
+-- diagnostic that re-reduces predicates to display their residuals
+-- must show the complete story, not one with sub-predicates silently
+-- discharged against dictionaries an earlier apply node happened to
+-- pool (which would also make the message depend on solve history).
+withoutSolvedPool :: TI a -> TI a
+withoutSolvedPool action = do
+    old_g <- gets tsSolvedPool
+    old_ng <- gets tsSolvedPoolNG
+    old_ok <- gets tsPoolDepositsOK
+    modify (\ s -> s { tsSolvedPool = [], tsSolvedPoolNG = [],
+                       tsPoolDepositsOK = False })
+    r <- action
+    modify (\ s -> s { tsSolvedPool = old_g, tsSolvedPoolNG = old_ng,
+                       tsPoolDepositsOK = old_ok })
+    return r
+
 mkEPred :: Pred -> TI EPred
 mkEPred p = do i <- newDict
                return $ EPred (CVar i) p
@@ -331,6 +514,12 @@ extSubst loc s' = do
     when (not (chkSubstOrder s' s)) $
       internalError(loc ++ " extSubst: " ++ ppReadable (s', s))
     traceM (loc ++ " extSubst: " ++ ppReadable s')
+  when (doBoundCheck) $ do
+    bvs <- getBoundTVs
+    case filter (`elem` bvs) (getSubstDomain s') of
+      []  -> return ()
+      bad -> internalError (loc ++ " extSubst: bound type variable(s) in " ++
+                            "substitution domain: " ++ ppReadable (bad, s'))
   modify (transSubst (\s -> s' @@ s))
 
 getTyVarNum :: TI (Int)
@@ -416,8 +605,8 @@ instance HasPosition VPred where
 
 
 expandSynVPred :: VPred -> VPred
-expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss)) = VPred i pwp'
-  where pwp' = PredWithPositions p' poss
+expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss anc)) = VPred i pwp'
+  where pwp' = PredWithPositions p' poss anc
         p'   = IsIn c ts'
         ts'  = map expandSyn ts
 

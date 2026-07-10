@@ -1,0 +1,24 @@
+package TFunHead where
+
+-- Test that an instance whose head contains a primitive numeric type
+-- function (TAdd) participates in overlap checking.
+--
+-- TAdd a b unifies with the literal 5 (numeric unification defers an
+-- equality), so these two instances overlap without being orderable and
+-- must be rejected (T0128).  In the instance trie, a TAdd-headed instance
+-- must not be keyed under the TAdd constructor: probes for the
+-- literal-headed instance would then never see it and the overlapping
+-- pair would be silently admitted.
+--
+-- The class carries a fundep so that a and b are determined and the
+-- instances are otherwise legal; the overlap of the first parameter is
+-- the only error here.
+
+class NP2 n a b | n -> a b where
+    np2 :: Bit n -> (Bit a, Bit b)
+
+instance NP2 (TAdd a b) a b where
+    np2 _ = (0, 0)
+
+instance NP2 5 2 3 where
+    np2 _ = (1, 1)

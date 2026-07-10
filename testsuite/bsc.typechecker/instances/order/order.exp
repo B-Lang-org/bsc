@@ -1,0 +1,76 @@
+# Tests for the order in which class instances are tried during
+# context reduction (most-specific-first), in corners where the
+# instance trie's ordering or probing could disagree with the
+# legacy all-pairs index.
+#
+# The trie and legacy variants must recompile from source (not reuse a
+# .bo produced by the other variant, which would bake in that variant's
+# instance choice), so the .bo is erased between variants.
+
+# Three instances share one trie leaf; the middle one overlaps neither
+# of the others, so specificity is only a partial order on the leaf.
+# A fully concrete call must select the most specific instance (3),
+# not the declaration-first catch-all (1).  Before the per-leaf
+# topological sort, the trie leaf kept declaration order here (the
+# comparison sort never compares the first and last instances) and the
+# catch-all was selected; the legacy index has always ordered this
+# correctly, so only the default variant exposed the bug.
+test_c_veri LeafOrder sysLeafOrder.out.expected
+erase LeafOrder.bo
+# Legacy instance index must produce identical output.
+test_c_veri_bs_modules_options LeafOrder {} {-legacy-inst-index} sysLeafOrder.out.expected
+
+# A deeper leaf: four instances forming a specificity chain A < B < C
+# plus an instance X incomparable to A and B, declared adversarially.
+# Each of the four calls must select the most specific matching
+# instance (1, 3, 2, 4); a comparison sort of the collapsed partial
+# order answers 3 for the first call.
+test_c_veri LeafOrderChain sysLeafOrderChain.out.expected
+erase LeafOrderChain.bo
+test_c_veri_bs_modules_options LeafOrderChain {} {-legacy-inst-index} sysLeafOrderChain.out.expected
+
+# Ordered-clause fundep semantics with commitment: the specific TC
+# instance is the clause for Maybe inputs, its improvement (m := 5) is
+# committed even though its context is not yet dischargeable, and the
+# sibling's demand for 6 is then unsatisfiable -- the program is
+# rejected.  Under -legacy-defer-instances the historical fall-through
+# policy applies and the program compiles printing 1 then 2.
+compile_fail FdStability.bs
+compare_file FdStability.bs.bsc-out
+erase FdStability.bo
+test_c_veri_bs_modules_options FdStability {} {-legacy-defer-instances} sysFdStability.out.expected
+
+# Resolution must not depend on the order in which sibling preds are
+# solved: both argument orders must reject (the legacy policy accepted
+# one order and rejected the other).
+erase FdStability.bo
+compile_fail FdOrder.bs
+compare_file FdOrder.bs.bsc-out
+
+# An instance head containing a primitive numeric type function (TAdd)
+# unifies with a numeric-literal head, so the pair overlaps without being
+# orderable and must be rejected, under both index implementations.
+# Before TAdd-headed instances were keyed into the catch-all branch, the
+# trie's overlap probes missed the pair and the default variant compiled
+# silently; the legacy all-pairs check has always rejected it.
+compile_fail_error TFunHead.bs T0128
+erase TFunHead.bo
+compile_fail_error TFunHead.bs T0128 1 {-legacy-inst-index}
+
+# A pred with a stuck associated-type-function head must probe every
+# trie branch, so that unifiable instances (NPick 1 vs NPick (SizeOf a))
+# remain visible to incoherence detection.  This pins the invariant
+# rather than exposing a live bug: every current surface-syntax inlet
+# (signatures, annotations, data fields, instance heads, synonyms)
+# expands ATF applications into class contexts at conversion, so the
+# pred reaches the probe as NPick a__ with a fresh variable.  The pin
+# guards the probe behavior for any future path that skips one of
+# those expansion gates (as mkVPredFromPred already does).
+compile_fail StuckATF.bs
+compare_file StuckATF.bs.bsc-out
+erase StuckATF.bo
+# The legacy index's canMatch pre-filter treats ATF heads as
+# inconclusive, so the same instances stay visible and the report is
+# identical.
+compile_fail StuckATF.bs {-legacy-inst-index}
+compare_file StuckATF.bs.bsc-out

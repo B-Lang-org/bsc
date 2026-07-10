@@ -1,0 +1,13 @@
+# Tests for the solved-dictionary pool's invariants (frame scoping,
+# emission scope, given-independence).  Pool defects manifest as
+# internal errors or wrong dictionary reuse, so these pins are
+# acceptance tests over shapes that stress each invariant.
+
+compile_pass FrameScope.bsv
+compile_pass GivenIndependence.bsv
+
+# The incoherent-marked non-freezing invariant (a pooled dictionary
+# must not be reused where the walk would select a different
+# information-dependent instance) is pinned organically by
+# bsc.bugs/bluespec_inc/b1326 and the ERulesMux2a family, which
+# regressed when it was first violated.
