@@ -27,7 +27,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260427-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260704-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -646,6 +646,10 @@ instance Bin (IConInfo a) where
         internalError "GenBin.Bin(IConInfo).writeBytes: ICInout"
     writeBytes (ICLazyArray _ _ _) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyArray"
+    writeBytes (ICLazyPack {}) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyPack"
+    writeBytes (ICLazyUnpack {}) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICLazyUnpack"
     writeBytes (ICPred _ _) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICPred"
     writeBytes (ICHandle { }) =

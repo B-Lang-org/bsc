@@ -1,0 +1,31 @@
+package NormMuxMixed(sysNormMuxMixed) where
+
+-- Documents the squeeze-path BOUNDARY of held-coercion muxing: when the
+-- two branches have MIXED shapes -- one a held unpack of dynamic
+-- non-canonical bits, the other a directly-constructed value -- the
+-- held+held merge does not fire, and the squeeze clauses MATERIALIZE
+-- the held branch's method: unpack (and then the write-path pack, which
+-- no longer sees a held coercion) actually run, so the unlawful
+-- instance's normalization IS applied to the register-sourced branch.
+-- With v1 = 0xAB the displayed value is the normalized 0b (not the raw
+-- ab of NormMux), and the constructed branch shows pack (MkNB 0xF5) =
+-- 05.  This is the current design's boundary between cancelled and
+-- elaborated coercions; the expected output documents it (derived from
+-- actual runs), it is not a statement that either answer is more
+-- correct for an instance that violates the Bits laws.
+import NormAdjacent
+
+sysNormMuxMixed :: Module Empty
+sysNormMuxMixed =
+  module
+    cond :: Reg Bool <- mkReg True
+    v1 :: Reg (Bit 8) <- mkReg 0xAB
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 3) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := (if cond then unpack v1 else MkNB 0xF5)
+            cond := not cond
+            cnt := cnt + 1
+            if cnt >= 1 then $display "dst=%h" (pack dst) else noAction
+            if cnt == 3 then $finish 0 else noAction

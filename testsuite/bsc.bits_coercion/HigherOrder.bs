@@ -1,0 +1,26 @@
+package HigherOrder(IfcHO(..), mkHigherOrder) where
+
+-- Higher-order use of pack: passed unapplied to map.  The coercion
+-- primitive is left partially applied (no payload), which must evaluate
+-- to the method closure, not crash or hold.
+import Vector
+
+data P = MkP (Bit 4)
+
+instance Bits P 4 where
+    pack (MkP v) = v
+    unpack v = MkP v
+
+interface IfcHO =
+    out :: Bit 16
+
+{-# verilog mkHigherOrder #-}
+mkHigherOrder :: Module IfcHO
+mkHigherOrder =
+  module
+    let vs :: Vector 4 P
+        vs = map MkP (genWith fromInteger)
+        bs :: Vector 4 (Bit 4)
+        bs = map pack vs
+    interface
+        out = pack bs

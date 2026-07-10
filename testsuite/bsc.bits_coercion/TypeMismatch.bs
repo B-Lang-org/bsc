@@ -1,0 +1,28 @@
+package TypeMismatch(IfcTM(..), mkTypeMismatch) where
+
+-- Coercions at DIFFERENT types must not cancel: unpack at type A
+-- followed by pack at type B (same width) has to elaborate both
+-- instance methods (one ENTERED-UNPACK-A and one ENTERED-PACK-B line).
+data A = MkA (Bit 16)
+data B = MkB (Bit 16)
+
+instance Bits A 16 where
+    pack (MkA v) = primSeq (message "ENTERED-PACK-A" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK-A" ()) (MkA v)
+
+instance Bits B 16 where
+    pack (MkB v) = primSeq (message "ENTERED-PACK-B" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK-B" ()) (MkB v)
+
+aToB :: A -> B
+aToB (MkA v) = MkB v
+
+interface IfcTM =
+    out :: Bit 16 -> Bit 16
+
+{-# verilog mkTypeMismatch #-}
+mkTypeMismatch :: Module IfcTM
+mkTypeMismatch =
+  module
+    interface
+        out b = pack (aToB (unpack b))

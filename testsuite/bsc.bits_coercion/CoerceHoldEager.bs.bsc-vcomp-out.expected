@@ -1,0 +1,7 @@
+checking package dependencies
+compiling CoerceHoldEager.bs
+code generation for mkCoerceHoldEager starts
+Compilation message: "CoerceHold.bs", line 11, column 36: ENTERED-PACK
+Compilation message: "CoerceHold.bs", line 12, column 32: ENTERED-UNPACK
+Verilog file created: mkCoerceHoldEager.v
+All packages are up to date.

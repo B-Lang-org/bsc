@@ -21,6 +21,7 @@ module IExpandUtils(
         setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
+        getBNotCache, updBNotCache, getBitsSelInfo,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
         instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
@@ -87,7 +88,7 @@ import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, MsgContext,
              bsError, bsWarning, bsErrorWithContext, bsWarningWithContext,
              bsErrorWithContextNoExit, exitFail, closeOpenHandles)
 import Position
-import SymTab(SymTab, getIfcFlatMethodNames)
+import SymTab(SymTab, getIfcFlatMethodNames, findType, TypeInfo(..))
 import PreStrings(s_unnamed)
 import FStringCompat
 import Id
@@ -323,6 +324,14 @@ canLiftCond' m (ICon _ (ICMethArg _)) = (False, m)
 -- other arrays are unexpected
 canLiftCond' m (ICon _ (ICLazyArray arr_ty arr u)) =
     internalError ("IExpandUtils.canLiftCond: unexpected array")
+-- held pack/unpack coercions should have been squeezed out by the
+-- condition-handling paths (doIf, evalStaticOp', walkNF) before any
+-- condition-liftability question is asked; this cannot force them (pure
+-- context), so fail loudly rather than answer wrongly
+canLiftCond' m (ICon _ (ICLazyPack {})) =
+    internalError ("IExpandUtils.canLiftCond: unexpected held coercion (pack)")
+canLiftCond' m (ICon _ (ICLazyUnpack {})) =
+    internalError ("IExpandUtils.canLiftCond: unexpected held coercion (unpack)")
 canLiftCond' m (ICon _ _) = (True, m)
 canLiftCond' m ref@(IRefT t p r) =
     -- only follow references for which we haven't yet computed the answer
@@ -486,6 +495,12 @@ data GStateRO = GStateRO {
         symtab :: !SymTab,
         -- lazy because computing the defenv may be expensive and (often) unnecessary
         defenv :: M.Map Id HExpr,
+        -- selector indices (selNo of pack, selNo of unpack, numSel) of the
+        -- Bits class methods, looked up in the symbol table once per
+        -- elaboration instead of once per held-coercion creation; lazy so
+        -- that the lookup only happens if a coercion is actually held
+        -- (see IExpand.mkBitsMethodSel, the only consumer)
+        bitsSelInfo :: (Integer, Integer, Integer),
         checkMaxStep :: !Bool,
         maxStep :: !Integer,
         stepWarnInterval :: !Integer,
@@ -525,6 +540,10 @@ data GState = GState {
         -- a heap reference that we've already walked.
         -- XXX this could be stored in the heap cells?
         heapWires      :: !(M.Map HeapPointer HWireSet),
+
+        -- This is a cache for "pushBNot" (see IExpand), so that pushing a
+        -- negation through a shared if-DAG is O(cells), not O(paths).
+        heapBNots      :: !(M.Map HeapPointer HExpr),
 
         -- XXX what is the Id? flattened name?
         vars           :: [(Id, HStateVar)], -- instantiated verilog modules
@@ -599,7 +618,8 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                           maxStep = redSteps flags,
                           stepWarnInterval = redStepsWarnInterval flags,
                           flags = flags,
-                          defenv = alldefs
+                          defenv = alldefs,
+                          bitsSelInfo = findBitsSelInfo symt
                         }
         gs = GState { stepNo = 0,
                       nextWarnStep = redStepsWarnInterval flags,
@@ -613,6 +633,7 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       newResetId = initResetId,
                       hp = 0,
                       heapWires = M.empty,
+                      heapBNots = M.empty,
                       vars = [],
                       portTypeMap = M.empty,
                       rules = iREmpty,
@@ -645,6 +666,22 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       aggressive_cond = aggImpConds flags
  }
     in  gs
+
+-- Field indices of the pack and unpack methods in the Bits class
+-- dictionary (and the total number of dictionary fields), taken from the
+-- symbol table rather than hard-coded so that a change to the shape of
+-- the Bits class cannot silently select the wrong dictionary field.
+-- Computed at most once per elaboration (see the bitsSelInfo field of
+-- GStateRO); IExpand.mkBitsMethodSel builds the per-site selector ICon
+-- from these indices.
+findBitsSelInfo :: SymTab -> (Integer, Integer, Integer)
+findBitsSelInfo symt =
+    case findType symt idBits of
+      Just (TypeInfo _ _ _ (TIstruct _ fs) _)
+        | Just kp <- findIndex (qualEq idPack) fs,
+          Just ku <- findIndex (qualEq idUnpack) fs ->
+            (toInteger kp, toInteger ku, toInteger (length fs))
+      ti -> internalError ("findBitsSelInfo: " ++ ppReadable ti)
 
 data GOutput a = GOutput { go_clock_domains :: [(ClockDomain, [HClock])],
                            go_resets   :: [HReset],
@@ -2608,6 +2645,11 @@ getDefEnv :: G (M.Map Id HExpr)
 getDefEnv = do s <- get
                return (defenv (ro s))
 
+{-# INLINE getBitsSelInfo #-}
+getBitsSelInfo :: G (Integer, Integer, Integer)
+getBitsSelInfo = do s <- get
+                    return (bitsSelInfo (ro s))
+
 {-# INLINE getFlags #-}
 getFlags :: G Flags
 getFlags = do s <- get
@@ -2634,6 +2676,18 @@ updWireSetCache p ws = do
   s <- get
   let cache' = M.insert p ws (heapWires s)
   put s { heapWires = cache' }
+
+{-# INLINE getBNotCache #-}
+getBNotCache :: G (M.Map HeapPointer HExpr)
+getBNotCache = do s <- get
+                  return (heapBNots s)
+
+{-# INLINE updBNotCache #-}
+updBNotCache :: HeapPointer -> HExpr -> G ()
+updBNotCache p e = do
+  s <- get
+  let cache' = M.insert p e (heapBNots s)
+  put s { heapBNots = cache' }
 
 {-# INLINE getModuleName #-}
 getModuleName :: G String
@@ -3421,6 +3475,12 @@ instance Wireable HExpr where
   extractWires (ICon i (ICModPort {})) = ?mkport i
 
   extractWires (ICon i (ICInout { iInout = inout })) = ?mkinout i inout
+
+  -- a held pack/unpack coercion: its wires are those of the value it
+  -- holds (lzApplied references the same state, plus the dictionary,
+  -- which is pure)
+  extractWires (ICon _ (ICLazyPack { lzOrig = o })) = extractWires o
+  extractWires (ICon _ (ICLazyUnpack { lzOrig = o })) = extractWires o
 
   extractWires _ = return ?z
 

@@ -1,0 +1,31 @@
+package NormMuxMixedEager(sysNormMuxMixedEager) where
+
+-- The SAME design as sysNormMuxMixed (its default-mode twin), compiled
+-- with -hack-eager-pack-unpack (see the .exp file).  EXPECTED SUBTLETY:
+-- in this design the register only ever holds canonical (already
+-- normalized) values -- the mixed-shape write path normalizes in
+-- default mode too -- so the simulation output is IDENTICAL to default
+-- mode.  That is itself meaningful: normalization of already-canonical
+-- values is the identity, so eagerly elaborating the read-back methods
+-- cannot change the displayed value.  The differentiation is
+-- STRUCTURAL: the read-back $display argument in the Verilog is the
+-- masked expression (not the bare register), and more instance methods
+-- elaborate (more ENTERED-* lines).  This eager twin proves the
+-- default-mode result is cancellation doing real work: the read-back
+-- round trip it cancels WOULD otherwise elaborate.
+import NormAdjacent
+
+sysNormMuxMixedEager :: Module Empty
+sysNormMuxMixedEager =
+  module
+    cond :: Reg Bool <- mkReg True
+    v1 :: Reg (Bit 8) <- mkReg 0xAB
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 3) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := (if cond then unpack v1 else MkNB 0xF5)
+            cond := not cond
+            cnt := cnt + 1
+            if cnt >= 1 then $display "dst=%h" (pack dst) else noAction
+            if cnt == 3 then $finish 0 else noAction

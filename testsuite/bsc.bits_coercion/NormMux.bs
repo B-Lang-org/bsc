@@ -1,0 +1,33 @@
+package NormMux(sysNormMux) where
+
+-- Policy pinned: the held+held mux merge is CONSISTENT with adjacent
+-- cancellation for unlawful, normalizing instances.  The write
+--     dst := (if cond then unpack v1 else unpack v2)
+-- merges the two held unpacks into ONE held unpack over the raw-bits
+-- mux, and the write-path pack cancels against it: the normalization
+-- the instance attempts (masking to the low nibble) is SKIPPED on BOTH
+-- branches, exactly as in the adjacent round trip of NormAdjacent.  The
+-- unlawful instance makes this observable: the display must show the
+-- RAW dynamic register bits (ab / cd), not the normalized nibbles
+-- (0b / 0d), and the generated Verilog must have a direct
+-- register-to-register mux with no masking logic and no ENTERED-* lines
+-- in the compile output.  (Compare NormEager: same source under
+-- -hack-eager-pack-unpack, where the methods DO run and the output is
+-- the normalized 0b / 0d.)
+import NormAdjacent
+
+sysNormMux :: Module Empty
+sysNormMux =
+  module
+    cond :: Reg Bool <- mkReg True
+    v1 :: Reg (Bit 8) <- mkReg 0xAB
+    v2 :: Reg (Bit 8) <- mkReg 0xCD
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 3) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := (if cond then unpack v1 else unpack v2)
+            cond := not cond
+            cnt := cnt + 1
+            if cnt >= 1 then $display "dst=%h" (pack dst) else noAction
+            if cnt == 3 then $finish 0 else noAction

@@ -85,6 +85,23 @@ Note: the numeric keyword is not required
 
 The functions {\tt pack} and {\tt unpack} are provided to convert
 elements to {\tt Bit\#()} and to convert {\tt Bit\#()} elements to another datatype.
+
+Instances of \te{Bits} are required to be mutually inverse, up to
+resolution of don't-care bits: \te{unpack(pack(x))} must equal \te{x}
+exactly, and every bit vector \te{b} must be a legal resolution of
+\te{pack(unpack(b))} --- that is, \te{pack(unpack(b))} must equal
+\te{b} at every bit where \te{pack} produces a determinate value, while
+bits where \te{pack} produces a don't-care may resolve arbitrarily.
+Deterministic instances therefore need \te{pack} and \te{unpack} to be
+exact inverses; instances that emit don't-cares (such as derived union
+instances, which fill unused payload bits with don't-cares) satisfy the
+law automatically.  The compiler relies on this law: matching
+\te{pack}/\te{unpack} pairs that arise during elaboration (for example,
+writing a value read from a register back to another register) are
+cancelled without evaluating the instance methods --- choosing the
+identity as the resolution of the round trip --- so an instance that
+attempts to ``normalize'' values in \te{pack} or \te{unpack} will not
+see those normalizations applied on such round trips.
 \begin{center}
 \begin{tabular}{|p{1 in}|p{4in}|}
 \hline

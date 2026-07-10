@@ -1,0 +1,5 @@
+checking package dependencies
+compiling CoerceHold.bs
+code generation for mkCoerceHold starts
+Verilog file created: mkCoerceHold.v
+All packages are up to date.
