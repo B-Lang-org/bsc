@@ -10,7 +10,7 @@ module TCMisc(
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
         checkForAmbiguousPreds,
-        propagateFunDeps, isReduciblePred,
+        propagateFunDeps, isReduciblePred, findFunDepConflict,
         warnTransitiveIncoherent
               ) where
 
@@ -881,6 +881,39 @@ matchFDRow bound_tyvars mtch ts1 ts2 bs =
               in  case mgu bound_tyvars fd1 fd2 of
                     Just us -> Match (ms, us)
                     Nothing -> Conflict
+
+-- Probe for error reporting: is this predicate unsatisfiable as stated
+-- because of an ordered-clause fundep conflict?  Under ordered-clause
+-- semantics the instances of a coherent class are clauses selected by
+-- the fundep input positions; when the predicate's inputs select an
+-- instance whose determined positions cannot unify with the
+-- predicate's, reducePred stops the walk and the predicate surfaces as
+-- an unresolved context.  This re-runs the walk at reporting time
+-- (when the predicate is maximally refined) to recover the selected
+-- instance for a dedicated error message.  Returns the normalized
+-- predicate and the instantiated head of the conflicting instance.
+findFunDepConflict :: VPred -> TI (Maybe (Pred, Pred))
+findFunDepConflict (VPred _ (PredWithPositions (IsIn c ts) pos _)) = do
+    ai <- getAllowIncoherent
+    if isPreClass c || outputFallThroughAllowed ai c
+      then return Nothing
+      else do
+        bound_tyvars <- getBoundTVs
+        ts' <- mapM normT ts
+        let pr' = IsIn c ts'
+            -- probe with matchTop directly: this runs on the error
+            -- path only, and byInst's extra work (minting subgoal
+            -- dictionaries and bindings) is a pure relabeling of
+            -- matchTop's verdict that would be discarded here
+            walk [] = return Nothing
+            walk (i:is) = do
+                (_, Inst _ _ (_ :=> h) _) <- newInst i pos
+                case matchTop bound_tyvars matchList h pr' of
+                  NoMatch   -> walk is
+                  Conflict  -> return (Just (pr', h))
+                  Match _   -> return Nothing
+        walk (genInsts c bound_tyvars Nothing pr')
+
 dvsSub :: Subst -> DVS -> DVS
 dvsSub s dvs = dvs
 {-
@@ -1867,42 +1900,61 @@ isReduciblePred (VPred i pp@(PredWithPositions p@(IsIn c ts) pos _)) |
     (isPreClass c) = return True
 isReduciblePred (VPred i pp@(PredWithPositions p@(IsIn c ts) pos anc)) = do
     ts' <- mapM normT ts
+    ai <- getAllowIncoherent
+    bvs <- getBoundTVs
     let p' = IsIn c ts'
         pp' = PredWithPositions p' pos anc
         v' = VPred i pp'
-        f [] = getExplPreds >>= g
-        f (i:is) = do isReducible <- byInstIsReducible v' i
-                      -- if we discover that it could match or definitely
-                      -- does not match, then stop; otherwise, try the
-                      -- remaining instances
-                      case (isReducible) of
-                          Fails   -> return False
-                          Matches -> return True
-                          _       -> f is
+        -- Under ordered-clause fundep semantics, an instance whose input
+        -- positions match but whose determined positions conflict makes
+        -- the predicate unsatisfiable -- final, unless an earlier (more
+        -- specific) instance could still be selected once the inputs
+        -- refine, which is possible exactly when that earlier instance
+        -- unifies with the predicate.  The walk mirrors reducePred:
+        -- track whether any earlier instance unifies, and treat a
+        -- conflict as conclusive only when none does.  Incoherent
+        -- classes (and the legacy hatch) retain fall-through, so a
+        -- conflict is never conclusive for them.
+        conflict_stops = not (outputFallThroughAllowed ai c)
+        f _ [] = getExplPreds >>= g
+        f unifiable_seen (i:is) = do
+            (isReducible, may_capture) <- byInstIsReducible v' i
+            -- if we discover that it could match or definitely
+            -- does not match, then stop; otherwise, try the
+            -- remaining instances
+            case (isReducible) of
+                Conflict | conflict_stops && not unifiable_seen
+                           -> return False
+                         | otherwise
+                           -- fall-through (or an earlier instance may
+                           -- yet be selected): inconclusive, keep
+                           -- walking
+                           -> f unifiable_seen is
+                Match () -> return True
+                _       -> f (unifiable_seen || may_capture) is
         g [] = return False
         g (ep:eps) = do isReducible <- byExplPredIsReducible v' ep
                         case (isReducible) of
-                            Fails   -> return False
-                            Matches -> return True
+                            Conflict -> return False
+                            Match () -> return True
                             _       -> g eps
-    bvs <- getBoundTVs
     let is' = genInsts c bvs Nothing p'
-    r <- f is'
+    r <- f False is'
     return r
 
 
-data MatchResult = NoConclusion
-                 | Fails
-                 | Matches
-                 deriving (Eq)
-
-
-byInstIsReducible :: VPred -> Inst -> TI MatchResult
+-- Alongside the match result, report whether the instance could
+-- still capture the predicate under refinement (a modal judgment;
+-- see earlierInstanceMayCapture) -- isReduciblePred uses it to
+-- decide whether a later conflict is conclusive.
+byInstIsReducible :: VPred -> Inst -> TI (Match (), Bool)
 byInstIsReducible (VPred i p) ii = do
     (mv, Inst e _ (ps :=> h) _) <- newInst ii (getPredPositions p)
     bound_tyvars <- getBoundTVs
+    let p_bare = removePredPositions p
     return $
-        matchTopIsReducible bound_tyvars h (removePredPositions p)
+        (matchTopIsReducible bound_tyvars h p_bare,
+         earlierInstanceMayCapture p_bare h)
 
 
 -- This is like "matchTop" except that we need to try matching first
@@ -1912,17 +1964,18 @@ byInstIsReducible (VPred i p) ii = do
 -- matching the non-fundep types but failing to match the dependent types
 -- (which is an immediate error, because the fundeps should be unique).
 -- Returns:
---  * Nothing if the predicate can be proven unsatisfiable (because the
---    fundeps don't match the unique instance)
---  * Just False if the predicate does not match any existing instances
---  * Just True if the predicate has a chance of matching an existing instance
-matchTopIsReducible :: [TyVar] -> Pred -> Pred -> MatchResult
+--  * Conflict if the predicate can be proven unsatisfiable (because
+--    the fundeps don't match the selected instance)
+--  * Match () if the predicate matches (or could, after refinement,
+--    match) this instance
+--  * NoMatch for no conclusion from this instance
+matchTopIsReducible :: [TyVar] -> Pred -> Pred -> Match ()
 matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
   if c1 /= c2 then
-      NoConclusion
+      NoMatch
   else
       let
-          try_match :: [Bool] -> MatchResult
+          try_match :: [Bool] -> Match ()
           try_match bs =
               let nbs = map not bs
                   v1 = (boolCompress nbs ts1)
@@ -1943,48 +1996,37 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                     Nothing ->
                         -- doesn't match, so try unify
                         case (uv) of
-                           Nothing -> NoConclusion
+                           Nothing -> NoMatch
                            Just (s,ty_eqs)  ->
                                if (check_fds s && null ty_eqs)
-                               then Matches
-                               else NoConclusion
+                               then Match ()
+                               else NoMatch
                     Just s  ->
-                        -- it matches, so we have a conclusive answer
-                        if (check_fds s)
-                        then Matches
-                        else -- we'd like to return Fails, but to support
-                             -- overlapping instances which disagree on the
-                             -- fundeps, we have to accept that there could
-                             -- be an overlapping instance where it matches
-                             --Fails
-                             NoConclusion
+                        -- the inputs match: the shared row core renders
+                        -- the conclusive answer (a conflict is final
+                        -- pending the caller's earlier-unifiable check)
+                        case matchFDRow bound_tyvars matchList ts1 ts2 bs of
+                          Match _  -> Match ()
+                          Conflict -> Conflict
+                          NoMatch  -> NoMatch
       in
-          pickFirst (map try_match (funDeps c1))
+          firstMatch (map try_match (funDeps c1))
 
 
-pickFirst :: [MatchResult] -> MatchResult
-pickFirst mbs =
-    if (any (== Matches) mbs)
-    then Matches
-    else if (any (== Fails) mbs)
-         then Fails
-         else NoConclusion
-
-
-byExplPredIsReducible :: VPred -> EPred -> TI MatchResult
+byExplPredIsReducible :: VPred -> EPred -> TI (Match ())
 byExplPredIsReducible (VPred _ p) (EPred _ ep) = do
     bound_tyvars <- getBoundTVs
     return $
         matchExplPred bound_tyvars (removePredPositions p) ep
 
 
-matchExplPred :: [TyVar] -> Pred -> Pred -> MatchResult
+matchExplPred :: [TyVar] -> Pred -> Pred -> Match ()
 matchExplPred bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
   if c1 /= c2 then
-      NoConclusion
+      NoMatch
   else
       case (matchList ts1 ts2) of
-          Nothing -> NoConclusion
-          Just s  -> Matches
+          Nothing -> NoMatch
+          Just s  -> Match ()
 
 -------

@@ -1,6 +1,11 @@
 checking package dependencies
 compiling FdStability.bs
-Error: "FdStability.bs", line 50, column 26: (T0031)
-  The contexts for this expression could not be resolved because there are no
-  instances of the form:
+Error: "FdStability.bs", line 50, column 26: (T0159)
+  The context cannot be satisfied:
     FdStability.TC2 Prelude.Bool 5
+  Its arguments select the instance:
+    FdStability.TC2 Prelude.Bool 6
+  (instances of class `FdStability.TC2' are selected by the arguments at the
+  input positions of the class's functional dependencies), but the types the
+  instance determines at the dependent positions differ from the types the
+  context requires.

@@ -773,6 +773,8 @@ data ErrMsg =
         | EWeakCtxBitExtendNeedsAddCtx String [String] String [String] [Position]
         | EContextReduction String [Position] [(String, Position)]
         | EContextReductionReduces String [String] [Position] [(String, Position)]
+        | EFunDepConflict String String String [Position]
+            -- class name, context, conflicting instance head, positions
         | WFunDepCoverage String String [String]
         | ECtxRedWrongBitSize String Integer Integer [Position]
         | ECtxRedBitwiseBool [Position]
@@ -2059,6 +2061,32 @@ getErrorText (EContextReduction context positions vps) =
          then msg
          else msg $$ (vcat (map mk_vp_msg vps))
 -}
+     in  msg
+    )
+
+-- Type 158 is reserved for the transitive-incoherence diagnostics
+-- (origin/transitive-incoherent)
+getErrorText (EFunDepConflict cls context inst positions) =
+    (Type 159, empty,
+     let ctx = if isClassic() then "context" else "proviso"
+         intro_msg =
+           s2par ("The " ++ ctx ++ " cannot be satisfied:") $$
+           nest 2 (text context)
+         conflict_msg =
+           s2par ("Its arguments select the instance:") $$
+           nest 2 (text inst) $$
+           s2par ("(instances of class " ++ quote cls ++ " are selected " ++
+                  "by the arguments at the input positions of the " ++
+                  "class's functional dependencies), but the types the " ++
+                  "instance determines at the dependent positions differ " ++
+                  "from the types the " ++ ctx ++ " requires.")
+         pos_msg =
+           s2par ("The " ++ ctx ++ " was implied by expressions at " ++
+                  "the following positions:") $$
+           nest 2 (vcat (map (text . prPosition) (nub positions)))
+         msg = if null positions
+               then intro_msg $$ conflict_msg
+               else intro_msg $$ conflict_msg $$ pos_msg
      in  msg
     )
 

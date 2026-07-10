@@ -225,8 +225,25 @@ handleContextReduction' mid pos
 --  | cid == idRealLiteral =
 --  | cid == idStringLiteral =
 
-handleContextReduction' mid pos p =
-    return (defaultContextReductionErr pos p)
+handleContextReduction' mid pos p@(vp, _) = do
+    -- Under ordered-clause fundep semantics, a predicate whose inputs
+    -- select an instance with conflicting determined positions is
+    -- unsatisfiable as stated; probe for that case so it is reported
+    -- as a conflict with the selected instance rather than as a
+    -- missing instance.
+    m_conflict <- findFunDepConflict vp
+    case m_conflict of
+      Just (pr, h) -> return (fdConflictErr pos vp pr h)
+      Nothing -> return (defaultContextReductionErr pos p)
+
+-- --------------------
+
+fdConflictErr :: Position -> VPred -> Pred -> Pred -> EMsg
+fdConflictErr pos vp pr h =
+    let poss = filterPositions pos $ getVPredPositions vp
+        (pr'@(IsIn c _), h') = niceTypes (pr, h)
+        cls = pfpString (name c)
+    in  (pos, EFunDepConflict cls (pfpString pr') (pfpString h') poss)
 
 -- --------------------
 
