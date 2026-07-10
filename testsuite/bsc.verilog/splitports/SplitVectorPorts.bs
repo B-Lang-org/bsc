@@ -18,11 +18,13 @@ package SplitVectorPorts where
 --
 -- The values are recovered for display (verifying the splitPorts/unsplitPorts
 -- round-trip through the generated ports) using the unShallowSplit / unDeepSplit
--- / unSplitVector helpers from the SplitPorts library.
+-- helpers from the SplitPorts library and unSplitVector from the SplitVector
+-- library.
 
 import Vector
 import BuildVector
 import SplitPorts
+import SplitVector
 import CShow
 
 struct Foo =

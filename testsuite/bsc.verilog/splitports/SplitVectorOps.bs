@@ -7,7 +7,7 @@ package SplitVectorOps where
 -- no Ord instance, so the derived Ord on SplitVector is not exercised.)
 
 import BuildVector
-import SplitPorts
+import SplitVector
 import qualified Foldable
 import qualified Traversable
 
