@@ -213,7 +213,7 @@ instance (DeepSplitPorts a p) => DeepSplitPorts'' (Conc a) p where
 -- A newtype wrapper for a Vector that recursively splits its elements into
 -- the corresponding SplitPorts ports.
 data SplitVector n a = SplitVector (Vector n a)
-  deriving (Eq, Ord, Bits, CShow, DefaultValue)
+  deriving (Eq, Ord, Bits, CShow, DefaultValue, Bounded)
 
 unSplitVector :: SplitVector n a -> Vector n a
 unSplitVector (SplitVector v) = v
@@ -245,10 +245,6 @@ instance Traversable (SplitVector n) where
   sequenceA (SplitVector v) = SplitVector <$> sequenceA v
   mapM f (SplitVector v) = SplitVector <$> mapM f v
   sequence (SplitVector v) = SplitVector <$> sequence v
-
-instance (Bounded (Vector n a)) => Bounded (SplitVector n a) where
-  minBound = SplitVector minBound
-  maxBound = SplitVector maxBound
 
 instance PrimSelectable (SplitVector n a) a where
   primSelectFn pos (SplitVector v) = primSelectFn pos v
