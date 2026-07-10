@@ -728,7 +728,9 @@ isSelectionResultErr pos vp@(VPred vpi _) c arr val = do
       Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -764,7 +766,9 @@ isUpdateArgErr pos vp@(VPred vpi _) c arr val = do
       Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -800,7 +804,9 @@ isWriteArgErr pos vp@(VPred vpi _) c arr val = do
       Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -1038,9 +1044,13 @@ findReducedPreds ds vps = do
           let dvs = (tv vp) ++ bvs
           SolveResult reduce_res _ _ <- reducePredsAggressive (Just dvs) (eds ++ eps) [vp]
           case (reduce_res) of
-            -- shouldn't reduce away entirely
-            [] -> internalError ("findReducedPreds: reduces: " ++
-                                 ppReadable vp)
+            -- The predicate can reduce away entirely here even though
+            -- the main solve failed on it: the report runs in a
+            -- context where the definition's signature variables may
+            -- no longer be bound, and rigid-variable conflicts that
+            -- stopped the solve do not stop the re-reduction.  Report
+            -- the predicate itself rather than crashing.
+            [] -> return (vp, [])
             -- didn't reduce at all
             [vp'] | toPred vp' == toPred vp
                -> return (vp, [])
