@@ -1814,7 +1814,7 @@ isParamType :: Type -> GWMonad Bool
 isParamType t =
   do
     t' <- expandSynSym t
-    return (t' == tReal || t' == tString)
+    return (t' == tReal || t' == tString || t' == tInteger)
 
 isClockType :: Type -> GWMonad Bool
 isClockType t =

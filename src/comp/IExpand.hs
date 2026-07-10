@@ -3503,6 +3503,12 @@ conAp' tfs (ICPrim _ PrimIntegerToBit) fe [T ty@(ITNum k), E e] = evalStaticOp e
             | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Bit" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
+        -- a module parameter of type Integer has no literal value at
+        -- elaboration time; re-type the reference at the target size so
+        -- it lowers to a reference to the Verilog parameter
+        -- (no range check is possible on a symbolic value)
+        handleInt (ICon i (ICModParam it)) | it == itInteger =
+            return $ pExpr $ ICon i (ICModParam (itBitN k))
         handleInt e' = nfError "primIntegerToBit" $ mkAp fe [T ty, E e']
 
 -- Special case of doPrimOp that checks bounds and keeps the base.
@@ -3513,6 +3519,9 @@ conAp' tfs (ICPrim _ PrimIntegerToUIntBits) fe [T ty@(ITNum k), E e] = evalStati
             errG (getIdPosition i, EInvalidLiteral "UInt" k (pfpString il))
           else
             return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
+        -- symbolic Integer module parameter (see PrimIntegerToBit)
+        handleInt (ICon i (ICModParam it)) | it == itInteger =
+            return $ pExpr $ ICon i (ICModParam (itBitN k))
         handleInt e' = nfError "primIntegerToUIntBits" $ mkAp fe [T ty, E e']
 
 -- Special case of doPrimOp that checks bounds and keeps the base.
@@ -3528,6 +3537,9 @@ conAp' tfs (ICPrim _ PrimIntegerToIntBits) fe [T ty@(ITNum k), E e] = evalStatic
             | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Int" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
+        -- symbolic Integer module parameter (see PrimIntegerToBit)
+        handleInt (ICon i (ICModParam it)) | it == itInteger =
+            return $ pExpr $ ICon i (ICModParam (itBitN k))
         handleInt e' = nfError "primIntegerToIntBits" $ mkAp fe [T ty, E e']
 
 -- XXX This could go in doPrimOp
