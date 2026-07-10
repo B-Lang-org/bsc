@@ -51,9 +51,14 @@ compile_pass ExpSizeOf_FieldSyn_Use_WithCtx.bs
 # A struct field whose SizeOf-using type has a type variable that is not a
 # parameter of the struct is not exempted from the Bits requirement: the field
 # must declare the context explicitly (GitHub Issues #890 and #310).  BSC
-# currently reports two T0030 errors here (one of which lacks a source
-# position), so this uses an expected count of 2 rather than compare_file.
+# reports two T0030 errors here, both from typecheck of the definitions
+# auto-derived for the struct (PrimMakeUninitialized and PrimMakeUndefined for
+# the generated wrapper struct for the polymorphic field, and Generic's
+# from/to); the wrapper's generated field id has no source position, so those
+# errors report "Unknown position".  The expected output pins this so any
+# change is detected.
 compile_fail_error ExpSizeOf_FieldSyn_Unbound_NoCtx.bs T0030 2
+compare_file [make_bsc_output_name ExpSizeOf_FieldSyn_Unbound_NoCtx.bs]
 compile_pass ExpSizeOf_FieldSyn_Unbound_WithCtx.bs
 
 # ---------------
@@ -82,6 +87,7 @@ compile_pass ExpSizeOf_TypedExpr_WithCtx.bs
 # explicitly-typed let binding
 compile_fail_error ExpSizeOf_Let_NoCtx.bs T0030
 compare_file [make_bsc_output_name ExpSizeOf_Let_NoCtx.bs]
+compile_pass ExpSizeOf_Let_WithCtx.bs
 
 # Kind errors in valueOf type argument
 compile_fail_error ValueOf_KindMismatch_Arity.bs T0025
