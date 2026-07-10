@@ -3,7 +3,7 @@
 -- no references to recursive bindings from non-recursive bindings and keep non-recursive
 -- bindings in topologically sorted order.
 module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
-                   markIncoherent,
+                   markIncoherent, addBindDeps,
                    sbsEmpty, fromSB, (<++), emptySBs,
                    getRecursiveDefls, getNonRecursiveDefls) where
 
@@ -48,6 +48,15 @@ mkSolvedBind b@(_,_,e) isRec =
 markIncoherent :: SolvedBind -> SolvedBind
 markIncoherent sb = sb { bind = mark (bind sb) }
   where mark (i, t, e) = (addIdProp i IdPIncoherent, t, e)
+
+-- Record additional semantic dependencies of a binding that its
+-- expression does not reference: the dictionaries of the numeric
+-- equalities deferred by the fundep improvement that produced it.
+-- The binding is only valid evidence if those equalities hold, so
+-- they must be visible to extractClosures' completeness walk (an
+-- unresolved equality forbids reuse; a solved one is walked through).
+addBindDeps :: [Id] -> SolvedBind -> SolvedBind
+addBindDeps is sb = sb { freeVars = foldr S.insert (freeVars sb) is }
 
 -- Collection of bindings categorized by recursion
 -- nonRecursiveBinds are maintained in topologically sorted order
