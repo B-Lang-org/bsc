@@ -319,6 +319,19 @@ expTConPred (VPred e (PredWithPositions (IsIn c ts) pos anc)) = do
         let (vss, ts') = unzip vsts
         return (VPred e (PredWithPositions (IsIn c ts') pos anc): concat vss)
 
+-- Does the type mention an associated-type-function constructor
+-- anywhere?  Any occurrence in a predicate's types denotes an
+-- expansion obligation (e.g. Bits t sz for SizeOf t) that lives as a
+-- separate predicate elsewhere -- or that has not been created yet, if
+-- the predicate has not passed through expTConPred in this form.
+typeHasATF :: Type -> Bool
+typeHasATF (TAp f a) = typeHasATF f || typeHasATF a
+typeHasATF (TCon (TyCon _ _ (TIatf {}))) = True
+typeHasATF _ = False
+
+predHasATF :: Pred -> Bool
+predHasATF (IsIn _ ts) = any typeHasATF ts
+
 -- Build a class predicate from a fully-applied ATF.  Given the ATF's
 -- class, param indices, target index, the ATF arguments, and the type
 -- to place at the target position, fills in fresh vars for any class
@@ -478,8 +491,18 @@ sat dvs ps solved pool p =
           -- the reduction -- unless an in-scope given unifies with the
           -- predicate, in which case defer to the given (mirroring the
           -- committable guard).
+          --
+          -- Only a CLOSED predicate -- one with no free unification
+          -- variables (rigid signature-bound variables are pinned by
+          -- their binder and do not count) -- may be discharged this
+          -- way: a discharge removes the predicate from every later
+          -- join and defaulting set, so a metavariable whose only
+          -- carrier predicates were discharged early would never be
+          -- improved, and the evidence would carry the raw variable
+          -- into the emitted code.
+          let closed_p = all (`elem` bound_tyvars) (tv (toPred p))
           m_pool <- case lookfor bound_tyvars p pool of
-                      Just (b, (s_pool, [])) -> do
+                      Just (b, (s_pool, [])) | closed_p -> do
                         stack_eps <- getExplPreds
                         let unifiable (EPred _ gp) =
                                 predUnify bound_tyvars (toPred p) gp
@@ -488,10 +511,15 @@ sat dvs ps solved pool p =
                                  else Just (b, s_pool)
                       _ -> return Nothing
           case m_pool of
-           Just (b, s_pool) ->
-              satTrace ("sat in pool: " ++ ppReadable p) $
+           Just (b, s_pool) -> do
+              satTraceM ("sat in pool: " ++ ppReadable p)
+              -- mark the entry used, so that if it is an alias for a
+              -- predicate that kept flowing, its closure is emitted
+              case b of
+                (_, _, CVar v_entry) -> addPoolUsed v_entry
+                _ -> return ()
               let sb = mkSolvedBind b False -- Reused pooled dictionary, not recursive
-              in  return (SatResult [] (fromSB sb) s_pool Provisional solved)
+              return (SatResult [] (fromSB sb) s_pool Provisional solved)
            Nothing -> do
             -- if instance reduction fails, fall back to introducing an equality
             let fail msg =
@@ -1190,12 +1218,22 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
         -- rtrace ("byInst: " ++ ppReadable (ps', e', t)) $ return ()
         let binding = (i, t, CApply e' (map CVar vs'))
             -- The binding's expression does not reference the deferred
-            -- numeric-equality dictionaries (eq_vs), but it is only
-            -- valid evidence if those equalities hold; record them as
+            -- numeric-equality dictionaries (eq_vs), nor the defining
+            -- predicates that expTConPred mints for associated type
+            -- functions in the subgoals' types (a subgoal Foo (SizeOf u)
+            -- becomes Foo sz plus a minted Bits u sz whose dictionary
+            -- appears in no expression) -- but it is only valid
+            -- evidence if those obligations hold; record them as
             -- semantic dependencies so anything walking a binding's
-            -- free variables (emission ordering, later reuse checks)
-            -- sees the obligation (see SolvedBinds.addBindDeps).
-            solvedBind = addBindDeps eq_vs (mkSolvedBind binding isSelfRec)
+            -- free variables (emission ordering, the solved-dictionary
+            -- pool's completeness walk) sees them and refuses to reuse
+            -- a dictionary whose obligations are still unresolved
+            -- (see SolvedBinds.addBindDeps).
+            subgoal_ids = S.fromList [ w | VPred w _ <- ps' ]
+            atf_vs = [ w | VPred w _ <- ps'',
+                           not (w `S.member` subgoal_ids) ]
+            solvedBind = addBindDeps (eq_vs ++ atf_vs)
+                                     (mkSolvedBind binding isSelfRec)
         return (Match (InstMatch ps'' solvedBind inst_subst fd_subst pkg))
 
 -- Create a new instance by replacing the type variables in the instance
@@ -2138,11 +2176,22 @@ propagateFunDeps ps0 =
     setFlags flags
 
     deposits_ok <- getPoolDepositsOK
-    accepted <-
+    dropped <-
       if legacyDeferInstances || not deposits_ok
       then return S.empty
       else do
-        let candidates = [ (v, pr) | EPred (CVar v) pr <- solved_out ]
+        let -- A dictionary typed at a stuck type-function application
+            -- is not self-contained evidence: this pass solved the
+            -- predicate in its raw form, treating the application as an
+            -- opaque constant, but the definition-level solve expands
+            -- it (expTConPred) into a rewritten predicate plus the
+            -- application's defining predicate (e.g. Bits t sz for
+            -- SizeOf t) -- a strictly stronger goal.  Pooling the weak
+            -- derivation would discharge the strong obligation, and a
+            -- stuck application must never reach emitted code.  Refuse
+            -- such candidates entirely.
+            candidates = [ (v, pr) | EPred (CVar v) pr <- solved_out,
+                                     not (predHasATF pr) ]
             -- A closure is refused if it references the dictionary of
             -- an unsolved predicate (incomplete), or of ANY in-scope
             -- given (pool entries must be pure instance derivations: a
@@ -2158,28 +2207,87 @@ propagateFunDeps ps0 =
                                          CVar v <- [e] ]
             forbidden = S.fromList [ v | VPred v _ <- ps_unsat ]
                         `S.union` given_ids
-            (pool_sbs, ok) =
+            (_, ok) =
                 extractClosures forbidden (map fst candidates) sbs
         pool <- getSolvedPool
         s_dedup <- getSubst
-        let pool_prs = [ apSub s_dedup pr | EPred _ pr <- pool ]
-            in_pool pr = pr `elem` pool_prs
+        bvs <- getBoundTVs
+        let pool_entries = [ (e_v, apSub s_dedup e_pr)
+                           | EPred (CVar e_v) e_pr <- pool ]
+            in_pool pr = listToMaybe [ e_v | (e_v, e_pr) <- pool_entries,
+                                             e_pr == pr ]
+            ok_pairs = [ (v, pr) | (v, pr) <- candidates,
+                                   v `S.member` ok ]
+            -- Only a CLOSED predicate -- no free unification variables;
+            -- rigid signature-bound variables are pinned by their
+            -- binder and do not count -- may be dropped from the flow
+            -- when deposited: it is substitution-proof, defaulting
+            -- never involves it, and any join improvement it would
+            -- have given a later sibling is reproduced by that
+            -- sibling's own instance walk.  A predicate with free
+            -- metavariables must KEEP FLOWING even though its
+            -- derivation is pooled: dropping it removes it from every
+            -- future join and defaulting set, and a metavariable whose
+            -- only carrier predicates were dropped is never improved
+            -- at all (e.g. the module-monad variable of an
+            -- array-of-modules).  Since such a kept predicate will
+            -- re-solve and re-bind its own dictionary ids, the pooled
+            -- copy of its closure is renamed to wholly fresh ids
+            -- (definitions and references), and is emitted only if a
+            -- consult actually uses it (see addSolvedPoolNG).
+            closed pr = all (`elem` bvs) (tv pr)
+            (c_pairs, o_pairs) = partition (closed . snd) ok_pairs
+            -- A CLOSED candidate equal to an existing pool entry is
+            -- fully spent evidence: drop it from the flow with an
+            -- alias binding to the entry (keeping it flowing would let
+            -- a later solve discharge it a second time, double-binding
+            -- its dictionary id).  Open duplicates keep flowing like
+            -- any open predicate.  Only genuinely new predicates
+            -- become pool entries.
+            -- XXX in_pool duplicates keep flowing (alias-dropping them
+            -- against the existing entry produced emission-scope
+            -- violations not yet localized; see the open-deposit XXX)
+            (c_dups, c_new) =
+                ([], filter (\ (_, pr) -> isNothing (in_pool pr)) c_pairs)
+            dup_binds =
+                foldr ((<++) . fromSB) emptySBs
+                      [ mkSolvedBind (v, predToType pr, CVar e_v) False
+                      | (v, pr) <- c_dups,
+                        Just e_v <- [in_pool pr] ]
+            (c_sbs0, _) = extractClosures forbidden (map fst c_new) sbs
+            c_sbs = dup_binds <++ c_sbs0
+            -- XXX Open-predicate alias deposits are disabled: reusing
+            -- a metavariable-bearing derivation requires every consult
+            -- and emission invariant to hold at once (fresh renaming,
+            -- used-marking, frame scoping), and the full-suite run
+            -- found emission-scope violations that are not yet
+            -- localized.  Open predicates keep flowing and are simply
+            -- not pooled; only their re-derivation cost is lost.
+            o_new = [ (v, pr) | (v, pr) <- [], isNothing (in_pool pr) ]
+            (o_sbs0, _) = extractClosures forbidden (map fst o_new) sbs
+            o_ids = S.toList (allBindIds o_sbs0)
+        -- the alias binds reference pool entries; mark them used so
+        -- that entries backed by emit-if-used closures are emitted
+        mapM_ addPoolUsed [ e_v | (_, pr) <- c_dups,
+                                  Just e_v <- [in_pool pr] ]
+        o_fresh <- mapM (const newDict) o_ids
+        let ren_map = M.fromList (zip o_ids o_fresh)
+            o_sbs = renameBinds ren_map o_sbs0
             nubByPred = nubBy (\ (EPred _ a) (EPred _ b) -> a == b)
-            -- pool entries only for preds not already pooled (the
-            -- bindings are deposited for every accepted candidate, so
-            -- a duplicate's alias binding still gets emitted)
-            new_entries = nubByPred [ EPred (CVar v) pr
-                                    | (v, pr) <- candidates,
-                                      v `S.member` ok,
-                                      not (in_pool pr) ]
-        when (not (sbsEmpty pool_sbs)) $ do
+            c_entries = nubByPred [ EPred (CVar v) pr | (v, pr) <- c_new ]
+            o_entries = nubByPred
+                        [ EPred (CVar (M.findWithDefault v v ren_map)) pr
+                        | (v, pr) <- o_new ]
+        when (not (null c_entries && null o_entries && null c_dups)) $
             satTraceM ("propagateFunDeps deposits: " ++
-                       ppReadable [ pr | EPred _ pr <- new_entries ])
-            addSolvedPool new_entries pool_sbs
-        return ok
+                       ppReadable ([ pr | EPred _ pr <- c_entries ++ o_entries ]
+                                   ++ [ pr | (_, pr) <- c_dups ]))
+        addSolvedPool c_entries c_sbs
+        addSolvedPoolNG o_entries o_sbs
+        return (S.fromList (map fst (c_new ++ c_dups)))
 
     s' <- getSubst
-    let ps_kept = [ p | p@(VPred v _) <- ps, not (v `S.member` accepted) ]
+    let ps_kept = [ p | p@(VPred v _) <- ps, not (v `S.member` dropped) ]
     return (apSub s' ps_kept, ps_unsat)
 
 -------

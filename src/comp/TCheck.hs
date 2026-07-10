@@ -2209,9 +2209,12 @@ tiQuals as ps r (q:quals) = do
 -- Qualifier code is emitted outside the enclosing group's dictionary
 -- letseq (IConv evaluates it in the scope where the definition is
 -- bound), so its predicates must defer upward rather than being solved
--- into the current pool frame; hence withoutPoolDeposits.
+-- into the current pool frame -- and they must not CONSULT the pool
+-- either: a qualifier predicate discharged against a pool entry would
+-- reference a dictionary bound inside the group's letseq from code
+-- that is emitted outside it.
 tiQual :: [Assump] -> CQual -> TI ([VPred], [Assump], CQual)
-tiQual as q = withoutPoolDeposits (tiQual' as q)
+tiQual as q = withoutSolvedPool (tiQual' as q)
 
 tiQual' :: [Assump] -> CQual -> TI ([VPred], [Assump], CQual)
 tiQual' as (CQGen _ p e) = do
