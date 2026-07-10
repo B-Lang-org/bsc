@@ -8,6 +8,7 @@
 module SolvedBinds(SolvedBind, mkSolvedBind, SolvedBinds, Bind,
                    markIncoherent, addBindDeps,
                    sbsEmpty, fromSB, (<++), emptySBs,
+                   extractClosures,
                    getRecursiveDefls, getNonRecursiveDefls) where
 
 import Prelude hiding ((<>))
@@ -191,6 +192,48 @@ emptySBs = SolvedBinds {
              recursiveIds = S.empty,
              nonRecursiveIds = S.empty
            }
+
+-- Extract the transitive closure of bindings reachable from the given
+-- root ids, for reuse elsewhere.  A root is accepted only if its
+-- closure never references an id in the forbidden set (the dictionary
+-- of an unsolved predicate -- such a closure is incomplete).
+-- References to ids bound nowhere in this collection (top-level
+-- instance ids, lambda-bound given dictionaries) are permitted;
+-- their validity is the caller's scoping concern.
+-- Returns the closure bindings of all accepted roots (each binding
+-- once) and the set of accepted roots.
+extractClosures :: S.Set Id -> [Id] -> SolvedBinds -> (SolvedBinds, S.Set Id)
+extractClosures forbidden roots sbs = (closure_sbs, S.fromList ok_roots)
+  where
+    tagged = [ (b, fv, True)  | (b, fv) <- recursiveBinds sbs ] ++
+             [ (b, fv, False) | (b, fv) <- nonRecursiveBinds sbs ]
+    bind_map = M.fromList [ (i, x) | x@((i, _, _), _, _) <- tagged ]
+    -- reachability check for one root: True if no forbidden id is reached
+    ok seen [] = True
+    ok seen (i:is)
+      | i `S.member` forbidden = False
+      | i `S.member` seen = ok seen is
+      | otherwise =
+          case M.lookup i bind_map of
+            Nothing -> ok (S.insert i seen) is
+            Just (_, fv, _) -> ok (S.insert i seen) (S.toList fv ++ is)
+    ok_roots = [ r | r <- roots, ok S.empty [r] ]
+    -- joint collection over the accepted roots (each binding once)
+    collect seen [] acc = acc
+    collect seen (i:is) acc
+      | i `S.member` seen = collect seen is acc
+      | otherwise =
+          case M.lookup i bind_map of
+            Nothing -> collect (S.insert i seen) is acc
+            Just x@(_, fv, _) ->
+                collect (S.insert i seen) (S.toList fv ++ is) (x : acc)
+    collected = collect S.empty ok_roots []
+    closure_sbs = SolvedBinds {
+        recursiveBinds = [ (b, fv) | (b, fv, True) <- collected ],
+        nonRecursiveBinds = [ (b, fv) | (b, fv, False) <- collected ],
+        recursiveIds = S.fromList [ i | ((i, _, _), _, True) <- collected ],
+        nonRecursiveIds = S.fromList [ i | ((i, _, _), _, False) <- collected ]
+      }
 
 instance PPrint SolvedBinds where
   pPrint d p (SolvedBinds recs nonrecs _ _) =

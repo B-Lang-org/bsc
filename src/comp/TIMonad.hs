@@ -13,6 +13,8 @@ module TIMonad(
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
         getNumProven, getNumRefuted, addNumDecided,
+        getSolvedPool, addSolvedPool, pushSolvedPool, popSolvedPool,
+        getPoolDepositsOK, withoutPoolDeposits,
         errorAtId, findCons, findTyCon, findFields, findCls,
         bitCls,
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
@@ -40,6 +42,7 @@ import Error(internalError, EMsg, WMsg, EMsgs(..), ErrMsg(..))
 import Flags(Flags, maxTIStackDepth)
 import Subst
 import Pred
+import SolvedBinds(SolvedBinds, emptySBs, (<++))
 import Scheme
 import Assump
 import SymTab
@@ -96,7 +99,16 @@ data TStateRecover = TStateRecover {
   -- this definition, so repeated queries are answered from here
   -- rather than re-posed
   tsNumProven :: S.Set Pred,
-  tsNumRefuted :: S.Set Pred
+  tsNumRefuted :: S.Set Pred,
+  -- pool of reusable solved dictionaries (ground preds) and their
+  -- not-yet-emitted bindings; scoped by push/popSolvedPool frames
+  -- around each binding group (see TCMisc.propagateFunDeps)
+  tsSolvedPool :: [EPred],
+  tsPoolSbs :: SolvedBinds,
+  -- whether pool deposits are currently allowed; disabled while
+  -- checking qualifiers, whose code is emitted outside the current
+  -- group's dictionary letseq (see withoutPoolDeposits)
+  tsPoolDepositsOK :: Bool
 }
 
 type TSSatElement = EPred
@@ -169,7 +181,10 @@ initRecoverState = TStateRecover {
     tsExplPreds = [],
     tsSatStack = mkSizedStack [mkSizedStack []],
     tsNumProven = S.empty,
-    tsNumRefuted = S.empty
+    tsNumRefuted = S.empty,
+    tsSolvedPool = [],
+    tsPoolSbs = emptySBs,
+    tsPoolDepositsOK = True
   }
 
 runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg], S.Set Id)
@@ -342,6 +357,61 @@ addNumDecided :: [Pred] -> [Pred] -> TI ()
 addNumDecided proven refuted = modify (\ s ->
     s { tsNumProven = foldr S.insert (tsNumProven s) proven,
         tsNumRefuted = foldr S.insert (tsNumRefuted s) refuted })
+
+-- The solved-dictionary pool: reusable dictionaries for ground
+-- predicates solved during the current binding group, together with
+-- their not-yet-emitted bindings.  A pool entry's dictionary may be
+-- referenced by any code within the binding group, because the group's
+-- dictionary letseq (into which the pooled bindings are merged at
+-- emission) scopes around the whole group body, including nested
+-- groups.
+
+getSolvedPool :: TI [EPred]
+getSolvedPool = gets tsSolvedPool
+
+-- deposit entries and their bindings into the current pool frame
+addSolvedPool :: [EPred] -> SolvedBinds -> TI ()
+addSolvedPool eps sbs = modify add
+  where add s = s { tsSolvedPool = eps ++ tsSolvedPool s,
+                    tsPoolSbs = sbs <++ tsPoolSbs s }
+
+-- Enter a binding-group frame: bindings deposited from here on belong
+-- to this frame (they will be emitted in this group's letseq).  Pool
+-- entries from enclosing frames stay visible, since their bindings are
+-- emitted by an enclosing group's letseq that scopes around this group.
+pushSolvedPool :: TI ([EPred], SolvedBinds)
+pushSolvedPool = do
+    pool <- gets tsSolvedPool
+    sbs <- gets tsPoolSbs
+    modify (\ s -> s { tsPoolSbs = emptySBs })
+    return (pool, sbs)
+
+-- Leave a binding-group frame: return this frame's deposited bindings
+-- for emission into the group's letseq, drop this frame's pool entries,
+-- and restore the enclosing frame's state.
+popSolvedPool :: ([EPred], SolvedBinds) -> TI SolvedBinds
+popSolvedPool (pool0, sbs0) = do
+    frame_sbs <- gets tsPoolSbs
+    modify (\ s -> s { tsSolvedPool = pool0, tsPoolSbs = sbs0 })
+    return frame_sbs
+
+getPoolDepositsOK :: TI Bool
+getPoolDepositsOK = gets tsPoolDepositsOK
+
+-- Disable pool deposits while checking a qualifier (an implicit
+-- condition or filter attached to a definition).  Qualifier code is
+-- emitted OUTSIDE the current group's dictionary letseq -- IConv
+-- evaluates it in the scope where the definition is bound -- so its
+-- dictionaries must come from an enclosing group: the qualifier's
+-- predicates must keep flowing (deferred upward) rather than being
+-- solved into the current frame's letseq.
+withoutPoolDeposits :: TI a -> TI a
+withoutPoolDeposits action = do
+    old <- gets tsPoolDepositsOK
+    modify (\ s -> s { tsPoolDepositsOK = False })
+    r <- action
+    modify (\ s -> s { tsPoolDepositsOK = old })
+    return r
 
 mkEPred :: Pred -> TI EPred
 mkEPred p = do i <- newDict
