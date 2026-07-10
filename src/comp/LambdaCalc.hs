@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE PatternGuards #-}
 module LambdaCalc(
     SPackage,
     convAPackageToLambdaCalc

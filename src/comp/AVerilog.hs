@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, PatternGuards #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, PatternGuards #-}
 module AVerilog (aVerilog) where
 
 import Data.List(nub,

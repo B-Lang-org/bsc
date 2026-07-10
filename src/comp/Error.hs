@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
 -- This is used to guarantee that getErrorText covers all the cases
 -- Note that the OPTIONS line must be first !!!!

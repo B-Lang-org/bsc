@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables, BangPatterns #-}
-{-# LANGUAGE PatternSynonyms, OverloadedLists, TypeFamilies #-}
+{-# LANGUAGE OverloadedLists, TypeFamilies #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
 module BinData ( Byte
                , putBs, putB, putI

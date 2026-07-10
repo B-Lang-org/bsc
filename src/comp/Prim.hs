@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, DeriveDataTypeable #-}
 module Prim(
             PrimOp(..),
             toPrim,
