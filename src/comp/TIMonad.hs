@@ -59,9 +59,16 @@ import Util(headOrErr)
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
-doVarTrace, doSubstTrace, dontTrim :: Bool
+doVarTrace, doSubstTrace, doBoundCheck, dontTrim :: Bool
 doVarTrace = elem "-trace-tcvar" progArgs
 doSubstTrace = elem "-trace-type-extsubst" progArgs
+-- Invariant check (development): a bound (rigid) type variable has
+-- exactly one binder -- its quantifier -- so it must never appear in
+-- the domain of a substitution extension.  The unifier's guards and
+-- the modal/actual split in instance matching are supposed to
+-- guarantee this; this check enforces it at the single choke point
+-- where unification results enter the monad state.
+doBoundCheck = elem "-check-subst-bound" progArgs
 dontTrim = elem "-trace-skip-trim" progArgs
 
 -------
@@ -381,6 +388,12 @@ extSubst loc s' = do
     when (not (chkSubstOrder s' s)) $
       internalError(loc ++ " extSubst: " ++ ppReadable (s', s))
     traceM (loc ++ " extSubst: " ++ ppReadable s')
+  when (doBoundCheck) $ do
+    bvs <- getBoundTVs
+    case filter (`elem` bvs) (getSubstDomain s') of
+      []  -> return ()
+      bad -> internalError (loc ++ " extSubst: bound type variable(s) in " ++
+                            "substitution domain: " ++ ppReadable (bad, s'))
   modify (transSubst (\s -> s' @@ s))
 
 getTyVarNum :: TI (Int)

@@ -212,9 +212,9 @@ compile_fail_error EModInstWrongArgs_TooMany2.bsv T0108
 compile_fail_error EModInstWrongArgs_TooManyViaMap.bsv T0108
 
 # bug 872
-compile_fail_error EModInstWrongArgs_TooFew1.bsv T0108
+compile_fail_error EModInstWrongArgs_TooFew1.bsv T0084
 compile_fail_error EModInstWrongArgs_TooFew2.bsv T0084
-compile_fail_error EModInstWrongArgs_TooFewViaMap.bsv T0107
+compile_fail_error EModInstWrongArgs_TooFewViaMap.bsv T0084
 
 # -----
 # Test for Bug 1645

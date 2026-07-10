@@ -1972,8 +1972,10 @@ getErrorText (EConstrAmb t f) =
     (Type 19, empty, s2par ("Constructor " ++ ishow f ++ " is not disambiguated by type " ++ ishow t))
 getErrorText (EUnify e t1 t2) =
     (Type 20, empty,
-     s2par "Type error at:" $$
-     nest 2 (text e) $$
+     (if null e
+      then s2par "Type mismatch"
+      else s2par "Type error at:" $$
+           nest 2 (text e)) $$
      s2par "Expected type:" $$
      nest 2 (text t2) $$
      s2par "Inferred type:" $$

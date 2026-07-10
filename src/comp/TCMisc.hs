@@ -499,8 +499,17 @@ sat dvs ps p =
                         stack_eps <- getExplPreds
                         let p_pred = apSub s_final (toPred p)
                             givens = concatMap bySuperE (ps ++ stack_eps)
+                            -- Modal check, so unify unguarded ([]): a
+                            -- given from an enclosing frame quantifies
+                            -- over its own rigid variables, which are
+                            -- distinct TyVars from (but instantiable
+                            -- to) this definition's; the bound-variable
+                            -- guards would hide such a given and let
+                            -- the commit freeze an instance reduction
+                            -- the outer given was meant to discharge
+                            -- whole.
                             unifiable (EPred _ gp) =
-                                predUnify bound_tyvars p_pred gp
+                                predUnify [] p_pred gp
                         return (if any unifiable givens
                                 then Provisional else Committable)
                     when (commitment == Committable) $ recordPackageUse mpkg
@@ -881,6 +890,13 @@ reducePred _eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos anc)) = do
                    NoMatch -> do
                      let chk = earlierInstanceMayCapture pr' h
                      f (chk || incoherent) is
+                   Defer ->
+                     -- a rigid deferral: the row's determined positions
+                     -- unify unguarded, so the whole head does -- this
+                     -- instance may capture the predicate after
+                     -- refinement, which is exactly what the
+                     -- accumulator tracks
+                     f True is
                    Conflict -> do
                      ai <- getAllowIncoherent
                      if outputFallThroughAllowed ai c
@@ -986,6 +1002,13 @@ outputFallThroughAllowed ai c =
 -- conclusion from this instance".
 data Match a =
       NoMatch    -- the input (non-determined) positions do not match
+    | Defer      -- the inputs match and the determined positions fail
+                 -- to unify only because of the bound-variable guard:
+                 -- the improvement would have to substitute a rigid
+                 -- variable, which must become an equality constraint,
+                 -- never a substitution.  Neither a match nor a
+                 -- conflict yet -- retry when the predicate is more
+                 -- refined
     | Conflict   -- the inputs match but the fundep-determined
                  -- positions clash: under ordered-clause fundep
                  -- semantics this instance is the selected clause and
@@ -995,13 +1018,18 @@ data Match a =
 -- The first Match wins; otherwise any Conflict decides (a conflict in
 -- one row's determined positions blocks a one-way match of those
 -- positions in the mirror row, preserving the legacy row fall-back
--- for multi-fundep classes); otherwise NoMatch.
+-- for multi-fundep classes); otherwise any Defer survives (a rigid
+-- improvement is pending); otherwise NoMatch.
 firstMatch :: [Match a] -> Match a
 firstMatch ms = case [ m | m@(Match _) <- ms ] of
                   (m:_) -> m
-                  []    -> if any isConflict ms then Conflict else NoMatch
+                  [] | any isConflict ms -> Conflict
+                     | any isDefer ms    -> Defer
+                     | otherwise         -> NoMatch
   where isConflict Conflict = True
         isConflict _        = False
+        isDefer Defer = True
+        isDefer _     = False
 
 -- Compare one fundep row of a predicate against an instance head:
 -- the row's input positions must match, per the caller's match
@@ -1023,7 +1051,18 @@ matchFDRow bound_tyvars mtch ts1 ts2 bs =
                   fd2 = apSub ms (boolCompress bs ts2)
               in  case mgu bound_tyvars fd1 fd2 of
                     Just us -> Match (ms, us)
-                    Nothing -> Conflict
+                    Nothing ->
+                        -- Distinguish a genuine structural clash in the
+                        -- determined positions (final, under
+                        -- ordered-clause fundep semantics) from a
+                        -- failure induced only by the bound-variable
+                        -- guard: if the unguarded unifier succeeds, the
+                        -- improvement would have to substitute a rigid
+                        -- variable, so defer rather than commit a false
+                        -- conflict.
+                        case mgu [] fd1 fd2 of
+                          Nothing -> Conflict
+                          Just _  -> Defer
 
 -- Probe for error reporting: is this predicate unsatisfiable as stated
 -- because of an ordered-clause fundep conflict?  Under ordered-clause
@@ -1053,6 +1092,7 @@ findFunDepConflict (VPred _ (PredWithPositions (IsIn c ts) pos _)) = do
                 (_, Inst _ _ (_ :=> h) _) <- newInst i pos
                 case matchTop bound_tyvars matchList h pr' of
                   NoMatch   -> walk is
+                  Defer     -> walk is
                   Conflict  -> return (Just (pr', h))
                   Match _   -> return Nothing
         walk (genInsts c bound_tyvars Nothing pr')
@@ -1089,6 +1129,7 @@ byInst (VPred i p) (Inst e _ (ps :=> h) pkg) = do
     -- rtrace ("byInst " ++ ppReadable (p, ps :=> h, m)) $ return ()
     case m of
      NoMatch -> return NoMatch
+     Defer -> return Defer
      Conflict -> return Conflict
      Match (inst_subst, (fd_subst, num_eqs)) -> do
         let s = fd_subst @@ inst_subst
@@ -1493,8 +1534,13 @@ reportUnifyError bound_vars x orig_t1 orig_t2 =
 defaultUnifyError :: (HasPosition a, PPrint a, PVPrint a)
                   => a -> Type -> Type -> TI d
 defaultUnifyError x t1 t2 =
-    err (getPosition x,
-         EUnify (pfpReadable x) (pfpReadable t1) (pfpReadable t2))
+    -- A generated temporary (enumId names them "_tc...", with unstable
+    -- numbering) means nothing to the user; suppress the subject and
+    -- let the position locate the error.
+    let subj = pfpReadable x
+        subj' = if "_tc" `isPrefixOf` subj then "" else subj
+    in  err (getPosition x,
+             EUnify subj' (pfpReadable t1) (pfpReadable t2))
 
 -----
 
@@ -2143,24 +2189,28 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                   v2 = (boolCompress nbs ts2)
                   -- whether the non-fundeps match
                   mv = matchList v1 v2
-                  -- whether the non-fundeps unify
-                  uv = mgu bound_tyvars v1 v2
+                  -- whether the non-fundeps unify: a modal check ("could
+                  -- this instance still match after refinement?"), so it
+                  -- runs unguarded -- rigid variables are instantiable at
+                  -- call sites, and the bound-variable guards would turn
+                  -- "not yet" into "never"
+                  uv = mgu [] v1 v2
                   -- check if the fundeps unify, given a subst for the
-                  -- non-fundeps.  Normalize type functions under the
-                  -- trial substitution first: a predicate arising from
-                  -- a derived instance's context carries ATF
-                  -- applications of its inputs (e.g. "TilePred tag"),
-                  -- which only reduce once the substitution grounds
-                  -- the inputs.  Comparing them unreduced against the
-                  -- instance's ground outputs misjudges a
-                  -- satisfiable-after-refinement predicate as never
-                  -- reducible, and fail-fast context reduction then
-                  -- reports a committed reduction's residual that
+                  -- non-fundeps (modal, as above).  Normalize type
+                  -- functions under the trial substitution first: a
+                  -- predicate arising from a derived instance's context
+                  -- carries ATF applications of its inputs (e.g.
+                  -- "TilePred tag"), which only reduce once the
+                  -- substitution grounds the inputs.  Comparing them
+                  -- unreduced against the instance's ground outputs
+                  -- misjudges a satisfiable-after-refinement predicate
+                  -- as never reducible, and fail-fast context reduction
+                  -- then reports a committed reduction's residual that
                   -- ordinary unification would have discharged.
                   check_fds s = do
                       fd1 <- mapM normT (apSub s (boolCompress bs ts1))
                       fd2 <- mapM normT (apSub s (boolCompress bs ts2))
-                      return (isJust (mgu bound_tyvars fd1 fd2))
+                      return (isJust (mgu [] fd1 fd2))
               in
                   case (mv) of
                     Nothing ->
@@ -2175,9 +2225,12 @@ matchTopIsReducible bound_tyvars p1@(IsIn c1 ts1) p2@(IsIn c2 ts2) =
                     Just s  ->
                         -- the inputs match: the shared row core renders
                         -- the conclusive answer (a conflict is final
-                        -- pending the caller's earlier-unifiable check)
+                        -- pending the caller's earlier-unifiable check;
+                        -- a rigid deferral is no conclusion from this
+                        -- instance)
                         return $ case matchFDRow bound_tyvars matchList ts1 ts2 bs of
                           Match _  -> Match ()
+                          Defer    -> NoMatch
                           Conflict -> Conflict
                           NoMatch  -> NoMatch
       in

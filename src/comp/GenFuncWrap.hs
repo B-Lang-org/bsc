@@ -263,7 +263,10 @@ funcDef errh symt i oqt@(CQType _ ot) i_ n args (CQType _ t) =
         name      = stringLiteralAt pos (getIdString i)
         arg_names = mkList pos [ stringLiteralAt (getPosition a) (getIdString a)
                                | a <- args ]
-        expr = cVApply idFromWrapNoInline [name, arg_names, CVar i_]
+        -- position the wrap method at the noinline function, so the
+        -- WrapField proviso it mints reports there rather than at
+        -- "Unknown position" when it cannot be discharged
+        expr = cVApply (setIdPosition pos idFromWrapNoInline) [name, arg_names, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet
