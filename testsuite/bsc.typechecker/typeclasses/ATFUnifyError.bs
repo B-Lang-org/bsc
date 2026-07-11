@@ -1,7 +1,10 @@
 package ATFUnifyError where
 
--- Test that unification of two different type function applications fails
--- when they cannot be proven equal.
+-- Test that unifying a type function application (Elem a) with a concrete
+-- type (Bool) requires the corresponding class context (Container a Bool).
+-- Here it is missing, so typecheck reports it (T0030).  The unification is
+-- forced by giving 'id' the explicit type 'a -> Elem a -> Bool'.
+-- (See ATFFieldUnifyError for the same check via struct field access.)
 
 class Container f e | f -> e where
   type Elem f = e

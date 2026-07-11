@@ -1,0 +1,4 @@
+package ValueOf_KindMismatch_Arity where
+
+bar :: Integer
+bar = valueOf (SizeOf Int)

@@ -2411,7 +2411,14 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     -- type functions like SizeOf could have crept into the predicates
     -- via unification, so we expand them out so that they can be satisfied
-    ps <- concatMapM (expTConPred . expandSynVPred) ps0
+    ps1 <- concatMapM (expTConPred . expandSynVPred) ps0
+
+    -- Expand type synonyms and type functions in the declared type to generate
+    -- implicit class predicates (e.g. SizeOf a generates Bits a n).
+    s_ot <- getSubst
+    let ot_expanded = expandSyn (apSub s_ot ot)
+    (ot_ps, _) <- expTFun ot_expanded
+    let ps = ps1 ++ ot_ps
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps: " ++ ppReadable ps)
 
