@@ -929,6 +929,11 @@ dropArrows 0 t = t
 dropArrows n (ITAp (ITAp arr _) r) | arr == itArrow = dropArrows (n-1) r
 dropArrows n t = internalError ("dropArrows: " ++ ppReadable (n, t))
 
+takeArgTypes :: Int -> IType -> [IType]
+takeArgTypes 0 _ = []
+takeArgTypes n (ITAp (ITAp arr a) r) | arr == itArrow = a : takeArgTypes (n-1) r
+takeArgTypes n t = internalError ("takeArgTypes: " ++ ppReadable (n, t))
+
 itGetArrows :: IType -> ([IType], IType)
 itGetArrows it = itGetArrows' [] it
   where itGetArrows' ts (ITAp (ITAp arr a) r) | arr == itArrow = itGetArrows' (a:ts) r
@@ -1138,11 +1143,11 @@ getStateVarNames _ = []
 
 iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv :: IType
 iTLog = ITCon idTLog (IKNum `IKFun` IKNum) TIabstract
-iTAdd = ITCon idTAdd (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMax = ITCon idTMax (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMin = ITCon idTMin (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMul = ITCon idTMul (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTDiv = ITCon idTDiv (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
+iTAdd = ITCon idTAdd (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMax = ITCon idTMax (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMin = ITCon idTMin (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMul = ITCon idTMul (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTDiv = ITCon idTDiv (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
 
 iDefMap :: (IExpr a -> IExpr a) -> IDef a -> IDef a
 iDefMap f (IDef i t e p) = IDef i t (f e) p

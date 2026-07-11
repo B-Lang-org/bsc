@@ -1,6 +1,7 @@
 module CtxRed(cCtxReduceDef, cCtxReduceIO, CtxRed(..)) where
 
 import Data.List(partition, (\\))
+import qualified Data.Set as S
 import Control.Monad(when)
 import PFPrint
 import Id
@@ -25,15 +26,15 @@ import IOUtil(progArgs)
 doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
-cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
+cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, S.Set Id)
 cCtxReduceIO errh flags s (CPackage mi exps imps impsigs fixs ds includes) = do
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    let (res, wmsgs, _) = runTI flags False s (mapM ctxRed ds)
+    let (res, wmsgs, pkgsUsed) = runTI flags False s (mapM ctxRed ds)
     when (not (null wmsgs)) $ bsWarning errh wmsgs
     case res of
       Left emsgs -> bsError errh emsgs
-      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes)
+      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes, pkgsUsed)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =

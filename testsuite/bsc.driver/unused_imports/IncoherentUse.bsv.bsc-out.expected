@@ -1,0 +1,11 @@
+checking package dependencies
+compiling IncoherentUse.bsv
+Warning: "IncoherentUse.bsv", line 22, column 12: (T0126)
+  Proviso Helper::Describable#(a) satisfied by incoherently matching the
+  instance Helper::Describable#(a)
+Warning: "IncoherentUse.bsv", line 22, column 12: (T0126)
+  Proviso Helper::Describable#(a) satisfied by incoherently matching the
+  instance Helper::Describable#(a)
+Warning: "IncoherentUse.bsv", line 4, column 8: (T0157)
+  Package `BoolDescribable' is imported but not used
+All packages are up to date.

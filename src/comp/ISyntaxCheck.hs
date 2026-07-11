@@ -3,6 +3,7 @@ module ISyntaxCheck(iGetKind,
                     tCheckIPackage,
                     tCheckIModule) where
 
+import Data.List (mapAccumL)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified EquivalenceClass as EC
@@ -76,23 +77,45 @@ eqType1 _ _ _ (ITNum n) (ITNum n') = n == n'
 eqType1 _ _ _ _ _ = False
 
 -- Decide if two (numeric) types are equal by creating a NumEq proviso
--- in CSyntax and applying "satisfy".
+-- in CSyntax and applying "satisfy".  In addition to the explicit
+-- preds from the env's PredEnv, we inject the env's numeric-kind EC
+-- equivalences as NumEq preds.  Without that, predicates implied by
+-- the env --- e.g. `Bits (a, b) sab <= (Bits a sa, Bits b sb, Add sa
+-- sb sab)` decomposes the parent's `SizeOf (a, b) ≡ sab` link into
+-- only the three sub-preds; fundep-derived sub-goals like `NumEq sa
+-- sa'` (when the env has two `Bits a _` dicts with different result
+-- vars) cannot be discharged even though the EC records `sa ≡ sa'`.
 eqTypeNum :: Flags -> SymTab -> Env -> IType -> IType -> Bool
-eqTypeNum flags symt r t1 t2
+eqTypeNum flags symt r@(E _ _ ecRaw _) t1 t2
     -- Attempt to save time by weeding out cases without TAdd, SizeOf, etc
     -- (since there's no use trying to equate "n" and "m", for instance)
     -- XXX can we also weed out when the kind is not numeric?
     | isITAp t1 || isITAp t2 =
     let numEqCls = mustFindClass symt (CTypeclass idNumEq)
         (r', t1') = convType r t1
-        (E _ _ _ (PredEnv _ m s), t2') = convType r' t2
-        --satisfyEq :: TI ([VPred], [CDefl])
+        (rWithT2@(E _ _ _ (PredEnv _ m s)), t2') = convType r' t2
+        -- For each numeric-kind EC class, emit a spanning tree of
+        -- equalities (n-1 pairs, not all n*(n-1)/2) --- satisfy chases
+        -- transitively via unification, so this is enough.
+        ecNumEqITypes =
+            [ (x, y)
+            | cls@(x:rest) <- EC.classes ecRaw
+            , kCheck r x == Just IKNum
+            , y <- rest
+            ]
+        (_, ecNumEqTypes) =
+            mapAccumL (\env (a, b) -> let (env1, ta) = convType env a
+                                          (env2, tb) = convType env1 b
+                                      in  (env2, (ta, tb)))
+                      rWithT2 ecNumEqITypes
         satisfyEq = do
           eqs <- mapM mkEPred (S.toList s)
+          ecEqs <- mapM (\(a, b) -> mkEPred (IsIn numEqCls [a, b]))
+                        ecNumEqTypes
           addBoundTVs (M.elems m)
-          addExplPreds eqs
+          addExplPreds (eqs ++ ecEqs)
           vp <- mkVPredFromPred [] (IsIn numEqCls [t1', t2'])
-          satisfy eqs [vp]
+          satisfy (eqs ++ ecEqs) [vp]
     in  case runTI flags False symt satisfyEq of
           (Right ([],_), _, _) -> True
           res -> --trace("eqTypeNum: not satisfied: " ++ ppReadable (t1, t2, res)) $

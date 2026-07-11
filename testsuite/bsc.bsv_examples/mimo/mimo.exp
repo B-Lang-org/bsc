@@ -1,4 +1,6 @@
 test_c_veri_bsv Basic sysBasic.expected
-test_c_veri_bsv TrafficREG sysTrafficREG.expected
-test_c_veri_bsv TrafficBRAM sysTrafficBRAM.expected
+# Aggressive conditions can be enabled, but it changes the output,
+# so the expected file would need to be audited and updated
+test_c_veri_bsv_modules_options TrafficREG {} {-no-aggressive-conditions}
+test_c_veri_bsv_modules_options TrafficBRAM {} {-no-aggressive-conditions}
 

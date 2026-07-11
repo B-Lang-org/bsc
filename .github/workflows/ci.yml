@@ -43,13 +43,14 @@ jobs:
   build-and-test-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-22.04, ubuntu-24.04 ]
+        os: [ ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, ubuntu-26.04, ubuntu-26.04-arm ]
         timeout_override: [ false ]
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-ubuntu.yml
     with:
       os: ${{ matrix.os }}
+      # reminder: update INSTALL.md to match this ghc_version
       ghc_version: 9.6.7
       hls_version: 2.13.0.0
       timeout_override: ${{ matrix.timeout_override }}
@@ -58,7 +59,7 @@ jobs:
   build-and-test-macos:
     strategy:
       matrix:
-        os: [ macos-14, macos-15, macos-15-intel, macos-26 ]
+        os: [ macos-14, macos-15, macos-15-intel, macos-26, macos-26-intel ]
         timeout_override: [ false ]
         brew_update: [ true ]
       fail-fast: false
@@ -124,7 +125,7 @@ jobs:
   build-doc-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-22.04, ubuntu-24.04 ]
+        os: [ ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, ubuntu-26.04, ubuntu-26.04-arm ]
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -162,7 +163,7 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-14, macos-15, macos-15-intel, macos-26 ]
+        os: [ macos-14, macos-15, macos-15-intel, macos-26, macos-26-intel ]
         brew_update: [ true ]
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"

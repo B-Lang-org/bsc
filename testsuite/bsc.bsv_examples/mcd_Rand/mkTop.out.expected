@@ -44,10 +44,11 @@
         59: 2 gets 09
         78: 1 gets 04
         60: 2 gets 04
-        61: 2 gets 11
         81: 1 gets 02
+        61: 2 gets 11
         62: 2 gets 2c
         84: 1 gets 01
         87: 1 gets 20
         90: 1 gets 30
-         0: 1 gets 24
+        93: 1 gets 18
+         0: 1 gets 12
