@@ -231,7 +231,8 @@ if { $vtest == 1 } {
     find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putFoos_1_2_y;}
     # ShallowSplit elements, with a prefix pragma
     find_regexp mkSplitVectorPortsTest.v {input  \[2 : 0\] PUT_BARS_1_0_v;}
-    find_regexp mkSplitVectorPortsTest.v {input  \[16 : 0\] PUT_BARS_1_1_w;}
+    find_regexp mkSplitVectorPortsTest.v {input  PUT_BARS_1_1_w_1;}
+    find_regexp mkSplitVectorPortsTest.v {input  \[15 : 0\] PUT_BARS_1_1_w_2;}
     find_regexp mkSplitVectorPortsTest.v {input  \[15 : 0\] PUT_BARS_1_1_z;}
     # custom (non-tag) SplitPorts instance elements
     find_regexp mkSplitVectorPortsTest.v {input  \[7 : 0\] putPairs_1_0_a;}
