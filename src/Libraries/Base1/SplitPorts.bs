@@ -7,10 +7,17 @@ import Vector
 
 -- Newtype tags to indicate that a types should be split (recursively or not) into ports
 data ShallowSplit a = ShallowSplit a
+unShallowSplit :: ShallowSplit a -> a
+unShallowSplit (ShallowSplit x) = x
+
 data DeepSplit a = DeepSplit a
+unDeepSplit :: DeepSplit a -> a
+unDeepSplit (DeepSplit x) = x
 
 -- Tag to indicate that the DeepSplitPorts recursion should terminate
 data NoSplit a = NoSplit a
+unNoSplit :: NoSplit a -> a
+unNoSplit (NoSplit x) = x
 
 instance SplitPorts (ShallowSplit a) (ShallowPortsOf a) where
   splitPorts (ShallowSplit x) = shallowSplitPorts x
