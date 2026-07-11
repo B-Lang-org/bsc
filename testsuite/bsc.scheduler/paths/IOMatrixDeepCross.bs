@@ -1,0 +1,30 @@
+package IOMatrixDeepCross where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- DeepSplit recurses into the nested Inner struct, giving leaf ports
+  -- get_1_x_a, get_1_x_b, get_1_y on the input and get_x_a, get_x_b, get_y
+  -- on the output.  The wiring CROSSES the two inner leaves (out x_a <= in
+  -- x_b, out x_b <= in x_a) and passes the top-level y straight through.
+  -- Path analysis must report the crossed deep edges and the straight y edge,
+  -- and NONE of the straight inner edges.
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkIOMatrixDeepCross #-}
+mkIOMatrixDeepCross :: Module Ifc
+mkIOMatrixDeepCross =
+  module
+    interface
+      get (DeepSplit o) =
+        DeepSplit (Outer { x = Inner { a = o.x.b; b = o.x.a }; y = o.y })

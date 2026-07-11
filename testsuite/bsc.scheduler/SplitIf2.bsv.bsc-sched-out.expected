@@ -75,7 +75,7 @@ order: [RL_r, RL_toggleDir, RL_done, RL_incr]
  (dir.read, [(dir.read, 1)]),
  (dir.write, [(dir.write NOT_dir___d2, 1)]),
  (test.RDY_xfer, [(test.RDY_xfer, 1)]),
- (test.xfer, [(test.xfer dir__h208, 1)])]
+ (test.xfer, [(test.xfer dir___d1, 1)])]
 
 -----
 

@@ -89,18 +89,22 @@ test_c_only_bsv_modules_options \
     InputClocksSameDomain \
     {mkInputClocksSameDomain_Sub} \
     {-g mkInputClocksSameDomain_Sub} \
-    sysInputClocksSameDomain.c.out.expected
+    sysInputClocksSameDomain.c.out.expected \
+    {} {} {} 1
 
 # Verilog's only difference should be missing the displays at time 0
 # ... except that the displays are in different always blocks in the
-# separately synthesized version, so they are not guaranteed to match
-# the non-synth expected file (or match other simulators).
-# This is the iverilog expected output.
+# separately synthesized version, so their order within a cycle is not
+# guaranteed to match the expected file (or match other simulators -- e.g.
+# verilator orders the rg1/rg2 displays differently within each timestamp).
+# The output leads with a fixed-width timestamp, so sort_output canonicalizes
+# the same-cycle order (preserving time order) and all simulators agree.
 test_veri_only_bsv_modules_options \
     InputClocksSameDomain \
     {mkInputClocksSameDomain_Sub} \
     {-g mkInputClocksSameDomain_Sub} \
-    sysInputClocksSameDomain.v.out.expected
+    sysInputClocksSameDomain.v.out.expected \
+    {} {} {} 1
 
 # ----------
 

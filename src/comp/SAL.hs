@@ -59,13 +59,14 @@ convAPackageToSAL errh flags apkg0 | (apkg_is_wrapped apkg0) =
         -- there should be one value method, and its constant RDY
         fn_defs =
           case ifcs of
-            [AIDef methId args _ p (ADef _ ret_t ret_e _) _ _,
+            [iface@(AIDef methId _ _ p (ADef _ ret_t ret_e _) _ _),
              AIDef rdyId _ _ _ (ADef _ _ rdy_e _) _ _]
              | (isRdyId rdyId) && (isTrue rdy_e) ->
               -- this is very similar to convAIFace for AIDef,
               -- except that the function doesn't take a state argument
               -- and has a different name
               let
+                  args = aIfaceArgs iface
                   rt = convAType ret_t
 
                   argset = S.fromList (map fst args)
@@ -503,6 +504,7 @@ boolToBitVar = SVar $ primCtx (SId "boolToBit")
 anyVar :: AType -> SExpr
 anyVar (ATBit width)       = SVar $ bitCtx width (SId "undef")
 anyVar t | (t == mkATBool) = SVar $ primCtx (SId "undefBool")
+anyVar (ATTuple ts)        = internalError ("anyVar: multi-output methods are not yet supported")
 anyVar (ATString _)        = SVar $ stringCtx (SId "undef")
 anyVar (ATReal)            = SVar $ primCtx (SId "undefReal")
 anyVar (ATArray sz t)      = arrBuild sz $
@@ -891,9 +893,11 @@ convARule defmap instmap mmap r@(ARule rId _ _ _ p as _ _) =
 
 convAIFace :: DefMap -> InstMap -> MethodOrderMap -> AIFace -> [SDefn]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIDef methId args _ p (ADef _ ret_t ret_e _) _ _) =
+           iface@(AIDef methId _ _ p (ADef _ ret_t ret_e _) _ _) =
   let
+      args = aIfaceArgs iface
       rt = convAType ret_t
 
       argset = S.fromList (map fst args)
@@ -913,8 +917,9 @@ convAIFace defmap instmap mmap
            body]
 
 convAIFace defmap instmap mmap
-           (AIAction args _ p methId rs _) =
+           iface@(AIAction _ _ p methId rs _) =
   let
+      args = aIfaceArgs iface
       -- arguments are Bit type
       argset = S.fromList (map fst args)
       arg_infos = map (\(i,t) -> (methArgId i, convAType t)) args
@@ -927,9 +932,11 @@ convAIFace defmap instmap mmap
          sLam (arg_infos ++ [(stateId, modType)]) $
            body]
 
+-- TODO: support multiple method output ports
 convAIFace defmap instmap mmap
-           (AIActionValue args _ p methId rs (ADef _ def_t def_e _) _) =
+           iface@(AIActionValue _ _ p methId rs (ADef _ def_t def_e _) _) =
   let
+      args = aIfaceArgs iface
       -- return value is Bit type
       ret_ty = convAType def_t
 
@@ -1042,6 +1049,7 @@ convAType (ATString (Just width)) = stringType -- XXX ?
 convAType (ATReal) = realType
 convAType (ATArray sz t) = arrType sz (convAType t)
 convAType t | (t == mkATBool) = boolType
+convAType (ATTuple ts) = internalError ("convAType: multi-output methods are not yet supported")
 convAType t@(ATAbstract {}) = internalError ("convAType: " ++ ppReadable t)
 
 -- -----
@@ -1134,7 +1142,8 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
   -- convert the condition
   c_expr <- convAExpr c
   -- convert the arguments
-  a_exprs <- mapM convAExpr as
+  -- a SplitPorts argument expands into one AExpr per hardware port
+  a_exprs <- mapM convAExpr (concatMap argInputPorts as)
 
   let
       -- the kind of module that this instance is
@@ -1156,7 +1165,11 @@ convStmt avmap (AStmtAction cset (ACall obj meth as)) = do
             Nothing -> -- no name because the value is unused
                        -- but we still need to declare the correct type
                        case (M.lookup (unQualId meth) meth_ty_map) of
-                         Just t -> (convAType t, Nothing)
+                         Just [t] -> (convAType t, Nothing)
+                         Just [] -> (voidType, Nothing)
+                         Just _ -> error ("convStmt: multiple return values for method "
+                                         ++ ppReadable meth ++ " on instance "
+                                         ++ ppReadable obj)
                          Nothing -> (voidType, Nothing)
 
   -- we'll create new defs "act#" and "state#" with a unique number
@@ -1285,12 +1298,15 @@ convAExpr (AMethCall _ obj meth as) = do
   let (submod, submod_tys, _) = lookupMod instmap obj
       fnvar = submodMethVar submod submod_tys meth
       modState = SStructSel state_expr (instFieldId obj)
-  a_exprs <- mapM convAExpr as
+  a_exprs <- mapM convAExpr (concatMap argInputPorts as)
   return $ sApply fnvar (a_exprs ++ [modState])
 
 convAExpr e@(AMethValue t obj meth) =
   -- these are handled by convStmts and are not expected here
   internalError("convAExpr: AMethValue: " ++ ppReadable e)
+
+convAExpr (ATupleSel _ _ _) = internalError "convAExpr: multi-output methods are not yet supported"
+convAExpr (ATuple {}) = internalError "convAExpr: multi-output methods are not yet supported"
 
 convAExpr (ANoInlineFunCall t _ (ANoInlineFun name _ _ _) as) = do
   let func_id = noinlineQId name

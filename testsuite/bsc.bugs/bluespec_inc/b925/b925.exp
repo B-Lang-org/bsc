@@ -1,5 +1,21 @@
 
-test_c_veri_bsv Test1 "" "FIFO_sim_issue" "FIFO_sim_issue"
-test_c_veri_bsv Test2 "" "FIFO_sim_issue" "FIFO_sim_issue"
-test_c_veri_bsv Test3 "" "FIFO_sim_issue" "FIFO_sim_issue"
-test_c_veri_bsv Test4 "" "FIFO_sim_issue" "FIFO_sim_issue"
+# The golden is the Verilog reference.  Bluesim simulates the UGSizedFIFOF
+# enq/deq differently (the "FIFO_sim_issue"), so its .c.out genuinely differs and
+# is XFAILed via the cbug (3rd) arg.
+#
+# Under verilator, Test2/3/4's Verilog output differs from the golden purely by
+# the order of two *coincident* error_checks warnings -- the fifo and zfifo
+# instances live in separate always blocks, and verilator emits their same-time
+# $displays in the opposite order from iverilog.  Verified (by temporarily
+# timestamping the warnings) that both simulators fire every warning at the
+# identical simulation time; only the intra-timestamp order of the two
+# coincident warnings differs, which is unspecified per the Verilog LRM.  The
+# root cause is that the FIFO primitive warnings carry no $time (B-Lang-org/bsc
+# issue #989); until they do, the same-time order can't be canonicalized, so
+# XFAIL the affected Verilog outputs under verilator (the 4th arg is a sim-name
+# list consumed by check_verilog_output).  Test1 (size 1) does not exhibit the
+# reorder and still matches, so it is left un-veribugged.
+test_c_veri_bsv Test1 "" "FIFO_sim_issue" ""
+test_c_veri_bsv Test2 "" "FIFO_sim_issue" "verilator"
+test_c_veri_bsv Test3 "" "FIFO_sim_issue" "verilator"
+test_c_veri_bsv Test4 "" "FIFO_sim_issue" "verilator"

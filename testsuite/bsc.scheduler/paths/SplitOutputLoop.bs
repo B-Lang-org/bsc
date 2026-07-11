@@ -1,0 +1,34 @@
+package SplitOutputLoop where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- both result fields are combinational from the (split) input
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkSplitLoopSub #-}
+mkSplitLoopSub :: Module SubIfc
+mkSplitLoopSub =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = a.p2 })
+
+-- Close a combinational loop through the submodule's split output port p1:
+--   rw.wget -> get's split input p1 -> get's split output p1 -> rw.wset
+-- Path analysis must detect this through the per-port result node.
+{-# synthesize sysSplitOutputLoop #-}
+sysSplitOutputLoop :: Module Empty
+sysSplitOutputLoop =
+  module
+    s <- mkSplitLoopSub
+    rw :: RWire Bool <- mkRWire
+    let fb = isValid (rw.wget)
+    rules
+      "close_loop": when True ==>
+        case s.get (ShallowSplit (Pair { p1 = fb; p2 = False })) of
+          ShallowSplit res -> if res.p1 then rw.wset True else noAction

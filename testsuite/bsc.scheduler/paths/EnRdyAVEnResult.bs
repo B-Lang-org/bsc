@@ -1,0 +1,28 @@
+package EnRdyAVEnResult where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- An ActionValue method with a split result.  Field p1 is combinational from
+  -- the split input sub-port (upd_1_p1).  Field p2 is combinational from the
+  -- method's own enable EN_upd: it forwards EN onto an RWire whose validity is
+  -- read by a separate value method 'busy', so EN_upd reaches RDY/busy while
+  -- upd_1_p1 reaches the split result port upd_p1.
+  upd  :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+  busy :: Bool
+
+{-# synthesize mkEnRdyAVEnResult #-}
+mkEnRdyAVEnResult :: Module Ifc
+mkEnRdyAVEnResult =
+  module
+    w :: RWire Bool <- mkRWire
+    interface
+      upd (ShallowSplit a) =
+        do w.wset a.p2
+           return (ShallowSplit (Pair { p1 = a.p1; p2 = a.p2 }))
+      busy = isValid (w.wget)

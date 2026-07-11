@@ -1,2 +1,7 @@
-test_veri_only_bsv_multi Testbench mkTestbench {mkDesign} "mkTestbench.v.out.expected"
-test_c_only_bsv_multi Testbench mkTestbench {mkDesign} "mkTestbench.c.out.expected"
+# The Design and Testbench run in separately-synthesized modules, so the order
+# of their $displays within a single timestamp is not guaranteed across
+# simulators (verilator orders them differently than iverilog/Bluesim).  The
+# output leads with a fixed-width timestamp, so sort_output canonicalizes the
+# same-cycle order (preserving time order) and all simulators share the goldens.
+test_veri_only_bsv_multi Testbench mkTestbench {mkDesign} "mkTestbench.v.out.expected" "" 1
+test_c_only_bsv_multi Testbench mkTestbench {mkDesign} "mkTestbench.c.out.expected" "" 1

@@ -1,0 +1,30 @@
+package GranNoSplit where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+-- The field `x` is wrapped in NoSplit, which terminates the DeepSplit
+-- recursion: instead of leaf ports x_a / x_b, x stays as ONE packed port
+-- get_x (input get_1_x).  The field `y` is an ordinary leaf.  So this is a
+-- middle ground between Shallow and Deep: DeepSplit everywhere except where
+-- NoSplit caps it.
+struct Outer =
+  x :: NoSplit Inner
+  y :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkGranNoSplit #-}
+mkGranNoSplit :: Module Ifc
+mkGranNoSplit =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit o) =
+        DeepSplit (Outer { x = o.x; y = r })

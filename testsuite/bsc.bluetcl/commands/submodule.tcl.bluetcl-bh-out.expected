@@ -11,6 +11,7 @@ Command: submodule ports mkT
                      clock default_clock
                      reset default_reset
                      args {{{port _write_1} {size 1}}}
+                     results {}
                      enable EN__write
                      ready RDY__write
                      method
@@ -19,7 +20,7 @@ Command: submodule ports mkT
                      clock default_clock
                      reset default_reset
                      args {}
-                     result _read
+                     results {{{port _read} {size 1}}}
                      ready RDY__read
              args
                  clock default_clock {osc CLK}
@@ -36,6 +37,7 @@ Command: submodule ports mkT
                      clock default_clock
                      reset default_reset
                      args {{{port _write_1} {size 1}}}
+                     results {}
                      enable EN__write
                      ready RDY__write
                      method
@@ -44,7 +46,7 @@ Command: submodule ports mkT
                      clock default_clock
                      reset default_reset
                      args {}
-                     result _read
+                     results {{{port _read} {size 1}}}
                      ready RDY__read
              args
                  clock default_clock {osc CLK}
@@ -77,6 +79,7 @@ Command: submodule ports mkT
                      clock clk
                      reset rst
                      args {{{port WVAL} {size 4}}}
+                     results {}
                      enable WSET
                      method
                      wget
@@ -84,14 +87,14 @@ Command: submodule ports mkT
                      clock clk
                      reset rst
                      args {}
-                     result WGET
+                     results {{{port WGET} {size 4}}}
                      method
                      whas
                      whas
                      clock clk
                      reset rst
                      args {}
-                     result WHAS
+                     results {{{port WHAS} {size 1}}}
                      inout
                      io_out
                      io_out
@@ -122,6 +125,7 @@ Command: submodule ports mkT
                                      clock clks1_1
                                      reset no_reset
                                      args {{{port vec1_0__write_1} {size 1}}}
+                                     results {}
                                      enable EN_vec1_0__write
                                      ready RDY_vec1_0__write
                                      method
@@ -130,7 +134,7 @@ Command: submodule ports mkT
                                      clock no_clock
                                      reset no_reset
                                      args {}
-                                     result vec1_0__read
+                                     results {{{port vec1_0__read} {size 1}}}
                                      ready RDY_vec1_0__read
                              interface
                              1
@@ -140,6 +144,7 @@ Command: submodule ports mkT
                                      clock clks1_1
                                      reset no_reset
                                      args {{{port vec1_1__write_1} {size 1}}}
+                                     results {}
                                      enable EN_vec1_1__write
                                      ready RDY_vec1_1__write
                                      method
@@ -148,7 +153,7 @@ Command: submodule ports mkT
                                      clock no_clock
                                      reset no_reset
                                      args {}
-                                     result vec1_1__read
+                                     results {{{port vec1_1__read} {size 1}}}
                                      ready RDY_vec1_1__read
                      interface
                      vec2
@@ -162,6 +167,7 @@ Command: submodule ports mkT
                                              clock clks1_1
                                              reset no_reset
                                              args {{{port vec2_0_0__write_1} {size 1}}}
+                                             results {}
                                              enable EN_vec2_0_0__write
                                              ready RDY_vec2_0_0__write
                                              method
@@ -170,7 +176,7 @@ Command: submodule ports mkT
                                              clock no_clock
                                              reset no_reset
                                              args {}
-                                             result vec2_0_0__read
+                                             results {{{port vec2_0_0__read} {size 1}}}
                                              ready RDY_vec2_0_0__read
                                      interface
                                      1
@@ -180,6 +186,7 @@ Command: submodule ports mkT
                                              clock clks1_1
                                              reset no_reset
                                              args {{{port vec2_0_1__write_1} {size 1}}}
+                                             results {}
                                              enable EN_vec2_0_1__write
                                              ready RDY_vec2_0_1__write
                                              method
@@ -188,7 +195,7 @@ Command: submodule ports mkT
                                              clock no_clock
                                              reset no_reset
                                              args {}
-                                             result vec2_0_1__read
+                                             results {{{port vec2_0_1__read} {size 1}}}
                                              ready RDY_vec2_0_1__read
                              interface
                              1
@@ -200,6 +207,7 @@ Command: submodule ports mkT
                                              clock clks1_1
                                              reset no_reset
                                              args {{{port vec2_1_0__write_1} {size 1}}}
+                                             results {}
                                              enable EN_vec2_1_0__write
                                              ready RDY_vec2_1_0__write
                                              method
@@ -208,7 +216,7 @@ Command: submodule ports mkT
                                              clock no_clock
                                              reset no_reset
                                              args {}
-                                             result vec2_1_0__read
+                                             results {{{port vec2_1_0__read} {size 1}}}
                                              ready RDY_vec2_1_0__read
                                      interface
                                      1
@@ -218,6 +226,7 @@ Command: submodule ports mkT
                                              clock clks1_1
                                              reset no_reset
                                              args {{{port vec2_1_1__write_1} {size 1}}}
+                                             results {}
                                              enable EN_vec2_1_1__write
                                              ready RDY_vec2_1_1__write
                                              method
@@ -226,7 +235,7 @@ Command: submodule ports mkT
                                              clock no_clock
                                              reset no_reset
                                              args {}
-                                             result vec2_1_1__read
+                                             results {{{port vec2_1_1__read} {size 1}}}
                                              ready RDY_vec2_1_1__read
                      interface
                      vec3
@@ -242,6 +251,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_0_0_0__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_0_0_0__write
                                                      ready RDY_vec3_0_0_0__write
                                                      method
@@ -250,7 +260,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_0_0_0__read
+                                                     results {{{port vec3_0_0_0__read} {size 1}}}
                                                      ready RDY_vec3_0_0_0__read
                                              interface
                                              1
@@ -260,6 +270,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_0_0_1__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_0_0_1__write
                                                      ready RDY_vec3_0_0_1__write
                                                      method
@@ -268,7 +279,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_0_0_1__read
+                                                     results {{{port vec3_0_0_1__read} {size 1}}}
                                                      ready RDY_vec3_0_0_1__read
                                      interface
                                      1
@@ -280,6 +291,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_0_1_0__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_0_1_0__write
                                                      ready RDY_vec3_0_1_0__write
                                                      method
@@ -288,7 +300,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_0_1_0__read
+                                                     results {{{port vec3_0_1_0__read} {size 1}}}
                                                      ready RDY_vec3_0_1_0__read
                                              interface
                                              1
@@ -298,6 +310,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_0_1_1__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_0_1_1__write
                                                      ready RDY_vec3_0_1_1__write
                                                      method
@@ -306,7 +319,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_0_1_1__read
+                                                     results {{{port vec3_0_1_1__read} {size 1}}}
                                                      ready RDY_vec3_0_1_1__read
                              interface
                              1
@@ -320,6 +333,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_1_0_0__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_1_0_0__write
                                                      ready RDY_vec3_1_0_0__write
                                                      method
@@ -328,7 +342,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_1_0_0__read
+                                                     results {{{port vec3_1_0_0__read} {size 1}}}
                                                      ready RDY_vec3_1_0_0__read
                                              interface
                                              1
@@ -338,6 +352,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_1_0_1__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_1_0_1__write
                                                      ready RDY_vec3_1_0_1__write
                                                      method
@@ -346,7 +361,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_1_0_1__read
+                                                     results {{{port vec3_1_0_1__read} {size 1}}}
                                                      ready RDY_vec3_1_0_1__read
                                      interface
                                      1
@@ -358,6 +373,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_1_1_0__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_1_1_0__write
                                                      ready RDY_vec3_1_1_0__write
                                                      method
@@ -366,7 +382,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_1_1_0__read
+                                                     results {{{port vec3_1_1_0__read} {size 1}}}
                                                      ready RDY_vec3_1_1_0__read
                                              interface
                                              1
@@ -376,6 +392,7 @@ Command: submodule ports mkT
                                                      clock clks1_1
                                                      reset no_reset
                                                      args {{{port vec3_1_1_1__write_1} {size 1}}}
+                                                     results {}
                                                      enable EN_vec3_1_1_1__write
                                                      ready RDY_vec3_1_1_1__write
                                                      method
@@ -384,7 +401,7 @@ Command: submodule ports mkT
                                                      clock no_clock
                                                      reset no_reset
                                                      args {}
-                                                     result vec3_1_1_1__read
+                                                     results {{{port vec3_1_1_1__read} {size 1}}}
                                                      ready RDY_vec3_1_1_1__read
                      method
                      data1
@@ -392,7 +409,7 @@ Command: submodule ports mkT
                      clock no_clock
                      reset no_reset
                      args {}
-                     result data1
+                     results {{{port data1} {size 2}}}
                      ready RDY_data1
                      method
                      data2
@@ -400,7 +417,7 @@ Command: submodule ports mkT
                      clock no_clock
                      reset no_reset
                      args {}
-                     result data2
+                     results {{{port data2} {size 4}}}
                      ready RDY_data2
                      method
                      data3
@@ -408,7 +425,7 @@ Command: submodule ports mkT
                      clock no_clock
                      reset no_reset
                      args {}
-                     result data3
+                     results {{{port data3} {size 8}}}
                      ready RDY_data3
                      interface
                      clks1
@@ -458,6 +475,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {{{port D_IN} {size 1}}}
+                     results {}
                      enable EN
                      method
                      _read
@@ -465,7 +483,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {}
-                     result Q_OUT
+                     results {{{port Q_OUT} {size 1}}}
              args
                  clock _clk__1 {osc CLK}
                  reset _rst__1 {port RST} {clock _clk__1}
@@ -480,6 +498,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {{{port D_IN} {size 1}}}
+                     results {}
                      enable EN
                      method
                      _read
@@ -487,7 +506,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {}
-                     result Q_OUT
+                     results {{{port Q_OUT} {size 1}}}
              args
                  clock _clk__1 {osc CLK}
                  reset _rst__1 {port RST} {clock _clk__1}
@@ -502,6 +521,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {{{port D_IN} {size 1}}}
+                     results {}
                      enable EN
                      method
                      _read
@@ -509,7 +529,7 @@ Command: submodule ports mkM
                      clock _clk__1
                      reset _rst__1
                      args {}
-                     result Q_OUT
+                     results {{{port Q_OUT} {size 1}}}
              args
                  clock _clk__1 {osc CLK}
                  reset _rst__1 {port RST} {clock _clk__1}
