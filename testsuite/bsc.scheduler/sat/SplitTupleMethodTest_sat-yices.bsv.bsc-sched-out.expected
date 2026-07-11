@@ -1,0 +1,107 @@
+checking package dependencies
+compiling SplitTupleMethodTest_sat-yices.bsv
+code generation for mkValSub starts
+=== schedule (SplitTupleMethodTest_sat-yices mkValSub):
+parallel: [esposito: [get -> []]]
+order: [get]
+
+-----
+
+=== resources (SplitTupleMethodTest_sat-yices mkValSub):
+[]
+
+-----
+
+=== vschedinfo (SplitTupleMethodTest_sat-yices mkValSub):
+SchedInfo [RDY_get CF [RDY_get, get], get CF get] [] [] []
+
+-----
+
+Schedule dump file created: mkValSub.sched
+=== Generated schedule for mkValSub ===
+
+Method schedule
+---------------
+Method: get
+Ready signal: True
+Conflict-free: get
+ 
+Logical execution order: get
+
+========================================
+Verilog file created: mkValSub.v
+code generation for mkAVSub starts
+=== schedule (SplitTupleMethodTest_sat-yices mkAVSub):
+parallel: [esposito: [get -> []]]
+order: [get]
+
+-----
+
+=== resources (SplitTupleMethodTest_sat-yices mkAVSub):
+[(r.read, [(r.read, 1)]), (r.write, [(r.write r_PLUS_1___d2, 1)])]
+
+-----
+
+=== vschedinfo (SplitTupleMethodTest_sat-yices mkAVSub):
+SchedInfo [RDY_get CF [RDY_get, get], get C get] [] [] []
+
+-----
+
+Schedule dump file created: mkAVSub.sched
+=== Generated schedule for mkAVSub ===
+
+Method schedule
+---------------
+Method: get
+Ready signal: True
+Conflicts: get
+ 
+Logical execution order: get
+
+=======================================
+Verilog file created: mkAVSub.v
+code generation for sysSplitTupleMethodTest starts
+=== schedule (SplitTupleMethodTest_sat-yices sysSplitTupleMethodTest):
+parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_cc -> []]]
+order: [RL_aa, RL_ab, RL_cc]
+
+-----
+
+=== resources (SplitTupleMethodTest_sat-yices sysSplitTupleMethodTest):
+[(avs.get, [(avs.get, 1)]),
+ (uc.read, [(uc.read, 1)]),
+ (uc.write, [(uc.write uc_PLUS_1___d7, 1), (uc.write uc_PLUS_2___d10, 1)]),
+ (ud.read, [(ud.read, 1)]),
+ (ud.write, [(if _dfoo1 then ud.write _dfoo2, 1)]),
+ (vs.get, [(vs.get x___d1, 1)]),
+ (x.read, [(x.read, 1)])]
+
+-----
+
+=== vschedinfo (SplitTupleMethodTest_sat-yices sysSplitTupleMethodTest):
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysSplitTupleMethodTest.sched
+=== Generated schedule for sysSplitTupleMethodTest ===
+
+Rule schedule
+-------------
+Rule: aa
+Predicate: vs.get(x)[1] && (! vs.get(x)[2])
+Blocking rules: (none)
+ 
+Rule: ab
+Predicate: (! vs.get(x)[1]) && vs.get(x)[2]
+Blocking rules: (none)
+ 
+Rule: cc
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: aa, ab, cc
+
+=======================================================
+Verilog file created: sysSplitTupleMethodTest.v
+All packages are up to date.

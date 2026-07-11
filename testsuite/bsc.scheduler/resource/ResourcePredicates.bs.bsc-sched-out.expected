@@ -19,7 +19,7 @@ order: [RL_A, RL_B]
 
 === resources (ResourcePredicates sysResourcePredicates):
 [(a.sub, [(a.sub 2'd0, 2), (a.sub 2'd2, 1)]),
- (a.upd, [(a.upd 2'd1 x__h252, 1), (a.upd 2'd3 x__h269, 1)])]
+ (a.upd, [(a.upd 2'd1 a_sub_0___d1, 1), (a.upd 2'd3 a_sub_2___d3, 1)])]
 
 -----
 

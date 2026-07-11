@@ -249,8 +249,8 @@ runCSE e@(IAps _ _ _) = do
   -- because "runCSE" is called from iTrExpr, which already recurses on the
   -- arguments, so runCSE will already have been called on the arguments.
   let t = iGetType e
-  -- Only CSE applications that are not actions
-  if not (isActionType t) then
+  -- Only CSE applications that are not actions or tuple method values
+  if not (isActionType t || isPairType t) then
       newExprT t e
    else
       return e
@@ -422,6 +422,14 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]
                                       -> iTrAp2 ctx p [t] [cnd,iFalse,els]
                 (_,_,IAps (ICon _ (ICPrim _ PrimBNot)) _ [x]) | eqE cnd x
                                       -> iTrAp2 ctx p [t] [cnd,thn,iTrue]
+
+                -- if c then _ else e  -->  e
+                -- This is more aggressive than just matching UNoMatch, but
+                -- it appears to make a positive difference.
+                -- Note that enabling the symmetric simplification for thn
+                -- when els is a don't care disturbs the expected pack . unpack
+                -- structure and makes some things worse while fixing others.
+                (_, ICon _ (ICUndet {}), _) -> (els, True)
 
                 _ -> (IAps p [t] [cnd, thn, els], False)
 
@@ -1695,15 +1703,19 @@ iTransFixupDefNames flags = do
                        <- M.toList old_defmap ]
 
       -- Identify the name to be used, by filtering out the non-CSE defs
-      -- and picking the best name from the remaining (for now, the first)
+      -- and picking the best name from the remaining
       rename_map =
           let pickId cse_id def_ips =
                   -- filter out the non-CSE defs
                   case (filter (not . defPropsHasNoCSE . snd) def_ips) of
                     -- if they're all non-CSE, keep the bad name
                     [] -> cse_id
-                    -- otherwise, take the first def name
-                    ((def_id, _):_) -> def_id
+                    -- prefer a keep-marked name, then a non-bad name
+                    ips -> case filter (isKeepId . fst) ips of
+                             ((def_id, _):_) -> def_id
+                             [] -> case filter (not . isBadId . fst) ips of
+                                     ((def_id, _):_) -> def_id
+                                     [] -> fst (head ips)
           in  M.mapWithKey pickId cse_ids_map
 
       -- function to rename ICValue references (to use the new CSE name)

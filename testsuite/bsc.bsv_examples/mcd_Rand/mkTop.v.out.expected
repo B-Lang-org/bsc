@@ -42,13 +42,14 @@
         57: 2 gets 2f
         58: 2 gets 27
         59: 2 gets 09
-        60: 2 gets 04
         78: 1 gets 04
-        61: 2 gets 11
+        60: 2 gets 04
         81: 1 gets 02
+        61: 2 gets 11
         62: 2 gets 2c
         84: 1 gets 01
         87: 1 gets 20
         90: 1 gets 30
-         0: 1 gets 24
-         3: 1 gets 12
+        93: 1 gets 18
+         0: 1 gets 12
+         3: 1 gets 29

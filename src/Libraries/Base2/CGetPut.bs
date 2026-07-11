@@ -1,6 +1,6 @@
-package CGetPut(CGet, CPut, CGetS, CPutS,
+package CGetPut(CGet, CPut,
          CGetPut, GetCPut, mkCGetPut, mkGetCPut, mkCGetCPut, CClientServer, ClientCServer,
-         CClient, CServer, CClientS(..), CServerS(..), mkCClientServer, mkClientCServer) where
+         CClient(..), CServer(..), mkCClientServer, mkClientCServer) where
 import FIFOF
 import ConfigReg
 import Connectable
@@ -20,13 +20,27 @@ import RegTwo
 --@ that additional register buffers can be introduced in the connection path
 --@ without any ill effect (except an increase in latency, of course).
 
-interface (CGetS :: # -> * -> # -> *) n a sa =
-    gvalue   :: Bit sa
+--@ \begin{libverbatim}
+--@ interface CGet #(numeric type n, type a);
+--@     method Bit#(SizeOf#(a)) gvalue();
+--@     method Bool gpresent();
+--@     method Action gcredit(Bool x1);
+--@ endinterface: CGet
+--@ \end{libverbatim}
+interface (CGet :: # -> * -> *) n a =
+    gvalue   :: Bit (SizeOf a)
     gpresent :: Bool
     gcredit  :: Bool -> Action
 
-interface (CPutS :: # -> * -> # -> *) n a sa =
-    pvalue   :: Bit sa -> Action
+--@ \begin{libverbatim}
+--@ interface CPut #(numeric type n, type a);
+--@     method Action pvalue(Bit#(SizeOf#(a)) x1);
+--@     method Action ppresent(Bool x1);
+--@     method Bool pcredit();
+--@ endinterface: CPut
+--@ \end{libverbatim}
+interface (CPut :: # -> * -> *) n a =
+    pvalue   :: Bit (SizeOf a) -> Action
     ppresent :: Bool -> Action
     pcredit  :: Bool
 
@@ -43,20 +57,6 @@ interface (CPutS :: # -> * -> # -> *) n a sa =
 --@ buffering at one end; use $n=1$ for minimal use of registers, at the cost of reducing
 --@ the bandwidth to one quarter; use intermediate values to select the optimal trade-off if
 --@ appropriate.
---@
---@ \note{For compiler reasons the actual interfaces are called \te{CGetS} and \te{CPutS}
---@ with \te{CGet} and \te{CPut} being type abbreviations.  Hopefully this will
---@ be fixed soon.}
---@ \begin{libverbatim}
---@ typedef CGetS#(n, a, SizeOf#(a)) CGet #(type n, type a);
---@ \end{libverbatim}
-type CGet n a = CGetS n a (SizeOf a)
-
---@ \lineup
---@ \begin{libverbatim}
---@ typedef CPutS#(n, a, SizeOf#(a)) CPut #(type n, type a);
---@ \end{libverbatim}
-type CPut n a = CPutS n a (SizeOf a)
 
 type CGetPut n a = (CGet n a, Put a)
 type GetCPut n a = (Get a, CPut n a)
@@ -64,10 +64,10 @@ type GetCPut n a = (Get a, CPut n a)
 --@ Create one end of the credit based FIFO.  Access to it is via a \te{Put} interface.
 --@ \index{mkCGetPut@\te{mkCGetPut} (function)|textbf}
 --@ \begin{libverbatim}
---@ module mkCGetPut(Tuple2 #(CGetS#(n, a, sa), Put#(a)))
+--@ module mkCGetPut(Tuple2 #(CGet#(n, a), Put#(a)))
 --@   provisos (Bits#(a, sa), Add#(1, k, n), Add#(n, 1, n1), Log#(n1, ln));
 --@ \end{libverbatim}
-mkCGetPut :: (IsModule m c, Bits a sa, Add 1 k n, Add n 1 n1, Log n1 ln) => m (CGetS n a sa, Put a)
+mkCGetPut :: (IsModule m c, Bits a sa, Add 1 k n, Add n 1 n1, Log n1 ln) => m (CGet n a, Put a)
 mkCGetPut =
   module
     putbuf :: FIFOF (Bit sa) <- mkUGLFIFOF
@@ -86,7 +86,7 @@ mkCGetPut =
             when free
              ==> credits.deq
     interface -- Pair
-       (interface CGetS
+       (interface CGet
             gvalue = putbuf.first
             gpresent = hasData
             gcredit b = free := b
@@ -100,10 +100,10 @@ mkCGetPut =
 --@ Create the other end of the credit based FIFO.  Access to it is via a \te{Get} interface.
 --@ \index{mkGetCPut@\te{mkGetCPut} (function)|textbf}
 --@ \begin{libverbatim}
---@ module mkGetCPut(Tuple2 #(Get#(a), CPutS#(n, a, sa)))
+--@ module mkGetCPut(Tuple2 #(Get#(a), CPut#(n, a)))
 --@   provisos (Bits#(a, sa), Add#(1, k, n), Log#(n, ln));
 --@ \end{libverbatim}
-mkGetCPut :: (IsModule m c, Bits a sa, Add 1 k n, Log n ln) => m (Get a, CPutS n a sa)
+mkGetCPut :: (IsModule m c, Bits a sa, Add 1 k n, Log n ln) => m (Get a, CPut n a)
 mkGetCPut =
   if valueOf n > 1 then
     module
@@ -178,7 +178,7 @@ mkGetCPut =
                     return $ unpack (select buff ptr)._read
              when (fold (||) presentEffective)
         ,
-         interface CPutS
+         interface CPut
            pvalue v = (head buff)._write v
            ppresent p = gotPresent := p
            pcredit = crd.notEmpty
@@ -205,7 +205,7 @@ mkGetCPut =
                     return $ unpack buff
              when (gotPresent || present.get)
         ,
-         interface CPutS
+         interface CPut
            pvalue v = buff := v
            ppresent p = gotPresent := p
            pcredit = crd.notEmpty
@@ -214,22 +214,22 @@ mkGetCPut =
 --@ Create a buffer that can be inserted along a connection path.
 --@ \index{mkCGetCPut@\te{mkCGetCPut} (function)|textbf}
 --@ \begin{libverbatim}
---@ module mkCGetCPut(Tuple2 #(CGetS#(n, a, sa), CPutS#(n, a, sa)))
+--@ module mkCGetCPut(Tuple2 #(CGet#(n, a), CPut#(n, a)))
 --@   provisos (Bits#(a, sa));
 --@ \end{libverbatim}
-mkCGetCPut :: (IsModule m c, Bits a sa) => m (CGetS n a sa, CPutS n a sa)
+mkCGetCPut :: (IsModule m c, Bits a sa) => m (CGet n a, CPut n a)
 mkCGetCPut =
   module
     val :: Reg (Bit sa) <- mkConfigRegU
     prs :: Reg Bool <- mkConfigReg False
     crd :: Reg Bool <- mkConfigReg False
     interface --  Pair
-       (interface CGetS
+       (interface CGet
             gvalue = val
             gpresent = prs
             gcredit b = crd := b
         ,
-        interface CPutS
+        interface CPut
             pvalue v = val := v
             ppresent p = prs := p
             pcredit = crd
@@ -237,11 +237,11 @@ mkCGetCPut =
 
 --@ The \te{CGet} and \te{CPut} interface are connectable.
 --@ \begin{libverbatim}
---@ instance Connectable #(CGetS#(n, a, sa), CPutS#(n, a, sa));
+--@ instance Connectable #(CGet#(n, a), CPut#(n, a));
 --@ \end{libverbatim}
-instance Connectable (CGetS n a sa) (CPutS n a sa)
+instance Connectable (CGet n a) (CPut n a)
    where
-    mkConnection :: (IsModule m c) => CGetS n a sa -> CPutS n a sa -> m Empty
+    mkConnection :: (IsModule m c) => CGet n a -> CPut n a -> m Empty
     mkConnection g p =
       module
         rules
@@ -256,57 +256,58 @@ instance Connectable (CGetS n a sa) (CPutS n a sa)
 
 --@ \lineup
 --@ \begin{libverbatim}
---@ instance Connectable #(CPutS#(n, a, sa), CGetS#(n, a, sa));
+--@ instance Connectable #(CPut#(n, a), CGet#(n, a));
 --@ \end{libverbatim}
-instance Connectable (CPutS n a sa) (CGetS n a sa)
+instance Connectable (CPut n a) (CGet n a)
    where
     mkConnection p g = mkConnection g p
 
 --@ The same idea may be extended  to clients and servers.
 
-interface CClientS n a sa b sb =
-   request :: CGetS n a sa
-   response:: CPutS n b sb
-
-interface CServerS n a sa b sb =
-   request  :: CPutS n a sa
-   response :: CGetS n b sb
-
 --@ \begin{libverbatim}
---@ typedef CClientS#(n, a, SizeOf#(a), b, SizeOf#(b))
---@                                           CClient #(type n, type a, type b);
---@ typedef CServerS#(n, a, SizeOf#(a), b, SizeOf#(b))
---@                                           CServer #(type n, type a, type b);
+--@ interface CClient #(numeric type n, type a, type b);
+--@     interface CGet#(n, a) request;
+--@     interface CPut#(n, b) response;
+--@ endinterface
+--@ interface CServer #(numeric type n, type a, type b);
+--@     interface CPut#(n, a) request;
+--@     interface CGet#(n, b) response;
+--@ endinterface
 --@ \end{libverbatim}
-type CClient n a b = CClientS n a (SizeOf a) b (SizeOf b)
-type CServer n a b = CServerS n a (SizeOf a) b (SizeOf b)
+interface CClient n a b =
+   request :: CGet n a
+   response:: CPut n b
+
+interface CServer n a b =
+   request  :: CPut n a
+   response :: CGet n b
 
 type CClientServer n a b = (CClient n a b, Server a b)
 type ClientCServer n a b = (Client a b, CServer n a b)
 
-instance Connectable (CClientS n a sa b sb)
-                     (CServerS n a sa b sb)
+instance Connectable (CClient n a b)
+                     (CServer n a b)
    where
     mkConnection :: (IsModule m c) =>
-               (CClientS n a sa b sb) ->
-               (CServerS n a sa b sb) -> m Empty
+               (CClient n a b) ->
+               (CServer n a b) -> m Empty
     mkConnection cc cs =
       module
           cc.request <-> cs.request
           cc.response <-> cs.response
 
-instance Connectable (CServerS n a sa b sb)
-                     (CClientS n a sa b sb)
+instance Connectable (CServer n a b)
+                     (CClient n a b)
    where
     mkConnection cs cc = mkConnection cc cs
 
 --@ \index{mkClientCServer@\te{mkClientCServer} (function)|textbf}
 --@ \begin{libverbatim}
---@ module mkClientCServer(Tuple2 #(Client#(a, b), CServerS#(n, a, sa, b, sb)))
+--@ module mkClientCServer(Tuple2 #(Client#(a, b), CServer#(n, a, b)))
 --@   provisos (Bits#(a, sa), Bits#(b, sb), Add#(1, k, n));
 --@ \end{libverbatim}
 mkClientCServer :: (IsModule m c, Bits a sa, Bits b sb, Add 1 k n) =>
-                               m (Client a b, CServerS n a sa b sb)
+                               m (Client a b, CServer n a b)
 mkClientCServer =
   module
     (g, cp) <- mkGetCPut
@@ -316,24 +317,24 @@ mkClientCServer =
         request = g
         response = p
       ,
-      interface CServerS
+      interface CServer
         request = cp
         response = cg
      )
 
 --@ \index{mkCClientServer@\te{mkCClientServer} (function)|textbf}
 --@ \begin{libverbatim}
---@ module mkCClientServer(Tuple2 #(CClientS#(n, a, sa, b, sb), Server#(a, b)))
+--@ module mkCClientServer(Tuple2 #(CClient#(n, a, b), Server#(a, b)))
 --@   provisos (Bits#(a, sa), Bits#(b, sb), Add#(1, k, n));
 --@ \end{libverbatim}
 mkCClientServer :: (IsModule m c, Bits a sa, Bits b sb, Add 1 k n) =>
-                               m (CClientS n a sa b sb, Server a b)
+                               m (CClient n a b, Server a b)
 mkCClientServer =
   module
     (g, cp) <- mkGetCPut
     (cg, p) <- mkCGetPut
     interface
-     (interface CClientS
+     (interface CClient
         request = cg
         response = cp
       ,

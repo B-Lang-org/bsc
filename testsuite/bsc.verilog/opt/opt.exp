@@ -88,3 +88,6 @@ if { $vtest == 1 } {
 
 # ---------------
 
+compile_verilog_pass TestDoubleNorm.bs
+find_n_strings_bug mkTestDoubleNorm.v "?" 1 "731"
+find_regexp_bug mkTestDoubleNorm.v {assign _read = r ;} "731"

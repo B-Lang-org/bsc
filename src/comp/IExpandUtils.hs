@@ -22,6 +22,7 @@ module IExpandUtils(
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
         getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer,
+        instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
         mapPExprPosition,
         chkClockDomain, chkResetDomain, fixupActionWireSet,
@@ -46,8 +47,7 @@ module IExpandUtils(
         isPrimType, isParamOnlyType,
         HeapPointer, unheap, unheapU, shallowUnheap, unheapAll,
         toHeap, toHeapCon, toHeapWHNFCon,
-        toHeapInferName, toHeapConInferName, toHeapWHNFConInferName,
-        toHeapWHNF, toHeapWHNFInferName,
+        toHeapWHNF,
         realPrimOp,
         integerPrim, realPrim, stringPrim, charPrim, handleBoolPrim,
         strictPrim, condPrim,
@@ -362,19 +362,24 @@ isPrimType (ITCon i _ _) = i == idPrimAction ||
                            -- i == idInteger
                            i == idFmt || -- also not really a primitive
                            i == idClock ||
-                           i == idReset
+                           i == idReset ||
+                           i == idPrimUnit
+-- ActionValue_ must be applied to (a tuple of) Bit
+isPrimType (ITAp (ITCon i _ _) t)
+  | i == idActionValue_ = t == itPrimUnit || isBitTupleType t
 -- Primitive constructor applied to numeric type(s)
 -- We normalize types so no unresolved numeric types should escape elaboration.
 isPrimType (ITAp a (ITNum _)) = isPrimTAp a
 -- Primitive arrays
 isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
+-- Tuples of bits
+isPrimType t | isBitTupleType t = True
 isPrimType _ = False
 
 -- Primitive type applications
 isPrimTAp :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
-isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
-                          i == idBit ||
+isPrimTAp (ITCon i _ _) = i == idBit ||
                           i == idInout_
 -- Again, no unresolved numeric types should escape elaboration.
 isPrimTAp (ITAp a (ITNum _)) = isPrimTAp a
@@ -2069,8 +2074,8 @@ chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
 
     ifc_port_names =
       [ (n, i)
-      | IEFace {ief_fieldinfo = Method i _ _ _ ins out en} <- ifcs,
-        (VName n, _) <- ins ++ maybeToList out ++ maybeToList en ]
+      | IEFace {ief_fieldinfo = Method i _ _ _ ins outs en} <- ifcs,
+        (VName n, _) <- concat ins ++ outs ++ maybeToList en ]
     ifc_inout_names =
       [ (n, i) | IEFace {ief_fieldinfo = Inout i (VName n) _ _} <- ifcs ]
     ifc_clock_names =
@@ -2444,6 +2449,11 @@ extendHeap = do s <- get
                 mapM_ copycell ((uncurry enumFromTo) (bounds oldheap))
 -}
 
+improveCellName :: HExpr -> Maybe Id -> G (Maybe Id)
+improveCellName _ mi@(Just i)
+  | not $ isPreludePosition $ getPosition i = return mi
+improveCellName e _ = inferName e
+
 addHeapCell :: String -> HeapCell -> G (HeapPointer, HeapData)
 addHeapCell tag cell = do
   s <- get
@@ -2454,7 +2464,8 @@ addHeapCell tag cell = do
   return (p, HeapData ref)
 
 addHeapUnev :: String -> IType -> HExpr -> Maybe Id -> G HExpr
-addHeapUnev tag t e cell_name = do
+addHeapUnev tag t e cell_name_orig = do
+ cell_name <- improveCellName e cell_name_orig
  let newcell = (HUnev { hc_hexpr = e, hc_name = cell_name })
  cross <- getCross
  (p, r) <- addHeapCell tag newcell
@@ -2467,7 +2478,8 @@ addHeapUnev tag t e cell_name = do
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
-addHeapWHNF tag t pe cell_name = do
+addHeapWHNF tag t pe@(P _ e) cell_name_orig = do
+  cell_name <- improveCellName e cell_name_orig
   let newcell = (HWHNF { hc_pexpr = pe, hc_name = cell_name })
   (p, r) <- addHeapCell tag newcell
   let result = IRefT t p r
@@ -2562,6 +2574,15 @@ getTypeNormalizerC = do
 
 getTypeNormalizer :: G (IType -> IType)
 getTypeNormalizer = fmap changedOrId getTypeNormalizerC
+
+-- We assume the function type was normalized so it only needs
+-- additional normalization if there are type arguments
+{-# INLINE instFunType #-}
+instFunType :: IType -> [IType] -> G IType
+instFunType t [] = return t
+instFunType t ts = do
+  norm <- getTypeNormalizer
+  return $ itInstNorm norm t ts
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]
@@ -2751,81 +2772,58 @@ unheapAllNFNoImp e = do
         _ -> return e'
 
 {-# INLINE toHeap #-}
-toHeap :: String -> HExpr -> Maybe Id -> G HExpr
+toHeap :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 -- foreign function calls must be forced onto the heap for
 -- proper handling of actionvalues
-toHeap tag e@(ICon i (ICForeign {iConType = t})) cell_name = do
-  norm <- getTypeNormalizer
-  addHeapUnev tag (norm t) e cell_name
+toHeap tag t e@(ICon _ (ICForeign {})) cell_name = do
+  addHeapUnev tag t e cell_name
 -- definitions must be heaped for correct handling of actionvalues
 -- a top-level definition should have no free variables by construction
-toHeap tag (ICon i (ICDef t e)) cell_name = do
-  e' <- cacheDef i t e
-  toHeap tag e' cell_name
-toHeap tag e@(ICon _ _) cell_name = return e
-toHeap tag e@(IRefT _ _ _) cell_name = return e -- XXX name improvement?
-toHeap tag e cell_name = do
+-- Don't use t for caching because, for polymorphic defs, it may be the
+-- instantiated type of the definition in the current context.
+toHeap tag t (ICon i (ICDef t' e)) cell_name = do
+  e' <- cacheDef i t' e
+  toHeap tag t e' cell_name
+toHeap _   _ e@(ICon _ _)      _ = return e
+toHeap _   _ e@(IRefT _ _ _) _ = return e
+toHeap tag t e cell_name = do
         -- these errors have never happened, disable checks for now.
         when (doDebugFreeVars && not (S.null (fVars e))) $
              internalError ("toHeap: fv " ++ ppReadable (fVars e) ++ ppReadable e)
         when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
-        -- do the real work of adding the cell
-        norm <- getTypeNormalizerC
-        addHeapUnev tag (iGetTypeNorm norm e) e cell_name
+        addHeapUnev tag t e cell_name
 
 -- Used when you absolutely need to get an IRefT back
 -- for arrays
 {-# INLINE toHeapCon #-}
-toHeapCon :: String -> HExpr -> Maybe Id -> G HExpr
+toHeapCon :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 -- expand out ICDef as in toHeap
-toHeapCon tag (ICon i (ICDef t e)) cell_name = do
-  e' <- cacheDef i t e
-  toHeapCon tag e' cell_name
+toHeapCon tag t (ICon i (ICDef t' e)) cell_name = do
+  e' <- cacheDef i t' e
+  toHeapCon tag t e' cell_name
 -- heap all other constants
-toHeapCon tag e@(ICon _ _) cell_name = do
-  norm <- getTypeNormalizerC
-  addHeapUnev tag (iGetTypeNorm norm e) e cell_name
-toHeapCon tag e cell_name = toHeap tag e cell_name
+toHeapCon tag t e@(ICon _ _) cell_name = do
+  addHeapUnev tag t e cell_name
+toHeapCon tag t e cell_name = toHeap tag t e cell_name
 
 {-# INLINE toHeapWHNF #-}
-toHeapWHNF :: String -> HExpr -> Maybe Id -> G HExpr
-toHeapWHNF tag e@(ICon _ _) cell_name = return e
-toHeapWHNF tag e@(IRefT _ _ _) cell_name = return e
-toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), e])
-           cell_name = do let pe = P p e
-                          -- IRefT is not WHNF
-                          pe' <- unheap pe
-                          -- The type inside PrimWhenPred may have come from the iGetType
-                          -- call inside pExprToHExpr and not be normalized.
-                          norm <- getTypeNormalizer
-                          addHeapWHNF tag (norm t) pe' cell_name
-toHeapWHNF tag e cell_name = do
-  norm <- getTypeNormalizerC
-  addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
+toHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
+toHeapWHNF _  _ (P p e@(ICon _ _)) _ | p == pTrue = return e
+toHeapWHNF _  _ (P p e@(IRefT _ _ _)) _ | p == pTrue = return e
+toHeapWHNF tag _ (P p e) cell_name
+  | IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p'), e'] <- e =
+    toHeapWHNF tag t (P (pConj p p') e') cell_name
+toHeapWHNF tag t pe@(P p e) cell_name = do
+    -- Pointing to an IRefT (because p /= pTrue) is not WHNF
+    pe' <- unheap pe
+    addHeapWHNF tag t pe' cell_name
 
 {-# INLINE toHeapWHNFCon #-}
-toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
-toHeapWHNFCon tag e@(ICon _ _) cell_name = do
-    norm <- getTypeNormalizerC
-    addHeapWHNF tag (iGetTypeNorm norm e) (P pTrue e) cell_name
-toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
-
-{-# INLINE toHeapWHNFInferName #-}
-toHeapWHNFInferName :: String -> HExpr -> G HExpr
-toHeapWHNFInferName tag e = inferName e >>= toHeapWHNF tag e
-
-{-# INLINE toHeapInferName #-}
-toHeapInferName :: String -> HExpr -> G HExpr
-toHeapInferName tag expr = inferName expr >>= toHeap tag expr
-
-{-# INLINE toHeapConInferName #-}
-toHeapConInferName :: String -> HExpr -> G HExpr
-toHeapConInferName tag expr = inferName expr >>= toHeapCon tag expr
-
-{-# INLINE toHeapWHNFConInferName #-}
-toHeapWHNFConInferName :: String -> HExpr -> G HExpr
-toHeapWHNFConInferName tag expr = inferName expr >>= toHeapWHNFCon tag expr
+toHeapWHNFCon :: String -> IType -> HExpr -> Maybe Id -> G HExpr
+toHeapWHNFCon tag t e@(ICon _ _) cell_name = do
+    addHeapWHNF tag t (P pTrue e) cell_name
+toHeapWHNFCon tag t e cell_name = toHeapWHNF tag t (P pTrue e) cell_name
 
 -- inferName: given an expression, try to infer a reasonable name from it
 {-# INLINE inferName #-}
@@ -2872,7 +2870,7 @@ cacheDef i t e = do
     Just e' -> do when doTraceDefCache $
                     traceM ("cache hit: " ++ ppReadable (i, t, e'))
                   return e'
-    Nothing -> do e' <- toHeap "cache-def" e (Just i)
+    Nothing -> do e' <- toHeap "cache-def" t e (Just i)
                   s <- get
                   let m' = M.insert i e' m
                   put (s { defCache = m' })

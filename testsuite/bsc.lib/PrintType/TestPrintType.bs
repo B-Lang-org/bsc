@@ -1,0 +1,63 @@
+package TestPrintType where
+
+import PrintType
+
+-- Regular data types of various shapes, to exercise the generic
+-- Meta-based path.
+
+data Foo a b = A (UInt a)
+             | B b Bool (Bit a)
+             | C
+
+data (Bar :: (* -> *) -> *) a = Bar (a Bool)
+data (Baz :: (# -> *) -> (* -> * -> *) -> *) a b = Baz (a 42) (b Bool Integer)
+data MyBit n = MyBit (Bit n)
+
+struct Quux =
+  field :: Maybe Bool
+
+sysTestPrintType :: Module Empty
+sysTestPrintType = module
+  rules
+    when True ==> do
+      -- Primitives that go through explicit instances
+      $display (stringOf (TPrintType (Bit 8)))
+      $display (stringOf (TPrintType (UInt 16)))
+      $display (stringOf (TPrintType (Int 4)))
+      $display (stringOf (TPrintType Integer))
+      $display (stringOf (TPrintType Real))
+      $display (stringOf (TPrintType Char))
+      $display (stringOf (TPrintType String))
+      $display (stringOf (TPrintType Clock))
+      $display (stringOf (TPrintType Reset))
+      $display (stringOf (TPrintType Fmt))
+
+      -- Single-argument primitives
+      $display (stringOf (TPrintType (Inout Bool)))
+      $display (stringOf (TPrintType (Inout_ 8)))
+      $display (stringOf (TPrintType (Array Integer)))
+
+      -- Nullary user types and tuples
+      $display (stringOf (TPrintType ()))
+      $display (stringOf (TPrintType Bool))
+
+      -- Tuples and nested types via Generic
+      $display (stringOf (TPrintType (UInt 16, UInt 17)))
+      $display (stringOf (TPrintType (Maybe Bool)))
+      $display (stringOf (TPrintType (Maybe (String, Integer))))
+      $display (stringOf (TPrintType (Either (Maybe Bool) String)))
+      $display (stringOf (TPrintType Quux))
+
+      -- User-defined data types with several arg shapes
+      $display (stringOf (TPrintType (Foo 16 Real)))
+      $display (stringOf (TPrintType (Bar Maybe)))
+      $display (stringOf (TPrintType (Bar (Either Integer))))
+      $display (stringOf (TPrintType (Baz MyBit Either)))
+
+      -- Parenthesized vs bare form
+      $display (stringOf (TPrintTypeP Bool))
+      $display (stringOf (TPrintTypeP (Maybe Bool)))
+      $display (stringOf (TPrintTypeP (UInt 16, UInt 17)))
+      $display (stringOf (TPrintTypeP (Inout Bool)))
+
+      $finish

@@ -17,3 +17,12 @@ compile_pass AliasSizeOf.bsv
 compile_pass AliasSizeOf_Instance.bsv
 
 # ---------------
+# Test that a substitution learned while *partially* solving a proviso (one
+# that grounds a variable but leaves a residual) is applied to the sibling
+# provisos in the same satMany' pass, so a sibling determined by that variable
+# via a functional dependency can reduce.  Otherwise the determined instance
+# parameter is left general and a spurious T0029 is reported.
+
+compile_pass SiblingFundepSubst.bs
+
+# ---------------

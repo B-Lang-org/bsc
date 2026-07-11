@@ -18,8 +18,7 @@ if { $ctest == 1 } {
     # backend, and only then if the user has specified that it's OK
     # for the Verilog and Bluesim backends to diverge).
     #
-    set def_id [regexp_match mkTop.cxx {DEF_v__h(\d+) = DEF_AVMeth_s_m;}]
-    find_regexp mkTop.cxx [append {2047u \& \(\(\(\(\(tUInt32\)\(\(tUInt8\)0u\)\) << 3u\) \| \(\(\(tUInt32\)\(DEF_cond__h\d+\)\) << 2u\)\) \| \(tUInt32\)\(DEF_v__h} $def_id {\)\);}]
+    find_regexp mkTop.cxx {2047u \& \(\(\(\(\(tUInt32\)\(\(tUInt8\)0u\)\) << 3u\) \| \(\(\(tUInt32\)\(DEF_cond__h\d+\)\) << 2u\)\) \| \(tUInt32\)\(DEF_AVMeth_s_m\)\);}
 }
 
 # Also test that BSC fully initializes DEF_AVMeth_s_m

@@ -20,7 +20,7 @@ import qualified Data.Set as S
 
 import Error(internalError)
 import CType(Type(..), TyCon(..), TyVar, leftTyCon)
-import TypeOps(numOpNames, strOpNames)
+import TypeOps(isPrimTFunName)
 import Pred(Pred(..), Class(inputPositions), expandSyn)
 
 -- ---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ predTrieKey positions (IsIn _ ts) =
 -- query that finds all instances that might overlap with it.  Variable positions
 -- in the instance key (Nothing) become Free so that cross-branch overlaps are
 -- found; concrete positions (Just tc) become Con tc.
--- Unlike predQuery this does not apply isTFunTyCon: for overlap detection we
+-- Unlike predQuery this does not apply isPrimTFunTyCon: for overlap detection we
 -- want to find all candidates including those with numeric-literal heads.
 overlapProbeQuery :: Pred -> [QueryElem]
 overlapProbeQuery p@(IsIn c _) =
@@ -193,9 +193,9 @@ predQuery btvs (IsIn c ts) =
 -- concrete constructor at query time, so queries at those positions must
 -- probe ALL trie branches (Free) to avoid missing instances that have a
 -- concrete-number head (e.g. VectorTreeReduce 1, VectorTreeReduce 2).
-isTFunTyCon :: TyCon -> Bool
-isTFunTyCon (TyCon { tcon_name = i }) = i `elem` numOpNames ++ strOpNames
-isTFunTyCon _                          = False
+isPrimTFunTyCon :: TyCon -> Bool
+isPrimTFunTyCon (TyCon { tcon_name = i }) = isPrimTFunName i
+isPrimTFunTyCon _                          = False
 
 -- | Classify one type argument of the predicate being resolved.
 -- A type-function head (TAdd, TLog, etc.) is treated as Free so that
@@ -204,7 +204,7 @@ isTFunTyCon _                          = False
 mkQueryElem :: S.Set TyVar -> Type -> QueryElem
 mkQueryElem btvs t =
     case leftTyCon t of
-        Just tc | not (isTFunTyCon tc) -> Con tc
+        Just tc | not (isPrimTFunTyCon tc) -> Con tc
         Just _                         -> Free  -- unevaluated type function
         Nothing -> case headVar t of
             Just tv | tv `S.member` btvs -> Bound

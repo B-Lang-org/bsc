@@ -89,6 +89,15 @@ instance (FShow a) => FShow (Vector n a)
             elements = Vector.foldr insertSpace (fshow "") fmts
         in  $format "<V " elements " >"
 
+--@ A vector is a Functor: it can be mapped over.
+instance Functor (Vector n) where
+  fmap = map
+
+--@ Applicative for a vector corresponds to zipping.
+instance Applicative (Vector n) where
+  pure = replicate
+  liftA2 = zipWith
+
 -- This is used to construct an array with uninitialized elements
 -- and still mark the array as uninitialized until the user updates
 -- it with real values (since the update to insert the uninit elems
@@ -463,8 +472,6 @@ unzip (V v) = letseq (as, bs) = Array.unzip v
 map :: (a -> b) -> Vector n a -> Vector n b
 map f (V v) = V (Array.map f v)
 
-instance Functor (Vector n) where
-  fmap = map
 
 --@ The ``fold'' family of functions reduces a vector by applying a
 --@ function over all its elements.
@@ -1286,14 +1293,14 @@ instance ConcatTuple 1 a a where
   unconcatTuple x = cons x nil
 
 -- Linear recursive implementation: O(n^2)
--- instance (Add n1 1 n, ConcatTuple n1 a b, AppendTuple a b c) => ConcatTuple n a c where
+-- instance (Add n1 1 n, ConcatTuple n1 a b) => ConcatTuple n a (TAppendTuple a b) where
 --   concatTuple v = appendTuple (head v) $ concatTuple (tail v)
 --   unconcatTuple x = case splitTuple x of
 --     (y, z) -> cons y $ unconcatTuple z
 
 -- O(n lg n) optimization: split into chunks that are powers of 2
-instance (Add lgn 1 (TLog (TAdd n 1)), Add (TExp lgn) n1 n, ConcatTuple n1 a b, ConcatTuple' lgn a c, AppendTuple b c d) =>
-    ConcatTuple n a d where
+instance (Add lgn 1 (TLog (TAdd n 1)), Add (TExp lgn) n1 n, ConcatTuple n1 a b, ConcatTuple' lgn a c) =>
+    ConcatTuple n a (TAppendTuple b c) where
   concatTuple v =
     let v1 :: Vector n1 a = take v
         v2 :: Vector (TExp lgn) a = drop v
@@ -1313,7 +1320,7 @@ instance ConcatTuple' 0 a a where
   concatTuple' v = head v
   unconcatTuple' x = cons x nil
 
-instance (Add n1 1 n, ConcatTuple' n1 a b, AppendTuple b b c) => ConcatTuple' n a c where
+instance (Add n1 1 n, ConcatTuple' n1 a b) => ConcatTuple' n a (TAppendTuple b b) where
   concatTuple' v =
     let v1 :: Vector (TExp n1) a = take v
         v2 :: Vector (TExp n1) a = drop v

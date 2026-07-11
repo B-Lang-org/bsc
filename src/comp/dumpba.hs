@@ -7,7 +7,7 @@ import GenABin
 import PPrint
 import Error(initErrorHandle)
 import System.IO
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as BS
 
 main :: IO ()
 main = do
@@ -15,7 +15,7 @@ main = do
     as <- getArgs
     case as of
      [mi] -> do
-        file <- B.unpack <$> B.readFile mi
+        file <- BS.readFile mi
         let (abi, hash) = readABinFile errh mi file
         hSetEncoding stdout utf8
         putStr (ppReadable abi)

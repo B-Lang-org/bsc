@@ -41,6 +41,12 @@ The following is a running list of those writings.
 * Names that BSC has built-in knowledge of (such as definitions in the Prelude)
   are specified in `src/comp/PreStrings.hs`, which are then wrapped as identifiers
   in `src/comp/PreIds.hs`
+* For Haskell Language Server (HLS) setup see the dedicated [README file](./util/haskell-language-server/README.md)
+* The [GitHub CI](./.github/workflows/) can serve as an example of building and working with the source.
+  See, for example, [build-and-test-ubuntu.yml](./.github/workflows/build-and-test-ubuntu.yml) which contains steps for:
+  * Installing dependencies
+  * Running the Haskell Language Server (HLS)
+  * Running GHC's interactive environment (GHCi)
 
 ### Compiling
 

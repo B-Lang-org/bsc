@@ -19,3 +19,11 @@ bsc_compile Prims.bsv {-verilog -elab}
 bluetcl_run_compare_pass prims.tcl "" ""
 
 # ---------------
+# Test that port types are reported correctly for methods whose arguments
+# and/or result are split into multiple input/output ports (deep/shallow,
+# value and ActionValue)
+
+bsc_compile SplitPortTypes.bs {-verilog -elab}
+bluetcl_run_compare_pass split_port_types.tcl
+
+# ---------------

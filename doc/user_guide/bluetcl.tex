@@ -337,7 +337,13 @@ Returns a list of interface types in the module.\\
 {\bf module} {\bf  methods} {\em modname}& Returns a list of the  flattened methods
 in the module. \\
 \hline
-{\bf module}  {\bf  ports} {\em modname}& Returns a list of  the ports in the module. \\
+{\bf module}  {\bf  ports} {\em modname}& Returns a list of the ports in the
+module, organized by interface element.  For each method, the entry includes
+its argument ports (\te{args}) and a \te{results} field listing the method's
+output ports, each given as a \te{port} name and bit \te{size}.  The
+\te{results} list may be empty (for an action method with no return value) or
+contain more than one port (when a method's result is split across several
+output ports). \\
 \hline
 {\bf module} {\bf porttypes} {\em modname}& Returns a list of  the types of the ports in
 the module. \\
@@ -430,7 +436,8 @@ which rules use the methods of the submodule.
 \hline
 {\bf submodule} {\bf  full} {\em modname}& Returns information about each
 submodule in the specified module and the rules which use the methods
-of the submodule. \\
+of the submodule.  The per-method port information uses the same format as
+{\bf module ports}, including the \te{results} field of output ports. \\
 \hline
 \hline
 \end{tabular}

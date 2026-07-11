@@ -2,6 +2,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags
 
 Flags:
+    -aggressive-conditions
     -i BLUESPECDIR
     -lift
     -o a.out

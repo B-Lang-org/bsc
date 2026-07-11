@@ -1,0 +1,50 @@
+package SubmodCrossbarPath where
+
+import SplitPorts
+
+struct Triple =
+  p1 :: Bool
+  p2 :: Bool
+  p3 :: Bool
+ deriving (Bits)
+
+struct Pair =
+  q1 :: Bool
+  q2 :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- submodule result split into three ports: p1, p2 combinational from the
+  -- matching input arg ports; p3 registered.
+  get :: ShallowSplit Triple -> ShallowSplit Triple
+
+{-# synthesize mkSubmodCrossbarSub #-}
+mkSubmodCrossbarSub :: Module SubIfc
+mkSubmodCrossbarSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) =
+        ShallowSplit (Triple { p1 = a.p1; p2 = a.p2; p3 = r })
+
+interface TopIfc =
+  -- top argument and result are both split (into two ports each)
+  top :: ShallowSplit Pair -> ShallowSplit Pair
+
+-- Routes DISTINCT submodule split output ports to DISTINCT top output ports,
+-- crossed over:
+--   top_q1 <- submodule get_p2  (fed by top_1_q2)  =>  top_1_q2 -> top_q1
+--   top_q2 <- submodule get_p1  (fed by top_1_q1)  =>  top_1_q1 -> top_q2
+-- The submodule's registered output get_p3 is selected by neither, so it
+-- contributes no path.  This shows path analysis distinguishes individual
+-- submodule split output ports and maps them to individual top output ports
+-- (a crossbar), with no straight-through top_1_q1 -> top_q1 edge.
+{-# synthesize mkSubmodCrossbarPath #-}
+mkSubmodCrossbarPath :: Module TopIfc
+mkSubmodCrossbarPath =
+  module
+    s <- mkSubmodCrossbarSub
+    interface
+      top (ShallowSplit a) =
+        case s.get (ShallowSplit (Triple { p1 = a.q1; p2 = a.q2; p3 = False })) of
+          ShallowSplit res -> ShallowSplit (Pair { q1 = res.p2; q2 = res.p1 })

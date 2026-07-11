@@ -34,10 +34,10 @@ dim_sysExtract =
 rule_RL_do_static_sysExtract :: MOD_sysExtract -> (Bool, MOD_sysExtract, ());
 rule_RL_do_static_sysExtract =
     (\ (state0 :: MOD_sysExtract) ->
-     let { (def_src1__h124 :: Bit #12) = meth_read_RegUN (inst_src1__sysExtract state0)
+     let { (def_src1__h109 :: Bit #12) = meth_read_RegUN (inst_src1__sysExtract state0)
 	 ; (act1 :: (Bool, MOD_RegUN #8, ())) =
 	       meth_write_RegUN
-		   ((primExtract def_src1__h124 (9 :: Bit #32) (2 :: Bit #32)) :: Bit #8)
+		   ((primExtract def_src1__h109 (9 :: Bit #32) (2 :: Bit #32)) :: Bit #8)
 		   (inst_snk1__sysExtract state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysExtract) = state0 { inst_snk1__sysExtract = snd3 act1 }
@@ -47,11 +47,13 @@ rule_RL_do_static_sysExtract =
 rule_RL_do_dynamic_sysExtract :: MOD_sysExtract -> (Bool, MOD_sysExtract, ());
 rule_RL_do_dynamic_sysExtract =
     (\ (state0 :: MOD_sysExtract) ->
-     let { (def_i2__h246 :: Bit #4) = meth_read_RegUN (inst_lo_idx__sysExtract state0)
-	 ; (def_i1__h245 :: Bit #4) = meth_read_RegUN (inst_hi_idx__sysExtract state0)
-	 ; (def_bs__h244 :: Bit #12) = meth_read_RegUN (inst_src2__sysExtract state0)
-	 ; (def_x__h238 :: Bit #8) = ((primExtract def_bs__h244 def_i1__h245 def_i2__h246) :: Bit #8)
-	 ; (act1 :: (Bool, MOD_RegUN #8, ())) = meth_write_RegUN def_x__h238 (inst_snk2__sysExtract state0)
+     let { (def_i2__h226 :: Bit #4) = meth_read_RegUN (inst_lo_idx__sysExtract state0)
+	 ; (def_i1__h225 :: Bit #4) = meth_read_RegUN (inst_hi_idx__sysExtract state0)
+	 ; (def_bs__h224 :: Bit #12) = meth_read_RegUN (inst_src2__sysExtract state0)
+	 ; (def_src2_BITS_hi_idx_TO_lo_idx___d6 :: Bit #8) =
+	       ((primExtract def_bs__h224 def_i1__h225 def_i2__h226) :: Bit #8)
+	 ; (act1 :: (Bool, MOD_RegUN #8, ())) =
+	       meth_write_RegUN def_src2_BITS_hi_idx_TO_lo_idx___d6 (inst_snk2__sysExtract state0)
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysExtract) = state0 { inst_snk2__sysExtract = snd3 act1 }
 	 }

@@ -1,0 +1,31 @@
+package GranDeepNested where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+-- DeepSplit recurses into the nested struct: the field `x` becomes leaf ports
+-- `get_x_a` / `get_x_b` (inputs `get_1_x_a` / `get_1_x_b`), giving per-leaf
+-- path granularity.  Only x.a is combinational from input x.a, so the path is
+-- exactly `get_1_x_a -> get_x_a` and nothing flows to get_x_b or get_y.
+-- Contrast with GranShallowNested, where the same struct gives the coarse
+-- packed path get_1_x -> get_x.
+interface Ifc =
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkGranDeepNested #-}
+mkGranDeepNested :: Module Ifc
+mkGranDeepNested =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit o) =
+        DeepSplit (Outer { x = Inner { a = o.x.a; b = r }; y = r })

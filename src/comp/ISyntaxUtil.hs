@@ -121,18 +121,16 @@ isSimpleType t = t == itInteger ||
                  t == itChar
 
 isitAction :: IType -> Bool
-isitAction (ITAp (ITCon i (IKFun IKNum IKStar)
-                     (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | (i == idActionValue_) = (x == 0)
-isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _) t)
-    | (i == idActionValue)  = t == itPrimUnit
+isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _ ) t)
+    | (i == idActionValue_) || (i == idActionValue) = isEmptyType t
 isitAction x = (x == itAction)
 
--- note this returns false for x == - because ActionValue_ 0 is really an Action
+-- note this returns false for x == () because ActionValue_ () is really an Action
+-- Also handle ActionValue_ (Bit 0), which can be introduced by foreign functions.
 isitActionValue_ :: IType -> Bool
-isitActionValue_ (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | x > 0 = (i == idActionValue_)
+isitActionValue_ (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) =
+    (i == idActionValue_) && not (isEmptyType t)
 isitActionValue_ _ = False
 
 isitActionValue :: IType -> Bool
@@ -150,11 +148,11 @@ getInout_Size t =
     internalError ("getInout_Size: type is not Inout_: " ++ ppReadable t)
 
 
-getAV_Size :: IType -> Integer
-getAV_Size (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x)) |
-    (i == idActionValue_) = x
-getAV_Size t = internalError ("getAV_Size: type is not AV_: " ++ ppReadable t)
+getAV_Type :: IType -> IType
+getAV_Type (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) |
+    (i == idActionValue_) = t
+getAV_Type t = internalError ("getAV_Type: type is not AV_: " ++ ppReadable t)
 
 getAVType :: IType -> Maybe IType
 getAVType (ITAp (ITCon i (IKFun IKStar IKStar) _) t) | i == idActionValue = Just t
@@ -176,19 +174,27 @@ itList, itMaybe :: IType -> IType
 itList t = ITAp (ITCon idList (IKFun IKStar IKStar) tiList) t
 itMaybe t = ITAp (ITCon idMaybe (IKFun IKStar IKStar) tiMaybe) t
 
+isPairType :: IType -> Bool
+isPairType (ITAp (ITAp (ITCon i _ _) _) _) = i == idPrimPair
+isPairType _ = False
+
+isEmptyType :: IType -> Bool
+isEmptyType (ITCon i _ _) = i == idPrimUnit
+isEmptyType (ITAp c (ITNum 0)) = c == itBit
+isEmptyType t = False
+
 isBitType :: IType -> Bool
 isBitType (ITAp c n) = c == itBit
 isBitType _ = False
 
+isBitTupleType :: IType -> Bool
+isBitTupleType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+  isBitType t1 && isBitTupleType t2
+isBitTupleType t = isBitType t
+
 -- extension point for ActionValue methods
 isActionType :: IType -> Bool
 isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
-
--- extension point for ActionValue methods
-isValueType :: IType -> Bool
-isValueType x | (isitActionValue_ x) && (getAV_Size x > 0) = True
-isValueType (ITAp t n) | t == itBit = True
-isValueType _ = False
 
 -- Constructors
 iMkLit :: IType -> Integer -> IExpr a
@@ -923,10 +929,34 @@ dropArrows 0 t = t
 dropArrows n (ITAp (ITAp arr _) r) | arr == itArrow = dropArrows (n-1) r
 dropArrows n t = internalError ("dropArrows: " ++ ppReadable (n, t))
 
+takeArgTypes :: Int -> IType -> [IType]
+takeArgTypes 0 _ = []
+takeArgTypes n (ITAp (ITAp arr a) r) | arr == itArrow = a : takeArgTypes (n-1) r
+takeArgTypes n t = internalError ("takeArgTypes: " ++ ppReadable (n, t))
+
 itGetArrows :: IType -> ([IType], IType)
 itGetArrows it = itGetArrows' [] it
   where itGetArrows' ts (ITAp (ITAp arr a) r) | arr == itArrow = itGetArrows' (a:ts) r
         itGetArrows' ts r = (reverse ts, r)
+
+-- Flatten a (possibly nested) right-associated PrimPair tuple type into its
+-- element types in left-to-right order.  PrimUnit contributes no elements,
+-- PrimPair recurses into both sides, anything else is a single element.
+itTupleElems :: IType -> [IType]
+itTupleElems t
+  | t == itPrimUnit = []
+  | otherwise = case t of
+                  ITAp (ITAp (ITCon ip _ _) t1) t2 | ip == idPrimPair ->
+                      itTupleElems t1 ++ itTupleElems t2
+                  _ -> [t]
+
+-- The element bit-widths of a (bitified) tuple type, in left-to-right port order
+-- (flattening nested PrimPair tuples via itTupleElems).  A non-Bit leaf yields
+-- 0, so callers that want only the actual ports can filter out the zeros.
+bitTupleSizes :: IType -> [Integer]
+bitTupleSizes = map leafSize . itTupleElems
+  where leafSize (ITAp b (ITNum n)) | b == itBit = n
+        leafSize _ = 0
 
 -- #############################################################################
 -- #
@@ -1088,10 +1118,6 @@ joinActions [] = icNoActions
 joinActions as = foldr1 ja as
   where ja a1 a2 = IAps icJoinActions [] [a1, a2]
 
--- perhaps the position information should be transferred over XXX
-actionValue_BitN :: IType -> IType
-actionValue_BitN t = itBitN (getAV_Size t)
-
 iStrToInt :: String -> Position -> IExpr a
 iStrToInt s pos = iMkLitAt pos itInteger i
   where i = foldl sumString 0 s
@@ -1117,11 +1143,11 @@ getStateVarNames _ = []
 
 iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv :: IType
 iTLog = ITCon idTLog (IKNum `IKFun` IKNum) TIabstract
-iTAdd = ITCon idTAdd (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMax = ITCon idTMax (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMin = ITCon idTMin (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMul = ITCon idTMul (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTDiv = ITCon idTDiv (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
+iTAdd = ITCon idTAdd (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMax = ITCon idTMax (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMin = ITCon idTMin (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMul = ITCon idTMul (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTDiv = ITCon idTDiv (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
 
 iDefMap :: (IExpr a -> IExpr a) -> IDef a -> IDef a
 iDefMap f (IDef i t e p) = IDef i t (f e) p

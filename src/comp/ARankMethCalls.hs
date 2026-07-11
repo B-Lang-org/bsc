@@ -42,7 +42,7 @@ aRankMethCalls errh pprops orig_pkg =
 aRankMethCallsInternal :: ErrorHandle -> [[Id]] -> APackage -> IO APackage
 aRankMethCallsInternal _ [] orig_pkg = return orig_pkg
 aRankMethCallsInternal errh orig_ranks orig_pkg =
-    do let method_map = [(aIfaceName m, m) | m <- apkg_interface orig_pkg]
+    do let method_map = [(aif_name m, m) | m <- apkg_interface orig_pkg]
            rule_map = [(dropRulePrefixId (arule_id r), r) | r <- apkg_rules orig_pkg]
            def_map = [(adef_objid d, d) | d <- apkg_local_defs orig_pkg]
            -- add method ready signals foreach method in (* perf_spec *)
@@ -127,6 +127,12 @@ instance RankMethCalls AExpr where
              defs_to_rewrite)
     rankMethCalls ver expr@(AMethValue { ameth_id = name }) =
         (expr { ameth_id = rankId ver name }, [])
+    rankMethCalls ver expr@(ATuple { ae_elems = elems }) =
+        let (ranked_elems, defs_to_rewrite) = rankMethCalls ver elems
+        in  (expr { ae_elems = ranked_elems }, defs_to_rewrite)
+    rankMethCalls ver expr@(ATupleSel { ae_exp = e }) =
+        let (ranked_e, defs_to_rewrite) = rankMethCalls ver e
+        in  (expr { ae_exp = ranked_e }, defs_to_rewrite)
     rankMethCalls ver expr@(ANoInlineFunCall { ae_args = args }) =
         let (ranked_args, defs_to_rewrite) = rankMethCalls ver args
         in  (expr { ae_args = ranked_args }, defs_to_rewrite)

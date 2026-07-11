@@ -15,6 +15,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -vdir INVALID
 
 Flags:
+     -aggressive-conditions
      -i   BLUESPECDIR
      -lift
      -o   a.out

@@ -1,0 +1,26 @@
+package QuotNegOperand (sysQuotNegOperand) where
+
+-- Regression test for the AVeriQuirks fix that forces PrimQuot operands
+-- into named defs (via mkDefS).  primQuot's IR type is
+--   Bit k -> Bit n -> Bit k
+-- so operand widths may differ.  With an inline negation on the narrow
+-- second operand and a wider first operand, Verilog's context-determined
+-- sizing widens the second operand (zero-extending the unsigned wire)
+-- before negating, evaluating the negation at the wider width and
+-- diverging from Bluesim's narrow-width semantics.
+
+sysQuotNegOperand :: Module Empty
+sysQuotNegOperand =
+    module
+        a :: Reg (Bit 32)
+        a <- mkReg 32'hFFFFFFFF
+        b :: Reg (Int 16)
+        b <- mkReg (unpack 16'h8000)   -- INT16_MIN
+        rules
+          "test":
+            when True
+              ==> action
+                    let pb  :: Bit 16 = pack (negate b)
+                    let q32 :: Bit 32 = primQuot a pb
+                    $display "quot=%0h" q32
+                    $finish 0

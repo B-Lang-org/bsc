@@ -32,8 +32,13 @@ test_c_only_bsv SyncFIFOCountTest sysSyncFIFOCountTest.c.out.expected
 test_veri_only_bsv LevelFIFOTest1
 test_c_only_bsv LevelFIFOTest1 sysLevelFIFOTest1.c.out.expected
 
-test_veri_only_bsv SyncLevelFIFOTest {} $iverilog09_bug
-test_c_only_bsv SyncLevelFIFOTest sysSyncLevelFIFOTest.c.out.expected
+# The output differs depending on whether aggr-conds is on;
+# we ensure that it is off, to match the current expected file.
+# This could be changed to aggr-conds on, but the output would
+# need to be audited to ensure that it is correct.
+#
+test_veri_only_bsv_modules_options SyncLevelFIFOTest {} {-no-aggressive-conditions} {} $iverilog09_bug
+test_c_only_bsv_modules_options SyncLevelFIFOTest {} {-no-aggressive-conditions} sysSyncLevelFIFOTest.c.out.expected
 
 
 ##

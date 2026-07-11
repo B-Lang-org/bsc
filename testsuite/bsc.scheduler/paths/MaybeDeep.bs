@@ -1,0 +1,30 @@
+package MaybeDeep where
+
+import SplitPorts
+
+-- Outer struct that is DeepSplit.  Its 'lo' field is a plain Bool (a leaf
+-- port), and its 'mb' field is a Maybe Bool.  DeepSplit recurses into the
+-- struct fields, but Maybe has 2 constructors, so the DeepSplitPorts'
+-- recursion TERMINATES at 'mb', producing a single packed port (tag+payload)
+-- rather than separate tag/payload ports.
+struct Outer =
+  lo :: Bool
+  mb :: Maybe Bool
+ deriving (Bits)
+
+interface Ifc =
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkMaybeDeep #-}
+mkMaybeDeep :: Module Ifc
+mkMaybeDeep =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit a) =
+        -- The single packed union output (mb) is built combinationally from
+        -- the packed union input (mb): tag and payload both flow through.
+        -- The leaf output lo comes from a register, so it has no path, and the
+        -- leaf input lo is unused.
+        DeepSplit (Outer { lo = r
+                         ; mb = if isValid a.mb then a.mb else Invalid })

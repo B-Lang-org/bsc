@@ -12,7 +12,7 @@ order: [bar, RL_baz]
 -----
 
 === resources (IfcRuleWarning sysIfcRuleWarning):
-[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h97, 1)])]
+[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write the_r_PLUS_1___d2, 1)])]
 
 -----
 

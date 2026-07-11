@@ -1,0 +1,31 @@
+package ArgSelectorPath where
+
+import SplitPorts
+
+-- Split input: a selector field, one data field, one unused field.
+struct Cmd =
+  sel  :: Bool
+  d    :: Bool
+  dead :: Bool
+ deriving (Bits)
+
+interface TopIfc =
+  -- split input (3 ports), single unsplit Bool output
+  run :: ShallowSplit Cmd -> Bool
+
+-- The synthesized module takes a Bool MODULE ARGUMENT (port input) 'v'.
+-- A split method-input field 'sel' selects between the module-argument-driven
+-- value 'v' and the split data field 'd'.  The path therefore ENTERS via the
+-- split method input (run_1_sel / run_1_d) and exits through logic that also
+-- depends on the module argument 'v':
+--   run = sel ? v : d
+-- so the output 'run' is combinationally reachable from run_1_sel, run_1_d,
+-- AND the module-argument port v.  The unused field 'dead' yields no path.
+-- This exercises a split method input feeding a mux whose other leg is the
+-- module's own argument port (the missing module-argument + split-input case).
+{-# synthesize mkArgSelectorPath #-}
+mkArgSelectorPath :: Bool -> Module TopIfc
+mkArgSelectorPath v =
+  module
+    interface
+      run (ShallowSplit c) = if c.sel then v else c.d

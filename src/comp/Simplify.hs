@@ -9,6 +9,7 @@ import ErrorUtil(internalError)
 import Id(Id, isKeepId, isDictId)
 import CSyntax hiding(cLetRec)
 import CSyntaxTypes()
+import CSyntaxUtil(isCPVar)
 import CFreeVars(getFVE, getPV, getFVD)
 import Subst
 import CType(getCQArrows)
@@ -324,10 +325,6 @@ selectSimpleL r lds =
 --                            "\nnoquals:\n" ++
 --                            ppReadable (map (flip CLValueSign []) ds) ++
 --                            "\nwithquals:\n" ++ ppReadable [ ld | ld@(CLValueSign _ (_ : _)) <- lds ] ++ "\n") $
-
-isCPVar :: CPat -> Bool
-isCPVar (CPVar _) = True
-isCPVar _ = False
 
 -- collect variables captured in a let arm
 -- different from *bound* variables, e.g., consider:

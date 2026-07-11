@@ -67,7 +67,7 @@ import VModInfo
 import Pragma
 import Changed(changedOrId)
 import ISyntax
-import ISyntaxSubst(eSubst, eSubstBatch)
+import ISyntaxSubst(eSubst, eSubstBatch, tSubstBatch)
 import IConv(iConvT, iConvExpr)
 import ISyntaxUtil
 import IExpandUtils
@@ -318,7 +318,7 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
           in
               -- return the expression that should replace the heap pointer,
               -- and maybe a Def, if the expression is a def reference
-              if simple e || isActionType t then
+              if simple e || isActionType t || isPairType t then
                   -- inline the expression, no def is created for this heap ptr
                   (e', Nothing)
               else
@@ -1043,11 +1043,11 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
    showTopProgress ("Elaborating method " ++ quote (pfpString i))
    setIfcSchedNameScopeProgress (Just (IEP_Method i False))
    (_, P p e') <- evalUH e
-   let (ins, eb) = case e' of
-        ICon _ (ICMethod _ ins eb) -> (ins, eb)
+   let (ins, outs, eb) = case e' of
+        ICon _ (ICMethod _ ins outs eb) -> (ins, outs, eb)
         _ -> internalError ("iExpandField: expected ICMethod: " ++ ppReadable e')
    (its, ((IDef i1 t1 e1 _), ws1, fi1), ((IDef wi wt we _), ws2, fi2))
-       <- iExpandMethod modId 1 [] (pConj implicitCond p) clkRst (i, bi, ins, eb)
+       <- iExpandMethod modId 1 [] (pConj implicitCond p) clkRst (i, bi, ins, outs, eb)
    let wp1 = wsToProps ws1 -- default clock domain forced in by iExpandField
    let wp2 = wsToProps ws2
    setIfcSchedNameScopeProgress Nothing
@@ -1056,10 +1056,10 @@ iExpandField modId implicitCond clkRst (i, bi, e, t) = do
 
 -- expand a method
 iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, e) = do
+iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
     (_, P p e') <- evalUH e
     case e' of
@@ -1069,36 +1069,63 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, e) = do
         -- a GenWrap-added context that wasn't satisfied, and GenWrap
         -- should only be adding Bits)
         errG (reportNonSynthTypeInMethod modId i e')
-     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p
-     _ -> iExpandMethod' implicitCond curClk (i, bi, e') p
+     ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p
+     _ -> iExpandMethod' implicitCond curClk (i, bi, outs, e') p
 
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
-                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
+                 (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
                  Id -> IType -> Pred HeapData ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, eb) li ty p = do
-    -- traceM ("iExpandMethodLam " ++ ppString i ++ " " ++ show ins)
-    let i' :: Id
-        i' = mkId (getPosition i) $ mkFString $ head ins
-        -- substitute argument with a modvar and replace with body
-        eb' :: HExpr
-        eb' = eSubst li (ICon i' (ICMethArg ty)) eb
+iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p = do
+    if null ins then internalError "iExpandMethodLam: no inputs" else return ()
+    let arg_port_types       = itTupleElems ty
+    when (length arg_port_types /= length (head ins)) $
+        internalError $ "iExpandMethodLam: port-count mismatch for method " ++
+                        ppString i ++ " arg type " ++ ppReadable ty ++
+                        " (" ++ show (length arg_port_types) ++
+                        " ports vs " ++ show (length (head ins)) ++
+                        " names): " ++ show (head ins)
+    let arg_ports :: [(Id, IType)]
+        arg_ports = zipWith (\name pt -> (mkId (getPosition i) (mkFString name), pt))
+                            (head ins) arg_port_types
+        arg_expr  = buildArgExpr ty arg_ports
+        eb' = eSubst li arg_expr eb
     (its, (d, ws1, wf1), (wd, ws2, wf2)) <-
-        iExpandMethod modId (n+1) (i':args) (pConj implicitCond p) clkRst (i, bi, tail ins, eb')
-    let inps :: [VPort]
+        iExpandMethod modId (n+1) (map fst arg_ports ++ args)
+                      (pConj implicitCond p) clkRst (i, bi, tail ins, outs, eb')
+    let inps :: [[VPort]]
         inps = vf_inputs wf1
-    let wf1' :: VFieldInfo
+        arg_vports = map (id_to_vPort . fst) arg_ports
+        wf1' :: VFieldInfo
         wf1' = case wf1 of
-                  (Method {}) -> wf1 { vf_inputs = ((id_to_vPort i'):inps) }
+                  (Method {}) -> wf1 { vf_inputs = arg_vports : inps }
                   _ -> internalError "iExpandMethodLam: unexpected wf1"
-    return ((i', ty) : its, (d, ws1, wf1'), (wd, ws2, wf2))
+    return (arg_ports : its, (d, ws1, wf1'), (wd, ws2, wf2))
 
-iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, HExpr) ->
+-- Build an HExpr matching the given tuple type's shape, with one ICMethArg
+-- per hardware input port (in the order given).
+buildArgExpr :: IType -> [(Id, IType)] -> HExpr
+buildArgExpr ty arg_ports
+  | ty == itPrimUnit =
+      ICon idPrimUnit (ICTuple { iConType = itPrimUnit, fieldIds = [] })
+  | otherwise = case ty of
+      ITAp (ITAp (ITCon ip _ _) t1) t2 | ip == idPrimPair ->
+        let n1 = length (itTupleElems t1)
+            (l1, l2) = splitAt n1 arg_ports
+            e1 = buildArgExpr t1 l1
+            e2 = buildArgExpr t2 l2
+        in iMkPairAt noPosition t1 t2 e1 e2
+      _ -> case arg_ports of
+             [(pid, _)] -> ICon pid (ICMethArg ty)
+             _ -> internalError $ "buildArgExpr: port count mismatch for " ++
+                                  ppReadable ty
+
+iExpandMethod' :: HPred -> HClock -> (Id, BetterInfo.BetterInfo, [String], HExpr) ->
                   Pred HeapData ->
-                 G ([(Id, IType)], (HDef, HWireSet, VFieldInfo),
+                 G ([IMethodInput], (HDef, HWireSet, VFieldInfo),
                     (HDef, HWireSet, VFieldInfo))
-iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
+iExpandMethod' implicitCond curClk (i, bi, outs, e0) p0 = do
         norm <- getTypeNormalizerC
         -- want the result type, not a type including arguments
         let methType :: IType
@@ -1142,7 +1169,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
                         IAps f@(ICon _ (ICTuple {})) ts [e1, e2]
                           | isActionType methType
                           -> let pos = getIdPosition i
-                                 vt = actionValue_BitN methType
+                                 vt = getAV_Type methType
                                  v = icUndetAt pos vt UNotUsed
                              in  (IAps f ts [v, icNoActions], ws)
                         _ -> internalError "iExpandMethod: fixupActionWireSet"
@@ -1158,8 +1185,8 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
             rdyId      = mkRdyId i
         let enablePort :: Maybe VPort
             enablePort = toMaybe (isActionType methType) (BetterInfo.mi_enable bi)
-        let outputPort :: Maybe VPort
-            outputPort = toMaybe (isValueType  methType) (BetterInfo.mi_result bi)
+        let outputPorts :: [VPort]
+            outputPorts = map (id_to_vPort . mkId (getPosition i) . mkFString) outs
         let rdyPort :: VPort
             rdyPort    = BetterInfo.mi_ready bi
 
@@ -1171,12 +1198,12 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
                  Method { vf_name = i,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = outputPort, vf_enable = enablePort }),
+                          vf_outputs = outputPorts, vf_enable = enablePort }),
                 ((IDef rdyId itBit1 readySignal []), final_ws,
                  Method { vf_name = rdyId,
                           vf_clock = methClock, vf_reset = methReset,
                           vf_mult = 1, vf_inputs = [],
-                          vf_output = Just rdyPort, vf_enable = Nothing }))
+                          vf_outputs = [rdyPort], vf_enable = Nothing }))
 
 -- deduce clock name for VFieldInfo
 -- type required to control ancestry-checking with action methods
@@ -2178,6 +2205,24 @@ evalStringList e = do
       else internalError ("evalStringList con: " ++ show i)
     _ -> nfError "evalStringList" e'
 
+-- Evaluate a `List (List String)` literal into `[[String]]`.
+evalStringListList :: HExpr -> G ([[String]], Position)
+evalStringListList e = do
+  e' <- evaleUH e
+  case e' of
+    IAps (ICon i _) _ [a] ->
+      if i == idCons noPosition then do
+        a' <- evaleUH a
+        case a' of
+          IAps (ICon _ (ICTuple {})) _ [e_h, e_t] -> do
+            (h, _) <- evalStringList e_h
+            (t, _) <- evalStringListList e_t
+            return (h:t, getIExprPosition e')
+          _ -> internalError ("evalStringListList Cons: " ++ showTypeless a')
+      else if i == idPrimChr then return ([], getIExprPosition e')
+      else internalError ("evalStringListList con: " ++ show i)
+    _ -> nfError "evalStringListList" e'
+
 -----------------------------------------------------------------------------
 
 evalHandle :: HExpr -> G Handle
@@ -2530,8 +2575,7 @@ walkNF e =
                 IAps f@(ICon i_sel (ICSel { })) ts es -> do
                     (p, es', ws) <- walkList walkNF es
 
-                    norm <- getTypeNormalizerC
-                    let uIsAction = isActionType (iGetTypeNorm norm u)
+                    uIsAction <- isActionType <$> dropArrows (length es) <$> instFunType (iGetType f) ts
 
                     -- handle method calls (ICSel of a ICStateVar)
                     let handleMethod meth_id svar = do
@@ -2562,20 +2606,16 @@ walkNF e =
                         -- XXX is adding the clock to the wire set redundant?
                         clk@(ICon i (ICClock { iClock = c })) : _  -> upd (pConj p0 p) (IAps f ts es') (wsAddClock c ws)
 
-                        -- if the outer selector is avValue_ or avAction_
-                        -- and the inner is a method call
-                        [(IAps sel@(ICon i_sel2 (ICSel { })) ts_2 es_2)]
-                            | (i_sel == idAVValue_ || i_sel == idAVAction_) -> do
-                            case es_2 of
-                                st@(ICon i (ICStateVar { iVar = v })) : _ ->
-                                    handleMethod i_sel2 v
-                                _ -> internalError ("walkNF: selector should be a method call")
+                        -- We can be selecting the avValue or avAction from an ActionValue method,
+                        -- or a tuple member out of the result of calling a method with multiple outputs,
+                        -- and need to recurse.
+                        [e] | (i_sel == idAVValue_ ||
+                               i_sel == idAVAction_ ||
+                               i_sel == idPrimFst ||
+                               i_sel == idPrimSnd) -> do
+                          do (P p' e', ws) <- walkNF e
+                             upd (pConj p0 p') (IAps f ts [e']) ws
 
-                        -- the inner selector can wind up on the heap
-                        -- because of "move" in evalHeap
-                        [e_ref@(IRefT t ptr ref)] | (isitActionValue_ t) || (isitAction t)
-                            ->  do (P p' e', ws) <- walkNF e_ref
-                                   upd (pConj p0 p') (IAps f ts [e']) ws
                         _ ->    do when doDebug $ traceM "not stvar or foreign\n"
                                    when doDebug $ traceM (show u ++ "\n")
                                    when doDebug $ traceM (show es' ++ "\n")
@@ -2589,6 +2629,11 @@ walkNF e =
                    _ <- internalError ("PrimWhenPred" ++ ppReadable e)
                    (P p' e', ws) <- walkNF e
                    upd (pConjs [p0, p, p']) e' ws
+
+                IAps f@(ICon _ (ICTuple {})) ts [e1, e2] -> do
+                    (P pe1 e1', ws1) <- walkNF e1
+                    (P pe2 e2', ws2) <- walkNF e2
+                    upd (pConj pe1 pe2) (IAps f ts [e1', e2']) (wsJoin ws1 ws2)
 
                 -- Any other application is not in NF (which is unexpected?)
                 IAps f ts es -> do
@@ -2709,14 +2754,21 @@ evalUH e = do
             case e of
               IRefT _ p r -> do updHeap "evalUH-array" (p, r) (HWHNF pe Nothing)
                                 return (e, pe)
-              _ -> do e'' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
+              _ -> do e'' <- toHeapWHNF "eval-uh" t pe Nothing
                       return (e'', pe)
           _ -> do
             pe' <- unheap pe
             when (doTraceHeapAlloc && isRef e0) $
                 traceM ("wasted re-heap 2: " ++ ppReadable (e, e0, pe'))
-            e' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
-            -- could use isRef here to preserve the original reference
+            e' <- case e0 of
+                    ICon   _ _   | p0 == pTrue -> return e0
+                    IRefT  _ _ _ | p0 == pTrue -> return e0
+                    IAps f ts es -> do
+                      t <- dropArrows (length es) <$> instFunType (iGetType f) ts
+                      toHeapWHNF "eval-uh" t pe Nothing
+                    _ -> do -- handle ILam and ILAM since they are WHNF
+                      normC <- getTypeNormalizerC
+                      toHeapWHNF "eval-uh" (iGetTypeNorm normC e0) pe Nothing
             return (e', pe')
 
 -- Like evalUH, but check for implicit conditions.
@@ -2843,7 +2895,7 @@ evalStaticOp' doUH doBK doUndet e resultType handler = do
         IRefT _ _ r -> do
             old_cell <- getHeap r
             let old_name = hc_name old_cell
-            res' <- toHeapWHNF "set-sel-pos" (pExprToHExpr res) old_name
+            res' <- toHeapWHNF "set-sel-pos" resultType res old_name
             return $ P pTrue res'
         _ -> return res
 
@@ -2914,7 +2966,13 @@ evalApAccum :: String -> M.Map Id HExpr -> M.Map Id IType -> HExpr -> [Arg] -> G
 
 -- Continue accumulating for ILam with expression argument
 evalApAccum tag exprCtx typeCtx (ILam i t body) (E a : as) = do
-  a' <- toHeap "apply-accum" a (Just i)
+  -- Apply accumulated type variable substitutions to t before allocating the heap cell.
+  -- typeCtx may bind type vars that appear in t (e.g. for polymorphic functions like
+  -- displayHex :: forall a sa. (Bits a sa) => a -> Action, where t = ITVar a until
+  -- the ILAM args have been accumulated into typeCtx).
+  norm <- getTypeNormalizerC
+  let t' = changedOrId norm (tSubstBatch typeCtx t)
+  a' <- toHeap "apply-accum" t' a (Just i)
   -- position information is clobbered by this point
   when doDebug $ traceM ("accum apply arg=" ++ ppReadable (a', a))
   evalApAccum "ILam-accum" (M.insert i a' exprCtx) typeCtx body as
@@ -2979,7 +3037,7 @@ evalAp' e@(ICon i ic)          as = conAp i ic e as
 evalAp' e@(ILam _ _ _)         [] = return (pExpr e)
 -- place arg onto heap, substitute arg with heap reference in function body
 evalAp'   (ILam i t e)   (E a:as) = do
-        a' <- toHeap "apply" a (Just i)
+        a' <- toHeap "apply" t a (Just i)
         -- position information is clobbered by this point
         when doDebug $ traceM ("apply arg=" ++ ppReadable (a', a))
         evalApAccum "ILam" (M.singleton i a') M.empty e as
@@ -3039,7 +3097,8 @@ evalHeap (ptr, ref) = do
                            | otherwise = id
                     struct_field_names =
                          [Just (prefix (unQualId name)) | name <- field_names]
-                as' <- zipWithM (toHeap "move-tuple") as struct_field_names
+                argTys <- takeArgTypes (length as) <$> instFunType (iGetType f) ts
+                as' <- mapM (\(t, a, n) -> toHeap "move-tuple" t a n) $ zip3 argTys as struct_field_names
                 when doDebug $ traceM ("evalHeap move #1\n" ++ ppReadable (zip as' as))
                 let pe'' = P p (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
@@ -3057,8 +3116,11 @@ evalHeap (ptr, ref) = do
                                                    | strictPrim p = internalError ("evalHeap - prim should be evaluated:" ++ ppReadable (p, pe'))
                                                    | otherwise = True
                     isLazyOp _ = False
-                let th = if (isLazyOp f) then toHeapInferName else toHeapWHNFInferName
-                as' <- mapM (th "move-ap") as
+                argTys <- takeArgTypes (length as) <$> instFunType (iGetType f) ts
+                let th t a = if isLazyOp f
+                             then toHeap "move-ap" t a Nothing
+                             else toHeapWHNF "move-ap" t (P pTrue a) Nothing
+                as' <- zipWithM th argTys as
                 when doDebug $ traceM ("evalHeap move #2\n" ++ ppReadable (zip as' as))
                 let pe'' = P p (mapIExprPosition cross
                                 ((heapCellToHExpr hc),
@@ -3151,10 +3213,41 @@ conAp' i (ICPrim _ PrimIsRawUndefined) _ (T t : E e : as) = do
     _ -> -- do traceM ("IsRawUndefined: False")
             return (P p iFalse)
 
-conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E meth] = do
-  (inNames, _) <- evalStringList eInNames
+conAp' i (ICPrim _ PrimMethod) _ [T t, E eInNames, E eOutNames, E meth] = do
+  (inNames, _) <- evalStringListList eInNames
+  (outNames, _) <- evalStringList eOutNames
   P p meth' <- eval1 meth
-  return $ P p $ ICon (dummyId noPosition) $ ICMethod {iConType = t, iInputNames = inNames, iMethod = meth'}
+  return $ P p $ ICon (dummyId noPosition) $ ICMethod {
+    iConType = t,
+    iInputNames = inNames,
+    iOutputNames = outNames,
+    iMethod = meth'
+  }
+
+-- A {-# noinline #-} Bluespec function is compiled into a separate module and
+-- referenced like a foreign function (GenFuncWrap emits a Cforeign for it).
+-- primNoInline records the (possibly split) input/output port names of that
+-- noinline function onto the reference, by rewriting foports.  The per-port
+-- sizes come from the (bitified) type; zero-width ports are dropped, to match
+-- the names (which inputPortNames/outputPortNames have already filtered).
+conAp' i (ICPrim _ PrimNoInline) _ [T _t, E eInNames, E eOutNames, E fe] = do
+  (inNames, _) <- evalStringListList eInNames
+  (outNames, _) <- evalStringList eOutNames
+  P p fe' <- eval1 fe
+  case fe' of
+    ICon fi fc@(ICForeign { iConType = ft }) ->
+      let (argTys, resTy) = itGetArrows ft
+          -- pair each (non-zero-width) port name with its size, flattening a
+          -- bitified tuple type into the bit-sizes of its ports
+          mkPorts names ty = zip names (filter (/= 0) (bitTupleSizes ty))
+          -- inputs are grouped per argument (kept as a 2-d list)
+          ips = zipWith mkPorts inNames argTys
+          ops = mkPorts outNames resTy
+      in  return $ P p $ ICon fi (fc { foports = Just (ips, ops) })
+    -- the argument is the foreign-function reference GenFuncWrap produced for
+    -- the noinline function, so it is always an ICForeign here
+    _ -> internalError ("conAp' PrimNoInline: not a foreign-function reference: " ++
+                        ppReadable fe')
 
 -- XXX is this still needed?
 conAp' i (ICUndet { iConType = t })  e as | t == itClock =
@@ -3189,11 +3282,11 @@ conAp' _ (ICIs { conTagInfo = cti }) i as =
           evalStaticOp' True True False e ty (doIs i tys cti)
       _ -> internalError ("conAp': ICIs: " ++ ppReadable (mkAp i as))
 conAp' c (ICOut { iConType = outty, conTagInfo = cti }) o as = do
-    norm <- getTypeNormalizer
     case dropT as of
       E e : as' -> do
           let tys = takeT as
-              ty = case itInstNorm norm outty tys of
+          outty' <- instFunType outty tys
+          let ty = case outty' of
                      (ITAp _ t) -> t
                      _ -> internalError "IExpand.conAp' ICOut: ty"
               resType = dropArrows (length as') ty
@@ -3205,11 +3298,11 @@ conAp' c (ICOut { iConType = outty, conTagInfo = cti }) o as = do
           evalStaticOp' True True False e resType (doOut o c tys ty cti as')
       _ -> internalError ("conAp': ICOut: " ++ ppReadable (mkAp o as))
 conAp' c (ICSel { iConType = selty, selNo = n }) sel as = do
-    norm <- getTypeNormalizer
     case dropT as of
       E e : as' -> do
           let tys = takeT as
-              ty = case itInstNorm norm selty tys of
+          selty' <- instFunType selty tys
+          let ty = case selty' of
                      (ITAp _ t) -> t
                      _ -> internalError "IExpand.conAp' ICSel: ty"
               resType = dropArrows (length as') ty
@@ -3564,8 +3657,8 @@ conAp' tfs (ICPrim _ PrimUpdateBitArray) fe [T (ITNum n), E bs, E i, E b] = do
      _ -> internalError ("PrimUpdateBitArray - not array: " ++ ppReadable e')
 
 conAp' i (ICPrim _ PrimUninitBitArray) fe [T (ITNum len), E pos, E name] = do
-  pos' <- toHeapInferName "uninit-bit" pos
-  name' <- toHeapInferName "uninit-bit" name
+  pos' <- toHeap "uninit-bit" itPosition pos Nothing
+  name' <- toHeap "uninit-bit" itString name Nothing
   let uninit_bit n = mkArrayCell $ IAps icPrimUninitialized [itBit1] [pos', name'']
         where name'' = iMkStrConcat name' (iMkString ("[" ++ (show n) ++ "]"))
   elems <- mapM uninit_bit [0..len-1]
@@ -3879,7 +3972,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
               when doTrans $ traceM ("conAp: iTransform fallthrough: " ++ ppReadable (op, mkAp fe as'))
               errh <- getErrHandle
               case (iTransExpr errh (mkAp fe as')) of
-                  (e', True) -> do
+                  (e', True) | isBitType (iGetType e') -> do
                     -- we used to evaluate further here, but that shouldn't
                     -- be necessary (and probably indicates a bug elsewhere)
                     when (doDebug || doTrans) $ traceM ("conAp: iTransform result: " ++ ppReadable e')
@@ -3919,13 +4012,14 @@ conAp' i ic@(ICPrim _ PrimGenModuleName) p [] = do
 conAp' i ic@(ICPrim _ PrimIf) p (T ty : E c : E t : E e : as@(_:_)) = do
  --       traceM ("as: " ++ (show as))
  --       traceM ("ty: " ++ (show ty))
-        as' <- mapM toHeapArg as
+        let argTys = takeArgTypes (length as) ty
+            -- avoid duplicating arguments to if
+            toHeapArg at (E e) = toHeap "if-arg" at e Nothing >>= return . E
+            toHeapArg _  a     = return a
+        as' <- zipWithM toHeapArg argTys as
         when doDebug $ traceM ("if " ++ ppReadable (zip as' as))
         conAp i ic p [T ty', E c, E (mkAp t as'), E (mkAp e as')]
   where ty' = dropArrows (length as) ty
-        -- avoid duplicating arguments to if
-        toHeapArg (E e) = toHeapInferName "if-arg" e >>= return . E
-        toHeapArg a = return a
 
 conAp' i ic@(ICPrim _ PrimIf) f as@[T ty, E c, E t, E e] = doIf f as
 
@@ -4027,7 +4121,7 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                     -- XXX heap refs; does it really help?
                     let mkCell pe = do
                           IRefT _ ref_p ref_r
-                              <- toHeapWHNFConInferName "DynSel" pe
+                              <- toHeapWHNFCon "DynSel" elem_ty' pe Nothing
                           return (ArrayCell ref_p ref_r)
                     cells' <- mapM mkCell pes
                     let arr' = Array.listArray (Array.bounds arr) cells'
@@ -4221,7 +4315,7 @@ ppExprRefs r@(IRefT _ _ _) = do
 doArrayNew :: HExpr -> [Arg] -> G PExpr
 doArrayNew f@(ICon cn (ICPrim {primOp = PrimArrayNew, iConType = conType })) [T t, E e1, E val] = do
      -- save val to prevent redundant evaluation
-     val' <- toHeapInferName "array-new" val
+     val' <- toHeap "array-new" t val Nothing
      norm <- getTypeNormalizer
      let resultType' = norm resultType
      evalStaticOp e1 resultType' (handleArrayNew val' resultType')
@@ -4317,7 +4411,7 @@ doArrayUpdate f@(ICon upd_i (ICPrim {iConType = opType}))
   case idx_e' of
     ICon _ (ICInt { iVal = IntLit { ilValue = index } }) -> do
         -- heap val_e to prevent redundant evaluation
-        val_e' <- toHeapInferName "array-upd-val" val_e
+        val_e' <- toHeap "array-upd-val" elem_t val_e Nothing
         -- this doesn't include "idx_p"; we add that to the result
         let handleArrayUpdate (ICon arr_i icarr@(ICLazyArray { iArray = arr })) =
                 if iArrayInRange arr index then do
@@ -4399,7 +4493,7 @@ improveIf f t cnd (ICon i1 (ICLazyArray { iConType = ct1, iArray = arr1 }))
                                       else do let e1 = IRefT elemType (ac_ptr ref1) (ac_ref ref1)
                                               let e2 = IRefT elemType (ac_ptr ref2) (ac_ref ref2)
                                               let cell' = IAps f [elemType] [cnd, e1, e2]
-                                              IRefT _ p r <- toHeapConInferName "improve-if" cell'
+                                              IRefT _ p r <- toHeapCon "improve-if" elemType cell' Nothing
                                               return (ArrayCell p r))
                        refs1 refs2
      -- XXX use i1 or i2?
@@ -4454,9 +4548,7 @@ improveIf f t cnd (IAps (ICon i1 c1@(ICCon {conTagInfo = cti1})) ts1 es1)
                                                            -- because that test is otherwise buried in i1 == i2
                                                            = do
   when doTraceIf $ traceM ("improveIf ICCon triggered" ++ show i1 ++ show i2)
-  norm <- getTypeNormalizer
-  let realConType = itInstNorm norm (iConType c1) ts1
-      (argTypes, _) = itGetArrows realConType
+  argTypes <- (fst . itGetArrows) <$> instFunType (iConType c1) ts1
   when (length argTypes /= length es1 || length argTypes /= length es2) $ internalError ("improveIf Con:" ++ ppReadable (argTypes, es1, es2))
   (es', bs) <- mapAndUnzipM (\(t, e1, e2) -> improveIf f t cnd e1 e2) (zip3 argTypes es1 es2)
   -- unambiguous improvement because the ICCon has propagated out
@@ -4467,9 +4559,7 @@ improveIf f t cnd (IAps (ICon i1 c1@(ICTuple {})) ts1 es1)
                   (IAps (ICon i2 c2@(ICTuple {})) ts2 es2) -- tuple should match since types match
                                                              = do
   when doTraceIf $ traceM ("improveIf ICTuple triggered" ++ show i1 ++ show i2)
-  norm <- getTypeNormalizer
-  let realConType = itInstNorm norm (iConType c1) ts1
-      (argTypes, _) = itGetArrows realConType
+  argTypes <- (fst . itGetArrows) <$> instFunType (iConType c1) ts1
   when (length argTypes /= length es1 || length argTypes /= length es2) $ internalError ("improveIf Con:" ++ ppReadable (argTypes, es1, es2))
   (es', bs) <- mapAndUnzipM (\(t, e1, e2) -> improveIf f t cnd e1 e2) (zip3 argTypes es1 es2)
   -- unambiguous improvement since the ICTuple has propagated out
@@ -4508,9 +4598,7 @@ improveIf f t cnd thn@(IAps (ICon i1 c1@(ICCon {})) ts1 es1)
   | numCon (conTagInfo c1) == 1
   = do
       when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
-      norm <- getTypeNormalizer
-      let realConType = itInstNorm norm (iConType c1) ts1
-          (argTypes, _) = itGetArrows realConType
+      argTypes <- (fst . itGetArrows) <$> instFunType (iConType c1) ts1
       when (length argTypes /= length es1) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es1))
       let mkUndet t = icUndetAt (getIdPosition i2) t u
       (es', bs) <- mapAndUnzipM (\(t, e1) -> improveIf f t cnd e1 (mkUndet t)) (zip argTypes es1)
@@ -4521,9 +4609,7 @@ improveIf f t cnd thn@(ICon i1 (ICUndet { iuKind = u }))
   | numCon (conTagInfo c2) == 1
   = do
       when doTraceIf $ traceM ("improveIf ICCon/ICUndet triggered" ++ ppReadable (cnd,thn,els))
-      norm <- getTypeNormalizer
-      let realConType = itInstNorm norm (iConType c2) ts2
-          (argTypes, _) = itGetArrows realConType
+      argTypes <- (fst . itGetArrows) <$> instFunType (iConType c2) ts2
       when (length argTypes /= length es2) $ internalError ("improveIf Con/Undet:" ++ ppReadable (argTypes, es2))
       let mkUndet t = icUndetAt (getIdPosition i1) t u
       (es', bs) <- mapAndUnzipM (\(t, e2) -> improveIf f t cnd (mkUndet t) e2) (zip argTypes es2)
@@ -4656,7 +4742,7 @@ improveDynSel ic idx_e idx_sz arr_i arr_ty arr_bounds elem_es =
 -}
         _ -> do
           let mkCell e = do
-                IRefT _ ref_p ref_r <- toHeapWHNFConInferName "improveDynSel" e
+                IRefT _ ref_p ref_r <- toHeapWHNFCon "improveDynSel" elem_ty e Nothing
                 return (ArrayCell ref_p ref_r)
           cells <- mapM mkCell elem_es
           let arr' = Array.listArray arr_bounds cells
@@ -4852,7 +4938,7 @@ doSel sel s tys ty n as ee (p, e) =
               -- drop arguments to value side of ActionValue method (see AMethValue)
               -- and fixup selector type (instantiating and dropping missing types)
               IAps csel@(ICon ic sel2@(ICSel { })) tys2 args@(sv@(ICon _ (ICStateVar { })):_) -> do
-                let resType = dropArrows (length args) (itInstNorm (changedOrId norm) (iConType sel2) tys2)
+                resType <- dropArrows (length args) <$> instFunType (iConType sel2) tys2
                 let newSelTy = (iGetTypeNorm norm sv) `itFun` resType
                 let sel2' = sel2 { iConType = newSelTy }
                 let e'' = (IAps (ICon ic sel2') [] [sv])
@@ -4867,6 +4953,11 @@ doSel sel s tys ty n as ee (p, e) =
         -- v | C | .s
         -- canonical applications are strict (e.g. method call applications)
         _ | isCanon e -> bldApUH' "Sel" sel (map T tys ++ (E ee : as))
+
+        -- tuple section from a multi-output method result
+        _ | s == idPrimFst || s == idPrimSnd -> do
+          (_, P p e') <- evalUH e
+          addPredG p $ bldApUH' "Sel PrimFst/Snd" sel (map T tys ++ (E e' : as))
 
         -- otherwise fail
         _ -> internalError ("doSel: " ++ ppReadable (sel, e, as))
@@ -4950,7 +5041,7 @@ cExprToIExpr tag ce it = do
       --traceM(err_tag ++ "; ie: " ++ ppReadable ie)
       ie' <- case ie of
                -- Applications are worth putting on the heap
-               IAps _ _ _ -> toHeap "cexpr-cache" ie Nothing
+               IAps _ _ _ -> toHeap "cexpr-cache" it ie Nothing
                -- cache everything else (ICon, ILam, ILAM) directly
                _          -> return ie
       insertCExprCache ce it ie'

@@ -241,6 +241,9 @@ idFromWrapField = prelude_id_no fsFromWrapField
 idToWrapField = prelude_id_no fsToWrapField
 idSaveFieldPortTypes = prelude_id_no fsSaveFieldPortTypes
 
+idFromWrapNoInline :: Id
+idFromWrapNoInline = prelude_id_no fsFromWrapNoInline
+
 -- Used by desugaring
 id_lam, id_if, id_read, id_write :: Position -> Id
 id_lam pos = mkId pos fs_lam

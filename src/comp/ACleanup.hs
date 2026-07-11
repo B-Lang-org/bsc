@@ -6,7 +6,7 @@ import DisjointTest(DisjointTestState, initDisjointTestState,
                     addADefToDisjointTestState, checkDisjointExprWithCtx)
 import Data.Maybe
 import Flags(Flags)
-import Control.Monad(when)
+import Control.Monad(when, zipWithM)
 import Control.Monad.State(StateT, evalStateT, liftIO, get, put)
 import FStringCompat(mkFString)
 import Position(noPosition)
@@ -142,17 +142,22 @@ cleanupActions flags pred as =
                         newid <- newName
                         addDef (ADef newid aTBool
                                 (APrim newid aTBool PrimBOr [cond, cond']) [])
-                        newargs <-
-                            (mapM (\ (arg, arg') ->
-                                do
-                                    argid <- newName
-                                    let argtyp = (aType arg)
-                                    addDef (ADef argid argtyp
-                                        (APrim argid argtyp PrimIf [cond, arg, arg']) [])
-                                    return (ASDef argtyp argid))
-                                         (zip args args'))
-                        let newcall = (ACall id methodid
-                                ((ASDef aTBool newid):newargs))
+                        -- For SplitPorts args (ATuple), merge per element so
+                        -- the resulting AExpr keeps the source-arg shape.
+                        let mergeOne arg arg' = do
+                                argid <- newName
+                                let argtyp = (aType arg)
+                                addDef (ADef argid argtyp
+                                    (APrim argid argtyp PrimIf
+                                       [cond, arg, arg']) [])
+                                return (ASDef argtyp argid)
+                            mergeArg (ATuple ty es) (ATuple _ es') = do
+                                es'' <- zipWithM mergeOne es es'
+                                return (ATuple ty es'')
+                            mergeArg arg arg' = mergeOne arg arg'
+                        newargs <- zipWithM mergeArg args args'
+                        let newcall = ACall id methodid
+                                            (ASDef aTBool newid : newargs)
 
           -- restR is guaranteed merged amongst itself (see below)
           -- so no more work need be done...
