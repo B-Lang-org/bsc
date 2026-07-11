@@ -9,7 +9,8 @@ module TCMisc(
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
         checkForAmbiguousPreds,
-        propagateFunDeps, isReduciblePred
+        propagateFunDeps, isReduciblePred,
+        warnTransitiveIncoherent
               ) where
 
 import Data.Maybe
@@ -39,7 +40,7 @@ import TIMonad
 import PreIds
 import StdPrel(isPreClass, mkNumInstBody)
 import CSyntax(CExpr(..), CPat(..), CQual(..), CLiteral(..),
-               cTApply, cVApply, anyTExpr)
+               cTApply, cVApply)
 import Literal
 import IntLit
 import SymTab
@@ -217,6 +218,39 @@ mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
                     | idx <- [0..nParams-1] ]
     return (cls, classArgs)
 
+-- Compute the transitive incoherence closure on a fully-merged SolvedBinds,
+-- emitting a warning or error for each binding that becomes transitively incoherent.
+-- Behaviour depends on the class annotation (allowIncoherent) of the depending bind:
+--   incoherent (Just True)  -- suppress: the class explicitly allows incoherence
+--   coherent   (Just False) -- error T0158: coherence promise violated
+--   default    (Nothing)    -- error T0158 if -incoherent-instance-matches is off
+--                           -- warn  T0158 if -incoherent-instance-matches is on
+-- Uses the stored DirectIncoherence info for accurate position and root-cause message.
+warnTransitiveIncoherent :: SolvedBinds -> TI SolvedBinds
+warnTransitiveIncoherent sbs = do
+    let sbs' = computeTransitiveIncoherent sbs
+        newlyIncoherent = getIncoherentIds sbs' `S.difference` getIncoherentIds sbs
+    mapM_ (diagnoseOne (bindTypes sbs') (directIncoherences sbs') (bindClasses sbs'))
+          (S.toList newlyIncoherent)
+    return sbs'
+  where
+    diagnoseOne typeMap diMap clsMap i = do
+      ai <- getAllowIncoherent
+      case M.lookup i clsMap >>= allowIncoherent of
+        Just True -> return ()   -- incoherent class: suppress
+        mallow    ->
+          let msg = (pos, WTransitiveIncoherentMatch tStr rootPredStr rootInstStr)
+          in  if fromMaybe ai mallow then twarn msg else err msg
+      where
+        t  = fromJustOrErr "warnTransitiveIncoherent: id not in bindTypes"
+                           (M.lookup i typeMap)
+        di = fromJustOrErr "warnTransitiveIncoherent: id not in directIncoherences"
+                           (M.lookup i diMap)
+        pos = diPos di
+        (rootPredStr, rootInstStr) = let (np, ni) = niceTypes (diPred di, diInst di)
+                                     in (pfpString np, pfpString ni)
+        tStr = pfpString t
+
 -- expand all type functions
 expTFun :: Type -> TI ([VPred], Type)
 -- Type function application: try to generate a class constraint so
@@ -361,9 +395,12 @@ sat dvs ps p =
                   recordPackageUse mpkg
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
+                  let VPred dictId _ = p
+                      di = DirectIncoherence (apSub s_final (toPred p)) (apSub s_final h) pos
+                      sbs' = addDirectIncoherence dictId di sbs
                   when (allowIncoherent c /= Just True) $
                     twarn (pos, WIncoherentMatch (pfpString vp_pred) (pfpString inst_pred))
-                  return $ ([], sbs, s_final)
+                  return $ ([], sbs', s_final)
             bad_match -> fail ("sat incoherent disallowed: " ++ ppReadable bad_match)
        decrementSatStack
        return return_val
@@ -570,6 +607,10 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                 case x of
                    Nothing -> do
                      let chk = predUnify bound_tyvars pr' h
+                     -- If chk is true, we have found a more-specific instance that could
+                     -- have matched if more type information were known, but didn't because
+                     -- the instance being requested is more general. Any instance matches
+                     -- from this point on are incoherent matches.
                      f (chk || incoherent) is
                    Just (qs, sb, (inst_subst, fd_subst), mpkg) -> do
                      -- when ((not $ null qs) && (not $ isNullSubst inst_subst)) $
@@ -582,7 +623,12 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                                      ppReadable (v', i', m_tv, inst_subst, fd_subst, incoherent))
                      let Inst _ _ (_ :=> h) _ = i
                      let minst = toMaybe incoherent h
-                     return $ Just (qs, sb, fd_subst, minst, mpkg)
+                         -- Mark the binding incoherent, so that warnTransitiveIncoherent
+                         -- can identify bindings that transitively depend on it.
+                         sb'   = if incoherent then markIncoherent sb else sb
+                         -- Record the class so warnTransitiveIncoherent can check allowIncoherent.
+                         sb''  = sb' { solvedClass = Just c }
+                     return $ Just (qs, sb'', fd_subst, minst, mpkg)
 
     let is' = genInsts c bound_tyvars dvs pr'
     r <- f False is'
