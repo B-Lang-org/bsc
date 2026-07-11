@@ -111,10 +111,18 @@ chkAIface aa@(AIInout { aif_inout = r }) =
 chkCond :: AType -> Bool
 chkCond = isBit1
 
+-- A method argument must either be a Bit-typed expression (a single
+-- hardware input port) or an ATuple of Bit-typed elements (one per
+-- hardware input port, for SplitPorts arguments).
+chkMethArg :: AExpr -> Bool
+chkMethArg e = case chkAExpr e of
+                 ATTuple ts -> all isBit ts
+                 t          -> isBit t
+
 chkAAction :: AAction -> Bool
 chkAAction aa@(ACall i m (c:es)) =
     tracePP "chkAAction ACall" aa $
-        all (isBit . chkAExpr) es && chkCond (chkAExpr c)
+        all chkMethArg es && chkCond (chkAExpr c)
 chkAAction afc@(AFCall { aact_objid = i, aact_args = (c:es) }) =
     tracePP "chkAAction AFCall" afc $
         chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
@@ -263,7 +271,7 @@ chkAExpr e@(APrim _ t op es) =
                 else internalError ("chkAExpr: other " ++ ppReadable (e, t, map chkAExpr es))
 
 chkAExpr e@(AMethCall t _ _ es) =
-        if all (isBit . chkAExpr) es
+        if all chkMethArg es
                 then t
                 else internalError ("chkAExpr: methcall " ++ ppReadable e)
 chkAExpr e@(AFunCall { ae_type = t, ae_args = es }) =

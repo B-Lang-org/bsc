@@ -61,10 +61,12 @@ getSingleMethodOutputPort stateMap modId methId =
                             ppReadable (modId, methId, ports))
 
 -- The output port at the given tuple-selector index, for a method whose result
--- is split across multiple output ports.
+-- is split across multiple output ports.  ATupleSel indices are 1-based (AConv
+-- builds them as idx + 1), while getMethodOutputPorts is a 0-based list, so
+-- shift by one to index it.
 getMethodOutputPortAt :: (M.Map AId VModInfo) -> AId -> AId -> Integer -> AId
 getMethodOutputPortAt stateMap modId methId selIdx =
-  getMethodOutputPorts stateMap modId methId `genericIndex` selIdx
+  getMethodOutputPorts stateMap modId methId `genericIndex` (selIdx - 1)
 
 -- -------------------------
 

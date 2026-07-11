@@ -690,7 +690,7 @@ fixCModuleVerilog n (ss,ts,ps)
          output_type <- if isAV then getAVType "fixCModVer" rt else return rt
          let output_stmt = map ((flip mStmtSPT) rt) outs
          -- we let the type-checker error on mismatches
-         return (output_stmt ++ (zipWith mStmtSPT inps (arg_types finf)))
+         return (output_stmt ++ (zipWith mStmtSPT (concat inps) (arg_types finf)))
        saveFieldTypes finf (Inout { vf_inout = vn }) = do
          let rt = ret_type finf
              vp = (vn,[])
@@ -1642,7 +1642,7 @@ fixupVeriField pps vportprops m@(Method { }) =
         m { vf_inputs = inputs',
             vf_outputs = outputs',
             vf_enable = enable'' }
-  where inputs'  =  map fixup (vf_inputs m)
+  where inputs'  = map (map fixup) (vf_inputs m)
         outputs' = map fixup (vf_outputs m)
         enable'  = fmap fixup (vf_enable m)
         fixup    = fixupPort vportprops

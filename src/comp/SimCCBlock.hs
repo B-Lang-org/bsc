@@ -66,7 +66,7 @@ import Eval
 import ErrorUtil(internalError)
 
 import Data.Maybe
-import Data.List(partition, intersperse, intercalate, nub, sortBy, genericDrop)
+import Data.List(partition, intersperse, intercalate, nub, sortBy)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad(when)
@@ -1069,7 +1069,7 @@ aExprToCExpr _ p@(APrim _ _ PrimStringConcat args) = argCount (==2) args $
 aExprToCExpr _ p@(APrim _ _ _ _) =
   internalError ("unhandled primitive: " ++ (show p))
 aExprToCExpr _ (AMethCall _ id mid args) =
-  do arg_list <- mapM (aExprToCExpr noRet) args
+  do arg_list <- mapM (aExprToCExpr noRet) (concatMap argInputPorts args)
      return $ (aInstMethIdToC id mid) `cCall` arg_list
 -- a tuple is laid out in wide data as a concatenation of its elements,
 -- with the first element in the most-significant bits (Verilog {e1,...,en})
@@ -1079,8 +1079,8 @@ aExprToCExpr ret e@(ATuple _ exprs) =
 -- elements strictly below the selected one; sizeAfter is therefore the low bit
 -- of element idx, and [aSize t + sizeAfter - 1 : sizeAfter] is its bit range.
 aExprToCExpr ret (ATupleSel t e idx) =
-  wideExtractPrim ret (aSize t) e (aSize t + sizeAfter - 1) sizeAfter
-  where sizeAfter = sum $ map aSize $ genericDrop idx $ att_elem_types $ ae_type e
+  wideExtractPrim ret (aSize t) e hi lo
+  where (hi, lo) = tupleElemRange (ae_type e) idx
 aExprToCExpr _ e@(AMGate _ id clkid) =
   do gmap <- gets gate_map
      case (M.lookup e gmap) of
@@ -1283,12 +1283,9 @@ simFnStmtToCStmt (SFSOutputReset rstId expr) =
 -- for embedding in a larger CC statement
 aActionToCFunCall :: (Maybe (Bool,AId)) -> AAction
                      -> State ConvState (ReturnStyle, CCExpr, CCExpr)
-aActionToCFunCall _ c@(ACall id mth_id aargs) =
-  do cargs <- mapM (aExprToCExpr noRet) aargs
-     let (cond, arg_list) =
-           case cargs of
-             (x:xs) -> (x, xs)
-             _ -> internalError ("aActionToCFunCall: missing cond in ACall args")
+aActionToCFunCall _ c@(ACall id mth_id (cond_e:srcArgs)) =
+  do cond <- aExprToCExpr noRet cond_e
+     arg_list <- mapM (aExprToCExpr noRet) (concatMap argInputPorts srcArgs)
      let call = (aInstMethIdToC id mth_id) `cCall` arg_list
      return (Direct, cond, call)
 aActionToCFunCall Nothing act@(AFCall {}) =

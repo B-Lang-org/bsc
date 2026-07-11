@@ -2726,24 +2726,22 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           in  S.unions $ map findRulePortUses rs
 
       -- Given an interface field, determine if a conflict edge is needed
-      findAIFaceUses (AIActionValue { aif_name = mid,
-                                      aif_value = d,
-                                      aif_body = rs,
-                                      aif_inputs = as }) =
+      findAIFaceUses iface@(AIActionValue { aif_name = mid,
+                                            aif_value = d,
+                                            aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                    valset = findAVValueUses d
                in  S.intersection argset (S.union condset valset)
-      findAIFaceUses (AIAction { aif_name = mid,
-                                 aif_body = rs,
-                                 aif_inputs = as }) =
+      findAIFaceUses iface@(AIAction { aif_name = mid,
+                                       aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                in  S.intersection argset condset
       findAIFaceUses _ = S.empty

@@ -259,7 +259,7 @@ package Prelude(
         NumConArg(..), StarConArg(..), OtherConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
 
-        WrapField(..), WrapMethod(..), WrapPorts(..), NonEmptyBits(..),
+        WrapField(..), WrapMethod(..), fromWrapNoInline, WrapPorts(..), NonEmptyBits(..),
         Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
@@ -4622,8 +4622,17 @@ data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
 
 
--- Tag a method with metadata: the input and output port names.
-primitive primMethod :: List String -> List String -> a -> a
+-- Tag a method with metadata: the input port names for each method argument,
+-- and the output port names.
+primitive primMethod :: List (List String) -> List String -> a -> a
+
+-- Like primMethod, but for a noinline function: records the (possibly split)
+-- input and output port names directly on the foreign-function value, so that
+-- a call to it connects to the same port names that the generated module
+-- exposes.  Unlike primMethod, it does not wrap the result value (which would
+-- not be transparent to expression evaluation); it annotates the foreign
+-- function in place.
+primitive primNoInline :: List (List String) -> List String -> a -> a
 
 -- Convert bewtween a field in an interface that is being synthesized,
 -- and a field in the corresponding field in the generated wrapper interface.
@@ -4676,6 +4685,20 @@ instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
   saveFieldPortTypes _ _ modName _ _ result =
     primSavePortType modName result $ typeOf (_ :: (Inout a))
 
+-- Like fromWrapMethod, but for a noinline function: also records the (possibly
+-- split) input and output port names of the function via primNoInline, so that
+-- a call to the noinline function connects to the same port names that the
+-- generated module exposes.  noinline functions do not support naming pragmas,
+-- so the function name is used both as the prefix for naming both the input
+-- and output ports; only the arg names are supplied separately.
+fromWrapNoInline :: (WrapMethod m w) => String -> List String -> w -> m
+fromWrapNoInline name argNames x =
+  let argBaseNames = methodArgBaseNames (_ :: m) name argNames 1
+  in fromWrapMethod (primNoInline
+                       (inputPortNames (_ :: m) argBaseNames)
+                       (outputPortNames (_ :: m) name)
+                       x)
+
 class WrapMethod m w | m -> w where
   -- Convert a synthesized interface method to its wrapper interface method.
   toWrapMethod :: m -> w
@@ -4686,19 +4709,21 @@ class WrapMethod m w | m -> w where
   -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
   methodArgBaseNames :: m -> String -> List String -> Integer -> List String
 
-  -- Compute the list of input port names for a method, from the argument base names.
-  inputPortNames :: m -> List String -> List String
+  -- Compute the list of input port names for each method argument, given the per-argument base names.
+  inputPortNames :: m -> List String -> List (List String)
 
-  -- Compute the list of input port names for a method, from the result base name.
+  -- Compute the list of output port names for a method, from the result base name.
   outputPortNames :: m -> String -> List String
 
   -- Save the port types for a method, given the module name, argument base names and result name.
   saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
 
-instance (WrapPorts (PortsOf a) pb, WrapMethod b v, Curry (pb -> v) w) =>
-    WrapMethod (a -> b) w where
-  toWrapMethod f = curryN $ toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts
-  fromWrapMethod f = fromWrapMethod ∘ uncurryN f ∘ packPorts ∘ splitPorts
+instance (WrapPorts (PortsOf a) pb, PrimSeqTupleBits pb, WrapMethod b v) =>
+    WrapMethod (a -> b) (pb -> v) where
+  -- deep-seq the packed argument so its per-port fields are evaluated before
+  -- they reach walkNF (mirroring the deep-seq already done on method results)
+  toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts ∘ primDeepSeqTupleBits
+  fromWrapMethod g = fromWrapMethod ∘ g ∘ primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
 
   methodArgBaseNames _ prefix (Cons h t) i = Cons
     -- arg_names can start with a digit
@@ -4711,8 +4736,8 @@ instance (WrapPorts (PortsOf a) pb, WrapMethod b v, Curry (pb -> v) w) =>
     (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
 
   inputPortNames _ (Cons h t) =
-    filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h)
-    `listPrimAppend` inputPortNames (_ :: b) t
+    Cons (filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h))
+         (inputPortNames (_ :: b) t)
   inputPortNames _ Nil = error "inputPortNames: empty arg names list"
 
   outputPortNames _ = outputPortNames (_ :: b)

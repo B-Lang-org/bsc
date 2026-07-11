@@ -163,6 +163,12 @@ liftAExpr _ (AMethCall ty aid mid es) = do
 liftAExpr _ (AFunCall ty aid fun isC es) = do
     es' <- mapM (liftAExpr False) es
     return $ AFunCall ty aid fun isC es'
+liftAExpr _ (ATupleSel ty e idx) = do
+    e' <- liftAExpr False e
+    return $ ATupleSel ty e' idx
+liftAExpr _ (ATuple ty es) = do
+    es' <- mapM (liftAExpr False) es
+    return $ ATuple ty es'
 liftAExpr _ expr = return expr
 
 -- ===============

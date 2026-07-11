@@ -148,7 +148,8 @@ pModule = l L_module `into` \ pos ->
                 ||! literal (mkFString "const") .> VPconst
                 ||! literal (mkFString "unused") .> VPunused
                 ||! literal (mkFString "inhigh") .> VPinhigh
-        mkMethod i n vps mo me = Method i Nothing Nothing n vps [] Nothing
+        -- each Verilog port corresponds to a single argument.
+        mkMethod i n vps mo me = Method i Nothing Nothing n (map (:[]) vps) [] Nothing
 
 pMStmt :: CParser CMStmt
 pMStmt =   pModuleInterface

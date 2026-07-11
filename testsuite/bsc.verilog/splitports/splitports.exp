@@ -92,6 +92,137 @@ if { $vtest == 1 } {
     find_regexp mkSomeArgNamesSplitTest.v {input  putFooBar_2_b;}
 }
 
+# ----------
+# Port splitting for the arguments and results of noinline functions.
+# The generated module_<f> exposes split input/output ports, and the caller's
+# instantiation connects the argument values and result to those same names
+# (verified in both the Verilog and Bluesim backends).
+
+# Argument and result are a struct with a direct (custom) SplitPorts instance
+# -- no ShallowSplit newtype.  Foo splits into two ports named after its fields.
+test_c_veri_bs_modules NoinlineSplit {module_swapFoo}
+if { $vtest == 1 } {
+    find_regexp module_swapFoo.v {input  \[7 : 0\] swapFoo_f_x;}
+    find_regexp module_swapFoo.v {input  \[7 : 0\] swapFoo_f_y;}
+    find_regexp module_swapFoo.v {output \[7 : 0\] swapFoo_x;}
+    find_regexp module_swapFoo.v {output \[7 : 0\] swapFoo_y;}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_f_x\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_f_y\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_x\(}
+    find_regexp sysNoinlineSplit.v {\.swapFoo_y\(}
+}
+
+# Several arguments, some split (direct SplitPorts instance) and some not:
+# each argument's value is connected to its own port(s) (the input ports are
+# grouped per argument).  The split arguments are destructured by a pattern in
+# the function head, so they have no name and get the default _<n> base name.
+test_c_veri_bs_modules NoinlineSplitMulti {module_combine}
+if { $vtest == 1 } {
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1000_x;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1000_y;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine_k;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1002_x;}
+    find_regexp module_combine.v {input  \[7 : 0\] combine__a1002_y;}
+    find_regexp module_combine.v {output \[7 : 0\] combine_x;}
+    find_regexp module_combine.v {output \[7 : 0\] combine_y;}
+    # the unsplit argument connects directly; the split ones are sliced
+    find_regexp sysNoinlineSplitMulti.v {\.combine_k\(8'd10\)}
+    find_regexp sysNoinlineSplitMulti.v {\.combine__a1000_x\(}
+    find_regexp sysNoinlineSplitMulti.v {\.combine__a1002_y\(}
+}
+
+# Argument and result split *recursively* via a direct (deep) SplitPorts
+# instance -- no DeepSplit newtype.  A vector, a tuple, and a nested struct all
+# become separate ports.
+test_c_veri_bs_modules NoinlineDeepSplit {module_tweak}
+if { $vtest == 1 } {
+    find_regexp module_tweak.v {input  tweak_b_v_0;}
+    find_regexp module_tweak.v {input  tweak_b_v_2;}
+    find_regexp module_tweak.v {input  tweak_b_w_1;}
+    find_regexp module_tweak.v {input  \[15 : 0\] tweak_b_w_2;}
+    find_regexp module_tweak.v {input  \[7 : 0\] tweak_b_z_x;}
+    find_regexp module_tweak.v {input  \[7 : 0\] tweak_b_z_y;}
+    find_regexp module_tweak.v {output tweak_v_0;}
+    find_regexp module_tweak.v {output \[15 : 0\] tweak_w_2;}
+    find_regexp module_tweak.v {output \[7 : 0\] tweak_z_x;}
+    find_regexp sysNoinlineDeepSplit.v {\.tweak_b_z_x\(}
+    find_regexp sysNoinlineDeepSplit.v {\.tweak_z_y\(}
+}
+
+# Result is a tuple split into ports named after the tuple fields (fst, snd),
+# using the ShallowSplit newtype.
+test_c_veri_bs_modules NoinlineSplitTuple {module_divmod}
+if { $vtest == 1 } {
+    find_regexp module_divmod.v {output \[7 : 0\] divmod_fst;}
+    find_regexp module_divmod.v {output divmod_snd;}
+    find_regexp sysNoinlineSplitTuple.v {\.divmod_fst\(}
+    find_regexp sysNoinlineSplitTuple.v {\.divmod_snd\(}
+}
+
+# Result is a 3-element tuple (ShallowSplit newtype): the shallow split peels
+# off the first field (fst) and leaves the rest in one combined port (snd).
+# The result is reassembled as one wire per top-level field, driven directly by
+# the output ports (no slicing of a wide result wire).  The combined snd port is
+# its own element wire, so reading the inner Int 8 out of it is a single index on
+# that wire -- never an illegal chained index like wire[8:0][8:1].
+test_c_veri_bs_modules NoinlineSplitTuple3 {module_triple}
+if { $vtest == 1 } {
+    find_regexp module_triple.v {output \[7 : 0\] triple_fst;}
+    find_regexp module_triple.v {output \[8 : 0\] triple_snd;}
+    # each result field is its own wire, driven directly by its output port
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_fst\(triple__f1_1\)}
+    find_regexp sysNoinlineSplitTuple3.v {\.triple_snd\(triple__f1_2\)}
+    # the inner Int 8 is read directly out of the snd element wire (a single
+    # index on that wire, not a slice of a slice)
+    find_regexp sysNoinlineSplitTuple3.v {triple__f1_2\[8:1\]}
+    find_regexp_fail sysNoinlineSplitTuple3.v {\]\[}
+}
+
+# An ordinary submodule (NOT a noinline function) whose Action method takes a
+# shallow-split struct argument and writes each element to its own register.
+# The struct's fields are leaves, so each split input port is wired straight to
+# its register -- no slicing or concat.
+test_c_veri SplitInputRegs
+if { $vtest == 1 } {
+    find_regexp mkSplitInputRegs.v {input  \[7 : 0\] put_1_x;}
+    find_regexp mkSplitInputRegs.v {input  \[7 : 0\] put_1_y;}
+    find_regexp mkSplitInputRegs.v {rx[$]D_IN = put_1_x ;}
+    find_regexp mkSplitInputRegs.v {ry[$]D_IN = put_1_y ;}
+    # each element drives its register directly -- the ports are never sliced
+    find_regexp_fail mkSplitInputRegs.v {put_1_[xy]\[}
+}
+
+# A non-constant struct value (derived from register state) is passed to a
+# submodule's shallow-split argument.  The tuple value is a literal-tuple def, so
+# it is emitted as one wire per element and each split input port is driven
+# directly by its element wire -- no slicing of a combined wide wire.  (This is an
+# ordinary synthesized submodule, not noinline.)
+test_c_veri SplitArgSlice
+if { $vtest == 1 } {
+    # the submodule's shallow-split argument: leaf `a` on its own port, the
+    # nested `inner` struct combined into one port
+    find_regexp mkSub.v {input  \[7 : 0\] put_1_a;}
+    find_regexp mkSub.v {input  \[15 : 0\] put_1_inner;}
+    # the Outer value is split into per-element wires (..._1 / ..._2) and each
+    # split port is driven directly by its element wire (no bit-select)
+    find_regexp sysSplitArgSlice.v {s[$]put_1_a = [A-Za-z0-9_]+_1 ;}
+    find_regexp sysSplitArgSlice.v {s[$]put_1_inner = [A-Za-z0-9_]+_2 ;}
+    find_regexp_fail sysSplitArgSlice.v {\[[0-9]+:[0-9]+\]}
+}
+
+# A split tuple result read inside a case that drives a register: the case
+# becomes an always-block whose sensitivity list is built by aIds (not vExpr).
+# aIds must name the element wires the same way vExpr does (pick__f1_1/_2), or
+# the sensitivity list references the undeclared whole-tuple def name pick__f1
+# (regression: aIds had no ATupleSel case and this internal-errored).
+test_c_veri SplitTupleSensitivity
+if { $vtest == 1 } {
+    find_regexp sysSplitTupleSensitivity.v {pick__f1_1 or pick__f1_2}
+    find_regexp_fail sysSplitTupleSensitivity.v {or pick__f1[ )]}
+}
+
+# ----------
+
 compile_verilog_fail_error TooManyArgNames.bs S0015
 compare_file TooManyArgNames.bs.bsc-vcomp-out
 

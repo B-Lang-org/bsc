@@ -1462,7 +1462,8 @@ returns a single identifier formed by joining the components with underscores.
 >             -- Bool indicates whether there's a separate Ready method for this one
 > pMethodVeriProt prefix =
 >     do pos <- getPos
->        -- TODO: Add syntax for specifiying multiple output ports
+>        -- A hand-written BVI value method has a single result port; there is
+>        -- no syntax for multiple output ports yet (TODO).
 >        (optOPort, name) <- pMethodNameOptOPort <?> "method output port or name"
 >        let oPorts = maybeToList optOPort
 >        multi <- option 1 (pInBrackets pDecimal)
@@ -1512,12 +1513,15 @@ returns a single identifier formed by joining the components with underscores.
 >                                    clk rst 0 [] [p] Nothing,
 >                                False)]
 >                            Just _ -> internalError "pMethodVeriProt(4)"
+>        -- BVI does not support method args with multiple ports,
+>        -- but VModInfo.Method expects a list of ports for each arg.
+>        let argGroups = map (:[]) args
 >        return ((name,
 >                 V.Method fullname
 >                          clk
 >                          rst
 >                          multi
->                          args
+>                          argGroups
 >                          oPorts
 >                          en,
 >                  not(null nullOrReady))
@@ -4602,7 +4606,8 @@ a "module verilog":
 >     let g (s,Nothing) = [(s,[])]
 >         g (s,Just g) = [(s,[]),(g,[])]
 >         f (Nothing, _) = []
->         f (Just i , cmg) = [V.Method i Nothing Nothing 1 (concat(map g cmg)) [] Nothing]
+>         f (Just i , cmg) =
+>             [V.Method i Nothing Nothing 1 (map (:[]) (concat (map g cmg))) [] Nothing]
 >     in concat . (map f)
 
 > pImperativeForeignModuleAt :: Position -> Attributes -> ImperativeFlags

@@ -31,8 +31,8 @@ module AVerilogUtil (
                      VConvtOpts(..)
                     ) where
 
-import Data.List(nub, partition, genericLength, union, intersect, (\\),
-                 uncons)
+import Data.List(nub, partition, genericLength, genericIndex, union, intersect,
+                 (\\), uncons)
 import Data.Maybe
 
 import FStringCompat(FString, getFString)
@@ -520,34 +520,43 @@ vDefMpd vco def@(ADef i t (APrim _ _ PrimMux es) _) _ =
 vDefMpd vco (ADef i t
                (ANoInlineFunCall _ _
                   (ANoInlineFun n is (ips, ops) (Just inst_name)) es) _) _ =
-        let ops' = ops -- filter (\(x,y) -> y >= 0 ) $ traces ("ops " ++ show ops) ops
-                   -- Size information all appears to be 0
-            (ips',es')  = unzip $ filter (isNotZeroSized  . ae_type . snd) (zip ips es)
-            oname = VEVar (vId i) -- a concat of the outputs
-            oports = case ops' of
-                     [(o, _)] -> [(mkVId o, Just oname)]
-                     ons -> let ns = tailOrErr "vDefMpd.oports" (scanr (+) 0 (map snd ons))
-                            in  zipWith (\ (o, s) l ->
-                                        (mkVId o,
-                                         Just (veSelect
-                                                 oname
-                                                 (VEConst (l+s-1))
-                                                 (VEConst l))))
-                                                 ons
-                                                 ns
+        let
+            -- connect the result and each argument to their (split) ports
+            oports = connectTuplePorts vco (ASDef t i) ops
+            (iwires, iports) = mkInputs (0 :: Integer) (zip es ips)
+            -- A tuple result is declared as one wire per element (which the
+            -- instance's split output ports drive directly via connectTuplePorts
+            -- and the type-based ATupleSel lowering); anything else is one wire.
+            resultDecls = case t of
+                            ATTuple ts -> [ VMDecl $ VVDecl VDWire (vSize tk)
+                                                          [VVar (tupleElemVId i k)]
+                                          | (k, tk) <- zip [1..] ts ]
+                            _ -> [VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)]]
         in
-        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-          VMInst {
+        iwires ++
+        resultDecls ++
+        [ VMInst {
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
                   -- these are size params, so default width of 32 is fine
                   vi_inst_params = Left (map (\x -> (Nothing,VEConst x)) is),
-                  vi_inst_ports  = (zip
-                                    (map (mkVId . fst) ips')
-                                    (map (Just . (vExpr vco)) es')
-                                    ++ oports)
+                  vi_inst_ports  = iports ++ oports
                  }
             ]
+  where
+        -- An argument that can't be selected in place (not a variable or literal
+        -- tuple, e.g. a bare concat) is bound to a wire <inst>_arg_<k> first.
+        mkInputs _ []             = ([], [])
+        mkInputs k ((e, pts):rest) =
+            let (wires, base)
+                  | length pts <= 1 || isSelectable e = ([], e)
+                  | otherwise =
+                      let aid = setIdBaseString i (inst_name ++ "_arg_" ++ itos k)
+                      in  ([VMDecl (VVDWire (vSize (ae_type e)) (VVar (vId aid)) (vExpr vco e))],
+                           ASDef (ae_type e) aid)
+                conns = connectTuplePorts vco base pts
+                (wires', conns') = mkInputs (k+1) rest
+            in  (wires ++ wires', conns ++ conns')
 
 vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
         [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
@@ -605,14 +614,80 @@ vDefMpd vco adef@(ADef i_t t_t@(ATAbstract aid _) e_t _) _ | aid==idInout_ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
 vDefMpd vco adef@(ADef i_t t_t@(ATString _) e_t _) _ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
+-- A tuple-typed def is emitted as one wire per element, so that an ATupleSel
+-- references the element wire (vExpr) instead of slicing.  (A noinline tuple
+-- result is handled by the ANoInlineFunCall clause above, which declares
+-- per-element wires that the instance drives directly.)
+--
+-- A literal tuple uses its element expressions directly:
+vDefMpd vco (ADef i (ATTuple ts) (ATuple _ es) _) _ =
+    [ VMDecl $ VVDWire (vSize t) (VVar (tupleElemVId i k)) (vExpr vco e)
+    | (k, t, e) <- zip3 [1..] ts es ]
+-- Any other tuple-typed def is an invariant violation: tuples reach codegen
+-- only as literals (above) or as noinline results (the ANoInlineFunCall clause,
+-- which declares per-element wires the instance drives directly).
+vDefMpd _ adef@(ADef _ (ATTuple _) _ _) _ =
+    internalError ("AVerilog::vDefMpd: non-literal/non-noinline tuple def: " ++ ppReadable adef)
 
 vDefMpd vco adef@(ADef _ _ _ _) _ = internalError( "unexpected pattern in AVerilog::vDefMpd: " ++ ppReadable adef ) ;
 
 
 -- ------------------------------
+-- Connecting a tuple-typed value to a flat list of split ports.
 
-veSelect :: VExpr -> VExpr -> VExpr -> VExpr
-veSelect e h l = if h == l then VESelect1 e l else VESelect e h l
+-- Connect each port to the matching part of a tuple value by walking its
+-- (right-nested) tuple type with ATupleSel, which vExpr lowers by selecting a
+-- literal element directly or slicing a variable (composing via vSelectBits) --
+-- so a Verilog concatenation is never bit-sliced by hand.  Reusable by any pass
+-- that wires a tuple-typed value to a flat list of sized ports.
+connectTuplePorts :: VConvtOpts -> AExpr -> [(String, Integer)] -> [(VId, Maybe VExpr)]
+connectTuplePorts vco val pts =
+    [ (mkVId o, Just (vExpr vco (tupleSelPath val path)))
+    | (path, (o, _)) <- portFrontier (ae_type val) pts ]
+
+-- Match the flat port list to the tuple structure.  A single port takes the
+-- whole value (its recorded width may be a placeholder, e.g. 0 for a polymorphic
+-- foreign function); otherwise split the ports among the tuple's elements by
+-- width, so a shallow split stops at the top level and a deep split reaches the
+-- leaves.
+portFrontier :: AType -> [(String, Integer)] -> [([Integer], (String, Integer))]
+portFrontier _  []   = []
+portFrontier _  [p]  = [([], p)]
+portFrontier (ATTuple ts) pts =
+    concat $ zipWith (\ idx (t', ps) -> [ (idx:path, p)
+                                        | (path, p) <- portFrontier t' ps ])
+                     [1 ..] (splitByTupleWidth ts pts)
+portFrontier ty pts =
+    internalError ("AVerilogUtil.portFrontier: " ++ ppReadable (ty, pts))
+
+-- Split the flat port list so that group i has total width = aSize (ts !! i).
+splitByTupleWidth :: [AType] -> [(String, Integer)]
+                  -> [(AType, [(String, Integer)])]
+splitByTupleWidth []       _   = []
+splitByTupleWidth (t':ts')  pts =
+    let (grp, rest) = takeWidth (aSize t') pts
+    in  (t', grp) : splitByTupleWidth ts' rest
+  where takeWidth 0 ps      = ([], ps)
+        takeWidth _ []      = ([], [])
+        takeWidth w (p:ps)  = let (g, r) = takeWidth (w - snd p) ps
+                              in  (p:g, r)
+
+-- Apply a selector path (1-based ATupleSel indices) to a tuple value.
+tupleSelPath :: AExpr -> [Integer] -> AExpr
+tupleSelPath val []         = val
+tupleSelPath val (idx:rest) =
+    case ae_type val of
+      ATTuple ts -> tupleSelPath (ATupleSel (ts `genericIndex` (idx-1)) val idx) rest
+      ty         -> internalError ("AVerilogUtil.tupleSelPath: " ++ ppReadable ty)
+
+-- A variable (sliceable) or literal tuple (element-selectable) can be selected
+-- from in place; anything else must be bound to a wire first.
+isSelectable :: AExpr -> Bool
+isSelectable (ATuple {})  = True
+isSelectable (ASDef {})   = True
+isSelectable (ASPort {})  = True
+isSelectable (ASParam {}) = True
+isSelectable _            = False
 
 
 -- ==============================
@@ -638,6 +713,11 @@ suff (VId is i m) s = VId (is ++ s) i m
 pref :: String -> VId -> VId
 pref p (VId is i m) = VId (p ++ is) i m
 
+-- The wire name for element `idx` (1-based) of a tuple-typed def that has been
+-- split into one wire per element.  Both the def declaration (vDefMpd) and the
+-- references to it (vExpr) must agree on this name.
+tupleElemVId :: AId -> Integer -> VId
+tupleElemVId i idx = suff (vId i) ("_" ++ itos idx)
 
 -- ==============================
 -- main conversion for AExpr to VExpr
@@ -663,11 +743,11 @@ vExpr vco (APrim _ t PrimZeroExt [e]) =
                         0,
                     vExpr vco e]
 vExpr vco (APrim _ t PrimSignExt [e]) | aSize e == 1 && aSize t > 0 = VERepeat (VEConst (aSize t)) (vExpr vco e)
-vExpr vco e0@(APrim _ t PrimSignExt [e]) = VEConcat [vERepeat fill (VESelect1 vexp vhi), vexp]
+-- Replicate the sign bit.
+vExpr vco e0@(APrim _ t PrimSignExt [e]) = VEConcat [vERepeat fill (VESelect1 vexp (VEConst (j-1))), vexp]
     where fill = if (j >= i) then
                    internalError("AVerilogUtil.broken SignExtend: " ++ ppReadable e0)
                  else i-j
-          vhi = VEConst (j-1)
           vexp = vExpr vco e
           i = aSize t
           j = aSize e
@@ -690,10 +770,27 @@ vExpr vco (AFunCall _ _ n isC es) =
 vExpr vco (ASInt idt (ATBit w) (IntLit _ b i))  = VEWConst (idToVId idt) w b i
 vExpr vco (ASReal _ _ r)                        = VEReal r
 vExpr vco (ASStr _ _ s)                         = VEString s
+-- The only ATuple nodes are built during I->A conversion from tuples of port values.
+-- Every such ATuple is consumed by element selection or split into one wire per element
+-- (vDefMpd), so a whole tuple never reaches vExpr as a value.
+vExpr vco (ASDef (ATTuple ts) i) =
+    internalError ("vExpr: whole tuple def reached codegen: " ++ ppReadable (i, ts))
 vExpr vco (ASDef _ i)                           = VEVar (vId i)
 vExpr vco (ASPort _ i)                          = VEVar (vId i)
 vExpr vco (ASParam _ i)                         = VEVar (vId i)
 vExpr vco (ASAny (ATBit w) _)                   = VEUnknown w (vco_unspec vco)
+
+-- See above: a reassembled ATuple is always element-selected or split into
+-- per-element wires, so a whole ATuple never reaches vExpr -- this is an
+-- invariant check.
+vExpr vco (ATuple _ es) =
+    internalError ("vExpr: tuple reached codegen as a value: " ++ ppReadable es)
+
+-- Similarly, we should only see ATupleSel over a literal tuple or a tuple def.
+vExpr vco (ATupleSel _ (ATuple _ es) idx) = vExpr vco (es `genericIndex` (idx - 1))
+vExpr vco (ATupleSel _ (ASDef _ i) idx) = VEVar (tupleElemVId i idx)
+vExpr _ (ATupleSel _ e _) =
+    internalError ("vExpr: ATupleSel over non-literal/non-def base: " ++ ppReadable e)
 
 vExpr vco e = internalError ("vExpr vco " ++ ppReadable e)
 
@@ -857,8 +954,9 @@ vState  flags rewire_map avinst =
         -- Below, we construct info on the method:
         --   arguments, return values, and enables
 
-        mkArgId :: Id -> Integer -> Maybe Integer -> VId
-        mkArgId m k m_port = vMethId v_inst_name m m_port (MethodArg k) port_rename_table
+        mkArgId :: Id -> Integer -> Maybe Integer -> Maybe Integer -> VId
+        mkArgId m argN portM m_port =
+            vMethId v_inst_name m m_port (MethodArg argN portM) port_rename_table
 
         mkEnId m m_port = vMethId v_inst_name m m_port MethodEnable port_rename_table
 
@@ -884,14 +982,21 @@ vState  flags rewire_map avinst =
         -- the size if it is not 1-bit
         inps :: [(VId, VId, Maybe VRange)]
         inps =  [ (mkVId (portid s ino),
-                   mkArgId m k ino,
+                   mkArgId m argN portM ino,
                    vSize argType)
                   | (meth@(Method m _ _ mult ps outs me),
-                     (argTypes,_,_))
+                     (argTypeGroups,_,_))
                         <- zip (vFields vi) mts,
-                    -- let multu = getMethodMultUse m,
                     ino <- if mult > 1 then map Just [0..mult-1] else [Nothing],
-                    (VName s, argType, k) <- zip3 (map fst ps) argTypes [1..],
+                    -- one (vname, type) per input port, paired with its
+                    -- (argN, portM) coordinates in the source argument list
+                    (s, argType, argN, portM) <-
+                        [ (s, t, argN, portM)
+                        | (argN, portGroup, typeGroup) <-
+                              zip3 [1..] ps argTypeGroups
+                        , (portM, (VName s, _), t) <-
+                              zip3 (splitPortNums portGroup) portGroup typeGroup
+                        ],
                     isNotZeroSized argType
                 ]
 
@@ -925,7 +1030,7 @@ vState  flags rewire_map avinst =
                    mkResId m k ino)
                   | ((Method m _ _ mult ss outs me), (_,_,retTypes))
                         <- zip (vFields vi) mts,
-                     ((VName s, vps), retType, k) <- zip3 outs retTypes (methResultNums outs),
+                     ((VName s, vps), retType, k) <- zip3 outs retTypes (splitPortNums outs),
                      isNotZeroSized retType,
                      -- let multu = getMethodMultUse m,
                      ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]
@@ -1044,6 +1149,8 @@ vSize (ATAbstract i [1]) | i==idInout_ = Nothing
 vSize (ATAbstract i [n]) | i==idInout_ = Just (VEConst (n-1), VEConst 0)
 vSize t@(ATString (Just _)) = Just (VEConst ((aSize t)-1::Integer), VEConst 0)
 vSize (ATString Nothing)  = Just (VEConst (dummy_string_size - 1::Integer), VEConst 0)
+-- A tuple is represented as a bit-concat of its elements.
+vSize t@(ATTuple _) = Just (VEConst (aSize t - 1), VEConst 0)
 vSize t = internalError("Attempt to get size of non-Bit type: " ++ ppReadable t)
 
 -- Looks at VRange to determine if Verilog expression is 0 size [-1:0]  yuck.
@@ -1083,6 +1190,8 @@ aIds (APrim _ _ _ es)     = concatMap aIds es
 -- aIds (AMethValue _ i m)   = [(vMethId i m 1 MethodResult M.Empty)]
 aIds (ANoInlineFunCall _ _ _ es)  = concatMap aIds es
 aIds (AFunCall _ _ _ _ es) = concatMap aIds es
+aIds (ATupleSel _ (ATuple _ es) idx) = aIds (es `genericIndex` (idx - 1))
+aIds (ATupleSel _ (ASDef _ i) idx)   = [tupleElemVId i idx]
 aIds (ASPort _ i)         = [vId i]
 aIds (ASParam _ i)        = [vId i]
 aIds (ASDef _ i)          = [vId i]

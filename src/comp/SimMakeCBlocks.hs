@@ -1210,7 +1210,7 @@ mkActionMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
       method = headOrErr ("method not in interface: " ++ (ppReadable mid))
                          [ m | m <- top_ifc, aif_name m == mid ]
       args = [ ASPort t (i `inlineIdFrom` top_blk_name)
-             | (i,t) <- aif_inputs method ]
+             | (i,t) <- aIfaceArgs method ]
       cond_stmt = SFSCond (ASDef (ATBit 1) wf)
                           [SFSMethodCall blk_id mid args]
                           []

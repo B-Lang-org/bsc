@@ -11,7 +11,7 @@ import PPrint
 import IntLit
 import SCC(tsort)
 import Util(separate)
-import Data.List(nub)
+import Data.List(nub, genericIndex, genericDrop)
 import Data.Maybe(mapMaybe, fromMaybe)
 import Id(Id)
 import Control.Monad(liftM)
@@ -253,6 +253,28 @@ instance ATypeC ADef where
     aType d = adef_type d
     aSize d = aSize $ adef_type d
 
+-- The bit range [hi:lo] occupied by element `idx` (1-based) of a tuple type,
+-- whose elements are laid out with the first in the most-significant position.
+-- Shared by the Verilog (ATupleSel -> bit-slice) and Bluesim (ATupleSel ->
+-- extract) lowerings so they stay in sync.
+tupleElemRange :: AType -> Integer -> (Integer, Integer)
+tupleElemRange (ATTuple ts) idx =
+    let sizes = map aSize ts
+        lo    = sum (genericDrop idx sizes)          -- bits below the element
+        hi    = lo + (sizes `genericIndex` (idx - 1)) - 1
+    in  (hi, lo)
+tupleElemRange t _ =
+    internalError ("tupleElemRange: not a tuple type: " ++ ppReadable t)
+
+
+-- ---------------
+
+-- Return the AExprs that drive the input ports for a method argument.
+argInputPorts :: AExpr -> [AExpr]
+argInputPorts (ATuple _ es) = es
+argInputPorts e = case aType e of
+  ATTuple ts -> [ ATupleSel t e idx | (idx, t) <- zip [1..] ts ]
+  _          -> [e]
 
 -- ---------------
 

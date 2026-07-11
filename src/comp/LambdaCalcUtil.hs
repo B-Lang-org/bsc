@@ -217,6 +217,8 @@ getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
 getAExprDefs def_map known ((AFunCall _ _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
+getAExprDefs def_map known ((ATuple _ elems):es) =
+  getAExprDefs def_map known (elems ++ es)
 getAExprDefs def_map known ((ASDef _ i):es) =
   case (M.lookup i known) of
     Just _ -> getAExprDefs def_map known es

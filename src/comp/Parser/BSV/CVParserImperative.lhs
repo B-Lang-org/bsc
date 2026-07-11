@@ -1481,7 +1481,7 @@ some of these restrictions could be lifted if we made the compiler more clever
 >                                  _ -> ioerrs1
 >                      ioerrs3 = foldr (\port iers -> addInput pos (fst port) iers)
 >                                      ioerrs2
->                                      (vf_inputs inf)
+>                                      (vfMethodArgPorts inf)
 >            chkBVIPorts (ISBVI pos (BVI_interface (_,_,stmts))) ioerrs = ioerrs'
 >               where ioerrs' = foldr chkBVIPorts ioerrs stmts
 >            chkBVIPorts _ ioerrs = ioerrs

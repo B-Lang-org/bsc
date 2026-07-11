@@ -186,11 +186,11 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         flags <- getFlags
 
         -- AVInst keeps the types of method ports
-        let tsConv :: Id -> [IType] -> ([AType], Maybe AType, [AType])
+        let tsConv :: Id -> [IType] -> ([[AType]], Maybe AType, [AType])
             tsConv i ts =
                 let inputs = initOrErr "tsConv" ts
                     res = lastOrErr "tsConv" ts
-                    in_types = map (aTypeConv i) inputs
+                    in_types = map (aTupleTypesConv i) inputs
                     (en_type, val_type)
                       | isitActionValue_ res
                           = (Just (ATBit 1), aTupleTypesConv i (getAV_Type res))
@@ -336,7 +336,13 @@ aAbstractInput (IAI_Inout r n) = (AAI_Inout r n)
 aIface :: Flags -> IEFace a -> M AIFace
 aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
         --trace ("enter " ++ ppReadable i) $ return ()
-        let its' = [ (arg_i, aTypeConv arg_i arg_t) | (arg_i, arg_t) <- its]
+        -- `its` is grouped by source-language argument (one inner list per
+        -- argument); aif_inputs keeps that grouping, with one inner list of
+        -- ports per argument (a singleton for an unsplit argument, several for
+        -- a struct/tuple argument split into multiple ports by SplitPorts).
+        let its' = [ [ (arg_i, aTypeConv arg_i arg_t)
+                     | (arg_i, arg_t) <- group ]
+                   | group <- its ]
             g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
         case (maybe_e, maybe_rs) of
           (Nothing, Nothing) -> internalError ("AConv.aIface nothing in it "
@@ -440,6 +446,14 @@ aClock c = do
         in  return (AClock { aclock_osc = osc_aexpr,
                              aclock_gate = gate_aexpr })
     _ -> internalError ("AConv.ASClock: " ++ (show c))
+
+-- A wrapped method has () for arguments that have no non-empty ports,
+-- we drop them when converting to ASyntax.
+dropPrimUnitArgs :: [IExpr a] -> [IExpr a]
+dropPrimUnitArgs = filter (not . isPrimUnitArg)
+  where
+    isPrimUnitArg (ICon i _) = i == idPrimUnit
+    isPrimUnitArg _          = False
 
 aSExpr :: IExpr a -> M AExpr
 aSExpr e = do
@@ -605,6 +619,7 @@ aTupleExpr (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
         ae1 <- aSExpr e1
         ae2 <- aTupleExpr e2
         return (ae1:ae2)
+aTupleExpr (ICon i _) | i == idPrimUnit = return []
 aTupleExpr e = fmap (:[]) (aSExpr e)
 
 -- the PrimFst/PrimSnd selectors that project an element out of a
@@ -648,7 +663,7 @@ aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
 aSelExpr sels (ICon i (ICStateVar { }) : es)
     | (pfx@((_, atype) : _), [(m, atypeTup)]) <- span (isTupleSelector . fst) sels = do
   i' <- transId i
-  es' <- mapM aSExpr es
+  es' <- mapM aSExpr (dropPrimUnitArgs es)
   let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
   return $ ATupleSel atype (AMethCall atypeTup i' m es') (idx + 1)
 
@@ -680,8 +695,9 @@ aSelExpr sels base@(ICon i (ICStateVar { }) : es)
 -- value method
 aSelExpr [(m, atype)] (ICon i (ICStateVar { }) : es) = do
   i' <- transId i
-  es' <- mapM aSExpr es
-  return $ AMethCall atype i' m es'
+  -- one AExpr per source argument; SplitPorts args are ATuple AExprs
+  args <- mapM aSExpr (dropPrimUnitArgs es)
+  return $ AMethCall atype i' m args
 
 aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockGate = do
         ac <- aClock c
@@ -691,6 +707,22 @@ aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockGate = do
 aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockOsc = do
         ac <- aClock c
         return (aclock_osc ac)
+
+-- tuple (fst/snd) selection from the result of a noinline (foreign) function.
+-- The foreign call produces the combined result value; ATupleSel picks out
+-- the element.  The element index is the number of "snd" selectors in the
+-- chain (a flat tuple (a,b,c) is the right-nested pairs (a,(b,c)), so the
+-- k-th element is reached by k snds followed by an fst).
+aSelExpr sels@(_:_) [fcall]
+    | all ((\ s -> s == idPrimFst || s == idPrimSnd) . fst) sels
+    , isForeignFunCall fcall = do
+  fcall' <- aExpr fcall
+  let atype = snd (headOrErr "AConv.aSelExpr: foreign sel" sels)
+      idx = genericLength (filter ((== idPrimSnd) . fst) sels)
+  return $ ATupleSel atype fcall' (idx + 1)
+  where isForeignFunCall (ICon _ (ICForeign { foports = Just _ })) = True
+        isForeignFunCall (IAps (ICon _ (ICForeign { foports = Just _ })) _ _) = True
+        isForeignFunCall _ = False
 
 aSelExpr sels base = internalError
               ("AConv.aSelExpr:" ++
@@ -755,6 +787,7 @@ aTypeConvE a t = abs t []
                   internalError ("aTypeConvE|" ++ show t)
 
 aTupleTypesConv :: Id -> IType -> [AType]
+aTupleTypesConv _ t | t == itPrimUnit = []
 aTupleTypesConv a (ITAp (ITAp (ITCon p _ _) t1) t2) | p == idPrimPair =
   aTypeConv a t1 : aTupleTypesConv a t2
 aTupleTypesConv a t = [aTypeConv a t]
@@ -921,7 +954,11 @@ aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAc
 
 aAction1 _ cond (IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = do
         cond' <- aSExpr cond
-        es' <- mapM aSExpr es
+        -- One AExpr per source argument.  aSExpr produces an ATuple AExpr
+        -- for a SplitPorts argument whose IExpr is a PrimPair; consumers
+        -- that walk individual hardware ports match on ATuple to split
+        -- those tuples back into per-port AExprs.
+        es' <- mapM aSExpr (dropPrimUnitArgs es)
         i' <- transId i
         return [ACall i' m (cond' : es')]
 

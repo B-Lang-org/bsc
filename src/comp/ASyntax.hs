@@ -18,6 +18,7 @@ module ASyntax(
         APred,
         AIFace(..),
         AInput,
+        AMethodInput,
         AAbstractInput(..),
         AOutput,
         AClock(..),
@@ -97,7 +98,7 @@ module ASyntax(
         mkMethStr,
         mkMethArgStr,
         mkMethResStr,
-        methResultNums,
+        splitPortNums,
         isMethId,
         MethodPart(..),
         getParams,
@@ -128,7 +129,7 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
-import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_res)
+import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_port)
 import FStringCompat
 -- import Position(noPosition)
 import Position
@@ -537,6 +538,11 @@ getArraySize t = internalError ("getArraySize: " ++ ppReadable t)
 -- then to be AAbstractInput.)
 type AInput = (AId, AType)
 
+-- One source-language method argument, decomposed into the hardware input
+-- ports it occupies (a single port for an unsplit argument, several for a
+-- split struct/tuple).  A method's arguments are then a list of these groups.
+type AMethodInput = [AInput]
+
 -- These are abstract inputs (including inouts), which can map to one or more
 -- hardware ports.  These are used in APackage for module arg inputs, prior to
 -- being converted to AInput in AState.
@@ -547,9 +553,6 @@ data AAbstractInput =
         AAI_Clock AId (Maybe AId) |
         AAI_Reset AId |
         AAI_Inout AId Integer
-        -- room to add other types here, like:
-        --   AAI_Struct [(AId, AType)]
-        --   ...
     deriving (Eq, Show)
 
 instance NFData AAbstractInput where
@@ -581,10 +584,11 @@ data AVInst = AVInst {
     -- XXX This list corresponds to vFields in the VModInfo, but cannot be
     -- XXX stored there, because VModInfo is created before types are known.
     -- There is a triple for each method in vFields of VModInfo.
-    -- The triple contains the types of each argument (in order), maybe
-    -- the type of the EN, and the return values.
+    -- The first component lists the types of the ports arising from each
+    -- method argument. The second is maybe the type of the EN, and the
+    -- third is the types of the output ports arising from the method result.
     -- NOTE: These are the output language types (i.e. ATBit n)
-    avi_meth_types :: [([AType], Maybe AType, [AType])],
+    avi_meth_types :: [([[AType]], Maybe AType, [AType])],
     -- This field maps source-language types to their corresponding ports
     avi_port_types :: M.Map VName IType,
     avi_vmi :: VModInfo,     -- Verilog names, conflict info, etc.
@@ -784,7 +788,7 @@ instance NFData AAssumption where
 
 -- the APred is the implicit condition to the scheduler
 data AIFace =   AIDef { aif_name      :: AId,
-                        aif_inputs    :: [AInput],
+                        aif_inputs    :: [AMethodInput],
                         aif_props     :: WireProps,
                         aif_pred      :: APred,
                         aif_value     :: ADef,
@@ -792,13 +796,13 @@ data AIFace =   AIDef { aif_name      :: AId,
                         -- value methods have their own assumptions
                         -- because there is no rule to attach it to
                         aif_assumps :: [AAssumption] }
-              | AIAction { aif_inputs    :: [AInput],
+              | AIAction { aif_inputs    :: [AMethodInput],
                            aif_props     :: WireProps,
                            aif_pred      :: APred,
                            aif_name      :: AId,
                            aif_body      :: [ARule],
                            aif_fieldinfo :: VFieldInfo }
-              | AIActionValue { aif_inputs    :: [AInput],
+              | AIActionValue { aif_inputs    :: [AMethodInput],
                                 aif_props     :: WireProps,
                                 aif_pred      :: APred,
                                 aif_name      :: AId,
@@ -852,11 +856,18 @@ aIfaceResIds (AIDef {aif_name=id}) = [id]
 aIfaceResIds (AIActionValue {aif_name=id}) = [id]
 aIfaceResIds _ = []
 
+-- Source-language argument groups (each group is one method argument, which
+-- may decompose to multiple hardware ports).
+aIfaceArgGroups :: AIFace -> [AMethodInput]
+aIfaceArgGroups (AIClock {}) = []
+aIfaceArgGroups (AIReset {}) = []
+aIfaceArgGroups (AIInout {}) = []
+aIfaceArgGroups f = aif_inputs f
+
+-- Flat list of hardware-level input ports, in order, expanding multi-port
+-- argument groups.
 aIfaceArgs :: AIFace -> [AInput]
-aIfaceArgs (AIClock {}) = []
-aIfaceArgs (AIReset {}) = []
-aIfaceArgs (AIInout {}) = []
-aIfaceArgs f = aif_inputs f
+aIfaceArgs = concat . aIfaceArgGroups
 
 -- associate the internal and external names and width of AIFace args
 
@@ -864,9 +875,10 @@ aiface_argnames_width :: AIFace -> [(AId, String, Integer)]
 aiface_argnames_width (AIClock {}) = []
 aiface_argnames_width (AIReset {}) = []
 aiface_argnames_width aif =
-    zip3 (map fst (aif_inputs aif))
-        (map (getVNameString . fst) (vf_inputs (aif_fieldinfo aif)))
-        (map aIfaceArgSize (aif_inputs aif))
+    let ports = aIfaceArgs aif
+    in zip3 (map fst ports)
+        (map (getVNameString . fst) (vfMethodArgPorts (aif_fieldinfo aif)))
+        (map aIfaceArgSize ports)
 
 
 aIfaceArgSize :: AInput -> Integer
@@ -1037,7 +1049,10 @@ data AExpr
             ae_type :: AType,
             ae_objid :: AId,
             ameth_id :: AMethodId,
-            ae_args :: [AExpr]        -- external state method call
+            -- external state method call: one AExpr per source argument
+            -- (a SplitPorts arg arrives as an ATuple AExpr; consumers that
+            -- walk individual hardware ports match on ATuple).
+            ae_args :: [AExpr]
         }
         -- like AMethCall, but for the return value of actionvalue methods,
         -- where the return value no longer has to care about the arguments,
@@ -1260,9 +1275,11 @@ data ANoInlineFun =
          String
          -- numeric types
          [Integer]
-         -- port list (inputs,outputs), each is port name and size
-         -- XXX sizes all seem to be generated as 0.
-         ([(String, Integer)], [(String, Integer)])
+         -- port list (inputs, outputs); each port is its name and bit size.
+         -- Inputs are grouped per argument (the inner list is one argument's
+         -- ports, of which there may be several when the argument splits); the
+         -- outputs are a flat list (the single result, possibly split).]
+         ([[(String, Integer)]], [(String, Integer)])
          -- when an instance name is assigned to the call, it is stored here
          (Maybe String)
     deriving (Eq, Ord, Show)
@@ -1448,7 +1465,7 @@ instance PPrint AIFace where
     -- XXX print assumptions
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_value ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1456,7 +1473,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIAction {} ) =
         (text "--AIAction" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1464,7 +1481,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
-        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
+        foldr (($+$) . ppV d) empty (aIfaceArgs ai) $+$
         pPrint d p (aif_value ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
@@ -1740,18 +1757,19 @@ ppeVTI m d (vi, es, ns) =
 
 instance PPrintExpand AIFace where
     -- XXX print assumptions
-    pPrintExpand m d ec (AIDef id is wp g b _ _) =
+    pPrintExpand m d ec ai@(AIDef id _ wp g b _ _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) (aIfaceArgs ai) $+$
         text ""
-    pPrintExpand m d ec (AIAction is wp g _ rs _) =
+    pPrintExpand m d ec ai@(AIAction _ wp g _ rs _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) (aIfaceArgs ai) $+$
         text ""
-    pPrintExpand m d ec (AIActionValue is wp g _ rs b _) =
+    pPrintExpand m d ec ai@(AIActionValue _ wp g _ rs b _) =
+        let args = aIfaceArgs ai in
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
-        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) args $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) args $+$
         text ""
     pPrintExpand m d ec (AIClock i c _) = pPrint d (getP ec) c
     pPrintExpand m d ec (AIReset i r _) = pPrint d (getP ec) r
@@ -1875,7 +1893,8 @@ instance PPrintExpand AExpr where
                    docArgs = map (pPrintExpand m d defContext) es
     pPrintExpand m d ec (AMethValue _ i meth) = pPrint d 1 i <> text "." <> ppMethId d meth
     pPrintExpand m d ec (ATuple _ es) =  parens (commaSep (map (pPrintExpand m d defContext) es))
-    pPrintExpand m d ec (ATupleSel _ e idx) = (pparen (useParen ec) $ pPrintExpand m d defContext e) <> text ("[" ++ itos idx ++ "]")
+    pPrintExpand m d ec (ATupleSel _ e idx) =
+        pPrintExpand m d pContext e <> text ("[" ++ itos idx ++ "]")
     pPrintExpand m d ec (ASPort _ i)  = pPrint d (getP ec) i
     pPrintExpand m d ec (ASParam _ i) = pPrint d (getP ec) i
     pPrintExpand m d ec (ASDef _ i) | isIdWillFire i && (lookupLevel m) > 0 ||
@@ -1906,23 +1925,28 @@ defLookup d ped = M.findWithDefault err d (defmap ped)
 -- # Some standardized methods for making (default) method strings
 -- #############################################################################
 data MethodPart =
-    MethodArg Integer            | -- argument 1, 2, ... input
-    MethodResult (Maybe Integer) | -- return value: Nothing for a single result,
-                                   -- Just 1, 2, ... when split across ports
-    MethodEnable                   -- enable signal input
+    -- Source argument index (1-based) and, when the argument is split across
+    -- several hardware ports (e.g. a SplitPorts tuple), the port index within
+    -- that argument (Just 1, 2, ...).  An un-split argument has Nothing.
+    MethodArg Integer (Maybe Integer) |
+    -- return value: Nothing for a single (un-split) result, Just 1, 2, ...
+    -- when the result is split across multiple output ports
+    MethodResult (Maybe Integer) |
+    MethodEnable           -- enable signal input
     deriving (Eq)
 
 -- The method syntax is as follows:
---   Arguments are <inst>$<meth>_<argnum> starting from 1
---     (e.g. the_fifo$enq_1)
---   Return values are <inst>$<meth>_RES_<resnum> when the result is split across
---     multiple output ports (e.g. the_fifo$first_RES_1), or just <inst>$<meth>
---     when the method has a single result (e.g. the_fifo$first)
+--   Arguments are <inst>$<meth>_<argnum> starting from 1 (e.g. the_fifo$enq_1).
+--     When an argument is split across several hardware ports, each port gets
+--     an extra _PORT_<portnum> suffix (e.g. the_fifo$enq_1_PORT_1).
+--   Return values are just <inst>$<meth> for a single result
+--     (e.g. the_fifo$first); when the result is split across several output
+--     ports, each gets a _PORT_<portnum> suffix (e.g. the_fifo$first_PORT_1).
 --   Enable signals are <inst>$EN_<meth> (e.g. the_fifo$EN_enq)
--- Multi-ported methods are <inst>$<meth>_<portnum>_<argnum>
--- or <inst>$<meth>_<portnum>_RES_<resnum>
--- The portnum is only omitted if the method has one or
--- and infinite number of ports (like a register)
+-- Methods with multiplicity > 1 prefix the above with the copy number,
+-- <inst>$<meth>_<copynum>_...
+-- The copynum is only omitted if the method has one or
+-- an infinite number of ports (like a register)
 -- XXX these should probably just be a data type rather than Ids
 mkMethId :: Id -> Id -> Maybe Integer -> MethodPart -> Id
 mkMethId o m ino mp =
@@ -1948,7 +1972,7 @@ mkMethStr obj m m_port mp =
                                        fsUnderscore,
                                        mkNumFString port]
         base = case mp of
-                   MethodArg n -> mkMethArgStr meth_port n
+                   MethodArg argN portM -> mkMethArgStr meth_port argN portM
                    MethodResult mn -> mkMethResStr meth_port mn
                    MethodEnable ->
                        -- XXX are we overloading fsEnable?
@@ -1958,26 +1982,33 @@ mkMethStr obj m m_port mp =
                        fsDollar,
                        base]
 
-mkMethArgStr :: FString -> Integer -> FString
-mkMethArgStr meth_port n =
-    if (n == 0)
+-- An argument is named <meth>_<argnum>.  When the argument is split across
+-- multiple hardware ports, each port gets an extra _PORT_<portnum> suffix.
+mkMethArgStr :: FString -> Integer -> Maybe Integer -> FString
+mkMethArgStr meth_port argN mPortM =
+    if (argN == 0)
     then internalError "mkMethArgStr"
-    else concatFString [meth_port, fsUnderscore, mkNumFString n]
+    else concatFString ([meth_port, fsUnderscore, mkNumFString argN] ++
+                        portSuffix mPortM)
 
+-- A single (un-split) result is just <meth>; when the result is split across
+-- multiple output ports, each port gets a _PORT_<portnum> suffix.
 mkMethResStr :: FString -> Maybe Integer -> FString
--- a single result gets no _RES_ suffix
-mkMethResStr meth_port Nothing = meth_port
-mkMethResStr meth_port (Just n) =
-    if (n == 0)
-    then internalError "mkMethResStr"
-    else concatFString [meth_port, fsUnderscore, fs_res, mkNumFString n]
+mkMethResStr meth_port mPortM = concatFString (meth_port : portSuffix mPortM)
 
--- The result numbers for a method with the given list of results: Nothing
--- (no _RES_ suffix) for a single result, Just 1, Just 2, ... when split across
--- multiple output ports.
-methResultNums :: [a] -> [Maybe Integer]
-methResultNums [_] = [Nothing]
-methResultNums xs  = zipWith (\ _ n -> Just n) xs [1..]
+-- The _PORT_<n> suffix for a split input/output port (empty when not split)
+portSuffix :: Maybe Integer -> [FString]
+portSuffix Nothing  = []
+portSuffix (Just n) = if (n == 0)
+                      then internalError "portSuffix"
+                      else [fsUnderscore, fs_port, mkNumFString n]
+
+-- Port numbers for an input/output split across the given list of hardware
+-- ports: Nothing (no _PORT_ suffix) for a single port, Just 1, Just 2, ...
+-- when split across several.
+splitPortNums :: [a] -> [Maybe Integer]
+splitPortNums [_] = [Nothing]
+splitPortNums xs  = zipWith (\ _ n -> Just n) xs [1..]
 
 -- #############################################################################
 -- #

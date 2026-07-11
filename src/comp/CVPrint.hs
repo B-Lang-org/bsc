@@ -865,7 +865,7 @@ ppVeriMethod d mr (Method i mc mreset n pts os me) =
       _   -> t"(" <> sepList (map (f "" " " . Just) os) (t",") <> t")") <>
    (pvpId d i <>
    (if n == 1 then empty else (t"[" <> (pp d n) <> t"]")) <>
-   (t"(" <> sepList (map (f "" "" . Just) pts) (t",") <> t")") <>
+   (t"(" <> sepList (map (f "" "" . Just) (concat pts)) (t",") <> t")") <>
    (f " enable (" ")" me) <>
    (f " ready ("  ")" mr) <>
    (case mc of
