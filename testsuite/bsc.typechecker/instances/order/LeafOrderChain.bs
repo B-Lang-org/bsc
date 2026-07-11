@@ -1,0 +1,42 @@
+package LeafOrderChain where
+
+-- A deeper exercise of trie-leaf ordering: four instances in one leaf
+-- (all Maybe/Maybe at the input positions) forming a specificity chain
+-- A < B < C with an incomparable instance X (X < C only):
+--
+--   C = TC3 (Maybe a)    (Maybe b)        -- fully general
+--   B = TC3 (Maybe a)    (Maybe a)        -- non-linear, B < C
+--   X = TC3 (Maybe Bool) (Maybe (Bit 8))  -- X < C; unrelated to A, B
+--   A = TC3 (Maybe Bool) (Maybe Bool)     -- A < B < C
+--
+-- Declared in the adversarial order [C, B, X, A]: a comparison sort of
+-- the collapsed partial order leaves both C ahead of X and B ahead of
+-- A, so concrete calls would select C (4) instead of X (2) and B (3)
+-- instead of A (1).  A topological ordering must answer 1, 3, 2, 4.
+
+class TC3 a b where
+    tag3 :: a -> b -> Bit 8
+
+instance TC3 (Maybe a) (Maybe b) where
+    tag3 _ _ = 4
+
+instance TC3 (Maybe a) (Maybe a) where
+    tag3 _ _ = 3
+
+instance TC3 (Maybe Bool) (Maybe (Bit 8)) where
+    tag3 _ _ = 2
+
+instance TC3 (Maybe Bool) (Maybe Bool) where
+    tag3 _ _ = 1
+
+{-# verilog sysLeafOrderChain #-}
+sysLeafOrderChain :: Module Empty
+sysLeafOrderChain = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (tag3 (Just True) (Just False))                    -- A
+                $display "%0d" (tag3 (Just (0 :: Bit 8)) (Just (1 :: Bit 8)))     -- B
+                $display "%0d" (tag3 (Just True) (Just (1 :: Bit 8)))             -- X
+                $display "%0d" (tag3 (Just (0 :: Bit 8)) (Just True))             -- C
+                $finish 0

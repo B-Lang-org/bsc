@@ -485,6 +485,11 @@ isRight  _        = False
 -- =====
 -- Data.Map utilities
 
+-- like M.!, but reports lookup failure via internalError
+-- (in the style of headOrErr)
+map_lookupOrErr :: (Ord k) => String -> k -> M.Map k a -> a
+map_lookupOrErr err k m = M.findWithDefault (internalError err) k m
+
 map_insertMany :: (Ord k) => [(k,a)] -> M.Map k a -> M.Map k a
 map_insertMany kas m =
    foldr (uncurry M.insert) m kas

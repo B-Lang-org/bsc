@@ -13,13 +13,11 @@ module PredTrie(
 import Prelude hiding ((<>))
 #endif
 
-import Data.List(sortBy)
-
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
 import Error(internalError)
-import CType(Type(..), TyCon(..), TyVar, leftTyCon)
+import CType(Type(..), TyCon(..), TISort(..), TyVar, leftTyCon)
 import TypeOps(isPrimTFunName)
 import Pred(Pred(..), Class(inputPositions), expandSyn)
 
@@ -43,19 +41,22 @@ data PredTrie a = Leaf [a]
 -- | Build a sorted trie from items that contain predicates.  The class (and
 -- hence its functional dependencies) is taken from the first item's predicate,
 -- so the caller need not pass the fundep matrix separately.
--- The comparator is applied at construction time so that lookupPredTrie
--- returns items in the caller's preferred order.  The comparator should place
--- more-specific items before less-specific ones: lookupPredTrie already
+-- The leaf-sorting function is applied at construction time so that
+-- lookupPredTrie returns items in the caller's preferred order.  It should
+-- place more-specific items before less-specific ones: lookupPredTrie already
 -- returns items from more-specific branches (concrete constructor) before
 -- less-specific branches (type variable), so the leaf ordering should be
--- consistent with that — more-specific items first.
+-- consistent with that — more-specific items first.  It is a whole-list
+-- function, not a comparator, because specificity is only a partial order
+-- and a comparison sort of a partial order is not sound (see the caller in
+-- MakeSymTab).
 -- The item type 'a' is unrestricted, so this works for Inst, EPred, VPred,
 -- or any wrapper.
-buildPredTrie :: (a -> a -> Ordering) -> (a -> Pred) -> [a] -> PredTrie a
-buildPredTrie _   _      []           = Leaf []
-buildPredTrie cmp toPred items@(x:_) =
+buildPredTrie :: ([a] -> [a]) -> (a -> Pred) -> [a] -> PredTrie a
+buildPredTrie _        _      []           = Leaf []
+buildPredTrie sortLeaf toPred items@(x:_) =
     let IsIn c _ = toPred x
-    in sortTrieLeaves cmp $ buildRaw (\y -> predTrieKey (inputPositions c) (toPred y)) items
+    in sortTrieLeaves sortLeaf $ buildRaw (\y -> predTrieKey (inputPositions c) (toPred y)) items
 
 buildRaw :: (a -> [Maybe TyCon]) -> [a] -> PredTrie a
 buildRaw keyOf items@(x:_) =
@@ -84,11 +85,11 @@ trieShape :: PredTrie a -> String
 trieShape (Leaf xs) = "Leaf[" ++ show (length xs) ++ "]"
 trieShape (Node _)  = "Node"
 
--- | Sort the items in each leaf using a comparison function.
+-- | Sort the items in each leaf using a whole-list sorting function.
 -- Use this once at build time so that lookupPredTrie returns items in order.
-sortTrieLeaves :: (a -> a -> Ordering) -> PredTrie a -> PredTrie a
-sortTrieLeaves cmp (Leaf xs) = Leaf (sortBy cmp xs)
-sortTrieLeaves cmp (Node m)  = Node (M.map (sortTrieLeaves cmp) m)
+sortTrieLeaves :: ([a] -> [a]) -> PredTrie a -> PredTrie a
+sortTrieLeaves f (Leaf xs) = Leaf (f xs)
+sortTrieLeaves f (Node m)  = Node (M.map (sortTrieLeaves f) m)
 
 -- ---------------------------------------------------------------------------
 -- Querying the trie
@@ -158,16 +159,26 @@ allItems (Node m)  = concatMap allItems (M.elems m)
 -- Trie key for a predicate at the given pre-computed positions.
 -- Type synonyms are expanded so that keys are in normal form, matching the
 -- post-normT predicate types used at query time.
+-- Only substitution-stable head constructors (see stableHeadTyCon) are used
+-- as keys.  A type-function head (e.g. TAdd) is keyed Nothing so the
+-- instance lands in the catch-all branch: it can evaluate to any head as
+-- types refine, so it must be visible to every query and to every overlap
+-- probe (keying it under its own constructor would hide it from probes for
+-- the heads it can evaluate to, silently skipping the overlap check and
+-- the incoherence detection against such instances).
 predTrieKey :: [Int] -> Pred -> [Maybe TyCon]
 predTrieKey positions (IsIn _ ts) =
-    [ leftTyCon (expandSyn (ts !! i)) | i <- positions ]
+    [ case leftTyCon (expandSyn (ts !! i)) of
+        Just tc | stableHeadTyCon tc -> Just tc
+        _                            -> Nothing
+    | i <- positions ]
 
 -- | Probe query for overlap checking: given an instance's predicate, build a
 -- query that finds all instances that might overlap with it.  Variable positions
 -- in the instance key (Nothing) become Free so that cross-branch overlaps are
--- found; concrete positions (Just tc) become Con tc.
--- Unlike predQuery this does not apply isPrimTFunTyCon: for overlap detection we
--- want to find all candidates including those with numeric-literal heads.
+-- found; concrete positions (Just tc) become Con tc.  Type-function heads are
+-- keyed Nothing by predTrieKey and therefore probe Free here, so instances
+-- they might overlap with are always found.
 overlapProbeQuery :: Pred -> [QueryElem]
 overlapProbeQuery p@(IsIn c _) =
     [ case k of { Just tc -> Con tc; Nothing -> Free }
@@ -188,24 +199,37 @@ predQuery btvs (IsIn c ts) =
 -- Building queries from predicates
 -- ---------------------------------------------------------------------------
 
--- | True when a TyCon is an unevaluated numeric or string type function
--- (TAdd, TMul, TLog, etc.).  Type-function heads cannot be resolved to a
--- concrete constructor at query time, so queries at those positions must
--- probe ALL trie branches (Free) to avoid missing instances that have a
--- concrete-number head (e.g. VectorTreeReduce 1, VectorTreeReduce 2).
-isPrimTFunTyCon :: TyCon -> Bool
-isPrimTFunTyCon (TyCon { tcon_name = i }) = isPrimTFunName i
-isPrimTFunTyCon _                          = False
+-- | True when a TyCon head is stable under substitution and normalization:
+-- ordinary type constructors and numeric/string literals.  False for heads
+-- that can still evaluate or expand to a different head as types refine:
+--   - primitive numeric/string type functions (TAdd, TMul, TLog, etc.);
+--   - associated type functions (TIatf), which normT can leave in place
+--     when their class predicate is not yet satisfiable ("stuck" ATFs);
+--   - type synonyms (TItype), defensively — they are normally expanded
+--     before keys and queries are built.
+-- Unstable heads must be keyed Nothing on the instance side and must probe
+-- ALL trie branches (Free) on the query side; otherwise a query for a
+-- pred whose head later evaluates to a concrete constructor would never
+-- see the instances under that constructor (e.g. VectorTreeReduce 1,
+-- VectorTreeReduce 2), missing both matches and the non-matching-but-
+-- unifiable instances that incoherence detection depends on.
+stableHeadTyCon :: TyCon -> Bool
+stableHeadTyCon (TyCon { tcon_name = i, tcon_sort = s }) =
+    case s of
+      TItype {} -> False
+      TIatf {}  -> False
+      _         -> not (isPrimTFunName i)
+stableHeadTyCon _ = True  -- TyNum, TyStr
 
 -- | Classify one type argument of the predicate being resolved.
--- A type-function head (TAdd, TLog, etc.) is treated as Free so that
+-- An unstable head (type function, stuck ATF) is treated as Free so that
 -- all candidate instances are returned for unification-based filtering.
 -- Pass 'S.empty' for btvs to suppress Bound (never emit Bound in queries).
 mkQueryElem :: S.Set TyVar -> Type -> QueryElem
 mkQueryElem btvs t =
     case leftTyCon t of
-        Just tc | not (isPrimTFunTyCon tc) -> Con tc
-        Just _                         -> Free  -- unevaluated type function
+        Just tc | stableHeadTyCon tc -> Con tc
+        Just _                       -> Free  -- unevaluated type function
         Nothing -> case headVar t of
             Just tv | tv `S.member` btvs -> Bound
             _                            -> Free
