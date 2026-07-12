@@ -9,6 +9,7 @@ import CSyntax
 import PPrint
 import ABin (ABin(..), ABinForeignFuncInfo(..))
 import GenABin(genABinFile)
+import Position(remapPositionFile)
 import ForeignFunctions(ForeignFunction(..), mkForeignFunction)
 import Version(bscVersionStr)
 import FileNameUtil(mkAName, getRelativeFilePath)
@@ -42,7 +43,7 @@ genForeign errh flags prefix (CPackage pkg_id _ _ _ _ defs _) =
                 abinPrintPrefix = "Foreign import file created: "
             in  do
                    -- write the file with full path
-                   genABinFile errh afilename abin
+                   genABinFile errh (remapPositionFile (remapPathPrefix flags)) afilename abin
                    -- report the file to the user with relative path
                    -- (typically just the filename, for current directory)
                    unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel

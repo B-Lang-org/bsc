@@ -1,0 +1,25 @@
+# Test that -remap-path-prefix makes .bo/.ba output independent of the
+# build directory: the same sources compiled from two different
+# directories produce byte-identical files with no embedded build paths.
+
+set here [pwd]
+set testdir [file join $srcdir $subdir]
+
+cd $testdir
+set status [exec_with_log_and_return "remap-path" \
+                "./run_remap.sh >& run_remap.out" \
+                lasterr 2]
+cd $here
+
+set output_file   [file join $testdir run_remap.out]
+set expected_file [file join $testdir run_remap.out.expected]
+
+if { $status != 0 } {
+    fail "remap-path: run_remap.sh exited non-zero ($lasterr)"
+} elseif { ![file exists $expected_file] } {
+    unresolved "remap-path: no expected file"
+} elseif { [catch {exec diff -u $expected_file $output_file} diff_err] } {
+    fail "remap-path: output differs from expected"
+} else {
+    pass "remap-path: deterministic .bo/.ba across build directories"
+}

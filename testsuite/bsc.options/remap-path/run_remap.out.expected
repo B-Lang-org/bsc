@@ -1,0 +1,7 @@
+IDENTICAL Foo.bo
+IDENTICAL Bar.bo
+IDENTICAL mkFoo.ba
+CLEAN dirA/Foo.bo
+CLEAN dirA/Bar.bo
+CLEAN dirA/mkFoo.ba
+REPEATABLE mkFoo.ba

@@ -31,10 +31,11 @@ header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260705-1"
 headerBS :: B.ByteString
 headerBS = B.pack header
 
-genBinFile :: ErrorHandle ->
+genBinFile :: ErrorHandle -> (Position -> Position) ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
-genBinFile errh fn bi_sig bo_sig ipkg =
-    writeBinaryFileCatch errh fn (header ++ encode (bi_sig, bo_sig, ipkg))
+genBinFile errh remapP fn bi_sig bo_sig ipkg =
+    writeBinaryFileCatch errh fn
+        (header ++ encodeWith remapP (bi_sig, bo_sig, ipkg))
 
 readBinFile :: ErrorHandle -> String -> B.ByteString ->
                IO (CSignature, CSignature, IPackage a, String)

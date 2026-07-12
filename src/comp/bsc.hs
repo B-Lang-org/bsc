@@ -35,7 +35,7 @@ import SCC(scc)
 import ParseOp
 import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote, fst3)
-import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
+import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName, remapPath,
                     mkAName, mkVName, mkVPICName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
@@ -56,6 +56,7 @@ import IOUtil(getEnvDef)
 import Exceptions(bsCatch)
 import Flags(
         Flags(..),
+        remapFlagsPaths,
         DumpFlag(..),
         hasDump,
         verbose, extraVerbose, quiet)
@@ -72,7 +73,7 @@ import Error(internalError, ErrMsg(..),
              ErrorHandle, initErrorHandle, setErrorHandleFlags,
              bsError, bsWarning, bsMessage,
              exitFail, exitOK, exitFailWith)
-import Position(noPosition, cmdPosition)
+import Position(noPosition, cmdPosition, remapPositionFile)
 import CVPrint
 import Id
 import Backend
@@ -636,7 +637,8 @@ compilePackage
 
     -- Generate binary version of the internal tree .bo file
     let bin_filename = putInDir (bdir flags) name binSuffix
-    genBinFile errh bin_filename bi_sig bo_sig imodr
+    let remapP = remapPositionFile (remapPathPrefix flags)
+    genBinFile errh remapP bin_filename bi_sig bo_sig imodr
 
     -- Print one message for the two files
     let rel_binname = getRelativeFilePath bin_filename
@@ -1002,9 +1004,11 @@ writeABin errh pps flags dumpnames t prefix modstr srcName oqt
                   Nothing -> "Elaborated module file created: "
                   Just be ->
                       "Elaborated " ++ ppString be ++ " module file created: "
+           remapP = remapPositionFile (remapPathPrefix flags)
+           remapS = remapPath (remapPathPrefix flags)
            modinfo = ABinModInfo {
-                          abmi_path = prefix,
-                          abmi_src_name = srcName,
+                          abmi_path = remapS prefix,
+                          abmi_src_name = remapS srcName,
                           --abmi_time = now,
                           abmi_apkg        = amod_for_abin,
                           abmi_aschedinfo  = sched_info,
@@ -1012,12 +1016,12 @@ writeABin errh pps flags dumpnames t prefix modstr srcName oqt
                           abmi_oqt         = oqt,
                           abmi_method_dump = methodConflict,
                           abmi_pathinfo = vPathInfo,
-                          abmi_flags       = flags,
+                          abmi_flags       = remapFlagsPaths remapPath flags,
                           abmi_vprogram    = if (genABinVerilog flags)
                                              then vprog else Nothing
                      }
            abin = ABinMod modinfo (bscVersionStr True)
-       genABinFile errh afilename abin
+       genABinFile errh remapP afilename abin
        unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
        dump errh flags t DFwriteABin dumpnames afilename
 
@@ -1034,17 +1038,19 @@ writeABinSchedErr errh pps flags dumpnames t prefix modstr srcName oqt
        let afilename = mkAName (bdir flags) prefix modstr
            afilename_rel = getRelativeFilePath afilename
            abinPrintPrefix = "Elaborated error module file created: "
+           remapP = remapPositionFile (remapPathPrefix flags)
+           remapS = remapPath (remapPathPrefix flags)
            modinfo = ABinModSchedErrInfo {
-                          abmsei_path          = prefix,
-                          abmsei_src_name      = srcName,
+                          abmsei_path          = remapS prefix,
+                          abmsei_src_name      = remapS srcName,
                           abmsei_apkg          = amod,
                           abmsei_aschederrinfo = sched_info,
                           abmsei_pps           = pps,
                           abmsei_oqt           = oqt,
-                          abmsei_flags         = flags
+                          abmsei_flags         = remapFlagsPaths remapPath flags
                      }
            abin = ABinModSchedErr modinfo (bscVersionStr True)
-       genABinFile errh afilename abin
+       genABinFile errh remapP afilename abin
        unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
        dump errh flags t DFwriteABin dumpnames afilename
 

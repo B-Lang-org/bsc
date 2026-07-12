@@ -9,7 +9,7 @@ import PPrint
 import PVPrint
 import FStringCompat
 import PreStrings(fsEmpty)
-import FileNameUtil(getRelativeFilePath)
+import FileNameUtil(getRelativeFilePath, remapPath)
 
 data Position = Position {
     pos_file :: !FString,
@@ -23,6 +23,15 @@ mkPosition f l c = Position f l c False
 
 mkPositionFull :: FString -> Int -> Int -> Bool -> Position
 mkPositionFull f l c is_stdlib = Position f l c is_stdlib
+
+-- Apply -remap-path-prefix mappings to the position's file name
+-- (used when serializing positions into .bo/.ba files, so that the
+-- stored bytes do not depend on the build machine's directory layout)
+remapPositionFile :: [(String, String)] -> Position -> Position
+remapPositionFile [] p = p
+remapPositionFile prefixes p@(Position f l c is_stdlib) =
+    let f' = mkFString (remapPath prefixes (getFString f))
+    in  if f' == f then p else Position f' l c is_stdlib
 
 instance Eq Position where
   (Position f1 l1 c1 _) == (Position f2 l2 c2 _) = (f1, l1, c1) == (f2, l2, c2)

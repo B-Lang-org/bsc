@@ -202,6 +202,24 @@ getRelativeFilePathInternal path =
        then drop 3 rest
        else getRelativeFilePathInternal (drop 1 rest)
 
+-- Apply a path-prefix remapping (-remap-path-prefix) to a stored file
+-- path.  The longest matching FROM prefix wins, independent of the
+-- order the mappings were given.  The encoded /// pwd marker is
+-- decoded before matching, so a match also normalizes away the
+-- difference between relative and absolute invocation; the result is
+-- stored plain (marker-free).  If no prefix matches, the path is
+-- returned untouched, marker and all.
+remapPath :: [(String, String)] -> FilePath -> FilePath
+remapPath [] path = path
+remapPath prefixes path =
+    let full = getFullFilePath path
+        matches = [ (length from, to ++ drop (length from) full)
+                  | (from, to) <- prefixes
+                  , from == take (length from) full ]
+    in  case matches of
+          [] -> path
+          _  -> snd (maximum matches)
+
 -- =====
 
 -- When we create a name with mkVName (as an example), we pass it vdir
