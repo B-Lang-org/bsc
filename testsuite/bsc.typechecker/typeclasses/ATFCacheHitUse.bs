@@ -1,0 +1,19 @@
+package ATFCacheHitUse where
+
+import ATFCacheHitDef
+
+-- The only ground pred THIS package's typecheck solves is
+-- Encode (UInt 5) (checkPair's proviso), so a hit on the
+-- pair-shaped EncSize ((UInt 5, UInt 5)) during elaboration can
+-- only come from ATFCacheHitDef's .bo-delivered cache.
+
+{-# verilog sysATFCacheHitUse #-}
+sysATFCacheHitUse :: Module Empty
+sysATFCacheHitUse = module
+  r :: Reg (UInt 5) <- mkReg 7
+  rules
+    "test": when True ==>
+      action
+        let result = checkPair r
+        $display "result: %b" (pack result)
+        $finish 0

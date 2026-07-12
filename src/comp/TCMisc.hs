@@ -403,7 +403,11 @@ sat dvs ps p =
                 (ps@(_:_), sbs, s_final) -> return $ (ps, sbs, s_final)
                 ([], sbs, s_final) -> do
                   recordPackageUse mpkg
-                  recordATFs s_final
+                  -- No recordATFs here: an incoherent match is an
+                  -- information-dependent choice (context-, flag- and
+                  -- import-order-dependent), so its ATF projection must
+                  -- not be recorded where the .bo cache would deliver it
+                  -- to importing compiles as if it were canonical.
                   let (vp_pred, inst_pred) = niceTypes (apSub s_final (toPred p, h))
                   let pos = getPosition $ getVPredPositions p
                   let VPred dictId _ = p
