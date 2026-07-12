@@ -74,7 +74,7 @@ public:
 
   ~FstWriter() { close(); }
 
-  bool open(const char* name, bool /* append: FST files are one-shot */)
+  bool open(const char* name)
   {
     ctx = fstWriterCreate(name, 1 /* compressed hierarchy */);
     if (ctx == NULL)

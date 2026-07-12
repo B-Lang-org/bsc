@@ -25,9 +25,8 @@ public:
   virtual ~WaveWriter() {}
 
   // File management.  open() reports errors itself (on stderr) and
-  // returns false.  When "append" is true the file was already dumped
-  // to earlier in this simulation and is being resumed.
-  virtual bool open(const char* name, bool append) = 0;
+  // returns false.
+  virtual bool open(const char* name) = 0;
   virtual void close() = 0;
   virtual void flush() = 0;
 

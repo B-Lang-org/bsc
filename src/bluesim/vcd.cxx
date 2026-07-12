@@ -91,10 +91,9 @@ public:
   VcdWriter() : file(NULL), size_limit(0llu) {}
   ~VcdWriter() { if (file != NULL) fclose(file); }
 
-  bool open(const char* name, bool append)
+  bool open(const char* name)
   {
-    // if we are returning to a previous file, append to it
-    file = fopen(name, append ? "a" : "w");
+    file = fopen(name, "w");
     if (file == NULL)
     {
       perror(name);
@@ -404,21 +403,15 @@ tStatus bk_set_VCD_file(tSimStateHdl simHdl, const char* name)
     return BK_ERROR;
 
   s->vcd_file_name = name;
-  // if we are returning to a previous file, do not write the header again
-  bool append = (s->previous_files.find(s->vcd_file_name) !=
-                 s->previous_files.end());
 
   s->writer = new_writer(simHdl);
-  if ((s->writer == NULL) || !s->writer->open(name, append))
+  if ((s->writer == NULL) || !s->writer->open(name))
   {
     delete s->writer;
     s->writer = NULL;
     s->vcd_file_name.resize(0);
     return BK_ERROR;
   }
-
-  if (append)
-    s->state = VCD_DISABLED;
   s->writer->set_size_limit(s->vcd_filesize_limit);
 
   return BK_SUCCESS;
@@ -478,7 +471,6 @@ void vcd_reset(tSimStateHdl simHdl)
   }
   if (! s->vcd_file_name.empty())
     s->vcd_file_name.resize(0);
-  s->previous_files.clear();
   s->state = VCD_OFF;
   s->vcd_enabled = false;
   s->vcd_depth = 0;

@@ -57,7 +57,6 @@ struct tVCDState {
   bool is_backing_instance;
 
   std::string vcd_file_name;
-  std::set<std::string> previous_files;
 
   tClockMap clk_map;                    // clks for each VCD num
 
