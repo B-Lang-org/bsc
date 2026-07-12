@@ -260,12 +260,9 @@ expandSyn t0 = exp [] f as
         -- Type functions (TIatf) are NOT expanded here; they are handled by
         -- normT via expTFun, which generates the appropriate class constraint.
         exp _ f@(TCon (TyCon i _ _)) as
-          | isTFun i = apTFun f i $ map expandSyn as
+          | isPrimTFunName i = apTFun f i $ map expandSyn as
         -- f does not contain a TAp or a synonym TCon, so it cannot have synonyms to expand
         exp _ f as = foldl TAp f $ map expandSyn as
-
-isTFun :: Id -> Bool
-isTFun i = i `elem` numOpNames ++ strOpNames
 
 apTFun :: Type -> Id -> [Type] -> Type
 apTFun _ i [TCon (TyNum x px), TCon (TyNum y py)] | Just n <- opNumT i [x, y] = TCon (TyNum n p')

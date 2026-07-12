@@ -95,7 +95,9 @@ For the following systems, the Bluespec toolchain is available
 as a package that can be installed with the standard package manager:
 
 * ArchLinux AUR: [`bluespec-git`](https://aur.archlinux.org/packages/bluespec-git/) ([among others](https://aur.archlinux.org/packages/?K=bluespec))
+* Fedora ([Terra Repository](https://terrapkg.com/)): [`bsc`](https://github.com/terrapkg/packages/tree/frawhide/anda/buildsys/bsc)
 * Gentoo GURU and LiGurOS: [`sci-electronics/bluespec`](https://gitweb.gentoo.org/repo/proj/guru.git/tree/sci-electronics/bluespec)
+* Homebrew: [`bsc`](https://formulae.brew.sh/formula/bsc)
 * Nix/NixOS: [`bluespec`](https://search.nixos.org/packages?channel=20.09&from=0&size=50&sort=relevance&query=bluespec)
 
 You can also use the [Repology search engine](https://repology.org/project/bluespec/versions)

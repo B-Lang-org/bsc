@@ -21,19 +21,19 @@ BEGIN
      #) ;
   
   rule_RL_do_static (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_src1__h124 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src1)
+    LET def_src1__h109 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src1)
     IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
-	     CTX_RegUN{8}!meth_write(Prim2{12,8}!primExtract(def_src1__h124), state0.inst_snk1)
+	     CTX_RegUN{8}!meth_write(Prim2{12,8}!primExtract(def_src1__h109), state0.inst_snk1)
     IN LET state1 : STATE = state0 WITH .inst_snk1 := act1.1
     IN ( TRUE, state1 ) ;
   
   rule_RL_do_dynamic (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_i2__h246 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_lo_idx)
-    IN LET def_i1__h245 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_hi_idx)
-    IN LET def_bs__h244 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src2)
-    IN LET def_x__h238 : Bit{8}!T = Prim2{12,8}!primExtract(def_bs__h244)
+    LET def_i2__h226 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_lo_idx)
+    IN LET def_i1__h225 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_hi_idx)
+    IN LET def_bs__h224 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src2)
+    IN LET def_src2_BITS_hi_idx_TO_lo_idx___d6 : Bit{8}!T = Prim2{12,8}!primExtract(def_bs__h224)
     IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
-	     CTX_RegUN{8}!meth_write(def_x__h238, state0.inst_snk2)
+	     CTX_RegUN{8}!meth_write(def_src2_BITS_hi_idx_TO_lo_idx___d6, state0.inst_snk2)
     IN LET state1 : STATE = state0 WITH .inst_snk2 := act1.1
     IN ( TRUE, state1 ) ;
   

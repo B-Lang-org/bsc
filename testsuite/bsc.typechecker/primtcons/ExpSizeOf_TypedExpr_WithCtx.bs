@@ -1,0 +1,7 @@
+package ExpSizeOf_TypedExpr_WithCtx where
+
+-- With an explicit Bits context, the SizeOf in a type-annotated expression
+-- can be reduced during typecheck.  (GitHub Issue #890)
+
+foo :: (Bits a sz) => a -> String
+foo _ = printType $ typeOf (_ :: Bit (SizeOf a))

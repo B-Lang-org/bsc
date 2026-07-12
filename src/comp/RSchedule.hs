@@ -1,3 +1,21 @@
+{-# LANGUAGE CPP #-}
+#if MIN_VERSION_GLASGOW_HASKELL(9,1,0,0)
+#else
+{-
+This is needed for ghc 8.8.4 on Ubuntu 22.04 LTS, or else
+`instance PPrint RAT` triggers
+
+* Illegal instance declaration for `PPrint RAT'
+    (All instance types must be of the form (T t1 ... tn)
+     where T is not a synonym.
+     Use TypeSynonymInstances if you want to disable this.)
+
+Despite the suggestion of TypeSynonymInstances, only
+FlexibleInstances is necessary.
+-}
+{-# LANGUAGE FlexibleInstances #-}
+#endif
+
 -- RSchedule
 --
 -- This module exports the data type RAT (resource allocation table) and

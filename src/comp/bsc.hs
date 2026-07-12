@@ -409,7 +409,7 @@ compilePackage
 
     -- Reduce the contexts as far as possible
     start flags DFctxreduce
-    mctx <- cCtxReduceIO errh flags symt11 mder
+    (mctx, pkgsUsedInCtxReduce) <- cCtxReduceIO errh flags symt11 mder
     t <- dump errh flags t DFctxreduce dumpnames mctx
 
     -- Rebuild the symbol table because CtxReduce has possibly changed
@@ -628,7 +628,7 @@ compilePackage
 
     -- Check for unused imports by combining packages from all three sources
     let (CPackage _ _ imports _ _ _ _) = mctx
-        allUsedPkgs = S.unions [pkgsUsedInTypes, pkgsUsedInCode, pkgsUsedInExports]
+        allUsedPkgs = S.unions [pkgsUsedInTypes, pkgsUsedInCtxReduce, pkgsUsedInCode, pkgsUsedInExports]
         importedPkgs = [i | (CImpId _ i) <- imports]
         unusedPkgs = filter (\pkg -> not (S.member pkg allUsedPkgs)) importedPkgs
         unusedWarns = [(getPosition pkg, WUnusedImport (pfpString pkg)) | pkg <- unusedPkgs]
@@ -2186,7 +2186,7 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     t <- getNow
 
     start flags DFwrapper_ctxreduce
-    cpkg_ctx <- cCtxReduceIO errh flags symt cpkg0
+    (cpkg_ctx, _) <- cCtxReduceIO errh flags symt cpkg0
     t <- dump errh flags t DFwrapper_ctxreduce dumpnames cpkg_ctx
 
     start flags DFwrapper_typecheck

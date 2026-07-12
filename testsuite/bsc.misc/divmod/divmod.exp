@@ -12,7 +12,7 @@ set fpe [list SIGFPE 8 136]
 # Test that divide-by-zero produces some failure in Bluesim
 compile_object_pass DivideByZero.bsv sysDivideByZero
 link_objects_pass sysDivideByZero sysDivideByZero
-if [string equal [which_mach] "arm64"] {
+if { [lsearch -exact -nocase {aarch64 arm64} [which_mach]] != -1 } {
     # This is an expected bug (GitHub #688)
     sim_output_status sysDivideByZero 0
 } else {

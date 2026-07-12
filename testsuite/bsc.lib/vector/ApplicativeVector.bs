@@ -1,0 +1,50 @@
+package ApplicativeVector where
+
+import Vector
+
+-- Test the Functor and Applicative instances for Vector.
+
+incr :: Int 16 -> Int 16
+incr x = x + 1
+
+{-# verilog sysApplicativeVector #-}
+sysApplicativeVector :: Module Empty
+sysApplicativeVector =
+  module
+    let sh :: String -> Vector 4 (Int 16) -> Action
+        sh lbl v =
+          $display (lbl + ": %0d %0d %0d %0d")
+                   (v !! 0) (v !! 1) (v !! 2) (v !! 3)
+    rules
+      "test": when True ==> action
+        let a :: Vector 4 (Int 16)
+            a = genWith fromInteger              -- 0 1 2 3
+            b :: Vector 4 (Int 16)
+            b = replicate 10                     -- 10 10 10 10
+
+        -- Functor: fmap maps a function over the vector.
+        let f :: Vector 4 (Int 16)
+            f = fmap incr a                      -- 1 2 3 4
+
+        -- Applicative: pure broadcasts a single value.
+        let p :: Vector 4 (Int 16)
+            p = pure 7                           -- 7 7 7 7
+
+        -- Applicative: liftA2 zips two vectors with a binary function.
+        let s :: Vector 4 (Int 16)
+            s = liftA2 (+) a b                   -- 10 11 12 13
+            m :: Vector 4 (Int 16)
+            m = liftA2 (*) a (pure 2)            -- 0 2 4 6
+
+        -- Applicative: <*> applies a vector of functions pointwise.
+        let ap :: Vector 4 (Int 16)
+            ap = pure incr <*> a                 -- 1 2 3 4
+
+        sh "a" a
+        sh "b" b
+        sh "f" f
+        sh "p" p
+        sh "s" s
+        sh "m" m
+        sh "ap" ap
+        $finish 0

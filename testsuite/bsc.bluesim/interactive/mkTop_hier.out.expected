@@ -2,7 +2,7 @@ sim pwd
 .
 -------
 sim ls
-{b__h268 signal} {CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {count {module with value}} {level1 module} {mid1 module} {mid2 module} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
+{CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {count {module with value}} {count__h149 signal} {level1 module} {mid1 module} {mid2 module} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
 -------
 sim ls mid?.CAN_FIRE_*
 {mid1.CAN_FIRE_RL_incr signal} {mid1.CAN_FIRE_RL_sub1_flip signal} {mid1.CAN_FIRE_RL_wrap signal} {mid2.CAN_FIRE_RL_incr signal} {mid2.CAN_FIRE_RL_sub1_flip signal} {mid2.CAN_FIRE_RL_wrap signal}

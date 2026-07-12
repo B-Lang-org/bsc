@@ -9,7 +9,7 @@ module CType(
   getTyVarId, getTypeKind,
   isTNum, getTNum,
   isTStr, getTStr,
-  isTVar, isTCon, isIfc, isInterface, isUpdateable,
+  isTVar, isTCon, isIfc, isInterface, isDictType, isDictFun, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
   isATFAp,
@@ -399,6 +399,14 @@ isInterface :: CType -> Bool
 isInterface t | Just (TyCon _ _ (TIstruct s _)) <- leftTyCon t = isIfc s
 isInterface _ = False
 
+isDictType :: CType -> Bool
+isDictType t | Just (TyCon _ _ (TIstruct SClass _)) <- leftTyCon t = True
+isDictType _ = False
+
+isDictFun :: CType -> Bool
+isDictFun t = all isDictType (res:args)
+  where (args, res) = getArrows t
+
 isUpdateable :: StructSubType -> Bool
 isUpdateable SStruct = True
 isUpdateable SInterface {} = True
@@ -457,14 +465,20 @@ getActionValueArg t = internalError ("getActionValueArg: " ++ ppReadable t)
 -- These are used during foreign function processing to determine if arguments
 -- and return values are polymorphic or of a known size.
 isTypePolyBit :: Type -> Bool
+isTypePolyBit (TAp (TCon (TyCon i _ _)) (TAp (TCon (TyCon i' _ _)) arg))
+  | (i == idActionValue) || (i == idActionValue_), (i' == idBit) = isTVar arg
 isTypePolyBit (TAp (TCon (TyCon i _ _)) arg)
   | (i == idBit) || (i == idActionValue) || (i == idActionValue_) = isTVar arg
 isTypePolyBit _ = False
 
+-- Note that this is only used for foreign functions, so it does not currently handle tuples of Bits
 bitWidth :: Type -> Integer
+bitWidth (TAp (TCon (TyCon i _ _)) (TAp (TCon (TyCon i' _ _)) arg))
+  | ((i == idActionValue) || (i == idActionValue_)) &&
+    (i' == idBit) &&
+    (isTNum arg) = getTNum arg
 bitWidth (TAp (TCon (TyCon i _ _)) arg)
-  | ((i == idBit) || (i == idActionValue) || (i == idActionValue_)) &&
-     (isTNum arg) = getTNum arg
+  | (i == idBit) && (isTNum arg) = getTNum arg
 bitWidth t =
   internalError $ "bitWidth: not a Bit type of known width -- " ++ (show t)
 

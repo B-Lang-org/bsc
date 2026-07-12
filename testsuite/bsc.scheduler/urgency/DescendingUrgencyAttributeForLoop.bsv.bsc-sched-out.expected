@@ -12,11 +12,11 @@ order: [RL_test_rule_2, RL_test_rule_2_1, RL_test_rule_2_2, RL_test_rule_1]
 
 === resources (DescendingUrgencyAttributeForLoop sysDescendingUrgencyAttributeForLoop):
 [(count.read, [(count.read, 1)]),
- (count.write, [(count.write x__h489, 1), (count.write x__h268, 1)]),
+ (count.write, [(count.write count_PLUS_2___d2, 1), (count.write count_PLUS_1___d7, 1)]),
  (count_1.read, [(count_1.read, 1)]),
- (count_1.write, [(count_1.write x__h553, 1), (count_1.write x__h328, 1)]),
+ (count_1.write, [(count_1.write count_1_PLUS_2___d4, 1), (count_1.write count_1_PLUS_1___d8, 1)]),
  (count_2.read, [(count_2.read, 1)]),
- (count_2.write, [(count_2.write x__h598, 1), (count_2.write x__h394, 1)])]
+ (count_2.write, [(count_2.write count_2_PLUS_2___d6, 1), (count_2.write count_2_PLUS_1___d9, 1)])]
 
 -----
 

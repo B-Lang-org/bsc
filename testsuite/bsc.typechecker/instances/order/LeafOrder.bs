@@ -1,0 +1,39 @@
+package LeafOrder where
+
+-- Test that instances sharing one instance-trie leaf are walked
+-- most-specific-first.
+--
+-- All three instances below have the same head constructor (Maybe) at both
+-- class parameter positions, so they land in the same PredTrie leaf.  The
+-- leaf must be ordered by specificity, but specificity is only a partial
+-- order: the middle instance overlaps neither of the others (the first
+-- instance's repeated type variable cannot unify with two different
+-- element types), so a comparison sort sees EQ against both neighbors and
+-- may never compare the first and last instances at all, leaving the
+-- catch-all ahead of the strictly-more-specific instance in declaration
+-- order.  A correct topological ordering puts the specific instance first.
+--
+-- The instances are deliberately declared least-specific-first with the
+-- non-comparable instance in between; a fully concrete call must select
+-- the most specific instance (3), not the catch-all (1).
+
+class TC a b where
+    tcName :: a -> b -> Bit 8
+
+instance TC (Maybe a) (Maybe a) where
+    tcName _ _ = 1
+
+instance TC (Maybe Bool) (Maybe (Bit 8)) where
+    tcName _ _ = 2
+
+instance TC (Maybe Bool) (Maybe Bool) where
+    tcName _ _ = 3
+
+{-# verilog sysLeafOrder #-}
+sysLeafOrder :: Module Empty
+sysLeafOrder = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (tcName (Just True) (Just False))
+                $finish 0

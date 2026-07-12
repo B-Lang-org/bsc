@@ -13,10 +13,10 @@ order: [RL_test_rule_2_T_T, RL_test_rule_2_T_F, RL_test_rule_1, RL_test_rule_2_F
 === resources (DescendingUrgencyAttributeSplitIf sysDescendingUrgencyAttributeSplitIf):
 [(count_r.read, [(count_r.read, 1)]),
  (count_r.write,
-  [(count_r.write x__h210, 1),
-   (count_r.write x__h241, 1),
-   (count_r.write x__h244, 1),
-   (count_r.write x__h248, 1)]),
+  [(count_r.write count_r_PLUS_2___d2, 1),
+   (count_r.write count_r_PLUS_4___d6, 1),
+   (count_r.write count_r_PLUS_5___d9, 1),
+   (count_r.write count_r_PLUS_3___d11, 1)]),
  (p_r.read, [(p_r.read, 1)]),
  (q_r.read, [(q_r.read, 1)])]
 

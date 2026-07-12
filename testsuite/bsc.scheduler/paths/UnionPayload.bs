@@ -1,0 +1,37 @@
+package UnionPayload where
+
+import SplitPorts
+
+-- A user-defined 2-constructor tagged union with a payload.  Like Maybe, it
+-- has n /= 1 constructors, so SplitPorts keeps it packed as ONE port (tag +
+-- payload) under both ShallowSplit and DeepSplit.
+data Cmd = Nop | Run Bool
+ deriving (Bits)
+
+-- Two-field struct, ShallowSplit: a plain Bool field and the union field.
+struct In =
+  sel :: Bool
+  cmd :: Cmd
+ deriving (Bits)
+
+struct Out =
+  echo :: Cmd
+  ack  :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  step :: ShallowSplit In -> ShallowSplit Out
+
+{-# synthesize mkUnionPayload #-}
+mkUnionPayload :: Module Ifc
+mkUnionPayload =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      step (ShallowSplit a) =
+        -- The packed union input (cmd) flows combinationally to the packed
+        -- union output (echo) only.  The plain Bool output (ack) comes from a
+        -- register, so the union input does NOT reach it: this shows per-port
+        -- granularity where an input touching only the union port produces a
+        -- single path to that one packed output port.
+        ShallowSplit (Out { echo = a.cmd; ack = r })

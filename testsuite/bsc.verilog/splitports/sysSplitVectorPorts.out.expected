@@ -1,0 +1,12 @@
+putInts: [  10,  -20,   30,  -40]
+putFoos: [Foo {x=   1; y=   2}, Foo {x=   3; y=   4}, Foo {x=   5; y=   6}]
+putBars: [Bar {v=[True, False, True]; w=(True,  4660); z=Foo {x=   7; y=   8}}, Bar {v=[False, True, False]; w=(False, 22136); z=Foo {x=   9; y=  10}}]
+putPairs: [Pair {a=  11; b=43981}, Pair {a= -12; b=  255}]
+putGrid: [[Foo {x=   1; y=   2}, Foo {x=   3; y=   4}, Foo {x=   5; y=   6}], [Foo {x=   7; y=   8}, Foo {x=   9; y=  10}, Foo {x=  11; y=  12}]]
+putTwo: [Foo {x=  13; y=  14}, Foo {x=  15; y=  16}] [ 100, -101]
+putWrap: items=[Foo {x=  21; y=  22}, Foo {x=  23; y=  24}] tag=True
+getInts: [  50,   60,   70,   80]
+getFoos: [Foo {x=   1; y=   2}, Foo {x=   3; y=   4}, Foo {x=   5; y=   6}]
+bumpFoos: [Foo {x=  31; y=  39}, Foo {x=  51; y=  59}]
+updateVec: [Foo {x=  70; y=   0}, Foo {x=  80; y=   0}]
+updateVec: [Foo {x=  90; y=   1}, Foo {x= 100; y=   1}]

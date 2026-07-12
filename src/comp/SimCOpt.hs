@@ -13,7 +13,7 @@ import Util(mapSnd)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)
-import Data.List(find, intercalate)
+import Data.List(find, intercalate, sortOn)
 import Data.List.Split(split, condense, oneOf)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -157,6 +157,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
           let sizeOkToMove = case (M.lookup (sbid,aid) btype_map) of
                                  (Just ty) -> (ty == ATReal) ||
                                               ((not (isStringType ty)) &&
+                                               (not (isTupleType ty)) &&
                                                ((aSize ty) <= 64))
                                  Nothing   -> False
               -- don't move AV task defs
@@ -219,8 +220,12 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                          _ -> internalError "SimCOpt.moveDefsOntoStack btype_lookup"
       moveDefs (Just sbid) fn =  -- move within block
           let fname = sf_name fn
+              -- Sort by base name so the order doesn't depend on the Id sort
+              -- (which carries hierarchy-dependent qualifier/position info).
+              moved_aids = sortOn getIdBaseString
+                             (map snd (M.findWithDefault [] ((Just sbid),fname) move_map))
               new_defs = [ SFSDef isPort (ty,aid) Nothing
-                         | (_,aid) <- M.findWithDefault [] ((Just sbid),fname) move_map
+                         | aid <- moved_aids
                          , let ty = btype_lookup (sbid,aid)
                          , let isPort = S.member (sbid,aid) port_set
                          ]

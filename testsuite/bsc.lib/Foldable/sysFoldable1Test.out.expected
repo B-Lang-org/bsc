@@ -1,0 +1,12 @@
+-- fold --
+10
+100
+18
+-- foldr1/foldl1 --
+-2
+-8
+-- foldM (Maybe monad) --
+10
+-- folduM (Maybe monad) --
+10
+81

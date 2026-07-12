@@ -1,0 +1,7 @@
+package GeneralDescribableBS where
+
+import Helper
+
+-- General instance that matches any type.  Used by incoherence tests.
+instance Describable a where
+    describe _ = "generic"

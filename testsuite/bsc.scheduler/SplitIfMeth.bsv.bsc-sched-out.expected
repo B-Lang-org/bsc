@@ -10,11 +10,11 @@ order: [a1_T, a2, a1_F]
 === resources (SplitIfMeth mkSplitIfMeth):
 [(b.read, [(b.read, 1)]),
  (x.read, [(x.read, 1)]),
- (x.write, [(x.write b__h252, 1)]),
+ (x.write, [(x.write y__h201, 1)]),
  (y.read, [(y.read, 1)]),
- (y.write, [(y.write b__h272, 1)]),
+ (y.write, [(y.write z__h225, 1)]),
  (z.read, [(z.read, 1)]),
- (z.write, [(z.write b__h253, 1)])]
+ (z.write, [(z.write x__h202, 1)])]
 
 -----
 

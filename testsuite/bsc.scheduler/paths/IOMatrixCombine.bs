@@ -1,0 +1,23 @@
+package IOMatrixCombine where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- A value method whose split output field p1 COMBINES both split input
+  -- fields (p1 && p2), while output field p2 comes from a register.  Path
+  -- analysis must report TWO edges fanning into get_p1 (from both input
+  -- ports) and NO edge into get_p2.
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkIOMatrixCombine #-}
+mkIOMatrixCombine :: Module Ifc
+mkIOMatrixCombine =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1 && a.p2; p2 = r })

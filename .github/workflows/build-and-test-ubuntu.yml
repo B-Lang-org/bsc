@@ -33,9 +33,13 @@ jobs:
         shell: bash
         run: |
           sudo .github/workflows/install_dependencies_ubuntu.sh
-          # Don't rely on the VM to pick the GHC version
-          ghcup install ghc ${{ inputs.ghc_version }}
-          ghcup set ghc ${{ inputs.ghc_version }}
+      # Don't rely on the VM to pick the GHC version
+      # (and don't assume that GHCup is already installed on the runner)
+      - name: Install GHC
+        uses: haskell/ghcup-setup@v1
+        with:
+          ghc: ${{ inputs.ghc_version }}
+          cabal: recommended
       # Until BSC uses cabal to build, pre-install these packages
       - name: Install Haskell dependencies
         shell: bash
@@ -64,6 +68,11 @@ jobs:
 
           # Generate package info
           export BSC_BUILD_PKGINFO=1
+
+          # An STP test hangs on the ARM runners
+          if [[ "${{ inputs.os }}" == *-arm ]]; then
+              export STP_STUB=1
+            fi
 
           make -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
           tar czf inst.tar.gz inst
