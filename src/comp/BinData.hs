@@ -9,7 +9,7 @@ module BinData ( Byte
                , getN, getB, getI -- , getBytesRead
                , Bin(..)
                , section
-               , encode, decode, decodeWithHash
+               , encode, encodeWith, decode, decodeWithHash
                ) where
 
 {- Routines for converting structures to/from byte strings.
@@ -1482,14 +1482,18 @@ buildHistogram bes = snd (foldl build (["<UNCLAIMED>"], M.empty) bes)
 -- matching (Left value) the first time it is encountered
 -- and (Right idx) each time afterward, updating the cache
 -- to track known values.
-share :: BinElem -> BinCache -> ([BinElem], BinCache)
-share (S s)   bc = share' s s bc
-share (I i)   bc = share' (id_key i) i bc
-share (P p)   bc = share' p p bc
-share (T t)   bc = share' (type_key t) t bc
-share (IT t)  bc = share' (itype_key t) t bc
--- share (ASL l) bc = share' l l bc
-share be      bc = ([be], bc)
+-- The Position transform (-remap-path-prefix) is applied before
+-- sharing, so the cache is keyed on the stored (remapped) value:
+-- positions that remap equal share a single payload, and the reader
+-- (which reconstructs sharing by occurrence) sees a canonical stream.
+share :: (Position -> Position) -> BinElem -> BinCache -> ([BinElem], BinCache)
+share _ (S s)   bc = share' s s bc
+share _ (I i)   bc = share' (id_key i) i bc
+share remapP (P p) bc = let p' = remapP p in share' p' p' bc
+share _ (T t)   bc = share' (type_key t) t bc
+share _ (IT t)  bc = share' (itype_key t) t bc
+-- share _ (ASL l) bc = share' l l bc
+share _ be      bc = ([be], bc)
 
 share' :: (Bin v, Shared k v) => k -> v -> BinCache -> ([BinElem], BinCache)
 share' k x bc =
@@ -1499,13 +1503,13 @@ share' k x bc =
                            addKey k x bc)
 
 
-compress :: [BinElem] -> [BinElem]
-compress bes = compress' (bes, unknownCache)
+compress :: (Position -> Position) -> [BinElem] -> [BinElem]
+compress remapP bes = compress' (bes, unknownCache)
   where compress' ((x@(B _):xs), cache) = x:(compress' (xs, cache))
         compress' ((x@(Start _):xs), cache) = x:(compress' (xs, cache))
         compress' ((x@(End):xs), cache) = x:(compress' (xs, cache))
         compress' ((x:xs), cache) =
-          let (bes, cache') = share x cache
+          let (bes, cache') = share remapP x cache
           in -- trace ((show x) ++ " -> " ++ (show bes)) $
              compress' (bes ++ xs, cache')
         compress' ([], _) = []
@@ -1514,18 +1518,24 @@ compress bes = compress' (bes, unknownCache)
 -- byte stream is generated lazily through the monad and preserves
 -- sharing.
 
-runOut :: Out () -> [Byte]
-runOut (Out xs _) = let bes   = compress $ toList xs
-                        bytes = concat [ bs | B bs <- bes ]
-                    in -- trace ("xs = " ++ (show xs)) $
-                       -- trace ("bytes = " ++ (show bytes)) $
-                       if trace_bindata
-                       then trace (showHist (buildHistogram bes)) $ bytes
-                       else bytes
+runOutWith :: (Position -> Position) -> Out () -> [Byte]
+runOutWith remapP (Out xs _) =
+    let bes   = compress remapP $ toList xs
+        bytes = concat [ bs | B bs <- bes ]
+    in -- trace ("xs = " ++ (show xs)) $
+       -- trace ("bytes = " ++ (show bytes)) $
+       if trace_bindata
+       then trace (showHist (buildHistogram bes)) $ bytes
+       else bytes
 
 -- Convenience function for encoding structures in the Bin typeclass
 encode :: (Bin a) => a -> [Byte]
-encode x = runOut (toBin x)
+encode = encodeWith id
+
+-- encode with a Position transform applied to stored positions
+-- (-remap-path-prefix; see share)
+encodeWith :: (Bin a) => (Position -> Position) -> a -> [Byte]
+encodeWith remapP x = runOutWith remapP (toBin x)
 
 runIn :: In a -> BS.ByteString -> Bool -> (a, Int, String)
 runIn (In f) bs do_hash =

@@ -10,6 +10,7 @@ module FileNameUtil where
 -- ==================================================
 
 import System.Directory
+import Data.List(isInfixOf)
 import Numeric(showInt)
 
 import Util(rTake)
@@ -201,6 +202,35 @@ getRelativeFilePathInternal path =
     in if (prefix == "///")
        then drop 3 rest
        else getRelativeFilePathInternal (drop 1 rest)
+
+-- Apply a path-prefix remapping (-remap-path-prefix) to a stored file
+-- path.  The longest matching FROM prefix wins, independent of the
+-- order the mappings were given.  The encoded /// pwd marker is
+-- decoded before matching, so a match also normalizes away the
+-- difference between relative and absolute invocation; the result is
+-- stored plain (marker-free).  If no prefix matches, the path is
+-- returned untouched, marker and all.
+remapPath :: [(String, String)] -> FilePath -> FilePath
+remapPath prefixes path = maybe path id (remapPathMaybe prefixes path)
+
+-- Nothing when no prefix matches, so callers can keep the original
+-- (already-interned) value without rebuilding it.  On duplicate FROMs
+-- of equal length, the lexicographically largest result wins --
+-- deterministic, though arbitrary; don't pass duplicate FROMs.
+remapPathMaybe :: [(String, String)] -> FilePath -> Maybe FilePath
+remapPathMaybe [] _ = Nothing
+remapPathMaybe prefixes path =
+    -- Only marker-encoded paths go through getFullFilePath: on a
+    -- marker-free path its recursion invents a trailing '/' on the
+    -- last component, corrupting stored file names (e.g. "a/Foo.bsv"
+    -- would become "a/Foo.bsv/").
+    let full = if "///" `isInfixOf` path then getFullFilePath path else path
+        matches = [ (length from, to ++ drop (length from) full)
+                  | (from, to) <- prefixes
+                  , from == take (length from) full ]
+    in  case matches of
+          [] -> Nothing
+          _  -> Just (snd (maximum matches))
 
 -- =====
 

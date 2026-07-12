@@ -512,6 +512,7 @@ traceflags = [
 defaultFlags :: String -> Flags
 defaultFlags bluespecdir = Flags {
         aggImpConds = True,
+        remapPathPrefix = [],
         allowIncoherentMatches = False,
         backend = Nothing,
         bdir = Nothing,
@@ -1431,6 +1432,20 @@ externalFlags = [
          (Resource RFsimple,
           "reschedule on insufficient resources", Visible)),
 
+        ("remap-path-prefix",
+         (Arg "from=to"
+              (\f s -> case break (== '=') s of
+                         (from@(_:_), '=':to) ->
+                             Left (f { remapPathPrefix =
+                                           remapPathPrefix f ++ [(from, to)] })
+                         _ -> Right (cmdPosition,
+                                     EBadArgFlag "-remap-path-prefix" s
+                                         ["FROM=TO"]))
+              (Just (FRTListString (map (\(from, to) -> from ++ "=" ++ to)
+                                       . remapPathPrefix))),
+          "remap FROM path prefixes to TO in paths stored in generated" ++
+          " .bo and .ba files (for reproducible builds)", Visible)),
+
         ("remove-dollar",
          (Toggle (\f x -> f { removeVerilogDollar = x }) (showIfTrue removeVerilogDollar),
           "remove dollar signs from Verilog identifiers", Visible)),
@@ -1901,6 +1916,7 @@ showFlagsRaw flags =
           ("redStepsMaxIntervals", show (redStepsMaxIntervals flags)),
           ("redStepsWarnInterval", show (redStepsWarnInterval flags)),
           ("relaxMethodEarliness", show (relaxMethodEarliness flags)),
+          ("remapPathPrefix", show (remapPathPrefix flags)),
           ("removeCReg", show (removeCReg flags)),
           ("removeCross", show (removeCross flags)),
           ("removeEmptyRules", show (removeEmptyRules flags)),

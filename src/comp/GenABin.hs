@@ -34,14 +34,14 @@ import qualified Data.ByteString as B
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260705-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260712-1"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
 
-genABinFile :: ErrorHandle -> String -> ABin -> IO ()
-genABinFile errh fn abin =
-    writeBinaryFileCatch errh fn (header ++ encode abin)
+genABinFile :: ErrorHandle -> (Position -> Position) -> String -> ABin -> IO ()
+genABinFile errh remapP fn abin =
+    writeBinaryFileCatch errh fn (header ++ encodeWith remapP abin)
 
 readABinFile :: ErrorHandle -> String -> B.ByteString -> (ABin, String)
 readABinFile errh nm s =
@@ -561,60 +561,75 @@ instance Bin Flags where
                 a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
                 a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
                 a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
-                a_130 a_131 a_132 a_133 a_134) =
-       do wr_chunk0; wr_chunk1; wr_chunk2; wr_chunk3; wr_chunk4;
-          wr_chunk5; wr_chunk6; wr_chunk7; wr_chunk8
+                a_130 a_131 a_132 a_133 a_134 a_135) =
+       do
+          wr_chunk0; wr_chunk1; wr_chunk2; wr_chunk3; wr_chunk4;
+          wr_chunk5; wr_chunk6; wr_chunk7; wr_chunk8; wr_chunk9
       where
-        -- The 135-field serialization is split into NOINLINE chunks so
+        -- The 136-field serialization is split into NOINLINE chunks so
         -- that GHC optimizes bounded pieces: compiling it as a single
         -- monadic chain needs more than 15GB of heap.
         {-# NOINLINE wr_chunk0 #-}
         wr_chunk0 =
-          do toBin a_000; toBin a_001; toBin a_002; toBin a_003; toBin a_004;
+          do
+             toBin a_000; toBin a_001; toBin a_002; toBin a_003; toBin a_004;
              toBin a_005; toBin a_006; toBin a_007; toBin a_008; toBin a_009;
              toBin a_010; toBin a_011; toBin a_012; toBin a_013; toBin a_014
         {-# NOINLINE wr_chunk1 #-}
         wr_chunk1 =
-          do toBin a_015; toBin a_016; toBin a_017; toBin a_018; toBin a_019;
+          do
+             toBin a_015; toBin a_016; toBin a_017; toBin a_018; toBin a_019;
              toBin a_020; toBin a_021; toBin a_022; toBin a_023; toBin a_024;
              toBin a_025; toBin a_026; toBin a_027; toBin a_028; toBin a_029
         {-# NOINLINE wr_chunk2 #-}
         wr_chunk2 =
-          do toBin a_030; toBin a_031; toBin a_032; toBin a_033; toBin a_034;
+          do
+             toBin a_030; toBin a_031; toBin a_032; toBin a_033; toBin a_034;
              toBin a_035; toBin a_036; toBin a_037; toBin a_038; toBin a_039;
              toBin a_040; toBin a_041; toBin a_042; toBin a_043; toBin a_044
         {-# NOINLINE wr_chunk3 #-}
         wr_chunk3 =
-          do toBin a_045; toBin a_046; toBin a_047; toBin a_048; toBin a_049;
+          do
+             toBin a_045; toBin a_046; toBin a_047; toBin a_048; toBin a_049;
              toBin a_050; toBin a_051; toBin a_052; toBin a_053; toBin a_054;
              toBin a_055; toBin a_056; toBin a_057; toBin a_058; toBin a_059
         {-# NOINLINE wr_chunk4 #-}
         wr_chunk4 =
-          do toBin a_060; toBin a_061; toBin a_062; toBin a_063; toBin a_064;
+          do
+             toBin a_060; toBin a_061; toBin a_062; toBin a_063; toBin a_064;
              toBin a_065; toBin a_066; toBin a_067; toBin a_068; toBin a_069;
              toBin a_070; toBin a_071; toBin a_072; toBin a_073; toBin a_074
         {-# NOINLINE wr_chunk5 #-}
         wr_chunk5 =
-          do toBin a_075; toBin a_076; toBin a_077; toBin a_078; toBin a_079;
+          do
+             toBin a_075; toBin a_076; toBin a_077; toBin a_078; toBin a_079;
              toBin a_080; toBin a_081; toBin a_082; toBin a_083; toBin a_084;
              toBin a_085; toBin a_086; toBin a_087; toBin a_088; toBin a_089
         {-# NOINLINE wr_chunk6 #-}
         wr_chunk6 =
-          do toBin a_090; toBin a_091; toBin a_092; toBin a_093; toBin a_094;
+          do
+             toBin a_090; toBin a_091; toBin a_092; toBin a_093; toBin a_094;
              toBin a_095; toBin a_096; toBin a_097; toBin a_098; toBin a_099;
              toBin a_100; toBin a_101; toBin a_102; toBin a_103; toBin a_104
         {-# NOINLINE wr_chunk7 #-}
         wr_chunk7 =
-          do toBin a_105; toBin a_106; toBin a_107; toBin a_108; toBin a_109;
+          do
+             toBin a_105; toBin a_106; toBin a_107; toBin a_108; toBin a_109;
              toBin a_110; toBin a_111; toBin a_112; toBin a_113; toBin a_114;
              toBin a_115; toBin a_116; toBin a_117; toBin a_118; toBin a_119
         {-# NOINLINE wr_chunk8 #-}
         wr_chunk8 =
-          do toBin a_120; toBin a_121; toBin a_122; toBin a_123; toBin a_124;
+          do
+             toBin a_120; toBin a_121; toBin a_122; toBin a_123; toBin a_124;
              toBin a_125; toBin a_126; toBin a_127; toBin a_128; toBin a_129;
              toBin a_130; toBin a_131; toBin a_132; toBin a_133; toBin a_134
+        {-# NOINLINE wr_chunk9 #-}
+        wr_chunk9 =
+          do
+             toBin a_135
     readBytes =
-       do (a_000, a_001, a_002, a_003, a_004, a_005, a_006, a_007,
+       do
+          (a_000, a_001, a_002, a_003, a_004, a_005, a_006, a_007,
            a_008, a_009, a_010, a_011, a_012, a_013, a_014) <- rd_chunk0
           (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_022,
            a_023, a_024, a_025, a_026, a_027, a_028, a_029) <- rd_chunk1
@@ -632,6 +647,7 @@ instance Bin Flags where
            a_113, a_114, a_115, a_116, a_117, a_118, a_119) <- rd_chunk7
           (a_120, a_121, a_122, a_123, a_124, a_125, a_126, a_127,
            a_128, a_129, a_130, a_131, a_132, a_133, a_134) <- rd_chunk8
+          (a_135) <- rd_chunk9
           return (Flags
                 a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
                 a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
@@ -646,71 +662,85 @@ instance Bin Flags where
                 a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
                 a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
                 a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
-                a_130 a_131 a_132 a_133 a_134)
+                a_130 a_131 a_132 a_133 a_134 a_135)
       where
         {-# NOINLINE rd_chunk0 #-}
         rd_chunk0 =
-          do a_000 <- fromBin; a_001 <- fromBin; a_002 <- fromBin; a_003 <- fromBin; a_004 <- fromBin;
+          do
+             a_000 <- fromBin; a_001 <- fromBin; a_002 <- fromBin; a_003 <- fromBin; a_004 <- fromBin;
              a_005 <- fromBin; a_006 <- fromBin; a_007 <- fromBin; a_008 <- fromBin; a_009 <- fromBin;
              a_010 <- fromBin; a_011 <- fromBin; a_012 <- fromBin; a_013 <- fromBin; a_014 <- fromBin
              return (a_000, a_001, a_002, a_003, a_004, a_005, a_006, a_007,
                      a_008, a_009, a_010, a_011, a_012, a_013, a_014)
         {-# NOINLINE rd_chunk1 #-}
         rd_chunk1 =
-          do a_015 <- fromBin; a_016 <- fromBin; a_017 <- fromBin; a_018 <- fromBin; a_019 <- fromBin;
+          do
+             a_015 <- fromBin; a_016 <- fromBin; a_017 <- fromBin; a_018 <- fromBin; a_019 <- fromBin;
              a_020 <- fromBin; a_021 <- fromBin; a_022 <- fromBin; a_023 <- fromBin; a_024 <- fromBin;
              a_025 <- fromBin; a_026 <- fromBin; a_027 <- fromBin; a_028 <- fromBin; a_029 <- fromBin
              return (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_022,
                      a_023, a_024, a_025, a_026, a_027, a_028, a_029)
         {-# NOINLINE rd_chunk2 #-}
         rd_chunk2 =
-          do a_030 <- fromBin; a_031 <- fromBin; a_032 <- fromBin; a_033 <- fromBin; a_034 <- fromBin;
+          do
+             a_030 <- fromBin; a_031 <- fromBin; a_032 <- fromBin; a_033 <- fromBin; a_034 <- fromBin;
              a_035 <- fromBin; a_036 <- fromBin; a_037 <- fromBin; a_038 <- fromBin; a_039 <- fromBin;
              a_040 <- fromBin; a_041 <- fromBin; a_042 <- fromBin; a_043 <- fromBin; a_044 <- fromBin
              return (a_030, a_031, a_032, a_033, a_034, a_035, a_036, a_037,
                      a_038, a_039, a_040, a_041, a_042, a_043, a_044)
         {-# NOINLINE rd_chunk3 #-}
         rd_chunk3 =
-          do a_045 <- fromBin; a_046 <- fromBin; a_047 <- fromBin; a_048 <- fromBin; a_049 <- fromBin;
+          do
+             a_045 <- fromBin; a_046 <- fromBin; a_047 <- fromBin; a_048 <- fromBin; a_049 <- fromBin;
              a_050 <- fromBin; a_051 <- fromBin; a_052 <- fromBin; a_053 <- fromBin; a_054 <- fromBin;
              a_055 <- fromBin; a_056 <- fromBin; a_057 <- fromBin; a_058 <- fromBin; a_059 <- fromBin
              return (a_045, a_046, a_047, a_048, a_049, a_050, a_051, a_052,
                      a_053, a_054, a_055, a_056, a_057, a_058, a_059)
         {-# NOINLINE rd_chunk4 #-}
         rd_chunk4 =
-          do a_060 <- fromBin; a_061 <- fromBin; a_062 <- fromBin; a_063 <- fromBin; a_064 <- fromBin;
+          do
+             a_060 <- fromBin; a_061 <- fromBin; a_062 <- fromBin; a_063 <- fromBin; a_064 <- fromBin;
              a_065 <- fromBin; a_066 <- fromBin; a_067 <- fromBin; a_068 <- fromBin; a_069 <- fromBin;
              a_070 <- fromBin; a_071 <- fromBin; a_072 <- fromBin; a_073 <- fromBin; a_074 <- fromBin
              return (a_060, a_061, a_062, a_063, a_064, a_065, a_066, a_067,
                      a_068, a_069, a_070, a_071, a_072, a_073, a_074)
         {-# NOINLINE rd_chunk5 #-}
         rd_chunk5 =
-          do a_075 <- fromBin; a_076 <- fromBin; a_077 <- fromBin; a_078 <- fromBin; a_079 <- fromBin;
+          do
+             a_075 <- fromBin; a_076 <- fromBin; a_077 <- fromBin; a_078 <- fromBin; a_079 <- fromBin;
              a_080 <- fromBin; a_081 <- fromBin; a_082 <- fromBin; a_083 <- fromBin; a_084 <- fromBin;
              a_085 <- fromBin; a_086 <- fromBin; a_087 <- fromBin; a_088 <- fromBin; a_089 <- fromBin
              return (a_075, a_076, a_077, a_078, a_079, a_080, a_081, a_082,
                      a_083, a_084, a_085, a_086, a_087, a_088, a_089)
         {-# NOINLINE rd_chunk6 #-}
         rd_chunk6 =
-          do a_090 <- fromBin; a_091 <- fromBin; a_092 <- fromBin; a_093 <- fromBin; a_094 <- fromBin;
+          do
+             a_090 <- fromBin; a_091 <- fromBin; a_092 <- fromBin; a_093 <- fromBin; a_094 <- fromBin;
              a_095 <- fromBin; a_096 <- fromBin; a_097 <- fromBin; a_098 <- fromBin; a_099 <- fromBin;
              a_100 <- fromBin; a_101 <- fromBin; a_102 <- fromBin; a_103 <- fromBin; a_104 <- fromBin
              return (a_090, a_091, a_092, a_093, a_094, a_095, a_096, a_097,
                      a_098, a_099, a_100, a_101, a_102, a_103, a_104)
         {-# NOINLINE rd_chunk7 #-}
         rd_chunk7 =
-          do a_105 <- fromBin; a_106 <- fromBin; a_107 <- fromBin; a_108 <- fromBin; a_109 <- fromBin;
+          do
+             a_105 <- fromBin; a_106 <- fromBin; a_107 <- fromBin; a_108 <- fromBin; a_109 <- fromBin;
              a_110 <- fromBin; a_111 <- fromBin; a_112 <- fromBin; a_113 <- fromBin; a_114 <- fromBin;
              a_115 <- fromBin; a_116 <- fromBin; a_117 <- fromBin; a_118 <- fromBin; a_119 <- fromBin
              return (a_105, a_106, a_107, a_108, a_109, a_110, a_111, a_112,
                      a_113, a_114, a_115, a_116, a_117, a_118, a_119)
         {-# NOINLINE rd_chunk8 #-}
         rd_chunk8 =
-          do a_120 <- fromBin; a_121 <- fromBin; a_122 <- fromBin; a_123 <- fromBin; a_124 <- fromBin;
+          do
+             a_120 <- fromBin; a_121 <- fromBin; a_122 <- fromBin; a_123 <- fromBin; a_124 <- fromBin;
              a_125 <- fromBin; a_126 <- fromBin; a_127 <- fromBin; a_128 <- fromBin; a_129 <- fromBin;
              a_130 <- fromBin; a_131 <- fromBin; a_132 <- fromBin; a_133 <- fromBin; a_134 <- fromBin
              return (a_120, a_121, a_122, a_123, a_124, a_125, a_126, a_127,
                      a_128, a_129, a_130, a_131, a_132, a_133, a_134)
+        {-# NOINLINE rd_chunk9 #-}
+        rd_chunk9 =
+          do
+             a_135 <- fromBin
+             return (a_135)
 
 -- ----------
 
