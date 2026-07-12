@@ -61,7 +61,9 @@ while(<FI>){
 # directory instead of silently producing an empty schedule.
 unless (@lines) {
   print STDERR "no .exp files match ./$ARGV[0].*; listing all .exp files instead\n";
-  open FI,"find . -name '*.exp' |"
+  # exclude the harness's own .exp files (site.exp, config/, lib/), which
+  # live at the testsuite top level and are not tests
+  open FI,"find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/' |"
     or die "finding exp files failed";
   while(<FI>){
     push @lines,$_
@@ -103,8 +105,9 @@ sub simple_output {
   if ($ARGV[0]){
     my @found = `find . -name '*.exp' | grep '^\\./$ARGV[0]\\.'`;
     # see the subdirectory note above: an empty filtered list means we
-    # are not at the top level, so fall back to everything
-    @found = `find . -name '*.exp'` unless @found;
+    # are not at the top level, so fall back to everything -- excluding
+    # the harness's own .exp files (site.exp, config/, lib/)
+    @found = `find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/'` unless @found;
     print @found;
     exit 0;
   } else {
