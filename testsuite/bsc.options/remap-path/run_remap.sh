@@ -62,7 +62,7 @@ cp Foo.bsv Bar.bsv dirC/
     $BSC -remap-path-prefix "$PWD=." -u Bar.bsv
     $BSC -remap-path-prefix "$PWD=." -sim -g mkFoo "$PWD/Foo.bsv"
 ) > dirC.log 2>&1
-if grep -qa "Foo.bsv/" dirC/mkFoo.ba; then
+if grep -qa "\./Foo.bsv/" dirC/mkFoo.ba; then
     echo "TRAILING-SLASH dirC/mkFoo.ba"
     status=1
 else
