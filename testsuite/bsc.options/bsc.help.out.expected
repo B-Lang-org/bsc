@@ -44,6 +44,7 @@ Compiler flags:
 -promote-warnings list  treat a list of warnings as errors (``:'' sep list of tags)
 -q                      same as -quiet
 -quiet                  be less talkative
+-remap-path-prefix from=to remap FROM path prefixes to TO in paths stored in generated .bo and .ba files (for reproducible builds)
 -remove-dollar          remove dollar signs from Verilog identifiers
 -remove-empty-rules     remove rules whose bodies have no actions
 -remove-false-rules     remove rules whose condition is provably false

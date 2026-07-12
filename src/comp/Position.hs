@@ -9,7 +9,7 @@ import PPrint
 import PVPrint
 import FStringCompat
 import PreStrings(fsEmpty)
-import FileNameUtil(getRelativeFilePath, remapPath)
+import FileNameUtil(getRelativeFilePath, remapPathMaybe)
 
 data Position = Position {
     pos_file :: !FString,
@@ -30,8 +30,9 @@ mkPositionFull f l c is_stdlib = Position f l c is_stdlib
 remapPositionFile :: [(String, String)] -> Position -> Position
 remapPositionFile [] p = p
 remapPositionFile prefixes p@(Position f l c is_stdlib) =
-    let f' = mkFString (remapPath prefixes (getFString f))
-    in  if f' == f then p else Position f' l c is_stdlib
+    case remapPathMaybe prefixes (getFString f) of
+      Nothing -> p
+      Just f' -> Position (mkFString f') l c is_stdlib
 
 instance Eq Position where
   (Position f1 l1 c1 _) == (Position f2 l2 c2 _) = (f1, l1, c1) == (f2, l2, c2)

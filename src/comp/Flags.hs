@@ -363,5 +363,6 @@ remapFlagsPaths remap flags =
             vdir = rM (vdir flags),
             vPathRaw = rL (vPathRaw flags),
             vPath = rL (vPath flags),
-            dumps = [ (d, rM mf) | (d, mf) <- dumps flags ]
+            dumps = [ (d, rM mf) | (d, mf) <- dumps flags ],
+            dumpAll = fmap rM (dumpAll flags)
         }

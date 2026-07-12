@@ -210,15 +210,22 @@ getRelativeFilePathInternal path =
 -- stored plain (marker-free).  If no prefix matches, the path is
 -- returned untouched, marker and all.
 remapPath :: [(String, String)] -> FilePath -> FilePath
-remapPath [] path = path
-remapPath prefixes path =
+remapPath prefixes path = maybe path id (remapPathMaybe prefixes path)
+
+-- Nothing when no prefix matches, so callers can keep the original
+-- (already-interned) value without rebuilding it.  On duplicate FROMs
+-- of equal length, the lexicographically largest result wins --
+-- deterministic, though arbitrary; don't pass duplicate FROMs.
+remapPathMaybe :: [(String, String)] -> FilePath -> Maybe FilePath
+remapPathMaybe [] _ = Nothing
+remapPathMaybe prefixes path =
     let full = getFullFilePath path
         matches = [ (length from, to ++ drop (length from) full)
                   | (from, to) <- prefixes
                   , from == take (length from) full ]
     in  case matches of
-          [] -> path
-          _  -> snd (maximum matches)
+          [] -> Nothing
+          _  -> Just (snd (maximum matches))
 
 -- =====
 

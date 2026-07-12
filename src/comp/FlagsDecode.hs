@@ -1916,6 +1916,7 @@ showFlagsRaw flags =
           ("redStepsMaxIntervals", show (redStepsMaxIntervals flags)),
           ("redStepsWarnInterval", show (redStepsWarnInterval flags)),
           ("relaxMethodEarliness", show (relaxMethodEarliness flags)),
+          ("remapPathPrefix", show (remapPathPrefix flags)),
           ("removeCReg", show (removeCReg flags)),
           ("removeCross", show (removeCross flags)),
           ("removeEmptyRules", show (removeEmptyRules flags)),

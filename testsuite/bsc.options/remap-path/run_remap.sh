@@ -34,7 +34,7 @@ done
 
 # no residual build-directory path may survive in any output
 for f in dirA/Foo.bo dirA/Bar.bo dirA/mkFoo.ba; do
-    if grep -q "$(pwd)/dirA" "$f"; then
+    if grep -qF "$(pwd)/dirA" "$f"; then
         echo "RESIDUAL-PATH $f"
         status=1
     else
