@@ -134,6 +134,11 @@ run-tests-setup:
 	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) \
 		| awk '{t=t " " $$0} END{print "ALL_TESTS :=" t}' \
 		> $(CONFDIR)/all_tests.mk
+	@grep -q '\.exp' $(CONFDIR)/all_tests.mk || \
+		{ echo "ERROR: run-tests-setup produced an empty test list" \
+		       "(all_tests.mk has no .exp entries); refusing to run" \
+		       "zero tests" >&2; \
+		  exit 1; }
 	perl $(CONFDIR)/scripts/sort-by-time.pl $(tool) \
 		| perl $(CONFDIR)/scripts/double-directory.pl
 
@@ -166,7 +171,13 @@ generate-stats:
 			> $(CONFDIR)/timing.txt.merged && \
 		mv $(CONFDIR)/timing.txt.merged $(CONFDIR)/timing.txt.new; \
 	fi
-	@mv $(CONFDIR)/timing.txt.new $(CONFDIR)/timing.txt
+	@if [ -s $(CONFDIR)/timing.txt.new ]; then \
+		mv $(CONFDIR)/timing.txt.new $(CONFDIR)/timing.txt; \
+	else \
+		echo "No timing data found; leaving timing.txt as-is" \
+		     "(an empty timing.txt would defeat time-ordered scheduling)"; \
+		rm -f $(CONFDIR)/timing.txt.new; \
+	fi
 
 
 #we call "false" in the else branch to cause a error exit status
