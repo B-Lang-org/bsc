@@ -35,6 +35,11 @@ test_veri_only DerivingMod
 # tests for deriving via
 
 compile_pass DerivingVia.bs
+# the via target must be a single-constructor single-argument wrapper;
+# anything else would compile to a partial unwrap case (silent
+# unspecified value in the hardware)
+compile_fail_error DerivingViaMultiCon.bs T0000
+compare_file DerivingViaMultiCon.bs.bsc-out
 compile_fail_error DerivingViaHK.bs T0030
 compare_file DerivingViaHK.bs.bsc-out
 

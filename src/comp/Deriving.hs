@@ -255,8 +255,40 @@ doStructDer _ _ _ i vs cs (CTypeclass di) =
 --  vs  =  argument type variables of the data type
 --  di  =  the class to be derived
 --  tgt =  data type via which to derive
+-- The via delegation wraps arguments with (CCon tgt [x]) and unwraps
+-- results with a single-arm case on (CPCon tgt [y]), so the target must
+-- be a data type with exactly one constructor, named like the type,
+-- taking exactly one argument.  Anything else would generate a partial
+-- case whose fall-through is an unspecified value in the generated
+-- hardware, with no diagnostic anywhere downstream.
+viaTargetShapeOK :: [(Id, CDefn)] -> Id -> Bool
+viaTargetShapeOK xs tgt =
+    let -- an explicitly qualified target must match the qualifier of
+        -- the definition itself, not just the first unqualified hit:
+        -- a local type may shadow the imported one the user named,
+        -- and judging the wrong definition's shape would let a
+        -- multi-constructor target through (or reject a good one)
+        sameQual d = case getName d of
+                       Right n -> getIdQualString n == getIdQualString tgt
+                       Left _  -> False
+        candidates = [ d | (i, d) <- xs, i == unQualId tgt,
+                           getIdQualString tgt == "" || sameQual d ]
+    in case candidates of
+         (Cdata { cd_original_summands = [summand] } : _) ->
+             length (cos_arg_types summand) == 1 &&
+             any (qualEq tgt) (cos_names summand)
+         _ -> False
+
 doVia :: [(Id, CDefn)] -> Id -> [Type] ->
              (CTypeclass, Id) -> Either EMsg [CDefn]
+doVia xs _ _ (di, tgt)
+  | Just (Cclass {}) <- lookup (typeclassId di) xs
+  , not (viaTargetShapeOK xs tgt)
+  = Left (getPosition di,
+          ECannotDerive (pfpString di ++ " via " ++ pfpString tgt ++
+                         ": the via target must be a data type whose single" ++
+                         " constructor is named " ++ pfpString tgt ++
+                         " and takes a single argument"))
 doVia xs i vs (di, tgt)
   | Just (Cclass _ _ ident (dv : args) _ _ fs) <- lookup (typeclassId di) xs
   = let

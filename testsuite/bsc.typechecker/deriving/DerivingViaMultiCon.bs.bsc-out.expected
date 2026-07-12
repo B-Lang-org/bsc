@@ -1,0 +1,3 @@
+Error: "DerivingViaMultiCon.bs", line 17, column 11: (T0000)
+  Illegal deriving: MyC via W: the via target must be a data type whose single
+  constructor is named W and takes a single argument
