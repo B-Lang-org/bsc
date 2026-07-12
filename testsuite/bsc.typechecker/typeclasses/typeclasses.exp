@@ -118,6 +118,19 @@ compile_verilog_pass ATFPolyStructMultiParam.bs
 compile_verilog_pass ATFPolyCacheMiss.bs {} "-dexpanded=expanded_%m.out"
 find_n_strings expanded_sysATFPolyCacheMiss.out "EncSize" 0
 
+# Test that a ground ATF resolution recorded at typecheck time HITS
+# the cache during iExpand (same package)
+compile_backend_pass ATFCacheHit.bs {-trace-atf-cache}
+find_regexp ATFCacheHit.bs.bsc-out {ATF cache hit: .*EncSize.*PrimPair}
+find_n_strings ATFCacheHit.bs.bsc-out {ATF cache miss: ATFCacheHit.EncSize} 0
+
+# Test that a ground ATF resolution recorded in an imported package
+# is delivered through its .bo file and HITS in the importer's iExpand
+compile_pass ATFCacheHitDef.bs
+compile_backend_pass ATFCacheHitUse.bs {-trace-atf-cache} 1
+find_regexp ATFCacheHitUse.bs.bsc-out {ATF cache hit: .*EncSize.*PrimPair}
+find_n_strings ATFCacheHitUse.bs.bsc-out {ATF cache miss: ATFCacheHitDef.EncSize} 0
+
 # Test ATF error cases
 
 compile_fail_error ATFWrongArity.bs T0025
