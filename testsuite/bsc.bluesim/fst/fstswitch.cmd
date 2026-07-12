@@ -3,6 +3,8 @@ sim step 10
 sim fst sysFstSw.fst
 sim step 10
 puts [sim fst]
+puts [sim vcd]
 sim vcd on
 sim step 10
 puts [sim vcd]
+puts [sim fst]
