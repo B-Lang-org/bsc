@@ -3094,9 +3094,14 @@ simWaveform fmt args = do
   g <- readIORef globalVar
   case (tp_bluesim g) of
     Just bs -> case args of
-                 []      -> -- return name of the current dump file, if any
+                 []      -> -- return the name of the current dump file,
+                            -- but only if it is being dumped in this
+                            -- command's format ("sim fst" must not
+                            -- report a VCD file, nor vice versa)
                             do fn <- bk_get_VCD_file_name bs
-                               l <- toTclObj (if null fn then [] else [fn])
+                               cur <- bk_get_waveform_format bs
+                               let match = not (null fn) && (cur == fmt)
+                               l <- toTclObj (if match then [fn] else [])
                                return $ TCL l
                  ["on"]  -> -- turn on waveform dumping
                             do st <- bk_set_waveform_format bs fmt

@@ -432,6 +432,7 @@ data BluesimModel =
        , bk_num_symbols         :: BSSymbol -> IO Word32
        , bk_get_nth_symbol      :: BSSymbol -> Word32 -> IO BSSymbol
        , bk_set_waveform_format :: String -> IO BSStatus
+       , bk_get_waveform_format :: IO String
        , bk_set_VCD_file        :: String -> IO BSStatus
        , bk_get_VCD_file_name   :: IO String
        , bk_enable_VCD_dumping  :: IO Bool
@@ -500,6 +501,7 @@ loadBluesimModel fname top_name = do
   -- only in models built by newer bsc versions, so allow it to be missing
   -- (older models support only VCD dumping)
   e_bk_set_waveform_format <- try (dlsym dl "bk_set_waveform_format")
+  e_bk_get_waveform_format <- try (dlsym dl "bk_get_waveform_format")
   -- convert functions to Haskell types and build BluesimModel
   let new_model :: IO WordPtr
       new_model = fromC $ dl_ret_ptr c_new_model
@@ -532,6 +534,16 @@ loadBluesimModel fname top_name = do
       vcd_file_name_fn simHdl =
           do cstr <- dl_ptr_ret_str c_bk_get_VCD_file_name (toC simHdl)
              fromCString cstr
+      get_wave_format_fn :: WordPtr -> IO String
+      get_wave_format_fn simHdl =
+          case e_bk_get_waveform_format of
+            Right c_fn ->
+                do cstr <- dl_ptr_ret_str c_fn (toC simHdl)
+                   fromCString cstr
+            Left (_ :: SomeException) ->
+                -- models from before bk_get_waveform_format existed
+                -- can only dump VCD
+                return "vcd"
       set_wave_format_fn :: WordPtr -> String -> IO BSStatus
       set_wave_format_fn simHdl s =
           case e_bk_set_waveform_format of
@@ -646,6 +658,7 @@ loadBluesimModel fname top_name = do
                           , bk_num_symbols         = (fromC . dl_ptr_ret_uint c_bk_num_symbols . toC)
                           , bk_get_nth_symbol      = (fromC . dl_ptr_uint_ret_ptr c_bk_get_nth_symbol . toC)
                           , bk_set_waveform_format = set_wave_format_fn sim_hdl
+                          , bk_get_waveform_format = get_wave_format_fn sim_hdl
                           , bk_set_VCD_file        = set_vcd_fn sim_hdl
                           , bk_get_VCD_file_name   = vcd_file_name_fn sim_hdl
                           , bk_enable_VCD_dumping  = (fromC $ dl_ptr_ret_uchar c_bk_enable_VCD_dumping) sim_hdl
