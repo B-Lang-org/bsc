@@ -119,6 +119,13 @@ LOCALCHKCMD ?= $(RUNTESTENV) $(RUNTEST) $(RUNTESTFLAGS) *.exp
 localcheck: $(LOCALCHECKPREREQUISITES)
 	$(LOCALCHKCMD)
 
+# The tool whose tests are collected by 'run-tests-setup'.  This must be
+# non-empty so that the generated 'all_tests.mk' is limited to test
+# directories (and can be sorted by time); with an empty value, stray
+# non-test .exp files (config/unix.exp, site.exp, lib/bsc.exp) are also
+# treated as tests.
+tool ?= bsc
+
 # This creates the file 'all_tests.mk', that is used by the 'run-tests'
 # target in the 'parallel.mk' file.  It also checks for duplicates
 # which can cause problems.
@@ -148,6 +155,18 @@ generate-stats:
 	@echo ""
 	@echo "=== Brief list of results ==="
 	@find . -name '*.sum' | sort | perl $(CONFDIR)/scripts/process-summary-file.pl
+	@echo ""
+	@echo "Refreshing timing.txt (used for time-ordered scheduling when"
+	@echo "RUN_TESTCASES_IN_ORDER_OF_TIME=1 is set)"
+	@find . -name time.out -exec cat '{}' \; \
+		| perl $(CONFDIR)/scripts/times-by-directory.pl \
+		> $(CONFDIR)/timing.txt.new
+	@if [ -f $(CONFDIR)/timing.txt ]; then \
+		awk '!seen[$$2]++' $(CONFDIR)/timing.txt.new $(CONFDIR)/timing.txt \
+			> $(CONFDIR)/timing.txt.merged && \
+		mv $(CONFDIR)/timing.txt.merged $(CONFDIR)/timing.txt.new; \
+	fi
+	@mv $(CONFDIR)/timing.txt.new $(CONFDIR)/timing.txt
 
 
 #we call "false" in the else branch to cause a error exit status

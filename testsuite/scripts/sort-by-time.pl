@@ -13,7 +13,6 @@ unless(defined($ARGV[0]) and $ARGV[0]) {
 #this path will only work from the top level, which is where this
 #script is supposed to be called
 $TIME_FILE='timing.txt';
-open FI,$TIME_FILE or die;
 unless (open FI,$TIME_FILE) {
   print STDERR "file $TIME_FILE not found, continuing without it...\n";
   #simply echo the input if no time file
