@@ -1482,14 +1482,14 @@ buildHistogram bes = snd (foldl build (["<UNCLAIMED>"], M.empty) bes)
 -- matching (Left value) the first time it is encountered
 -- and (Right idx) each time afterward, updating the cache
 -- to track known values.
--- The Position transform is applied to shared positions as their
--- first-occurrence payload is written (-remap-path-prefix); the cache
--- stays keyed by the original position, so the sharing pattern -- and
--- with it the emitted index sequence -- is unchanged by the remap.
+-- The Position transform (-remap-path-prefix) is applied before
+-- sharing, so the cache is keyed on the stored (remapped) value:
+-- positions that remap equal share a single payload, and the reader
+-- (which reconstructs sharing by occurrence) sees a canonical stream.
 share :: (Position -> Position) -> BinElem -> BinCache -> ([BinElem], BinCache)
 share _ (S s)   bc = share' s s bc
 share _ (I i)   bc = share' (id_key i) i bc
-share remapP (P p) bc = share' p (remapP p) bc
+share remapP (P p) bc = let p' = remapP p in share' p' p' bc
 share _ (T t)   bc = share' (type_key t) t bc
 share _ (IT t)  bc = share' (itype_key t) t bc
 -- share _ (ASL l) bc = share' l l bc
