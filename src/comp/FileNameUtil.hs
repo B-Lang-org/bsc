@@ -10,6 +10,7 @@ module FileNameUtil where
 -- ==================================================
 
 import System.Directory
+import Data.List(isInfixOf)
 import Numeric(showInt)
 
 import Util(rTake)
@@ -219,7 +220,11 @@ remapPath prefixes path = maybe path id (remapPathMaybe prefixes path)
 remapPathMaybe :: [(String, String)] -> FilePath -> Maybe FilePath
 remapPathMaybe [] _ = Nothing
 remapPathMaybe prefixes path =
-    let full = getFullFilePath path
+    -- Only marker-encoded paths go through getFullFilePath: on a
+    -- marker-free path its recursion invents a trailing '/' on the
+    -- last component, corrupting stored file names (e.g. "a/Foo.bsv"
+    -- would become "a/Foo.bsv/").
+    let full = if "///" `isInfixOf` path then getFullFilePath path else path
         matches = [ (length from, to ++ drop (length from) full)
                   | (from, to) <- prefixes
                   , from == take (length from) full ]

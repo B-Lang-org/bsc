@@ -5,3 +5,6 @@ CLEAN dirA/Foo.bo
 CLEAN dirA/Bar.bo
 CLEAN dirA/mkFoo.ba
 REPEATABLE mkFoo.ba
+NO-TRAILING-SLASH dirC/mkFoo.ba
+CLEAN dirC/mkFoo.ba
+IDENTICAL-ABS mkFoo.ba
