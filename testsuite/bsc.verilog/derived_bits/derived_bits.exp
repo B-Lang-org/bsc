@@ -6,7 +6,7 @@
 # structure.  Compile with -hack-eager-pack-unpack so the coercions
 # elaborate eagerly and that downstream cleanup is still tested.  The
 # generated Verilog is identical in both modes; the cancellation path
-# itself is covered by bsc.bits_coercion.
+# itself is covered by bsc.evaluator/pack-unpack.
 
 # -----
 # Test that the derived Bits instance for Either optimizes properly.
