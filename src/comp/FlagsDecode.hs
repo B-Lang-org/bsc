@@ -1671,6 +1671,20 @@ externalFlags = [
         ("q",
          (Alias "quiet", "same as -quiet", Visible)),
 
+        -- Removed flag (2026-07): the generated Verilog stopped conforming
+        -- to Verilog-95 long before the flag was removed, so requests for
+        -- it fail with a specific message rather than EUnknownFlag.
+        ("v95",
+         (NoArg (\_ -> Right (cmdPosition,
+                              EObsolete "flag" "-v95"
+                                  ("The generated Verilog has not conformed to " ++
+                                   "Verilog-1995 for some time, so the flag has " ++
+                                   "been removed.  The output now always uses " ++
+                                   "named instance parameters and other " ++
+                                   "post-1995 constructs.")))
+                Nothing,
+          "removed: bsc no longer generates Verilog-1995 output", Hidden)),
+
         ("verilog",
          let setFn f = setBackend f Verilog
              getFn f = backend f == Just Verilog
