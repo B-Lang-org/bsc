@@ -33,6 +33,7 @@ import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,
 import System.FilePath(isRelative)
 import qualified Data.Array as Array
 import qualified Data.IntMap as IM
+import qualified Data.IntSet as IS
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Debug.Trace(traceM)
@@ -274,11 +275,17 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- a list of just the pointers
       ptrs0 = IM.keys iheap
       -- CSE the pointers and return a map from old pointers to the remaining
-      -- canonical ones.  The pointers are returned in tsorted order.
-      -- The tsort does a non-circularity check, which is a property we
-      -- expect in IModule, but the function "pDef" below also relies on it
-      -- (since "pDef" and "m" are recursively built)
-      (tsorted_cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
+      -- canonical ones.  NOTE: despite the internal tsort, the pointers are
+      -- NOT returned in topological order -- they come back in the CSE
+      -- map's key order (canonicalized-expression order), so the defs list
+      -- built from them below is not dependencies-first and downstream
+      -- code must not assume it is.  The tsort orders only the internal
+      -- CSE fold (dependencies first, so duplicate detection compares
+      -- canonical pointers) and performs a non-circularity check, which is
+      -- a property we expect in IModule and which the function "pDef"
+      -- below also relies on (since "pDef" and "m" are recursively built,
+      -- the lazy knot terminates only on acyclic references)
+      (cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
       -- function for translating old pointers to new ones
       ptran p = IM.findWithDefault p p ptr_map
 
@@ -329,7 +336,7 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- a map from the new pointers to their expressions
       --    Actually, a map to a pair of an expression and maybe an IDef;
       --    if the expr is a def reference, the maybe contains the def.
-      ptr_info = [ (p, pDef p) | p <- tsorted_cse_ptrs ]
+      ptr_info = [ (p, pDef p) | p <- cse_ptrs ]
 
       -- a lookup function for the "ptr_info" map,
       -- returning just the expression to replace the ptr reference
@@ -559,11 +566,43 @@ eqPtrs heap ptrs =
                 case (getHeapCell p) of
                 HNF { hc_pexpr = P _ e } -> e
                 e -> internalError ("eqPtrs.heapOf " ++ ppReadable e)
-        hptrs (IAps f _ es) = foldr (union . hptrs) [] (f:es)
-        hptrs (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } }))
-                            = foldr (union . hptrs) [] es
-        hptrs (IRefT _ p _) = [p]
-        hptrs _ = []
+        -- Collect the heap pointers referenced by a cell's expression.
+        -- An IntSet provides the duplicate check (the old formulation
+        -- was quadratic in the number of references, via Data.List.union
+        -- per subexpression), but the result is kept in first-occurrence
+        -- order rather than IntSet (sorted) order: the tsort's output
+        -- order is sensitive to edge order, the CSE fold's processing
+        -- order follows the tsort, and that decides -- between duplicate
+        -- defs -- which pointer becomes the representative whose number
+        -- appears in generated def names.  (The emitted defs LIST is in
+        -- canonicalized-expression order, not tsort order; see the note
+        -- at the call site.)  First-occurrence order therefore keeps
+        -- this rewrite from renaming defs across generated modules --
+        -- and def names are the one piece of this that is user-visible,
+        -- surfacing as signal names in the generated code, where a
+        -- gratuitous rename shows up in netlist diffs, waveform setups
+        -- and constraint files.
+        -- Preserving it is essentially free -- versus dumping the set
+        -- sorted, it costs one extra membership test and one cons per
+        -- pointer -- and is a convenience, not a contract: nothing
+        -- downstream is entitled to particular def names or order, so a
+        -- future rewrite that has a reason to change them may.
+        hptrs e0 = reverse (snd (go e0 (IS.empty, [])))
+          where
+            go (IAps f _ es) acc = foldl (flip go) acc (f:es)
+            go (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } })) acc =
+                foldl (flip go) acc es
+            -- array elements are heap pointers hidden from expression
+            -- traversal (see the ArrayCell comment in ISyntax); without
+            -- this arm the tsort has no edges from a residual dynamic
+            -- selection to its element cells, and the CSE below can
+            -- never identify two selections over equal arrays
+            go (ICon _ (ICLazyArray _ arr _)) acc =
+                foldl (\a (ArrayCell p _) -> ins p a) acc (Array.elems arr)
+            go (IRefT _ p _) acc = ins p acc
+            go _ acc = acc
+            ins p acc@(s, xs) | p `IS.member` s = acc
+                              | otherwise       = (IS.insert p s, p : xs)
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
         ptrs' = case tSortInt g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
@@ -578,6 +617,19 @@ eqPtrs heap ptrs =
                         Nothing -> e
                         -- hd_ref errors because we don't use it once we have the iheap
                         Just i' -> IRefT t i' (internalError "eqPtrs ref")
+                    -- canonicalize array element pointers the same way,
+                    -- so that selections over CSE-equal arrays compare
+                    -- equal (cmpC compares arrays by ac_ptr); like the
+                    -- IRefT arm, this only affects the comparison key --
+                    -- emission goes through the pointer-translation map
+                    -- built by the caller, which translates the original
+                    -- pointers cell by cell
+                    sub (ICon i ic@(ICLazyArray { iArray = arr })) =
+                        let remap cell@(ArrayCell q _) =
+                                case IM.lookup q ptrm of
+                                  Nothing -> cell
+                                  Just q' -> ArrayCell q' (internalError "eqPtrs ref")
+                        in  ICon i (ic { iArray = fmap remap arr })
                     sub e = e
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
