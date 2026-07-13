@@ -560,10 +560,10 @@ getFTCDn (Cforeign { cforg_type = t } ) = getFQTyCons t
 getFTCDn (Ctype _ _ t) = getFTyCons t
 getFTCDn (Cdata { cd_internal_summands = summands,
                   cd_derivings = derivings }) =
-    S.unions (map f summands) `S.union` mconcat (map getFTDer derivings)
+    S.unions (map f summands) `S.union` S.unions (map getFTDer derivings)
   where f summand = getFTyCons (cis_arg_type summand)
 getFTCDn (Cstruct _ _ _ vs fields ds) =
-    S.unions (map (getFQTyCons . cf_type) fields) `S.union` mconcat (map getFTDer ds)
+    S.unions (map (getFQTyCons . cf_type) fields) `S.union` S.unions (map getFTDer ds)
 getFTCDn (Cclass _ ps _ _ _ ats fields) =
     S.difference
         (S.unions (map getCPTyCons ps ++ map f fields))
