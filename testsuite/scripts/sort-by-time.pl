@@ -48,7 +48,8 @@ $median_time=$alltimes[int((scalar@alltimes)/2)];
 
 
 #print STDERR "median_time $median_time\n";
-open FI,"find . -name '*.exp' | grep '^\\./$ARGV[0]\\.' | "
+my $tool_pat = "^\\./$ARGV[0]" . "[/.]";
+open FI,"find . -name '*.exp' | grep '$tool_pat' | "
   or die "finding exp files failed";
 
 #print STDERR "reading lines\n";
@@ -56,17 +57,22 @@ while(<FI>){
   push @lines,$_
 }
 
-# From a test subdirectory the tool prefix matches nothing (paths are
-# ./<dir>/... only at the top level); list everything under the current
-# directory instead of silently producing an empty schedule.
+# From a test subdirectory the DEFAULT tool prefix matches nothing
+# (paths are ./<dir>/... only at the top level); list everything under
+# the current directory instead of silently producing an empty
+# schedule.  Only the default tool falls back: an explicit tool that
+# matches nothing is a caller error, and running every test instead
+# would be far worse than the loud empty-list failure downstream.
 unless (@lines) {
-  print STDERR "no .exp files match ./$ARGV[0].*; listing all .exp files instead\n";
-  # exclude the harness's own .exp files (site.exp, config/, lib/), which
-  # live at the testsuite top level and are not tests
-  open FI,"find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/' |"
-    or die "finding exp files failed";
-  while(<FI>){
-    push @lines,$_
+  if ($ARGV[0] eq 'bsc') {
+    print STDERR "no .exp files match ./$ARGV[0].*; listing all .exp files instead\n";
+    # exclude the harness's own .exp files (site.exp, config/, lib/), which
+    # live at the testsuite top level and are not tests
+    open FI,"find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/' |"
+      or die "finding exp files failed";
+    while(<FI>){
+      push @lines,$_
+    }
   }
 }
 
@@ -103,11 +109,14 @@ sub get_time {
 
 sub simple_output {
   if ($ARGV[0]){
-    my @found = `find . -name '*.exp' | grep '^\\./$ARGV[0]\\.'`;
-    # see the subdirectory note above: an empty filtered list means we
-    # are not at the top level, so fall back to everything -- excluding
-    # the harness's own .exp files (site.exp, config/, lib/)
-    @found = `find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/'` unless @found;
+    my $tool_pat = "^\\./$ARGV[0]" . "[/.]";
+    my @found = `find . -name '*.exp' | grep '$tool_pat'`;
+    # see the subdirectory note above: only the DEFAULT tool falls back
+    # to everything (minus the harness's own .exp files); an explicit
+    # tool that matches nothing stays empty and fails loudly downstream
+    if (!@found && $ARGV[0] eq 'bsc') {
+      @found = `find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/'`;
+    }
     print @found;
     exit 0;
   } else {
