@@ -256,7 +256,6 @@ Data type declaration for the keywords:
 >     | SV_KW_actionvalue
 >     | SV_KW_endactionvalue
 >     | SV_KW_deriving
->     | SV_KW_via
 >     | SV_KW_endinstance
 >     | SV_KW_let
 >     | SV_KW_method
@@ -604,7 +603,6 @@ scanner and to prettyprint keywords.
 >      (SV_KW_endaction,           "endaction",            Bluespec38),
 >      (SV_KW_actionvalue,         "actionvalue",          Bluespec38),
 >      (SV_KW_endactionvalue,      "endactionvalue",       Bluespec38),
->      (SV_KW_deriving,            "deriving",             Bluespec38),
 >      (SV_KW_deriving,            "deriving",             Bluespec38),
 >      (SV_KW_endinstance,         "endinstance",          Bluespec38),
 >      (SV_KW_let,                 "let",                  Bluespec38),
