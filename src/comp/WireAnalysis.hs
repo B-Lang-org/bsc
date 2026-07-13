@@ -119,7 +119,32 @@ getWireTypeMap apkg =
         inlinedWireCandidates avi ++
         probeCandidates avi ++
         counterCandidates avi ++
-        submodClockResetCandidates avi
+        submodClockResetCandidates avi ++
+        submodEnRdyCandidates avi
+
+    -- For each submodule instance, emit candidates for the wires
+    -- connecting the parent to the submodule's method ENable and
+    -- ready ports; both are trivially Bool.  The annotations decide
+    -- which ports exist, and VModInfo already reflects that:
+    --   * an always_ready method has no RDY_* field at all (ready
+    --     methods appear in vFields as their own Method entries
+    --     only when the port exists), and
+    --   * an always_enabled method's EN port is marked inhigh and
+    --     has no netlist wire,
+    -- so emitting from vFields (minus inhigh enables) produces no
+    -- phantom candidates for annotated methods.
+    submodEnRdyCandidates avi =
+        let inst_str = getIdString (avi_vname avi)
+            vmi = avi_vmi avi
+            emit vn = [ mkEntry (inst_str ++ "$" ++ getVNameString vn) itBool
+                      , mkEntry (inst_str ++ "." ++ getVNameString vn) itBool ]
+            enOf (Method { vf_enable = Just (vn, props) })
+                | VPinhigh `notElem` props = emit vn
+            enOf _ = []
+            rdyOf (Method { vf_name = n, vf_output = mout })
+                | isRdyId n = maybe [] (emit . fst) mout
+            rdyOf _ = []
+        in  concatMap (\f -> enOf f ++ rdyOf f) (vFields vmi)
 
     -- For each submodule instance, emit candidate names for the
     -- wires connecting parent's clocks/resets to the submodule's

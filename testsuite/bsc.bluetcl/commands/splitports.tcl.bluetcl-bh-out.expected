@@ -37,22 +37,28 @@ OK (2 top-level fields)
   cnt {Prelude.Bit 16}
   cnt.CLK Prelude.Clock
   cnt.D_IN {Prelude.Bit 16}
+  cnt.EN Prelude.Bool
   cnt.Q_OUT {Prelude.Bit 16}
   cnt.RST Prelude.Reset
   inflight.CLK Prelude.Clock
+  inflight.CLR Prelude.Bool
+  inflight.DEQ Prelude.Bool
   inflight.D_IN SplitPortsTest.Inner
   inflight.D_OUT SplitPortsTest.Inner
   inflight.EMPTY_N Prelude.Bool
+  inflight.ENQ Prelude.Bool
   inflight.FULL_N Prelude.Bool
   inflight.RST Prelude.Reset
   last_header SplitPortsTest.Header
   last_header.CLK Prelude.Clock
   last_header.D_IN SplitPortsTest.Header
+  last_header.EN Prelude.Bool
   last_header.Q_OUT SplitPortsTest.Header
   last_header.RST Prelude.Reset
   last_inner SplitPortsTest.Inner
   last_inner.CLK Prelude.Clock
   last_inner.D_IN SplitPortsTest.Inner
+  last_inner.EN Prelude.Bool
   last_inner.Q_OUT SplitPortsTest.Inner
   last_inner.RST Prelude.Reset
   sub_count {Prelude.Bit 16}
@@ -64,20 +70,26 @@ OK (2 top-level fields)
   sub_put_1 SplitPortsTest.Inner
   {cnt$CLK} Prelude.Clock
   {cnt$D_IN} {Prelude.Bit 16}
+  {cnt$EN} Prelude.Bool
   {cnt$Q_OUT} {Prelude.Bit 16}
   {cnt$RST} Prelude.Reset
   {inflight$CLK} Prelude.Clock
+  {inflight$CLR} Prelude.Bool
+  {inflight$DEQ} Prelude.Bool
   {inflight$D_IN} SplitPortsTest.Inner
   {inflight$D_OUT} SplitPortsTest.Inner
   {inflight$EMPTY_N} Prelude.Bool
+  {inflight$ENQ} Prelude.Bool
   {inflight$FULL_N} Prelude.Bool
   {inflight$RST} Prelude.Reset
   {last_header$CLK} Prelude.Clock
   {last_header$D_IN} SplitPortsTest.Header
+  {last_header$EN} Prelude.Bool
   {last_header$Q_OUT} SplitPortsTest.Header
   {last_header$RST} Prelude.Reset
   {last_inner$CLK} Prelude.Clock
   {last_inner$D_IN} SplitPortsTest.Inner
+  {last_inner$EN} Prelude.Bool
   {last_inner$Q_OUT} SplitPortsTest.Inner
   {last_inner$RST} Prelude.Reset
 === assertions ===
