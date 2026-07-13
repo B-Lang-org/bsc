@@ -140,7 +140,7 @@ top is the exception: it is generated in "top form", which the descriptor
 records as `top`, so the two forms are never mixed by reuse.)
 
 It does, because both are generated from the same already-elaborated `M.ba`;
-only two things differ between the runs, and both are neutralized:
+only three things differ between the runs, and all are neutralized:
 
 * **Interned-`Id` order** varies with what else is compiled, but only *reorders*
   output, and every per-module emission site is name-sorted (the four
@@ -152,6 +152,11 @@ only two things differ between the runs, and both are neutralized:
   comes from `M.ba`), and *member-vs-local* (`moveDefsOntoStack`; a top
   interface method's readiness is reached by the RDY call, as a parent would,
   not a direct read).
+* **Codegen-time flags** that shape the emitted bytes must be part of the
+  descriptor, or reuse would silently mix them: `keep-fires` and
+  `-unspecified-to` (ASAny is lowered at codegen time by
+  `SimPackageOpt`/`SimBlocksToC`) are recorded; a mismatch on either makes
+  `isStale` regenerate instead of reuse.
 
 `check_block_codegen_modules` (`testsuite/config/unix.exp`) enforces it: it
 rebuilds every multi-module test's submodules with `-c` and byte-compares.

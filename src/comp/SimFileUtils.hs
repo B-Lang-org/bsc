@@ -41,7 +41,12 @@ codeGenOptionDescr flags is_top =
     unwords $ [ "Generation options:" ] ++
               (if (keepFires flags) then ["keep-fires"] else []) ++
               (if is_top then ["top"] else []) ++
-              (if (is_top && (genSysC flags)) then ["sysc-top"] else [])
+              (if (is_top && (genSysC flags)) then ["sysc-top"] else []) ++
+              -- ASAny lowering happens at codegen time (SimPackageOpt and
+              -- SimBlocksToC read unSpecTo), so an object generated under
+              -- a different -unspecified-to must not be reused: its bytes
+              -- would silently dishonor the link's requested lowering
+              [ "unspec-" ++ unSpecTo flags ]
 
 readCodeGenOptionDescr :: FilePath -> IO (Maybe String)
 readCodeGenOptionDescr f =
