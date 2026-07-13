@@ -185,3 +185,40 @@ compile_no_source_fail_error "systemc_c_mode" \
 # -c requires a backend
 compile_no_source_fail_error "no_backend_c_mode" \
     {-c mkBlockCodegen} S0014
+
+# -------------------------
+# BDPI under -c: each module's generated .cxx declares exactly the
+# imported functions it calls, inline.  -c writes no whole-design
+# imported_BDPI_functions.h (fanning out into one simdir used to be
+# last-writer-wins on that header, and a leaf's header could not
+# declare an ancestor's imports).  The -e path still writes the header
+# as a deprecated compatibility artifact, carrying a #warning so any
+# out-of-tree build that includes it learns of the deprecation.
+
+if { $ctest == 1 } {
+
+compile_object_pass BdpiFan.bsv
+mkdir bdpifan
+gen_modules_pass {mkBdpiTop} {-simdir bdpifan}
+gen_modules_pass {mkBdpiLeaf} {-simdir bdpifan}
+
+files_exist { bdpifan/mkBdpiTop.cxx bdpifan/mkBdpiLeaf.cxx }
+files_dont_exist { bdpifan/imported_BDPI_functions.h }
+
+# per-module precision: own imports declared, sibling's absent
+find_regexp bdpifan/mkBdpiTop.cxx {bdpi_top_fn}
+find_regexp_fail bdpifan/mkBdpiTop.cxx {bdpi_leaf_fn}
+find_regexp bdpifan/mkBdpiLeaf.cxx {bdpi_leaf_fn}
+find_regexp_fail bdpifan/mkBdpiLeaf.cxx {bdpi_top_fn}
+find_regexp_fail bdpifan/mkBdpiTop.cxx {imported_BDPI_functions}
+find_regexp_fail bdpifan/mkBdpiLeaf.cxx {imported_BDPI_functions}
+
+# the -e path compiles the inline declarations end-to-end (the link
+# compiles both modules' .cxx), and still writes the deprecated header
+copy bdpi_fan.c.keep bdpi_fan.c
+link_objects_pass {} mkBdpiTop {bdpi_fan.c}
+sim_output mkBdpiTop
+find_regexp imported_BDPI_functions.h {#warning}
+find_regexp imported_BDPI_functions.h {DEPRECATED}
+
+}

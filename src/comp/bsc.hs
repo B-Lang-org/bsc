@@ -1352,12 +1352,25 @@ genModuleC errh flags dumpnames time0 toplevel abis =
                                    gate_info_opt
                                    writeFileC
 
-       -- generate a header with imported function declarations
+       -- Generate a header with imported function declarations.
+       -- DEPRECATED: generated module code now declares its imported
+       -- functions inline (SimBlocksToC), so nothing generated includes
+       -- this file.  It is still written on -e links, with a #warning,
+       -- in case an out-of-tree build includes it by name; it will stop
+       -- being generated in a future release.  -c mode never writes it
+       -- (a whole-design artifact has no place in per-module codegen).
+       let deprecation_notice = unlines
+             [ "/* DEPRECATED: generated module code now declares its"
+             , " * imported functions inline; nothing generated includes"
+             , " * this file any longer, and it will stop being generated"
+             , " * in a future release. */"
+             , "#warning \"imported_BDPI_functions.h is deprecated; imported-function declarations are now inline in each generated .cxx\""
+             ]
        let import_header =
-             if M.null ff_map
+             if M.null ff_map || blockCodegen flags
              then []
              else [("imported_BDPI_functions.h",
-                    ppReadable (mkImportDeclarations ff_map))]
+                    deprecation_notice ++ ppReadable (mkImportDeclarations ff_map))]
 
        imp_names <- mapM (uncurry writeFileC) import_header
 

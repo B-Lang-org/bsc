@@ -10,6 +10,7 @@ import Data.Function(on)
 import Control.Monad.State(runState)
 import System.Time -- XXX: in old-time package
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 import ErrorUtil(internalError)
 import Flags
@@ -171,6 +172,39 @@ fnCallsForeignFn fn = (any makesForeignCall (sf_body fn))
         makesForeignCall (SFSOutputReset _ expr) =
           not (null (exprForeignCalls expr))
 
+-- The names of the foreign functions a SimCCFn's body calls --
+-- the ForeignFuncMap keys its translation unit needs declared
+fnForeignFnNames :: SimCCFn -> [String]
+fnForeignFnNames fn = concatMap stmtNames (sf_body fn)
+  where callName (AFunCall { ae_funname = f }) = [f]
+        callName _ = []
+        actName (Left (AFCall { afcall_fun = f })) = [f]
+        actName (Left (ATaskAction { ataskact_fun = f })) = [f]
+        actName (Left _) = []
+        actName (Right e) = callName e
+        exprNames e = concatMap callName (exprForeignCalls e)
+        actionNames a = concatMap actName (actionForeignCalls a)
+        stmtNames (SFSDef _ _ Nothing)      = []
+        stmtNames (SFSDef _ _ (Just expr))  = exprNames expr
+        stmtNames (SFSAssign _ _ expr)      = exprNames expr
+        stmtNames (SFSAction act)           = actionNames act
+        stmtNames (SFSAssignAction _ _ act _) = actionNames act
+        stmtNames (SFSRuleExec _)           = []
+        stmtNames (SFSCond expr ts fs)      =
+          exprNames expr ++ concatMap stmtNames (ts ++ fs)
+        stmtNames (SFSMethodCall _ _ args)  = concatMap exprNames args
+        stmtNames (SFSFunctionCall _ _ args) = concatMap exprNames args
+        stmtNames (SFSResets stmts)         = concatMap stmtNames stmts
+        stmtNames (SFSReturn Nothing)       = []
+        stmtNames (SFSReturn (Just expr))   = exprNames expr
+        stmtNames (SFSOutputReset _ expr)   = exprNames expr
+
+blockForeignFnNames :: SimCCBlock -> S.Set String
+blockForeignFnNames block =
+    S.fromList (concatMap fnForeignFnNames
+                  (get_rule_fns block ++ get_method_fns block ++
+                   sb_resets block))
+
 blockCallsForeignFn :: SimCCBlock -> Bool
 blockCallsForeignFn block =
     (any fnCallsForeignFn (get_rule_fns block))   ||
@@ -194,7 +228,13 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         dom_map = M.findWithDefault M.empty (sb_id sb) clk_map
         wide_defs = M.findWithDefault [] (sb_id sb) wdef_mod_map
         wdef_inst_map = M.fromList [("", wide_defs)]
-        uses_foreign_fn = blockCallsForeignFn sb
+        -- declarations for exactly the foreign functions this module
+        -- calls, inlined so the generated file depends on this module
+        -- alone (the whole-design imported_BDPI_functions.h header is
+        -- deprecated and no longer included)
+        mod_ff_map = M.filterWithKey
+                       (\f _ -> f `S.member` blockForeignFnNames sb) ff_map
+        foreign_decls = mkImportDeclarationList mod_ff_map
         -- "top" here means generated in top form (the form the -e link's
         -- schedule and model_ expect); in -c mode the root is generated
         -- in block form, so its descriptor must say so
@@ -215,7 +255,7 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         class_defs = lit_defs ++ str_defs ++ method_defs
     if (name `elem` reused)
     then return [] -- don't generate any files for reused blocks
-    else mkCxxAndH flags sb_map name uses_foreign_fn is_top
+    else mkCxxAndH flags sb_map name foreign_decls is_top
                    ( include_ids
                    , [class_decl]
                    , class_defs
@@ -319,7 +359,13 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         str_lits = mkStringDecls (M.toList (str_map state))
 
         -- include files needed for kernel callbacks, etc.
-        uses_foreign = any schedCallsForeignFn scheds
+        -- the model file is only generated on the -e path; inline
+        -- the whole-design declarations there too, so no generated
+        -- file includes the deprecated imported_BDPI_functions.h
+        model_foreign_decls =
+            if any schedCallsForeignFn scheds
+            then mkImportDeclarationList ff_map
+            else []
         kernel_includes =
                   [ cpp_system_include "cstdlib"
                   , cpp_system_include "time.h"
@@ -546,7 +592,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
 
         fname = "model_" ++ (modName top_blk)
 
-    mkCxxAndH flags sb_map fname uses_foreign False
+    mkCxxAndH flags sb_map fname model_foreign_decls False
               ( ids
               , (model_includes ++ class_decl ++ new_fn_decl)
               , (kernel_includes ++
@@ -625,17 +671,15 @@ mkBacking sb =
 
 -- Create one .cxx and one .h file, given a list of
 -- referenced blocks, class declarations and method definitions.
-mkCxxAndH :: Flags -> SBMap -> String -> Bool -> Bool ->
+mkCxxAndH :: Flags -> SBMap -> String -> [CCFragment] -> Bool ->
              ([SBId],[CCFragment],[CCFragment]) ->
              (String -> String -> IO String) -> IO [String]
-mkCxxAndH flags sb_map name include_foreign is_top (ids,decls,meths) writeFileC = do
+mkCxxAndH flags sb_map name foreign_decls is_top (ids,decls,meths) writeFileC = do
   let c_file_name = mkCxxName Nothing "" name
       h_file_name = mkHName Nothing "" name
       c_includes  = [ cpp_include "bluesim_primitives.h"
                     , cpp_include h_file_name ]
-      foreign_includes = if include_foreign
-                         then [cpp_include "imported_BDPI_functions.h"]
-                         else []
+      foreign_includes = foreign_decls
       state_files = (catMaybes (nub (map (idToHFile sb_map) ids)))
       h_includes  = [ cpp_include "bluesim_types.h"
                     , cpp_include "bs_module.h"
