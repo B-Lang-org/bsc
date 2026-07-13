@@ -773,6 +773,7 @@ data ErrMsg =
         | EWeakCtxBitExtendNeedsAddCtx String [String] String [String] [Position]
         | EContextReduction String [Position] [(String, Position)]
         | EContextReductionReduces String [String] [Position] [(String, Position)]
+        | WFunDepCoverage String String [String]
         | ECtxRedWrongBitSize String Integer Integer [Position]
         | ECtxRedBitwiseBool [Position]
         | ECtxRedBitwise String [Position]
@@ -2060,6 +2061,21 @@ getErrorText (EContextReduction context positions vps) =
 -}
      in  msg
     )
+
+getErrorText (WFunDepCoverage inst cls vars) =
+    (Type 160, empty,
+     s2par ("The instance " ++ quote inst ++ " does not cover the " ++
+            "functional dependencies of class " ++ quote cls ++ ": " ++
+            unwordsAnd (map quote vars) ++
+            (if length vars == 1 then " appears" else " appear") ++
+            " in a dependent (determined) position without being " ++
+            "determined by the input positions, directly or through " ++
+            "the instance's " ++
+            (if isClassic() then "context" else "provisos") ++ ". " ++
+            "The same inputs can then be satisfied with many " ++
+            "different results.  If the class's resolution is " ++
+            "intentionally not a function of its inputs, declare the " ++
+            "class " ++ quote "incoherent" ++ "."))
 
 -- Type 32 was EContextReductionVar until it merged with EContextReduction
 -- sufficiently long ago that we can reuse the number now
