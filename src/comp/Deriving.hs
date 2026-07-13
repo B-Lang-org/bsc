@@ -248,7 +248,7 @@ doStructDer _ _ _ i vs cs (CTypeclass di) =
 -- -------------------------
 
 -- | Derive an instance of a typeclass using Deriving via mechanism
--- for a given data (sum type), and return the instance definitions.
+-- for a given data, and return the instance definitions.
 --  packageid = id name of the package
 --  xs  =  available bindings
 --  i   =  qualified id of the data type
