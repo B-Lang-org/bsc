@@ -438,8 +438,14 @@ pBlockNT _ n nl xs sep =
         (t (replicate n ' ') <>
         foldr1 ($+$) (map (\ x -> x <> if nl then sep $+$ empty else sep) xs))
 
+instance PVPrint CDeriving where
+  pvPrint d _ (CStock tcs) = case tcs of
+      [] -> t""
+      is -> t" deriving (" <> sepList (map (pvPrint d 0) is) (t",") <> t")"
+  pvPrint d _ (CVia tc tgt) = t" deriving " <> pvPrint d 0 tc <> t" via " <> pPrint d 0 tgt
+
 ppDer :: PDetail -> [CDeriving] -> Doc
-ppDer d drvs = vcatList (map (pPrint d 0) drvs) empty
+ppDer d drvs = vcatList (map (pvPrint d 0) drvs) empty
 
 --isTerminated (Caction _ _) = True
 --isTerminated (Cdo _ _) = True
