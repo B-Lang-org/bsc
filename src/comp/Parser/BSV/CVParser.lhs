@@ -874,7 +874,7 @@ returns names of classes to be derived, or error if deriving not permitted
 >     do pos <- getPos
 >        pKeyword SV_KW_deriving
 >        failWithErr (pos, EForbiddenDeriving)
-> pDerivationsIf True = many pDeriving
+> pDerivationsIf True = option [] $ (: []) <$> pDeriving
 
 > pDeriving :: SV_Parser CDeriving
 > pDeriving = pKeyword SV_KW_deriving
