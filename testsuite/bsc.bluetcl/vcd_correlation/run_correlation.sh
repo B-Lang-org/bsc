@@ -78,7 +78,7 @@ correlate_variant () {
     TOP_NAME=sysWireTypeTest \
       VERI_VCD="$(pwd)/$veri/WireTypes.vcd" \
       SIM_VCD="$(pwd)/sim/WireTypes.vcd" \
-      MOD_AT_LIST="mkWireTypes main.top.dut mkPixelStash main.top.dut.leafA mkPixelStash main.top.dut.leafB" \
+      MOD_AT_LIST="mkWireTypes main.top.dut mkPixelStash main.top.dut.leafA mkPixelStash main.top.dut.leafB mkAnnotStash main.top.dut.annot" \
       bash -c "cd '$bo' && $BLUETCL ../correlate.tcl"
     echo ""
 
@@ -92,3 +92,28 @@ correlate_variant () {
 
 correlate_variant default "default flags"
 correlate_variant kib     "-keep-inlined-boundaries"
+
+# ---- annotated-method phantom check ---------------------------------
+# mkAnnotStash's annotations remove ports (see WireTypes.bsv).  The
+# PARENT map's per-instance candidates (annot$...) must cover only
+# ports that exist: nothing for always_enabled tick (EN is inhigh, and
+# always_enabled implies always_ready) or always_ready count (no RDY),
+# and both EN/RDY for the unannotated push.  (The module's OWN map
+# deliberately over-emits interface-side candidates; the per-instance
+# path is the one that must not.)
+echo "########## annotated-method phantom check (annot instance) ##########"
+parent_map=$(cd bo_default && $BLUETCL ../dumpmap.tcl mkWireTypes)
+for bad in 'annot$EN_tick' 'annot$RDY_tick' 'annot$RDY_count'; do
+    if echo "$parent_map" | grep -qF "$bad"; then
+        echo "PHANTOM: $bad present in mkWireTypes wiretypemap"
+    else
+        echo "no-phantom: $bad absent"
+    fi
+done
+for good in 'annot$EN_push' 'annot$RDY_push'; do
+    if echo "$parent_map" | grep -qF "$good"; then
+        echo "present: $good"
+    else
+        echo "MISSING: $good absent from mkWireTypes wiretypemap"
+    fi
+done

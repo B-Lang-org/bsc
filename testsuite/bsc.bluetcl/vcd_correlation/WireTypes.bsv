@@ -67,6 +67,42 @@ module mkPixelStash (PixelStash);
     method Bit#(8) depth = cnt;
 endmodule
 
+// ---- A leaf with port-removing annotations -------------------------
+// Pins the wiretypemap's EN/RDY emission against always_enabled and
+// always_ready:
+//   * tick  is always_enabled: its EN port is inhigh and never exists
+//     as a netlist wire (and always_enabled implies always_ready, so
+//     RDY_tick does not exist either);
+//   * count is always_ready: RDY_count does not exist;
+//   * push  is unannotated: EN_push and RDY_push are real wires.
+// The map must contain EN/RDY candidates for push only -- an entry
+// for a removed port would be a phantom that can never correlate
+// (see the phantom check in run_correlation.sh).
+
+interface AnnotStash;
+    method Action   tick();
+    method Bit#(8)  count();
+    method Action   push(Pixel p);
+endinterface
+
+(* synthesize, always_enabled = "tick", always_ready = "count" *)
+module mkAnnotStash (AnnotStash);
+    Reg#(Bit#(8))  ticks <- mkReg(0);
+    FIFOF#(Pixel)  q     <- mkFIFOF;
+    Reg#(Bit#(8))  seen  <- mkReg(0);
+
+    rule drain (q.notEmpty);
+        q.deq;
+        seen <= seen + 1;
+    endrule
+
+    method Action tick();
+        ticks <= ticks + 1;
+    endmethod
+    method Bit#(8) count = seen;
+    method Action push(Pixel p) = q.enq(p);
+endmodule
+
 (* synthesize *)
 module mkWireTypes (WireTypeIfc);
     // Registers with rich element types
@@ -129,6 +165,11 @@ module mkWireTypes (WireTypeIfc);
     PixelStash              leafA <- mkPixelStash;
     PixelStash              leafB <- mkPixelStash;
 
+    // The annotated leaf (see mkAnnotStash above): its EN/RDY wire
+    // set differs per method, pinning the wiretypemap's emission.
+    AnnotStash              annot <- mkAnnotStash;
+    Reg#(Bit#(8))           annotSeen <- mkReg(0);
+
     // Probe primitives -- specifically for VCD inspection. Bluesim
     // dumps them as `<inst>$PROBE`; Verilog instantiates ProbeWire
     // with an IN port (covered by the standard candidate path).
@@ -159,6 +200,17 @@ module mkWireTypes (WireTypeIfc);
         for (Integer i = 0; i < 3; i = i + 1) p[i] = p[i+1];
         p[3] = first;
         pal <= p;
+    endrule
+
+    // always_enabled tick must be called unconditionally
+    rule annot_tick;
+        annot.tick;
+    endrule
+    rule annot_feed;
+        annot.push(px);
+    endrule
+    rule annot_watch;
+        annotSeen <= annot.count;
     endrule
 
     rule sink_cells (cells.notEmpty);
