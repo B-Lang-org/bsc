@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-record-updates #-}
 {-# LANGUAGE CPP #-}
 module SimExpand ( simExpand, simExpandSched, simCheckPackage ) where
 
