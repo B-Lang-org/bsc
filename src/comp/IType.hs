@@ -31,6 +31,12 @@ import qualified Data.Generics as Generic
 -- ==============================
 -- IKind, IType
 
+-- Arrow kinds nest to the right (matching Kind's Kfun and IConv.iConvK),
+-- so backticked IKFun chains must associate to the right.  Without this
+-- declaration the default infixl 9 silently built left-nested (wrong)
+-- kinds; tconcheck caught exactly that in itPrimPair.
+infixr 8 `IKFun`
+
 data IKind
         = IKStar
         | IKNum

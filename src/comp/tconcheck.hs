@@ -63,35 +63,19 @@ exemptMissing :: [(Id, String)]
 exemptMissing = []
 
 -- Entries confirmed to drift from the Prelude truth, pending direction on
--- the fix.  These are reported loudly (as DRIFT-WAIVED) but do not fail
--- the check, so that the build stays green while the fix is decided.
--- This list should shrink to empty over time; do NOT add new entries to
--- paper over a check failure.
+-- the fix.  Waived entries are reported loudly (as DRIFT-WAIVED) but do
+-- not fail the check, so that the build can stay green while a fix is
+-- decided.  Keep this list EMPTY; do NOT add entries to paper over a
+-- check failure.
 --
--- All of the entries below are pre-existing: they have been masked for
--- years by the fact that TyCon Eq/Ord ignore the sort and ITCon
--- comparisons ignore both kind and sort (see CType.hs and IType.hs).
+-- (The nine pre-existing drifts this checker originally found -- masked
+-- for years by the payload-ignoring TyCon/ITCon comparisons -- were
+-- fixed in the commit that emptied this list: Int/UInt/File/ActionValue
+-- sorts, ActionValue_ field names, PrimPair's SInterface sort, itInout's
+-- kind, itPrimPair's kind via the IKFun fixity declaration, and
+-- BufferMode's enum flag.)
 knownDrift :: [(String, String)]  -- (section ++ " " ++ name, reason)
-knownDrift =
-    [ ("Type Prelude.Int",
-       "Prelude.bs declares 'data Int n = Int (Bit n)'; handwritten sort predates it (TIabstract)")
-    , ("Type Prelude.UInt",
-       "Prelude.bs declares 'data UInt n = UInt (Bit n)'; handwritten sort predates it (TIabstract)")
-    , ("Type Prelude.PrimPair",
-       "Prelude.bs declares PrimPair as an interface (TIstruct (SInterface []) ...); handwritten sort says SStruct")
-    , ("Type Prelude.ActionValue",
-       "Prelude.bs declares 'data ActionValue a = ActionValue ...'; handwritten sort is the old struct representation")
-    , ("Type Prelude.ActionValue_",
-       "ActionValue_ field names are avValue_/avAction_ in Prelude.bs; handwritten sort has the old __value/__action")
-    , ("Type Prelude.File",
-       "Prelude.bs declares 'data File = InvalidFile | MCD .. | FD ..'; handwritten sort predates it (TIabstract)")
-    , ("ISyntaxUtil Prelude.Inout",
-       "itInout has kind # -> * (apparently copied from itInout_); Inout's kind is * -> *")
-    , ("ISyntaxUtil Prelude.PrimPair",
-       "itPrimPair's kind is left-nested, (* -> *) -> *, because IKFun has no fixity declaration (defaults to infixl 9); also the SStruct-vs-SInterface sort, as in Type.hs")
-    , ("ISyntaxUtil Prelude.BufferMode",
-       "BlockBuffering carries a Maybe Integer argument, so BufferMode is not an enum; tiBufferMode says tiEnum")
-    ]
+knownDrift = []
 
 -- -------------------------
 -- Verdicts
