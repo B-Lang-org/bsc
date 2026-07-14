@@ -38,6 +38,8 @@ module ISyntax(
         splitITAp,
         aTVars,
         fTVars,
+        VarSet, fTVarSet,
+        vsEmpty, vsSingleton, vsUnion, vsInsert, vsDelete, vsMember, vsNull,
         itArrow,
         iToCT,
         iToCK,
@@ -421,13 +423,8 @@ aTVars (ITCon _ _ _) = S.empty
 aTVars (ITNum _) = S.empty
 aTVars (ITStr _) = S.empty
 
-fTVars :: IType -> S.Set Id
-fTVars (ITForAll i _ t) = S.delete i (fTVars t)
-fTVars (ITAp f a) = fTVars f `S.union` fTVars a
-fTVars (ITVar i) = S.singleton i
-fTVars (ITCon _ _ _) = S.empty
-fTVars (ITNum _) = S.empty
-fTVars (ITStr _) = S.empty
+-- fTVars now lives in IType (answered from the free-variable sets
+-- cached on interned nodes) and is re-exported here.
 
 
 splitITAp :: IType -> (IType, [IType])
