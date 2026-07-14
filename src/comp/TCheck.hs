@@ -2537,6 +2537,16 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     ---- End: Section which Lennart marked with XXXX
 
+    -- ORDERING INVARIANT for this definition's endgame: every stage
+    -- after the last substitution-mutating satisfy above must be
+    -- substitution-neutral -- settlement only discharges (today's
+    -- solver decides, it does not bind), and the final "uds" probe
+    -- below reduces only ground predicates (ground heads yield ground
+    -- premises), so no later stage can invalidate an earlier stage's
+    -- verdict.  If either ever gains binding power (a model-producing
+    -- solver, or a probe over non-ground predicates), this linear
+    -- pipeline must become a fixpoint or a single fused session.
+
     -- This definition's SINGLE settlement point: the satisfy passes
     -- above stream their numeric residuals here unsolved (see the
     -- satisfy/satisfyStream contract in TCMisc); prove them now, in
