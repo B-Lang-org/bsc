@@ -23,14 +23,21 @@ BUILD_ORDER= \
 # Find files to build tags
 SRCS = $(shell find . -name "*.bsv")
 
-.PHONY: all install clean full_clean
+.PHONY: all build tconcheck install clean full_clean
 
 all: install TAGS
 
 build:
 	$(foreach dir, $(BUILD_ORDER), $(MAKE) -C $(dir) $@ &&) true
 
-install: build
+# Check that the compiler's handwritten tycon constants agree with the
+# just-built Prelude (see src/comp/tconcheck.hs); drift fails the build
+TCONCHECK ?= $(BINDIR)/tconcheck
+
+tconcheck: build
+	$(TCONCHECK) $(BUILDDIR)
+
+install: build tconcheck
 	install -d $(INSTALLDIR)
 	install -m644 $(BUILDDIR)/* $(INSTALLDIR)
 
