@@ -975,6 +975,13 @@ itGetArrows it = itGetArrows' [] it
   where itGetArrows' ts (ITAp (ITAp arr a) r) | arr == itArrow = itGetArrows' (a:ts) r
         itGetArrows' ts r = (reverse ts, r)
 
+-- Is this the type of a (fully applied) typeclass dictionary?
+itIsDictType :: IType -> Bool
+itIsDictType t
+  | null $ fst $ itGetArrows t,
+    ITCon _ _ (TIstruct SClass _) <- leftmost t = True
+itIsDictType _ = False
+
 -- Flatten a (possibly nested) right-associated PrimPair tuple type into its
 -- element types in left-to-right order.  PrimUnit contributes no elements,
 -- PrimPair recurses into both sides, anything else is a single element.

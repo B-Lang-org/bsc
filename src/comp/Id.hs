@@ -166,6 +166,10 @@ data IdProp = IdPCanFire
               -- were introduced from bracket syntax
               | IdPParserGenerated
               | IdPIncoherent           -- Used to track incoherent instance matches
+              | IdPCAF                  -- is a CAF ("constant applicative form"):
+                                        -- a top-level nullary binding, which is
+                                        -- what lifted dictionaries become
+                                        -- (introduced by LiftDicts)
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 -- #############################################################################

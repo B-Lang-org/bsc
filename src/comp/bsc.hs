@@ -90,6 +90,8 @@ import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
+import LiftDicts(liftDictsPkg)
+import ISimpDicts(iSimpDicts)
 import FixupDefs(fixupDefs, updDef)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
@@ -455,12 +457,21 @@ compilePackage
     t <- dump errh flags t DFsimplified dumpnames mod'
     stats flags DFsimplified mod'
 
+    -- Lift dictionaries to top level (constructed directly as IDefs
+    -- over interned types; iConvPackage splices them into the package)
+    start flags DFliftdicts
+    let (mod_lifted, lifted_defs) =
+            if liftDicts flags then liftDictsPkg errh flags symt mod'
+            else (mod', [])
+    t <- dump errh flags t DFliftdicts dumpnames mod_lifted
+    stats flags DFliftdicts mod_lifted
+
     --------------------------------------------
     -- Convert to internal abstract syntax
     --------------------------------------------
     start flags DFinternal
     let combinedATFCache = mergeCATFCaches ctypeATFCache atfCacheFromCtxReduce
-    imod <- iConvPackage errh flags symt combinedATFCache mod'
+    imod <- iConvPackage errh flags symt combinedATFCache lifted_defs mod_lifted
     t <- dump errh flags t DFinternal dumpnames imod
     when (showISyntax flags) (putStrLnF (show imod))
     iPCheck flags symt imod "internal"
@@ -516,9 +527,14 @@ compilePackage
     iPCheck flags symt imodf "fixup"
     t <- dump errh flags t DFfixup dumpnames imodf
 
+    start flags DFisimpdicts
+    let imodsd = iSimpDicts imodf
+    iPCheck flags symt imodsd "isimpdicts"
+    t <- dump errh flags t DFisimpdicts dumpnames imodsd
+
     start flags DFisimplify
     let imods :: IPackage HeapData
-        imods = iSimplify imodf
+        imods = iSimplify imodsd
     iPCheck flags symt imods "isimplify"
     t <- dump errh flags t DFisimplify dumpnames imods
     stats flags DFisimplify imods
