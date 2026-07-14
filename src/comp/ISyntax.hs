@@ -40,6 +40,7 @@ module ISyntax(
         fTVars,
         VarSet, fTVarSet,
         vsEmpty, vsSingleton, vsUnion, vsInsert, vsDelete, vsMember, vsNull,
+        ftvCacheEnabled,
         itArrow,
         iToCT,
         iToCK,

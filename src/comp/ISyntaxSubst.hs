@@ -226,8 +226,12 @@ tSubstWith tctx allIds t
     -- payloads, the original code alpha-converts (renaming the binder)
     -- even when the body contains no domain variable, and that rename
     -- is observable.  Falling through preserves it exactly.
+    -- The pruning guards are gated on the flag itself, never on the
+    -- cached sets: with the cache disabled the fields hold dummy empty
+    -- sets, which would otherwise prune everything.
     sub tctx allIds tt@(ITForAll i k t)
-      | ctxAvoids (fTVarSet tt) tctx, not (ctxContainsVar i tctx) =
+      | ftvCacheEnabled, ctxAvoids (fTVarSet tt) tctx,
+        not (ctxContainsVar i tctx) =
           Unchanged
     sub tctx allIds tt@(ITForAll i k t) =
       case lookupVar i tctx of
@@ -248,7 +252,7 @@ tSubstWith tctx allIds t
           else -- No conflict: continue with same context
             changed1 (ITForAll i k) (sub tctx allIds t)
     sub tctx allIds tt@(ITAp f a)
-      | ctxAvoids (fTVarSet tt) tctx = Unchanged
+      | ftvCacheEnabled, ctxAvoids (fTVarSet tt) tctx = Unchanged
       | otherwise =
           changed2 ITAp f a (sub tctx allIds f) (sub tctx allIds a)
     sub tctx _      tt@(ITVar i) = maybe Unchanged Changed (lookupVar i tctx)
