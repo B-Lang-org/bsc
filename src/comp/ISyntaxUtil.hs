@@ -73,10 +73,11 @@ itInout_N n = ITAp itInout_ (mkNumConT n)
 itPrimArray :: IType
 itPrimArray = ITCon idPrimArray (IKStar `IKFun` IKStar) tiPrimArray
 
+itPrimPair :: IType
+itPrimPair = ITCon idPrimPair (IKStar `IKFun` IKStar `IKFun` IKStar) tiPair
+
 itPair :: IType -> IType -> IType
-itPair t1 t2 =
-    let k = IKStar `IKFun` IKStar `IKFun` IKStar
-    in  ITAp (ITAp (ITCon idPrimPair k tiPair) t1) t2
+itPair t1 t2 = ITAp (ITAp itPrimPair t1) t2
 
 icPair :: Id -> IExpr a
 icPair i = ICon i (ICTuple ct [idPrimFst, idPrimSnd])
@@ -170,9 +171,40 @@ itStringAt, itFmtAt :: Position -> IType
 itStringAt pos = ITCon (idStringAt pos) IKStar tiString
 itFmtAt pos = ITCon (idFmtAt pos) IKStar tiFmt
 
+itListCon, itMaybeCon :: IType
+itListCon = ITCon idList (IKFun IKStar IKStar) tiList
+itMaybeCon = ITCon idMaybe (IKFun IKStar IKStar) tiMaybe
+
 itList, itMaybe :: IType -> IType
-itList t = ITAp (ITCon idList (IKFun IKStar IKStar) tiList) t
-itMaybe t = ITAp (ITCon idMaybe (IKFun IKStar IKStar) tiMaybe) t
+itList t = ITAp itListCon t
+itMaybe t = ITAp itMaybeCon t
+
+-- Registry of the handwritten ITCon constants in this module, for the
+-- tconcheck drift checker (src/comp/tconcheck.hs).
+--
+-- BSC's front end enforces one type constructor per qualified name, so a
+-- qualified Id determines its (kind, sort) payload.  The ITCon constants
+-- here are handwritten copies of payloads whose truth lives in the compiled
+-- Prelude; tconcheck (run during the build, right after the Prelude
+-- libraries are compiled) verifies every registered constant against the
+-- Prelude-derived symbol table (kinds bridged with IConv.iConvK), so any
+-- edit to the Prelude that changes a payload is caught instead of silently
+-- drifting.
+--
+-- Any new ITCon-literal constant added to this module MUST be registered
+-- here.  itArrow is defined in IType.hs (in scope via ISyntax) and is
+-- registered here as well; iTLog..iTDiv are defined near the end of this
+-- module.  The position-parameterized variants (itStringAt, itFmtAt) share
+-- their Id (positions do not participate in Id equality), kind and sort
+-- with itString/itFmt, so they are covered by the entries below.
+handwrittenITCons :: [IType]
+handwrittenITCons =
+    [ itArrow,
+      itBool, itBit, itInteger, itReal, itClock, itReset, itInout, itInout_,
+      itPrimArray, itPrimPair, itPosition, itName, itType, itPred,
+      itSchedPragma, itAction, itPrimUnit, itRules, itString, itChar,
+      itHandle, itBufferMode, itFmt, itListCon, itMaybeCon,
+      iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv ]
 
 isPairType :: IType -> Bool
 isPairType (ITAp (ITAp (ITCon i _ _) _) _) = i == idPrimPair

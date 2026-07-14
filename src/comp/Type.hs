@@ -122,6 +122,31 @@ tExp = TCon (TyCon idTExp (Just kNN)  TIabstract)
 tMax = TCon (TyCon idTMax (Just kNNN) TIabstract)
 tMin = TCon (TyCon idTMin (Just kNNN) TIabstract)
 
+-- Registry of the handwritten TCon constants in this module, for the
+-- tconcheck drift checker (src/comp/tconcheck.hs).
+--
+-- BSC's front end enforces one type constructor per qualified name, so a
+-- qualified Id determines its (kind, sort) payload.  The constants above
+-- are handwritten copies of payloads whose truth lives in the compiled
+-- Prelude; tconcheck (run during the build, right after the Prelude
+-- libraries are compiled) verifies every registered constant against the
+-- Prelude-derived symbol table, so any edit to the Prelude that changes a
+-- payload is caught instead of silently drifting.
+--
+-- Any new TCon-literal constant added to this module MUST be registered
+-- here.  The position-parameterized variants (tIntAt, tPrimUnitAt, tRealAt,
+-- tActionAt, tActionValueAt, tActionValue_At, tRulesAt) share their Id
+-- (positions do not participate in Id equality), kind and sort with a
+-- registered constant, so they are covered by the entries below.
+handwrittenTCons :: [Type]
+handwrittenTCons =
+    [ tArrow, tBit, tInt, tUInt, tBool, tPrimUnit, tInteger, tReal,
+      tClock, tReset, tInout, tInout_, tString, tChar,
+      tFmt, tName, tPosition, tType, tPred, tAttributes, tPrimPair,
+      tAction, tActionValue, tActionValue_, tPrimAction, tRules,
+      tSchedPragma, tModule, tEmpty, tId, tFile, tSvaParam,
+      tAdd, tSub, tMul, tDiv, tLog, tExp, tMax, tMin ]
+
 class HasKind t where
     kind :: t -> Kind
 

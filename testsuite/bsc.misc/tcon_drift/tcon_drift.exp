@@ -1,0 +1,25 @@
+# Check that the compiler's handwritten type-constructor constants have not
+# drifted from the compiled Prelude, by running the installed tconcheck
+# utility (see src/comp/tconcheck.hs) against the installed $BLUESPECDIR.
+#
+# The build already runs tconcheck against the just-built libraries (see
+# src/Libraries/Makefile); this testcase re-checks the tools as installed.
+
+bsc_initialize
+
+# tconcheck is installed alongside bsc; if it is not on the PATH
+# (e.g. testing an older installation), mark the test unsupported
+set tconcheck [which tconcheck]
+if { $tconcheck == 0 } {
+    unsupported "tcon_drift: tconcheck is not available"
+} else {
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set status [exec_with_log "tconcheck" "$tconcheck >& tconcheck.out" 2]
+    cd $here
+    if { $status == 0 } {
+        pass "tconcheck: no tycon drift against the installed Prelude"
+    } else {
+        fail "tconcheck: tycon drift (or failure), see tconcheck.out"
+    }
+}
