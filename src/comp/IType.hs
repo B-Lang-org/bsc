@@ -72,8 +72,19 @@ instance Eq IType where
 instance Ord IType where
     compare x y = cmpT x y
 
+-- ITCon is compared by Id alone.  This is justified by the
+-- one-tycon-per-qualified-name invariant: BSC's front end enforces one
+-- type constructor per qualified name, so a qualified Id determines its
+-- (kind, sort) payload -- and all ITCon Ids are qualified, because IType
+-- is born post-resolution at IConv.  The handwritten payload copies this
+-- relies on are verified against the compiled Prelude by the tconcheck
+-- build step (src/comp/tconcheck.hs).
+--
+-- The ITForAll case skips the binder kinds; that is a separate,
+-- alpha-structural assumption (same binder Id in the same position implies
+-- the same kind), unchanged and unrelated to the tycon invariant.
 cmpT :: IType -> IType -> Ordering
-cmpT (ITForAll i1 _ t1) (ITForAll i2 _ t2) =  -- kind comparison skipped for speed
+cmpT (ITForAll i1 _ t1) (ITForAll i2 _ t2) =  -- binder kind comparison skipped (see above)
         case compare i1 i2 of
         EQ -> cmpT t1 t2
         o  -> o
