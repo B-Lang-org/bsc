@@ -203,10 +203,12 @@ if { $vtest == 1 } {
     # nested `inner` struct combined into one port
     find_regexp mkSub.v {input  \[7 : 0\] put_1_a;}
     find_regexp mkSub.v {input  \[15 : 0\] put_1_inner;}
-    # the Outer value is split into per-element wires (..._1 / ..._2) and each
-    # split port is driven directly by its element wire (no bit-select)
-    find_regexp sysSplitArgSlice.v {s[$]put_1_a = [A-Za-z0-9_]+_1 ;}
-    find_regexp sysSplitArgSlice.v {s[$]put_1_inner = [A-Za-z0-9_]+_2 ;}
+    # each split port is driven whole -- by a source net or a concatenation
+    # of source nets -- with no bit-select (with dictionary lifting the
+    # literal-tuple def no longer materializes per-element ..._1/_2 wires;
+    # the elements' sources drive the ports directly)
+    find_regexp sysSplitArgSlice.v {s[$]put_1_a = [A-Za-z0-9_$]+ ;}
+    find_regexp sysSplitArgSlice.v {s[$]put_1_inner = \{ [A-Za-z0-9_$]+, [A-Za-z0-9_$]+ \} ;}
     find_regexp_fail sysSplitArgSlice.v {\[[0-9]+:[0-9]+\]}
 }
 

@@ -19,13 +19,13 @@ BEGIN
      #) ;
   
   rule_RL_r0 (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_c2___d6 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c2)
+    LET def_state__h505 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
+    IN LET def_c2___d6 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c2)
     IN LET def_c1___d5 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c1)
-    IN LET def_state___d2 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
     IN LET def_gcd_RDY_start____d1 : BOOLEAN = CTX_sysMethods!meth_RDY_start(state0.inst_gcd)
     IN LET def_add___d7 : Bit{51}!T = CTX_module_add!fn(def_c1___d5, Bit{51}!mkConst(3))
     IN LET def_add___d8 : Bit{51}!T = CTX_module_add!fn(def_c2___d6, Bit{51}!mkConst(2))
-    IN LET def_state_EQ_0___d3 : BOOLEAN = Prim1{2}!primEQ(def_state___d2, Bit{2}!mkConst(0))
+    IN LET def_state_EQ_0___d3 : BOOLEAN = Prim1{2}!primEQ(def_state__h505, Bit{2}!mkConst(0))
     IN LET def_gcd_RDY_start_AND_state_EQ_0___d4 : BOOLEAN =
 	     def_gcd_RDY_start____d1 AND def_state_EQ_0___d3
     IN LET act1 : [ CTX_sysMethods!STATE, Unit!T ] =
@@ -41,12 +41,12 @@ BEGIN
     IN ( def_gcd_RDY_start_AND_state_EQ_0___d4, state4 ) ;
   
   rule_RL_r1 (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_c2___d6 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c2)
+    LET def_state__h505 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
+    IN LET def_c2___d6 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c2)
     IN LET def_c1___d5 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_c1)
-    IN LET def_state___d2 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
     IN LET def_add___d7 : Bit{51}!T = CTX_module_add!fn(def_c1___d5, Bit{51}!mkConst(3))
     IN LET def_add___d8 : Bit{51}!T = CTX_module_add!fn(def_c2___d6, Bit{51}!mkConst(2))
-    IN LET def_state_EQ_1___d9 : BOOLEAN = Prim1{2}!primEQ(def_state___d2, Bit{2}!mkConst(1))
+    IN LET def_state_EQ_1___d9 : BOOLEAN = Prim1{2}!primEQ(def_state__h505, Bit{2}!mkConst(1))
     IN LET act1 : [ CTX_sysMethods!STATE, Bit{51}!T ] =
 	     CTX_sysMethods!meth_start_and_result(def_c1___d5, def_c2___d6, state0.inst_gcd)
     IN LET state1 : STATE = state0 WITH .inst_gcd := act1.1
@@ -68,12 +68,12 @@ BEGIN
     IN ( def_state_EQ_1___d9, state5 ) ;
   
   rule_RL_r2 (state0 : STATE) : [ BOOLEAN, STATE ] =
-    LET def_state___d2 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
+    LET def_state__h505 : Bit{2}!T = CTX_RegN{2}!meth_read(state0.inst_state)
     IN LET def_gcd_RDY_result____d14 : BOOLEAN = CTX_sysMethods!meth_RDY_result(state0.inst_gcd)
     IN LET def_gcd_result____d17 : Bit{51}!T = CTX_sysMethods!meth_result(state0.inst_gcd)
     IN LET def_gcd_result__7_PLUS_1___d18 : Bit{51}!T =
 	     Prim1{51}!primAdd(def_gcd_result____d17, Bit{51}!mkConst(1))
-    IN LET def_state_EQ_2___d15 : BOOLEAN = Prim1{2}!primEQ(def_state___d2, Bit{2}!mkConst(2))
+    IN LET def_state_EQ_2___d15 : BOOLEAN = Prim1{2}!primEQ(def_state__h505, Bit{2}!mkConst(2))
     IN LET def_gcd_RDY_result__4_AND_state_EQ_2_5___d16 : BOOLEAN =
 	     def_gcd_RDY_result____d14 AND def_state_EQ_2___d15
     IN LET act1 : [ CTX_RegN{51}!STATE, Unit!T ] =
