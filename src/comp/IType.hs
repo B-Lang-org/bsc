@@ -123,6 +123,49 @@ type VarSet = S.Set Id
 vsEmpty :: VarSet
 vsEmpty = S.empty
 
+-- Canonicalization table for the free-variable sets stored on
+-- interned nodes.  The node table is immortal, so it amplifies every
+-- duplicate set: canonicalizing by content keeps one copy of each
+-- distinct set (thousands of tiny sets like {e,m} otherwise pile up,
+-- one per polymorphic node).  Same global-table posture as the node
+-- intern table; keyed by the set itself (Set's Ord is by content).
+-- Id's Ord (base name, then qualifier; positions and props ignored)
+-- is the right granularity for that key: the sets never serialize,
+-- and their consumers -- membership checks and alpha-conversion
+-- avoid-lists (cloneId reads only base FStrings) -- never look at
+-- the Id positions or props.
+{-# NOINLINE vsCanonTable #-}
+vsCanonTable :: IORef (M.Map VarSet VarSet)
+vsCanonTable = unsafePerformIO $ newIORef M.empty
+
+{-# NOINLINE vsCanon #-}
+vsCanon :: VarSet -> VarSet
+vsCanon x = unsafePerformIO $ do
+    m0 <- readIORef vsCanonTable
+    case M.lookup x m0 of
+      Just c  -> return c
+      Nothing -> atomicModifyIORef' vsCanonTable go
+  where go m = case M.lookup x m of
+                 Just c  -> (m, c)
+                 Nothing -> (M.insert x x m, x)
+
+-- Union and delete for sets about to be STORED on an interned node:
+-- the arms that can only return an existing set (empty sides, absent
+-- element) stay lookup-free -- those are the hot ground-type paths and
+-- already yield canonical objects -- and only freshly built sets are
+-- canonicalized.
+vsUnionCanon :: VarSet -> VarSet -> VarSet
+vsUnionCanon a b
+    | S.null a = b
+    | S.null b = a
+    | otherwise = vsCanon (S.union a b)
+
+vsDeleteCanon :: Id -> VarSet -> VarSet
+vsDeleteCanon i vs
+    | not (S.member i vs) = vs
+    | otherwise = let vs' = S.delete i vs
+                  in  if S.null vs' then vsEmpty else vsCanon vs'
+
 vsSingleton :: Id -> VarSet
 vsSingleton = S.singleton
 
@@ -374,7 +417,7 @@ internAp f a = unsafePerformIO $ do
     go key st@(InternTable m n) =
         case M.lookup key m of
           Just t  -> (st, t)
-          Nothing -> let fvs | ftvCacheEnabled = fTVarSet f `vsUnion` fTVarSet a
+          Nothing -> let fvs | ftvCacheEnabled = fTVarSet f `vsUnionCanon` fTVarSet a
                              | otherwise       = vsEmpty
                          t = ITAp_ n fvs f a
                      in  (InternTable (M.insert key t m) (n+1), t)
@@ -393,7 +436,7 @@ mkITForAll i k t = unsafePerformIO $ do
     go key st@(InternTable m n) =
         case M.lookup key m of
           Just t' -> (st, t')
-          Nothing -> let fvs | ftvCacheEnabled = vsDelete ti (fTVarSet t)
+          Nothing -> let fvs | ftvCacheEnabled = vsDeleteCanon ti (fTVarSet t)
                              | otherwise       = vsEmpty
                          t' = ITForAll_ n fvs ti k t
                      in  (InternTable (M.insert key t' m) (n+1), t')
