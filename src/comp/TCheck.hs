@@ -2570,6 +2570,17 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- The intermediate type is ambiguous.
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
+    -- A ground context may have become satisfiable only after the
+    -- last satisfy pass: the residual of a committed instance
+    -- reduction is grounded by whatever later unification or fundep
+    -- improvement pins its variables.  Probe with a final "satisfy"
+    -- and report only the survivors; the satisfiable ones stay in
+    -- "ds" and defer to the enclosing binding (via "rds"), which
+    -- solves and binds them like any other deferred context.
+    uds_unsat <- if null uds
+                 then return []
+                 else fst <$> satisfy eqs uds
+
     -- Apply the substitution to the code fragments
     let alts'' = apSub s alts'                  -- new alternatives
         me''   = apSub s me'                    -- update guards
@@ -2668,9 +2679,9 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         handleAmbiguousContext (getPosition i) amb_vars rs_amb
      else
      -- Were any contexts without variables left unsatisfied?
-     if not (null uds) then
+     if not (null uds_unsat) then
         -- Report reduction errors
-        handleContextReduction Nothing (getPosition i) uds
+        handleContextReduction Nothing (getPosition i) uds_unsat
      else
         -- No ambiguous variables, so...
         -- Produce the return values (deferred preds, CDefl)
