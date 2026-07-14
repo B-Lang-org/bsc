@@ -1,5 +1,8 @@
 # Makefile
 all_tests.mk
+timing.txt
+timing.txt.new
+timing.txt.merged
 
 # Testsuite
 bsc.sum

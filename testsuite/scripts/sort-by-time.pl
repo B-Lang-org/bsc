@@ -13,7 +13,6 @@ unless(defined($ARGV[0]) and $ARGV[0]) {
 #this path will only work from the top level, which is where this
 #script is supposed to be called
 $TIME_FILE='timing.txt';
-open FI,$TIME_FILE or die;
 unless (open FI,$TIME_FILE) {
   print STDERR "file $TIME_FILE not found, continuing without it...\n";
   #simply echo the input if no time file
@@ -25,13 +24,22 @@ unless (open FI,$TIME_FILE) {
 #find . -name time.out -exec cat '{}' \; | perl scripts/times.by-directory.pl
 
 #print STDERR "reading time\n";
+# A bad timing file must never abort list generation: an aborted (or
+# empty) list would silently run ZERO tests, so fall back to the
+# unsorted list instead.
 while(<FI>){
-  die "time file format error $_" unless /^\s*(\S+) (.+)/;
+  unless (/^\s*(\S+) (.+)/) {
+    print STDERR "malformed line in $TIME_FILE, ignoring: $_";
+    next;
+  }
   $time{$2}=$1;
   push @alltimes,$1;
 }
-die "nothing found in timing file" unless @alltimes;
-@alltimes=sort @alltimes;
+unless (@alltimes) {
+  print STDERR "nothing found in timing file, continuing without it...\n";
+  &simple_output;  #does not return
+}
+@alltimes=sort { $a <=> $b } @alltimes;
 
 #if we do not know the actual time, guess the median
 $median_time=$alltimes[int((scalar@alltimes)/2)];
@@ -40,12 +48,32 @@ $median_time=$alltimes[int((scalar@alltimes)/2)];
 
 
 #print STDERR "median_time $median_time\n";
-open FI,"find . -name '*.exp' | grep '^\\./$ARGV[0]\\.' | " 
+my $tool_pat = "^\\./$ARGV[0]" . "[/.]";
+open FI,"find . -name '*.exp' | grep '$tool_pat' | "
   or die "finding exp files failed";
 
 #print STDERR "reading lines\n";
 while(<FI>){
   push @lines,$_
+}
+
+# From a test subdirectory the DEFAULT tool prefix matches nothing
+# (paths are ./<dir>/... only at the top level); list everything under
+# the current directory instead of silently producing an empty
+# schedule.  Only the default tool falls back: an explicit tool that
+# matches nothing is a caller error, and running every test instead
+# would be far worse than the loud empty-list failure downstream.
+unless (@lines) {
+  if ($ARGV[0] eq 'bsc') {
+    print STDERR "no .exp files match ./$ARGV[0].*; listing all .exp files instead\n";
+    # exclude the harness's own .exp files (site.exp, config/, lib/), which
+    # live at the testsuite top level and are not tests
+    open FI,"find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/' |"
+      or die "finding exp files failed";
+    while(<FI>){
+      push @lines,$_
+    }
+  }
 }
 
 #print STDERR "done ",scalar@lines,"\n";
@@ -81,7 +109,16 @@ sub get_time {
 
 sub simple_output {
   if ($ARGV[0]){
-    exec "find . -name '*.exp' | grep '^\\./$ARGV[0]\\.'";
+    my $tool_pat = "^\\./$ARGV[0]" . "[/.]";
+    my @found = `find . -name '*.exp' | grep '$tool_pat'`;
+    # see the subdirectory note above: only the DEFAULT tool falls back
+    # to everything (minus the harness's own .exp files); an explicit
+    # tool that matches nothing stays empty and fails loudly downstream
+    if (!@found && $ARGV[0] eq 'bsc') {
+      @found = `find . -name '*.exp' | grep -v -e '^\\./site\\.exp\$' -e '^\\./config/' -e '^\\./lib/'`;
+    }
+    print @found;
+    exit 0;
   } else {
     exec 'find','.','-name','*.exp';
   }
