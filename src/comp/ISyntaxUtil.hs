@@ -61,7 +61,7 @@ itReal = ITCon idReal IKStar tiReal
 itClock, itReset, itInout, itInout_ :: IType
 itClock = ITCon idClock IKStar tiClock
 itReset = ITCon idReset IKStar tiReset
-itInout  = ITCon idInout  (IKNum `IKFun` IKStar) tiInout
+itInout  = ITCon idInout  (IKStar `IKFun` IKStar) tiInout
 itInout_ = ITCon idInout_ (IKNum `IKFun` IKStar) tiInout
 
 itInoutT :: IType -> IType
