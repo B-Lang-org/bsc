@@ -4,7 +4,7 @@ module ISyntax(
         IPackage(..),
         IDef(..),
         IKind(..),
-        IType(..),
+        IType(ITVar, ITCon, ITNum, ITStr, ITAp, ITForAll),
         IExpr(..),
         ConTagInfo(..),
         IConInfo(..),
