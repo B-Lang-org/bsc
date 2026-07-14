@@ -1325,7 +1325,10 @@ getIExprPositionCrossInternal _ (ICon i (ICSel _ _ _)) =
 
 
 getIExprPositionCrossInternal _ (ICon i _) = getIdPosition i
-getIExprPositionCrossInternal n (IRefT t _ _ _) = getITypePositionCrossInternal (n + 1) t
+-- Prefer the positions stamped on the heap ref (collected out of band
+-- when expressions are rewritten); fall back to the type's positions.
+getIExprPositionCrossInternal n (IRefT t _ poss _) =
+    firstPos (S.toAscList poss ++ [getITypePositionCrossInternal (n + 1) t])
 
 
 getITypePositionCrossInternal :: Int -> IType -> Position
@@ -1391,7 +1394,15 @@ getIExprPosition (IVar i) = getIdPosition i
 getIExprPosition (ILAM i _ e) = firstPos [getIdPosition i, getIExprPosition e]
 -- getIExprPosition (ICon i (ICPrim t op)) = getITypePosition t
 getIExprPosition (ICon i _) = getIdPosition i
-getIExprPosition (IRefT t _ _ _) = getITypePosition t
+-- Prefer the positions stamped on the heap ref (collected out of band
+-- when expressions are rewritten); fall back to the type's positions.
+-- When poss has several entries the pick is by Ord Position, whose
+-- FString file component compares by intern order.  Today every live
+-- poss is a singleton allocation seed, so the pick rule is moot; when
+-- issue #863 re-enables stamping at the evaluator sites, revisit it
+-- (recency is not representable in a set).
+getIExprPosition (IRefT t _ poss _) =
+    firstPos (S.toAscList poss ++ [getITypePosition t])
 
 getITypePosition :: IType -> Position
 getITypePosition (ITForAll i _ t) = firstPos [getIdPosition i, getITypePosition t]

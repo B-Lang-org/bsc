@@ -685,7 +685,10 @@ eqPtrs heap ptrs =
                         case IM.lookup i ptrm of
                         Nothing -> e
                         -- hd_ref errors because we don't use it once we have the iheap
-                        Just i' -> IRefT t i' (internalError "eqPtrs ref") (internalError "eqPtrs ref")
+                        -- poss must be a real value (S.empty): the position
+                        -- readers and NFData force it.  The ref payload is
+                        -- genuinely never touched, so it stays an error.
+                        Just i' -> IRefT t i' S.empty (internalError "eqPtrs ref")
                     sub e = e
                 in  case M.lookup e dsm of
                     Nothing -> (M.insert e p dsm, ptrm)
