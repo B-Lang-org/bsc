@@ -6,6 +6,7 @@ module IType(
   ,IKind(..)
   ,itArrow
   ,mkNumConT
+  ,iTypeNodeId
   ,iToCT
   ,iToCK
    )
@@ -81,6 +82,19 @@ pattern ITAp f a <- ITAp_ _ f a
   where ITAp f a = mkITAp f a
 
 {-# COMPLETE ITForAll, ITAp, ITVar, ITCon, ITNum, ITStr #-}
+
+-- --------------------------------
+-- The intern unique of an interior node (ITAp / ITForAll).  Uniques
+-- are process-local, arrival-order identifiers: two types carry the
+-- same unique exactly when they are the same interned node.  They are
+-- valid only as in-process identity -- notably as writer-local
+-- sharing-map keys in BinData -- and must never be serialized or
+-- otherwise influence anything observable.
+iTypeNodeId :: IType -> Int
+iTypeNodeId (ITForAll_ u _ _ _) = u
+iTypeNodeId (ITAp_ u _ _) = u
+iTypeNodeId t =
+    internalError ("IType.iTypeNodeId: not an interior node: " ++ show t)
 
 -- --------------------------------
 -- The intern table
