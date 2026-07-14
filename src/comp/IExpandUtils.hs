@@ -2600,7 +2600,7 @@ fullTypeNormalizer flags symt cache t@(ITAp _ _)
                ((ITCon _ _ (TIatf {})), _) -> internalError $
                     "fullTypeNormalizer - unsimplified: " ++ ppReadable (t,t')
                _ -> t'
-fullTypeNormalizer flags symt cache (ITAp f a) = changed2 normITAp f a f' a'
+fullTypeNormalizer flags symt cache (ITAp f a) = changed2 ITAp f a f' a'
   where f' = fullTypeNormalizer flags symt cache f
         a' = fullTypeNormalizer flags symt cache a
 

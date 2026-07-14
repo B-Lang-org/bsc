@@ -5,6 +5,7 @@ module IType(
   IType(ITVar, ITCon, ITNum, ITStr, ITAp, ITForAll)
   ,IKind(..)
   ,itArrow
+  ,mkNumConT
   ,iToCT
   ,iToCK
    )
@@ -16,13 +17,14 @@ import Prelude hiding ((<>))
 
 import qualified Data.Map.Strict as M
 import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
-import Data.Maybe(isJust)
+import Data.Maybe(isJust, fromJust)
 import System.Environment(lookupEnv)
 import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil(internalError)
 import Id(Id, IdProp(..), getIdBase, getIdQual, getIdPosition, getIdProps)
-import PreIds(idArrow)
+import PreIds(idArrow, idId, idTNumToStr)
+import TypeOps(opNumT, opStrT)
 import CType(Type(..), CType, TyCon(..), TyVar(..), Kind(..),
              TISort(..), StructSubType(..),
              cTApplys, cTVar, cTCon, cTNum, cTStr)
@@ -33,7 +35,7 @@ import PPrint
 import PFPrint
 import Position(noPosition)
 import Util(itos)
-import FStringCompat(FString)
+import FStringCompat(FString, mkNumFString)
 
 -- ==============================
 -- IKind, IType
@@ -347,9 +349,43 @@ mkITForAll i k t = unsafePerformIO $ do
                        "requested: " ++ show (ITForAll_ (-1) i k t) ++ "\n" ++
                        "canonical: " ++ show t')
 
--- The smart constructor behind the ITAp pattern synonym.
+-- The smart constructor behind the ITAp pattern synonym.  It first
+-- performs the single-step type-function reduction that
+-- ISyntax.normITAp used to do (same rules, same semantics), then
+-- interns.  Since every ITAp is now built here, reducible
+-- applications like TAdd#(2,3) can no longer be constructed at all.
+--
+-- These cases just handle special built-in type functions like TAdd
+-- and Id__; it would be nice to get rid of this if we can make those
+-- work via preds, as with user-defined type functions, but that seems
+-- hard because we still need to permit them in instance heads.
+--
+-- NB: everything inside this module must match and build with the
+-- real constructors (ITAp_): the ITAp synonym's builder is this very
+-- function.
 mkITAp :: IType -> IType -> IType
+mkITAp (ITAp_ _ (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
+    mkNumConT (fromJust res)
+  where res = opNumT op [x, y]
+mkITAp (ITCon op _ _) (ITNum x) | isJust (res) =
+    mkNumConT (fromJust res)
+  where res = opNumT op [x]
+mkITAp (ITAp_ _ (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
+    ITStr (fromJust res)
+  where res = opStrT op [x, y]
+mkITAp (ITCon op _ _) (ITNum x) | op == idTNumToStr =
+    ITStr (mkNumFString x)
+
+mkITAp (ITCon op _ _) a | op == idId = a
+
 mkITAp f a = internAp f a
+
+mkNumConT :: Integer -> IType
+mkNumConT i =
+    if i < 0 then
+        internalError ("mkNumCon: " ++ show i)
+    else
+        ITNum i
 
 -- --------------------------------
 -- Show instance

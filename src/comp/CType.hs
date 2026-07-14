@@ -555,7 +555,7 @@ splitTAp (TAp f a) = let (l,as) = splitTAp f
                      in  (l,as ++ [a])
 splitTAp t = (t,[])
 
--- Copied from normITAp
+-- Copied from the IType reduction rules (now IType.mkITAp)
 normTAp :: Type -> Type -> Type
 normTAp (TAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))) (TCon (TyNum y ypos))
         | isJust (res) = cTNum (fromJust res) (getPosition op)

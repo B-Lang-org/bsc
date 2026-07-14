@@ -35,7 +35,6 @@ module ISyntax(
         iREmpty,
         uniquifyRules,
         fdVars,
-        normITAp,
         splitITAp,
         aTVars,
         fTVars,
@@ -94,10 +93,9 @@ import Eval
 import Id
 import Wires(ResetId, ClockDomain, ClockId, noClockId, noResetId, noDefaultClockId, noDefaultResetId, WireProps)
 import IdPrint
-import PreIds(idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
+import PreIds(idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger)
 import Backend
 import Prim(PrimOp(..))
-import TypeOps
 import ConTagInfo
 import VModInfo(VModInfo, vArgs, vName, VName(..), {- VeriPortProp(..), -}
                 VArgInfo(..), VFieldInfo(..), isParam, VWireInfo)
@@ -106,7 +104,6 @@ import Pragma(Pragma, PProp, RulePragma, ISchedulePragma,
               extractSchedPragmaIds, removeSchedPragmaIds, mapSPIds)
 import Position
 import Data.Maybe
-import FStringCompat(mkNumFString)
 
 import qualified Data.Set as S
 import Flags
@@ -414,26 +411,9 @@ checkRUnionAttributes (IRules sps1 rs1) (IRules sps2 rs2) =
         (msgs, sps')
 
 
--- This function just handles special built-in type functions like TAdd and Id__,
--- would be nice to get rid of it if we can make those work via preds, as with
--- user-defined type functions, but that seems hard because we still need to
--- permit them in instance heads.
-normITAp :: IType -> IType -> IType
-normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
-    mkNumConT (fromJust res)
-  where res = opNumT op [x, y]
-normITAp (ITCon op _ _) (ITNum x) | isJust (res) =
-    mkNumConT (fromJust res)
-  where res = opNumT op [x]
-normITAp (ITAp (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
-    ITStr (fromJust res)
-  where res = opStrT op [x, y]
-normITAp (ITCon op _ _) (ITNum x) | op == idTNumToStr =
-    ITStr (mkNumFString x)
-
-normITAp f@(ITCon op _ _) a | op == idId = a
-
-normITAp f a = ITAp f a
+-- The type-function reduction that used to live here (normITAp) is
+-- now performed by the ITAp smart constructor itself; see
+-- IType.mkITAp.
 
 aTVars :: IType -> S.Set Id
 aTVars (ITForAll i _ t) = S.insert i (aTVars t)
@@ -1431,13 +1411,6 @@ iAp f e = IAps f [] [e]
 iAps :: IExpr a -> [IExpr a] -> IExpr a
 iAps f [] = f
 iAps f es = IAps f [] es
-
-mkNumConT :: Integer -> IType
-mkNumConT i =
-    if i < 0 then
-        internalError ("mkNumCon: " ++ show i)
-    else
-        ITNum i
 
 --------
 
