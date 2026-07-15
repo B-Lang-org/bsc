@@ -199,6 +199,11 @@ compare_file APkgProps_Split.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_Foreign.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_Foreign.bsv.bsc-vcomp-out
 
+# modeling the argument muxes with the schedule's port allocation
+# and priority order (constant-WILL_FIRE arbitration folds)
+compile_verilog_pass APkgProps_Arb.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Arb.bsv.bsc-vcomp-out
+
 # ----------
 
 }

@@ -1104,7 +1104,8 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- ASPackage at DFIOproperties, but available prior to AState,
        -- for comparison and for uses which have no ASPackage in hand)
        start flags DFAPackageIOproperties
-       let (aioprops, _) = getIOPropsA flags pprops atsPackage
+       let (aioprops, _) =
+               getIOPropsA flags pprops (Just scheduleInfo) atsPackage
        t <- dump errh flags t DFAPackageIOproperties dumpnames aioprops
 
        -- Generate muxes etc.
