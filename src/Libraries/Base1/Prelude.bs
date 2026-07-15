@@ -4651,16 +4651,21 @@ class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
   saveFieldPortTypes :: StrArg name -> f -> Maybe Name__ -> String -> List String -> String -> Module ()
 
 instance (WrapMethod m w) => (WrapField name m w) where
-  toWrapField _ prefix argNames resultName =
-    let argBaseNames = methodArgBaseNames (_ :: m) prefix argNames 1
+  -- The name proxy is generated (GenWrap) with the interface field's
+  -- decl-side position, so port-name checking errors point at the
+  -- field in the user's interface declaration.
+  toWrapField np prefix argNames resultName =
+    let pos = getEvalPosition np
+        argBaseNames = methodArgBaseNames (_ :: m) pos prefix argNames 1
     in primMethod
-      (inputPortNames (_ :: m) argBaseNames)
-      (outputPortNames (_ :: m) resultName)
+      (inputPortNames (_ :: m) pos argBaseNames)
+      (outputPortNames (_ :: m) pos resultName)
       ∘ toWrapMethod
   fromWrapField _ = fromWrapMethod
-  saveFieldPortTypes _ _ modName prefix argNames resultName =
-    let baseNames = methodArgBaseNames (_ :: m) prefix argNames 1
-    in saveMethodPortTypes (_ :: m) modName baseNames resultName
+  saveFieldPortTypes np _ modName prefix argNames resultName =
+    let pos = getEvalPosition np
+        baseNames = methodArgBaseNames (_ :: m) pos prefix argNames 1
+    in saveMethodPortTypes (_ :: m) pos modName baseNames resultName
 
 -- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
 -- but this case was being handled in GenWrap.
@@ -4693,10 +4698,11 @@ instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
 -- and output ports; only the arg names are supplied separately.
 fromWrapNoInline :: (WrapMethod m w) => String -> List String -> w -> m
 fromWrapNoInline name argNames x =
-  let argBaseNames = methodArgBaseNames (_ :: m) name argNames 1
+  let pos = getStringPosition name  -- the noinline function's position
+      argBaseNames = methodArgBaseNames (_ :: m) pos name argNames 1
   in fromWrapMethod (primNoInline
-                       (inputPortNames (_ :: m) argBaseNames)
-                       (outputPortNames (_ :: m) name)
+                       (inputPortNames (_ :: m) pos argBaseNames)
+                       (outputPortNames (_ :: m) pos name)
                        x)
 
 class WrapMethod m w | m -> w where
@@ -4706,17 +4712,20 @@ class WrapMethod m w | m -> w where
   -- Convert a wrapper interface method to its synthesized interface method.
   fromWrapMethod :: w -> m
 
+  -- The Position__ argument is a term-side error position: the interface
+  -- field (or noinline function) whose ports are being checked.
+
   -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
-  methodArgBaseNames :: m -> String -> List String -> Integer -> List String
+  methodArgBaseNames :: m -> Position__ -> String -> List String -> Integer -> List String
 
   -- Compute the list of input port names for each method argument, given the per-argument base names.
-  inputPortNames :: m -> List String -> List (List String)
+  inputPortNames :: m -> Position__ -> List String -> List (List String)
 
   -- Compute the list of output port names for a method, from the result base name.
-  outputPortNames :: m -> String -> List String
+  outputPortNames :: m -> Position__ -> String -> List String
 
   -- Save the port types for a method, given the module name, argument base names and result name.
-  saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
+  saveMethodPortTypes :: m -> Position__ -> Maybe Name__ -> List String -> String -> Module ()
 
 instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
           PrimSeqTupleBits pb, WrapMethod b v) =>
@@ -4726,57 +4735,57 @@ instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
   toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts ∘ primDeepSeqTupleBits
   fromWrapMethod g = fromWrapMethod ∘ g ∘ primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
 
-  methodArgBaseNames _ prefix (Cons h t) i = Cons
+  methodArgBaseNames _ pos prefix (Cons h t) i = Cons
     -- arg_names can start with a digit
     (if prefix == "" && (h == "" || not (isDigit $ stringHead h))
      then h
      else prefix +++ "_" +++ h)
-    (methodArgBaseNames (_ :: b) prefix t $ i + 1)
-  methodArgBaseNames _ prefix Nil i = Cons
+    (methodArgBaseNames (_ :: b) pos prefix t $ i + 1)
+  methodArgBaseNames _ pos prefix Nil i = Cons
     (prefix +++ "_" +++ integerToString i)
-    (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
+    (methodArgBaseNames (_ :: b) pos prefix Nil $ i + 1)
 
-  inputPortNames _ (Cons h t) =
-    Cons (filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h))
-         (inputPortNames (_ :: b) t)
-  inputPortNames _ Nil = error "inputPortNames: empty arg names list"
+  inputPortNames _ pos (Cons h t) =
+    Cons (filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames pos (_ :: a) h))
+         (inputPortNames (_ :: b) pos t)
+  inputPortNames _ _ Nil = error "inputPortNames: empty arg names list"
 
-  outputPortNames _ = outputPortNames (_ :: b)
+  outputPortNames _ pos = outputPortNames (_ :: b) pos
 
-  saveMethodPortTypes _ modName (Cons h t) result = do
-    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) h
-    saveMethodPortTypes (_ :: b) modName t result
-  saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
+  saveMethodPortTypes _ pos modName (Cons h t) result = do
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames pos (_ :: a) h
+    saveMethodPortTypes (_ :: b) pos modName t result
+  saveMethodPortTypes _ _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
 
 instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
           PrimSeqTupleBits pb) =>
     WrapMethod (ActionValue a) (ActionValue_ pb) where
   toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
   fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
-  methodArgBaseNames _ _ Nil _ = Nil
-  methodArgBaseNames prx prefix argNames _ =
-    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+  methodArgBaseNames _ _ _ Nil _ = Nil
+  methodArgBaseNames _ pos prefix argNames _ =
+    primError pos $ integerToString (listLength argNames) +++
     " excess arg_names provided for method " +++ prefix
-  inputPortNames _ Nil = Nil
-  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
-  saveMethodPortTypes _ modName _ result =
-    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
+  inputPortNames _ _ Nil = Nil
+  inputPortNames _ _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
+  outputPortNames _ pos base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames pos (_ :: a) base
+  saveMethodPortTypes _ pos modName _ result =
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames pos (_ :: a) result
 
 instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
           PrimSeqTupleBits pb) =>
     WrapMethod a pb where
   toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
   fromWrapMethod = unsplitPorts ∘ unpackPorts
-  methodArgBaseNames _ _ Nil _ = Nil
-  methodArgBaseNames prx prefix argNames _ =
-    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+  methodArgBaseNames _ _ _ Nil _ = Nil
+  methodArgBaseNames _ pos prefix argNames _ =
+    primError pos $ integerToString (listLength argNames) +++
     " excess arg_names provided for method " +++ prefix
-  inputPortNames _ Nil = Nil
-  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
-  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
-  saveMethodPortTypes _ modName _ result =
-    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
+  inputPortNames _ _ Nil = Nil
+  inputPortNames _ _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
+  outputPortNames _ pos base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames pos (_ :: a) base
+  saveMethodPortTypes _ pos modName _ result =
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames pos (_ :: a) result
 
 class WrapPorts p pb | p -> pb where
   -- Convert from a tuple of Port values to a tuple of bits.
@@ -4854,12 +4863,13 @@ instance PrimSeqTupleBits () where
 -- Compute the list port names for type 'a' given a base name.
 -- Check that the number of port names matches the number of ports.
 -- This error should only occur if there is an error in a SplitPorts instance.
-checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
-checkPortNames proxy base =
+-- The position is the interface field (or noinline function) under check.
+checkPortNames :: (SplitPorts a p, TupleSize p n) => Position__ -> a -> String -> List String
+checkPortNames pos proxy base =
   let pn = portNames proxy base
   in
     if listLength pn /= valueOf n
-    then primError (getEvalPosition proxy) $
+    then primError pos $
       "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
       " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
     else pn
