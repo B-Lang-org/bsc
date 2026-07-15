@@ -6,6 +6,7 @@
 #include "bluesim_kernel_api.h"
 #include "bs_model.h"
 #include "bs_vcd.h"
+#include "bs_wave_writer.h"
 #include "event_queue.h"
 #include "portability.h"
 
@@ -56,7 +57,6 @@ struct tVCDState {
   bool is_backing_instance;
 
   std::string vcd_file_name;
-  std::set<std::string> previous_files;
 
   tClockMap clk_map;                    // clks for each VCD num
 
@@ -68,7 +68,12 @@ struct tVCDState {
   bool changes_now;                     // treat changes as immediate
 
   // external interface
-  FILE* vcd_file;
+  WaveWriter* writer;                   // writer for the open dump file
+  unsigned int allowed_formats;         // BS_WAVE_FORMAT_* the model was
+                                        // built with (-dump-formats)
+  unsigned int format;                  // BS_WAVE_FORMAT_* in use
+  tWaveWriterFactory fst_writer_factory; // non-NULL when the FST writer
+                                         // is linked into the model
   bool vcd_enabled;
   bool vcd_checkpoint;
   tUInt32 vcd_depth;

@@ -21,6 +21,20 @@ typedef enum { VCD_DUMP_NONE
 	     , VCD_DUMP_RESTART
              } tVCDDumpType;
 
+/* Waveform dump formats that can be compiled into a model
+ * (a bit mask, recorded from the -dump-formats flag)
+ */
+#define BS_WAVE_FORMAT_VCD 1u
+#define BS_WAVE_FORMAT_FST 2u
+
+/* used by generated model code to record the formats selected
+ * with -dump-formats when the model was built */
+extern void vcd_set_allowed_formats(tSimStateHdl simHdl,
+				    unsigned int formats);
+/* defined in fst.cxx; referencing it is what links the FST writer
+ * (and its dependencies) into a model built with -dump-formats fst */
+extern void vcd_register_fst(tSimStateHdl simHdl);
+
 /* used by the kernel and schedule */
 
 extern void vcd_reset(tSimStateHdl simHdl);
@@ -35,6 +49,7 @@ extern bool vcd_check_file_size(tSimStateHdl simHdl);
 extern void vcd_set_backing_instance(tSimStateHdl simHdl, bool b);
 
 extern void vcd_task(tSimStateHdl simHdl, const char* task);
+extern void vcd_end_definitions(tSimStateHdl simHdl);
 
 /* used by modules */
 extern tUInt32 vcd_depth(tSimStateHdl simHdl);
@@ -46,6 +61,11 @@ extern void vcd_write_id(tSimStateHdl simHdl, unsigned int num);
 extern void vcd_set_clock(tSimStateHdl simHdl,
 			  unsigned int num, tClock handle);
 extern void vcd_write_scope_start(tSimStateHdl simHdl, const char* name);
+/* also records the scope's module type, for formats that can express
+ * it (FST); the two-argument form leaves the module type unknown */
+extern void vcd_write_scope_start(tSimStateHdl simHdl,
+				  const char* name,
+				  const char* module_type);
 extern void vcd_write_scope_end(tSimStateHdl simHdl);
 extern void vcd_write_def(tSimStateHdl simHdl,
 			  unsigned int num,

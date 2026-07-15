@@ -109,7 +109,22 @@ PRIM_OBJS = prim_ops.o wide_data.o mem_alloc.o target.o \
 # Description of Bluesim kernel library
 LIB_KERNEL = libbskernel.a
 KERNEL_OBJS = kernel.o event_queue.o priority.o symbol.o \
-              reset.o plusargs.o vcd.o portability.o
+              reset.o plusargs.o vcd.o fst.o portability.o \
+              $(FST_LIB_OBJS)
+
+# GTKWave's FST library (the src/vendor/libfst submodule) used by the
+# FST waveform writer (fst.cxx).  These objects are only pulled into a
+# model when it is linked with -dump-formats fst (via the generated
+# reference to vcd_register_fst), so models without FST support do not
+# carry them or their libz dependency.
+FST_LIB_DIR = ../vendor/libfst/src
+FST_LIB_OBJS = fstapi.o fastlz.o lz4.o
+# Third-party C code: compiled with relaxed warnings; fstapi.c
+# includes <config.h>, supplied from src/libfst_config/
+FST_LIB_CFLAGS = -Wall -g -std=gnu99 \
+                 -D_FILE_OFFSET_BITS=64 \
+                 -I../libfst_config \
+                 -fPIC $(PROF) $(COPT)
 
 LIBS = $(LIB_PRIM) $(LIB_KERNEL)
 
@@ -122,6 +137,20 @@ vpath %.cxx ../
 	    -e '/^$$/ d' -e 's/$$/ :/' < $*.p >> $*.d; \
 	rm -f $*.p
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# fst.cxx needs the libfst headers, which the dependency-generating
+# pattern rule above does not know about
+fst.o: fst.cxx bs_wave_writer.h bs_vcd.h kernel.h bluesim_kernel_api.h \
+       $(FST_LIB_DIR)/fstapi.h
+	$(CXX) $(CXXFLAGS) -I$(FST_LIB_DIR) -c -o $@ fst.cxx
+
+$(FST_LIB_OBJS): %.o: $(FST_LIB_DIR)/%.c
+	$(CC) $(FST_LIB_CFLAGS) -I$(FST_LIB_DIR) -c -o $@ $<
+
+fstapi.o: $(FST_LIB_DIR)/fstapi.h ../libfst_config/config.h \
+          $(FST_LIB_DIR)/fastlz.h $(FST_LIB_DIR)/lz4.h
+fastlz.o: $(FST_LIB_DIR)/fastlz.h
+lz4.o: $(FST_LIB_DIR)/lz4.h
 
 # -------------------------
 

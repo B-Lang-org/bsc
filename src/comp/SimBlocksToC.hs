@@ -187,12 +187,18 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         -- list of subblocks that need to be included
         include_ids = nub (map (\(id,_,_)->id) (sb_state sb))
 
+        -- whether to emit the per-signal waveform dumping code, which is
+        -- shared by the VCD and FST writers (-dump-formats vcd/fst);
+        -- with -dump-formats none it is stubbed out, dropping a lot of
+        -- generated code in large/replicated designs.
+        genVCD = any (`elem` ["vcd", "fst"]) (dumpFormats flags)
+
         -- class declaration (for the H file)
-        class_decl = simCCBlockToClassDeclaration sb_map sb
+        class_decl = simCCBlockToClassDeclaration genVCD sb_map sb
 
         -- method definitions (for the CXX file)
         (method_defs, state) =
-            runState (simCCBlockToClassDefinition sb_map dom_map sb)
+            runState (simCCBlockToClassDefinition genVCD sb_map dom_map sb)
                      (initialState ff_map wdef_inst_map (unSpecTo flags))
         lit_defs = mkLiteralDecls (nub (literals state))
         str_defs = mkStringDecls (M.toList (str_map state))
@@ -420,10 +426,27 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                             (case def_rst of
                                (Just _) -> [ setup_reset ]
                                Nothing  -> [])
+        -- record which waveform formats (-dump-formats) this model was
+        -- built with, so that the kernel can reject requests for other
+        -- formats; building with fst also registers the FST writer,
+        -- which is what links it (and its libz dependency) into the model
+        set_wave_formats =
+            let mask = sum [ v | (f, v) <- [("vcd", 1), ("fst", 2)]
+                               , f `elem` dumpFormats flags ]
+                set_stmt = stmt $ (var "vcd_set_allowed_formats") `cCall`
+                                    [ var "simHdl", mkUInt32 mask ]
+                reg_stmt = stmt $ (var "vcd_register_fst") `cCall`
+                                    [ var "simHdl" ]
+            in [ comment "waveform formats selected with -dump-formats"
+                         set_stmt ] ++
+               (if "fst" `elem` dumpFormats flags then [ reg_stmt ] else [])
+
         create_model_def =
           define create_model_decl
                  (block $ -- record the sim state handle
                           [ (mkVar "sim_hdl") `assign` (var "simHdl") ] ++
+                          -- record the available waveform dump formats
+                          set_wave_formats ++
                           -- clear reset counters
                           [ stmt $ (var "init_reset_request_counters") `cCall`
                                      [ var "sim_hdl" ] ] ++
@@ -508,23 +531,36 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                                 (block [mkDumpCall top_blk "dump_state" [mkUInt32 0]])
         dump_methods  = [ comment "State dumping function" state_dump_def ]
 
-        -- function for dumping VCDs
+        -- function for dumping waveforms (VCD or FST)
+        -- with -dump-formats none the per-signal dump code was not generated,
+        -- so instead of silently writing an empty VCD, report an error when
+        -- dumping is requested (dump_VCD_defs runs once, at VCD-header time);
+        -- the kernel also rejects the request earlier, when it is made
+        genVCD         = any (`elem` ["vcd", "fst"]) (dumpFormats flags)
+        no_vcd_msg     = "Error: this model was built with -dump-formats none; "
+                         ++ "no waveform dumping is available\n"
+        no_vcd_err     = stmt $ (var "fprintf") `cCall`
+                                  [ var "stderr", mkStr no_vcd_msg ]
         top_backing    = [mkBacking top_blk]
         dump_type      = (userType "tVCDDumpType") (mkVar "dt")
         vcd_depth      = (var "vcd_depth") `cCall` [ var "sim_hdl" ]
         vcd_hdr_proto  = function void (mkScopedVar "dump_VCD_defs") []
         vcd_hdr_def    = define vcd_hdr_proto
-                                (block [ mkDumpCall top_blk "dump_VCD_defs"
-                                                    [ vcd_depth ]])
+                                (if genVCD
+                                 then block [ mkDumpCall top_blk "dump_VCD_defs"
+                                                         [ vcd_depth ]]
+                                 else block [ no_vcd_err ])
         backing_fn sb  = (var ((sb_name sb) ++ "_backing")) `cCall` [ var "sim_hdl" ]
         vcd_proto      = function void (mkScopedVar "dump_VCD") [ dump_type ]
         vcd_def        = define vcd_proto
-                                (block [ mkDumpCall top_blk "dump_VCD"
-                                                    [ var "dt"
-                                                    , vcd_depth
-                                                    , backing_fn top_blk
-                                                    ]
-                                       ])
+                                (if genVCD
+                                 then block [ mkDumpCall top_blk "dump_VCD"
+                                                         [ var "dt"
+                                                         , vcd_depth
+                                                         , backing_fn top_blk
+                                                         ]
+                                            ]
+                                 else block [])
         vcd_methods = [ comment "VCD dumping functions" (blankLines 0) ] ++
                       top_backing ++ [ vcd_hdr_def, vcd_def ]
 

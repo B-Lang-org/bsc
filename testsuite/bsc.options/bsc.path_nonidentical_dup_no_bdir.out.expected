@@ -15,6 +15,7 @@ bsc -i BLUESPECDIR -print-flags -p foo:foo/:./foo:bar/../foo:./foo/../foo:baz:./
 
 Flags:
      -aggressive-conditions
+    -dump-formats   vcd
      -i   BLUESPECDIR
      -lift
      -o   a.out
