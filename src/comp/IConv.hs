@@ -84,7 +84,7 @@ iConvVar flags r env i =
         Nothing ->
                 case findVar r i of
                 Just (VarInfo VarPrim (_ :>: sc) _ _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
-                Just (VarInfo (VarForg name mps) (_ :>: sc) _ _) ->
+                Just (VarInfo (VarForg name tvns mps) (_ :>: sc) _ _) ->
                         let t = iConvSc flags r sc
                             -- inputs are grouped per argument;
                             -- foreign functions have one (unsplit) port per argument,
@@ -101,7 +101,7 @@ iConvVar flags r env i =
                                 addSizes is ops ([(i, n)]:ins) r
                             addSizes [] ops ins t = (reverse ins, zip ops (bitTupleSizes t))
                             addSizes is ops ins t = internalError ("addSizes mismatch: " ++ ppReadable (is, ops, ins, t))
-                        in  ICon i (ICForeign t name False ops' Nothing)
+                        in  ICon i (ICForeign t name False ops' tvns Nothing)
                 Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _ _) ->
                     let (IsIn cl _) = removePredPositions pp
                     in iConvField flags r (typeclassId $ name cl) i
@@ -118,9 +118,9 @@ iConvTask :: SymTab -> Id -> IType -> IExpr a
 iConvTask r i it =
    case findVar r i of
         -- only care about name - no "port-magic" for $display and friends
-        Just (VarInfo (VarForg name _) _ _ _) ->
+        Just (VarInfo (VarForg name _ _) _ _ _) ->
             -- trace("iConvTask: " ++ ppReadable it) $
-            (ICon i (ICForeign it name False Nothing Nothing))
+            (ICon i (ICForeign it name False Nothing [] Nothing))
         Just x  -> internalError ("iConvTask: foreign function info for " ++
                             (show i) ++ " not expected.\n" ++ ppReadable x )
         Nothing -> internalError ("iConvTask: foreign function info for " ++
@@ -586,7 +586,7 @@ iConvE errh flags r env pvs e@(CmoduleVerilogT ty name ui clks rst args meths sc
 iConvE errh flags r enc pvs e@(CForeignFuncCT i prim_ty) =
     let name = getIdString i
         ty' = iConvT flags r prim_ty
-    in  ICon i (ICForeign ty' name True Nothing Nothing)
+    in  ICon i (ICForeign ty' name True Nothing [] Nothing)
 
 iConvE errh flags r env pvs (Cattributes pps) =
     ICon (dummyId (getPosition (map fst pps)))
