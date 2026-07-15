@@ -29,7 +29,6 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateIdUsingFStringMap,
                                 isRWire, isRWire0,
                                 isBypassWire, isBypassWire0,
-                                isClockCrossingBypassWire,
                                 rwireSetStr, rwireGetStr, rwireHasStr,
                                 rwireGetResId, rwireHasResId,
                                 isCRegInst, cregReadStr, cregWriteStr)
@@ -493,20 +492,23 @@ size t = internalError ("getIOProps.size: " ++ show t)
 --    properties; they never assert a property that the getIOProps
 --    deduction would contradict.
 --
--- Wire instances (RWire, RWire0, BypassWire) which InlineWires will
--- inline away after AState are looked through: a value flows from the
--- "wset" argument to the "wget" result as through a plain wire (or
--- through a mux, when there are multiple setters, in which case
--- properties do not flow but use/unused information still does).
--- CReg instances (inlined by InlineCReg, leaving a plain register)
--- are also looked through: port 0's read is the register output
--- ("reg"), and higher ports' reads bypass through selections which
--- reduce when the schedule makes the intervening write enables
--- constant.
+-- Wire instances (RWire, RWire0, BypassWire) are looked through: a
+-- value flows from the "wset" argument to the "wget" result as
+-- through a plain wire (or through a mux, when there are multiple
+-- setters, in which case properties do not flow but use/unused
+-- information still does).  CReg instances are also looked through:
+-- port 0's read is the register output ("reg"), and higher ports'
+-- reads bypass through selections which reduce when the schedule
+-- makes the intervening write enables constant.  A wire or CReg is
+-- connected to the same things whether or not InlineWires/InlineCReg
+-- will inline it away (the primitives are just wiring around a
+-- register), so the look-through does not depend on the inlining
+-- flags -- unlike getIOProps, whose deductions weaken when the
+-- instances remain in the netlist.
 
 getIOPropsA :: Flags -> [PProp] -> Maybe AScheduleInfo -> APackage ->
                (VIOProps, [VPort])
-getIOPropsA flags pps mschedinfo apkg =
+getIOPropsA _flags pps mschedinfo apkg =
         -- returns the VIOProps structure
         -- and a mapping of Verilog port names to their port properties
         (VIOProps ais, [(VName (getIdString i), ps) | (i, _, _, ps) <- ais ])
@@ -722,21 +724,21 @@ getIOPropsA flags pps mschedinfo apkg =
         ifcValueDef _ = []
 
         -- ----------
-        -- wire instances (RWire, RWire0, BypassWire) will be inlined
-        -- away after AState (see InlineWires), so we look through them:
-        -- a value flows from the "wset" argument to the "wget" result
-        -- as through a plain wire (or through a mux, if there is more
-        -- than one setter)
+        -- wire instances (RWire, RWire0, BypassWire) are looked
+        -- through: a value flows from the "wset" argument to the
+        -- "wget" result as through a plain wire (or through a mux, if
+        -- there is more than one setter).  This holds whether or not
+        -- InlineWires will inline the instance away (the primitive's
+        -- Verilog is just an assignment), so the deduced properties do
+        -- not depend on the inlining flags.
 
-        isInlinedWireA :: AVInst -> Bool
-        isInlinedWireA v =
-            removeRWire flags &&
-            (isRWire v || isRWire0 v || isBypassWire0 v ||
-             (isBypassWire v &&
-              (not (isClockCrossingBypassWire v) || removeCross flags)))
+        isWireInstance :: AVInst -> Bool
+        isWireInstance v =
+            isRWire v || isRWire0 v ||
+            isBypassWire v || isBypassWire0 v
 
         wireInstSet :: S.Set AId
-        wireInstSet = S.fromList [ avi_vname v | v <- vs, isInlinedWireA v ]
+        wireInstSet = S.fromList [ avi_vname v | v <- vs, isWireInstance v ]
 
         isWireMeth :: String -> AId -> AId -> Bool
         isWireMeth str obj meth =
@@ -828,18 +830,17 @@ getIOPropsA flags pps mschedinfo apkg =
               _   -> Nothing
 
         -- ----------
-        -- CReg instances will be inlined after AState (see InlineCReg,
-        -- keeping only the underlying register), so we look through
-        -- them: port 0's read is the register output, and port N's
-        -- read bypasses through selection between the port (N-1) write
-        -- data and port (N-1)'s read.  Writes always feed the retained
-        -- register, so write arguments are uses without properties.
+        -- CReg instances are looked through: port 0's read is the
+        -- register output, and port N's read bypasses through
+        -- selection between the port (N-1) write data and port
+        -- (N-1)'s read.  Writes always feed the register, so write
+        -- arguments are uses without properties.  As with the wire
+        -- instances, this is the primitive's connectivity whether or
+        -- not InlineCReg will inline it, so the deduced properties do
+        -- not depend on the inlining flags.
 
         cregInstSet :: S.Set AId
-        cregInstSet =
-            if (removeCReg flags)
-            then S.fromList [ avi_vname v | v <- vs, isCRegInst v ]
-            else S.empty
+        cregInstSet = S.fromList [ avi_vname v | v <- vs, isCRegInst v ]
 
         -- the number of ports on the primitive CReg (see InlineCReg)
         cregPorts :: Int
