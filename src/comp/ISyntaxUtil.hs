@@ -327,12 +327,16 @@ iMkNil :: IType -> IExpr a
 iMkNil t = IAps icPrimChr [mkNumConT 1, itList t] [iMkLitSize 1 0]
 
 -- The Cons constructor's internal struct type, matching the frontend's
--- anonymous struct (List_$Cons with fields _1, _2) from CParser.
+-- anonymous struct (List_$Cons with fields _1, _2) from CParser.  The
+-- sort must match what the frontend records for a positional data
+-- constructor's struct -- TIstruct (SDataCon parent False) fields --
+-- so that this handwritten constant agrees with the List_$Cons tycon
+-- built from the Prelude's source.
 itListCons :: IType -> IType
 itListCons t =
   let tc_id = mkTCId idList (idCons noPosition)
       (id_1:id_2:_) = tupleIds
-      ti = TIstruct SStruct [id_1, id_2]
+      ti = TIstruct (SDataCon idList False) [id_1, id_2]
   in  ITAp (ITCon tc_id (IKFun IKStar IKStar) ti) t
 
 iMkCons :: IType -> IExpr a -> IExpr a -> IExpr a
