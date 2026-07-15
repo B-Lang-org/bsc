@@ -57,12 +57,18 @@ eqType0 flags symt r@(E _ _ eqs _) t t' =
                      ++ " result=" ++ show result) $
        result
 
+-- The commutative numeric type constructors, identified by name: Ids
+-- embedded in ITypes are normalized on entry to the intern layer and
+-- carry no props, so this must not be an IdProp test.
+commutativeTCons :: [Id]
+commutativeTCons = [idAdd, idMax, idMin, idMul, idNumEq]
+
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
 -- hack to make commutative type constructors work
 eqType1 flags symt r (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
                      (ITAp (ITAp (ITAp (ITCon i' _ _) t1') t2') t3')
-    | (i == i') && (hasIdProp i IdPCommutativeTCon) =
+    | (i == i') && (i `elem` commutativeTCons) =
     eqType0 flags symt r t3 t3' &&
     (((eqType0 flags symt r t1 t1') && (eqType0 flags symt r t2 t2')) ||
      ((eqType0 flags symt r t1 t2') && (eqType0 flags symt r t2 t1')))
