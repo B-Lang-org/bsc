@@ -145,10 +145,12 @@ tidySort _ TIabstract = TIabstract
 tidySort _ (TIatf c ps r) = TIatf (tidyTypeId c) ps r
 
 -- an entity of the owning tycon's package: tidied and re-qualified.
--- An unqualified owner (a package-local tycon during its defining
--- compile) imposes nothing: its entities keep their own quals.
+-- The owner is always qualified (mkITCon rejects unqualified tycons),
+-- so an empty qualifier here is a broken caller.
 ownedId :: FString -> Id -> Id
-ownedId q i | q == fsEmpty = tidyTypeId i
+ownedId q i | q == fsEmpty =
+                internalError ("IType.ownedId: unqualified owner for " ++
+                               show i)
             | otherwise    = setIdQual (tidyTypeId i) q
 
 tidySST :: FString -> StructSubType -> StructSubType
@@ -198,12 +200,19 @@ tconTable = unsafePerformIO $ newIORef (TConTable M.empty)
 mkITCon :: Id -> IKind -> TISort -> IType
 mkITCon i k s
     | getIdQual i == fsEmpty =
-        -- Package-local tycons can reach construction unqualified
-        -- during their own defining compile (e.g. associated type
-        -- functions like Rep -- caught by the first checked library
-        -- build).  They cannot be name-interned ((qual, base) would
-        -- collide across packages), so: normalized, not shared.
-        ITCon_ (tidyTypeId i) k (tidySort fsEmpty s)
+        -- Invariant: every ITCon arrives with a qualified Id.  The
+        -- front end canonicalizes tycon references against the symbol
+        -- table (MakeSymTab.trCType' substitutes ti_qual_id, which is
+        -- qualified even for the current package's own decls), so any
+        -- unqualified arrival is a synthesis site bypassing that layer
+        -- and must be fixed at its origin.  The one such site found --
+        -- ISyntaxCheck.atfEqsFromDict building associated-type-function
+        -- tycons (e.g. Prelude's Rep) from raw symtab alias keys --
+        -- now uses ti_qual_id.  Locating others: temporarily add
+        -- HasCallStack to mkITCon and the ITCon pattern signature and
+        -- render callStack here.
+        internalError ("IType.mkITCon: unqualified tycon " ++
+                       show (ITCon_ i k s))
     | otherwise = unsafePerformIO $ do
         let key = (getIdQual i, getIdBase i)
         TConTable m0 <- readIORef tconTable

@@ -308,11 +308,9 @@ atfEqsFromDict symt dictType =
            -- The symtab type map contains one entry per visible alias
            -- (qualified and unqualified) of each type, all sharing one
            -- TypeInfo.  Build the ATF tycon from the canonical
-           -- qualified id (ti_qual_id) -- matching the qualified Ids
-           -- that every other ITCon producer receives from CTypes
-           -- canonicalized by MakeSymTab.trCType' -- and keep a
-           -- single entry per ATF by matching only the canonical
-           -- alias.
+           -- qualified id (ti_qual_id) -- ITCon Ids must be qualified
+           -- (enforced by IType.mkITCon) -- and keep a single entry
+           -- per ATF by matching only the canonical alias.
            | (atfId, TypeInfo (Just qatfId) atfK _ ti@(TIatf { atf_class_id = acId
                                                              , atf_param_idxs = pIdxs
                                                              , atf_target_idx = tIdx }) _)
