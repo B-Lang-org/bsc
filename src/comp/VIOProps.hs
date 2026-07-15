@@ -1,6 +1,6 @@
 module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
-import Data.List(intersect)
+import Data.List(intersect, nub)
 import Data.Maybe(catMaybes, isNothing)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -12,9 +12,11 @@ import ErrorUtil(internalError)
 import Id
 import PreIds(idPrimAction, idInout_, idPrimUnit)
 import Pragma(PProp, isAlwaysRdy, isAlwaysEn)
-import VModInfo(vArgs, vFields, VName(..), VeriPortProp(..),
+import VModInfo(VModInfo, vArgs, vFields, vClk, VName(..), VeriPortProp(..),
                 VArgInfo(..), VFieldInfo(..), VPort, VWireInfo(..),
+                VClockInfo(..),
                 getOutputClockPortTable, getOutputResetPortTable,
+                lookupInputClockWires, lookupInputResetWire,
                 mkNamedEnable, mkNamedOutput, mkNamedInout, vName_to_id)
 import Prim
 import ASyntax
@@ -112,15 +114,6 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                               -- also get props like "reset" or "gate")
                               deduced_props
 
-        -- given the props for multiple signals,
-        -- compute the props that the concatenation should have
-        joinOutProps :: [[VeriPortProp]] -> [VeriPortProp]
-        joinOutProps (x:xs) = foldr intersect x xs
-        -- empty list only occurs with prims of no args
-        -- XXX do we have any? if they all give constant return values,
-        -- XXX then we could return [VPconst] here
-        joinOutProps [] = []
-
         -- construct the VeriPortProp list for an expression
         getOEP :: AExpr -> [VeriPortProp]
         -- for concats, find the common properties of the pieces
@@ -214,23 +207,6 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                 -- (such as input clocks/resets)
                 -- for now, we just derive this (see comment below)
                 derived_props
-
-        -- given the deduced props for multiple signals,
-        -- compute the props that should be deduced for a signal
-        -- which connects directly to all these signals (and only these)
-        joinInProps :: [[VeriPortProp]] -> [VeriPortProp]
-        joinInProps pss =
-            let
-                -- if a signal is unused, it might as well not exist,
-                -- so don't count it
-                pss' = filter (VPunused `notElem`) pss
-            in
-                case pss' of
-                    [] -> [VPunused]
-                    (x:xs) ->
-                        -- otherwise, a prop needs to be on all used signals
-                        -- for it to be on the source
-                        foldr intersect x xs
 
         -- a list the signals which are connected to
         -- submodule input ports (method arguments and enables)
@@ -370,6 +346,33 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
               Nothing -> getIProp i
 
 
+-- given the props for multiple signals,
+-- compute the props that the concatenation should have
+joinOutProps :: [[VeriPortProp]] -> [VeriPortProp]
+joinOutProps (x:xs) = foldr intersect x xs
+-- empty list only occurs with prims of no args
+-- XXX do we have any? if they all give constant return values,
+-- XXX then we could return [VPconst] here
+joinOutProps [] = []
+
+-- given the deduced props for multiple signals,
+-- compute the props that should be deduced for a signal
+-- which connects directly to all these signals (and only these)
+joinInProps :: [[VeriPortProp]] -> [VeriPortProp]
+joinInProps pss =
+    let
+        -- if a signal is unused, it might as well not exist,
+        -- so don't count it
+        pss' = filter (VPunused `notElem`) pss
+    in
+        case pss' of
+            [] -> [VPunused]
+            (x:xs) ->
+                -- otherwise, a prop needs to be on all used signals
+                -- for it to be on the source
+                foldr intersect x xs
+
+
 -- This used to return (Map AId (Set ADef)), which meant that the whole def
 -- had to be compared, when inserting new elements, which was inefficient
 -- for large expressions.  Changed it to be just a set of the AId, which
@@ -446,15 +449,22 @@ size t = internalError ("getIOProps.size: " ++ show t)
 -- are approximated by a similar analysis over the APackage (see
 -- getOutPropsA and getInPropsA below).
 --
--- Note two intentional differences from getIOProps:
+-- Note some intentional differences from getIOProps:
 --  * Clock, gate, and reset ports are always labeled with their
 --    structural properties (clock/clock gate/reset), whereas getIOProps
 --    only labels them when the deduction succeeds (for example, an
---    output clock which is fed directly from an input clock port
---    gets no properties from getIOProps).
+--    unused input clock is labeled "clock unused" here, but just
+--    "unused" by getIOProps).
 --  * Uses of signals in foreign function calls are treated as uses,
 --    whereas getIOProps can consider such signals "unused" (foreign
 --    calls are not part of the def chain it follows).
+--  * Properties which only become deducible after scheduling and
+--    netlist optimization can be missed: for example, an enable
+--    input whose method's actions are dropped by later optimization
+--    is not labeled "unused", and a ready output which scheduling
+--    reduces to a constant is not labeled "const".  Such misses only
+--    lose properties; they never assert a property that the
+--    getIOProps deduction would contradict.
 
 getIOPropsA :: Flags -> [PProp] -> APackage -> (VIOProps, [VPort])
 getIOPropsA _flags pps apkg =
@@ -465,6 +475,10 @@ getIOPropsA _flags pps apkg =
         ifc  = apkg_interface apkg
         fmod = apkg_is_wrapped apkg
         wi   = apkg_external_wires apkg
+        vs   = apkg_state_instances apkg
+        ds   = apkg_local_defs apkg
+        -- all rules, including the bodies of the action methods
+        rs   = apkg_rules apkg ++ concatMap aIfaceRules ifc
 
         -- port name tables for the interface output clocks and resets
         clockPortTable = getOutputClockPortTable (wClk wi)
@@ -472,6 +486,10 @@ getIOPropsA _flags pps apkg =
 
         -- module arguments with their VArgInfo
         args_with_info = getAPackageInputs apkg
+
+        -- merge the structurally known properties with the deduced ones
+        mergeProps :: [VeriPortProp] -> [VeriPortProp] -> [VeriPortProp]
+        mergeProps sps dps = nub (sps ++ dps)
 
         -- VIOProps for all ports (but only nonzero sized)
         ais = filter nonZero (ois ++ iis ++ iois)
@@ -482,8 +500,8 @@ getIOPropsA _flags pps apkg =
         -- (in the order that AState creates them:
         --  method results, then output clocks, then output resets)
 
-        ois = [ (i, OUTPUT, size t, ps) |
-                    (i, t, ps) <- meth_outs ++ clk_outs ++ rst_outs ]
+        ois = [ (i, OUTPUT, size t, mergeProps sps (getOutPropsA e)) |
+                    (i, t, sps, e) <- meth_outs ++ clk_outs ++ rst_outs ]
 
         -- method value/actionvalue result ports
         -- (mirrors AState.outputDefToADef and its always_ready filtering)
@@ -491,21 +509,23 @@ getIOPropsA _flags pps apkg =
             isRdyId (aIfaceName m) && isAlwaysRdy pps (aIfaceName m)
         other_ifc = filter (not . isAlwaysReadyMethod) ifc
 
-        meth_outs :: [(AId, AType, [VeriPortProp])]
+        meth_outs :: [(AId, AType, [VeriPortProp], AExpr)]
         meth_outs = concatMap getMethOut other_ifc
 
-        getMethOut :: AIFace -> [(AId, AType, [VeriPortProp])]
+        getMethOut :: AIFace -> [(AId, AType, [VeriPortProp], AExpr)]
         getMethOut ai@(AIDef {}) =
             -- a module wrapped around a non-inlined function has no RDY
             if (fmod && isRdyId (aif_name ai))
             then []
-            else [(mkNamedOutput fi, adef_type (aif_value ai),
-                   declaredOutProps fi)]
+            else [(mkNamedOutput fi, adef_type d,
+                   declaredOutProps fi, adef_expr d)]
           where fi = aif_fieldinfo ai
+                d  = aif_value ai
         getMethOut ai@(AIActionValue {}) =
-            [(mkNamedOutput fi, adef_type (aif_value ai),
-              declaredOutProps fi)]
+            [(mkNamedOutput fi, adef_type d,
+              declaredOutProps fi, adef_expr d)]
           where fi = aif_fieldinfo ai
+                d  = aif_value ai
         getMethOut _ = []
 
         declaredOutProps :: VFieldInfo -> [VeriPortProp]
@@ -513,10 +533,14 @@ getIOPropsA _flags pps apkg =
         declaredOutProps _ = []
 
         -- output clock (and gate) ports (mirrors AState's clk_blob)
-        clk_outs :: [(AId, AType, [VeriPortProp])]
+        clk_outs :: [(AId, AType, [VeriPortProp], AExpr)]
         clk_outs =
-            concat [ (vName_to_id osc_vn, aTBool, [VPclock]) : gate_ports |
-                        (AIClock { aif_name = n }) <- ifc,
+            concat [ (vName_to_id osc_vn, aTBool, [VPclock], osc) :
+                     gate_ports |
+                        (AIClock { aif_name = n,
+                                   aif_clock =
+                                       AClock { aclock_osc = osc,
+                                                aclock_gate = gate } }) <- ifc,
                         let (osc_vn, mgate_vp) =
                                 fromJustOrErr
                                     ("getIOPropsA: unknown output clock " ++
@@ -527,14 +551,15 @@ getIOPropsA _flags pps apkg =
                                   Nothing -> []
                                   Just (gate_vn, gate_pps) ->
                                       [(vName_to_id gate_vn, aTBool,
-                                        VPclockgate : gate_pps)]
+                                        VPclockgate : gate_pps, gate)]
                    ]
 
         -- output reset ports (mirrors AState's rstn_defs)
-        rst_outs :: [(AId, AType, [VeriPortProp])]
+        rst_outs :: [(AId, AType, [VeriPortProp], AExpr)]
         rst_outs =
-            [ (vName_to_id rstn_vn, aTBool, [VPreset]) |
-                  (AIReset { aif_name = n }) <- ifc,
+            [ (vName_to_id rstn_vn, aTBool, [VPreset], w) |
+                  (AIReset { aif_name = n,
+                             aif_reset = AReset { areset_wire = w } }) <- ifc,
                   let rstn_vn =
                           fromJustOrErr
                               ("getIOPropsA: unknown output reset " ++
@@ -547,8 +572,12 @@ getIOPropsA _flags pps apkg =
         -- (in the order that AState creates them:
         --  module arguments, method arguments, method enables)
 
-        iis = [ (i, INPUT, size t, ps) |
-                    (i, t, ps) <- arg_ins ++ meth_arg_ins ++ en_ins ]
+        iis = [ (i, INPUT, size t, mergeProps sps (getInPropsA i)) |
+                    (i, t, sps) <- arg_ins ++ meth_arg_ins ] ++
+              -- the enable wires do not exist in the APackage (AState
+              -- creates them, gating the WILL_FIREs of the method's
+              -- rules), so no deduction is attempted for them
+              [ (i, INPUT, size t, sps) | (i, t, sps) <- en_ins ]
 
         -- module argument ports (clocks, resets, and ordinary ports;
         -- parameters are not ports and inouts are handled below)
@@ -595,13 +624,316 @@ getIOPropsA _flags pps apkg =
         -- (module argument inouts, then interface inouts,
         --  in the order that AState creates them)
 
-        iois = [ (i, INOUT, size t, ps) |
-                     (i, t, ps) <- arg_iots ++ ifc_iots ]
+        -- as in getIOProps, an argument inout is used by the module
+        -- (like an input) and an interface inout is provided by the
+        -- module (like an output)
+        iois = [ (i, INOUT, size t, mergeProps sps (getInPropsA i)) |
+                     (i, t, sps) <- arg_iots ] ++
+               [ (i, INOUT, size t, mergeProps sps (getOutPropsA e)) |
+                     (i, t, sps, e) <- ifc_iots ]
 
         arg_iots :: [(AId, AType, [VeriPortProp])]
         arg_iots = [ (i, ATAbstract idInout_ [n], [VPinout]) |
                          (AAI_Inout i n, InoutArg {}) <- args_with_info ]
 
-        ifc_iots :: [(AId, AType, [VeriPortProp])]
-        ifc_iots = [ (mkNamedInout fi, aType e, [VPinout]) |
+        ifc_iots :: [(AId, AType, [VeriPortProp], AExpr)]
+        ifc_iots = [ (mkNamedInout fi, aType e, [VPinout], e) |
                          (AIInout _ (AInout e) fi) <- ifc ]
+
+        -- ==========
+        -- structures shared by the property deductions below
+
+        -- map from state instance name to its VModInfo
+        vmiMap :: M.Map AId VModInfo
+        vmiMap = M.fromList [ (avi_vname v, avi_vmi v) | v <- vs ]
+
+        -- find the VFieldInfo for a method of a state instance
+        -- (method ids in AMethCall/ACall are qualified; vf_name is not)
+        findMethodA :: AId -> AId -> Maybe VFieldInfo
+        findMethodA obj meth = do
+            vmi <- M.lookup obj vmiMap
+            case [ m | m@(Method {}) <- vFields vmi,
+                       vf_name m == unQualId meth ] of
+              (m:_) -> Just m
+              []    -> Nothing
+
+        -- the local defs and the interface value defs, by id
+        defMapA :: M.Map AId ADef
+        defMapA = M.fromList ([ (i, d) | d@(ADef i _ _ _) <- ds ] ++
+                              [ (i, d) | f <- ifc,
+                                         d@(ADef i _ _ _) <- ifcValueDef f ])
+
+        ifcValueDef :: AIFace -> [ADef]
+        ifcValueDef (AIDef { aif_value = d }) = [d]
+        ifcValueDef (AIActionValue { aif_value = d }) = [d]
+        ifcValueDef _ = []
+
+        -- pseudo-defs relating the output clock, reset, and inout port
+        -- ids to the expressions which drive them (AState creates real
+        -- defs for these; see clk_defs, rstn_defs, and iot_defs there)
+        out_wire_defs :: [(AId, AExpr)]
+        out_wire_defs =
+            [ (i, e) | (i, _, _, e) <- clk_outs ++ rst_outs ++ ifc_iots ]
+
+        -- ----------
+        -- deduce the properties of an output from its defining
+        -- expression (the analog of getOEP in getIOProps)
+
+        -- table of properties for signals which output definitions can
+        -- reference: the special outputs (clocks, resets, inouts) of
+        -- the state instances, and the module's own inputs (which, as
+        -- in getIOProps' wireMap_out, provide no properties)
+        wireMapA_out :: M.Map AId [VeriPortProp]
+        wireMapA_out =
+            let submod_pairs = [ (i, ps) |
+                                     v <- vs,
+                                     (i, _, (_, ps)) <- getSpecialOutputs v ]
+                input_pairs = [ (i, []) |
+                                    (i, _, _) <- arg_ins ++ meth_arg_ins ]
+            in  M.union (M.fromList submod_pairs) (M.fromList input_pairs)
+
+        getOutPropsA :: AExpr -> [VeriPortProp]
+        -- for concats, find the common properties of the pieces
+        getOutPropsA (APrim _ _ PrimConcat es) =
+            joinOutProps (map getOutPropsA es)
+        -- an extraction doesn't change the properties
+        getOutPropsA (APrim _ _ PrimExtract [e, _, _]) = getOutPropsA e
+        -- either a special output of a state instance
+        -- or an input of this module
+        getOutPropsA (ASPort _ i) = M.findWithDefault [] i wireMapA_out
+        -- follow defs
+        getOutPropsA (ASDef _ i) =
+            case M.lookup i defMapA of
+              Just d  -> getOutPropsA (adef_expr d)
+              Nothing -> []
+        -- constant values
+        getOutPropsA (ASParam _ _) = [VPconst]
+        getOutPropsA (ASInt _ _ _) = [VPconst]
+        getOutPropsA (ASStr _ _ _) = [VPconst]
+        -- a value method result is wired to the method's output port
+        getOutPropsA (AMethCall _ obj meth _) = methOutPropsA obj meth
+        getOutPropsA (AMethValue _ obj meth)  = methOutPropsA obj meth
+        -- the gate of an output clock of a state instance
+        getOutPropsA (AMGate _ obj clk) = gatePropsA obj clk
+        -- clock, reset, and inout values just wrap the underlying wires
+        getOutPropsA (ASClock _ (AClock { aclock_osc = o })) = getOutPropsA o
+        getOutPropsA (ASReset _ (AReset { areset_wire = w })) = getOutPropsA w
+        getOutPropsA (ASInout _ (AInout { ainout_wire = w })) = getOutPropsA w
+        -- for any other use, we cannot conclude properties
+        getOutPropsA _ = []
+
+        -- the declared properties of a method's output port
+        methOutPropsA :: AId -> AId -> [VeriPortProp]
+        methOutPropsA obj meth =
+            case findMethodA obj meth of
+              Just (Method { vf_output = Just (_, ps) }) -> ps
+              _ -> []
+
+        -- the declared properties of the gate port of an instance's
+        -- output clock (mirrors getSpecialOutputs' mkGatePort)
+        gatePropsA :: AId -> AId -> [VeriPortProp]
+        gatePropsA obj clk =
+            case M.lookup obj vmiMap of
+              Just vmi ->
+                  case lookup clk (output_clocks (vClk vmi)) of
+                    Just (Just (_, Just (_, ps))) -> VPclockgate : ps
+                    _ -> [VPclockgate]
+              Nothing -> [VPclockgate]
+
+        -- ----------
+        -- deduce the properties of an input from its uses
+        -- (the analog of getSignalInProp in getIOProps)
+
+        -- how many places each state-instance method is called from;
+        -- if a method is called from more places than it has port
+        -- copies, AState will insert muxes, and the connections to its
+        -- input ports will not be direct
+        methCallCountA :: M.Map (AId, AId) Integer
+        methCallCountA = M.fromListWith (+) [ (om, 1) | om <- all_calls ]
+
+        all_calls :: [(AId, AId)]
+        all_calls =
+            concatMap exprCalls all_exprs ++
+            [ (aact_objid a, unQualId (acall_methid a)) |
+                  r <- rs, a@(ACall {}) <- arule_actions r ]
+
+        -- all expressions in the package (for counting method calls)
+        all_exprs :: [AExpr]
+        all_exprs =
+            [ e | (ADef _ _ e _) <- ds ] ++
+            [ adef_expr d | f <- ifc, d <- ifcValueDef f ] ++
+            [ e | (_, e) <- out_wire_defs ] ++
+            ifc_preds ++
+            [ e | a <- all_assumps,
+                  e <- assump_property a :
+                       concatMap aact_args (assump_actions a) ] ++
+            concat [ arule_pred r :
+                     concatMap aact_args (arule_actions r) | r <- rs ] ++
+            concat [ avi_iargs v | v <- vs ]
+
+        ifc_preds :: [AExpr]
+        ifc_preds = concatMap getPred ifc
+          where getPred (AIDef { aif_pred = p }) = [p]
+                getPred (AIAction { aif_pred = p }) = [p]
+                getPred (AIActionValue { aif_pred = p }) = [p]
+                getPred _ = []
+
+        all_assumps :: [AAssumption]
+        all_assumps = concat ([ arule_assumps r | r <- rs ] ++
+                              [ aif_assumps f | f@(AIDef {}) <- ifc ])
+
+        exprCalls :: AExpr -> [(AId, AId)]
+        exprCalls (AMethCall _ obj meth es) =
+            (obj, unQualId meth) : concatMap exprCalls es
+        exprCalls (APrim _ _ _ es) = concatMap exprCalls es
+        exprCalls (ANoInlineFunCall _ _ _ es) = concatMap exprCalls es
+        exprCalls (AFunCall _ _ _ _ es) = concatMap exprCalls es
+        exprCalls (ASClock _ (AClock { aclock_osc = o, aclock_gate = g })) =
+            exprCalls o ++ exprCalls g
+        exprCalls (ASReset _ (AReset { areset_wire = w })) = exprCalls w
+        exprCalls (ASInout _ (AInout { ainout_wire = w })) = exprCalls w
+        exprCalls (ASAny _ (Just e)) = exprCalls e
+        exprCalls _ = []
+
+        -- all the uses of signals in the package, classified
+        useMapA :: M.Map AId [AUse]
+        useMapA = M.fromListWith (++) [ (i, [u]) | (i, u) <- all_uses ]
+
+        all_uses :: [(AId, AUse)]
+        all_uses =
+            -- local defs
+            concat [ classifyExpr (AUDef i) e | (ADef i _ e _) <- ds ] ++
+            -- interface value defs and output clock/reset/inout wires
+            -- (these define the output ports, which are recorded in
+            -- outSinkSet, so the deduction terminates there)
+            concat [ classifyExpr (AUDef (adef_objid d)) (adef_expr d) |
+                         f <- ifc, d <- ifcValueDef f ] ++
+            concat [ classifyExpr (AUDef i) e | (i, e) <- out_wire_defs ] ++
+            -- method predicates and assumptions become scheduling logic
+            concat [ classifyExpr AUOpaque p | p <- ifc_preds ] ++
+            concat [ classifyExpr AUOpaque e |
+                         a <- all_assumps,
+                         e <- assump_property a :
+                              concatMap aact_args (assump_actions a) ] ++
+            -- rules (including the bodies of action methods)
+            concat [ ruleUses r | r <- rs ] ++
+            -- state instance arguments
+            concat [ instArgUses v | v <- vs ]
+
+        ruleUses :: ARule -> [(AId, AUse)]
+        ruleUses r = classifyExpr AUOpaque (arule_pred r) ++
+                     concatMap actionUses (arule_actions r)
+
+        actionUses :: AAction -> [(AId, AUse)]
+        -- the condition feeds the enable logic (via the WILL_FIRE),
+        -- and so is not a direct connection; the arguments are
+        -- connections to the method's input ports
+        actionUses (ACall obj meth (c:es)) =
+            classifyExpr AUOpaque c ++ classifyMethArgs obj meth es
+        -- foreign function and task calls (AFCall, ATaskAction)
+        -- are uses that we can conclude nothing about
+        actionUses a = concatMap (classifyExpr AUOpaque) (aact_args a)
+
+        instArgUses :: AVInst -> [(AId, AUse)]
+        instArgUses v = concatMap cvt (getInstArgs v)
+          where
+            vmi = avi_vmi v
+            cvt (Port (_, pps) _ _, e) = classifyExpr (AUConn pps) e
+            -- parameters must be constant expressions
+            cvt (Param {}, e) = classifyExpr (AUConn [VPconst]) e
+            -- clock/reset/inout wires connect to the real ports
+            -- (mirrors AState's rewireClockResetInout)
+            cvt (ClockArg c, ASClock _ (AClock { aclock_osc = osc,
+                                                 aclock_gate = gate })) =
+                case (lookupInputClockWires c vmi) of
+                  -- unconnected clock: AState drops the wires
+                  Nothing -> []
+                  Just (_, Nothing) -> classifyExpr (AUConn [VPclock]) osc
+                  Just (_, Just _)  ->
+                      classifyExpr (AUConn [VPclock]) osc ++
+                      classifyExpr (AUConn [VPclockgate]) gate
+            cvt (ResetArg r, ASReset _ (AReset { areset_wire = w })) =
+                case (lookupInputResetWire r vmi) of
+                  Nothing -> []
+                  Just _  -> classifyExpr (AUConn [VPreset]) w
+            cvt (InoutArg {}, ASInout _ (AInout { ainout_wire = w })) =
+                classifyExpr (AUConn [VPinout]) w
+            cvt (_, e) = classifyExpr AUOpaque e
+
+        -- Classify the uses of signals in an expression: signals which
+        -- pass through directly (possibly via concat and extract, as in
+        -- okUse) receive the given use; anything else is opaque.
+        -- Arguments of method calls are connections to the method's
+        -- input ports and are classified separately.
+        classifyExpr :: AUse -> AExpr -> [(AId, AUse)]
+        classifyExpr u (ASPort _ i)  = [(i, u)]
+        classifyExpr u (ASParam _ i) = [(i, u)]
+        classifyExpr u (ASDef _ i)   = [(i, u)]
+        classifyExpr u (APrim _ _ PrimConcat es) =
+            concatMap (classifyExpr u) es
+        classifyExpr u (APrim _ _ PrimExtract (e:es)) =
+            classifyExpr u e ++ concatMap (classifyExpr AUOpaque) es
+        classifyExpr _ (APrim _ _ _ es) =
+            concatMap (classifyExpr AUOpaque) es
+        classifyExpr _ (ANoInlineFunCall _ _ _ es) =
+            concatMap (classifyExpr AUOpaque) es
+        classifyExpr _ (AFunCall _ _ _ _ es) =
+            concatMap (classifyExpr AUOpaque) es
+        classifyExpr _ (AMethCall _ obj meth es) =
+            classifyMethArgs obj meth es
+        classifyExpr _ (ASClock _ (AClock { aclock_osc = o,
+                                            aclock_gate = g })) =
+            classifyExpr AUOpaque o ++ classifyExpr AUOpaque g
+        classifyExpr _ (ASReset _ (AReset { areset_wire = w })) =
+            classifyExpr AUOpaque w
+        classifyExpr _ (ASInout _ (AInout { ainout_wire = w })) =
+            classifyExpr AUOpaque w
+        classifyExpr _ (ASAny _ (Just e)) = classifyExpr AUOpaque e
+        -- AMethValue, AMGate, ATaskValue, and literals use no signals
+        classifyExpr _ _ = []
+
+        -- Arguments of a call to a method of a state instance are
+        -- connections to the method's input ports, as long as AState
+        -- will not need to insert muxes (which is the case when the
+        -- method has enough port copies for all of its call sites)
+        classifyMethArgs :: AId -> AId -> [AExpr] -> [(AId, AUse)]
+        classifyMethArgs obj meth es =
+            case findMethodA obj meth of
+              Just m@(Method { vf_inputs = ins })
+                  | isDirectCall m && length ins == length es
+                  -> concat (zipWith (\ (_, pps) e ->
+                                          classifyExpr (AUConn pps) e)
+                                     ins es)
+              _ -> concatMap (classifyExpr AUOpaque) es
+          where isDirectCall m =
+                    M.findWithDefault 0 (obj, unQualId meth) methCallCountA
+                        <= max 1 (vf_mult m)
+
+        -- ids which become output or inout ports: a signal which
+        -- drives a port is not unused, but no properties can be
+        -- concluded from that use (this mirrors the "output_pairs"
+        -- entries in getIOProps' wireMap_in)
+        outSinkSet :: S.Set AId
+        outSinkSet =
+            S.fromList ([ adef_objid d | f <- ifc, d <- ifcValueDef f ] ++
+                        [ i | (i, _) <- out_wire_defs ])
+
+        getInPropsA :: AId -> [VeriPortProp]
+        getInPropsA i =
+            let sink_props = if (i `S.member` outSinkSet) then [[]] else []
+                uses = M.findWithDefault [] i useMapA
+            in  case (sink_props, uses) of
+                  ([], []) -> [VPunused]
+                  _ -> joinInProps (sink_props ++ map usePropsA uses)
+
+        usePropsA :: AUse -> [VeriPortProp]
+        usePropsA (AUConn ps) = ps
+        usePropsA AUOpaque    = []
+        usePropsA (AUDef d)   = getInPropsA d
+
+
+-- A use of a signal, for deducing the properties of module inputs
+-- on an APackage (see getInPropsA above)
+data AUse = AUDef AId               -- used to define another signal
+          | AUConn [VeriPortProp]   -- connected to a port with these props
+          | AUOpaque                -- used in a way we cannot analyze
