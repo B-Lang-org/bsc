@@ -1,7 +1,6 @@
 module TypeAnalysis (
                      TypeAnalysis(..),
                      analyzeType,
-                     analyzeType',
                      showType,
                      getWidth,
 
@@ -117,10 +116,7 @@ addGenVars as ks =
 -- ---------------
 
 analyzeType :: Flags -> SymTab -> CType -> Either [EMsg] TypeAnalysis
-analyzeType flags symtab unqual_ty = analyzeType' flags symtab unqual_ty False
-
-analyzeType' :: Flags -> SymTab -> CType -> Bool -> Either [EMsg] TypeAnalysis
-analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kindCheck unqual_ty)
+analyzeType flags symtab unqual_ty = doRight analyze (kindCheck unqual_ty)
   where
     w = getBitWidth flags symtab
 
@@ -144,8 +140,8 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
          (TDefMonad {}, as) ->
              -- need more context
              Right Variable  -- Unknown?
-         (TGen {}, as) -> internalError "analyzeType': found TGen"
-         (TAp {}, as)  -> internalError "analyzeType': found TAp"
+         (TGen {}, as) -> internalError "analyzeType: found TGen"
+         (TAp {}, as)  -> internalError "analyzeType: found TAp"
          (TCon (TyNum n pos), as) ->
              if (null as)
              then Right Numeric
@@ -171,7 +167,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
        case (findType symtab i) of
          Nothing -> Right Unknown
          Just (TypeInfo Nothing k vs ti _) ->
-            internalError "analyzeType': value type without Id"
+            internalError "analyzeType: value type without Id"
          Just (TypeInfo (Just qi) k vs tisort _) ->
             let isConcrete = null (tv as)
             in  analyzeNonNumTCon t qi k vs as isConcrete tisort
@@ -181,9 +177,6 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
                          Either [EMsg] TypeAnalysis
     -- interface
     analyzeNonNumTCon t qi k vs as isC (TIstruct (SInterface pragmas) fields) =
-        if (qi == idPrimPair && (not primpair_is_interface))
-        then Right $ Primary qi k vs isC (w t)
-        else
           let fieldInfos = map (getFieldInfo symtab qi) fields
               mkTuple (FieldInfo _ _ _ (fid :>: (Forall ks qt)) fpragmas _ morigtype _) =
                   let as' = addGenVars as ks
@@ -238,13 +231,13 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
         then
           case (as) of
               [el] -> Right $ List isC el
-              _ -> internalError ("analyzeType': unexpected List params: " ++
+              _ -> internalError ("analyzeType: unexpected List params: " ++
                                   ppReadable as)
         else if (qi == idVector)
         then
           case (as) of
               [len,el] -> Right $ Vector isC len el (w t)
-              _ -> internalError ("analyzeType': unexpected Vector params: " ++
+              _ -> internalError ("analyzeType: unexpected Vector params: " ++
                                   ppReadable as)
         else
           let conInfos = map (getConInfo symtab qi) constructors

@@ -1,12 +1,10 @@
 package NoinlineSplitTuple where
 
-import SplitPorts
-
--- ShallowSplit of a (2-)tuple result: the ports are named after the tuple
--- fields (fst, snd).
+-- A (2-)tuple result is split into one port per element by default, named
+-- _1, _2.
 {-# noinline divmod #-}
-divmod :: Int 8 -> Int 8 -> ShallowSplit (Int 8, Bool)
-divmod a b = ShallowSplit (a + b, a == b)
+divmod :: Int 8 -> Int 8 -> (Int 8, Bool)
+divmod a b = (a + b, a == b)
 
 {-# synthesize sysNoinlineSplitTuple #-}
 sysNoinlineSplitTuple :: Module Empty
@@ -17,5 +15,5 @@ sysNoinlineSplitTuple =
       when True ==> r := r + 1
       when r == 5 ==>
         case divmod 7 3 of
-          ShallowSplit (s, e) -> $display "s=%d e=%d" s e
+          (s, e) -> $display "s=%d e=%d" s e
       when r == 6 ==> $finish

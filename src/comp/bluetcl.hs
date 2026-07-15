@@ -2527,15 +2527,6 @@ getTypeAnalysis t = do
         Left _  -> return $ Nothing
         Right a -> return $ Just a
 
-getTypeAnalysis' :: CType -> Bool -> IO (Maybe TypeAnalysis)
-getTypeAnalysis' t primpair_is_interface = do
-    g <- readIORef globalVar
-    let flags = tp_flags g
-        symtab = tp_symtab g
-    case (analyzeType' flags symtab t primpair_is_interface) of
-        Left _  -> return $ Nothing
-        Right a -> return $ Just a
-
 ----
 
 btypeGrammar :: HTclCmdGrammar
@@ -3371,7 +3362,7 @@ mgetIfcHierarchy :: Maybe Id -> [(Id, RawIfcField)] -> Type ->
                     ExceptT String IO [IfcField]
 mgetIfcHierarchy instId raw_fields tifc = do
     -- use "expandSyn" to avoid getting back "Alias" as the type analysis
-    maifc <- lift $ getTypeAnalysis' (expandSyn tifc) True
+    maifc <- lift $ getTypeAnalysis (expandSyn tifc)
     case (maifc) of
       Just (Interface _ _ _ _ ifc_fs _) -> mapM (getField emptyId) ifc_fs
           where
@@ -3413,7 +3404,7 @@ mgetIfcHierarchy instId raw_fields tifc = do
                 -- single unnamed field.
                 let expandVectors lenTy elemTy = do
                        -- ("expandSyn" not needed, since it was applied to "t")
-                      maelem <- lift $ getTypeAnalysis' elemTy True
+                      maelem <- lift $ getTypeAnalysis elemTy
                       let sz = getTNum (expandSyn lenTy)
                       case (maelem) of
                         Just (Interface _ _ _ _ fs _) ->
@@ -3443,7 +3434,7 @@ mgetIfcHierarchy instId raw_fields tifc = do
                        vfs <- mapM (mkVecSubIfc fs pfx_n rest) prefs
                        return (SubIfc n vfs)
                 -- expand this field
-                ma <- lift $ getTypeAnalysis' (expandSyn t) True
+                ma <- lift $ getTypeAnalysis (expandSyn t)
                 let prefix' = if (isEmptyId fId)
                               then prefix -- indicates a Clock/Reset/Inout
                               else addToPrefix prefix fId
