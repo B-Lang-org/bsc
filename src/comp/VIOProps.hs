@@ -1,7 +1,7 @@
 module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
 import Data.List(intersect, nub)
-import Data.Maybe(catMaybes, isNothing)
+import Data.Maybe(catMaybes, isNothing, fromMaybe)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util
@@ -9,6 +9,7 @@ import Eval(NFData(..), rnf)
 import Flags
 import PPrint
 import ErrorUtil(internalError)
+import IntLit(ilValue)
 import Id
 import PreIds(idPrimAction, idInout_, idPrimUnit)
 import Pragma(PProp, isAlwaysRdy, isAlwaysEn)
@@ -464,12 +465,14 @@ size t = internalError ("getIOProps.size: " ++ show t)
 --    only labels them when the deduction succeeds (for example, an
 --    unused input clock is labeled "clock unused" here, but just
 --    "unused" by getIOProps).
---  * Properties which only become deducible after scheduling and
---    netlist optimization can be missed: for example, a ready output
---    which the scheduler's boolean simplification reduces to a
---    constant is not labeled "const".  Such misses only lose
---    properties; they never assert a property that the getIOProps
---    deduction would contradict.
+--  * Properties which require the netlist optimization's boolean
+--    simplification can be missed: for example, the ready of a split
+--    method is the OR of complementary conditions, and labeling it
+--    "const" would require recognizing the tautology.  (Constant
+--    folding is performed: the schedule's consequences, recorded in
+--    the CAN_FIRE/WILL_FIRE defs by AAddScheduleDefs, are evaluated;
+--    see evalConstA.)  Such misses only lose properties; they never
+--    assert a property that the getIOProps deduction would contradict.
 --
 -- Wire instances (RWire, RWire0, BypassWire) which InlineWires will
 -- inline away after AState are looked through: a value flows from the
@@ -736,6 +739,16 @@ getIOPropsA flags pps apkg =
                       -- the first element is the condition
                       (_:e:_) <- [aact_args a] ]
 
+        -- the setters of each wire instance: the WILL_FIRE of the
+        -- calling rule and the condition of the call
+        wireSetters :: M.Map AId [(AId, AExpr)]
+        wireSetters =
+            M.fromListWith (++)
+                [ (aact_objid a, [(mkIdWillFire (arule_id r), c)]) |
+                      r <- rs, a@(ACall {}) <- arule_actions r,
+                      isWireSet (aact_objid a) (acall_methid a),
+                      (c:_) <- [aact_args a] ]
+
         -- the properties of a wire's "wget" value
         wireGetProps :: AId -> [VeriPortProp]
         wireGetProps inst =
@@ -750,11 +763,82 @@ getIOPropsA flags pps apkg =
         -- the properties of a wire's "whas" value
         wireHasProps :: AId -> [VeriPortProp]
         wireHasProps inst =
-            case (M.findWithDefault 0 inst wireSetCount) of
-              -- never set: inlining defines "whas" as constant False
-              0 -> [VPconst]
-              -- otherwise it is the setters' WILL_FIRE logic
-              _ -> []
+            case (wireHasVal inst) of
+              Just _  -> [VPconst]
+              Nothing -> []
+
+        -- the constant value of a wire's "whas", when the schedule
+        -- determines it: the OR over the setters of (WILL_FIRE AND
+        -- condition)
+        wireHasVal :: AId -> Maybe Integer
+        wireHasVal inst =
+            let conj :: (AId, AExpr) -> Maybe Integer
+                conj (wf, c) =
+                    case (evalDefA wf, evalConstA c) of
+                      (Just 0, _) -> Just 0
+                      (_, Just 0) -> Just 0
+                      (Just _, Just _) -> Just 1
+                      _ -> Nothing
+                vals = map conj (M.findWithDefault [] inst wireSetters)
+            in  if (null vals) then Just 0
+                else if (any (== (Just 1)) vals) then Just 1
+                else if (all (== (Just 0)) vals) then Just 0
+                else Nothing
+
+        -- the constant value of a wire's "wget", when it can be known
+        wireGetVal :: AId -> Maybe Integer
+        wireGetVal inst =
+            case (M.findWithDefault [] inst wireSetArgMap) of
+              -- never set: the value is tied to constant 0
+              []  -> Just 0
+              -- one setter: the data is connected without gating
+              [e] -> evalConstA e
+              _   -> Nothing
+
+        -- ----------
+        -- Evaluate an expression to a constant value, when the
+        -- definitions allow it.  This realizes the consequences of the
+        -- schedule, which AAddScheduleDefs recorded in the defs: for
+        -- example, the WILL_FIRE of a conflict-free rule with a
+        -- constant-True predicate is the constant 1, and the WILL_FIRE
+        -- of a rule which can never fire is the constant 0.
+        -- Boolean structure is only folded at 1-bit width.
+
+        evalConstA :: AExpr -> Maybe Integer
+        evalConstA (ASInt _ _ il) = Just (ilValue il)
+        evalConstA (ASDef _ i) = evalDefA i
+        evalConstA (APrim _ (ATBit 1) p es) = evalPrimA p es
+        evalConstA (AMethCall _ obj meth _)
+            | isWireHas obj meth = wireHasVal obj
+            | isWireGet obj meth = wireGetVal obj
+        evalConstA _ = Nothing
+
+        -- evaluation of defs, memoized (the map's values are lazy)
+        evalDefMemo :: M.Map AId (Maybe Integer)
+        evalDefMemo = M.map (evalConstA . adef_expr) defMapA
+
+        evalDefA :: AId -> Maybe Integer
+        evalDefA i = fromMaybe Nothing (M.lookup i evalDefMemo)
+
+        evalPrimA :: PrimOp -> [AExpr] -> Maybe Integer
+        evalPrimA p [e] | (p == PrimBNot) || (p == PrimInv) =
+            fmap (1 -) (evalConstA e)
+        evalPrimA p es | (p == PrimBAnd) || (p == PrimAnd) =
+            let vs = map evalConstA es
+            in  if (any (== (Just 0)) vs) then Just 0
+                else if (all (== (Just 1)) vs) then Just 1
+                else Nothing
+        evalPrimA p es | (p == PrimBOr) || (p == PrimOr) =
+            let vs = map evalConstA es
+            in  if (any (== (Just 1)) vs) then Just 1
+                else if (all (== (Just 0)) vs) then Just 0
+                else Nothing
+        evalPrimA PrimIf [c, t, e] =
+            case (evalConstA c) of
+              Just 0 -> evalConstA e
+              Just _ -> evalConstA t
+              Nothing -> Nothing
+        evalPrimA _ _ = Nothing
 
         -- pseudo-defs relating the output clock, reset, and inout port
         -- ids to the expressions which drive them (AState creates real
@@ -786,6 +870,11 @@ getIOPropsA flags pps apkg =
             joinOutProps (map getOutPropsA es)
         -- an extraction doesn't change the properties
         getOutPropsA (APrim _ _ PrimExtract [e, _, _]) = getOutPropsA e
+        -- a selection whose condition the schedule makes constant
+        -- reduces to one of its branches
+        getOutPropsA (APrim _ _ PrimIf [c, t, e])
+            | Just v <- evalConstA c =
+                if (v == 0) then getOutPropsA e else getOutPropsA t
         -- any other primitive of all-constant arguments is constant
         -- (the netlist optimization will fold it to a constant)
         getOutPropsA (APrim _ _ _ es)
@@ -794,11 +883,9 @@ getIOPropsA flags pps apkg =
         -- either a special output of a state instance
         -- or an input of this module
         getOutPropsA (ASPort _ i) = M.findWithDefault [] i wireMapA_out
-        -- follow defs
+        -- follow defs (memoized)
         getOutPropsA (ASDef _ i) =
-            case M.lookup i defMapA of
-              Just d  -> getOutPropsA (adef_expr d)
-              Nothing -> []
+            M.findWithDefault [] i outDefPropsMemo
         -- constant values
         getOutPropsA (ASParam _ _) = [VPconst]
         getOutPropsA (ASInt _ _ _) = [VPconst]
@@ -821,6 +908,10 @@ getIOPropsA flags pps apkg =
         getOutPropsA (ASInout _ (AInout { ainout_wire = w })) = getOutPropsA w
         -- for any other use, we cannot conclude properties
         getOutPropsA _ = []
+
+        -- properties of defs, memoized (the map's values are lazy)
+        outDefPropsMemo :: M.Map AId [VeriPortProp]
+        outDefPropsMemo = M.map (getOutPropsA . adef_expr) defMapA
 
         -- the declared properties of a method's output port
         methOutPropsA :: AId -> AId -> [VeriPortProp]
@@ -925,7 +1016,12 @@ getIOPropsA flags pps apkg =
         ruleUses :: ARule -> [(AId, AUse)]
         ruleUses r =
             let wf = mkIdWillFire (arule_id r)
-            in  -- the predicate feeds the scheduling logic of this
+            in  -- if the schedule says this rule never fires, then all
+                -- of its logic is dropped, so it contributes no uses
+                if (evalDefA wf == Just 0)
+                then []
+                else
+                -- the predicate feeds the scheduling logic of this
                 -- rule, which is hardware only as far as the rule's
                 -- WILL_FIRE is used
                 classifyExpr (AUVia wf) (arule_pred r) ++
@@ -1117,7 +1213,15 @@ getIOPropsA flags pps apkg =
                         [ i | (i, _) <- out_wire_defs ])
 
         getInPropsA :: AId -> [VeriPortProp]
-        getInPropsA i =
+        getInPropsA i = M.findWithDefault (computeInPropsA i) i inPropsMemo
+
+        -- deduction of input properties, memoized over the ids with
+        -- recorded uses (the map's values are lazy)
+        inPropsMemo :: M.Map AId [VeriPortProp]
+        inPropsMemo = M.mapWithKey (\ i _ -> computeInPropsA i) useMapA
+
+        computeInPropsA :: AId -> [VeriPortProp]
+        computeInPropsA i =
             let sink_props = if (i `S.member` outSinkSet) then [[]] else []
                 uses = M.findWithDefault [] i useMapA
             in  case (sink_props, uses) of
