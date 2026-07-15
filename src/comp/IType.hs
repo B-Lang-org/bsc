@@ -18,10 +18,10 @@ import Prelude hiding ((<>))
 import qualified Data.Map.Strict as M
 import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
 import Data.Maybe(isJust, fromJust)
-import System.Environment(lookupEnv)
 import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil(internalError)
+import IOUtil(progArgs)
 import Id(Id, IdProp(..), getIdBase, getIdQual, getIdPosition, getIdProps)
 import PreIds(idArrow, idId, idTNumToStr)
 import TypeOps(opNumT, opStrT)
@@ -280,17 +280,18 @@ data InternTable = InternTable !(M.Map NodeKey IType) {-# UNPACK #-} !Int
 internTable :: IORef InternTable
 internTable = unsafePerformIO $ newIORef (InternTable M.empty 0)
 
--- When BSC_INTERN_SANITY is set in the environment, every intern hit
+-- When -trace-itype-intern is given (a hidden trace flag, so it
+-- reaches every invocation via BSC_OPTIONS), every intern hit
 -- verifies full structural equality of the requested children against
 -- the canonical node's children.  This catches key collisions and any
 -- leaf whose payload drifts from its key (e.g. two ITCons with the
 -- same Id but different kind/sort, which the tconcheck-verified
--- invariant forbids).
+-- invariant forbids).  Intended for the library build and a dedicated
+-- checked testsuite leg while the intern key is under change; costs a
+-- structural walk per hit, so it is never on by default.
 {-# NOINLINE internSanityOn #-}
 internSanityOn :: Bool
-internSanityOn = unsafePerformIO $ do
-    mv <- lookupEnv "BSC_INTERN_SANITY"
-    return (isJust mv)
+internSanityOn = "-trace-itype-intern" `elem` progArgs
 
 -- Structural equality at the granularity interning promises (the
 -- exactCmp* granularity: full leaf payloads, everything but heap
