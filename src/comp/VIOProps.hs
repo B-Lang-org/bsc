@@ -22,7 +22,12 @@ import Prim
 import ASyntax
 import ASyntaxUtil( AVars(..), aType )
 import BackendNamingConventions(createVerilogNameMapForAVInst,
-                                xLateIdUsingFStringMap)
+                                xLateIdUsingFStringMap,
+                                isRWire, isRWire0,
+                                isBypassWire, isBypassWire0,
+                                isClockCrossingBypassWire,
+                                rwireSetStr, rwireGetStr, rwireHasStr,
+                                rwireGetResId)
 
 -- import Debug.Trace
 -- import Util(traces)
@@ -465,9 +470,16 @@ size t = internalError ("getIOProps.size: " ++ show t)
 --    reduces to a constant is not labeled "const".  Such misses only
 --    lose properties; they never assert a property that the
 --    getIOProps deduction would contradict.
+--
+-- Wire instances (RWire, RWire0, BypassWire) which InlineWires will
+-- inline away after AState are looked through: a value flows from the
+-- "wset" argument to the "wget" result as through a plain wire (or
+-- through a mux, when there are multiple setters, in which case
+-- properties do not flow but use/unused information still does).
+-- CReg instances (inlined by InlineCReg) are not looked through.
 
 getIOPropsA :: Flags -> [PProp] -> APackage -> (VIOProps, [VPort])
-getIOPropsA _flags pps apkg =
+getIOPropsA flags pps apkg =
         -- returns the VIOProps structure
         -- and a mapping of Verilog port names to their port properties
         (VIOProps ais, [(VName (getIdString i), ps) | (i, _, _, ps) <- ais ])
@@ -668,6 +680,76 @@ getIOPropsA _flags pps apkg =
         ifcValueDef (AIActionValue { aif_value = d }) = [d]
         ifcValueDef _ = []
 
+        -- ----------
+        -- wire instances (RWire, RWire0, BypassWire) will be inlined
+        -- away after AState (see InlineWires), so we look through them:
+        -- a value flows from the "wset" argument to the "wget" result
+        -- as through a plain wire (or through a mux, if there is more
+        -- than one setter)
+
+        isInlinedWireA :: AVInst -> Bool
+        isInlinedWireA v =
+            removeRWire flags &&
+            (isRWire v || isRWire0 v || isBypassWire0 v ||
+             (isBypassWire v &&
+              (not (isClockCrossingBypassWire v) || removeCross flags)))
+
+        wireInstSet :: S.Set AId
+        wireInstSet = S.fromList [ avi_vname v | v <- vs, isInlinedWireA v ]
+
+        isWireMeth :: String -> AId -> AId -> Bool
+        isWireMeth str obj meth =
+            (obj `S.member` wireInstSet) &&
+            (getIdBaseString (unQualId meth) == str)
+
+        isWireSet, isWireGet, isWireHas :: AId -> AId -> Bool
+        isWireSet = isWireMeth rwireSetStr
+        isWireGet = isWireMeth rwireGetStr
+        isWireHas = isWireMeth rwireHasStr
+
+        -- the node representing the data carried by a wire instance
+        -- (also the name of the signal which carries it after inlining)
+        wireDataId :: AId -> AId
+        wireDataId inst = rwireGetResId inst
+
+        -- the number of "wset" call sites of each wire instance
+        wireSetCount :: M.Map AId Integer
+        wireSetCount =
+            M.fromListWith (+)
+                [ (aact_objid a, 1) |
+                      r <- rs, a@(ACall {}) <- arule_actions r,
+                      isWireSet (aact_objid a) (acall_methid a) ]
+
+        -- the "wset" data argument expressions of each wire instance
+        wireSetArgMap :: M.Map AId [AExpr]
+        wireSetArgMap =
+            M.fromListWith (++)
+                [ (aact_objid a, [e]) |
+                      r <- rs, a@(ACall {}) <- arule_actions r,
+                      isWireSet (aact_objid a) (acall_methid a),
+                      -- the first element is the condition
+                      (_:e:_) <- [aact_args a] ]
+
+        -- the properties of a wire's "wget" value
+        wireGetProps :: AId -> [VeriPortProp]
+        wireGetProps inst =
+            case (M.findWithDefault [] inst wireSetArgMap) of
+              -- never set: inlining defines the value as a constant
+              []  -> [VPconst]
+              -- one setter: the value flows through
+              [e] -> getOutPropsA e
+              -- multiple setters: the value comes from a mux
+              _   -> []
+
+        -- the properties of a wire's "whas" value
+        wireHasProps :: AId -> [VeriPortProp]
+        wireHasProps inst =
+            case (M.findWithDefault 0 inst wireSetCount) of
+              -- never set: inlining defines "whas" as constant False
+              0 -> [VPconst]
+              -- otherwise it is the setters' WILL_FIRE logic
+              _ -> []
+
         -- pseudo-defs relating the output clock, reset, and inout port
         -- ids to the expressions which drive them (AState creates real
         -- defs for these; see clk_defs, rstn_defs, and iot_defs there)
@@ -698,6 +780,11 @@ getIOPropsA _flags pps apkg =
             joinOutProps (map getOutPropsA es)
         -- an extraction doesn't change the properties
         getOutPropsA (APrim _ _ PrimExtract [e, _, _]) = getOutPropsA e
+        -- any other primitive of all-constant arguments is constant
+        -- (the netlist optimization will fold it to a constant)
+        getOutPropsA (APrim _ _ _ es)
+            | not (null es),
+              all (\ e -> VPconst `elem` getOutPropsA e) es = [VPconst]
         -- either a special output of a state instance
         -- or an input of this module
         getOutPropsA (ASPort _ i) = M.findWithDefault [] i wireMapA_out
@@ -710,6 +797,13 @@ getIOPropsA _flags pps apkg =
         getOutPropsA (ASParam _ _) = [VPconst]
         getOutPropsA (ASInt _ _ _) = [VPconst]
         getOutPropsA (ASStr _ _ _) = [VPconst]
+        -- look through the methods of inlined wire instances
+        getOutPropsA (AMethCall _ obj meth _)
+            | isWireGet obj meth = wireGetProps obj
+            | isWireHas obj meth = wireHasProps obj
+        getOutPropsA (AMethValue _ obj meth)
+            | isWireGet obj meth = wireGetProps obj
+            | isWireHas obj meth = wireHasProps obj
         -- a value method result is wired to the method's output port
         getOutPropsA (AMethCall _ obj meth _) = methOutPropsA obj meth
         getOutPropsA (AMethValue _ obj meth)  = methOutPropsA obj meth
@@ -828,8 +922,18 @@ getIOPropsA _flags pps apkg =
         -- the condition feeds the enable logic (via the WILL_FIRE),
         -- and so is not a direct connection; the arguments are
         -- connections to the method's input ports
-        actionUses (ACall obj meth (c:es)) =
-            classifyExpr AUOpaque c ++ classifyMethArgs obj meth es
+        actionUses (ACall obj meth (c:es))
+            -- setting an inlined wire flows into the wire's data node:
+            -- directly for a single setter, through a mux otherwise
+            | isWireSet obj meth =
+                let wire_use =
+                        if (M.findWithDefault 0 obj wireSetCount <= 1)
+                        then AUDef (wireDataId obj)
+                        else AUVia (wireDataId obj)
+                in  classifyExpr AUOpaque c ++
+                    concatMap (classifyExpr wire_use) es
+            | otherwise =
+                classifyExpr AUOpaque c ++ classifyMethArgs obj meth es
         -- foreign function and task calls (AFCall, ATaskAction)
         -- are uses that we can conclude nothing about
         actionUses a = concatMap (classifyExpr AUOpaque) (aact_args a)
@@ -879,8 +983,12 @@ getIOPropsA _flags pps apkg =
             concatMap (classifyExpr AUOpaque) es
         classifyExpr _ (AFunCall _ _ _ _ es) =
             concatMap (classifyExpr AUOpaque) es
-        classifyExpr _ (AMethCall _ obj meth es) =
-            classifyMethArgs obj meth es
+        -- reading an inlined wire is a reference to its data node;
+        -- its validity ("whas") is enable logic and uses no signals
+        classifyExpr u (AMethCall _ obj meth es)
+            | isWireGet obj meth = [(wireDataId obj, u)]
+            | isWireHas obj meth = []
+            | otherwise = classifyMethArgs obj meth es
         classifyExpr _ (ASClock _ (AClock { aclock_osc = o,
                                             aclock_gate = g })) =
             classifyExpr AUOpaque o ++ classifyExpr AUOpaque g
@@ -930,10 +1038,16 @@ getIOPropsA _flags pps apkg =
         usePropsA (AUConn ps) = ps
         usePropsA AUOpaque    = []
         usePropsA (AUDef d)   = getInPropsA d
+        usePropsA (AUVia d)   =
+            -- no properties flow through the selection logic, but if
+            -- the destination is unused, this use doesn't count either
+            if (VPunused `elem` getInPropsA d) then [VPunused] else []
 
 
 -- A use of a signal, for deducing the properties of module inputs
 -- on an APackage (see getInPropsA above)
 data AUse = AUDef AId               -- used to define another signal
+          | AUVia AId               -- flows into another signal through
+                                    -- selection (mux) logic
           | AUConn [VeriPortProp]   -- connected to a port with these props
           | AUOpaque                -- used in a way we cannot analyze
