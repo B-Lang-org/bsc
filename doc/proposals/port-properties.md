@@ -127,12 +127,21 @@ split-method readies, arbitration, foreign calls) are checked in under
 `testsuite/bsc.verilog/portprops/APkgProps_*`, dumping both analyses side
 by side.
 
-On the existing portprops testsuite directory specifically, the categories
-above account for every difference: of the 29 compiling designs, 17 match
-`getIOProps` byte-for-byte, 11 differ only by the retained structural
-labels, and 1 (`InoutProps_ArgToIfc`) is the inout alias-collapse
-artifact.  Covering that directory under this proposal is therefore a
-golden-file regeneration (migration step 3), not an analysis change.
+On the portprops testsuite directory specifically, the categories above
+account for every difference: of the 33 compiling designs, 18 match
+`getIOProps` byte-for-byte, 13 differ only by the retained structural
+labels, 1 (`InoutProps_ArgToIfc`) is the inout alias-collapse artifact,
+and 1 (`APkgProps_DeadLogic`) is the dead-logic `unused` difference.
+Covering that directory under this proposal is therefore a golden-file
+regeneration (migration step 3), not an analysis change.
+
+The directory now exercises each deduction mechanism: value/const/reg
+output deduction with concats and extractions, input joins with unused
+filtering, inhigh, argument and interface inouts (including BVI), the
+module's own and submodule-derived clock/gate/reset ports, wire and CReg
+look-through, schedule facts (never/always-firing rules), split-method
+readies, arbitration wins and losses as well as surviving muxes, foreign
+calls, dead-logic unusedness, and parameter exclusion.
 
 ## How narrow is the optimizer's edge?
 

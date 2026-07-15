@@ -1,0 +1,27 @@
+checking package dependencies
+compiling APkgProps_SubClock.bsv
+code generation for sysAPkgProps_SubClock starts
+=== APackageIOproperties (APkgProps_SubClock sysAPkgProps_SubClock):
+Name                         I/O  size props
+CLK_cOut                       O     1 clock
+CLK_GATE_cOut                  O     1 clock gate
+RST_N_rOut                     O     1 reset
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+=== IOproperties (APkgProps_SubClock sysAPkgProps_SubClock):
+Name                         I/O  size props
+CLK_cOut                       O     1 clock
+CLK_GATE_cOut                  O     1 clock gate
+RST_N_rOut                     O     1 reset
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysAPkgProps_SubClock.v
+All packages are up to date.

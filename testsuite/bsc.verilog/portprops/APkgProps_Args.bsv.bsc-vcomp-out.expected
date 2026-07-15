@@ -1,0 +1,29 @@
+checking package dependencies
+compiling APkgProps_Args.bsv
+code generation for sysAPkgProps_Args starts
+=== APackageIOproperties (APkgProps_Args sysAPkgProps_Args):
+Name                         I/O  size props
+get                            O     8 reg
+RDY_get                        O     1 const
+in_r                           I     8 reg
+in_u                           I     8 unused
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+
+
+-----
+
+=== IOproperties (APkgProps_Args sysAPkgProps_Args):
+Name                         I/O  size props
+get                            O     8 reg
+RDY_get                        O     1 const
+in_r                           I     8 reg
+in_u                           I     8 unused
+CLK                            I     1 clock
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_Args.v
+All packages are up to date.

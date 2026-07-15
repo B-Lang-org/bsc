@@ -204,6 +204,24 @@ compare_file APkgProps_Foreign.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_Arb.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_Arb.bsv.bsc-vcomp-out
 
+# output clock, gate, and reset ports wired from a submodule's
+# special outputs
+compile_verilog_pass APkgProps_SubClock.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_SubClock.bsv.bsc-vcomp-out
+
+# "unused" propagates backwards through dead logic (a documented
+# difference: getIOProps only traces direct connections)
+compile_verilog_pass APkgProps_DeadLogic.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_DeadLogic.bsv.bsc-vcomp-out
+
+# properties do not flow through surviving muxes (both setters live)
+compile_verilog_pass APkgProps_Mux.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Mux.bsv.bsc-vcomp-out
+
+# parameters are not ports; module argument ports deduce like inputs
+compile_verilog_pass APkgProps_Args.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Args.bsv.bsc-vcomp-out
+
 # ----------
 
 }
