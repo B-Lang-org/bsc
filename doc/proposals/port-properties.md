@@ -106,6 +106,10 @@ with both analyses and comparing the dumps: about 18,300 port lines.
 * 5 lines differ because `unused` here propagates through dead logic that
   `getIOProps` only traces through direct connections (signals feeding a
   `$display` through arithmetic).
+* An argument inout fed through to an interface inout is one net exposed
+  at two pins; `getIOProps` labels the argument pin `unused` as an
+  artifact of the alias collapse, while this analysis reports both pins
+  as live.
 * 110 lines are properties `getIOProps` finds and this analysis does not,
   in four categories: enables whose method effects die inside *value*-
   method argument muxes (49, closable with the same arbitration model
@@ -122,6 +126,13 @@ Golden tests covering each mechanism (wires, CRegs, schedule facts,
 split-method readies, arbitration, foreign calls) are checked in under
 `testsuite/bsc.verilog/portprops/APkgProps_*`, dumping both analyses side
 by side.
+
+On the existing portprops testsuite directory specifically, the categories
+above account for every difference: of the 29 compiling designs, 17 match
+`getIOProps` byte-for-byte, 11 differ only by the retained structural
+labels, and 1 (`InoutProps_ArgToIfc`) is the inout alias-collapse
+artifact.  Covering that directory under this proposal is therefore a
+golden-file regeneration (migration step 3), not an analysis change.
 
 ## How narrow is the optimizer's edge?
 
