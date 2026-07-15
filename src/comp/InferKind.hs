@@ -26,7 +26,7 @@ inferKinds mi s ds = run $ do
             atf_entries <- mapM getATFIK ats
             return (ik_entry ++ concat atf_entries)
         get (CItype ik _ _) = getIK ik
-        get (CIclass _ _ ik _ _ _ _) = getIK ik
+        get (CIclass _ _ ik _ _ _ _ _) = getIK ik
         get (CprimType ik) = getIK ik
         get _ = return []
         getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
