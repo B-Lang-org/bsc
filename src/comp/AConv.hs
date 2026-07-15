@@ -263,17 +263,24 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
             rename_map :: M.Map AId (AType, AId)
             rename_map =
                 let -- the CSE name was generated with "newAIdFromAExpr"
+                    -- (an IdP_from_rhs name), so a def name is adopted
+                    -- only when it ranks strictly better under idQuality;
+                    -- ties (and all-bad groups) keep the CSE name, as
+                    -- before
                     pickId cse_id (ty, def_ips) =
                         -- filter out the non-CSE defs
                         case (filter (not . defPropsHasNoCSE . snd) def_ips) of
                           -- if they're all non-CSE, keep the CSE name
                           [] -> (ty, cse_id)
-                          -- otherwise, filter out the bad names
-                          names -> case (filter (not . isBadId . fst) names) of
-                                     -- if they're all bad, use the CSE name
-                                     [] -> (ty, cse_id)
-                                     -- otherwise, take the first def name
-                                     ((def_id, _):_) -> (ty, def_id)
+                          -- otherwise, take the first best-ranked def
+                          -- name, if it improves on the CSE name
+                          names ->
+                            let qual = idQuality . Just . fst
+                                best = foldr1 (\x y -> if qual x >= qual y
+                                                       then x else y) names
+                            in  if (qual best > idQuality (Just cse_id))
+                                then (ty, fst best)
+                                else (ty, cse_id)
                 in  M.mapWithKey pickId cse_ids_map
 
             rename_id name = case (M.lookup name rename_map) of

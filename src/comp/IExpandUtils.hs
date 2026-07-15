@@ -2468,7 +2468,7 @@ extendHeap = do s <- get
 
 improveCellName :: HExpr -> Maybe Id -> G (Maybe Id)
 improveCellName _ mi@(Just i)
-  | not $ isPreludePosition $ getPosition i = return mi
+  | not (isPreludePosition (getPosition i)) && not (isBadId i) = return mi
 improveCellName e _ = inferName e
 
 -- Cells enter the heap only here and in updHeap, so forcing the name at
