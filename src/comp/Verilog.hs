@@ -84,11 +84,14 @@ data VProgram = VProgram [VModule] [VDPI] VComment
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint VProgram where
-    pPrint d p (VProgram ms dpis cs) =
+    -- Note: DPI import declarations (dpis) are carried on the VProgram for the
+    -- wrapper generator, but are printed at *module* scope (as VMDPI items in
+    -- each module's body), not here at file/$unit scope -- see AVerilog and the
+    -- VMDPI note in VMItem.
+    pPrint d p (VProgram ms _dpis cs) =
         ppComment cs $+$
         assignment_delay_macro $+$
         reset_level_macro $+$
-        dpi_decls $+$
         vsepEmptyLine (map (pPrint d 0) ms) $+$
         text ""
       where -- define BSV_ASSIGNMENT_DELAY when the user does not override it
@@ -108,10 +111,6 @@ instance PPrint VProgram where
           text "  `define BSV_RESET_EDGE negedge" $+$
           text "`endif" $+$
           text ""
-        dpi_decls =
-          vsep (map (pPrint d 0) dpis) $+$
-          if (not (null dpis)) then text "" else empty
-
 instance NFData VProgram where
     rnf (VProgram mods dpis cmt) = rnf3 mods dpis cmt
 
@@ -130,26 +129,36 @@ ppComment cs =
 
 
 -- VDPI
---    * The function name
+--    * The function name (the SystemVerilog function name)
+--    * An optional C linkage name (the "c_identifier =" alias); when present,
+--      the SV function links to this generated wrapper C symbol instead of a
+--      C function of the same name.  Used for monomorphized polymorphic imports.
+--    * An optional "real" C function name that the wrapper forwards to (present
+--      exactly when the c_identifier alias is).  Carried so the wrapper can be
+--      generated directly from the VDPI.
 --    * The return type
 --    * The arguments (name, whether it's an input, type)
-data VDPI = VDPI VId VDPIType [(VId, Bool, VDPIType)]
+data VDPI = VDPI VId (Maybe String) (Maybe String) VDPIType [(VId, Bool, VDPIType)]
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint VDPI where
-  pPrint d p (VDPI name ret args) =
+  pPrint d p (VDPI name mclink _cfn ret args) =
     let
         mkDir False = text "output"
         mkDir True  = text "input"
         ppArg (i, dir, t) = mkDir dir <+> pPrint d 0 t <+> pPrint d 0 i
+        clink = case mclink of
+                  Nothing -> empty
+                  Just s  -> text s <+> text "="
     in
-        text "import \"DPI-C\" function" <+>
+        text "import \"DPI-C\"" <+> clink <+> text "function" <+>
         pPrint d 0 ret <+> pPrint d 0 name <+> text "(" <>
         sepList (map ppArg args) (text ",") <>
         text ");"
 
 instance NFData VDPI where
-    rnf (VDPI name ret args) = rnf3 name ret args
+    rnf (VDPI name mclink cfn ret args) =
+        rnf name `seq` rnf mclink `seq` rnf cfn `seq` rnf ret `seq` rnf args
 
 data VDPIType = VDT_void
               | VDT_byte
@@ -167,6 +176,10 @@ instance PPrint VDPIType where
   pPrint _ _ VDT_longint = text "longint unsigned"
   pPrint _ _ (VDT_wide n) = text $ "bit [" ++ itos (n-1) ++ ":0]"
   pPrint _ _ VDT_string  = text "string"
+  -- VDT_poly is not emitted in DPI import declarations: polymorphic operands
+  -- are monomorphized to a concrete "bit [W-1:0]" (VDT_wide W) per use width
+  -- (see ForeignFunctions.mkDPIDeclarations).  This rendering is a harmless
+  -- placeholder should it ever be printed.
   pPrint _ _ VDT_poly    = text "bit []"
 
 instance NFData VDPIType where
@@ -318,6 +331,11 @@ data VMItem
         --          if no spaces needed, use a list of one list.
         | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
+        -- an import "DPI-C" declaration, emitted at *module* scope (rather
+        -- than file/$unit scope) so that multiple modules using the same
+        -- foreign function don't produce duplicate $unit declarations that
+        -- Verilator rejects when they are compiled together.
+        | VMDPI VDPI
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance Ord VMItem where
@@ -389,6 +407,7 @@ instance PPrint VMItem where
                 | otherwise = vsepEmptyLine (map (ppLines d) stmtss)
 
         pPrint d p (VMFunction f) = pPrint d p f
+        pPrint d p (VMDPI dpi) = pPrint d p dpi
         pPrint d p (VMRegGroup inst_id def_name cs stmt) =
             text "// register" <+>
             pPrint d 0 inst_id $+$
@@ -404,6 +423,7 @@ instance NFData VMItem where
     rnf (VMRegGroup vid s cmt item) = rnf4 vid s cmt item
     rnf (VMGroup toff body) = rnf2 toff body
     rnf (VMFunction vfun) = rnf vfun
+    rnf (VMDPI dpi) = rnf dpi
 
 pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
 pv95params d (Nothing,x)  =  pPrint d 0 x

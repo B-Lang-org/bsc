@@ -236,6 +236,15 @@ getGenFs flags pi =
             in  foreign_abin_files ++ mod_abin_files
          Just Verilog ->
             let mod_ver_files = map mkVerFileName (gens pi)
+                -- With DPI, only *polymorphic* foreign imports produce a
+                -- generated file (a "dpi_wrapper_<name>.c"); monomorphic ones
+                -- are called directly with no wrapper.  PkgInfo only records
+                -- the foreign import's Id (from the pragma), not its type, so
+                -- we can't tell here which imports are polymorphic -- and
+                -- listing a wrapper file that wasn't generated would force a
+                -- spurious rebuild every run (getModTime of a missing file).
+                -- So DPI wrapper files are not tracked for incremental rebuild;
+                -- they are regenerated whenever the package itself is compiled.
                 foreign_vpi_files = if (useDPI flags)
                                     then []
                                     else concatMap mkVPIFileNames (foreigns pi)

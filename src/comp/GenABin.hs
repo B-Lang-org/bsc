@@ -725,10 +725,11 @@ instance Bin VModule where
                    body <-fromBin; return (VModule name c ports body)
 
 instance Bin VDPI where
-    writeBytes (VDPI name ret args) =
-        do toBin name; toBin ret; toBin args
-    readBytes = do name <- fromBin; ret <- fromBin; args <- fromBin;
-                   return (VDPI name ret args)
+    writeBytes (VDPI name mclink cfn ret args) =
+        do toBin name; toBin mclink; toBin cfn; toBin ret; toBin args
+    readBytes = do name <- fromBin; mclink <- fromBin; cfn <- fromBin;
+                   ret <- fromBin; args <- fromBin;
+                   return (VDPI name mclink cfn ret args)
 
 instance Bin VDPIType where
     writeBytes (VDT_void)    = do putI 0
@@ -835,6 +836,7 @@ instance Bin VMItem where
                                          toBin m
     writeBytes (VMGroup a body)     = do putI 6; toBin a; toBin body
     writeBytes (VMFunction f)       = do putI 7; toBin f
+    writeBytes (VMDPI dpi)          = do putI 8; toBin dpi
     readBytes = do
       i <- getI
       case i of
@@ -848,6 +850,7 @@ instance Bin VMItem where
                 return (VMRegGroup i s c m)
         6 -> do a <- fromBin; body <- fromBin; return (VMGroup a body)
         7 -> do f <- fromBin; return (VMFunction f)
+        8 -> do dpi <- fromBin; return (VMDPI dpi)
         n -> internalError $ "GenABin(VMItem).readBytes: " ++ show n
 
 instance Bin VVDecl where
