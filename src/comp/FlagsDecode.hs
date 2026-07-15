@@ -629,7 +629,7 @@ defaultFlags bluespecdir = Flags {
         strictMethodSched = True,
         suppressWarnings = SomeMsgs [],
         synthesize = False,
-        systemVerilogTasks = False,
+        systemVerilogOutput = False,
         tclShowHidden = False,
         testAssert = False,
         timeStamps = True,
@@ -1452,9 +1452,15 @@ externalFlags = [
           "check that rule names are unique (when disabled unique numbers are assigned)", Hidden)),
 
 
+        ("system-verilog-output",
+         (Toggle (\f x -> f {systemVerilogOutput=x}) (showIfTrue systemVerilogOutput),
+         "emit SystemVerilog output (SV tasks like $error, string parameters)", Hidden)),
+
+        -- old, backward-compatible spelling of -system-verilog-output
         ("system-verilog-tasks",
-         (Toggle (\f x -> f {systemVerilogTasks=x}) (showIfTrue systemVerilogTasks),
-         "preserve SystemVerilog tasks (e.g. $error) in output code", Hidden)),
+         (Toggle (\f x -> f {systemVerilogOutput=x}) (showIfTrue systemVerilogOutput),
+         "deprecated spelling of -system-verilog-output",
+         Deprecated "Use -system-verilog-output instead.")),
 
         ("sched-conditions",
          (Toggle (\f x -> f {schedConds=x}) (showIfTrue schedConds),
@@ -1931,7 +1937,7 @@ showFlagsRaw flags =
           ("strictMethodSched", show (strictMethodSched flags)),
           ("suppressWarnings", show (suppressWarnings flags)),
           ("synthesize", show (synthesize flags)),
-          ("systemVerilogTasks", show (systemVerilogTasks flags)),
+          ("systemVerilogOutput", show (systemVerilogOutput flags)),
           ("tclShowHidden", show (tclShowHidden flags)),
           ("testAssert", show (testAssert flags)),
           ("timeStamps", show (timeStamps flags)),
