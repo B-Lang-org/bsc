@@ -170,5 +170,36 @@ find_regexp_fail mkExample.v {\.B_1\(someModule\$A_2\)}
 
 # ----------
 
+# Test the APackage-based deduction (getIOPropsA) against the
+# ASPackage-based deduction (getIOProps), by dumping both
+
+# looking through inlined RWire instances
+compile_verilog_pass APkgProps_Wires.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Wires.bsv.bsc-vcomp-out
+
+# looking through inlined CReg instances
+# (note that port 0's read is structurally a register output, which
+# the APackage-based deduction labels "reg"; getIOProps does not,
+# because the CReg primitive's import does not declare the property
+# on its Q_OUT_0 port)
+compile_verilog_pass APkgProps_CReg.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_CReg.bsv.bsc-vcomp-out
+
+# realizing the schedule's consequences (rules which never fire,
+# rules which always fire)
+compile_verilog_pass APkgProps_Sched.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Sched.bsv.bsc-vcomp-out
+
+# recognizing the tautology in a split method's ready
+compile_verilog_pass APkgProps_Split.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Split.bsv.bsc-vcomp-out
+
+# foreign calls exist only in simulation, so signals feeding only
+# them are unused
+compile_verilog_pass APkgProps_Foreign.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Foreign.bsv.bsc-vcomp-out
+
+# ----------
+
 }
 

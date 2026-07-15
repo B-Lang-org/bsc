@@ -1,0 +1,38 @@
+checking package dependencies
+compiling APkgProps_Sched.bsv
+code generation for sysAPkgProps_Sched starts
+Warning: "APkgProps_Sched.bsv", line 39, column 8: (G0010)
+  Rule "get" was treated as more urgent than "put". Conflicts:
+    "get" cannot fire before "put":
+      calls to
+	r_wr.wget vs. r_wr.wset
+	r_wr.whas vs. r_wr.wset
+    "put" cannot fire before "get": calls to r_rg.write vs. r_rg.read
+Warning: "APkgProps_Sched.bsv", line 46, column 9: (G0021)
+  According to the generated schedule, rule `put' can never fire.
+=== APackageIOproperties (APkgProps_Sched sysAPkgProps_Sched):
+Name                         I/O  size props
+get                            O     1 reg
+RDY_get                        O     1 const
+look                           O     8 reg
+RDY_look                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+
+
+-----
+
+=== IOproperties (APkgProps_Sched sysAPkgProps_Sched):
+Name                         I/O  size props
+get                            O     1 reg
+RDY_get                        O     1 const
+look                           O     8 reg
+RDY_look                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_Sched.v
+All packages are up to date.

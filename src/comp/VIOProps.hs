@@ -1,6 +1,6 @@
 module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
-import Data.List(intersect, nub)
+import Data.List(intersect, nub, tails, genericLength)
 import Data.Maybe(catMaybes, isNothing, fromMaybe)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -28,7 +28,8 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 isBypassWire, isBypassWire0,
                                 isClockCrossingBypassWire,
                                 rwireSetStr, rwireGetStr, rwireHasStr,
-                                rwireGetResId, rwireHasResId)
+                                rwireGetResId, rwireHasResId,
+                                isCRegInst, cregReadStr, cregWriteStr)
 
 -- import Debug.Trace
 -- import Util(traces)
@@ -465,21 +466,37 @@ size t = internalError ("getIOProps.size: " ++ show t)
 --    only labels them when the deduction succeeds (for example, an
 --    unused input clock is labeled "clock unused" here, but just
 --    "unused" by getIOProps).
+--  * "unused" propagates backwards through any logic which is itself
+--    unused, whereas getIOProps only follows direct (okUse)
+--    connections; so a signal whose only sink is a foreign call,
+--    reached through arithmetic, is "unused" here but gets no
+--    properties from getIOProps (it genuinely drives no hardware).
 --  * Properties which require the netlist optimization's boolean
---    simplification can be missed: for example, the ready of a split
---    method is the OR of complementary conditions, and labeling it
---    "const" would require recognizing the tautology.  (Constant
---    folding is performed: the schedule's consequences, recorded in
---    the CAN_FIRE/WILL_FIRE defs by AAddScheduleDefs, are evaluated;
---    see evalConstA.)  Such misses only lose properties; they never
---    assert a property that the getIOProps deduction would contradict.
+--    simplification can be missed.  The common reductions are
+--    performed (see evalConstA and getOutPropsA): the schedule's
+--    consequences, recorded in the CAN_FIRE/WILL_FIRE defs by
+--    AAddScheduleDefs, are constant-folded; selections with constant
+--    conditions or equal branches reduce; 1-bit AND/OR reduce over
+--    constant operands; and complementary operands (x and !x) fold,
+--    as for the ready of a split method.  Not replicated are:
+--    priority muxes among multiple callers whose WILL_FIREs are all
+--    constant 1 (the surviving arm depends on the earliness order,
+--    which is not recorded in the APackage), common-subexpression
+--    elimination and other deeper aOpt rewriting, and the tracing of
+--    inout nets through InoutConnect instances.  Such misses only
+--    lose properties; they never assert a property that the
+--    getIOProps deduction would contradict.
 --
 -- Wire instances (RWire, RWire0, BypassWire) which InlineWires will
 -- inline away after AState are looked through: a value flows from the
 -- "wset" argument to the "wget" result as through a plain wire (or
 -- through a mux, when there are multiple setters, in which case
 -- properties do not flow but use/unused information still does).
--- CReg instances (inlined by InlineCReg) are not looked through.
+-- CReg instances (inlined by InlineCReg, leaving a plain register)
+-- are also looked through: port 0's read is the register output
+-- ("reg"), and higher ports' reads bypass through selections which
+-- reduce when the schedule makes the intervening write enables
+-- constant.
 
 getIOPropsA :: Flags -> [PProp] -> APackage -> (VIOProps, [VPort])
 getIOPropsA flags pps apkg =
@@ -494,6 +511,21 @@ getIOPropsA flags pps apkg =
         ds   = apkg_local_defs apkg
         -- all rules, including the bodies of the action methods
         rs   = apkg_rules apkg ++ concatMap aIfaceRules ifc
+
+        -- Whether the schedule allows a rule (by its WILL_FIRE) to
+        -- ever fire: a rule whose WILL_FIRE the schedule reduces to
+        -- constant 0 contributes nothing to the hardware (all of its
+        -- logic is dropped), so its method calls do not count as call
+        -- sites, its wire sets do not count as setters, and it makes
+        -- no uses.  (This is queried lazily, per rule, because
+        -- evaluating one rule's WILL_FIRE can require the setters of a
+        -- wire read in its predicate, whose liveness is evaluated in
+        -- turn.)
+        isLiveWF :: AId -> Bool
+        isLiveWF wf = evalDefA wf /= Just 0
+
+        isLiveRule :: ARule -> Bool
+        isLiveRule r = isLiveWF (mkIdWillFire (arule_id r))
 
         -- port name tables for the interface output clocks and resets
         clockPortTable = getOutputClockPortTable (wClk wi)
@@ -721,42 +753,35 @@ getIOPropsA flags pps apkg =
         wireFlowUses :: AId -> [AUse]
         wireFlowUses inst = [AUVia (wireDataId inst), AUVia (wireHasId inst)]
 
-        -- the number of "wset" call sites of each wire instance
-        wireSetCount :: M.Map AId Integer
-        wireSetCount =
-            M.fromListWith (+)
-                [ (aact_objid a, 1) |
-                      r <- rs, a@(ACall {}) <- arule_actions r,
-                      isWireSet (aact_objid a) (acall_methid a) ]
-
-        -- the "wset" data argument expressions of each wire instance
-        wireSetArgMap :: M.Map AId [AExpr]
-        wireSetArgMap =
+        -- the setters of each wire instance: the WILL_FIRE of the
+        -- calling rule, the condition, and the data arguments
+        wireSetters :: M.Map AId [(AId, AExpr, [AExpr])]
+        wireSetters =
             M.fromListWith (++)
-                [ (aact_objid a, [e]) |
+                [ (aact_objid a, [(mkIdWillFire (arule_id r), c, es)]) |
                       r <- rs, a@(ACall {}) <- arule_actions r,
                       isWireSet (aact_objid a) (acall_methid a),
                       -- the first element is the condition
-                      (_:e:_) <- [aact_args a] ]
+                      (c:es) <- [aact_args a] ]
 
-        -- the setters of each wire instance: the WILL_FIRE of the
-        -- calling rule and the condition of the call
-        wireSetters :: M.Map AId [(AId, AExpr)]
-        wireSetters =
-            M.fromListWith (++)
-                [ (aact_objid a, [(mkIdWillFire (arule_id r), c)]) |
-                      r <- rs, a@(ACall {}) <- arule_actions r,
-                      isWireSet (aact_objid a) (acall_methid a),
-                      (c:_) <- [aact_args a] ]
+        -- the setters whose rules can ever fire
+        liveWireSetters :: AId -> [(AId, AExpr, [AExpr])]
+        liveWireSetters inst =
+            [ s | s@(wf, _, _) <- M.findWithDefault [] inst wireSetters,
+                  isLiveWF wf ]
+
+        -- the number of live "wset" call sites of a wire instance
+        wireSetCount :: AId -> Integer
+        wireSetCount = genericLength . liveWireSetters
 
         -- the properties of a wire's "wget" value
         wireGetProps :: AId -> [VeriPortProp]
         wireGetProps inst =
-            case (M.findWithDefault [] inst wireSetArgMap) of
+            case (liveWireSetters inst) of
               -- never set: inlining defines the value as a constant
               []  -> [VPconst]
               -- one setter: the value flows through
-              [e] -> getOutPropsA e
+              [(_, _, [e])] -> getOutPropsA e
               -- multiple setters: the value comes from a mux
               _   -> []
 
@@ -772,8 +797,8 @@ getIOPropsA flags pps apkg =
         -- condition)
         wireHasVal :: AId -> Maybe Integer
         wireHasVal inst =
-            let conj :: (AId, AExpr) -> Maybe Integer
-                conj (wf, c) =
+            let conj :: (AId, AExpr, [AExpr]) -> Maybe Integer
+                conj (wf, c, _) =
                     case (evalDefA wf, evalConstA c) of
                       (Just 0, _) -> Just 0
                       (_, Just 0) -> Just 0
@@ -788,12 +813,107 @@ getIOPropsA flags pps apkg =
         -- the constant value of a wire's "wget", when it can be known
         wireGetVal :: AId -> Maybe Integer
         wireGetVal inst =
-            case (M.findWithDefault [] inst wireSetArgMap) of
+            case (liveWireSetters inst) of
               -- never set: the value is tied to constant 0
               []  -> Just 0
               -- one setter: the data is connected without gating
-              [e] -> evalConstA e
+              [(_, _, [e])] -> evalConstA e
               _   -> Nothing
+
+        -- ----------
+        -- CReg instances will be inlined after AState (see InlineCReg,
+        -- keeping only the underlying register), so we look through
+        -- them: port 0's read is the register output, and port N's
+        -- read bypasses through selection between the port (N-1) write
+        -- data and port (N-1)'s read.  Writes always feed the retained
+        -- register, so write arguments are uses without properties.
+
+        cregInstSet :: S.Set AId
+        cregInstSet =
+            if (removeCReg flags)
+            then S.fromList [ avi_vname v | v <- vs, isCRegInst v ]
+            else S.empty
+
+        -- the number of ports on the primitive CReg (see InlineCReg)
+        cregPorts :: Int
+        cregPorts = 5
+
+        -- identify a call to a CReg method: Just (port, is_read)
+        cregMeth :: AId -> AId -> Maybe (Int, Bool)
+        cregMeth obj meth
+            | obj `S.member` cregInstSet =
+                let s = getIdBaseString (unQualId meth)
+                in  case ([ (n, True) | n <- [0..cregPorts-1],
+                                        s == cregReadStr n ] ++
+                          [ (n, False) | n <- [0..cregPorts-1],
+                                         s == cregWriteStr n ]) of
+                      (r:_) -> Just r
+                      []    -> Nothing
+            | otherwise = Nothing
+
+        -- the writers of each CReg port:
+        -- the caller's WILL_FIRE, the condition, and the data argument
+        cregWriters :: M.Map (AId, Int) [(AId, AExpr, AExpr)]
+        cregWriters =
+            M.fromListWith (++)
+                [ ((aact_objid a, n),
+                   [(mkIdWillFire (arule_id r), c, e)]) |
+                      r <- rs, a@(ACall {}) <- arule_actions r,
+                      Just (n, False) <-
+                          [cregMeth (aact_objid a) (acall_methid a)],
+                      (c:e:_) <- [aact_args a] ]
+
+        -- the writers whose rules can ever fire
+        liveCregWriters :: AId -> Int -> [(AId, AExpr, AExpr)]
+        liveCregWriters inst n =
+            [ w | w@(wf, _, _) <- M.findWithDefault [] (inst, n) cregWriters,
+                  isLiveWF wf ]
+
+        -- the constant value of a CReg port's write enable, when the
+        -- schedule determines it (like wireHasVal)
+        cregEnVal :: AId -> Int -> Maybe Integer
+        cregEnVal inst n =
+            let conj :: (AId, AExpr, AExpr) -> Maybe Integer
+                conj (wf, c, _) =
+                    case (evalDefA wf, evalConstA c) of
+                      (Just 0, _) -> Just 0
+                      (_, Just 0) -> Just 0
+                      (Just _, Just _) -> Just 1
+                      _ -> Nothing
+                vals = map conj (M.findWithDefault [] (inst, n) cregWriters)
+            in  if (null vals) then Just 0
+                else if (any (== (Just 1)) vals) then Just 1
+                else if (all (== (Just 0)) vals) then Just 0
+                else Nothing
+
+        -- the properties of a CReg port's read value
+        cregReadProps :: AId -> Int -> [VeriPortProp]
+        cregReadProps _ 0 = [VPreg]   -- the retained register's output
+        cregReadProps inst n =
+            case (cregEnVal inst (n-1)) of
+              -- the bypass is never taken
+              Just 0 -> cregReadProps inst (n-1)
+              -- the bypass is always taken: a single writer's data
+              -- flows through
+              Just _ ->
+                  case (liveCregWriters inst (n-1)) of
+                    [(_, _, e)] -> getOutPropsA e
+                    _ -> []
+              -- otherwise it is a mux
+              Nothing -> []
+
+        -- the constant value of a CReg port's read, when it can be
+        -- known (the register itself is never constant)
+        cregReadVal :: AId -> Int -> Maybe Integer
+        cregReadVal _ 0 = Nothing
+        cregReadVal inst n =
+            case (cregEnVal inst (n-1)) of
+              Just 0 -> cregReadVal inst (n-1)
+              Just _ ->
+                  case (liveCregWriters inst (n-1)) of
+                    [(_, _, e)] -> evalConstA e
+                    _ -> Nothing
+              Nothing -> Nothing
 
         -- ----------
         -- Evaluate an expression to a constant value, when the
@@ -811,6 +931,7 @@ getIOPropsA flags pps apkg =
         evalConstA (AMethCall _ obj meth _)
             | isWireHas obj meth = wireHasVal obj
             | isWireGet obj meth = wireGetVal obj
+            | Just (n, True) <- cregMeth obj meth = cregReadVal obj n
         evalConstA _ = Nothing
 
         -- evaluation of defs, memoized (the map's values are lazy)
@@ -827,11 +948,15 @@ getIOPropsA flags pps apkg =
             let vs = map evalConstA es
             in  if (any (== (Just 0)) vs) then Just 0
                 else if (all (== (Just 1)) vs) then Just 1
+                -- a contradiction (x && !x) is 0
+                else if (anyComplementaryA es) then Just 0
                 else Nothing
         evalPrimA p es | (p == PrimBOr) || (p == PrimOr) =
             let vs = map evalConstA es
             in  if (any (== (Just 1)) vs) then Just 1
                 else if (all (== (Just 0)) vs) then Just 0
+                -- a tautology (x || !x) is 1
+                else if (anyComplementaryA es) then Just 1
                 else Nothing
         evalPrimA PrimIf [c, t, e] =
             case (evalConstA c) of
@@ -839,6 +964,26 @@ getIOPropsA flags pps apkg =
               Just _ -> evalConstA t
               Nothing -> Nothing
         evalPrimA _ _ = Nothing
+
+        -- follow def references to the defining expression
+        derefA :: AExpr -> AExpr
+        derefA e@(ASDef _ i) =
+            maybe e (derefA . adef_expr) (M.lookup i defMapA)
+        derefA e = e
+
+        -- whether any two operands are complementary (x and !x),
+        -- looking through def references; this recognizes the
+        -- tautologies that the netlist optimization would fold, such
+        -- as the ready of a split method (an OR of complementary
+        -- split conditions)
+        anyComplementaryA :: [AExpr] -> Bool
+        anyComplementaryA es =
+            let es' = map derefA es
+                isNotOf (APrim _ _ p [a]) b
+                    | (p == PrimBNot) || (p == PrimInv) = derefA a == b
+                isNotOf _ _ = False
+                compl x y = isNotOf x y || isNotOf y x
+            in  or [ compl x y | (x:ys) <- tails es', y <- ys ]
 
         -- pseudo-defs relating the output clock, reset, and inout port
         -- ids to the expressions which drive them (AState creates real
@@ -875,6 +1020,16 @@ getIOPropsA flags pps apkg =
         getOutPropsA (APrim _ _ PrimIf [c, t, e])
             | Just v <- evalConstA c =
                 if (v == 0) then getOutPropsA e else getOutPropsA t
+        -- a selection between equal branches reduces to the branch
+        getOutPropsA (APrim _ _ PrimIf [_, t, e])
+            | t == e = getOutPropsA t
+        -- a 1-bit AND/OR reduces over its constant operands, as the
+        -- netlist optimization will: identity operands are dropped, an
+        -- annihilating operand makes the result constant, and a single
+        -- remaining operand passes its properties through
+        getOutPropsA (APrim _ (ATBit 1) p es)
+            | (p == PrimBAnd) || (p == PrimAnd) = boolOpPropsA 0 es
+            | (p == PrimBOr)  || (p == PrimOr)  = boolOpPropsA 1 es
         -- any other primitive of all-constant arguments is constant
         -- (the netlist optimization will fold it to a constant)
         getOutPropsA (APrim _ _ _ es)
@@ -890,13 +1045,15 @@ getIOPropsA flags pps apkg =
         getOutPropsA (ASParam _ _) = [VPconst]
         getOutPropsA (ASInt _ _ _) = [VPconst]
         getOutPropsA (ASStr _ _ _) = [VPconst]
-        -- look through the methods of inlined wire instances
+        -- look through the methods of inlined wire and CReg instances
         getOutPropsA (AMethCall _ obj meth _)
             | isWireGet obj meth = wireGetProps obj
             | isWireHas obj meth = wireHasProps obj
+            | Just (n, True) <- cregMeth obj meth = cregReadProps obj n
         getOutPropsA (AMethValue _ obj meth)
             | isWireGet obj meth = wireGetProps obj
             | isWireHas obj meth = wireHasProps obj
+            | Just (n, True) <- cregMeth obj meth = cregReadProps obj n
         -- a value method result is wired to the method's output port
         getOutPropsA (AMethCall _ obj meth _) = methOutPropsA obj meth
         getOutPropsA (AMethValue _ obj meth)  = methOutPropsA obj meth
@@ -908,6 +1065,18 @@ getIOPropsA flags pps apkg =
         getOutPropsA (ASInout _ (AInout { ainout_wire = w })) = getOutPropsA w
         -- for any other use, we cannot conclude properties
         getOutPropsA _ = []
+
+        -- reduce a 1-bit AND (annihilator 0) or OR (annihilator 1)
+        -- over its constant operands
+        boolOpPropsA :: Integer -> [AExpr] -> [VeriPortProp]
+        boolOpPropsA annihilator es =
+            let vs = [ (evalConstA e, e) | e <- es ]
+            in  if (any ((== (Just annihilator)) . fst) vs)
+                then [VPconst]
+                else case [ e | (Nothing, e) <- vs ] of
+                       []  -> [VPconst]   -- all operands are constant
+                       [e] -> getOutPropsA e
+                       _   -> []
 
         -- properties of defs, memoized (the map's values are lazy)
         outDefPropsMemo :: M.Map AId [VeriPortProp]
@@ -946,9 +1115,10 @@ getIOPropsA flags pps apkg =
         all_calls =
             concatMap exprCalls all_exprs ++
             [ (aact_objid a, unQualId (acall_methid a)) |
-                  r <- rs, a@(ACall {}) <- arule_actions r ]
+                  r <- rs, isLiveRule r, a@(ACall {}) <- arule_actions r ]
 
-        -- all expressions in the package (for counting method calls)
+        -- all expressions in the package (for counting method calls;
+        -- rules which can never fire are dropped and count nothing)
         all_exprs :: [AExpr]
         all_exprs =
             [ e | (ADef _ _ e _) <- ds ] ++
@@ -959,7 +1129,8 @@ getIOPropsA flags pps apkg =
                   e <- assump_property a :
                        concatMap aact_args (assump_actions a) ] ++
             concat [ arule_pred r :
-                     concatMap aact_args (arule_actions r) | r <- rs ] ++
+                     concatMap aact_args (arule_actions r) |
+                         r <- rs, isLiveRule r ] ++
             concat [ avi_iargs v | v <- vs ]
 
         ifc_preds :: [AExpr]
@@ -1018,7 +1189,7 @@ getIOPropsA flags pps apkg =
             let wf = mkIdWillFire (arule_id r)
             in  -- if the schedule says this rule never fires, then all
                 -- of its logic is dropped, so it contributes no uses
-                if (evalDefA wf == Just 0)
+                if (not (isLiveRule r))
                 then []
                 else
                 -- the predicate feeds the scheduling logic of this
@@ -1046,9 +1217,17 @@ getIOPropsA flags pps apkg =
                        concatMap aact_args (arule_actions r)) ]
 
         actionWFUses :: AAction -> [AUse]
-        actionWFUses (ACall obj meth _)
+        actionWFUses (ACall obj meth (c:_))
             | isWireSet obj meth = wireFlowUses obj
-            | otherwise          = [AUOpaque]
+            | Just _ <- cregMeth obj meth = [AUOpaque]
+            -- an unconditional call with its own port copy connects
+            -- the WILL_FIRE directly to the method's enable port
+            | Just m@(Method { vf_enable = Just (_, pps) })
+                  <- findMethodA obj meth,
+              isDirectCallA obj meth m,
+              evalConstA c == Just 1
+              = [AUConn pps]
+        actionWFUses (ACall {}) = [AUOpaque]
         actionWFUses _ = []   -- foreign calls (AFCall, ATaskAction)
 
         -- whether an expression contains a call to a state instance
@@ -1070,11 +1249,16 @@ getIOPropsA flags pps apkg =
             -- the condition feeds the validity and the mux select
             | isWireSet obj meth =
                 let wire_use =
-                        if (M.findWithDefault 0 obj wireSetCount <= 1)
+                        if (wireSetCount obj <= 1)
                         then AUDef (wireDataId obj)
                         else AUVia (wireDataId obj)
                 in  concat [ classifyExpr u c | u <- wireFlowUses obj ] ++
                     concatMap (classifyExpr wire_use) es
+            -- a CReg write feeds the retained register through the
+            -- bypass selection chain: a use, but never a direct
+            -- connection to a port
+            | Just _ <- cregMeth obj meth =
+                concatMap (classifyExpr AUOpaque) (c:es)
             | otherwise =
                 classifyExpr AUOpaque c ++ classifyMethArgs obj meth es
         -- foreign function and task calls (AFCall, ATaskAction) exist
@@ -1099,6 +1283,7 @@ getIOPropsA flags pps apkg =
             concatMap classifyForeignExpr es
         classifyForeignExpr (AMethCall _ obj meth es)
             | isWireGet obj meth || isWireHas obj meth = []
+            | Just _ <- cregMeth obj meth = []
             | otherwise = classifyMethArgs obj meth es
         classifyForeignExpr (ASClock _ (AClock { aclock_osc = o,
                                                  aclock_gate = g })) =
@@ -1158,10 +1343,12 @@ getIOPropsA flags pps apkg =
         classifyExpr u (AFunCall _ _ _ _ es) =
             concatMap (classifyExpr (opaqueOf u)) es
         -- reading an inlined wire is a reference to its data node,
-        -- and its validity is a reference to its "whas" node
+        -- and its validity is a reference to its "whas" node;
+        -- reading a CReg uses no signals (the register remains)
         classifyExpr u (AMethCall _ obj meth es)
             | isWireGet obj meth = [(wireDataId obj, u)]
             | isWireHas obj meth = [(wireHasId obj, u)]
+            | Just _ <- cregMeth obj meth = []
             | otherwise = classifyMethArgs obj meth es
         classifyExpr u (ASClock _ (AClock { aclock_osc = o,
                                             aclock_gate = g })) =
@@ -1194,14 +1381,18 @@ getIOPropsA flags pps apkg =
         classifyMethArgs obj meth es =
             case findMethodA obj meth of
               Just m@(Method { vf_inputs = ins })
-                  | isDirectCall m && length ins == length es
+                  | isDirectCallA obj meth m && length ins == length es
                   -> concat (zipWith (\ (_, pps) e ->
                                           classifyExpr (AUConn pps) e)
                                      ins es)
               _ -> concatMap (classifyExpr AUOpaque) es
-          where isDirectCall m =
-                    M.findWithDefault 0 (obj, unQualId meth) methCallCountA
-                        <= max 1 (vf_mult m)
+
+        -- whether the method has enough port copies for all of its
+        -- (live) call sites, so that AState will not insert muxes
+        isDirectCallA :: AId -> AId -> VFieldInfo -> Bool
+        isDirectCallA obj meth m =
+            M.findWithDefault 0 (obj, unQualId meth) methCallCountA
+                <= max 1 (vf_mult m)
 
         -- ids which become output or inout ports: a signal which
         -- drives a port is not unused, but no properties can be

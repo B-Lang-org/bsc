@@ -16,6 +16,7 @@ module BackendNamingConventions
      rwireSetEnId, rwireSetArgId, rwireGetResId, rwireHasResId,
 
      isCRegInst, isCRegN, isCRegUN, isCRegA,
+     cregReadStr, cregWriteStr,
      cregReadResId, cregWriteEnId, cregWriteArgId,
      cregToReg,
 
