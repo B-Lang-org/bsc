@@ -27,7 +27,7 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 isBypassWire, isBypassWire0,
                                 isClockCrossingBypassWire,
                                 rwireSetStr, rwireGetStr, rwireHasStr,
-                                rwireGetResId)
+                                rwireGetResId, rwireHasResId)
 
 -- import Debug.Trace
 -- import Util(traces)
@@ -454,22 +454,22 @@ size t = internalError ("getIOProps.size: " ++ show t)
 -- are approximated by a similar analysis over the APackage (see
 -- getOutPropsA and getInPropsA below).
 --
+-- The "unused" property describes the hardware: a signal whose only
+-- uses are as arguments of foreign function or task calls (which
+-- exist only in simulation) is unused, as in getIOProps.
+--
 -- Note some intentional differences from getIOProps:
 --  * Clock, gate, and reset ports are always labeled with their
 --    structural properties (clock/clock gate/reset), whereas getIOProps
 --    only labels them when the deduction succeeds (for example, an
 --    unused input clock is labeled "clock unused" here, but just
 --    "unused" by getIOProps).
---  * Uses of signals in foreign function calls are treated as uses,
---    whereas getIOProps can consider such signals "unused" (foreign
---    calls are not part of the def chain it follows).
 --  * Properties which only become deducible after scheduling and
---    netlist optimization can be missed: for example, an enable
---    input whose method's actions are dropped by later optimization
---    is not labeled "unused", and a ready output which scheduling
---    reduces to a constant is not labeled "const".  Such misses only
---    lose properties; they never assert a property that the
---    getIOProps deduction would contradict.
+--    netlist optimization can be missed: for example, a ready output
+--    which the scheduler's boolean simplification reduces to a
+--    constant is not labeled "const".  Such misses only lose
+--    properties; they never assert a property that the getIOProps
+--    deduction would contradict.
 --
 -- Wire instances (RWire, RWire0, BypassWire) which InlineWires will
 -- inline away after AState are looked through: a value flows from the
@@ -584,12 +584,11 @@ getIOPropsA flags pps apkg =
         -- (in the order that AState creates them:
         --  module arguments, method arguments, method enables)
 
+        -- (enable ports are referenced by the WILL_FIRE definitions
+        -- that AAddScheduleDefs created, so they are deduced like any
+        -- other input; see ruleWFUses for what uses a WILL_FIRE)
         iis = [ (i, INPUT, size t, mergeProps sps (getInPropsA i)) |
-                    (i, t, sps) <- arg_ins ++ meth_arg_ins ] ++
-              -- the enable wires do not exist in the APackage (AState
-              -- creates them, gating the WILL_FIREs of the method's
-              -- rules), so no deduction is attempted for them
-              [ (i, INPUT, size t, sps) | (i, t, sps) <- en_ins ]
+                    (i, t, sps) <- arg_ins ++ meth_arg_ins ++ en_ins ]
 
         -- module argument ports (clocks, resets, and ordinary ports;
         -- parameters are not ports and inouts are handled below)
@@ -707,10 +706,17 @@ getIOPropsA flags pps apkg =
         isWireGet = isWireMeth rwireGetStr
         isWireHas = isWireMeth rwireHasStr
 
-        -- the node representing the data carried by a wire instance
-        -- (also the name of the signal which carries it after inlining)
-        wireDataId :: AId -> AId
+        -- the nodes representing the data carried by a wire instance
+        -- and its validity (also the names of the signals which carry
+        -- them after inlining)
+        wireDataId, wireHasId :: AId -> AId
         wireDataId inst = rwireGetResId inst
+        wireHasId inst = rwireHasResId inst
+
+        -- flowing into a wire instance: alive only as far as the
+        -- wire's data and validity are used
+        wireFlowUses :: AId -> [AUse]
+        wireFlowUses inst = [AUVia (wireDataId inst), AUVia (wireHasId inst)]
 
         -- the number of "wset" call sites of each wire instance
         wireSetCount :: M.Map AId Integer
@@ -905,18 +911,58 @@ getIOPropsA flags pps apkg =
             concat [ classifyExpr (AUDef i) e | (i, e) <- out_wire_defs ] ++
             -- method predicates and assumptions become scheduling logic
             concat [ classifyExpr AUOpaque p | p <- ifc_preds ] ++
-            concat [ classifyExpr AUOpaque e |
+            concat [ classifyExpr AUOpaque (assump_property a) |
+                         a <- all_assumps ] ++
+            -- assumption actions are foreign (error-reporting) calls
+            concat [ classifyForeignExpr e |
                          a <- all_assumps,
-                         e <- assump_property a :
-                              concatMap aact_args (assump_actions a) ] ++
+                         e <- concatMap aact_args (assump_actions a) ] ++
             -- rules (including the bodies of action methods)
             concat [ ruleUses r | r <- rs ] ++
             -- state instance arguments
             concat [ instArgUses v | v <- vs ]
 
         ruleUses :: ARule -> [(AId, AUse)]
-        ruleUses r = classifyExpr AUOpaque (arule_pred r) ++
-                     concatMap actionUses (arule_actions r)
+        ruleUses r =
+            let wf = mkIdWillFire (arule_id r)
+            in  -- the predicate feeds the scheduling logic of this
+                -- rule, which is hardware only as far as the rule's
+                -- WILL_FIRE is used
+                classifyExpr (AUVia wf) (arule_pred r) ++
+                concatMap actionUses (arule_actions r) ++
+                ruleWFUses wf r
+
+        -- The WILL_FIRE of a rule is used by the hardware which the
+        -- rule's actions create: the enables and argument muxes of
+        -- calls to state instance methods, the data/validity wires of
+        -- sets of inlined wires, and the selectors of argument muxes
+        -- for value methods called in any of the rule's expressions.
+        -- Foreign calls exist only in simulation and contribute no
+        -- hardware use.  (References to WILL_FIREs from the scheduling
+        -- logic of conflicting rules are already visible in the defs
+        -- and need no special handling here.)
+        ruleWFUses :: AId -> ARule -> [(AId, AUse)]
+        ruleWFUses wf r =
+            [ (wf, u) | a <- arule_actions r, u <- actionWFUses a ] ++
+            [ (wf, AUOpaque) |
+                  any hasMuxableCall
+                      (arule_pred r :
+                       concatMap aact_args (arule_actions r)) ]
+
+        actionWFUses :: AAction -> [AUse]
+        actionWFUses (ACall obj meth _)
+            | isWireSet obj meth = wireFlowUses obj
+            | otherwise          = [AUOpaque]
+        actionWFUses _ = []   -- foreign calls (AFCall, ATaskAction)
+
+        -- whether an expression contains a call to a state instance
+        -- method with arguments (whose muxes select on the WILL_FIRE)
+        hasMuxableCall :: AExpr -> Bool
+        hasMuxableCall e =
+            or [ not (null (vf_inputs m)) |
+                     (obj, meth) <- exprCalls e,
+                     not (obj `S.member` wireInstSet),
+                     Just m@(Method {}) <- [findMethodA obj meth] ]
 
         actionUses :: AAction -> [(AId, AUse)]
         -- the condition feeds the enable logic (via the WILL_FIRE),
@@ -924,19 +970,49 @@ getIOPropsA flags pps apkg =
         -- connections to the method's input ports
         actionUses (ACall obj meth (c:es))
             -- setting an inlined wire flows into the wire's data node:
-            -- directly for a single setter, through a mux otherwise
+            -- directly for a single setter, through a mux otherwise;
+            -- the condition feeds the validity and the mux select
             | isWireSet obj meth =
                 let wire_use =
                         if (M.findWithDefault 0 obj wireSetCount <= 1)
                         then AUDef (wireDataId obj)
                         else AUVia (wireDataId obj)
-                in  classifyExpr AUOpaque c ++
+                in  concat [ classifyExpr u c | u <- wireFlowUses obj ] ++
                     concatMap (classifyExpr wire_use) es
             | otherwise =
                 classifyExpr AUOpaque c ++ classifyMethArgs obj meth es
-        -- foreign function and task calls (AFCall, ATaskAction)
-        -- are uses that we can conclude nothing about
-        actionUses a = concatMap (classifyExpr AUOpaque) (aact_args a)
+        -- foreign function and task calls (AFCall, ATaskAction) exist
+        -- only in simulation, so their arguments (and conditions) are
+        -- not uses in the hardware
+        actionUses a = concatMap classifyForeignExpr (aact_args a)
+
+        -- Classify the uses of signals in an argument of a foreign
+        -- function or task call.  Such an argument is not part of the
+        -- hardware (it only feeds a system task or imported function
+        -- in simulation), so signals in it are not "used" -- matching
+        -- getIOProps, which does not follow foreign calls when looking
+        -- for uses.  However, a method call appearing inside such an
+        -- argument does wire up the method's input ports in the
+        -- hardware, so its arguments are still classified.
+        classifyForeignExpr :: AExpr -> [(AId, AUse)]
+        classifyForeignExpr (APrim _ _ _ es) =
+            concatMap classifyForeignExpr es
+        classifyForeignExpr (ANoInlineFunCall _ _ _ es) =
+            concatMap classifyForeignExpr es
+        classifyForeignExpr (AFunCall _ _ _ _ es) =
+            concatMap classifyForeignExpr es
+        classifyForeignExpr (AMethCall _ obj meth es)
+            | isWireGet obj meth || isWireHas obj meth = []
+            | otherwise = classifyMethArgs obj meth es
+        classifyForeignExpr (ASClock _ (AClock { aclock_osc = o,
+                                                 aclock_gate = g })) =
+            classifyForeignExpr o ++ classifyForeignExpr g
+        classifyForeignExpr (ASReset _ (AReset { areset_wire = w })) =
+            classifyForeignExpr w
+        classifyForeignExpr (ASInout _ (AInout { ainout_wire = w })) =
+            classifyForeignExpr w
+        classifyForeignExpr (ASAny _ (Just e)) = classifyForeignExpr e
+        classifyForeignExpr _ = []
 
         instArgUses :: AVInst -> [(AId, AUse)]
         instArgUses v = concatMap cvt (getInstArgs v)
@@ -966,9 +1042,11 @@ getIOPropsA flags pps apkg =
 
         -- Classify the uses of signals in an expression: signals which
         -- pass through directly (possibly via concat and extract, as in
-        -- okUse) receive the given use; anything else is opaque.
-        -- Arguments of method calls are connections to the method's
-        -- input ports and are classified separately.
+        -- okUse) receive the given use; anything else is used by the
+        -- surrounding logic, which lives or dies with the destination
+        -- of the given use (see opaqueOf).  Arguments of method calls
+        -- are connections to the method's input ports and are
+        -- classified separately.
         classifyExpr :: AUse -> AExpr -> [(AId, AUse)]
         classifyExpr u (ASPort _ i)  = [(i, u)]
         classifyExpr u (ASParam _ i) = [(i, u)]
@@ -976,29 +1054,41 @@ getIOPropsA flags pps apkg =
         classifyExpr u (APrim _ _ PrimConcat es) =
             concatMap (classifyExpr u) es
         classifyExpr u (APrim _ _ PrimExtract (e:es)) =
-            classifyExpr u e ++ concatMap (classifyExpr AUOpaque) es
-        classifyExpr _ (APrim _ _ _ es) =
-            concatMap (classifyExpr AUOpaque) es
-        classifyExpr _ (ANoInlineFunCall _ _ _ es) =
-            concatMap (classifyExpr AUOpaque) es
-        classifyExpr _ (AFunCall _ _ _ _ es) =
-            concatMap (classifyExpr AUOpaque) es
-        -- reading an inlined wire is a reference to its data node;
-        -- its validity ("whas") is enable logic and uses no signals
+            classifyExpr u e ++ concatMap (classifyExpr (opaqueOf u)) es
+        classifyExpr u (APrim _ _ _ es) =
+            concatMap (classifyExpr (opaqueOf u)) es
+        classifyExpr u (ANoInlineFunCall _ _ _ es) =
+            concatMap (classifyExpr (opaqueOf u)) es
+        classifyExpr u (AFunCall _ _ _ _ es) =
+            concatMap (classifyExpr (opaqueOf u)) es
+        -- reading an inlined wire is a reference to its data node,
+        -- and its validity is a reference to its "whas" node
         classifyExpr u (AMethCall _ obj meth es)
             | isWireGet obj meth = [(wireDataId obj, u)]
-            | isWireHas obj meth = []
+            | isWireHas obj meth = [(wireHasId obj, u)]
             | otherwise = classifyMethArgs obj meth es
-        classifyExpr _ (ASClock _ (AClock { aclock_osc = o,
+        classifyExpr u (ASClock _ (AClock { aclock_osc = o,
                                             aclock_gate = g })) =
-            classifyExpr AUOpaque o ++ classifyExpr AUOpaque g
-        classifyExpr _ (ASReset _ (AReset { areset_wire = w })) =
-            classifyExpr AUOpaque w
-        classifyExpr _ (ASInout _ (AInout { ainout_wire = w })) =
-            classifyExpr AUOpaque w
-        classifyExpr _ (ASAny _ (Just e)) = classifyExpr AUOpaque e
+            classifyExpr (opaqueOf u) o ++ classifyExpr (opaqueOf u) g
+        classifyExpr u (ASReset _ (AReset { areset_wire = w })) =
+            classifyExpr (opaqueOf u) w
+        classifyExpr u (ASInout _ (AInout { ainout_wire = w })) =
+            classifyExpr (opaqueOf u) w
+        classifyExpr u (ASAny _ (Just e)) = classifyExpr (opaqueOf u) e
         -- AMethValue, AMGate, ATaskValue, and literals use no signals
         classifyExpr _ _ = []
+
+        -- The use for a signal consumed by logic (rather than passing
+        -- through directly): no properties flow, but the logic itself
+        -- lives or dies with the destination -- logic in a definition
+        -- is dropped if the definition is unused, and logic in a
+        -- signal reached through a mux is dropped if that signal is
+        -- unused.  Connections to ports, and uses we know nothing
+        -- about, are simply opaque.
+        opaqueOf :: AUse -> AUse
+        opaqueOf (AUDef d) = AUVia d
+        opaqueOf (AUVia d) = AUVia d
+        opaqueOf _         = AUOpaque
 
         -- Arguments of a call to a method of a state instance are
         -- connections to the method's input ports, as long as AState
