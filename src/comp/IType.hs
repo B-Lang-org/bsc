@@ -23,7 +23,8 @@ import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil(internalError)
 import IOUtil(progArgs)
-import Id(Id, IdProp(..), getIdBase, getIdQual, getIdPosition, getIdProps)
+import Id(Id, IdProp(..), getIdBase, getIdQual, getIdPosition, getIdProps,
+          setIdPosition, setIdProps, setIdQual)
 import PreIds(idArrow, idId, idTNumToStr)
 import TypeOps(opNumT, opStrT)
 import CType(Type(..), CType, TyCon(..), TyVar(..), Kind(..),
@@ -37,6 +38,7 @@ import PFPrint
 import Position(noPosition)
 import Util(itos)
 import FStringCompat(FString, mkNumFString)
+import PreStrings(fsEmpty)
 
 -- ==============================
 -- IKind, IType
@@ -68,8 +70,8 @@ data IKind
 data IType
         = ITForAll_ {-# UNPACK #-} !Int !Id !IKind IType
         | ITAp_ {-# UNPACK #-} !Int IType IType
-        | ITVar !Id
-        | ITCon !Id !IKind !TISort
+        | ITVar_ !Id
+        | ITCon_ !Id !IKind !TISort
         | ITNum !Integer
         | ITStr !FString
 
@@ -80,6 +82,19 @@ pattern ITForAll i k t <- ITForAll_ _ i k t
 pattern ITAp :: IType -> IType -> IType
 pattern ITAp f a <- ITAp_ _ f a
   where ITAp f a = mkITAp f a
+
+-- The Id-carrying leaves are sealed the same way: construction goes
+-- through normalizing smart constructors (Ids embedded in types carry
+-- no positions and no props -- see the normalization section below),
+-- so "stripped on entry" is enforced by the module boundary, not by
+-- convention.
+pattern ITVar :: Id -> IType
+pattern ITVar i <- ITVar_ i
+  where ITVar i = mkITVar i
+
+pattern ITCon :: Id -> IKind -> TISort -> IType
+pattern ITCon i k s <- ITCon_ i k s
+  where ITCon i k s = mkITCon i k s
 
 {-# COMPLETE ITForAll, ITAp, ITVar, ITCon, ITNum, ITStr #-}
 
@@ -95,6 +110,120 @@ iTypeNodeId (ITForAll_ u _ _ _) = u
 iTypeNodeId (ITAp_ u _ _) = u
 iTypeNodeId t =
     internalError ("IType.iTypeNodeId: not an interior node: " ++ show t)
+
+-- --------------------------------
+-- Id normalization for type embedding
+--
+-- Ids embedded in ITypes are identity, not provenance: positions and
+-- props are stripped on entry through the smart constructors behind
+-- the pattern synonyms, so key-equal is byte-equal by construction,
+-- representative choice cannot drift .bo output, and no consumer can
+-- smuggle per-type data through the Id side-channel.  Per-type data
+-- belongs in IType/TISort.  The consumer audit behind this (which
+-- reads survive, which regold) is in ITYPE-INTERNING-DESIGN.md.
+
+tidyTypeId :: Id -> Id
+tidyTypeId i = setIdPosition noPosition (setIdProps i [])
+
+-- Deep normalization of an ITCon payload: every embedded Id loses
+-- positions and props, every Position inside a TItype synonym body
+-- becomes noPosition, and the payload's ENTITY Ids (constructors,
+-- fields, wrapper names -- entities of the tycon's own package) are
+-- canonicalized to the owning tycon's qualification.  The first
+-- checked library build caught exactly this variance: handwritten
+-- constants carry unqualified field Ids ([fst,snd]) where compiled
+-- source carries qualified ones ([Prelude::fst,Prelude::snd]) -- the
+-- same entity either way.  Local names (PIArgNames dummies) and
+-- references to OTHER packages' entities (the TIatf class, tycons
+-- inside a synonym body) keep their own qualification.
+-- Paid once per distinct tycon (tconTable).
+tidySort :: FString -> TISort -> TISort
+tidySort _ (TItype n t) = TItype n (tidyCT t)
+tidySort q (TIdata cs enc) = TIdata (map (ownedId q) cs) enc
+tidySort q (TIstruct ss fs) = TIstruct (tidySST q ss) (map (ownedId q) fs)
+tidySort _ TIabstract = TIabstract
+tidySort _ (TIatf c ps r) = TIatf (tidyTypeId c) ps r
+
+-- an entity of the owning tycon's package: tidied and re-qualified.
+-- An unqualified owner (a package-local tycon during its defining
+-- compile) imposes nothing: its entities keep their own quals.
+ownedId :: FString -> Id -> Id
+ownedId q i | q == fsEmpty = tidyTypeId i
+            | otherwise    = setIdQual (tidyTypeId i) q
+
+tidySST :: FString -> StructSubType -> StructSubType
+tidySST _ SStruct = SStruct
+tidySST _ SClass = SClass
+tidySST q (SDataCon i nf) = SDataCon (ownedId q i) nf
+tidySST _ (SInterface ps) = SInterface (map tidyIfcP ps)
+tidySST q (SPolyWrap a mc f) =
+    SPolyWrap (ownedId q a) (fmap (ownedId q) mc) (ownedId q f)
+
+-- Only PIArgNames embeds Ids; the other constructors carry strings.
+tidyIfcP :: IfcPragma -> IfcPragma
+tidyIfcP (PIArgNames is) = PIArgNames (map tidyTypeId is)
+tidyIfcP p = p
+
+tidyCT :: CType -> CType
+tidyCT (TVar (TyVar i n k)) = TVar (TyVar (tidyTypeId i) n k)
+tidyCT (TCon (TyCon i mk s)) =
+    -- a reference to another tycon: its payload entities belong to
+    -- ITS package, so canonicalize against its own qualification
+    TCon (TyCon (tidyTypeId i) mk (tidySort (getIdQual i) s))
+tidyCT (TCon (TyNum n _)) = TCon (TyNum n noPosition)
+tidyCT (TCon (TyStr s _)) = TCon (TyStr s noPosition)
+tidyCT (TAp f a) = TAp (tidyCT f) (tidyCT a)
+tidyCT (TGen _ n) = TGen noPosition n
+tidyCT (TDefMonad _) = TDefMonad noPosition
+
+-- The smart constructor behind the ITVar pattern synonym: type
+-- variables are local names -- normalized, never qualified, never
+-- interned (no payload to amortize).
+mkITVar :: Id -> IType
+mkITVar i = ITVar_ (tidyTypeId i)
+
+-- ITCon leaves are interned by qualified name.  Soundness rests on
+-- the one-tycon-per-qualified-name invariant (front-end enforced,
+-- tconcheck-verified): the qualified Id determines the kind and sort,
+-- so a by-name hit may return the canonical node without normalizing
+-- the requested payload -- that walk is paid once, at first intern.
+-- -trace-itype-intern verifies every hit against the invariant.
+data TConTable = TConTable !(M.Map (FString, FString) IType)
+
+{-# NOINLINE tconTable #-}
+tconTable :: IORef TConTable
+tconTable = unsafePerformIO $ newIORef (TConTable M.empty)
+
+{-# NOINLINE mkITCon #-}
+mkITCon :: Id -> IKind -> TISort -> IType
+mkITCon i k s
+    | getIdQual i == fsEmpty =
+        -- Package-local tycons can reach construction unqualified
+        -- during their own defining compile (e.g. associated type
+        -- functions like Rep -- caught by the first checked library
+        -- build).  They cannot be name-interned ((qual, base) would
+        -- collide across packages), so: normalized, not shared.
+        ITCon_ (tidyTypeId i) k (tidySort fsEmpty s)
+    | otherwise = unsafePerformIO $ do
+        let key = (getIdQual i, getIdBase i)
+        TConTable m0 <- readIORef tconTable
+        case M.lookup key m0 of
+          Just t  -> return (checkHit t)
+          Nothing -> atomicModifyIORef' tconTable (go (getIdQual i, getIdBase i))
+  where
+    go key st@(TConTable m) =
+        case M.lookup key m of
+          Just t  -> (st, checkHit t)
+          Nothing -> let t = ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)
+                     in  (TConTable (M.insert key t m), t)
+    checkHit t@(ITCon_ _ k' s')
+        | not internSanityOn ||
+          (k == k' && exactCmpSort (tidySort (getIdQual i) s) s' == EQ) = t
+    checkHit t =
+        internalError ("IType.mkITCon: one-tycon invariant violated\n" ++
+                       "requested: " ++
+                       show (ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)) ++ "\n" ++
+                       "canonical: " ++ show t)
 
 -- --------------------------------
 -- The intern table
@@ -345,23 +474,25 @@ internAp f a = unsafePerformIO $ do
 {-# NOINLINE mkITForAll #-}
 mkITForAll :: Id -> IKind -> IType -> IType
 mkITForAll i k t = unsafePerformIO $ do
-    let key = NKForAll i k (tKey t)
+    let key = NKForAll ti k (tKey t)
     InternTable m0 _ <- readIORef internTable
     case M.lookup key m0 of
       Just t' -> return (checkHit t')
       Nothing -> atomicModifyIORef' internTable (go key)
   where
+    -- binder Ids are type-embedded Ids like any other: normalized
+    ti = tidyTypeId i
     go key st@(InternTable m n) =
         case M.lookup key m of
           Just t' -> (st, checkHit t')
-          Nothing -> let t' = ITForAll_ n i k t
+          Nothing -> let t' = ITForAll_ n ti k t
                      in  (InternTable (M.insert key t' m) (n+1), t')
     checkHit t'@(ITForAll_ _ i' k' b')
         | not internSanityOn ||
-          (exactCmpId i i' == EQ && k == k' && structEqT t b') = t'
+          (exactCmpId ti i' == EQ && k == k' && structEqT t b') = t'
     checkHit t' =
         internalError ("IType.mkITForAll: intern table mismatch\n" ++
-                       "requested: " ++ show (ITForAll_ (-1) i k t) ++ "\n" ++
+                       "requested: " ++ show (ITForAll_ (-1) ti k t) ++ "\n" ++
                        "canonical: " ++ show t')
 
 -- The smart constructor behind the ITAp pattern synonym.  It first
