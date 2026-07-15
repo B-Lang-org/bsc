@@ -438,73 +438,76 @@ size t = internalError ("getIOProps.size: " ++ show t)
 
 
 -- ===============================================================
--- getIOPropsA: a version of getIOProps which works on APackage
--- (prior to AState), rather than on the final ASPackage.
+-- getIOPropsA: derive the port properties of the generated module
+-- from the APackage (prior to AState) and the schedule.
 --
--- The ports of the eventually-generated module are not explicit in an
--- APackage; they are constructed by AState from the module arguments
--- (apkg_inputs / apkg_external_wires) and the interface (apkg_interface).
--- This function mirrors that construction (see AState.aState') to
--- enumerate the same ports (same names, in the same order), and then
--- assigns properties to them.
+-- Unlike getIOProps, which measures the optimized netlist, this
+-- function computes the properties from a definition of what each
+-- property MEANS for the hardware described by the design and its
+-- schedule.  A property is asserted only when it is entailed by
+-- structure, dataflow, and the schedule -- never by which
+-- optimizations the backend performs, or by where module boundaries
+-- fall among the wiring primitives.  The intent is that the answers
+-- are stable: recompiling the same design with different optimization
+-- or inlining settings, or with a different backend, yields the same
+-- port properties.
 --
--- This is an approximation of what getIOProps computes: properties
--- which are structurally known at the APackage level (clock, clock
--- gate, reset, inout, and any properties declared in the VArgInfo or
--- VFieldInfo) are assigned directly, rather than being deduced from
--- the generated netlist.  Since scheduling and state instantiation
--- have not happened yet, properties that getIOProps deduces by
--- following the final wiring (such as "const", "reg", and "unused")
--- are approximated by a similar analysis over the APackage (see
--- getOutPropsA and getInPropsA below).
+-- The definitions:
 --
--- The "unused" property describes the hardware: a signal whose only
--- uses are as arguments of foreign function or task calls (which
--- exist only in simulation) is unused, as in getIOProps.
+--  * "clock", "clock gate", "reset", "inout" (and declared properties
+--    such as "inhigh" and "outhigh") are the structural role of the
+--    port in the module's interface, from the wire info and field
+--    info.  They are facts of the interface, not deductions, so they
+--    are always present (even on a port which is also unused).
 --
--- Note some intentional differences from getIOProps:
---  * Clock, gate, and reset ports are always labeled with their
---    structural properties (clock/clock gate/reset), whereas getIOProps
---    only labels them when the deduction succeeds (for example, an
---    unused input clock is labeled "clock unused" here, but just
---    "unused" by getIOProps).
---  * "unused" propagates backwards through any logic which is itself
---    unused, whereas getIOProps only follows direct (okUse)
---    connections; so a signal whose only sink is a foreign call,
---    reached through arithmetic, is "unused" here but gets no
---    properties from getIOProps (it genuinely drives no hardware).
---  * Properties which require the netlist optimization's boolean
---    simplification can be missed.  The common reductions are
---    performed (see evalConstA and getOutPropsA): the schedule's
---    consequences, recorded in the CAN_FIRE/WILL_FIRE defs by
---    AAddScheduleDefs, are constant-folded; selections with constant
---    conditions or equal branches reduce; 1-bit AND/OR reduce over
---    constant operands; and complementary operands (x and !x) fold,
---    as for the ready of a split method.  When the AScheduleInfo is
---    supplied, the argument muxes of state instance methods are also
---    modeled, with the same port allocation, exclusivity test, and
---    priority (earliness) order that AState uses, so an arm which
---    wins or loses the arbitration outright (because the WILL_FIREs
---    involved are constant) is seen as a direct connection or as
---    dropped.  Not replicated are: common-subexpression elimination
---    and other deeper aOpt rewriting, and the tracing of inout nets
---    through InoutConnect instances.  Such misses only lose
---    properties; they never assert a property that the getIOProps
---    deduction would contradict.
+--  * "reg": the port's value is the registered output of a state
+--    element, reached through wiring only -- concatenation,
+--    extraction, definitions, and the wiring primitives (a wire or
+--    CReg is connected to the same things whether or not
+--    InlineWires/InlineCReg will inline it away, so the look-through
+--    does not depend on the inlining flags).
 --
--- Wire instances (RWire, RWire0, BypassWire) are looked through: a
--- value flows from the "wset" argument to the "wget" result as
--- through a plain wire (or through a mux, when there are multiple
--- setters, in which case properties do not flow but use/unused
--- information still does).  CReg instances are also looked through:
--- port 0's read is the register output ("reg"), and higher ports'
--- reads bypass through selections which reduce when the schedule
--- makes the intervening write enables constant.  A wire or CReg is
--- connected to the same things whether or not InlineWires/InlineCReg
--- will inline it away (the primitives are just wiring around a
--- register), so the look-through does not depend on the inlining
--- flags -- unlike getIOProps, whose deductions weaken when the
--- instances remain in the netlist.
+--  * "const": the port's value is entailed to be constant by the
+--    design and its schedule.  Source-level constants are folded by
+--    the evaluator during elaboration; what this pass adds is the
+--    folding of SCHEDULE-time facts, which do not exist until after
+--    scheduling: WILL_FIREs which the schedule makes constant (rules
+--    which can never fire, or always fire), the validity of wires
+--    which are never or always set, selections whose conditions
+--    become constant, and mux arms which win or lose the arbitration
+--    outright (modeled, when the AScheduleInfo is supplied, with the
+--    same port allocation, exclusivity test, and earliness order
+--    that AState uses).
+--
+--  * "unused": the port drives no hardware.  Uses which exist only
+--    in simulation (arguments of foreign function and task calls) do
+--    not count, and a use by logic which is itself unused, or by a
+--    rule which can never fire, or by a mux arm which loses the
+--    arbitration, does not count either.
+--
+-- The deduction is conservative: it may fail to assert a property
+-- whose truth requires reasoning this pass does not do (known cases:
+-- boolean minimization of guards over dynamic values, e.g.
+-- (a && b) || (!a && b) == b; value analysis of register contents;
+-- and the tracing of inout nets through InoutConnect instances).
+-- It never asserts a property which does not hold of the hardware.
+--
+-- Relation to getIOProps: on default flags the two agree almost
+-- everywhere, but they can differ in both directions, because
+-- getIOProps reports whatever the optimized netlist happens to show:
+-- it loses the structural labels on ports whose connectivity was
+-- optimized away (an unused input clock is just "unused" there), it
+-- misses "unused" through non-direct connections, it weakens when
+-- wiring primitives are not inlined, and it can additionally report
+-- properties which are true only because of a particular optimizer
+-- rewrite (e.g. a "const" established by common-subexpression
+-- elimination), which this pass deliberately does not promise.
+--
+-- The ports themselves are not explicit in an APackage; they are
+-- constructed by AState from the module arguments (apkg_inputs /
+-- apkg_external_wires) and the interface (apkg_interface).  This
+-- function mirrors that construction (see AState.aState') to
+-- enumerate the same ports, with the same names, in the same order.
 
 getIOPropsA :: Flags -> [PProp] -> Maybe AScheduleInfo -> APackage ->
                (VIOProps, [VPort])
