@@ -22,7 +22,6 @@ import Data.Maybe(isJust, fromJust)
 import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil(internalError)
-import IOUtil(progArgs)
 import Id(Id, getIdBase, getIdQual, setIdPosition, setIdProps, setIdQual)
 import PreIds(idArrow, idId, idTNumToStr)
 import TypeOps(opNumT, opStrT)
@@ -188,7 +187,9 @@ mkITVar i = ITVar_ (tidyTypeId i)
 -- tconcheck-verified): the qualified Id determines the kind and sort,
 -- so a by-name hit may return the canonical node without normalizing
 -- the requested payload -- that walk is paid once, at first intern.
--- -trace-itype-intern verifies every hit against the invariant.
+-- To re-instrument hit verification, add a structural verify on hit
+-- plus a trace flag; the commit that deleted internSanityOn/structEqT
+-- (git log -S internSanityOn) has the removed scaffolding.
 data TConTable = TConTable !(M.Map (FString, FString) IType)
 
 {-# NOINLINE tconTable #-}
@@ -216,28 +217,14 @@ mkITCon i k s
         let key = (getIdQual i, getIdBase i)
         TConTable m0 <- readIORef tconTable
         case M.lookup key m0 of
-          Just t  -> return (checkHit t)
+          Just t  -> return t
           Nothing -> atomicModifyIORef' tconTable (go (getIdQual i, getIdBase i))
   where
     go key st@(TConTable m) =
         case M.lookup key m of
-          Just t  -> (st, checkHit t)
+          Just t  -> (st, t)
           Nothing -> let t = ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)
                      in  (TConTable (M.insert key t m), t)
-    -- The hit check verifies the full payload: the kind, and the sort
-    -- with built-in (==).  That equality is exactly serialization
-    -- granularity here: Id's Eq is base+qual, and both sides are
-    -- normalized (positions and props stripped, entity Ids
-    -- canonicalized), so the compared fields are precisely the bytes
-    -- BinData would write.
-    checkHit t@(ITCon_ _ k' s')
-        | not internSanityOn ||
-          (k == k' && tidySort (getIdQual i) s == s') = t
-    checkHit t =
-        internalError ("IType.mkITCon: one-tycon invariant violated\n" ++
-                       "requested: " ++
-                       show (ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)) ++ "\n" ++
-                       "canonical: " ++ show t)
 
 -- --------------------------------
 -- The intern table
@@ -254,10 +241,9 @@ mkITCon i k s
 --
 -- Payload exactness is established once, at first intern: the first
 -- construction of a node stores its normalized payload, and every
--- later key-equal request receives that representative.  The guards
--- are tconcheck (handwritten Prelude tycon payloads match the
--- compiled Prelude) and -trace-itype-intern (every intern hit
--- re-verifies the requested structure against the canonical node).
+-- later key-equal request receives that representative.  The static
+-- guard is tconcheck (handwritten Prelude tycon payloads match the
+-- compiled Prelude).
 
 -- The identity of a child inside an intern key: interned interior
 -- nodes are identified by their unique; leaves by their normalized
@@ -294,57 +280,20 @@ data InternTable = InternTable !(M.Map NodeKey IType) {-# UNPACK #-} !Int
 internTable :: IORef InternTable
 internTable = unsafePerformIO $ newIORef (InternTable M.empty 0)
 
--- When -trace-itype-intern is given (a hidden trace flag, so it
--- reaches every invocation via BSC_OPTIONS), every intern hit
--- verifies full structural equality of the requested children against
--- the canonical node's children.  This catches key collisions and any
--- leaf whose payload drifts from its key (e.g. two ITCons with the
--- same Id but different kind/sort, which the tconcheck-verified
--- invariant forbids).  Intended for the library build and a dedicated
--- checked testsuite leg while the intern key is under change; costs a
--- structural walk per hit, so it is never on by default.
-{-# NOINLINE internSanityOn #-}
-internSanityOn :: Bool
-internSanityOn = "-trace-itype-intern" `elem` progArgs
-
--- Structural equality at the granularity interning promises: full
--- leaf payloads, everything but heap identity.  Fields compare with
--- built-in (==); on normalized values that is full granularity --
--- Id's Eq is base+qual, and type-embedded Ids carry nothing else
--- (positions and props are stripped by the smart constructors).
--- Only used by the sanity check.
-structEqT :: IType -> IType -> Bool
-structEqT (ITForAll_ u1 i1 k1 t1) (ITForAll_ u2 i2 k2 t2) =
-    i1 == i2 && k1 == k2 && (u1 == u2 || structEqT t1 t2)
-structEqT (ITAp_ u1 f1 a1) (ITAp_ u2 f2 a2) =
-    u1 == u2 || (structEqT f1 f2 && structEqT a1 a2)
-structEqT (ITVar_ i1)       (ITVar_ i2)       = i1 == i2
-structEqT (ITCon_ i1 k1 s1) (ITCon_ i2 k2 s2) =
-    i1 == i2 && k1 == k2 && s1 == s2
-structEqT (ITNum n1)        (ITNum n2)        = n1 == n2
-structEqT (ITStr s1)        (ITStr s2)        = s1 == s2
-structEqT _ _ = False
-
 {-# NOINLINE internAp #-}
 internAp :: IType -> IType -> IType
 internAp f a = unsafePerformIO $ do
     let key = NKAp (tKey f) (tKey a)
     InternTable m0 _ <- readIORef internTable
     case M.lookup key m0 of
-      Just t  -> return (checkHit t)
+      Just t  -> return t
       Nothing -> atomicModifyIORef' internTable (go key)
   where
     go key st@(InternTable m n) =
         case M.lookup key m of
-          Just t  -> (st, checkHit t)
+          Just t  -> (st, t)
           Nothing -> let t = ITAp_ n f a
                      in  (InternTable (M.insert key t m) (n+1), t)
-    checkHit t@(ITAp_ _ f' a')
-        | not internSanityOn || (structEqT f f' && structEqT a a') = t
-    checkHit t =
-        internalError ("IType.internAp: intern table mismatch\n" ++
-                       "requested: " ++ show (ITAp_ (-1) f a) ++ "\n" ++
-                       "canonical: " ++ show t)
 
 {-# NOINLINE mkITForAll #-}
 mkITForAll :: Id -> IKind -> IType -> IType
@@ -352,23 +301,16 @@ mkITForAll i k t = unsafePerformIO $ do
     let key = NKForAll ti k (tKey t)
     InternTable m0 _ <- readIORef internTable
     case M.lookup key m0 of
-      Just t' -> return (checkHit t')
+      Just t' -> return t'
       Nothing -> atomicModifyIORef' internTable (go key)
   where
     -- binder Ids are type-embedded Ids like any other: normalized
     ti = tidyTypeId i
     go key st@(InternTable m n) =
         case M.lookup key m of
-          Just t' -> (st, checkHit t')
+          Just t' -> (st, t')
           Nothing -> let t' = ITForAll_ n ti k t
                      in  (InternTable (M.insert key t' m) (n+1), t')
-    checkHit t'@(ITForAll_ _ i' k' b')
-        | not internSanityOn ||
-          (ti == i' && k == k' && structEqT t b') = t'
-    checkHit t' =
-        internalError ("IType.mkITForAll: intern table mismatch\n" ++
-                       "requested: " ++ show (ITForAll_ (-1) ti k t) ++ "\n" ++
-                       "canonical: " ++ show t')
 
 -- The smart constructor behind the ITAp pattern synonym.  It first
 -- performs the single-step type-function reduction that

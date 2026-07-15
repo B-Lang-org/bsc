@@ -3090,7 +3090,9 @@ data Arg = E HExpr | T IType deriving (Eq, Show)
 
 getArgPosition :: Arg -> Position
 getArgPosition (E e) = getIExprPosition e
-getArgPosition (T t) = getITypePosition t
+-- type arguments have no positions: Ids embedded in ITypes carry
+-- noPosition by construction (IType normalizes them on entry)
+getArgPosition (T _) = noPosition
 
 evalArgUH :: Arg -> G Arg
 evalArgUH (T t) = return (T t)
