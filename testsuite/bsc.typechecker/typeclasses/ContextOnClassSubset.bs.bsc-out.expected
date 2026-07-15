@@ -23,6 +23,7 @@ next def..........................................................
 ContextOnClassSubset._lifted_dict0 :: Prelude.Literal (Prelude.Bit 16)
 ContextOnClassSubset._lifted_dict0 = Prelude.Prelude.Literal~Prelude.Bit~n= ·16
 -- IdProp: ContextOnClassSubset::_lifted_dict0[IdP_bad_name,IdPDict,IdPCAF]
+-- Properties: [DefP_DictRendering "P1(V(Q7:Prelude;B29:Prelude.Literal~Prelude.Bit~n;)T0;)",DefP_DictKids [],DefP_DictTypes [ITNum 16]]
 next def..........................................................
 
 
