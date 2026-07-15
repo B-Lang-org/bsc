@@ -18,9 +18,6 @@ trace_drop_dicts = "-trace-drop-dicts" `elem` progArgs
 
 -- ===============
 
-isLiftedDict :: Id -> Bool
-isLiftedDict i = hasIdProp i IdPCAF && hasIdProp i IdPDict
-
 -- The lifted dictionaries of the imported packages, bucketed by their
 -- interned type (position-insensitive cmpT order), each bucket in
 -- import order.  A dictionary may be replaced by a bucket candidate

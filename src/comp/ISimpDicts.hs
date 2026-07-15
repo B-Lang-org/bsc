@@ -37,9 +37,6 @@ simpDict (IDef i t e ps)
                   else tracep trace_simp_dicts ("Did not reduce to an ICTuple: " ++ ppReadable i ++ "\n" ++ ppReadable e' ++ "\n" ++ show e') e'
 simpDict def = def
 
-isLiftedDict :: Id -> Bool
-isLiftedDict i = hasIdProp i IdPCAF && hasIdProp i IdPDict
-
 -- Check if this is any dictionary-related definition
 isDictDef :: Id -> Bool
 isDictDef i = hasIdProp i IdPDict

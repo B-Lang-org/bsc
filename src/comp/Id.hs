@@ -52,6 +52,7 @@ module Id(
         isSignedId, setSignedId,
         setInternal,
         isDictId,
+        isLiftedDict,
         isInternal,
         isSplitRuleId,
         isRuleId,
@@ -530,6 +531,10 @@ isHideAllId idx = hasIdProp idx IdP_hide_all
 
 isDictId :: Id -> Bool
 isDictId i = hasIdProp i IdPDict
+
+-- a top-level dictionary lifted by the LiftDicts pass
+isLiftedDict :: Id -> Bool
+isLiftedDict i = hasIdProp i IdPDict && hasIdProp i IdPCAF
 
 isRuleId :: Id -> Bool
 isRuleId idx = hasIdProp idx IdPRule
