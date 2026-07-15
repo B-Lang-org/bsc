@@ -1158,6 +1158,10 @@ tclModule ["methodconditions", modname] = do
            doProp (DefP_Method i) = [ tagStr "method" (getIdBaseString i) ]
            doProp (DefP_Instance i) = [ tagStr "instance" (getIdBaseString i) ]
            doProp DefP_NoCSE = []
+           -- lifted-dictionary evidence props live on IDefs, not ADefs
+           doProp (DefP_DictRendering {}) = []
+           doProp (DefP_DictKids {}) = []
+           doProp (DefP_DictTypes {}) = []
            convert :: ADef -> HTclObj
            convert (ADef i _t e ps) =
                 TLst $ [ TStr (getIdBaseString i)

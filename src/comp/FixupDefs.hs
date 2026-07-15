@@ -1,12 +1,15 @@
 module FixupDefs(fixupDefs, updDef, DictBuckets, mkDictBuckets) where
 
+import Control.Monad.State.Strict(State, evalState, gets, modify)
 import Data.List(nub)
+import Data.Maybe(isJust)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import PFPrint
 import ErrorUtil(internalError)
 import IOUtil(progArgs)
 import Id
+import DefProp(DefProp(..), defPropsDictEvidence)
 import ISyntax
 import ISyntaxXRef(updateIExprPosition)
 import ISyntaxUtil(iDefsMap, itIsDictType)
@@ -18,32 +21,146 @@ trace_drop_dicts = "-trace-drop-dicts" `elem` progArgs
 
 -- ===============
 
--- The lifted dictionaries of the imported packages, bucketed by their
--- interned type (position-insensitive cmpT order), each bucket in
--- import order.  A dictionary may be replaced by a bucket candidate
--- only when -- in addition to this type equality -- its EVIDENCE is
--- structurally equal ("eqEvidence" below).  Type equality alone is not
--- sound: packages with different visible instance sets (orphan
--- instances, T0127) can each coherently resolve the same predicate to
--- different instances, and deduplicating across that divergence
--- silently swaps the selected methods.
+-- The evidence identity of a lifted dictionary, as recorded in its
+-- DefProps at lift time (see "renderEvidence" in LiftDicts): the
+-- slot-normalized rendering of its own evidence level, the lifted
+-- dictionaries it references (in slot order), and the types it
+-- references (in slot order).  A dictionary without one (incoherent,
+-- or evidence outside the renderable shapes) is never merged with
+-- anything but itself.
+data DictEv = DictEv {
+    dev_rendering :: String,
+    dev_kids :: [Id],
+    dev_types :: [IType]
+}
+
+getDictEv :: [DefProp] -> Maybe DictEv
+getDictEv props = case defPropsDictEvidence props of
+                    Just (str, ks, ts) -> Just (DictEv str ks ts)
+                    Nothing -> Nothing
+
+-- The evidence identity (and interned type) of every lifted dictionary
+-- in scope -- imported or local -- keyed by name; the verification
+-- procedure reads kid identities from here.
+type EvMap = M.Map Id (IType, Maybe DictEv)
+
+-- The lifted dictionaries of the imported packages that carry an
+-- evidence identity, bucketed by their interned type
+-- (position-insensitive cmpT order), each bucket in import order.  A
+-- dictionary may be replaced by a bucket candidate only when -- in
+-- addition to this type equality -- its evidence identity is verified
+-- equal ("mkRedirects" below).  Type equality alone is not sound:
+-- packages with different visible instance sets (orphan instances,
+-- T0127) can each coherently resolve the same predicate to different
+-- instances, and deduplicating across that divergence silently swaps
+-- the selected methods.
 --
 -- This map depends only on the imported packages, which are fixed for
 -- the entire compilation of a package; so it is built once (in
 -- "compilePackage" in bsc.hs) and passed to every call of "fixupDefs"
 -- and "updDef" (which is called once per synthesized module), rather
--- than rebuilt on each call.  Within a bucket the first structurally
--- equal def in import order wins; any structurally equal candidate is
+-- than rebuilt on each call.  Within a bucket the first verified-equal
+-- def in import order wins; any verified-equal candidate is
 -- semantically interchangeable, and import order is fixed by the
 -- source, so the choice is deterministic.
-type DictBuckets a = M.Map IType [(Id, IExpr a)]
+type DictBuckets = M.Map IType [Id]
 
-mkDictBuckets :: [(IPackage a, String)] -> DictBuckets a
+mkDictBuckets :: [(IPackage a, String)] -> DictBuckets
 mkDictBuckets ipkgs =
     M.fromListWith (\ new old -> old ++ new)
-        [ (t, [(i, e)])
-        | (p, _) <- ipkgs, IDef i t e _ <- ipkg_defs p,
-          isLiftedDict i, itIsDictType t ]
+        [ (t, [i])
+        | (p, _) <- ipkgs, IDef i t _ props <- ipkg_defs p,
+          isLiftedDict i, itIsDictType t,
+          isJust (defPropsDictEvidence props) ]
+
+-- The canonical redirection for every lifted dictionary (local or
+-- imported): the first import-order bucket candidate of the same
+-- interned type whose evidence identity verifies equal, when that is
+-- a different def.  Computed once per fixupDefs call over the
+-- dictionary defs only; fixUp then redirects by plain Id lookup, with
+-- no per-occurrence type work.
+--
+-- Verification of a pair of dictionaries ("verifyPair"): equal names
+-- are one def; otherwise both must carry evidence identities, and the
+-- interned types must be equal, the renderings must be EQUAL STRINGS
+-- (sound: the rendering is injective over the dictionary's own
+-- evidence level), the type slots must be equal element-wise (interned
+-- ITypes, so O(1) per slot), and the kid slots must verify pairwise by
+-- the same procedure.  A kid without an evidence identity therefore
+-- matches only itself (by name) -- exactly the never-dedup behavior
+-- its own package gave it.  No digest ever commits a merge; every
+-- merge decision reads the evidence identities themselves.
+--
+-- The kid recursion terminates because lifted evidence is acyclic
+-- (letrec-bound dictionaries are never lifted); results are memoized
+-- on the (Id, Id) pair across the whole computation, and a visited
+-- set guards defensively against a cycle in corrupted input by
+-- refusing (never trusting) a revisited pair.
+mkRedirects :: DictBuckets -> EvMap -> M.Map Id Id
+mkRedirects buckets evmap =
+    M.fromList (concat (evalState (mapM tryRedirect dicts) M.empty))
+  where
+    dicts = [ (i, t) | (i, (t, Just _)) <- M.toList evmap ]
+
+    tryRedirect :: (Id, IType) -> State (M.Map (Id, Id) Bool) [(Id, Id)]
+    tryRedirect (i, t) =
+        let scan [] = return []
+            -- reaching itself: no earlier candidate matched, so this
+            -- (imported) dict is its own canonical def
+            scan (c : _) | c `qualEq` i = return []
+            scan (c : rest) = do
+                ok <- verifyPair S.empty i c
+                if ok then return [(i, c)] else scan rest
+        in  case M.lookup t buckets of
+              Nothing -> return []
+              Just cands -> scan cands
+
+    verifyPair :: S.Set (Id, Id) -> Id -> Id
+               -> State (M.Map (Id, Id) Bool) Bool
+    verifyPair visited i1 i2
+      | i1 `qualEq` i2 = return True
+        -- a revisited pair means a reference cycle, which lifted
+        -- evidence never has; refuse the merge rather than trust it
+      | (i1, i2) `S.member` visited = return False
+      | otherwise = do
+          memoized <- gets (M.lookup (i1, i2))
+          case memoized of
+            Just r -> return r
+            Nothing -> do
+              r <- case (M.lookup i1 evmap, M.lookup i2 evmap) of
+                     (Just (t1, Just ev1), Just (t2, Just ev2)) ->
+                         verifyEv (S.insert (i1, i2) visited) t1 ev1 t2 ev2
+                     _ -> return False
+              modify (M.insert (i1, i2) r)
+              return r
+
+    verifyEv visited t1 ev1 t2 ev2 =
+        if t1 /= t2
+           || dev_rendering ev1 /= dev_rendering ev2
+           || length (dev_kids ev1) /= length (dev_kids ev2)
+           || dev_types ev1 /= dev_types ev2
+        then return False
+        else andM [ verifyPair visited k1 k2
+                  | (k1, k2) <- zip (dev_kids ev1) (dev_kids ev2) ]
+
+    andM [] = return True
+    andM (mx : rest) = do x <- mx
+                          if x then andM rest else return False
+
+-- When a dictionary is dropped in favor of a canonical equivalent, the
+-- kid lists of the surviving dictionaries must follow: a downstream
+-- package verifies kid slots against the defs it can see, so a kid
+-- entry naming a dropped local def must be rewritten to name the
+-- canonical def instead.
+redirectDictProps :: M.Map Id Id -> IDef a -> IDef a
+redirectDictProps redirects d@(IDef i t e props)
+  | M.null redirects = d
+  | otherwise = IDef i t e (map upd props)
+  where upd (DefP_DictKids ks) =
+            DefP_DictKids [ M.findWithDefault k k redirects | k <- ks ]
+        upd p = p
+
+-- ===============
 
 -- This does two things:
 -- (1) Insert imported packages into the current package (including their
@@ -53,14 +170,14 @@ mkDictBuckets ipkgs =
 --     data structure when defs call each other recursively.
 --
 -- It also deduplicates lifted dictionaries against the imported
--- packages: every lifted dictionary that is structurally equal to an
--- earlier (import-order) one is redirected to it, and the package's
--- own dictionaries that were redirected away are dropped from the
--- package (they remain in the returned alldefs).
+-- packages: every lifted dictionary whose evidence identity verifies
+-- equal to an earlier (import-order) one is redirected to it, and the
+-- package's own dictionaries that were redirected away are dropped
+-- from the package (they remain in the returned alldefs).
 --
 -- The first argument must be "mkDictBuckets" applied to the same
 -- imported packages that are passed as the third argument.
-fixupDefs :: DictBuckets a -> IPackage a -> [(IPackage a, String)] -> (IPackage a, [IDef a])
+fixupDefs :: DictBuckets -> IPackage a -> [(IPackage a, String)] -> (IPackage a, [IDef a])
 fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
     let
         (ms, _) = unzip ipkgs
@@ -74,35 +191,25 @@ fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
         -- Get all the defs from this package and the imported packages
         ads = concat (ds : map (\ (IPackage _ _ _ ds _) -> ds) ms)
 
-        -- Pre-fixup definitions: the structural evidence comparison
-        -- reads each dictionary's evidence as its package defined it,
-        -- before any redirection this pass performs.
-        m0 = M.fromList [ (i, e) | (IDef i _ e _) <- ads ]
+        -- The evidence identities are read from the defs as their
+        -- packages recorded them, before any redirection this pass
+        -- performs.
+        evmap = M.fromList [ (i, (t, getDictEv props))
+                           | IDef i t _ props <- ads, isLiftedDict i ]
 
-        -- The canonical redirection for every lifted dictionary (local
-        -- or imported): the first import-order bucket candidate of the
-        -- same interned type with structurally equal evidence, when
-        -- that is a different def.  Computed once per fixupDefs call
-        -- over the dictionary defs only; fixUp then redirects by plain
-        -- Id lookup, with no per-occurrence type work.
         redirects :: M.Map Id Id
-        redirects = M.fromList
-            [ (i, i')
-            | IDef i t e _ <- ads, isLiftedDict i,
-              Just cands@((c0, _) : _) <- [M.lookup t buckets],
-              -- the head of its own bucket is canonical already
-              c0 /= i,
-              (i' : _) <- [[ c | (c, e') <- cands, eqEvidence m0 e e' ]],
-              i' /= i ]
+        redirects = mkRedirects buckets evmap
 
         -- Create a recursive data structure by populating the map "m"
         -- with defs created using the map itself
         m = M.fromList [ (i, e) | (IDef i _ e _) <- ads' ]
-        ads' = iDefsMap (fixUp redirects m) ads
+        ads' = map (redirectDictProps redirects)
+                   (iDefsMap (fixUp redirects m) ads)
 
         -- The new package contents
         ipkg_sigs = [ (mi, s) | (m@(IPackage mi _ _ _ _), s) <- ipkgs ]
-        ds' = iDefsMap (fixUp redirects m) ds
+        ds' = map (redirectDictProps redirects)
+                  (iDefsMap (fixUp redirects m) ds)
         dropDict i t = case M.lookup i redirects of
                          Just _ -> tracep trace_drop_dicts
                                        ("dropDict: " ++ ppReadable (i, t))
@@ -128,7 +235,7 @@ fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
 -- the post-synthesis definition.)
 -- The first argument must be "mkDictBuckets" applied to the same
 -- imported packages that are passed as the fourth argument.
-updDef :: DictBuckets a -> IDef a -> IPackage a -> [(IPackage a, String)] -> IPackage a
+updDef :: DictBuckets -> IDef a -> IPackage a -> [(IPackage a, String)] -> IPackage a
 updDef buckets d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
     let
         -- replace the def in the list
@@ -160,42 +267,6 @@ fixUp r m (ICon i (ICDef t _)) =
     let i' = M.findWithDefault i i r
     in  ICon i' (ICDef t (get m i'))
 fixUp _ _ e = e
-
--- Structural equality of dictionary evidence, at exactly the
--- granularity of the rest of the dictionary machinery: Ids by
--- qualified name, types by interned (position-insensitive) equality.
--- References to lifted dictionaries additionally compare by their
--- DEFINITIONS: each package lifts its own copy of shared evidence
--- under a package-local name, so equal evidence is reached by
--- recursing through the pre-fixup definitions of the two references.
--- The pair set makes that recursion well-founded should a reference
--- cycle ever arise (lifted evidence is acyclic today: recursive
--- dictionary bindings are not lifted); a revisited pair is assumed
--- equal, which is the coinductive reading of bisimulation.
--- Anything unrecognized falls back to plain equality, erring toward
--- keeping both definitions.
-eqEvidence :: M.Map Id (IExpr a) -> IExpr a -> IExpr a -> Bool
-eqEvidence m0 = eq S.empty
-  where
-    eq vs (ILam i1 t1 e1) (ILam i2 t2 e2) =
-        i1 == i2 && t1 == t2 && eq vs e1 e2
-    eq vs (ILAM i1 k1 e1) (ILAM i2 k2 e2) =
-        i1 == i2 && k1 == k2 && eq vs e1 e2
-    eq vs (IAps f1 ts1 es1) (IAps f2 ts2 es2) =
-        ts1 == ts2 && length es1 == length es2 &&
-        eq vs f1 f2 && and (zipWith (eq vs) es1 es2)
-    eq vs (ICon i1 (ICDef t1 _)) (ICon i2 (ICDef t2 _)) =
-        t1 == t2 &&
-        (qualEq i1 i2 ||
-         (isLiftedDict i1 && isLiftedDict i2 && eqDef vs i1 i2))
-    eq _ e1 e2 = e1 == e2
-
-    eqDef vs i1 i2
-      | (i1, i2) `S.member` vs = True
-      | otherwise =
-          case (M.lookup i1 m0, M.lookup i2 m0) of
-            (Just e1, Just e2) -> eq (S.insert (i1, i2) vs) e1 e2
-            _ -> False
 
 get :: M.Map Id (IExpr a) -> Id -> IExpr a
 get m i = let value = get2 m i

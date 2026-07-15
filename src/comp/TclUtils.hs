@@ -112,6 +112,11 @@ instance TclObjCvt DefProp where
   toTclObj (DefP_Method i) = do ti <- toTclObj i ; toTclObj (TLst [TStr "DefP_Method", TCL ti])
   toTclObj (DefP_Instance i) = do ti <- toTclObj i ; toTclObj (TLst [TStr "DefP_Instance", TCL ti])
   toTclObj DefP_NoCSE = toTclObj "DefP_NoCSE"
+  toTclObj (DefP_DictRendering s) = toTclObj (TLst [TStr "DefP_DictRendering", TStr s])
+  toTclObj (DefP_DictKids ks) = do tks <- mapM toTclObj ks
+                                   toTclObj (TLst (TStr "DefP_DictKids" : map TCL tks))
+  toTclObj (DefP_DictTypes ts) = do tts <- mapM (toTclObj . pfPrint PDReadable 0) ts
+                                    toTclObj (TLst (TStr "DefP_DictTypes" : map TCL tts))
 
 instance TclObjCvt Type where
     toTclObj x = toTclObj (pfPrint PDReadable 0 x)

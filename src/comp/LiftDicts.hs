@@ -11,7 +11,7 @@ import Error(ErrorHandle)
 import ErrorUtil(internalError)
 import Flags(Flags)
 import IOUtil(progArgs)
-import Util(mapSndM)
+import Util(mapSndM, itos)
 
 import CSyntax
 import FStringCompat(FString)
@@ -27,8 +27,10 @@ import PPrint
 import PreIds
 import SymTab
 import IConv(iConvT, iConvK, iConvExpr)
+import IntLit(ilValue)
 import ISyntax
 import ISyntaxUtil(icUndetAt)
+import DefProp(DefProp(..))
 import Undefined(UndefKind(..))
 
 trace_lift_dicts :: Bool
@@ -59,8 +61,19 @@ trace_lift_dicts = "-trace-lift-dicts" `elem` progArgs
 -- only when its converted evidence is structurally equal (IExpr
 -- equality: Ids by name, types by interned cmpT).  Two dictionaries of
 -- the same type built from different evidence -- possible with orphan
--- or incoherent instances -- always stay distinct.  Cross-package
--- deduplication (FixupDefs) relies on the same structural discipline.
+-- or incoherent instances -- always stay distinct.
+--
+-- For deduplication ACROSS packages (FixupDefs), each newly minted
+-- dictionary records its evidence identity in DefProps on its IDef
+-- ("renderEvidence" below): a slot-normalized rendering of its own
+-- evidence level, the lifted dictionaries it references (in slot
+-- order), and the types it references (in slot order).  These
+-- properties travel with the def through the .bo file; FixupDefs
+-- merges two dictionaries only after comparing the renderings, the
+-- type slots (by interned-type equality), and the kid slots
+-- (recursively, by the same procedure).  Incoherent dictionaries and
+-- evidence outside the renderable shapes get no rendering and are
+-- never merged across packages.
 
 liftDictsPkg :: ErrorHandle -> Flags -> SymTab -> CPackage
              -> (CPackage, [IDef a])
@@ -177,6 +190,105 @@ convDict t e = do
       ie = iConvExpr (errHandle s) (flags s) (symt s) (convEnv s) e
   return (it, ie)
 
+-- =====
+-- Evidence rendering (cross-package identity)
+--
+-- The slot-normalized rendering of a dictionary's evidence: a string
+-- that is injective over the dictionary's OWN evidence level, with the
+-- identities it references factored out into two companion slot lists.
+-- References to other lifted dictionaries become kid-slot markers
+-- (D0;, D1;, ...) into the kid list, and types become type-slot
+-- markers (T0;, T1;, ...) into the (interned) type list.  FixupDefs
+-- merges two dictionaries only when their renderings are EQUAL STRINGS,
+-- their type slots are equal interned types, and their kid slots are
+-- verified recursively by the same procedure; no digest ever stands in
+-- for the comparison.
+--
+-- Types are factored out of the string because interned types are
+-- in-process DAGs: rendering them textually would expand the DAG
+-- (exponentially, in the worst case), while an [IType] serializes
+-- through the shared-type machinery of the .bo writer and compares in
+-- O(1) per slot by interned equality.  Kids are factored out because
+-- each package lifts its own copy of shared evidence under a
+-- package-local name; the kid NAMES differ even when the evidence is
+-- equal, so the string carries only their positions.
+--
+-- The rendering is injective by construction: every leaf atom is
+-- length-prefixed (tag ++ length ++ ":" ++ payload ++ ";"), every
+-- interior node is a distinct tag character with a parenthesized,
+-- arity-prefixed body, and slot markers end in ";".  In particular a
+-- qualified name is TWO atoms, qualifier then base: a single atom with
+-- a separator would conflate (A, B.C) with (A.B, C).
+--
+-- Evidence outside the shapes below (and any literal whose value
+-- depends on its position) yields no rendering; the dictionary is
+-- still lifted, it just never participates in cross-package
+-- deduplication.
+
+-- Kid and type slots accumulated during rendering, most recent first
+renderEvidence :: Flags -> SymTab -> CExpr -> Maybe (String, [Id], [IType])
+renderEvidence flgs r e0 =
+    case runStateT (rend e0) ([], []) of
+      Nothing -> Nothing
+      Just (str, (ks, ts)) -> Just (str, reverse ks, reverse ts)
+  where
+    abort :: StateT ([Id], [IType]) Maybe b
+    abort = StateT (const Nothing)
+
+    kidSlot :: Id -> StateT ([Id], [IType]) Maybe Int
+    kidSlot i = do (ks, ts) <- get
+                   put (i : ks, ts)
+                   return (length ks)
+
+    typeSlot :: CType -> StateT ([Id], [IType]) Maybe Int
+    typeSlot t = do (ks, ts) <- get
+                    put (ks, iConvT flgs r t : ts)
+                    return (length ts)
+
+    typeMarker :: CType -> StateT ([Id], [IType]) Maybe String
+    typeMarker t = do k <- typeSlot t
+                      return ('T' : itos k ++ ";")
+
+    strAtom :: Char -> String -> String
+    strAtom c s = c : itos (length s) ++ ":" ++ s ++ ";"
+
+    idAtom :: Id -> String
+    idAtom i = strAtom 'Q' (getIdQualString i) ++ strAtom 'B' (getIdBaseString i)
+
+    litAtom :: Literal -> Maybe String
+    litAtom (LString s) = Just (strAtom 's' s)
+    litAtom (LChar c) = Just (strAtom 'c' [c])
+    litAtom (LInt il) = Just (strAtom 'i' (itos (ilValue il)))
+    litAtom (LReal d) = Just (strAtom 'r' (show d))
+    -- a position literal takes its value from where it stands
+    litAtom LPosition = Nothing
+
+    rend :: CExpr -> StateT ([Id], [IType]) Maybe String
+    rend (CVar i)
+      | isLiftedDict i = do k <- kidSlot i
+                            return ('D' : itos k ++ ";")
+      | otherwise = return ("V(" ++ idAtom i ++ ")")
+    rend (CApply f es) = do
+      sf <- rend f
+      ses <- mapM rend es
+      return ("A" ++ itos (length es) ++ "(" ++ sf ++ concat ses ++ ")")
+    rend (CTApply f ts) = do
+      sf <- rend f
+      sts <- mapM typeMarker ts
+      return ("P" ++ itos (length ts) ++ "(" ++ sf ++ concat sts ++ ")")
+    rend (CSelectT ti fi) =
+      return ("S(" ++ idAtom ti ++ idAtom fi ++ ")")
+    rend (CStructT ct fs) = do
+      st <- typeMarker ct
+      sfs <- mapM (\ (fi, fe) -> do sfe <- rend fe
+                                    return (idAtom fi ++ sfe)) fs
+      return ("R" ++ itos (length fs) ++ "(" ++ st ++ concat sfs ++ ")")
+    rend (CLitT ct (CLiteral _ l)) = do
+      st <- typeMarker ct
+      sl <- maybe abort return (litAtom l)
+      return ("L(" ++ st ++ sl ++ ")")
+    rend _ = abort
+
 -- Handle a candidate dictionary definition: simplify its evidence, and
 -- if it is liftable, convert it and either reuse a structurally equal
 -- previously lifted dictionary of the same interned type or add a new
@@ -208,10 +320,25 @@ handleDict incoherent p t e = do
                        else lift_i0
           when trace_lift_dicts $ traceM $
               "adding lifted dict: " ++ ppReadable (lift_i, e')
+          s0 <- get
+          -- The evidence identity for cross-package deduplication (see
+          -- "renderEvidence"), recorded at mint time.  An incoherent
+          -- resolution depends on the instances visible HERE, so it
+          -- never gets one.
+          let mev = if incoherent then Nothing
+                    else renderEvidence (flags s0) (symt s0) e'
+              props = case mev of
+                        Nothing -> []
+                        Just (str, kids, tys) -> [ DefP_DictRendering str,
+                                                   DefP_DictKids kids,
+                                                   DefP_DictTypes tys ]
+          when (trace_lift_dicts && not incoherent && null props) $ traceM $
+              "no evidence rendering (not cross-package dedupable): "
+              ++ ppReadable (lift_i, e')
           let ref = ICon lift_i (ICDef it (icUndetAt (getIdPosition lift_i) it UNoMatch))
           modify (\s -> s {
               dictPool = M.insertWith (\new old -> old ++ new) it [(lift_i, ie)] (dictPool s),
-              liftedDefs = IDef lift_i it ie [] : liftedDefs s,
+              liftedDefs = IDef lift_i it ie props : liftedDefs s,
               liftedTypes = M.insert lift_i t (liftedTypes s),
               convEnv = M.insert lift_i ref (convEnv s) })
           return $ Right lift_i

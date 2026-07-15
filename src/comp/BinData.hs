@@ -1129,6 +1129,9 @@ instance Bin DefProp where
     writeBytes (DefP_Method i) = do putI 1 ; toBin i
     writeBytes (DefP_Instance i) = do putI 2 ; toBin i
     writeBytes DefP_NoCSE = putI 3
+    writeBytes (DefP_DictRendering s) = do putI 4 ; toBin s
+    writeBytes (DefP_DictKids ks) = do putI 5 ; toBin ks
+    writeBytes (DefP_DictTypes ts) = do putI 6 ; toBin ts
     readBytes = do
       select <- getI
       case select of
@@ -1136,6 +1139,9 @@ instance Bin DefProp where
         1 -> do i <- fromBin ; return $ DefP_Method i
         2 -> do i <- fromBin ; return $ DefP_Instance i
         3 -> return DefP_NoCSE
+        4 -> do s <- fromBin ; return $ DefP_DictRendering s
+        5 -> do ks <- fromBin ; return $ DefP_DictKids ks
+        6 -> do ts <- fromBin ; return $ DefP_DictTypes ts
         n -> internalError $ "BinData.Bin(DefProp).readBytes: " ++ show n
 
 -- ------------
