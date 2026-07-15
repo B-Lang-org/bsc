@@ -23,8 +23,7 @@ import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil(internalError)
 import IOUtil(progArgs)
-import Id(Id, IdProp(..), getIdBase, getIdQual, getIdPosition, getIdProps,
-          setIdPosition, setIdProps, setIdQual)
+import Id(Id, getIdBase, getIdQual, setIdPosition, setIdProps, setIdQual)
 import PreIds(idArrow, idId, idTNumToStr)
 import TypeOps(opNumT, opStrT)
 import CType(Type(..), CType, TyCon(..), TyVar(..), Kind(..),
@@ -225,9 +224,15 @@ mkITCon i k s
           Just t  -> (st, checkHit t)
           Nothing -> let t = ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)
                      in  (TConTable (M.insert key t m), t)
+    -- The hit check verifies the full payload: the kind, and the sort
+    -- with built-in (==).  That equality is exactly serialization
+    -- granularity here: Id's Eq is base+qual, and both sides are
+    -- normalized (positions and props stripped, entity Ids
+    -- canonicalized), so the compared fields are precisely the bytes
+    -- BinData would write.
     checkHit t@(ITCon_ _ k' s')
         | not internSanityOn ||
-          (k == k' && exactCmpSort (tidySort (getIdQual i) s) s' == EQ) = t
+          (k == k' && tidySort (getIdQual i) s == s') = t
     checkHit t =
         internalError ("IType.mkITCon: one-tycon invariant violated\n" ++
                        "requested: " ++
@@ -237,194 +242,51 @@ mkITCon i k s
 -- --------------------------------
 -- The intern table
 
--- Intern keys compare at full serialization granularity: everything
--- that BinData writes for a leaf participates in the comparison --
--- Id base and qual (FString unique indices), Id position and props,
--- and the complete ITCon payload (kind and sort, including the Ids
--- embedded in TIdata/TIstruct/TIatf sorts and the CTypes inside
--- TItype, all with their own positions, qualifiers and props).
+-- Intern keys are names and values.  Normalization makes key-equal
+-- byte-equal: every Id embedded in an IType is stripped to base and
+-- qualifier on entry (no positions, no props -- see the normalization
+-- section above), so a leaf's name IS its serialized content.  An
+-- ITCon is keyed by its qualified name alone: under the one-tycon-
+-- per-qualified-name invariant (front-end enforced, tconcheck-
+-- verified) the name determines the kind and sort payload.  An ITVar
+-- is keyed by its base name (type variables are local names, never
+-- qualified -- see mkITVar); ITNum and ITStr by their values.
 --
--- Anything coarser measurably drifts .bo bytes, because interning
--- substitutes the first-CONSTRUCTED representative for all key-equal
--- requests while the base compiler's .bo writer picks the first
--- occurrence in WRITE order.  Two incidents from developing this
--- change: keying Ids without positions/props conflated position-
--- variant types and shrank every library .bo; keying ITCon by Id
--- alone (per the one-tycon-per-qualified-name invariant, which does
--- hold at Id granularity) leaked import-qualification variants of the
--- Ids inside the sort payload, changing .bo contents.  A deliberate
--- relaxation to coarser keys (more sharing) is possible later, but it
--- must come with its own golden accounting.
---
--- The single knowing exception: Position comparison ignores
--- pos_is_stdlib (matching Position's Eq/Ord and the .bo writer's own
--- sharing keys); a source location determines its stdlib-ness, so
--- key-equal values cannot differ in serialized bytes.
-
-thenCmp :: Ordering -> Ordering -> Ordering
-thenCmp EQ o = o
-thenCmp o  _ = o
-
-exactCmpList :: (a -> a -> Ordering) -> [a] -> [a] -> Ordering
-exactCmpList _ []     []     = EQ
-exactCmpList _ []     (_:_)  = LT
-exactCmpList _ (_:_)  []     = GT
-exactCmpList c (x:xs) (y:ys) = c x y `thenCmp` exactCmpList c xs ys
-
-exactCmpId :: Id -> Id -> Ordering
-exactCmpId i1 i2 =
-    compare (getIdBase i1) (getIdBase i2) `thenCmp`
-    compare (getIdQual i1) (getIdQual i2) `thenCmp`
-    compare (getIdPosition i1) (getIdPosition i2) `thenCmp`
-    exactCmpList exactCmpIdProp (getIdProps i1) (getIdProps i2)
-
--- IdP_TypeJoin embeds Ids, which the derived IdProp Ord compares
--- without their positions and props; everything else in IdProp is
--- exact under the derived Ord.
-exactCmpIdProp :: IdProp -> IdProp -> Ordering
-exactCmpIdProp (IdP_TypeJoin a1 b1) (IdP_TypeJoin a2 b2) =
-    exactCmpId a1 a2 `thenCmp` exactCmpId b1 b2
-exactCmpIdProp p1 p2 = compare p1 p2
-
-exactCmpMaybe :: (a -> a -> Ordering) -> Maybe a -> Maybe a -> Ordering
-exactCmpMaybe _ Nothing   Nothing   = EQ
-exactCmpMaybe _ Nothing   (Just _)  = LT
-exactCmpMaybe _ (Just _)  Nothing   = GT
-exactCmpMaybe c (Just x)  (Just y)  = c x y
-
-exactCmpSort :: TISort -> TISort -> Ordering
-exactCmpSort (TItype n1 t1) (TItype n2 t2) =
-    compare n1 n2 `thenCmp` exactCmpCT t1 t2
-exactCmpSort (TItype _ _)      _                  = LT
-exactCmpSort _                 (TItype _ _)       = GT
-exactCmpSort (TIdata cs1 e1)   (TIdata cs2 e2)    =
-    exactCmpList exactCmpId cs1 cs2 `thenCmp` compare e1 e2
-exactCmpSort (TIdata _ _)      _                  = LT
-exactCmpSort _                 (TIdata _ _)       = GT
-exactCmpSort (TIstruct s1 f1)  (TIstruct s2 f2)   =
-    exactCmpSST s1 s2 `thenCmp` exactCmpList exactCmpId f1 f2
-exactCmpSort (TIstruct _ _)    _                  = LT
-exactCmpSort _                 (TIstruct _ _)     = GT
-exactCmpSort TIabstract        TIabstract         = EQ
-exactCmpSort TIabstract        _                  = LT
-exactCmpSort _                 TIabstract         = GT
-exactCmpSort (TIatf c1 p1 t1)  (TIatf c2 p2 t2)   =
-    exactCmpId c1 c2 `thenCmp` compare p1 p2 `thenCmp` compare t1 t2
-
-exactCmpSST :: StructSubType -> StructSubType -> Ordering
-exactCmpSST SStruct            SStruct            = EQ
-exactCmpSST SStruct            _                  = LT
-exactCmpSST _                  SStruct            = GT
-exactCmpSST SClass             SClass             = EQ
-exactCmpSST SClass             _                  = LT
-exactCmpSST _                  SClass             = GT
-exactCmpSST (SDataCon i1 b1)   (SDataCon i2 b2)   =
-    exactCmpId i1 i2 `thenCmp` compare b1 b2
-exactCmpSST (SDataCon _ _)     _                  = LT
-exactCmpSST _                  (SDataCon _ _)     = GT
-exactCmpSST (SInterface ps1)   (SInterface ps2)   =
-    exactCmpList exactCmpIfcP ps1 ps2
-exactCmpSST (SInterface _)     _                  = LT
-exactCmpSST _                  (SInterface _)     = GT
-exactCmpSST (SPolyWrap a1 b1 c1) (SPolyWrap a2 b2 c2) =
-    exactCmpId a1 a2 `thenCmp` exactCmpMaybe exactCmpId b1 b2 `thenCmp`
-    exactCmpId c1 c2
-
-exactCmpIfcP :: IfcPragma -> IfcPragma -> Ordering
-exactCmpIfcP (PIArgNames is1) (PIArgNames is2) = exactCmpList exactCmpId is1 is2
-exactCmpIfcP p1 p2 = compare p1 p2  -- no Ids in the other constructors
-
-exactCmpCT :: Type -> Type -> Ordering
-exactCmpCT (TVar (TyVar i1 n1 k1)) (TVar (TyVar i2 n2 k2)) =
-    exactCmpId i1 i2 `thenCmp` compare n1 n2 `thenCmp` compare k1 k2
-exactCmpCT (TVar _)        _                 = LT
-exactCmpCT _               (TVar _)          = GT
-exactCmpCT (TCon c1)       (TCon c2)         = exactCmpTyCon c1 c2
-exactCmpCT (TCon _)        _                 = LT
-exactCmpCT _               (TCon _)          = GT
-exactCmpCT (TAp f1 a1)     (TAp f2 a2)       =
-    exactCmpCT f1 f2 `thenCmp` exactCmpCT a1 a2
-exactCmpCT (TAp _ _)       _                 = LT
-exactCmpCT _               (TAp _ _)         = GT
-exactCmpCT (TGen p1 n1)    (TGen p2 n2)      =
-    compare p1 p2 `thenCmp` compare n1 n2
-exactCmpCT (TGen _ _)      _                 = LT
-exactCmpCT _               (TGen _ _)        = GT
-exactCmpCT (TDefMonad p1)  (TDefMonad p2)    = compare p1 p2
-
-exactCmpTyCon :: TyCon -> TyCon -> Ordering
-exactCmpTyCon (TyCon i1 mk1 s1) (TyCon i2 mk2 s2) =
-    exactCmpId i1 i2 `thenCmp` compare mk1 mk2 `thenCmp` exactCmpSort s1 s2
-exactCmpTyCon (TyCon _ _ _)  _                = LT
-exactCmpTyCon _              (TyCon _ _ _)    = GT
-exactCmpTyCon (TyNum n1 p1)  (TyNum n2 p2)    =
-    compare n1 n2 `thenCmp` compare p1 p2
-exactCmpTyCon (TyNum _ _)    _                = LT
-exactCmpTyCon _              (TyNum _ _)      = GT
-exactCmpTyCon (TyStr s1 p1)  (TyStr s2 p2)    =
-    compare s1 s2 `thenCmp` compare p1 p2
-
--- Exact comparison of leaf ITypes (interior nodes never appear here:
--- inside keys they are identified by their unique).
-exactCmpLeaf :: IType -> IType -> Ordering
-exactCmpLeaf (ITVar i1)       (ITVar i2)       = exactCmpId i1 i2
-exactCmpLeaf (ITVar _)        _                = LT
-exactCmpLeaf _                (ITVar _)        = GT
-exactCmpLeaf (ITCon i1 k1 s1) (ITCon i2 k2 s2) =
-    exactCmpId i1 i2 `thenCmp` compare k1 k2 `thenCmp` exactCmpSort s1 s2
-exactCmpLeaf (ITCon _ _ _)    _                = LT
-exactCmpLeaf _                (ITCon _ _ _)    = GT
-exactCmpLeaf (ITNum n1)       (ITNum n2)       = compare n1 n2
-exactCmpLeaf (ITNum _)        _                = LT
-exactCmpLeaf _                (ITNum _)        = GT
-exactCmpLeaf (ITStr s1)       (ITStr s2)       = compare s1 s2
-exactCmpLeaf t1 t2 =
-    internalError ("IType.exactCmpLeaf: interior node: " ++ show (t1, t2))
+-- Payload exactness is established once, at first intern: the first
+-- construction of a node stores its normalized payload, and every
+-- later key-equal request receives that representative.  The guards
+-- are tconcheck (handwritten Prelude tycon payloads match the
+-- compiled Prelude) and -trace-itype-intern (every intern hit
+-- re-verifies the requested structure against the canonical node).
 
 -- The identity of a child inside an intern key: interned interior
--- nodes are identified by their unique; leaves by their exact content
--- (compared with exactCmpLeaf).
+-- nodes are identified by their unique; leaves by their normalized
+-- name or value.
 data TKey
         = TKNode {-# UNPACK #-} !Int
-        | TKLeaf !IType
+        | TKCon !FString !FString   -- qualifier, base
+        | TKVar !FString            -- base
+        | TKNum !Integer
+        | TKStr !FString
+        deriving (Eq, Ord)
 
-instance Eq TKey where
-    k1 == k2  =  cmpTKey k1 k2 == EQ
-
-instance Ord TKey where
-    compare = cmpTKey
-
-cmpTKey :: TKey -> TKey -> Ordering
-cmpTKey (TKNode u1) (TKNode u2) = compare u1 u2
-cmpTKey (TKNode _)  (TKLeaf _)  = LT
-cmpTKey (TKLeaf _)  (TKNode _)  = GT
-cmpTKey (TKLeaf l1) (TKLeaf l2) = exactCmpLeaf l1 l2
-
--- Exact structural key of an interior node.  NKForAll includes the
--- binder kind even though cmpT skips it: interning must never change
--- what a pattern match observes.
+-- Structural key of an interior node.  NKForAll includes the binder
+-- kind even though cmpT skips it: interning must never change what a
+-- pattern match observes.  The binder Id is normalized before key
+-- construction (mkITForAll), so Id's built-in base+qual Eq/Ord
+-- compares its full content.
 data NodeKey
         = NKAp !TKey !TKey
         | NKForAll !Id !IKind !TKey
-
-instance Eq NodeKey where
-    k1 == k2  =  cmpNodeKey k1 k2 == EQ
-
-instance Ord NodeKey where
-    compare = cmpNodeKey
-
-cmpNodeKey :: NodeKey -> NodeKey -> Ordering
-cmpNodeKey (NKAp f1 a1) (NKAp f2 a2) =
-    cmpTKey f1 f2 `thenCmp` cmpTKey a1 a2
-cmpNodeKey (NKAp _ _) (NKForAll _ _ _) = LT
-cmpNodeKey (NKForAll _ _ _) (NKAp _ _) = GT
-cmpNodeKey (NKForAll i1 k1 t1) (NKForAll i2 k2 t2) =
-    exactCmpId i1 i2 `thenCmp` compare k1 k2 `thenCmp` cmpTKey t1 t2
+        deriving (Eq, Ord)
 
 tKey :: IType -> TKey
 tKey (ITForAll_ u _ _ _) = TKNode u
 tKey (ITAp_ u _ _)       = TKNode u
-tKey t                   = TKLeaf t
+tKey (ITCon_ i _ _)      = TKCon (getIdQual i) (getIdBase i)
+tKey (ITVar_ i)          = TKVar (getIdBase i)
+tKey (ITNum n)           = TKNum n
+tKey (ITStr s)           = TKStr s
 
 data InternTable = InternTable !(M.Map NodeKey IType) {-# UNPACK #-} !Int
 
@@ -445,19 +307,23 @@ internTable = unsafePerformIO $ newIORef (InternTable M.empty 0)
 internSanityOn :: Bool
 internSanityOn = "-trace-itype-intern" `elem` progArgs
 
--- Structural equality at the granularity interning promises (the
--- exactCmp* granularity: full leaf payloads, everything but heap
--- identity).  Only used by the sanity check.
+-- Structural equality at the granularity interning promises: full
+-- leaf payloads, everything but heap identity.  Fields compare with
+-- built-in (==); on normalized values that is full granularity --
+-- Id's Eq is base+qual, and type-embedded Ids carry nothing else
+-- (positions and props are stripped by the smart constructors).
+-- Only used by the sanity check.
 structEqT :: IType -> IType -> Bool
 structEqT (ITForAll_ u1 i1 k1 t1) (ITForAll_ u2 i2 k2 t2) =
-    exactCmpId i1 i2 == EQ && k1 == k2 && (u1 == u2 || structEqT t1 t2)
+    i1 == i2 && k1 == k2 && (u1 == u2 || structEqT t1 t2)
 structEqT (ITAp_ u1 f1 a1) (ITAp_ u2 f2 a2) =
     u1 == u2 || (structEqT f1 f2 && structEqT a1 a2)
-structEqT t1@(ITForAll_ _ _ _ _) t2 = False
-structEqT t1 t2@(ITForAll_ _ _ _ _) = False
-structEqT t1@(ITAp_ _ _ _) t2 = False
-structEqT t1 t2@(ITAp_ _ _ _) = False
-structEqT t1 t2 = exactCmpLeaf t1 t2 == EQ
+structEqT (ITVar_ i1)       (ITVar_ i2)       = i1 == i2
+structEqT (ITCon_ i1 k1 s1) (ITCon_ i2 k2 s2) =
+    i1 == i2 && k1 == k2 && s1 == s2
+structEqT (ITNum n1)        (ITNum n2)        = n1 == n2
+structEqT (ITStr s1)        (ITStr s2)        = s1 == s2
+structEqT _ _ = False
 
 {-# NOINLINE internAp #-}
 internAp :: IType -> IType -> IType
@@ -498,7 +364,7 @@ mkITForAll i k t = unsafePerformIO $ do
                      in  (InternTable (M.insert key t' m) (n+1), t')
     checkHit t'@(ITForAll_ _ i' k' b')
         | not internSanityOn ||
-          (exactCmpId ti i' == EQ && k == k' && structEqT t b') = t'
+          (ti == i' && k == k' && structEqT t b') = t'
     checkHit t' =
         internalError ("IType.mkITForAll: intern table mismatch\n" ++
                        "requested: " ++ show (ITForAll_ (-1) ti k t) ++ "\n" ++
