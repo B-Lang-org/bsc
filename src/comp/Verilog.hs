@@ -299,13 +299,11 @@ vargName (VAParameter i _ _) = i
 
 data VMItem
         = VMDecl VVDecl
-        -- VMInst: vmi_instance_params and vmi_instance_ports can be positional
-        --         or named, thus the Either (Left = a list of expressions,
-        --         by position, and Right = list of (name, expression) pairs)
+        -- VMInst: instance parameters and ports are always associated
+        --         by name (positional association is never emitted)
         | VMInst { vi_module_name :: VId,
                    vi_inst_name :: VId,
-                   -- The string is for comments
-                   vi_inst_params :: Either [(Maybe String,VExpr)] [(VId, Maybe VExpr)],
+                   vi_inst_params :: [(VId, Maybe VExpr)],
                    vi_inst_ports :: [(VId, Maybe VExpr)] }
         | VMAssign VLValue VExpr
         | VMStmt { vi_translate_off :: Bool, vi_body :: VStmt }
@@ -367,14 +365,11 @@ instance PPrint VMItem where
         pPrint d p (VMAssign v e) = -- trace("Assignment :" ++ (ppReadable v) ++ " = " ++ (ppReadable e) ++ "\n") $
             sep [text "assign" <+> pPrint d 45 v <+> text "=",
                       nest 11 (pPrint d 0 e <+> text ";")]
-        pPrint d p (VMInst mid iid pvs cs) = pPrint d 0 mid <>
-          (case pvs of
-           Left ps -> (if null ps then text ""
-                       else text " #" <> pparen True (sepList (map (pv95params d) ps) comma ))
-           Right ps -> (if null ps then text ""
-                        else text " #" <>
-                             pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
-                                            pparen True (case me of Just e -> pPrint d 0 e; Nothing -> text "")) ps) (text ",")))) <>
+        pPrint d p (VMInst mid iid ps cs) = pPrint d 0 mid <>
+          (if null ps then text ""
+           else text " #" <>
+                pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
+                               pparen True (case me of Just e -> pPrint d 0 e; Nothing -> text "")) ps) (text ","))) <>
                 text "" <+> pPrint d 0 iid <>
                 pparen True (sepList (map (\ (i, me) -> text "." <> pPrint d 0 i <>
                                            pparen True (case me of
@@ -404,11 +399,6 @@ instance NFData VMItem where
     rnf (VMRegGroup vid s cmt item) = rnf4 vid s cmt item
     rnf (VMGroup toff body) = rnf2 toff body
     rnf (VMFunction vfun) = rnf vfun
-
-pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
-pv95params d (Nothing,x)  =  pPrint d 0 x
-pv95params d (Just "", x) =  pPrint d 0 x
-pv95params d (Just s,x)   =  text (" /*" ++ s ++ "*/ ") <> pPrint d 0 x
 
 -- Decide where to place blank spaces between VMItems, by grouping
 -- them into a list of lists between which there should be a space.

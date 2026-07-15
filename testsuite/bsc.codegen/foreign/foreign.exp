@@ -57,6 +57,19 @@ test_c_veri_bsv_multi BDPIActionValue_ mkBDPIActionValue_ $actionvaluemods1
 # ---------------
 # Functions with wide data
 
+# -----
+# Numeric provisos on BDPI imports: the width relationship is checked
+# by the typechecker at each application (and then erased); the sizes
+# reach the C side as explicit arguments, per the usual
+# polymorphic-BDPI convention.
+
+copy dupctx.c.keep dupctx.c
+test_c_veri_bsv_multi BDPICtx mkBDPICtx { bit_dup.ba dupctx.c }
+
+compile_verilog_fail BDPICtxViolated.bsv T0031
+
+# -----
+
 copy wide.c.keep wide.c
 test_c_veri_bsv_multi BDPIBit97 mkBDPIBit97 { popcount.ba wide.c }
 test_c_veri_bsv_multi BDPIWideResult mkBDPIWideResult { four_copies.ba wide.c }
