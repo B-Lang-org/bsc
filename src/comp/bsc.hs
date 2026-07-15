@@ -90,7 +90,9 @@ import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
-import FixupDefs(fixupDefs, updDef)
+import LiftDicts(liftDictsPkg)
+import ISimpDicts(iSimpDicts)
+import FixupDefs(fixupDefs, updDef, mkDictBuckets)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
 import BinUtil(BinMap, HashMap, readImports, replaceImportedSignatures)
@@ -455,12 +457,21 @@ compilePackage
     t <- dump errh flags t DFsimplified dumpnames mod'
     stats flags DFsimplified mod'
 
+    -- Lift dictionaries to top level (constructed directly as IDefs
+    -- over interned types; iConvPackage splices them into the package)
+    start flags DFliftdicts
+    let (mod_lifted, lifted_defs) =
+            if liftDicts flags then liftDictsPkg errh flags symt mod'
+            else (mod', [])
+    t <- dump errh flags t DFliftdicts dumpnames mod_lifted
+    stats flags DFliftdicts mod_lifted
+
     --------------------------------------------
     -- Convert to internal abstract syntax
     --------------------------------------------
     start flags DFinternal
     let combinedATFCache = mergeCATFCaches ctypeATFCache atfCacheFromCtxReduce
-    imod <- iConvPackage errh flags symt combinedATFCache mod'
+    imod <- iConvPackage errh flags symt combinedATFCache lifted_defs mod_lifted
     t <- dump errh flags t DFinternal dumpnames imod
     when (showISyntax flags) (putStrLnF (show imod))
     iPCheck flags symt imod "internal"
@@ -497,6 +508,14 @@ compilePackage
         -- so they can be put into the current IPackage for linking info
         binmods = zip (map (adjEnv env) binmods0) pkgsigs
 
+        -- The lifted-dictionary buckets used by "fixupDefs" and
+        -- "updDef" depend only on the imported packages ("binmods"),
+        -- which are fixed for the entire compile; so build them once
+        -- here and thread them through, rather than rebuilding them on
+        -- every call (once per compile plus once per synthesized
+        -- module, via "updDef").
+        dictBuckets = mkDictBuckets binmods
+
     t <- dump errh flags t DFbinary dumpnames binmods
 
     -- For "genModule" we construct a symbol table that includes all defs,
@@ -511,14 +530,19 @@ compilePackage
     t <- dump errh flags t DFsympostbinary dumpnames mint
 
     start flags DFfixup
-    let (imodf, alldefsList) = fixupDefs imod binmods
+    let (imodf, alldefsList) = fixupDefs dictBuckets imod binmods
     let alldefs = M.fromList [(i, e) | IDef i _ e _ <- alldefsList]
     iPCheck flags symt imodf "fixup"
     t <- dump errh flags t DFfixup dumpnames imodf
 
+    start flags DFisimpdicts
+    let imodsd = iSimpDicts imodf
+    iPCheck flags symt imodsd "isimpdicts"
+    t <- dump errh flags t DFisimpdicts dumpnames imodsd
+
     start flags DFisimplify
     let imods :: IPackage HeapData
-        imods = iSimplify imodf
+        imods = iSimplify imodsd
     iPCheck flags symt imods "isimplify"
     t <- dump errh flags t DFisimplify dumpnames imods
     stats flags DFisimplify imods
@@ -617,7 +641,7 @@ compilePackage
             -- references
             -- XXX Note that alldefs is not updated here.  This works
             -- XXX because the defs we use from it will not have changed.
-            let im' = updDef idef im binmods
+            let im' = updDef dictBuckets idef im binmods
             t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling SetBufferingAfterClose.bsv
 code generation for sysSetBufferingAfterClose starts
-Error: "Prelude.bs", line 3819, column 20: (S0085)
+Error: "SetBufferingAfterClose.bsv", line 10, column 21: (S0085)
   Failure during a file handle operation:
     illegal operation
   During elaboration of `hSetBuffering' at "SetBufferingAfterClose.bsv", line
