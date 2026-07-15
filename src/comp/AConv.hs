@@ -16,6 +16,7 @@ import PreStrings(sSigned)
 import PreIds(idBit, idActionValue_, idAVAction_, idAVValue_, idClockOsc, idClockGate,
               idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd, idPrimUnit)
 import Pragma
+import DefProp(DefProp, defPropsHasNoCSE)
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
              ErrorHandle, bsError, bsWarning)
 import ISyntax

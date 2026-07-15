@@ -65,6 +65,7 @@ import qualified TIMonad as TM
 import TypeCheck(topExpr)
 import VModInfo
 import Pragma
+import DefProp
 import Changed(changedOrId)
 import ISyntax
 import ISyntaxSubst(eSubst, eSubstBatch, tSubstBatch)

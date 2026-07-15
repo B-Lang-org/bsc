@@ -38,7 +38,7 @@ import PFPrint
 import Id
 import CSyntax
 import ISyntax
-import Pragma(DefProp(..))
+import DefProp
 import SymTab
 import Assump
 import Scheme

@@ -100,8 +100,9 @@ import Prim(PrimOp(..))
 import ConTagInfo
 import VModInfo(VModInfo, vArgs, vName, VName(..), {- VeriPortProp(..), -}
                 VArgInfo(..), VFieldInfo(..), isParam, VWireInfo)
+import DefProp(DefProp)
 import Pragma(Pragma, PProp, RulePragma, ISchedulePragma,
-              CSchedulePragma, SchedulePragma(..), DefProp,
+              CSchedulePragma, SchedulePragma(..),
               extractSchedPragmaIds, removeSchedPragmaIds, mapSPIds)
 import Position
 import Data.Maybe

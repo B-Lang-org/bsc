@@ -67,6 +67,7 @@ import ISyntaxUtil(itBool, itClock, itReset)
 import ASyntax
 import ASyntaxUtil
 import Pragma
+import DefProp
 import AScheduleInfo
 import AUses(MethodId(..))
 import VModInfo

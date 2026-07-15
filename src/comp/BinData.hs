@@ -42,6 +42,7 @@ import VModInfo
 import SchedInfo(SchedInfo(..), MethodConflictInfo(..),
                  extractFromMethodConflictInfo)
 import Pragma
+import DefProp
 import ASyntax
 import ISyntax
 import IType(iTypeNodeId)
