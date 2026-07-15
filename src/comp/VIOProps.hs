@@ -1,4 +1,4 @@
-module VIOProps (VIOProps, getIOProps) where
+module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
 import Data.List(intersect)
 import Data.Maybe(catMaybes, isNothing)
@@ -11,11 +11,14 @@ import PPrint
 import ErrorUtil(internalError)
 import Id
 import PreIds(idPrimAction, idInout_, idPrimUnit)
+import Pragma(PProp, isAlwaysRdy, isAlwaysEn)
 import VModInfo(vArgs, vFields, VName(..), VeriPortProp(..),
-                VArgInfo(..), VFieldInfo(..), VPort)
+                VArgInfo(..), VFieldInfo(..), VPort, VWireInfo(..),
+                getOutputClockPortTable, getOutputResetPortTable,
+                mkNamedEnable, mkNamedOutput, mkNamedInout, vName_to_id)
 import Prim
 import ASyntax
-import ASyntaxUtil( AVars(..) )
+import ASyntaxUtil( AVars(..), aType )
 import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateIdUsingFStringMap)
 
@@ -420,3 +423,185 @@ size (ATAbstract a [n]) | a == idInout_ = n
 size (ATAbstract a _) | a == idPrimUnit = 0
 size (ATString _ ) = 0
 size t = internalError ("getIOProps.size: " ++ show t)
+
+
+-- ===============================================================
+-- getIOPropsA: a version of getIOProps which works on APackage
+-- (prior to AState), rather than on the final ASPackage.
+--
+-- The ports of the eventually-generated module are not explicit in an
+-- APackage; they are constructed by AState from the module arguments
+-- (apkg_inputs / apkg_external_wires) and the interface (apkg_interface).
+-- This function mirrors that construction (see AState.aState') to
+-- enumerate the same ports (same names, in the same order), and then
+-- assigns properties to them.
+--
+-- This is an approximation of what getIOProps computes: properties
+-- which are structurally known at the APackage level (clock, clock
+-- gate, reset, inout, and any properties declared in the VArgInfo or
+-- VFieldInfo) are assigned directly, rather than being deduced from
+-- the generated netlist.  Since scheduling and state instantiation
+-- have not happened yet, properties that getIOProps deduces by
+-- following the final wiring (such as "const", "reg", and "unused")
+-- are approximated by a similar analysis over the APackage (see
+-- getOutPropsA and getInPropsA below).
+--
+-- Note two intentional differences from getIOProps:
+--  * Clock, gate, and reset ports are always labeled with their
+--    structural properties (clock/clock gate/reset), whereas getIOProps
+--    only labels them when the deduction succeeds (for example, an
+--    output clock which is fed directly from an input clock port
+--    gets no properties from getIOProps).
+--  * Uses of signals in foreign function calls are treated as uses,
+--    whereas getIOProps can consider such signals "unused" (foreign
+--    calls are not part of the def chain it follows).
+
+getIOPropsA :: Flags -> [PProp] -> APackage -> (VIOProps, [VPort])
+getIOPropsA _flags pps apkg =
+        -- returns the VIOProps structure
+        -- and a mapping of Verilog port names to their port properties
+        (VIOProps ais, [(VName (getIdString i), ps) | (i, _, _, ps) <- ais ])
+  where
+        ifc  = apkg_interface apkg
+        fmod = apkg_is_wrapped apkg
+        wi   = apkg_external_wires apkg
+
+        -- port name tables for the interface output clocks and resets
+        clockPortTable = getOutputClockPortTable (wClk wi)
+        resetPortTable = getOutputResetPortTable (wRst wi)
+
+        -- module arguments with their VArgInfo
+        args_with_info = getAPackageInputs apkg
+
+        -- VIOProps for all ports (but only nonzero sized)
+        ais = filter nonZero (ois ++ iis ++ iois)
+                where nonZero (_, _, sz, _) = sz /= 0
+
+        -- ----------
+        -- outputs
+        -- (in the order that AState creates them:
+        --  method results, then output clocks, then output resets)
+
+        ois = [ (i, OUTPUT, size t, ps) |
+                    (i, t, ps) <- meth_outs ++ clk_outs ++ rst_outs ]
+
+        -- method value/actionvalue result ports
+        -- (mirrors AState.outputDefToADef and its always_ready filtering)
+        isAlwaysReadyMethod m =
+            isRdyId (aIfaceName m) && isAlwaysRdy pps (aIfaceName m)
+        other_ifc = filter (not . isAlwaysReadyMethod) ifc
+
+        meth_outs :: [(AId, AType, [VeriPortProp])]
+        meth_outs = concatMap getMethOut other_ifc
+
+        getMethOut :: AIFace -> [(AId, AType, [VeriPortProp])]
+        getMethOut ai@(AIDef {}) =
+            -- a module wrapped around a non-inlined function has no RDY
+            if (fmod && isRdyId (aif_name ai))
+            then []
+            else [(mkNamedOutput fi, adef_type (aif_value ai),
+                   declaredOutProps fi)]
+          where fi = aif_fieldinfo ai
+        getMethOut ai@(AIActionValue {}) =
+            [(mkNamedOutput fi, adef_type (aif_value ai),
+              declaredOutProps fi)]
+          where fi = aif_fieldinfo ai
+        getMethOut _ = []
+
+        declaredOutProps :: VFieldInfo -> [VeriPortProp]
+        declaredOutProps (Method { vf_output = Just (_, ps) }) = ps
+        declaredOutProps _ = []
+
+        -- output clock (and gate) ports (mirrors AState's clk_blob)
+        clk_outs :: [(AId, AType, [VeriPortProp])]
+        clk_outs =
+            concat [ (vName_to_id osc_vn, aTBool, [VPclock]) : gate_ports |
+                        (AIClock { aif_name = n }) <- ifc,
+                        let (osc_vn, mgate_vp) =
+                                fromJustOrErr
+                                    ("getIOPropsA: unknown output clock " ++
+                                     ppReadable n)
+                                    (M.lookup n clockPortTable),
+                        let gate_ports =
+                                case mgate_vp of
+                                  Nothing -> []
+                                  Just (gate_vn, gate_pps) ->
+                                      [(vName_to_id gate_vn, aTBool,
+                                        VPclockgate : gate_pps)]
+                   ]
+
+        -- output reset ports (mirrors AState's rstn_defs)
+        rst_outs :: [(AId, AType, [VeriPortProp])]
+        rst_outs =
+            [ (vName_to_id rstn_vn, aTBool, [VPreset]) |
+                  (AIReset { aif_name = n }) <- ifc,
+                  let rstn_vn =
+                          fromJustOrErr
+                              ("getIOPropsA: unknown output reset " ++
+                               ppReadable n)
+                              (M.lookup n resetPortTable)
+            ]
+
+        -- ----------
+        -- inputs
+        -- (in the order that AState creates them:
+        --  module arguments, method arguments, method enables)
+
+        iis = [ (i, INPUT, size t, ps) |
+                    (i, t, ps) <- arg_ins ++ meth_arg_ins ++ en_ins ]
+
+        -- module argument ports (clocks, resets, and ordinary ports;
+        -- parameters are not ports and inouts are handled below)
+        arg_ins :: [(AId, AType, [VeriPortProp])]
+        arg_ins = concatMap cvtArg args_with_info
+
+        cvtArg :: (AAbstractInput, VArgInfo) -> [(AId, AType, [VeriPortProp])]
+        cvtArg (_, Param {}) = []
+        cvtArg (AAI_Port (i, t), Port (_, pps) _ _) = [(i, t, pps)]
+        cvtArg (AAI_Clock osc mgate, ClockArg {}) =
+            (osc, aTBool, [VPclock]) :
+            [ (gate, aTBool, [VPclockgate]) | Just gate <- [mgate] ]
+        cvtArg (AAI_Reset r, ResetArg {}) = [(r, aTBool, [VPreset])]
+        cvtArg (AAI_Inout {}, InoutArg {}) = []
+        cvtArg (ai, argi) =
+            internalError ("getIOPropsA.cvtArg: mismatched argument: " ++
+                           show (ai, argi))
+
+        -- method argument ports, with any properties declared in the ifc
+        meth_arg_ins :: [(AId, AType, [VeriPortProp])]
+        meth_arg_ins =
+            concat [ zipWith mkArg (aIfaceArgs f)
+                                   (argPortProps (aif_fieldinfo f) ++
+                                    repeat [])
+                   | f <- ifc ]
+          where mkArg (i, t) pps = (i, t, pps)
+                argPortProps (Method { vf_inputs = ins }) = map snd ins
+                argPortProps _ = []
+
+        -- method enable ports (mirrors AState's inputIds)
+        en_ins :: [(AId, AType, [VeriPortProp])]
+        en_ins =
+            [ (mkNamedEnable fi, aTBool, enPortProps fi) |
+                  (AIAction { aif_name = i, aif_fieldinfo = fi }) <- ifc,
+                  not (isAlwaysEn pps i) ] ++
+            [ (mkNamedEnable fi, aTBool, enPortProps fi) |
+                  (AIActionValue { aif_name = i, aif_fieldinfo = fi }) <- ifc,
+                  not (isAlwaysEn pps i) ]
+          where enPortProps (Method { vf_enable = Just (_, ps) }) = ps
+                enPortProps _ = []
+
+        -- ----------
+        -- inouts
+        -- (module argument inouts, then interface inouts,
+        --  in the order that AState creates them)
+
+        iois = [ (i, INOUT, size t, ps) |
+                     (i, t, ps) <- arg_iots ++ ifc_iots ]
+
+        arg_iots :: [(AId, AType, [VeriPortProp])]
+        arg_iots = [ (i, ATAbstract idInout_ [n], [VPinout]) |
+                         (AAI_Inout i n, InoutArg {}) <- args_with_info ]
+
+        ifc_iots :: [(AId, AType, [VeriPortProp])]
+        ifc_iots = [ (mkNamedInout fi, aType e, [VPinout]) |
+                         (AIInout _ (AInout e) fi) <- ifc ]

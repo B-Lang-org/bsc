@@ -258,6 +258,7 @@ data DumpFlag
 
         -- Generate Verilog
         | DFforeignMap
+        | DFAPackageIOproperties
         | DFastate
         | DFrwire
         | DFcreg

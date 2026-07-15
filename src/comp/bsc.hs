@@ -122,7 +122,7 @@ import ADropDefs(aDropDefs)
 import AOpt(aOpt)
 import AVerilog(aVerilog)
 import AVeriQuirks(aVeriQuirks)
-import VIOProps(VIOProps, getIOProps)
+import VIOProps(VIOProps, getIOProps, getIOPropsA)
 import VFinalCleanup(finalCleanup)
 import Synthesize(aSynthesize)
 import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
@@ -1098,6 +1098,14 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        abis <- mapM readABin foreign_func_names
        ff_map <- buildForeignFunctionMap errh abis
        t <- dump errh flags time0 DFforeignMap dumpnames ff_map
+
+       -- Compute the I/O properties from the APackage
+       -- (an approximation of the properties computed from the final
+       -- ASPackage at DFIOproperties, but available prior to AState,
+       -- for comparison and for uses which have no ASPackage in hand)
+       start flags DFAPackageIOproperties
+       let (aioprops, _) = getIOPropsA flags pprops atsPackage
+       t <- dump errh flags t DFAPackageIOproperties dumpnames aioprops
 
        -- Generate muxes etc.
        start flags DFastate
