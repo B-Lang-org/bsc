@@ -91,6 +91,15 @@ data LState a = LState {
   -- lifting order.  A dictionary is reused only on a structural match
   -- of its converted evidence (see the module note above).
   dictPool :: M.Map IType [(Id, IExpr a)],
+  -- Pre-conversion mirror of dictPool, keyed on the CSyntax type and
+  -- evidence (both position-insensitive Eq).  Equal (CType, CExpr)
+  -- convert to equal (IType, IExpr) -- convDict is deterministic and
+  -- convEnv entries are never redefined -- so a hit here returns the
+  -- id the interned pool would have chosen, without converting the
+  -- evidence at all.  This restores the O(1)-per-occurrence cost for
+  -- repeated dictionaries (the common case), which otherwise paid a
+  -- full iConvT+iConvExpr per occurrence.
+  dictPoolC :: M.Map CType [(CExpr, Id)],
   -- The lifted definitions, most recent first (reversed at the end, so
   -- the emitted order is lifting order and thus deterministic)
   liftedDefs :: [IDef a],
@@ -127,6 +136,7 @@ initLState errh fs r (CPackage mi exps imps impsigs fixs ds includes) = LState {
   flags = fs,
   dictNo = 0,
   dictPool = M.empty,
+  dictPoolC = M.empty,
   liftedDefs = [],
   liftedTypes = M.empty,
   convEnv = instConvEnv,
@@ -305,43 +315,56 @@ handleDict incoherent p t e = do
     CVar i' -> return $ Right i'
     CApply (CVar i') [] -> return $ Right i'
     _ -> do
-      (it, ie) <- convDict t e'
-      pool <- gets dictPool
-      let cands = M.findWithDefault [] it pool
-      case [ i0 | (i0, ie0) <- cands, ie0 == ie ] of
-        (i0:_) -> do
-          when trace_lift_dicts $ traceM $ "dictPool hit: " ++ ppReadable (i0, t)
-          return $ Right i0
-        [] -> do
-          when (trace_lift_dicts && not (null cands)) $ traceM $
-              "dictPool type collision (different evidence): " ++ ppReadable t
-          lift_i0 <- newDictId (getPosition e)
-          let lift_i = if incoherent then addIdProp lift_i0 IdPIncoherent
-                       else lift_i0
-          when trace_lift_dicts $ traceM $
-              "adding lifted dict: " ++ ppReadable (lift_i, e')
-          s0 <- get
-          -- The evidence identity for cross-package deduplication (see
-          -- "renderEvidence"), recorded at mint time.  An incoherent
-          -- resolution depends on the instances visible HERE, so it
-          -- never gets one.
-          let mev = if incoherent then Nothing
-                    else renderEvidence (flags s0) (symt s0) e'
-              props = case mev of
-                        Nothing -> []
-                        Just (str, kids, tys) -> [ DefP_DictRendering str,
-                                                   DefP_DictKids kids,
-                                                   DefP_DictTypes tys ]
-          when (trace_lift_dicts && not incoherent && null props) $ traceM $
-              "no evidence rendering (not cross-package dedupable): "
-              ++ ppReadable (lift_i, e')
-          let ref = ICon lift_i (ICDef it (icUndetAt (getIdPosition lift_i) it UNoMatch))
-          modify (\s -> s {
-              dictPool = M.insertWith (\new old -> old ++ new) it [(lift_i, ie)] (dictPool s),
-              liftedDefs = IDef lift_i it ie props : liftedDefs s,
-              liftedTypes = M.insert lift_i t (liftedTypes s),
-              convEnv = M.insert lift_i ref (convEnv s) })
-          return $ Right lift_i
+      poolC <- gets dictPoolC
+      case [ i0 | (e0, i0) <- M.findWithDefault [] t poolC, e0 == e' ] of
+       (i0:_) -> do
+        when trace_lift_dicts $ traceM $ "dictPool hit: " ++ ppReadable (i0, t)
+        return $ Right i0
+       [] -> do
+        (it, ie) <- convDict t e'
+        -- future occurrences of this (type, evidence) hit the
+        -- pre-conversion pool and skip convDict
+        let recordC i0 = modify (\s -> s {
+                dictPoolC = M.insertWith (\new old -> old ++ new) t
+                                [(e', i0)] (dictPoolC s) })
+        pool <- gets dictPool
+        let cands = M.findWithDefault [] it pool
+        case [ i0 | (i0, ie0) <- cands, ie0 == ie ] of
+          (i0:_) -> do
+            when trace_lift_dicts $ traceM $ "dictPool hit: " ++ ppReadable (i0, t)
+            recordC i0
+            return $ Right i0
+          [] -> do
+            when (trace_lift_dicts && not (null cands)) $ traceM $
+                "dictPool type collision (different evidence): " ++ ppReadable t
+            lift_i0 <- newDictId (getPosition e)
+            let lift_i = if incoherent then addIdProp lift_i0 IdPIncoherent
+                         else lift_i0
+            when trace_lift_dicts $ traceM $
+                "adding lifted dict: " ++ ppReadable (lift_i, e')
+            s0 <- get
+            -- The evidence identity for cross-package deduplication (see
+            -- "renderEvidence"), recorded at mint time.  An incoherent
+            -- resolution depends on the instances visible HERE, so it
+            -- never gets one.
+            let mev = if incoherent then Nothing
+                      else renderEvidence (flags s0) (symt s0) e'
+                props = case mev of
+                          Nothing -> []
+                          Just (str, kids, tys) -> [ DefP_DictRendering str,
+                                                     DefP_DictKids kids,
+                                                     DefP_DictTypes tys ]
+            when (trace_lift_dicts && not incoherent && null props) $ traceM $
+                "no evidence rendering (not cross-package dedupable): "
+                ++ ppReadable (lift_i, e')
+            let ref = ICon lift_i (ICDef it (icUndetAt (getIdPosition lift_i) it UNoMatch))
+            modify (\s -> s {
+                dictPool = M.insertWith (\new old -> old ++ new) it [(lift_i, ie)] (dictPool s),
+                liftedDefs = IDef lift_i it ie props : liftedDefs s,
+                liftedTypes = M.insert lift_i t (liftedTypes s),
+                convEnv = M.insert lift_i ref (convEnv s) })
+            recordC lift_i
+            return $ Right lift_i
 
 handleDictExpr :: BoundDicts -> CType -> CExpr -> L a (CExpr, Bool)
 handleDictExpr _ t e
