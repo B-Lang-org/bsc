@@ -1,4 +1,6 @@
-module FixupDefs(fixupDefs, updDef, DictBuckets, mkDictBuckets) where
+module FixupDefs(fixupDefs, updDef,
+                 DictBuckets, mkDictBuckets,
+                 DictRedirects, mkDictRedirects) where
 
 import Control.Monad.State.Strict(State, evalState, gets, modify)
 import Data.List(nub)
@@ -96,6 +98,25 @@ mkDictBuckets ipkgs =
 -- on the (Id, Id) pair across the whole computation, and a visited
 -- set guards defensively against a cycle in corrupted input by
 -- refusing (never trusting) a revisited pair.
+type DictRedirects = M.Map Id Id
+
+-- The redirect map for a whole compile, computed ONCE (in
+-- "compilePackage") over the package's own post-liftdicts defs plus
+-- all imported defs, and passed to every "fixupDefs"/"updDef" call.
+-- It is invariant across those calls: the imported packages never
+-- change, and the local dictionaries it redirects are dropped from the
+-- package by the first "fixupDefs", after which the extra entries
+-- match nothing (redirection is idempotent).  Recomputing it per call
+-- -- once per synthesized module via "updDef" -- rebuilt the evidence
+-- map over every imported def each time.
+mkDictRedirects :: DictBuckets -> IPackage a -> [(IPackage a, String)]
+                -> DictRedirects
+mkDictRedirects buckets (IPackage _ _ _ ds _) ipkgs =
+    let ads = concat (ds : [ ds' | (IPackage _ _ _ ds' _, _) <- ipkgs ])
+        evmap = M.fromList [ (i, (t, getDictEv props))
+                           | IDef i t _ props <- ads, isLiftedDict i ]
+    in  mkRedirects buckets evmap
+
 mkRedirects :: DictBuckets -> EvMap -> M.Map Id Id
 mkRedirects buckets evmap =
     M.fromList (concat (evalState (mapM tryRedirect dicts) M.empty))
@@ -175,10 +196,12 @@ redirectDictProps redirects d@(IDef i t e props)
 -- package's own dictionaries that were redirected away are dropped
 -- from the package (they remain in the returned alldefs).
 --
--- The first argument must be "mkDictBuckets" applied to the same
--- imported packages that are passed as the third argument.
-fixupDefs :: DictBuckets -> IPackage a -> [(IPackage a, String)] -> (IPackage a, [IDef a])
-fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
+-- The first argument must be "mkDictRedirects" computed from the same
+-- imported packages that are passed as the third argument (and this
+-- package's own defs; see mkDictRedirects on why one map serves every
+-- call).
+fixupDefs :: DictRedirects -> IPackage a -> [(IPackage a, String)] -> (IPackage a, [IDef a])
+fixupDefs redirects (IPackage mi _ ps ds own_atf_cache) ipkgs =
     let
         (ms, _) = unzip ipkgs
 
@@ -190,15 +213,6 @@ fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
 
         -- Get all the defs from this package and the imported packages
         ads = concat (ds : map (\ (IPackage _ _ _ ds _) -> ds) ms)
-
-        -- The evidence identities are read from the defs as their
-        -- packages recorded them, before any redirection this pass
-        -- performs.
-        evmap = M.fromList [ (i, (t, getDictEv props))
-                           | IDef i t _ props <- ads, isLiftedDict i ]
-
-        redirects :: M.Map Id Id
-        redirects = mkRedirects buckets evmap
 
         -- Create a recursive data structure by populating the map "m"
         -- with defs created using the map itself
@@ -233,10 +247,10 @@ fixupDefs buckets (IPackage mi _ ps ds own_atf_cache) ipkgs =
 -- Replace the definition for a top-level variable with a new definition.
 -- (This is used to replace the pre-synthesis definition for a module with
 -- the post-synthesis definition.)
--- The first argument must be "mkDictBuckets" applied to the same
+-- The first argument must be "mkDictRedirects" computed from the same
 -- imported packages that are passed as the fourth argument.
-updDef :: DictBuckets -> IDef a -> IPackage a -> [(IPackage a, String)] -> IPackage a
-updDef buckets d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
+updDef :: DictRedirects -> IDef a -> IPackage a -> [(IPackage a, String)] -> IPackage a
+updDef redirects d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
     let
         -- replace the def in the list
         ds' = [ if i == i' then d else d' | d'@(IDef i' _ _ _) <- ds ]
@@ -252,7 +266,7 @@ updDef buckets d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
         -- We use "fixupDefs" to perform both changes.
         -- XXX However, "fixupDefs" is overkill, for just one def.
         -- XXX Note that we throw away alldefs, when we could return it.
-        (ipkg'', _) = fixupDefs buckets ipkg' ips
+        (ipkg'', _) = fixupDefs redirects ipkg' ips
     in
         ipkg''
 
