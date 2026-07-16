@@ -122,6 +122,12 @@ Stability was demonstrated directly: under `-no-inline-rwire` /
 `-no-inline-creg` the new analysis reports identical properties while
 `getIOProps` drops `reg`/`const` labels; `-keep-fires` changes neither.
 
+The full dejagnu testsuite was also run with this branch (855 test
+groups, ~18,000 checks): no failures attributable to the change (the
+only failing tests are ones which cannot run in the build container --
+SystemC linking, and tests requiring unreadable files while running as
+root).
+
 Golden tests covering each mechanism (wires, CRegs, schedule facts,
 split-method readies, arbitration, foreign calls) are checked in under
 `testsuite/bsc.verilog/portprops/APkgProps_*`, dumping both analyses side
