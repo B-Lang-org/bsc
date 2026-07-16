@@ -1,0 +1,22 @@
+name = "Bluespec"
+path_suffixes = ["bs", "bsv"]
+line_comments = ["-- "]
+block_comment = ["/* ", " */"]
+
+[[brackets]]
+start = "{"
+end = "}"
+close = true
+newline = true
+
+[[brackets]]
+start = "("
+end = ")"
+close = true
+newline = false
+
+[[brackets]]
+start = "["
+end = "]"
+close = true
+newline = false
