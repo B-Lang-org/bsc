@@ -223,6 +223,14 @@ ifeq ($(OSTYPE), Linux)
 GHCFLAGS += -lpthread
 endif
 
+# 'make DO_INTERNAL_CHECKS=1' compiles in expensive internal
+# consistency assertions (e.g. IType's deep-NF construction check).
+# ghc-heap is a GHC boot library, needed only by those assertions.
+ifdef DO_INTERNAL_CHECKS
+GHCFLAGS += -DDO_INTERNAL_CHECKS
+PACKAGES += ghc-heap
+endif
+
 # Get Haskell runtime to parse and filter +RTS ... -RTS args
 # from command line arguments at program start
 RTSFLAGS += -rtsopts

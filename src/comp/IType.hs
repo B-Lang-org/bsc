@@ -26,6 +26,10 @@ import qualified Data.Set as S
 import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
 import Data.Maybe(isJust, fromJust)
 import System.IO.Unsafe(unsafePerformIO)
+#if defined(DO_INTERNAL_CHECKS)
+import GHC.Exts.Heap(Box, asBox, getBoxedClosureData,
+                     GenClosure(..), allClosures)
+#endif
 
 import ErrorUtil(internalError)
 import IOUtil(progArgs)
@@ -37,7 +41,7 @@ import CType(Type(..), CType, TyCon(..), TyVar(..), Kind(..),
              cTApplys, cTVar, cTCon, cTNum, cTStr)
 import Pragma(IfcPragma(..))
 import StdPrel(tiArrow)
-import Eval(NFData(..), rnf3, rnf2, rnf)
+import Eval(NFData(..), rnf2, deepseq)
 import PPrint
 import PFPrint
 import Position(noPosition)
@@ -88,6 +92,8 @@ data IType
         | ITCon_ !Id !IKind !TISort
         | ITNum !Integer
         | ITStr !FString
+        -- (all fields strict or forced at construction: NFData relies
+        -- on WHNF == deep NF for every constructor)
 
 pattern ITForAll :: Id -> IKind -> IType -> IType
 pattern ITForAll i k t <- ITForAll_ _ _ i k t
@@ -290,7 +296,8 @@ tidyCT (TDefMonad _) = TDefMonad noPosition
 -- variables are local names -- normalized, never qualified, never
 -- interned (no payload to amortize).
 mkITVar :: Id -> IType
-mkITVar i = ITVar_ (tidyTypeId i)
+mkITVar i = let ti = tidyTypeId i
+            in  ti `deepseq` assertConstructedNF "mkITVar" (ITVar_ ti)
 
 -- ITCon leaves are interned by qualified name.  Soundness rests on
 -- the one-tycon-per-qualified-name invariant (front-end enforced,
@@ -333,7 +340,13 @@ mkITCon i k s
     go key st@(TConTable m) =
         case M.lookup key m of
           Just t  -> (st, t)
-          Nothing -> let t = ITCon_ (tidyTypeId i) k (tidySort (getIdQual i) s)
+          Nothing -> let ti = tidyTypeId i
+                         ts = tidySort (getIdQual i) s
+                         -- deep NF at construction (once per unique
+                         -- tycon; TISort can embed a whole CType), so
+                         -- NFData can stop at the interned node
+                         t = ti `deepseq` k `deepseq` ts `deepseq`
+                             assertConstructedNF "mkITCon" (ITCon_ ti k ts)
                      in  (TConTable (M.insert key t m), t)
 
 -- --------------------------------
@@ -419,7 +432,11 @@ internAp f a = unsafePerformIO $ do
           Just t  -> (st, t)
           Nothing -> let fvs | ftvCacheEnabled = fTVarSet f `vsUnionCanon` fTVarSet a
                              | otherwise       = vsEmpty
-                         t = ITAp_ n fvs f a
+                         -- deep NF at construction (children are already
+                         -- deep by induction), so NFData can stop at
+                         -- interned nodes
+                         t = fvs `deepseq`
+                             assertConstructedNF "internAp" (ITAp_ n fvs f a)
                      in  (InternTable (M.insert key t m) (n+1), t)
 
 {-# NOINLINE mkITForAll #-}
@@ -438,7 +455,10 @@ mkITForAll i k t = unsafePerformIO $ do
           Just t' -> (st, t')
           Nothing -> let fvs | ftvCacheEnabled = vsDeleteCanon ti (fTVarSet t)
                              | otherwise       = vsEmpty
-                         t' = ITForAll_ n fvs ti k t
+                         -- deep NF at construction; see internAp
+                         t' = fvs `deepseq` ti `deepseq` k `deepseq`
+                              assertConstructedNF "mkITForAll"
+                                  (ITForAll_ n fvs ti k t)
                      in  (InternTable (M.insert key t' m) (n+1), t')
 
 -- The smart constructor behind the ITAp pattern synonym.  It first
@@ -480,6 +500,75 @@ mkNumConT i =
         ITNum i
 
 -- --------------------------------
+-- Deep-NF construction assertion (internal-checks builds only)
+--
+-- rnf below trusts that every node leaving a smart constructor is
+-- already in deep normal form.  A build with -DDO_INTERNAL_CHECKS
+-- (make DO_INTERNAL_CHECKS=1) verifies that invariant physically:
+-- when a node is built, the closure graphs of its components are
+-- walked with ghc-heap and any suspension found (thunk, ap, selector)
+-- is an internalError naming the constructor that stored it.  IType
+-- children are checked to WHNF only -- they were verified when they
+-- were themselves constructed, the same induction rnf relies on -- so
+-- the check is proportional to the new node's own payload, paid once
+-- per unique node, and never re-walks the shared DAG.  (ITNum/ITStr
+-- are built raw: their single strict fields are unboxed-at-WHNF
+-- values, so there is nothing to walk.)
+--
+-- This is compile-time rather than a doICheck run: doICheck lives in
+-- Flags, which these pure constructors cannot consult, and the CPP
+-- guard also keeps the ghc-heap dependency out of production builds.
+
+assertConstructedNF :: String -> IType -> IType
+#if defined(DO_INTERNAL_CHECKS)
+{-# NOINLINE assertConstructedNF #-}
+assertConstructedNF site t = unsafePerformIO $ do
+    -- components forced deep at construction vs. IType children
+    -- trusted by induction (WHNF check only)
+    let (deep, whnf) = case t of
+          ITForAll_ _ fvs i k b -> ([asBox fvs, asBox i, asBox k], [asBox b])
+          ITAp_ _ fvs f a       -> ([asBox fvs], [asBox f, asBox a])
+          ITVar_ i              -> ([asBox i], [])
+          ITCon_ i k s          -> ([asBox i, asBox k, asBox s], [])
+          ITNum n               -> ([asBox n], [])
+          ITStr s               -> ([asBox s], [])
+    mapM_ walk deep
+    mapM_ whnfClosure whnf
+    return t
+  where
+    bad :: IO a
+    bad = return $! internalError ("IType.assertConstructedNF: thunk stored"
+                                   ++ " by " ++ site ++ " in " ++ show t)
+    -- dereference indirections; reject suspensions
+    whnfClosure :: Box -> IO (GenClosure Box)
+    whnfClosure b = do
+        c <- getBoxedClosureData b
+        case c of
+          IndClosure { indirectee = b' }       -> whnfClosure b'
+          BlackholeClosure { indirectee = b' } -> whnfClosure b'
+          ThunkClosure {}    -> bad
+          APClosure {}       -> bad
+          SelectorClosure {} -> bad
+          APStackClosure {}  -> bad
+          _                  -> return c
+    walk :: Box -> IO ()
+    walk b = do
+        c <- whnfClosure b
+        case c of
+          -- Id in WHNF is as deep as rnf can see: pos/mfs/fs are
+          -- strict fields of types that are strict all the way down,
+          -- and id_props is provenance -- exempt from the invariant
+          -- just as it is invisible to Id's WHNF-only rnf (tidying
+          -- sets it to [], but unoptimized record updates can leave a
+          -- benign thunk of that [] behind).
+          ConstrClosure { modl = "Id", name = "Id" } -> return ()
+          _ -> mapM_ walk (allClosures c)
+#else
+assertConstructedNF _ t = t
+{-# INLINE assertConstructedNF #-}
+#endif
+
+-- --------------------------------
 -- Show instance
 --
 -- Hand-written to print the historical constructor names without the
@@ -504,13 +593,12 @@ instance Show IType where
 
 -- --------------------------------
 -- NFData Instances
+-- Every constructor is brought to deep normal form when it is built
+-- (see internAp/mkITForAll/mkITCon/mkITVar), so rnf stops at the node.
+-- DO_INTERNAL_CHECKS builds verify this at every construction; see
+-- assertConstructedNF above.
 instance NFData IType where
-    rnf (ITForAll i k t) = rnf3 i k t
-    rnf (ITAp a b) = rnf2 a b
-    rnf (ITVar i) = rnf i
-    rnf (ITCon i k s) = rnf3 i k s
-    rnf (ITNum i) = rnf i
-    rnf (ITStr s) = rnf s
+    rnf t = t `seq` ()
 
 instance NFData IKind where
     rnf IKStar = ()
