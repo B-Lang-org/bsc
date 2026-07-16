@@ -312,14 +312,11 @@ doOne ft rrs@(CRator ia iop:rs) oos@((sa,sop):os) es =
             else
                 doOp ft sa sop rrs os es
 doOp :: FixTable -> Int -> Id -> [COp] -> [(Int, Id)] -> [CExpr] -> ErrorMonad CExpr
-doOp ft a op rs os es =
-{-
-    if idFString op == fsMinus && a == 1 then
+doOp ft 1 op rs os es =
         case es of
-            e:es' -> doOne ft rs os (ENegate e : es')
-            _ -> internalError ("Bad operator arity (1) for "++pfpString op)
-    else
--}
+            e:es' -> doOne ft rs os (cVApply op [e] : es')
+            _ -> internalError ("ParseOp.doOp: Bad operator arity (1) for "++pfpString op)
+doOp ft 2 op rs os es =
         case es of
             e1:e2:es' -> -- XXX := to Cwrite (see above)
                          do let e' = if (op `qualEq` idAssign) then
@@ -327,8 +324,10 @@ doOp ft a op rs os es =
                                      else CBinOp e2 op e1
                             doOne ft rs os (e' : es')
             _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
+doOp ft a op _ _ _ = internalError ("ParseOp.doOp: Unexpected operator arity ("++show a++") for "++pfpString op)
 
 precOfA :: FixTable -> Int -> Id -> (Int, Fixity)
+precOfA _  1 _ = (16, FPrefix)
 precOfA ft _ i =
     case getIdFixity ft i of
     f@(FInfix  i) -> (i, f)

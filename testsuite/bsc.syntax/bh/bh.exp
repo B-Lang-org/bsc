@@ -144,6 +144,9 @@ compile_fail_error SizedLiteralAmbig.bs T0033 1 -let-gen
 test_c_veri_bs_modules SizedLiteralMono {}
 test_c_veri_bs_modules SizedLiteralTest {}
 
+# Prefix unary minus sugar
+test_c_veri_bs_modules UnaryMinusTest {}
+
 # Warn about unused and shadowed defs
 # (fixes Google issue #67757083)
 compile_pass DefUnused.bs
