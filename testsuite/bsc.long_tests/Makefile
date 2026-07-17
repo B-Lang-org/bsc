@@ -68,6 +68,14 @@ no-log2_loop:
 	@rm log2_loop/module/log2_loop.exp
 	@rm log2_loop/pure/log2_loop.exp
 
+### verilog_foreign_inline_large #######################################
+DIRS += verilog_foreign_inline_large
+.PHONY: verilog_foreign_inline_large no-verilog_foreign_inline_large
+verilog_foreign_inline_large:
+	ln -sf verilog_foreign_inline_large.exp.golden verilog_foreign_inline_large/verilog_foreign_inline_large.exp
+no-verilog_foreign_inline_large:
+	@rm verilog_foreign_inline_large/verilog_foreign_inline_large.exp
+
 ### ###############################################
 
 #### To add a testcase do the following:

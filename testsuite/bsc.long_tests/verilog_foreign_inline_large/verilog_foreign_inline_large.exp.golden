@@ -1,0 +1,28 @@
+#
+# Scale test for Verilog generation of foreign-block-inlined defs.
+#
+# A compact source ($stime feeding an 8192-element Vector fold into a
+# system task) elaborates to ~24k defs that are all inlined into the
+# negedge foreign always block.  The def selection and reg-marking in
+# the Verilog backend must be (near-)linear in that count; with the old
+# per-def list-membership tests it is quadratic, about 9 seconds here
+# instead of about 1.  There is no time limit, so this checks the
+# generated Verilog, which is also simulated and its output checked.
+#
+
+# Compile to Verilog (steps-warn-interval raised because the compact
+# source unfolds to a large number of evaluation steps; the RTS stack is
+# enlarged because the 8192-element fold evaluates to a deep expression)
+compile_verilog_pass ForeignInlineLarge.bsv mkForeignInlineLarge \
+    {-steps-warn-interval 2000000000 +RTS -K400m -RTS}
+
+# All ~24k inlined defs (plus the acc state register) are declared as
+# 32-bit regs; check the count to catch defs being dropped or duplicated
+find_n_strings mkForeignInlineLarge.v {reg [31 : 0]} 24576
+
+# The generated Verilog simulates to the expected values
+if { $vtest == 1 } {
+    link_verilog_pass {mkForeignInlineLarge.v} mkForeignInlineLarge
+    sim_verilog mkForeignInlineLarge
+    compare_file mkForeignInlineLarge.out mkForeignInlineLarge.out.expected
+}
