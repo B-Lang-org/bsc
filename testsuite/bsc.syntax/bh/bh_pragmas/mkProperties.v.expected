@@ -7,7 +7,7 @@
 // _read                          O     8
 // RDY__read                      O     1 const
 // CLK_foo                        I     1 clock
-// CLK_GATE_foo                   I     1 unused
+// CLK_GATE_foo                   I     1 clock gate unused
 // RST_N_bar                      I     1 reset
 //
 // No combinational paths from inputs to outputs

@@ -4,8 +4,8 @@
 //
 // Ports:
 // Name                         I/O  size props
-// CLK                            I     1 unused
-// RST_N                          I     1 unused
+// CLK                            I     1 clock unused
+// RST_N                          I     1 reset unused
 // a                             IO    32 inout
 // b                             IO    32 inout
 //

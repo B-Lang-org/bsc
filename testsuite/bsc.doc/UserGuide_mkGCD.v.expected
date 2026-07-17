@@ -8,7 +8,7 @@
 // result                         O    51 reg
 // RDY_result                     O     1
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 // start_num1                     I    51
 // start_num2                     I    51
 // EN_start                       I     1
