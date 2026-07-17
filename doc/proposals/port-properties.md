@@ -173,23 +173,36 @@ calls, dead-logic unusedness, and parameter exclusion.
 
 ## How narrow is the optimizer's edge?
 
-The 42 "deeper rewriting" lines invite the question: how often can a
+The "deeper rewriting" lines invite the question: how often can a
 syntactic optimization expose a property that the semantic analysis cannot
 see?  Constructing such a case deliberately turns out to be hard.  Of six
 adversarial attempts, five failed: user-written tautologies, redundant
 nested selections, and absorption shapes are all folded by the front-end
 evaluator during elaboration and never reach the netlist; reassembled
-extractions and schedule-constant residues are covered semantically.  The
-single surviving shape is two-level boolean minimization over dynamic
-leaves -- `(a && b) || (!a && b) == b` -- which requires knowingly writing
-a redundant guard (or generated/split condition code; the testsuite's two
-real instances are both of this species).  If those properties are ever
-wanted, the stable way to obtain them is a bounded validity check
-(truth-table evaluation of 1-bit guards over their dynamic leaves), which
-is semantic and optimizer-independent -- not a re-implementation of the
-optimizer.  This proposal deliberately does not promise them: a `const`
-that exists because of a particular rewrite is exactly the instability
-being removed.
+extractions and schedule-constant residues are covered semantically.
+Hiding a foldable shape behind a wire does not work either, since the
+analysis propagates expressions through wires (a tautology whose negated
+half arrives through an RWire is still recognized; see
+`APkgProps_WireExpr`).
+
+What survives is exactly what the "agreement, not enumeration" rule
+excludes on principle:
+
+* boolean identities relating two or more *independent* dynamic values --
+  `(a && b) || (!a && b) == b` -- i.e. two-level minimization, which
+  requires knowingly writing a redundant guard (the testsuite's two real
+  instances are generated/split condition code); and
+* value enumeration at merges (the wire set to 1, 2, or 3 above).
+
+So the optimizer's edge is not an accident of what this analysis happens
+to implement; it coincides with the semantic boundary this proposal
+draws.  If minimization-derived properties are ever wanted, the stable
+way to obtain them is a bounded validity check (truth-table evaluation
+of 1-bit guards over their dynamic leaves), which is semantic and
+optimizer-independent -- not a re-implementation of the optimizer.  This
+proposal deliberately does not promise them: a `const` that exists
+because of a particular rewrite is exactly the instability being
+removed.
 
 ## Migration
 
@@ -210,11 +223,18 @@ being removed.
    dump available for comparison.
 5. Remove `getIOProps`.
 
-## Limitations (known, documented in the module)
+## Non-goals and pending work (documented in the module)
 
-* Boolean minimization of guards over dynamic values (above).
-* Value analysis of register contents (a never-written `mkReg(0)` is not
-  `const`).
+Excluded on principle (the "agreement, not enumeration" boundary):
+
+* Boolean minimization of guards over independent dynamic values
+  (above).
+* Value enumeration at merges, and value analysis of register contents
+  (a never-written `mkReg(0)` is not `const`): properties of the
+  particular values written, not of the design's structure.
+
+Pending (deducible under the contract, not yet implemented):
+
 * Inout nets are not traced through `InoutConnect` instances.
 * Value-method argument muxes are not yet arbitration-modeled (the 49
   enable lines); same machinery as action methods, planned.
