@@ -168,11 +168,10 @@ by side.
 
 On the portprops testsuite directory specifically, the categories above
 account for every difference: of the 35 compiling designs, 18 match
-`getIOProps` byte-for-byte, 15 differ only by the retained structural
-labels, 1 (`InoutProps_ArgToIfc`) is the inout alias-collapse artifact,
-and 1 (`APkgProps_DeadLogic`) is the dead-logic `unused` difference.
-Covering that directory under this proposal is therefore a golden-file
-regeneration (migration step 3), not an analysis change.
+`getIOProps` byte-for-byte, 16 differ only by the retained structural
+labels (including `InoutProps_ArgToIfc`, whose argument-pin mislabel is
+fixed in `getIOProps` on this branch), and 1 (`APkgProps_DeadLogic`) is
+the dead-logic `unused` difference.
 
 The directory now exercises each deduction mechanism: value/const/reg
 output deduction with concats and extractions, input joins with unused
