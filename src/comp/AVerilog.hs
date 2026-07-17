@@ -250,14 +250,15 @@ aVerilog errh flags pps aspack ffmap =
 
         -- defs which must be declared as reg, and don't need assigns
         -- because they are assigned in foreign blocks
-        defs_as_reg = defs_in_foreign_blocks
+        -- (a Set, because vDef consults this once per def)
+        defs_as_reg = S.fromList defs_in_foreign_blocks
 
         vDef :: ADef -> [VMItem]
         vDef adef@(ADef i t _ _) =
             let vdef = vDefMpd vco adef ffmap
                 reg_def = [VMDecl $ VVDecl VDReg (vSize t) [VVar (vId i)]]
             in  -- if it's a reg, just declare the reg
-                if (i `elem` defs_as_reg)
+                if (i `S.member` defs_as_reg)
                 then reg_def
                 else -- return the vdef, but
                      -- remove definitions which have 0 sized results
