@@ -222,19 +222,21 @@ removed.
 
 1. **(done, this branch)** The analysis exists behind
    `-dAPackageIOproperties`; golden tests compare both analyses.
-2. Feed the wrapper attributes (`veriPortProps` in `bsc.hs`) and the
-   Verilog "Ports:" comment from the new analysis, behind a flag,
-   default off.  Bluesim compiles gain port properties in their `.bo`s
-   for free (the analysis needs only the `APackage` and the schedule).
-3. Run the full testsuite with the flag on.  Expected churn: golden
+2. **(done, this branch)** The wrapper attributes (`veriPortProps` in
+   `bsc.hs`) and the Verilog "Ports:" comment are fed from the new
+   analysis, for every backend -- Bluesim compiles gain port properties
+   in their `.bo`s (the analysis needs only the `APackage` and the
+   schedule).  `getIOProps` remains, computed only when its comparison
+   dump (`-dIOproperties`) is requested.
+3. **(done, this branch)** Run the full testsuite.  The churn: golden
    Verilog files' "Ports:" comments change where the new labels are
-   richer; behavioral differences in parent compiles are confined to the
-   52 known lines and should be reviewed (the main risk is a parent
-   asserting `always_ready` against a child whose RDY `const` was
+   richer; behavioral differences in parent compiles are confined to
+   the 52 known lines (the main risk is a parent asserting
+   `always_ready` against a child whose RDY `const` was
    optimizer-derived -- two designs in the testsuite exhibit the
    pattern, neither with such a parent).
-4. Default the flag on for a release, keeping `getIOProps` and the old
-   dump available for comparison.
+4. Keep `getIOProps` and its dump available for comparison for a
+   release.
 5. Remove `getIOProps`.
 
 ## Non-goals and pending work (documented in the module)
