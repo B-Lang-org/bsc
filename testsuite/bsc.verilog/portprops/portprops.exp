@@ -222,6 +222,12 @@ compare_file APkgProps_Mux.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_Args.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_Args.bsv.bsc-vcomp-out
 
+# expressions propagate through wires: a tautology carried through a
+# wire is recognized, and several setters of the same expression
+# collapse to an alias of that expression
+compile_verilog_pass APkgProps_WireExpr.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_WireExpr.bsv.bsc-vcomp-out
+
 # ----------
 
 }

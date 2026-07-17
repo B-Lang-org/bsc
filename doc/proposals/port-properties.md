@@ -90,6 +90,20 @@ property that does not hold of the hardware.
 optimization or inlining settings, or with a different backend, yields the
 same properties.
 
+**Where deduction stops -- agreement, not enumeration.**  The analysis
+propagates *expressions* through wires (values, properties, and boolean
+structure all cross wire and CReg boundaries, so a tautology carried
+through a wire is still recognized), and it crosses merge points (muxes,
+multiple setters) exactly when all arms carry the same expression -- which
+is a structural fact, and matches AState's own collapsing of
+equal-expression mux arms.  It deliberately does not reason by
+*enumerating* the values that reach a merge: a wire set to 1, 2, or 3 on
+different paths is not deduced to be "greater than 0", because that
+property comes from the particular values written, not from the structure
+of the design -- change one constant and it silently vanishes.  Properties
+that brittle are exactly what the stability contract excludes from the
+interface metadata.
+
 ## Evidence
 
 The implementation was validated by compiling every synthesizable design in
@@ -127,6 +141,14 @@ groups, ~18,000 checks): no failures attributable to the change (the
 only failing tests are ones which cannot run in the build container --
 SystemC linking, and tests requiring unreadable files while running as
 root).
+
+The analysis is memoized per definition (lazy maps for the evaluator,
+the output properties, and the input uses), so each definition is
+analyzed at most once and the cost is near-linear in the package size.
+On the largest testsuite design (the h264 deblocking filter, ~13s to
+compile), forcing the analysis is not measurable above compile-time
+noise, and the full-testsuite sweep forced it on all 2124 designs with
+no timeouts.
 
 Golden tests covering each mechanism (wires, CRegs, schedule facts,
 split-method readies, arbitration, foreign calls) are checked in under

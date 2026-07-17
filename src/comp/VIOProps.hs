@@ -1,7 +1,7 @@
 module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
-import Data.List(intersect, nub, tails, genericLength, sortBy, partition)
-import Data.Maybe(catMaybes, isNothing, fromMaybe)
+import Data.List(intersect, nub, tails, sortBy, partition)
+import Data.Maybe(catMaybes, isNothing, fromMaybe, isJust)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util
@@ -782,9 +782,16 @@ getIOPropsA _flags pps mschedinfo apkg =
             [ s | s@(wf, _, _) <- M.findWithDefault [] inst wireSetters,
                   isLiveWF wf ]
 
-        -- the number of live "wset" call sites of a wire instance
-        wireSetCount :: AId -> Integer
-        wireSetCount = genericLength . liveWireSetters
+        -- The data expression carried by a wire, when it is uniquely
+        -- determined: a single live setter, or several live setters
+        -- which all set the same expression (compared through def and
+        -- wire references) -- AState's muxing collapses in that case
+        -- too, since equal-expression uses share one mux arm.
+        wireDataExpr :: AId -> Maybe AExpr
+        wireDataExpr inst =
+            case [ map derefA es | (_, _, es) <- liveWireSetters inst ] of
+              ([e]:rest) | all (== [e]) rest -> Just e
+              _ -> Nothing
 
         -- the properties of a wire's "wget" value
         wireGetProps :: AId -> [VeriPortProp]
@@ -792,10 +799,11 @@ getIOPropsA _flags pps mschedinfo apkg =
             case (liveWireSetters inst) of
               -- never set: inlining defines the value as a constant
               []  -> [VPconst]
-              -- one setter: the value flows through
-              [(_, _, [e])] -> getOutPropsA e
-              -- multiple setters: the value comes from a mux
-              _   -> []
+              -- a unique data expression flows through;
+              -- otherwise the value comes from a mux
+              _   -> case (wireDataExpr inst) of
+                       Just e  -> getOutPropsA e
+                       Nothing -> []
 
         -- the properties of a wire's "whas" value
         wireHasProps :: AId -> [VeriPortProp]
@@ -806,20 +814,27 @@ getIOPropsA _flags pps mschedinfo apkg =
 
         -- the constant value of a wire's "whas", when the schedule
         -- determines it: the OR over the setters of (WILL_FIRE AND
-        -- condition)
+        -- condition); complementary WILL_FIREs of unconditional
+        -- setters (e.g. rules split over a condition) make it 1
         wireHasVal :: AId -> Maybe Integer
         wireHasVal inst =
-            let conj :: (AId, AExpr, [AExpr]) -> Maybe Integer
+            let setters = M.findWithDefault [] inst wireSetters
+                conj :: (AId, AExpr, [AExpr]) -> Maybe Integer
                 conj (wf, c, _) =
                     case (evalDefA wf, evalConstA c) of
                       (Just 0, _) -> Just 0
                       (_, Just 0) -> Just 0
                       (Just _, Just _) -> Just 1
                       _ -> Nothing
-                vals = map conj (M.findWithDefault [] inst wireSetters)
+                vals = map conj setters
+                -- the WILL_FIREs of the unconditional setters
+                uncond_wfs = [ ASDef aTBool wf |
+                                   (wf, c, _) <- setters,
+                                   evalConstA c == Just 1 ]
             in  if (null vals) then Just 0
                 else if (any (== (Just 1)) vals) then Just 1
                 else if (all (== (Just 0)) vals) then Just 0
+                else if (anyComplementaryA uncond_wfs) then Just 1
                 else Nothing
 
         -- the constant value of a wire's "wget", when it can be known
@@ -828,9 +843,10 @@ getIOPropsA _flags pps mschedinfo apkg =
             case (liveWireSetters inst) of
               -- never set: the value is tied to constant 0
               []  -> Just 0
-              -- one setter: the data is connected without gating
-              [(_, _, [e])] -> evalConstA e
-              _   -> Nothing
+              -- a unique data expression is connected without gating
+              _   -> case (wireDataExpr inst) of
+                       Just e  -> evalConstA e
+                       Nothing -> Nothing
 
         -- ----------
         -- CReg instances are looked through: port 0's read is the
@@ -880,6 +896,14 @@ getIOPropsA _flags pps mschedinfo apkg =
             [ w | w@(wf, _, _) <- M.findWithDefault [] (inst, n) cregWriters,
                   isLiveWF wf ]
 
+        -- the data expression written to a CReg port, when it is
+        -- uniquely determined (as wireDataExpr)
+        cregWriteExpr :: AId -> Int -> Maybe AExpr
+        cregWriteExpr inst n =
+            case [ derefA e | (_, _, e) <- liveCregWriters inst n ] of
+              (e:es) | all (== e) es -> Just e
+              _ -> Nothing
+
         -- the constant value of a CReg port's write enable, when the
         -- schedule determines it (like wireHasVal)
         cregEnVal :: AId -> Int -> Maybe Integer
@@ -904,12 +928,12 @@ getIOPropsA _flags pps mschedinfo apkg =
             case (cregEnVal inst (n-1)) of
               -- the bypass is never taken
               Just 0 -> cregReadProps inst (n-1)
-              -- the bypass is always taken: a single writer's data
+              -- the bypass is always taken: a unique write expression
               -- flows through
               Just _ ->
-                  case (liveCregWriters inst (n-1)) of
-                    [(_, _, e)] -> getOutPropsA e
-                    _ -> []
+                  case (cregWriteExpr inst (n-1)) of
+                    Just e  -> getOutPropsA e
+                    Nothing -> []
               -- otherwise it is a mux
               Nothing -> []
 
@@ -921,9 +945,9 @@ getIOPropsA _flags pps mschedinfo apkg =
             case (cregEnVal inst (n-1)) of
               Just 0 -> cregReadVal inst (n-1)
               Just _ ->
-                  case (liveCregWriters inst (n-1)) of
-                    [(_, _, e)] -> evalConstA e
-                    _ -> Nothing
+                  case (cregWriteExpr inst (n-1)) of
+                    Just e  -> evalConstA e
+                    Nothing -> Nothing
               Nothing -> Nothing
 
         -- ----------
@@ -976,11 +1000,50 @@ getIOPropsA _flags pps mschedinfo apkg =
               Nothing -> Nothing
         evalPrimA _ _ = Nothing
 
-        -- follow def references to the defining expression
+        -- Follow def references to the defining expression -- and
+        -- follow reads of wires (and folded CReg bypasses) with a
+        -- single live setter to the setter's data expression, since
+        -- the wire carries exactly that expression (a wire is
+        -- transparent to this reasoning just as it is to the property
+        -- flow); this lets the structural reductions below (equal
+        -- branches, complementary operands) see through wires, where
+        -- the netlist optimization would see the substituted
+        -- expressions after inlining.
         derefA :: AExpr -> AExpr
         derefA e@(ASDef _ i) =
             maybe e (derefA . adef_expr) (M.lookup i defMapA)
+        derefA e@(AMethCall _ obj meth _)
+            | isWireGet obj meth = fromMaybe e (wireDataExpr obj)
+            | Just (n, True) <- cregMeth obj meth = derefCregRead obj n e
+        -- a selection whose condition is constant is its taken branch
+        derefA (APrim _ _ PrimIf [c, t, e])
+            | Just v <- evalConstA c = derefA (if v == 0 then e else t)
+        -- a 1-bit AND/OR whose identity operands drop away, leaving a
+        -- single operand, is that operand
+        derefA e@(APrim _ (ATBit 1) p es)
+            | (p == PrimBAnd) || (p == PrimAnd) = derefBoolOpA 0 e es
+            | (p == PrimBOr)  || (p == PrimOr)  = derefBoolOpA 1 e es
         derefA e = e
+
+        derefBoolOpA :: Integer -> AExpr -> [AExpr] -> AExpr
+        derefBoolOpA annihilator orig es =
+            let vs = [ (evalConstA e, e) | e <- es ]
+            in  -- with an annihilating operand the expression is
+                -- constant, which evalConstA handles; otherwise drop
+                -- the identity operands and look for a lone survivor
+                if (any ((== (Just annihilator)) . fst) vs)
+                then orig
+                else case [ e | (Nothing, e) <- vs ] of
+                       [e] -> derefA e
+                       _   -> orig
+
+        derefCregRead :: AId -> Int -> AExpr -> AExpr
+        derefCregRead _ 0 e = e
+        derefCregRead inst n e =
+            case (cregEnVal inst (n-1)) of
+              Just 0 -> derefCregRead inst (n-1) e
+              Just _ -> fromMaybe e (cregWriteExpr inst (n-1))
+              Nothing -> e
 
         -- whether any two operands are complementary (x and !x),
         -- looking through def references; this recognizes the
@@ -1026,18 +1089,23 @@ getIOPropsA _flags pps mschedinfo apkg =
             joinOutProps (map getOutPropsA es)
         -- an extraction doesn't change the properties
         getOutPropsA (APrim _ _ PrimExtract [e, _, _]) = getOutPropsA e
+        -- any primitive whose value the evaluator can determine is
+        -- constant (this covers all-constant operands, and boolean
+        -- structure such as complementary operands, through wires)
+        getOutPropsA e@(APrim _ _ _ _)
+            | isJust (evalConstA e) = [VPconst]
         -- a selection whose condition the schedule makes constant
         -- reduces to one of its branches
         getOutPropsA (APrim _ _ PrimIf [c, t, e])
             | Just v <- evalConstA c =
                 if (v == 0) then getOutPropsA e else getOutPropsA t
         -- a selection between equal branches reduces to the branch
+        -- (compared through def and wire references)
         getOutPropsA (APrim _ _ PrimIf [_, t, e])
-            | t == e = getOutPropsA t
-        -- a 1-bit AND/OR reduces over its constant operands, as the
-        -- netlist optimization will: identity operands are dropped, an
-        -- annihilating operand makes the result constant, and a single
-        -- remaining operand passes its properties through
+            | derefA t == derefA e = getOutPropsA t
+        -- a 1-bit AND/OR whose identity operands drop away, leaving a
+        -- single operand, passes that operand's properties through
+        -- (constant results were already handled above)
         getOutPropsA (APrim _ (ATBit 1) p es)
             | (p == PrimBAnd) || (p == PrimAnd) = boolOpPropsA 0 es
             | (p == PrimBOr)  || (p == PrimOr)  = boolOpPropsA 1 es
@@ -1270,8 +1338,10 @@ getIOPropsA _flags pps mschedinfo apkg =
             -- directly for a single setter, through a mux otherwise;
             -- the condition feeds the validity and the mux select
             | isWireSet obj meth =
-                let wire_use =
-                        if (wireSetCount obj <= 1)
+                let -- with a unique data expression the wire is a
+                    -- direct alias; otherwise the data goes via a mux
+                    wire_use =
+                        if (isJust (wireDataExpr obj))
                         then AUDef (wireDataId obj)
                         else AUVia (wireDataId obj)
                 in  concat [ classifyExpr u c | u <- wireFlowUses obj ] ++
