@@ -6,8 +6,8 @@
 // Name                         I/O  size props
 // start                          O    32
 // RDY_start                      O     1 const
-// CLK                            I     1 unused
-// RST_N                          I     1 unused
+// CLK                            I     1 clock unused
+// RST_N                          I     1 reset unused
 // start_a                        I    32
 // start_b                        I    32
 // start_c                        I     1
@@ -53,13 +53,13 @@ module mkAddSub(CLK,
   wire RDY_start;
 
   // remaining internal signals
-  wire [31 : 0] b_in__h23;
+  wire [31 : 0] b_in__h315;
 
   // value method start
-  assign start = start_a + b_in__h23 ;
+  assign start = start_a + b_in__h315 ;
   assign RDY_start = 1'd1 ;
 
   // remaining internal signals
-  assign b_in__h23 = start_c ? start_b : ~start_b + 32'd1 ;
+  assign b_in__h315 = start_c ? start_b : ~start_b + 32'd1 ;
 endmodule  // mkAddSub
 

@@ -5,7 +5,7 @@
 // Ports:
 // Name                         I/O  size props
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 //
 // No combinational paths from inputs to outputs
 //
@@ -50,14 +50,14 @@ module sysUseCondEqNEqCross2(CLK,
   wire source2$EN;
 
   // remaining internal signals
-  wire [31 : 0] shared__h204;
+  wire [31 : 0] shared__h113;
 
   // register a
   assign a$D_IN = 16'h0 ;
   assign a$EN = 1'b0 ;
 
   // register dest
-  assign dest$D_IN = (a == 16'd1) ? shared__h204 : 32'd2 ;
+  assign dest$D_IN = (a == 16'd1) ? shared__h113 : 32'd2 ;
   assign dest$EN = 1'd1 ;
 
   // register source1
@@ -69,7 +69,7 @@ module sysUseCondEqNEqCross2(CLK,
   assign source2$EN = 1'd1 ;
 
   // remaining internal signals
-  assign shared__h204 = (a == 16'd1) ? source2 : source1 ;
+  assign shared__h113 = (a == 16'd1) ? source2 : source1 ;
 
   // handling of inlined registers
 
@@ -100,7 +100,7 @@ module sysUseCondEqNEqCross2(CLK,
   always@(negedge CLK)
   begin
     #0;
-    $display(shared__h204);
+    $display(shared__h113);
     if (a == 16'd1)
       $display("Error: \"UseCondEqNEqCross2.bsv\", line 23, column 9: (R0002)\n  Conflict-free rules RL_test2 and RL_test1 called conflicting methods read\n  and write of module instance source2.\n");
   end
