@@ -1,0 +1,63 @@
+checking package dependencies
+compiling APkgProps_EnFold.bsv
+code generation for mkEnFoldShared starts
+Warning: "APkgProps_EnFold.bsv", line 21, column 8: (G0010)
+  Rule "m" was treated as more urgent than "r". Conflicts:
+    "m" cannot fire before "r": calls to rg.write vs. rg.read
+    "r" cannot fire before "m": calls to rg.write vs. rg.read
+=== APackageIOproperties (APkgProps_EnFold mkEnFoldShared):
+Name                         I/O  size props
+RDY_m                          O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+EN_m                           I     1 unused
+
+
+-----
+
+=== IOproperties (APkgProps_EnFold mkEnFoldShared):
+Name                         I/O  size props
+RDY_m                          O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+EN_m                           I     1 unused
+
+
+-----
+
+Verilog file created: mkEnFoldShared.v
+code generation for mkEnFoldLast starts
+=== APackageIOproperties (APkgProps_EnFold mkEnFoldLast):
+Name                         I/O  size props
+RDY_set1                       O     1 const
+RDY_set2                       O     1 const
+get                            O     8
+RDY_get                        O     1
+CLK                            I     1 clock unused
+RST_N                          I     1 reset unused
+set1_a                         I     8
+set2_a                         I     8
+EN_set1                        I     1
+EN_set2                        I     1 unused
+
+
+-----
+
+=== IOproperties (APkgProps_EnFold mkEnFoldLast):
+Name                         I/O  size props
+RDY_set1                       O     1 const
+RDY_set2                       O     1 const
+get                            O     8
+RDY_get                        O     1
+CLK                            I     1 unused
+RST_N                          I     1 unused
+set1_a                         I     8
+set2_a                         I     8
+EN_set1                        I     1
+EN_set2                        I     1 unused
+
+
+-----
+
+Verilog file created: mkEnFoldLast.v
+All packages are up to date.

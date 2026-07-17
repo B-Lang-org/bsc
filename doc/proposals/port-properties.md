@@ -108,28 +108,39 @@ interface metadata.
 
 The implementation was validated by compiling every synthesizable design in
 the testsuite (2841 candidate files; 2124 reach code generation standalone)
-with both analyses and comparing the dumps: about 18,300 port lines.
+with both analyses and comparing the dumps: about 18,300 port lines, of
+which 1,686 differ.
 
 * No internal errors; the port enumeration (names, directions, sizes,
   order) matches `getIOProps` on every module.
-* ~1,575 lines differ because the new analysis keeps structural labels the
+* 1,638 lines differ because the new analysis keeps structural labels the
   netlist measurement loses (`reset unused` vs `unused`, `clock` on
-  passthrough or unused clocks, `reg` on CReg port-0 reads -- which
-  `getIOProps` misses only because the CReg import does not declare the
-  property on `Q_OUT_0`).
-* 5 lines differ because `unused` here propagates through dead logic that
-  `getIOProps` only traces through direct connections (signals feeding a
-  `$display` through arithmetic).
+  passthrough or unused clocks, inout roles).
+* 15 lines are properties this analysis finds and `getIOProps` does not:
+  `unused` propagating through dead logic that `getIOProps` only traces
+  through direct connections (5), and `reg` on values which are
+  registered but which the netlist does not show as a direct register
+  connection -- CReg port-0 reads (the CReg import does not declare the
+  property on `Q_OUT_0`), and a register value repacked through an
+  identity case statement which the optimizer leaves behind but the
+  agreement rule sees through.
 * An argument inout fed through to an interface inout is one net exposed
   at two pins; `getIOProps` labels the argument pin `unused` as an
   artifact of the alias collapse, while this analysis reports both pins
   as live.
-* 110 lines are properties `getIOProps` finds and this analysis does not,
-  in four categories: enables whose method effects die inside *value*-
-  method argument muxes (49, closable with the same arbitration model
-  already applied to action methods); values simplified only by deeper
-  boolean rewriting (33 + 9, see Limitations); inout nets traced through
-  `InoutConnect` (19).
+* 52 lines are properties `getIOProps` finds and this analysis does not,
+  in exactly the two remaining categories: values whose simplification
+  requires boolean minimization over independent dynamic guards (33, the
+  principled boundary -- see below); and inout nets traced through
+  `InoutConnect` (19, pending work).  An earlier draft had a third
+  category -- enables whose method effects die inside value-method
+  argument muxes (49 lines) -- which is now covered: the argument muxes
+  of value methods are arbitration-modeled like those of action methods
+  (with RDY-based selectors for interface value-method users), and the
+  references AState itself creates for a caller's WILL_FIRE are folded
+  semantically (a port enable absorbed by a constant or complementary
+  conjunct; the selector of a direct connection, a losing arm, or a
+  mux's last arm, which the don't-care default absorbs).
 * No line asserts a property that `getIOProps` contradicts.
 
 Stability was demonstrated directly: under `-no-inline-rwire` /
@@ -156,8 +167,8 @@ split-method readies, arbitration, foreign calls) are checked in under
 by side.
 
 On the portprops testsuite directory specifically, the categories above
-account for every difference: of the 33 compiling designs, 18 match
-`getIOProps` byte-for-byte, 13 differ only by the retained structural
+account for every difference: of the 35 compiling designs, 18 match
+`getIOProps` byte-for-byte, 15 differ only by the retained structural
 labels, 1 (`InoutProps_ArgToIfc`) is the inout alias-collapse artifact,
 and 1 (`APkgProps_DeadLogic`) is the dead-logic `unused` difference.
 Covering that directory under this proposal is therefore a golden-file
@@ -168,8 +179,11 @@ output deduction with concats and extractions, input joins with unused
 filtering, inhigh, argument and interface inouts (including BVI), the
 module's own and submodule-derived clock/gate/reset ports, wire and CReg
 look-through, schedule facts (never/always-firing rules), split-method
-readies, arbitration wins and losses as well as surviving muxes, foreign
-calls, dead-logic unusedness, and parameter exclusion.
+readies, arbitration wins and losses as well as surviving muxes -- for
+action methods and for value methods (including RDY-selected uses by
+interface value methods), the folding of enable and selector references
+(complementary enables, losing arms, last arms), foreign calls,
+dead-logic unusedness, and parameter exclusion.
 
 ## How narrow is the optimizer's edge?
 
@@ -190,7 +204,7 @@ excludes on principle:
 
 * boolean identities relating two or more *independent* dynamic values --
   `(a && b) || (!a && b) == b` -- i.e. two-level minimization, which
-  requires knowingly writing a redundant guard (the testsuite's two real
+  requires knowingly writing a redundant guard (the testsuite's real
   instances are generated/split condition code); and
 * value enumeration at merges (the wire set to 1, 2, or 3 above).
 
@@ -215,7 +229,7 @@ removed.
 3. Run the full testsuite with the flag on.  Expected churn: golden
    Verilog files' "Ports:" comments change where the new labels are
    richer; behavioral differences in parent compiles are confined to the
-   110 known lines and should be reviewed (the main risk is a parent
+   52 known lines and should be reviewed (the main risk is a parent
    asserting `always_ready` against a child whose RDY `const` was
    optimizer-derived -- two designs in the testsuite exhibit the
    pattern, neither with such a parent).
@@ -235,9 +249,8 @@ Excluded on principle (the "agreement, not enumeration" boundary):
 
 Pending (deducible under the contract, not yet implemented):
 
-* Inout nets are not traced through `InoutConnect` instances.
-* Value-method argument muxes are not yet arbitration-modeled (the 49
-  enable lines); same machinery as action methods, planned.
+* Inout nets are not traced through `InoutConnect` instances (the 19
+  remaining `unused` lines).
 
 ## Enabled by this (future work, not in this proposal)
 

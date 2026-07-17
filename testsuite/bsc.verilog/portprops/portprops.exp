@@ -228,6 +228,23 @@ compare_file APkgProps_Args.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_WireExpr.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_WireExpr.bsv.bsc-vcomp-out
 
+# the argument muxes of value methods, modeled with the schedule's
+# port allocation: a single call is a direct connection (no selector
+# references the caller's control signal, so an enable driving only
+# an unread wire is unused), the arm of a rule which never fires is
+# dropped (its argument is unused), and a surviving mux uses both
+# arms' arguments and selects on the callers' WILL_FIREs
+compile_verilog_pass APkgProps_VMux.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_VMux.bsv.bsc-vcomp-out
+
+# the WILL_FIRE references created by AState fold away: a port's
+# enable which is a tautology of complementary WILL_FIREs (a rule
+# and a more urgent conflicting method sharing the write arm), and
+# the selector of the last mux arm (absorbed into the don't-care
+# default), leaving the enables unused
+compile_verilog_pass APkgProps_EnFold.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_EnFold.bsv.bsc-vcomp-out
+
 # ----------
 
 }

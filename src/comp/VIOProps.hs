@@ -1,6 +1,6 @@
 module VIOProps (VIOProps, getIOProps, getIOPropsA) where
 
-import Data.List(intersect, nub, tails, sortBy, partition)
+import Data.List(intersect, nub, tails, sortBy)
 import Data.Maybe(catMaybes, isNothing, fromMaybe, isJust)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -483,7 +483,13 @@ size t = internalError ("getIOProps.size: " ++ show t)
 --    in simulation (arguments of foreign function and task calls) do
 --    not count, and a use by logic which is itself unused, or by a
 --    rule which can never fire, or by a mux arm which loses the
---    arbitration, does not count either.
+--    arbitration, does not count either.  The references which
+--    AState itself creates for a caller's WILL_FIRE (a method port's
+--    enable, the selectors of its argument muxes) are modeled and
+--    folded the same way: an enable absorbed by a constant or
+--    complementary conjunct, the selector of a direct connection, of
+--    a losing arm, or of a mux's last arm (absorbed into its
+--    don't-care default) reference nothing.
 --
 -- The deduction is conservative: it may fail to assert a property
 -- whose truth requires reasoning this pass does not do (known cases:
@@ -760,10 +766,25 @@ getIOPropsA _flags pps mschedinfo apkg =
         wireDataId inst = rwireGetResId inst
         wireHasId inst = rwireHasResId inst
 
-        -- flowing into a wire instance: alive only as far as the
-        -- wire's data and validity are used
-        wireFlowUses :: AId -> [AUse]
-        wireFlowUses inst = [AUVia (wireDataId inst), AUVia (wireHasId inst)]
+        -- The control flow into a wire instance from one setter (the
+        -- setter's WILL_FIRE and condition): it always feeds the
+        -- wire's validity node, but it feeds the selection of the
+        -- wire's data node only when the setter's arm survives in a
+        -- data mux -- with a single setter (or one whose arm wins the
+        -- arbitration, or several setters sharing one expression) the
+        -- data is a direct alias of the argument, and its selection
+        -- references nothing.  Both nodes' uses are AUVia: alive only
+        -- as far as the node itself is used.
+        wireFlowUses :: AId -> AId -> AId -> [AUse]
+        wireFlowUses obj meth rid =
+            AUVia (wireHasId obj) :
+            if (isJust (wireDataExpr obj))
+            then []   -- the data is an alias whatever the selectors do
+            else case armClass obj meth rid of
+                   Just ArmDirect  -> []
+                   Just ArmDropped -> []
+                   Just ArmMuxed | selDropped obj meth rid -> []
+                   _ -> [AUVia (wireDataId obj)]
 
         -- the setters of each wire instance: the WILL_FIRE of the
         -- calling rule, the condition, and the data arguments
@@ -1261,7 +1282,10 @@ getIOPropsA _flags pps mschedinfo apkg =
             -- rules (including the bodies of action methods)
             concat [ ruleUses r | r <- rs ] ++
             -- state instance arguments
-            concat [ instArgUses v | v <- vs ]
+            concat [ instArgUses v | v <- vs ] ++
+            -- the control signals referenced by the selectors of
+            -- surviving value-method argument muxes
+            valueSelUses
 
         ruleUses :: ARule -> [(AId, AUse)]
         ruleUses r =
@@ -1287,36 +1311,61 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- hardware use.  (References to WILL_FIREs from the scheduling
         -- logic of conflicting rules are already visible in the defs
         -- and need no special handling here.)
+        --
+        -- When the schedule info is available, the value-method mux
+        -- selector uses are recorded exactly, from the arms of the
+        -- surviving muxes (see valueSelUses); this also covers calls
+        -- reached through defs, which a scan of the rule's own
+        -- expressions would miss.  Without it, conservatively treat
+        -- the WILL_FIRE as used whenever the rule's expressions
+        -- contain a call which could need a mux.
         ruleWFUses :: AId -> ARule -> [(AId, AUse)]
         ruleWFUses wf r =
             [ (wf, u) | a <- arule_actions r,
                         u <- actionWFUses (arule_id r) a ] ++
             [ (wf, AUOpaque) |
+                  isNothing mschedinfo,
                   any hasMuxableCall
                       (arule_pred r :
                        concatMap aact_args (arule_actions r)) ]
 
         actionWFUses :: AId -> AAction -> [AUse]
         actionWFUses rid (ACall obj meth (c:_))
-            | isWireSet obj meth = wireFlowUses obj
+            | isWireSet obj meth = wireFlowUses obj meth rid
             | Just _ <- cregMeth obj meth = [AUOpaque]
             -- a call whose arm the arbitration drops uses nothing
             | Just ArmDropped <- armClass obj meth rid = []
-            -- an unconditional call with its own surviving connection
-            -- wires the WILL_FIRE directly to the method's enable port
-            | Just (Method { vf_enable = Just (_, pps) })
+            -- when the arm is classified, account for the WILL_FIRE's
+            -- two destinations separately: the method's enable port
+            -- (unless the port's enable folds to a constant), and the
+            -- argument-mux selectors (only when the arm is an input
+            -- of a surviving mux, and not its selector-less last
+            -- priority arm)
+            | Just cls <- armClass obj meth rid =
+                let en_uses
+                      | enFolded obj meth rid = []
+                      -- an unconditional call with its own surviving
+                      -- connection wires the WILL_FIRE directly to
+                      -- the method's enable port
+                      | cls == ArmDirect,
+                        evalConstA c == Just 1,
+                        Just (Method { vf_enable = Just (_, pps) })
+                            <- findMethodA obj meth
+                        = [AUConn pps]
+                      | otherwise = [AUOpaque]
+                    sel_uses
+                      | cls == ArmMuxed,
+                        not (selDropped obj meth rid)
+                        = [AUOpaque]
+                      | otherwise = []
+                in  en_uses ++ sel_uses
+            -- no schedule info: an unconditional direct call wires
+            -- the WILL_FIRE to the enable port
+            | Just m@(Method { vf_enable = Just (_, pps) })
                   <- findMethodA obj meth,
-              isEnDirect,
+              isDirectCallA obj meth m,
               evalConstA c == Just 1
               = [AUConn pps]
-          where isEnDirect =
-                    case armClass obj meth rid of
-                      Just ArmDirect -> True
-                      Just _ -> False
-                      Nothing ->
-                          case findMethodA obj meth of
-                            Just m -> isDirectCallA obj meth m
-                            Nothing -> False
         actionWFUses _ (ACall {}) = [AUOpaque]
         actionWFUses _ _ = []   -- foreign calls (AFCall, ATaskAction)
 
@@ -1339,13 +1388,19 @@ getIOPropsA _flags pps mschedinfo apkg =
             -- the condition feeds the validity and the mux select
             | isWireSet obj meth =
                 let -- with a unique data expression the wire is a
-                    -- direct alias; otherwise the data goes via a mux
-                    wire_use =
-                        if (isJust (wireDataExpr obj))
-                        then AUDef (wireDataId obj)
-                        else AUVia (wireDataId obj)
-                in  concat [ classifyExpr u c | u <- wireFlowUses obj ] ++
-                    concatMap (classifyExpr wire_use) es
+                    -- direct alias; otherwise the data goes via a
+                    -- mux, and this arm's fate in the arbitration
+                    -- decides: a winning arm is the alias, a losing
+                    -- arm's data reaches nothing
+                    arg_uses =
+                        case (wireDataExpr obj, armClass obj meth rid) of
+                          (Just _, _) -> [AUDef (wireDataId obj)]
+                          (_, Just ArmDirect) -> [AUDef (wireDataId obj)]
+                          (_, Just ArmDropped) -> []
+                          _ -> [AUVia (wireDataId obj)]
+                in  concat [ classifyExpr u c |
+                                 u <- wireFlowUses obj meth rid ] ++
+                    concat [ classifyExpr u e | u <- arg_uses, e <- es ]
             -- a CReg write feeds the retained register through the
             -- bypass selection chain: a use, but never a direct
             -- connection to a port
@@ -1386,10 +1441,10 @@ getIOPropsA _flags pps mschedinfo apkg =
             concatMap classifyForeignExpr es
         classifyForeignExpr (AFunCall _ _ _ _ es) =
             concatMap classifyForeignExpr es
-        classifyForeignExpr (AMethCall _ obj meth es)
+        classifyForeignExpr e@(AMethCall _ obj meth es)
             | isWireGet obj meth || isWireHas obj meth = []
             | Just _ <- cregMeth obj meth = []
-            | otherwise = classifyMethArgs obj meth es
+            | otherwise = classifyValueCallArgs e obj meth es
         classifyForeignExpr (ASClock _ (AClock { aclock_osc = o,
                                                  aclock_gate = g })) =
             classifyForeignExpr o ++ classifyForeignExpr g
@@ -1450,11 +1505,11 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- reading an inlined wire is a reference to its data node,
         -- and its validity is a reference to its "whas" node;
         -- reading a CReg uses no signals (the register remains)
-        classifyExpr u (AMethCall _ obj meth es)
+        classifyExpr u e@(AMethCall _ obj meth es)
             | isWireGet obj meth = [(wireDataId obj, u)]
             | isWireHas obj meth = [(wireHasId obj, u)]
             | Just _ <- cregMeth obj meth = []
-            | otherwise = classifyMethArgs obj meth es
+            | otherwise = classifyValueCallArgs e obj meth es
         classifyExpr u (ASClock _ (AClock { aclock_osc = o,
                                             aclock_gate = g })) =
             classifyExpr (opaqueOf u) o ++ classifyExpr (opaqueOf u) g
@@ -1477,6 +1532,21 @@ getIOPropsA _flags pps mschedinfo apkg =
         opaqueOf (AUDef d) = AUVia d
         opaqueOf (AUVia d) = AUVia d
         opaqueOf _         = AUOpaque
+
+        -- Arguments of a call to a value method of a state instance,
+        -- classified by the fate of this call's arm in the argument
+        -- muxes when the schedule info is available (the whole call
+        -- expression is the arm's identity -- see exprBlobArms),
+        -- otherwise by the port-multiplicity check
+        classifyValueCallArgs :: AExpr -> AId -> AId -> [AExpr]
+                              -> [(AId, AUse)]
+        classifyValueCallArgs e obj meth es =
+            case M.lookup e exprArmClassMap of
+              -- the arm is dropped: nothing reaches the port
+              Just ArmDropped -> []
+              Just ArmDirect -> directMethArgs obj meth es
+              Just ArmMuxed -> concatMap (classifyExpr AUOpaque) es
+              Nothing -> classifyMethArgs obj meth es
 
         -- Arguments of a call to a method of a state instance are
         -- connections to the method's input ports, as long as AState
@@ -1520,12 +1590,27 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- entirely (so that, for example, the argument of a method
         -- call which always loses the arbitration to a more urgent
         -- always-firing caller is unused).
+        --
+        -- Action-method call sites are keyed by (instance, method,
+        -- calling rule), since the call appears in the rule itself.
+        -- Value-method call sites are keyed by the call expression:
+        -- the arbitration works on unique expressions (which may be
+        -- shared by several rules, through defs), and the expression
+        -- is what the classification sites have in hand.  The
+        -- selectors of a surviving value mux reference the control
+        -- signals of the arms' users (WILL_FIRE for a rule or action
+        -- method, RDY for an interface value method, as in AState's
+        -- mkEmux), which is recorded as a use (see valueSelUses).
 
         armClassMap :: M.Map (AId, AId, AId) ArmClass
-        armClassMap =
+        enFoldSet, selDropSet :: S.Set (AId, AId, AId)
+        exprArmClassMap :: M.Map AExpr ArmClass
+        valueSelUses :: [(AId, AUse)]
+        (armClassMap, enFoldSet, selDropSet,
+         exprArmClassMap, valueSelUses) =
             case mschedinfo of
-              Nothing -> M.empty
-              Just si -> mkArmClassMap si
+              Nothing -> (M.empty, S.empty, S.empty, M.empty, [])
+              Just si -> mkArmClassMaps si
 
         -- the classification for a call to a method of a state
         -- instance from a given rule (Nothing when no schedule info
@@ -1534,20 +1619,50 @@ getIOPropsA _flags pps mschedinfo apkg =
         armClass obj meth rid =
             M.lookup (obj, unQualId meth, rid) armClassMap
 
-        mkArmClassMap :: AScheduleInfo -> M.Map (AId, AId, AId) ArmClass
-        mkArmClassMap si =
+        -- whether the enable of the port this call was allocated to
+        -- folds to a constant (some caller's WILL_FIRE AND condition
+        -- is constant true, absorbing the OR), so that the enable
+        -- references no caller's WILL_FIRE
+        enFolded :: AId -> AId -> AId -> Bool
+        enFolded obj meth rid =
+            (obj, unQualId meth, rid) `S.member` enFoldSet
+
+        -- whether this arm survives in a priority mux as its last
+        -- arm: the mux's default is a don't-care, so the last arm's
+        -- selector is absorbed and references nothing
+        selDropped :: AId -> AId -> AId -> Bool
+        selDropped obj meth rid =
+            (obj, unQualId meth, rid) `S.member` selDropSet
+
+        mkArmClassMaps :: AScheduleInfo
+                       -> (M.Map (AId, AId, AId) ArmClass,
+                           S.Set (AId, AId, AId),
+                           S.Set (AId, AId, AId),
+                           M.Map AExpr ArmClass,
+                           [(AId, AUse)])
+        mkArmClassMaps si =
             let multMap = M.fromList (concatMap genMethodMult vs)
-                (_, action_blobs) =
+                (expr_blobs, action_blobs) =
                     ratToBlobs (asi_method_uses_map si) multMap
                                (asi_resource_alloc_table si)
                 edb = asi_exclusive_rules_db si
                 (ASchedule _ rev_exec_order) = asi_schedule si
                 omPos :: M.Map AId Integer
                 omPos = M.fromList (zip rev_exec_order [0..])
-            in  M.fromList (concatMap (blobArms edb omPos) action_blobs)
+                (a_cls, a_enf, a_drop) =
+                    unzip3 (map (blobArms edb omPos) action_blobs)
+                a_map = M.fromList (concat a_cls)
+                en_set = S.fromList (concat a_enf)
+                drop_set = S.fromList (concat a_drop)
+                e_results = map (exprBlobArms edb omPos) expr_blobs
+                e_map = M.fromListWith classJoin (concatMap fst e_results)
+                sel_uses = concatMap snd e_results
+            in  (a_map, en_set, drop_set, e_map, sel_uses)
 
         blobArms :: ExclusiveRulesDB -> M.Map AId Integer -> MethBlob
-                 -> [((AId, AId, AId), ArmClass)]
+                 -> ([((AId, AId, AId), ArmClass)],
+                     [(AId, AId, AId)],
+                     [(AId, AId, AId)])
         blobArms edb omPos (((obj, meth), _), port_blobs) =
             let meth' = unQualId meth
                 key r = (obj, meth', r)
@@ -1563,55 +1678,223 @@ getIOPropsA _flags pps mschedinfo apkg =
                       _ -> Nothing
                 selVal _ _ = Nothing
 
+                -- the port's enable is the OR of every arm's
+                -- WILL_FIRE AND condition; it folds to constant true
+                -- when some conjunct is constant true, or when the
+                -- unconditional arms' WILL_FIREs contain a
+                -- complementary pair (as in wireHasVal) -- either
+                -- way, no caller's WILL_FIRE is referenced by it
+                enFold :: [(AExpr, Maybe [AId])] -> [(AId, AId, AId)]
+                enFold uses =
+                    let conj_one =
+                            or [ selVal e r == Just 1 |
+                                     (e, Just rs) <- uses, r <- rs ]
+                        uncond_wfs =
+                            [ ASDef aTBool (mkIdWillFire r) |
+                                  (AMethCall _ _ _ (c:_), Just rs) <- uses,
+                                  evalConstA c == Just 1,
+                                  r <- rs ]
+                    in  [ key r | conj_one || anyComplementaryA uncond_wfs,
+                                  (_, Just rs) <- uses, r <- rs ]
+
+                -- the last arm surviving in a mux: the mux's default
+                -- is a don't-care, so the last arm's selector is
+                -- absorbed into it and references nothing
+                lastMuxed :: [((AId, AId, AId), ArmClass)]
+                          -> [(AId, AId, AId)]
+                lastMuxed cls =
+                    take 1 [ k | (k, ArmMuxed) <- reverse cls ]
+
+                -- the selector value of an arm shared by several
+                -- rules: the OR of their individual selector values
+                orSelVal :: AExpr -> [AId] -> Maybe Integer
+                orSelVal e rs =
+                    let vs = [ selVal e r | r <- rs ]
+                        isOne v = (isJust v) && (v /= Just 0)
+                    in  if (any isOne vs) then Just 1
+                        else if (all (== (Just 0)) vs) then Just 0
+                        else Nothing
+
                 portArms :: [(AExpr, Maybe [AId])]
-                         -> [((AId, AId, AId), ArmClass)]
+                         -> ([((AId, AId, AId), ArmClass)],
+                             [(AId, AId, AId)],
+                             [(AId, AId, AId)])
                 -- a single use is a direct connection (see mkEmux)
-                portArms [(_, mrs)] =
-                    [ (key r, ArmDirect) | Just rs <- [mrs], r <- rs ]
+                portArms uses@[(_, mrs)] =
+                    ([ (key r, ArmDirect) | Just rs <- [mrs], r <- rs ],
+                     enFold uses, [])
                 portArms uses =
                     let arm_rules = concat [ rs | (_, Just rs) <- uses ]
                         usePri = not (and [ areRulesExclusive edb r r' |
                                                 r <- arm_rules,
                                                 r' <- arm_rules,
                                                 r /= r' ])
-                        -- arms split per rule, in priority order,
-                        -- as in mkEmux's "order"
-                        arms = [ (M.findWithDefault 0 r omPos,
-                                  r, selVal e r) |
-                                     (e, Just rs) <- uses, r <- rs ]
-                        arms' = sortBy (\ (x,_,_) (y,_,_) -> compare x y)
-                                    arms
                     in  if usePri
-                        then priWalk False arms'
-                        else parMux arms'
+                        then
+                          -- arms split per rule, in priority order,
+                          -- as in mkEmux's "order"
+                          let arms = [ (M.findWithDefault 0 r omPos,
+                                        (key r, selVal e r)) |
+                                           (e, Just rs) <- uses, r <- rs ]
+                              cls = muxWalk
+                                        (map snd
+                                            (sortBy (\ (x,_) (y,_) ->
+                                                         compare x y)
+                                                arms))
+                          in  (cls, enFold uses, lastMuxed cls)
+                        else
+                          -- a parallel mux keeps the arms per use, in
+                          -- use order (mkEmux does not reorder them)
+                          let arms = [ ((e, rs), orSelVal e rs) |
+                                           (e, Just rs) <- uses ]
+                              ucls = muxWalk arms
+                              cls = [ (key r, c) |
+                                          ((_, rs), c) <- ucls, r <- rs ]
+                              sel_drops =
+                                  concat
+                                      (take 1 [ map key rs |
+                                                    ((_, rs), ArmMuxed)
+                                                        <- reverse ucls ])
+                          in  (cls, enFold uses, sel_drops)
 
-                -- a priority mux folds from the front: constant-0
-                -- arms drop out; a constant-1 arm with no unknown arm
-                -- before it wins, and all later arms are dropped
-                priWalk _ [] = []
-                priWalk sawUnknown ((_, r, v) : rest) =
-                    case v of
-                      Just 0 -> (key r, ArmDropped) :
-                                priWalk sawUnknown rest
-                      Just _ | not sawUnknown ->
-                          (key r, ArmDirect) : dropAll rest
-                      Just _ -> (key r, ArmMuxed) : dropAll rest
-                      Nothing -> (key r, ArmMuxed) : priWalk True rest
+                (clss, enfs, drops) = unzip3 (map portArms port_blobs)
+            in  (concat clss, concat enfs, concat drops)
 
-                dropAll rest = [ (key r, ArmDropped) | (_, r, _) <- rest ]
+        -- Classify the arms of the argument muxes of a value method
+        -- (an expr blob), keyed by the call expression, and collect
+        -- the control signals (WILL_FIRE/RDY) which the selectors of
+        -- the surviving muxes reference.  Under a priority mux the
+        -- arms are split per user (as in mkEmux's "order"), so the
+        -- fates of an expression's split arms are joined.
+        exprBlobArms :: ExclusiveRulesDB -> M.Map AId Integer -> MethBlob
+                     -> ([(AExpr, ArmClass)], [(AId, AUse)])
+        exprBlobArms edb omPos (_, port_blobs) =
+            let results = map portArms port_blobs
+            in  (concatMap fst results, concatMap snd results)
+          where
+            -- the control signal of a user: RDY for an interface
+            -- value method, WILL_FIRE for a rule or action method
+            -- (as in mkEmux's willfireId)
+            userSelId r | r `S.member` valueMethodSet = mkRdyId r
+                        | otherwise = mkIdWillFire r
 
-                -- a parallel mux (exclusive arms): constant-0 arms
-                -- drop out; a single remaining arm is direct
-                parMux arms =
-                    let isZero (_, _, v) = (v == Just 0)
-                        (zs, rest) = partition isZero arms
-                        dropped = [ (key r, ArmDropped) |
-                                        (_, r, _) <- zs ]
-                    in  dropped ++
-                        case rest of
-                          [(_, r, _)] -> [(key r, ArmDirect)]
-                          _ -> [ (key r, ArmMuxed) | (_, r, _) <- rest ]
-            in  concatMap portArms port_blobs
+            -- the selector value of an arm: the OR of its users'
+            -- control signals (the condition of an expression use is
+            -- aTrue -- see mkEmuxssExpr)
+            selVal :: [AId] -> Maybe Integer
+            selVal rs =
+                let vs = [ evalDefA (userSelId r) | r <- rs ]
+                    isOne v = isJust v && (v /= Just 0)
+                in  if (any isOne vs) then Just 1
+                    else if (all (== Just 0) vs) then Just 0
+                    else Nothing
+
+            portArms :: [(AExpr, Maybe [AId])]
+                     -> ([(AExpr, ArmClass)], [(AId, AUse)])
+            -- a single use is a direct connection (see mkEmux);
+            -- this includes predicate and instance uses, which the
+            -- allocation always gives their own port
+            portArms [(e, _)] = ([(e, ArmDirect)], [])
+            portArms uses
+                -- a multi-use port with a predicate or instance use
+                -- is not something AState will mux; leave the port
+                -- unclassified (conservative)
+                | any (isNothing . snd) uses = ([], [])
+                | otherwise =
+                    let arm_rules = concat [ rs | (_, Just rs) <- uses ]
+                        usePri = not (and [ areRulesExclusive edb r r' |
+                                                r <- arm_rules,
+                                                r' <- arm_rules,
+                                                r /= r' ])
+                        -- ordered = the arm order in the mux is
+                        -- known, so the last surviving arm can be
+                        -- recognized (its selector is absorbed into
+                        -- the mux's don't-care default)
+                        (arm_classes, ordered)
+                          | not usePri =
+                              -- a parallel mux keeps the arms per
+                              -- use, in use order
+                              (muxWalk [ ((e, rs), selVal rs) |
+                                             (e, Just rs) <- uses ],
+                               True)
+                          -- a user without an order position (an
+                          -- interface value method) cannot be placed
+                          -- in the priority; be conservative
+                          | any (`M.notMember` omPos) arm_rules =
+                              ([ ((e, rs), ArmMuxed) |
+                                     (e, Just rs) <- uses ],
+                               False)
+                          | otherwise =
+                              let arms = [ (M.findWithDefault 0 r omPos,
+                                            ((e, [r]), selVal [r])) |
+                                               (e, Just rs) <- uses,
+                                               r <- rs ]
+                              in  (muxWalk
+                                       (map snd
+                                           (sortBy (\ (x,_) (y,_) ->
+                                                        compare x y)
+                                               arms)),
+                                   True)
+                        -- join the fates of an expression's split arms
+                        class_map =
+                            M.toList
+                                (M.fromListWith classJoin
+                                    [ (e, c) | ((e, _), c) <- arm_classes ])
+                        -- the last surviving arm, whose selector is
+                        -- not referenced
+                        last_arms =
+                            if ordered
+                            then take 1 [ ku | (ku, ArmMuxed)
+                                                   <- reverse arm_classes ]
+                            else []
+                        -- the selectors of the other surviving mux
+                        -- arms reference their users' control signals
+                        -- (a constant control signal is folded into
+                        -- the selector and is not a dynamic use)
+                        sel_uses =
+                            [ (si, AUOpaque) |
+                                  (ku@(_, rs), ArmMuxed) <- arm_classes,
+                                  not (ku `elem` last_arms),
+                                  r <- rs,
+                                  let si = userSelId r,
+                                  isNothing (evalDefA si) ]
+                    in  (class_map, sel_uses)
+
+        -- interface value methods, whose muxes select on the RDY
+        -- signal instead of the WILL_FIRE (as in aState)
+        valueMethodSet :: S.Set AId
+        valueMethodSet =
+            S.fromList [ i | (AIDef { aif_value = (ADef i _ _ _) }) <- ifc ]
+
+        -- Classify a mux's arms, given in the mux's arm order.  The
+        -- netlist realizes the mux as a selection chain whose first
+        -- true selector wins (a priority mux by construction, a
+        -- parallel mux because its arms are exclusive so any
+        -- realization order is faithful), and the folding follows
+        -- that structure from the front: a constant-0 arm drops out;
+        -- a constant-1 arm ends the chain, dropping all later arms
+        -- (and wins outright when no unknown arm precedes it); a
+        -- lone surviving arm is a direct connection (the chain's
+        -- default is a don't-care).
+        muxWalk :: [(k, Maybe Integer)] -> [(k, ArmClass)]
+        muxWalk arms =
+            let cls = walk False arms
+                live = [ i | (i, (_, c)) <- zip idxs cls,
+                             c /= ArmDropped ]
+                idxs = [(0 :: Int) ..]
+            in  case live of
+                  [i] -> [ (k, if (j == i) then ArmDirect else c) |
+                               (j, (k, c)) <- zip idxs cls ]
+                  _ -> cls
+          where
+            walk _ [] = []
+            walk sawUnknown ((k, v) : rest) =
+                case v of
+                  Just 0 -> (k, ArmDropped) : walk sawUnknown rest
+                  Just _ | not sawUnknown -> (k, ArmDirect) : dropAll rest
+                  Just _ -> (k, ArmMuxed) : dropAll rest
+                  Nothing -> (k, ArmMuxed) : walk True rest
+            dropAll xs = [ (k', ArmDropped) | (k', _) <- xs ]
 
         -- ids which become output or inout ports: a signal which
         -- drives a port is not unused, but no properties can be
@@ -1662,3 +1945,14 @@ data AUse = AUDef AId               -- used to define another signal
 data ArmClass = ArmDirect    -- a direct connection to the port
               | ArmMuxed     -- an input of a surviving mux
               | ArmDropped   -- dropped by the folding
+     deriving (Eq)
+
+-- Combine the fates of the split arms of one call expression in a
+-- priority mux: the expression is dropped only if all of its arms
+-- are dropped; an arm which wins the arbitration outright implies
+-- all other arms were dropped (there is at most one direct arm)
+classJoin :: ArmClass -> ArmClass -> ArmClass
+classJoin ArmDropped c = c
+classJoin c ArmDropped = c
+classJoin ArmDirect ArmDirect = ArmDirect
+classJoin _ _ = ArmMuxed
