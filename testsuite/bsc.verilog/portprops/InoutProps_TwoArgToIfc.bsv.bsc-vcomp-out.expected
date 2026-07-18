@@ -1,0 +1,17 @@
+checking package dependencies
+compiling InoutProps_TwoArgToIfc.bsv
+code generation for sysInoutProps_TwoArgToIfc starts
+=== IOproperties (InoutProps_TwoArgToIfc sysInoutProps_TwoArgToIfc):
+Name                         I/O  size props
+CLK                            I     1 unused
+RST_N                          I     1 unused
+arg_a                         IO     8 inout
+arg_b                         IO    16 inout
+io_a                          IO     8 inout
+io_b                          IO    16 inout
+
+
+-----
+
+Verilog file created: sysInoutProps_TwoArgToIfc.v
+All packages are up to date.

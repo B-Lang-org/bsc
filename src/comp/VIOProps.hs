@@ -290,8 +290,16 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
                 -- XXX this should be OK?
                 output_pairs =
                     [ (o, []) | (o,_) <- os ]
+                -- an argument inout whose net is exposed at an
+                -- interface inout is one net at two pins: the argument
+                -- pin is live, not unused (the interface-inout defs are
+                -- not in the defuse map, so record the use here)
+                inout_sink_pairs =
+                    [ (i, [VPinout]) |
+                          ADef _ _ e _ <- io_ds, i <- aVars e ]
             in
-                M.fromList (submod_pairs ++ output_pairs)
+                M.fromList (submod_pairs ++ output_pairs ++
+                            inout_sink_pairs)
 
         -- use a map to limit search over all definition
         -- key is AId data is list of defs where key is used.

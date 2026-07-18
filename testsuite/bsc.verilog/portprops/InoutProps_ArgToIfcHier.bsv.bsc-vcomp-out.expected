@@ -1,0 +1,27 @@
+checking package dependencies
+compiling InoutProps_ArgToIfcHier.bsv
+code generation for sysArgToIfcLeaf starts
+=== IOproperties (InoutProps_ArgToIfcHier sysArgToIfcLeaf):
+Name                         I/O  size props
+CLK                            I     1 unused
+RST_N                          I     1 unused
+io_arg                        IO    32 inout
+io_ifc                        IO    32 inout
+
+
+-----
+
+Verilog file created: sysArgToIfcLeaf.v
+code generation for sysInoutProps_ArgToIfcHier starts
+=== IOproperties (InoutProps_ArgToIfcHier sysInoutProps_ArgToIfcHier):
+Name                         I/O  size props
+CLK                            I     1 clock
+RST_N                          I     1 reset
+io_arg                        IO    32 inout
+io_ifc                        IO    32 inout
+
+
+-----
+
+Verilog file created: sysInoutProps_ArgToIfcHier.v
+All packages are up to date.
