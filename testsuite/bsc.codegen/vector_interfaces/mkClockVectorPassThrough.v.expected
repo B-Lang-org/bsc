@@ -4,21 +4,21 @@
 //
 // Ports:
 // Name                         I/O  size props
-// CLK_clocks_0                   O     1
-// CLK_GATE_clocks_0              O     1
-// CLK_clocks_1                   O     1
-// CLK_GATE_clocks_1              O     1
-// CLK_clocks_2                   O     1
-// CLK_GATE_clocks_2              O     1
-// CLK_in_clocks_0                I     1
-// CLK_GATE_in_clocks_0           I     1
-// CLK_in_clocks_1                I     1
-// CLK_GATE_in_clocks_1           I     1
-// CLK_in_clocks_2                I     1
-// CLK_GATE_in_clocks_2           I     1
-// CLK                            I     1 unused
-// CLK_GATE                       I     1 unused
-// RST_N                          I     1 unused
+// CLK_clocks_0                   O     1 clock
+// CLK_GATE_clocks_0              O     1 clock gate
+// CLK_clocks_1                   O     1 clock
+// CLK_GATE_clocks_1              O     1 clock gate
+// CLK_clocks_2                   O     1 clock
+// CLK_GATE_clocks_2              O     1 clock gate
+// CLK_in_clocks_0                I     1 clock
+// CLK_GATE_in_clocks_0           I     1 clock gate
+// CLK_in_clocks_1                I     1 clock
+// CLK_GATE_in_clocks_1           I     1 clock gate
+// CLK_in_clocks_2                I     1 clock
+// CLK_GATE_in_clocks_2           I     1 clock gate
+// CLK                            I     1 clock unused
+// CLK_GATE                       I     1 clock gate unused
+// RST_N                          I     1 reset unused
 //
 // No combinational paths from inputs to outputs
 //

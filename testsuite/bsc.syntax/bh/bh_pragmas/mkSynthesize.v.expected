@@ -8,7 +8,7 @@
 // _read                          O    32 reg
 // RDY__read                      O     1 const
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 // _write_1                       I    32 reg
 // EN__write                      I     1
 //

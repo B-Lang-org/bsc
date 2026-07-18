@@ -1,0 +1,98 @@
+checking package dependencies
+compiling APkgProps_VMux.bsv
+code generation for mkVMuxLookup starts
+=== APackageIOproperties (APkgProps_VMux mkVMuxLookup):
+Name                         I/O  size props
+get                            O     8
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+get_i                          I     3
+
+
+-----
+
+=== IOproperties (APkgProps_VMux mkVMuxLookup):
+Name                         I/O  size props
+get                            O     8
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+get_i                          I     3
+
+
+-----
+
+Verilog file created: mkVMuxLookup.v
+code generation for mkVMuxWired starts
+=== APackageIOproperties (APkgProps_VMux mkVMuxWired):
+Name                         I/O  size props
+data_out                       O     8
+CLK                            I     1 clock
+RST_N                          I     1 reset
+data_in_x                      I     3
+EN_data_in                     I     1 unused
+
+
+-----
+
+=== IOproperties (APkgProps_VMux mkVMuxWired):
+Name                         I/O  size props
+data_out                       O     8
+CLK                            I     1 clock
+RST_N                          I     1 reset
+data_in_x                      I     3
+EN_data_in                     I     1 unused
+
+
+-----
+
+Verilog file created: mkVMuxWired.v
+code generation for sysAPkgProps_VMux starts
+Warning: "APkgProps_VMux.bsv", line 80, column 8: (G0010)
+  Rule "peek" was treated as more urgent than "pB". Conflicts:
+    "peek" cannot fire before "pB":
+      calls to
+	k_wr.wget vs. k_wr.wset
+	k_wr.whas vs. k_wr.wset
+    "pB" cannot fire before "peek": calls to k_rg.write vs. k_rg.read
+Warning: "APkgProps_VMux.bsv", line 95, column 9: (G0021)
+  According to the generated schedule, rule `pB' can never fire.
+=== APackageIOproperties (APkgProps_VMux sysAPkgProps_VMux):
+Name                         I/O  size props
+o1                             O     8 reg
+RDY_o1                         O     1 const
+o3                             O     8 reg
+RDY_o3                         O     1 const
+peek                           O     1 reg
+RDY_peek                       O     1 const
+ia                             I     3
+ib                             I     3 unused
+ic                             I     3
+id                             I     3
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+=== IOproperties (APkgProps_VMux sysAPkgProps_VMux):
+Name                         I/O  size props
+o1                             O     8 reg
+RDY_o1                         O     1 const
+o3                             O     8 reg
+RDY_o3                         O     1 const
+peek                           O     1 reg
+RDY_peek                       O     1 const
+ia                             I     3
+ib                             I     3 unused
+ic                             I     3
+id                             I     3
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysAPkgProps_VMux.v
+All packages are up to date.

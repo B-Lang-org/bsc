@@ -11,7 +11,7 @@
 // isC                            O     1
 // RDY_isC                        O     1 const
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 //
 // No combinational paths from inputs to outputs
 //

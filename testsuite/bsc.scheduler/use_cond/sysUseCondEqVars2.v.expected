@@ -5,7 +5,7 @@
 // Ports:
 // Name                         I/O  size props
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 //
 // No combinational paths from inputs to outputs
 //
@@ -55,7 +55,7 @@ module sysUseCondEqVars2(CLK,
   wire source$EN;
 
   // remaining internal signals
-  wire [31 : 0] IF_b_EQ_0_THEN_source_ELSE_0___d10;
+  wire [31 : 0] IF_b_EQ_0_THEN_source_ELSE_0___d6;
 
   // register a
   assign a$D_IN = 16'h0 ;
@@ -67,12 +67,12 @@ module sysUseCondEqVars2(CLK,
 
   // register dest1
   assign dest1$D_IN =
-	     (a == 16'd0) ? IF_b_EQ_0_THEN_source_ELSE_0___d10 : 32'd2 ;
+	     (a == 16'd0) ? IF_b_EQ_0_THEN_source_ELSE_0___d6 : 32'd2 ;
   assign dest1$EN = 1'd1 ;
 
   // register dest2
   assign dest2$D_IN =
-	     (a == 16'd1) ? IF_b_EQ_0_THEN_source_ELSE_0___d10 : 32'd1 ;
+	     (a == 16'd1) ? IF_b_EQ_0_THEN_source_ELSE_0___d6 : 32'd1 ;
   assign dest2$EN = 1'd1 ;
 
   // register source
@@ -80,7 +80,7 @@ module sysUseCondEqVars2(CLK,
   assign source$EN = 1'd1 ;
 
   // remaining internal signals
-  assign IF_b_EQ_0_THEN_source_ELSE_0___d10 = (b == 16'd0) ? source : 32'd0 ;
+  assign IF_b_EQ_0_THEN_source_ELSE_0___d6 = (b == 16'd0) ? source : 32'd0 ;
 
   // handling of inlined registers
 

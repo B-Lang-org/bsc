@@ -5,7 +5,7 @@
 // Ports:
 // Name                         I/O  size props
 // CLK                            I     1 clock
-// RST_N                          I     1 unused
+// RST_N                          I     1 reset unused
 //
 // No combinational paths from inputs to outputs
 //
@@ -49,14 +49,14 @@ module sysUseCondTrueFalseCross2(CLK,
   wire source2$EN;
 
   // remaining internal signals
-  wire [31 : 0] shared__h204;
+  wire [31 : 0] shared__h113;
 
   // register a
   assign a$D_IN = 1'b0 ;
   assign a$EN = 1'b0 ;
 
   // register dest
-  assign dest$D_IN = a ? 32'd2 : shared__h204 ;
+  assign dest$D_IN = a ? 32'd2 : shared__h113 ;
   assign dest$EN = 1'd1 ;
 
   // register source1
@@ -68,7 +68,7 @@ module sysUseCondTrueFalseCross2(CLK,
   assign source2$EN = 1'd1 ;
 
   // remaining internal signals
-  assign shared__h204 = a ? source1 : source2 ;
+  assign shared__h113 = a ? source1 : source2 ;
 
   // handling of inlined registers
 
@@ -99,7 +99,7 @@ module sysUseCondTrueFalseCross2(CLK,
   always@(negedge CLK)
   begin
     #0;
-    $display(shared__h204);
+    $display(shared__h113);
     if (!a)
       $display("Error: \"UseCondTrueFalseCross2.bsv\", line 23, column 9: (R0002)\n  Conflict-free rules RL_test2 and RL_test1 called conflicting methods read\n  and write of module instance source2.\n");
   end

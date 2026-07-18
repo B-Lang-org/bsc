@@ -170,5 +170,88 @@ find_regexp_fail mkExample.v {\.B_1\(someModule\$A_2\)}
 
 # ----------
 
+# Test the APackage-based deduction (getIOPropsA) against the
+# ASPackage-based deduction (getIOProps), by dumping both
+
+# looking through inlined RWire instances
+compile_verilog_pass APkgProps_Wires.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Wires.bsv.bsc-vcomp-out
+
+# looking through inlined CReg instances
+# (note that port 0's read is structurally a register output, which
+# the APackage-based deduction labels "reg"; getIOProps does not,
+# because the CReg primitive's import does not declare the property
+# on its Q_OUT_0 port)
+compile_verilog_pass APkgProps_CReg.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_CReg.bsv.bsc-vcomp-out
+
+# realizing the schedule's consequences (rules which never fire,
+# rules which always fire)
+compile_verilog_pass APkgProps_Sched.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Sched.bsv.bsc-vcomp-out
+
+# recognizing the tautology in a split method's ready
+compile_verilog_pass APkgProps_Split.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Split.bsv.bsc-vcomp-out
+
+# foreign calls exist only in simulation, so signals feeding only
+# them are unused
+compile_verilog_pass APkgProps_Foreign.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Foreign.bsv.bsc-vcomp-out
+
+# modeling the argument muxes with the schedule's port allocation
+# and priority order (constant-WILL_FIRE arbitration folds)
+compile_verilog_pass APkgProps_Arb.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Arb.bsv.bsc-vcomp-out
+
+# output clock, gate, and reset ports wired from a submodule's
+# special outputs
+compile_verilog_pass APkgProps_SubClock.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_SubClock.bsv.bsc-vcomp-out
+
+# "unused" propagates backwards through dead logic (a documented
+# difference: getIOProps only traces direct connections)
+compile_verilog_pass APkgProps_DeadLogic.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_DeadLogic.bsv.bsc-vcomp-out
+
+# properties do not flow through surviving muxes (both setters live)
+compile_verilog_pass APkgProps_Mux.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Mux.bsv.bsc-vcomp-out
+
+# parameters are not ports; module argument ports deduce like inputs
+compile_verilog_pass APkgProps_Args.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_Args.bsv.bsc-vcomp-out
+
+# expressions propagate through wires: a tautology carried through a
+# wire is recognized, and several setters of the same expression
+# collapse to an alias of that expression
+compile_verilog_pass APkgProps_WireExpr.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_WireExpr.bsv.bsc-vcomp-out
+
+# the argument muxes of value methods, modeled with the schedule's
+# port allocation: a single call is a direct connection (no selector
+# references the caller's control signal, so an enable driving only
+# an unread wire is unused), the arm of a rule which never fires is
+# dropped (its argument is unused), and a surviving mux uses both
+# arms' arguments and selects on the callers' WILL_FIREs
+compile_verilog_pass APkgProps_VMux.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_VMux.bsv.bsc-vcomp-out
+
+# the WILL_FIRE references created by AState fold away: a port's
+# enable which is a tautology of complementary WILL_FIREs (a rule
+# and a more urgent conflicting method sharing the write arm), and
+# the selector of the last mux arm (absorbed into the don't-care
+# default), leaving the enables unused
+compile_verilog_pass APkgProps_EnFold.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_EnFold.bsv.bsc-vcomp-out
+
+# the selected result ports of a split method take the selected port's
+# declared property (ATupleSel indices are 1-based; a regression test
+# against an off-by-one selecting the neighboring port's properties)
+compile_verilog_pass APkgProps_SplitSel.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_SplitSel.bsv.bsc-vcomp-out
+
+# ----------
+
 }
 

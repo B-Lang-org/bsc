@@ -1,0 +1,53 @@
+checking package dependencies
+compiling APkgProps_SplitSel.bsv
+code generation for mkAPkgProps_SplitSel_Sub starts
+=== APackageIOproperties (APkgProps_SplitSel mkAPkgProps_SplitSel_Sub):
+Name                         I/O  size props
+get_x                          O     8 reg
+get_y                          O     8 const
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+
+
+-----
+
+=== IOproperties (APkgProps_SplitSel mkAPkgProps_SplitSel_Sub):
+Name                         I/O  size props
+get_x                          O     8 reg
+get_y                          O     8 const
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: mkAPkgProps_SplitSel_Sub.v
+code generation for sysAPkgProps_SplitSel starts
+=== APackageIOproperties (APkgProps_SplitSel sysAPkgProps_SplitSel):
+Name                         I/O  size props
+outx                           O     8 reg
+RDY_outx                       O     1 const
+outy                           O     8 const
+RDY_outy                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+=== IOproperties (APkgProps_SplitSel sysAPkgProps_SplitSel):
+Name                         I/O  size props
+outx                           O     8 reg
+RDY_outx                       O     1 const
+outy                           O     8 const
+RDY_outy                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysAPkgProps_SplitSel.v
+All packages are up to date.

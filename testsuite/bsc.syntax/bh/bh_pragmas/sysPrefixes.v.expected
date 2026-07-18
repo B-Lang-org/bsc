@@ -5,7 +5,7 @@
 // Ports:
 // Name                         I/O  size props
 // clk                            I     1 clock
-// gate                           I     1
+// gate                           I     1 clock gate
 // rst                            I     1 reset
 //
 // No combinational paths from inputs to outputs

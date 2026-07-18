@@ -1,0 +1,39 @@
+checking package dependencies
+compiling APkgProps_CReg.bsv
+code generation for sysAPkgProps_CReg starts
+=== APackageIOproperties (APkgProps_CReg sysAPkgProps_CReg):
+Name                         I/O  size props
+rdA0                           O     8 reg
+RDY_rdA0                       O     1 const
+rdA1                           O     8
+RDY_rdA1                       O     1 const
+rdB1                           O     8 reg
+RDY_rdB1                       O     1 const
+RDY_wrA0                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+wrA0_v                         I     8
+EN_wrA0                        I     1
+
+
+-----
+
+=== IOproperties (APkgProps_CReg sysAPkgProps_CReg):
+Name                         I/O  size props
+rdA0                           O     8
+RDY_rdA0                       O     1 const
+rdA1                           O     8
+RDY_rdA1                       O     1 const
+rdB1                           O     8
+RDY_rdB1                       O     1 const
+RDY_wrA0                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+wrA0_v                         I     8
+EN_wrA0                        I     1
+
+
+-----
+
+Verilog file created: sysAPkgProps_CReg.v
+All packages are up to date.
