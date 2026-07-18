@@ -18,7 +18,7 @@ import VModInfo(VModInfo, vArgs, vFields, vClk, VName(..), VeriPortProp(..),
                 VClockInfo(..),
                 getOutputClockPortTable, getOutputResetPortTable,
                 lookupInputClockWires, lookupInputResetWire,
-                mkNamedEnable, mkNamedOutput, mkNamedInout, vName_to_id)
+                mkNamedEnable, mkNamedOutputs, mkNamedInout, vName_to_id)
 import Prim
 import ASyntax
 import ASyntaxUtil( AVars(..), aType )
@@ -571,7 +571,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- method value/actionvalue result ports
         -- (mirrors AState.outputDefToADef and its always_ready filtering)
         isAlwaysReadyMethod m =
-            isRdyId (aIfaceName m) && isAlwaysRdy pps (aIfaceName m)
+            isRdyId (aif_name m) && isAlwaysRdy pps (aif_name m)
         other_ifc = filter (not . isAlwaysReadyMethod) ifc
 
         meth_outs :: [(AId, AType, [VeriPortProp], AExpr)]
@@ -582,19 +582,30 @@ getIOPropsA _flags pps mschedinfo apkg =
             -- a module wrapped around a non-inlined function has no RDY
             if (fmod && isRdyId (aif_name ai))
             then []
-            else [(mkNamedOutput fi, adef_type d,
-                   declaredOutProps fi, adef_expr d)]
-          where fi = aif_fieldinfo ai
-                d  = aif_value ai
+            else methOutPorts (aif_fieldinfo ai) (aif_value ai)
         getMethOut ai@(AIActionValue {}) =
-            [(mkNamedOutput fi, adef_type d,
-              declaredOutProps fi, adef_expr d)]
-          where fi = aif_fieldinfo ai
-                d  = aif_value ai
+            methOutPorts (aif_fieldinfo ai) (aif_value ai)
         getMethOut _ = []
 
-        declaredOutProps :: VFieldInfo -> [VeriPortProp]
-        declaredOutProps (Method { vf_output = Just (_, ps) }) = ps
+        -- one entry per output port of the method's return value
+        -- (mirrors AState's outputADefToADefs: a split method's value
+        -- is a tuple whose elements pair with the declared ports)
+        methOutPorts :: VFieldInfo -> ADef -> [(AId, AType, [VeriPortProp], AExpr)]
+        methOutPorts fi (ADef { adef_type = ATTuple ts, adef_expr = ATuple _ es }) =
+            zipWith3 (\ (i, pps) t e -> (i, t, pps, e))
+                     (zip (mkNamedOutputs fi) (declaredOutProps fi)) ts es
+        methOutPorts fi (ADef { adef_type = ATBit 0 })
+            | null (mkNamedOutputs fi) = []
+        methOutPorts fi (ADef { adef_type = t, adef_expr = e })
+            | ([i], [pps]) <- (mkNamedOutputs fi, declaredOutProps fi)
+            = [(i, t, pps, e)]
+        methOutPorts fi d =
+            internalError ("getIOPropsA.methOutPorts: " ++
+                           ppReadable (vf_name fi, d))
+
+        -- the declared properties of each output port
+        declaredOutProps :: VFieldInfo -> [[VeriPortProp]]
+        declaredOutProps (Method { vf_outputs = outs }) = map snd outs
         declaredOutProps _ = []
 
         -- output clock (and gate) ports (mirrors AState's clk_blob)
@@ -668,7 +679,11 @@ getIOPropsA _flags pps mschedinfo apkg =
                                     repeat [])
                    | f <- ifc ]
           where mkArg (i, t) pps = (i, t, pps)
-                argPortProps (Method { vf_inputs = ins }) = map snd ins
+                -- vf_inputs groups the ports of each source argument;
+                -- aIfaceArgs is the flattened per-port list, so
+                -- flatten the property groups to pair with it
+                argPortProps (Method { vf_inputs = ins }) =
+                    map snd (concat ins)
                 argPortProps _ = []
 
         -- method enable ports (mirrors AState's inputIds)
@@ -1154,6 +1169,12 @@ getIOPropsA _flags pps mschedinfo apkg =
             | isWireGet obj meth = wireGetProps obj
             | isWireHas obj meth = wireHasProps obj
             | Just (n, True) <- cregMeth obj meth = cregReadProps obj n
+        -- a selected result of a split method is wired to that output
+        -- port
+        getOutPropsA (ATupleSel _ (AMethCall _ obj meth _) n) =
+            methOutPortPropsA obj meth n
+        getOutPropsA (ATupleSel _ (AMethValue _ obj meth) n) =
+            methOutPortPropsA obj meth n
         -- a value method result is wired to the method's output port
         getOutPropsA (AMethCall _ obj meth _) = methOutPropsA obj meth
         getOutPropsA (AMethValue _ obj meth)  = methOutPropsA obj meth
@@ -1182,11 +1203,25 @@ getIOPropsA _flags pps mschedinfo apkg =
         outDefPropsMemo :: M.Map AId [VeriPortProp]
         outDefPropsMemo = M.map (getOutPropsA . adef_expr) defMapA
 
-        -- the declared properties of a method's output port
+        -- the declared properties common to all of a method's output
+        -- ports (used when a reference does not select a single port;
+        -- for a method with one output port this is that port's props)
         methOutPropsA :: AId -> AId -> [VeriPortProp]
         methOutPropsA obj meth =
             case findMethodA obj meth of
-              Just (Method { vf_output = Just (_, ps) }) -> ps
+              Just (Method { vf_outputs = outs@(_:_) }) ->
+                  foldr1 intersect (map snd outs)
+              _ -> []
+
+        -- the declared properties of one output port of a method
+        -- (ATupleSel indices are 1-based)
+        methOutPortPropsA :: AId -> AId -> Integer -> [VeriPortProp]
+        methOutPortPropsA obj meth n =
+            case findMethodA obj meth of
+              Just (Method { vf_outputs = outs }) ->
+                  case drop (fromInteger n - 1) outs of
+                    ((_, ps) : _) -> ps
+                    [] -> []
               _ -> []
 
         -- the declared properties of the gate port of an instance's
@@ -1250,6 +1285,8 @@ getIOPropsA _flags pps mschedinfo apkg =
         exprCalls (APrim _ _ _ es) = concatMap exprCalls es
         exprCalls (ANoInlineFunCall _ _ _ es) = concatMap exprCalls es
         exprCalls (AFunCall _ _ _ _ es) = concatMap exprCalls es
+        exprCalls (ATuple _ es) = concatMap exprCalls es
+        exprCalls (ATupleSel _ e _) = exprCalls e
         exprCalls (ASClock _ (AClock { aclock_osc = o, aclock_gate = g })) =
             exprCalls o ++ exprCalls g
         exprCalls (ASReset _ (AReset { areset_wire = w })) = exprCalls w
@@ -1453,6 +1490,8 @@ getIOPropsA _flags pps mschedinfo apkg =
         classifyForeignExpr (ASInout _ (AInout { ainout_wire = w })) =
             classifyForeignExpr w
         classifyForeignExpr (ASAny _ (Just e)) = classifyForeignExpr e
+        classifyForeignExpr (ATuple _ es) = concatMap classifyForeignExpr es
+        classifyForeignExpr (ATupleSel _ e _) = classifyForeignExpr e
         classifyForeignExpr _ = []
 
         instArgUses :: AVInst -> [(AId, AUse)]
@@ -1518,6 +1557,16 @@ getIOPropsA _flags pps mschedinfo apkg =
         classifyExpr u (ASInout _ (AInout { ainout_wire = w })) =
             classifyExpr (opaqueOf u) w
         classifyExpr u (ASAny _ (Just e)) = classifyExpr (opaqueOf u) e
+        -- a tuple groups the per-port values of a split argument;
+        -- the pairing with ports happens in directMethArgs, so a
+        -- tuple in any other context is surrounding logic
+        classifyExpr u (ATuple _ es) =
+            concatMap (classifyExpr (opaqueOf u)) es
+        -- selecting one result port of a split method call classifies
+        -- like the call itself (the call expression is the arm's
+        -- identity); any other selection is surrounding logic
+        classifyExpr u (ATupleSel _ e@(AMethCall {}) _) = classifyExpr u e
+        classifyExpr u (ATupleSel _ e _) = classifyExpr (opaqueOf u) e
         -- AMethValue, AMGate, ATaskValue, and literals use no signals
         classifyExpr _ _ = []
 
@@ -1565,10 +1614,18 @@ getIOPropsA _flags pps mschedinfo apkg =
             case findMethodA obj meth of
               Just (Method { vf_inputs = ins })
                   | length ins == length es
-                  -> concat (zipWith (\ (_, pps) e ->
-                                          classifyExpr (AUConn pps) e)
-                                     ins es)
+                  -> concat (zipWith connArg ins es)
               _ -> concatMap (classifyExpr AUOpaque) es
+          where
+            -- one source argument: a single-port argument connects
+            -- directly; a split argument arrives as a tuple whose
+            -- elements pair with the argument's ports
+            connArg [(_, pps)] e = classifyExpr (AUConn pps) e
+            connArg ports (ATuple _ es')
+                | length ports == length es'
+                = concat [ classifyExpr (AUConn pps) e |
+                               ((_, pps), e) <- zip ports es' ]
+            connArg _ e = classifyExpr AUOpaque e
 
         -- whether the method has enough port copies for all of its
         -- (live) call sites, so that AState will not insert muxes

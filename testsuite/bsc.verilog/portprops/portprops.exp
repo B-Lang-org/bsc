@@ -245,6 +245,12 @@ compare_file APkgProps_VMux.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_EnFold.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_EnFold.bsv.bsc-vcomp-out
 
+# the selected result ports of a split method take the selected port's
+# declared property (ATupleSel indices are 1-based; a regression test
+# against an off-by-one selecting the neighboring port's properties)
+compile_verilog_pass APkgProps_SplitSel.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_SplitSel.bsv.bsc-vcomp-out
+
 # ----------
 
 }
