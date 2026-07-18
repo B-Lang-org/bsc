@@ -129,7 +129,7 @@ which 1,686 differ.
   not from analysis, but because the interface-inout definitions were
   missing from its use map -- and the mislabel propagated up parent
   compiles (19 lines in the sweep).  The fix to `getIOProps` itself
-  landed separately (B-Lang-org/bsc PR 1057, on which this branch is
+  landed separately (B-Lang-org/bsc PR 1059, on which this branch is
   based): both passes now report both pins as live.
 * 33 lines are properties `getIOProps` finds and this analysis does not,
   all in the one remaining category: values whose simplification
