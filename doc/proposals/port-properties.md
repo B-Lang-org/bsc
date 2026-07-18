@@ -125,22 +125,26 @@ which 1,686 differ.
   identity case statement which the optimizer leaves behind but the
   agreement rule sees through.
 * An argument inout fed through to an interface inout is one net exposed
-  at two pins; `getIOProps` labels the argument pin `unused` as an
-  artifact of the alias collapse, while this analysis reports both pins
-  as live.
-* 52 lines are properties `getIOProps` finds and this analysis does not,
-  in exactly the two remaining categories: values whose simplification
-  requires boolean minimization over independent dynamic guards (33, the
-  principled boundary -- see below); and inout nets traced through
-  `InoutConnect` (19, pending work).  An earlier draft had a third
-  category -- enables whose method effects die inside value-method
-  argument muxes (49 lines) -- which is now covered: the argument muxes
-  of value methods are arbitration-modeled like those of action methods
-  (with RDY-based selectors for interface value-method users), and the
+  at two pins.  `getIOProps` used to label the argument pin `unused` --
+  not from analysis, but because the interface-inout definitions were
+  missing from its use map -- and the mislabel propagated up parent
+  compiles (19 lines in the sweep).  The fix to `getIOProps` itself
+  landed separately (B-Lang-org/bsc PR 1057, on which this branch is
+  based): both passes now report both pins as live.
+* 33 lines are properties `getIOProps` finds and this analysis does not,
+  all in the one remaining category: values whose simplification
+  requires boolean minimization over independent dynamic guards (the
+  principled boundary -- see below).  Earlier drafts had two more
+  categories, both now closed.  Enables whose method effects die inside
+  value-method argument muxes (49 lines): the argument muxes of value
+  methods are arbitration-modeled like those of action methods (with
+  RDY-based selectors for interface value-method users), and the
   references AState itself creates for a caller's WILL_FIRE are folded
   semantically (a port enable absorbed by a constant or complementary
   conjunct; the selector of a direct connection, a losing arm, or a
-  mux's last arm, which the don't-care default absorbs).
+  mux's last arm, which the don't-care default absorbs).  And the inout
+  alias lines (19), resolved in `getIOProps`'s favor of accuracy as
+  above.
 * No line asserts a property that `getIOProps` contradicts.
 
 Stability was demonstrated directly: under `-no-inline-rwire` /
@@ -230,7 +234,7 @@ removed.
 3. **(done, this branch)** Run the full testsuite.  The churn: golden
    Verilog files' "Ports:" comments change where the new labels are
    richer; behavioral differences in parent compiles are confined to
-   the 52 known lines (the main risk is a parent asserting
+   the 33 known lines (the main risk is a parent asserting
    `always_ready` against a child whose RDY `const` was
    optimizer-derived -- two designs in the testsuite exhibit the
    pattern, neither with such a parent).
@@ -250,8 +254,11 @@ Excluded on principle (the "agreement, not enumeration" boundary):
 
 Pending (deducible under the contract, not yet implemented):
 
-* Inout nets are not traced through `InoutConnect` instances (the 19
-  remaining `unused` lines).
+* Inout nets are not traced through `InoutConnect` instances: an inout
+  reaching only a chain of connections that ends nowhere would still be
+  reported live.  (Conservative; no design in the testsuite exercises
+  it -- connection primitives there only join nets that have real
+  endpoints.)
 
 ## Enabled by this (future work, not in this proposal)
 
