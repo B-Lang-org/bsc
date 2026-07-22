@@ -41,6 +41,9 @@ test_veri_only DerivingViaUsage
 # unspecified value in the hardware)
 compile_fail_error DerivingViaMultiCon.bs T0000
 compare_file DerivingViaMultiCon.bs.bsc-out
+# if the type class argument is used as type argument in the
+# associated function, DerivingVia will generate a code that is
+# rejected during typechecker
 compile_fail_error DerivingViaHK.bs T0030
 compare_file DerivingViaHK.bs.bsc-out
 
