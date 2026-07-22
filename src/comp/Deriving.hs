@@ -247,20 +247,8 @@ doStructDer _ _ _ i vs cs (CTypeclass di) =
 
 -- -------------------------
 
--- | Derive an instance of a typeclass using Deriving via mechanism
--- for a given data, and return the instance definitions.
---  packageid = id name of the package
---  xs  =  available bindings
---  i   =  qualified id of the data type
---  vs  =  argument type variables of the data type
---  di  =  the class to be derived
---  tgt =  data type via which to derive
--- The via delegation wraps arguments with (CCon tgt [x]) and unwraps
--- results with a single-arm case on (CPCon tgt [y]), so the target must
--- be a data type with exactly one constructor, named like the type,
--- taking exactly one argument.  Anything else would generate a partial
--- case whose fall-through is an unspecified value in the generated
--- hardware, with no diagnostic anywhere downstream.
+-- | DerivingVia can deal only with datatypes that have single
+-- constructor that matches the name of the data type itself.
 viaTargetShapeOK :: [(Id, CDefn)] -> Id -> Bool
 viaTargetShapeOK xs tgt =
     let -- an explicitly qualified target must match the qualifier of
@@ -279,6 +267,20 @@ viaTargetShapeOK xs tgt =
              any (qualEq tgt) (cos_names summand)
          _ -> False
 
+-- | Derive an instance of a typeclass using Deriving via mechanism
+-- for a given data, and return the instance definitions.
+--  packageid = id name of the package
+--  xs  =  available bindings
+--  i   =  qualified id of the data type
+--  vs  =  argument type variables of the data type
+--  di  =  the class to be derived
+--  tgt =  data type via which to derive
+-- The via delegation wraps arguments with (CCon tgt [x]) and unwraps
+-- results with a single-arm case on (CPCon tgt [y]), so the target must
+-- be a data type with exactly one constructor, named like the type,
+-- taking exactly one argument.  Anything else would generate a partial
+-- case whose fall-through is an unspecified value in the generated
+-- hardware, with no diagnostic anywhere downstream.
 doVia :: [(Id, CDefn)] -> Id -> [Type] ->
              (CTypeclass, Id) -> Either EMsg [CDefn]
 doVia xs _ _ (di, tgt)
@@ -316,7 +318,7 @@ doVia xs i vs (di, tgt)
           cvar (t, id)
             | Just v <- isCTyVar t
             , v == dv
-            = CCon tgt $ [cVar id]
+            = CCon tgt [cVar id]
           cvar (_, id) = cVar id
           fun_name = unQualId $ cf_name f
           call = CApply (cVar fun_name) $ map cvar vars
