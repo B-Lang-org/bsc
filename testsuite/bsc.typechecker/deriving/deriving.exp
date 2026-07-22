@@ -44,6 +44,8 @@ compare_file DerivingViaMultiCon.bs.bsc-out
 compile_fail_error DerivingViaHK.bs T0030
 compare_file DerivingViaHK.bs.bsc-out
 
+compile_fail_error DerivingViaIllegal.bs T0000
+
 # --------------------
 # test that structs of one field can derive for instances from that field
 # (bug 601)
