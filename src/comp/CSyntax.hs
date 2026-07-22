@@ -257,8 +257,9 @@ instance NFData IdK where
 
 data CDeriving
         = CStock [CTypeclass]
-        -- TODO: expr?
-        | CVia CTypeclass Id
+        | CVia CTypeclass Id -- Deriving via target is captured _just_ as an Id.  Perhaps
+                             --   there is a case to permit more generic type expression
+                             --   here, but for now it doesn't seem to be the case
         deriving (Eq, Ord, Show)
 
 instance NFData CDeriving where
