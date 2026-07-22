@@ -1,0 +1,4 @@
+package DerivingViaIllegal() where
+
+data Foo = Foo (Int 8)
+  deriving Int via ShallowSplit
