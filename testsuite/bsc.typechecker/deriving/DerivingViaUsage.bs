@@ -1,0 +1,20 @@
+package DerivingViaUsage(sysDerivingViaUsage) where
+
+class MyShow a where
+  mshow :: a -> Fmt
+
+data Hex a = Hex a
+
+instance (Bits a n) => MyShow (Hex a) where
+  mshow (Hex a) = $format "%h" a
+
+data Foo = Foo (Int 8)
+  deriving (Bits)
+  deriving MyShow via Hex
+
+sysDerivingViaUsage :: Module Empty
+sysDerivingViaUsage = module
+  rules
+    when True ==> do
+      $display (mshow $ Foo 42)
+      $finish

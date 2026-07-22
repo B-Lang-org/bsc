@@ -35,6 +35,7 @@ test_veri_only DerivingMod
 # tests for deriving via
 
 compile_pass DerivingVia.bs
+test_veri_only DerivingViaUsage
 # the via target must be a single-constructor single-argument wrapper;
 # anything else would compile to a partial unwrap case (silent
 # unspecified value in the hardware)
