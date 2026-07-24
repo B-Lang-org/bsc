@@ -15,8 +15,9 @@ instance Applicative (ModuleContext c) where
 
 instance Monad (ModuleContext c) where
   bind (M _x) _f = M (\_c ->
-                        (_x _c) `bind`
-                          (\ _node -> unM (_f _node.snd) _node.fst)
+                        let _n = primGetParamName _f
+                        in  (setStateName _n (_x _c)) `bind`
+                              (\ _node -> unM (_f _node.snd) _node.fst)
                    )
 
 getCompleteContext  :: ModuleContext c c

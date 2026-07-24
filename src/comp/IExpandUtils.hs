@@ -1052,10 +1052,54 @@ pushModuleSchedNameScope ns resTy = do
                     Just ifcName -> getIfcFlatMethodNames symt ifcName
       newNameMap = M.fromList [ (m, SNI_Method False) | m <- methNames ]
       newFrame = SchedNameFrame ns 0 newNameMap Nothing
+      -- Two naming layers can wrap the same module: for example, the
+      -- name wrapper that a module monad's bind inserts (via
+      -- primGetParamName/setStateName, carrying the bound variable's
+      -- name) around the setStateName that BSV's typechecker already
+      -- inserted (carrying the declared instance name).  Each layer's
+      -- PrimStateName handler REPLACES the head of the IStateLoc -- a
+      -- sibling, not a child -- so instance naming collapses the layers
+      -- and the inner name wins.  Collapse them here, too: if the new ns
+      -- is a head-replacement of the frame on top of the stack (same
+      -- tail) and no rules have been registered yet, rename the top
+      -- frame instead of pushing a second frame, and bump its ignore
+      -- count to account for the extra pop.  Otherwise rule names, which
+      -- are qualified by the final IStateLoc, would not extend the stale
+      -- frame's prefix and would poison the name map when dequalified
+      -- (see remIStateLocPrefix).
+      -- The push is a re-naming exactly when: it is at the same parent
+      -- position (equal, NON-empty tails -- primBuildModule starts fresh
+      -- singleton stacks, so empty tails mean two unrelated build-module
+      -- scopes, which can nest dynamically because primBuildModule is
+      -- forced lazily); it re-names the same binding (equal head
+      -- isl_ifc_id, which the PrimStateName handler preserves when it
+      -- re-heads the stack -- a genuine child that reaches the same tail
+      -- carries its own ifc id); and the scope owns no rule yet (no
+      -- rules registered, no rule/ifc elaboration in progress, and no
+      -- rules saved for deferred registration).  Rule names only reach
+      -- the map in addRules, after rule bodies elaborate, so the
+      -- elabProgress check covers immediate registration; under
+      -- moduleFix, however, addRules only saves the rules (saveRules)
+      -- and replays them after the body finishes, so a saved rule is
+      -- already named under the current prefix while both frame-local
+      -- checks still pass -- renaming the frame would orphan it.
+      isSiblingRename top =
+          case (ns, snf_istateloc top) of
+            (new_h:ns_rest@(_:_), top_h:top_rest) ->
+                ns_rest == top_rest &&
+                isl_ifc_id new_h == isl_ifc_id top_h &&
+                isNothing (snf_elabProgress top) &&
+                null [ () | SNI_Rule _ <- M.elems (snf_nameMap top) ] &&
+                null (savedRules s)
+            _ -> False
       -- if this is an "ignore" level, just update the old scope
       newScope = if ign
                  then incrSNFIgnoreCount oldScope
-                 else (newFrame:oldScope)
+                 else case oldScope of
+                        (top:frames) | isSiblingRename top ->
+                            (SchedNameFrame ns (snf_ignoreCount top + 1)
+                                 newNameMap Nothing) : frames
+                        _ -> (newFrame:oldScope)
   --traceM("PUSH: " ++ (ppReadable ((toTF ign, toTF (hasIgnore ns)), head newScope)))
   --traceM("PUSH: " ++ ppReadable (M.toList (snf_nameMap (head newScope))))
   put (s { schedNameScope = newScope })

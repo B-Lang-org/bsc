@@ -1,0 +1,28 @@
+package ModuleCollectNames where
+
+import ModuleCollect
+
+type CollectM i = ModuleCollect (Bit 8) i
+
+interface CounterC =
+   value :: Bit 16
+
+innerC :: CollectM CounterC
+innerC =
+  module
+    count :: Reg (Bit 16) <- mkReg 0
+    flag :: Reg Bool <- mkReg False
+    addToCollection (5 :: Bit 8)
+    interface CounterC
+      value = count
+    rules
+      "step": when True ==> action
+        count := count + 1
+
+{-# verilog sysModuleCollectNames #-}
+sysModuleCollectNames :: Module Empty
+sysModuleCollectNames =
+  module
+    ec :: IWithCollection (Bit 8) CounterC <- exposeCollection innerC
+    rules
+      "observe": when (ec.device.value == 99) ==> $finish 0
