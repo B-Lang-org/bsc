@@ -81,3 +81,39 @@ source, which is much slower to load.)
   (`showrules` and `vcdcheck` use it for `%` expansion and default `.ba`
   search paths). The launcher defaults it to `<repo>/inst/lib`, which is
   where `make install-src` puts it.
+
+## Distribution
+
+`util/bluehs/mk-dist.sh` builds `bsc-bluehs-<os>-<arch>-<version>.tar.gz`: a
+self-contained, relocatable tree (pruned GHC runtime + relocatable package
+store + SAT solver libraries + these scripts + a `bin/bluehs` launcher) so
+tarball users can run Haskell scripts against the bsc library with **no
+Haskell toolchain installed**. Host requirements: glibc, libgmp, libtcl8.6,
+and a C compiler (GHC probes it when loading libraries; CPP scripts
+preprocess with it).
+
+This artifact is a *companion* to the main bsc tarball and must be built
+from the same commit (the packaged library rejects `.ba` files whose build
+version stamp differs — see Caveats). Ship both from one release action;
+they are versioned in lockstep, like bluetcl.
+
+Everything redistributed in the tarball is covered in its `LICENSES/`
+directory: `LICENSE.ghc` (compiler/runtime), a generated
+`LICENSE.ghc_pkgs` enumerating every shipped Haskell package with license
+and copyright (via `src/comp/make-ghc-pkg-info.sh` over the exact shipped
+package closure), and the STP/Yices texts for the bundled solver
+libraries.
+
+The scripts in this tarball provide what `make install-extra` builds as
+compiled binaries; once bluehs ships as a standard release artifact,
+`install-extra` is a candidate for retirement.
+
+## Not converted
+
+* `bsc` itself: works as a script mechanically, but the ~1.5s/invocation
+  interpretation cost of the 2300-line driver is wrong for a tool invoked
+  once per compilation unit. The right eventual shape is moving `hmain` into
+  a library module (`Driver`), making `bsc` a 3-line compiled `Main` — after
+  which custom driver *scripts* are trivial for those who want them.
+* `bluetcl`: structurally not a script — it embeds Haskell in a C `main` via
+  foreign exports and links libtcl/libhtcl.
