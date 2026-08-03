@@ -1,0 +1,29 @@
+checking package dependencies
+compiling APkgProps_WireExpr.bsv
+code generation for sysAPkgProps_WireExpr starts
+=== APackageIOproperties (APkgProps_WireExpr sysAPkgProps_WireExpr):
+Name                         I/O  size props
+same                           O     8 reg
+RDY_same                       O     1 const
+taut                           O     1 reg
+RDY_taut                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+
+
+-----
+
+=== IOproperties (APkgProps_WireExpr sysAPkgProps_WireExpr):
+Name                         I/O  size props
+same                           O     8 reg
+RDY_same                       O     1 const
+taut                           O     1 reg
+RDY_taut                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_WireExpr.v
+All packages are up to date.

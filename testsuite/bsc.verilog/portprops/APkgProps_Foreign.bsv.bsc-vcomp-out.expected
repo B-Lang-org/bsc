@@ -1,0 +1,42 @@
+checking package dependencies
+compiling APkgProps_Foreign.bsv
+code generation for sysAPkgProps_Foreign starts
+Warning: "APkgProps_Foreign.bsv", line 15, column 8: (G0020)
+  System functions (e.g., $display) called by interface methods execute in an
+  unpredictable order during Verilog simulations.
+      Top-level interface method `disp' calls a system function (e.g.,
+      $display) at "APkgProps_Foreign.bsv", line 19, column 7
+      Top-level interface method `mixed' calls a system function (e.g.,
+      $display) at "APkgProps_Foreign.bsv", line 24, column 7
+=== APackageIOproperties (APkgProps_Foreign sysAPkgProps_Foreign):
+Name                         I/O  size props
+RDY_disp                       O     1 const
+mixed                          O     8 reg
+RDY_mixed                      O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+disp_x                         I     8 unused
+mixed_x                        I     8 reg
+EN_disp                        I     1 unused
+EN_mixed                       I     1
+
+
+-----
+
+=== IOproperties (APkgProps_Foreign sysAPkgProps_Foreign):
+Name                         I/O  size props
+RDY_disp                       O     1 const
+mixed                          O     8 reg
+RDY_mixed                      O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+disp_x                         I     8 unused
+mixed_x                        I     8 reg
+EN_disp                        I     1 unused
+EN_mixed                       I     1
+
+
+-----
+
+Verilog file created: sysAPkgProps_Foreign.v
+All packages are up to date.

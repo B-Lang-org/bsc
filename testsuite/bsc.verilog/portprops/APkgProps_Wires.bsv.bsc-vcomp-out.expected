@@ -1,0 +1,41 @@
+checking package dependencies
+compiling APkgProps_Wires.bsv
+code generation for sysAPkgProps_Wires starts
+=== APackageIOproperties (APkgProps_Wires sysAPkgProps_Wires):
+Name                         I/O  size props
+RDY_setV                       O     1 const
+RDY_deadSet                    O     1 const
+neverGet                       O     8 const
+RDY_neverGet                   O     1 const
+hasDead                        O     1 const
+RDY_hasDead                    O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+setV_v                         I     8 reg
+deadSet_v                      I     8 unused
+EN_setV                        I     1
+EN_deadSet                     I     1 unused
+
+
+-----
+
+=== IOproperties (APkgProps_Wires sysAPkgProps_Wires):
+Name                         I/O  size props
+RDY_setV                       O     1 const
+RDY_deadSet                    O     1 const
+neverGet                       O     8 const
+RDY_neverGet                   O     1 const
+hasDead                        O     1 const
+RDY_hasDead                    O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+setV_v                         I     8 reg
+deadSet_v                      I     8 unused
+EN_setV                        I     1
+EN_deadSet                     I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_Wires.v
+All packages are up to date.

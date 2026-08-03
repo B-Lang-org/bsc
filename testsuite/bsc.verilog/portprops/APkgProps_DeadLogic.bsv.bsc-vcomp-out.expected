@@ -1,0 +1,32 @@
+checking package dependencies
+compiling APkgProps_DeadLogic.bsv
+code generation for sysAPkgProps_DeadLogic starts
+Warning: "APkgProps_DeadLogic.bsv", line 14, column 8: (G0020)
+  System functions (e.g., $display) called by interface methods execute in an
+  unpredictable order during Verilog simulations.
+      Top-level interface method `log' calls a system function (e.g.,
+      $display) at "APkgProps_DeadLogic.bsv", line 19, column 7
+=== APackageIOproperties (APkgProps_DeadLogic sysAPkgProps_DeadLogic):
+Name                         I/O  size props
+RDY_log                        O     1 const
+CLK                            I     1 clock unused
+RST_N                          I     1 reset unused
+log_x                          I     8 unused
+EN_log                         I     1 unused
+
+
+-----
+
+=== IOproperties (APkgProps_DeadLogic sysAPkgProps_DeadLogic):
+Name                         I/O  size props
+RDY_log                        O     1 const
+CLK                            I     1 unused
+RST_N                          I     1 unused
+log_x                          I     8
+EN_log                         I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_DeadLogic.v
+All packages are up to date.

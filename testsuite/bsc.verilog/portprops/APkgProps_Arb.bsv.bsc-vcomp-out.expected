@@ -1,0 +1,34 @@
+checking package dependencies
+compiling APkgProps_Arb.bsv
+code generation for sysAPkgProps_Arb starts
+Warning: "APkgProps_Arb.bsv", line 17, column 8: (G0117)
+  Rule `start' shadows the effects of `check' when they execute in the same
+  clock cycle. Affected method calls:
+    val.write, res.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== APackageIOproperties (APkgProps_Arb sysAPkgProps_Arb):
+Name                         I/O  size props
+check                          O     6
+CLK                            I     1 clock
+RST_N                          I     1 reset
+start_a                        I     6 reg
+start_b                        I     6 reg
+check_d                        I     6
+
+
+-----
+
+=== IOproperties (APkgProps_Arb sysAPkgProps_Arb):
+Name                         I/O  size props
+check                          O     6
+CLK                            I     1 clock
+RST_N                          I     1 reset
+start_a                        I     6 reg
+start_b                        I     6 reg
+check_d                        I     6
+
+
+-----
+
+Verilog file created: sysAPkgProps_Arb.v
+All packages are up to date.

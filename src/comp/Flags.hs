@@ -154,7 +154,11 @@ data Flags = Flags {
         verilogFilter :: [String],
         warnActionShadowing :: Bool,
         warnMethodUrgency :: Bool,
-        warnUndetPred :: Bool
+        warnUndetPred :: Bool,
+        -- derive the Verilog "Ports:" comment from the APackage analysis
+        -- (getIOPropsA) instead of the netlist measurement; off by default
+        -- so the emitted Verilog is unchanged
+        semanticPortsComment :: Bool
         }
 -- don't derive Show -- it causes an optimized ghc build to take a long time
 --        deriving (Show)
@@ -258,6 +262,7 @@ data DumpFlag
 
         -- Generate Verilog
         | DFforeignMap
+        | DFAPackageIOproperties
         | DFastate
         | DFrwire
         | DFcreg

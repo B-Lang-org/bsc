@@ -1,0 +1,27 @@
+checking package dependencies
+compiling APkgProps_Split.bsv
+code generation for sysAPkgProps_Split starts
+=== APackageIOproperties (APkgProps_Split sysAPkgProps_Split):
+Name                         I/O  size props
+RDY_toggle                     O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+toggle_c                       I     1
+EN_toggle                      I     1
+
+
+-----
+
+=== IOproperties (APkgProps_Split sysAPkgProps_Split):
+Name                         I/O  size props
+RDY_toggle                     O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+toggle_c                       I     1
+EN_toggle                      I     1
+
+
+-----
+
+Verilog file created: sysAPkgProps_Split.v
+All packages are up to date.

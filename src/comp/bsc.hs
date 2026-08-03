@@ -77,7 +77,7 @@ import CVPrint
 import Id
 import Backend
 import Pragma
-import VModInfo(VPathInfo, VPort)
+import VModInfo(VPathInfo)
 import Deriving(derive)
 import SymTab
 import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
@@ -122,7 +122,7 @@ import ADropDefs(aDropDefs)
 import AOpt(aOpt)
 import AVerilog(aVerilog)
 import AVeriQuirks(aVeriQuirks)
-import VIOProps(VIOProps, getIOProps)
+import VIOProps(VIOProps, getIOProps, getIOPropsA)
 import VFinalCleanup(finalCleanup)
 import Synthesize(aSynthesize)
 import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
@@ -943,22 +943,32 @@ genModule
                 ["BVI format method schedule info:"]
                 ++ lines (pretty 78 78 (vcat (dumpMethodBVIInfo methodConflict)) )
             | otherwise = []
-    -- Additional info from the Verilog backend
+    -- Port properties, derived from the APackage and the schedule
+    -- (see getIOPropsA): entailed by the design's structure, dataflow,
+    -- and schedule, so they are stable across optimization and inlining
+    -- settings -- and available to every backend, since no netlist is
+    -- needed to compute them.
     -- * veriPortProps =
-    --           IO properties which can be included as attributes in the
-    --           Cmoduleverilog (import-BVI)
-    --           XXX it would be nice if the Bluesim backend had the same info
+    --           IO properties which are included as attributes in the
+    --           Cmoduleverilog (import-BVI) recorded in the .bo
+    -- * aioprops = the same properties, for the Verilog "Ports:" comment
+    start flags DFAPackageIOproperties
+    let (aioprops, veriPortProps) =
+            getIOPropsA flags pps (Just sched_info'') amod_final
+    t <- dump errh flags t DFAPackageIOproperties dumpnames aioprops
+
+    -- Additional info from the Verilog backend
     -- * vprog = the Verilog data structure, for recording in the .ba file,
     --           so that it's available to bluetcl
-    (t, veriPortProps, vprog)
+    (t, vprog)
         <- if (backend flags == Just Verilog)
-           then do (t', ips, v)
+           then do (t', v)
                        <- genModuleVerilog
                              errh pps flags dumpnames t prefix modstr
                              blurb methodConflictBlurb methodConflictBVI
-                             vPathInfo sched_info'' amod_final
-                   return (t', ips, Just v)
-           else return (t, [], Nothing)
+                             vPathInfo sched_info'' aioprops amod_final
+                   return (t', Just v)
+           else return (t, Nothing)
 
     t <- if (genABin flags)
          then writeABin errh pps flags dumpnames t prefix
@@ -1076,13 +1086,13 @@ genModuleVerilog :: ErrorHandle
                  -> [String] -- method bvi format blurb lines
                  -> VPathInfo -- used to create path info blurb lines
                  -> AScheduleInfo
+                 -> VIOProps -- port properties (from the APackage)
                  -> APackage
                  -> IO (TimeInfo,
-                        [VPort],   -- port properties for the import-BVI
                         VProgram)  -- generated Verilog
 genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
                  blurb methodConflictBlurb methodConflictBVI vPathInfo scheduleInfo
-                 atsPackage =
+                 aioprops atsPackage =
     do
        -- Read in foreign function info from .ba files for
        -- all foreign functions used in the design, and build a
@@ -1178,9 +1188,19 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        t <- dump errh flags t DFfinalcleanup dumpnames aumod
        stats flags DFfinalcleanup aumod
 
+       -- The netlist-measured I/O properties: the source of the Verilog
+       -- "Ports:" comment unless -semantic-ports-comment selects the
+       -- APackage-based ones (see getIOPropsA); also available for
+       -- comparison via the dump (which forces them either way)
        start flags DFIOproperties
-       let (ioprops, ips) = getIOProps flags aumod
+       let (ioprops, _) = getIOProps flags aumod
        t <- dump errh flags t DFIOproperties dumpnames ioprops
+
+       -- Which properties the emitted "Ports:" comment shows; the
+       -- semantic ones are recorded in the .bo either way
+       let comment_ioprops = if semanticPortsComment flags
+                             then aioprops
+                             else ioprops
 
        -- Generate Verilog
        start flags DFverilog
@@ -1198,14 +1218,13 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Write the Verilog files
        start flags DFwriteVerilog
        vfilenames <- writeVerilog errh flags prefix
-                         blurb methodConflictBlurb methodConflictBVI ioprops vPathInfo
+                         blurb methodConflictBlurb methodConflictBVI comment_ioprops vPathInfo
                          vprog
        t <- dump errh flags t DFwriteVerilog dumpnames vfilenames
 
        -- Return
-       -- * the port properties (to be included in the import-BVI)
        -- * the Verilog structure (for accessing in bluetcl)
-       return (t, ips, vprog)
+       return (t, vprog)
 
 
 -- Write a Verilog program to file (along with its use file)

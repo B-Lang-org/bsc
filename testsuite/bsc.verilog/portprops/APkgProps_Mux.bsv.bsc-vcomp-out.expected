@@ -1,0 +1,37 @@
+checking package dependencies
+compiling APkgProps_Mux.bsv
+code generation for sysAPkgProps_Mux starts
+=== APackageIOproperties (APkgProps_Mux sysAPkgProps_Mux):
+Name                         I/O  size props
+RDY_setA                       O     1 const
+RDY_setB                       O     1 const
+get                            O     8
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset unused
+setA_v                         I     8
+setB_v                         I     8
+EN_setA                        I     1
+EN_setB                        I     1
+
+
+-----
+
+=== IOproperties (APkgProps_Mux sysAPkgProps_Mux):
+Name                         I/O  size props
+RDY_setA                       O     1 const
+RDY_setB                       O     1 const
+get                            O     8
+RDY_get                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 unused
+setA_v                         I     8
+setB_v                         I     8
+EN_setA                        I     1
+EN_setB                        I     1
+
+
+-----
+
+Verilog file created: sysAPkgProps_Mux.v
+All packages are up to date.
