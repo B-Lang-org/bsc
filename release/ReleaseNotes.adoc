@@ -7,14 +7,37 @@ Bluespec Compiler (BSC) Release Notes
 2026.07 Release
 ---------------
 
-Blurb here lorem ipsum
-... mention backward incompatible changes (flags on by default,
-let-gen, bluetcl ports, etc?) ...
-... mention new features (ATF, port splitting) ...
-... mention performance improvements, including in particular PR#1007,
-which has been a long-standing elaboration issue that now dramatically
-compiles faster; as well as #919 (loop test that needs less memory);
-and #957 that improves scaling for large modules ...
+PLEASE NOTE!  This release includes backward-incompatible changes!
+But it also introduces significant new features and peformance
+improvements.
+
+Incompatibitlies: This release enables the `-aggressive-conditions` and
+`-sched-conditions` flags by default, each of which can be disabled by
+providing the flag with `-no` prefixed.  Type inference for untyped
+let-statements has changed; code that relied on this will need an
+explicit type signature now, but if necessary, the `-let-gen` flag is
+available to revert to the previous behavior.  There is a syntax
+change in the output of Bluetcl commands that report port lists for a
+method, as there may now be multiple ports (or no ports) for method
+arguments and results.
+
+New features: Method arguments and results are no longer restricted to
+a single port in the generated Verilog.  BSC can generate multiple
+ports, based on the type; see `SplitPorts` in the Libraries Reference
+Guide.  Feedback on this experimental feature is welcomed.  Another
+exciting new feature is that type classes can now contain associated
+type functions (ATF), that allow users to define their own type
+constructors for accessing the dependent types of the class -- like
+`SizeOf` for the `Bits` class.
+
+Among many improvements in run time and memory usage, some
+long-standing issues have been addressed in the elaboration of
+vector/array selection (GitHub PR#1008) and loops (GitHub PR#919) and
+in the scaling of large modules (GitHub PR#957).
+
+Many further performance improvements and new features are in the
+pipeline.  Your ongoing feedback is welcome, either in the Groups.io
+mailing lists or at the GitHub repository.
 
 Changes since release 2026.01:
 
@@ -42,7 +65,8 @@ Compiler
      be turned off by providing the flags with `-no` prefixed
 
 * Stop generalising untyped `let` statements by default (GitHub PR#902)
-  ** This eliminates a common source of error
+  ** This eliminates a common source of error and makes it easier to
+     use functions like `split`
   ** Code that relied on this feature can be made to work by providing
      an explicit general type signature
   ** If necessary, the flag `-let-gen` can be used to revert to the
@@ -51,9 +75,10 @@ Compiler
 * New support for splitting method arguments and results into multiple
   ports according to the type -- e.g. separate ports for fields of a
   struct (GitHub Issue#714, PR#729, PR#932, PR#849, PR#959, PR#983, PR#1039)
-  ** New typeclasses XXX
-  ** New `SplitVector` library
-  ** See documentation XXX
+  ** This introduces new typeclasses to `Prelude` and new libraries
+     `SplitPorts` and `SplitVector`
+  ** Documentation for this feature is in the Libraries Reference
+     Guide, under `SplitPorts`
 
 * New support for associated type functions (ATF) -- allows users to
   define their own type constructors for computing the dependent types
@@ -126,7 +151,7 @@ Libraries
 
 * Add an `Ord` instance for `String` comparison (GitHub PR#931)
 
-* Add 'Rep' associated type function for `Generic` (GitHub PR#908)
+* Add `Rep` associated type function for `Generic` (GitHub PR#908)
 
 * Add `PrintType` library for constructing type-level string
   representations for types (GitHub PR#958)
@@ -202,7 +227,8 @@ Test Suite
 * Use the `dumpba` utility to check generated `.ba` files, as `dumpbo`
   is used for `.bo` files (GitHub PR#957)
 
-* Make some tests less sensitive to PreludeBSV positions (GitHub PR#897)
+* Make some tests less sensitive to `PreludeBSV` positions
+  (GitHub PR#897)
 
 * Fix bit rot in the MPEG4 long test (GitHub PR#995)
 
