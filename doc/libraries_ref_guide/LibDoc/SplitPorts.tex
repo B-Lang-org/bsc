@@ -1,27 +1,104 @@
 % ****************************************************************
 
-\subsection{SplitPorts and SplitVector}
+\subsection{SplitPorts}
 
-\label{sec-SplitPorts-package}
+\label{sec:SplitPorts_package}
 
-\index{SplitPorts@\te{SplitPorts}}
-\index{SplitPorts@\te{SplitVector}}
+% ----------------------------------------------------------------
+% Indexing plan:                                     Main Index         Fn Index  TCs Index
+%                                               --------------------    --------  ---------
+%                                               Direct  Under  Under
+%                                                       Pkg    Class
+%
+% 1 SplitPorts    package                           Y
+%
+% 2   ShallowSplitPorts    class                    Y     Y                          Y
+% 3     ShallowPortsOf           class type         Y     Y     Y
+% 4     shallowSplitPorts        class function     Y     Y     Y          Y
+% 5     shallowUnsplitPorts      class function     Y     Y     Y          Y
+% 6     shallowSplitPortNames    class function     Y     Y     Y          Y
+%
+% 7   DeepSplitPorts    class                       Y     Y                          Y
+% 8     DeepPortsOf              class type         Y     Y     Y
+% 9     deepSplitPorts           class function     Y     Y     Y          Y
+% 10    deepUnsplitPorts         class function     Y     Y     Y          Y
+% 11    deepSplitPortNames       class function     Y     Y     Y          Y
+
+% 1
+\index{SplitPorts@\te{SplitPorts}!package}
+
+% 2
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!type class}
+\index{SplitPorts@\te{SplitPorts}!ShallowSplitPorts@\te{ShallowSplitPorts} (class in package \\ \te{SplitPorts})}
+\index[typeclass]{ShallowSplitPorts}
+
+% 3
+\index{ShallowPortsOf@\te{ShallowPortsOf}!type in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!ShallowPortsOf@\te{ShallowPortsOf} (type in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!ShallowPortsOf@\te{ShallowPortsOf} (type in class)}
+
+% 4
+\index{shallowSplitPorts@\te{shallowSplitPorts}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowSplitPorts@\te{shallowSplitPorts} (function in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowSplitPorts@\te{shallowSplitPorts} (function in class)}
+\index[function]{SplitPorts!shallowSplitPorts}
+
+% 5
+\index{shallowUnsplitPorts@\te{shallowUnsplitPorts}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowUnsplitPorts@\te{shallowUnsplitPorts} (function in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowUnsplitPorts@\te{shallowUnsplitPorts} (function in class)}
+\index[function]{SplitPorts!shallowUnsplitPorts}
+
+% 6
+\index{shallowSplitPortNames@\te{shallowSplitPortNames}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowSplitPortNames@\te{shallowSplitPortNames} (function in class \\ \te{ShallowSplitPort})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowSplitPortNames@\te{shallowSplitPortNames} (function in class)}
+\index[function]{SplitPorts!shallowSplitPortNames}
+
+% 7
+\index{DeepSplitPorts@\te{DeepSplitPorts}!type class}
+\index{SplitPorts@\te{SplitPorts}!DeepSplitPorts@\te{DeepSplitPorts} (class in package \\ \te{SplitPorts})}
+\index[typeclass]{DeepSplitPorts}
+
+% 8
+\index{DeepPortsOf@\te{DeepPortsOf}!type in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!DeepPortsOf@\te{DeepPortsOf} (type in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!DeepPortsOf@\te{DeepPortsOf} (type in class)}
+
+% 9
+\index{deepSplitPorts@\te{deepSplitPorts}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepSplitPorts@\te{deepSplitPorts} (function in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepSplitPorts@\te{deepSplitPorts} (function in class)}
+\index[function]{SplitPorts!deepSplitPorts}
+
+% 10
+\index{deepUnsplitPorts@\te{deepUnsplitPorts}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepUnsplitPorts@\te{deepUnsplitPorts} (function in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepUnsplitPorts@\te{deepUnsplitPorts} (function in class)}
+\index[function]{SplitPorts!deepUnsplitPorts}
+
+% 11
+\index{deepSplitPortNames@\te{deepSplitPortNames}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepSplitPortNames@\te{deepSplitPortNames} (function in class \\ \te{DeepSplitPort})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepSplitPortNames@\te{deepSplitPortNames} (function in class)}
+\index[function]{SplitPorts!deepSplitPortNames}
+
+% ----------------------------------------------------------------
 
 NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
-    \te{SplitPorts} is a new feature, introduced in release 2026.07.  We
-    welcome feedback on its usability and on this documentation.
+    \te{SplitPorts} and \te{SplitVector} are new features, introduced
+    in release 2026.07.  We welcome feedback on their usability and on
+    this documentation.
 \end{minipage}}
 
-{\footnotesize Although aimed at Verilog, BlueSim also treats split
-  ports in the same way. In particular, it will generate waveform
-  files with the same ports/buses seen in Verilog.}
+{\footnotesize (For splitting {\tt Vector} values, see
+  Section~\ref{sec:SplitVector_package}.)}
 
 % ----------------------------------------------------------------
 
 \subsubsection{Description: Purpose of ``port splitting''}
 
-\index{Port splitting}
-\index{Port splitting|seealso{\te{SplitPorts}}}
+\index{Port splitting|see{\te{SplitPorts}}}
 
 {\footnotesize (In this section we will use the terms ``port'' and ``bus'' interchangeably.)}
 
@@ -33,8 +110,13 @@ the bit representations of the fields).  These are difficult to use in
 several RTL-level situations:
 
 \begin{itemize}
-  \item Viewing waveforms (whether generated from Verilog simulation or from Bluesim).
-  \item Interfacing with existing Verilog code.
+
+  \item Viewing waveforms generated from Verilog
+    simulation\footnote{Some waveform viewers may have support for
+    splitting vectors in the viewer.};
+
+  \item Interfacing with existing Verilog code;
+  \item Use by other downstream Verilog tools.
 \end{itemize}
 
 In both cases, we typically want a separate, named bus for each field
@@ -68,9 +150,8 @@ annotations--- and is equally available in {\BSVb} and {\BHb}.
 
 \hspace*{1em}
 
-\index{SplitPorts@\te{SplitPorts}!Canonical port splitting}
-\index{Canonical port splitting}
-\index{Canonical port splitting|seealso{\te{SplitPorts}}}
+\index{SplitPorts@\te{SplitPorts}!canonical port splitting}
+\index{Canonical port splitting|see{SplitPorts@\te{SplitPorts}}}
 
 We use the term ``canonical splitting'' where each struct field
 becomes a port, one-to-one, each vector/tuple element becomes a port,
@@ -80,8 +161,8 @@ term ``custom splitting''.
 Splitting of a usertype $t$ needs to be specified by the user.
 Defaults and utilities simplify this for canonical splitting.
 
-We expect that canonical splitting is what you'd want most of the
-time.  Custom splitting can also be useful in situations like these:
+We expect that canonical splitting is what we'd want most of the time.
+Custom splitting can also be useful in situations like these:
 
 \begin{itemize}
 
@@ -98,15 +179,17 @@ time.  Custom splitting can also be useful in situations like these:
 
 \paragraph{Shallow \emph{vs.} Deep Splitting}
 
-\hspace*{1em}
-
-\index{SplitPorts@\te{SplitPorts}!Shallow port splitting}
 \index{Shallow port splitting}
 \index{Shallow port splitting|seealso{\te{SplitPorts}}}
+\index{SplitPorts@\te{SplitPorts}!shallow port splitting}
+\index{SplitPorts@\te{SplitPorts}!\te{ShallowSplitPorts} (related class)}
 
-\index{SplitPorts@\te{SplitPorts}!Deep port splitting}
 \index{Deep port splitting}
 \index{Deep port splitting|seealso{\te{SplitPorts}}}
+\index{SplitPorts@\te{SplitPorts}!deep port splitting}
+\index{SplitPorts@\te{SplitPorts}!\te{DeepSplitPorts} (related class)}
+
+\hspace*{1em}
 
 In general, a type can have \emph{nested} structure.  For example, in
 a struct type $t_1$ a field may have struct type $t_2$, or a vector
@@ -140,30 +223,25 @@ Sections~\ref{sec:splitports_examples_BSV}.
 
 \subsubsection{Packages} 
 
-\label{sec:Library_SplitPorts}
+\index{SplitPorts@\te{SplitPorts}!package}
 
 The {\tt SplitPorts} type class and {\tt Port} type are defined in the
 Standard Prelude which is always implicitly imported.  They are
-described in Sections~\ref{sec-SplitPorts-Port-type} and
-\ref{sec-SplitPorts-typeclass}, respectively.  They are adequate for
+described in Sections~\ref{sec:SplitPorts_Port_type} and
+\ref{sec:SplitPorts_typeclass}, respectively.  They are adequate for
 ``manually'' specifying splitting.
 
-The {\tt SplitPorts} and {\tt SplitVector} packages must be imported
-for additional facilities (simplified canonical splitting and
-splitting of vectors). Detailed usage examples are shown in sections
-below.
+The {\tt SplitPorts} package must be imported for additional
+facilities (simplified canonical splitting). Detailed usage examples
+are shown in sections below.
 
 \begin{center}
-  \index{SplitPorts@\te{SplitPorts}!\te{SplitPorts} package}
-  \index{SplitVector@\te{SplitVector}!\te{SplitVector} package}
   \begin{minipage}[t]{0.3\textwidth}
     {\BHb} syntax:
 
     \begin{tabular}{|l|}
       \hline
       {\tt import SplitPorts} \\
-      \hline
-      {\tt import SplitVector} \\
       \hline
     \end{tabular}
   \end{minipage}
@@ -175,8 +253,6 @@ below.
       \hline
       {\tt import SplitPorts :: *;} \\
       \hline
-      {\tt import SplitVector :: *;} \\
-      \hline
     \end{tabular}
   \end{minipage}
 \end{center}
@@ -186,30 +262,6 @@ below.
 \subsubsection{Typeclasses}
 
 \label{sec:splitports_shallow_deep}
-
-\index{ShallowSplitPorts@\te{ShallowSplitPorts} (package for \te{SplitPorts})}
-\index{SplitPorts@\te{SplitPorts}!Related type class \te{ShallowSplitPorts}}
-\index[typeclass]{ShallowSplitPorts}
-
-\index{shallowSplitPorts@\te{shallowSplitPorts}
-       (function in \te{ShallowSplitPorts} type class}
-\index{shallowUnsplitPorts@\te{shallowUnsplitPorts}
-       (function in \te{ShallowSplitPorts} type class}
-\index{shallowSplitPortNames@\te{shallowSplitPortNames}
-       (function in \te{ShallowSplitPorts} type class}
-
-
-\index{DeepSplitPorts@\te{DeepSplitPorts} (package for \te{SplitPorts})}
-\index{SplitPorts@\te{SplitPorts}!Related type class \te{DeepSplitPorts}}
-\index[typeclass]{DeepSplitPorts}
-
-\index{deepSplitPorts@\te{deepSplitPorts}
-       (function in \te{DeepSplitPorts} type class}
-\index{deepUnsplitPorts@\te{deepUnsplitPorts}
-       (function in \te{DeepSplitPorts} type class}
-\index{deepSplitPortNames@\te{deepSplitPortNames}
-       (function in \te{DeepSplitPorts} type class}
-
 
 The following type classes are defined in the {\tt SplitPorts} library
 package. The type class methods simplify the specification of
@@ -653,7 +705,7 @@ Each original input port has been split into three ports.
 
 \label{sec:splitports_examples_BH_simplified}
 
-\index{SplitPorts@\te{SplitPorts}!Simplified canonical port splitting}
+\index{SplitPorts@\te{SplitPorts}!simplified canonical port splitting}
 \index{Simplified canonical port splitting}
 \index{Simplified canonical port splitting|seealso{\te{SplitPorts}}}
 
@@ -815,9 +867,8 @@ instance SplitPorts #(Foo, T2);
    endfunction
 
    function portNames (_, base);
-      return Cons ((base + "_x"),
-                   Cons ((base + "_y"),
-                         Nil));
+      return toList (vec (base + "_x",
+                          base + "_y"));
    endfunction
 endinstance
 \end{verbatim}
@@ -902,13 +953,12 @@ instance SplitPorts #(Bar, T6);
    endfunction
 
    function portNames (_, base);
-      return Cons ((base + "_v_0"),
-                   Cons ((base + "_v_1"),
-                         Cons ((base + "_v_2"),
-                               Cons ((base + "_w_1"),
-                                     Cons ((base + "_w_2"),
-                                           Cons ((base + "_z"),
-                                                 Nil))))));
+      return toList (vec (base + "_v_0",
+                          base + "_v_1",
+                          base + "_v_2",
+                          base + "_w_1",
+                          base + "_w_2",
+                          base + "_z"));
    endfunction
 endinstance
 \end{verbatim}
@@ -1014,14 +1064,13 @@ instance SplitPorts #(Bar, T7);
    endfunction
 
    function portNames (_, base);
-      return Cons ((base + "_v_0"),
-                   Cons ((base + "_v_1"),
-                         Cons ((base + "_v_2"),
-                               Cons ((base + "_w_1"),
-                                     Cons ((base + "_w_2"),
-                                           Cons ((base + "_z_x"),
-                                                 Cons ((base + "_z_y"),
-                                                       Nil)))))));
+      return toList (vec (base + "_v_0",
+                          base + "_v_1",
+                          base + "_v_2",
+                          base + "_w_1",
+                          base + "_w_2",
+                          base + "_z_x",
+                          base + "_z_y"));
    endfunction
 endinstance
 \end{verbatim}
@@ -1125,10 +1174,9 @@ instance SplitPorts #(Foo, T3);
    endfunction
 
    function portNames (_, base);
-      return Cons ((base + "_x"),
-                   Cons ((base + "_ysign"),
-                         Cons ((base + "_y"),
-                               Nil)));
+      return toList (vec (base + "_x",
+                          base + "_ysign",
+                          base + "_y"));
    endfunction
 
 endinstance
@@ -1230,39 +1278,110 @@ NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
 
 \end{minipage}}
 
-% ----------------------------------------------------------------
+%  ----------------------------------------------------------------
 
-\subsubsection{Types for Splitting Vectors}
+\subsubsection{Preventing or changing splitting on a user-defined type}
 
-\label{sec:splitports_vector_types}
+\label{sec:splitports_overriding_SplitPorts}
 
-{\footnotesize (This example needs import of {\tt SplitVectors} package.)}
+\index{SplitPorts@\te{SplitPorts}!prevent/override/alternate splitting}
 
-The following types are in the {\tt SplitVector} package:
+When a user-defined type $t$ has been declared as an instance of {\tt
+  SplitPorts}, then \emph{every} argument or result of type $t$ will
+be split by the \emph{bsc} compiler.  To prevent splitting,
+\begin{itemize}
 
-\index{SplitVector@\te{SplitVector}!\te{SplitVector} type}
-\index{SplitVector@\te{SplitVector}!\te{SplitVector} constructor}
+  \item define a \emph{new type} $t'$ that simply contains $t$ (\emph{i.e.,}
+    $t'$ is a ``wrapper'' type), and
+    \index{wrapper type!to prevent port-splitting}
 
+  \item use $t'$ in place of $t$ for each argument/result where we
+    want to prevent splitting.
+
+\end{itemize}
+
+If, instead of preventing splitting, we want an alternate splitting,
+we can define $t'$ as an instance of {\tt SplitPorts} and specify the
+alternate splitting there.
+
+% ****************************************************************
+
+\subsection{SplitVector}
+
+\label{sec:SplitVector_package}
+
+\index{SplitVector@\te{SplitVector}!package}
+\index{SplitVector@\te{SplitVector}!type}
+\index{SplitVector@\te{SplitVector}!constructor}
+\index{unSplitVector@\te{unSplitVector}!function in package \te{SplitVector}}
+\index[function]{SplitVector!unSplitVector}
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+    \te{SplitPorts} and \te{SplitVector} are new features, introduced
+    in release 2026.07.  We welcome feedback on their usability and on
+    this documentation.
+\end{minipage}}
+
+(For a general discussion of port splitting, and details of splitting
+non-{\tt Vector} values, please see
+Section~\ref{sec:SplitPorts_package}.)
+
+The \emph{bsc} compiler does not split {\tt Vector}-type values by
+default\footnote{They could split into hundreds of elements!}.  Nor do
+we typically want to define {\tt Vector} as an instance of the {\tt
+  SplitPorts} type class, both because that may cover too many vectors
+(we may use {\tt Vector} in unrelated ways in different arguments and
+results) and because the instance may become ``orphaned'' (for
+example, imported into a package that does not import {\tt
+  Vector}). The {\tt SplitVector} package provides a solution,
+defineing a type and a function:
 \begin{quote}
   {\BHb} syntax:
-  \hspace*{2em}\begin{tabular}[t]{l}
-    {\tt data SplitVector n a = SplitVector (Vector n a)}
+  \hspace*{1em}\begin{tabular}[t]{l}
+    {\tt import SplitVector} \\
+    \\
+    {\tt data SplitVector n a = SplitVector (Vector n a)} \\
+    \\
+    {\tt unSplitVector :: SplitVector n a -> Vector n a}
   \end{tabular}
 \end{quote}
 
 \begin{quote}
   {\BSVb} syntax:
-  \hspace*{2em}\begin{tabular}[t]{l}
+  \hspace*{1em}\begin{tabular}[t]{l}
+    {\tt import SplitVector :: *;} \\
+    \\
     {\tt typedef union tagged \{} \\
-    {\tt \hspace*{2em}  Vector \#(n, a) SplitVector;} \\
-    {\tt \} SplitVector \#(n, a);}
+    {\tt \hspace*{2em}  Vector \#(n,a) SplitVector;} \\
+    {\tt \} SplitVector \#(n,a);} \\
+    \\
+    {\tt function Vector \#(n,a) unSplitVector (SplitVector \#(n,a) v);}
   \end{tabular}
 \end{quote}
 
-The {\tt SplitVector} type is a ``drop-in'' replacement for the {\tt Vector} type.
+To split a vector method argument or result, replace the type {\tt
+  Vector} with the type {\tt SplitVector}.
 
-To split a vector method argument or result, replace the {\tt Vector}
-type with {\tt SplitVector}.
+The {\tt SplitVector} type is a ``drop-in'' replacement for the {\tt
+  Vector} type.  By this we mean that most of the type classes for
+which {\tt Vector} has instances also have instances for {\tt
+  SplitVector}, so functions like {\tt fmap}, {\tt foldr}, {\tt
+  length}, {\tt ==}, etc. will also work on {\tt SplitVector}.  For
+any other vector processing, we can:
+
+\begin{itemize}
+
+  \item use the {\tt unSplitVector} function to convert a value $sv_1$
+    of type {\tt SplitVector} into a corresponding value of type $v_1$
+    {\tt Vector} (we could also use pattern-matching for this);
+
+  \item compute a result vector $v_2$ of type {\tt Vector} from $v_1$
+    using {\tt Vector} operations, and
+
+  \item apply the constructor {\tt SplitVector} to $v_2$ to produce
+    the result $sv_2$ of type {\tt SplitVector}.
+
+\end{itemize}
 
 %  ----------------------------------------------------------------
 
@@ -1273,6 +1392,8 @@ type with {\tt SplitVector}.
 \hspace*{1em}
 
 {\footnotesize (For a {\BSVb} version of this, please see the next section.)}
+
+{\footnotesize (This example needs import of {\tt SplitVectors} package.)}
 
 As a baseline, let us consider ports for the {\tt Vector} type.
 Consider an interface like this:
@@ -1377,6 +1498,8 @@ mkTest_Vec :: Module SplitTest_Vec
 
 {\footnotesize (For a {\BHb} version of this, please see the previous section.)}
 
+{\footnotesize (This example needs import of {\tt SplitVectors} package.)}
+
 As a baseline, let us consider ports for the {\tt Vector} type.
 Consider an interface like this:
 
@@ -1473,6 +1596,24 @@ The method definition in the module, in more detail, will look like this:
 We use the function {\tt unSplitVector} to get {\tt v1}, an equivalent
 vector value of type {\tt Vector}; we compute a new value {\tt v2} of
 type {\tt Vector}, as usual; finally, we apply the constructor {\tt
-SplitVector} to get a result of type {\tt SplitVector}.
+  SplitVector} to get a result of type {\tt SplitVector}.
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Preventing or changing splitting on a {\tt SplitVector} argument/result}
+
+\label{sec:splitvector_overriding_SplitVector}
+
+\index{SplitVector@\te{SplitVector}!prevent/override/alternate splitting}
+
+\emph{Every} argument or result of type {\tt SplitVector} will be
+split by the \emph{bsc} compiler.  To prevent splitting, we can revert
+it to the {\tt Vector} type.
+
+Alternatively, to prevent splitting or define an alternate splitting,
+we can use the ``wrapper type''
+\index{wrapper type!to prevent port-splitting}
+technique described in
+Section~\ref{sec:splitports_overriding_SplitPorts}.
 
 % ****************************************************************
