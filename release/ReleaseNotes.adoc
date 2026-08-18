@@ -8,10 +8,10 @@ Bluespec Compiler (BSC) Release Notes
 ---------------
 
 PLEASE NOTE!  This release includes backward-incompatible changes!
-But it also introduces significant new features and peformance
+But it also introduces significant new features and performance
 improvements.
 
-Incompatibitlies: This release enables the `-aggressive-conditions` and
+Incompatibilities: This release enables the `-aggressive-conditions` and
 `-sched-conditions` flags by default, each of which can be disabled by
 providing the flag with `-no` prefixed.  Type inference for untyped
 let-statements has changed; code that relied on this will need an
@@ -64,7 +64,7 @@ Compiler
   ** If this increases compile time (GitHub Issue#1056), they can
      be turned off by providing the flags with `-no` prefixed
 
-* Stop generalising untyped `let` statements by default (GitHub PR#902)
+* Stop generalizing untyped `let` statements by default (GitHub PR#902)
   ** This eliminates a common source of error and makes it easier to
      use functions like `split`
   ** Code that relied on this feature can be made to work by providing
@@ -75,7 +75,7 @@ Compiler
 * New support for splitting method arguments and results into multiple
   ports according to the type -- e.g. separate ports for fields of a
   struct (GitHub Issue#714, PR#729, PR#932, PR#849, PR#959, PR#983, PR#1039)
-  ** This introduces new typeclasses to `Prelude` and new libraries
+  ** This introduces new type classes to `Prelude` and new libraries
      `SplitPorts` and `SplitVector`
   ** Documentation for this feature is in the Libraries Reference
      Guide, under `SplitPorts` (GitHub PR#1079)
@@ -105,7 +105,7 @@ Compiler
   ** Improve proviso instance reduction (GitHub PR#893, PR#914,
      PR#903, PR#981, PR#1032)
   ** Eliminate double parsing (GitHub PR#859)
-  ** Improve elaboration (GitGub PR#911, PR#917, PR#918, PR#982,
+  ** Improve elaboration (GitHub PR#911, PR#917, PR#918, PR#982,
      PR#940, PR#1007, PR#919, PR#957, PR#955)
   ** Improve scheduling (GitHub PR#910, PR#912, PR#913)
   ** Improve Verilog code generation (GitHub PR#929, PR#957)
@@ -124,7 +124,7 @@ Compiler
 * Detect when coherent instance matching depends on incoherent matches
   and warn or error as appropriate (GitHub PR#923)
 
-* Improve evaluator optimization rules, to simplify more occurences of
+* Improve evaluator optimization rules, to simplify more occurrences of
   pack applied to unpack (GitHub PR#926)
 
 * Remove the obsolete `-cross-info` flag (GitHub PR#919, Issue#863)
@@ -213,7 +213,7 @@ Utilities
 Test Suite
 ~~~~~~~~~~
 
-* Add top-level `GNUMakefile` targets for running the full testsuite
+* Add top-level `GNUMakefile` targets for running the full test suite
   (GitHub PR#930)
 
 * Fix a race in the parallel `Makefile` targets that would lead to
@@ -234,7 +234,7 @@ Test Suite
 
 * Clean up tests to have more predictable behavior across different
   simulators or to be less sensitive to differences, to eventually
-  support running the testsuite with Verilator
+  support running the test suite with Verilator
   (GitHub PR#995, PR#990, PR#991, PR#993)
   ** Some tests will require additional support from BSC
      (GitHub Issue#989, PR#994)
@@ -258,7 +258,7 @@ Internal
   ** Update the testing for GHC 9.10 to the latest 9.10.3 (GitHub PR#898)
   ** Update the GHC HLS version to the latest 2.13.0.0 (GitHub PR898)
   ** Update GitHub actions to newer versions (GitHub PR#898)
-  ** Use the `haskell/ghcup-setup` Action to install GHC/GHCup (GitGub PR#973)
+  ** Use the `haskell/ghcup-setup` Action to install GHC/GHCup (GitHub PR#973)
 
 For Developers
 ~~~~~~~~~~~~~~
