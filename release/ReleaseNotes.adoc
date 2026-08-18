@@ -78,7 +78,7 @@ Compiler
   ** This introduces new typeclasses to `Prelude` and new libraries
      `SplitPorts` and `SplitVector`
   ** Documentation for this feature is in the Libraries Reference
-     Guide, under `SplitPorts`
+     Guide, under `SplitPorts` (GitHub PR#1079)
 
 * New support for associated type functions (ATF) -- allows users to
   define their own type constructors for computing the dependent types
@@ -156,7 +156,7 @@ Libraries
 * Add `PrintType` library for constructing type-level string
   representations for types (GitHub PR#958)
 
-* Add `fromChucks` (inverse of `toChunks`) to the `Vector` library
+* Add `fromChunks` (inverse of `toChunks`) to the `Vector` library
   (GitHub PR#885)
 
 * Remove unnecessary provisos in the `ZBusUtil` library (GitHub PR#903)
