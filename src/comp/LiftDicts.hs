@@ -14,6 +14,7 @@ import IOUtil(progArgs)
 import Util(mapSndM, itos)
 
 import CSyntax
+import DictAliases(splitDictAliases)
 import FStringCompat(FString)
 import CFreeVars(getPV, getFVE, fvSetToFreeVars)
 import CType
@@ -570,17 +571,27 @@ instance LiftDicts CExpr where
     (ds', m') <- processCDeflsSeq p m ds
     e' <- liftDicts p m' e
     return $ cLetSeq ds' e'
-  -- We are not attempting to lift recursive dictionary bindings for now;
-  -- the letrec-bound dictionary ids join BoundDicts so that a nested
-  -- dictionary expression referencing one is (correctly) not lifted,
-  -- rather than tripping the top-level-known internalError below.
+  -- We are not attempting to lift real recursive dictionary bindings.  Pure
+  -- forwarding members are different: removing them before the traversal lets
+  -- the surviving evidence see the actual recursive or outer target, just as
+  -- processCDeflsSeq does for an ordered letseq.
   liftDicts p m (Cletrec ds e) = do
-    let vs = S.fromList [ getLName d | d <- ds ]
-        m' = shadowBindings vs m
-        p' = p `S.union` S.filter isDictId vs
-    ds' <- liftDicts p' m' ds
+    let all_vs = S.fromList [ getLName d | d <- ds ]
+        (aliases, real_ds) = splitDictAliases ds
+        real_vs = S.fromList [ getLName d | d <- real_ds ]
+        outer_m = shadowBindings all_vs m
+        alias_m = M.map (resolveAliasTarget outer_m) aliases
+        m' = alias_m `M.union` outer_m
+        p' = p `S.union` S.filter isDictId real_vs
+    ds' <- liftDicts p' m' real_ds
     e'  <- liftDicts p' m' e
     return $ cLetRec ds' e'
+    where
+      -- The alias map is transitively closed.  A terminal inside the real
+      -- recursive group was shadowed above and remains a CVar; an outer
+      -- terminal reuses any forwarding/lifting already recorded for it.
+      resolveAliasTarget outer_m target =
+        M.findWithDefault (CVar target) target outer_m
   liftDicts p m (CApply f es) = do
     f'  <- liftDicts p m f
     es' <- liftDicts p m es

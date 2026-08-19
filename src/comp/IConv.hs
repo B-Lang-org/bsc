@@ -20,6 +20,7 @@ import Error(internalError, ErrorHandle)
 import Flags(Flags)
 import Position
 import CSyntax
+import DictAliases(dictAlias)
 import CSyntaxTypes
 import CFreeVars(getFVDl)
 import Id
@@ -352,6 +353,14 @@ iConvQs' errh flags r env pvs cond bs (CQGen ct p e:qs) =
 iConvLetSeq :: ErrorHandle -> Flags -> SymTab -> Env a ->
                IPVars a -> [CDefl] -> (Env a, [(Id, IType, IExpr a)])
 iConvLetSeq errh flags symtab env ipvars [] = (env, [])
+iConvLetSeq errh flags symtab env ipvars (def : rest_defs)
+    | Just (name, target) <- dictAlias def =
+        -- SolvedBinds emits non-recursive dictionaries in dependency order.
+        -- A bare dictionary-to-dictionary binding is only forwarding, so keep
+        -- it in the conversion environment instead of emitting an I-level let
+        -- and substituting that let through the already-converted expression.
+        let env_with_alias = addVar name (iConvVar flags symtab env target) env
+        in  iConvLetSeq errh flags symtab env_with_alias ipvars rest_defs
 iConvLetSeq errh flags symtab env ipvars
         (CLValueSign (CDefT name genvars qualtype clauses) quals : rest_defs) =
     let env_with_def = addVar name (IVar name) env

@@ -28,7 +28,7 @@ import TCheck
 import CtxRed
 import SymTab
 import Assump
-import CSubst(cSubstN)
+import CQualifyClassDefaults
 import CFreeVars(getFVC, getFTCC)
 import Util(separate, apFst, quote)
 
@@ -181,7 +181,7 @@ qualifyClassDefaults errh symt ds =
                                         "type not found: " ++ ppReadable t)
         mkVQual v =
             case (findVar symt v) of
-              Just (VarInfo _ (qv :>: _) _ _) -> (v, CVar qv)
+              Just (VarInfo _ (qv :>: _) _ _) -> (v, qv)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "var not found: " ++ ppReadable v)
         qualDef (Cclass incoh cps ik is deps ats fs) =
@@ -194,8 +194,9 @@ qualifyClassDefaults errh symt ds =
                         cmap = M.fromList (map mkCQual (S.toList cset))
                         vmap = M.fromList (map mkVQual (S.toList vset))
                         tmap = M.fromList (map mkTQual (S.toList tset))
-                        -- substitute into the clauses
-                        fdefaults' = cSubstN (tmap,cmap,vmap,M.empty) fdefaults
+                        -- qualify the free names in the clauses
+                        qualEnv = ClassDefaultQualEnv tmap cmap vmap
+                        fdefaults' = qualifyClassDefaultClauses qualEnv fdefaults
                     in  (CField fi fps fqt fdefaults' foqt)
             in  (Cclass incoh cps ik is deps ats (map qualField fs))
         qualDef d = d

@@ -14,6 +14,28 @@ compare_file ContextOnClassSubset.bs.bsc-out
 
 compile_pass TypeClassMethodWithContext.bs
 
+# A locally generalized binding creates two equivalent dictionary predicates,
+# which are joined into one forwarding edge.  Instantiate the binding at two
+# different phantom stages and widths, using observably different dictionaries.
+compile_pass DictForwardingMultiInst.bsv \
+    {-let-gen -dtypecheck=DictForwardingMultiInst.typecheck.out -dliftdicts=DictForwardingMultiInst.liftdicts.out} 1
+find_regexp DictForwardingMultiInst.typecheck.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp_fail DictForwardingMultiInst.liftdicts.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+test_c_veri_bsv_modules_options DictForwardingMultiInst {} {-let-gen} \
+    sysDictForwardingMultiInst.out.expected
+test_c_veri_bsv_modules_options DictForwardingMultiInst {} \
+    {-let-gen -no-lift-dicts} sysDictForwardingMultiInst.out.expected
+
+# An untyped Classic let binding can put a solved dictionary alias outside an
+# inner definition whose clause has a `when` qualifier.  Exercise forwarding
+# through that qualifier with LiftDicts enabled and through the IConv fallback.
+test_c_veri_bs_modules_options DictAliasOuterMe {} {} \
+    sysDictAliasOuterMe.out.expected
+test_c_veri_bs_modules_options DictAliasOuterMe {} {-no-lift-dicts} \
+    sysDictAliasOuterMe.out.expected
+
 # Test that struct fields with contexts don't propagate that context
 # to the struct expression (part of bug #606, and applies to instances
 # because they are transformed into struct expressions).

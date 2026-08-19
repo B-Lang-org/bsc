@@ -1,0 +1,56 @@
+package ClassDefaultScopeImported () where
+
+import ClassDefaultScope
+
+x :: Integer
+x = 91
+
+loop :: Integer -> Integer
+loop _ = 91
+
+source :: Maybe Integer
+source = Invalid
+
+pair :: Pair
+pair = Pair { first = 91; second = 91 }
+
+instance C Bool where {}
+
+{-# verilog sysClassDefaultScopeImported #-}
+sysClassDefaultScopeImported :: Module Empty
+sysClassDefaultScopeImported =
+  module
+    rules
+      "r":
+        when True
+          ==> action
+                freeLoop <- g False False
+                localLoop <- g False True
+                if (f False 0 99 == 23)
+                  then $display "free-ok"
+                  else $display "free-bad"
+                if (f False 1 7 == 7)
+                  then $display "bound-ok"
+                  else $display "bound-bad"
+                if (freeLoop == 41)
+                  then $display "free-loop-ok"
+                  else $display "free-loop-bad"
+                if (localLoop == 3)
+                  then $display "local-loop-ok"
+                  else $display "local-loop-bad"
+                if (h False == 17)
+                  then $display "generator-ok"
+                  else $display "generator-bad"
+                if (j False == 17)
+                  then $display "def-qualifier-ok"
+                  else $display "def-qualifier-bad"
+                if (k False == 24)
+                  then $display "letseq-ok"
+                  else $display "letseq-bad"
+                if (m False == 17)
+                  then $display "pattern-let-ok"
+                  else $display "pattern-let-bad"
+                if (n False == 17)
+                  then $display "tuple-pattern-ok"
+                  else $display "tuple-pattern-bad"
+                $finish(0)

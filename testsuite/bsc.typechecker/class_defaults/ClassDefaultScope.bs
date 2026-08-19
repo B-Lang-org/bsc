@@ -1,0 +1,70 @@
+package ClassDefaultScope (C(..), Pair(..), x, loop, source, pair) where
+
+x :: Integer
+x = 23
+
+loop :: Integer -> Integer
+loop n = 40 + n
+
+source :: Maybe Integer
+source = Valid 17
+
+struct Pair =
+  first :: Integer
+  second :: Integer
+
+pair :: Pair
+pair = Pair { first = 17; second = 0 }
+
+class C a where
+  f :: a -> Integer -> Integer -> Integer
+  f _ 0 _ = x
+  f _ _ x = x
+
+  g :: a -> Bool -> ActionValue Integer
+  g _ False = return (loop 1)
+  g _ True = do
+    let {
+      local :: Integer -> Integer;
+      local =
+        let {
+          localWorker 0 = 0;
+          localWorker n = 1 + loop (n - 1)
+        } in localWorker;
+      loop :: Integer -> Integer;
+      loop =
+        let {
+          loopWorker n = local n
+        } in loopWorker
+    }
+    return (local 3)
+
+  h :: a -> Integer
+  h _ when Valid source <- source = source
+  h _ = 0
+
+  j :: a -> Integer
+  j _ =
+    let {
+      guarded :: Integer;
+      guarded when Valid source <- source = source
+    } in guarded
+
+  k :: a -> Integer
+  k _ =
+    letseq {
+      x :: Integer;
+      x = x + 1
+    } in x
+
+  m :: a -> Integer
+  m _ =
+    letseq {
+      Pair { first = pair; second = _ } = pair
+    } in pair
+
+  n :: a -> Integer
+  n _ =
+    letseq {
+      (value, _) = (17, 0)
+    } in value
