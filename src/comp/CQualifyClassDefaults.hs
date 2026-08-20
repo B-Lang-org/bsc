@@ -1,47 +1,52 @@
 module CQualifyClassDefaults (
-        ClassDefaultQualEnv(..),
-        qualifyClassDefaultClauses
+        qualifyClassDefaults
     ) where
 
+import Data.List(mapAccumL)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
+import Assump(Assump(..))
 import Changed(Changed(..), changed2, changedOr)
-import CFreeVars(getLDefs, getPV)
+import CFreeVars(getFVC, getFTCC, getLDefs, getPV)
 import CSyntax
-import Id(Id)
-import Util(mapSnd)
+import Error(internalError, ErrorHandle, ErrMsg(..), bsErrorUnsafe)
+import Id(Id, getIdString)
+import PFPrint
+import SymTab
+import Util(mapSnd, quote)
 
 
 -- The three namespaces which can contain free names in a class default.
 -- Unlike CSubst's value map, the variable map can only qualify a CVar to
 -- another CVar; class-default qualification never substitutes expressions.
-data ClassDefaultQualEnv = ClassDefaultQualEnv {
+-- Lexical bindings mask entries in the fixed free-variable map.
+data ClassDefaultQualScope = ClassDefaultQualScope {
         cdqTypeCons :: M.Map Id Id,
         cdqCons     :: M.Map Id Id,
-        cdqVars     :: M.Map Id Id
+        cdqVars     :: M.Map Id Id,
+        cdqBound    :: S.Set Id
     }
 
-removeVar :: ClassDefaultQualEnv -> Id -> ClassDefaultQualEnv
-removeVar env i = env { cdqVars = M.delete i (cdqVars env) }
+bindVars :: [Id] -> ClassDefaultQualScope -> ClassDefaultQualScope
+bindVars is scope = scope { cdqBound = S.union (S.fromList is) (cdqBound scope) }
 
-removeVars :: ClassDefaultQualEnv -> [Id] -> ClassDefaultQualEnv
-removeVars env is = env { cdqVars = foldr M.delete (cdqVars env) is }
+qualConId :: ClassDefaultQualScope -> Id -> Id
+qualConId scope i = M.findWithDefault i i (cdqCons scope)
 
-qualConId :: ClassDefaultQualEnv -> Id -> Id
-qualConId env i = M.findWithDefault i i (cdqCons env)
+qualMaybeConId :: ClassDefaultQualScope -> Maybe Id -> Maybe Id
+qualMaybeConId scope = fmap (qualConId scope)
 
-qualMaybeConId :: ClassDefaultQualEnv -> Maybe Id -> Maybe Id
-qualMaybeConId env = fmap (qualConId env)
+qualTypeConId :: ClassDefaultQualScope -> Id -> Id
+qualTypeConId scope i = M.findWithDefault i i (cdqTypeCons scope)
 
-qualTypeConId :: ClassDefaultQualEnv -> Id -> Id
-qualTypeConId env i = M.findWithDefault i i (cdqTypeCons env)
+qualMaybeTypeConId :: ClassDefaultQualScope -> Maybe Id -> Maybe Id
+qualMaybeTypeConId scope = fmap (qualTypeConId scope)
 
-qualMaybeTypeConId :: ClassDefaultQualEnv -> Maybe Id -> Maybe Id
-qualMaybeTypeConId env = fmap (qualTypeConId env)
-
-qualVarExpr :: ClassDefaultQualEnv -> Id -> CExpr
-qualVarExpr env i = CVar (M.findWithDefault i i (cdqVars env))
+qualVarExpr :: ClassDefaultQualScope -> Id -> CExpr
+qualVarExpr scope i
+    | i `S.member` cdqBound scope = CVar i
+    | otherwise = CVar (M.findWithDefault i i (cdqVars scope))
 
 getPatVars :: CPat -> [Id]
 getPatVars = S.toList . getPV
@@ -50,61 +55,118 @@ getDeflVars :: CDefl -> [Id]
 getDeflVars = getLDefs
 
 
-qualifyClassDefaultClauses :: ClassDefaultQualEnv -> [CClause] -> [CClause]
-qualifyClassDefaultClauses env clauses
-    | M.null (cdqTypeCons env) && M.null (cdqCons env) && M.null (cdqVars env) = clauses
-    | otherwise = map (qualClause env) clauses
+qualifyClassDefaults :: ErrorHandle -> SymTab -> CPackage -> CPackage
+qualifyClassDefaults errh symt
+        (CPackage name exports imports impsigs fixities defns includes) =
+    CPackage name exports imports impsigs fixities (map qualifyDefn defns) includes
+  where
+    qualifyDefn (Cclass incoh preds idk vars deps ats fields) =
+        Cclass incoh preds idk vars deps ats (map qualifyField fields)
+    qualifyDefn defn = defn
 
-qualClause :: ClassDefaultQualEnv -> CClause -> CClause
-qualClause env (CClause pats quals body) =
-    let env' = removeVars env (concatMap getPatVars pats)
-        (env'', quals') = qualQuals env' quals
-    in  CClause (map (qualPat env) pats) quals' (qualExpr env'' body)
+    qualifyField field@(CField { cf_default = [] }) = field
+    qualifyField field@(CField { cf_default = clauses }) =
+        field { cf_default = qualifyClassDefaultClauses scope clauses }
+      where
+        (freeCons, freeVars) = unzip (map getFVC clauses)
+        conMap = M.fromList (map qualifyCon (S.toList (S.unions freeCons)))
+        varMap = M.fromList (map qualifyVar (S.toList (S.unions freeVars)))
+        typeMap = M.fromList
+            (map qualifyTypeCon (S.toList (S.unions (map getFTCC clauses))))
+        scope = ClassDefaultQualScope typeMap conMap varMap S.empty
 
-qualRule :: ClassDefaultQualEnv -> CRule -> CRule
-qualRule env (CRule pragmas label quals body) =
-    let (env', quals') = qualQuals env quals
-    in  CRule pragmas (fmap (qualExpr env) label) quals' (qualExpr env' body)
-qualRule env (CRuleNest pragmas label quals rules) =
-    let (env', quals') = qualQuals env quals
-    in  CRuleNest pragmas (fmap (qualExpr env) label) quals'
-            (map (qualRule env') rules)
+    qualifyCon con =
+        case findCon symt con of
+          Just [ConInfo { ci_assump = (qualified :>: _) }] -> (con, qualified)
+          Just _ ->
+              let msg = "The signature file generation for typeclass " ++
+                        "defaults cannot disambiguate the constructor " ++
+                        quote (getIdString con) ++ ".  Perhaps adding " ++
+                        "a package qualifier will help."
+              in  bsErrorUnsafe errh [(getPosition con, EGeneric msg)]
+          Nothing ->
+              -- It could be a struct/interface (or an alias of one?).
+              case findType symt con of
+                Just (TypeInfo (Just qualified) _ _ _ _) -> (con, qualified)
+                _ -> internalError ("qualifyClassDefaults: " ++
+                                    "constructor not found: " ++
+                                    ppReadable con)
 
-qualQuals :: ClassDefaultQualEnv -> [CQual] -> (ClassDefaultQualEnv, [CQual])
-qualQuals startEnv oldQuals =
-    let qualQual (env, newQuals) (CQFilter e) =
-            (env, CQFilter (qualExpr env e) : newQuals)
-        qualQual (env, newQuals) (CQGen t p e) =
-            let env' = removeVars env (getPatVars p)
-                newQual = CQGen (qualType env t) (qualPat env p)
-                                  (qualExpr env e)
-            in  (env', newQual : newQuals)
-        (newEnv, revNewQuals) = foldl qualQual (startEnv, []) oldQuals
-    in  (newEnv, reverse revNewQuals)
+    qualifyTypeCon tycon =
+        case findType symt tycon of
+          Just (TypeInfo (Just qualified) _ _ _ _) -> (tycon, qualified)
+          Just (TypeInfo Nothing _ _ _ _) ->
+              internalError ("qualifyClassDefaults: " ++
+                             "unexpected numeric or string type: " ++
+                             ppReadable tycon)
+          Nothing -> internalError ("qualifyClassDefaults: " ++
+                                    "type not found: " ++ ppReadable tycon)
 
-qualExpr :: ClassDefaultQualEnv -> CExpr -> CExpr
-qualExpr env (CLam ei@(Right i) e) =
-    CLam ei (qualExpr (removeVar env i) e)
-qualExpr env (CLam ei@(Left _) e) = CLam ei (qualExpr env e)
-qualExpr env (CLamT ei@(Right i) t e) =
-    CLamT ei (qualQType env t) (qualExpr (removeVar env i) e)
-qualExpr env (CLamT ei@(Left _) t e) =
-    CLamT ei (qualQType env t) (qualExpr env e)
-qualExpr env (Cletseq defs body) =
-    let (env', defs') = qualSeqDefls env defs
-    in  Cletseq defs' (qualExpr env' body)
-qualExpr env (Cletrec defs body) =
-    let env' = removeVars env (concatMap getDeflVars defs)
-    in  Cletrec (map (qualDefl env') defs) (qualExpr env' body)
+    qualifyVar var =
+        case findVar symt var of
+          Just (VarInfo _ (qualified :>: _) _ _) -> (var, qualified)
+          Nothing -> internalError ("qualifyClassDefaults: " ++
+                                    "var not found: " ++ ppReadable var)
+
+qualifyClassDefaultClauses :: ClassDefaultQualScope -> [CClause] -> [CClause]
+qualifyClassDefaultClauses scope clauses
+    | M.null (cdqTypeCons scope) &&
+      M.null (cdqCons scope) &&
+      M.null (cdqVars scope) = clauses
+    | otherwise = map (qualClause scope) clauses
+
+qualClause :: ClassDefaultQualScope -> CClause -> CClause
+qualClause scope (CClause pats quals body) =
+    let patScope = bindVars (concatMap getPatVars pats) scope
+        (bodyScope, quals') = qualQuals patScope quals
+    in  CClause (map (qualPat scope) pats) quals'
+            (qualExpr bodyScope body)
+
+qualRule :: ClassDefaultQualScope -> CRule -> CRule
+qualRule scope (CRule pragmas label quals body) =
+    let (bodyScope, quals') = qualQuals scope quals
+    in  CRule pragmas (fmap (qualExpr scope) label) quals'
+            (qualExpr bodyScope body)
+qualRule scope (CRuleNest pragmas label quals rules) =
+    let (bodyScope, quals') = qualQuals scope quals
+    in  CRuleNest pragmas (fmap (qualExpr scope) label) quals'
+            (map (qualRule bodyScope) rules)
+
+qualQuals :: ClassDefaultQualScope
+          -> [CQual]
+          -> (ClassDefaultQualScope, [CQual])
+qualQuals = mapAccumL qualQual
+  where
+    qualQual scope (CQFilter e) =
+        (scope, CQFilter (qualExpr scope e))
+    qualQual scope (CQGen t p e) =
+        (bindVars (getPatVars p) scope,
+         CQGen (qualType scope t) (qualPat scope p) (qualExpr scope e))
+
+qualExpr :: ClassDefaultQualScope -> CExpr -> CExpr
+qualExpr scope (CLam ei@(Right i) e) =
+    CLam ei (qualExpr (bindVars [i] scope) e)
+qualExpr scope (CLam ei@(Left _) e) = CLam ei (qualExpr scope e)
+qualExpr scope (CLamT ei@(Right i) t e) =
+    CLamT ei (qualQType scope t) (qualExpr (bindVars [i] scope) e)
+qualExpr scope (CLamT ei@(Left _) t e) =
+    CLamT ei (qualQType scope t) (qualExpr scope e)
+qualExpr scope (Cletseq defs body) =
+    let (bodyScope, defs') = qualSeqDefls scope defs
+    in  Cletseq defs' (qualExpr bodyScope body)
+qualExpr scope (Cletrec defs body) =
+    let bodyScope = bindVars (concatMap getDeflVars defs) scope
+    in  Cletrec (map (qualDefl bodyScope) defs)
+            (qualExpr bodyScope body)
 qualExpr env (CSelect e i) = CSelect (qualExpr env e) i
 qualExpr env (CCon i es) = CCon (qualConId env i) (map (qualExpr env) es)
 qualExpr env (Ccase pos e arms) =
     Ccase pos (qualExpr env e) (map qualArm arms)
   where
     qualArm (CCaseArm p quals body) =
-        let env' = removeVars env (getPatVars p)
-            (env'', quals') = qualQuals env' quals
-        in  CCaseArm (qualPat env p) quals' (qualExpr env'' body)
+        let patScope = bindVars (getPatVars p) env
+            (bodyScope, quals') = qualQuals patScope quals
+        in  CCaseArm (qualPat env p) quals' (qualExpr bodyScope body)
 qualExpr env (CStruct mb i fields) =
     CStruct mb (qualConId env i) (mapSnd (qualExpr env) fields)
 qualExpr env (CStructUpd e fields) =
@@ -132,8 +194,9 @@ qualExpr env (CSubUpdate pos vec (hi, lo) rhs) =
         (qualExpr env hi, qualExpr env lo) (qualExpr env rhs)
 qualExpr env (Cmodule pos stmts) = Cmodule pos (qualMStmts env stmts)
 qualExpr env (Cinterface pos con defs) =
-    let env' = removeVars env (concatMap getDeflVars defs)
-    in  Cinterface pos (qualMaybeConId env con) (map (qualDefl env') defs)
+    let bodyScope = bindVars (concatMap getDeflVars defs) env
+    in  Cinterface pos (qualMaybeConId env con)
+            (map (qualDefl bodyScope) defs)
 qualExpr env (CmoduleVerilog name user clocks resets args fields sched paths) =
     CmoduleVerilog (qualExpr env name) user clocks resets
         (mapSnd (qualExpr env) args) fields sched paths
@@ -162,15 +225,15 @@ qualExpr env (CForeignFuncCT i t) = CForeignFuncCT i (qualType env t)
 qualExpr env (CTApply e ts) = CTApply (qualExpr env e) (map (qualType env) ts)
 qualExpr _ e@(Cattributes {}) = e
 
-qualSeqDefls :: ClassDefaultQualEnv -> [CDefl] -> (ClassDefaultQualEnv, [CDefl])
-qualSeqDefls startEnv oldDefs =
-    let qualSeq (env, newDefs) def =
-            let env' = removeVars env (getDeflVars def)
-            in  (env', qualDefl env def : newDefs)
-        (newEnv, revNewDefs) = foldl qualSeq (startEnv, []) oldDefs
-    in  (newEnv, reverse revNewDefs)
+qualSeqDefls :: ClassDefaultQualScope
+              -> [CDefl]
+              -> (ClassDefaultQualScope, [CDefl])
+qualSeqDefls = mapAccumL qualSeq
+  where
+    qualSeq scope def =
+        (bindVars (getDeflVars def) scope, qualDefl scope def)
 
-qualDefl :: ClassDefaultQualEnv -> CDefl -> CDefl
+qualDefl :: ClassDefaultQualScope -> CDefl -> CDefl
 qualDefl env (CLValueSign def quals) =
     let (env', quals') = qualQuals env quals
     in  CLValueSign (qualDef env' def) quals'
@@ -180,27 +243,27 @@ qualDefl env (CLValue i clauses quals) =
 qualDefl env (CLMatch pat e) =
     CLMatch (qualPat env pat) (qualExpr env e)
 
-qualDef :: ClassDefaultQualEnv -> CDef -> CDef
+qualDef :: ClassDefaultQualScope -> CDef -> CDef
 qualDef env (CDef i t clauses) =
     CDef i (qualQType env t) (map (qualClause env) clauses)
 qualDef env (CDefT i vars t clauses) =
     CDefT i vars (qualQType env t)
         (map (qualClause env) clauses)
 
-qualQType :: ClassDefaultQualEnv -> CQType -> CQType
+qualQType :: ClassDefaultQualScope -> CQType -> CQType
 qualQType env (CQType preds t) =
     CQType (map (qualPred env) preds) (qualType env t)
 
-qualPred :: ClassDefaultQualEnv -> CPred -> CPred
+qualPred :: ClassDefaultQualScope -> CPred -> CPred
 qualPred env (CPred (CTypeclass cls) ts) =
     CPred (CTypeclass (qualTypeConId env cls)) (map (qualType env) ts)
 
 -- Return the original type node when no type-constructor name changes.  This
 -- avoids rebuilding unrelated type trees and composes well with CType interning.
-qualType :: ClassDefaultQualEnv -> CType -> CType
+qualType :: ClassDefaultQualScope -> CType -> CType
 qualType env t = changedOr t (qualTypeChanged env t)
 
-qualTypeChanged :: ClassDefaultQualEnv -> CType -> Changed CType
+qualTypeChanged :: ClassDefaultQualScope -> CType -> Changed CType
 qualTypeChanged env
     | M.null (cdqTypeCons env) = const Unchanged
     | otherwise = go
@@ -216,7 +279,7 @@ qualTypeChanged env
     go (TGen {}) = Unchanged
     go (TDefMonad {}) = Unchanged
 
-qualPat :: ClassDefaultQualEnv -> CPat -> CPat
+qualPat :: ClassDefaultQualScope -> CPat -> CPat
 qualPat env (CPCon i pats) = CPCon (qualConId env i) (map (qualPat env) pats)
 qualPat env (CPstruct mb i fields) =
     CPstruct mb (qualConId env i) (mapSnd (qualPat env) fields)
@@ -235,22 +298,19 @@ qualPat env (CPConTs ti ci ts pats) =
     CPConTs (qualTypeConId env ti) (qualConId env ci)
         (map (qualType env) ts) (map (qualPat env) pats)
 
-qualStmts :: ClassDefaultQualEnv -> [CStmt] -> [CStmt]
-qualStmts startEnv oldStmts =
-    let qualOne (env, newStmts) stmt =
-            let (env', stmt') = qualStmt env stmt
-            in  (env', stmt' : newStmts)
-        revNewStmts = snd (foldl qualOne (startEnv, []) oldStmts)
-    in  reverse revNewStmts
+qualStmts :: ClassDefaultQualScope -> [CStmt] -> [CStmt]
+qualStmts startScope = snd . mapAccumL qualStmt startScope
 
-qualStmt :: ClassDefaultQualEnv -> CStmt -> (ClassDefaultQualEnv, CStmt)
+qualStmt :: ClassDefaultQualScope
+         -> CStmt
+         -> (ClassDefaultQualScope, CStmt)
 qualStmt env (CSBindT pat name props t e) =
-    let env' = removeVars env (getPatVars pat)
+    let env' = bindVars (getPatVars pat) env
         stmt' = CSBindT (qualPat env pat) (fmap (qualExpr env) name) props
                     (qualQType env t) (qualExpr env e)
     in  (env', stmt')
 qualStmt env (CSBind pat name props e) =
-    let env' = removeVars env (getPatVars pat)
+    let env' = bindVars (getPatVars pat) env
         stmt' = CSBind (qualPat env pat) (fmap (qualExpr env) name) props
                     (qualExpr env e)
     in  (env', stmt')
@@ -258,25 +318,24 @@ qualStmt env (CSletseq defs) =
     let (env', defs') = qualSeqDefls env defs
     in  (env', CSletseq defs')
 qualStmt env (CSletrec defs) =
-    let env' = removeVars env (concatMap getDeflVars defs)
+    let env' = bindVars (concatMap getDeflVars defs) env
         stmt' = CSletrec (map (qualDefl env') defs)
     in  (env', stmt')
 qualStmt env (CSExpr name e) = (env, CSExpr name (qualExpr env e))
 
-qualMStmts :: ClassDefaultQualEnv -> [CMStmt] -> [CMStmt]
-qualMStmts startEnv oldStmts =
-    let qualOne (env, newStmts) (CMStmt stmt) =
-            let (env', stmt') = qualStmt env stmt
-            in  (env', CMStmt stmt' : newStmts)
-        qualOne (env, newStmts) (CMrules e) =
-            (env, CMrules (qualExpr env e) : newStmts)
-        qualOne (env, newStmts) (CMinterface e) =
-            (env, CMinterface (qualExpr env e) : newStmts)
-        qualOne (env, newStmts) (CMTupleInterface pos es) =
-            (env, CMTupleInterface pos (map (qualExpr env) es) : newStmts)
-        revNewStmts = snd (foldl qualOne (startEnv, []) oldStmts)
-    in  reverse revNewStmts
+qualMStmts :: ClassDefaultQualScope -> [CMStmt] -> [CMStmt]
+qualMStmts startScope = snd . mapAccumL qualMStmt startScope
+  where
+    qualMStmt scope (CMStmt stmt) =
+        let (scope', stmt') = qualStmt scope stmt
+        in  (scope', CMStmt stmt')
+    qualMStmt scope (CMrules e) =
+        (scope, CMrules (qualExpr scope e))
+    qualMStmt scope (CMinterface e) =
+        (scope, CMinterface (qualExpr scope e))
+    qualMStmt scope (CMTupleInterface pos es) =
+        (scope, CMTupleInterface pos (map (qualExpr scope) es))
 
-qualOp :: ClassDefaultQualEnv -> COp -> COp
+qualOp :: ClassDefaultQualScope -> COp -> COp
 qualOp env (CRand e) = CRand (qualExpr env e)
 qualOp _ (CRator n i) = CRator n i

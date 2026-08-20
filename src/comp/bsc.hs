@@ -84,6 +84,7 @@ import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
 import TypeCheck(cCtxReduceIO, cTypeCheck, mergeCATFCaches)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
+import CQualifyClassDefaults(qualifyClassDefaults)
 import Simplify(simplify)
 import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
                IEFace(..), IDef(..), IExpr(..), fdVars)
@@ -655,10 +656,13 @@ compilePackage
     -- Finally, generate interface files
     start flags DFwriteBin
 
+    -- Class defaults remain source templates in signatures, so record their
+    -- defining scope once before generating either view of the signature.
+    let msign = qualifyClassDefaults errh symt mctx
     -- Generate the user-visible type signature
-    (bi_sig, pkgsUsedInExports) <- genUserSign errh symt mctx
+    (bi_sig, pkgsUsedInExports) <- genUserSign errh symt msign
     -- Generate a type signature where everything is visible
-    bo_sig <- genEverythingSign errh symt mctx
+    bo_sig <- genEverythingSign errh symt msign
 
     -- Check for unused imports by combining packages from all three sources
     let (CPackage _ _ imports _ _ _ _) = mctx

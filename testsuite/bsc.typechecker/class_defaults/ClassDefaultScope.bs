@@ -40,7 +40,7 @@ class C a where
     return (local 3)
 
   h :: a -> Integer
-  h _ when Valid source <- source = source
+  h _ when Valid source <- source, source == 17 = source
   h _ = 0
 
   j :: a -> Integer

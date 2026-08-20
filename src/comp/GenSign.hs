@@ -25,7 +25,6 @@ import Pred(Class(..), predToCPred, expandSyn)
 import SymTab
 import Assump(Assump(..))
 import Position(Position(..))
-import TypeCheck(qualifyClassDefaults)
 
 --import Util(traces)
 --import Debug.Trace
@@ -68,14 +67,9 @@ genEverythingSign errh symtab cpkg =
 -- Returns: Either errors (signature, warnings, packages used by non-empty re-exports)
 genSign :: ErrorHandle -> Bool -> SymTab -> CPackage ->
            Either [EMsg] (CSignature, [WMsg], S.Set Id)
-genSign errh exportAll symt
-        pkg@(CPackage currentPkg exportList imps impsigs fixs ds0 includes) =
+genSign _errh exportAll symt
+        pkg@(CPackage currentPkg exportList imps impsigs fixs ds includes) =
     let
-        -- in the absence of typeclass defaults that are typechecked,
-        -- at least record the scope by qualifying identifiers
-        -- XXX see comment in tiOneDef for Cclass
-        ds = qualifyClassDefaults errh symt ds0
-
         -- fsCurrentPkg: the FString name of the package being compiled
         fsCurrentPkg = getIdFString currentPkg
 
