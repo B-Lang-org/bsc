@@ -11,15 +11,15 @@ PLEASE NOTE!  This release includes backward-incompatible changes!
 But it also introduces significant new features and performance
 improvements.
 
-Incompatibilities: This release enables the `-aggressive-conditions` and
-`-sched-conditions` flags by default, each of which can be disabled by
-providing the flag with `-no` prefixed.  Type inference for untyped
-let-statements has changed; code that relied on this will need an
-explicit type signature now, but if necessary, the `-let-gen` flag is
-available to revert to the previous behavior.  There is a syntax
-change in the output of Bluetcl commands that report port lists for a
-method, as there may now be multiple ports (or no ports) for method
-arguments and results.
+Incompatibilities: This release enables the `-aggressive-conditions`
+and `-sched-conditions` flags by default, each of which can be
+disabled by `-no-aggressive-conditions` and `-no-sched-conditions`
+respectively.  Type inference for untyped let-statements has changed;
+code that relied on this will need an explicit type signature now, but
+if necessary, the `-let-gen` flag is available to revert to the
+previous behavior.  There is a syntax change in the output of Bluetcl
+commands that report port lists for a method, as there may now be
+multiple ports (or no ports) for method arguments and results.
 
 New features: Method arguments and results are no longer restricted to
 a single port in the generated Verilog.  BSC can generate multiple
@@ -61,8 +61,9 @@ Compiler
 
 * Turn on `-aggressive-conditions` and `-sched-conditions` flags
   by default (GitHub PR#966)
-  ** If this increases compile time (GitHub Issue#1056), they can
-     be turned off by providing the flags with `-no` prefixed
+  ** If this increases compile time (GitHub Issue#1056), they can be
+     individually turned off by providing `-no-aggressive-conditions`
+     and `-no-sched-conditions` respectively
 
 * Stop generalizing untyped `let` statements by default (GitHub PR#902)
   ** This eliminates a common source of error and makes it easier to
