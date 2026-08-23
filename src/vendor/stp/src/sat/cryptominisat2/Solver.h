@@ -23,12 +23,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define SOLVER_H
 
 #include <cstdio>
+#include <ctime>
 #include <string.h>
 #include <stdio.h>
 #ifdef _MSC_VER
 #include <msvc/stdint.h>
 #else
 #include <stdint.h>
+#include <pthread.h>
 #endif //_MSC_VER
 
 #include "time_mem.h"
