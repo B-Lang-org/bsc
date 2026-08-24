@@ -6,7 +6,7 @@ import Position
 import Error(internalError, EMsg, ErrMsg(..), showErrorList)
 import Util(separate)
 import IOUtil(getEnvDef)
-import TopUtils(dfltBluespecDir)
+import TopUtils(getBluespecDir)
 import VCD
 
 import System.Environment(getArgs)
@@ -778,7 +778,7 @@ foldCmds handler state@(cs,msgs) (cmd:rest) =
 main :: IO ()
 main = do -- parse command line arguments
           argv <- getArgs
-          bluespecdir <- getEnvDef "BLUESPECDIR" dfltBluespecDir
+          bluespecdir <- getBluespecDir
           let (opts, args, emsgs) = parseOpts argv bluespecdir
 
           -- handle errors and/or request for help and version info
