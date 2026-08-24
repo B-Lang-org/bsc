@@ -43,4 +43,5 @@ Logical execution order: r1, r2, done
 
 =======================================
 Verilog file created: mkMutEx.v
+Elaborated module file created: mkMutEx.ba
 All packages are up to date.

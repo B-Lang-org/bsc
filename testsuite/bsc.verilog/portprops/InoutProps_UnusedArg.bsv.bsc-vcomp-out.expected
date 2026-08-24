@@ -11,4 +11,5 @@ io_arg                        IO    32 unused
 -----
 
 Verilog file created: sysInoutProps_UnusedArg.v
+Elaborated module file created: sysInoutProps_UnusedArg.ba
 All packages are up to date.

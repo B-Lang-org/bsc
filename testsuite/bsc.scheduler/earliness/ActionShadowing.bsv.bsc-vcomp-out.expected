@@ -12,4 +12,5 @@ Warning: "ActionShadowing.bsv", line 4, column 8: (G0117)
     rg1.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
 Verilog file created: sysTest.v
+Elaborated module file created: sysTest.ba
 All packages are up to date.

@@ -77,7 +77,7 @@ import CVPrint
 import Id
 import Backend
 import Pragma
-import VModInfo(VPathInfo, VPort)
+import VModInfo(VPathInfo)
 import Deriving(derive)
 import SymTab
 import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
@@ -122,7 +122,7 @@ import ADropDefs(aDropDefs)
 import AOpt(aOpt)
 import AVerilog(aVerilog)
 import AVeriQuirks(aVeriQuirks)
-import VIOProps(VIOProps, getIOProps)
+import VIOProps(VIOProps, getIOProps, getIOPropsA)
 import VFinalCleanup(finalCleanup)
 import Synthesize(aSynthesize)
 import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
@@ -225,6 +225,10 @@ hmain args = do
         DSimLink flags top abinFiles cSrcFiles ->
             do { setFlags flags; doWarnings; showPreamble flags;
                  simLink errh flags top abinFiles cSrcFiles;
+                 exitOK errh }
+        DCodeGen flags mods abinFiles ->
+            do { setFlags flags; doWarnings; showPreamble flags;
+                 codeGen errh flags mods abinFiles;
                  exitOK errh }
 
 
@@ -943,28 +947,34 @@ genModule
                 ["BVI format method schedule info:"]
                 ++ lines (pretty 78 78 (vcat (dumpMethodBVIInfo methodConflict)) )
             | otherwise = []
-    -- Additional info from the Verilog backend
+    -- Port properties, derived from the APackage and the schedule
+    -- (see getIOPropsA): entailed by the design's structure, dataflow,
+    -- and schedule, so they are stable across optimization and inlining
+    -- settings -- and available to every backend, since no netlist is
+    -- needed to compute them.
     -- * veriPortProps =
-    --           IO properties which can be included as attributes in the
-    --           Cmoduleverilog (import-BVI)
-    --           XXX it would be nice if the Bluesim backend had the same info
-    -- * vprog = the Verilog data structure, for recording in the .ba file,
-    --           so that it's available to bluetcl
-    (t, veriPortProps, vprog)
-        <- if (backend flags == Just Verilog)
-           then do (t', ips, v)
-                       <- genModuleVerilog
-                             errh pps flags dumpnames t prefix modstr
-                             blurb methodConflictBlurb methodConflictBVI
-                             vPathInfo sched_info'' amod_final
-                   return (t', ips, Just v)
-           else return (t, [], Nothing)
+    --           IO properties which are included as attributes in the
+    --           Cmoduleverilog (import-BVI) recorded in the .bo
+    -- * aioprops = the same properties, for the Verilog "Ports:" comment
+    start flags DFAPackageIOproperties
+    let (aioprops, veriPortProps) =
+            getIOPropsA flags pps (Just sched_info'') amod_final
+    t <- dump errh flags t DFAPackageIOproperties dumpnames aioprops
+
+    t <- if (backend flags == Just Verilog)
+         then do (t', _vfilenames)
+                     <- genModuleVerilog
+                           errh pps flags dumpnames t prefix modstr
+                           blurb methodConflictBlurb methodConflictBVI
+                           vPathInfo sched_info'' aioprops amod_final
+                 return t'
+         else return t
 
     t <- if (genABin flags)
          then writeABin errh pps flags dumpnames t prefix
                   modstr srcName (orig_cqt wi)
                   sched_info'' methodConflict vPathInfo
-                  amod_final vprog
+                  amod_final
          else return t
 
     -- Wrapper generation
@@ -992,9 +1002,9 @@ genModule
 writeABin :: ErrorHandle -> [PProp] -> Flags -> DumpNames -> TimeInfo ->
              String -> String -> String -> CQType ->
              AScheduleInfo -> MethodDumpInfo -> VPathInfo ->
-             APackage -> Maybe VProgram -> IO (TimeInfo)
+             APackage -> IO (TimeInfo)
 writeABin errh pps flags dumpnames t prefix modstr srcName oqt
-          sched_info methodConflict vPathInfo amod vprog =
+          sched_info methodConflict vPathInfo amod =
     do
        start flags DFwriteABin
 
@@ -1024,9 +1034,7 @@ writeABin errh pps flags dumpnames t prefix modstr srcName oqt
                           abmi_oqt         = oqt,
                           abmi_method_dump = methodConflict,
                           abmi_pathinfo = vPathInfo,
-                          abmi_flags       = flags,
-                          abmi_vprogram    = if (genABinVerilog flags)
-                                             then vprog else Nothing
+                          abmi_flags       = flags
                      }
            abin = ABinMod modinfo (bscVersionStr True)
        genABinFile errh afilename abin
@@ -1076,13 +1084,13 @@ genModuleVerilog :: ErrorHandle
                  -> [String] -- method bvi format blurb lines
                  -> VPathInfo -- used to create path info blurb lines
                  -> AScheduleInfo
+                 -> VIOProps -- port properties (from the APackage)
                  -> APackage
                  -> IO (TimeInfo,
-                        [VPort],   -- port properties for the import-BVI
-                        VProgram)  -- generated Verilog
+                        [VFileName]) -- the Verilog files written
 genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
                  blurb methodConflictBlurb methodConflictBVI vPathInfo scheduleInfo
-                 atsPackage =
+                 aioprops atsPackage =
     do
        -- Read in foreign function info from .ba files for
        -- all foreign functions used in the design, and build a
@@ -1178,9 +1186,19 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        t <- dump errh flags t DFfinalcleanup dumpnames aumod
        stats flags DFfinalcleanup aumod
 
+       -- The netlist-measured I/O properties: the source of the Verilog
+       -- "Ports:" comment unless -semantic-ports-comment selects the
+       -- APackage-based ones (see getIOPropsA); also available for
+       -- comparison via the dump (which forces them either way)
        start flags DFIOproperties
-       let (ioprops, ips) = getIOProps flags aumod
+       let (ioprops, _) = getIOProps flags aumod
        t <- dump errh flags t DFIOproperties dumpnames ioprops
+
+       -- Which properties the emitted "Ports:" comment shows; the
+       -- semantic ones are recorded in the .bo either way
+       let comment_ioprops = if semanticPortsComment flags
+                             then aioprops
+                             else ioprops
 
        -- Generate Verilog
        start flags DFverilog
@@ -1198,14 +1216,13 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Write the Verilog files
        start flags DFwriteVerilog
        vfilenames <- writeVerilog errh flags prefix
-                         blurb methodConflictBlurb methodConflictBVI ioprops vPathInfo
+                         blurb methodConflictBlurb methodConflictBVI comment_ioprops vPathInfo
                          vprog
        t <- dump errh flags t DFwriteVerilog dumpnames vfilenames
 
        -- Return
-       -- * the port properties (to be included in the import-BVI)
-       -- * the Verilog structure (for accessing in bluetcl)
-       return (t, ips, vprog)
+       -- * the Verilog file names written
+       return (t, vfilenames)
 
 
 -- Write a Verilog program to file (along with its use file)
@@ -1295,8 +1312,11 @@ genModuleC errh flags dumpnames time0 toplevel abis =
 
        -- extract file dependency structure and determine if any
        -- existing bluesim packages can reuse existing object files
+       -- (in -c mode, all files are always regenerated)
        start flags DFsimDepend
-       reused <- analyzeBluesimDependencies flags sim_system prefix
+       reused <- if (blockCodegen flags)
+                 then return []
+                 else analyzeBluesimDependencies flags sim_system prefix
        time <- dump errh flags time DFsimDepend dumpnames reused
 
        -- optimize the SimPackages and SimSchedules
@@ -1357,12 +1377,25 @@ genModuleC errh flags dumpnames time0 toplevel abis =
                                    gate_info_opt
                                    writeFileC
 
-       -- generate a header with imported function declarations
+       -- Generate a header with imported function declarations.
+       -- DEPRECATED: generated module code now declares its imported
+       -- functions inline (SimBlocksToC), so nothing generated includes
+       -- this file.  It is still written on -e links, with a #warning,
+       -- in case an out-of-tree build includes it by name; it will stop
+       -- being generated in a future release.  -c mode never writes it
+       -- (a whole-design artifact has no place in per-module codegen).
+       let deprecation_notice = unlines
+             [ "/* DEPRECATED: generated module code now declares its"
+             , " * imported functions inline; nothing generated includes"
+             , " * this file any longer, and it will stop being generated"
+             , " * in a future release. */"
+             , "#warning \"imported_BDPI_functions.h is deprecated; imported-function declarations are now inline in each generated .cxx\""
+             ]
        let import_header =
-             if M.null ff_map
+             if M.null ff_map || blockCodegen flags
              then []
              else [("imported_BDPI_functions.h",
-                    ppReadable (mkImportDeclarations ff_map))]
+                    deprecation_notice ++ ppReadable (mkImportDeclarations ff_map))]
 
        imp_names <- mapM (uncurry writeFileC) import_header
 
@@ -1392,6 +1425,102 @@ genModuleC errh flags dumpnames time0 toplevel abis =
        -- XXX return the headers separate from the files which need to be
        -- XXX compiled
        return (time, names, reused_names, creation_time)
+
+-- ===============
+-- CodeGen
+
+-- The -c mode: generate code for a module from its elaborated (.ba)
+-- file, the middle stage of the three-stage flow (elaborate -> codegen ->
+-- link).  For Bluesim this reuses the front half of simLink, which under
+-- blockCodegen generates each module's C++ as a reusable block (no
+-- schedule or top-level wrapper) and skips compiling and linking.  For
+-- Verilog each named module's .v is generated from its own .ba alone.
+codeGen :: ErrorHandle -> Flags -> [String] -> [String] -> IO ()
+codeGen errh flags mods abinFiles =
+    case (backend flags) of
+      Just Verilog -> vCodeGen errh flags mods abinFiles
+      _ -> let flags' = flags { blockCodegen = True }
+           in  mapM_ (\m -> simLink errh flags' m abinFiles []) mods
+
+-- Generate each named module's Verilog from its elaborated (.ba) file:
+-- from a .ba given on the command line when one defines the module, and
+-- otherwise found by module name on the search path.  Root-only, which
+-- is Verilog's native granularity: a module's .v needs only its own
+-- ABinModInfo (children are referenced by name).
+vCodeGen :: ErrorHandle -> Flags -> [String] -> [String] -> IO ()
+vCodeGen errh flags mods afilenames = do
+    tStart <- getNow
+    user_abis <- mapM (readAndCheckABin errh (Just Verilog)) (nub afilenames)
+    let abinModName (ABinMod mi _) =
+            getIdString (unQualId (apkg_name (abmi_apkg mi)))
+        abinModName _ = ""
+        findMod name =
+            case [ (fn, abin) | (fn, abin) <- user_abis
+                              , abinModName abin == name ] of
+              ((fn, abin):_) -> return (fn, abin)
+              [] -> let err = (cmdPosition,
+                               EMissingABinModFile name Nothing)
+                    in  readAndCheckABinPathCatch errh
+                            (verbose flags) (ifcPath flags) (Just Verilog)
+                            name err
+        assertMod (fn, ABinMod mi _) = return (fn, mi)
+        assertMod (_, ABinModSchedErr {}) =
+            bsError errh [(cmdPosition, EABinModSchedErr (unwords mods) Nothing)]
+        assertMod (fn, ABinForeignFunc {}) =
+            bsError errh [(cmdPosition,
+                           EWrongABinTypeExpectedModule fn Nothing)]
+    named_abis <- mapM findMod mods
+    abmis <- mapM assertMod named_abis
+    _ <- vGenMods errh flags tStart abmis
+    return ()
+
+-- Generate Verilog for modules from their elaborated (.ba) files,
+-- reconstructing the inputs of genModuleVerilog from each ABinModInfo.
+-- Codegen flags come from this invocation's command line, matching the
+-- Bluesim path; elaboration-affecting flags are baked into the .ba.
+vGenMods :: ErrorHandle -> Flags -> TimeInfo -> [(String, ABinModInfo)] ->
+            IO (TimeInfo, [VFileName])
+vGenMods errh flags t0 abmis = do
+    pwd <- getCurrentDirectory
+    -- output goes to the current directory unless -vdir overrides it
+    -- (a .ba's own directory is typically -bdir, which is not where
+    -- generated Verilog belongs)
+    let prefix = dirName (createEncodedFullFilePath "placeholder" pwd) ++ "/"
+        genV (t, vfns_so_far) (_, abmi) = do
+            let modId = apkg_name (abmi_apkg abmi)
+                modstr = getIdString (unQualId modId)
+                dumpnames = (Nothing, Nothing, Just modstr)
+            when (verbose flags) $ putStrLnF ("*****")
+            when (showCodeGen flags || verbose flags) $
+                putStrLnF ("Verilog generation for " ++ modstr ++ " starts")
+            blurb <- mkGenFileHeader flags
+            let apkg = abmi_apkg abmi
+                pps = abmi_pps abmi
+                methodConflict = abmi_method_dump abmi
+                methodConflictBlurb
+                  | methodConf flags =
+                      ["Method conflict info:"]
+                      ++ lines (pretty 78 78
+                                  (vcat (dumpMethodInfo flags methodConflict)))
+                  | otherwise = []
+                methodConflictBVI
+                  | methodBVI flags =
+                      ["BVI format method schedule info:"]
+                      ++ lines (pretty 78 78
+                                  (vcat (dumpMethodBVIInfo methodConflict)))
+                  | otherwise = []
+                pathinfo = abmi_pathinfo abmi
+                aschedinfo = abmi_aschedinfo abmi
+                -- recompute the APackage-derived port properties from the
+                -- .ba's own contents, so a regenerated .v matches the
+                -- original compile's under -semantic-ports-comment too
+                (aioprops, _) = getIOPropsA flags pps (Just aschedinfo) apkg
+            (t', vfns) <-
+                genModuleVerilog errh pps flags dumpnames t prefix modstr
+                    blurb methodConflictBlurb methodConflictBVI
+                    pathinfo aschedinfo aioprops apkg
+            return (t', vfns_so_far ++ vfns)
+    foldM genV (t0, []) abmis
 
 -- ===============
 -- SimLink
@@ -1446,7 +1575,10 @@ simLink errh flags toplevel afilenames cfilenames = do
     start flags DFbluesimcompile
     let jobs = parallelSimLink flags
     (gen_ofiles, compiled_user_ofiles) <-
-        if (jobs > 1)
+        if (blockCodegen flags)
+        then -- the user's build system compiles the generated files
+          return ([], [])
+        else if (jobs > 1)
         then do
           compileParallelCFiles errh flags False
               toplevel gen_cfiles user_cfiles
@@ -1464,9 +1596,10 @@ simLink errh flags toplevel afilenames cfilenames = do
     t <- dump errh flags t_before_compilations DFbluesimcompile dumpnames
               ofiles
 
-    -- if not generating a SystemC model, link to a Bluesim executable
+    -- if generating a SystemC model or only generating code,
+    -- there is nothing to link; otherwise link a Bluesim executable
     start flags DFbluesimlink
-    when (not (genSysC flags)) $
+    when (not (genSysC flags) && not (blockCodegen flags)) $
       cxxLink errh flags toplevel ofiles creation_time
     t <- dump errh flags t DFbluesimlink dumpnames toplevel
 
