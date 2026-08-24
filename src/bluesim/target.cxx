@@ -76,7 +76,8 @@ void BufferTarget::write_char(char c, unsigned int count)
   // write 'count' copies of 'c', add a null terminator
   // and adjust the start and end index values.
   unsigned int bytes = std::min(count, (buf_size-1));
-  unsigned int back_bytes = std::min(bytes, (buf_size-end+1));
+  // only buf_size - end bytes are contiguous before wrapping
+  unsigned int back_bytes = std::min(bytes, (buf_size-end));
   unsigned int wrapped_bytes = bytes - back_bytes;
   unsigned int freespace = buf_size - 1 - length();
   if (back_bytes > 0)
@@ -101,7 +102,8 @@ void BufferTarget::write_data(const void* data,
   // and adjust the start and end index values.
   unsigned int bytes = std::min(size*num, (buf_size-1));
   unsigned int lost  = (size*num) - bytes;
-  unsigned int back_bytes = std::min(bytes, (buf_size-end+1));
+  // only buf_size - end bytes are contiguous before wrapping
+  unsigned int back_bytes = std::min(bytes, (buf_size-end));
   unsigned int wrapped_bytes = bytes - back_bytes;
   unsigned int freespace = buf_size - 1 - length();
   const char* ptr = (const char*) data;
