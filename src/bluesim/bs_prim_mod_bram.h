@@ -616,7 +616,7 @@ class MOD_BRAM : public Module
       FileTarget dest(stdout);
       printf("Warning: BRAM '");
       write_name(&dest);
-      printf("' -- %s address on port A is out of bounds: ", (write_ens != 0) ? "Write" : "Read");
+      printf("' -- %s address on port A is out of bounds: ", is_zero(write_ens) ? "Read" : "Write");
       dump_val(addr, addr_bits);
       putchar('\n');
     }
@@ -657,7 +657,7 @@ class MOD_BRAM : public Module
       FileTarget dest(stdout);
       printf("Warning: BRAM '");
       write_name(&dest);
-      printf("' -- %s address on port B is out of bounds: ", (write_ens != 0) ? "Write" : "Read");
+      printf("' -- %s address on port B is out of bounds: ", is_zero(write_ens) ? "Read" : "Write");
       dump_val(addr, addr_bits);
       putchar('\n');
     }
