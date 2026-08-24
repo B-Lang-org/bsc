@@ -59,4 +59,5 @@ Warning: "DescendingUrgencyAttributeForLoop.bsv", line 9, column 10: (G0021)
 Warning: "DescendingUrgencyAttributeForLoop.bsv", line 9, column 10: (G0021)
   According to the generated schedule, rule `test_rule_2_2' can never fire.
 Verilog file created: sysDescendingUrgencyAttributeForLoop.v
+Elaborated module file created: sysDescendingUrgencyAttributeForLoop.ba
 All packages are up to date.

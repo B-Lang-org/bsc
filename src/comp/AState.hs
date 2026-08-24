@@ -3,6 +3,9 @@
 
 module AState(
               aState,
+              -- used by VIOProps to model the muxes that aState creates
+              MethBlob, MethPortBlob,
+              ratToBlobs, genMethodMult,
               ) where
 
 import qualified Data.Map as M

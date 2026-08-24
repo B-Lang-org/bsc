@@ -60,4 +60,5 @@ Logical execution order: readCount, driveCounter, incCount
 
 ==========================================
 Verilog file created: mkSBRCount.v
+Elaborated module file created: mkSBRCount.ba
 All packages are up to date.
