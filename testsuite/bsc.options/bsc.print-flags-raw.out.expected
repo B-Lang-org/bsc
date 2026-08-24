@@ -11,6 +11,7 @@ Flags {
 	cLibPath = [],
 	cLibs = [],
 	cdir = Nothing,
+	codegenNames = [],
 	cpp = False,
 	cppFlags = [],
 	cxxFlags = [],
@@ -28,7 +29,6 @@ Flags {
 	fdir = Nothing,
 	finalcleanup = 1,
 	genABin = False,
-	genABinVerilog = False,
 	genName = [],
 	genSysC = False,
 	ifLift = True,
@@ -132,5 +132,6 @@ Flags {
 	vsim = Nothing,
 	warnActionShadowing = True,
 	warnMethodUrgency = True,
-	warnUndetPred = False
+	warnUndetPred = False,
+	semanticPortsComment = False
 }

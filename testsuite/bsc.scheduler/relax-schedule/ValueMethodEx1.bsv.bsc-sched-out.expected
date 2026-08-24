@@ -50,6 +50,7 @@ Logical execution order: a, copy_it, b
 
 =======================================
 Verilog file created: mkTloop.v
+Elaborated module file created: mkTloop.ba
 code generation for sysTloop starts
 === schedule (ValueMethodEx1 sysTloop):
 parallel: [esposito: [RL_count -> [], RL_quit -> [], RL_poke -> [], RL_yell -> []]]
@@ -96,4 +97,5 @@ Logical execution order: quit, poke, count, yell
 
 ========================================
 Verilog file created: sysTloop.v
+Elaborated module file created: sysTloop.ba
 All packages are up to date.

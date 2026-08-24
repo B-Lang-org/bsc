@@ -35,4 +35,5 @@ Logical execution order: s, g
 
 =====================================================
 Verilog file created: sysAccessorPredicates.v
+Elaborated module file created: sysAccessorPredicates.ba
 All packages are up to date.

@@ -36,4 +36,5 @@ Logical execution order: act, write
 
 ============================================================
 Verilog file created: sysInterfaceOrderingParallel.v
+Elaborated module file created: sysInterfaceOrderingParallel.ba
 All packages are up to date.
