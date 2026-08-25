@@ -3395,6 +3395,14 @@ proc make_pass { target {make_opt "" }  { outfile "make.log" } }  {
 # ("-----" line and everything after) from a dump file so it can be re-parsed
 # as source code.
 proc strip_dump_wrapper { filename } {
+    global srcdir
+    global subdir
+
+    # Callers name the dump relative to their own test directory, but they
+    # call this after bsc_compile, which returns with the working directory
+    # back at the testsuite root.  An absolute name is left alone.
+    set filename [file join [absolute $srcdir] $subdir $filename]
+
     set f [open $filename r]
     set content [read $f]
     close $f
