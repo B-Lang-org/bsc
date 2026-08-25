@@ -1,0 +1,601 @@
+checking package dependencies
+compiling GuardedRules.bsv
+code generation for mkGuardedRules starts
+=== schedule (GuardedRules mkGuardedRules):
+parallel: [esposito: [RL_incr -> [],
+		      RL_incr_1 -> [],
+		      RL_incr_2 -> [],
+		      RL_incr_3 -> [],
+		      RL_incr_4 -> [],
+		      RL_incr_5 -> [],
+		      RL_incr_6 -> [],
+		      RL_incr_7 -> [],
+		      RL_incr_8 -> [],
+		      RL_incr_9 -> [],
+		      RL_incr_10 -> [],
+		      RL_incr_11 -> [],
+		      RL_incr_12 -> [],
+		      RL_incr_13 -> [],
+		      RL_incr_14 -> [],
+		      RL_incr_15 -> [],
+		      RL_incr_16 -> [],
+		      RL_incr_17 -> [],
+		      RL_incr_18 -> [],
+		      RL_incr_19 -> [],
+		      RL_incr_20 -> [],
+		      RL_incr_21 -> [],
+		      RL_incr_22 -> [],
+		      RL_incr_23 -> [],
+		      RL_incr_24 -> [],
+		      RL_incr_25 -> [],
+		      RL_incr_26 -> [],
+		      RL_incr_27 -> [],
+		      RL_incr_28 -> [],
+		      RL_incr_29 -> [],
+		      RL_incr_30 -> [],
+		      RL_incr_31 -> [],
+		      RL_incr_32 -> [],
+		      RL_incr_33 -> [],
+		      RL_incr_34 -> [],
+		      RL_incr_35 -> [],
+		      RL_incr_36 -> [],
+		      RL_incr_37 -> [],
+		      RL_incr_38 -> [],
+		      RL_incr_39 -> [],
+		      RL_incr_40 -> [],
+		      RL_incr_41 -> [],
+		      RL_incr_42 -> [],
+		      RL_incr_43 -> [],
+		      RL_incr_44 -> [],
+		      RL_incr_45 -> [],
+		      RL_incr_46 -> [],
+		      RL_incr_47 -> [],
+		      RL_incr_48 -> [],
+		      RL_incr_49 -> [],
+		      RL_incr_50 -> [],
+		      RL_incr_51 -> [],
+		      RL_incr_52 -> [],
+		      RL_incr_53 -> [],
+		      RL_incr_54 -> [],
+		      RL_incr_55 -> [],
+		      RL_incr_56 -> [],
+		      RL_incr_57 -> [],
+		      RL_incr_58 -> [],
+		      RL_incr_59 -> [],
+		      RL_incr_60 -> [],
+		      RL_incr_61 -> [],
+		      RL_incr_62 -> [],
+		      RL_incr_63 -> []]]
+order: [RL_incr,
+	RL_incr_1,
+	RL_incr_2,
+	RL_incr_3,
+	RL_incr_4,
+	RL_incr_5,
+	RL_incr_6,
+	RL_incr_7,
+	RL_incr_8,
+	RL_incr_9,
+	RL_incr_10,
+	RL_incr_11,
+	RL_incr_12,
+	RL_incr_13,
+	RL_incr_14,
+	RL_incr_15,
+	RL_incr_16,
+	RL_incr_17,
+	RL_incr_18,
+	RL_incr_19,
+	RL_incr_20,
+	RL_incr_21,
+	RL_incr_22,
+	RL_incr_23,
+	RL_incr_24,
+	RL_incr_25,
+	RL_incr_26,
+	RL_incr_27,
+	RL_incr_28,
+	RL_incr_29,
+	RL_incr_30,
+	RL_incr_31,
+	RL_incr_32,
+	RL_incr_33,
+	RL_incr_34,
+	RL_incr_35,
+	RL_incr_36,
+	RL_incr_37,
+	RL_incr_38,
+	RL_incr_39,
+	RL_incr_40,
+	RL_incr_41,
+	RL_incr_42,
+	RL_incr_43,
+	RL_incr_44,
+	RL_incr_45,
+	RL_incr_46,
+	RL_incr_47,
+	RL_incr_48,
+	RL_incr_49,
+	RL_incr_50,
+	RL_incr_51,
+	RL_incr_52,
+	RL_incr_53,
+	RL_incr_54,
+	RL_incr_55,
+	RL_incr_56,
+	RL_incr_57,
+	RL_incr_58,
+	RL_incr_59,
+	RL_incr_60,
+	RL_incr_61,
+	RL_incr_62,
+	RL_incr_63]
+
+-----
+
+=== resources (GuardedRules mkGuardedRules):
+[(rs_0.read, [(rs_0.read, 1)]),
+ (rs_0.write, [(rs_0.write rs_0_PLUS_1___d3, 1)]),
+ (rs_1.read, [(rs_1.read, 1)]),
+ (rs_1.write, [(rs_1.write rs_1_PLUS_1___d6, 1)]),
+ (rs_10.read, [(rs_10.read, 1)]),
+ (rs_10.write, [(rs_10.write rs_10_2_PLUS_1___d33, 1)]),
+ (rs_11.read, [(rs_11.read, 1)]),
+ (rs_11.write, [(rs_11.write rs_11_5_PLUS_1___d36, 1)]),
+ (rs_12.read, [(rs_12.read, 1)]),
+ (rs_12.write, [(rs_12.write rs_12_8_PLUS_1___d39, 1)]),
+ (rs_13.read, [(rs_13.read, 1)]),
+ (rs_13.write, [(rs_13.write rs_13_1_PLUS_1___d42, 1)]),
+ (rs_14.read, [(rs_14.read, 1)]),
+ (rs_14.write, [(rs_14.write rs_14_4_PLUS_1___d45, 1)]),
+ (rs_15.read, [(rs_15.read, 1)]),
+ (rs_15.write, [(rs_15.write rs_15_7_PLUS_1___d48, 1)]),
+ (rs_16.read, [(rs_16.read, 1)]),
+ (rs_16.write, [(rs_16.write rs_16_0_PLUS_1___d51, 1)]),
+ (rs_17.read, [(rs_17.read, 1)]),
+ (rs_17.write, [(rs_17.write rs_17_3_PLUS_1___d54, 1)]),
+ (rs_18.read, [(rs_18.read, 1)]),
+ (rs_18.write, [(rs_18.write rs_18_6_PLUS_1___d57, 1)]),
+ (rs_19.read, [(rs_19.read, 1)]),
+ (rs_19.write, [(rs_19.write rs_19_9_PLUS_1___d60, 1)]),
+ (rs_2.read, [(rs_2.read, 1)]),
+ (rs_2.write, [(rs_2.write rs_2_PLUS_1___d9, 1)]),
+ (rs_20.read, [(rs_20.read, 1)]),
+ (rs_20.write, [(rs_20.write rs_20_2_PLUS_1___d63, 1)]),
+ (rs_21.read, [(rs_21.read, 1)]),
+ (rs_21.write, [(rs_21.write rs_21_5_PLUS_1___d66, 1)]),
+ (rs_22.read, [(rs_22.read, 1)]),
+ (rs_22.write, [(rs_22.write rs_22_8_PLUS_1___d69, 1)]),
+ (rs_23.read, [(rs_23.read, 1)]),
+ (rs_23.write, [(rs_23.write rs_23_1_PLUS_1___d72, 1)]),
+ (rs_24.read, [(rs_24.read, 1)]),
+ (rs_24.write, [(rs_24.write rs_24_4_PLUS_1___d75, 1)]),
+ (rs_25.read, [(rs_25.read, 1)]),
+ (rs_25.write, [(rs_25.write rs_25_7_PLUS_1___d78, 1)]),
+ (rs_26.read, [(rs_26.read, 1)]),
+ (rs_26.write, [(rs_26.write rs_26_0_PLUS_1___d81, 1)]),
+ (rs_27.read, [(rs_27.read, 1)]),
+ (rs_27.write, [(rs_27.write rs_27_3_PLUS_1___d84, 1)]),
+ (rs_28.read, [(rs_28.read, 1)]),
+ (rs_28.write, [(rs_28.write rs_28_6_PLUS_1___d87, 1)]),
+ (rs_29.read, [(rs_29.read, 1)]),
+ (rs_29.write, [(rs_29.write rs_29_9_PLUS_1___d90, 1)]),
+ (rs_3.read, [(rs_3.read, 1)]),
+ (rs_3.write, [(rs_3.write rs_3_1_PLUS_1___d12, 1)]),
+ (rs_30.read, [(rs_30.read, 1)]),
+ (rs_30.write, [(rs_30.write rs_30_2_PLUS_1___d93, 1)]),
+ (rs_31.read, [(rs_31.read, 1)]),
+ (rs_31.write, [(rs_31.write rs_31_5_PLUS_1___d96, 1)]),
+ (rs_32.read, [(rs_32.read, 1)]),
+ (rs_32.write, [(rs_32.write rs_32_8_PLUS_1___d99, 1)]),
+ (rs_33.read, [(rs_33.read, 1)]),
+ (rs_33.write, [(rs_33.write rs_33_01_PLUS_1___d102, 1)]),
+ (rs_34.read, [(rs_34.read, 1)]),
+ (rs_34.write, [(rs_34.write rs_34_04_PLUS_1___d105, 1)]),
+ (rs_35.read, [(rs_35.read, 1)]),
+ (rs_35.write, [(rs_35.write rs_35_07_PLUS_1___d108, 1)]),
+ (rs_36.read, [(rs_36.read, 1)]),
+ (rs_36.write, [(rs_36.write rs_36_10_PLUS_1___d111, 1)]),
+ (rs_37.read, [(rs_37.read, 1)]),
+ (rs_37.write, [(rs_37.write rs_37_13_PLUS_1___d114, 1)]),
+ (rs_38.read, [(rs_38.read, 1)]),
+ (rs_38.write, [(rs_38.write rs_38_16_PLUS_1___d117, 1)]),
+ (rs_39.read, [(rs_39.read, 1)]),
+ (rs_39.write, [(rs_39.write rs_39_19_PLUS_1___d120, 1)]),
+ (rs_4.read, [(rs_4.read, 1)]),
+ (rs_4.write, [(rs_4.write rs_4_4_PLUS_1___d15, 1)]),
+ (rs_40.read, [(rs_40.read, 1)]),
+ (rs_40.write, [(rs_40.write rs_40_22_PLUS_1___d123, 1)]),
+ (rs_41.read, [(rs_41.read, 1)]),
+ (rs_41.write, [(rs_41.write rs_41_25_PLUS_1___d126, 1)]),
+ (rs_42.read, [(rs_42.read, 1)]),
+ (rs_42.write, [(rs_42.write rs_42_28_PLUS_1___d129, 1)]),
+ (rs_43.read, [(rs_43.read, 1)]),
+ (rs_43.write, [(rs_43.write rs_43_31_PLUS_1___d132, 1)]),
+ (rs_44.read, [(rs_44.read, 1)]),
+ (rs_44.write, [(rs_44.write rs_44_34_PLUS_1___d135, 1)]),
+ (rs_45.read, [(rs_45.read, 1)]),
+ (rs_45.write, [(rs_45.write rs_45_37_PLUS_1___d138, 1)]),
+ (rs_46.read, [(rs_46.read, 1)]),
+ (rs_46.write, [(rs_46.write rs_46_40_PLUS_1___d141, 1)]),
+ (rs_47.read, [(rs_47.read, 1)]),
+ (rs_47.write, [(rs_47.write rs_47_43_PLUS_1___d144, 1)]),
+ (rs_48.read, [(rs_48.read, 1)]),
+ (rs_48.write, [(rs_48.write rs_48_46_PLUS_1___d147, 1)]),
+ (rs_49.read, [(rs_49.read, 1)]),
+ (rs_49.write, [(rs_49.write rs_49_49_PLUS_1___d150, 1)]),
+ (rs_5.read, [(rs_5.read, 1)]),
+ (rs_5.write, [(rs_5.write rs_5_7_PLUS_1___d18, 1)]),
+ (rs_50.read, [(rs_50.read, 1)]),
+ (rs_50.write, [(rs_50.write rs_50_52_PLUS_1___d153, 1)]),
+ (rs_51.read, [(rs_51.read, 1)]),
+ (rs_51.write, [(rs_51.write rs_51_55_PLUS_1___d156, 1)]),
+ (rs_52.read, [(rs_52.read, 1)]),
+ (rs_52.write, [(rs_52.write rs_52_58_PLUS_1___d159, 1)]),
+ (rs_53.read, [(rs_53.read, 1)]),
+ (rs_53.write, [(rs_53.write rs_53_61_PLUS_1___d162, 1)]),
+ (rs_54.read, [(rs_54.read, 1)]),
+ (rs_54.write, [(rs_54.write rs_54_64_PLUS_1___d165, 1)]),
+ (rs_55.read, [(rs_55.read, 1)]),
+ (rs_55.write, [(rs_55.write rs_55_67_PLUS_1___d168, 1)]),
+ (rs_56.read, [(rs_56.read, 1)]),
+ (rs_56.write, [(rs_56.write rs_56_70_PLUS_1___d171, 1)]),
+ (rs_57.read, [(rs_57.read, 1)]),
+ (rs_57.write, [(rs_57.write rs_57_73_PLUS_1___d174, 1)]),
+ (rs_58.read, [(rs_58.read, 1)]),
+ (rs_58.write, [(rs_58.write rs_58_76_PLUS_1___d177, 1)]),
+ (rs_59.read, [(rs_59.read, 1)]),
+ (rs_59.write, [(rs_59.write rs_59_79_PLUS_1___d180, 1)]),
+ (rs_6.read, [(rs_6.read, 1)]),
+ (rs_6.write, [(rs_6.write rs_6_0_PLUS_1___d21, 1)]),
+ (rs_60.read, [(rs_60.read, 1)]),
+ (rs_60.write, [(rs_60.write rs_60_82_PLUS_1___d183, 1)]),
+ (rs_61.read, [(rs_61.read, 1)]),
+ (rs_61.write, [(rs_61.write rs_61_85_PLUS_1___d186, 1)]),
+ (rs_62.read, [(rs_62.read, 1)]),
+ (rs_62.write, [(rs_62.write rs_62_88_PLUS_1___d189, 1)]),
+ (rs_63.read, [(rs_63.read, 1)]),
+ (rs_63.write, [(rs_63.write rs_63_91_PLUS_1___d192, 1)]),
+ (rs_7.read, [(rs_7.read, 1)]),
+ (rs_7.write, [(rs_7.write rs_7_3_PLUS_1___d24, 1)]),
+ (rs_8.read, [(rs_8.read, 1)]),
+ (rs_8.write, [(rs_8.write rs_8_6_PLUS_1___d27, 1)]),
+ (rs_9.read, [(rs_9.read, 1)]),
+ (rs_9.write, [(rs_9.write rs_9_9_PLUS_1___d30, 1)])]
+
+-----
+
+=== vschedinfo (GuardedRules mkGuardedRules):
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: mkGuardedRules.sched
+=== Generated schedule for mkGuardedRules ===
+
+Rule schedule
+-------------
+Rule: incr
+Predicate: cfg[0]
+Blocking rules: (none)
+ 
+Rule: incr_1
+Predicate: cfg[1]
+Blocking rules: (none)
+ 
+Rule: incr_2
+Predicate: cfg[2]
+Blocking rules: (none)
+ 
+Rule: incr_3
+Predicate: cfg[3]
+Blocking rules: (none)
+ 
+Rule: incr_4
+Predicate: cfg[4]
+Blocking rules: (none)
+ 
+Rule: incr_5
+Predicate: cfg[5]
+Blocking rules: (none)
+ 
+Rule: incr_6
+Predicate: cfg[6]
+Blocking rules: (none)
+ 
+Rule: incr_7
+Predicate: cfg[7]
+Blocking rules: (none)
+ 
+Rule: incr_8
+Predicate: cfg[8]
+Blocking rules: (none)
+ 
+Rule: incr_9
+Predicate: cfg[9]
+Blocking rules: (none)
+ 
+Rule: incr_10
+Predicate: cfg[10]
+Blocking rules: (none)
+ 
+Rule: incr_11
+Predicate: cfg[11]
+Blocking rules: (none)
+ 
+Rule: incr_12
+Predicate: cfg[12]
+Blocking rules: (none)
+ 
+Rule: incr_13
+Predicate: cfg[13]
+Blocking rules: (none)
+ 
+Rule: incr_14
+Predicate: cfg[14]
+Blocking rules: (none)
+ 
+Rule: incr_15
+Predicate: cfg[15]
+Blocking rules: (none)
+ 
+Rule: incr_16
+Predicate: cfg[16]
+Blocking rules: (none)
+ 
+Rule: incr_17
+Predicate: cfg[17]
+Blocking rules: (none)
+ 
+Rule: incr_18
+Predicate: cfg[18]
+Blocking rules: (none)
+ 
+Rule: incr_19
+Predicate: cfg[19]
+Blocking rules: (none)
+ 
+Rule: incr_20
+Predicate: cfg[20]
+Blocking rules: (none)
+ 
+Rule: incr_21
+Predicate: cfg[21]
+Blocking rules: (none)
+ 
+Rule: incr_22
+Predicate: cfg[22]
+Blocking rules: (none)
+ 
+Rule: incr_23
+Predicate: cfg[23]
+Blocking rules: (none)
+ 
+Rule: incr_24
+Predicate: cfg[24]
+Blocking rules: (none)
+ 
+Rule: incr_25
+Predicate: cfg[25]
+Blocking rules: (none)
+ 
+Rule: incr_26
+Predicate: cfg[26]
+Blocking rules: (none)
+ 
+Rule: incr_27
+Predicate: cfg[27]
+Blocking rules: (none)
+ 
+Rule: incr_28
+Predicate: cfg[28]
+Blocking rules: (none)
+ 
+Rule: incr_29
+Predicate: cfg[29]
+Blocking rules: (none)
+ 
+Rule: incr_30
+Predicate: cfg[30]
+Blocking rules: (none)
+ 
+Rule: incr_31
+Predicate: cfg[31]
+Blocking rules: (none)
+ 
+Rule: incr_32
+Predicate: cfg[32]
+Blocking rules: (none)
+ 
+Rule: incr_33
+Predicate: cfg[33]
+Blocking rules: (none)
+ 
+Rule: incr_34
+Predicate: cfg[34]
+Blocking rules: (none)
+ 
+Rule: incr_35
+Predicate: cfg[35]
+Blocking rules: (none)
+ 
+Rule: incr_36
+Predicate: cfg[36]
+Blocking rules: (none)
+ 
+Rule: incr_37
+Predicate: cfg[37]
+Blocking rules: (none)
+ 
+Rule: incr_38
+Predicate: cfg[38]
+Blocking rules: (none)
+ 
+Rule: incr_39
+Predicate: cfg[39]
+Blocking rules: (none)
+ 
+Rule: incr_40
+Predicate: cfg[40]
+Blocking rules: (none)
+ 
+Rule: incr_41
+Predicate: cfg[41]
+Blocking rules: (none)
+ 
+Rule: incr_42
+Predicate: cfg[42]
+Blocking rules: (none)
+ 
+Rule: incr_43
+Predicate: cfg[43]
+Blocking rules: (none)
+ 
+Rule: incr_44
+Predicate: cfg[44]
+Blocking rules: (none)
+ 
+Rule: incr_45
+Predicate: cfg[45]
+Blocking rules: (none)
+ 
+Rule: incr_46
+Predicate: cfg[46]
+Blocking rules: (none)
+ 
+Rule: incr_47
+Predicate: cfg[47]
+Blocking rules: (none)
+ 
+Rule: incr_48
+Predicate: cfg[48]
+Blocking rules: (none)
+ 
+Rule: incr_49
+Predicate: cfg[49]
+Blocking rules: (none)
+ 
+Rule: incr_50
+Predicate: cfg[50]
+Blocking rules: (none)
+ 
+Rule: incr_51
+Predicate: cfg[51]
+Blocking rules: (none)
+ 
+Rule: incr_52
+Predicate: cfg[52]
+Blocking rules: (none)
+ 
+Rule: incr_53
+Predicate: cfg[53]
+Blocking rules: (none)
+ 
+Rule: incr_54
+Predicate: cfg[54]
+Blocking rules: (none)
+ 
+Rule: incr_55
+Predicate: cfg[55]
+Blocking rules: (none)
+ 
+Rule: incr_56
+Predicate: cfg[56]
+Blocking rules: (none)
+ 
+Rule: incr_57
+Predicate: cfg[57]
+Blocking rules: (none)
+ 
+Rule: incr_58
+Predicate: cfg[58]
+Blocking rules: (none)
+ 
+Rule: incr_59
+Predicate: cfg[59]
+Blocking rules: (none)
+ 
+Rule: incr_60
+Predicate: cfg[60]
+Blocking rules: (none)
+ 
+Rule: incr_61
+Predicate: cfg[61]
+Blocking rules: (none)
+ 
+Rule: incr_62
+Predicate: cfg[62]
+Blocking rules: (none)
+ 
+Rule: incr_63
+Predicate: cfg[63]
+Blocking rules: (none)
+ 
+Logical execution order: incr,
+			 incr_1,
+			 incr_2,
+			 incr_3,
+			 incr_4,
+			 incr_5,
+			 incr_6,
+			 incr_7,
+			 incr_8,
+			 incr_9,
+			 incr_10,
+			 incr_11,
+			 incr_12,
+			 incr_13,
+			 incr_14,
+			 incr_15,
+			 incr_16,
+			 incr_17,
+			 incr_18,
+			 incr_19,
+			 incr_20,
+			 incr_21,
+			 incr_22,
+			 incr_23,
+			 incr_24,
+			 incr_25,
+			 incr_26,
+			 incr_27,
+			 incr_28,
+			 incr_29,
+			 incr_30,
+			 incr_31,
+			 incr_32,
+			 incr_33,
+			 incr_34,
+			 incr_35,
+			 incr_36,
+			 incr_37,
+			 incr_38,
+			 incr_39,
+			 incr_40,
+			 incr_41,
+			 incr_42,
+			 incr_43,
+			 incr_44,
+			 incr_45,
+			 incr_46,
+			 incr_47,
+			 incr_48,
+			 incr_49,
+			 incr_50,
+			 incr_51,
+			 incr_52,
+			 incr_53,
+			 incr_54,
+			 incr_55,
+			 incr_56,
+			 incr_57,
+			 incr_58,
+			 incr_59,
+			 incr_60,
+			 incr_61,
+			 incr_62,
+			 incr_63
+
+==============================================
+Verilog file created: mkGuardedRules.v
+All packages are up to date.

@@ -1,0 +1,68 @@
+# Scheduling of modules with many rules.
+#
+# The scheduler's rule-pair work (conflict maps, disjointness testing,
+# the derived sequencing/urgency graphs, the Esposito blocker scan, and
+# the arbitrary-choice warning scans) is enumerated from the rules that
+# actually interact -- via shared state instances, conflict edges, and
+# foreign-function use -- rather than over all pairs of rules.
+
+if {$vtest == 1} {
+
+# Lock the computed schedule (blocker lists, urgency choices, and the
+# arbitrary-choice warnings) for a dense conflict clique, where every
+# rule pair genuinely interacts.
+compile_verilog_schedule_pass DenseRules.bsv mkDenseRules
+compare_file_filter_ids DenseRules.bsv.bsc-sched-out
+
+# Lock the schedule when rule predicates share support (bits of one
+# module parameter) without the rules sharing any state instance.
+compile_verilog_schedule_pass GuardedRules.bsv mkGuardedRules
+compare_file_filter_ids GuardedRules.bsv.bsc-sched-out
+
+# Lock the schedule for a tile grid: local, constant-degree
+# interaction (the common shape of real designs).
+compile_verilog_schedule_pass GridRules.bsv mkGridRules
+compare_file_filter_ids GridRules.bsv.bsc-sched-out
+
+# The same three schedules must be reproduced with the transposed
+# pair enumeration disabled (the all-pairs debug path,
+# -no-sched-transposed), locking the equivalence of the two paths.
+# (The .bo files are erased so that -u recompiles.)
+erase_many *.bo
+compile_verilog_schedule_pass DenseRules.bsv mkDenseRules "-no-sched-transposed"
+compare_file_filter_ids DenseRules.bsv.bsc-sched-out
+compile_verilog_schedule_pass GuardedRules.bsv mkGuardedRules "-no-sched-transposed"
+compare_file_filter_ids GuardedRules.bsv.bsc-sched-out
+compile_verilog_schedule_pass GridRules.bsv mkGridRules "-no-sched-transposed"
+compare_file_filter_ids GridRules.bsv.bsc-sched-out
+
+# Scale guard: 8192 non-interacting rules, compiled under a cap on
+# CUMULATIVE heap allocation -- the total bytes ever allocated over
+# the run, almost all immediately garbage-collected, NOT resident
+# memory (peak residency here is ~0.6 GB either way, so a residency
+# cap cannot distinguish the two behaviors; lifetime allocation can,
+# and unlike wall-clock time it is deterministic).  With pair
+# enumeration driven by the shared-instance indexes, the front end
+# plus scheduler allocate ~60 GB over the run; with all-pairs
+# enumeration (the behavior this guards against) ~133 GB, and the
+# cap aborts the compile.  Measured with GHC 9.10; the cap sits 48%
+# above the intended cost and 50% below the regressed one, and those
+# margins absorb GHC-version drift.
+#
+# The rule count is what the margins are made of: the all-pairs term
+# has to outgrow the linear front-end work before the two behaviors
+# separate, so halving this count again would narrow both margins to
+# ~41% and halving it twice to ~31%.  At 8192 the two paths differ by
+# a factor of 2.2, against 2.4 at 16384 -- nearly all of the
+# separation for a quarter of the run time.
+#
+# -KILLschedule stops compilation after scheduling so the (identical,
+# and large) allocation of the downstream backend phases does not
+# dilute the margins.  Plain -verilog is essential: -elab/-sim set
+# genABin, which deliberately reverts disjointness testing to the
+# full-pair sweep for RuleRelationDB completeness.
+set env(BSC_ALLOC_LIMIT_MB) 91000
+compile_verilog_pass SparseRules.bsv mkSparseRules {-KILLschedule}
+unset env(BSC_ALLOC_LIMIT_MB)
+
+}

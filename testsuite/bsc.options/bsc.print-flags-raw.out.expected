@@ -93,6 +93,7 @@ Flags {
 	satBackend = SAT_Yices,
 	schedConds = True,
 	schedDOT = False,
+	schedTransposed = True,
 	schedQueries = [],
 	showCSyntax = False,
 	showCodeGen = False,
