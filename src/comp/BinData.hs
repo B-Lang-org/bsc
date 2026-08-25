@@ -324,9 +324,12 @@ section s action = do { beginSection s; action; endSection }
 
 -- The In monad state keeps tables for shared structures
 -- in addition to unconsumed bytes and an optional hash of
--- consumed bytes.
+-- consumed bytes. Whether to hash or not is decided once
+-- per call to runIn, so the two modes have separate constructors
+-- for efficiency.
 
-data IS = IS !BinTable !BS.ByteString !Int !(Maybe Hash)
+data IS = ISPlain  !BinTable !BS.ByteString !Int
+        | ISHashed !BinTable !BS.ByteString !Int {-# UNPACK #-} !Hash
 
 -- In monad is a state transformer type monad
 newtype In a = In (IS -> (a,IS))
@@ -348,18 +351,36 @@ getN :: Int -> In [Byte]
 getN n = replicateM n getB
 
 getB :: In Byte
-getB = In $ \(IS bc bs off mh) ->
-  case BS.indexMaybe bs off of
-    Nothing -> internalError "BinData.getB: unexpected end of byte stream"
-    Just b -> let !off' = off + 1
-              in case mh of
-                   Just h -> let !h' = nextHashByte h b
-                             in (b, IS bc bs off' (Just h'))
-                   Nothing -> (b, IS bc bs off' Nothing)
+getB = In $ \is ->
+  case is of
+    -- specialized for reading without hashing
+    ISPlain bt bs off ->
+      case BS.indexMaybe bs off of
+        Nothing -> internalError "BinData.getB: unexpected end of byte stream"
+        Just b -> let !off' = off + 1
+                  in (b, ISPlain bt bs off')
+    -- specialized for reading w/ hash computation
+    ISHashed bt bs off h ->
+      case BS.indexMaybe bs off of
+        Nothing -> internalError "BinData.getB: unexpected end of byte stream"
+        Just b -> let !off' = off + 1
+                      !h' = nextHashByte h b
+                  in (b, ISHashed bt bs off' h')
 
 -- get an Int value (between 0 and 255)
 getI :: In Int
 getI = do { b <- getB; return (fromEnum b) }
+
+-- table access shared by both hashing and non-hashing variants
+{-# INLINE getTable #-}
+getTable :: IS -> BinTable
+getTable (ISPlain bt _ _) = bt
+getTable (ISHashed bt _ _ _) = bt
+
+{-# INLINE setTable #-}
+setTable :: IS -> BinTable -> IS
+setTable (ISPlain _ bs off) bt = ISPlain bt bs off
+setTable (ISHashed _ bs off h) bt = ISHashed bt bs off h
 
 {-
 getBytesRead :: In Integer
@@ -408,10 +429,11 @@ mkNewVal :: (BinTable -> (Table v)) ->
             (BinTable -> (Table v) -> BinTable) ->
             In (Int,v)
 mkNewVal get set =
-  In $ \(IS bt bs off h) ->
-          let (Known n m) = get bt
+  In $ \is ->
+          let bt = getTable is
+              (Known n m) = get bt
               bt' = set bt (Known (n+1) m)
-          in ((n, undefined), (IS bt' bs off h))
+          in ((n, undefined), setTable is bt')
 
 -- get the right table, add a mapping from the index to the value,
 -- and put back the updated table while returning ()
@@ -419,18 +441,19 @@ mkRecordVal ::(BinTable -> (Table v)) ->
               (BinTable -> (Table v) -> BinTable) ->
               (Int -> v -> In ())
 mkRecordVal get set idx v =
-  In $ \(IS bt bs off h) ->
-          let (Known n m) = get bt
+  In $ \is ->
+          let bt = getTable is
+              (Known n m) = get bt
               bt' = v `seq` set bt (Known n (M.insert idx v m))
-          in ((), (IS bt' bs off h))
+          in ((), setTable is bt')
 
 
 -- get the right table and look up the value for the given index
 mkLookupIdx ::(BinTable -> (Table v)) ->
               (Int -> In v)
 mkLookupIdx get idx =
-  In $ \is@(IS bt _ _ _) ->
-          let (Known _ m) = get bt
+  In $ \is ->
+          let (Known _ m) = get (getTable is)
           in case (M.lookup idx m) of
                (Just v) -> (v, is)
                Nothing  -> internalError $ "BinData.lookupIdx: invalid index " ++ (show idx)
@@ -1529,10 +1552,13 @@ encode x = runOut (toBin x)
 
 runIn :: In a -> BS.ByteString -> Bool -> (a, Int, String)
 runIn (In f) bs do_hash =
-  let h0 = if do_hash then (Just hashInit) else Nothing
-      (x,(IS _ _ off h)) = f (IS unknownTable bs 0 h0)
-      hstr = maybe "" showHash h
-  in (x, off, hstr)
+  if do_hash
+    then case f (ISHashed unknownTable bs 0 hashInit) of
+           (x, ISHashed _ _ off h) -> (x, off, showHash h)
+           _ -> internalError "BinData.runIn: hashed run changed state shape"
+    else case f (ISPlain unknownTable bs 0) of
+           (x, ISPlain _ _ off) -> (x, off, "")
+           _ -> internalError "BinData.runIn: plain run changed state shape"
 
 decode :: (Bin a) => BS.ByteString -> a
 decode s = let (x, off, _) = runIn fromBin s False
