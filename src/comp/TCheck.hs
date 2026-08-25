@@ -506,8 +506,9 @@ tiExpr as td (CHasType (CAny {}) qt@(CQType [_] nt)) | nt == noType = do
     case qual_type of
       [PredWithPositions p poss] :=> _ -> do
           -- poss is probably a list of only one position
-          VPred i pwp <- mkVPredFromPred poss p
-          let pwp' = addPredPositions pwp poss
+          vp <- mkVPredFromPred poss p
+          let VPred i pwp = vp
+              pwp' = addPredPositions pwp poss
           return ([VPred i pwp'], CVar i)
       _ -> internalError ("tiExpr: unexpected mkQualType result")
 
