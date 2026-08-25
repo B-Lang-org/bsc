@@ -7,3 +7,4 @@ Error: "EGeneric.bs", line 29, column 10: (G0004)
   and
     x.write(...)
   For the complete expressions use the flag `-show-range-conflict'.
+Elaborated error module file created: mkTest.ba
