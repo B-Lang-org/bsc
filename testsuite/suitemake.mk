@@ -77,8 +77,17 @@ RUNTESTENV = MAKEFLAGS= BSCTEST=1 \
 	PATH="$(BLUESPECDIR)/../bin:$(PATH)"
 
 
-## Track the overall time it took to run  runtest.  Make sure this command is the same as in unix.exp.
-#TIME = /usr/bin/time -a -o $(STATS_FILE) -f "runtest, %S, %U, %e"
+## Wrap the runtest invocation to record how long the whole run took.  Disabled
+## by default; uncomment one of the examples below or set TIME on the command
+## line.  The category name must begin with "check_", or scripts/collapse.pl
+## dies on the output; the three fields are system, user and elapsed, in that
+## order.  Both examples need GNU time for -f -- macOS ships BSD time, which
+## has no -f, so install GNU time there (brew install gnu-time) and use gtime.
+##
+## on Linux:
+#TIME = /usr/bin/time -a -o $(STATS_FILE) -f "check_runtest, %S, %U, %e"
+## on macOS:
+#TIME = gtime -a -o $(STATS_FILE) -f "check_runtest, %S, %U, %e"
 TIME =
 
 ## use RTFLAGS to pass runtest flag from the make file.
