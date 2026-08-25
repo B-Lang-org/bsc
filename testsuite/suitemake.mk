@@ -51,9 +51,55 @@ TEST_CONFIG ?= $(CONFDIR)/config
 
 TEST_BSC_VERILOG_SIM ?= iverilog
 
-TEST_SYSTEMC_INC ?= $(pkg-config --variable includedir systemc --silence-errors)
-TEST_SYSTEMC_LIB ?= $(pkg-config --variable libarchdir systemc --silence-errors)
-TEST_SYSTEMC_CXXFLAGS ?=
+# The SystemC settings are derived with $(shell), and RUNTESTENV is expanded
+# once per test file by parallel.mk, so a recursively expanded (?=) variable
+# would re-run pkg-config and nm hundreds of times per test run.  Instead,
+# assign with := behind an origin guard, which keeps the ?= override
+# semantics, and export, so that a recursive child make sees origin
+# "environment" and skips the derivation too.  The exported values are :=
+# literals, copied into each recipe's environment without re-expansion; only
+# an exported recursive variable re-runs its shell per recipe.
+# When SYSTEMCTEST=0 the variables stay undefined and reach runtest as empty
+# strings, which unix.exp never consults because SYSTEMCTEST=0 reaches it
+# through make's command-line export.  An unset SYSTEMCTEST expands to empty,
+# which is != 0, so the default path still derives.
+ifneq ($(SYSTEMCTEST),0)
+
+ifeq ($(origin TEST_SYSTEMC_INC),undefined)
+TEST_SYSTEMC_INC := $(shell pkg-config --variable includedir systemc --silence-errors)
+endif
+export TEST_SYSTEMC_INC
+
+ifeq ($(origin TEST_SYSTEMC_LIB),undefined)
+TEST_SYSTEMC_LIB := $(shell pkg-config --variable libarchdir systemc --silence-errors)
+endif
+export TEST_SYSTEMC_LIB
+
+# SystemC encodes the C++ standard it was built with into its
+# sc_api_version_<ver>_cxx<std> symbol, and a translation unit compiled with a
+# different standard references a differently-named symbol and fails to link
+# (see sysc/kernel/sc_ver.h).  So read the standard off the installed library
+# rather than assuming one -- SystemC 3.x needs at least C++17, which is newer
+# than some compilers default to.  Empty when no library is found, which leaves
+# pre-C++17 SystemC installations behaving as they did before.  The $(if)
+# guard matters: with no library file a bare nm would read a.out.
+ifeq ($(origin TEST_SYSTEMC_CXXFLAGS),undefined)
+TEST_SYSTEMC_LIBFILE  := $(firstword $(wildcard \
+	$(TEST_SYSTEMC_LIB)/libsystemc.dylib \
+	$(TEST_SYSTEMC_LIB)/libsystemc.so \
+	$(TEST_SYSTEMC_LIB)/libsystemc.a))
+# -D reads the dynamic symbol table, which only an ELF shared object has.  A
+# libsystemc.so installed stripped of its regular symbols exposes
+# sc_api_version_ only there, while Mach-O keeps a single table and a static
+# archive has no dynamic one, so .dylib and .a need plain nm.  Choosing on the
+# file rather than on the host keeps a static-only installation working.
+TEST_SYSTEMC_NMFLAGS  := $(if $(filter %.so,$(TEST_SYSTEMC_LIBFILE)),-D)
+TEST_SYSTEMC_CXXFLAGS := $(if $(TEST_SYSTEMC_LIBFILE),$(shell nm $(TEST_SYSTEMC_NMFLAGS) $(TEST_SYSTEMC_LIBFILE) 2>/dev/null | \
+	sed -E -n 's/.*sc_api_version_[0-9_]+_cxx20([0-9][0-9]).*/-std=c++\1/p' | head -1))
+endif
+export TEST_SYSTEMC_CXXFLAGS
+
+endif
 
 STATS_FILE ?= $(CONFDIR)/time.out
 
@@ -71,9 +117,9 @@ RUNTESTENV = MAKEFLAGS= BSCTEST=1 \
 	OSTYPE=$(TEST_OSTYPE) \
 	MACHTYPE=$(TEST_MACHTYPE) \
 	LC_ALL=$(LC_ALL) \
-	SYSTEMC_INC=$(TEST_SYSTEMC_INC) \
-	SYSTEMC_LIB=$(TEST_SYSTEMC_LIB) \
-	SYSTEMC_CXXFLAGS=$(TEST_SYSTEMC_CXXFLAGS) \
+	SYSTEMC_INC="$(TEST_SYSTEMC_INC)" \
+	SYSTEMC_LIB="$(TEST_SYSTEMC_LIB)" \
+	SYSTEMC_CXXFLAGS="$(TEST_SYSTEMC_CXXFLAGS)" \
 	PATH="$(BLUESPECDIR)/../bin:$(PATH)"
 
 
