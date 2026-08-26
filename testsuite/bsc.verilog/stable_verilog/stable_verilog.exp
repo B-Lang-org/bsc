@@ -1,0 +1,72 @@
+#
+# -stable-verilog: deterministic Verilog emission.  Each design compiles
+# with the flag, the direct .v is stashed, and the module is regenerated
+# from its .ba with -c (which takes codegen-semantic flags -- including
+# -stable-verilog and any (* options *) pragma -- from the .ba itself);
+# the two .v files must be byte-identical.  The designs are the trigger
+# cases from the dormant-nondeterminism audit: reset-domain always-block
+# groups, foreign-block def order, noinline __f wires, options-pragma
+# regen, _dm mint names, -resource-simple edge drops and coloring, and
+# the >16-uses port-splay fast path.
+#
+
+proc sv_regen_identical { testname mod } {
+    global srcdir subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    if { ![file exists "$mod.v"] } {
+        fail "$testname: no direct $mod.v"
+        cd $here
+        return
+    }
+    file rename -force "$mod.v" "$mod.v.direct"
+    set opts "-no-show-timestamps -no-show-version -verilog -c $mod"
+    # gen_basic_output resolves $srcdir against the working directory and
+    # enters $subdir itself, so it has to be called from the root
+    cd $here
+    set regenerated [gen_basic_output $opts "$mod.regen-out"]
+    cd [file join $here $subdir]
+    if { $regenerated } {
+        if { ![file exists "$mod.v"] } {
+            fail "$testname: regen produced no $mod.v"
+        } elseif { [catch {exec cmp -s "$mod.v.direct" "$mod.v"}] } {
+            fail "$testname: regenerated $mod.v differs from the direct compile"
+        } else {
+            pass "$testname"
+        }
+    } else {
+        fail "$testname: regen (-c) failed"
+    }
+    cd $here
+}
+
+compile_verilog_pass StableMultiReset.bsv {} {-stable-verilog}
+sv_regen_identical "multi-reset regen identical" sysStableMultiReset
+
+compile_verilog_pass StableTasks.bsv {} {-stable-verilog}
+sv_regen_identical "system-task foreign-block regen identical" sysStableTasks
+
+compile_verilog_pass StableNoInline.bsv {} {-stable-verilog}
+sv_regen_identical "noinline __f regen identical" sysStableNoInline
+sv_regen_identical "noinline function module regen identical" module_nadd
+
+compile_verilog_pass StableOptionsPragma.bsv {} {-stable-verilog}
+sv_regen_identical "options-pragma (-keep-fires) regen identical" sysStableOptionsPragma
+# the pragma's -keep-fires must reach BOTH sides: fires present in the regen
+find_regexp sysStableOptionsPragma.v {WILL_FIRE_RL_r1}
+
+compile_verilog_pass StableOptIfMux.bsv {} {-stable-verilog}
+sv_regen_identical "-opt-if-mux _dm regen identical" sysStableOptIfMux
+
+compile_verilog_pass StableResource.bsv {} {-stable-verilog}
+sv_regen_identical "-resource-simple regen identical" sysStableResource
+
+compile_verilog_pass StableWide.bs {} {-stable-verilog}
+sv_regen_identical ">16-uses port splay regen identical" sysStableWide
+
+# the family-shaped imported function name must survive un-renumbered
+# (C linkage); its uses must not be rewritten either
+compile_verilog_pass StableDpiName.bsv {} {-stable-verilog -use-dpi}
+find_regexp sysStableDpiName.v {f__h1}
+find_regexp_fail sysStableDpiName.v {f__h2}
+sv_regen_identical "BDPI name exclusion regen identical" sysStableDpiName

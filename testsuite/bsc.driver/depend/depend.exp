@@ -56,6 +56,59 @@ compare_file $outfile
 }
 
 # -----
+# Test that an up-to-date .ba elaborated for a different backend does not
+# satisfy the generated-file check: after a Verilog compile of a
+# backend-specific module (with -elab), a Bluesim compile with -u must
+# re-elaborate rather than leave the Verilog-tagged .ba in place to fail
+# the Bluesim link with a backend mismatch (S0042)
+
+if { $ctest == 1 && $vtest == 1 } {
+
+compile_verilog_pass CrossElab.bsv sysCrossElab {-elab}
+find_regexp [make_bsc_vcomp_output_name CrossElab.bsv] \
+    {Elaborated Verilog module file created: sysCrossElab\.ba}
+
+# recompiling for Bluesim must regenerate the .ba, not skip codegen
+compile_object_pass CrossElab.bsv sysCrossElab
+find_regexp [make_bsc_ccomp_output_name CrossElab.bsv] \
+    {Elaborated Bluesim module file created: sysCrossElab\.ba}
+
+# and the Bluesim link succeeds
+link_objects_pass {} sysCrossElab
+
+}
+
+# -----
+# With the Verilog backend, .ba files are now written by default
+# (-elab is on, as it has always been for -sim); -no-elab suppresses them
+
+if { $vtest == 1 } {
+
+set outfile [make_bsc_vcomp_output_name VerilogElab.bsv]
+
+erase sysVerilogElab.ba
+compile_verilog_pass VerilogElab.bsv {} {}
+files_exist sysVerilogElab.ba
+
+erase sysVerilogElab.ba
+# -no-elab must come after -verilog, since the backend flag turns -elab on;
+# compile_verilog_pass puts user options first, so run bsc directly
+set noelab_out [make_bsc_output_name VerilogElabNoElab]
+if [ gen_basic_output {-no-show-timestamps -no-show-version -verilog -no-elab -u -g sysVerilogElab VerilogElab.bsv} $noelab_out ] {
+    pass "VerilogElab compiles with -verilog -no-elab"
+} else {
+    fail "VerilogElab should compile with -verilog -no-elab"
+}
+find_regexp_fail $noelab_out {Elaborated}
+if { [file exists [file join [absolute $srcdir] $subdir sysVerilogElab.ba]] } {
+    fail "sysVerilogElab.ba should not exist with -no-elab"
+} else {
+    pass "sysVerilogElab.ba correctly absent with -no-elab"
+}
+
+}
+
+# -----
 # Test that generated files associated with noinline functions are
 # included in the set of files which are checked to force recompilation
 

@@ -44,4 +44,5 @@ Warning: "WMissingRule1.bs", line 58, column 22: (G0021)
 Warning: "WMissingRule1.bs", line 65, column 22: (G0021)
   According to the generated schedule, rule `Four' can never fire.
 Verilog file created: mkWMissingRule1.v
+Elaborated module file created: mkWMissingRule1.ba
 All packages are up to date.

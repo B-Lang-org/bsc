@@ -324,10 +324,14 @@ Determining the second-best player.
 
 \paragraph{Modifier}
 
+The new priority is forced before it is stored: `adjust' callers (SCC's
+Kahn decrement) apply it once per incoming edge, and storing the update
+as a thunk would chain them as deep as a node's in-degree.
+
 > adjust f k q                  =  case tourView q of
 >   Null                        -> empty
 >   Single k' p
->     | k == k'                 -> single' k' (f p)
+>     | k == k'                 -> let p' = f p in p' `seq` single' k' p'
 >     | otherwise               -> single' k' p
 >   tl `Play` tr
 >     | k <= maxKey tl          -> adjust f k tl `unsafePlay` tr

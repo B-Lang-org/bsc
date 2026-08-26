@@ -6,4 +6,5 @@ Compilation message: "Exps.bsv", line 12, column 25: pow(2,7) = 128.0
 Compilation message: "Exps.bsv", line 13, column 25: pow(3,2) = 9.0
 Compilation message: "Exps.bsv", line 14, column 26: pow(10,2) = 100.0
 Verilog file created: sysExps.v
+Elaborated module file created: sysExps.ba
 All packages are up to date.
