@@ -42,4 +42,5 @@ Warning: "ThreeRulesEsposito.bs", line 18, column 15: (G0021)
 Warning: "ThreeRulesEsposito.bs", line 21, column 15: (G0021)
   According to the generated schedule, rule `flip' can never fire.
 Verilog file created: sysThreeRulesEsposito.v
+Elaborated module file created: sysThreeRulesEsposito.ba
 All packages are up to date.

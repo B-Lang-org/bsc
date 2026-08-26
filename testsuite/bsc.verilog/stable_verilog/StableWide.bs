@@ -1,0 +1,38 @@
+-- >16-uses fast path: one method with multiplicity 20, seventeen
+-- distinct-argument uses (RSchedule's length uses > 16 branch)
+package StableWide(sysStableWide) where
+
+interface VWide =
+    f :: Bit 8 -> Bit 8
+
+vMkWide :: Module VWide
+vMkWide =
+    module verilog "WideMod" "CLK" {
+        f[20] = "A" "R";
+    } [ f <> f ]
+
+{-# verilog sysStableWide #-}
+sysStableWide :: Module Empty
+sysStableWide =
+    module
+        w <- vMkWide
+        r :: Reg (Bit 8) <- mkReg 0
+        rules
+            "go": when True ==> do
+                r := w.f (r + 1) +
+                     w.f (r + 2) +
+                     w.f (r + 3) +
+                     w.f (r + 4) +
+                     w.f (r + 5) +
+                     w.f (r + 6) +
+                     w.f (r + 7) +
+                     w.f (r + 8) +
+                     w.f (r + 9) +
+                     w.f (r + 10) +
+                     w.f (r + 11) +
+                     w.f (r + 12) +
+                     w.f (r + 13) +
+                     w.f (r + 14) +
+                     w.f (r + 15) +
+                     w.f (r + 16) +
+                     w.f (r + 17)

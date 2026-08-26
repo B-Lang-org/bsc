@@ -45,4 +45,5 @@ Logical execution order: a1_T, a2, a1_F
 
 =============================================
 Verilog file created: mkSplitIfMeth.v
+Elaborated module file created: mkSplitIfMeth.ba
 All packages are up to date.

@@ -65,4 +65,5 @@ Logical execution order: aa, ab, bb
 Warning: "ArraySelectLongIndexTest_sat-stp.bsv", line 35, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysArraySelectLongIndexTest.v
+Elaborated module file created: sysArraySelectLongIndexTest.ba
 All packages are up to date.

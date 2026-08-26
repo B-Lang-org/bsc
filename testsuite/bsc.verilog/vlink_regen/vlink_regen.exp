@@ -1,0 +1,107 @@
+#
+# Tests for link-time regeneration of Verilog from .ba files:
+# "bsc -verilog -e top" regenerates any module .v that is missing or
+# older than its .ba, reuses the rest, and warns (and links with the .v
+# files as found) when the design's .ba hierarchy is unavailable.
+#
+
+# run "bsc -verilog -e" capturing output; expect success
+proc vlink_run { toplevel output {files ""} } {
+    set opts "-no-show-timestamps -no-show-version -verilog -e $toplevel -o $toplevel.vexe $files"
+    if [ gen_basic_output $opts $output ] {
+        pass "link $toplevel ($output)"
+    } else {
+        fail "link $toplevel should succeed ($output)"
+    }
+}
+
+# -------------------------
+# Elaborate the design (writes .v and .ba for both modules)
+
+compile_verilog_pass VRegen.bsv sysVRegenTb
+
+# -------------------------
+# A fresh link reuses both generated .v files
+
+vlink_run sysVRegenTb vlink1.bsc-out
+find_regexp vlink1.bsc-out {Verilog file reused: mkRSub\.v}
+find_regexp vlink1.bsc-out {Verilog file reused: sysVRegenTb\.v}
+find_regexp_fail vlink1.bsc-out {Verilog file created}
+
+# -------------------------
+# A deleted .v is regenerated at link, and the result simulates
+
+erase mkRSub.v
+vlink_run sysVRegenTb vlink2.bsc-out
+find_regexp vlink2.bsc-out {Verilog file created: mkRSub\.v}
+find_regexp vlink2.bsc-out {Verilog file reused: sysVRegenTb\.v}
+files_exist { mkRSub.v }
+if { $vtest == 1 } {
+    sim_verilog sysVRegenTb
+    compare_file sysVRegenTb.out sysVRegenTb.out.expected
+}
+
+# -------------------------
+# A .v older than its .ba is regenerated; others are reused
+
+exec sleep 1
+exec touch [file join [absolute $srcdir] $subdir mkRSub.ba]
+vlink_run sysVRegenTb vlink3.bsc-out
+find_regexp vlink3.bsc-out {Verilog file created: mkRSub\.v}
+find_regexp vlink3.bsc-out {Verilog file reused: sysVRegenTb\.v}
+
+# -------------------------
+# Nothing stale: everything is reused, and the .v files are untouched
+
+copy mkRSub.v mkRSub-before.v
+vlink_run sysVRegenTb vlink4.bsc-out
+find_regexp_fail vlink4.bsc-out {Verilog file created}
+compare_file mkRSub.v mkRSub-before.v
+
+# -------------------------
+# A .v given explicitly on the command line is never regenerated,
+# even when it is older than its .ba
+
+exec sleep 1
+exec touch [file join [absolute $srcdir] $subdir mkRSub.ba]
+vlink_run sysVRegenTb vlink5.bsc-out {mkRSub.v}
+find_regexp_fail vlink5.bsc-out {Verilog file created: mkRSub\.v}
+
+# (bring it back up to date for any later steps)
+vlink_run sysVRegenTb vlink5b.bsc-out
+
+# -------------------------
+# The .ba check is all-or-nothing per design: if any module's .ba is
+# missing (here a submodule's, while the top's is present), the link
+# warns and uses the .v files as found -- it never half-regenerates a
+# design it cannot fully see -- and still succeeds
+
+erase mkRSub.ba
+vlink_run sysVRegenTb vlink7.bsc-out
+find_n_strings vlink7.bsc-out {Warning: Command line: (S0099)} 1
+find_regexp_fail vlink7.bsc-out {Verilog file created}
+find_regexp_fail vlink7.bsc-out {Verilog file reused}
+
+# ... and the same from the other direction: the top's .ba missing
+# while the submodule's is present
+
+compile_verilog_pass VRegen.bsv sysVRegenTb
+erase sysVRegenTb.ba
+vlink_run sysVRegenTb vlink8.bsc-out
+find_n_strings vlink8.bsc-out {Warning: Command line: (S0099)} 1
+find_regexp_fail vlink8.bsc-out {Verilog file created}
+find_regexp_fail vlink8.bsc-out {Verilog file reused}
+
+# -------------------------
+# With no .ba hierarchy available, the link warns and uses the .v
+# files as found (the pre-regeneration behavior)
+
+erase sysVRegenTb.ba
+erase mkRSub.ba
+vlink_run sysVRegenTb vlink6.bsc-out
+find_n_strings vlink6.bsc-out {Warning: Command line: (S0099)} 1
+find_regexp_fail vlink6.bsc-out {Verilog file created}
+if { $vtest == 1 } {
+    sim_verilog sysVRegenTb
+    compare_file sysVRegenTb.out sysVRegenTb.out.expected
+}

@@ -1118,6 +1118,8 @@ data ErrMsg =
         | ETooManyBackends
         | EDollarNoVerilog
         | EDollarLink
+        | EElabOnlyNotSrcCompile
+        | EElabOnlyNoElab
         | EWrongBackend String String
         | ENoOptUndetNoXZ String
 
@@ -1141,6 +1143,7 @@ data ErrMsg =
 
         -- ABin (.ba) file issues
         | WExtraABinFiles [String]
+        | WNoABinForVerilogRegen String
         | EMissingABinModFile String (Maybe String)
         | EMissingABinForeignFuncFile String String
         | EMultipleABinFilesForName String [String]
@@ -1153,6 +1156,11 @@ data ErrMsg =
 
         -- Bluesim-specific errors/warnings
         | EBluesimNoXZ String
+
+        -- Errors for the .ba -> code generation mode (-c)
+        | EGenWithEntry String
+        | EGenWithSrcFile String
+        | EGenWithSystemC
 
         -- Errors/warnings from the SystemC wrapper generator
         | ESystemCWrapperComboPaths String
@@ -4138,6 +4146,12 @@ getErrorText (WExtraABinFiles filenames) =
     (System 39, empty,
      s2par ("The following elaboration files were not used in the design:") $$
      nest 2 (sepList (map text filenames) comma))
+getErrorText (WNoABinForVerilogRegen topmod) =
+    (System 99, empty,
+     s2par ("No elaboration file (.ba) was found for module " ++
+            ishow topmod ++ " or one of its submodules, so BSC cannot " ++
+            "check whether the generated Verilog is up to date; linking " ++
+            "will use the Verilog files found on the search path."))
 getErrorText (EMissingABinModFile module_name mparent) =
     (System 40, empty,
      case (mparent) of
@@ -4250,6 +4264,17 @@ getErrorText EDollarNoVerilog =
 getErrorText EDollarLink =
     (System 57, empty,
      s2par ("The flag -remove-dollar in only supported for compiling source, not linking."))
+
+getErrorText EElabOnlyNotSrcCompile =
+    (System 100, empty,
+     s2par ("The flag -elab-only is only supported when compiling source, " ++
+            "not when linking or generating code with -c."))
+
+getErrorText EElabOnlyNoElab =
+    (System 101, empty,
+     s2par ("The flag -elab-only cannot be combined with -no-elab: " ++
+            "suppressing both the .v and the .ba files would leave no " ++
+            "generated output."))
 
 -- Removed System 58 ELicenseUnavailable, BSC is now open source
 -- Removed System 59 WLicenseExpires, BSC is now open source
@@ -4499,6 +4524,22 @@ getErrorText (EMissingVPIWrapperFile fname is_dpi) =
      let ifctype = if is_dpi then "DPI" else "VPI"
      in  s2par ("Cannot find the " ++ ifctype ++ " file " ++ ishow fname ++
                 " in the Verilog search path."))
+
+getErrorText (EGenWithEntry entry) =
+    (System 96, empty,
+     s2par ("The flag -c generates code from an elaborated module; " ++
+            "it cannot be combined with -e (linking).  To link " ++
+            ishow entry ++ ", run bsc again with -e."))
+
+getErrorText (EGenWithSrcFile fname) =
+    (System 97, empty,
+     s2par ("The flag -c operates on elaborated (.ba) files, so a " ++
+            "source file (" ++ ishow fname ++ ") cannot be provided.  " ++
+            "To compile and generate from source, use -g."))
+
+getErrorText EGenWithSystemC =
+    (System 98, empty,
+     s2par ("The flag -c is not supported with -systemc; use -sim."))
 
 -- Runtime errors
 getErrorText (EMutuallyExclusiveRulesFire r1 r2) =

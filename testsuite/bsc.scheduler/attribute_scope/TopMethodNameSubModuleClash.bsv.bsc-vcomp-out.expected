@@ -26,4 +26,5 @@ Warning: "TopMethodNameSubModuleClash.bsv", line 14, column 8: (G0010)
     "m_r" cannot fire before "sub_mymethod2":
       calls to m_rg2.write vs. m_rg2.read
 Verilog file created: sysTopMethodNameSubModuleClash.v
+Elaborated module file created: sysTopMethodNameSubModuleClash.ba
 All packages are up to date.

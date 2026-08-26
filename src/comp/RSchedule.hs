@@ -24,6 +24,7 @@ FlexibleInstances is necessary.
 module RSchedule(rSchedule, RAT, ratToNestedLists) where
 
 import Data.List((\\),partition,sortBy)
+import Data.Ord(comparing)
 import Data.Maybe(maybeToList)
 import Control.Monad(when)
 import qualified Data.Map as M
@@ -108,22 +109,22 @@ data StackItem v r = Vertex (v,[v]) | Edge r
 --  * RAT
 --  * [RRM]
 
-rSchedule :: Id -> ResourceFlag -> M.Map MethodId Integer -> MethodUsesMap ->
+rSchedule :: Bool -> Id -> ResourceFlag -> M.Map MethodId Integer -> MethodUsesMap ->
              (RuleId -> RuleId -> Bool) -> ErrorMonad (RAT,[RRM])
-rSchedule moduleId rFlag rMaxs rMap areSimult =
+rSchedule stable moduleId rFlag rMaxs rMap areSimult =
     -- We don't need to worry about keys conflicting when combining xxs
     -- because those keys came from the keys of rMap.
     let concatTuple (xxs,yys) = (M.unions xxs, concat yys)
-        f = rSchedule' moduleId rFlag rMaxs areSimult
+        f = rSchedule' stable moduleId rFlag rMaxs areSimult
     in
         mapM f (M.toList rMap) >>= return . concatTuple . unzip
 
 
-rSchedule' :: Id -> ResourceFlag -> M.Map MethodId Integer ->
+rSchedule' :: Bool -> Id -> ResourceFlag -> M.Map MethodId Integer ->
               (RuleId -> RuleId -> Bool) ->
               (MethodId, [(UniqueUse, MethodUsers)]) ->
               ErrorMonad (RAT, [RRM])
-rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
+rSchedule' stable moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
     let
         -- XXX condition-insensitive resource allocation
         -- our graph allocation is not smart enough to handle
@@ -141,7 +142,7 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
                          errDropEdges mId rMax
                 RFsimple -> -- reschedule
                             -- arbitrate resource (drop edge in graph)
-                            simpleDropEdges moduleId areSimult (mId, uses) rMax
+                            simpleDropEdges stable moduleId areSimult (mId, uses) rMax
     in do
          when trace_ralloc
              (traceM $ "rSchedule: allocating " ++ show (length uses) ++
@@ -152,8 +153,12 @@ rSchedule' moduleId rFlag rMaxs areSimult mu@(mId, uses0) =
              (traceM $ "rSchedule: uugraph:\n" ++ ppReadable g)
          -- when (rMax <= 0) (verifySC g)
          if length uses > 16 && fromInteger rMax >= length uses
-           then return (M.singleton mId (M.fromList (zip (map fst uses) [1..])), [])
-           else do (colors, drops) <- color rMax dropEdges g
+           -- under -stable-verilog the splayed port numbering follows
+           -- the uses' text, not MethodUsesMap (interning) order
+           then let uses_c | stable    = sortBy (comparing (ppString . fst)) uses
+                           | otherwise = uses
+                in  return (M.singleton mId (M.fromList (zip (map fst uses_c) [1..])), [])
+           else do (colors, drops) <- color stable rMax dropEdges g
                    return (M.singleton mId colors, drops)
 
 
@@ -245,16 +250,20 @@ eArbitrate moduleId (r,r') =
 -- ==============================
 -- Function: simpleDropEdges
 
-simpleDropEdges :: Id -> (RuleId -> RuleId -> Bool) ->
+simpleDropEdges :: Bool -> Id -> (RuleId -> RuleId -> Bool) ->
                    (MethodId, [(UniqueUse, MethodUsers)]) ->
                    Integer -> StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)
-simpleDropEdges moduleId areSimult (mId,uses) rMax st g =
+simpleDropEdges stable moduleId areSimult (mId,uses) rMax st g =
     if all null droppable || any sameRule rs
     then errDropEdges mId rMax st g
     else EMWarning warn (st',g')
-    where droppable = [map fromActionOf w
+    where droppable0 = [map fromActionOf w
                        | v <- G.vertices g, v' <- G.neighbors g v,
                        w <- maybeToList (G.lookup (v,v') g), all isActionOf w]
+          -- under -stable-verilog, WHICH all-ActionOf edge is dropped
+          -- follows the edge's text, not vertex (interning) order
+          droppable | stable    = sortBy (comparing ppString) droppable0
+                    | otherwise = droppable0
           rs = case droppable of
                (xs:_) -> xs
                _      -> internalError "simpleDropEdges: nothing to drop!"
@@ -277,24 +286,31 @@ simpleDropEdges moduleId areSimult (mId,uses) rMax st g =
 -- ==============================
 -- Function: color
 
-color :: Integer -> (StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)) ->
+color :: Bool -> Integer -> (StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)) ->
          UUGraph -> ErrorMonad (M.Map UniqueUse Integer, [RRM])
-color rMax dropEdges g
-    | rMax > 0 = colorFw rMax dropEdges [] g >>= colorBk [1..rMax] M.empty []
+color stable rMax dropEdges g
+    | rMax > 0 = colorFw stable rMax dropEdges [] g >>= colorBk [1..rMax] M.empty []
     | otherwise = return (M.fromList [(v,1) | v <- G.vertices g], [])
 
 
 -- forward pass: generate stack of colorable vertices and dropped edges
-colorFw :: Integer -> (StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)) ->
+colorFw :: Bool -> Integer -> (StkL -> UUGraph -> ErrorMonad (StkL, UUGraph)) ->
            StkL -> UUGraph -> ErrorMonad StkL
-colorFw rMax dropEdges st g
+colorFw stable rMax dropEdges st g
     | G.null g = return st
     | otherwise =
-        case partition (colorable rMax g) (G.vertices g) of
-            (cv:_, _) -> colorFw rMax dropEdges
+        -- under -stable-verilog the vertex scan follows the uses' text,
+        -- not GraphMap key (interning) order, so WHICH use is peeled
+        -- first -- and hence the RAT color each use receives -- is a
+        -- pure function of the graph
+        let vs | stable    = sortBy (comparing ppString) (G.vertices g)
+               | otherwise = G.vertices g
+        in
+        case partition (colorable rMax g) vs of
+            (cv:_, _) -> colorFw stable rMax dropEdges
                              (Vertex (cv, G.neighbors g cv) : st)
                              (G.deleteVertex g cv)
-            (_, _) -> dropEdges st g >>= (uncurry $ colorFw rMax dropEdges)
+            (_, _) -> dropEdges st g >>= (uncurry $ colorFw stable rMax dropEdges)
 
 
 -- backward pass: pick up vertices and color them

@@ -22,4 +22,5 @@ Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
 Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
   According to the generated schedule, rule `r4_3' can never fire.
 Verilog file created: sysRuleNameInForLoop3.v
+Elaborated module file created: sysRuleNameInForLoop3.ba
 All packages are up to date.
