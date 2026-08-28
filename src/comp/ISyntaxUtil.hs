@@ -1163,6 +1163,7 @@ iDefMapM f (IDef i t e p) = do
 emptyFmt :: (IExpr a)
 emptyFmt = (IAps (ICon idFormat (ICForeign {fName    = getIdString(unQualId(idFormat)),
                                             foports  = Nothing,
+                                            fTyVarNames = [],
                                             fcallNo  = (Just 0),
                                             iConType = tt,
                                             isC = False -- unsure what this should be?

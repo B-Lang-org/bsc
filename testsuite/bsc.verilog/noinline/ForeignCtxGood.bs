@@ -1,0 +1,16 @@
+package ForeignCtxGood(sysForeignCtxGood, Ifc) where
+
+{-# verilog sysForeignCtxGood #-}
+
+-- A numeric proviso on a foreign function: checked at applications,
+-- erased afterward; the parameters still pass by (type variable) name.
+foreign vdup :: (Add iw iw ow) => Bit iw -> Bit ow = "Dup",("i","o")
+
+interface Ifc =
+  get :: Bit 16
+
+sysForeignCtxGood :: Module Ifc
+sysForeignCtxGood =
+  module
+    interface
+      get = vdup (8 :: Bit 8)
