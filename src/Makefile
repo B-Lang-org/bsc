@@ -26,7 +26,7 @@ checktool=$(if $(call pathsearch,$(1)),,$(error Tool $(1) could not be found))
 $(foreach tool,$(TOOLS),$(call checktool,$(tool)))
 
 # Check Haskell package dependencies
-checkghcpkg=$(if $(shell ghc-pkg list --simple-output $(1)),,$(error GHC package $(1) not installed))
+checkghcpkg=$(if $(shell $(GHC_PKG) list --simple-output $(1)),,$(error GHC package $(1) not installed))
 $(foreach pkg,$(GHC_PKGS),$(call checkghcpkg,$(pkg)))
 
 # Check all submodules are initialized
