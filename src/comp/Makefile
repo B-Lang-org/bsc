@@ -51,7 +51,7 @@ PARSEC_HS = ../Parsec
 # STP
 STP_HS = ../vendor/stp/include_hs
 STP_INC_FLAGS = -I../vendor/stp/include
-STP_LIB_FLAGS = -L../vendor/stp/lib -lstp
+STP_LIB_FLAGS = -L../vendor/stp/lib -optl-Wl,-rpath,'$$ORIGIN/../../lib/SAT' -lstp
 
 # Yices
 YICES_HS = ../vendor/yices/include_hs
