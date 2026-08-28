@@ -1710,9 +1710,17 @@ iTransFixupDefNames flags = do
                        <- M.toList old_defmap
                  , not (defPropsHasNoCSE props) ]
 
-      -- The best Id is the maximum of the quality-ordered set.
+      -- The best Id is the maximum of the quality-ordered set; adopt
+      -- it only when it improves on the CSE name itself (so e.g. a
+      -- hidden-name-only set never renames downhill).
       rename_map :: M.Map Id Id
-      rename_map = M.map (snd . S.findMax) cse_ids_map
+      rename_map =
+          let pickFn cse_name s =
+                  let (q, def_name) = S.findMax s
+                  in  if q > idQuality (Just cse_name)
+                      then def_name
+                      else cse_name
+          in  M.mapWithKey pickFn cse_ids_map
 
       -- function to rename ICValue references (to use the new CSE name)
       rename_expr = iTransRenameIdsInExpr rename_map
