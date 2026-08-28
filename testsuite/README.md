@@ -172,6 +172,18 @@ There are also `checkparallel` and `fullparallel` targets,
 which are versions of `check` and `fullcheck` that run the
 tests in parallel.
 
+The parallel targets can schedule the longest-running test
+directories first, which improves machine utilization and
+shortens the total run time.  To enable this, set
+`RUN_TESTCASES_IN_ORDER_OF_TIME=1` in the environment:
+
+    $ RUN_TESTCASES_IN_ORDER_OF_TIME=1 make -j$(nproc) fullparallel
+
+This ordering uses the file `timing.txt` in this directory, which
+is refreshed at the end of every parallel run; if the file does
+not exist yet (for example, in a fresh checkout), the tests run
+in an arbitrary order and the file is created for future runs.
+
 > **NOTE**: These targets may have issues to be fixed.
 
 ### Disabling types of tests
