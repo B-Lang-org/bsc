@@ -1,0 +1,15 @@
+# Tests for the fundep coverage condition (T0160) and the
+# coherence-annotation surface syntax.
+
+# an instance whose determined position is an uncovered variable:
+# the same inputs can be satisfied with many different results
+compile_pass_warning Uncov.bsv T0160
+
+# the incoherent annotation declares the relational intent: no warning
+compile_pass_no_warning UncovInc.bsv
+
+# determined positions covered through the instance's provisos: quiet
+compile_pass_no_warning Covered.bsv
+
+# the annotations are soft keywords: still usable as identifiers
+compile_pass SoftKeyword.bsv

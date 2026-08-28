@@ -3,6 +3,8 @@
 module Pred(
             Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
             removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
+            PredAncestor(..),
+            getPredAncestors, mkPredAncestor, addPredAncestors,
             expandSyn, predToType, qualToType, mkInst,
             Instantiate(..),
             predToCPred, qualTypeToCQType,
@@ -64,49 +66,93 @@ qualTypeToCQType (pwps :=> t) = CQType ps t
 -----
 
 --
--- Allow some Preds to be tagged with position information
+-- Allow some Preds to be tagged with position information and with the
+-- reduction chain that produced them
 --
-data PredWithPositions = PredWithPositions Pred [Position]
+
+-- An ancestor of a residual predicate: a predicate that instance
+-- reduction reduced (through an instance's context) to produce this one,
+-- captured with the positions it carried at the time of the reduction.
+-- The predicate is captured unsubstituted; apply the current substitution
+-- (apSub) when rendering it in an error message.
+data PredAncestor = PredAncestor Pred [Position]
+    deriving (Show)
+
+instance PPrint PredAncestor where
+    pPrint d prec (PredAncestor p _) = pPrint d prec p
+
+instance NFData PredAncestor where
+    rnf (PredAncestor p poss) = rnf2 p poss
+
+-- The ancestors are ordered nearest-first: the head is the predicate
+-- this one was directly reduced from, and the last entry is the
+-- user-written root.  The ancestors are carried inert: they are excluded
+-- from substitution in the Types instance below, so the solver's
+-- substitution application (a known cost center) does not traverse them;
+-- apply the final substitution when rendering an error.  They are
+-- likewise excluded from equality and comparison, as positions already
+-- are.
+data PredWithPositions = PredWithPositions Pred [Position] [PredAncestor]
     deriving (Show)
 
 mkPredWithPositions :: [Position] -> Pred -> PredWithPositions
-mkPredWithPositions poss p = PredWithPositions p poss
+mkPredWithPositions poss p = PredWithPositions p poss []
 
 removePredPositions :: PredWithPositions -> Pred
-removePredPositions (PredWithPositions p poss) = p
+removePredPositions (PredWithPositions p poss anc) = p
 
 getPredPositions :: PredWithPositions -> [Position]
-getPredPositions (PredWithPositions p poss) = poss
+getPredPositions (PredWithPositions p poss anc) = poss
 
 addPredPositions :: PredWithPositions -> [Position] -> PredWithPositions
-addPredPositions (PredWithPositions p poss) poss' =
-    PredWithPositions p (poss ++ poss')
+addPredPositions (PredWithPositions p poss anc) poss' =
+    PredWithPositions p (poss ++ poss') anc
+
+getPredAncestors :: PredWithPositions -> [PredAncestor]
+getPredAncestors (PredWithPositions p poss anc) = anc
+
+-- Capture a predicate (with its positions) as an ancestor entry.
+mkPredAncestor :: PredWithPositions -> PredAncestor
+mkPredAncestor (PredWithPositions p poss anc) = PredAncestor p poss
+
+-- Record the reduction chain a predicate came from (appended after any
+-- ancestors it already has, preserving nearest-first order).
+addPredAncestors :: PredWithPositions -> [PredAncestor] -> PredWithPositions
+addPredAncestors (PredWithPositions p poss anc) anc' =
+    PredWithPositions p poss (anc ++ anc')
+
+-- NOTE: the reporting rule for choosing which entry of an ancestry
+-- chain to show the user is NOT "the last ancestor": reportedPwp
+-- (ContextErrors) reports the root-most non-numeric-class entry, with
+-- position merging.  Keep that logic there; do not add a simplistic
+-- root accessor here.
 
 instance Eq PredWithPositions where
-    (==) (PredWithPositions p1 _) (PredWithPositions p2 _) = (p1 == p2)
+    (==) (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = (p1 == p2)
     (/=) x y = not (x == y)
 
 instance Ord PredWithPositions where
-    compare (PredWithPositions p1 _) (PredWithPositions p2 _) = compare p1 p2
-    (<) (PredWithPositions p1 _) (PredWithPositions p2 _) = p1 < p2
-    (<=) (PredWithPositions p1 _) (PredWithPositions p2 _) = p1 <= p2
-    (>=) (PredWithPositions p1 _) (PredWithPositions p2 _) = p1 >= p2
-    (>) (PredWithPositions p1 _) (PredWithPositions p2 _) = p1 > p2
+    compare (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = compare p1 p2
+    (<) (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = p1 < p2
+    (<=) (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = p1 <= p2
+    (>=) (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = p1 >= p2
+    (>) (PredWithPositions p1 _ _) (PredWithPositions p2 _ _) = p1 > p2
     max p1 p2 = if (p1 <= p2) then p2 else p1
     min p1 p2 = if (p1 <= p2) then p1 else p2
 
 instance PPrint PredWithPositions where
-    pPrint d p (PredWithPositions pred _) = pPrint d p pred
+    pPrint d p (PredWithPositions pred _ _) = pPrint d p pred
 
 instance PVPrint PredWithPositions where
-    pvPrint d p (PredWithPositions pred _) = pvPrint d p pred
+    pvPrint d p (PredWithPositions pred _ _) = pvPrint d p pred
 
 instance Types PredWithPositions where
-    apSub s (PredWithPositions p poss) = PredWithPositions (apSub s p) poss
-    tv      (PredWithPositions p poss) = tv p
+    -- the ancestors are deliberately not substituted (see above)
+    apSub s (PredWithPositions p poss anc) = PredWithPositions (apSub s p) poss anc
+    tv      (PredWithPositions p poss anc) = tv p
 
 instance NFData PredWithPositions where
-    rnf (PredWithPositions p poss) = rnf2 p poss
+    rnf (PredWithPositions p poss anc) = rnf3 p poss anc
 
 -----
 
@@ -302,7 +348,8 @@ instance Instantiate t => Instantiate (Qual t) where
     inst ts (ps :=> t) = inst ts ps :=> inst ts t
 
 instance Instantiate PredWithPositions where
-    inst ts (PredWithPositions p poss) = PredWithPositions (inst ts p) poss
+    -- ancestors are carried inert, as in the Types instance
+    inst ts (PredWithPositions p poss anc) = PredWithPositions (inst ts p) poss anc
 
 instance Instantiate Pred where
     inst ts (IsIn c t) = IsIn c $ expandSyn <$> inst ts t
