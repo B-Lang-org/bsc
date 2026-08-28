@@ -258,7 +258,7 @@ SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
 TCLEXES = bluetcl
-UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
+UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba fstcheck fstscopes vcdcheck
 SHOWRULESEXES = showrules
 
 EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
@@ -351,6 +351,41 @@ dumpba: $(SOURCES)
 vcdcheck: $(SOURCES)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
+	$(POSTBUILDCOMMAND)
+
+# fstscopes and fstcheck read FST files with libfst (the
+# src/vendor/libfst submodule), whose sources are compiled into the
+# executables here, with the <config.h> that fstapi.c includes
+# supplied from src/libfst_config
+LIBFST_SRC = ../vendor/libfst/src
+LIBFST_CFLAGS = -O2 -I$(LIBFST_SRC) -I../libfst_config
+# The C objects are compiled explicitly into $(BUILDDIR) and the
+# objects passed to GHC: letting GHC compile the C sources places
+# their objects at the source-relative path under -odir, which
+# escapes the build directory
+LIBFST_OBJS = $(BUILDDIR)/fstscopes_hier.o $(BUILDDIR)/fstapi.o \
+	$(BUILDDIR)/fastlz.o $(BUILDDIR)/lz4.o
+
+$(BUILDDIR)/fstscopes_hier.o: fstscopes_hier.c $(LIBFST_SRC)/fstapi.h
+	mkdir -p $(BUILDDIR)
+	$(CC) $(LIBFST_CFLAGS) -c -o $@ $<
+
+$(BUILDDIR)/%.o: $(LIBFST_SRC)/%.c
+	mkdir -p $(BUILDDIR)
+	$(CC) $(LIBFST_CFLAGS) -c -o $@ $<
+
+.PHONY: fstscopes
+fstscopes: $(SOURCES) $(LIBFST_OBJS)
+	$(PREBUILDCOMMAND)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) \
+		$(LIBFST_OBJS) -lz
+	$(POSTBUILDCOMMAND)
+
+.PHONY: fstcheck
+fstcheck: $(SOURCES) $(LIBFST_OBJS)
+	$(PREBUILDCOMMAND)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) \
+		$(LIBFST_OBJS) -lz
 	$(POSTBUILDCOMMAND)
 
 .PHONY: showrules

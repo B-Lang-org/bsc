@@ -1,0 +1,146 @@
+Command: module wiretypemap mkClockOut
+CLK Prelude.Clock
+CLK_GATE_newClk Prelude.Bool
+CLK_newClk Prelude.Clock
+RDY_enabled Prelude.Bool
+RST_N Prelude.Reset
+RST_N_newRst Prelude.Reset
+en Prelude.Bool
+en.CLK Prelude.Clock
+en.D_IN Prelude.Bool
+en.Q_OUT Prelude.Bool
+en.RST Prelude.Reset
+enabled Prelude.Bool
+gc.CLK Prelude.Clock
+gc.CLK_GATE_IN Prelude.Bool
+gc.CLK_GATE_OUT Prelude.Bool
+gc.CLK_IN Prelude.Clock
+gc.CLK_OUT Prelude.Clock
+gc.COND Prelude.Bool
+gc.COND_OUT Prelude.Bool
+gc.RST Prelude.Reset
+mr.ASSERT_OUT Prelude.Bool
+mr.CLK Prelude.Clock
+mr.DST_CLK Prelude.Clock
+mr.OUT_RST Prelude.Reset
+mr.RST Prelude.Reset
+{en$CLK} Prelude.Clock
+{en$D_IN} Prelude.Bool
+{en$Q_OUT} Prelude.Bool
+{en$RST} Prelude.Reset
+{gc$CLK_GATE_IN} Prelude.Bool
+{gc$CLK_GATE_OUT} Prelude.Bool
+{gc$CLK_IN} Prelude.Clock
+{gc$CLK_OUT} Prelude.Clock
+{gc$CLK} Prelude.Clock
+{gc$COND_OUT} Prelude.Bool
+{gc$COND} Prelude.Bool
+{gc$RST} Prelude.Reset
+{mr$ASSERT_OUT} Prelude.Bool
+{mr$CLK} Prelude.Clock
+{mr$DST_CLK} Prelude.Clock
+{mr$OUT_RST} Prelude.Reset
+{mr$RST} Prelude.Reset
+---------
+Command: module wiretypemap mkArgClock
+CAN_FIRE_RL_drain Prelude.Bool
+CLK Prelude.Clock
+CLK_altClk Prelude.Clock
+EN_feed Prelude.Bool
+RDY_feed Prelude.Bool
+RDY_lastAlt Prelude.Bool
+RDY_lastDefault Prelude.Bool
+RST_N Prelude.Reset
+RST_N_altRst Prelude.Reset
+WILL_FIRE_RL_drain Prelude.Bool
+altReg {Prelude.Bit 16}
+altReg.CLK Prelude.Clock
+altReg.D_IN {Prelude.Bit 16}
+altReg.Q_OUT {Prelude.Bit 16}
+altReg.RST Prelude.Reset
+defReg {Prelude.Bit 16}
+defReg.CLK Prelude.Clock
+defReg.D_IN {Prelude.Bit 16}
+defReg.Q_OUT {Prelude.Bit 16}
+defReg.RST Prelude.Reset
+feed Prelude.PrimUnit
+feed_v {Prelude.Bit 16}
+lastAlt {Prelude.Bit 16}
+lastDefault {Prelude.Bit 16}
+toAlt.dCLK Prelude.Clock
+toAlt.dD_OUT {Prelude.Bit 16}
+toAlt.dEMPTY_N Prelude.Bool
+toAlt.sCLK Prelude.Clock
+toAlt.sD_IN {Prelude.Bit 16}
+toAlt.sFULL_N Prelude.Bool
+toAlt.sRST Prelude.Reset
+{altReg$CLK} Prelude.Clock
+{altReg$D_IN} {Prelude.Bit 16}
+{altReg$Q_OUT} {Prelude.Bit 16}
+{altReg$RST} Prelude.Reset
+{defReg$CLK} Prelude.Clock
+{defReg$D_IN} {Prelude.Bit 16}
+{defReg$Q_OUT} {Prelude.Bit 16}
+{defReg$RST} Prelude.Reset
+{toAlt$dCLK} Prelude.Clock
+{toAlt$dD_OUT} {Prelude.Bit 16}
+{toAlt$dEMPTY_N} Prelude.Bool
+{toAlt$sCLK} Prelude.Clock
+{toAlt$sD_IN} {Prelude.Bit 16}
+{toAlt$sFULL_N} Prelude.Bool
+{toAlt$sRST} Prelude.Reset
+---------
+Command: module wiretypemap mkClockTest
+CAN_FIRE_RL_tick Prelude.Bool
+CLK Prelude.Clock
+RST_N Prelude.Reset
+WILL_FIRE_RL_tick Prelude.Bool
+cnt {Prelude.Bit 8}
+cnt.CLK Prelude.Clock
+cnt.D_IN {Prelude.Bit 8}
+cnt.Q_OUT {Prelude.Bit 8}
+cnt.RST Prelude.Reset
+maker.CLK Prelude.Clock
+maker.CLK_GATE_newClk Prelude.Bool
+maker.CLK_newClk Prelude.Clock
+maker.RST_N Prelude.Reset
+maker.RST_N_newRst Prelude.Reset
+maker.enabled Prelude.Bool
+taker.CLK Prelude.Clock
+taker.CLK_altClk Prelude.Clock
+taker.RST_N Prelude.Reset
+taker.RST_N_altRst Prelude.Reset
+taker.feed Prelude.PrimUnit
+taker.feed_v {Prelude.Bit 16}
+taker.lastAlt {Prelude.Bit 16}
+taker.lastDefault {Prelude.Bit 16}
+{cnt$CLK} Prelude.Clock
+{cnt$D_IN} {Prelude.Bit 8}
+{cnt$Q_OUT} {Prelude.Bit 8}
+{cnt$RST} Prelude.Reset
+{maker$CLK_GATE_newClk} Prelude.Bool
+{maker$CLK_newClk} Prelude.Clock
+{maker$CLK} Prelude.Clock
+{maker$RST_N_newRst} Prelude.Reset
+{maker$RST_N} Prelude.Reset
+{maker$enabled} Prelude.Bool
+{taker$CLK_altClk} Prelude.Clock
+{taker$CLK} Prelude.Clock
+{taker$RST_N_altRst} Prelude.Reset
+{taker$RST_N} Prelude.Reset
+{taker$feed_v} {Prelude.Bit 16}
+{taker$feed} Prelude.PrimUnit
+{taker$lastAlt} {Prelude.Bit 16}
+{taker$lastDefault} {Prelude.Bit 16}
+---------
+=== assertions ===
+FAIL: mkClockOut CLK_newClk = 'Prelude.Clock' (expected 'Clock')
+FAIL: mkClockOut CLK_GATE_newClk = 'Prelude.Bool' (expected 'Bool')
+FAIL: mkClockOut RST_N_newRst = 'Prelude.Reset' (expected 'Reset')
+FAIL: mkArgClock CLK_altClk = 'Prelude.Clock' (expected 'Clock')
+FAIL: mkArgClock RST_N_altRst = 'Prelude.Reset' (expected 'Reset')
+FAIL: mkClockTest maker.CLK_newClk = 'Prelude.Clock' (expected 'Clock')
+FAIL: mkClockTest maker.CLK_GATE_newClk = 'Prelude.Bool' (expected 'Bool')
+FAIL: mkClockTest maker.RST_N_newRst = 'Prelude.Reset' (expected 'Reset')
+FAIL: mkClockTest taker.CLK_altClk = 'Prelude.Clock' (expected 'Clock')
+FAIL: mkClockTest taker.RST_N_altRst = 'Prelude.Reset' (expected 'Reset')

@@ -4,6 +4,8 @@ apt-get update
 
 # ccache is not required to buid bsc, but we use it in build.yml to improve
 # the build performance by caching C++ obj files across multiple builds.
+# zlib1g-dev is needed to compile libfst (the src/vendor/libfst
+# submodule) into the Bluesim kernel library.
 apt-get install -y \
   ccache \
   autoconf \
@@ -13,4 +15,5 @@ apt-get install -y \
   git \
   gperf \
   iverilog \
-  tcl-dev
+  tcl-dev \
+  zlib1g-dev

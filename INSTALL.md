@@ -98,6 +98,7 @@ sudo apt-get install \
    build-essential \
    tcl-dev \
    libgmp-dev \
+   zlib1g-dev \
    pkg-config \
    autoconf \
    gperf \
@@ -163,6 +164,7 @@ sudo dnf install \
    dejagnu \
    tcl-devel \
    gmp-devel \
+   zlib-devel \
    gperf \
    latex \
    texlive-boxedminipage \
@@ -340,6 +342,18 @@ from that repository will be added.
 Both the Yices and STP solvers are optional to build, although
 recommended. To skip these builds, see "Optionally avoiding the
 compile of STP or Yices" below.
+
+### Waveform dumping (libfst)
+
+The repository for GTKWave's [libfst library] is cloned as a submodule
+of this repository, at `src/vendor/libfst`.  Building the BSC tools
+will compile libfst into the Bluesim kernel library, where it is used
+to write FST waveform dumps (see the `-dump-formats` flag).  Compiling
+it requires the zlib development headers (`zlib1g-dev` on
+Debian/Ubuntu, `zlib-devel` on Fedora; on macOS, zlib is provided by
+the SDK), which are included in the dependency lists above.
+
+[libfst library]: https://github.com/gtkwave/libfst
 
 ## Clone the repository
 

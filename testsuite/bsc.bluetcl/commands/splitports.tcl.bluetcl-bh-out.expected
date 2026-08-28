@@ -1,0 +1,90 @@
+=== porttypes ===
+  CLK Prelude.Clock
+  EN_bump Prelude.Bool
+  EN_sub_put Prelude.Bool
+  EN_sub_putHdr Prelude.Bool
+  RDY_bump Prelude.Bool
+  RDY_sub_count Prelude.Bool
+  RDY_sub_get Prelude.Bool
+  RDY_sub_getHdr Prelude.Bool
+  RDY_sub_put Prelude.Bool
+  RDY_sub_putHdr Prelude.Bool
+  RST_N Prelude.Reset
+  sub_count {Prelude.Bit 16}
+  sub_get SplitPortsTest.Inner
+  sub_getHdr SplitPortsTest.Header
+  sub_putHdr_1 SplitPortsTest.Header
+  sub_put_1 SplitPortsTest.Inner
+=== methods ===
+OK (2 top-level fields)
+=== wiretypemap ===
+  CAN_FIRE_RL_unnamed Prelude.Bool
+  CAN_FIRE_RL_unnamed_1 Prelude.Bool
+  CLK Prelude.Clock
+  EN_bump Prelude.Bool
+  EN_sub_put Prelude.Bool
+  EN_sub_putHdr Prelude.Bool
+  RDY_bump Prelude.Bool
+  RDY_sub_count Prelude.Bool
+  RDY_sub_get Prelude.Bool
+  RDY_sub_getHdr Prelude.Bool
+  RDY_sub_put Prelude.Bool
+  RDY_sub_putHdr Prelude.Bool
+  RST_N Prelude.Reset
+  WILL_FIRE_RL_unnamed Prelude.Bool
+  WILL_FIRE_RL_unnamed_1 Prelude.Bool
+  bump Prelude.PrimUnit
+  cnt {Prelude.Bit 16}
+  cnt.CLK Prelude.Clock
+  cnt.D_IN {Prelude.Bit 16}
+  cnt.Q_OUT {Prelude.Bit 16}
+  cnt.RST Prelude.Reset
+  inflight.CLK Prelude.Clock
+  inflight.D_IN SplitPortsTest.Inner
+  inflight.D_OUT SplitPortsTest.Inner
+  inflight.EMPTY_N Prelude.Bool
+  inflight.FULL_N Prelude.Bool
+  inflight.RST Prelude.Reset
+  last_header SplitPortsTest.Header
+  last_header.CLK Prelude.Clock
+  last_header.D_IN SplitPortsTest.Header
+  last_header.Q_OUT SplitPortsTest.Header
+  last_header.RST Prelude.Reset
+  last_inner SplitPortsTest.Inner
+  last_inner.CLK Prelude.Clock
+  last_inner.D_IN SplitPortsTest.Inner
+  last_inner.Q_OUT SplitPortsTest.Inner
+  last_inner.RST Prelude.Reset
+  sub_count {Prelude.Bit 16}
+  sub_get SplitPortsTest.Inner
+  sub_getHdr SplitPortsTest.Header
+  sub_put Prelude.PrimUnit
+  sub_putHdr Prelude.PrimUnit
+  sub_putHdr_1 SplitPortsTest.Header
+  sub_put_1 SplitPortsTest.Inner
+  {cnt$CLK} Prelude.Clock
+  {cnt$D_IN} {Prelude.Bit 16}
+  {cnt$Q_OUT} {Prelude.Bit 16}
+  {cnt$RST} Prelude.Reset
+  {inflight$CLK} Prelude.Clock
+  {inflight$D_IN} SplitPortsTest.Inner
+  {inflight$D_OUT} SplitPortsTest.Inner
+  {inflight$EMPTY_N} Prelude.Bool
+  {inflight$FULL_N} Prelude.Bool
+  {inflight$RST} Prelude.Reset
+  {last_header$CLK} Prelude.Clock
+  {last_header$D_IN} SplitPortsTest.Header
+  {last_header$Q_OUT} SplitPortsTest.Header
+  {last_header$RST} Prelude.Reset
+  {last_inner$CLK} Prelude.Clock
+  {last_inner$D_IN} SplitPortsTest.Inner
+  {last_inner$Q_OUT} SplitPortsTest.Inner
+  {last_inner$RST} Prelude.Reset
+=== assertions ===
+PASS: sub_put_1 reports type (SplitPortsTest.Inner)
+PASS: sub_putHdr_1 reports type (SplitPortsTest.Header)
+PASS: sub_get reports type (SplitPortsTest.Inner)
+FAIL: sub_count type is 'Prelude.Bit 16', expected to match 'Bit#(16)'
+PASS: last_inner.D_IN reports type (SplitPortsTest.Inner)
+PASS: last_header.Q_OUT reports type (SplitPortsTest.Header)
+PASS: inflight.D_IN reports type (SplitPortsTest.Inner)
