@@ -10,6 +10,12 @@ compile_pass BinaryLiteral.bsv
 
 # -----
 
+# Unbased unsized bit literals ('0 all-zeros, '1 all-ones) in BH and BSV
+compile_pass UnbasedUnsized.bs
+compile_pass UnbasedUnsized.bsv
+
+# -----
+
 # This tests defaulting of the Literal class
 compile_pass DefaultingLiteral.bs
 

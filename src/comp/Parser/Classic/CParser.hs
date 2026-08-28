@@ -228,6 +228,7 @@ aexp' =     pAny                           >>- anyExprAt
         ||! numericLit
         ||! string
         ||! char
+        ||! unbasedUnsized
         ||! blkexp -- XXX maybe it should be expX
 
 pQType :: CParser CQType
@@ -609,6 +610,7 @@ pAPat =     pVarIdOrU `into` (\ mi ->
         ||! pConId                                                        >>- (\i -> CPCon i [])
         ||! lp +.+ sepBy pPat (l L_comma) +.. rp                        >>> pMkTuple
         ||! numericLit                                                        >>- litToPLit
+        ||! lcp "'0" (\p x -> case x of L_unbasedUnsized False -> Just (CPLit (CLiteral p (LInt (ilDec 0)))); _ -> Nothing)
   where
     litToPLit (CLit l) = CPLit l
     litToPLit _ = internalError "CParser.pAPat: litToPLit"
@@ -1002,6 +1004,12 @@ pStringAsId = lcp "<string>"  (\p x->case x of L_string  s     -> Just (mkId p (
 
 char :: CParser CExpr
 char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar c))); _ -> Nothing)
+
+unbasedUnsized :: CParser CExpr
+unbasedUnsized = lcp "<unbased-unsized>" (\p x -> case x of
+    L_unbasedUnsized True  -> Just (cVar (idConstAllBitsSetAt p))
+    L_unbasedUnsized False -> Just (cVar (idConstAllBitsUnsetAt p))
+    _                      -> Nothing)
 
 hide :: CParser ()
 hide = literal fsHide
