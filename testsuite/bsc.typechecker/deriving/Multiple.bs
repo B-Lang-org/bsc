@@ -1,0 +1,12 @@
+package Multiple(Test1(..), minTest, maxTest) where
+
+data Test1 = A (Bit 16) (Bit 32) | B (Bit 16) (Bit 32)
+  deriving (Eq, Bits)
+  deriving (Bounded)
+
+minTest :: Test1
+minTest = minBound
+
+maxTest :: Test1
+maxTest = maxBound
+

@@ -635,6 +635,8 @@ scanner and to prettyprint keywords.
 >      (SV_KW_powered_by,           "powered_by",            Bluespec38),
 >      (SV_KW_Action,              "Action",               Bluespec38),
 >      (SV_KW_ActionValue,         "ActionValue",          Bluespec38)]
+>      -- Bluespec X.X keywords
+>      -- (SV_KW_via,                 "via",                  BluespecXX)]
 
 Symbol table
 

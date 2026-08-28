@@ -1,0 +1,10 @@
+checking package dependencies
+compiling DerivingViaHK.bs
+Error: "DerivingViaHK.bs", line 4, column 2: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Prelude.Maybe a -> Prelude.Bool
+  The following contexts are needed:
+    DerivingViaHK.Weird a
+      Introduced at the following locations:
+	"DerivingViaHK.bs", line 4, column 2
