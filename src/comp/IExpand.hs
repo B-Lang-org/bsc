@@ -28,7 +28,6 @@ import Control.Monad.Fix(mfix)
 --import Control.Monad.Fix
 import Control.Monad.State(State, evalState, liftIO, get, put)
 import Data.Graph
-import qualified Data.Generics as Generic
 import System.IO(Handle, BufferMode(..), IOMode(..), stdout, stderr,
                  hSetBuffering, hIsOpen, hIsClosed)
 import System.FilePath(isRelative)
@@ -532,14 +531,114 @@ unpack_method_call' _ e =
   -- trace ("unpack_method_call unable to match " ++ show e) $
   --[(mk_homeless_id "NOSTATE", mk_homeless_id "NOMETHOD")]
 
+-- Apply 'removeIdInlinedPositions' to the Id of every ICon reachable
+-- in the IModule.  Heap references are leaves: IRefT payloads and the
+-- cells of ICLazyArray sit behind IORefs and are not traversed.
+-- Clock, reset and inout wires can be cyclic (a state variable's
+-- output clock selects from the state variable itself), so the
+-- rebuilding must stay lazy; consumers only force finite prefixes of
+-- such wires.  Subtrees that cannot contain an ICon are returned
+-- unchanged, rather than reallocated.
 removeInlinedPositions :: Flags -> IModule HeapData -> IModule HeapData
 removeInlinedPositions flags imod0 | (not (methodConditions flags)) = imod0
 removeInlinedPositions flags imod0 =
-    let removeFn :: HExpr -> HExpr
-        removeFn (ICon i ic) = (ICon (removeIdInlinedPositions i) ic)
-        -- XXX do we need a recursive branch for IAps?
-        removeFn e = e
-    in  Generic.everywhere (Generic.mkT removeFn) imod0
+    imod0 { imod_clock_domains =
+                [ (d, map rmClock cs) | (d, cs) <- imod_clock_domains imod0 ],
+            imod_resets = map rmReset (imod_resets imod0),
+            imod_state_insts =
+                [ (i, rmStateVar sv) | (i, sv) <- imod_state_insts imod0 ],
+            imod_local_defs = map rmDef (imod_local_defs imod0),
+            imod_rules = rmRules (imod_rules imod0),
+            imod_interface = map rmIFace (imod_interface imod0)
+          }
+  where
+    rmExpr :: HExpr -> HExpr
+    rmExpr (ILam i t e) = ILam i t (rmExpr e)
+    rmExpr (IAps f ts es) = IAps (rmExpr f) ts (map rmExpr es)
+    rmExpr e@(IVar _) = e
+    rmExpr (ILAM i k e) = ILAM i k (rmExpr e)
+    rmExpr (ICon i ic) = ICon (removeIdInlinedPositions i) (rmConInfo ic)
+    rmExpr e@(IRefT _ _ _ _) = e
+
+    -- only the payloads that can carry an IExpr are rebuilt;
+    -- all other constructors are returned unchanged
+    rmConInfo :: IConInfo HeapData -> IConInfo HeapData
+    rmConInfo (ICDef t d) = ICDef t (rmExpr d)
+    rmConInfo (ICUndet t k mv) = ICUndet t k (fmap rmExpr mv)
+    rmConInfo (ICStateVar t sv) = ICStateVar t (rmStateVar sv)
+    rmConInfo (ICValue t d) = ICValue t (rmExpr d)
+    rmConInfo (ICMethod t ins outs m) = ICMethod t ins outs (rmExpr m)
+    rmConInfo (ICClock t c) = ICClock t (rmClock c)
+    rmConInfo (ICReset t r) = ICReset t (rmReset r)
+    rmConInfo (ICInout t io) = ICInout t (rmInout io)
+    rmConInfo (ICLazyArray t arr mu) =
+        -- the array cells are heap references, thus leaves
+        ICLazyArray t arr (fmap (\ (e1, e2) -> (rmExpr e1, rmExpr e2)) mu)
+    rmConInfo (ICPred t p) = ICPred t (rmPred p)
+    rmConInfo ic@(ICPrim {}) = ic
+    rmConInfo ic@(ICForeign {}) = ic
+    rmConInfo ic@(ICCon {}) = ic
+    rmConInfo ic@(ICIs {}) = ic
+    rmConInfo ic@(ICOut {}) = ic
+    rmConInfo ic@(ICTuple {}) = ic
+    rmConInfo ic@(ICSel {}) = ic
+    rmConInfo ic@(ICVerilog {}) = ic
+    rmConInfo ic@(ICInt {}) = ic
+    rmConInfo ic@(ICReal {}) = ic
+    rmConInfo ic@(ICString {}) = ic
+    rmConInfo ic@(ICChar {}) = ic
+    rmConInfo ic@(ICHandle {}) = ic
+    rmConInfo ic@(ICMethArg {}) = ic
+    rmConInfo ic@(ICModPort {}) = ic
+    rmConInfo ic@(ICModParam {}) = ic
+    rmConInfo ic@(ICIFace {}) = ic
+    rmConInfo ic@(ICRuleAssert {}) = ic
+    rmConInfo ic@(ICSchedPragmas {}) = ic
+    rmConInfo ic@(ICName {}) = ic
+    rmConInfo ic@(ICAttrib {}) = ic
+    rmConInfo ic@(ICPosition {}) = ic
+    rmConInfo ic@(ICType {}) = ic
+
+    rmClock :: HClock -> HClock
+    rmClock c = c { ic_wires = rmExpr (ic_wires c) }
+
+    rmReset :: HReset -> HReset
+    rmReset r = r { ir_clock = rmClock (ir_clock r),
+                    ir_wire = rmExpr (ir_wire r) }
+
+    rmInout :: HInout -> HInout
+    rmInout io = io { io_clock = rmClock (io_clock io),
+                      io_reset = rmReset (io_reset io),
+                      io_wire = rmExpr (io_wire io) }
+
+    rmStateVar :: HStateVar -> HStateVar
+    rmStateVar sv =
+        sv { isv_iargs = map rmExpr (isv_iargs sv),
+             isv_clocks = [ (i, rmClock c) | (i, c) <- isv_clocks sv ],
+             isv_resets = [ (i, rmReset r) | (i, r) <- isv_resets sv ] }
+
+    rmPred :: HPred -> HPred
+    rmPred (PConj ps) = PConj (S.map rmPTerm ps)
+
+    rmPTerm :: PTerm HeapData -> PTerm HeapData
+    rmPTerm (PAtom e) = PAtom (rmExpr e)
+    rmPTerm (PIf c t e) = PIf (rmExpr c) (rmPred t) (rmPred e)
+    rmPTerm (PSel idx sz ps) = PSel (rmExpr idx) sz (map rmPred ps)
+
+    rmDef :: HDef -> HDef
+    rmDef (IDef i t e p) = IDef i t (rmExpr e) p
+
+    rmRules :: HRules -> HRules
+    rmRules (IRules sps rs) = IRules sps (map rmRule rs)
+
+    rmRule :: HRule -> HRule
+    rmRule r = r { irule_pred = rmExpr (irule_pred r),
+                   irule_body = rmExpr (irule_body r) }
+
+    rmIFace :: HEFace -> HEFace
+    rmIFace ief =
+        ief { ief_value = fmap (\ (e, t) -> (rmExpr e, t)) (ief_value ief),
+              ief_body = fmap rmRules (ief_body ief) }
 
 -- -----
 
