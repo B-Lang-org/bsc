@@ -1,0 +1,7 @@
+packages: .
+         ../bs-parser
+
+-- Allow recent LSP packages
+allow-newer:
+  lsp:*,
+  lsp-types:*
