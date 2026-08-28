@@ -1,0 +1,32 @@
+-- Pin for the modal earlier-instance-may-capture judgment in the
+-- fail-fast reducibility probe (isReduciblePred).
+--
+-- Inside `foo', the predicate is TC (Maybe Bool) (Maybe t) with t
+-- rigid (bound).  The clause walk reaches `TC (Maybe w) Bool', whose
+-- input matches and whose output conflicts -- but the MORE specific
+-- clause `TC (Maybe Bool) (Maybe Bool)' could still capture the
+-- predicate at call sites (instantiating t at Bool).  Whether that
+-- earlier clause counts as "could capture" is a modal question and
+-- must be judged with the unguarded unifier: judged guarded (t rigid,
+-- so "never"), the conflict looks conclusive and the probe emits a
+-- factually wrong fundep-conflict error naming the LESS specific
+-- clause as selected.  Judged modally, the conflict is inconclusive
+-- and the report is the definition-level too-general error naming the
+-- true obligation, TC (Maybe Bool) (Maybe t).
+package ModalCapture where
+
+class TC x y | x -> y where
+    tcVal :: x -> y
+
+instance TC (Maybe Bool) (Maybe Bool) where
+    tcVal _ = Nothing
+
+instance TC (Maybe w) Bool where
+    tcVal _ = True
+
+-- uncovered catch-all (T0160 warning is expected and pinned)
+instance TC x y where
+    tcVal _ = error "unreachable"
+
+foo :: t -> Maybe t
+foo _ = tcVal (Just True)

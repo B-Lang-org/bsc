@@ -1,0 +1,4 @@
+package BVC where
+
+h :: Bool -> Bool
+h x = to ((from x) :: Bool)

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
-                  mkSymTab,
+                  mkSymTab, mkSymTabWithWarnings,
                   getPackagesUsedInTypes,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
@@ -28,7 +28,7 @@ import Id
 -- for PPrint and PVPrint Id instances
 import IdPrint()
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..),
-             ErrorHandle, bsError, bsErrorUnsafe)
+             ErrorHandle, bsError, bsErrorUnsafe, bsWarning)
 import CSyntax
 import CSyntaxUtil(isEnum)
 import SymTab
@@ -62,7 +62,17 @@ useLegacyInstIndex :: Bool
 useLegacyInstIndex = "-legacy-inst-index" `elem` progArgs
 
 mkSymTab :: ErrorHandle -> CPackage -> IO SymTab
-mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
+mkSymTab = mkSymTab' False
+
+-- Also emit instance-hygiene warnings (fundep coverage).  Used for the
+-- first symbol table built from the user-written package; the
+-- pipeline re-derives symbol tables from transformed packages several
+-- times, which must not repeat the warnings.
+mkSymTabWithWarnings :: ErrorHandle -> CPackage -> IO SymTab
+mkSymTabWithWarnings = mkSymTab' True
+
+mkSymTab' :: Bool -> ErrorHandle -> CPackage -> IO SymTab
+mkSymTab' warn errh (CPackage mi _ imps impsigs _ ds _) =
     let
         mmi = Just mi
 
@@ -173,6 +183,54 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             | Cinstance (CQType _ t) _ <- ds
             , let c = fromJustOrErr "mkSymTab: leftCon" (leftCon t) ]
 
+        -- Warn when an instance of a coherent class leaves a
+        -- fundep-determined position underdetermined: a variable in a
+        -- determined position of the instance head that is not a
+        -- function of the input positions -- directly or through the
+        -- closure of the instance's proviso fundeps (numeric classes
+        -- included) -- means the same inputs can match with many
+        -- different results, so nothing premised on the dependency
+        -- can rely on that instance.
+        -- `incoherent' classes have declared exactly that and are
+        -- exempt.
+        covWarns =
+            [ (getPosition t,
+               WFunDepCoverage (pfpString t) (pfpString c)
+                               (map pfpString uncovered))
+            | Cinstance (CQType provisos t) _ <- ds
+            , Just c <- [leftCon t]
+            , Just cls <- [findSClass symT (CTypeclass c)]
+            , allowIncoherent cls /= Just True
+            , not (null (funDeps cls))
+            , let args = tyConArgs t
+            , row <- funDeps cls
+            , length row == length args
+            , let sideVars det = S.fromList $
+                      concat [ tv a | (a, d) <- zip args row, d == det ]
+                  inp_vs = sideVars False
+                  det_vs = sideVars True
+                  predAdds acc (CPred (CTypeclass pc) pts) =
+                      case findSClass symT (CTypeclass pc) of
+                        Just pcls
+                          | not (null (funDeps pcls))
+                          , all ((== length pts) . length) (funDeps pcls)
+                          -> foldl (rowAdd pts) acc (funDeps pcls)
+                        _ -> acc
+                  rowAdd pts acc prow =
+                      let p_in = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, not d ]
+                          p_out = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, d ]
+                      in  if p_in `S.isSubsetOf` acc
+                            then acc `S.union` p_out
+                            else acc
+                  closure vs =
+                      let vs' = foldl predAdds vs provisos
+                      in  if vs' == vs then vs else closure vs'
+                  uncovered = S.toList (det_vs `S.difference` closure inp_vs)
+            , not (null uncovered)
+            ]
+
         allClsErrs = instHeadCheck `seq` (impClsErrs ++ clsErrs)
 
         -- finally, add constructors, fields, and variables
@@ -205,7 +263,8 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             bsError errh fundepErrs
         else if not (null allClsErrs) then
             bsError errh allClsErrs
-        else
+        else do
+            when (warn && not (null covWarns)) $ bsWarning errh covWarns
             -- report the kind inference error safely
             case miks of
                 Left msg -> bsError errh [msg]
@@ -304,8 +363,15 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 ts1 ts2
-        mu2 = mgu vs2 ts2 ts1
+        -- Overlap is a modal question (could any type satisfy both
+        -- heads?), answered by unifying fully and then attributing
+        -- direction by inspecting whose variables the substitution
+        -- had to bind (okSubst).  mguModal keeps each head's own
+        -- variables substitutable -- the strict mgu would refuse the
+        -- binding outright and orthogonal overlaps (each head concrete
+        -- in a different position) would look disjoint.
+        mu1 = mguModal vs1 ts1 ts2
+        mu2 = mguModal vs2 ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)

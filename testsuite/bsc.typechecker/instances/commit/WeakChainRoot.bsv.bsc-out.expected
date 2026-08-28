@@ -1,0 +1,8 @@
+checking package dependencies
+compiling WeakChainRoot.bsv
+Error: "WeakChainRoot.bsv", line 19, column 10: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    WeakChainRoot::L1#(a)
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    WeakChainRoot::L2#(a)

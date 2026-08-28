@@ -1,0 +1,5 @@
+package BoundToBound() where
+
+-- bound var vs bound var: varUnify refuses -> error at expression
+f :: a -> b
+f x = x
