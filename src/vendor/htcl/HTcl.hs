@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, ForeignFunctionInterface, CApiFFI #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
-{-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches -Werror #-}
+{-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches -Werror -Wno-partial-fields #-}
 
 -- User level Haskell interface for TCL
 -- Users of this module should not need to understand the tcl
@@ -289,8 +289,9 @@ instance TclObjCvt Double where
 -- instance for String
 instance {-# OVERLAPPING #-} TclObjCvt String where
     -- XXX ?? toTclObj "" = withCStringLen "{}" (\(cs,l) -> tcl_NewStringObj cs l) >>= wrapPtrForExport
-    toTclObj s = do
-      withCStringLen s (\(cs,l) -> tcl_NewStringObj cs (castI l)) >>= wrapPtrForExport
+    toTclObj str = do
+        withCString str $ \cstr -> do
+            tcl_NewStringObj cstr (-1) >>= wrapPtrForExport
 
 -- instance for UTCTime
 instance TclObjCvt UTCTime where
@@ -496,19 +497,19 @@ data HTclArgType = StringArg | IntArg | PtrArg | DoubleArg | BoolArg
   deriving (Eq,Show)
 
 -- A grammar describes allowed sequences of keywords and arguments
-data HTclCmdElem = Keyword { literal      :: String
-                           , kw_desc      :: String
-                           , kw_long_desc :: String
-                           }
-                 | Argument { arg_name :: String
-                            , arg_type :: HTclArgType
-                            , arg_desc :: String
-                            }
-                 | Command { literal       :: String
-                           , cmd_desc      :: String
-                           , cmd_long_desc :: String
-                           , cmd_namespace :: String
-                           }
+data HTclCmdElem = HTclKeyword { literal      :: String
+                              , kw_desc      :: String
+                              , kw_long_desc :: String
+                              }
+                | HTclArgument { arg_name :: String
+                              , arg_type :: HTclArgType
+                              , arg_desc :: String
+                              }
+                | HTclCommand { literal       :: String
+                             , cmd_desc      :: String
+                             , cmd_long_desc :: String
+                             , cmd_namespace :: String
+                             }
   deriving (Eq,Show)
 
 -- A command grammar follows standard practice for sequencing,
@@ -524,13 +525,13 @@ data HTclCmdGrammar = Exactly HTclCmdElem
 -- combinators for more succinct grammar expressions
 
 kw :: String -> String -> String -> HTclCmdGrammar
-kw s sd ld = Exactly (Keyword s sd ld)
+kw s sd ld = Exactly (HTclKeyword s sd ld)
 
 tclcmd :: String -> String -> String -> String -> HTclCmdGrammar
-tclcmd s ns sd ld = Exactly (Command s sd ld ns)
+tclcmd s ns sd ld = Exactly (HTclCommand s sd ld ns)
 
 arg :: String -> HTclArgType -> String -> HTclCmdGrammar
-arg n t d = Exactly (Argument n t d)
+arg n t d = Exactly (HTclArgument n t d)
 
 (.+.) :: HTclCmdGrammar -> HTclCmdGrammar -> HTclCmdGrammar
 (.+.) = Sequence
@@ -551,9 +552,9 @@ atLeast n g = g .+. (atLeast (n-1) g)
 
 -- Get a string describing a command element
 cmdElemString :: HTclCmdElem -> String
-cmdElemString (Keyword s _ _) = s
-cmdElemString (Command s _ _ ns) = s
-cmdElemString (Argument s _ _) = "<" ++ s ++ ">"
+cmdElemString (HTclKeyword s _ _) = s
+cmdElemString (HTclArgument s _ _) = "<" ++ s ++ ">"
+cmdElemString (HTclCommand s _ _ _) = s
 
 -- Find the first element admitted by a grammar.  For a normal command,
 -- this will be a unique keyword.
@@ -650,19 +651,19 @@ htclMatchGrammar interp objs cmd_grammar = worker ([], objs, cmd_grammar)
               return (matched, [], g)
           worker (matched, ws, None) =
               return (matched, ws, None)
-          worker x@(matched, (w:rest), (Exactly el@(Keyword s' _ _))) = do
+          worker x@(matched, (w:rest), (Exactly el@(HTclKeyword s' _ _))) = do
               str <- htclObjToMString interp w
               case str of
                 (Just s) -> if (s == s')
                             then return ((s,el):matched, rest, None)
                             else return x
                 Nothing  -> return x
-          worker x@(matched, (w:rest), (Exactly el@(Command s' _ _ _))) = do
+          worker x@(matched, (w:rest), (Exactly el@(HTclCommand s' _ _ _))) = do
               str <- htclObjToMString interp w
               case str of
                 (Just s) -> return ((s,el):matched, rest, None)
                 Nothing  -> return x
-          worker x@(matched, (w:rest), (Exactly el@(Argument _ ty _))) = do
+          worker x@(matched, (w:rest), (Exactly el@(HTclArgument _ ty _))) = do
               str <- matchArgType interp w ty
               case str of
                 (Just s) -> return ((s,el):matched, rest, None)
@@ -707,10 +708,10 @@ htclCanMatchNull (OneOrMore g) = htclCanMatchNull g
 
 -- Provide a short description for a command grammar
 htclGrammarShortDesc :: HTclCmdGrammar -> String
-htclGrammarShortDesc g = case (htclFirstCmdElem g) of
-                           Just (Keyword _ s _)   -> s
-                           Just (Command _ s _ _) -> s
-                           Just (Argument _ _ s)  -> s
+htclGrammarShortDesc g = case htclFirstCmdElem g of
+                           Just (HTclKeyword _ s _)   -> s
+                           Just (HTclCommand _ s _ _) -> s
+                           Just (HTclArgument _ _ s)  -> s
                            Nothing                -> ""
 
 -- Add grammar checks to a Haskell function for a TCL command.
@@ -779,9 +780,9 @@ htclCmdName cmd = case (htclFirstCmdElem (grammar cmd)) of
                     Nothing  -> ""
 
 htclCmdNameNamespace :: HTclCmdDesc -> String
-htclCmdNameNamespace cmd = case (htclFirstCmdElem (grammar cmd)) of
-                    (Just (Command s _ _ ns)) -> if null ns then s else (ns ++ "::" ++ s)
-                    _ -> error "Tcl Command grammar did not begin with a Command."
+htclCmdNameNamespace cmd = case htclFirstCmdElem (grammar cmd) of
+                     (Just (HTclCommand s _ _ ns)) -> if null ns then s else ns ++ "::" ++ s
+                     _ -> error "Tcl Command grammar did not begin with a Command."
 
 
 -- Register commands with a TCL interpreter

@@ -13,3 +13,7 @@ build
 
 .vagrant/
 vagrant-out/
+bsc.log
+bsc.sum
+dist-newstyle/
+
