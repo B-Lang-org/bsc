@@ -3,6 +3,7 @@ bsc -print-flags -vsearch foo -steps 12345678 -i BLUESPECDIR
 
 Flags:
     -aggressive-conditions
+    -dump-formats   vcd
     -i BLUESPECDIR
     -lift
     -o a.out

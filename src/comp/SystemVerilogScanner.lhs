@@ -195,7 +195,7 @@ without a leading $ as a task id
 Fast lookup table of keywords
 
 > svKeywords :: M.Map String SV_Keyword
-> svKeywords = M.fromList [(name, kw) | (kw, name, _) <- svKeywordTable]
+> svKeywords = M.fromList [(name, kw) | (kw, name, _) <- svParserKeywordTable]
 
 Fast lookup table of operators
 

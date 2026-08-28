@@ -194,14 +194,34 @@ fi
 # path to Verilog files
 VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
 
+# -dump-formats handling.  iverilog emits VCD natively and FST via the vvp
+# "-fst" runtime flag, so vcd/fst need nothing at build time; fsdb is not an
+# iverilog format.  With "none", define BSC_NO_DUMP so the main.v dump trigger
+# is compiled out (a +bscvcd/+bscfst request then errors instead of dumping).
+DUMP_DEFS=""
+if [ -n "$BSC_VSIM_TRACE_FORMATS" ]; then
+    want_dump=no
+    OLDIFS=$IFS; IFS=','
+    for fmt in $BSC_VSIM_TRACE_FORMATS; do
+        case "$fmt" in
+            none) ;;
+            vcd|fst) want_dump=yes ;;
+            *) echo "ERROR: iverilog does not support waveform dump format '$fmt' (supported: vcd, fst)" >&2
+               IFS=$OLDIFS; exit 1 ;;
+        esac
+    done
+    IFS=$OLDIFS
+    if [ "$want_dump" = no ]; then DUMP_DEFS="-DBSC_NO_DUMP"; fi
+fi
+
 # compile Verilog files
 if [ "$VERBOSE" = "yes" ]; then
   IV_VERBOSE="-v"
-  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+  echo "exec: iverilog -v -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS $DUMP_DEFS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
 else
   IV_VERBOSE=""
 fi
-iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+iverilog $IV_VERBOSE -o $BSC_SIM_EXECUTABLE -Wall $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS $DUMP_DEFS -DTOP=$BSC_TOPLEVEL_MODULE $VPI_LIBPATH $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
 status=$?
 if [ "$status" != "0" ]; then
   echo "ERROR: cannot compile Verilog files" >&2

@@ -34,7 +34,7 @@ import qualified Data.ByteString as B
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260712-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260715-1"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
@@ -550,7 +550,7 @@ instance Bin Flags where
     writeBytes (Flags
                 a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
                 a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
-                a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
+                a_020 a_021 a_dumpFormats a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
                 a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
                 a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
                 a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
@@ -576,7 +576,7 @@ instance Bin Flags where
         {-# NOINLINE wr_chunk1 #-}
         wr_chunk1 =
           do toBin a_015; toBin a_016; toBin a_017; toBin a_018; toBin a_019;
-             toBin a_020; toBin a_021; toBin a_022; toBin a_023; toBin a_024;
+             toBin a_020; toBin a_021; toBin a_dumpFormats; toBin a_022; toBin a_023; toBin a_024;
              toBin a_025; toBin a_026; toBin a_027; toBin a_028; toBin a_029
         {-# NOINLINE wr_chunk2 #-}
         wr_chunk2 =
@@ -616,7 +616,7 @@ instance Bin Flags where
     readBytes =
        do (a_000, a_001, a_002, a_003, a_004, a_005, a_006, a_007,
            a_008, a_009, a_010, a_011, a_012, a_013, a_014) <- rd_chunk0
-          (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_022,
+          (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_dumpFormats, a_022,
            a_023, a_024, a_025, a_026, a_027, a_028, a_029) <- rd_chunk1
           (a_030, a_031, a_032, a_033, a_034, a_035, a_036, a_037,
            a_038, a_039, a_040, a_041, a_042, a_043, a_044) <- rd_chunk2
@@ -635,7 +635,7 @@ instance Bin Flags where
           return (Flags
                 a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
                 a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
-                a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
+                a_020 a_021 a_dumpFormats a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
                 a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
                 a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
                 a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
@@ -658,9 +658,9 @@ instance Bin Flags where
         {-# NOINLINE rd_chunk1 #-}
         rd_chunk1 =
           do a_015 <- fromBin; a_016 <- fromBin; a_017 <- fromBin; a_018 <- fromBin; a_019 <- fromBin;
-             a_020 <- fromBin; a_021 <- fromBin; a_022 <- fromBin; a_023 <- fromBin; a_024 <- fromBin;
+             a_020 <- fromBin; a_021 <- fromBin; a_dumpFormats <- fromBin; a_022 <- fromBin; a_023 <- fromBin; a_024 <- fromBin;
              a_025 <- fromBin; a_026 <- fromBin; a_027 <- fromBin; a_028 <- fromBin; a_029 <- fromBin
-             return (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_022,
+             return (a_015, a_016, a_017, a_018, a_019, a_020, a_021, a_dumpFormats, a_022,
                      a_023, a_024, a_025, a_026, a_027, a_028, a_029)
         {-# NOINLINE rd_chunk2 #-}
         rd_chunk2 =
@@ -725,10 +725,11 @@ instance Bin VModule where
                    body <-fromBin; return (VModule name c ports body)
 
 instance Bin VDPI where
-    writeBytes (VDPI name ret args) =
-        do toBin name; toBin ret; toBin args
-    readBytes = do name <- fromBin; ret <- fromBin; args <- fromBin;
-                   return (VDPI name ret args)
+    writeBytes (VDPI name mclink cfn ret args) =
+        do toBin name; toBin mclink; toBin cfn; toBin ret; toBin args
+    readBytes = do name <- fromBin; mclink <- fromBin; cfn <- fromBin;
+                   ret <- fromBin; args <- fromBin;
+                   return (VDPI name mclink cfn ret args)
 
 instance Bin VDPIType where
     writeBytes (VDT_void)    = do putI 0
@@ -759,7 +760,7 @@ instance Bin VArg where
     writeBytes (VAInput i r)       = do putI 0; toBin i; toBin r
     writeBytes (VAInout i i' r)    = do putI 1; toBin i; toBin i'; toBin r
     writeBytes (VAOutput i r)      = do putI 2; toBin i; toBin r
-    writeBytes (VAParameter i r d) = do putI 3; toBin i; toBin r; toBin d
+    writeBytes (VAParameter i r d b) = do putI 3; toBin i; toBin r; toBin d; toBin b
     readBytes = do
       i <- getI
       case i of
@@ -767,8 +768,8 @@ instance Bin VArg where
         1 -> do i <- fromBin; i' <- fromBin; r <- fromBin;
                 return (VAInout i i' r)
         2 -> do i <- fromBin; r <- fromBin; return (VAOutput i r)
-        3 -> do i <- fromBin; r <- fromBin; d <- fromBin;
-                return (VAParameter i r d)
+        3 -> do i <- fromBin; r <- fromBin; d <- fromBin; b <- fromBin;
+                return (VAParameter i r d b)
         n -> internalError $ "GenABin(VArg).readBytes: " ++ show n
 
 instance Bin VExpr where
@@ -835,6 +836,7 @@ instance Bin VMItem where
                                          toBin m
     writeBytes (VMGroup a body)     = do putI 6; toBin a; toBin body
     writeBytes (VMFunction f)       = do putI 7; toBin f
+    writeBytes (VMDPI dpi)          = do putI 8; toBin dpi
     readBytes = do
       i <- getI
       case i of
@@ -848,6 +850,7 @@ instance Bin VMItem where
                 return (VMRegGroup i s c m)
         6 -> do a <- fromBin; body <- fromBin; return (VMGroup a body)
         7 -> do f <- fromBin; return (VMFunction f)
+        8 -> do dpi <- fromBin; return (VMDPI dpi)
         n -> internalError $ "GenABin(VMItem).readBytes: " ++ show n
 
 instance Bin VVDecl where

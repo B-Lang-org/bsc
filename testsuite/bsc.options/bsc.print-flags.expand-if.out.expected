@@ -5,6 +5,7 @@ bsc -i BLUESPECDIR -print-flags -expand-if
 
 Flags:
     -aggressive-conditions
+    -dump-formats   vcd
     -i BLUESPECDIR
     -lift
     -o a.out
