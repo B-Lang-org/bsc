@@ -15,3 +15,14 @@ test_c_veri_bs_modules_options IncoherentOrder {} {-legacy-inst-index} sysIncohe
 # Also tests incoherence under (Bits a na, Bits b nb): catch-all committed (→ 1).
 test_c_veri IncoherentTwoLevel sysIncoherentTwoLevel.out.expected
 test_c_veri_bs_modules_options IncoherentTwoLevel {} {-legacy-inst-index} sysIncoherentTwoLevel.out.expected
+
+# The BSV coherence annotation: a soft keyword between "typeclass" and the
+# class name, mirroring Classic's "class incoherent"/"class coherent".
+# The incoherent-annotated class retains relational semantics: direct calls
+# get the specific instances (3, 2); through a (Bits a na, Bits b nb)
+# helper the catch-all is committed (1), with no incoherent-match warning.
+test_c_veri_bsv IncoherentKeywordBSV sysIncoherentKeywordBSV.out.expected
+# The coherent annotation pins strict semantics even when the global flag
+# would allow the under-determined match.
+compile_fail_error CoherentKeywordBSV.bsv T0030
+compile_fail_error CoherentKeywordBSV.bsv T0030 1 "-incoherent-instance-matches"

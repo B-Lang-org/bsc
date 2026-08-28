@@ -28,11 +28,9 @@ Error: "GenericNegativeTests.bs", line 26, column 10: (T0020)
   Inferred type:
     GenericNegativeTests.TypeEq a__ a__
 
-Error: "GenericNegativeTests.bs", line 62, column 0: (T0032)
+Error: "GenericNegativeTests.bs", line 63, column 9: (T0032)
   This expression requires the following context which could not be resolved:
     GenericNegativeTests.Trans GenericNegativeTests.Bar
-  The context was implied by expressions at the following positions:
-    "GenericNegativeTests.bs", line 63, column 9
   An instance for this context exists, but it depends on the following context
   for which there is no instance:
     GenericNegativeTests.Trans' (Prelude.ConcPoly GenericNegativeTests.Bar_x)
