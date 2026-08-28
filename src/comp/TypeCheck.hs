@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module TypeCheck(cTypeCheck,
                  cCtxReduceDef, cCtxReduceIO,
                  topExpr,

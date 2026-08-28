@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, ForeignFunctionInterface, CPP #-}
-{-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches -fno-warn-incomplete-record-updates #-}
 
 -- Blue Tcl Shell
 {-
