@@ -73,5 +73,10 @@ compile_verilog_fail NoInline_PredNotReducible.bsv T0110
 compile_verilog_pass NoInline_PredReducible.bsv
 
 compile_verilog_fail NoInline_Polymorphic.bsv T0111
+
+# A foreign function bound to a module must use a bare type variable or
+# a literal for every bit width (widths become instance parameters named
+# by the type variables; a type-function width has no name to pass)
+compile_verilog_fail BadForeignWidth.bs T0159
 }
 

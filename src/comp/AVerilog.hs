@@ -1641,7 +1641,7 @@ ubInst :: [VId] -> VId -> VMItem
 ubInst ids mod = VMInst
                  { vi_module_name  = mod,
                    vi_inst_name    = pref verilogInstancePrefix mod,
-                   vi_inst_params  = Right [],
+                   vi_inst_params  = [],
                    vi_inst_ports   = [(i, Just (VEVar i)) | i <- ids]
                  }
 

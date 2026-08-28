@@ -78,7 +78,6 @@ Compiler flags:
 -unspecified-to val     remaining unspecified values are set to: 'X', '0', '1', 'Z', or 'A'
 -use-dpi                use DPI instead of VPI in generated Verilog
 -v                      same as -verbose
--v95                    generate strict Verilog 95 code
 -vdir dir               output directory for .v files
 -verbose                be more talkative
 -verilog                compile BSV generating Verilog file
