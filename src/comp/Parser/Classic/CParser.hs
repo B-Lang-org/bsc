@@ -194,19 +194,25 @@ pParen :: CParser a -> CParser a
 pParen p = lp ..+ p +.. rp
 
 pStmt :: CParser CStmt
-pStmt = (pHVarId `into` \ i ->
-        dc ..+ (pQType `into` \ t ->
-                sm ..+ (piHEq i `into` \ j ->
-                            l L_larrow ..+ pExpr  >>- CSBindT (kCPVar j) Nothing [] t)
-            ||! l L_larrow ..+ pExpr              >>- CSBindT (kCPVar i) Nothing [] t)
-            ||!  l L_larrow ..+ pExpr             >>- CSBind  (kCPVar i) Nothing [])
---        ||! pPat +.+ dc ..+ pQType +.+ l L_larrow ..+ pExpr    >>>> CSBindT
-        ||! (pPat `into` \ p ->
-                        dc ..+ pQType +.+ l L_larrow ..+ pExpr   >>> CSBindT p Nothing []
-                    ||! l L_larrow ..+ pExpr      >>- CSBind p Nothing [])
+pStmt = pBindStmt []
+        ||! (many1 (pDocPragma +.. sm) `into` pBindStmt)
         ||! blockKwOf L_let pDeflM                >>- CSletrec
         ||! blockKwOf L_letseq pDeflM             >>- CSletseq
         ||! pExpr                                 >>- CSExpr Nothing
+
+-- binding statements, with any preceding doc pragmas attached
+-- as instantiation pragmas
+pBindStmt :: [(Position, PProp)] -> CParser CStmt
+pBindStmt pps = (pHVarId `into` \ i ->
+        dc ..+ (pQType `into` \ t ->
+                sm ..+ (piHEq i `into` \ j ->
+                            l L_larrow ..+ pExpr  >>- CSBindT (kCPVar j) Nothing pps t)
+            ||! l L_larrow ..+ pExpr              >>- CSBindT (kCPVar i) Nothing pps t)
+            ||!  l L_larrow ..+ pExpr             >>- CSBind  (kCPVar i) Nothing pps)
+--        ||! pPat +.+ dc ..+ pQType +.+ l L_larrow ..+ pExpr    >>>> CSBindT
+        ||! (pPat `into` \ p ->
+                        dc ..+ pQType +.+ l L_larrow ..+ pExpr   >>> CSBindT p Nothing pps
+                    ||! l L_larrow ..+ pExpr      >>- CSBind p Nothing pps)
 
 kCPVar :: Id -> CPat
 kCPVar i = (CPVar (setKeepId i))
@@ -647,6 +653,7 @@ pPragma = l L_lpragma ..+ pPragma'  +.. l L_rpragma
             ||! l L_verilog .> PPverilog
             ||! l L_synthesize .> PPverilog
             ||! literal (mkFString "deprecate") ..+ eq ..+ varString >>- PPdeprecate
+            ||! literal (mkFString "doc") ..+ eq ..+ pString >>- PPdoc
             ||! pVeriGenProps
         properties = literal (mkFString "properties")
         varString = varcon >>- getIdString
@@ -1014,3 +1021,8 @@ pHidePragma = l L_lpragma ..+ hide +.. l L_rpragma
 
 pHideAllPragma :: CParser ()
 pHideAllPragma = l L_lpragma ..+ hideAll +.. l L_rpragma
+
+pDocPragma :: CParser (Position, PProp)
+pDocPragma = l L_lpragma `into` \ pos ->
+             literal (mkFString "doc") ..+ eq ..+ pString +.. l L_rpragma
+                 >>- \ s -> (pos, PPdoc s)

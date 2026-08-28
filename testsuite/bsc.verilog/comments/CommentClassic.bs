@@ -1,0 +1,33 @@
+package CommentClassic where
+
+-- Test the Classic (BH) surface syntax for "doc" comments:
+-- on the module, via the properties pragma, and on bindings
+-- in a module body
+
+import FIFO
+
+{-# properties mkCommentClassic = { verilog,
+                                    doc = "foo\nbar",
+                                    doc = "quux" } #-}
+mkCommentClassic :: Module Empty
+mkCommentClassic =
+  module
+    {-# doc = "This is a register" #-}
+    the_r :: Reg Bool <- mkRegU
+
+    -- with separate declaration and binding
+    {-# doc = "This is also a register" #-}
+    r2 :: Reg Bool
+    r2 <- mkRegU
+
+    -- multiple pragmas accumulate, "\n" in a string starts a new line
+    {-# doc = "This is a FIFO" #-}
+    {-# doc = "Foo\nBar" #-}
+    f1 :: FIFO Bool <- mkFIFO
+
+    rules
+      "flip": when True ==>
+        action
+          the_r := not the_r
+          r2 := not r2
+          f1.enq the_r
