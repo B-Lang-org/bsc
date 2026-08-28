@@ -36,7 +36,7 @@ import ParseOp
 import PFPrint
 import Util(headOrErr, fromJustOrErr, joinByFst, quote, fst3)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
-                    mkAName, mkVName, mkVPICName,
+                    mkAName, mkVName, mkVPICName, mkDPICName,
                     mkNameWithoutSuffix,
                     mkSoName, mkObjName, mkMakeName,
                     bscSrcSuffix, binSuffix,
@@ -131,7 +131,7 @@ import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
-                        mkImportDeclarations)
+                        mkImportDeclarations, isPoly)
 import VPIWrappers(genVPIWrappers, genVPIRegistrationArray)
 import DPIWrappers(genDPIWrappers)
 import SimCCBlock
@@ -442,10 +442,12 @@ compilePackage
     start flags DFgenVPI
     blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
+    -- Note: with DPI, wrapper generation happens later (in genModuleVerilog),
+    -- once the concrete widths of polymorphic imports are known; see there.
     vpi_wrappers <- if (backend flags /= Just Verilog)
                     then return []
                     else if (useDPI flags)
-                         then genDPIWrappers errh flags prefix blurb ffuncs
+                         then return []
                          else genVPIWrappers errh flags prefix blurb ffuncs
     t <- dump errh flags t DFgenVPI dumpnames vpi_wrappers
 
@@ -1194,6 +1196,16 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
                    then (removeDollarsFromVerilog vprog0)
                    else vprog0
        t <- dump errh flags t DFverilogDollar dumpnames vprog
+
+       -- Generate DPI wrapper C files for any polymorphic imports.  This is
+       -- done here (not in the early foreign-function pass) because the set of
+       -- concrete widths, and hence the monomorphized wrappers, is only known
+       -- from the generated Verilog's DPI import declarations.
+       when (useDPI flags) $ do
+           let VProgram _ vdpis _ = vprog
+           ff_blurb <- mkGenFileHeader flags
+           _ <- genDPIWrappers errh flags prefix ff_blurb vdpis
+           return ()
 
        -- Write the Verilog files
        start flags DFwriteVerilog
@@ -2109,7 +2121,30 @@ vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
       t <- timestampStr flags "compile user-provided C files" t
 
       (t, ofiles3) <-
-        if (useDPI flags) then return (t, [])
+        if (useDPI flags)
+        then do
+          -- Polymorphic imports have a generated DPI wrapper file
+          -- ("dpi_wrapper_<name>.c") which must be linked.  We do NOT
+          -- pre-compile it here: it includes svdpi.h, which lives in the
+          -- simulator's (Verilator's) include path, so we hand the source
+          -- file to the link step and let Verilator compile it.
+          let isPolyFFunc ff = isPoly (ff_ret ff) || any isPoly (ff_args ff)
+              poly_ffuncs = filter isPolyFFunc ffuncs
+          if (null poly_ffuncs)
+            then return (t, [])
+            else do
+              let findDPIWrapperFile ffunc = do
+                    let ffunc_name = getIdString (ff_name ffunc)
+                        dpiwrapper_filename = mkDPICName Nothing "" ffunc_name
+                    mfile <- readFilePath errh noPosition False
+                                          dpiwrapper_filename (vPath flags)
+                    case mfile of
+                      Nothing -> bsError errh [(noPosition,
+                                    EMissingVPIWrapperFile dpiwrapper_filename False)]
+                      Just (_, filename) -> return filename
+              dpiwrapper_filenames <- mapM findDPIWrapperFile poly_ffuncs
+              t <- timestampStr flags "locate DPI wrapper files" t
+              return (t, dpiwrapper_filenames)
         else do
           -- compile all necessary vpi wrapper files
 
