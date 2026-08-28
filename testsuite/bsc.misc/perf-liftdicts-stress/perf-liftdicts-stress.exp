@@ -1,0 +1,111 @@
+# Stress/regression test for dictionary lifting and cross-package
+# deduplication (LiftDicts / FixupDefs) at scale.  It catches three
+# failure classes in one bounded configuration:
+#
+#   - lost sharing: the exact -trace-lift-dicts add/hit counts below
+#     drift (a dictionary that should be pooled is re-added, or a
+#     reference that should hit the pool misses);
+#   - unsound merging: structurally DIFFERENT evidence gets
+#     deduplicated, which silently changes which instance a call
+#     sees -- sysCheck's per-rung outputs stop being distinct;
+#   - catastrophic superlinearity: the compile blows the suite's
+#     normal time budget (each package here compiles in seconds).
+#
+# The sources were generated ONCE by the lifting stress generator
+# (gen_stress.py TRIP: K=8 ladder x NK=200 payload types, R=2000
+# references over NR=50 leaf dicts, D2 mirror fan=200) and are checked
+# in; they are deterministic, so the counts below are exact.  Package
+# shapes:
+#
+#   TBase     all typeclasses and types: 200 payload structs
+#             X_i#(a0..a7), 50 leaf structs W_i with monomorphic B_
+#             instances, 200 chain leaves Y_i, and the generic
+#             instances S_#(t) provisos (B_#(t)),
+#             TDK#(t) provisos (TK#(t)),
+#             CC#(Box#(t)) provisos (CC#(t)).
+#             Monomorphic/proviso-free instances are never lifted, so
+#             TBase itself adds 0 dictionaries.
+#   L0..L7    specificity ladder: rung j defines 200 orphan TK
+#             instances whose first j type parameters are concrete
+#             (overlapping heads of increasing specificity -- hence
+#             the suppressed T0127 orphan warnings) and forces TK/TDK
+#             at the fully-concrete type.  Every rung stays
+#             polymorphic, so per rung: 200 TK + 200 TDK lifted dicts
+#             + 2 literal dicts for the 8'd{j} arithmetic = 402 adds;
+#             the other 199 instance bodies pool-hit those 2 literal
+#             dicts = 398 hits.  All 8 rungs produce the same dict
+#             TYPES with structurally different evidence: 8-deep pool
+#             buckets whose comparison recurses through the TDK
+#             dictionaries' referenced TK definitions.
+#   PkgRefs   forces S_#(W_i) for the 50 leaf types (50 adds), then
+#             2000 more references to S_#(W_0): per-reference pool
+#             hits (2000 hits).
+#   DA, DB    mirror packages forcing CC at Box#(Box#(Y_i)) for 200
+#             types: outer + mid dictionary per type, each referencing
+#             the next level down (400 adds each, no repeats).
+#   StressTop imports everything (cross-package fixup of ~4000
+#             imported lifted dicts; nothing of its own: 0/0).
+#   Check     top-side forcing plus a synthesized sysCheck: each
+#             ladder rung must print its OWN instance's value
+#             (k0..k7 = 100..107 -- any two equal means two
+#             structurally different dictionaries were merged), and
+#             the reference/chain probes are functional passthroughs
+#             (r=9 c=77 m=77).
+#
+# Count goldens verified against a live run of the structural-lifting
+# compiler; they are exact, not lower bounds.
+
+compile_pass TBase.bsv {-sim -trace-lift-dicts}
+find_n_strings [make_bsc_output_name TBase.bsv] {adding lifted dict} 0
+find_n_strings [make_bsc_output_name TBase.bsv] {dictPool hit} 0
+
+compile_pass L0.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L0.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L0.bsv] {dictPool hit} 398
+
+compile_pass L1.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L1.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L1.bsv] {dictPool hit} 398
+
+compile_pass L2.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L2.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L2.bsv] {dictPool hit} 398
+
+compile_pass L3.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L3.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L3.bsv] {dictPool hit} 398
+
+compile_pass L4.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L4.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L4.bsv] {dictPool hit} 398
+
+compile_pass L5.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L5.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L5.bsv] {dictPool hit} 398
+
+compile_pass L6.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L6.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L6.bsv] {dictPool hit} 398
+
+compile_pass L7.bsv {-sim -trace-lift-dicts -suppress-warnings T0127}
+find_n_strings [make_bsc_output_name L7.bsv] {adding lifted dict} 402
+find_n_strings [make_bsc_output_name L7.bsv] {dictPool hit} 398
+
+compile_pass PkgRefs.bsv {-sim -trace-lift-dicts}
+find_n_strings [make_bsc_output_name PkgRefs.bsv] {adding lifted dict} 50
+find_n_strings [make_bsc_output_name PkgRefs.bsv] {dictPool hit} 2000
+
+compile_pass DA.bsv {-sim -trace-lift-dicts}
+find_n_strings [make_bsc_output_name DA.bsv] {adding lifted dict} 400
+find_n_strings [make_bsc_output_name DA.bsv] {dictPool hit} 0
+
+compile_pass DB.bsv {-sim -trace-lift-dicts}
+find_n_strings [make_bsc_output_name DB.bsv] {adding lifted dict} 400
+find_n_strings [make_bsc_output_name DB.bsv] {dictPool hit} 0
+
+compile_pass StressTop.bsv {-sim -trace-lift-dicts}
+find_n_strings [make_bsc_output_name StressTop.bsv] {adding lifted dict} 0
+find_n_strings [make_bsc_output_name StressTop.bsv] {dictPool hit} 0
+
+# Compile, link and run the functional spot-check.
+test_c_only_bsv_modules_options Check {} {} sysCheck.out.expected

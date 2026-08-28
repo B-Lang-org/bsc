@@ -66,6 +66,7 @@ data Flags = Flags {
         kill :: Maybe (DumpFlag, Maybe String),
         ifLift :: Bool,
         letGen :: Bool,
+        liftDicts :: Bool,
         maxTIStackDepth :: Int,
         methodBVI :: Bool,
         methodConf :: Bool,
@@ -211,9 +212,11 @@ data DumpFlag
         | DFgenforeign
         | DFgenVPI
         | DFsimplified
+        | DFliftdicts
         | DFinternal
         | DFbinary
         | DFfixup
+        | DFisimpdicts
         | DFisimplify
         | DFwriteBin
 

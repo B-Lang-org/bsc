@@ -1,0 +1,25 @@
+package StressTop;
+import TBase::*;
+import PkgRefs::*;
+import DA::*;
+import DB::*;
+import L0::*;
+import L1::*;
+import L2::*;
+import L3::*;
+import L4::*;
+import L5::*;
+import L6::*;
+import L7::*;
+function Bit#(8) kprobe0(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l0_use0(x);
+function Bit#(8) kprobe1(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l1_use0(x);
+function Bit#(8) kprobe2(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l2_use0(x);
+function Bit#(8) kprobe3(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l3_use0(x);
+function Bit#(8) kprobe4(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l4_use0(x);
+function Bit#(8) kprobe5(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l5_use0(x);
+function Bit#(8) kprobe6(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l6_use0(x);
+function Bit#(8) kprobe7(X0#(Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool) x) = l7_use0(x);
+function Bit#(8) rprobe(W0 x) = ref0(x);
+function Bit#(8) aprobe(Box#(Box#(Y0)) x) = da0(x);
+function Bit#(8) bprobe(Box#(Box#(Y0)) x) = db0(x);
+endpackage

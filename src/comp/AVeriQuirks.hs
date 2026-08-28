@@ -16,7 +16,7 @@ import Control.Monad(when)
 import Control.Monad.State(State, evalState, gets, get, put)
 import qualified Data.Map as M
 import Prim
-import Pragma(defPropsHasNoCSE)
+import DefProp(defPropsHasNoCSE)
 import ASyntax
 import ASyntaxUtil
 import ForeignFunctions(isAVId, fromAVId)

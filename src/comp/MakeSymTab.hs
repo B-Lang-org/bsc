@@ -94,7 +94,7 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- impsigs,
                                           Cclass _ _ ik vs fds _ _ <- ids ] ++
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- impsigs,
-                                          CIclass _ _ ik vs fds _ _ <- ids ] ++
+                                          CIclass _ _ ik vs fds _ _ _ <- ids ] ++
                  [ (qualId mi (iKName ik), vs, fds) | Cclass _ _ ik vs fds _ _ <- ds ]
 
         -- XXX imported fundeps don't need to be checked
@@ -544,8 +544,11 @@ convInst _ _ _ d = d
 mkInstId :: Id -> CType -> Id
 mkInstId mi t =
 --    trace ("mkInstId " ++ ppReadable (mi,t, expandSyn t)) $
-    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t)))))
-  where flat (TVar (TyVar i _ _)) = [i]
+    addIdProp (mkQId pos qfs inst_fs) IdPDict
+  where pos = getPosition t
+        qfs = getIdFString mi
+        inst_fs = concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t))))
+        flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
         flat (TCon (TyStr s _)) = [mkStrId s]
@@ -738,10 +741,13 @@ mkTypeSyms errh mkQuals maybePackageName src_pkg iks defs qts s =
     let importedTypeInfos = concatMap (getTI errh maybePackageName src_pkg r iks) defs
         (cls, errss) =
             unzip $
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats ifs qts
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats ifs Nothing qts
                     | Cclass  incoh ps ik vs fds ats ifs <- defs ] ++
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats []  qts
-                    | CIclass incoh ps ik vs fds ats _   <- defs ]
+              -- The class's fields are hidden, but CIclass threads the
+              -- defining package's sort member list so tyConOf carries
+              -- the same TIstruct SClass payload as the defining compile.
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats [] (Just ms) qts
+                    | CIclass incoh ps ik vs fds ats ms _ <- defs ]
         r = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
     in  (r, concat errss)
 
@@ -778,12 +784,18 @@ getTI errh mi src_pkg _ iks (Cclass _ ps ik vs fds ats fs) =
 getTI _ mi src_pkg _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract src_pkg)]
   where i = qual mi (iKName ik)
-getTI _ mi src_pkg _ iks (CIclass _ ps ik vs _ ats _) =
+getTI _ mi src_pkg _ iks (CIclass _ _ ik vs _ ats ms _) =
     (i, TypeInfo (Just i) k vs ti src_pkg) : mkATFTIs mi src_pkg i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
         ks = getArgKinds k
-        ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
+        -- ms is the defining package's sort member list (field names ++
+        -- superclass ids), threaded through the signature so this
+        -- TypeInfo's sort matches the defining compile's exactly: the
+        -- class tycon's TIstruct SClass payload should be
+        -- package-independent, not rebuilt (impoverished) from the
+        -- superclass preds alone.
+        ti = TIstruct SClass ms
 getTI _ mi src_pkg _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract src_pkg)]
   where i = qual mi (iKName ik)
@@ -939,8 +951,11 @@ getCls :: ErrorHandle -> Maybe Id -> Maybe Id -> M.Map Id Kind -> SymTab ->
           -- class components
           Maybe Bool -> [CPred] -> IdK -> [Id] -> CFunDeps -> [CAssocDepFun] ->
           CFields ->
+          -- sort member list override: for CIclass (fields hidden), the
+          -- defining package's list threaded through the signature
+          Maybe [Id] ->
           QInsts -> (Class, [EMsg])
-getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
+getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs msort qts =
     let k = getK iks ik
         i = iKName ik
         ks = getNK (genericLength vs) k
@@ -987,8 +1002,10 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
             genInsts  = genInsts',
             getInsts  = getInsts',
             tyConOf = TyCon qi (Just k)
-                      (TIstruct SClass (map cf_name ifs ++
-                                        map (\ (CPred (CTypeclass i) _) -> i) ps)),
+                      (TIstruct SClass
+                           (fromMaybe (map cf_name ifs ++
+                                       map (\ (CPred (CTypeclass i) _) -> i) ps)
+                                      msort)),
             funDeps = bss,
             funDeps2 = bss2,
             inputPositions = pureInputPositions bss (length tvs),

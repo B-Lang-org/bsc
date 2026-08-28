@@ -1,0 +1,52 @@
+# Tests for the structural-evidence discipline of dictionary lifting
+# and cross-package deduplication (LiftDicts / FixupDefs).
+#
+# Packages with different visible instance sets (orphan instances) can
+# each coherently resolve the same predicate to different instances.
+# Dictionaries may be deduplicated across packages only when their
+# recorded evidence identities (the slot-normalized rendering, type
+# slots, and recursively verified kid slots -- see LiftDicts) are
+# verified equal -- never on type equality alone.
+# Each test runs the design and checks the selected methods' output;
+# the -trace-drop-dicts assertions additionally pin whether a
+# cross-package dedup did or did not happen at compile time.
+
+# T1: the counterexample.  TCMid's dictionary uses the general
+# instance; T1Top's uses its own more specific orphan instance.  Same
+# type, different evidence: no dedup, and each package's calls see
+# their own instance.  (An unsound type-keyed dedup makes topTag
+# silently return the general instance's value.)
+compile_verilog_pass TCBase.bsv
+compile_verilog_pass TCMid.bsv
+compile_verilog_pass_warning T1Top.bsv T0127 1 {} {-trace-drop-dicts}
+find_regexp_fail [make_bsc_vcomp_output_name T1Top.bsv] {dropDict:.*TCBase.TC}
+test_veri_only_bsv_modules_options T1Top {} {} sysT1Top.out.expected
+
+# T2: same evidence really is deduplicated.  T2Top resolves with the
+# same general evidence TCMid used, so its dictionary is dropped in
+# favor of TCMid's -- and the behavior is identical either way.
+compile_verilog_pass T2Top.bsv {} {-trace-drop-dicts}
+find_regexp [make_bsc_vcomp_output_name T2Top.bsv] {dropDict:.*TCBase.TC \(Prelude.Maybe Prelude.Bool\)}
+test_veri_only_bsv_modules_options T2Top {} {} sysT2Top.out.expected
+
+# T3: diamond.  TCMid (general evidence) and TCRight (specific orphan
+# evidence) disagree; T3Top sees the specific instance and references
+# TCRight's (monomorphic, nullary) instance dictionary DIRECTLY -- no
+# local TC dictionary is even created, so no TC drop may appear, and
+# TCMid's dictionary stays intact.
+compile_verilog_pass_warning TCRight.bsv T0127
+compile_verilog_pass T3Top.bsv {} {-trace-drop-dicts}
+find_regexp_fail [make_bsc_vcomp_output_name T3Top.bsv] {dropDict:.*TCBase.TC}
+test_veri_only_bsv_modules_options T3Top {} {} sysT3Top.out.expected
+
+# T4: divergence one level down.  The outer TD instance is identical
+# in TDMid and T4Top; only the embedded TC sub-evidence differs.  A
+# root-only comparison would wrongly dedup these; the verification
+# recurses through the referenced lifted dictionaries (the kid slots
+# of the recorded evidence identity) and must keep both.
+compile_verilog_pass TDBase.bsv
+compile_verilog_pass TDMid.bsv
+compile_verilog_pass_warning T4Top.bsv T0127 1 {} {-trace-drop-dicts}
+find_regexp_fail [make_bsc_vcomp_output_name T4Top.bsv] {dropDict:.*TCBase.TC}
+find_regexp_fail [make_bsc_vcomp_output_name T4Top.bsv] {dropDict:.*TDBase.TD}
+test_veri_only_bsv_modules_options T4Top {} {} sysT4Top.out.expected

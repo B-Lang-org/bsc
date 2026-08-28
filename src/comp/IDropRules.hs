@@ -11,6 +11,7 @@ import Position
 import Id
 import Flags(Flags, removeFalseRules, removeEmptyRules, warnUndetPred)
 import Pragma
+import DefProp
 import Error(internalError, ErrMsg(..), ErrorHandle, bsWarning)
 import ISyntax
 import Prim

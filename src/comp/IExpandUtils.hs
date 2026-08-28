@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ImplicitParams #-}
 module IExpandUtils(
@@ -77,7 +77,6 @@ import Debug.Trace(traceM)
 import qualified Data.Array as Array
 import qualified Data.Map as M
 import qualified Data.Set as S
-import qualified Data.Generics as Generic
 
 import Eval
 import PPrint
@@ -273,7 +272,7 @@ pTermToIExpr (PSel idx idx_sz es) =
 
 -- An expression with an implicit condition.
 data PExpr = P !HPred HExpr
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show)
 
 instance PPrint PExpr where
     pPrint d prec (P p e) = pPrint d prec (iePrimWhen (iGetType e) (predToIExpr p) e)
@@ -413,7 +412,7 @@ data HeapCell = HUnev { hc_hexpr :: HExpr, hc_name :: NameInfo }
               | HNF { hc_pexpr :: PExpr, hc_wire_set :: HWireSet,
                       hc_name :: NameInfo }
               | HLoop { hc_name :: NameInfo }
-        deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
+        deriving (Show, Eq, Ord)
 
 -- should I drop the predicate for better printing of error messages?
 heapCellToHExpr :: HeapCell -> HExpr
@@ -442,7 +441,6 @@ instance PPrint HeapCell where
             text "HLoop" <+> pPrint d 0 name
 
 newtype HeapData = HeapData (IORef (HeapCell))
-  deriving (Generic.Data, Generic.Typeable)
 
 {-
 instance Eq HeapData where
@@ -2602,7 +2600,7 @@ fullTypeNormalizer flags symt cache t@(ITAp _ _)
                ((ITCon _ _ (TIatf {})), _) -> internalError $
                     "fullTypeNormalizer - unsimplified: " ++ ppReadable (t,t')
                _ -> t'
-fullTypeNormalizer flags symt cache (ITAp f a) = changed2 normITAp f a f' a'
+fullTypeNormalizer flags symt cache (ITAp f a) = changed2 ITAp f a f' a'
   where f' = fullTypeNormalizer flags symt cache f
         a' = fullTypeNormalizer flags symt cache a
 
@@ -2906,23 +2904,22 @@ inferName expr@(ICon inst_name (ICStateVar {})) = return (Just inst_name)
 inferName _ = return Nothing
 
 unCacheableType :: IType -> Bool
-unCacheableType (ITForAll _ _ _) = True
 -- top-level pure values of Clock and Reset involve no work
 -- and sometimes we want to play games (e.g. disabled clocks)
 unCacheableType (ITCon i _ _) = i == idClock ||
                                 i == idReset
-unCacheableType t = isFunType t ||
-                    isitActionValue t
+unCacheableType t = isitActionValue t
 
 --- caching of previously evaluated definitions
 cacheDef :: Id -> IType -> HExpr -> G HExpr
 cacheDef i t e | unCacheableType t = return e
-cacheDef i t e@(ICon {}) = return e
-cacheDef i t e = do
+cacheDef i t e@(IAps _ _ _) = do
   s <- get
   let m = defCache s
   case (M.lookup i m) of
     Just e' -> do when doTraceDefCache $
+                    -- e' should be a constant or heap reference,
+                    -- so it should be cheap to print
                     traceM ("cache hit: " ++ ppReadable (i, t, e'))
                   return e'
     Nothing -> do e' <- toHeap "cache-def" t e (Just i)
@@ -2932,6 +2929,7 @@ cacheDef i t e = do
                   when doTraceDefCache $
                     traceM ("cache miss: " ++ ppReadable (i, t))
                   return e'
+cacheDef i t e = return e -- no application, not worth caching
 
 -- caching of dynamically evaluated CSyntax expressions
 lookupCExprCache :: CExpr -> IType -> G (Maybe HExpr)
