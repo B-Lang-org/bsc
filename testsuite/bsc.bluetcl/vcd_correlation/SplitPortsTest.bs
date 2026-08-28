@@ -1,0 +1,71 @@
+package SplitPortsTest where
+
+-- Coverage fixture: a sub-interface whose method arguments are collapsed
+-- to opaque ports via DeepSplitPorts. Also exercises rich-typed state
+-- (registers and a FIFOF) so the Bluesim VCD has typed wires to
+-- correlate, not just CLK/RST.
+
+import SplitPorts
+import FIFOF
+
+-- A struct that DeepSplitPorts will collapse to a single packed wire.
+struct Inner =
+  tag    :: Bit 4
+  payload :: Bit 12
+ deriving (Bits, Eq)
+
+-- A wider struct, also collapsed.
+struct Header =
+  src   :: Bit 8
+  dst   :: Bit 8
+  flags :: Bit 4
+ deriving (Bits, Eq)
+
+-- Collapse Inner and Header to single opaque ports via DeepSplitPorts
+instance DeepSplitPorts Inner (Port Inner) where
+  deepSplitPorts x = Port x
+  deepUnsplitPorts (Port x) = x
+  deepSplitPortNames _ base = Cons (base) Nil
+
+instance DeepSplitPorts Header (Port Header) where
+  deepSplitPorts x = Port x
+  deepUnsplitPorts (Port x) = x
+  deepSplitPortNames _ base = Cons (base) Nil
+
+-- A sub-interface with methods whose args/results carry the
+-- DeepSplit-collapsed types.
+interface Inside =
+  put     :: DeepSplit Inner -> Action
+  putHdr  :: DeepSplit Header -> Action
+  get     :: Inner
+  getHdr  :: Header
+  count   :: Bit 16
+
+-- A top-level interface with the sub-interface plus an Action method.
+interface Outer =
+  sub  :: Inside
+  bump :: Action
+
+{-# synthesize mkSplitPortsTest #-}
+mkSplitPortsTest :: Module Outer
+mkSplitPortsTest =
+  module
+    -- Internal state with the rich struct types. This gives the
+    -- Bluesim VCD wires to correlate (D_IN/Q_OUT carrying Inner/Header).
+    last_inner  :: Reg Inner   <- mkReg (Inner   { tag = 0; payload = 0 })
+    last_header :: Reg Header  <- mkReg (Header  { src = 0; dst = 0; flags = 0 })
+    inflight    :: FIFOF Inner <- mkFIFOF
+    cnt         :: Reg (Bit 16) <- mkReg 0
+
+    rules
+      when True ==> cnt := cnt + 1
+      when inflight.notEmpty ==> do { last_inner := inflight.first; inflight.deq }
+
+    interface
+      sub = interface Inside
+              put (DeepSplit x) = inflight.enq x
+              putHdr (DeepSplit h) = last_header := h
+              get    = last_inner
+              getHdr = last_header
+              count  = cnt
+      bump = cnt := cnt + 17
