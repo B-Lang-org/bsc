@@ -1,6 +1,6 @@
 package RPush(RPush(..), apply, tee, pass, passed,
              buffer, buffered, pipe,
-             (»), sink, spew, fifoToRPush) where
+             (⨠), sink, spew, fifoToRPush) where
 
 import FIFO
 
@@ -18,7 +18,7 @@ import FIFO
 --@ each of which may be buffered.
 
 --@
-infixr 12 »
+infixr 12 ⨠
 
 --@ \begin{libverbatim}
 --@ interface RPush #(type a);
@@ -115,11 +115,11 @@ spew dst =
 --@ function m#(b) pipe (function m#(b) f(a x1), m#(a) a)
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
-(») :: (Monad m) => (a -> m b) -> m a -> m b
-f » a = a `bind` f
+(⨠) :: (Monad m) => (a -> m b) -> m a -> m b
+f ⨠ a = a `bind` f
 
 pipe :: (Monad m) => (a -> m b) -> m a -> m b
-pipe f a = (f » a)
+pipe f a = (f ⨠ a)
 
 --@ Wrap a \te{RPush} interface around a FIFO.
 --@ \begin{libverbatim}

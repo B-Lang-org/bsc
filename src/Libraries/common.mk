@@ -26,4 +26,5 @@ BSCFLAGS_EXT += -vsearch $(BUILDDIR)
 override BSCFLAGS += $(BSCFLAGS_EXT)
 
 BSC ?= $(BINDIR)/bsc
+BO2BLOOGLE ?= $(BINDIR)/bo2bloogle
 

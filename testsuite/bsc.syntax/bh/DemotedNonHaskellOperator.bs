@@ -1,0 +1,11 @@
+package DemotedNonHaskellOperator((»»), result) where
+
+-- With -demote-errors P0225, an operator containing characters that
+-- GHC's lexer rejects is accepted with a warning, as a migration
+-- escape hatch.
+
+(»») :: a -> b -> (a, b)
+x »» y = (x, y)
+
+result :: Bit 8 -> (Bit 8, Bit 8)
+result x = x »» (x + 1)

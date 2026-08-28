@@ -1,0 +1,17 @@
+package NonHaskellOperator((»), («»), result) where
+
+-- U+00BB (RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK) and U+00AB
+-- (LEFT-POINTING DOUBLE ANGLE QUOTATION MARK) are quotation marks in
+-- Unicode, which GHC does not accept in operators, so each use should
+-- be rejected (and » should suggest ⨠ as a replacement).
+
+infixr 12 »
+
+(») :: (Monad m) => (a -> m b) -> m a -> m b
+f » a = a `bind` f
+
+(«») :: a -> b -> (a, b)
+x «» y = (x, y)
+
+result :: (Monad m) => m (Bit 8) -> m (Bit 8, Bit 8)
+result m = (\x -> return (x «» (x + 1))) » m

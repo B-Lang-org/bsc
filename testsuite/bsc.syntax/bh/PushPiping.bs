@@ -1,0 +1,7 @@
+package PushPiping(result) where
+
+import Push
+
+-- The ⨠ operator exported by Push composes without warnings.
+result :: (Monad m) => m (Bit 8) -> m (Bit 8)
+result m = (\x -> return (x + 1)) ⨠ m

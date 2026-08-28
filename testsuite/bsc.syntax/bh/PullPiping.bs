@@ -1,0 +1,7 @@
+package PullPiping(result) where
+
+import Pull
+
+-- The ⨠ operator exported by Pull composes without warnings.
+result :: (Monad m) => m (Bit 8) -> m (Bit 8)
+result m = m ⨠ (\x -> return (x + 1))

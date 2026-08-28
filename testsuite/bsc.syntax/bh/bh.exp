@@ -202,3 +202,17 @@ compile_pass IfcArgNamesLower.bs
 compile_pass IfcArgNamesUpper.bs
 compile_fail_error IfcArgNamesQual.bs P0005
 
+# Github issue #970 -
+# operator characters that GHC's lexer would reject are errors
+compile_pass_no_warning SchemaPipingOperator.bs
+# ... both with and without the dependency-analysis pass
+compile_fail_error NonHaskellOperator.bs P0225 9 "" 1
+compile_fail_error NonHaskellOperator.bs P0225 9
+compare_file [make_bsc_output_name NonHaskellOperator.bs]
+# ... but demotable, as a migration escape hatch
+compile_pass DemotedNonHaskellOperator.bs "-demote-errors P0225"
+compare_file [make_bsc_output_name DemotedNonHaskellOperator.bs]
+compile_pass_no_warning PullPiping.bs
+compile_pass_no_warning PushPiping.bs
+compile_pass_no_warning RPushPiping.bs
+
