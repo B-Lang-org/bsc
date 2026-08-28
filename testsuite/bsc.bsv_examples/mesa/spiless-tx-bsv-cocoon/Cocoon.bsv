@@ -5,8 +5,14 @@ import Environment::*;
 import Memory::*;
 import RPC::*;
 
+// A tuple is not a valid (sub)interface, so the read pair is a named interface.
+interface ReadWires#(type addrt, type datat);
+   interface RWire#(addrt) addr;
+   interface RWire#(datat) data;
+endinterface
+
 interface Wires#(type addrt, type datat);
-   interface Tuple2#(RWire#(addrt), RWire#(datat)) rd;
+   interface ReadWires#(addrt, datat) rd;
    interface RWire#(Tuple2#(addrt, datat)) wr;
 endinterface
 
@@ -15,8 +21,8 @@ instance Connectable#(Wires#(addrt, datat),
    module mkConnection#(Wires#(addrt, datat) cocoon,
 			Wires#(addrt, datat) stub) (Empty);
       // At present the right operand can be set to, and the left can be got from:
-      mkConnection(stub.rd.fst, cocoon.rd.fst);
-      mkConnection(cocoon.rd.snd, stub.rd.snd);
+      mkConnection(stub.rd.addr, cocoon.rd.addr);
+      mkConnection(cocoon.rd.data, stub.rd.data);
       mkConnection(stub.wr, cocoon.wr);
    endmodule
 endinstance
@@ -39,9 +45,9 @@ module mkStub(Stub#(addrt, datat))
       endmethod
    endinterface
    interface Wires cocoon;
-      interface Tuple2 rd;
-	 interface fst = rpc.argwire;
-	 interface snd = rpc.reswire;
+      interface ReadWires rd;
+	 interface addr = rpc.argwire;
+	 interface data = rpc.reswire;
       endinterface
       interface RWire wr;
 	 method wget = wrrw.wget;
@@ -63,14 +69,14 @@ module mkCocoon(Memory#(addrt, datat) mem, Wires#(addrt, datat) w)
    endrule
 
 
-   interface Tuple2 rd;
-      interface RWire fst;
+   interface ReadWires rd;
+      interface RWire addr;
 	 method Action wset(x);
 	    result.wset(mem.read(x));
 	 endmethod
 	 method wget = tagged Invalid;
       endinterface
-      interface RWire snd;
+      interface RWire data;
 	 method wset(v) = noAction;
 	 method wget = result.wget;
       endinterface

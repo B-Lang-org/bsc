@@ -46,14 +46,17 @@ endinterface
 
 typedef ModuleCollect#(AssertionWire, i) AssertModule#(type i);
 
-typedef Tuple2#(AssertionWires#(n), i) AssertIfc#(type i, type n);
+interface AssertIfc#(type i, type n);
+   interface AssertionWires#(n) wires;
+   interface i device;
+endinterface
 
 function AssertionWires#(n) getAssertionWires(AssertIfc#(i,n) ifc);
-  return tpl_1(ifc);
+  return ifc.wires;
 endfunction
 
 function i dropAssertionWires(AssertIfc#(i, n) ifc);
-  return tpl_2(ifc);
+  return ifc.device;
 endfunction
 
 function Integer getIndex(AssertionWire aw);
@@ -167,7 +170,10 @@ module [Module] exposeAssertionWires#(AssertModule#(i) mkI)(AssertIfc#(i, n));
 
     let dut_ifc = ecs.device;
 
-    return(tuple2(c_ifc, dut_ifc));
+    return (interface AssertIfc;
+               interface wires = c_ifc;
+               interface device = dut_ifc;
+            endinterface);
 
 endmodule
 
