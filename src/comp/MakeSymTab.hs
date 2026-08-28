@@ -22,7 +22,7 @@ import Data.Either(partitionEithers)
 import PredTrie
 import FStringCompat(concatFString)
 import PFPrint
-import PreStrings(fsTilde)
+import PreStrings(fsMangleSep)
 import PreIds
 import Id
 -- for PPrint and PVPrint Id instances
@@ -544,7 +544,7 @@ convInst _ _ _ d = d
 mkInstId :: Id -> CType -> Id
 mkInstId mi t =
 --    trace ("mkInstId " ++ ppReadable (mi,t, expandSyn t)) $
-    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsTilde (map getIdFStringP (flat (expandSyn t)))))
+    mkQId (getPosition t) (getIdFString mi) (concatFString (intersperse fsMangleSep (map getIdFStringP (flat (expandSyn t)))))
   where flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
