@@ -3,13 +3,13 @@
         mkZow          	 --  Empty	 
             zow2           	 -- RegN Reg#(Bool)	zow2 
         xx             	 --  Vector::Vector#(3, Reg#(Bit#(5)))	 
-            _element_0     	 -- RegUN Reg#(Bit#(5))	xx_0 
             _element_1     	 -- RegUN Reg#(Bit#(5))	xx_1 
             _element_2     	 -- RegUN Reg#(Bit#(5))	xx_2 
+            _element_0     	 -- RegUN Reg#(Bit#(5))	xx_0 
         ww             	 --  Vector::Vector#(3, Reg#(Bit#(5)))	 
-            _element_0     	 -- RWire Reg#(Bit#(5))	ww_0 
             _element_1     	 -- RWire Reg#(Bit#(5))	ww_1 
             _element_2     	 -- RWire Reg#(Bit#(5))	ww_2 
+            _element_0     	 -- RWire Reg#(Bit#(5))	ww_0 
         Loop           	 --  Integer	 
             z_0            	 -- RegN Reg#(Bool)	z_0 
             z_1            	 -- RegN Reg#(Bool)	z_1 
