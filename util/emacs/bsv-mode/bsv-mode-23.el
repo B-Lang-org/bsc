@@ -1801,7 +1801,7 @@ find the errors."
     (interactive)
     (if (boundp 'compilation-error-regexp-alist-alist)
 	(progn
-	  (if (not (assoc 'bsv-xl-1 compilation-error-regexp-alist-alist))
+	  (if (not (assoc 'bsc-xl-1a compilation-error-regexp-alist-alist))
 	      (mapcar
 	       (lambda (item)
 		 (push (car item) compilation-error-regexp-alist)
