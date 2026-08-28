@@ -1,0 +1,14 @@
+package IntParamErr1 where
+
+-- An Integer module argument is only supported as a parameter;
+-- without the "parameter" pragma it should be reported as an error
+
+{-# verilog mkIntParamErr #-}
+mkIntParamErr :: Integer -> Module Empty
+mkIntParamErr val =
+  module
+    rules
+      "test": when True ==>
+        action
+          $display "val = %0d" val
+          $finish 0
