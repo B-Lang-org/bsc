@@ -6,4 +6,5 @@ Warning: "RuleMethClash.bsv", line 6, column 8: (G0010)
     "incr" cannot fire before "incr": calls to rg.write vs. rg.read
     "incr" cannot fire before "incr": calls to rg.write vs. rg.read
 Verilog file created: sysRuleMethClash.v
+Elaborated module file created: sysRuleMethClash.ba
 All packages are up to date.

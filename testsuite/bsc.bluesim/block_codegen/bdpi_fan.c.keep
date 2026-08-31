@@ -1,0 +1,3 @@
+typedef unsigned int u32;
+u32 bdpi_leaf_fn(u32 x) { return x + 100; }
+u32 bdpi_top_fn(u32 x)  { return x + 200; }

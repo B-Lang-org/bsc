@@ -8,6 +8,7 @@ Combinational paths from inputs to outputs:
 -----
 
 Verilog file created: mkParameter2Rdy.v
+Elaborated module file created: mkParameter2Rdy.ba
 Warning: "Parameter2Rdy.bsv", line 6, column 8: (T0157)
   Package `FIFO' is imported but not used
 All packages are up to date.

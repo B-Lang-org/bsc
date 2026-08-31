@@ -8,4 +8,5 @@ Combinational paths from inputs to outputs:
 -----
 
 Verilog file created: mkEn2Rdy5.v
+Elaborated module file created: mkEn2Rdy5.ba
 All packages are up to date.

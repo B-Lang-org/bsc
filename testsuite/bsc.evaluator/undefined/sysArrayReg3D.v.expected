@@ -368,28 +368,28 @@ module sysArrayReg3D(CLK,
   wire WILL_FIRE_RL_tick, WILL_FIRE_RL_write;
 
   // remaining internal signals
-  reg [7 : 0] SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187,
-	      SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154,
-	      SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164,
-	      SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174,
-	      SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184,
-	      SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145,
-	      SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147,
-	      SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149,
-	      SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151,
-	      SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156,
-	      SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158,
-	      SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160,
-	      SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162,
-	      SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166,
-	      SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168,
-	      SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170,
-	      SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172,
-	      SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176,
-	      SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178,
-	      SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180,
-	      SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182;
-  wire [15 : 0] j_53_MUL_k___d202;
+  reg [7 : 0] SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1,
+	      SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2,
+	      SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3,
+	      SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4,
+	      SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5,
+	      SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6,
+	      SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7,
+	      SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8,
+	      SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9,
+	      SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10,
+	      SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11,
+	      SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12,
+	      SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13,
+	      SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14,
+	      SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15,
+	      SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16,
+	      SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17,
+	      SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18,
+	      SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19,
+	      SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20,
+	      SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21;
+  wire [15 : 0] j_53_MUL_k___d22;
 
   // rule RL_write
   assign WILL_FIRE_RL_write = i < 8'd4 && j < 8'd4 && k < 8'd4 ;
@@ -410,7 +410,7 @@ module sysArrayReg3D(CLK,
   assign k$EN = WILL_FIRE_RL_tick && i == 8'd3 && j == 8'd3 ;
 
   // register r3_0_0_0
-  assign r3_0_0_0$D_IN = i + j_53_MUL_k___d202[7:0] ;
+  assign r3_0_0_0$D_IN = i + j_53_MUL_k___d22[7:0] ;
   assign r3_0_0_0$EN =
 	     WILL_FIRE_RL_write && k == 8'd0 && j == 8'd0 && i == 8'd0 ;
 
@@ -730,23 +730,19 @@ module sysArrayReg3D(CLK,
 	     WILL_FIRE_RL_write && k == 8'd3 && j == 8'd3 && i == 8'd3 ;
 
   // remaining internal signals
-  assign j_53_MUL_k___d202 = j * k ;
+  assign j_53_MUL_k___d22 = j * k ;
   always@(k or r3_0_0_0 or r3_0_0_1 or r3_0_0_2 or r3_0_0_3)
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 =
-	      r3_0_0_0;
+	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 = r3_0_0_0;
       8'd1:
-	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 =
-	      r3_0_0_1;
+	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 = r3_0_0_1;
       8'd2:
-	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 =
-	      r3_0_0_2;
+	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 = r3_0_0_2;
       8'd3:
-	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 =
-	      r3_0_0_3;
-      default: SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 =
+	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 = r3_0_0_3;
+      default: SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -754,18 +750,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 =
-	      r3_0_1_0;
+	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 = r3_0_1_0;
       8'd1:
-	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 =
-	      r3_0_1_1;
+	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 = r3_0_1_1;
       8'd2:
-	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 =
-	      r3_0_1_2;
+	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 = r3_0_1_2;
       8'd3:
-	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 =
-	      r3_0_1_3;
-      default: SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 =
+	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 = r3_0_1_3;
+      default: SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -773,18 +765,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 =
-	      r3_0_2_0;
+	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 = r3_0_2_0;
       8'd1:
-	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 =
-	      r3_0_2_1;
+	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 = r3_0_2_1;
       8'd2:
-	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 =
-	      r3_0_2_2;
+	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 = r3_0_2_2;
       8'd3:
-	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 =
-	      r3_0_2_3;
-      default: SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 =
+	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 = r3_0_2_3;
+      default: SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -792,18 +780,37 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151 =
-	      r3_0_3_0;
+	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9 = r3_0_3_0;
       8'd1:
-	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151 =
-	      r3_0_3_1;
+	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9 = r3_0_3_1;
       8'd2:
-	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151 =
-	      r3_0_3_2;
+	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9 = r3_0_3_2;
       8'd3:
-	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151 =
-	      r3_0_3_3;
-      default: SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151 =
+	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9 = r3_0_3_3;
+      default: SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9 =
+		   8'b10101010 /* unspecified value */ ;
+    endcase
+  end
+  always@(j or
+	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6 or
+	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7 or
+	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8 or
+	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9)
+  begin
+    case (j)
+      8'd0:
+	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 =
+	      SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d6;
+      8'd1:
+	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 =
+	      SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d7;
+      8'd2:
+	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 =
+	      SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d8;
+      8'd3:
+	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 =
+	      SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d9;
+      default: SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -811,18 +818,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 =
-	      r3_1_0_0;
+	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 = r3_1_0_0;
       8'd1:
-	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 =
-	      r3_1_0_1;
+	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 = r3_1_0_1;
       8'd2:
-	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 =
-	      r3_1_0_2;
+	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 = r3_1_0_2;
       8'd3:
-	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 =
-	      r3_1_0_3;
-      default: SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 =
+	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 = r3_1_0_3;
+      default: SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -830,18 +833,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 =
-	      r3_1_1_0;
+	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 = r3_1_1_0;
       8'd1:
-	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 =
-	      r3_1_1_1;
+	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 = r3_1_1_1;
       8'd2:
-	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 =
-	      r3_1_1_2;
+	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 = r3_1_1_2;
       8'd3:
-	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 =
-	      r3_1_1_3;
-      default: SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 =
+	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 = r3_1_1_3;
+      default: SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -849,18 +848,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 =
-	      r3_1_2_0;
+	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 = r3_1_2_0;
       8'd1:
-	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 =
-	      r3_1_2_1;
+	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 = r3_1_2_1;
       8'd2:
-	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 =
-	      r3_1_2_2;
+	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 = r3_1_2_2;
       8'd3:
-	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 =
-	      r3_1_2_3;
-      default: SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 =
+	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 = r3_1_2_3;
+      default: SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -868,18 +863,37 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162 =
-	      r3_1_3_0;
+	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13 = r3_1_3_0;
       8'd1:
-	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162 =
-	      r3_1_3_1;
+	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13 = r3_1_3_1;
       8'd2:
-	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162 =
-	      r3_1_3_2;
+	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13 = r3_1_3_2;
       8'd3:
-	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162 =
-	      r3_1_3_3;
-      default: SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162 =
+	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13 = r3_1_3_3;
+      default: SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13 =
+		   8'b10101010 /* unspecified value */ ;
+    endcase
+  end
+  always@(j or
+	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10 or
+	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11 or
+	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12 or
+	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13)
+  begin
+    case (j)
+      8'd0:
+	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 =
+	      SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d10;
+      8'd1:
+	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 =
+	      SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d11;
+      8'd2:
+	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 =
+	      SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d12;
+      8'd3:
+	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 =
+	      SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d13;
+      default: SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -887,18 +901,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 =
-	      r3_2_0_0;
+	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 = r3_2_0_0;
       8'd1:
-	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 =
-	      r3_2_0_1;
+	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 = r3_2_0_1;
       8'd2:
-	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 =
-	      r3_2_0_2;
+	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 = r3_2_0_2;
       8'd3:
-	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 =
-	      r3_2_0_3;
-      default: SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 =
+	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 = r3_2_0_3;
+      default: SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -906,18 +916,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 =
-	      r3_2_1_0;
+	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 = r3_2_1_0;
       8'd1:
-	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 =
-	      r3_2_1_1;
+	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 = r3_2_1_1;
       8'd2:
-	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 =
-	      r3_2_1_2;
+	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 = r3_2_1_2;
       8'd3:
-	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 =
-	      r3_2_1_3;
-      default: SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 =
+	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 = r3_2_1_3;
+      default: SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -925,37 +931,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 =
-	      r3_2_2_0;
+	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 = r3_2_2_0;
       8'd1:
-	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 =
-	      r3_2_2_1;
+	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 = r3_2_2_1;
       8'd2:
-	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 =
-	      r3_2_2_2;
+	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 = r3_2_2_2;
       8'd3:
-	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 =
-	      r3_2_2_3;
-      default: SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 =
-		   8'b10101010 /* unspecified value */ ;
-    endcase
-  end
-  always@(k or r3_3_0_0 or r3_3_0_1 or r3_3_0_2 or r3_3_0_3)
-  begin
-    case (k)
-      8'd0:
-	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 =
-	      r3_3_0_0;
-      8'd1:
-	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 =
-	      r3_3_0_1;
-      8'd2:
-	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 =
-	      r3_3_0_2;
-      8'd3:
-	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 =
-	      r3_3_0_3;
-      default: SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 =
+	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 = r3_2_2_3;
+      default: SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -963,18 +946,52 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172 =
-	      r3_2_3_0;
+	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17 = r3_2_3_0;
       8'd1:
-	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172 =
-	      r3_2_3_1;
+	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17 = r3_2_3_1;
       8'd2:
-	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172 =
-	      r3_2_3_2;
+	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17 = r3_2_3_2;
       8'd3:
-	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172 =
-	      r3_2_3_3;
-      default: SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172 =
+	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17 = r3_2_3_3;
+      default: SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17 =
+		   8'b10101010 /* unspecified value */ ;
+    endcase
+  end
+  always@(j or
+	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14 or
+	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15 or
+	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16 or
+	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17)
+  begin
+    case (j)
+      8'd0:
+	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 =
+	      SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d14;
+      8'd1:
+	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 =
+	      SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d15;
+      8'd2:
+	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 =
+	      SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d16;
+      8'd3:
+	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 =
+	      SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d17;
+      default: SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 =
+		   8'b10101010 /* unspecified value */ ;
+    endcase
+  end
+  always@(k or r3_3_0_0 or r3_3_0_1 or r3_3_0_2 or r3_3_0_3)
+  begin
+    case (k)
+      8'd0:
+	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 = r3_3_0_0;
+      8'd1:
+	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 = r3_3_0_1;
+      8'd2:
+	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 = r3_3_0_2;
+      8'd3:
+	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 = r3_3_0_3;
+      default: SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -982,18 +999,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 =
-	      r3_3_1_0;
+	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 = r3_3_1_0;
       8'd1:
-	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 =
-	      r3_3_1_1;
+	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 = r3_3_1_1;
       8'd2:
-	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 =
-	      r3_3_1_2;
+	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 = r3_3_1_2;
       8'd3:
-	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 =
-	      r3_3_1_3;
-      default: SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 =
+	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 = r3_3_1_3;
+      default: SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -1001,18 +1014,14 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 =
-	      r3_3_2_0;
+	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 = r3_3_2_0;
       8'd1:
-	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 =
-	      r3_3_2_1;
+	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 = r3_3_2_1;
       8'd2:
-	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 =
-	      r3_3_2_2;
+	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 = r3_3_2_2;
       8'd3:
-	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 =
-	      r3_3_2_3;
-      default: SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 =
+	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 = r3_3_2_3;
+      default: SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -1020,133 +1029,60 @@ module sysArrayReg3D(CLK,
   begin
     case (k)
       8'd0:
-	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182 =
-	      r3_3_3_0;
+	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21 = r3_3_3_0;
       8'd1:
-	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182 =
-	      r3_3_3_1;
+	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21 = r3_3_3_1;
       8'd2:
-	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182 =
-	      r3_3_3_2;
+	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21 = r3_3_3_2;
       8'd3:
-	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182 =
-	      r3_3_3_3;
-      default: SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182 =
+	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21 = r3_3_3_3;
+      default: SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
   always@(j or
-	  SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145 or
-	  SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147 or
-	  SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149 or
-	  SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151)
+	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18 or
+	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19 or
+	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20 or
+	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21)
   begin
     case (j)
       8'd0:
-	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 =
-	      SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r3_0_0_3__ETC___d145;
+	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5 =
+	      SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d18;
       8'd1:
-	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 =
-	      SEL_ARR_r3_0_1_0_5_r3_0_1_1_7_r3_0_1_2_9_r3_0__ETC___d147;
+	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5 =
+	      SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d19;
       8'd2:
-	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 =
-	      SEL_ARR_r3_0_2_0_3_r3_0_2_1_5_r3_0_2_2_7_r3_0__ETC___d149;
+	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5 =
+	      SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d20;
       8'd3:
-	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 =
-	      SEL_ARR_r3_0_3_0_3_r3_0_3_1_5_r3_0_3_2_7_r3_0__ETC___d151;
-      default: SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 =
-		   8'b10101010 /* unspecified value */ ;
-    endcase
-  end
-  always@(j or
-	  SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156 or
-	  SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158 or
-	  SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160 or
-	  SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162)
-  begin
-    case (j)
-      8'd0:
-	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 =
-	      SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_6_r3_1__ETC___d156;
-      8'd1:
-	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 =
-	      SEL_ARR_r3_1_1_0_0_r3_1_1_1_2_r3_1_1_2_4_r3_1__ETC___d158;
-      8'd2:
-	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 =
-	      SEL_ARR_r3_1_2_0_8_r3_1_2_1_0_r3_1_2_2_2_r3_1__ETC___d160;
-      8'd3:
-	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 =
-	      SEL_ARR_r3_1_3_0_8_r3_1_3_1_0_r3_1_3_2_2_r3_1__ETC___d162;
-      default: SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 =
-		   8'b10101010 /* unspecified value */ ;
-    endcase
-  end
-  always@(j or
-	  SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166 or
-	  SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168 or
-	  SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170 or
-	  SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172)
-  begin
-    case (j)
-      8'd0:
-	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 =
-	      SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_1_r3_2__ETC___d166;
-      8'd1:
-	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 =
-	      SEL_ARR_r3_2_1_0_5_r3_2_1_1_7_r3_2_1_2_9_r3_2__ETC___d168;
-      8'd2:
-	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 =
-	      SEL_ARR_r3_2_2_0_3_r3_2_2_1_5_r3_2_2_2_7_r3_2__ETC___d170;
-      8'd3:
-	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 =
-	      SEL_ARR_r3_2_3_0_02_r3_2_3_1_04_r3_2_3_2_06_r3_ETC___d172;
-      default: SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 =
-		   8'b10101010 /* unspecified value */ ;
-    endcase
-  end
-  always@(j or
-	  SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176 or
-	  SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178 or
-	  SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180 or
-	  SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182)
-  begin
-    case (j)
-      8'd0:
-	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184 =
-	      SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_2_15_r3_ETC___d176;
-      8'd1:
-	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184 =
-	      SEL_ARR_r3_3_1_0_19_r3_3_1_1_21_r3_3_1_2_23_r3_ETC___d178;
-      8'd2:
-	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184 =
-	      SEL_ARR_r3_3_2_0_27_r3_3_2_1_29_r3_3_2_2_31_r3_ETC___d180;
-      8'd3:
-	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184 =
-	      SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d182;
-      default: SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184 =
+	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5 =
+	      SEL_ARR_r3_3_3_0_35_r3_3_3_1_37_r3_3_3_2_39_r3_ETC___d21;
+      default: SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
   always@(i or
-	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154 or
-	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164 or
-	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174 or
-	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184)
+	  SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2 or
+	  SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3 or
+	  SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4 or
+	  SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5)
   begin
     case (i)
       8'd0:
-	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187 =
-	      SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d154;
+	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1 =
+	      SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_0_2_0_r_ETC___d2;
       8'd1:
-	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187 =
-	      SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d164;
+	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1 =
+	      SEL_ARR_SEL_ARR_r3_1_0_0_2_r3_1_0_1_4_r3_1_0_2_ETC___d3;
       8'd2:
-	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187 =
-	      SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d174;
+	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1 =
+	      SEL_ARR_SEL_ARR_r3_2_0_0_7_r3_2_0_1_9_r3_2_0_2_ETC___d4;
       8'd3:
-	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187 =
-	      SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d184;
-      default: SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187 =
+	  SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1 =
+	      SEL_ARR_SEL_ARR_r3_3_0_0_11_r3_3_0_1_13_r3_3_0_ETC___d5;
+      default: SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1 =
 		   8'b10101010 /* unspecified value */ ;
     endcase
   end
@@ -1958,7 +1894,7 @@ module sysArrayReg3D(CLK,
     if (RST_N != `BSV_RESET_VALUE) if (k == 8'd4) $finish(32'd0);
     if (RST_N != `BSV_RESET_VALUE)
       $display("Current field",
-	       $unsigned(SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d187));
+	       $unsigned(SEL_ARR_SEL_ARR_SEL_ARR_r3_0_0_0_r3_0_0_1_r3_0_ETC___d1));
     if (RST_N != `BSV_RESET_VALUE)
       if (WILL_FIRE_RL_write)
 	$display("Writing r3[%0d][%0d][%0d]",

@@ -23,6 +23,7 @@ Flags:
      -show-timestamps
      -show-version
      -simdir   INVALID
+     -stable-verilog
      -steps   1000000
      -steps-max-intervals   10
      -steps-warn-interval   100000
