@@ -21,7 +21,7 @@ BSC=${BSC:-bsc}
 BLUETCL=${BLUETCL:-bluetcl}
 
 rm -rf bo_sim bo_default bo_kib veri_default veri_kib sim \
-       vcd_correlation_build.log
+       vcd_correlation_build.log dumpmap_default.out
 mkdir -p bo_sim sim
 
 # build_verilog <variant-tag> <bsc-extra-flags>
@@ -102,16 +102,20 @@ correlate_variant kib     "-keep-inlined-boundaries"
 # deliberately over-emits interface-side candidates; the per-instance
 # path is the one that must not.)
 echo "########## annotated-method phantom check (annot instance) ##########"
-parent_map=$(cd bo_default && $BLUETCL ../dumpmap.tcl mkWireTypes)
+# The greps run on a file, never on an `echo | grep -q` pipeline: under
+# pipefail, grep -q exiting on an early match SIGPIPEs the echo and the
+# match reports as a failure.  Intermittent under load (CI runners),
+# where the pipe drains in more than one delivery.
+(cd bo_default && $BLUETCL ../dumpmap.tcl mkWireTypes) > dumpmap_default.out
 for bad in 'annot$EN_tick' 'annot$RDY_tick' 'annot$RDY_count'; do
-    if echo "$parent_map" | grep -qF "$bad"; then
+    if grep -qF "$bad" dumpmap_default.out; then
         echo "PHANTOM: $bad present in mkWireTypes wiretypemap"
     else
         echo "no-phantom: $bad absent"
     fi
 done
 for good in 'annot$EN_push' 'annot$RDY_push'; do
-    if echo "$parent_map" | grep -qF "$good"; then
+    if grep -qF "$good" dumpmap_default.out; then
         echo "present: $good"
     else
         echo "MISSING: $good absent from mkWireTypes wiretypemap"
