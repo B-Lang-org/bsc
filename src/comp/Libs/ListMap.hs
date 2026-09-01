@@ -9,6 +9,7 @@ module ListMap(
         lookup, lookupWithDefault, lookupWithDefaultBy, lookupBy
         ) where
 
+import Warmup ()
 --import Prelude
 
 -- @@ Lists as finite mappings.

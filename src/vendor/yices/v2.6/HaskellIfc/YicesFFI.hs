@@ -412,6 +412,7 @@ module YicesFFI (
 
     ) where
 
+import Warmup ()
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String

@@ -125,6 +125,18 @@ endif
 endif
 endif
 
+# Generate deterministic object code when the compiler supports it
+# (GHC 9.14+).  Beyond making rebuilds bit-for-bit reproducible, this
+# removes a source of performance variance in the built compiler:
+# nondeterministic uniques can perturb optimization decisions (such as
+# inlining and strictness), so two builds of identical source could
+# otherwise differ measurably in the performance of the bsc they
+# produce.
+GHCOBJDET := $(shell $(GHC) --show-options 2>/dev/null | grep -x -m 1 -e -fobject-determinism)
+ifneq ($(GHCOBJDET),)
+GHC += -fobject-determinism
+endif
+
 GHCPROFAUTO = -fprof-auto
 
 PACKAGES = \
@@ -148,6 +160,12 @@ PACKAGES = \
 	deepseq \
 	strict-concurrency \
 
+
+# The EPS warmup (see update-warmup.sh) must also cover packages that
+# exist only on newer GHCs and are hidden by default; expose them when
+# present so Warmup.hs can import their modules.
+WARMUP_EXTRA_PKGS := $(shell ./update-warmup.sh --list-extra $(firstword $(GHC)))
+PACKAGES += $(WARMUP_EXTRA_PKGS)
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
 # in make mode where it follows dependencies (use GHCMAKEFLAGS).
 #
@@ -254,7 +272,7 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	$(YICES_HS)/*.hs \
 	$(HTCL_HS)/*.hs
 
-SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
+SOURCES = BuildVersion.hs BuildSystem.hs Warmup.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
 TCLEXES = bluetcl
@@ -268,6 +286,9 @@ all: $(EXES)
 
 BuildVersion.hs:
 	./update-build-version.sh
+
+Warmup.hs:
+	./update-warmup.sh $(firstword $(GHC)) $(PACKAGES)
 
 BuildSystem.hs:
 	./update-build-system.sh
@@ -448,7 +469,7 @@ clean:
 
 .PHONY: full_clean
 full_clean: clean
-	$(RM) -f BuildSystem.hs BuildVersion.hs
+	$(RM) -f BuildSystem.hs BuildVersion.hs Warmup.hs
 	$(RM) tags TAGS
 
 # -----

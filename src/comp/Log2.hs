@@ -3,6 +3,7 @@
 -- types that is efficient even for very large integers.
 module Log2(log2,log10) where
 
+import Warmup ()
 -- GHC 9.0 has an entirely new ghc-bignum package.
 -- See https://iohk.io/en/blog/posts/2020/07/28/improving-haskells-big-numbers-support/
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 900)
