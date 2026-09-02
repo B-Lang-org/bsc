@@ -78,26 +78,9 @@ mkDictBuckets ipkgs =
 -- The canonical redirection for every lifted dictionary (local or
 -- imported): the first import-order bucket candidate of the same
 -- interned type whose evidence identity verifies equal, when that is
--- a different def.  Computed once per fixupDefs call over the
--- dictionary defs only; fixUp then redirects by plain Id lookup, with
--- no per-occurrence type work.
---
--- Verification of a pair of dictionaries ("verifyPair"): equal names
--- are one def; otherwise both must carry evidence identities, and the
--- interned types must be equal, the renderings must be EQUAL STRINGS
--- (sound: the rendering is injective over the dictionary's own
--- evidence level), the type slots must be equal element-wise (interned
--- ITypes, so O(1) per slot), and the kid slots must verify pairwise by
--- the same procedure.  A kid without an evidence identity therefore
--- matches only itself (by name) -- exactly the never-dedup behavior
--- its own package gave it.  No digest ever commits a merge; every
--- merge decision reads the evidence identities themselves.
---
--- The kid recursion terminates because lifted evidence is acyclic
--- (letrec-bound dictionaries are never lifted); results are memoized
--- on the (Id, Id) pair across the whole computation, and a visited
--- set guards defensively against a cycle in corrupted input by
--- refusing (never trusting) a revisited pair.
+-- a different def.  Computed once per compile over the dictionary
+-- defs only; fixUp then redirects by plain Id lookup, with no
+-- per-occurrence type work.
 type DictRedirects = M.Map Id Id
 
 -- The redirect map for a whole compile, computed ONCE (in
@@ -117,7 +100,23 @@ mkDictRedirects buckets (IPackage _ _ _ ds _) ipkgs =
                            | IDef i t _ props <- ads, isLiftedDict i ]
     in  mkRedirects buckets evmap
 
-mkRedirects :: DictBuckets -> EvMap -> M.Map Id Id
+-- Verification of a pair of dictionaries ("verifyPair"): equal names
+-- are one def; otherwise both must carry evidence identities, and the
+-- interned types must be equal, the renderings must be EQUAL STRINGS
+-- (sound: the rendering is injective over the dictionary's own
+-- evidence level), the type slots must be equal element-wise (interned
+-- ITypes, so O(1) per slot), and the kid slots must verify pairwise by
+-- the same procedure.  A kid without an evidence identity therefore
+-- matches only itself (by name) -- exactly the never-dedup behavior
+-- its own package gave it.  No digest ever commits a merge; every
+-- merge decision reads the evidence identities themselves.
+--
+-- The kid recursion terminates because lifted evidence is acyclic
+-- (letrec-bound dictionaries are never lifted); results are memoized
+-- on the (Id, Id) pair across the whole computation, and a visited
+-- set guards defensively against a cycle in corrupted input by
+-- refusing (never trusting) a revisited pair.
+mkRedirects :: DictBuckets -> EvMap -> DictRedirects
 mkRedirects buckets evmap =
     M.fromList (concat (evalState (mapM tryRedirect dicts) M.empty))
   where
@@ -173,7 +172,7 @@ mkRedirects buckets evmap =
 -- package verifies kid slots against the defs it can see, so a kid
 -- entry naming a dropped local def must be rewritten to name the
 -- canonical def instead.
-redirectDictProps :: M.Map Id Id -> IDef a -> IDef a
+redirectDictProps :: DictRedirects -> IDef a -> IDef a
 redirectDictProps redirects d@(IDef i t e props)
   | M.null redirects = d
   | otherwise = IDef i t e (map upd props)
@@ -273,7 +272,7 @@ updDef redirects d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
 
 -- ===============
 
-fixUp :: M.Map Id Id -> M.Map Id (IExpr a) -> IExpr a -> IExpr a
+fixUp :: DictRedirects -> M.Map Id (IExpr a) -> IExpr a -> IExpr a
 fixUp r m (ILam i t e) = ILam i t (fixUp r m e)
 fixUp r m (ILAM i k e) = ILAM i k (fixUp r m e)
 fixUp r m (IAps f ts es) = IAps (fixUp r m f) ts (map (fixUp r m) es)
