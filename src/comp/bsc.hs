@@ -92,7 +92,7 @@ import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
 import LiftDicts(liftDictsPkg)
 import ISimpDicts(iSimpDicts)
-import FixupDefs(fixupDefs, updDef, mkDictBuckets)
+import FixupDefs(fixupDefs, updDef, mkDictBuckets, mkDictRedirects)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
 import BinUtil(BinMap, HashMap, readImports, replaceImportedSignatures)
@@ -530,7 +530,12 @@ compilePackage
     t <- dump errh flags t DFsympostbinary dumpnames mint
 
     start flags DFfixup
-    let (imodf, alldefsList) = fixupDefs dictBuckets imod binmods
+    -- the canonical-dictionary redirect map, computed once for the
+    -- whole compile (see mkDictRedirects); "updDef" reuses it per
+    -- synthesized module instead of rebuilding the evidence map over
+    -- every imported def each time
+    let dictRedirects = mkDictRedirects dictBuckets imod binmods
+    let (imodf, alldefsList) = fixupDefs dictRedirects imod binmods
     let alldefs = M.fromList [(i, e) | IDef i _ e _ <- alldefsList]
     iPCheck flags symt imodf "fixup"
     t <- dump errh flags t DFfixup dumpnames imodf
@@ -641,7 +646,7 @@ compilePackage
             -- references
             -- XXX Note that alldefs is not updated here.  This works
             -- XXX because the defs we use from it will not have changed.
-            let im' = updDef dictBuckets idef im binmods
+            let im' = updDef dictRedirects idef im binmods
             t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef
