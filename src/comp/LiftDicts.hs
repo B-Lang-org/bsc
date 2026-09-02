@@ -322,11 +322,20 @@ handleDict incoherent p t e = do
         return $ Right i0
        [] -> do
         (it, ie) <- convDict t e'
+        s0 <- get
+        -- Only evidence whose converted value is fixed by its source form
+        -- may key the pre-conversion pool: conversion turns some positions
+        -- into values, which Eq CExpr ignores and cmpE compares.
+        -- renderEvidence aborts on exactly those (and on anything new), so
+        -- reuse its verdict; what it rejects stays on the path below.
+        let rev = renderEvidence (flags s0) (symt s0) e'
         -- future occurrences of this (type, evidence) hit the
         -- pre-conversion pool and skip convDict
-        let recordC i0 = modify (\s -> s {
-                dictPoolC = M.insertWith (\new old -> old ++ new) t
-                                [(e', i0)] (dictPoolC s) })
+        let recordC i0 = case rev of
+                Nothing -> return ()
+                Just _ -> modify (\s -> s {
+                    dictPoolC = M.insertWith (\new old -> old ++ new) t
+                                    [(e', i0)] (dictPoolC s) })
         pool <- gets dictPool
         let cands = M.findWithDefault [] it pool
         case [ i0 | (i0, ie0) <- cands, ie0 == ie ] of
@@ -342,13 +351,11 @@ handleDict incoherent p t e = do
                          else lift_i0
             when trace_lift_dicts $ traceM $
                 "adding lifted dict: " ++ ppReadable (lift_i, e')
-            s0 <- get
             -- The evidence identity for cross-package deduplication (see
             -- "renderEvidence"), recorded at mint time.  An incoherent
             -- resolution depends on the instances visible HERE, so it
             -- never gets one.
-            let mev = if incoherent then Nothing
-                      else renderEvidence (flags s0) (symt s0) e'
+            let mev = if incoherent then Nothing else rev
                 props = case mev of
                           Nothing -> []
                           Just (str, kids, tys) -> [ DefP_DictRendering str,
