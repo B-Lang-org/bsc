@@ -209,6 +209,11 @@ compare_file APkgProps_Arb.bsv.bsc-vcomp-out
 compile_verilog_pass APkgProps_SubClock.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_SubClock.bsv.bsc-vcomp-out
 
+# the same, for a special output the design never references, so no
+# "<inst>$<port>" wire id exists for the deduction to key on
+compile_verilog_pass APkgProps_UnusedSubClock.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_UnusedSubClock.bsv.bsc-vcomp-out
+
 # "unused" propagates backwards through dead logic (a documented
 # difference: getIOProps only traces direct connections)
 compile_verilog_pass APkgProps_DeadLogic.bsv {} {-dAPackageIOproperties -dIOproperties}
@@ -221,6 +226,27 @@ compare_file APkgProps_Mux.bsv.bsc-vcomp-out
 # parameters are not ports; module argument ports deduce like inputs
 compile_verilog_pass APkgProps_Args.bsv {} {-dAPackageIOproperties -dIOproperties}
 compare_file APkgProps_Args.bsv.bsc-vcomp-out
+
+# The three cases below are the other direction: getIOProps concludes
+# a property that getIOPropsA does not.  Nothing else in this
+# directory pins that direction, which is the one in which the
+# APackage deduction loses information.
+
+# the netlist collapses a mux whose arms carry the same value, so its
+# selector is dead; getIOPropsA keeps the selector as an opaque use
+compile_verilog_pass APkgProps_MuxCollapse.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_MuxCollapse.bsv.bsc-vcomp-out
+
+# a ready condition that minimizes to a register output; getIOPropsA
+# reaches the tautology but not the minimization
+compile_verilog_pass APkgProps_BoolMin.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_BoolMin.bsv.bsc-vcomp-out
+
+# two argument mux arms that become equal after inlining and are
+# merged into a direct connection; getIOPropsA models both as
+# surviving mux inputs
+compile_verilog_pass APkgProps_EqualArms.bsv {} {-dAPackageIOproperties -dIOproperties}
+compare_file APkgProps_EqualArms.bsv.bsc-vcomp-out
 
 # expressions propagate through wires: a tautology carried through a
 # wire is recognized, and several setters of the same expression

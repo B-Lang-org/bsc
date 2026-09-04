@@ -1,0 +1,27 @@
+checking package dependencies
+compiling APkgProps_MuxCollapse.bsv
+code generation for sysAPkgProps_MuxCollapse starts
+=== APackageIOproperties (APkgProps_MuxCollapse sysAPkgProps_MuxCollapse):
+Name                         I/O  size props
+pick                           O     8 reg
+RDY_pick                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+pick_c                         I     1
+
+
+-----
+
+=== IOproperties (APkgProps_MuxCollapse sysAPkgProps_MuxCollapse):
+Name                         I/O  size props
+pick                           O     8 reg
+RDY_pick                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+pick_c                         I     1 unused
+
+
+-----
+
+Verilog file created: sysAPkgProps_MuxCollapse.v
+All packages are up to date.

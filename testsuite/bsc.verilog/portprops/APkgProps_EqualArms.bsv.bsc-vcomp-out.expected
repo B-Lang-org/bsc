@@ -1,0 +1,56 @@
+checking package dependencies
+compiling APkgProps_EqualArms.bsv
+code generation for mkEqualArmsSink starts
+=== APackageIOproperties (APkgProps_EqualArms mkEqualArmsSink):
+Name                         I/O  size props
+RDY_put                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+put_v                          I     8 reg
+EN_put                         I     1
+
+
+-----
+
+=== IOproperties (APkgProps_EqualArms mkEqualArmsSink):
+Name                         I/O  size props
+RDY_put                        O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+put_v                          I     8 reg
+EN_put                         I     1
+
+
+-----
+
+Verilog file created: mkEqualArmsSink.v
+code generation for sysAPkgProps_EqualArms starts
+Warning: "APkgProps_EqualArms.bsv", line 33, column 8: (G0117)
+  Rule `rb' shadows the effects of `put2' when they execute in the same clock
+  cycle. Affected method calls:
+    sub.put
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== APackageIOproperties (APkgProps_EqualArms sysAPkgProps_EqualArms):
+Name                         I/O  size props
+RDY_put2                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+put2_x                         I     8
+EN_put2                        I     1
+
+
+-----
+
+=== IOproperties (APkgProps_EqualArms sysAPkgProps_EqualArms):
+Name                         I/O  size props
+RDY_put2                       O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+put2_x                         I     8 reg
+EN_put2                        I     1
+
+
+-----
+
+Verilog file created: sysAPkgProps_EqualArms.v
+All packages are up to date.

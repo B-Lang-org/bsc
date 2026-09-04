@@ -18,6 +18,7 @@ import VModInfo(VModInfo, vArgs, vFields, vClk, VName(..), VeriPortProp(..),
                 VClockInfo(..),
                 getOutputClockPortTable, getOutputResetPortTable,
                 lookupInputClockWires, lookupInputResetWire,
+                lookupOutputClockPorts, lookupOutputResetPort,
                 mkNamedEnable, mkNamedOutputs, mkNamedInout, vName_to_id)
 import Prim
 import ASyntax
@@ -30,7 +31,6 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 isRWire, isRWire0,
                                 isBypassWire, isBypassWire0,
                                 rwireSetStr, rwireGetStr, rwireHasStr,
-                                rwireGetResId, rwireHasResId,
                                 isCRegInst, cregReadStr, cregWriteStr)
 
 -- import Debug.Trace
@@ -651,7 +651,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- (enable ports are referenced by the WILL_FIRE definitions
         -- that AAddScheduleDefs created, so they are deduced like any
         -- other input; see ruleWFUses for what uses a WILL_FIRE)
-        iis = [ (i, INPUT, size t, mergeProps sps (getInPropsA i)) |
+        iis = [ (i, INPUT, size t, mergeProps sps (getInPropsA (SigId i))) |
                     (i, t, sps) <- arg_ins ++ meth_arg_ins ++ en_ins ]
 
         -- module argument ports (clocks, resets, and ordinary ports;
@@ -706,7 +706,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- as in getIOProps, an argument inout is used by the module
         -- (like an input) and an interface inout is provided by the
         -- module (like an output)
-        iois = [ (i, INOUT, size t, mergeProps sps (getInPropsA i)) |
+        iois = [ (i, INOUT, size t, mergeProps sps (getInPropsA (SigId i))) |
                      (i, t, sps) <- arg_iots ] ++
                [ (i, INOUT, size t, mergeProps sps (getOutPropsA e)) |
                      (i, t, sps, e) <- ifc_iots ]
@@ -774,13 +774,6 @@ getIOPropsA _flags pps mschedinfo apkg =
         isWireGet = isWireMeth rwireGetStr
         isWireHas = isWireMeth rwireHasStr
 
-        -- the nodes representing the data carried by a wire instance
-        -- and its validity (also the names of the signals which carry
-        -- them after inlining)
-        wireDataId, wireHasId :: AId -> AId
-        wireDataId inst = rwireGetResId inst
-        wireHasId inst = rwireHasResId inst
-
         -- The control flow into a wire instance from one setter (the
         -- setter's WILL_FIRE and condition): it always feeds the
         -- wire's validity node, but it feeds the selection of the
@@ -792,14 +785,14 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- as far as the node itself is used.
         wireFlowUses :: AId -> AId -> AId -> [AUse]
         wireFlowUses obj meth rid =
-            AUVia (wireHasId obj) :
+            AUVia (SigWire obj WireHas) :
             if (isJust (wireDataExpr obj))
             then []   -- the data is an alias whatever the selectors do
             else case armClass obj meth rid of
                    Just ArmDirect  -> []
                    Just ArmDropped -> []
                    Just ArmMuxed | selDropped obj meth rid -> []
-                   _ -> [AUVia (wireDataId obj)]
+                   _ -> [AUVia (SigWire obj WireGet)]
 
         -- the setters of each wire instance: the WILL_FIRE of the
         -- calling rule, the condition, and the data arguments
@@ -1110,12 +1103,32 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- reference: the special outputs (clocks, resets, inouts) of
         -- the state instances, and the module's own inputs (which, as
         -- in getIOProps' wireMap_out, provide no properties)
-        wireMapA_out :: M.Map AId [VeriPortProp]
+        -- Keyed by String and not AId, so that building this map does
+        -- not change when the special output and port names are
+        -- interned.
+        wireMapA_out :: M.Map String [VeriPortProp]
         wireMapA_out =
-            let submod_pairs = [ (i, ps) |
-                                     v <- vs,
-                                     (i, _, (_, ps)) <- getSpecialOutputs v ]
-                input_pairs = [ (i, []) |
+            let wireKey v (VName s) =
+                    getIdBaseString (unQualId (avi_vname v)) ++ "$" ++ s
+                clockPairs v =
+                    concat [ case lookupOutputClockPorts i (avi_vmi v) of
+                               (osc, Nothing) ->
+                                   [(wireKey v osc, [VPclock])]
+                               (osc, Just (gate, gps)) ->
+                                   [(wireKey v osc, [VPclock]),
+                                    (wireKey v gate, VPclockgate : gps)]
+                           | (Clock i) <- vFields (avi_vmi v) ]
+                resetPairs v =
+                    [ (wireKey v (lookupOutputResetPort i (avi_vmi v)),
+                       [VPreset])
+                    | (Reset i) <- vFields (avi_vmi v) ]
+                inoutPairs v =
+                    [ (wireKey v vn, [VPinout])
+                    | (Inout _ vn _ _) <- vFields (avi_vmi v) ]
+                submod_pairs =
+                    concat [ clockPairs v ++ resetPairs v ++ inoutPairs v
+                           | v <- vs ]
+                input_pairs = [ (getIdString i, []) |
                                     (i, _, _) <- arg_ins ++ meth_arg_ins ]
             in  M.union (M.fromList submod_pairs) (M.fromList input_pairs)
 
@@ -1152,7 +1165,8 @@ getIOPropsA _flags pps mschedinfo apkg =
               all (\ e -> VPconst `elem` getOutPropsA e) es = [VPconst]
         -- either a special output of a state instance
         -- or an input of this module
-        getOutPropsA (ASPort _ i) = M.findWithDefault [] i wireMapA_out
+        getOutPropsA (ASPort _ i) =
+            M.findWithDefault [] (getIdString i) wireMapA_out
         -- follow defs (memoized)
         getOutPropsA (ASDef _ i) =
             M.findWithDefault [] i outDefPropsMemo
@@ -1295,19 +1309,19 @@ getIOPropsA _flags pps mschedinfo apkg =
         exprCalls _ = []
 
         -- all the uses of signals in the package, classified
-        useMapA :: M.Map AId [AUse]
+        useMapA :: M.Map SigKey [AUse]
         useMapA = M.fromListWith (++) [ (i, [u]) | (i, u) <- all_uses ]
 
-        all_uses :: [(AId, AUse)]
+        all_uses :: [(SigKey, AUse)]
         all_uses =
             -- local defs
-            concat [ classifyExpr (AUDef i) e | (ADef i _ e _) <- ds ] ++
+            concat [ classifyExpr (AUDef (SigId i)) e | (ADef i _ e _) <- ds ] ++
             -- interface value defs and output clock/reset/inout wires
             -- (these define the output ports, which are recorded in
             -- outSinkSet, so the deduction terminates there)
-            concat [ classifyExpr (AUDef (adef_objid d)) (adef_expr d) |
+            concat [ classifyExpr (AUDef (SigId (adef_objid d))) (adef_expr d) |
                          f <- ifc, d <- ifcValueDef f ] ++
-            concat [ classifyExpr (AUDef i) e | (i, e) <- out_wire_defs ] ++
+            concat [ classifyExpr (AUDef (SigId i)) e | (i, e) <- out_wire_defs ] ++
             -- method predicates and assumptions become scheduling logic
             concat [ classifyExpr AUOpaque p | p <- ifc_preds ] ++
             concat [ classifyExpr AUOpaque (assump_property a) |
@@ -1324,7 +1338,7 @@ getIOPropsA _flags pps mschedinfo apkg =
             -- surviving value-method argument muxes
             valueSelUses
 
-        ruleUses :: ARule -> [(AId, AUse)]
+        ruleUses :: ARule -> [(SigKey, AUse)]
         ruleUses r =
             let wf = mkIdWillFire (arule_id r)
             in  -- if the schedule says this rule never fires, then all
@@ -1335,7 +1349,7 @@ getIOPropsA _flags pps mschedinfo apkg =
                 -- the predicate feeds the scheduling logic of this
                 -- rule, which is hardware only as far as the rule's
                 -- WILL_FIRE is used
-                classifyExpr (AUVia wf) (arule_pred r) ++
+                classifyExpr (AUVia (SigId wf)) (arule_pred r) ++
                 concatMap (actionUses (arule_id r)) (arule_actions r) ++
                 ruleWFUses wf r
 
@@ -1356,11 +1370,11 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- expressions would miss.  Without it, conservatively treat
         -- the WILL_FIRE as used whenever the rule's expressions
         -- contain a call which could need a mux.
-        ruleWFUses :: AId -> ARule -> [(AId, AUse)]
+        ruleWFUses :: AId -> ARule -> [(SigKey, AUse)]
         ruleWFUses wf r =
-            [ (wf, u) | a <- arule_actions r,
-                        u <- actionWFUses (arule_id r) a ] ++
-            [ (wf, AUOpaque) |
+            [ (SigId wf, u) | a <- arule_actions r,
+                              u <- actionWFUses (arule_id r) a ] ++
+            [ (SigId wf, AUOpaque) |
                   isNothing mschedinfo,
                   any hasMuxableCall
                       (arule_pred r :
@@ -1415,7 +1429,7 @@ getIOPropsA _flags pps mschedinfo apkg =
                      not (obj `S.member` wireInstSet),
                      Just m@(Method {}) <- [findMethodA obj meth] ]
 
-        actionUses :: AId -> AAction -> [(AId, AUse)]
+        actionUses :: AId -> AAction -> [(SigKey, AUse)]
         -- the condition feeds the enable logic (via the WILL_FIRE),
         -- and so is not a direct connection; the arguments are
         -- connections to the method's input ports
@@ -1431,10 +1445,10 @@ getIOPropsA _flags pps mschedinfo apkg =
                     -- arm's data reaches nothing
                     arg_uses =
                         case (wireDataExpr obj, armClass obj meth rid) of
-                          (Just _, _) -> [AUDef (wireDataId obj)]
-                          (_, Just ArmDirect) -> [AUDef (wireDataId obj)]
+                          (Just _, _) -> [AUDef (SigWire obj WireGet)]
+                          (_, Just ArmDirect) -> [AUDef (SigWire obj WireGet)]
                           (_, Just ArmDropped) -> []
-                          _ -> [AUVia (wireDataId obj)]
+                          _ -> [AUVia (SigWire obj WireGet)]
                 in  concat [ classifyExpr u c |
                                  u <- wireFlowUses obj meth rid ] ++
                     concat [ classifyExpr u e | u <- arg_uses, e <- es ]
@@ -1471,7 +1485,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- for uses.  However, a method call appearing inside such an
         -- argument does wire up the method's input ports in the
         -- hardware, so its arguments are still classified.
-        classifyForeignExpr :: AExpr -> [(AId, AUse)]
+        classifyForeignExpr :: AExpr -> [(SigKey, AUse)]
         classifyForeignExpr (APrim _ _ _ es) =
             concatMap classifyForeignExpr es
         classifyForeignExpr (ANoInlineFunCall _ _ _ es) =
@@ -1494,7 +1508,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         classifyForeignExpr (ATupleSel _ e _) = classifyForeignExpr e
         classifyForeignExpr _ = []
 
-        instArgUses :: AVInst -> [(AId, AUse)]
+        instArgUses :: AVInst -> [(SigKey, AUse)]
         instArgUses v = concatMap cvt (getInstArgs v)
           where
             vmi = avi_vmi v
@@ -1527,10 +1541,10 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- of the given use (see opaqueOf).  Arguments of method calls
         -- are connections to the method's input ports and are
         -- classified separately.
-        classifyExpr :: AUse -> AExpr -> [(AId, AUse)]
-        classifyExpr u (ASPort _ i)  = [(i, u)]
-        classifyExpr u (ASParam _ i) = [(i, u)]
-        classifyExpr u (ASDef _ i)   = [(i, u)]
+        classifyExpr :: AUse -> AExpr -> [(SigKey, AUse)]
+        classifyExpr u (ASPort _ i)  = [(SigId i, u)]
+        classifyExpr u (ASParam _ i) = [(SigId i, u)]
+        classifyExpr u (ASDef _ i)   = [(SigId i, u)]
         classifyExpr u (APrim _ _ PrimConcat es) =
             concatMap (classifyExpr u) es
         classifyExpr u (APrim _ _ PrimExtract (e:es)) =
@@ -1545,8 +1559,8 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- and its validity is a reference to its "whas" node;
         -- reading a CReg uses no signals (the register remains)
         classifyExpr u e@(AMethCall _ obj meth es)
-            | isWireGet obj meth = [(wireDataId obj, u)]
-            | isWireHas obj meth = [(wireHasId obj, u)]
+            | isWireGet obj meth = [(SigWire obj WireGet, u)]
+            | isWireHas obj meth = [(SigWire obj WireHas, u)]
             | Just _ <- cregMeth obj meth = []
             | otherwise = classifyValueCallArgs e obj meth es
         classifyExpr u (ASClock _ (AClock { aclock_osc = o,
@@ -1588,7 +1602,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- expression is the arm's identity -- see exprBlobArms),
         -- otherwise by the port-multiplicity check
         classifyValueCallArgs :: AExpr -> AId -> AId -> [AExpr]
-                              -> [(AId, AUse)]
+                              -> [(SigKey, AUse)]
         classifyValueCallArgs e obj meth es =
             case M.lookup e exprArmClassMap of
               -- the arm is dropped: nothing reaches the port
@@ -1601,7 +1615,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- connections to the method's input ports, as long as AState
         -- will not need to insert muxes (which is the case when the
         -- method has enough port copies for all of its call sites)
-        classifyMethArgs :: AId -> AId -> [AExpr] -> [(AId, AUse)]
+        classifyMethArgs :: AId -> AId -> [AExpr] -> [(SigKey, AUse)]
         classifyMethArgs obj meth es =
             case findMethodA obj meth of
               Just m | isDirectCallA obj meth m -> directMethArgs obj meth es
@@ -1609,7 +1623,7 @@ getIOPropsA _flags pps mschedinfo apkg =
 
         -- classify arguments as direct connections to the method's
         -- input ports
-        directMethArgs :: AId -> AId -> [AExpr] -> [(AId, AUse)]
+        directMethArgs :: AId -> AId -> [AExpr] -> [(SigKey, AUse)]
         directMethArgs obj meth es =
             case findMethodA obj meth of
               Just (Method { vf_inputs = ins })
@@ -1662,7 +1676,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         armClassMap :: M.Map (AId, AId, AId) ArmClass
         enFoldSet, selDropSet :: S.Set (AId, AId, AId)
         exprArmClassMap :: M.Map AExpr ArmClass
-        valueSelUses :: [(AId, AUse)]
+        valueSelUses :: [(SigKey, AUse)]
         (armClassMap, enFoldSet, selDropSet,
          exprArmClassMap, valueSelUses) =
             case mschedinfo of
@@ -1696,7 +1710,7 @@ getIOPropsA _flags pps mschedinfo apkg =
                            S.Set (AId, AId, AId),
                            S.Set (AId, AId, AId),
                            M.Map AExpr ArmClass,
-                           [(AId, AUse)])
+                           [(SigKey, AUse)])
         mkArmClassMaps si =
             let multMap = M.fromList (concatMap genMethodMult vs)
                 (expr_blobs, action_blobs) =
@@ -1824,7 +1838,7 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- arms are split per user (as in mkEmux's "order"), so the
         -- fates of an expression's split arms are joined.
         exprBlobArms :: ExclusiveRulesDB -> M.Map AId Integer -> MethBlob
-                     -> ([(AExpr, ArmClass)], [(AId, AUse)])
+                     -> ([(AExpr, ArmClass)], [(SigKey, AUse)])
         exprBlobArms edb omPos (_, port_blobs) =
             let results = map portArms port_blobs
             in  (concatMap fst results, concatMap snd results)
@@ -1847,7 +1861,7 @@ getIOPropsA _flags pps mschedinfo apkg =
                     else Nothing
 
             portArms :: [(AExpr, Maybe [AId])]
-                     -> ([(AExpr, ArmClass)], [(AId, AUse)])
+                     -> ([(AExpr, ArmClass)], [(SigKey, AUse)])
             -- a single use is a direct connection (see mkEmux);
             -- this includes predicate and instance uses, which the
             -- allocation always gives their own port
@@ -1909,7 +1923,7 @@ getIOPropsA _flags pps mschedinfo apkg =
                         -- (a constant control signal is folded into
                         -- the selector and is not a dynamic use)
                         sel_uses =
-                            [ (si, AUOpaque) |
+                            [ (SigId si, AUOpaque) |
                                   (ku@(_, rs), ArmMuxed) <- arm_classes,
                                   not (ku `elem` last_arms),
                                   r <- rs,
@@ -1957,20 +1971,20 @@ getIOPropsA _flags pps mschedinfo apkg =
         -- drives a port is not unused, but no properties can be
         -- concluded from that use (this mirrors the "output_pairs"
         -- entries in getIOProps' wireMap_in)
-        outSinkSet :: S.Set AId
+        outSinkSet :: S.Set SigKey
         outSinkSet =
-            S.fromList ([ adef_objid d | f <- ifc, d <- ifcValueDef f ] ++
-                        [ i | (i, _) <- out_wire_defs ])
+            S.fromList ([ SigId (adef_objid d) | f <- ifc, d <- ifcValueDef f ] ++
+                        [ SigId i | (i, _) <- out_wire_defs ])
 
-        getInPropsA :: AId -> [VeriPortProp]
+        getInPropsA :: SigKey -> [VeriPortProp]
         getInPropsA i = M.findWithDefault (computeInPropsA i) i inPropsMemo
 
         -- deduction of input properties, memoized over the ids with
         -- recorded uses (the map's values are lazy)
-        inPropsMemo :: M.Map AId [VeriPortProp]
+        inPropsMemo :: M.Map SigKey [VeriPortProp]
         inPropsMemo = M.mapWithKey (\ i _ -> computeInPropsA i) useMapA
 
-        computeInPropsA :: AId -> [VeriPortProp]
+        computeInPropsA :: SigKey -> [VeriPortProp]
         computeInPropsA i =
             let sink_props = if (i `S.member` outSinkSet) then [[]] else []
                 uses = M.findWithDefault [] i useMapA
@@ -1990,8 +2004,25 @@ getIOPropsA _flags pps mschedinfo apkg =
 
 -- A use of a signal, for deducing the properties of module inputs
 -- on an APackage (see getInPropsA above)
-data AUse = AUDef AId               -- used to define another signal
-          | AUVia AId               -- flows into another signal through
+-- A signal this analysis reasons about.  Reading an inlined RWire or
+-- BypassWire refers to nodes the Verilog backend will later name
+-- "<inst>$wget" and "<inst>$whas", but naming them here would intern
+-- those strings before the backend does.  Identifier order in bsc is
+-- interning order (see SpeedyString), so minting a backend name early
+-- perturbs every later Map/Set traversal keyed on Id, which reorders
+-- def lists, tsort tie-breaks and the choice of surviving CSE
+-- representative -- changing generated signal names.  These wire nodes
+-- are only ever lookup keys here, never results, so they are
+-- distinguished structurally and nothing is interned.
+data WireField = WireGet | WireHas
+        deriving (Eq, Ord)
+
+data SigKey = SigId AId             -- a signal named in the package
+            | SigWire AId WireField -- a node of an inlined wire instance
+        deriving (Eq, Ord)
+
+data AUse = AUDef SigKey            -- used to define another signal
+          | AUVia SigKey            -- flows into another signal through
                                     -- selection (mux) logic
           | AUConn [VeriPortProp]   -- connected to a port with these props
           | AUOpaque                -- used in a way we cannot analyze
