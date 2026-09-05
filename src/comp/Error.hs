@@ -798,6 +798,7 @@ data ErrMsg =
         | WIncoherentMatch String String
         | WOrphanInst String
         | WTransitiveIncoherentMatch String String String
+        | WTypedHole String [String] -- ^ inferred type, bloogle approximate matches
         | EModInstWrongArgs [Position]
         | EAmbiguous [(String, Position, [(String, [Position])])]
         | EAmbiguousExplCtx [Doc] [Doc] Doc
@@ -3015,6 +3016,12 @@ getErrorText (WTransitiveIncoherentMatch pred root_pred root_inst) =
             "depends on an incoherent match of " ++ root_pred ++
             " against instance " ++ root_inst))
 
+getErrorText (WTypedHole t ms) =
+    (Type 159, empty,
+     s2par ("Typed hole " ++ quote "__" ++ " has the inferred type:") $$
+     nest 2 (text t) $$
+     bloogleMatchesDoc "approximate" ms)
+
 -- Generation Errors
 
 getErrorText (EGenerate num s) =
@@ -4530,6 +4537,13 @@ missingEndKeywordSuggestion :: Maybe String -> String
 missingEndKeywordSuggestion Nothing = ""
 missingEndKeywordSuggestion (Just kw) =
     ".  Perhaps " ++ quote kw ++ " is missing?"
+
+-- bloogle results appended to a diagnostic (see -bloogle-db)
+bloogleMatchesDoc :: String -> [String] -> Doc
+bloogleMatchesDoc _ [] = empty
+bloogleMatchesDoc kind ms =
+    s2par ("bloogle found these " ++ kind ++ " matches:") $$
+    nest 2 (vcat (map text ms))
 
 -- -----
 

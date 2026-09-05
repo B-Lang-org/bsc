@@ -18,6 +18,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
 import ContextErrors
 import Flags(Flags, enablePoisonPills, allowIncoherentMatches)
 import CSyntax
+import Undefined(UndefKind(..))
 import PoisonUtils
 import Type
 import Subst
@@ -87,7 +88,7 @@ tiOneDef d@(CValueSign (CDef i t s)) = do
         checkTopPreds (Just i) d rs
         s <- getSubst'
         clearSubst
-        return (CValueSign (apSub s d'))
+        reportTypedHoles (CValueSign (apSub s d'))
 tiOneDef d@(Cclass incoh cps ik is fd ats fs) = do
     let -- we can assume that the current class is available, so make it
         -- as a pred
@@ -117,6 +118,68 @@ tiOneDef d@(Cclass incoh cps ik is fd ats fs) = do
     return d
 tiOneDef d@(CValue i s) = errorAtId ENoTopTypeSign i
 tiOneDef d = return d
+
+-- Report the type inferred for each typed hole ("__") in a typechecked
+-- definition, and demote the holes to ordinary dont-care values so that
+-- later stages treat them exactly like "_".  This runs after the final
+-- substitution has been applied, so the reported types are as resolved
+-- as they will ever be.  Only the constructors that survive
+-- typechecking are traversed (compare "getFreeE" below).
+reportTypedHoles :: CDefn -> TI CDefn
+reportTypedHoles (CValueSign (CDefT i vs qt cs)) = do
+    cs' <- mapM thClause cs
+    return (CValueSign (CDefT i vs qt cs'))
+reportTypedHoles d = return d
+
+thClause :: CClause -> TI CClause
+thClause (CClause ps qs e) = do
+    qs' <- mapM thQual qs
+    e' <- thExpr e
+    return (CClause ps qs' e')
+
+thQual :: CQual -> TI CQual
+thQual (CQGen t p e) = CQGen t p <$> thExpr e
+thQual (CQFilter e) = CQFilter <$> thExpr e
+
+thDefl :: CDefl -> TI CDefl
+thDefl (CLValueSign (CDefT i vs qt cs) qs) = do
+    cs' <- mapM thClause cs
+    qs' <- mapM thQual qs
+    return (CLValueSign (CDefT i vs qt cs') qs')
+thDefl d = return d
+
+thRule :: CRule -> TI CRule
+thRule (CRule rps mi qs e) =
+    CRule rps <$> mapM thExpr mi <*> mapM thQual qs <*> thExpr e
+thRule (CRuleNest rps mi qs rs) =
+    CRuleNest rps <$> mapM thExpr mi <*> mapM thQual qs <*> mapM thRule rs
+
+thExpr :: CExpr -> TI CExpr
+thExpr (CAnyT pos UHole t) = do
+    twarn (pos, WTypedHole (pfpString t) [])
+    return (CAnyT pos UDontCare t)
+thExpr (Cletseq ds e) = Cletseq <$> mapM thDefl ds <*> thExpr e
+thExpr (Cletrec ds e) = Cletrec <$> mapM thDefl ds <*> thExpr e
+thExpr (CApply f es) = CApply <$> thExpr f <*> mapM thExpr es
+thExpr (CTaskApplyT f t es) = do
+    f' <- thExpr f
+    es' <- mapM thExpr es
+    return (CTaskApplyT f' t es')
+thExpr (CConT ti ci es) = CConT ti ci <$> mapM thExpr es
+thExpr (CStructT t fs) = CStructT t <$> mapM thField fs
+  where thField (f, e) = do { e' <- thExpr e; return (f, e') }
+thExpr (Crules sps rs) = Crules sps <$> mapM thRule rs
+thExpr (CTApply e ts) = do
+    e' <- thExpr e
+    return (CTApply e' ts)
+thExpr (CmoduleVerilogT t m ui c r ses fs sch ps) = do
+    m' <- thExpr m
+    ses' <- mapM (\ (a, e) -> do { e' <- thExpr e; return (a, e') }) ses
+    return (CmoduleVerilogT t m' ui c r ses' fs sch ps)
+-- the remaining post-typecheck constructors are leaves
+-- (CVar, CLit, CLitT, CSelectT, CForeignFuncCT, Cattributes, CAny,
+-- and CAnyT for ordinary dont-cares)
+thExpr e = return e
 
 -- Force the substitution to make sure we don't drag around cruft.
 getSubst' :: TI Subst

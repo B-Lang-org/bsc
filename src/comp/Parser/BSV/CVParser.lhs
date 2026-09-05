@@ -523,6 +523,14 @@ EXPRESSIONS
 >        pSymbol SV_SYM_question
 >        return $ anyExprAt pos
 
+A typed hole: a dont-care written "__", whose inferred type is reported
+
+> pHole :: SV_Parser CExpr
+> pHole = pToken accept
+>     where accept (SV_Token_Id { start_position = pos, name = "__" })
+>               = Just (holeExprAt pos)
+>           accept _ = Nothing
+
 > pVariable :: SV_Parser CExpr
 > pVariable = do
 >     i <- pQualIdentifier <?> "variable"
@@ -1915,7 +1923,7 @@ parse valueOf and stringOf: these are like function call, but applied to a type
 >         <|> pStringOf
 >         -- variable, function call, method select
 >         <|> ((if allowDontCare
->               then pVariable <|> pDontCare <|> pInParens pExpression
+>               then pHole <|> pVariable <|> pDontCare <|> pInParens pExpression
 >               else pVariable <|> pInParens pExpression)
 >              >>= pPrimaryWithSuffix)
 >         <|> pConstructorPrimary)

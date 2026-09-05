@@ -1420,6 +1420,10 @@ instance Bin UndefKind where
     writeBytes UNotUsed  = putI 0
     writeBytes UDontCare = putI 1
     writeBytes UNoMatch  = putI 2
+    -- holes are demoted to UDontCare during typecheck; a hole that
+    -- survives to be serialized (e.g. in an untypechecked default
+    -- clause) is recorded as a plain dont-care
+    writeBytes UHole     = putI 1
     readBytes = do tag <- getI
                    case tag of
                      0 -> return UNotUsed

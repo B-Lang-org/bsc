@@ -1,0 +1,16 @@
+
+#
+# typed holes: "__" is a dont-care whose inferred type is reported
+#
+
+# a hole whose type comes from the definition's signature (Classic)
+compile_pass_warning HoleInDef.bs T0159
+compare_file HoleInDef.bs.bsc-out
+
+# holes inside a module: a submodule argument and a rule body
+compile_pass_warning HoleInModule.bs T0159 2
+compare_file HoleInModule.bs.bsc-out
+
+# holes in BSV
+compile_pass_warning HoleBsv.bsv T0159 2
+compare_file HoleBsv.bsv.bsc-out

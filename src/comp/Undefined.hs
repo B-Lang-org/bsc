@@ -29,13 +29,19 @@ import Eval(NFData(..))
 -- * UDontCare is an explicit dont-care value written by the user, or
 --   any other dont-care value that doesn't fit the above kinds.
 
-data UndefKind = UNotUsed | UDontCare | UNoMatch
+-- * UHole is a dont-care written by the user as "__", requesting a
+--   report of the type inferred for that position.  The typechecker
+--   reports the type and then demotes the hole to UDontCare, so no
+--   later stage should encounter it.
+
+data UndefKind = UNotUsed | UDontCare | UNoMatch | UHole
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 instance NFData UndefKind where
     rnf UNotUsed = ()
     rnf UDontCare = ()
     rnf UNoMatch = ()
+    rnf UHole = ()
 
 -- =====
 
@@ -61,5 +67,8 @@ undefKindToInteger :: UndefKind -> Integer
 undefKindToInteger UNotUsed  = uNotUsedInteger
 undefKindToInteger UDontCare = uDontCareInteger
 undefKindToInteger UNoMatch  = uNoMatchInteger
+-- holes are demoted to UDontCare during typecheck; if one survives
+-- (e.g. in an untypechecked default clause), treat it as a dont-care
+undefKindToInteger UHole     = uDontCareInteger
 
 -- ============================================================

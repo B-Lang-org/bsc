@@ -1,0 +1,9 @@
+checking package dependencies
+compiling HoleBsv.bsv
+Warning: "HoleBsv.bsv", line 5, column 29: (T0159)
+  Typed hole `__' has the inferred type:
+    Bit#(8)
+Warning: "HoleBsv.bsv", line 7, column 16: (T0159)
+  Typed hole `__' has the inferred type:
+    Bit#(8)
+All packages are up to date.

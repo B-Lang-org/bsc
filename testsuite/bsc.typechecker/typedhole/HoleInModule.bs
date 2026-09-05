@@ -1,0 +1,14 @@
+package HoleInModule(mkHoleInModule, Ifc(..)) where
+
+interface Ifc =
+    getVal :: Bit 8
+
+mkHoleInModule :: Module Ifc
+mkHoleInModule =
+    module
+        r :: Reg (Bit 8)
+        r <- mkReg __
+        rules
+            "incr": when True ==> r := r + __
+        interface
+            getVal = r + 1

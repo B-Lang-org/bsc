@@ -1,0 +1,9 @@
+checking package dependencies
+compiling HoleInModule.bs
+Warning: "HoleInModule.bs", line 10, column 19: (T0159)
+  Typed hole `__' has the inferred type:
+    Prelude.Bit 8
+Warning: "HoleInModule.bs", line 12, column 43: (T0159)
+  Typed hole `__' has the inferred type:
+    Prelude.Bit 8
+All packages are up to date.

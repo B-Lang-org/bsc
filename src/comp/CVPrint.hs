@@ -59,6 +59,7 @@ import ErrorUtil
 import Position(Position, noPosition)
 import Id
 import IdPrint
+import Undefined(UndefKind(UHole))
 import PreStrings (fsAcute)
 import PreIds(idPrimUnit, idPrimPair, idIsModule,
               idAction, idActionValue, idPrimSelectFn, id_read)
@@ -564,6 +565,7 @@ instance PVPrint CExpr where
         if (p>1) then t"(begin" <+> ppCase d e arms $+$ t"end)"
                  else if (p==1) then t"begin" <+> ppCase d e arms $+$ t"end"
                  else ppCase d e arms
+    pvPrint d p (CAny _ UHole) = text "__"
     pvPrint d p (CAny {}) = text "?"
     pvPrint d p (CVar i) = pvpId d i
     pvPrint d p (CStruct _ tyc []) | tyc == idPrimUnit = text "()"

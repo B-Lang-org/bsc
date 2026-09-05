@@ -1,0 +1,6 @@
+checking package dependencies
+compiling HoleInDef.bs
+Warning: "HoleInDef.bs", line 4, column 6: (T0159)
+  Typed hole `__' has the inferred type:
+    Prelude.Bit 12
+All packages are up to date.

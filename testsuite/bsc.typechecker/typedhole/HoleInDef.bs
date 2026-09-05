@@ -1,0 +1,7 @@
+package HoleInDef(holeInDef) where
+
+x :: Bool -> Bit 12
+x _ = __
+
+holeInDef :: Bit 12
+holeInDef = x True
