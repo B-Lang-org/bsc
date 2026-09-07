@@ -69,15 +69,12 @@ rule_RL_r1_sysTb =
 	 ; (guard1 :: Bool) = fst3 act1
 	 ; (state1 :: MOD_sysTb) = state0 { inst_gcd__sysTb = snd3 act1 }
 	 ; (def_gcd_start_and_result___d10 :: Bit #51) = thd act1
-	 ; (def_gcd_start_and_result_0_PLUS_1___d11 :: Bit #51) =
+	 ; (def_gcd_start_and_result_PLUS_1___d11 :: Bit #51) =
 	       primAdd def_gcd_start_and_result___d10 (1 :: Bit #51)
 	 ; (act2 :: (Bool, MOD_RegN #51, ())) =
 	       meth_write_RegN
 		   (primConcat
-			((primExtract
-			      def_gcd_start_and_result_0_PLUS_1___d11
-			      (49 :: Bit #32)
-			      (0 :: Bit #32)) :: Bit #50)
+			((primExtract def_gcd_start_and_result_PLUS_1___d11 (49 :: Bit #32) (0 :: Bit #32)) :: Bit #50)
 			(0 :: Bit #1))
 		   (inst_rg__sysTb state1)
 	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
@@ -100,14 +97,14 @@ rule_RL_r2_sysTb =
      let { (def_state___d2 :: Bit #2) = meth_read_RegN (inst_state__sysTb state0)
 	 ; (def_gcd_RDY_result____d14 :: Bool) = meth_RDY_result_sysMethods (inst_gcd__sysTb state0)
 	 ; (def_gcd_result____d17 :: Bit #51) = meth_result_sysMethods (inst_gcd__sysTb state0)
-	 ; (def_gcd_result__7_PLUS_1___d18 :: Bit #51) = primAdd def_gcd_result____d17 (1 :: Bit #51)
+	 ; (def_gcd_result_PLUS_1___d18 :: Bit #51) = primAdd def_gcd_result____d17 (1 :: Bit #51)
 	 ; (def_state_EQ_2___d15 :: Bool) = primEQ def_state___d2 (2 :: Bit #2)
-	 ; (def_gcd_RDY_result__4_AND_state_EQ_2_5___d16 :: Bool) =
+	 ; (def_gcd_RDY_result_AND_state_EQ_2___d16 :: Bool) =
 	       def_gcd_RDY_result____d14 && def_state_EQ_2___d15
 	 ; (act1 :: (Bool, MOD_RegN #51, ())) =
 	       meth_write_RegN
 		   (primConcat
-			((primExtract def_gcd_result__7_PLUS_1___d18 (49 :: Bit #32) (0 :: Bit #32)) :: Bit #50)
+			((primExtract def_gcd_result_PLUS_1___d18 (49 :: Bit #32) (0 :: Bit #32)) :: Bit #50)
 			(0 :: Bit #1))
 		   (inst_rg__sysTb state0)
 	 ; (guard1 :: Bool) = fst3 act1
@@ -116,7 +113,7 @@ rule_RL_r2_sysTb =
 	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
 	 ; (state2 :: MOD_sysTb) = state1 { inst_state__sysTb = snd3 act2 }
 	 }
-     in mktuple (def_gcd_RDY_result__4_AND_state_EQ_2_5___d16 && guard2) state2 ());
+     in mktuple (def_gcd_RDY_result_AND_state_EQ_2___d16 && guard2) state2 ());
 
 rule_RL_exit_sysTb :: MOD_sysTb -> (Bool, MOD_sysTb, ());
 rule_RL_exit_sysTb =

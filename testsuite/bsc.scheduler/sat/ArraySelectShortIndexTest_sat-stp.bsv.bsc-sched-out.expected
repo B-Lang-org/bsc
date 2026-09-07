@@ -23,9 +23,7 @@ order: [RL_aa, RL_ab, RL_bb]
  (rg_3.read, [(rg_3.read, 1)]),
  (uc.read, [(uc.read, 1)]),
  (uc.write,
-  [(uc.write uc_0_PLUS_1___d11, 1),
-   (uc.write uc_0_PLUS_2___d20, 1),
-   (uc.write uc_0_PLUS_3___d22, 1)])]
+  [(uc.write uc_PLUS_1___d11, 1), (uc.write uc_PLUS_2___d20, 1), (uc.write uc_PLUS_3___d22, 1)])]
 
 -----
 

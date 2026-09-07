@@ -34,7 +34,7 @@ order: [RL_theRuleOne, RL_theRuleTwo, RL_theRuleThree, RL_theRuleFour]
  (the_r.write,
   [(the_r.write the_r_PLUS_23___d4, 1),
    (the_r.write the_r_PLUS_2___d7, 1),
-   (the_r.write the_r_BITS_6_TO_0_0_CONCAT_0_1_MINUS_13___d12, 1),
+   (the_r.write the_r_BITS_6_TO_0_CONCAT_0_MINUS_13___d12, 1),
    (the_r.write the_r_PLUS_1___d15, 1)])]
 
 -----

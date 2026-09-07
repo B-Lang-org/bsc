@@ -42,7 +42,7 @@ order: [RL_r1, RL_r2, RL_r3, RL_r4, RL_done, RL_r1y, RL_r2y, RL_r3y, RL_r4y, RL_
  (x.read, [(x.read, 1)]),
  (x.write, [(x.write NOT_x___d7, 1)]),
  (y.read, [(y.read, 1)]),
- (y.write, [(y.write NOT_y_9___d20, 1)])]
+ (y.write, [(y.write NOT_y___d20, 1)])]
 
 -----
 
