@@ -23,4 +23,5 @@ Warning: "Boundary_Method_MultipleReset_SomeMissing.bsv", line 8, column 8: (G01
   During elaboration of `sysBoundary_Method_MultipleReset' at
   "Boundary_Method_MultipleReset_SomeMissing.bsv", line 8, column 8.
 Verilog file created: sysBoundary_Method_MultipleReset.v
+Elaborated module file created: sysBoundary_Method_MultipleReset.ba
 All packages are up to date.

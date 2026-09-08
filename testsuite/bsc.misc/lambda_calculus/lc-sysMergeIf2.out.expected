@@ -40,23 +40,22 @@ dim_sysMergeIf2 =
 rule_RL_r_sysMergeIf2 :: MOD_sysMergeIf2 -> (Bool, MOD_sysMergeIf2, ());
 rule_RL_r_sysMergeIf2 =
     (\ (state0 :: MOD_sysMergeIf2) ->
-     let { (def_c1__h304 :: Bit #1) = meth_read_RegN (inst_c1__sysMergeIf2 state0)
-	 ; (def_c2__h306 :: Bit #1) = meth_read_RegN (inst_c2__sysMergeIf2 state0)
+     let { (def_c1__h301 :: Bit #1) = meth_read_RegN (inst_c1__sysMergeIf2 state0)
+	 ; (def_c2__h303 :: Bit #1) = meth_read_RegN (inst_c2__sysMergeIf2 state0)
 	 ; (def_c3__h364 :: Bit #1) = meth_read_RegN (inst_c3__sysMergeIf2 state0)
-	 ; (def_c4__h428 :: Bit #1) = meth_read_RegN (inst_c4__sysMergeIf2 state0)
-	 ; (def_c3_AND_NOT_c2___d6 :: Bool) = (bitToBool def_c3__h364) && (not (bitToBool def_c2__h306))
-	 ; (def_c2_AND_c3___d9 :: Bool) = (bitToBool def_c2__h306) && (bitToBool def_c3__h364)
-	 ; (def_c2_AND_c3_AND_c4_0___d11 :: Bool) = def_c2_AND_c3___d9 && (bitToBool def_c4__h428)
-	 ; (def_c4_0_AND_NOT_c1___d13 :: Bool) = (bitToBool def_c4__h428) && (not (bitToBool def_c1__h304))
-	 ; (def_c4_0_AND_NOT_c1_3_AND_c3___d14 :: Bool) =
-	       def_c4_0_AND_NOT_c1___d13 && (bitToBool def_c3__h364)
-	 ; (def_c1_AND_c2___d3 :: Bool) = (bitToBool def_c1__h304) && (bitToBool def_c2__h306)
+	 ; (def_c4__h411 :: Bit #1) = meth_read_RegN (inst_c4__sysMergeIf2 state0)
+	 ; (def_c3_AND_NOT_c2___d6 :: Bool) = (bitToBool def_c3__h364) && (not (bitToBool def_c2__h303))
+	 ; (def_c2_AND_c3___d9 :: Bool) = (bitToBool def_c2__h303) && (bitToBool def_c3__h364)
+	 ; (def_c2_AND_c3_AND_c4___d11 :: Bool) = def_c2_AND_c3___d9 && (bitToBool def_c4__h411)
+	 ; (def_c4_AND_NOT_c1___d13 :: Bool) = (bitToBool def_c4__h411) && (not (bitToBool def_c1__h301))
+	 ; (def_c4_AND_NOT_c1_AND_c3___d14 :: Bool) = def_c4_AND_NOT_c1___d13 && (bitToBool def_c3__h364)
+	 ; (def_c1_AND_c2___d3 :: Bool) = (bitToBool def_c1__h301) && (bitToBool def_c2__h303)
 	 ; (def_c3_AND_NOT_c2_AND_NOT_c1___d8 :: Bool) =
-	       def_c3_AND_NOT_c2___d6 && (not (bitToBool def_c1__h304))
-	 ; (def_c2_AND_c3_AND_c4_0_1_AND_c1___d12 :: Bool) =
-	       def_c2_AND_c3_AND_c4_0___d11 && (bitToBool def_c1__h304)
-	 ; (def_c4_0_AND_NOT_c1_3_AND_c3_4_AND_NOT_c2___d15 :: Bool) =
-	       def_c4_0_AND_NOT_c1_3_AND_c3___d14 && (not (bitToBool def_c2__h306))
+	       def_c3_AND_NOT_c2___d6 && (not (bitToBool def_c1__h301))
+	 ; (def_c2_AND_c3_AND_c4_AND_c1___d12 :: Bool) =
+	       def_c2_AND_c3_AND_c4___d11 && (bitToBool def_c1__h301)
+	 ; (def_c4_AND_NOT_c1_AND_c3_AND_NOT_c2___d15 :: Bool) =
+	       def_c4_AND_NOT_c1_AND_c3___d14 && (not (bitToBool def_c2__h303))
 	 ; (act1 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (0 :: Bit #17) (inst_w__sysMergeIf2 state0)
 	 ; (guard1 :: Bool) = if def_c1_AND_c2___d3 then fst3 act1 else True
 	 ; (state1 :: MOD_sysMergeIf2) =
@@ -66,14 +65,14 @@ rule_RL_r_sysMergeIf2 =
 	 ; (state2 :: MOD_sysMergeIf2) =
 	       if def_c3_AND_NOT_c2_AND_NOT_c1___d8 then state1 { inst_x__sysMergeIf2 = snd3 act2 } else state1
 	 ; (act3 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (2 :: Bit #17) (inst_y__sysMergeIf2 state2)
-	 ; (guard3 :: Bool) = if def_c2_AND_c3_AND_c4_0_1_AND_c1___d12 then guard2 && (fst3 act3) else guard2
+	 ; (guard3 :: Bool) = if def_c2_AND_c3_AND_c4_AND_c1___d12 then guard2 && (fst3 act3) else guard2
 	 ; (state3 :: MOD_sysMergeIf2) =
-	       if def_c2_AND_c3_AND_c4_0_1_AND_c1___d12 then state2 { inst_y__sysMergeIf2 = snd3 act3 } else state2
+	       if def_c2_AND_c3_AND_c4_AND_c1___d12 then state2 { inst_y__sysMergeIf2 = snd3 act3 } else state2
 	 ; (act4 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (3 :: Bit #17) (inst_z__sysMergeIf2 state3)
 	 ; (guard4 :: Bool) =
-	       if def_c4_0_AND_NOT_c1_3_AND_c3_4_AND_NOT_c2___d15 then guard3 && (fst3 act4) else guard3
+	       if def_c4_AND_NOT_c1_AND_c3_AND_NOT_c2___d15 then guard3 && (fst3 act4) else guard3
 	 ; (state4 :: MOD_sysMergeIf2) =
-	       if def_c4_0_AND_NOT_c1_3_AND_c3_4_AND_NOT_c2___d15
+	       if def_c4_AND_NOT_c1_AND_c3_AND_NOT_c2___d15
 	       then state3 { inst_z__sysMergeIf2 = snd3 act4 }
 	       else state3
 	 }

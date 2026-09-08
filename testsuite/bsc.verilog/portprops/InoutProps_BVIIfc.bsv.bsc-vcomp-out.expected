@@ -11,4 +11,5 @@ io_ifc                        IO    32 inout
 -----
 
 Verilog file created: sysInoutProps_BVIIfc.v
+Elaborated module file created: sysInoutProps_BVIIfc.ba
 All packages are up to date.

@@ -8,4 +8,5 @@ Combinational paths from inputs to outputs:
 -----
 
 Verilog file created: mkArgument2ReturnValue2.v
+Elaborated module file created: mkArgument2ReturnValue2.ba
 All packages are up to date.
