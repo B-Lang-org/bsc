@@ -496,10 +496,13 @@ leftTyCon (TAp f _) = leftTyCon f
 leftTyCon (TCon tc) = Just tc
 leftTyCon _ = Nothing
 
+-- Accumulates on the way down, so building the argument list costs one cons
+-- per spine level rather than an append.
 tyConArgs :: CType -> [CType]
-tyConArgs (TAp f a) = tyConArgs f ++ [a]
-tyConArgs (TCon _) = []
-tyConArgs t = internalError("tyConArgs: " ++ show t)
+tyConArgs t0 = go t0 []
+  where go (TAp f a) as = go f (a:as)
+        go (TCon _) as = as
+        go t _ = internalError("tyConArgs: " ++ show t)
 
 allTyCons :: CType -> [TyCon]
 allTyCons (TCon c) = [c]
@@ -514,11 +517,12 @@ getTConName (TyStr {}) = Nothing
 allTConNames :: CType -> [Id]
 allTConNames = mapMaybe getTConName . allTyCons
 
--- like the above functions, but works even if the left-most is not a tycon
+-- Accumulates the arguments of any head on the way down, so a split costs one
+-- cons per spine level rather than an append.
 splitTAp :: CType -> (CType, [CType])
-splitTAp (TAp f a) = let (l,as) = splitTAp f
-                     in  (l,as ++ [a])
-splitTAp t = (t,[])
+splitTAp t0 = go t0 []
+  where go (TAp f a) as = go f (a:as)
+        go t as = (t, as)
 
 -- Copied from normITAp
 normTAp :: Type -> Type -> Type
