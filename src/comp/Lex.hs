@@ -445,7 +445,10 @@ skipToEOL lf f l ""        = lexerr f l 0 LexMissingNL
 lexLitChar'                :: String -> Maybe (Char, Int, String)
 lexLitChar' ('\\':s)        = lexEsc s
         where
-        lexEsc ('x':s)        = let (n,s') = span isHexDigit s in Just (chr (fromInteger (readN 16 n)), 2+length n, s')
+        -- \x with no hex digits is an error, not '\NUL' (readN [] is a bottom)
+        lexEsc ('x':s)        = case span isHexDigit s of
+                                  ([], _) -> Nothing
+                                  (n, s') -> Just (chr (fromInteger (readN 16 n)), 2+length n, s')
         lexEsc ('n':s)  = Just ('\n', 1, s)
         lexEsc ('t':s)  = Just ('\t', 1, s)
         lexEsc ('r':s)  = Just ('\r', 1, s)

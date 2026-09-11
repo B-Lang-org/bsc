@@ -1,0 +1,4 @@
+package StringEscNoDigits where
+
+s :: String
+s = "a\x"
