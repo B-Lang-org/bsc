@@ -151,10 +151,15 @@ PACKAGES = \
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
 # in make mode where it follows dependencies (use GHCMAKEFLAGS).
 #
-# The make flags do not include "-o" because bluetcl and bluewish
-# are compiled in two steps and the first step doesn't have that option.
-# So all users of GHCMAKEFLAGS have to include "-o" themselves.
-GHCMAKEFLAGS = --make $@ -j$(GHCJOBS)
+# MAINSRC is the source file holding a target's main module. The program
+# entry files live in app/, separate from the library modules bsc.cabal
+# exposes, and their names do not always match the executable, so each
+# target names its own. Anything not listed keeps its main beside the
+# library modules.
+MAINSRC = $@.hs
+bsc bsc2bsv bsv2bsc dumpbo dumpba vcdcheck showrules: MAINSRC = app/$@.hs
+bluetcl: MAINSRC = app/bluetcl_Main.hs
+GHCMAKEFLAGS = --make $(MAINSRC) -o $@ -j$(GHCJOBS)
 GHCCOMPILEFLAGS = -o $@ -c $<
 
 # On Mac OS, we'll need to update the dylib location,
@@ -178,6 +183,7 @@ GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
+	-iapp \
 	-iGHC/posix -iLibs \
 	-i$(PARSEC_HS) \
 	-i$(STP_HS) \
@@ -359,18 +365,14 @@ showrules: $(SOURCES)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
-# bluetcl is built in two steps:
-# 1. Build BlueTcl module using -c to emit .hi/.o files, and also the
-#    BlueTcl_stub.h reqired by bluetcl_Main.hsc in the next action
-# 2. Link BlueTcl with a custom C main that #includes BlueTcl_stub.h
+# bluetcl has a Haskell main that hands control to Tcl through a C shim,
+# which is how the cabal executable is built too, so there is one entry
+# point to maintain rather than two.
 .PHONY: bluetcl
-bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
+bluetcl: app/bluetcl_Main.hs app/BlueTcl.hs app/bluetcl_shim.c $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) \
-		-o $@ \
-		-no-hs-main \
-		-x c bluetcl_Main.hsc
+	$(BUILDCOMMAND) $(BUILDFLAGS) $(RTSFLAGS) $(BLUETCL_BUILDLIBS) \
+		app/bluetcl_shim.c
 	$(POSTBUILDCOMMAND)
 
 # -----
