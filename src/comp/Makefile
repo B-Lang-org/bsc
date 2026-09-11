@@ -58,6 +58,20 @@ YICES_HS = ../vendor/yices/include_hs
 YICES_INC_FLAGS = -I../vendor/yices/include
 YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 
+# The solvers are shared libraries, and the executables that link them find
+# them through an rpath relative to the executable's own location. That is
+# what lets an installation be moved as a whole, as the top-level Makefile
+# promises, and it is why no wrapper script has to set a library path.
+# src/Makefile installs the solvers into $(PREFIX)/lib/SAT before it descends
+# here, so the directory is populated before anything points at it.
+# $$ORIGIN is quoted because the recipe runs through a shell, which would
+# otherwise expand it before ld ever sees it.
+ifeq ($(OSTYPE), Darwin)
+SAT_RPATH_FLAGS = -optl-Wl,-rpath,@loader_path/../lib/SAT
+else
+SAT_RPATH_FLAGS = -optl-Wl,-rpath,'$$ORIGIN/../lib/SAT'
+endif
+
 # HTCL
 HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
@@ -294,6 +308,7 @@ POSTBUILDCOMMAND = $(BUILDDONE)
 BSC_BUILDLIBS = \
 	$(STP_LIB_FLAGS) \
 	$(YICES_LIB_FLAGS) \
+	$(SAT_RPATH_FLAGS) \
 
 BLUETCL_BUILDLIBS = \
 	$(BSC_BUILDLIBS) \
@@ -411,34 +426,24 @@ install:
 install-extra:
 	$(MAKE) -j1 $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
 
-# Until the need for BLUESPECDIR and LD_LIBRARY_PATH to be set is removed
-# put the binaries in a "core" subdirectory and a wrapper script in "bin"
-$(BINDIR)/core/%: %
-	mkdir -p -m 755 $(BINDIR)/core
-	$(INSTALL) -m 755 $(@F) $(BINDIR)/core/$(@F)
-
-$(BINDIR)/%: wrapper.sh $(BINDIR)/core/%
+$(BINDIR)/%: %
 	mkdir -p -m 755 $(BINDIR)
-	$(INSTALL) -m 755 wrapper.sh $(BINDIR)/$(@F)
+	$(INSTALL) -m 755 $(@F) $(BINDIR)/$(@F)
 
 .PHONY: install-bsc
 install-bsc: $(addprefix $(BINDIR)/,$(BSCEXES))
-install-bsc: $(addprefix $(BINDIR)/core/,$(BSCEXES))
 install-bsc: $(PKGINFO)
 
 .PHONY: install-bluetcl
 install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
-install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
 install-bluetcl: $(PKGINFO)
 
 .PHONY: install-utils
 install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
-install-utils: $(addprefix $(BINDIR)/core/,$(UTILEXES))
 install-utils: $(PKGINFO)
 
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
-install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 install-showrules: $(PKGINFO)
 
 # ----
