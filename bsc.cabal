@@ -14,34 +14,34 @@ build-type: Hooks
 
 custom-setup
   setup-depends:
-    base        ^>=4.18.3.0,
+    base        >=4.18.3.0,
     Cabal       ^>=3.16,
     Cabal-hooks ^>=3.16,
-    directory   ^>=1.3.8.5,
-    filepath    ^>=1.4.301.0,
-    process     ^>=1.6.28.0,
+    directory   >=1.3.8.5,
+    filepath    >=1.4.301.0,
+    process     >=1.6.19.0,
 
 library
   build-depends:
-    array        ^>=0.5.8.0,
-    base         ^>=4.18.3.0,
-    bytestring   ^>=0.11.5.4,
-    containers   ^>=0.6.7,
-    deepseq      ^>=1.4.8.1,
-    directory    ^>=1.3.8.5,
-    filepath     ^>=1.4.301.0,
-    integer-gmp  ^>=1.1,
-    mtl          ^>=2.3.1,
+    array        >=0.5.8.0,
+    base         >=4.18.3.0,
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
+    deepseq      >=1.4.8.1,
+    directory    >=1.3.8.5,
+    filepath     >=1.4.301.0,
+    integer-gmp  >=1.1,
+    mtl          >=2.3.1,
     old-locale   ^>=1.0.0.7,
     old-time     ^>=1.1.1.0,
-    process      ^>=1.6.28.0,
+    process      >=1.6.19.0,
     regex-compat ^>=0.95.2.2,
     split        ^>=0.2.5,
     strict-concurrency ^>=0.2.4.3,
     syb          ^>=0.7.2,
-    text         ^>=2.0.2,
-    time         ^>=1.12.2,
-    unix         ^>=2.8.6.0,
+    text         >=2.0.2,
+    time         >=1.12.2,
+    unix         >=2.8.6.0,
   default-language: GHC2021
   default-extensions:
     BangPatterns,
@@ -308,7 +308,7 @@ library
 
 common common_exes
   build-depends:
-    base ^>=4.18.3.0,
+    base >=4.18.3.0,
     bsc,
   default-language: GHC2021
   ghc-options: -rtsopts "-with-rtsopts=-H256m -K10m -i1"
@@ -317,25 +317,25 @@ common common_exes
 executable bsc
   import: common_exes
   build-depends:
-    containers ^>=0.6.7,
-    directory  ^>=1.3.8.5,
-    filepath   ^>=1.4.301.0,
-    mtl        ^>=2.3.1,
+    containers >=0.6.7,
+    directory  >=1.3.8.5,
+    filepath   >=1.4.301.0,
+    mtl        >=2.3.1,
     old-time   ^>=1.1.1.0,
-    process    ^>=1.6.28.0,
-    time       ^>=1.12.2,
-    unix       ^>=2.8.6.0,
+    process    >=1.6.19.0,
+    time       >=1.12.2,
+    unix       >=2.8.6.0,
   ghc-options: -main-is Main_bsc
   main-is: bsc.hs
 
 executable bluetcl
   import: common_exes
   build-depends:
-    containers   ^>=0.6.7,
-    mtl          ^>=2.3.1,
+    containers   >=0.6.7,
+    mtl          >=2.3.1,
     regex-compat ^>=0.95.2.2,
     syb          ^>=0.7.2,
-    unix         ^>=2.8.6.0,
+    unix         >=2.8.6.0,
   c-sources: src/comp/app/bluetcl_shim.c
   default-extensions:
     BangPatterns,
@@ -359,22 +359,22 @@ executable bsv2bsc
 executable dumpba
   import: common_exes
   build-depends:
-    bytestring ^>=0.11.5.4
+    bytestring >=0.11.5.4
   ghc-options: -main-is Main_dumpba
   main-is: dumpba.hs
 
 executable dumpbo
   import: common_exes
   build-depends:
-    bytestring ^>=0.11.5.4
+    bytestring >=0.11.5.4
   ghc-options: -main-is Main_dumpbo
   main-is: dumpbo.hs
 
 executable showrules
   import: common_exes
   build-depends:
-    bytestring   ^>=0.11.5.4,
-    containers   ^>=0.6.7,
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
     old-time     ^>=1.1.1.0,
     regex-compat ^>=0.95.2.2,
     split        ^>=0.2.5,
@@ -384,18 +384,18 @@ executable showrules
 executable vcdcheck
   import: common_exes
   build-depends:
-    bytestring   ^>=0.11.5.4,
-    containers   ^>=0.6.7,
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
     regex-compat ^>=0.95.2.2,
   ghc-options: -main-is Main_vcdcheck
   main-is: vcdcheck.hs
 
 test-suite bluetcl-tests
   build-depends:
-    base      ^>=4.18.3.0,
-    directory ^>=1.3.8.5,
-    filepath  ^>=1.4.301.0,
-    process   ^>=1.6.28.0,
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
   build-tool-depends: bsc:bsc, bsc:bluetcl
   default-language: GHC2021
   hs-source-dirs: testsuite
@@ -404,10 +404,10 @@ test-suite bluetcl-tests
 
 test-suite smoke
   build-depends:
-    base      ^>=4.18.3.0,
-    directory ^>=1.3.8.5,
-    filepath  ^>=1.4.301.0,
-    process   ^>=1.6.28.0,
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
   build-tool-depends: bsc:bsc, bsc:bluetcl
   default-language: GHC2021
   hs-source-dirs: testsuite
@@ -416,10 +416,10 @@ test-suite smoke
 
 test-suite utils
   build-depends:
-    base      ^>=4.18.3.0,
-    directory ^>=1.3.8.5,
-    filepath  ^>=1.4.301.0,
-    process   ^>=1.6.28.0,
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
   build-tool-depends: bsc:bsc, bsc:bluetcl, bsc:showrules, bsc:vcdcheck, bsc:dumpbo
   default-language: GHC2021
   hs-source-dirs: testsuite

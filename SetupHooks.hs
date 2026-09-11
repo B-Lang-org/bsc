@@ -32,12 +32,14 @@ import System.Directory
 import System.Environment (getEnvironment, lookupEnv)
 import System.FilePath (takeDirectory, (</>))
 import System.Info (os)
+import System.Exit (ExitCode (..))
 import System.Process
   ( CreateProcess (..),
-    callCreateProcess,
     callProcess,
+    createProcess,
     proc,
     readProcess,
+    waitForProcess,
   )
 
 setupHooks :: SetupHooks
@@ -46,6 +48,21 @@ setupHooks =
     <> stpSetupHooks
     <> yicesSetupHooks
     <> tclSetupHooks
+
+-- | Run a process to completion, failing if it does.
+--
+-- process-1.6.28 exports this as callCreateProcess, but GHC 9.6 and 9.10
+-- bundle older versions, and a floor that excludes theirs makes cabal build
+-- process from Hackage -- which does not compile against the filepath that
+-- GHC 9.10 ships. Spelling it out keeps every supported compiler on its own
+-- bundled process.
+callCreateProcess :: CreateProcess -> IO ()
+callCreateProcess cp = do
+  (_, _, _, handle) <- createProcess cp
+  code <- waitForProcess handle
+  case code of
+    ExitSuccess -> pure ()
+    ExitFailure n -> ioError (userError ("setup command failed with " <> show n))
 
 isMainLib :: Component -> Bool
 isMainLib (CLib Library {libName = LMainLibName}) = True
