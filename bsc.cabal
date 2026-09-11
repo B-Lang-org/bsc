@@ -48,9 +48,6 @@ library
     FlexibleContexts,
     FlexibleInstances,
     TypeSynonymInstances,
-  extra-bundled-libraries:
-    Cstp,
-    Cyices,
   if os(osx)
     extra-libraries: c++
   else

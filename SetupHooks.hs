@@ -9,8 +9,7 @@ module SetupHooks (setupHooks) where
 
 import Control.Monad (forM_, unless, when)
 import Data.Char (isSpace)
-import Data.Functor (void)
-import Data.List (isPrefixOf, isSuffixOf, sort)
+import Data.List (isPrefixOf, sort)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe)
 import Distribution.Simple.LocalBuildInfo (hostPlatform)
@@ -18,7 +17,6 @@ import Distribution.Simple.SetupHooks
 import Distribution.System (OS (..))
 import Distribution.Utils.Path
   ( interpretSymbolicPathCWD,
-    makeRelativePathEx,
     makeSymbolicPath,
     moduleNameSymbolicPath,
     (<.>),
@@ -31,7 +29,6 @@ import System.Directory
   )
 import System.Environment (getEnvironment, lookupEnv)
 import System.FilePath (takeDirectory, (</>))
-import System.Info (os)
 import System.Exit (ExitCode (..))
 import System.Process
   ( CreateProcess (..),
@@ -45,8 +42,7 @@ import System.Process
 setupHooks :: SetupHooks
 setupHooks =
   generatedModulesSetupHooks
-    <> stpSetupHooks
-    <> yicesSetupHooks
+    <> solverSetupHooks
     <> tclSetupHooks
 
 -- | Run a process to completion, failing if it does.
@@ -173,89 +169,70 @@ generatedModulesSetupHooks = noSetupHooks {configureHooks, buildHooks}
       callCreateProcess $ cmd {cwd = Just "src/comp", env = Just env}
       copyFile "src/comp/BuildVersion.hs" path
 
--- | Create a static library @out@ from other objects @objs@ and static
--- libraries @libs@.
-makeStaticLib :: OS -> FilePath -> [FilePath] -> [FilePath] -> IO ()
-makeStaticLib Linux out libs objs = do
-  void . readProcess "ar" ["-M"] $
-    unlines
-      ( ["CREATE " <> out]
-          <> (("ADDLIB " <>) <$> libs)
-          <> (("ADDMOD " <>) <$> objs)
-          <> ["SAVE", "END"]
-      )
-makeStaticLib OSX out libs objs = do
-  callProcess "libtool" (["-static", "-o", out] <> libs <> objs)
-makeStaticLib os _ _ _ = ioError (userError ("unsupported OS: " <> show os))
-
--- | The hooks to build STP.
-stpSetupHooks :: SetupHooks
-stpSetupHooks = noSetupHooks {buildHooks}
+-- | The hooks that make the vendored solvers available.
+--
+-- The solvers are shared libraries, so the Haskell library's dynamic object --
+-- which is what ghci and runghc load -- carries them as recorded dependencies
+-- rather than copies of their code. That is also why they cannot be
+-- @extra-bundled-libraries@: cabal keeps those off the library's own link
+-- line, and GHC's runtime linker cannot load a static archive on
+-- aarch64-darwin at all.
+--
+-- Cabal is told about them the way tclSetupHooks tells it about Tcl: the
+-- directory is computed here and injected into each component, because an
+-- absolute path in a build tree cannot be written in the .cabal file.
+solverSetupHooks :: SetupHooks
+solverSetupHooks = noSetupHooks {configureHooks}
   where
-    buildHooks = noBuildHooks {postBuildComponentHook}
+    configureHooks = noConfigureHooks {preConfComponentHook}
 
-    postBuildComponentHook :: Maybe PostBuildComponentHook
-    postBuildComponentHook = Just $ \env -> do
-      let out =
-            Location
-              (componentBuildDir env.localBuildInfo env.targetInfo.targetCLBI)
-              (makeRelativePathEx "libCstp.a")
-      let path = interpretSymbolicPathCWD (location out)
-      let Platform _ os = hostPlatform env.localBuildInfo
-      when (isMainLib (targetComponent env.targetInfo)) $ do
-        needing [path] $ do
-          needing (stpLibs <> stpObjs) $ do
-            callProcess "make" (["-C", stpDir] <> stpLibs <> stpObjs)
-          makeStaticLib
-            os
-            path
-            ((stpDir </>) <$> stpLibs)
-            ((stpDir </>) <$> stpObjs)
+    -- The vendored directories are named directly, so nothing has to be
+    -- staged anywhere and there is no copy to go missing.
+    preConfComponentHook :: Maybe PreConfComponentHook
+    preConfComponentHook = Just $ \inputs -> do
+      dirs <- solverLibDirs
+      pure $
+        PreConfComponentOutputs
+          { componentDiff =
+              buildInfoComponentDiff
+                (componentName inputs.component)
+                ( emptyBuildInfo
+                    { extraLibs = ["stp", "yices"],
+                      extraLibDirs = map makeSymbolicPath dirs,
+                      -- The solvers record themselves as @rpath/...@, so
+                      -- an rpath is the whole of what either platform needs
+                      -- to resolve them, and these artifacts run where they
+                      -- are built, which makes the build tree's own
+                      -- directories the right answer. Naming it on the
+                      -- library alone is enough: the executables that link
+                      -- the library inherit its ldOptions, and injecting it
+                      -- per component instead passes each -rpath twice.
+                      ldOptions =
+                        [ "-Wl,-rpath," <> dir
+                          | isMainLib inputs.component,
+                            dir <- dirs
+                        ]
+                    }
+                )
+          }
 
-    stpDir :: FilePath
-    stpDir = "src/vendor/stp/src"
-    stpLibs :: [FilePath]
-    stpLibs =
-      [ "AST/libast.a",
-        "STPManager/libstpmgr.a",
-        "absrefine_counterexample/libabstractionrefinement.a",
-        "cpp_interface/libcppinterface.a",
-        "extlib-abc/libabc.a",
-        "extlib-constbv/libconstantbv.a",
-        "main/libmain.a",
-        "parser/libparser.a",
-        "printer/libprinter.a",
-        "sat/libminisat.a",
-        "simplifier/libsimplifier.a",
-        "to-sat/libtosat.a"
-      ]
-    stpObjs :: [FilePath]
-    stpObjs = ["c_interface/c_interface.o"]
+-- | Build the vendored solvers and return the directories holding them.
+--
+-- The make targets are no-ops once the libraries are up to date, and the
+-- libraries are where the make build leaves them, so nothing is staged and
+-- nothing can go missing between a configure and a build.
+solverLibDirs :: IO [FilePath]
+solverLibDirs = do
+  scratch <- makeAbsolute ("dist-newstyle" </> "solver-prefix")
+  forM_ solvers $ \(sub, _) ->
+    callProcess "make" ["-C", sub, "install", "PREFIX=" <> scratch]
+  mapM (makeAbsolute . snd) solvers
 
--- | The hooks to build Yices.
-yicesSetupHooks :: SetupHooks
-yicesSetupHooks = noSetupHooks {buildHooks}
-  where
-    buildHooks = noBuildHooks {postBuildComponentHook}
-
-    postBuildComponentHook :: Maybe PostBuildComponentHook
-    postBuildComponentHook = Just $ \env -> do
-      let out =
-            Location
-              (componentBuildDir env.localBuildInfo env.targetInfo.targetCLBI)
-              (makeRelativePathEx "libCyices.a")
-      let path = interpretSymbolicPathCWD (location out)
-      let Platform _ os = hostPlatform env.localBuildInfo
-      when (isMainLib (targetComponent env.targetInfo)) $ do
-        needing [path] $ do
-          needing [yicesLib] $ do
-            callProcess "make" ["-C", yicesDir, "LDCONFIG=ldconfig"]
-          copyFile yicesLib path
-
-    yicesDir :: FilePath
-    yicesDir = "src/vendor/yices/v2.6"
-    yicesLib :: FilePath
-    yicesLib = "src/vendor/yices/v2.6/yices2-inst/lib/libyices.a"
+solvers :: [(FilePath, FilePath)]
+solvers =
+  [ ("src/vendor/stp", "src/vendor/stp/lib"),
+    ("src/vendor/yices", "src/vendor/yices/lib")
+  ]
 
 -- | The hooks to link to Tcl.
 tclSetupHooks :: SetupHooks
