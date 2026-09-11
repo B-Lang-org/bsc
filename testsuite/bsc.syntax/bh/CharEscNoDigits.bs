@@ -1,0 +1,4 @@
+package CharEscNoDigits where
+
+c :: Char
+c = '\x'

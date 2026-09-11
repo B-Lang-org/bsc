@@ -131,6 +131,13 @@ compile_fail LexPos_Task.bs
 check_lex_pos LexPos_Task.bs 7 14
 check_lex_pos LexPos_Task.bs 10 14
 
+# A \x escape with no hex digits is a lexical error at the literal's
+# position (bsc used to crash with "Prelude.foldl1: empty list")
+compile_fail_error StringEscNoDigits.bs P0001
+check_lex_pos StringEscNoDigits.bs 4 4 P0001
+compile_fail_error CharEscNoDigits.bs P0000
+check_lex_pos CharEscNoDigits.bs 4 4 P0000
+
 # -----
 
 # Allow _ in numeric literals
