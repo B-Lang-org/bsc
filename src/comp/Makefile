@@ -393,11 +393,21 @@ endif
 # -----
 # Install targets
 
+# Every executable compiles into the same -odir, so two of them running at
+# once race on the objects of the modules they share: one renames its
+# temporary over the path the other is still writing, which surfaces as
+# `renameFile: ... VCD.o.tmp to ... VCD.o: does not exist`. Build them
+# through a -j1 sub-make, which holds however the caller invoked make.
+# Little is lost, because the objects are shared: after the first target the
+# rest compile only their own main and link, and GHCJOBS still parallelises
+# within each compile. Naming one executable directly still builds just it.
 .PHONY: install
-install: $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
+install:
+	$(MAKE) -j1 $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
 
 .PHONY: install-extra
-install-extra: $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
+install-extra:
+	$(MAKE) -j1 $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
 
 # Until the need for BLUESPECDIR and LD_LIBRARY_PATH to be set is removed
 # put the binaries in a "core" subdirectory and a wrapper script in "bin"
