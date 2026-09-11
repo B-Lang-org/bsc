@@ -14,3 +14,8 @@ dist-newstyle/
 
 .vagrant/
 vagrant-out/
+
+# bluehs: the GHC package environment cabal writes, and machine-local cabal
+# settings
+.ghc.environment.*
+cabal.project.local
