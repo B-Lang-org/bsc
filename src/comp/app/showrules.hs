@@ -16,7 +16,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
              convExceptTToIO)
 import Util(separate, headOrErr, fromJustOrErr, unconsOrErr)
 import IOUtil(getEnvDef)
-import TopUtils(dfltBluespecDir)
+import TopUtils(getBluespecDir)
 import ASyntax
 import ASyntaxUtil
 import ABin(ABinModInfo(..))
@@ -291,7 +291,7 @@ main = do
 hmain :: [String] -> IO ()
 hmain argv = do
           errh <- initErrorHandle
-          bluespecdir <- getEnvDef "BLUESPECDIR" dfltBluespecDir
+          bluespecdir <- getBluespecDir
           -- parse command line arguments
           let (opts, args, emsgs) = parseOpts argv bluespecdir
 
