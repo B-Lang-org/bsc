@@ -1,0 +1,424 @@
+cabal-version: 3.14
+
+name: bsc
+version: 2026.1
+synopsis: Bluespec Compiler (BSC)
+description: Toolchain for the Bluespec Hardware Definition Language
+homepage: https://github.com/B-Lang-org/bsc
+license: BSD-3-Clause
+license-file: COPYING
+author: Bluespec, Inc.
+maintainer: TODO
+copyright: TODO
+build-type: Hooks
+
+custom-setup
+  setup-depends:
+    base        >=4.18.3.0,
+    Cabal       ^>=3.16,
+    Cabal-hooks ^>=3.16,
+    directory   >=1.3.8.5,
+    filepath    >=1.4.301.0,
+    process     >=1.6.19.0,
+
+library
+  build-depends:
+    array        >=0.5.8.0,
+    base         >=4.18.3.0,
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
+    deepseq      >=1.4.8.1,
+    directory    >=1.3.8.5,
+    filepath     >=1.4.301.0,
+    integer-gmp  >=1.1,
+    mtl          >=2.3.1,
+    old-locale   ^>=1.0.0.7,
+    old-time     ^>=1.1.1.0,
+    process      >=1.6.19.0,
+    regex-compat ^>=0.95.2.2,
+    split        ^>=0.2.5,
+    strict-concurrency ^>=0.2.4.3,
+    syb          ^>=0.7.2,
+    text         >=2.0.2,
+    time         >=1.12.2,
+    unix         >=2.8.6.0,
+  default-language: GHC2021
+  default-extensions:
+    BangPatterns,
+    FlexibleContexts,
+    FlexibleInstances,
+    TypeSynonymInstances,
+  if os(osx)
+    extra-libraries: c++
+  else
+    extra-libraries: stdc++
+  ghc-options: -Wall -Wno-orphans -Wno-name-shadowing -Wno-unused-matches
+  hs-source-dirs:
+    src/Parsec,
+    src/comp,
+    src/comp/GHC/posix,
+    src/comp/Libs,
+    src/vendor/htcl,
+    src/vendor/stp/HaskellIfc,
+    src/vendor/yices/v2.6/HaskellIfc,
+  c-sources: src/vendor/htcl/haskell.c
+  exposed-modules:
+    AAddSchedAssumps
+    AAddScheduleDefs
+    ABin
+    ABinUtil
+    ACheck
+    ACleanup
+    AConv
+    ADropDefs
+    ADropUndet
+    ADumpSchedule
+    ADumpScheduleInfo
+    AExpand
+    AExpr2STP
+    AExpr2Util
+    AExpr2Yices
+    ANoInline
+    AOpt
+    APaths
+    APrims
+    AProofs
+    ARankMethCalls
+    ARemoveAssumps
+    ARenameIO
+    ASchedule
+    AScheduleInfo
+    AState
+    ASyntax
+    ASyntaxUtil
+    ATaskSplice
+    AUses
+    AVeriQuirks
+    AVerilog
+    AVerilogUtil
+    Assump
+    BDD
+    BExpr
+    Backend
+    BackendNamingConventions
+    Bag
+    Balanced
+    BinData
+    BinParse
+    BinUtil
+    BluesimLoader
+    BoolExp
+    BoolOpt
+    BuildSystem
+    BuildVersion
+    CCSyntax
+    CFreeVars
+    CPPLineDirectives
+    CSubst
+    CSyntax
+    CSyntaxTypes
+    CSyntaxUtil
+    CType
+    CVPrint
+    Changed
+    Classic
+    ConTagInfo
+    CondTree
+    ContextErrors
+    CtxRed
+    DOT
+    DPIWrappers
+    Depend
+    Deriving
+    DisjointTest
+    DynamicMap
+    EquivalenceClass
+    Error
+    ErrorMonad
+    ErrorUtil
+    Eval
+    Exceptions
+    FStringCompat
+    FileIOUtil
+    FileNameUtil
+    Fixity
+    FixupDefs
+    Flags
+    FlagsDecode
+    ForeignFunctions
+    GHCPretty
+    GenABin
+    GenBin
+    GenForeign
+    GenFuncWrap
+    GenSign
+    GenWrap
+    GenWrapUtils
+    GlobPattern
+    GraphMap
+    GraphPaths
+    GraphUtil
+    GraphWrapper
+    HTcl
+    IConv
+    IConvLet
+    IDropRules
+    IExpand
+    IExpandUtils
+    IInline
+    IInlineFmt
+    IInlineUtil
+    ILift
+    IOMutVar
+    IOUtil
+    IPrims
+    ISimplify
+    ISplitIf
+    IStateLoc
+    ISyntax
+    ISyntaxCheck
+    ISyntaxSubst
+    ISyntaxUtil
+    ISyntaxXRef
+    ITransform
+    IType
+    IWireSet
+    Id
+    IdPrint
+    IfcBetterInfo
+    InferKind
+    InlineCReg
+    InlineReg
+    InlineWires
+    InstNodes
+    IntLit
+    IntegerUtil
+    Intervals
+    KIMisc
+    LambdaCalc
+    LambdaCalcUtil
+    Lex
+    ListMap
+    ListUtil
+    Literal
+    Log2
+    MVarStrict
+    MakeSymTab
+    PFPrint
+    PPrint
+    PVPrint
+    Params
+    Parse
+    ParseOp
+    Parsec
+    ParsecChar
+    ParsecCombinator
+    ParsecExpr
+    ParsecPrim
+    Parser.BSV
+    Parser.BSV.CVParser
+    Parser.BSV.CVParserAssertion
+    Parser.BSV.CVParserCommon
+    Parser.BSV.CVParserImperative
+    Parser.BSV.CVParserUtil
+    Parser.Classic
+    Parser.Classic.CParser
+    Parser.Classic.Warnings
+    PoisonUtils
+    Position
+    Pragma
+    PragmaCheck
+    PreIds
+    PreStrings
+    Pred
+    Pred2STP
+    Pred2Yices
+    PredTrie
+    Pretty
+    Prim
+    ProofObligation
+    RSchedule
+    RealUtil
+    SAL
+    SAT
+    SATPred
+    SCC
+    SEMonad
+    STP
+    STPFFI
+    SchedInfo
+    Scheme
+    SignalNaming
+    SimBlocksToC
+    SimCCBlock
+    SimCOpt
+    SimDomainInfo
+    SimExpand
+    SimFileUtils
+    SimMakeCBlocks
+    SimPackage
+    SimPackageOpt
+    SimPrimitiveModules
+    Simplify
+    SolvedBinds
+    Sort
+    SpeedyString
+    StdPrel
+    Subst
+    SymTab
+    Synthesize
+    SystemCWrapper
+    SystemCheck
+    SystemVerilogKeywords
+    SystemVerilogPreprocess
+    SystemVerilogScanner
+    SystemVerilogTokens
+    TCMisc
+    TCPat
+    TCheck
+    TIMonad
+    TclParseUtils
+    TclUtils
+    TmpNam
+    TopUtils
+    Type
+    TypeAnalysis
+    TypeAnalysisTclUtil
+    TypeCheck
+    TypeOps
+    Undefined
+    Unify
+    Util
+    VCD
+    VFileName
+    VFinalCleanup
+    VIOProps
+    VModInfo
+    VPIWrappers
+    VPrims
+    VVerilogDollar
+    Verilog
+    Version
+    Wires
+    Yices
+    YicesFFI
+
+common common_exes
+  build-depends:
+    base >=4.18.3.0,
+    bsc,
+  default-language: GHC2021
+  ghc-options: -rtsopts "-with-rtsopts=-H256m -K10m -i1"
+  hs-source-dirs: src/comp/app
+
+executable bsc
+  import: common_exes
+  build-depends:
+    containers >=0.6.7,
+    directory  >=1.3.8.5,
+    filepath   >=1.4.301.0,
+    mtl        >=2.3.1,
+    old-time   ^>=1.1.1.0,
+    process    >=1.6.19.0,
+    time       >=1.12.2,
+    unix       >=2.8.6.0,
+  ghc-options: -main-is Main_bsc
+  main-is: bsc.hs
+
+executable bluetcl
+  import: common_exes
+  build-depends:
+    containers   >=0.6.7,
+    mtl          >=2.3.1,
+    regex-compat ^>=0.95.2.2,
+    syb          ^>=0.7.2,
+    unix         >=2.8.6.0,
+  c-sources: src/comp/app/bluetcl_shim.c
+  default-extensions:
+    BangPatterns,
+    FlexibleContexts,
+    FlexibleInstances,
+    TypeSynonymInstances,
+  main-is: bluetcl_Main.hs
+  other-modules:
+    BlueTcl
+
+executable bsc2bsv
+  import: common_exes
+  ghc-options: -main-is Main_bsc2bsv
+  main-is: bsc2bsv.hs
+
+executable bsv2bsc
+  import: common_exes
+  ghc-options: -main-is Main_bsv2bsc
+  main-is: bsv2bsc.hs
+
+executable dumpba
+  import: common_exes
+  build-depends:
+    bytestring >=0.11.5.4
+  ghc-options: -main-is Main_dumpba
+  main-is: dumpba.hs
+
+executable dumpbo
+  import: common_exes
+  build-depends:
+    bytestring >=0.11.5.4
+  ghc-options: -main-is Main_dumpbo
+  main-is: dumpbo.hs
+
+executable showrules
+  import: common_exes
+  build-depends:
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
+    old-time     ^>=1.1.1.0,
+    regex-compat ^>=0.95.2.2,
+    split        ^>=0.2.5,
+  ghc-options: -main-is Main_showrules
+  main-is: showrules.hs
+
+executable vcdcheck
+  import: common_exes
+  build-depends:
+    bytestring   >=0.11.5.4,
+    containers   >=0.6.7,
+    regex-compat ^>=0.95.2.2,
+  ghc-options: -main-is Main_vcdcheck
+  main-is: vcdcheck.hs
+
+test-suite bluetcl-tests
+  build-depends:
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
+  build-tool-depends: bsc:bsc, bsc:bluetcl
+  default-language: GHC2021
+  hs-source-dirs: testsuite
+  main-is: RunTests.hs
+  type: exitcode-stdio-1.0
+
+test-suite smoke
+  build-depends:
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
+  build-tool-depends: bsc:bsc, bsc:bluetcl
+  default-language: GHC2021
+  hs-source-dirs: testsuite
+  main-is: RunTests.hs
+  type: exitcode-stdio-1.0
+
+test-suite utils
+  build-depends:
+    base      >=4.18.3.0,
+    directory >=1.3.8.5,
+    filepath  >=1.4.301.0,
+    process   >=1.6.19.0,
+  build-tool-depends: bsc:bsc, bsc:bluetcl, bsc:showrules, bsc:vcdcheck, bsc:dumpbo
+  default-language: GHC2021
+  hs-source-dirs: testsuite
+  main-is: RunTests.hs
+  type: exitcode-stdio-1.0

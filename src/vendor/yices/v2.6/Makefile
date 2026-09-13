@@ -14,7 +14,9 @@ ifeq ($(OSTYPE), Darwin)
 #    the absolute install path. For cases where yices knows the correct
 #    install path of the library, this makes sense, but for bsc, we don't want
 #    this, as we're going to eventually install this in a separate directory
-#    of our own.
+#    of our own. We record it @rpath-relative, because Mach-O consults an
+#    rpath only for a dependency recorded that way: a bare name would leave
+#    every consumer needing LD_LIBRARY_PATH set to find the library.
 # 2. libyices.2.dylib dynamically links against ligmp, which probably comes
 #    from Homebrew. We don't want this, because this makes our installation
 #    depend on Homebrew. Instead, statically link libgmp into libyices.
@@ -33,7 +35,7 @@ CONFIGURE_ENV= \
 	CPPFLAGS="$${CPPFLAGS:+$$CPPFLAGS }-I$(INCLUDEDIRGMP)" \
 	LDFLAGS="$${LDFLAGS:+$$LDFLAGS }-L$(LIBDIRGMP)"
 LIBGMPA=$(LIBDIRGMP)/libgmp.a
-BUILD_ARGS=libyices_install_name=libyices.2.dylib LIBS=$(LIBGMPA)
+BUILD_ARGS=libyices_install_name=@rpath/libyices.2.dylib LIBS=$(LIBGMPA)
 endif
 
 .PHONY: all
