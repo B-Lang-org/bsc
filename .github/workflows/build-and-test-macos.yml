@@ -109,7 +109,7 @@ jobs:
             fi
           python3 util/haskell-language-server/gen_hie.py
           pushd src/comp
-          haskell-language-server-${{ inputs.ghc_version }} bsc.hs
+          haskell-language-server-${{ inputs.ghc_version }} app/bsc.hs
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
@@ -121,7 +121,7 @@ jobs:
           export NOUPDATEBUILDVERSION=0
           ./update-build-version.sh
           ./update-build-system.sh
-          echo ':load bsc.hs' | ghci 2>&1 | tee ghci.log
+          echo ':load app/bsc.hs' | ghci 2>&1 | tee ghci.log
           if grep '\(Failed\|error:\)' ghci.log
           then
             echo "GHCi reported errors."
