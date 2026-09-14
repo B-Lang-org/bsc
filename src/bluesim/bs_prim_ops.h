@@ -159,6 +159,37 @@ inline TB safe_rem(TA a, TB b)
   return (b == 0) ? (TB)~(TB)0 : (TB)(a % b);
 }
 
+/* Division where one operand is wide but the result is narrow.
+ *
+ * The operands of a division need not have the same width, and the
+ * result is typed to just one of them: the dividend for a quotient, the
+ * divisor for a remainder (primQuot :: Bit k -> Bit n -> Bit k,
+ * primRem :: Bit k -> Bit n -> Bit n).  So a narrow result can have a
+ * wide operand on the other side.  Both results still fit, because a
+ * quotient is at most the dividend and a remainder is strictly less
+ * than the divisor.
+ *
+ * Promote the narrow side, divide at the wide width, then take the low
+ * bits.  The caller masks down to the true result width, so returning
+ * the low 64 bits in the narrow operand's C type is enough.  A zero
+ * divisor needs no special case here: the wide path already yields all
+ * ones, and truncating all ones leaves all ones.
+ */
+
+template<typename TB>
+inline TB safe_rem(const tUWide& a, TB b)
+{
+  tUWide r = a % tUWide(a.size(), (tUInt64)b);
+  return (TB)r.extract64(63, 0);
+}
+
+template<typename TA>
+inline TA safe_quot(TA a, const tUWide& b)
+{
+  tUWide q = tUWide(b.size(), (tUInt64)a) / b;
+  return (TA)q.extract64(63, 0);
+}
+
 /* Sign testing operations used for signed relational primitives */
 
 // This case handles promoted values

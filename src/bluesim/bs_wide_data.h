@@ -247,6 +247,31 @@ void wop_mul(const WideData& a, const WideData& b, WideData& c);//c = a * b
 void wop_quot(const WideData& a, const WideData& b, WideData& c);// c = a / b
 void wop_rem(const WideData& a, const WideData& b, WideData& c);// c = a % b
 
+/* Division where only one operand is wide.
+ *
+ * BSC does not require the two operands of a division to have the same
+ * width (primQuot :: Bit k -> Bit n -> Bit k, primRem :: Bit k -> Bit n
+ * -> Bit n), so one side may be wide while the other is a plain integer
+ * type.  These cases reach wop_quot/wop_rem when the *result* is wide,
+ * which happens for a wide dividend in a quotient and a wide divisor in
+ * a remainder.  Promote the narrow side and defer to the wide form
+ * above.
+ *
+ * The exact-match overloads above win when both operands are already
+ * WideData, so these templates only apply to the mixed cases.
+ */
+template<typename TB>
+inline void wop_quot(const WideData& a, TB b, WideData& c)
+{
+  wop_quot(a, WideData(a.size(), (unsigned long long)b), c);
+}
+
+template<typename TA>
+inline void wop_rem(TA a, const WideData& b, WideData& c)
+{
+  wop_rem(WideData(b.size(), (unsigned long long)a), b, c);
+}
+
 //may-useless function calls
 void wop_maskWide(unsigned int n, const WideData& val, WideData& result);
 

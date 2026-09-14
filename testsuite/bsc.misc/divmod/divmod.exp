@@ -48,6 +48,25 @@ compare_file sysDivideByZeroWidths.out sysDivideByZeroWidths.out.expected
 # runtime warning untenable: it happens in correct designs.
 test_c_veri_bsv DivideByZeroGuarded sysDivideByZeroGuarded.out.expected
 
+# Division with operands of different widths, which BSC permits
+# (primQuot :: Bit k -> Bit n -> Bit k).  A wide operand paired with a
+# narrow one used to fail to compile, and two wide operands with the
+# dividend wider than the divisor used to hang.  Bluesim only, because
+# iverilog cannot do wide division.
+compile_object_pass DivMixedWidth.bsv sysDivMixedWidth
+link_objects_pass sysDivMixedWidth sysDivMixedWidth
+sim_output sysDivMixedWidth
+compare_file sysDivMixedWidth.out sysDivMixedWidth.out.expected
+
+# Divide-by-zero at mixed widths: the quotient is all ones at the
+# dividend's width and the remainder all ones at the divisor's width,
+# which are not the same width and are not the width the division is
+# computed at.  Bluesim only; Verilog produces x.
+compile_object_pass DivideByZeroMixedWidth.bsv sysDivideByZeroMixedWidth
+link_objects_pass sysDivideByZeroMixedWidth sysDivideByZeroMixedWidth
+sim_output sysDivideByZeroMixedWidth
+compare_file sysDivideByZeroMixedWidth.out sysDivideByZeroMixedWidth.out.expected
+
 # Test that compile-time divide-by-zero produces a compile-time failure
 compile_object_fail_error DivideByZeroStatic.bsv G0059 1 sysDivideByZeroStatic
 

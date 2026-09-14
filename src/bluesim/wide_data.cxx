@@ -420,6 +420,11 @@ WideData::WideData(unsigned int bits, unsigned int value)
   else
   {
     data = (unsigned int*) alloc_mem(nWords);
+    // Zero every word first: clear(nBits) only clears bits at or above
+    // nBits, so on its own it would leave words above the one written
+    // below holding whatever alloc_mem handed back.
+    for (unsigned int i = 0; i < nWords; ++i)
+      data[i] = 0;
     data[0] = value;
     clear(nBits);
   }
@@ -436,8 +441,14 @@ WideData::WideData(unsigned int bits, unsigned long long value)
   else
   {
     data = (unsigned int*) alloc_mem(nWords);
+    // See the note in the unsigned int constructor above: clear(nBits)
+    // does not reach the words between the ones written here and nBits.
+    // The guard on data[1] matters for values narrower than one word.
+    for (unsigned int i = 0; i < nWords; ++i)
+      data[i] = 0;
     data[0] = (unsigned int) (value & mask(WORD_SIZE));
-    data[1] = (unsigned int) (value >> WORD_SIZE);
+    if (nWords > 1)
+      data[1] = (unsigned int) (value >> WORD_SIZE);
     clear(nBits);
   }
 }
@@ -1202,17 +1213,45 @@ static inline void set_all_ones(unsigned int* buf, unsigned int nWords,
   buf[nWords-1] &= mask(word_offset(nBits-1)+1);
 }
 
+// Zero-extend a value to 'bits', which must be at least its current width.
+static inline WideData widen_to(const WideData& v, unsigned int bits)
+{
+  if (v.size() == bits)
+    return v;
+
+  WideData w(bits, false);
+  unsigned int src_words = v.numWords();
+  for (unsigned int i = 0; i < w.numWords(); ++i)
+    w.data[i] = (i < src_words) ? v.data[i] : 0u;
+  return w;
+}
+
 // Perform division on the wide values, writing the quotient and
 // remainder into their respective buffers.
 void wide_quot_rem(const WideData& v1, const WideData& v2,
                    unsigned int* quot, unsigned int* rem)
 {
-  WideData dividend = v1;
-  WideData divisor = v2;
+  // The shift-and-subtract loop below forms (divisor << shift), and
+  // operator<< preserves the width of its argument.  That shifted value
+  // occupies first_dividend_bit+1 bits, so unless the divisor is at
+  // least as wide as the dividend it is silently truncated, too little
+  // is subtracted, the dividend stops shrinking, and the loop fails to
+  // terminate.  Compute at a width that holds both operands.
+  unsigned int calc_bits = (v1.size() > v2.size()) ? v1.size() : v2.size();
+  WideData dividend = widen_to(v1, calc_bits);
+  WideData divisor  = widen_to(v2, calc_bits);
+
+  // The caller sizes the output buffers from the ORIGINAL operand widths
+  // -- quot from the dividend and rem from the divisor -- not from the
+  // calculation width, so every write below must use those counts.  Both
+  // results fit: the quotient is at most the dividend, and the remainder
+  // is strictly less than the divisor.
+  unsigned int quot_words = v1.numWords();
+  unsigned int rem_words  = v2.numWords();
 
   // start with quotient = 0 & remainder = 0
-  memset(quot, 0, BYTES_PER_WORD * dividend.numWords());
-  memset(rem,  0, BYTES_PER_WORD * divisor.numWords());
+  memset(quot, 0, BYTES_PER_WORD * quot_words);
+  memset(rem,  0, BYTES_PER_WORD * rem_words);
 
   // find the most significant bit set in the divisor
   int first_divisor_bit = divisor.size() - 1;
@@ -1230,8 +1269,8 @@ void wide_quot_rem(const WideData& v1, const WideData& v2,
   // the narrow case; see safe_quot/safe_rem in bs_prim_ops.h.
   if (first_divisor_bit < 0)
   {
-    set_all_ones(quot, dividend.numWords(), dividend.size());
-    set_all_ones(rem,  divisor.numWords(),  divisor.size());
+    set_all_ones(quot, quot_words, v1.size());
+    set_all_ones(rem,  rem_words,  v2.size());
     return;
   }
 
@@ -1276,7 +1315,7 @@ void wide_quot_rem(const WideData& v1, const WideData& v2,
   }
 
   // the remaining dividend is the remainder
-  memcpy(rem, dividend.data, BYTES_PER_WORD * divisor.numWords());
+  memcpy(rem, dividend.data, BYTES_PER_WORD * rem_words);
 
   return;
 }
