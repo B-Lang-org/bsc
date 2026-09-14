@@ -54,7 +54,7 @@ proc bsc_link_verilog { objects toplevel { options "" } } {
     cd [file join $here $subdir]
     set output [make_bsc_vcomp_output_name $toplevel]
     set vexename [make_vexe_name $toplevel]
-    set link_options "-verilog -vsim $verilog_compiler -e $toplevel -o $vexename $vcomp_flags"
+    set link_options "-no-show-timestamps -no-show-version -verilog -vsim $verilog_compiler -e $toplevel -o $vexename $vcomp_flags"
     set cmd "$bsc $link_options $options $objects >& $output"
     verbose "Executing: $cmd" 4
     set status [exec_with_log "def_link_verilog" $cmd 2]
