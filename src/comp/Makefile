@@ -58,6 +58,20 @@ YICES_HS = ../vendor/yices/include_hs
 YICES_INC_FLAGS = -I../vendor/yices/include
 YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 
+# The solvers are shared libraries, and the executables that link them find
+# them through an rpath relative to the executable's own location. That is
+# what lets an installation be moved as a whole, as the top-level Makefile
+# promises, and it is why no wrapper script has to set a library path.
+# src/Makefile installs the solvers into $(PREFIX)/lib/SAT before it descends
+# here, so the directory is populated before anything points at it.
+# $$ORIGIN is quoted because the recipe runs through a shell, which would
+# otherwise expand it before ld ever sees it.
+ifeq ($(OSTYPE), Darwin)
+SAT_RPATH_FLAGS = -optl-Wl,-rpath,@loader_path/../lib/SAT
+else
+SAT_RPATH_FLAGS = -optl-Wl,-rpath,'$$ORIGIN/../lib/SAT'
+endif
+
 # HTCL
 HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
@@ -151,10 +165,15 @@ PACKAGES = \
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
 # in make mode where it follows dependencies (use GHCMAKEFLAGS).
 #
-# The make flags do not include "-o" because bluetcl and bluewish
-# are compiled in two steps and the first step doesn't have that option.
-# So all users of GHCMAKEFLAGS have to include "-o" themselves.
-GHCMAKEFLAGS = --make $@ -j$(GHCJOBS)
+# MAINSRC is the source file holding a target's main module. The program
+# entry files live in app/, separate from the library modules bsc.cabal
+# exposes, and their names do not always match the executable, so each
+# target names its own. Anything not listed keeps its main beside the
+# library modules.
+MAINSRC = $@.hs
+bsc bsc2bsv bsv2bsc dumpbo dumpba vcdcheck showrules: MAINSRC = app/$@.hs
+bluetcl: MAINSRC = app/bluetcl_Main.hs
+GHCMAKEFLAGS = --make $(MAINSRC) -o $@ -j$(GHCJOBS)
 GHCCOMPILEFLAGS = -o $@ -c $<
 
 # On Mac OS, we'll need to update the dylib location,
@@ -178,6 +197,7 @@ GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
+	-iapp \
 	-iGHC/posix -iLibs \
 	-i$(PARSEC_HS) \
 	-i$(STP_HS) \
@@ -288,6 +308,7 @@ POSTBUILDCOMMAND = $(BUILDDONE)
 BSC_BUILDLIBS = \
 	$(STP_LIB_FLAGS) \
 	$(YICES_LIB_FLAGS) \
+	$(SAT_RPATH_FLAGS) \
 
 BLUETCL_BUILDLIBS = \
 	$(BSC_BUILDLIBS) \
@@ -359,18 +380,14 @@ showrules: $(SOURCES)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
-# bluetcl is built in two steps:
-# 1. Build BlueTcl module using -c to emit .hi/.o files, and also the
-#    BlueTcl_stub.h reqired by bluetcl_Main.hsc in the next action
-# 2. Link BlueTcl with a custom C main that #includes BlueTcl_stub.h
+# bluetcl has a Haskell main that hands control to Tcl through a C shim,
+# which is how the cabal executable is built too, so there is one entry
+# point to maintain rather than two.
 .PHONY: bluetcl
-bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
+bluetcl: app/bluetcl_Main.hs app/BlueTcl.hs app/bluetcl_shim.c $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) \
-		-o $@ \
-		-no-hs-main \
-		-x c bluetcl_Main.hsc
+	$(BUILDCOMMAND) $(BUILDFLAGS) $(RTSFLAGS) $(BLUETCL_BUILDLIBS) \
+		app/bluetcl_shim.c
 	$(POSTBUILDCOMMAND)
 
 # -----
@@ -393,40 +410,40 @@ endif
 # -----
 # Install targets
 
+# Every executable compiles into the same -odir, so two of them running at
+# once race on the objects of the modules they share: one renames its
+# temporary over the path the other is still writing, which surfaces as
+# `renameFile: ... VCD.o.tmp to ... VCD.o: does not exist`. Build them
+# through a -j1 sub-make, which holds however the caller invoked make.
+# Little is lost, because the objects are shared: after the first target the
+# rest compile only their own main and link, and GHCJOBS still parallelises
+# within each compile. Naming one executable directly still builds just it.
 .PHONY: install
-install: $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
+install:
+	$(MAKE) -j1 $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
 
 .PHONY: install-extra
-install-extra: $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
+install-extra:
+	$(MAKE) -j1 $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
 
-# Until the need for BLUESPECDIR and LD_LIBRARY_PATH to be set is removed
-# put the binaries in a "core" subdirectory and a wrapper script in "bin"
-$(BINDIR)/core/%: %
-	mkdir -p -m 755 $(BINDIR)/core
-	$(INSTALL) -m 755 $(@F) $(BINDIR)/core/$(@F)
-
-$(BINDIR)/%: wrapper.sh $(BINDIR)/core/%
+$(BINDIR)/%: %
 	mkdir -p -m 755 $(BINDIR)
-	$(INSTALL) -m 755 wrapper.sh $(BINDIR)/$(@F)
+	$(INSTALL) -m 755 $(@F) $(BINDIR)/$(@F)
 
 .PHONY: install-bsc
 install-bsc: $(addprefix $(BINDIR)/,$(BSCEXES))
-install-bsc: $(addprefix $(BINDIR)/core/,$(BSCEXES))
 install-bsc: $(PKGINFO)
 
 .PHONY: install-bluetcl
 install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
-install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
 install-bluetcl: $(PKGINFO)
 
 .PHONY: install-utils
 install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
-install-utils: $(addprefix $(BINDIR)/core/,$(UTILEXES))
 install-utils: $(PKGINFO)
 
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
-install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 install-showrules: $(PKGINFO)
 
 # ----
