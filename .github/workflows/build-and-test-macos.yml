@@ -15,6 +15,10 @@ on:
       hls_version:
         required: true
         type: string
+      test_parallel:
+        required: false
+        default: true
+        type: boolean
       timeout_override:
         required: false
         default: false
@@ -187,10 +191,17 @@ jobs:
           # Identify the C++ standard for linking with the SystemC library
           SYSTEMC_CXXSTD=`nm --demangle $(brew --prefix systemc)/lib/libsystemc.dylib | grep sc_api_version_ | sed -E 's/.*_cxx20([0-9][0-9]).*/\1/' | head -1`
 
-          CORES=$(sysctl -n hw.ncpu)
-          echo "Cores: ${CORES}"
+          if [[ "${{ inputs.test_parallel }}" == "true" ]]; then
+              CORES=$(sysctl -n hw.ncpu)
+              echo "Cores: ${CORES}"
+              MK_JFLAG="-j ${CORES}"
+              MK_TARGET=checkparallel
+            else
+              MK_JFLAG=
+              MK_TARGET=check
+            fi
 
-          make -j ${CORES} -C testsuite checkparallel \
+          make ${MK_JFLAG} -C testsuite ${MK_TARGET} \
                TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
                TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib \
                TEST_SYSTEMC_CXXFLAGS=-std=c++${SYSTEMC_CXXSTD}
