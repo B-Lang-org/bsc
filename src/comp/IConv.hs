@@ -7,6 +7,9 @@ module IConv(
 import Data.List(union, findIndex)
 import Data.Maybe(catMaybes)
 import qualified Data.Map as M
+import qualified Data.IntMap.Strict as IM
+import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
+import System.IO.Unsafe(unsafePerformIO)
 import qualified Data.Set as S
 import qualified Data.List as List
 
@@ -31,11 +34,12 @@ import Assump
 import Pred
 import SymTab
 import Type(tPrimPair, tBit, HasKind(..))
-import CType(cTVarKind, typeclassId, cTVarNum)
+import CType(cTVarKind, typeclassId, cTVarNum, typeCanonId)
 import TIMonad(CATFCache)
 import VModInfo(mkVModInfo, VName(..), VFieldInfo(..))
 import Type(tString, fn, tName, tAttributes)
 import TCMisc(expandSynN)
+import GroundCType(groundCTypeEnabled, internGroundCType)
 import ISyntax
 import ISyntaxSubst
 import ISyntaxUtil
@@ -172,16 +176,65 @@ iConvVS errh flags r env pvs i vs (CQType _ t) cs =
 
 -- expandSynN resolves ATFs before conversion to IType, so the resulting
 -- IType contains no ATF applications and does not need the ATF cache.
+-- Conversions of internable ground types are memoized process-wide by
+-- GroundCType node id, so a repeated large type argument costs one
+-- IntMap probe instead of a normalization and a re-conversion.  The
+-- memo bridges the two intern tables: its keys are interned CType
+-- nodes and its values interned ITypes.  A type that the walk interns
+-- is ground and expands purely, so its conversion does not depend on
+-- the Flags or SymTab arguments, and one process-wide entry serves
+-- every package.
+{-# NOINLINE convTMemo #-}
+convTMemo :: IORef (IM.IntMap IType)
+convTMemo = unsafePerformIO $ newIORef IM.empty
+
 iConvT :: Flags -> SymTab -> Type -> IType
-iConvT flags s t = iConvT' (expandSynN flags s t)
+iConvT flags s t
+  | groundCTypeEnabled, Just (nid, tc) <- internGroundCType t =
+      unsafePerformIO $ do
+        m0 <- readIORef convTMemo
+        case IM.lookup nid m0 of
+          Just it -> return it
+          Nothing -> do
+            -- already in normal form, so expandSynN has nothing to do
+            let it = iConvTUncached flags s tc
+            _ <- return $! it
+            atomicModifyIORef' convTMemo (\ m -> (IM.insert nid it m, ()))
+            return it
+  | otherwise = iConvTUncached flags s t
+
+iConvTUncached :: Flags -> SymTab -> Type -> IType
+iConvTUncached flags s t = iConvT' (expandSynN flags s t)
+
+-- Per-canonical-node conversion memo: iConvT' is a function of
+-- structure alone, and a canonical CType may be a shared DAG that the
+-- recursion below would otherwise convert once per path.  Keyed by
+-- cons id, a different id space from convTMemo's GroundCType node
+-- ids, so the two tables must stay separate.
+{-# NOINLINE convCanonMemo #-}
+convCanonMemo :: IORef (IM.IntMap IType)
+convCanonMemo = unsafePerformIO $ newIORef IM.empty
 
 iConvT' :: Type -> IType
-iConvT' (TVar (TyVar i _ _)) = ITVar i
-iConvT' (TCon (TyCon i (Just k) s)) = ITCon i (iConvK k) s
-iConvT' (TCon (TyNum n _)) = ITNum n
-iConvT' (TCon (TyStr s _)) = ITStr s
-iConvT' (TAp t1 t2) = ITAp (iConvT' t1) (iConvT' t2)
-iConvT' t = internalError("iConvT': " ++ ppReadable t)
+iConvT' t | i >= 0 = unsafePerformIO $ do
+    m0 <- readIORef convCanonMemo
+    case IM.lookup i m0 of
+      Just it -> return it
+      Nothing -> do
+        let it = iConvT'' t
+        _ <- return $! it
+        atomicModifyIORef' convCanonMemo (\ m -> (IM.insert i it m, ()))
+        return it
+  where i = typeCanonId t
+iConvT' t = iConvT'' t
+
+iConvT'' :: Type -> IType
+iConvT'' (TVar (TyVar i _ _)) = ITVar i
+iConvT'' (TCon (TyCon i (Just k) s)) = ITCon i (iConvK k) s
+iConvT'' (TCon (TyNum n _)) = ITNum n
+iConvT'' (TCon (TyStr s _)) = ITStr s
+iConvT'' (TAp t1 t2) = ITAp (iConvT' t1) (iConvT' t2)
+iConvT'' t = internalError("iConvT'': " ++ ppReadable t)
 
 iConvK :: Kind -> IKind
 iConvK KStar = IKStar

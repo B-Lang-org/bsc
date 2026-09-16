@@ -214,6 +214,11 @@ class Types t where
 
 instance Types Type where
   apSub s t = fromMaybe t (apSubM s t)
+  -- A canonical type is ground and normTAp-normal, so substitution is
+  -- the identity on it and it has no free variables.  Returning
+  -- Nothing marks it unchanged, so the sharing-preserving callers keep
+  -- the node they already hold.
+  apSubM _ t | isCanonType t = Nothing
   apSubM s _ | isNullSubst s = Nothing
   apSubM (S seo _) t0 = go t0
     where
@@ -237,6 +242,7 @@ instance Types Type where
           (ml, mr) -> Just (normTAp (fromMaybe l ml) (fromMaybe r mr))
       go _ = Nothing
 
+  tv t | isCanonType t = []
   tv (TVar u)  = [u]
   tv (TAp l r) = tv l `union` tv r
   tv t         = []

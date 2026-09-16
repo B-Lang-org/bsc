@@ -146,7 +146,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
              -- need more context
              Right Variable  -- Unknown?
          (TGen {}, as) -> internalError "analyzeType': found TGen"
-         (TAp {}, as)  -> internalError "analyzeType': found TAp"
+         (TAp _ _, as) -> internalError "analyzeType': found TAp"
          (TCon (TyNum n pos), as) ->
              if (null as)
              then Right Numeric

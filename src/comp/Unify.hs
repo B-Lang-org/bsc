@@ -34,6 +34,11 @@ instance Unify Type where
     mguModal = mguWork False
 
 mguWork :: Bool -> [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
+-- equal canonical ids = equal ground values under Eq Type (see
+-- CType.ccAtCaller), so reflexivity applies and does not depend on
+-- the strictness flag.  Unequal ids prove nothing and fall through.
+mguWork _ _ t1 t2 | i >= 0, i == typeCanonId t2 = Just (nullSubst, [])
+  where i = typeCanonId t1
 -- an unreducable ATF application: identical types unify cleanly (reflexivity);
 -- different types generate a deferred equality constraint.
 mguWork strict bound_tyvars t1 t2
@@ -159,6 +164,9 @@ isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1)
 isUnSatSyn' _  _ = False
 
 match :: Type -> Type -> Maybe Subst
+-- equal canonical ids match, with no bindings (cf. mgu)
+match t1 t2 | i >= 0, i == typeCanonId t2 = Just nullSubst
+  where i = typeCanonId t1
 match (TAp l r) (TAp l' r') = rtrace ("match: TAp: " ++ ppReadable (l,r)) $ do
     sl <- match l l'
     sr <- match r r'

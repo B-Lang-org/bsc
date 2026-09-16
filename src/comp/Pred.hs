@@ -17,6 +17,11 @@ import Prelude hiding ((<>))
 
 import Data.List(union, genericSplitAt, genericLength)
 import Data.Maybe(fromMaybe, isNothing)
+import qualified Data.Map.Strict as M
+import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
+import System.IO.Unsafe(unsafePerformIO)
+import Control.Monad(when)
+import FStringCompat(FString)
 import Eval
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
@@ -316,7 +321,39 @@ instance PVPrint Inst where
 
 -----------------------------------------------------------------------------
 
+-- Canonical nodes are already normal forms, so expandSyn returns them
+-- unchanged.
+--
+-- Nullary qualified synonyms expand to the same type wherever they
+-- appear, so the expansion is memoized by name.  Without it, a body
+-- that names the same synonym twice re-expands it once per path
+-- through the body, which is exponential on synonym towers.  Recursive
+-- nullary synonyms are rejected at symbol-table construction, before
+-- this memo can see one.
+{-# NOINLINE expandSynNameMemo #-}
+expandSynNameMemo :: IORef (M.Map (FString, FString) Type)
+expandSynNameMemo = unsafePerformIO $ newIORef M.empty
+
+-- The caller supplies the walk with its synonym stack intact, so
+-- ETypeSynRecursive still fires on a recursive synonym that slipped
+-- past the symbol table's SCC rejection.  Only canonical results are
+-- memoized: a raw result carries the position of this occurrence,
+-- which the next caller must not see.
+expandNullaryMemo :: Id -> Type -> Type
+expandNullaryMemo i walk = unsafePerformIO $ do
+    let key = (getIdQual i, getIdBase i)
+    m0 <- readIORef expandSynNameMemo
+    case M.lookup key m0 of
+      Just r -> return r
+      Nothing -> do
+        let r = walk
+        _ <- return $! r
+        when (isCanonType r) $
+          atomicModifyIORef' expandSynNameMemo (\ m -> (M.insert key r m, ()))
+        return r
+
 expandSyn :: Type -> Type
+expandSyn t0 | isCanonType t0 = t0
 expandSyn t0 = exp [] f as
   where (f, as) = splitTAp t0
         -- All type applications should be split before entering exp
@@ -334,6 +371,14 @@ expandSyn t0 = exp [] f as
           -- context (which includes the eventual return from exp), it is an error.
           | let numArgs = genericLength as,
             numArgs < n = bsErrorReallyUnsafe [(getPosition i, EPartialTypeApp (pfpString i) n numArgs)]
+          -- Nullary qualified synonyms expand once process-wide (see
+          -- expandNullaryMemo).  The walk keeps the (i:syns) stack.
+          -- Requires consing, since the memo returns shared positions
+          -- that the raw path must not observe.
+          | n == 0, null as, consCTypeEnabled, not (isUnqualId i) =
+              expandNullaryMemo i $
+                let (f', as') = splitTAp (setTypePosition (getIdPosition i) t)
+                in exp (i:syns) f' as'
           -- We have a synonym we can expand, so do so.
           | otherwise = let (as1, as2) = genericSplitAt n as
                             t' = setTypePosition (getIdPosition i) t
@@ -368,6 +413,8 @@ class Instantiate t where
     inst  :: [Type] -> t -> t
 
 instance Instantiate Type where
+    -- canonical nodes are ground, so there is no TGen to instantiate
+    inst ts t | isCanonType t = t
     inst ts (TAp l r) = TAp (inst ts l) (inst ts r)
     inst ts (TGen _ n)  = ts !! n
     inst ts t         = t

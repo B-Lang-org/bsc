@@ -20,7 +20,9 @@ import qualified Data.Map as M
 
 import Data.Either(partitionEithers)
 import PredTrie
-import FStringCompat(concatFString)
+import FStringCompat(concatFString, FString)
+import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
+import System.IO.Unsafe(unsafePerformIO)
 import PFPrint
 import PreStrings(fsTilde)
 import PreIds
@@ -1198,14 +1200,44 @@ trCType' _ _ t@(TDefMonad _) = internalError "trCTypeN: TDefMonad"
 -- Check type synonym applications in the input type.
 -- The tricky thing is that we have to expand synonyms before checking
 -- to implement LiberalTypeSynonyms correctly.
+-- A nullary synonym that kind-checked clean is remembered
+-- process-wide by qualified name.  chkTAp re-expands synonym
+-- applications once per path, exponentially on synonym towers, and
+-- runs once per symbol-table construction.  The check is context-free
+-- and pure validation, so a clean name never needs re-checking; a
+-- failing name is never recorded and re-errors at every occurrence,
+-- as before.  Recursive nullary synonyms are rejected earlier in
+-- mkSymTab.
+{-# NOINLINE chkSynSeen #-}
+chkSynSeen :: IORef (S.Set (FString, FString))
+chkSynSeen = unsafePerformIO $ newIORef S.empty
+
 chkTAp :: Type -> K.KI ()
-chkTAp = uncurry (chkTAp' [])  . splitTAp
+-- a canonical node is a ground normal form that contains no synonym,
+-- so every clause of this walk is vacuous on it
+chkTAp t | isCanonType t = return ()
+chkTAp t = (uncurry (chkTAp' []) . splitTAp) t
   where -- f and as should be the outputs of splitTAp, so there should be no remaining TAps
         chkTAp' _ f@(TAp _ _) as = internalError $ "chkTAp' unexpected TAp: " ++ ppReadable (f, as)
         chkTAp' syns (TCon (TyCon i _ (TItype n t))) as
           | i `elem` syns = K.err (getPosition syns, ETypeSynRecursive (map pfpString syns))
           | let numArgs = genericLength as,
             numArgs < n = K.err (getPosition i, EPartialTypeApp (pfpString i) n numArgs)
+          | n == 0, null as, consCTypeEnabled, not (isUnqualId i) =
+              let key = (getIdQual i, getIdBase i)
+              in if unsafePerformIO (S.member key <$> readIORef chkSynSeen)
+                 then return ()
+                 else do -- the body check keeps the (i:syns) stack, so
+                         -- ETypeSynRecursive still fires on anything
+                         -- past the SCC gate
+                         let (f', as') =
+                               splitTAp (setTypePosition (getIdPosition i) t)
+                         chkTAp' (i:syns) f' as'
+                         -- reached only when the check succeeded
+                         unsafePerformIO
+                           (atomicModifyIORef' chkSynSeen
+                              (\ s -> (S.insert key s, ())))
+                           `seq` return ()
           | otherwise = let (as1, as2) = genericSplitAt n as
                             t' = setTypePosition (getIdPosition i) t
                             (f', as') = splitTAp $ inst as1 t'

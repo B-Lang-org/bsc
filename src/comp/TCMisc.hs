@@ -352,6 +352,10 @@ warnTransitiveIncoherent sbs = do
 expTFun :: Type -> TI ([VPred], Type)
 -- Type function application: try to generate a class constraint so
 -- the result gets bound when the class is resolved.
+-- a canonical node has nothing to expand: no TIatf head, no prim-tfun
+-- redex and no idId application, since all three are refused at cons
+-- time
+expTFun t0 | isCanonType t0 = return ([], t0)
 expTFun t0
   | let (f, as) = splitTAp t0,
     TCon (TyCon _ _ (TIatf { atf_class_id = clsId
@@ -815,7 +819,10 @@ reducePredsAggressive' dvs es sbs1 s1 vps1 = do
   -- performance of type checking.
   SolveResult vps2 sbs2 s2 <- maskAllowIncoherent $ satMany' dvs es [] emptySBs s1 vps1
   checkJoinCtxs "reducePredsAggressive 2" vps1 s2 vps2
-  let allPredTyCons = concat [ concatMap allTyCons ts | IsIn _ ts <- map toPred vps2 ]
+  -- canonical types cannot contain a badCon, since TItype, TIatf and
+  -- idId are all refused at cons time
+  let allPredTyCons = concat [ concatMap allTyCons (filter (not . isCanonType) ts)
+                             | IsIn _ ts <- map toPred vps2 ]
   let badCon (TyCon _ _ (TItype _ _)) = True
       badCon (TyCon _ _ (TIatf {})) = True
       badCon (TyCon i _ _) | i == idId = True
@@ -1341,6 +1348,9 @@ rmQualLit (CQGen i p e) = do
 -- will substitute in fresh variables for all type variables in the input type
 -- to avoid variable capture
 expandSynN :: Flags -> SymTab -> Type -> Type
+-- a canonical node is already synonym-free and ATF-free, so the whole
+-- normalization is the identity; skip the per-call runTI setup too
+expandSynN _ _ t | isCanonType t = t
 expandSynN flags s t =
    -- should only need to match instances for coherent typeclasses
    -- XXX user code corner-case?
