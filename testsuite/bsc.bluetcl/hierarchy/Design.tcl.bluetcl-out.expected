@@ -153,17 +153,18 @@ X(position)  = Design.bsv 11 10
 Command: browseinst list 7
 ---------
 Command: browseinst detail 7
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_0 the_g
-X(DEBUG)      = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_g
-X(Node)       = Primitive
-X(SynthPath)  = the_x_0_the_g
-X(UniqueName) = the_x_0_the_g
-X(position)   = Design.bsv 19 4
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_0 the_g
+X(DEBUG)       = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_g
+X(Node)        = Primitive
+X(SynthPath)   = the_x_0_the_g
+X(UniqueName)  = the_x_0_the_g
+X(position)    = Design.bsv 19 4
 ---------
 Command: browseinst list 8
 9 Body_0 {}
@@ -201,17 +202,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 13
 ---------
 Command: browseinst detail 13
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_0 Loop Body_0 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_0_the_z_0
-X(UniqueName) = the_x_0_the_z_0
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_0 Loop Body_0 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_0_the_z_0
+X(UniqueName)  = the_x_0_the_z_0
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 14
 16 baz rule
@@ -272,17 +274,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 17
 ---------
 Command: browseinst detail 17
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_0 Loop Body_1 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_0_the_z_1
-X(UniqueName) = the_x_0_the_z_1
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_0 Loop Body_1 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_0_the_z_1
+X(UniqueName)  = the_x_0_the_z_1
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 18
 20 baz rule
@@ -343,17 +346,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 21
 ---------
 Command: browseinst detail 21
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_0 Loop Body_2 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_0_the_z_2
-X(UniqueName) = the_x_0_the_z_2
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_0 Loop Body_2 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_0_the_z_2
+X(UniqueName)  = the_x_0_the_z_2
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 22
 24 baz rule
@@ -414,17 +418,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 25
 ---------
 Command: browseinst detail 25
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_0 Loop Body_3 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_0_the_z_3
-X(UniqueName) = the_x_0_the_z_3
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_0 Loop Body_3 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_0_the_z_3
+X(UniqueName)  = the_x_0_the_z_3
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 26
 28 baz rule
@@ -484,17 +489,18 @@ X(position)  = Design.bsv 11 10
 Command: browseinst list 29
 ---------
 Command: browseinst detail 29
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_1 the_g
-X(DEBUG)      = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_g
-X(Node)       = Primitive
-X(SynthPath)  = the_x_1_the_g
-X(UniqueName) = the_x_1_the_g
-X(position)   = Design.bsv 19 4
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_1 the_g
+X(DEBUG)       = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_g
+X(Node)        = Primitive
+X(SynthPath)   = the_x_1_the_g
+X(UniqueName)  = the_x_1_the_g
+X(position)    = Design.bsv 19 4
 ---------
 Command: browseinst list 30
 31 Body_0 {}
@@ -532,17 +538,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 35
 ---------
 Command: browseinst detail 35
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_1 Loop Body_0 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_1_the_z_0
-X(UniqueName) = the_x_1_the_z_0
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_1 Loop Body_0 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_1_the_z_0
+X(UniqueName)  = the_x_1_the_z_0
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 36
 38 baz rule
@@ -603,17 +610,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 39
 ---------
 Command: browseinst detail 39
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_1 Loop Body_1 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_1_the_z_1
-X(UniqueName) = the_x_1_the_z_1
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_1 Loop Body_1 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_1_the_z_1
+X(UniqueName)  = the_x_1_the_z_1
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 40
 42 baz rule
@@ -674,17 +682,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 43
 ---------
 Command: browseinst detail 43
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_1 Loop Body_2 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_1_the_z_2
-X(UniqueName) = the_x_1_the_z_2
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_1 Loop Body_2 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_1_the_z_2
+X(UniqueName)  = the_x_1_the_z_2
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 44
 46 baz rule
@@ -745,17 +754,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 47
 ---------
 Command: browseinst detail 47
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_1 Loop Body_3 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_1_the_z_3
-X(UniqueName) = the_x_1_the_z_3
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_1 Loop Body_3 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_1_the_z_3
+X(UniqueName)  = the_x_1_the_z_3
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 48
 50 baz rule
@@ -815,17 +825,18 @@ X(position)  = Design.bsv 11 10
 Command: browseinst list 51
 ---------
 Command: browseinst detail 51
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_2 the_g
-X(DEBUG)      = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_g
-X(Node)       = Primitive
-X(SynthPath)  = the_x_2_the_g
-X(UniqueName) = the_x_2_the_g
-X(position)   = Design.bsv 19 4
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_2 the_g
+X(DEBUG)       = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_g
+X(Node)        = Primitive
+X(SynthPath)   = the_x_2_the_g
+X(UniqueName)  = the_x_2_the_g
+X(position)    = Design.bsv 19 4
 ---------
 Command: browseinst list 52
 53 Body_0 {}
@@ -863,17 +874,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 57
 ---------
 Command: browseinst detail 57
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_2 Loop Body_0 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_2_the_z_0
-X(UniqueName) = the_x_2_the_z_0
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_2 Loop Body_0 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_2_the_z_0
+X(UniqueName)  = the_x_2_the_z_0
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 58
 60 baz rule
@@ -934,17 +946,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 61
 ---------
 Command: browseinst detail 61
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_2 Loop Body_1 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_2_the_z_1
-X(UniqueName) = the_x_2_the_z_1
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_2 Loop Body_1 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_2_the_z_1
+X(UniqueName)  = the_x_2_the_z_1
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 62
 64 baz rule
@@ -1005,17 +1018,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 65
 ---------
 Command: browseinst detail 65
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_2 Loop Body_2 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_2_the_z_2
-X(UniqueName) = the_x_2_the_z_2
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_2 Loop Body_2 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_2_the_z_2
+X(UniqueName)  = the_x_2_the_z_2
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 66
 68 baz rule
@@ -1076,17 +1090,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 69
 ---------
 Command: browseinst detail 69
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_2 Loop Body_3 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_2_the_z_3
-X(UniqueName) = the_x_2_the_z_3
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_2 Loop Body_3 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_2_the_z_3
+X(UniqueName)  = the_x_2_the_z_3
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 70
 72 baz rule
@@ -1146,17 +1161,18 @@ X(position)  = Design.bsv 11 10
 Command: browseinst list 73
 ---------
 Command: browseinst detail 73
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_3 the_g
-X(DEBUG)      = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_g
-X(Node)       = Primitive
-X(SynthPath)  = the_x_3_the_g
-X(UniqueName) = the_x_3_the_g
-X(position)   = Design.bsv 19 4
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_3 the_g
+X(DEBUG)       = BLeaf the_g RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_g
+X(Node)        = Primitive
+X(SynthPath)   = the_x_3_the_g
+X(UniqueName)  = the_x_3_the_g
+X(position)    = Design.bsv 19 4
 ---------
 Command: browseinst list 74
 75 Body_0 {}
@@ -1194,17 +1210,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 79
 ---------
 Command: browseinst detail 79
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_3 Loop Body_0 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_3_the_z_0
-X(UniqueName) = the_x_3_the_z_0
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_3 Loop Body_0 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_3_the_z_0
+X(UniqueName)  = the_x_3_the_z_0
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 80
 82 baz rule
@@ -1265,17 +1282,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 83
 ---------
 Command: browseinst detail 83
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_3 Loop Body_1 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_3_the_z_1
-X(UniqueName) = the_x_3_the_z_1
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_3 Loop Body_1 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_3_the_z_1
+X(UniqueName)  = the_x_3_the_z_1
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 84
 86 baz rule
@@ -1336,17 +1354,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 87
 ---------
 Command: browseinst detail 87
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_3 Loop Body_2 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_3_the_z_2
-X(UniqueName) = the_x_3_the_z_2
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_3 Loop Body_2 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_3_the_z_2
+X(UniqueName)  = the_x_3_the_z_2
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 88
 90 baz rule
@@ -1407,17 +1426,18 @@ X(position)  = Design.bsv 23 7
 Command: browseinst list 91
 ---------
 Command: browseinst detail 91
-X(BSVModule)  = mkDesign
-X(BSVPath)    = Loop the_x_3 Loop Body_3 the_z
-X(DEBUG)      = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
-X(Interface)  = Reg#(Bit#(8))
-X(LocalPath)  = 
-X(Module)     = RegN
-X(Name)       = the_z
-X(Node)       = Primitive
-X(SynthPath)  = the_x_3_the_z_3
-X(UniqueName) = the_x_3_the_z_3
-X(position)   = Design.bsv 25 10
+X(BSVModule)   = mkDesign
+X(BSVPath)     = Loop the_x_3 Loop Body_3 the_z
+X(DEBUG)       = BLeaf the_z RegN Just ((Reg#(Bit#(8))))
+X(IfcPosition) = Design.bsv 18 4
+X(Interface)   = Reg#(Bit#(8))
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = the_z
+X(Node)        = Primitive
+X(SynthPath)   = the_x_3_the_z_3
+X(UniqueName)  = the_x_3_the_z_3
+X(position)    = Design.bsv 25 10
 ---------
 Command: browseinst list 92
 94 baz rule
