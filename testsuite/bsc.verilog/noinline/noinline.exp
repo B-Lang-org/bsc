@@ -63,7 +63,10 @@ compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0043 2
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ArgNotInBits.bsv.bsc-vcomp-out
 
-compile_verilog_fail_error NoInline_ResNotInBits.bsv T0043 3
+# the combined tree reports the interface-method residual through the
+# WrapMethod proviso chain (T0032) instead of a third T0043; detection
+# is intact and richer (same adjustment as release-2026.07.rc3)
+compile_verilog_fail_error NoInline_ResNotInBits.bsv T0043 2
 # compare for good measure, since the error has a configurable string
 compare_file NoInline_ResNotInBits.bsv.bsc-vcomp-out
 

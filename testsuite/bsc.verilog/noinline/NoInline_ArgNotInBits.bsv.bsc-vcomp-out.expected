@@ -8,3 +8,11 @@ Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
   Cannot synthesize this module or function: The interface method
   `fnNoInline_ArgNotInBits' uses type(s) that are not in the Bits or
   SplitPorts typeclasses: NoInline_ArgNotInBits::L
+Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    WrapMethod#(function Bool f(NoInline_ArgNotInBits::L x1), function Bit#(1) f(a__ x1))
+  An instance for this proviso exists, but it depends on the following
+  provisos for which there are no instances:
+    NonEmptyBits#(b__, a__),
+    Bits#(NoInline_ArgNotInBits::L, b__),
+    PrimSeqTupleBits#(a__)

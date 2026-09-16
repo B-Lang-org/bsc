@@ -7,8 +7,12 @@ Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
 Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
   Cannot synthesize this module or function: The interface method
   `fnNoInline_ResNotInBits' uses type(s) that are not in the Bits or
-  SplitPorts typeclasses:
-Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
-  Cannot synthesize this module or function: The interface method
-  `fnNoInline_ResNotInBits' uses type(s) that are not in the Bits or
   SplitPorts typeclasses: NoInline_ResNotInBits::L
+Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    WrapMethod#(function NoInline_ResNotInBits::L f(Bool x1), function a__ f(Bit#(1) x1))
+  An instance for this proviso exists, but it depends on the following
+  provisos for which there are no instances:
+    PrimSeqTupleBits#(a__),
+    NonEmptyBits#(b__, a__),
+    Bits#(NoInline_ResNotInBits::L, b__)
