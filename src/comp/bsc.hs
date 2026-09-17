@@ -90,7 +90,12 @@ import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
                IEFace(..), IDef(..), IExpr(..), fdVars)
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
-import IConv(iConvPackage, iConvDef)
+import IConv(iConvPackage, iConvDef, iConvTStats)
+import CType(cTypeConsStats)
+import GroundCType(groundCTypeStats)
+import BinData(binTypeStats)
+import IOUtil(progArgs)
+import Control.Exception(finally)
 import FixupDefs(fixupDefs, updDef)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
@@ -177,7 +182,18 @@ main = do
     hSetEncoding stderr utf8
     args <- getArgs
     -- bsc can raise exception,  catch them here  print the message and exit out.
-    bsCatch (hmain args)
+    bsCatch (hmain args) `finally` ctypeStatsDump
+
+-- -trace-ctype-stats: the construction, interning and conversion-memo
+-- counters, on every exit path so that a failing compile still reports
+-- what it built
+ctypeStatsDump :: IO ()
+ctypeStatsDump =
+    when ("-trace-ctype-stats" `elem` progArgs) $ do
+      stats <- concat <$> sequence [cTypeConsStats, groundCTypeStats,
+                                    iConvTStats, binTypeStats]
+      mapM_ (\ (k, v) -> putStrLnF ("CTYPE-STAT " ++ k ++ " " ++ show v))
+            stats
 
 -- Use with hugs top level
 hmain :: [String] -> IO ()
