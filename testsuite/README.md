@@ -320,6 +320,26 @@ added in the same way, with a `Makefile` and `<category>.exp` file.
   scripts that filter simulator banners from the output will strip the
   test's value along with it.
 
+* When a test script executes, the current working directory depends
+  on where the suite was invoked and may not be the location of the
+  test script.  Calling Tcl file functions (such as `open`, `file
+  copy`, etc) with relative file names may therefore not work.  To
+  avoid this problem, the testsuite defines procedures (`copy`,
+  `move`, `erase`, etc) that change into the test directory, execute
+  the Tcl command, and then pop back to the original directory.  Test
+  scripts should call these wrappers instead of the bare Tcl commands.
+  If a new wrapper is needed, the following boilerplate can be used to
+  record the current directory, change into the directory, and then
+  pop back:
+    ```tcl
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    cd $here
+    ```
+
 ---
 
 ## Diagnosing test failures
