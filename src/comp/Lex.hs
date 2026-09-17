@@ -66,6 +66,8 @@ data LexItem =
         | L_lcurl_o | L_rcurl_o | L_semi_o
         -- pragma
         | L_lpragma | L_rpragma
+        -- unbased unsized bit literals ('0 all-zeros, '1 all-ones)
+        | L_unbasedUnsized Bool
         -- pseudo items
         | L_eof
         | L_error LexError
@@ -142,6 +144,8 @@ prLexItem L_rcurl_o = "} from layout"
 prLexItem L_semi_o = "; from layout"
 prLexItem L_lpragma = "{-#"
 prLexItem L_rpragma = "#-}"
+prLexItem (L_unbasedUnsized False) = "'0"
+prLexItem (L_unbasedUnsized True)  = "'1"
 prLexItem L_eof = "<EOF>"
 prLexItem (L_error s) = "Lexical error: " ++ show (convLexErrorToErrMsg s)
 
@@ -224,7 +228,9 @@ lx lf f l c ('.':cs)                = Token (mkPositionFull f l c (lf_is_stdlib 
 lx lf f l c ('\'':cs)                =
     case lexLitChar' cs of
         Just (cc, n, '\'':cs) -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_char cc) : lx lf f l (c+2+n) cs
-        _ -> lexerr f l c LexBadCharLit
+        Just ('0', n, cs)     -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_unbasedUnsized False) : lx lf f l (c+1+n) cs
+        Just ('1', n, cs)     -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_unbasedUnsized True)  : lx lf f l (c+1+n) cs
+        _                     -> lexerr f l c LexBadCharLit
 lx lf f l c ('"':cs)                =
         case lexString cs l (c+1) "" of
             Just (str, l', c', cs') -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_string str) : lx lf f l' c' cs'
