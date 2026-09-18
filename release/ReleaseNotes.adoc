@@ -4,6 +4,15 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2026.07.1 Release
+-----------------
+
+This release fixes a bug (GitHub Issue#1122) introduced in the
+testsuite (by GitHub PR#859), causing certain test subdirectories to
+fail when executed with `make check`.  This is fixed and documented
+and the CI has been updated to support testing with `make check` to
+prevent future regression (GitHub PR#1123).
+
 2026.07 Release
 ---------------
 
