@@ -10,20 +10,20 @@ infixr 4 `fn`
 
 -- XXX these definitions should be synced with StdPrel.hs where applicable
 
-tArrow, tBit, tInt :: Type
-tArrow = TCon (TyCon (idArrow noPosition) (Just (Kfun KStar (Kfun KStar KStar))) TIabstract)
-tBit = TCon (TyCon idBit (Just (Kfun KNum KStar)) TIabstract)
-tInt = TCon (TyCon idInt (Just (Kfun KNum KStar)) TIabstract)
-
-tIntAt :: Position -> Type
-tIntAt pos = TCon (TyCon (idIntAt pos) (Just (Kfun KNum KStar)) TIabstract)
-
 tiData, tiEnum :: [Id] -> TISort
 tiEnum cons = TIdata { tidata_cons = cons, tidata_enum = True }
 tiData cons = TIdata { tidata_cons = cons, tidata_enum = False }
 
+tArrow, tBit, tInt :: Type
+tArrow = TCon (TyCon (idArrow noPosition) (Just (Kfun KStar (Kfun KStar KStar))) TIabstract)
+tBit = TCon (TyCon idBit (Just (Kfun KNum KStar)) TIabstract)
+tInt = TCon (TyCon idInt (Just (Kfun KNum KStar)) (tiData [idInt]))
+
+tIntAt :: Position -> Type
+tIntAt pos = TCon (TyCon (idIntAt pos) (Just (Kfun KNum KStar)) (tiData [idIntAt pos]))
+
 tUInt, tBool, tPrimUnit :: Type
-tUInt = TCon (TyCon idUInt (Just (Kfun KNum KStar)) TIabstract)
+tUInt = TCon (TyCon idUInt (Just (Kfun KNum KStar)) (tiData [idUInt]))
 tBool = TCon (TyCon idBool (Just KStar) (tiEnum [idFalse, idTrue]))
 --tArray = TCon (TyCon idArray (Just (Kfun KNum (Kfun KNum KStar))) (TIstruct SInterface [id_sub, id_upd]))
 tPrimUnit = TCon (TyCon idPrimUnit (Just KStar) (TIstruct SStruct []))
@@ -55,18 +55,18 @@ tType = TCon (TyCon idType (Just KStar) TIabstract)
 tPred, tAttributes, tPrimPair :: Type
 tPred = TCon (TyCon idPred (Just KStar) TIabstract)
 tAttributes = TCon (TyCon idAttributes (Just KStar) TIabstract)
-tPrimPair = TCon (TyCon idPrimPair (Just (Kfun KStar (Kfun KStar KStar))) (TIstruct SStruct [idPrimFst, idPrimSnd]))
+tPrimPair = TCon (TyCon idPrimPair (Just (Kfun KStar (Kfun KStar KStar))) (TIstruct (SInterface []) [idPrimFst, idPrimSnd]))
 
 tAction, tActionValue, tActionValue_, tAction_:: Type
 tAction = TCon (TyCon idAction (Just KStar) (TItype 0 (TAp tActionValue tPrimUnit)))
-tActionValue = TCon (TyCon idActionValue (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value, id__action]))
-tActionValue_ = TCon (TyCon idActionValue_ (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value, id__action]))
+tActionValue = TCon (TyCon idActionValue (Just (Kfun KStar KStar)) (tiData [idActionValue]))
+tActionValue_ = TCon (TyCon idActionValue_ (Just (Kfun KStar KStar)) (TIstruct SStruct [idAVValue_, idAVAction_]))
 tAction_ = TAp tActionValue_ tPrimUnit
 
 tActionAt, tActionValueAt, tActionValue_At :: Position -> Type
 tActionAt pos = TCon (TyCon (idActionAt pos) (Just KStar) (TItype 0 (TAp (tActionValueAt pos) (tPrimUnitAt pos))))
-tActionValueAt pos = TCon (TyCon (idActionValueAt pos) (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value_at pos, id__action_at pos]))
-tActionValue_At pos = TCon (TyCon (idActionValue_At pos) (Just (Kfun KStar KStar)) (TIstruct SStruct [id__value_at pos, id__action_at pos]))
+tActionValueAt pos = TCon (TyCon (idActionValueAt pos) (Just (Kfun KStar KStar)) (tiData [idActionValueAt pos]))
+tActionValue_At pos = TCon (TyCon (idActionValue_At pos) (Just (Kfun KStar KStar)) (TIstruct SStruct [idAVValue_at pos, idAVAction_at pos]))
 
 tPrimAction, tRules :: Type
 tPrimAction = TCon (TyCon idPrimAction (Just KStar) TIabstract)
@@ -98,7 +98,7 @@ tNat :: Position -> Type
 tNat pos = tBitN 32 pos
 
 tFile, tSvaParam :: Type
-tFile = TCon (TyCon idFile (Just KStar) TIabstract)
+tFile = TCon (TyCon idFile (Just KStar) (tiData [idInvalidFile, idMCD, idFD]))
 tSvaParam  = TCon (TyCon idSvaParam (Just KStar) (tiData [idSvaBool, idSvaNumber]))
 
 fn         :: Type -> Type -> Type
@@ -121,6 +121,31 @@ tLog = TCon (TyCon idTLog (Just kNN)  TIabstract)
 tExp = TCon (TyCon idTExp (Just kNN)  TIabstract)
 tMax = TCon (TyCon idTMax (Just kNNN) TIabstract)
 tMin = TCon (TyCon idTMin (Just kNNN) TIabstract)
+
+-- Registry of the handwritten TCon constants in this module, for the
+-- tconcheck drift checker (src/comp/tconcheck.hs).
+--
+-- BSC's front end enforces one type constructor per qualified name, so a
+-- qualified Id determines its (kind, sort) payload.  The constants above
+-- are handwritten copies of payloads whose truth lives in the compiled
+-- Prelude; tconcheck (run during the build, right after the Prelude
+-- libraries are compiled) verifies every registered constant against the
+-- Prelude-derived symbol table, so any edit to the Prelude that changes a
+-- payload is caught instead of silently drifting.
+--
+-- Any new TCon-literal constant added to this module MUST be registered
+-- here.  The position-parameterized variants (tIntAt, tPrimUnitAt, tRealAt,
+-- tActionAt, tActionValueAt, tActionValue_At, tRulesAt) share their Id
+-- (positions do not participate in Id equality), kind and sort with a
+-- registered constant, so they are covered by the entries below.
+handwrittenTCons :: [Type]
+handwrittenTCons =
+    [ tArrow, tBit, tInt, tUInt, tBool, tPrimUnit, tInteger, tReal,
+      tClock, tReset, tInout, tInout_, tString, tChar,
+      tFmt, tName, tPosition, tType, tPred, tAttributes, tPrimPair,
+      tAction, tActionValue, tActionValue_, tPrimAction, tRules,
+      tSchedPragma, tModule, tEmpty, tId, tFile, tSvaParam,
+      tAdd, tSub, tMul, tDiv, tLog, tExp, tMax, tMin ]
 
 class HasKind t where
     kind :: t -> Kind

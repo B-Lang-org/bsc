@@ -44,6 +44,7 @@ import SchedInfo(SchedInfo(..), MethodConflictInfo(..),
 import Pragma
 import ASyntax
 import ISyntax
+import IType(iTypeNodeId)
 import Wires
 import CType
 import IntLit
@@ -259,8 +260,18 @@ type_key (TDefMonad _) = internalError $ "BinData.type_key: TDefMonad"
 
 -- We don't use the IType as a key since the Eq instance for some
 -- variants (like ITForAll) ignore Kinds in the equality test.
-data ITypeKey = ITKF IdKey IKind ITypeKey
-              | ITKA ITypeKey ITypeKey
+--
+-- Interior nodes (ITAp/ITForAll) are hash-consed (see IType): the
+-- intern table guarantees one node per exact-serialization-granularity
+-- key, so the intern unique IS the node's structural identity, and the
+-- deep structural key that used to be built here (which re-walked
+-- shared subtrees once per path, exponentially many times on
+-- DAG-shaped types) is unnecessary.  Leaves are not interned and keep
+-- their exact keys.  The unique never enters the byte stream: it only
+-- keys the writer-local sharing map, and the emitted bytes remain
+-- structure plus first-occurrence LOCAL indices, fully
+-- content-determined.
+data ITypeKey = ITKI {-# UNPACK #-} !Int
               | ITKV IdKey
               | ITKC IdKey IKind TISort
               | ITKN Integer
@@ -268,12 +279,12 @@ data ITypeKey = ITKF IdKey IKind ITypeKey
   deriving (Eq, Ord, Show)
 
 itype_key :: IType -> ITypeKey
-itype_key (ITForAll i k t) = ITKF (id_key i) k (itype_key t)
-itype_key (ITAp t1 t2)     = ITKA (itype_key t1) (itype_key t2)
-itype_key (ITVar i)        = ITKV (id_key i)
-itype_key (ITCon i k s)    = ITKC (id_key i) k s
-itype_key (ITNum n)        = ITKN n
-itype_key (ITStr s)        = ITKS s
+itype_key t@(ITForAll _ _ _) = ITKI (iTypeNodeId t)
+itype_key t@(ITAp _ _)       = ITKI (iTypeNodeId t)
+itype_key (ITVar i)          = ITKV (id_key i)
+itype_key (ITCon i k s)      = ITKC (id_key i) k s
+itype_key (ITNum n)          = ITKN n
+itype_key (ITStr s)          = ITKS s
 
 -- -------------------------------------------------------------
 -- The Out monad makes it easy to generate composite BinData

@@ -10,6 +10,7 @@ module TypeAnalysis (
                      ) where
 
 import Data.List(genericDrop, intercalate, (\\), nub, sortBy)
+import Data.Maybe(mapMaybe)
 import Data.Char(isUpper)
 
 import Util(doRight, itos)
@@ -285,7 +286,11 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
             fields' = let isField (c:cs) | isUpper c = False
                           isField _                  = True
                       in  filter (isField . getIdBaseString) fields
-            fieldInfos = map (getFieldInfo symtab qi) fields'
+            -- The sort's member list names every method (it is package-
+            -- independent), but methods of a class exported without (..)
+            -- have no FieldInfo in this package's symtab -- they are
+            -- hidden, so skip them.
+            fieldInfos = mapMaybe (findFieldInfo symtab qi) fields'
             mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _ _) =
                 let as' = addGenVars orig_as ks
                     qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
