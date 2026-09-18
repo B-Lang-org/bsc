@@ -3,9 +3,9 @@ compiling EHasImplicit1.bs
 code generation for mkEHasImplicit1 starts
 Error: "ClockConv.bs", line 55, column 19: (G0014)
   Implicit condition not allowed for expression: .ClockConv._2
-  (outClockConv.Clock (PrimWhen ·ClockConv.Clock (.EHasImplicit1.ready f_0)
-  (ClockConv.Clock (ClockConv.Clock°Clock (.Prelude.fst ·(Prelude.Bit 1)
-  ·(Prelude.Bit 1) (Prelude.PrimPair ·(Prelude.Bit 1) ·(Prelude.Bit 1)
-  (PrimSelect ·1 ·1 ·2 (PrimConcat ·1 ·1 ·2 (.EHasImplicit1.clock f_0)
+  (outClockConv.Clock (PrimWhen Â·ClockConv.Clock (.EHasImplicit1.ready f_0)
+  (ClockConv.Clock (ClockConv.ClockÂ°Clock (.Prelude.fst Â·(Prelude.Bit 1)
+  Â·(Prelude.Bit 1) (Prelude.PrimPair Â·(Prelude.Bit 1) Â·(Prelude.Bit 1)
+  (PrimSelect Â·1 Â·1 Â·2 (PrimConcat Â·1 Â·1 Â·2 (.EHasImplicit1.clock f_0)
   (.EHasImplicit1.reset f_0))) (.EHasImplicit1.reset f_0))) (PrimWhen
-  ·(Prelude.Bit 1) (.EHasImplicit1.ready f_0) (.EHasImplicit1.reset f_0))))))
+  Â·(Prelude.Bit 1) (.EHasImplicit1.ready f_0) (.EHasImplicit1.reset f_0))))))

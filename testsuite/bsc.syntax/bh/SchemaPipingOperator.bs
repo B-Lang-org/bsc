@@ -1,0 +1,17 @@
+package SchemaPipingOperator((⨠), (≫), result) where
+
+-- U+2A20 (Z NOTATION SCHEMA PIPING) and U+226B (MUCH GREATER-THAN) are
+-- in the MathSymbol general category, which GHC accepts in operators,
+-- so no P0225 error (or warning) should be reported for them.
+
+infixr 12 ⨠
+infixl 12 ≫
+
+(⨠) :: (Monad m) => (a -> m b) -> m a -> m b
+f ⨠ a = a `bind` f
+
+(≫) :: (Monad m) => m a -> (a -> m b) -> m b
+(≫) = bind
+
+result :: (Monad m) => m (Bit 8) -> m (Bit 8)
+result m = (\x -> return (x + 1)) ⨠ (m ≫ (\y -> return y))

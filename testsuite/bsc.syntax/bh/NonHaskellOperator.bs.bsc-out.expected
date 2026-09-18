@@ -1,0 +1,41 @@
+checking package dependencies
+Error: "NonHaskellOperator.bs", line 1, column 28: (P0225)
+  The operator `»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 1, column 33: (P0225)
+  The operator `«»' contains the characters `«' (U+00AB) and `»' (U+00BB),
+  which are not accepted in operators by Haskell (GHC). Please use `≪'
+  (U+226A) instead of `«' (U+00AB). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 8, column 10: (P0225)
+  The operator `»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 10, column 1: (P0225)
+  The operator `»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 11, column 2: (P0225)
+  The operator `»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 13, column 1: (P0225)
+  The operator `«»' contains the characters `«' (U+00AB) and `»' (U+00BB),
+  which are not accepted in operators by Haskell (GHC). Please use `≪'
+  (U+226A) instead of `«' (U+00AB). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 14, column 2: (P0225)
+  The operator `«»' contains the characters `«' (U+00AB) and `»' (U+00BB),
+  which are not accepted in operators by Haskell (GHC). Please use `≪'
+  (U+226A) instead of `«' (U+00AB). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 17, column 28: (P0225)
+  The operator `«»' contains the characters `«' (U+00AB) and `»' (U+00BB),
+  which are not accepted in operators by Haskell (GHC). Please use `≪'
+  (U+226A) instead of `«' (U+00AB). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Error: "NonHaskellOperator.bs", line 17, column 41: (P0225)
+  The operator `»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).

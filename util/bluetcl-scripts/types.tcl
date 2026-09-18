@@ -66,7 +66,7 @@ proc getNonPolyType { pack } {
 
 # XXX These are types from the prelude which are not parsed as types
 proc typeIsNotKeyword { t } {
-    set keywords [list Action ActionValue  "List°Cons" "->"]
+    set keywords [list Action ActionValue  "ListÂ°Cons" "->"]
 
     foreach k $keywords {
         if { $k == $t } {

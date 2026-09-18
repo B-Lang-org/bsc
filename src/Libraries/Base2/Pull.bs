@@ -1,4 +1,4 @@
-package Pull(Pull(..), apply, tee, pass, passed, buffer, buffered, (»), pipe, sink, spew) where
+package Pull(Pull(..), apply, tee, pass, passed, buffer, buffered, (⨠), pipe, sink, spew) where
 
 --@ \subsubsection{Pull}
 --@
@@ -7,11 +7,11 @@ package Pull(Pull(..), apply, tee, pass, passed, buffer, buffered, (»), pipe, s
 --@ produces values of type ``\te{a}'' only when ``pulled'' by a consumer.
 --@
 --@ Modules with the Pull interface can be combined using
---@ \te{»} to model computations that comprise several steps,
+--@ \te{⨠} to model computations that comprise several steps,
 --@ each of which may be buffered.
 --@
 
-infixl 12 »
+infixl 12 ⨠
 
 --@ \begin{libverbatim}
 --@ interface Pull #(type a);
@@ -102,14 +102,14 @@ spew :: (IsModule m c) => m (Pull a)
 spew = module
          interface { pull = return _ }
 
---@ Combine two streams (e.g., \te{spew » sink}). (Note: in BSV the function
+--@ Combine two streams (e.g., \te{spew ⨠ sink}). (Note: in BSV the function
 --@ \te{pipe} must be used instead.)
 --@ \begin{libverbatim}
---@ function m#(b) (»)()
+--@ function m#(b) (⨠)()
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
-(») :: (Monad m) => m a -> (a -> m b) -> m b
-(») = bind
+(⨠) :: (Monad m) => m a -> (a -> m b) -> m b
+(⨠) = bind
 
 pipe :: (Monad m) => m a -> (a -> m b) -> m b
 pipe = bind
