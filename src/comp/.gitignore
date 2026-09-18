@@ -18,6 +18,7 @@ bsc2bsv
 bsv2bsc
 showrules
 vcdcheck
+bo2bloogle
 
 # Ignore TAGS files
 TAGS
