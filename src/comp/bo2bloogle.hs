@@ -87,11 +87,11 @@ intercalateS _ [] = id
 intercalateS sep (hd : tl) = concatS (hd : ((sep .) <$> tl))
 
 -- | This is the monad we convert to Haskell in.
-newtype M a = MkM {unM :: ReaderT (Int, [String]) (ExceptT String IO) a}
+newtype M a = MkM {unM :: ReaderT (Int, [String]) (ExceptT (Maybe String) IO) a}
   deriving (Functor, Applicative, Monad, MonadIO)
 
 -- | Runs the 'M' monad.
-runM :: Int -> [String] -> M a -> IO (Either String a)
+runM :: Int -> [String] -> M a -> IO (Either (Maybe String) a)
 runM indent ctx = runExceptT . flip runReaderT (indent, ctx) . unM
 
 -- | Converts errors to comments on stdout.
@@ -100,15 +100,16 @@ catch i ctxLine body = MkM . local (bimap (+ i) (ctxLine :)) $ do
   (i', ctx) <- ask
   result <- liftIO $ runM i' ctx body
   case result of
-    Left err -> do
+    Left (Just err) -> do
       unM $ printIndented (prefixed "-- " err)
+    Left Nothing -> pure ()
     Right () -> pure ()
 
 -- | Signals that the value is not representable as Haskell code.
 notRepresentable :: String -> M a
 notRepresentable msg = MkM $ do
   ctx <- asks (snd >>> fmap ("  while " <>))
-  lift (throwError (unlines (msg : ctx)))
+  lift (throwError (Just (unlines (msg : ctx))))
 
 instance IsString (M ShowS) where
   fromString s = pure (s <>)
@@ -158,6 +159,8 @@ instance AsHaskell Id where
      in case checkRepresentable name of
           Just Id -> pure (toS name)
           Just Sym -> parens (pure (toS name))
+          Just KnownStdlibUseOfHaskellReserved ->
+            MkM $ lift (throwError Nothing)
           Nothing ->
             notRepresentable
               ( "the name "

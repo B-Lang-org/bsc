@@ -483,12 +483,13 @@ svSymbolSet =
 
 -- Utilities for checking symbols based on the GHC lexical syntax.
 
-data Representable = Id | Sym
+data Representable = Id | Sym | KnownStdlibUseOfHaskellReserved
 
 -- | Returns whether a name can be represented at all in Haskell syntax. This
 -- essentially just checks if the string parses as @varid@, @conid@, @varsym@,
 -- or @consym@ from the Haskell 2010 report.
 checkRepresentable :: String -> Maybe Representable
+checkRepresentable "|" = Just KnownStdlibUseOfHaskellReserved
 checkRepresentable name
   | name `elem` reserved = Nothing
   | length name >= 2 && all (== '-') name = Nothing
