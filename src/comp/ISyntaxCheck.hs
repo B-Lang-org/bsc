@@ -57,12 +57,18 @@ eqType0 flags symt r@(E _ _ eqs _) t t' =
                      ++ " result=" ++ show result) $
        result
 
+-- The commutative numeric type constructors, identified by name: Ids
+-- embedded in ITypes are normalized on entry to the intern layer and
+-- carry no props, so this must not be an IdProp test.
+commutativeTCons :: [Id]
+commutativeTCons = [idAdd, idMax, idMin, idMul, idNumEq]
+
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
 -- hack to make commutative type constructors work
 eqType1 flags symt r (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
                      (ITAp (ITAp (ITAp (ITCon i' _ _) t1') t2') t3')
-    | (i == i') && (hasIdProp i IdPCommutativeTCon) =
+    | (i == i') && (i `elem` commutativeTCons) =
     eqType0 flags symt r t3 t3' &&
     (((eqType0 flags symt r t1 t1') && (eqType0 flags symt r t2 t2')) ||
      ((eqType0 flags symt r t1 t2') && (eqType0 flags symt r t2 t1')))
@@ -299,16 +305,23 @@ atfEqsFromDict symt dictType =
     in case hd of
          ITCon cid _ _ ->
            [ (atfApp, targetArg)
-           | (atfId, TypeInfo _ atfK _ ti@(TIatf { atf_class_id = acId
-                                                 , atf_param_idxs = pIdxs
-                                                 , atf_target_idx = tIdx }) _)
+           -- The symtab type map contains one entry per visible alias
+           -- (qualified and unqualified) of each type, all sharing one
+           -- TypeInfo.  Build the ATF tycon from the canonical
+           -- qualified id (ti_qual_id) -- ITCon Ids must be qualified
+           -- (enforced by IType.mkITCon) -- and keep a single entry
+           -- per ATF by matching only the canonical alias.
+           | (atfId, TypeInfo (Just qatfId) atfK _ ti@(TIatf { atf_class_id = acId
+                                                             , atf_param_idxs = pIdxs
+                                                             , atf_target_idx = tIdx }) _)
                <- allTypes
+           , atfId == qatfId
            , acId == cid
            , tIdx < length classArgs
            , all (\idx -> idx >= 0 && idx < length classArgs) pIdxs
            , let paramArgs = [ classArgs !! idx | idx <- pIdxs ]
                  targetArg = classArgs !! tIdx
-                 atfTyCon = ITCon atfId (kToIK atfK) ti
+                 atfTyCon = ITCon qatfId (kToIK atfK) ti
                  atfApp = foldl ITAp atfTyCon paramArgs
            ]
          _ -> []

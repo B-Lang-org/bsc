@@ -129,7 +129,12 @@ data StmtT a
         | SContinue PosInfo
         | SExprS PosInfo (RStmt a)
 
-class StmtTifiable t a | t -> a where stmtify :: PosInfo -> t -> (StmtT a)
+-- Declared incoherent because the Action instance does not cover the
+-- fundep: an Action statement fits into an FSM of any result type, so
+-- the "determined" type is chosen by the use site, not the input.
+-- XXX Whether the class could instead be given a covering formulation
+-- deserves investigation.
+class incoherent StmtTifiable t a | t -> a where stmtify :: PosInfo -> t -> (StmtT a)
 
 instance StmtTifiable Action t where
     stmtify p a = SAction p a Nothing

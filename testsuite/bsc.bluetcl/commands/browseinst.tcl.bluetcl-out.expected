@@ -58,7 +58,7 @@ Command: browseinst detail 2
 X(BSVModule)   = mkM
 X(BSVPath)     = r1
 X(DEBUG)       = BMod r1 Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 89 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = mkM
@@ -74,7 +74,7 @@ Command: browseinst detail 7
 X(BSVModule)   = mkM
 X(BSVPath)     = r1 ptr
 X(DEBUG)       = BLeaf ptr RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -90,7 +90,7 @@ Command: browseinst detail 8
 X(BSVModule)   = mkM
 X(BSVPath)     = r1 r1
 X(DEBUG)       = BLeaf r1 RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -106,7 +106,7 @@ Command: browseinst detail 9
 X(BSVModule)   = mkM
 X(BSVPath)     = r1 r2
 X(DEBUG)       = BLeaf r2 RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -153,7 +153,7 @@ Command: browseinst detail 3
 X(BSVModule)   = mkM
 X(BSVPath)     = r2
 X(DEBUG)       = BMod r2 Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 89 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = mkM
@@ -169,7 +169,7 @@ Command: browseinst detail 12
 X(BSVModule)   = mkM
 X(BSVPath)     = r2 ptr
 X(DEBUG)       = BLeaf ptr RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -185,7 +185,7 @@ Command: browseinst detail 13
 X(BSVModule)   = mkM
 X(BSVPath)     = r2 r1
 X(DEBUG)       = BLeaf r1 RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -201,7 +201,7 @@ Command: browseinst detail 14
 X(BSVModule)   = mkM
 X(BSVPath)     = r2 r2
 X(DEBUG)       = BLeaf r2 RegN Just ((Reg#(Bool)))
-X(IfcPosition) = Test.bsv 103 4
+X(IfcPosition) = Test.bsv 102 12
 X(Interface)   = Reg#(Bool)
 X(LocalPath)   = 
 X(Module)      = RegN
@@ -240,18 +240,17 @@ X(position)  = Test.bsv 113 9
 Command: browseinst list 4
 ---------
 Command: browseinst detail 4
-X(BSVModule)   = mkI
-X(BSVPath)     = mi
-X(DEBUG)       = BMod mi Just (Test::InoutIFC)
-X(IfcPosition) = Test.bsv 91 4
-X(Interface)   = Test::InoutIFC
-X(LocalPath)   = 
-X(Module)      = mkI
-X(Name)        = mi
-X(Node)        = Synthesized
-X(SynthPath)   = mi
-X(UniqueName)  = mi
-X(position)    = Test.bsv 91 13
+X(BSVModule)  = mkI
+X(BSVPath)    = mi
+X(DEBUG)      = BMod mi Just (Test::InoutIFC)
+X(Interface)  = Test::InoutIFC
+X(LocalPath)  = 
+X(Module)     = mkI
+X(Name)       = mi
+X(Node)       = Synthesized
+X(SynthPath)  = mi
+X(UniqueName) = mi
+X(position)   = Test.bsv 91 13
 ---------
 Command: browseinst list 5
 ---------
@@ -272,18 +271,17 @@ X(position)    = Test.bsv 92 18
 Command: browseinst list 6
 ---------
 Command: browseinst detail 6
-X(BSVModule)   = mkIfcWithVec
-X(BSVPath)     = iv
-X(DEBUG)       = BMod iv Just (Test::IfcWithVec)
-X(IfcPosition) = Test.bsv 93 4
-X(Interface)   = Test::IfcWithVec
-X(LocalPath)   = 
-X(Module)      = mkIfcWithVec
-X(Name)        = iv
-X(Node)        = Synthesized
-X(SynthPath)   = iv
-X(UniqueName)  = iv
-X(position)    = Test.bsv 93 15
+X(BSVModule)  = mkIfcWithVec
+X(BSVPath)    = iv
+X(DEBUG)      = BMod iv Just (Test::IfcWithVec)
+X(Interface)  = Test::IfcWithVec
+X(LocalPath)  = 
+X(Module)     = mkIfcWithVec
+X(Name)       = iv
+X(Node)       = Synthesized
+X(SynthPath)  = iv
+X(UniqueName) = iv
+X(position)   = Test.bsv 93 15
 ---------
 Command: browseinst debug
 0 ROOT

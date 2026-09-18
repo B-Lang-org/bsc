@@ -225,7 +225,7 @@ tSubstWith tctx allIds t
           else -- No conflict: continue with same context
             changed1 (ITForAll i k) (sub tctx allIds t)
     sub tctx allIds tt@(ITAp f a) =
-      changed2 normITAp f a (sub tctx allIds f) (sub tctx allIds a)
+      changed2 ITAp f a (sub tctx allIds f) (sub tctx allIds a)
     sub tctx _      tt@(ITVar i) = maybe Unchanged Changed (lookupVar i tctx)
     sub _    _      tt@(ITCon _ _ _) = Unchanged
     sub _    _      tt@(ITNum _) = Unchanged

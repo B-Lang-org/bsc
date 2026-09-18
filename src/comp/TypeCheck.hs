@@ -18,6 +18,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
 import ContextErrors
 import Flags(Flags, enablePoisonPills, allowIncoherentMatches)
 import CSyntax
+import CType(isCanonType)
 import PoisonUtils
 import Type
 import Subst
@@ -275,6 +276,8 @@ getFreeD vs (CLValueSign (CDefT i vs' qt cs) qs) =
 getFreeD vs _ = internalError "TypeCheck.getFreeD: not CLValueSign"
 
 getFreeT :: [TyVar] -> CType -> [TyVar]
+-- canonical nodes are ground
+getFreeT vs t | isCanonType t = []
 getFreeT vs (TVar v) | v `notElem` vs = [v]
 getFreeT vs (TAp t1 t2) = getFreeT vs t1 ++ getFreeT vs t2
 getFreeT vs t = []

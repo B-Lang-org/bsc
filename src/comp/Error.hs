@@ -773,6 +773,11 @@ data ErrMsg =
         | EWeakCtxBitExtendNeedsAddCtx String [String] String [String] [Position]
         | EContextReduction String [Position] [(String, Position)]
         | EContextReductionReduces String [String] [Position] [(String, Position)]
+        | EFunDepConflict String String String [Position]
+            -- class name, context, conflicting instance head, positions
+        | WFunDepCoverage String String [String]
+        | EBoundTyVarEscape String [String]
+            -- escaping type variable, enclosing bindings that capture it
         | ECtxRedWrongBitSize String Integer Integer [Position]
         | ECtxRedBitwiseBool [Position]
         | ECtxRedBitwise String [Position]
@@ -1969,8 +1974,10 @@ getErrorText (EConstrAmb t f) =
     (Type 19, empty, s2par ("Constructor " ++ ishow f ++ " is not disambiguated by type " ++ ishow t))
 getErrorText (EUnify e t1 t2) =
     (Type 20, empty,
-     s2par "Type error at:" $$
-     nest 2 (text e) $$
+     (if null e
+      then s2par "Type mismatch"
+      else s2par "Type error at:" $$
+           nest 2 (text e)) $$
      s2par "Expected type:" $$
      nest 2 (text t2) $$
      s2par "Inferred type:" $$
@@ -2060,6 +2067,62 @@ getErrorText (EContextReduction context positions vps) =
 -}
      in  msg
     )
+
+-- Type 158 is reserved for the transitive-incoherence diagnostics
+-- (origin/transitive-incoherent)
+getErrorText (EFunDepConflict cls context inst positions) =
+    (Type 159, empty,
+     let ctx = if isClassic() then "context" else "proviso"
+         intro_msg =
+           s2par ("The " ++ ctx ++ " cannot be satisfied:") $$
+           nest 2 (text context)
+         conflict_msg =
+           s2par ("Its arguments select the instance:") $$
+           nest 2 (text inst) $$
+           s2par ("(instances of class " ++ quote cls ++ " are selected " ++
+                  "by the arguments at the input positions of the " ++
+                  "class's functional dependencies), but the types the " ++
+                  "instance determines at the dependent positions differ " ++
+                  "from the types the " ++ ctx ++ " requires.")
+         pos_msg =
+           s2par ("The " ++ ctx ++ " was implied by expressions at " ++
+                  "the following positions:") $$
+           nest 2 (vcat (map (text . prPosition) (nub positions)))
+         msg = if null positions
+               then intro_msg $$ conflict_msg
+               else intro_msg $$ conflict_msg $$ pos_msg
+     in  msg
+    )
+
+getErrorText (WFunDepCoverage inst cls vars) =
+    (Type 160, empty,
+     s2par ("The instance " ++ quote inst ++ " does not cover the " ++
+            "functional dependencies of class " ++ quote cls ++ ": " ++
+            unwordsAnd (map quote vars) ++
+            (if length vars == 1 then " appears" else " appear") ++
+            " in a dependent (determined) position without being " ++
+            "determined by the input positions, directly or through " ++
+            "the instance's " ++
+            (if isClassic() then "context" else "provisos") ++ ". " ++
+            "The same inputs can then be satisfied with many " ++
+            "different results.  If the class's resolution is " ++
+            "intentionally not a function of its inputs, declare the " ++
+            "class " ++ quote "incoherent" ++ "."))
+
+getErrorText (EBoundTyVarEscape v capturers) =
+    (Type 161, empty,
+     s2par ((if null v
+             then "A type variable which is quantified "
+             else "The type variable " ++ quote v ++
+                  ", which is quantified ") ++
+            "at this definition, would escape its scope" ++
+            (if null capturers
+             then ""
+             else " into the type of " ++
+                  unwordsAnd (map quote capturers)) ++
+            ".  A value whose type mentions a locally quantified " ++
+            "variable cannot be used or bound outside the " ++
+            "quantifier's scope."))
 
 -- Type 32 was EContextReductionVar until it merged with EContextReduction
 -- sufficiently long ago that we can reuse the number now
