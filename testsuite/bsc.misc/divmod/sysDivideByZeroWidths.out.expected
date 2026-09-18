@@ -1,0 +1,18 @@
+q8    ff
+r8    ff
+q16   ffff
+r16   ffff
+q32   ffffffff
+r32   ffffffff
+q64   ffffffffffffffff
+r64   ffffffffffffffff
+q65   1ffffffffffffffff
+r65   1ffffffffffffffff
+q70   3fffffffffffffffff
+r70   3fffffffffffffffff
+q100  fffffffffffffffffffffffff
+r100  fffffffffffffffffffffffff
+q128  ffffffffffffffffffffffffffffffff
+r128  ffffffffffffffffffffffffffffffff
+ok32       17636          4
+ok100                            1763                               4
