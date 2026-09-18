@@ -1118,7 +1118,9 @@ genTo pps ty mk =
                    fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar idToWrapField) [fnp, prefix, arg_names, result, ec]
+               -- positioned at the field, so the WrapField proviso this
+               -- mints reports there rather than at "Unknown position"
+               let e = CApply (CVar (setIdPosition (getPosition f) idToWrapField)) [fnp, prefix, arg_names, result, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1212,7 +1214,7 @@ genFrom pps ty var =
               -- Call fromWrapField with a proxy for the field name as a type level string,
               -- and the field selection from the unwrapped module.
               let fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
+              let e = CApply (CVar (setIdPosition (getPosition f) idFromWrapField)) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -1628,7 +1630,7 @@ mkFromBind true_ifc_ids var ft =
               -- Call fromWrapField with a proxy for the field name as a type level string,
               -- and the field selection from the unwrapped module.
               let fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
+              let e = CApply (CVar (setIdPosition (getPosition f) idFromWrapField)) [fnp, sel binf]
               return (f, e, qs)
 
 
