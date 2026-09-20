@@ -54,6 +54,10 @@ jobs:
       ghc_version: 9.6.7
       hls_version: 2.13.0.0
       timeout_override: ${{ matrix.timeout_override }}
+      # When run in parallel, each test is executed in its own directory.
+      # To confirm that test scripts still work when executed in parent
+      # directories, run non-parallel in one of the environments.
+      test_parallel: ${{ matrix.os != 'ubuntu-24.04' }}
     secrets: inherit
 
   build-and-test-macos:

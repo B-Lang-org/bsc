@@ -15,6 +15,10 @@ on:
       hls_version:
         required: true
         type: string
+      test_parallel:
+        required: false
+        default: true
+        type: boolean
       timeout_override:
         required: false
         default: false
@@ -176,10 +180,17 @@ jobs:
           # because it's invoked with :set -eo pipefile)
           trap ./testsuite/archive_logs.sh EXIT
 
-          CORES=$(nproc)
-          echo "Cores: ${CORES}"
+          if [[ "${{ inputs.test_parallel }}" == "true" ]]; then
+              CORES=$(nproc)
+              echo "Cores: ${CORES}"
+              MK_JFLAG="-j ${CORES}"
+              MK_TARGET=checkparallel
+            else
+              MK_JFLAG=
+              MK_TARGET=check
+            fi
 
-          make -j ${CORES} -C testsuite checkparallel
+          make ${MK_JFLAG} -C testsuite ${MK_TARGET}
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
