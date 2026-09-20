@@ -34,7 +34,7 @@ module sysBRAMWidthTest();
 
    // Test BRAM of various widths
 
-   // XXX for now, just show that wide BE is not (yet) supported
+   // Wide BE (more than 64 write enables) instantiates the enables as WideData
    BRAM1PortBE#(Bit#(8), Bit#(520), 65) dut0 <- mkBRAM1ServerBE(defaultValue);
 
    Stmt test =
