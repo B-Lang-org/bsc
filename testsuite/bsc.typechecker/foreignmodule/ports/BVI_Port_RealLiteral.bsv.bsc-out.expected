@@ -7,7 +7,8 @@ Error: "BVI_Port_RealLiteral.bsv", line 2, column 11: (T0033)
     An ambiguous type was introduced at "BVI_Port_RealLiteral.bsv", line 3,
     column 16
     This type resulted from:
-      Assignment to an imported module port in or at the following locations:
+      Bits#() proviso introduced (for bit vector packing/unpacking) in or at
+      the following locations:
 	"BVI_Port_RealLiteral.bsv", line 3, column 16
       Real numeric constant in or at the following locations:
 	"BVI_Port_RealLiteral.bsv", line 3, column 16

@@ -20,16 +20,16 @@ Error: "Bug782_Div_mkDivide_noProvisos.bsv", line 28, column 8: (T0030)
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 169, column 47
       The proviso could also be deduced from the following information:
 	Add#(1, c__, int_ex)
-    Add#(d__, TAdd#(int_d, fra_d), TAdd#(TAdd#(int_n, fra_d), fra_n))
+    Add#(d__, TAdd#(int_q, fra_n), TAdd#(fra_d, TAdd#(int_n, fra_n)))
       Introduced at the following locations:
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 75, column 63
       The proviso could also be deduced from the following information:
-	Add#(int_n, fra_n, TAdd#(int_d, d__))
-    Add#(e__, TAdd#(int_q, fra_n), TAdd#(fra_d, TAdd#(int_n, fra_n)))
+	Add#(int_n, fra_d, TAdd#(int_q, d__))
+    Add#(e__, TAdd#(int_d, fra_d), TAdd#(TAdd#(int_n, fra_d), fra_n))
       Introduced at the following locations:
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 75, column 63
       The proviso could also be deduced from the following information:
-	Add#(int_n, fra_d, TAdd#(int_q, e__))
+	Add#(int_n, fra_n, TAdd#(int_d, e__))
     Add#(int_q, f__, TAdd#(int_n, fra_d))
       Introduced at the following locations:
 	"Bug782_Div_mkDivide_noProvisos.bsv", line 75, column 63

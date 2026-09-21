@@ -18,6 +18,8 @@ import System.Time -- XXX: from old-time package
 import PFPrint
 -- utility libs
 import Util(itos)
+import IOUtil(progArgs)
+import CType(cTypeConsStats)
 import FileNameUtil(baseName, dropSuf)
 import FileIOUtil(appendFileCatch, writeFileCatch)
 import IOMutVar
@@ -65,7 +67,17 @@ fmtDouble :: Double -> String
 fmtDouble = printf "%.2f"
 
 start :: Flags -> DumpFlag -> IO ()
-start flags d = when (verbose flags) (putStrLnF ("starting " ++ drop 2 (show d)) >> hFlush stdout)
+start flags d = when (verbose flags) $ do
+    putStrLnF ("starting " ++ drop 2 (show d))
+    -- under -trace-ctype-stats, the cumulative construction counters at
+    -- each phase boundary, so that per-phase deltas attribute the
+    -- type traffic to a phase
+    when ("-trace-ctype-stats" `elem` progArgs) $ do
+        cs <- cTypeConsStats
+        putStrLnF ("CTYPE-PHASE " ++ drop 2 (show d) ++ " " ++
+                   unwords [ k ++ "=" ++ itos (toInteger v)
+                           | (k, v) <- cs, v /= 0 ])
+    hFlush stdout
 
 type DumpNames = (Maybe String {- file name (last path component) -}, Maybe String {- package name -}, Maybe String {- module name -})
 

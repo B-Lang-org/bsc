@@ -1,6 +1,5 @@
 module ISyntaxXRef(
                    updateIExprPosition,
-                   updateITypePosition,
                    mapIExprPosition,
                    mapIExprPosition2,
                    mapIExprPositionConservative
@@ -24,16 +23,13 @@ updateIExprPosition pos (IVar i) = (IVar (setIdPosition pos i))
 updateIExprPosition pos (ILAM i kind e) = (ILAM (setIdPosition pos i) kind (updateIExprPosition pos e))
 updateIExprPosition pos iexpr@(ICon i (ICStateVar t isv)) = iexpr
 updateIExprPosition pos (ICon i info) = (ICon (setIdPosition pos i) info)
-updateIExprPosition pos (IRefT t p poss r) = (IRefT (updateITypePosition pos t) p poss' r)
+-- The heap ref's position set carries the stamped position out of
+-- band; the type itself is deliberately not restamped.  Rewriting the
+-- positions of the Ids inside a type rebuilds the whole type, and
+-- once ITypes are hash-consed the rebuild re-canonicalizes to the
+-- original node, dropping the stamps anyway.
+updateIExprPosition pos (IRefT t p poss r) = (IRefT t p poss' r)
   where poss' = S.insert pos poss
-
-updateITypePosition :: Position -> IType -> IType
-updateITypePosition pos (ITForAll i kind t) = (ITForAll (setIdPosition pos i) kind t)
-updateITypePosition pos (ITAp t t') = (ITAp (updateITypePosition pos t) (updateITypePosition pos t'))
-updateITypePosition pos (ITVar i) = (ITVar (setIdPosition pos i))
-updateITypePosition pos (ITCon i kind sort) = (ITCon (setIdPosition pos i) kind sort)
-updateITypePosition pos t@(ITNum _) = t
-updateITypePosition pos t@(ITStr _) = t
 
 
 updateIExprPosition2 :: Position -> IExpr a -> IExpr a
@@ -52,7 +48,7 @@ updateIExprPosition2 pos (IVar i) = (IVar (setIdPosition pos i))
 updateIExprPosition2 pos (ILAM i kind e) = (ILAM (setIdPosition pos i) kind (updateIExprPosition pos e))
 updateIExprPosition2 pos iexpr@(ICon i (ICStateVar t isv)) = iexpr
 updateIExprPosition2 pos (ICon i info) = (ICon (setIdPosition pos i) info)
-updateIExprPosition2 pos (IRefT t p poss r) = (IRefT (updateITypePosition pos t) p poss' r)
+updateIExprPosition2 pos (IRefT t p poss r) = (IRefT t p poss' r)
   where poss' = S.insert pos poss
 
 mapIExprPosition :: Bool -> (IExpr a, IExpr a) -> IExpr a

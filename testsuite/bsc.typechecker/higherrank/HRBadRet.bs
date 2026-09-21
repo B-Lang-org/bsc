@@ -1,0 +1,9 @@
+package HRBadRet where
+
+-- construction-side skolem escape: the field value forces the
+-- field's quantified variable to Bool
+struct R =
+  rep :: (a -> a) -> a -> a
+
+bad :: R
+bad = R { rep = \ fn x -> True }

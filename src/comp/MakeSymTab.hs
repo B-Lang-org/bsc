@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
-                  mkSymTab,
+                  mkSymTab, mkSymTabWithWarnings,
                   getPackagesUsedInTypes,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
@@ -20,7 +20,9 @@ import qualified Data.Map as M
 
 import Data.Either(partitionEithers)
 import PredTrie
-import FStringCompat(concatFString)
+import FStringCompat(concatFString, FString)
+import Data.IORef(IORef, newIORef, readIORef, atomicModifyIORef')
+import System.IO.Unsafe(unsafePerformIO)
 import PFPrint
 import PreStrings(fsTilde)
 import PreIds
@@ -28,7 +30,7 @@ import Id
 -- for PPrint and PVPrint Id instances
 import IdPrint()
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..),
-             ErrorHandle, bsError, bsErrorUnsafe)
+             ErrorHandle, bsError, bsErrorUnsafe, bsWarning)
 import CSyntax
 import CSyntaxUtil(isEnum)
 import SymTab
@@ -62,7 +64,17 @@ useLegacyInstIndex :: Bool
 useLegacyInstIndex = "-legacy-inst-index" `elem` progArgs
 
 mkSymTab :: ErrorHandle -> CPackage -> IO SymTab
-mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
+mkSymTab = mkSymTab' False
+
+-- Also emit instance-hygiene warnings (fundep coverage).  Used for the
+-- first symbol table built from the user-written package; the
+-- pipeline re-derives symbol tables from transformed packages several
+-- times, which must not repeat the warnings.
+mkSymTabWithWarnings :: ErrorHandle -> CPackage -> IO SymTab
+mkSymTabWithWarnings = mkSymTab' True
+
+mkSymTab' :: Bool -> ErrorHandle -> CPackage -> IO SymTab
+mkSymTab' warn errh (CPackage mi _ imps impsigs _ ds _) =
     let
         mmi = Just mi
 
@@ -94,7 +106,7 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- impsigs,
                                           Cclass _ _ ik vs fds _ _ <- ids ] ++
                  [ (iKName ik, vs, fds) | CImpSign _ _ (CSignature _ _ _ ids) <- impsigs,
-                                          CIclass _ _ ik vs fds _ _ <- ids ] ++
+                                          CIclass _ _ ik vs fds _ _ _ <- ids ] ++
                  [ (qualId mi (iKName ik), vs, fds) | Cclass _ _ ik vs fds _ _ <- ds ]
 
         -- XXX imported fundeps don't need to be checked
@@ -173,6 +185,54 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             | Cinstance (CQType _ t) _ <- ds
             , let c = fromJustOrErr "mkSymTab: leftCon" (leftCon t) ]
 
+        -- Warn when an instance of a coherent class leaves a
+        -- fundep-determined position underdetermined: a variable in a
+        -- determined position of the instance head that is not a
+        -- function of the input positions -- directly or through the
+        -- closure of the instance's proviso fundeps (numeric classes
+        -- included) -- means the same inputs can match with many
+        -- different results, so nothing premised on the dependency
+        -- can rely on that instance.
+        -- `incoherent' classes have declared exactly that and are
+        -- exempt.
+        covWarns =
+            [ (getPosition t,
+               WFunDepCoverage (pfpString t) (pfpString c)
+                               (map pfpString uncovered))
+            | Cinstance (CQType provisos t) _ <- ds
+            , Just c <- [leftCon t]
+            , Just cls <- [findSClass symT (CTypeclass c)]
+            , allowIncoherent cls /= Just True
+            , not (null (funDeps cls))
+            , let args = tyConArgs t
+            , row <- funDeps cls
+            , length row == length args
+            , let sideVars det = S.fromList $
+                      concat [ tv a | (a, d) <- zip args row, d == det ]
+                  inp_vs = sideVars False
+                  det_vs = sideVars True
+                  predAdds acc (CPred (CTypeclass pc) pts) =
+                      case findSClass symT (CTypeclass pc) of
+                        Just pcls
+                          | not (null (funDeps pcls))
+                          , all ((== length pts) . length) (funDeps pcls)
+                          -> foldl (rowAdd pts) acc (funDeps pcls)
+                        _ -> acc
+                  rowAdd pts acc prow =
+                      let p_in = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, not d ]
+                          p_out = S.fromList $ concat
+                              [ tv a | (a, d) <- zip pts prow, d ]
+                      in  if p_in `S.isSubsetOf` acc
+                            then acc `S.union` p_out
+                            else acc
+                  closure vs =
+                      let vs' = foldl predAdds vs provisos
+                      in  if vs' == vs then vs else closure vs'
+                  uncovered = S.toList (det_vs `S.difference` closure inp_vs)
+            , not (null uncovered)
+            ]
+
         allClsErrs = instHeadCheck `seq` (impClsErrs ++ clsErrs)
 
         -- finally, add constructors, fields, and variables
@@ -205,7 +265,8 @@ mkSymTab errh (CPackage mi _ imps impsigs _ ds _) =
             bsError errh fundepErrs
         else if not (null allClsErrs) then
             bsError errh allClsErrs
-        else
+        else do
+            when (warn && not (null covWarns)) $ bsWarning errh covWarns
             -- report the kind inference error safely
             case miks of
                 Left msg -> bsError errh [msg]
@@ -304,8 +365,15 @@ orderInstHead ts1 ts2 =
           (False, False) -> Right True
   where vs1 = tv ts1
         vs2 = tv ts2
-        mu1 = mgu vs1 ts1 ts2
-        mu2 = mgu vs2 ts2 ts1
+        -- Overlap is a modal question (could any type satisfy both
+        -- heads?), answered by unifying fully and then attributing
+        -- direction by inspecting whose variables the substitution
+        -- had to bind (okSubst).  mguModal keeps each head's own
+        -- variables substitutable -- the strict mgu would refuse the
+        -- binding outright and orthogonal overlaps (each head concrete
+        -- in a different position) would look disjoint.
+        mu1 = mguModal vs1 ts1 ts2
+        mu2 = mguModal vs2 ts2 ts1
         okSubst vs (s,eqs) = not (any (flip elem $ vs) (getSubstDomain s)) && null eqs
 
 cmpQInsts :: [[Bool]] -> QInst -> QInst -> Either EMsg (Maybe Ordering)
@@ -738,10 +806,13 @@ mkTypeSyms errh mkQuals maybePackageName src_pkg iks defs qts s =
     let importedTypeInfos = concatMap (getTI errh maybePackageName src_pkg r iks) defs
         (cls, errss) =
             unzip $
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats ifs qts
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats ifs Nothing qts
                     | Cclass  incoh ps ik vs fds ats ifs <- defs ] ++
-              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats []  qts
-                    | CIclass incoh ps ik vs fds ats _   <- defs ]
+              -- The class's fields are hidden, but CIclass threads the
+              -- defining package's sort member list so tyConOf carries
+              -- the same TIstruct SClass payload as the defining compile.
+              [ getCls errh maybePackageName src_pkg iks r incoh ps ik vs fds ats [] (Just ms) qts
+                    | CIclass incoh ps ik vs fds ats ms _ <- defs ]
         r = addClasses mkQuals (addTypes mkQuals s importedTypeInfos) cls
     in  (r, concat errss)
 
@@ -778,12 +849,18 @@ getTI errh mi src_pkg _ iks (Cclass _ ps ik vs fds ats fs) =
 getTI _ mi src_pkg _ iks (CItype ik vs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract src_pkg)]
   where i = qual mi (iKName ik)
-getTI _ mi src_pkg _ iks (CIclass _ ps ik vs _ ats _) =
+getTI _ mi src_pkg _ iks (CIclass _ _ ik vs _ ats ms _) =
     (i, TypeInfo (Just i) k vs ti src_pkg) : mkATFTIs mi src_pkg i vs ks ats
   where i = qual mi (iKName ik)
         k = getK iks ik
         ks = getArgKinds k
-        ti = TIstruct SClass (map (\ (CPred (CTypeclass i) _) -> i) ps)
+        -- ms is the defining package's sort member list (field names ++
+        -- superclass ids), threaded through the signature so this
+        -- TypeInfo's sort matches the defining compile's exactly: the
+        -- class tycon's TIstruct SClass payload should be
+        -- package-independent, not rebuilt (impoverished) from the
+        -- superclass preds alone.
+        ti = TIstruct SClass ms
 getTI _ mi src_pkg _ iks (CprimType ik) =
     [(i, TypeInfo (Just i) (getK iks ik) vs TIabstract src_pkg)]
   where i = qual mi (iKName ik)
@@ -939,8 +1016,11 @@ getCls :: ErrorHandle -> Maybe Id -> Maybe Id -> M.Map Id Kind -> SymTab ->
           -- class components
           Maybe Bool -> [CPred] -> IdK -> [Id] -> CFunDeps -> [CAssocDepFun] ->
           CFields ->
+          -- sort member list override: for CIclass (fields hidden), the
+          -- defining package's list threaded through the signature
+          Maybe [Id] ->
           QInsts -> (Class, [EMsg])
-getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
+getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs msort qts =
     let k = getK iks ik
         i = iKName ik
         ks = getNK (genericLength vs) k
@@ -983,12 +1063,16 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
           Class {
             name = CTypeclass qi,
             csig = tvs,
-            super = [ (c', IsIn (mustFindClass r c') (map conv ts)) | CPred c' ts <- ps ],
+            -- superclass preds are synonym-expanded for the same reason
+            -- as instance heads (see mkInst)
+            super = [ (c', IsIn (mustFindClass r c') (map (expandSyn . conv) ts)) | CPred c' ts <- ps ],
             genInsts  = genInsts',
             getInsts  = getInsts',
             tyConOf = TyCon qi (Just k)
-                      (TIstruct SClass (map cf_name ifs ++
-                                        map (\ (CPred (CTypeclass i) _) -> i) ps)),
+                      (TIstruct SClass
+                           (fromMaybe (map cf_name ifs ++
+                                       map (\ (CPred (CTypeclass i) _) -> i) ps)
+                                      msort)),
             funDeps = bss,
             funDeps2 = bss2,
             inputPositions = pureInputPositions bss (length tvs),
@@ -1116,14 +1200,44 @@ trCType' _ _ t@(TDefMonad _) = internalError "trCTypeN: TDefMonad"
 -- Check type synonym applications in the input type.
 -- The tricky thing is that we have to expand synonyms before checking
 -- to implement LiberalTypeSynonyms correctly.
+-- A nullary synonym that kind-checked clean is remembered
+-- process-wide by qualified name.  chkTAp re-expands synonym
+-- applications once per path, exponentially on synonym towers, and
+-- runs once per symbol-table construction.  The check is context-free
+-- and pure validation, so a clean name never needs re-checking; a
+-- failing name is never recorded and re-errors at every occurrence,
+-- as before.  Recursive nullary synonyms are rejected earlier in
+-- mkSymTab.
+{-# NOINLINE chkSynSeen #-}
+chkSynSeen :: IORef (S.Set (FString, FString))
+chkSynSeen = unsafePerformIO $ newIORef S.empty
+
 chkTAp :: Type -> K.KI ()
-chkTAp = uncurry (chkTAp' [])  . splitTAp
+-- a canonical node is a ground normal form that contains no synonym,
+-- so every clause of this walk is vacuous on it
+chkTAp t | isCanonType t = return ()
+chkTAp t = (uncurry (chkTAp' []) . splitTAp) t
   where -- f and as should be the outputs of splitTAp, so there should be no remaining TAps
         chkTAp' _ f@(TAp _ _) as = internalError $ "chkTAp' unexpected TAp: " ++ ppReadable (f, as)
         chkTAp' syns (TCon (TyCon i _ (TItype n t))) as
           | i `elem` syns = K.err (getPosition syns, ETypeSynRecursive (map pfpString syns))
           | let numArgs = genericLength as,
             numArgs < n = K.err (getPosition i, EPartialTypeApp (pfpString i) n numArgs)
+          | n == 0, null as, consCTypeEnabled, not (isUnqualId i) =
+              let key = (getIdQual i, getIdBase i)
+              in if unsafePerformIO (S.member key <$> readIORef chkSynSeen)
+                 then return ()
+                 else do -- the body check keeps the (i:syns) stack, so
+                         -- ETypeSynRecursive still fires on anything
+                         -- past the SCC gate
+                         let (f', as') =
+                               splitTAp (setTypePosition (getIdPosition i) t)
+                         chkTAp' (i:syns) f' as'
+                         -- reached only when the check succeeded
+                         unsafePerformIO
+                           (atomicModifyIORef' chkSynSeen
+                              (\ s -> (S.insert key s, ())))
+                           `seq` return ()
           | otherwise = let (as1, as2) = genericSplitAt n as
                             t' = setTypePosition (getIdPosition i) t
                             (f', as') = splitTAp $ inst as1 t'
