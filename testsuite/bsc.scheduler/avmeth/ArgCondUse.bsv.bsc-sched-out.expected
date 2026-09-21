@@ -30,4 +30,5 @@ Logical execution order: m
 
 ============================================
 Verilog file created: mkArgCondUse.v
+Elaborated module file created: mkArgCondUse.ba
 All packages are up to date.

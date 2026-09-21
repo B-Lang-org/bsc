@@ -53,4 +53,5 @@ Logical execution order: init, gcd_flip, gcd_stop, gcd_sub
 
 ======================================
 Verilog file created: sysGCD.v
+Elaborated module file created: sysGCD.ba
 All packages are up to date.

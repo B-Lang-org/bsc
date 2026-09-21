@@ -39,4 +39,5 @@ Logical execution order: zero, grter_four, non_zero
 
 =====================================
 Verilog file created: mkFoo.v
+Elaborated module file created: mkFoo.ba
 All packages are up to date.

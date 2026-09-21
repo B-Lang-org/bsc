@@ -11,4 +11,5 @@ Warning: "RuleNeverFires.bsv", line 3, column 8: (G0010)
 Warning: "RuleNeverFires.bsv", line 11, column 8: (G0021)
   According to the generated schedule, rule `never_fires' can never fire.
 Verilog file created: sysRuleNeverFires.v
+Elaborated module file created: sysRuleNeverFires.ba
 All packages are up to date.
