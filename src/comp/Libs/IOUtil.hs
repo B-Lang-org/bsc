@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module IOUtil(progArgs, getEnvDef) where
 
+import Warmup ()
 import System.Environment(getArgs,getEnv)
 import System.IO.Unsafe
 import qualified Control.Exception as CE

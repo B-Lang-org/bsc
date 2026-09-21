@@ -2,6 +2,7 @@ module Classic (SyntaxMode(..),
                 setSyntax, isSyntaxFrozen,
                 isBSV, isClassic,
                ) where
+import Warmup ()
 
 import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)

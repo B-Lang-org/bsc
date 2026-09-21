@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module SEMonad(SEM(..), run) where
 
+import Warmup ()
 import Control.Monad.Except
 import Control.Monad.State
 
