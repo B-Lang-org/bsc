@@ -1,0 +1,25 @@
+package SvKeywordsBH(sysSvKeywordsBH) where
+
+-- Verilog-2001 keywords are legal identifiers in Classic (BH) source
+-- (BSV's parser rejects them, so only Classic can produce them); the
+-- generated Verilog must emit them as escaped identifiers.
+
+{-# verilog sysSvKeywordsBH #-}
+sysSvKeywordsBH :: Module Empty
+sysSvKeywordsBH =
+  module
+    always :: Reg (Bit 8) <- mkReg 0
+    generate :: Reg (Bit 8) <- mkReg 1
+    edge :: Reg (Bit 8) <- mkReg 2
+
+    rules
+      "step": when True ==>
+        action
+          always := always + 1
+          generate := generate + always
+          edge := edge + generate
+
+      "done": when (always == 5) ==>
+        action
+          $display "values %0d %0d %0d" always generate edge
+          ($finish 0)
