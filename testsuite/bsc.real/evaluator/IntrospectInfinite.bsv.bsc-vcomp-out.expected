@@ -44,4 +44,5 @@ Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
 Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
 Compilation message: "IntrospectInfinite.bsv", line 46, column 30: -INF exponent = 309
 Verilog file created: sysIntrospectInfinite.v
+Elaborated module file created: sysIntrospectInfinite.ba
 All packages are up to date.

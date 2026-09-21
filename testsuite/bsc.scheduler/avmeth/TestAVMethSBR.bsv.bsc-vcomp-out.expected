@@ -11,4 +11,5 @@ Warning: "TestAVMethSBR.bsv", line 14, column 8: (G0117)
     dut.m
   To silence this warning, use the `-no-warn-action-shadowing' flag.
 Verilog file created: sysTestAVMethSBR.v
+Elaborated module file created: sysTestAVMethSBR.ba
 All packages are up to date.

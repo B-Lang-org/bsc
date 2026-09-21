@@ -112,11 +112,11 @@ compile_verilog_pass MethodConds_TaskCond.bsv {} $opts
 find_regexp sysMethodConds_TaskCond.v \
     {wire COND\_RL\_r\_FUNCTION\_\$display\_3\, COND\_RL\_r\_s\_am1\_1\, COND\_RL\_r\_s\_am2\_2\;}
 find_regexp sysMethodConds_TaskCond.v \
-    {assign COND\_RL\_r\_FUNCTION\_\$display\_3 \= TASK\_getCond\_\_\_d4 \;}
+    {assign COND\_RL\_r\_FUNCTION\_\$display\_3 \= TASK\_getCond\_\_\_d1 \;}
 find_regexp sysMethodConds_TaskCond.v \
-    {assign COND\_RL\_r\_s\_am1\_1 \= TASK\_getCond\_\_\_d4 \;}
+    {assign COND\_RL\_r\_s\_am1\_1 \= TASK\_getCond\_\_\_d1 \;}
 find_regexp sysMethodConds_TaskCond.v \
-    {assign COND\_RL\_r\_s\_am2\_2 \= TASK\_getCond\_\_\_d4 \;}
+    {assign COND\_RL\_r\_s\_am2\_2 \= TASK\_getCond\_\_\_d1 \;}
 # And that the COND signals are not mingled with the actual design
 find_n_strings sysMethodConds_TaskCond.v {COND_RL_} 4
 # Check that bluetcl reports the appropriate positions
@@ -171,7 +171,7 @@ check_positions sysMethodConds_CaseCond
 compile_verilog_pass MethodConds_VecSelCond.bsv {} "$opts -aggressive-conditions"
 # Check that the conditions are in the Verilog
 find_regexp sysMethodConds_VecSelCond.v \
-    {reg COND\_RL\_r\_s\_am1\_1, SEL\_ARR\_cs\_0\_cs\_1\_cs\_2\_idx\_\_\_d6\;}
+    {reg COND\_RL\_r\_s\_am1\_1, SEL\_ARR\_cs\_0\_cs\_1\_cs\_2\_idx\_\_\_d1\;}
 # XXX This code could be shared with with "CASE_...__q1" rather than inlined
 # XXX (what happens is that it's inlined, but VeriQuirks lifts it back up,
 # XXX so maybe VeriQuirks needs to do a better job of CSE in the lifted exprs)

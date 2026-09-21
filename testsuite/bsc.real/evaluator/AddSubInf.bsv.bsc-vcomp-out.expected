@@ -6,4 +6,5 @@ Compilation message: "AddSubInf.bsv", line 17, column 28: -INF + -INF = -Infinit
 Compilation message: "AddSubInf.bsv", line 18, column 28: +INF - -INF = Infinity
 Compilation message: "AddSubInf.bsv", line 19, column 28: -INF - +INF = -Infinity
 Verilog file created: sysAddSubInf.v
+Elaborated module file created: sysAddSubInf.ba
 All packages are up to date.

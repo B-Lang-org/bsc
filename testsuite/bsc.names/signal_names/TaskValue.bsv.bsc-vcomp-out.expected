@@ -43,4 +43,5 @@ clock domain = Just (0), resets = []
 -----
 
 Verilog file created: sysTaskValue.v
+Elaborated module file created: sysTaskValue.ba
 All packages are up to date.

@@ -212,19 +212,19 @@ module mkMulti(CLK,
        MUX_vec_9$write_1__SEL_1;
 
   // remaining internal signals
-  reg SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18,
-      SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21;
+  reg SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1,
+      SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2;
 
   // value method read1
   assign read1 =
-	     SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 ?
+	     SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 ?
 	       rs_2$D_OUT_1 :
 	       rs_0$D_OUT_1 ;
   assign RDY_read1 = 1'd1 ;
 
   // value method read2
   assign read2 =
-	     SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 ?
+	     SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 ?
 	       rs_3$D_OUT_1 :
 	       rs_1$D_OUT_1 ;
   assign RDY_read2 = 1'd1 ;
@@ -479,28 +479,22 @@ module mkMulti(CLK,
 	  vec_9 or vec_10 or vec_11 or vec_12 or vec_13 or vec_14 or vec_15)
   begin
     case (read1_addr)
-      4'd0: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_0;
-      4'd1: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_1;
-      4'd2: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_2;
-      4'd3: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_3;
-      4'd4: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_4;
-      4'd5: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_5;
-      4'd6: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_6;
-      4'd7: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_7;
-      4'd8: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_8;
-      4'd9: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_9;
-      4'd10:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_10;
-      4'd11:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_11;
-      4'd12:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_12;
-      4'd13:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_13;
-      4'd14:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_14;
-      4'd15:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d18 = vec_15;
+      4'd0: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_0;
+      4'd1: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_1;
+      4'd2: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_2;
+      4'd3: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_3;
+      4'd4: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_4;
+      4'd5: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_5;
+      4'd6: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_6;
+      4'd7: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_7;
+      4'd8: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_8;
+      4'd9: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_9;
+      4'd10: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_10;
+      4'd11: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_11;
+      4'd12: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_12;
+      4'd13: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_13;
+      4'd14: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_14;
+      4'd15: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d1 = vec_15;
     endcase
   end
   always@(read2_addr or
@@ -516,28 +510,22 @@ module mkMulti(CLK,
 	  vec_9 or vec_10 or vec_11 or vec_12 or vec_13 or vec_14 or vec_15)
   begin
     case (read2_addr)
-      4'd0: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_0;
-      4'd1: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_1;
-      4'd2: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_2;
-      4'd3: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_3;
-      4'd4: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_4;
-      4'd5: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_5;
-      4'd6: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_6;
-      4'd7: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_7;
-      4'd8: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_8;
-      4'd9: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_9;
-      4'd10:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_10;
-      4'd11:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_11;
-      4'd12:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_12;
-      4'd13:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_13;
-      4'd14:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_14;
-      4'd15:
-	  SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d21 = vec_15;
+      4'd0: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_0;
+      4'd1: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_1;
+      4'd2: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_2;
+      4'd3: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_3;
+      4'd4: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_4;
+      4'd5: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_5;
+      4'd6: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_6;
+      4'd7: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_7;
+      4'd8: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_8;
+      4'd9: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_9;
+      4'd10: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_10;
+      4'd11: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_11;
+      4'd12: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_12;
+      4'd13: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_13;
+      4'd14: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_14;
+      4'd15: SEL_ARR_vec_0_vec_1_vec_2_vec_3_vec_4_vec_5_ve_ETC___d2 = vec_15;
     endcase
   end
 

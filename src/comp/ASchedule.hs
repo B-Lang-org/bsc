@@ -930,7 +930,7 @@ aSchedule_step1 errh flags prefix pps amod = do
   (resAllocTable, resDrops) <-
       tr "(resAllocTable, resDrops) <- rSchedule ..." $
       convEM errh $
-      rSchedule nm (resource flags) resMax' methodUseMap simultaneous
+      rSchedule (stableVerilog flags) nm (resource flags) resMax' methodUseMap simultaneous
 
   -- record the RAT in the state
   s <- get

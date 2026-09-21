@@ -14,4 +14,5 @@ EN_set                         I     1
 -----
 
 Verilog file created: sysInputGate_OnlyInMethodReady.v
+Elaborated module file created: sysInputGate_OnlyInMethodReady.ba
 All packages are up to date.

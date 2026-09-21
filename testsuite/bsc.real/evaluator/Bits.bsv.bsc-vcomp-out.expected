@@ -16,4 +16,5 @@ Compilation message: "Bits.bsv", line 100, column 19: r6 = -0.0
 Compilation message: "Bits.bsv", line 101, column 19: r7 = 8.344026969402005e-309
 Compilation message: "Bits.bsv", line 102, column 19: r8 = -4.172013484701003e-309
 Verilog file created: sysBits.v
+Elaborated module file created: sysBits.ba
 All packages are up to date.
