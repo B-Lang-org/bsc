@@ -1,0 +1,5 @@
+64/8    q=ffffffffffffffff r=ff
+100/32  q=fffffffffffffffffffffffff r=ffffffff
+32/100  q=ffffffff r=fffffffffffffffffffffffff
+128/100 q=ffffffffffffffffffffffffffffffff r=fffffffffffffffffffffffff
+100/128 q=fffffffffffffffffffffffff r=ffffffffffffffffffffffffffffffff
