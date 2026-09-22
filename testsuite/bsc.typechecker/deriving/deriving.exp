@@ -23,6 +23,7 @@ compare_file NoDerive2.bs.bsc-out
 # test for correct creation of derived instances
 
 compile_pass DerivingTest.bs 
+compile_pass Multiple.bs
 
 
 # --------------------
@@ -30,6 +31,23 @@ compile_pass DerivingTest.bs
 
 test_veri_only DerivingMod
 
+# --------------------
+# tests for deriving via
+
+compile_pass DerivingVia.bs
+test_veri_only DerivingViaUsage
+# the via target must be a single-constructor single-argument wrapper;
+# anything else would compile to a partial unwrap case (silent
+# unspecified value in the hardware)
+compile_fail_error DerivingViaMultiCon.bs T0000
+compare_file DerivingViaMultiCon.bs.bsc-out
+# if the type class argument is used as type argument in the
+# associated function, DerivingVia will generate a code that is
+# rejected during typechecker
+compile_fail_error DerivingViaHK.bs T0030
+compare_file DerivingViaHK.bs.bsc-out
+
+compile_fail_error DerivingViaIllegal.bs T0000
 
 # --------------------
 # test that structs of one field can derive for instances from that field
