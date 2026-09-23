@@ -18,7 +18,7 @@ import FStringCompat(mkFString)
 import Backend
 
 import PreStrings (sSigned, sUnsigned)
-import PreIds (idDefaultClock, idDefaultReset)
+import PreIds (idDefaultClock, idDefaultReset, idInteger)
 import Id (mkId,
            setSignedId, getIdString, unQualId, isRdyId,
            getIdBaseString, getIdQualString, setIdQualString, emptyId,
@@ -218,13 +218,24 @@ simExpandABin errh flags (abi,ver) = do
 
     let insts = apkg_state_instances apkg
 
+    let
+        -- Integer parameters are canonicalized to Bit 32 at instantiation
+        -- (see PrimParam in the Prelude) and referenced at Bit types, so
+        -- give the input the same representation; Bluesim has no value
+        -- type for an abstract Integer
+        cvtIntegerParam (AAI_Port (i, ATAbstract t []), vai)
+            | isParam vai && t == idInteger = AAI_Port (i, ATBit 32)
+        cvtIntegerParam (ai, _) = ai
+
+        inputs = map cvtIntegerParam (getAPackageInputs apkg)
+
     let simpkg = SimPackage {
                      sp_name = apkg_name apkg,
                      sp_is_wrapped = apkg_is_wrapped apkg,
                      sp_version = ver,
                      sp_pps = abmi_pps abi,
                      sp_size_params = apkg_size_params apkg,
-                     sp_inputs = apkg_inputs apkg,
+                     sp_inputs = inputs,
                      sp_clock_domains = apkg_clock_domains apkg,
                      sp_external_wires = apkg_external_wires apkg,
                      sp_reset_list = apkg_reset_list apkg,
