@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, BangPatterns #-}
 module Util where
 
 import Data.Char(intToDigit)
@@ -611,10 +611,13 @@ hashInit = Hash 0 4000000063
 
 -- showpair (x,y) = "(" ++ (showHex x ("," ++ (showHex y ")")))
 
+-- This runs once per byte of every .bo/.ba file read with hashing on, so
+-- the intermediate words must never be thunked. The bangs make that demand
+-- explicit rather than leaving it to strictness analyzer.
 nextHashByte :: Hash -> Word8 -> Hash
-nextHashByte (Hash x y) c =
-    let y' = (rotate x 5) + (toEnum (fromEnum c))
-        x' = y + y' + 1442968193
+nextHashByte (Hash x y) !c =
+    let !y' = (rotate x 5) + (toEnum (fromEnum c))
+        !x' = y + y' + 1442968193
     in Hash x' y'
 
 hashValue :: Hash -> Word64
