@@ -77,13 +77,22 @@ proc time_file {} {
 }
 
 proc time_cmd {type} {
-    if { [which_os] == "Darwin" } {
-        # the default "time" on Mac OS X does not support output to a file
-        set timecmd {}
-    } else {
-        set timecmd "time -a -o [time_file] -f \"check_$type, %S, %U, %e, [pwd]\""
+    # collapse.pl needs the CSV that only GNU time's -f option can produce.
+    # macOS ships BSD time, which accepts -o and -a but has no -f, so on
+    # Darwin the only usable binary is GNU time -- installed as gtime by
+    # "brew install gnu-time".  Timings are optional: with nothing suitable
+    # we return {} and the caller runs the command untimed.
+    set candidates {gtime}
+    if { [which_os] ne "Darwin" } {
+        lappend candidates time
     }
-    return $timecmd
+    foreach prog $candidates {
+        set path [auto_execok $prog]
+        if { $path ne "" } {
+            return "$path -a -o [time_file] -f \"check_$type, %S, %U, %e, [pwd]\""
+        }
+    }
+    return {}
 }
 
 proc time_walk {} {
