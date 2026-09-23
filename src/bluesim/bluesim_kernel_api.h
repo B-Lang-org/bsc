@@ -48,8 +48,8 @@ void bk_version(tSimStateHdl simHdl, tBluesimVersionInfo* version);
  *   initial_value     - the value of the clock before the first edge
  *   has_initial_value - whether the clock gets the initial value or X
  *   first_edge        - the delay until the first edge
- *   low_duration      - the duration the clock remains CLK_LOW
  *   high_duration     - the duration the clock remains CLK_HIGH
+ *   low_duration      - the duration the clock remains CLK_LOW
  *
  * Returns the handle for the newly generated clock.
  *
@@ -64,8 +64,8 @@ tClock bk_define_clock(tSimStateHdl simHdl,
 		       tClockValue initial_value,
 		       tBool       has_initial_value,
 		       tTime       first_edge,
-		       tTime       low_duration,
-		       tTime       high_duration);
+		       tTime       high_duration,
+		       tTime       low_duration);
 
 /* Allow a clock definition to be altered (overridden from the UI, etc.)
  *
