@@ -369,31 +369,80 @@ proc get_test_options {} {
 
 proc get_systemc_options {} {
     global env
+    global systemctest
     global systemc_inc
     global systemc_lib
     global systemc_cxxflags
 
+    # suitemake.mk always puts SYSTEMC_INC and SYSTEMC_LIB into runtest's
+    # environment, possibly as empty strings, so their presence alone says
+    # nothing; only a non-empty value means the user supplied a location.
+    # SYSTEMCTEST is not forwarded that way, so its presence does mean the
+    # user set it deliberately.
+    set inc ""
     if [info exists env(SYSTEMC_INC)] then {
-        set systemc_inc [absolute_filename $env(SYSTEMC_INC)]
+        set inc $env(SYSTEMC_INC)
     }
-    if {$systemc_inc == 0} then {
-        perror "can't find systemc_inc -- set SYSTEMC_INC to path"
-        exit 1
-    }
-
+    set lib ""
     if [info exists env(SYSTEMC_LIB)] then {
-        set systemc_lib [absolute_filename $env(SYSTEMC_LIB)]
+        set lib $env(SYSTEMC_LIB)
     }
-    if {$systemc_lib == 0} then {
-        perror "can't find systemc_lib -- set SYSTEMC_LIB to path"
+    set requested [expr {[string compare $inc ""] != 0 ||
+                         [string compare $lib ""] != 0}]
+    if { [info exists env(SYSTEMCTEST)] && $env(SYSTEMCTEST) == 1 } then {
+        set requested 1
+    }
+
+    # Check for empty values before absolute_filename sees them: it turns
+    # "" into the current directory, which would be accepted here and only
+    # surface much later as a confusing "systemc.h not found" from the C++
+    # compiler.  Checking for a real directory catches stale settings the
+    # same way.
+    set problems {}
+    if {[string compare $inc ""] == 0} then {
+        lappend problems "SYSTEMC_INC is not set"
+    } else {
+        set systemc_inc [absolute_filename $inc]
+        if { ![file isdirectory $systemc_inc] } then {
+            lappend problems "SYSTEMC_INC `$systemc_inc' is not a directory"
+        }
+    }
+    if {[string compare $lib ""] == 0} then {
+        lappend problems "SYSTEMC_LIB is not set"
+    } else {
+        set systemc_lib [absolute_filename $lib]
+        if { ![file isdirectory $systemc_lib] } then {
+            lappend problems "SYSTEMC_LIB `$systemc_lib' is not a directory"
+        }
+    }
+
+    if { [llength $problems] == 0 } then {
+        if [info exists env(SYSTEMC_CXXFLAGS)] then {
+            set systemc_cxxflags $env(SYSTEMC_CXXFLAGS)
+        } else {
+            set systemc_cxxflags {}
+        }
+        return
+    }
+
+    if { $requested } then {
+        perror "[join $problems {; }] -- set SYSTEMC_INC and SYSTEMC_LIB to paths (or SYSTEMCTEST=0 to skip SystemC tests)"
         exit 1
     }
 
-    if [info exists env(SYSTEMC_CXXFLAGS)] then {
-        set systemc_cxxflags $env(SYSTEMC_CXXFLAGS)
-    } else {
-        set systemc_cxxflags {}
-    }
+    # SystemC wasn't asked for and can't be found, so skip its tests rather
+    # than abort: exiting here would kill this runtest process before any
+    # test in its .exp file runs.  The warning records the lost coverage in
+    # this run's summary, since the skipped tests leave no other trace in
+    # the counts.
+    warning "[join $problems {; }] -- skipping SystemC tests"
+    set systemctest 0
+    # the caller logs these settings even after the downgrade
+    set systemc_inc ""
+    set systemc_lib ""
+    set systemc_cxxflags ""
+    # supersede the "is 1" logged before this proc could downgrade it
+    verbose -log "Do SystemC tests is $systemctest" 1
 }
 
 ## These are the Verilog Sim output executable run time flags
