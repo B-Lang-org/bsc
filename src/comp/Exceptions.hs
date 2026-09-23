@@ -10,7 +10,7 @@ import System.Exit(ExitCode, exitFailure, exitWith)
 bsCatch :: IO a -> IO a
 bsCatch fn = CE.catch fn bscExceptions
         where bscExceptions :: CE.SomeException -> IO a
-              bscExceptions e = let act = msum [ handleIOException e, handleErrorCall e, handleExit e]
+              bscExceptions e = let act = msum [ handleIOException e, handleErrorCall e, handleAllocLimit e, handleExit e]
                                 in case act of
                                      (Just ioact) -> ioact
                                      Nothing      -> CE.throwIO e
@@ -21,6 +21,12 @@ bsCatch fn = CE.catch fn bscExceptions
                      return $ hFlush stdout >> hPutStr stderr msg >> exitFailure
               handleErrorCall ex =
                   do (CE.ErrorCall msg) <- (CE.fromException ex)::(Maybe CE.ErrorCall)
+                     return $ hFlush stdout >> hPutStr stderr msg >> exitFailure
+              handleAllocLimit ex =
+                  do CE.AllocationLimitExceeded <-
+                         (CE.fromException ex)::(Maybe CE.AllocationLimitExceeded)
+                     let msg = "total allocation limit exceeded" ++
+                               " (BSC_ALLOC_LIMIT_MB)\n"
                      return $ hFlush stdout >> hPutStr stderr msg >> exitFailure
               handleExit ex =
                   do exitcode <- (CE.fromException ex)::(Maybe ExitCode)

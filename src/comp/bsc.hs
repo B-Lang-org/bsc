@@ -3,7 +3,9 @@ module Main_bsc(main, hmain) where
 
 -- Haskell libs
 import Prelude
-import System.Environment(getArgs, getProgName)
+import System.Environment(getArgs, getProgName, lookupEnv)
+import Text.Read(readMaybe)
+import GHC.Conc(setAllocationCounter, enableAllocationLimit)
 import System.Process(runInteractiveProcess, waitForProcess)
 import System.Process(system)
 import System.Exit(ExitCode(ExitFailure, ExitSuccess))
@@ -174,6 +176,16 @@ main = do
     hSetBuffering stderr LineBuffering
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
+    -- Optional deterministic cap on the total heap allocation of the
+    -- compile, in megabytes.  Used by the testsuite to catch
+    -- compile-time complexity regressions: wall-clock limits depend on
+    -- the machine, but a pure compiler's total allocation does not.
+    m_alloc_limit <- lookupEnv "BSC_ALLOC_LIMIT_MB"
+    case (m_alloc_limit >>= readMaybe) of
+      Just mb | mb > (0 :: Integer) -> do
+          setAllocationCounter (fromInteger (mb * 1024 * 1024))
+          enableAllocationLimit
+      _ -> return ()
     args <- getArgs
     -- bsc can raise exception,  catch them here  print the message and exit out.
     bsCatch (hmain args)

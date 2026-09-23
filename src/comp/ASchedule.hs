@@ -686,6 +686,17 @@ aSchedule_step1 errh flags prefix pps amod = do
   let (ruleMethodUseMap, rulePCConflictUseMap) =
           makeRuleMethodUseMaps ncSetPC ruleUseMap
 
+  -- Inverted index from state instance to the rules which use it.
+  -- Only rules sharing an instance can have method-use conflicts, so
+  -- conflict-map construction and disjointness testing enumerate
+  -- candidate pairs from this index rather than all pairs of rules.
+  let objUserIndex :: M.Map AId (S.Set ARuleId)
+      objUserIndex =
+          M.fromListWith S.union
+              [ (obj, S.singleton r)
+                | (r, (_, usemap)) <- M.toList ruleMethodUseMap,
+                  obj <- M.keys usemap ]
+
   -- Check that the actions in a rule are parallel composable.
   -- This may throw an error
   disjointState1 <- verifySafeRuleActions flags userDefs rulePCConflictUseMap disjointState0
@@ -707,8 +718,23 @@ aSchedule_step1 errh flags prefix pps amod = do
   let cf_rules_test r1 r2 = ordPair (r1, r2) `S.member` cf_rules_set
 
   -- determine which rule conditions are disjoint
+  --
+  -- The verdicts are only consulted for pairs which share a state
+  -- instance (conflict analysis, resource allocation, mux exclusivity),
+  -- pairs where both rules use foreign functions (task-order checks),
+  -- and pairs asserted mutually_exclusive -- except by the
+  -- RuleRelationDB, which records a verdict for every pair.  So the
+  -- testing is restricted to the consulted pairs, unless this flow
+  -- generates a .ba file or answers schedule queries (the flows which
+  -- force the full RuleRelationDB).
+  let disjoint_pairs =
+          if (genABin flags || not (null (schedQueries flags))
+              || not (schedTransposed flags))
+          then uniquePairs ruleNames
+          else restrictedRulePairs ruleNames objUserIndex
+                   (rumRuleUsesFF ruleUseMap) schedPragmas
   (disjoint_set, disjointState2) <-
-      convIO $ genDisjointSet disjointState1 (map ruleName rules) schedPragmas
+      convIO $ genDisjointSet disjointState1 disjoint_pairs schedPragmas
 
   -- XXX use ordPair to reduce the set size?
   let rule_disjoint r1 r2 = if (r1 == r2)
@@ -731,7 +757,7 @@ aSchedule_step1 errh flags prefix pps amod = do
 
   (cfConflictMap0, setToTestForStaticSchedule_cf, disjointState3) <-
       mkConflictMap flags disjointState2
-                    ruleMethodUseMap ncSetCF cf_or_disjoint
+                    ruleMethodUseMap objUserIndex ncSetCF cf_or_disjoint
 
   -- for better memory performance, force the computation
   deepseq (G.toList cfConflictMap0) $
@@ -750,7 +776,7 @@ aSchedule_step1 errh flags prefix pps amod = do
 
   (pcConflictMap0, setToTestForStaticSchedule_pc, disjointState4) <-
       mkConflictMap flags disjointState3
-                    ruleMethodUseMap ncSetPC cf_map_test
+                    ruleMethodUseMap objUserIndex ncSetPC cf_map_test
 
   -- for better memory performance, force the computation
   deepseq (G.toList pcConflictMap0) $
@@ -774,7 +800,7 @@ aSchedule_step1 errh flags prefix pps amod = do
       -- for methods and rules (just the method conflict edges)
   (scConflictMap0, setToTestForStaticSchedule_sc, disjointState5) <-
       mkConflictMap flags disjointState4
-                    ruleMethodUseMap ncSetSC pc_map_test
+                    ruleMethodUseMap objUserIndex ncSetSC pc_map_test
 
   -- for better memory performance, force the computation
   deepseq (G.toList scConflictMap0) $
@@ -1034,11 +1060,27 @@ aSchedule_step1 errh flags prefix pps amod = do
       --      r2 must sequence before r1 (if they fire in the same cycle)
       -- scGraph is a list of all rules (r1,r2) where r1 /= r2 and there
       -- is only a conflict from r1 to r2 (and not a conflict the other way)
+      -- (equivalent to probing all rule pairs, but enumerated from each
+      -- rule's out-edges; the neighbor lists are sorted back into
+      -- ruleNames order, which the all-pairs scan produced;
+      -- -no-sched-transposed restores the all-pairs probe, for debug)
       scGraph = tr "let scGraph" $
-          [(r,[r' | r' <- ruleNames, r' /= r,
+          if (not (schedTransposed flags))
+          then [(r,[r' | r' <- ruleNames, r' /= r,
                           (r',r) `G.notMember` scConflictMapResources,
                           (r,r') `G.member` scConflictMapResources])
               | r <- ruleNames]
+          else
+          let rulePosMap = M.fromList (zip ruleNames [(0::Integer)..])
+              out_edges r = maybe [] M.keys
+                                (G.getOutEdgeMap scConflictMapResources r)
+              in_rule_order r's =
+                  M.elems (M.fromList [ (p, r') | r' <- r's,
+                                        (Just p) <- [M.lookup r' rulePosMap] ])
+          in  [(r, in_rule_order
+                       [r' | r' <- out_edges r, r' /= r,
+                             (r',r) `G.notMember` scConflictMapResources])
+                  | r <- ruleNames]
 
       -- scGraph is going to be used to determine a static global TRS
       -- reference order for simultaneous firing of rules in one cycle.
@@ -1200,6 +1242,11 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
       rules          = tr "let rules"  $ interfaceRules ++ userRules
       ruleNames      = tr "let ruleNames"   $ map ruleName rules -- [ARuleId]
 
+      -- the conflict-free pragma pairs, in enumerable form (the same
+      -- derivation as cf_rules_test in step1); verifyStaticSchedule
+      -- enumerates each rule's partners from this set
+      cf_rules_set = S.fromList (extractCFPairsSP schedPragmas)
+
   -- ====================
   -- Rule Relation DB (3 of 4)
 
@@ -1221,7 +1268,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
   -- XXX the data in cycleDrops, conflictEdgesSP, and resDrops' should
   -- XXX not be needed, because those are in the final maps!
   let exclusive_rules_db =
-          mkExclusiveRulesDB ruleNames ruleUseMap
+          mkExclusiveRulesDB (schedTransposed flags) ruleNames ruleUseMap
               rule_disjoint cf_rules_test
               cfConflictMapFinal scConflictMapFinal
               resDrops' cycleDrops scConflictEdgesSP
@@ -1241,11 +1288,24 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
       --
       -- (r1,r2) in scGraphFinal <==>
       --     r2 must sequence before r1 (if they fire in the same cycle)
+      -- (equivalent to probing all vertex pairs, but enumerated from
+      -- each vertex's out-edges; M.keys and G.vertices are both in
+      -- ascending order, so the adjacency lists are unchanged;
+      -- -no-sched-transposed restores the all-pairs probe, for debug)
       scGraphFinal = tr "let scGraphFinal" $
-          [(r,[r' | r' <- G.vertices scConflictMapFinal, r' /= r,
+          if (not (schedTransposed flags))
+          then [(r,[r' | r' <- G.vertices scConflictMapFinal, r' /= r,
                     (r',r) `G.notMember` scConflictMapFinal,
                     (r,r') `G.member` scConflictMapFinal])
               | r <- G.vertices scConflictMapFinal]
+          else
+          let vset = S.fromList (G.vertices scConflictMapFinal)
+              out_edges r = maybe [] M.keys
+                                (G.getOutEdgeMap scConflictMapFinal r)
+          in  [(r,[r' | r' <- out_edges r, r' /= r,
+                        r' `S.member` vset,
+                        (r',r) `G.notMember` scConflictMapFinal])
+                  | r <- G.vertices scConflictMapFinal]
 
   -- dump scgraphFinal if flagged
   when trace_scgraph $
@@ -1324,7 +1384,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
   -- urgency cycles, than to wait and report cycles in the combined graph.
   _ <- tr "urgency order" $
            convEM errh $
-           flattenUrgencyMap nm urgencyMap
+           flattenUrgencyMap (schedTransposed flags) nm urgencyMap
 
   -- trace flag to warn if some user-specified urgencies were not added
   when (trace_no_urgency_edge && not (null schedUrgencyEdges_dropped)) $
@@ -1384,7 +1444,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
       tr "verifyStaticScheduleTwoRules" $
       verifyStaticScheduleTwoRules errh flags gen_backend1 nm
           ruleBetweenMap ruleMethodUseMap ruleNames
-          exclusive_rules_db cf_rules_test setToTestForStaticSchedule
+          exclusive_rules_db cf_rules_set setToTestForStaticSchedule
           seq_reachmap seq_map seq_graph sched_id_order
 
   -- the implied edges are only between CF/ME rules so it is OK to add them all
@@ -1501,7 +1561,8 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
       -- more urgent rules which conflict (and thus block the rule)
       urgency_conflicts =
           tr "let urgency_conflicts" $
-          scheduleEsposito scConflictMapFinal ifcRuleNamesSet final_urgency_order
+          scheduleEsposito (schedTransposed flags)
+              scConflictMapFinal ifcRuleNamesSet final_urgency_order
 
       schedule = tr "let schedule" $
                  ASchedule [(ASchedEsposito urgency_conflicts)]
@@ -1796,19 +1857,16 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
 --              signals)
 --  rs        = rules to be scheduled (in urgency order)
 --
-scheduleEsposito :: ConflictMap -> S.Set ARuleId -> [ARuleId] ->
+scheduleEsposito :: Bool -> ConflictMap -> S.Set ARuleId -> [ARuleId] ->
                     [(ARuleId, [ARuleId])]
-scheduleEsposito cmap_sc method_names rs =
+scheduleEsposito transposed cmap_sc method_names rs =
     let
         -- is the "rule" a method
         -- XXX we could avoid a lookup by tagging the Id with a property
         isMethod ruleid = ruleid `S.member` method_names
 
-        -- computes whether two rules conflict for the purposes of scheduling
-        -- Note: Conflicting methods which are at the same urgency level
-        --   should not have that conflict reflected in the WILL_FIRE signals.
-        --   It is reflected in the ifc annotations, leaving the urgency
-        --   decision to the caller.
+        -- computes whether two rules conflict for the purposes of
+        -- scheduling (used by the all-pairs scan, transposed=False)
         rulesConflict r1 r2 =
           if isMethod r1 && isMethod r2 then
              False
@@ -1822,8 +1880,43 @@ scheduleEsposito cmap_sc method_names rs =
             in  (res_for_r:res, r:rs_so_far)
 
         (conflicts_in_reverse, _) = foldl foldfunc ([], []) rs
+
+        -- computes whether two rules conflict for the purposes of scheduling
+        -- Note: Conflicting methods which are at the same urgency level
+        --   should not have that conflict reflected in the WILL_FIRE signals.
+        --   It is reflected in the ifc annotations, leaving the urgency
+        --   decision to the caller.
+        -- Only rules with SC conflict edges in both directions can
+        -- block each other, so enumerate each rule's candidates from
+        -- the conflict map's adjacency (forward and reversed) instead
+        -- of scanning every more-urgent rule.  The blocker lists are
+        -- ordered by descending urgency position, which is the order
+        -- the scan of rs_so_far (most recently seen first) produced.
+        posMap = M.fromList (zip rs [(0::Integer)..])
+
+        rev_adj = M.fromListWith S.union
+                      [ (v2, S.singleton v1)
+                        | (v1, vws) <- G.toList cmap_sc, (v2, _) <- vws ]
+
+        conflict_cands r =
+            let outs = maybe S.empty M.keysSet (G.getOutEdgeMap cmap_sc r)
+                ins  = M.findWithDefault S.empty r rev_adj
+            in  S.intersection outs ins
+
+        blockers r r_pos =
+            M.elems $ M.fromList
+                [ (negate p, r')
+                  | r' <- S.toList (conflict_cands r),
+                    not (isMethod r && isMethod r'),
+                    (Just p) <- [M.lookup r' posMap],
+                    p < r_pos ]
+
+        conflicts_in_order =
+            [ (r, blockers r r_pos) | (r, r_pos) <- zip rs [0..] ]
     in
-        reverse conflicts_in_reverse
+        if transposed
+        then conflicts_in_order
+        else reverse conflicts_in_reverse
 
 -- ========================================================================
 -- Warn and record arbitrary earliness/urgency orders
@@ -1955,11 +2048,36 @@ warnAndRecordArbitraryEarliness
              WActionShadowing (pString_r r_earlier) (pString_r r_later)
                  (map pfpString ms))
 
-        foldfunc r (edges, ffunc_edges, arb_msgs, shadow_msgs, rs_so_far) =
-            let arbs = filter (is_earliness_arbitrary r) rs_so_far
+        -- Positions in reverse_earliness; the scan of rs_so_far visited
+        -- the earlier rules in ascending position order, so candidate
+        -- lists are produced in that order.
+        e_posMap = M.fromList (zip reverse_earliness [(0::Integer)..])
+
+        -- the earlier rules among r's, in the order rs_so_far had them
+        earlier_of r r's =
+            case (M.lookup r e_posMap) of
+              Nothing -> []
+              Just k -> M.elems (M.fromList
+                            [ (p, r') | r' <- r's,
+                                        (Just p) <- [M.lookup r' e_posMap],
+                                        p > k ])
+
+        -- is_earliness_arbitrary and has_shadowing can only hold for
+        -- rules with a CF conflict edge from r, and has_task_order only
+        -- for rules using foreign functions, so scan those candidates
+        -- instead of all earlier rules
+        cf_out r = maybe [] M.keys (G.getOutEdgeMap cmap_cf r)
+        ff_rules = [ r' | r' <- reverse_earliness, rumRuleUsesFF rmap r' ]
+
+        foldfunc r (edges, ffunc_edges, arb_msgs, shadow_msgs) =
+            let cands = earlier_of r (cf_out r)
+                arbs = filter (is_earliness_arbitrary r) cands
                 new_arb_msgs = mapMaybe (warn_earliness_choice r) arbs
-                ffunc_arbs = filter (has_task_order r) rs_so_far
-                shadows = mapMaybe (has_shadowing r) rs_so_far
+                ffunc_arbs = if (rumRuleUsesFF rmap r)
+                             then filter (has_task_order r)
+                                      (earlier_of r ff_rules)
+                             else []
+                shadows = mapMaybe (has_shadowing r) cands
                 new_shadow_msgs = map warn_action_shadowing shadows
                 new_edges =
                     -- r is the later rule, so create an edge that
@@ -1972,12 +2090,34 @@ warnAndRecordArbitraryEarliness
             in  (new_edges ++ edges,
                  new_ffunc_edges ++ ffunc_edges,
                  new_arb_msgs ++ arb_msgs,
+                 new_shadow_msgs ++ shadow_msgs)
+
+        -- the all-pairs scan of every earlier rule (-no-sched-transposed)
+        foldfunc_all r (edges, ffunc_edges, arb_msgs, shadow_msgs, rs_so_far) =
+            let arbs = filter (is_earliness_arbitrary r) rs_so_far
+                new_arb_msgs = mapMaybe (warn_earliness_choice r) arbs
+                ffunc_arbs = filter (has_task_order r) rs_so_far
+                shadows = mapMaybe (has_shadowing r) rs_so_far
+                new_shadow_msgs = map warn_action_shadowing shadows
+                new_edges =
+                    [(mkCSNExec sched_id_order r2, mkCSNExec sched_id_order r, CSE_Conflict [CArbitraryChoice])
+                         | r2 <- arbs ]
+                new_ffunc_edges =
+                    [(mkCSNExec sched_id_order r2, mkCSNExec sched_id_order r, CSE_Conflict [CFFuncArbitraryChoice])
+                         | r2 <- ffunc_arbs ]
+            in  (new_edges ++ edges,
+                 new_ffunc_edges ++ ffunc_edges,
+                 new_arb_msgs ++ arb_msgs,
                  new_shadow_msgs ++ shadow_msgs,
                  r:rs_so_far)
 
         -- this starts with the earliest rule
-        (edges, ffunc_edges, arb_msgs, shadow_msgs, _) =
-            foldr foldfunc ([],[],[],[],[]) reverse_earliness
+        (edges, ffunc_edges, arb_msgs, shadow_msgs) =
+            if (schedTransposed flags)
+            then foldr foldfunc ([],[],[],[]) reverse_earliness
+            else let (e, fe, am, sm, _) =
+                         foldr foldfunc_all ([],[],[],[],[]) reverse_earliness
+                 in  (e, fe, am, sm)
 
         msgs = arb_msgs ++
                if (warnActionShadowing flags) then shadow_msgs else []
@@ -3699,7 +3839,8 @@ errCascadedDomainCrossing a unsynced =
 -- XXX this probably still computes disjointness for too many rules
 -- unless other uses are required we should only compute disjointness for
 -- rules that call methods with argumnets
-mkExclusiveRulesDB :: [Id] -- all rule identifiers
+mkExclusiveRulesDB :: Bool -- enumerate candidates from indexes (False: all pairs)
+                   -> [Id] -- all rule identifiers
                    -> RuleUsesMap -- used to test if two rules have any method calls in common
                    -> RuleDisjointTest -- function to test rule disjointness (for rules with methods in common)
                    -> RuleDisjointTest -- function to test if rules have been annotated conflict-free
@@ -3709,13 +3850,27 @@ mkExclusiveRulesDB :: [Id] -- all rule identifiers
                    -> [(Id,Id,[Conflicts])] -- conflicts from cycle dropping
                    -> [(Id,Id,[Conflicts])] -- conflicts from earliness priorities
                    -> ExclusiveRulesDB
-mkExclusiveRulesDB rule_names rule_uses_map are_disjoint are_cf cf_map sc_map
+mkExclusiveRulesDB transposed rule_names rule_uses_map are_disjoint are_cf cf_map sc_map
                    res_drops cycle_drops earliness_drops =
   let
       rule_objs_map = rumToObjectMap rule_uses_map
       getRuleObjUses r =
           fromJustOrErr ("mkExclusiveRulesDB: getRuleObjUses: " ++ ppReadable r)
               (M.lookup r rule_objs_map)
+
+      -- The two membership tests below can only hold for rules sharing
+      -- a state instance with r1 ("disjoint"), or with an SC edge or a
+      -- drop-list entry from r1 ("excludes"), so the candidates for each
+      -- rule are enumerated from these indexes instead of all rules.
+      -- (The result sets are unordered, so enumeration order is free.)
+      obj_index = M.fromListWith S.union
+                      [ (obj, S.singleton r)
+                        | (r, objs) <- M.toList rule_objs_map,
+                          obj <- S.toList objs ]
+      drop_index = M.fromListWith S.union
+                       [ (r1, S.singleton r2)
+                         | (r1, r2, _) <-
+                               res_drops ++ cycle_drops ++ earliness_drops ]
 
 {-
       -- for efficiency, this was moved into mkOneRule
@@ -3765,7 +3920,14 @@ mkExclusiveRulesDB rule_names rule_uses_map are_disjoint are_cf cf_map sc_map
                   | (r1 `disjoint` r2) = (S.insert r2 accum_ds, accum_es)
                   | (r1 `excludes` r2) = (accum_ds, S.insert r2 accum_es)
                   | otherwise          = (accum_ds, accum_es)
-              (ds, es) = foldl foldFunc (S.empty, S.empty) rule_names
+              cands = S.unions
+                          [ S.unions [ M.findWithDefault S.empty obj obj_index
+                                       | obj <- S.toList r1_uses ]
+                          , maybe S.empty M.keysSet
+                                (G.getOutEdgeMap sc_map r1)
+                          , M.findWithDefault S.empty r1 drop_index ]
+              (ds, es) = foldl foldFunc (S.empty, S.empty)
+                             (if transposed then S.toList cands else rule_names)
           in
               if (S.null ds && S.null es)
               then []
@@ -3906,10 +4068,54 @@ doQueries errh flags rule_names relationDB =
 --   RuleDisjointTest :: ARuleId -> ARuleId -> Bool
 --   RuleUsesMap      :: M.Map RuleId RuleUses
 
+-- Enumerate the rule pairs whose disjointness verdict can be consulted
+-- on this flow: pairs sharing a state instance, pairs where both rules
+-- use foreign functions, and pairs covered by a mutually_exclusive
+-- pragma.  The pairs are produced in the same relative order that
+-- "uniquePairs ruleNames" would produce them, so the SAT queries issued
+-- are a subsequence of the full sweep's queries.
+restrictedRulePairs :: [ARuleId] -> M.Map AId (S.Set ARuleId) ->
+                       (ARuleId -> Bool) -> [ASchedulePragma] ->
+                       [(ARuleId, ARuleId)]
+restrictedRulePairs ruleNames objUserIndex usesFF pragmas =
+    let
+        posMap = M.fromList (zip ruleNames [(0::Integer)..])
+        backMap = M.fromList (zip [(0::Integer)..] ruleNames)
+
+        addPair pset (r1, r2) =
+            case (M.lookup r1 posMap, M.lookup r2 posMap) of
+              (Just i, Just j) | i < j -> S.insert (i, j) pset
+                               | j < i -> S.insert (j, i) pset
+              _ -> pset
+        addGroup pset rs = foldl addPair pset (uniquePairs rs)
+
+        -- pairs of rules using the same state instance
+        pset1 = foldl addGroup S.empty
+                    (map S.toList (M.elems objUserIndex))
+        -- pairs of rules which both use foreign functions
+        pset2 = addGroup pset1 (filter usesFF ruleNames)
+        -- pairs covered by a mutually_exclusive pragma
+        -- (as in DisjointTest.addMEIds, rules are ME with the rules of
+        -- the other groups in the pragma, not within their own group)
+        groupPairs [] = []
+        groupPairs (g:gs) = [ (g, g') | g' <- gs ] ++ groupPairs gs
+        me_pairs = [ (r1, r2)
+                     | SPMutuallyExclusive gss <- pragmas,
+                       (g1, g2) <- groupPairs gss,
+                       r1 <- g1, r2 <- g2 ]
+        pset3 = foldl addPair pset2 me_pairs
+
+        cvt (i, j) = (lk i, lk j)
+        lk i = fromJustOrErr "restrictedRulePairs: bad index"
+                   (M.lookup i backMap)
+    in
+        map cvt (S.toAscList pset3)
+
 mkConflictMap :: Flags -> DisjointTestState ->
-                 RuleMethodUseMap -> NoConflictSet -> RuleDisjointTest ->
+                 RuleMethodUseMap -> M.Map AId (S.Set ARuleId) ->
+                 NoConflictSet -> RuleDisjointTest ->
                  SM (ConflictMap, S.Set (ARuleId, ARuleId), DisjointTestState)
-mkConflictMap flags dtstate rule_meth_map ncset ignore_conflicts =
+mkConflictMap flags dtstate rule_meth_map obj_user_index ncset ignore_conflicts =
     let
         checkOneUse :: AExpr -> AExpr ->
                        ([(MethodId, MethodId)], Bool, DisjointTestState) ->
@@ -3954,7 +4160,19 @@ mkConflictMap flags dtstate rule_meth_map ncset ignore_conflicts =
           (ARuleId, (AExpr, MethodIdMap)) ->
           SM ([(ARuleId, [(ARuleId, [Conflicts])])], S.Set (ARuleId, ARuleId), DisjointTestState)
         checkRule (ps, igns, dts) ru@(rule1, (p1, usemap1)) = do
-          (es, igns', dts') <- foldM (checkUses ru) ([], igns, dts) (M.toList rule_meth_map)
+          -- Only rules sharing a state instance with rule1 can produce
+          -- conflict edges, so enumerate those (in the same ascending
+          -- order that a scan of the full map would visit them).
+          -- With -no-sched-transposed, scan the full map (for debug).
+          let cands = S.unions [ M.findWithDefault S.empty obj obj_user_index
+                                 | obj <- M.keys usemap1 ]
+              cand_uses =
+                  if (schedTransposed flags)
+                  then [ (r2, uses)
+                         | r2 <- S.toAscList cands,
+                           (Just uses) <- [M.lookup r2 rule_meth_map] ]
+                  else M.toList rule_meth_map
+          (es, igns', dts') <- foldM (checkUses ru) ([], igns, dts) cand_uses
           let ps' = ((rule1, es):ps)
           return (ps', igns', dts')
     in
@@ -4060,8 +4278,8 @@ mkUrgencyMap vs es =
     let graph1 = foldl G.addVertex G.empty vs
     in  foldl G.addEdge graph1 es
 
-flattenUrgencyMap :: Id -> UrgencyMap -> ErrorMonad [ARuleId]
-flattenUrgencyMap moduleId umap =
+flattenUrgencyMap :: Bool -> Id -> UrgencyMap -> ErrorMonad [ARuleId]
+flattenUrgencyMap transposed moduleId umap =
     let
         -- vertices of the graph
         vs = G.vertices umap
@@ -4073,12 +4291,21 @@ flattenUrgencyMap moduleId umap =
         -- than reverse the output of tsort, we get urgency order for
         -- unconstrained rules in the order in which they appeared in
         -- the code.
-        ugraph = [(r, [r' | r' <- vs,
-                            r' /= r,
-                            -- let's try making the graph in the
-                            -- opposite direction
-                            -- (r,r') `G.member` umap])
-                           (r',r) `G.member` umap])
+        -- (the reversed adjacency is accumulated from the edge list
+        -- rather than probed for all vertex pairs; sources arrive in
+        -- ascending order from G.toList, matching the scan over vs;
+        -- with transposed=False, probe all pairs, for debug)
+        rev_adj = M.fromListWith (flip (++))
+                      [ (r, [r']) | (r', vws) <- G.toList umap,
+                                    (r, _) <- vws ]
+        ugraph = if (not transposed)
+                 then [(r, [r' | r' <- vs,
+                                 r' /= r,
+                                 (r',r) `G.member` umap])
+                         | r <- vs]
+                 else
+                 [(r, [r' | r' <- M.findWithDefault [] r rev_adj,
+                            r' /= r])
                     | r <- vs]
 
     in
@@ -4516,22 +4743,48 @@ verifyStaticScheduleOneRule errh flags gen_backend
 verifyStaticScheduleTwoRules ::
     ErrorHandle -> Flags -> Maybe Backend -> AId ->
     RuleBetweenMap -> RuleMethodUseMap ->
-    [ARuleId] -> ExclusiveRulesDB -> RuleDisjointTest ->
+    [ARuleId] -> ExclusiveRulesDB -> S.Set (ARuleId, ARuleId) ->
     S.Set (ARuleId, ARuleId) ->
     ReachableMap -> CSMap -> [(CSNode,[CSNode])] -> SchedOrdMap ->
     SM (Maybe Backend, [(CSNode, CSNode, CSEdge)])
 verifyStaticScheduleTwoRules errh flags gen_backend moduleId
                              ruleBetweenMap ruleMethodUseMap
-                             ruleNames erdb cf_rules_test setToTest
+                             ruleNames erdb cf_pairs setToTest
                              reachmap seq_map seq_graph sched_id_order =
     let
+        cf_rules_test r1 r2 = ordPair (r1, r2) `S.member` cf_pairs
+
+        -- Only pairs that are exclusive, asserted conflict_free, or in
+        -- setToTest are examined, so enumerate each rule's candidate
+        -- partners from those, in the ascending order the scan of the
+        -- later map entries would have visited them.
+        ExclusiveRulesDB excl_map = erdb
+        cf_partner_index = M.fromListWith S.union $ concat
+            [ [ (a, S.singleton b), (b, S.singleton a) ]
+              | (a, b) <- S.toList cf_pairs ]
+        stt_index = M.fromListWith S.union
+            [ (a, S.singleton b) | (a, b) <- S.toList setToTest ]
+        candidate_partners r1 =
+            let excl_set = case (M.lookup r1 excl_map) of
+                             Just (ds, es) -> S.union ds es
+                             Nothing -> S.empty
+            in  S.unions [ excl_set,
+                           M.findWithDefault S.empty r1 cf_partner_index,
+                           M.findWithDefault S.empty r1 stt_index ]
         -- avoid duplicate messages by applying to a whole list
         checkOneRule ::
             [(ARuleId, (AExpr, M.Map AId [(AId, AExpr)]))] ->
             [Either EMsg (ARuleId, ARuleId, [(MethodId, MethodId)])]
         checkOneRule ((r1, (_, r1_usemap)):rest) =
           let
-              r2s = map fst rest
+              -- the later rules among the candidates (M.toList visits
+              -- the rest of the map in ascending order); with
+              -- -no-sched-transposed, scan all the later rules
+              r2s = if (schedTransposed flags)
+                    then [ r2 | r2 <- S.toAscList (candidate_partners r1),
+                                r2 > r1,
+                                r2 `M.member` ruleMethodUseMap ]
+                    else map fst rest
 
               excl_or_cf r1 r2 = areRulesExclusive erdb r1 r2 ||
                                  cf_rules_test r1 r2
