@@ -247,7 +247,9 @@ data VArg
         -- If the type is Nothing, then do not print a declaration
         | VAInout VId (Maybe VId) (Maybe (Maybe VRange))
         | VAOutput VId (Maybe VRange)
-        | VAParameter VId (Maybe VRange) VExpr
+        -- final Bool: when True, emit as a SystemVerilog `string` parameter
+        -- (`parameter string id = val`) instead of an untyped bit-vector parameter
+        | VAParameter VId (Maybe VRange) VExpr Bool
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 -- only use this for debugging
@@ -263,14 +265,15 @@ instance PPrint VArg where
         (case mmr of { Just mr -> ppMRange d mr; Nothing -> empty })
     pPrint d p (VAOutput i mr) =
         text "VAOutput" <+> pPrint d 0 i <+> ppMRange d mr
-    pPrint d p (VAParameter i mr e) =
-        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e
+    pPrint d p (VAParameter i mr e isStr) =
+        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e <+>
+        pPrint d 0 isStr
 
 instance NFData VArg where
     rnf (VAInput vid mr) = rnf2 vid mr
     rnf (VAInout vid mvid mmr) = rnf3 vid mvid mmr
     rnf (VAOutput vid mr) = rnf2 vid mr
-    rnf (VAParameter vid mr expr) = rnf3 vid mr expr
+    rnf (VAParameter vid mr expr isStr) = rnf4 vid mr expr isStr
 
 ppVArgPort :: PDetail -> VArg -> Doc
 ppVArgPort d (VAInput i _) = pPrint d 0 i
@@ -287,15 +290,15 @@ ppVArgDecl d (VAInout vi mvi' (Just mr)) =
     in  pPrint d 0 (VVDecl VDInout mr [VVar i])
 ppVArgDecl d (VAInout vi mvi' Nothing) = empty
 ppVArgDecl d (VAOutput vi mr) = pPrint d 0 (VVDecl VDOutput mr [VVar vi])
-ppVArgDecl d (VAParameter i mr e) =
-    text "parameter" <+> ppMRange d mr <+> pPrint d 0 i <+>
-    text "=" <+> pPrint d 0 e <> text ";"
+ppVArgDecl d (VAParameter i mr e isStr) =
+    text "parameter" <+> (if isStr then text "string" else ppMRange d mr) <+>
+    pPrint d 0 i <+> text "=" <+> pPrint d 0 e <> text ";"
 
 vargName :: VArg -> VId
 vargName (VAInput i _) = i
 vargName (VAInout i _ _) = i
 vargName (VAOutput i _) = i
-vargName (VAParameter i _ _) = i
+vargName (VAParameter i _ _ _) = i
 
 data VMItem
         = VMDecl VVDecl
