@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DeriveDataTypeable #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module ISyntax(
         IPackage(..),
         IDef(..),
@@ -114,7 +114,6 @@ import Error(internalError, EMsg, ErrMsg(..))
 import PFPrint
 import IStateLoc(IStateLoc)
 import IType
-import qualified Data.Generics as Generic
 
 -- ============================================================
 -- IPackage, IModule
@@ -138,7 +137,7 @@ data IPackage a
               -- cache of resolved associated type function applications
               ipkg_atf_cache :: IATFCache
           }
-     deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+     deriving (Eq, Ord, Show)
 
 type IATFCache = M.Map (Id, [IType]) IType
 
@@ -171,7 +170,7 @@ data IModule a
                 -- comments on submodule instantiations
                 imod_instance_comments :: [(Id, [String])]
           }
-         deriving (Show, Generic.Data, Generic.Typeable)
+         deriving (Show)
 
 getWireInfo :: IModule a -> VWireInfo
 getWireInfo = imod_external_wires
@@ -182,7 +181,7 @@ getWireInfo = imod_external_wires
 type PortTypeMap = M.Map (Maybe Id) (M.Map VName IType)
 
 data IDef a = IDef Id IType (IExpr a) [DefProp]
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show)
 
 data IAbstractInput =
         -- simple input using one port
@@ -193,7 +192,7 @@ data IAbstractInput =
         IAI_Inout Id Integer
         -- room to add other types here, like:
         --   IAI_Struct [(Id, IType)]
-    deriving (Eq, Show, Generic.Data, Generic.Typeable)
+    deriving (Eq, Show)
 
 -- One method argument, decomposed into the ports it occupies (one port for an
 -- unsplit argument, several for a split struct/tuple).  A method's arguments
@@ -218,7 +217,7 @@ data IEFace a = IEFace {
         ief_wireprops :: WireProps,
         ief_fieldinfo :: VFieldInfo
      }
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show)
 
 
 -- ---------------
@@ -239,7 +238,7 @@ data IStateVar a = IStateVar {
     isv_resets :: [(Id, IReset a)], -- named resets
     isv_isloc :: IStateLoc        -- instantiation path
 }
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show)
 
 getResetMap :: IStateVar a -> [(Id, IReset a)]
 getResetMap = isv_resets
@@ -280,7 +279,7 @@ data IRule a =
       -- Instantiation hierarchy
       irule_state_loc :: IStateLoc
       }
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show)
 
 instance NFData (IRule a) where
     rnf (IRule i ps s wp r1 r2 orig isl) = rnf8 i ps s wp r1 r2 orig isl
@@ -292,7 +291,7 @@ getIRuleStateLoc :: IRule a -> IStateLoc
 getIRuleStateLoc = irule_state_loc
 
 data IRules a = IRules [ISchedulePragma] [IRule a]
-    deriving (Show, Generic.Data, Generic.Typeable)
+    deriving (Show)
 
 instance NFData (IRules a) where
     rnf (IRules sps rs) = rnf2 sps rs
@@ -473,7 +472,6 @@ data IExpr a
         | ICon Id (IConInfo a)
         -- IRef is only used during reduction, it refers to a "heap" cell
         | IRefT IType !Int (S.Set Position) a -- vanishes after IExpand
-          deriving (Generic.Data, Generic.Typeable)
 
 instance Show (IExpr a) where
   show (ILam i t e)   = "(ILam " ++ show i ++ " " ++ show t ++ " " ++ show e ++ ")"
@@ -565,7 +563,7 @@ data IClock a = IClock { ic_id      :: ClockId,      -- unique id
                          ic_wires   :: IExpr a       -- expression for clock wires
                                               -- will be ICSel of (ICStateVar) or ICTuple of ICModPorts / ICInt (1) for ungated clocks
                                               -- theoretically ICTuple (ICInt (0), ICInt (0)) for noClock, but should  not appear
-                     } deriving (Generic.Data, Generic.Typeable)
+                     }
 
 -- break recursion of wires so that showing a clock does not loop
 instance Show (IClock a) where
@@ -625,7 +623,7 @@ data IReset a = IReset { ir_id   :: ResetId, -- unique id
                          ir_wire :: IExpr a  -- expression for reset wire
                                              -- currently must be an ICModPort or 0,
                                              -- since we do not support reset output
-                       } deriving (Generic.Data, Generic.Typeable)
+                       }
 
 -- must break recursion of wire so showing a reset output does not loop
 instance Show (IReset a) where
@@ -671,7 +669,7 @@ data IInout a =
     IInout { io_clock :: IClock a, -- associated clock (may be noClock)
              io_reset :: IReset a, -- associated reset (may be noReset)
              io_wire :: IExpr a  -- expression for inout wire
-           } deriving (Generic.Data, Generic.Typeable)
+           }
 
 instance Show (IInout a) where
   show (IInout clock reset wire) =
@@ -707,7 +705,6 @@ getInoutWire = io_wire
 -- into application of PrimBuildArray to the element expressions.
 --
 data ArrayCell a = ArrayCell { ac_ptr :: Int, ac_ref :: a }
-                   deriving (Generic.Data, Generic.Typeable)
 
 instance Show (ArrayCell a) where
   show (ArrayCell i _) = "_" ++ show i
@@ -725,7 +722,7 @@ type ILazyArray a = Array.Array Integer (ArrayCell a)
 -- Predicates used for implicit conditions.
 -- most utility functions in IExpandUtils
 newtype Pred a = PConj (PSet (PTerm a))
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show)
 
 instance PPrint (Pred a) where
     pPrint d p (PConj ps) = pPrint d p (S.toList ps)
@@ -745,7 +742,7 @@ type PSet a = S.Set a
 data PTerm a = PAtom (IExpr a)
              | PIf (IExpr a) (Pred a) (Pred a)
              | PSel (IExpr a) Integer [Pred a]
-        deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+        deriving (Eq, Ord, Show)
 
 -- ==============================
 -- IConInfo
@@ -855,11 +852,9 @@ data IConInfo a =
         | ICPosition { iConType :: IType, iPosition :: [Position] }
         | ICType { iConType :: IType, iType :: IType }
         | ICPred { iConType :: IType, iPred :: Pred a }
-        deriving (Show, Generic.Data, Generic.Typeable)
+        deriving (Show)
 
 ordC :: IConInfo a -> Int
--- XXX This definition would be nice, but it imposes a (Data a) context
---ordC x = Generic.constrIndex (Generic.toConstr x)
 ordC (ICDef { }) = 0
 ordC (ICPrim { }) = 1
 ordC (ICForeign { }) = 2
