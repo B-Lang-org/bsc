@@ -121,6 +121,89 @@ The following is a running list of those writings.
 * [How Bluesim provides implementations for import-BVI](https://groups.io/g/b-lang-discuss/topic/106520424)
 * [How the Bluesim C API is imported into Bluetcl](https://groups.io/g/b-lang-discuss/message/554)
 * There is a template for making Bluesim standalone programs (without Tcl) in `bsc/util/bsim_standalone/`
+* `-c` (codegen mode): per-module byte-identity and object reuse (see below)
+
+#### `-c` (codegen mode): per-module byte-identity
+
+Terminology: a module generated as a `-e` link's *top* is in "top form" (its
+interface methods are fired by the design schedule that the link also
+generates); everywhere else -- under `-c`, or as a submodule of any design --
+it is in "block form".  Block form is the shared, reusable output; top form
+is private to the link that made it.
+
+`-sim -c M` emits `M`'s Bluesim C++ (and only `M`'s) without a runnable top, so
+`M`'s object can be built once and reused wherever `M` appears in a design.
+Reuse *trusts* byte-identity: `isStale` (`SimFileUtils.hs`) reuses an object on a
+version/timestamp/`codeGenOptionDescr` match, never comparing content -- so
+`M`'s `-c` output must equal the C++ it gets as a submodule.  (A link's own
+top is the exception: it is generated in "top form", which the descriptor
+records as `top`, so the two forms are never mixed by reuse.)
+
+It does, because both are generated from the same already-elaborated `M.ba`;
+only three things differ between the runs, and all are neutralized:
+
+* **Interned-`Id` order** varies with what else is compiled, but only *reorders*
+  output, and every per-module emission site is name-sorted (the four
+  "Canonicalize ... order" commits, plus pre-existing sorts).
+* **The schedule** (`M`'s own, firing-suppressed, vs the whole design's) reaches
+  per-module codegen through three channels, each made `M`-intrinsic:
+  *top-ness* (`mkScheduleStmts` drops `M`'s own interface-method firing, so DCE
+  gives submodule form), *VCD clock annotation* (`clk_map`; the emitted domain
+  comes from `M.ba`), and *member-vs-local* (`moveDefsOntoStack`; a top
+  interface method's readiness is reached by the RDY call, as a parent would,
+  not a direct read).
+* **Codegen-time flags** that shape the emitted bytes must be part of the
+  descriptor, or reuse would silently mix them: `keep-fires` and
+  `-unspecified-to` (ASAny is lowered at codegen time by
+  `SimPackageOpt`/`SimBlocksToC`) are recorded; a mismatch on either makes
+  `isStale` regenerate instead of reuse.
+
+`check_block_codegen_modules` (`testsuite/config/unix.exp`) enforces it: it
+rebuilds every multi-module test's submodules with `-c` and byte-compares.
+
+The Verilog backend has the same mode: `-verilog -c M` regenerates `M.v` from
+`M.ba` (via `vGenMods` in `bsc.hs`), byte-identical to the `.v` that `-g`
+writes for the same elaboration.  The `.ba` records the module's flags with
+any `(* options *)` pragma applied (`genModule` runs `updateFlags` before the
+`.ba` write), and `-c` regenerates under those stored flags -- `-keep-fires`,
+`-unspecified-to`, `-stable-verilog`, all of it -- so the regenerated `.v`
+matches the original compile by construction.  Only environment/output flags
+(`-bdir`/`-vdir`/`-info-dir`, the search path, verbosity, show/print toggles,
+`-u`) follow the `-c` invocation.  Foreign-function `.ba` files are found via
+the same `-p`/`-bdir` search path as at link time.
+
+With `-stable-verilog` (default on), the emitted Verilog is a pure function
+of the `.ba`: every backend choice that used to lean on `Id`'s `Ord` (the
+SpeedyString intern order, which varies with compile history) instead uses
+the identifier's text -- topological-sort tie-breaks, CSE survivor names,
+port/mux/gate orderings -- and a final `VStableRenumber` pass renumbers the
+compiler-minted name families (`__d`/`__h`/`__q`/`__f`/`_dm`/`_ds`) into
+first-use order (foreign linkage names are excluded: a "BDPI"-imported
+`f__h1` must keep its C symbol).  The testsuite enforces the contract at
+the point of generation: since a `-verilog` compile writes the `.ba` by
+default, `check_verilog_regen` (called from `bsc_compile_verilog` in
+`testsuite/config/unix.exp`, so every Verilog-compile proc gets it)
+regenerates each `.v` the compile just produced from its `.ba` with `-c`
+and requires a byte-identical result, skipping invocations whose flags
+make the comparison meaningless (`-no-stable-verilog`, `-elab-only`/
+`-no-elab`, relocated outputs, `-verilog-filter`).  The regeneration runs
+in a fresh bsc process, which is the point: in the process that wrote the
+`.v` every string is already interned, so a same-process regen would see
+the same interning history and could not fail for interning-order
+reasons.  `testsuite/bsc.verilog/stable_verilog/` holds the targeted
+trigger designs, including two that pin the flag is not vacuous (under
+`-no-stable-verilog` the direct and regenerated `.v` must diverge).
+
+The mirror image is `-elab-only`, which makes a `-verilog` compile stop at
+the `.ba`, exactly as a Bluesim compile does: `genModuleVerilog` is not run
+at all, and every module's `.v` comes from `-c` or the link.  The flag is
+backend-agnostic when compiling source -- with `-sim` (or no backend)
+stopping at the `.ba` is already the behavior, so it is accepted as a
+no-op, letting build systems pass it unconditionally.  The wrapper's port
+properties come from the APackage analysis (`getIOPropsA`) before the
+backend split and are recorded in the `.bo` under `-elab-only` too, so a
+parent compiled against an `-elab-only` child deduces exactly what a full
+compile deduces -- the staged flow has no annotation caveat.
 
 ### Bluetcl
 

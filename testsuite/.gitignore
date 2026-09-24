@@ -64,6 +64,11 @@ module_*.cxx
 *.no-inline-reg
 *.inline-reg
 
+# Stable-verilog regen checks: stashed direct .v (battery) and the
+# check_verilog_regen scratch directory
+*.v.direct
+regenv_*/
+
 # VCD dumps
 *.vcd
 

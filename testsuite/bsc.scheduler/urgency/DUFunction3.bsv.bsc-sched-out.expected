@@ -142,4 +142,5 @@ Logical execution order: clearGo,
 
 ==============================================
 Verilog file created: sysDUFunction3.v
+Elaborated module file created: sysDUFunction3.ba
 All packages are up to date.

@@ -7,6 +7,7 @@ module ForeignFunctions ( ForeignType(..)
                         , ForeignFuncMap
                         , mkForeignFunction
                         , mkImportDeclarations
+                        , mkImportDeclarationList
                         , mkDPIDeclarations
                         , getForeignFunctions
                         , mkFFDecl
@@ -520,10 +521,15 @@ mkFFDecl (FF name rt arg_types) =
                      [ decl $ (toCtype ty) (mkVar "") | ty <- ats ]
 
 
+-- The extern "C" declaration block for a set of foreign functions,
+-- as fragments suitable for inlining at the top of a generated file
+mkImportDeclarationList :: ForeignFuncMap -> [CCFragment]
+mkImportDeclarationList ff_map
+  | M.null ff_map = []
+  | otherwise = [externC (map mkFFDecl (M.elems ff_map))]
+
 mkImportDeclarations :: ForeignFuncMap -> CCFragment
-mkImportDeclarations ff_map =
-  let ffs = M.elems ff_map
-  in program [externC (map mkFFDecl ffs)]
+mkImportDeclarations ff_map = program (mkImportDeclarationList ff_map)
 
 -- =================================================
 -- Make the SystemVerilog DPI-C declarations for all foreign functions in

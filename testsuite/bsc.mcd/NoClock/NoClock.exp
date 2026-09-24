@@ -18,10 +18,16 @@ test_c_veri_bsv OutputNoClock
 # (and that neither impedes Verilog or Blueim compilation)
 
 compile_verilog_pass_warning FixupRule_NoDefaultClock.bsv G0023
+# the Verilog compile leaves an up-to-date generic .ba, which the -sim
+# compile would reuse (skipping elaboration and its warning); remove it
+erase sysFixupRule_NoDefaultClock.ba
 compile_object_pass_warning FixupRule_NoDefaultClock.bsv G0023
 link_objects_pass {} sysFixupRule_NoDefaultClock
 
 compile_verilog_pass_warning FixupRule_NoClock.bsv G0023
+# the Verilog compile leaves an up-to-date generic .ba, which the -sim
+# compile would reuse (skipping elaboration and its warning); remove it
+erase sysFixupRule_NoClock.ba
 compile_object_pass_warning FixupRule_NoClock.bsv G0023
 link_objects_pass {} sysFixupRule_NoClock
 

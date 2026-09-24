@@ -59,4 +59,5 @@ Logical execution order: aa, ab, bb
 Warning: "ArraySelectTest_sat-stp.bsv", line 32, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysArraySelectTest.v
+Elaborated module file created: sysArraySelectTest.ba
 All packages are up to date.
