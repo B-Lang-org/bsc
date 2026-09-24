@@ -18,7 +18,7 @@ TOOLS=$(CC_TOOLS) \
 
 GHC_PKGS=regex-compat syb old-time split strict-concurrency
 
-SUBMODS=vendor/yices/v2.6/yices2
+SUBMODS=vendor/yices/v2.6/yices2 vendor/libfst
 
 # Check all the necessary build tools are present
 pathsearch=$(firstword $(wildcard $(addsuffix /$(1),$(subst :, ,$(PATH)))))

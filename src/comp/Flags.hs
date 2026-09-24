@@ -43,6 +43,8 @@ data Flags = Flags {
         passThroughAssertions :: Bool,
         doICheck :: Bool,
         dumpAll :: Maybe (Maybe FilePath), -- maybe dump to file or stdout
+        dumpFormats :: [String], -- waveform dump formats compiled into the sim
+                                 -- (subset of vcd/fst/fsdb; [] means none)
         dumps :: [(DumpFlag, Maybe FilePath)], -- dump to file or stdout
         enablePoisonPills :: Bool,
         entry :: Maybe String,

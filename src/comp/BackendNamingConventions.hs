@@ -9,6 +9,7 @@ module BackendNamingConventions
      isRegN, isRegUN, isRegA, isRegAligned,
      getRegClock, getRegReset, getRegInit, getRegWidth,
      mkDIN, mkEN, mkQOUT,
+     qoutPortStr,
      regReadResId, regWriteEnId, regWriteArgId,
 
      isRWire, isRWire0, isBypassWire, isBypassWire0, isClockCrossingBypassWire,

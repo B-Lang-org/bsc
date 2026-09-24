@@ -25,6 +25,7 @@ Compiler flags:
 -continue-after-errors  aggressively continue compilation after an error has been detected
 -cpp                    preprocess the source with the C preprocessor
 -demote-errors list     treat a list of errors as warnings (``:'' sep list of tags)
+-dump-formats formats   waveform formats to compile into the simulation (comma-separated subset of vcd,fst,fsdb; or none)
 -e module               top-level module for simulation
 -elab                   generate a .ba file after elaboration and scheduling
 -fdir dir               working directory for relative file paths during elaboration

@@ -79,6 +79,12 @@ jobs:
             fi
 
           make -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
+
+          # Also build and install the extra utilities (vcdcheck,
+          # fstscopes, showrules, ...); the testsuite uses fstscopes,
+          # when available, to check FST waveform dumps
+          make -C src/comp -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-extra
+
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:

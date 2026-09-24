@@ -259,6 +259,16 @@ void bk_disable_VCD_dumping(tSimStateHdl simHdl);
 tBool bk_is_VCD_dumping_enabled(tSimStateHdl simHdl);
 void bk_VCD_combo_update(tSimStateHdl simHdl, tTime t);
 
+/* Select the waveform dump format: "vcd" or "fst".
+ * Fails (with an error message on stderr) if the model was not
+ * built with support for the requested format (see -dump-formats).
+ * Switching formats ends any dump in progress: dumping is disabled
+ * and the open dump file is closed; re-enable dumping to write a
+ * file in the new format.
+ */
+tStatus bk_set_waveform_format(tSimStateHdl simHdl, const char* format);
+const char* bk_get_waveform_format(tSimStateHdl simHdl);
+
 /* VCD control routines */
 tStatus bk_set_VCD_file(tSimStateHdl simHdl, const char* name);
 const char* bk_get_VCD_file_name(tSimStateHdl simHdl);

@@ -1,0 +1,146 @@
+Command: module wiretypemap mkClockOut
+CLK Clock
+CLK_GATE_newClk Bool
+CLK_newClk Clock
+RDY_enabled Bool
+RST_N Reset
+RST_N_newRst Reset
+en Bool
+en.CLK Clock
+en.D_IN Bool
+en.Q_OUT Bool
+en.RST Reset
+enabled Bool
+gc.CLK Clock
+gc.CLK_GATE_IN Bool
+gc.CLK_GATE_OUT Bool
+gc.CLK_IN Clock
+gc.CLK_OUT Clock
+gc.COND Bool
+gc.COND_OUT Bool
+gc.RST Reset
+mr.ASSERT_OUT Bool
+mr.CLK Clock
+mr.DST_CLK Clock
+mr.OUT_RST Reset
+mr.RST Reset
+{en$CLK} Clock
+{en$D_IN} Bool
+{en$Q_OUT} Bool
+{en$RST} Reset
+{gc$CLK_GATE_IN} Bool
+{gc$CLK_GATE_OUT} Bool
+{gc$CLK_IN} Clock
+{gc$CLK_OUT} Clock
+{gc$CLK} Clock
+{gc$COND_OUT} Bool
+{gc$COND} Bool
+{gc$RST} Reset
+{mr$ASSERT_OUT} Bool
+{mr$CLK} Clock
+{mr$DST_CLK} Clock
+{mr$OUT_RST} Reset
+{mr$RST} Reset
+---------
+Command: module wiretypemap mkArgClock
+CAN_FIRE_RL_drain Bool
+CLK Clock
+CLK_altClk Clock
+EN_feed Bool
+RDY_feed Bool
+RDY_lastAlt Bool
+RDY_lastDefault Bool
+RST_N Reset
+RST_N_altRst Reset
+WILL_FIRE_RL_drain Bool
+altReg Bit#(16)
+altReg.CLK Clock
+altReg.D_IN Bit#(16)
+altReg.Q_OUT Bit#(16)
+altReg.RST Reset
+defReg Bit#(16)
+defReg.CLK Clock
+defReg.D_IN Bit#(16)
+defReg.Q_OUT Bit#(16)
+defReg.RST Reset
+feed void
+feed_v Bit#(16)
+lastAlt Bit#(16)
+lastDefault Bit#(16)
+toAlt.dCLK Clock
+toAlt.dD_OUT Bit#(16)
+toAlt.dEMPTY_N Bool
+toAlt.sCLK Clock
+toAlt.sD_IN Bit#(16)
+toAlt.sFULL_N Bool
+toAlt.sRST Reset
+{altReg$CLK} Clock
+{altReg$D_IN} Bit#(16)
+{altReg$Q_OUT} Bit#(16)
+{altReg$RST} Reset
+{defReg$CLK} Clock
+{defReg$D_IN} Bit#(16)
+{defReg$Q_OUT} Bit#(16)
+{defReg$RST} Reset
+{toAlt$dCLK} Clock
+{toAlt$dD_OUT} Bit#(16)
+{toAlt$dEMPTY_N} Bool
+{toAlt$sCLK} Clock
+{toAlt$sD_IN} Bit#(16)
+{toAlt$sFULL_N} Bool
+{toAlt$sRST} Reset
+---------
+Command: module wiretypemap mkClockTest
+CAN_FIRE_RL_tick Bool
+CLK Clock
+RST_N Reset
+WILL_FIRE_RL_tick Bool
+cnt Bit#(8)
+cnt.CLK Clock
+cnt.D_IN Bit#(8)
+cnt.Q_OUT Bit#(8)
+cnt.RST Reset
+maker.CLK Clock
+maker.CLK_GATE_newClk Bool
+maker.CLK_newClk Clock
+maker.RST_N Reset
+maker.RST_N_newRst Reset
+maker.enabled Bool
+taker.CLK Clock
+taker.CLK_altClk Clock
+taker.RST_N Reset
+taker.RST_N_altRst Reset
+taker.feed void
+taker.feed_v Bit#(16)
+taker.lastAlt Bit#(16)
+taker.lastDefault Bit#(16)
+{cnt$CLK} Clock
+{cnt$D_IN} Bit#(8)
+{cnt$Q_OUT} Bit#(8)
+{cnt$RST} Reset
+{maker$CLK_GATE_newClk} Bool
+{maker$CLK_newClk} Clock
+{maker$CLK} Clock
+{maker$RST_N_newRst} Reset
+{maker$RST_N} Reset
+{maker$enabled} Bool
+{taker$CLK_altClk} Clock
+{taker$CLK} Clock
+{taker$RST_N_altRst} Reset
+{taker$RST_N} Reset
+{taker$feed_v} Bit#(16)
+{taker$feed} void
+{taker$lastAlt} Bit#(16)
+{taker$lastDefault} Bit#(16)
+---------
+=== assertions ===
+PASS: mkClockOut CLK_newClk = Clock
+PASS: mkClockOut CLK_GATE_newClk = Bool
+PASS: mkClockOut RST_N_newRst = Reset
+PASS: mkArgClock CLK_altClk = Clock
+PASS: mkArgClock RST_N_altRst = Reset
+PASS: mkClockTest maker.CLK_newClk = Clock
+PASS: mkClockTest maker.CLK_GATE_newClk = Bool
+PASS: mkClockTest maker.RST_N_newRst = Reset
+PASS: mkClockTest taker.CLK_altClk = Clock
+PASS: mkClockTest taker.RST_N_altRst = Reset

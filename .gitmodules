@@ -1,3 +1,6 @@
 [submodule "src/vendor/yices/v2.6/yices2"]
 	path = src/vendor/yices/v2.6/yices2
 	url = https://github.com/SRI-CSL/yices2
+[submodule "src/vendor/libfst"]
+	path = src/vendor/libfst
+	url = https://github.com/gtkwave/libfst

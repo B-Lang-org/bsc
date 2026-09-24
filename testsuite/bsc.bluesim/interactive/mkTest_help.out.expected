@@ -30,6 +30,7 @@ Subcommands:
   clock [<name>]                Show or select current clock domain
   config [interactive]          Show or change simulator configuration
   describe <handle>+            Describe the object to which a symbol handle refers
+  fst [on | off | <file>]       Control dumping waveforms to an FST file
   get <handle>+                 Get simulation value
   getrange <handle> <addr1> ... Get simulation values from a range
   load <model> <top>            Load a bluesim model object
