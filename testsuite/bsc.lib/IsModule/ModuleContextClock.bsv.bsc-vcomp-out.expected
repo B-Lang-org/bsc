@@ -3,4 +3,5 @@ compiling ModuleContextClock.bsv
 code generation for mkTestWrapper2 starts
 Compilation message: "ModuleContextClock.bsv", line 23, column 13: 1
 Verilog file created: mkTestWrapper2.v
+Elaborated module file created: mkTestWrapper2.ba
 All packages are up to date.

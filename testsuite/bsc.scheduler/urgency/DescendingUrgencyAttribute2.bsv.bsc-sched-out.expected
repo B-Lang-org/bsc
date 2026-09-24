@@ -37,4 +37,5 @@ Logical execution order: test_rule_1, test_rule_2
 Warning: "DescendingUrgencyAttribute2.bsv", line 8, column 8: (G0021)
   According to the generated schedule, rule `test_rule_1' can never fire.
 Verilog file created: sysDescendingUrgencyAttribute2.v
+Elaborated module file created: sysDescendingUrgencyAttribute2.ba
 All packages are up to date.

@@ -6,4 +6,5 @@ Compilation message: "Classic.bs", line 19, column 38: 3e10 = 3.0e10
 Compilation message: "Classic.bs", line 20, column 38: 2e-1 = 0.2
 Compilation message: "Classic.bs", line 21, column 40: 2.5e+0 = 2.5
 Verilog file created: sysClassic.v
+Elaborated module file created: sysClassic.ba
 All packages are up to date.
