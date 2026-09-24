@@ -120,6 +120,11 @@ idInvalid = prelude_id_no fsInvalid
 idValid = prelude_id_no fsValid
 idEmpty = prelude_id_no fsEmptyIfc
 idFile = prelude_id_no fsFile
+-- constructors of the File type
+idInvalidFile, idMCD, idFD :: Id
+idInvalidFile = prelude_id_no fsInvalidFile
+idMCD = prelude_id_no fsMCD
+idFD = prelude_id_no fsFD
 idEither, idLeft, idRight :: Id
 idEither = prelude_id_no fsEither
 idLeft = prelude_id_no fsLeft
@@ -138,6 +143,9 @@ idActionValue_ = prelude_id_no fsActionValue_
 idAVValue_, idAVAction_ :: Id
 idAVValue_ = prelude_id_no fsAVValue_
 idAVAction_ = prelude_id_no fsAVAction_
+idAVValue_at, idAVAction_at :: Position -> Id
+idAVValue_at pos = prelude_id pos fsAVValue_
+idAVAction_at pos = prelude_id pos fsAVAction_
 
 -- names of the special selector functions in the Prelude
 id__value, id__action :: Id

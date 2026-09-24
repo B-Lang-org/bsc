@@ -502,6 +502,12 @@ fsBitsToReal   = mkFString "$bitstoreal"
 
 fsFile = mkFString "File"
 
+-- | Constructors of the File type in the Prelude
+fsInvalidFile, fsMCD, fsFD :: FString
+fsInvalidFile = mkFString "InvalidFile"
+fsMCD = mkFString "MCD"
+fsFD = mkFString "FD"
+
 
 -- | Classes hardcoded in the Prelude which were added for ContextErrors
 fsBitwise, fsBitReduce, fsBitExtend, fsArith, fsOrd :: FString
