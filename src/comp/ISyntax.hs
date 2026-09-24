@@ -772,6 +772,12 @@ data IConInfo a =
                       fName :: String,
                       isC :: Bool,
                       foports :: Maybe ([[(String, Integer)]], [(String, Integer)]),
+                      -- the declaration's type variable names, in
+                      -- quantification order: the numeric type arguments
+                      -- at an application pair with these, and they name
+                      -- the Verilog instance parameters (only used when
+                      -- foports is set)
+                      fTyVarNames :: [String],
                       fcallNo :: Maybe Integer }
           -- constructor
         | ICCon { iConType :: IType, conTagInfo :: ConTagInfo }
@@ -1240,7 +1246,7 @@ instance NFData (IConInfo a) where
 --    rnf (ICDef x1 x2) = rnf2 x1 x2
     rnf ic@(ICDef x1 x2) = ()                        -- XXX a hack to avoid circular defs
     rnf (ICPrim x1 x2) = rnf2 x1 x2
-    rnf (ICForeign x1 x2 x3 x4 x5) = rnf5 x1 x2 x3 x4 x5
+    rnf (ICForeign x1 x2 x3 x4 x5 x6) = rnf6 x1 x2 x3 x4 x5 x6
     rnf (ICCon x1 x2) = rnf2 x1 x2
     rnf (ICIs x1 x2) = rnf2 x1 x2
     rnf (ICOut x1 x2) = rnf2 x1 x2

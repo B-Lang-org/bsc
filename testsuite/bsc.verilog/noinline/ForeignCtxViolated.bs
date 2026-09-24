@@ -1,0 +1,8 @@
+package ForeignCtxViolated(bad) where
+
+-- The declared proviso (ow == iw + iw) is enforced at applications:
+-- using the function at inconsistent widths is a type error.
+foreign vdup :: (Add iw iw ow) => Bit iw -> Bit ow = "Dup",("i","o")
+
+bad :: Bit 8 -> Bit 15
+bad = vdup
