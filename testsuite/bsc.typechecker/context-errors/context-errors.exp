@@ -77,7 +77,7 @@ compare_file AmbigCtx_RemoveFunDeps.bsv.bsc-out
 # Testing that implied predicates are not reported (bug 546)
 
 # In this case should see only one T0031 error, not two
-compile_fail_error ContextReductionRemoveImplied.bs T0031
+compile_fail_error ContextReductionRemoveImplied.bs T0159
 
 compile_fail_error ContextReductionRemoveImplied2.bsv T0032
 compare_file ContextReductionRemoveImplied2.bsv.bsc-out

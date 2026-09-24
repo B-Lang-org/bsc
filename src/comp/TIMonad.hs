@@ -101,7 +101,7 @@ mkTSSatElement :: (Maybe [TyVar]) -> [EPred] -> VPred -> TSSatElement
 -- variable to the pred.  We still will need to solve the pred "p".
 -- It is useful when there is recursion, where the solved "p" will
 -- refer right back to this predicate.
-mkTSSatElement _ _ (VPred i (PredWithPositions p _)) = EPred (CVar i) p
+mkTSSatElement _ _ (VPred i (PredWithPositions p _ _)) = EPred (CVar i) p
 
 type TSSatStack = SizedStack TSSatElement
 type TSSuperSatStack = SizedStack TSSatStack
@@ -447,8 +447,8 @@ instance HasPosition VPred where
 
 
 expandSynVPred :: VPred -> VPred
-expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss)) = VPred i pwp'
-  where pwp' = PredWithPositions p' poss
+expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss anc)) = VPred i pwp'
+  where pwp' = PredWithPositions p' poss anc
         p'   = IsIn c ts'
         ts'  = map expandSyn ts
 
