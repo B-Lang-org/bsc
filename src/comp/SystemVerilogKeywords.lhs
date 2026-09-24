@@ -7,6 +7,9 @@ CAVEAT: you should run checkSystemVerilogKeywords after changing this file.
 > module SystemVerilogKeywords(SV_Keyword(..), SV_Version(..),
 >                              SV_Symbol(..),
 >                              svKeywordTable,
+>                              svParserKeywordTable,
+>                              svOutputReservedWords,
+>                              svStdPackageIdents,
 >                              svSymbolTable,
 >                              svSymbolChars,
 >                              checkSystemVerilogKeywords) where
@@ -21,8 +24,10 @@ representation, and language version introduced.
 
 Keyword sources (should we wish to parse a subset):
 
-> data SV_Version = Verilog2001 | SystemVerilog30 | SystemVerilog31
->                 | SystemVerilog31a | Bluespec38
+> data SV_Version = Verilog2001 | Verilog2005
+>                 | SystemVerilog30 | SystemVerilog31 | SystemVerilog31a
+>                 | SystemVerilog2009 | SystemVerilog2012
+>                 | Bluespec38
 >                   deriving (Show)
 
 Data type declaration for the keywords:
@@ -250,6 +255,37 @@ Data type declaration for the keywords:
 >     | SV_KW_wor
 >     | SV_KW_xnor
 >     | SV_KW_xor
+>     -- IEEE 1364-2005 and IEEE 1800-2009/2012 additions.  These are NOT
+>     -- reserved words in BSV (see svParserKeywordTable below); they are
+>     -- listed for the Verilog backend, which must not emit them as
+>     -- plain identifiers (see svOutputReservedWords below).
+>     | SV_KW_uwire
+>     | SV_KW_accept_on
+>     | SV_KW_checker
+>     | SV_KW_endchecker
+>     | SV_KW_eventually
+>     | SV_KW_global
+>     | SV_KW_implies
+>     | SV_KW_nexttime
+>     | SV_KW_reject_on
+>     | SV_KW_restrict
+>     | SV_KW_s_always
+>     | SV_KW_s_eventually
+>     | SV_KW_s_nexttime
+>     | SV_KW_s_until
+>     | SV_KW_s_until_with
+>     | SV_KW_strong
+>     | SV_KW_sync_accept_on
+>     | SV_KW_sync_reject_on
+>     | SV_KW_unique0
+>     | SV_KW_until
+>     | SV_KW_until_with
+>     | SV_KW_untyped
+>     | SV_KW_weak
+>     | SV_KW_implements
+>     | SV_KW_interconnect
+>     | SV_KW_nettype
+>     | SV_KW_soft
 >     -- Bluespec/SystemVerilog keywords
 >     | SV_KW_action
 >     | SV_KW_endaction
@@ -564,7 +600,7 @@ scanner and to prettyprint keywords.
 >      (SV_KW_this,                "this",                 SystemVerilog31),
 >      (SV_KW_throughout,          "throughout",           SystemVerilog31),
 >      (SV_KW_time,                "time",                 Verilog2001),
->      (SV_KW_timeprecision,       "timeprecision",        Verilog2001),
+>      (SV_KW_timeprecision,       "timeprecision",        SystemVerilog30),
 >      (SV_KW_timeunit,            "timeunit",             SystemVerilog30),
 >      (SV_KW_tran,                "tran",                 Verilog2001),
 >      (SV_KW_tranif0,             "tranif0",              Verilog2001),
@@ -598,6 +634,33 @@ scanner and to prettyprint keywords.
 >      (SV_KW_wor,                 "wor",                  Verilog2001),
 >      (SV_KW_xnor,                "xnor",                 Verilog2001),
 >      (SV_KW_xor,                 "xor",                  Verilog2001),
+>      (SV_KW_uwire,               "uwire",                Verilog2005),
+>      (SV_KW_accept_on,           "accept_on",            SystemVerilog2009),
+>      (SV_KW_checker,             "checker",              SystemVerilog2009),
+>      (SV_KW_endchecker,          "endchecker",           SystemVerilog2009),
+>      (SV_KW_eventually,          "eventually",           SystemVerilog2009),
+>      (SV_KW_global,              "global",               SystemVerilog2009),
+>      (SV_KW_implies,             "implies",              SystemVerilog2009),
+>      (SV_KW_nexttime,            "nexttime",             SystemVerilog2009),
+>      (SV_KW_reject_on,           "reject_on",            SystemVerilog2009),
+>      (SV_KW_restrict,            "restrict",             SystemVerilog2009),
+>      (SV_KW_s_always,            "s_always",             SystemVerilog2009),
+>      (SV_KW_s_eventually,        "s_eventually",         SystemVerilog2009),
+>      (SV_KW_s_nexttime,          "s_nexttime",           SystemVerilog2009),
+>      (SV_KW_s_until,             "s_until",              SystemVerilog2009),
+>      (SV_KW_s_until_with,        "s_until_with",         SystemVerilog2009),
+>      (SV_KW_strong,              "strong",               SystemVerilog2009),
+>      (SV_KW_sync_accept_on,      "sync_accept_on",       SystemVerilog2009),
+>      (SV_KW_sync_reject_on,      "sync_reject_on",       SystemVerilog2009),
+>      (SV_KW_unique0,             "unique0",              SystemVerilog2009),
+>      (SV_KW_until,               "until",                SystemVerilog2009),
+>      (SV_KW_until_with,          "until_with",           SystemVerilog2009),
+>      (SV_KW_untyped,             "untyped",              SystemVerilog2009),
+>      (SV_KW_weak,                "weak",                 SystemVerilog2009),
+>      (SV_KW_implements,          "implements",           SystemVerilog2012),
+>      (SV_KW_interconnect,        "interconnect",         SystemVerilog2012),
+>      (SV_KW_nettype,             "nettype",              SystemVerilog2012),
+>      (SV_KW_soft,                "soft",                 SystemVerilog2012),
 >      -- Bluespec 3.8 keywords
 >      (SV_KW_action,              "action",               Bluespec38),
 >      (SV_KW_endaction,           "endaction",            Bluespec38),
@@ -720,6 +783,50 @@ Unique characters that are elements of symbols
 
 > svSymbolChars :: [Char]
 > svSymbolChars = nub (concat [s | (_, s, _) <- svSymbolTable])
+
+Derived keyword sets
+
+The parser (scanner) reserves the keywords of the language versions up
+through SystemVerilog 3.1a, plus the Bluespec extensions.  Words that
+later standards reserved (IEEE 1364-2005 and IEEE 1800-2009/2012) are
+deliberately NOT reserved in BSV: reserving them would be a breaking
+language change (existing designs use words like "global" and "soft" as
+identifiers).  The scanner must therefore use this filtered table, not
+svKeywordTable itself.
+
+> svParserKeywordTable :: [(SV_Keyword, String, SV_Version)]
+> svParserKeywordTable =
+>     [(kw, str, ver) | (kw, str, ver) <- svKeywordTable, parserVersion ver]
+>   where parserVersion Verilog2001       = True
+>         parserVersion SystemVerilog30   = True
+>         parserVersion SystemVerilog31   = True
+>         parserVersion SystemVerilog31a  = True
+>         parserVersion Bluespec38        = True
+>         parserVersion Verilog2005       = False
+>         parserVersion SystemVerilog2009 = False
+>         parserVersion SystemVerilog2012 = False
+
+The Verilog backend must not emit a plain identifier that any Verilog or
+SystemVerilog standard reserves (the source language admits some of them:
+BSV admits the post-3.1a words, and Classic admits any keyword at all).
+This is every IEEE-reserved word in the table -- all versions except the
+Bluespec-only extensions -- plus "let", which Bluespec 3.8 reserved first
+and IEEE 1800-2009 later also made a reserved word.
+
+> svOutputReservedWords :: [String]
+> svOutputReservedWords =
+>     "let" : [str | (_, str, ver) <- svKeywordTable, isIEEE ver]
+>   where isIEEE Bluespec38 = False
+>         isIEEE _          = True
+
+Not reserved words, but the class names of SystemVerilog's built-in std
+package (IEEE 1800-2017 Annex G).  Some tools (verilator) treat them as
+type identifiers at parse time, so even an escaped identifier with one of
+these names fails to parse; the Verilog backend renames such identifiers
+instead of escaping them.
+
+> svStdPackageIdents :: [String]
+> svStdPackageIdents = ["process", "semaphore", "mailbox"]
 
 SELF-TEST
 

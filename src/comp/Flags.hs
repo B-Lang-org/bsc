@@ -129,7 +129,7 @@ data Flags = Flags {
         strictMethodSched :: Bool,
         suppressWarnings :: MsgListFlag,
         synthesize :: Bool,
-        systemVerilogTasks :: Bool,
+        systemVerilogOutput :: Bool,
         tclShowHidden :: Bool,
         timeStamps :: Bool,
         showVersion :: Bool,
