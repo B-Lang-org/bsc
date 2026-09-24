@@ -727,6 +727,7 @@ data ErrMsg =
             Position -- ^ previous decl position
 
         | EForeignNotBit String String
+        | EForeignWidthNotBare String String
         | EPartialTypeApp String Integer Integer -- synonym (# expected) (# given)
         | ENotStructId String
         | ENotStructUpd String
@@ -1942,6 +1943,13 @@ getErrorText (EMultipleDecl name prevPos) =
 getErrorText (EForeignNotBit i t) =
   (Type 12, empty, hdr $$ text "Type:" <+> nest 2 (text t))
   where hdr = s2par ("Foreign function " ++ ishow i ++ " has a non-Bit argument or result.")
+getErrorText (EForeignWidthNotBare i t) =
+  (Type 159, empty, hdr $$ text "Width:" <+> nest 2 (text t))
+  where hdr = s2par ("Foreign function " ++ ishow i ++ " has a bit width" ++
+                     " that is not a bare type variable or a literal." ++
+                     " Widths are passed to the module as instance" ++
+                     " parameters named by the type variables, so a" ++
+                     " derived width must be given its own variable.")
 getErrorText (EPartialTypeApp i expected given) =
     (Type 13, empty,
      s2par ("Partially applied type synonym: " ++ ishow i) $$

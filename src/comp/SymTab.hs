@@ -60,7 +60,13 @@ data VarKind
         | VarMeth
         -- the maybe [String] is portlist for Verilog foreign funcs as modules
         -- (as "noinline" compiles to)
-        | VarForg String (Maybe ([String], [String]))
+        | VarForg String
+                  -- the declaration's type variable names, in
+                  -- quantification order; these become the NAMES of the
+                  -- Verilog instance parameters when the foreign function
+                  -- is bound to a module (see AVerilogUtil.vDefMpd)
+                  [String]
+                  (Maybe ([String], [String]))
         deriving (Show)
 
 instance PPrint VarKind where

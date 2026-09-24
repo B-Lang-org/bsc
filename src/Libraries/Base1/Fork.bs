@@ -11,8 +11,10 @@ import Vector
 --@ values to avoid CSE.
 --@
 
--- XXX m == 2*n, but we can't have contexts on foreign.
-foreign vfork :: Bit n -> Bit m = "Fork",("i","o")
+-- The type variables name the Verilog instance parameters, so they
+-- must match Fork.v's parameter names (iw, ow).
+-- XXX ow == 2*iw, but we can't have contexts on foreign.
+foreign vfork :: Bit iw -> Bit ow = "Fork",("i","o")
 
 --@ Copy a value into two identical values.
 --@ \begin{libverbatim}

@@ -26,7 +26,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260714-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260715-1"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
@@ -610,8 +610,8 @@ instance Bin ConTagInfo where
 instance Bin (IConInfo a) where
     writeBytes (ICDef t _)      = do putI 0; toBin t
     writeBytes (ICPrim t p)     = do putI 1; toBin t; toBin (fromEnum p)
-    writeBytes (ICForeign t n isC ps Nothing) =
-        do putI 2; toBin t; toBin n; toBin isC; toBin ps
+    writeBytes (ICForeign t n isC ps tvns Nothing) =
+        do putI 2; toBin t; toBin n; toBin isC; toBin ps; toBin tvns
     writeBytes (ICForeign { fcallNo = (Just _) }) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICForeign with cookie"
     writeBytes (ICCon t cti)    = do putI 3; toBin t; toBin cti
@@ -669,7 +669,8 @@ instance Bin (IConInfo a) where
                      2  -> do n <- fromBin
                               isC <- fromBin
                               ps <- fromBin
-                              return (ICForeign t n isC ps Nothing)
+                              tvns <- fromBin
+                              return (ICForeign t n isC ps tvns Nothing)
                      3  -> do cti <- fromBin; return (ICCon t cti)
                      4  -> do cti <- fromBin; return (ICIs t cti)
                      5  -> do cti <- fromBin; return (ICOut t cti)
