@@ -1,0 +1,12 @@
+checking package dependencies
+compiling BVD.bs
+Error: "BVD.bs", line 3, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Prelude.Bool -> Prelude.Bit n
+  The following contexts are needed:
+    Prelude.Bits Prelude.Bool n
+      Introduced at the following locations:
+	"BVD.bs", line 4, column 6
+      The context could also be deduced from the following information:
+	type `1' and type `n' are equal

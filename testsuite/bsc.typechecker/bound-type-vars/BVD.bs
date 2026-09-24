@@ -1,0 +1,4 @@
+package BVD where
+
+k :: Bool -> Bit n
+k x = pack x
