@@ -1128,6 +1128,13 @@ TYPE CLASSES AND INSTANCES
 >        when (not (allowTypeclass flags))
 >                 (failWithErr (pos, EForbiddenTypeclass (pvpString (stmtContext flags))))
 >        assertEmptyAttributes EAttribsTypeclass atts
+>        -- optional coherence annotation, a soft keyword like
+>        -- "dependencies": unambiguous because typeclass names are
+>        -- uppercase (Just True = incoherent, Just False = coherent,
+>        -- omitted = follow the -incoherent-instance-matches flag)
+>        coherence <- option Nothing
+>                       (    (pTheString "incoherent" >> return (Just True))
+>                        <|> (pTheString "coherent"   >> return (Just False)))
 >        (name, params) <- pTypedefConParams <?> "typeclass name"
 >        context <- option [] pProvisos
 >        deps <- option [] pDependencies
@@ -1138,7 +1145,7 @@ TYPE CLASSES AND INSTANCES
 >            functions  = [f | Right f <- items]
 >        pEndClause SV_KW_endtypeclass (Just $ iKName name)
 >        -- XXX dependencies
->        return [ISTypeclass pos name context deps params assocTypes functions]
+>        return [ISTypeclass pos coherence name context deps params assocTypes functions]
 
 > pTypeclassModule :: SV_Parser CField
 > pTypeclassModule =
