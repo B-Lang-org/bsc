@@ -58,4 +58,5 @@ clock domain = Just (0), resets = []
 -----
 
 Verilog file created: sysDummyInRuleQual.v
+Elaborated module file created: sysDummyInRuleQual.ba
 All packages are up to date.

@@ -4,4 +4,5 @@ code generation for sysIsNegativeZero starts
 Compilation message: "IsNegativeZero.bsv", line 13, column 23: -0.0: -0.0
 Compilation message: "IsNegativeZero.bsv", line 19, column 22: 0.0: 0.0
 Verilog file created: sysIsNegativeZero.v
+Elaborated module file created: sysIsNegativeZero.ba
 All packages are up to date.
