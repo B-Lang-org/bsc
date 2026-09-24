@@ -34,4 +34,5 @@ Warning: "WUrgencyChoice1.bs", line 50, column 22: (G0021)
 Warning: "WUrgencyChoice1.bs", line 60, column 22: (G0021)
   According to the generated schedule, rule `Four' can never fire.
 Verilog file created: mkWUrgencyChoice1.v
+Elaborated module file created: mkWUrgencyChoice1.ba
 All packages are up to date.

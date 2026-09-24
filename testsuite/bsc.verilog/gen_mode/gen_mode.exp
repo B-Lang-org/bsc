@@ -1,0 +1,90 @@
+#
+# Tests for the -c codegen mode with the Verilog backend:
+# "bsc -verilog -c M" generates M.v from M.ba, and only M.v (root-only).
+# The output is byte-identical to the .v the -g compile produces from the
+# same elaboration (the testsuite passes -no-show-timestamps
+# -no-show-version, so generated headers are deterministic).
+#
+
+# Check that none of the listed files exist
+proc files_dont_exist { filenames } {
+    global subdir
+
+    incr_stat "files_dont_exist"
+
+    set foundfile ""
+    foreach filename $filenames {
+        set fullname [join [concat $subdir $filename] "/" ]
+        if {[file exists $fullname]} {
+            set foundfile $filename
+            break
+        }
+    }
+
+    if {$foundfile == ""} {
+        pass "found none of the files: $filenames"
+    } else {
+        fail "file `$foundfile' should not exist"
+    }
+}
+
+# run "bsc -verilog -c" for a module, expecting success
+proc vgen_pass { module { options "" } } {
+    set output "$module.bsc-vgen-out"
+    set opts "-no-show-timestamps -no-show-version -verilog -c $module $options"
+    if [ gen_basic_output $opts $output ] {
+        pass "-verilog -c $module generates"
+    } else {
+        fail "-verilog -c $module should generate"
+    }
+}
+
+# -------------------------
+# Elaborate a two-level design; -verilog writes .v and .ba for each module
+
+compile_verilog_pass GenMode.bsv mkGenSub
+compile_verilog_pass GenMode.bsv mkGenTop
+
+# keep the -g output for comparison
+copy mkGenSub.v mkGenSub-from-g.v
+copy mkGenTop.v mkGenTop-from-g.v
+
+# -------------------------
+# Regenerate each module's .v from its .ba alone, into a separate
+# directory; the result is byte-identical to the -g output, and root-only
+# (no other module's files, no link artifacts)
+
+mkdir gendir
+vgen_pass mkGenSub {-vdir gendir}
+files_exist { gendir/mkGenSub.v }
+files_dont_exist { gendir/mkGenTop.v gendir/mkGenSub.ba mkGenSub.cexe }
+compare_file gendir/mkGenSub.v mkGenSub-from-g.v
+
+mkdir gendir2
+vgen_pass mkGenTop {-vdir gendir2}
+files_exist { gendir2/mkGenTop.v }
+files_dont_exist { gendir2/mkGenSub.v }
+compare_file gendir2/mkGenTop.v mkGenTop-from-g.v
+
+# -------------------------
+# The regenerated .v is usable in a real design: rebuild the testbench's
+# submodule .v with -c and simulate against it
+
+compile_verilog_pass GenModeTb.bsv sysGenModeTb
+erase mkGenSub.v
+vgen_pass mkGenSub
+files_exist { mkGenSub.v }
+if { $vtest == 1 } {
+    link_verilog_pass {sysGenModeTb.v mkGenSub.v} sysGenModeTb
+    sim_verilog sysGenModeTb
+    compare_file sysGenModeTb.out sysGenModeTb.out.expected
+}
+
+# -------------------------
+# A .ba elaborated for the Bluesim backend is rejected by -verilog -c
+
+if { $ctest == 1 } {
+    compile_object_pass GenMode.bsv mkGenC
+    compile_no_source_fail_error "verilog_c_wrong_backend" \
+        {-no-show-timestamps -no-show-version -verilog -c mkGenC} S0042
+}
