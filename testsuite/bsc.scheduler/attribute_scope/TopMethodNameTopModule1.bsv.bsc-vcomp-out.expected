@@ -2,4 +2,5 @@ checking package dependencies
 compiling TopMethodNameTopModule1.bsv
 code generation for sysTopMethodNameTopModule1 starts
 Verilog file created: sysTopMethodNameTopModule1.v
+Elaborated module file created: sysTopMethodNameTopModule1.ba
 All packages are up to date.

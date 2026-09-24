@@ -3,4 +3,5 @@ compiling IsInfinite.bsv
 code generation for sysIsInfinite starts
 Compilation message: "IsInfinite.bsv", line 12, column 29: isInfinite: Infinity
 Verilog file created: sysIsInfinite.v
+Elaborated module file created: sysIsInfinite.ba
 All packages are up to date.

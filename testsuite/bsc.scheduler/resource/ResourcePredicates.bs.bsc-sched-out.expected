@@ -45,4 +45,5 @@ Logical execution order: A, B
 
 =====================================================
 Verilog file created: sysResourcePredicates.v
+Elaborated module file created: sysResourcePredicates.ba
 All packages are up to date.

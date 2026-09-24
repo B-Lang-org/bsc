@@ -274,4 +274,5 @@ Logical execution order: handleIBufferRequest,
 
 =========================================
 Verilog file created: mkIBuffer.v
+Elaborated module file created: mkIBuffer.ba
 All packages are up to date.

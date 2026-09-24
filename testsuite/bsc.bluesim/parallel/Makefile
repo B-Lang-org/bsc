@@ -8,5 +8,5 @@ SUBDIRS =
 
 include $(CONFDIR)/clean.mk
 
-DONTKEEPFILES += dir?with?many?spec?ial?char?acters
+DONTKEEPFILES += dir?with?many?spec?ial?char?acters gcd_blockcg gcd_nested
 

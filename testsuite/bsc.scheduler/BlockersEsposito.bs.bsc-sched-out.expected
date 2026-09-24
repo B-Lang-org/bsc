@@ -139,4 +139,5 @@ Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
 Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
   According to the generated schedule, rule `Victim_6' can never fire.
 Verilog file created: sysBlockersEsposito.v
+Elaborated module file created: sysBlockersEsposito.ba
 All packages are up to date.
