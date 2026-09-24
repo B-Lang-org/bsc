@@ -8,6 +8,12 @@ module ForeignFunctions ( ForeignType(..)
                         , mkForeignFunction
                         , mkImportDeclarations
                         , mkDPIDeclarations
+                        , mkDPIWrapperName
+                        , mkDPIMonoName
+                        , dpiPolyWidths
+                        , isPolyFF
+                        , DPIInst(..)
+                        , getDPIInstantiations
                         , getForeignFunctions
                         , mkFFDecl
                         , encodeArgs
@@ -49,7 +55,7 @@ import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
 import Eval
 
-import Data.List(intercalate, isPrefixOf, nub)
+import Data.List(intercalate, isPrefixOf, nub, nubBy)
 import Data.Maybe(mapMaybe, maybeToList)
 import PreIds
 import ListMap as LM
@@ -529,12 +535,98 @@ mkImportDeclarations ff_map =
 -- Make the SystemVerilog DPI-C declarations for all foreign functions in
 -- the ForeignFuncMap.
 
-mkDPIDeclarations :: [ForeignFunction] -> [VDPI]
-mkDPIDeclarations ffuncs = map mkDPIDecl ffuncs
+-- ---------------------------------------------------------------------------
+-- Monomorphic DPI instantiations
+--
+-- SystemVerilog DPI-C imports require concrete widths, so a polymorphic
+-- foreign function cannot be a single import.  Instead, for each distinct
+-- concrete width at which it is used, we emit one fixed-width import.  A
+-- fixed-width packed operand ("bit [W-1:0]") maps to the word-canonical
+-- 'svBitVecVal *' on the C side for every W, which matches the polymorphic C
+-- function's word-pointer ABI -- so a tiny wrapper just casts and forwards.
+-- (This avoids DPI open arrays entirely, whose C runtime is unreliable in
+-- Verilator: svGetArrayPtr can return NULL for reg-backed values.)
+--
+-- The import's SystemVerilog name is mangled with the widths ('mkDPIMonoName');
+-- it links, via a "c_identifier =" alias, to a generated wrapper
+-- ('mkDPIWrapperName') that calls the one real C function.
+-- ---------------------------------------------------------------------------
+
+-- A concrete instantiation of a foreign function actually used in the design.
+-- For a monomorphic function this is just the function itself (dpii_widths=[]);
+-- for a polymorphic one there is one DPIInst per distinct set of concrete
+-- polymorphic-operand widths, with 'Polymorphic' replaced by 'Wide w'.
+data DPIInst = DPIInst { dpii_cname  :: String        -- real underlying C fn
+                       , dpii_ret    :: ForeignType    -- concrete return type
+                       , dpii_args   :: [ForeignType]  -- concrete argument types
+                       , dpii_widths :: [Integer]      -- poly-operand widths ([] if mono)
+                       }
+  deriving (Eq, Show)
+
+-- The (mangled) SystemVerilog import/call name for an instantiation.
+mkDPIMonoName :: String -> [Integer] -> String
+mkDPIMonoName base []     = base
+mkDPIMonoName base widths = base ++ concatMap (("_w" ++) . show) widths
+
+-- The C linkage name of the generated wrapper (and the "c_identifier =" alias).
+-- Derived from the already-unique mangled SV name.
+mkDPIWrapperName :: String -> String
+mkDPIWrapperName svname = svname ++ "_bs_dpi_wrapper"
+
+-- The concrete widths of the polymorphic operands, in signature order
+-- (return first if polymorphic, then arguments).  Used both to name an
+-- instantiation and to name a call site, so the two agree.
+dpiPolyWidths :: ForeignFunction -> Maybe Integer -> [Integer] -> [Integer]
+dpiPolyWidths (FF _ rt args) mretW argWs =
+  (if isPoly rt then maybeToList mretW else []) ++
+  [ w | (t, w) <- zip args argWs, isPoly t ]
+
+-- Does this foreign function have any polymorphic operand (so it needs a
+-- monomorphized, wrapped DPI import)?
+isPolyFF :: ForeignFunction -> Bool
+isPolyFF (FF _ rt args) = isPoly rt || any isPoly args
+
+-- Build the DPIInst for one use of a foreign function.
+mkDPIInst :: ForeignFunction -> Maybe Integer -> [Integer] -> DPIInst
+mkDPIInst ff@(FF nm rt args) mretW argWs =
+  DPIInst { dpii_cname  = getIdString nm
+          , dpii_ret    = concretize rt mretW
+          , dpii_args   = zipWith concretize args (map Just argWs)
+          , dpii_widths = dpiPolyWidths ff mretW argWs
+          }
+  where concretize Polymorphic (Just w) = Wide w   -- render "bit [w-1:0]"
+        concretize t          _         = t
+
+-- Scan the package for every foreign-function use and return the distinct
+-- concrete instantiations needed.
+getDPIInstantiations :: ForeignFuncMap -> ASPackage -> [DPIInst]
+getDPIInstantiations ffmap aspkg =
+  let defW = M.fromList [ (i, aSize t) | ADef i t _ _ <- aspkg_values aspkg ]
+
+      exprUses = [ mkDPIInst ff (Just (aSize (aType e))) (map (aSize . aType) (ae_args e))
+                 | e@(AFunCall { ae_funname = nm, ae_isC = True })
+                     <- findAExprs exprForeignCalls aspkg
+                 , Just ff <- [M.lookup nm ffmap] ]
+
+      actUses  = [ mkDPIInst ff mret (map (aSize . aType) (drop 1 (afc_args fc)))
+                 | fc <- concatMap snd (aspkg_foreign_calls aspkg)
+                 , Just ff <- [M.lookup (afc_fun fc) ffmap]
+                 , let mret = case afc_writes fc of
+                                (w:_) -> M.lookup w defW
+                                []    -> Nothing ]
+
+      eqInst a b = dpii_cname a == dpii_cname b && dpii_widths a == dpii_widths b
+  in  nubBy eqInst (exprUses ++ actUses)
+
+mkDPIDeclarations :: [DPIInst] -> [VDPI]
+mkDPIDeclarations insts = map mkDPIDecl insts
   where
-    mkDPIDecl :: ForeignFunction -> VDPI
-    mkDPIDecl (FF name rt arg_types) =
+    mkDPIDecl :: DPIInst -> VDPI
+    mkDPIDecl inst =
       let
+          rt        = dpii_ret inst
+          arg_types = dpii_args inst
+
           mkResName = mkVId "res"
           mkArgName n = mkVId ("arg" ++ show (n :: Integer))
 
@@ -542,12 +634,18 @@ mkDPIDeclarations ffuncs = map mkDPIDecl ffuncs
           mkIn n t = (mkArgName n, True, toVDPIType t)
           mkIns ts = zipWith mkIn [0..] ts
 
+          -- Wide/poly-derived returns are returned via a leading output arg
           (vdpi_ret, vdpi_args) =
-            if isWide rt || isPoly rt
+            if isWide rt
             then (VDT_void, (mkOut rt : mkIns arg_types))
             else (toVDPIType rt, mkIns arg_types)
+
+          svname   = mkDPIMonoName (dpii_cname inst) (dpii_widths inst)
+          needsWrap = not (null (dpii_widths inst))
+          mclink   = if needsWrap then Just (mkDPIWrapperName svname) else Nothing
+          vdpi_cfn = if needsWrap then Just (dpii_cname inst) else Nothing
       in
-         VDPI (idToVId name) vdpi_ret vdpi_args
+         VDPI (mkVId svname) mclink vdpi_cfn vdpi_ret vdpi_args
 
     toVDPIType :: ForeignType -> VDPIType
     toVDPIType Void = VDT_void

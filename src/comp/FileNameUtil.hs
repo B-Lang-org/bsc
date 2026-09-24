@@ -84,6 +84,10 @@ mkVPIHName m pre s = mkPre m pre ++ "vpi_wrapper_" ++ s ++ "." ++ hSuffix
 mkVPIArrayCName :: Maybe String -> String -> String
 mkVPIArrayCName m pre = mkPre m pre ++ "vpi_startup_array" ++ "." ++ cSuffix
 
+-- DPI wrapper C file (for polymorphic imports over the DPI path)
+mkDPICName :: Maybe String -> String -> String -> String
+mkDPICName m pre s = mkPre m pre ++ "dpi_wrapper_" ++ s ++ "." ++ cSuffix
+
 -- add prefix but no suffix
 mkNameWithoutSuffix :: Maybe String -> String -> String -> String
 mkNameWithoutSuffix m pre s = mkPre m pre ++ s
