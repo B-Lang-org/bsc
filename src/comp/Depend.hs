@@ -28,11 +28,12 @@ import FStringCompat
 import Lex
 import Parse
 import FileNameUtil(hasDotSuf, dropSuf, baseName, dirName,
-                    bscSrcSuffix, bsvSrcSuffix, binSuffix,
+                    bscSrcSuffix, bsvSrcSuffix, binSuffix, abinSuffix,
                     mkAName, mkVName, mkVPIHName, mkVPICName,
                     createEncodedFullFilePath)
 import FileIOUtil(readFilesPath, readBinFilePath, readFileCatch, writeFileCatch,
                   removeFileCatch)
+import ABinUtil(isStaleABinFile)
 import Id
 import PreIds(idPrelude, idPreludeBSV)
 import Parser.Classic(pPackage, errSyntax, classicWarnings)
@@ -235,7 +236,11 @@ getGenFs flags pi =
             let mod_abin_files = map mkABinFileName (gens pi)
             in  foreign_abin_files ++ mod_abin_files
          Just Verilog ->
-            let mod_ver_files = map mkVerFileName (gens pi)
+            let -- with -elab-only, no .v is written, so a compile is up
+                -- to date without them (the .ba files are checked instead)
+                mod_ver_files = if (elabOnly flags)
+                                then []
+                                else map mkVerFileName (gens pi)
                 foreign_vpi_files = if (useDPI flags)
                                     then []
                                     else concatMap mkVPIFileNames (foreigns pi)
@@ -263,7 +268,14 @@ chkUpd flags doneMap resultList (pi:pis) = do
         --putStrLn (show genfs)
         genfsClks <- mapM getModTime genfs
         incfsClks <- mapM getModTime incfs
-        let needGenUpd = any (srcMod pi >) genfsClks
+        -- a .ba that exists (and is fresh by timestamp) is still not a
+        -- valid generated product if it cannot be read (another BSC
+        -- version's format) or was elaborated for an incompatible backend
+        -- (a Verilog-tagged .ba left by "-verilog -g" must not satisfy a
+        -- -sim compile, or vice versa); codegen must run again
+        staleAbins <- mapM (isStaleABinFile (backend flags))
+                          (filter (hasDotSuf abinSuffix) genfs)
+        let needGenUpd = any (srcMod pi >) genfsClks || or staleAbins
             needIncUpd = any (lastMod pi <) incfsClks
         --putStrLn (show (fileName pi, genfs, map (srcMod pi >) genfsClks))
         --putStr (ppReadable (pkgName pi, imports pi, DM.keys doneMap))

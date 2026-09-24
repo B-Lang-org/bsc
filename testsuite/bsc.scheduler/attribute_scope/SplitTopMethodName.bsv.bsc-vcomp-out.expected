@@ -2,4 +2,5 @@ checking package dependencies
 compiling SplitTopMethodName.bsv
 code generation for sysSplitTopMethodName starts
 Verilog file created: sysSplitTopMethodName.v
+Elaborated module file created: sysSplitTopMethodName.ba
 All packages are up to date.

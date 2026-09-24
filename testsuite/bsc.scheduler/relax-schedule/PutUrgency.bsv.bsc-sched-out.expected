@@ -40,4 +40,5 @@ Logical execution order: display_output, put
 
 =========================================
 Verilog file created: mkPutTest.v
+Elaborated module file created: mkPutTest.ba
 All packages are up to date.

@@ -18,4 +18,5 @@ Warning: "MsgTest_ClockOfMultiClock.bsv", line 24, column 8: (G0038)
   "MsgTest_ClockOfMultiClock.bsv", line 8, column 8.
 Compilation message: "MsgTest_ClockOfMultiClock.bsv", line 25, column 15: True
 Verilog file created: sysMsgTest_ClockOfMultiClock.v
+Elaborated module file created: sysMsgTest_ClockOfMultiClock.ba
 All packages are up to date.

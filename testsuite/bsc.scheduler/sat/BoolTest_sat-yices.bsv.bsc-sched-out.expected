@@ -48,4 +48,5 @@ Logical execution order: aa, ab, bb
 Warning: "BoolTest_sat-yices.bsv", line 25, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysBoolTest.v
+Elaborated module file created: sysBoolTest.ba
 All packages are up to date.

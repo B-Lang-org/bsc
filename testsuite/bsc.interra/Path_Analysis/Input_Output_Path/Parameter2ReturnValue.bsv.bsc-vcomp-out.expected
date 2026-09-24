@@ -8,6 +8,7 @@ Combinational paths from inputs to outputs:
 -----
 
 Verilog file created: mkParameter2ReturnValue.v
+Elaborated module file created: mkParameter2ReturnValue.ba
 Warning: "Parameter2ReturnValue.bsv", line 6, column 8: (T0157)
   Package `FIFO' is imported but not used
 All packages are up to date.

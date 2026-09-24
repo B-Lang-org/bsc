@@ -56,4 +56,5 @@ Logical execution order: b, c, d, a
 
 ========================================
 Verilog file created: mkSeqEx1.v
+Elaborated module file created: mkSeqEx1.ba
 All packages are up to date.

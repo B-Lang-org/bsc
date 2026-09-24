@@ -4,4 +4,5 @@ code generation for sysRuleNameInParent starts
 Warning: "RuleNameInParent.bsv", line 14, column 9: (G0021)
   According to the generated schedule, rule `r' can never fire.
 Verilog file created: sysRuleNameInParent.v
+Elaborated module file created: sysRuleNameInParent.ba
 All packages are up to date.

@@ -2,8 +2,10 @@ checking package dependencies
 compiling DynamicInstArg.bsv
 code generation for mkDynamicInstArg_Sub starts
 Verilog file created: mkDynamicInstArg_Sub.v
+Elaborated module file created: mkDynamicInstArg_Sub.ba
 code generation for sysDynamicInstArg starts
 Warning: "DynamicInstArg.bsv", line 12, column 10: (S0015)
   The SAL dump does not support dynamic module arguments: b
 Verilog file created: sysDynamicInstArg.v
+Elaborated module file created: sysDynamicInstArg.ba
 All packages are up to date.

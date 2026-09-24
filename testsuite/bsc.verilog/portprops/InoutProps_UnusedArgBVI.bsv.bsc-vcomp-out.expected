@@ -11,4 +11,5 @@ io_arg                        IO    32 inout
 -----
 
 Verilog file created: sysInoutProps_UnusedArgBVI.v
+Elaborated module file created: sysInoutProps_UnusedArgBVI.ba
 All packages are up to date.
