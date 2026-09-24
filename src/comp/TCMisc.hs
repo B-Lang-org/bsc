@@ -55,6 +55,24 @@ import Debug.Trace
 useLegacyInstIndex :: Bool
 useLegacyInstIndex = elem "-legacy-inst-index" progArgs
 
+-- Debug-only invariant check: every predicate entering the satisfy
+-- loop must be synonym-expanded at construction (see mkVPredFromPred).
+-- Enable with -hack-check-pred-expanded (also via BSC_OPTIONS) to make
+-- a violation an internal error naming the offending predicate.
+checkPredExpanded :: Bool
+checkPredExpanded = elem "-hack-check-pred-expanded" progArgs
+
+assertPredsExpanded :: String -> [VPred] -> a -> a
+assertPredsExpanded tag vps x
+  | not checkPredExpanded = x
+  | otherwise =
+      case [ p | vp@(VPred _ pwp) <- vps
+               , let p@(IsIn _ ts) = removePredPositions pwp
+               , map expandSyn ts /= ts ] of
+        [] -> x
+        (p:_) -> internalError (tag ++ ": unexpanded pred reached the " ++
+                                "solver: " ++ ppReadable p)
+
 doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs
 rtrace :: String -> a -> a
@@ -112,7 +130,7 @@ satisfyFV vs es ps =
 
 satisfyX :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds)
 satisfyX _   es [] = return ([], emptySBs)
-satisfyX dvs es ps = do
+satisfyX dvs es ps = assertPredsExpanded "satisfyX" ps $ do
         -- satTraceM ("satisfy enter: " ++ ppString (dvs, ps))
 -- it is not clear if applying the substitution here wins or not
         s0 <- getSubst
@@ -129,9 +147,7 @@ split_rs s' rs  = partition affected_pred rs
           -- should only be a few since classes are small
           -- and the substitution comes from a single reducePred
           -- or joinCtx (at the end)
-    where changed_tv = getSubstDomain s'
-          affected_var v = v `elem` changed_tv
-          affected_pred r = any affected_var (tv r)
+    where affected_pred r = not (substDomainDisjoint s' (vpredFVs r))
 
 satisfy' :: DVS -> [EPred] -> [VPred] -> TI ([VPred], SolvedBinds, Subst)
 satisfy' dvs es ps = do
@@ -203,20 +219,20 @@ expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
         return (VPred e (PredWithPositions (IsIn c ts') pos): concat vss)
 
 -- Build a class predicate from a fully-applied ATF.  Given the ATF's
--- class, param indices, target index, the ATF arguments, and the type
--- to place at the target position, fills in fresh vars for any class
--- params not covered by the ATF.
-mkATFClassPred :: String -> Type -> Id -> [Int] -> Int -> [Type] -> Type
+-- class (already looked up by the caller), param indices, target
+-- index, the ATF arguments, and the type to place at the target
+-- position, fills in fresh vars for any class params not covered by
+-- the ATF.  Fresh vars are minted only for the uncovered positions.
+mkATFClassPred :: String -> Type -> Class -> [Int] -> Int -> [Type] -> Type
                -> TI (Class, [Type])
-mkATFClassPred tag posType clsId pIdxs tIdx atfArgs targetType = do
-    cls <- findCls (CTypeclass clsId)
+mkATFClassPred tag posType cls pIdxs tIdx atfArgs targetType = do
     let nParams = length (csig cls)
-    freshVars <- mapM (\tv -> newTVar tag (kind tv) posType) (csig cls)
-    let classArgs = [ if idx == tIdx then targetType
-                      else case elemIndex idx pIdxs of
-                            Just j  -> atfArgs !! j
-                            Nothing -> freshVars !! idx
-                    | idx <- [0..nParams-1] ]
+        mkArg idx | idx == tIdx = return targetType
+                  | otherwise =
+            case elemIndex idx pIdxs of
+              Just j  -> return (atfArgs !! j)
+              Nothing -> newTVar tag (kind (csig cls !! idx)) posType
+    classArgs <- mapM mkArg [0..nParams-1]
     return (cls, classArgs)
 
 -- Compute the transitive incoherence closure on a fully-merged SolvedBinds,
@@ -265,7 +281,7 @@ expTFun t0
     length as == length pIdxs = do
         cls <- findCls (CTypeclass clsId)
         v <- newTVar "expTFun" (kind (csig cls !! tIdx)) t0
-        (_, classArgs) <- mkATFClassPred "expTFun" t0 clsId pIdxs tIdx as v
+        (_, classArgs) <- mkATFClassPred "expTFun" t0 cls pIdxs tIdx as v
         vps <- mkVPred (getPosition t0) $ mkPredWithPositions [] (IsIn cls classArgs)
         return (vps, v)
 -- eliminate the identity type constructor.
@@ -1014,8 +1030,9 @@ tryATFClassPred atfType targetType = do
       TCon (TyCon _ _ (TIatf { atf_class_id = clsId, atf_param_idxs = pIdxs
                               , atf_target_idx = tIdx }))
         | length atfArgs == length pIdxs -> do
+        cls0 <- findCls (CTypeclass clsId)
         (cls, classArgs) <- mkATFClassPred "tryATFClassPred" atfType
-                              clsId pIdxs tIdx atfArgs targetType
+                              cls0 pIdxs tIdx atfArgs targetType
         return $ Just (IsIn cls classArgs)
       _ -> return Nothing
 
@@ -1215,7 +1232,12 @@ mkVPredNoNewPos p = do
 mkVPredFromPred :: [Position] -> Pred -> TI VPred
 mkVPredFromPred poss p = do
   v <- newDict
-  return (VPred v $ mkPredWithPositions poss p)
+  -- expandSynVPred upholds the solver invariant that every predicate
+  -- is synonym-expanded at construction (the other mkVPred* producers
+  -- already do this); resolution matches instance heads structurally,
+  -- so an unexpanded synonym (e.g. Action for ActionValue ()) would
+  -- fail to match
+  return (expandSynVPred (VPred v $ mkPredWithPositions poss p))
 
 toPredWithPositions :: VPred -> PredWithPositions
 toPredWithPositions (VPred _ p) = p
@@ -1625,7 +1647,7 @@ expandTCons (orig_qs :=> orig_t) =
                 cls <- findCls (CTypeclass clsId)
                 v <- newTVar "expandTCons" (kind (csig cls !! tIdx)) t0
                 (_, classArgs) <- mkATFClassPred "expandTCons" t0
-                                    clsId pIdxs tIdx as v
+                                    cls pIdxs tIdx as v
                 let p = PredWithPositions (IsIn cls classArgs) []
                 return ([p], v)
       exp (TAp t1 t2) = do (ps1, t1') <- exp t1
