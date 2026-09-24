@@ -43,11 +43,7 @@ module Pragma(
               isAlwaysReadyIfc,
               isAlwaysEnabledIfc,
               getMethodPragmaInfo, getClockPragmaInfo, getResetPragmaInfo, getInoutPragmaInfo,
-              isParamModArg, filterPPparam,
-
-              -- Def pragmas
-              DefProp(..),
-              defPropsHasNoCSE
+              isParamModArg, filterPPparam
               ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -906,29 +902,7 @@ filterPPparam (Pproperties i pprops) =
         else Just (Pproperties i pprops')
 filterPPparam p@(Pnoinline {}) = Just p
 
-
 -- ========================================================================
--- DefProp (module def pragmas)
-
-data DefProp
-  = DefP_Rule Id   -- for method predicates
-  | DefP_Method Id -- for method predicates
-  | DefP_Instance Id  -- for method predicates
-  | DefP_NoCSE -- indicate this def should never be used for CSE
-  deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
-
-instance PPrint DefProp where
-  pPrint _d _i = text . show
-
-instance NFData DefProp where
-  rnf (DefP_Rule x) = rnf x
-  rnf (DefP_Instance x) = rnf x
-  rnf (DefP_Method x) = rnf x
-  rnf DefP_NoCSE = ()
-
--- --------------------
-
-defPropsHasNoCSE :: [DefProp] -> Bool
-defPropsHasNoCSE = elem DefP_NoCSE
-
+-- DefProp (module def pragmas) lives in its own module, DefProp: it
+-- carries ITypes now, and IType's module imports Pragma.
 -- ========================================================================

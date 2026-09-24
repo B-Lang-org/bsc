@@ -42,8 +42,10 @@ import VModInfo
 import SchedInfo(SchedInfo(..), MethodConflictInfo(..),
                  extractFromMethodConflictInfo)
 import Pragma
+import DefProp
 import ASyntax
 import ISyntax
+import IType(iTypeNodeId)
 import Wires
 import CType
 import IntLit
@@ -259,8 +261,18 @@ type_key (TDefMonad _) = internalError $ "BinData.type_key: TDefMonad"
 
 -- We don't use the IType as a key since the Eq instance for some
 -- variants (like ITForAll) ignore Kinds in the equality test.
-data ITypeKey = ITKF IdKey IKind ITypeKey
-              | ITKA ITypeKey ITypeKey
+--
+-- Interior nodes (ITAp/ITForAll) are hash-consed (see IType): the
+-- intern table guarantees one node per exact-serialization-granularity
+-- key, so the intern unique IS the node's structural identity, and the
+-- deep structural key that used to be built here (which re-walked
+-- shared subtrees once per path, exponentially many times on
+-- DAG-shaped types) is unnecessary.  Leaves are not interned and keep
+-- their exact keys.  The unique never enters the byte stream: it only
+-- keys the writer-local sharing map, and the emitted bytes remain
+-- structure plus first-occurrence LOCAL indices, fully
+-- content-determined.
+data ITypeKey = ITKI {-# UNPACK #-} !Int
               | ITKV IdKey
               | ITKC IdKey IKind TISort
               | ITKN Integer
@@ -268,12 +280,12 @@ data ITypeKey = ITKF IdKey IKind ITypeKey
   deriving (Eq, Ord, Show)
 
 itype_key :: IType -> ITypeKey
-itype_key (ITForAll i k t) = ITKF (id_key i) k (itype_key t)
-itype_key (ITAp t1 t2)     = ITKA (itype_key t1) (itype_key t2)
-itype_key (ITVar i)        = ITKV (id_key i)
-itype_key (ITCon i k s)    = ITKC (id_key i) k s
-itype_key (ITNum n)        = ITKN n
-itype_key (ITStr s)        = ITKS s
+itype_key t@(ITForAll _ _ _) = ITKI (iTypeNodeId t)
+itype_key t@(ITAp _ _)       = ITKI (iTypeNodeId t)
+itype_key (ITVar i)          = ITKV (id_key i)
+itype_key (ITCon i k s)      = ITKC (id_key i) k s
+itype_key (ITNum n)          = ITKN n
+itype_key (ITStr s)          = ITKS s
 
 -- -------------------------------------------------------------
 -- The Out monad makes it easy to generate composite BinData
@@ -730,6 +742,7 @@ instance Bin IdProp where
                                   = do putI 35 ; toBin poss
     writeBytes IdPParserGenerated = putI 36
     writeBytes IdPIncoherent      = putI 37
+    writeBytes IdPCAF             = putI 38
     readBytes = do
         i <- getI
         case i of
@@ -762,6 +775,7 @@ instance Bin IdProp where
           35 -> do poss <- fromBin; return (IdPInlinedPositions poss)
           36 -> return IdPParserGenerated
           37 -> return IdPIncoherent
+          38 -> return IdPCAF
           n  -> internalError $ "BinData.Bin(IdProp).readBytes: " ++ show n
 
 
@@ -1115,6 +1129,9 @@ instance Bin DefProp where
     writeBytes (DefP_Method i) = do putI 1 ; toBin i
     writeBytes (DefP_Instance i) = do putI 2 ; toBin i
     writeBytes DefP_NoCSE = putI 3
+    writeBytes (DefP_DictRendering s) = do putI 4 ; toBin s
+    writeBytes (DefP_DictKids ks) = do putI 5 ; toBin ks
+    writeBytes (DefP_DictTypes ts) = do putI 6 ; toBin ts
     readBytes = do
       select <- getI
       case select of
@@ -1122,6 +1139,9 @@ instance Bin DefProp where
         1 -> do i <- fromBin ; return $ DefP_Method i
         2 -> do i <- fromBin ; return $ DefP_Instance i
         3 -> return DefP_NoCSE
+        4 -> do s <- fromBin ; return $ DefP_DictRendering s
+        5 -> do ks <- fromBin ; return $ DefP_DictKids ks
+        6 -> do ts <- fromBin ; return $ DefP_DictTypes ts
         n -> internalError $ "BinData.Bin(DefProp).readBytes: " ++ show n
 
 -- ------------

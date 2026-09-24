@@ -34,6 +34,7 @@ import ADumpScheduleInfo
 import Flags(Flags, quiet, showSchedule, removeStarvedRules, infoDir, hasDump, DumpFlag(..))
 import Position
 import Pragma
+import DefProp
 import PFPrint
 import FileNameUtil(mkSchedName, getRelativeFilePath)
 import FileIOUtil(putStrHandles, openFileCatch)

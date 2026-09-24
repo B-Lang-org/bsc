@@ -1,0 +1,32 @@
+# Performance tripwire for exponential dictionary evidence in the
+# lifted-dictionary pipeline (LiftDicts / FixupDefs).
+#
+# BlowupN is a perfectly-sharing binary type tower: T1 =
+# Tuple2#(Bool, Bool) and Tk = Tuple2#(T{k-1}, T{k-1}), with
+#   instance W#(Tuple2#(a, b)) provisos (W#(a), W#(b));
+# so forcing W#(T16) (via topW, with no module elaboration) builds a
+# dictionary-evidence dag that is linear (one lifted dictionary per
+# level) when shared, but exponential (2^16 leaves) if any part of the
+# pipeline walks the evidence as a tree.
+#
+# History of this exact input:
+#   - without dictionary lifting, the compiler stack-overflows from
+#     about depth 14 (the evidence is duplicated at each use);
+#   - the fingerprint-era lifting recomputed hashes over the evidence
+#     tree and took over 20 minutes at depth 16;
+#   - with structural lifting (interned evidence, pool lookups) the
+#     compile completes in ~10-15s.
+#
+# Completing a plain default-RTS compile inside the suite's normal
+# budget IS the assertion: a regression either stack-overflows (the
+# compile fails) or blows the time budget by two orders of magnitude.
+# No +RTS -K sizing is used, deliberately -- an evidence-shaped stack
+# blowup must surface as a failure, not be absorbed by a larger cap.
+#
+# The depth is deliberately 16: at depth 18 and above the compile time
+# is dominated by a known, separate CType expansion cost in the
+# typechecker, which would mask a lifting regression.  The source is
+# checked in (do not regenerate at test time); the tower shape above
+# is the complete regeneration spec.
+
+compile_pass BlowupN.bsv {-sim}
