@@ -176,7 +176,11 @@ if command -v patchelf >/dev/null; then
 fi
 
 # ----------------------------------------------------------------------
-# 4. Package environment: expose the store packages plus every boot package
+# 4. Package environment: the bsc library and everything it depends on,
+#    boot packages included, and nothing else.  The store also holds the
+#    build's setup dependencies (Cabal among them); exposed beside their
+#    boot versions they would make every CPP script's version macros
+#    ambiguous.
 
 msg "writing package environment"
 GLOBALDB=$(ls -d "$DIST/hs/ghc/lib/ghc-$GHC_VER/lib/package.conf.d")
@@ -184,9 +188,21 @@ GLOBALDB=$(ls -d "$DIST/hs/ghc/lib/ghc-$GHC_VER/lib/package.conf.d")
     echo "clear-package-db"
     echo "global-package-db"
     echo "package-db store/ghc-$GHC_VER/package.db"
-    # NB: `dump` wraps long ids onto continuation lines; `field ... --simple-output` does not
-    "$DIST/hs/ghc/bin/ghc-pkg" --package-db="$GLOBALDB" field '*' id --simple-output | awk 'NF{print "package-id " $1}'
-    "$DIST/hs/ghc/bin/ghc-pkg" --package-db="$STORE/package.db" field '*' id --simple-output | awk 'NF{print "package-id " $1}'
+    "$DIST/hs/ghc/bin/ghc-pkg" --package-db="$STORE/package.db" dump \
+        | awk -v root="$INPLACE_ID" '
+            /^id:/ { id = $2; next }
+            /^depends:/ { field = "depends"; sub(/^depends:/, ""); addDeps(); next }
+            /^[^ \t]/ { field = "" ; next }
+            field == "depends" { addDeps() }
+            function addDeps(   i) { for (i = 1; i <= NF; i++) deps[id] = deps[id] " " $i }
+            END {
+                queue[1] = root; n = 1; seen[root] = 1
+                for (i = 1; i <= n; i++) {
+                    print "package-id " queue[i]
+                    split(deps[queue[i]], ds, " ")
+                    for (j in ds) if (ds[j] != "" && !(ds[j] in seen)) { seen[ds[j]] = 1; queue[++n] = ds[j] }
+                }
+            }'
 } > "$DIST/hs/bsc.env"
 
 # ----------------------------------------------------------------------
