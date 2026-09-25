@@ -1,0 +1,13 @@
+package FixNameMid(mkMid) where
+
+bodyFn :: Reg Bool -> Module (Reg Bool)
+bodyFn self =
+  do
+    addRules $ rules "poison": when True ==> self := not self
+    setStateName (primMakeName "z" noPosition) (mkReg False)
+
+mkMid :: Module (Reg Bool)
+mkMid =
+  module
+    x :: Reg Bool <- moduleFix bodyFn
+    return x
