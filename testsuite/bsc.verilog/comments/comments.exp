@@ -437,4 +437,40 @@ if {$vtest == 1} {
 }
 
 # ----------
+# Test the Classic (BH) syntax for doc, on the module (via the
+# properties pragma) and on bindings in the module body
 
+compile_verilog_pass CommentClassic.bs
+if {$vtest == 1} {
+    # module-level comments at the top of the file
+    find_regexp mkCommentClassic.v {
+// foo
+// bar
+// quux
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY}
+
+    # on an inlined register
+    find_regexp mkCommentClassic.v {
+  // register the_r
+  // This is a register
+  reg the_r}
+
+    # with separate declaration and binding
+    find_regexp mkCommentClassic.v {
+  // register r2
+  // This is also a register
+  reg r2}
+
+    # multiple doc pragmas accumulate, "\n" in a string starts a new line
+    find_regexp mkCommentClassic.v {
+  // submodule f1
+  // This is a FIFO
+  // Foo
+  // Bar
+  (FIFO|wire)}
+}
+
+# ----------
