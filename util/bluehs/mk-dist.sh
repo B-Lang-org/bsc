@@ -4,7 +4,8 @@
 # Produces bsc-bluehs-<os>-<arch>-<version>.tar.gz: a relocatable tree
 # containing a pruned GHC runtime, a relocatable package store with the
 # bsc library and its dependencies, the SAT solver shared libraries, the
-# utility scripts, and a bin/bluehs launcher.  Users of the tarball can
+# tool entry scripts (src/comp/app) and the scripts kept under util/, and
+# a bin/bluehs launcher.  Users of the tarball can
 # run Haskell scripts against the bsc library with no Haskell toolchain
 # installed (a system C compiler is still required: GHC's loader probes
 # it, and CPP scripts preprocess with it).
@@ -63,29 +64,35 @@ rm -rf "$DIST"
 mkdir -p "$WORK" "$DIST"/{bin,scripts,SAT,LICENSES} "$DIST/hs"
 
 # ----------------------------------------------------------------------
-# 1. Build the bsc library + deps into a fresh store (out-of-repo project,
-#    so the repo's own dist-newstyle and env file are untouched)
+# 1. Build the bsc library, its dependencies into a fresh store (out-of-repo
+#    project, so the repo's own dist-newstyle and env file are untouched).
+#    The library itself is built in place, not installed: installing a local
+#    package goes through a source distribution, which lacks the vendored
+#    solver sources the cabal hooks build.
 
-msg "building bsc library into store (this compiles all modules at -O2)"
+msg "building bsc library (this compiles all modules at -O2)"
 mkdir -p "$WORK/proj"
 cat > "$WORK/proj/cabal.project" <<EOF
 packages: $REPO
 
 package bsc
   optimization: 2
-  extra-lib-dirs: $REPO/src/vendor/stp/lib
-  extra-lib-dirs: $REPO/src/vendor/yices/lib
   ghc-options: -j
 EOF
-if [ "${REUSE_WORK:-0}" = 1 ] && [ -f "$WORK/bsc.env" ]; then
-    msg "REUSE_WORK=1: reusing existing store"
+if [ "${REUSE_WORK:-0}" = 1 ] && [ -d "$WORK/store/ghc-$GHC_VER" ]; then
+    msg "REUSE_WORK=1: reusing existing store and build"
 else
-    (cd "$WORK/proj" && cabal --store-dir="$WORK/store" install --lib bsc \
-        --package-env "$WORK/bsc.env" >"$WORK/cabal-install.log" 2>&1) \
-        || { tail -30 "$WORK/cabal-install.log" >&2; exit 1; }
+    (cd "$WORK/proj" && cabal --store-dir="$WORK/store" build bsc:lib:bsc \
+        >"$WORK/cabal-build.log" 2>&1) \
+        || { tail -30 "$WORK/cabal-build.log" >&2; exit 1; }
 fi
 
 STOREDB=$WORK/store/ghc-$GHC_VER/package.db
+# the in-place library's registration and build directory
+INPLACE_CONF=$(ls "$WORK/proj/dist-newstyle/packagedb/ghc-$GHC_VER"/bsc-*-inplace.conf)
+INPLACE_ID=$(sed -n 's/^id: *//p' "$INPLACE_CONF")
+INPLACE_BUILD=$(awk '/^import-dirs:/{getline; print $1}' "$INPLACE_CONF")
+[ -d "$INPLACE_BUILD" ] || { echo "cannot locate the in-place build ($INPLACE_BUILD)" >&2; exit 1; }
 
 # ----------------------------------------------------------------------
 # 2. Pruned GHC runtime
@@ -135,6 +142,19 @@ find "$STORE" -name '*.a' -delete
 rm -rf "$STORE/incoming"
 find "$STORE" -name 'cabal-hash.txt' -delete
 
+# The in-place library joins the store as one more package: its interface
+# files and shared object, registered where the dependencies are
+msg "adding the bsc library to the store"
+mkdir -p "$STORE/$INPLACE_ID/lib"
+(cd "$INPLACE_BUILD" && find . \( -name '*.hi' -o -name '*.dyn_hi' -o -name 'libHS*.so' \) -print0 \
+    | cpio -0 -pdm --quiet "$STORE/$INPLACE_ID/lib")
+# keep the fields the packaged library needs; the include and link
+# settings of the build tree only served compiling it
+awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^(include-dirs|ld-options|library-dirs-static|data-dir):/ ? 1 : 0} !skip' \
+    "$INPLACE_CONF" \
+    | sed -e "s|$INPLACE_BUILD|\${pkgroot}/$INPLACE_ID/lib|g" \
+    > "$STORE/package.db/$INPLACE_ID.conf"
+
 # ${pkgroot} = the directory containing package.db
 sed -i \
     -e "s|$WORK/store/ghc-$GHC_VER|\${pkgroot}|g" \
@@ -175,7 +195,13 @@ GLOBALDB=$(ls -d "$DIST/hs/ghc/lib/ghc-$GHC_VER/lib/package.conf.d")
 msg "copying SAT libs and scripts"
 cp -a "$REPO"/src/vendor/stp/lib/libstp.so* "$DIST/SAT/"
 cp -a "$REPO"/src/vendor/yices/lib/libyices.so* "$DIST/SAT/"
-cp "$REPO"/util/bluehs/*.hs "$DIST/scripts/"
+# every tool entry file runs as a script except bluetcl, whose main is C
+for f in "$REPO"/src/comp/app/*.hs; do
+    case "$(basename "$f")" in
+        BlueTcl.hs|bluetcl_Main.hs) ;;
+        *) cp "$f" "$DIST/scripts/" ;;
+    esac
+done
 
 cat > "$DIST/bin/bluehs" <<'EOF'
 #!/bin/sh
@@ -196,7 +222,9 @@ LD_LIBRARY_PATH=$DIST/SAT${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} export LD_LIBRARY
 if [ -z "${BLUESPECDIR:-}" ] && [ -d "$DIST/../lib/Libraries" ]; then
     BLUESPECDIR=$(cd "$DIST/../lib" && pwd) export BLUESPECDIR
 fi
-exec "$DIST/hs/ghc/bin/runghc" "$SCRIPT" "$@"
+# the script's own directory is on the import path, for scripts of
+# several modules
+exec "$DIST/hs/ghc/bin/runghc" -i"$(dirname "$(readlink -f "$SCRIPT")")" "$SCRIPT" "$@"
 EOF
 chmod 755 "$DIST/bin/bluehs"
 

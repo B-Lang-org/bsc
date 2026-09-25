@@ -86,7 +86,8 @@ source, which is much slower to load.)
 
 `util/bluehs/mk-dist.sh` builds `bsc-bluehs-<os>-<arch>-<version>.tar.gz`: a
 self-contained, relocatable tree (pruned GHC runtime + relocatable package
-store + SAT solver libraries + these scripts + a `bin/bluehs` launcher) so
+store + SAT solver libraries + the tool entry scripts + a `bin/bluehs`
+launcher) so
 tarball users can run Haskell scripts against the bsc library with **no
 Haskell toolchain installed**. Host requirements: glibc, libgmp, libtcl8.6,
 and a C compiler (GHC probes it when loading libraries; CPP scripts
