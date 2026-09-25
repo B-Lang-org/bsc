@@ -5,10 +5,10 @@
 # containing a pruned GHC runtime, a relocatable package store with the
 # bsc library and its dependencies, the SAT solver shared libraries, the
 # tool entry scripts (src/comp/app) and the scripts kept under util/, and
-# a bin/bluehs launcher.  Users of the tarball can
-# run Haskell scripts against the bsc library with no Haskell toolchain
-# installed (a system C compiler is still required: GHC's loader probes
-# it, and CPP scripts preprocess with it).
+# a bin/bluehs launcher.  Users of the tarball can run Haskell scripts
+# against the bsc library with no Haskell toolchain installed.  A C
+# compiler is needed only by scripts that use CPP, which GHC preprocesses
+# with it.
 #
 # This is the companion artifact to the main bsc tarball and must be
 # built from the SAME source tree / commit: the packaged library embeds
@@ -149,10 +149,16 @@ mkdir -p "$STORE/$INPLACE_ID/lib"
 (cd "$INPLACE_BUILD" && find . \( -name '*.hi' -o -name '*.dyn_hi' -o -name 'libHS*.so' \) -print0 \
     | cpio -0 -pdm --quiet "$STORE/$INPLACE_ID/lib")
 # keep the fields the packaged library needs; the include and link
-# settings of the build tree only served compiling it
+# settings of the build tree only served compiling it.  Of the C
+# libraries, only the solvers are named: they are in the tarball, where
+# GHC finds them by path.  The system libraries the library also uses
+# (zlib, Tcl, the C++ runtime) load as dependencies of its shared object
+# and of the solvers'; naming them would have GHC look each one up by
+# its development-package name, and ask the C compiler when that fails.
 awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^(include-dirs|ld-options|library-dirs-static|data-dir):/ ? 1 : 0} !skip' \
     "$INPLACE_CONF" \
     | sed -e "s|$INPLACE_BUILD|\${pkgroot}/$INPLACE_ID/lib|g" \
+          -e "s|^extra-libraries:.*|extra-libraries: stp yices|" \
     > "$STORE/package.db/$INPLACE_ID.conf"
 
 # ${pkgroot} = the directory containing package.db
@@ -275,7 +281,8 @@ The bluehs distribution redistributes the following components:
       - See LICENSES/LICENSE.yices
 
 Not included, required from the host system at runtime: glibc, libgmp,
-libtcl8.6, and a C compiler (used by GHC for library probing and CPP).
+zlib, libtcl8.6, the C++ runtime, and, for scripts that use CPP, a C
+compiler.
 EOF
 
 if [ ! -f "$GHC_ROOT/LICENSE" ]; then
