@@ -147,6 +147,17 @@ mkwrap runghc  "\"\$root/lib/ghc-$GHC_VER/bin/runghc-$GHC_VER\" -f \"\$here/ghc\
 mkwrap runhaskell "\"\$here/runghc\""
 mkwrap ghci    "\"\$here/ghc\" --interactive"
 
+# GHC's loader looks up each library a package names by asking the C
+# compiler (--print-file-name).  The system libraries the boot packages name
+# (libc, libm, libgmp, ...) already load as dependencies of GHC and of the
+# packages' shared objects, so dropping the names lets scripts run where no
+# C compiler is reachable.
+for conf in "$DIST/hs/ghc/$GHCLIBDIR_REL"/package.conf.d/*.conf; do
+    awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^extra-libraries:/ ? 1 : 0} !skip' \
+        "$conf" > "$conf.tmp" && mv "$conf.tmp" "$conf"
+done
+"$DIST/hs/ghc/bin/ghc-pkg" recache --global
+
 # ----------------------------------------------------------------------
 # 3. Relocatable store
 
@@ -365,7 +376,8 @@ fi
 
 # ----------------------------------------------------------------------
 # 8. Install, then smoke test a copy in another directory with the build
-#    tree out of reach, under an empty environment
+#    tree out of reach, under an empty environment and, for the scripts
+#    that do not use CPP, with no C compiler on PATH
 
 msg "installing into $DEST"
 rm -rf "$DEST"
@@ -388,11 +400,15 @@ main = do
 EOF
 mv "$WORK" "$WORK.hidden"
 trap 'mv "$WORK.hidden" "$WORK"; rm -rf "$SMOKE"' EXIT
-run() { env -i PATH=/usr/bin:/bin HOME=/nonexistent "$SMOKE/bluehs/bin/bluehs" "$@"; }
-run dumpbo "$PREFIX/lib/Libraries/Prelude.bo" > "$SMOKE/dumpbo.out"
+# only what the launcher and the GHC wrappers use
+mkdir "$SMOKE/bin"
+for t in sh readlink dirname basename; do ln -s "$(command -v $t)" "$SMOKE/bin/$t"; done
+run() { env -i PATH="$1" HOME=/nonexistent "$SMOKE/bluehs/bin/bluehs" "${@:2}"; }
+# dumpbo uses CPP, which needs a C compiler
+run /usr/bin:/bin dumpbo "$PREFIX/lib/Libraries/Prelude.bo" > "$SMOKE/dumpbo.out"
 head -1 "$SMOKE/dumpbo.out" | grep -q "Internal Symbols" \
     || die "smoke test: dumpbo output unexpected"
-LIBRARY=$(run "$SMOKE/probe.hs")
+LIBRARY=$(run "$SMOKE/bin" "$SMOKE/probe.hs")
 COMPILER=$("$PREFIX/bin/bsc" -v | head -1)
 [ "$LIBRARY" = "$COMPILER" ] \
     || die "the library and $PREFIX/bin/bsc differ: '$LIBRARY' vs '$COMPILER'"

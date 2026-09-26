@@ -100,7 +100,8 @@ moved with the rest of `inst`:
     inst/bluehs/bin/bluehs -imy-tool my-tool/Main.hs design.ba
 
 It needs from the host only the C and C++ runtimes, libgmp, zlib and Tcl,
-and a C compiler for scripts that use CPP. `util/bluehs/mk-dist.sh` does the
+and a C compiler for scripts that use CPP; other scripts run with no C
+compiler reachable. `util/bluehs/mk-dist.sh` does the
 work; it needs `ghc` and `cabal` on `PATH` (the GHC it ships), `python3`,
 and `patchelf` on Linux. It resolves dependencies against a fixed Hackage
 `index-state`, and before finishing it runs a copy of the tree from another
