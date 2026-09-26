@@ -47,6 +47,11 @@ the same way, as does a program in `src/comp/app` that has no symlink here:
     util/bluehs/bluehs my-analysis.hs design.ba
     util/bluehs/bluehs src/comp/app/bsc.hs -verilog Foo.bsv
 
+A script split across several modules names the directories that hold them
+with `-i`, before the script, as `runghc` would take them:
+
+    util/bluehs/bluehs -imy-tool my-tool/Main.hs design.ba
+
 Startup cost is ~0.3-0.5s: the library is compiled, and only the entry
 file is interpreted.
 

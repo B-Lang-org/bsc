@@ -5,30 +5,77 @@
 # or via the bin/ symlinks:   util/bluehs/bin/dumpbo foo.bo
 # (the symlink name selects the tool)
 #
+#   bluehs [-i<dir>]... <tool|script.hs> [args...]
+#
 # A named tool is the program of that name under src/comp/app, run by
 # runghc instead of being compiled.  runghc executes the file's `main`
 # whatever the module is called, so the entry files the cabal executables
 # use (module Main_dumpbo and friends) are also the scripts, with no
-# second copy to keep in step.  Any path to a .hs file works too.
+# second copy to keep in step.  Any path to a .hs file works too.  Each
+# -i<dir> adds a directory to the import path, for a script whose modules
+# are split across files.
+#
+# The same file runs from a source checkout and from an installed
+# distribution (mk-dist.sh), and chooses by what surrounds it:
+#   checkout      - <repo>/util/bluehs/bluehs, the ghc on PATH, and the
+#                   repo's .ghc.environment.* for that ghc's version
+#   distribution  - <dist>/bin/bluehs, the bundled GHC, and <dist>/hs/bsc.env
 #
 # Sets up two things a compiled binary would not need:
-#   GHC_ENVIRONMENT - absolute path to the repo's GHC package environment,
-#                     so runghc finds the compiled bsc library from any cwd
-#   BLUESPECDIR     - defaulted to <repo>/inst/lib (showrules/vcdcheck use it
-#                     for %-expansion and default .ba search paths); a
-#                     compiled binary derives it from its own location, which
-#                     runghc cannot do because the script is not installed
+#   GHC_ENVIRONMENT - the GHC package environment naming the compiled bsc
+#                     library, so runghc finds it from any cwd
+#   BLUESPECDIR     - defaulted to the bsc install beside the library
+#                     (showrules/vcdcheck use it for %-expansion and default
+#                     .ba search paths); a compiled binary derives it from its
+#                     own location, which runghc cannot do because the script
+#                     is not installed
 
 SELF=$(readlink -f "$0")
-REPO=$(dirname "$(dirname "$(dirname "$SELF")")")
-APP=$REPO/src/comp/app
+HERE=$(dirname "$SELF")
 
 NAME=$(basename "$0")
+# the -i<dir> arguments lead; they stay in place in "$@" for runghc
+IMPORTS=0
 if [ "$NAME" = "bluehs" ]; then
-    TOOL="$1"
-    shift
+    for a do
+        case "$a" in
+            -i?*) IMPORTS=$((IMPORTS + 1)) ;;
+            *) break ;;
+        esac
+    done
+    if [ $# -le $IMPORTS ]; then
+        echo "usage: bluehs [-i<dir>]... <tool|script.hs> [args...]" >&2
+        exit 1
+    fi
+    eval "TOOL=\${$((IMPORTS + 1))}"
 else
     TOOL="$NAME"
+fi
+
+if [ -f "$HERE/../hs/bsc.env" ]; then
+    DIST=$(dirname "$HERE")
+    APP=$DIST/scripts
+    RUNGHC=$DIST/hs/ghc/bin/runghc
+    ENVFILE=$DIST/hs/bsc.env
+    DEFAULT_BLUESPECDIR=$(dirname "$DIST")/lib
+else
+    REPO=$(dirname "$(dirname "$(dirname "$SELF")")")
+    APP=$REPO/src/comp/app
+    RUNGHC=runghc
+    # The environment file is per GHC version, and the library in it was
+    # built by that GHC, so match the version of the ghc that runghc will use
+    # rather than taking whichever file is there.
+    VERSION=$(ghc --numeric-version 2>/dev/null)
+    if [ -z "$VERSION" ]; then
+        echo "bluehs: no ghc on PATH" >&2
+        exit 1
+    fi
+    ENVFILE=$(ls "$REPO"/.ghc.environment.*-"$VERSION" 2>/dev/null | head -1)
+    if [ ! -f "$ENVFILE" ]; then
+        echo "bluehs: no .ghc.environment.*-$VERSION at $REPO --- run util/bluehs/setup.sh with ghc $VERSION" >&2
+        exit 1
+    fi
+    DEFAULT_BLUESPECDIR=$REPO/inst/lib
 fi
 
 case "$TOOL" in
@@ -40,21 +87,22 @@ if [ ! -f "$SCRIPT" ]; then
     exit 1
 fi
 
-# The environment file is per GHC version, and the library in it was built by
-# that GHC, so match the version of the ghc that runghc will use rather than
-# taking whichever file is there.
-VERSION=$(ghc --numeric-version 2>/dev/null)
-if [ -z "$VERSION" ]; then
-    echo "bluehs: no ghc on PATH" >&2
-    exit 1
-fi
-ENVFILE=$(ls "$REPO"/.ghc.environment.*-"$VERSION" 2>/dev/null | head -1)
-if [ ! -f "$ENVFILE" ]; then
-    echo "bluehs: no .ghc.environment.*-$VERSION at $REPO --- run util/bluehs/setup.sh with ghc $VERSION" >&2
-    exit 1
-fi
-
 GHC_ENVIRONMENT="$ENVFILE" export GHC_ENVIRONMENT
-BLUESPECDIR="${BLUESPECDIR:-$REPO/inst/lib}" export BLUESPECDIR
+BLUESPECDIR="${BLUESPECDIR:-$DEFAULT_BLUESPECDIR}" export BLUESPECDIR
 
-exec runghc "$SCRIPT" "$@"
+# runghc gets the -i arguments, then the script in place of the tool name
+if [ "$NAME" = "bluehs" ]; then
+    k=0
+    for a do
+        [ $k -eq 0 ] && set --
+        k=$((k + 1))
+        if [ $k -eq $((IMPORTS + 1)) ]; then
+            set -- "$@" "$SCRIPT"
+        else
+            set -- "$@" "$a"
+        fi
+    done
+else
+    set -- "$SCRIPT" "$@"
+fi
+exec "$RUNGHC" "$@"
