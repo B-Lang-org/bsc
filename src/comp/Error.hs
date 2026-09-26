@@ -4399,8 +4399,8 @@ getErrorText (WSATNotAvailable flagstr libname m_dflt_sat) =
   (System 81, empty,
    s2par ("The flag " ++ quote flagstr ++
           " was used, but a proper shared object file was not found. " ++
-          "Please specify a different SAT solver or check that the " ++
-          "LD_LIBRARY_PATH or BLUESPEC_LD_LIBRARY_PATH includes a valid " ++
+          "Please specify a different SAT solver or check that " ++
+          "LD_LIBRARY_PATH includes a valid " ++
           quote libname ++ " file." ++
           (case (m_dflt_sat) of
              Nothing -> ""
