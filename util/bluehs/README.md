@@ -89,29 +89,35 @@ source, which is much slower to load.)
 
 ## Distribution
 
-`util/bluehs/mk-dist.sh` builds `bsc-bluehs-<os>-<arch>-<version>.tar.gz`: a
-self-contained, relocatable tree (pruned GHC runtime + relocatable package
-store + SAT solver libraries + the tool entry scripts + a `bin/bluehs`
-launcher) so
-tarball users can run Haskell scripts against the bsc library with **no
-Haskell toolchain installed**. Host requirements: glibc, libgmp, zlib,
-libtcl8.6, the C++ runtime, and, for scripts that use CPP, a C compiler.
+`make install-bluehs`, after `make install-src`, installs a self-contained
+copy of all this at `inst/bluehs`: a pruned GHC runtime, a package store
+holding the compiled bsc library and its dependencies, the SAT solver
+libraries, the tool entry scripts, and this launcher as `bin/bluehs`. It
+runs scripts with **no Haskell toolchain installed**, and the tree can be
+moved with the rest of `inst`:
 
-This artifact is a *companion* to the main bsc tarball and must be built
-from the same commit (the packaged library rejects `.ba` files whose build
-version stamp differs — see Caveats). Ship both from one release action;
-they are versioned in lockstep, like bluetcl.
+    inst/bluehs/bin/bluehs dumpbo foo.bo
+    inst/bluehs/bin/bluehs -imy-tool my-tool/Main.hs design.ba
 
-Everything redistributed in the tarball is covered in its `LICENSES/`
-directory: `LICENSE.ghc` (compiler/runtime), a generated
-`LICENSE.ghc_pkgs` enumerating every shipped Haskell package with license
-and copyright (via `src/comp/make-ghc-pkg-info.sh` over the exact shipped
-package closure), and the STP/Yices texts for the bundled solver
-libraries.
+It needs from the host only the C and C++ runtimes, libgmp, zlib and Tcl,
+and a C compiler for scripts that use CPP. `util/bluehs/mk-dist.sh` does the
+work; it needs `ghc` and `cabal` on `PATH` (the GHC it ships), `python3`,
+and `patchelf` on Linux. It resolves dependencies against a fixed Hackage
+`index-state`, and before finishing it runs a copy of the tree from another
+directory under an empty environment and checks that the library's build
+version matches `inst/bin/bsc`'s.
 
-The scripts in this tarball provide what `make install-extra` builds as
-compiled binaries; once bluehs ships as a standard release artifact,
-`install-extra` is a candidate for retirement.
+Build it in the same tree as the `bsc` beside it: the library rejects `.ba`
+files whose build version stamp differs (see Caveats).
+
+Everything redistributed is covered in `inst/bluehs/LICENSES/`:
+`LICENSE.ghc` (compiler/runtime), a generated `LICENSE.ghc_pkgs` enumerating
+every shipped Haskell package with license and copyright (via
+`src/comp/make-ghc-pkg-info.sh` over the exact shipped package closure), and
+the STP/Yices texts for the bundled solver libraries.
+
+The scripts in the distribution provide what `make install-extra` builds as
+compiled binaries, so `install-extra` is a candidate for retirement.
 
 ## Not converted
 

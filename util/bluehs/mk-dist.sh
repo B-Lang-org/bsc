@@ -1,42 +1,55 @@
 #!/usr/bin/env bash
-# Build the self-contained bluehs distribution tarball.
+# Install the bluehs distribution: a relocatable tree holding a pruned GHC
+# runtime, a package store with the compiled bsc library and its
+# dependencies, the SAT solver libraries, the tool entry scripts
+# (src/comp/app), and the bluehs launcher.  Scripts run against the library
+# with no Haskell toolchain installed; a C compiler is needed only by
+# scripts that use CPP.
 #
-# Produces bsc-bluehs-<os>-<arch>-<version>.tar.gz: a relocatable tree
-# containing a pruned GHC runtime, a relocatable package store with the
-# bsc library and its dependencies, the SAT solver shared libraries, the
-# tool entry scripts (src/comp/app) and the scripts kept under util/, and
-# a bin/bluehs launcher.  Users of the tarball can run Haskell scripts
-# against the bsc library with no Haskell toolchain installed.  A C
-# compiler is needed only by scripts that use CPP, which GHC preprocesses
-# with it.
+# The install directory sits inside a bsc installation (<prefix>/bluehs),
+# and must be built from the same tree as that bsc: the library embeds the
+# build version and rejects .ba files written by any other bsc.
 #
-# This is the companion artifact to the main bsc tarball and must be
-# built from the SAME source tree / commit: the packaged library embeds
-# the build version string and rejects .ba files from a different bsc.
+# Prerequisites: a completed `make install-src` into <prefix>, ghc and cabal
+# on PATH (the GHC that will be shipped), python3, and patchelf on Linux.
 #
-# Prerequisites: a completed `make install-src` (vendor solver libs) and
-# ghc + cabal on PATH (the same GHC that will be shipped).
-#
-# Usage: util/bluehs/mk-dist.sh [output-dir]     (default: build/bluehs)
+# Usage: util/bluehs/mk-dist.sh <prefix>/bluehs [work-dir]
+#        (`make install-bluehs` runs it with inst/bluehs and build/bluehs)
+# REUSE_WORK=1 keeps a previous run's library build, which cabal then updates.
 
 set -euo pipefail
 
 REPO=$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)
-OUT=${1:-$REPO/build/bluehs}
-mkdir -p "$OUT"
-OUT=$(cd "$OUT" && pwd)   # absolutize: later steps cd around
-WORK=$OUT/work
-DIST=$OUT/dist
+[ $# -ge 1 ] || { echo "usage: $0 <prefix>/bluehs [work-dir]" >&2; exit 1; }
+mkdir -p "$1"
+DEST=$(cd "$1" && pwd)
+PREFIX=$(dirname "$DEST")
+WORK=${2:-$REPO/build/bluehs}
+mkdir -p "$WORK"
+WORK=$(cd "$WORK" && pwd)
+DIST=$WORK/dist
 
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
-VERSION=$(git -C "$REPO" describe --tags --always 2>/dev/null || echo unknown)
-TARBALL=$OUT/bsc-bluehs-$OS-$ARCH-$VERSION.tar.gz
+# The Hackage index the dependencies resolve against, so that the commit,
+# not the build date, fixes them
+INDEX_STATE=2026-09-26T00:00:00Z
 
 msg() { echo ">>> $*"; }
+die() { echo "mk-dist.sh: $*" >&2; exit 1; }
+# GNU and BSD sed disagree on -i
+sed_inplace() { local f=$1; shift; sed "$@" "$f" > "$f.tmp" && mv "$f.tmp" "$f"; }
+relpath() { python3 -c 'import os, sys; print(os.path.relpath(*sys.argv[1:]))' "$1" "$2"; }
+
+case "$(uname -s)" in
+    Linux)  DLL=so ;;
+    Darwin) DLL=dylib ;;
+    *) die "unsupported OS $(uname -s)" ;;
+esac
+command -v python3 >/dev/null || die "python3 is required"
+[ $DLL = dylib ] || command -v patchelf >/dev/null || die "patchelf is required"
+[ -x "$PREFIX/bin/bsc" ] || die "no bsc at $PREFIX/bin; run make install-src first"
 
 # ----------------------------------------------------------------------
-# 0. Locate the GHC installation and sanity-check prerequisites
+# 0. The GHC installation
 
 GHC_REAL_BIN=$(dirname "$(readlink -f "$(command -v ghc)")")
 # ghcup layout: <root>/bin/ghc -> symlink; real binaries in <root>/lib/ghc-*/bin
@@ -44,55 +57,60 @@ GHC_REAL_BIN=$(dirname "$(readlink -f "$(command -v ghc)")")
 GHC_ROOT=$(cd "$GHC_REAL_BIN/.." && pwd)
 while [ ! -d "$GHC_ROOT/lib" ] || [ ! -d "$GHC_ROOT/bin" ]; do
     GHC_ROOT=$(dirname "$GHC_ROOT")
-    [ "$GHC_ROOT" = "/" ] && { echo "cannot locate GHC root" >&2; exit 1; }
+    [ "$GHC_ROOT" = "/" ] && die "cannot locate the GHC root"
 done
 GHC_VER=$(ghc --numeric-version)
 msg "GHC $GHC_VER at $GHC_ROOT"
-
-for f in "$REPO"/src/vendor/stp/lib/libstp.so "$REPO"/src/vendor/yices/lib/libyices.so; do
-    [ -e "$f" ] || { echo "$f missing - run the vendor lib builds first" >&2; exit 1; }
-done
 
 # The update scripts use `set -u` and expect these from the Makefile
 export NOGIT=${NOGIT:-0}
 export NOUPDATEBUILDVERSION=${NOUPDATEBUILDVERSION:-0}
 (cd "$REPO/src/comp" && ./update-build-version.sh && ./update-build-system.sh)
 
-# REUSE_WORK=1 skips the (slow) store build if a previous run completed it
-if [ "${REUSE_WORK:-0}" != 1 ]; then rm -rf "$WORK"; fi
+if [ "${REUSE_WORK:-0}" != 1 ]; then rm -rf "$WORK/proj" "$WORK/store"; fi
 rm -rf "$DIST"
-mkdir -p "$WORK" "$DIST"/{bin,scripts,SAT,LICENSES} "$DIST/hs"
+mkdir -p "$DIST"/{bin,scripts,SAT,LICENSES,hs}
 
 # ----------------------------------------------------------------------
-# 1. Build the bsc library, its dependencies into a fresh store (out-of-repo
-#    project, so the repo's own dist-newstyle and env file are untouched).
-#    The library itself is built in place, not installed: installing a local
-#    package goes through a source distribution, which lacks the vendored
-#    solver sources the cabal hooks build.
+# 1. Build the bsc library, and its dependencies into a fresh store
+#    (out-of-repo project, so the repo's own dist-newstyle and env file are
+#    untouched).  The library itself is built in place, not installed:
+#    installing a local package goes through a source distribution, which
+#    lacks the vendored solver sources the cabal hooks build.
 
 msg "building bsc library (this compiles all modules at -O2)"
 mkdir -p "$WORK/proj"
 cat > "$WORK/proj/cabal.project" <<EOF
 packages: $REPO
+index-state: $INDEX_STATE
 
 package bsc
   optimization: 2
   ghc-options: -j
 EOF
-if [ "${REUSE_WORK:-0}" = 1 ] && [ -d "$WORK/store/ghc-$GHC_VER" ]; then
-    msg "REUSE_WORK=1: reusing existing store and build"
-else
-    (cd "$WORK/proj" && cabal --store-dir="$WORK/store" build bsc:lib:bsc \
-        >"$WORK/cabal-build.log" 2>&1) \
-        || { tail -30 "$WORK/cabal-build.log" >&2; exit 1; }
-fi
+(cd "$WORK/proj" && cabal --store-dir="$WORK/store" build bsc:lib:bsc \
+    >"$WORK/cabal-build.log" 2>&1) \
+    || { tail -30 "$WORK/cabal-build.log" >&2; exit 1; }
 
-STOREDB=$WORK/store/ghc-$GHC_VER/package.db
+# cabal names the store's directory ghc-<version>, or in newer releases
+# ghc-<version>-<abi hash>
+STORE_SRC=
+for d in "$WORK/store/ghc-$GHC_VER" "$WORK/store/ghc-$GHC_VER"-*; do
+    [ -d "$d/package.db" ] && { STORE_SRC=$d; break; }
+done
+[ -n "$STORE_SRC" ] || die "no ghc-$GHC_VER store in $WORK/store"
+STORE_NAME=$(basename "$STORE_SRC")
+
+SOLVER_DIRS=("$REPO/src/vendor/stp/lib" "$REPO/src/vendor/yices/lib")
+for d in "${SOLVER_DIRS[@]}"; do
+    ls "$d"/*."$DLL"* >/dev/null 2>&1 || die "no solver library in $d"
+done
+
 # the in-place library's registration and build directory
 INPLACE_CONF=$(ls "$WORK/proj/dist-newstyle/packagedb/ghc-$GHC_VER"/bsc-*-inplace.conf)
 INPLACE_ID=$(sed -n 's/^id: *//p' "$INPLACE_CONF")
 INPLACE_BUILD=$(awk '/^import-dirs:/{getline; print $1}' "$INPLACE_CONF")
-[ -d "$INPLACE_BUILD" ] || { echo "cannot locate the in-place build ($INPLACE_BUILD)" >&2; exit 1; }
+[ -d "$INPLACE_BUILD" ] || die "cannot locate the in-place build ($INPLACE_BUILD)"
 
 # ----------------------------------------------------------------------
 # 2. Pruned GHC runtime
@@ -116,7 +134,7 @@ done
 # paths) with self-locating equivalents.  ghc/ghc-pkg/runghc have real
 # binaries under lib/ghc-<ver>/bin; ghci and runhaskell are pure aliases.
 GHCLIBDIR_REL="lib/ghc-$GHC_VER/lib"
-[ -d "$DIST/hs/ghc/$GHCLIBDIR_REL" ] || { echo "unexpected GHC layout" >&2; exit 1; }
+[ -d "$DIST/hs/ghc/$GHCLIBDIR_REL" ] || die "unexpected GHC layout"
 rm -f "$DIST/hs/ghc/bin"/*
 mkwrap() {  # name, exec-line
     printf '#!/bin/sh\nhere=$(dirname "$(readlink -f "$0")")\nroot=$(dirname "$here")\nexec %s "$@"\n' "$2" \
@@ -133,10 +151,9 @@ mkwrap ghci    "\"\$here/ghc\" --interactive"
 # 3. Relocatable store
 
 msg "relocating package store"
-cp -a "$WORK/store/ghc-$GHC_VER" "$DIST/hs/store-tmp"
 mkdir -p "$DIST/hs/store"
-mv "$DIST/hs/store-tmp" "$DIST/hs/store/ghc-$GHC_VER"
-STORE=$DIST/hs/store/ghc-$GHC_VER
+cp -a "$STORE_SRC" "$DIST/hs/store/"
+STORE=$DIST/hs/store/$STORE_NAME
 
 find "$STORE" -name '*.a' -delete
 rm -rf "$STORE/incoming"
@@ -146,15 +163,15 @@ find "$STORE" -name 'cabal-hash.txt' -delete
 # files and shared object, registered where the dependencies are
 msg "adding the bsc library to the store"
 mkdir -p "$STORE/$INPLACE_ID/lib"
-(cd "$INPLACE_BUILD" && find . \( -name '*.hi' -o -name '*.dyn_hi' -o -name 'libHS*.so' \) -print0 \
+(cd "$INPLACE_BUILD" && find . \( -name '*.hi' -o -name '*.dyn_hi' -o -name "libHS*.$DLL" \) -print0 \
     | cpio -0 -pdm --quiet "$STORE/$INPLACE_ID/lib")
 # keep the fields the packaged library needs; the include and link
 # settings of the build tree only served compiling it.  Of the C
-# libraries, only the solvers are named: they are in the tarball, where
-# GHC finds them by path.  The system libraries the library also uses
-# (zlib, Tcl, the C++ runtime) load as dependencies of its shared object
-# and of the solvers'; naming them would have GHC look each one up by
-# its development-package name, and ask the C compiler when that fails.
+# libraries, only the solvers are named: they are in the distribution,
+# where GHC finds them by path.  The system libraries the library also
+# uses (zlib, Tcl, the C++ runtime) load as dependencies of its shared
+# object and of the solvers'; naming them would have GHC look each one up
+# by its development-package name, and ask the C compiler when that fails.
 awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^(include-dirs|ld-options|library-dirs-static|data-dir):/ ? 1 : 0} !skip' \
     "$INPLACE_CONF" \
     | sed -e "s|$INPLACE_BUILD|\${pkgroot}/$INPLACE_ID/lib|g" \
@@ -162,24 +179,18 @@ awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^(include-dirs|ld-options|library-dirs-stat
     > "$STORE/package.db/$INPLACE_ID.conf"
 
 # ${pkgroot} = the directory containing package.db
-sed -i \
-    -e "s|$WORK/store/ghc-$GHC_VER|\${pkgroot}|g" \
-    -e "s|$REPO/src/vendor/stp/lib|\${pkgroot}/../../../SAT|g" \
-    -e "s|$REPO/src/vendor/yices/lib|\${pkgroot}/../../../SAT|g" \
-    "$STORE"/package.db/*.conf
-# Drop haddock-* fields INCLUDING their continuation lines (they point at
-# never-shipped docs; a bare sed of the header line would orphan the
-# indented value lines and break ghc-pkg's parser)
 for conf in "$STORE"/package.db/*.conf; do
+    sed_inplace "$conf" \
+        -e "s|$STORE_SRC|\${pkgroot}|g" \
+        -e "s|${SOLVER_DIRS[0]}|\${pkgroot}/../../../SAT|g" \
+        -e "s|${SOLVER_DIRS[1]}|\${pkgroot}/../../../SAT|g"
+    # Drop haddock-* fields INCLUDING their continuation lines (they point
+    # at never-shipped docs; a bare sed of the header line would orphan the
+    # indented value lines and break ghc-pkg's parser)
     awk 'BEGIN{skip=0} /^[^ \t]/{skip = /^haddock-(interfaces|html):/ ? 1 : 0} !skip' \
         "$conf" > "$conf.tmp" && mv "$conf.tmp" "$conf"
 done
 "$DIST/hs/ghc/bin/ghc-pkg" --package-db="$STORE/package.db" recache
-
-strip "$STORE"/*/lib/libHSbsc*.so 2>/dev/null || true
-if command -v patchelf >/dev/null; then
-    find "$STORE" -name 'libHS*.so' -exec patchelf --remove-rpath {} \; 2>/dev/null || true
-fi
 
 # ----------------------------------------------------------------------
 # 4. Package environment: the bsc library and everything it depends on,
@@ -193,7 +204,7 @@ GLOBALDB=$(ls -d "$DIST/hs/ghc/lib/ghc-$GHC_VER/lib/package.conf.d")
 {
     echo "clear-package-db"
     echo "global-package-db"
-    echo "package-db store/ghc-$GHC_VER/package.db"
+    echo "package-db store/$STORE_NAME/package.db"
     "$DIST/hs/ghc/bin/ghc-pkg" --package-db="$STORE/package.db" dump \
         | awk -v root="$INPLACE_ID" '
             /^id:/ { id = $2; next }
@@ -214,9 +225,8 @@ GLOBALDB=$(ls -d "$DIST/hs/ghc/lib/ghc-$GHC_VER/lib/package.conf.d")
 # ----------------------------------------------------------------------
 # 5. SAT libs, scripts, launcher
 
-msg "copying SAT libs and scripts"
-cp -a "$REPO"/src/vendor/stp/lib/libstp.so* "$DIST/SAT/"
-cp -a "$REPO"/src/vendor/yices/lib/libyices.so* "$DIST/SAT/"
+msg "copying SAT libs, scripts and launcher"
+for d in "${SOLVER_DIRS[@]}"; do cp -a "$d"/*."$DLL"* "$DIST/SAT/"; done
 # every tool entry file runs as a script except bluetcl, whose main is C
 for f in "$REPO"/src/comp/app/*.hs; do
     case "$(basename "$f")" in
@@ -224,41 +234,102 @@ for f in "$REPO"/src/comp/app/*.hs; do
         *) cp "$f" "$DIST/scripts/" ;;
     esac
 done
-
-cat > "$DIST/bin/bluehs" <<'EOF'
-#!/bin/sh
-# bluehs: run a Haskell script against the packaged bsc library.
-#   bluehs <tool> [args...]        tool from the scripts/ directory
-#   bluehs <path/to/script.hs> [args...]
-DIST=$(dirname "$(dirname "$(readlink -f "$0")")")
-TOOL=${1:?usage: bluehs <tool|script.hs> [args...]}; shift
-case "$TOOL" in
-    *.hs) SCRIPT=$TOOL ;;
-    *)    SCRIPT=$DIST/scripts/$TOOL.hs ;;
-esac
-[ -f "$SCRIPT" ] || { echo "bluehs: no such tool or script: $TOOL" >&2; exit 1; }
-GHC_ENVIRONMENT=$DIST/hs/bsc.env export GHC_ENVIRONMENT
-LD_LIBRARY_PATH=$DIST/SAT${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} export LD_LIBRARY_PATH
-# showrules/vcdcheck consult BLUESPECDIR; prefer the caller's, else a
-# side-by-side bsc install (tarballs unpacked next to each other)
-if [ -z "${BLUESPECDIR:-}" ] && [ -d "$DIST/../lib/Libraries" ]; then
-    BLUESPECDIR=$(cd "$DIST/../lib" && pwd) export BLUESPECDIR
-fi
-# the script's own directory is on the import path, for scripts of
-# several modules
-exec "$DIST/hs/ghc/bin/runghc" -i"$(dirname "$(readlink -f "$SCRIPT")")" "$SCRIPT" "$@"
-EOF
+cp "$REPO/util/bluehs/bluehs" "$DIST/bin/bluehs"
 chmod 755 "$DIST/bin/bluehs"
 
 # ----------------------------------------------------------------------
-# 6. Licensing: everything redistributed in this tarball
+# 6. Library paths: every search path and dependency that names the build
+#    machine is rewritten relative to the file, or dropped
+
+# The shipped counterpart of a build-machine directory; fails for one
+# that has none.  Directories elsewhere (the system's) are kept as they are.
+shipped_dir() {
+    case "$1" in
+        "$STORE_SRC" | "$STORE_SRC"/*) echo "$STORE${1#"$STORE_SRC"}" ;;
+        "$INPLACE_BUILD"*) echo "$STORE/$INPLACE_ID/lib${1#"$INPLACE_BUILD"}" ;;
+        "$GHC_ROOT"/*) echo "$DIST/hs/ghc${1#"$GHC_ROOT"}" ;;
+        "${SOLVER_DIRS[0]}" | "${SOLVER_DIRS[1]}") echo "$DIST/SAT" ;;
+        "$WORK"/* | "$REPO"/*) return 1 ;;
+        *) echo "$1" ;;
+    esac
+}
+
+# A search path as the file should record it
+search_entry() {  # file, directory, origin token
+    local d
+    d=$(shipped_dir "$2") || return 1
+    case "$d" in
+        "$DIST"/*) echo "$3/$(relpath "$d" "$(dirname "$1")")" ;;
+        *) echo "$d" ;;
+    esac
+}
+
+relocate_elf() {
+    local f=$1 r e new=()
+    local IFS=:
+    for r in $(patchelf --print-rpath "$f"); do
+        e=$(search_entry "$f" "$r" '$ORIGIN') && new+=("$e")
+    done
+    patchelf --set-rpath "${new[*]}" "$f"
+}
+
+relocate_macho() {
+    local f=$1 r e dep id
+    for r in $(otool -l "$f" | awk '$1 == "cmd" { rp = ($2 == "LC_RPATH") } rp && $1 == "path" { print $2 }'); do
+        install_name_tool -delete_rpath "$r" "$f"
+        if e=$(search_entry "$f" "$r" @loader_path); then
+            install_name_tool -add_rpath "$e" "$f" 2>/dev/null || true
+        fi
+    done
+    id=$(otool -D "$f" | sed -n 2p)
+    case "$id" in
+        /*) shipped_dir "$(dirname "$id")" >/dev/null || install_name_tool -id "@rpath/$(basename "$id")" "$f" ;;
+    esac
+    for dep in $(otool -L "$f" | awk 'NR > 1 { print $1 }'); do
+        [ "$dep" = "$id" ] && continue
+        case "$(shipped_dir "$(dirname "$dep")" 2>/dev/null || echo dropped)" in
+            "$DIST"/* | dropped)
+                install_name_tool -change "$dep" "@rpath/$(basename "$dep")" "$f" ;;
+        esac
+    done
+    codesign -f -s - "$f" 2>/dev/null
+}
+
+# Search paths and dependencies of a file that still name the build machine
+leaks() {
+    local f=$1
+    if [ $DLL = so ]; then
+        patchelf --print-rpath "$f"; patchelf --print-needed "$f"
+    else
+        otool -l "$f" | awk '$1 == "path" || $1 == "name" { print $2 }'
+    fi | grep -F -e "$WORK" -e "$REPO" -e "$GHC_ROOT" || true
+}
+
+msg "rewriting library paths"
+LIBS=()
+while IFS= read -r -d '' f; do LIBS+=("$f"); done \
+    < <(find "$STORE" "$DIST/SAT" -type f -name "*.$DLL*" -print0)
+for f in "${LIBS[@]}"; do
+    chmod u+w "$f"
+    case "$f" in
+        */libHSbsc-*) if [ $DLL = so ]; then strip "$f"; else strip -x "$f"; fi ;;
+    esac
+    if [ $DLL = so ]; then relocate_elf "$f"; else relocate_macho "$f"; fi
+done
+for f in "${LIBS[@]}"; do
+    l=$(leaks "$f")
+    [ -z "$l" ] || die "$f still names the build machine: $l"
+done
+
+# ----------------------------------------------------------------------
+# 7. Licensing: everything redistributed in the distribution
 
 msg "generating LICENSES"
 cp "$REPO"/LICENSES/LICENSE.ghc "$DIST/LICENSES/"
 cp "$REPO"/LICENSES/LICENSE.stp "$REPO"/LICENSES/LICENSE.stp_components \
    "$REPO"/LICENSES/LICENSE.yices "$DIST/LICENSES/"
 # Per-package name/version/license/copyright for every Haskell package in
-# the tarball (boot libraries + store deps + bsc), via the transitive
+# the distribution (boot libraries + store deps + bsc), via the transitive
 # closure walker already used for the main tarball's LICENSE.ghc_pkgs
 PATH="$DIST/hs/ghc/bin:$PATH" \
 GHC_PACKAGE_PATH="$STORE/package.db:$GLOBALDB" \
@@ -275,14 +346,13 @@ The bluehs distribution redistributes the following components:
     Hackage, and the bsc compiler library itself), enumerated with
     their licenses and copyrights in:
       - See LICENSES/LICENSE.ghc_pkgs
-  * The STP SAT solver shared library (SAT/libstp.so*)
+  * The STP SAT solver shared library (SAT/libstp.*)
       - See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
-  * The Yices SMT solver shared library (SAT/libyices.so*)
+  * The Yices SMT solver shared library (SAT/libyices.*)
       - See LICENSES/LICENSE.yices
 
-Not included, required from the host system at runtime: glibc, libgmp,
-zlib, libtcl8.6, the C++ runtime, and, for scripts that use CPP, a C
-compiler.
+Not included, required from the host system at runtime: the C and C++
+runtimes, libgmp, zlib, Tcl, and, for scripts that use CPP, a C compiler.
 EOF
 
 if [ ! -f "$GHC_ROOT/LICENSE" ]; then
@@ -294,20 +364,36 @@ else
 fi
 
 # ----------------------------------------------------------------------
-# 7. Smoke test (isolated env) and tarball
+# 8. Install, then smoke test a copy in another directory with the build
+#    tree out of reach, under an empty environment
+
+msg "installing into $DEST"
+rm -rf "$DEST"
+mv "$DIST" "$DEST"
 
 msg "smoke testing"
-SMOKEBO=$(ls "$REPO"/inst/lib/Libraries/*.bo 2>/dev/null | head -1)
-if [ -n "$SMOKEBO" ]; then
-    env -i PATH=/usr/bin:/bin HOME=/nonexistent \
-        "$DIST/bin/bluehs" dumpbo "$SMOKEBO" > "$WORK/smoke.out"
-    head -1 "$WORK/smoke.out" | grep -q "Internal Symbols" \
-        || { echo "smoke test output unexpected" >&2; exit 1; }
-    msg "smoke test passed ($(basename "$SMOKEBO"))"
-else
-    msg "WARNING: no inst/lib/Libraries/*.bo found - smoke test skipped"
-fi
-
-msg "creating $TARBALL"
-tar -C "$OUT" --transform 's,^dist,bluehs,' -czf "$TARBALL" dist
-msg "done: $TARBALL ($(du -h "$TARBALL" | cut -f1))"
+SMOKE=$(mktemp -d)
+cp -a "$DEST" "$SMOKE/bluehs"
+cat > "$SMOKE/probe.hs" <<'EOF'
+import Control.Monad (unless)
+import qualified STP
+import System.Exit (die)
+import Version (bscVersionStr)
+import qualified Yices
+main :: IO ()
+main = do
+    _ <- Yices.checkVersion
+    STP.checkVersion >>= flip unless (die "STP: version check failed")
+    putStrLn (bscVersionStr True)
+EOF
+mv "$WORK" "$WORK.hidden"
+trap 'mv "$WORK.hidden" "$WORK"; rm -rf "$SMOKE"' EXIT
+run() { env -i PATH=/usr/bin:/bin HOME=/nonexistent "$SMOKE/bluehs/bin/bluehs" "$@"; }
+run dumpbo "$PREFIX/lib/Libraries/Prelude.bo" > "$SMOKE/dumpbo.out"
+head -1 "$SMOKE/dumpbo.out" | grep -q "Internal Symbols" \
+    || die "smoke test: dumpbo output unexpected"
+LIBRARY=$(run "$SMOKE/probe.hs")
+COMPILER=$("$PREFIX/bin/bsc" -v | head -1)
+[ "$LIBRARY" = "$COMPILER" ] \
+    || die "the library and $PREFIX/bin/bsc differ: '$LIBRARY' vs '$COMPILER'"
+msg "done: $DEST ($(du -sh "$DEST" | cut -f1)), $LIBRARY"
