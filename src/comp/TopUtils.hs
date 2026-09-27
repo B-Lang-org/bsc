@@ -6,6 +6,9 @@ module TopUtils where
 import Prelude hiding ((<>))
 #endif
 import Text.Printf(printf)
+import System.Directory(doesDirectoryExist, canonicalizePath)
+import System.Environment(lookupEnv, getExecutablePath, setEnv)
+import System.FilePath(takeDirectory, (</>))
 import System.IO(hFlush, stdout)
 import System.IO.Unsafe(unsafePerformIO)
 import System.CPUTime(getCPUTime)
@@ -44,6 +47,26 @@ dfltBluespecDir, dfltVSim, dfltMACRODEF :: String
 dfltBluespecDir = "/usr/local/lib/" ++ bluespec
 dfltVSim = "iverilog"
 dfltMACRODEF = "-D"
+
+-- | Find the Bluespec runtime directory: @$BLUESPECDIR@ if set, otherwise
+-- the @lib@ directory installed alongside this executable (recognized by
+-- its @Libraries@ subdirectory), otherwise the traditional fixed location.
+--
+-- The result is also written back to the environment, because subprocesses
+-- (the simulator build scripts, generated Bluesim executables, and the Tcl
+-- side of bluetcl) expect @$BLUESPECDIR@ to be set.
+getBluespecDir :: IO String
+getBluespecDir = do
+    mdir <- lookupEnv "BLUESPECDIR"
+    dir <- case mdir of
+             Just d -> return d
+             Nothing -> do
+               exe <- getExecutablePath >>= canonicalizePath
+               let rel = takeDirectory (takeDirectory exe) </> "lib"
+               found <- doesDirectoryExist (rel </> "Libraries")
+               return (if found then rel else dfltBluespecDir)
+    setEnv "BLUESPECDIR" dir
+    return dir
 
 dfltCCompile, dfltCxxCompile :: String
 dfltCCompile = "cc"

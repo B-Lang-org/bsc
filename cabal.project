@@ -1,0 +1,11 @@
+packages: .
+
+-- Parity with the make build (src/comp/Makefile GHCOPTLEVEL = -O2)
+package bsc
+  optimization: 2
+
+-- Lets bare ghci/runghc/ghc resolve the compiled bsc library from any cwd
+-- inside the repo (GHC searches upward for .ghc.environment.*).  Harmless to
+-- the make build: src/comp/Makefile compiles with -hide-all-packages plus
+-- explicit -package flags, which override the environment file.
+write-ghc-environment-files: always
