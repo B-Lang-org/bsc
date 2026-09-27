@@ -1,0 +1,17 @@
+package DerivingViaMultiCon() where
+
+-- The via target must be a single-constructor, single-argument data
+-- wrapper: a multi-constructor target would generate a partial unwrap
+-- case whose fall-through is a silent unspecified value in hardware,
+-- so it is rejected up front.
+
+class MyC a where
+  def :: a
+
+data W a = W a | X a
+
+instance (MyC a) => MyC (W a) where
+  def = X def
+
+data T = T (Int 8)
+  deriving MyC via W

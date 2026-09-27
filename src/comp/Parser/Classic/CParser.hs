@@ -533,9 +533,19 @@ pSummand' = pSummandConIds `into` \ constr_names ->
             blockBrOf pQField                                                >>- (\ fs -> (constr_names, Right fs))
         ||! many atyp                                                        >>- (\ ts -> (constr_names, Left (map (CQType []) ts)))
 
-pDer :: CParser [CTypeclass]
-pDer = l L_deriving ..+ lp ..+ sepBy pTypeclass cm +.. rp
-   ||! succeed []
+pDeriving :: CParser CDeriving
+pDeriving = l L_deriving ..+
+          ( pDerivingStock
+        ||! pDerivingVia)
+
+pDerivingStock :: CParser CDeriving
+pDerivingStock = lp ..+ sepBy pTypeclass cm +.. rp         >>- CStock
+
+pDerivingVia :: CParser CDeriving
+pDerivingVia = pTypeclass +.+ l L_via ..+ pTyConId          >>> CVia
+
+pDer :: CParser [CDeriving]
+pDer = many pDeriving
 
 opt :: CParser a -> CParser (Maybe a)
 opt p = p >>- Just ||! succeed Nothing

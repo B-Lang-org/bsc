@@ -1,0 +1,12 @@
+package DerivingViaHK() where
+
+class Weird a where
+  weird :: Maybe a -> Bool
+
+data I a = I a
+
+instance Weird (I a) where
+  weird = const True
+
+data I' a = I' a
+  deriving Weird via I

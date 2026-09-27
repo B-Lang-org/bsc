@@ -57,7 +57,7 @@ data LexItem =
         | L_interface | L_instance
         | L_let | L_letseq | L_package | L_of
         | L_primitive | L_qualified | L_rules | L_signature | L_struct
-        | L_then | L_module | L_type | L_valueOf | L_stringOf | L_verilog | L_synthesize | L_when | L_where
+        | L_then | L_module | L_type | L_valueOf | L_stringOf | L_verilog | L_via | L_synthesize | L_when | L_where
         | L_coherent | L_incoherent
         -- reserved ops
         | L_dcolon | L_colon | L_eq | L_at | L_lam | L_bar
@@ -96,6 +96,7 @@ prLexItem L_case = "case"
 prLexItem L_class = "class"
 prLexItem L_data = "data"
 prLexItem L_deriving = "deriving"
+prLexItem L_via = "via"
 prLexItem L_do = "do"
 prLexItem L_else = "else"
 prLexItem L_foreign = "foreign"
@@ -369,6 +370,7 @@ lx lf f l c (x:cs) | isAlpha x || x == '_' = spanId [] (c+1) cs
                 "valueOf"        -> lxr L_valueOf
                 "stringOf"        -> lxr L_stringOf
                 "verilog"        -> lxr L_verilog
+                "via"            -> lxr L_via
                 "synthesize"        -> lxr L_synthesize
                 "when"          -> lxr L_when
                 "where"         -> lxr L_where
