@@ -1,0 +1,32 @@
+left 0
+right 0
+left 1
+right 1
+left step 2 2
+left step 2 1
+left 2
+right 2
+right step 2 1
+right step 2 2
+left step 3 2
+left step 3 1
+left 3
+right 3
+right step 3 1
+right step 3 2
+left 4
+right 4
+left 5
+right 5
+left step 6 2
+left step 6 1
+left 6
+right 6
+right step 6 1
+right step 6 2
+left step 7 2
+left step 7 1
+left 7
+right 7
+right step 7 1
+right step 7 2

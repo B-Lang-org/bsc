@@ -1,0 +1,6 @@
+# Check behavior in both Bluesim and Verilog; this is not a performance limit.
+# Counts 0 through 7 each print "left <count>" followed by "right <count>".
+# At counts 2, 3, 6, and 7, bit 1 is set, enabling the step messages too:
+# leftChain prints steps 2 then 1 before its base case, while rightChain
+# prints steps 1 then 2 after its base case. No FAIL message should appear.
+test_c_veri_bsv NoAction

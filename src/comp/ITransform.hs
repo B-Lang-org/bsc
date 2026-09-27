@@ -227,6 +227,12 @@ expandHRef e = return e        -- XXX
 --expandHRef e = internalError ("expandHRef " ++ ppReadable e)
 
 iTrExpr' :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> [IType] -> [IExpr a] -> T (IExpr a) a
+-- The arguments are already transformed in this context with no indices.
+-- Removing noAction does not require another traversal of the surviving action.
+iTrExpr' _ [] (ICon _ (ICPrim _ PrimJoinActions)) _
+    [ICon _ (ICPrim _ PrimNoActions), e] = return e
+iTrExpr' _ [] (ICon _ (ICPrim _ PrimJoinActions)) _
+    [e, ICon _ (ICPrim _ PrimNoActions)] = return e
 iTrExpr' ctx idxs f ts es = do
         errh <- gets errHandle
         let (et, trans) = let ?errh = errh
