@@ -1,0 +1,9 @@
+package ForeignCtxBad(bad) where
+
+-- Only numeric provisos are permitted on foreign functions; a Bits
+-- proviso would need real dictionary content, which a foreign body
+-- cannot provide.
+foreign vbad :: (Bits a n) => a -> Bit n = "Bad",("i","o")
+
+bad :: Bit 4 -> Bit 4
+bad = vbad

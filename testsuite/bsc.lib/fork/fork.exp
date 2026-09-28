@@ -1,2 +1,7 @@
 test_veri_only_bsv ForkTest
 
+# The Fork instances take their width parameters by NAME -- the names
+# are the foreign declaration's type variables, which match Fork.v's
+# parameter names (iw, ow)
+find_regexp sysForkTest.v {Fork *#\(\s*\.iw\([0-9]+\),\s*\.ow\([0-9]+\)\)}
+

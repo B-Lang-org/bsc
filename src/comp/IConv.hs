@@ -84,8 +84,18 @@ iConvVar flags r env i =
         Nothing ->
                 case findVar r i of
                 Just (VarInfo VarPrim (_ :>: sc) _ _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
-                Just (VarInfo (VarForg name mps) (_ :>: sc) _ _) ->
-                        let t = iConvSc flags r sc
+                Just (VarInfo (VarForg name tvns mps) (_ :>: sc) _ _) ->
+                        let -- numeric contexts are checked at each
+                            -- application by the typechecker and their
+                            -- (content-free) dictionaries dropped at the
+                            -- CApply clause elsewhere, so the foreign's
+                            -- type is the base type without dictionary
+                            -- arrows; any other provisos (noinline's
+                            -- WrapField, pre-resolution) convert as-is
+                            Forall ks (ps :=> qt) = sc
+                            t = if all isNumericForeignPred ps
+                                then iConvSc flags r (Forall ks ([] :=> qt))
+                                else iConvSc flags r sc
                             -- inputs are grouped per argument;
                             -- foreign functions have one (unsplit) port per argument,
                             -- so each inner list is a singleton.
@@ -101,7 +111,7 @@ iConvVar flags r env i =
                                 addSizes is ops ([(i, n)]:ins) r
                             addSizes [] ops ins t = (reverse ins, zip ops (bitTupleSizes t))
                             addSizes is ops ins t = internalError ("addSizes mismatch: " ++ ppReadable (is, ops, ins, t))
-                        in  ICon i (ICForeign t name False ops' Nothing)
+                        in  ICon i (ICForeign t name False ops' tvns Nothing)
                 Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _ _) ->
                     let (IsIn cl _) = removePredPositions pp
                     in iConvField flags r (typeclassId $ name cl) i
@@ -118,9 +128,9 @@ iConvTask :: SymTab -> Id -> IType -> IExpr a
 iConvTask r i it =
    case findVar r i of
         -- only care about name - no "port-magic" for $display and friends
-        Just (VarInfo (VarForg name _) _ _ _) ->
+        Just (VarInfo (VarForg name _ _) _ _ _) ->
             -- trace("iConvTask: " ++ ppReadable it) $
-            (ICon i (ICForeign it name False Nothing Nothing))
+            (ICon i (ICForeign it name False Nothing [] Nothing))
         Just x  -> internalError ("iConvTask: foreign function info for " ++
                             (show i) ++ " not expected.\n" ++ ppReadable x )
         Nothing -> internalError ("iConvTask: foreign function info for " ++
@@ -482,6 +492,15 @@ iConvE errh flags r env pvs eee@(CStructT ct fs@((f,_):_)) =
         ks = getKs n fty
         fty = lookupSelType flags ti f r
         st = argType (iInst fty tvs)
+-- Drop the dictionary arguments from applications of foreign functions
+-- declared with (numeric-only) contexts: the provisos are checked at
+-- each application by the typechecker, and the dictionaries carry no
+-- content (the numeric classes have no methods), so they are erased
+-- here, mirroring the dropDicts treatment of primitives below.
+iConvE errh flags r env pvs (CApply ct@(CTApply (CVar i) ts) es)
+    | Just n <- foreignPredCount r i =
+        iAps (iConvE errh flags r env pvs ct) []
+             (map (iConvE errh flags r env pvs) (drop n es))
 -- Get rid of dictionary argument to primConcat & co
 iConvE errh flags r env pvs (CApply (CTApply (CVar i) ts) (_: es))
     | (Just f) <- lookup i dropDicts =
@@ -586,7 +605,7 @@ iConvE errh flags r env pvs e@(CmoduleVerilogT ty name ui clks rst args meths sc
 iConvE errh flags r enc pvs e@(CForeignFuncCT i prim_ty) =
     let name = getIdString i
         ty' = iConvT flags r prim_ty
-    in  ICon i (ICForeign ty' name True Nothing Nothing)
+    in  ICon i (ICForeign ty' name True Nothing [] Nothing)
 
 iConvE errh flags r env pvs (Cattributes pps) =
     ICon (dummyId (getPosition (map fst pps)))
@@ -639,6 +658,24 @@ ruleStrConcat e1 e2 =
 
 str_ :: CExpr
 str_ = CLitT tString (CLiteral noPosition (LString "_"))
+
+-- The number of dictionary arguments a foreign function's applications
+-- carry (the number of provisos on its declaration), or Nothing if it
+-- is not a foreign function or has none.
+foreignPredCount :: SymTab -> Id -> Maybe Int
+foreignPredCount r i =
+    case findVar r i of
+      Just (VarInfo (VarForg _ _ _) (_ :>: Forall _ (ps :=> _)) _ _)
+        | not (null ps), all isNumericForeignPred ps -> Just (length ps)
+      _ -> Nothing
+
+-- numeric provisos on a foreign declaration (checked at applications,
+-- then erased); must agree with the allowlist in MakeSymTab.chkTopDef
+isNumericForeignPred :: PredWithPositions -> Bool
+isNumericForeignPred pp =
+    let (IsIn cl _) = removePredPositions pp
+    in  any (qualEq (typeclassId (name cl)))
+            [idAdd, idMul, idDiv, idLog, idMax, idMin, idNumEq]
 
 dropDicts :: [(Id, IExpr a)]
 dropDicts = [(idPrimConcat, icPrimConcat),
