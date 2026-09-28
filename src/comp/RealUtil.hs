@@ -7,6 +7,8 @@ module RealUtil( log2, log10
                , isPosInfinite, isNegInfinite
                ) where
 
+import Warmup ()
+import Data.Coerce (coerce)
 import GHC.Word
 import GHC.Exts
 import Foreign.C.Types
@@ -17,7 +19,7 @@ foreign import ccall unsafe "math.h log2"
     c_log2 :: CDouble -> CDouble
 
 log2 :: Double -> Double
-log2 x = realToFrac (c_log2 (realToFrac x))
+log2 x = coerce (c_log2 (coerce x))
 
 -- -----
 
@@ -25,7 +27,7 @@ foreign import ccall unsafe "math.h log10"
     c_log10 :: CDouble -> CDouble
 
 log10 :: Double -> Double
-log10 x = realToFrac (c_log10 (realToFrac x))
+log10 x = coerce (c_log10 (coerce x))
 
 -- -----
 
