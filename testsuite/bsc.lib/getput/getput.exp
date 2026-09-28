@@ -41,7 +41,7 @@ test_c_veri_bsv TestFIFOSyncCount0 {} {} $iverilog09_bug
 
 test_c_veri_bsv TestFIFOF2
 
-compile_verilog_fail_error Err1.bsv  T0031 1
+compile_verilog_fail_error Err1.bsv  T0159 1
 
 compile_fail_error Err2.bsv T0031 1
 # the message should reference Connectable, not ToGet or ToPut

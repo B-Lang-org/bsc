@@ -1,0 +1,8 @@
+package HRConfuse where
+
+-- skolem-skolem confusion: returning y where a is required
+struct S2 =
+  g :: a -> b -> a
+
+bad2 :: S2
+bad2 = S2 { g = \ x y -> y }

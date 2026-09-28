@@ -15,7 +15,7 @@ import PFPrint
 
 import Pred
 
-import Subst(Types(..))
+import Subst(Types(..), Subst)
 import TIMonad
 import TCMisc
 import Unify
@@ -26,6 +26,7 @@ import PreIds
 import CSyntax
 import Util(separate, concatMapM, quote, headOrErr, toMaybe, boolCompress)
 import CType(typeclassId, isTNum, getTNum)
+import StdPrel(isPreClass)
 
 --import Debug.Trace
 
@@ -39,16 +40,72 @@ import CType(typeclassId, isTNum, getTNum)
 -- a list of the contexts which failed to reduce, this function
 -- returns the list of error messages which should be reported
 --
+-- Report residual predicates in terms of the user-written predicates
+-- they were reduced from: replace each predicate that has a recorded
+-- reduction ancestry with its root, substituted with the current
+-- substitution (ancestors are carried unsubstituted, so the final
+-- substitution must be applied when they are rendered).
+-- The reported predicate is the root-most non-pre-class entry of the
+-- reduction chain: for a residual of a class-instance reduction that is
+-- the user-written class predicate (restoring the class-specific error
+-- messages), while purely numeric chains keep the residual, which the
+-- numeric machinery has already normalized into a more readable form
+-- than its raw root.
+reportedPwp :: Subst -> PredWithPositions -> PredWithPositions
+reportedPwp s pwp =
+    let entries = pwp : [ PredWithPositions p poss []
+                        | PredAncestor p poss <- getPredAncestors pwp ]
+        nonPre = [ e | e <- entries
+                     , IsIn c _ <- [removePredPositions e]
+                     , not (isPreClass c) ]
+    in  case nonPre of
+          [] -> pwp
+          -- carry the residual's positions along: the root may have
+          -- been created at a positionless site (e.g. a generated
+          -- wrapper signature) while the residual accumulated real
+          -- source positions on its way through the reduction
+          _  -> let root = last nonPre
+                    new_poss = filter (`notElem` getPredPositions root)
+                                      (getPredPositions pwp)
+                in  apSub s (addPredPositions root new_poss)
+
+rootVPreds :: [VPred] -> TI [VPred]
+rootVPreds vps = do
+    s <- getSubst
+    let rootOf (VPred i pwp) = VPred i (reportedPwp s pwp)
+    return (map rootOf vps)
+
+rootPredWPs :: [PredWithPositions] -> TI [PredWithPositions]
+rootPredWPs pwps = do
+    s <- getSubst
+    return (map (reportedPwp s) pwps)
+
+-- Report unresolved residuals in terms of their user-written roots,
+-- keeping only the predicates that are not implied by others in the
+-- list (or by the given context, per the supplied remover).  If
+-- mapping to roots left nothing to report (the roots are all
+-- implied), fall back to reporting the residuals themselves.
+-- NOTE: handleAmbiguousContext deliberately does NOT use this -- the
+-- ambiguity report names the residual whose variable is ambiguous,
+-- not its root, so wrapping its removeImpliedPreds call here would
+-- change behavior.
+rootedForReport :: ([a] -> TI [a]) -> ([a] -> TI [a]) -> [a] -> TI [a]
+rootedForReport root removeImplied xs0 = do
+    xs <- root xs0
+    kept <- removeImplied xs
+    if null kept then removeImplied xs0 else return kept
+
 handleContextReduction :: Maybe Id -> Position -> [VPred] -> TI a
-handleContextReduction mid pos vps =
+handleContextReduction mid pos vps0 =
     do
        -- We used to remove duplicates:
        --   let vps' = nubVPred vps
-       -- Now this is covered under the following filter, which removes
-       -- predicates that are implied by predicates already in the list.
-       -- That way, we only report the predicates which need to be resolved
-       -- (the others would be satisfied given the reported predicates).
-       vps_noimpl <- removeImpliedPreds [] [] vps
+       -- Now this is covered under the removeImpliedPreds filter, which
+       -- removes predicates that are implied by predicates already in the
+       -- list.  That way, we only report the predicates which need to be
+       -- resolved (the others would be satisfied given the reported
+       -- predicates).
+       vps_noimpl <- rootedForReport rootVPreds (removeImpliedPreds [] []) vps0
 
        -- For each proviso, figure out whether it can be reduced, just
        -- not all the way (the inability to reduce a required proviso is
@@ -89,7 +146,7 @@ handleContextReduction mid pos vps =
 -- This helper function takes one predicate at a time
 handleContextReduction' :: Maybe Id -> Position -> (VPred, [VPred]) -> TI EMsg
 handleContextReduction' mid pos
-    p@((VPred vpi (PredWithPositions (IsIn c@(Class { name=(CTypeclass cid) }) ts) _)), _)
+    p@((VPred vpi (PredWithPositions (IsIn c@(Class { name=(CTypeclass cid) }) ts) _ _)), _)
     | cid == idBitwise =
         case ts of
             [t] -> return $ handleCtxRedBitwise pos p t
@@ -175,8 +232,25 @@ handleContextReduction' mid pos
 --  | cid == idRealLiteral =
 --  | cid == idStringLiteral =
 
-handleContextReduction' mid pos p =
-    return (defaultContextReductionErr pos p)
+handleContextReduction' mid pos p@(vp, _) = do
+    -- Under ordered-clause fundep semantics, a predicate whose inputs
+    -- select an instance with conflicting determined positions is
+    -- unsatisfiable as stated; probe for that case so it is reported
+    -- as a conflict with the selected instance rather than as a
+    -- missing instance.
+    m_conflict <- findFunDepConflict vp
+    case m_conflict of
+      Just (pr, h) -> return (fdConflictErr pos vp pr h)
+      Nothing -> return (defaultContextReductionErr pos p)
+
+-- --------------------
+
+fdConflictErr :: Position -> VPred -> Pred -> Pred -> EMsg
+fdConflictErr pos vp pr h =
+    let poss = filterPositions pos $ getVPredPositions vp
+        (pr'@(IsIn c _), h') = niceTypes (pr, h)
+        cls = pfpString (name c)
+    in  (pos, EFunDepConflict cls (pfpString pr') (pfpString h') poss)
 
 -- --------------------
 
@@ -207,7 +281,7 @@ handleCtxRedWrongBitSize pos (vp@(VPred vpi _), reduced_ps) c t sz = do
     let default_err = defaultContextReductionErr pos (vp, reduced_ps)
     szv <- newTVar "handleCtxRedWrongBitSize" KNum vpi
     let p' = IsIn c [t,szv]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     -- Use "satisfy", instead of "reducePred", because the size might
     -- result from arithmetic on the sizes of subtypes, via new predicates
     -- (so we need to continue until all preds are satisfied)
@@ -284,10 +358,10 @@ handleCtxRedBitExtend pos (vp@(VPred vpi _), reduced_ps) c szt1 szt2 t3 = do
     szt1' <- newTVar "handleCtxRedBitExtend1" KNum vpi
     szt2' <- newTVar "handleCtxRedBitExtend2" KNum vpi
     let p' = IsIn c [szt1',szt2',t3]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     x <- reducePred [] Nothing vp'
     case x of
-      (Just ([vp2], b, us, _, _)) | (vpClassIs (CTypeclass idAdd) vp2) ->
+      (Just (Reduction [vp2] b us _ _)) | (vpClassIs (CTypeclass idAdd) vp2) ->
         case (szt1, szt2) of
           (TCon (TyNum sz1 _), TCon (TyNum sz2 _)) ->
                return (badsize_err sz1 sz2)
@@ -354,11 +428,11 @@ handleBracketCtxRed pred_error elem_error pos (vp@(VPred vpi _), _) c arr val = 
     -- create new val variable
     val_var <- newTVar "handleBracketCtxRed" KStar vpi
     let p' = IsIn c [arr, val_var]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     x <- reducePred [] Nothing vp'
     case x of
       -- there is an instance of the bracket class for type "arr"
-      Just (ps, _, us, _, _) -> do
+      Just (Reduction ps _ us _ _) -> do
         -- there may be context with informative fundeps, so propagate them
         _ <- propagateFunDeps ps
         s <- getSubst
@@ -382,11 +456,11 @@ handleCtxRedPrimIndex pos (vp@(VPred vpi _), reduced_ps) c ix sz = do
   -- create new size variable
    sz_var <- newTVar "handleCtxRedPrimIndex" KNum vpi
    let p' = IsIn c [ix, sz_var]
-       vp' = VPred vpi (PredWithPositions p' [])
+       vp' = VPred vpi (PredWithPositions p' [] [])
    x <- reducePred [] Nothing vp'
    case x of
      -- there is an instance of PrimIndex for type "i"
-     Just (_, _, us, _, _) ->
+     Just (Reduction _ _ us _ _) ->
        let real_sz = (apSub us sz_var)
        in return (wrongIndexSizeErr pos (vp, reduced_ps) ix real_sz sz )
      x -> return (notIndexTypeErr pos vp ix)
@@ -408,7 +482,7 @@ wrongIndexSizeErr pos p ix real_sz sz = defaultContextReductionErr pos p
 
 isIsModuleArrow :: VPred -> Bool
 isIsModuleArrow
-    (VPred vpi (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [mt, ct]) _))
+    (VPred vpi (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [mt, ct]) _ _))
       | (cid == idIsModule) && (isArrow mt)
                   = True
 isIsModuleArrow _ = False
@@ -463,14 +537,21 @@ handleCtxRedPrimPort pos (vp, reduced_ps) userty =
 
 handleCtxRedWrapField:: Maybe Id -> Position -> (VPred, [VPred]) -> FString -> Type -> EMsg
 handleCtxRedWrapField mid pos (vp, reduced_ps) name userty =
-    (pos, EBadIfcType (fmap pfpString mid) $
+    (pos', EBadIfcType (fmap pfpString mid) $
      "The interface method `" ++ getFString name ++
      "' uses type(s) that are not in the Bits or SplitPorts typeclasses: " ++
      intercalate ", " (concatMap bitsPredType reduced_ps)
      )
     where
+      -- A rooted report can arrive with no useful position (the
+      -- residual was reduced far from its source); fall back to the
+      -- predicate's carried positions, which point at the method.
+      pos' = case (pos == noPosition,
+                   filterPositions pos (getVPredPositions vp)) of
+               (True, (p : _)) -> p
+               _ -> pos
       bitsPredType :: VPred -> [String]
-      bitsPredType (VPred _ (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [t, _]) _))
+      bitsPredType (VPred _ (PredWithPositions (IsIn (Class { name=(CTypeclass cid) }) [t, _]) _ _))
         | cid == idBits = [pfpString t]
       bitsPredType _ = []
 
@@ -484,21 +565,27 @@ handleCtxRedWrapField mid pos (vp, reduced_ps) name userty =
 
 handleWeakContext :: Position -> Type -> [PredWithPositions] ->
                      [Pred] -> [PredWithPositions] -> TI a
-handleWeakContext pos t qs ds rs = do
+handleWeakContext pos t qs ds rs0 = do
     -- traceM ("handleWeakContext qs: " ++ ppReadable qs)
     -- traceM ("handleWeakContext ds: " ++ ppReadable ds)
     -- traceM ("handleWeakContext rs: " ++ ppReadable rs)
 
     -- Only report the predicates which are necessary, not those
-    -- which could be left off because other predicates imply them.
-    rs_noimpl <- removeImpliedPredWPs qs ds rs
+    -- which could be left off because other predicates imply them
+    -- (e.g. by the declared context).
+    rs_noimpl <- rootedForReport rootPredWPs (removeImpliedPredWPs qs ds) rs0
 
     -- traceM("handleWeakContext rs_noimpl: " ++ ppReadable rs_noimpl)
 
     -- For each proviso, figure out whether it can be reduced, just
     -- not all the way (the inability to reduce a required proviso is
-    -- the real stumbling point)
-    rs_noimpl_reduced <- findReducedPredWPs ds rs_noimpl
+    -- the real stumbling point).  The reduction is self-contained (no
+    -- "ds" givens): the "could also be deduced from" hint must list
+    -- the complete sub-proviso set, not one with members silently
+    -- discharged against internally deferred predicates -- that would
+    -- leave the hint's remaining members referencing variables the
+    -- message never defines.
+    rs_noimpl_reduced <- findReducedPredWPs [] rs_noimpl
 
     xs <- mapM (handleWeakContext' pos t qs) rs_noimpl_reduced
     -- separate out the handled from the non-handled
@@ -516,7 +603,7 @@ handleWeakContext' :: Position -> Type -> [PredWithPositions] ->
                       (PredWithPositions, [Pred]) ->
                       TI (Either EMsg (PredWithPositions, [Pred]))
 handleWeakContext' pos t qs
-    pwp@((PredWithPositions (IsIn (Class {name=(CTypeclass cid)}) ts) _), _)
+    pwp@((PredWithPositions (IsIn (Class {name=(CTypeclass cid)}) ts) _ _), _)
     | cid == idBitExtend = handleWeakCtxBitExtend pos t qs pwp
     | cid == idPrimSelectable = handleWeakCtxPrimSelectable pos t qs pwp
     | cid == idPrimUpdateable = handleWeakCtxPrimUpdateable pos t qs pwp
@@ -579,10 +666,10 @@ handleWeakCtxBitExtend pos t qs pps@(pwp, _) = do
         vp  = VPred vpi pwp
     x <- reducePred [] Nothing vp
     case x of
-      Just ([vp2], b, us, _, _) ->
+      Just (Reduction [vp2] b us _ _) ->
         -- separated out the matching of vp2 for readability
         case vp2 of
-          (VPred _ (PredWithPositions p2@(IsIn (Class {name=(CTypeclass cid)}) ts) poss))
+          (VPred _ (PredWithPositions p2@(IsIn (Class {name=(CTypeclass cid)}) ts) poss _))
             | cid == idAdd -> do
                 -- we don't use the reduced preds that came with pwp,
                 -- because the tyvars in it won't match the ones in vp2
@@ -633,15 +720,17 @@ isSelectionResultErr pos vp@(VPred vpi _) c arr val = do
     -- create new val variable
     val_var <- newTVar "isSelectionResultErr (element)" KStar vpi
     let p' = IsIn c [arr, val_var]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     x <- reducePred [] Nothing vp'
     bound_tyvars <- getBoundTVs
     case x of
       -- there is an instance of PrimSelectable for type "arr"
-      Just (_, _, us, _, _) ->
+      Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -669,15 +758,17 @@ isUpdateArgErr pos vp@(VPred vpi _) c arr val = do
     -- create new val variable
     val_var <- newTVar "isUpdateArgErr (element)" KStar vpi
     let p' = IsIn c [arr, val_var]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     x <- reducePred [] Nothing vp'
     bound_tyvars <- getBoundTVs
     case x of
       -- there is an instance of PrimUpdateable for type "arr"
-      Just (_, _, us, _, _) ->
+      Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -705,15 +796,17 @@ isWriteArgErr pos vp@(VPred vpi _) c arr val = do
     -- create new val variable
     val_var <- newTVar "isWriteArgErr (element)" KStar vpi
     let p' = IsIn c [arr, val_var]
-        vp' = VPred vpi (PredWithPositions p' [])
+        vp' = VPred vpi (PredWithPositions p' [] [])
     x <- reducePred [] Nothing vp'
     bound_tyvars <- getBoundTVs
     case x of
       -- there is an instance of PrimSelectable for type "arr"
-      Just (_, _, us, _, _) ->
+      Just (Reduction _ _ us _ _) ->
         let real_val = (apSub us val_var)
         in  -- compare the return result
-            case (mgu bound_tyvars val real_val) of
+            -- modal probe (message selection only): could the demanded
+            -- and instance-determined types ever agree?
+            case (mguModal bound_tyvars val real_val) of
               Nothing ->
                   let (arr', real_val', val') = niceTypes (arr, real_val, val)
                   in  return $ Just $
@@ -728,14 +821,14 @@ handleWeakCtxPrimParam :: Position -> Type -> [PredWithPositions] ->
                           TI (Either EMsg (PredWithPositions, [Pred]))
 handleWeakCtxPrimParam pos _ _ (pwp, _) =
    case pwp of
-     (PredWithPositions (IsIn (Class { }) [userty, _]) poss0) -> do
+     (PredWithPositions (IsIn (Class { }) [userty, _]) poss0 _) -> do
          let poss = filterPositions pos poss0
              ty_str = pfpString userty
          let vpi = mkId noPosition (mkFString "_handleWeakCtxPrimParam")
              vp  = VPred vpi pwp
          x <- reducePred [] Nothing vp
          case x of
-           Just (vps, _, _, _, _) -> do
+           Just (Reduction vps _ _ _ _) -> do
                let ps = niceTypes (map toPred vps)
                    hasVar = Just $ map pfpString ps
                return $ Left (pos, ECtxErrPrimParam ty_str poss hasVar)
@@ -747,14 +840,14 @@ handleWeakCtxPrimPort :: Position -> Type -> [PredWithPositions] ->
                          TI (Either EMsg (PredWithPositions, [Pred]))
 handleWeakCtxPrimPort pos _ _ (pwp, _) =
    case pwp of
-     (PredWithPositions (IsIn (Class { }) [userty, _]) poss0) -> do
+     (PredWithPositions (IsIn (Class { }) [userty, _]) poss0 _) -> do
          let poss = filterPositions pos poss0
              ty_str = pfpString userty
          let vpi = mkId noPosition (mkFString "_handleWeakCtxPrimPort")
              vp  = VPred vpi pwp
          x <- reducePred [] Nothing vp
          case x of
-           Just (vps, _, _, _, _) -> do
+           Just (Reduction vps _ _ _ _) -> do
                let ps = niceTypes (map toPred vps)
                    hasVar = Just $ map pfpString ps
                return $ Left (pos, ECtxErrPrimPort ty_str poss hasVar)
@@ -845,7 +938,7 @@ ambiguousVarsErr pos pairs =
         (pos, EAmbiguous (map mkVarInfo nice_pairs))
 
 mkAmbVarExplanation :: PredWithPositions -> (String, [Position])
-mkAmbVarExplanation (PredWithPositions p@(IsIn c _) poss) =
+mkAmbVarExplanation (PredWithPositions p@(IsIn c _) poss _) =
     let cid = typeclassId $ name c
         use_str
             | cid == idBitwise =
@@ -949,11 +1042,15 @@ findReducedPreds ds vps = do
   bvs <- getBoundTVs
   let reduceOne vp = do
           let dvs = (tv vp) ++ bvs
-          (reduce_res, _, _) <- reducePredsAggressive (Just dvs) (eds ++ eps) [vp]
+          SolveResult reduce_res _ _ <- reducePredsAggressive (Just dvs) (eds ++ eps) [vp]
           case (reduce_res) of
-            -- shouldn't reduce away entirely
-            [] -> internalError ("findReducedPreds: reduces: " ++
-                                 ppReadable vp)
+            -- The predicate can reduce away entirely here even though
+            -- the main solve failed on it: the report runs in a
+            -- context where the definition's signature variables may
+            -- no longer be bound, and rigid-variable conflicts that
+            -- stopped the solve do not stop the re-reduction.  Report
+            -- the predicate itself rather than crashing.
+            [] -> return (vp, [])
             -- didn't reduce at all
             [vp'] | toPred vp' == toPred vp
                -> return (vp, [])
@@ -973,7 +1070,7 @@ findReducedPredWPs ds pwps = do
 -- --------------------
 
 pwpClassIs :: CTypeclass -> PredWithPositions -> Bool
-pwpClassIs cid1 (PredWithPositions (IsIn c@(Class { name=cid2 }) _) _)
+pwpClassIs cid1 (PredWithPositions (IsIn c@(Class { name=cid2 }) _) _ _)
     | cid1 == cid2 = True
 pwpClassIs _ _ = False
 
@@ -983,7 +1080,7 @@ vpClassIs cid (VPred _ pwp) = pwpClassIs cid pwp
 
 {-
 pwpGetTypes :: PredWithPositions -> [Type]
-pwpGetTypes (PredWithPositions (IsIn _ ts) _) = ts
+pwpGetTypes (PredWithPositions (IsIn _ ts) _ _) = ts
 
 vpGetTypes :: VPred -> [Type]
 vpGetTypes (VPred _ pwp) = pwpGetTypes pwp
@@ -1017,8 +1114,18 @@ earlyContextReduction pos ps =
                         return (p, isReducible)
     rs <- mapM try_pred ps
     let err_preds = map fst (filter (not . snd) rs)
-    when (not (null err_preds)) $
-        handleContextReduction Nothing pos err_preds
+        -- Failing fast is worthwhile because it reports at a precise
+        -- use position.  When neither the site nor the predicate has
+        -- one (generated code), defer to the definition-level report,
+        -- which knows the definition's name and position.  The
+        -- predicate cannot escape unreported: it is irreducible, so
+        -- nothing can discharge it downstream, and the
+        -- definition-level check is the terminal backstop.
+        reportable p = pos /= noPosition ||
+                       any (/= noPosition) (getVPredPositions p)
+        err_now = filter reportable err_preds
+    when (not (null err_now)) $
+        handleContextReduction Nothing pos err_now
 
 -- ========================================================================
 

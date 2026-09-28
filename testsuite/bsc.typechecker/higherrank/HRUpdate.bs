@@ -1,0 +1,15 @@
+package HRUpdate where
+
+-- struct update must re-check the new field value against the
+-- field's polymorphic scheme
+struct R =
+  rep :: (a -> a) -> a -> a
+
+base :: R
+base = R { rep = \ fn x -> fn x }
+
+upd :: R
+upd = base { rep = \ fn x -> fn (fn x) }
+
+useBoth :: (Int 8, Bool)
+useBoth = (upd.rep (\ i -> i + 1) 0, upd.rep not False)

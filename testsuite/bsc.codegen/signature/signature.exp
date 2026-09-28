@@ -1,27 +1,29 @@
 # Tests for which module signatures are synthesizable
 # (IFC must be convertible to wires, port args must be bitifiable, etc)
 
+# Some tests expect two T0043s: the definition-level report and the
+# unresolved Bits residual rooted back to the interface method.
 # Since T0043 can be called with different messages, these should really
 # check more closely than just the tag
-compile_verilog_fail_error IntegerMethodArg.bsv T0043
+compile_verilog_fail_error IntegerMethodArg.bsv T0043 2
 compile_verilog_fail_error PolymorphicMethodArg.bsv T0043
 compile_verilog_fail_error ProvisoIfc.bsv T0043
 compile_verilog_fail_error ProvisoMethod.bsv T0043
 compile_verilog_fail_error NonBitsModuleArg.bsv T0043
 compile_verilog_fail_error NonIfc.bsv T0043
 compile_verilog_fail_error NonModule.bsv T0043 1 sysNonModule
-compile_verilog_fail_error NestedIfcIntegerArg.bs T0043
+compile_verilog_fail_error NestedIfcIntegerArg.bs T0043 2
 
 # Test that types which are not simple constructors (but have arguments)
 # are also handled
 compile_verilog_fail_error NonBitsCtorWithArg_ModuleArg.bsv T0043
-compile_verilog_fail_error NonBitsCtorWithArg_MethodArg.bsv T0043
+compile_verilog_fail_error NonBitsCtorWithArg_MethodArg.bsv T0043 2
 compile_verilog_fail_error NonBitsCtorWithNumArg_ModuleArg.bsv T0043
-compile_verilog_fail_error NonBitsCtorWithNumArg_MethodArg.bsv T0043
+compile_verilog_fail_error NonBitsCtorWithNumArg_MethodArg.bsv T0043 2
 # These report the whole type, not just the part which isn't in Bits
 # (but that's better than nothing)
 compile_verilog_fail_error CtorWithNonBitsArg_ModuleArg.bsv T0043
-compile_verilog_fail_error CtorWithNonBitsArg_MethodArg.bsv T0043
+compile_verilog_fail_error CtorWithNonBitsArg_MethodArg.bsv T0043 2
 
 # Bug 1307
 # Methods with Bits provisos

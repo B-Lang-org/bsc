@@ -1,0 +1,20 @@
+checking package dependencies
+compiling BVC.bs
+Error: "BVC.bs", line 4, column 6: (T0159)
+  The context cannot be satisfied:
+    Prelude.Generic Prelude.Bool Prelude.Bool
+  Its arguments select the instance:
+    Prelude.Generic Prelude.Bool (Prelude.Meta (Prelude.MetaData "Bool" "Prelude" () 2) (Prelude.Either (Prelude.Meta (Prelude.MetaConsAnon "False" 0 0) ()) (Prelude.Meta (Prelude.MetaConsAnon "True" 1 0) ())))
+  (instances of class `Prelude.Generic' are selected by the arguments at the
+  input positions of the class's functional dependencies), but the types the
+  instance determines at the dependent positions differ from the types the
+  context requires.
+Error: "BVC.bs", line 4, column 11: (T0159)
+  The context cannot be satisfied:
+    Prelude.Generic Prelude.Bool Prelude.Bool
+  Its arguments select the instance:
+    Prelude.Generic Prelude.Bool (Prelude.Meta (Prelude.MetaData "Bool" "Prelude" () 2) (Prelude.Either (Prelude.Meta (Prelude.MetaConsAnon "False" 0 0) ()) (Prelude.Meta (Prelude.MetaConsAnon "True" 1 0) ())))
+  (instances of class `Prelude.Generic' are selected by the arguments at the
+  input positions of the class's functional dependencies), but the types the
+  instance determines at the dependent positions differ from the types the
+  context requires.

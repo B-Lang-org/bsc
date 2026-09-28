@@ -22,3 +22,29 @@ find_n_error [make_bsc_output_name BoundVarSubstitution.bsv] T0029 0
 
 # --------------------
 
+# --------------------
+# Goldens from the bound-variable audit: a definition's rigid
+# (signature-quantified) variables are never substituted; fundep
+# improvements that meet one defer (satisfiable elsewhere) and
+# genuine structural clashes in determined positions are final.
+
+# `to' selects Bool's derived Generic instance, whose determined
+# representation cannot be proven equal to the rigid `r'
+compile_fail_error BVB.bs T0031
+compare_file BVB.bs.bsc-out
+
+# structural clash in the determined position: final conflict
+compile_fail_error BVC.bs T0159 2
+compare_file BVC.bs.bsc-out
+
+# rigid numeric result: reported as a provable equality hint
+compile_fail_error BVD.bs T0030
+compare_file BVD.bs.bsc-out
+
+# expression unifier refuses rigid-vs-concrete and rigid-vs-rigid
+compile_fail_error BoundToCon.bs T0020
+compile_fail_error BoundToBound.bs T0020
+
+# control: the goal's determined position IS the bound var (var-var,
+# protected by varUnify) -- compiles
+compile_pass Control1.bs
