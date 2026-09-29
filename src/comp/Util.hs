@@ -516,7 +516,19 @@ map_unionsWithM fn (m:ms) = foldM (map_unionWithM fn) m ms
 
 map_unionWithM :: (Ord k, Monad m) =>
                   (a -> a -> m a) -> M.Map k a -> M.Map k a -> m (M.Map k a)
-map_unionWithM fn m1 m2 = map_insertManyWithM fn (M.toList m2) m1
+-- An empty or singleton left map is common, so it is merged into the right
+-- map. On a collision the right map's key is kept and fn runs once, new
+-- value first.
+map_unionWithM fn m1 m2
+    | M.null m2 = return m1
+    | M.null m1 = return m2
+    | M.size m1 == 1 =
+        let (k1, b) = M.findMin m1
+        in  case M.lookup k1 m2 of
+              Nothing -> return (M.insert k1 b m2)
+              Just a  -> do c <- fn a b
+                            return (M.adjust (const c) k1 m2)
+    | otherwise = map_insertManyWithM fn (M.toList m2) m1
 
 map_insertWithM :: (Ord k, Monad m) =>
                    (a -> a -> m a) -> k -> a -> M.Map k a -> m (M.Map k a)
