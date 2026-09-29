@@ -30,6 +30,7 @@ Logical execution order: get
 
 ========================================
 Verilog file created: mkValSub.v
+Elaborated module file created: mkValSub.ba
 code generation for mkAVSub starts
 === schedule (SplitTupleMethodTest_sat-stp mkAVSub):
 parallel: [esposito: [get -> []]]
@@ -60,6 +61,7 @@ Logical execution order: get
 
 =======================================
 Verilog file created: mkAVSub.v
+Elaborated module file created: mkAVSub.ba
 code generation for sysSplitTupleMethodTest starts
 === schedule (SplitTupleMethodTest_sat-stp sysSplitTupleMethodTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_cc -> []]]
@@ -104,4 +106,5 @@ Logical execution order: aa, ab, cc
 
 =======================================================
 Verilog file created: sysSplitTupleMethodTest.v
+Elaborated module file created: sysSplitTupleMethodTest.ba
 All packages are up to date.

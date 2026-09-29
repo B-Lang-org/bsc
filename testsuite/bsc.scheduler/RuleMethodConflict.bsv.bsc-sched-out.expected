@@ -49,4 +49,5 @@ Logical execution order: get, put
 Warning: "RuleMethodConflict.bsv", line 44, column 8: (G0021)
   According to the generated schedule, rule `put' can never fire.
 Verilog file created: sysRuleMethodConflict.v
+Elaborated module file created: sysRuleMethodConflict.ba
 All packages are up to date.

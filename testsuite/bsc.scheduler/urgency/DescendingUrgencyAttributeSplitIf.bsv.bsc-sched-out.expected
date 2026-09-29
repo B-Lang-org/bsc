@@ -57,4 +57,5 @@ Logical execution order: test_rule_2_T_T,
 Warning: "DescendingUrgencyAttributeSplitIf.bsv", line 14, column 8: (G0021)
   According to the generated schedule, rule `test_rule_1' can never fire.
 Verilog file created: sysDescendingUrgencyAttributeSplitIf.v
+Elaborated module file created: sysDescendingUrgencyAttributeSplitIf.ba
 All packages are up to date.

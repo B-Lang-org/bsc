@@ -60,4 +60,5 @@ Logical execution order: a, b, c
 
 =====================================
 Verilog file created: mkEx1.v
+Elaborated module file created: mkEx1.ba
 All packages are up to date.

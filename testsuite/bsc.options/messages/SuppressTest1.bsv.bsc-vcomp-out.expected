@@ -11,6 +11,7 @@ Warning: "SuppressTest1.bsv", line 15, column 8: (G0117)
     rg1.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
 Verilog file created: sysWarnings.v
+Elaborated module file created: sysWarnings.ba
 All packages are up to date.
 Warning: Unknown position: (S0080)
   2 warnings were suppressed.

@@ -42,4 +42,5 @@ Warning: "RuleAssertionsEspositoOK.bs", line 17, column 15: (G0021)
 Warning: "RuleAssertionsEspositoOK.bs", line 20, column 15: (G0021)
   According to the generated schedule, rule `flip' can never fire.
 Verilog file created: sysRuleAssertionsEspositoOK.v
+Elaborated module file created: sysRuleAssertionsEspositoOK.ba
 All packages are up to date.

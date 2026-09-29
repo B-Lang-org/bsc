@@ -82,4 +82,5 @@ clock domain = Just (0), resets = [0]
 -----
 
 Verilog file created: sysLiteralNum_ENotation.v
+Elaborated module file created: sysLiteralNum_ENotation.ba
 All packages are up to date.

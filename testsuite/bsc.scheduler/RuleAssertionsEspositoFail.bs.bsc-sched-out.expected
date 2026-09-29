@@ -35,3 +35,4 @@ Blocking rules: setF, setT
 Logical execution order: setT, setF, flip
 
 =============================================================
+Elaborated error module file created: sysRuleAssertionsEspositoFail.ba

@@ -3,4 +3,5 @@ compiling Test2.bsv
 code generation for mkTest2 starts
 Schedule dump file created: mkTest2.sched
 Verilog file created: mkTest2.v
+Elaborated module file created: mkTest2.ba
 All packages are up to date.

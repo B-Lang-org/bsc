@@ -100,4 +100,5 @@ Logical execution order: r1, r2, r3, r4, done, r1y, r2y, r3y, r4y, r5y
 
 ===========================================
 Verilog file created: sysMutExBig.v
+Elaborated module file created: sysMutExBig.ba
 All packages are up to date.

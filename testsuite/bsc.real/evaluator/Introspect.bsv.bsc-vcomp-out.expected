@@ -48,4 +48,5 @@ Compilation message: "Introspect.bsv", line 21, column 39:    6
 Compilation message: "Introspect.bsv", line 21, column 39:    7
 Compilation message: "Introspect.bsv", line 57, column 27: -y exponent: 12
 Verilog file created: sysIntrospect.v
+Elaborated module file created: sysIntrospect.ba
 All packages are up to date.

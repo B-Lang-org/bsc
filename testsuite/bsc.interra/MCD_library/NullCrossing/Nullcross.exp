@@ -7,7 +7,26 @@ test_veri_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_ph
 compile_verilog_fail Negative.bsv {mkDesign}
 
 # Bluesim does not support dynamic arguments yet
+# (the Verilog builds above left up-to-date generic .ba files, which the
+# -sim compiles would reuse, skipping elaboration and these errors;
+# remove them so the compile-time errors are still exercised.  mkDesign.ba
+# must go too: the up-to-date check knows only pragma-marked modules, so a
+# fresh mkDesign.ba alone keeps the package "up to date")
+erase mkDesign.ba
+erase mkTestbench_fast_to_slow.ba
+erase mkTestbench_slow_to_fast.ba
+erase mkTestbench_same_with_phase_diff.ba
 compile_object_fail_error Testbench_fast_to_slow.bsv G0058 1 mkTestbench_fast_to_slow
 compile_object_fail_error Testbench_slow_to_fast.bsv G0058 1 mkTestbench_slow_to_fast
 compile_object_fail_error Testbench_same_with_phase_diff.bsv G0058 1  mkTestbench_same_with_phase_diff
+
+# With an up-to-date generic .ba (here from a -verilog compile), a -sim
+# compile reuses it and succeeds; the Bluesim-unsupported errors then
+# fire at the next step, when the .ba is used for linking (the link walks
+# the whole design, so it reports the design's imported-BVI first, G0084)
+if { $ctest == 1 } {
+compile_verilog_pass Testbench_fast_to_slow.bsv mkTestbench_fast_to_slow
+compile_object_pass Testbench_fast_to_slow.bsv mkTestbench_fast_to_slow
+link_objects_fail_error {} mkTestbench_fast_to_slow G0084 1
+}
 

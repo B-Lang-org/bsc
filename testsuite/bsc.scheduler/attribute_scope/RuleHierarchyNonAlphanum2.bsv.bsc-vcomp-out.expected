@@ -4,4 +4,5 @@ code generation for sysRuleHierarchyNonAlphanum2 starts
 Warning: "RuleHierarchyNonAlphanum2.bsv", line 14, column 9: (G0021)
   According to the generated schedule, rule `r2' can never fire.
 Verilog file created: sysRuleHierarchyNonAlphanum2.v
+Elaborated module file created: sysRuleHierarchyNonAlphanum2.ba
 All packages are up to date.

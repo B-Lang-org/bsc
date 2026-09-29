@@ -8,4 +8,5 @@ Warning: "RuleNameWithSpace.bs", line 5, column 0: (G0010)
 Warning: "RuleNameWithSpace.bs", line 13, column 8: (G0021)
   According to the generated schedule, rule `r2_with_space' can never fire.
 Verilog file created: sysRuleNameWithSpace.v
+Elaborated module file created: sysRuleNameWithSpace.ba
 All packages are up to date.

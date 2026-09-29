@@ -3,6 +3,9 @@
 
 module AState(
               aState,
+              -- used by VIOProps to model the muxes that aState creates
+              MethBlob, MethPortBlob,
+              ratToBlobs, genMethodMult,
               ) where
 
 import qualified Data.Map as M
@@ -11,6 +14,7 @@ import qualified Data.Set as S
 import Data.List(transpose, sortBy, partition,
             unzip4, groupBy, intersect,
             genericLength)
+import Data.Ord(comparing)
 
 import Util
 import FStringCompat
@@ -18,7 +22,7 @@ import IntLit
 
 import Error(internalError, ErrMsg(..), ErrorHandle)
 import ErrorMonad(ErrorMonad(..), convErrorMonadToIO)
-import Flags(Flags, useDPI)
+import Flags(Flags, useDPI, stableVerilog)
 import Position(noPosition)
 
 import PreStrings( fsUnderUnder,
@@ -397,7 +401,8 @@ aState' flags pps schedule_info apkg = do
         fblocks = mapFst domain_osc_lookup fdomain_map
 
         -- New improved resource allocation
-        blobs = ratToBlobs (asi_method_uses_map schedule_info)
+        blobs = ratToBlobs (stableVerilog flags)
+                           (asi_method_uses_map schedule_info)
                            omMultMap
                            (asi_resource_alloc_table schedule_info)
         (ers, ars) = blobs
@@ -850,8 +855,8 @@ mkSignalInfoMethod aifaces = merged
 -- The first list ("es") is expression uses.
 -- The second list ("as") is action uses.
 
-ratToBlobs :: MethodUsesMap -> M.Map (AId, AId) Integer -> RAT -> ([MethBlob], [MethBlob])
-ratToBlobs mMap omMultMap rat =
+ratToBlobs :: Bool -> MethodUsesMap -> M.Map (AId, AId) Integer -> RAT -> ([MethBlob], [MethBlob])
+ratToBlobs stable mMap omMultMap rat =
   let
       -- True if there are 2 or more uses of the method,
       -- which means we need to do some sort of muxing
@@ -860,7 +865,7 @@ ratToBlobs mMap omMultMap rat =
       nonTrivial _ = False
 
       -- Create the MethBlobs and partition into expr and action
-      (es, as) = partition fst $ map (mkBlob mMap omMultMap) $ ratToNestedLists rat
+      (es, as) = partition fst $ map (mkBlob stable mMap omMultMap) $ ratToNestedLists rat
   in
       -- filter out the expr uses which don't need muxing
       (filter nonTrivial (map snd es), map snd as)
@@ -869,10 +874,18 @@ ratToBlobs mMap omMultMap rat =
 -- Given the method use map and an element from the RAT, produce a
 -- pair (Bool,MethBlob) where the Bool is True if the method use is an
 -- expression and False if it is an action
-mkBlob :: MethodUsesMap -> M.Map (AId, AId) Integer -> (MethodId, [(UniqueUse, Integer)]) ->
+mkBlob :: Bool -> MethodUsesMap -> M.Map (AId, AId) Integer -> (MethodId, [(UniqueUse, Integer)]) ->
           (Bool, MethBlob)
-mkBlob mMap omMultMap (method@(MethodId obj met), usedPorts) =
+mkBlob stable mMap omMultMap (method@(MethodId obj met), usedPorts0) =
   let
+      -- Under -stable-verilog, canonicalize the per-port use order by
+      -- the use's TEXT (the same trick sortRatList applies one level
+      -- up): the relative order here decides mux arm order, the
+      -- MUX_/SEL_/VAL_ numbering assigned below, EN or-lists, and the
+      -- derived sensitivity lists, and is otherwise Map-iteration
+      -- (interning) order.
+      usedPorts | stable    = sortBy (comparing (ppString . fst)) usedPorts0
+                | otherwise = usedPorts0
       -- We will use information for this method from both the
       -- MethodUsesMap and the RAT, so prepare an error in case
       -- the two are inconsistent:

@@ -9,4 +9,5 @@ Warning: "Boundary_Method_MissingReset.bsv", line 8, column 8: (G0046)
   During elaboration of `sysBoundary_Method_MissingReset' at
   "Boundary_Method_MissingReset.bsv", line 8, column 8.
 Verilog file created: sysBoundary_Method_MissingReset.v
+Elaborated module file created: sysBoundary_Method_MissingReset.ba
 All packages are up to date.

@@ -1,6 +1,7 @@
 module Synthesize(aSynthesize) where
 
-import Data.List(transpose, sort, genericLength, nub)
+import Data.List(transpose, sort, sortBy, genericLength, nub)
+import Data.Ord(comparing)
 import Control.Monad(when, zipWithM, zipWithM_)
 import Control.Monad.State(State, runState, gets, get, put)
 import Debug.Trace
@@ -10,7 +11,7 @@ import Util(integerToBits, makePairs, log2, itos)
 import PPrint
 import IntLit
 import ErrorUtil
-import Flags(Flags, synthesize)
+import Flags(Flags, synthesize, stableVerilog)
 import Position(noPosition)
 import FStringCompat(mkFString)
 import Id
@@ -35,11 +36,12 @@ synthPref = "_dw"
 
 aSynthesize :: Flags -> ASPackage -> ASPackage
 aSynthesize flags p@(ASPackage { aspkg_values = ds }) =
+  let stable = stableVerilog flags in
     if not (synthesize flags) then
         p
     else
         -- XXX use some fast removal of unused defs & renamings.
-        aImprove (p { aspkg_values = synDefs ds })
+        aImprove stable (p { aspkg_values = synDefs stable ds })
 
 -- ---------------
 
@@ -48,8 +50,8 @@ aSynthesize flags p@(ASPackage { aspkg_values = ds }) =
 --   inline variables and constants
 --   propagate constants
 -- XXX - assuming foreign function calls need not be touched because state variable instantiations are not touched
-aImprove :: ASPackage -> ASPackage
-aImprove p@(ASPackage { aspkg_values = ds }) =
+aImprove :: Bool -> ASPackage -> ASPackage
+aImprove stable p@(ASPackage { aspkg_values = ds }) =
     let inline :: M.Map AId AExpr
         inline = M.fromList [ (i, e) | ADef i _ e _ <- ds, isSimple e ]
         repl :: AExpr -> AExpr
@@ -64,7 +66,7 @@ aImprove p@(ASPackage { aspkg_values = ds }) =
         repl e = e
         -- aOptBoolExpr is overkill...
         ds' = [ ADef i t (aOptBoolExpr (repl e)) p | ADef i t e p <- ds ]
-        p'' = aSRemoveUnused False (p { aspkg_values = ds' })
+        p'' = aSRemoveUnused stable False (p { aspkg_values = ds' })
         ds'' = aspkg_values p''
     in  if length ds == length ds'' && ds == ds'' then        -- length check is a fast check for inequality
             (if doTrace then trace "aImprove done" else id)
@@ -72,11 +74,13 @@ aImprove p@(ASPackage { aspkg_values = ds }) =
         else
             (if doTrace then trace ("aImprove iterates, " ++ show (length ds, length ds'')) else id) $
 --          trace (ppReadable p'') $
-            aImprove p''
+            aImprove stable p''
 
 --------
 
 data SState = SState {
+                -- canonical (text-keyed) operand ordering; -stable-verilog
+                sstable :: Bool,
                 -- unique name generator
                 uniqueId :: Integer,
                 -- definitions processed so far
@@ -134,14 +138,15 @@ newName = do
 
 --------
 
-synDefs :: [ADef] -> [ADef]
-synDefs ds =
-    let initState = SState { uniqueId = 1,
+synDefs :: Bool -> [ADef] -> [ADef]
+synDefs stable ds =
+    let initState = SState { sstable = stable,
+                             uniqueId = 1,
                              defs = [],
                              cse_map = M.empty,
                              simple_map = M.empty
                            }
-    in  fst $ runState (synDefsS (tsortADefs ds)) initState
+    in  fst $ runState (synDefsS (tsortADefs stable ds)) initState
 
 synDefsS :: [ADef] -> S [ADef]
 synDefsS ds = do
@@ -235,7 +240,8 @@ normExpr (APrim aid t op es) = do
     let getSimpleS e@(ASDef _ i) = getSimple i e
         getSimpleS e = return e
     es' <- mapM getSimpleS es
-    return (sortExpr (aOptPrim aid t op es'))
+    stable <- gets sstable
+    return (sortExpr stable (aOptPrim aid t op es'))
 normExpr e@(ASDef _ i) = getSimple i e
 normExpr e = return e
 
@@ -246,10 +252,14 @@ aOptPrim aid t PrimXor  es  = aXors aid es
 aOptPrim aid t PrimBNot [e] = aNot aid e
 aOptPrim aid t p es = APrim aid t p es
 
-sortExpr :: AExpr -> AExpr
-sortExpr (APrim aid t op es) | isGate op = APrim aid t op (sort es)
+-- Under -stable-verilog the commutative-gate operand sort keys on the
+-- operand's text instead of Ord AExpr (intern order).
+sortExpr :: Bool -> AExpr -> AExpr
+sortExpr stable (APrim aid t op es) | isGate op = APrim aid t op (sortOp es)
   where isGate op = op `elem` [PrimBAnd, PrimBOr, PrimXor]
-sortExpr e = e
+        sortOp | stable    = sortBy (comparing ppString)
+               | otherwise = sort
+sortExpr _ e = e
 
 wireId :: Id -> Int -> Id
 wireId i n = mkIdPre (mkFString (synthPref ++ itos n ++ "_")) i

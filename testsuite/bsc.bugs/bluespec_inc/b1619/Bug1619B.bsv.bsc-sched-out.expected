@@ -60,4 +60,5 @@ Logical execution order: high_priority, normal, normal_1, normal_2
 
 ===========================================
 Verilog file created: sysBug1619B.v
+Elaborated module file created: sysBug1619B.ba
 All packages are up to date.

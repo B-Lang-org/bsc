@@ -11,9 +11,9 @@ import PPrint
 import IntLit
 import SCC(tsort)
 import Util(separate)
-import Data.List(nub, genericIndex, genericDrop)
+import Data.List(nub, sortOn, genericIndex, genericDrop)
 import Data.Maybe(mapMaybe, fromMaybe)
-import Id(Id)
+import Id(Id, getIdBaseString, getIdQualString)
 import Control.Monad(liftM)
 import PreIds(idInout_)
 
@@ -704,29 +704,49 @@ aIdFnToAActionFn fn (ATaskAction aid fun isC cookie args temp ty isA) =
 
 -- ---------------
 
--- topological sorting of ADefs
-tsortADefs :: [ADef] -> [ADef]
-tsortADefs ds =
---    trace ("tsortADefs enter " ++ show (length ds)) $
-    -- ds_ids are the AIds from the input ADefs
-    -- s is a OrdSet of AId from the input ADefs
+-- topological sorting of ADefs.
+-- Under -stable-verilog (the Bool), ties among ready nodes break on the
+-- identifier's TEXT instead of Ord AId -- which bottoms out in the
+-- SpeedyString intern unique, i.e. the order strings happened to be
+-- interned in THIS process -- so the linearization (and every
+-- first-come-wins choice downstream of it) is a pure function of the
+-- input defs.  Any topological order is semantically legal; the flag
+-- only selects a reproducible member of that set.
+tsortADefs :: Bool -> [ADef] -> [ADef]
+tsortADefs stable ds =
     let
         ds_ids = (map adef_objid ds)
         s = S.fromList ds_ids
-    -- g is a list of (AId, [AIds used by that ADef which are in 's'
-    --   drop all other AIds (mostly AVars)
---        g = [(i, filter (`S.member` s) (aVars e)) | ADef i _ e <- ds ]
-        g = zip ds_ids (map ((filter (`S.member` s)) . aVars . adef_expr) ds)
-    -- tsort returns Left if there is a loop, Right if sorted
-    in  case tsort g of
-        Left is -> internalError ("tsortADefs: cyclic " ++ ppReadable is ++ ppReadable ds)
-        Right is -> --trace ("tsortADefs exit " ++ show (length is)) $
+        deps = map ((filter (`S.member` s)) . aVars . adef_expr) ds
     -- m is OrdMap of (AId of ADef, ADef) from input ADefs
-            let m = M.fromList (zip ds_ids ds)
+        m = M.fromList (zip ds_ids ds)
     -- get i is OrdMap lookup giving ADef in m from AId
-                get i = case M.lookup i m of Just d -> d; Nothing -> internalError "tsortADefs: get"
-    -- return ADefs in tsort-ed order removing AIds.
-            in  map get is
+        get i = case M.lookup i m of Just d -> d; Nothing -> internalError "tsortADefs: get"
+    -- decorate ids so Ord compares in text order; the text order is
+    -- precomputed as a strict Int rank so that graph keys stay small
+    -- (string keys on every edge overflow the stack on large designs)
+        rank :: M.Map AId Int
+        rank = M.fromList
+                 (zip (sortOn (\ i -> (getIdBaseString i, getIdQualString i))
+                              ds_ids)
+                      [0..])
+        key i = case M.lookup i rank of
+                  Just r -> r `seq` (r, i)
+                  Nothing -> internalError "tsortADefs: rank"
+        sorted_ids
+          | stable =
+              let g = [ (key i, map key js) | (i, js) <- zip ds_ids deps ]
+              in  case tsort g of
+                    Left is -> internalError ("tsortADefs: cyclic " ++
+                                   ppReadable (map (map snd) is) ++ ppReadable ds)
+                    Right is -> map snd is
+          | otherwise =
+              let g = zip ds_ids deps
+              in  case tsort g of
+                    Left is -> internalError ("tsortADefs: cyclic " ++
+                                   ppReadable is ++ ppReadable ds)
+                    Right is -> is
+    in  map get sorted_ids
 
 -- ---------------
 

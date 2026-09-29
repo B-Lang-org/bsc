@@ -1,1 +1,7 @@
+Verilog file reused: vd/mkSub3.v
+Verilog file reused: vd/mkMid2.v
+Verilog file reused: vd/mkSub2.v
+Verilog file reused: vd/mkSub1.v
+Verilog file reused: vd/mkMid1.v
+Verilog file reused: vd/mkTop.v
 Verilog binary file created: mkTop.vexe

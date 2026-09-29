@@ -18,4 +18,5 @@ Warning: "WUrgencyChoice2.bs", line 23, column 0: (G0117)
 Warning: "WUrgencyChoice2.bs", line 39, column 17: (G0021)
   According to the generated schedule, rule `Two' can never fire.
 Verilog file created: mkWUrgencyChoice2.v
+Elaborated module file created: mkWUrgencyChoice2.ba
 All packages are up to date.

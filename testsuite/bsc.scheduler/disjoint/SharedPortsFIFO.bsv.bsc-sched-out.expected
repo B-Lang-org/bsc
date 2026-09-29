@@ -38,4 +38,5 @@ Logical execution order: do_enq, do_otherwise
 
 ==================================================
 Verilog file created: sysSharedPortsFIFO.v
+Elaborated module file created: sysSharedPortsFIFO.ba
 All packages are up to date.

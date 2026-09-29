@@ -69,4 +69,5 @@ Logical execution order: theRuleOne, theRuleTwo, theRuleThree, theRuleFour
 
 ======================================================
 Verilog file created: sysMinimalRuleWarnings.v
+Elaborated module file created: sysMinimalRuleWarnings.ba
 All packages are up to date.

@@ -1,0 +1,173 @@
+#
+# Tests for the -elab-only flag: "bsc -verilog -elab-only" stops after
+# elaboration, writing the .ba files but no .v; the Verilog is generated
+# later, from the .ba, by -c or by the linking stage.  For this design
+# that output is byte-identical to what the compile itself would have
+# written (the testsuite passes -no-show-timestamps -no-show-version, so
+# generated headers are deterministic).  The port properties are derived
+# from the APackage and recorded in the .bo even under -elab-only, so a
+# parent compiled against an -elab-only child deduces exactly what the
+# direct compile deduces -- the historical caveat about a parent's
+# port-property annotations no longer applies, and the identity holds
+# under -semantic-ports-comment too (checked below).
+#
+
+# Check that none of the listed files exist
+proc files_dont_exist { filenames } {
+    global subdir
+
+    incr_stat "files_dont_exist"
+
+    set foundfile ""
+    foreach filename $filenames {
+        set fullname [join [concat $subdir $filename] "/" ]
+        if {[file exists $fullname]} {
+            set foundfile $filename
+            break
+        }
+    }
+
+    if {$foundfile == ""} {
+        pass "found none of the files: $filenames"
+    } else {
+        fail "file `$foundfile' should not exist"
+    }
+}
+
+# run bsc capturing output; expect success
+proc elab_run { testname output options } {
+    set opts "-no-show-timestamps -no-show-version $options"
+    if [ gen_basic_output $opts $output ] {
+        pass "$testname"
+    } else {
+        fail "$testname should succeed"
+    }
+}
+
+# -------------------------
+# An -elab-only compile writes the .ba files and no .v
+
+elab_run "compile with -elab-only" elab1.bsc-out \
+    {-verilog -elab-only -u ElabOnly.bsv}
+files_exist { mkESub.ba sysETb.ba }
+files_dont_exist { mkESub.v sysETb.v }
+find_regexp elab1.bsc-out {Elaborated module file created: mkESub\.ba}
+find_regexp elab1.bsc-out {Elaborated module file created: sysETb\.ba}
+find_regexp_fail elab1.bsc-out {Verilog file created}
+
+# -------------------------
+# The .ba from an -elab-only compile carries everything code generation
+# needs: -c produces each module's .v, byte-identical to what a full
+# -verilog compile writes
+
+elab_run "-c after -elab-only" cgen.bsc-out {-verilog -c mkESub -c sysETb}
+files_exist { mkESub.v sysETb.v }
+copy mkESub.v mkESub-from-c.v
+copy sysETb.v sysETb-from-c.v
+
+# recompile in full (erase first, so a stale output cannot pass)
+erase mkESub.v
+erase sysETb.v
+compile_verilog_pass ElabOnly.bsv sysETb
+compare_file mkESub.v mkESub-from-c.v
+compare_file sysETb.v sysETb-from-c.v
+
+# -------------------------
+# A design compiled with -elab-only links directly: the link generates
+# every module's .v from the .ba, and the result simulates
+
+erase mkESub.v
+erase sysETb.v
+elab_run "link after -elab-only" vlink.bsc-out \
+    {-verilog -e sysETb -o sysETb.vexe}
+find_regexp vlink.bsc-out {Verilog file created: mkESub\.v}
+find_regexp vlink.bsc-out {Verilog file created: sysETb\.v}
+if { $vtest == 1 } {
+    sim_verilog sysETb
+    compare_file sysETb.out sysETb.out.expected
+}
+
+# -------------------------
+# -u considers an -elab-only compile up to date without the .v files
+# (the .ba files are checked instead)
+
+erase mkESub.v
+erase sysETb.v
+elab_run "-u recheck with -elab-only" elabu.bsc-out \
+    {-verilog -elab-only -u ElabOnly.bsv}
+find_regexp elabu.bsc-out {All packages are up to date}
+find_regexp_fail elabu.bsc-out {Elaborated module file created}
+
+# ... while a full -verilog -u compile still regenerates the missing .v
+
+elab_run "-u recheck without -elab-only" elabu2.bsc-out \
+    {-verilog -u ElabOnly.bsv}
+find_regexp elabu2.bsc-out {Verilog file created: mkESub\.v}
+find_regexp elabu2.bsc-out {Verilog file created: sysETb\.v}
+
+# -------------------------
+# Under -v, no backend codegen phase runs with -elab-only: the
+# elaboration phases appear (through scheduling and writeABin), but
+# none of genModuleVerilog's (foreignMap/astate/.../writeVerilog)
+
+elab_run "verbose compile with -elab-only" elabv.bsc-out \
+    {-verilog -elab-only -v ElabOnly.bsv}
+find_regexp elabv.bsc-out {starting schedule}
+find_regexp elabv.bsc-out {starting writeABin}
+find_regexp_fail elabv.bsc-out {starting foreignMap}
+find_regexp_fail elabv.bsc-out {starting astate}
+find_regexp_fail elabv.bsc-out {starting IOproperties}
+find_regexp_fail elabv.bsc-out {starting verilog}
+find_regexp_fail elabv.bsc-out {starting writeVerilog}
+
+# -------------------------
+# -elab-only is backend-agnostic when compiling source: with -sim (or
+# with no backend at all) stopping at the .ba is already the behavior,
+# so the flag is accepted as a no-op and build systems can pass it
+# unconditionally
+
+erase mkESub.ba
+erase sysETb.ba
+elab_run "compile with -sim -elab-only" elabsim.bsc-out \
+    {-sim -elab-only ElabOnly.bsv}
+files_exist { mkESub.ba sysETb.ba }
+
+elab_run "compile with -elab-only and no backend" elabnobe.bsc-out \
+    {-elab-only ElabOnly.bsv}
+
+# -------------------------
+# Flag checks: -elab-only applies only when compiling source, and needs
+# the .ba output
+
+# not when linking
+compile_no_source_fail_error "elab_only_link" \
+    {-no-show-timestamps -no-show-version -verilog -elab-only -e sysETb} S0100
+
+# not with -c (it suppresses exactly what -c generates)
+compile_no_source_fail_error "elab_only_codegen" \
+    {-no-show-timestamps -no-show-version -verilog -elab-only -c mkESub} S0100
+
+# not with -no-elab (nothing would be generated at all)
+compile_fail_error ElabOnly.bsv S0101 1 {-verilog -elab-only -no-elab}
+
+# -------------------------
+# The staged flow is byte-identical under -semantic-ports-comment too:
+# the Ports comment's analysis (getIOPropsA) is recomputed from the .ba
+# itself when -c generates the .v, and the child properties a parent
+# deduces from ride the .bo in both flows.  (Flag effectiveness is
+# pinned separately in bsc.verilog/portprops; here we pin only
+# staged == direct.)
+
+erase mkESub.v
+erase sysETb.v
+elab_run "-c with -semantic-ports-comment" cgensem.bsc-out \
+    {-verilog -semantic-ports-comment -c mkESub -c sysETb}
+files_exist { mkESub.v sysETb.v }
+copy mkESub.v mkESub-from-c-sem.v
+copy sysETb.v sysETb-from-c-sem.v
+
+erase mkESub.v
+erase sysETb.v
+compile_verilog_pass ElabOnly.bsv sysETb {-semantic-ports-comment}
+compare_file mkESub.v mkESub-from-c-sem.v
+compare_file sysETb.v sysETb-from-c-sem.v

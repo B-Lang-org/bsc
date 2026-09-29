@@ -283,4 +283,5 @@ Warning: "TooManyBlockersEsposito.bs", line 25, column 19: (G0021)
 Warning: "TooManyBlockersEsposito.bs", line 25, column 19: (G0021)
   According to the generated schedule, rule `Victim_15' can never fire.
 Verilog file created: sysTooManyBlockersEsposito.v
+Elaborated module file created: sysTooManyBlockersEsposito.ba
 All packages are up to date.
