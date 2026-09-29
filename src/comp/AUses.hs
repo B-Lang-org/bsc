@@ -301,11 +301,20 @@ mergeActionUses uss =
   let
       mergeUsesFn = (++)
 
+      -- Merge neighbours pairwise: the lists and surviving keys are those of a
+      -- left fold, with O(n log n) copying.
+      mergePairwise :: (Ord k) => (v -> v -> v) -> [M.Map k v] -> M.Map k v
+      mergePairwise _ [] = M.empty
+      mergePairwise _ [m] = m
+      mergePairwise f ms = mergePairwise f (pairUp ms)
+        where pairUp (x:y:rest) = M.unionWith f x y : pairUp rest
+              pairUp rest = rest
+
       mergeMethodUses :: [MethodActionUses] -> MethodActionUses
-      mergeMethodUses ms = M.unionsWith (M.unionWith mergeUsesFn) ms
+      mergeMethodUses ms = mergePairwise (M.unionWith mergeUsesFn) ms
 
       mergeFFuncUses :: [FFuncActionUses] -> FFuncActionUses
-      mergeFFuncUses fs = M.unionsWith mergeUsesFn fs
+      mergeFFuncUses fs = mergePairwise mergeUsesFn fs
 
       (muss, fuss) = unzip uss
   in
