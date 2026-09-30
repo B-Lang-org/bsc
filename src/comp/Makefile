@@ -69,7 +69,14 @@ HTCL_INC_FLAGS += $(addprefix -D,$(TCL_DEFS))
 # GHC
 
 GHC ?= ghc
-GHCJOBS ?= 1
+# Default the compile parallelism from the machine. Measured on a
+# 228-module build (16-core/32-thread EPYC, GHC 9.14.1): wall time is
+# 253.7s at -j1, 82.9s at -j4, 67.7s at -j12, and flat (within ~1%)
+# from -j12 through -j32 -- the module graph's average ready-set width
+# (~5-6 compiles) bounds useful parallelism well below the core count,
+# and SMT threads add nothing. 16 captures the plateau with margin;
+# each job also wants ~1 GB of headroom under -M (see GHCRTSFLAGS).
+GHCJOBS ?= $(shell n=`nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1`; if [ "$$n" -gt 16 ]; then echo 16; else echo "$$n"; fi)
 
 GHCVERSION=$(shell $(GHC) --version | head -1 | grep -Eo "[0-9]+\.[0-9]+\.[0-9]" )
 $(info Building with GHC $(GHCVERSION))
@@ -174,7 +181,12 @@ endif
 # single-job baseline (4G, the previous fixed value) plus 1G for each
 # additional job.
 GHCMAXHEAP ?= $(shell expr 3 + $(GHCJOBS))G
-GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A128m -RTS
+# -A256m sits on the measured allocation-area plateau for parallel
+# builds (repeated-measures sweep, idle machine: -A64m costs 5-8%,
+# -A128m 1-3%, and -A256m/-A512m/-A1g are within noise of each other
+# at the default -j). Total nursery is -A x jobs; at the default cap
+# of 16 jobs that is 4 GB, well under -M.
+GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A256m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
