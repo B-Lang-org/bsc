@@ -8,6 +8,7 @@ os.chdir(f"{file_dir}/../../src/comp")
 # sources
 dirs = [
     ".",
+    "./app",
     "./Libs",
     "./GHC",
     "./GHC/posix",
