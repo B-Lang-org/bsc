@@ -219,7 +219,15 @@ data CDefn
         | CIinstance Id CQType
         -- CItype is imported abstractly
         | CItype IdK [Id] [Position] -- positions of use that caused export
-        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] [Position] -- positions of use that caused export
+        -- The [Id] before the positions is the class tycon's sort member
+        -- list (field names ++ superclass ids) exactly as the defining
+        -- package's symtab computed it (MakeSymTab.getTI on Cclass), so
+        -- importers reconstruct an identical TIstruct SClass payload for
+        -- the class tycon even though the fields themselves are hidden.
+        -- Without it, importers could only rebuild the sort from the
+        -- superclass preds, leaving a payload divergent from the
+        -- defining compile's (papered over by SymTab.pickBetter).
+        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] [Id] [Position] -- positions of use that caused export
         | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 
@@ -237,7 +245,7 @@ instance NFData CDefn where
     rnf (CPragma pr) = rnf pr
     rnf (CIinstance i qt) = rnf2 i qt
     rnf (CItype i as poss) = rnf3 i as poss
-    rnf (CIclass incoh ps ik is fd ats poss) = rnf7 incoh ps ik is fd ats poss
+    rnf (CIclass incoh ps ik is fd ats ms poss) = rnf8 incoh ps ik is fd ats ms poss
     rnf (CIValueSign i ty) = rnf2 i ty
 
 -- Since IdPKind is only expected in some disjuncts of CDefn, we could
@@ -904,7 +912,7 @@ getName (Cstruct _ _ i _ _ _) = Right $ iKName i
 getName (Cclass _ _ i _ _ _ _) = Right $ iKName i
 getName (Cinstance qt _) = Left $ getPosition qt
 getName (CItype i _ _) = Right $ iKName i
-getName (CIclass _ _ i _ _ _ _) = Right $ iKName i
+getName (CIclass _ _ i _ _ _ _ _) = Right $ iKName i
 getName (CIinstance _ qt) = Left $ getPosition qt
 getName (CIValueSign i _) = Right i
 
@@ -928,7 +936,7 @@ isTDef (Cdata {}) = True
 isTDef (Cstruct _ _ _ _ _ _) = True
 isTDef (Cclass _ _ _ _ _ _ _) = True
 isTDef (CItype _ _ _) = True
-isTDef (CIclass _ _ _ _ _ _ _) = True
+isTDef (CIclass _ _ _ _ _ _ _ _) = True
 isTDef (CprimType _) = True
 isTDef _ = False
 
@@ -1181,7 +1189,7 @@ instance PPrint CDefn where
         t"instance" <+> ppConId d i <+> pPrint d 0 qt
     pPrint d p (CItype i as positions) =
         sep (t"type" <+> ppConIdK d i : map (nest 2 . ppVarId d) as)
-    pPrint d p (CIclass incoh ps ik is fd ats positions) =
+    pPrint d p (CIclass incoh ps ik is fd ats _ positions) =
         t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (nest 2 . ppVarId d) is)) <> ppFDs d fd
       where t_cls = case incoh of
                      Just False -> t"class coherent"

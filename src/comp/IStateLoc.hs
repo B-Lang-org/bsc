@@ -20,7 +20,6 @@ module IStateLoc (
 
 import IType
 import Id
-import qualified Data.Generics as Generic
 import Eval
 import Data.Char(isAlphaNum)
 
@@ -71,7 +70,7 @@ data IStateLocPathComponent = IStateLocPathComponent {
   -- Name generation
   isl_prefix                 :: NameGenerate, -- currently computed hierarchical prefix
   isl_loop_suffix         :: NameGenerate  -- loop indexes to add once a "real" name is found.
-  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
+  } deriving (Eq, Show)
 
 
 -- ---------------------------------------
@@ -124,7 +123,7 @@ mkISLPC inst_id ifc_id ifc_type = islpc
 data NameGenerate = NameEmpty             -- No name so far
                     | NameIndex [Integer] -- loop indexes
                     | Name Id             -- a real name
-                    deriving (Eq, Show, Generic.Data, Generic.Typeable)
+                    deriving (Eq, Show)
 
 --
 instance NFData NameGenerate where
