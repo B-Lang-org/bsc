@@ -2017,6 +2017,20 @@ the timestamp.  Removing the compiler version can help for files which
 have not otherwise changed between versions.  The \te{-no-show-version}
 flag directs BSC to not include the compiler version.
 
+Two flags are recognized as temporary migration aids for changes to
+typeclass instance resolution; they do not appear in the compiler's
+standard help output and may be removed in a future release.
+\index{-legacy-defer-instances@\te{-legacy-defer-instances} (compiler flag)}
+\index{-legacy-inst-index@\te{-legacy-inst-index} (compiler flag)}
+The \te{-legacy-defer-instances} flag restores the older overloading
+resolution behavior, in which an instance whose dependent (determined)
+type parameters conflicted with the use was skipped in favor of a less
+specific instance, allowing resolution to be driven by the demanded
+result type.  Code that relies on this behavior should instead declare
+the affected typeclasses \te{incoherent} (see the language reference
+guides).  The \te{-legacy-inst-index} flag restores the compiler's
+older internal ordering and indexing of instance declarations.
+
 % -------------------------
 
 \subsection{Run-time system}

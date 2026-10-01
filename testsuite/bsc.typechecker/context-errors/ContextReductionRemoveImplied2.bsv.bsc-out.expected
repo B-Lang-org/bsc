@@ -1,6 +1,6 @@
 checking package dependencies
 compiling ContextReductionRemoveImplied2.bsv
-Error: "ContextReductionRemoveImplied2.bsv", line 3, column 8: (T0032)
+Error: "ContextReductionRemoveImplied2.bsv", line 4, column 29: (T0032)
   This expression requires the following proviso which could not be resolved:
     Bits#(Vector::Vector#(8, Integer), a__)
   The proviso was implied by expressions at the following positions:
