@@ -13,6 +13,7 @@ module TIMonad(
         EPred(..), Infer2, CheckT, TaskCheckT,
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
+        getNumProven, getNumRefuted, addNumDecided,
         errorAtId, findCons, findTyCon, findFields, findCls,
         bitCls,
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
@@ -91,7 +92,12 @@ data TStateRecover = TStateRecover {
   -- stack of bound tyvars (list of lists for stuff bound at each level)
   tsBoundTyVarStack :: [[TyVar]],
   tsExplPreds :: [[EPred]],
-  tsSatStack :: TSSuperSatStack
+  tsSatStack :: TSSuperSatStack,
+  -- numeric predicates already decided by the proviso SAT solver in
+  -- this definition, so repeated queries are answered from here
+  -- rather than re-posed
+  tsNumProven :: S.Set Pred,
+  tsNumRefuted :: S.Set Pred
 }
 
 type TSSatElement = EPred
@@ -101,7 +107,7 @@ mkTSSatElement :: (Maybe [TyVar]) -> [EPred] -> VPred -> TSSatElement
 -- variable to the pred.  We still will need to solve the pred "p".
 -- It is useful when there is recursion, where the solved "p" will
 -- refer right back to this predicate.
-mkTSSatElement _ _ (VPred i (PredWithPositions p _)) = EPred (CVar i) p
+mkTSSatElement _ _ (VPred i (PredWithPositions p _ _)) = EPred (CVar i) p
 
 type TSSatStack = SizedStack TSSatElement
 type TSSuperSatStack = SizedStack TSSatStack
@@ -163,7 +169,9 @@ initRecoverState = TStateRecover {
     tsCurSubst = nullSubst,
     tsBoundTyVarStack = [],
     tsExplPreds = [],
-    tsSatStack = mkSizedStack [mkSizedStack []]
+    tsSatStack = mkSizedStack [mkSizedStack []],
+    tsNumProven = S.empty,
+    tsNumRefuted = S.empty
   }
 
 data TIResult a = TIResult {
@@ -348,6 +356,17 @@ popExplPreds :: TI ()
 popExplPreds = modify dropPreds
   where dropPreds s = s { tsExplPreds = tail (tsExplPreds s) }
 
+getNumProven :: TI (S.Set Pred)
+getNumProven = gets tsNumProven
+
+getNumRefuted :: TI (S.Set Pred)
+getNumRefuted = gets tsNumRefuted
+
+addNumDecided :: [Pred] -> [Pred] -> TI ()
+addNumDecided proven refuted = modify (\ s ->
+    s { tsNumProven = foldr S.insert (tsNumProven s) proven,
+        tsNumRefuted = foldr S.insert (tsNumRefuted s) refuted })
+
 mkEPred :: Pred -> TI EPred
 mkEPred p = do i <- newDict
                return $ EPred (CVar i) p
@@ -447,8 +466,8 @@ instance HasPosition VPred where
 
 
 expandSynVPred :: VPred -> VPred
-expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss)) = VPred i pwp'
-  where pwp' = PredWithPositions p' poss
+expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss anc)) = VPred i pwp'
+  where pwp' = PredWithPositions p' poss anc
         p'   = IsIn c ts'
         ts'  = map expandSyn ts
 
