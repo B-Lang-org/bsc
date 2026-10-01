@@ -7,11 +7,8 @@
 # - prove each primitive creates BRAMs
 #   - test standard sizes , odd sizes and for byte enabled BRAMs test every size that is valid
 
-# Test for various data widths (for Bluesim)
-test_veri_only_bsv BRAMWidthTest
-# Bluesim fails to link (Bug 1731)
-compile_object_pass BRAMWidthTest.bsv
-link_objects_pass_bug {} sysBRAMWidthTest 1731
+# Test for various data widths
+test_c_veri_bsv BRAMWidthTest
 
 if { $ctest == 1 } {
 compile_object_fail_error BRAMBE1Test.bsv S0015
