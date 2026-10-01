@@ -4,10 +4,12 @@ module GenWrapUtils where
 import FStringCompat
 import Util(rTake, rDrop)
 import ErrorUtil
+import Position
 import Id
 import Pragma
 import PreIds
 import CSyntax
+import CSyntaxUtil(posLiteral, numLiteralAt)
 import CType
 import Undefined (UndefKind(..))
 
@@ -90,5 +92,17 @@ getDefArgs dcls t =
 
 mkTypeProxyExpr :: CType -> CExpr
 mkTypeProxyExpr ty = CHasType (CAny (getPosition ty) UNotUsed) $ CQType [] ty
+
+-- A proxy for the WrapField field-name type argument, evaluating to a
+-- raw undefined stamped with the interface field's decl-side position.
+-- The Prelude's port-name checks report their errors at getEvalPosition
+-- of this proxy, i.e. at the user's interface field.  A plain don't-care
+-- (mkTypeProxyExpr) would not do: class-dispatched undefined
+-- construction rebuilds the nullary StrArg constructor and the position
+-- is lost.
+mkStrArgProxyExpr :: Position -> CType -> CExpr
+mkStrArgProxyExpr pos ty =
+    let e = cVApply idRawUndef [posLiteral pos, numLiteralAt pos (0 :: Integer)]
+    in  CHasType e (CQType [] ty)
 
 
