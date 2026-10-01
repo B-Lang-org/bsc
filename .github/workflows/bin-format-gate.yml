@@ -1,0 +1,26 @@
+name: Bin format tag gate
+
+# Changes to the .bo/.ba serialization code must bump the format tag
+# strings that the readers use to detect incompatible files.  See
+# .github/scripts/check_bin_format_tags.sh for the rule and the
+# override trailer for byte-neutral changes.
+
+on:
+  pull_request:
+    paths:
+      - 'src/comp/BinData.hs'
+      - 'src/comp/GenBin.hs'
+      - 'src/comp/GenABin.hs'
+
+jobs:
+  check-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check format tags against changed files
+        run: |
+          .github/scripts/check_bin_format_tags.sh \
+              "${{ github.event.pull_request.base.sha }}" \
+              "${{ github.event.pull_request.head.sha }}"
