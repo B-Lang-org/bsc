@@ -149,7 +149,7 @@ genSign errh exportAll symt
                           [ qualId currentPkg (ca_name at)
                           | Cclass  _ _ _ _ _ ats _ <- ss, at <- ats ] ++
                           [ ca_name at
-                          | CIclass _ _ _ _ _ ats _ <- ss, at <- ats ])
+                          | CIclass _ _ _ _ _ ats _ _ <- ss, at <- ats ])
 
         -- ssFVs: pairing of each def in ss with
         --        the type constructors referenced in it
@@ -160,7 +160,7 @@ genSign errh exportAll symt
 
         -- isHiddenDef: whether the constructors of the type def are visible
         isHiddenDef (Cdata { cd_visible =  vis }) = not vis
-        isHiddenDef (CIclass _ _ _ _ _ _ _) = True
+        isHiddenDef (CIclass _ _ _ _ _ _ _ _) = True
         isHiddenDef d = False
 
         -- useLoci: map from used variable to definitions where it's used
@@ -208,7 +208,7 @@ genSign errh exportAll symt
         -- given a used type constructor, find the type that it belongs to
         -- and return it in signature-file form (CItype or CIclass)
         tdef i = case findType symt i of
-                 Just (TypeInfo _ k vs (TIstruct SClass _) _) ->
+                 Just (TypeInfo _ k vs (TIstruct SClass ms) _) ->
                      case (findSClass symt (CTypeclass i)) of
                        Nothing -> internalError ("GenSign.genSign: " ++
                                                  "couldn't find class " ++
@@ -218,7 +218,7 @@ genSign errh exportAll symt
                            let rawAts = M.findWithDefault [] i classDeclaredAts
                                ats = map (\(CAssocDepFun name params rhs) ->
                                            CAssocDepFun (qualTId symt name) params rhs) rawAts
-                           in [classToIClass i k cl ats (findPoss i)]
+                           in [classToIClass i k cl ats ms (findPoss i)]
                  -- ATF type constructors are embedded in the enclosing class's
                  -- CAssocDepFun list and must not be re-exported as a standalone CItype.
                  Just (TypeInfo _ _ _ (TIatf {}) _) -> []
@@ -394,11 +394,17 @@ genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
       -- Matches GHC: exporting a class without (..) does not export its ATFs,
       -- but ATFs can be exported independently by naming them in the export list.
       indepExportedATFs = filter (\at -> look (ca_name at) /= Nothing) qats
+      -- The class tycon's sort member list, exactly as this package's
+      -- own symtab computed it (MakeSymTab.getTI on Cclass): field names
+      -- then superclass ids, in source form.  Threaded through CIclass
+      -- so importers build an identical TIstruct SClass payload for the
+      -- class tycon (the fields themselves stay hidden).
+      sortMembers = map cf_name fs ++ [ i' | CPred (CTypeclass i') _ <- ps ]
   in
     case look qi of
     Nothing -> []
     Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats (qualFields currentPkg s fs),[])]
-    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds indepExportedATFs [getPosition ik], [])]
+    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds indepExportedATFs sortMembers [getPosition ik], [])]
 genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
     -- trace (ppReadable (leftCon t, map leftCon (tyConArgs t))) $
     let tcs = leftTyCons (t : tyConArgs t) in
@@ -692,9 +698,10 @@ expandPkgExports symt impsigs exps =
 
 -- ---------------
 
-classToIClass :: Id -> Kind -> Class -> [CAssocDepFun] -> [Position] -> CDefn
+classToIClass :: Id -> Kind -> Class -> [CAssocDepFun] -> [Id] -> [Position]
+              -> CDefn
 classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
-                           allowIncoherent = incoh}) ats poss =
+                           allowIncoherent = incoh}) ats ms poss =
     let getTVarId (TyVar i _ _) = i
         tvis = map getTVarId tvs
 
@@ -716,7 +723,7 @@ classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
             in  foldr foldFn ([],[]) bis
         fds = map bsToFd bss2
     in
-        CIclass incoh ps' (IdKind i k) tvis fds ats poss
+        CIclass incoh ps' (IdKind i k) tvis fds ats ms poss
 
 -- ---------------
 -- Package usage tracking for unused import warnings
@@ -754,7 +761,7 @@ getPackagesUsedByExports currentPkg (CSignature _ _ _ defns) =
     getPackageFromDefn (Cdata { cd_name = IdKind i _ }) = getIdPackage i
     getPackageFromDefn (Cstruct _ _ (IdKind i _) _ _ _) = getIdPackage i
     getPackageFromDefn (Cclass _ _ (IdKind i _) _ _ _ _) = getIdPackage i
-    getPackageFromDefn (CIclass _ _ (IdKind i _) _ _ _ _) = getIdPackage i
+    getPackageFromDefn (CIclass _ _ (IdKind i _) _ _ _ _ _) = getIdPackage i
     getPackageFromDefn (CIValueSign i _) = getIdPackage i
     getPackageFromDefn (Cforeign i _ _ _ _) = getIdPackage i
     getPackageFromDefn (Cprimitive i _) = getIdPackage i
