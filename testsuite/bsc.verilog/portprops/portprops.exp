@@ -119,6 +119,20 @@ compare_file MethodValue_ConcatRegAndConst.bsv.bsc-vcomp-out
 compile_verilog_pass InoutProps_ArgToIfc.bsv {} {-dIOproperties}
 compare_file InoutProps_ArgToIfc.bsv.bsc-vcomp-out
 
+# an argument inout fed through to an interface inout across a module
+# boundary: the leaf's argument pin is live, and the parent (whose
+# interface inout comes from the leaf's interface inout) is live too
+compile_verilog_pass InoutProps_ArgToIfcHier.bsv {} {-dIOproperties}
+compare_file InoutProps_ArgToIfcHier.bsv.bsc-vcomp-out
+
+# two independent argument inouts, each with its own interface inout
+compile_verilog_pass InoutProps_TwoArgToIfc.bsv {} {-dIOproperties}
+compare_file InoutProps_TwoArgToIfc.bsv.bsc-vcomp-out
+
+# an argument inout exposed at an inout inside a subinterface
+compile_verilog_pass InoutProps_ArgToSubIfc.bsv {} {-dIOproperties}
+compare_file InoutProps_ArgToSubIfc.bsv.bsc-vcomp-out
+
 compile_verilog_pass InoutProps_BVIArg.bsv {} {-dIOproperties}
 compare_file InoutProps_BVIArg.bsv.bsc-vcomp-out
 

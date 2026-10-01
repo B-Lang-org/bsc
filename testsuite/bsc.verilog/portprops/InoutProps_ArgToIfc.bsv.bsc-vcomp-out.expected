@@ -5,7 +5,7 @@ code generation for sysInoutProps_ArgToIfc starts
 Name                         I/O  size props
 CLK                            I     1 unused
 RST_N                          I     1 unused
-io_arg                        IO    32 unused
+io_arg                        IO    32 inout
 io_ifc                        IO    32 inout
 
 
