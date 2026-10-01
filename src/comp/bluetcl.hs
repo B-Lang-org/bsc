@@ -29,7 +29,6 @@ import System.Environment(getEnv)
 import System.Mem(performGC)
 import System.Posix.Signals
 import Text.Regex
-import Data.Generics (listify)
 import qualified Data.Map as M
 
 -- Bluespec imports
@@ -4204,12 +4203,27 @@ tclDepend ["recomp",fname]= do
 
 tclDepend xs = internalError $ "tclDepend: grammar mismatch: " ++ (show xs)
 
+-- VModInfo reaches an IPackage only through ICVerilog: the synthesis
+-- boundary re-abstracts every synthesized module as a Verilog wrapper
+-- (the same representation as a hand-written import "BVI"), and the
+-- richer elaboration products (ICStateVar, ICClock, ICReset, ...)
+-- flow to the .ba and never re-enter package vocabulary.
 find_vmodinfo :: (IPackage Id) -> [VModInfo]
-find_vmodinfo = listify
-                (let
-                    tagVMI :: VModInfo -> Bool
-                    tagVMI _ = True
-                 in tagVMI)
+find_vmodinfo ipkg = concatMap defVMIs (ipkg_defs ipkg)
+  where
+    defVMIs :: IDef Id -> [VModInfo]
+    defVMIs (IDef _ _ dbody _) = exprVMIs dbody
+
+    exprVMIs :: IExpr Id -> [VModInfo]
+    exprVMIs (ILam _ _ body) = exprVMIs body
+    exprVMIs (IAps fun _ args) = concatMap exprVMIs (fun:args)
+    exprVMIs (IVar _) = []
+    exprVMIs (ILAM _ _ body) = exprVMIs body
+    exprVMIs (ICon _ (ICVerilog { vInfo = vmi })) = [vmi]
+    exprVMIs (ICon _ (ICDef { iConDef = body })) = exprVMIs body
+    exprVMIs (ICon _ (ICUndet { imVal = Just body })) = exprVMIs body
+    exprVMIs (ICon _ _) = []
+    exprVMIs (IRefT {}) = []
 
 package_vsignals :: TclP -> [(Id,String)]
 package_vsignals tclp =
