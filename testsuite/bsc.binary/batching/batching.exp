@@ -1,0 +1,36 @@
+# A package's .bo must not depend on what else the process compiled first.
+# Each probe is compiled on its own and then inside a `bsc -u` batch behind
+# a scrambler package that interns the relevant names in the opposite
+# order; the two dumps of the probe's .bo must be identical, hash included.
+#
+# A probe is X.bsv (or .bs), XRoot.bsv and XScramble.bsv, found by the
+# root's name.  The comparison needs dumpbo, so it runs under internal
+# checks only and reports unsupported otherwise.
+
+proc batching_pair { probe root scramble } {
+    set bo "[file rootname $probe].bo"
+    set oneshot "[file rootname $probe].oneshot.dumpbo-out"
+    erase $bo
+    erase "[file rootname $scramble].bo"
+    erase "[file rootname $root].bo"
+    compile_pass $probe {} 1
+    if { [do_internal_checks] } {
+        dumpbo $bo
+        move [make_dumpbo_output_name $bo] $oneshot
+    }
+    erase $bo
+    compile_pass $root
+    if { [do_internal_checks] } {
+        dumpbo $bo
+        compare_file [make_dumpbo_output_name $bo] $oneshot
+    } else {
+        unsupported "`$bo' one-shot and batched dumps compared (internal checks off)"
+    }
+}
+
+set batching_dir [file dirname [info script]]
+foreach root [lsort [glob -nocomplain -tails -directory $batching_dir *Root.bsv *Root.bs]] {
+    set ext [file extension $root]
+    set name [string range [file rootname $root] 0 end-4]
+    batching_pair $name$ext $root $name\Scramble$ext
+}
