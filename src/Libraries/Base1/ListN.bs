@@ -71,10 +71,16 @@ unL (L xs) = xs
 --X instance Bits #( ListN#(vsize, a_type), tsize)
 --X    provisos (Bits#(a_type, sizea), Mul#(vsize, sizea, tsize));
 --X \end{libverbatim}
+-- The 0-bit element cases are handled separately, because flatN and grabN
+-- iterate by bit position, which cannot express zero-width elements
 instance (Bits a sa, Mul n sa nsa) => Bits (ListN n a) nsa
   where
-    pack (L bs) = flatN 0 (List.map pack bs)
-    unpack bs = L (List.map unpack (grabN 0 (valueOf n * valueOf sa) bs))
+    pack (L bs) = if valueOf sa == 0
+                  then 0
+                  else flatN 0 (List.map pack bs)
+    unpack bs = L (if valueOf sa == 0
+                   then List.replicate (valueOf n) (unpack 0)
+                   else List.map unpack (grabN 0 (valueOf n * valueOf sa) bs))
 
 --X
 --X ListNs can be compared for equality if the elements can.

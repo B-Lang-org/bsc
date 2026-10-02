@@ -1,0 +1,8 @@
+
+# GitHub issue #1106: unpack of a Vector with zero-width elements
+# reported an out-of-range bit extraction during elaboration.
+# ListN had the same defect in pack, and its unpack constructed
+# a list with the wrong number of elements.
+
+test_c_veri ZeroBitVector
+test_c_veri ZeroBitListN

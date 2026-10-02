@@ -1,0 +1,22 @@
+package ZeroBitVector where
+
+-- GitHub issue #1106: unpack of a Vector with zero-width elements
+-- reported an out-of-range bit extraction during elaboration
+
+import Vector
+
+{-# verilog sysZeroBitVector #-}
+sysZeroBitVector :: Module Empty
+sysZeroBitVector = module
+  rules
+    when True ==> do
+      let v :: Vector 4 (Bit 0)
+          v = unpack 0
+      $display "%0d" (pack (v == replicate 0))
+      $display "%0d" (pack v)
+      $display "%0d" (pack (select v 2))
+      let u :: Vector 3 (UInt 0)
+          u = unpack 0
+      $display "%0d" (pack (u == replicate 0))
+      $display "%0d" (pack u)
+      $finish
