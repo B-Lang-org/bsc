@@ -79,6 +79,8 @@ jobs:
             fi
 
           make -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
+          # the testsuite's internal checks need dumpbo, dumpba, bsc2bsv and vcdcheck
+          make -C src/comp install-utils
           tar czf inst.tar.gz inst
       - name: CCache stats
         env:
@@ -162,6 +164,7 @@ jobs:
       - name: Run testsuite
         env:
           CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+          DO_INTERNAL_CHECKS: 1
         run: |
           # Use ccache to avoid recompiling generated .cxx every run.
           ccache --zero-stats --max-size 500M
