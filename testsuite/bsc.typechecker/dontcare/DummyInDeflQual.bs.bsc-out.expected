@@ -36,14 +36,17 @@ next def..........................................................
 DummyInDeflQual._lifted_dict0 :: Prelude.Literal (Prelude.Bit 12)
 DummyInDeflQual._lifted_dict0 = Prelude.Prelude.Literal~Prelude.Bit~n= ·12
 -- IdProp: DummyInDeflQual::_lifted_dict0[IdP_bad_name,IdPDict,IdPCAF]
+-- Properties: [DefP_DictRendering "P1(V(Q7:Prelude;B29:Prelude.Literal~Prelude.Bit~n;)T0;)",DefP_DictKids [],DefP_DictTypes [ITNum 12]]
 next def..........................................................
 DummyInDeflQual._lifted_dict1 :: Prelude.Literal (Prelude.Bit 2)
 DummyInDeflQual._lifted_dict1 = Prelude.Prelude.Literal~Prelude.Bit~n= ·2
 -- IdProp: DummyInDeflQual::_lifted_dict1[IdP_bad_name,IdPDict,IdPCAF]
+-- Properties: [DefP_DictRendering "P1(V(Q7:Prelude;B29:Prelude.Literal~Prelude.Bit~n;)T0;)",DefP_DictKids [],DefP_DictTypes [ITNum 2]]
 next def..........................................................
 DummyInDeflQual._lifted_dict2 :: Prelude.Eq (Prelude.Bit 2)
 DummyInDeflQual._lifted_dict2 = Prelude.Prelude.Eq~Prelude.Bit~n= ·2
 -- IdProp: DummyInDeflQual::_lifted_dict2[IdP_bad_name,IdPDict,IdPCAF]
+-- Properties: [DefP_DictRendering "P1(V(Q7:Prelude;B24:Prelude.Eq~Prelude.Bit~n;)T0;)",DefP_DictKids [],DefP_DictTypes [ITNum 2]]
 next def..........................................................
 
 
