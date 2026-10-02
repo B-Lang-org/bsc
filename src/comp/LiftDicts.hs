@@ -1,4 +1,5 @@
-module LiftDicts(liftDictsPkg) where
+module LiftDicts(liftDictsPkg, liftDictsWrapper,
+                 LiftDictsContext, prepareLiftDictsContext) where
 
 import Control.Applicative((<|>))
 import Control.Monad(when, zipWithM)
@@ -78,9 +79,39 @@ trace_lift_dicts = "-trace-lift-dicts" `elem` progArgs
 
 liftDictsPkg :: ErrorHandle -> Flags -> SymTab -> CPackage
              -> (CPackage, [IDef a])
-liftDictsPkg errh flags symt pkg@(CPackage mi exps imps impsigs fixs ds includes)
+liftDictsPkg errh flags symt =
+    liftDictsWithContext errh flags symt [] (LiftDictsContext M.empty S.empty)
+
+-- Force the projections once, so keeping the context during elaboration
+-- does not also retain the host package's typechecked expression bodies.
+data LiftDictsContext = LiftDictsContext
+    !(M.Map Id ([TyVar], CType)) !(S.Set FString)
+
+prepareLiftDictsContext :: CPackage -> LiftDictsContext
+prepareLiftDictsContext (CPackage _ _ _ _ _ ds _) =
+    LiftDictsContext
+        (M.fromList [ (i, (vs, t))
+                    | CValueSign (CDefT i vs (CQType [] t) _) <- ds,
+                      isDictFun t ])
+        (S.fromList [ getIdBase (getDName def) | CValueSign def <- ds ])
+
+-- Wrappers are lifted after the host package has been converted.  Reserve
+-- its current definition names, including dictionaries from earlier wrappers,
+-- and use the host context to resolve local instance evidence.
+-- These instance definitions were added by convinst and are not in SymTab.
+liftDictsWrapper :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+                 -> CPackage -> (CPackage, [IDef a])
+liftDictsWrapper = liftDictsWithContext
+
+liftDictsWithContext :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+                     -> CPackage -> (CPackage, [IDef a])
+liftDictsWithContext errh flags symt taken (LiftDictsContext hostInsts hostNames)
+                    pkg@(CPackage mi exps imps impsigs fixs ds includes)
   = (CPackage mi exps imps impsigs fixs ds' includes, reverse (liftedDefs s'))
-  where s0 = initLState errh flags symt pkg
+  where LiftDictsContext insts names = prepareLiftDictsContext pkg
+        context = LiftDictsContext (M.union insts hostInsts)
+                                   (S.union names hostNames)
+        s0 = initLState errh flags symt taken context mi
         (ds', s') = runState (liftDicts S.empty M.empty ds) s0
 
 data LState a = LState {
@@ -122,8 +153,11 @@ data LState a = LState {
 
 type L t a = State (LState t) a
 
-initLState :: ErrorHandle -> Flags -> SymTab -> CPackage -> LState a
-initLState errh fs r (CPackage mi exps imps impsigs fixs ds includes) = LState {
+-- The context definitions supply instance types and reserved source names;
+-- taken additionally reserves definitions already emitted as ISyntax.
+initLState :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+           -> Id -> LState a
+initLState errh fs r taken (LiftDictsContext instInfo names) mi = LState {
   errHandle = errh,
   flags = fs,
   dictNo = 0,
@@ -132,14 +166,11 @@ initLState errh fs r (CPackage mi exps imps impsigs fixs ds includes) = LState {
   liftedTypes = M.empty,
   convEnv = instConvEnv,
   localInstInfo = instInfo,
-  topLevelBases = S.fromList [ getIdBase (getDName def) | CValueSign def <- ds ],
+  topLevelBases = S.union names (S.fromList (map getIdBase taken)),
   packageName = mi,
   symt = r
 }
-  where instInfo = M.fromList [ (i, (vs, t))
-                              | CValueSign (CDefT i vs (CQType [] t) _) <- ds,
-                                isDictFun t ]
-        -- Reference nodes for the package's converted-instance
+  where -- Reference nodes for the package's converted-instance
         -- definitions, at exactly the type iConvPackage will later
         -- give their real definitions (the iConvVS formula).  The
         -- entries are lazy; only the ones a lifted dictionary actually

@@ -256,6 +256,7 @@ data DumpFlag
         | DFwrapper_ctxreduce
         | DFwrapper_typecheck
         | DFwrapper_simplified
+        | DFwrapper_liftdicts
         | DFwrapper_internal
         | DFwrapper_fixup
 

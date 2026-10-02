@@ -91,7 +91,8 @@ import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
-import LiftDicts(liftDictsPkg)
+import LiftDicts(liftDictsPkg, liftDictsWrapper,
+                 LiftDictsContext, prepareLiftDictsContext)
 import ISimpDicts(iSimpDicts)
 import FixupDefs(fixupDefs, updDef, mkDictBuckets)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
@@ -467,6 +468,13 @@ compilePackage
     t <- dump errh flags t DFliftdicts dumpnames mod_lifted
     stats flags DFliftdicts mod_lifted
 
+    -- Retain only local instance types and reserved names for wrapper lifting,
+    -- allowing the typechecked source bodies to be released after IConv.
+    let !wrapper_dict_context =
+            if liftDicts flags && not (null gens)
+            then Just $! prepareLiftDictsContext mod_lifted
+            else Nothing
+
     --------------------------------------------
     -- Convert to internal abstract syntax
     --------------------------------------------
@@ -633,16 +641,25 @@ compilePackage
             -- but multiple-error-reporting chose to keep going;
             -- since it will already appear as a user error, no need for
             -- an internal error
-            (idef, ok2) <- compileCDefToIDef errh flags dumpnames' symt imods def
+            -- Use the accumulated package so names emitted by the main pass
+            -- and earlier wrappers remain reserved.  The host context
+            -- supplies local instance types that are absent from SymTab.
+            (idef, wrap_lifted_defs, ok2)
+                <- compileCDefToIDef errh flags dumpnames' symt
+                                    wrapper_dict_context im def
 
             t <- getNow
             start flags DFwrapper_fixup
+            -- Keep the auxiliary definitions in the package before fixup
+            -- ties their references and those of the replacement wrapper.
+            let im_lifted = if null wrap_lifted_defs then im
+                            else im { ipkg_defs = ipkg_defs im ++ wrap_lifted_defs }
             -- Replace the pre-synthesis definition for a module with its
             -- post-synthesis definition, and update the package's cyclic
             -- references
             -- XXX Note that alldefs is not updated here.  This works
             -- XXX because the defs we use from it will not have changed.
-            let im' = updDef dictBuckets idef im binmods
+            let im' = updDef dictBuckets idef im_lifted binmods
             t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef
@@ -2218,11 +2235,13 @@ missingUserFiles flags cSrcFiles = filterM cantFind cSrcFiles
 -- ===============
 
 compileCDefToIDef :: ErrorHandle -> Flags -> DumpNames -> SymTab ->
-                     IPackage a -> CDefn -> IO (IDef a, Bool)
-compileCDefToIDef errh flags dumpnames symt ipkg def =
+                     Maybe LiftDictsContext -> IPackage a -> CDefn ->
+                     IO (IDef a, [IDef a], Bool)
+compileCDefToIDef errh flags dumpnames symt host_context ipkg def =
  do
     let pkgid = ipkg_name ipkg
     let cpkg0 = CPackage pkgid (Left []) [] [] [] [def] []
+        taken_ids = [ i | IDef i _ _ _ <- ipkg_defs ipkg ]
     t <- getNow
 
     start flags DFwrapper_ctxreduce
@@ -2235,16 +2254,30 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
 
     start flags DFwrapper_simplified
     let cpkg_simp = simplify flags cpkg_chk
-        def' = case cpkg_simp of
-                 (CPackage _ _ _ _ _ [d] _) -> d
-                 _ -> internalError "compileCDefToIDef: unexpected number of defs"
     t <- dump errh flags t DFwrapper_simplified dumpnames cpkg_simp
 
+    -- Match the package pipeline: share dictionary evidence before IConv
+    -- expands it at each use in the wrapper.
+    start flags DFwrapper_liftdicts
+    let (cpkg_lift, lifted_defs) =
+            case host_context of
+                Just context ->
+                    liftDictsWrapper errh flags symt taken_ids context cpkg_simp
+                Nothing -> (cpkg_simp, [])
+        def' = case cpkg_lift of
+                 (CPackage _ _ _ _ _ [d] _) -> d
+                 _ -> internalError "compileCDefToIDef: unexpected number of defs"
+    t <- dump errh flags t DFwrapper_liftdicts dumpnames cpkg_lift
+
     start flags DFwrapper_internal
-    let idef = iConvDef errh flags symt ipkg def'
+    -- Resolve the rewritten wrapper against both existing and newly lifted
+    -- definitions; the caller retains the new definitions in the package.
+    let ipkg_lifted = if null lifted_defs then ipkg
+                      else ipkg { ipkg_defs = ipkg_defs ipkg ++ lifted_defs }
+        idef = iConvDef errh flags symt ipkg_lifted def'
     t <- dump errh flags t DFwrapper_internal dumpnames idef
 
-    return (idef, not tcErrors)
+    return (idef, lifted_defs, not tcErrors)
 
 -- ===============
 

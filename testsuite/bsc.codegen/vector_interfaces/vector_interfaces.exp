@@ -6,9 +6,39 @@ compare_verilog mkClockVectorPassThrough.v
 
 compile_verilog_pass SizeZero.bsv
 
-# We substitute _ for vector indices in the string types passed to WrapField in GenWrap.hs
-# to ensure that theinstance dictionaries can be combined for vector-blasted interfaces.
-# This relies on the -dtypecheck dump from wrapper compilation
-# overwriting the original -dtypecheck dump.
-compile_backend_pass WrapFieldRepeat.bs "-dwrapper_typecheck=tcwrapper.out"
+# We substitute _ for vector indices in the string types passed to WrapField
+# in GenWrap.hs so dictionaries can be combined for vector-blasted interfaces.
+# Wrapper LiftDicts must eliminate the forwarding aliases before IConv.
+compile_backend_pass WrapFieldRepeat.bs \
+    {-dwrapper_typecheck=tcwrapper.out -dwrapper_liftdicts=ldwrapper.out}
 find_n_strings tcwrapper.out "Prelude.Bits Prelude.Bool 1" 2
+find_regexp tcwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp_fail ldwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp ldwrapper.out {_lifted_dict[0-9]+}
+compile_backend_pass WrapFieldRepeat.bs \
+    {-no-lift-dicts -dwrapper_liftdicts=noldwrapper.out} 1
+find_regexp noldwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp_fail noldwrapper.out {_lifted_dict[0-9]+}
+
+# Both wrappers need the host package's local instance definitions.  Their
+# lifted names must also avoid package definitions and previous wrappers.
+# Compile the importer without -u first to check the serialized producer,
+# then exercise the methods in both simulators, with and without LiftDicts.
+foreach flags {{} {-no-lift-dicts}} {
+    compile_backend_pass WrapperDicts.bsv \
+        "$flags -elab -dwrapper_liftdicts=WrapperDicts.%m.liftdicts.out" 1
+    if {$flags eq {}} {
+        foreach wrapper {mkEncodedRegs mkDerivedRegs} {
+            find_regexp WrapperDicts.$wrapper.liftdicts.out \
+                {_lifted_dict[0-9]+}
+            find_regexp_fail WrapperDicts.$wrapper.liftdicts.out \
+                {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+        }
+    }
+    compile_backend_pass WrapperDictsUse.bsv "$flags -elab" 1
+    test_c_veri_bsv_modules_options WrapperDictsUse \
+        {mkEncodedRegs mkDerivedRegs} $flags sysWrapperDictsUse.out.expected
+}
