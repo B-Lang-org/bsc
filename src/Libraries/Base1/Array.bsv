@@ -205,7 +205,9 @@ function Array#(any_T) unpackArray(Bit#(n) bts, Integer ln)
  Array#(any_T) res = primArrayNewU(ln);
 
  for (Integer i = (ln - 1); i >= 0; i = i - 1) begin
-   Bit#(sz) v = bts[((i*k)+k-1):(i*k)];
+   // need to handle 0-bit elements, because bit extraction
+   // cannot express an empty range
+   Bit#(sz) v = (k == 0) ? 0 : bts[((i*k)+k-1):(i*k)];
    res[i] = unpack(v);
  end
 
