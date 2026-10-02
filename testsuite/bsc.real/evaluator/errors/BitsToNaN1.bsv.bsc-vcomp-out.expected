@@ -1,7 +1,7 @@
 checking package dependencies
 compiling BitsToNaN1.bsv
 code generation for sysBitsToNaN1 starts
-Error: "BitsToNaN1.bsv", line 9, column 10: (G0115)
+Error: "BitsToNaN1.bsv", line 9, column 15: (G0115)
   The $bitstoreal task cannot be used to create values which are not a number
   (NaN).
   During elaboration of the body of rule `r' at "BitsToNaN1.bsv", line 13,

@@ -120,6 +120,11 @@ idInvalid = prelude_id_no fsInvalid
 idValid = prelude_id_no fsValid
 idEmpty = prelude_id_no fsEmptyIfc
 idFile = prelude_id_no fsFile
+-- constructors of the File type
+idInvalidFile, idMCD, idFD :: Id
+idInvalidFile = prelude_id_no fsInvalidFile
+idMCD = prelude_id_no fsMCD
+idFD = prelude_id_no fsFD
 idEither, idLeft, idRight :: Id
 idEither = prelude_id_no fsEither
 idLeft = prelude_id_no fsLeft
@@ -138,6 +143,9 @@ idActionValue_ = prelude_id_no fsActionValue_
 idAVValue_, idAVAction_ :: Id
 idAVValue_ = prelude_id_no fsAVValue_
 idAVAction_ = prelude_id_no fsAVAction_
+idAVValue_at, idAVAction_at :: Position -> Id
+idAVValue_at pos = prelude_id pos fsAVValue_
+idAVAction_at pos = prelude_id pos fsAVAction_
 
 -- names of the special selector functions in the Prelude
 id__value, id__action :: Id
@@ -187,14 +195,14 @@ idMinBound = prelude_id_no fsMinBound
 idBuildUndef = prelude_id_no fsBuildUndef
 idMakeUndef = prelude_id_no fsMakeUndef
 idRawUndef = prelude_id_no fsRawUndef
-idAdd = prop_prelude_id_no fsAdd [IdPCommutativeTCon]
+idAdd = prelude_id_no fsAdd
 idMax, idMin, idLog, idMul, idDiv, idNumEq, idAnd, idNot, idPrimSplit :: Id
-idMax = prop_prelude_id_no fsMax [IdPCommutativeTCon]
-idMin = prop_prelude_id_no fsMin [IdPCommutativeTCon]
+idMax = prelude_id_no fsMax
+idMin = prelude_id_no fsMin
 idLog = prelude_id_no fsLog
-idMul = prop_prelude_id_no fsMul [IdPCommutativeTCon]
+idMul = prelude_id_no fsMul
 idDiv = prelude_id_no fsDiv
-idNumEq = prop_prelude_id_no fsNumEq [IdPCommutativeTCon]
+idNumEq = prelude_id_no fsNumEq
 idAnd = prelude_id_no fsAnd
 idNot = prelude_id_no fsNot
 idPrimSplit = prelude_id_no fsPrimSplit

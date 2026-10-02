@@ -3,13 +3,13 @@
         mkZow          	 --  Prelude.Empty	 
             zow2           	 -- RegN Prelude.Reg Prelude.Bool	zow2 
         xx             	 --  Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5))	 
-            _element_0     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_0 
             _element_1     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_1 
             _element_2     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_2 
+            _element_0     	 -- RegUN Prelude.Reg (Prelude.Bit 5)	xx_0 
         ww             	 --  Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5))	 
-            _element_0     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_0 
             _element_1     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_1 
             _element_2     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_2 
+            _element_0     	 -- RWire Prelude.Reg (Prelude.Bit 5)	ww_0 
         Loop           	 --  Prelude.Integer	 
             z_0            	 -- RegN Prelude.Reg Prelude.Bool	z_0 
             z_1            	 -- RegN Prelude.Reg Prelude.Bool	z_1 

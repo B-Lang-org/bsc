@@ -12,7 +12,7 @@ import ASyntax
 import BackendNamingConventions(createVerilogNameMap,
                                 xLateIdUsingFStringMap)
 import Util(fastNub)
-import Pragma(DefProp)
+import DefProp(DefProp)
 
 -- ==============================
 -- Function: aRenameIO
