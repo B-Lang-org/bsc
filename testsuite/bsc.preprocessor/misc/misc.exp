@@ -1,8 +1,4 @@
 
-set here [file join [absolute $srcdir] $subdir]
-
-set bre_options "s+$here+HERE+g"
-
 # ----------
 # Test an empty line after a comment started from a macro
 
@@ -22,17 +18,17 @@ compile_fail_error NoId_Undef.bsv P0222
 # Test where whitespace is allowed to contain a newline
 
 compile_pass MultilineUndef.bsv {-dvpp=MultilineUndef.vpp-out}
-compare_file_filtered MultilineUndef.vpp-out {} $bre_options
+compare_file MultilineUndef.vpp-out
 
 compile_pass MultilineIfdef.bsv {-dvpp=MultilineIfdef.vpp-out}
-compare_file_filtered MultilineIfdef.vpp-out {} $bre_options
+compare_file MultilineIfdef.vpp-out
 
 # ----------
 
 # Test where whitespace is allowed to not contain a newline
 
 compile_pass NoNewlineIfdef.bsv {-dvpp=NoNewlineIfdef.vpp-out}
-compare_file_filtered NoNewlineIfdef.vpp-out {} $bre_options
+compare_file NoNewlineIfdef.vpp-out
 
 # ----------
 
@@ -40,19 +36,17 @@ compare_file_filtered NoNewlineIfdef.vpp-out {} $bre_options
 
 # When the argument has no preprocessor directives
 compile_pass FuncMacro_Simple.bsv {-dvpp=FuncMacro_Simple.vpp-out}
-compare_file_filtered FuncMacro_Simple.vpp-out {} $bre_options
+compare_file FuncMacro_Simple.vpp-out
 
 # When the argument has preprocessor directives that reduce
 #
 # This results in `line statements whose position depends on the position
-# of other `line statements, and thus the numbers vary depending on the
-# length of the file name, which varies depending on the user's path.
-# So we filter out the contents of `line statements
-
-set ere_options {s+\`line\(.\*\)+\`line\(POS\)+g}
+# of other `line statements, and thus on the length of the file name;
+# the encoded name no longer contains the user's path, so the positions
+# are fixed and the output compares exactly.
 
 compile_pass FuncMacro_ArgReduces.bsv {-dvpp=FuncMacro_ArgReduces.vpp-out}
-compare_file_filtered FuncMacro_ArgReduces.vpp-out {} {} $ere_options
+compare_file FuncMacro_ArgReduces.vpp-out
 
 # ----------
 # Tests for parentheses/argument errors and corner cases

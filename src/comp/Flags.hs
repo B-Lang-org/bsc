@@ -1,5 +1,6 @@
 module Flags(
              Flags(..),
+             storedFlagsPaths,
              redSteps,
              ResourceFlag(..), SATFlag(..), MsgListFlag(..),
 
@@ -325,3 +326,29 @@ dumpInfo :: Flags -> DumpFlag -> Maybe (Maybe FilePath)
 dumpInfo f d = lookup d (dumps f) <|> dumpAll f
 
 -- -------------------------
+
+-- The path-valued fields of the record in stored form (FileNameUtil's
+-- storedPath, passed in to avoid an import cycle), for the copy of
+-- Flags written into .ba files -- which only bluetcl introspection
+-- reads -- so that .ba bytes do not depend on where the compiler ran.
+storedFlagsPaths :: (FilePath -> FilePath) -> Flags -> Flags
+storedFlagsPaths r flags =
+    let rM = fmap r
+        rL = map r
+    in  flags {
+            bdir = rM (bdir flags),
+            bluespecDir = r (bluespecDir flags),
+            cIncPath = rL (cIncPath flags),
+            cLibPath = rL (cLibPath flags),
+            cdir = rM (cdir flags),
+            fdir = rM (fdir flags),
+            ifcPathRaw = rL (ifcPathRaw flags),
+            ifcPath = rL (ifcPath flags),
+            infoDir = rM (infoDir flags),
+            oFile = r (oFile flags),
+            vdir = rM (vdir flags),
+            vPathRaw = rL (vPathRaw flags),
+            vPath = rL (vPath flags),
+            dumps = [ (d, rM mf) | (d, mf) <- dumps flags ],
+            dumpAll = fmap rM (dumpAll flags)
+        }

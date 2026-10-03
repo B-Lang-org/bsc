@@ -1,0 +1,26 @@
+# Test that .bo/.ba output is independent of the build directory with no
+# flags given: the same sources compiled from two different directories
+# produce byte-identical files with no embedded build or install paths,
+# and positions read back from them still print as plain relative names.
+
+set here [pwd]
+set testdir [file join $srcdir $subdir]
+
+cd $testdir
+set status [exec_with_log_and_return "stored-paths" \
+                "./run_stored.sh >& run_stored.out" \
+                lasterr 2]
+cd $here
+
+set output_file   [file join $testdir run_stored.out]
+set expected_file [file join $testdir run_stored.out.expected]
+
+if { $status != 0 } {
+    fail "stored-paths: run_stored.sh exited non-zero ($lasterr)"
+} elseif { ![file exists $expected_file] } {
+    unresolved "stored-paths: no expected file"
+} elseif { [catch {exec diff -u $expected_file $output_file} diff_err] } {
+    fail "stored-paths: output differs from expected"
+} else {
+    pass "stored-paths: deterministic .bo/.ba across build directories by default"
+}

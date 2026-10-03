@@ -10,6 +10,8 @@ module FileNameUtil where
 -- ==================================================
 
 import System.Directory
+import Data.List(stripPrefix)
+import Data.Maybe(mapMaybe)
 import Numeric(showInt)
 
 import Util(rTake)
@@ -159,17 +161,31 @@ mangleFileName s =
 
 -- =====
 
--- This creates a full file path from the relative path and the pwd.
--- The pwd is encoded in the full path using /// (instead of /).
--- This allows either the full or relative path to be extracted for
--- output (in error messages, cross reference info, etc).
--- Paths which were provided absolutely have /// at the beginning.
+-- This creates the encoded path of a file from the path given and the
+-- pwd.  The directory is separated from the file's own path by ///
+-- (instead of /), which allows either the full or the relative path to
+-- be extracted for output (in error messages, cross reference info,
+-- etc).  The directory is written as "." rather than as the pwd, and an
+-- absolute path under the pwd is reduced to the same form, so that
+-- positions and file names carry nothing that depends on where the
+-- compiler ran: what reaches .bo and .ba files is reproducible without
+-- any later rewriting.  The "./" form stays valid for the whole run
+-- because bsc never changes directory.  Paths outside the pwd keep
+-- their absolute form, with /// at the beginning.
 
 createEncodedFullFilePath :: FilePath -> FilePath -> FilePath
 createEncodedFullFilePath filePath pwd
-    | head (filePath ++ " ") == '/'     = "//" ++ filePath
-    | take 2 (filePath ++ "  ") == "./" = pwd ++ "///" ++ (drop 2 filePath)
-    | otherwise                         = pwd ++ "///" ++ filePath
+    | head (filePath ++ " ") == '/' =
+        case (null pwd', filePath == pwd', stripPrefix (pwd' ++ "/") filePath) of
+          (False, True, _)        -> ".///"
+          (False, _, Just rel)    -> ".///" ++ rel
+          _                       -> "//" ++ filePath
+    | take 2 (filePath ++ "  ") == "./" = ".///" ++ (drop 2 filePath)
+    | otherwise                         = ".///" ++ filePath
+  where pwd' = trimSlashes pwd
+
+trimSlashes :: FilePath -> FilePath
+trimSlashes = reverse . dropWhile (== '/') . reverse
 
 -- /// is replaced with /
 getFullFilePath :: FilePath -> FilePath
@@ -201,6 +217,25 @@ getRelativeFilePathInternal path =
     in if (prefix == "///")
        then drop 3 rest
        else getRelativeFilePathInternal (drop 1 rest)
+
+-- The form in which a plain (marker-free) path from the flags is stored
+-- in a .ba file: a path under the working directory relative to it, and
+-- a path under the installation ($BLUESPECDIR) relative to '%', the
+-- symbol the search-path flags accept for that directory; any other
+-- path as it is.  The flags themselves keep their run-time values; only
+-- the copy written into the .ba is normalized, so that it does not
+-- depend on where the compiler ran.
+storedPath :: FilePath -> FilePath -> FilePath -> FilePath
+storedPath pwd bsdir path =
+    let anchors = [ (d, a) | (dir, a) <- [(pwd, "."), (bsdir, "%")]
+                           , let d = trimSlashes dir, not (null d) ]
+        under (d, a)
+            | path == d = Just a
+            | Just rel <- stripPrefix (d ++ "/") path = Just (a ++ "/" ++ rel)
+            | otherwise = Nothing
+    in  case mapMaybe under anchors of
+          (p:_) -> p
+          []    -> path
 
 -- =====
 

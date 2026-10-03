@@ -232,7 +232,14 @@ tclPosition  (Position fs l c pred) =
         rf = getRelativeFilePath f
         ff = getFullFilePath f
         bf = addBSDir ff
-        pf = if bf == ff then rf else bf
+        -- a library source is reported under %/Libraries, where the
+        -- installation keeps what is shipped of it; its stored position
+        -- names only the file (see createEncodedFullFilePath), so the
+        -- stdlib flag decides, with the build-path rewrite kept for
+        -- files written by older compilers
+        pf | pred = "%/Libraries/" ++ baseName rf
+           | bf /= ff = bf
+           | otherwise = rf
         base_name = baseName f
         lib = dropSuf base_name
     in if l==(-2) && c<0 && f=="" then ["Command","",""] else
