@@ -7,28 +7,46 @@ test_c_veri_bsv_modules_options DivMod {} "-no-use-negate"
 
 test_c_veri_bsv_modules_options DivModWide {} "-no-use-negate" sysDivModWide.out.expected
 
-set fpe [list SIGFPE 8 136]
+# Bluesim is 2-state and has no X, so a runtime divide-by-zero is
+# defined to produce all ones for both the quotient and the remainder.
+# It must not raise SIGFPE (which used to happen on the wide path, and
+# on the narrow path at low optimization levels) and must not be
+# undefined behavior (which is what the narrow path used to be: the
+# result varied with target and optimization level, and on aarch64 it
+# silently produced 0 -- GitHub #688).
 
-# Test that divide-by-zero produces some failure in Bluesim
+# Narrow (<= 64 bit) path
 compile_object_pass DivideByZero.bsv sysDivideByZero
 link_objects_pass sysDivideByZero sysDivideByZero
-if { [lsearch -exact -nocase {aarch64 arm64} [which_mach]] != -1 } {
-    # This is an expected bug (GitHub #688)
-    sim_output_status sysDivideByZero 0
-} else {
-    sim_output_status sysDivideByZero $fpe
-}
+sim_output sysDivideByZero
+compare_file sysDivideByZero.out sysDivideByZero.out.expected
 
 # In Verilog it silently produces x's
 test_veri_only_bsv DivideByZero sysDivideByZero.v.out.expected
 
-# Test that divide-by-zero produces some failure in Bluesim
+# Wide (> 64 bit) path
 compile_object_pass DivideByZeroWide.bsv sysDivideByZeroWide
 link_objects_pass sysDivideByZeroWide sysDivideByZeroWide
-sim_output_status sysDivideByZeroWide $fpe
+sim_output sysDivideByZeroWide
+compare_file sysDivideByZeroWide.out sysDivideByZeroWide.out.expected
 
 # In Verilog it silently produces x's
 test_veri_only_bsv DivideByZeroWide sysDivideByZeroWide.v.out.expected
+
+# All ones at every width, on both paths.  Covers widths that are not
+# multiples of the 32-bit word size, to check the masking of the top
+# partial word.  Bluesim only; Verilog produces x for all of these.
+compile_object_pass DivideByZeroWidths.bsv sysDivideByZeroWidths
+link_objects_pass sysDivideByZeroWidths sysDivideByZeroWidths
+sim_output sysDivideByZeroWidths
+compare_file sysDivideByZeroWidths.out sysDivideByZeroWidths.out.expected
+
+# A divide-by-zero that the design guards against, but which Bluesim
+# evaluates anyway because the guard is in the rule body rather than on
+# the rule.  Both backends must agree that the guarded register keeps
+# its initial value.  This is the case that made a fatal error or a
+# runtime warning untenable: it happens in correct designs.
+test_c_veri_bsv DivideByZeroGuarded sysDivideByZeroGuarded.out.expected
 
 # Test that compile-time divide-by-zero produces a compile-time failure
 compile_object_fail_error DivideByZeroStatic.bsv G0059 1 sysDivideByZeroStatic

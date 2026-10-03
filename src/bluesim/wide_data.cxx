@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cstring>
-#include <csignal>
 
 #include "bs_wide_data.h"
 #include "bs_mem_defines.h"
@@ -1195,6 +1194,14 @@ WideData operator*(const WideData& v1, const WideData& v2)
   return result;
 }
 
+// Fill a buffer of nWords words with all ones, masked to nBits bits.
+static inline void set_all_ones(unsigned int* buf, unsigned int nWords,
+                                unsigned int nBits)
+{
+  memset(buf, 0xff, BYTES_PER_WORD * nWords);
+  buf[nWords-1] &= mask(word_offset(nBits-1)+1);
+}
+
 // Perform division on the wide values, writing the quotient and
 // remainder into their respective buffers.
 void wide_quot_rem(const WideData& v1, const WideData& v2,
@@ -1216,9 +1223,17 @@ void wide_quot_rem(const WideData& v1, const WideData& v2,
     --first_divisor_bit;
   }
 
-  // handle division by zero
+  // Handle division by zero.  Bluesim is 2-state and has no X, so a
+  // zero divisor yields all ones for both the quotient and the
+  // remainder rather than raising SIGFPE, which would kill the whole
+  // simulation with no indication of where it came from.  This matches
+  // the narrow case; see safe_quot/safe_rem in bs_prim_ops.h.
   if (first_divisor_bit < 0)
-    raise(SIGFPE);
+  {
+    set_all_ones(quot, dividend.numWords(), dividend.size());
+    set_all_ones(rem,  divisor.numWords(),  divisor.size());
+    return;
+  }
 
   // find the most significant bit set in the dividend
   int first_dividend_bit = dividend.size() - 1;

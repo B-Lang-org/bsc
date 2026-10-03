@@ -111,6 +111,54 @@ static inline tUWide maskWide(tUInt32 n, const tUWide& val)
   return val.extractWide(n-1,0);
 }
 
+/* Division and remainder with a zero divisor.
+ *
+ * In C/C++, integer division or remainder by zero is undefined
+ * behavior.  In practice that means either a SIGFPE that kills the
+ * whole simulation with no indication of where it came from, or --
+ * depending on the target and the optimization level -- a silently
+ * arbitrary result, because the optimizer is entitled to assume the
+ * divisor is non-zero.  Neither is acceptable in a simulator.
+ *
+ * The Verilog backend defers to the Verilog simulator, which yields X.
+ * Bluesim is 2-state and has no X, so instead we define the result of
+ * a divide by zero to be all ones.  All ones is chosen because it can
+ * never be produced by a well-defined remainder: for b != 0 we have
+ * a % b <= b - 1 <= 2^w - 2, so an all-ones remainder is an
+ * unambiguous marker that a zero divisor was seen.  The quotient uses
+ * the same value for consistency.
+ *
+ * These helpers are deliberately pure -- they have no side effects for
+ * any argument values -- so the optimizer stays free to hoist, sink or
+ * eliminate a division exactly as it would any other expression.  That
+ * matters because Bluesim can evaluate a division whose result is then
+ * discarded: a rule body of the form "if (b != 0) r <= a / b" computes
+ * a / b unconditionally and only guards the write.  Anything that
+ * reported a zero divisor would both fire on such correct designs and
+ * force the division to be evaluated unconditionally.
+ *
+ * The caller masks the result to the operation's width, so returning
+ * all ones in the argument's type is correct for every width.
+ *
+ * To switch to RISC-V semantics (quotient all ones, remainder equal to
+ * the dividend), safe_rem is the only function to change.  Note that
+ * BSC types a remainder to the width of the divisor, not the dividend
+ * (primRem :: Bit k -> Bit n -> Bit n), so returning the dividend
+ * would truncate it whenever k > n.
+ */
+
+template<typename TA, typename TB>
+inline TA safe_quot(TA a, TB b)
+{
+  return (b == 0) ? (TA)~(TA)0 : (TA)(a / b);
+}
+
+template<typename TA, typename TB>
+inline TB safe_rem(TA a, TB b)
+{
+  return (b == 0) ? (TB)~(TB)0 : (TB)(a % b);
+}
+
 /* Sign testing operations used for signed relational primitives */
 
 // This case handles promoted values
