@@ -24,8 +24,9 @@ puts {mid[0-9].*}
 puts [sim ls {mid[0-9].*}]
 puts "-------"
 
-puts "*1"
-puts [sim ls *1]
+# Select named module prefixes so generated numeric IDs cannot change membership.
+puts {[lm]*1}
+puts [sim ls {[lm]*1}]
 puts "-------"
 
 puts {m*[12].RL_*}

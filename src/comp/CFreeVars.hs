@@ -41,7 +41,7 @@ import Util(set_deleteMany)
 import Id
 import ErrorUtil(internalError)
 import CSyntax
-import PreIds(idPrimGetName)
+import PreIds(idComma, idPrimGetName)
 import CType(typeclassId)
 -- import PPrint
 -- import Debug.Trace
@@ -145,9 +145,11 @@ getFVE (CApply e es) = unionManyFVS (map getFVE (e:es))
 getFVE (CTaskApply e es) = unionManyFVS (map getFVE (e:es))
 getFVE (CTaskApplyT e t es) = unionManyFVS (map getFVE (e:es))
 getFVE (CLit _) = emptyFVS
-getFVE (CBinOp l i r) =
-    -- XXX should we be adding the operator?
-    addV i (getFVE l `unionFVS` getFVE r)
+getFVE (CBinOp l i r)
+  | i == idComma = getFVE l `unionFVS` getFVE r
+  | otherwise =
+      -- XXX should we be adding the operator?
+      addV i (getFVE l `unionFVS` getFVE r)
 getFVE (CHasType e t) = getFVE e
 getFVE (Cif pos c t e) = getFVE c `unionFVS` getFVE t `unionFVS` getFVE e
 getFVE (CSub pos e1 e2) = getFVE e1 `unionFVS` getFVE e2
@@ -225,8 +227,9 @@ getFVStmt (CSletseq ds) s =
     let (defs, free_vars_rhs) = getFVSeqDefls ds
     in  free_vars_rhs `unionFVS` (s `minusVS` defs)
 getFVStmt (CSletrec ds) s =
-    unionManyFVS (map getFVDl ds) `unionFVS`
-     (deleteManyV (concatMap getLDefs ds) s)
+    let defined_vars = concatMap getLDefs ds
+        fvs_rhs_and_stmts = unionManyFVS (s : map getFVDl ds)
+    in  deleteManyV defined_vars fvs_rhs_and_stmts
 getFVStmt (CSExpr _ e) s = getFVE e `unionFVS` s
 
 -- Get variables bound by a statement
@@ -367,7 +370,9 @@ getPV (CPOper _) = internalError "CFreeVars.getPV: CPOper"
 
 -- Get (constructor and field) identifiers used in a pattern
 getPC :: CPat -> S.Set Id
-getPC (CPCon i ps) = S.insert i (S.unions (map getPC ps))
+getPC (CPCon i ps)
+  | i == idComma = S.unions (map getPC ps)
+  | otherwise = S.insert i (S.unions (map getPC ps))
 getPC (CPstruct _ i ips) =
     -- XXX we don't return fields
     S.insert i (S.unions [getPC p | (i, p) <- ips])
@@ -414,16 +419,13 @@ getPVs ps = S.unions (map getPV ps)
 -- To remove them, use "getLDefs".
 getFVDl :: CDefl -> FVSet
 getFVDl (CLValueSign def qs) =
-        -- the "qs" are implicit condition for methods,
-        -- so there is no binding there that can affect "def",
-        -- thus we don't remove the variables bound there
-        getFVQuals qs `unionFVS` getFVD def
+        getFVQuals qs `unionFVS` (getFVD def `minusVS` getVQuals qs)
 getFVDl (CLValue _ cs qs) =
-        -- as above, we don't subtract the vars bound in "qs"
-        unionManyFVS (getFVQuals qs : map getFVC cs)
+        getFVQuals qs `unionFVS`
+            (unionManyFVS (map getFVC cs) `minusVS` getVQuals qs)
 getFVDl (CLMatch p e) =
-        -- here, we do want to remove any vars bound in the pattern
-        getFVE e `minusVS` getPV p
+        -- The pattern is bound only after the RHS has been evaluated.
+        getFVE e `plusCS` getPC p
 
 -- Note that the def names themselves are included in the set.
 -- To remove them, use "getDName".
@@ -433,16 +435,20 @@ getFVD (CDefT _ _ _ cs) = unionManyFVS (map getFVC cs)
 
 getFVC :: CClause -> FVSet
 getFVC (CClause ps qs e) =
-        let bvs = getVQuals qs `S.union` getPVs ps
-        in  ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs) `plusCS` getPCs ps
+        let pat_bound = getPVs ps
+            qual_bound = getVQuals qs
+            fvs = getFVQuals qs `unionFVS` (getFVE e `minusVS` qual_bound)
+        in  (fvs `minusVS` pat_bound) `plusCS` getPCs ps
 
 getFVR :: CRule -> FVSet
 getFVR (CRule _ n qs e) =
-        let bvs = getVQuals qs
-        in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs)
+        let qual_bound = getVQuals qs
+        in  getMFVE n `unionFVS` getFVQuals qs `unionFVS`
+                (getFVE e `minusVS` qual_bound)
 getFVR (CRuleNest _ n qs rs) =
-        let bvs = getVQuals qs
-        in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` unionManyFVS (map getFVR rs)) `minusVS` bvs)
+        let qual_bound = getVQuals qs
+        in  getMFVE n `unionFVS` getFVQuals qs `unionFVS`
+                (unionManyFVS (map getFVR rs) `minusVS` qual_bound)
 
 getMFVE :: Maybe CExpr -> FVSet
 getMFVE Nothing = emptyFVS

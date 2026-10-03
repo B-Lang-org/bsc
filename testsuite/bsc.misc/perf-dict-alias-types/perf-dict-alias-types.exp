@@ -1,0 +1,46 @@
+# Performance tripwire for dictionary forwarding across type-rich bodies.
+#
+# DictAliasTypeStress contains 256 explicitly typed polymorphic functions.
+# Each function creates one duplicate Eq predicate (and hence one exact
+# dictionary-to-dictionary forwarding binding), followed by 64 ordinary `id`
+# applications at a 16-deep Vector type.  The forwarding binding is sparse;
+# the rest of the function is deliberately rich in embedded CType nodes.
+#
+# The old simplifyDictBindings/CSubst path removed each forwarding binding in
+# TCheck, but then traversed the whole function and rebuilt every CType it met,
+# even though the substitution changed only CVar nodes.  Keeping the tiny
+# forwarding binding until LiftDicts lets its already-required traversal
+# consume the alias without touching those types.
+#
+# GHC 9.14.1 calibration for this exact input (three fresh runs per compiler):
+#
+#                            allocated      max residency
+#   LiftDicts forwarding      6.376 GB          81.7 MB
+#   legacy CSubst             6.598 GB         140.8 MB
+#
+# On Linux/GHC 9.14.1, under the explicit RTS settings below, the LiftDicts
+# version completed 3/3 runs (126.1 MB capped maximum residency), while the
+# legacy implementation exhausted the 160 MB heap 3/3 times.  The heap cap is
+# the assertion there; the test deliberately avoids a host-dependent
+# wall-clock threshold.
+#
+# GHC 9.6.7 has a different residency/GC tradeoff: at a 168 MB cap both
+# versions complete, even though LiftDicts allocates 429 MB less.  Other GHC
+# versions and operating systems therefore use a generous cap.  They retain
+# this as a directed compile stress test without pretending that maximum
+# residency is portable across RTS implementations.
+#
+# The source is deterministic generated input and is checked in.  Its complete
+# regeneration specification is: 256 functions named stress001..stress256;
+# each has the Eq constraint and Vector depth shown above, one `witness = x ==
+# x`, and a sequential y01..y64 chain of `id` applications whose last value is
+# selected when witness is true.
+
+if { $tcl_platform(os) == "Linux" && [string match "9.14.*" $ghc_version] } {
+    set heap_cap {-M160m}
+} else {
+    set heap_cap {-M320m}
+}
+
+compile_pass DictAliasTypeStress.bs \
+    "-sim +RTS -H16m $heap_cap -A1m -RTS" 1

@@ -5,13 +5,12 @@ import Data.List
 import Control.Monad(when, unless)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import qualified GraphWrapper as GW
 import Data.Ix(range)
 
 import ListMap(lookupWithDefaultBy)
 import SCC(scc)
 import Util(findDup, concatMapM,
-            headOrErr, initOrErr, lastOrErr, fromJustOrErr)
+            headOrErr, initOrErr, lastOrErr)
 import Util(fst3)
 import IntLit
 import IntegerUtil(mask)
@@ -38,7 +37,7 @@ import TCMisc
 import CtxRed
 import CSyntax
 import CSyntaxUtil
-import CFreeVars(getFVDl, getFVE, fvSetToFreeVars)
+import CFreeVars(getFVDl)
 import CType(noTyVarNo, getTyVarId, getArrows, isTConArrow, leftTyCon,
              isTypeBit, isTypeString, isTypeUnit, isTypePrimAction, isTVar, isUpdateable,
              isTypeActionValue, isTypeActionValue_, getActionValueArg,
@@ -47,7 +46,6 @@ import VModInfo(VSchedInfo, VFieldInfo(..), VArgInfo(..), VPort)
 import SchedInfo(SchedInfo(..), MethodConflictInfo(..))
 import SymTab
 import Pragma(PProp(..))
-import CSubst
 import ForeignFunctions(toAVId)
 import CFreeVars(getFQTyVarsT)
 -------
@@ -2687,92 +2685,28 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
                 rec_defls = getRecursiveDefls asbs
                 nonrec_defls = getNonRecursiveDefls asbs
 
-                -- Inline simple bindings in both categories
-                (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
-                (vmap_nonrec, rem_nonrec) = simplifyDictBindings nonrec_defls
-                vmap = M.union vmap_rec vmap_nonrec
-
-                -- we're only substituting variables, not constructors
-                s :: CSEnv
-                s = (M.empty, M.empty, vmap, M.empty)
-                alts''' = cSubstN s alts''
-                me''' = cSubstQualsN s me''
-                rem_rec' = cSubstN s rem_rec
-                rem_nonrec' = cSubstN s rem_nonrec
-            in --traces (ppReadable s) $
-               if null nqs && null rem_rec' && null rem_nonrec' then
+            in
+               if null nqs && null rec_defls && null nonrec_defls then
                    -- simplify special case (no context, no new bindings)
                    let ldef = CLValueSign
-                                 (CDefT i ngs (CQType [] nt) alts''') me'''
+                                 (CDefT i ngs (CQType [] nt) alts'') me''
                    in  return (rds, ldef)
                else do
                   --posCheck "G" i
                   ii <- newVar (getPosition i) "tiExpl"
                   let ldef = CLValueSign
-                                 (CDefT ii [] (CQType [] nt) alts''') []
+                                 (CDefT ii [] (CQType [] nt) alts'') []
                       -- Generate code: nonrec outside (letseq), rec inside (letrec)
                       -- Local binding is separate to maintain the separation of
                       -- dictionary and non-dictionary binding groups.
                       body = CClause (map CPVar vs) []
-                               (cLetSeq rem_nonrec'
-                                 (cLetRec rem_rec'
+                               (cLetSeq nonrec_defls
+                                 (cLetRec rec_defls
                                    (cLetSeq [ldef] (CVar ii))))
                   --traceM ("tiExpl''' " ++ ppReadable (i, ii, asbs))
                   return (rds, CLValueSign
                                  (CDefT i ngs (CQType [] (qualToType nqt))
-                                     [body]) me''')
-
-
--- The way we typecheck, sub-expr checking doesn't know what bindings
--- exist, so a fresh dict binding is made for each predicate even if a
--- dict already exists for it.  This leads to "silly bindings" (as
--- Lennart said in rev 2901) like this:
---    _tcdict1002 = _tcdict1001
--- This leads to problems for IConv when it substs these away.
---
--- In rev 2901, Lennart added an optimization, but was unsure of the
--- benefit.  In rev 2904, he commented it out, due to a bug.  In his
--- code, a simple binding included functions.  We don't include those,
--- and thus don't have to deal with recursive bindings.
-simplifyDictBindings :: [CDefl] -> (M.Map Id CExpr, [CDefl])
-simplifyDictBindings all_bs =
-    let
-        (simple_bs, rem_bs0) = partition simpleD all_bs
-
-        simpleD (CLValueSign (CDefT _ [] (CQType [] _)
-                                  [CClause [] [] e]) []) = simpleE e
-        simpleD _ = False
-
-        simpleE (CTApply e _) = simpleE e
-        simpleE (CVar _) = True
-        -- Lennart included this
-        --simpleE (CApply f es) = all simpleE (f:es)
-        simpleE _ = False
-
-        -- sort the simple bindings in usage order
-        -- (so that we can apply the subst once)
-        defpairs =
-            [ (i, e)
-              | (CLValueSign (CDefT i _ _ [CClause _ _ e]) _) <- simple_bs ]
-        defmap = M.fromList defpairs
-        isdef i = i `M.member` defmap
-        usegraph = [ (i, is) | (i, e) <- defpairs,
-                               let is0 = fvSetToFreeVars (getFVE e),
-                               let is = filter isdef is0 ]
-        ordered_def_ids =
-            case (GW.tSort usegraph) of
-              Right is -> is
-              Left sccs ->
-                  internalError ("ordered_def_ids: " ++ ppReadable sccs)
-
-        mkEnv vm = (M.empty, M.empty, vm, M.empty)
-
-        vmap = let fn accum_map i =
-                      let e0 = fromJustOrErr "vmap" (M.lookup i defmap)
-                      in  M.insert i (cSubst (mkEnv accum_map) e0) accum_map
-               in  foldl fn M.empty ordered_def_ids
-    in
-       (vmap, cSubstN (mkEnv vmap) rem_bs0)
+                                     [body]) me'')
 
 
 {-
@@ -3015,37 +2949,28 @@ tiImpls recursive as ibs = do
                     let getTyVar (TVar v) = v
                         getTyVar _ = internalError "TCheck.tiImpls: vts_bound_here getTyVar"
                     in  map getTyVar vs_bound_here
-              -- a mapping from the old names to the new names
-              -- (need to apply this subst to everything -- types and exprs)
-              -- (CSubst was extended to support TVar specifically for this)
+              -- A mapping from the old names to the new names, applied to the
+              -- inferred type and every embedded type in the checked syntax.
               let gs_map = zip gs_used_here vs_bound_here
+                  type_subst = mkSubst gs_map
 
               -- the new type for this let-binding
-              let nqt@(_ :=> nt) = apSub (mkSubst gs_map) oqt
+              let nqt@(_ :=> nt) = apSub type_subst oqt
 
               -- the variable names for the dictionary arguments
               let dict_vs = let getVPredId (VPred i _) = i
                             in  map getVPredId rs_final
 
               let
-                  -- Convert SolvedBinds to CDefls, preserving categorization
-                  rec_defls = getRecursiveDefls sbs_final
-                  nonrec_defls = getNonRecursiveDefls sbs_final
-
-                  -- Inline simple dictionary bindings in both categories
-                  (vmap_rec, rem_rec) = simplifyDictBindings rec_defls
-                  (vmap_nonrec, rem_nonrec) = simplifyDictBindings nonrec_defls
-                  vmap = M.union vmap_rec vmap_nonrec
-
-                  -- substitute for the simple dict bindings (vmap)
-                  -- and for the new generic variable names (gs_map)
-                  csenv :: CSEnv
-                  csenv = (M.empty, M.empty, vmap, M.fromList gs_map)
-                  alts' = cSubstN csenv alts
-                  me' = cSubstQualsN csenv me
-                  -- the dict bindings can refer to "gs"
-                  rem_rec' = cSubstN csenv rem_rec
-                  rem_nonrec' = cSubstN csenv rem_nonrec
+                  -- Rename the generalized type variables with the ordinary
+                  -- type substitution machinery.  Exact dictionary aliases
+                  -- remain explicit until the existing LiftDicts traversal
+                  -- consumes them (or IConv does when LiftDicts is disabled).
+                  alts' = apSub type_subst alts
+                  me' = apSub type_subst me
+                  sbs_here = apSub type_subst sbs_final
+                  rec_defls = getRecursiveDefls sbs_here
+                  nonrec_defls = getNonRecursiveDefls sbs_here
 
               inner_i <- newVar (getPosition i) "tiImpl"
               let ldef = CLValueSign
@@ -3054,8 +2979,8 @@ tiImpls recursive as ibs = do
                   -- Local binding is separate to maintain the separation of
                   -- dictionary and non-dictionary binding groups.
                   body = CClause (map CPVar dict_vs) []
-                           (cLetSeq rem_nonrec'
-                             (cLetRec rem_rec'
+                           (cLetSeq nonrec_defls
+                             (cLetRec rec_defls
                                (cLetSeq [ldef] (CVar inner_i))))
               return (CLValueSign
                           (CDefT i vts_bound_here (CQType [] (qualToType nqt))

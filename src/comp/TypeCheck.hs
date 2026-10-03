@@ -1,7 +1,6 @@
 module TypeCheck(cTypeCheck,
                  cCtxReduceDef, cCtxReduceIO,
                  topExpr,
-                 qualifyClassDefaults,
                  CATFCache, mergeCATFCaches
                 ) where
 
@@ -14,7 +13,7 @@ import qualified Data.Set as S
 import PFPrint
 import Id
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
-             ErrorHandle, bsError, bsErrorNoExit, bsErrorUnsafe, bsWarning)
+             ErrorHandle, bsError, bsErrorNoExit, bsWarning)
 import ContextErrors
 import Flags(Flags, enablePoisonPills, allowIncoherentMatches)
 import CSyntax
@@ -28,9 +27,7 @@ import TCheck
 import CtxRed
 import SymTab
 import Assump
-import CSubst(cSubstN)
-import CFreeVars(getFVC, getFTCC)
-import Util(separate, apFst, quote)
+import Util(separate, apFst)
 
 cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage ->
              IO (CPackage, Bool, S.Set Id, CATFCache)
@@ -112,7 +109,8 @@ tiOneDef d@(Cclass incoh cps ik is fd ats fs) = do
     -- XXX * typecheck the rest of the pkg (which may use those defaults)
     -- XXX   and have "tiExpl" of structs not re-typecheck defaults
     -- XXX * have "genSign" use the symt containing the typechecked defaults
-    -- XXX Until then, "genSign" inserts qualifiers, to preserve the scope
+    -- XXX Until then, signature generation qualifies identifiers to preserve
+    -- XXX the defining scope.
     -- traceM ("Cclass: " ++ ppReadable fs')
     return d
 tiOneDef d@(CValue i s) = errorAtId ENoTopTypeSign i
@@ -149,60 +147,6 @@ topExpr td e = do
       nonrec_defls = getNonRecursiveDefls sbs
   -- Generate code: nonrec outside (letseq), rec inside (letrec)
   return (apSub s (ps', cLetSeq nonrec_defls $ cLetRec rec_defls e'))
-
-------
-
-qualifyClassDefaults :: ErrorHandle -> SymTab -> [CDefn] -> [CDefn]
-qualifyClassDefaults errh symt ds =
-    let
-        mkCQual c =
-            case (findCon symt c) of
-              Just [ConInfo { ci_assump = (qc :>: _) }] -> (c, qc)
-              Just ds ->
-                  let msg = "The signature file generation for typeclass " ++
-                            "defaults cannot disambiguate the constructor " ++
-                            quote (getIdString c) ++ ".  Perhaps adding " ++
-                            "a package qualifier will help."
-                  in  bsErrorUnsafe errh [(getPosition c, EGeneric msg)]
-              Nothing ->
-                  -- it could be a struct/interface (or an alias of one?)
-                  case (findType symt c) of
-                    Just (TypeInfo (Just qc) _ _ _ _) -> (c, qc)
-                    _ -> internalError ("qualifyClassDefaults: " ++
-                                        "constructor not found: " ++
-                                        ppReadable c)
-        mkTQual t =
-            case (findType symt t) of
-              Just (TypeInfo (Just qt) _ _ _ _) -> (t, qt)
-              Just (TypeInfo Nothing _ _ _ _) ->
-                  internalError ("qualifyClassDefaults: " ++
-                                 "unexpected numeric or string type: " ++ ppReadable t)
-              Nothing -> internalError ("qualifyClassDefaults: " ++
-                                        "type not found: " ++ ppReadable t)
-        mkVQual v =
-            case (findVar symt v) of
-              Just (VarInfo _ (qv :>: _) _ _) -> (v, CVar qv)
-              Nothing -> internalError ("qualifyClassDefaults: " ++
-                                        "var not found: " ++ ppReadable v)
-        qualDef (Cclass incoh cps ik is deps ats fs) =
-            let qualField (CField fi fps fqt fdefaults foqt) =
-                    let (csets, vsets) = unzip $ map getFVC fdefaults
-                        cset = S.unions csets
-                        vset = S.unions vsets
-                        tset = S.unions (map getFTCC fdefaults)
-                        -- make the mappings
-                        cmap = M.fromList (map mkCQual (S.toList cset))
-                        vmap = M.fromList (map mkVQual (S.toList vset))
-                        tmap = M.fromList (map mkTQual (S.toList tset))
-                        -- substitute into the clauses
-                        fdefaults' = cSubstN (tmap,cmap,vmap,M.empty) fdefaults
-                    in  (CField fi fps fqt fdefaults' foqt)
-            in  (Cclass incoh cps ik is deps ats (map qualField fs))
-        qualDef d = d
-    in
-        map qualDef ds
-
-------
 
 -- remove free type variables from toplevel definitions:
 --  - substitute vars of kind * with ()

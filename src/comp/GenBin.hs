@@ -476,7 +476,7 @@ instance Bin CStmt where
             1 -> do p <- fromBin; me <- fromBin; ps <- fromBin; e <- fromBin;
                     return (CSBind p me ps e)
             2 -> do ds <- fromBin; return (CSletseq ds)
-            3 -> do ds <- fromBin; return (CSletseq ds)
+            3 -> do ds <- fromBin; return (CSletrec ds)
             4 -> do me <- fromBin; e <- fromBin; return (CSExpr me e)
             n -> internalError $ "GenBin.Bin(CStmt).readBytes: " ++ show n
 

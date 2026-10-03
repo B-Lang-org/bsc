@@ -1,4 +1,6 @@
-module LiftDicts(liftDictsPkg) where
+module LiftDicts(liftDictsPkg, liftDictsWrapper,
+                 LiftDictsContext, prepareLiftDictsContext,
+                 reserveLiftDictsNames) where
 
 import Control.Applicative((<|>))
 import Control.Monad(when, zipWithM)
@@ -14,6 +16,7 @@ import IOUtil(progArgs)
 import Util(mapSndM, itos)
 
 import CSyntax
+import DictAliases(splitDictAliases)
 import FStringCompat(FString)
 import CFreeVars(getPV, getFVE, fvSetToFreeVars)
 import CType
@@ -77,9 +80,49 @@ trace_lift_dicts = "-trace-lift-dicts" `elem` progArgs
 
 liftDictsPkg :: ErrorHandle -> Flags -> SymTab -> CPackage
              -> (CPackage, [IDef a])
-liftDictsPkg errh flags symt pkg@(CPackage mi exps imps impsigs fixs ds includes)
+liftDictsPkg errh flags symt =
+    liftDictsWithContext errh flags symt [] (LiftDictsContext M.empty S.empty)
+
+-- Force the projections once, so keeping the context during elaboration
+-- does not also retain the host package's typechecked expression bodies.
+data LiftDictsContext = LiftDictsContext
+    !(M.Map Id ([TyVar], CType)) !(S.Set FString)
+
+-- Keep the names emitted by the initial lifting pass reserved even if
+-- fixup later drops their definitions.  Later phases may retain references
+-- to those names, so a wrapper must never reuse them for different evidence.
+prepareLiftDictsContext :: [Id] -> CPackage -> LiftDictsContext
+prepareLiftDictsContext lifted (CPackage _ _ _ _ _ ds _) =
+    LiftDictsContext
+        (M.fromList [ (i, (vs, t))
+                    | CValueSign (CDefT i vs (CQType [] t) _) <- ds,
+                      isDictFun t ])
+        (S.fromList (map getIdBase lifted ++
+                     [ getIdBase (getDName def) | CValueSign def <- ds ]))
+
+-- Preserve allocation history independently of which definitions survive
+-- fixup, including dictionaries emitted by earlier wrappers.
+reserveLiftDictsNames :: [Id] -> LiftDictsContext -> LiftDictsContext
+reserveLiftDictsNames ids (LiftDictsContext insts names) =
+    LiftDictsContext insts (S.union names (S.fromList (map getIdBase ids)))
+
+-- Wrappers are lifted after the host package has been converted.  Reserve
+-- its current definition names, including dictionaries from earlier wrappers,
+-- and use the host context to resolve local instance evidence.
+-- These instance definitions were added by convinst and are not in SymTab.
+liftDictsWrapper :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+                 -> CPackage -> (CPackage, [IDef a])
+liftDictsWrapper = liftDictsWithContext
+
+liftDictsWithContext :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+                     -> CPackage -> (CPackage, [IDef a])
+liftDictsWithContext errh flags symt taken (LiftDictsContext hostInsts hostNames)
+                    pkg@(CPackage mi exps imps impsigs fixs ds includes)
   = (CPackage mi exps imps impsigs fixs ds' includes, reverse (liftedDefs s'))
-  where s0 = initLState errh flags symt pkg
+  where LiftDictsContext insts names = prepareLiftDictsContext [] pkg
+        context = LiftDictsContext (M.union insts hostInsts)
+                                   (S.union names hostNames)
+        s0 = initLState errh flags symt taken context mi
         (ds', s') = runState (liftDicts S.empty M.empty ds) s0
 
 data LState a = LState {
@@ -121,8 +164,11 @@ data LState a = LState {
 
 type L t a = State (LState t) a
 
-initLState :: ErrorHandle -> Flags -> SymTab -> CPackage -> LState a
-initLState errh fs r (CPackage mi exps imps impsigs fixs ds includes) = LState {
+-- The context definitions supply instance types and reserved source names;
+-- taken additionally reserves definitions already emitted as ISyntax.
+initLState :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsContext
+           -> Id -> LState a
+initLState errh fs r taken (LiftDictsContext instInfo names) mi = LState {
   errHandle = errh,
   flags = fs,
   dictNo = 0,
@@ -131,14 +177,11 @@ initLState errh fs r (CPackage mi exps imps impsigs fixs ds includes) = LState {
   liftedTypes = M.empty,
   convEnv = instConvEnv,
   localInstInfo = instInfo,
-  topLevelBases = S.fromList [ getIdBase (getDName def) | CValueSign def <- ds ],
+  topLevelBases = S.union names (S.fromList (map getIdBase taken)),
   packageName = mi,
   symt = r
 }
-  where instInfo = M.fromList [ (i, (vs, t))
-                              | CValueSign (CDefT i vs (CQType [] t) _) <- ds,
-                                isDictFun t ]
-        -- Reference nodes for the package's converted-instance
+  where -- Reference nodes for the package's converted-instance
         -- definitions, at exactly the type iConvPackage will later
         -- give their real definitions (the iConvVS formula).  The
         -- entries are lazy; only the ones a lifted dictionary actually
@@ -570,17 +613,27 @@ instance LiftDicts CExpr where
     (ds', m') <- processCDeflsSeq p m ds
     e' <- liftDicts p m' e
     return $ cLetSeq ds' e'
-  -- We are not attempting to lift recursive dictionary bindings for now;
-  -- the letrec-bound dictionary ids join BoundDicts so that a nested
-  -- dictionary expression referencing one is (correctly) not lifted,
-  -- rather than tripping the top-level-known internalError below.
+  -- We are not attempting to lift real recursive dictionary bindings.  Pure
+  -- forwarding members are different: removing them before the traversal lets
+  -- the surviving evidence see the actual recursive or outer target, just as
+  -- processCDeflsSeq does for an ordered letseq.
   liftDicts p m (Cletrec ds e) = do
-    let vs = S.fromList [ getLName d | d <- ds ]
-        m' = shadowBindings vs m
-        p' = p `S.union` S.filter isDictId vs
-    ds' <- liftDicts p' m' ds
+    let all_vs = S.fromList [ getLName d | d <- ds ]
+        (aliases, real_ds) = splitDictAliases ds
+        real_vs = S.fromList [ getLName d | d <- real_ds ]
+        outer_m = shadowBindings all_vs m
+        alias_m = M.map (resolveAliasTarget outer_m) aliases
+        m' = alias_m `M.union` outer_m
+        p' = p `S.union` S.filter isDictId real_vs
+    ds' <- liftDicts p' m' real_ds
     e'  <- liftDicts p' m' e
     return $ cLetRec ds' e'
+    where
+      -- The alias map is transitively closed.  A terminal inside the real
+      -- recursive group was shadowed above and remains a CVar; an outer
+      -- terminal reuses any forwarding/lifting already recorded for it.
+      resolveAliasTarget outer_m target =
+        M.findWithDefault (CVar target) target outer_m
   liftDicts p m (CApply f es) = do
     f'  <- liftDicts p m f
     es' <- liftDicts p m es

@@ -78,7 +78,13 @@ test_c_veri_bsv OverlapCtxReduce
 # XXX because if this instance is being used, then that means the resolution
 # XXX already picked this instance.
 #
-compile_pass_no_warning SelfRecursiveInstance.bsv
+compile_pass_no_warning SelfRecursiveInstance.bsv \
+    {-dtypecheck=SelfRecursiveInstance.typecheck.out -dliftdicts=SelfRecursiveInstance.liftdicts.out}
+find_regexp SelfRecursiveInstance.typecheck.out \
+    {let \{ _tcdict[0-9]+ ::[^\n]*;\n[ \t]*_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;\n[ \t]*_tcdict[0-9]+ ::}
+find_regexp_fail SelfRecursiveInstance.liftdicts.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+compile_pass_no_warning SelfRecursiveInstance.bsv {-no-lift-dicts}
 
 # Test that BSC requires the user to add a proviso on self recursive instances
 # where instance overlap prevents resolution of the use.  (Bug 1882)
@@ -103,4 +109,3 @@ find_n_strings \
     {Stack space overflow} 1
 
 # ----------
-

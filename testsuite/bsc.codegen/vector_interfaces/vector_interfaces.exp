@@ -6,9 +6,85 @@ compare_verilog mkClockVectorPassThrough.v
 
 compile_verilog_pass SizeZero.bsv
 
-# We substitute _ for vector indices in the string types passed to WrapField in GenWrap.hs
-# to ensure that theinstance dictionaries can be combined for vector-blasted interfaces.
-# This relies on the -dtypecheck dump from wrapper compilation
-# overwriting the original -dtypecheck dump.
-compile_backend_pass WrapFieldRepeat.bs "-dwrapper_typecheck=tcwrapper.out"
+# We substitute _ for vector indices in the string types passed to WrapField
+# in GenWrap.hs so dictionaries can be combined for vector-blasted interfaces.
+# Wrapper LiftDicts must eliminate the forwarding aliases before IConv.
+compile_backend_pass WrapFieldRepeat.bs \
+    {-dwrapper_typecheck=tcwrapper.out -dwrapper_liftdicts=ldwrapper.out}
 find_n_strings tcwrapper.out "Prelude.Bits Prelude.Bool 1" 2
+find_regexp tcwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp_fail ldwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp ldwrapper.out {_lifted_dict[0-9]+}
+compile_backend_pass WrapFieldRepeat.bs \
+    {-no-lift-dicts -dwrapper_liftdicts=noldwrapper.out} 1
+find_regexp noldwrapper.out \
+    {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+find_regexp_fail noldwrapper.out {_lifted_dict[0-9]+}
+
+# Both wrappers need the host package's local instance definitions.  Their
+# lifted names must also avoid package definitions and previous wrappers.
+# Compile the importer without -u first to check the serialized producer,
+# then exercise the methods in both simulators, with and without LiftDicts.
+foreach flags {{} {-no-lift-dicts}} {
+    compile_backend_pass WrapperDicts.bsv \
+        "$flags -elab -dwrapper_liftdicts=WrapperDicts.%m.liftdicts.out" 1
+    if {$flags eq {}} {
+        foreach wrapper {mkEncodedRegs mkDerivedRegs} {
+            find_regexp WrapperDicts.$wrapper.liftdicts.out \
+                {_lifted_dict[0-9]+}
+            find_regexp_fail WrapperDicts.$wrapper.liftdicts.out \
+                {_tcdict[0-9]+[ \t]*=[ \t]+_tcdict[0-9]+[ \t]*;}
+        }
+    }
+    compile_backend_pass WrapperDictsUse.bsv "$flags -elab" 1
+    test_c_veri_bsv_modules_options WrapperDictsUse \
+        {mkEncodedRegs mkDerivedRegs} $flags sysWrapperDictsUse.out.expected
+}
+
+# Count allocation events, not references: sharing a dictionary is valid, but
+# allocating the same name again later in the compile is not.  This also catches
+# reuse when recomputing redirects happens to hide its effect on generated code.
+proc check_unique_lifted_dict_names {source} {
+    global subdir
+    set filename [file join $subdir [make_bsc_output_name $source]]
+    if {[catch {open $filename r} stream]} {
+        fail "Could not open `$filename' for lifted dictionary names"
+        return
+    }
+    set status [catch {read $stream} contents]
+    close $stream
+    if {$status} {
+        fail "Could not read `$filename' for lifted dictionary names"
+        return
+    }
+    set names {}
+    foreach {event name} [regexp -all -inline -line -- \
+            {^adding lifted dict:[[:space:]]*\(([^,[:space:]]+),} $contents] {
+        lappend names $name
+    }
+    if {[llength $names] == 0} {
+        fail "`$source' should allocate lifted dictionaries"
+    } elseif {[llength $names] != [llength [lsort -unique $names]]} {
+        fail "`$source' should allocate each lifted dictionary name only once"
+    } else {
+        pass "`$source' allocates each lifted dictionary name only once"
+    }
+}
+
+# Dropped package and earlier-wrapper dictionary names remain reserved for the
+# whole compile, even when imported wrapper dictionaries replace them.
+# Compile the producer and then its importer without -u to exercise the
+# serialized wrapper, before checking read/write behavior in both backends.
+foreach flags {{} {-no-lift-dicts}} {
+    compile_backend_pass WrapperRedirectSeed.bsv "$flags -elab" 1
+    compile_backend_pass WrapperRedirect.bsv "$flags -elab -trace-lift-dicts" 1
+    if {$flags eq {}} {
+        check_unique_lifted_dict_names WrapperRedirect.bsv
+    }
+    compile_backend_pass WrapperRedirectUse.bsv "$flags -elab" 1
+    test_c_veri_bsv_modules_options WrapperRedirectUse \
+        {mkWrapperRedirect mkWrapperRedirectSecond} \
+        $flags sysWrapperRedirectUse.out.expected
+}

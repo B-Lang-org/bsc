@@ -111,3 +111,12 @@ compile_pass ImportedInfixInDefault.bs
 test_veri_only ImportedInfixInDefaultImported
 
 # ----------
+
+# Test that a free value in one default clause is qualified without
+# qualifying a same-named argument bound in another clause.  The importing
+# package also shadows the free value, so this exercises the .bo boundary.
+
+compile_pass ClassDefaultScope.bs
+test_veri_only ClassDefaultScopeImported
+
+# ----------

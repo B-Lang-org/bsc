@@ -1,0 +1,9 @@
+free-ok
+bound-ok
+free-loop-ok
+local-loop-ok
+generator-ok
+def-qualifier-ok
+letseq-ok
+pattern-let-ok
+tuple-pattern-ok
