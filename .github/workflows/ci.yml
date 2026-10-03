@@ -59,9 +59,17 @@ jobs:
   build-and-test-macos:
     strategy:
       matrix:
-        os: [ macos-14, macos-15, macos-15-intel, macos-26, macos-26-intel ]
+        os: [ macos-15, macos-26 ]
         timeout_override: [ false ]
         brew_update: [ true ]
+        include:
+          # Homebrew no longer supports x86_64 macOS, so installs are slow
+          - os: macos-15-intel
+            timeout_override: true
+            brew_update: false
+          - os: macos-26-intel
+            timeout_override: true
+            brew_update: false
       fail-fast: false
     name: "Build/Test: ${{ matrix.os }}"
     uses: ./.github/workflows/build-and-test-macos.yml
@@ -163,8 +171,16 @@ jobs:
   build-doc-macOS:
     strategy:
       matrix:
-        os: [ macos-14, macos-15, macos-15-intel, macos-26, macos-26-intel ]
+        os: [ macos-15, macos-26 ]
         brew_update: [ true ]
+        include:
+          # Homebrew no longer supports x86_64 macOS, so installs are slow
+          - os: macos-15-intel
+            timeout_override: true
+            brew_update: false
+          - os: macos-26-intel
+            timeout_override: true
+            brew_update: false
       fail-fast: false
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
