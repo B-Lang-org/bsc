@@ -51,6 +51,7 @@ aunset () {
 # ===========================================================================
 
 ainit arr_id
+ainit arr_name
 ainit arr_ver
 ainit arr_lic
 ainit arr_copyr
@@ -60,16 +61,17 @@ ainit arr_deps
 #
 DELIM='-------------------------'
 
-# Regex for removing the hash from names like
-#   syb-0.7.2.4-FBa2dfZrzzu7owkvhCx23j
-#
-STRIP_HASH_REGEX='^([-[:lower:]]+[[:digit:]]+.[[:digit:]][.[:digit:]]*)-[[:alnum:]][[:alnum:]][[:alnum:]][[:alnum:]]+$'
-
-# Function to add a package to the database and follow its dependencies
+# Function to add a package to the database and follow its dependencies.
+# The argument is an installed package id, as listed in 'depends'.  Every
+# field is looked up by id rather than by name-version, because the id is
+# not always derived from the name: on macOS, cabal-install drops the
+# vowels from the package name when it forms a store id (old-locale is
+# ld-lcl-1.0.0.7-1ff3ddac), so the name has to come from the 'name' field.
 #
 add_pkg() {
-    local PKG_ID
+    local PKG_ID=$1
     local PKG_NAME
+    local PKG_KEY
     local PKG_VER
     local PKG_LIC
     local PKG_COPYR
@@ -77,23 +79,15 @@ add_pkg() {
 
     #echo "Looking up $1"
 
-    PKG_ID=`ghc-pkg field $1 id --simple-output`
+    PKG_NAME=`ghc-pkg field --ipid ${PKG_ID} name --simple-output`
+    PKG_KEY=`echo "${PKG_NAME}" | tr .- _`
 
-    if [[ ${PKG_ID} =~ ${STRIP_HASH_REGEX} ]] ; then
-	#echo "stripping ${PKG_ID} => ${BASH_REMATCH[1]}"
-	PKG_NAME=${BASH_REMATCH[1]}
-    else
-	PKG_NAME=${PKG_ID}
-    fi
-
-    PKG_NAME=`echo "${PKG_NAME}" | tr .- _`
-
-    aget arr_id "${PKG_NAME}" i_id
+    aget arr_id "${PKG_KEY}" i_id
     if [ -z ${i_id+x} ] ; then
-	PKG_VER=`ghc-pkg field $1 version --simple-output`
-	PKG_LIC=`ghc-pkg field $1 license --simple-output`
-	PKG_COPYR=`ghc-pkg field $1 copyright --simple-output`
-	PKG_DEPS=`ghc-pkg field $1 depends --simple-output`
+	PKG_VER=`ghc-pkg field --ipid ${PKG_ID} version --simple-output`
+	PKG_LIC=`ghc-pkg field --ipid ${PKG_ID} license --simple-output`
+	PKG_COPYR=`ghc-pkg field --ipid ${PKG_ID} copyright --simple-output`
+	PKG_DEPS=`ghc-pkg field --ipid ${PKG_ID} depends --simple-output`
 
 	if [ "${PKG_LIC}" != "BSD-3-Clause" ] ; then
 	    if [ "${PKG_LIC}" != "BSD-2-Clause" ] ; then
@@ -102,28 +96,29 @@ add_pkg() {
 	    fi
 	fi
 
-	aset arr_id ${PKG_NAME} "${PKG_ID}"
-	aset arr_ver ${PKG_NAME} "${PKG_VER}"
-	aset arr_lic ${PKG_NAME} "${PKG_LIC}"
-	aset arr_copyr ${PKG_NAME} "${PKG_COPYR}"
-	aset arr_deps ${PKG_NAME} "${PKG_DEPS}"
+	aset arr_id ${PKG_KEY} "${PKG_ID}"
+	aset arr_name ${PKG_KEY} "${PKG_NAME}"
+	aset arr_ver ${PKG_KEY} "${PKG_VER}"
+	aset arr_lic ${PKG_KEY} "${PKG_LIC}"
+	aset arr_copyr ${PKG_KEY} "${PKG_COPYR}"
+	aset arr_deps ${PKG_KEY} "${PKG_DEPS}"
 
 	for dep in ${PKG_DEPS}
 	do
 	    #echo "Following dep: $dep"
-	    if [[ ${dep} =~ ${STRIP_HASH_REGEX} ]] ; then
-		#echo "stripping ${dep} => ${BASH_REMATCH[1]}"
-		dep=${BASH_REMATCH[1]}
-	    fi
 	    add_pkg "${dep}"
 	done
     fi
 }
 
-# Add the packages from the command line (and their dependencies)
+# Add the packages from the command line (and their dependencies).
+# These are package names, so resolve each to its id first.
 for i in ${PACKAGES}
 do
-    add_pkg "$i"
+    for id in `ghc-pkg field $i id --simple-output`
+    do
+	add_pkg "$id"
+    done
 done
 
 # Generate the output, starting with a delimiter
@@ -134,26 +129,10 @@ keys=$(akeys arr_id)
 sorted_keys=`echo ${keys} | tr ' ' '\012' | sort | tr '\012' ' '`
 for i in ${sorted_keys}
 do
-    aget arr_id $i i_id
+    aget arr_name $i pkg
     aget arr_ver $i i_ver
     aget arr_lic $i i_lic
     aget arr_copyr $i i_copyr
-
-    # Because the package name was mangled to make the assoc array key
-    # re-construct it from the ID
-
-    if [[ ${i_id} =~ ${STRIP_HASH_REGEX} ]] ; then
-	pkg=${BASH_REMATCH[1]}
-    else
-	pkg=${i_id}
-    fi
-
-    # And then strip the version number
-
-    STRIP_VER_REGEX="^([-[:lower:]]+)-${i_ver}"
-    if [[ $pkg =~ ${STRIP_VER_REGEX} ]] ; then
-	pkg=${BASH_REMATCH[1]}
-    fi
 
     echo
     echo "package: $pkg"
