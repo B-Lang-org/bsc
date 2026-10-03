@@ -10,6 +10,7 @@ inst
 
 # And the build directory
 build
+dist-newstyle/
 
 .vagrant/
 vagrant-out/
