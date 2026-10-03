@@ -92,7 +92,8 @@ import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
 import LiftDicts(liftDictsPkg, liftDictsWrapper,
-                 LiftDictsContext, prepareLiftDictsContext)
+                 LiftDictsContext, prepareLiftDictsContext,
+                 reserveLiftDictsNames)
 import ISimpDicts(iSimpDicts)
 import FixupDefs(fixupDefs, updDef, mkDictBuckets)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
@@ -472,7 +473,8 @@ compilePackage
     -- allowing the typechecked source bodies to be released after IConv.
     let !wrapper_dict_context =
             if liftDicts flags && not (null gens)
-            then Just $! prepareLiftDictsContext mod_lifted
+            then Just $! prepareLiftDictsContext
+                            [i | IDef i _ _ _ <- lifted_defs] mod_lifted
             else Nothing
 
     --------------------------------------------
@@ -602,9 +604,10 @@ compilePackage
     --   doesn't update "alldefs"; this is likely OK because it is only used
     --   to build undefined values (in IExpand) and to insert RWires
     --   (in AAddSchedAssumps)
-    let gen :: (IPackage HeapData, Bool) -> [WrapInfo] -> IO (IPackage HeapData, Bool)
-        gen (im, !success) []  = return (im, success)
-        gen (im, !success) (wi@(WrapInfo { mod_nm = i, wrapped_mod = i' }) : xs) = do
+    let gen :: Maybe LiftDictsContext -> (IPackage HeapData, Bool) ->
+               [WrapInfo] -> IO (IPackage HeapData, Bool)
+        gen _ (im, !success) []  = return (im, success)
+        gen dict_context (im, !success) (wi@(WrapInfo { mod_nm = i, wrapped_mod = i' }) : xs) = do
             let (mfile, mpkg, _) = dumpnames
                 dumpnames' = (mfile, mpkg, Just (getIdString (unQualId i)))
                 fwrapper = i `elem` map (\ (i, _, _, _, _) -> i) funcs
@@ -646,7 +649,7 @@ compilePackage
             -- supplies local instance types that are absent from SymTab.
             (idef, wrap_lifted_defs, ok2)
                 <- compileCDefToIDef errh flags dumpnames' symt
-                                    wrapper_dict_context im def
+                                    dict_context im def
 
             t <- getNow
             start flags DFwrapper_fixup
@@ -663,11 +666,17 @@ compilePackage
             t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef
+            -- Reserve names even when fixup removed their definitions.  Force
+            -- the projection so the context does not retain dictionary bodies.
+            let !dict_context' = case dict_context of
+                    Nothing -> Nothing
+                    Just context -> Just $! reserveLiftDictsNames
+                        [i | IDef i _ _ _ <- wrap_lifted_defs] context
             -- recurse for each module in [WrapInfo]
-            gen (im', success && ok && ok2) xs
+            gen dict_context' (im', success && ok && ok2) xs
 
 
-    (imodr, success) <- gen (imods, True) ordgens
+    (imodr, success) <- gen wrapper_dict_context (imods, True) ordgens
 
     t <- getNow
     -- Finally, generate interface files

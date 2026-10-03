@@ -1,5 +1,6 @@
 module LiftDicts(liftDictsPkg, liftDictsWrapper,
-                 LiftDictsContext, prepareLiftDictsContext) where
+                 LiftDictsContext, prepareLiftDictsContext,
+                 reserveLiftDictsNames) where
 
 import Control.Applicative((<|>))
 import Control.Monad(when, zipWithM)
@@ -87,13 +88,23 @@ liftDictsPkg errh flags symt =
 data LiftDictsContext = LiftDictsContext
     !(M.Map Id ([TyVar], CType)) !(S.Set FString)
 
-prepareLiftDictsContext :: CPackage -> LiftDictsContext
-prepareLiftDictsContext (CPackage _ _ _ _ _ ds _) =
+-- Keep the names emitted by the initial lifting pass reserved even if
+-- fixup later drops their definitions.  Later phases may retain references
+-- to those names, so a wrapper must never reuse them for different evidence.
+prepareLiftDictsContext :: [Id] -> CPackage -> LiftDictsContext
+prepareLiftDictsContext lifted (CPackage _ _ _ _ _ ds _) =
     LiftDictsContext
         (M.fromList [ (i, (vs, t))
                     | CValueSign (CDefT i vs (CQType [] t) _) <- ds,
                       isDictFun t ])
-        (S.fromList [ getIdBase (getDName def) | CValueSign def <- ds ])
+        (S.fromList (map getIdBase lifted ++
+                     [ getIdBase (getDName def) | CValueSign def <- ds ]))
+
+-- Preserve allocation history independently of which definitions survive
+-- fixup, including dictionaries emitted by earlier wrappers.
+reserveLiftDictsNames :: [Id] -> LiftDictsContext -> LiftDictsContext
+reserveLiftDictsNames ids (LiftDictsContext insts names) =
+    LiftDictsContext insts (S.union names (S.fromList (map getIdBase ids)))
 
 -- Wrappers are lifted after the host package has been converted.  Reserve
 -- its current definition names, including dictionaries from earlier wrappers,
@@ -108,7 +119,7 @@ liftDictsWithContext :: ErrorHandle -> Flags -> SymTab -> [Id] -> LiftDictsConte
 liftDictsWithContext errh flags symt taken (LiftDictsContext hostInsts hostNames)
                     pkg@(CPackage mi exps imps impsigs fixs ds includes)
   = (CPackage mi exps imps impsigs fixs ds' includes, reverse (liftedDefs s'))
-  where LiftDictsContext insts names = prepareLiftDictsContext pkg
+  where LiftDictsContext insts names = prepareLiftDictsContext [] pkg
         context = LiftDictsContext (M.union insts hostInsts)
                                    (S.union names hostNames)
         s0 = initLState errh flags symt taken context mi
