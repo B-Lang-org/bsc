@@ -1,0 +1,10 @@
+# Files that are deliberately not UTF-8: they test that BSC rejects
+# non-UTF-8 source files (error P0224).  check_encoding.sh requires the
+# files listed here to be invalid UTF-8, so that a transcoding sweep
+# cannot silently defeat those tests.  Exact paths, one per line.
+testsuite/bsc.syntax/bh/Latin1Code.bs
+testsuite/bsc.syntax/bh/Latin1LineComment.bs
+testsuite/bsc.syntax/bh/Latin1MultilineComment.bs
+testsuite/bsc.syntax/bsv05/Latin1Code.bsv
+testsuite/bsc.syntax/bsv05/Latin1LineComment.bsv
+testsuite/bsc.syntax/bsv05/Latin1MultilineComment.bsv

@@ -11,7 +11,7 @@
 -- bsc: Compilation errors:
 -- "Prelude.bs", line 1053, column 13, Compile time expression did not evaluate:
 -- Type: Prelude.String
--- PrimBitToString (.Prelude.get ·666 y_1)
+-- PrimBitToString (.Prelude.get Â·666 y_1)
 -----------------------------------------------------------------------
 
 package ENoNF1 (ENoNF1(..), mkENoNF1) where

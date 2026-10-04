@@ -1204,6 +1204,8 @@ data ErrMsg =
         | EPortNameErrorOnImport String String
         | ENoTopTypeSign String
         | WUnusedDef String
+        -- | operator, the characters in it that GHC's lexer rejects
+        | ENonHaskellOperator String String
         | EConPatArgs String (Maybe String) Int Int
 
         -- XXX these should contain the type of the constructor
@@ -1892,6 +1894,26 @@ getErrorText (WUnusedDef i) =
      s2par ("Definition of " ++ quote i ++ " is not used."))
 getErrorText ENotUTF8 =
     (Parse 224, empty, s2par "File encoding is not UTF-8")
+
+getErrorText (ENonHaskellOperator op cs) =
+    (Parse 225, empty,
+     s2par ("The operator " ++ quote op ++ " contains the " ++
+            (if plural then "characters " else "character ") ++
+            unwordsAnd (map showU cs) ++
+            ", which " ++ (if plural then "are" else "is") ++
+            " not accepted in operators by Haskell (GHC)." ++
+            concatMap suggest cs))
+  where plural = length cs > 1
+        showU c = quote [c] ++ " (U+" ++
+                  map toUpper (integerFormat 4 16 (toInteger (fromEnum c))) ++
+                  ")"
+        suggest c = case lookup c replacements of
+                      Just rs -> "  Please use " ++
+                                 unwordsOr (map showU rs) ++
+                                 " instead of " ++ showU c ++ "."
+                      Nothing -> ""
+        replacements = [('\171'{-«-}, ['\x226A'{-≪-}]),
+                        ('\187'{-»-}, ['\x2A20'{-⨠-}, '\x226B'{-≫-}])]
 
 -- Type check and elaboration errors
 

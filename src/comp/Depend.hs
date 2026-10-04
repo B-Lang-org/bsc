@@ -22,7 +22,7 @@ import Backend
 import Pragma(Pragma(..),PProp(..))
 import Position(noPosition, filePosition)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError,
-             exitFailWith, bsWarning, WMsg)
+             bsErrorDemotable, exitFailWith, bsWarning, WMsg)
 import PFPrint
 import FStringCompat
 import Lex
@@ -400,11 +400,17 @@ parseSrc' True errh flags filename inp = do
   start flags DFparsed
   let lflags = LFlags { lf_is_stdlib = stdlibNames flags,
                         lf_allow_sv_kws = not outlaw_sv_kws_as_classic_ids }
-  case chkParse pPackage (lexStart lflags (mkFString filename) inp) of
-      Right pkg -> do t <- dump errh flags t DFparsed dumpnames pkg
-                      let ws = classicWarnings pkg
-                      return (pkg, t, ws)
-      Left errs -> bsError errh errs
+      tokens = lexStart lflags (mkFString filename) inp
+      lex_errs = nonHaskellOperatorErrors tokens
+  -- Force the scan before parsing, so that the extra reference doesn't
+  -- retain the whole token list for the duration of the parse.
+  _ <- CE.evaluate (length lex_errs)
+  case chkParse pPackage tokens of
+      Right pkg -> do when (not (null lex_errs)) $
+                          bsErrorDemotable errh lex_errs
+                      t <- dump errh flags t DFparsed dumpnames pkg
+                      return (pkg, t, classicWarnings pkg)
+      Left errs -> bsError errh (lex_errs ++ errs)
 parseSrc' False errh flags filename inp =
   -- BSV parser
   bsvParseString errh flags filename (baseName $ dropSuf filename) inp

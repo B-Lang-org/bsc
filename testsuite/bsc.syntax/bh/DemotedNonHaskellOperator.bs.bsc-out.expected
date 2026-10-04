@@ -1,0 +1,19 @@
+checking package dependencies
+Warning: "DemotedNonHaskellOperator.bs", line 1, column 35: (P0225)
+  The operator `»»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Warning: "DemotedNonHaskellOperator.bs", line 7, column 1: (P0225)
+  The operator `»»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Warning: "DemotedNonHaskellOperator.bs", line 8, column 2: (P0225)
+  The operator `»»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+Warning: "DemotedNonHaskellOperator.bs", line 11, column 13: (P0225)
+  The operator `»»' contains the character `»' (U+00BB), which is not accepted
+  in operators by Haskell (GHC). Please use `⨠' (U+2A20) or `≫' (U+226B)
+  instead of `»' (U+00BB).
+compiling DemotedNonHaskellOperator.bs
+All packages are up to date.
