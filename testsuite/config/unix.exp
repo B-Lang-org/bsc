@@ -889,12 +889,52 @@ proc exit_status { cmd expected_status logfile } {
 # m4 functions
 #
 
+# Check that a template still contains the macros we are about to define
+# in it.  The easy way to update an expected file is to copy the actual
+# output over it, which bakes in whatever paths that particular run used
+# and leaves the substitution with nothing to do; the test then only
+# passes in the tree it was regenerated in.  Catch that here, where we
+# know which macros were meant to survive, rather than in the diff of the
+# comparison test, which just shows two absolute paths that differ.
+proc check_m4_macros { m4_options infile } {
+    if { ![file readable $infile] } {
+        # Leave it to m4 to complain about the input file
+        return
+    }
+
+    set fp [open $infile r]
+    set contents [read $fp]
+    close $fp
+
+    # A multi-stage substitution feeds us its own intermediate, but the
+    # file to repair is the checked-in template the chain started from
+    regsub {\.post-m4(-stage[0-9]+)?$} $infile "" source
+
+    foreach { - macro } [regexp -all -inline \
+                             {(?:^|\s)-D([A-Za-z_][A-Za-z0-9_]*)=} $m4_options] {
+        # m4 only expands whole tokens, so require one here too
+        if { [regexp "(?:^|\[^A-Za-z0-9_\])${macro}(?:\[^A-Za-z0-9_\]|\$)" \
+                  $contents] } {
+            continue
+        }
+        fail "m4 template `$source' no longer mentions `$macro'"
+        note "`$source' is a template: the harness substitutes `$macro' for"
+        note "a value that varies by build tree.  The macro is gone, so the"
+        note "file now holds one tree's literal value and will fail in every"
+        note "other tree -- which is what copying actual output over an"
+        note "expected file does.  To fix, put `$macro' back where that"
+        note "literal value now sits."
+    }
+}
+
 proc m4_process { m4_options infile outfile } {
     global srcdir
     global subdir
 
     set here [absolute $srcdir]
     cd [file join $here $subdir]
+
+    check_m4_macros $m4_options $infile
 
     verbose -log "Generating expected output"
 #    set status [exec_with_log "m4_process" "m4 $m4_options $infile > $outfile"]
