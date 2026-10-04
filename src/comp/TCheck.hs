@@ -20,7 +20,7 @@ import Flags(Flags, letGen)
 import PFPrint
 import Id
 import FStringCompat
-import PreStrings(fsEmpty)
+import PreStrings(fsEmpty, fsConstAllBitsSet)
 import PreIds
 import Position(Position(..), noPosition)
 import Error(internalError, ErrMsg(..))
@@ -383,6 +383,16 @@ tiExpr as td exp@(Ccase pos e arms) =
 
 tiExpr as td (CAny pos uk) = do
     return ([], CAnyT pos uk td)
+
+-- '0 and '1 are desugared to Prelude variables, so report a type error
+-- in terms of the literal instead of the desugaring
+tiExpr as td exp@(CVar i) | hasIdProp i IdPUnbasedUnsized =
+    tiVar NoRead as td exp `handle` \ _ -> do
+        s <- getSubst
+        let lit = if getIdBase i == fsConstAllBitsSet then "'1" else "'0"
+            hint = if isBSV() then "unpack(" ++ lit ++ ")" else "unpack " ++ lit
+        err (getPosition exp,
+             EUnbasedUnsizedType lit (pfpReadable (niceTypes (apSub s td))) hint)
 
 tiExpr as td exp@(CVar i) =
     -- it is ok to add register read to the variable

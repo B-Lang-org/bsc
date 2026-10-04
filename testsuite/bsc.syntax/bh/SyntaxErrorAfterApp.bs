@@ -1,0 +1,8 @@
+package SyntaxErrorAfterApp where
+
+f :: a -> a
+f x = x
+
+-- The error should be reported at the ), not at f
+g :: Bit 2
+g = f )

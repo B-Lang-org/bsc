@@ -1,0 +1,5 @@
+package UnbasedUnsizedEscape() where
+
+-- An escape for the character 0 is not the unbased unsized literal '0
+zeros :: Bit 8
+zeros = '\x30

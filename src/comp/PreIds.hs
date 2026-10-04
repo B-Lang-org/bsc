@@ -576,6 +576,12 @@ idRulesAt pos = prelude_id pos fsRules
 idConstAllBitsSetAt pos = prelude_id pos fsConstAllBitsSet
 idConstAllBitsUnsetAt pos = prelude_id pos fsConstAllBitsUnset
 
+-- | What '1 (True) or '0 (False) desugars to, marked so that type errors
+-- can mention the literal instead of the desugaring
+idUnbasedUnsizedAt :: Position -> Bool -> Id
+idUnbasedUnsizedAt pos True  = addIdProp (idConstAllBitsSetAt pos) IdPUnbasedUnsized
+idUnbasedUnsizedAt pos False = addIdProp (idConstAllBitsUnsetAt pos) IdPUnbasedUnsized
+
 -- | List declaration desugaring
 idListAt :: Position -> Id
 idListAt pos = prelude_id pos fsList

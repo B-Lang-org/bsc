@@ -936,7 +936,7 @@ l li =  token ( \ls->
         [] -> internalError "CParser.l: no succeeding token")
 
 getPos :: CParser Position
-getPos = token ( \ls->
+getPos = token0 ( \ls->
         case ls of
         Token p _ : _ -> Right (p, ls)
         [] -> internalError "CParser.getPos: no succeeding token")
@@ -953,7 +953,7 @@ lcp s f =
 
 startBlock :: Position -> CParser Bool
 startBlock tp@(Position _ _ trigCol _) =
-        token $ \ ts ->
+        token0 $ \ ts ->
         case ts of
         t@(Token p@(Position _ _ c _) li) : ts' | li /= L_lcurl && useLayout ->
              Right (False, Token p L_lcurl_o : rest)
@@ -1011,9 +1011,8 @@ char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar
 
 unbasedUnsized :: CParser CExpr
 unbasedUnsized = lcp "<unbased-unsized>" (\p x -> case x of
-    L_unbasedUnsized True  -> Just (cVar (idConstAllBitsSetAt p))
-    L_unbasedUnsized False -> Just (cVar (idConstAllBitsUnsetAt p))
-    _                      -> Nothing)
+    L_unbasedUnsized b -> Just (cVar (idUnbasedUnsizedAt p b))
+    _                  -> Nothing)
 
 hide :: CParser ()
 hide = literal fsHide

@@ -1,0 +1,5 @@
+package UnbasedUnsizedTypeBool() where
+
+-- '0 is a Bit, so it can't be a Bool
+b :: Bool
+b = '0

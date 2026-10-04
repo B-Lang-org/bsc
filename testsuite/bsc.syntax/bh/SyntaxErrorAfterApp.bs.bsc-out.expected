@@ -1,0 +1,6 @@
+checking package dependencies
+Error: "SyntaxErrorAfterApp.bs", line 8, column 6: (P0005)
+  Unexpected ")"; expected ".", "[", "where", "::", "{", "{ from layout", "_",
+  "<var>", "(", "<con>", "<real>", "<integer>", "<string>", "<char>",
+  "<unbased-unsized>", "do", "action", "<op>", "`", ";", "; from layout", "}",
+  or "} from layout"

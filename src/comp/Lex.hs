@@ -23,6 +23,7 @@ data LexError = LexBadCharLit
               | LexBadLexChar Char
               | LexUntermComm Position
               | LexMissingNL
+              | LexBadUnbasedUnsized Char Char
               deriving(Eq)
 
 convLexErrorToErrMsg :: LexError -> ErrMsg
@@ -31,6 +32,7 @@ convLexErrorToErrMsg (LexBadStringLit) = EBadStringLit
 convLexErrorToErrMsg (LexBadLexChar c) = EBadLexChar c
 convLexErrorToErrMsg (LexUntermComm p) = EUntermComm p
 convLexErrorToErrMsg (LexMissingNL) = EMissingNL
+convLexErrorToErrMsg (LexBadUnbasedUnsized d c) = EBadUnbasedUnsized d c
 
 data LexItem =
           L_varid FString
@@ -228,9 +230,14 @@ lx lf f l c ('.':cs)                = Token (mkPositionFull f l c (lf_is_stdlib 
 lx lf f l c ('\'':cs)                =
     case lexLitChar' cs of
         Just (cc, n, '\'':cs) -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_char cc) : lx lf f l (c+2+n) cs
-        Just ('0', n, cs)     -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_unbasedUnsized False) : lx lf f l (c+1+n) cs
-        Just ('1', n, cs)     -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_unbasedUnsized True)  : lx lf f l (c+1+n) cs
-        _                     -> lexerr f l c LexBadCharLit
+        _ -> case cs of
+               -- unbased unsized literal: '0 or '1 not followed by a closing quote,
+               -- and not glued to anything that could continue a token
+               (d:cs') | d == '0' || d == '1' ->
+                   case cs' of
+                     (x:_) | isIdChar x -> lexerr f l c (LexBadUnbasedUnsized d x)
+                     _ -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_unbasedUnsized (d == '1')) : lx lf f l (c+2) cs'
+               _ -> lexerr f l c LexBadCharLit
 lx lf f l c ('"':cs)                =
         case lexString cs l (c+1) "" of
             Just (str, l', c', cs') -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_string str) : lx lf f l' c' cs'

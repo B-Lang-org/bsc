@@ -1,0 +1,5 @@
+package UnbasedUnsizedTypeApply() where
+
+-- '0 is not a function
+b :: Bit 8
+b = '0 5

@@ -1,0 +1,8 @@
+package UnbasedUnsizedGluedVar() where
+
+-- '1 glued to an identifier is an error, not '1 applied to foo
+foo :: Bit 8
+foo = 0
+
+ones :: Bit 8
+ones = '1foo

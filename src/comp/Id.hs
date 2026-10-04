@@ -163,6 +163,8 @@ data IdProp = IdPCanFire
               -- were introduced from bracket syntax
               | IdPParserGenerated
               | IdPIncoherent           -- Used to track incoherent instance matches
+              -- desugared from '0 or '1, so errors can mention the literal
+              | IdPUnbasedUnsized
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 -- #############################################################################

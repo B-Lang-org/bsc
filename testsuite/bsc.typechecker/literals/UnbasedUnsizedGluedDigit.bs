@@ -1,0 +1,5 @@
+package UnbasedUnsizedGluedDigit() where
+
+-- '01 is an error, not '0 followed by 1
+zeros :: Bit 8
+zeros = '01

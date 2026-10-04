@@ -23,3 +23,29 @@ isAllOnes x = (x == '1)
 describeZero :: Bit 8 -> String
 describeZero '0 = "all zeros"
 describeZero _  = "nonzero"
+
+-- '0 and '1 end at punctuation and operators, not just whitespace
+pair :: (Bit 8, Bit 8)
+pair = ('0,'1)
+
+struct S = { a :: Bit 8; b :: Bit 8 }
+
+s :: S
+s = S {a='0;b='1}
+
+andOnes :: Bit 8 -> Bit 8
+andOnes x = '1&x
+
+isOnes :: Bit 8 -> Bool
+isOnes x = '1==x
+
+-- With a closing quote, these are still Char literals
+zeroChar :: Char
+zeroChar = '0'
+
+oneChar :: Char
+oneChar = '1'
+
+-- unpack gets a value of some other Bits type
+onesU :: UInt 8
+onesU = unpack '1

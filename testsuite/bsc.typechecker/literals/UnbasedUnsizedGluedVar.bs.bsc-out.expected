@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "UnbasedUnsizedGluedVar.bs", line 8, column 7: (P0225)
+  The unbased unsized literal '1 cannot be immediately followed by 'f'. If
+  they are separate tokens, add a space between them.

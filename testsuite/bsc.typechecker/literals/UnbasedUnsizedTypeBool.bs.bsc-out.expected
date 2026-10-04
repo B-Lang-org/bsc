@@ -1,0 +1,8 @@
+checking package dependencies
+compiling UnbasedUnsizedTypeBool.bs
+Error: "UnbasedUnsizedTypeBool.bs", line 5, column 4: (T0159)
+  The unbased unsized literal '0 must have a Bit type, but here it is expected
+  to have type:
+    Prelude.Bool
+
+  To get a value of some other type in the Bits class, use unpack '0.

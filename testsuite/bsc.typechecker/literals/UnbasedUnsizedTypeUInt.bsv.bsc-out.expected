@@ -1,0 +1,8 @@
+checking package dependencies
+compiling UnbasedUnsizedTypeUInt.bsv
+Error: "UnbasedUnsizedTypeUInt.bsv", line 5, column 11: (T0159)
+  The unbased unsized literal '1 must have a Bit type, but here it is expected
+  to have type:
+    UInt#(8)
+
+  To get a value of some other type in the Bits class, use unpack('1).

@@ -209,11 +209,11 @@ Numeric literals (not expressions)
 >           accept (SV_Token_Number { start_position = pos,
 >                                     value = SV_NUM_Repeated SV_BIT_0,
 >                                     base = maybeBase }) =
->               Just (cVar (idConstAllBitsUnsetAt pos))
+>               Just (cVar (idUnbasedUnsizedAt pos False))
 >           accept (SV_Token_Number { start_position = pos,
 >                                     value = SV_NUM_Repeated SV_BIT_1,
 >                                     base = maybeBase }) =
->               Just (cVar (idConstAllBitsSetAt pos))
+>               Just (cVar (idUnbasedUnsizedAt pos True))
 >           accept (SV_Token_Number
 >                      { start_position = pos,
 >                        value = SV_NUM_Real num,

@@ -22,4 +22,7 @@ function String describeZero(Bit#(8) x);
     endcase
 endfunction
 
+// unpack gets a value of some other Bits type
+UInt#(8) onesU = unpack('1);
+
 endpackage

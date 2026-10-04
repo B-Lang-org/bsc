@@ -1,0 +1,5 @@
+package UnbasedUnsizedEOF() where
+
+-- '0 as the very last thing in the file, with no trailing newline
+zeros :: Bit 8
+zeros = '0

@@ -13,6 +13,21 @@ compile_pass BinaryLiteral.bsv
 # Unbased unsized bit literals ('0 all-zeros, '1 all-ones) in BH and BSV
 compile_pass UnbasedUnsized.bs
 compile_pass UnbasedUnsized.bsv
+compile_pass UnbasedUnsizedEOF.bs
+
+# In BH, '0 and '1 can't be glued to a following identifier character
+compile_fail_error UnbasedUnsizedGluedVar.bs P0225
+compare_file UnbasedUnsizedGluedVar.bs.bsc-out
+compile_fail_error UnbasedUnsizedGluedDigit.bs P0225
+# An escape sequence that decodes to 0 is just a bad Char literal
+compile_fail_error UnbasedUnsizedEscape.bs P0000
+
+# Type errors mention the literal, not what it desugars to
+compile_fail_error UnbasedUnsizedTypeBool.bs T0159
+compare_file UnbasedUnsizedTypeBool.bs.bsc-out
+compile_fail_error UnbasedUnsizedTypeUInt.bsv T0159
+compare_file UnbasedUnsizedTypeUInt.bsv.bsc-out
+compile_fail_error UnbasedUnsizedTypeApply.bs T0159
 
 # -----
 
