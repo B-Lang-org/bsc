@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes, ScopedTypeVariables, PatternGuards #-}
 module IConv(
-             iConvPackage, iConvT, iConvExpr, iConvSc, iConvDef,
+             iConvPackage, iConvT, iConvK, iConvExpr, iConvSc, iConvDef,
              lookupSelType
             ) where
 
