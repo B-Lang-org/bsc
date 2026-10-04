@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "LexErrorAfterApp.bs", line 8, column 6: (P0000)
+  Bad Char literal

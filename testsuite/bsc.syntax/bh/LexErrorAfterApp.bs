@@ -1,0 +1,8 @@
+package LexErrorAfterApp where
+
+f :: a -> a
+f x = x
+
+-- The lexical error should be reported, not a syntax error at f
+g :: Char
+g = f 'ab'

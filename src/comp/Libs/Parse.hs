@@ -6,7 +6,7 @@
 -- @@ consists of a b value, and a list of remaining as.
 
 module Parse(Parser, (+.+), (..+), (+..), (|||), (>>-), (>>>), (||!), (|!!), (.>),
-             into, lit, litp, many, many1, succeed, failure, sepBy, count, sepBy1, testp, token, recover,
+             into, lit, litp, many, many1, succeed, failure, sepBy, count, sepBy1, testp, token, token0, recover,
              ParseResult, parse, sParse, simpleParse) where
 
 -- @@ Parsing combinatores with good error reporting.
@@ -218,6 +218,16 @@ token f = \as n->
         case f as of
             Left s -> None False (FailAt n [s] as)
             Right (b, as') -> One b (n+1) as' noFail
+
+-- Like token, but doesn't count as consuming a token, for recognizers that
+-- only peek at the input or insert virtual tokens into it.  Counting those
+-- would put later failures one token ahead of where they really are, and
+-- then a failure at an earlier token could be reported instead.
+token0 :: (a -> Either PErrMsg (b,a)) -> Parser a b
+token0 f = \as n->
+        case f as of
+            Left s -> None False (FailAt n [s] as)
+            Right (b, as') -> One b n as' noFail
 
 -- Test a semantic value
 testp :: String -> (b->Bool) -> Parser a b -> Parser a b
