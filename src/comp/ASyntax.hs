@@ -129,6 +129,7 @@ import Prim
 import ErrorUtil(internalError)
 import Backend
 import Pragma
+import DefProp(DefProp)
 import PreStrings(fsDollar, fsUnderscore, fsEnable, fs_port)
 import FStringCompat
 -- import Position(noPosition)

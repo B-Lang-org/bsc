@@ -6,6 +6,7 @@ import AScheduleInfo
 import AUses
 import Flags
 import Pragma
+import DefProp
 import ProofObligation(ProofObligation(..), ProofResult(..), MsgFn(..),
                        MsgTuple, warnUnlessProof, errorUnlessProof)
 import PFPrint

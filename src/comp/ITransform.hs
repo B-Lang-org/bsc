@@ -35,7 +35,7 @@ import Flags(Flags, optBool)
 import FStringCompat(mkFString)
 import Id
 import Prim
-import Pragma(DefProp, defPropsHasNoCSE)
+import DefProp(DefProp, defPropsHasNoCSE)
 import ISyntax
 import ISyntaxUtil
 import IPrims(doPrimOp)

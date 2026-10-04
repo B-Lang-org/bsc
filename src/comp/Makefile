@@ -260,8 +260,11 @@ BSCEXES = bsc
 TCLEXES = bluetcl
 UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
 SHOWRULESEXES = showrules
+# Build-consistency checkers: installed as part of the normal install
+# (not just install-extra), because the library build runs them
+CHECKEXES = tconcheck
 
-EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
+EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES) $(CHECKEXES)
 
 .PHONY: all
 all: $(EXES)
@@ -353,6 +356,12 @@ vcdcheck: $(SOURCES)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
+.PHONY: tconcheck
+tconcheck: $(SOURCES)
+	$(PREBUILDCOMMAND)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(BSC_BUILDLIBS)
+	$(POSTBUILDCOMMAND)
+
 .PHONY: showrules
 showrules: $(SOURCES)
 	$(PREBUILDCOMMAND)
@@ -394,7 +403,7 @@ endif
 # Install targets
 
 .PHONY: install
-install: $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
+install: $(BSCEXES) $(TCLEXES) $(CHECKEXES) install-bsc install-bluetcl install-checkers
 
 .PHONY: install-extra
 install-extra: $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
@@ -428,6 +437,11 @@ install-utils: $(PKGINFO)
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
 install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 install-showrules: $(PKGINFO)
+
+.PHONY: install-checkers
+install-checkers: $(addprefix $(BINDIR)/,$(CHECKEXES))
+install-checkers: $(addprefix $(BINDIR)/core/,$(CHECKEXES))
+install-checkers: $(PKGINFO)
 
 # ----
 # Other targets

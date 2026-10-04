@@ -14,7 +14,8 @@ set rtsflags {+RTS -M288M -Sstderr -RTS}
 # -----
 
 compile_verilog_pass Bug1490Bool.bsv {} $rtsflags
-compile_verilog_pass Bug1490MyBool.bsv {} $rtsflags
+# MyBool needs more headroom once dictionary lifting is enabled
+compile_verilog_pass Bug1490MyBool.bsv {} {+RTS -M320M -Sstderr -RTS}
 compile_verilog_pass Bug1490MyUnion.bsv {} $rtsflags
 compile_verilog_pass Bug1490MyEnum.bsv {} $rtsflags
 

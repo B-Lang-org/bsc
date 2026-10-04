@@ -15,7 +15,7 @@ import Position(noPosition)
 import FStringCompat(mkFString)
 import Id
 import Prim
-import Pragma(DefProp, defPropsHasNoCSE)
+import DefProp(DefProp, defPropsHasNoCSE)
 import ASyntax
 import ASyntaxUtil(tsortADefs, aType, isConst, aSize, )
 import AExpand(aSRemoveUnused)
