@@ -628,6 +628,7 @@ defaultFlags bluespecdir = Flags {
         simplifyCSyntax = False,
         strictMethodSched = True,
         suppressWarnings = SomeMsgs [],
+        svaRuntimeChecks = False,
         synthesize = False,
         systemVerilogTasks = False,
         tclShowHidden = False,
@@ -1592,6 +1593,10 @@ externalFlags = [
           "clear the list of warnings to ignore",
           Deprecated "Use \"-suppress-warnings NONE\" instead.")),
 
+        ("sva-runtime-checks",
+         (Toggle (\f x -> f {svaRuntimeChecks=x}) (showIfTrue svaRuntimeChecks),
+          "emit assertions (under `ifdef FORMAL) for the runtime checks of mutually exclusive and conflict-free rules (Verilog only)", Visible)),
+
         ("synthesize",
          (Toggle (\f x -> f {synthesize=x, optBitConst=x}) (showIfTrue synthesize),
           "synthesize all primitives into simple boolean ops", Hidden)),
@@ -1930,6 +1935,7 @@ showFlagsRaw flags =
           ("simplifyCSyntax", show (simplifyCSyntax flags)),
           ("strictMethodSched", show (strictMethodSched flags)),
           ("suppressWarnings", show (suppressWarnings flags)),
+          ("svaRuntimeChecks", show (svaRuntimeChecks flags)),
           ("synthesize", show (synthesize flags)),
           ("systemVerilogTasks", show (systemVerilogTasks flags)),
           ("tclShowHidden", show (tclShowHidden flags)),

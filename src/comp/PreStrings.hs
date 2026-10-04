@@ -462,6 +462,7 @@ fsInfoTask   = mkFString "$info"
 fsFatalTask   = mkFString "$fatal"
 
 fsSVA          = mkFString "$SVA"
+fsSvaRuntimeCheck = mkFString "$sva_runtime_check"
 fsSvaParam     = mkFString "SvaParam"
 fsSvaBool      = mkFString "SvaBool"
 fsSvaNumber    = mkFString "SvaNumber"

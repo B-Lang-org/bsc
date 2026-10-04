@@ -1,0 +1,33 @@
+package MutuallyExclusiveSVA where
+
+-- With -sva-runtime-checks, the runtime check that rJoinMutuallyExclusive
+-- adds (R0001) also gets an assertion under `ifdef FORMAL
+
+mkPulseCounter :: Bit n -> Module Bool
+mkPulseCounter reset = module
+  counter <- mkReg reset
+  addRules $
+    rules
+      "tick counter": when counter /= 0 ==> counter := counter - 1
+      "reset counter": when counter == 0 ==> counter := reset
+  return (counter == 0)
+
+-- "set A" and "reset" never fire together after a reset, but only
+-- because of an invariant that bsc can't see
+{-# synthesize sysMutuallyExclusiveSVA #-}
+sysMutuallyExclusiveSVA :: Module Empty
+sysMutuallyExclusiveSVA = module
+  big <- mkPulseCounter (8 :: Bit 4)
+  small <- mkPulseCounter (3 :: Bit 2)
+  flagA <- mkReg False
+  flagB <- mkReg False
+
+  let setA = rules { "set A": when big ==> flagA := True }
+      reset = rules {
+        "reset": when small && flagA && flagB ==> action { flagA := False; flagB := False }
+      }
+  addRules (rJoinMutuallyExclusive setA reset)
+
+  addRules $
+    rules
+      "set B": when small && flagA && not flagB ==> flagB := True

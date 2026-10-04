@@ -911,7 +911,8 @@ genModule
 
     -- move assumption actions into rule bodies
     start flags DFremoveAssumps
-    let amod_no_assumps = aRemoveAssumps amod_assumps
+    let sva_checks = svaRuntimeChecks flags && backend flags == Just Verilog
+        amod_no_assumps = aRemoveAssumps sva_checks amod_assumps
     aCheck flags amod_no_assumps "aRemoveAssumps"
     t <- dump errh flags t DFremoveAssumps dumpnames amod_no_assumps
 

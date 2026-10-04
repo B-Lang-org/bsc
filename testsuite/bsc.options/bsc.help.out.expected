@@ -73,6 +73,9 @@ Compiler flags:
 -steps-max-intervals n  terminate elaboration after this number of unfolding messages
 -steps-warn-interval n  issue a warning each time this many unfolding steps are executed
 -suppress-warnings list ignore a list of warnings (``:'' sep list of tags)
+changequote(`[', `]')dnl
+-sva-runtime-checks     emit assertions (under `ifdef FORMAL) for the runtime checks of mutually exclusive and conflict-free rules (Verilog only)
+changequote([`], ['])dnl
 -systemc                generate a SystemC model
 -u                      check and recompile packages that are not up to date
 -unspecified-to val     remaining unspecified values are set to: 'X', '0', '1', 'Z', or 'A'

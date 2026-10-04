@@ -1,0 +1,20 @@
+package ConflictFreeSVA where
+
+-- With -sva-runtime-checks, the runtime check that rJoinConflictFree
+-- adds (R0002) also gets an assertion under `ifdef FORMAL
+
+import FIFO
+
+{-# synthesize sysConflictFreeSVA #-}
+sysConflictFreeSVA :: Module Empty
+sysConflictFreeSVA = module
+  count :: Reg (Bit 4) <- mkReg 0
+  fifo :: FIFO (Bit 8) <- mkFIFO
+
+  addRules $ rules { "count": when True ==> count := count + 1 }
+
+  let even = rules { "even": when count[0:0] == 0 ==> fifo.enq 0 }
+      odd = rules { "odd": when count[0:0] == 1 ==> fifo.enq 1 }
+  addRules (rJoinConflictFree even odd)
+
+  addRules $ rules { "drain": when True ==> fifo.deq }

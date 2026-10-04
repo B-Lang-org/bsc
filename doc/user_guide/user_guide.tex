@@ -1693,6 +1693,7 @@ flag)}
 \index{-Xv@\te{-Xv} (compiler flag)}
 \index{-verilog-filter@\te{-verilog-filter} (compiler flag)}
 \index{-use-dpi@\te{-use-dpi}}
+\index{-sva-runtime-checks@\te{-sva-runtime-checks} (compiler flag)}
 \begin{centerboxverbatim}
 -remove-unused-modules  remove unconnected modules from the Verilog
 -v95                    generate strict Verilog 95 code
@@ -1702,6 +1703,9 @@ flag)}
 -Xv arg                 pass argument to the Verilog link process
 -verilog-filter cmd     invoke a command to post-process the generated Verilog
 -use-dpi                use DPI instead of VPI in generated Verilog
+-sva-runtime-checks     emit assertions (under `ifdef FORMAL) for the runtime
+                         checks of mutually exclusive and conflict-free rules
+                         (Verilog only)
 \end{centerboxverbatim}
 
 The {\bf\tt -remove-unused-modules} flag will remove from the generated
@@ -1761,6 +1765,21 @@ in the generated Verilog;
 during linking, the flag controls how the C functions are provided
 to the simulator.
 By default, this flag is \emph{off} and VPI is used.
+
+When the compiler is told that rules are mutually exclusive or
+conflict-free (for example, with the \te{mutually\_exclusive}
+attribute or \te{rJoinMutuallyExclusive}) but can't prove it, it
+generates Verilog that reports an error (R0001 or R0002) if the rules
+do fire together in simulation.
+The {\bf\tt -sva-runtime-checks} flag also generates a concurrent
+assertion for each of these checks, clocked by the rules' clock and
+guarded by \te{\textasciigrave{}ifdef FORMAL},
+so that a formal tool such as SymbiYosys (whose
+\te{read\_verilog -formal} defines \te{FORMAL}) can prove that the rules
+never fire together.
+The assertions are checked whenever the reset is not asserted; they
+don't assume anything about the initial state, so a formal harness will
+usually need to assume that the design starts in reset.
 
 
 % -------------------------

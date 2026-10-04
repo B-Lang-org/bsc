@@ -1532,6 +1532,7 @@ getInsts s (VMInst (VId s' _ _) _ _ _) = match s s'
         match _ _ = []
 getInsts s (VMComment _ i) = getInsts s i
 getInsts s (VMGroup _ iss) = concatMap (concatMap (getInsts s)) iss
+getInsts s (VMIfdef _ is) = concatMap (getInsts s) is
 getInsts _ _ = []
 
 
@@ -1846,6 +1847,10 @@ instance VUse VMItem where
     vuses (VMAssign l e) = vuses l ++ vuses e
     vuses (VMInst _ _ ps as) = vuses ps ++ vuses as
     vuses (VMGroup _ ll) = concatMap vuses (concat ll)
+    -- comments on the guarded items don't hide their uses
+    vuses (VMIfdef _ is) = concatMap (vuses . uncomment) is
+      where uncomment (VMComment _ i) = uncomment i
+            uncomment i = i
     vuses _ = []
 
 instance VUse VStmt where
@@ -1862,6 +1867,7 @@ instance VUse VStmt where
     vuses (Vdumpvars _ _) = []
     vuses (VTask _ es) = vuses es
     vuses (VAssert e es) = vuses e ++ vuses es
+    vuses (VAssertProperty e) = vuses e
     vuses (VZeroDelay) = []
 
 instance VUse VLValue where

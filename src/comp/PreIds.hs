@@ -653,6 +653,11 @@ idSvaParam   = prelude_id_no fsSvaParam
 idSvaBool    = prelude_id_no fsSvaBool
 idSvaNumber  = prelude_id_no fsSvaNumber
 
+-- | Pseudo-task that -sva-runtime-checks adds next to each runtime check,
+-- which Verilog generation turns into an assertion that it never fires
+idSvaRuntimeCheck :: Id
+idSvaRuntimeCheck = prelude_id_no fsSvaRuntimeCheck
+
 idSVAsampled, idSVArose, idSVAfell, idSVAstable, idSVApast :: Id
 idSVAsampled = prelude_id_no fsSVAsampled
 idSVArose    = prelude_id_no fsSVArose

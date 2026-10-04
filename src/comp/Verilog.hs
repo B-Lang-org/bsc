@@ -318,6 +318,8 @@ data VMItem
         --          if no spaces needed, use a list of one list.
         | VMGroup { vg_translate_off :: Bool, vg_body :: [[VMItem]]}
         | VMFunction VFunction
+        -- items guarded by `ifdef <macro>
+        | VMIfdef String [VMItem]
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance Ord VMItem where
@@ -352,6 +354,9 @@ instance Ord VMItem where
 
          compare (VMFunction _) (VMFunction _)      = EQ
          compare (VMFunction _) _                   = GT
+
+         compare (VMIfdef _ _) (VMIfdef _ _)        = EQ
+         compare (VMIfdef _ _) _                    = GT
 
          compare (VMGroup _ _) (VMGroup _ _)        = EQ
          compare (VMGroup _ _) _                    = GT
@@ -389,6 +394,9 @@ instance PPrint VMItem where
                 | otherwise = vsepEmptyLine (map (ppLines d) stmtss)
 
         pPrint d p (VMFunction f) = pPrint d p f
+        pPrint d p (VMIfdef m is) = text ("`ifdef " ++ m) $$
+                                    vsepEmptyLine (map (pPrint d p) is) $$
+                                    text "`endif"
         pPrint d p (VMRegGroup inst_id def_name cs stmt) =
             text "// register" <+>
             pPrint d 0 inst_id $+$
@@ -404,6 +412,7 @@ instance NFData VMItem where
     rnf (VMRegGroup vid s cmt item) = rnf4 vid s cmt item
     rnf (VMGroup toff body) = rnf2 toff body
     rnf (VMFunction vfun) = rnf vfun
+    rnf (VMIfdef m items) = rnf2 m items
 
 pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
 pv95params d (Nothing,x)  =  pPrint d 0 x
@@ -422,6 +431,7 @@ groupVMItems vmis =
         needsSpace (VMStmt _ _)         = True
         needsSpace (VMFunction _)       = True
         needsSpace (VMGroup _ _)        = True
+        needsSpace (VMIfdef _ _)        = True
         needsSpace (VMComment _ vmi)    = needsSpace vmi
         needsSpace (VMRegGroup _ _ _ vmi) = needsSpace vmi
         needsSpace _                    = False
@@ -497,6 +507,8 @@ data VStmt
         | Vdumpvars Int [VId]           -- appears unused
         | VTask VId [VExpr] -- calling a verilog system task as a Bluespec foreign function of type Action
         | VAssert VEventExpr [VExpr]
+        -- concurrent assertion, clocked by the enclosing always block
+        | VAssertProperty VExpr
         | VZeroDelay -- injecting an explicit (0-tick) delay for synchronization purposes
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
@@ -549,6 +561,8 @@ instance PPrint VStmt where
         pPrint d p (VTask task es) = pPrint d 0 task <> text "(" <> commaList d es <> text ");"
 
         pPrint d p (VAssert ev es) = ppAssert d p ev es
+        pPrint d p (VAssertProperty e) =
+            text "assert property (" <> pPrint d 0 e <> text ");"
 
 
         pPrint d p  VZeroDelay     = text "#0;"
@@ -567,6 +581,7 @@ instance NFData VStmt where
     rnf (Vdumpvars lvl vars) = rnf2 lvl vars
     rnf (VTask tid exprs) = rnf2 tid exprs
     rnf (VAssert ev exprs) = rnf2 ev exprs
+    rnf (VAssertProperty expr) = rnf expr
     rnf VZeroDelay = ()
 
 ppAssert :: PDetail -> Int -> VEventExpr -> [VExpr] -> Doc
@@ -1154,6 +1169,7 @@ getVeriInsts (VProgram ms _ _) = nub (concatMap getInstsFromVModule ms)
       getInstsFromVMItem (VMRegGroup _ _ _ i) = getInstsFromVMItem i
       getInstsFromVMItem (VMGroup _ iss) =
           concatMap (concatMap getInstsFromVMItem) iss
+      getInstsFromVMItem (VMIfdef _ is) = concatMap getInstsFromVMItem is
       getInstsFromVMItem _ = []
 
 -- true if the declarions have the same type

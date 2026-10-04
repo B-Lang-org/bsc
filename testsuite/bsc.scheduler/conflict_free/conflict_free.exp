@@ -19,3 +19,7 @@ test_veri_only_bsv CFSwitch sysCFSwitch.v.out.expected
 
 # test how trivial attributes are handled
 compile_verilog_pass_warning CFSingleton.bsv G0010
+
+# -sva-runtime-checks adds an assertion for the runtime check
+compile_verilog_pass ConflictFreeSVA.bs sysConflictFreeSVA -sva-runtime-checks
+compare_verilog sysConflictFreeSVA.v

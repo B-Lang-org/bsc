@@ -54,3 +54,11 @@ compile_verilog_pass_warning MESingleton.bsv G0010
 
 # -----
 
+# -sva-runtime-checks adds an assertion for the runtime check
+
+compile_verilog_pass MutuallyExclusiveSVA.bs sysMutuallyExclusiveSVA -sva-runtime-checks
+compare_verilog sysMutuallyExclusiveSVA.v
+compile_verilog_pass MutuallyExclusiveSVAGated.bsv sysMutuallyExclusiveSVAGated -sva-runtime-checks
+compare_verilog sysMutuallyExclusiveSVAGated.v
+
+# -----

@@ -108,6 +108,7 @@ Flags {
 	simplifyCSyntax = False,
 	strictMethodSched = True,
 	suppressWarnings = SomeMsgs [],
+	svaRuntimeChecks = False,
 	synthesize = False,
 	systemVerilogTasks = False,
 	tclShowHidden = False,
