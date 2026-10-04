@@ -31,3 +31,40 @@ find_n_strings mkReaderModuleTestOuter.v {mkReaderModuleTestInner inner(} 1
 
 # -----
 
+
+# -----
+
+# Test that state naming propagates through a module monad whose bind
+# uses primGetParamName/setStateName (ModuleContext, and therefore
+# ModuleCollect): registers bound in Classic code, where there is no
+# parser-inserted naming, get their binder names in the output.
+
+compile_verilog_pass ModuleCollectNames.bs
+if { $vtest == 1 } {
+find_n_strings sysModuleCollectNames.v {reg [15 : 0] ec_count;} 1
+find_n_strings sysModuleCollectNames.v {reg ec_flag;} 1
+}
+
+# The bind's naming layer wraps the setStateName that BSV's typechecker
+# already inserts, so one module can carry two stacked naming layers;
+# the schedule name scope collapses them (see pushModuleSchedNameScope).
+# This is bsc.bsv_examples/pong distilled: the instance name differs
+# from the binder, and the urgency attribute forces the name maps.
+compile_verilog_pass ModuleCollectUrgency.bsv
+
+# Pins for the collapse condition itself:
+# a primBuildModule forced inside another primBuildModule's rule -- two
+# unrelated fresh singleton IStateLocs that must NOT collapse (the
+# non-empty-tail condition)
+compile_verilog_pass NestedBuildModule.bsv
+# a user binder named "_elements" makes elaboration escape a naming
+# level, so a genuine child push shares the still-open frame's tail;
+# the same-ifc-id condition must keep it from collapsing
+compile_verilog_pass ElementsBinder.bsv
+# a rule saved for deferred registration by moduleFix is already named
+# under the current prefix while the frame-local checks still pass; a
+# tail-position setStateName in the fix body must NOT collapse (the
+# saved-rules condition).  The attribute references a name that does
+# not exist (the rule is registered under the binder's name), which is
+# a user error -- not an internal one.
+compile_verilog_fail_error FixNameDeferred.bsv G0054
