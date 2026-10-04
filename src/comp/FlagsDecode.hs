@@ -614,6 +614,7 @@ defaultFlags bluespecdir = Flags {
         satBackend = SAT_Yices,
         schedConds = True,
         schedDOT = False,
+        schedTransposed = True,
         schedQueries = [],
         showCSyntax = False,
         showCodeGen = False,
@@ -1460,6 +1461,11 @@ externalFlags = [
          (Toggle (\f x -> f {schedConds=x}) (showIfTrue schedConds),
           "include method conditions when computing rule conflicts", Hidden)),
 
+        ("sched-transposed",
+         (Toggle (\f x -> f {schedTransposed=x}) (showIfTrue schedTransposed),
+          "enumerate scheduler rule pairs from shared-instance indexes",
+          Hidden)),
+
         ("sched-dot",
          (Toggle (\f x -> f {schedDOT=x}) (showIfTrue schedDOT),
           "generate .dot files with schedule information", Visible)),
@@ -1915,6 +1921,7 @@ showFlagsRaw flags =
           ("satBackend", show (satBackend flags)),
           ("schedConds", show (schedConds flags)),
           ("schedDOT", show (schedDOT flags)),
+          ("schedTransposed", show (schedTransposed flags)),
           ("schedQueries", show (schedQueries flags)),
           ("showCSyntax", show (showCSyntax flags)),
           ("showCodeGen", show (showCodeGen flags)),

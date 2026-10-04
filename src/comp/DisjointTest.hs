@@ -13,7 +13,7 @@ import qualified Data.Map as M
 import Control.Monad(foldM {- , when -})
 import Data.List (genericIndex)
 
-import Util(ordPair,uniquePairs)
+import Util(ordPair)
 
 import Error(ErrorHandle, internalError)
 import Pretty
@@ -109,9 +109,12 @@ checkDisjointExprWithCtx dts ctx1 ctx2 e1 e2 = do
 
 -- -------------------------
 
-genDisjointSet :: DisjointTestState -> [ARuleId] -> [ASchedulePragma] ->
+-- The caller provides the list of rule pairs to test.  Pairs not in the
+-- list are simply absent from the resulting set (i.e. not proven disjoint),
+-- so the caller must include every pair whose verdict can be consulted.
+genDisjointSet :: DisjointTestState -> [(ARuleId, ARuleId)] -> [ASchedulePragma] ->
                   IO (S.Set (ARuleId, ARuleId), DisjointTestState)
-genDisjointSet dt_state ruleNames pragmas = do
+genDisjointSet dt_state rulePairs pragmas = do
   let me_state = makeMETest pragmas
 
       addResult :: S.Set (ARuleId, ARuleId) -> (ARuleId, ARuleId) -> Maybe Bool -> S.Set (ARuleId, ARuleId)
@@ -126,7 +129,7 @@ genDisjointSet dt_state ruleNames pragmas = do
                                let rset' = addResult rset p res
                                return (rset', st')
 
-  (res, dt_state') <- foldM foldFn (S.empty, dt_state) (uniquePairs ruleNames)
+  (res, dt_state') <- foldM foldFn (S.empty, dt_state) rulePairs
 
   return (res, dt_state')
 
