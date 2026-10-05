@@ -56,7 +56,7 @@ if { $rootfiles == "" } {
 }
 
 # scan options looking for command line options that we should consume
-# (instead of passing to BlueTcl).
+# (instead of passing to Bluetcl).
 utils::scanOptions [list -no-show-timestamps] [list -o] 0 OPT $argv
 set outfile stdout
 if { [info exists OPT(-o)] } {

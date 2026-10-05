@@ -24,6 +24,9 @@ jobs:
       - name: Check tabs and whitespace
         shell: bash
         run: ".github/workflows/check_whitespace.sh"
+      - name: Check spelling of tool names
+        shell: bash
+        run: ".github/workflows/check_spelling.sh"
 
   build-check-testsuite:
     name: "Check: testsuite lint"
