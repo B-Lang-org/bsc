@@ -1115,10 +1115,12 @@ genTo pps ty mk =
                    localResult1 = fromMaybe (getIdBaseString f) (lookupResultIfcPragma ciPrags)
                    localResult = joinStrings_ currentPre localResult1
                    result = stringLiteralAt noPosition localResult
-                   fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+                   fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                -- XXX idEmpty is a horrible way to know no more selection is required
                let ec = if f == idEmpty then sel else CSelect sel (setInternal f)
-               let e = CApply (CVar idToWrapField) [fnp, prefix, arg_names, result, ec]
+               -- positioned at the field, so the WrapField proviso this
+               -- mints reports there rather than at "Unknown position"
+               let e = CApply (CVar (setIdPosition (getPosition f) idToWrapField)) [fnp, prefix, arg_names, result, ec]
                return [CLValue (binId prefixes f) [CClause [] [] e] []]
 
 -- --------------------
@@ -1211,8 +1213,8 @@ genFrom pps ty var =
 
               -- Call fromWrapField with a proxy for the field name as a type level string,
               -- and the field selection from the unwrapped module.
-              let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
+              let fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+              let e = CApply (CVar (setIdPosition (getPosition f) idFromWrapField)) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -1627,8 +1629,8 @@ mkFromBind true_ifc_ids var ft =
 
               -- Call fromWrapField with a proxy for the field name as a type level string,
               -- and the field selection from the unwrapped module.
-              let fnp = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
-              let e = CApply (CVar idFromWrapField) [fnp, sel binf]
+              let fnp = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+              let e = CApply (CVar (setIdPosition (getPosition f) idFromWrapField)) [fnp, sel binf]
               return (f, e, qs)
 
 
@@ -2212,7 +2214,7 @@ mkFieldSavePortTypeStmts v ifcId = concatMapM $ meth noPrefixes ifcId
 
               -- Arguments to saveFieldPortTypes: proxies for the field name as a type level string and the field type,
               -- and the values for the prefix, arg_names, and result pragmas.
-              let fproxy = mkTypeProxyExpr $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
+              let fproxy = mkStrArgProxyExpr (getIdPosition f) $ TAp (cTCon idStrArg) $ cTStr (fieldPathName prefixes f) (getIdPosition f)
                   proxy = mkTypeProxyExpr $ foldr arrow r as
                   prefix = stringLiteralAt noPosition localPrefix
                   arg_names = mkList (getPosition f) [stringLiteralAt (getPosition i) (getIdString i) | i <- aIds]

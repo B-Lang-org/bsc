@@ -136,6 +136,9 @@ data IdProp = IdPCanFire
               | IdPGeneratedIfc         -- generated interface name
               | IdPMeth
               | IdPCommutativeTCon      -- commutative type constructor
+                                        -- write-only, historical: no longer
+                                        -- attached or read; kept for BinData
+                                        -- tag stability
               | IdP_enable
               | IdP_keep
               | IdP_keepEvenUnused

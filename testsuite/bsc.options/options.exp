@@ -382,3 +382,30 @@ if { $ctest == 1 } {
 
 ###########
 
+
+###########
+# Test -trace-ctype-stats
+#
+# The flag reports the CType construction, interning and conversion-memo
+# counters.  Two properties are pinned: with the flag off the compiler
+# says nothing at all, and with it on every counter family reports.
+
+# Off: no CTYPE output on either stream (bsc_compile captures both).
+compile_pass CTypeStats.bsv
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE" 0
+
+# On: one line per counter.  One counter is checked from each of the
+# four families, so that a family that stops being collected fails here.
+compile_pass CTypeStats.bsv {-trace-ctype-stats}
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE-STAT ctype.tap_built" 1
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE-STAT gctype.intern_calls" 1
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE-STAT iconvt.memo_hit" 1
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE-STAT bindata.type_read" 1
+
+# Any compile builds type applications, so a zero there would mean the
+# counter is wired up but never incremented.
+find_n_strings [make_bsc_output_name CTypeStats.bsv] "CTYPE-STAT ctype.tap_built 0" 0
+
+# The per-phase counters ride on -verbose, so they need both flags.
+compile_pass CTypeStats.bsv {-trace-ctype-stats -verbose}
+find_regexp [make_bsc_output_name CTypeStats.bsv] "CTYPE-PHASE"
