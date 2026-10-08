@@ -201,11 +201,38 @@ instance Eq Type where
 instance Eq TyVar where
     TyVar i n _ == TyVar i' n' _  =  (n, i) == (n', i')
 
+-- TyCon comparison and the one-tycon-per-qualified-name invariant
+--
+-- BSC's front end enforces one type constructor per qualified name, so a
+-- qualified Id determines its (kind, sort) payload.  The invariant holds
+-- ONLY for qualified names: unqualified TyCons exist during scope
+-- resolution, where the same base name may denote different constructors.
+-- The tconcheck build step (src/comp/tconcheck.hs) verifies the compiler's
+-- handwritten copies of Prelude tycon payloads against the compiled
+-- Prelude, keeping the invariant checkable.
+--
+-- Eq is therefore scoped by qualification:
+--  * both ids qualified: the invariant's regime.  Comparison is by Id;
+--    the payloads are determined by the name (checker-verified), so a
+--    payload comparison would be a dead tail.
+--  * either id unqualified: resolution-era fuzz, where the invariant is
+--    undefined; the kind comparison is kept as a hedge.
+--
+-- Two pre-existing quirks, both deliberate and unchanged:
+--  * Eq is non-transitive: qualEq compares by base name alone when either
+--    side is unqualified, so P.T == T and T == Q.T but P.T /= Q.T.
+--  * Eq and Ord disagree: Ord compares the full qualifier on both sides
+--    (a lawful total order), while Eq admits the qualEq fuzz.  Containers
+--    key on Ord.
 instance Eq TyCon where
-    TyCon i k _ == TyCon i' k' _  =  qualEq i i' && k == k'
+    TyCon i k _ == TyCon i' k' _  =  qualEq i i' && (bothQualified i i' || k == k')
     TyNum i _   == TyNum i' _     =  i == i'
     TyStr s _   == TyStr s' _     =  s == s'
     _           == _              =  False
+
+-- both ids carry a package qualifier (see the invariant note above)
+bothQualified :: Id -> Id -> Bool
+bothQualified i i' = not (isUnqualId i) && not (isUnqualId i')
 
 -- Ord instances
 
@@ -220,7 +247,15 @@ instance Ord TyVar where
     TyVar i n _ `compare` TyVar i' n' _  =  (n, i) `compare` (n', i')
 
 instance Ord TyCon where
-    TyCon i k _ `compare` TyCon i' k' _   =  (getIdBase i, getIdQual i, k) `compare` (getIdBase i', getIdQual i', k')
+    -- lexicographic on (base, qual); within a (base, qual) bucket either
+    -- both ids are qualified -- unique by the invariant documented at Eq,
+    -- so EQ without consulting the kinds -- or both are unqualified, where
+    -- the kind comparison is kept, as in Eq.  This remains a lawful total
+    -- order.
+    TyCon i k _ `compare` TyCon i' k' _   =
+        case (getIdBase i, getIdQual i) `compare` (getIdBase i', getIdQual i') of
+          EQ -> if bothQualified i i' then EQ else compare k k'
+          o  -> o
     TyCon _ _ _ `compare` TyNum _  _      =  LT
     TyCon _ _ _ `compare` TyStr _  _      =  LT
     TyNum _ _   `compare` TyCon _  _  _   =  GT
