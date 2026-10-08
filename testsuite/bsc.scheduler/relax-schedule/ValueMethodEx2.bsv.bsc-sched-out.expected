@@ -50,6 +50,7 @@ Logical execution order: m1, r, m2
 
 ====================================================
 Verilog file created: mkValueMethodEx2Mod1.v
+Elaborated module file created: mkValueMethodEx2Mod1.ba
 code generation for mkValueMethodEx2Mod2 starts
 === schedule (ValueMethodEx2 mkValueMethodEx2Mod2):
 parallel: [esposito: [m1 -> [], RL_r -> [], m2 -> []]]
@@ -100,4 +101,5 @@ Logical execution order: m1, r, m2
 
 ====================================================
 Verilog file created: mkValueMethodEx2Mod2.v
+Elaborated module file created: mkValueMethodEx2Mod2.ba
 All packages are up to date.

@@ -34,4 +34,5 @@ Warning: "WCycleDrop1.bs", line 30, column 0: (G0117)
 Warning: "WCycleDrop1.bs", line 54, column 22: (G0021)
   According to the generated schedule, rule `Two' can never fire.
 Verilog file created: mkWCycleDrop1.v
+Elaborated module file created: mkWCycleDrop1.ba
 All packages are up to date.

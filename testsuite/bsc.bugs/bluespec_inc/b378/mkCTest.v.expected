@@ -43,8 +43,10 @@ module mkCTest(CLK,
   reg [3 : 0] the_z$D_IN;
   wire the_z$CLR, the_z$DEQ, the_z$ENQ, the_z$FULL_N;
 
-  // rule scheduling signals
-  wire WILL_FIRE_RL_zag, WILL_FIRE_RL_zig, WILL_FIRE_RL_zug;
+  // inputs to muxes for submodule ports
+  wire MUX_the_y$write_1__SEL_1,
+       MUX_the_y$write_1__SEL_2,
+       MUX_the_y$write_1__SEL_3;
 
   // submodule the_z
   FIFO2 #(.width(32'd4), .guarded(1'd1)) the_z(.RST(RST_N),
@@ -57,45 +59,47 @@ module mkCTest(CLK,
 					       .FULL_N(the_z$FULL_N),
 					       .EMPTY_N());
 
-  // rule RL_zag
-  assign WILL_FIRE_RL_zag = the_z$FULL_N && the_cnd[1] ;
-
-  // rule RL_zig
-  assign WILL_FIRE_RL_zig = the_z$FULL_N && the_cnd[0] && !WILL_FIRE_RL_zag ;
-
-  // rule RL_zug
-  assign WILL_FIRE_RL_zug =
-	     the_z$FULL_N && the_cnd[2] && !WILL_FIRE_RL_zig &&
-	     !WILL_FIRE_RL_zag ;
+  // inputs to muxes for submodule ports
+  assign MUX_the_y$write_1__SEL_1 =
+	     the_z$FULL_N && the_cnd[0] && !MUX_the_y$write_1__SEL_2 ;
+  assign MUX_the_y$write_1__SEL_2 = the_z$FULL_N && the_cnd[1] ;
+  assign MUX_the_y$write_1__SEL_3 =
+	     the_z$FULL_N && the_cnd[2] && !MUX_the_y$write_1__SEL_1 &&
+	     !MUX_the_y$write_1__SEL_2 ;
 
   // register the_cnd
   assign the_cnd$D_IN = 3'h0 ;
   assign the_cnd$EN = 1'b0 ;
 
   // register the_y
-  always@(WILL_FIRE_RL_zig or WILL_FIRE_RL_zag or WILL_FIRE_RL_zug)
+  always@(MUX_the_y$write_1__SEL_1 or
+	  MUX_the_y$write_1__SEL_2 or MUX_the_y$write_1__SEL_3)
   begin
     case (1'b1) // synopsys parallel_case
-      WILL_FIRE_RL_zig: the_y$D_IN = 4'd1;
-      WILL_FIRE_RL_zag: the_y$D_IN = 4'd2;
-      WILL_FIRE_RL_zug: the_y$D_IN = 4'd4;
+      MUX_the_y$write_1__SEL_1: the_y$D_IN = 4'd1;
+      MUX_the_y$write_1__SEL_2: the_y$D_IN = 4'd2;
+      MUX_the_y$write_1__SEL_3: the_y$D_IN = 4'd4;
       default: the_y$D_IN = 4'b1010 /* unspecified value */ ;
     endcase
   end
-  assign the_y$EN = WILL_FIRE_RL_zig || WILL_FIRE_RL_zag || WILL_FIRE_RL_zug ;
+  assign the_y$EN =
+	     MUX_the_y$write_1__SEL_1 || MUX_the_y$write_1__SEL_2 ||
+	     MUX_the_y$write_1__SEL_3 ;
 
   // submodule the_z
-  always@(WILL_FIRE_RL_zig or WILL_FIRE_RL_zag or WILL_FIRE_RL_zug)
+  always@(MUX_the_y$write_1__SEL_1 or
+	  MUX_the_y$write_1__SEL_2 or MUX_the_y$write_1__SEL_3)
   begin
     case (1'b1) // synopsys parallel_case
-      WILL_FIRE_RL_zig: the_z$D_IN = 4'd1;
-      WILL_FIRE_RL_zag: the_z$D_IN = 4'd2;
-      WILL_FIRE_RL_zug: the_z$D_IN = 4'd4;
+      MUX_the_y$write_1__SEL_1: the_z$D_IN = 4'd1;
+      MUX_the_y$write_1__SEL_2: the_z$D_IN = 4'd2;
+      MUX_the_y$write_1__SEL_3: the_z$D_IN = 4'd4;
       default: the_z$D_IN = 4'b1010 /* unspecified value */ ;
     endcase
   end
   assign the_z$ENQ =
-	     WILL_FIRE_RL_zig || WILL_FIRE_RL_zag || WILL_FIRE_RL_zug ;
+	     MUX_the_y$write_1__SEL_1 || MUX_the_y$write_1__SEL_2 ||
+	     MUX_the_y$write_1__SEL_3 ;
   assign the_z$DEQ = 1'b0 ;
   assign the_z$CLR = 1'b0 ;
 
