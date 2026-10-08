@@ -50,4 +50,5 @@ Logical execution order: aa, ab, bb
 Warning: "ParamBoolTest_sat-yices.bsv", line 19, column 9: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysParamBoolTest.v
+Elaborated module file created: sysParamBoolTest.ba
 All packages are up to date.

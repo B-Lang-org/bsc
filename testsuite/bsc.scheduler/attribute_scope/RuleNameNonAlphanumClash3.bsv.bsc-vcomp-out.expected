@@ -8,4 +8,5 @@ Warning: "RuleNameNonAlphanumClash3.bsv", line 2, column 8: (G0010)
 Warning: "RuleNameNonAlphanumClash3.bsv", line 16, column 9: (G0021)
   According to the generated schedule, rule `r2' can never fire.
 Verilog file created: sysRuleNameNonAlphanumClash3.v
+Elaborated module file created: sysRuleNameNonAlphanumClash3.ba
 All packages are up to date.

@@ -90,4 +90,5 @@ Logical execution order: aa, ab, ac, ad, ae, af, bb
 Warning: "DivTest_sat-stp.bsv", line 40, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysDivTest.v
+Elaborated module file created: sysDivTest.ba
 All packages are up to date.

@@ -52,4 +52,5 @@ Logical execution order: _write, _read, the_r_propagate
 
 ============================================
 Verilog file created: sysConfigReg.v
+Elaborated module file created: sysConfigReg.ba
 All packages are up to date.

@@ -13,8 +13,9 @@ import Version(bscVersionStr)
 import FileNameUtil
 import ErrorUtil(internalError)
 
+import StaleUtils(allFreshVs)
+
 import System.Posix.Files
-import System.Posix.Types(EpochTime)
 import System.IO(openFile, hGetContents, hClose, IOMode(..))
 import Control.Monad(filterM)
 import Control.Exception(bracketOnError)
@@ -23,19 +24,22 @@ import qualified Data.Map as M
 
 -- import Debug.Trace(traceM)
 
-getModTime :: FilePath -> IO (Maybe EpochTime)
-getModTime f =
-    do ok <- fileExist f
-       if ok
-        then do s <- getFileStatus f
-                return $ Just (modificationTime s)
-        else return Nothing
-
+-- Settings that make an object unreusable under a different setting (isStale
+-- checks these before reuse).  blockCodegen (-c mode) is omitted: its output
+-- equals the submodule form (see DEVELOP.md).  "top" marks top form (the
+-- form the -e link's schedule and model_ expect), so a block-form artifact
+-- can never be taken as a link's top, nor vice versa.
 codeGenOptionDescr :: Flags -> Bool -> String
 codeGenOptionDescr flags is_top =
     unwords $ [ "Generation options:" ] ++
               (if (keepFires flags) then ["keep-fires"] else []) ++
-              (if (is_top && (genSysC flags)) then ["sysc-top"] else [])
+              (if is_top then ["top"] else []) ++
+              (if (is_top && (genSysC flags)) then ["sysc-top"] else []) ++
+              -- ASAny lowering happens at codegen time (SimPackageOpt and
+              -- SimBlocksToC read unSpecTo), so an object generated under
+              -- a different -unspecified-to must not be reused: its bytes
+              -- would silently dishonor the link's requested lowering
+              [ "unspec-" ++ unSpecTo flags ]
 
 readCodeGenOptionDescr :: FilePath -> IO (Maybe String)
 readCodeGenOptionDescr f =
@@ -60,18 +64,12 @@ isStale flags prefix ba_map top_pkg pkg =
               Nothing        -> internalError $ "isStale: unknown package " ++ name
               (Just ba_file) -> do h_file <- genFileName mkHName (cdir flags) "" name
                                    o_file <- genFileName mkObjName (cdir flags) "" name
-                                   ba_time <- getModTime ba_file
-                                   h_time <- getModTime h_file
-                                   obj_time <- getModTime o_file
-                                   let stale_time =
-                                        case (ba_time, h_time, obj_time) of
-                                          (Just t1, Just t2, Just t3) -> (t2 < t1) || (t3 < t1)
-                                          _                           -> True
+                                   fresh_time <- allFreshVs ba_file [h_file, o_file]
                                    cg_opt <- readCodeGenOptionDescr h_file
                                    let is_top = (sp_name pkg) == top_pkg
                                        cg_tgt = Just ("/* " ++ (codeGenOptionDescr flags is_top) ++ " */")
                                        stale_options = cg_opt /= cg_tgt
-                                   return $ stale_time || stale_options
+                                   return $ (not fresh_time) || stale_options
 
 remove_stale :: M.Map String [String] -> [String] -> [String] -> [String]
 remove_stale _     []   _      = []

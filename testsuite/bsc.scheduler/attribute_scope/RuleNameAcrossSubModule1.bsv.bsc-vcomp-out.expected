@@ -4,4 +4,5 @@ code generation for sysRuleNameAcrossSubModule1 starts
 Warning: "RuleNameAcrossSubModule1.bsv", line 18, column 9: (G0021)
   According to the generated schedule, rule `s_r2' can never fire.
 Verilog file created: sysRuleNameAcrossSubModule1.v
+Elaborated module file created: sysRuleNameAcrossSubModule1.ba
 All packages are up to date.

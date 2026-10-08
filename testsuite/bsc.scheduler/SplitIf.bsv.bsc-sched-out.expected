@@ -57,6 +57,7 @@ Logical execution order: toggle2, xfer_T, xfer_F, toggle1
 
 ==============================================
 Verilog file created: mkSplitIf_Test.v
+Elaborated module file created: mkSplitIf_Test.ba
 code generation for sysSplitIf starts
 === schedule (SplitIf sysSplitIf):
 parallel: [esposito: [RL_toggleDir -> [], RL_r -> [], RL_incr -> [], RL_done -> []]]
@@ -104,4 +105,5 @@ Logical execution order: r, toggleDir, done, incr
 
 ==========================================
 Verilog file created: sysSplitIf.v
+Elaborated module file created: sysSplitIf.ba
 All packages are up to date.
