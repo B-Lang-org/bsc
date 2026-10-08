@@ -78,20 +78,20 @@ compile_verilog_pass DynArraySelectMethodAction.bsv
 find_regexp sysDynArraySelectMethodAction.v \
     {if \(RST\_N \!\= \`BSV\_RESET\_VALUE\)
       \$display\(\"cond \= \%d\"\,
-	       CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6\)\;}
+	       CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d1\)\;}
 find_regexp sysDynArraySelectMethodAction.v \
     {case \(idx\)
       2\'d0\:
-	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d1 \=
 	      fs\_0\$FULL\_N\;
       2\'d1\:
-	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d1 \=
 	      fs\_1\$FULL\_N\;
       2\'d2\:
-	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d1 \=
 	      fs\_2\$FULL\_N\;
       2\'d3\:
-	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d1 \=
 	      fs\_3\$FULL\_N\;
     endcase}
 
@@ -103,14 +103,14 @@ compile_verilog_pass DynArraySelect2DMethodAction.bsv
 find_regexp sysDynArraySelect2DMethodAction.v \
     {if \(RST\_N \!\= \`BSV\_RESET\_VALUE\)
       \$display\(\"cond \= \%d\"\,
-	       CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9\)\;}
+	       CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d1\)\;}
 find_regexp sysDynArraySelect2DMethodAction.v \
     {case \(idx1\)
       1\'d0\:
-	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9 \=
+	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d1 \=
 	      CASE\_idx2\_0\_fs\_0\_0FULL\_N\_1\_fs\_0\_1FULL\_N\_1\_\_q1\;
       1\'d1\:
-	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9 \=
+	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d1 \=
 	      CASE\_idx2\_0\_fs\_1\_0FULL\_N\_1\_fs\_1\_1FULL\_N\_1\_\_q2\;
     endcase}
 find_regexp sysDynArraySelect2DMethodAction.v \

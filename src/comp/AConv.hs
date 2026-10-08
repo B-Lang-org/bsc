@@ -11,7 +11,7 @@ import PFPrint(pfpString)
 import Position
 import Id
 import FStringCompat
-import Flags(Flags)
+import Flags(Flags, stableVerilog)
 import PreStrings(sSigned)
 import PreIds(idBit, idActionValue_, idAVAction_, idAVValue_, idClockOsc, idClockGate,
               idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd, idPrimUnit)
@@ -98,7 +98,8 @@ newAIdFromAExpr :: Position -> AExpr -> M AId
 newAIdFromAExpr p expr = do
         s <- get
         let n = varNo s
-            new_name = signalNameFromAExpr expr ++ "_" ++ aconvPref ++ itos n
+            new_name = signalNameFromAExpr (stableVerilog (flags s)) expr ++
+                       "_" ++ aconvPref ++ itos n
             new_id = setFromRHSId $ mkId p (mkFString new_name)
             new_id' = if (isSignCast expr)
                       then setSignedId new_id

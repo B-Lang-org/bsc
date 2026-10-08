@@ -8,7 +8,7 @@ import PPrint
 import IntLit
 import ErrorUtil(internalError)
 import Position
-import Flags(Flags, keepAddSize, removePrimModules, useNegate, readableMux)
+import Flags(Flags, keepAddSize, removePrimModules, useNegate, readableMux, stableVerilog)
 import Id
 import PreIds(idUnsigned)
 import FStringCompat(mkFString)
@@ -44,6 +44,7 @@ data QState = QState {
     qs_rmPrimModules :: Bool,
     qs_useNegate     :: Bool,
     qs_readableMux   :: Bool,
+    qs_stableVerilog :: Bool,
   -- state
     -- unique name generator
     uniqueId :: Integer,
@@ -81,7 +82,7 @@ genIdFromAExpr expr = do
         put state{ uniqueId = oldId + 1 }
         return $ mkId
             noPosition -- XXX aexpr should have an instance of HasPosition
-            (mkFString (signalNameFromAExpr expr ++
+            (mkFString (signalNameFromAExpr (qs_stableVerilog state) expr ++
                         aVeriQuirksPref ++ itos oldId))
 
 -- Add the expression -- really the definition to the monad
@@ -110,6 +111,7 @@ aVeriQuirks flags pkg =
                 qs_rmPrimModules = removePrimModules flags,
                 qs_useNegate = useNegate flags,
                 qs_readableMux = readableMux flags,
+                qs_stableVerilog = stableVerilog flags,
                 uniqueId = 1,
                 defs = [],
                 rlookup = M.empty

@@ -7,4 +7,5 @@ Warning: "ExecutionOrderAttr_Method.bsv", line 7, column 8: (G0117)
     rg.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
 Verilog file created: sysExecutionOrderAttr_Method.v
+Elaborated module file created: sysExecutionOrderAttr_Method.ba
 All packages are up to date.

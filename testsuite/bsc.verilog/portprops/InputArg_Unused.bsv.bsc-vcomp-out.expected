@@ -11,4 +11,5 @@ RST_N                          I     1 unused
 -----
 
 Verilog file created: sysInputArg_Unused.v
+Elaborated module file created: sysInputArg_Unused.ba
 All packages are up to date.

@@ -22,13 +22,13 @@ order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4
  (cntrs_1.read, [(cntrs_1.read, 1)]),
  (cntrs_1.write, [(cntrs_1.write cntrs_1_PLUS_1___d9, 1)]),
  (cntrs_2.read, [(cntrs_2.read, 1)]),
- (cntrs_2.write, [(cntrs_2.write cntrs_2_2_PLUS_1___d13, 1)]),
+ (cntrs_2.write, [(cntrs_2.write cntrs_2_PLUS_1___d13, 1)]),
  (cntrs_3.read, [(cntrs_3.read, 1)]),
- (cntrs_3.write, [(cntrs_3.write cntrs_3_6_PLUS_1___d17, 1)]),
+ (cntrs_3.write, [(cntrs_3.write cntrs_3_PLUS_1___d17, 1)]),
  (cntrs_4.read, [(cntrs_4.read, 1)]),
- (cntrs_4.write, [(cntrs_4.write cntrs_4_0_PLUS_1___d21, 1)]),
+ (cntrs_4.write, [(cntrs_4.write cntrs_4_PLUS_1___d21, 1)]),
  (cntrs_5.read, [(cntrs_5.read, 1)]),
- (cntrs_5.write, [(cntrs_5.write cntrs_5_4_PLUS_1___d25, 1)]),
+ (cntrs_5.write, [(cntrs_5.write cntrs_5_PLUS_1___d25, 1)]),
  (gos_0.read, [(gos_0.read, 1)]),
  (gos_0.write, [(if setGo_index_EQ_0___d26 then gos_0.write 1'd1, 1)]),
  (gos_1.read, [(gos_1.read, 1)]),
@@ -43,12 +43,12 @@ order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4
  (gos_5.write, [(if setGo_index_EQ_5___d31 then gos_5.write 1'd1, 1)]),
  (outf.deq, [(outf.deq, 1)]),
  (outf.enq,
-  [(outf.enq cntrs_0__h1647, 1),
-   (outf.enq cntrs_1__h1740, 1),
-   (outf.enq cntrs_2__h1815, 1),
-   (outf.enq cntrs_3__h1890, 1),
-   (outf.enq cntrs_4__h1965, 1),
-   (outf.enq cntrs_5__h2040, 1)]),
+  [(outf.enq cntrs_0__h1704, 1),
+   (outf.enq cntrs_1__h1805, 1),
+   (outf.enq cntrs_2__h1887, 1),
+   (outf.enq cntrs_3__h1969, 1),
+   (outf.enq cntrs_4__h2051, 1),
+   (outf.enq cntrs_5__h2133, 1)]),
  (outf.first, [(outf.first, 1)]),
  (outf.i_notEmpty, [(outf.i_notEmpty, 1)]),
  (outf.i_notFull, [(outf.i_notFull, 1)])]
@@ -142,4 +142,5 @@ Logical execution order: clearGo,
 
 ==============================================
 Verilog file created: sysDUFunction1.v
+Elaborated module file created: sysDUFunction1.ba
 All packages are up to date.

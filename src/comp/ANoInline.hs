@@ -2,7 +2,7 @@ module ANoInline (aNoInline) where
 
 import Util(itos)
 import Position(noPosition)
-import Flags(Flags)
+import Flags(Flags, stableVerilog)
 import Id(mkId, getIdBaseString)
 import FStringCompat(mkFString)
 import Control.Monad.State
@@ -27,6 +27,8 @@ instPrefix = "instance_"
 -- State for the Monad
 
 data NIState = NIState {
+    -- whether -stable-verilog is in effect (see SignalNaming)
+    nis_stableVerilog :: Bool,
     -- unique name generator
     nis_uniqueId :: Integer,
     -- definitions processed so far
@@ -56,7 +58,8 @@ genIdFromAExpr expr = do
     state <- get
     uniqueNum <- gets nis_uniqueId
     put (state { nis_uniqueId = uniqueNum + 1 })
-    let newIdStr = signalNameFromAExpr expr ++ aNoInlinePref ++ itos uniqueNum
+    let newIdStr = signalNameFromAExpr (nis_stableVerilog state) expr ++
+                   aNoInlinePref ++ itos uniqueNum
     return $ mkId
                noPosition -- XXX aexpr should have an instance of HasPosition
                (mkFString newIdStr)
@@ -88,6 +91,7 @@ aNoInline flags apkg =
     let
         -- initial state
         initState = NIState {
+                              nis_stableVerilog = stableVerilog flags,
                               nis_uniqueId = 1,
                               nis_defs = [],
                               nis_rlookup = M.empty
