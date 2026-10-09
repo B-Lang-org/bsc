@@ -1,0 +1,17 @@
+checking package dependencies
+compiling ModalCapture.bs
+Warning: "ModalCapture.bs", line 28, column 9: (T0160)
+  The instance `TC x y' does not cover the functional dependencies of class
+  `TC': `y' appears in a dependent (determined) position without being
+  determined by the input positions, directly or through the instance's
+  context. The same inputs can then be satisfied with many different results.
+  If the class's resolution is intentionally not a function of its inputs,
+  declare the class `incoherent'.
+Error: "ModalCapture.bs", line 31, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    t -> Prelude.Maybe t
+  The following contexts are needed:
+    ModalCapture.TC (Prelude.Maybe Prelude.Bool) (Prelude.Maybe t)
+      Introduced at the following locations:
+	"ModalCapture.bs", line 32, column 8
