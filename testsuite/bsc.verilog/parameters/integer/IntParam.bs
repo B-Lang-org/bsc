@@ -1,0 +1,27 @@
+package IntParam where
+
+-- Test that a module argument of type Integer becomes a Verilog
+-- parameter on a synthesis boundary.  The parameter can be displayed
+-- directly and can be used in hardware expressions via fromInteger,
+-- which lowers to a sized reference to the Verilog parameter.
+-- (In Bluesim, the parameter becomes a 32-bit module input, since the
+-- instantiation value is canonicalized to Bit 32.)
+
+{-# verilog mkIntParamSub { parameter val } #-}
+mkIntParamSub :: Integer -> Module Empty
+mkIntParamSub val =
+  module
+    count :: Reg (UInt 8) <- mkReg 0
+    rules
+      "count": when (count /= fromInteger val) ==>
+          count := count + 1
+      "done": when (count == fromInteger val) ==>
+        action
+          $display "val = %0d" val
+          $display "count = %0d" count
+          $finish 0
+
+-- Test that a parent module can provide the value
+{-# verilog sysIntParam #-}
+sysIntParam :: Module Empty
+sysIntParam = mkIntParamSub 5

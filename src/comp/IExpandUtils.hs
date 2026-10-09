@@ -391,7 +391,7 @@ isPrimTAp (ITAp a (ITNum _)) = isPrimTAp a
 isPrimTAp _ = False
 
 isParamOnlyType :: IType -> Bool
-isParamOnlyType t = t == itString || t == itReal
+isParamOnlyType t = t == itString || t == itReal || t == itInteger
 
 -----------------------------------------------------------------------------
 

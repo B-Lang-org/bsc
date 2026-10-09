@@ -1,0 +1,22 @@
+#
+# Tests for Integer module arguments as parameters
+#
+
+# An Integer module argument is only supported on a synthesis boundary
+# as a parameter (with the "parameter" pragma / keyword); the value is
+# canonicalized to 32 bits at the instantiation site.
+
+# Test that an Integer parameter can be displayed and used in hardware
+# expressions (via fromInteger), and that a parent module can provide
+# the value
+test_c_veri_bs_modules IntParam mkIntParamSub
+
+if { $vtest == 1 } {
+    # the parameter is declared unsized, with a zero default
+    find_regexp mkIntParamSub.v {parameter val \= 0\;}
+    # the parent provides the elaborated value
+    find_regexp sysIntParam.v {\.val\((32\'d)?5\)}
+}
+
+# require the parameter pragma on Integer module arguments
+compile_verilog_fail_error IntParamErr1.bs G0120
