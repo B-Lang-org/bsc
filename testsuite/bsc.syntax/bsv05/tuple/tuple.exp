@@ -1,0 +1,49 @@
+# Test the Tuple#(...) type and tuple(...) expression syntax (0 to 8 elements)
+
+# ---------------
+
+# TupleSyntax uses tuple3 on purpose, which is deprecated
+compile_pass_warning TupleSyntax.bsv P0072 1
+
+# Tuple#/tuple of 2-8 elements are the same as TupleN/tupleN and work with
+# tpl_N, match and existing TupleN code; more elements are nested tuples,
+# exactly as with Tuple8
+test_c_veri_bsv TupleSyntax
+
+# An empty tuple is unit; a singleton is its element; more than 8 is an error
+# tpl_1..tpl_8 are unchanged
+compile_pass_no_warning TupleOneType.bsv
+compile_pass_no_warning TupleOneExpr.bsv
+compile_pass_no_warning TupleEmptyExpr.bsv
+compile_fail_error TupleTooLarge.bsv P0225
+compile_fail_error TupleTooLargeExpr.bsv P0225
+
+# Only the first argument list of tuple(...) is the tuple
+compile_fail_error TupleApply.bsv T0083
+
+# clocked_by in tuple(...) is handled as in tuple2(...)
+compile_fail_error TupleClocked.bsv T0107
+
+# A curried tuple2(a)(b) still works (with the deprecation warning)
+compile_pass_warning TupleCurried.bsv P0072 1
+
+# The Prelude functions tuple2..tuple8 are deprecated (P0072), to point to
+# tuple(...); user-defined functions, arguments and types with the same
+# names, and the types Tuple2..Tuple8, are not warned
+compile_pass_warning TupleObsolete.bsv P0072 6
+compile_pass_no_warning TupleObsoleteUser.bsv
+
+# Keywords cannot be identifiers, even qualified; escaped identifiers remain ordinary
+compile_fail_error TupleQualified.bsv P0005
+compile_pass_no_warning TupleEscaped.bsv
+foreach name {Tuple tuple} {
+    foreach mode {FUNCTION_NAME TYPE_NAME PARAMETER_NAME FIELD_NAME METHOD_NAME LOCAL_NAME PATTERN_NAME} {
+        compile_fail_error TupleReserved.bsv P0005 1 "-D NAME=$name -D $mode" 1
+    }
+}
+foreach mode {QUALIFIED_TYPE EMPTY_OTHER_TYPE BARE_TYPE BARE_VALUE} {
+    compile_fail_error TupleReserved.bsv P0005 1 "-D $mode" 1
+}
+
+# The arity of tuple(...) must match the arity of the declared Tuple#(...)
+compile_fail_error TupleArityMismatch.bsv T0080

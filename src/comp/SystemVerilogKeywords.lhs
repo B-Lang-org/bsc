@@ -286,6 +286,8 @@ Data type declaration for the keywords:
 >     | SV_KW_powered_by
 >     | SV_KW_Action
 >     | SV_KW_ActionValue
+>     | SV_KW_Tuple
+>     | SV_KW_tuple
 >       deriving (Show, Eq, Ord, Enum, Bounded)
 
 
@@ -634,7 +636,9 @@ scanner and to prettyprint keywords.
 >      (SV_KW_reset_by,             "reset_by",              Bluespec38),
 >      (SV_KW_powered_by,           "powered_by",            Bluespec38),
 >      (SV_KW_Action,              "Action",               Bluespec38),
->      (SV_KW_ActionValue,         "ActionValue",          Bluespec38)]
+>      (SV_KW_ActionValue,         "ActionValue",          Bluespec38),
+>      (SV_KW_Tuple,               "Tuple",                Bluespec38),
+>      (SV_KW_tuple,               "tuple",                Bluespec38)]
 
 Symbol table
 

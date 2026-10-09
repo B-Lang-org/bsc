@@ -646,6 +646,7 @@ Types
 >     <|> pVoidType
 >     <|> pActionType
 >     <|> pActionValueType
+>     <|> pTupleType
 >     <|> do atype <- ( pTypeConstructor
 >                      <|> pTypeVariable
 >                      <|> pDefMonadType
@@ -665,6 +666,25 @@ Parse parameters for a type expressions and apply
 > pTypeExprRequiredParamsWith atype =
 >     do params <- pTypeParametersNonOptional <?> "type parameters"
 >        return $ cTApplys atype params
+
+Tuple#(t1, ..., tn) is the tuple type of 0 to 8 elements; an empty tuple
+is unit and a single element is the type itself
+
+> pTupleType :: SV_Parser CType
+> pTupleType = do
+>     pos <- getPos
+>     pKeyword SV_KW_Tuple
+>     pSymbol SV_SYM_hash
+>     ts <- pInParens (pCommaSep pTypeExpr)
+>     checkTupleSize (mkId pos (mkFString "Tuple")) "Tuple#" (length ts)
+>     return $ tMkTuple pos ts
+
+Tuple#(...) and tuple(...) have 0 to 8 elements; for 2 to 8 elements,
+tpl_1 to tpl_8 behave exactly as for TupleN
+
+> checkTupleSize :: Id -> String -> Int -> SV_Parser ()
+> checkTupleSize i name n =
+>     when (n > 8) $ failWithErr (getPosition i, ETupleSize name n)
 
 Provisos (type constraints)
 
@@ -1767,11 +1787,29 @@ EXPRESSIONS
 
 primary with arguments, e.g. prim(a,b,c)
 
+> pTuplePrimary :: SV_Parser CExpr
+> pTuplePrimary = do
+>     pos <- getPos
+>     pKeyword SV_KW_tuple
+>     pPrimaryWithArgs' True (cVar (mkId pos (mkFString "tuple")))
+>
 > pPrimaryWithArgs :: CExpr -> SV_Parser CExpr
-> pPrimaryWithArgs e =
+> pPrimaryWithArgs = pPrimaryWithArgs' False
+>
+> pPrimaryWithArgs' :: Bool -> CExpr -> SV_Parser CExpr
+> pPrimaryWithArgs' isTuple e =
 >--     do args <- many1 (pInParens (pCommaSep pExpression))
 >     do pos <- getPos
->        amcmrmps <- many1 pPortListArgs
+>        amcmrmps0 <- many1 pPortListArgs
+>        -- only the first argument list of tuple(...) is the tuple;
+>        -- any further lists apply the result, e.g. tuple(f)(x)
+>        (e0, amcmrmps) <-
+>            case (e, amcmrmps0) of
+>              (CVar i, (args1, mc, mr, mp) : rest) | isTuple ->
+>                  do checkTupleSize i "tuple" (length args1)
+>                     -- clocked_by etc. are handled as for tupleN(...)
+>                     return (mkTuple (getPosition i) args1, ([], mc, mr, mp) : rest)
+>              _ -> return (e, amcmrmps0)
 >        let ((args, mClock, mReset, mPower),ok) =
 >              case amcmrmps of
 >                    [x] -> (x,True)
@@ -1780,7 +1818,7 @@ primary with arguments, e.g. prim(a,b,c)
 >                               q (x,_,_,_) = x
 >                           in  ((concat (map q xs),Nothing,Nothing,Nothing),
 >                                all p xs)
->            e'' = cApply 17 e args
+>        let e'' = cApply 17 e0 args
 >            e'   = (if isNothing mClock && isNothing mReset && isNothing mPower
 >                            then e''
 >                            else cVApply (idChangeSpecialWires (getPosition e''))
@@ -1913,6 +1951,7 @@ parse valueOf and stringOf: these are like function call, but applied to a type
 >         <|> pTaskCallPrimary
 >         <|> pValueOf
 >         <|> pStringOf
+>         <|> pTuplePrimary
 >         -- variable, function call, method select
 >         <|> ((if allowDontCare
 >               then pVariable <|> pDontCare <|> pInParens pExpression

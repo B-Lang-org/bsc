@@ -3532,6 +3532,14 @@ instance Has_tpl_3 (Tuple3 a b c) c where {tpl_3 (_,_,x) = x }
 instance Has_tpl_1 (Tuple2 a b) a where {tpl_1 (x,_) = x }
 instance Has_tpl_2 (Tuple2 a b) b where {tpl_2 (_,x) = x }
 
+-- BSV has tuple(...) for any of these
+{-# properties tuple2 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple3 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple4 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple5 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple6 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple7 = { deprecate = "In BSV, use tuple(...) instead." } #-}
+{-# properties tuple8 = { deprecate = "In BSV, use tuple(...) instead." } #-}
 tuple2 :: a -> b -> Tuple2 a b
 tuple2 a b = (a,b)
 tuple3 :: a -> b -> c -> Tuple3 a b c

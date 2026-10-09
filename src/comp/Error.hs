@@ -693,6 +693,7 @@ data ErrMsg =
         | ESVPNoClosingParen String
         | ESVPNoId String
         | ENotUTF8
+        | ETupleSize String Int -- ^ Tuple# or tuple, number of elements
 
         -- Type checker and static elaboration errors
 
@@ -1892,6 +1893,12 @@ getErrorText (WUnusedDef i) =
      s2par ("Definition of " ++ quote i ++ " is not used."))
 getErrorText ENotUTF8 =
     (Parse 224, empty, s2par "File encoding is not UTF-8")
+getErrorText (ETupleSize name n) =
+    (Parse 225, empty,
+     s2par (quote (name ++ "(...)") ++ " has " ++ show n ++
+            (if n == 1 then " element" else " elements") ++
+            ", but a tuple must have 0 to 8 elements." ++
+            (if n > 8 then " Use a struct or nested tuples instead." else "")))
 
 -- Type check and elaboration errors
 

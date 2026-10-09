@@ -1,6 +1,8 @@
 checking package dependencies
 compiling ./FPLibrary.bsv
 compiling ./FPAdd.bsv
+Warning: "FPAdd.bsv", line 156, column 22: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
 compiling Tester.bsv
 Error: "Tester.bsv", line 9, column 18: (T0007)
   Unbound type constructor `IEEE754_32'

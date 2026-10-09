@@ -1,5 +1,9 @@
 checking package dependencies
 compiling SplitTupleMethodTest_sat-stp.bsv
+Warning: "SplitTupleMethodTest_sat-stp.bsv", line 32, column 27: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "SplitTupleMethodTest_sat-stp.bsv", line 45, column 27: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
 code generation for mkValSub starts
 === schedule (SplitTupleMethodTest_sat-stp mkValSub):
 parallel: [esposito: [get -> []]]

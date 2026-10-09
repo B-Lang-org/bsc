@@ -1,5 +1,7 @@
 checking package dependencies
 compiling Test628.bsv
+Warning: "Test628.bsv", line 12, column 11: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
 code generation for mkTest starts
 Error: "Test628.bsv", line 8, column 9: (S0015)
   Bluespec evaluation-time error: index 4 out-of-range (bit extraction - high

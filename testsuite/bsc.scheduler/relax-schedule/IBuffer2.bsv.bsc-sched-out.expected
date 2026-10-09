@@ -1,8 +1,130 @@
 checking package dependencies
 compiling ./Interfaces.bsv
 compiling ./X86_Datatypes.bsv
+Warning: "X86_Datatypes.bsv", line 584, column 11: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 584, column 32: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 585, column 13: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 587, column 16: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 587, column 37: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 605, column 22: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 607, column 22: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 607, column 43: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 629, column 18: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 632, column 14: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 634, column 14: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 636, column 14: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 664, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 666, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 666, column 37: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 674, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 676, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 676, column 39: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 678, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 683, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 685, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 685, column 39: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 695, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 702, column 29: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 702, column 68: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 704, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 704, column 39: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 709, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 715, column 22: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 715, column 43: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 722, column 22: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 722, column 43: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 729, column 22: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 729, column 43: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 740, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 750, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 761, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 763, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 763, column 37: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 766, column 11: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 767, column 13: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 775, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 777, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 777, column 39: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 782, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 784, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 784, column 39: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 786, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 798, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 811, column 22: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 818, column 22: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 823, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 833, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 843, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 854, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 856, column 16: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 856, column 37: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 864, column 57: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 866, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
+Warning: "X86_Datatypes.bsv", line 871, column 18: (P0072)
+  The definition `tuple3' is deprecated. In BSV, use tuple(...) instead.
 compiling ./BaseTypes.bsv
 compiling IBuffer2.bsv
+Warning: "IBuffer2.bsv", line 44, column 58: (P0072)
+  The definition `tuple2' is deprecated. In BSV, use tuple(...) instead.
 code generation for mkIBuffer starts
 === schedule (IBuffer2 mkIBuffer):
 parallel: [esposito: [handleIBufferRequest -> [],

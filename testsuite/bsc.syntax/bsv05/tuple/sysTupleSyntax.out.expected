@@ -1,0 +1,11 @@
+empty = 1 1, bits = 0
+one = 1, calls = 0 0
+p = 1   7
+t3new =   2   3   1
+t3 equal = 1
+t8 = 1   8
+n8 =  1  2  3  4  5  6  7  8  9
+n8 bits = 123456789
+n8 tpl_7 =  7, tpl_8 = 89, declared tpl_8 = 89
+r = 0  5 101
+r eq = 1

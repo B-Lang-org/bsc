@@ -20,6 +20,8 @@ BSCFLAGS_EXT += -p .
 # Specify a vsearch path to replace the default
 # (to avoid warnings about the directory not existing)
 BSCFLAGS_EXT += -vsearch $(BUILDDIR)
+# The libraries still use the deprecated tuple2..tuple8
+BSCFLAGS_EXT += -suppress-warnings P0072
 # Increase the RTS stack
 #BSCFLAGS_EXT += +RTS -K32M -RTS
 
