@@ -1,0 +1,33 @@
+package FdOrder where
+
+-- Under ordered-clause fundep semantics, resolution must not depend on
+-- the order in which sibling predicates are solved.  The TC instances
+-- form an ordered type-level function (Maybe inputs map to 5, everything
+-- else to 6); a use that demands 6 at a Maybe input selects the Maybe
+-- clause (first input match) and conflicts, regardless of whether the
+-- demand arrives before or after the match.  Both definitions below must
+-- fail; the legacy (fall-through) policy accepted foo2 and rejected foo1.
+
+class TC x n | x -> n where
+    tcVal :: x -> Bit n
+
+instance TC (Maybe a) 5 where
+    tcVal _ = 0
+
+instance TC x 6 where
+    tcVal _ = 0
+
+class TC2 x n | x -> n where
+    tc2Val :: x -> Bit n
+
+instance TC2 Bool 6 where
+    tc2Val _ = 0
+
+h :: Bit n -> Bit n -> Bool
+h _ _ = True
+
+foo1 :: Maybe t -> Bool -> Bool
+foo1 x b = h (tcVal x) (tc2Val b)
+
+foo2 :: Maybe t -> Bool -> Bool
+foo2 x b = h (tc2Val b) (tcVal x)
