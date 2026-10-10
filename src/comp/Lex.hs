@@ -38,6 +38,10 @@ data LexItem =
         | L_varsym FString
         | L_consym FString
         | L_integer (Maybe Integer) Integer Integer                -- bit size (if specified), base, value
+        | L_mixedInteger 
+          { base :: Integer,
+            digits :: [Maybe Integer], -- None => dont-care '?', oth digit
+            originalText :: String }
         | L_float Rational
         | L_char Char
         | L_string String
@@ -79,6 +83,7 @@ prLexItem (L_conid s) = getFString s
 prLexItem (L_varsym s) = getFString s
 prLexItem (L_consym s) = getFString s
 prLexItem (L_integer _ _ i) = itos i
+prLexItem (L_mixedInteger _ _ orig_txt) = orig_txt
 prLexItem (L_float r) = show r
 prLexItem (L_char c) = show c
 prLexItem (L_string s) = show s
@@ -239,11 +244,11 @@ lx lf f l c ('"':cs)                =
                 lexString :: String -> Int -> Int -> String -> Maybe (String, Int, Int, String)
                 lexString ('"':s)      l c r             = Just (reverse r, l, c+1, s)
                 lexString s            l c r             = lexLitChar' s >>= \ (x, n, s') -> lexString s' l (c+n) (x:r)
-lx lf f l c ('0':x:ch:cs) | (x == 'x' || x == 'X') && isHexDigit ch =
+lx lf f l c ('0':x:ch:cs) | (x == 'x' || x == 'X') && (isHexDigit ch || ch == '?') =
     lInteger 16 isHexDigit Nothing (length "0x") lf f l c (ch:cs)
-lx lf f l c ('0':b:ch:cs) | (b == 'b' || b == 'B') && isBinDigit ch =
+lx lf f l c ('0':b:ch:cs) | (b == 'b' || b == 'B') && (isBinDigit ch || ch == '?') =
     lInteger  2 isBinDigit Nothing (length "0b") lf f l c (ch:cs)
-lx lf f l c ('0':o:ch:cs) | (o == 'o' || o == 'O') && isOctDigit ch =
+lx lf f l c ('0':o:ch:cs) | (o == 'o' || o == 'O') && (isOctDigit ch || ch == '?') =
     lInteger  8 isOctDigit Nothing (length "0o") lf f l c (ch:cs)
 lx lf f l c (ch:cs) | isDigit ch =
   let isSign c = (c == '+' || c == '-')
@@ -259,10 +264,10 @@ lx lf f l c (ch:cs) | isDigit ch =
           lxExp soFar (e:cs)
       -- Sized bit vectors
       lxFloat soFar ('\'' : fmt : ch : cs)
-        | fmt == 'h' && isHexDigit ch = lInteger 16 isHexDigit (Just sz) w_pre lf f l c (ch:cs)
-        | fmt == 'd' && isDigit    ch = lInteger 10 isDigit    (Just sz) w_pre lf f l c (ch:cs)
-        | fmt == 'b' && isBinDigit ch = lInteger  2 isBinDigit (Just sz) w_pre lf f l c (ch:cs)
-        | fmt == 'o' && isOctDigit ch = lInteger  8 isOctDigit (Just sz) w_pre lf f l c (ch:cs)
+        | fmt == 'h' && (isHexDigit ch || ch == '?') = lInteger 16 isHexDigit (Just sz) w_pre lf f l c (ch:cs)
+        | fmt == 'd' && (isDigit    ch || ch == '?') = lInteger 10 isDigit    (Just sz) w_pre lf f l c (ch:cs)
+        | fmt == 'b' && (isBinDigit ch || ch == '?') = lInteger  2 isBinDigit (Just sz) w_pre lf f l c (ch:cs)
+        | fmt == 'o' && (isOctDigit ch || ch == '?') = lInteger  8 isOctDigit (Just sz) w_pre lf f l c (ch:cs)
         where sz = readN 10 soFar
               w_pre = length soFar + length "'h"
       lxFloat soFar cs =
@@ -384,11 +389,14 @@ lx lf f l c (x:cs) = lexerr f l c (LexBadLexChar x)
 lInteger :: Integer -> (Char -> Bool) -> Maybe Integer -> Int -> LFlags
          -> FileName -> Int -> Int -> String -> [Token]
 lInteger base isBaseDigit sz w_prefix lf f l c cs =
-  case span (\c -> c == '_' || isBaseDigit c) cs of
+  case span (\c -> c == '_' || isBaseDigit c || c == '?') cs of
     (s, cs') ->
       let w = length s + w_prefix
-          li = L_integer sz base (readN base $ filter (/= '_') s)
-      in Token (mkPositionFull f l c (lf_is_stdlib lf)) li : lx lf f l (c+w) cs'
+          li =
+            if ('?' `elem` s) && (base /= 10)
+              then L_mixedInteger base (readNWithDC base $ filter (/= '_') s) s
+              else L_integer sz base (readN base $ filter (/= '_') s)
+       in Token (mkPositionFull f l c (lf_is_stdlib lf)) li : lx lf f l (c + w) cs'
 
 lReal :: String -> LFlags -> FileName -> Int -> Int -> String -> [Token]
 lReal s lf f l c cs =
@@ -469,6 +477,9 @@ readN :: Integer -> String -> Integer
 readN radix s =
      foldl1 (\n d -> n * radix + d)
             (map (toInteger . digitToInt) s)
+
+readNWithDC :: Integer -> String -> [Maybe Integer]
+readNWithDC radix = map (\c -> if c == '?' then Nothing else Just $ (toInteger . digitToInt) c)
 
 -- maxexp = 10000 :: Int                -- don't allow exponents greater than this since it would take up too much memory
 

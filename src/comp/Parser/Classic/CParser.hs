@@ -610,10 +610,14 @@ pAPat =     pVarIdOrU `into` (\ mi ->
         ||! pConId                                                        >>- (\i -> CPCon i [])
         ||! lp +.+ sepBy pPat (l L_comma) +.. rp                        >>> pMkTuple
         ||! numericLit                                                        >>- litToPLit
+        ||! mixedInteger
         ||! lcp "'0" (\p x -> case x of L_unbasedUnsized False -> Just (CPLit (CLiteral p (LInt (ilDec 0)))); _ -> Nothing)
   where
     litToPLit (CLit l) = CPLit l
     litToPLit _ = internalError "CParser.pAPat: litToPLit"
+
+mixedInteger :: CParser CPat
+mixedInteger = lcp "<mixedInteger>" (\p x->case x of L_mixedInteger b ds _ -> Just $ CPMixedLit p b (map (1,) ds); _ -> Nothing)
 
 pPField :: CParser (Id, CPat)
 pPField = pFieldId `into` \ i ->
