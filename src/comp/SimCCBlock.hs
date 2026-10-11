@@ -684,6 +684,17 @@ addMask sz expr
     | sz < 64 = (mkMask sz) `cBitAnd` expr
 addMask sz expr = (var (sizedName "mask" sz)) `cCall` [mkUInt32 sz,expr]
 
+-- Division and remainder are not emitted as the C++ '/' and '%'
+-- operators, because those are undefined behavior on a zero divisor.
+-- Bluesim can evaluate a division whose result is discarded (a rule
+-- body "if (b != 0) r <= a / b" divides unconditionally and only
+-- guards the write), so a zero divisor reaches the operator even in
+-- correct designs.  safe_quot/safe_rem in bs_prim_ops.h define that
+-- case to be all ones; see the comment there.
+cSafeQuot, cSafeRem :: CCExpr -> CCExpr -> CCExpr
+cSafeQuot e1 e2 = (var "safe_quot") `cCall` [e1, e2]
+cSafeRem  e1 e2 = (var "safe_rem")  `cCall` [e1, e2]
+
 -- cast an expression to the correct type for its desired size
 
 -- Generate an expression for a simple unary operator (!, ~, -)
@@ -985,9 +996,9 @@ aExprToCExpr ret p@(APrim _ _ PrimSub args) = argCount (==2) args $
 aExprToCExpr ret p@(APrim _ _ PrimMul args) = argCount (==2) args $
   mulPrim ret (aSize p) (toWString PrimMul) (args!!0) (args!! 1)
 aExprToCExpr ret p@(APrim _ _ PrimQuot args) = argCount (==2) args $
-  maskedPrim2 ret (aSize p) (cQuot) (toWString PrimQuot) (args!!0) (args!! 1)
+  maskedPrim2 ret (aSize p) (cSafeQuot) (toWString PrimQuot) (args!!0) (args!! 1)
 aExprToCExpr ret p@(APrim _ _ PrimRem args) = argCount (==2) args $
-  maskedPrim2 ret (aSize p) (cRem) (toWString PrimRem) (args!!0) (args!! 1)
+  maskedPrim2 ret (aSize p) (cSafeRem) (toWString PrimRem) (args!!0) (args!! 1)
 aExprToCExpr ret (APrim _ _ PrimAnd args) = argCount (>1) args $
   simplePrimN ret (cBitAnd) (toWString PrimAnd) args
 aExprToCExpr ret (APrim _ _ PrimOr args) = argCount (>1) args $
