@@ -12,7 +12,7 @@ IPackage DummyInDeflQual
 DummyInDeflQual.dummyInDeflQual :: Prelude.Bit 12
 DummyInDeflQual.dummyInDeflQual =
   let _tcdict1072 :: Prelude.Literal (Prelude.Bit 12)
-      _tcdict1072 = Prelude.Prelude.Literal~Prelude.Bit~n= ·12
+      _tcdict1072 = Prelude.Prelude.Literal`Prelude.Bit`n= ·12
       -- IdProp: _tcdict1072[IdP_bad_name,IdPDict]
   in  let f ::
 	    \/(_tctyvar1063 :: *) .
@@ -22,10 +22,10 @@ DummyInDeflQual.dummyInDeflQual =
 	    /\ (_tctyvar1064 :: *) .
 	    \ (_tcdict1050 :: Prelude.Literal _tctyvar1063) .
 	    let _tcdict1032 :: Prelude.Eq (Prelude.Bit 2)
-		_tcdict1032 = Prelude.Prelude.Eq~Prelude.Bit~n= ·2
+		_tcdict1032 = Prelude.Prelude.Eq`Prelude.Bit`n= ·2
 		-- IdProp: _tcdict1032[IdP_bad_name,IdPDict]
 	    in  let _tcdict1042 :: Prelude.Literal (Prelude.Bit 2)
-		    _tcdict1042 = Prelude.Prelude.Literal~Prelude.Bit~n= ·2
+		    _tcdict1042 = Prelude.Prelude.Literal`Prelude.Bit`n= ·2
 		    -- IdProp: _tcdict1042[IdP_bad_name,IdPDict]
 		in  \ (x :: _tctyvar1064) .
 		    PrimIf

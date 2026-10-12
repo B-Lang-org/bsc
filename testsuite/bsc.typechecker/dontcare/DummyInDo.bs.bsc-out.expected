@@ -12,7 +12,7 @@ IPackage DummyInDo
 DummyInDo.x :: Prelude.ActionValue (Prelude.PrimPair Prelude.Bool Prelude.Bool)
 DummyInDo.x =
   let _tcdict1009 :: Prelude.Monad Prelude.ActionValue
-      _tcdict1009 = Prelude.Prelude.Monad~Prelude.ActionValue=
+      _tcdict1009 = Prelude.Prelude.Monad`Prelude.ActionValue=
       -- IdProp: _tcdict1009[IdP_bad_name,IdPDict]
   in  Prelude.return=
 	·Prelude.ActionValue
@@ -27,7 +27,7 @@ next def..........................................................
 DummyInDo.dummyInDo :: Prelude.ActionValue (Prelude.Bit 12)
 DummyInDo.dummyInDo =
   let _tcdict1024 :: Prelude.Monad Prelude.ActionValue
-      _tcdict1024 = Prelude.Prelude.Monad~Prelude.ActionValue=
+      _tcdict1024 = Prelude.Prelude.Monad`Prelude.ActionValue=
       -- IdProp: _tcdict1024[IdP_bad_name,IdPDict]
   in  .Prelude.bind ·Prelude.ActionValue _tcdict1024
 	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
