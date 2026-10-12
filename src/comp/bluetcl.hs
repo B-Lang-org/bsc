@@ -73,6 +73,7 @@ import AUses(MethodId(..))
 import VModInfo
 import ADumpSchedule
 import BackendNamingConventions
+import WireAnalysis(getWireTypeMap)
 
 import TclParseUtils
 
@@ -979,7 +980,8 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
                 (oneOf [ loadGrammar, clearGrammar, submodsGrammar
                        , rulesGrammar, ifcGrammar, methodsGrammar
                        , bflagsGrammar
-                       , portsGrammar, porttypesGrammar, listGrammar
+                       , portsGrammar, porttypesGrammar, wiretypemapGrammar
+                       , listGrammar
                        , methodConditionsGrammar
                        ])
     where helpStr = "Load and query information on a module"
@@ -1002,6 +1004,11 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
           listGrammar = (kw "list" "List the loaded modules" "")
           porttypesGrammar =
               (kw "porttypes" "Show the types of the ports of a module" "") .+.
+              (arg "module" StringArg "module name")
+          wiretypemapGrammar =
+              (kw "wiretypemap"
+                  "Map wire names to source types, for VCD correlation"
+                  "") .+.
               (arg "module" StringArg "module name")
 
 
@@ -1121,7 +1128,14 @@ tclModule ["methods",modname] = do
                ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                            | aif <- ifc ]
            let tifc = getModuleIfc abmi
-           fs <- getIfcHierarchy Nothing ifc_map tifc
+           fs <-
+             let defl_fs = [ Field fId inf Nothing | (fId, inf) <- ifc_map ]
+             in do mres <- runExceptT $ mgetIfcHierarchy Nothing ifc_map tifc
+                   case mres of
+                     Right res -> return res
+                     Left _ -> -- source ifc type didn't match the synthesized
+                               --   ports (e.g. SplitPorts); use the flat list
+                               return defl_fs
            return (dispIfcHierarchyNames fs)
 
 ------
@@ -1191,6 +1205,18 @@ tclModule ["porttypes",modname] = do
            let h_arg_types = concatMap dispPortsModArg arginfo
                h_ifc_types = concatMap dispPortsIfc ifcinfo
            return $ TLst $ nub (h_arg_types ++ h_ifc_types)
+------
+tclModule ["wiretypemap",modname] = do
+  if (isPrimitiveModule modname)
+   then return $ TLst []
+   else do
+     minfo <- findModule modname
+     case minfo of
+       Nothing -> return $ TLst []
+       Just abmi -> do
+           let apkg = abemi_apkg abmi
+               mkEntryObj (name, t) = TLst [TStr name, TStr (pfpString t)]
+           return $ TLst $ map mkEntryObj $ getWireTypeMap apkg
 ------
 tclModule ["flags",modname] = do
   if (isPrimitiveModule modname)
@@ -3534,7 +3560,14 @@ getModPortInfo apkg pps tifc = do
     let -- map from flattened ifc name to its raw info
         ifc_map = [ (aif_name aif, rawIfcFieldFromAIFace pps aif)
                     | aif <- ifc ]
-    ifc_hier <- getIfcHierarchy Nothing ifc_map tifc
+    ifc_hier <-
+      let defl_ifc_hier = [ Field fId inf Nothing | (fId, inf) <- ifc_map ]
+      in do mres <- runExceptT $ mgetIfcHierarchy Nothing ifc_map tifc
+            case mres of
+              Right res -> return res
+              Left _ -> -- the source ifc type didn't match the synthesized
+                        --   ports (e.g. SplitPorts), so use the flat list
+                        return defl_ifc_hier
 
     -- module arguments
     let inps :: [(AAbstractInput, VArgInfo)]
