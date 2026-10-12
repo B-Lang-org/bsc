@@ -14,4 +14,5 @@ Warning: "RuleNameNonAlphanumClashLoop.bsv", line 12, column 12: (G0021)
 Warning: "RuleNameNonAlphanumClashLoop.bsv", line 12, column 12: (G0021)
   According to the generated schedule, rule `r1_1_2' can never fire.
 Verilog file created: sysRuleNameNonAlphanumClashLoop.v
+Elaborated module file created: sysRuleNameNonAlphanumClashLoop.ba
 All packages are up to date.

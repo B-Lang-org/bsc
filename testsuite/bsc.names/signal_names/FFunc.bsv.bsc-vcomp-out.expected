@@ -42,4 +42,5 @@ clock domain = Just (0), resets = []
 -----
 
 Verilog file created: sysFFunc.v
+Elaborated module file created: sysFFunc.ba
 All packages are up to date.

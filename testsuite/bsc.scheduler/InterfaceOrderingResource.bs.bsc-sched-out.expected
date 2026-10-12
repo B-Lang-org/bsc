@@ -40,4 +40,5 @@ Logical execution order: act, write
 
 ============================================================
 Verilog file created: sysInterfaceOrderingResource.v
+Elaborated module file created: sysInterfaceOrderingResource.ba
 All packages are up to date.

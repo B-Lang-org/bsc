@@ -13,4 +13,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: sysOutputClockAndReset.v
+Elaborated module file created: sysOutputClockAndReset.ba
 All packages are up to date.

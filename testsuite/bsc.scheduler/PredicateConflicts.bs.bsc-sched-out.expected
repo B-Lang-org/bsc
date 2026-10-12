@@ -41,4 +41,5 @@ Logical execution order: foo, bar
 
 =====================================================
 Verilog file created: sysPredicateConflicts.v
+Elaborated module file created: sysPredicateConflicts.ba
 All packages are up to date.

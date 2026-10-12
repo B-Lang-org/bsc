@@ -11,6 +11,7 @@ RST_N                          I     1 unused
 -----
 
 Verilog file created: mkSub.v
+Elaborated module file created: mkSub.ba
 code generation for mkTop starts
 Warning: "InHigh.bsv", line 26, column 11: (G0015)
   Instance `s' requires the following method to be always enabled, but the
@@ -31,6 +32,7 @@ EN_start                       I     1 inhigh
 -----
 
 Verilog file created: mkTop.v
+Elaborated module file created: mkTop.ba
 code generation for mkTest1 starts
 Warning: "InHigh.bsv", line 41, column 11: (G0015)
   Instance `t' requires the following method to be always enabled, but the
@@ -47,6 +49,7 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: mkTest1.v
+Elaborated module file created: mkTest1.ba
 code generation for mkTest2 starts
 Warning: "InHigh.bsv", line 51, column 11: (G0015)
   Instance `t' requires the following method to be always enabled, but the
@@ -63,4 +66,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: mkTest2.v
+Elaborated module file created: mkTest2.ba
 All packages are up to date.

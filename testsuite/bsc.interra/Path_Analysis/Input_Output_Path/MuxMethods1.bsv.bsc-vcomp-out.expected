@@ -9,4 +9,5 @@ Combinational paths from inputs to outputs:
 -----
 
 Verilog file created: mkMuxMethods1.v
+Elaborated module file created: mkMuxMethods1.ba
 All packages are up to date.

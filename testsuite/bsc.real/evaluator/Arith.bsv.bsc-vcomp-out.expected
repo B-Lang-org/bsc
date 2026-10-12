@@ -9,4 +9,5 @@ Compilation message: "Arith.bsv", line 19, column 24: 5.0 / 2 = 2.5
 Compilation message: "Arith.bsv", line 20, column 25: abs -1.1 = 1.1
 Compilation message: "Arith.bsv", line 21, column 28: signum -1.1 = -1.0
 Verilog file created: sysArith.v
+Elaborated module file created: sysArith.ba
 All packages are up to date.
