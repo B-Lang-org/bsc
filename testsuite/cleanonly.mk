@@ -46,6 +46,7 @@ TRYDELFILES = $(wildcard \
 	*.dump \
 	*.daidir \
 	*.fsdb \
+	*.fst \
 	*.epp \
 	*.pexe \
 	*.uexe \

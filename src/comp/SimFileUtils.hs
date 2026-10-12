@@ -35,7 +35,14 @@ codeGenOptionDescr :: Flags -> Bool -> String
 codeGenOptionDescr flags is_top =
     unwords $ [ "Generation options:" ] ++
               (if (keepFires flags) then ["keep-fires"] else []) ++
-              (if (is_top && (genSysC flags)) then ["sysc-top"] else [])
+              (if (is_top && (genSysC flags)) then ["sysc-top"] else []) ++
+              -- with -dump-formats none the per-signal waveform dumping
+              -- code is not generated, so such objects cannot be reused
+              -- when a format is enabled (or vice versa); the generated
+              -- code is the same for all formats, so which format does
+              -- not matter, only whether any is enabled
+              (if (any (`elem` ["vcd", "fst"]) (dumpFormats flags))
+               then [] else ["no-wave-dump"])
 
 readCodeGenOptionDescr :: FilePath -> IO (Maybe String)
 readCodeGenOptionDescr f =

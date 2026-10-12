@@ -16,6 +16,8 @@ dumpbo
 dumpba
 bsc2bsv
 bsv2bsc
+fstcheck
+fstscopes
 showrules
 vcdcheck
 

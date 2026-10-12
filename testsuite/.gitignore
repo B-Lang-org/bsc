@@ -67,6 +67,18 @@ module_*.cxx
 # VCD dumps
 *.vcd
 
+# FST dumps (and the conversions/dumps checked by tests)
+*.fst
+*.fst.hier
+*.fst-vcd
+*.fst-hier
+*.fsthier
+
+# correlation test build/run trees
+bsc.bluetcl/*_correlation/bo_*/
+bsc.bluetcl/*_correlation/veri_*/
+bsc.bluetcl/*_correlation/sim/
+
 # ModelSim/Questa output
 transcript
 work_*

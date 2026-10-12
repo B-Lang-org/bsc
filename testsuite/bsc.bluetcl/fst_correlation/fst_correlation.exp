@@ -1,0 +1,54 @@
+# Wire-type / FST correlation integration test.
+#
+# The FST twin of ../vcd_correlation: compiles the same designs to
+# both Verilog and Bluesim, generates FST dumps (vvp -fst / Bluesim
+# -dump-formats fst), then verifies that every wire appearing in
+# either FST that matches an entry in `module wiretypemap` is
+# correctly correlated -- and, additionally, that the module TYPE of
+# every correlated scope is recorded in the FST itself (the scope
+# component field, which VCD has no place for).
+
+global srcdir
+global subdir
+global lasterr
+
+set here    [absolute $srcdir]
+set testdir [file join $here $subdir]
+
+# the FST hierarchies are extracted with the fstscopes utility, which
+# is built and installed by `make install-extra` (like vcdcheck)
+set fstscopes [find_fstscopes]
+if { $fstscopes == 0 } {
+    unsupported "fst_correlation: fstscopes not available (build with install-extra)"
+    return
+}
+
+cd $testdir
+set status [exec_with_log_and_return "fst_correlation" \
+                "env FSTSCOPES=$fstscopes ./run_fst_correlation.sh > run_fst_correlation.out 2>@1" \
+                lasterr 2]
+cd $here
+
+set output_file   [file join $testdir run_fst_correlation.out]
+set expected_file [file join $testdir run_fst_correlation.out.expected]
+set diff_out      [file join $testdir run_fst_correlation.out.diff-out]
+file delete -force $diff_out
+
+# On failure, write just the unified diff to .diff-out. The actual
+# output, build transcript, and per-sim logs are all picked up by
+# archive_logs.sh via the *.out / *.log patterns.
+if { $status != 0 } {
+    set fh [open $diff_out w]
+    puts $fh "fst_correlation: run_fst_correlation.sh exited non-zero ($lasterr)"
+    close $fh
+    fail "fst_correlation: run_fst_correlation.sh exited non-zero ($lasterr)"
+} elseif { ![file exists $expected_file] } {
+    unresolved "fst_correlation: no expected file"
+} elseif { [catch {exec diff -u $expected_file $output_file} diff_err] } {
+    set fh [open $diff_out w]
+    puts $fh $diff_err
+    close $fh
+    fail "fst_correlation: output differs from expected (see [file join $subdir [file tail $diff_out]])"
+} else {
+    pass "fst_correlation: wiretypemap and module types match both FSTs as expected"
+}

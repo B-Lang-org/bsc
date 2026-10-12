@@ -19,6 +19,7 @@ Flags {
 	disableAssertions = False,
 	doICheck = True,
 	dumpAll = Nothing,
+	dumpFormats = ["vcd"],
 	dumps = [],
 	enablePoisonPills = False,
 	entry = Nothing,

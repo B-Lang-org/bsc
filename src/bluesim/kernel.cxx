@@ -335,13 +335,18 @@ static tTime run_combo_schedule_event(tSimStateHdl simHdl, tEvent& ev)
 
 static tTime vcd_event(tSimStateHdl simHdl, tEvent& ev)
 {
+  // nothing can be dumped without an open file (e.g. after a mid-run
+  // format switch closed it); don't dereference a NULL writer
+  if ((simHdl->vcd).writer == NULL)
+    return 0llu;
+
   // if writing a new header, dump the hierarchy and id map
   if (vcd_write_header(simHdl))
   {
     vcd_write_scope_start(simHdl, "main");
     simHdl->model->dump_VCD_defs();
     vcd_write_scope_end(simHdl);
-    fputs("$enddefinitions $end\n", (simHdl->vcd).vcd_file);
+    vcd_end_definitions(simHdl);
   }
 
   vcd_advance(simHdl, ev.data.flag);
@@ -684,7 +689,12 @@ tSimStateHdl bk_init(tModel model, tBool master)
   (simHdl->vcd).need_end_task = false;
   (simHdl->vcd).changes_now = false;
 
-  (simHdl->vcd).vcd_file = NULL;
+  (simHdl->vcd).writer = NULL;
+  // by default only VCD dumping is available; generated model code
+  // overrides this (in create_model) via vcd_set_allowed_formats
+  (simHdl->vcd).allowed_formats = BS_WAVE_FORMAT_VCD;
+  (simHdl->vcd).format = BS_WAVE_FORMAT_VCD;
+  (simHdl->vcd).fst_writer_factory = NULL;
   (simHdl->vcd).vcd_enabled = false;
   (simHdl->vcd).vcd_checkpoint = false;
   (simHdl->vcd).vcd_depth = 0;

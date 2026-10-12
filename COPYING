@@ -12,6 +12,13 @@ license.  The following are known to have other authors and licenses:
       [1] https://stp-fast-prover.svn.sourceforge.net/svnroot/stp-fast-prover/trunk/stp
       [2] https://github.com/stp/stp/commit/ece1a55fb367bd905078baca38476e35b4df06c3
 
+* libfst - GTKWave's FST waveform file format library (with FastLZ and LZ4)
+  * src/vendor/libfst is a Git submodule of GTKWave's standalone libfst
+    repository (fstapi and its bundled FastLZ and LZ4 compression
+    libraries), used by Bluesim to write FST waveform dumps
+  * See LICENSES/LICENSE.fst and the LICENSE file in the submodule
+  * The submodule references https://github.com/gtkwave/libfst
+
 * The Yices SMT Solver
   * The files in src/vendor/yices/ define a Haskell interface for using
     the Yices library (via its C API); there is also code for a
