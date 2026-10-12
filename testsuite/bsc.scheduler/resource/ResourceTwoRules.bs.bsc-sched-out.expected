@@ -88,4 +88,5 @@ Logical execution order: Contender,
 Warning: "ResourceTwoRules.bs", line 23, column 26: (G0021)
   According to the generated schedule, rule `Contender_1' can never fire.
 Verilog file created: sysResourceTwoRules.v
+Elaborated module file created: sysResourceTwoRules.ba
 All packages are up to date.
