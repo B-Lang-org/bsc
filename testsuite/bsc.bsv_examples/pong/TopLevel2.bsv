@@ -184,10 +184,11 @@ endmodule: mkTopLevelBSV
 
 (* synthesize, always_ready, always_enabled *)
 module [Module] mkTopLevel(TopLevel);
-   Tuple2#(AssertionWires#(7), TopLevelBSV) awires_dut();
+   AssertIfc#(TopLevelBSV, 7) awires_dut();
    exposeAssertionWires#(mkTopLevelBSV) the_dut(awires_dut);
 
-   match {.awires, .dut} = awires_dut;
+   let awires = awires_dut.wires;
+   let dut = awires_dut.device;
 
    Reg#(Bool) clearreg();
    mkConfigReg#(False) the_clearreg(clearreg);

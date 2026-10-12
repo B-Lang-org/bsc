@@ -29,8 +29,16 @@ write ='b010;
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
+// A tuple is not a valid module interface, so expose the three ZBus sides
+// through a named interface instead.
+interface ClientIFC;
+   interface ZBusIFC#(BCtl)  ctl;
+   interface ZBusIFC#(BAddr) addr;
+   interface ZBusIFC#(BData) data;
+endinterface
+
 (* synthesize *)
-module mkSimpleClient (Tuple3#(ZBusIFC#(BCtl),ZBusIFC#(BAddr),ZBusIFC#(BData)));
+module mkSimpleClient (ClientIFC);
 
    Reg#(BAddr)       self();
    mkReg#(0)         reg_self(self);
@@ -66,7 +74,9 @@ module mkSimpleClient (Tuple3#(ZBusIFC#(BCtl),ZBusIFC#(BAddr),ZBusIFC#(BData)));
        endaction
    endrule
 
-   return tuple3(ctl_ifc, addr_ifc, data_ifc);
+   interface ctl  = ctl_ifc;
+   interface addr = addr_ifc;
+   interface data = data_ifc;
 
 endmodule
 

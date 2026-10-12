@@ -3,9 +3,16 @@ import Connectable :: * ;
 
 // clk1 and clk2 are in the same family generated via a clock tree!
 
+// A tuple (GetPut) is not a valid module interface, so expose the Get/Put
+// sides through a named interface instead.
+interface GetPutIfc;
+   interface Get#(int) fst;
+   interface Put#(int) snd;
+endinterface
+
 (* synthesize *)
 (* clock_family = "clk1, clk2" *)
-module mkGP ( Clock clk1, Clock clk2, GetPut#(int) ifc ) ;
+module mkGP ( Clock clk1, Clock clk2, GetPutIfc ifc ) ;
 
 
    GetPut#(int) gp1 <- mkGPFIFO( clocked_by clk1, reset_by noReset  ) ;
