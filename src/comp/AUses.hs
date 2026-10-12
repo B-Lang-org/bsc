@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-record-updates #-}
 {-# LANGUAGE PatternGuards #-}
 -- AUses
 --
