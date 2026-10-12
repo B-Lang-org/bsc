@@ -375,11 +375,11 @@ getTyVarNum = lift $ do
 newTVar :: HasPosition a => String -> Kind -> a -> TI Type
 newTVar msg k x = do
   let pos = getPosition x
-  bvs <- getBoundTVs
+  bvss <- gets tsBoundTyVarStack
   let loopVar = do
         n <- getTyVarNum
         let v = TyVar (enumId "tctyvar" pos n) n k
-        if (v `elem` bvs) then loopVar
+        if any (v `elem`) bvss then loopVar
          else do
            when doVarTrace $ traceM ("newTVar: " ++ show n ++ " " ++ msg);
            return (TVar v)
