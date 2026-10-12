@@ -1,0 +1,10 @@
+
+## The -v95 flag has been removed: parameters are always passed by name
+## and $signed/$unsigned are always emitted.  These tests keep covering
+## the constructs the flag used to vary.
+test_veri_only_bsv_modules_options ParamOrder "" "" ""
+
+test_veri_only_bsv_modules_options Signed "" ""
+
+
+
