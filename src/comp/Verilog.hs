@@ -27,6 +27,8 @@ module Verilog(
                getVeriInsts,
                vGetMainModName,
                vKeywords,
+               isVReservedWord,
+               isSVStdPackageIdent,
                vSeq,
                vVDecl,
                vGroup,
@@ -50,6 +52,7 @@ import Prelude hiding ((<>))
 
 import Data.List(nub)
 import Data.Maybe(fromMaybe)
+import qualified Data.Set as S
 import Eval
 import PPrint
 import Fixity(Fixity(..))
@@ -61,6 +64,8 @@ import Position
 import FStringCompat
 import Data.Char(isDigit, isAlpha)
 import qualified Data.Generics as Generic
+import SystemVerilogKeywords(SV_Version(..), svKeywordTable,
+                             svOutputReservedWords, svStdPackageIdents)
 
 --import Debug.Trace
 
@@ -247,7 +252,9 @@ data VArg
         -- If the type is Nothing, then do not print a declaration
         | VAInout VId (Maybe VId) (Maybe (Maybe VRange))
         | VAOutput VId (Maybe VRange)
-        | VAParameter VId (Maybe VRange) VExpr
+        -- final Bool: when True, emit as a SystemVerilog `string` parameter
+        -- (`parameter string id = val`) instead of an untyped bit-vector parameter
+        | VAParameter VId (Maybe VRange) VExpr Bool
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 -- only use this for debugging
@@ -263,14 +270,15 @@ instance PPrint VArg where
         (case mmr of { Just mr -> ppMRange d mr; Nothing -> empty })
     pPrint d p (VAOutput i mr) =
         text "VAOutput" <+> pPrint d 0 i <+> ppMRange d mr
-    pPrint d p (VAParameter i mr e) =
-        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e
+    pPrint d p (VAParameter i mr e isStr) =
+        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e <+>
+        pPrint d 0 isStr
 
 instance NFData VArg where
     rnf (VAInput vid mr) = rnf2 vid mr
     rnf (VAInout vid mvid mmr) = rnf3 vid mvid mmr
     rnf (VAOutput vid mr) = rnf2 vid mr
-    rnf (VAParameter vid mr expr) = rnf3 vid mr expr
+    rnf (VAParameter vid mr expr isStr) = rnf4 vid mr expr isStr
 
 ppVArgPort :: PDetail -> VArg -> Doc
 ppVArgPort d (VAInput i _) = pPrint d 0 i
@@ -287,15 +295,15 @@ ppVArgDecl d (VAInout vi mvi' (Just mr)) =
     in  pPrint d 0 (VVDecl VDInout mr [VVar i])
 ppVArgDecl d (VAInout vi mvi' Nothing) = empty
 ppVArgDecl d (VAOutput vi mr) = pPrint d 0 (VVDecl VDOutput mr [VVar vi])
-ppVArgDecl d (VAParameter i mr e) =
-    text "parameter" <+> ppMRange d mr <+> pPrint d 0 i <+>
-    text "=" <+> pPrint d 0 e <> text ";"
+ppVArgDecl d (VAParameter i mr e isStr) =
+    text "parameter" <+> (if isStr then text "string" else ppMRange d mr) <+>
+    pPrint d 0 i <+> text "=" <+> pPrint d 0 e <> text ";"
 
 vargName :: VArg -> VId
 vargName (VAInput i _) = i
 vargName (VAInout i _ _) = i
 vargName (VAOutput i _) = i
-vargName (VAParameter i _ _) = i
+vargName (VAParameter i _ _ _) = i
 
 data VMItem
         = VMDecl VVDecl
@@ -757,7 +765,16 @@ getVIdString :: VId -> String
 getVIdString (VId s _ _) = s
 
 instance PPrint VId where
-        pPrint d p (VId s i _) = text s
+        pPrint d p (VId s i _)
+          -- identifiers that are reserved words in any Verilog or
+          -- SystemVerilog standard are printed as escaped identifiers, so
+          -- the generated code parses at every language level.  BSV's
+          -- parser rejects most of them, but words from the newer standards
+          -- are legal BSV identifiers, and Classic (BH) admits any keyword
+          -- at all.  (Escaped identifiers are legal in both languages; the
+          -- trailing space is part of the escape syntax.)
+          | isVReservedWord s = text ("\\" ++ s ++ " ")
+          | otherwise = text s
 
 instance HasPosition VId where
   getPosition (VId _ inside_id _) = getPosition inside_id
@@ -1065,21 +1082,40 @@ vGetMainModName (VProgram program_items _ _) =
         in  get_mod_name program_items
 
 
+-- All words reserved by the plain-Verilog standards (IEEE 1364-2001 plus
+-- "uwire", the one word 1364-2005 added), derived from the canonical
+-- keyword table in SystemVerilogKeywords.
 vKeywords :: [String]
-vKeywords =
-    [
-    "or", "rtran", "nor", "assign", "realtime", "tran", "not", "endcase", "endtable", "endmodule",
-    "table", "endfunction", "endprimitive", "for", "nand", "force", "forever", "deassign", "event",
-    "repeat", "end", "output", "posedge", "function", "parameter", "endspecify", "default", "and",
-    "case", "casez", "specify", "wor", "strong0", "rtranif0", "else", "release", "notif0", "tranif0",
-    "buf", "real", "large", "negedge", "scalered", "wand", "strong1", "rtranif1", "begin", "notif1",
-    "tranif1", "edge", "trior", "integer", "vectored", "join", "rnmos", "inout", "bufif0", "supply0",
-    "xor", "xnor", "weak0", "nmos", "disable", "task", "triand", "pulldown", "if", "always", "endtask",
-    "primitive", "input", "bufif1", "supply1", "fork", "weak1", "rpmos", "module", "wire", "while",
-    "specparam", "pmos", "rcmos", "reg", "tri0", "defparam", "pullup", "wait", "casex", "cmos",
-    "macromodule", "tri1", "pull0", "trireg", "small", "tri", "signed", "pull1", "time", "highz0",
-    "localparam", "medium", "highz1", "initial"
-    ]
+vKeywords = [str | (_, str, ver) <- svKeywordTable, isVerilog ver]
+  where isVerilog Verilog2001 = True
+        isVerilog Verilog2005 = True
+        isVerilog _           = False
+
+-- Words that are reserved in any Verilog or SystemVerilog standard, from
+-- the canonical table in SystemVerilogKeywords.  The printer emits an
+-- identifier that collides with one of these as an escaped identifier
+-- (\name ), which is legal at every language level.  The source languages
+-- admit some of them (BSV admits the words the standards reserved after
+-- SV 3.1a, e.g. "global"; Classic admits any keyword), and they would
+-- otherwise break SystemVerilog-mode consumers of the generated code
+-- (for example verilator, or VCS with -sv).
+vReservedWordSet :: S.Set String
+vReservedWordSet = S.fromList svOutputReservedWords
+
+-- whether an identifier collides with a reserved word of some Verilog or
+-- SystemVerilog standard and will therefore be emitted in escaped form by
+-- the printer
+isVReservedWord :: String -> Bool
+isVReservedWord s = s `S.member` vReservedWordSet
+
+-- whether an identifier collides with a class name of SystemVerilog's
+-- built-in std package (process, semaphore, mailbox).  These are not
+-- reserved words and escaping cannot protect them: some tools (verilator)
+-- resolve the names at parse time even in escaped form.  AVerilog renames
+-- internal identifiers that collide (and warns about the rest).
+isSVStdPackageIdent :: String -> Bool
+isSVStdPackageIdent s = s `S.member` stdSet
+  where stdSet = S.fromList svStdPackageIdents
 
 vIsValidIdent :: String -> Bool
 vIsValidIdent ""     = False

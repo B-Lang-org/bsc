@@ -25,7 +25,7 @@ vMuxP parallel n = VModule { vm_name = (mkVId ("Mux_" ++ itos n)),
   where
         comments = [] -- XXX room to add comments
         args = param : out : iss
-        param = VAParameter viWidth Nothing (VEConst 1)
+        param = VAParameter viWidth Nothing (VEConst 1) False
         out = VAOutput viOut rng
         iss = concatMap (\ n -> [VAInput (i n) rng, VAInput (s n) Nothing]) ns
         hi = mkVEOp w VSub one
