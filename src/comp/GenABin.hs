@@ -759,7 +759,7 @@ instance Bin VArg where
     writeBytes (VAInput i r)       = do putI 0; toBin i; toBin r
     writeBytes (VAInout i i' r)    = do putI 1; toBin i; toBin i'; toBin r
     writeBytes (VAOutput i r)      = do putI 2; toBin i; toBin r
-    writeBytes (VAParameter i r d) = do putI 3; toBin i; toBin r; toBin d
+    writeBytes (VAParameter i r d b) = do putI 3; toBin i; toBin r; toBin d; toBin b
     readBytes = do
       i <- getI
       case i of
@@ -767,8 +767,8 @@ instance Bin VArg where
         1 -> do i <- fromBin; i' <- fromBin; r <- fromBin;
                 return (VAInout i i' r)
         2 -> do i <- fromBin; r <- fromBin; return (VAOutput i r)
-        3 -> do i <- fromBin; r <- fromBin; d <- fromBin;
-                return (VAParameter i r d)
+        3 -> do i <- fromBin; r <- fromBin; d <- fromBin; b <- fromBin;
+                return (VAParameter i r d b)
         n -> internalError $ "GenABin(VArg).readBytes: " ++ show n
 
 instance Bin VExpr where
