@@ -47,6 +47,7 @@ Logical execution order: bar, glurph
 
 =====================================
 Verilog file created: mkBar.v
+Elaborated module file created: mkBar.ba
 code generation for sysIgnoreRdy starts
 === schedule (IgnoreRdy sysIgnoreRdy):
 parallel: [esposito: [foo -> [], RL_do_glurph -> []]]
@@ -86,4 +87,5 @@ Logical execution order: foo, do_glurph
 
 ============================================
 Verilog file created: sysIgnoreRdy.v
+Elaborated module file created: sysIgnoreRdy.ba
 All packages are up to date.

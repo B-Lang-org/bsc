@@ -53,4 +53,5 @@ Logical execution order: aa, ab, bb
 Warning: "MultTest_sat-yices.bsv", line 26, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysMultTest.v
+Elaborated module file created: sysMultTest.ba
 All packages are up to date.
