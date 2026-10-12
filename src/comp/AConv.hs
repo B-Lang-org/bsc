@@ -544,9 +544,15 @@ aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing}))
         --let ns = [ n | ITNum n <- ts]
         --traceM("AFunCall1: " ++ name)
         return $ AFunCall (aTypeConvE e (iGetType e)) i name isC es'
-aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just ops)})) ts es) = do
+aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just ops),
+                                   fTyVarNames = tvns })) ts es) = do
         es' <- mapM aSExpr es
-        let ns = [ n | ITNum n <- ts ]
+        let nvals = [ n | ITNum n <- ts ]
+            ns = if length tvns == length nvals
+                 then zip tvns nvals
+                 else internalError ("AConv.aExpr ANoInlineFunCall: " ++
+                                     "parameter names do not pair with values: " ++
+                                     ppReadable (name, tvns, nvals))
         let t = aTypeConvE e (iGetType e)
             -- because Classic allows foreign functions to be declared,
             -- we need to check if this is a genwrap generated function

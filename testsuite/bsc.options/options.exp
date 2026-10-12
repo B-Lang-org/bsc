@@ -382,3 +382,10 @@ if { $ctest == 1 } {
 
 ###########
 
+
+###########
+## The -v95 flag was removed: the generated Verilog stopped conforming
+## to Verilog-1995 long before, so it fails with a specific message
+## rather than an unknown-flag error
+
+compile_no_source_fail_error v95_removed {-v95} P0176
