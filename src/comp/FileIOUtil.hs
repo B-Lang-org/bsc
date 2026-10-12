@@ -246,9 +246,18 @@ writeBinaryFileCatch :: ErrorHandle -> FilePath -> [Word8] -> IO ()
 writeBinaryFileCatch errh fname content = do
     -- check if the directory exists, and report an error if not
     checkDirectory fname (fileWriteError errh emptyContext noPosition fname)
-    -- try to write the file
-    catchIO (B.writeFile fname $ B.pack content)
-            (fileWriteError errh emptyContext noPosition fname)
+
+    let fcontent = BS.pack content
+
+    -- check if the file already exists, and try to read its content
+    exists <- doesFileExist fname
+    prev_fcontent <- if exists then BS.readFile fname else return BS.empty
+
+    if fcontent /= prev_fcontent then
+        -- try to write the file
+        catchIO (B.writeFile fname $ B.fromStrict fcontent)
+                (fileWriteError errh emptyContext noPosition fname)
+    else return ()
 
 appendFileCatch :: ErrorHandle -> FilePath -> String -> IO ()
 appendFileCatch errh fname content = do
