@@ -983,7 +983,9 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
           Class {
             name = CTypeclass qi,
             csig = tvs,
-            super = [ (c', IsIn (mustFindClass r c') (map conv ts)) | CPred c' ts <- ps ],
+            -- superclass preds are synonym-expanded for the same reason
+            -- as instance heads (see mkInst)
+            super = [ (c', IsIn (mustFindClass r c') (map (expandSyn . conv) ts)) | CPred c' ts <- ps ],
             genInsts  = genInsts',
             getInsts  = getInsts',
             tyConOf = TyCon qi (Just k)
