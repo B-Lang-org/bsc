@@ -79,6 +79,12 @@ while [ $# -gt 0 ]; do
     BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
   elif [ "${1%%.o}" != "$1" ]; then
     BSC_VPI_FILES="$BSC_VPI_FILES $1"
+  elif [ "${1%%.c}" != "$1" ] || [ "${1%%.cc}" != "$1" ] || \
+       [ "${1%%.cpp}" != "$1" ] || [ "${1%%.cxx}" != "$1" ]; then
+    # C/C++ source files (e.g. generated DPI wrappers) are handed to
+    # Verilator, which compiles them with its own include path (so svdpi.h
+    # is found) and links the result.
+    BSC_VPI_FILES="$BSC_VPI_FILES $1"
   elif [ "$1" = "-L" ]; then
     shift 1
     BSC_C_LIB_PATH="$BSC_C_LIB_PATH -L$1"
