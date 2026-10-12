@@ -58,6 +58,12 @@ test_c_only_bsv StringFormat3
 test_c_only_bsv DynamicFormat
 test_c_only_bsv DynamicFormat2
 
+# Test that $swrite output which overflows the destination register is
+# truncated correctly when it wraps Bluesim's circular buffer (an
+# off-by-one in BufferTarget wrote past the buffer and visibly
+# corrupted the Bit 24 case)
+test_c_only SwriteWrap
+
 # Verilog uses a top-level wrapper module which shows up in %m.
 # Remove that name before checking the Bluesim output.  Also, since
 # the $displays are in different modules, the order is unpredictable,

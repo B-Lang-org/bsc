@@ -1,0 +1,34 @@
+package SwriteWrap(sysSwriteWrap) where
+
+-- Test $swrite to a register that is too small for the formatted
+-- output.  The result is truncated to the last characters of the
+-- string, and Bluesim implements this with a circular buffer sized
+-- to the register width.  The formats below produce 34 characters
+-- ("01" followed by a 32-bit %b) and 10 characters ("01" followed
+-- by an 8-bit %b), so a Bit 16 destination (2 bytes) and a Bit 24
+-- destination (3 bytes) both wrap the buffer several times.
+--
+-- Bluesim's BufferTarget had an off-by-one that wrote one byte past
+-- the end of the buffer allocation when a write wrapped around.  For
+-- the Bit 24 destination the byte that should have wrapped to the
+-- front of the buffer was dropped, leaving a stale character and
+-- visibly corrupting the result ("110" = 313130 instead of
+-- "111" = 313131).  The Bit 16 case only misbehaves out of bounds
+-- (detectable with AddressSanitizer) but still prints correctly.
+
+sysSwriteWrap :: Module Empty
+sysSwriteWrap =
+  module
+    x :: Reg (Bit 2) <- mkReg 0
+    y :: Reg (Bit 16) <- mkReg 0
+    z :: Reg (Bit 24) <- mkReg 0
+
+    rules
+      when True ==> do
+          $swrite (asReg y) "01%b" (0xff :: Bit 32)
+          $swrite (asReg z) "01%b" (0xff :: Bit 8)
+          x := x + 1
+      when x == 2 ==> do
+          $display "%h" y
+          $display "%h" z
+          $finish 0
