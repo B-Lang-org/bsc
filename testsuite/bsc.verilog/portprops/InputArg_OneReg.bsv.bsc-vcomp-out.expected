@@ -11,4 +11,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: sysInputArg_OneReg.v
+Elaborated module file created: sysInputArg_OneReg.ba
 All packages are up to date.

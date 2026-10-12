@@ -69,4 +69,5 @@ Logical execution order: aa, ab, bb
 Warning: "CaseTest_sat-stp.bsv", line 45, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysCaseTest.v
+Elaborated module file created: sysCaseTest.ba
 All packages are up to date.

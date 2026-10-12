@@ -80,4 +80,5 @@ Logical execution order: aa, ab, ac, ad, ae, bb
 Warning: "RemTest_sat-stp.bsv", line 38, column 10: (G0021)
   According to the generated schedule, rule `bb' can never fire.
 Verilog file created: sysRemTest.v
+Elaborated module file created: sysRemTest.ba
 All packages are up to date.

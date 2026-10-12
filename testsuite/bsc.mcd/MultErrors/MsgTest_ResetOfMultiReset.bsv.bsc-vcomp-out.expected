@@ -16,4 +16,5 @@ Warning: "MsgTest_ResetOfMultiReset.bsv", line 27, column 8: (G0044)
   "MsgTest_ResetOfMultiReset.bsv", line 8, column 8.
 Compilation message: "MsgTest_ResetOfMultiReset.bsv", line 28, column 15: True
 Verilog file created: sysMsgTest_MultiReset.v
+Elaborated module file created: sysMsgTest_MultiReset.ba
 All packages are up to date.
