@@ -1595,8 +1595,8 @@ isOkId i = not ((isInternal i) || (isBadId i) || (isFromRHSId i))
 -- Generate a class declaration for the SimCCBlock.
 -- The declaration will include all of the state elements and local
 -- defs, along with rule and method declarations.
-simCCBlockToClassDeclaration :: SBMap -> SimCCBlock -> CCFragment
-simCCBlockToClassDeclaration sb_map sb =
+simCCBlockToClassDeclaration :: Bool -> SBMap -> SimCCBlock -> CCFragment
+simCCBlockToClassDeclaration genVCD sb_map sb =
   let clks        = [ decl $ clockType (mkVar (mkClkDefName dom))
                     | dom <- sb_domains sb]
       clk_defs    = [comment "Clock handles" (private clks)]
@@ -1665,14 +1665,16 @@ simCCBlockToClassDeclaration sb_map sb =
       vcd_hdr     = decl $ vcdHdrFnProto Nothing
       is_string_type (ATString _) = True
       is_string_type _            = False
-      has_members = any (not . null) [ sb_resetDefs sb
+      -- with -dump-formats none (genVCD False) no VCD helper functions are
+      -- emitted, so their prototypes must not be declared either
+      has_members = genVCD && any (not . null) [ sb_resetDefs sb
                                      , [ (t,i)
                                        | (t,i) <- ((sb_privateDefs sb) ++ (sb_publicDefs sb))
                                        , not (is_string_type t)
                                        ]
                                      ]
-      has_prims = or [ isPrimBlock sub | (sub,_,_) <- sb_state sb ]
-      has_submodules = or [ not (isPrimBlock sub) | (sub,_,_) <- sb_state sb ]
+      has_prims = genVCD && or [ isPrimBlock sub | (sub,_,_) <- sb_state sb ]
+      has_submodules = genVCD && or [ not (isPrimBlock sub) | (sub,_,_) <- sb_state sb ]
       vcd_changes = [ decl $ vcdFnProto sb Nothing ]
                     ++
                     (if has_members
@@ -1763,9 +1765,9 @@ symOrd (str1,sym1) (str2,sym2) =
                       GT -> GT
               GT -> GT
 
-simCCBlockToClassDefinition :: SBMap -> M.Map (Bool,AId) ClockDomain ->
+simCCBlockToClassDefinition :: Bool -> SBMap -> M.Map (Bool,AId) ClockDomain ->
                                SimCCBlock -> StmtsConv
-simCCBlockToClassDefinition sb_map sch_map sb =
+simCCBlockToClassDefinition genVCD sb_map sch_map sb =
   do let scope = Just (pfxMod ++ (sb_name sb))
          state_defs = map (addSBArgs sb_map) (sb_state sb)
          task_id_set = S.fromList (sb_taskDefs sb)
@@ -1917,12 +1919,15 @@ simCCBlockToClassDefinition sb_map sch_map sb =
                          ]
          meth_map = M.fromList [ (i,d) | (d,is) <- ids_by_clock', i <- is ]
          clk_map = M.unions [ rl_map, meth_map, sch_map ]
-         prims = sortBy cmpIdByName
+         -- with -dump-formats none (genVCD False) these are emptied, which (via
+         -- the null-checks below) collapses the per-signal VCD defs, the value-
+         -- dumping helpers, and the submodule recursion to empty method stubs
+         prims = if not genVCD then [] else sortBy cmpIdByName
                         (catMaybes [ if isPrimBlock sub
                                      then Just inst
                                      else Nothing
                                    | (sub,inst,_) <- sb_state sb ])
-         sub_modules = sortBy cmpIdByName
+         sub_modules = if not genVCD then [] else sortBy cmpIdByName
                               (catMaybes [ if isPrimBlock sub
                                            then Nothing
                                            else Just inst
@@ -1930,7 +1935,7 @@ simCCBlockToClassDefinition sb_map sch_map sb =
          cmp_def (_,i1,_) (_,i2,_) = i1 `cmpIdByName` i2
          is_string_type (ATString _) = True
          is_string_type _            = False
-         members = sortBy cmp_def $
+         members = if not genVCD then [] else sortBy cmp_def $
                           [ (t,i,True)
                           | (t,i) <- (sb_resetDefs sb)
                           ] ++
@@ -1939,7 +1944,7 @@ simCCBlockToClassDefinition sb_map sch_map sb =
                                       (sb_publicDefs sb))
                           , not (is_string_type t)
                           ]
-         ports = sortBy cmp_def
+         ports = if not genVCD then [] else sortBy cmp_def
                         [ (t,vName_to_id vn,True)
                         | (t,_,vn) <- sb_methodPorts sb ]
          num_ids = (length members) + (length ports) + (length prims)

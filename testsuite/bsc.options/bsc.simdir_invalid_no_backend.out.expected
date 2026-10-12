@@ -9,6 +9,7 @@ bsc -i BLUESPECDIR -print-flags -simdir INVALID
 
 Flags:
      -aggressive-conditions
+    -dump-formats   vcd
      -i   BLUESPECDIR
      -lift
      -o   a.out
