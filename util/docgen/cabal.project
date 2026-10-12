@@ -1,0 +1,4 @@
+packages: .
+         ../lsp/bs-parser
+
+with-compiler: ghc-9.6.7

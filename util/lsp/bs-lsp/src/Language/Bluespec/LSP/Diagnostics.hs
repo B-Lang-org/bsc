@@ -1,0 +1,259 @@
+-- | Convert parse errors to LSP diagnostics, and produce semantic diagnostics
+-- for unresolved imports and type-annotation mismatches.
+module Language.Bluespec.LSP.Diagnostics
+  ( makeDiagnostics
+  , parseErrorToDiagnostic
+  , makeImportDiagnostics
+  , makeTypeMismatchDiagnostics
+  ) where
+
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Set as Set
+import Data.Void (Void)
+import Text.Megaparsec (ParseErrorBundle(..), ErrorItem(..), PosState(..))
+import qualified Text.Megaparsec as MP
+
+import Language.LSP.Protocol.Types
+
+import qualified Language.Bluespec.Parser as Parser
+import Language.Bluespec.Position (SrcSpan(..), Pos(..), Located(..))
+import Language.Bluespec.Syntax
+import qualified Language.Bluespec.Lexer as Lex
+import Language.Bluespec.LSP.SymbolTable (ImportInfo(..), SymbolTable(..))
+import Language.Bluespec.LSP.TypeEnv (TypeEnv, inferExprType, unifyTypes, expandAlias)
+import Language.Bluespec.LSP.Util (spanToRange)
+
+-- | Convert parse result to LSP diagnostics.
+makeDiagnostics :: Either Parser.ParseError Package -> [Diagnostic]
+makeDiagnostics (Right _) = []
+makeDiagnostics (Left err) = parseErrorBundleToDiagnostics err
+
+-- | Convert a parse error bundle to LSP diagnostics.
+parseErrorBundleToDiagnostics :: Parser.ParseError -> [Diagnostic]
+parseErrorBundleToDiagnostics ParseErrorBundle{..} =
+  map (parseErrorToDiagnostic (pstateInput bundlePosState)) (NE.toList bundleErrors)
+
+-- | Build a Diagnostic with the common bluespec source and all optional fields empty.
+mkDiag :: Range -> DiagnosticSeverity -> Text -> Diagnostic
+mkDiag range sev msg = Diagnostic
+  { _range = range
+  , _severity = Just sev
+  , _code = Nothing
+  , _codeDescription = Nothing
+  , _source = Just "bluespec"
+  , _message = msg
+  , _tags = Nothing
+  , _relatedInformation = Nothing
+  , _data_ = Nothing
+  }
+
+-- | Convert a single parse error to an LSP diagnostic.
+parseErrorToDiagnostic :: Lex.TokenStream -> MP.ParseError Lex.TokenStream Void -> Diagnostic
+parseErrorToDiagnostic posState err =
+  mkDiag errorRange DiagnosticSeverity_Error (formatError err)
+  where
+    errorRange = case err of
+      MP.TrivialError offset _ _ -> offsetToRange posState offset
+      MP.FancyError offset _     -> offsetToRange posState offset
+
+-- | Convert offset to LSP Range using token stream info.
+offsetToRange :: Lex.TokenStream -> Int -> Range
+offsetToRange ts offset = Range start end
+  where
+    tokens = Lex.unTokenStream ts
+    -- Find token at offset
+    (line, col) = case drop offset tokens of
+      (tok:_) ->
+        let spn = Lex.tokSpan tok
+            pos = spanBegin spn
+        in (posLine pos, posColumn pos)
+      [] -> case reverse tokens of
+        (tok:_) ->
+          let spn = Lex.tokSpan tok
+              pos = spanFinal spn
+          in (posLine pos, posColumn pos)
+        [] -> (1, 1)
+    -- LSP positions are 0-indexed
+    start = Position (fromIntegral (line - 1)) (fromIntegral (col - 1))
+    end = Position (fromIntegral (line - 1)) (fromIntegral col)
+
+-- | Format a parse error as a readable message.
+formatError :: MP.ParseError Lex.TokenStream Void -> Text
+formatError (MP.TrivialError _ unexpected expected) = T.unlines $
+  filter (not . T.null)
+  [ formatUnexpected unexpected
+  , formatExpected expected
+  ]
+formatError (MP.FancyError _ errs) = T.unlines $
+  map (T.pack . show) (Set.toList errs)
+
+-- | Format unexpected item.
+formatUnexpected :: Maybe (ErrorItem Lex.Token) -> Text
+formatUnexpected Nothing = "Unexpected end of input"
+formatUnexpected (Just (Tokens toks)) =
+  "Unexpected " <> formatTokens (NE.toList toks)
+formatUnexpected (Just (Label label)) =
+  "Unexpected " <> T.pack (NE.toList label)
+formatUnexpected (Just EndOfInput) =
+  "Unexpected end of input"
+
+-- | Format expected items.
+formatExpected :: Set.Set (ErrorItem Lex.Token) -> Text
+formatExpected items
+  | Set.null items = ""
+  | otherwise = "Expected: " <> T.intercalate ", " (map formatItem $ Set.toList items)
+
+-- | Format a single error item.
+formatItem :: ErrorItem Lex.Token -> Text
+formatItem (Tokens toks) = formatTokens (NE.toList toks)
+formatItem (Label label) = T.pack (NE.toList label)
+formatItem EndOfInput = "end of input"
+
+-- | Format tokens for display.
+formatTokens :: [Lex.Token] -> Text
+formatTokens [] = "<empty>"
+formatTokens toks = T.intercalate " " $ map formatToken toks
+
+-- | Format a single token for display.
+formatToken :: Lex.Token -> Text
+formatToken tok = case Lex.tokKind tok of
+  Lex.TokVarId name -> "'" <> name <> "'"
+  Lex.TokConId name -> "'" <> name <> "'"
+  Lex.TokQVarId m n -> "'" <> m <> "." <> n <> "'"
+  Lex.TokQConId m n -> "'" <> m <> "." <> n <> "'"
+  Lex.TokVarSym sym -> "'" <> sym <> "'"
+  Lex.TokConSym sym -> "'" <> sym <> "'"
+  Lex.TokQVarSym m s -> "'" <> m <> "." <> s <> "'"
+  Lex.TokQConSym m s -> "'" <> m <> "." <> s <> "'"
+  Lex.TokInteger n _ -> T.pack (show n)
+  Lex.TokFloat f -> T.pack (show f)
+  Lex.TokChar c -> "'" <> T.singleton c <> "'"
+  Lex.TokString s -> "\"" <> s <> "\""
+  Lex.TokKeyword kw -> "'" <> T.pack (show kw) <> "'"
+  Lex.TokPunct p -> "'" <> T.pack (show p) <> "'"
+  Lex.TokVLBrace -> "'{'"
+  Lex.TokVRBrace -> "'}'"
+  Lex.TokVSemi -> "';'"
+  Lex.TokEOF -> "end of file"
+  Lex.TokPragmaStart -> "'{-#'"
+  Lex.TokPragmaEnd -> "'#-}'"
+  Lex.TokPragmaContent _ -> "pragma content"
+
+-- | Generate import-resolution diagnostics.
+-- Warns when an imported module is not found in the module index.
+-- Only emits warnings (not errors) to stay conservative about false positives:
+-- a module may exist but not yet be indexed in this session.
+makeImportDiagnostics :: Map Text a -> SymbolTable -> [Diagnostic]
+makeImportDiagnostics moduleIndex st =
+  [ importNotFoundDiag imp
+  | imp <- stImports st
+  , let ModuleId modName = iiModule imp
+  , modName `Map.notMember` moduleIndex
+  -- Don't warn about standard prelude-like imports that are always available
+  , modName `notElem` knownPreludeModules
+  ]
+
+-- | Build a diagnostic for an unresolved import.
+importNotFoundDiag :: ImportInfo -> Diagnostic
+importNotFoundDiag imp =
+  mkDiag (spanToRange (iiSpan imp)) DiagnosticSeverity_Warning $
+    "Module '" <> unModuleId (iiModule imp) <> "' not found in workspace or standard library"
+
+-- | Well-known module names that are always available without indexing.
+-- These are modules from the BSC standard library that every package imports.
+knownPreludeModules :: [Text]
+knownPreludeModules =
+  [ "Prelude", "PreludeBSV", "BuildList", "BuildVector"
+  , "Assert", "DefaultValue", "Printf"
+  , "FIFO", "FIFOF", "SpecialFIFOs", "AlignedFIFOs"
+  , "Reg", "RegFile", "ConfigReg"
+  , "Vector", "List", "ListN", "OVL"
+  , "Connectable", "ClientServer", "GetPut"
+  , "Clocks", "SyncFIFO", "Gearbox"
+  , "Real", "Integer", "Bit", "Bool", "String", "Char"
+  , "Int", "UInt", "Maybe", "Either", "Tuple"
+  , "StmtFSM", "ActionValue", "Action"
+  ]
+
+-- ---------------------------------------------------------------------------
+-- 6.3 Type-annotation mismatch diagnostics
+-- ---------------------------------------------------------------------------
+
+-- | Check top-level bindings that carry an explicit inline type annotation
+-- (@Bool x = expr@) and warn when the inferred type is structurally
+-- incompatible with the declared type.
+--
+-- Conservative rules — all must hold before a diagnostic is emitted:
+--   * The declared type contains no type variables (skip polymorphic bindings).
+--   * Inference of the RHS succeeds (skip if we cannot determine a type).
+--   * The binding is a simple, unguarded, zero-argument definition.
+--   * Unification of declared vs inferred fails.
+--
+-- Severity is Warning, never Error — the type resolver is incomplete and
+-- the full provisos are not checked here.
+makeTypeMismatchDiagnostics :: TypeEnv -> Package -> [Diagnostic]
+makeTypeMismatchDiagnostics tenv pkg =
+  concatMap checkDef (pkgDefns pkg)
+  where
+    checkDef (Located _ (DefValue lname (Just lqt) clauses)) =
+      let declTy = locVal (qtType (locVal lqt))
+      in if hasTVars declTy
+           then []  -- polymorphic declaration — skip to avoid false positives
+           else case simpleBody clauses of
+                  Nothing   -> []  -- pattern-matching / guarded def — skip
+                  Just body ->
+                    case inferExprType tenv body of
+                      Nothing       -> []  -- can't infer — don't complain
+                      Just inferred ->
+                        let inferred' = expandAlias tenv inferred
+                            declTy'   = expandAlias tenv declTy
+                        in case unifyTypes declTy' inferred' of
+                             Just _  -> []  -- compatible
+                             Nothing ->
+                               [ typeMismatchDiag
+                                   (locSpan lname) declTy' inferred' ]
+    checkDef _ = []
+
+    -- A "simple body" is a single clause with no argument patterns and no guard.
+    simpleBody :: [Clause] -> Maybe LExpr
+    simpleBody (Clause { clausePats = [], clauseGuard = Nothing, clauseBody } : _)
+      = Just clauseBody
+    simpleBody _ = Nothing
+
+-- | Build a warning diagnostic for a declared/inferred type mismatch.
+typeMismatchDiag :: SrcSpan -> Type -> Type -> Diagnostic
+typeMismatchDiag span_ declTy inferredTy =
+  mkDiag (spanToRange span_) DiagnosticSeverity_Warning $
+    "Declared type " <> prettyType declTy
+    <> " may not match inferred type " <> prettyType inferredTy
+
+-- | Return True if the type contains any type variables.
+-- Used to skip polymorphic declarations where false positives are likely.
+hasTVars :: Type -> Bool
+hasTVars (TVar _)      = True
+hasTVars (TApp f a)    = hasTVars (locVal f) || hasTVars (locVal a)
+hasTVars (TArrow a b)  = hasTVars (locVal a) || hasTVars (locVal b)
+hasTVars (TTuple ts)   = any (hasTVars . locVal) ts
+hasTVars (TList t)     = hasTVars (locVal t)
+hasTVars (TKind t _)   = hasTVars (locVal t)
+hasTVars _             = False
+
+-- | Render a 'Type' as human-readable text for diagnostic messages.
+prettyType :: Type -> Text
+prettyType (TCon lqi) =
+  let qi = locVal lqi
+  in case qi of
+       QualIdent (Just (ModuleId m)) i -> m <> "::" <> identText i
+       QualIdent Nothing i             -> identText i
+prettyType (TVar lv)   = identText (tvName (locVal lv))
+prettyType (TNum n)    = T.pack (show n)
+prettyType (TString s) = "\"" <> s <> "\""
+prettyType (TApp f a)  = prettyType (locVal f) <> "#(" <> prettyType (locVal a) <> ")"
+prettyType (TArrow a b) = prettyType (locVal a) <> " -> " <> prettyType (locVal b)
+prettyType (TTuple ts)  = "(" <> T.intercalate ", " (map (prettyType . locVal) ts) <> ")"
+prettyType (TList t)    = "[" <> prettyType (locVal t) <> "]"
+prettyType (TKind t _)  = prettyType (locVal t)

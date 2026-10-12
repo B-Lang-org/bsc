@@ -1,0 +1,11 @@
+id = "bluespec"
+name = "Bluespec"
+version = "0.0.1"
+schema_version = 1
+authors = ["Bluespec LSP contributors"]
+description = "Bluespec Classic (.bs) and SystemVerilog (.bsv) language support with LSP."
+repository = "https://github.com/B-Lang-org/bsc"
+
+[language_servers.bs-lsp]
+name = "bs-lsp"
+languages = ["Bluespec"]
