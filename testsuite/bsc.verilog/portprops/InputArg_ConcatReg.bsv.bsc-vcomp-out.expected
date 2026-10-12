@@ -11,4 +11,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: sysInputArg_ConcatReg.v
+Elaborated module file created: sysInputArg_ConcatReg.ba
 All packages are up to date.

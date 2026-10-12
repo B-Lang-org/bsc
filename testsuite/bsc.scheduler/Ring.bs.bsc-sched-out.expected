@@ -55,4 +55,5 @@ Logical execution order: r1gets3, r3gets2, r2gets1
 Warning: "Ring.bs", line 22, column 12: (G0021)
   According to the generated schedule, rule `r1gets3' can never fire.
 Verilog file created: sysRing.v
+Elaborated module file created: sysRing.ba
 All packages are up to date.

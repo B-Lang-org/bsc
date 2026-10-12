@@ -15,7 +15,6 @@ module ABin (ABin(..),
              abemi_rule_relation_db
              ) where
 
-import Data.Maybe(isNothing)
 import PPrint
 import Id(Id)
 import Position(Position)
@@ -28,7 +27,6 @@ import ADumpScheduleInfo(MethodDumpInfo)
 import VModInfo(VPathInfo)
 import ForeignFunctions(ForeignFunction(..))
 import Flags(Flags(..))
-import Verilog(VProgram)
 
 
 -- ===============
@@ -62,9 +60,7 @@ data ABinModInfo =
         abmi_oqt         :: CQType,
         abmi_method_dump :: MethodDumpInfo,
         abmi_pathinfo :: VPathInfo,
-        abmi_flags       :: Flags,
-        -- the generated Verilog
-        abmi_vprogram :: Maybe VProgram
+        abmi_flags       :: Flags
     }
 
 data ABinForeignFuncInfo =
@@ -113,7 +109,7 @@ instance PPrint ABin where
 
 
 instance PPrint ABinModInfo where
-    pPrint d p (ABinModInfo path srcName apkg aschedinfo pps oqt mi pathinfo flags vprog) =
+    pPrint d p (ABinModInfo path srcName apkg aschedinfo pps oqt mi pathinfo flags) =
         text "path:" <+> text path $+$
         text "package:" <+> text srcName $+$
         pPrint d 0 apkg $+$
@@ -121,11 +117,8 @@ instance PPrint ABinModInfo where
         text "pprop:" <+> pPrint d 0 pps $+$
         text "oqt:" <+> pPrint d 0 oqt $+$
         -- no dump of method info
-        text "pathinfo:" <+> pPrint d 0 pathinfo $+$
+        text "pathinfo:" <+> pPrint d 0 pathinfo
         -- no dump of flags
-        text "vprog:" <+> (if (isNothing vprog)
-                           then text "Nothing"
-                           else text "Just ...") -- no dump of contents
 
 
 instance PPrint ABinForeignFuncInfo where

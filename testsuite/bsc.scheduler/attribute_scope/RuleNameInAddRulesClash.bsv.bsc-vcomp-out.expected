@@ -8,4 +8,5 @@ Warning: "RuleNameInAddRulesClash.bsv", line 2, column 8: (G0010)
 Warning: "RuleNameInAddRulesClash.bsv", line 17, column 15: (G0021)
   According to the generated schedule, rule `a_r2' can never fire.
 Verilog file created: sysRuleNameInAddRulesClash.v
+Elaborated module file created: sysRuleNameInAddRulesClash.ba
 All packages are up to date.

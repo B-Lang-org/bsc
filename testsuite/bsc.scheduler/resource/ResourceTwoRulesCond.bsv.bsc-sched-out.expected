@@ -240,4 +240,5 @@ Warning: "ResourceTwoRulesCond.bsv", line 15, column 12: (G0021)
 Warning: "ResourceTwoRulesCond.bsv", line 15, column 12: (G0021)
   According to the generated schedule, rule `contend_3' can never fire.
 Verilog file created: sysResourceTwoRulesCond.v
+Elaborated module file created: sysResourceTwoRulesCond.ba
 All packages are up to date.
