@@ -1,14 +1,11 @@
--- As long as we compile with -fglasgow-exts, we don't need this:
-{-# LANGUAGE MagicHash, ForeignFunctionInterface #-}
--- Workaround for GHC bug #2209 (turn off optimization)
-{-# OPTIONS_GHC -O0 #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 module RealUtil( log2, log10
                , doubleToWord64, word64ToDouble
                , isPosInfinite, isNegInfinite
                ) where
 
-import GHC.Word
-import GHC.Exts
+import Data.Word (Word64)
+import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import Foreign.C.Types
 
 -- ---------------
@@ -62,10 +59,10 @@ foreign import ccall unsafe "math.h modf"
 -- ---------------
 
 doubleToWord64 :: Double -> Word64
-doubleToWord64 d@(D# x) = W64# (unsafeCoerce# x)
+doubleToWord64 = castDoubleToWord64
 
 word64ToDouble :: Word64 -> Double
-word64ToDouble w@(W64# x) = D# (unsafeCoerce# x)
+word64ToDouble = castWord64ToDouble
 
 -- ---------------
 
