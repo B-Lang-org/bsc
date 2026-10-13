@@ -9,3 +9,6 @@ test_c_veri_bsv_modules_options Float_SquareRoot_TestConds {} {-no-aggressive-co
 # (GitHub issue #489)
 # Note that this only tests the instance for FixedPoint, not Int or UInt
 test_c_veri_bsv FloatToFixed_RoundMode
+
+# Test min/max with negative operands (GitHub issue #1143)
+test_c_veri_bsv FloatMinMax

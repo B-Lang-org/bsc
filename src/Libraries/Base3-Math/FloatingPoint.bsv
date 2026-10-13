@@ -960,9 +960,9 @@ instance Ord#(FloatingPoint#(e,m));
       else begin
 	 let signLT = (x.sign && !y.sign);
 	 let signEQ = x.sign == y.sign;
-	 let expLT  = x.exp < y.exp;
+	 let expLT  = x.sign ? x.exp > y.exp : x.exp < y.exp;
 	 let expEQ  = x.exp == y.exp;
-	 let manLT  = x.sfd < y.sfd;
+	 let manLT  = x.sign ? x.sfd > y.sfd : x.sfd < y.sfd;
 
 	 if (signLT || (signEQ && expLT) || (signEQ && expEQ && manLT)) return x;
 	 else return y;
@@ -978,8 +978,8 @@ instance Ord#(FloatingPoint#(e,m));
 	 let signEQ = x.sign == y.sign;
 	 let signGT = (!x.sign && y.sign);
 	 let expEQ  = x.exp == y.exp;
-	 let expGT  = x.exp > y.exp;
-	 let manGT  = x.sfd > y.sfd;
+	 let expGT  = x.sign ? x.exp < y.exp : x.exp > y.exp;
+	 let manGT  = x.sign ? x.sfd < y.sfd : x.sfd > y.sfd;
 
 	 if (signGT || (signEQ && expGT) || (signEQ && expEQ && manGT)) return x;
 	 else return y;
