@@ -2578,7 +2578,8 @@ fullTypeNormalizer _ _ _ (ITVar _)     = Unchanged
 fullTypeNormalizer flags symt cache (ITForAll i k t) = changed1 (ITForAll i k) t'
   where t' = fullTypeNormalizer flags symt cache t
 fullTypeNormalizer flags symt cache t@(ITAp _ _)
-    | (f@(ITCon atfId _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
+    | atfHead t
+    , (f@(ITCon atfId _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
     , length as == length pIdxs  -- Only attempt to reduce type functions that are fully applied.
     , as' <- map (changedOrId $ fullTypeNormalizer flags symt cache) as
     , all canNorm as'
@@ -2589,7 +2590,10 @@ fullTypeNormalizer flags symt cache t@(ITAp _ _)
              " -> " ++ ppReadable result)
             result
         Nothing -> normTFun $ foldl ITAp f as'
-  where -- The cache is keyed on concrete types; ITVar and ITForAll can't be looked up
+  where atfHead (ITAp g _) = atfHead g
+        atfHead (ITCon _ _ (TIatf {})) = True
+        atfHead _ = False
+        -- The cache is keyed on concrete types; ITVar and ITForAll can't be looked up
         canNorm (ITVar _)        = False
         canNorm (ITForAll _ _ _) = False
         canNorm (ITAp f a)       = canNorm f && canNorm a

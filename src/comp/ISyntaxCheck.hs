@@ -208,9 +208,20 @@ kCheck r (ITStr _) = return IKStr
 iGetKind :: IType -> Maybe IKind
 iGetKind = kCheck emptyEnv
 
+-- a kind error is an internal error
 kCheckErr :: Env -> IType -> IKind
-kCheckErr r t = fj $ kCheck r t
-  where fj = fromJustOrErr ("findK: " ++ ppReadable (r, t))
+kCheckErr r (ITForAll i k t) = let kr = kCheckErr (addK i k r) t
+                               in  kr `seq` IKFun k kr
+kCheckErr r tc@(ITAp f a) =
+  case kCheckErr r f of
+    kf@(IKFun ka kr) ->
+        let ka' = kCheckErr r a
+        in  assert (ka' == ka) "ITAp" (tc, (f, kf), (ka', ka)) (ka', ka) kr
+    k -> internalError ("kCheck " ++ ppReadable (tc, k))
+kCheckErr r t@(ITVar i) = fromJustOrErr ("findK: " ++ ppReadable (r, t)) (findK i r)
+kCheckErr _ (ITCon _ k _) = k
+kCheckErr _ (ITNum _) = IKNum
+kCheckErr _ (ITStr _) = IKStr
 
 tCheckIPackage :: Flags -> SymTab -> IPackage a -> Bool
 tCheckIPackage flags symt (IPackage pi _ _ ds atf_cache) =
