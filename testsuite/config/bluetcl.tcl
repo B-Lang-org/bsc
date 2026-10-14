@@ -3,11 +3,11 @@
 #
 # proc bluetcl_pass { script }
 #
-# proc bluetcl_run_compare_pass { source {expected ""} {expected_bh ""} {sedfilter ""}  }
+# proc bluetcl_run_compare_pass { source {expected ""} {expected_bh ""} {bre ""} {ere ""} }
 #
-# proc bluetcl_run_compare_pass_bug { source {expected ""} {expected_bh ""} {sedfilter ""} {bug ""} }
+# proc bluetcl_run_compare_pass_bug { source {expected ""} {expected_bh ""} {bre ""} {ere ""} {bug ""} }
 #
-# proc bluetcl_compare { source {expected ""} {sedfilter ""} }
+# proc bluetcl_compare { source {expected ""} {bre ""} {ere ""} }
 #
 # proc bluetcl_opt_pass { source {options {}} {outfile {""}} }
 #
@@ -48,20 +48,20 @@ proc bluetcl_exec { cmdline outname } {
     return [expr $status == 0]
 }
 # DO run and compare output
-proc bluetcl_exec_compare_pass { cmdline outname {expected ""} {sedfilter ""} } {
+proc bluetcl_exec_compare_pass { cmdline outname {expected ""} {bre ""} {ere ""} } {
 
     bluetcl_exec_pass $cmdline $outname
 
     set output [make_bluetcl_output_name $outname]
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 }
 # DO run and compare output
-proc bluetcl_exec_compare_fail { cmdline outname {expected ""} {sedfilter ""} } {
+proc bluetcl_exec_compare_fail { cmdline outname {expected ""} {bre ""} {ere ""} } {
 
     bluetcl_exec_fail $cmdline $outname
 
     set output [make_bluetcl_output_name $outname]
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 }
 
 
@@ -164,38 +164,38 @@ proc bluetcl_pass { source } {
 }
 
 # Do bluetcl run and compare output (BSV syntax)
-proc bluetcl_run_bsv_compare_pass { source {expected ""} {sedfilter ""} } {
+proc bluetcl_run_bsv_compare_pass { source {expected ""} {bre ""} {ere ""} } {
 
     bluetcl_bsv_pass $source
 
     set output [make_bluetcl_bsv_output_name $source]
 
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 
 }
 
 # Do bluetcl run and compare output (BH syntax)
-proc bluetcl_run_bh_compare_pass { source {expected ""} {sedfilter ""} } {
+proc bluetcl_run_bh_compare_pass { source {expected ""} {bre ""} {ere ""} } {
 
     bluetcl_bh_pass $source
 
     set output [make_bluetcl_bh_output_name $source]
 
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 
 }
 
 # Do bluetcl runs and compare output (both syntaxes)
-proc bluetcl_run_compare_pass { source {expected_bsv ""} {expected_bh ""} {sedfilter ""} } {
+proc bluetcl_run_compare_pass { source {expected_bsv ""} {expected_bh ""} {bre ""} {ere ""} } {
 
-    bluetcl_run_bsv_compare_pass $source $expected_bsv $sedfilter
+    bluetcl_run_bsv_compare_pass $source $expected_bsv $bre $ere
 
-    bluetcl_run_bh_compare_pass $source $expected_bh $sedfilter
+    bluetcl_run_bh_compare_pass $source $expected_bh $bre $ere
 
 }
 
 # Do bluetcl run and compare output (BSV syntax, does not match because of known bug)
-proc bluetcl_run_bsv_compare_pass_bug { source {expected ""} {sedfilter ""} {bug ""} } {
+proc bluetcl_run_bsv_compare_pass_bug { source {expected ""} {bre ""} {ere ""} {bug ""} } {
 
     global env
     global target_triplet
@@ -205,12 +205,12 @@ proc bluetcl_run_bsv_compare_pass_bug { source {expected ""} {sedfilter ""} {bug
     set output [make_bluetcl_bsv_output_name $source]
 
     setup_xfail $target_triplet $bug
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 
 }
 
 # Do bluetcl run and compare output (BH syntax, does not match because of known bug)
-proc bluetcl_run_bh_compare_pass_bug { source {expected ""} {sedfilter ""} {bug ""} } {
+proc bluetcl_run_bh_compare_pass_bug { source {expected ""} {bre ""} {ere ""} {bug ""} } {
 
     global env
     global target_triplet
@@ -220,7 +220,7 @@ proc bluetcl_run_bh_compare_pass_bug { source {expected ""} {sedfilter ""} {bug 
     set output [make_bluetcl_bh_output_name $source]
 
     setup_xfail $target_triplet $bug
-    bluetcl_compare $output $expected $sedfilter
+    bluetcl_compare $output $expected $bre $ere
 
 }
 
@@ -262,7 +262,7 @@ proc bluetcl_opt_run { source {options {}} {outfile {""}} } {
 }
 
 # Compare tcl output after applying some sed filters
-proc bluetcl_compare { output {expected ""} {bre {}} {ere {}}} {
+proc bluetcl_compare { output {expected ""} {bre ""} {ere ""} } {
 
     append bre { -e {/^Welcome/d} -e {/^Version/d}}
 

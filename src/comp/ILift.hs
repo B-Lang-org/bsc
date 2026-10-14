@@ -9,7 +9,7 @@ import ISyntaxUtil(ieNot,
                    iGetType, ieIf, ieIfx, flatAction,
                    joinActions, notIf, isTAction,
                    isTrue, isFalse, ieAndOpt, ieOrOpt,
-                   iDefMap
+                   iDefMap, isPairType
                    )
 import ITransform(iTransExpr, iTransBoolExpr)
 import PreIds(idActionValue_, idAVAction_)
@@ -160,7 +160,8 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
             -- the length check is for things like $display so we do not lift when there are different numbers of arguments
             loopF scanned ((firstF@(IActionCond {action = firstFaction@(IAps expF _ ((icsvF@(ICon _ (svF@(ICStateVar _ _)))):argsF)),
                                                  condition = firstFcond})):restF) | (expF == expT) && (svF == svT) &&
-                                                                                    ((length argsT) == (length argsF)) =
+                                                                                    ((length argsT) == (length argsF)),
+                                                                                    Just newargs <- mapM (uncurry (mergeLiftArg errh c)) (zip argsT argsF) =
               -- just make an ActionCond out of this when it matches
               -- eventual conversion back into IExpr will force simplification
               -- c is used as the predicate to determine the argument value because when c is true the T branch should be executed
@@ -169,11 +170,7 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
                                                (iTransExpr errh
                                                 (IAps expT
                                                       tsT
-                                                      (icsvT:[(fst (iTransExpr errh
-                                                                               (ieIf (iGetType argT)
-                                                                               c
-                                                                               (fst (iTransExpr errh argT))
-                                                                               (fst (iTransExpr errh argF))))) | (argT, argF) <- (zip argsT argsF)])))),
+                                                      (icsvT:newargs)))),
                                     condition = genLiftCond flags c firstTcond firstFcond
                                   }
                      ):lifted)
@@ -206,7 +203,8 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
                                                                [firstFaction@(IAps expF _ ((icsvF@(ICon _ (svF@(ICStateVar _ _)))):argsF))],
                                                  condition = firstFcond})):restF) | (i_sel == idAVAction_) &&
                                                                                          (expF == expT) && (svF == svT) &&
-                                                                                    ((length argsT) == (length argsF)) =
+                                                                                    ((length argsT) == (length argsF)),
+                                                                                    Just newargs <- mapM (uncurry (mergeLiftArg errh c)) (zip argsT argsF) =
               -- just make an ActionCond out of this when it matches
               -- eventual conversion back into IExpr will force simplification
               -- c is used as the predicate to determine the argument value because when c is true the T branch should be executed
@@ -216,11 +214,7 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
                                                (iTransExpr errh
                                                 (IAps expT
                                                       tsT
-                                                      (icsvT:[(fst (iTransExpr errh
-                                                                               (ieIf (iGetType argT)
-                                                                               c
-                                                                               (fst (iTransExpr errh argT))
-                                                                               (fst (iTransExpr errh argF))))) | (argT, argF) <- (zip argsT argsF)]))))],
+                                                      (icsvT:newargs))))],
                                     condition = genLiftCond flags c firstTcond firstFcond
                                   }
                      ):lifted)
@@ -283,3 +277,33 @@ genLiftCond flags cond otrue ofalse | isTrue otrue, isTrue ofalse = iTrue
                                     | isFalse cond                = ofalse
 genLiftCond flags cond otrue ofalse =
     (iTransBoolExpr flags) $ (cond `ieAndOpt` otrue) `ieOrOpt` ( (ieNot cond) `ieAndOpt` ofalse)
+
+
+-- Merge one argument pair of two mutually exclusive calls to the same
+-- method into (if c then argT else argF), distributing the mux over
+-- PrimPair structure.  Since the port-splitting rework, tuple-typed
+-- method arguments must remain tuple constructions all the way to the
+-- backend (AVerilogUtil.vDefMpd only renders literal tuple defs), so a
+-- whole-tuple mux def would be an internal error there.  Returns
+-- Nothing when a tuple-typed argument does not expose a tuple literal
+-- on both sides (looking through ICValue definition references); the
+-- caller then skips lifting that call pair and leaves the two calls
+-- for ACleanup, which merges per element at the ASyntax level where an
+-- opaque tuple reference can be selected with ATupleSel.
+mergeLiftArg :: ErrorHandle -> IExpr a -> IExpr a -> IExpr a -> Maybe (IExpr a)
+mergeLiftArg errh c argT argF
+    | isPairType (iGetType argT) =
+        case (unwrap argT, unwrap argF) of
+          (IAps conT@(ICon i (ICTuple {})) tsT esT,
+           IAps      (ICon i' (ICTuple {})) _  esF)
+              | i == i' && length esT == length esF -> do
+                  es <- sequence (zipWith (mergeLiftArg errh c) esT esF)
+                  return (IAps conT tsT es)
+          _ -> Nothing
+    | otherwise =
+        Just $ fst $ iTransExpr errh $
+            ieIf (iGetType argT) c (fst (iTransExpr errh argT))
+                                   (fst (iTransExpr errh argF))
+  where
+    unwrap (ICon _ (ICValue { iValDef = e })) = unwrap e
+    unwrap e = e

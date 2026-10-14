@@ -1,0 +1,55 @@
+-verilog
+mkSplitPortTypes
+----------
+module porttypes mkSplitPortTypes
+CLK Prelude.Clock
+RST_N Prelude.Reset
+getDeep_x {Prelude.UInt 8}
+getDeep_y_a Prelude.Bool
+getDeep_y_b {Prelude.Int 16}
+getDeep_z {Prelude.Bit 4}
+RDY_getDeep Prelude.Bool
+getShallow_x {Prelude.UInt 8}
+getShallow_y SplitPortTypes.Inner
+getShallow_z {Prelude.Bit 4}
+RDY_getShallow Prelude.Bool
+nextDeep_x {Prelude.UInt 8}
+nextDeep_y_a Prelude.Bool
+nextDeep_y_b {Prelude.Int 16}
+nextDeep_z {Prelude.Bit 4}
+EN_nextDeep Prelude.Bool
+RDY_nextDeep Prelude.Bool
+putDeep_1_x {Prelude.UInt 8}
+putDeep_1_y_a Prelude.Bool
+putDeep_1_y_b {Prelude.Int 16}
+putDeep_1_z {Prelude.Bit 4}
+EN_putDeep Prelude.Bool
+RDY_putDeep Prelude.Bool
+putShallow_1_x {Prelude.UInt 8}
+putShallow_1_y SplitPortTypes.Inner
+putShallow_1_z {Prelude.Bit 4}
+EN_putShallow Prelude.Bool
+RDY_putShallow Prelude.Bool
+combineDeep_lhs_x {Prelude.UInt 8}
+combineDeep_lhs_y_a Prelude.Bool
+combineDeep_lhs_y_b {Prelude.Int 16}
+combineDeep_lhs_z {Prelude.Bit 4}
+combineDeep_rhs_x {Prelude.UInt 8}
+combineDeep_rhs_y_a Prelude.Bool
+combineDeep_rhs_y_b {Prelude.Int 16}
+combineDeep_rhs_z {Prelude.Bit 4}
+EN_combineDeep Prelude.Bool
+RDY_combineDeep Prelude.Bool
+transform_1_x {Prelude.UInt 8}
+transform_1_y_a Prelude.Bool
+transform_1_y_b {Prelude.Int 16}
+transform_1_z {Prelude.Bit 4}
+transform_x {Prelude.UInt 8}
+transform_y_a Prelude.Bool
+transform_y_b {Prelude.Int 16}
+transform_z {Prelude.Bit 4}
+RDY_transform Prelude.Bool
+----------
+module ports mkSplitPortTypes
+interface {{method getDeep getDeep {clock default_clock} {reset default_reset} {args {}} {results {{{port getDeep_x} {size 8}} {{port getDeep_y_a} {size 1}} {{port getDeep_y_b} {size 16}} {{port getDeep_z} {size 4}}}} {ready RDY_getDeep}} {method getShallow getShallow {clock default_clock} {reset default_reset} {args {}} {results {{{port getShallow_x} {size 8}} {{port getShallow_y} {size 17}} {{port getShallow_z} {size 4}}}} {ready RDY_getShallow}} {method nextDeep nextDeep {clock default_clock} {reset default_reset} {args {}} {results {{{port nextDeep_x} {size 8}} {{port nextDeep_y_a} {size 1}} {{port nextDeep_y_b} {size 16}} {{port nextDeep_z} {size 4}}}} {enable EN_nextDeep} {ready RDY_nextDeep}} {method putDeep putDeep {clock default_clock} {reset default_reset} {args {{{name putDeep_1_x} {port putDeep_1_x} {size 8}} {{name putDeep_1_y_a} {port putDeep_1_y_a} {size 1}} {{name putDeep_1_y_b} {port putDeep_1_y_b} {size 16}} {{name putDeep_1_z} {port putDeep_1_z} {size 4}}}} {results {}} {enable EN_putDeep} {ready RDY_putDeep}} {method putShallow putShallow {clock default_clock} {reset default_reset} {args {{{name putShallow_1_x} {port putShallow_1_x} {size 8}} {{name putShallow_1_y} {port putShallow_1_y} {size 17}} {{name putShallow_1_z} {port putShallow_1_z} {size 4}}}} {results {}} {enable EN_putShallow} {ready RDY_putShallow}} {method combineDeep combineDeep {clock default_clock} {reset default_reset} {args {{{name combineDeep_lhs_x} {port combineDeep_lhs_x} {size 8}} {{name combineDeep_lhs_y_a} {port combineDeep_lhs_y_a} {size 1}} {{name combineDeep_lhs_y_b} {port combineDeep_lhs_y_b} {size 16}} {{name combineDeep_lhs_z} {port combineDeep_lhs_z} {size 4}} {{name combineDeep_rhs_x} {port combineDeep_rhs_x} {size 8}} {{name combineDeep_rhs_y_a} {port combineDeep_rhs_y_a} {size 1}} {{name combineDeep_rhs_y_b} {port combineDeep_rhs_y_b} {size 16}} {{name combineDeep_rhs_z} {port combineDeep_rhs_z} {size 4}}}} {results {}} {enable EN_combineDeep} {ready RDY_combineDeep}} {method transform transform {clock no_clock} {reset no_reset} {args {{{name transform_1_x} {port transform_1_x} {size 8}} {{name transform_1_y_a} {port transform_1_y_a} {size 1}} {{name transform_1_y_b} {port transform_1_y_b} {size 16}} {{name transform_1_z} {port transform_1_z} {size 4}}}} {results {{{port transform_x} {size 8}} {{port transform_y_a} {size 1}} {{port transform_y_b} {size 16}} {{port transform_z} {size 4}}}} {ready RDY_transform}}}
+args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}

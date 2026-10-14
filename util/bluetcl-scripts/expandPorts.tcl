@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # \
-exec $BLUESPECDIR/bin/bluetcl "$0" "$@"
+exec bluetcl "$0" "$@"
 
 # 
 set major_version 2
@@ -12,13 +12,9 @@ set version "$major_version.$minor_version"
 global env
 namespace import ::Bluetcl::* 
 
-# just to make local testing a bit easier, use my local copy here before releasing
-if { $env(PWD) == "/home/sallen/customers/BluespecSteve/bluetcl" } {
-    source portUtil.tcl
-} else {
-    source $env(BLUESPECDIR)/tcllib/bluespec/portUtil.tcl
-}
-
+set script_dir [file dirname [info script]]
+lappend auto_path $script_dir
+source [file join $script_dir portUtil.tcl]
 
 ######################################################################
 # processSwitches also sets these switches (feel free to set them yourself)
@@ -49,7 +45,7 @@ proc usage {} {
     exit
 }
 
-puts "expandPorts.tcl $argv"
+#puts "expandPorts.tcl $argv"
 
 portUtil::processSwitches [list {p "+"} \
                                 {verilog} \
@@ -94,8 +90,8 @@ if { ($rename != "/dev/null") && ($makerename != 1) } {
 flags set $vORs -p $p
 
 if {$argc != 3} {
-    puts "argv = $argv"
-    puts "argc = $argc"
+    #puts "argv = $argv"
+    #puts "argc = $argc"
     usage
 }
 

@@ -16,7 +16,7 @@ import Util(fst3)
 import IntLit
 import IntegerUtil(mask)
 import Classic(isBSV)
-import Flags(Flags)
+import Flags(Flags, letGen)
 import PFPrint
 import Id
 import FStringCompat
@@ -308,11 +308,14 @@ tiExpr as td exp@(CStruct mb c ies) = do
 tiExpr as td exp@(CStructUpd e []) = tiExpr as td e
 tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
     (ps, e') <- tiExpr as td e
+    -- Normalize to expand associated type functions for struct update
+    s_upd <- getSubst
+    td' <- expandFullType (apSub s_upd td)
     -- XXX should use all fields to disambiguate
-    (_, ti, _) <- findFields td i
+    (_, ti, _) <- findFields td' i
     sy <- getSymTab
     case findType sy ti of
-     Just (TypeInfo _ _ _ (TIstruct sst qfs)) | isUpdateable sst -> do
+     Just (TypeInfo _ _ _ (TIstruct sst qfs) _) | isUpdateable sst -> do
         --posCheck "C" e
         x <- newVar (getPosition e) "tiExprCStructUpd"
         let v = CVar x
@@ -679,19 +682,35 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 s <- getSubst
                 let mtype = expandSyn (apSub s t)
                 let (argTypes, resType) = getArrows mtype
+                    -- Decompose one source-language argument's type into its
+                    -- input port types (PrimUnit contributes no ports,
+                    -- PrimPair recurses, any other type is a single port).
+                    argPortTypes :: Type -> [Type]
+                    argPortTypes (TAp (TAp (TCon (TyCon pi _ _)) l) r)
+                      | pi == idPrimPair = argPortTypes l ++ argPortTypes r
+                    argPortTypes ty
+                      | ty == tPrimUnit = []
+                      | otherwise = [ty]
 
-                -- This function checks that the number of port names
-                -- matches the number of arguments in the type.
-                let chkArgs :: [VPort] -> [Type] -> TI ()
-                    chkArgs ports types =
-                        if (length ports > length types)
-                        then -- The extra port names could be used in the error
-                             err (getPosition f,
-                                  EForeignModTooManyPorts f_str)
-                        else if (length ports < length types)
-                        then err (getPosition f,
-                                  EForeignModTooFewPorts f_str)
-                        else mapM_ chkArgType types
+                -- Regroup the flat BVI port list per source-language argument,
+                -- consuming exactly the input-port count for each argument's
+                -- type.  The lists must finish together.
+                let chkArgs :: [VPort] -> [Type] -> TI [[VPort]]
+                    chkArgs ports srcArgs = go ports srcArgs
+                      where
+                        go [] [] = return []
+                        go _  [] = err (getPosition f,
+                                        EForeignModTooManyPorts f_str)
+                        go ps (srcTy:srcTys) =
+                          let leaves = argPortTypes srcTy
+                              n      = length leaves
+                          in  if length ps < n
+                              then err (getPosition f,
+                                        EForeignModTooFewPorts f_str)
+                              else do mapM_ chkArgType leaves
+                                      let (here, rest) = splitAt n ps
+                                      groups <- go rest srcTys
+                                      return (here : groups)
 
                 -- This function checks that the argument types are bitable
                     chkArgType t =
@@ -707,43 +726,42 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                 -- matches the types.
                 let
                     -- XXX These errors should give more info
-                    chkResType :: [VPort] -> Maybe VPort -> Maybe VPort -> Type ->
-                                  TI ([VPort], Maybe VPort, Maybe VPort)
-                    chkResType ps me@(Just _) mo@Nothing t =
-                        if (isActionWithoutValue t) then return (ps, me, mo)
+                    chkResType :: [VPort] -> Maybe VPort -> [VPort] -> Type ->
+                                  TI ([VPort], Maybe VPort, [VPort])
+                    chkResType ps me@(Just _) [] t =
+                        if (isActionWithoutValue t) then return (ps, me, [])
                         else if (isActionWithValue t)
                         then errMissingValue "ActionValue" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps me@Nothing mo@(Just _) t =
-                        if (isBit t) then return (ps, me, mo)
+                    chkResType ps me@Nothing outs@(_:_) t =
+                        if (isBitTuple t) then return (ps, me, outs)
                         else if (isActionWithValue t)
                         then errMissingEnable "ActionValue" t
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
                         else errBadResType t
-                    chkResType ps me@(Just _) mo@(Just _) t =
-                        if (isActionWithValue t) then return (ps, me, mo)
+                    chkResType ps me@(Just _) outs@(_:_) t =
+                        if (isActionWithValue t) then return (ps, me, outs)
                         else if (isActionWithoutValue t)
                         then errUnexpectedValue "Action" t
-                        else if (isBit t)
+                        else if (isBitTuple t)
                         then errUnexpectedEnable "value" t
                         else errBadResType t
-                    chkResType ps Nothing Nothing t = do
-                        -- must have more than 0 ports
-                        when (null ps) $
-                          err (getPosition f,
-                               EForeignModTooFewPorts (pfpString f))
+                    chkResType ps Nothing [] t = do
                         -- update the Classic fieldinfo to BSV format
                         let inputs = initOrErr "chkResType" ps
                         let final_port = lastOrErr "chkResType" ps
                         -- XXX kill PrimAction once imports in Prelude are converted over
                         if (isActionWithoutValue t) || (isPrimAction t)
-                         then return (inputs, Just final_port, Nothing)
-                         else if (isBit t)
-                               then return (inputs, Nothing, Just final_port)
-                               else errBadResType t
+                        then return (inputs, Just final_port, [])
+                        else if (isBit t)
+                        -- The Classic fieldinfo format can only have a single result port.
+                        then return (inputs, Nothing, [final_port])
+                        else if (t == tPrimUnit)
+                        then return (ps, Nothing, [])
+                        else errBadResType t
 
                     errBadResType t =
                         err (getPosition f,
@@ -805,17 +823,19 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
                                 else if (null argTypes)
                                 then return vfi
                                 else errInoutHasArgs
-                    Method { vf_inputs = inputs, vf_enable = me, vf_output = mo } ->
+                    Method { vf_inputs = inputs, vf_enable = me, vf_outputs = outputs } ->
                             do -- updates inputs, me and mo when processing Classic format
-                               (inputs', me', mo') <- chkResType inputs me mo resType
+                               -- chkResType still works on a flat port list
+                               (inputs', me', outputs') <- chkResType (concat inputs) me outputs resType
                                -- check if any actions are SB with themselves
                                when (((isActionWithValue resType) ||
                                       (isActionWithoutValue resType) ||
                                       (isPrimAction resType)) &&
                                       (f `elem` self_sbs))
                                     (errActionSelfSB f)
-                               chkArgs inputs' argTypes
-                               return (vfi { vf_inputs = inputs', vf_enable = me', vf_output = mo' })
+                               -- Regroup the flat port list per source-arg
+                               groupedInputs <- chkArgs inputs' argTypes
+                               return (vfi { vf_inputs = groupedInputs, vf_enable = me', vf_outputs = outputs' })
     -- paramResults <- mapM tiParam es
     qsses <- mapM tiArg args
 --  let   (pses, tys) = unzip paramResults
@@ -899,7 +919,7 @@ tiExpr as td exp@(CForeignFuncC link_id wrap_cqt) = do
                         when (isTypeString av_arg) $
                             err (getPosition pos, EForeignFuncStringRes)
                         (ctxs, prim_sz) <- findBitSize av_arg
-                        let prim_t = TAp tActionValue_ prim_sz
+                        let prim_t = TAp tActionValue_ $ TAp tBit prim_sz
                         return (ctxs, prim_t, cexpr)
                 -- anything else must be bitifiable
                 else do let cexpr = \e -> cVApply idUnpack [e]
@@ -1521,7 +1541,7 @@ finishSWriteAV as td v f es paramResults eq_ps =
         let (pss, es') = unzip pses
 
 --        v <- newTVar "XXX" KNum f
-        let tav = TAp tActionValue_ v
+        let tav = TAp tActionValue_ (TAp tBit v)
         let taskty = foldr fn tav tys
 
         -- XXX: quantifying in IConv instead so free type vars are caught correctly
@@ -1583,7 +1603,7 @@ taskCheckFOpen as td f [filen] =
       (vp,filentc) <- tiExpr as tString filen
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]
@@ -1599,7 +1619,7 @@ taskCheckFOpen as td f [filen,mode] =
       --
       --
       let avfile = (TAp (tActionValueAt (getPosition f)) tFile)
-          tav32 = TAp (tActionValue_At (getPosition f))  t32
+          tav32 = TAp (tActionValue_At (getPosition f))  bit32
           fty = tString `fn` tString `fn` tav32
           applied = (CTaskApplyT f  fty    [filentc,modetc])
       let t = cVApply (setIdPosition (getPosition f) idFromActionValue_) [applied]
@@ -2055,7 +2075,11 @@ tiSelect readTag as td e i f = do
                      tiExpr as te e
 
     --do s <- getSubst; trace ("sel1 " ++ ppReadable ((exp, apSub s td), (e, apSub s te), (i, apSub s tf))) $ return ()
-    (i' :>: sc, ti, n)  <- findFields (f te) i
+    -- Normalize the struct type to expand associated type functions
+    -- so that field access works through type function results.
+    s_sel <- getSubst
+    struct_ty <- expandFullType (apSub s_sel (f te))
+    (i' :>: sc, ti, n)  <- findFields struct_ty i
     (qs :=> t, ts)  <- freshInstT "F" i sc tf
     -- do s <- getSubst; trace ("sel2 " ++ ppReadable (exp, apSub s t, apSub s tf)) $ return ()
     case t of
@@ -2087,8 +2111,8 @@ tiField1 as rt (f, e) = do
     -- so replace them with vars and return the preds that determine the vars
     -- XXX disable expanding of type synonyms until failures with TLM
     -- XXX (type synonyms which drop parameters) is resolved
-    -- XXX (tcon_ps, ft) <- expPrimTCons (expandSyn ft0)
-    (tcon_ps, ft) <- expPrimTCons ft0
+    -- XXX (tcon_ps, ft) <- expTFun (expandSyn ft0)
+    (tcon_ps, ft) <- expTFun ft0
     -- Unify the field type and the context expected return type,
     -- possibly returning preds which express type equality
     (t,eq_ps) <- unifyFnTo f e ft rt
@@ -2387,7 +2411,14 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     -- type functions like SizeOf could have crept into the predicates
     -- via unification, so we expand them out so that they can be satisfied
-    ps <- concatMapM (expTConPred . expandSynVPred) ps0
+    ps1 <- concatMapM (expTConPred . expandSynVPred) ps0
+
+    -- Expand type synonyms and type functions in the declared type to generate
+    -- implicit class predicates (e.g. SizeOf a generates Bits a n).
+    s_ot <- getSubst
+    let ot_expanded = expandSyn (apSub s_ot ot)
+    (ot_ps, _) <- expTFun ot_expanded
+    let ps = ps1 ++ ot_ps
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps: " ++ ppReadable ps)
 
@@ -2540,9 +2571,9 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
     -- Apply the substitution to the code fragments
-    let alts''     =  apSub s alts'             -- new alternatives
-        asbs       =  apSub s sbs1              -- new dict bindings
-        me''       =  apSub s me'               -- update guards
+    let alts'' = apSub s alts'                  -- new alternatives
+        me''   = apSub s me'                    -- update guards
+    asbs <- warnTransitiveIncoherent (apSub s sbs1)  -- new dict bindings
 
     -- Determine the generic variables and produce the inferred type scheme
     let
@@ -2639,7 +2670,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
      -- Were any contexts without variables left unsatisfied?
      if not (null uds) then
         -- Report reduction errors
-        handleContextReduction (getPosition i) uds
+        handleContextReduction Nothing (getPosition i) uds
      else
         -- No ambiguous variables, so...
         -- Produce the return values (deferred preds, CDefl)
@@ -2824,7 +2855,9 @@ tiImpls recursive as ibs = do
 
     s   <- getSubst
 
-    let ps = apSub s (concat pss)
+    let ps0 = apSub s (concat pss)
+    ps <- concatMapM expTConPred ps0
+
     when (not . null $ ps) $ satTraceM ("tiImpls " ++ ppReadable is ++ " ps: " ++ ppReadable ps)
 
     -- try to solve as many constraints as possible,
@@ -2895,8 +2928,8 @@ tiImpls recursive as ibs = do
 
     -- update the info we computed above
     s <- getSubst
-    let sbs_final = apSub s (sbs3 <++ sbs2 <++ sbs1)
-        ts_final = apSub s ts'
+    sbs_final <- warnTransitiveIncoherent (apSub s (sbs3 <++ sbs2 <++ sbs1))
+    let ts_final = apSub s ts'
         fs_final = tv (apSub s as) `union` bvs
         vss_final = map tv ts_final
         lvs_final = foldr1 union vss_final
@@ -2907,11 +2940,15 @@ tiImpls recursive as ibs = do
     -- Apply the substitution to the code fragments
     let altss_final = map (apSub s) altss'          -- new alternatives
 
+    flags <- getFlags
+
     -- Determine the generic variables and produce the inferred type scheme
     let
         -- The generic vars are the local vars (tv of the ts and the rs)
-        -- which are not fixed
-        gs = (lvs_final `union` tv rs_final) \\ fs_final
+        -- which are not fixed; empty when generalization is disabled
+        gs = if letGen flags
+             then (lvs_final `union` tv rs_final) \\ fs_final
+             else []
         -- The inferred type scheme quantified over "gs"
         scs' =
             map (quantify gs . (map toPredWithPositions rs_final :=>)) ts_final
@@ -2934,9 +2971,9 @@ tiImpls recursive as ibs = do
         -- no local constraints, so use bindings as is
         let
             -- Create an explicitly typed definition for a given i
-            -- The generic variables are (tv t \\ fs_final)
+            -- The generic variables are those in t which are generalized
             mkExpl (i,_) t (alts, me) =
-                CLValueSign (CDefT i (tv t \\ fs_final) (CQType [] t) alts) me
+                CLValueSign (CDefT i (filter (`elem` gs) (tv t)) (CQType [] t) alts) me
             defs = zipWith3 mkExpl ibs ts_final altss_final
         in
             -- return the deferred predicates, the assumptions for the
@@ -3162,7 +3199,7 @@ ifcFieldIdToTConId i r t =
     Just ti ->
         case findType r ti of
         -- this pattern requires that the type be an interface
-        Just (TypeInfo _ _ _ (TIstruct (SInterface {}) is)) ->
+        Just (TypeInfo _ _ _ (TIstruct (SInterface {}) is) _) ->
             if (unQualId i) `elem` map unQualId is
                 then Just ti
                 else Nothing
@@ -3181,7 +3218,7 @@ writeableIfc :: Flags -> SymTab -> CType -> Bool
 writeableIfc flags r t
     | Just _ <- isWriteType r t = True
     -- incoherent matches are resolved *after* reducePred
-    | Right (Just _) <- fst $ runTI flags False r checkWriteable = True
+    | Right (Just _) <- tiResult (runTI flags False r checkWriteable) = True
     | otherwise = False
   where checkWriteable = do
           wCls <- findCls (CTypeclass idPrimWriteable)
@@ -3192,7 +3229,7 @@ writeableIfc flags r t
 getIfcFields :: Id -> SymTab -> Maybe [Id]
 getIfcFields ti sy =
     case findType sy ti of
-    Just (TypeInfo _ _ _ (TIstruct SInterface{} fs)) -> Just fs
+    Just (TypeInfo _ _ _ (TIstruct SInterface{} fs) _) -> Just fs
     _ -> Nothing
 
 chkSchedInfo :: [Id] -> VSchedInfo -> TI ()

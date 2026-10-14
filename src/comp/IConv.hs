@@ -32,6 +32,7 @@ import Pred
 import SymTab
 import Type(tPrimPair, tBit, HasKind(..))
 import CType(cTVarKind, typeclassId, cTVarNum)
+import TIMonad(CATFCache)
 import VModInfo(mkVModInfo, VName(..), VFieldInfo(..))
 import Type(tString, fn, tName, tAttributes)
 import TCMisc(expandSynN)
@@ -51,19 +52,23 @@ import IConvLet(docycles, reorderDs, unpoly)
 
 type Env a = M.Map Id (IExpr a)
 
-iConvPackage :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (IPackage a)
-iConvPackage errh flags r (CPackage pi _ _ _ ds _) =
-    return (IPackage pi [] ps ds')
+iConvPackage :: ErrorHandle -> Flags -> SymTab ->
+               CATFCache -> CPackage -> IO (IPackage a)
+iConvPackage errh flags r ctypeATFCache (CPackage pi _ _ _ _ ds _) =
+    return (IPackage pi [] ps ds' itypeATFCache)
   where ds' = concatMap (iConvD errh flags pi r env pvs) ds
         env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds'])
         pvs = map IVar tmpVarIds
         ps = [ qualP p | CPragma p <- ds ]
         qualP (Pproperties i ps) = Pproperties (qualId pi i) ps
         qualP (Pnoinline is)     = Pnoinline (map (qualId pi) is)
+        convT = iConvT flags r
+        itypeATFCache = M.mapKeys (\(i, ts) -> (i, map convT ts))
+                                  (M.map convT ctypeATFCache)
 
 
 iConvDef :: ErrorHandle -> Flags -> SymTab -> IPackage a -> CDefn -> IDef a
-iConvDef errh flags r (IPackage pi _ _ ds) def =
+iConvDef errh flags r (IPackage pi _ _ ds _) def =
     let env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds])
         pvs = map IVar tmpVarIds
     in  case iConvD errh flags pi r env pvs def of
@@ -78,27 +83,29 @@ iConvVar flags r env i =
         Just e  -> e
         Nothing ->
                 case findVar r i of
-                Just (VarInfo VarPrim (_ :>: sc) _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
-                Just (VarInfo (VarForg name mps) (_ :>: sc) _) ->
+                Just (VarInfo VarPrim (_ :>: sc) _ _) -> ICon i (ICPrim (iConvSc flags r sc) (toPrim i))
+                Just (VarInfo (VarForg name mps) (_ :>: sc) _ _) ->
                         let t = iConvSc flags r sc
+                            -- inputs are grouped per argument;
+                            -- foreign functions have one (unsplit) port per argument,
+                            -- so each inner list is a singleton.
+                            -- A single-output foreign function may be polymorphic
+                            -- (e.g. Fork's `Bit n -> Bit m`), whose port sizes are
+                            -- type variables that addSizes cannot read; the sizes
+                            -- are not used for a single output, so just record 0.
                             ops' = case mps of
-                                   Just (ips, [op]) -> Just (zip ips (repeat 0), [(op, 0)])        -- XXX a hack for single output
+                                   Just (ips, [op]) -> Just (map (\ip -> [(ip, 0)]) ips, [(op, 0)])
                                    Just (ips, ops) -> Just (addSizes ips ops [] t)
                                    Nothing -> Nothing
                             addSizes (i:is) ops ins (ITAp (ITAp arr (ITAp bit (ITNum n))) r) | arr == itArrow && bit == itBit =
-                                addSizes is ops ((i, n):ins) r
-                            addSizes [] ops ins t = (reverse ins, zip ops (flatPairs t))
+                                addSizes is ops ([(i, n)]:ins) r
+                            addSizes [] ops ins t = (reverse ins, zip ops (bitTupleSizes t))
                             addSizes is ops ins t = internalError ("addSizes mismatch: " ++ ppReadable (is, ops, ins, t))
-                            flatPairs (ITAp bit (ITNum n)) | bit == itBit = [n]
-                            flatPairs (ITAp (ITAp pair a) b) = flatPairs a ++ flatPairs b
-                            flatPairs it = internalError
-                                           ("IConv.iConvVar.flatPairs: " ++
-                                            show it)
                         in  ICon i (ICForeign t name False ops' Nothing)
-                Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _) ->
+                Just (VarInfo VarMeth (_ :>: Forall _ ((pp:_) :=> _)) _ _) ->
                     let (IsIn cl _) = removePredPositions pp
                     in iConvField flags r (typeclassId $ name cl) i
-                Just (VarInfo VarDefn (_ :>: sc) _) ->
+                Just (VarInfo VarDefn (_ :>: sc) _ _) ->
                     let t = iConvSc flags r sc
                     in  -- XXX should we use an error for the value
                         -- XXX so that it isn't silently used?
@@ -111,7 +118,7 @@ iConvTask :: SymTab -> Id -> IType -> IExpr a
 iConvTask r i it =
    case findVar r i of
         -- only care about name - no "port-magic" for $display and friends
-        Just (VarInfo (VarForg name _) _ _) ->
+        Just (VarInfo (VarForg name _) _ _ _) ->
             -- trace("iConvTask: " ++ ppReadable it) $
             (ICon i (ICForeign it name False Nothing Nothing))
         Just x  -> internalError ("iConvTask: foreign function info for " ++
@@ -163,6 +170,8 @@ iConvVS errh flags r env pvs i vs (CQType _ t) cs =
         in  --trace ("iConvCs: " ++ ppReadable vs)
             (i, t'', e')
 
+-- expandSynN resolves ATFs before conversion to IType, so the resulting
+-- IType contains no ATF applications and does not need the ATF cache.
 iConvT :: Flags -> SymTab -> Type -> IType
 iConvT flags s t = iConvT' (expandSynN flags s t)
 
@@ -649,7 +658,7 @@ iConvLit LPosition pos t = iMkPosition pos
 iConvField :: Flags -> SymTab -> Id -> Id -> IExpr a
 iConvField flags r ti i =
     case findType r ti of
-      Just (TypeInfo _ _ _ (TIstruct _ fs)) ->
+      Just (TypeInfo _ _ _ (TIstruct _ fs) _) ->
           --trace ("iConvField " ++ ppReadable (i, ti, fs, elemIndex i fs)) $
           --trace ("iConvField " ++ ppReadable (i, lookupSelType flags ti i r)) $
           let fieldnum = fromJustOrErr "iConvField" (findIndex (qualEq i) fs)

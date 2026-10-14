@@ -1,0 +1,25 @@
+package ATFFieldUnifyError where
+
+-- Like ATFUnifyError, but the unification of a type function application with
+-- a concrete type is forced by reading a struct field.  Reading a field whose
+-- type is 'Elem f' and assigning it to Bool requires 'Container f Bool', which
+-- is not in scope, so typecheck reports the missing context (T0030).
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap   :: e -> f
+  unwrap :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  wrap = Box
+  unwrap (Box x) = x
+
+-- Reading a struct field whose type is Elem f, and assigning to Bool,
+-- requires Container f Bool which is not in scope.
+struct Holder f =
+  val :: Elem f
+
+getBool :: Holder a -> Bool
+getBool h = h.val

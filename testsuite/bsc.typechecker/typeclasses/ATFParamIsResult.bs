@@ -1,0 +1,8 @@
+package ATFParamIsResult where
+
+-- Test that a type function declaration where a parameter is also the
+-- result variable is an error.
+
+class MyClass a b | a -> b where
+  type Foo a = a  -- error: 'a' is both a parameter and the result
+  method :: a -> b

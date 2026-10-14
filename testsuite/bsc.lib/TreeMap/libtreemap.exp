@@ -1,0 +1,4 @@
+test_c_veri_bsv TreeMapLookup
+test_c_veri_bsv TreeMapMember
+test_c_veri_bsv TreeMapOrder
+test_c_veri_bsv TreeMapInsertWith

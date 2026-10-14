@@ -16,26 +16,20 @@ module mkTestbench ();
    Mpeg4_IFC dut();
    mkMpeg4 the_dut(dut);
 
-   // Error: value processing error at line 208670 of file 'bitstream.txt'
-   //    Malformed value.
-   // Warning: file 'y.txt' does not completely fill the memory 'the_y_io'.
-   // Warning: file 'u.txt' does not completely fill the memory 'the_u_io'.
-   // Warning: file 'v.txt' does not completely fill the memory 'the_v_io'.
-
    RegFile#(Bit#(20),Bit#(8)) stimulus_io();
-   mkRegFileLoad#("bitstream.txt",0,208670) the_stimulus_io(stimulus_io);
+   mkRegFileLoad#("bitstream.txt",0,208669) the_stimulus_io(stimulus_io);
 
    RegFile#(Bit#(16),Bit#(113)) mbhdr();
    mkRegFileLoad#("usable_mb_hdr.txt",0,41578) the_mbhdr(mbhdr);
 
    RegFile#(Bit#(24),Bit#(8)) y_io();
-   mkRegFileLoad#("y.txt",0,10644480) the_y_io(y_io);
+   mkRegFileLoad#("y.txt",0,10644479) the_y_io(y_io);
 
    RegFile#(Bit#(24),Bit#(8)) u_io();
-   mkRegFileLoad#("u.txt",0,2661120) the_u_io(u_io);
+   mkRegFileLoad#("u.txt",0,2661119) the_u_io(u_io);
 
    RegFile#(Bit#(24),Bit#(8)) v_io();
-   mkRegFileLoad#("v.txt",0,2661120) the_v_io(v_io);
+   mkRegFileLoad#("v.txt",0,2661119) the_v_io(v_io);
 
    //RegFile#(Bit#(24),Bit#(8)) frame_buf_io();
    //mkRegFileLoad#("frames.txt",0,15966719) the_frame_buf_io(frame_buf_io);

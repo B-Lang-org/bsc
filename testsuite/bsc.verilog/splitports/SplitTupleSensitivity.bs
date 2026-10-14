@@ -1,0 +1,38 @@
+package SplitTupleSensitivity where
+
+import SplitPorts
+
+-- A noinline function returns a tuple via SplitPorts, so the result is bound to
+-- a def that vDefMpd splits into one wire per element.  Reading those elements
+-- inside a case that drives a register puts the element selects into an
+-- always-block sensitivity list -- which is built by aIds, not vExpr.  aIds must
+-- name the element wires the same way vExpr does (tupleElemVId), otherwise the
+-- sensitivity list references the undeclared whole-tuple def name and the
+-- generated Verilog fails to elaborate (iverilog: "Unable to bind ...").
+{-# noinline pick #-}
+pick :: Bit 8 -> ShallowSplit (Bit 8, Bit 8)
+pick x = ShallowSplit (x + 1, x + 2)
+
+{-# synthesize sysSplitTupleSensitivity #-}
+sysSplitTupleSensitivity :: Module Empty
+sysSplitTupleSensitivity =
+  module
+    sel :: Reg (Bit 3) <- mkReg 0
+    out :: Reg (Bit 8) <- mkReg 0
+    rules
+      "step": when (sel < 7) ==>
+        case pick (zeroExtend sel) of
+          ShallowSplit (a, b) -> do
+            -- a multi-arm case on a register selector becomes a Verilog `always`
+            -- case block; its sensitivity list mentions the tuple elements a, b
+            out := case sel of
+                     0 -> a
+                     1 -> b
+                     2 -> a + b
+                     3 -> a - b
+                     4 -> a & b
+                     5 -> a | b
+                     _ -> a ^ b
+            $display "sel=%0d out=%0d" sel out
+            sel := sel + 1
+      "done": when (sel == 7) ==> $finish

@@ -1,0 +1,10 @@
+-- Test: Transitive synonym expansion (Classic syntax - Phase 1)
+-- Expected: NO warning for HelperAlias or Helper - both used via MyByte synonym chain
+
+package TransitiveSynonymBSOK where
+
+import HelperAlias  -- MyByte = Byte (from Helper)
+
+-- Using MyByte which expands to Byte which expands to Bit 8
+getValue :: MyByte
+getValue = 42

@@ -1,0 +1,38 @@
+package SiblingFundepSubst where
+
+-- Regression test: context reduction must apply a substitution learned from
+-- a *partially* solved proviso to its sibling provisos in the same pass.
+--
+-- Reducing `G (Proxy a) c` grounds `c` to Bool (via the instance below) but
+-- leaves the residual `Foo a` (no instance), so it is only partially solved.
+-- The sibling `Det c o` has a functional dependency `c -> o`, so once `c` is
+-- known to be Bool it determines `o = Port Bool`.  satMany' used to commit the
+-- `c := Bool` substitution but not apply it to the not-yet-processed sibling,
+-- so `Det c o` was matched against an unbound `c`, left unreduced, and `o`
+-- stayed quantified in the declared instance head -- while the method body
+-- grounded `o` to `Port Bool`.  That mismatch produced a spurious T0029
+-- ("Signature mismatch (given too general)").  This must compile.
+
+data Port t = Port
+data Proxy a = Proxy
+
+-- An always-residual proviso (no instances): keeps G only partially solved.
+class Foo a where {}
+
+-- Output determined from input by a fundep; resolves only for ground input.
+class Det c o | c -> o where
+  det :: c -> o
+instance Det Bool (Port Bool) where
+  det _ = Port
+
+-- Reducing G grounds c to Bool, but leaves the residual (Foo a).
+class G x c | x -> c where
+  g :: x -> c
+instance (Foo a) => G (Proxy a) Bool where
+  g _ = True
+
+-- o is determined by the sibling Det, whose input c is grounded by G.
+class S a o | a -> o where
+  s :: a -> o
+instance (G (Proxy a) c, Det c o) => S (Proxy a) o where
+  s p = det (g p)

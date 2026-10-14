@@ -1,0 +1,9 @@
+package ATFNameClashTypedef where
+
+-- Test that an ATF and a standalone type synonym with the same name conflict.
+
+type Elem = Integer
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e

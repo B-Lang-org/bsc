@@ -1,0 +1,24 @@
+package ATFUnify where
+
+-- Check that we can successfully unify unreduced type function types,
+-- by introducing constraints.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap   :: e -> f
+  unwrap :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  wrap = Box
+  unwrap (Box x) = x
+
+-- Use Elem directly in the type signature
+conv1 :: (Container a e) => a -> Box (Elem a)
+conv1 x =
+  let y = unwrap x
+  in wrap y
+
+conv2 :: (Container a e) => a -> Box (Elem a)
+conv2 x = wrap $ unwrap x

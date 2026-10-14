@@ -59,9 +59,17 @@ pMkEitherTree pos i n e
   where leftSize = (n + 1) `div` 2
         rightSize = n `div` 2
 
+isCPVar :: CPat -> Bool
+isCPVar (CPVar _) = True
+isCPVar _ = False
+
 mkMaybe :: (Maybe CExpr) -> CExpr
 mkMaybe Nothing = CCon idInvalid []
 mkMaybe (Just e) = CCon idValid [e]
+
+mkList :: Position -> [CExpr] -> CExpr
+mkList pos [] = CCon (idNil pos) []
+mkList pos (e:es) = CCon (idCons pos) [e, mkList pos es]
 
 num_to_cliteral_at :: Integral n => Position -> n -> CLiteral
 num_to_cliteral_at pos num = CLiteral pos $ LInt $ ilDec (toInteger num)

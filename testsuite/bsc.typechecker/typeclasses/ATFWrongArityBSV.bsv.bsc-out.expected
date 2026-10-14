@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFWrongArityBSV.bsv
+Error: "ATFWrongArityBSV.bsv", line 19, column 10: (T0025)
+  The type `Elem' is applied to too few arguments.

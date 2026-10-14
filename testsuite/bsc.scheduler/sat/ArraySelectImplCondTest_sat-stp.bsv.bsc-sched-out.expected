@@ -9,13 +9,13 @@ Warning: "ArraySelectImplCondTest_sat-stp.bsv", line 33, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (ArraySelectImplCondTest_sat-stp sysArraySelectImplCondTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (ArraySelectImplCondTest_sat-stp sysArraySelectImplCondTest):
 [(idx.read, [(idx.read, 1)]),
  (ss_0_c.read, [(ss_0_c.read, 1)]),
  (ss_0_rg1.read, [(ss_0_rg1.read, 1)]),
@@ -45,7 +45,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ArraySelectImplCondTest_sat-stp sysArraySelectImplCondTest):
 SchedInfo [] [] [] []
 
 -----

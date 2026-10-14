@@ -9,9 +9,10 @@ module CType(
   getTyVarId, getTypeKind,
   isTNum, getTNum,
   isTStr, getTStr,
-  isTVar, isTCon, isIfc, isInterface, isUpdateable,
+  isTVar, isTCon, isIfc, isInterface, isDictType, isDictFun, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
+  isATFAp,
   isTypeBit, isTypeString,
   isTypePrimAction, isTypeAction,
   isTypeActionValue, isTypeActionValue_,
@@ -37,7 +38,7 @@ module CType(
   isKVar, getArgKinds, getResKind,
 
   -- ** Constructing Kinds
-  baseKVar,
+  baseKVar, mkKFun,
 
   -- * Type Classes
   CTypeclass(..),
@@ -67,8 +68,7 @@ import Id
 import IdPrint
 import PreIds(idArrow, idPrimPair, idPrimUnit, idBit, idString,
               idPrimAction, idAction, idActionValue_, idActionValue,
-              idTNumToStr
-              {-, idSizeOf -})
+              idTNumToStr)
 import Util(itos)
 import ErrorUtil
 import Pragma(IfcPragma)
@@ -120,6 +120,14 @@ data TISort
           -- primitive abstract type
           -- e.g. Integer, Bit, Module, etc.
         | TIabstract
+          -- Associated type function: resolved by looking up the corresponding
+          -- typeclass instance.  Stores the class that defines this type function,
+          -- and the indices of the ATF params and the target param within the class's
+          -- parameter list.
+        | TIatf { atf_class_id   :: Id     -- the class this type function belongs to
+                , atf_param_idxs :: [Int]  -- index of each ATF param in the class param list
+                , atf_target_idx :: Int    -- index of the result param in the class param list
+                }
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 
@@ -391,6 +399,14 @@ isInterface :: CType -> Bool
 isInterface t | Just (TyCon _ _ (TIstruct s _)) <- leftTyCon t = isIfc s
 isInterface _ = False
 
+isDictType :: CType -> Bool
+isDictType t | Just (TyCon _ _ (TIstruct SClass _)) <- leftTyCon t = True
+isDictType _ = False
+
+isDictFun :: CType -> Bool
+isDictFun t = all isDictType (res:args)
+  where (args, res) = getArrows t
+
 isUpdateable :: StructSubType -> Bool
 isUpdateable SStruct = True
 isUpdateable SInterface {} = True
@@ -449,14 +465,20 @@ getActionValueArg t = internalError ("getActionValueArg: " ++ ppReadable t)
 -- These are used during foreign function processing to determine if arguments
 -- and return values are polymorphic or of a known size.
 isTypePolyBit :: Type -> Bool
+isTypePolyBit (TAp (TCon (TyCon i _ _)) (TAp (TCon (TyCon i' _ _)) arg))
+  | (i == idActionValue) || (i == idActionValue_), (i' == idBit) = isTVar arg
 isTypePolyBit (TAp (TCon (TyCon i _ _)) arg)
   | (i == idBit) || (i == idActionValue) || (i == idActionValue_) = isTVar arg
 isTypePolyBit _ = False
 
+-- Note that this is only used for foreign functions, so it does not currently handle tuples of Bits
 bitWidth :: Type -> Integer
+bitWidth (TAp (TCon (TyCon i _ _)) (TAp (TCon (TyCon i' _ _)) arg))
+  | ((i == idActionValue) || (i == idActionValue_)) &&
+    (i' == idBit) &&
+    (isTNum arg) = getTNum arg
 bitWidth (TAp (TCon (TyCon i _ _)) arg)
-  | ((i == idBit) || (i == idActionValue) || (i == idActionValue_)) &&
-     (isTNum arg) = getTNum arg
+  | (i == idBit) && (isTNum arg) = getTNum arg
 bitWidth t =
   internalError $ "bitWidth: not a Bit type of known width -- " ++ (show t)
 
@@ -517,6 +539,13 @@ normTAp (TCon (TyCon op _ _)) (TCon (TyNum x xpos))
 
 normTAp f a = TAp f a
 
+isATFAp :: Type -> Bool
+isATFAp t0 =
+    let (f, as) = splitTAp t0
+    in case f of
+        TCon (TyCon _ _ (TIatf { atf_param_idxs = pIdxs })) -> length as == length pIdxs
+        _ -> False
+
 getTypeKind :: Type -> Maybe Kind
 getTypeKind (TVar (TyVar _ _ k))  = Just k
 getTypeKind (TCon (TyCon _ mk _)) = mk
@@ -560,6 +589,10 @@ getResKind :: Kind -> Kind
 getResKind (Kfun a b) = getResKind b
 getResKind k = k
 
+mkKFun :: [Kind] -> Kind -> Kind
+mkKFun []     k = k
+mkKFun (a:as) k = Kfun a (mkKFun as k)
+
 instance PPrint Kind where
     pPrint _ _ KStar = text "*"
     pPrint _ _ KNum = text "#"
@@ -598,12 +631,16 @@ instance PPrint TISort where
     pPrint d p (TIdata is enum) = pparen (p>0) $ text (if enum then "TIdata (enum)" else "TIdata") <+> pPrint d 1 is
     pPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pPrint d 1 ss <+> pPrint d 1 is
     pPrint d p (TIabstract) = text "TIabstract"
+    pPrint d p (TIatf { atf_param_idxs = pIdxs, atf_class_id = cls }) =
+        pparen (p>0) $ text "TIatf" <+> pPrint d 0 (length pIdxs) <+> pPrint d 0 cls
 
 instance NFData TISort where
     rnf (TItype i t) = rnf2 i t
     rnf (TIdata is enum) = rnf2 is enum
     rnf (TIstruct ss is) = rnf2 ss is
     rnf (TIabstract) = ()
+    rnf (TIatf { atf_class_id = c, atf_param_idxs = ps, atf_target_idx = t }) =
+        rnf3 c ps t
 
 instance PPrint StructSubType where
     pPrint _ _ ss = text (show ss)

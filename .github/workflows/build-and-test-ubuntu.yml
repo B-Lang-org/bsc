@@ -15,6 +15,10 @@ on:
       hls_version:
         required: true
         type: string
+      test_parallel:
+        required: false
+        default: true
+        type: boolean
       timeout_override:
         required: false
         default: false
@@ -26,20 +30,20 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     steps:
-      - uses: actions/checkout@v5
-      - name: Checkout submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
       - name: Install dependencies
         shell: bash
         run: |
           sudo .github/workflows/install_dependencies_ubuntu.sh
-          # Don't rely on the VM to pick the GHC version
-          ghcup install ghc ${{ inputs.ghc_version }}
-          ghcup set ghc ${{ inputs.ghc_version }}
+      # Don't rely on the VM to pick the GHC version
+      # (and don't assume that GHCup is already installed on the runner)
+      - name: Install GHC
+        uses: haskell/ghcup-setup@v1
+        with:
+          ghc: ${{ inputs.ghc_version }}
+          cabal: recommended
       # Until BSC uses cabal to build, pre-install these packages
       - name: Install Haskell dependencies
         shell: bash
@@ -50,7 +54,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: build-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -68,6 +72,11 @@ jobs:
 
           # Generate package info
           export BSC_BUILD_PKGINFO=1
+
+          # An STP test hangs on the ARM runners
+          if [[ "${{ inputs.os }}" == *-arm ]]; then
+              export STP_STUB=1
+            fi
 
           make -j ${CORES} GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS' install-src
           tar czf inst.tar.gz inst
@@ -115,7 +124,7 @@ jobs:
             exit 0
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
           path: inst.tar.gz
@@ -126,14 +135,14 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 120 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -143,7 +152,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -171,10 +180,17 @@ jobs:
           # because it's invoked with :set -eo pipefile)
           trap ./testsuite/archive_logs.sh EXIT
 
-          CORES=$(nproc)
-          echo "Cores: ${CORES}"
+          if [[ "${{ inputs.test_parallel }}" == "true" ]]; then
+              CORES=$(nproc)
+              echo "Cores: ${CORES}"
+              MK_JFLAG="-j ${CORES}"
+              MK_TARGET=checkparallel
+            else
+              MK_JFLAG=
+              MK_TARGET=check
+            fi
 
-          make -j ${CORES} -C testsuite checkparallel
+          make ${MK_JFLAG} -C testsuite ${MK_TARGET}
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
@@ -185,7 +201,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -196,7 +212,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -204,7 +220,7 @@ jobs:
           sudo apt-get install -y ccache libelf-dev
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -219,7 +235,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-toooba-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -275,14 +291,14 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -302,7 +318,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-contrib-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -347,7 +363,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-contrib-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz
@@ -358,10 +374,10 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_override && 360 || 30 }}
     needs: build-ubuntu
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download bsc
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.os }} ghc-${{ inputs.ghc_version }} build
       - name: Install bsc
@@ -385,7 +401,7 @@ jobs:
       # in the key so that a new cache file is generated after every
       # successful build, and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: test-bdw-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}-ccache-${{ github.sha }}
@@ -430,7 +446,7 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-bdw-logs-${{ inputs.os }}-ghc-${{ inputs.ghc_version }}
           path: logs.tar.gz

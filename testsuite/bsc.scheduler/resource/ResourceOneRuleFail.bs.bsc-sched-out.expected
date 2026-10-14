@@ -9,7 +9,7 @@ Error: "ResourceOneRuleFail.bs", line 24, column 8: (G0002)
       `a.sub 8'd3' at "ResourceOneRuleFail.bs", line 24, column 8
       `a.sub 8'd4' at "ResourceOneRuleFail.bs", line 24, column 8
       `a.sub 8'd5' at "ResourceOneRuleFail.bs", line 24, column 8
-=== schedule:
+=== schedule (ResourceOneRuleFail sysResourceOneRuleFail):
 Nothing
 
 -----

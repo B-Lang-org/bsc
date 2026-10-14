@@ -99,7 +99,7 @@ Typeclass
         Arith#(Real)
         Arith#(String)
         Arith#(UInt#(n))
-    position {%/Libraries/Prelude.bs 524 21 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 530 21 {Library Prelude}}
 
 Bits#(a, n)
 Typeclass
@@ -116,20 +116,20 @@ Typeclass
         Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
-        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Ordering, 2)
         Bits#(SaturationMode, 2)
         Bits#(SvaParam, 33)
         Bits#(Test::Bar, 2)
         Bits#(Test::BarSet, 2)
         Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
-        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Test::U2#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(UInt#(n), n)
         Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
         Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
         Bits#(void, 0)
-    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     Bits#(type a, numeric type n)
     dependencies
@@ -144,20 +144,20 @@ Typeclass
         Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
-        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Ordering, 2)
         Bits#(SaturationMode, 2)
         Bits#(SvaParam, 33)
         Bits#(Test::Bar, 2)
         Bits#(Test::BarSet, 2)
         Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
-        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Test::U2#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(UInt#(n), n)
         Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
         Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
         Bits#(void, 0)
-    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     Bits#(type a, numeric type n)
     dependencies
@@ -172,20 +172,20 @@ Typeclass
         Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
-        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Ordering, 2)
         Bits#(SaturationMode, 2)
         Bits#(SvaParam, 33)
         Bits#(Test::Bar, 2)
         Bits#(Test::BarSet, 2)
         Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
-        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Test::U2#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(UInt#(n), n)
         Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
         Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
         Bits#(void, 0)
-    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     Bits#(type a, numeric type n)
     dependencies
@@ -200,20 +200,20 @@ Typeclass
         Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(File, 32)
         Bits#(Int#(n), n)
-        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Maybe#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Ordering, 2)
         Bits#(SaturationMode, 2)
         Bits#(SvaParam, 33)
         Bits#(Test::Bar, 2)
         Bits#(Test::BarSet, 2)
         Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
-        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Test::U2#(a), _v100)   provisos (Bits#(a, _v103), Add#(1, _v103, _v100))
         Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
         Bits#(UInt#(n), n)
         Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
         Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
         Bits#(void, 0)
-    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 
 Has_tpl_1#(t, a)
 Typeclass
@@ -231,7 +231,7 @@ Typeclass
         Has_tpl_1#(Tuple6#(a, b, c, d, e, f), a)
         Has_tpl_1#(Tuple7#(a, b, c, d, e, f, g), a)
         Has_tpl_1#(Tuple8#(a, b, c, d, e, f, g, h), a)
-    position {%/Libraries/Prelude.bs 3263 17 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 3321 17 {Library Prelude}}
 
 Bitify Baz (int, n):
 UNKNOWN

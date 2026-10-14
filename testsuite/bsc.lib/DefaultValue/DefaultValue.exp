@@ -7,3 +7,8 @@ test_c_veri_bsv DefaultValueTest
 #
 compile_fail DefaultValue_NoInstance.bsv
 compare_file DefaultValue_NoInstance.bsv.bsc-out
+
+# Test for backwards compatibility:
+# The DefaultValue package can still be imported
+# but a warning is reported that it is unnecessary
+compile_pass_warning Import.bsv T0157

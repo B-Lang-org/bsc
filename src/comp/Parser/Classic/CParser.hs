@@ -9,7 +9,7 @@ import Data.List(nub)
 import Parse
 import IntLit
 import FStringCompat
-import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline,
+import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline, fsMinus,
                   fsASSERT, fsFire, fsEnabled, fsNo, fsImplicit, fsConditions,
                   fsCan, fsSchedule, fsFirst, fsClockCrossing, fsRule,
                   fsEmpty, fsConfOp, fsHide, fsHideAll,
@@ -35,7 +35,7 @@ import Pragma
 -- XXX
 import IOUtil(progArgs)
 
-infix 6 >>>> , >>>>> , >>>>>> , >>>>>>> , {- >>>>>>>> , -} >>>>>>>>>
+infix 6 >>>> , >>>>> , >>>>>> , {- >>>>>>> , >>>>>>>> , -} >>>>>>>>>
 
 -- XXX
 useLayout :: Bool
@@ -51,7 +51,7 @@ pPackage =
         (sepBy pImport dsm +.+ osm ..+
             sepBy pFixity dsm +.+ osm ..+
             pDefns) +..
-                osm >>>>>> (\ a b c d e -> CPackage a b c d e [])) +..
+                osm >>>>>> (\ a b c d e -> CPackage a b c [] d e [])) +..
                     eof
 
 pExports :: CParser (Either [CExport] [CExport])
@@ -90,8 +90,8 @@ exp0 :: CParser CExpr
 exp0 = exp00                          >>- (\x->case x of [CRand e] -> e; _ -> COper x)
 
 exp00 :: CParser [COp]
-exp00 =   {-negat +.+ expX +.+ exp01  >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
-        ||! -} expX +.+ exp01                >>- (\ (e, es) -> CRand e : es)
+exp00 =   negat +.+ expX +.+ exp01  >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
+        ||! expX +.+ exp01                >>- (\ (e, es) -> CRand e : es)
 exp01 :: CParser [COp]
 exp01 =   pOper +.+ exp00             >>- (\ (o, es) -> CRator 2 o : es)
         ||! succeed                             []
@@ -148,7 +148,8 @@ pModule = l L_module `into` \ pos ->
                 ||! literal (mkFString "const") .> VPconst
                 ||! literal (mkFString "unused") .> VPunused
                 ||! literal (mkFString "inhigh") .> VPinhigh
-        mkMethod i n vps mo me = Method i Nothing Nothing n vps Nothing Nothing
+        -- each Verilog port corresponds to a single argument.
+        mkMethod i n vps mo me = Method i Nothing Nothing n (map (:[]) vps) [] Nothing
 
 pMStmt :: CParser CMStmt
 pMStmt =   pModuleInterface
@@ -227,6 +228,7 @@ aexp' =     pAny                           >>- anyExprAt
         ||! numericLit
         ||! string
         ||! char
+        ||! unbasedUnsized
         ||! blkexp -- XXX maybe it should be expX
 
 pQType :: CParser CQType
@@ -406,7 +408,7 @@ pVarDefn  =  (pVarId +.+ dc ..+ pQType +.. dsm `into` \(var, typ) -> pClauses1 v
 
 pTyDefn :: Bool -> CParser CDefn
 pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.+ opt (cm ..+ lp ..+ many pString +.+ pForeignRes +.. rp)
-                                                                                >>>>> Cforeign
+                                                                     >>>>> (\ i qt on ops -> Cforeign i qt on ops False)
         ||! l L_primitive ..+ pVarId +.+ dc ..+ pQType                                >>>   Cprimitive
 --        ||! l L_primitive ..+ l L_class ..+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps        >>>>>  CprimClass
         ||! l L_primitive ..+ l L_type ..+ pTyConId +.+ dc ..+ pKind                >>-  (\ (i, k) -> CprimType (IdKind i k))
@@ -415,7 +417,18 @@ pTyDefn b = l L_foreign ..+ pVarId +.+ dc ..+ pQType +.+ opt (eq ..+ pString) +.
                 (\ (ik,(vs,(vis,(fs,der)))) -> Cstruct vis SStruct ik vs fs der)
         ||! l L_interface ..+ pTyConIdK +.+ many pTyVarId +.+ pIfcPrags +.+ eql b  +.+ blockOf noTrig pQStructField +.+ pDer >>-
                 (\ (ik,(vs,(ps,(vis,(fs,der))))) -> Cstruct vis (SInterface ps) ik vs fs der)
-        ||! l L_class ..+ pOptCoherence +.+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps +.+ l L_where ..+ blockOf noTrig pQStructField        >>>>>>>  Cclass
+        ||! l L_class ..+ pOptCoherence +.+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps +.+ l L_where ..+ blockOf noTrig pClassBodyItem        >>- \ (incoh,(ps,(ik,(vs,(fds,items))))) ->
+                let ats = [x | Left  x <- items]
+                    fs  = [x | Right x <- items]
+                in  Cclass incoh ps ik vs fds ats fs
+
+pClassBodyItem :: CParser (Either CAssocDepFun CField)
+pClassBodyItem =
+      (-- Accept "type Repr a = r" where a and r are class param variables.
+       l L_type ..+ pTyConId +.+ many pTyVarId +.+ eq ..+ pTyVarId
+           >>- \ (name, (args, rhs)) ->
+               Left (CAssocDepFun name args rhs))
+  ||! (pQStructField >>- Right)
 
 pOptCoherence :: CParser (Maybe Bool)
 pOptCoherence = option pCoherence
@@ -597,6 +610,7 @@ pAPat =     pVarIdOrU `into` (\ mi ->
         ||! pConId                                                        >>- (\i -> CPCon i [])
         ||! lp +.+ sepBy pPat (l L_comma) +.. rp                        >>> pMkTuple
         ||! numericLit                                                        >>- litToPLit
+        ||! lcp "'0" (\p x -> case x of L_unbasedUnsized False -> Just (CPLit (CLiteral p (LInt (ilDec 0)))); _ -> Nothing)
   where
     litToPLit (CLit l) = CPLit l
     litToPLit _ = internalError "CParser.pAPat: litToPLit"
@@ -668,6 +682,10 @@ qconop = con +.+ dot ..+ conop                                        >>> qualId
 
 pOper :: CParser Id
 pOper = pAnySym ||! l L_bquote ..+ pAnyId +.. l L_bquote
+
+negat :: CParser Id
+negat = testp "-" (\i -> getIdFString i == fsMinus) varop
+        >>- \i -> idNegateAt (getPosition i)
 
 pConOper :: CParser Id
 pConOper = pConOp ||! l L_bquote ..+ pConId +.. l L_bquote
@@ -862,8 +880,8 @@ noTrig = mkPosition fsEmpty 0 (-1)
             -> (b -> c -> d -> e -> f) -> Parser a f
 (>>>>>>)    :: Parser a (b, (c, (d, (e, f))))
             -> (b -> c -> d -> e -> f -> g) -> Parser a g
-(>>>>>>>)   :: Parser a (b, (c, (d, (e, (f, g)))))
-            -> (b -> c -> d -> e -> f -> g -> h) -> Parser a h
+--(>>>>>>>)   :: Parser a (b, (c, (d, (e, (f, g)))))
+--            -> (b -> c -> d -> e -> f -> g -> h) -> Parser a h
 --(>>>>>>>>)  :: Parser a (b, (c, (d, (e, (f, (g, h))))))
 --            -> (b -> c -> d -> e -> f -> g -> h -> i) -> Parser a i
 (>>>>>>>>>) :: Parser a (b, (c, (d, (e, (f, (g, (h, i)))))))
@@ -871,7 +889,7 @@ noTrig = mkPosition fsEmpty 0 (-1)
 p >>>> f = p >>- \ (x,(y,z)) -> f x y z
 p >>>>> f = p >>- \ (x,(y,(z,w))) -> f x y z w
 p >>>>>> f = p >>- \ (x,(y,(z,(w,a)))) -> f x y z w a
-p >>>>>>> f = p >>- \ (x,(y,(z,(w,(a,b))))) -> f x y z w a b
+--p >>>>>>> f = p >>- \ (x,(y,(z,(w,(a,b))))) -> f x y z w a b
 --p >>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,c)))))) -> f x y z w a b c
 p >>>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,(c,d))))))) -> f x y z w a b c d
 
@@ -990,6 +1008,12 @@ pStringAsId = lcp "<string>"  (\p x->case x of L_string  s     -> Just (mkId p (
 
 char :: CParser CExpr
 char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar c))); _ -> Nothing)
+
+unbasedUnsized :: CParser CExpr
+unbasedUnsized = lcp "<unbased-unsized>" (\p x -> case x of
+    L_unbasedUnsized True  -> Just (cVar (idConstAllBitsSetAt p))
+    L_unbasedUnsized False -> Just (cVar (idConstAllBitsUnsetAt p))
+    _                      -> Nothing)
 
 hide :: CParser ()
 hide = literal fsHide

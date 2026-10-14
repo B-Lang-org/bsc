@@ -1,0 +1,62 @@
+package TestDoubleNorm where
+
+-- Issue: pack . unpack is applied on both the write path (necessary) and
+-- the read path (redundant) when pack . unpack is a normalization function.
+--
+-- For a type with a custom Bits instance where pack(unpack(x)) normalizes x
+-- to a canonical form, the write path correctly stores only canonical values.
+-- The read path then applies pack(unpack()) again, but since r is already
+-- canonical, pack(unpack(r)) = r — the read-side application is redundant.
+--
+-- BSC does not detect this: it generates pack(unpack()) on both paths
+-- unconditionally.
+--
+-- Compile:
+--   bsc -verilog -p .:%/Libraries -bdir build -vdir verilog TestDoubleNorm.bs
+--
+-- -----------------------------------------------------------------------
+-- Generated Verilog:
+--
+--   wire [4:0] x__h_inv_r, x__h_inv_w;
+--   assign x__h_inv_r = ~r;
+--   assign x__h_inv_w = ~_write_1;
+--
+--   // READ path — pack(unpack(r)), redundant since r is already canonical:
+--   assign _read  = (r        == 5'd0) ? r        : {1'b1, ~x__h_inv_r[3:0]};
+--
+--   // WRITE path — pack(unpack(_write_1)), necessary to normalize input:
+--   assign r$D_IN = (_write_1 == 5'd0) ? _write_1 : {1'b1, ~x__h_inv_w[3:0]};
+--
+-- Should be:
+--
+--   assign _read  = r;   -- r is already canonical; no normalization needed
+--   assign r$D_IN = (_write_1 == 5'd0) ? _write_1 : {1'b1, ~(~_write_1)[3:0]};
+--
+-- -----------------------------------------------------------------------
+-- Encoding for Opt4 (a 4-bit optional unsigned with inverted representation):
+--
+--   pack None4    = 5'b00000
+--   pack (Some4 x) = ~{1'b0, x[3:0]} = {1'b1, ~x[3:0]}
+--
+-- Canonical values: 5'b00000 or 5'b1xxxx.
+-- Non-canonical:    5'b0xxxx with x != 0 (cannot arise after a canonical write).
+--
+-- pack(unpack(v)) = (v == 0) ? 0 : {1'b1, ~v[3:0]}   -- the normalization fn
+-- For canonical v: pack(unpack(v)) = v.                -- identity on canonical
+
+data Opt4 = None4 | Some4 (UInt 4)
+
+instance Bits Opt4 5 where
+  pack i = case i of
+    None4    -> 0
+    Some4 x  -> invert $ zeroExtend $ pack x
+  unpack b =
+    if b == 0
+      then None4
+      else Some4 $ unpack $ truncate $ invert b
+
+{-# verilog mkTestDoubleNorm #-}
+mkTestDoubleNorm :: (IsModule m c) => m (Reg Opt4)
+mkTestDoubleNorm = module
+  r :: Reg Opt4 <- mkRegU
+  return r

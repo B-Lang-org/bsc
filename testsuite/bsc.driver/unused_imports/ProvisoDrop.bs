@@ -1,0 +1,15 @@
+-- Test: orphan instance used ONLY via a proviso resolved during ctxReduce.
+-- ctxReduce resolves Describable Bool from the instance proviso, recording
+-- BoolDescribableBS in that TI run - but cCtxReduceIO discards tsUsedPackages.
+-- The converted instance body never calls describe on a Bool, so cTypeCheck
+-- does not re-resolve the predicate.  BoolDescribableBS should NOT get T0157.
+
+package ProvisoDrop where
+
+import Helper
+import BoolDescribableBS  -- Orphan Describable Bool
+
+data BoolWrapper = BoolWrapper Bool
+
+instance (Describable Bool) => Describable BoolWrapper where
+    describe (BoolWrapper _) = "bool-wrapper"

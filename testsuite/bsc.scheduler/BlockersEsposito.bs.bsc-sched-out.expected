@@ -41,7 +41,7 @@ Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
       calls to arrs_6.upd vs. arrs_6.upd
     "Victim_6" cannot fire before "Blocker":
       calls to arrs_6.upd vs. arrs_6.upd
-=== schedule:
+=== schedule (BlockersEsposito sysBlockersEsposito):
 parallel: [esposito: [RL_Blocker -> [],
 		      RL_Victim -> [RL_Blocker],
 		      RL_Victim_1 -> [RL_Blocker],
@@ -61,7 +61,7 @@ order: [RL_Blocker,
 
 -----
 
-=== resources:
+=== resources (BlockersEsposito sysBlockersEsposito):
 [(arrs_0.upd, [(arrs_0.upd 1'd1 1'd0, 1), (arrs_0.upd 1'd1 1'd1, 1)]),
  (arrs_1.upd, [(arrs_1.upd 1'd1 1'd0, 1), (arrs_1.upd 1'd1 1'd1, 1)]),
  (arrs_2.upd, [(arrs_2.upd 1'd1 1'd0, 1), (arrs_2.upd 1'd1 1'd1, 1)]),
@@ -72,7 +72,7 @@ order: [RL_Blocker,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (BlockersEsposito sysBlockersEsposito):
 SchedInfo [] [] [] []
 
 -----

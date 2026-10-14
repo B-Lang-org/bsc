@@ -1,0 +1,30 @@
+package GranShallowNested where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+-- ShallowSplit splits only the TOP level: the nested struct field `x` stays
+-- PACKED as a single port `get_x` (and input `get_1_x`), while `y` is its own
+-- port.  So even though only x.a is combinational from the input, the whole
+-- packed `x` port carries the path; there is no per-leaf granularity.
+interface Ifc =
+  get :: ShallowSplit Outer -> ShallowSplit Outer
+
+{-# synthesize mkGranShallowNested #-}
+mkGranShallowNested :: Module Ifc
+mkGranShallowNested =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      -- x.a is combinational from input x.a; x.b is registered; y is registered
+      get (ShallowSplit o) =
+        ShallowSplit (Outer { x = Inner { a = o.x.a; b = r }; y = r })

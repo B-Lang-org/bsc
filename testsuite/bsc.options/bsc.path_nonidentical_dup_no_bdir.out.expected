@@ -14,6 +14,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -p foo:foo/:./foo:bar/../foo:./foo/../foo:baz:./baz:./baz/bar/../../foo/
 
 Flags:
+     -aggressive-conditions
      -i   BLUESPECDIR
      -lift
      -o   a.out

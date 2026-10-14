@@ -615,6 +615,7 @@ data ErrMsg =
         | WShadowDecl String Position -- ^ var name, previous declaration pos
         | WNeverAssigned String -- ^ variable was declared but not assigned
         | WDeprecated String String String -- ^ what, it's name, optional text
+        | WUnusedImport String -- ^ package name that was imported but not used
         | EObsolete String String String -- ^ what, it's name, optional text
         | MRestrictions String String  -- ^ please refer to the section on ____ in the Bluespec User Guide for restrictions on using ___
         | WExperimental String  -- ^ support for ___ is experimental
@@ -700,6 +701,11 @@ data ErrMsg =
         | ETypeSynRecursive [String]
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
+        | EATFDeclParamMismatch String String [String] String -- ^ class name, ATF name, expected param names, actual param
+        | EATFDeclDuplicateParam String String              -- ^ ATF name, duplicate param
+        | EATFDeclParamIsResult String String               -- ^ ATF name, param that is also result
+        | EATFResultNotDetermined String String [String]     -- ^ ATF name, result var, params
+        | EATFInInstanceHead String  -- ^ type function name
 
         | EUndefinedTask String
         | EUnboundCon String (Maybe String)
@@ -791,8 +797,9 @@ data ErrMsg =
         | EClassFundepsEmpty String
         | WIncoherentMatch String String
         | WOrphanInst String
+        | WTransitiveIncoherentMatch String String String
         | EModInstWrongArgs [Position]
-        | EAmbiguous [(String, Position, [Doc])]
+        | EAmbiguous [(String, Position, [(String, [Position])])]
         | EAmbiguousExplCtx [Doc] [Doc] Doc
         | EWrongArity
         | EUnknownSize
@@ -805,7 +812,7 @@ data ErrMsg =
         | EPolyField
         | ENotKNum String
         | EBadGenArg String
-        | EBadIfcType String String
+        | EBadIfcType (Maybe String) String
         | EBadForeignIfcType String
         | ENoTypeSign String
         | EStmtContext String
@@ -2084,12 +2091,16 @@ getErrorText (EContextReductionReduces context reduced_contexts positions vps) =
 
 getErrorText (EAmbiguous ambiguous_var_infos) =
     (Type 33, empty,
-     let mkVarMsg (var, var_pos, use_expls) =
+     let infos = map (\(a,b,c) -> (b,c)) ambiguous_var_infos
+         mkExplMsg (str, poss) =
+           s2par (str ++ " in or at the following locations:") $$
+           nest 2 (vcat (map (text . prPosition) poss))
+         mkVarMsg (var_pos, use_expls) =
              s2par ("An ambiguous type was introduced at " ++
                     prPosition var_pos) $$
              s2par ("This type resulted from:") $$
-             nest 2 (vcat use_expls)
-         msgs = map mkVarMsg ambiguous_var_infos
+             nest 2 (vcat (map mkExplMsg use_expls))
+         msgs = map mkVarMsg (nub infos)
      in
          s2par ("There is not enough explicit type information to deduce " ++
                 "the types of all expressions.  Consider adding more type " ++
@@ -2098,7 +2109,7 @@ getErrorText (EAmbiguous ambiguous_var_infos) =
          -- there can be duplicate messages when multiple variables are
          -- introduced at the same place, so use "nub" on the message
          -- (not on the variable list)
-         nest 2 (vcat (nub msgs))
+         nest 2 (vcat msgs)
     )
 getErrorText (EWrongArity) =
     (Type 34, empty, s2par "Clause has wrong number of arguments")
@@ -2120,9 +2131,12 @@ getErrorText (ENotKNum t) =
     (Type 41, empty, s2par ("Only size polymorphism allowed in code generation: " ++ t))
 getErrorText (EBadGenArg i) =
     (Type 42, empty, s2par ("Bad argument in code generation: " ++ ishow i))
-getErrorText (EBadIfcType mod msg) =
+getErrorText (EBadIfcType (Just mod) msg) =
     (Type 43, empty,
      s2par ("Cannot synthesize " ++ quote mod ++ ": " ++ msg))
+getErrorText (EBadIfcType Nothing msg) =
+    (Type 43, empty,
+     s2par ("Cannot synthesize this module or function: " ++ msg))
 getErrorText (ENoTypeSign e) =
     (Type 44, empty, s2par ("Missing or bad type signature for a module: " ++ e))
 getErrorText (EStmtContext c) =
@@ -2958,6 +2972,48 @@ getErrorText (EConstrFieldsNotNamed c t) =
     (Type 151, empty,
      s2par ("Constructor " ++ quote c ++ " for type " ++ quote t ++
             " does not have named fields."))
+
+getErrorText (EATFDeclParamMismatch cls atf expected actual) =
+    (Type 152, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
+            " mentions type variable " ++ ishow actual ++
+            " not in the variables of its class " ++ ishow cls ++
+            ": " ++ intercalate ", " expected))
+
+getErrorText (EATFDeclDuplicateParam atf param) =
+    (Type 153, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
+            " has duplicate parameter " ++ ishow param))
+
+getErrorText (EATFDeclParamIsResult atf param) =
+    (Type 154, empty,
+     s2par ("Type function declaration for " ++ ishow atf ++
+            " uses " ++ ishow param ++
+            " as both a parameter and the result"))
+
+getErrorText (EATFResultNotDetermined atf result params) =
+    (Type 155, empty,
+     s2par ("Type function " ++ ishow atf ++
+            " has result variable " ++ ishow result ++
+            " that is not determined by " ++ paramWord ++
+            " " ++ intercalate ", " (map ishow params) ++
+            " via any functional dependency"))
+  where paramWord = if length params == 1 then "parameter" else "parameters"
+
+getErrorText (EATFInInstanceHead atf) =
+    (Type 156, empty,
+     s2par ("Type function " ++ ishow atf ++
+            " cannot be used in an instance head"))
+
+getErrorText (WUnusedImport pkg) =
+    (Type 157, empty,
+     s2par ("Package " ++ ishow pkg ++ " is imported but not used"))
+
+getErrorText (WTransitiveIncoherentMatch pred root_pred root_inst) =
+    (Type 158, empty,
+     s2par ("Proviso " ++ pred ++ " is satisfied by a dictionary that transitively " ++
+            "depends on an incoherent match of " ++ root_pred ++
+            " against instance " ++ root_inst))
 
 -- Generation Errors
 

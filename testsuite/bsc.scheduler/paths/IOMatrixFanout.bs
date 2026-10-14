@@ -1,0 +1,22 @@
+package IOMatrixFanout where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- A value method whose single split input field p1 FANS OUT to BOTH split
+  -- output fields (p1 = a.p1, p2 = not a.p1), while input field p2 feeds
+  -- nothing.  Path analysis must report two edges OUT of get_1_p1 (to both
+  -- output ports) and NO edge from get_1_p2.
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkIOMatrixFanout #-}
+mkIOMatrixFanout :: Module Ifc
+mkIOMatrixFanout =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = not a.p1 })

@@ -52,11 +52,13 @@ testSize 2
 
 if { $vtest == 1 } {
 
+set ere_options { -e s/\"PreludeBSV\.bsv\",\ line\ \[0-9\]\+,/\"PreludeBSV\.bsv\"\,\ line\ NNNN,/g }
+
 compile_verilog_fail TestCReg_TooBig.bsv
-compare_file TestCReg_TooBig.bsv.bsc-vcomp-out
+compare_file_filtered TestCReg_TooBig.bsv.bsc-vcomp-out {} {} $ere_options
 
 compile_verilog_fail TestCReg_TooSmall.bsv
-compare_file TestCReg_TooSmall.bsv.bsc-vcomp-out
+compare_file_filtered TestCReg_TooSmall.bsv.bsc-vcomp-out {} {} $ere_options
 
 # XXX Test CRegU, CRegA
 

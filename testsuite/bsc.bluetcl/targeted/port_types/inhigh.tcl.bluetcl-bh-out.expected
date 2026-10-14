@@ -1,11 +1,11 @@
 -verilog
 mkInhighEnable_Sub sysInhighEnable
 ----------
-{rg1 MOD {interface {{method _write _write {clock _clk__1} {reset _rst__1} {args {{{port Q_IN} {size 1}}}}} {method _read _read {clock _clk__1} {reset _rst__1} {args {}} {result D_OUT}}}} {args {{reset _rst__1 {port RST} {clock _clk__1}} {clock _clk__1 {osc CLK} {gate CLK_GATE}}}}} {rg2 mkInhighEnable_Sub {interface {{method _write _write {clock default_clock} {reset no_reset} {args {{{port _write_1} {size 1}}}}} {method _read _read {clock default_clock} {reset no_reset} {args {}} {result _read}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}}
+{rg1 MOD {interface {{method _write _write {clock _clk__1} {reset _rst__1} {args {{{port Q_IN} {size 1}}}} {results {}}} {method _read _read {clock _clk__1} {reset _rst__1} {args {}} {results {{{port D_OUT} {size 1}}}}}}} {args {{reset _rst__1 {port RST} {clock _clk__1}} {clock _clk__1 {osc CLK} {gate CLK_GATE}}}}} {rg2 mkInhighEnable_Sub {interface {{method _write _write {clock default_clock} {reset no_reset} {args {{{port _write_1} {size 1}}}} {results {}}} {method _read _read {clock default_clock} {reset no_reset} {args {}} {results {{{port _read} {size 1}}}}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}}
 
 {rg1 MOD {ports {{RST Prelude.Reset} {CLK Prelude.Clock} {CLK_GATE Prelude.Bool} {Q_IN Prelude.Bool} {D_OUT Prelude.Bool}}}} {rg2 mkInhighEnable_Sub {ports {{CLK Prelude.Clock} {RST_N Prelude.Reset} {_write_1 Prelude.Bool} {_read Prelude.Bool}}}}
 ----------
-{interface {{method _write _write {clock default_clock} {reset no_reset} {args {{{name _write_1} {port _write_1} {size 1}}}}} {method _read _read {clock default_clock} {reset no_reset} {args {}} {result _read}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}
+{interface {{method _write _write {clock default_clock} {reset no_reset} {args {{{name _write_1} {port _write_1} {size 1}}}} {results {}}} {method _read _read {clock default_clock} {reset no_reset} {args {}} {results {{{port _read} {size 1}}}}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}
 
 {CLK Prelude.Clock} {RST_N Prelude.Reset} {_write_1 Prelude.Bool} {_read Prelude.Bool}
 ----------

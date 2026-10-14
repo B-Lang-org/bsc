@@ -1,6 +1,6 @@
 checking package dependencies
 compiling DummyInCase.bs
-=== internal:
+=== internal (DummyInCase):
 IPackage DummyInCase
   --linked packages
 

@@ -5,13 +5,13 @@ Warning: "PredicateConflicts.bs", line 7, column 0: (G0010)
   Rule "foo" was treated as more urgent than "bar". Conflicts:
     "foo" cannot fire before "bar": calls to y.write vs. y.read
     "bar" cannot fire before "foo": calls to x.write vs. x.read
-=== schedule:
+=== schedule (PredicateConflicts sysPredicateConflicts):
 parallel: [esposito: [RL_foo -> [], RL_bar -> [RL_foo]]]
 order: [RL_foo, RL_bar]
 
 -----
 
-=== resources:
+=== resources (PredicateConflicts sysPredicateConflicts):
 [(x.read, [(x.read, 1)]),
  (x.write, [(x.write NOT_x___d4, 1)]),
  (y.read, [(y.read, 1)]),
@@ -19,7 +19,7 @@ order: [RL_foo, RL_bar]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (PredicateConflicts sysPredicateConflicts):
 SchedInfo [] [] [] []
 
 -----

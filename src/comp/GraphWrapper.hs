@@ -4,6 +4,7 @@ module GraphWrapper (
                   graphNodes, graphEdges, graphNeighbors,
                   findCycles, tSort, tSortInt,
                   findReachables, findReachablesIO,
+                  transposeGraph,
                   hasPath,
                   findPath,
                   topSort,
@@ -83,6 +84,13 @@ makeGraph ns es = do
         lookuptable = listArray bnds ns
     graph <- thaw graph0
     return (Graph graph ordmap lookuptable size)
+
+transposeGraph :: Graph nodeT -> IO (Graph nodeT)
+transposeGraph (Graph graph ordmap lookuptable size) = do
+  g_immut <- freeze graph
+  let transposed0 = G.transposeG g_immut
+  transposed <- thaw transposed0
+  return (Graph transposed ordmap lookuptable size)
 
 -- ===============
 -- Selection functions

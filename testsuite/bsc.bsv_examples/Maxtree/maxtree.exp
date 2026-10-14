@@ -22,6 +22,6 @@ test_c_only_bsv_multi TestPush sys_fifo  {mktestpush_fifo}
 ## DISABLED 
 
 ## another test for maxtree
-test_veri_only_bsv_multi TestMaxTree sys_2q {mkMaxTree8_2q} sys_2q.v.out.expected
-test_c_only_bsv_multi TestMaxTree sys_2q {mkMaxTree8_2q}
+test_veri_only_bsv_multi_options TestMaxTree sys_2q {mkMaxTree8_2q} -let-gen sys_2q.v.out.expected
+test_c_only_bsv_multi_options TestMaxTree sys_2q {mkMaxTree8_2q} -let-gen
 

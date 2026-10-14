@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ATFResultNotDetermined.bs
+Error: "ATFResultNotDetermined.bs", line 11, column 7: (T0155)
+  Type function `BadF' has result variable `c' that is not determined by
+  parameter `a' via any functional dependency

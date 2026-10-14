@@ -8,7 +8,8 @@ endmodule
 
 // -------------------------
 
-typeclass C#(type a, numeric type m);
+typeclass C#(type a, numeric type m)
+dependencies(a determines m);
    function Bit#(m) cfn(a value);
 endtypeclass
 

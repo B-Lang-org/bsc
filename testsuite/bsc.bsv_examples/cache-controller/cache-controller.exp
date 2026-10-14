@@ -1,5 +1,5 @@
 # Makefile.dist sets these, so why not do it here too
-set opt_flags {-opt-bool -opt-bit-const -opt-undetermined-vals -opt-if-mux -opt-mux-const -opt-sched -opt-ATS -inline-rwire}
+set opt_flags {-opt-bool -opt-bit-const -opt-undetermined-vals -opt-if-mux -opt-mux-const -opt-sched -opt-ATS -inline-rwire -let-gen}
 
 # the dut modules
 set dut_mods {cache cache_controller}

@@ -1,0 +1,24 @@
+package SplitAVPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface AVIfc =
+  -- ActionValue method with a split result: p1 is combinational from the
+  -- (split) input, p2 is registered.  Exercises the AIActionValue arm of the
+  -- per-port path edge construction.
+  upd :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+
+{-# synthesize mkSplitAVPath #-}
+mkSplitAVPath :: Module AVIfc
+mkSplitAVPath =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      upd (ShallowSplit a) =
+        do r := a.p2
+           return (ShallowSplit (Pair { p1 = a.p1; p2 = r }))

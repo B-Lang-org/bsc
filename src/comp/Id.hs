@@ -47,6 +47,7 @@ module Id(
         isHideId, setHideId, rmHideId,
         isHideAllId, setHideAllId, rmHideAllId,
         isBadId, setBadId,
+        idQuality,
         isFromRHSId, setFromRHSId,
         isSignedId, setSignedId,
         setInternal,
@@ -161,6 +162,7 @@ data IdProp = IdPCanFire
               -- used by the BSV parser to keep track of which array types
               -- were introduced from bracket syntax
               | IdPParserGenerated
+              | IdPIncoherent           -- Used to track incoherent instance matches
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 -- #############################################################################
@@ -527,6 +529,16 @@ isRuleId idx = hasIdProp idx IdPRule
 
 isBadId :: Id -> Bool
 isBadId idx = hasIdProp idx IdP_bad_name
+
+-- | Quality score for an optional Id: higher = preferred as canonical.
+-- Used wherever we pick the "best" Id from a group of equivalent ones
+-- (e.g. ITransform.runCSE's pickId, IExpand.eqPtrs's pass-2).
+-- An IdP_keep'd Id beats a non-bad Id beats a bad Id beats no name at all.
+idQuality :: Maybe Id -> Int
+idQuality (Just i) | isKeepId i      = 2
+                   | not (isBadId i) = 1
+                   | otherwise       = 0
+idQuality Nothing                    = -1
 
 isFromRHSId :: Id -> Bool
 isFromRHSId idx = hasIdProp idx IdP_from_rhs

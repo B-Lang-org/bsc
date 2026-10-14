@@ -5,7 +5,7 @@ module SCC(scc, getCycles, tsort, Graph) where
 -- A list of list of nodes is returned, each connected.
 -- Original code by John Launchbury.
 
-import Data.List(partition, sort)
+import Data.List(partition, sort, foldl')
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Balanced hiding (lookup)
@@ -121,7 +121,7 @@ loop inputs psq ns =
     _ -> Left [map key (toOrdList psq)]
 
 decrList :: (Ord node) => [node] -> TSPSQ node -> TSPSQ node
-decrList ns pqs = foldr decr pqs ns
+decrList ns pqs = foldl' (flip decr) pqs ns
   where decr n pqs = adjust (subtract 1) n pqs
 
 ------

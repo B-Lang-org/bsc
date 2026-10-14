@@ -1,0 +1,22 @@
+package ATFInInstHeadDetermined where
+
+-- Test that a type function CAN be used in an instance head
+-- in a position that is determined by a functional dependency.
+-- For example, if class Foo has fundep a -> b, then using a
+-- type function in the 'b' position (determined) is allowed.
+
+class Container f e | f -> e where
+  type Elem f = e
+  wrap :: e -> f
+
+data Box a = Box a
+instance Container (Box a) a where
+  wrap = Box
+
+-- Class Bar has fundep a -> b, so the 'b' position is determined.
+-- Using Elem in the determined 'b' position should be allowed.
+class Bar a b | a -> b where
+  bar :: a -> b
+
+instance Bar (Box a) (Elem (Box a)) where
+  bar (Box x) = x

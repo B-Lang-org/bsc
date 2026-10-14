@@ -1,13 +1,13 @@
 checking package dependencies
 compiling Ex3.bsv
 code generation for mkEx3 starts
-=== schedule:
+=== schedule (Ex3 mkEx3):
 parallel: [esposito: [a -> [], c -> [], e -> [], RL_b -> [], RL_d -> []]]
 order: [a, RL_b, c, RL_d, e]
 
 -----
 
-=== resources:
+=== resources (Ex3 mkEx3):
 [(r1.write, [(r1.write r2__h352, 1)]),
  (r2.read, [(r2.read, 1)]),
  (r2.write, [(r2.write r3__h296, 1)]),
@@ -20,7 +20,7 @@ order: [a, RL_b, c, RL_d, e]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Ex3 mkEx3):
 SchedInfo
 [RDY_a CF [RDY_a, RDY_c, RDY_e, a, c, e],
  RDY_c CF [RDY_c, RDY_e, a, c, e],

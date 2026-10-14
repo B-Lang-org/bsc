@@ -9,6 +9,7 @@ import ErrorUtil(internalError)
 import Id(Id, isKeepId, isDictId)
 import CSyntax hiding(cLetRec)
 import CSyntaxTypes()
+import CSyntaxUtil(isCPVar)
 import CFreeVars(getFVE, getPV, getFVD)
 import Subst
 import CType(getCQArrows)
@@ -32,10 +33,10 @@ traced name orig result =
 -- XXX not updated for let/letrec split
 
 simplify :: Flags -> CPackage -> CPackage
-simplify flags pkg@(CPackage mi exps imps fixs ds includes)
+simplify flags pkg@(CPackage mi exps imps impsigs fixs ds includes)
     | simplifyCSyntax flags =
         let (env, _) = selectSimple [] [ d | CValueSign d <- ds ]
-        in  CPackage mi exps imps fixs (simp env ds) includes
+        in  CPackage mi exps imps impsigs fixs (simp env ds) includes
     | otherwise = pkg
 
 cLetRec :: [CDefl] -> CExpr -> CExpr
@@ -324,10 +325,6 @@ selectSimpleL r lds =
 --                            "\nnoquals:\n" ++
 --                            ppReadable (map (flip CLValueSign []) ds) ++
 --                            "\nwithquals:\n" ++ ppReadable [ ld | ld@(CLValueSign _ (_ : _)) <- lds ] ++ "\n") $
-
-isCPVar :: CPat -> Bool
-isCPVar (CPVar _) = True
-isCPVar _ = False
 
 -- collect variables captured in a let arm
 -- different from *bound* variables, e.g., consider:

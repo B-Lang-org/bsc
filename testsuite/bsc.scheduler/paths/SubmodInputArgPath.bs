@@ -1,0 +1,41 @@
+package SubmodInputArgPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- result p1 is combinational from the input arg p1, result p2 is registered.
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkSubmodInputArgSub #-}
+mkSubmodInputArgSub :: Module SubIfc
+mkSubmodInputArgSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = r })
+
+interface TopIfc =
+  -- top method's argument AND result are both split into ports
+  top :: ShallowSplit Pair -> ShallowSplit Pair
+
+-- Threads the top's split input ports straight into the submodule's split
+-- *argument* ports, and the submodule's split result ports straight out to the
+-- top's split output ports.  Because the submodule's result p1 is
+-- combinational from its arg p1 (and result p2 is registered), the only path
+-- is top_1_p1 -> top_p1, exercised THROUGH the submodule's per-port argument
+-- node get_1_p1.  There is no top_1_p2 -> top_p1 cross-edge and no path to
+-- top_p2.
+{-# synthesize mkSubmodInputArgPath #-}
+mkSubmodInputArgPath :: Module TopIfc
+mkSubmodInputArgPath =
+  module
+    s <- mkSubmodInputArgSub
+    interface
+      top (ShallowSplit a) =
+        case s.get (ShallowSplit (Pair { p1 = a.p1; p2 = a.p2 })) of
+          ShallowSplit res -> ShallowSplit (Pair { p1 = res.p1; p2 = res.p2 })

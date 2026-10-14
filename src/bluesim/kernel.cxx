@@ -656,6 +656,7 @@ tSimStateHdl bk_init(tModel model, tBool master)
 
   simHdl->stop_called = false;
   simHdl->finish_called = false;
+  simHdl->fatal_called = false;
   simHdl->abort_called = false;
   simHdl->exit_status = 0;
   simHdl->force_halt = false;
@@ -1588,6 +1589,12 @@ void bk_finish_now(tSimStateHdl simHdl, tSInt32 status)
   bk_schedule_ui_event(simHdl, simHdl->sim_time);
 }
 
+void bk_fatal_now(tSimStateHdl simHdl, tSInt32 status)
+{
+  simHdl->fatal_called = true;
+  bk_finish_now(simHdl, status);
+}
+
 tBool bk_stopped(tSimStateHdl simHdl)
 {
   return simHdl->stop_called ? 1 : 0;
@@ -1601,6 +1608,11 @@ tBool bk_finished(tSimStateHdl simHdl)
 tSInt32 bk_exit_status(tSimStateHdl simHdl)
 {
   return simHdl->exit_status;
+}
+
+tBool bk_fataled(tSimStateHdl simHdl)
+{
+  return simHdl->fatal_called ? 1 : 0;
 }
 
 /* Abort simulation (from outside, Ctrl-C, SIGPIPE, etc.) */

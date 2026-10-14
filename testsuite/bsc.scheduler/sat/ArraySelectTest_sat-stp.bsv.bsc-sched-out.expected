@@ -9,13 +9,13 @@ Warning: "ArraySelectTest_sat-stp.bsv", line 6, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (ArraySelectTest_sat-stp sysArraySelectTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (ArraySelectTest_sat-stp sysArraySelectTest):
 [(idx.read, [(idx.read, 1)]),
  (rg_0.read, [(rg_0.read, 1)]),
  (rg_1.read, [(rg_1.read, 1)]),
@@ -27,7 +27,7 @@ order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ArraySelectTest_sat-stp sysArraySelectTest):
 SchedInfo [] [] [] []
 
 -----

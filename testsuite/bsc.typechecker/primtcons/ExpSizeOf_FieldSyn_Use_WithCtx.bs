@@ -1,0 +1,15 @@
+package ExpSizeOf_FieldSyn_Use_WithCtx where
+
+-- As ExpSizeOf_FieldSyn_Use_NoCtx, but with the explicit Bits context that
+-- reading the field requires, so typecheck succeeds.  (GitHub Issue #890)
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct Node dataType =
+  dat  :: dataType
+  wide :: T dataType
+ deriving (Bits, Eq)
+
+fnNeedsCtx :: (Bits a sa) => Node a -> Bool
+fnNeedsCtx n = n.wide == 0

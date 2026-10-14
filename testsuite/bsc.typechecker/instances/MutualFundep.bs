@@ -1,0 +1,31 @@
+package MutualFundep where
+
+-- Mutual functional dependency a -> b, b -> a.
+-- pureInputPositions [[False, True], [True, False]] 2 = []
+-- inputPositions is empty: the PredTrie degenerates to a single Leaf holding
+-- all instances.  Every query returns all instances; unification then picks
+-- the unique match.  Tests the empty-inputPositions code path.
+
+class MFD a b | a -> b, b -> a where
+    mfdtagA :: a -> Bit 8
+    mfdtagB :: b -> Bit 8
+
+instance MFD Bool (UInt 8) where
+    mfdtagA _ = 1
+    mfdtagB _ = 1
+
+instance MFD (UInt 8) Bool where
+    mfdtagA _ = 2
+    mfdtagB _ = 2
+
+{-# verilog sysMutualFundep #-}
+sysMutualFundep :: Module Empty
+sysMutualFundep = module
+    rules
+        "test": when True ==>
+            action
+                $display "%0d" (mfdtagA True)          -- 1: Bool is a in MFD Bool (UInt 8)
+                $display "%0d" (mfdtagA (42 :: UInt 8)) -- 2: UInt 8 is a in MFD (UInt 8) Bool
+                $display "%0d" (mfdtagB (42 :: UInt 8)) -- 1: UInt 8 is b in MFD Bool (UInt 8)
+                $display "%0d" (mfdtagB True)           -- 2: Bool is b in MFD (UInt 8) Bool
+                $finish 0

@@ -1,0 +1,25 @@
+package MultiPortAVSplit where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- Port-split ActionValue result in iSplitIface: ShallowSplit keeps the value a
+-- tuple, not Bit#(n).  splitIf also splits the action into two rules (the value
+-- is shared).  See MultiPortAVNoSplit for the unsplit case.
+interface Ifc =
+  avmeth :: ActionValue (ShallowSplit Pair)
+
+{-# synthesize sysMultiPortAVSplit #-}
+sysMultiPortAVSplit :: Module Ifc
+sysMultiPortAVSplit =
+  module
+    cond :: Reg Bool <- mkRegU
+    x :: Reg Bool <- mkRegU
+    interface
+      avmeth =
+        do splitIf cond (x := True) (x := False)
+           return (ShallowSplit (Pair { p1 = cond; p2 = x }))

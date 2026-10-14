@@ -95,9 +95,7 @@ These tests are disabled if `showrules` is not found in the
 
 The test suite is currently able to use the following developer
 tools, if they exist in the `TEST_RELEASE` `bin` directory:
-`dumpbo`, `vcdcheck`, and `bsc2bsv`.  There is also a `dumpba`
-tool, which is not being used by the test suite, but could be
-usefully added.
+`dumpbo`, `dumpba`, `vcdcheck`, and `bsc2bsv`.
 
 After each compilation that generates a `.bo` file, the suite
 can perform a sanity check by running `dumpbo` on the file
@@ -105,9 +103,11 @@ and checking for an error exit code.  There are also a small
 number of tests that explicitly run `dumpbo` as part of their
 testing.
 
-The suite does not currently perform a sanity check on
-generated `.ba` files, but that would be possible with
-`dumpba` as a future extension.
+Similarly, when a compilation is expected to generate `.ba`
+files (Bluesim compiles, and Verilog compiles invoked with
+`-elab`), the suite can check that each `.ba` file exists and
+sanity-check it by running `dumpba` on the file and checking
+for an error exit code.
 
 After each Bluesim simulation that generates a `.vcd` file,
 the suite can perform a sanity check by running `vcdcheck`
@@ -310,6 +310,35 @@ A new subdirectory can be added by creating the subdirectory and adding a
 added in the same way, with a `Makefile` and `<category>.exp` file.
 
 > **TBD**: Document the common test procedures, from `config/*.tcl`
+
+### Conventions and tips for writing tests
+
+* Prefer `$display` over a newline-less `$write` for test output that will
+  be compared against an expected file.  Some simulators (Verilator, for
+  example) print a banner when `$finish` is called; without a trailing
+  newline, the banner lands on the same line as the test's output, and the
+  scripts that filter simulator banners from the output will strip the
+  test's value along with it.
+
+* When a test script executes, the current working directory depends
+  on where the suite was invoked and may not be the location of the
+  test script.  Calling Tcl file functions (such as `open`, `file
+  copy`, etc) with relative file names may therefore not work.  To
+  avoid this problem, the testsuite defines procedures (`copy`,
+  `move`, `erase`, etc) that change into the test directory, execute
+  the Tcl command, and then pop back to the original directory.  Test
+  scripts should call these wrappers instead of the bare Tcl commands.
+  If a new wrapper is needed, the following boilerplate can be used to
+  record the current directory, change into the directory, and then
+  pop back:
+    ```tcl
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    cd $here
+    ```
 
 ---
 

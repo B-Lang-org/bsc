@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ATFFieldUnifyHKError.bs
+Error: "ATFFieldUnifyHKError.bs", line 17, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    ATFFieldUnifyHKError.Holder a -> ATFFieldUnifyHKError.Foo Prelude.Maybe
+  The following contexts are needed:
+    ATFFieldUnifyHKError.Container a Prelude.Maybe
+      Introduced at the following locations:
+	"ATFFieldUnifyHKError.bs", line 18, column 13

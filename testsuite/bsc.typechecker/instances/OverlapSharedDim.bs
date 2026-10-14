@@ -1,0 +1,23 @@
+package OverlapSharedDim where
+
+-- Both instances share a concrete head (UInt) at position 1.
+-- Instance 1: concrete Bool at pos 0, concrete UInt at pos 1, variable at pos 2.
+-- Instance 2: variable at pos 0, concrete UInt 8 at pos 1, concrete Bool at pos 2.
+-- They overlap at (Bool, UInt 8, Bool) but neither subsumes the other.
+--
+-- In the 3-level trie, instance 1 lives at [Just Bool, Just UInt, Nothing]
+-- and instance 2 lives at [Nothing, Just UInt, Just Bool].
+-- overlapProbeQuery for instance 1 is [Con Bool, Con UInt, Free]: the Con UInt
+-- probe at level 1 must descend into Nothing at level 2 to find instance 1
+-- itself, and the Nothing probe at level 0 (via Con Bool) leads to instance 2.
+-- This exercises multi-Con overlap probing across all three trie levels.
+-- Expect T0128.
+
+class Ortho3D a b c where
+    ortho3d :: a -> b -> c -> Bit 8
+
+instance Ortho3D Bool (UInt n) c where
+    ortho3d _ _ _ = 1
+
+instance Ortho3D a (UInt 8) Bool where
+    ortho3d _ _ _ = 2

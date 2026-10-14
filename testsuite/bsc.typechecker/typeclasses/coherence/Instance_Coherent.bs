@@ -1,0 +1,40 @@
+package Instance_Coherent where
+
+import IncoherentBase
+import Vector
+
+class coherent DependingCoherent a where
+  dependMethod :: a -> String
+
+instance (IncoherentBase a) => DependingCoherent a where
+  dependMethod x = "coherent " +++ printType (typeOf x) +++ ": " +++ baseMethod x
+
+-- Case 1: Direct Byte vector - incoherent
+testByteDirect :: String
+testByteDirect =
+  let v :: Vector 4 Byte
+      v = replicate 0
+  in dependMethod v
+
+-- Case 2: Direct Int vector - coherent
+testIntDirect :: String
+testIntDirect =
+  let v :: Vector 4 (Int 8)
+      v = replicate 0
+  in dependMethod v
+
+-- Case 3: Byte via generic - polymorphic forces generic instance
+useGeneric :: Vector n a -> String
+useGeneric v = dependMethod v
+
+testByteViaGeneric :: String
+testByteViaGeneric = useGeneric ((replicate 0) :: Vector 4 Byte)
+
+sysInstance_Coherent :: Module Empty
+sysInstance_Coherent = module
+  rules
+    "show": when True ==> do
+      $display "Byte direct: " testByteDirect
+      $display "Int direct: " testIntDirect
+      $display "Byte via generic: " testByteViaGeneric
+      $finish 0

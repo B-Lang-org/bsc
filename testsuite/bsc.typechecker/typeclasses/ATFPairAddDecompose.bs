@@ -1,0 +1,28 @@
+package ATFPairAddDecompose where
+
+-- Regression test for a post-inference type-check assert ("assert
+-- failed: IAp" in ISyntaxCheck.eqTypeNum) triggered by an ATF on a
+-- class whose 2-ary instance decomposes the ATF target into TAdd of
+-- the component ATFs, used inside a rank-2 polymorphic struct field.
+--
+-- Pattern: `C (P a b) sab <= (C a sa, C b sb, Add sa sb sab)` (where
+-- `class C c sz | c -> sz; type W c = sz`). After reducing the
+-- parent dict, only the three sub-preds remain; the equation
+-- `W (P a b) ≡ sab` is destroyed.  Post-inference type checking has
+-- to reconstruct that equation in eqTypeNum to discharge the goal
+-- `Bit _v ≡ Bit (W (P c f))`.
+
+class C c sz | c -> sz where { type W c = sz }
+
+data P a b = P
+
+instance (C a sa, C b sb, Add sa sb sab) => C (P a b) sab where { }
+
+struct Table ctrl flavor =
+  access :: Bit (W (P ctrl flavor)) -> Action
+
+struct Op ctrl =
+  act :: (C (P ctrl flavor) _b) => Table ctrl flavor -> Action
+
+useIt :: (C c _x) => Op c
+useIt = Op { act = \ t -> t.access 0; }

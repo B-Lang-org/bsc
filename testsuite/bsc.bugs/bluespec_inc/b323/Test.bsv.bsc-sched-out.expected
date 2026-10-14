@@ -1,19 +1,19 @@
 checking package dependencies
 compiling Test.bsv
 code generation for mkFoo starts
-=== schedule:
+=== schedule (Test mkFoo):
 parallel: [esposito: [RL_zero -> [], RL_grter_four -> [], RL_non_zero -> []]]
 order: [RL_zero, RL_grter_four, RL_non_zero]
 
 -----
 
-=== resources:
+=== resources (Test mkFoo):
 [(the_x.read, [(the_x.read, 1)]),
  (the_x.write, [(the_x.write the_x_MINUS_1___d6, 1), (the_x.write the_x_PLUS_1___d3, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Test mkFoo):
 SchedInfo [] [] [] []
 
 -----

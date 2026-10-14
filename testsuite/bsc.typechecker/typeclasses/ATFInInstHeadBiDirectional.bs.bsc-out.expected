@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFInInstHeadBiDirectional.bs
+Error: "ATFInInstHeadBiDirectional.bs", line 17, column 22: (T0156)
+  Type function `Elem' cannot be used in an instance head

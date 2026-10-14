@@ -1,11 +1,13 @@
 checking package dependencies
 compiling Parameter2Rdy.bsv
 code generation for mkParameter2Rdy starts
-=== pathsPostSched:
+=== pathsPostSched (Parameter2Rdy mkParameter2Rdy):
 Combinational paths from inputs to outputs:
   param -> RDY_result
 
 -----
 
 Verilog file created: mkParameter2Rdy.v
+Warning: "Parameter2Rdy.bsv", line 6, column 8: (T0157)
+  Package `FIFO' is imported but not used
 All packages are up to date.

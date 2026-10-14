@@ -238,7 +238,7 @@ compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirs_TwoLevels2.bsv G01
 # methods, with rules between most combinations, and we can test that
 # the SchedInfo is properly computed for a wrapper module.
 
-compile_object_pass RuleBetweenMethods_TwoLevels_MultipleMethods.bsv {} \
+compile_backend_pass RuleBetweenMethods_TwoLevels_MultipleMethods.bsv \
     {-dvschedinfo=%m.sched}
 compare_file sysRuleBetweenMethods_TwoLevels_MultipleMethods.sched
 

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InputArg_Unused.bsv
 code generation for sysInputArg_Unused starts
-=== IOproperties:
+=== IOproperties (InputArg_Unused sysInputArg_Unused):
 Name                         I/O  size props
 b                              I    16 unused
 CLK                            I     1 unused

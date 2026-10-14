@@ -27,7 +27,7 @@
 
 module mkArgImpConnect(CLK,
 		       RST_N,
-		       .arg(arg));
+		       arg);
   input  CLK;
   input  RST_N;
   inout  [4 : 0] arg;

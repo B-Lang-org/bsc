@@ -6,22 +6,24 @@ Warning: "SBRCount.bsv", line 7, column 8: (G0117)
   the same clock cycle. Affected method calls:
     counter.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
-=== schedule:
+=== schedule (SBRCount mkSBRCount):
 parallel: [esposito: [readCount -> [], RL_driveCounter -> [], incCount -> []]]
 order: [readCount, RL_driveCounter, incCount]
 
 -----
 
-=== resources:
+=== resources (SBRCount mkSBRCount):
 [(counter.read, [(counter.read, 1)]),
- (counter.write, [(counter.write x__h240, 1), (counter.write 26'd0, 1)]),
+ (counter.write,
+  [(counter.write IF_counterWire_whas_THEN_counterWire_wget_ELSE_ETC___d5, 1),
+   (counter.write 26'd0, 1)]),
  (counterWire.wget, [(counterWire.wget, 1)]),
  (counterWire.whas, [(counterWire.whas, 1)]),
- (counterWire.wset, [(counterWire.wset new_value__h188, 1)])]
+ (counterWire.wset, [(counterWire.wset counter___d1, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SBRCount mkSBRCount):
 SchedInfo
 [RDY_incCount CF [RDY_incCount, incCount, readCount],
  RDY_readCount CF [RDY_incCount, RDY_readCount, incCount, readCount],

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ATFDeclParamMismatchBSV.bsv
+Error: "ATFDeclParamMismatchBSV.bsv", line 8, column 10: (T0152)
+  Type function declaration for `Elem' mentions type variable `g' not in the
+  variables of its class `Container': f, e

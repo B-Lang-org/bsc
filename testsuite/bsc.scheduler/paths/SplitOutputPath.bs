@@ -1,0 +1,23 @@
+package SplitOutputPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- A value method whose result is split into separate output ports.
+  -- The first field is combinational from the (split) input argument,
+  -- the second field comes from a register.  Path analysis should therefore
+  -- report a combinational path to the first output port only.
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkSplitOutputPath #-}
+mkSplitOutputPath :: Module Ifc
+mkSplitOutputPath =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = r })

@@ -10,18 +10,18 @@ Warning: "MethodUrg.bsv", line 9, column 8: (G0117)
   clock cycle. Affected method calls:
     i_holder.write
   To silence this warning, use the `-no-warn-action-shadowing' flag.
-=== schedule:
+=== schedule (MethodUrg mkTestUrg):
 parallel: [esposito: [highx -> [], lowx -> []]]
 order: [highx, lowx]
 
 -----
 
-=== resources:
+=== resources (MethodUrg mkTestUrg):
 [(i_holder.write, [(i_holder.write highx_din, 1), (i_holder.write lowx_din, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (MethodUrg mkTestUrg):
 SchedInfo
 [RDY_highx CF [RDY_highx, RDY_lowx, highx, lowx],
  RDY_lowx CF [RDY_lowx, highx, lowx],

@@ -1,0 +1,27 @@
+package ATFMultiParamIfc where
+
+-- Test: kind-variable collision between a class type variable and an
+-- interface type variable with the same name.
+--
+-- This was a kind inference bug with associated type functions.
+-- The Lits class has a higher-kinded param "s :: # -> *".  The interface
+-- FooOf has a param "s :: *".  When both classes and the interface are in
+-- the same compilation unit, the kind inferencer's Cinstance handler
+-- creates a kind variable for the proviso's "s" (via makeAssump) that
+-- collides with the struct's "s".  The Lits class's "s :: # -> *"
+-- then poisons the interface's "s :: *", producing a spurious T0025.
+--
+-- Renaming the Lits class's "s" to any other name made the error
+-- disappear, confirming this is a scoping bug in InferKind.
+
+class (SlotEnc :: * -> * -> * -> * -> *)
+    tag a s ts | tag a -> s ts where
+  type Slot tag a = ts
+
+class (Lits :: * -> (# -> *) -> * -> * -> * -> (# -> *) -> (# -> *) -> *)
+    tag a ro tp cp s ra | tag -> a ro tp cp s ra where
+  type Pred  tag = tp
+
+interface (FooOf :: (*) -> (*) -> *) s l = {
+  field :: Slot s (Pred l)
+}

@@ -5,7 +5,7 @@ module VModInfo(VModInfo, mkVModInfo,
                 VName(..), VPort, VSchedInfo, VMethodConflictInfo,
                 VPathInfo(..), VeriPortProp(..),
                 VArgInfo(..), isParam, isPort, isClock, isReset, isInout,
-                VFieldInfo(..),
+                VFieldInfo(..), vfMethodArgPorts,
                 VClockInfo(..), InputClockInf, OutputClockInf,
                 VOscPort, VInputGatePort, VOutputGatePort,
                 VResetInfo(..), ResetInf, VWireInfo(..),
@@ -23,7 +23,7 @@ module VModInfo(VModInfo, mkVModInfo,
                 getIfcIdPosition,
                 str_to_vPort,getVPortString,
                 mkNamedEnable,
-                mkNamedOutput,
+                mkNamedOutputs,
                 mkNamedReady,
                 mkNamedInout,
                 extractNames
@@ -273,8 +273,9 @@ data VFieldInfo = Method { vf_name   :: Id, -- method name
                            vf_reset  :: (Maybe Id), -- optional reset
                            -- optional because the method may be independent of a reset signal
                            vf_mult   :: Integer, -- multiplicity
-                           vf_inputs :: [VPort],
-                           vf_output :: Maybe VPort,
+                           -- input ports grouped by method argument
+                           vf_inputs :: [[VPort]],
+                           vf_outputs:: [VPort],
                            vf_enable :: Maybe VPort }
                 | Clock { vf_name :: Id } -- output clock name
                                            -- connection information is in the ClockInfo
@@ -292,6 +293,12 @@ instance HasPosition VFieldInfo where
   getPosition (Reset i)                 = getPosition i -- or noPosition?
   getPosition (Inout { vf_name = n })  = getPosition n
 
+-- Flat list of every hardware port across a method's source-level arguments.
+-- For consumers that don't care about the per-argument grouping.
+vfMethodArgPorts :: VFieldInfo -> [VPort]
+vfMethodArgPorts (Method { vf_inputs = iss }) = concat iss
+vfMethodArgPorts _ = []
+
 instance NFData VFieldInfo where
     rnf (Method x1 x2 x3 x4 x5 x6 x7) = rnf7 x1 x2 x3 x4 x5 x6 x7
     rnf (Clock x) = rnf x
@@ -300,11 +307,12 @@ instance NFData VFieldInfo where
 
 instance PPrint VFieldInfo where
     pPrint d p (Method n c r m i o e) =
-      text "method " <> pout o <> pPrint d p n <> pmult m <>
-      pins i <> pena e <+> ppMClk d c <+> ppMRst d r <>
+      text "method " <> pouts o <> pPrint d p n <> pmult m <>
+      pins (concat i) <> pena e <+> ppMClk d c <+> ppMRst d r <>
       text ";"
-        where pout Nothing = empty
-              pout (Just po) = pPrint d p po
+        where pouts [] = empty
+              pouts [po] = pPrint d p po
+              pouts o  = text "(" <> sepList (map (pPrint d p) o) (text ",") <> text ")"
               pmult 1 = empty
               pmult n = text "[" <> pPrint d p n <> text "]"
               pins [] = empty
@@ -685,17 +693,16 @@ mkNamedEnable vfi = if (newStr == "") then baseid else setIdBaseString baseid ne
     where  baseid = mkEnableId (vf_name vfi)
            newStr = maybe ""  getVPortString (vf_enable vfi)
 
-mkNamedOutput :: VFieldInfo -> Id
-mkNamedOutput vfi = if (newStr == "") then baseid else setIdBaseString baseid newStr
+mkNamedOutputs :: VFieldInfo -> [Id]
+mkNamedOutputs vfi = map (setIdBaseString baseid) newStrs
     where  baseid = (vf_name vfi)
-           newStr = maybe ""  getVPortString (vf_output vfi)
+           newStrs = map getVPortString (vf_outputs vfi)
 
 -- VFieldInfo does not have a ready field, so we just use the default construction for the ready signal.
 -- in aState we merge method and RDY_method to do the right thing.
 mkNamedReady :: VFieldInfo -> Id
 mkNamedReady vfi = baseid -- if (newStr == "") then baseid else setIdBaseString baseid newStr
     where  baseid = mkRdyId (vf_name vfi)
-           -- newStr = maybe ""  getVPortString (vf_output vfi)
 
 mkNamedInout :: VFieldInfo -> Id
 mkNamedInout vfi = setIdBaseString baseid newStr
@@ -705,8 +712,8 @@ mkNamedInout vfi = setIdBaseString baseid newStr
 ---------------------------   Name extraction from VFieldInfo
 -- extract possible port Ids from a VField Info
 -- return value  is result, ready, enable
-extractNames :: VFieldInfo -> (Id, Id, Id )
+extractNames :: VFieldInfo -> ([Id], Id, Id )
 extractNames vfi = (result, ready, enable)
-    where result = mkNamedOutput vfi
+    where result = mkNamedOutputs vfi
           ready  = mkNamedReady vfi
           enable = mkNamedEnable vfi

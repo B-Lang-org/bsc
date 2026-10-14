@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InputArg_ConcatReg.bsv
 code generation for sysInputArg_ConcatReg starts
-=== IOproperties:
+=== IOproperties (InputArg_ConcatReg sysInputArg_ConcatReg):
 Name                         I/O  size props
 b                              I    16 reg
 CLK                            I     1 clock

@@ -1,0 +1,10 @@
+-- Package with orphan instance (Describable for Bool)
+-- Both Describable (from Helper) and Bool (from Prelude) are external
+
+package OrphanInstanceBS(Describable(..)) where
+
+import Helper
+
+-- Orphan instance: Describable is from Helper, Bool is from Prelude
+instance Describable Bool where
+    describe b = if b then "true" else "false"

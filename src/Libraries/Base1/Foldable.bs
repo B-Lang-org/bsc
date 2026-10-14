@@ -1,0 +1,185 @@
+package Foldable where
+
+import qualified Array
+import qualified List
+import qualified ListN
+import qualified Vector
+
+--@ \index{Foldable@\te{Foldable} (type class)}
+--@ The class of container types that can be folded to a summary value.
+--@ A minimal complete definition need only implement \te{foldr}; all
+--@ other methods have defaults derived from \te{foldr}, but instances
+--@ may override them for efficiency.
+--@ \begin{libverbatim}
+--@ typeclass Foldable #(type t);
+--@   function b foldr(function b fn(a x, b z), b z, t#(a) xs);
+--@   function b foldl(function b fn(b z, a x), b z, t#(a) xs);
+--@   function m#(b) foldrM(function m#(b) fn(a x, b z), b z, t#(a) xs)
+--@     provisos (Monad#(m));
+--@   function m#(b) foldlM(function m#(b) fn(b z, a x), b z, t#(a) xs)
+--@     provisos (Monad#(m));
+--@   function f#(void) traverse_(function f#(b) fn(a x), t#(a) xs)
+--@     provisos (Applicative#(f));
+--@   function f#(void) sequenceA_(t#(f#(a)) xs)
+--@     provisos (Applicative#(f));
+--@   function m#(void) mapM_(function m#(b) fn(a x), t#(a) xs)
+--@     provisos (Monad#(m));
+--@   function m#(void) sequence_(t#(m#(a)) xs)
+--@     provisos (Monad#(m));
+--@   function List#(a) toList(t#(a) xs);
+--@   function Bool elem(a x, t#(a) xs)
+--@     provisos (Eq#(a));
+--@   function Integer length(t#(a) xs);
+--@   function Bool null(t#(a) xs);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Foldable t where
+  foldr :: (a -> b -> b) -> b -> t a -> b
+
+  foldl :: (b -> a -> b) -> b -> t a -> b
+  foldl f z0 xs = foldr (\ x k z -> k (f z x)) id xs z0
+
+  -- Monadic right fold: like \te{foldr} but the step function returns
+  -- an action and the accumulator threads through the monadic context.
+  foldrM :: (Monad m) => (a -> b -> m b) -> b -> t a -> m b
+  foldrM f z0 xs = foldr (\ x k z -> f x z `bind` k) pure xs z0
+
+  -- Monadic left fold: like \te{foldl} but the step function returns
+  -- an action and the accumulator threads through the monadic context.
+  foldlM :: (Monad m) => (b -> a -> m b) -> b -> t a -> m b
+  foldlM f z0 xs = foldr (\ x k z -> f z x `bind` k) pure xs z0
+
+  -- The `_` traversal helpers sequence the actions left-to-right and
+  -- discard the rebuilt container. They only need \te{Foldable} (no
+  -- \te{Traversable}) because the action sequencing can be expressed
+  -- via \te{foldr}.
+  traverse_ :: (Applicative f) => (a -> f b) -> t a -> f ()
+  traverse_ f = foldr (\ x acc -> f x *> acc) (pure ())
+
+  sequenceA_ :: (Applicative f) => t (f a) -> f ()
+  sequenceA_ = foldr (*>) (pure ())
+
+  mapM_ :: (Monad m) => (a -> m b) -> t a -> m ()
+  mapM_ = traverse_
+
+  sequence_ :: (Monad m) => t (m a) -> m ()
+  sequence_ = sequenceA_
+
+  toList :: t a -> List a
+  toList = foldr Cons Nil
+
+  elem :: (Eq a) => a -> t a -> Bool
+  elem x = foldr (\ y acc -> y == x || acc) False
+
+  length :: t a -> Integer
+  length = foldr (\ _ n -> n + 1) 0
+
+  null :: t a -> Bool
+  null = foldr (\ _ _ -> False) True
+
+instance Foldable Array where
+  foldr = Array.foldr
+  foldl = Array.foldl
+  toList = Array.arrayToList
+
+instance Foldable List where
+  foldr = List.foldr
+  foldl = List.foldl
+  mapM_ = List.mapM_
+  toList = id
+  length = List.length
+  null = List.null
+
+instance Foldable (ListN.ListN n) where
+  foldr = ListN.foldr
+  foldl = ListN.foldl
+  mapM_ = ListN.mapM_
+  toList = ListN.toList
+  length _ = valueOf n
+  null _ = valueOf n == 0
+
+instance Foldable (Vector.Vector n) where
+  foldr = Vector.foldr
+  foldl = Vector.foldl
+  mapM_ = Vector.mapM_
+  toList = Vector.toList
+  length _ = valueOf n
+  null _ = valueOf n == 0
+
+instance Foldable Maybe where
+  foldr _ z Invalid   = z
+  foldr f z (Valid x) = f x z
+  foldl _ z Invalid   = z
+  foldl f z (Valid x) = f z x
+  toList Invalid   = Nil
+  toList (Valid x) = Cons x Nil
+  length Invalid   = 0
+  length (Valid _) = 1
+  null Invalid   = True
+  null (Valid _) = False
+
+--@ \index{Foldable1@\te{Foldable1} (type class)}
+--@ Fold operations that require the container to be non-empty.
+--@ This is seperated from \te{Foldable} because fixed-size containers
+--@ (e.g.\ \te{Vector n}, \te{ListN n}) may require an extra proviso to
+--@ assert non-zero size, not needed by the corresponding \te{Foldable}
+--@ instances.
+--@ \begin{libverbatim}
+--@ typeclass Foldable1 #(type t)
+--@   provisos (Foldable#(t));
+--@   function a foldr1(function a fn(a x, a y), t#(a) xs);
+--@   function a foldl1(function a fn(a x, a y), t#(a) xs);
+--@   function a fold(function a fn(a x, a y), t#(a) xs);
+--@   function m#(a) foldM(function m#(a) f(a x, a y), t#(a) xs)
+--@     provisos (Monad#(m));
+--@   function m#(a) folduM(function m#(a) f(a x, a y),
+--@                         function m#(a) g(a x), t#(a) xs)
+--@     provisos (Monad#(m));
+--@ endtypeclass
+--@ \end{libverbatim}
+class (Foldable t) => Foldable1 t where
+  foldr1 :: (a -> a -> a) -> t a -> a
+  foldl1 :: (a -> a -> a) -> t a -> a
+
+  -- Tree redunction over a non-empty container.
+  fold :: (a -> a -> a) -> t a -> a
+  fold = foldr1
+
+  -- Monadic tree reduction over a non-empty container.
+  -- First argument combines pairs of leaves.
+  -- No transformation at singleton leaves.
+  foldM :: (Functor t, Monad m) => (a -> a -> m a) -> t a -> m a
+  foldM f xs =
+    let liftF ma mb = ma `bind` \ a -> mb `bind` \ b -> f a b
+    in fold liftF $ fmap pure xs
+
+  -- Monadic tree reduction over a non-empty container.
+  -- First argument combines pairs of leaves.
+  -- Second argument is applied to singleton leaves.
+  folduM :: (Functor t, Monad m) =>
+            (a -> a -> m a) -> (a -> m a) -> t a -> m a
+  folduM f g xs = folduM f g $ toList xs
+
+instance (Add 1 m n) => Foldable1 (ListN.ListN n) where
+  foldr1 = ListN.foldr1
+  foldl1 = ListN.foldl1
+  fold = ListN.fold
+  foldM = ListN.foldM
+
+instance (Add 1 m n) => Foldable1 (Vector.Vector n) where
+  foldr1 = Vector.foldr1
+  foldl1 = Vector.foldl1
+  fold = Vector.fold
+  foldM = Vector.foldM
+
+instance Foldable1 List where
+  foldr1 = List.foldr1
+  foldl1 = List.foldl1
+  fold = List.fold
+  foldM = List.foldM
+  folduM = List.folduM
+
+instance Foldable1 Array where
+  foldr1 = Array.foldr1
+  foldl1 = Array.foldl1
+  fold = Array.fold

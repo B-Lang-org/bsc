@@ -1,6 +1,6 @@
 package Prelude(
         {-Add(..), Max(..), Log(..),-}
-        Monad(..), MonadFix(..),
+        Functor(..), (<$>), Applicative(..), Monad(..), MonadFix(..),
         Bits(..), Eq(..),
         Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
         Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
@@ -95,8 +95,9 @@ package Prelude(
         primCharToString,
         primUIntBitsToInteger, primIntBitsToInteger,
 
-        ($), (∘), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
-        liftM, liftM2, bindM,
+        ($), (∘), id, const, constFn, flip, while,
+        curry, uncurry, Curry(..), Curry', asTypeOf,
+        liftM, liftM2, bindM, return,
 
         (<+>), rJoin,
         (<+), (+>), preempts, preempted, rJoinPreempts,
@@ -172,6 +173,7 @@ package Prelude(
         Tuple6, tuple6, Has_tpl_6(..),
         Tuple7, tuple7, Has_tpl_7(..),
         Tuple8, tuple8, Has_tpl_8(..),
+        AppendTuple(..), AppendTuple', AppendTuple'', TupleSize(..), TupleSize',
 
         -- lists required for desugaring
         List(..),
@@ -255,13 +257,21 @@ package Prelude(
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
         Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..),
         NumConArg(..), StarConArg(..), OtherConArg(..),
-        MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
+        MetaConsNamed(..), MetaConsAnon(..), MetaField(..),
+
+        WrapField(..), WrapMethod(..), fromWrapNoInline, WrapPorts(..), NonEmptyBits(..),
+        Port(..), unPort, SplitPorts(..), PrimSeqTupleBits(..)
         ) where
 
 infixr  0 $
 infixr  0 :=
 infixr  2 ||
 infixr  3 &&
+infixl  4 <$>
+infixl  4 <$
+infixl  4 <*>
+infixl  4 <*
+infixl  4 *>
 infixr  4 |
 infixr  5 &
 infixr  5 ^
@@ -305,19 +315,67 @@ class (Max :: # -> # -> # -> *) a b c | a b -> c where { }
 class (Min :: # -> # -> # -> *) a b c | a b -> c where { }
 -}
 
+--@ \index{Functor@\te{Functor} (type class)}
+--@ \index{fmap@\te{fmap} (\te{Functor} class method)}
+--@ The class of types that can be mapped over. Functors represent computational
+--@ contexts (like \te{List}, \te{Maybe}, etc.) that can have a function applied
+--@ to their contained values while preserving the structure of the context.
+--@ \begin{libverbatim}
+--@ typeclass Functor #(type f);
+--@     function f#(b) fmap(function b fn(a x), f#(a) x);
+--@ endtypeclass
+--@ \end{libverbatim}
+--@ The \te{fmap} function applies a function to the value(s) inside the functor.
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+
+  (<$) :: a -> f b -> f a
+  (<$) = fmap ∘ const
+
+-- An infix synonym for fmap, for use in applicative style
+(<$>) :: (Functor f) => (a -> b) -> f a -> f b
+(<$>) = fmap
+
+--@ \index{Applicative@\te{Applicative} (type class)}
+--@ \index{pure@\te{pure} (\te{Applicative} class method)}
+--@ \index{liftA2@\te{liftA2} (\te{Applicative} class method)}
+--@ The class of applicative functors, which extends \te{Functor} with the ability
+--@ to lift pure values into the functor context and to apply functions that are
+--@ themselves in the functor context. This allows combining multiple functor values.
+--@ \begin{libverbatim}
+--@ typeclass Applicative #(type f)
+--@   provisos (Functor#(f));
+--@     function f#(a) pure(a x);
+--@     function f#(c) liftA2(function c fn(a x, b y), f#(a) x, f#(b) y);
+--@ endtypeclass
+--@ \end{libverbatim}
+--@ The \te{pure} function lifts a value into the functor context.
+--@ The \te{liftA2} function lifts a binary function to operate on two functor values.
+class (Functor f) => Applicative f where
+  pure :: a -> f a
+
+  (<*>) :: f (a -> b) -> f a -> f b
+  (<*>) = liftA2 id
+
+  liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+  liftA2 f x y = f <$> x <*> y
+
+  (*>) :: f a -> f b -> f b
+  u *> v = (id <$ u) <*> v
+
+  (<*) :: f a -> f b -> f a
+  u <* v = liftA2 const u v
+
 --@ \index{Monad@\te{Monad} (type class)}
 --@ \index{bind@\te{bind} (\te{Monad} class method)}
---@ \index{return@\te{return} (\te{Monad} class method)}
 --@ Monads are an advanced topic and can be ignored on first reading.
 --@ \begin{libverbatim}
 --@ typeclass Monad #(type m);
 --@     function m#(b) bind(m#(a) x1, function m#(b) x2(a x1));
---@     function m#(a) return(a x1);
 --@ endtypeclass
 --@ \end{libverbatim}
-class Monad m where
+class (Applicative m) => Monad m where
     bind   :: m a -> (a -> m b) -> m b
-    return :: a -> m a
 
 --@ The class of monads that admit recursion (advanced topic; can be ignored on first reading).
 --@ \index{MonadFix@\te{MonadFix} (type class)}
@@ -331,12 +389,6 @@ class Monad m where
 class (Monad m) => MonadFix m where
     mfix :: (a -> m a) -> m a
 
-fmap :: (Monad m) => (a -> b) -> (m a -> m b)
-fmap f xs = do
-        {-# hide #-}
-        _x <- xs
-        return (f _x)
-
 --@ The class of types that can be converted to bit vectors and back.
 --@ \index{Bits@\te{Bits} (type class)}
 --@ \index{pack@\te{pack} (\te{Bits} class method)}
@@ -349,6 +401,7 @@ fmap f xs = do
 --@ endtypeclass
 --@ \end{libverbatim}
 class coherent Bits a n | a -> n where
+    type SizeOf a = n
     pack   :: a -> Bit n
     unpack :: Bit n -> a
 
@@ -738,6 +791,8 @@ class (MonadFix m) => IsModule m c | m -> c where
     liftModule     :: Module a -> m a
     liftModuleOp   :: (Module (c a) -> Module (c b)) -> m a -> m b
 
+-- This sadly can't be defined as an associated type function of a Refl type class,
+-- since we currently require that type functions must be fully applied.
 primitive type Id__ :: * -> *
 
 instance IsModule Module Id__ where
@@ -811,7 +866,7 @@ instance PrimDeepSeqCond (a -> b) where
 -- for each constructor arg, calling primDeepSeqCond (if the type arguments
 -- are known), or primSeqCond (if they are not known) in which case the
 -- correct function is called at elaboation time.
-instance (Generic a r, PrimDeepSeqCond' r) => PrimDeepSeqCond a where
+instance (PrimDeepSeqCond' (Rep a)) => PrimDeepSeqCond a where
   primDeepSeqCond x = primDeepSeqCond' (from x)
 
 class PrimDeepSeqCond' r where
@@ -848,6 +903,33 @@ instance PrimDeepSeqCond' (ConcPrim a) where
 instance PrimDeepSeqCond' (ConcPoly a) where
   primDeepSeqCond' _ = id
 
+instance Functor ActionValue
+  where
+    fmap f (ActionValue x) = ActionValue (\aw ->
+        letseq x1 = x aw
+        in  AVStruct {
+                avValue = f x1.avValue;
+                avAction = x1.avAction;
+                avWorld  = x1.avWorld
+            })
+
+instance Applicative ActionValue
+  where
+    pure x = ActionValue
+               (\aw -> AVStruct { avValue = x;
+                                  avAction = primNoActions;
+                                  avWorld = aw })
+    liftA2 f (ActionValue x) (ActionValue y) = ActionValue (\aw ->
+        letseq x1 = x aw
+               a1  = x1.avAction
+               v1  = x1.avValue
+               aw1 = x1.avWorld
+               y1  = primSeq v1 $ primSeq a1 $ primSeq aw1 $ y aw1
+        in  AVStruct {
+                avValue = f v1 y1.avValue;
+                avAction = primJoinActions a1 y1.avAction;
+                avWorld  = y1.avWorld
+            })
 
 --@ \begin{libverbatim}
 --@ instance Monad #(ActionValue);
@@ -858,10 +940,6 @@ instance PrimDeepSeqCond' (ConcPoly a) where
 -- (possibly making ActionWorld an argument of foreign-function calls)
 instance Monad ActionValue
   where
-    return x = ActionValue
-                 (\aw -> AVStruct { avValue = x;
-                                    avAction = primNoActions;
-                                    avWorld = aw })
     bind (ActionValue x) f = ActionValue (\aw ->
         letseq x1 = x aw
                a   = x1.avAction
@@ -915,9 +993,9 @@ fromPrimAction a = ActionValue (\aw -> AVStruct { avValue = _; avAction = a; avW
 type Action = ActionValue ()
 
 --X@ \begin{verbatim}
---X@ typedef ActionValue_#(0) Action_;
+--X@ typedef ActionValue_#(void) Action_;
 --X@ \end{verbatim}
-type Action_ = ActionValue_ 0
+type Action_ = ActionValue_ ()
 
 --@ An empty \te{Action}.
 --@ \index{noAction@\te{noAction} (empty action)}
@@ -934,23 +1012,36 @@ noAction = fromPrimAction primNoActions
 (:<-) :: Reg a -> ActionValue a -> Action
 (:<-) r av = av `bind` r._write
 
---X@ A primitive \te{ActionValue} of bits
+--X@ A primitive \te{ActionValue} of bits.
+--X@ The type parameter should be either (), Bit n, or a tuple of Bit n.
 --X@ \begin{verbatim}
---X@ struct ActionValue_ #(type n);
+--X@ struct ActionValue_ #(type a;
 --X@ \end{verbatim}
-struct ActionValue_ n
+struct ActionValue_ a
   =
-    avValue_  :: Bit n
+    avValue_  :: a
     avAction_ :: PrimAction
 
-toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ n
-toActionValue_  (ActionValue av) =
-    letseq av' = av ActionWorld
-    in ActionValue_ { avValue_ = pack av'.avValue; avAction_ = av'.avAction}
+toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ (Bit n)
+toActionValue_ = bitsToActionValue_ ∘ fmap pack
 
-fromActionValue_ :: (Bits a n) => ActionValue_ n -> ActionValue a
-fromActionValue_  av_ = ActionValue (\aw ->
-    AVStruct { avValue = unpack av_.avValue_; avAction = av_.avAction_; avWorld = aw})
+fromActionValue_ :: (Bits a n) => ActionValue_ (Bit n) -> ActionValue a
+fromActionValue_ = fmap unpack ∘ bitsFromActionValue_
+
+toAction_ :: Action -> Action_
+toAction_ = bitsToActionValue_
+
+fromAction_ :: Action_ -> Action
+fromAction_ = bitsFromActionValue_
+
+bitsToActionValue_ :: ActionValue a -> ActionValue_ a
+bitsToActionValue_  (ActionValue av) =
+    letseq av' = av ActionWorld
+    in ActionValue_ { avValue_ = av'.avValue; avAction_ = av'.avAction}
+
+bitsFromActionValue_ :: ActionValue_ a -> ActionValue a
+bitsFromActionValue_ av_ = ActionValue (\ aw ->
+    AVStruct { avValue = av_.avValue_; avAction = av_.avAction_; avWorld = aw})
 
 -- ----------------------------------------------------------------
 
@@ -1472,13 +1563,29 @@ data Maybe a = (Invalid, Nothing) | (Valid, Just) a
         deriving (Eq, Bits, FShow, DefaultValue)
 type Perhaps  = Maybe
 
+--X@ The \te{Maybe} type is a functor.
+instance Functor Maybe
+    where
+        fmap _ Nothing  = Nothing
+        fmap f (Just x) = Just (f x)
+
+--X@ The \te{Maybe} type is an applicative functor.
+instance Applicative Maybe
+    where
+        pure = Just
+        (<*>) Nothing _ = Nothing
+        (<*>) (Just _) Nothing = Nothing
+        (<*>) (Just f) (Just x) = Just (f x)
+        liftA2 _ Nothing  _        = Nothing
+        liftA2 _ _        Nothing  = Nothing
+        liftA2 f (Just x) (Just y) = Just (f x y)
+
 --X@ The \te{Maybe} type is a monad.
 --X@ \begin{libverbatim}
 --X@ instance Monad #(Maybe);
 --X@ \end{libverbatim}
 instance Monad Maybe
     where
-        return x = Just x
         bind Nothing  _ = Nothing
         bind (Just x) f = f x
 
@@ -2106,6 +2213,13 @@ instance Eq String
     (==) x y = primChr (primStringEQ x y)
     (/=) x y = primChr (primBNot (primStringEQ x y))
 
+instance Ord String
+  where
+    (<) x y = primChr (primStringLT x y)
+    (<=) x y = primChr (primStringLE x y)
+    (>) x y = primChr (primStringLT y x)
+    (>=) x y = primChr (primStringLE y x)
+
 instance Arith String
   where
     (+) x y  = x +++ y
@@ -2356,13 +2470,24 @@ instance Literal Fmt
 --@ # 1
 primitive type Module :: * -> *
 
+instance Functor Module
+  where
+    fmap f m = do
+        {-# hide #-}
+        _x <- m
+        return (f _x)
+
+instance Applicative Module
+  where
+    pure = primModuleReturn
+    liftA2 = liftM2
+
 --@ \begin{libverbatim}
 --@ instance Monad #(Module);
 --@ \end{libverbatim}
 instance Monad Module
   where
-    return x = primModuleReturn x
-    bind x f = primModuleBind x f
+    bind = primModuleBind
 
 --@ \begin{libverbatim}
 --@ instance MonadFix #(Module);
@@ -2595,6 +2720,31 @@ curry f x y = f (x, y)
 uncurry :: (a -> b -> c) -> ((a, b) -> c)
 uncurry f (x, y) = f x y
 
+-- Polymorphic, N-argument version of curry/uncurry
+class Curry f g | f -> g where
+  curryN :: f -> g
+  uncurryN :: g -> f
+
+instance Curry (() -> a) a where
+  curryN f = f ()
+  uncurryN f _ = f
+
+instance (Curry' f g) => Curry f g where
+  curryN = curryN'
+  uncurryN = uncurryN'
+
+class Curry' f g | f -> g where
+  curryN' :: f -> g
+  uncurryN' :: g -> f
+
+instance (Curry' (b -> c) d) => Curry' ((a, b) -> c) (a -> d) where
+  curryN' f x = curryN' $ \y -> f (x, y)
+  uncurryN' f (x, y) = uncurryN' (f x) y
+
+instance Curry' (a -> b) (a -> b) where
+  curryN' = id
+  uncurryN' = id
+
 --@ Constant function
 --@ \index{const@\te{const} (Prelude function)}
 --@ \begin{libverbatim}
@@ -2642,6 +2792,17 @@ asTypeOf x _ = x
 liftM :: (Monad m) => (a -> b) -> (m a -> m b)
 liftM f x = x `bind` (\ _y -> return (f _y))
 
+--@ Lift a binary function to operate on monadic values.
+--@ \index{liftM2@\te{liftM2} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function m#(c) liftM2(function c f(a x1, b x2), m#(a) x, m#(b) y)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+--@ Generally, liftA2 should be preferred to liftM2, as it can be used with any
+--@ applicative functor (not just monads), and it may have a more efficient
+--@ implementation for some applicative functors.
+--@ However, liftM2 may be useful to define liftA2 for a Monad that does not
+--@ have a more efficient implementation of liftA2.
 liftM2 :: (Monad m) => (a -> b -> c) -> (m a -> m b -> m c)
 liftM2 f ma mb = do
   {-# hide #-}
@@ -2652,6 +2813,9 @@ liftM2 f ma mb = do
 
 bindM :: (Monad m) => m a -> (a -> m b) -> m b
 bindM = bind
+
+return :: (Monad m) => a -> m a
+return = pure
 
 ---
 
@@ -2766,8 +2930,6 @@ instance Eq Reset
   where
    (==) x y = primChr (primResetEQ x y)
    (/=) x y = primChr (primBNot (primResetEQ x y))
-
-primitive type SizeOf :: * -> #
 
 primitive type TAdd :: # -> # -> #
 primitive type TSub :: # -> # -> #
@@ -2952,6 +3114,8 @@ primitive primExtractInternal :: Bit n -> Bit l -> Bit l -> Bit k
 
 primitive primStringConcat :: String -> String -> String
 primitive primStringEQ :: String -> String -> Bit 1
+primitive primStringLE :: String -> String -> Bit 1
+primitive primStringLT :: String -> String -> Bit 1
 
 primitive primJoinRules :: Rules -> Rules -> Rules
 
@@ -3193,9 +3357,9 @@ $time = fromActionValue_ (__time__)
 $stime :: ActionValue (Bit 32)
 $stime = fromActionValue_ (__stime__)
 
-foreign __time__ :: ActionValue_ 64 = "$time"
+foreign __time__ :: ActionValue_ (Bit 64) = "$time"
 
-foreign __stime__ :: ActionValue_ 32 = "$stime"
+foreign __stime__ :: ActionValue_ (Bit 32) = "$stime"
 
 --  File type and system tasks which use it
 data File = InvalidFile |
@@ -3249,7 +3413,7 @@ foreign $fflush :: PrimAction = "$fflush"
 -- Type checking is done by bsc
 -- $fopen :: String ->  ActionValue#(File)
 -- $fopen :: String -> String ->  ActionValue#(File)
-foreign $fopen :: ActionValue_ 32 = "$fopen"
+foreign $fopen :: ActionValue_ (Bit 32) = "$fopen"
 
 
 -- The arguments for these are handled internally
@@ -3258,16 +3422,16 @@ foreign $fwriteb ::  PrimAction = "$fwriteb"
 foreign $fwriteo ::  PrimAction = "$fwriteo"
 foreign $fwriteh ::  PrimAction = "$fwriteh"
 
-foreign $swriteAV  ::  ActionValue_  n = "$swriteAV"
+foreign $swriteAV  ::  ActionValue_ (Bit n) = "$swriteAV"
 foreign $swrite    ::  PrimAction = "$swrite"
-foreign $swritebAV ::  ActionValue_  n = "$swritebAV"
+foreign $swritebAV ::  ActionValue_ (Bit n) = "$swritebAV"
 foreign $swriteb   ::  PrimAction = "$swriteb"
-foreign $swriteoAV ::  ActionValue_  n = "$swriteoAV"
+foreign $swriteoAV ::  ActionValue_ (Bit n) = "$swriteoAV"
 foreign $swriteo   ::  PrimAction = "$swriteo"
-foreign $swritehAV ::  ActionValue_  n = "$swritehAV"
+foreign $swritehAV ::  ActionValue_ (Bit n) = "$swritehAV"
 foreign $swriteh   ::  PrimAction = "$swriteh"
 
-foreign $sformatAV ::  ActionValue_  n = "$sformatAV"
+foreign $sformatAV ::  ActionValue_ (Bit n) = "$sformatAV"
 foreign $sformat   ::  PrimAction = "$sformat"
 
 foreign $fdisplay  ::  PrimAction = "$fdisplay"
@@ -3275,20 +3439,19 @@ foreign $fdisplayb ::  PrimAction = "$fdisplayb"
 foreign $fdisplayo ::  PrimAction = "$fdisplayo"
 foreign $fdisplayh ::  PrimAction = "$fdisplayh"
 
-foreign $random :: ActionValue_ 32 = "$random"
+foreign $random :: ActionValue_ (Bit 32) = "$random"
 
 $fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
 $fgetc f = fromActionValue_ (__fgetc__ (pack f))
-foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
+foreign __fgetc__ :: Bit 32 -> ActionValue_ (Bit 32) = "$fgetc"
 
 $fclose :: File -> Action
-$fclose f = fromActionValue_ (__fclose__ (pack f))
+$fclose f = fromAction_ (__fclose__ (pack f))
 foreign __fclose__ :: Bit 32 -> Action_ = "$fclose"
 
 $ungetc :: Bit 8 -> File -> ActionValue (Int 32)
 $ungetc c f = fromActionValue_ ( __fungetc__ c (pack f))
-foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ 32 = "$ungetc"
-
+foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ (Bit 32) = "$ungetc"
 
 -- "standard" file descriptors
 stdin  :: File
@@ -3303,7 +3466,7 @@ stdout_mcd = MCD 1
 
 $test$plusargs :: String -> ActionValue Bool
 $test$plusargs x = fromActionValue_ (__testplusargs__ x)
-foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
+foreign __testplusargs__ :: String -> ActionValue_ (Bit 1) = "$test$plusargs"
 
 ------------------
 
@@ -3384,6 +3547,56 @@ tuple7 a b c d e f g = (a,b,c,d,e,f,g)
 tuple8 :: a -> b -> c -> d -> e -> f -> g -> h   -> Tuple8 a b c d e f g h
 tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
 
+class AppendTuple a b c | a b -> c where
+  type TAppendTuple a b = c
+  appendTuple :: a -> b -> c
+  splitTuple :: c -> (a, b)
+
+instance AppendTuple a () a where
+  appendTuple x _ = x
+  splitTuple x = (x, ())
+
+-- The above instance should take precedence over the other cases that assume
+-- b is non-unit. To avoid overlapping instances, the below are factored out as
+-- a seperate type class:
+instance (AppendTuple' a b c) => AppendTuple a b c where
+  appendTuple = appendTuple'
+  splitTuple = splitTuple'
+
+class AppendTuple' a b c | a b -> c where
+  appendTuple' :: a -> b -> c
+  splitTuple' :: c -> (a, b)
+
+instance AppendTuple' () a a where
+  appendTuple' _ = id
+  splitTuple' x = ((), x)
+
+instance (AppendTuple'' a b c) => AppendTuple' a b c where
+  appendTuple' = appendTuple''
+  splitTuple' = splitTuple''
+
+class AppendTuple'' a b c | a b -> c where
+  appendTuple'' :: a -> b -> c
+  splitTuple'' :: c -> (a, b)
+
+instance AppendTuple'' a b (a, b) where
+  appendTuple'' a b = (a, b)
+  splitTuple'' = id
+
+instance (AppendTuple'' a b c) => AppendTuple'' (h, a) b (h, c) where
+  appendTuple'' (x, y) z = (x, appendTuple'' y z)
+  splitTuple'' (x, y) = case splitTuple'' y of
+    (w, z) -> ((x, w), z)
+
+class TupleSize a n | a -> n where
+  type TTupleSize a = n
+instance TupleSize () 0 where {}
+instance (TupleSize' a n) => TupleSize a n where {}
+
+class TupleSize' a n | a -> n where {}
+instance TupleSize' a 1 where {}
+instance (TupleSize' b n) => TupleSize' (a, b) (TAdd n 1) where {}
+
 -- FUNCTIONS TO REPLACE UNAVAILABLE INFIXES
 
 compose :: (b -> c) -> (a -> b) -> (a -> c)
@@ -3441,13 +3654,23 @@ instance PrimUpdateable (List a) a
   where
    primUpdateFn = listPrimUpdate
 
+--@ The \te{List} type is a functor.
+instance Functor List
+    where
+        fmap = listPrimMap
+
+--@ The \te{List} type is an applicative functor.
+instance Applicative List
+    where
+        pure x = Cons x Nil
+        liftA2 f xs ys = listPrimConcat (listPrimMap (\x -> listPrimMap (f x) ys) xs)
+
 --@ The \te{List} type is a monad.
 --@ \begin{libverbatim}
 --@ instance Monad #(List);
 --@ \end{libverbatim}
 instance Monad List
     where
-        return x = Cons x Nil
         bind x f = listPrimConcat (listPrimMap f x)
 
 -- copied !! and !!! from List.bs for PrimSelectable instance
@@ -3600,6 +3823,16 @@ arrayLength a =
 
 primArrayNewU :: Integer -> Array a
 primArrayNewU k = primArrayNew k _
+
+instance Functor Array
+  where
+    fmap :: (a -> b) -> Array a -> Array b
+    fmap f v =
+      let buildResult :: Integer -> Array b -> Array b
+          buildResult i arr =
+            if i < 0 then arr
+            else buildResult (i - 1) (primArrayUpdate arr i (f (primArraySelect v i)))
+      in buildResult (primArrayLength v - 1) (primArrayNewU (primArrayLength v))
 
 instance PrimSelectable (Array a) a
   where
@@ -3765,8 +3998,8 @@ instance PrimMakeUninitialized (a -> b) where
    primMakeUninitialized = primMakeRawUninitialized
 
 -- Default generic instance covers data and structs
-instance (Generic a r, PrimMakeUninitialized' a r) => PrimMakeUninitialized a where
-  primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: r) pos f
+instance (PrimMakeUninitialized' a (Rep a)) => PrimMakeUninitialized a where
+  primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: Rep a) pos f
 
 -- Extra intermediate helper type class allows coherent dispatch on number of constructors
 class PrimMakeUninitialized' a r where
@@ -3779,7 +4012,7 @@ class PrimMakeUninitialized' a r where
 -- constructor: a struct value is returned with uninitialized values in its
 -- fields.
 --
-instance (Generic a r, PrimMakeUninitialized'' r) =>
+instance (PrimMakeUninitialized'' (Rep a)) =>
          PrimMakeUninitialized' a (Meta (MetaData n p ta 1) r') where
   primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' False pos f
 
@@ -3914,8 +4147,8 @@ instance PrimMakeUndefined (Array a) where
    primMakeUndefined = primMakeRawUndefined
 
 -- Default generic instance covers data and structs
-instance (Generic a r, PrimMakeUndefined' a r) => PrimMakeUndefined a where
-  primMakeUndefined pos i = primMakeUndefined' ((error "proxy") :: r) pos i
+instance (PrimMakeUndefined' a (Rep a)) => PrimMakeUndefined a where
+  primMakeUndefined pos i = primMakeUndefined' ((error "proxy") :: Rep a) pos i
 
 -- Extra intermediate helper type class allows coherent dispatch on number of constructors
 class PrimMakeUndefined' a r where
@@ -3925,7 +4158,7 @@ class PrimMakeUndefined' a r where
 -- The derived instance for structs is like for data types with a single
 -- constructor: a struct value is returned with undefined values in its
 -- fields.
-instance (Generic a r, PrimMakeUndefined'' r) =>
+instance (PrimMakeUndefined'' (Rep a)) =>
          PrimMakeUndefined' a (Meta (MetaData n p ta 1) r') where
   primMakeUndefined' _ pos i = to $ primMakeUndefined'' pos i
 
@@ -4316,6 +4549,7 @@ instance (Literal t) => DefaultValue t where
 
 -- Representable types of kind *
 class Generic a r | a -> r where
+  type Rep a = r
   from :: a -> r
   to :: r -> a
 
@@ -4386,3 +4620,305 @@ data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
 -- field) and index in the constructor's fields
 data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
+
+
+-- Tag a method with metadata: the input port names for each method argument,
+-- and the output port names.
+primitive primMethod :: List (List String) -> List String -> a -> a
+
+-- Like primMethod, but for a noinline function: records the (possibly split)
+-- input and output port names directly on the foreign-function value, so that
+-- a call to it connects to the same port names that the generated module
+-- exposes.  Unlike primMethod, it does not wrap the result value (which would
+-- not be transparent to expression evaluation); it annotates the foreign
+-- function in place.
+primitive primNoInline :: List (List String) -> List String -> a -> a
+
+-- Convert bewtween a field in an interface that is being synthesized,
+-- and a field in the corresponding field in the generated wrapper interface.
+-- Also takes the name of the field for error reporting purposes.
+class (WrapField :: $ -> * -> * -> *) name f w | name f -> w where
+  -- Given a proxy value for the field name, and the values of the prefix, arg_names and result pragmas,
+  -- converts a synthesized interface field value to its wrapper interface field.
+  toWrapField :: StrArg name -> String -> List String -> String -> f -> w
+
+  -- Given a proxy value for the field name, converts a wrapper interface field value
+  -- to its synthesized interface field.
+  fromWrapField :: StrArg name -> w -> f
+
+  -- Save the port types for a field in the wrapped interface, given the module name
+  -- and the prefix, arg_names and result pragmas.
+  saveFieldPortTypes :: StrArg name -> f -> Maybe Name__ -> String -> List String -> String -> Module ()
+
+instance (WrapMethod m w) => (WrapField name m w) where
+  toWrapField _ prefix argNames resultName =
+    let argBaseNames = methodArgBaseNames (_ :: m) prefix argNames 1
+    in primMethod
+      (inputPortNames (_ :: m) argBaseNames)
+      (outputPortNames (_ :: m) resultName)
+      ∘ toWrapMethod
+  fromWrapField _ = fromWrapMethod
+  saveFieldPortTypes _ _ modName prefix argNames resultName =
+    let baseNames = methodArgBaseNames (_ :: m) prefix argNames 1
+    in saveMethodPortTypes (_ :: m) modName baseNames resultName
+
+-- TODO: It doesn't seem possible to have a PrimAction field in a synthesized interface,
+-- but this case was being handled in GenWrap.
+instance WrapField name PrimAction PrimAction where
+  toWrapField _ _ _ _ = id
+  fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
+
+instance WrapField name Clock Clock where
+  toWrapField _ _ _ _ = id
+  fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
+
+instance WrapField name Reset Reset where
+  toWrapField _ _ _ _ = id
+  fromWrapField _ = id
+  saveFieldPortTypes _ _ _ _ _ _ = return ()
+
+instance (Bits a n) => WrapField name (Inout a) (Inout_ n) where
+  toWrapField _ _ _ _ = primInoutCast0
+  fromWrapField _ = primInoutUncast0
+  saveFieldPortTypes _ _ modName _ _ result =
+    primSavePortType modName result $ typeOf (_ :: (Inout a))
+
+-- Like fromWrapMethod, but for a noinline function: also records the (possibly
+-- split) input and output port names of the function via primNoInline, so that
+-- a call to the noinline function connects to the same port names that the
+-- generated module exposes.  noinline functions do not support naming pragmas,
+-- so the function name is used both as the prefix for naming both the input
+-- and output ports; only the arg names are supplied separately.
+fromWrapNoInline :: (WrapMethod m w) => String -> List String -> w -> m
+fromWrapNoInline name argNames x =
+  let argBaseNames = methodArgBaseNames (_ :: m) name argNames 1
+  in fromWrapMethod (primNoInline
+                       (inputPortNames (_ :: m) argBaseNames)
+                       (outputPortNames (_ :: m) name)
+                       x)
+
+class WrapMethod m w | m -> w where
+  -- Convert a synthesized interface method to its wrapper interface method.
+  toWrapMethod :: m -> w
+
+  -- Convert a wrapper interface method to its synthesized interface method.
+  fromWrapMethod :: w -> m
+
+  -- Compute the actual argument base names for a method, given the prefix and arg_names pragmas.
+  methodArgBaseNames :: m -> String -> List String -> Integer -> List String
+
+  -- Compute the list of input port names for each method argument, given the per-argument base names.
+  inputPortNames :: m -> List String -> List (List String)
+
+  -- Compute the list of output port names for a method, from the result base name.
+  outputPortNames :: m -> String -> List String
+
+  -- Save the port types for a method, given the module name, argument base names and result name.
+  saveMethodPortTypes :: m -> Maybe Name__ -> List String -> String -> Module ()
+
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb, WrapMethod b v) =>
+    WrapMethod (a -> b) (pb -> v) where
+  -- deep-seq the packed argument so its per-port fields are evaluated before
+  -- they reach walkNF (mirroring the deep-seq already done on method results)
+  toWrapMethod f = toWrapMethod ∘ f ∘ unsplitPorts ∘ unpackPorts ∘ primDeepSeqTupleBits
+  fromWrapMethod g = fromWrapMethod ∘ g ∘ primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
+
+  methodArgBaseNames _ prefix (Cons h t) i = Cons
+    -- arg_names can start with a digit
+    (if prefix == "" && (h == "" || not (isDigit $ stringHead h))
+     then h
+     else prefix +++ "_" +++ h)
+    (methodArgBaseNames (_ :: b) prefix t $ i + 1)
+  methodArgBaseNames _ prefix Nil i = Cons
+    (prefix +++ "_" +++ integerToString i)
+    (methodArgBaseNames (_ :: b) prefix Nil $ i + 1)
+
+  inputPortNames _ (Cons h t) =
+    Cons (filterZeroWidthPorts (_ :: PortsOf a) (checkPortNames (_ :: a) h))
+         (inputPortNames (_ :: b) t)
+  inputPortNames _ Nil = error "inputPortNames: empty arg names list"
+
+  outputPortNames _ = outputPortNames (_ :: b)
+
+  saveMethodPortTypes _ modName (Cons h t) result = do
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) h
+    saveMethodPortTypes (_ :: b) modName t result
+  saveMethodPortTypes _ _ Nil _ = error "saveMethodPortTypes: empty arg names list"
+
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb) =>
+    WrapMethod (ActionValue a) (ActionValue_ pb) where
+  toWrapMethod = bitsToActionValue_ ∘ fmap (primDeepSeqTupleBits ∘ packPorts ∘ splitPorts)
+  fromWrapMethod = fmap (unsplitPorts ∘ unpackPorts) ∘ bitsFromActionValue_
+  methodArgBaseNames _ _ Nil _ = Nil
+  methodArgBaseNames prx prefix argNames _ =
+    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+    " excess arg_names provided for method " +++ prefix
+  inputPortNames _ Nil = Nil
+  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
+  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
+  saveMethodPortTypes _ modName _ result =
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
+
+instance (WrapPorts (PortsOf a) pb, TupleSize (PortsOf a) n,
+          PrimSeqTupleBits pb) =>
+    WrapMethod a pb where
+  toWrapMethod = primDeepSeqTupleBits ∘ packPorts ∘ splitPorts
+  fromWrapMethod = unsplitPorts ∘ unpackPorts
+  methodArgBaseNames _ _ Nil _ = Nil
+  methodArgBaseNames prx prefix argNames _ =
+    primError (getEvalPosition prx) $ integerToString (listLength argNames) +++
+    " excess arg_names provided for method " +++ prefix
+  inputPortNames _ Nil = Nil
+  inputPortNames _ (Cons _ _) = error "inputPortNames: uncaught excess arg names"
+  outputPortNames _ base = filterZeroWidthPorts (_ :: PortsOf a) $ checkPortNames (_ :: a) base
+  saveMethodPortTypes _ modName _ result =
+    savePortTypes (_ :: PortsOf a) modName $ checkPortNames (_ :: a) result
+
+class WrapPorts p pb | p -> pb where
+  -- Convert from a tuple of Port values to a tuple of bits.
+  packPorts :: p -> pb
+  -- Convert from a tuple of bits to a tuple of Port values.
+  unpackPorts :: pb -> p
+  -- Save the port types, given their names.
+  savePortTypes :: p -> Maybe Name__ -> List String -> Module ()
+  -- Filter the port names to only those that have non-zero width.
+  filterZeroWidthPorts :: p -> List String -> List String
+
+instance (Bits a n, NonEmptyBits n ab, WrapPorts b bb) =>
+    WrapPorts (Port a, b) (TAppendTuple ab bb) where
+  packPorts (Port a, b) = toNonEmptyBits (pack a) `appendTuple` packPorts b
+  unpackPorts p = case splitTuple p of
+    (ab, bb) -> (Port (unpack (fromNonEmptyBits ab)), unpackPorts bb)
+  savePortTypes _ modName (Cons h t) = do
+    if valueOf n > 0
+      then primSavePortType modName h $ typeOf (_ :: a)
+      else return ()
+    savePortTypes (_ :: b) modName t
+  savePortTypes _ _ Nil = error "savePortTypes: empty port names list"
+  filterZeroWidthPorts _ (Cons h t) =
+    if valueOf n > 0
+    then Cons h (filterZeroWidthPorts (_ :: b) t)
+    else filterZeroWidthPorts (_ :: b) t
+  filterZeroWidthPorts _ Nil = error "filterZeroWidthPorts: empty port names list"
+
+instance (Bits a n, NonEmptyBits n pb) => WrapPorts (Port a) pb where
+  packPorts (Port a) = toNonEmptyBits (pack a)
+  unpackPorts = Port ∘ unpack ∘ fromNonEmptyBits
+  savePortTypes _ modName (Cons h Nil) = primSavePortType modName h $ typeOf (_ :: a)
+  savePortTypes _ _ _ = error "savePortTypes: expected one port name"
+  filterZeroWidthPorts _ (Cons h Nil) =
+    if valueOf n > 0 then Cons h Nil else Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: expected one port name"
+
+instance WrapPorts () () where
+  packPorts _ = ()
+  unpackPorts _ = ()
+  savePortTypes _ _ Nil = return ()
+  savePortTypes _ _ _ = error "savePortTypes: non-empty port names list"
+  filterZeroWidthPorts _ Nil = Nil
+  filterZeroWidthPorts _ _ = error "filterZeroWidthPorts: non-empty port names list"
+
+-- Helper class to conditionally convert Bit 0 to ()
+class NonEmptyBits n pb | n -> pb where
+  toNonEmptyBits :: Bit n -> pb
+  fromNonEmptyBits :: pb -> Bit n
+
+instance NonEmptyBits 0 () where
+  toNonEmptyBits _ = ()
+  fromNonEmptyBits _ = 0
+
+instance NonEmptyBits n (Bit n) where
+  toNonEmptyBits = id
+  fromNonEmptyBits = id
+
+-- Force a tuple of bit values to be fully expanded by the evaluator.
+primDeepSeqTupleBits :: (PrimSeqTupleBits a) => a -> a
+primDeepSeqTupleBits a = primSeqTupleBits a a
+
+class PrimSeqTupleBits a where
+  primSeqTupleBits :: a -> b -> b
+
+instance (PrimSeqTupleBits b) => PrimSeqTupleBits (Bit n, b) where
+  primSeqTupleBits (a, b) c = primSeq a (primSeqTupleBits b c)
+
+instance PrimSeqTupleBits (Bit n) where
+  primSeqTupleBits = primSeq
+
+instance PrimSeqTupleBits () where
+  primSeqTupleBits () = id
+
+-- Compute the list port names for type 'a' given a base name.
+-- Check that the number of port names matches the number of ports.
+-- This error should only occur if there is an error in a SplitPorts instance.
+checkPortNames :: (SplitPorts a p, TupleSize p n) => a -> String -> List String
+checkPortNames proxy base =
+  let pn = portNames proxy base
+  in
+    if listLength pn /= valueOf n
+    then primError (getEvalPosition proxy) $
+      "SplitPorts: " +++ base +++ " has " +++ integerToString (valueOf n) +++
+      " ports, but " +++ integerToString (listLength pn) +++ " port names were given"
+    else pn
+
+class SplitPorts a p | a -> p where
+  type PortsOf a = p
+  -- Convert a value to a tuple of values corresponding to ports.
+  splitPorts :: a -> p
+  -- Combine a tuple of values corresponding to ports into a value.
+  unsplitPorts :: p -> a
+  -- Compute the list of port names for a type, given a base name.
+  -- This must be the same length as the tuple of values.
+  -- XXX it would be nice to use ListN here to enforce this, but it's not
+  -- available in the Prelude.
+  portNames :: a -> String -> List String
+
+data Port a = Port a
+  deriving (FShow)
+
+unPort :: Port a -> a
+unPort (Port a) = a
+
+-- XXX if the default instance is the only one, then it gets inlined in CtxReduce
+-- and other instances for this class are ignored.
+instance SplitPorts () () where
+  splitPorts = id
+  unsplitPorts = id
+  portNames _ _ = Nil
+
+-- Default instance: don't split anything we don't know how to split.
+instance SplitPorts a (Port a) where
+  splitPorts = Port
+  unsplitPorts = unPort
+  portNames _  base = Cons base Nil
+
+{-
+XXX Consider if we want to split tuples by default. This would change the current behavior,
+but might be a sensible one, especially if we support methods with multiple output ports.
+
+instance (SplitTuplePorts (a, b) r) => SplitPorts (a, b) r where
+  splitPorts = splitTuplePorts
+  unsplitPorts = unsplitTuplePorts
+  portNames = splitTuplePortNames 1
+
+class SplitTuplePorts a p | a -> p where
+  splitTuplePorts :: a -> p
+  unsplitTuplePorts :: p -> a
+  splitTuplePortNames :: Integer -> a -> String -> List String
+
+instance (SplitPorts a p, SplitTuplePorts b q) => SplitTuplePorts (a, b) (TAppendTuple p q) where
+  splitTuplePorts (a, b) = splitPorts a `appendTuple` splitTuplePorts b
+  unsplitTuplePorts x = case splitTuple x of
+    (a, b) -> (unsplitPorts a, unsplitTuplePorts b)
+  splitTuplePortNames i _ base =
+    portNames (_ :: a) (base +++ "_" +++ integerToString i) `listPrimAppend`
+    splitTuplePortNames (i + 1) (_ :: b) base
+
+instance (SplitPorts a p) => SplitTuplePorts a p where
+  splitTuplePorts = splitPorts
+  unsplitTuplePorts x = unsplitPorts x
+  splitTuplePortNames i _ base = portNames (_ :: a) $ base +++ "_" +++ integerToString i
+-}

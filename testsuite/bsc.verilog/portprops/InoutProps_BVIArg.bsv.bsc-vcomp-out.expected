@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InoutProps_BVIArg.bsv
 code generation for sysInoutProps_BVIArg starts
-=== IOproperties:
+=== IOproperties (InoutProps_BVIArg sysInoutProps_BVIArg):
 Name                         I/O  size props
 CLK                            I     1 clock
 RST_N                          I     1 reset

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ./ATFExportNoDotsLib.bs
+compiling ATFExportNoDots.bs
+Error: "ATFExportNoDots.bs", line 8, column 23: (T0007)
+  Unbound type constructor `Elem'

@@ -1,0 +1,26 @@
+package RemNegOperand (sysRemNegOperand) where
+
+-- Regression test for the AVeriQuirks fix that forces PrimRem operands
+-- into named defs (via mkDefS).  primRem's IR type is
+--   Bit k -> Bit n -> Bit n
+-- so operand widths may differ.  With an inline negation on the narrow
+-- first operand and a wider second operand, Verilog's context-determined
+-- sizing widens the first operand (zero-extending the unsigned wire)
+-- before negating, evaluating the negation at the wider width and
+-- diverging from Bluesim's narrow-width semantics.
+
+sysRemNegOperand :: Module Empty
+sysRemNegOperand =
+    module
+        a :: Reg (Int 16)
+        a <- mkReg (unpack 16'h8000)   -- INT16_MIN
+        b :: Reg (Bit 32)
+        b <- mkReg 7
+        rules
+          "test":
+            when True
+              ==> action
+                    let pa  :: Bit 16 = pack (negate a)
+                    let r32 :: Bit 32 = primRem pa b
+                    $display "rem=%0h" r32
+                    $finish 0

@@ -1,11 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE BangPatterns #-}
 module SpeedyString(SString, toString, fromString, (++), concat, filter) where
 
 import Prelude hiding((++), concat, filter)
 import qualified Prelude((++), filter)
 import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)
-import qualified Data.IntMap as M
+import qualified Data.IntMap.Strict as M
 -- import qualified NotSoSpeedyString
 import ErrorUtil (internalError)
 import qualified Data.Generics as Generic
@@ -53,9 +54,11 @@ newSString s = unsafePerformIO $
                   let ss = SString id
                   sm <- readVar strings
                   ssm <- readVar sstrings
-                  writeVar strings $ M.insert id s sm
-                  writeVar sstrings $ M.insertWith (Prelude.++)
+                  let !sm'  = M.insert id s sm
+                      !ssm' = M.insertWith (Prelude.++)
                                           (hashStr s) [(s,ss)] ssm
+                  writeVar strings sm'
+                  writeVar sstrings ssm'
                   return ss
 
 err :: a

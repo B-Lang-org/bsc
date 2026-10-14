@@ -1,0 +1,33 @@
+package NoinlineSplit where
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+-- A *direct* SplitPorts instance on the struct (no ShallowSplit newtype): Foo
+-- splits into two ports named after its fields.  The noinline function uses Foo
+-- directly as its argument and result type, so module_swapFoo should expose
+-- split input ports (swapFoo_<arg>_x / _y) and split output ports
+-- (swapFoo_x / swapFoo_y), and the instantiation must connect the argument
+-- value and result to those same (split) port names.
+instance SplitPorts Foo (Port (Int 8), Port (Int 8)) where
+  splitPorts foo = (Port foo.x, Port foo.y)
+  unsplitPorts (Port x, Port y) = Foo { x = x; y = y; }
+  portNames _ base = Cons (base +++ "_x") (Cons (base +++ "_y") Nil)
+
+{-# noinline swapFoo #-}
+swapFoo :: Foo -> Foo
+swapFoo f = Foo { x = f.y; y = f.x; }
+
+{-# synthesize sysNoinlineSplit #-}
+sysNoinlineSplit :: Module Empty
+sysNoinlineSplit =
+  module
+    r :: Reg (Int 8) <- mkReg 0
+    rules
+      when True ==> r := r + 1
+      when r == 5 ==>
+        let g = swapFoo (Foo { x = 3; y = 4; })
+        in $display "x=%d y=%d" g.x g.y
+      when r == 6 ==> $finish

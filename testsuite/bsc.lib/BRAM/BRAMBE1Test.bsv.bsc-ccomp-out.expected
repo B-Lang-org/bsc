@@ -4,7 +4,7 @@ code generation for sysBRAMBE1Test starts
 Error: "BRAMCore.bsv", line 273, column 48: (S0015)
   Bluespec evaluation-time error: Byte enables must control an 8-bit quantity.
   You should adjust the width of your data, or the number of write enables.
-  During elaboration of `memory' at "BRAM.bsv", line 667, column 35.
+  During elaboration of `memory' at "BRAM.bsv", line 665, column 35.
   During elaboration of `dut0' at "BRAMBE1Test.bsv", line 9, column 39.
   During elaboration of `sysBRAMBE1Test' at "BRAMBE1Test.bsv", line 8, column
   8.

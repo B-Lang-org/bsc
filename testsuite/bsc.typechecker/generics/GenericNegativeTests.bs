@@ -33,7 +33,7 @@ class Trans a where
 instance Trans (UInt n) where
   trans x = x + 1
 
-instance (Generic a r, Trans' r) => Trans a where
+instance (Trans' (Rep a)) => Trans a where
   trans = to `compose` trans' `compose` from
 
 class Trans' r where

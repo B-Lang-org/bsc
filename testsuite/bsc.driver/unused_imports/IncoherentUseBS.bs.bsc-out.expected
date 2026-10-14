@@ -1,0 +1,11 @@
+checking package dependencies
+compiling IncoherentUseBS.bs
+Warning: "IncoherentUseBS.bs", line 16, column 11: (T0126)
+  Proviso Helper.Describable a satisfied by incoherently matching the instance
+  Helper.Describable a
+Warning: "IncoherentUseBS.bs", line 16, column 11: (T0126)
+  Proviso Helper.Describable a satisfied by incoherently matching the instance
+  Helper.Describable a
+Warning: "IncoherentUseBS.bs", line 4, column 7: (T0157)
+  Package `BoolDescribableBS' is imported but not used
+All packages are up to date.

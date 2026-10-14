@@ -55,6 +55,8 @@ instance FShow Kax where
   fshow (K2 x) = $format "K2 " x
 
 -- Test generic representations
+-- Not using the Rep type function here because we want the error message to
+-- show the expanded type when there is a mismatch.
 fooRepr :: (Generic Foo r) => TypeEq r
   (Meta (MetaData "Foo" "GenericTests" () 4)
    (Either
@@ -145,7 +147,7 @@ class Trans a where
 instance Trans (UInt n) where
   trans x = x + 1
 
-instance (Generic a r, Trans' r) => Trans a where
+instance (Trans' (Rep a)) => Trans a where
   trans = to `compose` trans' `compose` from
 
 class Trans' r where
@@ -168,7 +170,7 @@ instance (Trans a) => Trans' (Conc a) where
   trans' (Conc x) = Conc $ trans x
 
 -- Test to/from
-actTestGeneric :: (Generic a r, FShow a, FShow r, Eq a) => a -> Action
+actTestGeneric :: (FShow a, FShow (Rep a), Eq a) => a -> Action
 actTestGeneric x = do
   $display "Representation for " (fshow x)
   $display (fshow (from x))

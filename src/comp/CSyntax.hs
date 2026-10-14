@@ -11,6 +11,7 @@ module CSyntax(
         Kind(..),
         PartialKind(..),
         CImport(..),
+        CImportedSignature(..),
         CInclude(..),
         CQual(..),
         CClause(..),
@@ -24,6 +25,7 @@ module CSyntax(
         CRule(..),
         CDefn(..),
         CDefl(..),
+        CAssocDepFun(..),
         CFunDeps,
         CPred(..),
         CTypeclass(..),
@@ -57,6 +59,7 @@ module CSyntax(
         cLetRec,
         iKName,
         impName,
+        impSigName,
         cVar,
         cVApply,
         getName,
@@ -102,14 +105,15 @@ data CPackage = CPackage
                         [CExport]) -- export identifiers
                                   -- Left exps = export only exps
                                   -- Right exps = export everything but exps
-                [CImport]         -- imported identifiers
+                [CImport]         -- explicit imports (what user wrote, unresolved)
+                [CImportedSignature] -- all resolved imports (explicit + transitive)
                 [CFixity]         -- fixity declarations for infix operators
                 [CDefn]                  -- top level definitions
                 [CInclude]        -- any `include files
         deriving (Eq, Ord, Show)
 
 instance NFData CPackage where
-    rnf (CPackage name exps imps fixs defns incs) = rnf6 name exps imps fixs defns incs
+    rnf (CPackage name exps imps impsigs fixs defns incs) = rnf7 name exps imps impsigs fixs defns incs
 
 data CExport
         = CExpVar Id    -- export a variable identifier
@@ -127,12 +131,19 @@ instance NFData CExport where
 
 data CImport
         = CImpId Bool Id                                -- Bool indicates qualified
-        | CImpSign String Bool CSignature
         deriving (Eq, Ord, Show)
 
 instance NFData CImport where
     rnf (CImpId q i) = rnf2 q i
-    rnf (CImpSign s q sig) = rnf3 s q sig
+
+-- Imported signature (resolved import with metadata)
+data CImportedSignature
+        = CImpSign String Bool CSignature
+        -- String = filename, Bool = qualified
+        deriving (Eq, Ord, Show)
+
+instance NFData CImportedSignature where
+  rnf (CImpSign fn qual sig) = rnf3 fn qual sig
 
 -- Package signature from import
 data CSignature
@@ -153,6 +164,30 @@ instance NFData CFixity where
     rnf (CInfixl p i) = rnf2 p i
     rnf (CInfixr p i) = rnf2 p i
 
+-- Associated type function declaration within a class body.
+-- Defines a type-level function whose value is determined by a functional
+-- dependency of the enclosing class.  For example:
+--
+--   class Container f e | f -> e where
+--     type Elem f = e
+--
+-- The parameters must be a strict subset of the class's type variables.
+-- The RHS must be a single type variable that is determined by the
+-- parameters via at least one functional dependency.
+data CAssocDepFun = CAssocDepFun
+    { ca_name   :: Id      -- type function name
+    , ca_params :: [Id]    -- LHS type variables (must be class type variables)
+    , ca_rhs    :: Id      -- RHS type variable (must be fundep-determined by ca_params)
+    } deriving (Eq, Ord, Show)
+
+instance NFData CAssocDepFun where
+    rnf (CAssocDepFun name ps rhs) = rnf3 name ps rhs
+
+instance PPrint CAssocDepFun where
+    pPrint d _ (CAssocDepFun name ps rhs) =
+        text "type" <+> ppConId d name <+> sep (map (ppVarId d) ps) <+>
+        text "=" <+> ppVarId d rhs
+
 -- Top level definition
 data CDefn
         = Ctype IdK [Id] CType
@@ -167,15 +202,16 @@ data CDefn
                   -- Bool indicates the constrs are visible
                   -- first [Id] are the names of this definition's argument type variables
                   -- last [CTypeclass] are derived classes
-        -- incoherent_matches superclasses name_with_kind variables fundeps default_methods
-        | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps CFields
+        -- incoherent_matches superclasses name_with_kind variables fundeps assoc_dep_funs default_methods
+        | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] CFields
         | Cinstance CQType [CDefl]
         | CValue Id [CClause]
         | CValueSign CDef
         | Cforeign { cforg_name :: Id,
                      cforg_type :: CQType,
                      cforg_foreign_name :: Maybe String,
-                     cforg_ports :: Maybe ([String], [String]) }
+                     cforg_ports :: Maybe ([String], [String]),
+                     cforg_is_noinline :: Bool }
         | Cprimitive Id CQType
         | CprimType IdK
         | CPragma Pragma
@@ -183,7 +219,7 @@ data CDefn
         | CIinstance Id CQType
         -- CItype is imported abstractly
         | CItype IdK [Id] [Position] -- positions of use that caused export
-        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [Position] -- positions of use that caused export
+        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [CAssocDepFun] [Position] -- positions of use that caused export
         | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 
@@ -191,17 +227,17 @@ instance NFData CDefn where
     rnf (Ctype i as ty) = rnf3 i as ty
     rnf (Cdata vis name tvs osums isums derivs) = rnf6 vis name tvs osums isums derivs
     rnf (Cstruct vis ss i as fs ds) = rnf6 vis ss i as fs ds
-    rnf (Cclass incoh ps ik is fd fs) = rnf6 incoh ps ik is fd fs
+    rnf (Cclass incoh ps ik is fd ats fs) = rnf7 incoh ps ik is fd ats fs
     rnf (Cinstance qt defls) = rnf2 qt defls
     rnf (CValue i cs) = rnf2 i cs
     rnf (CValueSign def) = rnf def
-    rnf (Cforeign name ty fname ports) = rnf4 name ty fname ports
+    rnf (Cforeign name ty fname ports ni) = rnf5 name ty fname ports ni
     rnf (Cprimitive i qt) = rnf2 i qt
     rnf (CprimType ik) = rnf ik
     rnf (CPragma pr) = rnf pr
     rnf (CIinstance i qt) = rnf2 i qt
     rnf (CItype i as poss) = rnf3 i as poss
-    rnf (CIclass incoh ps ik is fd poss) = rnf6 incoh ps ik is fd poss
+    rnf (CIclass incoh ps ik is fd ats poss) = rnf7 incoh ps ik is fd ats poss
     rnf (CIValueSign i ty) = rnf2 i ty
 
 -- Since IdPKind is only expected in some disjuncts of CDefn, we could
@@ -809,7 +845,9 @@ instance NFData CInclude where
 
 impName :: CImport -> Id
 impName (CImpId _ i) = i
-impName (CImpSign _ _ (CSignature i _ _ _)) = i
+
+impSigName :: CImportedSignature -> Id
+impSigName (CImpSign _ _ (CSignature i _ _ _)) = i
 
 -- swapped order of (CVar i) es and e [] patterns
 -- to make optional default arguments for $finish and $stop work
@@ -863,10 +901,10 @@ getName (Cforeign { cforg_name = i }) = Right i
 getName (Ctype i _ _) = Right $ iKName i
 getName (Cdata { cd_name = name }) = Right $ iKName name
 getName (Cstruct _ _ i _ _ _) = Right $ iKName i
-getName (Cclass _ _ i _ _ _) = Right $ iKName i
+getName (Cclass _ _ i _ _ _ _) = Right $ iKName i
 getName (Cinstance qt _) = Left $ getPosition qt
 getName (CItype i _ _) = Right $ iKName i
-getName (CIclass _ _ i _ _ _) = Right $ iKName i
+getName (CIclass _ _ i _ _ _ _) = Right $ iKName i
 getName (CIinstance _ qt) = Left $ getPosition qt
 getName (CIValueSign i _) = Right i
 
@@ -888,9 +926,9 @@ isTDef :: CDefn -> Bool
 isTDef (Ctype _ _ _) = True
 isTDef (Cdata {}) = True
 isTDef (Cstruct _ _ _ _ _ _) = True
-isTDef (Cclass _ _ _ _ _ _) = True
+isTDef (Cclass _ _ _ _ _ _ _) = True
 isTDef (CItype _ _ _) = True
-isTDef (CIclass _ _ _ _ _ _) = True
+isTDef (CIclass _ _ _ _ _ _ _) = True
 isTDef (CprimType _) = True
 isTDef _ = False
 
@@ -1053,9 +1091,9 @@ ppExports d (Right noexps) = t " hiding (" <> sepList (map (pp d) noexps) (t",")
 ppExports d (Left exports) = t "(" <> sepList (map (pp d) exports) (t",") <> t")"
 
 instance PPrint CPackage where
-    pPrint d _ (CPackage i exps imps fixs def includes) =
+    pPrint d _ (CPackage i exps imps impsigs fixs def includes) =
         (t"package" <+> ppConId d i <> ppExports d exps <+> t "where {") $+$
-        pBlock d 0 True (map (pp d) imps ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
+        pBlock d 0 True (map (pp d) imps ++ map (pp d) impsigs ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
 
 instance PPrint CExport where
     pPrint d p (CExpVar i) = ppVarId d i
@@ -1065,6 +1103,8 @@ instance PPrint CExport where
 
 instance PPrint CImport where
     pPrint d p (CImpId q i) = t"import" <+> ppQualified q <+> ppConId d i
+
+instance PPrint CImportedSignature where
     pPrint d p (CImpSign _ q (CSignature i _ _ _)) = t"import" <+> ppQualified q <+> ppConId d i <+> t "..."
 
 ppQualified :: Bool -> Doc
@@ -1108,9 +1148,9 @@ instance PPrint CDefn where
     pPrint d p (Cstruct vis ss i as fs ds) =
         (t("struct ") <> sep (ppConIdK d i : map (nest 2 . ppVarId d) as) <+> t(if vis then "= {" else "== {")) $+$
         pBlock d 4 False (map (ppField d) fs) <> ppDer d ds
-    pPrint d p (Cclass incoh ps ik is fd ss) =
+    pPrint d p (Cclass incoh ps ik is fd ats ss) =
         (t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (ppVarId d) is)) <> ppFDs d fd <+> t "where {") $+$
-        pBlock d 4 False (map (ppField d) ss)
+        pBlock d 4 False (map (pPrint d 0) ats ++ map (ppField d) ss)
       where t_cls = case incoh of
                      Just False -> t"class coherent"
                      Just True  -> t"class incoherent"
@@ -1131,15 +1171,17 @@ instance PPrint CDefn where
             (IdK i)        -> ppConId d i
             (IdKind i k)   -> ppConId d i <+> t "::" <+> pp d k
             (IdPKind i pk) -> ppConId d i <+> t "::" <+> pp d pk
-    pPrint d p (Cforeign i ty oname opnames) =
-        text "foreign" <+> ppVarId d i <+> t "::" <+> pp d ty <> (case oname of Nothing -> text ""; Just s -> text (" = " ++ show s)) <> (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
+    pPrint d p (Cforeign i ty oname opnames ni) =
+        text "foreign" <> (if ni then text " noinline" else empty) <+> ppVarId d i <+> t "::" <+> pp d ty <>
+        (case oname of Nothing -> text ""; Just s -> text (" = " ++ show s)) <>
+        (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
       where po [o] = [text ",", text (show o)]
             po os = [t"(" <> sepList (map (text . show) os) (t",") <> t ")"]
     pPrint d p (CIinstance i qt) =
         t"instance" <+> ppConId d i <+> pPrint d 0 qt
     pPrint d p (CItype i as positions) =
         sep (t"type" <+> ppConIdK d i : map (nest 2 . ppVarId d) as)
-    pPrint d p (CIclass incoh ps ik is fd positions) =
+    pPrint d p (CIclass incoh ps ik is fd ats positions) =
         t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (nest 2 . ppVarId d) is)) <> ppFDs d fd
       where t_cls = case incoh of
                      Just False -> t"class coherent"
@@ -1269,9 +1311,11 @@ instance PPrint CExpr where
                 f (Inout i (VName p) mc mr) =
                     t "inout_field " <> ppVarId d i <+> t p <+>
                     mfi "clocked_by" mc <+> mfi "reset_by" mr
-                f (Method i mc mr n ps mo me) =
-                    ppVarId d i <> g n <+> t "=" <+> t (unwords (map h ps)) <+>
-                    mfi "clocked_by" mc <+> mfi "reset_by" mr <+> mfp "output" mo <+> mfp "enable" me
+                f (Method i mc mr n ps os me) =
+                    ppVarId d i <> g n <+> t "=" <+> t (unwords (map h (concat ps))) <+>
+                    mfi "clocked_by" mc <+> mfi "reset_by" mr <+>
+                    (if null os then empty else t"output" <+> t (unwords (map h os))) <+>
+                    mfp "enable" me
                 g 1 = t""
                 g n = t("[" ++ itos n ++ "]")
                 h (s,[]) = show s

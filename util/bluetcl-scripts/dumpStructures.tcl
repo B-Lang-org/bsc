@@ -1,7 +1,10 @@
 #!/bin/sh
 
 # \
-exec $BLUESPECDIR/bin/bluetcl "$0" "$@"
+exec bluetcl "$0" "$@"
+
+set script_dir [file dirname [info script]]
+lappend auto_path $script_dir
 
 package require Bluetcl
 package require types

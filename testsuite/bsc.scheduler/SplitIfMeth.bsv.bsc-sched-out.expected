@@ -1,24 +1,24 @@
 checking package dependencies
 compiling SplitIfMeth.bsv
 code generation for mkSplitIfMeth starts
-=== schedule:
+=== schedule (SplitIfMeth mkSplitIfMeth):
 parallel: [esposito: [a1_T -> [], a1_F -> [], a2 -> []]]
 order: [a1_T, a2, a1_F]
 
 -----
 
-=== resources:
+=== resources (SplitIfMeth mkSplitIfMeth):
 [(b.read, [(b.read, 1)]),
  (x.read, [(x.read, 1)]),
- (x.write, [(x.write b__h252, 1)]),
+ (x.write, [(x.write y__h201, 1)]),
  (y.read, [(y.read, 1)]),
- (y.write, [(y.write b__h272, 1)]),
+ (y.write, [(y.write z__h225, 1)]),
  (z.read, [(z.read, 1)]),
- (z.write, [(z.write b__h253, 1)])]
+ (z.write, [(z.write x__h202, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (SplitIfMeth mkSplitIfMeth):
 SchedInfo
 [RDY_a1 CF [RDY_a1, RDY_a2, a1, a2], RDY_a2 CF [RDY_a2, a1, a2], a2 SBR a2, a1 C [a1, a2]]
 []

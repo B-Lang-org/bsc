@@ -1,0 +1,32 @@
+package ATFCacheHitDef where
+
+-- Cross-package half of the ATF cache-hit test: the ground
+-- resolution EncSize ((UInt 5, UInt 5)) is solved and recorded
+-- HERE (by forceGround), stored in this package's .bo cache, and
+-- must be delivered to the importing package's elaboration.
+
+class Encode a n | a -> n where
+    type EncSize a = n
+    encode :: a -> Bit n
+
+instance Encode (UInt k) k where
+    encode x = pack x
+
+instance Encode Bool 1 where
+    encode True  = 1
+    encode False = 0
+
+instance (Encode a sa, Encode b sb) => Encode (a, b) (TAdd sa sb) where
+    encode (x, y) = encode x ++ encode y
+
+data Encoded a = Encoded (Bit (EncSize a))
+
+wrap :: (Encode a sa) => a -> Encoded a
+wrap x = Encoded (encode x)
+
+checkPair :: (Encode a sa) => a -> Bool
+checkPair x = case wrap (x, x) of
+                 Encoded b -> msb b == 1
+
+forceGround :: (UInt 5, UInt 5) -> Encoded (UInt 5, UInt 5)
+forceGround p = wrap p

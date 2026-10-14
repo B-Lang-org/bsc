@@ -1,0 +1,9 @@
+package ATFExportNoDots where
+
+-- Test that importing a class without (..) does NOT make its ATF visible.
+-- Elem should not be in scope.
+
+import ATFExportNoDotsLib
+
+test :: Box Integer -> Elem (Box Integer)
+test = extract

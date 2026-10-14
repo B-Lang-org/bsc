@@ -22,7 +22,7 @@ compile_pass TenDimArray.bsv
 compile_pass StructSelectOneDimArray.bsv
 compile_pass StructSelectFiveDimArray.bsv
 
-compile_pass StructUpdateOneDimArray.bs
+compile_pass StructUpdateOneDimArray.bs -let-gen
 compile_pass StructUpdateFourDimArray.bsv
 
 compile_pass ConstructorFourDimArrayUpdate.bsv

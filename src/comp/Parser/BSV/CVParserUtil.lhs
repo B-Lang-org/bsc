@@ -68,7 +68,7 @@ it parses, rewind to before the terminator and return the list so far
  >                ISModule _ _ _ _ _ ->
  >                ISForeignModule _ _ _ _ ->
  >                ISInterface _ _ _ _ _ ->
- >                ISTypeclass _ _ _ _ _ _ ->
+ >                ISTypeclass _ _ _ _ _ _ _ ->
  >                ISTypeclassInstance _ _ _ ->
  >                ISImport _ _ ->
  >                ISExport _ _ ->

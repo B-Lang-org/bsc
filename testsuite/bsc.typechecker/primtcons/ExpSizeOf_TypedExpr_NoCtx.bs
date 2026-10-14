@@ -1,0 +1,9 @@
+package ExpSizeOf_TypedExpr_NoCtx where
+
+-- A type-annotated expression whose type mentions SizeOf introduces an
+-- implicit Bits context, the same way 'valueOf'/'stringOf' do (they are
+-- implemented using type-annotated expressions).  Here the context is not
+-- provided, so typecheck reports it (T0030).  (GitHub Issue #890)
+
+foo :: a -> String
+foo _ = printType $ typeOf (_ :: Bit (SizeOf a))

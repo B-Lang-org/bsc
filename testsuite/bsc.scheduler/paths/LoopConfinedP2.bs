@@ -1,0 +1,43 @@
+package LoopConfinedP2 where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- Same independent-paths submodule as the p1 case: output p1 from input p1,
+-- output p2 from input p2 (no field crossing).
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopConfinedP2Sub #-}
+mkLoopConfinedP2Sub :: Module SubIfc
+mkLoopConfinedP2Sub =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = a.p2 })
+
+-- Mirror image of LoopConfinedP1: close the genuine combinational loop through
+-- ONLY split field p2:
+--   rw2.wget -> get's split input p2 -> get's split output p2 -> rw2.wset
+-- Field p1 is fed a constant and its output is sunk to a register, so p1's
+-- ports are NOT part of the cycle.  G0032 must name "Argument 2"/"Return
+-- value 2" of method `get' and NOT "Return value 1".  Together with
+-- LoopConfinedP1 this proves the positional port index in the cycle report
+-- genuinely discriminates the offending split field (it is not always "1").
+{-# synthesize mkLoopConfinedP2 #-}
+mkLoopConfinedP2 :: Module Empty
+mkLoopConfinedP2 =
+  module
+    s <- mkLoopConfinedP2Sub
+    rw2 :: RWire Bool <- mkRWire
+    sink :: Reg Bool <- mkReg False
+    let fb = isValid (rw2.wget)
+    rules
+      "close_p2_only": when True ==>
+        case s.get (ShallowSplit (Pair { p1 = False; p2 = fb })) of
+          ShallowSplit res ->
+            do (if res.p2 then rw2.wset True else noAction)
+               sink := res.p1

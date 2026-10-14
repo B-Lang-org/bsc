@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MuxMethods1.bsv
 code generation for mkMuxMethods1 starts
-=== pathsPostSched:
+=== pathsPostSched (MuxMethods1 mkMuxMethods1):
 Combinational paths from inputs to outputs:
   (setInput1_a, setInput2_a, EN_setInput1, EN_setInput2) -> getOutput
   (setInput1_a, setInput2_a, EN_setInput1, EN_setInput2) -> RDY_getOutput

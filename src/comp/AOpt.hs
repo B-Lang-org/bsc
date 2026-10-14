@@ -12,8 +12,8 @@ module AOpt(aOpt,
 
 
 import Control.Monad(when, foldM, zipWithM)
-import Control.Monad.State(State, StateT, evalState, evalStateT, liftIO,
-                           gets, get, put)
+import Control.Monad.State.Strict(State, StateT, evalState, evalStateT, liftIO,
+                                  gets, get, put)
 import Data.List(sortBy, genericLength, sort, transpose, partition, groupBy, nub)
 import Util(mapFst)
 import qualified Data.Map as M
@@ -288,11 +288,14 @@ type O a = State OState a
 addDef ::  ADef -> O ()
 addDef d@(ADef aid t e _) = do
   s <- get
-  let uses = (aid,0) : map (\i -> (i,1)) (aVars e)
-  put s { o_defs   = d:o_defs s,
-          o_defmap = M.insert aid e (o_defmap s),
-          o_usemap = map_insertManyWith (+) uses (o_usemap s)
-        }
+  let uses    = (aid,0) : map (\i -> (i,1)) (aVars e)
+      defmap' = M.insert aid e (o_defmap s)
+      usemap' = map_insertManyWith (+) uses (o_usemap s)
+  defmap' `seq` usemap' `seq`
+   put s { o_defs   = d:o_defs s,
+           o_defmap = defmap',
+           o_usemap = usemap'
+         }
 
 -- retrieve the defs (in order they were added)
 getDefs :: O [ADef]

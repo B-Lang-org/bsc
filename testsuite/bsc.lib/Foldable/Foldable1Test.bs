@@ -1,0 +1,55 @@
+package Foldable1Test where
+
+import Foldable
+import qualified Vector
+import qualified ListN
+
+-- Exercise the Foldable1 class (folds over non-empty containers).
+
+{-# verilog sysFoldable1Test #-}
+sysFoldable1Test :: Module Empty
+sysFoldable1Test =
+  module
+    rules
+      "test": when True ==> action
+        let l :: List (Int 32)
+            l = Cons 5 (Cons 6 (Cons 7 Nil))
+            v :: Vector.Vector 4 (Int 32)
+            v = Vector.toVector (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))
+            ln :: ListN.ListN 4 (Int 32)
+            ln = ListN.toListN (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))
+
+        $display "-- fold --"
+        $display "%0d" (fold (+) v)           -- 10
+        $display "%0d" (fold (+) ln)          -- 100
+        $display "%0d" (fold (+) l)           -- 18
+
+        $display "-- foldr1/foldl1 --"
+        $display "%0d" (foldr1 (-) v)         -- -2
+        $display "%0d" (foldl1 (-) v)         -- -8
+
+        $display "-- foldM (Maybe monad) --"
+        let r1 :: Maybe (Int 32)
+            r1 = foldM (\ a b -> Valid (a + b)) v
+        case r1 of
+          Valid s -> $display "%0d" s         -- 10
+          Invalid -> $display "none"
+
+        $display "-- folduM (Maybe monad) --"
+        -- g (the single-leaf function) is only applied to an odd element
+        -- left over while pairing. v has even length so g is unused: the
+        -- pairwise sums collapse to the plain total, 10.
+        let r2 :: Maybe (Int 32)
+            r2 = folduM (\ a b -> Valid (a + b)) (\ x -> Valid (x * 10)) v
+        case r2 of
+          Valid s -> $display "%0d" s         -- 10
+          Invalid -> $display "none"
+        -- l has odd length, so 7 is left over and gets g (x10): the
+        -- reduction is ((5+6) + (7*10)) = 81.
+        let r3 :: Maybe (Int 32)
+            r3 = folduM (\ a b -> Valid (a + b)) (\ x -> Valid (x * 10)) l
+        case r3 of
+          Valid s -> $display "%0d" s         -- 81
+          Invalid -> $display "none"
+
+        $finish 0

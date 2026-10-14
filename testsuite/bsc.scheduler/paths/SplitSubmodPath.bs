@@ -1,0 +1,47 @@
+package SplitSubmodPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- result is split into ports; p1 is combinational from the input, p2 is registered
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkSplitSubmod #-}
+mkSplitSubmod :: Module SubIfc
+mkSplitSubmod =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = r })
+
+interface TopIfc =
+  top :: Bool -> Bool
+
+-- Routes the top input through the submodule's *combinational* split output
+-- field (p1).  There should be a combinational path from the input to the
+-- output, established via the submodule's per-port result node.
+{-# synthesize mkSubmodPathComb #-}
+mkSubmodPathComb :: Module TopIfc
+mkSubmodPathComb =
+  module
+    s <- mkSplitSubmod
+    interface
+      top x = case s.get (ShallowSplit (Pair { p1 = x; p2 = False })) of
+                ShallowSplit res -> res.p1
+
+-- Routes the top input through the submodule's *registered* split output
+-- field (p2).  There should be no combinational path, even though the input
+-- still feeds the submodule's (combinational) p1 input port.
+{-# synthesize mkSubmodPathReg #-}
+mkSubmodPathReg :: Module TopIfc
+mkSubmodPathReg =
+  module
+    s <- mkSplitSubmod
+    interface
+      top x = case s.get (ShallowSplit (Pair { p1 = x; p2 = False })) of
+                ShallowSplit res -> res.p2

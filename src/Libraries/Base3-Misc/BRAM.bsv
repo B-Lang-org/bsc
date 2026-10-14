@@ -1,7 +1,6 @@
 package BRAM ;
 
 import BRAMCore ::*;
-import DefaultValue ::*;
 import ClientServer ::*;
 import FIFOF :: *;
 import DReg :: *;
@@ -33,7 +32,6 @@ export mkSyncBRAM2ServerBE;
 export mkBRAM, mkBRAMLoad, mkBRAM1, mkBRAM1Load, mkBRAM1BE, mkBRAM1BELoad, mkSyncBRAM, mkSyncBRAMLoad;
 
 // Do we reexport some packages which are needed by users of this package?
-export DefaultValue::*;
 export ClientServer::* ;
 export GetPut::* ;
 

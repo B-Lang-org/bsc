@@ -1,0 +1,43 @@
+package SubmodSelectOutPath where
+
+import SplitPorts
+
+struct Triple =
+  p1 :: Bool
+  p2 :: Bool
+  p3 :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- result is split into three ports; p1 and p2 are combinational from the
+  -- corresponding input arg ports, p3 comes from a register.
+  get :: ShallowSplit Triple -> ShallowSplit Triple
+
+{-# synthesize mkSubmodSelectOutSub #-}
+mkSubmodSelectOutSub :: Module SubIfc
+mkSubmodSelectOutSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) =
+        ShallowSplit (Triple { p1 = a.p1; p2 = a.p2; p3 = r })
+
+interface TopIfc =
+  -- single (unsplit) Bool output, plus a select input
+  top :: Bool -> Bool -> Bool
+
+-- Muxes between TWO of the submodule's split *output* ports (get_p1 and
+-- get_p2) under a select input, then drives a single top output.  Both
+-- selected submodule output ports are combinational, so the top output is
+-- combinationally reachable from BOTH data inputs (top_1, the data feeding
+-- both submodule arg ports) AND the select input (top_2).  The submodule's
+-- registered output port get_p3 is never selected, so it contributes no path.
+{-# synthesize mkSubmodSelectOutPath #-}
+mkSubmodSelectOutPath :: Module TopIfc
+mkSubmodSelectOutPath =
+  module
+    s <- mkSubmodSelectOutSub
+    interface
+      top d sel =
+        case s.get (ShallowSplit (Triple { p1 = d; p2 = d; p3 = False })) of
+          ShallowSplit res -> if sel then res.p1 else res.p2

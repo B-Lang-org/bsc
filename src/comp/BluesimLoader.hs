@@ -416,6 +416,7 @@ data BluesimModel =
        , bk_abort_now           :: IO ()
        , bk_finished            :: IO Bool
        , bk_exit_status         :: IO Int32
+       , bk_fataled             :: IO Bool
        , bk_top_symbol          :: IO BSSymbol
        , bk_lookup_symbol       :: BSSymbol -> String -> IO BSSymbol
        , bk_get_key             :: BSSymbol -> IO String
@@ -473,6 +474,7 @@ loadBluesimModel fname top_name = do
   c_bk_abort_now           <- dlsym dl "bk_abort_now"
   c_bk_finished            <- dlsym dl "bk_finished"
   c_bk_exit_status         <- dlsym dl "bk_exit_status"
+  c_bk_fataled             <- dlsym dl "bk_fataled"
   c_bk_top_symbol          <- dlsym dl "bk_top_symbol"
   c_bk_lookup_symbol       <- dlsym dl "bk_lookup_symbol"
   c_bk_get_size            <- dlsym dl "bk_get_size"
@@ -603,6 +605,7 @@ loadBluesimModel fname top_name = do
                           , bk_abort_now           = (fromC $ dl_ptr_ret_void c_bk_abort_now) sim_hdl
                           , bk_finished            = (fromC $ dl_ptr_ret_uchar c_bk_finished) sim_hdl
                           , bk_exit_status         = (fromC $ dl_ptr_ret_int c_bk_exit_status) sim_hdl
+                          , bk_fataled             = (fromC $ dl_ptr_ret_uchar c_bk_fataled) sim_hdl
                           , bk_top_symbol          = (fromC $ dl_ptr_ret_ptr c_bk_top_symbol) sim_hdl
                           , bk_lookup_symbol       = lookup_fn
                           , bk_get_key             = sym_name_fn

@@ -1,0 +1,25 @@
+package ExpSizeOf_FieldSyn_Unbound_NoCtx where
+
+-- A struct field whose type uses SizeOf through a synonym, where the type
+-- variable is *not* a parameter of the struct.  Because the variable is
+-- unbound in the struct type, the field's implicit Bits context cannot be
+-- satisfied by the struct itself, so the field must declare it explicitly.
+-- Here it does not, so typecheck reports the missing context (T0030).
+-- (GitHub Issues #890 and #310: the field's context requirement is not
+-- wrongly exempted here, despite the XXX in TCheck.tiField1.)
+--
+-- Two T0030 errors are reported, both during typecheck of the definitions
+-- auto-derived for the struct: the PrimMakeUninitialized and
+-- PrimMakeUndefined instances for the wrapper struct generated for the
+-- polymorphic field, and the Generic instance's from/to methods, each bind
+-- the field and so introduce the unsatisfiable Bits proviso.  That yields
+-- four identical errors, deduplicated (by the nub in TypeCheck.tiDefns) to
+-- two distinct texts: the bindings of the wrapper's generated field id have
+-- no source position ("Unknown position"), while Generic's 'to' constructs
+-- the struct with the source 'sfield' id and so carries its position.
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct MyS =
+  sfield :: T dataType

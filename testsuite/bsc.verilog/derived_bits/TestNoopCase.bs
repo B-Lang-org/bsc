@@ -1,0 +1,54 @@
+package TestNoopCase where
+
+-- Issue: pack . unpack on a derived-Bits sum type generates a case statement
+-- where every branch produces the same expression — a no-op.
+--
+-- When BSC synthesizes a register of type T, the read and write paths
+-- each evaluate pack(unpack(bits)) symbolically.  For a sum type with
+-- `deriving Bits`, BSC lays out all constructor payloads right-aligned in
+-- the same bit positions.  Unused padding bits are left don't-care.  When
+-- tracing pack(unpack(bits)) through each constructor, every branch
+-- resolves to the same bit slice.  The case is generated but is a no-op.
+--
+-- Threshold: the bug manifests at 7 constructors (3-bit tag).  With fewer
+-- constructors BSC folds the case away at elaboration time.
+--
+-- Compile:
+--   bsc -verilog -p .:%/Libraries -bdir build -vdir verilog TestNoopCase.bs
+--
+-- -----------------------------------------------------------------------
+-- Generated Verilog:
+--
+--   reg [3:0] CASE_..._q1, CASE_..._q2;
+--   assign _read = {r[6:4], q1};
+--   assign r$D_IN = {_write_1[6:4], q2};
+--
+--   always@(r) begin
+--     case (r[6:4])          // switch on constructor tag
+--       3'd1, 3'd2, 3'd4: q1 = r[3:0];
+--       default:          q1 = r[3:0];  // every branch is identical
+--     endcase
+--   end
+--   // identical always block for _write_1 / q2
+--
+-- Should be:
+--
+--   assign _read = r;
+--   assign r$D_IN = _write_1;
+
+-- 7-constructor sum type: 3-bit tag, 4-bit max payload, 7 bits total.
+data Sum7
+ = S7_0
+ | S7_1 (UInt 4)
+ | S7_2 (UInt 1)
+ | S7_3
+ | S7_4 (UInt 1)
+ | S7_5
+ | S7_6 (UInt 1)
+ deriving (Bits)
+
+{-# verilog mkTestNoopCase #-}
+mkTestNoopCase :: (IsModule m c) => m (Reg Sum7)
+mkTestNoopCase = module
+  r :: Reg Sum7 <- mkRegU
+  return r

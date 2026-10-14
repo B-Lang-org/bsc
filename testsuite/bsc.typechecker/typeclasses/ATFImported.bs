@@ -1,0 +1,14 @@
+package ATFImported where
+
+import ATFImportedLib
+
+-- Test that type function expansions from an imported package are visible to the
+-- type checker.  The type function Elem f = e is defined in ATFImportedLib.
+-- The typechecker must expand it here to verify that extractBox has type
+-- Box Integer -> Integer.
+
+extractBox :: Box Integer -> Integer
+extractBox = extract
+
+test :: Integer
+test = extractBox (Box 42)

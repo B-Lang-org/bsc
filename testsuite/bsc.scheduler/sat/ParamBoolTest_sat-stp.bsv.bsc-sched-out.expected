@@ -9,20 +9,20 @@ Warning: "ParamBoolTest_sat-stp.bsv", line 5, column 8: (G0010)
   Rule "ab" was treated as more urgent than "bb". Conflicts:
     "ab" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ab": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (ParamBoolTest_sat-stp sysParamBoolTest):
 parallel: [esposito: [RL_aa -> [], RL_ab -> [], RL_bb -> [RL_ab, RL_aa]]]
 order: [RL_aa, RL_ab, RL_bb]
 
 -----
 
-=== resources:
+=== resources (ParamBoolTest_sat-stp sysParamBoolTest):
 [(uc.read, [(uc.read, 1)]),
  (uc.write,
   [(uc.write uc_PLUS_1___d2, 1), (uc.write uc_PLUS_2___d4, 1), (uc.write uc_PLUS_3___d5, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ParamBoolTest_sat-stp sysParamBoolTest):
 SchedInfo [] [] [] []
 
 -----

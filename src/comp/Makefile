@@ -164,7 +164,17 @@ GHC += -optl -headerpad_max_install_names
 endif
 
 # flags for the haskell compiler RTS
-GHCRTSFLAGS ?= +RTS -M4G -A128m -RTS
+#
+# GHC's parallel --make compiles up to GHCJOBS modules concurrently in
+# ONE process sharing ONE heap, and -A128m gives each job its own
+# 128 MB allocation area inside it.  A flat max-heap sized for one job
+# therefore overflows intermittently as the number of GHC jobs
+# increases, depending on which large modules the scheduler happens to
+# compile at the same time.  Scale the cap with the job count: the
+# single-job baseline (4G, the previous fixed value) plus 1G for each
+# additional job.
+GHCMAXHEAP ?= $(shell expr 3 + $(GHCJOBS))G
+GHCRTSFLAGS ?= +RTS -M$(GHCMAXHEAP) -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
@@ -174,10 +184,18 @@ GHCINCLUDES =  \
 	-i$(YICES_HS) \
 	-i$(HTCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
-# Default RTS flags for programs built with a Haskell main
-# 256MB heap, 10MB stack, 1 second interval between heap profiles
+# Default RTS flags for programs built with a Haskell main:
+# 256MB heap, 1 second interval between heap profiles, and a -K
+# stack cap.  The profiling build uses a much larger -K because
+# -fprof-auto adds a cost-centre frame around every closure entry,
+# which inflates peak stack usage by roughly an order of magnitude
+# on the perf regression suite.
 # If you modify this, also update rts_opts in ../vendor/htcl/haskell.c
+ifeq ($(BSC_BUILD),PROF)
+RTSFLAGS = "-with-rtsopts=-H256m -K256m -i1"
+else
 RTSFLAGS = "-with-rtsopts=-H256m -K10m -i1"
+endif
 FVIA ?= -fasm
 GHCFLAGS = \
 	-hide-all-packages \
@@ -359,7 +377,7 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
 # GHC package info
 
 # If BSC_BUILD_PKGINFO is non-empty,
-# generate and install a LICENCES/LICENSE.ghc_pkgs file
+# generate and install a LICENSES/LICENSE.ghc_pkgs file
 
 ifeq ($(BSC_BUILD_PKGINFO),)
 PKGINFO=

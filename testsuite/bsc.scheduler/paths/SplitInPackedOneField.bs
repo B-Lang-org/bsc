@@ -1,0 +1,24 @@
+package SplitInPackedOneField where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- Mixed-kind method: SPLIT argument, single PACKED Bool result.  The result
+  -- depends ONLY on the first split input field (p1); the second split input
+  -- field (p2) is ignored (instead the result mixes in a register).  So the
+  -- packed output has a path from get_1_p1 but NOT from get_1_p2 -- finer
+  -- per-input tracking across the split/packed boundary.
+  get :: ShallowSplit Pair -> Bool
+
+{-# synthesize mkSplitInPackedOneField #-}
+mkSplitInPackedOneField :: Module Ifc
+mkSplitInPackedOneField =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = a.p1 || r

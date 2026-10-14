@@ -6,7 +6,7 @@ Error: "ClockCheckCond.bsv", line 6, column 8: (G0007)
   Method calls by clock domain:
     Clock domain 1:
       default_clock:
-	the_y.read at "ClockCheckCond.bsv", line 2, column 18,
+	the_y.read at "ClockCheckCond.bsv", line 2, column 10,
     Clock domain 2:
       c:
 	the_x.read at "ClockCheckCond.bsv", line 14, column 19,

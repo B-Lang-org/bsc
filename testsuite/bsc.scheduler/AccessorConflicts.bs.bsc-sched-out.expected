@@ -1,18 +1,18 @@
 checking package dependencies
 compiling AccessorConflicts.bs
 code generation for sysAccessorConflicts starts
-=== schedule:
+=== schedule (AccessorConflicts sysAccessorConflicts):
 parallel: [esposito: [s -> [], g -> []]]
 order: [g, s]
 
 -----
 
-=== resources:
+=== resources (AccessorConflicts sysAccessorConflicts):
 [(b.read, [(b.read, 1)]), (r.read, [(r.read, 1)]), (r.write, [(if b__h121 then r.write 1'd1, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (AccessorConflicts sysAccessorConflicts):
 SchedInfo [RDY_g CF [RDY_g, g, s], RDY_s CF [RDY_g, RDY_s, g, s], g CF g, g SB s, s SBR s] [] [] []
 
 -----

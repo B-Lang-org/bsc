@@ -1,0 +1,44 @@
+package SplitInputRegs where
+
+import SplitPorts
+
+-- A flat struct whose fields are leaves: shallow-splitting gives one port per
+-- field (no combined port), so each element of the split argument can be wired
+-- straight to its own register with no slicing or concat.
+struct Pair =
+  x :: Bit 8
+  y :: Bit 8
+ deriving (Bits)
+
+interface Ifc =
+  put  :: ShallowSplit Pair -> Action
+  getX :: Bit 8
+  getY :: Bit 8
+
+{-# synthesize mkSplitInputRegs #-}
+mkSplitInputRegs :: Module Ifc
+mkSplitInputRegs =
+  module
+    rx :: Reg (Bit 8) <- mkReg 0
+    ry :: Reg (Bit 8) <- mkReg 0
+    interface
+      -- each element of the split input goes to its own register
+      put (ShallowSplit s) = do
+        rx := s.x
+        ry := s.y
+      getX = rx
+      getY = ry
+
+{-# synthesize sysSplitInputRegs #-}
+sysSplitInputRegs :: Module Empty
+sysSplitInputRegs =
+  module
+    m :: Ifc <- mkSplitInputRegs
+    c :: Reg (Bit 8) <- mkReg 0
+    rules
+      when True ==> c := c + 1
+      when c < 3 ==>
+        m.put (ShallowSplit (Pair { x = c + 10; y = c + 20 }))
+      when c == 3 ==> do
+        $display "x=%0d y=%0d" m.getX m.getY
+        $finish

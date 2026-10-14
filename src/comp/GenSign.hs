@@ -15,7 +15,7 @@ import Error(internalError, EMsg, WMsg, ErrMsg(..),
 import Id
 import FStringCompat(FString, getFString)
 import PreStrings(fsEmpty)
-import PreIds(tmpTyVarIds, idPrelude, idPreludeBSV)
+import PreIds(tmpTyVarIds, idPrelude, idPreludeBSV, mk_no)
 import Position(noPosition)
 import Pragma
 import CSyntax
@@ -35,14 +35,19 @@ import TypeCheck(qualifyClassDefaults)
 
 -- only exports what the user asked to export
 -- (auto-exports everything if the user said nothing)
-genUserSign :: ErrorHandle -> SymTab -> CPackage -> IO CSignature
-genUserSign errh symtab cpkg =
+genUserSign :: ErrorHandle -> SymTab -> CPackage -> IO (CSignature, S.Set Id)
+genUserSign errh symtab cpkg@(CPackage pkgName _ _ _ _ _ _) =
     -- XXX should we internal error on any errors or warnings?
     case (genSign errh False symtab cpkg) of
         Left msgs -> bsError errh msgs
-        Right (sign, warns) -> do
+        Right (sign, warns, reexportedPkgs) -> do
             when (not $ null warns) $ bsWarning errh warns
-            return sign
+            -- Track packages used in two ways:
+            -- 1. Items from imported packages that end up in exports (export foo, where foo is from Pkg)
+            let usedPkgsFromItems = getPackagesUsedByExports pkgName sign
+            -- 2. Explicit package re-exports (export Pkg::*)
+            let usedPkgs = S.union usedPkgsFromItems reexportedPkgs
+            return (sign, usedPkgs)
 
 -- export everything as visible (for internal use in the evaluator)
 -- XXX eventually combine this with the above and just have one CSignature
@@ -50,7 +55,7 @@ genEverythingSign :: ErrorHandle -> SymTab -> CPackage -> IO CSignature
 genEverythingSign errh symtab cpkg =
     case (genSign errh True symtab cpkg) of
         Left msgs -> internalError ("genEverythingSign")
-        Right (sig, _) -> return sig
+        Right (sig, _, _) -> return sig
 
 
 -- XXX not quite baked -- attempt to use generics for signature file i/o
@@ -60,10 +65,11 @@ genEverythingSign errh symtab cpkg =
 --      Left  msgs -> messageExit serror msgs
 --      Right sign -> writeFileCatch fn (gshow sign)
 
+-- Returns: Either errors (signature, warnings, packages used by non-empty re-exports)
 genSign :: ErrorHandle -> Bool -> SymTab -> CPackage ->
-           Either [EMsg] (CSignature, [WMsg])
+           Either [EMsg] (CSignature, [WMsg], S.Set Id)
 genSign errh exportAll symt
-        pkg@(CPackage currentPkg exportList imps fixs ds0 includes) =
+        pkg@(CPackage currentPkg exportList imps impsigs fixs ds0 includes) =
     let
         -- in the absence of typeclass defaults that are typechecked,
         -- at least record the scope by qualifying identifiers
@@ -98,7 +104,7 @@ genSign errh exportAll symt
                               then mergeExports all_exps_this_file qual_exports
                               else qual_exports
                       in  (final_exports, errs)
-        (exps, packageErrors) = expandPkgExports symt imps exps0
+        (exps, packageErrors, reexportedPkgs) = expandPkgExports symt impsigs exps0
 
         hasEmptyQual i = (getIdQual i == fsEmpty)
 
@@ -127,15 +133,23 @@ genSign errh exportAll symt
         -- ss: the signature file entry for exported defs in this package and
         --     all exported defs from imported packages
         (ss, warnss) = unzip $ concatMap (genDefSign symt look currentPkg) ds ++
-                                 [ dw | CImpSign _ _ (CSignature ii _ _ ds) <- imps,
+                                 [ dw | CImpSign _ _ (CSignature ii _ _ ds) <- impsigs,
                                         d <- ds, dw <- genDefSign symt look ii d ]
 
         -- list of warnings produced while generating signatures
         -- currently only for orphan instances
         warns = concat warnss
 
-        -- def: the names of the defs in ss (that have names)
-        def = S.fromList [ i | (Right i) <- map getName ss ]
+        -- def: the names of the defs in ss (that have names),
+        -- plus ATF type constructors from exported classes.
+        -- For Cclass (exported with (..)), all ATFs are included.
+        -- For CIclass (exported without (..)), only independently exported ATFs.
+        -- ATF names in CIclass ats are already qualified (by genDefSign).
+        def = S.fromList ([ i | (Right i) <- map getName ss ] ++
+                          [ qualId currentPkg (ca_name at)
+                          | Cclass  _ _ _ _ _ ats _ <- ss, at <- ats ] ++
+                          [ ca_name at
+                          | CIclass _ _ _ _ _ ats _ <- ss, at <- ats ])
 
         -- ssFVs: pairing of each def in ss with
         --        the type constructors referenced in it
@@ -146,7 +160,7 @@ genSign errh exportAll symt
 
         -- isHiddenDef: whether the constructors of the type def are visible
         isHiddenDef (Cdata { cd_visible =  vis }) = not vis
-        isHiddenDef (CIclass _ _ _ _ _ _) = True
+        isHiddenDef (CIclass _ _ _ _ _ _ _) = True
         isHiddenDef d = False
 
         -- useLoci: map from used variable to definitions where it's used
@@ -185,24 +199,35 @@ genSign errh exportAll symt
                                     (Left _, Right _) -> LT
                                     (Left _, Left _) -> EQ
 
+        -- ATF declarations per locally-defined class (for classToIClass).
+        classDeclaredAts :: M.Map Id [CAssocDepFun]
+        classDeclaredAts = M.fromList
+            [ (qualId currentPkg (iKName ik), ats)
+            | Cclass _ _ ik _ _ ats _ <- ds ]
+
         -- given a used type constructor, find the type that it belongs to
         -- and return it in signature-file form (CItype or CIclass)
         tdef i = case findType symt i of
-                 Just x@(TypeInfo _ k vs (TIstruct SClass _)) ->
+                 Just (TypeInfo _ k vs (TIstruct SClass _) _) ->
                      case (findSClass symt (CTypeclass i)) of
                        Nothing -> internalError ("GenSign.genSign: " ++
                                                  "couldn't find class " ++
                                                  ppReadable i)
                        Just cl ->
-                           -- classToIClass doesn't need "vs" since the Class
-                           -- stores the tyvars as well
-                           [classToIClass i k cl (findPoss i)]
-                 Just ti@(TypeInfo _ k vs (TItype _ _)) ->
+                           -- Qualify ATF names and pass them to classToIClass.
+                           let rawAts = M.findWithDefault [] i classDeclaredAts
+                               ats = map (\(CAssocDepFun name params rhs) ->
+                                           CAssocDepFun (qualTId symt name) params rhs) rawAts
+                           in [classToIClass i k cl ats (findPoss i)]
+                 -- ATF type constructors are embedded in the enclosing class's
+                 -- CAssocDepFun list and must not be re-exported as a standalone CItype.
+                 Just (TypeInfo _ _ _ (TIatf {}) _) -> []
+                 Just ti@(TypeInfo _ k vs (TItype _ _) _) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
                      --       ppString ti ++ "\n" ++
                      --       ppString (M.lookup i useLoci))
                      [CItype (IdKind i k) (varsk (mkTyVarIds vs) k) (findPoss i)]
-                 Just ti@(TypeInfo _ k vs _) ->
+                 Just ti@(TypeInfo _ k vs _ _) ->
                      --trace ("DEBUG ==> tdef " ++ ppString i ++ "\n" ++
                      --       ppString ti ++ "\n" ++
                      --       ppString (M.lookup i useLoci))
@@ -281,7 +306,7 @@ genSign errh exportAll symt
             [] -> if (not (null failedExports))
                   then internalError ("failed exports: " ++
                                       ppReadable failedExports)
-                  else Right (sign, warns)
+                  else Right (sign, warns, reexportedPkgs)
             errs -> Left errs
 
 -- ---------------
@@ -360,14 +385,20 @@ genDefSign s look currentPkg d@(Cstruct vis ss ik vs fs _) =
     Nothing -> []
 --    Just False -> [CItype (qualIdK currentPkg s ik) vs]
     Just vis' -> [(Cstruct (vis && vis') ss (qualIdK currentPkg s ik) vs (qualFields currentPkg s fs) [], [])]
-genDefSign s look currentPkg (Cclass incoh ps ik vs fds fs) =
+genDefSign s look currentPkg (Cclass incoh ps ik vs fds ats fs) =
   let i = iKName ik
       qi = qualId currentPkg i
+      -- Qualify ATF names so downstream importers can resolve them unambiguously.
+      qats = map (\(CAssocDepFun name params rhs) -> CAssocDepFun (qualTId s name) params rhs) ats
+      -- ATFs that are independently exported by name (for the no-(..) case).
+      -- Matches GHC: exporting a class without (..) does not export its ATFs,
+      -- but ATFs can be exported independently by naming them in the export list.
+      indepExportedATFs = filter (\at -> look (ca_name at) /= Nothing) qats
   in
     case look qi of
     Nothing -> []
-    Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds (qualFields currentPkg s fs),[])]
-    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds [getPosition ik], [])]
+    Just True -> [(Cclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds qats (qualFields currentPkg s fs),[])]
+    Just False -> [(CIclass incoh (map (qualPred s) ps) (qualIdK currentPkg s ik) vs fds indepExportedATFs [getPosition ik], [])]
 genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
     -- trace (ppReadable (leftCon t, map leftCon (tyConArgs t))) $
     let tcs = leftTyCons (t : tyConArgs t) in
@@ -407,11 +438,11 @@ genDefSign s look currentPkg (CValueSign (CDef i qt _)) =
   in  case look qi of
         Nothing -> []
         Just _ -> [(CIValueSign qi (qualCQType s qt), [])]
-genDefSign s look currentPkg (Cforeign i qt ms mps) =
+genDefSign s look currentPkg (Cforeign i qt ms mps ni) =
   let qi = qualId currentPkg i
   in  case look qi of
         Nothing -> []
-        Just _ -> [(Cforeign qi (qualCQType s qt) ms mps, [])]
+        Just _ -> [(Cforeign qi (qualCQType s qt) ms mps ni, [])]
 genDefSign s look currentPkg (Cprimitive i qt) =
   let qi = qualId currentPkg i
   in  case look qi of
@@ -458,9 +489,9 @@ qualIdK currentPkg s (IdKind i k) = IdKind (qualId currentPkg i) k
 qualIdK currentPkg s idk =
     let i = iKName idk
     in  case findType s i of
-          Just (TypeInfo (Just i') k _ _) -> IdKind i' k
+          Just (TypeInfo (Just i') k _ _ _) -> IdKind i' k
           Nothing -> IdK (qualId currentPkg i)
-          Just (TypeInfo Nothing k _ _) ->
+          Just (TypeInfo Nothing k _ _ _) ->
             internalError ("qualIdK: unexpected numeric type: " ++
                            ppReadable i)
 
@@ -487,8 +518,8 @@ qualType s t@(TDefMonad _) = internalError "qualType: TDefMonad"
 qualTId :: SymTab -> Id -> Id
 qualTId s i =
     case findType s i of
-    Just (TypeInfo (Just i') _ _ _) -> i'
-    Just (TypeInfo Nothing _ _ _) ->
+    Just (TypeInfo (Just i') _ _ _ _) -> i'
+    Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("qualTId: unexpected numeric type: " ++ ppReadable i)
     Nothing -> i
 
@@ -539,7 +570,7 @@ qualifyExports exclude symt exps =
         qualifyType c i =
             case (findType symt i) of
               -- if the name was unqualified, now it will be qualified
-              Just (TypeInfo (Just i') _ _ _) -> Left (c i')
+              Just (TypeInfo (Just i') _ _ _ _) -> Left (c i')
               Nothing -> Right (mkUnboundExport i)
               Just _ -> internalError ("qualifyPkgExports: " ++
                                        "unexpected numeric type: " ++
@@ -548,7 +579,7 @@ qualifyExports exclude symt exps =
         qualifyVar c i =
             case (findVar symt i) of
               -- if the name was unqualified, now it will be qualified
-              Just (VarInfo _ (i' :>: _) _) -> Left (c i')
+              Just (VarInfo _ (i' :>: _) _ _) -> Left (c i')
               Nothing -> Right (mkUnboundExport i)
 
         addId i (Left exp) = Left (i, exp)
@@ -602,28 +633,31 @@ qualifyExports exclude symt exps =
 -- (we choose to not export those Ids which are shadowed by other defs,
 -- so this function takes the symbol table, as a way to check whether
 -- the unqualified name refers to the qualified name that we are exporting)
-expandPkgExports :: SymTab -> [CImport] -> [CExport] -> ([CExport], [EMsg])
-expandPkgExports symt imps exps =
+-- Returns: (expanded exports, errors, set of packages with non-empty re-exports)
+expandPkgExports :: SymTab -> [CImportedSignature] -> [CExport] -> ([CExport], [EMsg], S.Set Id)
+expandPkgExports symt impsigs exps =
     let
         unqualTypeIsThisOne i =
             case (findType symt (unQualId i)) of
-              Just (TypeInfo (Just i') _ _ _) -> getIdQual i' == getIdQual i
+              Just (TypeInfo (Just i') _ _ _ _) -> getIdQual i' == getIdQual i
               _ -> False
 
         unqualVarIsThisOne i =
             case (findVar symt (unQualId i)) of
-              Just (VarInfo _ (i' :>: _) _) -> getIdQual i' == getIdQual i
+              Just (VarInfo _ (i' :>: _) _ _) -> getIdQual i' == getIdQual i
               _ -> False
 
-        expandOne :: CExport -> Either [CExport] EMsg
+        expandOne :: CExport -> Either ([CExport], Maybe Id) EMsg
         expandOne (CExpPkg pkg) =
-            let dss = [ ds | (CImpSign _ _ (CSignature i _ _ ds)) <- imps,
+            let dss = [ ds | (CImpSign _ _ (CSignature i _ _ ds)) <- impsigs,
                              i == pkg ]
             in  case (dss) of
                     [] -> let pos = getPosition pkg
                           in  Right (pos, EUnboundPackage (pvpString pkg))
-                    (ds:_) -> Left $ mapMaybe pkgExport ds
-        expandOne e = Left [e]
+                    (ds:_) -> let expanded = mapMaybe pkgExport ds
+                                  usedPkg = if null expanded then Nothing else Just pkg
+                              in  Left (expanded, usedPkg)
+        expandOne e = Left ([e], Nothing)
 
         -- function to re-export a def
         pkgExport :: CDefn -> Maybe CExport
@@ -649,14 +683,18 @@ expandPkgExports symt imps exps =
                       else if (isTDef def)         then Just $ CExpConAll i
                       -- non-types
                                                    else Just $ CExpVar i
+
+        (results, errs) = separate $ map expandOne exps
+        (expandedLists, maybePkgs) = unzip results
+        usedPkgs = S.fromList $ mapMaybe id maybePkgs
     in
-        apFst concat $ separate $ map expandOne exps
+        (concat expandedLists, errs, usedPkgs)
 
 -- ---------------
 
-classToIClass :: Id -> Kind -> Class -> [Position] -> CDefn
+classToIClass :: Id -> Kind -> Class -> [CAssocDepFun] -> [Position] -> CDefn
 classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
-                           allowIncoherent = incoh}) poss =
+                           allowIncoherent = incoh}) ats poss =
     let getTVarId (TyVar i _ _) = i
         tvis = map getTVarId tvs
 
@@ -678,6 +716,52 @@ classToIClass i k (Class { csig=tvs, super=ps, funDeps2=bss2,
             in  foldr foldFn ([],[]) bis
         fds = map bsToFd bss2
     in
-        CIclass incoh ps' (IdKind i k) tvis fds poss
+        CIclass incoh ps' (IdKind i k) tvis fds ats poss
+
+-- ---------------
+-- Package usage tracking for unused import warnings
+--
+-- Detection happens in three phases, each run in bsc.hs and combined:
+--   Phase 1 (MakeSymTab): type synonym uses -- scanned before typechecking
+--                         so synonyms are visible before expansion
+--   Phase 2 (TypeCheck + CtxRed): symbol uses during typechecking (variables,
+--                                 constructors, type constructors, class instances)
+--   Phase 3 (GenSign):    re-exported items -- scanned after signature
+--                         generation to see which packages contributed exports
+
+-- Extract packages used by exports (Phase 3 of unused import detection).
+-- Only tracks re-exported items (from other packages). Local exports are already
+-- tracked during type checking (Phase 2). For re-exports, only record the package
+-- of the item itself, not types within its definition.
+getPackagesUsedByExports :: Id -> CSignature -> S.Set Id
+getPackagesUsedByExports currentPkg (CSignature _ _ _ defns) =
+    let allPkgs = mapMaybe getPackageFromDefn defns
+        externalPkgs = filter (/= currentPkg) allPkgs
+    in  S.fromList externalPkgs
+  where
+    -- Get the package qualifier from a qualified Id
+    getIdPackage :: Id -> Maybe Id
+    getIdPackage i =
+        let qual = getIdQual i
+        in  if qual == fsEmpty
+            then Nothing
+            else Just (mk_no qual)
+
+    -- Get the package of the item being exported (not types within its definition)
+    getPackageFromDefn :: CDefn -> Maybe Id
+    getPackageFromDefn (Ctype (IdKind i _) _ _) = getIdPackage i
+    getPackageFromDefn (CItype (IdKind i _) _ _) = getIdPackage i
+    getPackageFromDefn (Cdata { cd_name = IdKind i _ }) = getIdPackage i
+    getPackageFromDefn (Cstruct _ _ (IdKind i _) _ _ _) = getIdPackage i
+    getPackageFromDefn (Cclass _ _ (IdKind i _) _ _ _ _) = getIdPackage i
+    getPackageFromDefn (CIclass _ _ (IdKind i _) _ _ _ _) = getIdPackage i
+    getPackageFromDefn (CIValueSign i _) = getIdPackage i
+    getPackageFromDefn (Cforeign i _ _ _ _) = getIdPackage i
+    getPackageFromDefn (Cprimitive i _) = getIdPackage i
+    getPackageFromDefn (CprimType (IdKind i _)) = getIdPackage i
+    getPackageFromDefn (CIinstance _ _) = Nothing  -- Instances don't have a name
+    getPackageFromDefn (CPragma _) = Nothing
+    getPackageFromDefn d =
+        internalError ("getPackageFromDefn: unexpected after typecheck: " ++ ppReadable d)
 
 -- ---------------

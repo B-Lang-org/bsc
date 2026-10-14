@@ -16,11 +16,14 @@ module IExpandUtils(
         pushIfcSchedNameScope, popIfcSchedNameScope,
         setIfcSchedNameScopeProgress, IfcElabProgress(..),
         addSubmodComments, {-getSubmodComments,-}
-        addPort, getPortWires, savePortType, saveTopModPortType,
+        addPort, getPortWires, savePortType,
         saveRules, getSavedRules, clearSavedRules, replaceSavedRules,
-        setBackendSpecific, cacheDef,
+        setBackendSpecific, cacheDef, lookupCExprCache, insertCExprCache,
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
-        getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
+        getSymTab, getDefEnv, getFlags, getErrHandle, getModuleName,
+        getBNotCache, updBNotCache,
+        getTypeNormalizer, getTypeNormalizerC, fullTypeNormalizer, mergeATFCache,
+        instFunType,
         getNewRuleSuffix, updNewRuleSuffix,
         mapPExprPosition,
         chkClockDomain, chkResetDomain, fixupActionWireSet,
@@ -35,7 +38,7 @@ module IExpandUtils(
         addGateUsesToInhigh, addGateInhighAttributes,
         chkClkArgGateWires, chkClkAncestry, chkClkSiblings,
         getInputResetClockDomain, setInputResetClockDomain,
-        chkInputClockPragmas,
+        chkInputClockPragmas, chkIfcPortNames,
         getBoundaryClock, getBoundaryClocks, boundaryClockToName,
         getBoundaryReset, getBoundaryResets, boundaryResetToName, getInputResets,
         makeInputClk, makeInputRstn, makeOutputClk, makeOutputRstn,
@@ -45,8 +48,7 @@ module IExpandUtils(
         isPrimType, isParamOnlyType,
         HeapPointer, unheap, unheapU, shallowUnheap, unheapAll,
         toHeap, toHeapCon, toHeapWHNFCon,
-        toHeapInferName, toHeapConInferName, toHeapWHNFConInferName,
-        toHeapWHNF, toHeapWHNFInferName,
+        toHeapWHNF,
         realPrimOp,
         integerPrim, realPrim, stringPrim, charPrim, handleBoolPrim,
         strictPrim, condPrim,
@@ -91,20 +93,23 @@ import PreStrings(s_unnamed)
 import FStringCompat
 import Id
 import PreIds
+import CSyntax(CExpr)
 import CType(TISort(..), StructSubType(..))
 import VModInfo
 import ISyntax
 import ISyntaxUtil
-import ISyntaxCheck(iGetKind)
 import Prim
 import Wires
 import IWireSet
 import Pragma(PProp(..), SPIdMap, substSchedPragmaIds,
               extractSchedPragmaIds, removeSchedPragmaIds)
 import Util
+import Verilog(vKeywords, vIsValidIdent)
+import Changed
 
+import IConv(iConvT)
 import IOUtil(progArgs)
-import ISyntaxXRef(mapIExprPosition, mapIExprPosition2)
+import ISyntaxXRef(mapIExprPosition2)
 import IStateLoc(IStateLoc, IStateLocPathComponent(..), StateLocMap,
                  newIStateLocTop, hasIgnore, isAddRules, isLoop, extendStateLocMap,
                  stateLocToPrefix, createSuffixedId,  hasHide, hasHideAll, stateLocToHierName)
@@ -134,8 +139,8 @@ doTraceHeap2 :: Bool
 doTraceHeap2 = length (filter (== "-trace-heap") progArgs) > 1
 doTraceHeapAlloc :: Bool
 doTraceHeapAlloc = elem "-trace-heap-alloc" progArgs
-doTraceCache :: Bool
-doTraceCache = elem "-trace-def-cache" progArgs
+doTraceDefCache :: Bool
+doTraceDefCache = elem "-trace-def-cache" progArgs
 doTraceClock :: Bool
 doTraceClock = elem "-trace-clock" progArgs
 doDebugFreeVars :: Bool
@@ -144,6 +149,10 @@ doTracePortTypes :: Bool
 doTracePortTypes = elem "-trace-port-types" progArgs
 doTraceLoc :: Bool
 doTraceLoc = elem "-trace-state-loc" progArgs
+doTraceATFCache :: Bool
+doTraceATFCache = elem "-trace-atf-cache" progArgs
+doTraceATFCacheMiss :: Bool
+doTraceATFCacheMiss = doTraceATFCache || elem "-trace-atf-cache-miss" progArgs
 
 -----------------------------------------------------------------------------
 
@@ -162,7 +171,7 @@ pIf c t e = return $ pIf' c t e
 
 -- expand heap references looking for PrimBNot to desugar
 pIf' :: HExpr -> HPred -> HPred -> HPred
-pIf' c@(IRefT _ _ (HeapData r)) t e =
+pIf' c@(IRefT _ _ _ (HeapData r)) t e =
   let (P p e') = heapCellToPExpr (unsafePerformIO (readIORef r))
   in case e' of
       (IAps (ICon _ (ICPrim _ PrimBNot)) [] [c']) ->
@@ -308,7 +317,7 @@ canLiftCond' m (IAps (ICon _ (ICPrim _ PrimArrayDynSelect))
           then (False, m)
           else let cells = Array.elems arr
                    reachable_cells = take (2 ^ idx_sz) cells
-                   cellToExpr (ArrayCell ptr ref) = IRefT elem_ty ptr ref
+                   cellToExpr (ArrayCell ptr ref) = IRefT elem_ty ptr S.empty ref
                    -- check the index and the reachable cells
                    es = (idx_e : map cellToExpr reachable_cells)
                in  canLiftCond'_List m es
@@ -320,7 +329,7 @@ canLiftCond' m (ICon _ (ICMethArg _)) = (False, m)
 canLiftCond' m (ICon _ (ICLazyArray arr_ty arr u)) =
     internalError ("IExpandUtils.canLiftCond: unexpected array")
 canLiftCond' m (ICon _ _) = (True, m)
-canLiftCond' m ref@(IRefT t p r) =
+canLiftCond' m ref@(IRefT t p poss r) =
     -- only follow references for which we haven't yet computed the answer
     case M.lookup p m of
       Nothing ->
@@ -341,6 +350,8 @@ canLiftCond'_List m es =
 
 
 -- Test if a type is allowed in the residual program.
+-- Note that this is only used by walkNF in IExpand;
+-- all residual type functions should be normalized at this point.
 
 isPrimType :: IType -> Bool
 -- Primitive interfaces
@@ -356,20 +367,27 @@ isPrimType (ITCon i _ _) = i == idPrimAction ||
                            -- i == idInteger
                            i == idFmt || -- also not really a primitive
                            i == idClock ||
-                           i == idReset
+                           i == idReset ||
+                           i == idPrimUnit
+-- ActionValue_ must be applied to (a tuple of) Bit
+isPrimType (ITAp (ITCon i _ _) t)
+  | i == idActionValue_ = t == itPrimUnit || isBitTupleType t
 -- Primitive constructor applied to numeric type(s)
-isPrimType (ITAp a t) | iGetKind t == Just IKNum = isPrimTAp a
+-- We normalize types so no unresolved numeric types should escape elaboration.
+isPrimType (ITAp a (ITNum _)) = isPrimTAp a
 -- Primitive arrays
 isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
+-- Tuples of bits
+isPrimType t | isBitTupleType t = True
 isPrimType _ = False
 
 -- Primitive type applications
 isPrimTAp :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
-isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
-                          i == idBit ||
+isPrimTAp (ITCon i _ _) = i == idBit ||
                           i == idInout_
-isPrimTAp (ITAp a t) | iGetKind t == Just IKNum = isPrimTAp a
+-- Again, no unresolved numeric types should escape elaboration.
+isPrimTAp (ITAp a (ITNum _)) = isPrimTAp a
 isPrimTAp _ = False
 
 isParamOnlyType :: IType -> Bool
@@ -518,6 +536,10 @@ data GState = GState {
         -- XXX this could be stored in the heap cells?
         heapWires      :: !(M.Map HeapPointer HWireSet),
 
+        -- This is a cache for "pushBNot" (see IExpand), so that pushing a
+        -- negation through a shared if-DAG is O(cells), not O(paths).
+        heapBNots      :: !(M.Map HeapPointer HExpr),
+
         -- XXX what is the Id? flattened name?
         vars           :: [(Id, HStateVar)], -- instantiated verilog modules
         portTypeMap    :: PortTypeMap, -- map of state var -> port -> type
@@ -567,6 +589,9 @@ data GState = GState {
         -- cache partially-evaluated top-level definitions
         defCache :: !(M.Map Id HExpr),
 
+        -- cache dynamically evaluated CSyntax expressions
+        cexprCache :: !(M.Map (CExpr, IType) HExpr),
+
         -- used for moduleFix
         savedRules :: !RulesBlobs,
 
@@ -574,14 +599,17 @@ data GState = GState {
         badEvaluation :: !Bool,
 
         -- aggressive conditions
-        aggressive_cond :: Bool
+        aggressive_cond :: Bool,
+
+        atfCache :: !IATFCache
         }
 
 initGState :: ErrorHandle -> Flags ->
               SymTab -> M.Map Id HExpr ->
+              IATFCache ->
               Id -> Bool -> [PProp] ->
               GState
-initGState errh flags symt alldefs defId is_noinlined_func pps =
+initGState errh flags symt alldefs atf_cache defId is_noinlined_func pps =
     let gsro = GStateRO { errHandle = errh,
                           symtab = symt,
                           checkMaxStep = redStepsMaxIntervals flags /= 0,
@@ -602,6 +630,7 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       newResetId = initResetId,
                       hp = 0,
                       heapWires = M.empty,
+                      heapBNots = M.empty,
                       vars = [],
                       portTypeMap = M.empty,
                       rules = iREmpty,
@@ -628,9 +657,11 @@ initGState errh flags symt alldefs defId is_noinlined_func pps =
                       port_wires = M.empty,
                       backend_specific = False,
                       defCache = M.empty,
+                      cexprCache = M.empty,
                       savedRules = [],
                       badEvaluation = False,
-                      aggressive_cond = aggImpConds flags
+                      aggressive_cond = aggImpConds flags,
+                      atfCache = atf_cache
  }
     in  gs
 
@@ -647,14 +678,16 @@ data GOutput a = GOutput { go_clock_domains :: [(ClockDomain, [HClock])],
                            go_comments_map :: [(Id,[String])],
                            go_backend_specific :: Bool,
                            go_ffcallNo :: Int,
+                           go_atfCache :: IATFCache,
                            goutput :: a }
 
 runG :: ErrorHandle -> Flags ->
         SymTab -> M.Map Id HExpr ->
+        IATFCache ->
         Id -> Bool -> [PProp] -> G a ->
         IO (GOutput a)
-runG errh flags symt alldefs defId is_noinlined_func pps gFn =
-  do let gs = initGState errh flags symt alldefs defId is_noinlined_func pps
+runG errh flags symt alldefs atf_cache defId is_noinlined_func pps gFn =
+  do let gs = initGState errh flags symt alldefs atf_cache defId is_noinlined_func pps
      (retval, gs') <- runStateT gFn gs
      -- convert the relevant info in the final GState into the GOutput
      do
@@ -702,6 +735,7 @@ runG errh flags symt alldefs defId is_noinlined_func pps gFn =
                      go_comments_map = M.toList (commentsMap gs'),
                      go_backend_specific = backend_specific gs',
                      go_ffcallNo = ffcallNo gs',
+                     go_atfCache = atfCache gs',
                      goutput = retval
                     })
 
@@ -1233,9 +1267,6 @@ savePortType minst port t = do
                          minst (M.singleton port t)
                          old_map
   put s { portTypeMap = new_map }
-
-saveTopModPortType :: VName -> IType -> G ()
-saveTopModPortType port t = savePortType Nothing port t
 
 -- ---------------
 
@@ -2023,6 +2054,95 @@ chkClkAncestry modName instName pos ancestors clockargnum_map =
        when (not (null err_pairs)) $
            errG (pos, EClockArgAncestors modName instName err_pairs)
 
+chkIfcPortNames :: ErrorHandle -> [IAbstractInput] -> [HEFace] -> VClockInfo -> VResetInfo -> IO ()
+chkIfcPortNames errh args ifcs (ClockInfo ci co _ _) (ResetInfo ri ro) =
+    when (not (null emsgs)) $ bsError errh emsgs
+  where
+    input_clock_ports i =
+      case lookup i ci of
+        Just (Just (VName o, Right (VName g))) -> [o, g]
+        Just (Just (VName o, Left _)) -> [o]
+        _ -> []
+    output_clock_ports i =
+      case lookup i co of
+        Just (Just (VName o, Just (VName g, _))) -> [o, g]
+        Just (Just (VName o, Nothing)) -> [o]
+        _ -> []
+    input_reset_ports i =
+      case lookup i ri of
+        Just (Just (VName r), _) -> [r]
+        _ -> []
+    output_reset_ports i =
+      case lookup i ro of
+        Just (Just (VName r), _) -> [r]
+        _ -> []
+
+    arg_port_names = [ (getIdBaseString i, i) | IAI_Port (i, _) <- args ]
+    arg_inout_names = [ (getIdBaseString i, i) | IAI_Inout i _ <- args ]
+    arg_clock_names = [ (n, i) | IAI_Clock i _ <- args, n <- input_clock_ports i ]
+    arg_reset_names = [ (n, i) | IAI_Reset i <- args, n <- input_reset_ports i ]
+
+    default_clock_names = [ (n, idDefaultClock) | n <- input_clock_ports idDefaultClock ]
+    default_reset_names = [ (n, idDefaultReset) | n <- input_reset_ports idDefaultReset ]
+
+    arg_names = sort $
+      arg_port_names ++ arg_inout_names ++ arg_clock_names ++ arg_reset_names ++
+      default_clock_names ++ default_reset_names
+
+    ifc_port_names =
+      [ (n, i)
+      | IEFace {ief_fieldinfo = Method i _ _ _ ins outs en} <- ifcs,
+        (VName n, _) <- concat ins ++ outs ++ maybeToList en ]
+    ifc_inout_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Inout i (VName n) _ _} <- ifcs ]
+    ifc_clock_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Clock i} <- ifcs, n <- output_clock_ports i ]
+    ifc_reset_names =
+      [ (n, i) | IEFace {ief_fieldinfo = Reset i} <- ifcs, n <- output_reset_ports i ]
+    ifc_names = sort $ ifc_port_names ++ ifc_inout_names ++ ifc_clock_names ++ ifc_reset_names
+
+    -- ---------------
+    -- check that no ifc port name clashes with another port name and
+    -- check that no ifc port name clashes with a Verilog keyword and
+    -- check that each ifc port name is a valid Verilog identifier
+    ifc_same_name = filter (\xs -> (length xs) > 1) $
+                        groupBy (\(n1,_) (n2,_) -> n1 == n2) ifc_names
+    ifc_kw_clash  = filter (\(n,_) -> n `elem` vKeywords) ifc_names
+    ifc_bad_ident = filter (\(n,_) -> not (vIsValidIdent n)) ifc_names
+    emsgs0 = let mkErr xs =
+                      let ns = [(n, getPosition i, getIdBaseString i)
+                                    | (n,i) <- xs ]
+                      in  case ns of
+                            ((v,p1,m1):(_,p2,m2):_) ->
+                                (p1, EPortNamesClashFromMethod m1 m2 v p2)
+                            _ -> internalError ("emsg0: impossible")
+              in  map mkErr ifc_same_name
+    emsgs1 = let mkErr (n,i) = (getPosition i,
+                                EPortKeywordClashFromMethod
+                                    (getIdBaseString i) n)
+              in  map mkErr ifc_kw_clash
+    emsgs2 = let mkErr (n,i) = (getPosition i,
+                                EPortNotValidIdentFromMethod
+                                    (getIdBaseString i) n)
+              in  map mkErr ifc_bad_ident
+
+    -- ---------------
+    -- check that no arg port clashes with an ifc port
+    ifc_ports_map = M.fromList ifc_names
+
+    findIfcPortName (p, a) =
+        case M.lookup p ifc_ports_map of
+            Nothing -> Nothing
+            Just m -> Just (p, m, a)
+
+    arg_ifc_dups = catMaybes $ map findIfcPortName arg_names
+    emsgs3 = let mkErr (p,m,a) = (getPosition a,
+                                  EPortNamesClashArgAndIfc
+                                      p (getIdBaseString a) (getIdBaseString m) (getPosition m))
+              in map mkErr arg_ifc_dups
+
+    emsgs = emsgs0 ++ emsgs1 ++ emsgs2 ++ emsgs3
+
 -- ---------------
 
 {-# INLINE newStateNo #-}
@@ -2346,33 +2466,54 @@ extendHeap = do s <- get
                 mapM_ copycell ((uncurry enumFromTo) (bounds oldheap))
 -}
 
+improveCellName :: HExpr -> Maybe Id -> G (Maybe Id)
+improveCellName _ mi@(Just i)
+  | not $ isPreludePosition $ getPosition i = return mi
+improveCellName e _ = inferName e
+
+-- Cells enter the heap only here and in updHeap, so forcing the name at
+-- both places ensures that the heap never stores a name thunk.  Names can
+-- be lazily derived from expressions (see inferName), so an unforced name
+-- can retain arbitrary expression structure -- and, worse, a pre-update
+-- snapshot of another heap cell read while inferring the name.
 addHeapCell :: String -> HeapCell -> G (HeapPointer, HeapData)
 addHeapCell tag cell = do
   s <- get
   let p = hp s
-  ref <- liftIO (newIORef (cell))
+  ref <- deepseq (hc_name cell) $ liftIO (newIORef (cell))
   put (s { hp = p+1 })
   when doTraceHeapAlloc $ traceM("addHeapCell(" ++ show p ++ "): " ++ tag ++ "\n")
   return (p, HeapData ref)
 
+-- Construct an "IRefT" expression referring to a heap cell.
+-- The deepseq forces the type and position in the IRefT so that
+-- they will not be thunks holding references to the original expression.
+mkIRefT :: IType -> HeapPointer -> S.Set Position -> HeapData -> HExpr
+mkIRefT t p poss r =
+  let result = IRefT t p poss r
+  in  deepseq result result
+
 addHeapUnev :: String -> IType -> HExpr -> Maybe Id -> G HExpr
-addHeapUnev tag t e cell_name = do
+addHeapUnev tag t e cell_name_orig = do
+ cell_name <- improveCellName e cell_name_orig
  let newcell = (HUnev { hc_hexpr = e, hc_name = cell_name })
- cross <- getCross
  (p, r) <- addHeapCell tag newcell
  -- trace_hcell p e
- let result = IRefT t p r
+ let poss = S.singleton $ getIExprPosition e
+ let result = mkIRefT t p poss r
  when doTraceHeap $ traceM ("addHeapUnev " ++ ppString cell_name ++ " [" ++
                             prPositionConcise (getPosition cell_name) ++ "] " ++
                             ppReadable (result,t,e))
- return (mapIExprPosition cross (e, result))
+ return result -- (mapIExprPosition cross (e, result))
 
 -- add an expression to the heap, noting it is WHNF
 addHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
-addHeapWHNF tag t pe cell_name = do
+addHeapWHNF tag t pe@(P _ e) cell_name_orig = do
+  cell_name <- improveCellName e cell_name_orig
   let newcell = (HWHNF { hc_pexpr = pe, hc_name = cell_name })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition e
+  let result = mkIRefT t p poss r
   when doTraceHeap $ traceM ("addHeapWHNF " ++ ppString cell_name ++ " [" ++
                              prPositionConcise (getPosition cell_name) ++ "] " ++
                              ppReadable (result,t,pe))
@@ -2384,7 +2525,8 @@ addHeapNF :: String -> IType -> PExpr -> HWireSet -> G HExpr
 addHeapNF tag t pe ws = do
   let newcell = (HNF { hc_pexpr = pe, hc_wire_set = ws, hc_name = Nothing })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition (pExprToHExpr pe)
+  let result = mkIRefT t p poss r
 -- flags <- getFlags
 -- mapIExprPosition flags?
   when doTraceHeap $ traceM ("addHeapNF " ++ ppReadable (result,t,pe))
@@ -2403,7 +2545,8 @@ addHeapPred tag e = do
       ws = wsEmpty     -- no wire set
   let newcell = (HNF { hc_pexpr = pe, hc_wire_set = ws, hc_name = Nothing })
   (p, r) <- addHeapCell tag newcell
-  let result = IRefT t p r
+  let poss = S.singleton $ getIExprPosition e
+  let result = mkIRefT t p poss r
   when doTraceHeap $ traceM ("addHeapPred " ++ ppReadable (result,e))
   return result
 
@@ -2424,6 +2567,63 @@ updHeap tag (p, HeapData ref) e = do
    let best_name = maybe old_name Just new_name
    let e' = e { hc_name = best_name }
    deepseq best_name $ liftIO (writeIORef ref e')
+
+-- Type normalization function used in evaluation.
+-- Fully traverse and reduce all type function applications where possible.
+fullTypeNormalizer :: Flags -> SymTab -> IATFCache -> IType -> Changed IType
+fullTypeNormalizer _ _ _ (ITCon _ _ _) = Unchanged
+fullTypeNormalizer _ _ _ (ITNum _)     = Unchanged
+fullTypeNormalizer _ _ _ (ITStr _)     = Unchanged
+fullTypeNormalizer _ _ _ (ITVar _)     = Unchanged
+fullTypeNormalizer flags symt cache (ITForAll i k t) = changed1 (ITForAll i k) t'
+  where t' = fullTypeNormalizer flags symt cache t
+fullTypeNormalizer flags symt cache t@(ITAp _ _)
+    | (f@(ITCon atfId _ (TIatf { atf_param_idxs = pIdxs })), as) <- splitITAp t
+    , length as == length pIdxs  -- Only attempt to reduce type functions that are fully applied.
+    , as' <- map (changedOrId $ fullTypeNormalizer flags symt cache) as
+    , all canNorm as'
+    = Changed $ case M.lookup (atfId, as') cache of
+        Just result ->
+          tracep doTraceATFCache
+            ("fullTypeNormalizer - ATF cache hit: " ++ ppReadable (atfId, as') ++
+             " -> " ++ ppReadable result)
+            result
+        Nothing -> normTFun $ foldl ITAp f as'
+  where -- The cache is keyed on concrete types; ITVar and ITForAll can't be looked up
+        canNorm (ITVar _)        = False
+        canNorm (ITForAll _ _ _) = False
+        canNorm (ITAp f a)       = canNorm f && canNorm a
+        canNorm _                = True
+        normTFun t =
+          let t' = tracep doTraceATFCacheMiss
+                     ("fullTypeNormalizer - ATF cache miss: " ++ ppReadable t)
+                     (iConvT flags symt $ iToCT t)
+          in case splitITAp t' of
+               ((ITCon _ _ (TIatf {})), _) -> internalError $
+                    "fullTypeNormalizer - unsimplified: " ++ ppReadable (t,t')
+               _ -> t'
+fullTypeNormalizer flags symt cache (ITAp f a) = changed2 normITAp f a f' a'
+  where f' = fullTypeNormalizer flags symt cache f
+        a' = fullTypeNormalizer flags symt cache a
+
+getTypeNormalizerC :: G (IType -> Changed IType)
+getTypeNormalizerC = do
+  flags <- getFlags
+  symt <- getSymTab
+  cache <- getATFCache
+  return $ fullTypeNormalizer flags symt cache
+
+getTypeNormalizer :: G (IType -> IType)
+getTypeNormalizer = fmap changedOrId getTypeNormalizerC
+
+-- We assume the function type was normalized so it only needs
+-- additional normalization if there are type arguments
+{-# INLINE instFunType #-}
+instFunType :: IType -> [IType] -> G IType
+instFunType t [] = return t
+instFunType t ts = do
+  norm <- getTypeNormalizer
+  return $ itInstNorm norm t ts
 
 {-
 filterHeapPtrs :: (HeapCell -> Bool) -> G [HeapPointer]
@@ -2459,15 +2659,22 @@ getFlags :: G Flags
 getFlags = do s <- get
               return (flags (ro s))
 
-{-# INLINE getCross #-}
-getCross :: G Bool
-getCross = do flags <- getFlags
-              return (crossInfo flags)
-
 {-# INLINE getErrHandle #-}
 getErrHandle :: G ErrorHandle
 getErrHandle = do s <- get
                   return (errHandle (ro s))
+
+{-# INLINE getATFCache #-}
+getATFCache :: G IATFCache
+getATFCache = do s <- get
+                 return (atfCache s)
+
+mergeATFCache :: IATFCache -> G ()
+mergeATFCache new_entries =
+    when (not (M.null new_entries)) $ do
+      when doTraceATFCache $
+        traceM $ "mergeATFCache: " ++ ppReadable new_entries
+      modify (\s -> s { atfCache = mergeIATFCaches new_entries (atfCache s) })
 
 {-# INLINE getWireSetCache #-}
 getWireSetCache :: G (M.Map HeapPointer HWireSet)
@@ -2480,6 +2687,18 @@ updWireSetCache p ws = do
   s <- get
   let cache' = M.insert p ws (heapWires s)
   put s { heapWires = cache' }
+
+{-# INLINE getBNotCache #-}
+getBNotCache :: G (M.Map HeapPointer HExpr)
+getBNotCache = do s <- get
+                  return (heapBNots s)
+
+{-# INLINE updBNotCache #-}
+updBNotCache :: HeapPointer -> HExpr -> G ()
+updBNotCache p e = do
+  s <- get
+  let cache' = M.insert p e (heapBNots s)
+  put s { heapBNots = cache' }
 
 {-# INLINE getModuleName #-}
 getModuleName :: G String
@@ -2502,38 +2721,35 @@ updNewRuleSuffix suf = do
 
 {-# INLINE unheap #-}
 unheap :: PExpr -> G PExpr
-unheap (P p e_orig@(IRefT _ _ r)) = do
+unheap (P p e_orig@(IRefT _ _ _ r)) = do
         e <- getHeap r
-        cross <- getCross
         case e of
             (HUnev {}) -> internalError ("IExpandUtils.unheap: unevaluated")
             (HLoop name) -> internalError("IExpandUtils.unheap: HLoop " ++ ppReadable name)
-            (HWHNF { hc_pexpr = P _ (IRefT _ _ _) }) ->
+            (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: WHNF IRefT")
             (HWHNF { hc_pexpr = P p' e, hc_name = n } ) ->
-                return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
-            (HNF { hc_pexpr = P _ (IRefT _ _ _) }) ->
+                return (P (pConj p p') e) -- (mapIExprPosition cross (e_orig, e)))
+            (HNF { hc_pexpr = P _ (IRefT _ _ _ _) }) ->
                 internalError ("IExpandUtils.unheap: NF IRefT")
             (HNF { hc_pexpr = P p' e }) ->
-                return (P (pConj p p') (mapIExprPosition cross (e_orig, e)))
+                return (P (pConj p p') e) -- (mapIExprPosition cross (e_orig, e)))
 
 unheap pe = return pe
 
 {-# INLINE unheapU #-}
 unheapU :: HExpr -> G HExpr
-unheapU e_orig@(IRefT _ _ r) = do
+unheapU e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
-        flgs <- getFlags
-        let cross = (crossInfo flgs)
         case e of
             (HUnev { hc_hexpr = e }) -> return e
             (HLoop name) -> internalError ("unheapU: HLoop " ++ ppReadable name)
-            (HWHNF { hc_pexpr = P _ (IRefT _ _ _) } ) ->
+            (HWHNF { hc_pexpr = P _ (IRefT _ _ _ _) } ) ->
                 internalError ("unheapU: IRefT")
             (HWHNF { hc_pexpr = e, hc_name = n }) ->
-                return (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
+                return $ pExprToHExpr e -- (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
             (HNF { hc_pexpr = e }) ->
-                return (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
+                return $ pExprToHExpr e -- (mapIExprPosition cross (e_orig, (pExprToHExpr e)))
 unheapU e = return e
 
 -- unheap more than the first cell, but not much more than that
@@ -2549,21 +2765,19 @@ shallowUnheap e= do
 -- unheap dropping (inaccurate) implicit conditions
 -- since implicit conditions are not reduced to NF until evalPred
 unheapNFNoImp :: HExpr -> G HExpr
-unheapNFNoImp e_orig@(IRefT _ _ r) = do
+unheapNFNoImp e_orig@(IRefT _ _ _ r) = do
         e <- getHeap r
-        flgs <- getFlags
-        let cross = (crossInfo flgs)
         case e of
             (HUnev { }) -> internalError ("unheapNFNoImp: HUnev " ++ ppReadable (e_orig, e))
             (HLoop name) -> internalError ("unheapNFNoImp: HLoop " ++ ppReadable name)
             (HWHNF { }) -> internalError ("unheapNFNoImp: HWHNF " ++ ppReadable (e_orig, e))
             (HNF { hc_pexpr = (P _ e) }) ->
-                return (mapIExprPosition cross (e_orig, e))
+                return e -- (mapIExprPosition cross (e_orig, e))
 unheapNFNoImp e = return e
 
 -- XXX use unsafePerformIO to work around an apparent monadic recursion bug
 unheapNFNoImpEvil :: HExpr -> HExpr
-unheapNFNoImpEvil (IRefT _ _ (HeapData c)) =
+unheapNFNoImpEvil (IRefT _ _ _ (HeapData c)) =
    case cell of
      HNF { hc_pexpr = (P _ e) } -> e
      _ -> internalError ("unheapNFNoImp - unexpected: " ++ ppReadable cell)
@@ -2576,7 +2790,7 @@ unheapUH heap p =
         case I.lookup p heap of
             Nothing -> internalError "unheapUH: Nothing"
             Just (HUnev e) -> e
-            Just (HWHNF (P _ (IRefT _ _ _))) -> internalError ("unheapUH: IRefT")
+            Just (HWHNF (P _ (IRefT _ _ _ _))) -> internalError ("unheapUH: IRefT")
             Just (HWHNF e) -> (pExprToHExpr e)
             Just (HNF   e) -> (pExprToHExpr e)
 -}
@@ -2593,7 +2807,7 @@ unheapAll e = do
                             (ITAp c t) | (c == itPrimArray) -> t
                             _ -> internalError ("unheapAll: array type")
                 mapFn (ArrayCell ptr ref) = do
-                    unheapAll (IRefT elem_ty ptr ref)
+                    unheapAll (IRefT elem_ty ptr S.empty ref)
             es <- mapM mapFn (Array.elems arr)
             let ic = case icPrimBuildArray (length es) of
                        (ICon _ ci) -> ICon i ci
@@ -2613,75 +2827,63 @@ unheapAllNFNoImp e = do
         _ -> return e'
 
 {-# INLINE toHeap #-}
-toHeap :: String -> HExpr -> Maybe Id -> G HExpr
+toHeap :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 -- foreign function calls must be forced onto the heap for
 -- proper handling of actionvalues
-toHeap tag e@(ICon i (ICForeign {iConType = t})) cell_name = addHeapUnev tag t e cell_name
+toHeap tag t e@(ICon _ (ICForeign {})) cell_name = do
+  addHeapUnev tag t e cell_name
 -- definitions must be heaped for correct handling of actionvalues
 -- a top-level definition should have no free variables by construction
-toHeap tag (ICon i (ICDef t e)) cell_name = do
-  e' <- cacheDef i t e
-  toHeap tag e' cell_name
-toHeap tag e@(ICon _ _) cell_name = return e
-toHeap tag e@(IRefT _ _ _) cell_name = return e -- XXX name improvement?
-toHeap tag e cell_name = do
+-- Don't use t for caching because, for polymorphic defs, it may be the
+-- instantiated type of the definition in the current context.
+toHeap tag t (ICon i (ICDef t' e)) cell_name = do
+  e' <- cacheDef i t' e
+  toHeap tag t e' cell_name
+toHeap _   _ e@(ICon _ _)      _ = return e
+toHeap _   _ e@(IRefT _ _ _ _) _ = return e
+toHeap tag t e cell_name = do
         -- these errors have never happened, disable checks for now.
         when (doDebugFreeVars && not (S.null (fVars e))) $
              internalError ("toHeap: fv " ++ ppReadable (fVars e) ++ ppReadable e)
         when (doDebugFreeVars && not (S.null (ftVars e))) $
              internalError ("toHeap: ftv " ++ ppReadable (ftVars e) ++ ppReadable e)
-        -- do the real work of adding the cell
-        addHeapUnev tag (iGetType e) e cell_name
+        addHeapUnev tag t e cell_name
 
 -- Used when you absolutely need to get an IRefT back
 -- for arrays
 {-# INLINE toHeapCon #-}
-toHeapCon :: String -> HExpr -> Maybe Id -> G HExpr
+toHeapCon :: String -> IType -> HExpr -> Maybe Id -> G HExpr
 -- expand out ICDef as in toHeap
-toHeapCon tag (ICon i (ICDef t e)) cell_name = do
-  e' <- cacheDef i t e
-  toHeapCon tag e' cell_name
+toHeapCon tag t (ICon i (ICDef t' e)) cell_name = do
+  e' <- cacheDef i t' e
+  toHeapCon tag t e' cell_name
 -- heap all other constants
-toHeapCon tag e@(ICon _ _) cell_name = addHeapUnev tag (iGetType e) e cell_name
-toHeapCon tag e cell_name = toHeap tag e cell_name
+toHeapCon tag t e@(ICon _ _) cell_name = do
+  addHeapUnev tag t e cell_name
+toHeapCon tag t e cell_name = toHeap tag t e cell_name
 
 {-# INLINE toHeapWHNF #-}
-toHeapWHNF :: String -> HExpr -> Maybe Id -> G HExpr
-toHeapWHNF tag e@(ICon _ _) cell_name = return e
-toHeapWHNF tag e@(IRefT _ _ _) cell_name = return e
-toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), e])
-           cell_name = do let pe = P p e
-                          -- IRefT is not WHNF
-                          pe' <- unheap pe
-                          addHeapWHNF tag t pe' cell_name
-toHeapWHNF tag e cell_name = addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
+toHeapWHNF :: String -> IType -> PExpr -> Maybe Id -> G HExpr
+toHeapWHNF _  _ (P p e@(ICon _ _)) _ | p == pTrue = return e
+toHeapWHNF _  _ (P p e@(IRefT _ _ _ _)) _ | p == pTrue = return e
+toHeapWHNF tag _ (P p e) cell_name
+  | IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p'), e'] <- e =
+    toHeapWHNF tag t (P (pConj p p') e') cell_name
+toHeapWHNF tag t pe@(P p e) cell_name = do
+    -- Pointing to an IRefT (because p /= pTrue) is not WHNF
+    pe' <- unheap pe
+    addHeapWHNF tag t pe' cell_name
 
 {-# INLINE toHeapWHNFCon #-}
-toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
-toHeapWHNFCon tag e@(ICon _ _) cell_name =
-    addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
-toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
-
-{-# INLINE toHeapWHNFInferName #-}
-toHeapWHNFInferName :: String -> HExpr -> G HExpr
-toHeapWHNFInferName tag e = inferName e >>= toHeapWHNF tag e
-
-{-# INLINE toHeapInferName #-}
-toHeapInferName :: String -> HExpr -> G HExpr
-toHeapInferName tag expr = inferName expr >>= toHeap tag expr
-
-{-# INLINE toHeapConInferName #-}
-toHeapConInferName :: String -> HExpr -> G HExpr
-toHeapConInferName tag expr = inferName expr >>= toHeapCon tag expr
-
-{-# INLINE toHeapWHNFConInferName #-}
-toHeapWHNFConInferName :: String -> HExpr -> G HExpr
-toHeapWHNFConInferName tag expr = inferName expr >>= toHeapWHNFCon tag expr
+toHeapWHNFCon :: String -> IType -> HExpr -> Maybe Id -> G HExpr
+toHeapWHNFCon tag t e@(ICon _ _) cell_name = do
+    addHeapWHNF tag t (P pTrue e) cell_name
+toHeapWHNFCon tag t e cell_name = toHeapWHNF tag t (P pTrue e) cell_name
 
 -- inferName: given an expression, try to infer a reasonable name from it
 {-# INLINE inferName #-}
 inferName :: HExpr -> G (Maybe Id)
-inferName (IRefT _ _ heap_ref) =
+inferName (IRefT _ _ _ heap_ref) =
     do heap_cell <- getHeap heap_ref
        return (hc_name heap_cell)
 -- bit selection
@@ -2720,16 +2922,29 @@ cacheDef i t e = do
   s <- get
   let m = defCache s
   case (M.lookup i m) of
-    Just e' -> do when doTraceCache $
-                    traceM ("cache hit: " ++ ppReadable (i, e'))
+    Just e' -> do when doTraceDefCache $
+                    traceM ("cache hit: " ++ ppReadable (i, t, e'))
                   return e'
-    Nothing -> do e' <- toHeap "cache-def" e (Just i)
+    Nothing -> do e' <- toHeap "cache-def" t e (Just i)
                   s <- get
                   let m' = M.insert i e' m
                   put (s { defCache = m' })
-                  when doTraceCache $
-                    traceM ("cache miss: " ++ ppReadable (i, e))
+                  when doTraceDefCache $
+                    traceM ("cache miss: " ++ ppReadable (i, t))
                   return e'
+
+-- caching of dynamically evaluated CSyntax expressions
+lookupCExprCache :: CExpr -> IType -> G (Maybe HExpr)
+lookupCExprCache ce it = do
+  s <- get
+  let m = cexprCache s
+  return $ M.lookup (ce, it) m
+
+insertCExprCache :: CExpr -> IType -> HExpr -> G ()
+insertCExprCache ce it e = do
+  s <- get
+  let m = cexprCache s
+  put $ s { cexprCache = M.insert (ce, it) e m }
 
 -- #############################################################################
 -- #
@@ -3149,9 +3364,8 @@ getMethodsWithWires e =
                 return $ if (p, pos) `S.member` visited
                          then Just []
                          else Nothing
-        ?upd = \ e_orig e -> do
-                 flgs <- lift getFlags
-                 return $ mapIExprPosition (crossInfo flgs) (e_orig, e)
+        ?upd = \ e_orig e -> return e
+                 -- return $ mapIExprPosition (crossInfo flgs) (e_orig, e)
     in
         evalStateT (extractWires e) S.empty
 
@@ -3205,7 +3419,7 @@ instance Wireable HExpr where
     return (?jn (ws:wss))
 
   -- don't walk unnecessary parts of a struct or interface
-  extractWires (IAps f@(ICon i_sel (ICSel { selNo = n })) _ (a@(IRefT _ p r):as)) = do
+  extractWires (IAps f@(ICon i_sel (ICSel { selNo = n })) _ (a@(IRefT _ _ p r):as)) = do
     -- we don't look for "p" in the WireSet cache, because we don't want to
     -- include the wires from the unused fields
     -- (presumably the fields will have their own refs, which can be cached)
@@ -3242,7 +3456,7 @@ instance Wireable HExpr where
 
   extractWires (ILAM _ _ e) = extractWires e
 
-  extractWires ref@(IRefT t p r) = do
+  extractWires ref@(IRefT t p poss r) = do
     let pos = getIExprPosition ref
     cache_res <- ?lk p pos
     case cache_res of
@@ -3411,6 +3625,8 @@ realPrim _ = False
 stringPrim :: PrimOp -> Bool
 stringPrim PrimStringConcat = True
 stringPrim PrimStringEQ = True
+stringPrim PrimStringLT = True
+stringPrim PrimStringLE = True
 stringPrim PrimStringToInteger = True
 stringPrim PrimStringLength = True
 stringPrim PrimStringSplit = True

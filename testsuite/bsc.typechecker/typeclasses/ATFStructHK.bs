@@ -1,0 +1,52 @@
+package ATFStructHK where
+
+-- Test that a higher-kinded type function (Slot f :: * -> *) correctly
+-- determines a type constructor from the class parameter.
+-- The type function maps the class parameter f to a type constructor s,
+-- so that method signatures can use 's a' to build value-kinded types.
+
+class HasSlot f s | f -> s where
+  type Slot f = s
+  makeSlot :: f -> a -> s a
+
+data BoxTag = BoxTag
+data ListTag = ListTag
+
+-- BoxTag instance: Slot BoxTag = Maybe
+instance HasSlot BoxTag Maybe where
+  makeSlot _ x = Valid x
+
+-- ListTag instance: Slot ListTag = List
+instance HasSlot ListTag List where
+  makeSlot _ x = Cons x Nil
+
+-- A struct parameterized by the type constructor s and the element type.
+-- The relationship Slot f = s is enforced through usage with HasSlot.
+struct Holder tag elem =
+  item :: Slot tag elem
+
+-- Monomorphic helpers using the type function directly.
+makeBoxSlot :: BoxTag -> Integer -> Slot BoxTag Integer
+makeBoxSlot = makeSlot
+
+makeListSlot :: ListTag -> Integer -> Slot ListTag Integer
+makeListSlot = makeSlot
+
+buildHolder :: Integer -> Holder BoxTag Integer
+buildHolder x = Holder { item = makeBoxSlot BoxTag x }
+
+buildListHolder :: Integer -> Holder ListTag Integer
+buildListHolder x = Holder { item = makeListSlot ListTag x }
+
+-- Field access dispatches to the correct expanded type.
+getItem :: Holder BoxTag Integer -> Maybe Integer
+getItem h = h.item
+
+getListItem :: Holder ListTag Integer -> List Integer
+getListItem h = h.item
+
+test :: Maybe Integer
+test = getItem (buildHolder 42)
+
+test2 :: List Integer
+test2 = getListItem (buildListHolder 99)

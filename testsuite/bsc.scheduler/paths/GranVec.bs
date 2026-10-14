@@ -1,0 +1,22 @@
+package GranVec where
+
+import SplitPorts
+import Vector
+
+-- DeepSplit of a (Vector 3 Bool) result produces one output port per element
+-- (get_0, get_1, get_2), and the split argument produces one input port per
+-- element (get_1_0, get_1_1, get_1_2; the leading 1 is the argument number).
+-- Element 2 of the result is combinational from element 2 of the input; the
+-- other elements come from a register.  Path analysis should report exactly
+-- the element-2 edge get_1_2 -> get_2 and no path to get_0 / get_1.
+interface Ifc =
+  get :: DeepSplit (Vector 3 Bool) -> DeepSplit (Vector 3 Bool)
+
+{-# synthesize mkGranVec #-}
+mkGranVec :: Module Ifc
+mkGranVec =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit v) =
+        DeepSplit (update (replicate r) 2 (v !! 2))

@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (StringInstArg mkStringInstArg_Sub):
 data MOD_mkStringInstArg_Sub = MOD_mkStringInstArg_Sub { param_s__mkStringInstArg_Sub :: String };
 
 ctor_mkStringInstArg_Sub :: String -> MOD_mkStringInstArg_Sub;
@@ -11,3 +12,5 @@ dim_mkStringInstArg_Sub =
 rule_RL_doDisp_mkStringInstArg_Sub :: MOD_mkStringInstArg_Sub -> (Bool, MOD_mkStringInstArg_Sub, ());
 rule_RL_doDisp_mkStringInstArg_Sub =
     (\ (state0 :: MOD_mkStringInstArg_Sub) -> mktuple True state0 ());
+
+-----

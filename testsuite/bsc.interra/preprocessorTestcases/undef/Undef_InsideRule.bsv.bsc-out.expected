@@ -1,5 +1,5 @@
 checking package dependencies
-compiling Undef_InsideRule.bsv
-Warning: Unknown position: (S0001)
+Warning: "Undef_InsideRule.bsv", line 1, column 9: (S0001)
   File name `Undef_InsideRule.bsv' does not match package name `Design'
+compiling Undef_InsideRule.bsv
 All packages are up to date.

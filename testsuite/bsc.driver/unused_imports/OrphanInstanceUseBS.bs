@@ -1,0 +1,9 @@
+-- Test: Using orphan instance (Classic syntax - Phase 2)
+-- Expected: NO warning - OrphanInstance is used via instance resolution
+
+package OrphanInstanceUseBS where
+
+import OrphanInstanceBS  -- Has orphan Describable Bool instance
+
+test :: String
+test = describe True  -- Uses orphan instance from OrphanInstanceBS

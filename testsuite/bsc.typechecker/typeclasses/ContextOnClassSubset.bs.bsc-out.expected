@@ -1,6 +1,6 @@
 checking package dependencies
 compiling ContextOnClassSubset.bs
-=== internal:
+=== internal (ContextOnClassSubset):
 IPackage ContextOnClassSubset
   --linked packages
 

@@ -1,0 +1,28 @@
+Prelude.Bit 8
+Prelude.UInt 16
+Prelude.Int 4
+Prelude.Integer
+Prelude.Real
+Prelude.Char
+Prelude.String
+Prelude.Clock
+Prelude.Reset
+Prelude.Fmt
+Prelude.Inout Prelude.Bool
+Prelude.Inout_ 8
+Prelude.Array Prelude.Integer
+()
+Prelude.Bool
+(Prelude.UInt 16, Prelude.UInt 17)
+Prelude.Maybe Prelude.Bool
+Prelude.Maybe (Prelude.String, Prelude.Integer)
+Prelude.Either (Prelude.Maybe Prelude.Bool) Prelude.String
+TestPrintType.Quux
+TestPrintType.Foo 16 Prelude.Real
+TestPrintType.Bar Prelude.Maybe
+TestPrintType.Bar (Prelude.Either Prelude.Integer)
+TestPrintType.Baz TestPrintType.MyBit ?
+Prelude.Bool
+(Prelude.Maybe Prelude.Bool)
+(Prelude.UInt 16, Prelude.UInt 17)
+(Prelude.Inout Prelude.Bool)

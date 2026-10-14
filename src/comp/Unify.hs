@@ -18,16 +18,20 @@ rtrace s x = if doRTrace then traces s x else x
 
 class Unify t where
     mgu :: [TyVar] {- bound type vars: don't substitute with other tyvars -}
-        -- result: list of substitutions and required numeric type equalities
+        -- result: list of substitutions and required type equalities
         -> t -> t -> Maybe (Subst, [(Type, Type)])
 
 instance Unify Type where
+    -- an unreducable ATF application: identical types unify cleanly (reflexivity);
+    -- different types generate a deferred equality constraint.
+    mgu bound_tyvars t1 t2
+        | isATFAp t1 || isATFAp t2 = atfUnify bound_tyvars t1 t2
     mgu bound_tyvars t1 t2
         | kind t1 == KNum =
       case kind t2 of
         KNum -> numUnify bound_tyvars t1 t2
         _ -> internalError("unify kind mismatch: " ++ ppReadable(t1, kind t1, t2, kind t2))
-    mgu bound_tyvars (TAp l r) (TAp l' r') = do
+    mgu bound_tyvars t1@(TAp l r) t2@(TAp l' r') = do
         (s1, eqs1) <- mgu bound_tyvars l l'
         (s2, eqs2) <- mgu bound_tyvars (apSub s1 r) (apSub s1 r')
         Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
@@ -36,7 +40,18 @@ instance Unify Type where
     mgu bound_tyvars (TVar u) t        = varBindWithEqs u t
     mgu bound_tyvars t (TVar u)        = varBindWithEqs u t
     mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
-    mgu bound_tyvars t1 t2             = Nothing
+    mgu bound_tyvars _ _ = Nothing
+
+atfUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
+atfUnify bound_tyvars t1 t2
+    | t1 == t2 = Just (nullSubst, [])
+-- prefer an equality constraint to unifying a bound type variable
+-- or defining a variable in terms of itself
+atfUnify bound_tyvars (TVar u) t
+    | not (u `elem` (bound_tyvars ++ tv t)) = varBindWithEqs u t
+atfUnify bound_tyvars t (TVar u)
+    | not (u `elem` (bound_tyvars ++ tv t)) = varBindWithEqs u t
+atfUnify bound_tyvars t1 t2 = Just (nullSubst, [(t1,t2)])
 
 numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2

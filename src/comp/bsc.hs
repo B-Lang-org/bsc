@@ -15,7 +15,7 @@ import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
 import Data.Char(isSpace, toLower, ord)
 import Data.List(intersect, nub, partition, intersperse, sort,
-            isPrefixOf, isSuffixOf, unzip5, intercalate)
+            isPrefixOf, isSuffixOf, unzip5, intercalate, foldl')
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Data.Maybe(isJust, isNothing)
 import Numeric(showOct)
@@ -34,7 +34,7 @@ import SCC(scc)
 -- utility libs
 import ParseOp
 import PFPrint
-import Util(headOrErr, fromJustOrErr, joinByFst, quote)
+import Util(headOrErr, fromJustOrErr, joinByFst, quote, fst3)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName,
                     mkNameWithoutSuffix,
@@ -80,12 +80,12 @@ import Pragma
 import VModInfo(VPathInfo, VPort)
 import Deriving(derive)
 import SymTab
-import MakeSymTab(mkSymTab, cConvInst)
-import TypeCheck(cCtxReduceIO, cTypeCheck)
+import MakeSymTab(mkSymTab, cConvInst, getPackagesUsedInTypes)
+import TypeCheck(cCtxReduceIO, cTypeCheck, mergeCATFCaches)
 import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
 import Simplify(simplify)
-import ISyntax(IPackage(..), IModule(..),
+import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
                IEFace(..), IDef(..), IExpr(..), fdVars)
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
@@ -93,13 +93,12 @@ import IConv(iConvPackage, iConvDef)
 import FixupDefs(fixupDefs, updDef)
 import ISyntaxCheck(tCheckIPackage, tCheckIModule)
 import ISimplify(iSimplify)
-import BinUtil(BinMap, HashMap, readImports, replaceImports)
+import BinUtil(BinMap, HashMap, readImports, replaceImportedSignatures)
 import GenBin(genBinFile)
 import GenWrap(genWrap, WrapInfo(..))
 import GenFuncWrap(genFuncWrap, addFuncWrap)
 import GenForeign(genForeign)
 import IExpand(iExpand)
-import INormTypes(iNormTypes)
 import IExpandUtils(HeapData)
 import ITransform(iTransform)
 import IInline(iInline)
@@ -147,7 +146,7 @@ import SimFileUtils(analyzeBluesimDependencies)
 import Verilog(VProgram(..), vGetMainModName, getVeriInsts)
 import Depend
 import Version(bscVersionStr, copyright, buildnum)
-import Classic
+import Classic(SyntaxMode(..), setSyntax)
 import ILift(iLift)
 import ACleanup(aCleanup)
 import ATaskSplice(aTaskSplice)
@@ -256,32 +255,35 @@ compile_with_deps :: ErrorHandle -> Flags -> String -> IO (Bool)
 compile_with_deps errh flags name = do
     let
         verb = showUpds flags && not (quiet flags)
-        -- the flags to "compileFile" when re-compiling depended modules
+        -- the flags when re-compiling depended modules
         flags_depend = flags { updCheck = False,
                                genName = [],
                                showCodeGen = verb }
-        -- the flags to "compileFile" when re-compiling this module
+        -- the flags when re-compiling this module
         flags_this = flags_depend { genName = genName flags }
-        comp (success, binmap0, hashmap0) fn = do
+        comp (success, binmap0, hashmap0) (fn, pkg, parse_warns) = do
             when (verb) $ putStrLnF ("compiling " ++ fn)
+            -- Show warnings for this file
+            when (not $ null parse_warns) $ bsWarning errh parse_warns
             let fl = if (fn == name)
                      then flags_this
                      else flags_depend
+            t <- getNow
             (cur_success, binmap, hashmap)
-                <- compileFile errh fl binmap0 hashmap0 fn
+                <- compilePackage errh fl t binmap0 hashmap0 fn pkg
             return (cur_success && success, binmap, hashmap)
     when (verb) $ putStrLnF "checking package dependencies"
 
     t <- getNow
-    let dumpnames = (baseName (dropSuf name), "", "")
+    let dumpnames = (Just (baseName (dropSuf name)), Nothing, Nothing)
 
-    -- get the list of depended files which need recompiling
+    -- get the list of depended files which need recompiling (with parsed packages and warnings)
     start flags DFdepend
-    fs <- chkDeps errh flags name
-    _ <- dump errh flags t DFdepend dumpnames fs
+    pkgs <- chkDeps errh flags name
+    _ <- dump errh flags t DFdepend dumpnames (map fst3 pkgs)
 
     -- compile them
-    (ok, _, _) <- foldM comp (True, M.empty, M.empty) fs
+    (ok, _, _) <- foldM comp (True, M.empty, M.empty) pkgs
 
     when (verb) $
       if ok then
@@ -292,51 +294,19 @@ compile_with_deps errh flags name = do
 
 compile_no_deps :: ErrorHandle -> Flags -> String -> IO (Bool)
 compile_no_deps errh flags name = do
-  (ok, _, _) <- compileFile errh flags M.empty M.empty name
-  return ok
+    (pkg, t, parse_warns) <- parseFile errh flags False name
 
--- returns whether the compile errored or not
-compileFile :: ErrorHandle -> Flags -> BinMap HeapData -> HashMap -> String ->
-               IO (Bool, BinMap HeapData, HashMap)
-compileFile errh flags binmap hashmap name_orig = do
-    pwd <- getCurrentDirectory
-    let name = (createEncodedFullFilePath name_orig pwd)
-        name_rel = (getRelativeFilePath name)
+    -- Show warnings for this file
+    when (not $ null parse_warns) $ bsWarning errh parse_warns
 
-    let syntax = if hasDotSuf bscSrcSuffix name then CLASSIC else BSV
-    setSyntax syntax
-
-    t <- getNow
-    let dumpnames = (baseName (dropSuf name), "", "")
-
-    start flags DFcpp
-    file <- doCPP errh flags name
-    _ <- dumpStr errh flags t DFcpp dumpnames file
-
-    -- ===== the break point between file manipulation and compilation
-
-    -- We don't start and dump this stage because that is handled inside
-    -- the "parseSrc" function (since BSV parsing has multiple stages)
-    (pkg@(CPackage i _ _ _ _ _), t)
-        <- parseSrc (syntax == CLASSIC) errh flags True name file
-    when (getIdString i /= baseName (dropSuf name)) $
-         bsWarning errh
-             [(noPosition, WFilePackageNameMismatch name_rel (pfpString i))]
-
-    -- dump CSyntax
-    when (showCSyntax flags) (putStrLnF (show pkg))
-    -- dump stats
-    stats flags DFparsed pkg
-
-    let dumpnames = (baseName (dropSuf name), getIdString (unQualId i), "")
-    compilePackage errh flags dumpnames t binmap hashmap name pkg
+    (ok, _, _) <- compilePackage errh flags t M.empty M.empty name pkg
+    return ok
 
 -------------------------------------------------------------------------
 
 compilePackage ::
     ErrorHandle ->
     Flags ->
-    DumpNames ->
     TimeInfo ->
     BinMap HeapData ->
     HashMap ->
@@ -346,12 +316,19 @@ compilePackage ::
 compilePackage
     errh
     flags                -- user switches
-    dumpnames
     tStart
     binmap0
     hashmap0
-    name -- String --
-    min@(CPackage pkgId _ _ _ _ _) = do
+    name_orig -- String --
+    min@(CPackage pkgId _ _ _ _ _ _) = do
+
+    -- Set syntax mode for the compilation pipeline (error messages, printing, etc.)
+    setSyntax (if hasDotSuf bscSrcSuffix name_orig then CLASSIC else BSV)
+
+    -- Encode the file path for internal use
+    pwd <- getCurrentDirectory
+    let name = createEncodedFullFilePath name_orig pwd
+        dumpnames = (Just (baseName (dropSuf name)), Just (getIdString (unQualId pkgId)), Nothing)
 
     clkTime <- getClockTime
     epochTime <- getPOSIXTime
@@ -368,12 +345,12 @@ compilePackage
 
     start flags DFimports
     -- Read imported signatures
-    (mimp@(CPackage _ _ imps _ _ _), binmap, hashmap)
+    (mimp@(CPackage _ _ imps impsigs _ _ _), binmap, hashmap)
         <- readImports errh flags binmap0 hashmap0 min
     when (hasDump flags DFimports) $
-      let imps' = [ppReadable s |  (CImpSign _ _ s) <- imps]
-      in mapM_ (putStr) imps'
-         --mapM_ (\ (CImpSign _ _ s) -> putStr (ppReadable s)) imps
+      let impsigs' = [ppReadable s |  (CImpSign _ _ s) <- impsigs]
+      in mapM_ (putStr) impsigs'
+         --mapM_ (\ (CImpSign _ _ s) -> putStr (ppReadable s)) impsigs
     t <- dump errh flags tStart DFimports dumpnames mimp
 
     start flags DFopparse
@@ -426,9 +403,13 @@ compilePackage
     symt11 <- mkSymTab errh mder
     t <- dump errh flags t DFsympostderiving dumpnames symt11
 
+    -- Extract packages used in type constructors from the parsed package
+    -- (before any transformations that might expand synonyms or change types)
+    let pkgsUsedInTypes = getPackagesUsedInTypes symt11 mder
+
     -- Reduce the contexts as far as possible
     start flags DFctxreduce
-    mctx <- cCtxReduceIO errh flags symt11 mder
+    (mctx, pkgsUsedInCtxReduce, atfCacheFromCtxReduce) <- cCtxReduceIO errh flags symt11 mder
     t <- dump errh flags t DFctxreduce dumpnames mctx
 
     -- Rebuild the symbol table because CtxReduce has possibly changed
@@ -444,7 +425,7 @@ compilePackage
 
     -- Type check and insert dictionaries
     start flags DFtypecheck
-    (mod, tcErrors) <- cTypeCheck errh flags symt minst
+    (mod, tcErrors, pkgsUsedInCode, ctypeATFCache) <- cTypeCheck errh flags symt minst
     --putStr (ppReadable mod)
     t <- dump errh flags t DFtypecheck dumpnames mod
 
@@ -478,7 +459,8 @@ compilePackage
     -- Convert to internal abstract syntax
     --------------------------------------------
     start flags DFinternal
-    imod <- iConvPackage errh flags symt mod'
+    let combinedATFCache = mergeCATFCaches ctypeATFCache atfCacheFromCtxReduce
+    imod <- iConvPackage errh flags symt combinedATFCache mod'
     t <- dump errh flags t DFinternal dumpnames imod
     when (showISyntax flags) (putStrLnF (show imod))
     iPCheck flags symt imod "internal"
@@ -486,10 +468,10 @@ compilePackage
 
     -- Read binary interface files
     start flags DFbinary
-    let (_, _, impsigs, binmods0, pkgsigs) =
+    let (_, _, impsigs', binmods0, pkgsigs) =
             let findFn i = fromJustOrErr "bsc: binmap" $ M.lookup i binmap
                 sorted_ps = [ getIdString i
-                               | CImpSign _ _ (CSignature i _ _ _) <- imps ]
+                               | CImpSign _ _ (CSignature i _ _ _) <- impsigs ]
             in  unzip5 $ map findFn sorted_ps
 
     -- injects the "magic" variables genC and genVerilog
@@ -500,9 +482,9 @@ compilePackage
             [(String, IExpr a)] ->
             (IPackage a) ->
             (IPackage a)
-        adjEnv env (IPackage i lps ps ds)
+        adjEnv env (IPackage i lps ps ds atfCache)
                             | getIdString i == "Prelude" =
-                    IPackage i lps ps (map adjDef ds)
+                    IPackage i lps ps (map adjDef ds) atfCache
             where
                 adjDef (IDef i t x p) =
                     case lookup (getIdString (unQualId i)) env of
@@ -524,7 +506,7 @@ compilePackage
     start flags DFsympostbinary
     -- XXX The way we construct the symtab is to replace the user-visible
     -- XXX imports with the full imports.
-    let mint = replaceImports mctx impsigs
+    let mint = replaceImportedSignatures mctx impsigs'
     internalSymt <- mkSymTab errh mint
     t <- dump errh flags t DFsympostbinary dumpnames mint
 
@@ -541,8 +523,17 @@ compilePackage
     t <- dump errh flags t DFisimplify dumpnames imods
     stats flags DFisimplify imods
 
+    -- The ATF cache used during elaboration: this package's entries unioned
+    -- with the entries of every (transitively) loaded import.  This union is
+    -- only ever held in memory; each .bo file stores just its own package's
+    -- entries.  The union covers the full transitive closure because
+    -- "binmods" does: each .bo's ipkg_depends records its writer's entire
+    -- loaded closure (see ipkg_sigs in fixupDefs).
+    let elabATFCache = foldl' mergeIATFCaches (ipkg_atf_cache imods)
+                              [ ipkg_atf_cache m | (m, _) <- binmods ]
+
     let orderGens :: IPackage HeapData -> [WrapInfo] -> [WrapInfo]
-        orderGens (IPackage pid _ _ ds) gs =
+        orderGens (IPackage pid _ _ ds _) gs =
                 --trace (ppReadable (gis, g, os)) $
                                               map get os
           where gis = [ qualId pid i
@@ -567,7 +558,7 @@ compilePackage
                     "\n")
 
     let getDef :: IPackage a -> Id -> IDef a
-        getDef (IPackage _ _ _ ds) i =
+        getDef (IPackage _ _ _ ds _) i =
            case [ d | d@(IDef i' _ _ _) <- ds, unQualId i == unQualId i' ] of
                 [ d ] -> d
                 _ -> internalError ("No definition for " ++ pfpString i)
@@ -581,8 +572,8 @@ compilePackage
     let gen :: (IPackage HeapData, Bool) -> [WrapInfo] -> IO (IPackage HeapData, Bool)
         gen (im, !success) []  = return (im, success)
         gen (im, !success) (wi@(WrapInfo { mod_nm = i, wrapped_mod = i' }) : xs) = do
-            let (filename, pkgname, _) = dumpnames
-                dumpnames' = (filename, pkgname, getIdString (unQualId i))
+            let (mfile, mpkg, _) = dumpnames
+                dumpnames' = (mfile, mpkg, Just (getIdString (unQualId i)))
                 fwrapper = i `elem` map (\ (i, _, _, _, _) -> i) funcs
 
             let
@@ -592,7 +583,7 @@ compilePackage
                 def_comp = do
                   def <- genModule errh wi fwrapper flags dumpnames'
                              prefix (getIdBaseString pkgId)
-                             internalSymt alldefs (getDef im i')
+                             internalSymt alldefs elabATFCache (getDef im i')
                   return (def, True)
                 ex_comp s = do
                   hFlush stdout >> hPutStr stderr s
@@ -620,14 +611,14 @@ compilePackage
             (idef, ok2) <- compileCDefToIDef errh flags dumpnames' symt imods def
 
             t <- getNow
-            start flags DFfixup
+            start flags DFwrapper_fixup
             -- Replace the pre-synthesis definition for a module with its
             -- post-synthesis definition, and update the package's cyclic
             -- references
             -- XXX Note that alldefs is not updated here.  This works
             -- XXX because the defs we use from it will not have changed.
             let im' = updDef idef im binmods
-            t <- dump errh flags t DFfixup dumpnames' im'
+            t <- dump errh flags t DFwrapper_fixup dumpnames' im'
 
             t <- dump errh flags tStartWrapper DFwrappercomp dumpnames' idef
             -- recurse for each module in [WrapInfo]
@@ -641,9 +632,17 @@ compilePackage
     start flags DFwriteBin
 
     -- Generate the user-visible type signature
-    bi_sig <- genUserSign errh symt mctx
+    (bi_sig, pkgsUsedInExports) <- genUserSign errh symt mctx
     -- Generate a type signature where everything is visible
     bo_sig <- genEverythingSign errh symt mctx
+
+    -- Check for unused imports by combining packages from all three sources
+    let (CPackage _ _ imports _ _ _ _) = mctx
+        allUsedPkgs = S.unions [pkgsUsedInTypes, pkgsUsedInCtxReduce, pkgsUsedInCode, pkgsUsedInExports]
+        importedPkgs = [i | (CImpId _ i) <- imports]
+        unusedPkgs = filter (\pkg -> not (S.member pkg allUsedPkgs)) importedPkgs
+        unusedWarns = [(getPosition pkg, WUnusedImport (pfpString pkg)) | pkg <- unusedPkgs]
+    when (not (null unusedWarns)) $ bsWarning errh unusedWarns
 
     -- Generate binary version of the internal tree .bo file
     let bin_filename = putInDir (bdir flags) name binSuffix
@@ -674,6 +673,7 @@ genModule ::
     String -> -- source package name
     SymTab ->
     M.Map Id (IExpr HeapData) ->
+    IATFCache ->
     IDef HeapData ->
     IO (CDefn)
 
@@ -688,6 +688,7 @@ genModule
     srcName
     symt
     alldefs
+    atf_cache
     def  =
 
   do
@@ -704,7 +705,8 @@ genModule
 
     -- "run" it
     start flags DFexpanded
-    imod0 <- iExpand errh flags symt alldefs fwrapper pps def
+    imod0 <- iExpand errh flags symt alldefs atf_cache fwrapper pps def
+    iMCheck flags symt imod0 "expanded"
     t <- dump errh flags t DFexpanded dumpnames imod0
     when (showIESyntax flags) (putStrLnF (show imod0))
     stats flags DFexpanded imod0
@@ -717,18 +719,10 @@ genModule
       putStrLn "Rule state locs"
       putStr (ppReadable rule_locs)
 
-    -- normalize types (handle lingering SizeOf)
-    -- Note the we deliberately do not call iMCheck on the output of
-    -- iExpand before iNormTypes because iMCheck won't let SizeOf
-    -- through (except in type arguments that aren't otherwise used)
-    start flags DFnormtypes
-    let imod_norm = iNormTypes flags symt imod0
-    iMCheck flags symt imod_norm "normtypes"
-    t <- dump errh flags t DFnormtypes dumpnames imod_norm
-    stats flags DFnormtypes imod_norm
+    -- We no longer normalize types here, since the evaluator now normalizes as it goes.
 
     start flags DFinlineFmt
-    imod_fmt <- iInlineFmt errh imod_norm
+    imod_fmt <- iInlineFmt errh imod0
     iMCheck flags symt imod_fmt "Fmt inline"
     t <- dump errh flags t DFinlineFmt dumpnames imod_fmt
     stats flags DFinlineFmt imod_fmt
@@ -1408,7 +1402,7 @@ simLink errh flags toplevel afilenames cfilenames = do
     let t = tStart
 
     -- XXX (file, package, module) names for %-substitution in dump filenames
-    let dumpnames = ("","","")
+    let dumpnames = (Nothing, Nothing, Nothing)
 
     -- in case the user listed the same file twice
     -- (they could still have given two .ba for the same module,
@@ -1861,7 +1855,7 @@ vLink errh flags topmod_name vfilenames0 afilenames cfilenames = do
     let t = tStart
 
     -- XXX (file, package, module) names for %-substitution in dump filenames
-    let dumpnames = ("","","")
+    let dumpnames = (Nothing, Nothing, Nothing)
 
     pwd <- getCurrentDirectory
     let name = createEncodedFullFilePath "placeholder" pwd
@@ -2154,7 +2148,7 @@ vGenMods t0 flags abmis = do
             let modId = apkg_name (abmi_apkg abmi)
                 modstr = getIdString (unQualId modId)
             -- XXX should the file and package name be set?
-            let dumpnames = ("", "", modstr)
+            let dumpnames = (Nothing, Nothing, Just modstr)
             -- verbose message
             when (verbose flags) $ putStrLnF ("*****")
             when (showCodeGen flags || verbose flags) $
@@ -2200,27 +2194,27 @@ compileCDefToIDef :: ErrorHandle -> Flags -> DumpNames -> SymTab ->
 compileCDefToIDef errh flags dumpnames symt ipkg def =
  do
     let pkgid = ipkg_name ipkg
-    let cpkg0 = CPackage pkgid (Left []) [] [] [def] []
+    let cpkg0 = CPackage pkgid (Left []) [] [] [] [def] []
     t <- getNow
 
-    start flags DFctxreduce
-    cpkg_ctx <- cCtxReduceIO errh flags symt cpkg0
-    t <- dump errh flags t DFctxreduce dumpnames cpkg_ctx
+    start flags DFwrapper_ctxreduce
+    (cpkg_ctx, _, _) <- cCtxReduceIO errh flags symt cpkg0
+    t <- dump errh flags t DFwrapper_ctxreduce dumpnames cpkg_ctx
 
-    start flags DFtypecheck
-    (cpkg_chk, tcErrors) <- cTypeCheck errh flags symt cpkg_ctx
-    t <- dump errh flags t DFtypecheck dumpnames cpkg_chk
+    start flags DFwrapper_typecheck
+    (cpkg_chk, tcErrors, _usedPkgs, _wrapperATFCache) <- cTypeCheck errh flags symt cpkg_ctx
+    t <- dump errh flags t DFwrapper_typecheck dumpnames cpkg_chk
 
-    start flags DFsimplified
+    start flags DFwrapper_simplified
     let cpkg_simp = simplify flags cpkg_chk
         def' = case cpkg_simp of
-                 (CPackage _ _ _ _ [d] _) -> d
+                 (CPackage _ _ _ _ _ [d] _) -> d
                  _ -> internalError "compileCDefToIDef: unexpected number of defs"
-    t <- dump errh flags t DFsimplified dumpnames cpkg_simp
+    t <- dump errh flags t DFwrapper_simplified dumpnames cpkg_simp
 
-    start flags DFinternal
+    start flags DFwrapper_internal
     let idef = iConvDef errh flags symt ipkg def'
-    t <- dump errh flags t DFinternal dumpnames idef
+    t <- dump errh flags t DFwrapper_internal dumpnames idef
 
     return (idef, not tcErrors)
 

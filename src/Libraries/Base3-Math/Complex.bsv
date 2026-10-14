@@ -1,6 +1,4 @@
 
-import FShow :: *;
-
 //@ \subsubsection{Complex}
 //@ \index{Complex@\te{Complex} (package)|textbf}
 

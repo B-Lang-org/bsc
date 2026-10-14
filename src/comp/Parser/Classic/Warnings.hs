@@ -20,7 +20,7 @@ import Util(concatMapM, fromJustOrErr)
 type ClassicWarnM = ReaderT (Set Id) (Writer (Set Id))
 
 classicWarnings :: CPackage -> [WMsg]
-classicWarnings (CPackage _ _ _ _ ds _) = concatMap getWarnings ds
+classicWarnings (CPackage _ _ _ _ _ ds _) = concatMap getWarnings ds
   where getWarnings = fst . runWriter . (flip runReaderT $ topBound) . classicWarnDefn
         topBound = S.fromList $ concatMap getBound ds
         getBound (Ctype {}) = []
@@ -32,7 +32,7 @@ classicWarnings (CPackage _ _ _ _ ds _) = concatMap getWarnings ds
         getBound (CValue i _) = [i]
         getBound (CValueSign (CDef i _ _)) = [i]
         getBound (CValueSign (CDefT i _ _ _)) = [i]
-        getBound (Cforeign i _ _ _) = [i]
+        getBound (Cforeign i _ _ _ _) = [i]
         getBound (Cprimitive i _) = [i]
         getBound (CprimType {}) = []
         getBound (CPragma {}) = []

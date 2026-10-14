@@ -16,3 +16,13 @@ test_veri_only_bsv NonConstantBitExtraction
 
 test_c_veri_bsv SRAConst
 test_c_veri_bsv SRADynamic
+
+# --------------------
+# Operands of PrimMul, PrimQuot and PrimRem must be lifted into named defs
+# by AVeriQuirks (mkDefS).  An inline negation on a narrow operand would
+# otherwise be evaluated by Verilog at the wider surrounding context width
+# instead of the narrow operand width, diverging from Bluesim.
+
+test_c_veri MulNegOperand
+test_c_veri QuotNegOperand
+test_c_veri RemNegOperand

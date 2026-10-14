@@ -1,18 +1,18 @@
 checking package dependencies
 compiling AccessorPredicates.bs
 code generation for sysAccessorPredicates starts
-=== schedule:
+=== schedule (AccessorPredicates sysAccessorPredicates):
 parallel: [esposito: [s -> [], g -> []]]
 order: [s, g]
 
 -----
 
-=== resources:
+=== resources (AccessorPredicates sysAccessorPredicates):
 [(b.read, [(b.read, 1)]), (r.read, [(r.read, 1)]), (r.write, [(r.write 1'd1, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (AccessorPredicates sysAccessorPredicates):
 SchedInfo [RDY_g CF [RDY_g, g, s], RDY_s CF [RDY_g, RDY_s, g, s], [g, s] CF g, s SBR s] [] [] []
 
 -----

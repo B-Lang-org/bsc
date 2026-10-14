@@ -2,3 +2,16 @@ compile_pass IncoherentOK.bs
 compile_fail_error IncoherentBad.bs T0030 1 "-incoherent-instance-matches"
 compile_fail_error IncoherentFlag.bs T0030
 compile_pass_warning IncoherentFlag.bs T0126 1 "-incoherent-instance-matches"
+
+# Test that incoherent resolution under incomplete type information commits to
+# the general instance.  Direct call with full type info gets specific (2);
+# call through a polymorphic (Bits a n) helper gets general (1).
+test_c_veri IncoherentOrder sysIncoherentOrder.out.expected
+# Legacy instance index must produce identical output.
+test_c_veri_bs_modules_options IncoherentOrder {} {-legacy-inst-index} sysIncoherentOrder.out.expected
+
+# Two-level trie (two pure-input positions) with declaration trap.
+# Most-general instance declared first; both paths reorder by specificity.
+# Also tests incoherence under (Bits a na, Bits b nb): catch-all committed (→ 1).
+test_c_veri IncoherentTwoLevel sysIncoherentTwoLevel.out.expected
+test_c_veri_bs_modules_options IncoherentTwoLevel {} {-legacy-inst-index} sysIncoherentTwoLevel.out.expected

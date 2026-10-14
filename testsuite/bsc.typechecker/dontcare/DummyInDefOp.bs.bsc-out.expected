@@ -2,7 +2,7 @@ checking package dependencies
 compiling DummyInDefOp.bs
 Warning: "DummyInDefOp.bs", line 4, column 4: (P0223)
   Definition of `x' is not used.
-=== internal:
+=== internal (DummyInDefOp):
 IPackage DummyInDefOp
   --linked packages
 

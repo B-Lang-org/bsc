@@ -1,0 +1,19 @@
+package ATFKindNum where
+
+-- Test type function with numeric kind (#).
+-- The type function Width f = n must be expanded so that
+-- encode :: Bool -> Bit (Width Bool) becomes Bool -> Bit 1.
+
+class FixedWidth f n | f -> n where
+  type Width f = n
+  encode :: f -> Bit n
+
+instance FixedWidth Bool 1 where
+  encode b = pack b
+
+encode' :: (FixedWidth a n) => a -> Bit (Width a)
+encode' = encode
+
+-- Verify that the Width type function matches the result of encode for Bool.
+result :: Bit (Width Bool)
+result = encode True

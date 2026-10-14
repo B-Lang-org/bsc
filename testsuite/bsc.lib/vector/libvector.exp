@@ -1,5 +1,5 @@
 
-test_c_veri_bsv MiscFunc
+test_c_veri_bsv_modules_options MiscFunc {} -let-gen
 
 ## Tests shifting and dynamic index select
 test_c_veri_bsv ShiftOutTest
@@ -11,3 +11,8 @@ test_c_veri_bsv FindElem
 test_c_veri_bsv FindIndex
 test_c_veri_bsv RotateBy
 test_c_veri_bsv ZeroVector
+test_c_veri_bsv FromChunksTest
+
+test_c_veri_bs_modules ConcatTuple {}
+
+test_c_veri ApplicativeVector

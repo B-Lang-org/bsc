@@ -1,6 +1,6 @@
 checking package dependencies
 compiling TrimSkip.bs
-=== internal:
+=== internal (TrimSkip):
 IPackage TrimSkip
   --linked packages
 

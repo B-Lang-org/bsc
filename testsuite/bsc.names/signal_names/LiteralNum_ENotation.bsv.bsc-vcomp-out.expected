@@ -1,7 +1,7 @@
 checking package dependencies
 compiling LiteralNum_ENotation.bsv
 code generation for sysLiteralNum_ENotation starts
-=== ATS:
+=== ATS (LiteralNum_ENotation sysLiteralNum_ENotation):
 APackage sysLiteralNum_ENotation
 -- APackage parameters
 []
@@ -30,7 +30,7 @@ rg_start :: ABSTRACT:  Prelude.VReg = RegN
 				       [])
 				      [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd1, 1'd1]
 				      []
-				      meth types=[([], Nothing, Just (Bit 1)), ([Bit 1], Just (Bit 1), Nothing)]
+				      meth types=[([], Nothing, [Bit 1]), ([[Bit 1]], Just (Bit 1), [])]
 				      port types=D_IN -> Prelude.Bool
 						 Q_OUT -> Prelude.Bool
 -- AP local definitions

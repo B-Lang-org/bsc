@@ -39,6 +39,17 @@ infixr  8 :>
 -- in Prelude.bs:
 -- data List a = Nil | Cons a (List a)
 
+-- instance Functor List
+--     where
+--         fmap = listPrimMap
+-- instance Applicative List
+--     where
+--         pure x = Cons x Nil
+--         liftA2 f xs ys = listPrimConcat (listPrimMap (\x -> listPrimMap (f x) ys) xs)
+-- instance Monad List
+--     where
+--         bind x f = listPrimConcat (listPrimMap f x)
+
 
 --@ Lists can be compared for equality if the elements can.
 --@ \begin{libverbatim}

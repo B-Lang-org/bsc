@@ -8,6 +8,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -simdir INVALID
 
 Flags:
+     -aggressive-conditions
      -i   BLUESPECDIR
      -lift
      -o   a.out

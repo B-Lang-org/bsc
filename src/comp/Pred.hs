@@ -2,11 +2,11 @@
 {-# LANGUAGE PatternGuards #-}
 module Pred(
             Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
-            getInsts,
             removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
             expandSyn, predToType, qualToType, mkInst,
             Instantiate(..),
             predToCPred, qualTypeToCQType,
+            pureInputPositions,
             ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -14,7 +14,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.List(union, genericSplitAt, genericLength)
-import Eval(NFData(..), rnf2, rnf3, rnf7)
+import Eval
 import Error(ErrMsg(..), internalError, bsErrorReallyUnsafe)
 import Position
 import Id
@@ -140,31 +140,17 @@ data Class
             tyConOf :: TyCon,
             funDeps :: [[Bool]],
             funDeps2 :: [[Maybe Bool]],
+            inputPositions :: [Int],      -- pure-input positions for PredTrie (pureInputPositions funDeps (length csig))
+                                          -- empty when all positions are outputs: trie degenerates to a flat list
             genInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst],
+            getInsts :: [Inst],           -- flat list for display/analysis
             allowIncoherent :: Maybe Bool, -- Just False = always coherent
                                            -- Just True  = always incoherent
                                            -- Nothing = flag-controlled
-            isComm :: Bool -- if the class is commutative (used for Add and Mul)
+            isComm :: Bool, -- if the class is commutative (used for Add and Mul)
+            pkg_src :: Maybe Id, -- package from which this class came
+            assocTypes :: [(TyCon, [Int], Int)]
         }
-
--- Instances are stored as a function, to support primitive numeric typeclasses
--- with an infinite number of instances (Add, Mul, etc).
--- For finite classes, the function ignores its arguments and just returns
--- the list of instances; so use this function to retrieve those instances.
-getInsts :: Class -> [Inst]
-getInsts c = genInsts c [] Nothing (IsIn cls [])
-    where
-      err s = internalError $ "getInsts: no " ++ show s
-      cls = Class { name = CTypeclass(dummyId (err "dummyId")),
-                    csig = err "csig",
-                    super = err "super",
-                    genInsts = err "getInsts",
-                    tyConOf = err "tyConOf",
-                    funDeps = err "funDeps",
-                    funDeps2 = err "funDeps2",
-                    allowIncoherent = err "allowIncoherent",
-                    isComm = err "isComm"
-                  }
 
 instance Show Class where
     showsPrec p c =
@@ -173,6 +159,7 @@ instance Show Class where
                 showsPrec 0 (csig c) . showString " " .
                 showsPrec 0 (super c) . showString " " .
                 showsPrec 0 (funDeps c) .
+                showsPrec 0 (assocTypes c) .
                 showString ")"
 
 instance PPrint Class where
@@ -182,7 +169,8 @@ instance PPrint Class where
         pPrint d 0 (csig c) <+>
         pPrint d 0 (super c) <+>
         pPrint d 0 (getInsts c) <+>
-        pPrint d 0 (funDeps c) <>
+        pPrint d 0 (funDeps c) <+>
+        pPrint d 0 (assocTypes c) <>
         text ")"
 
 instance PVPrint Class where
@@ -191,11 +179,22 @@ instance PVPrint Class where
                 pvPrint d 0 (csig c) <+>
                 pvPrint d 0 (super c) <+>
                 pvPrint d 0 (getInsts c) <+>
-                pvPrint d 0 (funDeps c) <>
+                pvPrint d 0 (funDeps c) <+>
+                pvPrint d 0 (assocTypes c) <>
                 text ")"
 
 instance NFData Class where
-    rnf (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) = rnf7 x1 x2 x3 x4 x5 x8 x9
+    rnf c = rnf (name c)            `seq`
+            rnf (csig c)            `seq`
+            rnf (super c)           `seq`
+            rnf (tyConOf c)         `seq`
+            rnf (funDeps c)         `seq`
+            rnf (inputPositions c)  `seq`
+            -- funDeps2, genInsts, getInsts intentionally not forced
+            rnf (allowIncoherent c) `seq`
+            rnf (isComm c)          `seq`
+            rnf (pkg_src c)         `seq`
+            rnf (assocTypes c)
 
 instance Eq Class where
     c == c'  =  name c == name c'
@@ -204,19 +203,27 @@ instance Ord Class where
     c <= c'  = (name c, csig c) <= (name c', csig c')
     c `compare` c'  = (name c, csig c) `compare` (name c', csig c')
 
+-- | Compute Class.inputPositions from the functional-dependency matrix and arity.
+-- Returns positions that are False (input) in ALL fundep directions.
+-- When empty (all positions are outputs in some direction), the PredTrie
+-- degenerates to a flat list and returns all instances for any query.
+pureInputPositions :: [[Bool]] -> Int -> [Int]
+pureInputPositions bss n = [ i | i <- [0 .. n - 1], not (any (!! i) bss) ]
+
 -- someone should comment what all these
 -- things are that go into an Inst.
-data Inst = Inst CExpr [TyVar] (Qual Pred)
+data Inst = Inst CExpr [TyVar] (Qual Pred) (Maybe Id)
+                                            -- ^ source package (Nothing = current package)
 
 instance NFData Inst where
-    rnf (Inst x1 x2 x3) = rnf3 x1 x2 x3
+    rnf (Inst x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
 
-mkInst :: CExpr -> Qual Pred -> Inst
-mkInst e i = Inst e (tv i) i
+mkInst :: CExpr -> Qual Pred -> Maybe Id -> Inst
+mkInst e i pkg = Inst e (tv i) i pkg
 
 instance Types Inst where
-    apSub s (Inst e _ i) = Inst (apSub s e) [] (apSub s i)
-    tv (Inst _ vs _) = vs
+    apSub s (Inst e _ i pkg) = Inst (apSub s e) [] (apSub s i) pkg
+    tv (Inst _ vs _ _) = vs
 
 {-
 instance Match Pred where
@@ -225,10 +232,10 @@ instance Match Pred where
 -}
 
 instance PPrint Inst where
-    pPrint d p (Inst e _ qp) = text "(Inst" <+> pPrint d 10 e <+> pPrint d 10 qp <> text ")"
+    pPrint d p (Inst e _ qp pkg) = text "(Inst" <+> pPrint d 10 e <+> pPrint d 10 qp <+> pPrint d 10 pkg <> text ")"
 
 instance PVPrint Inst where
-    pvPrint d p (Inst e _ qp) = text "(Inst" <+> pvPrint d 10 e <+> pvPrint d 10 qp <> text ")"
+    pvPrint d p (Inst e _ qp pkg) = text "(Inst" <+> pvPrint d 10 e <+> pvPrint d 10 qp <+> pvPrint d 10 pkg <> text ")"
 
 -----------------------------------------------------------------------------
 
@@ -255,13 +262,12 @@ expandSyn t0 = exp [] f as
                             t' = setTypePosition (getIdPosition i) t
                             (f', as') = splitTAp $ inst as1 t'
                         in exp (i:syns) f' (as' ++ as2)
+        -- Type functions (TIatf) are NOT expanded here; they are handled by
+        -- normT via expTFun, which generates the appropriate class constraint.
         exp _ f@(TCon (TyCon i _ _)) as
-          | isTFun i = apTFun f i $ map expandSyn as
+          | isPrimTFunName i = apTFun f i $ map expandSyn as
         -- f does not contain a TAp or a synonym TCon, so it cannot have synonyms to expand
         exp _ f as = foldl TAp f $ map expandSyn as
-
-isTFun :: Id -> Bool
-isTFun i = i `elem` numOpNames ++ strOpNames
 
 apTFun :: Type -> Id -> [Type] -> Type
 apTFun _ i [TCon (TyNum x px), TCon (TyNum y py)] | Just n <- opNumT i [x, y] = TCon (TyNum n p')
@@ -302,4 +308,4 @@ instance Instantiate Pred where
     inst ts (IsIn c t) = IsIn c $ expandSyn <$> inst ts t
 
 instance Instantiate Inst where
-    inst ts (Inst e ks h) = Inst e [] (inst ts h)
+    inst ts (Inst e ks h pkg) = Inst e [] (inst ts h) pkg

@@ -17,7 +17,7 @@ module FlagsDecode(
              getFlagValueString,
         ) where
 
-import Data.List(nub, sort, intercalate, intersperse, partition)
+import Data.List(nub, sort, intercalate, intersperse, partition, stripPrefix)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Control.Exception as CE
@@ -389,10 +389,19 @@ helpMessage showHidden prog args cd =
                  "  %p    package name",
                  "  %m    module name" ++
                    " (empty for passes not involved in code generation)",
+                 "  %s    compiler pass",
                  "  %%    the % character",
                  "% followed by any other character yields that character",
                  "You may substitute -KILL for -d" ++
                    " to stop compilation after the named pass",
+                  "",
+                  "-dall enables dumping after every pass;" ++
+                  " an optional filename (with digraphs) may be provided." ++
+                  " If a filename is given for an individual pass, it takes" ++
+                  " precedence over the -dall filename.",
+                  "",
+                  "Note: If a file is dumped to multiple times in a compilation,",
+                  "it is appended to after the first dump.",
                  "",
                  "The following trace flags are also available:",
                  unwords (map ("-"++) (sort traceflags))
@@ -433,9 +442,10 @@ traceflags = [
           "trace-cfmap",
           "trace-cfmaps",
           "trace-conAp",
+          "trace-atf-cache",
+          "trace-atf-cache-miss",
           "trace-ctxreduce",
           "trace-debug",
-          "trace-eq-witnesses",
           "trace-eval-steps",
           "trace-eval-types",
           "trace-eval-if",
@@ -448,8 +458,10 @@ traceflags = [
           "trace-heap",
           "trace-heap-alloc",
           "trace-heap-size",
+          "trace-icheck",
           "trace-inst-tree",
           "trace-instance-overlap",
+          "legacy-inst-index",
           "trace-kind-inference",
           "trace-lift",
           "trace-mergesched",
@@ -485,6 +497,7 @@ traceflags = [
           "trace-a-definitions",
           "trace-clock",
           "trace-def-cache",
+          "trace-cexpr-cache",
           "hack-disable-urgency-warnings",
           "hack-gate-clock-inputs",
           "hack-gate-default-clock",
@@ -500,7 +513,7 @@ traceflags = [
 
 defaultFlags :: String -> Flags
 defaultFlags bluespecdir = Flags {
-        aggImpConds = False,
+        aggImpConds = True,
         allowIncoherentMatches = False,
         backend = Nothing,
         bdir = Nothing,
@@ -521,7 +534,7 @@ defaultFlags bluespecdir = Flags {
         disableAssertions = False,
         passThroughAssertions = False,
         doICheck = True,
-        dumpAll = False,
+        dumpAll = Nothing,
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
@@ -552,6 +565,7 @@ defaultFlags bluespecdir = Flags {
         keepInlined = False,
         kill = Nothing,
         ifLift = True,
+        letGen = False,
         maxTIStackDepth = 1000,
         methodBVI = False,
         methodConf = False,
@@ -572,7 +586,6 @@ defaultFlags bluespecdir = Flags {
         optMuxConst = True,
         optSched = True,
         optUndet = False,
-        crossInfo = False,
         parallelSimLink = 1,
         printFlags = False,
         printFlagsHidden = False,
@@ -599,7 +612,7 @@ defaultFlags bluespecdir = Flags {
         rstGate = False,
         ruleNameCheck = True,
         satBackend = SAT_Yices,
-        schedConds = False,
+        schedConds = True,
         schedDOT = False,
         schedQueries = [],
         showCSyntax = False,
@@ -663,6 +676,10 @@ decodeFlags :: [String] -> ([String],[WMsg], [EMsg], Flags) -> ([String],[WMsg],
 decodeFlags (('-':'-':s):ss) (sets, warnings, bad, flags) | (length s > 1) && (head s /= '-') =
     -- accept --option as a synonym for -option (for long options)
     decodeFlags (('-':s):ss) (sets, warnings, bad, flags)
+decodeFlags (s@("-dall"):ss) (sets, warnings, bad, flags) =
+    decodeFlags ss (sets, warnings, bad, flags { dumpAll = Just Nothing })
+decodeFlags (s:ss) (sets, warnings, bad, flags) | Just file <- stripPrefix "-dall=" s =
+    decodeFlags ss (sets, warnings, bad, flags { dumpAll = Just (Just file) })
 decodeFlags (s@('-':'d':d):ss) (sets, warnings, bad, flags) | (isDumpName d) =
     case reads ("DF" ++ d) of
     [(df, "")]
@@ -1103,10 +1120,6 @@ externalFlags = [
          (Toggle (\f x -> f {cpp=x}) (showIfTrue cpp),
           "preprocess the source with the C preprocessor", Visible)),
 
-        ("cross-info",
-         (Toggle (\f x -> f {crossInfo=x}) (showIfTrue crossInfo),
-          "apply heuristics for preserving source code positions", Hidden)),
-
         ("D",
          (Arg "macro" (\f s -> Left (f {defines = defines f ++ [s]})) (Just (FRTListString defines)),
           "define a macro for the BSV or Verilog preprocessor", Visible)),
@@ -1117,10 +1130,6 @@ externalFlags = [
                        in  addToMsgList f "-demote-errors" s demoteErrors updFn)
               (showMsgList demoteErrors),
           "treat a list of errors as warnings (`:' sep list of tags)", Visible)),
-
-        ("dall",
-         (NoArg (\f -> Left $ f {dumpAll=True}) (Just dumpAll),
-          "dump after all passes", Hidden)),
 
         ("bug-icheck",
          (Toggle (\f x -> f {doICheck=x}) (showIfTrue doICheck),
@@ -1247,6 +1256,10 @@ externalFlags = [
         ("lift",
          (Toggle (\f x -> f {ifLift=x}) (showIfTrue ifLift),
           "lift method calls in \"if\" actions", Visible)),
+
+        ("let-gen",
+         (Toggle (\f x -> f {letGen=x}) (showIfTrue letGen),
+          "generalize untyped let bindings", Hidden)),
 
         ("max-tcheck-stack-depth",
          (Arg "depth"
@@ -1822,7 +1835,6 @@ showFlagsRaw flags =
           ("cdir", show (cdir flags)),
           ("cpp", show (cpp flags)),
           ("cppFlags", show (cppFlags flags)),
-          ("crossInfo", show (crossInfo flags)),
           ("cxxFlags", show (cxxFlags flags)),
           ("defines", show (defines flags)),
           ("demoteErrors", show (demoteErrors flags)),
@@ -1852,6 +1864,7 @@ showFlagsRaw flags =
           ("keepFires", show (keepFires flags)),
           ("keepInlined", show (keepInlined flags)),
           ("kill", show (kill flags)),
+          ("letGen", show (letGen flags)),
           ("linkFlags", show (linkFlags flags)),
           ("maxTIStackDepth", show (maxTIStackDepth flags)),
           ("methodBVI", show (methodBVI flags)),

@@ -15,21 +15,20 @@ import PreIds(idAssign)
 type FixTable = [(Id, Fixity)]
 
 parseOps :: ErrorHandle -> CPackage -> IO CPackage
-parseOps errh (CPackage i exps imps fixs defs includes) =
-    let ft = map getFixes fixs ++ concatMap getImpFixes imps in
+parseOps errh (CPackage i exps imps impsigs fixs defs includes) =
+    let ft = map getFixes fixs ++ concatMap getImpFixes impsigs in
     --trace (show ft) $
     do
        defs' <- convErrorMonadToIO errh (mapM (pDefn ft) defs)
-       return (CPackage i exps imps fixs defs' includes)
+       return (CPackage i exps imps impsigs fixs defs' includes)
 
 getFixes :: CFixity -> (Id, Fixity)
 getFixes (CInfix  p i) = (i, FInfix  (fromInteger p))
 getFixes (CInfixl p i) = (i, FInfixl (fromInteger p))
 getFixes (CInfixr p i) = (i, FInfixr (fromInteger p))
 
-getImpFixes :: CImport -> FixTable
+getImpFixes :: CImportedSignature -> FixTable
 getImpFixes (CImpSign _ _ (CSignature _ _ fixs _)) = map getFixes fixs
-getImpFixes _ = []
 
 pDefn :: FixTable -> CDefn -> ErrorMonad CDefn
 pDefn ft (Cinstance t ds) = do
@@ -50,12 +49,12 @@ pDefn ft def@(Cstruct _ sst idk _ fs _) =
        -- Created by Deriving
        SPolyWrap _ _ _ -> internalError("ParseOp.pDefn: unexpected structure type: SPolyWrap\n" ++ ppReadable def)
 
-pDefn ft def@(Cclass incoh cps idk is fdps fs) = do
+pDefn ft def@(Cclass incoh cps idk is fdps ats fs) = do
   let pField f@(CField { cf_default = fcs }) = do
         fcs' <- mapM (pCClause ft) fcs
         return (f { cf_default = fcs' })
   fs' <- mapM pField fs
-  let def' = Cclass incoh cps idk is fdps fs'
+  let def' = Cclass incoh cps idk is fdps ats fs'
   checkDupls def' "function" "typeclass" (iKName idk) (map cf_name fs)
 
 pDefn ft def@(Cdata { cd_name = idk, cd_original_summands = ocs }) =
@@ -313,14 +312,11 @@ doOne ft rrs@(CRator ia iop:rs) oos@((sa,sop):os) es =
             else
                 doOp ft sa sop rrs os es
 doOp :: FixTable -> Int -> Id -> [COp] -> [(Int, Id)] -> [CExpr] -> ErrorMonad CExpr
-doOp ft a op rs os es =
-{-
-    if idFString op == fsMinus && a == 1 then
+doOp ft 1 op rs os es =
         case es of
-            e:es' -> doOne ft rs os (ENegate e : es')
-            _ -> internalError ("Bad operator arity (1) for "++pfpString op)
-    else
--}
+            e:es' -> doOne ft rs os (cVApply op [e] : es')
+            _ -> internalError ("ParseOp.doOp: Bad operator arity (1) for "++pfpString op)
+doOp ft 2 op rs os es =
         case es of
             e1:e2:es' -> -- XXX := to Cwrite (see above)
                          do let e' = if (op `qualEq` idAssign) then
@@ -328,8 +324,10 @@ doOp ft a op rs os es =
                                      else CBinOp e2 op e1
                             doOne ft rs os (e' : es')
             _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
+doOp ft a op _ _ _ = internalError ("ParseOp.doOp: Unexpected operator arity ("++show a++") for "++pfpString op)
 
 precOfA :: FixTable -> Int -> Id -> (Int, Fixity)
+precOfA _  1 _ = (16, FPrefix)
 precOfA ft _ i =
     case getIdFixity ft i of
     f@(FInfix  i) -> (i, f)

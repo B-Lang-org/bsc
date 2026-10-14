@@ -1,0 +1,47 @@
+package LoopConfinedArg2 where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- A TWO-argument method.  Each argument is a split Pair, so the method has
+-- split input ports op_1_p1/op_1_p2 (argument 1) and op_2_p1/op_2_p2
+-- (argument 2).  The split result field p1 is combinational ONLY from the
+-- SECOND argument's field p1; result field p2 just passes the first argument's
+-- field p1 through.
+interface SubIfc =
+  op :: ShallowSplit Pair -> ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopConfinedArg2Sub #-}
+mkLoopConfinedArg2Sub :: Module SubIfc
+mkLoopConfinedArg2Sub =
+  module
+    interface
+      op (ShallowSplit x) (ShallowSplit y) =
+        ShallowSplit (Pair { p1 = y.p1; p2 = x.p1 })
+
+-- Close a genuine combinational loop confined to the SECOND argument:
+--   rw.wget -> op's argument-2 split input p1 -> op's split output p1 -> rw.wset
+-- Argument 1 is fed a constant and its contribution (result p2) is sunk into a
+-- register, so argument 1's ports are NOT part of the cycle.  G0032 must name
+-- "Argument 2"/"Return value 1" of method `op' and NOT "Argument 1".  This
+-- exercises per-port precision on the ARGUMENT index (with multiple split
+-- arguments), the counterpart to the single-argument no-loop tests.
+{-# synthesize mkLoopConfinedArg2 #-}
+mkLoopConfinedArg2 :: Module Empty
+mkLoopConfinedArg2 =
+  module
+    s <- mkLoopConfinedArg2Sub
+    rw :: RWire Bool <- mkRWire
+    sink :: Reg Bool <- mkReg False
+    let fb = isValid (rw.wget)
+    rules
+      "close_arg2_only": when True ==>
+        case s.op (ShallowSplit (Pair { p1 = False; p2 = False }))
+                  (ShallowSplit (Pair { p1 = fb; p2 = False })) of
+          ShallowSplit res ->
+            do (if res.p1 then rw.wset True else noAction)
+               sink := res.p2

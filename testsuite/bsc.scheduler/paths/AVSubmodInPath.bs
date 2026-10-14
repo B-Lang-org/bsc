@@ -1,0 +1,42 @@
+package AVSubmodInPath where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- A value submodule with a split input and split output: result p1 is
+-- combinational from input p1, result p2 from a register.
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkAVSubmodInSub #-}
+mkAVSubmodInSub :: Module SubIfc
+mkAVSubmodInSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = r })
+
+-- A top-level ActionValue method whose split input arg is wired straight
+-- into the submodule's split input, and whose split result is the
+-- submodule's split result.  This threads per-port paths through a
+-- submodule from an AV method: upd_1_p1 -> upd_p1 only.  upd_1_p2 reaches
+-- only the submodule's registered field, so no path to either output, and
+-- upd_p2 (the registered field) has no combinational path at all.
+interface AVIfc =
+  upd :: ShallowSplit Pair -> ActionValue (ShallowSplit Pair)
+
+{-# synthesize mkAVSubmodInPath #-}
+mkAVSubmodInPath :: Module AVIfc
+mkAVSubmodInPath =
+  module
+    s <- mkAVSubmodInSub
+    cnt :: Reg Bool <- mkReg False
+    interface
+      upd (ShallowSplit a) =
+        do cnt := a.p2
+           case s.get (ShallowSplit a) of
+             ShallowSplit res -> return (ShallowSplit res)

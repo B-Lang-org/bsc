@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFDuplicateParam.bs
+Error: "ATFDuplicateParam.bs", line 6, column 7: (T0153)
+  Type function declaration for `Foo' has duplicate parameter `a'

@@ -1,0 +1,37 @@
+package UnaryMinusTest where
+
+{-# verilog sysUnaryMinusTest #-}
+sysUnaryMinusTest :: Module Empty
+sysUnaryMinusTest =
+  module
+    let -- unary minus on integer literals
+        a :: Int 12
+        a = -1
+        b :: Int 12
+        b = -273
+        -- unary minus on a variable
+        x :: Int 12
+        x = 3
+        c :: Int 12
+        c = -x
+        -- unary minus on a parenthesized expression
+        d :: Int 12
+        d = -(x + 1)
+        -- double negation
+        e :: Int 12
+        e = -(-x)
+        -- binary subtraction
+        f :: Int 12
+        f = 5 - 3
+        -- binary subtraction with unary operand on the right
+        g :: Int 12
+        g = 5 - (-2)
+    rules
+      when True ==>
+        action
+          if a == -1 && b == -273 &&
+             c == -3 && d == -4 && e == 3 &&
+             f == 2 && g == 7
+            then $display "PASS"
+            else $display "FAIL"
+          $finish 0

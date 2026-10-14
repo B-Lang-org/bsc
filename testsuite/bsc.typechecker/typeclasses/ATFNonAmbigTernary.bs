@@ -1,0 +1,10 @@
+package ATFNonAmbigTernary where
+
+-- Test that a type function corresponding to a 3-argument type class is not considered ambiguous
+-- when the result and one of the arguments are determined.
+
+class (MyAdd :: # -> # -> # -> *) a b c | a b -> c, a c -> b, b c -> a where
+  type MyTAdd a b = c
+
+sysNonAmbigTernary :: (MyAdd 1 n c) => Module (Reg (Bit (MyTAdd 1 n)))
+sysNonAmbigTernary = mkReg _

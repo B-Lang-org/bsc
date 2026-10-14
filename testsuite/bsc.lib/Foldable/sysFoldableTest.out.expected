@@ -1,0 +1,24 @@
+-- foldr/foldl --
+10
+-10
+100
+18
+99
+0
+-- length/null --
+4
+3
+0
+0 1
+-- elem --
+1 0
+-- toList --
+4
+100
+-- mapM_ (Action) --
+1
+2
+3
+4
+-- foldrM (Maybe monad) --
+10

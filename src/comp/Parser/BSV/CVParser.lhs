@@ -27,7 +27,7 @@
 > import Type
 > import IntLit
 > import Error(internalError, EMsg, WMsg, ErrMsg(..),
->              ErrorHandle, bsError, bsWarning, exitOK)
+>              ErrorHandle, bsError, exitOK)
 > import Flags(Flags, DumpFlag(..),
 >              stdlibNames, disableAssertions, preprocessOnly, genName)
 > import Util
@@ -1132,10 +1132,13 @@ TYPE CLASSES AND INSTANCES
 >        context <- option [] pProvisos
 >        deps <- option [] pDependencies
 >        pSemi
->        functions <- many (pTypeclassFunction <|> pTypeclassModule <|> pTypeclassVarDecl)
+>        items <- many (   (fmap Left  pTypeclassAssocDepFun)
+>                      <|> (fmap Right (pTypeclassFunction <|> pTypeclassModule <|> pTypeclassVarDecl)))
+>        let assocTypes = [a | Left  a <- items]
+>            functions  = [f | Right f <- items]
 >        pEndClause SV_KW_endtypeclass (Just $ iKName name)
 >        -- XXX dependencies
->        return [ISTypeclass pos name context deps params functions]
+>        return [ISTypeclass pos name context deps params assocTypes functions]
 
 > pTypeclassModule :: SV_Parser CField
 > pTypeclassModule =
@@ -1197,6 +1200,18 @@ TYPE CLASSES AND INSTANCES
 >                         cf_type = CQType [] varType,
 >                         cf_default = defValue
 >                       })
+
+> pTypeclassAssocDepFun :: SV_Parser CAssocDepFun
+> pTypeclassAssocDepFun =
+>     do pKeyword SV_KW_type
+>        name <- pConstructor <?> "associated type dependency function name"
+>        pks <- option [] pTypedefParams
+>        let (params, _kinds) = unzip pks
+>        pEq
+>        rhs <- pIdentifier <?> "type variable"
+>        pSemi
+>        return (CAssocDepFun name params rhs)
+
 
 > pClassNameType :: SV_Parser (Id, CType)
 > pClassNameType =
@@ -1447,7 +1462,10 @@ returns a single identifier formed by joining the components with underscores.
 >             -- Bool indicates whether there's a separate Ready method for this one
 > pMethodVeriProt prefix =
 >     do pos <- getPos
+>        -- A hand-written BVI value method has a single result port; there is
+>        -- no syntax for multiple output ports yet (TODO).
 >        (optOPort, name) <- pMethodNameOptOPort <?> "method output port or name"
+>        let oPorts = maybeToList optOPort
 >        multi <- option 1 (pInBrackets pDecimal)
 >        args <- (option [] (pInParens (pCommaSep pMethodArgVeriPort))
 >                 <?> "method arguments")
@@ -1492,16 +1510,19 @@ returns a single identifier formed by joining the components with underscores.
 >                            Just (VeriPt p) ->
 >                              [(mkRdyId name,
 >                                V.Method (mkRdyId fullname)
->                                    clk rst 0 [] (Just p) Nothing,
+>                                    clk rst 0 [] [p] Nothing,
 >                                False)]
 >                            Just _ -> internalError "pMethodVeriProt(4)"
+>        -- BVI does not support method args with multiple ports,
+>        -- but VModInfo.Method expects a list of ports for each arg.
+>        let argGroups = map (:[]) args
 >        return ((name,
 >                 V.Method fullname
 >                          clk
 >                          rst
 >                          multi
->                          args
->                          optOPort
+>                          argGroups
+>                          oPorts
 >                          en,
 >                  not(null nullOrReady))
 >                : nullOrReady)
@@ -4068,6 +4089,7 @@ a function definition, and a body must be present.
 >         (do when (not isTypeClassItem) (fail "not typeclass item")
 >             lookAhead (choice [pKeyword SV_KW_function,
 >                                pKeyword SV_KW_module,
+>                                pKeyword SV_KW_type,
 >                                pKeyword SV_KW_endtypeclass])
 >             return Nothing)
 >         <|>
@@ -4584,7 +4606,8 @@ a "module verilog":
 >     let g (s,Nothing) = [(s,[])]
 >         g (s,Just g) = [(s,[]),(g,[])]
 >         f (Nothing, _) = []
->         f (Just i , cmg) = [V.Method i Nothing Nothing 1 (concat(map g cmg)) Nothing Nothing]
+>         f (Just i , cmg) =
+>             [V.Method i Nothing Nothing 1 (map (:[]) (concat (map g cmg))) [] Nothing]
 >     in concat . (map f)
 
 > pImperativeForeignModuleAt :: Position -> Attributes -> ImperativeFlags
@@ -4763,7 +4786,7 @@ parameters to the parsers that might take them.
 >        defs <- imperativeToCDefns stmtsNoImportsExports
 >        endpackage
 >        eof svTokenToString
->        return $ CPackage name exports imports [] defs []
+>        return $ CPackage name exports imports [] [] defs []
 
 parse a package and return warnings accumulated by parser
 
@@ -5877,32 +5900,30 @@ get current "Position"
 parse tokens into CSyntax
 
 > bsvParseTokens :: ErrorHandle -> Flags ->
->                   Bool -> String -> String -> [SV_Token] ->
->                   IO CPackage
-> bsvParseTokens errh flags show_warns filename defaultPkgName tokens =
+>                   String -> String -> [SV_Token] ->
+>                   IO (CPackage, [WMsg])
+> bsvParseTokens errh flags filename defaultPkgName tokens =
 >     do let initPos | null tokens = initialPosition filename
 >                    | otherwise = start_position (head tokens)
 >        result <- runParser (pPackageWithWarnings defaultPkgName)
 >                  (emptyParserState errh flags) initPos tokens
 >        case result of
 >          Left  errs         -> bsError errh errs
->          Right (pkg, warns) -> do when (not (null warns) && show_warns) $
->                                       bsWarning errh warns
->                                   return pkg
+>          Right (pkg, warns) -> return (pkg, warns)
 
 tokenize and parse string into CSyntax
 
 > bsvParseString :: ErrorHandle -> Flags ->
->                   Bool -> String -> String -> String ->
->                   IO (CPackage, TimeInfo)
-> bsvParseString errh flags show_warns filename defaultPkgName source =
+>                   String -> String -> String ->
+>                   IO (CPackage, TimeInfo, [WMsg])
+> bsvParseString errh flags filename defaultPkgName source =
 >     do
 >       let initpos =
 >               updatePosStdlib (initialPosition filename) (stdlibNames flags)
 >       t <- getNow
 >       start flags DFvpp
 >       vppOut@(ppsource, includes)  <- preprocess errh flags initpos source
->       let dumpnames = (baseName (dropSuf filename), "", "")
+>       let dumpnames = (Just (baseName (dropSuf filename)), Nothing, Nothing)
 >       t <- dump errh flags t DFvpp dumpnames (VPPOut vppOut)
 >       when ( preprocessOnly flags ) $ do putStrLn ppsource
 >                                          exitOK errh
@@ -5914,11 +5935,11 @@ tokenize and parse string into CSyntax
 parsing is done after we return
 
 >       start flags DFparsed
->       (CPackage name exports imports fixs defs _)
->            <- bsvParseTokens errh flags show_warns filename defaultPkgName tokens
->       let package = (CPackage name exports imports fixs defs (map CInclude includes))
+>       (CPackage name exports imports impsigs fixs defs _, warns)
+>            <- bsvParseTokens errh flags filename defaultPkgName tokens
+>       let package = (CPackage name exports imports impsigs fixs defs (map CInclude includes))
 >       t <- vdump errh flags t DFparsed dumpnames package
->       return (package, t)
+>       return (package, t, warns)
 
 wrapper function to allow parsing from TCL for a specific type
 XXX should fixup positions here

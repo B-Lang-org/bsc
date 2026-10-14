@@ -1,0 +1,32 @@
+package RWireFanout where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- One Action method takes a split input (p1, p2) and forwards ONLY field
+  -- p1 onto a combinational RWire.  Two distinct value methods (outA, outB)
+  -- both read that wire.  So the single split input sub-port put_1_p1 fans out
+  -- combinationally to the outputs of TWO different methods, while its sibling
+  -- field put_1_p2 (never written to the wire) reaches neither output.
+  put  :: ShallowSplit Pair -> Action
+  outA :: Bool
+  outB :: Bool
+
+{-# synthesize mkRWireFanout #-}
+mkRWireFanout :: Module Ifc
+mkRWireFanout =
+  module
+    w :: RWire Bool <- mkRWire
+    interface
+      put (ShallowSplit a) = w.wset a.p1
+      outA = case w.wget of
+               Just v -> v
+               Nothing -> False
+      outB = case w.wget of
+               Just v -> not v
+               Nothing -> False

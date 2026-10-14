@@ -34,21 +34,21 @@ module mkFourInoutBuses(CLK,
 			RST_N,
 			.a(a),
 			.b(a),
-			.c(o$FOO),
+			c,
 			.d(d),
 			.e(d),
 			.f(d));
   input  CLK;
   input  RST_N;
   inout  [4 : 0] a;
-  inout  [4 : 0] o$FOO;
+  inout  [4 : 0] c;
   inout  [4 : 0] d;
 
   // ports of submodule h
   wire [4 : 0] h$FOO;
 
   // ports of submodule o
-  wire [4 : 0] o$FOO;
+  wire [4 : 0] c;
 
   // submodule g
   InoutArgStub g(.ARG(d));
@@ -72,15 +72,15 @@ module mkFourInoutBuses(CLK,
   InoutArgStub m(.ARG(a));
 
   // submodule n
-  InoutStubSrc1 n(.FOO(o$FOO));
+  InoutStubSrc1 n(.FOO(c));
 
   // submodule o
-  InoutStubSrc1 o(.FOO(o$FOO));
+  InoutStubSrc1 o(.FOO(c));
 
   // submodule p
-  InoutStubSrc1 p(.FOO(o$FOO));
+  InoutStubSrc1 p(.FOO(c));
 
   // submodule q
-  InoutArgStub q(.ARG(o$FOO));
+  InoutArgStub q(.ARG(c));
 endmodule  // mkFourInoutBuses
 

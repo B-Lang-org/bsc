@@ -1,13 +1,13 @@
 checking package dependencies
 compiling IgnoreRdy.bs
 code generation for mkBar starts
-=== schedule:
+=== schedule (IgnoreRdy mkBar):
 parallel: [esposito: [bar -> [], glurph -> []]]
 order: [bar, glurph]
 
 -----
 
-=== resources:
+=== resources (IgnoreRdy mkBar):
 [(f.deq, [(f.deq, 1)]),
  (f.enq, [(f.enq bar_1, 1)]),
  (f.i_notEmpty, [(f.i_notEmpty, 1)]),
@@ -15,7 +15,7 @@ order: [bar, glurph]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IgnoreRdy mkBar):
 SchedInfo
 [RDY_bar CF [RDY_bar, RDY_glurph, bar, glurph],
  RDY_glurph CF [RDY_glurph, bar, glurph],
@@ -48,13 +48,13 @@ Logical execution order: bar, glurph
 =====================================
 Verilog file created: mkBar.v
 code generation for sysIgnoreRdy starts
-=== schedule:
+=== schedule (IgnoreRdy sysIgnoreRdy):
 parallel: [esposito: [foo -> [], RL_do_glurph -> []]]
 order: [foo, RL_do_glurph]
 
 -----
 
-=== resources:
+=== resources (IgnoreRdy sysIgnoreRdy):
 [(b.RDY_bar, [(b.RDY_bar, 1)]),
  (b.RDY_glurph, [(b.RDY_glurph, 1)]),
  (b.bar, [(b.bar foo_1, 1)]),
@@ -62,7 +62,7 @@ order: [foo, RL_do_glurph]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IgnoreRdy sysIgnoreRdy):
 SchedInfo [RDY_foo CF [RDY_foo, foo], foo C foo] [] [] []
 
 -----

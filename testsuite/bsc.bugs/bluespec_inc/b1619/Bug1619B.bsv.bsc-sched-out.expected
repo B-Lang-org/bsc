@@ -13,7 +13,7 @@ Warning: "Bug1619B.bsv", line 2, column 8: (G0010)
   Rule "high_priority" was treated as more urgent than "normal_2". Conflicts:
     "high_priority" cannot fire before "normal_2": calls to x.write vs. x.read
     "normal_2" cannot fire before "high_priority": calls to x.write vs. x.read
-=== schedule:
+=== schedule (Bug1619B sysBug1619B):
 parallel: [esposito: [RL_high_priority -> [],
 		      RL_normal -> [RL_high_priority],
 		      RL_normal_1 -> [RL_high_priority],
@@ -22,7 +22,7 @@ order: [RL_high_priority, RL_normal, RL_normal_1, RL_normal_2]
 
 -----
 
-=== resources:
+=== resources (Bug1619B sysBug1619B):
 [(decr1.read, [(decr1.read, 1)]),
  (n.read, [(n.read, 1)]),
  (x.read, [(x.read, 1)]),
@@ -30,7 +30,7 @@ order: [RL_high_priority, RL_normal, RL_normal_1, RL_normal_2]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Bug1619B sysBug1619B):
 SchedInfo [] [] [] []
 
 -----

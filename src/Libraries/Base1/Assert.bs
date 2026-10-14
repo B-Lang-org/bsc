@@ -35,8 +35,7 @@ dynamicAssert :: Bool -> String -> Action
 dynamicAssert = if not testAssert then (\ _ _ -> noAction)
                 else (\ b s -> if b then noAction else
                         action
-                          $display (assertMessage "Dynamic" s)
-                          $finish 0
+                          $fatal 0 (assertMessage "Dynamic" s)
                      )
 
 nullModule :: (IsModule m c) => m Empty
@@ -59,6 +58,5 @@ continuousAssert = if not testAssert then (\_ _ -> nullModule)
                          "continuousAssert":
                           when not b ==>
                            action
-                            $display (assertMessage "Continuous" s)
-                            $finish 0
+                            $fatal 0 (assertMessage "Continuous" s)
                      )

@@ -43,7 +43,9 @@ endfunction
 module mkCompletionBuffer (CompletionBuffer#(n, a))
   provisos (Bits#(a, sa), Log#(n, ln), Add#(1, ln, ln1));
 
-    let hi = fromInteger(valueOf(n) - 1);
+  function t hi() provisos(Literal#(t));
+    return(fromInteger(valueOf(n) - 1));
+  endfunction
 
     function Action incr(Reg#(Bit#(ln)) r);
      action

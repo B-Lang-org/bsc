@@ -4,6 +4,452 @@ Bluespec Compiler (BSC) Release Notes
 :last-update-label!:
 :nofooter:
 
+2026.07.1 Release
+-----------------
+
+This release fixes a bug (GitHub Issue#1122) introduced in the
+testsuite (by GitHub PR#859), causing certain test subdirectories to
+fail when executed with `make check`.  This is fixed and documented
+and the CI has been updated to support testing with `make check` to
+prevent future regression (GitHub PR#1123).
+
+2026.07 Release
+---------------
+
+PLEASE NOTE!  This release includes backward-incompatible changes!
+But it also introduces significant new features and performance
+improvements.
+
+Incompatibilities: This release enables the `-aggressive-conditions`
+and `-sched-conditions` flags by default, each of which can be
+disabled by `-no-aggressive-conditions` and `-no-sched-conditions`
+respectively.  Type inference for untyped let-statements has changed;
+code that relied on this will need an explicit type signature now, but
+if necessary, the `-let-gen` flag is available to revert to the
+previous behavior.  There is a syntax change in the output of Bluetcl
+commands that report port lists for a method, as there may now be
+multiple ports (or no ports) for method arguments and results.
+
+New features: Method arguments and results are no longer restricted to
+a single port in the generated Verilog.  BSC can generate multiple
+ports, based on the type; see `SplitPorts` in the Libraries Reference
+Guide.  Feedback on this experimental feature is welcomed.  Another
+exciting new feature is that type classes can now contain associated
+type functions (ATF), that allow users to define their own type
+constructors for accessing the dependent types of the class -- like
+`SizeOf` for the `Bits` class.
+
+Among many improvements in run time and memory usage, some
+long-standing issues have been addressed in the elaboration of
+vector/array selection (GitHub PR#1008) and loops (GitHub PR#919) and
+in the scaling of large modules (GitHub PR#957).
+
+Many further performance improvements and new features are in the
+pipeline.  Your ongoing feedback is welcome, either in the Groups.io
+mailing lists or at the GitHub repository.
+
+Changes since release 2026.01:
+
+Documentation
+~~~~~~~~~~~~~
+
+* Updates to `README.md`
+  ** Add Fedora and Homebrew to the list of systems with packaged BSC
+     (GitHub PR#971, PR#972)
+
+* Updates to `INSTALL.md`
+  ** Mention the third-party Terra repository as a source for the
+     `ghc-strict-concurrency` dependency when building on Fedora
+     (GitHub PR#941)
+  ** Clarify the GHC versions tested by the CI matrix (GitHub PR#1003)
+  ** Note that package managers for some systems may have GHC versions
+     that are older than what is tested in the CI (GitHub PR#1012)
+
+Compiler
+~~~~~~~~
+
+* Turn on `-aggressive-conditions` and `-sched-conditions` flags
+  by default (GitHub PR#966)
+  ** If this increases compile time (GitHub Issue#1056), they can be
+     individually turned off by providing `-no-aggressive-conditions`
+     and `-no-sched-conditions` respectively
+
+* Stop generalizing untyped `let` statements by default (GitHub PR#902)
+  ** This eliminates a common source of error and makes it easier to
+     use functions like `split`
+  ** Code that relied on this feature can be made to work by providing
+     an explicit general type signature
+  ** If necessary, the flag `-let-gen` can be used to revert to the
+     old behavior
+
+* New support for splitting method arguments and results into multiple
+  ports according to the type -- e.g. separate ports for fields of a
+  struct (GitHub Issue#714, PR#729, PR#932, PR#849, PR#959, PR#983, PR#1039)
+  ** This introduces new type classes to `Prelude` and new libraries
+     `SplitPorts` and `SplitVector`
+  ** Documentation for this feature is in the Libraries Reference
+     Guide, under `SplitPorts` (GitHub PR#1079)
+
+* New support for associated type functions (ATF) -- allows users to
+  define their own type constructors for computing the dependent types
+  of a type class, like `SizeOf` for `Bits` (GitHub PR#888, PR#935,
+  PR#962, PR#1032, PR#955)
+  ** `SizeOf` is itself now cleanly re-implemented as an associated
+     type function, which means it can be safely used in more contexts
+     now, such as inside interface and struct fields
+     (see, for example, PR#968)
+  ** Type synonyms are expanded as needed to uncover ATFs, fixing
+     long-standing bugs with `SizeOf` (GitHub Issue#311, Issue#890, PR#916)
+
+* New warning `T0157` for unused imports (GitHub PR#847, PR#920, PR#947, PR#924)
+
+* Improvements to stage dump flags (GitHub PR#859)
+  ** Allow `-dall` to take a file argument
+  ** Allow `%s` in file names to be replaced by the stage name
+  ** Include headers and footers when dumping to files
+  ** Use distinct names for all stages
+  ** Only overwrite a file the first time the stage is dumped;
+     subsequent dumps append to the existing file
+
+* Performance improvements
+  ** Improve proviso instance reduction (GitHub PR#893, PR#914,
+     PR#903, PR#981, PR#1032)
+  ** Eliminate double parsing (GitHub PR#859)
+  ** Improve elaboration (GitHub PR#911, PR#917, PR#918, PR#982,
+     PR#940, PR#1007, PR#919, PR#957, PR#955)
+  ** Improve scheduling (GitHub PR#910, PR#912, PR#913)
+  ** Improve Verilog code generation (GitHub PR#929, PR#957)
+  ** Improve Bluesim code generation (GitHub PR#987)
+  ** Improve binary file access (GitHub PR#936)
+  ** Improve Haskell evaluation (GitHub PR#915)
+
+* Fix memory consumption issue when printing `T0033` errors
+  (GitHub Issue#894, PR#896)
+
+* Improve heuristics for choosing names of generated signals
+  (GitHub PR#939, PR#940, PR#957)
+
+* Fix spurious `T0029` type check errors (GitHub PR#980)
+
+* Detect when coherent instance matching depends on incoherent matches
+  and warn or error as appropriate (GitHub PR#923)
+
+* Improve evaluator optimization rules, to simplify more occurrences of
+  pack applied to unpack (GitHub PR#926)
+
+* Remove the obsolete `-cross-info` flag (GitHub PR#919, Issue#863)
+
+* Internal clean-ups (GitHub PR#938, PR#962, PR#954, PR#919)
+
+Libraries
+~~~~~~~~~
+
+* Use `$fatal` for `Assert` so that simulation exits with a failure
+  code (GitHub Issue#296, PR#907)
+
+* In the `FloatingPoint` library, fix `FloatToFixed` of a denormalized
+  number (GitHub PR#933)
+
+* Add `Functor` and `Applicative` type classes as superclasses of
+  `Monad` (GitHub Issue#878, PR#883, PR#888, PR#952, PR#984)
+  ** `return` is now an alias for `pure` and not a member of `Monad`
+
+* Add `Foldable` and `Traversable` type class libraries (GitHub PR#953, PR#984)
+
+* Add `TreeMap` library based on Okasaki style red-black trees
+  (GitHub PR#931)
+
+* Add an `Ord` instance for `String` comparison (GitHub PR#931)
+
+* Add `Rep` associated type function for `Generic` (GitHub PR#908)
+
+* Add `PrintType` library for constructing type-level string
+  representations for types (GitHub PR#958)
+
+* Add `fromChunks` (inverse of `toChunks`) to the `Vector` library
+  (GitHub PR#885)
+
+* Remove unnecessary provisos in the `ZBusUtil` library (GitHub PR#903)
+
+* Obsolete the `*S` interfaces in the `CGetPut` and `BGetPut`
+  libraries, which were a workaround for previously not being able to
+  use `SizeOf` in interface methods (GitHub PR#968)
+
+* Simplify `vMkRWire1` which is only intended to be used internally by
+  BSC and remove `vMkUnsafeRWire1` which should not have been created
+  (GitHub PR#897)
+
+Bluetcl
+~~~~~~~
+
+* Change the output format for `module ports` and `submodule full`
+  commands to allow for method arguments and results to be split into
+  multiple ports (GitHub PR#849, PR#959)
+  ** This is updated in the User Guide documentation
+
+* New `sim isfatal` subcommand for querying whether the simulation
+  terminated because of a call to `$fatal` (GitHub PR#907)
+  ** This is updated in the User Guide documentation
+
+Bluesim
+~~~~~~~
+
+* Better handling of `$fatal` (GitHub PR#907)
+  ** New C API tracks whether simulated terminated because of a call to
+     `$fatal` and simulation exits with a failure status
+
+* Improve code generation to have stable orderings, not dependent on
+  the creation time of identifiers during compilation (GitHub PR#987)
+
+Verilog
+~~~~~~~
+
+* Use plain port syntax for `Inout` ports when possible (GitHub PR#1001)
+  ** Remove the `basicinout.pl` script, which is now unneeded
+
+* Fix Verilog output for operators `/` and `%` applied to complex
+  expressions (GitHub PR#939, PR#940)
+
+* Fix port connections for imported methods with multiplicity
+  (GitHub PR#928, PR#959)
+
+Utilities
+~~~~~~~~~
+
+* Clean up the example Bluetcl scripts (provided as is, with no
+  guarantees) so that they can at least be run out of the box
+  (GitHub PR#986)
+
+Test Suite
+~~~~~~~~~~
+
+* Add top-level `GNUMakefile` targets for running the full test suite
+  (GitHub PR#930)
+
+* Fix a race in the parallel `Makefile` targets that would lead to
+  the additional long tests not being run (GitHub PR#1006)
+
+* Update the `sed` arguments in Bluetcl test functions (GitHub PR#897)
+
+* Improve the facilities for running backend-agnostic tests with
+  multiple tests, such as checking dump output (GitHub PR#992)
+
+* Use the `dumpba` utility to check generated `.ba` files, as `dumpbo`
+  is used for `.bo` files (GitHub PR#957)
+
+* Make some tests less sensitive to `PreludeBSV` positions
+  (GitHub PR#897)
+
+* Fix bit rot in the MPEG4 long test (GitHub PR#995)
+
+* Clean up tests to have more predictable behavior across different
+  simulators or to be less sensitive to differences, to eventually
+  support running the test suite with Verilator
+  (GitHub PR#995, PR#990, PR#991, PR#993)
+  ** Some tests will require additional support from BSC
+     (GitHub Issue#989, PR#994)
+
+* Start a new section of the test suite `README.md` for conventions
+  and tips for writing tests (GitHub PR#990)
+
+* Many new tests for new features and bug fixes
+
+* Update to recognize `aarch64`, not just `arm64` (GitHub PR#973)
+
+Internal
+~~~~~~~~
+
+* Updates to GitHub CI (continuous integration)
+  ** Add CI for Intel-based MacOS 26 (GitHub PR#973)
+  ** Add CI for Ubuntu 26.04 (GitHub PR#973)
+  ** Add CI for Arm-based Ubuntu 24.04 and 26.04 (GitHub PR#973)
+  ** Add testing with the new GHC 9.14 (GitHub PR#898)
+  ** Remove testing with GHC 9.4 which is no longer recommended (GitHub PR#898)
+  ** Update the testing for GHC 9.10 to the latest 9.10.3 (GitHub PR#898)
+  ** Update the GHC HLS version to the latest 2.13.0.0 (GitHub PR898)
+  ** Update GitHub actions to newer versions (GitHub PR#898)
+  ** Use the `haskell/ghcup-setup` Action to install GHC/GHCup (GitHub PR#973)
+
+For Developers
+~~~~~~~~~~~~~~
+
+* Fix `STP_STUB=1` build option (GitHub Issue#595, PR#973)
+
+* When compiling with multiple parallel GHC jobs (specified by
+  `GHCJOBS`) scale the maximum heap size with the number of jobs
+  (GitHub PR#1019)
+
+* Increase the default stack size for profiling builds (GitHub PR#957)
+
+* Continue to support building with the older GHC 8.8.4 in the Ubuntu
+  22.04 package manager (GitHub Issue#1011, Issue#963, PR#1015)
+
+* Updates to `DEVELOP.md` introductory document
+  ** Add more links to documentation (GitHub PR#895)
+  ** Prominently mention the Haskell Language Server (HLS) files and
+     refer to the CI for examples of HLS, running GHC interactively
+     (GHCi), and installing dependencies (GitHub PR#979)
+
+'''
+
+2026.01 Release
+---------------
+
+This release brings a number of performance improvements and bug
+fixes, including more principled support for type synonyms.  The
+release also adds BH syntax support to Bluetcl.  A new dependency,
+on the `strict-concurrency` package, has been added for building BSC.
+Users of `Generics` may need to update a constructor name.
+
+Changes since release 2025.07:
+
+General
+~~~~~~~
+
+* Add a script to report the external Haskell packages used by GHC to
+  compile the BSC binaries, indicating the version, license, and
+  copyright information for each package (GitHub PR#876)
+
+Compiler
+~~~~~~~~
+
+* Fix the `Makefile` check for submodules to support building from
+  within a Git repo that is not the BSC repo (GitHub PR#874)
+
+* Implement `LiberalTypeSynonyms`: Type synonyms are macros that can
+  be partially applied, but in certain contexts that require a real
+  type, the macro must be expanded and BSC will report a user error if
+  not all arguments are applied at that point (GitHub Issue#221,
+  PR#833)
+
+* Error message improvements
+  ** Include the name of the foreign function in error `T0012` when
+     any of its types are not in `Bits` (GitHub PR#833)
+  ** Report the expected and given number of arguments in error `T0013`
+     when type synonyms are partially applied (GitHub PR#833)
+
+* Performance improvements
+  ** Avoid O(n^2) blowup in the Verilog backend on the number of
+     foreign function calls (GitHub PR#832)
+  ** Improve the performance of resource scheduling when the number of
+     resource uses is large (GitHub PR#828)
+  ** Improve the performance of writing large `.bi` files in the
+     `writeBin` stage (GitHub PR#856)
+  ** Improve time and memory usage during type check (GitHub PR#857)
+  ** Improve time and memory usage during elaboration (GitHub PR#861,
+     PR#858)
+  ** Improve the performance of expression and type substitution
+     during elaboration (GitHub PR#854)
+  ** Improve typecheck and elaboration by not generating unnecessary
+     bindings for provisos and by using sequential `let` instead of
+     recursive, which also allows for future optimization (GitHub
+     PR#848)
+  ** Improve performance throughout the compiler by replacing the
+     locally defined `Hyper` typeclass with the standard `NFData`
+     Haskell library (GitHub PR#851)
+  ** Replace old snapshot of `MVarStrict` (adjusted to use `Hyper`)
+     with the standard `MVar.Strict` Haskell library (GitHub PR#852)
+     *** This adds a dependency on the `strict-concurrency` package
+
+* Bug fixes
+  ** Eliminate an internal error in examples with numeric type
+     constructors (GitHub Issue#309, PR#833, PR#844)
+  ** Eliminate an internal error in examples where `SizeOf` still
+     exists after elaboration (GitHub Issue#310, Issue#593, Issue#841,
+     PR#842)
+  ** For wire modules with zero-size variants, generate the value as a
+     literal zero rather than don't-care, to avoid triggering
+     eventual optimization bugs (GitHub Issue#836, PR#837)
+  ** Fix a don't-care equality optimization in the evaluator that was
+     incorrectly applying to zero-sized values (GitHub Issue#836,
+     PR#837)
+  ** Fix position-tracking in the BH/Classic parser that was off by
+     one column after system task identifiers prefixed with `$`
+     (GitHub PR#873, PR#875)
+
+Libraries
+~~~~~~~~~
+
+* Add `lookupAll` utility to the `List` library (GitHub PR#845)
+
+* Extend the `Generics` representation to include type constructors
+  that take numeric and ordinary star kind arguments (GitHub PR#855)
+  ** This is a breaking change that renames `ConArg` to `OtherConArg`
+
+* Fix bug in `mkAlwaysFSM` for a sequence of one action
+  (GitHub Issue#825, PR#826)
+
+* Fix `oneHotSelect` in the `List` library to allow zero-width
+  elements (GitHub Issue#839, PR#840)
+
+* Remove unused `StmtFSMUtil` library (GitHub PR#827)
+
+* Update build dependencies in `depends.mk` (GitHub PR#827)
+
+Bluetcl
+~~~~~~~
+
+* Support BH/Classic (GitHub PR#838)
+  ** New `syntax` command controls whether Bluetcl prints using BSV or
+     BH syntax
+  ** When parsing user input, Bluetcl first tries the chosen syntax,
+     but will then try the other syntax if the first parse fails
+
+Verilog
+~~~~~~~
+
+* Fix the Verilator link script to pass C linking information from the
+  BSC command line to Verilator as `LDFLAGS` (GitHub PR#817)
+
+Utilities
+~~~~~~~~~
+
+* In the template for compiling Bluesim as a stand-alone executable,
+  fix a buffer overflow when writing a VCD (GitHub PR#821)
+
+Test Suite
+~~~~~~~~~~
+
+* Update the Bluetcl test procedures to allow testing BSV and BH
+  syntax, separately or together (GitHub PR#838)
+
+Internal
+~~~~~~~~
+
+* Updates to GitHub CI (continuous integration)
+  ** Generate the Haskell package information in BSC builds and
+     include in the uploaded artifact (GitHub PR#876)
+  ** Build and test in parallel using all available VM cores
+     (GitHub PR#846, PR#870)
+  ** Cancel in-progress workflows for a PR when new commits are pushed
+     (GitHub PR#866)
+  ** Support cross-repo development: When testing BSC builds in a
+     branch of a fork (or in a PR), before cloning the `bsc-contrib`,
+     `bdw`, or `Toooba` repos, check if a sibling fork exists with a
+     branch of the same name and, if so, clone that version instead
+     (GitHub PR#865, PR#867, PR#868)
+  ** Retire the CI for MacOS 12 (GitHub PR#830)
+  ** Add CI for Intel-based MacOS 15 (GitHub PR#830)
+  ** Add CI for MacOS 26 (beta) (GitHub PR#830)
+  ** Jobs not testing specific OS versions are bumped to Ubuntu 24.04
+     and MacOS 15 (GitHub PR#830)
+  ** Increase the timeout for building BSC on MacOS to allow for the
+     slower run-time of Intel-based MacOS 15 runners (GitHub PR#835)
+  ** Update GitHub actions to newer versions (GitHub PR#835)
+
+For Developers
+~~~~~~~~~~~~~~
+
+* Support setting `BSCFLAGS` in the environment when building
+  the libraries (GitHub PR#853)
+
+* Add missing `trace-eq-witnesses` to the list of trace flags
+  (GitHub PR#833)
+
+* Improve the tracing of `ISyntax` expressions (GitHub PR#860)
+
+'''
+
 2025.07 Release
 ---------------
 
@@ -12,7 +458,7 @@ Fedora Linux 42.  The release also improves the build instructions and
 fixes a long-standing VPI issue with imported functions of no
 arguments.
 
-Changes since release 2024.07:
+Changes since release 2025.01:
 
 Documentation
 ~~~~~~~~~~~~~

@@ -132,7 +132,11 @@ endmodule
 // A counter which can count from 0 to maxVal inclusive (maxVal known at compile time):
 module mkUCount#(Integer initValue, Integer maxValue) (UCount);
    let _i = ?;
-   let ii = fromInteger(initValue);
+
+   function a ii() provisos(Literal#(a));
+     return(fromInteger(initValue));
+   endfunction
+
    let m = maxValue;
 
    if (m < 0) begin

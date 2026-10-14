@@ -52,10 +52,12 @@ symlinks in `/usr/bin/` that point to the executables in
 ## Requirements
 
 To build a complete release of BSC, you will need:
- - The standard Haskell compiler [GHC]. The recommended version is the
-   latest 9.6 point release, but the Bluespec compiler should work
-   with any release from 7.10.3 through 9.12.  We recommend installing
-   GHC via the popular installer [GHCup].
+ - The standard Haskell compiler [GHC]. The recommended version is
+   9.6.7, which is the primary version built and tested by this
+   project's continuous integration (CI); newer versions are also
+   tested (see the [CI workflow] for the exact set).  Older versions
+   are untested and may not work.  We recommend installing GHC via
+   the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, `split`, and `strict-concurrency`.
  - The GNU Multiple Precision Arithmetic Library (GMP). `libgmp` is
@@ -81,6 +83,7 @@ The following dependencies are optional, though recommended:
    additional fonts.
  - To format release notes for publication, the [Asciidoctor] tool.
 
+[CI workflow]: .github/workflows/ci.yml
 [GHC]: https://www.haskell.org/ghc/
 [GHCUp]: https://www.haskell.org/ghcup/
 [Icarus Verilog]: https://steveicarus.github.io/iverilog/
@@ -116,7 +119,10 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command:
+substitute the following command.  Note well that the version of `ghc`
+tested for building the Bluespec toolchain is the version specified in
+the `ghcup install ghc` command above.  If your system packages an
+older `ghc` (check with `ghc --version`), it might not work.
 
 ```bash
 sudo apt-get install \
@@ -127,7 +133,7 @@ sudo apt-get install \
    libghc-split-dev
 ```
 
-However, if you use the package manager and want to profile the
+If you use the system's package manager and want to profile the
 Bluespec compiler (unlikely for most users), you will also need to the
 profiling-enabled versions of the Haskell libraries:
 
@@ -175,7 +181,10 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command:
+substitute the following command.  Note well that the version of `ghc`
+tested for building the Bluespec toolchain is the version specified in
+the `ghcup install ghc` command above.  If your system packages an
+older `ghc` (check with `ghc --version`), it might not work.
 
 ```bash
 sudo dnf install \
@@ -186,7 +195,7 @@ sudo dnf install \
    ghc-split-devel
 ```
 
-However, if you use the package manager and want to profile the
+If you use the system's package manager and want to profile the
 Bluespec compiler (unlikely for most users), you will also need to the
 profiling-enabled versions of the Haskell libraries:
 
@@ -198,11 +207,11 @@ sudo dnf install \
    ghc-old-time-prof \
    ghc-split-prof
 ```
-
 Note that there are currently no `ghc-strict-concurrency-devel` or
-`ghc-strict-concurrency-prof` packages.  Until such packages are
-created, that library would need to be installed using `cabal`, which
-is available via the `cabal-install` package.
+`ghc-strict-concurrency-prof` packages in upstream Fedora, however
+they can be installed using the [Terra
+repository](https://terrapkg.com/).  You can also install using
+`cabal`, which is available via the `cabal-install` package.
 
 ### MacOS systems
 

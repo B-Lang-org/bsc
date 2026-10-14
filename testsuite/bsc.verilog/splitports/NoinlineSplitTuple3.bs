@@ -1,0 +1,24 @@
+package NoinlineSplitTuple3 where
+
+import SplitPorts
+
+-- ShallowSplit of a 3-element tuple result: shallow-splitting produces a
+-- `fst` port and a combined `snd` port (the remaining elements packed
+-- together).  Reading the inner elements of `snd` selects bits out of an
+-- already-sliced wire, which previously produced an illegal chained Verilog
+-- index (wire[a:b][c:d]).
+{-# noinline triple #-}
+triple :: Int 8 -> Int 8 -> ShallowSplit (Int 8, Int 8, Bool)
+triple a b = ShallowSplit (a + b, a - b, a == b)
+
+{-# synthesize sysNoinlineSplitTuple3 #-}
+sysNoinlineSplitTuple3 :: Module Empty
+sysNoinlineSplitTuple3 =
+  module
+    r :: Reg (Int 8) <- mkReg 0
+    rules
+      when True ==> r := r + 1
+      when r == 5 ==>
+        case triple 7 3 of
+          ShallowSplit (s, d, e) -> $display "s=%d d=%d e=%d" s d e
+      when r == 6 ==> $finish

@@ -36,7 +36,10 @@ endmodule
 
 typedef Tuple2#(ILpm, LPMMemoryWires) ILPM0;
 
- (* synthesize *)
+(* synthesize *)
+// Aggressive conditions leads to too many users of "sram.read"
+// because of the exported "snd" interface, so we disable it
+(* options="-no-aggressive-conditions" *)
 module mkMesaTxLpm0(ILPM0);
    LPMMemoryStub stub <- mkStub;
    let sram = stub.mem;

@@ -7,7 +7,7 @@ Error: "ResourceOneRuleCSE2.bs", line 12, column 17: (G0004)
   and
     r.write(...)
   For the complete expressions use the flag `-show-range-conflict'.
-=== schedule:
+=== schedule (ResourceOneRuleCSE2 sysResourceOneRuleCSE2):
 Nothing
 
 -----

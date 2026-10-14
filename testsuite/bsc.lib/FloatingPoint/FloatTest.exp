@@ -3,3 +3,9 @@ test_c_veri_bsv_modules_options FloatTest {} {+RTS -K13M -RTS}
 # Test that aggressive condition lifting isn't needed for correctness
 test_c_veri_bsv_modules_options Float_Divide_TestConds {} {-no-aggressive-conditions}
 test_c_veri_bsv_modules_options Float_SquareRoot_TestConds {} {-no-aggressive-conditions}
+
+# Test for vFloatToFixed in the FixedFloatCVT typeclass
+# with various round modes, including subnormal/denormalized numbers
+# (GitHub issue #489)
+# Note that this only tests the instance for FixedPoint, not Int or UInt
+test_c_veri_bsv FloatToFixed_RoundMode

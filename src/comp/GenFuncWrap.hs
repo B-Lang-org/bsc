@@ -9,14 +9,14 @@ import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import PPrint
 import Id
-import PreIds(idBits, idUnpack, idPack, tmpVarIds,
-              idActionValue, idFromActionValue_)
+import PreIds(idFromWrapNoInline, idActionValue)
 import CSyntax
+import CSyntaxUtil(mkList, stringLiteralAt)
 import SymTab
 import Scheme
 import Assump
 import Type(tModule, fn)
-import CType(getArrows, cTVarNum)
+import CType(getArrows, getRes)
 import Pred(expandSyn)
 import TypeCheck(cCtxReduceDef)
 import Subst(tv)
@@ -51,7 +51,7 @@ type FuncInfo = (Id, Id, Id, [Id], CQType)
 genFuncWrap :: ErrorHandle -> Flags -> Bool -> CPackage -> SymTab ->
                IO (CPackage, SymTab, [FuncInfo])
 genFuncWrap errh flags False p s = return (p, s, [])
-genFuncWrap errh flags True (CPackage pkgId exps imps fixs ds includes) symt = do
+genFuncWrap errh flags True (CPackage pkgId exps imps impsigs fixs ds includes) symt = do
     let
         -- separate out the noinline pragmas
         (fpragmas, ds_no_fpragmas) = partition isNoInline ds
@@ -88,7 +88,7 @@ genFuncWrap errh flags True (CPackage pkgId exps imps fixs ds includes) symt = d
                   (addTypesQ symt (ts ++ qts)) (concat fss)
 
     return $
-        (CPackage pkgId exps imps fixs ds' includes, symt', concat iss)
+        (CPackage pkgId exps imps impsigs fixs ds' includes, symt', concat iss)
 
 -- ---------------
 
@@ -133,6 +133,7 @@ wrapFun errh pkgId d@(CDef i qt@(CQType [] t) cs) =
         -- type info for the new ifc
         ifcInf = TypeInfo (Just ifcQId) KStar []
                      (TIstruct (SInterface noIfcPragmas) [i])
+                     Nothing
 
         -- pragmas for the method
         field_pragmas = [PIArgNames argNames]
@@ -151,6 +152,7 @@ wrapFun errh pkgId d@(CDef i qt@(CQType [] t) cs) =
                      field_pragmas
                      [] -- no defaults
                      Nothing -- no type for wrapper tracking
+                     Nothing
 
         -- ----------
         -- generate a new module, providing that interface
@@ -199,9 +201,9 @@ wrapFun errh _ (CDefT i _ _ _) =
 
 addFuncWrap :: ErrorHandle -> SymTab -> [FuncInfo] -> CPackage -> IO CPackage
 addFuncWrap _ _ [] p = return p
-addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
+addFuncWrap errh symt is (CPackage modid exps imps impsigs fixs ds includes) = do
     is' <- concatMapM addf is
-    return $ CPackage modid exps imps fixs (ds ++ is') includes
+    return $ CPackage modid exps imps impsigs fixs (ds ++ is') includes
   where
     addf :: FuncInfo -> IO [CDefn]
     addf (mi, ti, i, args, qt) =
@@ -225,8 +227,13 @@ addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
                       let -- the number of arguments
                           n = nArrows t_
                       -- definitions for the wrapper and wrappee
-                      d <- funcDef errh symt i qt i_ n qt_
-                      let d_ = funcDef_ mi i i_ qt_ args
+                      d <- funcDef errh symt i qt i_ n args qt_
+                      -- the "wrappee": a foreign declaration marked as a
+                      -- noinline function (the final True = cforg_is_noinline);
+                      -- its port names are filled in later, in IExpand, by the
+                      -- primNoInline primitive (see fromWrapFieldNoInline) from
+                      -- the types via the SplitPorts class
+                      let d_ = Cforeign i_ qt_ (Just (getIdString mi)) Nothing True
                       return [d, d_]
                 _ -> internalError ("addFuncWrap: " ++ ppString (ti_, i_))
 
@@ -239,72 +246,31 @@ addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
 --   oqt = qualified type of the original function
 --   i_ = the escaped id (declared as foreign)
 --   n  = the number of arguments to the foreign function
+--   args = the function's argument ids (for naming the input ports)
 --   t  = the base type of the foreign function
-funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> CQType -> IO CDefn
-funcDef errh symt i oqt@(CQType octxs ot) i_ n (CQType _ t) =
-    let
-        -- unfortunately, we have to duplicate the work that genwrap did
-        -- in creating the interface interface type and interface
-        -- conversion functions
-
-        pos = getPosition i
-        (as, r) = getArrows ot
-
-        -- the arguments are always bitifiable
-        bitsCtx a s = CPred (CTypeclass idBits) [a, s]
-        size_vars =  map (cTVarNum . enumId "sn" pos) [0..]
-        as_ctxs = zipWith bitsCtx as size_vars
-
-        vs = map (setIdPosition pos) $ take n tmpVarIds
-        epack e = cVApply idPack [e]
-        es = map (epack . CVar) vs
-
-        f_expr = cVApply i_ es
-
+funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> [Id] -> CQType -> IO CDefn
+funcDef errh symt i oqt@(CQType _ ot) i_ n args (CQType _ t) =
+    let pos = getPosition i
+        r = getRes ot
         -- the result is either an actionvalue or a value
         isAV = isActionValue symt r
 
-        r_size_var = cTVarNum $ enumId "sn" pos n
-        r_ctxs = case (isAV) of
-                     Just av_t -> [bitsCtx av_t r_size_var]
-                     Nothing   -> [bitsCtx r    r_size_var]
-
-        expr = if (isJust isAV)
-               then cVApply idFromActionValue_ [f_expr]
-               else cVApply idUnpack           [f_expr]
-
-        -- put the ctxs together
-        ctxs' = as_ctxs ++ r_ctxs ++ octxs
-        qt'   = CQType ctxs' ot
+        -- noinline functions do not support naming pragmas, so the function
+        -- name is used both as the port-name prefix and as the result port name
+        -- (matching what GenWrap uses for the generated module's interface
+        -- method), so that fromWrapNoInline computes the same (split) port names
+        -- that the module exposes.
+        name      = stringLiteralAt pos (getIdString i)
+        arg_names = mkList pos [ stringLiteralAt (getPosition a) (getIdString a)
+                               | a <- args ]
+        expr = cVApply idFromWrapNoInline [name, arg_names, CVar i_]
     in
         -- XXX this code works for Action/ActionValue foreign funcs,
         -- XXX but they are not handled by astate yet
         if (isJust isAV)
-        then bsError errh [(getPosition i, ENoInlineAction (getIdBaseString i))]
+        then bsError errh [(pos, ENoInlineAction (getIdBaseString i))]
         else return $
-             CValueSign (CDef i qt' [CClause (map CPVar vs) [] expr])
-
--- ---------------
-
--- make the foreign function declaration (with escaped id) to be wrapped.
---   mi   = the combinational module to instantiate
---   i_   = the escaped identifier to use for the foreign declaration
---   i    = the original identifier, which also happens to be the
---          name of the method on the module, which is the prefix for
---          the port names for the method (used to generate the port names)
---   qt_  = the qualified type of the wrapped function
---          (this has been bitified by GenWrap)
---   args = List of function args
-funcDef_ :: Id -> Id -> Id -> CQType -> [Id] -> CDefn
-funcDef_ mi i i_ qt_ args =
-    let
-        mstr = getIdString mi
-        -- input ports: <methId>_<argId>
-        iports = [ oport ++ "_" ++ getIdString arg | arg <- args ]
-        -- output port: <methId>
-        oport = getIdString i
-    in
-        Cforeign i_ qt_ (Just mstr) (Just (iports, [oport]))
+             CValueSign (CDef i oqt [CClause [] [] expr])
 
 -- ---------------
 
@@ -323,8 +289,8 @@ expandSynSym symt xt =
  where
    updTypes r o@(TCon (TyCon i _ TIabstract)) =
      case findType r i of
-       Just (TypeInfo (Just i') k _ ti) -> TCon (TyCon i' (Just k) ti)
-       Just (TypeInfo Nothing _ _ _ ) ->
+       Just (TypeInfo (Just i') k _ ti _) -> TCon (TyCon i' (Just k) ti)
+       Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("genFuncWrap: expandSynSym: unexpected numeric type:"
                           ++ ppReadable i)
        Nothing -> o

@@ -1,0 +1,61 @@
+package FoldableTest where
+
+import Foldable
+import qualified List
+import qualified Vector
+import qualified ListN
+
+-- Exercise the Foldable class over its various instances.
+
+showInt :: Integer -> Action
+showInt n = $display "%0d" ((fromInteger n) :: Int 32)
+
+{-# verilog sysFoldableTest #-}
+sysFoldableTest :: Module Empty
+sysFoldableTest =
+  module
+    rules
+      "test": when True ==> action
+        let l :: List (Int 32)
+            l = Cons 5 (Cons 6 (Cons 7 Nil))
+            v :: Vector.Vector 4 (Int 32)
+            v = Vector.toVector (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))
+            ln :: ListN.ListN 4 (Int 32)
+            ln = ListN.toListN (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))
+            mj :: Maybe (Int 32)
+            mj = Valid 99
+            mn :: Maybe (Int 32)
+            mn = Invalid
+
+        $display "-- foldr/foldl --"
+        $display "%0d" (foldr (+) 0 v)        -- 10
+        $display "%0d" (foldl (-) 0 v)        -- -10
+        $display "%0d" (foldr (+) 0 ln)       -- 100
+        $display "%0d" (foldr (+) 0 l)        -- 18
+        $display "%0d" (foldr (+) 0 mj)       -- 99
+        $display "%0d" (foldr (+) 0 mn)       -- 0
+
+        $display "-- length/null --"
+        showInt (length v)                    -- 4
+        showInt (length l)                    -- 3
+        showInt (length mn)                   -- 0
+        $display "%b %b" (null v) (null mn)   -- 0 1
+
+        $display "-- elem --"
+        $display "%b %b" (elem 3 v) (elem 7 v)  -- 1 0
+
+        $display "-- toList --"
+        showInt (List.length (toList v))      -- 4
+        $display "%0d" (foldr (+) 0 (toList ln))  -- 100
+
+        $display "-- mapM_ (Action) --"
+        mapM_ (\ x -> $display "%0d" x) v
+
+        $display "-- foldrM (Maybe monad) --"
+        let r :: Maybe (Int 32)
+            r = foldrM (\ x acc -> Valid (x + acc)) 0 v
+        case r of
+          Valid s -> $display "%0d" s         -- 10
+          Invalid -> $display "none"
+
+        $finish 0

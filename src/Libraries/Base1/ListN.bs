@@ -83,6 +83,15 @@ instance (Bits a sa, Mul n sa nsa) => Bits (ListN n a) nsa
 --X    provisos( Eq#( a_type ) ) ;
 --X \end{libverbatim}
 
+--X A ListN is a Functor: it can be mapped over.
+instance Functor (ListN n) where
+  fmap = map
+
+--X Applicative for a ListN corresponds to zipping.
+instance Applicative (ListN n) where
+  pure = replicate
+  liftA2 = zipWith
+
 {-
 flatN :: (Add k x m) => Integer -> List (Bit k) -> Bit m
 flatN n Nil = 0

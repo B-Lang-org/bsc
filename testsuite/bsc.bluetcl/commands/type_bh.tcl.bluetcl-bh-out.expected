@@ -99,7 +99,7 @@ Typeclass
         Prelude.Arith Prelude.Integer
         Prelude.Arith Prelude.Real
         Prelude.Arith Prelude.String
-    position {%/Libraries/Prelude.bs 529 21 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 530 21 {Library Prelude}}
 
 Bits a n
 Typeclass
@@ -112,10 +112,10 @@ Typeclass
         {Prelude.Bit n -> a} unpack
     instances
         (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
         (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
         (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
         Prelude.Bits () 0
@@ -129,7 +129,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -140,10 +140,10 @@ Typeclass
         {Prelude.Bit n -> a} unpack
     instances
         (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
         (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
         (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
         Prelude.Bits () 0
@@ -157,7 +157,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -168,10 +168,10 @@ Typeclass
         {Prelude.Bit n -> a} unpack
     instances
         (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
         (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
         (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
         Prelude.Bits () 0
@@ -185,7 +185,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 Typeclass
     (Prelude.Bits :: * -> # -> *) a n
     dependencies
@@ -196,10 +196,10 @@ Typeclass
         {Prelude.Bit n -> a} unpack
     instances
         (Prelude.Add 1 _v100 _v103, Prelude.Add _v104 _v107 _v100, Prelude.Bits t _v101, Prelude.Mul _v104 _v101 _v107) => Prelude.Bits (Test.Baz t _v104) _v103
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Prelude.Maybe a) _v100
-        (Prelude.Add 1 _v103 _v100, Prelude.Bits a _v103) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Add 1 _v103 _v100, Prelude.Max _v101 _v104 _v103, Prelude.Add _v105 _v104 _v103, Prelude.Add _v102 _v101 _v103, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (Prelude.Either a b) _v100
         (Prelude.Add _v101 _v104 _v100, Prelude.Bits b _v104, Prelude.Bits a _v101) => Prelude.Bits (a, b) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Prelude.Maybe a) _v100
+        (Prelude.Bits a _v103, Prelude.Add 1 _v103 _v100) => Prelude.Bits (Test.U2 a) _v100
         (Prelude.Mul n 8 _v101) => Prelude.Bits (Vector.Ascii n) _v101
         (Prelude.Mul n sa nsa, Prelude.Bits a sa) => Prelude.Bits (Vector.Vector n a) nsa
         Prelude.Bits () 0
@@ -213,7 +213,7 @@ Typeclass
         Prelude.Bits PreludeBSV.SaturationMode 2
         Prelude.Bits Test.Bar 2
         Prelude.Bits Test.BarSet 2
-    position {%/Libraries/Prelude.bs 350 15 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 351 15 {Library Prelude}}
 
 Has_tpl_1 t a
 Typeclass
@@ -231,7 +231,7 @@ Typeclass
         Prelude.Has_tpl_1 (Prelude.Tuple6 a b c d e f) a
         Prelude.Has_tpl_1 (Prelude.Tuple7 a b c d e f g) a
         Prelude.Has_tpl_1 (Prelude.Tuple8 a b c d e f g h) a
-    position {%/Libraries/Prelude.bs 3313 17 {Library Prelude}}
+    position {%/Libraries/Prelude.bs 3321 17 {Library Prelude}}
 
 Bitify Baz (Int 32) n:
 UNKNOWN

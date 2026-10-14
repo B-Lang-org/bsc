@@ -1,0 +1,14 @@
+package ATFQualified where
+
+-- Test that when two imported files each define an ATF named Elem,
+-- both can be referenced using qualified names.
+
+import ATFQualifiedLib1
+import ATFQualifiedLib2
+
+-- Use qualified names to disambiguate the two Elem type functions.
+test1 :: Box Integer -> ATFQualifiedLib1.Elem (Box Integer)
+test1 = extract
+
+test2 :: Tag Bool -> ATFQualifiedLib2.Elem (Tag Bool)
+test2 = unwrap

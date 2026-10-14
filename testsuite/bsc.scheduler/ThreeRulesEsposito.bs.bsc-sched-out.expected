@@ -1,18 +1,18 @@
 checking package dependencies
 compiling ThreeRulesEsposito.bs
 code generation for sysThreeRulesEsposito starts
-=== schedule:
+=== schedule (ThreeRulesEsposito sysThreeRulesEsposito):
 parallel: [esposito: [RL_setT -> [], RL_setF -> [RL_setT], RL_flip -> [RL_setF, RL_setT]]]
 order: [RL_setT, RL_setF, RL_flip]
 
 -----
 
-=== resources:
+=== resources (ThreeRulesEsposito sysThreeRulesEsposito):
 [(a.read, [(a.read, 1)]), (a.write, [(a.write NOT_a___d2, 1), (a.write 1'd1, 1)])]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ThreeRulesEsposito sysThreeRulesEsposito):
 SchedInfo [] [] [] []
 
 -----

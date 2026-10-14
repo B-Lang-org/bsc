@@ -1,0 +1,25 @@
+package ArgNamesPragma_PortNameConflict where
+
+import SplitPorts
+import CShow
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+  z :: Bool
+ deriving (Bits)
+
+instance SplitPorts Foo (Port (Int 8), Port (Int 8), Port Bool) where
+  splitPorts f = (Port f.x, Port f.y, Port f.z)
+  unsplitPorts (Port x, Port y, Port z) = Foo { x=x; y=y; z=z; }
+  portNames _ base = Cons (base +++ "_x") $ Cons (base +++ "_y") $ Cons (base +++ "_z") Nil
+
+interface SplitTest =
+  putFoo :: Foo -> Bool -> Action {-# prefix = "fooIn", arg_names = ["f", "f_z"] #-}
+
+{-# synthesize sysArgNamesPragma_PortNameConflict #-}
+sysArgNamesPragma_PortNameConflict :: Module SplitTest
+sysArgNamesPragma_PortNameConflict =
+  module
+    interface
+      putFoo x y = $display "putFoo: " (cshow x) (cshow y)

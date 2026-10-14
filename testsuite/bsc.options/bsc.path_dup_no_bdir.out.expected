@@ -7,6 +7,7 @@ Invoking command line:
 bsc -i BLUESPECDIR -print-flags -p foo::foo:bar:foo:baz:baz:foo
 
 Flags:
+    -aggressive-conditions
     -i BLUESPECDIR
     -lift
     -o a.out

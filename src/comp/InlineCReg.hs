@@ -54,6 +54,7 @@ aInlineCReg pkg@(ASPackage { aspkg_state_instances = vs,
 
         -- record the CReg port names
         creg_ports = concatMap (\(a,b,c,d,e) -> b) creg_tuples
+        creg_ports_set = S.fromList creg_ports
 
         -- record the signal info for RTL grouping
         creg_signal_info = map (\(a,b,c,d,e) -> (a,"CReg",b)) creg_tuples
@@ -70,7 +71,7 @@ aInlineCReg pkg@(ASPackage { aspkg_state_instances = vs,
         -- not outputs of modules anymore, remove them from the svars list
         (creg_svars, noncreg_svars) =
             -- XXX slightly inefficient because creg_ports contains also inputs
-            partition (\(i,t) -> i `elem` creg_ports) svars
+            partition (\(i,t) -> i `S.member` creg_ports_set) svars
 
         -- the output ports for the new Reg instances
         new_reg_svars = concatMap (\(a,b,c,d,e) -> d) creg_tuples

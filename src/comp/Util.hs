@@ -4,7 +4,7 @@ module Util where
 import Data.Char(intToDigit)
 import Data.Word(Word8,Word32,Word64)
 import Data.Bits
-import Data.List(sort, sortBy, group, groupBy, nubBy, union, foldl')
+import Data.List(sort, sortBy, group, groupBy, nubBy, union)
 import Data.Bifunctor(first,second)
 import Control.Monad(foldM)
 import Debug.Trace(trace)
@@ -485,6 +485,11 @@ isRight  _        = False
 -- =====
 -- Data.Map utilities
 
+-- like M.!, but reports lookup failure via internalError
+-- (in the style of headOrErr)
+map_lookupOrErr :: (Ord k) => String -> k -> M.Map k a -> a
+map_lookupOrErr err k m = M.findWithDefault (internalError err) k m
+
 map_insertMany :: (Ord k) => [(k,a)] -> M.Map k a -> M.Map k a
 map_insertMany kas m =
    foldr (uncurry M.insert) m kas
@@ -606,24 +611,11 @@ hashInit = Hash 0 4000000063
 
 -- showpair (x,y) = "(" ++ (showHex x ("," ++ (showHex y ")")))
 
-nextHash :: Hash -> [Word8] -> Hash
-nextHash h s = foldl' f h s
-    where f :: Hash -> Word8 -> Hash
-          f (Hash x y) c =
-              let y' = (rotate x 5) + (toEnum (fromEnum c))
-                  x' = y + y' + 1442968193
-              in Hash x' y'
-
-nextHash32 :: Hash -> Word32 -> Hash
-nextHash32 (Hash x y) n =
-    let y' = (rotate x 20) + n
+nextHashByte :: Hash -> Word8 -> Hash
+nextHashByte (Hash x y) c =
+    let y' = (rotate x 5) + (toEnum (fromEnum c))
         x' = y + y' + 1442968193
     in Hash x' y'
-
-nextHash64 :: Hash -> Word64 -> Hash
-nextHash64 h n =
-    let (hi,lo) = n `quotRem` (2^(32::Int))
-    in nextHash32 (nextHash32 h (fromIntegral lo)) (fromIntegral hi)
 
 hashValue :: Hash -> Word64
 hashValue (Hash x y) = ((fromIntegral x) `shiftL` 32) .|. (fromIntegral y)

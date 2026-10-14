@@ -1,3 +1,4 @@
+=== dumpLambdaCalculus (RealInstArg sysRealInstArg):
 data MOD_sysRealInstArg = MOD_sysRealInstArg { inst_i__sysRealInstArg :: MOD_mkRealInstArg_Sub };
 
 ctor_sysRealInstArg :: MOD_sysRealInstArg;
@@ -9,3 +10,5 @@ dim_sysRealInstArg =
     (\ (mod1 :: MOD_sysRealInstArg) ->
      (\ (mod2 :: MOD_sysRealInstArg) ->
       dim_mkRealInstArg_Sub (inst_i__sysRealInstArg mod1) (inst_i__sysRealInstArg mod2)));
+
+-----

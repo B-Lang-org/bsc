@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # \
-exec $BLUESPECDIR/bin/bluetcl "$0" "$@"
+exec bluetcl "$0" "$@"
 
 package require utils
 

@@ -1,0 +1,148 @@
+package PrintType where
+
+-- Type-level computation of the printed form of a type.
+-- `TPrintType a` is the type-level string for `a`; `TPrintTypeP a` is the
+-- form that is parenthesized when it would otherwise be ambiguous as an
+-- argument to another type constructor.
+
+class (PrintType :: * -> $ -> $ -> *) a s sp | a -> s sp where
+  type TPrintType  a = s
+  type TPrintTypeP a = sp
+
+-- Show tuple types with tuple syntax rather than PrimPair ....
+-- The tuple form already contains the outermost parentheses, so the
+-- parenthesized form is the same.
+
+instance (PrintTuple (a, b) s) =>
+  PrintType (a, b)
+    (TStrCat "(" (TStrCat s ")"))
+    (TStrCat "(" (TStrCat s ")"))
+  where {}
+
+instance PrintType () "()" "()" where {}
+
+class (PrintTuple :: * -> $ -> *) a s | a -> s where {}
+
+instance (PrintType a as asp, PrintTuple b bs) =>
+  PrintTuple (a, b) (TStrCat as (TStrCat ", " bs)) where {}
+
+instance (PrintType a s sp) => PrintTuple a s where {}
+
+-- Explicit instances for primitive types (those declared with
+-- `primitive type` in Prelude).  Their Rep is `ConcPrim a`, which has
+-- no type-level name, so we cannot reach them via the generic path.
+
+instance PrintType (Bit n)
+  (TStrCat "Prelude.Bit " (TNumToStr n))
+  (TStrCat "(Prelude.Bit " (TStrCat (TNumToStr n) ")"))
+  where {}
+
+instance PrintType (Inout_ n)
+  (TStrCat "Prelude.Inout_ " (TNumToStr n))
+  (TStrCat "(Prelude.Inout_ " (TStrCat (TNumToStr n) ")"))
+  where {}
+
+instance (PrintType a s sp) => PrintType (Inout a)
+  (TStrCat "Prelude.Inout " sp)
+  (TStrCat "(Prelude.Inout " (TStrCat sp ")"))
+  where {}
+
+instance (PrintType a s sp) => PrintType (Array a)
+  (TStrCat "Prelude.Array " sp)
+  (TStrCat "(Prelude.Array " (TStrCat sp ")"))
+  where {}
+
+instance (PrintType a s sp) => PrintType (Module a)
+  (TStrCat "Prelude.Module " sp)
+  (TStrCat "(Prelude.Module " (TStrCat sp ")"))
+  where {}
+
+instance PrintType Integer    "Prelude.Integer"    "Prelude.Integer"    where {}
+instance PrintType Real       "Prelude.Real"       "Prelude.Real"       where {}
+instance PrintType Char       "Prelude.Char"       "Prelude.Char"       where {}
+instance PrintType String     "Prelude.String"     "Prelude.String"     where {}
+instance PrintType Fmt        "Prelude.Fmt"        "Prelude.Fmt"        where {}
+instance PrintType Handle     "Prelude.Handle"     "Prelude.Handle"     where {}
+instance PrintType Clock      "Prelude.Clock"      "Prelude.Clock"      where {}
+instance PrintType Reset      "Prelude.Reset"      "Prelude.Reset"      where {}
+instance PrintType Power      "Prelude.Power"      "Prelude.Power"      where {}
+instance PrintType Type         "Prelude.Type"         "Prelude.Type"         where {}
+instance PrintType Rules        "Prelude.Rules"        "Prelude.Rules"        where {}
+instance PrintType PrimAction   "Prelude.PrimAction"   "Prelude.PrimAction"   where {}
+instance PrintType Name__       "Prelude.Name__"       "Prelude.Name__"       where {}
+instance PrintType Position__   "Prelude.Position__"   "Prelude.Position__"   where {}
+instance PrintType Attributes__ "Prelude.Attributes__" "Prelude.Attributes__" where {}
+
+-- Default generic instance uses the PrintType' class over generic
+-- representations.  PrintType' produces both the bare and parenthesized
+-- forms in one go.
+
+instance (PrintType' (Rep a) s sp) => PrintType a s sp where {}
+
+class (PrintType' :: * -> $ -> $ -> *) a s sp | a -> s sp where {}
+
+-- Nullary type: no args, so no parens needed.
+instance PrintType' (Meta (MetaData n p () nc) r)
+  (TStrCat p (TStrCat "." n))
+  (TStrCat p (TStrCat "." n))
+  where {}
+
+-- Type with args: parenthesized form wraps the whole thing.
+instance (PrintTypeArgs ta argstr) =>
+  PrintType'
+    (Meta (MetaData n p ta nc) r)
+    (TStrCat p (TStrCat "." (TStrCat n (TStrCat " " argstr))))
+    (TStrCat "(" (TStrCat p (TStrCat "." (TStrCat n (TStrCat " " (TStrCat argstr ")"))))))
+  where {}
+
+class (PrintTypeArgs :: * -> $ -> *) a s | a -> s where {}
+
+instance (PrintTypeArg a as, PrintTypeArgs b bs) =>
+  PrintTypeArgs (a, b) (TStrCat as (TStrCat " " bs)) where {}
+
+instance (PrintTypeArg a s) => PrintTypeArgs a s where {}
+
+instance PrintTypeArgs () "" where {}
+
+class (PrintTypeArg :: * -> $ -> *) a s | a -> s where {}
+
+instance PrintTypeArg (StarArg a) (TPrintTypeP a) where {}
+
+instance PrintTypeArg (NumArg n) (TNumToStr n) where {}
+
+instance PrintTypeArg (StrArg s) (TStrCat "\"" (TStrCat s "\"")) where {}
+
+instance (PrintConType (c ()) s) => PrintTypeArg (StarConArg c) s where {}
+
+instance (PrintConType (c 0) s) => PrintTypeArg (NumConArg c) s where {}
+
+instance PrintTypeArg OtherConArg "?" where {}
+
+-- For a higher-kinded type argument we print the head constructor's name
+-- (possibly applied to any leading type arguments that are themselves
+-- saturated).  We fully apply the constructor to dummy args (`()` or `0`)
+-- and look at its Generic representation, then drop the dummy tail.
+
+class (PrintConType :: * -> $ -> *) c s | c -> s where {}
+
+instance (PrintConType' (Rep c) s) => PrintConType c s where {}
+
+class (PrintConType' :: * -> $ -> *) r s | r -> s where {}
+
+-- We saturate the constructor with dummy args (`()` or `0`); for nullary,
+-- StarArg, NumArg, etc., we drop the whole tail.  The multi-arg case
+-- keeps every arg except the final dummy.
+
+instance PrintConType' (Meta (MetaData n p ta nc) r) (TStrCat p (TStrCat "." n)) where {}
+
+instance (InitTuple (a, b) ta, PrintTypeArgs ta s) =>
+  PrintConType'
+    (Meta (MetaData n p (a, b) nc) r)
+    (TStrCat "(" (TStrCat p (TStrCat "." (TStrCat n (TStrCat " " (TStrCat s ")"))))))
+  where {}
+
+-- Drops the last component of a right-nested tuple.
+
+class InitTuple a b | a -> b where {}
+instance (InitTuple (b, c) d) => InitTuple (a, b, c) (a, d) where {}
+instance InitTuple (a, b) a where {}

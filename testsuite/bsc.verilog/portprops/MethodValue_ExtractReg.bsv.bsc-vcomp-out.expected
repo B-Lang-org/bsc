@@ -1,7 +1,7 @@
 checking package dependencies
 compiling MethodValue_ExtractReg.bsv
 code generation for sysMethodValue_ExtractReg starts
-=== IOproperties:
+=== IOproperties (MethodValue_ExtractReg sysMethodValue_ExtractReg):
 Name                         I/O  size props
 m                              O    16 reg
 RDY_m                          O     1 const

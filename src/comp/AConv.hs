@@ -13,8 +13,8 @@ import Id
 import FStringCompat
 import Flags(Flags)
 import PreStrings(sSigned)
-import PreIds(idBit, idAVAction_, idAVValue_, idClockOsc, idClockGate,
-              idInout_, idPrimArray)
+import PreIds(idBit, idActionValue_, idAVAction_, idAVValue_, idClockOsc, idClockGate,
+              idInout_, idPrimArray, idPrimPair, idPrimFst, idPrimSnd, idPrimUnit)
 import Pragma
 import Error(internalError, EMsg, WMsg, ErrMsg(..),
              ErrorHandle, bsError, bsWarning)
@@ -28,7 +28,6 @@ import GenWrapUtils(isGenId, dropGenSuffixId)
 import Prim
 import Data.List(genericLength, nub)
 import Data.Maybe(fromMaybe)
-import CType(TISort(..), StructSubType(..))
 import VModInfo(lookupOutputClockWires, lookupOutputResetWire,
                 lookupIfcInoutWire, vArgs, VArgInfo(..))
 import SignalNaming
@@ -187,18 +186,18 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         flags <- getFlags
 
         -- AVInst keeps the types of method ports
-        let tsConv :: Id -> [IType] -> ([AType], Maybe AType, Maybe AType)
+        let tsConv :: Id -> [IType] -> ([[AType]], Maybe AType, [AType])
             tsConv i ts =
                 let inputs = initOrErr "tsConv" ts
                     res = lastOrErr "tsConv" ts
-                    in_types = map (aTypeConv i) inputs
+                    in_types = map (aTupleTypesConv i) inputs
                     (en_type, val_type)
-                      | isitActionValue_ res && getAV_Size res > 0
-                          = (Just (ATBit 1), Just (ATBit (getAV_Size res)))
+                      | isitActionValue_ res
+                          = (Just (ATBit 1), aTupleTypesConv i (getAV_Type res))
                       | isActionType res
-                          = (Just (ATBit 1), Nothing)
+                          = (Just (ATBit 1), [])
                       | otherwise
-                          = (Nothing, Just (aTypeConv i res))
+                          = (Nothing, aTupleTypesConv i res)
                 in (in_types, en_type, val_type)
 
         let (IRules sps irule_list) = rs
@@ -337,7 +336,13 @@ aAbstractInput (IAI_Inout r n) = (AAI_Inout r n)
 aIface :: Flags -> IEFace a -> M AIFace
 aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
         --trace ("enter " ++ ppReadable i) $ return ()
-        let its' = [ (arg_i, aTypeConv arg_i arg_t) | (arg_i, arg_t) <- its]
+        -- `its` is grouped by source-language argument (one inner list per
+        -- argument); aif_inputs keeps that grouping, with one inner list of
+        -- ports per argument (a singleton for an unsplit argument, several for
+        -- a struct/tuple argument split into multiple ports by SplitPorts).
+        let its' = [ [ (arg_i, aTypeConv arg_i arg_t)
+                     | (arg_i, arg_t) <- group ]
+                   | group <- its ]
             g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
         case (maybe_e, maybe_rs) of
           (Nothing, Nothing) -> internalError ("AConv.aIface nothing in it "
@@ -366,9 +371,7 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
                                 ++ ppReadable iface)
             | otherwise
             -> do
-              -- internal error if type actionvalue XXX
               ae <- aExpr e
-              --trace ("exit v " ++ ppReadable i) $ return ()
               return (AIDef i its' wp g (ADef i (aTypeConv i t) ae []) fi [])
 
           (Nothing, Just rs) -> do
@@ -444,6 +447,14 @@ aClock c = do
                              aclock_gate = gate_aexpr })
     _ -> internalError ("AConv.ASClock: " ++ (show c))
 
+-- A wrapped method has () for arguments that have no non-empty ports,
+-- we drop them when converting to ASyntax.
+dropPrimUnitArgs :: [IExpr a] -> [IExpr a]
+dropPrimUnitArgs = filter (not . isPrimUnitArg)
+  where
+    isPrimUnitArg (ICon i _) = i == idPrimUnit
+    isPrimUnitArg _          = False
+
 aSExpr :: IExpr a -> M AExpr
 aSExpr e = do
         e' <- aExpr e
@@ -507,69 +518,22 @@ aExpr (IAps (ICon i (ICSel { })) ts (e:es))
     = internalError ("aExpr: too many arguments to avValue_: " ++
                      ppReadable es)
 
--- value part of ActionValue task without arguments
-aExpr e@(IAps (ICon m (ICSel { })) _
-              [(ICon i (ICForeign {fName = name,
-                                   isC = isC,
-                                   foports = Nothing,
-                                   fcallNo = mn}))])
-    | m == idAVValue_ =
-    let n = case (mn) of
-                Nothing -> internalError
-                               ("aExpr: avValue_ on ICForeign without fcallNo")
-                Just val -> val
-        t = aTypeConvE e (iGetType e)
-    in
-        return (ATaskValue t i name isC n)
+aExpr e@(IAps (ICon _ (ICSel {})) _ _) = aSelExpr sels selExpr
+    where
+      (sels, selExpr) = unfoldICSel e
 
--- value part of ActionValue task with arguments
-aExpr e@(IAps (ICon m (ICSel { })) _
-              [(IAps (ICon i (ICForeign {fName = name,
-                                         isC = isC,
-                                         foports = Nothing,
-                                         fcallNo = mn})) fts fes)])
-    | m == idAVValue_ =
-    let n = case (mn) of
-                Nothing -> internalError
-                               ("aExpr: avValue_ on ICForeign without fcallNo")
-                Just val -> val
-        t = aTypeConvE e (iGetType e)
-    in
-        -- the value side carries no arguments
-        -- the cookie "n" will connect it back up to the action side
-        return (ATaskValue t i name isC n)
+      unfoldICSel :: IExpr a -> ([(Id, AType)], [IExpr a])
+      unfoldICSel e@(IAps (ICon i (ICSel {})) _ [e']) =
+          let (sels, a) = unfoldICSel e'
+          in  ((i, aTypeConvE e $ iGetType e) : sels, a)
+      unfoldICSel e@(IAps (ICon i (ICSel {})) _ a@(_:_)) =
+          ([(i, aTypeConvE e $ iGetType e)], a)
+      -- a selector is always applied to at least its object operand
+      unfoldICSel e@(IAps (ICon _ (ICSel {})) _ []) =
+          internalError ("AConv.unfoldICSel: ICSel applied to no arguments:\n" ++
+                         ppReadable e)
+      unfoldICSel e = ([], [e])
 
--- value part of ActionValue method
-aExpr e@(IAps (ICon sel_id (ICSel { })) ts
-              [(IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es))])
-       | (sel_id == idAVValue_) = do
-  i' <- transId i
-  let atype = aTypeConvE e (iGetType e)
-  -- arguments should have been dropped in IExpand
-  when (not (null es)) $
-      internalError ("AConv.aExpr actionvalue value with args " ++
-                     ppReadable e)
-  -- IExpand is failing to optimize away bit-zero results from methods
-  -- and foreign functions, so catch that here for ActionValue methods
-  return $ if (atype == aTZero)
-           then ASInt i (ATBit 0) (ilDec 0)
-           else AMethValue atype i' m
-
--- value method
-aExpr e@(IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = do
-  i' <- transId i
-  let atype = aTypeConvE e (iGetType e)
-  es' <- mapM aSExpr es
-  return $ AMethCall atype i' m es'
-
-aExpr e@(IAps (ICon m (ICSel { })) _ [(ICon i (ICClock { iClock = c }))]) | m == idClockGate = do
-        ac <- aClock c
-        return (aclock_gate ac)
--- XXX This is here because aClock calls aSExpr on the oscillator.  However,
--- XXX that should be the only place where an osc ever appears in an expr.
-aExpr e@(IAps (ICon m (ICSel { })) _ [(ICon i (ICClock { iClock = c }))]) | m == idClockOsc = do
-        ac <- aClock c
-        return (aclock_osc ac)
 aExpr (IAps (ICon _ (ICCon { iConType = ITAp _ t, conTagInfo = cti })) _ _) | t == itBit1 =
         return $ aSBool (conNo cti /= 0)
 aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing})) ts es) = do
@@ -592,6 +556,11 @@ aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just op
         --traceM("AFunCall2: " ++ name)
         return $ ANoInlineFunCall t i'
                    (ANoInlineFun name ns ops Nothing) es'
+
+aExpr e@(IAps (ICon i _) _ _) | i == idPrimPair = do
+        let at = aTypeConvE e (iGetType e)
+        aes <- aTupleExpr e
+        return (ATuple at aes)
 
 aExpr e@(ICon v (ICModPort { iConType = t })) = return (ASPort (aTypeConvE e t) v)
 aExpr e@(ICon v (ICModParam { iConType = t })) = return (ASParam (aTypeConvE e t) v)
@@ -638,10 +607,127 @@ aExpr e@(ICon _ (ICInout { iConType = it, iInout = i})) | (isitInout_ it) = do
   ai <- aInout i
   return (ASInout at ai)
 
+aExpr (ICon i _) | i == idPrimUnit = return $ ASInt i (ATBit 0) (ilDec 0)
+
 aExpr e = internalError
               ("AConv.aExpr at " ++ ppString p ++ ":" ++ ppReadable e ++ "\n" ++
                (show p) ++ ":" ++ (showTypeless e))
     where p = getIExprPosition e
+
+aTupleExpr :: IExpr a -> M [AExpr]
+aTupleExpr (IAps (ICon i _) [t1, t2] [e1, e2]) | i == idPrimPair = do
+        ae1 <- aSExpr e1
+        ae2 <- aTupleExpr e2
+        return (ae1:ae2)
+aTupleExpr (ICon i _) | i == idPrimUnit = return []
+aTupleExpr e = fmap (:[]) (aSExpr e)
+
+-- the PrimFst/PrimSnd selectors that project an element out of a
+-- tuple-returning method's result
+isTupleSelector :: Id -> Bool
+isTupleSelector s = s == idPrimFst || s == idPrimSnd
+
+aSelExpr :: [(Id, AType)] -> [IExpr a] -> M AExpr
+
+-- value part of ActionValue task without arguments
+aSelExpr [(m, t)] [(ICon i (ICForeign {fName = name,
+                                       isC = isC,
+                                       foports = Nothing,
+                                       fcallNo = mn}))]
+    | m == idAVValue_ =
+    let n = case (mn) of
+                Nothing -> internalError
+                               ("aExpr: avValue_ on ICForeign without fcallNo")
+                Just val -> val
+    in
+        return (ATaskValue t i name isC n)
+
+-- value part of ActionValue task with arguments
+aSelExpr [(m, t)] [(IAps (ICon i (ICForeign {fName = name,
+                                             isC = isC,
+                                             foports = Nothing,
+                                             fcallNo = mn})) fts fes)]
+    | m == idAVValue_ =
+    let n = case (mn) of
+                Nothing -> internalError
+                               ("aExpr: avValue_ on ICForeign without fcallNo")
+                Just val -> val
+    in
+        -- the value side carries no arguments
+        -- the cookie "n" will connect it back up to the action side
+        return (ATaskValue t i name isC n)
+
+-- A port selected (via PrimFst/PrimSnd) from a value method that returns a
+-- tuple.  The value method still carries its arguments.  The number of PrimSnd
+-- selectors skipped to reach the method is the 0-based output port index.
+aSelExpr sels (ICon i (ICStateVar { }) : es)
+    | (pfx@((_, atype) : _), [(m, atypeTup)]) <- span (isTupleSelector . fst) sels = do
+  i' <- transId i
+  es' <- mapM aSExpr (dropPrimUnitArgs es)
+  let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
+  return $ ATupleSel atype (AMethCall atypeTup i' m es') (idx + 1)
+
+-- The value part of an ActionValue method, either bare or with a port selected
+-- (via PrimFst/PrimSnd) from a tuple-returning method.  The arguments were
+-- dropped in IExpand, so none should remain.  When there are leading
+-- PrimFst/PrimSnd selectors, the number of PrimSnd selectors is the 0-based
+-- output port index.
+aSelExpr sels base@(ICon i (ICStateVar { }) : es)
+    | (pfx, [(iav, atypeTup), (m, _)]) <- span (isTupleSelector . fst) sels
+    , iav == idAVValue_ = do
+  i' <- transId i
+  when (not (null es)) $
+      internalError ("AConv.aExpr actionvalue value with args " ++
+                     ppReadable sels ++ "\n" ++ ppReadable base)
+  let meth = AMethValue atypeTup i' m
+  case pfx of
+    -- bare ActionValue output.
+    -- IExpand is failing to optimize away bit-zero results from methods
+    -- and foreign functions, so catch that here for ActionValue methods.
+    [] -> return $ if (atypeTup == aTZero)
+                   then ASInt i (ATBit 0) (ilDec 0)
+                   else meth
+    -- a port selected from a tuple-returning ActionValue method
+    ((_, atype) : _) -> do
+      let idx = toInteger $ length (filter ((== idPrimSnd) . fst) pfx)
+      return $ ATupleSel atype meth (idx + 1)
+
+-- value method
+aSelExpr [(m, atype)] (ICon i (ICStateVar { }) : es) = do
+  i' <- transId i
+  -- one AExpr per source argument; SplitPorts args are ATuple AExprs
+  args <- mapM aSExpr (dropPrimUnitArgs es)
+  return $ AMethCall atype i' m args
+
+aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockGate = do
+        ac <- aClock c
+        return (aclock_gate ac)
+-- XXX This is here because aClock calls aSExpr on the oscillator.  However,
+-- XXX that should be the only place where an osc ever appears in an expr.
+aSelExpr [(m, _)] [ICon i (ICClock { iClock = c })] | m == idClockOsc = do
+        ac <- aClock c
+        return (aclock_osc ac)
+
+-- tuple (fst/snd) selection from the result of a noinline (foreign) function.
+-- The foreign call produces the combined result value; ATupleSel picks out
+-- the element.  The element index is the number of "snd" selectors in the
+-- chain (a flat tuple (a,b,c) is the right-nested pairs (a,(b,c)), so the
+-- k-th element is reached by k snds followed by an fst).
+aSelExpr sels@(_:_) [fcall]
+    | all ((\ s -> s == idPrimFst || s == idPrimSnd) . fst) sels
+    , isForeignFunCall fcall = do
+  fcall' <- aExpr fcall
+  let atype = snd (headOrErr "AConv.aSelExpr: foreign sel" sels)
+      idx = genericLength (filter ((== idPrimSnd) . fst) sels)
+  return $ ATupleSel atype fcall' (idx + 1)
+  where isForeignFunCall (ICon _ (ICForeign { foports = Just _ })) = True
+        isForeignFunCall (IAps (ICon _ (ICForeign { foports = Just _ })) _ _) = True
+        isForeignFunCall _ = False
+
+aSelExpr sels base = internalError
+              ("AConv.aSelExpr:" ++
+               ppReadable sels ++ "\n" ++ ppReadable base)
+
 
 aEDef :: Id -> IExpr a -> [DefProp] -> M AExpr
 aEDef i e ps = do
@@ -662,12 +748,14 @@ aTypeConv _ (ITAp (ITCon i _ _) (ITNum n)) | i == idInout_ = ATAbstract idInout_
 aTypeConv a (ITAp (ITCon r _ _) elem_ty) | r == idPrimArray =
     -- no way to get the size
     internalError("aTypeConv: array: " ++ ppReadable a)
+aTypeConv a t@(ITAp (ITAp (ITCon p _ _) _) _) | p == idPrimPair =
+  ATTuple (aTupleTypesConv a t)
 aTypeConv _ t | t == itReal = ATReal
 aTypeConv _ t | t == itString = ATString Nothing
 -- Deal with AVs
-aTypeConv _ (ITAp (ITCon i t (TIstruct SStruct fs@(val:_))) (ITNum n)) =
-    ATBit n
-    -- internalError ("Yes\n\n" ++ (show a) ++"\n\n" ++ (show n))
+aTypeConv a (ITAp (ITCon i _ _) t) | i == idActionValue_ =
+    aTypeConv a t
+aTypeConv a (ITCon i _ _) | i == idPrimUnit = ATBit 0
 aTypeConv _ t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
         abs (ITAp t _) ns = abs t ns
@@ -684,16 +772,25 @@ aTypeConvE a (ITAp (ITCon r _ _) elem_ty) | r == idPrimArray =
   -- XXX we could examine the expression and find the type
   -- XXX but this func isn't used to get the type of PrimBuildArray
   internalError ("aTypeConv: array: " ++ ppReadable a)
+aTypeConvE _ t@(ITAp (ITAp (ITCon p _ _) _) _) | p == idPrimPair =
+  ATTuple (aTupleTypesConv p t)
 aTypeConvE a t | t == itReal = ATReal
 aTypeConvE a t | t == itString =
   case a of
     (ICon _ (ICString _ s)) -> ATString (Just (genericLength s))
     otherwise               -> ATString Nothing
+aTypeConvE a (ITCon i _ _) | i == idPrimUnit = ATBit 0
 aTypeConvE a t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
         abs (ITAp t _) ns = abs t ns
         abs _ _ = -- ATAbstract idBit []        -- XXX what's this
                   internalError ("aTypeConvE|" ++ show t)
+
+aTupleTypesConv :: Id -> IType -> [AType]
+aTupleTypesConv _ t | t == itPrimUnit = []
+aTupleTypesConv a (ITAp (ITAp (ITCon p _ _) t1) t2) | p == idPrimPair =
+  aTypeConv a t1 : aTupleTypesConv a t2
+aTupleTypesConv a t = [aTypeConv a t]
 
 realPrim :: PrimOp -> Bool
 realPrim p = p `elem`
@@ -857,7 +954,11 @@ aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAc
 
 aAction1 _ cond (IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = do
         cond' <- aSExpr cond
-        es' <- mapM aSExpr es
+        -- One AExpr per source argument.  aSExpr produces an ATuple AExpr
+        -- for a SplitPorts argument whose IExpr is a PrimPair; consumers
+        -- that walk individual hardware ports match on ATuple to split
+        -- those tuples back into per-port AExprs.
+        es' <- mapM aSExpr (dropPrimUnitArgs es)
         i' <- transId i
         return [ACall i' m (cond' : es')]
 

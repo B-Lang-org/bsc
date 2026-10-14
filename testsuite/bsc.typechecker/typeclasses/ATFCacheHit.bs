@@ -1,0 +1,48 @@
+package ATFCacheHit where
+
+-- Test that a ground ATF resolution recorded by ctxreduce during
+-- typecheck is delivered to iExpand and HITS in the ATF cache.
+-- forceGround solves Encode ((UInt 5, UInt 5)) monomorphically at
+-- typecheck time, so EncSize ((UInt 5, UInt 5)) is recorded ground;
+-- elaborating checkPair's polymorphic body at (UInt 5, UInt 5) then
+-- finds it in the cache instead of falling back to normTFun.
+-- (Cache-hit twin of ATFPolyCacheMiss.bs.)
+
+class Encode a n | a -> n where
+    type EncSize a = n
+    encode :: a -> Bit n
+
+instance Encode (UInt k) k where
+    encode x = pack x
+
+instance Encode Bool 1 where
+    encode True  = 1
+    encode False = 0
+
+instance (Encode a sa, Encode b sb) => Encode (a, b) (TAdd sa sb) where
+    encode (x, y) = encode x ++ encode y
+
+data Encoded a = Encoded (Bit (EncSize a))
+
+wrap :: (Encode a sa) => a -> Encoded a
+wrap x = Encoded (encode x)
+
+checkPair :: (Encode a sa) => a -> Bool
+checkPair x = case wrap (x, x) of
+                 Encoded b -> msb b == 1
+
+-- The monomorphic forcing definition: typechecking this solves
+-- Encode ((UInt 5, UInt 5)) ground and records its EncSize result.
+forceGround :: (UInt 5, UInt 5) -> Encoded (UInt 5, UInt 5)
+forceGround p = wrap p
+
+{-# verilog sysATFCacheHit #-}
+sysATFCacheHit :: Module Empty
+sysATFCacheHit = module
+  r :: Reg (UInt 5) <- mkReg 7
+  rules
+    "test": when True ==>
+      action
+        let result = checkPair r
+        $display "result: %b" (pack result)
+        $finish 0

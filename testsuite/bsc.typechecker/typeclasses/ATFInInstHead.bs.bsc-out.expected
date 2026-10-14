@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ATFInInstHead.bs
+Error: "ATFInInstHead.bs", line 19, column 14: (T0156)
+  Type function `Elem' cannot be used in an instance head

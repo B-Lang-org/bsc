@@ -64,6 +64,9 @@ data PrimOp =
         | PrimInoutCast
         | PrimInoutUncast
 
+        | PrimMethod
+        | PrimNoInline
+
         | PrimIf
         | PrimMux
         | PrimPriMux
@@ -117,6 +120,8 @@ data PrimOp =
         | PrimStringConcat
         | PrimStringToInteger
         | PrimStringEQ
+        | PrimStringLT
+        | PrimStringLE
         | PrimStringLength
 
         | PrimStringSplit
@@ -354,6 +359,8 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primBOr" = PrimBOr
         tp "primInoutCast" = PrimInoutCast
         tp "primInoutUncast" = PrimInoutUncast
+        tp "primMethod" = PrimMethod
+        tp "primNoInline" = PrimNoInline
         tp "primIntegerToBit" = PrimIntegerToBit
         tp "primIntegerToUIntBits" = PrimIntegerToUIntBits
         tp "primIntegerToIntBits"  = PrimIntegerToIntBits
@@ -402,6 +409,8 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primStringConcat" = PrimStringConcat
         tp "primStringToInteger" = PrimStringToInteger
         tp "primStringEQ" = PrimStringEQ
+        tp "primStringLT" = PrimStringLT
+        tp "primStringLE" = PrimStringLE
         tp "primStringLength" = PrimStringLength
 
         tp "primStringSplit" = PrimStringSplit
@@ -671,6 +680,8 @@ instance NFData PrimOp where
     rnf PrimBOr = ()
     rnf PrimInoutCast = ()
     rnf PrimInoutUncast = ()
+    rnf PrimMethod = ()
+    rnf PrimNoInline = ()
     rnf PrimIf = ()
     rnf PrimMux = ()
     rnf PrimPriMux = ()
@@ -702,6 +713,8 @@ instance NFData PrimOp where
     rnf PrimStringConcat = ()
     rnf PrimStringToInteger = ()
     rnf PrimStringEQ = ()
+    rnf PrimStringLT = ()
+    rnf PrimStringLE = ()
     rnf PrimStringLength = ()
     rnf PrimStringSplit = ()
     rnf PrimStringCons = ()

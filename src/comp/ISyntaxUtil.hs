@@ -19,6 +19,7 @@ import ISyntaxSubst(tSubst)
 import Wires
 import VModInfo(vFields, VFieldInfo(..), lookupOutputClockWires)
 import CType(TISort(..), StructSubType(..))
+import Changed
 
 --import Debug.Trace
 
@@ -120,18 +121,16 @@ isSimpleType t = t == itInteger ||
                  t == itChar
 
 isitAction :: IType -> Bool
-isitAction (ITAp (ITCon i (IKFun IKNum IKStar)
-                     (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | (i == idActionValue_) = (x == 0)
-isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _) t)
-    | (i == idActionValue)  = t == itPrimUnit
+isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _ ) t)
+    | (i == idActionValue_) || (i == idActionValue) = isEmptyType t
 isitAction x = (x == itAction)
 
--- note this returns false for x == - because ActionValue_ 0 is really an Action
+-- note this returns false for x == () because ActionValue_ () is really an Action
+-- Also handle ActionValue_ (Bit 0), which can be introduced by foreign functions.
 isitActionValue_ :: IType -> Bool
-isitActionValue_ (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x))
-    | x > 0 = (i == idActionValue_)
+isitActionValue_ (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) =
+    (i == idActionValue_) && not (isEmptyType t)
 isitActionValue_ _ = False
 
 isitActionValue :: IType -> Bool
@@ -149,11 +148,11 @@ getInout_Size t =
     internalError ("getInout_Size: type is not Inout_: " ++ ppReadable t)
 
 
-getAV_Size :: IType -> Integer
-getAV_Size (ITAp (ITCon i (IKFun IKNum IKStar)
-                           (TIstruct SStruct [_,_] ) ) (ITNum x)) |
-    (i == idActionValue_) = x
-getAV_Size t = internalError ("getAV_Size: type is not AV_: " ++ ppReadable t)
+getAV_Type :: IType -> IType
+getAV_Type (ITAp (ITCon i (IKFun IKStar IKStar)
+                           (TIstruct SStruct [_,_] ) ) t) |
+    (i == idActionValue_) = t
+getAV_Type t = internalError ("getAV_Type: type is not AV_: " ++ ppReadable t)
 
 getAVType :: IType -> Maybe IType
 getAVType (ITAp (ITCon i (IKFun IKStar IKStar) _) t) | i == idActionValue = Just t
@@ -175,19 +174,27 @@ itList, itMaybe :: IType -> IType
 itList t = ITAp (ITCon idList (IKFun IKStar IKStar) tiList) t
 itMaybe t = ITAp (ITCon idMaybe (IKFun IKStar IKStar) tiMaybe) t
 
+isPairType :: IType -> Bool
+isPairType (ITAp (ITAp (ITCon i _ _) _) _) = i == idPrimPair
+isPairType _ = False
+
+isEmptyType :: IType -> Bool
+isEmptyType (ITCon i _ _) = i == idPrimUnit
+isEmptyType (ITAp c (ITNum 0)) = c == itBit
+isEmptyType t = False
+
 isBitType :: IType -> Bool
 isBitType (ITAp c n) = c == itBit
 isBitType _ = False
 
+isBitTupleType :: IType -> Bool
+isBitTupleType (ITAp (ITAp (ITCon i _ _) t1) t2) | i == idPrimPair =
+  isBitType t1 && isBitTupleType t2
+isBitTupleType t = isBitType t
+
 -- extension point for ActionValue methods
 isActionType :: IType -> Bool
 isActionType x = (x == itAction) || (isitActionValue_ x) || (isitAction x)
-
--- extension point for ActionValue methods
-isValueType :: IType -> Bool
-isValueType x | (isitActionValue_ x) && (getAV_Size x > 0) = True
-isValueType (ITAp t n) | t == itBit = True
-isValueType _ = False
 
 -- Constructors
 iMkLit :: IType -> Integer -> IExpr a
@@ -319,16 +326,29 @@ iMkValid t e =
 iMkNil :: IType -> IExpr a
 iMkNil t = IAps icPrimChr [mkNumConT 1, itList t] [iMkLitSize 1 0]
 
+-- The Cons constructor's internal struct type, matching the frontend's
+-- anonymous struct (List_$Cons with fields _1, _2) from CParser.
+itListCons :: IType -> IType
+itListCons t =
+  let tc_id = mkTCId idList (idCons noPosition)
+      (id_1:id_2:_) = tupleIds
+      ti = TIstruct SStruct [id_1, id_2]
+  in  ITAp (ITCon tc_id (IKFun IKStar IKStar) ti) t
+
 iMkCons :: IType -> IExpr a -> IExpr a -> IExpr a
 iMkCons t e_hd e_tl =
   let a = take1tmpVarIds
       ic_ty = ITForAll a IKStar $
-              (ITVar a) `itFun` (itList (ITVar a)) `itFun` (itList (ITVar a))
+              itListCons (ITVar a) `itFun` (itList (ITVar a))
       cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
       ic = ICon (idCons noPosition)
                 (ICCon { iConType = ic_ty, conTagInfo = cti })
-      -- multiple arguments become a single struct argument
-      e = iMkPairAt noPosition t (itList t) e_hd e_tl
+      (id_1:id_2:_) = tupleIds
+      tc_id = mkTCId idList (idCons noPosition)
+      tup_ty = ITForAll a IKStar $
+               (ITVar a) `itFun` itList (ITVar a) `itFun` itListCons (ITVar a)
+      tup = ICon tc_id (ICTuple tup_ty [id_1, id_2])
+      e = IAps tup [t] [e_hd, e_tl]
   in  IAps ic [t] [e]
 
 iMkList :: IType -> [IExpr a] -> IExpr a
@@ -892,6 +912,10 @@ itInst (ITForAll i _ t) (a:as) = itInst (tSubst i a t) as
 itInst t                []     = t
 itInst t                as     = internalError ("itInst: " ++ ppReadable (t, as))
 
+-- Instantiate and normalize (expand type synonyms and type functions)
+itInstNorm :: (IType -> IType) -> IType -> [IType] -> IType
+itInstNorm norm t ts = norm (itInst t ts)
+
 leftmost :: IType -> IType
 leftmost (ITAp t _) = leftmost t
 leftmost t = t
@@ -905,10 +929,34 @@ dropArrows 0 t = t
 dropArrows n (ITAp (ITAp arr _) r) | arr == itArrow = dropArrows (n-1) r
 dropArrows n t = internalError ("dropArrows: " ++ ppReadable (n, t))
 
+takeArgTypes :: Int -> IType -> [IType]
+takeArgTypes 0 _ = []
+takeArgTypes n (ITAp (ITAp arr a) r) | arr == itArrow = a : takeArgTypes (n-1) r
+takeArgTypes n t = internalError ("takeArgTypes: " ++ ppReadable (n, t))
+
 itGetArrows :: IType -> ([IType], IType)
 itGetArrows it = itGetArrows' [] it
   where itGetArrows' ts (ITAp (ITAp arr a) r) | arr == itArrow = itGetArrows' (a:ts) r
         itGetArrows' ts r = (reverse ts, r)
+
+-- Flatten a (possibly nested) right-associated PrimPair tuple type into its
+-- element types in left-to-right order.  PrimUnit contributes no elements,
+-- PrimPair recurses into both sides, anything else is a single element.
+itTupleElems :: IType -> [IType]
+itTupleElems t
+  | t == itPrimUnit = []
+  | otherwise = case t of
+                  ITAp (ITAp (ITCon ip _ _) t1) t2 | ip == idPrimPair ->
+                      itTupleElems t1 ++ itTupleElems t2
+                  _ -> [t]
+
+-- The element bit-widths of a (bitified) tuple type, in left-to-right port order
+-- (flattening nested PrimPair tuples via itTupleElems).  A non-Bit leaf yields
+-- 0, so callers that want only the actual ports can filter out the zeros.
+bitTupleSizes :: IType -> [Integer]
+bitTupleSizes = map leafSize . itTupleElems
+  where leafSize (ITAp b (ITNum n)) | b == itBit = n
+        leafSize _ = 0
 
 -- #############################################################################
 -- #
@@ -934,8 +982,8 @@ irulesMapM f (IRules sps rs) = do
 -- Similar to the routine in ISyntaxCheck, but with shortcuts to make
 -- it faster.
 
-iGetType :: IExpr a -> IType
-iGetType e0 =
+iGetTypeNorm :: (IType -> Changed IType) -> IExpr a -> IType
+iGetTypeNorm norm e0 =
     let iGetTypePrim _ PrimIf [t] [_,_,_] = t
         iGetTypePrim _ PrimConcat [_,_,ITNum n] [_,_] = itBitN n
         iGetTypePrim _ PrimMul [_,_,ITNum n] [_,_] = itBitN n
@@ -963,7 +1011,7 @@ iGetType e0 =
                 isNRes PrimSRL = True
                 isNRes PrimSRA = True
                 isNRes _       = False
-        iGetTypePrim e _ _ _ = tCheck emptyEnv e
+        iGetTypePrim e _ _ _ = changedOrId norm $ tCheck emptyEnv e
 
         tCheck r (ILam i t e) =
                 itFun t (tCheck (addT i t r) e)
@@ -973,11 +1021,12 @@ iGetType e0 =
                 ITForAll i _ rt -> tSubst i t rt
                 tt -> internalError ("iGetType.tCheck: " ++ ppString (e0, e, tt, t))
         tCheck r (IAps f (t:ts) []) = tCheck r (IAps (IAps f [t] []) ts [])
-        tCheck r (IAps f ts es) = dropArrows (length es) (tCheck r (IAps f ts []))
+        tCheck r (IAps f ts es) =
+          dropArrows (length es) (changedOrId norm $ tCheck r (IAps f ts []))
         tCheck r (IVar i) = findT i r
         tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
         tCheck r (ICon c ic) = iConType ic
-        tCheck r (IRefT t _ _) = t
+        tCheck r (IRefT t _ _ _) = t
 --        tCheck _ e = internalError ("no match in ISyntaxUtil.tCheck: " ++ ppReadable e)
 
         emptyEnv = M.empty
@@ -994,7 +1043,10 @@ iGetType e0 =
         (ICon c ic) -> iConType ic
         e@(IAps (ICon _ (ICPrim _ p)) ts es) -> iGetTypePrim e p ts es
         -- General
-        e -> tCheck emptyEnv e
+        e -> changedOrId norm $ tCheck emptyEnv e
+
+iGetType :: IExpr a -> IType
+iGetType = iGetTypeNorm $ \ _ -> Unchanged
 
 -- input must be an interface type
 iGetIfcName :: IType -> Id
@@ -1066,10 +1118,6 @@ joinActions [] = icNoActions
 joinActions as = foldr1 ja as
   where ja a1 a2 = IAps icJoinActions [] [a1, a2]
 
--- perhaps the position information should be transferred over XXX
-actionValue_BitN :: IType -> IType
-actionValue_BitN t = itBitN (getAV_Size t)
-
 iStrToInt :: String -> Position -> IExpr a
 iStrToInt s pos = iMkLitAt pos itInteger i
   where i = foldl sumString 0 s
@@ -1093,16 +1141,13 @@ getStateVarNames (ICon i (ICStateVar {})) = [i]
 getStateVarNames (IAps f _ es) = concatMap getStateVarNames (f:es)
 getStateVarNames _ = []
 
-iTSizeOf :: IType
-iTSizeOf = ITCon idSizeOf (IKStar `IKFun` IKNum) tiSizeOf
-
 iTLog, iTAdd, iTMax, iTMin, iTMul, iTDiv :: IType
 iTLog = ITCon idTLog (IKNum `IKFun` IKNum) TIabstract
-iTAdd = ITCon idTAdd (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMax = ITCon idTMax (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMin = ITCon idTMin (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTMul = ITCon idTMul (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
-iTDiv = ITCon idTDiv (IKNum `IKFun` IKNum `IKFun` IKNum) TIabstract
+iTAdd = ITCon idTAdd (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMax = ITCon idTMax (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMin = ITCon idTMin (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTMul = ITCon idTMul (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
+iTDiv = ITCon idTDiv (IKNum `IKFun` (IKNum `IKFun` IKNum)) TIabstract
 
 iDefMap :: (IExpr a -> IExpr a) -> IDef a -> IDef a
 iDefMap f (IDef i t e p) = IDef i t (f e) p

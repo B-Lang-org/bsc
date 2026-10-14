@@ -1,0 +1,60 @@
+package SplitPortTypes where
+
+-- Test that port types are reported correctly all the way through to Bluetcl
+-- ("module porttypes" / "module ports") when a method's arguments and/or
+-- result are split into multiple input/output ports (deep and shallow).
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Int 16
+ deriving (Bits)
+
+struct Outer =
+  x :: UInt 8
+  y :: Inner
+  z :: Bit 4
+ deriving (Bits)
+
+interface SplitPortTypes =
+  -- ---- split OUTPUT ports ----
+  -- value method, result deep-split: one port per leaf field
+  --   (x :: UInt 8, y.a :: Bool, y.b :: Int 16, z :: Bit 4)
+  getDeep :: DeepSplit Outer
+  -- value method, result shallow-split: Inner stays packed
+  --   (x :: UInt 8, y :: Inner, z :: Bit 4)
+  getShallow :: ShallowSplit Outer
+  -- ActionValue method whose value is deep-split into multiple output ports
+  nextDeep :: ActionValue (DeepSplit Outer)
+
+  -- ---- split INPUT ports ----
+  -- one argument deep-split into multiple input ports
+  putDeep :: DeepSplit Outer -> Action
+  -- one argument shallow-split into input ports (Inner stays packed)
+  putShallow :: ShallowSplit Outer -> Action
+  -- two deep-split arguments, named via the arg_names pragma
+  combineDeep :: DeepSplit Outer -> DeepSplit Outer -> Action
+    {-# arg_names = ["lhs", "rhs"] #-}
+
+  -- ---- split INPUT and OUTPUT together ----
+  -- value method whose argument and result are both deep-split
+  transform :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkSplitPortTypes #-}
+mkSplitPortTypes :: Module SplitPortTypes
+mkSplitPortTypes =
+  module
+    r :: Reg (UInt 8) <- mkReg 0
+    let mkOuter v = Outer { x = v; y = Inner { a = v == 0; b = 7 }; z = 3 }
+    interface
+      getDeep = DeepSplit (mkOuter r)
+      getShallow = ShallowSplit (mkOuter r)
+      nextDeep = do
+        r := r + 1
+        return (DeepSplit (mkOuter r))
+      putDeep (DeepSplit o) = r := o.x
+      putShallow (ShallowSplit o) = r := o.x
+      combineDeep (DeepSplit lhs) (DeepSplit rhs) = r := lhs.x + rhs.x
+      transform (DeepSplit o) =
+        DeepSplit (Outer { x = o.x + 1; y = o.y; z = o.z })

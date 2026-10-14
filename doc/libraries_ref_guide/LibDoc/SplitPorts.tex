@@ -1,0 +1,1619 @@
+% ****************************************************************
+
+\subsection{SplitPorts}
+
+\label{sec:SplitPorts_package}
+
+% ----------------------------------------------------------------
+% Indexing plan:                                     Main Index         Fn Index  TCs Index
+%                                               --------------------    --------  ---------
+%                                               Direct  Under  Under
+%                                                       Pkg    Class
+%
+% 1 SplitPorts    package                           Y
+%
+% 2   ShallowSplitPorts    class                    Y     Y                          Y
+% 3     ShallowPortsOf           class type         Y     Y     Y
+% 4     shallowSplitPorts        class function     Y     Y     Y          Y
+% 5     shallowUnsplitPorts      class function     Y     Y     Y          Y
+% 6     shallowSplitPortNames    class function     Y     Y     Y          Y
+%
+% 7   DeepSplitPorts    class                       Y     Y                          Y
+% 8     DeepPortsOf              class type         Y     Y     Y
+% 9     deepSplitPorts           class function     Y     Y     Y          Y
+% 10    deepUnsplitPorts         class function     Y     Y     Y          Y
+% 11    deepSplitPortNames       class function     Y     Y     Y          Y
+
+% 1
+\index{SplitPorts@\te{SplitPorts}!package}
+
+% 2
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!type class}
+\index{SplitPorts@\te{SplitPorts}!ShallowSplitPorts@\te{ShallowSplitPorts} (class in package \\ \te{SplitPorts})}
+\index[typeclass]{ShallowSplitPorts}
+
+% 3
+\index{ShallowPortsOf@\te{ShallowPortsOf}!type in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!ShallowPortsOf@\te{ShallowPortsOf} (type in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!ShallowPortsOf@\te{ShallowPortsOf} (type in class)}
+
+% 4
+\index{shallowSplitPorts@\te{shallowSplitPorts}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowSplitPorts@\te{shallowSplitPorts} (function in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowSplitPorts@\te{shallowSplitPorts} (function in class)}
+\index[function]{SplitPorts!shallowSplitPorts}
+
+% 5
+\index{shallowUnsplitPorts@\te{shallowUnsplitPorts}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowUnsplitPorts@\te{shallowUnsplitPorts} (function in class \\ \te{ShallowSplitPorts})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowUnsplitPorts@\te{shallowUnsplitPorts} (function in class)}
+\index[function]{SplitPorts!shallowUnsplitPorts}
+
+% 6
+\index{shallowSplitPortNames@\te{shallowSplitPortNames}!function in class \te{ShallowSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!shallowSplitPortNames@\te{shallowSplitPortNames} (function in class \\ \te{ShallowSplitPort})}
+\index{ShallowSplitPorts@\te{ShallowSplitPorts}!shallowSplitPortNames@\te{shallowSplitPortNames} (function in class)}
+\index[function]{SplitPorts!shallowSplitPortNames}
+
+% 7
+\index{DeepSplitPorts@\te{DeepSplitPorts}!type class}
+\index{SplitPorts@\te{SplitPorts}!DeepSplitPorts@\te{DeepSplitPorts} (class in package \\ \te{SplitPorts})}
+\index[typeclass]{DeepSplitPorts}
+
+% 8
+\index{DeepPortsOf@\te{DeepPortsOf}!type in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!DeepPortsOf@\te{DeepPortsOf} (type in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!DeepPortsOf@\te{DeepPortsOf} (type in class)}
+
+% 9
+\index{deepSplitPorts@\te{deepSplitPorts}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepSplitPorts@\te{deepSplitPorts} (function in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepSplitPorts@\te{deepSplitPorts} (function in class)}
+\index[function]{SplitPorts!deepSplitPorts}
+
+% 10
+\index{deepUnsplitPorts@\te{deepUnsplitPorts}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepUnsplitPorts@\te{deepUnsplitPorts} (function in class \\ \te{DeepSplitPorts})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepUnsplitPorts@\te{deepUnsplitPorts} (function in class)}
+\index[function]{SplitPorts!deepUnsplitPorts}
+
+% 11
+\index{deepSplitPortNames@\te{deepSplitPortNames}!function in class \te{DeepSplitPorts}}
+\index{SplitPorts@\te{SplitPorts}!deepSplitPortNames@\te{deepSplitPortNames} (function in class \\ \te{DeepSplitPort})}
+\index{DeepSplitPorts@\te{DeepSplitPorts}!deepSplitPortNames@\te{deepSplitPortNames} (function in class)}
+\index[function]{SplitPorts!deepSplitPortNames}
+
+% ----------------------------------------------------------------
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+    \te{SplitPorts} and \te{SplitVector} are new features, introduced
+    in release 2026.07.  We welcome feedback on their usability and on
+    this documentation.
+\end{minipage}}
+
+{\footnotesize (For splitting {\tt Vector} values, see
+  Section~\ref{sec:SplitVector_package}.)}
+
+% ----------------------------------------------------------------
+
+\subsubsection{Description: Purpose of ``port splitting''}
+
+\index{Port splitting|see{\te{SplitPorts}}}
+
+{\footnotesize (In this section we will use the terms ``port'' and ``bus'' interchangeably.)}
+
+Consider a {\BHb} or {\BSVb} module compiled by \emph{bsc} to
+Verilog. Suppose an interface method has a ``struct'' argument or
+result, becoming a Verilog input or output port, respectively.  These
+appear in Verilog as flat bit-vectors (usually the concatenation of
+the bit representations of the fields).  These are difficult to use in
+several RTL-level situations:
+
+\begin{itemize}
+
+  \item Viewing waveforms generated from Verilog
+    simulation\footnote{Some waveform viewers may have support for
+    splitting vectors in the viewer.};
+
+  \item Interfacing with existing Verilog code;
+  \item Use by other downstream Verilog tools.
+\end{itemize}
+
+In both cases, we typically want a separate, named bus for each field
+of the struct, instead of having to visualize relevant bits of the
+full flat bit-vector.  \te{SplitPorts} provides this capability, and
+more:
+
+\begin{itemize}
+
+  \item Splitting can be recursive, on nested types: struct, vectors
+    and tuples, and algebraic types (tagged unions).
+
+  \item Defaults make it very easy to split a structured type
+    ``canonically'' (into its fields). To split in more custom ways
+    (\emph{e.g.,} combining splits, sub-splitting fields,
+    \emph{etc.}), it is easy to override defaults.
+
+    NOTE: \hfill \fbox{\begin{minipage}{0.8\textwidth}\footnotesize
+      We do not enable splitting by default on the polymorphic library
+      types Vectors and Tuples.
+    \end{minipage}}
+
+\end{itemize}
+
+All this is achieved with library type classes---no new syntax or
+annotations--- and is equally available in {\BSVb} and {\BHb}.
+
+% ----------------
+
+\paragraph{Canonical \emph{vs.} Custom splitting}
+
+\hspace*{1em}
+
+\index{SplitPorts@\te{SplitPorts}!canonical port splitting}
+\index{Canonical port splitting|see{SplitPorts@\te{SplitPorts}}}
+
+We use the term ``canonical splitting'' where each struct field
+becomes a port, one-to-one, each vector/tuple element becomes a port,
+one-to-one, and so on.  For all other kinds of splitting we use the
+term ``custom splitting''.
+
+Splitting of a usertype $t$ needs to be specified by the user.
+Defaults and utilities simplify this for canonical splitting.
+
+We expect that canonical splitting is what we'd want most of the time.
+Custom splitting can also be useful in situations like these:
+
+\begin{itemize}
+
+  \item The desired Verilog ports are not one-to-one with the
+    {\BLANGS} structured type's fields.
+
+  \item To ``impedance-match'' {\BLANGS} coding to some other coding
+    in external Verilog or other IP, such as ``little-endian'' to
+    ``big-endian'', or SystemVerilog's ``packed'' structures.
+
+\end{itemize}
+
+% ----------------
+
+\paragraph{Shallow \emph{vs.} Deep Splitting}
+
+\index{Shallow port splitting}
+\index{Shallow port splitting|seealso{\te{SplitPorts}}}
+\index{SplitPorts@\te{SplitPorts}!shallow port splitting}
+\index{SplitPorts@\te{SplitPorts}!ShallowSplitPorts@\te{ShallowSplitPorts} (related class)}
+
+\index{Deep port splitting}
+\index{Deep port splitting|seealso{\te{SplitPorts}}}
+\index{SplitPorts@\te{SplitPorts}!deep port splitting}
+\index{SplitPorts@\te{SplitPorts}!DeepSplitPorts@\te{DeepSplitPorts} (related class)}
+
+\hspace*{1em}
+
+In general, a type can have \emph{nested} structure.  For example, in
+a struct type $t_1$ a field may have struct type $t_2$, or a vector
+type, or a tuple type, or an algebraic type (tagged union).  And,
+recursively, those types may in turn contain further nested types.
+
+When an interface-method arg or result has such a type, we can split
+it to various levels.
+
+A \emph{shallow split} only splits the top-level type of the nested
+structure, \emph{e.g.,} a top-level sruct into ports for its fields.
+The fields themselves are not split, their ports remain as aggregate
+bit-vectors.
+
+A \emph{deep split}, on the other hand, splits the fields, and fields
+of fields, and so on, recursively, down to ``leaf-level'' fields
+(scalars, which do not themselves have multiple components).
+
+% ----------------
+
+\paragraph{Examples}
+
+\hspace*{1em}
+
+Several examples are given below, in
+Sections~\ref{sec:splitports_examples_BH}
+and
+Sections~\ref{sec:splitports_examples_BSV}.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Packages} 
+
+\index{SplitPorts@\te{SplitPorts}!package}
+
+The {\tt SplitPorts} type class and {\tt Port} type are defined in the
+Standard Prelude which is always implicitly imported.  They are
+described in Sections~\ref{sec:SplitPorts_Port_type} and
+\ref{sec:SplitPorts_typeclass}, respectively.  They are adequate for
+``manually'' specifying splitting.
+
+The {\tt SplitPorts} package must be imported for additional
+facilities (simplified canonical splitting). Detailed usage examples
+are shown in sections below.
+
+\begin{center}
+  \begin{minipage}[t]{0.3\textwidth}
+    {\BHb} syntax:
+
+    \begin{tabular}{|l|}
+      \hline
+      {\tt import SplitPorts} \\
+      \hline
+    \end{tabular}
+  \end{minipage}
+  \hspace*{2em}
+  \begin{minipage}[t]{0.3\textwidth}
+    {\BSVb} syntax:
+
+    \begin{tabular}{|l|}
+      \hline
+      {\tt import SplitPorts :: *;} \\
+      \hline
+    \end{tabular}
+  \end{minipage}
+\end{center}
+
+% ----------------------------------------------------------------
+
+\subsubsection{Typeclasses}
+
+\label{sec:splitports_shallow_deep}
+
+The following type classes are defined in the {\tt SplitPorts} library
+package. The type class methods simplify the specification of
+canonical splitting (see examples in
+Section~\ref{sec:splitports_examples_BH_simplified}).
+
+\begin{quote}
+\begin{verbatim}
+class ShallowSplitPorts a p | a -> p where
+  type ShallowPortsOf a = p
+  shallowSplitPorts :: a -> p
+  shallowUnsplitPorts :: p -> a
+  shallowSplitPortNames :: a -> String -> List String
+\end{verbatim}
+\end{quote}
+
+\begin{quote}
+\begin{verbatim}
+class DeepSplitPorts a p | a -> p where
+  type DeepPortsOf a = p
+  deepSplitPorts :: a -> p
+  deepUnsplitPorts :: p -> a
+  deepSplitPortNames :: a -> String -> List String
+\end{verbatim}
+\end{quote}
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+
+  In the library these definitions are in {\BHb} syntax but they can
+  be imported and used equally in {\BSVb} code.
+
+\end{minipage}}
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Examples in {\BHb} of splitting user-defined types}
+
+\label{sec:splitports_examples_BH}
+
+{\footnotesize
+For {\BSVb} versions of these, please see Section~\ref{sec:splitports_examples_BSV}.}
+
+% ----------------
+
+\paragraph{Example ({\BHb}): Baseline (before splitting) for port splitting examples}
+
+\label{sec:splitports_examples_BH_baseline}
+
+\hspace*{1em}
+
+Consider the following struct and interface types:
+\begin{quote}
+\begin{verbatim}
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)    -- Represented as Bit 16
+
+struct Bar =
+  v :: Vector 3 Bool
+  w :: (Bool, UInt 16)
+  z :: Foo
+ deriving (Bits)    -- Represented as Bit 36    (3+1+16+16)
+
+interface SplitTest =
+  mv  :: Foo -> Bar
+  mav :: Foo -> ActionValue Bar
+\end{verbatim}
+\end{quote}
+
+If we instantiate a module {\tt mod} with this interface, the methods
+may be invoked like this:
+
+\begin{tabbing}
+\hspace*{4em} \= \hspace*{2em} \= \kill
+\hspace*{4em} \>               \> {\tt let (b1::Bar)  = mod.mv  (a1::Foo)} \\
+              \>  or           \> {\tt     (b2::Bar) <- mod.mav (a2::Foo)}
+\end{tabbing}
+
+In the RTL, the module will have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|}
+    \hline
+     Output &
+     Input  \\
+    \hline
+     {\tt mv}    &
+     {\tt mv\_1} \\
+     36 bits &
+     16 bits \\
+    \hline
+     {\tt mav}    &
+     {\tt mav\_1} \\
+     36 bits &
+     16 bits \\
+    \hline
+\end{tabular}
+
+{\footnotesize (The ``{\tt \_1}'' suffix on the args are for ``first argument''.)}
+\end{center}
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BH): shallow-split {\tt Foo}}
+
+\label{sec:splitports_examples_BH_Foo_Shallow}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Let us add the following declaration to our program, making {\tt Foo}
+an instance of the {\tt SplitPorts} type class:
+
+\begin{quote}
+\begin{verbatim}
+type T2 = (Port (Int 8), Port (Int 8))
+
+instance SplitPorts Foo T2 where
+  splitPorts f = (Port (f.x), Port (f.y))
+  unsplitPorts (Port x, Port y) = Foo {x=x; y=y}
+  portNames _ base = Cons (base +++ "_x")
+                       (Cons (base +++ "_y") Nil)
+\end{verbatim}
+\end{quote}
+
+{\tt splitPorts} takes an argument {\tt f} of type {\tt Foo}, and
+returns a 2-tuple of port descriptors, one per field of {\tt Foo}.
+Each component applies the constructor {\tt Port} to the corresponding
+component.
+
+{\tt unsplitPorts} is the inverse: it takes a 2-tuple of port
+descriptors and recombines them into a {\tt Foo} value.
+
+{\tt portNames} returns a list of desired names for the ports, by
+appending suffixes to bhe base name.
+
+In the RTL, the module will have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|c|}
+    \hline
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv}       &
+     {\tt mv\_1\_x} &
+     {\tt mv\_1\_y} \\
+     36 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav}       &
+     {\tt mav\_1\_x} &
+     {\tt mav\_1\_y} \\
+     36 bits &
+      8 bits &
+      8 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+The argument ports, of type {\tt Foo} have been split.
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BH): shallow-split {\tt Foo}, shallow-split {\tt Bar}}
+
+\label{sec:splitports_examples_BH_Foo_Shallow_Bar_Shallow}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Suppose we add the following declaration to our program, making {\tt
+  Bar} also an instance of the {\tt SplitPorts} type class:
+
+\begin{quote}
+\begin{verbatim}
+type T6 = (Port Bool, Port Bool, Port Bool,
+           Port Bool, Port (UInt 16),
+           Port Foo)
+
+instance SplitPorts Bar T6 where
+  splitPorts b = let (w1,w2) = b.w
+                 in (Port (b.v !! 0), Port (b.v !! 1), Port (b.v !! 2),
+                     Port (w1), Port (w2),
+                     Port (b.z))
+
+  unsplitPorts (Port v0, Port v1, Port v2, Port w1, Port w2, Port z) =
+    Bar {v = v0 :> v1 :> v2 :> nil;
+         w = (w1, w2);
+         z = z}
+
+  portNames _ base = Cons (base +++ "_v_0")
+                       (Cons (base +++ "_v_1")
+                          (Cons (base +++ "_v_2")
+                             (Cons (base +++ "_w_1")
+                                (Cons (base +++ "_w_2")
+                                   (Cons (base +++ "_z")
+                                      Nil)))))
+\end{verbatim}
+\end{quote}
+
+In the RTL, the module will now have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv\_v\_0}  &
+     {\tt mv\_v\_1}  &
+     {\tt mv\_v\_2}  &
+     {\tt mv\_w\_1}  &
+     {\tt mv\_w\_2}  &
+     {\tt mv\_z}     &
+     {\tt mv\_1\_x}  &
+     {\tt mv\_1\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+     16 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav\_v\_0}  &
+     {\tt mav\_v\_1}  &
+     {\tt mav\_v\_2}  &
+     {\tt mav\_w\_1}  &
+     {\tt mav\_w\_2}  &
+     {\tt mav\_z}     &
+     {\tt mav\_1\_x}  &
+     {\tt mav\_1\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+     16 bits &
+      8 bits &
+      8 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Even though each output port, of type {\tt Bar}, contains a field
+``{\tt z}'' of type {\tt Foo}, that nested field is not split.
+Splitting is only applied to the top-level type ({\tt Bar}), and in
+its {\tt splitPorts} function we chose not to split the nested field
+{\tt z}.
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BH): shallow-split {\tt Foo}, deep-split {\tt Bar}}
+
+\label{sec:splitports_examples_BH_Foo_Shallow_Bar_Deep}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Suppose we change the declaration of the {\tt Bar} instance of {\tt
+SplitPorts} to the following:
+
+\begin{quote}
+\begin{verbatim}
+type T7 = (Port Bool, Port Bool, Port Bool,
+           Port Bool, Port (UInt 16),
+           Port (Int 8), Port (Int 8))
+
+
+instance SplitPorts Bar T7 where
+  splitPorts b = let (w1,w2) = b.w
+                 in (Port (b.v !! 0), Port (b.v !! 1), Port (b.v !! 2),
+                     Port (w1), Port (w2),
+                     Port (b.z.x), Port (b.z.y))
+
+  unsplitPorts (Port v_0, Port v_1, Port v_2,
+                
+                Port w_1, Port w_2,
+                
+                Port z_x, Port z_y)
+   = Bar {v = v_0 :> v_1 :> v_2 :> nil;
+          w = (w_1, w_2);
+          z = Foo {x = z_x; y = z_y}}
+
+  portNames _ base = Cons (base +++ "_v_0")
+                       (Cons (base +++ "_v_1")
+                          (Cons (base +++ "_v_2")
+                             (Cons (base +++ "_w_1")
+                                (Cons (base +++ "_w_2")
+                                   (Cons (base +++ "_z_x")
+                                      (Cons (base +++ "_z_y")
+                                         Nil))))))
+\end{verbatim}
+\end{quote}
+
+In the RTL, the module will now have the following ports:
+
+\begin{tabular}{|c|c|c|c|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv\_v\_0}  &
+     {\tt mv\_v\_1}  &
+     {\tt mv\_v\_2}  &
+     {\tt mv\_w\_1}  &
+     {\tt mv\_w\_2}  &
+     {\tt mv\_z\_x}  &
+     {\tt mv\_z\_y}  &
+     {\tt mv\_1\_x}  &
+     {\tt mv\_1\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+      8 bits &
+      8 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav\_v\_0}  &
+     {\tt mav\_v\_1}  &
+     {\tt mav\_v\_2}  &
+     {\tt mav\_w\_1}  &
+     {\tt mav\_w\_2}  &
+     {\tt mav\_z\_x}  &
+     {\tt mav\_z\_y}  &
+     {\tt mav\_1\_x}  &
+     {\tt mav\_1\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+      8 bits &
+      8 bits &
+      8 bits &
+      8 bits \\
+    \hline
+\end{tabular}
+
+Now note that the nested field {\tt z} of type {\tt Bar} on the output
+is also split, because we specfied that in the {\tt splitPorts}
+function.
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BH): custom-split {\tt Foo}}
+
+\label{sec:splitports_examples_BH_Custom}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+(Compare this with shallow-split {\tt Foo} in
+Section:~\ref{sec:splitports_examples_BH_Foo_Shallow}.)
+
+Suppose we change the declaration of the {\tt Foo} instance of {\tt
+SplitPorts} to the following:
+
+\begin{quote}
+\begin{verbatim}
+type T3 = (Port (Int 8), Port Bool, Port (Bit 7))
+
+instance SplitPorts Foo T3 where
+
+  splitPorts f = (Port f.x,
+                  Port (f.y > 0), Port $ truncate $ pack f.y)
+
+  unsplitPorts (Port x, Port s, Port y) =
+      Foo { x = x;
+            y = (if s then id else negate) $ unpack $ zeroExtend y; }
+
+  portNames _ base = Cons (base +++ "_x")
+                       (Cons (base +++ "_ysign")
+                          (Cons (base +++ "_yvalue") Nil))
+\end{verbatim}
+\end{quote}
+
+and let us remove the {\tt Bar} instance of {\tt SplitPorts}.
+
+In the RTL, the module will now have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|c|c|}
+    \hline
+     Output &
+     Input  &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv}            &
+     {\tt mv\_1\_x}      &
+     {\tt mv\_1\_sign}   &
+     {\tt mv\_1\_yvalue} \\
+     36 bits &
+      8 bits &
+      1 bit  &
+      7 bits \\
+    \hline
+     {\tt mav}            &
+     {\tt mav\_1\_x}      &
+     {\tt mav\_1\_sign}   &
+     {\tt mav\_1\_yvalue} \\
+     36 bits &
+      8 bits &
+      1 bit  &
+      7 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Each original input port has been split into three ports.
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Example in {\BHb} of simplified canonical splitting}
+
+\label{sec:splitports_examples_BH_simplified}
+
+\index{SplitPorts@\te{SplitPorts}!simplified canonical port splitting}
+\index{Simplified canonical port splitting}
+\index{Simplified canonical port splitting|seealso{\te{SplitPorts}}}
+
+{\footnotesize  For a {\BSVb} version of this, please see
+  Section~\ref{sec:splitports_examples_BSV_simplified}.}
+
+{\footnotesize (This example needs import of {\tt SplitPorts} package.)}
+
+The declarations of {\tt Foo} and {\tt Bar} as instances of type class
+{\tt Splitports} for \emph{canonical} splitting, shown in
+Section~\ref{sec:splitports_examples_BH} seem to have highly
+predictable structure that follows the structure of the {\tt Foo} and
+{\tt Bar} type declarations. The functions in the type classes
+described in Section~\ref{sec:splitports_shallow_deep} provide
+boilerplate shortcuts that encapsulate this predictable structure.
+The instances could have been declared more simply and briefly as
+follows:
+
+Shallow-split of {\tt Foo}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts Foo (ShallowPortsOf Foo) where
+  splitPorts   = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames    = shallowSplitPortNames
+\end{verbatim}
+\end{quote}
+
+Shallow-split of {\tt Bar}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts Bar (ShallowPortsOf Bar) where
+  splitPorts   = shallowSplitPorts
+  unsplitPorts = shallowUnsplitPorts
+  portNames    = shallowSplitPortNames xBar
+\end{verbatim}
+\end{quote}
+
+Deep-split of {\tt Bar}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts Bar (DeepPortsOf Bar) where
+  splitPorts   = deepSplitPorts
+  unsplitPorts = deepUnsplitPorts
+  portNames    = deepSplitPortNames
+\end{verbatim}
+\end{quote}
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+
+  Even this simple boilerplate is highly stylized, and will become
+  unnecessary in a planned future enhancement of {\BLANGS}: the ``{\tt
+  deriving via}'' clause.
+
+\end{minipage}}
+
+%  ----------------------------------------------------------------
+%  ----------------------------------------------------------------
+%  ----------------------------------------------------------------
+
+\subsubsection{Examples in {\BSVb} of splitting user-defined types}
+
+
+\label{sec:splitports_examples_BSV}
+
+{\footnotesize
+For {\BHb} versions of these, please see Section~\ref{sec:splitports_examples_BH}.}
+
+% ----------------
+
+\paragraph{Example ({\BSVb}): Baseline (before splitting) for port splitting examples}
+
+\label{sec:splitports_examples_BSV_baseline}
+
+\hspace*{1em}
+
+Consider the following struct and interface types:
+\begin{quote}
+\begin{verbatim}
+typedef struct {
+   Int #(8) x;
+   Int #(8) y;
+} Foo
+deriving (Bits);    // Represented as Bit #(16)
+
+typedef struct {
+   Vector #(3, Bool)           v;
+   Tuple2 #(Bool, UInt #(16))  w;
+   Foo                         z;
+} Bar
+deriving (Bits);    // Represented as Bit #(36)    (3+1+16+16)
+
+interface SplitTest;
+   method Bar                mv  (Foo a);
+   method ActionValue #(Bar) mav (Foo a);
+endinterface
+\end{verbatim}
+\end{quote}
+
+If we instantiate a module {\tt mod} with this interface, the methods
+may be invoked like this:
+
+\begin{tabbing}
+\hspace*{4em} \= \hspace*{2em} \= \kill
+\hspace*{4em} \>               \> {\tt Foo a1, a2; Bar b1, b2;} \\
+              \>               \> {\tt b1  > mod.mv  (a1)} \\
+              \>  or           \> {\tt b2 <- mod.mav (a2)}
+\end{tabbing}
+
+In the RTL, the module will have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|}
+    \hline
+     Output &
+     Input  \\
+    \hline
+     {\tt mv}    &
+     {\tt mv\_a} \\
+     36 bits &
+     16 bits \\
+    \hline
+     {\tt mav}    &
+     {\tt mav\_a} \\
+     36 bits &
+     16 bits \\
+    \hline
+\end{tabular}
+\end{center}
+
+% ----------------
+
+\paragraph{Example (\BSV): shallow-split {\tt Foo}}
+
+\label{sec:splitports_examples_BSV_Foo_Shallow}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Let us add the following declaration to our program, making {\tt Foo}
+an instance of the {\tt SplitPorts} type class:
+
+\begin{quote}
+\begin{verbatim}
+typedef Tuple2 #(Port #(Int #(8)), Port #(Int #(8)))  T2;
+
+instance SplitPorts #(Foo, T2);
+   function T2 splitPorts (Foo f);
+      return tuple2 (Port (f.x), Port (f.y));
+   endfunction
+
+   function Foo unsplitPorts (T2 t2);
+      match { .vx, .vy } = case (t2) matches
+                            { tagged Port .vx,
+                              tagged Port .vy }: tuple2 (vx, vy);
+                           endcase;
+      return Foo { x:vx, y:vy };
+   endfunction
+
+   function portNames (_, base);
+      return toList (vec (base + "_x",
+                          base + "_y"));
+   endfunction
+endinstance
+\end{verbatim}
+\end{quote}
+
+{\tt splitPorts} takes an argument {\tt f} of type {\tt Foo}, and
+returns a 2-tuple of port descriptors, one per field of {\tt Foo}.
+Each component applies the constructor {\tt Port} to the corresponding
+component.
+
+{\tt unsplitPorts} is the inverse: it takes a 2-tuple of port
+descriptors and recombines them into a {\tt Foo} value.
+
+{\tt portNames} returns a list of desired names for the ports, by
+appending suffixes to bhe base name.
+
+In the RTL, the module will have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|c|}
+    \hline
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv}       &
+     {\tt mv\_a\_x} &
+     {\tt mv\_a\_y} \\
+     36 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav}       &
+     {\tt mav\_a\_x} &
+     {\tt mav\_a\_y} \\
+     36 bits &
+      8 bits &
+      8 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+The argument ports, of type {\tt Foo} have been split.
+
+% ----------------
+
+\paragraph{Example (\BSV): shallow-split {\tt Foo}, shallow-split {\tt Bar}}
+
+\label{sec:splitports_examples_BSV_Foo_Shallow_Bar_Shallow}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Suppose we add the following declaration to our program, making {\tt
+  Bar} also an instance of the {\tt SplitPorts} type class:
+
+\begin{quote}
+\begin{verbatim}
+typedef Tuple6 #(Port #(Bool), Port #(Bool), Port #(Bool),
+                 Port #(Bool), Port #(UInt #(16)),
+                 Port #(Foo))                                 T6;
+
+instance SplitPorts #(Bar, T6);
+   function T6 splitPorts (Bar b);
+      match { .w1, .w2 } = b.w;
+      return tuple6 (Port (b.v[0]), Port (b.v[1]), Port (b.v[2]),
+                     Port (w1), Port (w2),
+                     Port (b.z));
+   endfunction
+
+   function Bar unsplitPorts (T6 t6);
+      match { .v0, .v1, .v2, .w1, .w2, .z }
+      = case (t6) matches
+           {tagged Port .v0, tagged Port .v1, tagged Port .v2,
+            tagged Port .w1, tagged Port .w2,
+            tagged Port .z}                     : tuple6 (v0,v1,v2,w1,w2,z);
+        endcase;
+      Vector #(3, Bool) v = ?;
+      v[0] = v0; v[1] = v1; v[2] = v2;
+      return Bar { v:v, w:tuple2 (w1,w2), z:z };
+   endfunction
+
+   function portNames (_, base);
+      return toList (vec (base + "_v_0",
+                          base + "_v_1",
+                          base + "_v_2",
+                          base + "_w_1",
+                          base + "_w_2",
+                          base + "_z"));
+   endfunction
+endinstance
+\end{verbatim}
+\end{quote}
+
+In the RTL, the module will now have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv\_v\_0}  &
+     {\tt mv\_v\_1}  &
+     {\tt mv\_v\_2}  &
+     {\tt mv\_w\_1}  &
+     {\tt mv\_w\_2}  &
+     {\tt mv\_z}     &
+     {\tt mv\_a\_x}  &
+     {\tt mv\_a\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+     16 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav\_v\_0}  &
+     {\tt mav\_v\_1}  &
+     {\tt mav\_v\_2}  &
+     {\tt mav\_w\_1}  &
+     {\tt mav\_w\_2}  &
+     {\tt mav\_z}     &
+     {\tt mav\_a\_x}  &
+     {\tt mav\_a\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+     16 bits &
+      8 bits &
+      8 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Even though each output port, of type {\tt Bar}, contains a field
+``{\tt z}'' of type {\tt Foo}, that nested field is not split.
+Splitting is only applied to the top-level type ({\tt Bar}), and in
+its {\tt splitPorts} function we chose not to split the nested field
+{\tt z}.
+
+% ----------------
+
+\paragraph{Example (\BSV): shallow-split {\tt Foo}, deep-split {\tt Bar}}
+
+\label{sec:splitports_examples_BSV_Foo_Shallow_Bar_Deep}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+Suppose we change the declaration of the {\tt Bar} instance of {\tt
+SplitPorts} to the following:
+
+\begin{quote}
+\begin{verbatim}
+typedef Tuple7 #(Port #(Bool), Port #(Bool), Port #(Bool),
+                 Port #(Bool), Port #(UInt #(16)),
+                 Port #(Int #(8)),
+                 Port #(Int #(8)))                            T7;
+
+instance SplitPorts #(Bar, T7);
+   function T7 splitPorts (Bar b);
+      match { .w_1, .w_2 } = b.w;
+      return tuple7 (Port (b.v[0]), Port (b.v[1]), Port (b.v[2]),
+                     Port (w_1), Port (w_2),
+                     Port (b.z.x), Port (b.z.y));
+   endfunction
+
+   function Bar unsplitPorts (T7 t7);
+      match { .v_0, .v_1, .v_2, .w_1, .w_2, .z_x, .z_y }
+      = case (t7) matches
+           {tagged Port .v_0, tagged Port .v_1, tagged Port .v_2,
+            tagged Port .w_1, tagged Port .w_2,
+            tagged Port .z_x, tagged Port .z_y}: tuple7 (v_0,v_1,v_2,
+                                                         w_1,w_2,
+                                                         z_x,z_y);
+        endcase;
+      Vector #(3, Bool) v = ?;
+      v[0] = v_0; v[1] = v_1; v[2] = v_2;
+      return Bar { v:v, w:tuple2 (w_1,w_2), z:Foo {x:z_x, y:z_y} };
+   endfunction
+
+   function portNames (_, base);
+      return toList (vec (base + "_v_0",
+                          base + "_v_1",
+                          base + "_v_2",
+                          base + "_w_1",
+                          base + "_w_2",
+                          base + "_z_x",
+                          base + "_z_y"));
+   endfunction
+endinstance
+\end{verbatim}
+\end{quote}
+
+In the RTL, the module will now have the following ports:
+
+\begin{tabular}{|c|c|c|c|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv\_v\_0}  &
+     {\tt mv\_v\_1}  &
+     {\tt mv\_v\_2}  &
+     {\tt mv\_w\_1}  &
+     {\tt mv\_w\_2}  &
+     {\tt mv\_z\_x}  &
+     {\tt mv\_z\_y}  &
+     {\tt mv\_a\_x}  &
+     {\tt mv\_a\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+      8 bits &
+      8 bits &
+      8 bits &
+      8 bits \\
+    \hline
+     {\tt mav\_v\_0}  &
+     {\tt mav\_v\_1}  &
+     {\tt mav\_v\_2}  &
+     {\tt mav\_w\_1}  &
+     {\tt mav\_w\_2}  &
+     {\tt mav\_z\_x}  &
+     {\tt mav\_z\_y}  &
+     {\tt mav\_a\_x}  &
+     {\tt mav\_a\_y} \\
+      1 bit  &
+      1 bit  &
+      1 bit  &
+      1 bit  &
+     16 bits &
+      8 bits &
+      8 bits &
+      8 bits &
+      8 bits \\
+    \hline
+\end{tabular}
+
+Now note that the nested field {\tt z} of type {\tt Bar} on the output
+is also split, because we specfied that in the {\tt splitPorts}
+function.
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BSV): custom-split {\tt Foo}}
+
+\label{sec:splitports_examples_BSV_Foo_Custom}
+
+\hspace*{1em}
+
+{\footnotesize (This example does not need import of {\tt SplitPorts} package.)}
+
+(Compare this with shallow-split {\tt Foo} in
+Section:~\ref{sec:splitports_examples_BSV_Foo_Shallow}.)
+
+Suppose we change the declaration of the {\tt Foo} instance of {\tt
+SplitPorts} to the following:
+
+\begin{quote}
+\begin{verbatim}
+typedef Tuple3 #(Port #(Int #(8)), Port #(Bool), Port #(Bit #(7)))  T3;
+
+instance SplitPorts #(Foo, T3);
+
+   function T3 splitPorts (Foo f);
+      return tuple3 (Port (f.x),
+                     Port (f.y > 0),
+                     Port (truncate (pack (f.y))));
+   endfunction
+
+   function Foo unsplitPorts (T3 t3);
+      match { .vx, .vs, .vy } = case (t3) matches
+                                   {tagged Port .x,
+                                    tagged Port .s,
+                                    tagged Port .y}: tuple3 (x, s, y);
+                                endcase;
+      let uy = unpack (zeroExtend (vy));
+      return Foo {x: vx,
+                  y: (vs ? uy : negate (uy))};
+   endfunction
+
+   function portNames (_, base);
+      return toList (vec (base + "_x",
+                          base + "_ysign",
+                          base + "_y"));
+   endfunction
+
+endinstance
+\end{verbatim}
+\end{quote}
+
+and let us remove the {\tt Bar} instance of {\tt SplitPorts}.
+
+In the RTL, the module will now have the following ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|c|c|}
+    \hline
+     Output &
+     Input  &
+     Input  &
+     Input  \\
+    \hline
+     {\tt mv}            &
+     {\tt mv\_a\_x}      &
+     {\tt mv\_a\_sign}   &
+     {\tt mv\_a\_yvalue} \\
+     36 bits &
+      8 bits &
+      1 bit  &
+      7 bits \\
+    \hline
+     {\tt mav}            &
+     {\tt mav\_a\_x}      &
+     {\tt mav\_a\_sign}   &
+     {\tt mav\_a\_yvalue} \\
+     36 bits &
+      8 bits &
+      1 bit  &
+      7 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Each original input port has been split into three ports.
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Example in {\BSVb} of simplified canonical splitting}
+
+\label{sec:splitports_examples_BSV_simplified}
+
+{\footnotesize  For a {\BHb} version of this, please see
+  Section~\ref{sec:splitports_examples_BH_simplified}.}
+
+{\footnotesize (This example needs import of {\tt SplitPorts} package.)}
+
+The declarations of {\tt Foo} and {\tt Bar} as instances of type class
+{\tt Splitports} for \emph{canonical} splitting, shown in
+Section~\ref{sec:splitports_examples_BH} seem to have highly
+predictable structure that follows the structure of the {\tt Foo} and
+{\tt Bar} type declarations. The functions in the type classes
+described in Section~\ref{sec:splitports_shallow_deep} provide
+boilerplate shortcuts that encapsulate this predictable structure.
+The instances could have been declared more simply and briefly as
+follows:
+
+Shallow-split of {\tt Foo}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts #(Foo, ShallowPortsOf #(Foo));
+  function splitPorts   = shallowSplitPorts;
+  function unsplitPorts = shallowUnsplitPorts;
+  function portNames    = shallowSplitPortNames;
+endinstance
+\end{verbatim}
+\end{quote}
+
+Shallow-split of {\tt Bar}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts #(Bar, ShallowPortsOf #(Bar));
+  function splitPorts   = shallowSplitPorts;
+  function unsplitPorts = shallowUnsplitPorts;
+  function portNames    = shallowSplitPortNames xBar;
+\end{verbatim}
+\end{quote}
+
+Deep-split of {\tt Bar}:
+\begin{quote}
+\begin{verbatim}
+instance SplitPorts #(Bar, DeepPortsOf #(Bar));
+  function splitPorts   = deepSplitPorts;
+  function unsplitPorts = deepUnsplitPorts;
+  function portNames    = deepSplitPortNames;
+\end{verbatim}
+\end{quote}
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+
+  Even this simple boilerplate is highly stylized, and will become
+  unnecessary in a planned future enhancement of {\BLANGS}: the ``{\tt
+  deriving via}'' clause.
+
+\end{minipage}}
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Preventing or changing splitting on a user-defined type}
+
+\label{sec:splitports_overriding_SplitPorts}
+
+\index{SplitPorts@\te{SplitPorts}!prevent/override/alternate splitting}
+
+When a user-defined type $t$ has been declared as an instance of {\tt
+  SplitPorts}, then \emph{every} argument or result of type $t$ will
+be split by the \emph{bsc} compiler.  To prevent splitting,
+\begin{itemize}
+
+  \item define a \emph{new type} $t'$ that simply contains $t$ (\emph{i.e.,}
+    $t'$ is a ``wrapper'' type), and
+    \index{wrapper type!to prevent port-splitting}
+
+  \item use $t'$ in place of $t$ for each argument/result where we
+    want to prevent splitting.
+
+\end{itemize}
+
+If, instead of preventing splitting, we want an alternate splitting,
+we can define $t'$ as an instance of {\tt SplitPorts} and specify the
+alternate splitting there.
+
+% ****************************************************************
+
+\subsection{SplitVector}
+
+\label{sec:SplitVector_package}
+
+\index{SplitVector@\te{SplitVector}!package}
+\index{SplitVector@\te{SplitVector}!type}
+\index{SplitVector@\te{SplitVector}!constructor}
+\index{unSplitVector@\te{unSplitVector}!function in package \te{SplitVector}}
+\index[function]{SplitVector!unSplitVector}
+
+NOTE: \hfill \fbox{\begin{minipage}{0.9\textwidth}\footnotesize
+    \te{SplitPorts} and \te{SplitVector} are new features, introduced
+    in release 2026.07.  We welcome feedback on their usability and on
+    this documentation.
+\end{minipage}}
+
+(For a general discussion of port splitting, and details of splitting
+non-{\tt Vector} values, please see
+Section~\ref{sec:SplitPorts_package}.)
+
+The \emph{bsc} compiler does not split {\tt Vector}-type values by
+default\footnote{They could split into hundreds of elements!}.  Nor do
+we typically want to define {\tt Vector} as an instance of the {\tt
+  SplitPorts} type class, both because that may cover too many vectors
+(we may use {\tt Vector} in unrelated ways in different arguments and
+results) and because the instance may become ``orphaned'' (for
+example, imported into a package that does not import {\tt
+  Vector}). The {\tt SplitVector} package provides a solution,
+defineing a type and a function:
+\begin{quote}
+  {\BHb} syntax:
+  \hspace*{1em}\begin{tabular}[t]{l}
+    {\tt import SplitVector} \\
+    \\
+    {\tt data SplitVector n a = SplitVector (Vector n a)} \\
+    \\
+    {\tt unSplitVector :: SplitVector n a -> Vector n a}
+  \end{tabular}
+\end{quote}
+
+\begin{quote}
+  {\BSVb} syntax:
+  \hspace*{1em}\begin{tabular}[t]{l}
+    {\tt import SplitVector :: *;} \\
+    \\
+    {\tt typedef union tagged \{} \\
+    {\tt \hspace*{2em}  Vector \#(n,a) SplitVector;} \\
+    {\tt \} SplitVector \#(n,a);} \\
+    \\
+    {\tt function Vector \#(n,a) unSplitVector (SplitVector \#(n,a) v);}
+  \end{tabular}
+\end{quote}
+
+To split a vector method argument or result, replace the type {\tt
+  Vector} with the type {\tt SplitVector}.
+
+The {\tt SplitVector} type is a ``drop-in'' replacement for the {\tt
+  Vector} type.  By this we mean that most of the type classes for
+which {\tt Vector} has instances also have instances for {\tt
+  SplitVector}, so functions like {\tt fmap}, {\tt foldr}, {\tt
+  length}, {\tt ==}, etc. will also work on {\tt SplitVector}.  For
+any other vector processing, we can:
+
+\begin{itemize}
+
+  \item use the {\tt unSplitVector} function to convert a value $sv_1$
+    of type {\tt SplitVector} into a corresponding value of type $v_1$
+    {\tt Vector} (we could also use pattern-matching for this);
+
+  \item compute a result vector $v_2$ of type {\tt Vector} from $v_1$
+    using {\tt Vector} operations, and
+
+  \item apply the constructor {\tt SplitVector} to $v_2$ to produce
+    the result $sv_2$ of type {\tt SplitVector}.
+
+\end{itemize}
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BH): splitting vectors}
+
+\label{sec:splitports_examples_BH_vectors}
+
+\hspace*{1em}
+
+{\footnotesize (For a {\BSVb} version of this, please see the next section.)}
+
+{\footnotesize (This example needs import of {\tt SplitVectors} package.)}
+
+As a baseline, let us consider ports for the {\tt Vector} type.
+Consider an interface like this:
+
+\begin{quote}
+\begin{verbatim}
+interface SplitTest_Vec =
+   mv1 :: Vector 2 (Int 8) -> Vector 3 Bool
+\end{verbatim}
+\end{quote}
+
+and a module:
+
+\begin{quote}
+\begin{verbatim}
+mkTest_Vec :: Module SplitTest_Vec
+mkTest_Vec =
+  module
+    ...
+    interface
+      mv1 av = ... 
+\end{verbatim}
+\end{quote}
+
+It will have the following input and output ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|}
+    \hline
+     Output &
+     Input  \\
+    \hline
+     mv1     &
+     mv1\_1   \\
+     3  bits &
+     16 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Suppose we change the interface declaration to the following,
+replacing {\tt Vector} with {\tt SplitVector}:
+
+\begin{quote}
+\begin{verbatim}
+interface SplitTest_Vec =
+   mv1 :: SplitVector 2 (Int 8) -> SplitVector 3 Bool
+\end{verbatim}
+\end{quote}
+
+These ports will be split automatically, and the module will now have
+the following input and output ports:
+
+\begin{center}
+  \begin{tabular}{|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     mv1\_0     &
+     mv1\_1     &
+     mv1\_2     &
+     mv1\_1\_0  &
+     mv1\_1\_1  \\
+     1  bits   &
+     1  bits   &
+     1  bits   &
+     8  bits   &
+     8  bits   \\
+    \hline
+  \end{tabular}
+
+  {\footnotesize (The ``{\tt \_0}'', ``{\tt \_1}'' and ``{\tt \_2}''
+    suffixes are the vector indexes of the corresponding components.)}
+
+\end{center}
+
+The method definition in the module, in more detail, will look like this:
+
+\begin{quote}
+\begin{verbatim}
+mkTest_Vec :: Module SplitTest_Vec
+    interface
+      mv1 (SplitVector v1) = let
+                               ... v1 has type Vector 2 (Int 8) ...
+                               ... compute a value v2 of type Vector 3 Bool ...
+                             in
+                               SplitVector v2
+\end{verbatim}
+\end{quote}
+
+%  ----------------------------------------------------------------
+
+\paragraph{Example (\BSV): splitting vectors}
+
+\label{sec:splitports_examples_BSV_vectors}
+
+\hspace*{1em}
+
+{\footnotesize (For a {\BHb} version of this, please see the previous section.)}
+
+{\footnotesize (This example needs import of {\tt SplitVectors} package.)}
+
+As a baseline, let us consider ports for the {\tt Vector} type.
+Consider an interface like this:
+
+\begin{quote}
+\begin{verbatim}
+interface SplitTest_Vec;
+   method  Vector #(3, Bool) mv1 (Vector #(2, Int #(8)) av);
+endinterface
+\end{verbatim}
+\end{quote}
+
+and a module:
+
+\begin{quote}
+\begin{verbatim}
+module mkTest_Vec1 (SplitTest_Vec);
+   method mv1 (av);
+      ...
+      return ...;
+   endmethod
+endmodule
+\end{verbatim}
+\end{quote}
+
+It will have the following input and output ports:
+
+\begin{center}
+  \begin{tabular}{|c||c|}
+    \hline
+     Output &
+     Input  \\
+    \hline
+     mv1     &
+     mv1\_av \\
+     3  bits &
+     16 bits \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Suppose we change the interface declaration to the following,
+replacing {\tt Vector} with {\tt SplitVector}:
+
+\begin{quote}
+\begin{verbatim}
+interface SplitTest_Vec;
+   method SplitVector #(3, Bool) mv1 (SplitVector #(2, Int #(8)) av);
+endinterface
+\end{verbatim}
+\end{quote}
+
+These ports will be split automatically, and the module will now have
+the following input and output ports:
+
+\begin{center}
+  \begin{tabular}{|c|c|c||c|c|}
+    \hline
+     Output &
+     Output &
+     Output &
+     Input  &
+     Input  \\
+    \hline
+     mv1\_0      &
+     mv1\_1      &
+     mv1\_2      &
+     mv1\_av\_0  &
+     mv1\_av\_1  \\
+     1  bits   &
+     1  bits   &
+     1  bits   &
+     8  bits   &
+     8  bits   \\
+    \hline
+  \end{tabular}
+
+  {\footnotesize (The ``{\tt \_0}'', ``{\tt \_1}'' and ``{\tt \_2}''
+    suffixes are the vector indexes of the corresponding components.)}
+
+\end{center}
+
+The method definition in the module, in more detail, will look like this:
+
+\begin{quote}
+\begin{verbatim}
+   method SplitVector #(3, Bool) mv1 (SplitVector #(2, Int #(8)) asv);
+      Vector #(2, Int #(8)) v1 = unSplitVector (asv);
+      Vector #(3, Bool)     v2 = ...
+      return SplitVector (v2);
+   endmethod
+\end{verbatim}
+\end{quote}
+
+We use the function {\tt unSplitVector} to get {\tt v1}, an equivalent
+vector value of type {\tt Vector}; we compute a new value {\tt v2} of
+type {\tt Vector}, as usual; finally, we apply the constructor {\tt
+  SplitVector} to get a result of type {\tt SplitVector}.
+
+%  ----------------------------------------------------------------
+
+\subsubsection{Preventing or changing splitting on a {\tt SplitVector} argument/result}
+
+\label{sec:splitvector_overriding_SplitVector}
+
+\index{SplitVector@\te{SplitVector}!prevent/override/alternate splitting}
+
+\emph{Every} argument or result of type {\tt SplitVector} will be
+split by the \emph{bsc} compiler.  To prevent splitting, we can revert
+it to the {\tt Vector} type.
+
+Alternatively, to prevent splitting or define an alternate splitting,
+we can use the ``wrapper type''
+\index{wrapper type!to prevent port-splitting}
+technique described in
+Section~\ref{sec:splitports_overriding_SplitPorts}.
+
+% ****************************************************************

@@ -1,0 +1,30 @@
+package MulNegOperand (sysMulNegOperand) where
+
+-- Regression test for the AVeriQuirks fix that forces PrimMul operands into
+-- named defs (via mkDefS).  Without that fix, a single-use negation feeding
+-- a widening multiply can be inlined into the 32-bit multiply expression.
+-- Verilog then evaluates the negation in the wider result context instead
+-- of the narrow operand width, producing a different value than Bluesim.
+--
+-- Concretely: a = 16'h8000 = INT16_MIN.  In 16-bit signed arithmetic
+-- negate(INT16_MIN) overflows back to INT16_MIN (bits 0x8000).  In
+-- 32-bit context Verilog computes negate(sign_extend(0x8000)) = +32768.
+-- Bluesim correctly performs the narrow-width negation.
+
+sysMulNegOperand :: Module Empty
+sysMulNegOperand =
+    module
+        a :: Reg (Int 16)
+        a <- mkReg (unpack 16'h8000)
+        b :: Reg (Int 16)
+        b <- mkReg 1
+        rules
+          "test":
+            when True
+              ==> action
+                    let pa  :: Bit 16 = pack (negate a)
+                    let pb  :: Bit 16 = pack b
+                    let m32 :: Bit 32 = primMul pa pb
+                    let m   :: Int 32 = unpack m32
+                    $display "mul=%0d" m
+                    $finish 0

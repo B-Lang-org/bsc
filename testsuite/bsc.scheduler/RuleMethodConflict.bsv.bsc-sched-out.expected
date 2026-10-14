@@ -8,13 +8,13 @@ Warning: "RuleMethodConflict.bsv", line 38, column 8: (G0010)
 	r_wr.wget vs. r_wr.wset
 	r_wr.whas vs. r_wr.wset
     "put" cannot fire before "get": calls to r_rg.write vs. r_rg.read
-=== schedule:
+=== schedule (RuleMethodConflict sysRuleMethodConflict):
 parallel: [esposito: [get -> [], RL_put -> [get]]]
 order: [get, RL_put]
 
 -----
 
-=== resources:
+=== resources (RuleMethodConflict sysRuleMethodConflict):
 [(r_rg.read, [(r_rg.read, 1)]),
  (r_rg.write, [(r_rg.write 1'd1, 1)]),
  (r_wr.wget, [(r_wr.wget, 1)]),
@@ -23,7 +23,7 @@ order: [get, RL_put]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (RuleMethodConflict sysRuleMethodConflict):
 SchedInfo [get CF get] [] [] []
 
 -----

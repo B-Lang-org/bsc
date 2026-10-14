@@ -1,0 +1,10 @@
+checking package dependencies
+compiling TooManyArgNames.bs
+code generation for mkTooManyArgNamesSplitTest starts
+Error: "TooManyArgNames.bs", line 27, column 29: (S0015)
+  Bluespec evaluation-time error: 2 excess arg_names provided for method
+  putFooBar
+  During elaboration of the interface method `putFooBar' at
+  "TooManyArgNames.bs", line 30, column 0.
+  During elaboration of `mkTooManyArgNamesSplitTest' at "TooManyArgNames.bs",
+  line 30, column 0.

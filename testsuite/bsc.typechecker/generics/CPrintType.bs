@@ -22,9 +22,9 @@ instance (CPrintType a, CPrintTuple b) => CPrintTuple (a, b) where
 instance (CPrintType a) => CPrintTuple a where
   cPrintTuple = cPrintType
 
-instance (Generic a r, CPrintType' r) => CPrintType a where
-  cPrintType _ = cPrintType' (_ :: r)
-  cPrintTypeP _ = cPrintTypeP' (_ :: r)
+instance (CPrintType' (Rep a)) => CPrintType a where
+  cPrintType _ = cPrintType' (_ :: Rep a)
+  cPrintTypeP _ = cPrintTypeP' (_ :: Rep a)
 
 class CPrintType' a where
   cPrintType' :: a -> String
@@ -77,8 +77,8 @@ instance CPrintTypeArg OtherConArg where
 class CPrintConType c where
   cPrintConType :: c -> String
 
-instance (Generic c r, CPrintConType' r) => CPrintConType c where
-  cPrintConType _ = cPrintConType' (_ :: r)
+instance (CPrintConType' (Rep c)) => CPrintConType c where
+  cPrintConType _ = cPrintConType' (_ :: Rep c)
 
 class CPrintConType' r where
   cPrintConType' :: r -> String

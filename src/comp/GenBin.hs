@@ -3,7 +3,6 @@
 module GenBin(genBinFile, readBinFile) where
 
 import Control.Monad(when)
-import Data.Word
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B
@@ -27,21 +26,25 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20230831-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-bo-20260714-1"
+
+headerBS :: B.ByteString
+headerBS = B.pack header
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
 genBinFile errh fn bi_sig bo_sig ipkg =
     writeBinaryFileCatch errh fn (header ++ encode (bi_sig, bo_sig, ipkg))
 
-readBinFile :: ErrorHandle -> String -> [Word8] ->
+readBinFile :: ErrorHandle -> String -> B.ByteString ->
                IO (CSignature, CSignature, IPackage a, String)
 readBinFile errh nm s =
-    if take (length header) s == header
-    then let ((bi_sig, bo_sig, ipkg), hash) =
-                 decodeWithHash $ drop (length header) s
-         in return (bi_sig, bo_sig, ipkg, hash)
-    else bsError errh [(noPosition, EBinFileVerMismatch nm)]
+    let hlen = B.length headerBS
+    in if B.take hlen s == headerBS
+       then let ((bi_sig, bo_sig, ipkg), hash) =
+                    decodeWithHash $ B.drop hlen s
+            in return (bi_sig, bo_sig, ipkg, hash)
+       else bsError errh [(noPosition, EBinFileVerMismatch nm)]
 
 -- ----------
 -- Bin CSignature
@@ -82,15 +85,15 @@ instance Bin CDefn where
         do putI 1; toBin vis; toBin ik; toBin vs; toBin ocs; toBin cs
     writeBytes (Cstruct vis st ik is fs _) =
         do putI 2; toBin vis; toBin st; toBin ik; toBin is; toBin fs
-    writeBytes (Cclass incoh ps ik is deps fs) =
-        do putI 3; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin fs
-    writeBytes (Cforeign n cqt fn ports) =
-        do putI 4; toBin n; toBin cqt; toBin fn; toBin ports
+    writeBytes (Cclass incoh ps ik is deps ats fs) =
+        do putI 3; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin ats; toBin fs
+    writeBytes (Cforeign n cqt fn ports ni) =
+        do putI 4; toBin n; toBin cqt; toBin fn; toBin ports; toBin ni
     writeBytes (Cprimitive i cqt) = do putI 5; toBin i; toBin cqt
     writeBytes (CprimType ik) = do putI 6; toBin ik
     writeBytes (CIinstance i cqt) = do putI 7; toBin i; toBin cqt
-    writeBytes (CIclass incoh ps ik is deps poss) =
-        do putI 8; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin poss
+    writeBytes (CIclass incoh ps ik is deps ats poss) =
+        do putI 8; toBin incoh; toBin ps; toBin ik; toBin is; toBin deps; toBin ats; toBin poss
     writeBytes (CIValueSign i cqt) = do putI 9; toBin i; toBin cqt
     writeBytes (CItype ik is poss) = do putI 10; toBin ik; toBin is; toBin poss
     writeBytes (CPragma p) = do putI 11; toBin p
@@ -121,14 +124,16 @@ instance Bin CDefn where
                               ik <- fromBin
                               is <- fromBin
                               deps <- fromBin
+                              ats <- fromBin
                               fs <- fromBin
-                              return (Cclass incoh ps ik is deps fs)
+                              return (Cclass incoh ps ik is deps ats fs)
                      4  -> do when doTrace $ traceM ("Cforeign")
                               n <- fromBin
                               cqt <- fromBin
                               fn <- fromBin
                               ports <- fromBin
-                              return (Cforeign n cqt fn ports)
+                              ni <- fromBin
+                              return (Cforeign n cqt fn ports ni)
                      5  -> do when doTrace $ traceM ("Cprimitive")
                               i <- fromBin; cqt <- fromBin
                               return (Cprimitive i cqt)
@@ -144,8 +149,9 @@ instance Bin CDefn where
                               ik <- fromBin
                               is <- fromBin
                               deps <- fromBin
+                              ats <- fromBin
                               poss <- fromBin
-                              return (CIclass incoh ps ik is deps poss)
+                              return (CIclass incoh ps ik is deps ats poss)
                      9  -> do when doTrace $ traceM ("CIValueSign")
                               i <- fromBin; cqt <- fromBin
                               return (CIValueSign i cqt)
@@ -422,6 +428,11 @@ instance Bin CExpr where
                       return (CSubUpdate pos e_vec (e_h, e_l) e_rhs)
              n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
 
+instance Bin CAssocDepFun where
+    writeBytes (CAssocDepFun name ps rhs) = do toBin name; toBin ps; toBin rhs
+    readBytes = do name <- fromBin; ps <- fromBin; rhs <- fromBin
+                   return (CAssocDepFun name ps rhs)
+
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs
     writeBytes (CLValue i cs qs)  = do putI 1; toBin i; toBin cs; toBin qs
@@ -527,15 +538,18 @@ instance Bin (IPackage a) where
            toBin (ipkg_depends pkg)
            toBin (ipkg_pragmas pkg)
            toBin (ipkg_defs pkg)
+           toBin (ipkg_atf_cache pkg)
     readBytes = do when doTrace $ traceM("read IPackage")
-                   name    <- fromBin
-                   depends <- fromBin
-                   pragmas <- fromBin
-                   defs    <- fromBin
-                   return $ IPackage { ipkg_name    = name
-                                     , ipkg_depends = depends
-                                     , ipkg_pragmas = pragmas
-                                     , ipkg_defs    = defs
+                   name      <- fromBin
+                   depends   <- fromBin
+                   pragmas   <- fromBin
+                   defs      <- fromBin
+                   atfCache  <- fromBin
+                   return $ IPackage { ipkg_name      = name
+                                     , ipkg_depends   = depends
+                                     , ipkg_pragmas   = pragmas
+                                     , ipkg_defs      = defs
+                                     , ipkg_atf_cache = atfCache
                                      }
 
 -- ----------
@@ -561,7 +575,7 @@ instance Bin (IExpr a) where
     writeBytes (IVar i)       = do putI 2; toBin i
     writeBytes (ILAM i k e)   = do putI 3; toBin i; toBin k; toBin e
     writeBytes (ICon i ic)    = do putI 4; toBin i; toBin ic
-    writeBytes (IRefT _ _ _)  = internalError "GenBin.Bin(IExpr).writeBytes: IRefT"
+    writeBytes (IRefT _ _ _ _) = internalError "GenBin.Bin(IExpr).writeBytes: IRefT"
     readBytes = do tag <- getI
                    case tag of
                      0 -> do i <- fromBin
@@ -642,6 +656,8 @@ instance Bin (IConInfo a) where
         internalError "GenBin.Bin(IConInfo).writeBytes: ICPred"
     writeBytes (ICHandle { }) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICHandle"
+    writeBytes (ICMethod { }) =
+        internalError "GenBin.Bin(IConInfo).writeBytes: ICMethod"
     readBytes = do tag <- getI
                    t <- fromBin
                    case tag of

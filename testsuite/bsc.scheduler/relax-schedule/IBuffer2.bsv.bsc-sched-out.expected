@@ -4,7 +4,7 @@ compiling ./X86_Datatypes.bsv
 compiling ./BaseTypes.bsv
 compiling IBuffer2.bsv
 code generation for mkIBuffer starts
-=== schedule:
+=== schedule (IBuffer2 mkIBuffer):
 parallel: [esposito: [handleIBufferRequest -> [],
 		      flushAddress -> [],
 		      handleCacheResponse -> [],
@@ -32,7 +32,7 @@ order: [handleIBufferRequest,
 
 -----
 
-=== resources:
+=== resources (IBuffer2 mkIBuffer):
 [(cacheAddrQueue_caq_deqw.whas, [(cacheAddrQueue_caq_deqw.whas, 1)]),
  (cacheAddrQueue_caq_deqw.wset, [(cacheAddrQueue_caq_deqw.wset, 1)]),
  (cacheAddrQueue_caq_enqw.wget, [(cacheAddrQueue_caq_enqw.wget, 1)]),
@@ -50,7 +50,7 @@ order: [handleIBufferRequest,
     1)]),
  (cacheAddrQueue_caq_the_fifof.enq,
   [(if cacheAddrQueue_caq_enqw_whas_AND_cacheAddrQueu_ETC___d11 then
-      cacheAddrQueue_caq_the_fifof.enq x__h315,
+      cacheAddrQueue_caq_the_fifof.enq IF_cacheAddrQueue_caq_enqw_whas_THEN_cacheAddr_ETC___d6,
     1)]),
  (cacheAddrQueue_caq_the_fifof.first, [(cacheAddrQueue_caq_the_fifof.first, 1)]),
  (cacheAddrQueue_caq_the_fifof.i_notEmpty, [(cacheAddrQueue_caq_the_fifof.i_notEmpty, 1)]),
@@ -60,7 +60,7 @@ order: [handleIBufferRequest,
  (responseQueue_rq_enqw.wget, [(responseQueue_rq_enqw.wget, 1)]),
  (responseQueue_rq_enqw.whas, [(responseQueue_rq_enqw.whas, 1)]),
  (responseQueue_rq_enqw.wset,
-  [(responseQueue_rq_enqw.wset handleCacheResponse_data_BITS_32_TO_0_8_CONCAT_ETC___d30, 1)]),
+  [(responseQueue_rq_enqw.wset handleCacheResponse_data_BITS_32_TO_0_7_CONCAT_ETC___d29, 1)]),
  (responseQueue_rq_result.wget, [(responseQueue_rq_result.wget, 1)]),
  (responseQueue_rq_result.whas, [(responseQueue_rq_result.whas, 1)]),
  (responseQueue_rq_result.wset,
@@ -81,7 +81,7 @@ order: [handleIBufferRequest,
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (IBuffer2 mkIBuffer):
 SchedInfo
 [RDY_cacheRequest CF [RDY_cacheRequest,
 		      RDY_flush,

@@ -2,6 +2,7 @@ module ISimplify(iSimplify) where
 
 import Data.List((\\))
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Util(fromJustOrErr)
 import PPrint
 import IntLit
@@ -26,8 +27,8 @@ import Eval
 --   * let d = Literal-Bits n in ... .fromInteger d NNN  -->   NNN
 
 iSimplify :: (NFData a) => IPackage a -> IPackage a
-iSimplify (IPackage pi lps ps ds) =
-    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))        -- XXX
+iSimplify (IPackage pi lps ps ds atfCache) =
+    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds))) atfCache        -- XXX
 
 iSimpDefs :: NFData a => [IDef a] -> [IDef a]
 iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds
@@ -58,22 +59,21 @@ iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
         r = fromJustOrErr "iSimpAp ICPrim Nothing" m
 iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
         es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
-  where m = getTuple def
-        ms = fromJustOrErr "iSimpAp ICSel Nothing" m
-        e' = iSimpAp n (iSimp n (ms !! fromInteger k)) [] as
+  where m = selectTuple (fromInteger k) def
+        e = fromJustOrErr "iSimpAp ICSel Nothing" m
+        e' = iSimpAp n e [] as
 iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es
 
-getTuple :: (NFData a) => IExpr a -> Maybe [IExpr a]
-getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
-        -- trace ("unfold " ++ ppReadable di) $
-        Just ms
-getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
+selectTuple :: (NFData a) => Int -> IExpr a -> Maybe (IExpr a)
+selectTuple k (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars e = Just e
+  where e = ms !! k
+selectTuple k (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
         -- trace ("getTuple " ++ ppReadable (iii,body)) $
         case iSimpAp False body ts [] of
-        IAps (ICon _ (ICTuple { })) _ ms -> Just ms
+        IAps (ICon _ (ICTuple { })) _ ms -> Just $ ms !! k
         _ -> Nothing
-getTuple _ = Nothing
+selectTuple _ _ = Nothing
 
 -- XXX should we do more PrimOps here?
 doPrim :: PrimOp -> [IType] -> [IExpr a] -> Maybe (IExpr a)
@@ -118,7 +118,10 @@ isTriv (ICon _ ci) | isitActionValue_ t || isitActionValue t = False
   where t = iConType ci
 isTriv (ICon _ (ICInt { })) = True
 isTriv (ICon _ (ICReal { })) = True
+isTriv (ICon _ (ICChar { })) = True
+isTriv (ICon _ (ICString { })) = True
 isTriv (ICon _ (ICUndet { })) = True
+isTriv (ICon _ (ICTuple { fieldIds = [] })) = True
 isTriv (ICon _ (ICDef { })) = True
 isTriv _ = False
 
@@ -141,7 +144,7 @@ gVars (IVar i) = [i]
 gVars (ILAM i _ e) = gVars e
 gVars (IAps f ts es) = gVars f ++ concatMap gVars es
 gVars (ICon _ _) = []
-gVars (IRefT _ _ _) = []
+gVars (IRefT _ _ _ _) = []
 
 -- computes the top-level definitions the expression depends onb
 -- dVars :: IExpr a -> [Id]
@@ -151,22 +154,25 @@ gVars (IRefT _ _ _) = []
 -- dVars (IAps f _ es) = dVars f ++ concatMap dVars es
 -- dVars (ICon i (ICDef { })) = [i]
 -- dVars (ICon _ _) = []
--- dVars (IRefT _ _ _) = []
+-- dVars (IRefT _ _ _ _) = []
 
-dVars :: IExpr a -> [Id]
-dVars e = dVars' [] e
+dVars :: IExpr a -> S.Set Id
+dVars e = dVars' S.empty e
 
 -- auxiliary function to guard against circular traversals
-dVars' :: [Id] -> IExpr a -> [Id]
+-- and to accumulate definitions that have been processed
+dVars' :: S.Set Id -> IExpr a -> S.Set Id
 dVars' ids (ILam _ _ e) = dVars' ids e
-dVars' ids (IVar _) = []
+dVars' ids (IVar _) = ids
 dVars' ids (ILAM _ _ e) = dVars' ids e
-dVars' ids (IAps f _ es) = dVars' ids f ++ concatMap (dVars' ids) es
+-- accumulate vars with a fold so we do not waste work processing the
+-- same definitions over and over again across f and es.
+dVars' ids (IAps f _ es) = foldl dVars' (dVars' ids f) es
 -- guarding against circular traversal
-dVars' ids (ICon i (ICDef { })) | i `elem` ids = ids
-dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (i:ids) e
-dVars' ids (ICon _ _) = []
-dVars' ids (IRefT _ _ _) = []
+dVars' ids (ICon i (ICDef { })) | i `S.member` ids = ids
+dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (S.insert i ids) e
+dVars' ids (ICon _ _) = ids
+dVars' ids (IRefT _ _ _ _) = ids
 
 onlySimple :: IExpr a -> Bool
 onlySimple (ILam _ _ e) = onlySimple e
@@ -176,7 +182,10 @@ onlySimple (IVar _) = True
 onlySimple (ICon _ (ICPrim { })) = True
 onlySimple (ICon _ (ICInt { })) = True
 onlySimple (ICon _ (ICReal { })) = True
+onlySimple (ICon _ (ICChar { })) = True
+onlySimple (ICon _ (ICString { })) = True
 onlySimple (ICon _ (ICUndet { })) = True
+onlySimple (ICon _ (ICTuple { fieldIds = [] })) = True
 -- note that foreign function calls are not simple
 onlySimple e = False
 

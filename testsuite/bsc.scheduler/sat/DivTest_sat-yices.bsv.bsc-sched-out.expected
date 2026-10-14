@@ -21,7 +21,7 @@ Warning: "DivTest_sat-yices.bsv", line 10, column 8: (G0010)
   Rule "ae" was treated as more urgent than "bb". Conflicts:
     "ae" cannot fire before "bb": calls to uc.write vs. uc.read
     "bb" cannot fire before "ae": calls to uc.write vs. uc.read
-=== schedule:
+=== schedule (DivTest_sat-yices sysDivTest):
 parallel: [esposito: [RL_aa -> [],
 		      RL_ab -> [],
 		      RL_ac -> [],
@@ -33,7 +33,7 @@ order: [RL_aa, RL_ab, RL_ac, RL_ad, RL_ae, RL_af, RL_bb]
 
 -----
 
-=== resources:
+=== resources (DivTest_sat-yices sysDivTest):
 [(ua.read, [(ua.read, 1)]),
  (ub.read, [(ub.read, 1)]),
  (uc.read, [(uc.read, 1)]),
@@ -46,7 +46,7 @@ order: [RL_aa, RL_ab, RL_ac, RL_ad, RL_ae, RL_af, RL_bb]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (DivTest_sat-yices sysDivTest):
 SchedInfo [] [] [] []
 
 -----

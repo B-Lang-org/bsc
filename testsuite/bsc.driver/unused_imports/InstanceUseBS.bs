@@ -1,0 +1,12 @@
+-- Test: Typeclass instance usage (Classic syntax - Phase 2)
+-- Expected: NO warning - Helper is used via instance resolution
+
+package InstanceUseBS where
+
+import Helper
+
+test :: String
+test =
+  let b :: Byte
+      b = 42
+  in describe b

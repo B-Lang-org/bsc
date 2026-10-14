@@ -1,0 +1,22 @@
+package SplitInPackedCombine where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- Mixed-kind method: the ARGUMENT is split into ports (get_1_p1, get_1_p2)
+  -- but the RESULT is a single packed Bool port (get).  Both split input
+  -- ports feed combinationally into the one packed output, so analysis should
+  -- report BOTH get_1_p1 -> get AND get_1_p2 -> get.
+  get :: ShallowSplit Pair -> Bool
+
+{-# synthesize mkSplitInPackedCombine #-}
+mkSplitInPackedCombine :: Module Ifc
+mkSplitInPackedCombine =
+  module
+    interface
+      get (ShallowSplit a) = a.p1 || a.p2

@@ -1,7 +1,7 @@
 checking package dependencies
 compiling InputArg_ExtractRegAndUnused.bsv
 code generation for sysInputArg_ExtractRegAndUnused starts
-=== IOproperties:
+=== IOproperties (InputArg_ExtractRegAndUnused sysInputArg_ExtractRegAndUnused):
 Name                         I/O  size props
 b                              I    16 reg
 CLK                            I     1 clock

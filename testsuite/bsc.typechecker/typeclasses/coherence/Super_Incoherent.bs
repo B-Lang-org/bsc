@@ -1,0 +1,37 @@
+package Super_Incoherent where
+
+import IncoherentBase
+import Vector
+
+class incoherent (IncoherentBase a) => SuperIncoherent a where
+  superMethod :: a -> String
+
+instance SuperIncoherent (Vector n a) where
+  superMethod x = "super incoherent " +++ printType (typeOf x) +++ ": " +++ baseMethod x
+
+testByteDirect :: String
+testByteDirect =
+  let v :: Vector 4 Byte
+      v = replicate 0
+  in superMethod v
+
+testIntDirect :: String
+testIntDirect =
+  let v :: Vector 4 (Int 8)
+      v = replicate 0
+  in superMethod v
+
+useGeneric :: Vector n a -> String
+useGeneric v = superMethod v
+
+testByteViaGeneric :: String
+testByteViaGeneric = useGeneric ((replicate 0) :: Vector 4 Byte)
+
+sysSuper_Incoherent :: Module Empty
+sysSuper_Incoherent = module
+  rules
+    "show": when True ==> do
+      $display "Byte direct: " testByteDirect
+      $display "Int direct: " testIntDirect
+      $display "Byte via generic: " testByteViaGeneric
+      $finish 0

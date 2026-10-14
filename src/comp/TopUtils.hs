@@ -7,16 +7,20 @@ import Prelude hiding ((<>))
 #endif
 import Text.Printf(printf)
 import System.IO(hFlush, stdout)
+import System.IO.Unsafe(unsafePerformIO)
 import System.CPUTime(getCPUTime)
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
+import Data.Maybe(fromMaybe)
+import qualified Data.Set as S
 import System.Time -- XXX: from old-time package
 -- hbc libs
 import PFPrint
 -- utility libs
 import Util(itos)
 import FileNameUtil(baseName, dropSuf)
-import FileIOUtil(writeFileCatch)
+import FileIOUtil(appendFileCatch, writeFileCatch)
+import IOMutVar
 
 -- compiler libs
 import Flags( Flags(..), verbose, quiet,
@@ -27,7 +31,7 @@ import IdPrint
 import ISyntax(IPackage(..), IModule(..),
                IStateVar(..), IRules(..))
 import ASyntax(APackage(..), ASPackage(..), ARule(..),
-               aIfaceName)
+               aif_name)
 import SystemVerilogTokens(SV_Token(..))
 import Version(bluespec, bscVersionStr)
 
@@ -63,7 +67,7 @@ fmtDouble = printf "%.2f"
 start :: Flags -> DumpFlag -> IO ()
 start flags d = when (verbose flags) (putStrLnF ("starting " ++ drop 2 (show d)) >> hFlush stdout)
 
-type DumpNames = (String {- file name (last path component) -}, String {- package name -}, String {- module name or empty -})
+type DumpNames = (Maybe String {- file name (last path component) -}, Maybe String {- package name -}, Maybe String {- module name -})
 
 dump :: (PPrint a, NFData a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
@@ -94,19 +98,37 @@ sdump errh flags t d names a =
         deepseq a $        -- force evaluation
         dumpStr errh flags t d names (show a)
 
+dumpedFiles :: MutableVar (S.Set FilePath)
+dumpedFiles = unsafePerformIO $ newVar S.empty
 
 dumpStr :: ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> String
         -> IO TimeInfo
 dumpStr errh flags t d names@(file, pkg, mod) a = do
     -- the name of this stage
     let sname = drop 2 (show d)
+    let names' = (fromMaybe "" file, fromMaybe "" pkg, fromMaybe "" mod, sname)
+    -- Build a coordinate string from the most specific available name
+    let coords = case (file, pkg, mod) of
+                   (_, _, Just m) -> Just $ maybe m (\p -> p ++ " " ++ m) pkg
+                   (_, Just p, _) -> Just p
+                   (Just f, _, _) -> Just f
+                   _              -> Nothing
+    let header = "=== " ++ sname ++ maybe "" (\c -> " (" ++ c ++ ")") coords ++ ":\n"
+    let footer = "\n-----\n"
     -- first, dump the info appropriately
     case (dumpInfo flags d) of
         Just (Just file) -> do
-            writeFileCatch errh (substNames names file) a
+            let dumpPath = substNames names' file
+            currentDumped <- readVar dumpedFiles
+            let hasBeenDumped = dumpPath `S.member` currentDumped
+            let writeFileFn = if hasBeenDumped
+                              then appendFileCatch
+                              else writeFileCatch
+            writeFileFn errh dumpPath (header ++ a ++ footer)
+            writeVar dumpedFiles (S.insert dumpPath currentDumped)
             when (verbose flags) $ putStrLnF (sname ++ " done")
         Just Nothing -> do
-            unless (quiet flags) $ putStrLnF ("=== " ++ sname ++ ":\n" ++ a ++ "\n-----\n")
+            unless (quiet flags) $ putStrLnF (header ++ a ++ footer)
         Nothing -> do
             when (verbose flags) $ putStrLnF (sname ++ " done")
     -- second, dump the timestamp (and get the new time)
@@ -119,21 +141,22 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
                         sname ++ " flag")
              exitOK errh
         (Just (pass, Just pkg_or_mod))
-          | pass == d && (pkg_or_mod == pkg || pkg_or_mod == mod) -> do
+          | pass == d && (Just pkg_or_mod == pkg || Just pkg_or_mod == mod) -> do
              putStrLnF ("\ncompilation stopped because of -KILL" ++
                         sname ++ "=" ++ pkg_or_mod ++ " flag")
              exitOK errh
         _ -> -- don't exit here, return the new time
              return t'
 
-substNames :: (String,String, String) -> String -> String
+substNames :: (String, String, String, String) -> String -> String
 substNames _ "" = ""
-substNames names@(file,pkg,mod) ('%':c:cs) = subst ++ substNames names cs
+substNames names@(file,pkg,mod,stage) ('%':c:cs) = subst ++ substNames names cs
     where subst = case c of
                   '%' -> "%"
                   'f' -> file
                   'p' -> pkg
                   'm' -> mod
+                  's' -> stage
                   c'  -> [c']
 substNames names (c:cs) = c : substNames names cs
 
@@ -217,12 +240,12 @@ class Stats a where
     pStats :: Bool -> a -> Doc
 
 instance Stats CPackage where
-    pStats _ (CPackage _ _ _ _ ds _) =
+    pStats _ (CPackage _ _ _ _ _ ds _) =
         showLen ds "definitions:" $+$
         (text "  " <> showLen [ () | CValueSign _ <- ds ] "values")
 
 instance Stats (IPackage a) where
-    pStats _ (IPackage _ _ _ ds) =
+    pStats _ (IPackage _ _ _ ds _) =
         showLen ds "definitions"
 
 instance Stats (IModule a) where
@@ -253,7 +276,7 @@ instance Stats APackage where
         (showLen (apkg_rules apkg) "rules" <>
          if v then text "" <+>pPrint PDReadable 0 [ i | ARule { arule_id = i } <- apkg_rules apkg ] else text "") $+$
         (showLen (apkg_interface apkg) "interface methods" <>
-         if v then text "" <+> pPrint PDReadable 0 (map aIfaceName (apkg_interface apkg)) else text "")
+         if v then text "" <+> pPrint PDReadable 0 (map aif_name (apkg_interface apkg)) else text "")
         ))
 
 instance Stats ASPackage where

@@ -3153,8 +3153,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),UInt#(n))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 UInt#(TAdd#(n,TAdd#(m,2))) sfd = unpack(zExtendLSB({getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 1 - zeroExtend(unpack(pack(frac)));
 
@@ -3163,7 +3161,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),UInt#(n))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+               out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+               out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin
@@ -3303,8 +3306,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),Int#(n))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 // needs to be large so bits aren't lost before rounding
 	 Int#(TAdd#(n,TAdd#(m,2))) sfd = fl.sign ? -unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd})) : unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 2 - zeroExtend(unpack(pack(frac)));
@@ -3354,7 +3355,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m),Int#(n))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+               out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+	       out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin
@@ -3496,8 +3502,6 @@ instance FixedFloatCVT#(FloatingPoint#(e,m), FixedPoint#(isize,fsize))
 	 out = 0;
       end
       else begin
-	 // todo: does this work for subnormal?
-
 	 // needs to be large so bits aren't lost before rounding
 	 Int#(TAdd#(n,TAdd#(m,2))) sfd = fl.sign ? -unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd})) : unpack(zExtendLSB({1'b0, getHiddenBit(fl), fl.sfd}));
 	 Int#(TAdd#(TAdd#(TAdd#(e,1),TLog#(m)),ln)) shft = -signExtend(unpack(unbias(fl))) + fromInteger(valueOf(n)) - 2 - zeroExtend(unpack(pack(frac)));
@@ -3547,7 +3551,12 @@ instance FixedFloatCVT#(FloatingPoint#(e,m), FixedPoint#(isize,fsize))
 	    exc.invalid_op = True;  // overflow signals invalid op
 	 end
 	 else if (shft > fromInteger(valueOf(n))) begin
-	    out = 0;
+            if (rmode == Rnd_Minus_Inf && fl.sign)
+	       out = -1;
+            else if (rmode == Rnd_Plus_Inf && !fl.sign)
+               out = 1;
+            else
+               out = 0;
 	    exc.inexact = True;
 	 end
 	 else begin

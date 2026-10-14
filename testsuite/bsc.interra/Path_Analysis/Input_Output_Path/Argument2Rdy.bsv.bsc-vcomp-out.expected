@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Argument2Rdy.bsv
 code generation for mkArgument2Rdy starts
-=== pathsPostSched:
+=== pathsPostSched (Argument2Rdy mkArgument2Rdy):
 Combinational paths from inputs to outputs:
   (start_inp, EN_start) -> RDY_result
 

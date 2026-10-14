@@ -2,7 +2,7 @@ checking package dependencies
 compiling DummyInDeflMatch.bs
 Warning: "DummyInDeflMatch.bs", line 8, column 11: (P0223)
   Definition of `a' is not used.
-=== internal:
+=== internal (DummyInDeflMatch):
 IPackage DummyInDeflMatch
   --linked packages
 

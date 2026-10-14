@@ -1,0 +1,6 @@
+apple: member
+durian: not member
+empty is empty
+m is not empty
+size: 3
+size empty: 0

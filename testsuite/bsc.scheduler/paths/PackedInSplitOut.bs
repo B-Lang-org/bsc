@@ -1,0 +1,23 @@
+package PackedInSplitOut where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- Mixed-kind method (reverse direction): a single PACKED Bool argument feeds
+  -- a SPLIT result.  The plain input fans into the first split output field
+  -- (get_p1) combinationally; the second split output field (get_p2) comes from
+  -- a register.  So analysis should report get_1 -> get_p1 but NOT get_1 -> get_p2.
+  get :: Bool -> ShallowSplit Pair
+
+{-# synthesize mkPackedInSplitOut #-}
+mkPackedInSplitOut :: Module Ifc
+mkPackedInSplitOut =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get b = ShallowSplit (Pair { p1 = b; p2 = r })

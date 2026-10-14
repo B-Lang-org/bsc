@@ -1,0 +1,13 @@
+fmap:   <V    2    4    6    8  >
+liftA2: <V   11   22   33   44  >
+foldr:  10
+foldl:  -10
+length: 4
+elem:   True False
+trav:   tagged Valid <V    2    3    4    5  >
+bounds: <V -128 -128 -128 -128  > <V  127  127  127  127  >
+eq:     True False
+bits:   True
+select: 1 4
+fshow:  <V    1    2    3    4  >
+reg:    <V    1   99    3    4  > upd1 99

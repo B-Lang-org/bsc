@@ -1,0 +1,37 @@
+package LoopInputArgLoop where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- A submodule that combinationally SWAPS its split fields:
+--   out_p1 = in_p2   and   out_p2 = in_p1
+-- So output port p2 depends on input port p1 (and vice versa).
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopInputArgLoopSub #-}
+mkLoopInputArgLoopSub :: Module SubIfc
+mkLoopInputArgLoopSub =
+  module
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p2; p2 = a.p1 })
+
+-- Close a combinational loop that re-enters the SPLIT INPUT arg port p1:
+--   rw.wget -> get's split input p1 -> (swap) -> get's split output p2 -> rw.wset
+-- The cycle passes through "Argument 1 ... get" (the split p1 input port) and
+-- the swapped output p2.  Per-port input tracking must detect it => G0032.
+{-# synthesize mkLoopInputArgLoop #-}
+mkLoopInputArgLoop :: Module Empty
+mkLoopInputArgLoop =
+  module
+    s <- mkLoopInputArgLoopSub
+    rw :: RWire Bool <- mkRWire
+    let fb = isValid (rw.wget)
+    rules
+      "close": when True ==>
+        case s.get (ShallowSplit (Pair { p1 = fb; p2 = False })) of
+          ShallowSplit res -> if res.p2 then rw.wset True else noAction

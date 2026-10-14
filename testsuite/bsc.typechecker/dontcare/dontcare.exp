@@ -30,8 +30,15 @@ compare_file DummyInDo.bs.bsc-out
 compile_pass DummyInDeflMatch.bs "-dinternal"
 compare_file DummyInDeflMatch.bs.bsc-out
 
-compile_pass DummyInDeflValue.bs "-dinternal"
-compare_file DummyInDeflValue.bs.bsc-out
+compile_pass DummyInDeflValue.bs "-let-gen -dinternal"
+move DummyInDeflValue.bs.bsc-out DummyInDeflValue.bs.let-gen.bsc-out
+compare_file DummyInDeflValue.bs.let-gen.bsc-out
+
+erase DummyInDeflValue.bo
+
+compile_pass DummyInDeflValue.bs "-no-let-gen -dinternal"
+move DummyInDeflValue.bs.bsc-out DummyInDeflValue.bs.no-let-gen.bsc-out
+compare_file DummyInDeflValue.bs.no-let-gen.bsc-out
 
 compile_pass DummyInDeflValueSign.bs "-dinternal"
 compare_file DummyInDeflValueSign.bs.bsc-out
@@ -47,7 +54,7 @@ compare_file DummyInDefOp.bs.bsc-out
 
 # The order of _tcdict<n> defs changed in GHC 9.12.1
 # Test that the output matches one of the possible outputs
-compile_pass DummyInDeflQual.bs "-dinternal"
+compile_pass DummyInDeflQual.bs "-let-gen -dinternal"
 compare_file_list DummyInDeflQual.bs.bsc-out \
     {DummyInDeflQual.bs.bsc-out.0.expected \
      DummyInDeflQual.bs.bsc-out.1.expected}

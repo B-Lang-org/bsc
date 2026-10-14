@@ -1,0 +1,20 @@
+package ExpSizeOf_FieldSyn_BS where
+
+-- Classic syntax version of ExpSizeOf_FieldSyn.
+-- A struct with a field whose type uses SizeOf through a synonym chain.
+
+type T t = UInt (S t)
+type S t = SizeOf t
+
+struct Node dataType =
+  dat    :: dataType
+  unused :: T dataType
+ deriving (Bits, Eq)
+
+{-# synthesize sysExpSizeOf_FieldSyn_BS #-}
+sysExpSizeOf_FieldSyn_BS :: Module Empty
+sysExpSizeOf_FieldSyn_BS = module
+  r_node :: Reg (Node (UInt 3)) <- mkRegU
+  r_data :: Reg (UInt 3)        <- mkRegU
+  rules
+    when True ==> r_data := r_node.dat

@@ -1,0 +1,46 @@
+package Traversable where
+
+import qualified List
+import qualified ListN
+import qualified Vector
+
+import Foldable
+
+--@ \index{Traversable@\te{Traversable} (type class)}
+--@ The class of containers that can be traversed in an \te{Applicative}
+--@ context. Mirrors Haskell's \te{Data.Traversable}. \te{mapM} and
+--@ \te{sequence} are the conventional \te{Monad}-specialised aliases;
+--@ instances may override them to dispatch directly to the per-type
+--@ monadic helpers (\te{Vector.mapM}, \te{ListN.sequence}, ...) when
+--@ that's preferable.
+class (Functor t, Foldable t) => Traversable t where
+  traverse :: (Applicative f) => (a -> f b) -> t a -> f (t b)
+  sequenceA :: (Applicative f) => t (f a) -> f (t a)
+  sequenceA = traverse id
+  mapM :: (Monad m) => (a -> m b) -> t a -> m (t b)
+  mapM = traverse
+  sequence :: (Monad m) => t (m a) -> m (t a)
+  sequence = traverse id
+
+instance Traversable List where
+  traverse _ Nil = pure Nil
+  traverse f (Cons x rest) = liftA2 Cons (f x) (traverse f rest)
+  mapM = List.mapM
+
+instance Traversable (ListN.ListN n) where
+  traverse f xs = fmap ListN.toListN (traverse f (ListN.toList xs))
+  mapM = ListN.mapM
+  sequence = ListN.sequence
+
+instance Traversable (Vector.Vector n) where
+  traverse f v = fmap Vector.toVector (traverse f (Vector.toList v))
+  mapM = Vector.mapM
+  sequence = Vector.sequence
+
+instance Traversable Maybe where
+  traverse _ Invalid   = pure Invalid
+  traverse f (Valid x) = fmap Valid (f x)
+
+-- The `_` variants of these helpers (\te{traverse_}, \te{sequenceA_},
+-- \te{mapM_}, \te{sequence_}) live in \te{Foldable}: they only need
+-- \te{Foldable} since they don't rebuild the container.

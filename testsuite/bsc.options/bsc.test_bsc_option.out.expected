@@ -2,6 +2,7 @@ Invoking command line:
 bsc -print-flags -vsearch foo -steps 12345678 -i BLUESPECDIR
 
 Flags:
+    -aggressive-conditions
     -i BLUESPECDIR
     -lift
     -o a.out

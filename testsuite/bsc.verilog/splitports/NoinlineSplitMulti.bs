@@ -1,0 +1,33 @@
+package NoinlineSplitMulti where
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+-- Direct SplitPorts instance on the struct (no ShallowSplit newtype).
+instance SplitPorts Foo (Port (Int 8), Port (Int 8)) where
+  splitPorts foo = (Port foo.x, Port foo.y)
+  unsplitPorts (Port x, Port y) = Foo { x = x; y = y; }
+  portNames _ base = Cons (base +++ "_x") (Cons (base +++ "_y") Nil)
+
+-- two split arguments and one unsplit argument: each argument's value is
+-- connected to its own port(s) (the input ports are grouped per argument).
+-- The split arguments are destructured by a pattern in the function head, so
+-- they have no argument name and get the default _<n> base name.
+{-# noinline combine #-}
+combine :: Foo -> Int 8 -> Foo -> Foo
+combine (Foo { x = ax; y = ay }) k (Foo { x = bx; y = by }) =
+  Foo { x = ax + bx + k; y = ay + by; }
+
+{-# synthesize sysNoinlineSplitMulti #-}
+sysNoinlineSplitMulti :: Module Empty
+sysNoinlineSplitMulti =
+  module
+    r :: Reg (Int 8) <- mkReg 0
+    rules
+      when True ==> r := r + 1
+      when r == 5 ==>
+        let g = combine (Foo { x = 1; y = 2; }) 10 (Foo { x = 3; y = 4; })
+        in $display "x=%d y=%d" g.x g.y
+      when r == 6 ==> $finish

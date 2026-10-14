@@ -8,8 +8,8 @@ module Changed where
 -- Not an Applicative/Monad because Unchanged has no value to work with:
 --   - Can't define: Changed f <*> Unchanged (no value to apply f to)
 --   - Can't define: pure/return (unclear if should be Changed or Unchanged)
--- Lazy in 'a' to minimize peak memory residency (deepseq at top level handles forcing)
-data Changed a = Changed a | Unchanged
+-- Strict in 'a' so producing Changed values does not introduce extra thunks.
+data Changed a = Changed !a | Unchanged
 
 -- Rebuild with 1 Changed argument
 {-# INLINE changed1 #-}
@@ -22,6 +22,11 @@ changed1 f (Changed x) = Changed (f x)
 changedOr :: a -> Changed a -> a
 changedOr orig Unchanged = orig
 changedOr _ (Changed x) = x
+
+-- Lift a function that may return changed to a function that returns a value
+{-# INLINE changedOrId #-}
+changedOrId :: (a -> Changed a) -> a -> a
+changedOrId f x = changedOr x (f x)
 
 -- Rebuild with 2 Changed arguments - returns Unchanged only if both unchanged
 {-# INLINE changed2 #-}
@@ -42,3 +47,9 @@ changed3 f     _     _ origC (Changed a') (Changed b') Unchanged    = Changed $ 
 changed3 f     _ origB     _ (Changed a') Unchanged    (Changed c') = Changed $ f a' origB c'
 changed3 f origA     _     _ Unchanged    (Changed b') (Changed c') = Changed $ f origA b' c'
 changed3 f     _     _     _ (Changed a') (Changed b') (Changed c') = Changed $ f a' b' c'
+
+-- Map a function returning Changed over a Maybe value.
+{-# INLINE mapMaybeChanged #-}
+mapMaybeChanged :: (a -> Changed a) -> Maybe a -> Changed (Maybe a)
+mapMaybeChanged _ Nothing  = Unchanged
+mapMaybeChanged f (Just x) = changed1 Just (f x)

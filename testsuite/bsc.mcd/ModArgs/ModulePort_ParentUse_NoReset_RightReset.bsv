@@ -1,4 +1,4 @@
-import Clocks::*;
+
 
 (* synthesize *)
 module sysModulePort_ParentUse_NoReset_RightReset ();

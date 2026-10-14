@@ -167,11 +167,11 @@ check_positions sysMethodConds_CaseCond
 # This example CSE's the COND condition into the signals for the design
 # (case-stmt reconstruction is doing CSE that needs to be aware of non-CSE props)
 #
-compile_verilog_pass MethodConds_VecSelCond.bsv {} $opts
+# The output differs when aggressive conditions is off, so ensure it is on
+compile_verilog_pass MethodConds_VecSelCond.bsv {} "$opts -aggressive-conditions"
 # Check that the conditions are in the Verilog
 find_regexp sysMethodConds_VecSelCond.v \
-    {reg CASE\_idx\_0\_cs\_0\_1\_cs\_1\_2\_cs\_2\_3\_DONTCARE\_DONTCARE\_\_q1\,
-      COND\_RL\_r\_s\_am1\_1\;}
+    {reg COND\_RL\_r\_s\_am1\_1, SEL\_ARR\_cs\_0\_cs\_1\_cs\_2\_idx\_\_\_d6\;}
 # XXX This code could be shared with with "CASE_...__q1" rather than inlined
 # XXX (what happens is that it's inlined, but VeriQuirks lifts it back up,
 # XXX so maybe VeriQuirks needs to do a better job of CSE in the lifted exprs)

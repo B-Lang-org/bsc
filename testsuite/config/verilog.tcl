@@ -164,6 +164,24 @@ proc sim_verilog_vcd { sim {options ""} } {
     }
 }
 
+proc sim_verilog_status { sim expstatus {options ""} } {
+    global vtest
+    global lasterr
+
+    if { $vtest == 1 } {
+        set status [sim_verilog_int $sim $options 0]
+        incr_stat "sim_verilog_status"
+
+        set status [get_exec_status $status]
+
+        if { [lsearch -exact $expstatus $status] != -1 } then {
+            pass "Verilog simulation `$sim' exits with expected status"
+        } else {
+            fail "Verilog simulation `$sim' exits with status $status (expected $expstatus)"
+        }
+    }
+}
+
 ## This is where the compiled simulator is executed.
 proc sim_verilog_int { sim {options ""} {vcd 0} } {
     global srcdir

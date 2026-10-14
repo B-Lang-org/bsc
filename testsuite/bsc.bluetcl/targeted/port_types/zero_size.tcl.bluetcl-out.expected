@@ -1,11 +1,11 @@
 -verilog
 mkZeroSize_Sub sysZeroSize
 ----------
-{rg1 MOD {interface {{method _write _write {clock _clk__1} {reset _rst__1} {args {}} {enable EN}} {method _read _read {clock _clk__1} {reset _rst__1} {args {}}}}} {args {{reset _rst__1 {port RST} {clock _clk__1}} {clock _clk__1 {osc CLK} {gate CLK_GATE}}}}} {rg2 mkZeroSize_Sub {interface {{method m1 m1 {clock no_clock} {reset no_reset} {args {}} {ready RDY_m1}} {method m2 m2 {clock default_clock} {reset no_reset} {args {{{port m2_y} {size 1}}}} {enable EN_m2} {ready RDY_m2}} {method m3 m3 {clock default_clock} {reset no_reset} {args {}} {enable EN_m3} {ready RDY_m3}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}}
+{rg1 MOD {interface {{method _write _write {clock _clk__1} {reset _rst__1} {args {}} {results {}} {enable EN}} {method _read _read {clock _clk__1} {reset _rst__1} {args {}} {results {}}}}} {args {{reset _rst__1 {port RST} {clock _clk__1}} {clock _clk__1 {osc CLK} {gate CLK_GATE}}}}} {rg2 mkZeroSize_Sub {interface {{method m1 m1 {clock no_clock} {reset no_reset} {args {}} {results {}} {ready RDY_m1}} {method m2 m2 {clock default_clock} {reset no_reset} {args {{{port m2_y} {size 1}}}} {results {}} {enable EN_m2} {ready RDY_m2}} {method m3 m3 {clock default_clock} {reset no_reset} {args {}} {results {}} {enable EN_m3} {ready RDY_m3}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}}
 
 {rg1 MOD {ports {{RST Reset} {CLK Clock} {CLK_GATE Bool} {EN Bool}}}} {rg2 mkZeroSize_Sub {ports {{CLK Clock} {RST_N Reset} {RDY_m1 Bool} {m2_y Bool} {EN_m2 Bool} {RDY_m2 Bool} {EN_m3 Bool} {RDY_m3 Bool}}}}
 ----------
-{interface {{method m1 m1 {clock no_clock} {reset no_reset} {args {}} {ready RDY_m1}} {method m2 m2 {clock default_clock} {reset no_reset} {args {{{name m2_y} {port m2_y} {size 1}}}} {enable EN_m2} {ready RDY_m2}} {method m3 m3 {clock default_clock} {reset no_reset} {args {}} {enable EN_m3} {ready RDY_m3}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}
+{interface {{method m1 m1 {clock no_clock} {reset no_reset} {args {}} {results {}} {ready RDY_m1}} {method m2 m2 {clock default_clock} {reset no_reset} {args {{{name m2_y} {port m2_y} {size 1}}}} {results {}} {enable EN_m2} {ready RDY_m2}} {method m3 m3 {clock default_clock} {reset no_reset} {args {}} {results {}} {enable EN_m3} {ready RDY_m3}}}} {args {{clock default_clock {osc CLK}} {reset default_reset {port RST_N} {clock default_clock}}}}
 
 {CLK Clock} {RST_N Reset} {RDY_m1 Bool} {m2_y Bool} {EN_m2 Bool} {RDY_m2 Bool} {EN_m3 Bool} {RDY_m3 Bool}
 ----------

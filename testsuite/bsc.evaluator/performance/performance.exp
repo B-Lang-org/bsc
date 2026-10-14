@@ -1,2 +1,9 @@
 compile_verilog_pass broken.bsv "" "+RTS -M384M -RTS"
 compile_verilog_pass TestPIf.bsv "" "+RTS -M265M -RTS"
+
+# Pushing a negation through a SHARED conditional DAG must be O(cells),
+# not O(paths): this design's conditional-swap stages build a DAG with
+# ~2^129 then/else paths (16 registers x 64 stages, no pack/unpack
+# involved), so a per-path push cannot terminate, while the memoized
+# push (pushBNot in IExpand) compiles it in seconds with default limits.
+compile_verilog_pass BNotShared.bsv

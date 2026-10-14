@@ -1,0 +1,23 @@
+checking package dependencies
+compiling ExpSizeOf_FieldSyn_Unbound_NoCtx.bs
+Error: Unknown position: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    ExpSizeOf_FieldSyn_Unbound_NoCtx.T a__
+  The following contexts are needed:
+    Prelude.Bits a__ b__
+      Introduced at the following locations:
+	"ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 12
+  The type variables are from the following positions:
+    "b__" at "ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 12
+Error: "ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 2: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    ExpSizeOf_FieldSyn_Unbound_NoCtx.T a__
+  The following contexts are needed:
+    Prelude.Bits a__ b__
+      Introduced at the following locations:
+	"ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 12
+  The type variables are from the following positions:
+    "a__" at "ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 2
+    "b__" at "ExpSizeOf_FieldSyn_Unbound_NoCtx.bs", line 25, column 12

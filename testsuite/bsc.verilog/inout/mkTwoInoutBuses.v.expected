@@ -33,14 +33,14 @@ module mkTwoInoutBuses(CLK,
 		       .a(a),
 		       .b(a),
 		       .c(a),
-		       .d(h$BAR));
+		       d);
   input  CLK;
   input  RST_N;
   inout  [4 : 0] a;
-  inout  [4 : 0] h$BAR;
+  inout  [4 : 0] d;
 
   // ports of submodule h
-  wire [4 : 0] h$BAR;
+  wire [4 : 0] d;
 
   // submodule e
   InoutStubSrc1 e(.FOO(a));
@@ -49,16 +49,16 @@ module mkTwoInoutBuses(CLK,
   InoutStubSrc1 f(.FOO(a));
 
   // submodule g
-  InoutStubSrc2 g(.BAR(h$BAR));
+  InoutStubSrc2 g(.BAR(d));
 
   // submodule h
-  InoutStubSrc2 h(.BAR(h$BAR));
+  InoutStubSrc2 h(.BAR(d));
 
   // submodule i
-  InoutArgStub i(.ARG(h$BAR));
+  InoutArgStub i(.ARG(d));
 
   // submodule j
-  InoutArgStub j(.ARG(h$BAR));
+  InoutArgStub j(.ARG(d));
 
   // submodule k
   InoutArgStub k(.ARG(a));

@@ -1,0 +1,5 @@
+apple -> 1
+banana -> 2
+cherry -> 3
+durian -> not found
+singleton apple -> 42

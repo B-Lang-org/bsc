@@ -1,0 +1,43 @@
+package NoinlineDeepSplit where
+
+import Vector
+import BuildVector
+import SplitPorts
+
+struct Foo =
+  x :: Int 8
+  y :: Int 8
+ deriving (Bits)
+
+struct Bar =
+  v :: Vector 3 Bool
+  w :: (Bool, UInt 16)
+  z :: Foo
+ deriving (Bits)
+
+-- A direct (deep) SplitPorts instance on the struct, delegating to the generic
+-- deep-splitting helpers (no DeepSplit newtype).  Bar recurses fully: vector
+-- elements, tuple elements, and the nested Foo's fields all become ports.
+instance SplitPorts Bar (DeepPortsOf Bar) where
+  splitPorts = deepSplitPorts
+  unsplitPorts = deepUnsplitPorts
+  portNames = deepSplitPortNames
+
+{-# noinline tweak #-}
+tweak :: Bar -> Bar
+tweak b = b { z = Foo { x = b.z.y; y = b.z.x; };
+              w = (not (b.w.fst), b.w.snd + 1); }
+
+{-# synthesize sysNoinlineDeepSplit #-}
+sysNoinlineDeepSplit :: Module Empty
+sysNoinlineDeepSplit =
+  module
+    r :: Reg (Int 8) <- mkReg 0
+    rules
+      when True ==> r := r + 1
+      when r == 5 ==>
+        let b = tweak (Bar { v = vec True False True;
+                             w = (False, 100);
+                             z = Foo { x = 7; y = 9; } })
+        in $display "zx=%d zy=%d wb=%d wn=%d" b.z.x b.z.y b.w.fst b.w.snd
+      when r == 6 ==> $finish

@@ -3,9 +3,8 @@ module AAddSchedAssumps(aAddSchedAssumps, aAddCFConditionWires) where
 import CSyntax
 import SymTab
 import TypeCheck(topExpr)
-import CType
 import Type
-import qualified TIMonad as TIM(runTI)
+import qualified TIMonad as TIM(TIResult(..), runTI)
 import Flags(Flags, showElabProgress)
 import IConv(iConvExpr)
 import ASyntax
@@ -29,7 +28,6 @@ import PPrint
 import Pragma(ASchedulePragma)
 import Error(internalError, ErrMsg(..), showErrorList, ErrorHandle)
 import Id
-import Position(noPosition)
 import Util(unzipWith, ordPairBy)
 import Util(mapSnd)
 
@@ -223,15 +221,15 @@ buildMethCondList uses = M.toList (M.fromListWith aOr uses')
 getRWireInstFn :: ErrorHandle -> Flags -> SymTab ->
                   M.Map AId HExpr -> IO (Id -> AVInst)
 getRWireInstFn errh flags r alldefs = do
-  let blobT = TAp tModule (TAp tVRWireN (cTNum 1 noPosition))
-  case fst $ (TIM.runTI flags False r (topExpr blobT (CVar idVmkRWire1))) of
+  let blobT = TAp tModule tEmpty
+  case TIM.tiResult $ (TIM.runTI flags False r (topExpr blobT (CVar id__mkRWireSubmodule))) of
     Left errs -> internalError (ppReadable errs)
     Right (_,e') -> do
       let iexpr = iConvExpr errh flags r alldefs e'
       let def :: IDef HeapData
           def = IDef id_x (iGetType iexpr) iexpr []
       let flags' = flags { showElabProgress = False }
-      iepkg <- iExpand errh flags' r alldefs False [] def
+      iepkg <- iExpand errh flags' r alldefs M.empty False [] def
       rwire_pkg <- aConv errh [] flags (iSplitIf flags iepkg)
       case (apkg_state_instances rwire_pkg) of
         [rwire_inst] ->

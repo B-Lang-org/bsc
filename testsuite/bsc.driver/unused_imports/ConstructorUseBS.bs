@@ -1,0 +1,9 @@
+-- Test: Constructor usage (Classic syntax - Phase 2)
+-- Expected: NO warning - Helper is used via constructor
+
+package ConstructorUseBS where
+
+import Helper
+
+getColor :: Color
+getColor = Red  -- Uses Red constructor from Helper

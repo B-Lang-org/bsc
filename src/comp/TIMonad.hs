@@ -2,7 +2,8 @@
 module TIMonad(
         TI,
         apSubTI,
-        runTI, err, errs, twarn, handle,
+        CATFCache, mergeCATFCaches,
+        TIResult(..), runTI, err, errs, twarn, handle,
         getAllowIncoherent, maskAllowIncoherent,
         getFlags, setFlags, getSymTab,
         getSubst, clearSubst, extSubst, updSubst,
@@ -17,6 +18,7 @@ module TIMonad(
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
         numEqCls,
         updAssumpPos,
+        recordPackageUse, recordATFResult,
         incrementSatStack, decrementSatStack, getSatStack, mkTSSatElement, TSSatElement,
               pushSatStackContext, popSatStackContext
         , tiRecoveringFromError
@@ -47,6 +49,8 @@ import Control.Monad(when)
 import Control.Monad.Except(ExceptT, runExceptT, throwError, catchError)
 import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
+import qualified Data.Map as M
+import qualified Data.Set as S
 import Util(headOrErr)
 
 -------
@@ -71,8 +75,15 @@ data TStatePersistent = TStatePersistent {
    -- whether TI monad allows general incoherent instance matches
    -- or only for marked typeclasses
    tsAllowIncoherent :: Bool,
-   tsWarns :: [WMsg] -- accumulated warning messages
+   tsWarns :: [WMsg], -- accumulated warning messages
+   tsUsedPackages :: S.Set Id, -- packages from which symbols were used
+   tsATFCache :: CATFCache
 }
+
+type CATFCache = M.Map (Id, [Type]) Type
+
+mergeCATFCaches :: CATFCache -> CATFCache -> CATFCache
+mergeCATFCaches = M.union
 
 -- typechecking state that is restored in case of error
 data TStateRecover = TStateRecover {
@@ -142,7 +153,9 @@ initPersistentState flags ai s = TStatePersistent {
     tsNextTyVar = 1000,
     tsWarns = [],
     tsAllowIncoherent = ai,
-    tsRecoveredErrors = []
+    tsRecoveredErrors = [],
+    tsUsedPackages = S.empty,
+    tsATFCache = M.empty
   }
 
 initRecoverState :: TStateRecover
@@ -153,19 +166,36 @@ initRecoverState = TStateRecover {
     tsSatStack = mkSizedStack [mkSizedStack []]
   }
 
-runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg])
-runTI flags ai s m = (final_result, tsWarns pState)
-  where (result, pState) = runState error_run
-                                    (initPersistentState flags ai s)
-        error_run = (runExceptT (runStateT m initRecoverState))
+data TIResult a = TIResult {
+    tiResult       :: Either [EMsg] a,
+    tiWarnings     :: [WMsg],
+    tiUsedPackages :: S.Set Id,
+    tiATFCache     :: CATFCache
+  }
+
+runTI :: Flags -> Bool -> SymTab -> TI a -> TIResult a
+runTI flags ai s m = TIResult {
+    tiResult       = mkFinalResult result rec_errors,
+    tiWarnings     = tsWarns pState,
+    tiUsedPackages = tsUsedPackages pState,
+    tiATFCache     = tsATFCache pState
+  }
+  where (result, pState) = runTIState flags ai s m
         rec_errors = tsRecoveredErrors pState
-        final_result =
-            case result of
-              Left es -> Left ((errmsgs es) ++ rec_errors)
-              Right (answer, _) ->
-                  case rec_errors of
-                    [] -> Right answer
-                    es -> Left es
+
+runTIState :: Flags -> Bool -> SymTab -> TI a ->
+              (Either EMsgs (a, TStateRecover), TStatePersistent)
+runTIState flags ai s m = runState error_run (initPersistentState flags ai s)
+  where error_run = runExceptT (runStateT m initRecoverState)
+
+mkFinalResult :: Either EMsgs (a, TStateRecover) -> [EMsg] -> Either [EMsg] a
+mkFinalResult result rec_errors =
+    case result of
+      Left es -> Left (errmsgs es ++ rec_errors)
+      Right (answer, _) ->
+          case rec_errors of
+            [] -> Right answer
+            es -> Left es
 
 -- Add an error from which we have recovered to the accumulating list of
 -- such errors.  If you forget to call this function in your error handler
@@ -238,6 +268,17 @@ tiRecoveringFromErrorxx do_something _ = do_something
 twarn :: WMsg -> TI ()
 twarn w = lift (modify (addWarning w))
   where addWarning w s = s { tsWarns = w:(tsWarns s) }
+
+-- Record that a symbol from a package was used
+recordPackageUse :: Maybe Id -> TI ()
+recordPackageUse Nothing = return ()  -- no package to record
+recordPackageUse (Just pkg) = lift (modify (addPackage pkg))
+  where addPackage pkg s = s { tsUsedPackages = S.insert pkg (tsUsedPackages s) }
+
+recordATFResult :: Id -> [Type] -> Type -> TI ()
+recordATFResult atfId args result =
+    lift (modify addATF)
+  where addATF s = s { tsATFCache = M.insert (atfId, args) result (tsATFCache s) }
 
 -- XXX maybe someday get rid of this function and replace with catchError
 handle :: TI a -> (EMsgs -> TI a) -> TI a
@@ -438,14 +479,18 @@ findCons ct i = do
     -- traceM ("findCons: " ++ show (ct,i))
     r <- getSymTab
     case findConVis r i of
-     Just [ConInfo { ci_id = ti, ci_assump = a }] -> return (updAssumpPos i a, ti)
+     Just [ConInfo { ci_id = ti, ci_assump = a, ci_pkg = pkg }] -> do
+        recordPackageUse pkg
+        return (updAssumpPos i a, ti)
      Just cs -> do
         s <- getSubst
         let ct' = apSub s ct
         case leftCon (expandSyn ct') of
          Nothing -> errorAtId (EConstrAmb (pfpString ct')) i
-         Just di -> case [ a | ConInfo {ci_id = i', ci_assump = a} <- cs, qualEq di i'] of
-                   [a] -> return (updAssumpPos i a, di)
+         Just di -> case [ (a, pkg) | ConInfo {ci_id = i', ci_assump = a, ci_pkg = pkg} <- cs, qualEq di i'] of
+                   [(a, pkg)] -> do
+                       recordPackageUse pkg
+                       return (updAssumpPos i a, di)
                    []  -> errSuggest r i
                    _   -> internalError "findCons ambig"
      Nothing -> errSuggest r i
@@ -453,8 +498,8 @@ findCons ct i = do
     errSuggest :: SymTab -> Id -> TI (Assump, Id)
     errSuggest r i =
       let mSuggest = case findType r i of
-            Just (TypeInfo _ KNum _ _) -> Just "valueOf"
-            Just (TypeInfo _ KStr _ _) -> Just "stringOf"
+            Just (TypeInfo _ KNum _ _ _) -> Just "valueOf"
+            Just (TypeInfo _ KStr _ _ _) -> Just "stringOf"
             _ -> Nothing
       in err (getIdPosition i, EUnboundCon (pfpString i) mSuggest)
 
@@ -462,15 +507,18 @@ findTyCon :: Id -> TI TyCon
 findTyCon i = do
     r <- getSymTab
     case findType r i of
-     Just (TypeInfo (Just i') k _ ts@(TItype _ t)) ->
+     Just (TypeInfo (Just i') k _ ts@(TItype _ t) pkg) -> do
+        recordPackageUse pkg
         -- It's a type alias.  If the left element of the alias is a
         -- constructor, find the type of that constructor; otherwise,
         -- give up and return the info that's available.
         case (leftCon t) of
             Just aliased_i -> findTyCon aliased_i
             Nothing -> return (TyCon i' (Just k) ts)
-     Just (TypeInfo (Just i') k _ ts) -> return (TyCon i' (Just k) ts)
-     Just (TypeInfo Nothing _ _ _) ->
+     Just (TypeInfo (Just i') k _ ts pkg) -> do
+        recordPackageUse pkg
+        return (TyCon i' (Just k) ts)
+     Just (TypeInfo Nothing _ _ _ _) ->
         internalError ("findTyCon: unexpected numeric or string type: " ++ ppReadable i)
      Nothing -> errorAtId EUnboundTyCon i
 
@@ -478,7 +526,9 @@ findCls :: CTypeclass -> TI Class
 findCls i = do
     r <- getSymTab
     case findSClass r i of
-     Just cl -> return cl
+     Just cl -> do
+        recordPackageUse (pkg_src cl)
+        return cl
      Nothing -> errorAtId EUnboundTyCon (typeclassId i)
 
 bitCls :: TI Class
@@ -541,7 +591,7 @@ findFields struct_ty0 field_id = do
               Just (TyStr s _) -> Just (mkStrId s, True, True, Nothing)
               Just (TyCon tc _ _) ->
                   case (findType symt tc) of
-                    Just (TypeInfo (Just qtc) _ _ tcsort)
+                    Just (TypeInfo (Just qtc) _ _ tcsort _)
                       -> let -- XXX would it be better to compute "isImp"
                              -- XXX by extracting the qualifier and looking
                              -- XXX in the import list?
@@ -558,6 +608,11 @@ findFields struct_ty0 field_id = do
             internalError ("getSortInfo: " ++ ppReadable tcsort)
         getSortInfo qtc TIabstract =
             -- this should only occur for primitives
+            (True, Nothing)
+        getSortInfo qtc (TIatf {}) =
+            -- ATF type constructors are not structs; expansion should have
+            -- removed them, but if the type is still polymorphic treat as
+            -- non-struct so the caller can report a proper type error
             (True, Nothing)
         getSortInfo qtc (TIdata [] _) =
             -- XXX we can't tell if its fields are visible
@@ -610,11 +665,14 @@ findFields struct_ty0 field_id = do
           case (findField symt field_id) of
             Nothing -> errorAtId (ENotField (pfpString qtc)) field_id
             Just fs ->
-                case [ (i, a, n) | (FieldInfo { fi_id = i,
-                                                fi_arity = n,
-                                                fi_assump = a }) <- fs,
-                                    i == qtc ] of
-                  [(_, a, n)] -> return (updAssumpPos field_id a, qtc, n)
+                case [ (i, a, n, pkg) | (FieldInfo { fi_id = i,
+                                                      fi_arity = n,
+                                                      fi_assump = a,
+                                                      fi_pkg = pkg }) <- fs,
+                                        i == qtc ] of
+                  [(_, a, n, pkg)] -> do
+                      recordPackageUse pkg
+                      return (updAssumpPos field_id a, qtc, n)
                   [] -> errorAtId (ENotField (pfpString qtc)) field_id
                   xs -> internalError ("findFields ambig: " ++
                                        ppReadable (struct_ty, field_id, xs))
@@ -624,10 +682,11 @@ findFields struct_ty0 field_id = do
             Nothing ->
                 -- there are no structs with this field
                 errorAtId EUnboundField field_id
-            Just [FieldInfo {fi_id = qtc, fi_arity = n, fi_assump = a }] ->
+            Just [FieldInfo {fi_id = qtc, fi_arity = n, fi_assump = a, fi_pkg = pkg }] -> do
                 -- there is only one struct with this field
                 -- if the expression is not that type, the user will get a
                 -- mismatch error later
+                recordPackageUse pkg
                 return (updAssumpPos field_id a, qtc, n)
             Just fs ->
                 let tis = map (pfpString . fi_id) fs

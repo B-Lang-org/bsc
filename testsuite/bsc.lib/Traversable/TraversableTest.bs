@@ -1,0 +1,84 @@
+package TraversableTest where
+
+import Foldable
+import Traversable
+import qualified Vector
+import qualified ListN
+
+-- Exercise the Traversable class over its instances.
+
+-- Sum a container's elements via Foldable, for display.
+sumF :: (Foldable t) => t (Int 32) -> Int 32
+sumF = foldr (+) 0
+
+-- A step that fails (returns Invalid) for elements >= the limit.
+below :: Int 32 -> Int 32 -> Maybe (Int 32)
+below limit x = if x < limit then Valid x else Invalid
+
+{-# verilog sysTraversableTest #-}
+sysTraversableTest :: Module Empty
+sysTraversableTest =
+  module
+    rules
+      "test": when True ==> action
+        let v :: Vector.Vector 4 (Int 32)
+            v = Vector.toVector (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))
+            ln :: ListN.ListN 4 (Int 32)
+            ln = ListN.toListN (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))
+            l :: List (Int 32)
+            l = Cons 5 (Cons 6 (Cons 7 Nil))
+            -- Vector of Maybes, all valid.
+            vmj :: Vector.Vector 4 (Maybe (Int 32))
+            vmj = Vector.toVector
+                    (Cons (Valid 1) (Cons (Valid 2)
+                     (Cons (Valid 3) (Cons (Valid 4) Nil))))
+            -- Vector of Maybes, one invalid.
+            vmn :: Vector.Vector 4 (Maybe (Int 32))
+            vmn = Vector.toVector
+                    (Cons (Valid 1) (Cons Invalid
+                     (Cons (Valid 3) (Cons (Valid 4) Nil))))
+
+        $display "-- traverse (Vector, all valid) --"
+        case traverse (\ x -> Valid (x + 1)) v of
+          Valid w -> $display "%0d" (sumF w)   -- 14
+          Invalid -> $display "none"
+
+        $display "-- traverse (Vector, fails) --"
+        case traverse (below 3) v of
+          Valid w -> $display "%0d" (sumF w)
+          Invalid -> $display "none"           -- none (3, 4 >= 3)
+
+        $display "-- traverse (List) --"
+        case traverse (\ x -> Valid (x + 1)) l of
+          Valid w -> $display "%0d" (sumF w)   -- 21
+          Invalid -> $display "none"
+
+        $display "-- traverse (ListN) --"
+        case traverse (\ x -> Valid (x + 1)) ln of
+          Valid w -> $display "%0d" (sumF w)   -- 104
+          Invalid -> $display "none"
+
+        $display "-- sequenceA (Vector of Maybe) --"
+        case sequenceA vmj of
+          Valid w -> $display "%0d" (sumF w)   -- 10
+          Invalid -> $display "none"
+        case sequenceA vmn of
+          Valid w -> $display "%0d" (sumF w)
+          Invalid -> $display "none"           -- none
+
+        $display "-- sequence (alias) --"
+        case sequence vmj of
+          Valid w -> $display "%0d" (sumF w)   -- 10
+          Invalid -> $display "none"
+
+        $display "-- mapM (Vector, Maybe monad) --"
+        case mapM (below 100) v of
+          Valid w -> $display "%0d" (sumF w)   -- 10
+          Invalid -> $display "none"
+
+        $display "-- traverse (Maybe) --"
+        case traverse (\ x -> Valid (x + 1)) (Valid 41) of
+          Valid (Valid y) -> $display "%0d" y  -- 42
+          _ -> $display "none"
+
+        $finish 0

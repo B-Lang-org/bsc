@@ -1,4 +1,4 @@
-import Clocks :: *;
+
 
 interface Ifc;
    interface Reset rst_out;

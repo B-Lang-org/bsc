@@ -11,13 +11,13 @@ Warning: "Ring.bs", line 8, column 0: (G0010)
     "r2gets1" cannot fire before "r1gets3":
       dropped cycle (RL_r2gets1 -> RL_r1gets3 -> RL_r3gets2 -> RL_r2gets1)
     "r1gets3" cannot fire before "r2gets1": calls to r1.write vs. r1.read
-=== schedule:
+=== schedule (Ring sysRing):
 parallel: [esposito: [RL_r2gets1 -> [], RL_r3gets2 -> [], RL_r1gets3 -> [RL_r2gets1]]]
 order: [RL_r1gets3, RL_r3gets2, RL_r2gets1]
 
 -----
 
-=== resources:
+=== resources (Ring sysRing):
 [(r1.read, [(r1.read, 1)]),
  (r1.write, [(r1.write r3_PLUS_1___d6, 1)]),
  (r2.read, [(r2.read, 1)]),
@@ -27,7 +27,7 @@ order: [RL_r1gets3, RL_r3gets2, RL_r2gets1]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Ring sysRing):
 SchedInfo [] [] [] []
 
 -----

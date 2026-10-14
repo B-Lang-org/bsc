@@ -7,10 +7,11 @@ proc count_rules_after_splitIf { name number { mod "sysx" } { opt "" } } {
    global vtest
    global dump_suffix
    global rules_regex
-   set dumpfile "$name.$dump_suffix"
-   compile_verilog_pass $name $mod "$opt -dsplitIf=$dumpfile"
+   set dumpfile_opt "$name.%m.$dump_suffix"
+   set dumpfile_mod "$name.$mod.$dump_suffix"
+   compile_verilog_pass $name $mod "$opt -dsplitIf=$dumpfile_opt"
    if { $vtest == 1 } {
-      find_n_regexp $dumpfile $rules_regex $number
+      find_n_regexp $dumpfile_mod $rules_regex $number
    }
 }
 
@@ -72,7 +73,7 @@ compare_file manyVariations.bs.canon.dump
 count_rules_after_splitIf Nosplit.bsv 1
 count_rules_after_splitIf Plain.bsv 1
 count_rules_after_splitIf Split.bsv 2
-count_rules_after_splitIf boundvariableok.bsv 2
+count_rules_after_splitIf boundvariableok.bsv 2 sysx -let-gen
 compile_verilog_pass methodactionsplitin1.bsv usesGo -dsplitIf=methodactionsplitin1.bsv.$dump_suffix
 if { $vtest == 1 } {
 find_n_regexp methodactionsplitin1.bsv.$dump_suffix $rules_regex 2
@@ -105,10 +106,10 @@ count_rules_after_splitIf reg-update.bsv 64
 compile_verilog_pass_no_warning SplitFalse.bsv
 compile_verilog_pass_no_warning SplitEmpty.bsv
 
-count_rules_after_splitIf ArrayShortIndex.bsv 4 {}
-count_rules_after_splitIf ArrayExactIndex.bsv 4 {}
+count_rules_after_splitIf ArrayShortIndex.bsv 4 sysArrayShortIndex
+count_rules_after_splitIf ArrayExactIndex.bsv 4 sysArrayExactIndex
 # 5 elems and 1 out-of-bounds
-count_rules_after_splitIf ArrayLongIndex.bsv 7 {}
+count_rules_after_splitIf ArrayLongIndex.bsv 7 sysArrayLongIndex
 
 # Test that splitting is not performed when the condition cannot
 # be lifted, because it contains a method argument or AV value
@@ -117,4 +118,9 @@ count_rules_after_splitIf Cond_AV_Split.bsv 1 {sysCond_AV_Split}
 count_rules_after_splitIf Cond_AV_NoSplit.bsv 3 {sysCond_AV_NoSplit} {-split-if}
 count_rules_after_splitIf Cond_MethodArg_Split.bsv 1 {sysCond_MethodArg_Split}
 count_rules_after_splitIf Cond_MethodArg_NoSplit.bsv 3 {sysCond_MethodArg_NoSplit} {-split-if}
+
+# Port-split ActionValue result in iSplitIface (ShallowSplit value stays a tuple,
+# not Bit#(n)).  NoSplit: action unsplit; Split: splitIf also splits the action.
+count_rules_after_splitIf MultiPortAVNoSplit.bs 1 {sysMultiPortAVNoSplit}
+count_rules_after_splitIf MultiPortAVSplit.bs 2 {sysMultiPortAVSplit}
 

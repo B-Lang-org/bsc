@@ -1,0 +1,36 @@
+package VecStructShallow where
+
+import SplitPorts
+import Vector
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- ShallowSplit of a (Vector 3 Pair): the TOP level (the vector) is unpacked into
+-- one port per element, but each element's Pair stays PACKED -- so the ports are
+-- get_0 get_1 get_2 (outputs) and get_1_0 get_1_1 get_1_2 (inputs), NOT per-leaf
+-- get_0_p1 etc.  Contrast with VecStructDeepMulti, where DeepSplit gives leaf
+-- ports get_0_p1 / get_0_p2.
+--
+-- Two distinct elements are combinational, one crossed across indices:
+--   element 0 packed value is combinational from input element 0  (get_1_0 -> get_0)
+--   element 2 packed value is combinational from input element 1  (get_1_1 -> get_2)
+-- element 1 is fully registered.  Because the struct is packed, even a single
+-- combinational field makes the whole element's port combinational, and there is
+-- no per-field granularity (no get_0_p1).
+interface Ifc =
+  get :: ShallowSplit (Vector 3 Pair) -> ShallowSplit (Vector 3 Pair)
+
+{-# synthesize mkVecStructShallow #-}
+mkVecStructShallow :: Module Ifc
+mkVecStructShallow =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit v) =
+        let e0 = Pair { p1 = (v !! 0).p1; p2 = r }          -- only p1 comb, but whole elem 0 port carries it
+            e1 = Pair { p1 = r;          p2 = r }           -- fully registered
+            e2 = Pair { p1 = r;          p2 = (v !! 1).p2 } -- p2 comb from input elem 1
+        in  ShallowSplit (e0 :> e1 :> e2 :> nil)

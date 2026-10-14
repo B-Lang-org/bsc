@@ -162,9 +162,19 @@ compile_pass ImportReExportTestDataConFull.bsv
 # XXX be exported
 
 # ---------------
-# Test that rexport of packages which reexport the same package are OK
+# Test that re-export of packages which re-export the same package are OK.
+# ReExportSame_Top imports both P and Sub, exports both P::* and Sub::*.
+# Sub itself only re-exports from P.  Both imports contribute at least one
+# item to the exported signature, so neither warns, even though either P or
+# Sub could be deleted individually.
 
 compile_pass ReExportSame_Top.bsv
+
+# Test that re-exporting a package which itself only re-exports does not warn.
+# Sub re-exports P::*, and TopGood re-exports Sub::*, contributing Sub's
+# items (originally from P) to TopGood's signature.
+compile_pass ReExportSame_TopGood.bsv
+no_warnings [make_bsc_output_name ReExportSame_TopGood.bsv]
 
 # ---------------
 # Shadowing tests
@@ -174,9 +184,11 @@ compile_pass ReExportSame_Top.bsv
 compile_pass ReExportSame_TopBad.bsv
 compile_pass ReExportSame_TopBad2.bsv
 
-# XXX We should consider warning in these cases
-no_warnings [make_bsc_output_name ReExportSame_TopBad.bsv]
-no_warnings [make_bsc_output_name ReExportSame_TopBad2.bsv]
+# These should warn because the re-exports contribute no items to the
+# exported signature: in TopBad, the items from Sub are all shadowed by a
+# local definition; in TopBad2, items from P and Q conflict with each other.
+find_n_warning [make_bsc_output_name ReExportSame_TopBad.bsv] T0157 1
+find_n_warning [make_bsc_output_name ReExportSame_TopBad2.bsv] T0157 1
 
 # ---------------
 # Test bad exports

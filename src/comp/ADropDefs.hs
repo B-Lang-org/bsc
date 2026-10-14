@@ -16,6 +16,8 @@ dVars = findAExprs dVarsE
         dVarsE (AMethCall { ae_args = es}) = dVars es
         dVarsE (ANoInlineFunCall { ae_args = es }) = dVars es
         dVarsE (AFunCall { ae_args = es }) = dVars es
+        dVarsE (ATuple _ es) = dVars es
+        dVarsE (ATupleSel _ e _) = dVars e
         dVarsE _ = []
 
 aDropDefs :: ASPackage -> ASPackage

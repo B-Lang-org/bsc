@@ -1,6 +1,7 @@
 module CtxRed(cCtxReduceDef, cCtxReduceIO, CtxRed(..)) where
 
 import Data.List(partition, (\\))
+import qualified Data.Set as S
 import Control.Monad(when)
 import PFPrint
 import Id
@@ -25,15 +26,25 @@ import IOUtil(progArgs)
 doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
-cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
-cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) = do
+-- Perform context reduction on the definitions in a package.
+-- Returns a triple:
+--  * the context-reduced package
+--  * the set of Ids of packages whose symbols were used during reduction
+--    (folded into the unused-import warning check in bsc.hs)
+--  * the cache of ATF (associated type function) resolutions recorded
+--    while solving contexts (merged with the cache from typecheck in
+--    bsc.hs and threaded through iConvPackage into elaboration)
+cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage ->
+               IO (CPackage, S.Set Id, CATFCache)
+cCtxReduceIO errh flags s (CPackage mi exps imps impsigs fixs ds includes) = do
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    let (res, wmsgs) = runTI flags False s (mapM ctxRed ds)
-    when (not (null wmsgs)) $ bsWarning errh wmsgs
-    case res of
+    let ti_res = runTI flags False s (mapM ctxRed ds)
+    when (not (null (tiWarnings ti_res))) $ bsWarning errh (tiWarnings ti_res)
+    case tiResult ti_res of
       Left emsgs -> bsError errh emsgs
-      Right ds' -> return (CPackage mi exps imps fixs ds' includes)
+      Right ds' -> return (CPackage mi exps imps impsigs fixs ds' includes,
+                           tiUsedPackages ti_res, tiATFCache ti_res)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =
@@ -41,7 +52,7 @@ cCtxReduceDef flags s def =
     -- warnings better, return an ErrorMonad.
     -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
     -- We want to preserve those contexts to be handled in typecheck (XXX why?)
-    case fst (runTI flags False s (ctxRed def)) of
+    case tiResult (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
     Right t   -> Right t
 
@@ -88,7 +99,7 @@ instance CtxRed CDefn where
         popBoundTVs  -- necessary after call to ctxRedCQType
         return (f { cforg_type = cqt' })
 
-    ctxRed d@(Cclass incoh cpreds ik vs fds fs) = do
+    ctxRed d@(Cclass incoh cpreds ik vs fds ats fs) = do
        -- get any kind information we have for the type parameters
        -- XXX is this necessary?
        let i = iKName ik
@@ -112,7 +123,7 @@ instance CtxRed CDefn where
                    Nothing -> ik
                    Just k' -> IdKind i k'
 -}
-       return (Cclass incoh cpreds ik vs fds fs')
+       return (Cclass incoh cpreds ik vs fds ats fs')
 
     ctxRed d = return d
 
@@ -381,15 +392,19 @@ ctxRedCQType' isInstHead cqt = do
 
     -- do extra reduction on instance heads to avoid synonym-expansion
     -- and SizeOf issues, without unduly disturbing non-instance types
-    -- (and do it here, after "convCQType", so that "expPrimTCons" sees
+    -- (and do it here, after "convCQType", so that "expTFun" sees
     -- the qualified types)
     (qs, t) <- if isInstHead
-               then do -- XXX disable expanding of type synonyms until
-                       -- XXX failures with TLM instances are resolved
-                       -- XXX (vqs_extra, t1) <- expPrimTCons t0 (expandSyn t0)
-                       (vqs_extra, t1) <- expPrimTCons t0
+               then do (vqs_extra, t1) <- expTFun (expandSyn t0)
                        let qs_extra = map toPredWithPositions vqs_extra
-                       return (qs0 ++ qs_extra, t1)
+                       -- Use the expanded type t1 only if expTFun actually
+                       -- found something to expand (i.e. generated predicates).
+                       -- Otherwise keep the original t0.
+                       -- XXX we should probably be unconditionally expanding synonymns
+                       -- here and in tiField1, but there is existing code that relies on
+                       -- the current behavior, so changing this requires more thought.
+                       let t' = if null vqs_extra then t0 else t1
+                       return (qs0 ++ qs_extra, t')
                else return (qs0, t0)
 
     -- construct the predicates and try to reduce them

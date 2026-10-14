@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ATFAmbig.bs
+Error: "ATFAmbig.bs", line 11, column 0: (T0079)
+  The following type variables:
+    a
+  are not uniquely determined by the following contexts:
+    ATFAmbig.Container a a__
+    ATFAmbig.Container a Prelude.Maybe
+  and do not appear in the base type:
+    ATFAmbig.Foo a__ -> ATFAmbig.Foo Prelude.Maybe
+  Rewrite the provisos so that there are no ambiguous variables.

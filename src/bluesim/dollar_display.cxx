@@ -1565,7 +1565,7 @@ void dollar_fatal(tSimStateHdl simHdl,
     format("d", location, &args, &dest, false);
     dest.write_char('\n');
     dest.handle_errors();
-    bk_finish_now(simHdl, status);
+    bk_fatal_now(simHdl, status);
 
     discard_tValue(v);
   }

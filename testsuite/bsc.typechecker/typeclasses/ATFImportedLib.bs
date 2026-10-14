@@ -1,0 +1,14 @@
+package ATFImportedLib where
+
+-- Library package that defines a class with a type function and one instance.
+-- ATFImported.bs imports this package and uses the type function
+-- to verify that cross-module expansion works correctly.
+
+class Container f e | f -> e where
+  type Elem f = e
+  extract :: f -> e
+
+data Box a = Box a
+
+instance Container (Box a) a where
+  extract (Box x) = x

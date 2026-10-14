@@ -1,0 +1,10 @@
+package ExpSizeOf_Let_WithCtx where
+
+-- With an explicit Bits context on the enclosing definition, the implicit
+-- Bits context introduced by the SizeOf in the let binding's declared type
+-- is satisfied, so this compiles.  (GitHub Issue #890)
+
+foo :: (Bits a sz) => a -> String
+foo _ = let x :: Bit (SizeOf a)
+            x = _
+        in  printType $ typeOf $ x

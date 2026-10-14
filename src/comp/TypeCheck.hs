@@ -1,7 +1,8 @@
 module TypeCheck(cTypeCheck,
                  cCtxReduceDef, cCtxReduceIO,
                  topExpr,
-                 qualifyClassDefaults
+                 qualifyClassDefaults,
+                 CATFCache, mergeCATFCaches
                 ) where
 
 import Data.List
@@ -31,23 +32,32 @@ import CSubst(cSubstN)
 import CFreeVars(getFVC, getFTCC)
 import Util(separate, apFst, quote)
 
-cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO (CPackage, Bool)
-cTypeCheck errh flags symtab (CPackage name exports imports fixs defns includes) = do
-    (typecheckedDefns, typeWarns, haveErrors) <- tiDefns errh symtab flags defns
+cTypeCheck :: ErrorHandle -> Flags -> SymTab -> CPackage ->
+             IO (CPackage, Bool, S.Set Id, CATFCache)
+cTypeCheck errh flags symtab (CPackage name exports imports impsigs fixs defns includes) = do
+    (typecheckedDefns, typeWarns, usedPkgs, haveErrors, atfCache) <- tiDefns errh symtab flags defns
+
+    -- Issue type warnings
     when (not (null typeWarns)) $ bsWarning errh typeWarns
-    return (CPackage name exports imports fixs typecheckedDefns includes,
-            haveErrors)
+
+    return (CPackage name exports imports impsigs fixs typecheckedDefns includes,
+            haveErrors,
+            usedPkgs,
+            atfCache)
+
 
 -- type check top-level definitions in parallel (since they are independent)
-tiDefns :: ErrorHandle -> SymTab -> Flags -> [CDefn] -> IO ([CDefn], [WMsg], Bool)
+tiDefns :: ErrorHandle -> SymTab -> Flags -> [CDefn] ->
+           IO ([CDefn], [WMsg], S.Set Id, Bool, CATFCache)
 tiDefns errh s flags ds = do
   let ai = allowIncoherentMatches flags
-  let checkDef d = (defErr, snd defTI)
-        where defTI  = runTI flags ai s $ tiOneDef d
-              defErr = case (fst defTI) of
+  let checkDef d = (defErr, warns, usedPkgs, atfCache)
+        where ti_res = runTI flags ai s $ tiOneDef d
+              (warns, usedPkgs, atfCache) = (tiWarnings ti_res, tiUsedPackages ti_res, tiATFCache ti_res)
+              defErr = case tiResult ti_res of
                           (Left emsgs)  -> Left emsgs
                           (Right cdefn) -> rmFreeTypeVars cdefn
-  let (checks, wss) = unzip (map checkDef ds)
+  let (checks, wss, pkgss, atfCaches) = unzip4 (map checkDef ds)
   let (errors, ds') = apFst concat $ separate checks
   let have_errors = not (null errors)
   let mkErrorDef (Left _)  (CValueSign (CDef i t _)) = Just (mkPoisonedCDefn i t)
@@ -56,14 +66,16 @@ tiDefns errh s flags ds = do
       mkErrorDef (Left _)  d = internalError ("tiDefns - not CValueSign or Cclass: " ++ ppReadable d)
       mkErrorDef (Right _) _ = Nothing
   let error_defs = catMaybes (zipWith mkErrorDef checks ds)
-  let checked_error_defs = map checkDef error_defs
   let (double_error_msgs, error_defs') =
-          apFst concat $ separate $ map fst checked_error_defs
+          apFst concat $ separate $ map (\(x,_,_,_) -> x) (map checkDef error_defs)
+  -- Accumulate all used packages (only from the first round, poison pills don't use new symbols)
+  let allUsedPkgs = S.unions pkgss
+  let mergedATFCache = foldl mergeCATFCaches M.empty atfCaches
   -- XXX: we give up - some type signatures are bogus
   when ((not (null double_error_msgs)) || (have_errors && not (enablePoisonPills flags))) $
       bsError errh (nub errors) -- the underyling error should be in errors
   when (have_errors && enablePoisonPills flags) $ bsErrorNoExit errh errors
-  return (ds' ++ error_defs', concat wss, have_errors)
+  return (ds' ++ error_defs', concat wss, allUsedPkgs, have_errors, mergedATFCache)
 
 nullAssump :: [Assump]
 nullAssump = []
@@ -72,11 +84,11 @@ tiOneDef :: CDefn -> TI CDefn
 tiOneDef d@(CValueSign (CDef i t s)) = do
         --trace ("TC " ++ ppReadable i) $ return ()
         (rs, ~(CLValueSign d' _)) <- tiExpl nullAssump (i, t, s, [])
-        checkTopPreds d rs
+        checkTopPreds (Just i) d rs
         s <- getSubst'
         clearSubst
         return (CValueSign (apSub s d'))
-tiOneDef d@(Cclass incoh cps ik is fd fs) = do
+tiOneDef d@(Cclass incoh cps ik is fd ats fs) = do
     let -- we can assume that the current class is available, so make it
         -- as a pred
         ts :: [CType]
@@ -91,7 +103,7 @@ tiOneDef d@(Cclass incoh cps ik is fd fs) = do
               fqt' = CQType fps' fty
           (rs, ~(CLValueSign (CDefT _ _ _ fcs') _))
                <- tiExpl nullAssump (fid, fqt', fcs, [])
-          checkTopPreds fid rs
+          checkTopPreds (Just fid) fid rs
           clearSubst
           return (f { cf_default = fcs' })
     fs' <- mapM tiF fs
@@ -113,9 +125,9 @@ getSubst' = do
         if s == s then return s else internalError "TypeCheck.getSubst': s /= s (WTF!?)"
 
 -- Any predicates at the top level should be reported as an error
-checkTopPreds :: (HasPosition a, PPrint a) => a -> [VPred] -> TI ()
-checkTopPreds _ [] = return ()
-checkTopPreds a ps = do
+checkTopPreds :: (HasPosition a, PPrint a) => Maybe Id -> a -> [VPred] -> TI ()
+checkTopPreds _ _ [] = return ()
+checkTopPreds mid a ps = do
     -- reduce the predicates as much as possible
     (ps', ls) <- satisfy [] ps
     if null ps' then
@@ -123,14 +135,15 @@ checkTopPreds a ps = do
         internalError ("checkTopPreds " ++ ppReadable (a, ps))
      else do
         addExplPreds []  -- add en empty context
-        handleContextReduction (getPosition a) ps'
+        handleContextReduction mid (getPosition a) ps'
 
 -- typecheck an expression as a top-level object
 -- returning any unsatisfied preds
 topExpr :: CType -> CExpr -> TI ([VPred], CExpr)
 topExpr td e = do
   (ps, e') <- tiExpr [] td e
-  (ps', sbs) <- satisfy [] ps
+  (ps', sbs0) <- satisfy [] ps
+  sbs <- warnTransitiveIncoherent sbs0
   s <- getSubst
   let rec_defls    = getRecursiveDefls sbs
       nonrec_defls = getNonRecursiveDefls sbs
@@ -154,24 +167,24 @@ qualifyClassDefaults errh symt ds =
               Nothing ->
                   -- it could be a struct/interface (or an alias of one?)
                   case (findType symt c) of
-                    Just (TypeInfo (Just qc) _ _ _) -> (c, qc)
+                    Just (TypeInfo (Just qc) _ _ _ _) -> (c, qc)
                     _ -> internalError ("qualifyClassDefaults: " ++
                                         "constructor not found: " ++
                                         ppReadable c)
         mkTQual t =
             case (findType symt t) of
-              Just (TypeInfo (Just qt) _ _ _) -> (t, qt)
-              Just (TypeInfo Nothing _ _ _) ->
+              Just (TypeInfo (Just qt) _ _ _ _) -> (t, qt)
+              Just (TypeInfo Nothing _ _ _ _) ->
                   internalError ("qualifyClassDefaults: " ++
                                  "unexpected numeric or string type: " ++ ppReadable t)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "type not found: " ++ ppReadable t)
         mkVQual v =
             case (findVar symt v) of
-              Just (VarInfo _ (qv :>: _) _) -> (v, CVar qv)
+              Just (VarInfo _ (qv :>: _) _ _) -> (v, CVar qv)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "var not found: " ++ ppReadable v)
-        qualDef (Cclass incoh cps ik is deps fs) =
+        qualDef (Cclass incoh cps ik is deps ats fs) =
             let qualField (CField fi fps fqt fdefaults foqt) =
                     let (csets, vsets) = unzip $ map getFVC fdefaults
                         cset = S.unions csets
@@ -184,7 +197,7 @@ qualifyClassDefaults errh symt ds =
                         -- substitute into the clauses
                         fdefaults' = cSubstN (tmap,cmap,vmap,M.empty) fdefaults
                     in  (CField fi fps fqt fdefaults' foqt)
-            in  (Cclass incoh cps ik is deps (map qualField fs))
+            in  (Cclass incoh cps ik is deps ats (map qualField fs))
         qualDef d = d
     in
         map qualDef ds

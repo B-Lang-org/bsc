@@ -3,6 +3,7 @@ module KIMisc(
         KVar, KSubst, apKSu,
         KI, run, err, newKVar, getKSubst,
         unifyType, unifyFunc, unifyDefArgs, unifyDefAlias, unifyDefStar,
+        unifyDef,
         groundK) where
 
 import Data.List(union)
@@ -11,7 +12,7 @@ import Control.Monad(when, ap, liftM)
 import CVPrint
 import PFPrint
 import Error(internalError, EMsg, ErrMsg(..))
-import CType(baseKVar, isKVar)
+import CType(baseKVar, isKVar, mkKFun)
 import Id(Id, getIdString)
 import Debug.Trace
 import Util(tracep)
@@ -228,10 +229,6 @@ unifyDefStar i ck as mk = do
 extractFuncArgKinds :: Kind -> [Kind]
 extractFuncArgKinds (Kfun a b) = (a : extractFuncArgKinds b)
 extractFuncArgKinds k = [k]
-
-mkKFun :: [Kind] -> Kind -> Kind
-mkKFun []     k = k
-mkKFun (a:as) k = Kfun a (mkKFun as k)
 
 kindErr :: Type -> Kind -> Kind -> ErrMsg
 kindErr t KStar KNum  = EKindNumForStar (pfpString t)

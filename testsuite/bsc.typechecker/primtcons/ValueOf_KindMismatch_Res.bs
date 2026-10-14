@@ -1,0 +1,4 @@
+package ValueOf_KindMismatch_Res where
+
+baz :: Integer
+baz = valueOf Bool

@@ -3,8 +3,10 @@
 # parse - prettyprint - parse loop
 
 proc bsc_compile_prettyprint_parse { source { options "" } } {
-    if [bsc_compile $source "$options -dparsed=${source}-pretty-out.bs"] then {
-        return [bsc_compile  "$source-pretty-out.bs" $options]
+    set outfile "${source}-pretty-out.bs"
+    if [bsc_compile $source "$options -dparsed=$outfile"] then {
+        strip_dump_wrapper $outfile
+        return [bsc_compile  $outfile $options]
     } else {
         return 0
     }

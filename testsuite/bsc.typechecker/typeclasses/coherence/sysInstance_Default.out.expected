@@ -1,0 +1,3 @@
+Byte direct: default Vector.Vector 4 (Prelude.Bit 8): byte vector instance
+Int direct: default Vector.Vector 4 (Prelude.Int 8): generic vector instance
+Byte via generic: default Vector.Vector 4 (Prelude.Bit 8): generic vector instance

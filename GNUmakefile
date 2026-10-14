@@ -22,6 +22,10 @@ help:
 	@echo '    make  check-suite  Run the test suite (this will take time!)'
 	@echo '    make  check-suite-parallel'
 	@echo '                       Run the test suite in a way that can parallelize with -j'
+	@echo '    make  check-suite-full'
+	@echo '                       Run the test suite including the long tests'
+	@echo '    make  check-suite-full-parallel'
+	@echo '                       Run the full test suite in a way that can parallelize with -j'
 	@echo
 	@echo '    make  clean        Remove intermediate build-files unnecessary for execution'
 	@echo '    make  full_clean   Restore to pristine state (pre-building anything)'
@@ -71,6 +75,14 @@ check-suite:
 .PHONY: check-suite-parallel
 check-suite-parallel:
 	$(MAKE) -C testsuite checkparallel
+
+.PHONY: check-suite-full
+check-suite-full:
+	$(MAKE) -C testsuite fullcheck
+
+.PHONY: check-suite-full-parallel
+check-suite-full-parallel:
+	$(MAKE) -C testsuite fullparallel
 
 # -------------------------
 

@@ -1,3 +1,4 @@
+=== vpp (FuncMacro_Simple):
 // These comments should not be lost
 
  `line(HERE///FuncMacro_Simple.bsv,4,1,0)
@@ -8,3 +9,5 @@ module sysTest();
 
 // more comments here
 
+
+-----

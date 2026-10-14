@@ -1,0 +1,42 @@
+package SplitArgSlice where
+
+import SplitPorts
+
+struct Inner =
+  p :: Bit 8
+  q :: Bit 8
+ deriving (Bits)
+
+struct Outer =
+  a     :: Bit 8
+  inner :: Inner
+ deriving (Bits)
+
+-- A submodule (NOT a noinline function) whose method argument is shallow-split:
+-- `a` gets its own port and the nested `inner` struct gets one combined port.
+interface Sub =
+  put :: ShallowSplit Outer -> Action
+
+{-# synthesize mkSub #-}
+mkSub :: Module Sub
+mkSub =
+  module
+    interface
+      put (ShallowSplit o) = $display "a=%0d p=%0d q=%0d" o.a o.inner.p o.inner.q
+
+-- The caller passes a non-constant Outer value (derived from register state) to
+-- the submodule's split argument.  The value is materialized as a literal-tuple
+-- def, which is emitted as one wire per element, so each split input port is
+-- driven directly by its element wire -- no bit-select of a combined wide wire.
+-- (An ordinary synthesized submodule, not a noinline function.)
+{-# synthesize sysSplitArgSlice #-}
+sysSplitArgSlice :: Module Empty
+sysSplitArgSlice =
+  module
+    s :: Sub <- mkSub
+    c :: Reg (Bit 8) <- mkReg 0
+    rules
+      when True ==> c := c + 1
+      when c < 4 ==>
+        s.put (ShallowSplit (Outer { a = c; inner = Inner { p = c + 1; q = c + 2 } }))
+      when c == 4 ==> $finish

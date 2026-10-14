@@ -1,0 +1,2 @@
+compile_fail Test.bs
+compare_file [make_bsc_output_name Test.bs]

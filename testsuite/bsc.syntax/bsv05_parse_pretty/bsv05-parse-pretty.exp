@@ -3,8 +3,10 @@
 # parse - prettyprint - parse loop
 
 proc bsc_compile_prettyprint_parse { source { options "" } } {
-    if [bsc_compile $source "$options -dparsed=${source}-pretty-out.bsv"] then {
-        return [bsc_compile  "$source-pretty-out.bsv" $options]
+    set outfile "${source}-pretty-out.bsv"
+    if [bsc_compile $source "$options -dparsed=$outfile"] then {
+        strip_dump_wrapper $outfile
+        return [bsc_compile  $outfile $options]
     } else {
         return 0
     }
@@ -54,3 +56,6 @@ compile_ppp_pass PopCount0.bsv
 
 # Map (function arguments)
 compile_ppp_pass Map.bsv
+
+# typeclass with associated type function
+compile_ppp_pass TypeclassATF.bsv

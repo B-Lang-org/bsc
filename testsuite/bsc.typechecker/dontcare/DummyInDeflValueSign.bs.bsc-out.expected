@@ -1,6 +1,6 @@
 checking package dependencies
 compiling DummyInDeflValueSign.bs
-=== internal:
+=== internal (DummyInDeflValueSign):
 IPackage DummyInDeflValueSign
   --linked packages
 

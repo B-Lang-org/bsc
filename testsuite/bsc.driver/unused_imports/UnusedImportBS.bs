@@ -1,0 +1,13 @@
+-- Test: Basic unused import (Classic syntax)
+-- Expected: Warning about Helper being unused
+
+package UnusedImportBS where
+
+import Helper
+import Vector
+
+test :: Bit 8
+test =
+  let v :: Vector 3 (Bit 8)
+      v = replicate 0
+  in head v

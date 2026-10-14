@@ -1,0 +1,41 @@
+package SiblingDisjointFanout where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- An Action method takes a split input (p1, p2) and forwards EACH field onto
+  -- its OWN combinational wire.  Field p1 fans out to two methods (outA, outB);
+  -- the sibling field p2 fans out to a DIFFERENT third method (outC) only.
+  -- Path analysis must keep the two sources disjoint across method boundaries:
+  --   put_1_p1 -> outA, put_1_p1 -> outB   (and NOT put_1_p1 -> outC)
+  --   put_1_p2 -> outC                      (and NOT put_1_p2 -> outA/outB)
+  put  :: ShallowSplit Pair -> Action
+  outA :: Bool
+  outB :: Bool
+  outC :: Bool
+
+{-# synthesize mkSiblingDisjointFanout #-}
+mkSiblingDisjointFanout :: Module Ifc
+mkSiblingDisjointFanout =
+  module
+    w1 :: RWire Bool <- mkRWire
+    w2 :: RWire Bool <- mkRWire
+    interface
+      put (ShallowSplit a) =
+        action
+          w1.wset a.p1
+          w2.wset a.p2
+      outA = case w1.wget of
+               Just v -> v
+               Nothing -> False
+      outB = case w1.wget of
+               Just v -> not v
+               Nothing -> False
+      outC = case w2.wget of
+               Just v -> v
+               Nothing -> False

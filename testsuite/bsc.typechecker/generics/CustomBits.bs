@@ -14,7 +14,7 @@ instance MyBits (Bit n) n where
   myunpack = id
 
 -- Generic default instance
-instance (Generic a r, MyBits' r n) => MyBits a n where
+instance (MyBits' (Rep a) n) => MyBits a n where
   mypack   x  = mypack' $ from x
   myunpack bs = to $ myunpack' bs
 

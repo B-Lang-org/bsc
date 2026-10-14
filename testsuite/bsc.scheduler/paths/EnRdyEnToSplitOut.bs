@@ -1,0 +1,23 @@
+package EnRdyEnToSplitOut where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- An Action method with an enable, plus a value method whose split result
+  -- depends combinationally on whether that Action method fired (its EN).
+  doit :: Bool -> Action
+  rd   :: ShallowSplit Pair
+
+{-# synthesize mkEnRdyEnToSplitOut #-}
+mkEnRdyEnToSplitOut :: Module Ifc
+mkEnRdyEnToSplitOut =
+  module
+    w :: RWire Bool <- mkRWire
+    interface
+      doit x = w.wset x
+      rd = ShallowSplit (Pair { p1 = isValid (w.wget); p2 = False })

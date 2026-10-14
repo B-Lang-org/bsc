@@ -59,7 +59,8 @@ compare_file_filter_ids lc-sysStructs.out
 # Test for lifting if condition in action
 if { $vtest == 1 } {
 
-compile_verilog_pass MergeIf.bsv {} $opts
+# Output differs if aggr-conds is on, so ensure it is
+compile_verilog_pass MergeIf.bsv {} "$opts -aggressive-conditions"
 compare_file_filter_ids lc-sysMergeIf.out
 
 # XXX Nothing merges here yet, because the defs are not inlined

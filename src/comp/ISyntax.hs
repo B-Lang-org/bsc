@@ -11,13 +11,14 @@ module ISyntax(
         IRules(..),
         IRule(..),
         IEFace(..),
+        IMethodInput,
         IModule(..),
         IAbstractInput(..),
         IStateVar(..),
         PortTypeMap,
-        IClock,
-        IReset,
-        IInout,
+        IClock(..),
+        IReset(..),
+        IInout(..),
         ILazyArray,
         ArrayCell(..),
         Pred(..),
@@ -74,7 +75,8 @@ module ISyntax(
         getInoutClock,
         getInoutReset,
         getWireInfo,
-        isIConInt, isIConReal, isIConParam
+        isIConInt, isIConReal, isIConParam,
+        IATFCache, mergeIATFCaches
         ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -92,7 +94,7 @@ import Eval
 import Id
 import Wires(ResetId, ClockDomain, ClockId, noClockId, noResetId, noDefaultClockId, noDefaultResetId, WireProps)
 import IdPrint
-import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
+import PreIds(idId, idBind, idReturn, idPack, idUnpack, idMonad, idLiftModule, idBit, idFromInteger, idTNumToStr)
 import Backend
 import Prim(PrimOp(..))
 import TypeOps
@@ -132,9 +134,16 @@ data IPackage a
               -- pragmas
               ipkg_pragmas :: [Pragma],
               -- definition list
-              ipkg_defs :: [IDef a]
+              ipkg_defs :: [IDef a],
+              -- cache of resolved associated type function applications
+              ipkg_atf_cache :: IATFCache
           }
      deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+
+type IATFCache = M.Map (Id, [IType]) IType
+
+mergeIATFCaches :: IATFCache -> IATFCache -> IATFCache
+mergeIATFCaches = M.union
 
 -- An elaborated module
 -- * These are created during iExpand for each module to be synthesized
@@ -186,14 +195,19 @@ data IAbstractInput =
         --   IAI_Struct [(Id, IType)]
     deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
+-- One method argument, decomposed into the ports it occupies (one port for an
+-- unsplit argument, several for a split struct/tuple).  A method's arguments
+-- are a list of these groups.
+type IMethodInput = [(Id, IType)]
+
 data IEFace a = IEFace {
         -- This is either an actual method or a ready signal for another
         -- method.  Use 'isRdyId' to determine which.  Use 'mkRdyId' on
         -- the name of an actual method to construct the name of its
         -- associated ready method.
         ief_name :: Id,
-        -- arguments
-        ief_args :: [(Id, IType)],
+        -- arguments, split into ports.
+        ief_args :: [IMethodInput],
         -- Prior to 'iSplitIface', 'ief_value' contains the expression for
         -- the whole method and 'ief_body' is empty.  After 'iSplitIface',
         -- 'ief_value' contains the return value (if any) and 'ief_body'
@@ -401,6 +415,10 @@ checkRUnionAttributes (IRules sps1 rs1) (IRules sps2 rs2) =
         (msgs, sps')
 
 
+-- This function just handles special built-in type functions like TAdd and Id__,
+-- would be nice to get rid of it if we can make those work via preds, as with
+-- user-defined type functions, but that seems hard because we still need to
+-- permit them in instance heads.
 normITAp :: IType -> IType -> IType
 normITAp (ITAp (ITCon op _ _) (ITNum x)) (ITNum y) | isJust (res) =
     mkNumConT (fromJust res)
@@ -413,12 +431,6 @@ normITAp (ITAp (ITCon op _ _) (ITStr x)) (ITStr y) | isJust (res) =
   where res = opStrT op [x, y]
 normITAp (ITCon op _ _) (ITNum x) | op == idTNumToStr =
     ITStr (mkNumFString x)
-
-normITAp f@(ITCon op _ _) a | op == idSizeOf && notVar a =
-        -- trace ("normITAp: " ++ ppReadable (ITAp f a)) $
-           ITAp f a
-  where notVar (ITVar _) = False
-        notVar _ = True
 
 normITAp f@(ITCon op _ _) a | op == idId = a
 
@@ -442,9 +454,9 @@ fTVars (ITStr _) = S.empty
 
 
 splitITAp :: IType -> (IType, [IType])
-splitITAp (ITAp f a) = let (l, as) = splitITAp f
-                       in  (l, as ++ [a])
-splitITAp t = (t, [])
+splitITAp t0 = go t0 []
+  where go (ITAp f a) acc = go f (a : acc)
+        go t          acc = (t, acc)
 
 
 -- ==============================
@@ -460,7 +472,7 @@ data IExpr a
         | ILAM Id IKind (IExpr a)        -- vanishes after IExpand
         | ICon Id (IConInfo a)
         -- IRef is only used during reduction, it refers to a "heap" cell
-        | IRefT IType !Int a                  -- vanishes after IExpand
+        | IRefT IType !Int (S.Set Position) a -- vanishes after IExpand
           deriving (Generic.Data, Generic.Typeable)
 
 instance Show (IExpr a) where
@@ -471,7 +483,7 @@ instance Show (IExpr a) where
   show (ICon i (ICDef {})) = "(ICDef " ++ show i ++ ")"
   show (ICon i (ICValue {})) = "(ICValue " ++ show i ++ ")"
   show (ICon i ic)    = "(ICon " ++ show i ++ " " ++ show ic ++ ")"
-  show (IRefT t p _)  = "(IRefT " ++ show t ++ " " ++ "_" ++ show p ++ ")"
+  show (IRefT t p _ _)  = "(IRefT " ++ show t ++ " " ++ "_" ++ show p ++ ")"
 
 cmpE :: IExpr a -> IExpr a -> Ordering
 cmpE (ILam i1 _ e1)  (ILam i2 _ e2)  =
@@ -507,7 +519,7 @@ cmpE (ILAM i1 _ e1)  (ILAM i2 _ e2)  =
         case compare i1 i2 of
         EQ -> cmpE e1 e2
         o  -> o
-cmpE (ILAM _ _ _)    (IRefT _ _ _)   = GT -- ???????
+cmpE (ILAM _ _ _)    (IRefT _ _ _ _)   = GT -- ???????
 
 cmpE (ILAM _  _ _)   _               = LT
 
@@ -525,13 +537,13 @@ cmpE (ICon i1 ic1) (ICon i2 ic2)     =
         o  -> o
 cmpE (ICon _ _)      _               = LT
 
-cmpE (IRefT _ _ _)   (ILam _ _ _)    = GT
-cmpE (IRefT _ _ _)   (IAps _ _ _)    = GT
-cmpE (IRefT _ _ _)   (IVar _)        = GT
-cmpE (IRefT _ _ _)   (ICon _ _)      = GT
-cmpE (IRefT _ p1 _)  (IRefT _ p2 _)  = compare p1 p2                -- XXX
+cmpE (IRefT _ _ _ _)   (ILam _ _ _)    = GT
+cmpE (IRefT _ _ _ _)   (IAps _ _ _)    = GT
+cmpE (IRefT _ _ _ _)   (IVar _)        = GT
+cmpE (IRefT _ _ _ _)   (ICon _ _)      = GT
+cmpE (IRefT _ p1 _ _)  (IRefT _ p2 _ _)  = compare p1 p2                -- XXX
 
-cmpE (IRefT _ _ _)     (ILAM _ _ _)  = LT -- ??????????
+cmpE (IRefT _ _ _ _)     (ILAM _ _ _)  = LT -- ??????????
 
 {- all cases are covered above, so the compiler complains about this line:
 cmpE e1              e2              = internalError ("not match in cmpE " ++ ppReadable (e1,e2))
@@ -747,6 +759,10 @@ data IConInfo a =
         | ICPrim { iConType :: IType, primOp :: PrimOp } -- primitive
           -- foreign function; foports specifies input and output port names in verilog
           -- (for functions implemented via module instantiation - primarily "noinlined")
+          -- The inputs are grouped per argument (the inner list is the ports of
+          -- one argument, of which there may be several when the argument splits);
+          -- the outputs are a flat list (the single result, possibly split).
+          -- Each port is its name and bit size.
           -- Nothing in foports indicates this is a "true" foreign function
           -- (positional module instantiation is no longer supported)
           -- fcallNo is a cookie used to mark foreign function calls during elaboration
@@ -755,7 +771,7 @@ data IConInfo a =
         | ICForeign { iConType :: IType,
                       fName :: String,
                       isC :: Bool,
-                      foports :: Maybe ([(String, Integer)], [(String, Integer)]),
+                      foports :: Maybe ([[(String, Integer)]], [(String, Integer)]),
                       fcallNo :: Maybe Integer }
           -- constructor
         | ICCon { iConType :: IType, conTagInfo :: ConTagInfo }
@@ -821,6 +837,12 @@ data IConInfo a =
           -- as an argument to PrimAddSchedPragmas (applied to rules).
           -- only exists before expansion
         | ICSchedPragmas { iConType :: IType, iPragmas :: [CSchedulePragma] }
+
+        | ICMethod { iConType :: IType,
+                     -- per-source-argument input port name groups
+                     iInputNames :: [[String]],
+                     iOutputNames :: [String],
+                     iMethod :: IExpr a }
         | ICClock { iConType :: IType, iClock :: IClock a }
         | ICReset { iConType :: IType, iReset :: IReset a } -- iReset has effective type itBit1
         | ICInout { iConType :: IType, iInout :: IInout a }
@@ -870,6 +892,7 @@ ordC (ICAttrib { }) = 28
 ordC (ICPosition { }) = 29
 ordC (ICType { }) = 30
 ordC (ICPred { }) = 31
+ordC (ICMethod { }) = 32
 
 instance Eq (IConInfo a) where
     x == y  =  cmpC x y == EQ
@@ -914,6 +937,8 @@ cmpC c1 c2 =
         ICIFace { ifcTyId = ti1, ifcIds = is1 } -> compare (ti1, is1) (ifcTyId c2, ifcIds c2)
         ICRuleAssert { iAsserts = asserts } -> compare asserts (iAsserts c2)
         ICSchedPragmas { iPragmas = pragmas } -> compare pragmas (iPragmas c2)
+        ICMethod { iInputNames = inames1, iOutputNames = outnames1, iMethod = meth1 } ->
+            compare (inames1, outnames1, meth1) (iInputNames c2, iOutputNames c2, iMethod c2)
         -- the ICon Id is not sufficient for equality comparison for Clk/Rst
         ICClock { iClock = clock1 } -> compare clock1 (iClock c2)
         ICReset { iReset = reset1 } -> compare reset1 (iReset c2)
@@ -956,7 +981,7 @@ aVars (IAps f ts es) = (aVars f) `S.union`
                         (S.unions (map aVars es))
 aVars (ICon _ (ICUndet {imVal = Just e})) = aVars e
 aVars (ICon _ _) = S.empty  -- XXX
-aVars (IRefT _ _ _) = S.empty
+aVars (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -968,7 +993,7 @@ fVars (ILAM _ _ e) = fVars e
 fVars (IAps f ts es) = fVars f `S.union` (S.unions (map fVars es))
 fVars (ICon _ (ICUndet {imVal = Just e})) = fVars e
 fVars (ICon _ _) = S.empty
-fVars (IRefT _ _ _) = S.empty
+fVars (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -985,7 +1010,7 @@ fdVars' (ICon i (ICDef { })) = S.singleton i
 fdVars' (ICon i (ICValue { })) = S.singleton i
 fdVars' (ICon i (ICUndet {imVal = Just e})) = fdVars' e
 fdVars' (ICon _ _) = S.empty
-fdVars' (IRefT _ _ _) = S.empty
+fdVars' (IRefT _ _ _ _) = S.empty
 
 -- --------------------
 
@@ -998,7 +1023,7 @@ ftVars (IAps f ts es) = (ftVars f) `S.union` (S.unions (map fTVars ts))
                                      `S.union` (S.unions (map ftVars es))
 ftVars (ICon _ (ICUndet {imVal = Just e})) = ftVars e
 ftVars (ICon _ _) = S.empty                -- XXX
-ftVars (IRefT _ _ _) = S.empty
+ftVars (IRefT _ _ _ _) = S.empty
 
 -- ============================================================
 -- PPrint (for those instances not defined alongside the type, above)
@@ -1007,7 +1032,7 @@ pPrintLink :: PDetail -> Int -> (Id, String) -> Doc
 pPrintLink d i (mi, hash) = (ppId d mi) <+> (text hash)
 
 instance PPrint (IPackage a) where
- pPrint d p (IPackage mi lps ps ds) =
+ pPrint d p (IPackage mi lps ps ds _) =
         (text "IPackage" <+> ppId d mi) $+$
         (text "  --linked packages") $+$
         foldr (($+$) . pPrintLink d 0) (text "") lps $+$
@@ -1059,7 +1084,7 @@ ppMV d (i, ty) = ppId d i <+> text "::" <+> pPrint d 0 ty
 instance PPrint (IEFace a) where
     pPrint d p (IEFace i vs et rules wp fi)
         =       text "-- args" $+$
-                foldr (($+$) . ppMV d) b vs
+                foldr (($+$) . ppMV d) b (concat vs)
               where b =        text "-- body" $+$
                         (case et of
                           Just (e,t) -> ppDef d $ IDef i t e []
@@ -1179,13 +1204,13 @@ instance PPrint (IExpr a) where
     pPrint d@PDDebug p (ICon i ict) = ppId d i <> text "::" <> pPrint d maxPrec (iConType ict)
     pPrint d p ict@(ICon i (ICForeign {fcallNo = (Just n)})) = ppId d i <> text ("#" ++ show n)
     pPrint d p (ICon i ict) = ppId d i
-    pPrint d p (IRefT _ ptr _) = text ("_") <> pPrint d 0 ptr
+    pPrint d p (IRefT _ ptr _ _) = text ("_") <> pPrint d 0 ptr
 
 -- ============================================================
 -- Hyper (for those instances not defined alongside the type, above)
 
 instance NFData (IPackage a) where
-    rnf (IPackage i lps ps ds) = rnf4 i ps lps ds
+    rnf (IPackage i lps ps ds atfCache) = rnf5 i ps lps ds atfCache
 
 instance NFData (IModule a) where
     rnf (IModule x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16) =
@@ -1209,7 +1234,7 @@ instance NFData (IExpr a) where
     rnf (IVar i) = rnf i
     rnf (ILAM i k e) = rnf3 i k e
     rnf (ICon i ic) = rnf2 i ic
-    rnf (IRefT t p _) = rnf t
+    rnf (IRefT t p poss _) = rnf2 t poss
 
 instance NFData (IConInfo a) where
 --    rnf (ICDef x1 x2) = rnf2 x1 x2
@@ -1238,6 +1263,7 @@ instance NFData (IConInfo a) where
     rnf (ICIFace x1 x2 x3) = rnf3 x1 x2 x3
     rnf (ICRuleAssert x1 x2) = rnf2 x1 x2
     rnf (ICSchedPragmas x1 x2) = rnf2 x1 x2
+    rnf (ICMethod x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
     rnf (ICClock x1 x2) = rnf2 x1 x2
     rnf (ICReset x1 x2) = rnf2 x1 x2
     rnf (ICInout x1 x2) = rnf2 x1 x2
@@ -1304,7 +1330,7 @@ getIExprPositionCrossInternal _ (ICon i (ICSel _ _ _)) =
 
 
 getIExprPositionCrossInternal _ (ICon i _) = getIdPosition i
-getIExprPositionCrossInternal n (IRefT t _ _) = getITypePositionCrossInternal (n + 1) t
+getIExprPositionCrossInternal n (IRefT t _ _ _) = getITypePositionCrossInternal (n + 1) t
 
 
 getITypePositionCrossInternal :: Int -> IType -> Position
@@ -1370,7 +1396,7 @@ getIExprPosition (IVar i) = getIdPosition i
 getIExprPosition (ILAM i _ e) = firstPos [getIdPosition i, getIExprPosition e]
 -- getIExprPosition (ICon i (ICPrim t op)) = getITypePosition t
 getIExprPosition (ICon i _) = getIdPosition i
-getIExprPosition (IRefT t _ _) = getITypePosition t
+getIExprPosition (IRefT t _ _ _) = getITypePosition t
 
 getITypePosition :: IType -> Position
 getITypePosition (ITForAll i _ t) = firstPos [getIdPosition i, getITypePosition t]
@@ -1416,7 +1442,7 @@ showTypeless (IAps e _ es) = "(IAps " ++ (showTypeless e) ++ " _ " ++ showTypele
 showTypeless (IVar i) = "(IVar " ++ (show i) ++ ")"
 showTypeless (ILAM i k e) = "(ILAM " ++ (show i) ++ " " ++ (show k) ++ " " ++ (showTypeless e) ++ ")"
 showTypeless (ICon i ci) = "(ICon " ++ (show i) ++ " " ++ (showTypelessCI ci) ++ " )"
-showTypeless (IRefT _ i _) = "(IRefT " ++ "_" ++ (show i) ++ ")"
+showTypeless (IRefT _ i _ _) = "(IRefT " ++ "_" ++ (show i) ++ ")"
 
 showTypelessRule :: IRule a -> String
 showTypelessRule (IRule {
@@ -1459,6 +1485,7 @@ showTypelessCI (ICValue {iConType = t, iValDef = e}) = "(ICValue)"
 showTypelessCI (ICIFace {iConType = t, ifcTyId = i, ifcIds = ids}) = "(ICIFace _ " ++ (show i) ++ " " ++ (show ids) ++ ")"
 showTypelessCI (ICRuleAssert {iConType = t, iAsserts = rps}) = "(ICRuleAssert _ " ++ (show rps) ++ ")"
 showTypelessCI (ICSchedPragmas {iConType = t, iPragmas = sps}) = "(ICSchedPragmas _ " ++ (show sps) ++ ")"
+showTypelessCI (ICMethod {iConType = t, iInputNames = ins, iOutputNames = outs, iMethod = m }) = "(ICMethod " ++ (show ins) ++ " " ++ (show outs) ++ " " ++ (ppReadable m) ++ ")"
 showTypelessCI (ICClock {iConType = t, iClock = clock}) = "(ICClock)"
 showTypelessCI (ICReset {iConType = t, iReset = reset}) = "(ICReset)"
 showTypelessCI (ICInout {iConType = t, iInout = inout}) = "(ICInout)"

@@ -12,9 +12,7 @@ package MIMO;
 /// Imports
 ////////////////////////////////////////////////////////////////////////////////
 import Vector            ::*;
-import DefaultValue      ::*;
 import BUtils            ::*;
-import FIFO              ::*;
 import FIFOF             ::*;
 import BRAMFIFO          ::*;
 import Counter           ::*;

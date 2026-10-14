@@ -1,0 +1,46 @@
+package LoopNoFalseLoop where
+
+import SplitPorts
+
+struct Pair =
+  p1 :: Bool
+  p2 :: Bool
+ deriving (Bits)
+
+-- Submodule split output: p1 is combinational from split input p1, p2 from a
+-- register.  Crucially, output p1 depends ONLY on input p1 (not on input p2).
+interface SubIfc =
+  get :: ShallowSplit Pair -> ShallowSplit Pair
+
+{-# synthesize mkLoopNoFalseLoopSub #-}
+mkLoopNoFalseLoopSub :: Module SubIfc
+mkLoopNoFalseLoopSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (ShallowSplit a) = ShallowSplit (Pair { p1 = a.p1; p2 = r })
+
+interface TopIfc =
+  top :: Bool -> Bool
+
+-- The top's value method feeds its input into submodule g1's split input p1,
+-- then feeds g1's combinational split OUTPUT p1 into submodule g2's split INPUT
+-- p2, returning g2's split output p1.  Because out-p1 depends only on in-p1
+-- (never in-p2), routing a value into g2.in_p2 cannot close a cycle: the chain
+--   top -> g1.in_p1 -> g1.out_p1 -> g2.in_p2  (dead end; out never reads in_p2)
+-- and the returned value comes from g2.in_p1 = x, so the only real path is
+-- top -> top.  Per-port tracking proves there is NO combinational loop; with
+-- packed ports the whole-struct feedback would risk a false loop.
+{-# synthesize mkLoopNoFalseLoop #-}
+mkLoopNoFalseLoop :: Module TopIfc
+mkLoopNoFalseLoop =
+  module
+    g1 <- mkLoopNoFalseLoopSub
+    g2 <- mkLoopNoFalseLoopSub
+    interface
+      top x =
+        let firstOut = case g1.get (ShallowSplit (Pair { p1 = x; p2 = False })) of
+                         ShallowSplit r1 -> r1.p1
+            secondOut = case g2.get (ShallowSplit (Pair { p1 = x; p2 = firstOut })) of
+                          ShallowSplit r2 -> r2.p1
+        in secondOut

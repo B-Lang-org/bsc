@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ATFNameClashSameClass.bs
+Error: "ATFNameClashSameClass.bs", line 8, column 7: (T0011)
+  Declaration of `Result' conflicts with previous declaration at
+  "ATFNameClashSameClass.bs", line 7, column 7

@@ -1,13 +1,13 @@
 checking package dependencies
 compiling ValueMethodEx1.bsv
 code generation for mkTloop starts
-=== schedule:
+=== schedule (ValueMethodEx1 mkTloop):
 parallel: [esposito: [a -> [], b -> [], RL_copy_it -> []]]
 order: [a, RL_copy_it, b]
 
 -----
 
-=== resources:
+=== resources (ValueMethodEx1 mkTloop):
 [(r1.wget, [(r1.wget, 1)]),
  (r1.whas, [(r1.whas, 1)]),
  (r1.wset, [(r1.wset a_x, 1)]),
@@ -16,7 +16,7 @@ order: [a, RL_copy_it, b]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ValueMethodEx1 mkTloop):
 SchedInfo
 [RDY_a CF [RDY_a, RDY_b, a, b], RDY_b CF [RDY_b, a, b], b CF b, a SBR b, a C a]
 [((a, b), [RL_copy_it])]
@@ -51,13 +51,13 @@ Logical execution order: a, copy_it, b
 =======================================
 Verilog file created: mkTloop.v
 code generation for sysTloop starts
-=== schedule:
+=== schedule (ValueMethodEx1 sysTloop):
 parallel: [esposito: [RL_count -> [], RL_quit -> [], RL_poke -> [], RL_yell -> []]]
 order: [RL_quit, RL_poke, RL_count, RL_yell]
 
 -----
 
-=== resources:
+=== resources (ValueMethodEx1 sysTloop):
 [(counter.addA, [(counter.addA 4'd1, 1)]),
  (counter.value, [(counter.value, 1)]),
  (result.write, [(result.write 1'd1, 1)]),
@@ -66,7 +66,7 @@ order: [RL_quit, RL_poke, RL_count, RL_yell]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (ValueMethodEx1 sysTloop):
 SchedInfo [] [] [] []
 
 -----

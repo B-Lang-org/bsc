@@ -1,0 +1,45 @@
+package DeepLeafLoop where
+
+import SplitPorts
+
+-- Nested struct (Outer field is itself a struct), deep-split into leaf ports.
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Inner
+ deriving (Bits)
+
+interface SubIfc =
+  -- Deep-split combinational method: each leaf output is wired straight from
+  -- the matching leaf input, so e.g. get_1_x_a -> get_x_a is combinational.
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkDeepLeafLoopSub #-}
+mkDeepLeafLoopSub :: Module SubIfc
+mkDeepLeafLoopSub =
+  module
+    interface
+      get (DeepSplit a) =
+        DeepSplit (Outer { x = Inner { a = a.x.a; b = a.x.b }
+                         ; y = Inner { a = a.y.a; b = a.y.b } })
+
+-- Close a combinational loop through the submodule's deep leaf port x.a:
+--   rw.wget -> get's deep input leaf x.a -> get's deep output leaf x.a -> rw.wset
+-- Path analysis must detect this through the per-leaf result node, so
+-- compilation fails with G0032.
+{-# synthesize mkDeepLeafLoop #-}
+mkDeepLeafLoop :: Module Empty
+mkDeepLeafLoop =
+  module
+    s <- mkDeepLeafLoopSub
+    rw :: RWire Bool <- mkRWire
+    let fb = isValid (rw.wget)
+    rules
+      "close_loop": when True ==>
+        case s.get (DeepSplit (Outer { x = Inner { a = fb; b = False }
+                                     ; y = Inner { a = False; b = False } })) of
+          DeepSplit res -> if res.x.a then rw.wset True else noAction

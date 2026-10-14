@@ -1,0 +1,3 @@
+Byte direct: super incoherent Vector.Vector 4 (Prelude.Bit 8): generic vector instance
+Int direct: super incoherent Vector.Vector 4 (Prelude.Int 8): generic vector instance
+Byte via generic: super incoherent Vector.Vector 4 (Prelude.Bit 8): generic vector instance

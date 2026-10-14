@@ -1,7 +1,7 @@
 checking package dependencies
 compiling Bug1619C.bsv
 code generation for sysBug1619C starts
-=== schedule:
+=== schedule (Bug1619C sysBug1619C):
 parallel: [esposito: [RL_normal -> [],
 		      RL_normal_1 -> [],
 		      RL_normal_2 -> [],
@@ -10,7 +10,7 @@ order: [RL_normal, RL_normal_1, RL_low_priority, RL_normal_2]
 
 -----
 
-=== resources:
+=== resources (Bug1619C sysBug1619C):
 [(decr1.read, [(decr1.read, 1)]),
  (n.read, [(n.read, 1)]),
  (x.read, [(x.read, 1)]),
@@ -18,7 +18,7 @@ order: [RL_normal, RL_normal_1, RL_low_priority, RL_normal_2]
 
 -----
 
-=== vschedinfo:
+=== vschedinfo (Bug1619C sysBug1619C):
 SchedInfo [] [] [] []
 
 -----

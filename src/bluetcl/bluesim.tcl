@@ -255,8 +255,10 @@ if {$script == "" && $script_file == ""} {
     }
 }
 
-# unload the model, just to be safe
-sim unload
+set status 0
+if {[sim isfatal]} {
+    set status 1
+}
 
-# we're done!
-exit 0
+sim unload
+exit $status

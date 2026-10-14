@@ -1,0 +1,31 @@
+package IOMatrixDeepCombine where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+interface Ifc =
+  -- DeepSplit recurses into Inner.  The two inner output leaves each COMBINE
+  -- disjoint pairs of input leaves: out x_a <= (in x_a && in y), and
+  -- out x_b <= (in x_b && in y).  The top-level output y comes from a
+  -- register, so it has NO incoming combinational path.  Path analysis must
+  -- report the two combined deep edges into x_a and x_b and NO edge into y.
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkIOMatrixDeepCombine #-}
+mkIOMatrixDeepCombine :: Module Ifc
+mkIOMatrixDeepCombine =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit o) =
+        DeepSplit (Outer { x = Inner { a = o.x.a && o.y; b = o.x.b && o.y }
+                         ; y = r })

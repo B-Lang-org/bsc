@@ -7,7 +7,7 @@ Error: "ResourceOneRuleCSEnoSC.bs", line 15, column 17: (G0004)
   and
     q.enq(...)
   For the complete expressions use the flag `-show-range-conflict'.
-=== schedule:
+=== schedule (ResourceOneRuleCSEnoSC sysResourceOneRuleCSEnoSC):
 Nothing
 
 -----

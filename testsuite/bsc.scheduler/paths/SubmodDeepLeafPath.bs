@@ -1,0 +1,49 @@
+package SubmodDeepLeafPath where
+
+import SplitPorts
+
+struct Inner =
+  a :: Bool
+  b :: Bool
+ deriving (Bits)
+
+struct Outer =
+  x :: Inner
+  y :: Bool
+ deriving (Bits)
+
+interface SubIfc =
+  -- DEEP split: nested Inner is recursed to leaf ports.
+  --   result x.a is combinational from input arg x.a   (comb leaf)
+  --   result x.b comes from a register                 (reg leaf)
+  --   result y   is combinational from input arg y
+  get :: DeepSplit Outer -> DeepSplit Outer
+
+{-# synthesize mkSubmodDeepLeafSub #-}
+mkSubmodDeepLeafSub :: Module SubIfc
+mkSubmodDeepLeafSub =
+  module
+    r :: Reg Bool <- mkReg False
+    interface
+      get (DeepSplit o) =
+        DeepSplit (Outer { x = Inner { a = o.x.a; b = r }; y = o.y })
+
+interface TopIfc =
+  top :: DeepSplit Outer -> DeepSplit Outer
+
+-- Threads the top's deep-split leaf input ports through the submodule's
+-- deep-split leaf argument/result ports.  At leaf granularity:
+--   top_1_x_a -> top_x_a  exists (comb leaf through the submodule)
+--   top_1_y   -> top_y    exists (comb leaf through the submodule)
+--   nothing reaches top_x_b (the submodule's registered leaf)
+-- This shows path tracking recurses to leaves rather than treating the nested
+-- Inner struct as one port.
+{-# synthesize mkSubmodDeepLeafPath #-}
+mkSubmodDeepLeafPath :: Module TopIfc
+mkSubmodDeepLeafPath =
+  module
+    s <- mkSubmodDeepLeafSub
+    interface
+      top (DeepSplit o) =
+        case s.get (DeepSplit (Outer { x = Inner { a = o.x.a; b = o.x.b }; y = o.y })) of
+          DeepSplit res -> DeepSplit res

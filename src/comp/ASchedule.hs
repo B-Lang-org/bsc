@@ -1485,6 +1485,7 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
       ifcRuleNamesSet = tr "let ifcRuleNamesSet" $ S.fromList ifcRuleNames
       userRules      = tr "let userRules" $ map cvtARule userARules
       userRuleNames  = tr "let userRuleNames" $ map ruleName userRules
+      userARulesMap = tr "let userARulesMap" $ M.fromList [ (arule_id r, r) | r <- userARules ]
       -- group interface and non-interface rules
       rules          = tr "let rules"  $ interfaceRules ++ userRules
       ruleNames      = tr "let ruleNames"   $ map ruleName rules -- [ARuleId]
@@ -1538,7 +1539,7 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
       convEM errh $
       warnAndRecordArbitraryUrgency flags nm urgencyMap urgency_conflicts
           cfConflictMapFinal scConflictMapFinal
-          ifcRuleNamesSet sched_id_order userARules
+          ifcRuleNamesSet sched_id_order userARulesMap
 
   -- the second list is edges which only result from foreign function
   -- execution order.  since these could be as simple as using $display
@@ -1551,7 +1552,7 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
       convEM errh $
       warnAndRecordArbitraryEarliness flags nm final_reverse_earliness_order
           cf_or_disjoint ruleUseMap cfConflictMapFinal scConflictMapFinal
-          sched_id_order userARules
+          sched_id_order userARulesMap
 
   -- ====================
   -- We also need to add arbitrary execution order edges for CF and ME rules
@@ -1842,12 +1843,12 @@ pString_r rule =
 warnAndRecordArbitraryEarliness ::
                  Flags -> AId -> [ARuleId] ->
                  RuleDisjointTest -> RuleUsesMap ->
-                 ConflictMap -> ConflictMap -> SchedOrdMap -> [ARule] ->
+                 ConflictMap -> ConflictMap -> SchedOrdMap -> M.Map AId ARule ->
                  ErrorMonad ([(CSNode,CSNode,CSEdge)],
                              [(CSNode,CSNode,CSEdge)])
 warnAndRecordArbitraryEarliness
                  flags moduleId reverse_earliness rule_disjoint rmap
-                 cmap_cf cmap_sc sched_id_order user_arules =
+                 cmap_cf cmap_sc sched_id_order user_arules_map =
     let
         -- find conflicting methods in r1 and r2 which are problematic
         -- if ordered abitrarily.
@@ -1894,9 +1895,9 @@ warnAndRecordArbitraryEarliness
             && (r1, r2) `G.notMember` cmap_sc -- no SC conflict
             && (r2, r1) `G.notMember` cmap_sc -- either way
 
-        no_warn rid = let rs = [i | i <- user_arules, (arule_id i) == rid]
-                      in case (rs) of
-                                 [r] -> (RPnoWarn `elem` (arule_pragmas r))
+        no_warn rid = let mr = M.lookup rid user_arules_map
+                      in case mr of
+                                 Just r -> (RPnoWarn `elem` (arule_pragmas r))
                                  _   -> False
 
         -- produce the warning (only if some method has args)
@@ -1915,7 +1916,7 @@ warnAndRecordArbitraryEarliness
                else Just (getPosition moduleId, emsg)
 
         -- find the clock domain for a rule
-        domain rid = do r <- find (\r -> (arule_id r) == rid) user_arules
+        domain rid = do r <- M.lookup rid user_arules_map
                         wpClockDomain (arule_wprops r)
 
         -- in the absence of having added foreign func edges to the
@@ -1989,12 +1990,12 @@ warnAndRecordArbitraryEarliness
 warnAndRecordArbitraryUrgency ::
                  Flags -> AId -> UrgencyMap -> [(AId,[AId])] ->
                  ConflictMap -> ConflictMap ->
-                 S.Set ARuleId -> SchedOrdMap -> [ARule] -> {- CSMap -> -}
+                 S.Set ARuleId -> SchedOrdMap -> M.Map AId ARule -> {- CSMap -> -}
                  ErrorMonad [(CSNode,CSNode,CSEdge)]
 warnAndRecordArbitraryUrgency
                  flags moduleId umap urgency_conflicts
                  cmap_cf cmap_sc
-                 method_names sched_id_order user_arules {- csmap -} =
+                 method_names sched_id_order user_arules_map {- csmap -} =
     let
         -- is the "rule" a method
         -- XXX we could avoid a lookup by tagging the Id with a property
@@ -2007,9 +2008,9 @@ warnAndRecordArbitraryUrgency
         -- XXX look for a path in the csmap, not just an edge
         is_urgency_arbitrary r1 r2 = (r2,r1) `G.notMember` umap
 
-        always_warn rid = let rs = [i | i <- user_arules, (arule_id i) == rid]
-                          in case (rs) of
-                                 [r] -> (RPwarnAllConflicts `elem` (arule_pragmas r))
+        always_warn rid = let mr = M.lookup rid user_arules_map
+                          in case mr of
+                                 Just r -> (RPwarnAllConflicts `elem` (arule_pragmas r))
                                  _   -> False
 
         -- If r1 is a rule and r2 is a method, there may not be an edge.
@@ -2725,24 +2726,22 @@ extractMethodArgEdges scConflictMap0 ds ifs =
           in  S.unions $ map findRulePortUses rs
 
       -- Given an interface field, determine if a conflict edge is needed
-      findAIFaceUses (AIActionValue { aif_name = mid,
-                                      aif_value = d,
-                                      aif_body = rs,
-                                      aif_inputs = as }) =
+      findAIFaceUses iface@(AIActionValue { aif_name = mid,
+                                            aif_value = d,
+                                            aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                    valset = findAVValueUses d
                in  S.intersection argset (S.union condset valset)
-      findAIFaceUses (AIAction { aif_name = mid,
-                                 aif_body = rs,
-                                 aif_inputs = as }) =
+      findAIFaceUses iface@(AIAction { aif_name = mid,
+                                       aif_body = rs }) =
           -- If the edge already exists, don't bother
           if G.member (mid, mid) scConflictMap0
           then S.empty
-          else let argset = S.fromList (map fst as)
+          else let argset = S.fromList (map fst (aIfaceArgs iface))
                    condset = findACondUses rs
                in  S.intersection argset condset
       findAIFaceUses _ = S.empty
@@ -3107,37 +3106,27 @@ makeRuleMethodReachableMaps flags ifcRuleNames userRuleNames
               lookup_pairs = joinByFst $ mapFst getCSNId filtered_edges
           in  M.fromList lookup_pairs
 
-      -- Convert the remaining edges to a Graph from GraphWrapper,
-      -- and use that to find the reachable nodes
-      -- which will allow us to compute the reachable nodes
-      -- seq_reachables: reachable points from all nodes
-      seq_reachables :: [(CSNode, [(CSNode, [CSNode])])]
-      seq_reachables = unsafePerformIO $ do
-        seq_path_graph <- GW.makeGraph seq_nodes seq_edges_minus_meth_outgoing
-        reachables <- GW.findReachablesIO seq_path_graph seq_nodes
-        return (zip seq_nodes reachables)
-
-      -- keep just the reachable method Ids (with their paths)
-      -- and make a map for easy lookup
+      -- reachable_meth_map is a map from nodes to the methods they can reach
+      -- and the paths they reach them by. To compute it efficiently, we build
+      -- a graph from the remaining edges and transpose it. This lets us start
+      -- with the method nodes (the destinations we want) and trace backwards to
+      -- all the nodes that can reach them. To construct our map, we transpose
+      -- the result again - from (meth_node, [(can_reach_node, path {- reversed -} )]) to
+      -- (can_reach_node, [(methId, reverse path)]).
       -- (Notice that the associated list has not had "nub" applied;
       -- if there are paths to both sched and exec, the first one in the
       -- list will be found and used.  This is ok, because a path to the
       -- sched node will lead to the exec node.)
       reachable_meth_map :: M.Map CSNode [(AId, [CSNode])]
-      reachable_meth_map =
-          let -- only keep the reachable method Ids
-              prune_reachables (n, rs) =
-                  let -- convert the reachable node to Id,
-                      rs_by_id = mapFst getCSNId rs
-                      -- keep only the methods
-                      rs_filtered = filter (isMethodId . fst) rs_by_id
-                  in  (n, rs_filtered)
-              reachable_meths = map prune_reachables seq_reachables
-              -- filtering out empty lists should filter out reachables
-              -- from method nodes, as well as not storing empty lists in
-              -- the map
-              filtered_reachables = filter (not . null . snd) reachable_meths
-          in  M.fromList filtered_reachables
+      reachable_meth_map = unsafePerformIO $ do
+        seq_path_graph <- GW.makeGraph seq_nodes seq_edges_minus_meth_outgoing
+        let meth_nodes = filter (isMethodId . getCSNId) seq_nodes
+        transposed_path_graph <- GW.transposeGraph seq_path_graph
+        can_reach_meths <- GW.findReachablesIO transposed_path_graph meth_nodes
+        let reachable_pairs = [ (node, [(methId, reverse path)]) |
+                                (meth_node, rs) <- zip meth_nodes can_reach_meths,
+                                let methId = getCSNId meth_node, (node, path) <- rs ]
+        return $ M.fromListWith (++) reachable_pairs
 
   in (reachable_meth_map, meth_outgoing_edges_map)
 
@@ -4148,11 +4137,11 @@ cvtIfc (AIActionValue _ _ ifPred ifId ifRs (ADef dId t _ _) _) =
     -- rule, dId and rId will be the same)
     [(Rule rId rOrig [ifPred, rPred] [ifPred, rPred, dExpr] rActs)
         | (ARule rId rps rDesc rWireProps rPred rActs _ rOrig) <- ifRs]
-        where dExpr = ASDef t dId
-cvtIfc (AIDef _ _ _ ifPred (ADef dId t _ _) _ _)
-    | isRdyId dId = []
-    | otherwise   = [(Rule dId Nothing [ifPred] [ifPred,dExpr] [])]
-        where dExpr = ASDef t dId
+    where dExpr = ASDef t dId
+cvtIfc (AIDef mId _ _ _ _ _ _) | isRdyId mId = []
+cvtIfc (AIDef mId _ _ ifPred (ADef dId t _ _) _ _) =
+    [(Rule mId Nothing [ifPred] [ifPred, dExpr] [])]
+    where dExpr = ASDef t dId
 cvtIfc (AIClock {}) = []
 cvtIfc (AIReset {}) = []
 cvtIfc (AIInout {}) = []

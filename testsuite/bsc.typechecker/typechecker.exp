@@ -36,7 +36,7 @@ compile_fail_error CircularRegister.bsv T0004
 compare_file CircularRegister.bsv.bsc-out
 
 # Test of polymorphically bound lambdas (new CLam rule)
-compile_pass PolyLam.bs
+compile_pass PolyLam.bs -let-gen
 
 compile_fail PackedString.bs
 
@@ -45,7 +45,7 @@ compile_fail PackedString.bs
 compile_pass FinAnd.bs
 compile_pass FinAnd_ExplicitBits.bs
 # XXX why does this fail?
-compile_fail_error FinAndBSV_ExplicitBits.bsv T0035 2
+compile_fail_error FinAndBSV_ExplicitBits.bsv T0035 2 -let-gen
 
 # Fix a bug where lost substitution info resuts in "assert failed: IAp"
 compile_pass FailIAp.bs
