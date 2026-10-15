@@ -15,7 +15,7 @@ import Position
 import Id
 import PreIds
 import ISyntax
-import ISyntaxSubst(tSubst)
+import ISyntaxSubst(tSubst, tSubstBatch)
 import ISyntaxUtil
 import Changed(changedOrId)
 import IExpandUtils
@@ -180,14 +180,48 @@ tCheck flags symt cache r eqTy ec@(IAps e [t] []) =
                               ++ " k=" ++ ppReadable k ++ " kt=" ++ ppReadable kt) $
                 assert (k == kt) "IAP" (ec, (i,k,rt), kt) (k, kt) rt'
         tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
-tCheck flags symt cache r eqTy (IAps f (t:ts) []) =
-    tCheck flags symt cache r eqTy (IAps (IAps f [t] []) ts [])
+-- Several type arguments: instantiate all binders with one substitution, or
+-- one at a time when a binder repeats or could capture an argument's free
+-- variable.
+tCheck flags symt cache r eqTy ec@(IAps f ts@(_:_:_) []) =
+    instTypes r ec (tCheck flags symt cache r eqTy f) ts
 tCheck _ _ _ _ _ (ICon c ic) = iConType ic
 tCheck flags symt cache r eqTy (IAps f [] []) =
     trace_icheck ("tCheck IAps []: " ++ show f) $
     tCheck flags symt cache r eqTy f
 tCheck _ _ _ _ _ (IRefT t _ _ _) = t
 --tCheck _ _ _ _ e = internalError ("no match in tCheck: " ++ ppReadable e)
+
+-- Instantiate a polymorphic type with type arguments, checking kinds in order.
+instTypes :: Env -> IExpr a -> IType -> [IType] -> IType
+instTypes r ec ft ts
+    | Just (bks, body) <- peelForAlls (length ts) ft
+    , let is = map fst bks
+          argVs = S.unions (map fTVars ts)
+    , S.size (S.fromList is) == length is
+    , not (any (`S.member` argVs) is || bindsAny argVs body) =
+        foldr checkKind (tSubstBatch (M.fromList (zip is ts)) body)
+              (zip ts bks)
+    | otherwise = foldl instOne ft ts
+  where checkKind (t, (i, k)) x =
+            let kt = kCheckErr r t
+            in  assert (k == kt) "IAP" (ec, (i, k), kt) (k, kt) x
+        instOne rt t =
+            case rt of
+              ITForAll i k rt' -> checkKind (t, (i, k)) (tSubst i t rt')
+              tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
+
+peelForAlls :: Int -> IType -> Maybe ([(Id, IKind)], IType)
+peelForAlls 0 t = Just ([], t)
+peelForAlls n (ITForAll i k t) = do (bks, body) <- peelForAlls (n - 1) t
+                                    return ((i, k) : bks, body)
+peelForAlls _ _ = Nothing
+
+-- whether the type binds any of the given variables
+bindsAny :: S.Set Id -> IType -> Bool
+bindsAny vs (ITForAll i _ t) = i `S.member` vs || bindsAny vs t
+bindsAny vs (ITAp f a) = bindsAny vs f || bindsAny vs a
+bindsAny _ _ = False
 
 kCheck :: Env -> IType -> Maybe IKind
 kCheck r (ITForAll i k t) = do
