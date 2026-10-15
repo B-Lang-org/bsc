@@ -252,12 +252,17 @@ getSubstRange (S eo _ ) = concat (map tv (Map.elems eo))
 -- substitution efficiently
 
 fixupBack :: S_map -> Set_vars -> Set_vars
-fixupBack new_map old_back = Map.mapMaybe handle_entry old_back
-  where retained_vars = Map.keysSet new_map
+fixupBack new_map old_back
+    -- no entry would change: keep the old map
+    | all unchanged old_back = old_back
+    | otherwise = Map.mapMaybe handle_entry old_back
+  where retained v = Map.member v new_map
+        unchanged vs = not (Set.null vs) && all retained vs
         handle_entry vs
-            | Set.null vs'  = Nothing
-            | otherwise     = Just vs'
-          where vs' = Set.intersection vs retained_vars
+            | unchanged vs    = Just vs
+            | Set.null vs'    = Nothing
+            | otherwise       = Just vs'
+          where vs' = Set.filter retained vs
 
 -- It takes a function that determines what elements of the
 -- substitution to keep and fixes the subst and the back set
