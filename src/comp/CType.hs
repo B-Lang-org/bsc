@@ -7,7 +7,10 @@ module CType(
   -- TAp and TCon are bidirectional pattern synonyms over the hidden
   -- real constructors (the IType idiom); see the consing note below.
   Type(TVar, TCon, TAp, TGen, TDefMonad),
-  CType, TyVar(..), TyCon(..), TISort(..), StructSubType(..),
+  CType, TyVar(..), TyCon(..),
+  TISort(TItype, TIdata, TIstruct, TIabstract, TIatf,
+         tidata_cons, tidata_enum, atf_class_id, atf_param_idxs, atf_target_idx),
+  StructSubType(..),
   isCanonType, typeCanonId, consCTypeEnabled, cTypeConsStats,
 
   -- ** Examining Types
@@ -127,6 +130,17 @@ pattern TAp f a <- TAp_ _ f a
 
 {-# COMPLETE TVar, TCon, TAp, TGen, TDefMonad #-}
 
+-- A synonym's body is brought to normal form when the TItype is built, so
+-- rnf stops at the TItype.
+pattern TItype :: Integer -> Type -> TISort
+pattern TItype n t <- TItype_ n t
+  where TItype n t = mkTItype n t
+
+mkTItype :: Integer -> Type -> TISort
+mkTItype n t = rnf n `seq` rnf t `seq` TItype_ n t
+
+{-# COMPLETE TItype, TIdata, TIstruct, TIabstract, TIatf #-}
+
 -- | The canonical-node id of a type: -1 unless this object is the
 -- unique canonical (hence ground) intern-table node for its structure.
 typeCanonId :: Type -> Int
@@ -184,8 +198,9 @@ data TyCon = -- | A constructor for a type of value kind
     deriving (Show, Generic.Typeable)
 
 data TISort
-        = -- type synonym
-          TItype Integer Type
+        = -- type synonym: built only through the TItype pattern synonym,
+          -- which brings the body to normal form (see mkTItype)
+          TItype_ Integer Type
         | TIdata { tidata_cons :: [Id]
                  , tidata_enum :: Bool
                  }
@@ -1117,7 +1132,7 @@ instance PPrint TISort where
         pparen (p>0) $ text "TIatf" <+> pPrint d 0 (length pIdxs) <+> pPrint d 0 cls
 
 instance NFData TISort where
-    rnf (TItype i t) = rnf2 i t
+    rnf (TItype_ _ _) = ()  -- the body is in normal form (mkTItype)
     rnf (TIdata is enum) = rnf2 is enum
     rnf (TIstruct ss is) = rnf2 ss is
     rnf (TIabstract) = ()
