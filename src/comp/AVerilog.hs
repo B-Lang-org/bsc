@@ -779,7 +779,10 @@ renameInoutPorts vm =
         subst :: VId -> VId
         subst v = M.findWithDefault v v renames
 
-        vm' = Generic.everywhere (Generic.mkT subst) vm
+        -- an empty rename map makes the rebuild an identity; skipping it
+        -- preserves sharing in the (typically inout-free) module body
+        vm' | M.null renames = vm
+            | otherwise      = Generic.everywhere (Generic.mkT subst) vm
 
         -- drop the now-trivial expressions (".iioo(iioo)"), including
         -- ports that were already 1:1 with a same-named net
