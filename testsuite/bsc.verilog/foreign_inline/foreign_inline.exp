@@ -1,0 +1,34 @@
+#
+# Test the Verilog generation of defs that are inlined into a foreign
+# (system-task) always block.  When an ActionValue system task's result
+# flows through a body of defs into a later system task, those defs are
+# emitted inside the negedge block, declared "reg" and assigned there
+# rather than by continuous assignment.
+#
+# The def selection (vForeignBlock) and the reg-marking (AVerilog's vDef)
+# used per-def list-membership tests that were quadratic in the number
+# of such defs; this checks the result is correct (all inline defs are
+# present, declared once, and the module simulates), independent of that
+# performance fix.
+#
+
+# Compile to Verilog
+compile_verilog_pass ForeignInline.bsv mkForeignInline
+
+# The vector leaves, their two folds, and the intermediate defs of each
+# are all inlined into the system-task block and declared "reg" there,
+# along with the ActionValue result; plus the one "acc" state register.
+# Check the expected number of 32-bit reg declarations -- too few means
+# defs were dropped from the inline set, too many means duplication.
+find_n_strings mkForeignInline.v {reg [31 : 0]} 24
+
+# The inlined defs must not also be emitted as continuous assignments
+# (they are assigned procedurally in the always block instead)
+find_regexp_fail mkForeignInline.v {assign x__}
+
+# The generated Verilog simulates to the expected values
+if { $vtest == 1 } {
+    link_verilog_pass {mkForeignInline.v} mkForeignInline
+    sim_verilog mkForeignInline
+    compare_file mkForeignInline.out mkForeignInline.out.expected
+}
