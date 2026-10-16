@@ -14,7 +14,7 @@ import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExec
 import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory)
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
 import Data.Char(isSpace, toLower, ord)
-import Data.List(intersect, nub, partition, intersperse, sort,
+import Data.List(nub, partition, intersperse, sort,
             isPrefixOf, isSuffixOf, unzip5, intercalate, foldl')
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Data.Maybe(isJust, isNothing)
@@ -540,12 +540,19 @@ compilePackage
                                 | (WrapInfo i _ _ _ _ _) <- gs ]
                 tr = [ (qualId pid i_, qualId pid i)
                                 | (WrapInfo i _ _ i_ _ _) <- gs ]
+                -- Set-backed membership for the three scans below.  As
+                -- lists these cost O(|ds| * |gis|) and, for the SCC edge
+                -- lists, O(|ds| * |fdVars| * |ds'|) Id comparisons, each
+                -- of them two FString compares.  The filters keep the
+                -- order and duplicates of the list they scan.
+                gisSet = S.fromList gis
                 ds' = [ IDef (lookupWithDefault tr i i) t e p
-                                | IDef i t e p <- ds, i `notElem` gis ]
-                is = [ i | IDef i _ _ _ <- ds' ]
-                g  = [ (i, fdVars e `intersect` is) | IDef i _ e _ <- ds' ]
+                                | IDef i t e p <- ds, i `S.notMember` gisSet ]
+                isSet = S.fromList [ i | IDef i _ _ _ <- ds' ]
+                g  = [ (i, filter (`S.member` isSet) (fdVars e))
+                                | IDef i _ e _ <- ds' ]
                 iis = scc g
-                os = concat iis `intersect` gis
+                os = filter (`S.member` gisSet) (concat iis)
                 get i = headOrErr "bsc.orderGens: no WrapInfo"
                                   [ x | x@(WrapInfo i' _ _ _ _ _) <- gs,
                                                 unQualId i == i' ]
