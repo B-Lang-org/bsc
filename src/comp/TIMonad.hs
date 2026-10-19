@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternSynonyms #-}
 module TIMonad(
         TI,
         apSubTI,
@@ -9,10 +10,11 @@ module TIMonad(
         getSubst, clearSubst, extSubst, updSubst,
         newTVar, newTVarId, isNewTVar, newDict, newVar,
         freshInst,
-        VPred(..), getVPredPositions, expandSynVPred,
+        VPred(VPred), vpredFVs, getVPredPositions, expandSynVPred,
         EPred(..), Infer2, CheckT, TaskCheckT,
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
+        getNumProven, getNumRefuted, addNumDecided,
         errorAtId, findCons, findTyCon, findFields, findCls,
         bitCls,
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
@@ -51,6 +53,7 @@ import Control.Monad.State(State, StateT, runState, runStateT,
                            lift, gets, get, put, modify)
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Data.Maybe(fromMaybe)
 import Util(headOrErr)
 
 -------
@@ -58,9 +61,16 @@ import Util(headOrErr)
 import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
-doVarTrace, doSubstTrace, dontTrim :: Bool
+doVarTrace, doSubstTrace, doBoundCheck, dontTrim :: Bool
 doVarTrace = elem "-trace-tcvar" progArgs
 doSubstTrace = elem "-trace-type-extsubst" progArgs
+-- Invariant check (development): a bound (rigid) type variable has
+-- exactly one binder -- its quantifier -- so it must never appear in
+-- the domain of a substitution extension.  The unifier's guards and
+-- the modal/actual split in instance matching are supposed to
+-- guarantee this; this check enforces it at the single choke point
+-- where unification results enter the monad state.
+doBoundCheck = elem "-check-subst-bound" progArgs
 dontTrim = elem "-trace-skip-trim" progArgs
 
 -------
@@ -91,7 +101,12 @@ data TStateRecover = TStateRecover {
   -- stack of bound tyvars (list of lists for stuff bound at each level)
   tsBoundTyVarStack :: [[TyVar]],
   tsExplPreds :: [[EPred]],
-  tsSatStack :: TSSuperSatStack
+  tsSatStack :: TSSuperSatStack,
+  -- numeric predicates already decided by the proviso SAT solver in
+  -- this definition, so repeated queries are answered from here
+  -- rather than re-posed
+  tsNumProven :: S.Set Pred,
+  tsNumRefuted :: S.Set Pred
 }
 
 type TSSatElement = EPred
@@ -101,7 +116,7 @@ mkTSSatElement :: (Maybe [TyVar]) -> [EPred] -> VPred -> TSSatElement
 -- variable to the pred.  We still will need to solve the pred "p".
 -- It is useful when there is recursion, where the solved "p" will
 -- refer right back to this predicate.
-mkTSSatElement _ _ (VPred i (PredWithPositions p _)) = EPred (CVar i) p
+mkTSSatElement _ _ (VPred i (PredWithPositions p _ _)) = EPred (CVar i) p
 
 type TSSatStack = SizedStack TSSatElement
 type TSSuperSatStack = SizedStack TSSatStack
@@ -163,7 +178,9 @@ initRecoverState = TStateRecover {
     tsCurSubst = nullSubst,
     tsBoundTyVarStack = [],
     tsExplPreds = [],
-    tsSatStack = mkSizedStack [mkSizedStack []]
+    tsSatStack = mkSizedStack [mkSizedStack []],
+    tsNumProven = S.empty,
+    tsNumRefuted = S.empty
   }
 
 data TIResult a = TIResult {
@@ -348,9 +365,24 @@ popExplPreds :: TI ()
 popExplPreds = modify dropPreds
   where dropPreds s = s { tsExplPreds = tail (tsExplPreds s) }
 
+getNumProven :: TI (S.Set Pred)
+getNumProven = gets tsNumProven
+
+getNumRefuted :: TI (S.Set Pred)
+getNumRefuted = gets tsNumRefuted
+
+addNumDecided :: [Pred] -> [Pred] -> TI ()
+addNumDecided proven refuted = modify (\ s ->
+    s { tsNumProven = foldr S.insert (tsNumProven s) proven,
+        tsNumRefuted = foldr S.insert (tsNumRefuted s) refuted })
+
 mkEPred :: Pred -> TI EPred
+-- expandSynPred: givens must satisfy the same construction-time
+-- normalization invariant as goals (lookfor matches structurally, so
+-- an unexpanded synonym in a given would never match an expanded
+-- solver predicate).
 mkEPred p = do i <- newDict
-               return $ EPred (CVar i) p
+               return $ EPred (CVar i) (expandSynPred p)
 
 clearSubst :: TI ()
 clearSubst = modify (transSubst (const nullSubst))
@@ -362,6 +394,12 @@ extSubst loc s' = do
     when (not (chkSubstOrder s' s)) $
       internalError(loc ++ " extSubst: " ++ ppReadable (s', s))
     traceM (loc ++ " extSubst: " ++ ppReadable s')
+  when (doBoundCheck) $ do
+    bvs <- getBoundTVs
+    case filter (`elem` bvs) (getSubstDomain s') of
+      []  -> return ()
+      bad -> internalError (loc ++ " extSubst: bound type variable(s) in " ++
+                            "substitution domain: " ++ ppReadable (bad, s'))
   modify (transSubst (\s -> s' @@ s))
 
 getTyVarNum :: TI (Int)
@@ -427,12 +465,39 @@ freshInst msg x (Forall ks qt@(_ :=> t)) = do
 ------
 
 -- VPred is an unsolved predicate (at least in satisfy, satMany, sat...)
-data VPred = VPred Id PredWithPositions
-    deriving (Show)
+--
+-- The extra (lazy) field caches the predicate's free type variables as
+-- a set, so the solver's substitution application can skip untouched
+-- predicates with one set-disjointness test instead of walking the
+-- predicate (and split_rs can test "affected by substitution" the same
+-- way).  The bidirectional pattern synonym keeps every existing
+-- construction and match site source-compatible; the cache is rebuilt
+-- automatically whenever a new VPred is constructed.  Order-sensitive
+-- consumers keep using tv (traversal order); the set is only ever used
+-- for membership tests.
+data VPred = VPred_ Id PredWithPositions (S.Set TyVar)
+
+pattern VPred :: Id -> PredWithPositions -> VPred
+pattern VPred i p <- VPred_ i p _
+  where VPred i p = VPred_ i p (S.fromList (tv p))
+{-# COMPLETE VPred #-}
+
+vpredFVs :: VPred -> S.Set TyVar
+vpredFVs (VPred_ _ _ fvs) = fvs
+
+instance Show VPred where
+    showsPrec d (VPred_ i p _) = showParen (d > 10) $
+        showString "VPred " . showsPrec 11 i .
+        showString " " . showsPrec 11 p
 
 instance Types VPred where
-    apSub s (VPred i p) = VPred i (apSub s p)
-    tv (VPred _ p) = tv p
+    apSub s vp = fromMaybe vp (apSubM s vp)
+    apSubM s vp@(VPred_ i p fvs)
+      | substDomainDisjoint s fvs = Nothing
+      | otherwise = case apSubM s p of
+                      Nothing -> Nothing
+                      Just p' -> Just (VPred i p')
+    tv (VPred_ _ p _) = tv p
 
 instance PPrint VPred where
 -- note that the colon (:) that gets printed here is NOT a list cons!
@@ -447,8 +512,8 @@ instance HasPosition VPred where
 
 
 expandSynVPred :: VPred -> VPred
-expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss)) = VPred i pwp'
-  where pwp' = PredWithPositions p' poss
+expandSynVPred (VPred i (PredWithPositions (IsIn c ts) poss anc)) = VPred i pwp'
+  where pwp' = PredWithPositions p' poss anc
         p'   = IsIn c ts'
         ts'  = map expandSyn ts
 
