@@ -1,0 +1,50 @@
+package Strings where
+
+import Lib
+
+plain :: List String
+plain = Cons "a" (Cons "" (Cons "bc" Nil))
+
+empty :: List String
+empty = Nil
+
+imported :: List String
+imported = Cons "own" libNames
+
+countdown :: Integer -> List String
+countdown 0 = Nil
+countdown n = Cons (integerToString n) (countdown (n - 1))
+
+recursive :: List String
+recursive = countdown 3
+
+class Named a where
+  nameOf :: a -> String
+instance Named Bool where
+  nameOf _ = "Bool"
+instance Named (UInt n) where
+  nameOf _ = "UInt " +++ integerToString (valueOf n)
+
+throughClass :: List String
+throughClass = Cons (nameOf (_ :: Bool)) (Cons (nameOf (_ :: UInt 8)) Nil)
+
+-- message prints its text, and evaluation goes on to the list
+messaged :: List String
+messaged = message "from messaged" (Cons "after" Nil)
+
+-- _ is a don't-care, which elaboration cannot turn into a string (G0012) or
+-- into a list (G0013)
+undeterminedElement :: List String
+undeterminedElement = Cons "a" (Cons _ Nil)
+
+undeterminedSpine :: List String
+undeterminedSpine = _
+
+failing :: List String
+failing = Cons "a" (error "failing on purpose")
+
+notAList :: Integer
+notAList = 3
+
+polymorphic :: List a
+polymorphic = Nil

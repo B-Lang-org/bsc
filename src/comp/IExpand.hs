@@ -12,7 +12,7 @@
 --  * if c 0 e  --> {n-bits}c & e
 --  * flatten & (in asyntax)?
 --  * check for name conflict in the generated IEFace
-module IExpand(iExpand) where
+module IExpand(iExpand, iExpandStrings) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -54,7 +54,7 @@ import PreStrings(fsUnderscore)
 import PreIds
 import Flags
 import SymTab(SymTab)
-import Error(internalError, EMsg, ErrMsg(..), ErrorHandle,
+import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError,
              recordHandleOpen, recordHandleClose)
 import Position
 import Id
@@ -384,6 +384,24 @@ iExpand errh flags symt alldefs atf_cache is_noinlined_func pps def@(IDef mi _ _
   when doProfile $
       traceM ("iExpand profile\n" ++ ppReadable (go_profile go))
   return imod
+
+-- iExpandStrings
+--   Evaluate a toplevel definition of type List String to its strings, with
+--   the same static elaboration that iExpand applies to a module, for tools
+--   that compute text in Bluespec. Elaboration-time primitives run as they
+--   would for a module, so a message or $display prints to stdout.
+iExpandStrings :: ErrorHandle -> Flags ->
+                  SymTab -> M.Map Id HExpr ->
+                  IATFCache -> HDef -> IO [String]
+iExpandStrings errh flags symt alldefs atf_cache (IDef i t e _) = do
+  when (t /= itList itString) $
+      bsError errh [(getPosition i,
+                     EGeneric ("Cannot evaluate " ++ quote (getIdString i) ++
+                               " to strings: its type is " ++ ppString t ++
+                               ", not List String"))]
+  go <- runG errh flags symt alldefs atf_cache i False [] $
+            pushTopValueSchedNameScope i >> evalStringList e
+  return (fst (goutput go))
 
 generateMethodPreds :: forall a . Bool -> IRules a -> [IDef a]
 generateMethodPreds flag (IRules _ rs) =

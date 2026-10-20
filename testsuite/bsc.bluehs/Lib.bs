@@ -1,0 +1,4 @@
+package Lib where
+
+libNames :: List String
+libNames = Cons "lib" (Cons "names" Nil)

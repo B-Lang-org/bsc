@@ -91,6 +91,13 @@ The test suite has tests for the `showrules` tool in `bsc.showrules`.
 These tests are disabled if `showrules` is not found in the
 `TEST_RELEASE` `bin` directory.
 
+#### bluehs
+
+The test suite has tests of the bsc library, run as scripts with
+`bluehs`, in `bsc.bluehs`.  These tests are disabled if `bluehs` is not
+found in `TEST_RELEASE` at `bluehs/bin/bluehs`, where `make install-bluehs`
+installs it.
+
 #### Developer tools
 
 The test suite is currently able to use the following developer
