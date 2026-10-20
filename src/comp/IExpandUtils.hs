@@ -9,7 +9,7 @@ module IExpandUtils(
         runG, G, GOutput(..),
         errG, errsG, deferErrors, eWarning, eWarnings, getElabProgressContext,
         eNoNF, addRules,
-        pushTopModuleSchedNameScope, pushModuleSchedNameScope,
+        pushTopModuleSchedNameScope, pushTopValueSchedNameScope, pushModuleSchedNameScope,
         popModuleSchedNameScope,
         pushRuleSchedNameScope, popRuleSchedNameScope,
         setRuleSchedNameScopeProgress, RuleElabProgress(..),
@@ -1027,6 +1027,16 @@ pushTopModuleSchedNameScope t = do
   let -- the old scope should be empty, so ignore it
       newScope = [newFrame]
   put (s { schedNameScope = newScope })
+
+-- A toplevel definition that is not a module has no methods to name, but its
+-- errors are still reported in the context of its definition.  runG names
+-- the context by a module's raw Id, which ends in the wrapper's underscore,
+-- and drops that underscore; a value's Id has none, so it is set here.
+pushTopValueSchedNameScope :: Id -> G ()
+pushTopValueSchedNameScope i = do
+  s <- get
+  put (s { schedNameScope = [SchedNameFrame [] 0 M.empty Nothing],
+           mod_def_id = i })
 
 -- When entering an inlined submodule, nothing from the parent is visible,
 -- only the methods in the submodule's interface.

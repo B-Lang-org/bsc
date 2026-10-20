@@ -1,0 +1,37 @@
+plain = "a" "" "bc"
+empty =
+imported = "own" "lib" "names"
+recursive = "3" "2" "1"
+throughClass = "Bool" "UInt 8"
+Compilation message: "Strings.bs", line 33, column 19: from messaged
+messaged = "after"
+undeterminedElement failed:
+Error: "Strings.bs", line 38, column 37: (G0012)
+  Not a compile time string: _ :: Prelude.String
+  During elaboration of `undeterminedElement' at "Strings.bs", line 37, column
+  0.
+
+undeterminedSpine failed:
+Error: "Strings.bs", line 41, column 20: (G0013)
+  Compile time expression did not evaluate:
+  Type: Prelude.List Prelude.String
+  _ ::  (Prelude.List Prelude.String)
+
+  During elaboration of `undeterminedSpine' at "Strings.bs", line 40, column
+  0.
+
+failing failed:
+Error: "Strings.bs", line 44, column 26: (S0015)
+  Bluespec evaluation-time error: failing on purpose
+  During elaboration of `failing' at "Strings.bs", line 43, column 0.
+
+notAList failed:
+Error: "Strings.bs", line 46, column 0: (S0015)
+  Cannot evaluate `Strings.notAList' to strings: its type is Prelude.Integer,
+  not List String
+
+polymorphic failed:
+Error: "Strings.bs", line 49, column 0: (S0015)
+  Cannot evaluate `Strings.polymorphic' to strings: its type is \/(a :: *) .
+  Prelude.List a, not List String
+

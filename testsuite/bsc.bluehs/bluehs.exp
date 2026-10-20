@@ -1,0 +1,15 @@
+# Tests of the bsc library through bluehs scripts, which run only if bluehs
+# is installed (with "make install-bluehs")
+
+# Needed to initialize $bluehs when checking locally
+bsc_initialize
+
+if { ! [file exists "$bluehs"] } {
+    note "bluehs is NOT available"
+} else {
+
+# IExpand.iExpandStrings, on the definitions of Strings
+compile_pass Strings.bs
+bluehs_run_compare_pass IExpandStrings.hs
+
+}

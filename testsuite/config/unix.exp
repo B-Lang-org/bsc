@@ -194,6 +194,16 @@ proc which_showrules {} {
     return $showrules
 }
 
+# bluehs is optional, and its tests run only if it exists
+proc which_bluehs {} {
+    global env
+
+    if [info exists env(BLUEHS)] then {
+        return [absolute_filename $env(BLUEHS)]
+    }
+    return ""
+}
+
 proc which_os {} {
     global env
     if {! [info exists env(OSTYPE)]} {
@@ -984,6 +994,11 @@ proc make_vexe_name { file } {
 }
 proc make_syscexe_name { file } {
     set filename [format "%s.syscexe" $file ]
+    return $filename
+}
+
+proc make_bluehs_output_name { script } {
+    set filename "$script.bluehs-out"
     return $filename
 }
 
@@ -3024,6 +3039,32 @@ proc vcdcheck_fail { vcdfile options } {
     }
 }
 
+# Run a script with bluehs, and compare its output with the expected output
+proc bluehs_run_compare_pass { script {expected ""} } {
+    global bluehs
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_bluehs_output_name $script]
+    set cmd "$bluehs $script >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bluehs" $cmd 2]
+
+    cd $here
+
+    if { $status == 0 } then {
+        pass "`$script' runs with bluehs"
+    } else {
+        fail "`$script' should run with bluehs"
+    }
+    compare_file $output $expected
+}
+
 # Use the showrules utility to modify VCD files
 proc showrules { topmod vcdin vcdout {options ""}} {
     global showrules
@@ -3519,6 +3560,7 @@ proc bsc_initialize {} {
     global ghc_version
     global bsdir
     global showrules
+    global bluehs
 
     global DO_INTERNAL_CHECKS
 
@@ -3547,6 +3589,9 @@ proc bsc_initialize {} {
 
         # Find the showrules tool
         set showrules [which_showrules]
+
+        # Find bluehs, if it is installed
+        set bluehs [which_bluehs]
 
         # Add the test prelude to the BSC_OPTIONS
 	# XXX This may no longer be necessary, now that the tools
