@@ -1016,16 +1016,31 @@ getCls errh mi src_pkg iks r incoh ps ik vs fds ats ifs qts =
                 -- (cmpQInsts freshens type variables before comparing, so
                 -- specificity is correctly detected even when instances
                 -- share variable names.)
+                -- Only the pairs the overlap probe can return are stored:
+                -- a map of every pair costs N^2/2 entries for a class with
+                -- N instances, and the trie rules most of them out.  The
+                -- pairs are found with an unsorted trie, because sorting
+                -- the leaves of the real one uses this memo.  The overlap
+                -- check and the leaf sort ask only for these pairs; any
+                -- other pair is compared directly.
+                qinst_map = M.fromList [ (i, qi) | (i, qi, _) <- tagged ]
+                raw_trie = buildPredTrie id
+                               (\(_, _, Inst _ _ (_ :=> p) _) -> p) tagged
                 cmpMemo = M.fromList
                     [ ((i, j), cmpQInsts bss qi qj)
-                      | ((i, qi, _) : rest) <- tails tagged
-                      , (j, qj, _) <- rest ]
+                      | (i, qi, Inst _ _ (_ :=> p) _) <- tagged
+                      , (j, qj, _) <- lookupPredTrie (overlapProbeQuery p) raw_trie
+                      , j > i ]
                 pairCmp i j
                   | i == j = internalError "MakeSymTab.getCls: pairCmp i i"
                   | i < j = find_cmp (i, j)
                   | otherwise = fmap (fmap flipOrd) (find_cmp (j, i))
-                  where find_cmp k = fromJustOrErr "MakeSymTab.getCls: pairCmp"
-                                         (M.lookup k cmpMemo)
+                  where find_cmp k@(lo, hi) =
+                            case M.lookup k cmpMemo of
+                              Just r -> r
+                              Nothing -> cmpQInsts bss (qinst lo) (qinst hi)
+                        qinst n = fromJustOrErr "MakeSymTab.getCls: pairCmp"
+                                      (M.lookup n qinst_map)
                         flipOrd LT = GT
                         flipOrd GT = LT
                         flipOrd EQ = EQ
