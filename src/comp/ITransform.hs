@@ -142,10 +142,14 @@ iTrRules (IRules sps rs) = do
 iTrExprL :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
 iTrExprL ctx idxs e = expandHRef e >>= iTrExpr ctx idxs
 
+-- Context queries occur while transforming applications.  Other nodes
+-- return directly or recurse through iTrExpr, so refresh the context's
+-- cached expansions only at applications.
 iTrExpr :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
-iTrExpr ctx idxs e = do
+iTrExpr ctx idxs e@(IAps _ _ _) = do
         m <- gets exp_map
         iTrExpr1 (ctxWithExpMap m ctx) idxs e
+iTrExpr ctx idxs e = iTrExpr1 ctx idxs e
 
 iTrExpr1 :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
 iTrExpr1 ctx idxs (IAps pif@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) = do
@@ -1187,9 +1191,17 @@ splitConstExpr _ _ _ = Nothing
 -----------------------------------------------------------------------------
 
 addT :: IExpr a -> Ctx a -> Ctx a
-addT e ctx = --trace ("addT\n" ++ ppReadable (e, ctx, addT' (ctxExpand ctx e) ctx)) $
-                addT' (ctxExpand ctx e) ctx
-  where addT' e (Ctx vs be m) = Ctx (addEqs e vs) (bAdd e be) m
+addT original ctx = --trace ("addT\n" ++ ppReadable (original, ctx, addT' ctx)) $
+                addT' ctx
+  where addT' (Ctx vs be m) = Ctx (addEqs expanded vs) (bAddFacts factsToAdd be) m
+        expanded = ctxExpand ctx original
+        -- the cached facts of a def, or of its negation as addF builds it
+        factsToAdd =
+            case original of
+              IAps (ICon _ (ICPrim _ PrimBNot)) _ [ref]
+                | Just entry <- lookupCtxExpansion ctx ref -> ce_addFalseFacts entry
+              _ | Just entry <- lookupCtxExpansion ctx original -> ce_trueFacts entry
+              _ -> bFacts expanded
         addEqs (IAps (ICon _ (ICPrim _ PrimEQ)) _ [i, ICon _ (ICInt { iVal = IntLit { ilValue = v } })]) vs = M.insert i v vs
         -- XXX case for when the const is on the left?
         -- XXX case for (e1 == e2), when e1 or e2 exists in the set, add the other as the same val
@@ -1218,12 +1230,39 @@ expandWith :: ExpMap a -> IExpr a -> IExpr a
 expandWith m (IAps e ts es) = IAps e ts (map (expandWith m) es)
 expandWith m (ICon i (ICValue { iValDef = e@(IAps (ICon _ (ICPrim _ p)) _ _ )}))
     | isAndOrCmp p = case M.lookup i m of
-                       Just e' -> e'
+                       Just entry -> ce_expr entry
                        Nothing -> expandWith m e
 expandWith _ e = e
 
--- Expansions of the and/or/cmp defs created by CSE, by def name.
-type ExpMap a = M.Map Id (IExpr a)
+-- Expansions of the and/or/cmp defs created by CSE, by def name, with
+-- the facts the context tests derive from them (BExpr.bFacts), so a
+-- def queried many times has them computed once.  Fields are lazy.
+type ExpMap a = M.Map Id (CachedExpansion a)
+
+data CachedExpansion a = CachedExpansion {
+        ce_expr           :: IExpr a,   -- expValAndOrCmp of the def
+        ce_trueFacts      :: BFacts a,  -- bFacts ce_expr          (isT, addT)
+        -- Keep the two false-fact caches separate: addF negates the def
+        -- before expansion, so its "not" is always a wrapper, while isF
+        -- applies ieNot to the expansion, which can cancel a "not".
+        -- BExpr matches facts syntactically, so the two can differ.
+        ce_addFalseFacts  :: BFacts a,  -- bFacts (not ce_expr)    (addF)
+        ce_testFalseFacts :: BFacts a   -- bFacts (ieNot ce_expr)  (isF)
+    }
+
+mkCachedExpansion :: ExpMap a -> IExpr a -> CachedExpansion a
+mkCachedExpansion m e =
+    let x = expandWith m e
+    in  CachedExpansion { ce_expr = x,
+                          ce_trueFacts = bFacts x,
+                          ce_addFalseFacts = bFacts (IAps iNot [] [x]),
+                          ce_testFalseFacts = bFacts (ieNot x) }
+
+-- The cached expansion for a reference to an and/or/cmp CSE def.
+lookupCtxExpansion :: Ctx a -> IExpr a -> Maybe (CachedExpansion a)
+lookupCtxExpansion (Ctx _ _ m) (ICon i (ICValue { iValDef = IAps (ICon _ (ICPrim _ p)) _ _ }))
+    | isAndOrCmp p = M.lookup i m
+lookupCtxExpansion _ _ = Nothing
 
 ctxExpand :: Ctx a -> IExpr a -> IExpr a
 ctxExpand (Ctx _ _ m) e = expandWith m e
@@ -1249,11 +1288,13 @@ expValAndOr e = e
 -}
 
 isT :: Ctx a -> IExpr a -> Bool
-isT ctx@(Ctx vs be _) e = --traces ("isT\n" ++ ppReadable (e, ctxExpand ctx e, ctx, isT' (ctxExpand ctx e))) $
-                        isT' (ctxExpand ctx e)
-  where isT' e =
-            bImplies be e ||
-            case e of
+isT ctx@(Ctx vs be _) original = --traces ("isT\n" ++ ppReadable (original, expanded, ctx, isT')) $
+                        isT'
+  where expanded = ctxExpand ctx original
+        factsToTest = maybe (bFacts expanded) ce_trueFacts (lookupCtxExpansion ctx original)
+        isT' =
+            bImpliesFacts be factsToTest ||
+            case expanded of
             IAps (ICon _ (ICPrim _ PrimEQ)) _ [i, ICon _ (ICInt { iVal = IntLit { ilValue = v } })] ->
 --                traces ("isT EQ" ++ ppReadable (i, v, M.toList vs)) $
                 case M.lookup i vs of
@@ -1268,11 +1309,13 @@ isT ctx@(Ctx vs be _) e = --traces ("isT\n" ++ ppReadable (e, ctxExpand ctx e, c
 
 
 isF :: Ctx a -> IExpr a -> Bool
-isF ctx@(Ctx vs be _) e = --traces ("isF\n" ++ ppReadable (e, ctxExpand ctx e, ctx, isF' (ctxExpand ctx e))) $
-                        isF' (ctxExpand ctx e)
-  where isF' e =
-            bImplies be (ieNot e) ||
-            case e of
+isF ctx@(Ctx vs be _) original = --traces ("isF\n" ++ ppReadable (original, expanded, ctx, isF')) $
+                        isF'
+  where expanded = ctxExpand ctx original
+        factsToTest = maybe (bFacts (ieNot expanded)) ce_testFalseFacts (lookupCtxExpansion ctx original)
+        isF' =
+            bImpliesFacts be factsToTest ||
+            case expanded of
             IAps (ICon _ (ICPrim _ PrimEQ)) _ [i, ICon _ (ICInt { iVal = IntLit { ilValue = v } })] ->
                 case M.lookup i vs of
                 Just k -> v /= k
@@ -1508,7 +1551,7 @@ newExprT t e = do
             emap  = exp_map ts
             emap' = case e of
                       IAps (ICon _ (ICPrim _ p)) _ _ | isAndOrCmp p
-                        -> M.insertWith (\_ old -> old) i (expandWith emap e) emap
+                        -> M.insertWith (\_ old -> old) i (mkCachedExpansion emap e) emap
                       _ -> emap
             !n'   = n + 1
         cmap' `seq` put $ ts { idNo = n', cse_map = cmap', exp_map = emap' }
@@ -1778,7 +1821,7 @@ iTransFixupDefNames flags = do
       -- top node are lazy and find their subexpressions in the new map.
       new_expmap =
           M.fromList
-               [ (i, expandWith new_expmap e)
+               [ (i, mkCachedExpansion new_expmap e)
                  | (_, (ICon i (ICValue {}), IDef _ _ e@(IAps (ICon _ (ICPrim _ p)) _ _) _))
                        <- M.toList new_csemap
                  , isAndOrCmp p ]

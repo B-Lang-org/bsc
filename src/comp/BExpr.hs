@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
-module BExpr(BExpr, bNothing, bAdd, bImplies, bImpliesB) where
+module BExpr(BExpr, bNothing, bAdd, bImplies, bImpliesB,
+             BFacts, bFacts, bAddFacts, bImpliesFacts) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -75,16 +76,26 @@ instance PPrint (BExpr a) where
 
 bNothing = A [iTrue]
 
-bAdd e (A es) = A $ mergeOrdNoDup (get e) es
+bAdd e = bAddFacts (bFacts e)
 
-bImplies (A es) e =
---        if length es > 1 then trace (ppReadable (e, es, isOrdSubset (get e) es)) $ isOrdSubset (get e) es
-        isOrdSubset (get e) es
+bImplies b e = bImpliesFacts b (bFacts e)
+
+-- The facts that bAdd adds for an expression, which are also the facts
+-- that bImplies checks for it: the conjuncts of the normalized
+-- expression, sorted and without duplicates.  A caller that tests the
+-- same expression repeatedly can compute them once.
+newtype BFacts a = BFacts [IExpr a]
+
+bFacts :: IExpr a -> BFacts a
+bFacts = BFacts . getAnds . norm
+
+bAddFacts :: BFacts a -> BExpr a -> BExpr a
+bAddFacts (BFacts cs) (A es) = A $ mergeOrdNoDup cs es
+
+bImpliesFacts :: BExpr a -> BFacts a -> Bool
+bImpliesFacts (A es) (BFacts cs) = isOrdSubset cs es
 
 bImpliesB b (A es) = all (bImplies b) es
-
-get :: IExpr a -> [IExpr a]
-get = getAnds . norm
 
 getAnds :: IExpr a -> [IExpr a]
 getAnds (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2]) = mergeOrdNoDup (getAnds e1) (getAnds e2)
