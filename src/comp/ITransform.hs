@@ -143,7 +143,12 @@ iTrExprL :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
 iTrExprL ctx idxs e = expandHRef e >>= iTrExpr ctx idxs
 
 iTrExpr :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
-iTrExpr ctx idxs (IAps pif@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) = do
+iTrExpr ctx idxs e = do
+        m <- gets exp_map
+        iTrExpr1 (ctxWithExpMap m ctx) idxs e
+
+iTrExpr1 :: Ctx a -> [(IExpr a, Integer)] -> IExpr a -> T (IExpr a) a
+iTrExpr1 ctx idxs (IAps pif@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) = do
         doBO <- getDoBO
         cnd1 <- iTrExpr ctx [] (expValShallow cnd)
         let cnd' = optBoolExpr doBO cnd1
@@ -151,7 +156,7 @@ iTrExpr ctx idxs (IAps pif@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) = do
         els' <- iTrExpr (addF cnd' ctx) idxs els
 --        traceM ("IF " ++ ppString (IAps pif [t] [cnd', thn', els']) ++ "\n   " ++ ppReadable (cnd, cnd0, cnd1))
         iTrExpr' ctx idxs pif [t] [cnd', thn', els']
-iTrExpr ctx idxs (IAps pcase@(ICon _ (ICPrim _ PrimCase)) ts@[sz_idx, elem_ty] (idx:dflt:ces)) = do
+iTrExpr1 ctx idxs (IAps pcase@(ICon _ (ICPrim _ PrimCase)) ts@[sz_idx, elem_ty] (idx:dflt:ces)) = do
         idx' <- iTrExpr ctx [] (expValShallow idx)
         let foldFn (res_ces, res_ctx) (c,e) = do
               c' <- iTrExpr ctx [] (expValShallow c)
@@ -162,11 +167,11 @@ iTrExpr ctx idxs (IAps pcase@(ICon _ (ICPrim _ PrimCase)) ts@[sz_idx, elem_ty] (
         let ces' = flattenPairs (reverse rev_ces')
         dflt' <- iTrExpr ctx' idxs dflt
         iTrExpr' ctx idxs pcase ts (idx':dflt':ces')
-iTrExpr ctx idxs (IAps psel@(ICon _ (ICPrim _ PrimArrayDynSelect)) ts@[elem_ty, ITNum sz_idx] [arr, idx]) = do
+iTrExpr1 ctx idxs (IAps psel@(ICon _ (ICPrim _ PrimArrayDynSelect)) ts@[elem_ty, ITNum sz_idx] [arr, idx]) = do
         idx' <- iTrExpr ctx [] (expValShallow idx)
         arr' <- iTrExpr ctx ((idx,sz_idx):idxs) (expValShallow arr)
         iTrExpr' ctx idxs psel ts [arr', idx']
-iTrExpr ctx idxs@((idx,sz_idx):rest_idxs) (IAps pupd@(ICon _ (ICPrim _ PrimArrayDynUpdate)) ts@[elem_ty, ITNum sz_upd_idx] [arr, upd_idx, val]) = do
+iTrExpr1 ctx idxs@((idx,sz_idx):rest_idxs) (IAps pupd@(ICon _ (ICPrim _ PrimArrayDynUpdate)) ts@[elem_ty, ITNum sz_upd_idx] [arr, upd_idx, val]) = do
         upd_idx' <- iTrExpr ctx [] (expValShallow upd_idx)
         let mkExtend in_sz out_sz e =
                 let k = out_sz - in_sz
@@ -180,7 +185,7 @@ iTrExpr ctx idxs@((idx,sz_idx):rest_idxs) (IAps pupd@(ICon _ (ICPrim _ PrimArray
         val' <- iTrExpr (addT eq_e ctx) idxs (expValShallow val)
         arr' <- iTrExpr (addF eq_e ctx) idxs (expValShallow arr)
         iTrExpr' ctx idxs pupd ts [arr', upd_idx', val']
-iTrExpr ctx idxs@((idx,sz_idx):rest_idxs) (IAps pbld@(ICon i (ICPrim _ PrimBuildArray)) ts es) = do
+iTrExpr1 ctx idxs@((idx,sz_idx):rest_idxs) (IAps pbld@(ICon i (ICPrim _ PrimBuildArray)) ts es) = do
         let foldFn (res_es, res_ctx) (n, e) = do
               let n_lit = iMkLitAt (getPosition i) (aitBit (ITNum sz_idx)) n
               let eq_e = iePrimEQ (ITNum sz_idx) idx n_lit
@@ -188,25 +193,25 @@ iTrExpr ctx idxs@((idx,sz_idx):rest_idxs) (IAps pbld@(ICon i (ICPrim _ PrimBuild
               return (e':res_es, addF eq_e res_ctx)
         (rev_es', _) <- foldM foldFn ([], ctx) (zip [0..] es)
         iTrExpr' ctx idxs pbld ts (reverse rev_es')
-iTrExpr ctx idxs (IAps pand@(ICon _ (ICPrim _ PrimBAnd)) ts [e1, e2]) = do
+iTrExpr1 ctx idxs (IAps pand@(ICon _ (ICPrim _ PrimBAnd)) ts [e1, e2]) = do
         e1' <- iTrExpr ctx [] e1
         e2'' <- iTrExpr (addT e1'  ctx) [] (expValShallow e2)
         e1'' <- iTrExpr (addT e2'' ctx) [] (expValShallow e1')
         iTrExpr' ctx idxs pand ts [e1'', e2'']
-iTrExpr ctx idxs (IAps por@(ICon _ (ICPrim _ PrimBOr)) ts [e1, e2]) = do
+iTrExpr1 ctx idxs (IAps por@(ICon _ (ICPrim _ PrimBOr)) ts [e1, e2]) = do
         e1' <- iTrExpr ctx [] e1
         e2'' <- iTrExpr (addF e1'  ctx) [] (expValShallow e2)
         e1'' <- iTrExpr (addF e2'' ctx) [] (expValShallow e1')
         iTrExpr' ctx idxs por ts [e1'', e2'']
-iTrExpr ctx idxs (IAps f ts es) = do
+iTrExpr1 ctx idxs (IAps f ts es) = do
         es' <- mapM (iTrExpr ctx []) es
         iTrExpr' ctx idxs f ts es'
 -- XXX This makes some conditions simpler, but maybe other things get worse?
-iTrExpr ctx idxs (ICon _ (ICUndet t _ _)) | t == itAction = return icNoActions
-iTrExpr ctx idxs (ICon i (ICUndet t k (Just e))) = do
+iTrExpr1 ctx idxs (ICon _ (ICUndet t _ _)) | t == itAction = return icNoActions
+iTrExpr1 ctx idxs (ICon i (ICUndet t k (Just e))) = do
   e' <- iTrExpr ctx idxs e
   return (ICon i (ICUndet t k (Just e')))
-iTrExpr ctx idxs e = return e
+iTrExpr1 ctx idxs e = return e
 
 expandHRef :: IExpr a -> T (IExpr a) a
 expandHRef (IAps f ts es) = do
@@ -1182,9 +1187,9 @@ splitConstExpr _ _ _ = Nothing
 -----------------------------------------------------------------------------
 
 addT :: IExpr a -> Ctx a -> Ctx a
-addT e ctx = --trace ("addT\n" ++ ppReadable (e, ctx, addT' (expValAndOrCmp e) ctx)) $
-                addT' (expValAndOrCmp e) ctx
-  where addT' e (Ctx vs be) = Ctx (addEqs e vs) (bAdd e be)
+addT e ctx = --trace ("addT\n" ++ ppReadable (e, ctx, addT' (ctxExpand ctx e) ctx)) $
+                addT' (ctxExpand ctx e) ctx
+  where addT' e (Ctx vs be m) = Ctx (addEqs e vs) (bAdd e be) m
         addEqs (IAps (ICon _ (ICPrim _ PrimEQ)) _ [i, ICon _ (ICInt { iVal = IntLit { ilValue = v } })]) vs = M.insert i v vs
         -- XXX case for when the const is on the left?
         -- XXX case for (e1 == e2), when e1 or e2 exists in the set, add the other as the same val
@@ -1204,6 +1209,28 @@ expValAndOrCmp (IAps e ts es) = IAps e ts (map expValAndOrCmp es)
 expValAndOrCmp (ICon _ (ICValue { iValDef = e@(IAps (ICon _ (ICPrim _ p)) _ _ )})) | isAndOrCmp p = expValAndOrCmp e
 expValAndOrCmp e = e
 
+-- expValAndOrCmp, with the expansions of CSE defs already computed.
+-- The context tests expand their arguments on every query, and a
+-- condition built from nested and/or/cmp defs was expanded again under
+-- each enclosing def; sharing the expansion of each def makes it once.
+-- The result is the same expression expValAndOrCmp would build.
+expandWith :: ExpMap a -> IExpr a -> IExpr a
+expandWith m (IAps e ts es) = IAps e ts (map (expandWith m) es)
+expandWith m (ICon i (ICValue { iValDef = e@(IAps (ICon _ (ICPrim _ p)) _ _ )}))
+    | isAndOrCmp p = case M.lookup i m of
+                       Just e' -> e'
+                       Nothing -> expandWith m e
+expandWith _ e = e
+
+-- Expansions of the and/or/cmp defs created by CSE, by def name.
+type ExpMap a = M.Map Id (IExpr a)
+
+ctxExpand :: Ctx a -> IExpr a -> IExpr a
+ctxExpand (Ctx _ _ m) e = expandWith m e
+
+ctxWithExpMap :: ExpMap a -> Ctx a -> Ctx a
+ctxWithExpMap m (Ctx vs be _) = Ctx vs be m
+
 isAndOrCmp :: PrimOp -> Bool
 isAndOrCmp p = p `elem` [PrimBAnd, PrimBOr, PrimBNot, PrimEQ, PrimULT, PrimULE, PrimSLT, PrimSLE]
 
@@ -1222,8 +1249,8 @@ expValAndOr e = e
 -}
 
 isT :: Ctx a -> IExpr a -> Bool
-isT ctx@(Ctx vs be) e = --traces ("isT\n" ++ ppReadable (e, expValAndOrCmp e, ctx, isT' (expValAndOrCmp e))) $
-                        isT' (expValAndOrCmp e)
+isT ctx@(Ctx vs be _) e = --traces ("isT\n" ++ ppReadable (e, ctxExpand ctx e, ctx, isT' (ctxExpand ctx e))) $
+                        isT' (ctxExpand ctx e)
   where isT' e =
             bImplies be e ||
             case e of
@@ -1241,8 +1268,8 @@ isT ctx@(Ctx vs be) e = --traces ("isT\n" ++ ppReadable (e, expValAndOrCmp e, ct
 
 
 isF :: Ctx a -> IExpr a -> Bool
-isF ctx@(Ctx vs be) e = --traces ("isF\n" ++ ppReadable (e, expValAndOrCmp e, ctx, isF' (expValAndOrCmp e))) $
-                        isF' (expValAndOrCmp e)
+isF ctx@(Ctx vs be _) e = --traces ("isF\n" ++ ppReadable (e, ctxExpand ctx e, ctx, isF' (ctxExpand ctx e))) $
+                        isF' (ctxExpand ctx e)
   where isF' e =
             bImplies be (ieNot e) ||
             case e of
@@ -1280,15 +1307,16 @@ impliesnot ctx a b = isF (addT a ctx) b
 
 -----------------------------------------------------------------------------
 
--- The BExpr is a formula of what we know is true
-data Ctx a = Ctx (M.Map (IExpr a) IValue) (BExpr a)
+-- The BExpr is a formula of what we know is true.
+-- The ExpMap is not knowledge; it caches expansions for the tests.
+data Ctx a = Ctx (M.Map (IExpr a) IValue) (BExpr a) (ExpMap a)
 type IValue = Integer
 
 emptyCtx :: Ctx a
-emptyCtx = Ctx M.empty bNothing
+emptyCtx = Ctx M.empty bNothing M.empty
 
 instance PPrint (Ctx a) where
-    pPrint d p (Ctx es be) =
+    pPrint d p (Ctx es be _) =
         (text "Ctx " $+$ text "  ")
          <> (pPrint d 0 (M.toList es) $+$
              pPrint d 0 be)
@@ -1428,7 +1456,10 @@ data TState a = TState {
         --   * the def ("IDef defname deftype e")
         -- When the monad is run, because all exprs are inlined and then CSE'd
         -- back up, the defs for the package will come from this map.
-        cse_map :: M.Map (IExpr a) (IExpr a, IDef a)
+        cse_map :: M.Map (IExpr a) (IExpr a, IDef a),
+
+        -- Expansions (expValAndOrCmp) of the and/or/cmp defs in cse_map
+        exp_map :: ExpMap a
         }
 
 type T b a = State (TState a) b
@@ -1442,6 +1473,7 @@ runT errh flags no prefix xforms =
                            , idNo = no
                            , def_map = M.empty
                            , cse_map = M.empty
+                           , exp_map = M.empty
                            }
     in case runState xforms initState of
          (x, ts) ->
@@ -1473,8 +1505,13 @@ newExprT t e = do
             e' = ICon i (ICValue t e)
             d = IDef i t e []  -- props get lost here, but restored in iTransRenameIdsInDef
             cmap' = M.insert e (e', d) cmap
+            emap  = exp_map ts
+            emap' = case e of
+                      IAps (ICon _ (ICPrim _ p)) _ _ | isAndOrCmp p
+                        -> M.insertWith (\_ old -> old) i (expandWith emap e) emap
+                      _ -> emap
             !n'   = n + 1
-        cmap' `seq` put $ ts { idNo = n', cse_map = cmap' }
+        cmap' `seq` put $ ts { idNo = n', cse_map = cmap', exp_map = emap' }
         -- traceM ("newExprT " ++ ppString e ++ " -> " ++ ppString (e',d))
         return e'
 
@@ -1736,9 +1773,20 @@ iTransFixupDefNames flags = do
           let mapFn (ty, e, props) = (ty, rename_expr e, props)
           in  M.map mapFn old_defmap
 
+      -- The cached expansions name CSE defs by their old names, so
+      -- rebuild them from the renamed CSE map. The expansions below the
+      -- top node are lazy and find their subexpressions in the new map.
+      new_expmap =
+          M.fromList
+               [ (i, expandWith new_expmap e)
+                 | (_, (ICon i (ICValue {}), IDef _ _ e@(IAps (ICon _ (ICPrim _ p)) _ _) _))
+                       <- M.toList new_csemap
+                 , isAndOrCmp p ]
+
       new_state :: TState a
       new_state = transform_state { def_map = new_defmap,
-                                    cse_map = new_csemap }
+                                    cse_map = new_csemap,
+                                    exp_map = new_expmap }
   put new_state
 
 -- given a map from old to new identifiers, replace all occurrences
