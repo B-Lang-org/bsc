@@ -740,18 +740,34 @@ newInst ii@(Inst _ vs _ _) poss = do
     return (v, apSub (mkSubst (zip vs ts)) ii)
 
 lookfor :: [TyVar] -> VPred -> [EPred] -> Maybe (Bind, (Subst, [(Type, Type)]))
-lookfor bound_tyvars _ [] = Nothing
-lookfor bound_tyvars v@(VPred i pp) eps@(EPred e pr':ps) =
-    let pr = removePredPositions pp
-        meq x y = if x == y then Just nullSubst else Nothing
-    in  -- traces ("lookfor " ++ ppReadable (pr, pr', matchTop bound_tyvars meq pr pr', ps)) $
+lookfor bound_tyvars v@(VPred i pp) eps0 = go eps0
+  where
+    pr = removePredPositions pp
+    meq x y = if x == y then Just nullSubst else Nothing
+    go [] = Nothing
+    go eps@(EPred e pr':ps)
+        -- Under meq a fundep row matches only if its undetermined
+        -- positions are equal, so a given with no such row cannot
+        -- match; skip it without building the rows' type lists.
+        | not (mayEqMatch pr pr') = go ps
+        | otherwise =
+        -- traces ("lookfor " ++ ppReadable (pr, pr', matchTop bound_tyvars meq pr pr', ps)) $
         case matchTop bound_tyvars meq pr pr' of
         Just (inst_subst, fd_subst_and_eqs) | isNullSubst inst_subst ->
             Just ((i, predToType pr, e), fd_subst_and_eqs)
         Just (inst_subst, fd_subst) ->
             internalError ("lookfor bad: " ++
                            ppReadable (bound_tyvars, v, eps, inst_subst, fd_subst))
-        Nothing -> lookfor bound_tyvars v ps
+        Nothing -> go ps
+
+-- Can matchTop with an equality matcher return a match?  Only through a
+-- fundep row whose undetermined positions (False in the row) are equal.
+mayEqMatch :: Pred -> Pred -> Bool
+mayEqMatch (IsIn c1 ts1) (IsIn c2 ts2) =
+    c1 == c2 && any (\ bs -> eqUndetermined bs ts1 ts2) (funDeps c1)
+  where eqUndetermined (b:row) (t1:rest1) (t2:rest2) =
+            (b || t1 == t2) && eqUndetermined row rest1 rest2
+        eqUndetermined _ _ _ = True
 
 commute :: [Type] -> [Type]
 commute ts@[t1,t2] = [t2, t1]
