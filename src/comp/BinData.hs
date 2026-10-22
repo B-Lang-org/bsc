@@ -535,8 +535,16 @@ instance Bin Double where
 
 instance Bin Int where
   writeBytes i = toBin (toInteger i)
-  readBytes = do i <- fromBin
-                 return (fromInteger i)
+  -- The Integer encoding, read in Int arithmetic.  Int arithmetic wraps
+  -- modulo the word size, as fromInteger of the exact value would.
+  readBytes = loop 0
+    where loop :: Int -> In Int
+          loop !n = do b <- getB
+                       if b == endNeg
+                        then return (negate n)
+                        else if b == endPos
+                              then return n
+                              else loop (n * 254 + fromIntegral b)
 
 instance Bin Integer where
   writeBytes i = if i < 0
@@ -544,13 +552,26 @@ instance Bin Integer where
                  else putBs (emit   i  [endPos])
     where emit 0 bs = bs
           emit n bs = emit (n `div` baseI) (fromInteger (n `mod` baseI) : bs)
-  readBytes = loop 0
-    where loop n = do b <- getB
+  -- Accumulate in Int while the value cannot overflow, so that the
+  -- small values that make up most of a file allocate no Integer per byte.
+  readBytes = small 0
+    where small :: Int -> In Integer
+          small !n = do b <- getB
+                        if b == endNeg
+                         then return (negate (toInteger n))
+                         else if b == endPos
+                               then return (toInteger n)
+                               else if n <= smallLimit
+                                     then small (n * 254 + fromIntegral b)
+                                     else loop (toInteger n * baseI + toInteger b)
+          loop n = do b <- getB
                       if b == endNeg
                        then return (-n)
                        else if b == endPos
                              then return n
                              else loop (n * baseI + toInteger b)
+          -- the largest n for which n * 254 + 253 still fits in an Int
+          smallLimit = (maxBound - 253) `div` 254 :: Int
 
 endNeg, endPos :: Word8
 endNeg = 255
