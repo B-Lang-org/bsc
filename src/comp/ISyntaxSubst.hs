@@ -349,53 +349,57 @@ eSubstWith ectx tctx allIds e
     -- sub needs to be polymorphic because the context type can change at
     -- ctxAdd (to batch) or ctxRemove (to single or empty) for both contexts
     sub :: (ExprSubstCtx ectx' a, TypeSubstCtx tctx') => ectx' -> tctx' -> S.Set Id -> IExpr a -> Changed (IExpr a)
-    sub ectx tctx allIds ee@(ILam i t e) =
-      case lookupVar i ectx of
-        Just _ ->
-          -- Variable shadowed: remove from context and continue
-          -- We reprocess ee because it is possible i is in the free vars
-          -- of the context, so we will need alpha-conversion.
-          -- We call eSubstWith so that we check if the context is now empty.
-          case ctxRemove i ectx of
-            SomeCtx ectx' -> eSubstWith ectx' tctx allIds ee
-        Nothing ->
-          if ctxContainsVar i ectx
-          then -- Alpha-conversion needed: add renaming and continue
-            let !i'     = cloneId (S.toList allIds) i
-                ectx'   = ctxAdd i (IVar i') ectx
-                allIds' = S.insert i' allIds
-                !t'     = changedOr t (tSubWithNorm tctx allIds' t)
-                !e'     = changedOr e (sub ectx' tctx allIds' e)
-            in Changed $ ILam i' t' e'
-          else -- No conflict: continue with same contexts
-            changed2 (ILam i) t e (tSubWithNorm tctx allIds t) (sub ectx tctx allIds e)
-    sub ectx tctx allIds ee@(ILAM i k e) =
-      case lookupVar i tctx of
-        Just _ ->
-          -- Variable shadowed: remove from context and continue
-          -- We reprocess ee because it is possible i is in the free vars
-          -- of the context, so we will need alpha-conversion.
-          -- We call eSubstWith so that we check if both contexts are now empty.
-          case ctxRemove i tctx of
-            SomeCtx tctx' -> eSubstWith ectx tctx' allIds ee
-        Nothing ->
-          if ctxContainsVar i tctx
-          then -- Alpha-conversion needed: add renaming and continue
-            let !i'     = cloneId (S.toList allIds) i
-                tctx'   = ctxAdd i (ITVar i') tctx
-                allIds' = S.insert i' allIds
-                !e'     = changedOr e (sub ectx tctx' allIds' e)
-            in Changed $ ILAM i' k e'
-          else -- No conflict: continue with same contexts
-            changed1 (ILAM i k) (sub ectx tctx allIds e)
-    sub ectx _    _      ee@(IVar i) = maybe Unchanged Changed (lookupVar i ectx)
-    sub ectx tctx allIds ee@(IAps f ts es) =
-        changed3 IAps f ts es (sub ectx tctx allIds f) (mapChanged (tSubWithNorm tctx allIds) ts) (mapChanged (sub ectx tctx allIds) es)
-    -- Use helper for IConInfo (handles both type and expression substitution)
-    sub ectx tctx allIds ee@(ICon i ii) =
-        changed1 (ICon i) (etSubstIConInfo (tSubWithNorm tctx allIds)
-                                           (sub ectx tctx allIds) ii)
-    sub _    _    _      ee@(IRefT _ _ _ _) = Unchanged  -- no free tyvar inside IRef
+    -- The contexts and the id set only change at a binder, so the walk
+    -- below a binder runs in one monomorphic loop; a binder that
+    -- changes a context re-enters through sub or eSubstWith.
+    sub ectx tctx allIds = go
+      where
+        tsub = tSubWithNorm tctx allIds
+        go ee@(ILam i t e) =
+          case lookupVar i ectx of
+            Just _ ->
+              -- Variable shadowed: remove from context and continue
+              -- We reprocess ee because it is possible i is in the free vars
+              -- of the context, so we will need alpha-conversion.
+              -- We call eSubstWith so that we check if the context is now empty.
+              case ctxRemove i ectx of
+                SomeCtx ectx' -> eSubstWith ectx' tctx allIds ee
+            Nothing ->
+              if ctxContainsVar i ectx
+              then -- Alpha-conversion needed: add renaming and continue
+                let !i'     = cloneId (S.toList allIds) i
+                    ectx'   = ctxAdd i (IVar i') ectx
+                    allIds' = S.insert i' allIds
+                    !t'     = changedOr t (tSubWithNorm tctx allIds' t)
+                    !e'     = changedOr e (sub ectx' tctx allIds' e)
+                in Changed $ ILam i' t' e'
+              else -- No conflict: continue with same contexts
+                changed2 (ILam i) t e (tsub t) (go e)
+        go ee@(ILAM i k e) =
+          case lookupVar i tctx of
+            Just _ ->
+              -- Variable shadowed: remove from context and continue
+              -- We reprocess ee because it is possible i is in the free vars
+              -- of the context, so we will need alpha-conversion.
+              -- We call eSubstWith so that we check if both contexts are now empty.
+              case ctxRemove i tctx of
+                SomeCtx tctx' -> eSubstWith ectx tctx' allIds ee
+            Nothing ->
+              if ctxContainsVar i tctx
+              then -- Alpha-conversion needed: add renaming and continue
+                let !i'     = cloneId (S.toList allIds) i
+                    tctx'   = ctxAdd i (ITVar i') tctx
+                    allIds' = S.insert i' allIds
+                    !e'     = changedOr e (sub ectx tctx' allIds' e)
+                in Changed $ ILAM i' k e'
+              else -- No conflict: continue with same contexts
+                changed1 (ILAM i k) (go e)
+        go (IVar i) = maybe Unchanged Changed (lookupVar i ectx)
+        go (IAps f ts es) =
+            changed3 IAps f ts es (go f) (mapChanged tsub ts) (mapChanged go es)
+        -- Use helper for IConInfo (handles both type and expression substitution)
+        go (ICon i ii) = changed1 (ICon i) (etSubstIConInfo tsub go ii)
+        go (IRefT _ _ _ _) = Unchanged  -- no free tyvar inside IRef
 
 -- Public API: single expression substitution
 {-# INLINE eSubst #-}
