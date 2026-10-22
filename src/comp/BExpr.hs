@@ -1,11 +1,12 @@
 {-# LANGUAGE CPP #-}
-module BExpr(BExpr, bNothing, bAdd, bImplies, bImpliesB) where
+module BExpr(BExpr, bNothing, bAdd, bImplies, bImpliesB,
+             BFacts, bFacts, bAddFacts, bImpliesFacts) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
 #endif
 
-import Util(isOrdSubset, mergeOrdNoDup)
+import qualified Data.Set as S
 import PPrint
 import ISyntax
 import ISyntaxUtil
@@ -68,27 +69,40 @@ bImpliesB _ _ = False
 ---------
 -}
 
-newtype BExpr a = A [IExpr a]
+-- The known facts, as a set of conjuncts.  Adding a fact under a
+-- branch shares the rest of the set rather than copying it.
+newtype BExpr a = A (S.Set (IExpr a))
 
 instance PPrint (BExpr a) where
-    pPrint d p (A es) = text "(B" <+> pPrint d 0 es <> text ")"
+    pPrint d p (A es) = text "(B" <+> pPrint d 0 (S.toAscList es) <> text ")"
 
-bNothing = A [iTrue]
+bNothing = A (S.singleton iTrue)
 
-bAdd e (A es) = A $ mergeOrdNoDup (get e) es
+bAdd e = bAddFacts (bFacts e)
 
-bImplies (A es) e =
---        if length es > 1 then trace (ppReadable (e, es, isOrdSubset (get e) es)) $ isOrdSubset (get e) es
-        isOrdSubset (get e) es
+bImplies b e = bImpliesFacts b (bFacts e)
 
-bImpliesB b (A es) = all (bImplies b) es
+-- The facts that bAdd adds for an expression, which are also the facts
+-- that bImplies checks for it: the set of conjuncts of the normalized
+-- expression.  A caller that tests the same expression repeatedly can
+-- compute them once.
+newtype BFacts a = BFacts (S.Set (IExpr a))
 
-get :: IExpr a -> [IExpr a]
-get = getAnds . norm
+bFacts :: IExpr a -> BFacts a
+bFacts = BFacts . getAnds . norm
 
-getAnds :: IExpr a -> [IExpr a]
-getAnds (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2]) = mergeOrdNoDup (getAnds e1) (getAnds e2)
-getAnds e = [e]
+bAddFacts :: BFacts a -> BExpr a -> BExpr a
+bAddFacts (BFacts cs) (A es) = A $ S.union cs es
+
+bImpliesFacts :: BExpr a -> BFacts a -> Bool
+bImpliesFacts (A es) (BFacts cs) = cs `S.isSubsetOf` es
+
+bImpliesB b (A es) = all (bImplies b) (S.toAscList es)
+
+getAnds :: IExpr a -> S.Set (IExpr a)
+getAnds e = go e S.empty
+  where go (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2]) acc = go e1 (go e2 acc)
+        go e acc = S.insert e acc
 
 norm :: IExpr a -> IExpr a
 norm (IAps (ICon _ (ICPrim _ PrimBNot)) _ [e]) = invert e
