@@ -2,6 +2,7 @@
 module Position where
 
 import Data.List(partition)
+import Data.Maybe(fromMaybe)
 import qualified Data.Generics as Generic
 
 import Eval(NFData(..))
@@ -73,20 +74,17 @@ instance HasPosition Position where
 -- #############################################################################
 
 
+-- The first useful position, else the first one that is not noPosition,
+-- else noPosition.  This stops at the first useful position: the list is
+-- often built lazily from a walk over an expression (getIExprPosition),
+-- and looking further would walk the rest of the expression.
 firstPos :: [Position] -> Position
-firstPos ps = case filter (/= noPosition) ps of
-              []  -> noPosition
-              [p] -> p
-              psf -> firstPos2 psf
-
-firstPos2 :: [Position] -> Position
-firstPos2 [] = noPosition
-firstPos2 ps = case filter isUsefulPosition ps of
-              []  -> -- trace("none " ++ (show (length ps)) ++ "\n") $
-                     head ps
-              [p] -> p
-              filtered -> -- trace("first " ++ (show (length filtered)) ++ "\n") $
-                          head filtered
+firstPos ps = go ps Nothing
+  where go [] fallback = fromMaybe noPosition fallback
+        go (p:rest) fallback
+            | p == noPosition    = go rest fallback
+            | isUsefulPosition p = p
+            | otherwise          = go rest (Just (fromMaybe p fallback))
 
 -- #############################################################################
 -- #
