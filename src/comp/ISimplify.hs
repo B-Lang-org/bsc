@@ -1,6 +1,7 @@
 module ISimplify(iSimplify) where
 
 import Data.List((\\))
+import Data.Graph(stronglyConnComp, SCC(..))
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Util(fromJustOrErr)
@@ -31,49 +32,73 @@ iSimplify (IPackage pi lps ps ds atfCache) =
     IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds))) atfCache        -- XXX
 
 iSimpDefs :: NFData a => [IDef a] -> [IDef a]
-iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds
+iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp (cyclicDefs ds) True) ds
 
-iSimp :: (NFData a) => Bool -> IExpr a -> IExpr a
-iSimp n (ILam i t e) = ILam i t (iSimp n e)
-iSimp n (IAps e ts as) = iSimpAp' n (iSimp n (expDef e)) ts (map (iSimp n) as)
-iSimp _ e@(IVar _) = e
-iSimp n (ILAM i k e) = ILAM i k (iSimp n e)
-iSimp _ e@(ICon _ _) = e
-iSimp _ e = internalError ("iSimp: " ++ ppReadable e)
+-- The defs that can reach themselves through the ICDef bodies that dVars
+-- follows.  selectTuple only needs dVars to tell whether a dictionary def
+-- occurs in one of its own fields, which is impossible for a def on no
+-- cycle; so it skips the walk for those and keeps it for the rest.
+cyclicDefs :: [IDef a] -> S.Set Id
+cyclicDefs ds = S.fromList [ i | CyclicSCC is <- stronglyConnComp nodes, i <- is ]
+  where nodes = [ (i, i, rs) | (i, rs) <- M.toList (go M.empty roots) ]
+        roots = concat [ defRefs e [] | IDef _ _ e _ <- ds ]
+        go m [] = m
+        go m ((i, b) : todo)
+            | i `M.member` m = go m todo
+            | otherwise = let rs = defRefs b []
+                          in  go (M.insert i (map fst rs) m) (rs ++ todo)
+
+-- The ICDef references in an expression, with their bodies, without
+-- entering the bodies (the same nodes that dVars' visits).
+defRefs :: IExpr a -> [(Id, IExpr a)] -> [(Id, IExpr a)]
+defRefs (ILam _ _ e) acc = defRefs e acc
+defRefs (ILAM _ _ e) acc = defRefs e acc
+defRefs (IAps f _ es) acc = defRefs f (foldr defRefs acc es)
+defRefs (ICon i (ICDef { iConDef = e })) acc = (i, e) : acc
+defRefs _ acc = acc
+
+iSimp :: (NFData a) => S.Set Id -> Bool -> IExpr a -> IExpr a
+iSimp cyclic n (ILam i t e) = ILam i t (iSimp cyclic n e)
+iSimp cyclic n (IAps e ts as) = iSimpAp' cyclic n (iSimp cyclic n (expDef e)) ts (map (iSimp cyclic n) as)
+iSimp _ _ e@(IVar _) = e
+iSimp cyclic n (ILAM i k e) = ILAM i k (iSimp cyclic n e)
+iSimp _ _ e@(ICon _ _) = e
+iSimp _ _ e = internalError ("iSimp: " ++ ppReadable e)
 
 expDef :: IExpr a -> IExpr a
 expDef (ICon _ (ICDef _ e)) | isHarmless e = e
 expDef e = e
 
-iSimpAp' :: NFData a => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
-iSimpAp' b f ts es = mapIExprPosition True (f, iSimpAp b f ts es)
+iSimpAp' :: NFData a => S.Set Id -> Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
+iSimpAp' cyclic b f ts es = mapIExprPosition True (f, iSimpAp cyclic b f ts es)
 
-iSimpAp :: (NFData a) => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
-iSimpAp n (ILAM i _ e) (t:ts) as = iSimpAp n (etSubst i t e) ts as
-iSimpAp n (ILam i _ e) [] (a:as)
+iSimpAp :: (NFData a) => S.Set Id -> Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
+iSimpAp cyclic n (ILAM i _ e) (t:ts) as = iSimpAp cyclic n (etSubst i t e) ts as
+iSimpAp cyclic n (ILam i _ e) [] (a:as)
     | not (isKeepId i) && (isTriv a || countOcc i e <= 1) =
         let e' = eSubst i a e
-        in iSimpAp n e' [] as
-iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
+        in iSimpAp cyclic n e' [] as
+iSimpAp cyclic _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
   where m = doPrim prim ts es
         r = fromJustOrErr "iSimpAp ICPrim Nothing" m
-iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
+iSimpAp cyclic n f@(ICon _ (ICSel { selNo = k })) ts
         es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
-  where m = selectTuple (fromInteger k) def
+  where m = selectTuple cyclic (fromInteger k) def
         e = fromJustOrErr "iSimpAp ICSel Nothing" m
-        e' = iSimpAp n e [] as
-iSimpAp n e [] [] = e -- iSimp has already been called
-iSimpAp n f ts es = IAps f ts es
+        e' = iSimpAp cyclic n e [] as
+iSimpAp cyclic n e [] [] = e -- iSimp has already been called
+iSimpAp cyclic n f ts es = IAps f ts es
 
-selectTuple :: (NFData a) => Int -> IExpr a -> Maybe (IExpr a)
-selectTuple k (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars e = Just e
+selectTuple :: (NFData a) => S.Set Id -> Int -> IExpr a -> Maybe (IExpr a)
+selectTuple cyclic k (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) }))
+    | di `S.notMember` cyclic || di `notElem` dVars e = Just e
   where e = ms !! k
-selectTuple k (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
+selectTuple cyclic k (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
         -- trace ("getTuple " ++ ppReadable (iii,body)) $
-        case iSimpAp False body ts [] of
+        case iSimpAp cyclic False body ts [] of
         IAps (ICon _ (ICTuple { })) _ ms -> Just $ ms !! k
         _ -> Nothing
-selectTuple _ _ = Nothing
+selectTuple _ _ _ = Nothing
 
 -- XXX should we do more PrimOps here?
 doPrim :: PrimOp -> [IType] -> [IExpr a] -> Maybe (IExpr a)
