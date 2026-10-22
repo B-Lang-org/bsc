@@ -65,8 +65,8 @@ module IExpandUtils(
 ) where
 
 import Control.Monad(when, liftM)
-import Control.Monad.State(StateT, runStateT, evalStateT, lift, liftIO,
-                           gets, get, put, modify)
+import Control.Monad.State.Strict(StateT, runStateT, evalStateT, lift, liftIO,
+                                  gets, get, put, modify)
 import Data.IORef
 import System.IO.Unsafe
 import Data.List
