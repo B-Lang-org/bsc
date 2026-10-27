@@ -54,10 +54,10 @@ symlinks in `/usr/bin/` that point to the executables in
 To build a complete release of BSC, you will need:
  - The standard Haskell compiler [GHC]. The recommended version is
    9.6.7, which is the primary version built and tested by this
-   project's continuous integration (CI); newer versions are also
-   tested (see the [CI workflow] for the exact set).  Older versions
-   are untested and may not work.  We recommend installing GHC via
-   the popular installer [GHCup].
+   project's continuous integration (CI); other versions, 9.4.7
+   through 9.14, are also tested (see the [CI workflow] for the exact
+   set).  Older versions are untested and may not work.  We recommend
+   installing GHC via the popular installer [GHCup].
  - A few additional Haskell libraries: `regex-compat`, `syb`,
    `old-time`, `split`, and `strict-concurrency`.
  - The GNU Multiple Precision Arithmetic Library (GMP). `libgmp` is
@@ -119,10 +119,10 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command.  Note well that the version of `ghc`
-tested for building the Bluespec toolchain is the version specified in
-the `ghcup install ghc` command above.  If your system packages an
-older `ghc` (check with `ghc --version`), it might not work.
+substitute the following command.  GHC releases from 9.4.7, the version
+Ubuntu 24.04 packages, through 9.14 are tested (see the GHC section
+below); an older `ghc`, such as Ubuntu 22.04's 8.8.4 (check with
+`ghc --version`), is untested and might not work.
 
 ```bash
 sudo apt-get install \
@@ -181,10 +181,9 @@ cabal v1-install regex-compat syb old-time split strict-concurrency
 Those final four commands install the recommended GHC compiler version
 and libraries. If you would prefer to install GHC via the system's
 package manager, which may install an older version, you can
-substitute the following command.  Note well that the version of `ghc`
-tested for building the Bluespec toolchain is the version specified in
-the `ghcup install ghc` command above.  If your system packages an
-older `ghc` (check with `ghc --version`), it might not work.
+substitute the following command.  GHC releases from 9.4.7 through 9.14
+are tested (see the GHC section below); a `ghc` older than 9.4.7 (check
+with `ghc --version`) is untested and might not work.
 
 ```bash
 sudo dnf install \
@@ -269,16 +268,16 @@ popular installer [GHCup], which is available for Linux, FreeBSD,
 macOS, and WSL2 on Windows.  This allows easily installing the
 recommended version of GHC. The package manager for your OS may
 provide a package for GHC, however it may be for an older version of
-GHC.  This is fine, as the BSC source code has been written with
-extensive preprocessor macros to support every minor release of GHC
-since 7.10, through 9.12. Any releases in that range should be fine;
-however, newer versions may be more efficient.
-GHC releases older than 7.10.3 are not supported.
+GHC.  This is fine, as the BSC source code is tested with GHC releases
+from 9.4.7, the version Ubuntu 24.04 packages, through 9.14, one
+release per series; any release in that range should be fine, and newer
+versions may be more efficient.  Older releases are untested and may
+not work, and GHC releases older than 7.10 are not supported.
 
 BSC releases are tested and built with the recommended stable version
 of GHC, currently 9.6.7.  The source is also tested with a range of
-newer GHC versions (currently 9.8, 9.10, and 9.12) any of which are
-also fine.
+other GHC versions (currently 9.4.7, and 9.8 through 9.14) any of which
+are also fine.
 
 ### Haskell libraries via Cabal
 
