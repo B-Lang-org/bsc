@@ -117,7 +117,6 @@ jobs:
           export NOGIT=0
           export NOUPDATEBUILDVERSION=0
           ./update-build-version.sh
-          ./update-build-system.sh
           echo ':load app/bsc.hs' | ghci 2>&1 | tee ghci.log
           if grep '\(Failed\|error:\)' ghci.log
           then

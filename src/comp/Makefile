@@ -305,7 +305,7 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	$(YICES_HS)/*.hs \
 	$(HTCL_HS)/*.hs
 
-SOURCES = BuildVersion.hs BuildSystem.hs Warmup.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
+SOURCES = BuildVersion.hs Warmup.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
 TCLEXES = bluetcl
@@ -322,9 +322,6 @@ BuildVersion.hs:
 
 Warmup.hs:
 	./update-warmup.sh $(firstword $(GHC)) $(PACKAGES)
-
-BuildSystem.hs:
-	./update-build-system.sh
 
 # Common among all targets
 BUILDSTART = @echo $@ start `date`
@@ -371,9 +368,8 @@ endif
 .PHONY: bsc
 bsc: $(SOURCES)
 	$(PREBUILDCOMMAND)
-        # to force updating of BuildVersion/BuildSystem when necessary
+        # to force updating of BuildVersion when necessary
 	./update-build-version.sh
-	./update-build-system.sh
 	$(BUILDCOMMAND) -main-is Main_$@ \
 		$(BUILDFLAGS) $(RTSFLAGS) $(BSC_BUILDLIBS)
 	$(POSTBUILDCOMMAND)
@@ -502,7 +498,7 @@ clean:
 
 .PHONY: full_clean
 full_clean: clean
-	$(RM) -f BuildSystem.hs BuildVersion.hs Warmup.hs
+	$(RM) -f BuildVersion.hs Warmup.hs
 	$(RM) tags TAGS
 
 # -----

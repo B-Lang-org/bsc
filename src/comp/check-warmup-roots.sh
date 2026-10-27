@@ -3,14 +3,14 @@
 # module whose imports name no other module of the build; nothing makes it
 # compile after Warmup, so the barrier Warmup.hs provides for a deterministic
 # parallel build (see its header) reaches it only through its own import.
-# The generated modules (Warmup, BuildVersion, BuildSystem) do not count as
+# The generated modules (Warmup, BuildVersion) do not count as
 # imports of the build, so a clean tree and a built one give the same
 # answer. Exits 1 naming the roots that lack the import.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 dirs="src/comp src/Parsec src/vendor/htcl src/vendor/stp/HaskellIfc src/vendor/yices/v2.6/HaskellIfc"
 find $dirs \( -name '*.hs' -o -name '*.lhs' \) -exec awk '
-BEGIN { generated["Warmup"]; generated["BuildVersion"]; generated["BuildSystem"] }
+BEGIN { generated["Warmup"]; generated["BuildVersion"] }
 FNR == 1 { file = FILENAME; sub(/\.l?hs$/, "", file); n = split(file, p, "/"); name[FILENAME] = p[n] }
 # the declared module name (hierarchical ones live under src/comp/Parser)
 /^>?[ \t]*module[ \t]+[A-Z][A-Za-z0-9_.\047]*/ && !(FILENAME in declared) {
