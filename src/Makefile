@@ -4,6 +4,7 @@ TOP := $(PWD)/..
 include $(TOP)/platform.mk
 
 PREFIX?=$(TOP)/inst
+override PREFIX := $(abspath $(PREFIX))
 
 ifndef NO_DEPS_CHECKS
 CC_TOOLS=$(CC) $(CXX) $(LD)
@@ -52,6 +53,13 @@ endif # NO_DEPS_CHECKS
 
 .PHONY: all
 all: install
+
+# The solvers alone, for a cabal build run by hand; install runs the same
+# two first.
+.PHONY: install-solvers
+install-solvers:
+	$(MAKE)  -C vendor/stp   PREFIX=$(PREFIX)  install
+	$(MAKE)  -C vendor/yices PREFIX=$(PREFIX)  install
 
 .PHONY: install clean full_clean
 install clean full_clean:
