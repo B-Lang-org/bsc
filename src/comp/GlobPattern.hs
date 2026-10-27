@@ -1,6 +1,7 @@
 module GlobPattern (parseGlobPattern, matchGlobPattern, getGlobErr,
                     GlobPattern) where
 
+import Warmup ()
 import Control.Monad(msum)
 import Data.List(isPrefixOf, tails)
 
