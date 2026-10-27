@@ -133,9 +133,17 @@ $(LIB_KERNEL): version $(KERNEL_OBJS)
 	$(RM) $(LIB_KERNEL)
 	$(AR) cr $(LIB_KERNEL) $(KERNEL_OBJS)
 
+# The version name the compiler's BuildVersion module carries, from the same
+# script (NOGIT honored), so the header and the compiler agree.
 .PHONY: version
 version:
-	./gen_version_h $(COMPDIR)/BuildVersion.hs > version.h
+	name=$$($(COMPDIR)/update-build-version.sh --name) && \
+	  echo "static const char* version_name = \"$$name\";" > version.h
+
+# kernel.cxx includes the header, so it is written before kernel.o compiles;
+# as a sibling prerequisite of the library alone, a parallel make may run the
+# compile first.
+kernel.o: | version
 
 # Static check of the header files before releasing them.
 # Don't include headers which require systemC.
