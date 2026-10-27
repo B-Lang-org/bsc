@@ -3,8 +3,20 @@ set -euo pipefail
 
 export TMOUT=1
 
+# Inputs, from the environment: src/comp/Makefile exports both.
+NOGIT=${NOGIT:-0}
+NOUPDATEBUILDVERSION=${NOUPDATEBUILDVERSION:-0}
+
 # -------------------------
 # GIT
+
+# Always inspect this source tree, even from an external build directory or
+# a caller (such as a Git hook) with another repository in its environment.
+root=$(cd "$(dirname "$0")/../.." && pwd)
+repoGit () (
+    unset $(git rev-parse --local-env-vars)
+    git --git-dir="$root/.git" --work-tree="$root" "$@"
+)
 
 # Arguments: 1=commit hash, 2=describe string
 genGITBuildVersion () {
@@ -37,12 +49,10 @@ genGITBuildVersion () {
     fi;
 }
 
-# -------------------------
-
-if ( test -f BuildVersion.hs ) && [ "$NOUPDATEBUILDVERSION" = 1 ] ; then
-    echo "BuildVersion.hs not modified"
-else
-
+# Sets GITCOMMIT and GITDESCR: null values with NOGIT=1, the values git
+# substituted on export for an archive (.gitattributes, export-subst), and
+# the repository's otherwise.
+getGITVersion () {
     if [ "$NOGIT" = 1 ] ; then
 	GITCOMMIT="0000000"
 	GITDESCR="no-git"
@@ -56,18 +66,30 @@ else
 	    else
 		GITDESCR="archive-g${GITCOMMIT}"
 	    fi
+	elif [ ! -e "$root/.git" ]; then
+
+	    # A tree without a repository, such as an unpacked sdist
+	    GITCOMMIT="0000000"
+	    GITDESCR="no-git"
 	else
 
 	    # Get the current commit hash
-	    GITCOMMIT=`git show -s --format=%h HEAD`
-	    if ! GITDESCR=`git describe --tags`; then
+	    GITCOMMIT=`repoGit show -s --format=%h HEAD`
+	    if ! GITDESCR=`repoGit describe --tags`; then
 		GITDESCR="untagged-g${GITCOMMIT}"
 	    fi
 
 	fi
     fi
-    genGITBuildVersion ${GITCOMMIT} ${GITDESCR}
+}
 
+# -------------------------
+
+if ( test -f BuildVersion.hs ) && [ "$NOUPDATEBUILDVERSION" = 1 ] ; then
+    echo "BuildVersion.hs not modified"
+else
+    getGITVersion
+    genGITBuildVersion ${GITCOMMIT} ${GITDESCR}
 fi
 
 # -------------------------
