@@ -86,8 +86,9 @@ GHCPATCH=$(shell echo $(GHCVERSION) | cut -d. -f3)
 ifeq ($(GHCMAJOR),9)
 
 # Warn about newer versions that are not yet supported
-GHCMINORGT10 := $(shell expr $(GHCMINOR) \> 10)
-ifeq ($(GHCMINORGT10),1)
+# (the CI matrix in .github/workflows/ci.yml is the authority; keep in sync)
+GHCMINORGT14 := $(shell expr $(GHCMINOR) \> 14)
+ifeq ($(GHCMINORGT14),1)
 $(warning Unsupported GHC 9 minor version: $(GHCMINOR))
 endif
 
