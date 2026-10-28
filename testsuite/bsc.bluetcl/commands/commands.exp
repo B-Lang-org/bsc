@@ -50,6 +50,7 @@ bluetcl_run_compare_pass module.tcl
 
 # Test "module wiretypemap" (VCD type-correlation map)
 bluetcl_run_compare_pass wiretypemap.tcl
+bluetcl_run_compare_pass wiretypemap_order.tcl
 
 # Coverage: SplitPorts sub-interface with collapsed method arg
 bluetcl_run_compare_pass splitports.tcl

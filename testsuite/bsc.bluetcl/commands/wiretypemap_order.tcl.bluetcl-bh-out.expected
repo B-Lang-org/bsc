@@ -1,0 +1,52 @@
+depth {Prelude.Bit 8}
+push Prelude.PrimUnit
+push_p WireTypes.Pixel
+top WireTypes.Pixel
+CLK Prelude.Clock
+RST_N Prelude.Reset
+RDY_push Prelude.Bool
+EN_push Prelude.Bool
+RDY_top Prelude.Bool
+RDY_depth Prelude.Bool
+CAN_FIRE_RL_sink Prelude.Bool
+WILL_FIRE_RL_sink Prelude.Bool
+{last$D_IN} WireTypes.Pixel
+last.D_IN WireTypes.Pixel
+{last$Q_OUT} WireTypes.Pixel
+last.Q_OUT WireTypes.Pixel
+last WireTypes.Pixel
+{last$CLK} Prelude.Clock
+last.CLK Prelude.Clock
+{last$RST} Prelude.Reset
+last.RST Prelude.Reset
+{last$EN} Prelude.Bool
+last.EN Prelude.Bool
+{q$D_IN} WireTypes.Pixel
+q.D_IN WireTypes.Pixel
+{q$D_OUT} WireTypes.Pixel
+q.D_OUT WireTypes.Pixel
+{q$EMPTY_N} Prelude.Bool
+q.EMPTY_N Prelude.Bool
+{q$FULL_N} Prelude.Bool
+q.FULL_N Prelude.Bool
+{q$CLK} Prelude.Clock
+q.CLK Prelude.Clock
+{q$RST} Prelude.Reset
+q.RST Prelude.Reset
+{q$ENQ} Prelude.Bool
+q.ENQ Prelude.Bool
+{q$DEQ} Prelude.Bool
+q.DEQ Prelude.Bool
+{q$CLR} Prelude.Bool
+q.CLR Prelude.Bool
+{cnt$D_IN} {Prelude.Bit 8}
+cnt.D_IN {Prelude.Bit 8}
+{cnt$Q_OUT} {Prelude.Bit 8}
+cnt.Q_OUT {Prelude.Bit 8}
+cnt {Prelude.Bit 8}
+{cnt$CLK} Prelude.Clock
+cnt.CLK Prelude.Clock
+{cnt$RST} Prelude.Reset
+cnt.RST Prelude.Reset
+{cnt$EN} Prelude.Bool
+cnt.EN Prelude.Bool

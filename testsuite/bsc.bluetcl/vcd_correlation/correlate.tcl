@@ -15,8 +15,8 @@ namespace import ::Bluetcl::*
 #                wiretypemap covers all of them, which is the value of
 #                the per-.ba map design.
 #
-# For each (module, scope) pair, runs `module wiretypemap <module>`,
-# parses each VCD, and reports matched wires within that scope only.
+# Queries each module's wiretypemap and parses each VCD once, then
+# reports matched wires within each requested (module, scope) pair.
 
 flags set {-verilog}
 module load $::env(TOP_NAME)
@@ -103,13 +103,24 @@ proc correlate { label vars dutScope typeDict } {
     return $hitCount
 }
 
+# A module's map is shared by all of its instances. Cache it once,
+# even when the same module appears at many different scopes.
+set typeDictCache [dict create]
+proc typeDictFor { modName } {
+    global typeDictCache
+    if { ![dict exists $typeDictCache $modName] } {
+        set typeDict [dict create]
+        foreach entry [module wiretypemap $modName] {
+            dict set typeDict [lindex $entry 0] [lindex $entry 1]
+        }
+        dict set typeDictCache $modName $typeDict
+    }
+    return [dict get $typeDictCache $modName]
+}
+
 set totalHits 0
 foreach { modName dutScope } $::env(MOD_AT_LIST) {
-    set tmap [module wiretypemap $modName]
-    set typeDict [dict create]
-    foreach entry $tmap {
-        dict set typeDict [lindex $entry 0] [lindex $entry 1]
-    }
+    set typeDict [typeDictFor $modName]
     puts "##### module: $modName  @  $dutScope #####"
     if { [llength $veriVars] > 0 } {
         incr totalHits [correlate "Verilog" $veriVars $dutScope $typeDict]
