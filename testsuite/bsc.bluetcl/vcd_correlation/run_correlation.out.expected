@@ -1,7 +1,7 @@
 ########## variant: default (Verilog default flags; Bluesim is flag-agnostic) ##########
 ##### module: mkWireTypes  @  main.top.dut #####
 === Verilog ===
-  hits:    183
+  hits:    185
   matched wires (sorted):
     CLK : Clock
     EN_loadPixel : Bool
@@ -96,6 +96,7 @@
     syncfifo.sFULL_N : Bool
     syncfifo.sRST : Reset
     topPixel : WireTypes::Pixel
+    MUX_pal$write_1__VAL_2 : Vector::Vector#(4, WireTypes::Color)
     annot$EN_push : Bool
     annot$RDY_push : Bool
     annot$count : Bit#(8)
@@ -133,6 +134,7 @@
     cl$D_IN : WireTypes::Cell
     cl$EN : Bool
     creg$D_IN : WireTypes::Pixel
+    creg$EN : Bool
     leafA$EN_push : Bool
     leafA$RDY_push : Bool
     leafA$push_p : WireTypes::Pixel
@@ -402,7 +404,7 @@
     ticks : Bit#(8)
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 403
+  total VCD hits across all (module, scope) pairs: 405
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####
@@ -474,7 +476,7 @@ RESULT: PASS
 ########## variant: kib (Verilog -keep-inlined-boundaries; Bluesim is flag-agnostic) ##########
 ##### module: mkWireTypes  @  main.top.dut #####
 === Verilog ===
-  hits:    214
+  hits:    216
   matched wires (sorted):
     CLK : Clock
     EN_loadPixel : Bool
@@ -569,6 +571,7 @@ RESULT: PASS
     syncfifo.sFULL_N : Bool
     syncfifo.sRST : Reset
     topPixel : WireTypes::Pixel
+    MUX_pal$write_1__VAL_2 : Vector::Vector#(4, WireTypes::Color)
     annot$EN_push : Bool
     annot$RDY_push : Bool
     annot$count : Bit#(8)
@@ -625,6 +628,7 @@ RESULT: PASS
     creg$EN_port2__write : Bool
     creg$EN_port3__write : Bool
     creg$EN_port4__write : Bool
+    creg$EN : Bool
     creg$port0__read : WireTypes::Pixel
     creg$port0__write_1 : WireTypes::Pixel
     creg$port1__read : WireTypes::Pixel
@@ -906,7 +910,7 @@ RESULT: PASS
     ticks : Bit#(8)
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 434
+  total VCD hits across all (module, scope) pairs: 436
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####
