@@ -11,3 +11,15 @@ remain unchanged. The BSV fixture checks declared physical wires and .ba reload.
 
 The commands/WireTypes.bsv regression also demonstrates an incremental gain:
 the rotated palette input MUX_pal$write_1__VAL_2 retains Vector#(4, Color).
+
+Conditional source type propagation (separate step)
+
+  GHC=/path/to/compiler-ghc ./run-conditional.sh
+
+The result's interpretations flow to conditional data alternatives, including
+case defaults, while selectors and labels remain separate. Mux and conditional
+edges share one closure to handle alternating nests and new candidates arriving
+at already visited shared values. The direct fixture checks these cases, same-
+width and operation boundaries, no arm-to-result inference, idempotence, and
+unchanged hardware. The BSV fixture checks new types on actual physical ports
+and preservation through .ba reload.
