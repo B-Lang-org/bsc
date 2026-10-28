@@ -14,19 +14,20 @@
  * RCS: @(#) $Id: tclAppInit.c,v 1.11 2002/05/31 22:20:22 dgp Exp $
  */
 
+/*
+ * bluetcl's Tcl side. The program's main is Haskell (app/bluetcl_Main.hs), so
+ * the RTS is running by the time run_bluetcl() below hands control to Tcl.
+ */
+
 #include "tcl.h"
 #include "stdlib.h"
 
-extern int htcl_initHaskellRTS(int *argc, char **argv[]) ;
 extern char *TclSetPreInitScript (char *string);
 
-// Include for the export from Haskell
-#ifdef __GLASGOW_HASKELL__
-#include "BlueTcl_stub.h"
-#endif
-#ifdef __GLASGOW_HASKELL__
-extern void __stginit_BlueTcl ( void );
-#endif
+// The export from Haskell (app/Bluetcl.hs):
+//   foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int
+// Declared here rather than through the generated Bluetcl_stub.h.
+extern int blueshell_Init_Foreign(Tcl_Interp *interp);
 
 int bluetcl_AppInit(Tcl_Interp *interp);
 int Bluespec_Init(Tcl_Interp *interp);
@@ -34,9 +35,10 @@ int Bluespec_Init(Tcl_Interp *interp);
 /*
  *----------------------------------------------------------------------
  *
- * main --
+ * run_bluetcl --
  *
- *        This is the main program for the application.
+ *        Hands control to Tcl. Called from the Haskell main once the RTS
+ *        is running, which is what main did here after starting it.
  *
  * Results:
  *        None: Tcl_Main never returns here, so this procedure never
@@ -48,22 +50,10 @@ int Bluespec_Init(Tcl_Interp *interp);
  *----------------------------------------------------------------------
  */
 
-int
-main(int argc, char **argv)
+void
+run_bluetcl(int argc, char **argv)
 {
-  // Initialize Haskell
-  int stat = htcl_initHaskellRTS( &argc, &argv );
-  if (stat != 0) exit(stat);
-
-#ifdef __GLASGOW_HASKELL__
-#if (__GLASGOW_HASKELL__ < 804)
-  hs_add_root(__stginit_BlueTcl);
-#endif
-#endif
-
   Tcl_Main(argc, argv, bluetcl_AppInit);
-
-  return 0;                        /* Needed only to prevent compiler warning. */
 }
 
 /*
