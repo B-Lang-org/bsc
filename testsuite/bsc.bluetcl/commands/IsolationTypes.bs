@@ -1,0 +1,75 @@
+package IsolationTypes where
+import SplitPorts
+
+struct Nibbles =
+  high :: Bit 4
+  low :: Bit 4
+ deriving (Bits)
+struct TaggedPayload =
+  tag :: Bit 3
+  payload :: Bit 5
+ deriving (Bits)
+struct Pair =
+  left :: Bit 8
+  right :: Bit 8
+ deriving (Bits)
+interface SplitChild =
+  load :: Bit 8 -> Bit 8 -> Action
+  get :: DeepSplit Pair
+{-# synthesize mkSplitChild #-}
+mkSplitChild :: Module SplitChild
+mkSplitChild = module
+  a :: Reg (Bit 8) <- mkReg 0
+  b :: Reg (Bit 8) <- mkReg 0
+  interface
+    load x y = action
+      a := x
+      b := y
+    get = DeepSplit (Pair {left = a; right = b})
+
+interface SplitIsolation =
+  load :: Bit 8 -> Bit 8 -> Action
+  get :: DeepSplit Pair
+-- Only the left leaf receives a nominal interpretation; both result leaves
+-- remain distinct eight-bit physical ports on the child and parent.
+{-# synthesize mkSplitIsolation #-}
+mkSplitIsolation :: Module SplitIsolation
+mkSplitIsolation = module
+  child :: SplitChild <- mkSplitChild
+  let p = unDeepSplit child.get
+      interpreted :: Nibbles
+      interpreted = unpack p.left
+  interface
+    load x y = child.load x y
+    get = DeepSplit (Pair {left = pack interpreted; right = p.right})
+
+interface ByteChild =
+  load :: Bit 8 -> Action
+  get :: Bit 8
+{-# synthesize mkByteChild #-}
+mkByteChild :: Module ByteChild
+mkByteChild = module
+  value :: Reg (Bit 8) <- mkReg 0
+  interface
+    load x = value := x
+    get = value
+interface ReceiverIsolation =
+  load :: Bit 8 -> Bit 8 -> Action
+  first :: Bit 8
+  second :: Bit 8
+-- Equal method names on distinct instances must retain receiver identity.
+{-# synthesize mkReceiverIsolation #-}
+mkReceiverIsolation :: Module ReceiverIsolation
+mkReceiverIsolation = module
+  a :: ByteChild <- mkByteChild
+  b :: ByteChild <- mkByteChild
+  let n :: Nibbles
+      n = unpack a.get
+      t :: TaggedPayload
+      t = unpack b.get
+  interface
+    load x y = action
+      a.load x
+      b.load y
+    first = pack n
+    second = pack t

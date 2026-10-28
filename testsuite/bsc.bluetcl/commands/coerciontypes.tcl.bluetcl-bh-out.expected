@@ -1,6 +1,6 @@
-PASS mkCseTypes: one expression retains both nominal types
+PASS mkCseTypes: one emitted wire retains both nominal types
 PASS mkCseTypes: legacy map avoids choosing ambiguous internal types
-PASS mkRepackTypes: one expression retains both nominal types
+PASS mkRepackTypes: one emitted wire retains both nominal types
 PASS mkRepackTypes: legacy map avoids choosing ambiguous internal types
 PASS mkCancellationType: legacy map refines result to CoercionTypes.Nibbles
 PASS mkForcedPack: legacy map refines result to CoercionTypes.Nibbles

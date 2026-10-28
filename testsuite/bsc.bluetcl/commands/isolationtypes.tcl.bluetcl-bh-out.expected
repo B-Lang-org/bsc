@@ -1,0 +1,3 @@
+PASS: split-result evidence stays on its selected physical leaf and excludes its sibling
+PASS: distinct child receivers retain independent nominal candidate sets
+PASS: isolation candidates survive .ba reload
