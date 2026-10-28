@@ -7,6 +7,7 @@ module EquivalenceClass
      showEC
     ) where
 
+import Warmup ()
 import qualified Data.Map as M
 
 type EquivClasses a = M.Map a (Maybe a)

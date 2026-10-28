@@ -9,6 +9,7 @@ module Parse(Parser, (+.+), (..+), (+..), (|||), (>>-), (>>>), (||!), (|!!), (.>
              into, lit, litp, many, many1, succeed, failure, sepBy, count, sepBy1, testp, token, recover,
              ParseResult, parse, sParse, simpleParse) where
 
+import Warmup ()
 -- @@ Parsing combinatores with good error reporting.
 
 infixr 8 +.+ , ..+ , +..
