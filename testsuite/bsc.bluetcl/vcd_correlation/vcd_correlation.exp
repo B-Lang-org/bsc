@@ -1,0 +1,159 @@
+# Correlate wire type maps with VCDs from both backends. Verilog is run
+# with default flags and -keep-inlined-boundaries; Bluesim needs one
+# build because it does not perform the corresponding Verilog inlining.
+if {!$vtest || !$ctest} {
+    unsupported "vcd_correlation requires Verilog and Bluesim"
+    return
+}
+
+bsc_initialize
+bluetcl_initialize
+
+namespace eval vcd_correlation {
+    variable testdir [file join [absolute $::srcdir] $::subdir]
+
+    # Use the configured compiler/tools and the common command transcript.
+    # Keep build and simulator output separate from the golden correlation.
+    proc run {directory command output {append 0}} {
+        set previous [pwd]
+        set previous_outdir $::outdir
+        set code [catch {
+            set ::outdir [file normalize $::outdir]
+            cd $directory
+            set redirect [expr {$append ? ">>&" : ">&"}]
+            set status [exec_with_log_and_return vcd_correlation \
+                            [concat $command [list $redirect $output]] message 2]
+            if {$status != 0} {
+                error "[lindex $command 0] failed: $message (see $output)"
+            }
+        } message options]
+        set ::outdir $previous_outdir
+        cd $previous
+        if {$code != 0} { return -options $options $message }
+    }
+
+    proc append_line {path line} {
+        set fh [open $path a]
+        puts $fh $line
+        close $fh
+    }
+
+    proc run_test {} {
+        variable testdir
+        set output [file join $testdir run_correlation.out]
+        set buildlog [file join $testdir vcd_correlation_build.log]
+        foreach name {bo_sim bo_default bo_kib veri_default veri_kib sim
+                      vcd_correlation_build.log dumpmap_default.out
+                      run_correlation.out run_correlation.out.diff-out} {
+            file delete -force [file join $testdir $name]
+        }
+        set cases {
+            {WireTypes sysWireTypeTest WireTypesSim.bsv
+                {mkWireTypes main.top.dut mkPixelStash main.top.dut.leafA
+                 mkPixelStash main.top.dut.leafB mkAnnotStash main.top.dut.annot}}
+            {SplitPorts sysSplitPortsTest SplitPortsSim.bsv
+                {mkSplitPortsTest main.top.dut}}
+        }
+        foreach variant {sim default kib} {
+            set bo [file join $testdir bo_$variant]
+            set extra {}
+            if {$variant eq "sim"} {
+                set dir [file join $testdir sim]
+                set backend [list -sim -simdir $dir]
+            } else {
+                set dir [file join $testdir veri_$variant]
+                set backend [list -verilog -vdir $dir]
+                if {$variant eq "kib"} { set extra {-keep-inlined-boundaries} }
+            }
+            file mkdir $bo $dir
+            set compiler [concat [list $::bsc -bdir $bo] $backend $extra]
+            foreach testcase $cases {
+                lassign $testcase name top source modules
+                run $testdir [concat $compiler [list -elab -u -g $top $source]] $buildlog 1
+                set link [concat $compiler [list -e $top -o [file join $dir $top]]]
+                if {$variant ne "sim"} {
+                    set link [concat $link [list -vsim $::verilog_compiler] $::vcomp_flags]
+                }
+                run $testdir $link $buildlog 1
+                if {$variant eq "sim"} {
+                    set options [list -V $name.vcd]
+                } else {
+                    set options $::vrun_vcd_flags
+                }
+                run $dir [concat [list [file join $dir $top]] $options] \
+                    [file join $dir ${name}_sim.log]
+                if {$variant ne "sim"} {
+                    file rename [file join $dir dump.vcd] [file join $dir $name.vcd]
+                }
+            }
+        }
+
+        set script [file join $testdir correlate.tcl]
+        # Obtain Bluesim maps in separate Bluetcl processes, from the same
+        # packages that emitted its VCDs. Verilog caches must not leak in.
+        foreach testcase $cases {
+            lassign $testcase name top source modules
+            run [file join $testdir bo_sim] \
+                [list $::bluetcl $script sim-maps $top $modules] \
+                [file join $testdir sim $name.typemap]
+        }
+        foreach {variant description} {default {default flags} kib -keep-inlined-boundaries} {
+            append_line $output "########## variant: $variant (Verilog $description; Bluesim is flag-agnostic) ##########"
+            foreach testcase $cases {
+                lassign $testcase name top source modules
+                run [file join $testdir bo_$variant] \
+                    [list $::bluetcl $script correlate $top $modules \
+                        [file join $testdir veri_$variant $name.vcd] \
+                        [file join $testdir sim $name.vcd] \
+                        [file join $testdir sim $name.typemap]] $output 1
+                append_line $output ""
+            }
+        }
+
+        # Method annotations remove physical enable/ready ports. Check the
+        # parent map's per-instance entries, including the unannotated push.
+        append_line $output "########## annotated-method phantom check (annot instance) ##########"
+        set dump [file join $testdir dumpmap_default.out]
+        run [file join $testdir bo_default] \
+            [list $::bluetcl $script map mkWireTypes] $dump
+        set fh [open $dump r]
+        set entries [read $fh]
+        close $fh
+        foreach bad {annot$EN_tick annot$RDY_tick annot$RDY_count} {
+            if {[string first $bad $entries] >= 0} {
+                append_line $output "PHANTOM: $bad present in mkWireTypes wiretypemap"
+            } else {
+                append_line $output "no-phantom: $bad absent"
+            }
+        }
+        foreach good {annot$EN_push annot$RDY_push} {
+            if {[string first $good $entries] >= 0} {
+                append_line $output "present: $good"
+            } else {
+                append_line $output "MISSING: $good absent from mkWireTypes wiretypemap"
+            }
+        }
+    }
+}
+
+set status [catch {vcd_correlation::run_test} message]
+set testdir $vcd_correlation::testdir
+namespace delete vcd_correlation
+set output_file [file join $testdir run_correlation.out]
+set expected_file [file join $testdir run_correlation.out.expected]
+set diff_out [file join $testdir run_correlation.out.diff-out]
+if {$status != 0} {
+    set fh [open $diff_out w]
+    puts $fh $message
+    close $fh
+    fail "vcd_correlation: $message"
+} elseif {![file exists $expected_file]} {
+    unresolved "vcd_correlation: no expected file"
+} elseif {[catch {exec diff -u $expected_file $output_file} difference]} {
+    set fh [open $diff_out w]
+    puts $fh $difference
+    close $fh
+    fail "vcd_correlation: output differs from expected (see [file join $subdir [file tail $diff_out]])"
+} else {
+    pass "vcd_correlation: wiretypemap matches both VCDs as expected"
+}

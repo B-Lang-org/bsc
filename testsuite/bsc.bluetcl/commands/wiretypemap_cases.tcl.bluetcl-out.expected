@@ -1,0 +1,4 @@
+empty module: no entries
+repeated instances: 128 registers with all three output aliases
+register type: Bit#(32)
+reload: stable ordered map with unique pairs
