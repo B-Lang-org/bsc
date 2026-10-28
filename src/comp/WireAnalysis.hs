@@ -141,8 +141,8 @@ getWireTypeMap apkg =
             enOf (Method { vf_enable = Just (vn, props) })
                 | VPinhigh `notElem` props = emit vn
             enOf _ = []
-            rdyOf (Method { vf_name = n, vf_output = mout })
-                | isRdyId n = maybe [] (emit . fst) mout
+            rdyOf (Method { vf_name = n, vf_outputs = outs })
+                | isRdyId n = concatMap (emit . fst) outs
             rdyOf _ = []
         in  concatMap (\f -> enOf f ++ rdyOf f) (vFields vmi)
 
