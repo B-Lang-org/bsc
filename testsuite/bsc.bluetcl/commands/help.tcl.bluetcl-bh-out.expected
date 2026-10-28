@@ -36,6 +36,7 @@ Subcommands:
   flags <module> <flag>*        Show the flag settings when the module was built
   ports <module>                Show the ports of a module
   porttypes <module>            Show the types of the ports of a module
+  wiretypemap <module>          Map wire names to source types, for VCD correlation
   list                          List the loaded modules
   methodconditions <module>     Show the method predicates of a module
 ----------
