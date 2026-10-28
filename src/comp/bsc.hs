@@ -1216,7 +1216,9 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Return
        -- * the port properties (to be included in the import-BVI)
        -- * the Verilog structure (for accessing in bluetcl)
-       names <- if genABin flags && not (null (aspkg_expr_types aumod))
+       -- Declared port/connection types also need the final physical spelling,
+       -- even when this module has no pack/unpack observations.
+       names <- if genABin flags
                 then CE.evaluate (force (emittedWireNameMap vprog0 vprog))
                 else return M.empty
        types <- if genABin flags
