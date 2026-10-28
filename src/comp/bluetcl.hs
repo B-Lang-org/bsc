@@ -1215,8 +1215,14 @@ tclModule ["wiretypemap",modname] = do
        Nothing -> return $ TLst []
        Just abmi -> do
            let apkg = abemi_apkg abmi
-               mkEntryObj (name, t) = TLst [TStr name, TStr (pfpString t)]
-           return $ TLst $ map mkEntryObj $ getWireTypeMap apkg
+               entries = getWireTypeMap apkg
+               -- render each distinct type once: a large module has many
+               -- wires but few distinct types, and pfpString would
+               -- otherwise dominate, re-run per entry
+               typeObjs = M.fromList [ (t, TStr (pfpString t))
+                                     | (_, t) <- entries ]
+               mkEntryObj (name, t) = TLst [TStr name, typeObjs M.! t]
+           return $ TLst $ map mkEntryObj entries
 ------
 tclModule ["flags",modname] = do
   if (isPrimitiveModule modname)

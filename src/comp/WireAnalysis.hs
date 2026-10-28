@@ -27,9 +27,9 @@
 -- dict can index by VCD wire name and match whichever form appears.
 module WireAnalysis (getWireTypeMap) where
 
-import Data.List(nub)
 import qualified Data.Map as M
 
+import Util(stableOrdNub)
 import Id(getIdString, mkRdyId, isRdyId, mkIdCanFire, mkIdWillFire)
 import ISyntax(IType)
 import ISyntaxUtil(itBool, itClock, itReset)
@@ -53,7 +53,10 @@ getWireTypeMap apkg =
         en_rdy_entries = concatMap methodEnRdyEntries ifc
         rule_entries = concatMap ruleFireEntries (apkg_rules apkg)
         sub_entries = concatMap submodEntries (apkg_state_instances apkg)
-    in  nub $
+        -- Deduplicate whole (name, type) pairs, preserving the first
+        -- occurrence and retaining distinct types for the same name.
+        -- nub is quadratic in the number of candidate wire names.
+    in  stableOrdNub $
         ext_entries
             ++ clk_entries ++ outClk_entries
             ++ rst_entries ++ outRst_entries
