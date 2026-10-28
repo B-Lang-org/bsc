@@ -1,0 +1,27 @@
+package NonLawful(IfcNL(..), mkNonLawful) where
+
+-- Pins the semantics for instances that VIOLATE the Bits law
+-- (unpack . pack == id and pack . unpack == id): the compiler assumes
+-- the law and cancels the round trip, so the "normalization" this
+-- instance attempts (forcing the low bit to zero on pack) does NOT
+-- happen on a register write-back: D_IN is a wire from the register
+-- output.  This is the documented behavior; instances are required to
+-- be lawful.
+data N = MkN (Bit 8)
+
+instance Bits N 8 where
+    pack (MkN v) = v & 0xFE   -- deliberately not the identity
+    unpack v = MkN v
+
+interface IfcNL =
+    dummy :: Bool
+
+{-# verilog mkNonLawful #-}
+mkNonLawful :: Module IfcNL
+mkNonLawful =
+  module
+    r :: Reg N <- mkRegU
+    rules
+        "writeback": when True ==> r := r
+    interface
+        dummy = True

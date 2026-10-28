@@ -1,0 +1,39 @@
+package AVHold(T(..), Src(..), Ifc(..), mkAVSrc, mkAVHold) where
+
+-- Cancellation across an ActionValue method boundary: the callee
+-- returns a custom type (an unpack at the synthesized boundary), the
+-- caller writes it to a register (a pack at the write): the round
+-- trip cancels and the register data input is the callee's return
+-- port, with no instance-method logic.
+data T = MkT (Bit 16)
+
+instance Bits T 16 where
+    pack (MkT v) = primSeq (message "ENTERED-PACK" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkT v)
+
+interface Src =
+  get :: ActionValue T
+
+{-# verilog mkAVSrc #-}
+mkAVSrc :: Module Src
+mkAVSrc = module
+  cnt :: Reg (Bit 16) <- mkReg 0
+  interface Src
+    get = do
+      cnt := cnt + 1
+      return (unpack cnt)
+
+interface Ifc =
+  dummy :: Bool
+
+{-# verilog mkAVHold #-}
+mkAVHold :: Module Ifc
+mkAVHold = module
+  src :: Src <- mkAVSrc
+  dst :: Reg T <- mkRegU
+  rules
+    "pull": when True ==> do
+      v <- src.get
+      dst := v
+  interface Ifc
+    dummy = True

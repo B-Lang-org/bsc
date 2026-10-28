@@ -1,0 +1,40 @@
+package DynSelIfCond(Pair(..), Ifc(..), mkDynSelIfCond) where
+
+import Vector
+import FIFO
+
+-- A rule-body if whose condition contains a dynamic selection over
+-- held pack coercions: the condition becomes a PIf pterm, and
+-- evalPTerm walks it and asks canLiftCond -- the other route to the
+-- pure NF-demanding unheap of the array cells.
+struct Pair =
+  hi :: Bit 4
+  lo :: Bit 4
+ deriving (Bits)
+
+interface Ifc =
+  push1 :: Bit 8 -> Action
+  push2 :: Bit 8 -> Action
+
+{-# verilog mkDynSelIfCond #-}
+mkDynSelIfCond :: Module Ifc
+mkDynSelIfCond = module
+  idx :: Reg (UInt 3) <- mkReg 0
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  c :: Reg (Bit 4) <- mkReg 2
+  y :: Reg (Bit 8) <- mkReg 0
+  f1 :: FIFO (Bit 8) <- mkFIFO
+  f2 :: FIFO (Bit 8) <- mkFIFO
+  let mk1 = Pair { hi = a._read; lo = 0xF }
+      mk2 = Pair { hi = 0x3; lo = b._read }
+      mk3 = Pair { hi = c._read; lo = c._read }
+      vs :: Vector 3 (Bit 8)
+      vs = pack mk1 :> pack mk2 :> pack mk3 :> nil
+  rules
+    "r": when True ==>
+      action
+        y := if (select vs idx._read == 5) then f1.first else f2.first
+  interface Ifc
+    push1 v = f1.enq v
+    push2 v = f2.enq v
