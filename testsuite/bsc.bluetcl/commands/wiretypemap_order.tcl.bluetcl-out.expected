@@ -49,4 +49,3 @@ cnt.CLK Clock
 cnt.RST Reset
 {cnt$EN} Bool
 cnt.EN Bool
-q_first____d4 WireTypes::Pixel

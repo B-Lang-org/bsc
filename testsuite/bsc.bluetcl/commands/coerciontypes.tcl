@@ -26,7 +26,20 @@ proc assertShared {mod wantedTypes} {
     if {[llength $shared] == 0} {
         error "FAIL $mod: no wire carries all interpretations $wantedTypes; map=$byWire"
     }
-    puts "PASS $mod: one expression retains both nominal types"
+    set stream [open "$mod.v" r]
+    set rtl [read $stream]
+    close $stream
+    set declared {}
+    foreach {declaration kind names} [regexp -all -inline -line \
+        {^[ \t]*(wire|reg)[ \t]+(?:\[[^]]+\][ \t]+)?([^;]+);} $rtl] {
+        foreach name [split $names ,] { lappend declared [string trim $name] }
+    }
+    foreach wire $shared {
+        if {$wire ni $declared} {
+            error "FAIL $mod: inferred shared wire $wire is absent from emitted RTL"
+        }
+    }
+    puts "PASS $mod: one emitted wire retains both nominal types"
     return $shared
 }
 
@@ -51,6 +64,15 @@ foreach mod {mkCseTypes mkRepackTypes} {
         dict set legacy $wire [normalizedType $ty]
     }
     foreach wire $shared {
+        # Backend aliasing also exposes both interpretations on the register
+        # inputs. Their declared nominal types remain the legacy preference.
+        if {$mod eq "mkCseTypes" && $wire in {{ns$D_IN} {ts$D_IN}}} {
+            set declared [expr {$wire eq {ns$D_IN} ? "CoercionTypes.Nibbles" : "CoercionTypes.TaggedPayload"}]
+            if {[dict get $legacy $wire] ne $declared} {
+                error "FAIL $mod: legacy map lost declared type $declared on $wire"
+            }
+            continue
+        }
         if {[dict exists $legacy $wire] && [dict get $legacy $wire] in {CoercionTypes.Nibbles CoercionTypes.TaggedPayload}} {
             error "FAIL $mod: legacy map arbitrarily chose a type for $wire"
         }

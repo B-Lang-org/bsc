@@ -16,6 +16,7 @@ import Id
 import Prim
 import ASyntax
 import ASyntaxUtil
+import ASourceTypes(anchorSourceTypes)
 import VModInfo
 import AConv(isLocalAId)
 --import Util(traces)
@@ -104,7 +105,8 @@ expandASPackage errh keepFires expnond expcheap pkg =
               aspkg_values = ds',
               aspkg_foreign_calls = fs',
               aspkg_expr_types = inlineDroppedExprTypes ds ds' $
-                                  mapExprTypes (aSubst subst) (aspkg_expr_types pkg) }
+                                  mapExprTypes (aSubst subst) $
+                                  anchorSourceTypes ds (aspkg_expr_types pkg) }
 
 
 -- ==============================
@@ -775,7 +777,8 @@ expandAPackage errh apkg = apkgN
                                          apkg_rules = rules,
                                          apkg_interface = ifc,
                                          apkg_expr_types = inlineDroppedExprTypes sorted_defs defs $
-                                             mapExprTypes (aSubst subst) (apkg_expr_types apkg)}
+                                             mapExprTypes (aSubst subst) $
+                                             anchorSourceTypes sorted_defs (apkg_expr_types apkg)}
 
 
 -- Tests on AId and AExpr to determine if the expression should be inlined during aOpt

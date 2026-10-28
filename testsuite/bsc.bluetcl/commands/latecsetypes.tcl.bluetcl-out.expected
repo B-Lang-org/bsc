@@ -1,0 +1,1 @@
+PASS: backend-equivalent physical outputs retain both source types after reload

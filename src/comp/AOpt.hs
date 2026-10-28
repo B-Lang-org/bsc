@@ -46,6 +46,7 @@ import FStringCompat(mkFString)
 import Id
 import ASyntax
 import ASyntaxUtil
+import ASourceTypes(anchorASPackage, anchorSourceTypes)
 import AExpand(aExpand, xaSRemoveUnused, xaXExpand, expandAPackage)
 import BoolExp
 import Prim
@@ -73,10 +74,13 @@ aoptPref = "_dm"
 -- =====
 
 aOpt :: ErrorHandle -> Flags -> ASPackage -> IO ASPackage
+aOpt errh flags = aOptWithTypes errh flags . anchorASPackage
+
+aOptWithTypes :: ErrorHandle -> Flags -> ASPackage -> IO ASPackage
 -- we always want to expand even if the opt flag is off.
 -- see bug 1069
 -- and conversion of array-select to case/if always needs to happen
-aOpt errh flags pkg0 | not (optATS flags) =
+aOptWithTypes errh flags pkg0 | not (optATS flags) =
     let
         keepF = keepFires flags -- F
         inlineB = inlineBool flags -- T
@@ -94,7 +98,7 @@ aOpt errh flags pkg0 | not (optATS flags) =
     in
         return pkg2
 -- when optATS is specified
-aOpt errh flags pkg0 = do
+aOptWithTypes errh flags pkg0 = do
     let
         bflags = flagsToBFlags flags
 
@@ -123,7 +127,7 @@ aOpt errh flags pkg0 = do
                 dmap = M.fromList [ (i, e) | (ADef i _ e _) <- ds ]
                 findFn = makeFindFn "AOpt.aInsertCase" dmap
                 ds' = map (aInsertCaseDef False findFn) ds
-            in  pkg1A { aspkg_values = ds' }
+            in  (anchorASPackage pkg1A) { aspkg_values = ds' }
 
     when debug $
       traceM ("trace defs, post insert-case: " ++ ppReadable (aspkg_values pkg1B))
@@ -154,7 +158,7 @@ aOpt errh flags pkg0 = do
     let (ds1, fb1, ss1) = aOptDefs bflags ds fb ss
     when debug $
       traceM ("trace defs, post aOptDefs (ds1): " ++ ppReadable ds1)
-    let pkg3 = pkg2 { aspkg_values = ds1,
+    let pkg3 = (anchorASPackage pkg2) { aspkg_values = ds1,
                       aspkg_foreign_calls = fb1,
                       aspkg_state_instances = ss1 }
         -- XXX EWC Not sure why optSched is used here ???
@@ -181,7 +185,8 @@ aOpt errh flags pkg0 = do
     let ds3 = joinDefs optjoin ds2
     when debug $
       traceM ("trace defs, post joinDefs (ds3): " ++ ppReadable ds3)
-    let pkg6 = pkg5 { aspkg_values = ds3 }
+    let pkg5A = (anchorASPackage pkg5) { aspkg_values = ds2 }
+        pkg6 = (anchorASPackage pkg5A) { aspkg_values = ds3 }
 
     --
     -- We may want to turn off optsch here, since this undoes the effect of joinDefs
@@ -1680,7 +1685,9 @@ aOptAPackageLite errh flags apkg =
       apkg1 = expandAPackage errh apkg
       -- Optimize expressions
       (ds1) = aOptPackage1 apkg1
-      apkg2 = apkg1 { apkg_local_defs = ds1 }
+      apkg2 = apkg1 { apkg_local_defs = ds1,
+                     apkg_expr_types = anchorSourceTypes (apkg_local_defs apkg1)
+                                                         (apkg_expr_types apkg1) }
       -- remove unused defs
       apkg3 = apkg2  -- XXX ?
       -- final pass (to merge AND/OR operators)

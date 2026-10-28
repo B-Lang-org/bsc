@@ -8,6 +8,8 @@ bsc_compile WireTypes.bsv {-verilog -elab}
 bsc_compile WireTypeMapCases.bsv {-verilog -elab}
 bsc_compile CoercionTypes.bsv {-verilog -elab}
 bsc_compile AliasCoercionTypes.bsv {-verilog -elab}
+bsc_compile LateCseTypes.bsv {-verilog -elab -opt-join-defs}
+bsc_compile IsolationTypes.bs {-verilog -elab}
 bsc_compile SplitPortsTest.bs {-verilog -elab}
 bsc_compile ClockTest.bsv {-verilog -elab}
 
@@ -61,6 +63,8 @@ bluetcl_run_compare_pass wiretypemap_cases.tcl
 # existing wiretypemap only refines unambiguous interpretations.
 bluetcl_run_compare_pass coerciontypes.tcl
 bluetcl_run_compare_pass aliascoerciontypes.tcl
+bluetcl_run_compare_pass latecsetypes.tcl
+bluetcl_run_compare_pass isolationtypes.tcl
 
 # Coverage: SplitPorts sub-interface with collapsed method arg
 bluetcl_run_compare_pass splitports.tcl

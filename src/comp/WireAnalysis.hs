@@ -25,7 +25,8 @@
 --
 -- Over-emission is intentional: a correlator building a name -> type
 -- dict can index by VCD wire name and match whichever form appears.
-module WireAnalysis (getWireTypeMap, getWireTypeCandidates) where
+module WireAnalysis (getWireTypeMap, getWireTypeCandidates,
+                     getFinalWireTypeCandidates) where
 
 import qualified Data.Map as M
 import qualified Data.Map.Strict as MS
@@ -36,6 +37,7 @@ import Id(getIdString, unQualId, mkRdyId, isRdyId, mkIdCanFire, mkIdWillFire)
 import ISyntax(IType(..))
 import ISyntaxUtil(itBool, itClock, itReset, itBit)
 import ASyntax
+import ASourceTypes(canonicalSourceExpr, namedSourceTypes)
 import VModInfo
 import BackendNamingConventions(isRegInst, isCRegInst, cregToReg,
                                 qoutPortStr,
@@ -47,8 +49,8 @@ import BackendNamingConventions(isRegInst, isCRegInst, cregToReg,
 -- new internal wires only when there is a single observed interpretation.
 getWireTypeMap :: APackage -> [(String, IType)]
 getWireTypeMap apkg =
-    let declared = declaredWireTypeMap apkg
-        known = M.fromListWith S.union [(n, S.singleton t) | (n,t) <- declared]
+    let declared = namedDeclaredWireTypeMap apkg
+        known = MS.fromListWith S.union [(n, S.singleton t) | (n,t) <- declared]
         inferred = observedWireTypes apkg
         choices n = S.filter (not . isBitType) $
             M.findWithDefault S.empty n known `S.union`
@@ -64,9 +66,9 @@ getWireTypeMap apkg =
 -- expression can be unpacked at several unrelated nominal source types.
 getWireTypeCandidates :: APackage -> [(String, [IType])]
 getWireTypeCandidates apkg = M.toList $ M.map S.toList $
-    M.unionWith S.union (observedWireTypes apkg)
-        (M.fromListWith S.union [(n,S.singleton t) |
-                                 (n,t) <- declaredWireTypeMap apkg])
+    MS.unionWith S.union (observedWireTypes apkg)
+        (MS.fromListWith S.union [(n,S.singleton t) |
+                                 (n,t) <- namedDeclaredWireTypeMap apkg])
 
 isBitType :: IType -> Bool
 isBitType (ITAp t _) = t == itBit
@@ -76,13 +78,66 @@ isBitType _ = False
 -- those names. Only actual definitions and named boundary wires are emitted;
 -- metadata expressions do not manufacture wires in the generated netlist.
 observedWireTypes :: APackage -> M.Map String (S.Set IType)
-observedWireTypes apkg = MS.fromListWith S.union
+observedWireTypes apkg = MS.unionWith S.union boundary mapped
+  where
+    -- Once the backend has supplied physical candidates, raw observations
+    -- are needed only for safe declared boundary aliases (e.g. Bluesim names).
+    -- Restrict the join itself so it does not construct discarded internals.
+    wanted = case apkg_final_wire_types apkg of
+        Just _ -> Just (S.filter safeAlias declaredNames)
+        Nothing -> Nothing
+    raw = sourceObservedWireTypes wanted apkg
+    declaredNames = S.fromList (map fst (declaredWireTypeMap apkg))
+    -- Established boundary aliases are useful for both Verilog and Bluesim.
+    -- Internal observations require a binding to an emitted signal: retaining
+    -- the old name can silently alias a DIFFERENT wire after stable renaming.
+    boundary = M.filterWithKey (\n _ -> n `S.member` declaredNames && safeAlias n) raw
+    safeAlias = case apkg_final_wire_names apkg of
+        Nothing -> const True
+        Just names -> let emitted = S.fromList (M.elems names)
+                      in case apkg_final_wire_types apkg of
+                           Just _ -> (`S.notMember` emitted)
+                           Nothing -> \n -> n `S.notMember` emitted || M.lookup n names == Just n
+    mapped = case apkg_final_wire_types apkg of
+        Just ts -> ts
+        Nothing -> case apkg_final_wire_names apkg of
+            -- Preserve the upstream pre-codegen/Bluesim query fallback.
+            Nothing -> raw
+            Just names -> MS.fromListWith S.union
+                [(final, ts) | (n, ts) <- M.toList raw,
+                               Just final <- [M.lookup n names]]
+
+-- Capture the backend's actual expression aliases after optimization. The
+-- emitted-name map both proves liveness and applies final Verilog renaming.
+getFinalWireTypeCandidates :: M.Map String String -> ASPackage -> M.Map String (S.Set IType)
+getFinalWireTypeCandidates names pkg = MS.fromListWith S.union
+    [(final, ts) | (name, ts0) <- M.toList observed,
+                   let ts = S.filter (not . isBitType) ts0,
+                   not (S.null ts), Just final <- [M.lookup name names]]
+  where observed = namedSourceTypes (aspkg_values pkg ++ aspkg_inout_values pkg)
+                                   (aspkg_expr_types pkg)
+
+-- Keep the declared map's existing aliases, and add their physical spelling
+-- when codegen renamed them (including collision-aware dollar removal).
+namedDeclaredWireTypeMap :: APackage -> [(String, IType)]
+namedDeclaredWireTypeMap apkg = stableOrdNub (declared ++ renamed)
+  where
+    declared = declaredWireTypeMap apkg
+    renamed = case apkg_final_wire_names apkg of
+        Nothing -> []
+        Just names -> [(final, t) | (n,t) <- declared,
+                                   Just final <- [M.lookup n names], final /= n]
+
+sourceObservedWireTypes :: Maybe (S.Set String) -> APackage -> M.Map String (S.Set IType)
+sourceObservedWireTypes (Just wanted) _ | S.null wanted = M.empty
+sourceObservedWireTypes wanted apkg = MS.fromListWith S.union
     [(name, ts) | (e,ts) <- M.toList observed,
                   name <- S.toList (names e)]
   where
-    -- Many retained observations can refer to aliases of the same value.
-    -- Union their interpretations before expanding names so this join does
-    -- not generate a quadratic number of repeated (name, type-set) pairs.
+    -- CSE and retained anchors can observe the same expression through many
+    -- aliases. Union those interpretations before expanding its names: doing
+    -- that expansion per observation generates a quadratic number of repeated
+    -- (name, type-set) pairs when there are many aliases of one value.
     observed = MS.fromListWith S.union
         [(canonical e, ts) | (e,ts0) <- apkg_expr_types apkg,
                              let ts = S.filter (not . isBitType) ts0,
@@ -97,12 +152,13 @@ observedWireTypes apkg = MS.fromListWith S.union
         [ADef i t e [] | [i] <- [mkNamedOutputs fi]]
     namedDefs = apkg_local_defs apkg ++ concatMap outputDefs ifcDefs
     defs = namedDefs ++ map fst ifcDefs
-    defmap = M.fromList [(i, canonical e) | ADef i _ e _ <- defs]
-    canonical e@(ASDef _ i) = M.findWithDefault e i defmap
-    canonical e = e
-    nameIndex = M.fromListWith S.union
-        [(canonical e, S.singleton (getIdString i)) | ADef i _ e _ <- namedDefs]
-    names e = M.findWithDefault S.empty e nameIndex `S.union` leafNames e
+    canonical = canonicalSourceExpr defs
+    nameIndex = MS.fromListWith S.union
+        [(canonical (ASDef t i), S.singleton name) |
+          ADef i t _ _ <- namedDefs, let name = getIdString i, wantedName name]
+    wantedName n = maybe True (S.member n) wanted
+    names e = M.findWithDefault S.empty e nameIndex `S.union`
+              S.filter wantedName (leafNames e)
     leafNames (ASPort _ i) = S.singleton (getIdString i)
     leafNames (AMethValue _ i m) = methodNames i m Nothing
     leafNames (AMethCall _ i m []) = methodNames i m Nothing
@@ -111,7 +167,7 @@ observedWireTypes apkg = MS.fromListWith S.union
     leafNames _ = S.empty
     -- A wide interface can have many observed methods. Index the fields once
     -- rather than scanning the whole interface for every observation.
-    methodIndex = M.fromListWith S.union
+    methodIndex = MS.fromListWith S.union
         [((avi_vname v,m,index), S.fromList $
             [inst ++ "$" ++ port, inst ++ "." ++ port] ++
             [inst | isRegInst v && port == qoutPortStr]) |

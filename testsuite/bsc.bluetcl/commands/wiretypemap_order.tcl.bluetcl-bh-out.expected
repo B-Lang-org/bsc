@@ -49,4 +49,3 @@ cnt.CLK Prelude.Clock
 cnt.RST Prelude.Reset
 {cnt$EN} Prelude.Bool
 cnt.EN Prelude.Bool
-q_first____d4 WireTypes.Pixel
