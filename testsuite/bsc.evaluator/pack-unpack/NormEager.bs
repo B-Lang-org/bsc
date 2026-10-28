@@ -1,0 +1,27 @@
+package NormEager(sysNormEager) where
+
+-- The SAME source as NormMux, compiled with -hack-eager-pack-unpack
+-- (see the .exp file): the escape hatch always elaborates the instance
+-- methods instead of holding/cancelling coercions, so the unlawful
+-- instance's normalization is applied EVERYWHERE -- on the mux write
+-- path and on the read-back -- and the display shows the normalized
+-- nibbles 0b / 0d where default mode (NormMux) shows the raw ab / cd.
+-- This pins the documented difference between the two modes: unlawful
+-- instances are exactly where holding+cancellation is observable.
+import NormAdjacent
+
+sysNormEager :: Module Empty
+sysNormEager =
+  module
+    cond :: Reg Bool <- mkReg True
+    v1 :: Reg (Bit 8) <- mkReg 0xAB
+    v2 :: Reg (Bit 8) <- mkReg 0xCD
+    dst :: Reg NB <- mkRegU
+    cnt :: Reg (Bit 3) <- mkReg 0
+    rules
+        "tick": when True ==> action
+            dst := (if cond then unpack v1 else unpack v2)
+            cond := not cond
+            cnt := cnt + 1
+            if cnt >= 1 then $display "dst=%h" (pack dst) else noAction
+            if cnt == 3 then $finish 0 else noAction

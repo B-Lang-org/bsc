@@ -38,6 +38,7 @@ import Prim
 import Pragma(DefProp, defPropsHasNoCSE)
 import ISyntax
 import ISyntaxUtil
+import Undefined(UndefKind(..))
 import IPrims(doPrimOp)
 import IInline(iSortDs, iInline)
 import BExpr
