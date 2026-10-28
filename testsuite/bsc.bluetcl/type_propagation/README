@@ -59,3 +59,13 @@ alias/CSE/selection closure and a node-indexed numeric worklist; flattened
 associative operations use binary family hubs to avoid quadratic rescans.
 Derived candidates are valid operation interpretations, not proof of the user's
 original source declaration. No provenance/serialization fields are added.
+
+Late Verilog rewrite preservation (separate step):
+  GHC=/path/to/compiler-ghc ./run-late-rewrite.sh
+
+Whole-value, equal-width rewrites retain all existing candidates, including
+nominal interpretations, on newly created or reused helper wires. The pure
+checks cover dynamic and constant signed shifts, rewritten parents, CSE unions,
+foreign arguments, unknown/literal isolation, idempotence, and metadata-independent
+hardware. The BSV checks use actual emitted full-width declarations and clear/
+reload the .ba for every module under default and seven backend flags.

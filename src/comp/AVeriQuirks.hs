@@ -15,6 +15,10 @@ import FStringCompat(mkFString)
 import Control.Monad(when)
 import Control.Monad.State(State, evalState, gets, get, put)
 import qualified Data.Map as M
+import qualified Data.Map.Strict as MS
+import qualified Data.Set as S
+import ISyntax(IType)
+import ASourceTypes(sourceTypeKey, sourceTypeLookup, anchorSourceTypes)
 import Prim
 import Pragma(defPropsHasNoCSE)
 import ASyntax
@@ -53,7 +57,13 @@ data QState = QState {
     -- reverse lookup of defs processed or added so far,
     -- to avoid creating new ids for the exprs which already have ids
     -- (defs marked NoCSE are not added to this map)
-    rlookup  :: M.Map (AExpr,AType) AId
+    rlookup  :: M.Map (AExpr,AType) AId,
+    -- One index over incoming observations; rewrites never evaluate metadata
+    -- or create hardware on its behalf.
+    sourceTypes :: AExpr -> S.Set IType,
+    hasSourceTypes :: Bool,
+    rewrittenTypes :: M.Map AExpr (S.Set IType),
+    rewriteSerial :: !Int
   }
 
 -- Monad type
@@ -112,7 +122,13 @@ aVeriQuirks flags pkg =
                 qs_readableMux = readableMux flags,
                 uniqueId = 1,
                 defs = [],
-                rlookup = M.empty
+                rlookup = M.empty,
+                sourceTypes = sourceTypeLookup
+                    (aspkg_values pkg ++ aspkg_inout_values pkg)
+                    (aspkg_expr_types pkg),
+                hasSourceTypes = not (null (aspkg_expr_types pkg)),
+                rewrittenTypes = M.empty,
+                rewriteSerial = 0
                    }
 
         action =
@@ -121,9 +137,13 @@ aVeriQuirks flags pkg =
                 is' <- mapM aQInst (aspkg_state_instances pkg)
                 fs' <- mapM aQForeignBlock (aspkg_foreign_calls pkg)
                 ds' <- gets defs
+                ts' <- gets rewrittenTypes
                 return (pkg { aspkg_values = (reverse ds'),
                               aspkg_state_instances = is',
-                              aspkg_foreign_calls = fs' })
+                              aspkg_foreign_calls = fs',
+                              aspkg_expr_types = anchorSourceTypes
+                                  (reverse ds' ++ aspkg_inout_values pkg)
+                                  (aspkg_expr_types pkg ++ M.toList ts') })
 
 
 aQDef :: ADef -> QQState ()
@@ -131,6 +151,7 @@ aQDef :: ADef -> QQState ()
 aQDef (ADef i t e p) = do
     e' <- aQExp True e
     addDef (ADef i t e' p)
+    retainSourceTypes (ASDef t i) (ASDef t i)
 
 
 aQInst :: AVInst -> QQState (AVInst)
@@ -170,11 +191,73 @@ aQForeignCallAV (AForeignCall id fun (cond:es) [d_id] resets) | isAVId id = do
    return out
 aQForeignCallAV x = return x
 
+-- These are whole-value correspondences, not propagation through operands.
+-- Keep the original expression and a named anchor when quirks replace or lift
+-- an observed nested expression. The extra index also handles a sequence of
+-- rewrites and candidates joining a helper already created by another use.
+retainSourceTypes :: AExpr -> AExpr -> QQState ()
+retainSourceTypes old new = do
+    enabled <- gets hasSourceTypes
+    when (enabled && aType old == aType new) $ do
+        lookupTypes <- gets sourceTypes
+        extra <- gets rewrittenTypes
+        let ts = S.union (lookupTypes old)
+                         (M.findWithDefault S.empty (sourceTypeKey old) extra)
+        -- Most visited expressions have no observation. Check the index
+        -- before walking subtrees to exclude anonymous unknowns/literals.
+        when (not (S.null ts) && shareableSourceExpr old &&
+              shareableSourceExpr new) $ do
+            state <- get
+            let extra' = MS.insertWith S.union (sourceTypeKey new) ts extra
+            extra' `seq` put state { rewrittenTypes = extra' }
+
+-- Anonymous unknowns are independent choices, including when nested in an
+-- expression. Literal occurrences must not relay interpretations to unrelated
+-- values either. Real named references still retain their own observations.
+shareableSourceExpr :: AExpr -> Bool
+shareableSourceExpr ASInt {} = False
+shareableSourceExpr ASReal {} = False
+shareableSourceExpr ASStr {} = False
+shareableSourceExpr e = not (containsAny e)
+  where containsAny ASAny {} = True
+        containsAny (APrim _ _ _ es) = any containsAny es
+        containsAny (AMethCall _ _ _ es) = any containsAny es
+        containsAny (ATuple _ es) = any containsAny es
+        containsAny (ATupleSel _ e _) = containsAny e
+        containsAny (ANoInlineFunCall _ _ _ es) = any containsAny es
+        containsAny (AFunCall _ _ _ _ es) = any containsAny es
+        containsAny (ASClock _ (AClock osc gate)) = any containsAny [osc,gate]
+        containsAny (ASReset _ (AReset e)) = containsAny e
+        containsAny (ASInout _ (AInout e)) = containsAny e
+        containsAny _ = False
+
+-- Mark actual replacements/lifting, including changes below an expression.
+-- Unchanged subtrees need no metadata lookup: comparing a deep unchanged
+-- subtree against a similarly shaped observation can otherwise be quadratic.
+markRewrite :: QQState ()
+markRewrite = do
+    state <- get
+    when (hasSourceTypes state) $
+        put state { rewriteSerial = rewriteSerial state + 1 }
+
+rewriting :: QQState AExpr -> QQState AExpr
+rewriting action = markRewrite >> action
+
+-- Keep parent observations when any child changes, without adding expression
+-- equality checks or altering the hardware traversal's result type.
+aQExp :: Bool -> AExpr -> QQState AExpr
+aQExp top e = do
+    before <- gets rewriteSerial
+    e' <- aQExp' top e
+    after <- gets rewriteSerial
+    when (before /= after) $ retainSourceTypes e e'
+    return e'
+
 -- top argument states if argument is the top expression on the rhs of
 -- a ADef and other things as well.
-aQExp :: Bool -> AExpr -> QQState AExpr
+aQExp' :: Bool -> AExpr -> QQState AExpr
 -- non-constant bit extraction turns into shift and mask
-aQExp top (APrim aid t@(ATBit n) PrimExtract [e, h, l])
+aQExp' top (APrim aid t@(ATBit n) PrimExtract [e, h, l])
                 | h /= l && not (isConst h && isConst l) =
     let te = aType e
         m = case te of
@@ -192,27 +275,27 @@ aQExp top (APrim aid t@(ATBit n) PrimExtract [e, h, l])
                GT -> APrim aid t PrimExtract [e2, aSInt ht (n-1), aSInt ht 0]
                LT -> APrim aid t PrimZeroExt [e2]
                EQ -> e2
-    in  aQExp top e3
+    in  rewriting (aQExp top e3)
 
 -- probably redundant with IConv
 -- e << n && e is 1 bit,  --> n==0 && e ;
-aQExp top eee@(APrim aid t@(ATBit 1) op [e1, n]) | op `elem` [PrimSL, PrimSRL] =
+aQExp' top eee@(APrim aid t@(ATBit 1) op [e1, n]) | op `elem` [PrimSL, PrimSRL] =
     let cond = APrim aid t PrimEQ [n, ASInt aid (ae_type n) (ilDec 0)]
-    in aQExp top (APrim aid t PrimBAnd [cond, e1])
+    in rewriting (aQExp top (APrim aid t PrimBAnd [cond, e1]))
 
 -- e << n && e is signed 1 bit,  --> e
-aQExp top eee@(APrim aid t@(ATBit 1) PrimSRA [e1, n]) = aQExp top e1
+aQExp' top eee@(APrim aid t@(ATBit 1) PrimSRA [e1, n]) = rewriting (aQExp top e1)
 
 -- Arithmetic (Signed) shift right by constants
-aQExp top eee@(APrim aid t@(ATBit n) PrimSRA [e1, ASInt _ _ (IntLit _ _ k)]) =
+aQExp' top eee@(APrim aid t@(ATBit n) PrimSRA [e1, ASInt _ _ (IntLit _ _ k)]) =
     let sfted = if (k < n) then
                     APrim aid (ATBit (n-k)) PrimExtract [e1, aSNat (n-1), aSNat k]
                 else APrim aid (ATBit 1) PrimExtract [e1, aSNat (n-1), aSNat (n-1)]
-    in aQExp top (APrim aid t PrimSignExt [sfted])
+    in rewriting (aQExp top (APrim aid t PrimSignExt [sfted]))
 
 
 -- arithmetic right shift replicates MSB  Need do some shifting and masking
-aQExp top (APrim aid t@(ATBit n) PrimSRA [e1,e2]) = do
+aQExp' top (APrim aid t@(ATBit n) PrimSRA [e1,e2]) = rewriting $ do
         let sl = APrim aid (ATBit n) PrimSRL [e1, e2]
             mask = ASInt aid (ATBit n) (ilHex (2^n - 1))
             maskshift = APrim aid (ATBit n) PrimInv [(APrim aid (ATBit n) PrimSRL [mask, e2])]
@@ -223,24 +306,28 @@ aQExp top (APrim aid t@(ATBit n) PrimSRA [e1,e2]) = do
         aQExp top sel
 
 -- PrimExtract needs first argument in a variable
-aQExp top (APrim aid t PrimExtract [ee,h,l]) = do
+aQExp' top (APrim aid t PrimExtract [ee,h,l]) = do
     ee' <- mkDefS ee
     h' <- aQExp False h
     l' <- aQExp False l
-    return (aExtract aid t ee' h' l')
+    let result = aExtract aid t ee' h' l'
+    case result of
+        APrim _ _ PrimExtract _ -> return ()
+        _ -> markRewrite  -- a full-width extraction became its operand
+    return result
 
 -- empty sign extends should just be dropped
-aQExp top (APrim aid t PrimSignExt [e]) | aSize e == aSize t =
-  aQExp top e
+aQExp' top (APrim aid t PrimSignExt [e]) | aSize e == aSize t =
+  rewriting (aQExp top e)
 
 -- PrimSignExtend may need its argument in a variable
-aQExp top (APrim aid t PrimSignExt [ee]) | aSize ee /= 1 = do
+aQExp' top (APrim aid t PrimSignExt [ee]) | aSize ee /= 1 = do
     ee' <- mkDefS ee
     return (APrim aid t PrimSignExt [ee'])
 
 -- some primops need to be at the top of a definition
 -- e.g.  case, mux,
-aQExp False x@(APrim aid t op es) | topOp op = do
+aQExp' False x@(APrim aid t op es) | topOp op = rewriting $ do
     when debug $ traceM("aQExp topOp True:" ++ ppReadable x)
     es' <- mapM (aQExp False) es
     e <- aQExp True (APrim aid t op es')
@@ -248,14 +335,14 @@ aQExp False x@(APrim aid t op es) | topOp op = do
     return (ASDef t i)
 
 -- noinline functions (that are module instantiations) need to be at the top
-aQExp False x@(ANoInlineFunCall t i f es) = do
+aQExp' False x@(ANoInlineFunCall t i f es) = rewriting $ do
     es' <- mapM (aQExp False) es
     i <- addExpr t (ANoInlineFunCall t i f es')
     return (ASDef t i)
 
 -- ULT, ULE and EQ can be logically flipped downstream so they do not
 -- need additional quirk handling
-aQExp top (APrim aid t PrimBNot [e@(APrim _ _ p _)]) | (isSafe p) = do
+aQExp' top (APrim aid t PrimBNot [e@(APrim _ _ p _)]) | (isSafe p) = do
     e' <- aQExp False e
     return (APrim aid t PrimBNot [e'])
     where isSafe PrimULT = True
@@ -264,15 +351,20 @@ aQExp top (APrim aid t PrimBNot [e@(APrim _ _ p _)]) | (isSafe p) = do
           isSafe PrimEQ3 = True
           isSafe _       = False
 
-aQExp top (APrim aid t PrimNeg es)  = do
+aQExp' top (APrim aid t PrimNeg es)  = do
     es' <- mapM (aQExp False) es
     un <- gets qs_useNegate
+    when (not un) markRewrite
     return (if un then APrim aid t PrimNeg es' else APrim aid t PrimSub (aSInt t 0 : es'))
 
 -- + and - should not have their arguments zero extended
-aQExp top (APrim aid t p es) | p == PrimAdd || p == PrimSub = do
+aQExp' top (APrim aid t p es) | p == PrimAdd || p == PrimSub = do
     es' <- mapM (aQExp False) es
     keepAddSize <- gets qs_keepAddSize
+    let dropsExtension (APrim _ _ PrimZeroExt [_]) = True
+        dropsExtension (APrim _ _ PrimConcat [ASInt _ _ (IntLit _ _ 0), _]) = True
+        dropsExtension _ = False
+    when (keepAddSize && any dropsExtension es') markRewrite
     let es'' = if keepAddSize then
                 let dropzext (APrim aid _ PrimZeroExt [e]) = e
                     dropzext (APrim aid _ PrimConcat [ASInt _ _ (IntLit _ _ 0), e]) = e
@@ -290,7 +382,7 @@ aQExp top (APrim aid t p es) | p == PrimAdd || p == PrimSub = do
 -- evaluates their width-sensitive subexpressions (e.g. negation in
 -- sign-magnitude arithmetic) in the correct narrow context rather than
 -- the wider result context.
-aQExp top x@(APrim aid t p es) | p == PrimMul =
+aQExp' top x@(APrim aid t p es) | p == PrimMul =
     if top
     then if ((aSize t) == (sum (map aSize es)))
          then do es' <- mapM mkDefS es
@@ -302,44 +394,44 @@ aQExp top x@(APrim aid t p es) | p == PrimMul =
 -- when arguments are complex expressions (e.g. sign-magnitude negations),
 -- Verilog evaluates them in the result width rather than the operand width.
 -- Forcing arguments into named defs gives each the correct narrow context.
-aQExp top x@(APrim aid t p es) | p == PrimQuot || p == PrimRem = do
+aQExp' top x@(APrim aid t p es) | p == PrimQuot || p == PrimRem = do
     es' <- mapM mkDefS es
     return (APrim aid t p es')
 
 -- For PrimMux and PrimPriMux operators,
-aQExp top x@(APrim aid t p es) | p == PrimMux || p == PrimPriMux = do
+aQExp' top x@(APrim aid t p es) | p == PrimMux || p == PrimPriMux = do
     when debug $ traceM("aQExp PrimMux PrimPriMux: " ++ ppReadable x)
     es'           <- mapM (aQExp False) es
     rmPrimModules <- gets qs_rmPrimModules
     readableMux   <- gets qs_readableMux
     case ( rmPrimModules,  readableMux ) of
-      (True, False) ->         aQMux aid t p es' -- build AndOr Muxes
+      (True, False) ->         rewriting (aQMux aid t p es') -- build AndOr Muxes
       (_, _ )       ->  return (APrim aid t p es')
 
-aQExp top (APrim aid t p es)       = mapM (aQExp False) es >>= return . APrim aid t p
-aQExp top (AMethCall t i m es)     = mapM (aQExp False) es >>= return . AMethCall t i m
-aQExp top (ANoInlineFunCall t i f es)      = mapM (aQExp False) es >>= return . ANoInlineFunCall t i f
-aQExp top (AFunCall t i f isC es)  = mapM (aQExp False) es >>= return . AFunCall t i f isC
-aQExp top (ATuple t es)            = do
+aQExp' top (APrim aid t p es)       = mapM (aQExp False) es >>= return . APrim aid t p
+aQExp' top (AMethCall t i m es)     = mapM (aQExp False) es >>= return . AMethCall t i m
+aQExp' top (ANoInlineFunCall t i f es)      = mapM (aQExp False) es >>= return . ANoInlineFunCall t i f
+aQExp' top (AFunCall t i f isC es)  = mapM (aQExp False) es >>= return . AFunCall t i f isC
+aQExp' top (ATuple t es)            = do
     es' <- mapM (aQExp False) es
     return (ATuple t es')
-aQExp top (ATupleSel t e n)       = do
+aQExp' top (ATupleSel t e n)       = do
     e' <- aQExp False e
     return (ATupleSel t e' n)
-aQExp top e@(AMethValue {})        = return e
-aQExp top e@(ASInt _ _ _)          = return e
-aQExp top e@(ASReal _ _ _)         = return e
-aQExp top e@(ASStr _ _ _)          = return e
-aQExp top e@(ASPort _ _)           = return e
-aQExp top e@(ASParam _ _)          = return e
-aQExp top e@(ASDef _ _)            = return e
-aQExp top e@(ASAny _ _)            = return e
-aQExp True  e@(ATaskValue _ _ _ _ _) = return e
-aQExp False e@(ATaskValue _ _ _ _ _) = internalError("AVerilog.aQExp: ATaskValue must not be inlined - " ++ ppReadable e)
-aQExp _ (ASClock { })              = internalError("AVerilog.aQExp: unexpected clock")
-aQExp _ (ASReset { })              = internalError("AVerilog.aQExp: unexpected reset")
-aQExp _ (ASInout { })              = internalError("AVerilog.aQExp: unexpected inout")
-aQExp _ (AMGate { })               = internalError("AVerilog.aQExp: unexpected gate")
+aQExp' top e@(AMethValue {})        = return e
+aQExp' top e@(ASInt _ _ _)          = return e
+aQExp' top e@(ASReal _ _ _)         = return e
+aQExp' top e@(ASStr _ _ _)          = return e
+aQExp' top e@(ASPort _ _)           = return e
+aQExp' top e@(ASParam _ _)          = return e
+aQExp' top e@(ASDef _ _)            = return e
+aQExp' top e@(ASAny _ _)            = return e
+aQExp' True  e@(ATaskValue _ _ _ _ _) = return e
+aQExp' False e@(ATaskValue _ _ _ _ _) = internalError("AVerilog.aQExp: ATaskValue must not be inlined - " ++ ppReadable e)
+aQExp' _ (ASClock { })              = internalError("AVerilog.aQExp: unexpected clock")
+aQExp' _ (ASReset { })              = internalError("AVerilog.aQExp: unexpected reset")
+aQExp' _ (ASInout { })              = internalError("AVerilog.aQExp: unexpected inout")
+aQExp' _ (AMGate { })               = internalError("AVerilog.aQExp: unexpected gate")
 
 -- these are operations which cannot be nested, since the generated verilog pushed
 -- them into a separate always block.
@@ -418,11 +510,14 @@ mkDefS e@(ATupleSel _ _ _)  = return e  -- XXX shouldn't exist
 mkDefS e@(ASDef {})           = return e
 mkDefS e@(ASPort {})          = return e
 mkDefS e@(ASParam {})         = return e
-mkDefS e@(_)                  = do
+mkDefS e@(_)                  = rewriting $ do
     e' <- aQExp True e
     let t = aType e
     i <- addExpr t e'           -- add the new def to the monad
-    return (ASDef t i)
+    let result = ASDef t i
+    retainSourceTypes e result
+    retainSourceTypes e' result
+    return result
 
 -- extracts of v[n:0]  become v
 aExtract :: AId -> AType -> AExpr -> AExpr -> AExpr -> AExpr
