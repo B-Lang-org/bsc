@@ -287,6 +287,7 @@ syncfifo.sENQ Bool
 syncfifo.sFULL_N Bool
 syncfifo.sRST Reset
 topPixel WireTypes::Pixel
+{MUX_pal$write_1__VAL_2} {Vector::Vector#(4, WireTypes::Color)}
 {bram_memory$ADDR} Bit#(6)
 {bram_memory$CLK} Clock
 {bram_memory$DI} WireTypes::Cell
@@ -396,6 +397,7 @@ topPixel WireTypes::Pixel
 {creg$EN_port2__write} Bool
 {creg$EN_port3__write} Bool
 {creg$EN_port4__write} Bool
+{creg$EN} Bool
 {creg$Q_OUT_0} WireTypes::Pixel
 {creg$Q_OUT_1} WireTypes::Pixel
 {creg$Q_OUT_2} WireTypes::Pixel

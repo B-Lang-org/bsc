@@ -131,6 +131,7 @@ import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
 import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
 import ASourceTypes(anchorASPackage)
+import AMuxSourceTypes(propagateArgumentMuxTypes)
 import WireAnalysis(getFinalWireTypeCandidates)
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
@@ -1109,7 +1110,7 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Generate muxes etc.
        start flags DFastate
        asmod0 <- aState errh flags pprops scheduleInfo atsPackage
-       let asmod = anchorASPackage asmod0
+       let asmod = anchorASPackage (propagateArgumentMuxTypes asmod0)
        -- after aState, method calls should no longer exist
        asMethCheck flags asmod "astate"
        t <- dump errh flags t DFastate dumpnames asmod
