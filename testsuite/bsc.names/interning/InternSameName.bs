@@ -1,0 +1,34 @@
+package InternSameName where
+
+import InternSameNameSub
+
+-- Each copy of a name below is made from the name's string while the name
+-- is still unevaluated, so interning the copy first interns the name.  The
+-- two must still get the same id.  (The copy must be used first, or the
+-- name is interned on its own and nothing is tested.)
+
+mkSubA :: Reg Bool -> Module Empty
+mkSubA r = module
+  rules
+    "ra": when True ==> r := not r
+
+{-# verilog sysInternSameName #-}
+sysInternSameName :: Module Empty
+sysInternSameName = module
+  s :: Reg Bool <- mkReg False
+  p :: Reg Bool <- mkReg False
+  q :: Reg Bool <- mkReg False
+  let copy nm = primMakeName (primGetNameString nm) (getEvalPosition s)
+      nm7 = primExtendNameIndex (primGetName s) (7 :: Integer)
+      nm8 = primExtendNameIndex (primGetName s) (8 :: Integer)
+  -- The mkSubB instance must be renamed s_7_1 (register s_7_1_d).  If not,
+  -- its rule ra is renamed ra_1, the urgency attribute in mkSubB applies to
+  -- ra, and rb fires instead of ra (q is written instead of p).
+  setStateName (copy nm7) (mkSubA s)
+  setStateName nm7 (mkSubB p q)
+  -- The type saved under nm8 must be found for register s_8, and is kept
+  -- over the UInt#(8) that mkRegU saves after it.
+  r :: Reg (UInt 8) <- setStateName (copy nm8) $ module
+    primSavePortType (Just nm8) "D_IN" (typeOf (_ :: Int 8))
+    mkRegU
+  interface

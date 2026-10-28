@@ -6,6 +6,8 @@ import Prelude hiding((++), concat, filter)
 import qualified Prelude((++), filter)
 import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)
+import Control.Exception(evaluate)
+import Data.Maybe(fromMaybe)
 import qualified Data.IntMap.Strict as M
 -- import qualified NotSoSpeedyString
 import ErrorUtil (internalError)
@@ -32,10 +34,13 @@ toString (SString id) = unsafePerformIO $
                         do m <- readVar strings
                            return $ M.findWithDefault err id m
 
+-- s is hashed (forcing all of it) before the table is read, because
+-- forcing s can intern other strings, even one equal to s
 fromString :: String -> SString
 fromString s = unsafePerformIO $
-               do m <- readVar sstrings
-                  return $ maybe (newSString s) id $ M.lookup (hashStr s) m >>= lookup s
+               do h <- evaluate (hashStr s)
+                  m <- readVar sstrings
+                  return $ fromMaybe (newSString s) (M.lookup h m >>= lookup s)
 
 (++) :: SString -> SString -> SString
 s ++ s' = fromString $ (toString s) Prelude.++ (toString s')

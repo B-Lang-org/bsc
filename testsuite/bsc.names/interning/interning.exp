@@ -1,0 +1,11 @@
+# Test that names with the same spelling get the same id, even when
+# interning one interns the other (see SpeedyString.fromString)
+
+compile_verilog_pass InternSameName.bs {} {-elab}
+if { $vtest == 1 } {
+find_n_strings sysInternSameName.v {reg s_7_1_d;} 1
+find_n_strings sysInternSameName.v {assign p$EN = 1'd1 ;} 1
+find_n_strings sysInternSameName.v {assign q$EN = 1'b0 ;} 1
+bluetcl_exec_pass "-exec intern_same_name.tcl" sysInternSameName
+find_n_strings sysInternSameName.bluetcl-out {{D_IN Int#(8)}} 1
+}
