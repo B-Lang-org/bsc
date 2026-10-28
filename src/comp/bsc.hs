@@ -1141,7 +1141,10 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Rename submodule ports from the method-notation to the actual
        -- Verilog port names
        start flags DFrenameio
-       let armod = aRenameIO flags asmodNoCReg
+       -- Inlining exposes selections; renaming can join duplicate outputs.
+       -- Close their candidate sets before unused definitions disappear.
+       let armod = anchorASPackage (propagateConditionalTypes
+                                       (aRenameIO flags asmodNoCReg))
        asCheck flags armod "renameio"
        t <- dump errh flags t DFrenameio dumpnames armod
        stats flags DFrenameio armod
@@ -1162,7 +1165,9 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
 
        -- Expand some primitives
        start flags DFsynthesize
-       let asynmod = aSynthesize flags (anchorASPackage aomod)
+       -- Optimization can expose further sharing and lower array selections.
+       let asynmod = aSynthesize flags
+                         (anchorASPackage (propagateConditionalTypes aomod))
        asCheck flags asynmod "asynthesize"
        -- Check that referenced signal names exist
        asSignalCheck flags asynmod "synthesize"

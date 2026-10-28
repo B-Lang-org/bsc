@@ -1,10 +1,10 @@
-Argument-mux source type propagation
+Module-port source type propagation
 
 Run after building the compiler:
   GHC=/path/to/compiler-ghc ./run-mux.sh
 
 The direct fixture begins without evaluator observations. It checks recovery
-from method data-port types, joins of multiple interpretations, split ports,
+from method input/output port types, joins of multiple interpretations, split ports,
 method multiplicity, and exclusion of selectors, enables, arithmetic operands,
 bare Bit port seeds, and independent unspecified defaults. Hardware fields must
 remain unchanged. The BSV fixture checks declared physical wires and .ba reload.
@@ -16,10 +16,21 @@ Conditional source type propagation (separate step)
 
   GHC=/path/to/compiler-ghc ./run-conditional.sh
 
-The result's interpretations flow to conditional data alternatives, including
-case defaults, while selectors and labels remain separate. Mux and conditional
+Candidate sets flow in both directions between selection results and their
+data alternatives, including siblings and case defaults. Selectors and labels
+remain separate. Array elements and dynamic selection results also share
+candidates through an element group, without assigning element types to the
+aggregate array itself. Mux and conditional
 edges share one closure to handle alternating nests and new candidates arriving
 at already visited shared values. The direct fixture checks these cases, same-
-width and operation boundaries, no arm-to-result inference, idempotence, and
+width and operation boundaries, arm-to-result and sibling inference, idempotence, and
 unchanged hardware. The BSV fixture checks new types on actual physical ports
 and preservation through .ba reload.
+
+Candidate sets remain sets of IType; no provenance or serialization fields are
+added. Real aliases and CSE joins union all candidates. Independent unspecified
+values and unrelated literal occurrences do not connect selection groups.
+Closure reruns after wire/register inlining and optimization expose new edges.
+
+End-to-end candidate-set fixtures (default and seven backend flags):
+  GHC=/path/to/compiler-ghc ./run-candidate-sets.sh

@@ -7,7 +7,7 @@ task_install=${BSC_INSTALL:-$root/inst}
 task_output=$(mktemp -d "${TMPDIR:-/tmp}/argument-mux-types.XXXXXX")
 trap 'rm -rf "$task_output"' EXIT
 
-"$ghc_cmd" --make -O0 -i"$root/src/comp" -i"$root/src/comp/Libs" \
+"$ghc_cmd" --make -O0 -rtsopts -i"$root/src/comp" -i"$root/src/comp/Libs" \
     -i"$root/src/comp/GHC/posix" -outputdir "$task_output/ghc" \
     "$here/ArgumentMuxTypesCheck.hs" -o "$task_output/check"
 "$task_output/check"
