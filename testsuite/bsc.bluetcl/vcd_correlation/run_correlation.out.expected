@@ -172,7 +172,7 @@
     syncfifo$sENQ : Bool
     syncfifo$sFULL_N : Bool
 === Bluesim ===
-  hits:    86
+  hits:    91
   matched wires (sorted):
     CLK : Clock
     RST_N : Reset
@@ -186,6 +186,7 @@
     bram_serverAdapter_cnt_1 : Int#(3)
     bram_serverAdapter_cnt_2 : Int#(3)
     bram_serverAdapter_cnt_3 : Int#(3)
+    bram_serverAdapter_cnt___d15 : Int#(3)
     bram_serverAdapter_outData_dequeueing : Bool
     bram_serverAdapter_outData_enqw : WireTypes::Cell
     bram_serverAdapter_outData_ff.CLR : Bool
@@ -198,6 +199,7 @@
     bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     bram_serverAdapter_s1_1 : Maybe#(Bool)
+    bram_serverAdapter_s1__h3338 : Maybe#(Bool)
     bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
     cellWire : WireTypes::Cell
     cells.CLR : Bool
@@ -238,12 +240,15 @@
     loopCnt.q_state : Bit#(12)
     mpx : Maybe#(WireTypes::Pixel)
     pal : Vector::Vector#(4, WireTypes::Color)
+    pal__h4006 : Vector::Vector#(4, WireTypes::Color)
     pixelBypass : Maybe#(WireTypes::Pixel)
     pulse : Bool
     pulseCount : UInt#(8)
+    pulseCount___d69 : UInt#(8)
     pulseHistory : Bit#(8)
     pulseTick : Bit#(2)
     px : WireTypes::Pixel
+    px___d55 : WireTypes::Pixel
     simpleCount : UInt#(4)
     simplePulse : Bool
     mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
@@ -397,7 +402,7 @@
     ticks : Bit#(8)
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 398
+  total VCD hits across all (module, scope) pairs: 403
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####
@@ -671,7 +676,7 @@ RESULT: PASS
     syncfifo$sENQ : Bool
     syncfifo$sFULL_N : Bool
 === Bluesim ===
-  hits:    86
+  hits:    91
   matched wires (sorted):
     CLK : Clock
     RST_N : Reset
@@ -685,6 +690,7 @@ RESULT: PASS
     bram_serverAdapter_cnt_1 : Int#(3)
     bram_serverAdapter_cnt_2 : Int#(3)
     bram_serverAdapter_cnt_3 : Int#(3)
+    bram_serverAdapter_cnt___d15 : Int#(3)
     bram_serverAdapter_outData_dequeueing : Bool
     bram_serverAdapter_outData_enqw : WireTypes::Cell
     bram_serverAdapter_outData_ff.CLR : Bool
@@ -697,6 +703,7 @@ RESULT: PASS
     bram_serverAdapter_outData_ff.RST : Reset
     bram_serverAdapter_s1 : Maybe#(Bool)
     bram_serverAdapter_s1_1 : Maybe#(Bool)
+    bram_serverAdapter_s1__h3338 : Maybe#(Bool)
     bram_serverAdapter_writeWithResp : Tuple2#(Bool, Bool)
     cellWire : WireTypes::Cell
     cells.CLR : Bool
@@ -737,12 +744,15 @@ RESULT: PASS
     loopCnt.q_state : Bit#(12)
     mpx : Maybe#(WireTypes::Pixel)
     pal : Vector::Vector#(4, WireTypes::Color)
+    pal__h4006 : Vector::Vector#(4, WireTypes::Color)
     pixelBypass : Maybe#(WireTypes::Pixel)
     pulse : Bool
     pulseCount : UInt#(8)
+    pulseCount___d69 : UInt#(8)
     pulseHistory : Bit#(8)
     pulseTick : Bit#(2)
     px : WireTypes::Pixel
+    px___d55 : WireTypes::Pixel
     simpleCount : UInt#(4)
     simplePulse : Bool
     mpxProbe$PROBE : Maybe#(WireTypes::Pixel)
@@ -896,7 +906,7 @@ RESULT: PASS
     ticks : Bit#(8)
 
 === summary ===
-  total VCD hits across all (module, scope) pairs: 429
+  total VCD hits across all (module, scope) pairs: 434
 RESULT: PASS
 
 ##### module: mkSplitPortsTest  @  main.top.dut #####

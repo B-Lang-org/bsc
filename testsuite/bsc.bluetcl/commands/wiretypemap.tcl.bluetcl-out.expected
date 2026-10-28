@@ -28,6 +28,7 @@ CAN_FIRE_RL_sink_cells Bool
 CLK Clock
 EN_loadPixel Bool
 EN_setPalette Bool
+NOT_bram_serverAdapter_writeWithResp_wget__8_B_ETC___d32 Bool
 RDY_currentCell Bool
 RDY_loadPixel Bool
 RDY_maybePixel Bool
@@ -58,12 +59,14 @@ WILL_FIRE_RL_poke_simple Bool
 WILL_FIRE_RL_rotate_palette Bool
 WILL_FIRE_RL_shift_history Bool
 WILL_FIRE_RL_sink_cells Bool
+_0_CONCAT_DONTCARE___d25 Maybe#(Bool)
 bram_memory.ADDR Bit#(6)
 bram_memory.CLK Clock
 bram_memory.DI WireTypes::Cell
 bram_memory.DO WireTypes::Cell
 bram_memory.EN Bool
 bram_memory.WE Bool
+bram_memory_read____d41 WireTypes::Cell
 bram_serverAdapter_cnt Int#(3)
 bram_serverAdapter_cnt.CLK Clock
 bram_serverAdapter_cnt.D_IN Int#(3)
@@ -77,6 +80,7 @@ bram_serverAdapter_cnt_1.WSET Bool
 bram_serverAdapter_cnt_1.WVAL Int#(3)
 bram_serverAdapter_cnt_1.wget Int#(3)
 bram_serverAdapter_cnt_1.whas Bool
+bram_serverAdapter_cnt_1_wget____d16 Int#(3)
 bram_serverAdapter_cnt_2 Int#(3)
 bram_serverAdapter_cnt_2.WGET Int#(3)
 bram_serverAdapter_cnt_2.WHAS Bool
@@ -84,6 +88,7 @@ bram_serverAdapter_cnt_2.WSET Bool
 bram_serverAdapter_cnt_2.WVAL Int#(3)
 bram_serverAdapter_cnt_2.wget Int#(3)
 bram_serverAdapter_cnt_2.whas Bool
+bram_serverAdapter_cnt_2_wget____d19 Int#(3)
 bram_serverAdapter_cnt_3 Int#(3)
 bram_serverAdapter_cnt_3.WGET Int#(3)
 bram_serverAdapter_cnt_3.WHAS Bool
@@ -91,6 +96,8 @@ bram_serverAdapter_cnt_3.WSET Bool
 bram_serverAdapter_cnt_3.WVAL Int#(3)
 bram_serverAdapter_cnt_3.wget Int#(3)
 bram_serverAdapter_cnt_3.whas Bool
+bram_serverAdapter_cnt_3_wget____d14 Int#(3)
+bram_serverAdapter_cnt___d15 Int#(3)
 bram_serverAdapter_outData_beforeDeq.CLK Clock
 bram_serverAdapter_outData_beforeDeq.D_IN Bool
 bram_serverAdapter_outData_beforeDeq.EN Bool
@@ -110,6 +117,7 @@ bram_serverAdapter_outData_enqw.WSET Bool
 bram_serverAdapter_outData_enqw.WVAL WireTypes::Cell
 bram_serverAdapter_outData_enqw.wget WireTypes::Cell
 bram_serverAdapter_outData_enqw.whas Bool
+bram_serverAdapter_outData_enqw_wget____d7 WireTypes::Cell
 bram_serverAdapter_outData_ff.CLK Clock
 bram_serverAdapter_outData_ff.CLR Bool
 bram_serverAdapter_outData_ff.DEQ Bool
@@ -132,6 +140,8 @@ bram_serverAdapter_s1_1.WSET Bool
 bram_serverAdapter_s1_1.WVAL Maybe#(Bool)
 bram_serverAdapter_s1_1.wget Maybe#(Bool)
 bram_serverAdapter_s1_1.whas Bool
+bram_serverAdapter_s1_1_wget____d24 Maybe#(Bool)
+bram_serverAdapter_s1__h3137 Maybe#(Bool)
 bram_serverAdapter_writeWithResp {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.WGET {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.WHAS Bool
@@ -139,6 +149,7 @@ bram_serverAdapter_writeWithResp.WSET Bool
 bram_serverAdapter_writeWithResp.WVAL {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.wget {Tuple2#(Bool, Bool)}
 bram_serverAdapter_writeWithResp.whas Bool
+bram_serverAdapter_writeWithResp_wget____d28 {Tuple2#(Bool, Bool)}
 cellWire WireTypes::Cell
 cellWire.WGET WireTypes::Cell
 cellWire.WHAS Bool
@@ -155,6 +166,7 @@ cells.EMPTY_N Bool
 cells.ENQ Bool
 cells.FULL_N Bool
 cells.RST Reset
+cells_first____d57 WireTypes::Cell
 cl WireTypes::Cell
 cl.CLK Clock
 cl.D_IN WireTypes::Cell
@@ -201,6 +213,8 @@ leafB.depth Bit#(8)
 leafB.push_p WireTypes::Pixel
 leafB.top WireTypes::Pixel
 loadPixel_p WireTypes::Pixel
+loadPixel_p_BITS_17_TO_10_4_PLUS_1___d85 UInt#(8)
+loadPixel_p_BITS_17_TO_10___d84 UInt#(8)
 loopCnt Bit#(12)
 loopCnt.ADDA Bool
 loopCnt.ADDB Bool
@@ -230,6 +244,7 @@ pal.D_IN {Vector::Vector#(4, WireTypes::Color)}
 pal.EN Bool
 pal.Q_OUT {Vector::Vector#(4, WireTypes::Color)}
 pal.RST Reset
+pal__h3805 {Vector::Vector#(4, WireTypes::Color)}
 palette {Vector::Vector#(4, WireTypes::Color)}
 pixelBypass Maybe#(WireTypes::Pixel)
 pixelBypass.WGET Maybe#(WireTypes::Pixel)
@@ -245,6 +260,7 @@ pulseCount.D_IN UInt#(8)
 pulseCount.EN Bool
 pulseCount.Q_OUT UInt#(8)
 pulseCount.RST Reset
+pulseCount___d66 UInt#(8)
 pulseHistory Bit#(8)
 pulseHistory.CLK Clock
 pulseHistory.D_IN Bit#(8)
@@ -273,6 +289,7 @@ simpleCount.D_IN UInt#(4)
 simpleCount.EN Bool
 simpleCount.Q_OUT UInt#(4)
 simpleCount.RST Reset
+simpleCount___d79 UInt#(4)
 simplePulse Bool
 simplePulse.WHAS Bool
 simplePulse.WSET Bool
@@ -534,6 +551,7 @@ q.EMPTY_N Bool
 q.ENQ Bool
 q.FULL_N Bool
 q.RST Reset
+q_first____d4 WireTypes::Pixel
 top WireTypes::Pixel
 {cnt$CLK} Clock
 {cnt$D_IN} Bit#(8)

@@ -31,6 +31,7 @@ import System.Posix.Signals
 import Text.Regex
 import Data.Generics (listify)
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 -- Bluespec imports
 import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr, fst3,
@@ -73,7 +74,7 @@ import AUses(MethodId(..))
 import VModInfo
 import ADumpSchedule
 import BackendNamingConventions
-import WireAnalysis(getWireTypeMap)
+import WireAnalysis(getWireTypeMap, getWireTypeCandidates)
 
 import TclParseUtils
 
@@ -980,7 +981,7 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
                 (oneOf [ loadGrammar, clearGrammar, submodsGrammar
                        , rulesGrammar, ifcGrammar, methodsGrammar
                        , bflagsGrammar
-                       , portsGrammar, porttypesGrammar, wiretypemapGrammar
+                       , portsGrammar, porttypesGrammar, wiretypemapGrammar, wiretypecandidatesGrammar
                        , listGrammar
                        , methodConditionsGrammar
                        ])
@@ -1009,6 +1010,11 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
               (kw "wiretypemap"
                   "Map wire names to source types, for VCD correlation"
                   "") .+.
+              (arg "module" StringArg "module name")
+          wiretypecandidatesGrammar =
+              (kw "wiretypecandidates"
+                  "Map wire names to all observed source types"
+                  "Returns {wire {type ...}} entries, preserving ambiguous interpretations") .+.
               (arg "module" StringArg "module name")
 
 
@@ -1222,6 +1228,21 @@ tclModule ["wiretypemap",modname] = do
                typeObjs = M.fromList [ (t, TStr (pfpString t))
                                      | (_, t) <- entries ]
                mkEntryObj (name, t) = TLst [TStr name, typeObjs M.! t]
+           return $ TLst $ map mkEntryObj entries
+------
+tclModule ["wiretypecandidates",modname] = do
+  if isPrimitiveModule modname
+   then return $ TLst []
+   else do
+     minfo <- findModule modname
+     case minfo of
+       Nothing -> return $ TLst []
+       Just abmi -> do
+           let entries = getWireTypeCandidates (abemi_apkg abmi)
+               rendered = M.fromList [(t, pfpString t) |
+                                      t <- S.toList (S.fromList (concatMap snd entries))]
+               mkEntryObj (name, ts) = TLst [TStr name,
+                   TLst [TStr (rendered M.! t) | t <- ts]]
            return $ TLst $ map mkEntryObj entries
 ------
 tclModule ["flags",modname] = do

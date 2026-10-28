@@ -25,14 +25,16 @@
 --
 -- Over-emission is intentional: a correlator building a name -> type
 -- dict can index by VCD wire name and match whichever form appears.
-module WireAnalysis (getWireTypeMap) where
+module WireAnalysis (getWireTypeMap, getWireTypeCandidates) where
 
 import qualified Data.Map as M
-
+import qualified Data.Map.Strict as MS
+import qualified Data.Set as S
 import Util(stableOrdNub)
-import Id(getIdString, mkRdyId, isRdyId, mkIdCanFire, mkIdWillFire)
-import ISyntax(IType)
-import ISyntaxUtil(itBool, itClock, itReset)
+
+import Id(getIdString, unQualId, mkRdyId, isRdyId, mkIdCanFire, mkIdWillFire)
+import ISyntax(IType(..))
+import ISyntaxUtil(itBool, itClock, itReset, itBit)
 import ASyntax
 import VModInfo
 import BackendNamingConventions(isRegInst, isCRegInst, cregToReg,
@@ -40,8 +42,89 @@ import BackendNamingConventions(isRegInst, isCRegInst, cregToReg,
                                 isRWire, isRWire0,
                                 isBypassWire, isBypassWire0)
 
+-- Existing consumers expect one interpretation per wire. Keep declared source
+-- types, refine a bare Bit type only when the evidence is unambiguous, and add
+-- new internal wires only when there is a single observed interpretation.
 getWireTypeMap :: APackage -> [(String, IType)]
 getWireTypeMap apkg =
+    let declared = declaredWireTypeMap apkg
+        known = M.fromListWith S.union [(n, S.singleton t) | (n,t) <- declared]
+        inferred = observedWireTypes apkg
+        choices n = S.filter (not . isBitType) $
+            M.findWithDefault S.empty n known `S.union`
+            M.findWithDefault S.empty n inferred
+        refine (n,t) = case S.toList (choices n) of
+                         [t'] | isBitType t, M.member n inferred -> (n,t')
+                         _ -> (n,t)
+        extra = [(n,t) | (n,ts) <- M.toList inferred, M.notMember n known,
+                         [t] <- [S.toList ts]]
+    in stableOrdNub (map refine declared ++ extra)
+
+-- Unlike wiretypemap, this query represents ambiguity explicitly. A CSE'd
+-- expression can be unpacked at several unrelated nominal source types.
+getWireTypeCandidates :: APackage -> [(String, [IType])]
+getWireTypeCandidates apkg = M.toList $ M.map S.toList $
+    M.unionWith S.union (observedWireTypes apkg)
+        (M.fromListWith S.union [(n,S.singleton t) |
+                                 (n,t) <- declaredWireTypeMap apkg])
+
+isBitType :: IType -> Bool
+isBitType (ITAp t _) = t == itBit
+isBitType _ = False
+
+-- Index all aliases of an expression once, then join type observations to
+-- those names. Only actual definitions and named boundary wires are emitted;
+-- metadata expressions do not manufacture wires in the generated netlist.
+observedWireTypes :: APackage -> M.Map String (S.Set IType)
+observedWireTypes apkg = MS.fromListWith S.union
+    [(name, ts) | (e,ts) <- M.toList observed,
+                  name <- S.toList (names e)]
+  where
+    -- Many retained observations can refer to aliases of the same value.
+    -- Union their interpretations before expanding names so this join does
+    -- not generate a quadratic number of repeated (name, type-set) pairs.
+    observed = MS.fromListWith S.union
+        [(canonical e, ts) | (e,ts0) <- apkg_expr_types apkg,
+                             let ts = S.filter (not . isBitType) ts0,
+                             not (S.null ts)]
+    ifcDefs = [(d, fi) | AIDef { aif_value = d, aif_fieldinfo = fi } <- apkg_interface apkg] ++
+              [(d, fi) | AIActionValue { aif_value = d, aif_fieldinfo = fi } <- apkg_interface apkg]
+    -- A method result can be split across several physical ports. Match
+    -- each element to its own port; the aggregate method is not a wire.
+    outputDefs (ADef _ (ATTuple ts) (ATuple _ es) _, fi) =
+        zipWith3 (\i t e -> ADef i t e []) (mkNamedOutputs fi) ts es
+    outputDefs (ADef _ t e _, fi) =
+        [ADef i t e [] | [i] <- [mkNamedOutputs fi]]
+    namedDefs = apkg_local_defs apkg ++ concatMap outputDefs ifcDefs
+    defs = namedDefs ++ map fst ifcDefs
+    defmap = M.fromList [(i, canonical e) | ADef i _ e _ <- defs]
+    canonical e@(ASDef _ i) = M.findWithDefault e i defmap
+    canonical e = e
+    nameIndex = M.fromListWith S.union
+        [(canonical e, S.singleton (getIdString i)) | ADef i _ e _ <- namedDefs]
+    names e = M.findWithDefault S.empty e nameIndex `S.union` leafNames e
+    leafNames (ASPort _ i) = S.singleton (getIdString i)
+    leafNames (AMethValue _ i m) = methodNames i m Nothing
+    leafNames (AMethCall _ i m []) = methodNames i m Nothing
+    leafNames (ATupleSel _ (AMethValue _ i m) idx) = methodNames i m (Just idx)
+    leafNames (ATupleSel _ (AMethCall _ i m []) idx) = methodNames i m (Just idx)
+    leafNames _ = S.empty
+    -- A wide interface can have many observed methods. Index the fields once
+    -- rather than scanning the whole interface for every observation.
+    methodIndex = M.fromListWith S.union
+        [((avi_vname v,m,index), S.fromList $
+            [inst ++ "$" ++ port, inst ++ "." ++ port] ++
+            [inst | isRegInst v && port == qoutPortStr]) |
+          v <- apkg_state_instances apkg,
+          Method { vf_name = m, vf_outputs = outs } <- vFields (avi_vmi v),
+          (idx, (vn,_)) <- zip [1..] outs,
+          index <- Just idx : [Nothing | [_] <- [outs]],
+          let inst = getIdString (avi_vname v)
+              port = getVNameString vn]
+    methodNames i m idx = M.findWithDefault S.empty (i, unQualId m, idx) methodIndex
+
+declaredWireTypeMap :: APackage -> [(String, IType)]
+declaredWireTypeMap apkg =
     let wires = apkg_external_wires apkg
         ext_entries = [ mkEntry (getVNameString vn) t
                       | (vn, t) <- M.toList (apkg_external_wire_types apkg) ]

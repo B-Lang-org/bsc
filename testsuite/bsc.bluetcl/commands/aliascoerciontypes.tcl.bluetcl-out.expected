@@ -1,0 +1,2 @@
+PASS: 32 physical aliases retain both nominal interpretations and their declared legacy type
+PASS: repeated alias candidate sets survive .ba reload

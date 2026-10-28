@@ -48,6 +48,7 @@ OK (2 top-level fields)
   inflight.ENQ Prelude.Bool
   inflight.FULL_N Prelude.Bool
   inflight.RST Prelude.Reset
+  inflight_first____d6 SplitPortsTest.Inner
   last_header SplitPortsTest.Header
   last_header.CLK Prelude.Clock
   last_header.D_IN SplitPortsTest.Header

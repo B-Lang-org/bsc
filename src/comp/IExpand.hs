@@ -283,7 +283,9 @@ iExpand errh flags symt alldefs atf_cache is_noinlined_func pps def@(IDef mi _ _
       -- collect a map of the heap pointers reachable from insts, rules, and ifc
       -- these will become defs in the resulting IModule
       -- Position information has been clobbered in iheap
-      iheap = collPtrs (insts, rules, ifc) IM.empty
+      (heap_info, _, root_types) = collPtrs (insts, rules, ifc)
+          (IM.empty, M.fromList (go_source_leaf_types go), M.empty)
+      iheap = IM.map fst heap_info
       -- a list of just the pointers
       ptrs0 = IM.keys iheap
       -- CSE the pointers and return a map from old pointers to the remaining
@@ -353,6 +355,14 @@ iExpand errh flags symt alldefs atf_cache is_noinlined_func pps def@(IDef mi _ _
       -- replacing the old pointers with the expressions of the new pointers
       m = IM.fromList [(p, mget (ptran p)) | p <- ptrs0 ]
 
+      -- Union every source interpretation in a CSE class, including the
+      -- noncanonical cells. The expression can be a port or another simple
+      -- leaf that pDef inlines rather than assigning an IDef.
+      expr_types = M.toList $ M.fromListWith S.union $
+          [ (mget (ptran p), ts)
+            | (p, (_, ts)) <- IM.toList heap_info, not (S.null ts) ] ++
+          [ (hToDef m e, ts) | (e, ts) <- M.toList root_types ]
+
       -- replaces pointers in the insts, rules, and ifcs
       insts' = hToDef m insts
       rules_heap = hToDef m rules
@@ -377,7 +387,7 @@ iExpand errh flags symt alldefs atf_cache is_noinlined_func pps def@(IDef mi _ _
       -- the expanded module
       imod0 = IModule mi is_noinlined_func mbe wi [] iks args
                      (go_clock_domains go) (go_resets go)
-                     insts' (go_port_types go)
+                     insts' (go_port_types go) expr_types
                      defs rules_cleanup ifc'
                      (go_ffcallNo go) comments_map
       -- if preserving method conditions, then remove the book-keeping info
@@ -1123,8 +1133,8 @@ iExpandMethod :: Id -> Integer -> [Id] -> HPred ->
                     (HDef, HWireSet, VFieldInfo))
 iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e) = do
     when doDebug $ traceM ("iExpandMethod " ++ ppString i ++ " " ++ ppReadable e)
-    (_, P p e') <- evalUH e
-    case e' of
+    (ee, P p e') <- evalUH e
+    result@(_, (IDef _ _ value _, _, _), _) <- case e' of
      ILAM li ki eb ->
         -- must be due to a type which wasn't in Bits class
         -- (GenWrap checks for polymorphism, so this can only come from
@@ -1133,6 +1143,8 @@ iExpandMethod modId n args implicitCond clkRst@(curClk, _) (i, bi, ins, outs, e)
         errG (reportNonSynthTypeInMethod modId i e')
      ILam li ty eb -> iExpandMethodLam modId n args implicitCond clkRst (i, bi, ins, outs, eb) li ty p
      _ -> iExpandMethod' implicitCond curClk (i, bi, outs, e') p
+    saveEvaluatedSourceTypes ee value
+    return result
 
 iExpandMethodLam :: Id -> Integer -> [Id] -> HPred ->
                  (HClock, HReset) -> (Id, BetterInfo.BetterInfo, [[String]], [String], HExpr) ->
@@ -2519,12 +2531,14 @@ evalNF :: HExpr -> G (PExpr, HWireSet)
 evalNF e = do
   (P p0 e') <- eval1 e
   (P p e'', ws) <- walkNF e'
+  saveEvaluatedSourceTypes e' e''
   return (P (pConj p0 p) e'', ws)
 
 evalUHNF :: HExpr -> G (PExpr, HWireSet)
 evalUHNF e = do
-  (_, P p0 e') <- evalUH e
+  (ee, P p0 e') <- evalUH e
   (P p e'', ws) <- walkNF e'
+  saveEvaluatedSourceTypes ee e''
   return (P (pConj p0 p) e'', ws)
 
 -- Compute an expression to NF.
@@ -2541,8 +2555,11 @@ walkNF e =
     nfError "walkNF" e
   else do
     when (doDebug || doTraceNF) $ traceM ("walkNF " ++ ppReadable e)
-    let upd p e@(IRefT _ _ _ _) ws = do
-            P p' e' <- unheap (P p e)
+    let upd p next@(IRefT _ _ _ _) ws = do
+            case e of
+              IRefT _ _ _ ref -> shareHeapSourceTypes ref next
+              _ -> return ()
+            P p' e' <- unheap (P p next)
             upd p' e' ws
         upd p n ws =
             let pn = P p n in
@@ -3199,7 +3216,9 @@ evalHeap (ptr, ref) = do
         when doDebug $ traceM ("evalHeap " ++ ppReadable (ptr, e))
         -- we don't use evalUH here because we don't want to trigger
         -- lazy bit-array fusing
-        pe' <- eval1 e >>= unheap
+        pe <- eval1 e
+        shareHeapSourceTypes ref (case pe of P _ value -> value)
+        pe' <- unheap pe
         when doDebug $ traceM ("evalHeap " ++ ppReadable (ptr, pe'))
         case pe' of
             P _ (IAps (ICon _ (ICUndet { })) _ _) -> internalError ("evalHeap: " ++ ppReadable (ptr, pe'))
@@ -3808,13 +3827,15 @@ conAp' i ci@(ICPrim _ PrimPack) _ [T ta, T tn, E d, E x]
         (xee, P px xw) <- evalUH x
         case xw of
           ICon _ (ICLazyUnpack { lzTa = ta', lzOrig = b }) | ta == ta' ->
-              return (P px b)
+              do saveSourceType ta b
+                 return (P px b)
           ICon _ (ICUndet {}) ->
               addPredG px $ unfoldBitsCoercion "PrimPack" idPack d [E xee]
           _ -> do
               sel <- mkBitsMethodSel i (iConType ci) idPack
               aref <- toHeap "coerce" (aitBit tn)
                              (IAps sel [ta, tn] [d, xee]) Nothing
+              saveSourceType ta aref
               let node = ICLazyPack { iConType = aitBit tn, lzTa = ta,
                                       lzTn = tn, lzOrig = xee,
                                       lzApplied = aref }
@@ -3828,6 +3849,7 @@ conAp' i ci@(ICPrim _ PrimPack) _ [T ta, T tn, E d, E x]
 conAp' i ci@(ICPrim _ PrimUnpack) _ [T ta, T tn, E d, E x]
     | not doEagerPackUnpack, tn /= ITNum 0, tn /= ITNum 1 = do
         (xee, P px xw) <- evalUH x
+        saveSourceType ta xee
         case xw of
           ICon _ (ICLazyPack { lzTa = ta', lzOrig = v }) | ta == ta' ->
               return (P px v)
@@ -3845,6 +3867,17 @@ conAp' i ci@(ICPrim _ PrimUnpack) _ [T ta, T tn, E d, E x]
               -- NB: px is deliberately NOT attached (see PrimPack above)
               return (P pTrue (ICon i node))
 
+-- Eager coercions (including small widths that survived ISimplify) have
+-- the same observations. Partial applications have no bit-side value yet.
+conAp' _ (ICPrim _ PrimPack) _ [T ta, T tn, E d, E x] = do
+        P p e <- unfoldBitsCoercion "PrimPack" idPack d [E x]
+        e' <- toHeapWHNF "pack-source-type" (aitBit tn) (P pTrue e) Nothing
+        saveSourceType ta e'
+        return (P p e')
+conAp' _ (ICPrim _ PrimUnpack) _ (T ta : T tn : E d : E x : rest) = do
+        x' <- toHeap "unpack-source-type" (aitBit tn) x Nothing
+        saveSourceType ta x'
+        unfoldBitsCoercion "PrimUnpack" idUnpack d (E x' : rest)
 conAp' _ (ICPrim _ PrimPack) _ (T _ : T _ : E d : rest) =
         unfoldBitsCoercion "PrimPack" idPack d rest
 conAp' _ (ICPrim _ PrimUnpack) _ (T _ : T _ : E d : rest) =
@@ -4864,6 +4897,7 @@ improveIf f t cnd thn@(ICon i1 n1@(ICLazyPack { lzTa = ta1, lzTn = tn1,
        -- mux in WHNF state; lzApplied stays unevaluated, as at creation.
        o' <- toHeapWHNF "improve-if-held" ta1 (P pTrue (IAps f [ta1] [cnd, o1, o2])) Nothing
        a' <- toHeapCon "improve-if-held" t (IAps f [t] [cnd, a1, a2]) Nothing
+       saveSourceType ta1 a'
        return (ICon i1 (n1 { lzOrig = o', lzApplied = a' }), True)
 improveIf f t cnd thn@(ICon i1 n1@(ICLazyUnpack { lzTa = ta1, lzTn = tn1,
                                                   lzOrig = o1, lzApplied = a1 }))
@@ -4878,6 +4912,7 @@ improveIf f t cnd thn@(ICon i1 n1@(ICLazyUnpack { lzTa = ta1, lzTn = tn1,
        -- the payload type (t = ta = iConType of the node)
        -- see the pack arm above: lzOrig must be an evaluated cell
        o' <- toHeapWHNF "improve-if-held" (aitBit tn1) (P pTrue (IAps f [aitBit tn1] [cnd, o1, o2])) Nothing
+       saveSourceType ta1 o'
        a' <- toHeapCon "improve-if-held" t (IAps f [t] [cnd, a1, a2]) Nothing
        return (ICon i1 (n1 { lzOrig = o', lzApplied = a' }), True)
 -- Muxing a held coercion against an undefined value drops the undefined
@@ -5685,8 +5720,11 @@ doSetSelPosition icon ty poss ee (p, e) = do
 -- references are being used in the result (collPtrs collects the pointers)
 -- and to inline the defs in place of the heap pointers (with hToDef).
 
+type HeapSnapshot = (IM.IntMap (HeapCell, S.Set IType),
+                     M.Map HExpr (S.Set IType), M.Map HExpr (S.Set IType))
+
 class HeapToDef a where
-    collPtrs :: a -> IM.IntMap HeapCell -> IM.IntMap HeapCell
+    collPtrs :: a -> HeapSnapshot -> HeapSnapshot
     hToDef :: IM.IntMap HExpr -> a -> a
 
     hToDef _ x = x
@@ -5741,27 +5779,36 @@ instance HeapToDef HDef where
     collPtrs (IDef i t e _) = collPtrs e
     hToDef m def = iDefMap (hToDef m) def
 
-instance HeapToDef HExpr where
-    collPtrs (IAps f ts es) m = collPtrs (f:es) m
---    collPtrs (ICon _ (ICStateVar { iVar = iv })) m = collPtrs iv m
-    collPtrs (ICon _ (ICLazyArray _ arr _)) m =
+collHeapExpr :: HExpr -> HeapSnapshot -> HeapSnapshot
+collHeapExpr (IAps f _ es) m = collPtrs (f:es) m
+collHeapExpr (ICon _ (ICLazyArray _ arr _)) m =
         let elem_ty = (undefined :: IType)
             mkRef (ArrayCell p r) = IRefT elem_ty p S.empty r
             refs = map mkRef (Array.elems arr)
         in  collPtrs refs m
-    collPtrs (ICon _ _) m = m
-    collPtrs (IRefT _ p _ r) m =
-        if p `IM.member` m then
+collHeapExpr (ICon _ _) m = m
+collHeapExpr (IRefT _ p _ r) m@(heap, observations, found) =
+        if p `IM.member` heap then
             m
         else
-            let c = unsafeDerefHeap r in
+            let c = unsafeDerefHeap r
+                entry = (c, unsafeHeapSourceTypes r)
+            in
               case c of
-                HNF { hc_pexpr = P _ e } -> collPtrs e (IM.insert p c m)
+                HNF { hc_pexpr = P _ e } ->
+                    collPtrs e (IM.insert p entry heap, observations, found)
                 HWHNF { hc_pexpr = P _ e } ->
 --                traces ("collPtrs: " ++ ppReadable (p, e))
-                  collPtrs e (IM.insert p c m)
+                  collPtrs e (IM.insert p entry heap, observations, found)
                 e -> internalError ("collPtrs: " ++ ppReadable e)
-    collPtrs e m = internalError ("collPtrs: " ++ ppReadable e)
+collHeapExpr e m = internalError ("collPtrs: " ++ ppReadable e)
+
+instance HeapToDef HExpr where
+    collPtrs e (heap, observations, found) =
+        let found' = case M.lookup e observations of
+                       Nothing -> found
+                       Just ts -> M.insertWith S.union e ts found
+        in collHeapExpr e (heap, observations, found')
 
     hToDef m (IAps f ts es) = IAps f ts (hToDef m es)
     hToDef m (ICon i ic@(ICStateVar { })) = ICon i (ic { iVar = hToDef m (iVar ic) })
