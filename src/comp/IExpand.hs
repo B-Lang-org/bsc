@@ -4591,7 +4591,7 @@ getBuriedPreds (ICon _ (ICLazyArray arr_ty arr u)) =
                       (ITAp c t) | (c == itPrimArray) -> t
                       _ -> internalError ("getBuriedPreds: array type: " ++
                                           ppReadable arr_ty)
-          mkRef (ArrayCell p r) = IRefT elem_ty p r
+          mkRef (ArrayCell p r) = IRefT elem_ty p S.empty r
       getBuriedPredsForced (map mkRef (Array.elems arr))
 getBuriedPreds e@(ICon _ _) = do
   --traceM("getBuriedPreds: con: e = " ++ ppReadable e ++ show e)

@@ -1,5 +1,4 @@
 depth Bit#(8)
-push void
 push_p WireTypes::Pixel
 top WireTypes::Pixel
 CLK Clock

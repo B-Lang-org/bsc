@@ -1,5 +1,4 @@
 depth {Prelude.Bit 8}
-push Prelude.PrimUnit
 push_p WireTypes.Pixel
 top WireTypes.Pixel
 CLK Prelude.Clock
