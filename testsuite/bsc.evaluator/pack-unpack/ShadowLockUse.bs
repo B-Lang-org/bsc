@@ -1,0 +1,17 @@
+package ShadowLockUse(mkShadowLockUse) where
+
+-- Cross-package, Classic syntax: a new instance still compiles (field
+-- table) and both unqualified and qualified uses resolve to the wrapper.
+import ShadowLock
+
+data W = MkW
+
+instance C5 W where
+    m5 _ = 3
+
+{-# verilog mkShadowLockUse #-}
+mkShadowLockUse :: Module IfcSL
+mkShadowLockUse =
+  module
+    interface
+        out = m5 MkW + ShadowLock.m5 MkV - 17

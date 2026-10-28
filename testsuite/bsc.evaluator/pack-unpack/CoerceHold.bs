@@ -1,0 +1,26 @@
+package CoerceHold(T(..), Ifc(..), mkCoerceHold) where
+
+-- Core cancellation test: a register-to-register copy of a custom
+-- non-Bit type is pack(unpack(Q)), which must cancel: the
+-- (message-instrumented) instance methods below are never elaborated
+-- (no ENTERED-* lines in the compile output) and the copy path is a
+-- plain wire in the generated Verilog.
+data T = MkT (Bit 16)
+
+instance Bits T 16 where
+    pack (MkT v) = primSeq (message "ENTERED-PACK" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkT v)
+
+interface Ifc =
+    dummy :: Bool
+
+{-# verilog mkCoerceHold #-}
+mkCoerceHold :: Module Ifc
+mkCoerceHold =
+  module
+    src :: Reg T <- mkRegU
+    dst :: Reg T <- mkRegU
+    rules
+        "copy": when True ==> dst := src
+    interface
+        dummy = True

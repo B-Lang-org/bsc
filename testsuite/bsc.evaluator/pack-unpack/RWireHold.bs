@@ -1,0 +1,29 @@
+package RWireHold(T(..), Ifc(..), mkRWireHold) where
+
+-- A same-cycle RWire handoff of a custom type: wset packs at the wire
+-- boundary, wget unpacks it back wrapped in Maybe (a derived instance
+-- layered over the custom one); the consumer re-packs.  The round
+-- trip through the wire must cancel: no instance methods, and the
+-- register data input is the raw concatenation of the producer's
+-- registers.
+data T = MkT (Bit 4) (Bit 4)
+
+instance Bits T 8 where
+    pack (MkT a b) = primSeq (message "ENTERED-PACK" ()) (a ++ b)
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkT v[7:4] v[3:0])
+
+interface Ifc =
+  dummy :: Bool
+
+{-# verilog mkRWireHold #-}
+mkRWireHold :: Module Ifc
+mkRWireHold = module
+  a :: Reg (Bit 4) <- mkReg 0
+  b :: Reg (Bit 4) <- mkReg 1
+  rw :: RWire T <- mkRWire
+  y :: Reg (Bit 8) <- mkReg 0
+  rules
+    "put": when True ==> rw.wset (MkT a b)
+    "get": when True ==> y := (case rw.wget of { Just v -> pack v; Nothing -> 0; })
+  interface Ifc
+    dummy = True

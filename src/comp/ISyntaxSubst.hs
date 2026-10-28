@@ -291,6 +291,10 @@ etSubstIConInfo tsubFn esubFn ii@(ICLazyArray { uninit = mu }) =
 etSubstIConInfo _ _ ii@(ICDef { }) = Unchanged
 -- ICValue: evaluator-created definition; too late to substitute
 etSubstIConInfo _ _ ii@(ICValue { }) = Unchanged
+-- ICLazyPack/ICLazyUnpack: evaluator-created, types already ground and
+-- the held expressions are heap references; too late to substitute
+etSubstIConInfo _ _ ii@(ICLazyPack { }) = Unchanged
+etSubstIConInfo _ _ ii@(ICLazyUnpack { }) = Unchanged
 -- Catch-all: substitute iConType only
 -- We do not have special handling for ICStateVar because we do not enter the
 -- IStateVar it contains. This is because we don't want the IStateVars in ICStateVars
