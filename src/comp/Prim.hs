@@ -321,6 +321,16 @@ data PrimOp =
         | PrimGetParamName -- get the parameter name associated with the function value
 
         | PrimEQ3 -- === / Verilog case equality
+
+        -- implicit Bits pack/unpack coercions; the Prelude wrappers
+        -- (Prelude.pack/Prelude.unpack) apply these to the Bits dictionary,
+        -- and the evaluator unfolds them to the corresponding class method.
+        -- They never survive past IExpand.
+        -- NB: .bo files encode PrimOp via fromEnum (see writePrimOp below),
+        -- so any change to this enum requires bumping the .bo format tag
+        -- (GenBin.header).
+        | PrimPack
+        | PrimUnpack
         deriving (Eq, Ord, Show, Enum, Bounded, Generic.Data, Generic.Typeable)
 
 -- Just some size, have to be coordinated with Prelude.bs
@@ -565,6 +575,9 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primBuildArray" = PrimBuildArray
 
         tp "primSetSelPosition" = PrimSetSelPosition
+
+        tp "primPack" = PrimPack
+        tp "primUnpack" = PrimUnpack
         tp s = internalError ("unknown primitive: " ++ s ++ " " ++ prPosition (getIdPosition i))
 
 instance PPrint PrimOp where
@@ -873,6 +886,8 @@ instance NFData PrimOp where
     rnf PrimSetSelPosition = ()
     rnf PrimGetParamName = ()
     rnf PrimEQ3 = ()
+    rnf PrimPack = ()
+    rnf PrimUnpack = ()
 
 -----
 

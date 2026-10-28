@@ -1,0 +1,32 @@
+package MuxHold(TM(..), IfcM(..), mkMuxHold) where
+
+-- Held+held merge test: a register written with a mux of two other
+-- registers of a custom non-Bit type is
+--     pack (if c then unpack src1 else unpack src2)
+-- The two held unpacks merge into ONE held unpack whose payload is the
+-- mux of the raw bits (materializing neither instance method), and the
+-- write-path pack then cancels against it: the (message-instrumented)
+-- instance methods below are never elaborated (no ENTERED-* lines in
+-- the compile output) and the register's D_IN is a direct
+-- register-to-register mux in the generated Verilog.
+data TM = MkTM (Bit 16)
+
+instance Bits TM 16 where
+    pack (MkTM v) = primSeq (message "ENTERED-PACK" ()) v
+    unpack v = primSeq (message "ENTERED-UNPACK" ()) (MkTM v)
+
+interface IfcM =
+    dummy :: Bool
+
+{-# verilog mkMuxHold #-}
+mkMuxHold :: Module IfcM
+mkMuxHold =
+  module
+    cond :: Reg Bool <- mkRegU
+    src1 :: Reg TM <- mkRegU
+    src2 :: Reg TM <- mkRegU
+    dst :: Reg TM <- mkRegU
+    rules
+        "copy": when True ==> dst := (if cond then src1 else src2)
+    interface
+        dummy = True

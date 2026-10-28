@@ -193,20 +193,19 @@ if { $vtest == 1 } {
 }
 
 # A non-constant struct value (derived from register state) is passed to a
-# submodule's shallow-split argument.  The tuple value is a literal-tuple def, so
-# it is emitted as one wire per element and each split input port is driven
-# directly by its element wire -- no slicing of a combined wide wire.  (This is an
-# ordinary synthesized submodule, not noinline.)
+# submodule's shallow-split argument. After pack/unpack cancellation each
+# split input is driven by its element expression, without slicing a combined
+# wide wire. (This is an ordinary synthesized submodule, not noinline.)
 test_c_veri SplitArgSlice
 if { $vtest == 1 } {
     # the submodule's shallow-split argument: leaf `a` on its own port, the
     # nested `inner` struct combined into one port
     find_regexp mkSub.v {input  \[7 : 0\] put_1_a;}
     find_regexp mkSub.v {input  \[15 : 0\] put_1_inner;}
-    # the Outer value is split into per-element wires (..._1 / ..._2) and each
-    # split port is driven directly by its element wire (no bit-select)
-    find_regexp sysSplitArgSlice.v {s[$]put_1_a = [A-Za-z0-9_]+_1 ;}
-    find_regexp sysSplitArgSlice.v {s[$]put_1_inner = [A-Za-z0-9_]+_2 ;}
+    # Each split port uses its data expression directly (no bit-select of
+    # a combined Outer value).
+    find_regexp sysSplitArgSlice.v {assign s[$]put_1_a = c ;}
+    find_regexp sysSplitArgSlice.v {assign s[$]put_1_inner = \{ [A-Za-z0-9_]+, [A-Za-z0-9_]+ \} ;}
     find_regexp_fail sysSplitArgSlice.v {\[[0-9]+:[0-9]+\]}
 }
 

@@ -1,0 +1,39 @@
+package SharedBoth(IfcSB(..), mkSharedDecodeFirst, mkSharedWriteFirst) where
+
+-- The same unpacked value is both decoded (case on its tag) and written
+-- back (pack).  Cancellation of the write-back must survive regardless
+-- of which consumer elaborates first: the two modules differ only in
+-- rule order, and both must produce a wire for the register's D_IN.
+data S = SA (Bit 8) | SB (Bit 8)
+
+instance Bits S 9 where
+    pack (SA v) = 0b0 ++ v
+    pack (SB v) = 0b1 ++ v
+    unpack b = if b[8:8] == 0 then SA b[7:0] else SB b[7:0]
+
+interface IfcSB =
+    tag :: Bool
+
+{-# verilog mkSharedDecodeFirst #-}
+mkSharedDecodeFirst :: Module IfcSB
+mkSharedDecodeFirst =
+  module
+    r :: Reg S <- mkRegU
+    t :: Reg Bool <- mkRegU
+    rules
+        "decode": when True ==> t := (case r of { SA _ -> True; SB _ -> False })
+        "writeback": when True ==> r := r
+    interface
+        tag = t
+
+{-# verilog mkSharedWriteFirst #-}
+mkSharedWriteFirst :: Module IfcSB
+mkSharedWriteFirst =
+  module
+    r :: Reg S <- mkRegU
+    t :: Reg Bool <- mkRegU
+    rules
+        "writeback": when True ==> r := r
+        "decode": when True ==> t := (case r of { SA _ -> True; SB _ -> False })
+    interface
+        tag = t

@@ -1,0 +1,22 @@
+package ZeroWidth(IfcZW(..), mkZeroWidth) where
+
+-- Zero-width coercions are unfolded eagerly (never held); a register
+-- round trip of a zero-width type must simply compile.
+data Z = MkZ (Bit 0)
+
+instance Bits Z 0 where
+    pack (MkZ v) = v
+    unpack v = MkZ v
+
+interface IfcZW =
+    dummy :: Bool
+
+{-# verilog mkZeroWidth #-}
+mkZeroWidth :: Module IfcZW
+mkZeroWidth =
+  module
+    r :: Reg Z <- mkRegU
+    rules
+        "writeback": when True ==> r := r
+    interface
+        dummy = True
