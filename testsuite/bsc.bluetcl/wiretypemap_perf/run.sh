@@ -5,6 +5,11 @@
 # Correctness plus optional scaling measurements (two entries per instance):
 #   GHC=ghc testsuite/bsc.bluetcl/wiretypemap_perf/run.sh 2000 4000 8000 16000
 #
+# Shared-expression alias join scaling (one observation per alias):
+#   GHC=ghc testsuite/bsc.bluetcl/wiretypemap_perf/run.sh --aliases 1000 2000 4000
+#
+# The --cached-aliases mode measures queries with final physical candidates.
+#
 # For an A/B comparison, export an older WireAnalysis.hs to a directory:
 #   mkdir -p /tmp/wire-analysis-baseline
 #   git show BASE_REF:src/comp/WireAnalysis.hs > /tmp/wire-analysis-baseline/WireAnalysis.hs
@@ -30,13 +35,18 @@ if [[ -n ${WIRE_ANALYSIS_DIR:-} ]]; then
     extra_sources+=("-i$WIRE_ANALYSIS_DIR")
 fi
 
-"$ghc_cmd" --make -O2 "${extra_sources[@]}" \
+"$ghc_cmd" --make -O2 -rtsopts "${extra_sources[@]}" \
     -i"$root/src/comp" -i"$root/src/comp/Libs" \
     -i"$root/src/comp/GHC/posix" \
     -outputdir "$build_dir" "$here/WireTypeMapCheck.hs" \
     -o "$build_dir/check"
 
 "$build_dir/check"
+benchmark_mode=()
+if [[ ${1:-} == --aliases || ${1:-} == --cached-aliases ]]; then
+    benchmark_mode=("$1")
+    shift
+fi
 for count in "$@"; do
-    "$build_dir/check" "$count"
+    "$build_dir/check" "${benchmark_mode[@]}" "$count"
 done

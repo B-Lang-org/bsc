@@ -215,6 +215,106 @@ checkSourceTypeAnchors = do
         error "unspecified choices spread evidence between independent definitions"
     putStrLn "PASS: unspecified definitions keep independent identities while real aliases share"
 
+
+-- Retained anchors and CSE may provide one observation per alias of a value.
+-- The result has one entry per alias, even when every observation reaches all
+-- of them. Distinct interpretations must be united before that expansion.
+aliasPackage :: Int -> APackage
+aliasPackage count = (package [] []) {
+    apkg_local_defs = [ADef (ident i) bt (rhs i) [] | i <- [1..count]],
+    apkg_expr_types = [(ASDef bt (ident i), S.singleton itBool) | i <- [1..count]],
+    apkg_final_wire_names = Just (M.fromList [(label i, label i) | i <- [1..count]]) }
+  where
+    bt = ATBit 8
+    label i = "alias" ++ show i
+    ident = mk_homeless_id . label
+    rhs i | i > 1 && odd i = ASDef bt (ident 1)
+          | otherwise = APrim (mk_homeless_id ("site" ++ show i)) bt PrimAdd
+              [ASPort bt (mk_homeless_id "input"),
+               ASInt (mk_homeless_id ("literal" ++ show i)) bt (ilDec 3)]
+
+checkObservedAliases :: IO ()
+checkObservedAliases = do
+    let count = 7
+        base = aliasPackage count
+        names = map fst (M.toList (maybe M.empty id (apkg_final_wire_names base)))
+        refs = [ASDef (ATBit 8) (mk_homeless_id n) | n <- names]
+        observations = apkg_expr_types base ++
+            [(head refs, S.fromList [itBool,itClock,itBitN 8]),
+             (last refs, S.empty), (last refs, S.singleton itClock)]
+        input = base { apkg_expr_types = observations,
+                       apkg_external_wire_types = M.fromList
+                           [(VName "alias2",itBitN 8),(VName "alias1",itClock)] }
+        expected = M.fromList [(n, S.fromList ([itBool,itClock] ++
+                                       [itBitN 8 | n == "alias2"])) | n <- names]
+        candidates = M.fromList [(n,S.fromList ts) | (n,ts) <- getWireTypeCandidates input]
+    unless (candidates == expected) $
+        error ("shared aliases lost candidate interpretations: " ++ show candidates)
+    unless (getWireTypeMap input == [("alias1",itClock),("alias2",itBitN 8)]) $
+        error "shared interpretations changed declared legacy types or order"
+    unless (getWireTypeMap base == [(n,itBool) | n <- names]) $
+        error "singleton shared interpretation changed legacy alias order"
+    unless (getWireTypeCandidates input == getWireTypeCandidates
+                (input { apkg_expr_types = reverse observations })) $
+        error "alias candidate union depends on observation order"
+    putStrLn "PASS: shared aliases union all interpretations and preserve legacy order"
+
+
+checkCachedBoundaryAliases :: IO ()
+checkCachedBoundaryAliases = do
+    let n = mk_homeless_id
+        bt = ATBit 8
+        expression = APrim defaultAId bt PrimAdd
+            [ASPort bt (n "raw"), ASInt defaultAId bt (ilDec 3)]
+        input = (package [(name,itBitN 8) |
+                    name <- ["boundaryAlias","port","physical","stale"]] []) {
+            apkg_local_defs = [ADef (n name) bt expression [] |
+                               name <- ["boundaryAlias","hidden","stale"]],
+            apkg_expr_types = [(expression,S.singleton itBool),
+                               (ASPort bt (n "port"),S.singleton itClock)],
+            apkg_final_wire_names = Just (M.fromList
+                [("boundaryAlias","physical"),("port","port_renamed"),("stale","stale")]),
+            apkg_final_wire_types = Just (M.fromList
+                [("physical",S.singleton itClock),("stale",S.singleton itClock),
+                 ("port_renamed",S.singleton itBool)]) }
+        expected = M.fromList [(name,S.fromList [itBitN 8,t]) | (name,t) <-
+            [("boundaryAlias",itBool),("port",itClock),("physical",itClock),
+             ("stale",itClock),("port_renamed",itBool)]]
+        candidates pkg = M.fromList [(name,S.fromList ts) |
+                                    (name,ts) <- getWireTypeCandidates pkg]
+    unless (candidates input == expected) $
+        error ("cached candidates lost boundaries or exposed stale aliases: " ++ show (candidates input))
+    let emptyCache = (aliasPackage 7) { apkg_final_wire_types = Just M.empty }
+    unless (null (getWireTypeCandidates emptyCache) && null (getWireTypeMap emptyCache)) $
+        error "an authoritative empty cache exposed raw internal aliases"
+    putStrLn "PASS: cached physical candidates retain safe boundaries and exclude raw internals"
+
+benchmarkCachedAliases :: Int -> IO ()
+benchmarkCachedAliases count = do
+    let base = aliasPackage count
+        input = base { apkg_final_wire_types = fmap
+                           (M.map (const (S.singleton itBool))) (apkg_final_wire_names base) }
+    _ <- evaluate (force input)
+    start <- getCPUTime
+    result <- evaluate (force (getWireTypeCandidates input))
+    end <- getCPUTime
+    unless (length result == count && all ((== [itBool]) . snd) result) $
+        error "incorrect cached shared-alias benchmark candidates"
+    printf "%d cached aliases and observations, %d entries: %.6f CPU seconds\n"
+        count (length result) (fromIntegral (end - start) / 1e12 :: Double)
+
+benchmarkAliases :: Int -> IO ()
+benchmarkAliases count = do
+    let input = aliasPackage count
+    _ <- evaluate (force input)
+    start <- getCPUTime
+    result <- evaluate (force (getWireTypeCandidates input))
+    end <- getCPUTime
+    unless (length result == count && all ((== [itBool]) . snd) result) $
+        error "incorrect shared-alias benchmark candidates"
+    printf "%d shared aliases and observations, %d entries: %.6f CPU seconds\n"
+        count (length result) (fromIntegral (end - start) / 1e12 :: Double)
+
 benchmark :: Int -> IO ()
 benchmark count = do
     let input = package []
@@ -235,6 +335,8 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        [] -> checkPairs >> checkSplitOutputs >> checkEmittedNames >> checkSourceTypeAnchors
+        [] -> checkPairs >> checkSplitOutputs >> checkEmittedNames >> checkSourceTypeAnchors >> checkObservedAliases >> checkCachedBoundaryAliases
+        ["--cached-aliases",arg] | Just count <- readMaybe arg, count > 0 -> benchmarkCachedAliases count
+        ["--aliases",arg] | Just count <- readMaybe arg, count > 0 -> benchmarkAliases count
         [arg] | Just count <- readMaybe arg, count > 0 -> benchmark count
-        _ -> error "usage: WireTypeMapCheck [positive-instance-count]"
+        _ -> error "usage: WireTypeMapCheck [[--aliases|--cached-aliases] positive-count]"

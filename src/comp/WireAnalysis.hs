@@ -80,7 +80,13 @@ isBitType _ = False
 observedWireTypes :: APackage -> M.Map String (S.Set IType)
 observedWireTypes apkg = MS.unionWith S.union boundary mapped
   where
-    raw = sourceObservedWireTypes apkg
+    -- Once the backend has supplied physical candidates, raw observations
+    -- are needed only for safe declared boundary aliases (e.g. Bluesim names).
+    -- Restrict the join itself so it does not construct discarded internals.
+    wanted = case apkg_final_wire_types apkg of
+        Just _ -> Just (S.filter safeAlias declaredNames)
+        Nothing -> Nothing
+    raw = sourceObservedWireTypes wanted apkg
     declaredNames = S.fromList (map fst (declaredWireTypeMap apkg))
     -- Established boundary aliases are useful for both Verilog and Bluesim.
     -- Internal observations require a binding to an emitted signal: retaining
@@ -122,13 +128,20 @@ namedDeclaredWireTypeMap apkg = stableOrdNub (declared ++ renamed)
         Just names -> [(final, t) | (n,t) <- declared,
                                    Just final <- [M.lookup n names], final /= n]
 
-sourceObservedWireTypes :: APackage -> M.Map String (S.Set IType)
-sourceObservedWireTypes apkg = MS.fromListWith S.union
-    [(name, ts) | (e,ts0) <- apkg_expr_types apkg,
-                  let ts = S.filter (not . isBitType) ts0,
-                  not (S.null ts),
-                  name <- S.toList (names (canonical e))]
+sourceObservedWireTypes :: Maybe (S.Set String) -> APackage -> M.Map String (S.Set IType)
+sourceObservedWireTypes (Just wanted) _ | S.null wanted = M.empty
+sourceObservedWireTypes wanted apkg = MS.fromListWith S.union
+    [(name, ts) | (e,ts) <- M.toList observed,
+                  name <- S.toList (names e)]
   where
+    -- CSE and retained anchors can observe the same expression through many
+    -- aliases. Union those interpretations before expanding its names: doing
+    -- that expansion per observation generates a quadratic number of repeated
+    -- (name, type-set) pairs when there are many aliases of one value.
+    observed = MS.fromListWith S.union
+        [(canonical e, ts) | (e,ts0) <- apkg_expr_types apkg,
+                             let ts = S.filter (not . isBitType) ts0,
+                             not (S.null ts)]
     ifcDefs = [(d, fi) | AIDef { aif_value = d, aif_fieldinfo = fi } <- apkg_interface apkg] ++
               [(d, fi) | AIActionValue { aif_value = d, aif_fieldinfo = fi } <- apkg_interface apkg]
     -- A method result can be split across several physical ports. Match
@@ -141,8 +154,11 @@ sourceObservedWireTypes apkg = MS.fromListWith S.union
     defs = namedDefs ++ map fst ifcDefs
     canonical = canonicalSourceExpr defs
     nameIndex = MS.fromListWith S.union
-        [(canonical (ASDef t i), S.singleton (getIdString i)) | ADef i t _ _ <- namedDefs]
-    names e = M.findWithDefault S.empty e nameIndex `S.union` leafNames e
+        [(canonical (ASDef t i), S.singleton name) |
+          ADef i t _ _ <- namedDefs, let name = getIdString i, wantedName name]
+    wantedName n = maybe True (S.member n) wanted
+    names e = M.findWithDefault S.empty e nameIndex `S.union`
+              S.filter wantedName (leafNames e)
     leafNames (ASPort _ i) = S.singleton (getIdString i)
     leafNames (AMethValue _ i m) = methodNames i m Nothing
     leafNames (AMethCall _ i m []) = methodNames i m Nothing
