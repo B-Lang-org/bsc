@@ -591,7 +591,9 @@ aState' flags pps schedule_info apkg = do
                            aspkg_foreign_calls   = fblocks' ,
                            aspkg_inlined_ports   = [],
                            aspkg_signal_info     = signal_info,
-                           aspkg_comment_info    = comment_info }
+                           aspkg_comment_info    = comment_info,
+                           aspkg_expr_types      = mapExprTypes (exprMap subst)
+                                                       (apkg_expr_types apkg) }
 
     -- does the number of uses (n) exceed the number of available ports (p)?
     let overused_ports = [ (o,m,k,n) | ((o,m),n) <- omns,

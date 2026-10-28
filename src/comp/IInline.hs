@@ -70,6 +70,8 @@ iInlineS True imod@(IModule { imod_local_defs = ds,
         simple _ = False
 
     in  imod { imod_local_defs  = ds',
+               imod_expr_types = [(iSubst smap dmap e, ts) |
+                                   (e, ts) <- imod_expr_types imod],
                imod_rules       = rs',
                imod_interface   = ifc',
                imod_state_insts = state_vars' }
@@ -136,7 +138,15 @@ iInlineUseLimit use_limit
                       | (name, sv@(IStateVar { isv_iargs = es }))
                             <- imod_state_insts imod,
                         let es' = map (iSubst onemap dmap) es ]
+        -- Observations must not keep otherwise dead hardware alive. Inline
+        -- references to dropped definitions in the metadata as well.
+        kept = S.fromList [i | IDef i _ _ _ <- ds'']
+        meta_smap = M.union onemap $ M.fromList
+            [(i, iSubst meta_smap dmap e) | IDef i _ e _ <- ds',
+                                          i `S.notMember` kept]
         new_imod = imod { imod_local_defs = ds'',
+                          imod_expr_types = [(iSubst meta_smap dmap e, ts) |
+                                              (e, ts) <- imod_expr_types imod],
                           imod_rules = rs',
                           imod_interface = ifc',
                           imod_state_insts = state_vars' }

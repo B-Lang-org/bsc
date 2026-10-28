@@ -66,6 +66,7 @@ aRenameIO flags pkg =
                       (map (tr vmap) ws)       -- inlined port names
                       (trSI vmap si)           -- names in signal info
                       cmap  -- instance names should not have changed
+                      [(trE vmap e, ts) | (e, ts) <- aspkg_expr_types pkg]
 
     in
         new_pkg

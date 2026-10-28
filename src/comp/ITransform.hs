@@ -95,8 +95,9 @@ iTransform1 no errh flags prefix imod@(IModule { imod_state_insts = itvs,
     imod { imod_state_insts = itvs',
            imod_local_defs  = ds',
            imod_rules       = rs',
-           imod_interface   = ifc' }
-  where ((itvs', rs', ifc'), ds') = runT errh flags no prefix trMod
+           imod_interface   = ifc',
+           imod_expr_types  = ets' }
+  where ((itvs', rs', ifc', ets'), ds') = runT errh flags no prefix trMod
         trMod = do
             mapM_ iTrDef ds
             iTransFixupDefNames flags
@@ -107,7 +108,14 @@ iTransform1 no errh flags prefix imod@(IModule { imod_state_insts = itvs,
                              do es' <- mapM (iTrExprL emptyCtx []) es
                                 return (i, sv { isv_iargs = es' }))
                           itvs
-            return (itvs', rs', ifc')
+            -- Observe the same transformed/CSE'd expressions as the module.
+            -- Metadata is not a liveness root; subsequent inlining may drop
+            -- a definition created only while translating an observation.
+            ets' <- mapM (\(e, ts) -> do
+                             e' <- iTrExprL emptyCtx [] e
+                             return (e', ts))
+                         (imod_expr_types imod)
+            return (itvs', rs', ifc', ets')
 
 iTrIfc :: IEFace a -> T (IEFace a) a
 iTrIfc (IEFace i its met mrs wp fi)

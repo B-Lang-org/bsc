@@ -388,7 +388,7 @@ tracePP s x False = trace ("acheck:" ++ s ++ "\n" ++ show x) False
 -- Returns any names that are used but not defined.
 --
 aSignalCheck :: ASPackage -> [AId]
-aSignalCheck (ASPackage _ fmod ps _ is ios insts souts ds iods fs _ _ _) =
+aSignalCheck (ASPackage _ fmod ps _ is ios insts souts ds iods fs _ _ _ _) =
     let
         pnames = [ i | (i,_) <- ps ]
         inames = [ i | (i,_) <- is ]
@@ -463,7 +463,7 @@ checkUse ds is ps (AMGate _ i c) = []  -- XXX check i and c ?
 -- connections.
 
 aSMethCheck :: ASPackage -> Bool
-aSMethCheck (ASPackage _ _ _ _ _ _ ss _ ds iods fs _ _ _) =
+aSMethCheck (ASPackage _ _ _ _ _ _ ss _ ds iods fs _ _ _ _) =
     all chkMethAVInst ss  &&
     all chkMethADef ds    &&
     all chkMethADef iods  &&

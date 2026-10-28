@@ -280,7 +280,7 @@ instance Stats APackage where
         ))
 
 instance Stats ASPackage where
-    pStats _ (ASPackage i _ _ os is ios vs sos ds _ fs _ _ _) =
+    pStats _ (ASPackage i _ _ os is ios vs sos ds _ fs _ _ _ _) =
         (text "module" <+> ppId PDReadable i) $+$
         (text "  " <> (
         showLen os "outputs" $+$

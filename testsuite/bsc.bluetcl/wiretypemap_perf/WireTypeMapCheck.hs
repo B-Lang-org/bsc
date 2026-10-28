@@ -36,6 +36,7 @@ package external instances = APackage {
     apkg_clock_domains = [],
     apkg_external_wires = WireInfo clocks resets [],
     apkg_external_wire_types = M.fromList [(VName n, t) | (n, t) <- external],
+    apkg_expr_types = [],
     apkg_reset_list = [],
     apkg_state_instances = instances,
     apkg_local_defs = [],
