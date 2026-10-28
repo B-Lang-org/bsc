@@ -7,18 +7,26 @@ import Control.DeepSeq(force)
 import Control.Exception(evaluate)
 import Control.Monad(unless)
 import qualified Data.Map as M
+import qualified Data.Set as S
 import System.CPUTime(getCPUTime)
 import System.Environment(getArgs)
 import Text.Printf(printf)
 import Text.Read(readMaybe)
 
 import ASyntax
+import ASourceTypes(sourceTypeKey, sourceTypeLookup, anchorSourceTypes,
+                    namedSourceTypes)
+import ASyntaxUtil(inlineDroppedExprTypes)
 import Id(mk_homeless_id)
+import IntLit(ilDec, ilSizedHex)
+import Prim(PrimOp(PrimAdd, PrimBAnd))
+
 import ISyntax(IType)
-import ISyntaxUtil(itBool, itBitN)
+import ISyntaxUtil(itBool, itBitN, itClock)
 import SchedInfo(SchedInfo(..), MethodConflictInfo(..))
 import VModInfo
-import WireAnalysis(getWireTypeMap)
+import WireAnalysis(getWireTypeMap, getWireTypeCandidates)
+import Wires(emptyWireProps)
 
 clocks :: VClockInfo
 clocks = ClockInfo [] [] [] []
@@ -37,6 +45,8 @@ package external instances = APackage {
     apkg_external_wires = WireInfo clocks resets [],
     apkg_external_wire_types = M.fromList [(VName n, t) | (n, t) <- external],
     apkg_expr_types = [],
+    apkg_final_wire_names = Nothing,
+    apkg_final_wire_types = Nothing,
     apkg_reset_list = [],
     apkg_state_instances = instances,
     apkg_local_defs = [],
@@ -77,6 +87,134 @@ checkPairs = do
         error "empty package has candidate wires"
     putStrLn "PASS: stable pair deduplication, category order, distinct same-name types"
 
+-- Split results must join evidence to exactly the selected port,
+-- both on a submodule call and on the enclosing module's interface.
+checkSplitOutputs :: IO ()
+checkSplitOutputs = do
+    let iid = mk_homeless_id "child"
+        mid = mk_homeless_id "get"
+        bt = ATBit 1
+        tup = ATTuple [bt,bt]
+        fi = Method mid Nothing Nothing 1 [] [(VName "LEFT",[]),(VName "RIGHT",[])] Nothing
+        vmi = mkVModInfo (VName "TestPrimitive") clocks resets [] [fi]
+                  (SchedInfo (MethodConflictInfo [(mid,mid)] [] [] [] [] [] []) [] [] [])
+                  (VPathInfo [])
+        inst = (instanceWithType "child" (itBitN 1)) {
+                    avi_port_types = M.fromList [(VName "LEFT",itBitN 1),(VName "RIGHT",itBitN 1)],
+                    avi_vmi = vmi }
+        left = ATupleSel bt (AMethCall tup iid mid []) 1
+        right = ATupleSel bt (AMethCall tup iid mid []) 2
+        intf = AIDef mid [] emptyWireProps left
+                   (ADef mid tup (ATuple tup [left,right]) []) fi []
+        input = (package [("LEFT",itBitN 1),("RIGHT",itBitN 1)] [inst]) { apkg_interface = [intf],
+                  apkg_expr_types = [(left,S.singleton itBool)] }
+        actual = M.fromList (getWireTypeCandidates input)
+    unless (all (\n -> maybe False (itBool `elem`) (M.lookup n actual))
+                ["child$LEFT","child.LEFT","LEFT"]) $
+        error ("split output lost its observation: " ++ show actual)
+    unless (all (\n -> maybe True (itBool `notElem`) (M.lookup n actual))
+                ["child$RIGHT","child.RIGHT","RIGHT","get"]) $
+        error ("split output observation escaped to another port: " ++ show actual)
+    putStrLn "PASS: split result evidence follows only its physical output port"
+
+
+checkEmittedNames :: IO ()
+checkEmittedNames = do
+    let bt = ATBit 1
+        old = "bits__h112"
+        target = "bits__h1"
+        port = ASPort bt (mk_homeless_id "input")
+        other = ASPort bt (mk_homeless_id "other")
+        raw = (package [("input",itBitN 1)] []) {
+                apkg_local_defs = [ADef (mk_homeless_id old) bt port [],
+                                   ADef (mk_homeless_id target) bt other []],
+                apkg_expr_types = [(port,S.singleton itBool),(other,S.singleton itClock)] }
+        final = raw { apkg_final_wire_names = Just (M.fromList [(old,target),("input","input")]) }
+        mapped = M.fromList (getWireTypeCandidates final)
+        staged = M.fromList (getWireTypeCandidates raw)
+    unless (M.lookup target mapped == Just [itBool] && M.notMember old mapped) $
+        error ("stale-name collision contaminated final type: " ++ show mapped)
+    unless (M.lookup old staged == Just [itBool] && M.lookup target staged == Just [itClock] &&
+            maybe False (itBool `elem`) (M.lookup "input" staged)) $
+        error ("pre-codegen APackage fallback lost source observations: " ++ show staged)
+    let identity = raw { apkg_final_wire_names = Just (M.singleton old old) }
+    unless (M.lookup old (M.fromList (getWireTypeCandidates identity)) == Just [itBool]) $
+        error "identity emitted-name map lost an internal type"
+    let dollars = (package [("x$OUT",itBitN 1)] []) {
+                    apkg_expr_types = [(ASPort bt (mk_homeless_id "x$OUT"),S.singleton itBool)],
+                    apkg_final_wire_names = Just (M.singleton "x$OUT" "x_OUT") }
+    unless (M.lookup "x_OUT" (M.fromList (getWireTypeMap dollars)) == Just itBool) $
+        error "renamed declared wire did not retain its type evidence"
+    let cached = final { apkg_final_wire_types = Just (M.singleton target (S.singleton itClock)) }
+    unless (M.lookup target (M.fromList (getWireTypeCandidates cached)) == Just [itClock]) $
+        error "pre-backend observations overrode the final physical candidate map"
+    let emptyFinal = final { apkg_final_wire_types = Just M.empty }
+    unless (M.notMember target (M.fromList (getWireTypeCandidates emptyFinal))) $
+        error "authoritative empty final map fell back to stale observations"
+    putStrLn "PASS: emitted names, stale-name exclusion, identity, staged fallback, dollar aliases"
+
+checkSourceTypeAnchors :: IO ()
+checkSourceTypeAnchors = do
+    let n = mk_homeless_id
+        bt = ATBit 8
+        p = ASPort bt (n "input")
+        e1 = APrim (n "site1") bt PrimAdd [p,ASInt (n "lit1") bt (ilDec 3)]
+        e2 = APrim (n "site2") bt PrimAdd [p,ASInt (n "lit2") bt (ilSizedHex 8 3)]
+        x = n "x"
+        y = n "y"
+        defs = [ADef x bt e1 [], ADef y bt e2 []]
+        observations = [(ASDef bt x,S.singleton itBool),(ASDef bt y,S.singleton itClock)]
+        both = S.fromList [itBool,itClock]
+        lookupTypes = sourceTypeLookup defs observations
+    unless (e1 == e2 && compare e1 e2 /= EQ &&
+            compare (sourceTypeKey e1) (sourceTypeKey e2) == EQ &&
+            lookupTypes (ASDef bt x) == both && lookupTypes (ASDef bt y) == both) $
+        error "metadata key did not unite equivalent primitive/literal IDs"
+    let calls = [AMethCall bt (n receiver) (n "get") [e1] | receiver <- ["a","b"]]
+        tasks = [ATaskValue bt (n "task") "task" True cookie | cookie <- [1,2]]
+    unless (sourceTypeKey (head calls) /= sourceTypeKey (last calls) &&
+            sourceTypeKey (head tasks) /= sourceTypeKey (last tasks)) $
+        error "metadata key merged distinct method receivers or task calls"
+    -- An early alias disappears before a later RHS simplification. Retained
+    -- output anchors must carry its evidence to the newly shared value.
+    let out1 = n "out1"
+        out2 = n "out2"
+        different = APrim (n "other") bt PrimBAnd [p,p]
+        old = [ADef x bt e1 [], ADef y bt different [],
+               ADef out1 bt (ASDef bt x) [], ADef out2 bt (ASDef bt y) []]
+        inlined = [ADef out1 bt e1 [], ADef out2 bt different []]
+        kept = inlineDroppedExprTypes old inlined observations
+        rewritten = [ADef out1 bt e1 [], ADef out2 bt e2 []]
+        result = namedSourceTypes rewritten kept
+    unless (M.lookup "out1" result == Just both && M.lookup "out2" result == Just both) $
+        error "dropped alias or later equivalent RHS lost source candidates"
+    unless (anchorSourceTypes defs (anchorSourceTypes defs observations) ==
+            anchorSourceTypes defs observations) $
+        error "repeated anchoring accumulated duplicate observations"
+    putStrLn "PASS: metadata key normalization, call identity, dropped aliases, later RHS convergence"
+    let unknown = ASAny bt Nothing
+        compound = APrim defaultAId bt PrimAdd [p,unknown]
+        unknownDefs = [ADef (n "u1") bt unknown [], ADef (n "u2") bt unknown [],
+                       ADef (n "alias1") bt (ASDef bt (n "u1")) [],
+                       ADef (n "alias2") bt (ASDef bt (n "alias1")) [],
+                       ADef (n "nested1") bt compound [],
+                       ADef (n "nested2") bt compound []]
+        unknownTypes = [(ASDef bt (n "u1"),S.singleton itBool),
+                        (ASDef bt (n "nested1"),S.singleton itBool),
+                        (unknown,S.singleton itClock),(compound,S.singleton itClock)]
+        anchored = anchorSourceTypes unknownDefs unknownTypes
+        expected = M.fromList [(name,S.singleton itBool) |
+                              name <- ["u1","alias1","alias2","nested1"]]
+        actual = namedSourceTypes unknownDefs anchored
+        rawPackage = (package [] []) {
+            apkg_local_defs = unknownDefs, apkg_expr_types = unknownTypes,
+            apkg_final_wire_names = Just (M.fromList [(name,name) |
+                name <- ["u1","u2","alias1","alias2","nested1","nested2"]]) }
+    unless (actual == expected &&
+            M.fromList (getWireTypeCandidates rawPackage) == M.map S.toList expected) $
+        error "unspecified choices spread evidence between independent definitions"
+    putStrLn "PASS: unspecified definitions keep independent identities while real aliases share"
+
 benchmark :: Int -> IO ()
 benchmark count = do
     let input = package []
@@ -97,6 +235,6 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        [] -> checkPairs
+        [] -> checkPairs >> checkSplitOutputs >> checkEmittedNames >> checkSourceTypeAnchors
         [arg] | Just count <- readMaybe arg, count > 0 -> benchmark count
         _ -> error "usage: WireTypeMapCheck [positive-instance-count]"

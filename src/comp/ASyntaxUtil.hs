@@ -1,6 +1,8 @@
 {-# LANGUAGE PatternGuards #-}
 module ASyntaxUtil where
 import ASyntax
+import ASourceTypes(anchorSourceTypes)
+import ISyntax(IType)
 
 import ErrorUtil(internalError)
 
@@ -489,8 +491,9 @@ mapMExprTypes f = mapM (\(e, ts) -> do e' <- f e; return (e', ts))
 
 -- When a pass removes definitions, replace references in observations using
 -- the definitions' values. The lazy substitution map shares rewritten values.
-inlineDroppedExprTypes :: [ADef] -> [ADef] -> [(AExpr, t)] -> [(AExpr, t)]
-inlineDroppedExprTypes oldDefs newDefs = mapExprTypes (aSubst subst)
+inlineDroppedExprTypes :: [ADef] -> [ADef] -> [(AExpr, S.Set IType)] -> [(AExpr, S.Set IType)]
+inlineDroppedExprTypes oldDefs newDefs =
+    mapExprTypes (aSubst subst) . anchorSourceTypes oldDefs
   where kept = S.fromList (map adef_objid newDefs)
         subst = M.fromList [(i, aSubst subst e) | ADef i _ e _ <- oldDefs,
                                                  i `S.notMember` kept]

@@ -17,9 +17,10 @@ import Data.Char(isSpace, toLower, ord)
 import Data.List(intersect, nub, partition, intersperse, sort,
             isPrefixOf, isSuffixOf, unzip5, intercalate, foldl')
 import Data.Time.Clock.POSIX(getPOSIXTime)
-import Data.Maybe(isJust, isNothing)
+import Data.Maybe(isJust, isNothing, fromMaybe)
 import Numeric(showOct)
 
+import Control.DeepSeq(force)
 import Control.Monad(when, unless, filterM, liftM, foldM)
 import Control.Monad.Except(runExceptT)
 import Control.Concurrent(forkIO)
@@ -86,7 +87,7 @@ import PoisonUtils(mkPoisonedCDefn)
 import GenSign(genUserSign, genEverythingSign)
 import Simplify(simplify)
 import ISyntax(IPackage(..), IModule(..), IATFCache, mergeIATFCaches,
-               IEFace(..), IDef(..), IExpr(..), fdVars)
+               IEFace(..), IDef(..), IExpr(..), IType, fdVars)
 import ISyntaxUtil(iMkRealBool, iMkLitSize, iMkString{-, itSplit -}, isTrue)
 import InstNodes(getIStateLocs, flattenInstTree)
 import IConv(iConvPackage, iConvDef)
@@ -129,6 +130,8 @@ import ABin(ABin(..), ABinModInfo(..), ABinForeignFuncInfo(..),
            ABinModSchedErrInfo(..))
 import ABinUtil(readAndCheckABin, readAndCheckABinPathCatch, getABIHierarchy,
                 assertNoSchedErr)
+import ASourceTypes(anchorASPackage)
+import WireAnalysis(getFinalWireTypeCandidates)
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap,
                         mkImportDeclarations)
@@ -143,7 +146,8 @@ import SimCOpt(simCOpt)
 import SimBlocksToC(simBlocksToC)
 import SystemCWrapper(checkSystemCIfc, wrapSystemC)
 import SimFileUtils(analyzeBluesimDependencies)
-import Verilog(VProgram(..), vGetMainModName, getVeriInsts)
+import Verilog(VProgram(..), VModule(..), VArg(..), VMItem(..), VVDecl(..),
+               vvName, getVIdString, vGetMainModName, getVeriInsts)
 import Depend
 import Version(bscVersionStr, copyright, buildnum)
 import Classic(SyntaxMode(..), setSyntax)
@@ -950,21 +954,22 @@ genModule
     --           XXX it would be nice if the Bluesim backend had the same info
     -- * vprog = the Verilog data structure, for recording in the .ba file,
     --           so that it's available to bluetcl
-    (t, veriPortProps, vprog)
+    (t, veriPortProps, vprog, finalWireNames, finalWireTypes)
         <- if (backend flags == Just Verilog)
-           then do (t', ips, v)
+           then do (t', ips, v, names, types)
                        <- genModuleVerilog
                              errh pps flags dumpnames t prefix modstr
                              blurb methodConflictBlurb methodConflictBVI
                              vPathInfo sched_info'' amod_final
-                   return (t', ips, Just v)
-           else return (t, [], Nothing)
+                   return (t', ips, Just v, Just names, Just types)
+           else return (t, [], Nothing, Nothing, Nothing)
 
     t <- if (genABin flags)
          then writeABin errh pps flags dumpnames t prefix
                   modstr srcName (orig_cqt wi)
                   sched_info'' methodConflict vPathInfo
-                  amod_final vprog
+                  (amod_final { apkg_final_wire_names = finalWireNames,
+                                apkg_final_wire_types = finalWireTypes }) vprog
          else return t
 
     -- Wrapper generation
@@ -1079,7 +1084,9 @@ genModuleVerilog :: ErrorHandle
                  -> APackage
                  -> IO (TimeInfo,
                         [VPort],   -- port properties for the import-BVI
-                        VProgram)  -- generated Verilog
+                        VProgram,  -- generated Verilog
+                        M.Map String String,
+                        M.Map String (S.Set IType))
 genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
                  blurb methodConflictBlurb methodConflictBVI vPathInfo scheduleInfo
                  atsPackage =
@@ -1101,7 +1108,8 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
 
        -- Generate muxes etc.
        start flags DFastate
-       asmod <- aState errh flags pprops scheduleInfo atsPackage
+       asmod0 <- aState errh flags pprops scheduleInfo atsPackage
+       let asmod = anchorASPackage asmod0
        -- after aState, method calls should no longer exist
        asMethCheck flags asmod "astate"
        t <- dump errh flags t DFastate dumpnames asmod
@@ -1151,7 +1159,7 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
 
        -- Expand some primitives
        start flags DFsynthesize
-       let asynmod = (aSynthesize flags aomod)
+       let asynmod = aSynthesize flags (anchorASPackage aomod)
        asCheck flags asynmod "asynthesize"
        -- Check that referenced signal names exist
        asSignalCheck flags asynmod "synthesize"
@@ -1160,7 +1168,7 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
 
        -- Transform to adapt to Verilog quirks
        start flags DFveriquirks
-       let aqmod = aVeriQuirks flags asynmod
+       let aqmod = aVeriQuirks flags (anchorASPackage asynmod)
        -- this check is too strict on plus operator output size
        -- XXX fix the check, don't disable it
        when (not (keepAddSize flags))
@@ -1170,7 +1178,7 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
 
        -- Transform to adapt to Verilog quirks
        start flags DFfinalcleanup
-       let aumod =  finalCleanup flags aqmod
+       let aumod =  finalCleanup flags (anchorASPackage aqmod)
        -- this check is too strict on plus operator output size
        -- XXX fix the check, don't disable it
        when (not (keepAddSize flags))
@@ -1205,7 +1213,42 @@ genModuleVerilog errh pprops flags dumpnames time0 prefix moduleName
        -- Return
        -- * the port properties (to be included in the import-BVI)
        -- * the Verilog structure (for accessing in bluetcl)
-       return (t, ips, vprog)
+       names <- if genABin flags && not (null (aspkg_expr_types aumod))
+                then CE.evaluate (force (emittedWireNameMap vprog0 vprog))
+                else return M.empty
+       types <- if genABin flags
+                then CE.evaluate (force (getFinalWireTypeCandidates names aumod))
+                else return M.empty
+       return (t, ips, vprog, names, types)
+
+
+-- Dollar-sign removal preserves declarations and their traversal order.
+-- Zipping declarations captures their EXACT simultaneous mapping, including
+-- unchanged names and dollar-removal collision resolution. Only real signals
+-- are included; a removed pre-codegen name must not bind to a surviving wire
+-- that happens to receive that spelling during collision resolution.
+emittedWireNameMap :: VProgram -> VProgram -> M.Map String String
+emittedWireNameMap before after =
+    let old = signals before
+        new = signals after
+    in if length old == length new
+       then M.fromList (zip old new)
+       else internalError "emittedWireNameMap: renaming changed signal declarations"
+  where
+    signals prog@(VProgram mods _ _) =
+        concat [map getVIdString (concatMap (concatMap portSignal . fst) (vm_ports m) ++
+                                  concatMap itemSignals (vm_body m)) |
+                 m <- mods, getVIdString (vm_name m) == vGetMainModName prog]
+    portSignal (VAInput i _) = [i]
+    portSignal (VAOutput i _) = [i]
+    portSignal (VAInout i mi _) = [fromMaybe i mi]
+    portSignal (VAParameter {}) = []
+    itemSignals (VMDecl (VVDecl _ _ vs)) = map vvName vs
+    itemSignals (VMDecl (VVDWire _ v _)) = [vvName v]
+    itemSignals (VMComment _ x) = itemSignals x
+    itemSignals (VMRegGroup _ _ _ x) = itemSignals x
+    itemSignals (VMGroup _ xss) = concatMap (concatMap itemSignals) xss
+    itemSignals _ = []
 
 
 -- Write a Verilog program to file (along with its use file)
