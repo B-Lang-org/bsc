@@ -5,6 +5,7 @@ module BDD(
         bddRestrict, bddAllSat,
         bddIsTrue, bddIsFalse, bddIsIf) where
 
+import Warmup ()
 import Control.Monad(liftM, ap)
 
 import Data.List(sort)

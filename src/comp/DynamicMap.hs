@@ -5,6 +5,7 @@ module DynamicMap ( Map
                   , adjust
                   ) where
 
+import Warmup ()
 import Prelude hiding (lookup)
 
 -- temporary until findLTE, etc. are in Data.Map

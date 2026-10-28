@@ -2,6 +2,7 @@ module Version(bluespec, bscVersionStr, versionStr, versionname,
                copyright, buildnum
               ) where
 
+import Warmup ()
 import BuildVersion(buildVersion, buildVersionNum, buildVersionName)
 
 {-# NOINLINE bluespec #-}

@@ -3,6 +3,7 @@
 --
 module Sort(sortLe) where
 
+import Warmup ()
 sortLe :: (a -> a -> Bool) -> [a] -> [a]
 sortLe le l = tmsort le l
 

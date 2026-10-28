@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Exceptions (bsCatch) where
 
+import Warmup ()
 import qualified Control.Exception as CE
 import Control.Monad(msum)
 import System.IO.Error(ioeGetErrorString)
