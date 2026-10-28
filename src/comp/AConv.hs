@@ -182,7 +182,7 @@ checkForeignInRules method rs =
 
 
 aDo :: IModule a -> M APackage
-aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcalNo cmap) = do
+aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts _ idefs rs ifc ffcalNo cmap) = do
         flags <- getFlags
 
         -- AVInst keeps the types of method ports
@@ -240,6 +240,21 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         sequence_ [aEDef i e props | IDef i _ e props <- idefs,
                                      hasIdProp i IdP_keepEvenUnused ]
 
+        -- Translate observations against the existing CSE table, but do not
+        -- let metadata create hardware definitions or influence name choice.
+        runtimeState <- get
+        exprTypes0 <- mapM (\(e, ts) -> do
+                               e' <- aExpr e
+                               return (e', ts))
+                           (imod_expr_types imod)
+        metadataState <- get
+        put runtimeState
+        let stateDefs s = [ADef i t e [] | (_, (i,t,e)) <- M.toList (cseMap s)] ++
+                          [ADef i (aType e) e props |
+                           (i,(e,props)) <- M.toList (ieDefMap s),
+                           defPropsHasNoCSE props]
+            exprTypes = inlineDroppedExprTypes (stateDefs metadataState)
+                                              (stateDefs runtimeState) exprTypes0
         defMap <- getDA
         cseMap <- getMap
         -- traceM $ "defMap = " ++ ppReadable defMap
@@ -316,6 +331,8 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                             apkg_inputs = map aAbstractInput its,
                             apkg_external_wires = wi,
                             apkg_external_wire_types = lookupInstPorts Nothing,
+                            apkg_expr_types = [(aSubst subst_map e, ts) |
+                                               (e, ts) <- exprTypes],
                             apkg_clock_domains = clock_domains,
                             apkg_reset_list = reset_list,
                             apkg_state_instances = aSubst subst_map aitvs,

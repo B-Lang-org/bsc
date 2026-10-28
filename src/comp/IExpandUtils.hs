@@ -4,7 +4,8 @@
 module IExpandUtils(
         HPred, PExpr(..), pExprToHExpr, predToIExpr, pConj, pConjs,
         pAtom, pIf, pSel, normPConj,
-        unsafeDerefHeap, HeapCell(..), uniqueStateName, newStateNo, getStateNo,
+        unsafeDerefHeap, unsafeHeapSourceTypes, HeapCell(..), uniqueStateName, newStateNo, getStateNo,
+        saveSourceType, shareHeapSourceTypes, saveEvaluatedSourceTypes,
         HExpr, HeapData(..), HClock, HReset, HInout, HStateVar, HRules, HWireSet, HDef, HRule, HEFace,
         runG, G, GOutput(..),
         errG, errsG, deferErrors, eWarning, eWarnings, getElabProgressContext,
@@ -66,7 +67,7 @@ module IExpandUtils(
 
 import Control.Monad(when, liftM)
 import Control.Monad.State(StateT, runStateT, evalStateT, lift, liftIO,
-                           gets, get, put, modify)
+                           gets, get, put, modify, modify')
 import Data.IORef
 import System.IO.Unsafe
 import Data.List
@@ -76,6 +77,7 @@ import System.Time -- XXX: from old-time package
 import Debug.Trace(traceM)
 import qualified Data.Array as Array
 import qualified Data.Map as M
+import qualified Data.Map.Strict as MS
 import qualified Data.Set as S
 import qualified Data.Generics as Generic
 
@@ -171,7 +173,7 @@ pIf c t e = return $ pIf' c t e
 
 -- expand heap references looking for PrimBNot to desugar
 pIf' :: HExpr -> HPred -> HPred -> HPred
-pIf' c@(IRefT _ _ _ (HeapData r)) t e =
+pIf' c@(IRefT _ _ _ (HeapData r _)) t e =
   let (P p e') = heapCellToPExpr (unsafePerformIO (readIORef r))
   in case e' of
       (IAps (ICon _ (ICPrim _ PrimBNot)) [] [c']) ->
@@ -449,7 +451,16 @@ instance PPrint HeapCell where
         pPrint d p (HLoop name) =
             text "HLoop" <+> pPrint d 0 name
 
-newtype HeapData = HeapData (IORef (HeapCell))
+-- Metadata is separate from the evaluated cell, so replacing HUnev with
+-- HWHNF/HNF cannot discard it. Aliases share a union-find set: a coercion
+-- observed after an alias was copied must still annotate both references.
+-- The union-find contains only types and metadata refs, never expressions,
+-- so dead heap cells can be collected as before.
+data HeapSourceTypes = HeapSourceTypes !Int !(S.Set IType)
+                     | HeapSourceAlias (IORef HeapSourceTypes)
+  deriving (Generic.Data, Generic.Typeable)
+
+data HeapData = HeapData (IORef HeapCell) (IORef HeapSourceTypes)
   deriving (Generic.Data, Generic.Typeable)
 
 {-
@@ -469,7 +480,7 @@ instance PPrint HeapData where
 -}
 
 instance NFData HeapData where
-  rnf (HeapData r) = seq r ()
+  rnf (HeapData r ts) = seq r (seq ts ())
 
 -- Heap expressions are IExprs with the real heap reference type filled in
 type HExpr = IExpr HeapData
@@ -496,7 +507,86 @@ type G = StateT GState IO
 -- only used for post-evaluation heap traversals
 -- so unsafePerformIO is fine (the refs are no longer being modified)
 unsafeDerefHeap :: HeapData -> HeapCell
-unsafeDerefHeap (HeapData ref) = unsafePerformIO (readIORef ref)
+unsafeDerefHeap (HeapData ref _) = unsafePerformIO (readIORef ref)
+
+-- Read only after evaluation has finished, like unsafeDerefHeap.
+unsafeHeapSourceTypes :: HeapData -> S.Set IType
+unsafeHeapSourceTypes (HeapData _ ref) = unsafePerformIO $ do
+    (_, _, ts) <- sourceTypeRoot ref
+    return ts
+
+sourceTypeRoot :: IORef HeapSourceTypes -> IO (IORef HeapSourceTypes, Int, S.Set IType)
+sourceTypeRoot ref = do
+    entry <- readIORef ref
+    case entry of
+      HeapSourceTypes rank ts -> return (ref, rank, ts)
+      HeapSourceAlias parent -> sourceTypeRoot parent
+
+-- Union by rank bounds even long alias chains logarithmically. This is
+-- deliberately independent of heap evaluation and implicit conditions.
+shareHeapSourceTypes :: HeapData -> HExpr -> G ()
+shareHeapSourceTypes (HeapData _ left) (IRefT _ _ _ (HeapData _ right)) = liftIO $ do
+    (l, lr, lts) <- sourceTypeRoot left
+    (r, rr, rts) <- sourceTypeRoot right
+    when (l /= r) $ do
+      let ts = S.union lts rts
+      ts `seq` return ()
+      if lr < rr
+        then do writeIORef l (HeapSourceAlias r)
+                writeIORef r (HeapSourceTypes rr ts)
+        else do writeIORef r (HeapSourceAlias l)
+                writeIORef l (HeapSourceTypes (if lr == rr then lr + 1 else lr) ts)
+shareHeapSourceTypes ref (ICon _ (ICLazyPack { lzApplied = e })) =
+    shareHeapSourceTypes ref e
+shareHeapSourceTypes _ _ = return ()
+
+-- Observe the bit side of a coercion without evaluating it. Bit itself
+-- conveys no additional source information. Constants have no wire.
+saveSourceType :: IType -> HExpr -> G ()
+saveSourceType t _ | isBitType t = return ()
+saveSourceType t (IRefT _ _ _ hd@(HeapData _ ref)) = do
+    norm <- getTypeNormalizer
+    let t' = norm t
+    liftIO $ do
+      (root, rank, ts) <- sourceTypeRoot ref
+      let ts' = S.insert t' ts
+      ts' `seq` writeIORef root (HeapSourceTypes rank ts')
+    cell <- getHeap hd
+    case cell of
+      HWHNF { hc_pexpr = P _ e } -> saveLeafSourceType t' e
+      HNF { hc_pexpr = P _ e } -> saveLeafSourceType t' e
+      _ -> return ()
+saveSourceType t (ICon _ (ICLazyPack { lzApplied = e })) = saveSourceType t e
+saveSourceType t e = saveLeafSourceType t e
+
+saveLeafSourceType :: IType -> HExpr -> G ()
+saveLeafSourceType t e@(ICon _ ci) | isWire ci = do
+    norm <- getTypeNormalizer
+    modify' (\s -> s { sourceLeafTypes =
+                          MS.insertWith S.union e (S.singleton (norm t)) (sourceLeafTypes s) })
+  where isWire (ICModPort {}) = True
+        isWire (ICMethArg {}) = True
+        isWire _ = False
+saveLeafSourceType _ _ = return ()
+
+-- A final NF root may be returned directly (not through its original heap
+-- ref), especially for an interface result. Remember its observation; final
+-- extraction retains it only if that expression is actually reachable.
+saveEvaluatedSourceTypes :: HExpr -> HExpr -> G ()
+-- A surviving reference already carries its observations. Keeping it in the
+-- global map would retain its heap graph even if executable uses disappear.
+saveEvaluatedSourceTypes source (IRefT _ _ _ ref) =
+    shareHeapSourceTypes ref source
+saveEvaluatedSourceTypes source value = do
+    ts <- sourceTypes source
+    when (not (S.null ts)) $
+      modify' (\s -> s { sourceLeafTypes =
+                            MS.insertWith S.union value ts (sourceLeafTypes s) })
+  where sourceTypes (IRefT _ _ _ (HeapData _ ref)) = do
+          (_, _, ts) <- liftIO (sourceTypeRoot ref)
+          return ts
+        sourceTypes (ICon _ (ICLazyPack { lzApplied = e })) = sourceTypes e
+        sourceTypes _ = return S.empty
 
 -- read-only evaluator state
 data GStateRO = GStateRO {
@@ -557,6 +647,7 @@ data GState = GState {
         -- XXX what is the Id? flattened name?
         vars           :: [(Id, HStateVar)], -- instantiated verilog modules
         portTypeMap    :: PortTypeMap, -- map of state var -> port -> type
+        sourceLeafTypes :: !(M.Map HExpr (S.Set IType)), -- unheaped leaves and evaluated roots
 
         rules          :: HRules,    -- accumulated rules
         newRuleSuffix  :: Integer,   -- store for creating unique names when ruleNameCheck is off
@@ -648,6 +739,7 @@ initGState errh flags symt alldefs atf_cache defId is_noinlined_func pps =
                       heapBNots = M.empty,
                       vars = [],
                       portTypeMap = M.empty,
+                      sourceLeafTypes = M.empty,
                       rules = iREmpty,
                       newRuleSuffix = 0,
                       schedNameScope = emptySchedNameScope,
@@ -700,6 +792,7 @@ data GOutput a = GOutput { go_clock_domains :: [(ClockDomain, [HClock])],
                            go_resets   :: [HReset],
                            go_state_vars :: [(Id, HStateVar)],
                            go_port_types :: PortTypeMap,
+                           go_source_leaf_types :: SourceTypeInfo HeapData,
                            go_vclockinfo :: VClockInfo,
                            go_vresetinfo :: VResetInfo,
                            go_rules :: HRules,
@@ -757,6 +850,7 @@ runG errh flags symt alldefs atf_cache defId is_noinlined_func pps gFn =
                      go_resets = (all_resets gs'),
                      go_state_vars = reverse (vars gs'),
                      go_port_types = portTypeMap gs',
+                     go_source_leaf_types = M.toList (sourceLeafTypes gs'),
                      go_vclockinfo = vclockinfo,
                      go_vresetinfo = vresetinfo,
                      go_rules = rules gs',
@@ -2512,9 +2606,16 @@ addHeapCell tag cell = do
   s <- get
   let p = hp s
   ref <- deepseq (hc_name cell) $ liftIO (newIORef (cell))
+  types <- liftIO (newIORef (HeapSourceTypes 0 S.empty))
   put (s { hp = p+1 })
+  let hd = HeapData ref types
+  case cell of
+    HUnev { hc_hexpr = e } -> shareHeapSourceTypes hd e
+    HWHNF { hc_pexpr = P _ e } -> shareHeapSourceTypes hd e
+    HNF { hc_pexpr = P _ e } -> shareHeapSourceTypes hd e
+    _ -> return ()
   when doTraceHeapAlloc $ traceM("addHeapCell(" ++ show p ++ "): " ++ tag ++ "\n")
-  return (p, HeapData ref)
+  return (p, hd)
 
 -- Construct an "IRefT" expression referring to a heap cell.
 -- The deepseq forces the type and position in the IRefT so that
@@ -2583,12 +2684,16 @@ addHeapPred tag e = do
 
 {-# INLINE getHeap #-}
 getHeap :: HeapData -> G HeapCell
-getHeap (HeapData ref) = liftIO (readIORef ref)
+getHeap (HeapData ref _) = liftIO (readIORef ref)
 
 {-# INLINE updHeap #-}
 updHeap :: String -> (HeapPointer, HeapData) -> HeapCell -> G ()
-updHeap tag (p, HeapData ref) e = do
-   o <- getHeap (HeapData ref)
+updHeap tag (p, hd@(HeapData ref _)) e = do
+   o <- getHeap hd
+   case e of
+     HWHNF { hc_pexpr = P _ value } -> retainSourceTypes value
+     HNF { hc_pexpr = P _ value } -> retainSourceTypes value
+     _ -> return ()
    when doTraceHeap2 $
       traceM ("old val [" ++ tag ++ "]: " ++ "(_" ++ show p ++ ", " ++ ppReadable o ++ ")")
    when doTraceHeap $
@@ -2598,6 +2703,12 @@ updHeap tag (p, HeapData ref) e = do
    let best_name = maybe old_name Just new_name
    let e' = e { hc_name = best_name }
    deepseq best_name $ liftIO (writeIORef ref e')
+ where
+   retainSourceTypes value = do
+     shareHeapSourceTypes hd value
+     let HeapData _ types = hd
+     (_, _, ts) <- liftIO (sourceTypeRoot types)
+     mapM_ (\t -> saveLeafSourceType t value) (S.toList ts)
 
 -- Type normalization function used in evaluation.
 -- Fully traverse and reduce all type function applications where possible.
@@ -2813,7 +2924,7 @@ unheapNFNoImp e = return e
 
 -- XXX use unsafePerformIO to work around an apparent monadic recursion bug
 unheapNFNoImpEvil :: HExpr -> HExpr
-unheapNFNoImpEvil (IRefT _ _ _ (HeapData c)) =
+unheapNFNoImpEvil (IRefT _ _ _ (HeapData c _)) =
    case cell of
      HNF { hc_pexpr = (P _ e) } -> e
      _ -> internalError ("unheapNFNoImp - unexpected: " ++ ppReadable cell)
@@ -2908,7 +3019,11 @@ toHeapWHNF tag _ (P p e) cell_name
 toHeapWHNF tag t pe@(P p e) cell_name = do
     -- Pointing to an IRefT (because p /= pTrue) is not WHNF
     pe' <- unheap pe
-    addHeapWHNF tag t pe' cell_name
+    result <- addHeapWHNF tag t pe' cell_name
+    case result of
+      IRefT _ _ _ ref -> shareHeapSourceTypes ref e
+      _ -> return ()
+    return result
 
 {-# INLINE toHeapWHNFCon #-}
 toHeapWHNFCon :: String -> IType -> HExpr -> Maybe Id -> G HExpr

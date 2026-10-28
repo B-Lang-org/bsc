@@ -424,7 +424,8 @@ instance AExprs ASPackage where
         = pkg { aspkg_state_instances = (mapAExprs f vs),
                 aspkg_values = (mapAExprs f defs),
                 aspkg_inout_values = (mapAExprs f iodefs),
-                aspkg_foreign_calls = (mapAExprs f fs) }
+                aspkg_foreign_calls = (mapAExprs f fs),
+                aspkg_expr_types = mapExprTypes (mapAExprs f) (aspkg_expr_types pkg) }
     -- monadic
     mapMAExprs f pkg@(ASPackage { aspkg_state_instances = vs,
                                   aspkg_values = defs,
@@ -434,10 +435,12 @@ instance AExprs ASPackage where
              defs' <- mapMAExprs f defs
              iodefs' <- mapMAExprs f iodefs
              fs' <- mapMAExprs f fs
+             ets' <- mapMExprTypes (mapMAExprs f) (aspkg_expr_types pkg)
              return (pkg { aspkg_state_instances = vs',
                            aspkg_values = defs',
                            aspkg_inout_values = iodefs',
-                           aspkg_foreign_calls = fs' })
+                           aspkg_foreign_calls = fs',
+                           aspkg_expr_types = ets' })
     -- find
     findAExprs f pkg@(ASPackage { aspkg_state_instances = vs,
                                 aspkg_values = defs,
@@ -451,7 +454,8 @@ instance AExprs APackage where
         apkg_interface = mapAExprs f (apkg_interface pack),
         apkg_rules = mapAExprs f (apkg_rules pack),
         apkg_state_instances = mapAExprs f (apkg_state_instances pack),
-        apkg_local_defs = mapAExprs f (apkg_local_defs pack) }
+        apkg_local_defs = mapAExprs f (apkg_local_defs pack),
+        apkg_expr_types = mapExprTypes (mapAExprs f) (apkg_expr_types pack) }
     -- monadic
     mapMAExprs f pack@(APackage { apkg_interface = ifc,
                                   apkg_rules = rs,
@@ -461,10 +465,12 @@ instance AExprs APackage where
              rs' <- mapMAExprs f rs
              insts' <- mapMAExprs f insts
              defs' <- mapMAExprs f defs
+             ets' <- mapMExprTypes (mapMAExprs f) (apkg_expr_types pack)
              return (pack { apkg_interface = ifc',
                             apkg_rules = rs',
                             apkg_state_instances = insts',
-                            apkg_local_defs = defs' })
+                            apkg_local_defs = defs',
+                            apkg_expr_types = ets' })
     -- find
     findAExprs f pack =
         findAExprs f (apkg_interface pack) ++
@@ -472,6 +478,22 @@ instance AExprs APackage where
         findAExprs f (apkg_state_instances pack) ++
         findAExprs f (apkg_local_defs pack)
 
+
+-- Type observations follow rewrites but deliberately do not participate in
+-- findAExprs: debug metadata must never retain hardware or change use counts.
+mapExprTypes :: (a -> b) -> [(a, t)] -> [(b, t)]
+mapExprTypes f = map (\(e, ts) -> (f e, ts))
+
+mapMExprTypes :: Monad m => (a -> m b) -> [(a, t)] -> m [(b, t)]
+mapMExprTypes f = mapM (\(e, ts) -> do e' <- f e; return (e', ts))
+
+-- When a pass removes definitions, replace references in observations using
+-- the definitions' values. The lazy substitution map shares rewritten values.
+inlineDroppedExprTypes :: [ADef] -> [ADef] -> [(AExpr, t)] -> [(AExpr, t)]
+inlineDroppedExprTypes oldDefs newDefs = mapExprTypes (aSubst subst)
+  where kept = S.fromList (map adef_objid newDefs)
+        subst = M.fromList [(i, aSubst subst e) | ADef i _ e _ <- oldDefs,
+                                                 i `S.notMember` kept]
 
 -- ---------------
 

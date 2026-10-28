@@ -94,7 +94,7 @@ expandASPackage errh keepFires expnond expcheap pkg =
         muxes = aspsi_mux_selectors si ++
                 aspsi_mux_values si
 
-        (ss', ws', ds', fs') =
+        (ss', ws', ds', fs', subst) =
             -- trace ("aExpand " ++ ppReadable ds) $
             aExpDefs errh keepFires expnond expcheap aoptExpandTest
                      sigInfo os ios muxes (ss, ws, ds, fs)
@@ -102,7 +102,9 @@ expandASPackage errh keepFires expnond expcheap pkg =
         pkg { aspkg_state_instances = ss',
               aspkg_inlined_ports = ws',
               aspkg_values = ds',
-              aspkg_foreign_calls = fs' }
+              aspkg_foreign_calls = fs',
+              aspkg_expr_types = inlineDroppedExprTypes ds ds' $
+                                  mapExprTypes (aSubst subst) (aspkg_expr_types pkg) }
 
 
 -- ==============================
@@ -148,7 +150,7 @@ expandASPackage errh keepFires expnond expcheap pkg =
 aExpDefs :: ErrorHandle -> Bool -> Bool -> Bool -> ExpandTest [AForeignBlock] ->
             ASPSignalInfo -> [AOutput] -> [AInput] -> [AId] ->
             ([AVInst], [AId], [ADef], [AForeignBlock]) ->
-            ([AVInst], [AId], [ADef], [AForeignBlock])
+            ([AVInst], [AId], [ADef], [AForeignBlock], EMap AExpr)
 aExpDefs errh keepFires expnond expcheap expTest sigInfo os ios muxes (ss', ws', ds', fs') =
     let
         usemap = createUseMap muxes (ss', ws', ds', fs')
@@ -250,7 +252,9 @@ aSRemoveUnused keepfires pkg =
         --        "\n ds' = " ++ ppReadable ds') $
         --traces( "aSRemoveUnused : old defs: " ++ ppReadable ds ) $
         --traces( "aSRemoveUnused : new defs: " ++ ppReadable ds' ) $
-        pkg { aspkg_values = ds' }
+        pkg { aspkg_values = ds',
+              aspkg_expr_types = inlineDroppedExprTypes ds ds'
+                                      (aspkg_expr_types pkg) }
 
 
 -- ==============================
@@ -268,7 +272,9 @@ aRemoveUnused apkg =
 --    trace ("aRemoveUnused:\n   vused " ++ ppReadable vused
 --    ++ "\n   rused: " ++ ppReadable rused
 --    ++ "\n   iused: " ++ ppReadable iused) $
-        apkg { apkg_local_defs = ds' }
+        apkg { apkg_local_defs = ds',
+               apkg_expr_types = inlineDroppedExprTypes (apkg_local_defs apkg) ds'
+                                      (apkg_expr_types apkg) }
   where ds' = collDefs (vused ++ rused ++ iused) (apkg_local_defs apkg)
         vused = aVars (apkg_state_instances apkg)
         rused = aVars (apkg_rules apkg)
@@ -339,7 +345,9 @@ xaSRemoveUnused :: Bool -> ASPackage -> ASPackage
 xaSRemoveUnused keepFires pkg =
     -- trace ("xaSremoveUNused \nds = " ++ ppReadable ds ++
     --        "\n ds' = " ++ ppReadable ds' ++ "\n os = " ++ ppReadable os) $
-    pkg { aspkg_values = ds' }
+    pkg { aspkg_values = ds',
+          aspkg_expr_types = inlineDroppedExprTypes ds ds'
+                                  (aspkg_expr_types pkg) }
   where
         ds = aspkg_values pkg
         ss = aspkg_state_instances pkg
@@ -679,7 +687,7 @@ mustInline e = isStringType (aType e)
 
 
 expand :: (AExprs e2, PPrint e2) =>  ExpandData e2 -> (EMap AExpr) -> [ADef] -> [ADef]
-       -> ([AVInst], [AId], [ADef], e2)
+       -> ([AVInst], [AId], [ADef], e2, EMap AExpr)
 
 -- the end condition for the loop:
 -- we are done, so just substitute through the new definitions
@@ -688,7 +696,8 @@ expand  edata edefs [] nds =
         (aSubst edefs ss,
          ws,
          reverse nds,
-         aSubst edefs fs)
+         aSubst edefs fs,
+         edefs)
     where
       fs = sfs edata
       ss = sss edata
@@ -760,11 +769,13 @@ expandAPackage errh apkg = apkgN
             }
           --
           -- do the expansion
-          (_,_, defs, (rules,ifc)) = expand edata M.empty sorted_defs []
+          (_,_, defs, (rules,ifc), subst) = expand edata M.empty sorted_defs []
           -- rebuild the package
           apkgN = aRemoveUnused $ apkg { apkg_local_defs = defs,
                                          apkg_rules = rules,
-                                         apkg_interface = ifc}
+                                         apkg_interface = ifc,
+                                         apkg_expr_types = inlineDroppedExprTypes sorted_defs defs $
+                                             mapExprTypes (aSubst subst) (apkg_expr_types apkg)}
 
 
 -- Tests on AId and AExpr to determine if the expression should be inlined during aOpt

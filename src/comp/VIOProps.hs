@@ -55,7 +55,7 @@ instance PPrint VIOProps where
 
 -- assuming foreign functions do not affect the IO properties
 getIOProps :: Flags -> ASPackage -> (VIOProps, [VPort])
-getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
+getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _ _) =
         -- returns the VIOProps structure
         -- and a mapping of Verilog port names to their port properties
         (VIOProps ais, [(VName (getIdString i), ps) | (i, _, _, ps) <- ais ])
