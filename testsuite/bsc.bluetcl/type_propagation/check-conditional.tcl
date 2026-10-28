@@ -51,11 +51,11 @@ foreach mod {mkConditionalTypes mkConditionalCaseTypes} {
 set mod mkConditionalCseTypes
 set candidates [loadCandidates $mod]
 assertNominals $mod $candidates left {ConditionalTypes.Nibbles ConditionalTypes.TaggedPayload}
-assertNominals $mod $candidates middle {ConditionalTypes.Nibbles}
-assertNominals $mod $candidates right {ConditionalTypes.TaggedPayload}
-assertNominals $mod $candidates selected {ConditionalTypes.Nibbles}
+assertNominals $mod $candidates middle {ConditionalTypes.Nibbles ConditionalTypes.TaggedPayload}
+assertNominals $mod $candidates right {ConditionalTypes.Nibbles ConditionalTypes.TaggedPayload}
+assertNominals $mod $candidates selected {ConditionalTypes.Nibbles ConditionalTypes.TaggedPayload}
 foreach wire {both predicate} { assertNominals $mod $candidates $wire {} }
-puts "PASS $mod: shared physical branch unions two nominal sets; unrelated branches stay distinct"
+puts "PASS $mod: shared physical branch joins both selections and their sibling candidates"
 
 set mod mkConditionalBoundaries
 set candidates [loadCandidates $mod]

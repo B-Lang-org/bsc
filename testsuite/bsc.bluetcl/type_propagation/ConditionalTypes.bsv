@@ -44,7 +44,7 @@ module mkConditionalTypes(ConditionalTypes);
 endmodule
 
 // Separate selections interpret the shared arm in different nominal layouts.
-// CSE must union both sets on that arm, while leaving unrelated arms distinct.
+// CSE joins the selection groups, so both sets reach their other data arms.
 (* synthesize *)
 module mkConditionalCseTypes(ConditionalTypes);
     Reg#(Bit#(8)) x <- mkReg(0);
