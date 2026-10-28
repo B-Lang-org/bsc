@@ -34,3 +34,28 @@ Closure reruns after wire/register inlining and optimization expose new edges.
 
 End-to-end candidate-set fixtures (default and seven backend flags):
   GHC=/path/to/compiler-ghc ./run-candidate-sets.sh
+
+Primitive-derived numeric and Boolean candidates (separate late pass)
+
+  GHC=/path/to/compiler-ghc ./run-primitives.sh
+  BSC_BASELINE_INSTALL=/path/to/baseline/inst ./run-primitives.sh
+
+The optional baseline compares generated Verilog byte-for-byte. All assertions
+refer to physical declarations and also check serialized module reload.
+
+Semantic Boolean operators, comparison results and selector roles supply Bool;
+width one alone does not. Signed/unsigned comparisons, right shifts and unsigned
+division/remainder supply numeric interpretations at each operand's own width.
+Ambiguous arithmetic propagates only common, already-known Int/UInt families
+(literals can take context). It does not invent signedness or transfer arbitrary
+record/enum types. Numeric family rules are directional; shift counts and case
+labels remain separate. Both extension variants exist for both numeric families;
+truncation changes the candidate width, while arbitrary slices do not transfer a
+whole-value interpretation. A full-width raw multiplier can only propagate an
+already-known unsigned family, never invent a widened signed product.
+
+The pass runs after AOpt and before primitive lowering. It uses the existing
+alias/CSE/selection closure and a node-indexed numeric worklist; flattened
+associative operations use binary family hubs to avoid quadratic rescans.
+Derived candidates are valid operation interpretations, not proof of the user's
+original source declaration. No provenance/serialization fields are added.

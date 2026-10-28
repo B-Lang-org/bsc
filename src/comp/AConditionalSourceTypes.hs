@@ -1,6 +1,6 @@
 -- Share candidate interpretations across conditional data alternatives.
 -- This pass only augments metadata: it does not rewrite hardware expressions.
-module AConditionalSourceTypes (propagateConditionalTypes) where
+module AConditionalSourceTypes (propagateConditionalTypes, conditionalDataChildren) where
 
 import ASyntax
 import ASyntaxUtil (findAExprs)
