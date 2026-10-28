@@ -432,7 +432,7 @@ install-showrules: $(PKGINFO)
 # ----
 # Other targets
 
-tags:   *hs */*hs bluewish.hs
+tags:   *hs */*hs
 	$(FIND) . $(PARSEC_HS) $(STP_HS) $(YICES_HS) $(HTCL_HS) \
 		-type f -name \*hs | xargs hasktags
 	mv tags tags.tmpfile
