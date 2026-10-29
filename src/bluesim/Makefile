@@ -125,25 +125,29 @@ vpath %.cxx ../
 
 # -------------------------
 
-$(LIB_PRIM): version $(PRIM_OBJS)
+$(LIB_PRIM): $(PRIM_OBJS)
 	$(RM) $(LIB_PRIM)
 	$(AR) cr $(LIB_PRIM) $(PRIM_OBJS)
 
-$(LIB_KERNEL): version $(KERNEL_OBJS)
+$(LIB_KERNEL): $(KERNEL_OBJS)
 	$(RM) $(LIB_KERNEL)
 	$(AR) cr $(LIB_KERNEL) $(KERNEL_OBJS)
 
-# The version name the compiler's BuildVersion module carries, from the same
-# script (NOGIT honored), so the header and the compiler agree.
-.PHONY: version
-version:
-	name=$$($(COMPDIR)/update-build-version.sh --name) && \
-	  echo "static const char* version_name = \"$$name\";" > version.h
+# Use the compiler's version name, including frozen BuildVersion.hs values.
+.PHONY: version FORCE
+version: version.h
 
-# kernel.cxx includes the header, so it is written before kernel.o compiles;
-# as a sibling prerequisite of the library alone, a parallel make may run the
-# compile first.
-kernel.o: | version
+FORCE:
+
+# Check the version on every invocation, but only change the header timestamp
+# when its contents change, so unchanged versions do not rebuild the kernel.
+version.h: FORCE
+	name=$$($(COMPDIR)/update-build-version.sh --name) && \
+	  printf 'static const char* version_name = "%s";\n' "$$name" > $@.new && \
+	  if cmp -s $@.new $@; then $(RM) $@.new; else mv $@.new $@; fi
+
+# This dependency also makes parallel incremental builds see version changes.
+kernel.o: version.h
 
 # Static check of the header files before releasing them.
 # Don't include headers which require systemC.
@@ -166,7 +170,7 @@ install: $(LIBS) test-headers
 
 .PHONY: clean
 clean:
-	$(RM) test_hdr.cxx version.h
+	$(RM) test_hdr.cxx version.h version.h.new
 	$(RM) *.o *.p *.d $(LIBS)
 
 .PHONY: full_clean
