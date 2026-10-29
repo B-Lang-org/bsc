@@ -2,6 +2,9 @@ PWD := $(shell pwd)
 TOP := $(PWD)
 
 PREFIX   ?= $(TOP)/inst
+# Absolute, so every sub-make installs into the same directory whatever its
+# own is.
+override PREFIX := $(abspath $(PREFIX))
 BUILDDIR ?= $(TOP)/build
 
 .PHONY: help
@@ -16,6 +19,8 @@ help:
 	@echo '    make  release      Build a release dir with the tools and docs'
 	@echo
 	@echo '    make  install-src  Build and install just the tools'
+	@echo '    make  install-solvers'
+	@echo '                       Build and install just the vendored solvers (for a cabal build by hand)'
 	@echo '    make  install-doc  Build and install just the documentation'
 	@echo
 	@echo '    make  check-smoke  Run a quick smoke test'
@@ -45,6 +50,13 @@ rem_build:
 .PHONY: install-src
 install-src:
 	$(MAKE)  -C src  PREFIX=$(PREFIX)  install
+
+# The vendored solvers alone, built by their own Makefiles and installed under
+# $(PREFIX)/lib/SAT: what a cabal build run by hand links against, with the
+# directory named in LIBRARY_PATH. install-src does this first.
+.PHONY: install-solvers
+install-solvers:
+	$(MAKE)  -C src  PREFIX=$(PREFIX)  install-solvers
 
 .PHONY: install-doc
 install-doc:
