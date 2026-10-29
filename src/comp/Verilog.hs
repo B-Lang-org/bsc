@@ -14,8 +14,10 @@ module Verilog(
                VMItem(..),
                VModule(..),
                VOp(..),
+               VParamType(..),
                VProgram(..),
                VRange,
+               VStringParamDefault(..),
                VStmt(..),
                VTri(..),
                VVDecl(..),
@@ -80,14 +82,16 @@ mkSynthPragma s = text ("// " ++ synthesis_str ++ " " ++ s)
 --    * a list of modules
 --    * a list of import-DPI declarations
 --    * a comment for the entire file, not for any one module
-data VProgram = VProgram [VModule] [VDPI] VComment
+--    * what `BSV_PARAMETER_STRING defaults to in this file
+data VProgram = VProgram [VModule] [VDPI] VComment VStringParamDefault
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint VProgram where
-    pPrint d p (VProgram ms dpis cs) =
+    pPrint d p (VProgram ms dpis cs strdef) =
         ppComment cs $+$
         assignment_delay_macro $+$
         reset_level_macro $+$
+        parameter_string_macro $+$
         dpi_decls $+$
         vsepEmptyLine (map (pPrint d 0) ms) $+$
         text ""
@@ -108,12 +112,41 @@ instance PPrint VProgram where
           text "  `define BSV_RESET_EDGE negedge" $+$
           text "`endif" $+$
           text ""
+        -- define BSV_PARAMETER_STRING when the user does not override it,
+        -- but only in a file that declares a String-typed parameter
+        -- (so that every other file is unchanged)
+        parameter_string_macro =
+          if any vmHasStringParam ms
+          then text "`ifdef BSV_PARAMETER_STRING" $+$
+               text "`else" $+$
+               text "  `define BSV_PARAMETER_STRING" <+> pPrint d 0 strdef $+$
+               text "`endif" $+$
+               text ""
+          else empty
         dpi_decls =
           vsep (map (pPrint d 0) dpis) $+$
           if (not (null dpis)) then text "" else empty
 
 instance NFData VProgram where
-    rnf (VProgram mods dpis cmt) = rnf3 mods dpis cmt
+    rnf (VProgram mods dpis cmt strdef) = rnf4 mods dpis cmt strdef
+
+-- VStringParamDefault
+--    What `BSV_PARAMETER_STRING, the keyword that declares a String-typed
+--    module parameter, defaults to in a generated file.  The header of a
+--    file that declares such a parameter defines the macro unless the
+--    tool environment predefines it (see PPrint VProgram).
+data VStringParamDefault
+        = VSPParameter        -- "parameter" (untyped, plain Verilog)
+        | VSPParameterString  -- "parameter string" (SystemVerilog)
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance PPrint VStringParamDefault where
+    pPrint _ _ VSPParameter       = text "parameter"
+    pPrint _ _ VSPParameterString = text "parameter string"
+
+instance NFData VStringParamDefault where
+    rnf VSPParameter       = ()
+    rnf VSPParameterString = ()
 
 -- VComment
 --    * a list of single-line comments (already broken into lines)
@@ -242,15 +275,36 @@ instance PPrint VModule where
 instance NFData VModule where
     rnf (VModule name cmt ports body) = rnf4 name cmt ports body
 
+-- whether a module declares a String-typed parameter
+-- (and so uses `BSV_PARAMETER_STRING, which the file header defines)
+vmHasStringParam :: VModule -> Bool
+vmHasStringParam vmodule = any isStrParam (concatMap fst (vm_ports vmodule))
+  where isStrParam (VAParameter _ VPTString _) = True
+        isStrParam _ = False
+
 data VArg
         = VAInput VId (Maybe VRange)
         -- If the type is Nothing, then do not print a declaration
         | VAInout VId (Maybe VId) (Maybe (Maybe VRange))
         | VAOutput VId (Maybe VRange)
-        -- final Bool: when True, emit as a SystemVerilog `string` parameter
-        -- (`parameter string id = val`) instead of an untyped bit-vector parameter
-        | VAParameter VId (Maybe VRange) VExpr Bool
+        | VAParameter VId VParamType VExpr
         deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+-- VParamType
+--    How a module parameter is declared (see ppVArgDecl)
+data VParamType
+        -- "parameter [range] name = value", an untyped parameter
+        -- (also used for a Real parameter, which prints without a range)
+        = VPTBits (Maybe VRange)
+        -- "`BSV_PARAMETER_STRING name = value", a String-typed parameter
+        -- declared through the macro, whose default the file header
+        -- defines (see PPrint VProgram)
+        | VPTString
+        deriving (Eq, Show, Generic.Data, Generic.Typeable)
+
+instance NFData VParamType where
+    rnf (VPTBits mr) = rnf mr
+    rnf VPTString    = ()
 
 -- only use this for debugging
 instance PPrint VArg where
@@ -265,15 +319,16 @@ instance PPrint VArg where
         (case mmr of { Just mr -> ppMRange d mr; Nothing -> empty })
     pPrint d p (VAOutput i mr) =
         text "VAOutput" <+> pPrint d 0 i <+> ppMRange d mr
-    pPrint d p (VAParameter i mr e isStr) =
-        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e <+>
-        pPrint d 0 isStr
+    pPrint d p (VAParameter i (VPTBits mr) e) =
+        text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e
+    pPrint d p (VAParameter i VPTString e) =
+        text "VAParameter string" <+> pPrint d 0 i <+> pPrint d 0 e
 
 instance NFData VArg where
     rnf (VAInput vid mr) = rnf2 vid mr
     rnf (VAInout vid mvid mmr) = rnf3 vid mvid mmr
     rnf (VAOutput vid mr) = rnf2 vid mr
-    rnf (VAParameter vid mr expr isStr) = rnf4 vid mr expr isStr
+    rnf (VAParameter vid pt expr) = rnf3 vid pt expr
 
 ppVArgPort :: PDetail -> VArg -> Doc
 ppVArgPort d (VAInput i _) = pPrint d 0 i
@@ -290,15 +345,18 @@ ppVArgDecl d (VAInout vi mvi' (Just mr)) =
     in  pPrint d 0 (VVDecl VDInout mr [VVar i])
 ppVArgDecl d (VAInout vi mvi' Nothing) = empty
 ppVArgDecl d (VAOutput vi mr) = pPrint d 0 (VVDecl VDOutput mr [VVar vi])
-ppVArgDecl d (VAParameter i mr e isStr) =
-    text "parameter" <+> (if isStr then text "string" else ppMRange d mr) <+>
+ppVArgDecl d (VAParameter i (VPTBits mr) e) =
+    text "parameter" <+> ppMRange d mr <+>
+    pPrint d 0 i <+> text "=" <+> pPrint d 0 e <> text ";"
+ppVArgDecl d (VAParameter i VPTString e) =
+    text "`BSV_PARAMETER_STRING" <+>
     pPrint d 0 i <+> text "=" <+> pPrint d 0 e <> text ";"
 
 vargName :: VArg -> VId
 vargName (VAInput i _) = i
 vargName (VAInout i _ _) = i
 vargName (VAOutput i _) = i
-vargName (VAParameter i _ _ _) = i
+vargName (VAParameter i _ _) = i
 
 data VMItem
         = VMDecl VVDecl
@@ -1062,7 +1120,7 @@ keepAssoc :: VOp -> Bool
 keepAssoc op = op `elem` [VSub{-,  VAdd, VAnd, VOr, VXor-}]
 
 vGetMainModName :: VProgram -> String
-vGetMainModName (VProgram program_items _ _) =
+vGetMainModName (VProgram program_items _ _ _) =
         let get_mod_name (headmod:_) = getVIdString $ vm_name headmod
             get_mod_name [] = internalError "vGetMainModName: no main module"
         in  get_mod_name program_items
@@ -1148,7 +1206,7 @@ ppOp d pd vid@(VId string id _) p1 op p2 =
 -------
 
 getVeriInsts :: VProgram -> [String]
-getVeriInsts (VProgram ms _ _) = nub (concatMap getInstsFromVModule ms)
+getVeriInsts (VProgram ms _ _ _) = nub (concatMap getInstsFromVModule ms)
   where
       getInstsFromVModule vmod = concatMap getInstsFromVMItem (vm_body vmod)
       -- extract module names from instances in VMItem

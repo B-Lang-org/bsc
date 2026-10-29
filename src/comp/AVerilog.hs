@@ -60,9 +60,14 @@ import qualified GraphWrapper as G
 aVerilog :: ErrorHandle -> Flags -> [PProp] -> ASPackage -> ForeignFuncMap ->
             IO VProgram
 aVerilog errh flags pps aspack ffmap =
-       return (VProgram (map renameInoutPorts mods) dpi_decls comments)
+       return (VProgram (map renameInoutPorts mods) dpi_decls comments
+                        string_param_default)
   where
         vco = flagsToVco flags
+        -- what `BSV_PARAMETER_STRING defaults to in this file
+        -- (a predefine of the macro by the tool environment wins over it)
+        string_param_default =
+            if systemVerilogOutput flags then VSPParameterString else VSPParameter
         -- look for pass-through comments, taking care of \n
         -- XXX should these attach to the main module instead of the
         -- XXX entire file (attached to file in case of multiple modules)
@@ -323,19 +328,17 @@ aVerilog errh flags pps aspack ffmap =
         -- XXX might be good to allow the user to specify a default
 
         args :: [VArg]
-        args =        [ VAParameter (vId i) r v isStr
+        args =        [ VAParameter (vId i) pt v
                      | (i, t) <- ps,
-                       let (r, v, isStr) = case t of
-                                      ATBit sz -> (Just (VEConst (sz-1),
-                                                         VEConst 0),
-                                             VEWConst (mkVId "0") sz 2 0, False)
-                                      -- under -system-verilog-output, emit a SV
-                                      -- `string` parameter so $display treats it
-                                      -- as a string, not a packed bit-vector
-                                      ATString _ -> (Nothing, VEString "",
-                                                     systemVerilogOutput flags)
-                                      ATReal -> (Nothing, VEReal 0.0, False)
-                                      _ -> (Nothing, VEConst 0, False) ] ++
+                       let (pt, v) = case t of
+                                      ATBit sz -> (VPTBits (Just (VEConst (sz-1),
+                                                                 VEConst 0)),
+                                             VEWConst (mkVId "0") sz 2 0)
+                                      -- a String parameter is declared through
+                                      -- `BSV_PARAMETER_STRING (see Verilog.hs)
+                                      ATString _ -> (VPTString, VEString "")
+                                      ATReal -> (VPTBits Nothing, VEReal 0.0)
+                                      _ -> (VPTBits Nothing, VEConst 0) ] ++
                 [ VAInput (vId i) (vSize t)
                      | (i, t) <- is ] ++
                 filterSharedInout

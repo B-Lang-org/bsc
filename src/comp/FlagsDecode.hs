@@ -1454,7 +1454,8 @@ externalFlags = [
 
         ("system-verilog-output",
          (Toggle (\f x -> f {systemVerilogOutput=x}) (showIfTrue systemVerilogOutput),
-         "emit SystemVerilog output (SV tasks like $error, string parameters)", Hidden)),
+         "emit SystemVerilog output (SV tasks like $error; string parameters" ++
+         " default to 'parameter string' via BSV_PARAMETER_STRING)", Hidden)),
 
         -- old, backward-compatible spelling of -system-verilog-output
         ("system-verilog-tasks",
