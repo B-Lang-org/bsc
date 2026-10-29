@@ -75,11 +75,12 @@ add_pkg() {
 
     #echo "Looking up $1"
 
-    PKG_NAME=`ghc-pkg field --ipid ${PKG_ID} name --simple-output`
-    PKG_KEY=`echo "${PKG_NAME}" | tr .- _`
+    # Different installed versions or instances can have different dependencies.
+    PKG_KEY=`echo "${PKG_ID}" | tr .- _`
 
     aget arr_name "${PKG_KEY}" i_name
     if [ -z ${i_name+x} ] ; then
+	PKG_NAME=`ghc-pkg field --ipid ${PKG_ID} name --simple-output`
 	PKG_VER=`ghc-pkg field --ipid ${PKG_ID} version --simple-output`
 	PKG_LIC=`ghc-pkg field --ipid ${PKG_ID} license --simple-output`
 	PKG_COPYR=`ghc-pkg field --ipid ${PKG_ID} copyright --simple-output`
