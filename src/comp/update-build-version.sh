@@ -87,7 +87,22 @@ getGITVersion () {
 
 # --name prints the Bluesim kernel's version name and writes nothing.
 case "${1:-}" in
-    --name) getGITVersion; echo "$GITDESCR"; exit ;;
+    --name)
+        # Make builds keep the compiler's authoritative version alongside this
+        # script, including when NOGIT or NOUPDATEBUILDVERSION was set only in
+        # the compiler's Makefile. Cabal builds keep generated modules elsewhere.
+        versionFile="$root/src/comp/BuildVersion.hs"
+        if [ -f "$versionFile" ]; then
+            if ! version=$(grep -E '^buildVersionName = ' "$versionFile"); then
+                echo "Failed to find version information in $versionFile" >&2
+                exit 1
+            fi
+            printf '%s\n' "$version" | cut -d'"' -f2
+        else
+            getGITVersion
+            echo "$GITDESCR"
+        fi
+        exit ;;
 esac
 
 if ( test -f BuildVersion.hs ) && [ "$NOUPDATEBUILDVERSION" = 1 ] ; then
