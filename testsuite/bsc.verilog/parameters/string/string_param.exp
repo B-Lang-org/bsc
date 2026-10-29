@@ -7,6 +7,42 @@ test_c_veri_bsv_modules StringConcat2 "" ""
 
 test_c_veri_bsv_modules TwoLevelString {bsvDisplayString mkStringPassThrough}
 
+# A String parameter is declared through `BSV_PARAMETER_STRING, whose
+# default the file header defines once per file: "parameter" by default,
+# "parameter string" under -system-verilog-output (a predefine of the
+# macro by the tool environment wins over either)
+if { $vtest == 1 } {
+    find_n_strings mkStringParamSub.v {`BSV_PARAMETER_STRING a = "";} 1
+    find_n_strings mkStringParamSub.v {`ifdef BSV_PARAMETER_STRING} 1
+    # the define line is a prefix of the -system-verilog-output spelling,
+    # so the "parameter string" count is what pins down the plain default
+    find_n_strings mkStringParamSub.v {  `define BSV_PARAMETER_STRING parameter} 1
+    find_n_strings mkStringParamSub.v {parameter string} 0
+    find_n_strings mkStringConcat1Sub.v {`BSV_PARAMETER_STRING a = "";} 1
+    find_n_strings mkStringConcat1Sub.v {`BSV_PARAMETER_STRING b = "";} 1
+    find_n_strings mkStringConcat1Sub.v {`ifdef BSV_PARAMETER_STRING} 1
+    # a file without a String parameter does not get the block
+    find_n_strings sysStringParam.v {BSV_PARAMETER_STRING} 0
+}
+
+# Under -system-verilog-output the default is "parameter string", which
+# Icarus does not accept, so link with the macro predefined to "parameter"
+erase StringParam.bo
+test_veri_only_bsv_modules_options StringParam mkStringParamSub \
+    "-system-verilog-output" "" "" "-D BSV_PARAMETER_STRING=parameter"
+if { $vtest == 1 } {
+    find_n_strings mkStringParamSub.v {`BSV_PARAMETER_STRING a = "";} 1
+    find_n_strings mkStringParamSub.v {`ifdef BSV_PARAMETER_STRING} 1
+    find_n_strings mkStringParamSub.v {  `define BSV_PARAMETER_STRING parameter string} 1
+    find_n_strings sysStringParam.v {BSV_PARAMETER_STRING} 0
+    # without the predefine, Icarus (in its default language generation,
+    # so only when VCOMP_FLAGS does not select e.g. -g2012) rejects
+    # "parameter string"
+    if { $verilog_compiler == "iverilog" && $vcomp_flags == "" } {
+        link_verilog_fail {sysStringParam.v mkStringParamSub.v} sysStringParam
+    }
+}
+
 # string argument without parameter keyword
 compile_object_fail_error StringParamErr1.bsv G0120
 

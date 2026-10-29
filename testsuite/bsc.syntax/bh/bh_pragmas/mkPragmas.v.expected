@@ -26,12 +26,17 @@
   `define BSV_RESET_EDGE negedge
 `endif
 
+`ifdef BSV_PARAMETER_STRING
+`else
+  `define BSV_PARAMETER_STRING parameter
+`endif
+
 module mkPragmas(CLK_foo,
 		 RST_N_bar,
 
 		 _read,
 		 RDY__read);
-  parameter s = "";
+  `BSV_PARAMETER_STRING s = "";
   input  CLK_foo;
   input  RST_N_bar;
 

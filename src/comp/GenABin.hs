@@ -34,7 +34,7 @@ import qualified Data.ByteString as B
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20260712-1"
+header = B.unpack $ TE.encodeUtf8 $ T.pack "bsc-ba-20261029-1"
 
 headerBS :: B.ByteString
 headerBS = B.pack header
@@ -715,8 +715,19 @@ instance Bin Flags where
 -- ----------
 
 instance Bin VProgram where
-    writeBytes (VProgram ms dpis c) = do toBin ms; toBin dpis; toBin c
-    readBytes = do ms <- fromBin; dpis <- fromBin; c <- fromBin; return (VProgram ms dpis c)
+    writeBytes (VProgram ms dpis c sd) = do toBin ms; toBin dpis; toBin c; toBin sd
+    readBytes = do ms <- fromBin; dpis <- fromBin; c <- fromBin; sd <- fromBin;
+                   return (VProgram ms dpis c sd)
+
+instance Bin VStringParamDefault where
+    writeBytes (VSPParameter)       = do putI 0
+    writeBytes (VSPParameterString) = do putI 1
+    readBytes = do
+      i <- getI
+      case i of
+        0 -> return VSPParameter
+        1 -> return VSPParameterString
+        n -> internalError $ "GenABin(VStringParamDefault).readBytes: " ++ show n
 
 instance Bin VModule where
     writeBytes (VModule name c ports body) =
@@ -759,7 +770,7 @@ instance Bin VArg where
     writeBytes (VAInput i r)       = do putI 0; toBin i; toBin r
     writeBytes (VAInout i i' r)    = do putI 1; toBin i; toBin i'; toBin r
     writeBytes (VAOutput i r)      = do putI 2; toBin i; toBin r
-    writeBytes (VAParameter i r d b) = do putI 3; toBin i; toBin r; toBin d; toBin b
+    writeBytes (VAParameter i t d) = do putI 3; toBin i; toBin t; toBin d
     readBytes = do
       i <- getI
       case i of
@@ -767,9 +778,19 @@ instance Bin VArg where
         1 -> do i <- fromBin; i' <- fromBin; r <- fromBin;
                 return (VAInout i i' r)
         2 -> do i <- fromBin; r <- fromBin; return (VAOutput i r)
-        3 -> do i <- fromBin; r <- fromBin; d <- fromBin; b <- fromBin;
-                return (VAParameter i r d b)
+        3 -> do i <- fromBin; t <- fromBin; d <- fromBin;
+                return (VAParameter i t d)
         n -> internalError $ "GenABin(VArg).readBytes: " ++ show n
+
+instance Bin VParamType where
+    writeBytes (VPTBits r) = do putI 0; toBin r
+    writeBytes (VPTString) = do putI 1
+    readBytes = do
+      i <- getI
+      case i of
+        0 -> do r <- fromBin; return (VPTBits r)
+        1 -> return VPTString
+        n -> internalError $ "GenABin(VParamType).readBytes: " ++ show n
 
 instance Bin VExpr where
     writeBytes (VEConst n)        = do putI 0; toBin n
