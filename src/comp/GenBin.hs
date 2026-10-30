@@ -632,8 +632,6 @@ instance Bin (IConInfo a) where
     writeBytes (ICAttrib t pps) = do putI 17; toBin t; toBin pps;
     writeBytes (ICPosition t pos) = do putI 18; toBin t; toBin pos
     writeBytes (ICType t it)    = do putI 19; toBin t; toBin it
-    writeBytes (ICIFace _ _ _) =
-        internalError "GenBin.Bin(IConInfo).writeBytes: ICIFace"
     writeBytes (ICValue _ _) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICValue"
     writeBytes (ICMethArg _) =

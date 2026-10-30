@@ -827,8 +827,6 @@ data IConInfo a =
           -- and does not appear in IPackage
           -- XXX consider renaming it to ICModDef?
         | ICValue { iConType :: IType, iValDef :: IExpr a }
-          -- module arguments that are interfaces -- NO LONGER SUPPORTED
-        | ICIFace { iConType :: IType, ifcTyId :: Id, ifcIds :: [(Id, Integer, Bool)] }
           -- a constructor containing rule pragmas, which is used in the
           -- arguments to PrimRule.
           -- only exists before expansion
@@ -880,19 +878,18 @@ ordC (ICMethArg { }) = 16
 ordC (ICModPort { }) = 17
 ordC (ICModParam { }) = 18
 ordC (ICValue { }) = 19
-ordC (ICIFace { }) = 20
-ordC (ICRuleAssert { }) = 21
-ordC (ICSchedPragmas { }) = 22
-ordC (ICClock { }) = 23
-ordC (ICReset { }) = 24
-ordC (ICInout { }) = 25
-ordC (ICLazyArray { }) = 26
-ordC (ICName { }) = 27
-ordC (ICAttrib { }) = 28
-ordC (ICPosition { }) = 29
-ordC (ICType { }) = 30
-ordC (ICPred { }) = 31
-ordC (ICMethod { }) = 32
+ordC (ICRuleAssert { }) = 20
+ordC (ICSchedPragmas { }) = 21
+ordC (ICClock { }) = 22
+ordC (ICReset { }) = 23
+ordC (ICInout { }) = 24
+ordC (ICLazyArray { }) = 25
+ordC (ICName { }) = 26
+ordC (ICAttrib { }) = 27
+ordC (ICPosition { }) = 28
+ordC (ICType { }) = 29
+ordC (ICPred { }) = 30
+ordC (ICMethod { }) = 31
 
 instance Eq (IConInfo a) where
     x == y  =  cmpC x y == EQ
@@ -934,7 +931,6 @@ cmpC c1 c2 =
         ICMethArg { } -> EQ
         ICModPort { } -> EQ
         ICModParam { } -> EQ
-        ICIFace { ifcTyId = ti1, ifcIds = is1 } -> compare (ti1, is1) (ifcTyId c2, ifcIds c2)
         ICRuleAssert { iAsserts = asserts } -> compare asserts (iAsserts c2)
         ICSchedPragmas { iPragmas = pragmas } -> compare pragmas (iPragmas c2)
         ICMethod { iInputNames = inames1, iOutputNames = outnames1, iMethod = meth1 } ->
@@ -1189,7 +1185,6 @@ instance PPrint (IExpr a) where
     pPrint d@PDReadable p (ICon i (ICOut _ _)) = text "out" <> ppId d i
     pPrint d@PDReadable p (ICon i (ICSel _ _ _)) = text "." <> ppId d i
     pPrint d@PDReadable _ (ICon i (ICPrim _ p)) = text (show p)
-    pPrint d@PDReadable _ (ICon i (ICIFace _ _ is)) = ppId d i <> text"{" <> sep (map (pPrint d 10) is) <> text "}"
     pPrint d@PDReadable _ (ICon i (ICLazyArray {})) = ppId d i <> text "[Array]"
 --    pPrint d@PDReadable _ (ICon id con) = ppId d id <> text (": " ++ show con)
     pPrint d p (IVar i) = ppId d i -- <> text ":V"
@@ -1260,7 +1255,6 @@ instance NFData (IConInfo a) where
     -- rnf (ICValue x1 x2) = rnf2 x1 x2
     -- XXX the above line causes cycles somehow so, like ICDef, we don't enter ICValue
     rnf (ICValue x1 x2) = ()
-    rnf (ICIFace x1 x2 x3) = rnf3 x1 x2 x3
     rnf (ICRuleAssert x1 x2) = rnf2 x1 x2
     rnf (ICSchedPragmas x1 x2) = rnf2 x1 x2
     rnf (ICMethod x1 x2 x3 x4) = rnf4 x1 x2 x3 x4
@@ -1482,7 +1476,6 @@ showTypelessCI (ICMethArg {iConType = t}) = "(ICMethArg _ )"
 showTypelessCI (ICModPort {iConType = t}) = "(ICModPort _ )"
 showTypelessCI (ICModParam {iConType = t}) = "(ICModParam _ )"
 showTypelessCI (ICValue {iConType = t, iValDef = e}) = "(ICValue)"
-showTypelessCI (ICIFace {iConType = t, ifcTyId = i, ifcIds = ids}) = "(ICIFace _ " ++ (show i) ++ " " ++ (show ids) ++ ")"
 showTypelessCI (ICRuleAssert {iConType = t, iAsserts = rps}) = "(ICRuleAssert _ " ++ (show rps) ++ ")"
 showTypelessCI (ICSchedPragmas {iConType = t, iPragmas = sps}) = "(ICSchedPragmas _ " ++ (show sps) ++ ")"
 showTypelessCI (ICMethod {iConType = t, iInputNames = ins, iOutputNames = outs, iMethod = m }) = "(ICMethod " ++ (show ins) ++ " " ++ (show outs) ++ " " ++ (ppReadable m) ++ ")"
