@@ -8,6 +8,7 @@ module Subst(
              {- removeFromSubst, -}
              apSubstToSubst,
              getSubstDomain, getSubstRange, sizeSubst,
+             substDomainDisjoint,
              chkSubstOrder
              ) where
 
@@ -16,6 +17,7 @@ import CType
 import Type
 import Util(fromJustOrErr)
 import Data.List(nub,union)
+import Data.Maybe(fromMaybe, isNothing)
 import Position
 
 import qualified Data.Set as Set
@@ -198,31 +200,56 @@ mergeAgreements s1 s2 = fj $ merge diff1 diff2
 
 class Types t where
   apSub :: Subst -> t -> t
+  apSub s t = fromMaybe t (apSubM s t)
+  -- Change-tracking substitution: Nothing means the substitution
+  -- provably left the value untouched, so the caller keeps the
+  -- original object (preserving sharing and skipping any rebuild or
+  -- re-normalization).  Instances without a hand-written apSubM get
+  -- the conservative "always changed" default; new hot-path consumers
+  -- should define apSubM and derive apSub from it.
+  apSubM :: Subst -> t -> Maybe t
+  apSubM s t = Just (apSub s t)
   tv    :: t -> [TyVar]
+  {-# MINIMAL (apSub | apSubM), tv #-}
 
 instance Types Type where
-  apSub (S seo _) v@(TVar u) =
+  apSub s t = fromMaybe t (apSubM s t)
+  apSubM s _ | isNullSubst s = Nothing
+  apSubM (S seo _) t0 = go t0
+    where
+      go v@(TVar u) =
         case slookup u seo of
         Just t  ->
             case t of
-            (TGen _ _) -> t -- (kind (TGen _ _)) errors out -- don't check kind
+            (TGen _ _) -> Just t -- (kind (TGen _ _)) errors out -- don't check kind
             _ -> if isKVar (kind v) || kind t == kind v
-                 then t
+                 then Just t
                  else internalError ("Subst.Type.apSub: bad kind: " ++
                                      ppString t ++ "::" ++ ppString (kind t) ++
                                      "@" ++ ppString (getPosition t) ++
                                      " / " ++ ppString v ++ "::" ++
                                      ppString (kind v) ++ "@" ++
                                      ppString (getPosition v))
-        Nothing -> v
-  apSub s (TAp l r) = normTAp (apSub s l) (apSub s r)
-  apSub s t         = t
+        Nothing -> Nothing
+      go (TAp l r) =
+        case (go l, go r) of
+          (Nothing, Nothing) -> Nothing
+          (ml, mr) -> Just (normTAp (fromMaybe l ml) (fromMaybe r mr))
+      go _ = Nothing
 
   tv (TVar u)  = [u]
   tv (TAp l r) = tv l `union` tv r
   tv t         = []
 
 instance Types a => Types [a] where
+  -- NB deliberately lazy (and spine-rebuilding): consumers routinely
+  -- apply substitutions to long lists (assumption environments,
+  -- residual predicate sets) and force only part of the result, so an
+  -- eager changed-detection over the whole list here is a large
+  -- pessimization.  Element-level sharing still comes from each
+  -- element's own apSub.  Short-list containers that want whole-value
+  -- sharing (Pred's class args, Qual's context) do their own local
+  -- detection.
   apSub s ts = map (apSub s) ts
   tv ts      = nub (concatMap tv ts)
 
@@ -239,6 +266,16 @@ sizeSubst (S eo _) = (Map.size eo)
 
 getSubstDomain :: Subst -> [TyVar]
 getSubstDomain (S eo _) = (Map.keys eo)
+
+-- True when the substitution touches none of the given variables --
+-- the test behind the "return the value unchanged" fast paths.
+-- Probed per variable: the argument sets (predicate free vars) are
+-- tiny, while the substitution can hold thousands of entries, so
+-- materializing its key set (O(size) per call) must be avoided.
+substDomainDisjoint :: Subst -> Set.Set TyVar -> Bool
+substDomainDisjoint (S eo _) fvs
+  | Map.null eo = True
+  | otherwise   = not (any (`Map.member` eo) (Set.toAscList fvs))
 
 getSubstRange :: Subst -> [TyVar]
 getSubstRange (S eo _ ) = concat (map tv (Map.elems eo))
