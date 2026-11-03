@@ -1,0 +1,16 @@
+packages: .
+
+package bsc
+  ghc-options: -j
+
+optimization: 2
+documentation: True
+tests: True
+
+test-show-details: direct
+test-options: --test-option=--color=always
+
+package bsc
+  -- Enable all test suites by default
+  tests: True
+  test-show-details: direct 

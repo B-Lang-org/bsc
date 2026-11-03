@@ -349,9 +349,9 @@ helpCmd interp [_,cmd] = do
                                          ]
     where show_help c os =
             do (matched, ws', g) <- htclMatchGrammar interp os (grammar c)
-               let isArg (_,(Argument _ _ _))  = True
+               let isArg (_,(HTclArgument _ _ _))  = True
                    isArg _                     = False
-                   isKW (Just (Keyword _ _ _)) = True
+                   isKW (Just (HTclKeyword _ _ _)) = True
                    isKW _                      = False
                    isKWorNone Nothing          = True
                    isKWorNone e                = isKW e
@@ -361,10 +361,10 @@ helpCmd interp [_,cmd] = do
                    prefix = unwords $ cmd_words
                (_, _, g') <- htclMatchGrammar interp cmd_objs (grammar c)
                let (sd,ld) = head $ [ (d,l)
-                                      | (_,(Keyword _ d l)) <- matched'
+                                      | (_,(HTclKeyword _ d l)) <- matched'
                                     , not (null d)
                                     ] ++  [ (d,l)
-                                      | (_,(Command _ d l _)) <- matched'
+                                      | (_,(HTclCommand _ d l _)) <- matched'
                                     , not (null d)
                                     ]
                    err = if (null ws')
@@ -1629,7 +1629,7 @@ tclRule ["full",modname,rule] =
             let isARule r = (arule_id r == rId)
                 (attrs, pos, predicate) =
                     if (isIfcRule)
-                    then let cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
+                    then let cvtIfc (AIAction inputs props ifPred ifId ifRs fi) =
                                  case (find isARule ifRs) of
                                    Nothing -> Nothing
                                    Just (ARule i ps _ _ rPred _ _ _) ->
@@ -1646,7 +1646,7 @@ tclRule ["full",modname,rule] =
                              cvtIfc _ = Nothing
                          in  case (catMaybes (map cvtIfc ifcs)) of
                                [] -> internalError ("tclRule full: method not found")
-                               (res:_) -> res
+                               (res : _) -> res
                     else -- find the ARule
                         case (find isARule user_rules) of
                           Nothing -> internalError ("tclRule full: rule not found")
@@ -2150,33 +2150,54 @@ getBInstChildren b@(BNode {binst_sub = sub}) =
               isLoop _ = False
               --
               mkChildIN :: (String, ABinEitherModInfo) -> Bool -> InstNode -> IO [BInst]
-              mkChildIN _ _ inodep | isSynthP hide inodep =
+              mkChildIN _ allowBody inode | isSynthP hide inode =
                 do let unique = fromJustOrErr "bluetcl.mkChildIN: unique" $
-                                  getSynthName hide inodep
+                                  getSynthName hide inode
                    mminfo <- findModuleByInstance (reverse $ (getIdBaseString $ unique) : binst_synth b)
                    let b_add = addInst b (Just  (getIdBaseString $ unique))
-                                 (getIdBaseString $ node_name inodep)
-                       hidden = isHidden inodep
-                       hide_all = isHiddenAll inodep
+                                 (getIdBaseString $ node_name inode)
+                       hidden = isHidden inode
+                       hide_all = isHiddenAll inode
                        b' = b_add {binst_hide = hidden, binst_hideall = hide_all}
                        b'' = case mminfo of
-                                Left pname  -> let bsub = BLeaf { bin_name  = node_name inodep
+                                Left pname  -> let bsub = BLeaf { bin_name  = node_name inode
                                                                 , bin_uname = unique
-                                                                , bin_type  = node_type inodep
+                                                                , bin_type  = node_type inode
                                                                 , bin_prim  = pname }
                                                in b' { binst_sub = bsub }
                                 Right minfo@(m,ba)
                                             -> let eminfo = (m, Right ba)
                                                    bsub = BMod { bin_module = minfo
-                                                               , bin_type   = node_type inodep
-                                                               , bin_name   = node_name inodep
+                                                               , bin_type   = node_type inode
+                                                               , bin_name   = node_name inode
                                                                , bin_uname  = unique
                                                                }
                                                in b' { binst_sub = bsub, binst_mod = eminfo }
                    return $ [b'']
-              mkChildIN (m,ba) _ inode@(StateVar {}) = -- this case should be impossible
-                internalError $ "mkChildIN: " ++ (show inode)
-              --
+              mkChildIN (m,ba) allowBody inode@(StateVar {}) = -- this case should be impossible
+                do let unique = fromJustOrErr "bluetcl.mkChildIN: unique" $
+                                  getSynthName hide inode
+                   mminfo <- findModuleByInstance (reverse $ (getIdBaseString $ unique) : binst_synth b)
+                   let b_add = addInst b (Just  (getIdBaseString $ unique))
+                                 (getIdBaseString $ node_name inode)
+                       hidden = isHidden inode
+                       hide_all = isHiddenAll inode
+                       b' = b_add {binst_hide = hidden, binst_hideall = hide_all}
+                       b'' = case mminfo of
+                                Left pname  -> let bsub = BLeaf { bin_name  = node_name inode
+                                                                , bin_uname = unique
+                                                                , bin_type  = node_type inode
+                                                                , bin_prim  = pname }
+                                               in b' { binst_sub = bsub }
+                                Right minfo@(m,ba)
+                                            -> let eminfo = (m, Right ba)
+                                                   bsub = BMod { bin_module = minfo
+                                                               , bin_type   = node_type inode
+                                                               , bin_name   = node_name inode
+                                                               , bin_uname  = unique
+                                                               }
+                                               in b' { binst_sub = bsub, binst_mod = eminfo }
+                   return $ [b'']
               mkChildIN (m,ba) allowBody inode@(Loc { node_name = name } ) | nodeIgnore inode =
                 do let nodes  = getInstTreeList hide (node_children inode)
                        keep_prop prop = not (isSuffixCountProp prop)
