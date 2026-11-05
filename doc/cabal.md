@@ -92,11 +92,11 @@ other library module) must `import Warmup ()`.
 
 `src/comp/update-build-version.sh` maintains `src/comp/BuildVersion.hs` as
 the version shared by the compiler and Bluesim. Make refreshes it before
-invoking Cabal, and the hook runs the same script, so a `cabal build` run by
-hand refreshes it too; both keep a custom or frozen file when
-`NOUPDATEBUILDVERSION=1` is in the environment. The module is also listed in
-`extra-source-files`, so a changed version rebuilds the package even when no
-other source changed.
+invoking Cabal. The hook also runs the script, but a direct `cabal build`
+can skip it when only Git metadata changes; use Make to keep the version
+current. Set `NOUPDATEBUILDVERSION=1` to preserve a custom or frozen file.
+The module is also listed in `extra-source-files`, so a changed version
+rebuilds the package even when no other source changed.
 See [Exporting the source code](../INSTALL.md#exporting-the-source-code)
 for Git archives and frozen or custom versions.
 

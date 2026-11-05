@@ -380,14 +380,11 @@ Most users will never need to switch solvers, or even be aware of the
 option. Thus, the build process offers the option of not compiling one
 of the two solvers.
 
-Currently, the BSC executable expects to dynamically link with
-object files for Yices and STP found in the directory `inst/lib/SAT/`.
-BSC calls a function in the library to query its version; if the version
-does not match what BSC expects, BSC will not let users select that solver.
-Thus, the current way to omit a solver is to replace the object file
-with a stub that returns a null version.  In the future, we may replace
-this with static linking and the processing for removing a solver
-would then simply omit the code for that solver.
+BSC dynamically links both solver libraries. The options below replace one
+with a stub that BSC recognizes as unavailable. At startup, BSC calls
+`checkVersion` for the selected solver; the stub fails this check, so that
+backend cannot be selected. See
+[Solvers](doc/cabal.md#solvers) for library lookup and compatibility.
 
 To skip building the STP solver, assign a non-empty value to
 `STP_STUB`:
