@@ -163,8 +163,8 @@ PACKAGES = \
 
 # The EPS warmup (see update-warmup.sh) must also cover the rule-bearing
 # dependencies of base that are not direct dependencies of the compiler
-# (ghc-bignum, and ghc-internal from GHC 9.10); expose them when present
-# so Warmup.hs can import their modules.
+# (ghc-prim, ghc-bignum, and ghc-internal from GHC 9.10); expose them when
+# present so Warmup.hs can import their modules.
 WARMUP_EXTRA_PKGS := $(shell ./update-warmup.sh --list-extra $(firstword $(GHC)))
 PACKAGES += $(WARMUP_EXTRA_PKGS)
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
