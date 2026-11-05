@@ -17,9 +17,15 @@ endif
 ifeq ($(OSTYPE), Darwin)
 LIBRARIES=lib/libstp.dylib
 SNAME = libstp.dylib
+# Mach-O consults an rpath only for a dependency recorded as @rpath/..., so a
+# bare name here would leave every consumer resolving the library through
+# dyld's default search and needing LD_LIBRARY_PATH set for it.
+INAME = @rpath/$(SNAME)
 else
 LIBRARIES=lib/libstp.so.1 lib/libstp.so
 SNAME = libstp.so.1
+# ELF resolves a NEEDED soname through the consumer's rpath already.
+INAME = $(SNAME)
 endif
 
 .PHONY: all
@@ -70,7 +76,7 @@ lib/$(SNAME):  c_interface/c_interface.o \
 	@# For some reason, this line doesn't work
 	@# $(CXX) $(CFLAGS) $(SHAREDFLAG) -o $@ $^
 	@# We use --whole-archive to ensure that all symbols in to-sat are used
-	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(SNAME) -o $@ $(LIBCCARGS)
+	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(INAME) -o $@ $(LIBCCARGS)
 
 ifneq ($(OSTYPE), Darwin)
 lib/libstp.so: lib/libstp.so.1
