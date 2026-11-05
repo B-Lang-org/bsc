@@ -1,6 +1,6 @@
 
 # The heap cap must comfortably clear bsc's baked-in allocation-area hint
-# (-with-rtsopts=-H256m, src/comp/Makefile): the RTS sizes its heap toward
+# (-with-rtsopts=-H256m, bsc.cabal): the RTS sizes its heap toward
 # the hint no matter how small the live set is, with a steady state a few
 # MB above it.  Caps at or just above 256M measure the RTS's boundary
 # accounting -- which varies by GHC version and OS -- rather than the

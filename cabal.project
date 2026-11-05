@@ -1,0 +1,27 @@
+packages: .
+
+-- Pin the Hackage snapshot used to resolve dependencies (doc/cabal.md).
+index-state: 2026-10-15T20:00:00Z
+
+optimization: 2
+
+jobs: $ncpus
+
+-- Write a .ghc.environment file at the repo root for ghci/runghc (src/comp/.ghci).
+write-ghc-environment-files: always
+
+-- Enable parallel module compilation alongside -fobject-determinism on
+-- GHC >= 9.12 (doc/cabal.md).
+if impl(ghc >= 9.12)
+  semaphore: True
+  package *
+    ghc-options: -fobject-determinism
+
+-- Set rpath on the shared library itself (ld-options in bsc.cabal only apply to
+-- executables linked against the library).
+if os(osx)
+  program-options
+    ghc-options: -optl-Wl,-rpath,@loader_path/../lib/SAT
+else
+  program-options
+    ghc-options: -optl-Wl,-rpath,$ORIGIN/../lib/SAT

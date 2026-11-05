@@ -44,7 +44,7 @@ license.  The following are known to have other authors and licenses:
 * GHC and other Haskell Libraries
   * BSC tools are compiled with the Glasgow Haskell Compiler (GHC) [1]
     and using various libraries available from Hackage [2].  See the
-    PACKAGES variable in src/comp/Makefile for the complete list.
+    build-depends fields of bsc.cabal for the complete list.
   * These files are not in the BSC source repo, but any binary
     distribution will need to include their license information.
       [1] http://hackage.haskell.org

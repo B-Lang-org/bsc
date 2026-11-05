@@ -12,9 +12,9 @@ help:
 	@echo 'This Makefile will create an installation of the Bluespec Compiler tools,'
 	@echo 'in a directory named "inst".  This directory can be moved anywhere, but'
 	@echo 'the contents should remain in the same relative locations.  Intermediate'
-	@echo 'files are stored in a directory named "build".  The "clean" target will'
-	@echo 'delete the "build" directory; the "full_clean" target will delete both'
-	@echo 'the "build" and "inst" directories.'
+	@echo 'files are stored in directories named "build" and "dist-newstyle".  The'
+	@echo '"clean" target will delete those directories; the "full_clean" target will'
+	@echo 'delete the "inst" directory as well.'
 	@echo
 	@echo '    make  release      Build a release dir with the tools and docs'
 	@echo
@@ -43,7 +43,7 @@ rem_inst:
 
 .PHONY: rem_build
 rem_build:
-	rm -fr $(BUILDDIR)
+	rm -fr $(BUILDDIR) $(TOP)/dist-newstyle $(TOP)/.ghc.environment.*
 
 # -------------------------
 

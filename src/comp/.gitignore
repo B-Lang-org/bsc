@@ -2,10 +2,7 @@
 BuildVersion.hs
 Warmup.hs
 
-# Ignore C files that are auto-generated and not checked in
-rts_hooks*.o
-
-# Ignore the generated executables
+# Symlinks created by per-executable targets in Makefile
 bsc
 bluetcl
 dumpbo

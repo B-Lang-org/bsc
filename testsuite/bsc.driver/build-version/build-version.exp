@@ -1,0 +1,100 @@
+# Exercise version snapshots without touching this checkout's generated files.
+namespace eval build_version {
+    proc read_file {path} {
+        set channel [open $path r]
+        set contents [read $channel]
+        close $channel
+        return $contents
+    }
+    proc write_file {path contents} {
+        set channel [open $path w]
+        puts -nonewline $channel $contents
+        close $channel
+    }
+    proc same_files {paths expected} {
+        foreach path $paths {
+            if {[read_file $path] ne $expected} { error "unexpected contents: $path" }
+        }
+    }
+
+    set testdir [file normalize [file join $::srcdir $::subdir]]
+    set fixture [file join $testdir build-version-tmp]
+    set stage setup
+    if {[catch {
+        file delete -force $fixture
+        file mkdir [file join $fixture src comp]
+        set script [file join $fixture src comp update-build-version.sh]
+        file copy [file join $testdir .. .. .. src comp update-build-version.sh] $script
+        set source [file join $fixture src comp BuildVersion.hs]
+        set autogen [file join $fixture autogen]
+        set outputs [list $source [file join $autogen BuildVersion.hs]]
+        set frozen [list env NOGIT=1 NOUPDATEBUILDVERSION=1 bash $script]
+        set normal [list env NOGIT=1 NOUPDATEBUILDVERSION=0 bash $script]
+
+        set stage "bootstrap with freezing enabled"
+        if {[exec {*}$frozen --name] ne "no-git" || [file exists $source]} {
+            error "name lookup created a snapshot or returned the wrong fallback"
+        }
+        exec {*}$frozen --module $autogen
+        set generated [read_file $source]
+        same_files $outputs $generated
+        if {[exec {*}$frozen --name] ne "no-git"} { error "wrong generated name" }
+        pass "build-version: $stage"
+
+        set stage "preserve a custom snapshot verbatim"
+        set custom {module BuildVersion where
+
+-- Preserve custom definitions and formatting.
+buildVersion = "custom-build"
+buildVersionNum = 0x1234567
+buildVersionName = "release-local"
+}
+        write_file $source $custom
+        exec {*}$frozen --module $autogen
+        same_files $outputs $custom
+        if {[exec {*}$frozen --name] ne "release-local"} { error "wrong custom name" }
+        pass "build-version: $stage"
+
+        set stage "the build's in-place invocation keeps a frozen snapshot"
+        set srcdir [file join $fixture src comp]
+        foreach path $outputs { file mtime $path 946684800 }
+        exec {*}$frozen --module $srcdir
+        same_files $outputs $custom
+        if {[file mtime $source] != 946684800} { error "in-place write touched the canonical file" }
+        pass "build-version: $stage"
+
+        set stage "one invocation serves several output directories"
+        set autogen2 [file join $fixture autogen2]
+        exec {*}$frozen --module $autogen --module $autogen2
+        same_files [list $source [file join $autogen BuildVersion.hs] [file join $autogen2 BuildVersion.hs]] $custom
+        pass "build-version: $stage"
+
+        set stage "name queries never refresh a snapshot"
+        foreach path $outputs { file mtime $path 946684800 }
+        if {[exec {*}$normal --name] ne "release-local"} { error "name was refreshed" }
+        same_files $outputs $custom
+        foreach path $outputs {
+            if {[file mtime $path] != 946684800} { error "name query rewrote $path" }
+        }
+        pass "build-version: $stage"
+
+        set stage "unchanged snapshots keep their timestamps"
+        exec {*}$frozen --module $autogen
+        foreach path $outputs {
+            if {[file mtime $path] != 946684800} { error "unchanged file rewritten: $path" }
+        }
+        pass "build-version: $stage"
+
+        set stage "normal builds resume generated versions"
+        exec {*}$normal --module $srcdir --module $autogen
+        same_files $outputs $generated
+        if {[exec {*}$normal --name] ne "no-git"} { error "custom name survived reset" }
+        pass "build-version: $stage"
+    } message]} {
+        verbose -log $message
+        fail "build-version: $stage"
+    } else {
+        file delete -force $fixture
+    }
+}
+namespace delete build_version

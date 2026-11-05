@@ -1,0 +1,4 @@
+-- Debug build (make install-src BSC_BUILD=DEBUG; doc/cabal.md, Project settings and variants).
+import: cabal.project
+package bsc
+  ghc-options: -dcore-lint -debug

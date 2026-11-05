@@ -15,7 +15,7 @@
  */
 
 /*
- * bluetcl's Tcl side. The program's main is Haskell (app/bluetcl_Main.hs), so
+ * bluetcl's Tcl side. The program's main is Haskell (app/Bluetcl.hs), so
  * the RTS is running by the time run_bluetcl() below hands control to Tcl.
  */
 

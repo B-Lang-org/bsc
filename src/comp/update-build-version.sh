@@ -3,55 +3,82 @@ set -euo pipefail
 
 export TMOUT=1
 
-# Inputs, from the environment: src/comp/Makefile exports both.
+# Inputs from the environment, exported by src/comp/Makefile (SetupHooks.hs
+# and src/bluesim/Makefile call this script with that environment).
 NOGIT=${NOGIT:-0}
 NOUPDATEBUILDVERSION=${NOUPDATEBUILDVERSION:-0}
 
 # -------------------------
 # GIT
 
-# Always inspect this source tree, even from an external build directory or
-# a caller (such as a Git hook) with another repository in its environment.
+# Always inspect this source tree, even when called from another directory or
+# with GIT_* environment variables set by a parent Git hook.
 root=$(cd "$(dirname "$0")/../.." && pwd)
+versionFile="$root/src/comp/BuildVersion.hs"
 repoGit () (
     unset $(git rev-parse --local-env-vars)
     git --git-dir="$root/.git" --work-tree="$root" "$@"
 )
 
-# Arguments: 1=commit hash, 2=describe string
-genGITBuildVersion () {
-    echo "module BuildVersion(buildVersion, buildVersionNum, buildVersionName) where" > BuildVersion.hs.new;
-
-    echo >> BuildVersion.hs.new;
-    echo "import Warmup ()" >> BuildVersion.hs.new;
-
-    echo >> BuildVersion.hs.new;
-    echo buildVersion :: String >> BuildVersion.hs.new;
-    echo buildVersion = \"$1\" >> BuildVersion.hs.new;
-
-    echo >> BuildVersion.hs.new;
-    echo buildVersionNum :: Integer >> BuildVersion.hs.new;
-    echo buildVersionNum = 0x$1 >> BuildVersion.hs.new;
-
-    echo >> BuildVersion.hs.new;
-    echo buildVersionName :: String >> BuildVersion.hs.new;
-    echo buildVersionName = \"$2\" >> BuildVersion.hs.new;
-
-    if test -f BuildVersion.hs; then
-	if !(diff BuildVersion.hs BuildVersion.hs.new); then
-            mv BuildVersion.hs.new BuildVersion.hs;
-	else
-            echo "BuildVersion.hs up-to-date";
-            rm BuildVersion.hs.new;
-	fi;
+writeIfChanged () {
+    mkdir -p "$(dirname "$1")"
+    cat > "$1.tmp"
+    if cmp -s "$1.tmp" "$1"; then
+        rm -f "$1.tmp"
     else
-	mv BuildVersion.hs.new BuildVersion.hs;
-    fi;
+        mv "$1.tmp" "$1"
+    fi
 }
 
-# Sets GITCOMMIT and GITDESCR: null values with NOGIT=1, the values git
-# substituted on export for an archive (.gitattributes, export-subst), and
-# the repository's otherwise.
+# Arguments: 1=output directory, 2=commit hash, 3=describe string
+genGITBuildVersion () {
+    writeIfChanged "$1/BuildVersion.hs" <<EOF
+module BuildVersion(buildVersion, buildVersionNum, buildVersionName) where
+
+import Warmup ()
+
+buildVersion :: String
+buildVersion = "$2"
+
+buildVersionNum :: Integer
+buildVersionNum = 0x$2
+
+buildVersionName :: String
+buildVersionName = "$3"
+EOF
+}
+
+# Refresh one canonical snapshot per invocation; frozen files are kept verbatim.
+updateVersion () {
+    if [ "$versionUpdated" = 0 ]; then
+        if [ "$NOUPDATEBUILDVERSION" != 1 ] || [ ! -f "$versionFile" ]; then
+            getGITVersion
+            genGITBuildVersion "$(dirname "$versionFile")" "$GITCOMMIT" "$GITDESCR"
+        fi
+        versionUpdated=1
+    fi
+}
+
+writeModule () {
+    updateVersion
+    writeIfChanged "$1/BuildVersion.hs" < "$versionFile"
+}
+
+printVersionName () {
+    if [ -f "$versionFile" ]; then
+        if ! version=$(grep -E '^buildVersionName = ' "$versionFile"); then
+            echo "Failed to find version information in $versionFile" >&2
+            exit 1
+        fi
+        printf '%s\n' "$version" | cut -d'"' -f2
+    else
+        getGITVersion
+        echo "$GITDESCR"
+    fi
+}
+
+# Set GITCOMMIT and GITDESCR from NOGIT=1, git-archive export-subst
+# (.gitattributes), or the Git repository.
 getGITVersion () {
     if [ "$NOGIT" = 1 ] ; then
 	GITCOMMIT="0000000"
@@ -85,29 +112,14 @@ getGITVersion () {
 
 # -------------------------
 
-# --name prints the Bluesim kernel's version name and writes nothing.
-case "${1:-}" in
-    --name)
-        # Use the compiler's recorded version, including custom or frozen names.
-        versionFile="$root/src/comp/BuildVersion.hs"
-        if [ -f "$versionFile" ]; then
-            if ! version=$(grep -E '^buildVersionName = ' "$versionFile"); then
-                echo "Failed to find version information in $versionFile" >&2
-                exit 1
-            fi
-            printf '%s\n' "$version" | cut -d'"' -f2
-        else
-            getGITVersion
-            echo "$GITDESCR"
-        fi
-        exit ;;
-esac
-
-if ( test -f BuildVersion.hs ) && [ "$NOUPDATEBUILDVERSION" = 1 ] ; then
-    echo "BuildVersion.hs not modified"
-else
-    getGITVersion
-    genGITBuildVersion ${GITCOMMIT} ${GITDESCR}
-fi
+[ $# -gt 0 ] || { echo "usage: $0 [--module DIR] [--name]" >&2; exit 2; }
+versionUpdated=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --module) writeModule "$2"; shift 2 ;;
+        --name) printVersionName; shift ;;
+        *) echo "usage: $0 [--module DIR] [--name]" >&2; exit 2 ;;
+    esac
+done
 
 # -------------------------

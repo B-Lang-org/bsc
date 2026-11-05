@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 dirs="src/comp src/Parsec src/vendor/htcl src/vendor/stp/HaskellIfc src/vendor/yices/v2.6/HaskellIfc"
-find $dirs \( -name '*.hs' -o -name '*.lhs' \) -exec awk '
+find $dirs -path src/comp/app -prune -o \( -name '*.hs' -o -name '*.lhs' \) -exec awk '
 BEGIN { generated["Warmup"]; generated["BuildVersion"] }
 FNR == 1 { file = FILENAME; sub(/\.l?hs$/, "", file); n = split(file, p, "/"); name[FILENAME] = p[n] }
 # the declared module name (hierarchical ones live under src/comp/Parser)

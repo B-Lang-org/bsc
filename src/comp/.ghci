@@ -2,38 +2,23 @@
 :set -XForeignFunctionInterface
 :set -XUndecidableInstances
 
--- Packages
-:set -package base
-:set -package containers
-:set -package array
-:set -package mtl
-:set -package unix
-:set -package regex-compat
-:set -package bytestring
-:set -package directory
-:set -package process
-:set -package filepath
-:set -package time
-:set -package old-time
-:set -package split
-:set -package syb
+-- Load external packages and the generated Warmup module from the cabal
+-- build's environment file at the repo root; interpret source files
+-- (the build refreshes BuildVersion.hs in src/comp).
+:set -package bsc
 
 -- Haskell source
-:set -i../comp:../comp/app:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
+:set -i../comp:../comp/app:../comp/Libs:../comp/GHC/posix:../Parsec
 
 -- Shared libraries and FFI bindings
-:set -i../vendor/stp/include_hs
-:set -i../vendor/yices/include_hs
+:set -i../vendor/stp/HaskellIfc
+:set -i../vendor/yices/v2.6/HaskellIfc
 :set -i../vendor/htcl
 
 :set -I/usr/include/tcl
-:set -L../vendor/htcl
-:set -lhtcl
 
-:set -L../vendor/stp/lib
+:set -L../../inst/lib/SAT
 :set -lstp
-
-:set -L../vendor/yices/lib
 :set -lyices
 
 -- Faster compilation times

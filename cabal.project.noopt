@@ -1,0 +1,3 @@
+-- Unoptimized build (make install-src BSC_BUILD=NOOPT; doc/cabal.md, Project settings and variants).
+import: cabal.project
+optimization: False
