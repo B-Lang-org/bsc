@@ -12,8 +12,9 @@
 # Usage: update-warmup.sh <ghc> <package>...
 #        update-warmup.sh --list-extra <ghc>
 # The matching ghc-pkg is derived from the ghc name/path.
-# --list-extra prints the hidden rule-bearing packages present on this
-# GHC (ghc-internal, ghc-bignum on >= 9.10), for the Makefile to expose.
+# --list-extra prints the rule-bearing dependencies of base that are not
+# direct dependencies of the compiler (ghc-bignum, and ghc-internal from
+# GHC 9.10), for the Makefile to expose so Warmup.hs can import them.
 
 if [ "$1" = "--list-extra" ] ; then
   LIST_EXTRA=1; shift

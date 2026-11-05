@@ -161,9 +161,10 @@ PACKAGES = \
 	strict-concurrency \
 
 
-# The EPS warmup (see update-warmup.sh) must also cover packages that
-# exist only on newer GHCs and are hidden by default; expose them when
-# present so Warmup.hs can import their modules.
+# The EPS warmup (see update-warmup.sh) must also cover the rule-bearing
+# dependencies of base that are not direct dependencies of the compiler
+# (ghc-bignum, and ghc-internal from GHC 9.10); expose them when present
+# so Warmup.hs can import their modules.
 WARMUP_EXTRA_PKGS := $(shell ./update-warmup.sh --list-extra $(firstword $(GHC)))
 PACKAGES += $(WARMUP_EXTRA_PKGS)
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or
