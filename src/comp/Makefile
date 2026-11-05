@@ -434,10 +434,14 @@ PKGINFO=
 else
 PKGINFO=$(LICDIR)/LICENSE.ghc_pkgs
 
+# The ghc-pkg beside $(GHC), named like it (ghc-pkg-9.4.7 for ghc-9.4.7);
+# set GHCPKG when the names differ.
+GHCPKG ?= $(if $(findstring /,$(firstword $(GHC))),$(dir $(firstword $(GHC))))ghc-pkg$(patsubst ghc%,%,$(notdir $(firstword $(GHC))))
+
 .PHONY: $(PKGINFO)
 $(PKGINFO):
 	mkdir -p -m 755 $(LICDIR)
-	./make-ghc-pkg-info.sh $(PACKAGES) > $(PKGINFO)
+	GHCPKG="$(GHCPKG)" ./make-ghc-pkg-info.sh $(PACKAGES) > $(PKGINFO)
 endif
 
 # -----
