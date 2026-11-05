@@ -85,6 +85,24 @@ getGITVersion () {
 
 # -------------------------
 
+# --name prints the Bluesim kernel's version name and writes nothing.
+case "${1:-}" in
+    --name)
+        # Use the compiler's recorded version, including custom or frozen names.
+        versionFile="$root/src/comp/BuildVersion.hs"
+        if [ -f "$versionFile" ]; then
+            if ! version=$(grep -E '^buildVersionName = ' "$versionFile"); then
+                echo "Failed to find version information in $versionFile" >&2
+                exit 1
+            fi
+            printf '%s\n' "$version" | cut -d'"' -f2
+        else
+            getGITVersion
+            echo "$GITDESCR"
+        fi
+        exit ;;
+esac
+
 if ( test -f BuildVersion.hs ) && [ "$NOUPDATEBUILDVERSION" = 1 ] ; then
     echo "BuildVersion.hs not modified"
 else
