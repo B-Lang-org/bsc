@@ -174,7 +174,6 @@ PACKAGES = \
 	filepath \
 	time \
 	old-time \
-	old-locale \
 	split \
 	syb \
 	integer-gmp \
