@@ -8,6 +8,7 @@ module Bag (
             removeIntersection
            ) where
 
+import Warmup ()
 import qualified Data.Map as M
 
 type Count = Int

@@ -24,6 +24,7 @@ module VCD ( VCD, parseVCD, parseVCDSize, formatVCD
 -- byte-strings and attempts to be relatively efficient, since VCD
 -- files can be enormous.
 
+import Warmup ()
 import Data.Char
 import Data.Time
 import Data.List(unfoldr, isPrefixOf, mapAccumL)
