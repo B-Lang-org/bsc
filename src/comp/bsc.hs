@@ -143,7 +143,7 @@ import SimCOpt(simCOpt)
 import SimBlocksToC(simBlocksToC)
 import SystemCWrapper(checkSystemCIfc, wrapSystemC)
 import SimFileUtils(analyzeBluesimDependencies)
-import VFileUtils(partitionStaleVerilogMods)
+import VFileUtils(partitionStaleVerilogMods, touchVFiles)
 import Verilog(VProgram(..), vGetMainModName, getVeriInsts)
 import Depend
 import Version(bscVersionStr, copyright, buildnum)
@@ -962,20 +962,21 @@ genModule
             getIOPropsA flags pps (Just sched_info'') amod_final
     t <- dump errh flags t DFAPackageIOproperties dumpnames aioprops
 
-    t <- if (backend flags == Just Verilog)
-         then do (t', _vfilenames)
-                     <- genModuleVerilog
-                           errh pps flags dumpnames t prefix modstr
-                           blurb methodConflictBlurb methodConflictBVI
-                           vPathInfo sched_info'' aioprops amod_final
-                 return t'
-         else return t
+    (t, vfilenames)
+        <- if (backend flags == Just Verilog)
+           then genModuleVerilog
+                    errh pps flags dumpnames t prefix modstr
+                    blurb methodConflictBlurb methodConflictBVI
+                    vPathInfo sched_info'' aioprops amod_final
+           else return (t, [])
 
     t <- if (genABin flags)
-         then writeABin errh pps flags dumpnames t prefix
-                  modstr srcName (orig_cqt wi)
-                  sched_info'' methodConflict vPathInfo
-                  amod_final
+         then do t' <- writeABin errh pps flags dumpnames t prefix
+                           modstr srcName (orig_cqt wi)
+                           sched_info'' methodConflict vPathInfo
+                           amod_final
+                 touchVFiles vfilenames
+                 return t'
          else return t
 
     -- Wrapper generation

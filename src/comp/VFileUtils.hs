@@ -1,4 +1,4 @@
-module VFileUtils ( partitionStaleVerilogMods ) where
+module VFileUtils ( partitionStaleVerilogMods, touchVFiles ) where
 
 import Flags(Flags(..))
 import ABin(ABinModInfo(..))
@@ -9,6 +9,7 @@ import StaleUtils(allFreshVs)
 import VFileName
 
 import Data.Either(partitionEithers)
+import System.Posix.Files(touchFile)
 
 -- Check whether generated Verilog files are up to date with respect to
 -- their elaborated (.ba) files.  The Verilog analogue of SimFileUtils,
@@ -40,3 +41,10 @@ partitionStaleVerilogMods flags prefix abmis = do
                    else Left (bafile, abmi)
     results <- mapM checkOne abmis
     return (partitionEithers results)
+
+-- The .v file is written before the .ba file, but this can confuse a link
+-- with -vdir into treating the .v as stale.  To prevent that, the .v files
+-- are touched after the .ba files are written, so that their timestamps
+-- are at least as new.
+touchVFiles :: [VFileName] -> IO ()
+touchVFiles = mapM_ (touchFile . vfnString)
