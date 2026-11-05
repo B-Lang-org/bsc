@@ -117,14 +117,11 @@ jobs:
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
-      # NB stp, yices and htcl must be built first, so do this after Build.
+      # NB after Build, which generates BuildVersion.hs and Warmup.hs and
+      # builds stp, yices and htcl.
       - name: Check GHCI :load
         run: |
           cd src/comp
-          export NOGIT=0
-          export NOUPDATEBUILDVERSION=0
-          ./update-build-version.sh
-          ./update-build-system.sh
           echo ':load app/bsc.hs' | ghci 2>&1 | tee ghci.log
           if grep '\(Failed\|error:\)' ghci.log
           then
