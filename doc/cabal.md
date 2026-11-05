@@ -76,6 +76,13 @@ describes replacing one backend with a stub.
 refreshes `BuildVersion`, arranges solver lookup in the build tree, and performs the
 Linux symbol cleanup. Its comments describe the implementation.
 
+The library compiles the Tcl binding with the Tcl headers; only `bluetcl`
+links libtcl, so the other programs do not depend on it at run time.
+
+Changing a configure hook does not make `cabal-install` reconfigure an
+existing build tree; after editing `preConfComponent`, run `make -C src/comp
+clean` (or `cabal clean`) before rebuilding.
+
 `Warmup` works around observed GHC rewrite-rule nondeterminism caused by
 external-interface load ordering.
 It is separate from the object-code ordering addressed by

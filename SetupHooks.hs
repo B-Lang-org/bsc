@@ -57,21 +57,37 @@ setupHooks =
           }
     }
 
--- | Configure hook: query platform.sh for Tcl include/link flags and defines.
+-- | Configure hook: query platform.sh for the Tcl flags. The library compiles
+-- the Tcl binding (src/vendor/htcl), so it gets the include path and the
+-- version defines; only bluetcl links libtcl, as under the make build, so
+-- the other programs do not depend on it at run time.
 preConfComponent :: PreConfComponentHook
 preConfComponent inputs = do
   let c = inputs.component
+      platform arg =
+        (words <$> readProcess "sh" ["platform.sh", arg] "") `catchIOError` \e ->
+          ioError (userError ("platform.sh " <> arg <> " failed (" <> show e <> "); is tclsh installed?"))
+      tclCompileFlags = do
+        tclInc <- platform "tclinc"
+        tclVer <- platform "tclversion"
+        cflags <- case tclVer of
+          ["8.5"] -> pure ["-DTCL85"]
+          ["8.6"] -> pure []
+          ["9.0"] -> pure ["-DTCL9"]
+          [] ->
+            ioError
+              ( userError
+                  "platform.sh found no tclsh: install Tcl and its development headers (tcl-dev or tcl-devel)"
+              )
+          _ -> ioError (userError ("unsupported Tcl version " <> unwords tclVer <> " (8.5, 8.6 and 9.0 are supported)"))
+        pure (tclInc, cflags)
   bi <- case c of
     CLib _ -> do
-      let platform arg = words <$> readProcess "sh" ["platform.sh", arg] ""
-      tclInc <- platform "tclinc"
+      (tclInc, cflags) <- tclCompileFlags
+      pure (ccLdOptionsBuildInfo (tclInc <> cflags) [] []) {cppOptions = cflags}
+    CExe exe | prettyShow (exeName exe) == "bluetcl" -> do
+      (tclInc, cflags) <- tclCompileFlags
       tclLibs <- platform "tcllibs"
-      tclVer <- platform "tclversion"
-      cflags <- case tclVer of
-        ["8.5"] -> pure ["-DTCL85"]
-        ["8.6"] -> pure []
-        ["9.0"] -> pure ["-DTCL9"]
-        _ -> ioError (userError ("unsupported Tcl version: " <> unwords tclVer))
       pure (ccLdOptionsBuildInfo (tclInc <> cflags) tclLibs []) {cppOptions = cflags}
     _ -> pure emptyBuildInfo
   pure PreConfComponentOutputs {componentDiff = buildInfoComponentDiff (componentName c) bi}
