@@ -31,4 +31,5 @@ Logical execution order: Good
 
 ====================================================
 Verilog file created: sysResourceOneRuleOK.v
+Elaborated module file created: sysResourceOneRuleOK.ba
 All packages are up to date.

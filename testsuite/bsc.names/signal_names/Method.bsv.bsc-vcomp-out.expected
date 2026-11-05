@@ -68,4 +68,5 @@ clock domain = Just (0), resets = [0]
 -----
 
 Verilog file created: sysMethod.v
+Elaborated module file created: sysMethod.ba
 All packages are up to date.

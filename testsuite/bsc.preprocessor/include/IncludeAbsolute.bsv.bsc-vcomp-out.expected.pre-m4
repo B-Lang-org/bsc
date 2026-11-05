@@ -3,4 +3,5 @@ compiling IncludeAbsolute.bsv
 code generation for sysIncludeAbsolute starts
 Compilation message: "CURDIR/subdir/defines2", line 1, column 11: subdir/defines2
 Verilog file created: sysIncludeAbsolute.v
+Elaborated module file created: sysIncludeAbsolute.ba
 All packages are up to date.

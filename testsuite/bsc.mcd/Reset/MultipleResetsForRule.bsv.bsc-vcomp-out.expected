@@ -15,4 +15,5 @@ Warning: "MultipleResetsForRule.bsv", line 27, column 9: (G0043)
   During elaboration of `sysMultipleResetsForRule' at
   "MultipleResetsForRule.bsv", line 19, column 8.
 Verilog file created: sysMultipleResetsForRule.v
+Elaborated Verilog module file created: sysMultipleResetsForRule.ba
 All packages are up to date.

@@ -36,4 +36,5 @@ Logical execution order: g, s
 
 ====================================================
 Verilog file created: sysAccessorConflicts.v
+Elaborated module file created: sysAccessorConflicts.ba
 All packages are up to date.

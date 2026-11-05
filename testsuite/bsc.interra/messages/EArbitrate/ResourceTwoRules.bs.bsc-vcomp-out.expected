@@ -19,4 +19,5 @@ Warning: "ResourceTwoRules.bs", line 36, column 0: (G0010)
 Warning: "ResourceTwoRules.bs", line 40, column 27: (G0021)
   According to the generated schedule, rule `Contender_1' can never fire.
 Verilog file created: sysResourceTwoRules.v
+Elaborated module file created: sysResourceTwoRules.ba
 All packages are up to date.

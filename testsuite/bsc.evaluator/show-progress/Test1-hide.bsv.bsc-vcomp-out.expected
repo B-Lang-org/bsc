@@ -28,4 +28,5 @@ code generation for sysTest1 starts
 [TIME] elab progress: Elaborating interface
 [TIME] elab progress: Finished elaborating module `sysTest1'
 Verilog file created: sysTest1.v
+Elaborated module file created: sysTest1.ba
 All packages are up to date.

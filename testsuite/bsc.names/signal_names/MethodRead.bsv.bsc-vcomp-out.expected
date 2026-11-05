@@ -58,4 +58,5 @@ clock domain = Just (0), resets = []
 -----
 
 Verilog file created: sysMethodRead.v
+Elaborated module file created: sysMethodRead.ba
 All packages are up to date.

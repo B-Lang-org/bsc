@@ -40,4 +40,5 @@ Logical execution order: bar, baz
 
 =================================================
 Verilog file created: sysIfcRuleWarning.v
+Elaborated module file created: sysIfcRuleWarning.ba
 All packages are up to date.

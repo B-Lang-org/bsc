@@ -42,4 +42,5 @@ Logical execution order: do1, do2
 
 =====================================================
 Verilog file created: sysSharedPortsRegFile.v
+Elaborated module file created: sysSharedPortsRegFile.ba
 All packages are up to date.

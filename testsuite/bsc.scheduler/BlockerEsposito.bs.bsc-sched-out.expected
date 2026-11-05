@@ -51,4 +51,5 @@ Warning: "BlockerEsposito.bs", line 19, column 21: (G0021)
 Warning: "BlockerEsposito.bs", line 20, column 21: (G0021)
   According to the generated schedule, rule `B' can never fire.
 Verilog file created: sysBlockerEsposito.v
+Elaborated module file created: sysBlockerEsposito.ba
 All packages are up to date.

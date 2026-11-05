@@ -147,6 +147,8 @@ data Decoded = DHelp Flags       -- Display the public help message
              | DVerLink Flags String [VFileName] [String] [String]
                -- entry, ABin files and C files to be generated and linked
              | DSimLink Flags String [String] [String]
+               -- modules to generate code for (-c) and ABin files
+             | DCodeGen Flags [String] [String]
 
 decodeArgs :: String -> [String] -> String -> ([WMsg], Decoded)
 decodeArgs prog args cdir =
@@ -164,6 +166,11 @@ decodeArgs prog args cdir =
                                (printFlagsHidden flags) ||
                                (printFlagsRaw flags))
                            then (warnings, DNoSrc flags)
+                           else
+                           -- -c mode needs no file names; the .ba files
+                           -- are found by module name on the search path
+                           if not (null (codegenNames flags))
+                           then (warnings, checkCodeGenFlags flags [])
                            else -- We allow the file names to be omitted if the
                                 -- backend and entry point are both specified
                                 case (entry flags) of
@@ -201,6 +208,12 @@ decodeArgs prog args cdir =
                                                     ELinkFilesWithSrc name known_ext_names)]
                                               else DError [(cmdPosition,
                                                             EUnrecognizedCmdLineText (head names))])
+                             -- -c mode consumes only .ba files; this must
+                             -- come before the all-HDL case below, so that
+                             -- "-c mkFoo foo.v" errors rather than being
+                             -- treated as implicit-Verilog linking
+                             ([], names) | not (null (codegenNames flags)) ->
+                                 (warnings, checkCodeGenFlags flags names)
                              -- Backwards support for optional -verilog.
                              ([], names) | all isHDLSrcFile names ->
                                  -- generation flag not supported during linking
@@ -232,6 +245,10 @@ decodeArgs prog args cdir =
 -- check that the flags are OK for compiling Bluespec src file
 checkBSrcFlags :: Flags -> String -> Decoded
 checkBSrcFlags flags filename =
+    -- -c generates from .ba files, not from source
+    if not (null (codegenNames flags))
+    then DError [(cmdPosition, EGenWithSrcFile filename)]
+    else
     -- if generate is requested, require a backend
     if not (null (genName flags)) && (backend flags == Nothing)
     then DError [(cmdPosition, ENoBackendCodeGen (genName flags))]
@@ -307,6 +324,52 @@ checkLinkFlags flags names =
                      DSimLink flags top anames cnames
         -- error if no backend chosen
         else DError [(cmdPosition, ENoBackendLinking)]
+
+
+-- check that the flags are OK for the .ba -> code generation mode (-c)
+checkCodeGenFlags :: Flags -> [String] -> Decoded
+checkCodeGenFlags flags names =
+    let (anames, bad_names) = partition isABinFile names
+        mods = codegenNames flags
+        errBadName name =
+            if not (elem '.' name)
+            then (cmdPosition, ENoSrcExt name)
+            else (cmdPosition, EUnknownSrcExt (takeSuf name))
+        bad_name_errs = map errBadName bad_names
+    in  -- check for flags after file names
+        checkNamesForFlag bad_names $
+        -- -c consumes only .ba files (C and HDL files belong to link mode)
+        if not (null bad_names)
+        then DError bad_name_errs
+        else
+        -- -g compiles and generates from source, not from .ba
+        if not (null (genName flags))
+        then DError [(cmdPosition, EGenNamesForLinking (genName flags))]
+        else
+        -- -e selects link mode, which is a separate step
+        case (entry flags) of
+          Just e -> DError [(cmdPosition, EGenWithEntry e)]
+          Nothing ->
+            -- SystemC generation has no per-module codegen mode
+            if (genSysC flags)
+            then DError [(cmdPosition, EGenWithSystemC)]
+            else
+            case (backend flags) of
+              Nothing -> DError [(cmdPosition, ENoBackendCodeGen mods)]
+              Just Bluesim ->
+                  -- Only 2-state values are allowed for don't-cares
+                  if ( (unSpecTo flags == "X") || (unSpecTo flags == "Z") )
+                  then DError [(cmdPosition, EBluesimNoXZ (unSpecTo flags))]
+                  else
+                  -- The -remove-dollar flag only applies to Verilog
+                  if (removeVerilogDollar flags)
+                  then DError [(cmdPosition, EDollarNoVerilog)]
+                  else
+                  -- Everything is OK for Bluesim code generation
+                  DCodeGen flags mods anames
+              Just Verilog ->
+                  -- Everything is OK for Verilog code generation
+                  DCodeGen flags mods anames
 
 
 -- and, if so, error that flags must go before source files
@@ -518,6 +581,7 @@ defaultFlags bluespecdir = Flags {
         backend = Nothing,
         bdir = Nothing,
         biasMethodScheduling = False,
+        blockCodegen = False,
         bluespecDir = bluespecdir,
         cIncPath = [],
         cLibPath = [],
@@ -528,6 +592,7 @@ defaultFlags bluespecdir = Flags {
         cppFlags = [],
         linkFlags = [],
         cdir = Nothing,
+        codegenNames = [],
         cpp = False,
         defines = [],
         demoteErrors = SomeMsgs [],
@@ -543,7 +608,6 @@ defaultFlags bluespecdir = Flags {
         fdir = Nothing,
         finalcleanup = 1,
         genABin = False,
-        genABinVerilog = False,
         genName = [],
         genSysC = False,
         -- The ifcPath value will be produced from the raw value,
@@ -658,7 +722,8 @@ defaultFlags bluespecdir = Flags {
         verilogFilter = [],
         warnActionShadowing = True,
         warnMethodUrgency = True,
-        warnUndetPred = False
+        warnUndetPred = False,
+        semanticPortsComment = False
         }
 
 -- Default path value replaced in adjustFinalFlags
@@ -1108,6 +1173,10 @@ externalFlags = [
          (Toggle (\f x -> f {biasMethodScheduling=x}) (showIfTrue biasMethodScheduling),
           "schedule methods before rules when possible", Hidden)),
 
+        ("c",
+         (Arg "module" (\f s -> Left (f {codegenNames = codegenNames f ++ [s]})) (Just (FRTListString codegenNames)),
+          "generate code for `module' from its elaborated .ba file", Visible)),
+
         ("check-assert",
          (Toggle (\f x -> f {testAssert=x}) (showIfTrue testAssert),
           "test assertions with the Assert library", Visible)),
@@ -1153,11 +1222,7 @@ externalFlags = [
 
         ("elab",
          (Toggle (\f x -> f {genABin=x}) (showIfTrue genABin),
-          "generate a .ba file after elaboration and scheduling", Visible)),
-
-        ("elab-verilog",
-         (Toggle (\f x -> f {genABinVerilog=x}) (showIfTrue genABinVerilog),
-          "include generated Verilog in .ba files", Hidden)),
+          "generate a .ba file after elaboration and scheduling (on by default with -sim, -verilog and -systemc; -no-elab suppresses)", Visible)),
 
         ("expand-ATS-limit",
          (Arg "n"
@@ -1464,6 +1529,12 @@ externalFlags = [
          (Toggle (\f x -> f {schedDOT=x}) (showIfTrue schedDOT),
           "generate .dot files with schedule information", Visible)),
 
+        ("semantic-ports-comment",
+         (Toggle (\f x -> f {semanticPortsComment=x})
+                 (showIfTrue semanticPortsComment),
+          "derive the Verilog Ports comment from the APackage analysis",
+          Hidden)),
+
         ("show-compiles",
          (Toggle (\f x -> f {showUpds=x}) (showIfTrue showUpds),
           "show recompilations", Visible)),
@@ -1677,7 +1748,9 @@ externalFlags = [
          (Alias "quiet", "same as -quiet", Visible)),
 
         ("verilog",
-         let setFn f = setBackend f Verilog
+         let setFn f = case setBackend f Verilog of
+                         Left f' -> Left f' { genABin = True }
+                         Right e -> Right e
              getFn f = backend f == Just Verilog
          in  (NoArg setFn (Just getFn),
               "compile BSV generating Verilog file", Visible)),
@@ -1833,6 +1906,7 @@ showFlagsRaw flags =
           ("cLibPath", show (cLibPath flags)),
           ("cLibs", show (cLibs flags)),
           ("cdir", show (cdir flags)),
+          ("codegenNames", show (codegenNames flags)),
           ("cpp", show (cpp flags)),
           ("cppFlags", show (cppFlags flags)),
           ("cxxFlags", show (cxxFlags flags)),
@@ -1850,7 +1924,6 @@ showFlagsRaw flags =
           ("fdir", show (fdir flags)),
           ("finalcleanup", show (finalcleanup flags)),
           ("genABin", show (genABin flags)),
-          ("genABinVerilog", show (genABinVerilog flags)),
           ("genName", show (genName flags)),
           ("genSysC", show (genSysC flags)),
           ("ifLift", show (ifLift flags)),
@@ -1954,7 +2027,8 @@ showFlagsRaw flags =
           ("vsim", show (vsim flags)),
           ("warnActionShadowing", show (warnActionShadowing flags)),
           ("warnMethodUrgency", show (warnMethodUrgency flags)),
-          ("warnUndetPred", show (warnUndetPred flags))
+          ("warnUndetPred", show (warnUndetPred flags)),
+          ("semanticPortsComment", show (semanticPortsComment flags))
          ]
         in "Flags {\n" ++
                (intercalate ",\n" (map render fields)) ++

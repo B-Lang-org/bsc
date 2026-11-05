@@ -21,12 +21,13 @@ Compiler flags:
 -Xv arg                 pass argument to the Verilog link process
 -aggressive-conditions  construct implicit conditions aggressively
 -bdir dir               output directory for .bo and .ba files
+-c module               generate code for ``module'' from its elaborated .ba file
 -check-assert           test assertions with the Assert library
 -continue-after-errors  aggressively continue compilation after an error has been detected
 -cpp                    preprocess the source with the C preprocessor
 -demote-errors list     treat a list of errors as warnings (``:'' sep list of tags)
 -e module               top-level module for simulation
--elab                   generate a .ba file after elaboration and scheduling
+-elab                   generate a .ba file after elaboration and scheduling (on by default with -sim, -verilog and -systemc; -no-elab suppresses)
 -fdir dir               working directory for relative file paths during elaboration
 -g module               generate code for ``module'' (requires -sim or -verilog)
 -help                   generate help message

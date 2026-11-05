@@ -2,6 +2,7 @@ checking package dependencies
 compiling EHasImplicit2.bs
 code generation for mkPort starts
 Verilog file created: mkPort.v
+Elaborated module file created: mkPort.ba
 code generation for mkTop starts
 Error: "EHasImplicit2.bs", line 16, column 10: (G0081)
   Module arguments cannot have implicit conditions. The expression for

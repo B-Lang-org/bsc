@@ -31,4 +31,5 @@ code generation for sysBuildModule starts
 [TIME] elab progress: Elaborating interface
 [TIME] elab progress: Finished elaborating module `sysBuildModule'
 Verilog file created: sysBuildModule.v
+Elaborated module file created: sysBuildModule.ba
 All packages are up to date.

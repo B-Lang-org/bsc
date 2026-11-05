@@ -85,4 +85,5 @@ Logical execution order: enq,
 
 =========================================
 Verilog file created: mkGetTest.v
+Elaborated module file created: mkGetTest.ba
 All packages are up to date.

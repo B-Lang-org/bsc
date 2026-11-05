@@ -37,4 +37,5 @@ Logical execution order: test_rule_1, m_test_rule_2
 Warning: "DescendingUrgencyAttributeSubModule1.bsv", line 18, column 8: (G0021)
   According to the generated schedule, rule `m_test_rule_2' can never fire.
 Verilog file created: sysDescendingUrgencyAttributeSubModule1.v
+Elaborated module file created: sysDescendingUrgencyAttributeSubModule1.ba
 All packages are up to date.

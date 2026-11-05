@@ -17,3 +17,4 @@ Error: "ERuleAssertion.bs", line 43, column 10: (G0005)
 	       result -> [],
 	       RL_Swap -> [],
 	       RL_Subtract -> [RL_Swap]]
+Elaborated error module file created: mkGCD.ba

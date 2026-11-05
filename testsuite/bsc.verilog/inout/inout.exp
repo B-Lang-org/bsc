@@ -103,11 +103,25 @@ compile_verilog_fail_error InoutNonbitifiable.bsv T0043
 # ==========
 # Check that Bluesim gives an error on designs with Inout
 
+# (an earlier -verilog compile leaves an up-to-date generic .ba, which the
+# -sim compile would reuse, skipping elaboration and these errors; remove
+# it so the compile-time errors are still exercised)
+erase sysArgToIfc.ba
 # This gives an error about the Inout Ifc
 compile_object_fail_error ArgToIfc.bsv G0097
 # And about the Inout modarg
 if { $ctest == 1 } {
     find_n_error [make_bsc_ccomp_output_name ArgToIfc.bsv] G0098 1
+}
+
+# With an up-to-date generic .ba (here from a -verilog compile), a -sim
+# compile reuses it and succeeds; the unsupported-Inout errors then fire
+# at the next step, when the .ba is used for linking
+if { $ctest == 1 } {
+    compile_verilog_pass ArgToIfc.bsv
+    compile_object_pass ArgToIfc.bsv
+    link_objects_fail_error {} sysArgToIfc G0097 1
+    find_n_error [make_bsc_ccomp_output_name sysArgToIfc] G0098 1
 }
 
 # ==========

@@ -13,6 +13,7 @@ EN_m                           I     1 unused
 -----
 
 Verilog file created: mkInputArg_OneRegOneUnused_Sub.v
+Elaborated module file created: mkInputArg_OneRegOneUnused_Sub.ba
 code generation for sysInputArg_OneRegOneUnused starts
 === IOproperties (InputArg_OneRegOneUnused sysInputArg_OneRegOneUnused):
 Name                         I/O  size props
@@ -24,4 +25,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: sysInputArg_OneRegOneUnused.v
+Elaborated module file created: sysInputArg_OneRegOneUnused.ba
 All packages are up to date.

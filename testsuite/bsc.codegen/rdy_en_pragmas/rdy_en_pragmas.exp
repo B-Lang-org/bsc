@@ -16,6 +16,10 @@ compile_verilog_pass TestEnableFail.bsv
 if { $vtest == 1 } {
 find_n_emsg TestEnableFail.bsv.bsc-vcomp-out Warning G0015 2
 }
+# the Verilog compile leaves up-to-date generic .ba files, which the -sim
+# compile would reuse (skipping elaboration and its warnings); remove them
+erase sysTestEnableFail.ba
+erase mkSub.ba
 compile_object_pass TestEnableFail.bsv
 link_objects_pass {sysTestEnableFail.ba mkSub.ba} sysTestEnableFail
 if { $ctest == 1 } {

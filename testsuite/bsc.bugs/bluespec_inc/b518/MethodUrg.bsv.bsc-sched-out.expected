@@ -51,4 +51,5 @@ Logical execution order: highx, lowx
 
 =========================================
 Verilog file created: mkTestUrg.v
+Elaborated module file created: mkTestUrg.ba
 All packages are up to date.

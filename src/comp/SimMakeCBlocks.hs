@@ -746,9 +746,22 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
                 internalError ("mkScheduleStmts: as = " ++ ppReadable as)
       gate_substs = mkGateSubstMap top_gates $
                         concatMap (di_clock_substs . snd) domain_infos
-      mkStmt = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
-                            inst_map full_def_map non_prim_calls
-                            gate_substs sched_conflicts sched_ME_inhibits
+      mkStmt0 = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
+                             inst_map full_def_map non_prim_calls
+                             gate_substs sched_conflicts sched_ME_inhibits
+      -- In -c mode the root is a reusable block, not a runnable top,
+      -- so its interface methods are not fired by its own schedule.  Keep the
+      -- method nodes in the schedule graph (so edges from rules stay valid) but
+      -- emit no statements for them; their enable/argument ports then go
+      -- unreferenced and are optimized away, matching submodule form.  (See
+      -- DEVELOP.md.)
+      isTopMethodNode (Sched rid) =
+          (rid `S.member` top_vmeth_set) || (rid `S.member` top_ameth_set)
+      isTopMethodNode (Exec rid) =
+          (rid `S.member` top_vmeth_set) || (rid `S.member` top_ameth_set)
+      mkStmt n = if (blockCodegen flags) && (isTopMethodNode n)
+                 then []
+                 else mkStmt0 n
       (pos_rule_stmts, neg_rule_stmts) =
           if (ss_posedge sim_sched)
           then (stableOrdNub (concatMap mkStmt edge_sched_order), [])

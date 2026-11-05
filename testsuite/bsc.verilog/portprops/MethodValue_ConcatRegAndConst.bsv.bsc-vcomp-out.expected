@@ -12,4 +12,5 @@ RST_N                          I     1 reset
 -----
 
 Verilog file created: sysMethodValue_ConcatRegAndConst.v
+Elaborated module file created: sysMethodValue_ConcatRegAndConst.ba
 All packages are up to date.
