@@ -15,6 +15,8 @@ Validation of these requirements is incomplete. To achieve them, the build:
   serially on older GHCs (section 5).
 - Links solvers by name with relative runtime paths (`rpath`), avoiding solver
   build paths in link settings (section 3).
+- Strips symbols matching `ghc_*` from Linux executables to remove temporary
+  GHC link-stub filenames after linking (section 4).
 - Tracks the selected version so incremental builds reflect Git metadata or
   an explicitly frozen version (section 4).
 
@@ -71,7 +73,8 @@ describes replacing one backend with a stub.
 ## 4. Build hooks and generated files
 
 [`SetupHooks.hs`](../SetupHooks.hs) configures Tcl, generates `Warmup`,
-refreshes `BuildVersion`, arranges solver lookup in the build tree. Its comments describe the implementation.
+refreshes `BuildVersion`, arranges solver lookup in the build tree, and performs the
+Linux symbol cleanup. Its comments describe the implementation.
 
 `Warmup` works around observed GHC rewrite-rule nondeterminism caused by
 external-interface load ordering.

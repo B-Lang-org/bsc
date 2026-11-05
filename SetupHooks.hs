@@ -7,7 +7,7 @@
 -- | Setup hooks for the bsc package (build-type: Hooks; doc/cabal.md).
 module SetupHooks (setupHooks) where
 
-import Control.Monad (filterM, forM_)
+import Control.Monad (filterM, forM_, when)
 import Control.Monad.IO.Class (liftIO)
 import Data.List (isPrefixOf)
 import Data.List.NonEmpty (NonEmpty ((:|)))
@@ -22,6 +22,7 @@ import qualified Distribution.Simple.LocalBuildInfo as LBI
 import Distribution.Simple.PackageIndex (lookupUnitId)
 import Distribution.Simple.SetupHooks
 import Distribution.Simple.Utils (rewriteFileEx)
+import Distribution.System (OS (..), buildOS)
 import Distribution.Utils.Path (moduleNameSymbolicPath, (<.>))
 import Distribution.Verbosity (normal)
 import System.Directory
@@ -29,6 +30,7 @@ import System.Directory
     createDirectoryIfMissing,
     createDirectoryLink,
     doesPathExist,
+    findExecutable,
     listDirectory,
     makeAbsolute,
     pathIsSymbolicLink,
@@ -43,7 +45,11 @@ import System.Process (callProcess, readProcess)
 setupHooks :: SetupHooks
 setupHooks =
   noSetupHooks
-    { configureHooks = noConfigureHooks {preConfComponentHook = Just preConfComponent},
+    { configureHooks =
+        noConfigureHooks
+          { preConfPackageHook = Just preConfPackage,
+            preConfComponentHook = Just preConfComponent
+          },
       buildHooks =
         noBuildHooks
           { preBuildComponentRules = Just preBuildRules,
@@ -130,7 +136,8 @@ writeAutogenModules (autogenDir, mods) = do
 
 -- | Post-build hook: symlink lib/SAT beside the built library and executables
 -- to the solver directory from LIBRARY_PATH so binaries in dist-newstyle run
--- in place via their relative rpath ($ORIGIN/../lib/SAT).
+-- in place via their relative rpath ($ORIGIN/../lib/SAT). On Linux, strip
+-- symbols matching ghc_* to remove temporary GHC link-stub filenames.
 postBuildComponent :: PostBuildComponentHook
 postBuildComponent inputs = do
   let lbi = inputs.localBuildInfo
@@ -154,8 +161,28 @@ postBuildComponent inputs = do
                 then ioError (userError (link <> " exists and is not a symbolic link"))
                 else pure ()
           createDirectoryLink sat link
+    CExe exe ->
+      when (buildOS == Linux) $ do
+        let name = prettyShow (exeName exe)
+        callProcess "objcopy" ["--wildcard", "--strip-symbol=ghc_*", build </> name </> name]
     _ -> pure ()
   where
     holdsSolvers dir = do
       names <- listDirectory dir `catchIOError` \_ -> pure []
       pure (all (\p -> any (p `isPrefixOf`) names) ["libstp.", "libyices."])
+
+-- | Configure hook, once per package: the post-build step strips the
+-- link-stub symbols from Linux executables with objcopy, so a host without
+-- binutils fails here rather than after the compile.
+preConfPackage :: PreConfPackageHook
+preConfPackage inputs = do
+  when (buildOS == Linux) $ do
+    found <- findExecutable "objcopy"
+    case found of
+      Just _ -> pure ()
+      Nothing ->
+        ioError
+          ( userError
+              "objcopy not found: install binutils (the build strips GHC link-stub symbols from Linux executables with it)"
+          )
+  pure (noPreConfPackageOutputs inputs)
