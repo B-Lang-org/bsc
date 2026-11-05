@@ -95,6 +95,7 @@ module HTcl
     )
 where
 
+import Warmup ()
 import Prelude
 
 import Data.Word

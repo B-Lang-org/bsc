@@ -1,4 +1,5 @@
 module TmpNam(tmpNam, localTmpNam) where
+import Warmup ()
 import System.Posix
 
 tmpNam :: IO String

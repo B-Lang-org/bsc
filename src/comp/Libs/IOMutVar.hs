@@ -1,5 +1,6 @@
 module IOMutVar(MutableVar, newVar, readVar, writeVar) where
 
+import Warmup ()
 import Data.IORef
 
 type MutableVar a = IORef a

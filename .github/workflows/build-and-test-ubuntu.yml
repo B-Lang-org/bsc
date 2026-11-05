@@ -33,6 +33,10 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
+      # Every root module imports Warmup, the barrier of the deterministic
+      # parallel build (src/comp/Warmup.hs); the check reads the sources.
+      - name: Check that every root module imports Warmup
+        run: src/comp/check-warmup-roots.sh
       - name: Install dependencies
         shell: bash
         run: |

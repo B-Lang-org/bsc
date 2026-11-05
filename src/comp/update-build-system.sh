@@ -8,6 +8,8 @@ OSTYPE=`${PLATFORM_SH} ostype`
 # There is room to add the MACHTYPE if necessary
 echo "module BuildSystem (BinFmtType(..), binFmtToString, getBinFmtType) where" > BuildSystem.hs.new;
 echo "" >> BuildSystem.hs.new;
+echo "import Warmup ()" >> BuildSystem.hs.new;
+echo "" >> BuildSystem.hs.new;
 
 echo "data BinFmtType = ELF | MachO" >> BuildSystem.hs.new;
 echo "" >> BuildSystem.hs.new;

@@ -1,5 +1,6 @@
 module Changed where
 
+import Warmup ()
 -- ============================================================
 -- Changed flag wrapper
 

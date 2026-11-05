@@ -11,6 +11,7 @@ module GraphPaths ( -- *Types
                   , isAcyclic
                   ) where
 
+import Warmup ()
 import Control.Monad (when,unless)
 
 import Data.Array.IO

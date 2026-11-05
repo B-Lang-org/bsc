@@ -11,6 +11,9 @@ genGITBuildVersion () {
     echo "module BuildVersion(buildVersion, buildVersionNum, buildVersionName) where" > BuildVersion.hs.new;
 
     echo >> BuildVersion.hs.new;
+    echo "import Warmup ()" >> BuildVersion.hs.new;
+
+    echo >> BuildVersion.hs.new;
     echo buildVersion :: String >> BuildVersion.hs.new;
     echo buildVersion = \"$1\" >> BuildVersion.hs.new;
 
