@@ -47,13 +47,11 @@ jobs:
         uses: haskell/ghcup-setup@v1
         with:
           ghc: ${{ inputs.ghc_version }}
-          cabal: recommended
-      # Until BSC uses cabal to build, pre-install these packages
-      - name: Install Haskell dependencies
+          cabal: 3.16.1.0
+      # The cabal build fetches the compiler's Haskell libraries from Hackage
+      - name: Update the package index
         shell: bash
-        run: |
-          cabal update
-          cabal v1-install old-time regex-compat split strict-concurrency syb
+        run: cabal update
       # Restore previous ccache cache of compiled object files. Use a SHA
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
@@ -110,8 +108,8 @@ jobs:
           popd
       # Check that .ghci has all the right flags to load the source.
       # This is important for text editor integration & tools like ghcid
-      # NB after Build, which generates BuildVersion.hs and Warmup.hs and
-      # builds stp, yices and htcl.
+      # NB after Build: .ghci loads Warmup from the built library (-package bsc),
+      # BuildVersion.hs from src/comp, and links the solvers from inst/lib/SAT.
       - name: Check GHCI :load
         run: |
           cd src/comp

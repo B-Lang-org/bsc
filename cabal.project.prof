@@ -1,0 +1,6 @@
+-- Profiling build (make install-src BSC_BUILD=PROF; doc/cabal.md, Project settings and variants).
+import: cabal.project
+profiling: True
+profiling-detail: all-functions
+package bsc
+  ghc-options: "-with-rtsopts=-H256m -K256m -i1"

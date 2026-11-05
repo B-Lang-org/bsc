@@ -7,12 +7,12 @@
    - Commands
 -}
 
-module Bluetcl where
+module Main_bluetcl (main) where
 
 
 import HTcl
 
-import Control.Monad(foldM, when, mzero)
+import Control.Monad(foldM, when, mzero, void)
 import Control.Monad.Trans(lift)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Concurrent
@@ -25,17 +25,22 @@ import Data.List(find, nub, partition, sort, sortBy, intercalate, isPrefixOf,
 import Data.Maybe
 import Data.Ord(comparing)
 import System.IO.Unsafe(unsafePerformIO)
-import System.Environment(getEnv)
+import System.Environment(getEnv, getArgs, getProgName)
 import System.Mem(performGC)
 import System.Posix.Signals
 import Text.Regex
 import Data.Generics (listify)
 import qualified Data.Map as M
+import Foreign.C.String(CString, newCString)
+import Foreign.C.Types(CInt(..))
+import Foreign.Marshal.Array(newArray0)
+import Foreign.Ptr(Ptr, nullPtr)
 
 -- Bluespec imports
 import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr, fst3,
             thd, readOrErr)
 import IOUtil(getEnvDef)
+import TopUtils(getBluespecDir)
 
 import Util(mapFst, mapSnd)
 import TclUtils
@@ -98,6 +103,21 @@ import InstNodes(InstNode(..), InstTree, isHidden, isHiddenKP, isHiddenAll, node
 -- import Debug.Trace
 
 -------------------------------------
+foreign import ccall "run_bluetcl"
+  c_run_bluetcl :: CInt -> Ptr CString -> IO ()
+
+main :: IO ()
+main = do
+  -- The Tcl side reads $BLUESPECDIR, so call getBluespecDir for its setenv
+  -- side effect before handing control to Tcl via bluetcl_shim.c.
+  void getBluespecDir
+  prog <- getProgName
+  args <- getArgs
+  let argList = prog : args
+  cArgs <- mapM newCString argList
+  argv <- newArray0 nullPtr cArgs
+  c_run_bluetcl (fromIntegral (length argList)) argv
+
 foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int
 
 --  1st call to haskell world (run time system has already been setup)

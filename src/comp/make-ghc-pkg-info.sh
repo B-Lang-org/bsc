@@ -11,6 +11,9 @@ fi
 PACKAGES=$@
 # GHCPKG names the ghc-pkg to query; unset, it is the one on PATH.
 GHCPKG=${GHCPKG:-ghc-pkg}
+if [ -n "${GHC_ENVIRONMENT:-}" ] && [ -z "${GHC_PACKAGE_PATH:-}" ] ; then
+    export GHC_PACKAGE_PATH="$(sed -n 's/^package-db //p' "$GHC_ENVIRONMENT" | paste -sd: -):"
+fi
 
 # ===========================================================================
 
