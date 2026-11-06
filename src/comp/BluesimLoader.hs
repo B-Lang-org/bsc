@@ -24,6 +24,7 @@ import ErrorUtil(internalError)
 import HTcl
 import SimCCBlock(pfxModel)
 
+import Control.Exception (mask_, onException)
 import System.Posix.DynamicLinker
 import Data.Bits
 import Data.List(intercalate, isPrefixOf)
@@ -438,13 +439,23 @@ data BluesimModel =
 
 -- Routine which dynamically loads a Bluesim .so file and creates
 -- a BluesimModel value which allows access to the Bluesim object.
--- Returns Nothing if an error occurs during loading
+-- Returns Nothing if kernel initialization fails; loading and symbol lookup
+-- errors are exceptions.
 
 loadBluesimModel :: String -> String -> IO (Maybe BluesimModel)
-loadBluesimModel fname top_name = do
+loadBluesimModel fname top_name = mask_ $ do
   -- load the shared object
   let fname' = (dirName fname) ++ "/" ++ (baseName fname)
   dl <- dlopen fname' [RTLD_NOW]
+  -- Keep initialization masked: once bk_init starts the simulator, closing
+  -- its library on cancellation without shutting it down would be unsafe.
+  result <- loadBluesimModelFromHandle dl top_name `onException` dlclose dl
+  case result of
+    Nothing -> dlclose dl >> return Nothing
+    Just _ -> return result
+
+loadBluesimModelFromHandle :: DL -> String -> IO (Maybe BluesimModel)
+loadBluesimModelFromHandle dl top_name = do
   -- lookup symbols in the shared object
   c_new_model              <- dlsym dl ("new_" ++ pfxModel ++ top_name)
   c_bk_init                <- dlsym dl "bk_init"
@@ -569,7 +580,7 @@ loadBluesimModel fname top_name = do
   sim_hdl <- bk_init model_hdl True
   if (sim_hdl == ptrToWordPtr nullPtr)
    then return Nothing
-   else do
+   else flip onException ((fromC $ dl_ptr_ret_void c_bk_shutdown) sim_hdl :: IO ()) $ do
         top_symbol <- (fromC $ dl_ptr_ret_ptr c_bk_top_symbol) sim_hdl
         return $ Just (BS { model_so               = dl
                           , model_hdl              = model_hdl

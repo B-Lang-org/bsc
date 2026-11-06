@@ -1,0 +1,9 @@
+package SessionModel where
+
+{-# verilog mkSessionModel #-}
+mkSessionModel :: Module Empty
+mkSessionModel =
+  module
+    count :: Reg (UInt 8) <- mkReg 0
+    rules
+      "tick": when True ==> count := count + 1

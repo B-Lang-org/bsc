@@ -15,6 +15,7 @@ import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Data.Set as Set
 import Distribution.InstalledPackageInfo (ExposedModule (..))
 import qualified Distribution.InstalledPackageInfo as IPI
+import Distribution.PackageDescription (BuildInfo (..), Executable (..), PackageDescription (..))
 import Distribution.Pretty (prettyShow)
 import Distribution.Simple.Configure (ccLdOptionsBuildInfo)
 import Distribution.Simple.LocalBuildInfo (interpretSymbolicPathLBI)
@@ -23,12 +24,13 @@ import Distribution.Simple.PackageIndex (lookupUnitId)
 import Distribution.Simple.SetupHooks
 import Distribution.Simple.Utils (rewriteFileEx)
 import Distribution.System (OS (..), buildOS)
-import Distribution.Utils.Path (moduleNameSymbolicPath, (<.>))
+import Distribution.Utils.Path (getSymbolicPath, moduleNameSymbolicPath, (<.>))
 import Distribution.Verbosity (normal)
 import System.Directory
   ( canonicalizePath,
     createDirectoryIfMissing,
     createDirectoryLink,
+    doesFileExist,
     doesPathExist,
     findExecutable,
     listDirectory,
@@ -177,6 +179,11 @@ postBuildComponent inputs = do
                 then ioError (userError (link <> " exists and is not a symbolic link"))
                 else pure ()
           createDirectoryLink sat link
+      -- The programs and their entry files, for tools that run them as
+      -- scripts (util/bluehs/mk-dist.sh): one "<name> <path>" line each,
+      -- the path relative to the package directory, beside the build directory.
+      lines' <- mapM programLine (executables (LBI.localPkgDescr lbi))
+      writeFile (takeDirectory build </> "programs") (unlines lines')
     CExe exe ->
       when (buildOS == Linux) $ do
         let name = prettyShow (exeName exe)
@@ -186,6 +193,15 @@ postBuildComponent inputs = do
     holdsSolvers dir = do
       names <- listDirectory dir `catchIOError` \_ -> pure []
       pure (all (\p -> any (p `isPrefixOf`) names) ["libstp.", "libyices."])
+
+-- A program's name and entry file: main-is under the first of its source
+-- directories that holds it (the directory as the .cabal file names it).
+programLine :: Executable -> IO String
+programLine exe = do
+  let file = getSymbolicPath (modulePath exe)
+      dirs = map getSymbolicPath (hsSourceDirs (buildInfo exe))
+  present <- filterM (\dir -> doesFileExist (dir </> file)) dirs
+  pure (unwords [prettyShow (exeName exe), case present ++ dirs of { dir : _ -> dir </> file; [] -> file }])
 
 -- | Configure hook, once per package: the post-build step strips the
 -- link-stub symbols from Linux executables with objcopy, so a host without

@@ -438,6 +438,17 @@ and the [BSC Libraries Reference Guide].
 [BSC User Guide]: https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_user_guide.pdf
 [BSC Libraries Reference Guide]: https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_libraries_ref_guide.pdf
 
+The `bluehs` script runtime, which runs Haskell scripts against the compiled
+compiler library on a machine with no Haskell toolchain, is installed beside
+the compiler by
+
+```
+make install-bluehs
+```
+
+It needs `python3`, `cpio` and, on Linux, `patchelf`; see
+`util/bluehs/README.md`.
+
 ## Building a release
 
 The Makefile provides a single target, `release`, that will perform the above
