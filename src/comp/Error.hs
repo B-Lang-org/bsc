@@ -9,7 +9,7 @@ module Error(
              internalError,
 
              -- initialize the error handler
-             ErrorHandle, initErrorHandle, setErrorHandleFlags,
+             ErrorHandle, initErrorHandle, resetErrorHandle, setErrorHandleFlags,
 
              -- update the error handler state when files are opened/closed
              recordHandleOpen, recordHandleClose, closeOpenHandles,
@@ -172,15 +172,21 @@ newtype ErrorHandle = ErrorHandle (IORef ErrorState)
 -- takes the Flag values as arguments
 initErrorHandle :: IO ErrorHandle
 initErrorHandle = do
-  let init_state = ErrorState {
-                     promotionSet = SomeMsgs S.empty,
-                     demotionSet = SomeMsgs S.empty,
-                     suppressionSet = SomeMsgs S.empty,
-                     suppressedCount = 0,
-                     openHandles = []
-                   }
-  ref <- newIORef init_state
+  ref <- newIORef initErrorState
   return (ErrorHandle ref)
+
+initErrorState :: ErrorState
+initErrorState = ErrorState {
+                   promotionSet = SomeMsgs S.empty,
+                   demotionSet = SomeMsgs S.empty,
+                   suppressionSet = SomeMsgs S.empty,
+                   suppressedCount = 0,
+                   openHandles = []
+                 }
+
+-- Reset a reusable session's diagnostics after its open handles are closed.
+resetErrorHandle :: ErrorHandle -> IO ()
+resetErrorHandle handle = writeErrorState handle initErrorState
 
 setErrorHandleFlags :: ErrorHandle -> F.Flags -> IO ()
 setErrorHandleFlags ref flags = do

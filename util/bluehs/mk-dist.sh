@@ -574,8 +574,8 @@ The bluehs distribution redistributes the following components:
 
 Not included, required from the host system at runtime: the C and C++
 runtimes, libgmp (on Linux; the macOS libraries carry their own), libtinfo
-(ncurses), and, for scripts that use CPP, the C compiler the shipped GHC's
-settings name.
+(ncurses), Tcl (only for scripts that call withBluetcl), and, for scripts
+that use CPP, the C compiler the shipped GHC's settings name.
 EOT
 
 # ----------------------------------------------------------------------

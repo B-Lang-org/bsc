@@ -25,6 +25,8 @@ on:
       - src/comp/**
       - src/Parsec/**
       - src/Libraries/**
+      - src/bluesim/**
+      - src/bluetcl/**
       - src/vendor/**
       - .github/workflows/bluehs.yml
       - .github/workflows/install_dependencies_*.sh
@@ -45,6 +47,8 @@ on:
       - src/comp/**
       - src/Parsec/**
       - src/Libraries/**
+      - src/bluesim/**
+      - src/bluetcl/**
       - src/vendor/**
       - .github/workflows/bluehs.yml
       - .github/workflows/install_dependencies_*.sh
@@ -121,6 +125,12 @@ jobs:
           util/bluehs/bin/dumpbo inst/lib/Libraries/Prelude.bo > dumpbo.out
           grep -q 'Internal Symbols' dumpbo.out
           util/bluehs/bluehs util/bluehs/tests/no-prelude.hs
+          util/bluehs/bluehs util/bluehs/tests/with-bluetcl.hs
+          mkdir -p probe/sim
+          inst/bin/bsc -sim -u -g mkSessionModel -bdir probe/sim -simdir probe/sim \
+            util/bluehs/tests/SessionModel.bs
+          inst/bin/bsc -sim -e mkSessionModel -bdir probe/sim -simdir probe/sim -o probe/sim/model
+          util/bluehs/bluehs util/bluehs/tests/with-bluetcl-sim.hs "$PWD/probe/sim/model.so"
       - name: Install the bluehs runtime
         run: make -j "$CORES" GHCJOBS=2 GHCRTSFLAGS="+RTS -M$MEM -A128m -RTS" install-bluehs
       - name: Run scripts from the installed tree
@@ -145,5 +155,25 @@ jobs:
           main = putStrLn hello
           EOT
           inst/bluehs/bin/bluehs -iprobe probe/main.hs
+          # the other tools, on that probe's model and source
+          inst/bluehs/bin/bluehs dumpba probe/sim/mkSessionModel.ba > /dev/null
+          inst/bluehs/bin/bluehs bsc2bsv util/bluehs/tests/SessionModel.bs > /dev/null
+          inst/bluehs/bin/bluehs util/bluehs/tests/with-bluetcl.hs
+          inst/bluehs/bin/bluehs util/bluehs/tests/with-bluetcl-sim.hs "$PWD/probe/sim/model.so"
           du -sh inst/bluehs
           ls inst/bluehs/scripts
+      - name: Check withBluetcl after relocating the installation
+        run: |
+          probe_script="$GITHUB_WORKSPACE/util/bluehs/tests/with-bluetcl.hs"
+          relocated="$RUNNER_TEMP/bluehs relocated inst"
+          mv inst "$relocated"
+          cd "$RUNNER_TEMP"
+          unset BLUESPECDIR GHC_ENVIRONMENT LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+          "$relocated/bluehs/bin/bluehs" "$probe_script"
+          # Bypass the launcher: GHCi finds the library through the bundled package environment.
+          # -e propagates probe exceptions as a failed process, unlike :main at a prompt.
+          GHC_ENVIRONMENT="$relocated/bluehs/hs/bsc.env" \
+          BLUESPECDIR="$relocated/lib" \
+          LD_LIBRARY_PATH="$relocated/bluehs/SAT" \
+            "$relocated/bluehs/hs/ghc/bin/ghci" -ignore-dot-ghci -v0 \
+              -Wno-missed-extra-shared-lib "$probe_script" -e main

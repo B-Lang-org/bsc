@@ -82,6 +82,43 @@ Every module the library exposes is importable --- parsers, type checker,
 scheduling. (`cabal repl bsc` also works but interprets the library from
 source, which is much slower to load.)
 
+## Calling Bluetcl
+
+Scripts and GHCi can use an initialized Bluetcl session through `Bluetcl`.
+`BLUESPECDIR` must name the matching installation's `lib` directory; when it
+is unset, the launcher sets it to the installation beside the library.
+
+```haskell
+import Bluetcl (withBluetcl, evalBluetcl)
+
+main = withBluetcl $ \interp -> do
+    version <- evalBluetcl interp "Bluetcl::version bsc"
+    putStrLn version
+    evalBluetcl interp "Bluetcl::bpackage load Prelude"
+    evalBluetcl interp "Bluetcl::bpackage types Prelude" >>= putStrLn
+```
+
+`withBluetcl` owns the interpreter and runs its callback on a bound thread
+(the program's one thread when it is compiled without `-threaded`). Use
+`evalBluetcl` only within that callback and on that thread; escaped
+handles, nested sessions, and overlapping sessions are rejected. An
+interrupt to the caller (Ctrl-C, `timeout`, `killThread`) reaches the
+callback when the Tcl command in progress returns. Each session
+starts with fresh Tcl variables, loaded-package state, and compiler flags,
+and is cleaned up when the callback returns or throws. Tcl errors become
+Haskell exceptions. Support scripts are initialized, but personal
+`~/.bluetclrc` files and the host program's arguments are not processed;
+embedded `exit` reports a Tcl error instead of exiting the host.
+
+Compiler syntax is selected once for the process, not independently for each
+session. The Tcl runtime also remains loaded for the process lifetime. Tcl
+is required only when calling `withBluetcl`, not for ordinary Bluehs
+scripts; it must match the Tcl version used to build the package.
+
+The runtime probe exercises these boundaries with the compiled package:
+
+    util/bluehs/bluehs util/bluehs/tests/with-bluetcl.hs
+
 ## Caveats and invariants
 
 * **Do not start `ghci` with cwd `src/comp`.** The `src/comp/.ghci` there
@@ -101,10 +138,11 @@ source, which is much slower to load.)
       GHC_ENVIRONMENT=inst/bluehs/hs/bsc.env BLUESPECDIR=inst/lib \
           inst/bluehs/hs/ghc/bin/ghci
 * **On Linux, a compiled program needs a Tcl link option.** The library
-  compiles in the Tcl binding but leaves Tcl's symbols to the `bluetcl`
-  executable, which links Tcl, so a program linked against its shared
-  library (`-dynamic`, the only kind the distribution ships) needs
-  `-optl-Wl,--allow-shlib-undefined`.
+  leaves Tcl's symbols to the Tcl that `withBluetcl` loads at run time, so
+  a program linked against its shared library (`-dynamic`, the only kind
+  the distribution ships) needs `-optl-Wl,--allow-shlib-undefined`, and a
+  static link of one that calls `withBluetcl` needs Tcl's library
+  (`-ltcl8.6`).
 * **`BLUESPECDIR` must name a real `inst/lib`** for the tools that read it
   (`showrules` and `vcdcheck` use it for `%` expansion and default `.ba`
   search paths). The launcher defaults it to `<repo>/inst/lib`, which is
@@ -125,9 +163,9 @@ of `inst`:
     inst/bluehs/bin/bluehs -imy-lib my-tool/Main.hs design.ba
 
 It needs from the host only the C and C++ runtimes, libgmp and libtinfo
-(ncurses), and, for scripts that use CPP, the C compiler the shipped GHC
-was configured with, by name (`gcc` for the Linux bindist); other scripts
-run with no C compiler reachable.
+(ncurses), plus Tcl for scripts using `withBluetcl` and, for scripts that
+use CPP, the C compiler the shipped GHC was configured with, by name (`gcc`
+for the Linux bindist); other scripts run with no C compiler reachable.
 `util/bluehs/mk-dist.sh` does the work; it needs `ghc` and `cabal` on `PATH`
 (the GHC it ships, or the one `GHC` names), `python3`, `cpio`, and
 `patchelf` on Linux, and takes the make build's `GHC`, `GHCJOBS`,
@@ -164,6 +202,6 @@ packages fall under `LICENSE.ghc`).
 * `bsc` itself: works as a script mechanically, but the ~1.5s/invocation
   interpretation cost of the 2300-line driver is wrong for a tool invoked
   once per compilation unit.
-* `bluetcl`: structurally not a script: its Haskell `main` hands control to
-  Tcl through a C shim (`bluetcl_shim.c`) compiled into the executable, which
-  an interpreted run cannot supply.
+* The standalone `bluetcl` command loop still uses the executable's C shim
+  (`bluetcl_shim.c`). Scripts can use `withBluetcl` for programmatic sessions
+  instead.

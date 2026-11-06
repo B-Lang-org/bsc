@@ -19,7 +19,7 @@ if {[info exist env(BLUETCLLIBPATH)]} {
 }
 
 # Libraries supplied with Bluetcl
-foreach __dir "$env(BLUESPECDIR)/tcllib/bluespec" {
+foreach __dir [list [file join $env(BLUESPECDIR) tcllib bluespec]] {
     if {[lsearch -exact $auto_path $__dir] < 0} {
         lappend auto_path $__dir
     }

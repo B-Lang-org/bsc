@@ -45,6 +45,8 @@ module HTcl
     ,HTclCheckedCmdFn
     ,htclRegisterCommand
     ,htclRegisterCommandFull
+    ,withTclCallbacks
+    ,htclReleaseObjs
     ,htclRegCommands
     ,htclCmdName
     ,htclFirstCmdElem
@@ -116,10 +118,14 @@ import Foreign.C.ConstPtr
 
 import Foreign.ForeignPtr
 import Foreign.ForeignPtr.Unsafe(unsafeForeignPtrToPtr)
+import qualified Foreign.Concurrent as FC
 
 import Control.Monad(foldM, mplus, msum, when)
+import Control.Concurrent.MVar (MVar, newMVar, modifyMVar, modifyMVar_)
 import System.IO.Error
 import System.Exit(ExitCode(..))
+import System.IO.Unsafe (unsafePerformIO)
+import Data.IORef (IORef, newIORef, atomicModifyIORef')
 import Data.List(intersperse, nub, isPrefixOf)
 
 import qualified Control.Exception as CE
@@ -235,19 +241,30 @@ foreign import capi "tcl.h Tcl_IncrRefCount"
  tcl_IncrRefCount :: PTclObj -> IO ()
 
 -- We do not need "capi" for wrappers that we have written
-foreign import ccall "&htcl_finalizeTclObj"
-  tcl_finalizeTclObj :: FunPtr (PTclObj -> IO ())
+foreign import ccall unsafe "htcl_finalizeTclObj"
+  htcl_finalizeTclObj :: PTclObj -> IO ()
 
-tclObjFinalizer :: FinalizerPtr XTclObj
-tclObjFinalizer = tcl_finalizeTclObj
+-- Tcl reference counts are not atomic and belong to the interpreter's
+-- thread, but the threaded RTS runs finalizers on whichever OS thread holds
+-- the capability, possibly while the interpreter runs.  A finalizer only
+-- queues its object; the interpreter's thread releases the queue.
+{-# NOINLINE pendingTclObjs #-}
+pendingTclObjs :: IORef [PTclObj]
+pendingTclObjs = unsafePerformIO (newIORef [])
+
+-- Release the Tcl objects Haskell no longer references.  Call it only on
+-- the interpreter's thread, with no other interpreter running.
+htclReleaseObjs :: IO ()
+htclReleaseObjs = do
+  objs <- atomicModifyIORef' pendingTclObjs (\objs -> ([], objs))
+  mapM_ htcl_finalizeTclObj objs
 
 -- Function to wrap tcl object into finalizer
 wrapPtrForExport :: PTclObj -> IO TclObj
 wrapPtrForExport pobj = do
   tcl_IncrRefCount pobj
-  fp <- newForeignPtr_  pobj
-  addForeignPtrFinalizer tclObjFinalizer fp
-  return fp
+  FC.newForeignPtr pobj $
+    atomicModifyIORef' pendingTclObjs (\objs -> (pobj : objs, ()))
 
 ---------------------------------------------------------
 -- A class to provide means to convert to tcl objects and
@@ -423,13 +440,48 @@ foreign import ccall "wrapper"
 foreign import ccall "wrapper"
  wrapHTclDeleteCommand :: TclCmdDeleteProc -> IO PTclCmdDeleteProc
 
+{-# NOINLINE managedTclCallbacks #-}
+managedTclCallbacks :: MVar [(TclInterp, [FunPtr ()])]
+managedTclCallbacks = unsafePerformIO (newMVar [])
+
+-- Track callbacks registered with an interpreter and free them when the
+-- action finishes. The action must delete the interpreter, including on
+-- exceptions, before returning: deletion can itself invoke a callback.
+-- Callbacks for deleted or replaced commands remain allocated until then.
+withTclCallbacks :: TclInterp -> IO a -> IO a
+withTclCallbacks interp action = CE.bracket_ acquire release action
+  where
+    acquire = modifyMVar_ managedTclCallbacks $ \scopes ->
+      if any ((== interp) . fst) scopes
+      then ioError (userError "withTclCallbacks: interpreter already managed")
+      else return ((interp, []) : scopes)
+    release = do
+      callbacks <- modifyMVar managedTclCallbacks $ \scopes ->
+        let remaining = filter ((/= interp) . fst) scopes
+            callbacks = case lookup interp scopes of
+                          Just ps -> ps
+                          Nothing -> []
+        in return (remaining, callbacks)
+      mapM_ freeHaskellFunPtr callbacks
+
+-- Allocation and recording share a masked critical section, so partial
+-- command registration cannot lose a callback from a managed scope.
+allocateTclCallback :: TclInterp -> IO (FunPtr a) -> IO (FunPtr a)
+allocateTclCallback interp allocate = CE.mask_ $
+  modifyMVar managedTclCallbacks $ \scopes -> do
+    callback <- allocate
+    let record (owner, callbacks)
+          | owner == interp = (owner, castFunPtr callback : callbacks)
+          | otherwise = (owner, callbacks)
+    return (map record scopes, callback)
+
 -- Functions to deal with command registrations
 htclRegisterCommandFull :: TclInterp  -> String -> TclObjCmdProc -> TclClientData -> Maybe TclCmdDeleteProc -> IO TclCommand
-htclRegisterCommandFull interp cmdname hcmd cd hdelfun = do
-  cmd <- wrapHTclCommand hcmd
+htclRegisterCommandFull interp cmdname hcmd cd hdelfun = CE.mask_ $ do
+  cmd <- allocateTclCallback interp (wrapHTclCommand hcmd)
   dcmd <- case hdelfun of
             Nothing -> return nullFunPtr
-            Just df -> wrapHTclDeleteCommand df
+            Just df -> allocateTclCallback interp (wrapHTclDeleteCommand df)
   withCString cmdname (\s -> tcl_CreateObjCommand interp s cmd cd dcmd)
 
 htclRegisterCommand :: (TclObjCvt a) =>
@@ -748,7 +800,8 @@ htclCheckCmd grm fn interp args = do
 htclRawFnToTclCmd :: (TclObjCvt a) => (HTclCheckedCmdFn a) -> TclObjCmdProc
 htclRawFnToTclCmd f =
     (\cd interp objc objv ->
-        CE.catch (do -- process command arguments
+        CE.catch (do htclReleaseObjs
+                     -- process command arguments
                      args <- htclArgsToTcl interp objc objv
                      -- execute command function
                      res <- f interp args

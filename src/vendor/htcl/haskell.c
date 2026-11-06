@@ -3,9 +3,8 @@
 
 #include "tcl.h"
 
-// finalizer callback for Tcl objects; we need a function pointer to this
-// callback, and Tcl_DecrRefCount is a macro, so we have to write a manual
-// wrapper (not even CApiFFI works for the ptr-to-fn use case)
+// releases a Tcl object whose reference Haskell held (HTcl.htclReleaseObjs),
+// with the Tcl 8.5 workaround below
 void
 htcl_finalizeTclObj(Tcl_Obj* o)
 {

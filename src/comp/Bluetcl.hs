@@ -7,40 +7,35 @@
    - Commands
 -}
 
-module Main_bluetcl (main) where
+module Bluetcl (withBluetcl, evalBluetcl, BluetclInterp, initBluetcl) where
 
 
 import HTcl
+import qualified HTclRuntime
 
-import Control.Monad(foldM, when, mzero, void)
+import Control.Monad(foldM, when, unless, mzero, void)
 import Control.Monad.Trans(lift)
 import Control.Monad.Except(ExceptT, runExceptT, throwError)
 import Control.Concurrent
 import qualified Control.Exception as CE
-import System.IO.Error(ioeGetErrorString)
 import Data.IORef
+import Data.Unique (Unique, newUnique)
 import Data.Word(Word64)
 import Data.List(find, nub, partition, sort, sortBy, intercalate, isPrefixOf,
                  groupBy, intersect, nubBy, group, elemIndex)
 import Data.Maybe
 import Data.Ord(comparing)
 import System.IO.Unsafe(unsafePerformIO)
-import System.Environment(getEnv, getArgs, getProgName)
+import System.Environment(getEnv)
 import System.Mem(performGC)
-import System.Posix.Signals
 import Text.Regex
 import Data.Generics (listify)
 import qualified Data.Map as M
-import Foreign.C.String(CString, newCString)
-import Foreign.C.Types(CInt(..))
-import Foreign.Marshal.Array(newArray0)
-import Foreign.Ptr(Ptr, nullPtr)
 
 -- Bluespec imports
 import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr, fst3,
             thd, readOrErr)
 import IOUtil(getEnvDef)
-import TopUtils(getBluespecDir)
 
 import Util(mapFst, mapSnd)
 import TclUtils
@@ -53,7 +48,8 @@ import Flags(Flags(..), verbose)
 import FlagsDecode(defaultFlags, decodeFlags, adjustFinalFlags, updateFlags,
                    showFlagsLst, showFlagsAllLst, getFlagValueString)
 import Error(internalError, EMsg, ErrMsg(..), showErrorList,
-             ErrorHandle, initErrorHandle, convExceptTToIO)
+             ErrorHandle, initErrorHandle, resetErrorHandle, closeOpenHandles,
+             convExceptTToIO)
 import Id
 import PPrint
 import PFPrint
@@ -103,53 +99,111 @@ import InstNodes(InstNode(..), InstTree, isHidden, isHiddenKP, isHiddenAll, node
 -- import Debug.Trace
 
 -------------------------------------
-foreign import ccall "run_bluetcl"
-  c_run_bluetcl :: CInt -> Ptr CString -> IO ()
+-- Shared by the executable and the embedded interpreter. Signal handlers
+-- and command-line processing belong to the executable.
+initBluetcl :: TclInterp -> IO ()
+initBluetcl interp = do
+  initTclPackage
+  registered <- htclRegCommands interp tclCommands
+  unless registered $ ioError $ userError "Unable to register Bluetcl commands"
+  frozen <- isSyntaxFrozen
+  unless frozen $ setSyntax BSV
 
-main :: IO ()
-main = do
-  -- The Tcl side reads $BLUESPECDIR, so call getBluespecDir for its setenv
-  -- side effect before handing control to Tcl via bluetcl_shim.c.
-  void getBluespecDir
-  prog <- getProgName
-  args <- getArgs
-  let argList = prog : args
-  cArgs <- mapM newCString argList
-  argv <- newArray0 nullPtr cArgs
-  c_run_bluetcl (fromIntegral (length argList)) argv
+-- A handle valid only on the thread and within the callback that created it.
+-- Its unique identity prevents a later interpreter at the same address from
+-- making an escaped handle valid again.
+data BluetclInterp = BluetclInterp Unique ThreadId TclInterp
 
-foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int
+-- Run with an initialized Bluetcl interpreter on a bound OS thread (the
+-- program's one thread without -threaded).  An asynchronous exception to the
+-- caller reaches the callback once the Tcl command in progress returns.
+-- BLUESPECDIR must name the installation's lib directory, as bsc sets it
+-- (the bluehs launcher defaults it).  The interpreter and Tcl objects must
+-- stay within this callback.  Compiler state is process-global, so
+-- overlapping or nested sessions fail; syntax retains the compiler's
+-- existing process-wide freeze semantics.
+withBluetcl :: (BluetclInterp -> IO a) -> IO a
+withBluetcl action = do
+  identity <- newUnique
+  CE.bracket_ (acquire identity) release $
+    HTclRuntime.withTcl $ \interp -> CE.mask $ \restore -> do
+      thread <- myThreadId
+      result <- CE.try $ restore $ do
+        resetSession
+        initBluetcl interp
+        -- Embedded sessions do not consume the host's arguments or personal
+        -- rc file. Replace process exit before sourcing the support script,
+        -- and again after: its exit runs and deletes the exit hooks first.
+        void $ HTclRuntime.evalTcl interp $ unlines
+          [ "set tcl_rcFileName {}"
+          , "set argv {}; set argc 0; set argv0 bluehs; set tcl_interactive 0"
+          , "rename exit {}"
+          , "proc exit args {error {exit is unavailable inside withBluetcl}}"
+          , "package provide Bluetcl 1.0"
+          , "source [file join $env(BLUESPECDIR) tcllib bluespec bluespec.tcl]"
+          , "rename exit {}"
+          , "proc exit args {error {exit is unavailable inside withBluetcl}}"
+          ]
+        action (BluetclInterp identity thread interp)
+      cleaned <- CE.try $ runAtExit interp `CE.finally` resetSession
+      case result of
+        Left (err :: CE.SomeException) -> CE.throwIO err
+        Right value -> case cleaned of
+          Left (err :: CE.SomeException) -> CE.throwIO err
+          Right () -> return value
+  where
+    -- the one session at a time: claimed before Tcl is entered, released
+    -- after the cleanup
+    acquire identity = do
+      claimed <- atomicModifyIORef' activeSession $ \active ->
+        case active of
+          Nothing -> (Just identity, True)
+          Just _ -> (active, False)
+      unless claimed $ ioError $ userError "withBluetcl: another session is already active"
+    release = writeIORef activeSession Nothing
 
---  1st call to haskell world (run time system has already been setup)
-blueshell_Init :: TclInterp -> IO Int
-blueshell_Init interp =
-  let handler :: CE.IOException -> IO Int
-      handler e = htcl_AddObjErrorInfo interp (ioeGetErrorString e)
-                    >>= return . fromEnum
-  in  CE.catch
-         (do
-             initTclPackage
-             -- register commands
-             _ <- htclRegCommands interp tclCommands
-             -- setup a Ctrl-C handler
-             mv <- newEmptyMVar
-             _ <- forkIO (handleCtrlC mv)
-             _ <- installHandler sigINT (Catch $ recordCtrlC mv) Nothing
-             --
-             -- syntax defaults to CLASSIC otherwise
-             setSyntax BSV
-             return 0)          -- TCL_OK
-         handler
+-- Evaluate a command in the current 'withBluetcl' callback. Tcl errors are
+-- IO exceptions. Checking the scope before entering Tcl also catches stale
+-- interpreters and accidental use from a forked Haskell thread.
+evalBluetcl :: BluetclInterp -> String -> IO String
+evalBluetcl (BluetclInterp identity owner interp) script = do
+  thread <- myThreadId
+  active <- readIORef activeSession
+  unless (active == Just identity && thread == owner) $
+    ioError $ userError "evalBluetcl: use the current withBluetcl interpreter on its callback thread"
+  HTclRuntime.evalTcl interp script
 
-handleCtrlC :: MVar () -> IO ()
-handleCtrlC mv = do _ <- takeMVar mv
-                    putStrLn "Got Ctrl-C!"
-                    handleCtrlC mv
+-- The session in progress, by the identity its handle carries
+{-# NOINLINE activeSession #-}
+activeSession :: IORef (Maybe Unique)
+activeSession = unsafePerformIO $ newIORef Nothing
 
-recordCtrlC :: MVar () -> IO ()
-recordCtrlC mv = do putStrLn "recording Ctrl-C..."
-                    _ <- tryPutMVar mv ()
-                    return ()
+runAtExit :: TclInterp -> IO ()
+runAtExit interp = void $ HTclRuntime.evalTcl interp $ unlines
+  [ "apply {{} {"
+  , "  if {[info exists ::AtExit::atExitScripts]} {"
+  , "    set scripts [lreverse $::AtExit::atExitScripts]"
+  , "    set ::AtExit::atExitScripts {}"
+  , "    foreach script $scripts {catch {uplevel #0 $script}}"
+  , "  }"
+  , "}}"
+  ]
+
+resetSession :: IO ()
+resetSession = void unloadCurrentModel `CE.finally`
+  (closeOpenHandles globalErrHandle `CE.finally`
+   (do writeIORef globalVar initState
+       resetErrorHandle globalErrHandle))
+
+-- Drop ownership before shutdown, including when a replacement model fails
+-- to load; session cleanup must never shut down the same model twice.
+unloadCurrentModel :: IO Bool
+unloadCurrentModel = CE.mask_ $ do
+  model <- atomicModifyIORef' globalVar $ \g ->
+    (g { tp_bluesim = Nothing }, tp_bluesim g)
+  case model of
+    Nothing -> return False
+    Just bs -> unloadBluesimModel bs >> return True
 
 returnIO :: a -> IO a
 returnIO = return
@@ -2831,10 +2885,8 @@ tclSim ("getrange":args) = do
     (Just bs, _) -> internalError $ "tclSim: grammar mismatch: " ++ (show args)
     (Nothing,_)   -> ioError $ userError ("There is no bluesim model loaded")
 --------------------
-tclSim ["load", fname, top_name] = do
-  g <- readIORef globalVar
-  let mbs0 = tp_bluesim g
-  when (isJust mbs0) $ unloadBluesimModel (fromJust mbs0)
+tclSim ["load", fname, top_name] = CE.mask_ $ do
+  void unloadCurrentModel
   mbs1 <- loadBluesimModel fname top_name
   when (isNothing mbs1) $
        ioError $ userError ("Unable to load model " ++ fname)
@@ -3042,12 +3094,9 @@ tclSim ("timescale":args) = do
           _ -> internalError $ "tclSim: 'sim timescale' grammar mismatch: " ++ (show args)
       Nothing -> ioError $ userError ("There is no bluesim model loaded")
 tclSim ["unload"] = do
-  g <- readIORef globalVar
-  case (tp_bluesim g) of
-    Just bs -> do modifyIORef globalVar (\gv -> gv { tp_bluesim = Nothing })
-                  unloadBluesimModel bs
-                  return $ TLst []
-    Nothing -> ioError $ userError ("There is no bluesim model loaded")
+  unloaded <- unloadCurrentModel
+  unless unloaded $ ioError $ userError ("There is no bluesim model loaded")
+  return $ TLst []
 ----------
 tclSim ("up":args) = do
   g <- readIORef globalVar

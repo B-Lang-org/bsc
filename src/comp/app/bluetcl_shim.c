@@ -15,7 +15,7 @@
  */
 
 /*
- * bluetcl's Tcl side. The program's main is Haskell (app/Bluetcl.hs), so
+ * bluetcl's Tcl side. The program's main is Haskell (app/BluetclMain.hs), so
  * the RTS is running by the time run_bluetcl() below hands control to Tcl.
  */
 
@@ -24,9 +24,9 @@
 
 extern char *TclSetPreInitScript (char *string);
 
-// The export from Haskell (app/Bluetcl.hs):
+// The export from Haskell (app/BluetclMain.hs):
 //   foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int
-// Declared here rather than through the generated Bluetcl_stub.h.
+// Declared here rather than through the generated FFI header.
 extern int blueshell_Init_Foreign(Tcl_Interp *interp);
 
 int bluetcl_AppInit(Tcl_Interp *interp);
