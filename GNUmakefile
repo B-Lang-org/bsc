@@ -6,6 +6,7 @@ PREFIX   ?= $(TOP)/inst
 # own is.
 override PREFIX := $(abspath $(PREFIX))
 BUILDDIR ?= $(TOP)/build
+override BUILDDIR := $(abspath $(BUILDDIR))
 
 .PHONY: help
 help:
@@ -22,6 +23,8 @@ help:
 	@echo '    make  install-solvers'
 	@echo '                       Build and install just the vendored solvers'
 	@echo '    make  install-doc  Build and install just the documentation'
+	@echo '    make  install-bluehs'
+	@echo '                       Install the tools and the bluehs script runtime'
 	@echo
 	@echo '    make  check-smoke  Run a quick smoke test'
 	@echo '    make  check-suite  Run the test suite (this will take time!)'
@@ -61,6 +64,10 @@ install-solvers:
 .PHONY: install-doc
 install-doc:
 	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
+
+.PHONY: install-bluehs
+install-bluehs: install-src
+	$(MAKE)  -C src/comp  PREFIX=$(PREFIX)  BUILDDIR=$(BUILDDIR)  install-bluehs
 
 .PHONY: install-release
 install-release:

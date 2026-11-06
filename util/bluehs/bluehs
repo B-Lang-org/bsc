@@ -1,0 +1,150 @@
+#!/bin/sh
+# Launcher for the bluehs tools that works from any directory.
+#
+# Invoke directly:            util/bluehs/bluehs dumpbo foo.bo
+# or via the bin/ symlinks:   util/bluehs/bin/dumpbo foo.bo
+# (the symlink name selects the tool)
+#
+#   bluehs [-<ghc flag>]... <tool|script.hs> [args...]
+#
+# A named tool is the program of that name in bsc.cabal, run by runghc
+# instead of being compiled: its entry file is under src/comp/app.  runghc
+# executes the file's `main` whatever the module is called, so the entry
+# files the cabal executables use (module Main_dumpbo and friends) are also
+# the scripts, with no second copy to keep in step.  Any path to a .hs file
+# works too (one that starts with - needs ./).  Modules are looked up beside
+# the script, not in the working directory, whose files would otherwise
+# shadow the library's modules.  Flags before the tool or script go to GHC,
+# one word each, as runghc takes them: -i<dir> adds a directory to the
+# import path, for a script whose modules are split across directories,
+# -v1 names every module GHC interprets, a flag's value is attached
+# (-package<pkg>) or passed as --ghc-arg=<arg>, and -- ends them.
+#
+# Standard output is block-buffered unless it is a terminal, as in a
+# compiled program; runghc leaves it unbuffered.
+#
+# The same file runs from a source checkout and from an installed
+# distribution (mk-dist.sh), and chooses by what surrounds it:
+#   checkout      - <repo>/util/bluehs/bluehs, the ghc on PATH (or the one
+#                   GHC names, as for make), and the repo's
+#                   .ghc.environment.* for that ghc's version
+#   distribution  - <dist>/bin/bluehs, the bundled GHC, and <dist>/hs/bsc.env
+#
+# Sets up three things a compiled binary would not need:
+#   GHC_ENVIRONMENT - the GHC package environment naming the compiled bsc
+#                     library, so runghc finds it from any cwd
+#   BLUESPECDIR     - defaulted to the bsc install beside the library
+#                     (showrules/vcdcheck use it for %-expansion and default
+#                     .ba search paths); a compiled binary derives it from its
+#                     own location, which runghc cannot do because the script
+#                     is not installed
+#   LD_LIBRARY_PATH - the solvers for GHC's loader, which opens a package's
+#                     extra-libraries by their link names before the
+#                     package's own object loads: from the package's library
+#                     directories, which name none (doc/cabal.md section 3),
+#                     then from the dynamic linker's search path, which this
+#                     names the installed copies for. On macOS the variable
+#                     does not survive the shell wrappers around ghc (SIP
+#                     strips it), so there the library's own rpath resolves
+#                     the solvers (cabal.project) and the loader's warning
+#                     about the preload it could not do is silenced on the
+#                     command line
+
+SELF=$(readlink -f "$0")
+HERE=$(dirname "$SELF")
+
+NAME=$(basename "$0")
+# GHC flags lead; they stay in place in "$@" for runghc
+FLAGS=0
+if [ "$NAME" = "bluehs" ]; then
+    for a do
+        case "$a" in
+            --) FLAGS=$((FLAGS + 1)); break ;;
+            -?*) FLAGS=$((FLAGS + 1)) ;;
+            *) break ;;
+        esac
+    done
+    if [ $# -le $FLAGS ]; then
+        echo "usage: bluehs [-<ghc flag>]... <tool|script.hs> [args...]" >&2
+        exit 1
+    fi
+    eval "TOOL=\${$((FLAGS + 1))}"
+else
+    TOOL="$NAME"
+fi
+
+if [ -f "$HERE/../hs/bsc.env" ]; then
+    DIST=$(dirname "$HERE")
+    APP=$DIST/scripts
+    RUNGHC=$DIST/hs/ghc/bin/runghc
+    GHC=
+    ENVFILE=$DIST/hs/bsc.env
+    DEFAULT_BLUESPECDIR=$(dirname "$DIST")/lib
+    SAT=$DIST/SAT
+else
+    REPO=$(dirname "$(dirname "$(dirname "$SELF")")")
+    APP=$REPO/src/comp/app
+    RUNGHC=runghc
+    # The environment file is per GHC version, and the library in it was
+    # built by that GHC, so runghc is told to run the ghc whose version
+    # chose the file, not the one beside it.
+    GHC_NAME=${GHC:-ghc}
+    GHC=$(command -v "$GHC_NAME")
+    VERSION=$("$GHC" --numeric-version 2>/dev/null)
+    if [ -z "$VERSION" ]; then
+        echo "bluehs: no $GHC_NAME on PATH" >&2
+        exit 1
+    fi
+    ENVFILE=$(ls "$REPO"/.ghc.environment.*-"$VERSION" 2>/dev/null | head -1)
+    if [ ! -f "$ENVFILE" ]; then
+        echo "bluehs: no .ghc.environment.*-$VERSION at $REPO --- run make install-src with ghc $VERSION" >&2
+        exit 1
+    fi
+    DEFAULT_BLUESPECDIR=$REPO/inst/lib
+    SAT=$REPO/inst/lib/SAT
+fi
+
+case "$TOOL" in
+    *.hs) SCRIPT="$TOOL" ;;
+    *)    SCRIPT="$APP/$TOOL.hs" ;;
+esac
+if [ ! -f "$SCRIPT" ]; then
+    echo "bluehs: no such tool or script: $TOOL" >&2
+    exit 1
+fi
+
+GHC_ENVIRONMENT="$ENVFILE" export GHC_ENVIRONMENT
+BLUESPECDIR="${BLUESPECDIR:-$DEFAULT_BLUESPECDIR}" export BLUESPECDIR
+LD_LIBRARY_PATH="$SAT${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" export LD_LIBRARY_PATH
+
+# runghc gets the flags, then the script in place of the tool name.  The
+# launcher's own -f and --ghc-arg come first: runghc reads -f only at the
+# front, so a user's -f<flag> reaches GHC rather than being taken for the
+# ghc to run.  The -e statement runs before runghc's own, which run main;
+# it is evaluated in the script's scope, hence the qualified names.
+BUFFERING='System.IO.hIsTerminalDevice System.IO.stdout Prelude.>>= \t -> System.IO.hSetBuffering System.IO.stdout (if t then System.IO.LineBuffering else System.IO.BlockBuffering Prelude.Nothing)'
+if [ "$NAME" = "bluehs" ]; then
+    k=0
+    for a do
+        [ $k -eq 0 ] && set --
+        k=$((k + 1))
+        if [ $k -eq $((FLAGS + 1)) ]; then
+            set -- "$@" "$SCRIPT"
+        else
+            set -- "$@" "$a"
+        fi
+    done
+else
+    set -- "$SCRIPT" "$@"
+fi
+# -i clears GHC's implicit search of the working directory; a script's own
+# directory is searched instead, and a tool's entry file imports only the
+# library.  A tool's warnings are for its build, which reports them once,
+# not for each run; a flag of the user's comes later and wins.
+case "$TOOL" in
+    *.hs) set -- "--ghc-arg=-i$(dirname -- "$SCRIPT")" "$@" ;;
+    *) set -- --ghc-arg=-w "$@" ;;
+esac
+set -- --ghc-arg=-i --ghc-arg=-Wno-missed-extra-shared-lib --ghc-arg=-e "--ghc-arg=$BUFFERING" "$@"
+[ -z "$GHC" ] || set -- -f "$GHC" "$@"
+exec "$RUNGHC" "$@"

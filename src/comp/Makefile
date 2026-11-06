@@ -33,6 +33,8 @@ export NOUPDATEBUILDVERSION
 # PREFIX is where things are installed
 PREFIX?=$(TOP)/inst
 BINDIR=$(PREFIX)/bin
+# Intermediate files outside dist-newstyle (install-bluehs)
+BUILDDIR?=$(TOP)/build
 
 # Where package information is installed
 LICDIR=$(PREFIX)/LICENSES
@@ -157,6 +159,12 @@ install-utils: $(PKGINFO)
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
 install-showrules: $(PKGINFO)
+
+# The bluehs runtime builds the library again, with this build's settings.
+.PHONY: install-bluehs
+install-bluehs:
+	GHC='$(GHC)' CABAL='$(CABAL)' GHCJOBS='$(GHCJOBS)' GHCRTSFLAGS='$(GHCRTSFLAGS)' BSC_BUILD='$(BSC_BUILD)' \
+		$(TOP)/util/bluehs/mk-dist.sh $(PREFIX)/bluehs $(BUILDDIR)/bluehs
 
 # ----
 # Other targets
