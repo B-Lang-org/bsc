@@ -1,0 +1,149 @@
+name: bluehs runtime
+
+# The bluehs script runtime (util/bluehs): scripts run from the source
+# tree after `make install-src`, then `make install-bluehs` on both
+# platforms and scripts run from the installed, relocated tree.  mk-dist.sh
+# builds the cabal project a second time and relocates a pruned GHC, the
+# package store and the solver libraries; this is the one check of that
+# relocation on macOS.  It runs for changes to the runtime or to what it
+# builds, parses and ships, in a pull request or on main.
+
+on:
+  pull_request:
+    paths:
+      - util/bluehs/**
+      - GNUmakefile
+      - bsc.cabal
+      - cabal.project*
+      - Setup.hs
+      - SetupHooks.hs
+      - platform.mk
+      - platform.sh
+      - COPYING
+      - LICENSES/**
+      - src/Makefile
+      - src/comp/**
+      - src/Parsec/**
+      - src/Libraries/**
+      - src/vendor/**
+      - .github/workflows/bluehs.yml
+      - .github/workflows/install_dependencies_*.sh
+  push:
+    branches: [main]
+    paths:
+      - util/bluehs/**
+      - GNUmakefile
+      - bsc.cabal
+      - cabal.project*
+      - Setup.hs
+      - SetupHooks.hs
+      - platform.mk
+      - platform.sh
+      - COPYING
+      - LICENSES/**
+      - src/Makefile
+      - src/comp/**
+      - src/Parsec/**
+      - src/Libraries/**
+      - src/vendor/**
+      - .github/workflows/bluehs.yml
+      - .github/workflows/install_dependencies_*.sh
+  workflow_dispatch:
+    inputs:
+      ghc_version:
+        description: GHC version for every leg (the one the distribution ships)
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  bluehs:
+    name: "bluehs ${{ matrix.os }} ghc-${{ inputs.ghc_version || matrix.ghc }}"
+    strategy:
+      fail-fast: false
+      # The release GHC (ci.yml) and the newest one: mk-dist.sh takes a
+      # different store layout and no job semaphore from a GHC before 9.12
+      matrix:
+        include:
+          - { os: ubuntu-24.04, ghc: 9.6.7 }
+          - { os: ubuntu-24.04, ghc: 9.14.1 }
+          - { os: macos-15, ghc: 9.14.1 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo .github/workflows/install_dependencies_ubuntu.sh
+          # mk-dist.sh rewrites the shipped libraries' search paths
+          sudo apt-get install -y patchelf cpio
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          .github/workflows/install_dependencies_macos.sh
+          # The same workaround as build-and-test-macos.yml: a stray tcl.h in
+          # /usr/local/include shadows the system Tcl and breaks the bluetcl
+          # link.
+          rm -f /usr/local/include/tcl.h
+      # cabal-install 3.16: the Hooks setup-depends Cabal ^>=3.16 needs 3.16 or
+      # later, and 3.16 speaks the GHC job semaphore protocol v1, GHC's since
+      # 9.8 (3.18 speaks only v2, which GHC adds in 9.10.4, 9.12.5, 9.14.2 and
+      # 10.0.1).
+      - name: Install GHC
+        uses: haskell/ghcup-setup@v1
+        with:
+          ghc: ${{ inputs.ghc_version || matrix.ghc }}
+          cabal: 3.16.1.0
+      # The cabal build fetches the compiler's Haskell libraries from Hackage
+      - name: Update the package index
+        run: cabal update
+      # The library builds of install-src and install-bluehs are capped alike
+      - name: Build settings
+        run: |
+          case "${{ runner.os }}" in
+            Linux) echo "CORES=$(nproc)" >> "$GITHUB_ENV"; echo MEM=5G >> "$GITHUB_ENV" ;;
+            *)     echo "CORES=$(sysctl -n hw.ncpu)" >> "$GITHUB_ENV"; echo MEM=4500M >> "$GITHUB_ENV" ;;
+          esac
+      - name: Build and install bsc (make)
+        run: make -j "$CORES" GHCJOBS=2 GHCRTSFLAGS="+RTS -M$MEM -A128m -RTS" install-src
+      - name: Run scripts from the source tree
+        run: |
+          util/bluehs/bin/dumpbo inst/lib/Libraries/Prelude.bo > dumpbo.out
+          grep -q 'Internal Symbols' dumpbo.out
+          util/bluehs/bluehs util/bluehs/tests/no-prelude.hs
+      - name: Install the bluehs runtime
+        run: make -j "$CORES" GHCJOBS=2 GHCRTSFLAGS="+RTS -M$MEM -A128m -RTS" install-bluehs
+      - name: Run scripts from the installed tree
+        run: |
+          set -x
+          inst/bluehs/bin/bluehs dumpbo inst/lib/Libraries/Prelude.bo > dumpbo.out
+          head -3 dumpbo.out
+          grep -q 'Internal Symbols' dumpbo.out
+          inst/bluehs/bin/bluehs showrules --help > /dev/null
+          inst/bluehs/bin/bluehs util/bluehs/tests/no-prelude.hs
+          # a script of one's own, split across a module directory
+          mkdir -p probe/Mod
+          cat > probe/Mod/Hello.hs <<'EOT'
+          module Mod.Hello (hello) where
+          import Version (bscVersionStr)
+          hello :: String
+          hello = "bluehs: " ++ bscVersionStr True
+          EOT
+          cat > probe/main.hs <<'EOT'
+          import Mod.Hello (hello)
+          main :: IO ()
+          main = putStrLn hello
+          EOT
+          inst/bluehs/bin/bluehs -iprobe probe/main.hs
+          du -sh inst/bluehs
+          ls inst/bluehs/scripts
