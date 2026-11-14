@@ -3,9 +3,7 @@ compiling EUnboundVar1.bs
 Error: "EUnboundVar1.bs", line 31, column 12: (T0004)
   Unbound variable `clk'
 Error: "EUnboundVar1.bs", line 31, column 12: (T0020)
-  Type error at:
-    _tctemp1039
-
+  Type mismatch
   Expected type:
     a__ b__
 

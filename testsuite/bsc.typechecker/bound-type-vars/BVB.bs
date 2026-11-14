@@ -1,0 +1,4 @@
+package BVB where
+
+g :: r -> Bool
+g x = to x

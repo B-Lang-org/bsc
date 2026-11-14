@@ -1,0 +1,17 @@
+-- Test that a metavariable-headed goal in a local binding still defers to an
+-- enclosing rigid given when the given-check unifies against bound_tyvars.
+package MetaGivenDefers where
+
+data T = MkT
+data Conc = MkConc
+
+class MyC a b | a -> b where
+  toB :: a -> b
+
+instance MyC T Conc where
+  toB _ = MkConc
+
+outer :: (MyC s r) => s -> r
+outer x =
+  let innerF y = toB y
+  in  innerF x

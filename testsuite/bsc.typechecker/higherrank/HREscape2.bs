@@ -1,0 +1,13 @@
+package HREscape2 where
+
+-- outward skolem escape through a metavariable: h is unannotated, so
+-- v's type is a metavariable; binding it to the field's skolem is an
+-- allowed-direction bind, and the escape is in the binding's RANGE.
+-- If h generalizes over the escaped skolem, h True builds an R whose
+-- rep returns a Bool at every instantiation -- unsound.
+struct R =
+  rep :: (a -> a) -> a -> a
+
+bad4 :: R
+bad4 = letseq h v = R { rep = \ fn x -> v }
+       in h True

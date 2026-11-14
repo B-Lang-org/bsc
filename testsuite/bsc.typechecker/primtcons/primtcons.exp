@@ -114,7 +114,7 @@ compile_pass CExtendATFExplicit.bsv
 # but fails when synthesized, because GenWrap decides whether the field is a
 # method or a subinterface before typecheck and cannot reduce the SizeOf.
 compile_pass ExpSizeOf_VectorIfc.bsv
-compile_verilog_fail_error ExpSizeOf_VectorIfc.bsv T0043
+compile_verilog_fail_error ExpSizeOf_VectorIfc.bsv T0043 2
 
 # ---------------
 

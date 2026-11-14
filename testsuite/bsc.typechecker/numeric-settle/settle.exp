@@ -1,0 +1,27 @@
+# Tests for single-point numeric-proviso settlement: debt settles at
+# the binding that owns its variables, and verdict sites settle their
+# own results.
+#
+# Both obligations are chosen to be provable ONLY by the SAT solver
+# (the cross-class entailment 2a = b |- a + a = b, which no direct
+# instance or commuted given can discharge), pinned by the dual
+# variant: each test must FAIL with the solver disabled
+# (-no-use-proviso-sat) and pass with it enabled.  A test that still
+# passed without the solver would not be exercising settlement.
+
+# a given-free local's obligation rides up (unqueried) and is proven
+# by the enclosing definition's proviso, in that binding's batch
+erase DebtRidesUp.bo
+compile_pass DebtRidesUp.bsv
+erase DebtRidesUp.bo
+compile_fail DebtRidesUp.bsv {-no-use-proviso-sat}
+
+# an incoherent-class match takes a local numeric verdict: its
+# instance's satisfiable numeric proviso is proven in a local batch,
+# so the specific instance wins; without the verdict the match looks
+# partial and selection falls to the catch-all, which cannot satisfy
+# the signature
+erase IncoherentNumBatch.bo
+compile_pass IncoherentNumBatch.bsv
+erase IncoherentNumBatch.bo
+compile_fail IncoherentNumBatch.bsv {-no-use-proviso-sat}

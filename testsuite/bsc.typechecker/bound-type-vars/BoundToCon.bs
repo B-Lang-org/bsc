@@ -1,0 +1,5 @@
+package BoundToCon() where
+
+-- bound var of kind * unified against Bool: does mgu line 40 silently bind?
+f :: a -> Bool
+f x = x

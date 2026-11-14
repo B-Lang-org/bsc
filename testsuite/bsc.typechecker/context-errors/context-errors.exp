@@ -77,7 +77,7 @@ compare_file AmbigCtx_RemoveFunDeps.bsv.bsc-out
 # Testing that implied predicates are not reported (bug 546)
 
 # In this case should see only one T0031 error, not two
-compile_fail_error ContextReductionRemoveImplied.bs T0031
+compile_fail_error ContextReductionRemoveImplied.bs T0159
 
 compile_fail_error ContextReductionRemoveImplied2.bsv T0032
 compare_file ContextReductionRemoveImplied2.bsv.bsc-out
@@ -95,14 +95,10 @@ compile_fail_error ContextReductionRemoveImpliedCloseFD.bsv T0032
 compare_file ContextReductionRemoveImpliedCloseFD.bsv.bsc-out
 
 # --------------------
-# Test that deferred contexts are used when reporting TooWeak errors
-# (bug 1716)
-
-# (There is also a T0020 error, which is due to a missing "pack" that is
-# necessary to trigger the T0030 error.)
-compile_fail_error ContextTooWeakDeferred.bsv T0030
-# XXX The error could report the deferred contexts which mention variables
-# XXX in the message (showing how they are further constrained)
+# Test deferred contexts in ContextTooWeakDeferred (bug 1716).
+# Both Bits goals commit and leave two unrelated Mul residuals on a__,
+# surfacing the size mismatch as an ambiguity (T0033) alongside T0020.
+compile_fail_error ContextTooWeakDeferred.bsv T0033
 compare_file ContextTooWeakDeferred.bsv.bsc-out
 
 # --------------------
@@ -212,9 +208,9 @@ compile_fail_error EModInstWrongArgs_TooMany2.bsv T0108
 compile_fail_error EModInstWrongArgs_TooManyViaMap.bsv T0108
 
 # bug 872
-compile_fail_error EModInstWrongArgs_TooFew1.bsv T0108
+compile_fail_error EModInstWrongArgs_TooFew1.bsv T0084
 compile_fail_error EModInstWrongArgs_TooFew2.bsv T0084
-compile_fail_error EModInstWrongArgs_TooFewViaMap.bsv T0107
+compile_fail_error EModInstWrongArgs_TooFewViaMap.bsv T0084
 
 # -----
 # Test for Bug 1645

@@ -1,0 +1,12 @@
+package HRProviso where
+
+-- a proviso'd polymorphic field: the field's given must discharge
+-- pack's wanted during construction, and both uses must instantiate
+struct P =
+  p :: (Bits a n) => a -> Bit n
+
+ok :: P
+ok = P { p = pack }
+
+use :: (Bit 8, Bit 1)
+use = (ok.p (42 :: Bit 8), ok.p True)

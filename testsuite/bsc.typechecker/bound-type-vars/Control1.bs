@@ -1,0 +1,16 @@
+package Control1 where
+
+-- Control: the goal's determined position is the bound var itself
+-- (var-var case, protected by varUnify). Should compile cleanly.
+
+data T = MkT
+data Conc = MkConc
+
+class MyC a b | a -> b where
+  toB :: a -> b
+
+instance MyC T Conc where
+  toB _ = MkConc
+
+f :: (MyC T r) => T -> r
+f x = toB x

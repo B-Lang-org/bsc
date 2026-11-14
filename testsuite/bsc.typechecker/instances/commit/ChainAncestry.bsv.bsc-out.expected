@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ChainAncestry.bsv
+Error: "ChainAncestry.bsv", line 23, column 8: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    ChainAncestry::Layer1#(Bit#(4))
+  The proviso was implied by expressions at the following positions:
+    "ChainAncestry.bsv", line 26, column 14
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Add#(4, 4, 9)

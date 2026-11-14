@@ -29,17 +29,23 @@ test_c_veri LeafOrderChain sysLeafOrderChain.out.expected
 erase LeafOrderChain.bo
 test_c_veri_bs_modules_options LeafOrderChain {} {-legacy-inst-index} sysLeafOrderChain.out.expected
 
-# Fundep improvements from a matched-but-undischarged instance must not
-# be committed: the specific TC instance matches first and would improve
-# the output position to 5, but its context is not yet satisfiable and a
-# sibling pred then fixes the output to 6, after which only the
-# catch-all matches (coherently).  Pins the acceptance and instance
-# choice (1 direct, 2 through the helper) that any future
-# commit-coherent-matches scheme must preserve by deferring improving
-# matches whose walk suffix still contains a unifiable instance.
-test_c_veri FdStability sysFdStability.out.expected
+# Ordered-clause fundep semantics with commitment: the specific TC
+# instance is the clause for Maybe inputs, its improvement (m := 5) is
+# committed even though its context is not yet dischargeable, and the
+# sibling's demand for 6 is then unsatisfiable -- the program is
+# rejected.  Under -legacy-defer-instances the historical fall-through
+# policy applies and the program compiles printing 1 then 2.
+compile_fail FdStability.bs
+compare_file FdStability.bs.bsc-out
 erase FdStability.bo
-test_c_veri_bs_modules_options FdStability {} {-legacy-inst-index} sysFdStability.out.expected
+test_c_veri_bs_modules_options FdStability {} {-legacy-defer-instances} sysFdStability.out.expected
+
+# Resolution must not depend on the order in which sibling preds are
+# solved: both argument orders must reject (the legacy policy accepted
+# one order and rejected the other).
+erase FdStability.bo
+compile_fail FdOrder.bs
+compare_file FdOrder.bs.bsc-out
 
 # An instance head containing a primitive numeric type function (TAdd)
 # unifies with a numeric-literal head, so the pair overlaps without being

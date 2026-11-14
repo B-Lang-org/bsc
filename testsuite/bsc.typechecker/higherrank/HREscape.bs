@@ -1,0 +1,9 @@
+package HREscape where
+
+-- outward skolem escape: v's (outer) type metavariable would have to
+-- become the field's skolem
+struct R =
+  rep :: (a -> a) -> a -> a
+
+bad3 :: b -> R
+bad3 v = R { rep = \ fn x -> v }

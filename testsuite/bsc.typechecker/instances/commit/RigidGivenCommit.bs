@@ -1,0 +1,19 @@
+-- Test that an unreachable rigid same-class given does not prevent a coherent
+-- instance match from committing its SAT-only numeric residual.
+package RigidGivenCommit where
+
+import Vector
+
+struct Pad t n =
+  padding :: Bit n
+  value :: t
+ deriving (Bits)
+
+repack :: (Bits a x, Bits b x) => a -> b
+repack x = unpack (pack x)
+
+readAll :: (Bits a aSize) => Vector (TDiv aSize 32) (Bit 32) -> a
+readAll pieces =
+  let padded :: Pad a (TSub (TMul (TDiv aSize 32) 32) aSize)
+      padded = repack pieces
+  in padded.value

@@ -1,5 +1,13 @@
 checking package dependencies
 compiling Bug782_TLM2BRAM.bsv
+Warning: "Bug782_TLM2BRAM.bsv", line 148, column 10: (T0160)
+  The instance `ToBRAMSeverBETC#(BRAMServer#(addr, data), addr, data, n)' does
+  not cover the functional dependencies of class `ToBRAMSeverBETC': `n'
+  appears in a dependent (determined) position without being determined by the
+  input positions, directly or through the instance's provisos. The same
+  inputs can then be satisfied with many different results. If the class's
+  resolution is intentionally not a function of its inputs, declare the class
+  `incoherent'.
 Error: "Bug782_TLM2BRAM.bsv", line 24, column 8: (T0030)
   The provisos for this expression are too general.
   Given type:

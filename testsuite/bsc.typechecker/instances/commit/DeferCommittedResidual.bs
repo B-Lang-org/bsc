@@ -1,0 +1,61 @@
+package DeferCommittedResidual where
+
+-- Literals-style class: tag -> output type, via type function
+class (Lits :: * -> * -> *) tag tp | tag -> tp where
+  type TPf tag = tp
+
+data TagB = TagB
+
+instance Lits TagB Bool where { }
+
+-- SlotEncoding-style class: slot-kind + payload -> slot type
+class (SlotE :: * -> * -> * -> *) s a ts | s a -> ts where
+  type TSlot s a = ts
+
+data SWC = SWC
+
+struct (WithC :: * -> *) i = {
+  value :: i ;
+  chosen :: (UInt 2)
+ }
+ deriving (DefaultValue)
+
+instance SlotE SWC a (WithC a) where { }
+
+struct (Pr :: * -> * -> *) i p = {
+  iv :: i ;
+  pv :: p
+ }
+ deriving (DefaultValue)
+
+-- innermost instruction: has a type-function-typed field
+struct (InstrB :: * -> *) l = {
+  csrc :: (UInt 4) ;
+  cpred :: TPf (l)
+ }
+ deriving (DefaultValue)
+
+-- mid struct: field type uses BOTH type functions
+struct (MxuOf :: * -> * -> *) s l = {
+  systolic :: TSlot (s) (Pr (InstrB (l)) (TPf (l)))
+ }
+ deriving (DefaultValue)
+
+struct (TIOf :: * -> * -> *) s l = {
+  mxu :: MxuOf (s) (l)
+ }
+ deriving (DefaultValue)
+
+-- higher-order synonym hiding the tag
+type Bcast t = t SWC TagB
+type BTile = Bcast TIOf
+
+withC :: i -> WithC i
+withC i = WithC { value = i; chosen = 0 }
+
+bcastT :: i -> Pr i Bool
+bcastT i = Pr { iv = i; pv = True }
+
+t4 :: BTile
+t4 = defaultValue { mxu = defaultValue { systolic = withC $ bcastT $
+       defaultValue { cpred = False } } }
