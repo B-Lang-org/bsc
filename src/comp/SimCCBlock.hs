@@ -1225,10 +1225,12 @@ simFnStmtToCStmt (SFSAssign isPort aid expr) =
        APrim _ _ PrimConcat args | wdata_test aid ->
          do parts <- wideConcatParts args
             let dst = if isPort then aPortIdToC aid else aDefIdToC aid
-            -- Each setter returns the same destination.  Emit the writes in
-            -- order as separate statements instead of a deeply nested chain
-            -- of calls, which can exhaust the C++ compiler's stack.  Keep a
-            -- block so all writes stay guarded in a singleton SFSCond arm.
+            -- wideConcatPrim must return a single expression, so calling it
+            -- here would recreate the nested setter chain that can exhaust
+            -- the C++ compiler's stack. Share its layout and setter helpers,
+            -- but emit separate, ordered writes to the same destination.
+            -- Keep a block so all writes stay guarded in a singleton
+            -- SFSCond arm.
             return $ block [ stmt (addWideConcatPart dst part) | part <- parts ]
        _ -> do v <- aExprToCExpr (Just (isPort,aid)) expr
                let b_wop = (hasWop expr) && (wdata_test aid)
