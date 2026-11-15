@@ -32,6 +32,14 @@ help:
 
 # -------------------------
 
+# Serialize top-level targets so multi-goal invocations (such as
+# `make -j clean install-src` or `make -j install-src check-smoke`) run in
+# order instead of racing in the shared build and install directories;
+# sub-makes still parallelize via the -j jobserver.
+.NOTPARALLEL:
+
+# -------------------------
+
 .PHONY: rem_inst
 rem_inst:
 	rm -fr $(PREFIX)
