@@ -64,3 +64,13 @@ compile_verilog_pass CantLift_AVValue_Arg.bsv
 compile_verilog_pass CantLift_AVValue_NoArg.bsv
 
 # -----
+
+# Equal-arm shortcut in IExpand.doIf when the evaluated then arm equals an
+# already-WHNF else expression: the then arm's implicit condition must still
+# be guarded by the branch condition rather than applied unconditionally.
+test_c_veri_bs_modules_options IfEqualArmsGuard {} \
+    "-aggressive-conditions" sysIfEqualArmsGuard.out.expected
+test_c_veri_bs_modules_options IfEqualArmsGuardAttr {} \
+    "-no-aggressive-conditions" sysIfEqualArmsGuard.out.expected
+
+# -----
