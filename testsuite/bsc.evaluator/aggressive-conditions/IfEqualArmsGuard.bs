@@ -1,0 +1,50 @@
+package IfEqualArmsGuard where
+
+interface Guarded a =
+    val :: a
+
+guarded :: Bool -> a -> Guarded a
+guarded c x =
+    interface Guarded
+        val = x when c
+
+{-# verilog sysIfEqualArmsGuard #-}
+sysIfEqualArmsGuard :: Module Empty
+sysIfEqualArmsGuard =
+  module
+    cyc   :: Reg (UInt 3) <- mkReg 0
+    phase :: Reg (UInt 2) <- mkReg 0
+    ready :: Reg Bool     <- mkReg False
+    let g5 :: Guarded (Bit 8)
+        g5 = guarded ready 5
+    rules
+      -- Phase 0 (cyc 0): sel is False and ready is False; the unguarded else
+      --   arm (5) is selected, so "step" must fire on cyc 0.
+      -- Phase 1 (cyc 1): sel is True and ready is False; g5.val's `when ready`
+      --   implicit condition blocks "step" on cyc 1 until "tick" sets ready.
+      "step": when phase < 2 ==>
+        let sel = phase == 1
+            v = if sel then g5.val else 5
+        in  action
+              $display "cyc=%0d phase=%0d v=%0d" cyc phase v
+              if phase == 0 then
+                phase := 1
+              else
+                action
+                  phase := 2
+                  $display "PASS"
+                  $finish 0
+
+      "tick": when True ==>
+        action
+          cyc := cyc + 1
+          if cyc == 1 then
+            ready := True
+          else
+            noAction
+          if cyc == 5 then
+            action
+              $display "FAIL: timeout"
+              $finish 0
+          else
+            noAction

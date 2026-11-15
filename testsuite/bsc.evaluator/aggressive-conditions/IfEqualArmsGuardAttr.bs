@@ -1,0 +1,48 @@
+package IfEqualArmsGuardAttr where
+
+interface Guarded a =
+    val :: a
+
+guarded :: Bool -> a -> Guarded a
+guarded c x =
+    interface Guarded
+        val = x when c
+
+{-# verilog sysIfEqualArmsGuardAttr #-}
+sysIfEqualArmsGuardAttr :: Module Empty
+sysIfEqualArmsGuardAttr =
+  module
+    cyc   :: Reg (UInt 3) <- mkReg 0
+    phase :: Reg (UInt 2) <- mkReg 0
+    ready :: Reg Bool     <- mkReg False
+    let g5 :: Guarded (Bit 8)
+        g5 = guarded ready 5
+    rules
+      -- Exercise per-rule aggressive conditions under global -no-aggressive-conditions.
+      {-# aggressive_implicit_conditions #-}
+      "step": when phase < 2 ==>
+        let sel = phase == 1
+            v = if sel then g5.val else 5
+        in  action
+              $display "cyc=%0d phase=%0d v=%0d" cyc phase v
+              if phase == 0 then
+                phase := 1
+              else
+                action
+                  phase := 2
+                  $display "PASS"
+                  $finish 0
+
+      "tick": when True ==>
+        action
+          cyc := cyc + 1
+          if cyc == 1 then
+            ready := True
+          else
+            noAction
+          if cyc == 5 then
+            action
+              $display "FAIL: timeout"
+              $finish 0
+          else
+            noAction
