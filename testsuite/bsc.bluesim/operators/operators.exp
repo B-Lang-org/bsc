@@ -10,3 +10,12 @@ test_c_veri_bsv ShiftL
 test_c_veri_bsv ShiftR
 test_c_veri_bsv ShiftRA
 
+# Large wide concatenations must not create increasingly nested C++ calls.
+# Simulation checks every segment, with both true and false assignment guards.
+test_c_only_bsv_modules WideConcat mkWideConcatSource
+if {$ctest == 1} {
+    # Bound nesting while allowing inline expressions within each word.
+    # Reject 1024 indentation columns, accounting for tabs and spaces.
+    find_regexp_fail sysWideConcat.cxx {^(\t| {8}){128}}
+    find_regexp_fail mkWideConcatSource.cxx {^(\t| {8}){128}}
+}

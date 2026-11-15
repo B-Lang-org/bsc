@@ -828,25 +828,34 @@ wideExtractPrim ret out_width e hi lo =
 -- or not.
 wideConcatPrim :: (Maybe (Bool,AId)) -> Integer -> [AExpr] -> ExprConv
 wideConcatPrim ret out_width args =
-    do arg_exprs <- mapM (aExprToCExpr noRet) args
-       let arg_widths = map aSize args
-           shift_amounts = tail $ scanr (+) 0 arg_widths
+    do parts <- wideConcatParts args
        wdata_test <- getWDataTest
        let (w_ret,w_wret) =
              case ret of
                Nothing -> ([], False)
                (Just (False,aid)) -> ([aDefIdToC aid], (wdata_test aid))
                (Just (True,aid))  -> ([aPortIdToC aid], (wdata_test aid))
-           add_concat_part :: CCExpr -> (CCExpr,Integer,Integer) -> CCExpr
-           add_concat_part base (e,sh,w) =
-             if (((sh `rem` 32) == 0) && (w == 32))
-             then (base `cDot` "set_whole_word") `cCall` [e, mkUInt32 (sh `quot` 32)]
-             else if ((sh `quot` 32) == ((sh + w) `quot` 32))
-                  then (base `cDot` "set_bits_in_word") `cCall` [e, mkUInt32 (sh `quot` 32), mkUInt32 (sh `rem` 32), mkUInt32 w]
-                  else (base `cDot` "build_concat") `cCall` [e, mkUInt32 sh, mkUInt32 w]
-       if w_wret
-         then do return $ foldl add_concat_part (head w_ret) (zip3 arg_exprs shift_amounts arg_widths)
-         else do return $ foldl add_concat_part ((var "bs_wide_tmp") `cCall` [mkUInt32 out_width]) (zip3 arg_exprs shift_amounts arg_widths)
+       let base = if w_wret
+                  then head w_ret
+                  else (var "bs_wide_tmp") `cCall` [mkUInt32 out_width]
+       return $ foldl addWideConcatPart base parts
+
+-- Share the word layout and primitive selection between expression and
+-- statement forms of wide concatenation.
+wideConcatParts :: [AExpr] -> State ConvState [(CCExpr,Integer,Integer)]
+wideConcatParts args =
+    do arg_exprs <- mapM (aExprToCExpr noRet) args
+       let arg_widths = map aSize args
+           shift_amounts = tail $ scanr (+) 0 arg_widths
+       return $ zip3 arg_exprs shift_amounts arg_widths
+
+addWideConcatPart :: CCExpr -> (CCExpr,Integer,Integer) -> CCExpr
+addWideConcatPart base (e,sh,w) =
+    if (((sh `rem` 32) == 0) && (w == 32))
+    then (base `cDot` "set_whole_word") `cCall` [e, mkUInt32 (sh `quot` 32)]
+    else if ((sh `quot` 32) == ((sh + w) `quot` 32))
+         then (base `cDot` "set_bits_in_word") `cCall` [e, mkUInt32 (sh `quot` 32), mkUInt32 (sh `rem` 32), mkUInt32 w]
+         else (base `cDot` "build_concat") `cCall` [e, mkUInt32 sh, mkUInt32 w]
 
 -- -------------------------------------------------
 -- Converting expressions from ASyntax into CCSyntax
@@ -1212,14 +1221,23 @@ simFnStmtToCStmt (SFSAssign isPort aid
 simFnStmtToCStmt (SFSAssign isPort aid expr) =
   do ff_map <- gets function_map
      wdata_test <- getWDataTest
-     v <- aExprToCExpr (Just (isPort,aid)) expr
-     let b_wop = (hasWop expr) && (wdata_test aid)
-     if wideReturn ff_map expr || polyReturn ff_map expr || b_wop
-       then do return $ stmt v
-       else do let dst = if isPort
-                         then aPortIdToCLval aid
-                         else aDefIdToCLval aid
-               return $ dst `assign` v
+     case expr of
+       APrim _ _ PrimConcat args | wdata_test aid ->
+         do parts <- wideConcatParts args
+            let dst = if isPort then aPortIdToC aid else aDefIdToC aid
+            -- Each setter returns the same destination.  Emit the writes in
+            -- order as separate statements instead of a deeply nested chain
+            -- of calls, which can exhaust the C++ compiler's stack.  Keep a
+            -- block so all writes stay guarded in a singleton SFSCond arm.
+            return $ block [ stmt (addWideConcatPart dst part) | part <- parts ]
+       _ -> do v <- aExprToCExpr (Just (isPort,aid)) expr
+               let b_wop = (hasWop expr) && (wdata_test aid)
+               if wideReturn ff_map expr || polyReturn ff_map expr || b_wop
+                 then do return $ stmt v
+                 else do let dst = if isPort
+                                   then aPortIdToCLval aid
+                                   else aDefIdToCLval aid
+                         return $ dst `assign` v
 simFnStmtToCStmt (SFSAction act) =
   do (_, cond, call) <- aActionToCFunCall noRet act
      return $ if_cond cond (stmt call) Nothing
